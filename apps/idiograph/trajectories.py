@@ -19,7 +19,7 @@ this module hands those operations, LPET_OPS, to the caller's `lpet_op`.
 
 The file is `idiograph-trajectories.json` at the project's root, written only once a change is made:
 
-    {"schema": 1, "created": "...", "updated": "...",
+    {"schema": 1, "created": "...", "updated": "...", "note": "Icons by ...",
      "columns": [{"id": "c1", "title": "Positive", "description": "The plot gave them a place.",
                   "colour": "good", "icon": "rising", "order": ["P2 - Ash", "P1 - Wren"]},
                  {"id": "c2", "title": "Mixed"}],
@@ -28,6 +28,9 @@ The file is `idiograph-trajectories.json` at the project's root, written only on
                               "picture": "Wren.png", "hidden": ["G2"]}},
      "tags": {"Town": 3, "First plot": 7, "Practical": 1},
      "history": [{"when": "...", "changes": ["Positive added."], "note": "", "tool": ""}]}
+
+The board's own `note` (trajnote, 10 November 2026) is his free text for the whole screen, shown under its
+title while the status bar's Notes is on, and kept here beside the trajectories.
 
 A participant goes by their label, `P1 - Wren`, the GETs' case. What is kept on a participant stays when
 they are taken out of every trajectory, and a trajectory taken away puts its participants back among those
@@ -77,7 +80,7 @@ PICTURE_MAX = 12 * 1024 * 1024
 KEPT_MAX = {"jpg": 400 * 1024, "svg": 200 * 1024}
 # the operations kept in this file, then those on a participant's LPETs board, which the caller runs
 OPS = ("add", "rename", "move", "remove", "place", "note", "describe", "colour", "icon", "title", "tags",
-       "tag_colour", "picture", "order", "hide", "show")
+       "tag_colour", "picture", "order", "hide", "show", "note_board")
 LPET_OPS = ("state", "quote", "bold", "domain", "states_from_notes")
 
 
@@ -146,7 +149,13 @@ def normal(data: dict) -> dict:
         if words(word) and isinstance(n, int) and not isinstance(n, bool) and 0 <= n < len(TAG_NAMES):
             colours[words(word)[:TAG_MAX]] = n
     history = [h for h in data.get("history") or [] if isinstance(h, dict)] if isinstance(data.get("history"), list) else []
-    return dict(data, columns=columns, placed=placed, tags=colours, history=history)
+    out = dict(data, columns=columns, placed=placed, tags=colours, history=history)
+    note = data.get("note").strip()[:NOTE_MAX] if isinstance(data.get("note"), str) else ""
+    if note:
+        out["note"] = note
+    else:
+        out.pop("note", None)
+    return out
 
 
 def tags_kept(given) -> list[str]:
@@ -314,6 +323,7 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
       `at`, their place in it from 0, at the end without it
     - `order`, `participant`, `at`, their place in their trajectory
     - `note`, `participant`, `note`, his words on why, an empty one clearing it
+    - `note_board`, `note`, his note for the whole screen, an empty one clearing it
     - `title`, `participant`, `title`, their own label, an empty one clearing it
     - `tags`, `participant`, `tags`, a list of words, all of their tags, an empty list clearing them
     - `tag_colour`, `tag`, `colour`, by its name in the participants' palette, for every participant
@@ -403,6 +413,16 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
                 else:
                     c.pop("icon", None)
                 said.append(f"{c['title']}'s icon is {icon} now." if icon else f"{c['title']} has no icon now.")
+        elif kind == "note_board":
+            note = str(op.get("note") or "").strip()
+            if len(note) > NOTE_MAX:
+                raise WorkbookError(i18n.t("server.make_note_characters_fewer_nothing", note_max=NOTE_MAX))
+            if note != (data.get("note") or ""):
+                if note:
+                    data["note"] = note
+                else:
+                    data.pop("note", None)
+                said.append("The board's note " + ("changed." if note else "cleared."))
         elif kind == "tag_colour":
             word = words(op.get("tag"))
             held = next((w for w in data["tags"] if w.lower() == word.lower()), None)
@@ -732,7 +752,8 @@ def picture_files(root: Path, files: dict, when: str) -> None:
 def board(data: dict | None, people: list[dict]) -> dict:
     """The board as the screen draws it and an agent reads it: each trajectory with its participants in his
     order, those not placed, and each participant's card, `case`, `who`, `colour`, `lpets` (their LPETs'
-    titles), `column`, `note`, `title`, `tags` (each `{"word", "colour"}`), `picture` and `hidden`. `people` is
+    titles), `column`, `note`, `title`, `tags` (each `{"word", "colour"}`), `picture` and `hidden`, and the
+    board's own `note`. `people` is
     each participant of the project with their colour and LPETs, and `rows`, each LPET with its cells."""
     data = normal(data) if data else {"columns": [], "placed": {}, "tags": {}, "history": [], "updated": None}
     placed = data.get("placed") or {}
@@ -751,7 +772,7 @@ def board(data: dict | None, people: list[dict]) -> dict:
     cases = [x["case"] for x in cards]
     return {"columns": [dict({k: v for k, v in c.items() if k != "order"}, participants=order_of(data, c, cases))
                         for c in data["columns"]],
-            "unplaced": [x["case"] for x in cards if not x["column"]],
+            "unplaced": [x["case"] for x in cards if not x["column"]], "note": data.get("note") or "",
             "participants": cards, "tags": dict(data.get("tags") or {}), "updated": data.get("updated"),
             "palette": dict(PALETTE), "icons": list(ICONS), "faces": list(FACES),
             "history": list(data.get("history") or [])[-20:]}

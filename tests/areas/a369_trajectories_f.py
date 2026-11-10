@@ -28,7 +28,8 @@ def test_trajectories_f(scratch):
     print("\n369. Trajectories as his Freeform lays them out (trajbuild2, 10 November 2026): each LPET a row across "
           "the timepoints with its state, key quote and bold from the LPET table, the states moved from the LPETs' "
           "notes, a trajectory's sentence, colour and icon, a participant's label, tags, picture and order, an LPET "
-          "hidden and its domain, each op with its dry run, through the route and the command line")
+          "hidden and its domain, each op with its dry run, through the route and the command line, and the board's "
+          "own note (trajnote, 10 November 2026)")
     import cli
     import gets as gets_mod
     import mcp_server
@@ -334,7 +335,31 @@ def test_trajectories_f(scratch):
         check("369: the MCP server's trajectories_apply names every new op",
               all(w in tool["description"] for w in ('"describe"', '"colour"', '"icon"', '"title"', '"tags"', '"tag_colour"',
                                                      '"picture"', '"hide"', '"state"', '"quote"', '"bold"', '"domain"',
-                                                     '"states_from_notes"', '"order"')))
+                                                     '"states_from_notes"', '"order"', '"note_board"')))
+
+        # (j) the board's own note (trajnote, 10 November 2026): its dry run, kept in the file, read again after a
+        # reload, printed by trajectories show, and cleared
+        said_note = [{"op": "note_board", "note": "  Pictures drawn by a friend of the allotment.\nThanks to the committee.  "}]
+        t_before = tfile.read_bytes()
+        dry = call("/api/trajectories-ops", {"workbook": str(wren), "dry_run": True, "ops": said_note})
+        check("369: the board's note in a dry run says so and writes nothing",
+              dry["changes"] == ["The board's note changed."] and tfile.read_bytes() == t_before
+              and dry["note"].startswith("Pictures drawn"), str(dry["changes"]))
+        call("/api/trajectories-ops", {"workbook": str(wren), "ops": said_note, "note": "His credit for the pictures"})
+        f = json.loads(tfile.read_text(encoding="utf-8"))
+        fresh_board = call("/api/trajectories", {"workbook": str(wren)})
+        code, tshow, err = run("trajectories", "show")
+        check("369: the board's note is kept in the trajectories file, trimmed, its lines kept, with its History line, "
+              "and read again on a fresh open and by trajectories show",
+              f.get("note") == "Pictures drawn by a friend of the allotment.\nThanks to the committee."
+              and f["history"][-1]["changes"] == ["The board's note changed."]
+              and fresh_board["note"] == f["note"] and code == 0 and tshow.get("note") == f["note"]
+              and len(f["columns"]) == 2, (err or "") + str(fresh_board.get("note")))
+        said = refused({"workbook": str(wren), "ops": [{"op": "note_board", "note": "x" * (traj_mod.NOTE_MAX + 1)}]})
+        check("369: a board's note past its length is refused", "fewer" in said or str(traj_mod.NOTE_MAX) in said, said)
+        done = call("/api/trajectories-ops", {"workbook": str(wren), "ops": [{"op": "note_board", "note": ""}]})
+        check("369: an empty note clears it from the file", done["changes"] == ["The board's note cleared."]
+              and "note" not in json.loads(tfile.read_text(encoding="utf-8")) and done["note"] == "", str(done["changes"]))
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept
     _keys_in_browser()
@@ -352,7 +377,7 @@ const cell = (q, key, chosen, bold) => ({ state: 'A state', chosen, bold, missin
   quote: q ? { key, text: q, time: 'T1, 03:12' } : null, choices: q ? [{ key, text: q, time: '03:12' }, { key: key + 'b', text: 'Another', time: '04:00' }] : [] });
 const row = (id, title) => ({ id, title, domain: 'Practical', domain_colour: 3, shown: true,
   cells: { T1: cell('I had tidy rows in my head', 'Before:3:0', false, []), T2: cell('', '', false, []), T3: cell('I ask first', 'Harvest:2:0', true, [[0, 1]]) } });
-const DATA = { project: null, demo: false, unplaced: [], config: { traj_quotes: 'short', traj_notes: false },
+const DATA = { project: null, demo: false, unplaced: [], note: 'A credit line', config: { traj_quotes: 'short', traj_notes: false },
   timepoints: [{ n: 1, label: 'T1', description: 'Before the season' }, { n: 2, label: 'T2', description: 'Midsummer' }, { n: 3, label: 'T3', description: 'After the harvest' }],
   palette: { good: 'Green' }, faces: ['face01'],
   columns: [{ id: 'c1', title: 'Positive', colour: 'good', icon: 'rising', participants: ['P1 - Wren', 'P2 - Ash'] },
@@ -371,6 +396,7 @@ const run = async () => {
   TJ.path = 'x'; TJ.sideOpen = false;
   trajLoad(JSON.parse(JSON.stringify(DATA)));
   const p = (c) => document.querySelector(`.tf-pcell[data-case="${c}"]`);
+  out.noteOff = document.getElementById('tj-board-note').hidden;
   out.bands = [...document.querySelectorAll('.tf-band')].map((b) => b.dataset.col);
   out.heads = [...document.querySelectorAll('.tf-band[data-col="c1"] .tf-th:not(.tf-th0)')].map((h) => h.textContent);
   out.auto = !!document.querySelector('.tf-q.tf-q-auto');
@@ -396,6 +422,11 @@ const run = async () => {
   const ash = p('P2 - Ash').getBoundingClientRect();
   out.dropTop = trajDropAt(band, ash.top + 2, 'P3 - Fern');
   out.dropEnd = trajDropAt(band, ash.bottom + 400, 'P3 - Fern');
+  // the board's note: shown once Notes is on, typed in place, Enter keeping it
+  TJ.data.config.traj_notes = true; trajDraw();
+  const note = document.getElementById('tj-board-note');
+  out.noteOn = !note.hidden && note.value === 'A credit line' && note.getBoundingClientRect().height > 0;
+  note.focus(); note.value = 'Pictures by a friend'; key(note, 'Enter'); await settle();
   out.sent = SENT;
   document.getElementById('out').textContent = JSON.stringify(out);
 };
@@ -456,5 +487,9 @@ def _keys_in_browser():
           out.get("choices") == 2 and out.get("chooserAgain") == 2 and len(sent) > 5
           and sent[4] == {"op": "quote", "participant": "P1 - Wren", "lpet": "G1", "timepoint": "T1", "quote": "Before:3:0b"}
           and sent[5] == {"op": "quote", "participant": "P1 - Wren", "lpet": "G1", "timepoint": "T3", "quote": ""}, str(sent[4:6]))
+    check("369: in a browser the board's note is hidden while Notes is off, shown with its words once it is on, and "
+          "typed in place, Enter sending note_board",
+          out.get("noteOff") is True and out.get("noteOn") is True and len(sent) > 6
+          and sent[6] == {"op": "note_board", "note": "Pictures by a friend"}, str(out)[:300] + str(sent[6:7]))
     check("369: a participant dropped above another's middle goes before them, below every one at the end",
           out.get("dropTop") == 1 and out.get("dropEnd") == 2, str(out)[:300])

@@ -514,8 +514,8 @@ TOOLS = [
                          "description": 'The timepoints in order, [{"label": "T1", "description": "Before the season"}].'}},
          ["timepoints"], writes="changes"),
     mcp.tool("trajectories_show", "The Trajectories board", ("trajectories", "show"),
-         "In a project of two or more timepoints, the Trajectories board after the LGETs: the project's own "
-         "trajectories, each with its sentence, colour and icon and the participants placed in it in his order, then "
+         "In a project of two or more timepoints, the Trajectories board after the LGETs: his note for the whole "
+         "board, `note`, then the project's own trajectories, each with its sentence, colour and icon and the participants placed in it in his order, then "
          "those not placed, each participant with their colour, label, tags, picture, his note on why, their LPETs' "
          "titles, and rows: each LPET with its domain, whether it is shown, and a cell for each timepoint holding its "
          "state, its key quote (ticked, chosen, or the first standing in), his bold in it as [start, end] spans, and "
@@ -534,7 +534,8 @@ TOOLS = [
          '(all their tags), {"op": "tag_colour", "tag": "Town", "colour": "Brown"} (one of the participants\' 25 '
          'colours, for everyone with it), {"op": "picture", "participant": "Wren", "set": "face07"} or "from": an '
          'image file\'s path (kept in the project folder, scaled), or neither to take it off, {"op": "hide", '
-         '"participant": "Wren", "lpet": "G2"} and "show" (an LPET on this screen alone). On the participant\'s LPETs '
+         '"participant": "Wren", "lpet": "G2"} and "show" (an LPET on this screen alone), {"op": "note_board", "note": '
+         '"..."} (his note for the whole screen, shown under its title while Notes is on, "" clearing it). On the participant\'s LPETs '
          'board, the LPET table\'s row at a timepoint: {"op": "state", "participant": "Wren", "lpet": "G1", '
          '"timepoint": "T2", "state": "..."}, {"op": "quote", ..., "quote": "<quote key>"} ticks its key quote, '
          '"" takes the tick off, {"op": "bold", ..., "spans": [[0, 12]]} his bold in the key quote, never the '

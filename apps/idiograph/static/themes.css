@@ -2334,6 +2334,15 @@ circle.th-link-hit { fill: transparent; stroke: none; pointer-events: fill; }
 #tj-back:focus-visible { outline: 0; box-shadow: var(--focus-small); }
 .tj-body { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 20px 24px 32px; }
 .tj-said[hidden] { display: none; }
+/* the board's own note, a line of its own under the question, typed in place with the sentence's look, its
+   placeholder showing while it is empty, since it shows only while Notes is on (trajnote, 10 November 2026) */
+.tj-screen .band > .tj-board-note { flex: 1 0 100%; display: block; width: 100%; max-width: 70ch; margin: 4px 0 4px -5px; padding: 1px 4px;
+  resize: none; overflow: hidden; font: inherit; font-size: 14px; line-height: 1.4; color: var(--ink); background: transparent;
+  border: 1px solid transparent; border-radius: var(--r-control); }
+.tj-screen .band > .tj-board-note[hidden] { display: none; }
+.tj-screen .band > .tj-board-note::placeholder { color: var(--ink-faint); }
+.tj-screen .band > .tj-board-note:hover { border-color: var(--rule); }
+.tj-screen .band > .tj-board-note:focus { outline: 0; border-color: var(--field-edge); background: var(--card); box-shadow: var(--focus-small); }
 /* Layout F (trajbuild2, 10 November 2026, Adam's Freeform page after revD): each trajectory a band down the
    screen, its head shaded in its colour with its icon, title and sentence and a rule in its colour under them,
    then the timepoints across, then each participant: their picture, name, label and tags in a cell of their own

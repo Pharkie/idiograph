@@ -747,7 +747,8 @@ sentence), `colour`, `icon` and `participants` in his order, then `unplaced`, an
 starter"), `tags` (each `{"word", "colour"}`), `picture` and `hidden`, and `rows`: each LPET with its `id`,
 `title`, `domain`, `shown`, and `cells` by timepoint, each with its `state`, its key `quote` (`key`, `text`,
 `time`, or none), `chosen` (false while the first quote stands in), `bold` (`[start, end]` spans of the
-quote's characters) and `choices`, the quotes it can take. Then `tags`, each tag's colour, and `timepoints`.
+quote's characters) and `choices`, the quotes it can take. Then `tags`, each tag's colour, `timepoints`, and
+`note`, his note for the whole board ("" when there is none), which the lines print first as "Note: ...".
 
 `trajectories apply` takes the board's own operations, a list or `{"operations": [...]}`, run in order, all
 refused when one is wrong, nothing written:
@@ -766,6 +767,8 @@ refused when one is wrong, nothing written:
   alone)
 - `tag_colour` (`tag`, `colour`, one of the participants' 25 colours by name), the tag's colour on everyone
   who has it
+- `note_board` (`note`, his note for the whole screen, up to 2,000 characters, its lines kept, "" clearing it),
+  shown under the screen's title while Notes is on (trajnote, 10 November 2026)
 - on the participant's LPETs board, the LPET table's row at a timepoint, by `lpet` (id or title) and
   `timepoint` (`T2`, `2`, its label or description): `state` (`state`, the row's note), `quote` (`quote`, a
   key from the cell's `choices`, "" taking his tick off, the first quote then standing in) and `bold`

@@ -5250,6 +5250,10 @@ timepoints:
     and holds Quotes, which steps through off, short (three lines) and full, and Notes, each
     participant's note on why they stand there (the old Why box), off until he turns it on. Both are
     kept in Settings.
+  - While Notes is on, the screen has a note of its own under the research question, for the whole
+    board: a credit for the pictures, say. It is typed in place as a trajectory's sentence is, Enter
+    keeping it and Shift+Enter a new line, and an empty one shows Note. It is kept in the trajectories
+    file with the board (10 November 2026).
   - The board is kept in `idiograph-trajectories.json` at the project's root, written on the first
     change. A project whose LPETs' notes hold their states as paragraphs headed T1, T2, T3, as one made
     in Excel does, has them moved into the LPET table's rows by an agent (`states_from_notes`), each

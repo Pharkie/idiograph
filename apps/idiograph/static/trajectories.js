@@ -17,7 +17,8 @@
    before or after, Backspace to Not placed. A double-click on their cell, or Edit in its menu, opens their editor
    in place: their picture, their own or one of the set, their label, their tags, a tag's colour, and which LPETs
    show here. The status bar along the foot counts them and holds Quotes, off, short or full, and Notes, each
-   participant's note, the old Why, both kept in the settings.
+   participant's note, the old Why, and the board's own note under the question (trajnote, 10 November 2026), typed
+   in place as a sentence is, both kept in the settings.
 
    Every change goes through /api/trajectories-ops with the same operations an agent's command line sends
    (trajectories.py on the server, an LPET's row through gets.row_op), and the board is drawn again from the
@@ -192,6 +193,7 @@ function trajDraw() {
   const caret = was && typeof was.selectionStart === 'number' ? [was.selectionStart, was.selectionEnd] : null;
   trajDoorDraw();
   trajStatusDraw();
+  trajNoteDraw();
   const bands = [...(TJ.sideOpen ? [{ id: '', title: TJ_NOT_PLACED, participants: d.unplaced || [], fixed: true }] : []), ...(d.columns || [])];
   let html = bands.map(trajBandHtml).join('');
   html += `<div class="tf-new"><button type="button" class="tj-new" id="tj-new" data-fkey="new">${TJ_PLUS}${esc(t('trajectories.new'))}</button></div>`;
@@ -208,6 +210,17 @@ function trajDraw() {
       if (caret && typeof again.setSelectionRange === 'function') { try { again.setSelectionRange(caret[0], caret[1]); } catch { /* not a text field */ } }
     }
   }
+}
+
+/* the board's own note under the question, there only while Notes is on, its words left alone while he types */
+function trajNoteDraw() {
+  const box = $('tj-board-note');
+  if (!box) return;
+  box.hidden = !tjNotesOn();
+  box.placeholder = t('trajectories.note_placeholder');
+  box.setAttribute('aria-label', t('trajectories.board_note_label'));
+  if (document.activeElement !== box) box.value = (TJ.data && TJ.data.note) || '';
+  if (!box.hidden) trajFit(box);
 }
 
 /* a field as tall as its words, so the whole of a sentence, a state or a note shows */
@@ -585,6 +598,18 @@ function trajWire() {
     const case_ = TJ.editing;
     e.target.value = '';
     if (file && case_) trajOwnPicture(case_, file);
+  });
+  // the board's note: Enter keeps it, Shift+Enter a new line, Esc leaves it as it was, kept as the focus leaves
+  const note = $('tj-board-note');
+  note.addEventListener('input', () => trajFit(note));
+  note.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); note.blur(); }
+    else if (e.key === 'Escape') { e.preventDefault(); note.value = (TJ.data && TJ.data.note) || ''; note.blur(); }
+  });
+  note.addEventListener('blur', () => {
+    const now = note.value.trim();
+    if (TJ.data && now !== (TJ.data.note || '')) trajOps([{ op: 'note_board', note: now }]);
+    else trajFit(note);
   });
   const board = $('tj-board');
   board.addEventListener('click', (e) => {

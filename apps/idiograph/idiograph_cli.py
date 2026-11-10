@@ -533,7 +533,7 @@ def traj_lines(answer: dict) -> list[str]:
             out.append(i18n.t("cli.traj_lines.why", note=c['note']))
         return out
 
-    lines = []
+    lines = [i18n.t("cli.traj_lines.board_note", note=answer["note"])] if answer.get("note") else []
     for col in answer["columns"]:
         lines += [f"{col['title']} ({col['id']}, {i18n.t('cli.n.participant', n=len(col['participants']))})"
                   + (f": {col['description']}" if col.get("description") else "")]
@@ -546,7 +546,7 @@ def traj_lines(answer: dict) -> list[str]:
 
 
 def traj_answer(answer: dict) -> dict:
-    keep = ("columns", "unplaced", "participants", "tags", "updated", "timepoints", "palette", "icons", "faces")
+    keep = ("note", "columns", "unplaced", "participants", "tags", "updated", "timepoints", "palette", "icons", "faces")
     return {k: answer[k] for k in keep if k in answer}
 
 
@@ -563,7 +563,8 @@ def cmd_trajectories_show(p: Project, args) -> tuple:
 
 def cmd_trajectories_apply(p: Project, args) -> tuple:
     """A change to the Trajectories board with the board's own operations, all or nothing, a dry run
-    first: add, rename, move and remove a trajectory, its sentence, colour and icon, place a participant or take
+    first: the board's own note, add, rename, move and remove a trajectory, its sentence, colour and icon, place a
+    participant or take
     them out, their order, note, label, tags and picture, a tag's colour, an LPET hidden or shown, and on a
     participant's LPETs board an LPET's state, key quote and bold at a timepoint, its domain, and the states
     moved from the LPETs' notes (trajbuild2, 10 November 2026)."""

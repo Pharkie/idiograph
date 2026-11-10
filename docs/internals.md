@@ -3042,7 +3042,13 @@ place, `trajPickerHtml` the colour and icon. A picture, a tag's pill and a tag's
 (`trajMove`, `trajPlace`) and Cmd or Ctrl+B in a key quote (`trajChosenSpan`, `trajBold`). A drag of a
 participant's cell drops at the place under the pointer (`trajDropAt`). Settings `traj_quotes` (`off`,
 `short`, `full`, short on a new install) and `traj_notes` (off) are the status bar's Quotes and Notes,
-`OWN_SETTINGS`. Area 369 holds the ops, their dry runs, the migration, the stand-in, the bold, the domain
+`OWN_SETTINGS`. The board's own note (trajnote, 10 November 2026) is `note` at the top of the trajectories
+file, set by the op `note_board` (`NOTE_MAX`, trimmed, its lines kept, "" taking the key away), answered by
+`board` as `note` and printed first by the command line's `traj_lines`. On the page it is `#tj-board-note`, a
+textarea in `#tj-band` after the question, a line of its own (`flex: 1 0 100%`) in the sentence's look,
+which `trajNoteDraw` hides while `traj_notes` is off and fills from the answer unless it has the focus.
+Enter or leaving it sends `note_board`, Shift+Enter a new line, Esc puts it back. There is no Trajectories
+PDF or picture yet, so it goes into no export. Area 369 holds the ops, their dry runs, the migration, the stand-in, the bold, the domain
 kept through an LPETs save, the shared tag colour, the moves, hide and show, the pictures, the CLI and MCP,
 and the keys, Cmd+B, the chooser and a drop's place in a headless browser.
 

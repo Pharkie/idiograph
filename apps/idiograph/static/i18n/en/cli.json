@@ -762,6 +762,7 @@
   "cli.trajectories_show.trajectories_of": "Trajectories of {name}: ",
   "cli.traj_lines.not_placed": "Not placed ({n_unplaced})",
   "cli.traj_lines.why": "      Why: {note}",
+  "cli.traj_lines.board_note": "Note: {note}",
   "cli.traj_lines.no_lpets_yet": ", no LPETs yet",
   "cli.traj_lines.no_quote": "No quote",
   "cli.traj_lines.first": "(the first, standing in)",
