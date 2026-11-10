@@ -1,0 +1,161 @@
+{
+ "about": "The thematic analysis demo's code list and Themes board, invented: each code with its description, and each theme by its title with its definition, its note and its codes, a subtheme inside its theme. A code in no theme is not placed. make_demo.py builds idiograph-codes.json and idiograph-gets.json from this and the three participants' coding.",
+ "made": "2026-10-19T14:30:00+01:00",
+ "chosen": "2026-10-20T09:15:00+01:00",
+ "codes": [
+  {
+   "name": "Days arranged round the dog",
+   "description": "Times, routes and rooms set by what the dog needs, often noticed only once they are in place."
+  },
+  {
+   "name": "Rules nobody wrote down",
+   "description": "Routines and rules between person and dog that grew up without being agreed in words."
+  },
+  {
+   "name": "Who does the dog's work",
+   "description": "Who gets up, walks and carries the care, and what that says between the people in the house."
+  },
+  {
+   "name": "A reason to get up",
+   "description": "The dog's needs giving a morning a shape it lacked, or the lack of one once the dog has gone."
+  },
+  {
+   "name": "A house filled or emptied by the dog",
+   "description": "The dog as what makes a house feel lived in, felt most when the dog is out of it."
+  },
+  {
+   "name": "The dog as a reason nobody argues with",
+   "description": "The dog given as the reason for being somewhere, or not, which other people accept without question."
+  },
+  {
+   "name": "Talking to the dog",
+   "description": "Speaking to the dog out loud, as to a person, about the day or about nothing."
+  },
+  {
+   "name": "The dog as a way round hard talk",
+   "description": "The dog standing in for, or interrupting, talk that people find hard with each other."
+  },
+  {
+   "name": "Doubts kept unsaid",
+   "description": "Doubts or regrets about the dog that are felt and kept back from the people nearest."
+  },
+  {
+   "name": "Wanted without conditions",
+   "description": "The dog's welcome felt as asking for nothing, with nothing that has to have been got right."
+  },
+  {
+   "name": "The dog in a person's place",
+   "description": "The dog taking a place, a role or a habit that a person once held."
+  },
+  {
+   "name": "A life opening out",
+   "description": "New people, places and habits that came with the dog."
+  },
+  {
+   "name": "A life closing in",
+   "description": "A life narrowing round the dog's needs: fewer outings, fewer people, fewer yeses."
+  },
+  {
+   "name": "Caring for myself through the dog",
+   "description": "Looking after the dog bringing looking after oneself with it: meals, exercise, a quiet head."
+  },
+  {
+   "name": "Keeping watch",
+   "description": "Alertness on the dog's behalf, for its safety or for others', that does not switch off."
+  },
+  {
+   "name": "Rehearsing the dog's death",
+   "description": "Imagining the dog's illness or death ahead of time, and being caught out by how much it hurts."
+  },
+  {
+   "name": "Settling the dog's future",
+   "description": "Deciding where the dog will live and with whom, by rehoming it or by a will."
+  },
+  {
+   "name": "Others judging the dog's place",
+   "description": "Family, neighbours or landlords questioning whether the dog should stay, and answering them."
+  },
+  {
+   "name": "Asking whether it was my fault",
+   "description": "Asking whether the dog's troubles, or its going, were the person's own doing."
+  },
+  {
+   "name": "Loss without a name yet",
+   "description": "Missing a dog that is still alive elsewhere, a feeling the speaker cannot yet name."
+  },
+  {
+   "name": "The dog's joy lifting a mood",
+   "description": "The dog's pleasure taking a bad mood away, sometimes before the person is ready to let it go."
+  },
+  {
+   "name": "Two feelings at once",
+   "description": "Holding opposite feelings about the same thing at once, and saying so."
+  }
+ ],
+ "themes": [
+  {
+   "title": "Life rearranged round the dog",
+   "definition": "How the dog's needs come to order time, rooms and the share of care, often unnoticed until something interrupts them.",
+   "note": "Began as a summary of routines. Reworked once I saw how often the arranging went unseen until it stopped: the groomer's two hours, the bowl in the cupboard, the alarm at quarter past five.",
+   "codes": [
+    "Days arranged round the dog",
+    "Rules nobody wrote down",
+    "Who does the dog's work",
+    "A reason to get up"
+   ],
+   "subs": [
+    {
+     "title": "A house on standby",
+     "definition": "The dog as the presence that makes a house feel lived in, felt most sharply when the dog is out of it or gone.",
+     "codes": [
+      "A house filled or emptied by the dog"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "The dog between people",
+   "definition": "The dog as a go-between: a reason others accept, a listener, and a way round the talk people find hard with each other.",
+   "note": "Juno's account leads here, so I checked it was not hers alone. Rowan and Mabel both give the dog as a reason, and Mabel's talk to Pepper is the clearest case of the dog taking a place.",
+   "codes": [
+    "The dog as a reason nobody argues with",
+    "Talking to the dog",
+    "The dog as a way round hard talk",
+    "Doubts kept unsaid"
+   ],
+   "subs": [
+    {
+     "title": "Easier than people",
+     "definition": "The dog's love as simpler than people's, needing nothing to have been got right, and taking a place a person once held.",
+     "codes": [
+      "Wanted without conditions",
+      "The dog in a person's place"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "The dog as a door, open or shut",
+   "definition": "Whether a dog widens a life or narrows it turns on how far the dog can share the world outside the house. Pepper's ease takes Mabel out to the green, the classes and better care of herself. Skye's fear keeps Rowan in the flat and the dark hours. The bond is the same, the door is not.",
+   "note": "Mabel and Rowan pull in opposite directions. Kept as one theme because the contrast is the point: it turns on the dog and the place more than on the person.",
+   "codes": [
+    "A life opening out",
+    "A life closing in",
+    "Caring for myself through the dog"
+   ]
+  },
+  {
+   "title": "Love that keeps watch",
+   "definition": "Care for the dog that is never free of vigilance: for its safety, for others' judgement, and for a future in which one of them is gone.",
+   "note": "",
+   "codes": [
+    "Keeping watch",
+    "Rehearsing the dog's death",
+    "Settling the dog's future",
+    "Others judging the dog's place",
+    "Asking whether it was my fault",
+    "Loss without a name yet"
+   ]
+  }
+ ]
+}

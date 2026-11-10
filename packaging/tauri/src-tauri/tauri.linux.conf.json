@@ -1,0 +1,16 @@
+{
+  "bundle": {
+    "resources": {
+      "../../../build/tauri-server/": "server/"
+    },
+    "linux": {
+      "deb": {
+        "section": "science",
+        "priority": "optional"
+      },
+      "appimage": {
+        "bundleMediaFramework": false
+      }
+    }
+  }
+}

@@ -1,0 +1,564 @@
+{
+ "about": "Juno's coding in the thematic analysis demo, invented, on the same interview as the IPA demo's. Every participant turn in order, found by its opening words: each extract as said with its codes, and the passage's note, or empty for a turn reviewed and left uncoded. Then the times of the work. make_demo.py builds the workbook and the progress file from this and the interview CSV in demo/source/.",
+ "built": "2026-10-14T12:00:00",
+ "turns": [
+  {
+   "at": "Erm. That is a big question",
+   "extracts": [
+    {
+     "text": "Bramble is just there, all the time.",
+     "codes": [
+      "A house filled or emptied by the dog"
+     ]
+    },
+    {
+     "text": "she is sat on the second stair, because she is not allowed past the second stair",
+     "codes": [
+      "Rules nobody wrote down"
+     ]
+    },
+    {
+     "text": "The house is never empty now. Even when it is quiet it is not empty.",
+     "codes": [
+      "A house filled or emptied by the dog"
+     ]
+    }
+   ],
+   "note": "Opens on presence before anything else. The second stair comes back later as a rule."
+  },
+  {
+   "at": "It is like being caught.",
+   "extracts": [
+    {
+     "text": "I was the one who said no dog, for about four years I said no dog, absolutely not, I know who ends up walking it.",
+     "codes": [
+      "Who does the dog's work"
+     ]
+    },
+    {
+     "text": "having a full conversation with an animal",
+     "codes": [
+      "Talking to the dog"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "My partner wore me down",
+   "extracts": [
+    {
+     "text": "I still say I was talked into her, and my partner still says I was the one who filled the form in, and we are both right.",
+     "codes": [
+      "Two feelings at once"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Right. So the alarm goes",
+   "extracts": [
+    {
+     "text": "there is the question of who gets up, which is the first thing that happens in our house every single day, and it is not always friendly.",
+     "codes": [
+      "Who does the dog's work"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Annoying.",
+   "extracts": [
+    {
+     "text": "I am the one who does this, for ever. And it is not the twelve minutes. It is what the twelve minutes says. That I will always go.",
+     "codes": [
+      "Who does the dog's work"
+     ]
+    },
+    {
+     "text": "the annoyance just goes. Which is its own annoying thing, because I would quite like to stay cross.",
+     "codes": [
+      "The dog's joy lifting a mood",
+      "Two feelings at once"
+     ]
+    }
+   ],
+   "note": "Getting up first is not about the twelve minutes but what it settles about who gives way in the house. The dog then takes the grievance off her before she can use it, and she half minds."
+  },
+  {
+   "at": "I would. Because then",
+   "extracts": [
+    {
+     "text": "But you cannot carry a mood down those stairs. She takes it off you at the bottom.",
+     "codes": [
+      "The dog's joy lifting a mood",
+      "The dog as a way round hard talk"
+     ]
+    },
+    {
+     "text": "So it never gets said. Five years of it never getting said.",
+     "codes": [
+      "The dog as a way round hard talk",
+      "Doubts kept unsaid"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "It is the same walk.",
+   "extracts": [
+    {
+     "text": "Out of the door, left, down past the allotments, round the bottom field and back up the lane. Forty minutes.",
+     "codes": [
+      "Days arranged round the dog"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I love it.",
+   "extracts": [
+    {
+     "text": "Nobody can ask me for anything, because I am out with the dog, and that is a completely respectable reason to be unavailable. Nobody argues with it.",
+     "codes": [
+      "The dog as a reason nobody argues with"
+     ]
+    },
+    {
+     "text": "And my head goes quiet on that lane in a way it does not anywhere else.",
+     "codes": [
+      "Caring for myself through the dog"
+     ]
+    }
+   ],
+   "note": "Nobody argues with it: the dog as a reason no one can question, time of her own that needs no defending. Rowan uses almost the same words."
+  },
+  {
+   "at": "Yes. It sounds ridiculous",
+   "extracts": [
+    {
+     "text": "you cannot stand next to that much enthusiasm for a hedge and stay in a bad mood, it is not possible.",
+     "codes": [
+      "The dog's joy lifting a mood"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "On the bottom field, yes.",
+   "extracts": [
+    {
+     "text": "I am furious the entire time it is happening.",
+     "codes": [
+      "Keeping watch",
+      "Two feelings at once"
+     ]
+    },
+    {
+     "text": "the look on her at full stretch is worth more to me than the twenty minutes of worry.",
+     "codes": [
+      "The dog's joy lifting a mood"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Erm. Yes. The first year was hard.",
+   "extracts": [
+    {
+     "text": "I had not reckoned on how much of my time stopped being mine.",
+     "codes": [
+      "A life closing in"
+     ]
+    },
+    {
+     "text": "It was that you cannot just go.",
+     "codes": [
+      "A life closing in",
+      "Days arranged round the dog"
+     ]
+    },
+    {
+     "text": "I thought, I have made a mistake here. I did not say that out loud to anybody.",
+     "codes": [
+      "Doubts kept unsaid"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Because it is a terrible thing",
+   "extracts": [
+    {
+     "text": "And I am going to sit at a table and say I regret her. No.",
+     "codes": [
+      "Doubts kept unsaid"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "There was one.",
+   "extracts": [
+    {
+     "text": "we both turned round at the same second, without either of us deciding it, and came home.",
+     "codes": [
+      "Rules nobody wrote down"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I think because it cost me something.",
+   "extracts": [
+    {
+     "text": "which felt like an agreement rather than a failure.",
+     "codes": [
+      "Rules nobody wrote down"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Well, she has not signed anything.",
+   "extracts": [
+    {
+     "text": "There are rules in that house and neither of us wrote them down.",
+     "codes": [
+      "Rules nobody wrote down"
+     ]
+    },
+    {
+     "text": "I do the mornings, mostly.",
+     "codes": [
+      "Who does the dog's work"
+     ]
+    }
+   ],
+   "note": "An order kept without words on either side. Close to Rowan's sock every morning: the dog's part in the routine as a kind of promise."
+  },
+  {
+   "at": "Oh, it is the best bit of the day",
+   "extracts": [
+    {
+     "text": "she cannot get to the door fast enough, she actually skids into it.",
+     "codes": [
+      "Wanted without conditions"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "It is being wanted. Plainly.",
+   "extracts": [
+    {
+     "text": "It is being wanted. Plainly. Nobody else in my life is that pleased to see me",
+     "codes": [
+      "Wanted without conditions",
+      "The dog in a person's place"
+     ]
+    }
+   ],
+   "note": "Careful not to sound bitter. The comparison with people is hers, and it returns in turn 19."
+  },
+  {
+   "at": "I think it makes me come home.",
+   "extracts": [
+    {
+     "text": "I think it makes me come home.",
+     "codes": [
+      "Wanted without conditions"
+     ]
+    },
+    {
+     "text": "And now there is a clock on me.",
+     "codes": [
+      "Days arranged round the dog"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "They said it once, in passing.",
+   "extracts": [
+    {
+     "text": "But there was something else in it as well, which was, you will come home for the dog.",
+     "codes": [
+      "The dog as a way round hard talk"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Uncomfortable.",
+   "extracts": [
+    {
+     "text": "The dog is easier.",
+     "codes": [
+      "Wanted without conditions",
+      "The dog in a person's place"
+     ]
+    },
+    {
+     "text": "She does not need me to have got anything right.",
+     "codes": [
+      "Wanted without conditions"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Yes. Because I do not know what to do with it.",
+   "extracts": [
+    {
+     "text": "Or it means we have found something to talk about instead of talking.",
+     "codes": [
+      "The dog as a way round hard talk",
+      "Two feelings at once"
+     ]
+    },
+    {
+     "text": "I have not got to the bottom of it and I am not certain I want to",
+     "codes": [
+      "Two feelings at once"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Yes. So in the spring she came up lame",
+   "extracts": [
+    {
+     "text": "it went straight to the worst thing.",
+     "codes": [
+      "Rehearsing the dog's death"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "My hands were shaking on the wheel",
+   "extracts": [
+    {
+     "text": "My hands were shaking on the wheel",
+     "codes": [
+      "Keeping watch"
+     ]
+    },
+    {
+     "text": "when did I let something matter this much.",
+     "codes": [
+      "Rehearsing the dog's death"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Well. It was a thorn.",
+   "extracts": [
+    {
+     "text": "At the size of what I had felt on the way there.",
+     "codes": [
+      "Rehearsing the dog's death"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "It was out of proportion.",
+   "extracts": [
+    {
+     "text": "I had spent twenty minutes organising my own grief in advance, in traffic.",
+     "codes": [
+      "Rehearsing the dog's death"
+     ]
+    },
+    {
+     "text": "So that Saturday was a rehearsal.",
+     "codes": [
+      "Rehearsing the dog's death"
+     ]
+    }
+   ],
+   "note": "Her word, rehearsal: the drive to the vet as grief practised in advance, the loss already arranged in her before it comes."
+  },
+  {
+   "at": "I try not to.",
+   "extracts": [
+    {
+     "text": "I am going to have to do this properly one day and I have no idea at all how I will be.",
+     "codes": [
+      "Rehearsing the dog's death"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Oh, the groomer.",
+   "empty": true
+  },
+  {
+   "at": "Nothing. That is the honest answer.",
+   "extracts": [
+    {
+     "text": "It was so quiet. And it was not a nice quiet, it was a wrong quiet",
+     "codes": [
+      "A house filled or emptied by the dog"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Er. It was like the house was on standby.",
+   "extracts": [
+    {
+     "text": "Everything in it is arranged around her now, and we never sat down and decided to arrange it.",
+     "codes": [
+      "Days arranged round the dog",
+      "A house filled or emptied by the dog"
+     ]
+    },
+    {
+     "text": "And with her not in it the whole place was just a set. Furniture waiting for somebody.",
+     "codes": [
+      "A house filled or emptied by the dog"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Yes. And I did not like it at all.",
+   "extracts": [
+    {
+     "text": "That a whole house can go on standby waiting for a dog.",
+     "codes": [
+      "A house filled or emptied by the dog"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I suppose because of how much is resting on her.",
+   "extracts": [
+    {
+     "text": "If a house can go flat for two hours, what happens when it is not two hours. That is the thought I do not let myself finish.",
+     "codes": [
+      "Rehearsing the dog's death",
+      "A house filled or emptied by the dog"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "We do. Constantly.",
+   "extracts": [
+    {
+     "text": "But I have noticed we do it at about the point in the evening where we might otherwise be talking about something else.",
+     "codes": [
+      "The dog as a way round hard talk"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Money.",
+   "extracts": [
+    {
+     "text": "But the dog is a very good door to close on it.",
+     "codes": [
+      "The dog as a way round hard talk"
+     ]
+    }
+   ],
+   "note": "A door to close. Mabel has the same picture the other way round, a door the dog opens."
+  },
+  {
+   "at": "Two ways at once",
+   "extracts": [
+    {
+     "text": "Two ways at once, which is what I keep saying to you, I know.",
+     "codes": [
+      "Two feelings at once"
+     ]
+    },
+    {
+     "text": "she is also the reason we are in the same room at all.",
+     "codes": [
+      "Two feelings at once"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Good, because I cannot.",
+   "extracts": [
+    {
+     "text": "It is one of those things where the answer changes depending on the week I have had.",
+     "codes": [
+      "Two feelings at once"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "In the kitchen.",
+   "extracts": [
+    {
+     "text": "say goodnight to her, out loud, like she is a person",
+     "codes": [
+      "Talking to the dog"
+     ]
+    },
+    {
+     "text": "she just thumps her tail twice on the bed. Twice. Never three times.",
+     "codes": [
+      "Rules nobody wrote down"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Erm. Probably the regret",
+   "extracts": [
+    {
+     "text": "Probably the regret, from that first year. I have never said that to my partner.",
+     "codes": [
+      "Doubts kept unsaid"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Fine, actually.",
+   "empty": true
+  },
+  {
+   "at": "Erm. Only that it is very ordinary.",
+   "extracts": [
+    {
+     "text": "she has got herself right into the middle of the house, and I could not tell you which day that happened. There was no day.",
+     "codes": [
+      "Days arranged round the dog",
+      "A house filled or emptied by the dog"
+     ]
+    }
+   ]
+  }
+ ],
+ "work": {
+  "rounds": [
+   {
+    "seconds": 2460,
+    "completed": "2026-10-12T10:40:12"
+   },
+   {
+    "seconds": 2710,
+    "completed": "2026-10-13T11:05:48"
+   },
+   {
+    "seconds": 1180,
+    "completed": "2026-10-14T09:52:30"
+   }
+  ],
+  "complete": "2026-10-14T09:55:01"
+ }
+}

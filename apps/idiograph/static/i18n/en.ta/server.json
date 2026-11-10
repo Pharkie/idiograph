@@ -1,0 +1,54 @@
+{
+  "server.statement_cannot_left_empty_esc": "A code cannot be left empty. Esc leaves it as it was.",
+  "server.statement_longer_workbook_nothing_written": "That code is no longer in the workbook, so nothing was written.",
+  "server.statement_reads_differently_workbook_now": "That code reads differently in the workbook now, so nothing was written.",
+  "server.statement_s_passage_longer_transcript": "This code's passage is no longer in the transcript.",
+  "server.own_statement_edited_merged_added": "{who} own code, edited, merged or added in the copy.",
+  "server.turn_s_pairs_list_each": "A turn's pairs are a list, each a code and its extract.",
+  "server.statement_length_whole_number_words": "The code length is a whole number of words from {least} to {most}, so nothing was saved.",
+  "server.board_in_note_as_sent": {
+    "one": "{n} code as sent",
+    "other": "{n} codes as sent"
+  },
+  "server.count_statements": {
+    "one": "{n} code",
+    "other": "{n} codes"
+  },
+  "server.count_quotes": {
+    "one": "{n} extract",
+    "other": "{n} extracts"
+  },
+  "server.gets_file_nothing_written": "{name} is not a themes file, so nothing was written.",
+  "server.something_gets_screen_does_nothing": "That is not something the Themes screen does, so nothing was changed.",
+  "server.participant_gets_yet_nothing_came": "That participant is not in the themes yet, so nothing came in.",
+  "server.board_longer_gets_file_nothing": "That board is no longer among the project's themes boards, so nothing was written.",
+  "server.board_gone_gets_changed": "That board is no longer among the project's themes boards, so nothing was changed.",
+  "server.board_gone_gets_asked": "That board is no longer among the project's themes boards, so nothing was asked.",
+  "server.nothing_changed_s_pets_since": "Nothing has changed in {who_case}'s codes since they came in, so nothing was taken.",
+  "server.project_folder_chosen_yet_gets": "No project folder is chosen yet, so there are no themes to open.",
+  "server.say_which_project_s_gets": "Say which project's themes, so nothing was opened.",
+  "server.gets_stay_out_since_they": "The themes stay out, since they hold {said}, who would not be sent.",
+  "server.gets_hold_who_would_sent": "The themes hold {said}, who would not be sent, so nothing was sent. Send them too, or leave the themes out.",
+  "server.rename.project_gets": "The project's themes",
+  "server.qdpx_out_nobody": "The project has no participant with codes yet, so there is nothing to export.",
+  "server.qdpx_out_notes": {
+    "one": "{n} note",
+    "other": "{n} notes"
+  },
+  "server.qdpx_out_left_no_quote": {
+    "one": "{n} code with no extract is coded on its whole passage",
+    "other": "{n} codes with no extract are coded on their whole passage"
+  },
+  "server.qdpx_out_left_quote_missing": {
+    "one": "{n} extract no longer in its transcript is coded on its whole passage",
+    "other": "{n} extracts no longer in their transcript are coded on their whole passage"
+  },
+  "server.qdpx_out_left_across": {
+    "one": "{n} extract across passages is coded in each passage it takes in",
+    "other": "{n} extracts across passages are coded in each passage they take in"
+  },
+  "server.qdpx_out_left_no_words": {
+    "one": "{n} code on a passage with no words is left out",
+    "other": "{n} codes on passages with no words are left out"
+  }
+}

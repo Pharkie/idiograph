@@ -1,0 +1,282 @@
+/* Idiograph's tokens, every value that means something, in the one file linked first, so every other
+   sheet reads its colours, shadows and faces from here (15 October). docs/design.md says what each is
+   for and who may use it, and the suite's area 147 fails on a colour written anywhere else.
+
+   Light sits on the root and on any element marked data-theme="light", dark on any element marked
+   data-theme="dark", and the system's dark on the root while the page follows the system, `auto` as
+   the page ships and `system` as the app stores it. Selectors name [data-theme] on any element, not
+   only html, so a panel can carry a theme of its own, as the reference page at /design does. The two
+   dark blocks are written alike, and the check fails when they differ.
+
+   The categorical sets, the eight PETs tints with the sticky note's papers and the databases'
+   colours, stay as palettes in themes.css and sift.css, read by their part alone. */
+
+/* ── light ── */
+:root, [data-theme="light"] {
+  /* ground and ink */
+  --paper:      #FBF7EF;
+  --paper-sunk: #F3EDE1;
+  --card:       #FFFDF8;
+  --ink:        #1F1B16;
+  --ink-soft:   #554C41;
+  /* the faint ink of the small type, 4.5 to 1 or more on paper, card and sunk paper, and still
+     fainter than the soft ink (15 October) */
+  --ink-faint:  #756A5C;
+  --rule:       #E3D9C7;
+  --rule-firm:  #CBBFA8;
+  /* the edge of a text field, a note box or a chooser, 3 to 1 or more on paper, card and sunk paper (WCAG 1.4.11),
+     where the rules stand at 1.2 to 1.8 to 1. Rules and dividers that are not a field's edge keep --rule
+     (a11ylook, 8 November 2026) */
+  --field-edge: #8F8473;
+  /* a scrollbar's thumb, 3 to 1 or more on paper, card and sunk paper in both themes, where the rules'
+     ink it took stood at about 1.7 to 1 (17 October, the third Tauri build) */
+  --scroll-thumb: #8F8473;
+  /* the card's paper laid over what stands outside a view to dim it, the minimap's column outside its
+     box, at 35 per cent in light and a little less in dark, at 25, the dimmed blocks in sight at about
+     2 to 1 or more (18 October) */
+  --dim:        #FFFDF859;
+
+  /* meanings, each with one job. The crux orange is a crux as Adam marks one in Excel (theme 9,
+     F79646), and the app's one accent beside it. Every meaning that colours words reads at 4.5 to 1
+     or more on paper, card and sunk paper, so the light crux is Excel's hue taken down until it does
+     (15 October), and the dark crux is Excel's own, clear of the amber */
+  --crux:       #B04E00;
+  --crux-wash:  #F7964622;
+  /* the dot of Idiograph's mark, the launch film's orange, the same in both themes, so the dark blocks leave it
+     be (22 October). A graphic, not words, so it is not the crux, which was taken down for words to read. It
+     reads at about 6 to 1 on the dark paper and about 2.9 to 1 on the light */
+  --mark-dot:   #F26B1D;
+  /* Approve on the card where an agent's action waits for his yes (holdsfix, 27 October): the light crux and its paper
+     in both themes, so the yes reads the same in dark as Adam approved it in light. The dark blocks leave it be */
+  --hold-yes:     #B04E00;
+  --hold-yes-ink: #FBF7EF;
+  /* the Ko-fi button beside Free on each Home, quieter since 26 October (Adam: the only coloured thing on the
+     page, and too dominant): a pale wash of Ko-fi's blue #72A4F2 on the paper, its words in a deeper blue at
+     about 5.5 to 1, and a fine edge of the blue in place of the shadow. The dark blocks set their own */
+  --kofi:        #E0E6F0;
+  --kofi-ink:    #2F5A9C;
+  --kofi-edge:   #72A4F266;
+  /* how much of its bright tint the wash under a statement's key quotes in the transcript takes, at
+     rest and lit, for statements 2 to 6, the first keeping the crux's wash, so the words on it read
+     at least as well as on the crux's in the same theme (18 October) */
+  --es-wash:    12.5%;
+  --es-lit:     34%;
+  /* the playhead, a quote being built, the demo tag and the days, never the crux orange */
+  --accent:     #786850;
+  /* Supports, Include, saved, a phase complete */
+  --good:       #4C6B45;
+  /* the one warning tint, warm enough to sit beside the crux orange without reading as it:
+     Question, Maybe, a failure line, a statement past its length, a run still waiting */
+  --amber:      #936000;
+  /* the red of every Remove and Delete button (see .btn-remove), Doesn't support and Exclude */
+  --danger:     #A8402F;
+  /* the find's washes: a yellow, never the orange of a highlight, the one in focus stronger with an
+     edge, and never written anywhere */
+  --find-wash:  #F7D84A70;
+  --find-on:    #F4C81FD9;
+  --find-edge:  #B38F00;
+  /* a key excerpt's mark in Sift, a blue of its own */
+  --excerpt:    #2E6AA6;
+  /* a record's PDF, Acrobat's red, with white on it at more than 4.5 to 1 */
+  --pdf:        #D7261E;
+
+  /* the parts, each its own colour for its mark, a selected tab's rule and nothing else, never a
+     judgement: Distil a deep blue, Sift a plum, Trace a sea green, each at about 7 to 1 on paper in
+     both themes, so the three carry one weight, at the board's hues within six degrees, apart from
+     each other under the three kinds of colour blindness and far from the judgements' colours (15
+     October, later). They stood at 12.9, 7.6 and 5.0, then at 7.3, 7.2 and 6.5 in light and 6.5, 6.5
+     and 7.6 in dark, and now each within a tenth of 7 in both. At one weight two parts differ to a
+     colour blind eye by how much colour they carry, so the light Sift carries more and the light Trace
+     less, and the dark Trace more and the dark Sift less */
+  --part-distil: #27539C;
+  --part-sift:   #8F2C7A;
+  --part-trace:  #3A5A62;
+
+  /* shadows: a card at rest, a card chosen on the canvas, a popover or an overlay, and what is
+     picked up on the canvas, deeper than either */
+  --rest:      0 1px 2px rgba(31,27,22,.06);
+  --lift-low:  0 6px 18px rgba(31,27,22,.10);
+  --lift:      0 1px 2px rgba(31,27,22,.05), 0 8px 28px rgba(31,27,22,.07);
+  --lift-high: 0 2px 4px rgba(31,27,22,.08), 0 14px 36px rgba(31,27,22,.18);
+
+  color-scheme: light;
+}
+
+/* ── dark, on an element that asks for it ── */
+[data-theme="dark"] {
+  --paper:      #16130E;
+  --paper-sunk: #100E0A;
+  --card:       #1E1A14;
+  --ink:        #EFE7D9;
+  --ink-soft:   #B6AC9B;
+  --ink-faint:  #8B8272;
+  --rule:       #2E2820;
+  --rule-firm:  #463E32;
+  --field-edge: #6F6758;
+  --scroll-thumb: #6F6758;
+  --dim:        #1E1A1440;
+  --crux:       #F79646;
+  --crux-wash:  #F7964626;
+  --es-wash:    14.5%;
+  --es-lit:     22%;
+  --accent:     #B4A588;
+  --good:       #8FB183;
+  --amber:      #E3B45E;
+  --danger:     #E58A78;
+  --find-wash:  #E9D65A3D;
+  --find-on:    #E9D65A66;
+  --find-edge:  #E9D65A;
+  --excerpt:    #8FBCEB;
+  --pdf:        #D21C12;
+  --part-distil: #7AA0DD;
+  --part-sift:   #B297A8;
+  --part-trace:  #55AAC0;
+  --kofi:        #23272E;
+  --kofi-ink:    #9EC0F5;
+  --kofi-edge:   #72A4F255;
+  --rest:      0 1px 2px rgba(0,0,0,.4);
+  --lift-low:  0 6px 18px rgba(0,0,0,.35);
+  --lift:      0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+  --lift-high: 0 2px 4px rgba(0,0,0,.45), 0 16px 40px rgba(0,0,0,.5);
+
+  color-scheme: dark;
+}
+
+/* ── the system's dark, the same values, while the page follows the system ── */
+@media (prefers-color-scheme: dark) {
+  [data-theme="auto"], [data-theme="system"] {
+    --paper:      #16130E;
+    --paper-sunk: #100E0A;
+    --card:       #1E1A14;
+    --ink:        #EFE7D9;
+    --ink-soft:   #B6AC9B;
+    --ink-faint:  #8B8272;
+    --rule:       #2E2820;
+    --rule-firm:  #463E32;
+    --field-edge: #6F6758;
+    --scroll-thumb: #6F6758;
+    --dim:        #1E1A1440;
+    --crux:       #F79646;
+    --crux-wash:  #F7964626;
+    --es-wash:    14.5%;
+    --es-lit:     22%;
+    --accent:     #B4A588;
+    --good:       #8FB183;
+    --amber:      #E3B45E;
+    --danger:     #E58A78;
+    --find-wash:  #E9D65A3D;
+    --find-on:    #E9D65A66;
+    --find-edge:  #E9D65A;
+    --excerpt:    #8FBCEB;
+    --pdf:        #D21C12;
+    --part-distil: #7AA0DD;
+    --part-sift:   #B297A8;
+    --part-trace:  #55AAC0;
+    --kofi:        #23272E;
+    --kofi-ink:    #9EC0F5;
+    --kofi-edge:   #72A4F255;
+    --rest:      0 1px 2px rgba(0,0,0,.4);
+    --lift-low:  0 6px 18px rgba(0,0,0,.35);
+    --lift:      0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+    --lift-high: 0 2px 4px rgba(0,0,0,.45), 0 16px 40px rgba(0,0,0,.5);
+
+    color-scheme: dark;
+  }
+}
+
+/* ── made from the theme's own tokens, so written again on any element that carries a theme, where
+   they take that element's values ── */
+:root, [data-theme] {
+  /* the focus ring, and its smaller form: the solid crux, 4.6 to 1 or more on paper, card and sunk paper in light
+     and 7.7 to 1 or more in dark, where a focus indicator needs 3 to 1 (WCAG 1.4.11, a11ylook, 8 November 2026) */
+  --focus:       0 0 0 3px var(--crux);
+  --focus-small: 0 0 0 2px var(--crux);
+  /* the wash under a tick's row, a tint of the ink so it shows on card, paper and sunk paper alike */
+  --tick-wash: color-mix(in srgb, var(--ink) 7%, transparent);
+  /* the old names, until their last use goes */
+  --sf-reject:  var(--danger);
+  --sf-excerpt: var(--excerpt);
+  --sf-pdf:     var(--pdf);
+}
+
+/* ── the same in either theme ── */
+:root {
+  /* the orange of a crux as Excel draws it, at full strength, for the confetti */
+  --crux-excel: #F79646;
+  /* the bright tints of statements 2 to 6's washes in the transcript, each its participant colour's hue
+     at the lightness and strength of Excel's orange, which statement 1's wash takes, so a wash reads as
+     its colour and the words on it as well as on the orange's: Blue, Plum, Brown, Indigo and Teal, each
+     hue moved a little from its colour's, up to 15 degrees, so no two washes read alike (18 October) */
+  --es-tint1: #3FBEFF;
+  --es-tint2: #EF89CF;
+  --es-tint3: #CEB020;
+  --es-tint4: #A5A7FF;
+  --es-tint5: #00CDB1;
+  /* the word on a PDF's pill */
+  --on-pdf:     #FFFFFF;
+  /* a small control at rest, the range filter's knobs */
+  --rest-control: 0 1px 2px rgba(0,0,0,.15);
+
+  /* faces. Nothing is downloaded and no font file ships */
+  --serif: "Iowan Old Style", "Charter", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --sans: "Avenir Next", "Avenir", "Gill Sans", "Gill Sans MT", "Segoe UI", system-ui, sans-serif;
+  --mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  /* a sticky note's words on the PETs canvas, in whichever handwriting face the system has */
+  --hand: "Bradley Hand", "Noteworthy", "Segoe Print", "Segoe Script", "Comic Sans MS", cursive;
+
+  /* the type scale, where today's sizes cluster, and the tracking of a capital label. A rule takes
+     its nearest step when it is next touched, never in a sweep */
+  --fs-label: 10.5px;
+  --fs-small: 11.5px;
+  --fs-ui:    12.5px;
+  --fs-body:  13.5px;
+  --fs-read:  15px;
+  --fs-field: 17px;
+  --fs-name:  19px;
+  --fs-title: 24px;
+  --fs-lede:  27px;
+  --label-track: .12em;
+
+  /* the spacing scale, where today's padding, margins and gaps cluster */
+  --sp-1: 2px;
+  --sp-2: 4px;
+  --sp-3: 6px;
+  --sp-4: 8px;
+  --sp-5: 10px;
+  --sp-6: 12px;
+  --sp-7: 14px;
+  --sp-8: 16px;
+  --sp-9: 18px;
+  --sp-10: 22px;
+  --sp-11: 26px;
+  --sp-12: 34px;
+
+  /* radii: a tag, a control, a box, a card, a pill, a circle */
+  --r-tag:     2px;
+  --r-control: 3px;
+  --r-box:     4px;
+  --r-card:    5px;
+  --r-pill:    10px;
+  --r-round:   50%;
+
+  /* motion, all of it off under reduced motion */
+  --quick: .16s;
+  --ease:  cubic-bezier(.2,.7,.3,1);
+
+  /* layers: the bar, the find and the tips over it, an overlay and its card, the confetti over that,
+     a toast, and Restarting over everything */
+  --z-bar:      30;
+  --z-find:     40;
+  --z-overlay:  60;
+  --z-confetti: 70;
+  --z-toast:    80;
+  --z-gone:     200;
+
+  /* the layout: the page's side gutter and the research question band's height, measured by the page,
+     which the columns under it take off their own so they keep the rest of the screen. The guidance's
+     handle went with its rail (16 October), and the width of the fields' column with the panel when
+     the statements screen took the book's three columns (17 October), whose tracks are its own in
+     style.css */
+  --gutter: 16px;
+  --band: 0px;
+}

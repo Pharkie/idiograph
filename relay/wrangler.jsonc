@@ -1,0 +1,41 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Idiograph's relay, for Working together. README.md beside this file has the steps. No account id,
+// no code and no secret is written here: Wrangler takes the account from its own login, and
+// OPERATOR_CODES is a secret set with `wrangler secret put OPERATOR_CODES`.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "idiograph-relay",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-06-01",
+  "workers_dev": false,
+  "preview_urls": false,
+  // only under idiograph.app/relay/v1/, never linked from the site's pages
+  "routes": [
+    { "pattern": "idiograph.app/relay/v1/*", "zone_name": "idiograph.app" }
+  ],
+  // the Durable Objects' jurisdiction. `wrangler dev` on one's own computer has none, so run it
+  // with `--var JURISDICTION:` (empty)
+  "vars": { "JURISDICTION": "eu" },
+  // one SQLite-backed Durable Object per project, per invite and per operator code, each made in
+  // JURISDICTION by the code (`namespace.jurisdiction("eu")`)
+  "durable_objects": {
+    "bindings": [
+      { "name": "PROJECTS", "class_name": "Project" },
+      { "name": "INVITES", "class_name": "Invite" },
+      { "name": "OPERATORS", "class_name": "Operator" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["Project", "Invite", "Operator"] }
+  ],
+  // sealed blobs over a message's size, made in the EU with
+  // `wrangler r2 bucket create idiograph-relay-blobs --jurisdiction eu`
+  "r2_buckets": [
+    { "binding": "BLOBS", "bucket_name": "idiograph-relay-blobs", "jurisdiction": "eu" }
+  ],
+  // invites are unsigned, so they are limited by IP: 30 calls a minute from one address
+  "ratelimits": [
+    { "name": "INVITE_LIMIT", "namespace_id": "4201", "simple": { "limit": 30, "period": 60 } }
+  ],
+  "observability": { "enabled": false }
+}

@@ -1,0 +1,55 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "idiograph/gets.schema.json",
+ "title": "An Idiograph GETs file, <case root>/idiograph-gets.json",
+ "description": "A project's GETs boards and each case's copy of its PETs. Written by gets.py and the command line.",
+ "type": "object",
+ "required": ["boards"],
+ "properties": {
+  "schema": {"type": "integer", "minimum": 1},
+  "created": {"type": "string"},
+  "updated": {"type": "string"},
+  "current": {"type": "string"},
+  "chosen": {"type": "string"},
+  "complete": {"anyOf": [{"type": "null"}, {"type": "object", "required": ["at"],
+                                             "properties": {"at": {"type": "string", "minLength": 1},
+                                                            "board": {"type": "string"}, "name": {"type": "string"}}}]},
+  "settings": {"type": "object", "properties": {"minimum": {"type": ["integer", "null"], "minimum": 1},
+                                                "one_per_pet": {"type": "boolean"},
+                                                "cap": {"type": "integer", "minimum": 2, "maximum": 9}}},
+  "study": {"type": "object", "additionalProperties": {
+   "type": "object", "properties": {"in": {"type": "boolean"}, "reason": {"type": "string"}}}},
+  "cases": {"type": "object", "additionalProperties": {"$ref": "#/$defs/case"}},
+  "boards": {"type": "array", "items": {"$ref": "themes.schema.json#/$defs/board"}}
+ },
+ "$defs": {
+  "case": {
+   "type": "object",
+   "required": ["pets", "lines"],
+   "properties": {
+    "workbook": {"type": "string"},
+    "board": {"type": ["string", "null"]},
+    "name": {"type": ["string", "null"]},
+    "complete": {"type": "boolean"},
+    "came": {"type": "string"},
+    "hash": {"type": "string"},
+    "state": {"enum": ["in", "none"]},
+    "pets": {"type": "array", "items": {
+     "type": "object", "required": ["id", "title"],
+     "properties": {"id": {"type": "string"}, "title": {"type": "string"}, "note": {"type": "string"},
+                    "parent": {"type": ["string", "null"]},
+                    "subs": {"type": "array", "items": {"type": "string"}},
+                    "statements": {"type": "array", "items": {"type": "string"}},
+                    "picks": {"type": "array", "items": {"type": "string"}}}}},
+    "lines": {"type": "object", "additionalProperties": {
+     "type": "object", "required": ["text"],
+     "properties": {"sheet": {"type": "string"}, "row": {"type": "integer"}, "time": {"type": "string"},
+                    "seconds": {"type": ["integer", "null"]}, "text": {"type": "string"},
+                    "quotes": {"type": "array", "items": {"type": "string"}},
+                    "notes": {"type": "array", "items": {"type": "string"}},
+                    "pet": {"type": ["string", "null"]}, "discarded": {"type": "boolean"},
+                    "stacked": {"type": "string"}}}}
+   }
+  }
+ }
+}

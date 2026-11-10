@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+<!-- Idiograph's marks (15 October), from the design board's direction C, Bracket, with Trace's
+     "Up into its citation": a symbol each on a 24 grid, one square-ended stroke of 2, drawn in
+     currentColor, called by <use href="/marks.svg#distil"> and coloured by the class around it
+     (.part-distil and so on). The Idiograph mark's dot is the film's orange, read from its own token, mark-dot
+     (22 October), and each part's square the crux orange.
+     docs/design.md says where each goes and at what size. -->
+<symbol id="idiograph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
+  <path d="M8.5 3.5H4.5V20.5H8.5M15.5 3.5H19.5V20.5H15.5"/>
+  <circle cx="12" cy="12" r="2.7" stroke="none" style="fill: var(--mark-dot, currentColor)"/>
+</symbol>
+<symbol id="distil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
+  <path d="M3 5H8.5M3 12H8.5M3 19H8.5"/>
+  <path d="M11.5 4H14.5V20H11.5M14.5 12H21"/>
+</symbol>
+<symbol id="sift" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
+  <path d="M3.5 5V15.5H9.5M14.5 15.5H20.5V5"/>
+  <rect x="10.4" y="18.8" width="3.2" height="3.2" stroke="none" style="fill: var(--crux, currentColor)"/>
+  <rect x="6.5" y="9.5" width="3.2" height="3.2" fill="currentColor" stroke="none"/>
+</symbol>
+<symbol id="trace" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
+  <path d="M3 20.5H20.5V4H18.5"/>
+  <path d="M12 4H10V13H12"/>
+  <rect x="13.45" y="6.7" width="3.6" height="3.6" stroke="none" style="fill: var(--crux, currentColor)"/>
+</symbol>
+<!-- Each part's mark drawn again for 20, 18 and 16 pixels, as the favicon is for 16 (15 October,
+     later): the 24 grid's stroke of 2 falls between pixels at those sizes and reads soft, so here
+     every edge is on a whole pixel, filled in currentColor. At 18 and 16 each line is one pixel and
+     each record or citation two. At 20, beside the home screen's section names in the serif at 22px,
+     a line of one pixel read faint, so there each line, record and citation is two. The home screen
+     draws the 20, a title bar the 18, Settings the 16, and /design the 24 beside them. -->
+<symbol id="distil-20" viewBox="0 0 20 20" fill="currentColor">
+  <path d="M1 3H7V5H1ZM1 9H7V11H1ZM1 15H7V17H1ZM8 2H13V18H8V16H11V4H8ZM13 9H19V11H13Z"/>
+</symbol>
+<symbol id="distil-18" viewBox="0 0 18 18" fill="currentColor">
+  <path d="M1 4H7V5H1ZM1 9H7V10H1ZM1 14H7V15H1ZM8 3H12V16H8V15H11V4H8ZM12 9H17V10H12Z"/>
+</symbol>
+<symbol id="distil-16" viewBox="0 0 16 16" fill="currentColor">
+  <path d="M1 3H6V4H1ZM1 8H6V9H1ZM1 13H6V14H1ZM7 2H10V15H7V14H9V3H7ZM10 8H15V9H10Z"/>
+</symbol>
+<symbol id="sift-20" viewBox="0 0 20 20" fill="currentColor">
+  <path d="M2 3H4V12H9V14H2ZM11 12H16V3H18V14H11ZM6 8H8V10H6Z"/>
+  <path d="M9 16H11V18H9Z" style="fill: var(--crux, currentColor)"/>
+</symbol>
+<symbol id="sift-18" viewBox="0 0 18 18" fill="currentColor">
+  <path d="M2 3H3V11H8V12H2ZM10 11H15V3H16V12H10ZM5 8H7V10H5Z"/>
+  <path d="M8 14H10V16H8Z" style="fill: var(--crux, currentColor)"/>
+</symbol>
+<symbol id="sift-16" viewBox="0 0 16 16" fill="currentColor">
+  <path d="M2 3H3V10H7V11H2ZM9 10H13V3H14V11H9ZM4 7H6V9H4Z"/>
+  <path d="M7 13H9V15H7Z" style="fill: var(--crux, currentColor)"/>
+</symbol>
+<symbol id="trace-20" viewBox="0 0 20 20" fill="currentColor">
+  <path d="M1 16H16V4H14V2H18V18H1ZM12 2H8V12H12V10H10V4H12Z"/>
+  <path d="M13 6H15V8H13Z" style="fill: var(--crux, currentColor)"/>
+</symbol>
+<symbol id="trace-18" viewBox="0 0 18 18" fill="currentColor">
+  <path d="M1 15H15V3H13V2H16V16H1ZM10 2H7V10H10V9H8V3H10Z"/>
+  <path d="M11 5H13V7H11Z" style="fill: var(--crux, currentColor)"/>
+</symbol>
+<symbol id="trace-16" viewBox="0 0 16 16" fill="currentColor">
+  <path d="M1 13H13V3H11V2H14V14H1ZM9 2H6V10H9V9H7V3H9Z"/>
+  <path d="M10 5H12V7H10Z" style="fill: var(--crux, currentColor)"/>
+</symbol>
+<!-- Idiograph's own mark drawn again for 20, 18 and 16 pixels (the split's third build, 20 October 2026),
+     where Distil's stood on the bars and in Settings: the brackets on whole pixels, two wide at 20 and
+     one at 18 and 16, the dot the mark's own orange, the mark-dot token -->
+<symbol id="idiograph-20" viewBox="0 0 20 20" fill="currentColor">
+  <path d="M3 2H8V4H5V16H8V18H3ZM17 2H12V4H15V16H12V18H17Z"/>
+  <circle cx="10" cy="10" r="2.4" style="fill: var(--mark-dot, currentColor)"/>
+</symbol>
+<symbol id="idiograph-18" viewBox="0 0 18 18" fill="currentColor">
+  <path d="M3 2H7V3H4V15H7V16H3ZM15 2H11V3H14V15H11V16H15Z"/>
+  <circle cx="9" cy="9" r="2.1" style="fill: var(--mark-dot, currentColor)"/>
+</symbol>
+<symbol id="idiograph-16" viewBox="0 0 16 16" fill="currentColor">
+  <path d="M2 2H6V3H3V13H6V14H2ZM14 2H10V3H13V13H10V14H14Z"/>
+  <circle cx="8" cy="8" r="1.8" style="fill: var(--mark-dot, currentColor)"/>
+</symbol>
+</svg>

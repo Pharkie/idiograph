@@ -1,0 +1,28 @@
+# Idiograph's typesetter, the small program the frozen app carries beside its server (typst1, 9 November 2026).
+# It typesets one Typst template with its data and the app's own fonts into a PDF or one PNG a page. The
+# typst crates are pinned with `=` to the Typst version typst-py carries (typst-py 0.15.2 carries Typst
+# 0.15.1), so a run from source and the frozen app make the same pages. Move the pin on purpose, both at once
+# (docs/internals.md, The typesetter).
+[package]
+name = "idiograph-typeset"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-only"
+
+[[bin]]
+name = "idiograph-typeset"
+path = "src/main.rs"
+
+[dependencies]
+typst = "=0.15.1"
+typst-pdf = "=0.15.1"
+typst-layout = "=0.15.1"
+typst-render = "=0.15.1"
+
+# Tauri's own release settings, as the window's Cargo.toml has them
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

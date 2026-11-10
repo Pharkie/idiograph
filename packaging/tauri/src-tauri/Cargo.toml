@@ -1,0 +1,64 @@
+# Idiograph in a window of its own: the page in a Tauri window, the frozen server beside it as a
+# sidecar. See ../README.md. Every crate is pinned, and Cargo.lock beside this file pins the rest.
+[package]
+name = "idiograph"
+version = "0.9.24"
+description = "Idiograph in a window of its own"
+license = "AGPL-3.0-only"
+edition = "2021"
+publish = false
+
+[build-dependencies]
+tauri-build = { version = "=2.7.1", features = [] }
+
+[dependencies]
+tauri = { version = "=2.12.1", features = [] }
+tauri-plugin-opener = "=2.7.0"
+tauri-plugin-single-instance = "=2.5.2"
+# the save panel a download opens and the window's few messages, the system's own on each
+rfd = { version = "=0.17.2", default-features = false }
+# a downloaded file's bytes, which the page sends as base64
+base64 = "=0.22.1"
+# the main window's size and place kept across a quit
+tauri-plugin-window-state = "=2.5.0"
+# what the window keeps besides, window.json (keep.rs), and the page's list for Open Recent
+serde_json = "=1.0.154"
+# the log's line in the time where the machine is
+chrono = { version = "=0.4.45", default-features = false, features = ["clock"] }
+# Idiograph's updates from the releases repository, every file checked against the public key in
+# tauri.conf.json before it is kept (src/update.rs, the fourth build, 18 October)
+tauri-plugin-updater = "=2.13.1"
+
+# the Mac's own parts: spelling as a browser has it, and Undo and Redo sent to a field
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "=0.6.5"
+# the handler a mouse's back and forward buttons are given to, and a check's pictures of a window's page
+block2 = "=0.6.2"
+
+
+# Linux's own part (linux3, 8 November 2026): the save panel and the window's messages through GTK 3, which
+# the window already links through WebKitGTK, since rfd with no backend asks for a zenity or kdialog program
+# that a machine may not have
+[target.'cfg(target_os = "linux")'.dependencies]
+rfd = { version = "=0.17.2", default-features = false, features = ["gtk3"] }
+# Print's page setup, the page's orientation and paper set on WebKitGTK's print dialog (linuxfix, 9 November 2026), the
+# versions Tauri and wry build with
+gtk = "=0.18.2"
+webkit2gtk = "=2.0.2"
+
+# Windows's Edit menu, its keys pressed in the page, and the user's own formats (formats.rs). WebView2's own crates,
+# which Export as PDF's PrintToPdf and Save as an image's picture took, went with them on 9 November 2026 (typst5)
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "=0.61.2", features = ["Win32_UI_Input_KeyboardAndMouse", "Win32_Foundation", "Win32_Globalization"] }
+
+[features]
+# for a check of the window on a Mac alone, never in a build that ships: a script run in every
+# window once its page has loaded, the windows' numbers for a screenshot, and a panel or sheet
+# answered by itself (packaging/tauri/drive_mac.py), any exception AppKit raises at that caught
+drive = ["objc2/exception"]
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

@@ -1,0 +1,10 @@
+{
+  "exports.set_aside_heading": "Codes set aside",
+  "exports.nothing_under_get": "Nothing under this theme",
+  "exports.no_pets_nothing_under_get": "Nothing under this theme",
+  "exports.csv_statement": "Code",
+  "exports.csv_proposed_pet": "Proposed theme (blank for you)",
+  "exports.csv_quote": "Extract",
+  "exports.csv_name": "{stem} - All Codes.csv",
+  "exports.qdpx_note_exploratory": "Note"
+}

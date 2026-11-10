@@ -1,0 +1,374 @@
+/* The frame Sift's and Trace's screens share (tracestyle, 30 October 2026): the rows on Home and the card that
+   opens a project, the title bar, the foot bar, the decisions as pills, the screen's views, the record with its
+   decisions and note, the PDF beside it, the family's table (table.js) and its filters, and how each gives way
+   in a narrow window. Trace's screen has worn Sift's frame since 15 October, `#trace` beside `#sift`, never
+   copied. Until now it stood in sift.css, which Trace's page stopped loading at the cutover (the family
+   codebase's sixth build, 23 October 2026), when each app's page came to hold its own parts alone, so Trace's
+   own app showed its filters as bare headings and boxes and its claims with no rules. Sift's and Trace's
+   parts of the page link it before their own (sift.html, trace.html). The rules are sift.css's as they stood,
+   in their order, and what is Sift's alone stays there: the PRISMA flow, the abstract, the proposals, the
+   reasons, the excerpts, the fields, the sliders, the columns, the form, the second screener and the map. */
+
+/* ─────────────────────────────────────────────────── the home screen ── */
+
+/* a row for each review, or each of Trace's projects, newest first, the whole row a button, kept to the width of the
+   section at any width: its one column takes no width from its content, the whole path in the row's
+   title, never on the card (the split's pages, 21 October) */
+.sf-rows { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr); }
+.sf-row { min-width: 0; }
+.sf-row-open {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px; width: 100%; min-width: 0;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 4px; text-align: left; cursor: pointer;
+  padding: 11px 16px; transition: background .16s, border-color .16s;
+}
+.sf-row-open .pc-label { font-family: var(--serif); font-size: 19px; line-height: 1.3; max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sf-row-open:hover:not(:disabled) { background: var(--paper-sunk); border-color: var(--rule-firm); }
+.sf-row-open:disabled { cursor: not-allowed; opacity: .55; }
+.sf-row-open:focus-visible { outline: 0; box-shadow: var(--focus); border-color: var(--crux); }
+.sf-open-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+/* New review and Open review's card, New project's narrower */
+#rv-card .card { width: min(620px, 100%); }
+#rv-name { width: 300px; max-width: 100%; }
+/* a folder holding several reviews offers each by its folder's name, a row of buttons that wraps */
+.rv-choices { align-items: flex-start; }
+.rv-choices-label { flex: 1; color: var(--ink-soft); padding-top: 4px; }
+.rv-pick { flex: 0 1 30em; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.rv-pick button { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ──────────────────────────────────────────────────────── the bars ── */
+
+/* the screen fills the window: the title bar, the views with the PRISMA flow's sidebar at their right,
+   and the foot bar, so the table and the record each scroll in a box of their own */
+#trace:not([hidden]), #sift:not([hidden]) { display: flex; flex-direction: column; height: 100vh; height: 100dvh; min-height: 0; }
+#trace .sf-rail, #sift .sf-rail { flex: none; }
+
+/* the title bar never makes the page scroll sideways: the screening's name gives way first, and
+   what still does not fit scrolls in the bar itself */
+#trace .rail, #sift .rail { --rail-gap: 10px; overflow-x: auto; scrollbar-width: none; }
+#trace .rail::-webkit-scrollbar, #sift .rail::-webkit-scrollbar { display: none; }
+#trace .rail-btn + .rail-btn, #sift .rail-btn + .rail-btn { margin-left: -6px; }
+
+/* the foot bar: how many records show, and on a record where it stands, then each decision's count
+   as a pill in its colour */
+.sf-foot {
+  flex: none; display: flex; align-items: center; gap: 16px; min-height: 32px; padding: 4px var(--gutter);
+  border-top: 1px solid var(--rule); background: var(--paper); font-size: 12.5px; color: var(--ink-faint);
+  overflow-x: auto; scrollbar-width: none; white-space: nowrap;
+}
+.sf-foot::-webkit-scrollbar { display: none; }
+.sf-count { flex: none; font-variant-numeric: tabular-nums; }
+.sf-count b { color: var(--ink); font-weight: 600; }
+/* Undo, beside the count once there is something to take back */
+.sf-undo { flex: none; font-size: 12px; padding: 2px 9px; }
+.sf-tally { flex: none; display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
+.sf-tally .sf-pill { font-size: 11.5px; }
+
+/* ──────────────────────────────────────────────────── the decisions as pills ── */
+
+/* a decision as a pill, the word always inside it: Yes or Include green, Maybe amber, No or Exclude
+   red and To screen grey, each tinted from the theme's own token and its word mixed toward the ink, so it
+   reads at more than 4.5 to 1 in light and dark */
+.sf-pill {
+  --c: var(--ink-faint);
+  display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 10px; white-space: nowrap;
+  font-size: 12px; font-weight: 600; line-height: 1.5;
+  color: color-mix(in srgb, var(--c) 80%, var(--ink));
+  background: color-mix(in srgb, var(--c) 14%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+}
+.sf-pill:empty { display: none; }
+.sf-pill[data-decision="include"] { --c: var(--good); }
+.sf-pill[data-decision="maybe"] { --c: var(--amber); }
+.sf-pill[data-decision="exclude"] { --c: var(--sf-reject); }
+.sf-pill[data-decision=""] { color: var(--ink-soft); }
+.sf-pill .mono { font-weight: 400; font-size: 11px; }
+
+/* ──────────────────────────────────────────────────── the screen ── */
+
+/* under the title bar the line over the views, then the views and the flow's sidebar beside them */
+.sf-main { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.sf-views { flex: 1 1 auto; min-height: 0; display: flex; position: relative; }
+.sf-area { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+
+/* the record and its PDF at the right, which folds away */
+.sf-body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .95fr); }
+.sf-body[hidden], .sf-tv[hidden] { display: none; }
+.sf-body.pdf-shut { grid-template-columns: minmax(0, 1fr) 0; }
+.sf-body.pdf-shut .sf-pdf { display: none; }
+.sf-record { grid-column: 1; grid-row: 1; min-width: 0; overflow-y: auto; padding: 30px clamp(16px, 4vw, 52px) 64px; }
+.sf-card { max-width: 44em; margin: 0 auto; }
+.sf-none { max-width: 44em; margin: 40px auto; color: var(--ink-faint); font-size: 14px; }
+
+/* the record's head: its number, where it stands as a pill, then its id, year and journal */
+.sf-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; color: var(--ink-faint);
+  letter-spacing: .02em; margin: 0 0 8px; }
+.sf-title { font-family: var(--serif); font-size: 25px; line-height: 1.3; font-weight: 400; margin: 0 0 8px;
+  overflow-wrap: anywhere; }
+.sf-links { font-size: 12.5px; line-height: 1.6; color: var(--ink-faint); margin: 0 0 20px; overflow-wrap: anywhere; }
+.sf-links a, .sf-more a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.sf-links a:hover, .sf-more a:hover { color: var(--ink); }
+.sf-links .ghost.small { vertical-align: baseline; }
+
+/* the AI's buttons on a record, Sift's proposals for this record and for the round, Trace's passages */
+.sf-ai { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+.sf-ai-btn { display: inline-flex; align-items: center; gap: 6px; }
+.sf-ai-btn:disabled { opacity: .55; cursor: default; }
+
+/* the three decisions, large, in green, amber and red, the one he took filled */
+.sf-acts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0 0 12px; }
+.sf-act {
+  --c: var(--good);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 0;
+  font-size: 17px; font-weight: 500; padding: 16px 10px; border-radius: 6px; cursor: pointer;
+  border: 1.5px solid var(--c); color: var(--c); background: color-mix(in srgb, var(--c) 8%, var(--card));
+  transition: background .14s, color .14s, transform .1s;
+}
+.sf-maybe { --c: var(--amber); }
+.sf-reject { --c: var(--sf-reject); }
+.sf-act:hover { background: color-mix(in srgb, var(--c) 16%, var(--card)); }
+/* the amber word under the pointer on a lighter wash, since on the others' it read at 4.25 to 1 in light, the
+   one taken keeping its fill (17 October) */
+.sf-act.sf-maybe:hover:not([aria-pressed="true"]) { background: color-mix(in srgb, var(--c) 10%, var(--card)); }
+.sf-act:active { transform: translateY(1px); }
+.sf-act[aria-pressed="true"] { background: var(--c); color: var(--paper); }
+/* the key in the word's own colour, whole, over the faint ink every other key hint on a button takes, so it
+   reads at 4.5 to 1 or more at rest and pressed, where at .7 it read at 2.8 to 1 (17 October) */
+.sf-act .mono { font-size: 11.5px; color: inherit; }
+.sf-act:focus-visible { outline: 0; box-shadow: var(--focus); }
+
+.sf-note {
+  display: block; width: 100%; resize: vertical; min-height: 2.6em; margin: 0 0 18px;
+  background: var(--card); border: 1px solid var(--field-edge); border-radius: 4px; padding: 8px 12px;
+  font-size: 14px; line-height: 1.5; color: var(--ink);
+}
+.sf-note::placeholder { color: var(--ink-faint); }
+.sf-note:focus { outline: 0; border-color: var(--ink-faint); box-shadow: var(--focus); }
+
+/* the record's PDF, served from the screening's own folder, Add PDF where it has none, and the layer
+   over the record while a file is dragged, which takes the drop */
+.sf-pdf { grid-column: 2; grid-row: 1; min-width: 0; display: flex; position: relative; border-left: 1px solid var(--rule); background: var(--paper-sunk); }
+.sf-frame { flex: 1 1 auto; width: 100%; height: 100%; border: 0; background: var(--paper-sunk); }
+.sf-nopdf { margin: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-faint); }
+.sf-nopdf[hidden] { display: none; }
+
+/* ─────────────────────────────────────────────────────── the table ── */
+
+/* the table fills the screen between the bars, a strip over it with Filters at the top left, over
+   the sidebar it opens, and Columns at the table's top right, then the filters' sidebar at its left,
+   and it scrolls in its own box, both ways, so the page never scrolls sideways, its headings held at
+   the top (12 October) */
+.sf-tv { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.sf-tv-top {
+  flex: none; display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 3px 10px 3px 8px;
+  border-bottom: 1px solid var(--rule); background: var(--paper);
+}
+.sf-tv-grow { flex: 1 1 auto; }
+.sf-tv-tool {
+  display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 8px; margin: 0; cursor: pointer;
+  background: none; border: 1px solid transparent; border-radius: 4px; font: inherit; font-size: 12.5px;
+  color: var(--ink-soft); white-space: nowrap;
+}
+.sf-tv-tool svg { width: 15px; height: 15px; flex: none; }
+.sf-tv-tool:hover { border-color: var(--rule-firm); color: var(--ink); }
+.sf-tv-tool:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+.sf-tv-tool[aria-pressed="true"] { color: var(--ink); background: var(--paper-sunk); }
+/* the toggle with filters on says how many, its funnel in the ink with its word, where it stood in the crux
+   orange, which means a crux (17 October, later) */
+#tr-facets-toggle[data-count="true"], #sf-facets-toggle[data-count="true"] { color: var(--ink); }
+/* the table's own tools, Filters, Clear all and Set columns, on the table alone, PRISMA flow on either
+   view, so on a record the line holds PRISMA flow at its right (12 October) */
+.sf-tv-top:not([data-view="table"]) .sf-tv-only { display: none; }
+.sf-tv-main { flex: 1 1 auto; display: flex; position: relative; min-height: 0; min-width: 0; }
+.sf-tv-box { flex: 1 1 auto; min-height: 0; min-width: 0; overflow: auto; position: relative; overscroll-behavior: contain; }
+.sf-tbl { border-collapse: separate; border-spacing: 0; font-size: 13px; line-height: 1.45; color: var(--ink-soft);
+  min-width: 100%; }
+.sf-tbl thead { position: sticky; top: 0; z-index: 2; background: var(--paper); }
+.sf-tbl th { text-align: left; font-weight: 600; padding: 0; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.sf-th {
+  display: flex; align-items: center; gap: 4px; width: 100%; background: none; border: 0; margin: 0; cursor: pointer;
+  padding: 8px 10px 5px; font: inherit; font-size: 12px; letter-spacing: .02em; color: var(--ink-soft); text-align: left;
+}
+.sf-th:hover { color: var(--ink); }
+.sf-th:focus-visible { outline: 0; box-shadow: inset 0 0 0 2px var(--crux); }
+/* the sorted column's arrow in the ink over the heading's soft ink, off the crux orange (17 October, later) */
+.sf-arrow { color: var(--ink); font-weight: 400; }
+.sf-arrow sup { font-size: 9px; margin-left: 1px; }
+
+.sf-tbl tbody td { padding: 7px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; overflow-wrap: break-word; }
+.sf-tbl tbody tr { cursor: default; }
+.sf-tbl tbody tr:hover td { background: color-mix(in srgb, var(--paper-sunk) 55%, transparent); }
+.sf-tbl tbody tr.on td { background: var(--paper-sunk); }
+.sf-tbl tbody tr.on td:first-child { box-shadow: inset 3px 0 0 var(--crux); }
+
+/* the width each column reads best at, the abstract the widest, the text in it wrapping, held on a
+   narrow screen, where the box scrolls sideways. With no filter under a heading the year, the
+   participants and the rating keep to their own width. No column resizes by hand, a design
+   decision (12 October): each takes its width from its content and the window. */
+.sf-tbl th { width: var(--w, 9em); min-width: var(--w, 9em); }
+.sf-k-title { --w: 16em; }
+.sf-k-pdf { --w: 5em; }
+.sf-c-title { font-family: var(--serif); font-size: 14.5px; color: var(--ink); }
+.sf-c-long { white-space: pre-line; }
+.sf-c-doi a, .sf-tbl td a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; word-break: break-all; }
+.sf-c-doi a:hover, .sf-tbl td a:hover { color: var(--ink); }
+.sf-c-dec .sf-pill { font-size: 11.5px; }
+/* a record's PDF, a pill of the decisions' shape in Acrobat's red with its word in white, no link */
+.sf-pill.sf-pdfpill { font-size: 11.5px; color: var(--on-pdf); background: var(--pdf); border-color: var(--pdf); }
+/* what a cell or a field holds when it holds nothing, Unknown, No year, Not rated or No count, in the
+   faint ink, so none is taken for nought (12 October) */
+.sf-blank { color: var(--ink-faint); font-size: 12px; white-space: nowrap; }
+.sf-blank[hidden] { display: none; }
+
+/* ─────────────────────────────────────────────── the filters ── */
+
+/* The filters, a sidebar at the left of the table that folds away: a group for each column a pick
+   can filter under its name in small capitals, each choice a tick box, its words and at the right in
+   the faint ink how many rows would show were it ticked, a nought fainter still. Its width is the one
+   he dragged its right edge to, kept in sift.json, else 220 pixels (12 October). */
+.sf-facets {
+  flex: none; width: var(--sf-facets-w, 220px); overflow-y: auto; overscroll-behavior: contain; padding: 10px 12px 40px;
+  background: var(--paper-sunk);
+}
+.sf-facets[hidden] { display: none; }
+.sf-facets-clear { font-size: 12px; }
+.sf-facets-clear[hidden] { display: none; }
+.sf-groups { display: grid; gap: 16px; }
+.sf-group { min-width: 0; }
+.sf-group-top { display: flex; align-items: baseline; gap: 8px; margin: 0 0 4px; }
+.sf-group-head {
+  flex: 1; min-width: 0; margin: 0; font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sf-group-clear, .sf-facets-clear, .sf-group-more { font-size: 11.5px; }
+.sf-group-more { margin-top: 4px; }
+/* A choice's words wrap under themselves, so a long name, a journal's or a publisher's, reads whole in the
+   sidebar and is never cut, its whole words in its tooltip as well, the box, a dot and the count standing by
+   its first line (17 October, later, where "Journal of Invented Garde…" stood cut at 1280) */
+.sf-choice {
+  display: flex; align-items: flex-start; gap: 7px; padding: 2px 0; font-size: 12.5px; line-height: 1.4; color: var(--ink);
+  cursor: pointer;
+}
+/* its tick in the ink, as every tick is, where it stood in the crux orange, which is the crux's, the key quotes'
+   and the filled button's alone (17 October, later) */
+.sf-choice input { flex: none; margin: 2px 0 0; accent-color: var(--ink); }
+.sf-choice input:focus-visible { outline: 2px solid var(--crux); outline-offset: 1px; }
+.sf-choice :is(.sf-dbdot, .sf-decdot) { margin-top: 5px; }
+.sf-cw { flex: 1 1 auto; min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+.sf-choice .sf-cw, .sf-choice .sf-cn { align-self: baseline; }
+.sf-cw .mono { font-size: 11px; color: var(--sf-reject); }
+.sf-cn { flex: none; font-size: 11.5px; font-variant-numeric: tabular-nums; color: var(--ink-faint); }
+/* a block's line that says how a database found a record, marked .wrap, on as many lines as it takes (14
+   October), as every choice is since 17 October, later */
+.sf-choice.sub { padding-left: 20px; }
+/* a block's lines under their heading of two lines, the heading in the soft ink at the choices' edge and
+   the lines indented under it (14 October, later) */
+.sf-lines { margin-top: 6px; }
+.sf-lines-head { margin: 0 0 2px; font-size: 12px; line-height: 1.4; color: var(--ink-soft); }
+.sf-lines-head span { display: block; }
+.sf-lines .sf-choice { padding-left: 20px; }
+/* a nought faded only while its box is off, a ticked row of none standing as any other, since it stays there to
+   untick (17 October) */
+.sf-choice.zero:has(input:disabled) { color: var(--ink-faint); cursor: default; }
+.sf-choice.zero:has(input:disabled) :is(.sf-cn, .mono, .sf-dbdot, .sf-decdot) { opacity: .7; }
+/* a decision's dot in the filters, in the colour of its pills at the foot and in the table, To screen
+   grey (12 October) */
+.sf-decdot { --c: var(--ink-faint); flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.sf-decdot[data-decision="include"] { --c: var(--good); }
+.sf-decdot[data-decision="maybe"] { --c: var(--amber); }
+.sf-decdot[data-decision="exclude"] { --c: var(--sf-reject); }
+/* a long group's find box at its head, narrowing its choices as he types */
+.sf-gfind {
+  display: block; width: 100%; margin: 0 0 5px; padding: 3px 7px; font: inherit; font-size: 12px; color: var(--ink);
+  background: var(--card); border: 1px solid var(--field-edge); border-radius: 3px;
+}
+.sf-gfind::placeholder { color: var(--ink-faint); }
+.sf-gfind:focus { outline: 0; border-color: var(--ink-faint); box-shadow: var(--focus-small); }
+/* the ⓘ beside a group's name, its line shown on hover and on focus */
+.sf-about { position: relative; flex: none; font-size: 12px; line-height: 1; color: var(--ink-faint); cursor: help; border-radius: 50%; }
+.sf-about:hover, .sf-about:focus-visible { color: var(--ink); outline: 0; }
+.sf-about::after {
+  content: attr(data-tip); position: absolute; right: -2px; top: calc(100% + 6px); z-index: 5; width: 176px; display: none;
+  padding: 7px 9px; border-radius: 4px; background: var(--ink); color: var(--paper); font-size: 11.5px; line-height: 1.4;
+  letter-spacing: 0; text-transform: none; font-weight: 400; white-space: normal; box-shadow: var(--lift);
+}
+.sf-about:hover::after, .sf-about:focus-visible::after { display: block; }
+
+/* ─────────────────────────────────────────────── the pills ── */
+
+/* Each database a pill in a colour of its own, the same on the table, the record, the abstract's
+   source and the runs, and a dot of it beside its name in the filters: Scopus orange, PsycInfo blue,
+   Web of Science violet, PubMed teal, Europe PMC green, OpenAlex pink, citation chasing grey, and any
+   other one of six more by its name, none of them red. Each word is mixed toward the ink on a tint of
+   its colour, at more than 4.5 to 1 in light and dark. */
+.sf-db, .sf-cat {
+  --c: var(--db-chasing);
+  display: inline-flex; align-items: center; margin: 0 4px 3px 0; padding: 0 7px; border-radius: 10px; white-space: nowrap;
+  font-size: 11px; font-weight: 600; line-height: 1.6;
+  color: color-mix(in srgb, var(--c) 80%, var(--ink));
+  background: color-mix(in srgb, var(--c) 16%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+}
+.sf-dbdot { --c: var(--db-chasing); flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+/* a category's value, a publication type, a pill in the accent's quiet tint */
+.sf-cat { --c: var(--accent); font-weight: 500; }
+
+/* ──────────────────────────────────────────────────── a narrow window ── */
+
+/* under 1100px the flow and the filters narrow, and under 760px each stands over the screen as an
+   overlay, the flow from the right and the filters from the left under the strip that opens them, at
+   their own width with no edge to drag, the PDF goes under the record, at most the height of the
+   window, the record scrolls with it in one box, and the stage's name and the keys are put away */
+@media (max-width: 1099px) {
+  .sf-facets { width: var(--sf-facets-w, 200px); padding: 10px 10px 32px; }
+}
+@media (max-width: 759px) {
+  /* the filters stand over the table from the left, each choice a finger's height */
+  .sf-facets {
+    position: absolute; top: 0; left: 0; bottom: 0; z-index: 20; width: min(300px, 86vw);
+    box-shadow: var(--lift); padding: 12px 14px 40px;
+  }
+  .sf-choice { padding: 6px 0; font-size: 14px; }
+  /* the box and a dot by the first line at the larger type */
+  .sf-choice input { margin-top: 3px; }
+  .sf-choice :is(.sf-dbdot, .sf-decdot) { margin-top: 6px; }
+  .sf-body, .sf-body.pdf-shut { display: flex; flex-direction: column; overflow-y: auto; }
+  .sf-record { flex: none; overflow: visible; padding-top: 22px; }
+  .sf-pdf { flex: none; height: 80vh; border-left: 0; border-top: 1px solid var(--rule); }
+  .sf-title { font-size: 22px; }
+  .sf-act { font-size: 15px; padding: 14px 6px; }
+  /* the name stays after the mark and gives way with its ellipsis, never pushing a tool onto the next row: it
+     takes the first row's spare room before the space between does, up to its own width (15 October, later) */
+  #trace .rail-case, #sift .rail-case { flex: 100 1 0; max-width: max-content; }
+  /* the bar keeps to the width of the screen: the keys put away, and the steps a row of their own
+     under the way back and the tools, which wraps rather than scroll the page sideways (12 October) */
+  #tr-help, #sf-help { display: none; }
+  #trace .rail, #sift .rail { --rail-gap: 8px; overflow-x: auto; scrollbar-width: none; }
+  #trace .rail::-webkit-scrollbar, #sift .rail::-webkit-scrollbar { display: none; }
+  /* its first row stands 11px from the top, where a bar of one row centres it, so Sift's title row, with its
+     steps wrapped under it, sits where Distil's and Trace's do, never 6px from the top (15 October, later) */
+  #trace .sf-rail, #sift .sf-rail { flex-wrap: wrap; height: auto; min-height: 46px; row-gap: 0; align-content: flex-start;
+    padding-top: 11px; padding-bottom: 4px; }
+  .sf-foot { gap: 10px; padding: 4px 12px; }
+}
+@media (max-width: 479px) {
+  #trace .rail, #sift .rail { --rail-gap: 4px; padding: 0 8px; }
+  #trace .sf-rail, #sift .sf-rail { padding-top: 11px; padding-bottom: 4px; }
+  /* the tools keep to the right of the way back, as on Search strategy, the steps on their own row */
+  #trace .sf-rail .rail-grow, #sift .sf-rail .rail-grow { display: block; }
+  .sf-tv-top { padding: 3px 6px; }
+  /* the decisions' pills wrap under the count, each with its word, rather than run off the screen */
+  .sf-foot { flex-wrap: wrap; row-gap: 4px; white-space: normal; }
+  .sf-tally { flex-wrap: wrap; }
+  .sf-tally .sf-pill { white-space: nowrap; }
+}
+
+/* ─────────────────────────────────────── Sift's and Trace's bars, option C (Adam, 26 October 2026) ── */
+
+/* Trace's one bar holds the lockup, the path and the tools (Sift's steps and band in sift.css), the path's project
+   its name and chevron, opening its menu (barsD) */
+#trace > .rail > .ds-path { margin-left: 2px; }
+@media (max-width: 760px) {
+  #trace > .rail { overflow: visible; }
+  #trace > .rail .ds-proj-name { max-width: 12em; }
+}

@@ -1,0 +1,19 @@
+{
+  "agentlog_sift.list": "List a screening's records",
+  "agentlog_sift.show": "Read a record",
+  "agentlog_sift.counts": "Read a screening's counts",
+  "agentlog_sift.export": "Export a screening's counts",
+  "agentlog_sift.prisma": "Read the PRISMA flow",
+  "agentlog_sift.form": "Read the Extract and appraise form",
+  "agentlog_sift.add": "Add records",
+  "agentlog_sift.propose": "Write proposals",
+  "agentlog_sift.reset": "Start a screening again",
+  "agentlog_sift.plan": "Read a review's search plan",
+  "agentlog_sift.strings": "Read each database's search string",
+  "agentlog_sift.register": "Register the search plan",
+  "agentlog_sift.run": "Run the searches",
+  "agentlog_sift.runs": "List a review's runs",
+  "agentlog_sift.databases": "List your databases",
+  "agentlog_sift.sync": "Sync to Zotero",
+  "agentlog_sift.search": "Search a screening or review"
+}

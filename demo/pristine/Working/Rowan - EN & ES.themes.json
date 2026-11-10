@@ -1,0 +1,408 @@
+{
+ "schema": 2,
+ "case": "Rowan",
+ "workbook": "Rowan - EN & ES.xlsx",
+ "created": "2026-10-01T14:02:00+01:00",
+ "updated": "2026-10-02T09:41:15+01:00",
+ "current": "v1",
+ "chosen": "v1",
+ "complete": {
+  "at": "2026-10-02T09:41:15+01:00",
+  "board": "v1",
+  "name": "Board 1"
+ },
+ "boards": [
+  {
+   "id": "v1",
+   "name": "Board 1",
+   "note": "",
+   "created": "2026-10-01T14:02:00+01:00",
+   "updated": "2026-10-01T14:02:00+01:00",
+   "cards": {
+    "Initial:3:0": {
+     "x": 925,
+     "y": -85,
+     "text": "Slipping between is and was"
+    },
+    "Initial:3:1": {
+     "x": -766,
+     "y": 89,
+     "text": "Eighteen months of her being everything"
+    },
+    "Initial:3:2": {
+     "x": -871,
+     "y": 179,
+     "text": "Living in a flat that was hers"
+    },
+    "Initial:5:0": {
+     "x": -661,
+     "y": 179,
+     "text": "The best company at a lonely time"
+    },
+    "Initial:5:1": {
+     "x": -871,
+     "y": 269,
+     "text": "A dog leaning on his knee under the desk"
+    },
+    "Initial:5:2": {
+     "x": -871,
+     "y": 359,
+     "text": "Taken over before he saw it happen"
+    },
+    "Initial:7:0": {
+     "x": -100,
+     "y": -793,
+     "text": "Walking when nobody else does"
+    },
+    "Initial:7:1": {
+     "x": 320,
+     "y": 95,
+     "text": "Nocturnal, and not really joking"
+    },
+    "Initial:9:0": {
+     "x": -100,
+     "y": -703,
+     "text": "Frost, an empty field and her loops"
+    },
+    "Initial:9:1": {
+     "x": -100,
+     "y": -613,
+     "text": "A moment that was theirs alone"
+    },
+    "Initial:9:2": {
+     "x": -170,
+     "y": -434,
+     "text": "Always listening for another dog"
+    },
+    "Initial:11:0": {
+     "x": -170,
+     "y": -344,
+     "text": "Crossing the road for a dog not there"
+    },
+    "Initial:11:1": {
+     "x": -170,
+     "y": -254,
+     "text": "A body still keeping watch for her"
+    },
+    "Initial:13:0": {
+     "x": -661,
+     "y": 269,
+     "text": "Her head finding his foot again"
+    },
+    "Initial:13:1": {
+     "x": -661,
+     "y": 359,
+     "text": "The note through the door, the marked frame"
+    },
+    "Initial:13:2": {
+     "x": -766,
+     "y": 449,
+     "text": "Not leaving her at all, for months"
+    },
+    "Initial:15:0": {
+     "x": -836,
+     "y": 628,
+     "text": "Not feeling the loss while it happened"
+    },
+    "Initial:15:1": {
+     "x": -836,
+     "y": 718,
+     "text": "His sister seeing he never went out"
+    },
+    "Initial:15:2": {
+     "x": -836,
+     "y": 808,
+     "text": "A reason nobody argues with"
+    },
+    "Initial:17:0": {
+     "x": -308,
+     "y": 72,
+     "text": "A letter putting the tenancy in doubt"
+    },
+    "Initial:17:1": {
+     "x": -413,
+     "y": 162,
+     "text": "Unable to keep her or others safe"
+    },
+    "Initial:19:0": {
+     "x": -203,
+     "y": 162,
+     "text": "Choosing the flat, then choosing her"
+    },
+    "Initial:19:1": {
+     "x": -413,
+     "y": 252,
+     "text": "A life she could not do"
+    },
+    "Initial:19:2": {
+     "x": -203,
+     "y": 252,
+     "text": "Taking the fault as his own"
+    },
+    "Initial:21:0": {
+     "x": -413,
+     "y": 342,
+     "text": "Trying everything first, on the record"
+    },
+    "Initial:21:1": {
+     "x": -203,
+     "y": 342,
+     "text": "Exercises that never helped on the stairs"
+    },
+    "Initial:23:0": {
+     "x": 164,
+     "y": 89,
+     "text": "Awful and a relief at once"
+    },
+    "Initial:23:1": {
+     "x": 59,
+     "y": 159,
+     "text": "Ashamed of the relief, still"
+    },
+    "Initial:23:2": {
+     "x": 269,
+     "y": 159,
+     "text": "Feeling he was lying to her"
+    },
+    "Initial:25:0": {
+     "x": 164,
+     "y": 570,
+     "text": "Saying yes before hearing anything else"
+    },
+    "Initial:25:1": {
+     "x": 59,
+     "y": 660,
+     "text": "Her head in his lap, as if she knew"
+    },
+    "Initial:27:0": {
+     "x": 269,
+     "y": 660,
+     "text": "Driving her there himself"
+    },
+    "Initial:27:1": {
+     "x": 59,
+     "y": 750,
+     "text": "She did not look back again"
+    },
+    "Initial:31:0": {
+     "x": 269,
+     "y": 750,
+     "text": "Arms with nothing to hold"
+    },
+    "Initial:31:1": {
+     "x": 164,
+     "y": 840,
+     "text": "Not crying when he thought he would"
+    },
+    "Initial:31:2": {
+     "x": 531,
+     "y": 232,
+     "text": "Keeping her bowl without knowing why"
+    },
+    "Initial:33:0": {
+     "x": -170,
+     "y": -164,
+     "text": "Still waking at quarter past five"
+    },
+    "Initial:33:1": {
+     "x": 925,
+     "y": 5,
+     "text": "Nothing to get up for, so lying there"
+    },
+    "Initial:33:2": {
+     "x": 59,
+     "y": 229,
+     "text": "Glad of the photo, then the phone face down"
+    },
+    "Initial:35:0": {
+     "x": 269,
+     "y": 229,
+     "text": "Glad and something else with no name"
+    },
+    "Initial:35:1": {
+     "x": 59,
+     "y": 319,
+     "text": "Saying she is better off, every day"
+    },
+    "Initial:35:2": {
+     "x": 269,
+     "y": 319,
+     "text": "Needing to keep saying it"
+    },
+    "Initial:37:0": {
+     "x": 59,
+     "y": 409,
+     "text": "Not yet, without knowing what yet means"
+    },
+    "Initial:37:1": {
+     "x": 269,
+     "y": 409,
+     "text": "Not knowing whether he failed her"
+    },
+    "Initial:39:0": {
+     "x": 531,
+     "y": 72,
+     "text": "Frightened, not a problem"
+    },
+    "Initial:39:1": {
+     "x": 531,
+     "y": 142,
+     "text": "One sock every morning for eighteen months"
+    }
+   },
+   "groups": [
+    {
+     "id": "g1",
+     "label": "Living on her timetable, in the dark at both ends",
+     "note": "His days ran on her fear of other dogs, half five and eleven at night. The walks were also where he was happiest with her, and the hours have not left him.",
+     "description": "Half five and eleven at night, round her fear of other dogs, and the watching outlasts her",
+     "members": [
+      "Initial:7:0",
+      "Initial:9:0",
+      "Initial:9:1",
+      "g6"
+     ],
+     "x": -184,
+     "y": -932
+    },
+    {
+     "id": "g2",
+     "label": "Company in a lonely year, and a world closing in",
+     "note": "The best company he has had and the flat he could not leave are the same eighteen months. He did not feel the loss of everything else while it happened.",
+     "description": "The best company he had, in a flat he stopped leaving",
+     "members": [
+      "Initial:3:1",
+      "Initial:3:2",
+      "Initial:5:0",
+      "Initial:5:1",
+      "Initial:13:0",
+      "Initial:5:2",
+      "Initial:13:1",
+      "Initial:13:2",
+      "g7"
+     ],
+     "x": -871,
+     "y": -28
+    },
+    {
+     "id": "g3",
+     "label": "Unable to keep her, or anyone, safe in that flat",
+     "note": "The stairs, the letter and the fault he takes as his own. He keeps her blameless and wants it known that he tried.",
+     "description": "The letter, the stairs and the fault he takes as his own",
+     "members": [
+      "Initial:17:0",
+      "Initial:17:1",
+      "Initial:19:0",
+      "Initial:19:1",
+      "Initial:19:2",
+      "Initial:21:0",
+      "Initial:21:1"
+     ],
+     "x": -413,
+     "y": -28
+    },
+    {
+     "id": "g4",
+     "label": "Giving her up and not settling what that was",
+     "note": "Relief and shame together, the drive to the farm, and three months of saying she is better off. It stays open, and he says so.",
+     "description": "Relief and shame together, and three months of saying she is better off",
+     "members": [
+      "Initial:23:0",
+      "Initial:23:1",
+      "Initial:23:2",
+      "Initial:33:2",
+      "Initial:35:0",
+      "Initial:35:1",
+      "Initial:35:2",
+      "Initial:37:0",
+      "Initial:37:1",
+      "g8"
+     ],
+     "x": 45,
+     "y": -28
+    },
+    {
+     "id": "g5",
+     "label": "Keeping her good name, and her bowl",
+     "note": "What he holds on to: her gentleness behind the shut door, the one sock, the bowl under the sink.",
+     "description": "Frightened, not a problem, and a bowl kept under the sink",
+     "members": [
+      "Initial:39:0",
+      "Initial:39:1",
+      "Initial:31:2"
+     ],
+     "x": 531,
+     "y": -28
+    },
+    {
+     "id": "g6",
+     "label": "Still listening for other dogs",
+     "note": "The watchfulness he noticed only once she had gone.",
+     "description": "A body keeping watch for a dog no longer there",
+     "members": [
+      "Initial:9:2",
+      "Initial:11:0",
+      "Initial:11:1",
+      "Initial:33:0"
+     ],
+     "x": -170,
+     "y": -511
+    },
+    {
+     "id": "g7",
+     "label": "Nobody asking any more",
+     "description": "A reason nobody argues with, and a sister who saw it first",
+     "members": [
+      "Initial:15:0",
+      "Initial:15:1",
+      "Initial:15:2"
+     ],
+     "x": -836,
+     "y": 551
+    },
+    {
+     "id": "g8",
+     "label": "The day she went",
+     "description": "The yes, the drive, and arms with nothing to hold",
+     "members": [
+      "Initial:25:0",
+      "Initial:25:1",
+      "Initial:27:0",
+      "Initial:27:1",
+      "Initial:31:0",
+      "Initial:31:1"
+     ],
+     "x": 59,
+     "y": 511
+    }
+   ],
+   "discarded": [
+    "Initial:7:1"
+   ],
+   "picks": {
+    "g1": [
+     "Initial:9:0"
+    ],
+    "g2": [
+     "Initial:3:0"
+    ],
+    "g3": [
+     "Initial:19:0"
+    ],
+    "g4": [
+     "Initial:35:0"
+    ],
+    "g5": [
+     "Initial:39:0"
+    ]
+   },
+   "quoted": {
+    "Initial:9:0": "\"this is all right, this is ours\"",
+    "Initial:3:0": "\"The flat was her flat. I just lived in it.\"",
+    "Initial:19:0": "\"That wasn't her fault. That was mine.\"",
+    "Initial:35:0": "\"If it was settled I wouldn't need to say it every day, would I.\"",
+    "Initial:39:0": "\"She wasn't a problem. She was frightened.\""
+   }
+  }
+ ]
+}

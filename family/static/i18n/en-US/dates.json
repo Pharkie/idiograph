@@ -1,0 +1,4 @@
+{
+  "dates.clock.am": "{hour}:{minute} AM",
+  "dates.clock.pm": "{hour}:{minute} PM"
+}

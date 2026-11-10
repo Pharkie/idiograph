@@ -1,0 +1,22 @@
+{
+  "trash.where.mac": "Bin",
+  "trash.where.windows": "Recycle Bin",
+  "trash.where.linux": "Rubbish Bin",
+  "trash.card.title": "Remove from {app}",
+  "trash.card.keeps": "Its folder and files stay as they are.",
+  "trash.card.goes": "Its folder and every file in it go to the {where}.",
+  "trash.card.tick": "Move its folder to the {where} too",
+  "trash.card.remove": "Remove",
+  "trash.removed": "Removed {name}. Its folder is in the {where}.",
+  "trash.gone": "Its folder is not there any more, so nothing was moved to the {where} or removed.",
+  "trash.link": "Its folder is a link to another folder, so nothing was moved to the {where} or removed.",
+  "trash.drive": "Its folder is a whole drive, so nothing was moved to the {where} or removed.",
+  "trash.home": "Its folder is, or holds, your home folder, or is one of the folders inside it, so nothing was moved to the {where} or removed.",
+  "trash.cloud": "Its folder is a whole cloud drive, so nothing was moved to the {where} or removed.",
+  "trash.holds_app": "Its folder holds the app's own files or settings, so nothing was moved to the {where} or removed.",
+  "trash.holds_project": "Its folder holds another project, {other}, so nothing was moved to the {where} or removed.",
+  "trash.busy": "{name} is being saved right now, so nothing was moved to the {where} or removed. Try again in a moment.",
+  "trash.open": "{name} is open in another window, so nothing was moved to the {where} or removed. Close it there and try again.",
+  "trash.no_bin": "Its folder is on a drive with no {where}, so nothing was moved or removed.",
+  "trash.failed": "Its folder could not be moved to the {where}, so {name} stays in the list."
+}

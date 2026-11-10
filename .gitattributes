@@ -1,0 +1,10 @@
+# Line endings for the launchers, whatever the machine that checks them out or the zip GitHub
+# makes: Windows's batch files with CRLF, which cmd needs for its labels, and the Mac and Linux
+# scripts with LF, which bash needs
+*.bat text eol=crlf
+*.sh text eol=lf
+*.command text eol=lf
+/idiograph text eol=lf
+/sift text eol=lf
+/trace text eol=lf
+/Idiograph.app/Contents/MacOS/Idiograph text eol=lf

@@ -1,0 +1,8 @@
+#!/bin/sh
+# Commit exactly the named paths, after the fast checks, under the gate's commit lock.
+#
+#     ./commit -m "<message>" -- <path>...
+#
+# Read the last line of stdout: COMMIT: GREEN sha=<sha> or COMMIT: RED reason=<slug>.
+# The work is done by ./verify --commit, and its docstring says how.
+exec "$(dirname "$0")/verify" --commit "$@"

@@ -1,0 +1,3 @@
+# Trace's own code
+
+Trace's own modules and its `static/` files, since the family codebase's second build (22 October 2026), in an import root that `boot.setup` puts on `sys.path` when the run serves Trace: `trace_claims.py`, its projects, claims and judgements, `trace_routes.py`, `trace_cli.py`, `trace_mcp.py` and `trace_find.py`, its routes, command, tools and part of Search, each registered with the family's module as it is imported (`boot.load`), `trace_main.py`, its entry, and `static/`, its screen, its style, its icon and its parts of the family's page. A module here imports the family's (`family/`) and Trace's own, never another app's. See docs/internals.md, "The family's folders".

@@ -1,0 +1,13 @@
+#!/bin/sh
+# Trace's command line from source, macOS or Linux: the venv's python running cli.py as Trace, from
+# wherever it is called, so a relative folder reads from there. The venv is found as the idiograph
+# command finds it. Its arguments are the trace command's own, as `idiograph trace` took them:
+#   ./trace "<Trace project folder>"
+# In the Mac app it is the app's own server with cli first:
+#   /Applications/Trace.app/Contents/Resources/server/Trace cli ...
+# See docs/agents-trace.md.
+HERE="$(cd "$(dirname "$0")" && pwd)"
+PY="$HERE/.venv/bin/python3"
+[ -x "$PY" ] || PY="$HERE/../../.venv/bin/python3"
+[ -x "$PY" ] || PY="python3"
+exec "$PY" "$HERE/cli.py" --app trace "$@"

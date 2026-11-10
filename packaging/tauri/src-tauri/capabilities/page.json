@@ -1,0 +1,11 @@
+{
+  "identifier": "page",
+  "description": "The server's own page, on 127.0.0.1, may ask its window to print, for a new window, to save a download, for where to save a sent project, to choose a folder or a file, to confirm a line, to keep its settings, for Open Recent, for File's Project History, to zoom, for Undo and Redo in a field, to say the line at the foot to a screen reader on Linux, to close, for its updates, and for the shared copies the app was asked to open, and nothing else",
+  "windows": ["main", "page-*"],
+  "remote": {
+    "urls": ["http://127.0.0.1:*", "http://127.0.0.1:*/*"]
+  },
+  "permissions": ["allow-print", "allow-new-window", "allow-save-download", "allow-save-path", "allow-pick", "allow-confirm", "allow-keep",
+                  "allow-recent", "allow-project-now", "allow-zoom", "allow-edit", "allow-announce", "allow-closing", "allow-updates",
+                  "allow-opened"]
+}

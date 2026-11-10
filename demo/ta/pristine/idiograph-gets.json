@@ -1,0 +1,3002 @@
+{
+ "schema": 1,
+ "created": "2026-10-19T14:30:00+01:00",
+ "updated": "2026-10-20T09:15:00+01:00",
+ "current": "b1",
+ "chosen": "b1",
+ "complete": null,
+ "settings": {
+  "minimum": null,
+  "one_per_pet": true
+ },
+ "study": {
+  "Juno": {
+   "in": true
+  },
+  "Mabel": {
+   "in": true
+  },
+  "Rowan": {
+   "in": true
+  }
+ },
+ "cases": {
+  "Juno": {
+   "workbook": "Juno - EN & ES.xlsx",
+   "board": null,
+   "name": null,
+   "complete": false,
+   "came": "2026-10-19T14:30:00+01:00",
+   "seen": {
+    "workbook": 1792416600000000000,
+    "themes": null
+   },
+   "hash": "0dc11aaef8f1a9bfe264c4a8b986f43ee978bbae4684342c685be9ffb0203b9b",
+   "state": "none",
+   "pets": [],
+   "lines": {
+    "Initial:3:0": {
+     "sheet": "Initial",
+     "row": 3,
+     "time": "00:14",
+     "seconds": 14,
+     "text": "A house filled or emptied by the dog",
+     "quotes": [
+      "\"Bramble is just there, all the time.\"",
+      "\"she is sat on the second stair, because she is not allowed past the second stair\"",
+      "\"The house is never empty now. Even when it is quiet it is not empty.\""
+     ],
+     "notes": [
+      "Opens on presence before anything else. The second stair comes back later as a rule."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:3:1": {
+     "sheet": "Initial",
+     "row": 3,
+     "time": "00:14",
+     "seconds": 14,
+     "text": "Rules nobody wrote down",
+     "quotes": [
+      "\"Bramble is just there, all the time.\"",
+      "\"she is sat on the second stair, because she is not allowed past the second stair\"",
+      "\"The house is never empty now. Even when it is quiet it is not empty.\""
+     ],
+     "notes": [
+      "Opens on presence before anything else. The second stair comes back later as a rule."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:3:2": {
+     "sheet": "Initial",
+     "row": 3,
+     "time": "00:14",
+     "seconds": 14,
+     "text": "A house filled or emptied by the dog",
+     "quotes": [
+      "\"Bramble is just there, all the time.\"",
+      "\"she is sat on the second stair, because she is not allowed past the second stair\"",
+      "\"The house is never empty now. Even when it is quiet it is not empty.\""
+     ],
+     "notes": [
+      "Opens on presence before anything else. The second stair comes back later as a rule."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:0": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "00:51",
+     "seconds": 51,
+     "text": "Who does the dog's work",
+     "quotes": [
+      "\"I was the one who said no dog, for about four years I said no dog, absolutely not, I know who ends up walking it.\"",
+      "\"having a full conversation with an animal\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:1": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "00:51",
+     "seconds": 51,
+     "text": "Talking to the dog",
+     "quotes": [
+      "\"I was the one who said no dog, for about four years I said no dog, absolutely not, I know who ends up walking it.\"",
+      "\"having a full conversation with an animal\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:0": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:25",
+     "seconds": 85,
+     "text": "Two feelings at once",
+     "quotes": [
+      "\"I still say I was talked into her, and my partner still says I was the one who filled the form in, and we are both right.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:0": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:10",
+     "seconds": 130,
+     "text": "Who does the dog's work",
+     "quotes": [
+      "\"there is the question of who gets up, which is the first thing that happens in our house every single day, and it is not always friendly.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:0": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:48",
+     "seconds": 168,
+     "text": "Who does the dog's work",
+     "quotes": [
+      "\"I am the one who does this, for ever. And it is not the twelve minutes. It is what the twelve minutes says. That I will always go.\"",
+      "\"the annoyance just goes. Which is its own annoying thing, because I would quite like to stay cross.\"",
+      "\"the annoyance just goes. Which is its own annoying thing, because I would quite like to stay cross.\""
+     ],
+     "notes": [
+      "Getting up first is not about the twelve minutes but what it settles about who gives way in the house. The dog then takes the grievance off her before she can use it, and she half minds."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:1": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:48",
+     "seconds": 168,
+     "text": "The dog's joy lifting a mood",
+     "quotes": [
+      "\"I am the one who does this, for ever. And it is not the twelve minutes. It is what the twelve minutes says. That I will always go.\"",
+      "\"the annoyance just goes. Which is its own annoying thing, because I would quite like to stay cross.\"",
+      "\"the annoyance just goes. Which is its own annoying thing, because I would quite like to stay cross.\""
+     ],
+     "notes": [
+      "Getting up first is not about the twelve minutes but what it settles about who gives way in the house. The dog then takes the grievance off her before she can use it, and she half minds."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:2": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:48",
+     "seconds": 168,
+     "text": "Two feelings at once",
+     "quotes": [
+      "\"I am the one who does this, for ever. And it is not the twelve minutes. It is what the twelve minutes says. That I will always go.\"",
+      "\"the annoyance just goes. Which is its own annoying thing, because I would quite like to stay cross.\"",
+      "\"the annoyance just goes. Which is its own annoying thing, because I would quite like to stay cross.\""
+     ],
+     "notes": [
+      "Getting up first is not about the twelve minutes but what it settles about who gives way in the house. The dog then takes the grievance off her before she can use it, and she half minds."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:0": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:27",
+     "seconds": 207,
+     "text": "The dog's joy lifting a mood",
+     "quotes": [
+      "\"But you cannot carry a mood down those stairs. She takes it off you at the bottom.\"",
+      "\"But you cannot carry a mood down those stairs. She takes it off you at the bottom.\"",
+      "\"So it never gets said. Five years of it never getting said.\"",
+      "\"So it never gets said. Five years of it never getting said.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:1": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:27",
+     "seconds": 207,
+     "text": "The dog as a way round hard talk",
+     "quotes": [
+      "\"But you cannot carry a mood down those stairs. She takes it off you at the bottom.\"",
+      "\"But you cannot carry a mood down those stairs. She takes it off you at the bottom.\"",
+      "\"So it never gets said. Five years of it never getting said.\"",
+      "\"So it never gets said. Five years of it never getting said.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:2": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:27",
+     "seconds": 207,
+     "text": "The dog as a way round hard talk",
+     "quotes": [
+      "\"But you cannot carry a mood down those stairs. She takes it off you at the bottom.\"",
+      "\"But you cannot carry a mood down those stairs. She takes it off you at the bottom.\"",
+      "\"So it never gets said. Five years of it never getting said.\"",
+      "\"So it never gets said. Five years of it never getting said.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:3": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:27",
+     "seconds": 207,
+     "text": "Doubts kept unsaid",
+     "quotes": [
+      "\"But you cannot carry a mood down those stairs. She takes it off you at the bottom.\"",
+      "\"But you cannot carry a mood down those stairs. She takes it off you at the bottom.\"",
+      "\"So it never gets said. Five years of it never getting said.\"",
+      "\"So it never gets said. Five years of it never getting said.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:0": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "03:55",
+     "seconds": 235,
+     "text": "Days arranged round the dog",
+     "quotes": [
+      "\"Out of the door, left, down past the allotments, round the bottom field and back up the lane. Forty minutes.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:0": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:31",
+     "seconds": 271,
+     "text": "The dog as a reason nobody argues with",
+     "quotes": [
+      "\"Nobody can ask me for anything, because I am out with the dog, and that is a completely respectable reason to be unavailable. Nobody argues with it.\"",
+      "\"And my head goes quiet on that lane in a way it does not anywhere else.\""
+     ],
+     "notes": [
+      "Nobody argues with it: the dog as a reason no one can question, time of her own that needs no defending. Rowan uses almost the same words."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:1": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:31",
+     "seconds": 271,
+     "text": "Caring for myself through the dog",
+     "quotes": [
+      "\"Nobody can ask me for anything, because I am out with the dog, and that is a completely respectable reason to be unavailable. Nobody argues with it.\"",
+      "\"And my head goes quiet on that lane in a way it does not anywhere else.\""
+     ],
+     "notes": [
+      "Nobody argues with it: the dog as a reason no one can question, time of her own that needs no defending. Rowan uses almost the same words."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:0": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "05:05",
+     "seconds": 305,
+     "text": "The dog's joy lifting a mood",
+     "quotes": [
+      "\"you cannot stand next to that much enthusiasm for a hedge and stay in a bad mood, it is not possible.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:0": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:36",
+     "seconds": 336,
+     "text": "Keeping watch",
+     "quotes": [
+      "\"I am furious the entire time it is happening.\"",
+      "\"I am furious the entire time it is happening.\"",
+      "\"the look on her at full stretch is worth more to me than the twenty minutes of worry.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:1": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:36",
+     "seconds": 336,
+     "text": "Two feelings at once",
+     "quotes": [
+      "\"I am furious the entire time it is happening.\"",
+      "\"I am furious the entire time it is happening.\"",
+      "\"the look on her at full stretch is worth more to me than the twenty minutes of worry.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:2": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:36",
+     "seconds": 336,
+     "text": "The dog's joy lifting a mood",
+     "quotes": [
+      "\"I am furious the entire time it is happening.\"",
+      "\"I am furious the entire time it is happening.\"",
+      "\"the look on her at full stretch is worth more to me than the twenty minutes of worry.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:0": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "06:22",
+     "seconds": 382,
+     "text": "A life closing in",
+     "quotes": [
+      "\"I had not reckoned on how much of my time stopped being mine.\"",
+      "\"It was that you cannot just go.\"",
+      "\"It was that you cannot just go.\"",
+      "\"I thought, I have made a mistake here. I did not say that out loud to anybody.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:1": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "06:22",
+     "seconds": 382,
+     "text": "A life closing in",
+     "quotes": [
+      "\"I had not reckoned on how much of my time stopped being mine.\"",
+      "\"It was that you cannot just go.\"",
+      "\"It was that you cannot just go.\"",
+      "\"I thought, I have made a mistake here. I did not say that out loud to anybody.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:2": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "06:22",
+     "seconds": 382,
+     "text": "Days arranged round the dog",
+     "quotes": [
+      "\"I had not reckoned on how much of my time stopped being mine.\"",
+      "\"It was that you cannot just go.\"",
+      "\"It was that you cannot just go.\"",
+      "\"I thought, I have made a mistake here. I did not say that out loud to anybody.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:3": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "06:22",
+     "seconds": 382,
+     "text": "Doubts kept unsaid",
+     "quotes": [
+      "\"I had not reckoned on how much of my time stopped being mine.\"",
+      "\"It was that you cannot just go.\"",
+      "\"It was that you cannot just go.\"",
+      "\"I thought, I have made a mistake here. I did not say that out loud to anybody.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:0": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "07:01",
+     "seconds": 421,
+     "text": "Doubts kept unsaid",
+     "quotes": [
+      "\"And I am going to sit at a table and say I regret her. No.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:0": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "07:37",
+     "seconds": 457,
+     "text": "Rules nobody wrote down",
+     "quotes": [
+      "\"we both turned round at the same second, without either of us deciding it, and came home.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:29:0": {
+     "sheet": "Initial",
+     "row": 29,
+     "time": "08:27",
+     "seconds": 507,
+     "text": "Rules nobody wrote down",
+     "quotes": [
+      "\"which felt like an agreement rather than a failure.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:31:0": {
+     "sheet": "Initial",
+     "row": 31,
+     "time": "09:05",
+     "seconds": 545,
+     "text": "Rules nobody wrote down",
+     "quotes": [
+      "\"There are rules in that house and neither of us wrote them down.\"",
+      "\"I do the mornings, mostly.\""
+     ],
+     "notes": [
+      "An order kept without words on either side. Close to Rowan's sock every morning: the dog's part in the routine as a kind of promise."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:31:1": {
+     "sheet": "Initial",
+     "row": 31,
+     "time": "09:05",
+     "seconds": 545,
+     "text": "Who does the dog's work",
+     "quotes": [
+      "\"There are rules in that house and neither of us wrote them down.\"",
+      "\"I do the mornings, mostly.\""
+     ],
+     "notes": [
+      "An order kept without words on either side. Close to Rowan's sock every morning: the dog's part in the routine as a kind of promise."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:33:0": {
+     "sheet": "Initial",
+     "row": 33,
+     "time": "09:43",
+     "seconds": 583,
+     "text": "Wanted without conditions",
+     "quotes": [
+      "\"she cannot get to the door fast enough, she actually skids into it.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:35:0": {
+     "sheet": "Initial",
+     "row": 35,
+     "time": "10:21",
+     "seconds": 621,
+     "text": "Wanted without conditions",
+     "quotes": [
+      "\"It is being wanted. Plainly. Nobody else in my life is that pleased to see me\"",
+      "\"It is being wanted. Plainly. Nobody else in my life is that pleased to see me\""
+     ],
+     "notes": [
+      "Careful not to sound bitter. The comparison with people is hers, and it returns in turn 19."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:35:1": {
+     "sheet": "Initial",
+     "row": 35,
+     "time": "10:21",
+     "seconds": 621,
+     "text": "The dog in a person's place",
+     "quotes": [
+      "\"It is being wanted. Plainly. Nobody else in my life is that pleased to see me\"",
+      "\"It is being wanted. Plainly. Nobody else in my life is that pleased to see me\""
+     ],
+     "notes": [
+      "Careful not to sound bitter. The comparison with people is hers, and it returns in turn 19."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:37:0": {
+     "sheet": "Initial",
+     "row": 37,
+     "time": "10:57",
+     "seconds": 657,
+     "text": "Wanted without conditions",
+     "quotes": [
+      "\"I think it makes me come home.\"",
+      "\"And now there is a clock on me.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:37:1": {
+     "sheet": "Initial",
+     "row": 37,
+     "time": "10:57",
+     "seconds": 657,
+     "text": "Days arranged round the dog",
+     "quotes": [
+      "\"I think it makes me come home.\"",
+      "\"And now there is a clock on me.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:39:0": {
+     "sheet": "Initial",
+     "row": 39,
+     "time": "11:24",
+     "seconds": 684,
+     "text": "The dog as a way round hard talk",
+     "quotes": [
+      "\"But there was something else in it as well, which was, you will come home for the dog.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:41:0": {
+     "sheet": "Initial",
+     "row": 41,
+     "time": "11:49",
+     "seconds": 709,
+     "text": "Wanted without conditions",
+     "quotes": [
+      "\"The dog is easier.\"",
+      "\"The dog is easier.\"",
+      "\"She does not need me to have got anything right.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:41:1": {
+     "sheet": "Initial",
+     "row": 41,
+     "time": "11:49",
+     "seconds": 709,
+     "text": "The dog in a person's place",
+     "quotes": [
+      "\"The dog is easier.\"",
+      "\"The dog is easier.\"",
+      "\"She does not need me to have got anything right.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:41:2": {
+     "sheet": "Initial",
+     "row": 41,
+     "time": "11:49",
+     "seconds": 709,
+     "text": "Wanted without conditions",
+     "quotes": [
+      "\"The dog is easier.\"",
+      "\"The dog is easier.\"",
+      "\"She does not need me to have got anything right.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:43:0": {
+     "sheet": "Initial",
+     "row": 43,
+     "time": "12:26",
+     "seconds": 746,
+     "text": "The dog as a way round hard talk",
+     "quotes": [
+      "\"Or it means we have found something to talk about instead of talking.\"",
+      "\"Or it means we have found something to talk about instead of talking.\"",
+      "\"I have not got to the bottom of it and I am not certain I want to\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:43:1": {
+     "sheet": "Initial",
+     "row": 43,
+     "time": "12:26",
+     "seconds": 746,
+     "text": "Two feelings at once",
+     "quotes": [
+      "\"Or it means we have found something to talk about instead of talking.\"",
+      "\"Or it means we have found something to talk about instead of talking.\"",
+      "\"I have not got to the bottom of it and I am not certain I want to\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:43:2": {
+     "sheet": "Initial",
+     "row": 43,
+     "time": "12:26",
+     "seconds": 746,
+     "text": "Two feelings at once",
+     "quotes": [
+      "\"Or it means we have found something to talk about instead of talking.\"",
+      "\"Or it means we have found something to talk about instead of talking.\"",
+      "\"I have not got to the bottom of it and I am not certain I want to\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:45:0": {
+     "sheet": "Initial",
+     "row": 45,
+     "time": "13:03",
+     "seconds": 783,
+     "text": "Rehearsing the dog's death",
+     "quotes": [
+      "\"it went straight to the worst thing.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:47:0": {
+     "sheet": "Initial",
+     "row": 47,
+     "time": "13:35",
+     "seconds": 815,
+     "text": "Keeping watch",
+     "quotes": [
+      "\"My hands were shaking on the wheel\"",
+      "\"when did I let something matter this much.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:47:1": {
+     "sheet": "Initial",
+     "row": 47,
+     "time": "13:35",
+     "seconds": 815,
+     "text": "Rehearsing the dog's death",
+     "quotes": [
+      "\"My hands were shaking on the wheel\"",
+      "\"when did I let something matter this much.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:49:0": {
+     "sheet": "Initial",
+     "row": 49,
+     "time": "14:11",
+     "seconds": 851,
+     "text": "Rehearsing the dog's death",
+     "quotes": [
+      "\"At the size of what I had felt on the way there.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:51:0": {
+     "sheet": "Initial",
+     "row": 51,
+     "time": "14:46",
+     "seconds": 886,
+     "text": "Rehearsing the dog's death",
+     "quotes": [
+      "\"I had spent twenty minutes organising my own grief in advance, in traffic.\"",
+      "\"So that Saturday was a rehearsal.\""
+     ],
+     "notes": [
+      "Her word, rehearsal: the drive to the vet as grief practised in advance, the loss already arranged in her before it comes."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:51:1": {
+     "sheet": "Initial",
+     "row": 51,
+     "time": "14:46",
+     "seconds": 886,
+     "text": "Rehearsing the dog's death",
+     "quotes": [
+      "\"I had spent twenty minutes organising my own grief in advance, in traffic.\"",
+      "\"So that Saturday was a rehearsal.\""
+     ],
+     "notes": [
+      "Her word, rehearsal: the drive to the vet as grief practised in advance, the loss already arranged in her before it comes."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:53:0": {
+     "sheet": "Initial",
+     "row": 53,
+     "time": "15:16",
+     "seconds": 916,
+     "text": "Rehearsing the dog's death",
+     "quotes": [
+      "\"I am going to have to do this properly one day and I have no idea at all how I will be.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:57:0": {
+     "sheet": "Initial",
+     "row": 57,
+     "time": "16:14",
+     "seconds": 974,
+     "text": "A house filled or emptied by the dog",
+     "quotes": [
+      "\"It was so quiet. And it was not a nice quiet, it was a wrong quiet\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:59:0": {
+     "sheet": "Initial",
+     "row": 59,
+     "time": "16:48",
+     "seconds": 1008,
+     "text": "Days arranged round the dog",
+     "quotes": [
+      "\"Everything in it is arranged around her now, and we never sat down and decided to arrange it.\"",
+      "\"Everything in it is arranged around her now, and we never sat down and decided to arrange it.\"",
+      "\"And with her not in it the whole place was just a set. Furniture waiting for somebody.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:59:1": {
+     "sheet": "Initial",
+     "row": 59,
+     "time": "16:48",
+     "seconds": 1008,
+     "text": "A house filled or emptied by the dog",
+     "quotes": [
+      "\"Everything in it is arranged around her now, and we never sat down and decided to arrange it.\"",
+      "\"Everything in it is arranged around her now, and we never sat down and decided to arrange it.\"",
+      "\"And with her not in it the whole place was just a set. Furniture waiting for somebody.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:59:2": {
+     "sheet": "Initial",
+     "row": 59,
+     "time": "16:48",
+     "seconds": 1008,
+     "text": "A house filled or emptied by the dog",
+     "quotes": [
+      "\"Everything in it is arranged around her now, and we never sat down and decided to arrange it.\"",
+      "\"Everything in it is arranged around her now, and we never sat down and decided to arrange it.\"",
+      "\"And with her not in it the whole place was just a set. Furniture waiting for somebody.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:61:0": {
+     "sheet": "Initial",
+     "row": 61,
+     "time": "17:19",
+     "seconds": 1039,
+     "text": "A house filled or emptied by the dog",
+     "quotes": [
+      "\"That a whole house can go on standby waiting for a dog.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:63:0": {
+     "sheet": "Initial",
+     "row": 63,
+     "time": "17:49",
+     "seconds": 1069,
+     "text": "Rehearsing the dog's death",
+     "quotes": [
+      "\"If a house can go flat for two hours, what happens when it is not two hours. That is the thought I do not let myself finish.\"",
+      "\"If a house can go flat for two hours, what happens when it is not two hours. That is the thought I do not let myself finish.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:63:1": {
+     "sheet": "Initial",
+     "row": 63,
+     "time": "17:49",
+     "seconds": 1069,
+     "text": "A house filled or emptied by the dog",
+     "quotes": [
+      "\"If a house can go flat for two hours, what happens when it is not two hours. That is the thought I do not let myself finish.\"",
+      "\"If a house can go flat for two hours, what happens when it is not two hours. That is the thought I do not let myself finish.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:65:0": {
+     "sheet": "Initial",
+     "row": 65,
+     "time": "18:16",
+     "seconds": 1096,
+     "text": "The dog as a way round hard talk",
+     "quotes": [
+      "\"But I have noticed we do it at about the point in the evening where we might otherwise be talking about something else.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:67:0": {
+     "sheet": "Initial",
+     "row": 67,
+     "time": "18:51",
+     "seconds": 1131,
+     "text": "The dog as a way round hard talk",
+     "quotes": [
+      "\"But the dog is a very good door to close on it.\""
+     ],
+     "notes": [
+      "A door to close. Mabel has the same picture the other way round, a door the dog opens."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:69:0": {
+     "sheet": "Initial",
+     "row": 69,
+     "time": "19:23",
+     "seconds": 1163,
+     "text": "Two feelings at once",
+     "quotes": [
+      "\"Two ways at once, which is what I keep saying to you, I know.\"",
+      "\"she is also the reason we are in the same room at all.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:69:1": {
+     "sheet": "Initial",
+     "row": 69,
+     "time": "19:23",
+     "seconds": 1163,
+     "text": "Two feelings at once",
+     "quotes": [
+      "\"Two ways at once, which is what I keep saying to you, I know.\"",
+      "\"she is also the reason we are in the same room at all.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:71:0": {
+     "sheet": "Initial",
+     "row": 71,
+     "time": "20:01",
+     "seconds": 1201,
+     "text": "Two feelings at once",
+     "quotes": [
+      "\"It is one of those things where the answer changes depending on the week I have had.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:73:0": {
+     "sheet": "Initial",
+     "row": 73,
+     "time": "20:14",
+     "seconds": 1214,
+     "text": "Talking to the dog",
+     "quotes": [
+      "\"say goodnight to her, out loud, like she is a person\"",
+      "\"she just thumps her tail twice on the bed. Twice. Never three times.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:73:1": {
+     "sheet": "Initial",
+     "row": 73,
+     "time": "20:14",
+     "seconds": 1214,
+     "text": "Rules nobody wrote down",
+     "quotes": [
+      "\"say goodnight to her, out loud, like she is a person\"",
+      "\"she just thumps her tail twice on the bed. Twice. Never three times.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:75:0": {
+     "sheet": "Initial",
+     "row": 75,
+     "time": "20:50",
+     "seconds": 1250,
+     "text": "Doubts kept unsaid",
+     "quotes": [
+      "\"Probably the regret, from that first year. I have never said that to my partner.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:79:0": {
+     "sheet": "Initial",
+     "row": 79,
+     "time": "21:45",
+     "seconds": 1305,
+     "text": "Days arranged round the dog",
+     "quotes": [
+      "\"she has got herself right into the middle of the house, and I could not tell you which day that happened. There was no day.\"",
+      "\"she has got herself right into the middle of the house, and I could not tell you which day that happened. There was no day.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:79:1": {
+     "sheet": "Initial",
+     "row": 79,
+     "time": "21:45",
+     "seconds": 1305,
+     "text": "A house filled or emptied by the dog",
+     "quotes": [
+      "\"she has got herself right into the middle of the house, and I could not tell you which day that happened. There was no day.\"",
+      "\"she has got herself right into the middle of the house, and I could not tell you which day that happened. There was no day.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    }
+   }
+  },
+  "Mabel": {
+   "workbook": "Mabel - EN & ES.xlsx",
+   "board": null,
+   "name": null,
+   "complete": false,
+   "came": "2026-10-19T14:30:00+01:00",
+   "seen": {
+    "workbook": 1792416600000000000,
+    "themes": null
+   },
+   "hash": "f30329b0abd05fd4dde376e6c53ad23228d3799266033acd8c964433d86c6215",
+   "state": "none",
+   "pets": [],
+   "lines": {
+    "Initial:3:0": {
+     "sheet": "Initial",
+     "row": 3,
+     "time": "00:18",
+     "seconds": 18,
+     "text": "A house filled or emptied by the dog",
+     "quotes": [
+      "\"It's like having the lights on.\"",
+      "\"And now nothing's where I left it.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:3:1": {
+     "sheet": "Initial",
+     "row": 3,
+     "time": "00:18",
+     "seconds": 18,
+     "text": "A house filled or emptied by the dog",
+     "quotes": [
+      "\"It's like having the lights on.\"",
+      "\"And now nothing's where I left it.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:0": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "01:04",
+     "seconds": 64,
+     "text": "A house filled or emptied by the dog",
+     "quotes": [
+      "\"But a house where things stay put is a house where nothing's happening.\"",
+      "\"It means somebody's been living here.\""
+     ],
+     "notes": [
+      "The house again, as with Juno, but here the dog's mess is the proof that someone lives here."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:1": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "01:04",
+     "seconds": 64,
+     "text": "A house filled or emptied by the dog",
+     "quotes": [
+      "\"But a house where things stay put is a house where nothing's happening.\"",
+      "\"It means somebody's been living here.\""
+     ],
+     "notes": [
+      "The house again, as with Juno, but here the dog's mess is the proof that someone lives here."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:0": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:41",
+     "seconds": 101,
+     "text": "A reason to get up",
+     "quotes": [
+      "\"Before her I'd lie there till nine some days, there wasn't anything to get up for.\"",
+      "\"Now it's seven o'clock, dressing gown, kettle on, let her out, and we're on the green by half past.\"",
+      "\"Now it's seven o'clock, dressing gown, kettle on, let her out, and we're on the green by half past.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:1": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:41",
+     "seconds": 101,
+     "text": "Days arranged round the dog",
+     "quotes": [
+      "\"Before her I'd lie there till nine some days, there wasn't anything to get up for.\"",
+      "\"Now it's seven o'clock, dressing gown, kettle on, let her out, and we're on the green by half past.\"",
+      "\"Now it's seven o'clock, dressing gown, kettle on, let her out, and we're on the green by half past.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:2": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:41",
+     "seconds": 101,
+     "text": "A reason to get up",
+     "quotes": [
+      "\"Before her I'd lie there till nine some days, there wasn't anything to get up for.\"",
+      "\"Now it's seven o'clock, dressing gown, kettle on, let her out, and we're on the green by half past.\"",
+      "\"Now it's seven o'clock, dressing gown, kettle on, let her out, and we're on the green by half past.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:0": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:31",
+     "seconds": 151,
+     "text": "A life opening out",
+     "quotes": [
+      "\"Oh, it's a whole society. You wouldn't know it unless you had a dog.\"",
+      "\"I'd lived on this estate twenty years and I didn't know them.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:1": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:31",
+     "seconds": 151,
+     "text": "A life opening out",
+     "quotes": [
+      "\"Oh, it's a whole society. You wouldn't know it unless you had a dog.\"",
+      "\"I'd lived on this estate twenty years and I didn't know them.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:0": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "03:19",
+     "seconds": 199,
+     "text": "A life opening out",
+     "quotes": [
+      "\"it's saved me a bit\"",
+      "\"it's saved me a bit\"",
+      "\"you're not there to see people, you're there for the dog, and the talking just happens round the edges.\"",
+      "\"you're not there to see people, you're there for the dog, and the talking just happens round the edges.\""
+     ],
+     "notes": [
+      "The same reason Juno and Rowan give, put to the opposite use: it lets talk happen rather than stopping it."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:1": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "03:19",
+     "seconds": 199,
+     "text": "Caring for myself through the dog",
+     "quotes": [
+      "\"it's saved me a bit\"",
+      "\"it's saved me a bit\"",
+      "\"you're not there to see people, you're there for the dog, and the talking just happens round the edges.\"",
+      "\"you're not there to see people, you're there for the dog, and the talking just happens round the edges.\""
+     ],
+     "notes": [
+      "The same reason Juno and Rowan give, put to the opposite use: it lets talk happen rather than stopping it."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:2": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "03:19",
+     "seconds": 199,
+     "text": "The dog as a reason nobody argues with",
+     "quotes": [
+      "\"it's saved me a bit\"",
+      "\"it's saved me a bit\"",
+      "\"you're not there to see people, you're there for the dog, and the talking just happens round the edges.\"",
+      "\"you're not there to see people, you're there for the dog, and the talking just happens round the edges.\""
+     ],
+     "notes": [
+      "The same reason Juno and Rowan give, put to the opposite use: it lets talk happen rather than stopping it."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:3": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "03:19",
+     "seconds": 199,
+     "text": "A life opening out",
+     "quotes": [
+      "\"it's saved me a bit\"",
+      "\"it's saved me a bit\"",
+      "\"you're not there to see people, you're there for the dog, and the talking just happens round the edges.\"",
+      "\"you're not there to see people, you're there for the dog, and the talking just happens round the edges.\""
+     ],
+     "notes": [
+      "The same reason Juno and Rowan give, put to the opposite use: it lets talk happen rather than stopping it."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:0": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "04:05",
+     "seconds": 245,
+     "text": "Caring for myself through the dog",
+     "quotes": [
+      "\"you can't feed a dog and not feed yourself, it looks ridiculous. So I eat.\"",
+      "\"someone's depending on me\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:1": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "04:05",
+     "seconds": 245,
+     "text": "A reason to get up",
+     "quotes": [
+      "\"you can't feed a dog and not feed yourself, it looks ridiculous. So I eat.\"",
+      "\"someone's depending on me\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:0": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "04:50",
+     "seconds": 290,
+     "text": "Two feelings at once",
+     "quotes": [
+      "\"The first six months I thought I'd made a terrible mistake.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:0": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "05:29",
+     "seconds": 329,
+     "text": "Others judging the dog's place",
+     "quotes": [
+      "\"Mum, the dog has to go.\"",
+      "\"But it felt like she was taking something off me.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:1": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "05:29",
+     "seconds": 329,
+     "text": "Others judging the dog's place",
+     "quotes": [
+      "\"Mum, the dog has to go.\"",
+      "\"But it felt like she was taking something off me.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:0": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "06:15",
+     "seconds": 375,
+     "text": "Keeping watch",
+     "quotes": [
+      "\"what if it had been my hip. What happens to her then. What happens to me.\"",
+      "\"what if it had been my hip. What happens to her then. What happens to me.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:1": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "06:15",
+     "seconds": 375,
+     "text": "Settling the dog's future",
+     "quotes": [
+      "\"what if it had been my hip. What happens to her then. What happens to me.\"",
+      "\"what if it had been my hip. What happens to her then. What happens to me.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:0": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "06:53",
+     "seconds": 413,
+     "text": "A life opening out",
+     "quotes": [
+      "\"I took her to classes. At my age!\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:0": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "07:39",
+     "seconds": 459,
+     "text": "Others judging the dog's place",
+     "quotes": [
+      "\"But she brings Pepper a chew when she comes now. That's how I know.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:0": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "08:21",
+     "seconds": 501,
+     "text": "Settling the dog's future",
+     "quotes": [
+      "\"She could well outlive me.\"",
+      "\"It's with the solicitor, with my will.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:1": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "08:21",
+     "seconds": 501,
+     "text": "Settling the dog's future",
+     "quotes": [
+      "\"She could well outlive me.\"",
+      "\"It's with the solicitor, with my will.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:29:0": {
+     "sheet": "Initial",
+     "row": 29,
+     "time": "09:08",
+     "seconds": 548,
+     "text": "Settling the dog's future",
+     "quotes": [
+      "\"Like I'd put something down.\"",
+      "\"And now if anything happens she won't be left in an empty house waiting.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:29:1": {
+     "sheet": "Initial",
+     "row": 29,
+     "time": "09:08",
+     "seconds": 548,
+     "text": "Settling the dog's future",
+     "quotes": [
+      "\"Like I'd put something down.\"",
+      "\"And now if anything happens she won't be left in an empty house waiting.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:31:0": {
+     "sheet": "Initial",
+     "row": 31,
+     "time": "09:53",
+     "seconds": 593,
+     "text": "Wanted without conditions",
+     "quotes": [
+      "\"she's at the window when I come back. Every time.\"",
+      "\"That's the bit I needed settled.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:31:1": {
+     "sheet": "Initial",
+     "row": 31,
+     "time": "09:53",
+     "seconds": 593,
+     "text": "Settling the dog's future",
+     "quotes": [
+      "\"she's at the window when I come back. Every time.\"",
+      "\"That's the bit I needed settled.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:33:0": {
+     "sheet": "Initial",
+     "row": 33,
+     "time": "10:33",
+     "seconds": 633,
+     "text": "Talking to the dog",
+     "quotes": [
+      "\"I find I'm telling her the things I'd have told him.\"",
+      "\"I find I'm telling her the things I'd have told him.\"",
+      "\"It had nowhere to go. Now it goes to her.\""
+     ],
+     "notes": [
+      "Forty years of telling someone about the day, and the telling goes on with Pepper as its listener. The dog keeps a habit of the marriage alive."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:33:1": {
+     "sheet": "Initial",
+     "row": 33,
+     "time": "10:33",
+     "seconds": 633,
+     "text": "The dog in a person's place",
+     "quotes": [
+      "\"I find I'm telling her the things I'd have told him.\"",
+      "\"I find I'm telling her the things I'd have told him.\"",
+      "\"It had nowhere to go. Now it goes to her.\""
+     ],
+     "notes": [
+      "Forty years of telling someone about the day, and the telling goes on with Pepper as its listener. The dog keeps a habit of the marriage alive."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:33:2": {
+     "sheet": "Initial",
+     "row": 33,
+     "time": "10:33",
+     "seconds": 633,
+     "text": "The dog in a person's place",
+     "quotes": [
+      "\"I find I'm telling her the things I'd have told him.\"",
+      "\"I find I'm telling her the things I'd have told him.\"",
+      "\"It had nowhere to go. Now it goes to her.\""
+     ],
+     "notes": [
+      "Forty years of telling someone about the day, and the telling goes on with Pepper as its listener. The dog keeps a habit of the marriage alive."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:35:0": {
+     "sheet": "Initial",
+     "row": 35,
+     "time": "11:16",
+     "seconds": 676,
+     "text": "The dog in a person's place",
+     "quotes": [
+      "\"She's on the bed now. On his side.\"",
+      "\"she says it's not hygienic\"",
+      "\"It's nice to hear breathing in the night again.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:35:1": {
+     "sheet": "Initial",
+     "row": 35,
+     "time": "11:16",
+     "seconds": 676,
+     "text": "Others judging the dog's place",
+     "quotes": [
+      "\"She's on the bed now. On his side.\"",
+      "\"she says it's not hygienic\"",
+      "\"It's nice to hear breathing in the night again.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:35:2": {
+     "sheet": "Initial",
+     "row": 35,
+     "time": "11:16",
+     "seconds": 676,
+     "text": "A house filled or emptied by the dog",
+     "quotes": [
+      "\"She's on the bed now. On his side.\"",
+      "\"she says it's not hygienic\"",
+      "\"It's nice to hear breathing in the night again.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:37:0": {
+     "sheet": "Initial",
+     "row": 37,
+     "time": "11:58",
+     "seconds": 718,
+     "text": "Caring for myself through the dog",
+     "quotes": [
+      "\"I didn't expect to be fitter at seventy three than I was at sixty.\"",
+      "\"I was shut in and she opened the door.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:37:1": {
+     "sheet": "Initial",
+     "row": 37,
+     "time": "11:58",
+     "seconds": 718,
+     "text": "A life opening out",
+     "quotes": [
+      "\"I didn't expect to be fitter at seventy three than I was at sixty.\"",
+      "\"I was shut in and she opened the door.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    }
+   }
+  },
+  "Rowan": {
+   "workbook": "Rowan - EN & ES.xlsx",
+   "board": null,
+   "name": null,
+   "complete": false,
+   "came": "2026-10-19T14:30:00+01:00",
+   "seen": {
+    "workbook": 1792416600000000000,
+    "themes": null
+   },
+   "hash": "12934f42d1cd2df1e29987727596b3270580216d8248741b2797bff54bf4fc25",
+   "state": "none",
+   "pets": [],
+   "lines": {
+    "Initial:3:0": {
+     "sheet": "Initial",
+     "row": 3,
+     "time": "00:21",
+     "seconds": 21,
+     "text": "Loss without a name yet",
+     "quotes": [
+      "\"so I keep starting to say it is and then it's was.\"",
+      "\"I mean that both ways.\"",
+      "\"The flat was her flat. I just lived in it.\"",
+      "\"The flat was her flat. I just lived in it.\""
+     ],
+     "notes": [
+      "Tense slips from the first lines, is and was. The flat was hers: the arranging went so far that the home itself changed hands."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:3:1": {
+     "sheet": "Initial",
+     "row": 3,
+     "time": "00:21",
+     "seconds": 21,
+     "text": "Two feelings at once",
+     "quotes": [
+      "\"so I keep starting to say it is and then it's was.\"",
+      "\"I mean that both ways.\"",
+      "\"The flat was her flat. I just lived in it.\"",
+      "\"The flat was her flat. I just lived in it.\""
+     ],
+     "notes": [
+      "Tense slips from the first lines, is and was. The flat was hers: the arranging went so far that the home itself changed hands."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:3:2": {
+     "sheet": "Initial",
+     "row": 3,
+     "time": "00:21",
+     "seconds": 21,
+     "text": "Days arranged round the dog",
+     "quotes": [
+      "\"so I keep starting to say it is and then it's was.\"",
+      "\"I mean that both ways.\"",
+      "\"The flat was her flat. I just lived in it.\"",
+      "\"The flat was her flat. I just lived in it.\""
+     ],
+     "notes": [
+      "Tense slips from the first lines, is and was. The flat was hers: the arranging went so far that the home itself changed hands."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:3:3": {
+     "sheet": "Initial",
+     "row": 3,
+     "time": "00:21",
+     "seconds": 21,
+     "text": "A house filled or emptied by the dog",
+     "quotes": [
+      "\"so I keep starting to say it is and then it's was.\"",
+      "\"I mean that both ways.\"",
+      "\"The flat was her flat. I just lived in it.\"",
+      "\"The flat was her flat. I just lived in it.\""
+     ],
+     "notes": [
+      "Tense slips from the first lines, is and was. The flat was hers: the arranging went so far that the home itself changed hands."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:0": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "01:02",
+     "seconds": 62,
+     "text": "The dog in a person's place",
+     "quotes": [
+      "\"whole days could go by and I wouldn't speak to anyone. And then there's this dog leaning on my knee under the desk.\"",
+      "\"Everything had to be arranged round her.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:1": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "01:02",
+     "seconds": 62,
+     "text": "Days arranged round the dog",
+     "quotes": [
+      "\"whole days could go by and I wouldn't speak to anyone. And then there's this dog leaning on my knee under the desk.\"",
+      "\"Everything had to be arranged round her.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:0": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:48",
+     "seconds": 108,
+     "text": "Days arranged round the dog",
+     "quotes": [
+      "\"So we went when nobody else did.\"",
+      "\"So we went when nobody else did.\"",
+      "\"I used to joke I'd gone nocturnal. I wasn't really joking.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:1": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:48",
+     "seconds": 108,
+     "text": "A life closing in",
+     "quotes": [
+      "\"So we went when nobody else did.\"",
+      "\"So we went when nobody else did.\"",
+      "\"I used to joke I'd gone nocturnal. I wasn't really joking.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:2": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:48",
+     "seconds": 108,
+     "text": "A life closing in",
+     "quotes": [
+      "\"So we went when nobody else did.\"",
+      "\"So we went when nobody else did.\"",
+      "\"I used to joke I'd gone nocturnal. I wasn't really joking.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:0": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:37",
+     "seconds": 157,
+     "text": "The dog's joy lifting a mood",
+     "quotes": [
+      "\"this is all right, this is ours\"",
+      "\"I never stopped listening, the whole time I had her.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:1": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:37",
+     "seconds": 157,
+     "text": "Keeping watch",
+     "quotes": [
+      "\"this is all right, this is ours\"",
+      "\"I never stopped listening, the whole time I had her.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:0": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "03:23",
+     "seconds": 203,
+     "text": "Keeping watch",
+     "quotes": [
+      "\"My body was still doing it for her.\"",
+      "\"My body was still doing it for her.\""
+     ],
+     "notes": [
+      "The watching outlives the dog. Keeping watch and loss on one line."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:1": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "03:23",
+     "seconds": 203,
+     "text": "Loss without a name yet",
+     "quotes": [
+      "\"My body was still doing it for her.\"",
+      "\"My body was still doing it for her.\""
+     ],
+     "notes": [
+      "The watching outlives the dog. Keeping watch and loss on one line."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:0": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:57",
+     "seconds": 237,
+     "text": "A life closing in",
+     "quotes": [
+      "\"So after that I didn't leave her. I mean I didn't leave her at all, for months. I got everything delivered.\"",
+      "\"So after that I didn't leave her. I mean I didn't leave her at all, for months. I got everything delivered.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:1": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:57",
+     "seconds": 237,
+     "text": "Days arranged round the dog",
+     "quotes": [
+      "\"So after that I didn't leave her. I mean I didn't leave her at all, for months. I got everything delivered.\"",
+      "\"So after that I didn't leave her. I mean I didn't leave her at all, for months. I got everything delivered.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:0": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "04:57",
+     "seconds": 297,
+     "text": "A life closing in",
+     "quotes": [
+      "\"I'd stopped saying yes to things so long ago that people had stopped asking.\"",
+      "\"The dog was the reason, and it's a good reason, nobody argues with it.\""
+     ],
+     "notes": [
+      "Juno's words almost exactly, from a very different life with a dog."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:1": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "04:57",
+     "seconds": 297,
+     "text": "The dog as a reason nobody argues with",
+     "quotes": [
+      "\"I'd stopped saying yes to things so long ago that people had stopped asking.\"",
+      "\"The dog was the reason, and it's a good reason, nobody argues with it.\""
+     ],
+     "notes": [
+      "Juno's words almost exactly, from a very different life with a dog."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:0": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "05:46",
+     "seconds": 346,
+     "text": "Others judging the dog's place",
+     "quotes": [
+      "\"any further incident and they'd have to review the tenancy\"",
+      "\"I can't keep her safe here. Or I can't keep everyone else safe.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:1": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "05:46",
+     "seconds": 346,
+     "text": "Keeping watch",
+     "quotes": [
+      "\"any further incident and they'd have to review the tenancy\"",
+      "\"I can't keep her safe here. Or I can't keep everyone else safe.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:0": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "06:36",
+     "seconds": 396,
+     "text": "Asking whether it was my fault",
+     "quotes": [
+      "\"That wasn't her fault. That was mine.\"",
+      "\"I chose the flat and then I chose her, and I never thought about the two together.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:1": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "06:36",
+     "seconds": 396,
+     "text": "Asking whether it was my fault",
+     "quotes": [
+      "\"That wasn't her fault. That was mine.\"",
+      "\"I chose the flat and then I chose her, and I never thought about the two together.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:0": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "07:11",
+     "seconds": 431,
+     "text": "Asking whether it was my fault",
+     "quotes": [
+      "\"I tried everything first. I want that on the record.\"",
+      "\"She said some dogs need a different life, not a different owner, and sometimes it's both.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:1": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "07:11",
+     "seconds": 431,
+     "text": "Settling the dog's future",
+     "quotes": [
+      "\"I tried everything first. I want that on the record.\"",
+      "\"She said some dogs need a different life, not a different owner, and sometimes it's both.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:0": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "08:03",
+     "seconds": 483,
+     "text": "Two feelings at once",
+     "quotes": [
+      "\"Awful. And a relief. Both at once, and I was ashamed of the relief, I still am a bit.\"",
+      "\"Awful. And a relief. Both at once, and I was ashamed of the relief, I still am a bit.\"",
+      "\"I felt like I was lying to her.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:1": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "08:03",
+     "seconds": 483,
+     "text": "Doubts kept unsaid",
+     "quotes": [
+      "\"Awful. And a relief. Both at once, and I was ashamed of the relief, I still am a bit.\"",
+      "\"Awful. And a relief. Both at once, and I was ashamed of the relief, I still am a bit.\"",
+      "\"I felt like I was lying to her.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:2": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "08:03",
+     "seconds": 483,
+     "text": "Doubts kept unsaid",
+     "quotes": [
+      "\"Awful. And a relief. Both at once, and I was ashamed of the relief, I still am a bit.\"",
+      "\"Awful. And a relief. Both at once, and I was ashamed of the relief, I still am a bit.\"",
+      "\"I felt like I was lying to her.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:0": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "08:43",
+     "seconds": 523,
+     "text": "Settling the dog's future",
+     "quotes": [
+      "\"I said yes before she'd told me anything else about them.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:0": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "09:27",
+     "seconds": 567,
+     "text": "Talking to the dog",
+     "quotes": [
+      "\"And I talked to her the whole way, I don't even know what about.\"",
+      "\"She didn't look back again. Which is what you'd want. I know that's what you'd want.\"",
+      "\"She didn't look back again. Which is what you'd want. I know that's what you'd want.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:1": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "09:27",
+     "seconds": 567,
+     "text": "Settling the dog's future",
+     "quotes": [
+      "\"And I talked to her the whole way, I don't even know what about.\"",
+      "\"She didn't look back again. Which is what you'd want. I know that's what you'd want.\"",
+      "\"She didn't look back again. Which is what you'd want. I know that's what you'd want.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:2": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "09:27",
+     "seconds": 567,
+     "text": "Two feelings at once",
+     "quotes": [
+      "\"And I talked to her the whole way, I don't even know what about.\"",
+      "\"She didn't look back again. Which is what you'd want. I know that's what you'd want.\"",
+      "\"She didn't look back again. Which is what you'd want. I know that's what you'd want.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:31:0": {
+     "sheet": "Initial",
+     "row": 31,
+     "time": "10:28",
+     "seconds": 628,
+     "text": "Loss without a name yet",
+     "quotes": [
+      "\"I just felt very light, like my arms didn't have anything to hold.\"",
+      "\"and the flat was, it was just a flat.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:31:1": {
+     "sheet": "Initial",
+     "row": 31,
+     "time": "10:28",
+     "seconds": 628,
+     "text": "A house filled or emptied by the dog",
+     "quotes": [
+      "\"I just felt very light, like my arms didn't have anything to hold.\"",
+      "\"and the flat was, it was just a flat.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:33:0": {
+     "sheet": "Initial",
+     "row": 33,
+     "time": "11:08",
+     "seconds": 668,
+     "text": "Days arranged round the dog",
+     "quotes": [
+      "\"I still wake up at quarter past five, three months on.\"",
+      "\"I still wake up at quarter past five, three months on.\"",
+      "\"I lie there and there's nothing to get up for, so I just lie there.\""
+     ],
+     "notes": [
+      "A reason to get up seen from its absence. Mabel's turn 2 says the same from the other side."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:33:1": {
+     "sheet": "Initial",
+     "row": 33,
+     "time": "11:08",
+     "seconds": 668,
+     "text": "Loss without a name yet",
+     "quotes": [
+      "\"I still wake up at quarter past five, three months on.\"",
+      "\"I still wake up at quarter past five, three months on.\"",
+      "\"I lie there and there's nothing to get up for, so I just lie there.\""
+     ],
+     "notes": [
+      "A reason to get up seen from its absence. Mabel's turn 2 says the same from the other side."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:33:2": {
+     "sheet": "Initial",
+     "row": 33,
+     "time": "11:08",
+     "seconds": 668,
+     "text": "A reason to get up",
+     "quotes": [
+      "\"I still wake up at quarter past five, three months on.\"",
+      "\"I still wake up at quarter past five, three months on.\"",
+      "\"I lie there and there's nothing to get up for, so I just lie there.\""
+     ],
+     "notes": [
+      "A reason to get up seen from its absence. Mabel's turn 2 says the same from the other side."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:35:0": {
+     "sheet": "Initial",
+     "row": 35,
+     "time": "11:49",
+     "seconds": 709,
+     "text": "Two feelings at once",
+     "quotes": [
+      "\"It's like I'm glad and something else at the same time, and the something else hasn't got a name yet.\"",
+      "\"It's like I'm glad and something else at the same time, and the something else hasn't got a name yet.\""
+     ],
+     "notes": [
+      "Glad, and something with no name yet. He misses a dog who is alive and happy elsewhere, a loss with no death to mark it."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:35:1": {
+     "sheet": "Initial",
+     "row": 35,
+     "time": "11:49",
+     "seconds": 709,
+     "text": "Loss without a name yet",
+     "quotes": [
+      "\"It's like I'm glad and something else at the same time, and the something else hasn't got a name yet.\"",
+      "\"It's like I'm glad and something else at the same time, and the something else hasn't got a name yet.\""
+     ],
+     "notes": [
+      "Glad, and something with no name yet. He misses a dog who is alive and happy elsewhere, a loss with no death to mark it."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:37:0": {
+     "sheet": "Initial",
+     "row": 37,
+     "time": "12:28",
+     "seconds": 748,
+     "text": "Asking whether it was my fault",
+     "quotes": [
+      "\"I think I'd want to know first whether I failed her or whether I did the right thing for her\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:39:0": {
+     "sheet": "Initial",
+     "row": 39,
+     "time": "13:10",
+     "seconds": 790,
+     "text": "Others judging the dog's place",
+     "quotes": [
+      "\"She wasn't a problem. She was frightened. There's a difference.\"",
+      "\"Every morning for eighteen months I got one sock.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:39:1": {
+     "sheet": "Initial",
+     "row": 39,
+     "time": "13:10",
+     "seconds": 790,
+     "text": "Rules nobody wrote down",
+     "quotes": [
+      "\"She wasn't a problem. She was frightened. There's a difference.\"",
+      "\"Every morning for eighteen months I got one sock.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    }
+   }
+  }
+ },
+ "boards": [
+  {
+   "id": "b1",
+   "name": "Board 1",
+   "note": "",
+   "created": "2026-10-19T14:30:00+01:00",
+   "updated": "2026-10-19T14:30:00+01:00",
+   "cards": {
+    "Juno/es/Initial:15:0": {
+     "x": 14,
+     "y": 134,
+     "text": "Days arranged round the dog"
+    },
+    "Juno/es/Initial:3:1": {
+     "x": 234,
+     "y": 134,
+     "text": "Rules nobody wrote down"
+    },
+    "Juno/es/Initial:5:0": {
+     "x": 14,
+     "y": 280,
+     "text": "Who does the dog's work"
+    },
+    "Mabel/es/Initial:7:0": {
+     "x": 234,
+     "y": 280,
+     "text": "A reason to get up"
+    },
+    "Juno/es/Initial:3:0": {
+     "x": 14,
+     "y": 495,
+     "text": "A house filled or emptied by the dog"
+    },
+    "Juno/es/Initial:17:0": {
+     "x": 534,
+     "y": 112,
+     "text": "The dog as a reason nobody argues with"
+    },
+    "Juno/es/Initial:5:1": {
+     "x": 754,
+     "y": 112,
+     "text": "Talking to the dog"
+    },
+    "Juno/es/Initial:13:1": {
+     "x": 534,
+     "y": 258,
+     "text": "The dog as a way round hard talk"
+    },
+    "Juno/es/Initial:13:3": {
+     "x": 754,
+     "y": 258,
+     "text": "Doubts kept unsaid"
+    },
+    "Juno/es/Initial:33:0": {
+     "x": 534,
+     "y": 511,
+     "text": "Wanted without conditions"
+    },
+    "Juno/es/Initial:35:1": {
+     "x": 754,
+     "y": 511,
+     "text": "The dog in a person's place"
+    },
+    "Mabel/es/Initial:9:0": {
+     "x": 1054,
+     "y": 150,
+     "text": "A life opening out"
+    },
+    "Juno/es/Initial:23:0": {
+     "x": 1274,
+     "y": 150,
+     "text": "A life closing in"
+    },
+    "Juno/es/Initial:17:1": {
+     "x": 1054,
+     "y": 276,
+     "text": "Caring for myself through the dog"
+    },
+    "Juno/es/Initial:21:0": {
+     "x": 1574,
+     "y": 95,
+     "text": "Keeping watch"
+    },
+    "Juno/es/Initial:45:0": {
+     "x": 1794,
+     "y": 95,
+     "text": "Rehearsing the dog's death"
+    },
+    "Mabel/es/Initial:19:1": {
+     "x": 1574,
+     "y": 221,
+     "text": "Settling the dog's future"
+    },
+    "Mabel/es/Initial:17:0": {
+     "x": 1794,
+     "y": 221,
+     "text": "Others judging the dog's place"
+    },
+    "Rowan/es/Initial:19:0": {
+     "x": 1574,
+     "y": 367,
+     "text": "Asking whether it was my fault"
+    },
+    "Rowan/es/Initial:3:0": {
+     "x": 1794,
+     "y": 367,
+     "text": "Loss without a name yet"
+    },
+    "Juno/es/Initial:3:2": {
+     "x": 14,
+     "y": 495,
+     "text": "A house filled or emptied by the dog"
+    },
+    "Juno/es/Initial:57:0": {
+     "x": 14,
+     "y": 495,
+     "text": "A house filled or emptied by the dog"
+    },
+    "Juno/es/Initial:59:1": {
+     "x": 14,
+     "y": 495,
+     "text": "A house filled or emptied by the dog"
+    },
+    "Juno/es/Initial:59:2": {
+     "x": 14,
+     "y": 495,
+     "text": "A house filled or emptied by the dog"
+    },
+    "Juno/es/Initial:61:0": {
+     "x": 14,
+     "y": 495,
+     "text": "A house filled or emptied by the dog"
+    },
+    "Juno/es/Initial:63:1": {
+     "x": 14,
+     "y": 495,
+     "text": "A house filled or emptied by the dog"
+    },
+    "Juno/es/Initial:79:1": {
+     "x": 14,
+     "y": 495,
+     "text": "A house filled or emptied by the dog"
+    },
+    "Mabel/es/Initial:3:0": {
+     "x": 14,
+     "y": 495,
+     "text": "A house filled or emptied by the dog"
+    },
+    "Mabel/es/Initial:3:1": {
+     "x": 14,
+     "y": 495,
+     "text": "A house filled or emptied by the dog"
+    },
+    "Mabel/es/Initial:5:0": {
+     "x": 14,
+     "y": 495,
+     "text": "A house filled or emptied by the dog"
+    },
+    "Mabel/es/Initial:5:1": {
+     "x": 14,
+     "y": 495,
+     "text": "A house filled or emptied by the dog"
+    },
+    "Mabel/es/Initial:35:2": {
+     "x": 14,
+     "y": 495,
+     "text": "A house filled or emptied by the dog"
+    },
+    "Rowan/es/Initial:3:3": {
+     "x": 14,
+     "y": 495,
+     "text": "A house filled or emptied by the dog"
+    },
+    "Rowan/es/Initial:31:1": {
+     "x": 14,
+     "y": 495,
+     "text": "A house filled or emptied by the dog"
+    },
+    "Juno/es/Initial:23:1": {
+     "x": 1274,
+     "y": 150,
+     "text": "A life closing in"
+    },
+    "Rowan/es/Initial:7:1": {
+     "x": 1274,
+     "y": 150,
+     "text": "A life closing in"
+    },
+    "Rowan/es/Initial:7:2": {
+     "x": 1274,
+     "y": 150,
+     "text": "A life closing in"
+    },
+    "Rowan/es/Initial:13:0": {
+     "x": 1274,
+     "y": 150,
+     "text": "A life closing in"
+    },
+    "Rowan/es/Initial:15:0": {
+     "x": 1274,
+     "y": 150,
+     "text": "A life closing in"
+    },
+    "Mabel/es/Initial:9:1": {
+     "x": 1054,
+     "y": 150,
+     "text": "A life opening out"
+    },
+    "Mabel/es/Initial:11:0": {
+     "x": 1054,
+     "y": 150,
+     "text": "A life opening out"
+    },
+    "Mabel/es/Initial:11:3": {
+     "x": 1054,
+     "y": 150,
+     "text": "A life opening out"
+    },
+    "Mabel/es/Initial:21:0": {
+     "x": 1054,
+     "y": 150,
+     "text": "A life opening out"
+    },
+    "Mabel/es/Initial:37:1": {
+     "x": 1054,
+     "y": 150,
+     "text": "A life opening out"
+    },
+    "Mabel/es/Initial:7:2": {
+     "x": 234,
+     "y": 280,
+     "text": "A reason to get up"
+    },
+    "Mabel/es/Initial:13:1": {
+     "x": 234,
+     "y": 280,
+     "text": "A reason to get up"
+    },
+    "Rowan/es/Initial:33:2": {
+     "x": 234,
+     "y": 280,
+     "text": "A reason to get up"
+    },
+    "Rowan/es/Initial:19:1": {
+     "x": 1574,
+     "y": 367,
+     "text": "Asking whether it was my fault"
+    },
+    "Rowan/es/Initial:21:0": {
+     "x": 1574,
+     "y": 367,
+     "text": "Asking whether it was my fault"
+    },
+    "Rowan/es/Initial:37:0": {
+     "x": 1574,
+     "y": 367,
+     "text": "Asking whether it was my fault"
+    },
+    "Mabel/es/Initial:11:1": {
+     "x": 1054,
+     "y": 276,
+     "text": "Caring for myself through the dog"
+    },
+    "Mabel/es/Initial:13:0": {
+     "x": 1054,
+     "y": 276,
+     "text": "Caring for myself through the dog"
+    },
+    "Mabel/es/Initial:37:0": {
+     "x": 1054,
+     "y": 276,
+     "text": "Caring for myself through the dog"
+    },
+    "Juno/es/Initial:23:2": {
+     "x": 14,
+     "y": 134,
+     "text": "Days arranged round the dog"
+    },
+    "Juno/es/Initial:37:1": {
+     "x": 14,
+     "y": 134,
+     "text": "Days arranged round the dog"
+    },
+    "Juno/es/Initial:59:0": {
+     "x": 14,
+     "y": 134,
+     "text": "Days arranged round the dog"
+    },
+    "Juno/es/Initial:79:0": {
+     "x": 14,
+     "y": 134,
+     "text": "Days arranged round the dog"
+    },
+    "Mabel/es/Initial:7:1": {
+     "x": 14,
+     "y": 134,
+     "text": "Days arranged round the dog"
+    },
+    "Rowan/es/Initial:3:2": {
+     "x": 14,
+     "y": 134,
+     "text": "Days arranged round the dog"
+    },
+    "Rowan/es/Initial:5:1": {
+     "x": 14,
+     "y": 134,
+     "text": "Days arranged round the dog"
+    },
+    "Rowan/es/Initial:7:0": {
+     "x": 14,
+     "y": 134,
+     "text": "Days arranged round the dog"
+    },
+    "Rowan/es/Initial:13:1": {
+     "x": 14,
+     "y": 134,
+     "text": "Days arranged round the dog"
+    },
+    "Rowan/es/Initial:33:0": {
+     "x": 14,
+     "y": 134,
+     "text": "Days arranged round the dog"
+    },
+    "Juno/es/Initial:23:3": {
+     "x": 754,
+     "y": 258,
+     "text": "Doubts kept unsaid"
+    },
+    "Juno/es/Initial:25:0": {
+     "x": 754,
+     "y": 258,
+     "text": "Doubts kept unsaid"
+    },
+    "Juno/es/Initial:75:0": {
+     "x": 754,
+     "y": 258,
+     "text": "Doubts kept unsaid"
+    },
+    "Rowan/es/Initial:23:1": {
+     "x": 754,
+     "y": 258,
+     "text": "Doubts kept unsaid"
+    },
+    "Rowan/es/Initial:23:2": {
+     "x": 754,
+     "y": 258,
+     "text": "Doubts kept unsaid"
+    },
+    "Juno/es/Initial:47:0": {
+     "x": 1574,
+     "y": 95,
+     "text": "Keeping watch"
+    },
+    "Mabel/es/Initial:19:0": {
+     "x": 1574,
+     "y": 95,
+     "text": "Keeping watch"
+    },
+    "Rowan/es/Initial:9:1": {
+     "x": 1574,
+     "y": 95,
+     "text": "Keeping watch"
+    },
+    "Rowan/es/Initial:11:0": {
+     "x": 1574,
+     "y": 95,
+     "text": "Keeping watch"
+    },
+    "Rowan/es/Initial:17:1": {
+     "x": 1574,
+     "y": 95,
+     "text": "Keeping watch"
+    },
+    "Rowan/es/Initial:11:1": {
+     "x": 1794,
+     "y": 367,
+     "text": "Loss without a name yet"
+    },
+    "Rowan/es/Initial:31:0": {
+     "x": 1794,
+     "y": 367,
+     "text": "Loss without a name yet"
+    },
+    "Rowan/es/Initial:33:1": {
+     "x": 1794,
+     "y": 367,
+     "text": "Loss without a name yet"
+    },
+    "Rowan/es/Initial:35:1": {
+     "x": 1794,
+     "y": 367,
+     "text": "Loss without a name yet"
+    },
+    "Mabel/es/Initial:17:1": {
+     "x": 1794,
+     "y": 221,
+     "text": "Others judging the dog's place"
+    },
+    "Mabel/es/Initial:23:0": {
+     "x": 1794,
+     "y": 221,
+     "text": "Others judging the dog's place"
+    },
+    "Mabel/es/Initial:35:1": {
+     "x": 1794,
+     "y": 221,
+     "text": "Others judging the dog's place"
+    },
+    "Rowan/es/Initial:17:0": {
+     "x": 1794,
+     "y": 221,
+     "text": "Others judging the dog's place"
+    },
+    "Rowan/es/Initial:39:0": {
+     "x": 1794,
+     "y": 221,
+     "text": "Others judging the dog's place"
+    },
+    "Juno/es/Initial:47:1": {
+     "x": 1794,
+     "y": 95,
+     "text": "Rehearsing the dog's death"
+    },
+    "Juno/es/Initial:49:0": {
+     "x": 1794,
+     "y": 95,
+     "text": "Rehearsing the dog's death"
+    },
+    "Juno/es/Initial:51:0": {
+     "x": 1794,
+     "y": 95,
+     "text": "Rehearsing the dog's death"
+    },
+    "Juno/es/Initial:51:1": {
+     "x": 1794,
+     "y": 95,
+     "text": "Rehearsing the dog's death"
+    },
+    "Juno/es/Initial:53:0": {
+     "x": 1794,
+     "y": 95,
+     "text": "Rehearsing the dog's death"
+    },
+    "Juno/es/Initial:63:0": {
+     "x": 1794,
+     "y": 95,
+     "text": "Rehearsing the dog's death"
+    },
+    "Juno/es/Initial:27:0": {
+     "x": 234,
+     "y": 134,
+     "text": "Rules nobody wrote down"
+    },
+    "Juno/es/Initial:29:0": {
+     "x": 234,
+     "y": 134,
+     "text": "Rules nobody wrote down"
+    },
+    "Juno/es/Initial:31:0": {
+     "x": 234,
+     "y": 134,
+     "text": "Rules nobody wrote down"
+    },
+    "Juno/es/Initial:73:1": {
+     "x": 234,
+     "y": 134,
+     "text": "Rules nobody wrote down"
+    },
+    "Rowan/es/Initial:39:1": {
+     "x": 234,
+     "y": 134,
+     "text": "Rules nobody wrote down"
+    },
+    "Mabel/es/Initial:25:0": {
+     "x": 1574,
+     "y": 221,
+     "text": "Settling the dog's future"
+    },
+    "Mabel/es/Initial:25:1": {
+     "x": 1574,
+     "y": 221,
+     "text": "Settling the dog's future"
+    },
+    "Mabel/es/Initial:29:0": {
+     "x": 1574,
+     "y": 221,
+     "text": "Settling the dog's future"
+    },
+    "Mabel/es/Initial:29:1": {
+     "x": 1574,
+     "y": 221,
+     "text": "Settling the dog's future"
+    },
+    "Mabel/es/Initial:31:1": {
+     "x": 1574,
+     "y": 221,
+     "text": "Settling the dog's future"
+    },
+    "Rowan/es/Initial:21:1": {
+     "x": 1574,
+     "y": 221,
+     "text": "Settling the dog's future"
+    },
+    "Rowan/es/Initial:25:0": {
+     "x": 1574,
+     "y": 221,
+     "text": "Settling the dog's future"
+    },
+    "Rowan/es/Initial:27:1": {
+     "x": 1574,
+     "y": 221,
+     "text": "Settling the dog's future"
+    },
+    "Juno/es/Initial:73:0": {
+     "x": 754,
+     "y": 112,
+     "text": "Talking to the dog"
+    },
+    "Mabel/es/Initial:33:0": {
+     "x": 754,
+     "y": 112,
+     "text": "Talking to the dog"
+    },
+    "Rowan/es/Initial:27:0": {
+     "x": 754,
+     "y": 112,
+     "text": "Talking to the dog"
+    },
+    "Mabel/es/Initial:11:2": {
+     "x": 534,
+     "y": 112,
+     "text": "The dog as a reason nobody argues with"
+    },
+    "Rowan/es/Initial:15:1": {
+     "x": 534,
+     "y": 112,
+     "text": "The dog as a reason nobody argues with"
+    },
+    "Juno/es/Initial:13:2": {
+     "x": 534,
+     "y": 258,
+     "text": "The dog as a way round hard talk"
+    },
+    "Juno/es/Initial:39:0": {
+     "x": 534,
+     "y": 258,
+     "text": "The dog as a way round hard talk"
+    },
+    "Juno/es/Initial:43:0": {
+     "x": 534,
+     "y": 258,
+     "text": "The dog as a way round hard talk"
+    },
+    "Juno/es/Initial:65:0": {
+     "x": 534,
+     "y": 258,
+     "text": "The dog as a way round hard talk"
+    },
+    "Juno/es/Initial:67:0": {
+     "x": 534,
+     "y": 258,
+     "text": "The dog as a way round hard talk"
+    },
+    "Juno/es/Initial:41:1": {
+     "x": 754,
+     "y": 511,
+     "text": "The dog in a person's place"
+    },
+    "Mabel/es/Initial:33:1": {
+     "x": 754,
+     "y": 511,
+     "text": "The dog in a person's place"
+    },
+    "Mabel/es/Initial:33:2": {
+     "x": 754,
+     "y": 511,
+     "text": "The dog in a person's place"
+    },
+    "Mabel/es/Initial:35:0": {
+     "x": 754,
+     "y": 511,
+     "text": "The dog in a person's place"
+    },
+    "Rowan/es/Initial:5:0": {
+     "x": 754,
+     "y": 511,
+     "text": "The dog in a person's place"
+    },
+    "Juno/es/Initial:35:0": {
+     "x": 534,
+     "y": 511,
+     "text": "Wanted without conditions"
+    },
+    "Juno/es/Initial:37:0": {
+     "x": 534,
+     "y": 511,
+     "text": "Wanted without conditions"
+    },
+    "Juno/es/Initial:41:0": {
+     "x": 534,
+     "y": 511,
+     "text": "Wanted without conditions"
+    },
+    "Juno/es/Initial:41:2": {
+     "x": 534,
+     "y": 511,
+     "text": "Wanted without conditions"
+    },
+    "Mabel/es/Initial:31:0": {
+     "x": 534,
+     "y": 511,
+     "text": "Wanted without conditions"
+    },
+    "Juno/es/Initial:9:0": {
+     "x": 14,
+     "y": 280,
+     "text": "Who does the dog's work"
+    },
+    "Juno/es/Initial:11:0": {
+     "x": 14,
+     "y": 280,
+     "text": "Who does the dog's work"
+    },
+    "Juno/es/Initial:31:1": {
+     "x": 14,
+     "y": 280,
+     "text": "Who does the dog's work"
+    }
+   },
+   "groups": [
+    {
+     "id": "G1",
+     "label": "Life rearranged round the dog",
+     "note": "Began as a summary of routines. Reworked once I saw how often the arranging went unseen until it stopped: the groomer's two hours, the bowl in the cupboard, the alarm at quarter past five.",
+     "description": "How the dog's needs come to order time, rooms and the share of care, often unnoticed until something interrupts them.",
+     "members": [
+      "Juno/es/Initial:15:0",
+      "Rowan/es/Initial:33:0",
+      "Rowan/es/Initial:13:1",
+      "Rowan/es/Initial:7:0",
+      "Rowan/es/Initial:5:1",
+      "Rowan/es/Initial:3:2",
+      "Mabel/es/Initial:7:1",
+      "Juno/es/Initial:79:0",
+      "Juno/es/Initial:59:0",
+      "Juno/es/Initial:37:1",
+      "Juno/es/Initial:23:2",
+      "Juno/es/Initial:3:1",
+      "Rowan/es/Initial:39:1",
+      "Juno/es/Initial:73:1",
+      "Juno/es/Initial:31:0",
+      "Juno/es/Initial:29:0",
+      "Juno/es/Initial:27:0",
+      "Juno/es/Initial:5:0",
+      "Juno/es/Initial:31:1",
+      "Juno/es/Initial:11:0",
+      "Juno/es/Initial:9:0",
+      "Mabel/es/Initial:7:0",
+      "Rowan/es/Initial:33:2",
+      "Mabel/es/Initial:13:1",
+      "Mabel/es/Initial:7:2",
+      "G5"
+     ],
+     "x": 0,
+     "y": 0
+    },
+    {
+     "id": "G5",
+     "label": "A house on standby",
+     "description": "The dog as the presence that makes a house feel lived in, felt most sharply when the dog is out of it or gone.",
+     "members": [
+      "Juno/es/Initial:3:0",
+      "Rowan/es/Initial:31:1",
+      "Rowan/es/Initial:3:3",
+      "Mabel/es/Initial:35:2",
+      "Mabel/es/Initial:5:1",
+      "Mabel/es/Initial:5:0",
+      "Mabel/es/Initial:3:1",
+      "Mabel/es/Initial:3:0",
+      "Juno/es/Initial:79:1",
+      "Juno/es/Initial:63:1",
+      "Juno/es/Initial:61:0",
+      "Juno/es/Initial:59:2",
+      "Juno/es/Initial:59:1",
+      "Juno/es/Initial:57:0",
+      "Juno/es/Initial:3:2"
+     ],
+     "x": 0,
+     "y": 0
+    },
+    {
+     "id": "G2",
+     "label": "The dog between people",
+     "note": "Juno's account leads here, so I checked it was not hers alone. Rowan and Mabel both give the dog as a reason, and Mabel's talk to Pepper is the clearest case of the dog taking a place.",
+     "description": "The dog as a go-between: a reason others accept, a listener, and a way round the talk people find hard with each other.",
+     "members": [
+      "Juno/es/Initial:17:0",
+      "Rowan/es/Initial:15:1",
+      "Mabel/es/Initial:11:2",
+      "Juno/es/Initial:5:1",
+      "Rowan/es/Initial:27:0",
+      "Mabel/es/Initial:33:0",
+      "Juno/es/Initial:73:0",
+      "Juno/es/Initial:13:1",
+      "Juno/es/Initial:67:0",
+      "Juno/es/Initial:65:0",
+      "Juno/es/Initial:43:0",
+      "Juno/es/Initial:39:0",
+      "Juno/es/Initial:13:2",
+      "Juno/es/Initial:13:3",
+      "Rowan/es/Initial:23:2",
+      "Rowan/es/Initial:23:1",
+      "Juno/es/Initial:75:0",
+      "Juno/es/Initial:25:0",
+      "Juno/es/Initial:23:3",
+      "G6"
+     ],
+     "x": 0,
+     "y": 0
+    },
+    {
+     "id": "G6",
+     "label": "Easier than people",
+     "description": "The dog's love as simpler than people's, needing nothing to have been got right, and taking a place a person once held.",
+     "members": [
+      "Juno/es/Initial:33:0",
+      "Mabel/es/Initial:31:0",
+      "Juno/es/Initial:41:2",
+      "Juno/es/Initial:41:0",
+      "Juno/es/Initial:37:0",
+      "Juno/es/Initial:35:0",
+      "Juno/es/Initial:35:1",
+      "Rowan/es/Initial:5:0",
+      "Mabel/es/Initial:35:0",
+      "Mabel/es/Initial:33:2",
+      "Mabel/es/Initial:33:1",
+      "Juno/es/Initial:41:1"
+     ],
+     "x": 0,
+     "y": 0
+    },
+    {
+     "id": "G3",
+     "label": "The dog as a door, open or shut",
+     "note": "Mabel and Rowan pull in opposite directions. Kept as one theme because the contrast is the point: it turns on the dog and the place more than on the person.",
+     "description": "Whether a dog widens a life or narrows it turns on how far the dog can share the world outside the house. Pepper's ease takes Mabel out to the green, the classes and better care of herself. Skye's fear keeps Rowan in the flat and the dark hours. The bond is the same, the door is not.",
+     "members": [
+      "Mabel/es/Initial:9:0",
+      "Mabel/es/Initial:37:1",
+      "Mabel/es/Initial:21:0",
+      "Mabel/es/Initial:11:3",
+      "Mabel/es/Initial:11:0",
+      "Mabel/es/Initial:9:1",
+      "Juno/es/Initial:23:0",
+      "Rowan/es/Initial:15:0",
+      "Rowan/es/Initial:13:0",
+      "Rowan/es/Initial:7:2",
+      "Rowan/es/Initial:7:1",
+      "Juno/es/Initial:23:1",
+      "Juno/es/Initial:17:1",
+      "Mabel/es/Initial:37:0",
+      "Mabel/es/Initial:13:0",
+      "Mabel/es/Initial:11:1"
+     ],
+     "x": 0,
+     "y": 0
+    },
+    {
+     "id": "G4",
+     "label": "Love that keeps watch",
+     "description": "Care for the dog that is never free of vigilance: for its safety, for others' judgement, and for a future in which one of them is gone.",
+     "members": [
+      "Juno/es/Initial:21:0",
+      "Rowan/es/Initial:17:1",
+      "Rowan/es/Initial:11:0",
+      "Rowan/es/Initial:9:1",
+      "Mabel/es/Initial:19:0",
+      "Juno/es/Initial:47:0",
+      "Juno/es/Initial:45:0",
+      "Juno/es/Initial:63:0",
+      "Juno/es/Initial:53:0",
+      "Juno/es/Initial:51:1",
+      "Juno/es/Initial:51:0",
+      "Juno/es/Initial:49:0",
+      "Juno/es/Initial:47:1",
+      "Mabel/es/Initial:19:1",
+      "Rowan/es/Initial:27:1",
+      "Rowan/es/Initial:25:0",
+      "Rowan/es/Initial:21:1",
+      "Mabel/es/Initial:31:1",
+      "Mabel/es/Initial:29:1",
+      "Mabel/es/Initial:29:0",
+      "Mabel/es/Initial:25:1",
+      "Mabel/es/Initial:25:0",
+      "Mabel/es/Initial:17:0",
+      "Rowan/es/Initial:39:0",
+      "Rowan/es/Initial:17:0",
+      "Mabel/es/Initial:35:1",
+      "Mabel/es/Initial:23:0",
+      "Mabel/es/Initial:17:1",
+      "Rowan/es/Initial:19:0",
+      "Rowan/es/Initial:37:0",
+      "Rowan/es/Initial:21:0",
+      "Rowan/es/Initial:19:1",
+      "Rowan/es/Initial:3:0",
+      "Rowan/es/Initial:35:1",
+      "Rowan/es/Initial:33:1",
+      "Rowan/es/Initial:31:0",
+      "Rowan/es/Initial:11:1"
+     ],
+     "x": 0,
+     "y": 0
+    }
+   ],
+   "discarded": [],
+   "picks": {},
+   "rows": {}
+  }
+ ]
+}

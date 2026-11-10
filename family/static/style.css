@@ -1,0 +1,2040 @@
+/* Idiograph. A reading surface first: warm paper, a book serif for the transcript, the chrome
+   kept quiet at the edges. The one accent is the orange Adam marks a crux with in Excel
+   (theme 9, F79646), so the colour means the same thing in both places. */
+
+/* Every colour, shadow, face, scale and layer this sheet reads is a token in tokens.css, linked
+   before it, in light and dark (15 October). */
+
+* { box-sizing: border-box; }
+
+/* Every scrollbar thin, as a Mac draws one, where Windows drew its grey bars of 17 pixels with arrows
+   beside Sift's filters and table (17 October), its thumb in its own ink at 3 to 1 or more, where the
+   rules' ink stood at about 1.7 to 1 (17 October, the third Tauri build). A part that hides its own
+   says so in its own rule */
+* { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+
+/* Nothing of the browser's own on paper: an empty box at the head and the foot of the page's margin
+   keeps out the date, the title, the page's address and the page count that Chromium, and so
+   Windows's web view, print there by themselves (17 October) */
+@page { @top-right { content: ""; } @bottom-right { content: ""; } }
+
+/* `hidden` has to beat the display rules the panels set for themselves */
+[hidden] { display: none !important; }
+/* AI features off: every AI part of the markup, marked data-ai, stands hidden, whatever its own
+   display rule, and the page's scripts draw none of their own (see aiPage in app.js) */
+body.ai-off [data-ai] { display: none !important; }
+/* and an AI feature turned off on its own under AI features in Settings, its controls gone on its screen
+   (the split's third build): Experiential statements' suggestions, Sift's proposals, Trace's passages */
+body.ai-off-statements #work [data-ai], body.ai-off-proposals #sift [data-ai],
+body.ai-off-passages #trace [data-ai] { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, textarea { font: inherit; color: inherit; }
+b { font-weight: 600; }
+.mono { font-family: var(--mono); font-size: .86em; letter-spacing: -.01em; }
+.dim { color: var(--ink-faint); }
+
+.section-label {
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 600; margin: 0 0 12px;
+}
+.fineprint { font-size: 12.5px; line-height: 1.55; color: var(--ink-faint); margin: 10px 0 0; }
+
+/* ───────────────────────────────────────────────────── library ── */
+
+.screen { min-height: 100vh; }
+
+/* the head (22 October 2026): the lockup, the Preview Edition's panel right under it, then the line and its
+   points, the days at the right beside the panel and the line, and on a narrow screen everything in one
+   column, the days last.
+   One grid since 5 November 2026 (homehead, Adam): the head's column is the content's below it, 1080px at most
+   with the page's gutter, so the lockup, the panel, the line and the projects share one left edge and the tools
+   and the days one right edge. Its top row holds the lockup at the left and the tools at the right, the lockup's
+   ink level with the icons'.
+   The lockup's clear space (headroom, 6 November 2026, Adam: the lockup stood too close under the title bar): its
+   mark's height at least, --mark-h, between the bottom of the window's title bar, the page's top, and the lockup's
+   top, so the top row stands that less the wordmark's 3px down, and the tools with it. The mark's height is the
+   lockup's own, 24px, and 32px on Idiograph's Home while the Preview Edition's lockup is drawn at 32 (below), so
+   the two move together. docs/design.md, Marks, Clear space.
+   And to its left (Adam, 6 November about 18:55, by dialog: margin 32 at every width): the head and the projects
+   under it keep a margin of 32px at each side from 560px of page, which holds the app's smallest window, 720px, at
+   Large (125%) too, so the lockup, the panel, the line, the title and Projects stand 32px from the window's edge
+   and the space to the lockup's left is at least the Preview Edition's mark height. The column stays 1048px wide,
+   so a wide window is as it was, and a phone's page keeps the page's 16px gutter */
+#library { --home-edge: var(--gutter); }
+@media (min-width: 560px) { #library { --home-edge: 32px; } }
+.lib-head {
+  --mark-h: 24px;
+  --head-top: calc(var(--mark-h) - 3px);
+  padding: var(--head-top) var(--home-edge) 0;
+  max-width: calc(1048px + 2 * var(--home-edge)); margin: 0 auto;
+  display: grid; grid-template-columns: minmax(0,1fr) auto; column-gap: 40px;
+  grid-template-areas: "top top" "note days" "lede days" "points days";
+}
+.lib-top { grid-area: top; display: flex; align-items: flex-start; justify-content: space-between; column-gap: 24px;
+  min-width: 0; }
+/* the wordmark is the lockup (15 October), Idiograph's mark and its name in tracked capitals drawn
+   with the mark's square stroke, in the ink, 24px high, where the set name stood. 3px down from the tools' top,
+   where its mark's ink starts level with their icons' */
+.wordmark { flex: none; margin-top: 3px; color: var(--ink); line-height: 0; }
+.lockup { display: block; width: 172px; height: 24px; max-width: 100%; overflow: visible; }
+
+/* The marks (15 October): Idiograph's and each part's, a symbol each in marks.svg drawn in the
+   colour around it, called by <use>, Idiograph's dot its own orange (--mark-dot, 22 October). A part's mark takes its colour
+   from its class, and nothing else does: a part's colour is never a judgement. 20px before a
+   section's name, 18px on a bar, 16px in Settings */
+.mark { display: block; flex: none; width: 20px; height: 20px; overflow: visible; }
+.part-distil { color: var(--part-distil); }
+.part-sift { color: var(--part-sift); }
+.part-trace { color: var(--part-trace); }
+
+/* One page, three apps (the split's third build, 20 October 2026): the server names the app on the page's
+   root, data-app, and whatever is marked data-only for another app stands hidden, its screens, its Home
+   section, its Settings tabs and its AI switches. Each part's colour became its app's: Idiograph blue,
+   Sift plum, Trace sea green, for its mark on the bars and its Settings tab rule */
+html[data-app="idiograph"] [data-only]:not([data-only~="idiograph"]),
+html[data-app="sift"] [data-only]:not([data-only~="sift"]),
+html[data-app="trace"] [data-only]:not([data-only~="trace"]),
+html:not([data-app]) [data-only]:not([data-only~="idiograph"]) { display: none !important; }
+html { --app-colour: var(--part-distil); }
+html[data-app="sift"] { --app-colour: var(--part-sift); }
+html[data-app="trace"] { --app-colour: var(--part-trace); }
+/* each lockup at its own width, Idiograph's 172px, the same 24px high */
+.wordmark > span { display: block; }
+.lockup.lockup-sift { width: 85px; }
+.lockup.lockup-trace { width: 117px; }
+
+/* The Preview Edition (Adam's lockup of 21 October, made for the launch video): Idiograph's lockup untouched and,
+   under the end of its name, a stamp in the crux orange, tilted 4 degrees, its words in tracked capitals inside
+   a rounded rule, as lockup-final drew it. Idiograph's alone, shown while the server's PREVIEW_EDITION puts
+   data-edition="preview" on the page's root, so ending the preview is that one line. On Home's head the
+   lockup at 32px with the stamp hanging under it, at the top of About at 28px, and on each bar a small stamp
+   beside the mark, which goes on a phone */
+.pe-stamp { display: none; }
+html[data-app="idiograph"][data-edition="preview"] .pe-stamp { display: block; }
+.pe { position: relative; width: fit-content; }
+.pe-stamp { position: absolute; top: calc(100% - var(--pe-room, 0px) + var(--pe-drop, 6px)); right: 0;
+  font: 600 var(--pe-size, 10px)/1 var(--sans); letter-spacing: .16em; text-transform: uppercase; white-space: nowrap;
+  color: var(--crux); border: max(1.5px, .115em) solid var(--crux); border-radius: .31em; padding: .42em .53em .38em .69em;
+  rotate: -4deg; pointer-events: none; user-select: none; -webkit-user-select: none; }
+html[data-app="idiograph"][data-edition="preview"] .wordmark .pe { --pe-size: 11px; --pe-drop: 7px;
+  --pe-room: 30px; padding: 0 12px var(--pe-room) 0; }
+html[data-app="idiograph"][data-edition="preview"] .wordmark .pe .lockup { width: 229px; height: 32px; }
+html[data-app="idiograph"][data-edition="preview"] .lib-head { --mark-h: 32px; }
+/* Home's stamp as the launch film's title card has it (22 October, Adam: "the little smaller and further to the
+   right"), in proportion to the mark's height, --pe-m: the film's mark of 180 has its stamp at 46, its right edge
+   46 past the name's end and its top 50 under the lockup's foot, the rule, round and room in the film's ems */
+html[data-app="idiograph"][data-edition="preview"] .wordmark .pe { --pe-m: 32px; --pe-size: calc(var(--pe-m) * 46 / 180); }
+html[data-app="idiograph"][data-edition="preview"] .wordmark .pe .pe-stamp {
+  top: calc(100% - var(--pe-room) + var(--pe-m) * 50 / 180); right: calc(12px - var(--pe-m) * 46 / 180);
+  border-width: max(1px, .109em); border-radius: .304em; padding: .413em .652em .37em .761em; }
+/* the mark coming in on Idiograph's Home (22 October 2026, homeMarkPlay in app.js): while the head's script says
+   it is due, the lockup's own mark, name and stamp stand hidden, the mark under the moving cover, the name until
+   it fades in and the stamp until it is stamped on. Should the page's script never run, they show after 6 s all
+   the same (since 23 October, when the anagram's pause over GO RAPID HI took it to about 5.4 s, 4 s and then 5 s
+   before) */
+html.home-mark-due .wordmark .pe .lockup > use { visibility: hidden; animation: home-mark-safe 0s 6s forwards; }
+html.home-mark-due .wordmark .pe .lockup > path,
+html.home-mark-due .wordmark .pe .pe-stamp { opacity: 0; animation: home-mark-safe 0s 6s forwards; }
+@keyframes home-mark-safe { to { visibility: visible; opacity: 1; } }
+.about-lockup { color: var(--ink); line-height: 0; margin: 0 0 var(--sp-4); }
+.about-lockup .lockup { width: 200px; height: 28px; }
+html[data-edition="preview"] .about-lockup.pe { --pe-size: 10px; --pe-drop: 5px; --pe-room: 54px;
+  padding: 0 8px var(--pe-room) 0; }
+
+/* The family at the foot of each Home: a rule over it, the other two apps' names as its heading in the
+   serif, and a card each, its icon on the paper tile, its name and one line, and Open or Download at its
+   right, the button going under the words on a phone */
+.family { margin: 56px 0 0; padding: 32px 0 0; border-top: 1px solid var(--rule); }
+.family[hidden] { display: none; }
+.family-h { font-family: var(--serif); font-weight: 400; font-size: 22px; line-height: 1.3; color: var(--ink); margin: 0 0 16px; }
+.family-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 700px) { .family-list { grid-template-columns: minmax(0, 1fr); }}
+.family-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 16px;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 4px; padding: 16px; min-width: 0; }
+.family-tile { width: 44px; height: 44px; border-radius: 10px; background: var(--paper-sunk);
+  border: 1px solid var(--rule); display: grid; place-items: center; color: var(--ink); }
+.family-tile svg { width: 26px; height: 26px; overflow: visible; }
+/* the app's own icon, drawn with a margin round its tile as a Dock's icons are, set a little larger so its
+   tile stands at about the paper tile's size */
+.family-tile img { width: 54px; height: 54px; margin: -5px; display: block; }
+.family-tile.has-img { background: none; border: 0; }
+.family-words { min-width: 0; }
+.family-name { font-family: var(--serif); font-size: 19px; line-height: 1.3; color: var(--ink); margin: 0; }
+.family-line { font-size: 13.5px; line-height: 1.45; color: var(--ink-soft); margin: 2px 0 0; overflow-wrap: anywhere; }
+@media (max-width: 520px) {
+  .family-card { grid-template-columns: auto minmax(0, 1fr); row-gap: 12px; }
+  .family-card .family-go { grid-column: 2; justify-self: start; }
+}
+.lede {
+  grid-area: lede;
+  font-family: var(--serif); font-size: 27px; line-height: 1.35;
+  max-width: 21em; margin: 26px 0 0; color: var(--ink); text-wrap: balance;
+  animation: rise .5s cubic-bezier(.2,.7,.3,1) both;
+}
+/* every app's highlights under its line (Adam, 20 and 21 October), four short items in the small type and the
+   soft ink, in a row with a small dot between them, each item kept whole when the row wraps */
+.lede-points {
+  grid-area: points; list-style: none; padding: 0;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 0;
+  font-size: 15px; line-height: 1.5; width: fit-content; max-width: 100%; margin: 12px 0 0; color: var(--ink-soft);
+  animation: rise .5s cubic-bezier(.2,.7,.3,1) both;
+}
+/* Adam's Ko-fi beside Free on each Home (22 October 2026): Ko-fi's own button as its widget draws it, in
+   Quicksand 700 with the cup with the heart that wiggles every 3 seconds. Since 26 October about half its size,
+   22px tall in place of 40, its words at 11px and the cup at 15 by 10, and quieter, a pale wash of Ko-fi's
+   blue with a fine edge and deeper blue words, so it sits with the page rather than leading it (Adam: too
+   dominant as the only coloured thing on the page). The cup and the font are copied into vendor/, so nothing
+   is fetched from Ko-fi or a font service. The system's reduced motion stops the wiggle, as it stops every
+   animation */
+@font-face { font-family: "Quicksand"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("/vendor/quicksand/quicksand-latin-700-normal.woff2") format("woff2"); }
+.lp-free { display: inline-flex; align-items: center; gap: 12px; }
+.kofi { display: inline-block; padding: 0 8px; border-radius: 5px; text-align: center;
+  background: var(--kofi); color: var(--kofi-ink); border: 1px solid var(--kofi-edge);
+  font: 700 11px/20px "Quicksand", Helvetica, "Century Gothic", sans-serif; letter-spacing: -0.1px;
+  text-decoration: none; white-space: nowrap; transition: opacity .15s; }
+.kofi:hover { opacity: .85; }
+.kofi:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.kofi-cup { display: inline; width: 15px; height: 10px; margin: 0 4px 2px 0; vertical-align: middle;
+  animation: kofi-wiggle 3s infinite; }
+@keyframes kofi-wiggle {
+  0%, 60% { transform: rotate(0) scale(1); }
+  75% { transform: rotate(0) scale(1.12); }
+  80% { transform: rotate(0) scale(1.1); }
+  84%, 92% { transform: rotate(-10deg) scale(1.1); }
+  88%, 96% { transform: rotate(10deg) scale(1.1); }
+  100% { transform: rotate(0) scale(1); }
+}
+/* what the Preview Edition means, right under Idiograph's lockup while the stamp shows (22 October), so the stamp
+   and what it says stand together: a quiet panel in the body type */
+.pe-note { display: none; grid-area: note; }
+/* since 5 November (homehead, Adam: fewer lines) it takes the column's width beside the days, up to 58em, about 110
+   characters a line, where it stood at 40em, about 80 */
+html[data-app="idiograph"][data-edition="preview"] .pe-note { display: flex; align-items: flex-start; gap: 10px;
+  max-width: 58em; margin: 22px 0 0;
+  padding: 12px 16px; font-size: 14px; line-height: 1.6; color: var(--ink-soft); background: var(--paper-sunk);
+  border: 1px solid var(--rule); border-radius: 4px; }
+/* its warning sign at the start of the first line, drawn as the bars' icons are, in the crux orange (22 October) */
+.pe-warn { flex: none; width: 18px; height: 18px; margin-top: 2px; color: var(--crux); }
+/* the dot between items belongs to the item after it, drawn in the gap at its left (--lp-sep), which flex leaves
+   only between two items on one line. An item that starts a line stands on the column's edge and its dot falls
+   outside the row, where the row's clip cuts it away, so no line starts or ends on a dot at any width (22 October).
+   The clip leaves room above, below and at the right for the Ko-fi button's focus ring */
+.lede-points { --lp-sep: 1.4em; column-gap: var(--lp-sep); clip-path: inset(-24px -24px -24px 0); }
+.lede-points li { white-space: nowrap; position: relative; }
+.lede-points li:not(.lp-free)::before { content: "\00b7"; position: absolute; right: 100%; width: var(--lp-sep);
+  text-align: center; color: var(--ink-faint); }
+/* Open source, No cloud and Flexible are one item, so the row wraps as two groups and never leaves a word alone on a
+   line (homehead, 5 November 2026), each after the first with its dot, drawn as the items' own */
+.lede-points .lp-rest > span + span::before { content: "\00b7"; display: inline-block; width: var(--lp-sep);
+  text-align: center; color: var(--ink-faint); }
+
+.lib-body { max-width: calc(1048px + 2 * var(--home-edge)); margin: 0 auto; padding: 52px var(--home-edge) 72px; }
+/* the update line at the head of the home screen, in Idiograph's own window (18 October, the fourth Tauri
+   build): the question asked once, a newer version and an update ready, on a card's ground in the flow,
+   its words at the left and its two plain buttons at the right, which go under the words on a phone */
+.update-line { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-6) var(--sp-8);
+  margin: 0 0 var(--sp-12); padding: var(--sp-7) var(--sp-9); background: var(--card);
+  border: 1px solid var(--rule-firm); border-radius: var(--r-card); box-shadow: var(--rest); }
+.update-line[hidden] { display: none; }
+.update-words { flex: 1 1 22em; min-width: 0; }
+.update-said { margin: 0; font-size: var(--fs-body); line-height: 1.5; color: var(--ink); }
+.update-more { margin: var(--sp-2) 0 0; }
+.update-acts { display: flex; flex-wrap: wrap; gap: var(--sp-4); }
+.update-acts[hidden] { display: none; }
+.path { font-family: var(--mono); font-size: 11.5px; color: var(--ink-soft);
+  overflow-wrap: anywhere; margin: 0; line-height: 1.5; }
+/* a folder's name in a path, from pathHtml, kept whole on its line, the path breaking after a slash or a
+   backslash alone, and a name wider than the whole line the one broken inside, so nothing runs off */
+.path-part { display: inline-block; max-width: 100%; overflow-wrap: anywhere; }
+
+/* A section for each project, the demo last: its head, the name in the serif and the research
+   question under it, a button that folds the section with a small chevron at its left, then its
+   GETs card and its rows. A section shut keeps its head alone. */
+.proj { margin: 0 0 44px; }
+.proj-h { margin: 0 0 16px; font: inherit; }
+.proj-head {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  width: 100%; min-width: 0; background: none; border: 0; border-radius: 3px; color: inherit;
+  padding: 2px 0 2px 24px; text-align: left; cursor: pointer;
+}
+.proj-head::before {
+  content: ""; position: absolute; left: 5px; top: 11px; width: 7px; height: 7px;
+  border-right: 1.5px solid var(--ink-faint); border-bottom: 1.5px solid var(--ink-faint);
+  transform: rotate(45deg); transition: transform .16s;
+}
+.proj.shut .proj-head::before { transform: rotate(-45deg); top: 13px; }
+.proj-head:hover::before { border-color: var(--ink); }
+/* a part's mark before its name, the name and the line under it set in past the mark (15 October) */
+.proj-head:has(> .mark) { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 8px; row-gap: 4px;
+  align-items: center; }
+.proj-head > .mark { grid-column: 1; grid-row: 1; }
+.proj-head > .mark ~ .proj-name { grid-column: 2; grid-row: 1; }
+.proj-name { font-family: var(--serif); font-size: 22px; line-height: 1.3; color: var(--ink);
+  max-width: 100%; overflow-wrap: anywhere; }
+.proj.shut .proj-body { display: none; }
+
+/* The picker's cards (9 October): a grid under each section's head, as many to a row as fit at
+   about 300px each, one to a row on a phone. A card is one button, the project's name in the serif,
+   its question in the soft serif cut at three lines, and its one line in the small type at its
+   foot. Sift's cards take the same face. */
+.home-cards, .home-cards.sf-rows { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); }
+.home-card-li { min-width: 0; display: flex; }
+/* a project's card's dots at its top right, beside the card's button and never in it, and their menu under them
+   (21 October), the family's since barsD (6 November 2026), so Sift's and Trace's cards carry them as Idiograph's do.
+   The name keeps clear of them */
+.pc-dots { margin-left: auto; flex: none; background: none; border: 1px solid transparent; border-radius: 3px;
+  cursor: pointer; color: var(--ink-faint); font-size: 15px; line-height: 1; padding: 3px 6px; }
+.pc-dots:hover { color: var(--ink); border-color: var(--rule-firm); }
+.home-card-li.has-menu { position: relative; }
+.home-card-li.has-menu :is(.hc-head, .sf-row-open > .hc-name) { padding-right: 30px; }
+.hc-dots { position: absolute; top: 12px; right: 10px; }
+/* the dots as plain to see as the card's other words, ink-soft, faint in dark no longer (21 October) */
+.home-card-li .hc-dots { color: var(--ink-soft); }
+.home-card-li .hc-dots:hover { color: var(--ink); }
+.home-card-li .hc-menu { top: 42px; right: 10px; min-width: 13em; max-width: min(19em, calc(100% - 20px)); }
+/* Share a copy in a browser, where the copy downloads at once: the line the save panel shows in the
+   window, under the item in the card's small type, wrapping in the menu's width (21 October) */
+.hc-menu button.ghost.with-note { white-space: normal; text-align: left; }
+.hc-menu-line { font-size: 12px; line-height: 1.35; color: var(--ink-faint); }
+.home-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; min-width: 0;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 4px; text-align: left; cursor: pointer;
+  padding: 14px 16px 13px; color: inherit; font: inherit; transition: background .16s, border-color .16s;
+}
+.home-card:hover:not(:disabled) { background: var(--paper-sunk); border-color: var(--rule-firm); }
+.home-card:disabled { cursor: not-allowed; opacity: .55; }
+.home-card:focus-visible { outline: 0; box-shadow: var(--focus); border-color: var(--crux); }
+.hc-head { display: flex; align-items: center; gap: 8px; max-width: 100%; min-width: 0; }
+.hc-name { font-family: var(--serif); font-size: 19px; line-height: 1.3; color: var(--ink); min-width: 0; max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hc-head .tag { flex: none; }
+.hc-question { font-family: var(--serif); font-size: 14px; line-height: 1.45; color: var(--ink-soft); overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.home-card .pc-line:last-child { margin-top: auto; padding-top: 4px; }
+/* a shared copy's tag, on its card and its page, in the soft ink on its own border, a plain word and
+   none of the demo's colour (21 October) */
+.tag.copy { border-color: var(--ink-soft); color: var(--ink-soft); }
+/* New project and Open project folder under each section's cards */
+.home-acts { flex-wrap: wrap; align-items: center; gap: 8px; }
+.home-acts[hidden] { display: none; }
+/* Search, Send feedback and Settings in the head, at the right over the days, in the order every bar ends with (16
+   October), at the right of the head's top row since 5 November (homehead), their words shown as a screen's bar
+   shows them */
+.lib-head { position: relative; }
+.lib-tools { flex: none; margin-left: auto; display: flex; align-items: center; gap: 4px; }
+/* A project's page: the way back at its head, a round arrow, then the project's name and question */
+.hp-head { display: flex; align-items: flex-start; gap: 14px; margin: 0 0 20px; }
+/* the handle every list he puts in his order is dragged by, a project's rows, Set columns and the
+   exclusion reasons alike (12 October), drawn by `gripHtml` */
+.pc-grip {
+  display: flex; align-items: center; justify-content: center; width: 24px; height: 34px; padding: 0;
+  background: none; border: 0; border-radius: 3px; color: var(--ink-faint); cursor: grab; touch-action: none;
+}
+.pc-grip svg { width: 9px; height: 14px; fill: currentColor; }
+.pc-grip:hover { color: var(--ink); background: var(--paper-sunk); }
+.pc-grip.none { cursor: default; }
+.pc-label { font-size: 14px; color: var(--ink); }
+/* the quiet small type the counts are in, on the rows and the GETs card alike */
+.pc-line { font-size: 12px; color: var(--ink-faint); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pc-line:empty { display: none; }
+/* a focus ring on every button of the home screen */
+.pc-half:focus-visible, .pc-dots:focus-visible, .gets-wide:focus-visible, .case-row:focus-visible,
+.case-themes:focus-visible, .quiet:focus-visible, .pc-grip:focus-visible, .proj-head:focus-visible {
+  outline: 0; box-shadow: var(--focus); border-radius: 3px;
+}
+/* on a phone the row's halves stack under the name */
+@media (max-width: 559px) {
+  .lib-head { grid-template-columns: minmax(0,1fr); grid-template-areas: "top" "note" "lede" "points" "days"; }
+  .lib-head .days { margin-top: 26px; }
+  /* on a phone Free and its Ko-fi button have a line of their own */
+  .lede-points .lp-free { flex-basis: 100%; }
+}
+/* a line for a screen reader alone */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+/* Linux's guard against WebKitGTK's crash under Orca (axGuard in shell.js): no room and nothing seen */
+.ax-guard { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+.tag {
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+  border: 1px solid var(--rule-firm); color: var(--ink-faint);
+  padding: 2px 7px; border-radius: 2px;
+}
+/* a case's workbook still to make, a tag in the soft ink on its own border, firmer than a plain tag's and off the
+   crux orange, which means a crux (17 October, later) */
+.tag.raw { border-color: var(--ink-soft); color: var(--ink-soft); }
+.tag.locked { border-style: dashed; }
+/* the demo is the one case in the list that is nobody's data, and it says so twice: on its card
+   here, and again beside the name in the top bar for as long as it is open */
+.tag.demo { border-color: var(--accent); color: var(--accent); }
+
+/* The days, top right in the head (items 159 and 195): eight columns of seven small squares, Monday at the top and
+   the newest week on the right, each tinted by the rounds closed that day in four steps of the
+   accent at rising strength, none, one, two, and three or more, today outlined in the ink, where until 17
+   October, later, it stood in the crux orange, which means a crux.
+   A day still to come keeps its place and draws nothing. The line under it is the small type. */
+.days { grid-area: days; justify-self: end; align-self: start; text-align: right; max-width: 17em; margin: 0; }
+/* the days' top level with the panel's (homehead, 5 November) */
+.lib-head .days { margin-top: 22px; }
+/* up to 960px the panel takes the head's whole width, and the days stand beside the line and its points, so the
+   panel keeps a long line where the days would leave it a narrow one (homehead, 5 November) */
+@media (max-width: 960px) {
+  .lib-head { grid-template-areas: "top top" "note note" "lede days" "points days"; }
+  .lib-head .days { margin-top: 26px; }
+}
+.day { border-radius: 2px; }
+.day.s0 { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.day.s1 { background: color-mix(in srgb, var(--accent) 38%, transparent); }
+.day.s2 { background: color-mix(in srgb, var(--accent) 66%, transparent); }
+.day.s3 { background: var(--accent); }
+.day.today { outline: 1.5px solid var(--ink); outline-offset: 1px; }
+.day.ahead { visibility: hidden; }
+/* on a narrow screen the days go under the wordmark, at its left */
+@media (max-width: 559px) {
+  .days { justify-self: start; text-align: left; margin-top: 14px; }
+}
+.demo-actions { display: flex; align-items: baseline; gap: 12px; padding: 2px 2px 0; }
+.demo-actions .fineprint { margin: 0; }
+.quiet {
+  background: none; border: 0; padding: 0; cursor: pointer; font: inherit; font-size: 12.5px;
+  color: var(--ink-faint); border-bottom: 1px solid var(--rule-firm);
+}
+.quiet:hover { color: var(--ink); border-bottom-color: currentColor; }
+.empty { color: var(--ink-faint); font-size: 13.5px; padding: 14px 2px; }
+/* with no project, the line in the sections' place and Add project beside it, off a Mac its field
+   for the folder's path, and under Projects the root folder with Remove from Idiograph beside it */
+.no-root, .root-line { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
+.add-typed { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.add-typed[hidden] { display: none; }
+.add-typed input { width: min(26em, 100%); background: var(--paper); border: 1px solid var(--field-edge);
+  border-radius: 3px; padding: 6px 10px; font-family: var(--mono); font-size: 12px; }
+.add-typed input:focus { outline: 0; border-color: var(--field-edge); }
+/* the field's placeholder in the app's own font, the path typed in it in the paths' (21 October) */
+.add-typed input::placeholder { font-family: var(--sans); font-size: 13px; color: var(--ink-faint); }
+/* the row of the projects' names under Projects, the one shown pressed */
+.proj-pick { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+.proj-pick[hidden] { display: none; }
+.proj-pick button.on { border-color: var(--accent); color: var(--ink); background: var(--paper-sunk); }
+
+/* ──────────────────────────────────────────────────────── work ── */
+
+/* the space between a bar's items, a property of its own so the part's mark can keep one distance to the
+   name whatever space the bar gives the rest (15 October, later) */
+.rail {
+  position: sticky; top: 0; z-index: 30;
+  --rail-gap: 12px;
+  display: flex; align-items: center; gap: var(--rail-gap);
+  padding: 0 var(--gutter); height: 46px;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid var(--rule);
+  font-size: 12.5px; color: var(--ink-soft);
+  /* the bar takes no selection, as the research question's band does, so a drag from a passage up past
+     them keeps the selection to the transcript, where at 1280 it took the bar in the browser's blue
+     (17 October, later). A field in a bar keeps its own */
+  user-select: none; -webkit-user-select: none;
+}
+.rail input, .rail textarea { user-select: text; -webkit-user-select: text; }
+/* The case name is what gives way when the bar runs short: one line, an ellipsis, and the whole
+   name in its tooltip. Everything else in the bar keeps its width, or goes at a breakpoint below. */
+.rail-case { font-family: var(--serif); font-size: 15px; color: var(--ink);
+  flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rail-item, .rail-sheet, .sheet-pick, .rail-btn, .rail-tag, .rail-sep { flex: none; }
+/* the part's mark after the way back, 7px from the name it stands for on every bar and at every width,
+   whatever the bar's own gap, and 18px everywhere, drawn for 18 pixels so each line is sharp (15
+   October, later) */
+.rail .mark { width: 18px; height: 18px; margin-right: calc(7px - var(--rail-gap)); }
+/* the sheet switcher is the label it replaces, the same size and colour with no box of its own,
+   and a small chevron after it that says it opens */
+.sheet-pick { position: relative; display: inline-flex; align-items: center; margin-left: 6px; }
+.sheet-pick select {
+  appearance: none; -webkit-appearance: none; background: none; border: 0; border-radius: 3px;
+  margin: 0; padding: 2px 15px 2px 0; font: inherit; font-size: 12.5px; color: var(--ink-soft);
+  white-space: nowrap; cursor: pointer;
+}
+.sheet-pick select:hover, .sheet-pick select:focus-visible { color: var(--ink); outline: 0; }
+/* the sheet switch takes the bar's one focus ring from the keyboard too (17 October, later) */
+.sheet-pick select:focus-visible { box-shadow: var(--focus-small); }
+.sheet-chevron {
+  position: absolute; right: 1px; top: 50%; width: 10px; height: 10px; margin-top: -5px;
+  color: var(--ink-faint); pointer-events: none;
+}
+.sheet-pick:hover .sheet-chevron { color: var(--ink); }
+.rail-grow { flex: 1; }
+.rail-btn {
+  background: none; border: 1px solid transparent; border-radius: 3px;
+  width: 26px; height: 24px; cursor: pointer; color: var(--ink-faint); line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0;
+}
+.rail-btn:hover { border-color: var(--rule-firm); color: var(--ink); }
+/* Every tool on every bar takes the app's one focus ring from the keyboard, View among them as Esc gives the focus
+   back to it from its menu, where each drew the browser's own blue ring (17 October, later). The way back on PETs
+   and GETs keeps its smaller ring (themes.css). */
+.rail-btn:focus-visible { outline: 0; box-shadow: var(--focus); }
+/* a drawn glyph sits in the same box as a typed one, and takes its colour from the button */
+.rail-btn svg { width: 15px; height: 15px; display: block; }
+/* One title bar (12 October). Every tool on every bar, the home screen's Settings among them, is an
+   icon and its word, the button a .bar-tool and its word a .bar-word, and every bar keeps one order:
+   the way back at the left, the screen's own tools after its place, then Shortcuts, Theme, Send
+   feedback and Settings last at the right. The words show from 1280px, the width every bar holds
+   them at with a name of 30 letters still whole, the turn screen's once its part's name and the line
+   to today's target leave it below 1440px (13 October, later). Below 1280px the icons stand alone
+   at the sizes and steps each bar keeps, each named on hover by its title and to a screen reader by
+   its label. */
+.bar-word { display: none; font-size: 12px; font-weight: 400; line-height: 1; white-space: nowrap; }
+/* a tool's typed glyph, the "?" of Shortcuts on every bar, in the drawn icons' 15 pixel box and at a
+   weight that matches their stroke, where at the bar's 12.5 pixels and regular weight its thin strokes
+   read fainter than the faint ink's 4.5 to 1 (17 October) */
+.bar-tool { font-size: 15px; font-weight: 600; }
+@media (min-width: 1280px) {
+  .bar-tool { width: auto; min-width: 26px; gap: 4px; padding: 0 4px; }
+  .bar-word { display: inline; }
+}
+.bar-word[hidden] { display: none; }
+.bar-tool:disabled { opacity: .45; cursor: default; }
+.bar-tool:disabled:hover { border-color: transparent; color: var(--ink-faint); }
+/* The steps at the head of a screen, one row on its bar in the order the work goes, a chevron between each,
+   the one he is on in the ink and the others quiet buttons (12 October): Sift's review's, Search strategy, Screen
+   by title and abstract, Screen by full text and Extract and appraise, each stage's count of records after its
+   name in the faint ink and a step that waits greyed with its reason on hover, and since 18 October Distil's,
+   Experiential statements, PETs and GETs, on each of its three bars, the style moved here from sift.css for
+   both (Adam, Topic A of 17 October). */
+.sf-steps { flex: none; display: inline-flex; align-items: center; flex-wrap: wrap; gap: 1px; min-width: 0; }
+.sf-steps[hidden] { display: none; }
+.sf-steps button {
+  background: none; border: 0; margin: 0; padding: 3px 6px; border-radius: 3px; font-size: 12.5px;
+  color: var(--ink-soft); cursor: pointer; white-space: nowrap;
+}
+.sf-steps button:hover:not([aria-disabled="true"]):not([aria-current]) { color: var(--ink); background: var(--paper-sunk); }
+.sf-steps button[aria-current="step"] { color: var(--ink); font-weight: 600; cursor: default; }
+.sf-steps button[aria-disabled="true"] { opacity: .45; cursor: default; }
+/* the app's small focus ring, the same wash it drew as a written value until 18 October */
+.sf-steps button:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+.sf-step-sep { color: var(--ink-faint); font-size: 13px; }
+.sf-step-c { margin-left: 2px; font-weight: 400; font-variant-numeric: tabular-nums; color: var(--ink-faint); }
+/* Each tab's words over a hidden bold copy of themselves (barsD, Adam, 6 November 2026: keep the bold, each tab
+   always as wide as its bold name, so the tabs never move when another comes in front), Idiograph's and Sift's, the
+   copy in `data-bold`, taking the width and no height, never seen, never read out and never selected */
+.tab-w { display: inline-grid; justify-items: center; }
+.tab-w::after { content: attr(data-bold); content: attr(data-bold) / ""; grid-row: 2; height: 0; overflow: hidden;
+  visibility: hidden; font-weight: 600; pointer-events: none; user-select: none; -webkit-user-select: none; }
+/* Idiograph's tabs (Adam, 20 October, in place of the steps of 18 October): a fixed tab per stage after the
+   project's name, the one in front of him a tab of the page's paper standing on the bar's lower edge and opening
+   into the screen under it, the bar round it in the sunk paper, the others quiet words at the tabs' 15px, larger
+   than the steps' 12.5. The tab in front holds the participant picker, the name in the serif and a small
+   chevron after a rule. ES stands for Experiential statements below 1280px, its whole name in its tooltip and
+   to a screen reader. Below 760px the tabs take a row of their own under the name (Narrower than a desk). */
+.ds-short { display: none; }
+/* The turn screen's bar holds the most, so its items stand 8px apart where the other bars' stand
+   12px (13 October, later). The icons at its right stand closer still, 4px apart, so the magnifier
+   for find and replace (item 139) takes none of the room the case name had. The steps below keep
+   them so: 3px apart and 24px wide below 620px, 2px apart and 18px wide below 480px. The bug for
+   Send feedback stands among them, just before the cog, on every screen (item 199), and slims with
+   them. */
+#work .rail { --rail-gap: 8px; }
+#work .rail-btn + .rail-btn { margin-left: -4px; }
+
+/* The research question, the full width under the top bar. The label in the label face and the
+   whole question in the serif, on as many lines as it takes. It sticks under the bar, and the page
+   measures it into --band so the columns below keep the rest of the height. */
+/* A drag that selects words in the transcript never takes the question with them, where at 360 a drag upward
+   selected it in the browser's own blue (17 October, later). */
+.band {
+  position: sticky; top: calc(var(--rail-h, 46px) + 2px); z-index: 28;
+  display: flex; align-items: baseline; gap: 18px;
+  padding: 11px var(--gutter) 12px;
+  background: var(--paper); border-bottom: 1px solid var(--rule);
+  user-select: none; -webkit-user-select: none;
+}
+.agents-guide { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 4px; }
+.mcp-code {
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink-soft); background: var(--paper);
+  border: 1px solid var(--rule); border-radius: 3px; padding: 8px 10px; margin: 6px 0 4px;
+  white-space: pre-wrap; word-break: break-all; line-height: 1.5; overflow: auto;
+}
+/* Using your own AI agent, at the end of the AI features page: its line in the warning's type, then the box */
+.agent-start { padding-bottom: 8px; }
+.agent-start-line { font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); margin: 8px 0 0; max-width: 62ch; }
+/* The agent log (agentlog, 3 November 2026, every app's since siftlog that day): its line under Using your own AI
+   agents, and its sheet over Settings in the pattern of the card for several held actions */
+.agent-log { margin-top: 26px; }
+.agent-log .pane-sub { margin-bottom: 4px; }
+.agent-log .al-none { font-size: 13.5px; color: var(--ink-soft); margin: 8px 0 0; }
+.agent-log .al-none[hidden], .agent-log .al-sum[hidden] { display: none; }
+.agent-log .al-sum { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 8px;
+  font-size: 13.5px; color: var(--ink-soft); }
+.agent-log-sheet { width: min(680px, 100%); display: flex; flex-direction: column; overflow: hidden; }
+.agent-log-sheet h2 { margin: 6px 0 0; }
+.agent-log-sheet .al-count { margin: 8px 0 0; font-size: 13.5px; color: var(--ink-soft); }
+.agent-log-sheet #al-said { margin: 6px 0 0; }
+.agent-log-sheet #al-said[hidden] { display: none; }
+.agent-log-sheet .al-list { margin: 14px -10px 0; padding: 0 10px; overflow-y: auto; min-height: 0; flex: 1 1 auto;
+  overscroll-behavior: contain; }
+.agent-log-sheet .al-rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule); }
+.agent-log-sheet .al-rows > li + li { border-top: 1px solid color-mix(in srgb, var(--rule) 60%, transparent); }
+.agent-log-sheet .al-row { display: grid; grid-template-columns: minmax(0, 1fr) auto 82px; align-items: center;
+  gap: 12px; padding: 8px 0; }
+.agent-log-sheet .al-row > .al-more { justify-self: end; }
+.agent-log-sheet .al-what { display: block; font-size: 14px; color: var(--ink); overflow-wrap: anywhere; }
+.agent-log-sheet .al-what.al-op { font-family: var(--mono); font-size: 13px; }
+.agent-log-sheet .al-in { color: var(--ink-soft); font-family: inherit; }
+.agent-log-sheet .al-why { display: block; font-size: 12.5px; line-height: 1.5; color: var(--ink-faint); margin-top: 1px;
+  overflow-wrap: anywhere; }
+.agent-log-sheet .al-when { font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
+.agent-log-sheet .al-more { display: inline-flex; align-items: center; gap: 4px; }
+.agent-log-sheet .al-more svg { width: 12px; height: 12px; transition: transform .16s; }
+.agent-log-sheet .al-more[aria-expanded="true"] svg { transform: rotate(180deg); }
+.agent-log-sheet .al-detail { padding: 4px 0 12px; }
+.agent-log-sheet .al-detail dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px;
+  margin: 0; font-size: 13.5px; line-height: 1.5; }
+.agent-log-sheet .al-detail dt { color: var(--ink-soft); }
+.agent-log-sheet .al-detail dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+.agent-log-sheet .al-detail dd.al-cmd { font-family: var(--mono); font-size: 12.5px; overflow-wrap: normal; }
+.agent-log-sheet .al-detail dd.al-cmd .al-word, .agent-log-sheet .al-word { white-space: nowrap; }
+.agent-log-sheet .al-detail .al-copy { margin-top: 10px; }
+.agent-log-sheet .card-actions { justify-content: flex-end; margin-top: 18px; flex: none; }
+.agent-text { user-select: text; -webkit-user-select: text; margin-top: 10px; word-break: normal; overflow-wrap: anywhere; }
+/* the Restart the restart line carries, wherever it shows */
+.restart-now { margin-left: 8px; }
+/* Restarting, and Idiograph is closed: over everything, and nothing behind it answers */
+.server-gone { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center;
+  padding: var(--gutter); background: var(--paper); }
+.server-gone-card { width: min(460px, 100%); }
+
+/* The book's three columns (17 October, Adam's decision on a tester's "J-way", Smith, Flowers and Larkin
+   2022, Box 5.4): experiential statements, the transcript and exploratory notes side by side under
+   their headings, each of her passages a row across the three, and the three scrolling as one with the
+   player at their foot, where until then the sheet stood beside a panel of fields of its own. The
+   guidance is a sheet over the screen and takes no column (16 October). Each column narrows by its own
+   least width, the statements' 210 pixels, the transcript's 300 and the notes' 160, so the three stand
+   side by side down to 801px. They share the room as the notes 1, the transcript 3 and the statements 2,
+   whatever the order (Adam, 6 November, from his own widths: about 17, 51 and 32 per cent, where it was 3, 5 and 3),
+   and the stacked column, the statements and the notes over each other, stands beside the transcript in the same
+   2 to 3, as the two columns do up to 800px. The places of the columns are app.js's, `--es-col`, `--tx-col` and
+   `--en-col` and the tracks `--cols` in their order, the book's by default. */
+#work {
+  --es-track: minmax(210px, 2fr); --tx-track: minmax(300px, 3fr); --en-track: minmax(160px, 1fr);
+  --st-track: minmax(280px, 2fr);
+  --col-gap: 28px;
+  --es-col: 1; --tx-col: 2; --en-col: 3; --cols: var(--es-track) var(--tx-track) var(--en-track);
+  --es-col2: 1; --tx-col2: 2; --cols2: var(--es-track) var(--tx-track);
+  --es-ord: 2; --en-ord: 3;
+}
+.stage { display: block; }
+
+.reading {
+  padding: 12px 24px 14px; max-width: 1480px; margin: 0 auto; width: 100%;
+  height: calc(100vh - 48px - var(--band) - var(--es-status-h, 0px)); display: flex; flex-direction: column; overflow: hidden;
+  position: relative;
+}
+/* The status bar under the player (21 October, Adam's drawings 9 to 13), along the window's foot as the PETs
+   and GETs boards' bar is along the canvas's: the card's paper under a fine rule, the place and the statements'
+   count at its left in the bar's small type, and Minimap, Quotes and Shortcuts at its right, each an icon and its
+   word, Minimap and Quotes pressed in while they show. The columns end above it, so the player keeps its size. */
+#work { --es-status-h: 31px; }
+/* the map's button is the bar's since 21 October, so the corner keeps the map alone, and with the map Off
+   in View the bar's button goes too */
+#work .minimap-btn { display: none; }
+@keyframes came-in { 0%, 25% { background: var(--crux-wash); } 100% { background: transparent; } }
+
+/* The headings, each column's name in the label face with its grip before it, over its column and in
+   its order, the room the column's scrollbar takes left at their right, and Columns at the right of the
+   last, which leaves it room. A heading being dragged is faint, and the place it goes a bar in the ink
+   at a heading's edge, as Sift's headings have it. */
+.cols-head {
+  flex: none; display: grid; grid-template-columns: var(--cols); column-gap: var(--col-gap);
+  align-items: center; min-height: 34px; padding: 0 calc(var(--sb, 0px) + 8px) 8px 8px;
+}
+.col-head { grid-row: 1; display: flex; align-items: center; gap: 6px; min-width: 0; position: relative; }
+.col-head[data-col="statements"] { grid-column: var(--es-col); }
+/* the transcript's heading over its words, the margin with the names and times at its left, as Adam's drawing
+   has it */
+.col-head[data-col="transcript"] { grid-column: var(--tx-col); padding-left: 108px; }
+.col-head[data-col="notes"] { grid-column: var(--en-col); }
+.col-head.col-last { padding-right: var(--pick-w, 96px); }
+.col-name { min-width: 0; }
+.col-head .pc-grip { flex: none; }
+.col-head.dragging { opacity: .55; }
+.cols-head.dragging, .cols-head.dragging .pc-grip { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+.cols-pick {
+  grid-row: 1; grid-column: -2 / -1; justify-self: end; z-index: 1;
+  display: inline-flex; align-items: center; gap: 0; padding: 4px 6px; margin: 0 -6px 0 0;
+  background: none; border: 1px solid transparent; border-radius: var(--r-control);
+  font: inherit; font-size: var(--fs-ui); color: var(--ink-soft); cursor: pointer; white-space: nowrap;
+}
+.cols-pick:hover, .cols-pick[aria-expanded="true"] { color: var(--ink); border-color: var(--rule-firm); background: var(--paper-sunk); }
+.cols-pick:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+.cols-pick-chevron { width: 12px; height: 12px; flex: none; margin-left: 4px; }
+/* and its chevron alone where the last heading's longest word would not stand whole beside its word */
+.cols-tight .cols-pick-word { display: none; }
+.cols-tight .cols-pick-chevron { margin-left: 0; }
+.cols-menu button.ghost:disabled { color: var(--ink-faint); background: none; border-color: transparent; cursor: default; }
+
+/* The columns shown (18 October): a hidden column takes no track and no heading, and whatever it held
+   waits out of sight, its words kept. The transcript alone keeps a reading measure in the middle of the
+   screen, its margin and its heading with it, where a line the screen's whole width ran past 150
+   letters. Its grip goes while it has nothing to change places with. An interviewer note opens under
+   his words while the notes are hidden, as it does where the notes go under the words. */
+#work.hide-es :is(.turn > .turn-es, .col-head[data-col="statements"]) { display: none; }
+#work.hide-en :is(.turn > .turn-notes:not(.note-cell), .col-head[data-col="notes"]) { display: none; }
+#work.cols-alone :is(.turn, .round-mark, .cols-head) { justify-content: center; }
+.stack { display: none; }
+.transcript {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  position: relative; scrollbar-width: thin;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30px, #000 calc(100% - 30px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 30px, #000 calc(100% - 30px), transparent 100%);
+}
+@keyframes count-flash {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.6); filter: blur(6px); animation-timing-function: cubic-bezier(.2,.8,.2,1); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0); animation-timing-function: linear; }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); filter: blur(0); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.35); filter: blur(5px); }
+}
+@keyframes count-tick { 0%, 30% { color: var(--ink-faint); } 100% { color: var(--ink); } }
+
+/* Every row answers a plain click, so the whole row is the target and a faint wash on hover says
+   so. The text keeps the caret it always had, because selecting inside it is what `q` runs on. The wash
+   is the sunk paper, a row under the pointer's by design.md, on which the faint time and the row's menu
+   keep 4.5 to 1, where a tint of the ink took them to 4.4 (17 October, later). */
+.turn { position: relative; padding: 9px 8px; border-radius: 3px;
+  transition: background .14s; }
+.turn:hover { background: var(--paper-sunk); }
+/* Each row a grid of the three columns (17 October): the passage's words, a box open for correction
+   and a quote being built in the transcript's column, 108 pixels in from its edge for the margin, its
+   statements and its notes each in their own column the row's whole height. The margin, the done bar,
+   the current passage's rule and the playhead stand in the transcript's column, placed against its
+   edges and the row's own top and foot. */
+.turn, .round-mark { display: grid; grid-template-columns: var(--cols); column-gap: var(--col-gap); }
+.turn { grid-template-rows: auto auto auto 1fr; align-items: start; }
+.turn > :is(.turn-text, .turn-edit, .quote-preview) { grid-column: var(--tx-col); margin-left: 108px; min-width: 0; }
+.turn > .turn-es { grid-column: var(--es-col); grid-row: 1 / -1; min-width: 0; }
+.turn > .turn-notes { grid-column: var(--en-col); grid-row: 1 / -1; min-width: 0; }
+.turn > :is(.turn-gutter, .turn-done) { grid-column: var(--tx-col); }
+/* the pointer in the current passage's card, its notes field or an interviewer note is at work in a field, so the
+   row takes no target's wash */
+.turn:has(#es-card:hover, #en:hover, #note-entry:hover) { background: none; }
+.turn-gutter {
+  position: absolute; left: 0; top: 12px; width: 92px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 3px; text-align: right;
+  background: none; border: 0; padding: 0; margin: 0; font: inherit;
+}
+/* The reset carries no weight of its own (`:where`), so a button in the margin takes exactly the
+   face and the size of `.speaker` or `.time` rather than the turn's own. Written as a plain
+   `.turn-gutter button` it outranked both and the name rendered at reading size, wide enough to
+   run off the left edge of the margin. */
+:where(.turn-gutter button) { background: none; border: 0; padding: 0; margin: 0; font: inherit;
+  text-align: right; cursor: pointer; color: inherit; }
+/* the margin's name and timecode brighten to the ink under the pointer, never the crux orange, which
+   in the transcript marks a key quote alone (17 October) */
+button.speaker:hover, button.time:hover { color: var(--ink); }
+/* the interviewer's turns are context, never a stop, and their speaker labels do nothing, told apart by their
+   lighter weight alone since 17 October, later, where an opacity of .8 took the faint ink to 3.4 to 3.6 to 1 */
+.turn.aside .speaker { font-weight: 500; }
+.speaker { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; color: var(--ink-faint);
+  max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.time { color: var(--ink-faint); font-size: 11px; }
+/* A drag across passages selects their words alone, in their wash, never the margin's names, times and menus or
+   the notes beside the words, which it took in the browser's own blue (18 October). A timecode open for
+   correction keeps its own selection, as a field in the title bar does */
+.turn-gutter, .turn-notes-text, .notes-head { user-select: none; -webkit-user-select: none; }
+.turn-gutter input { user-select: text; -webkit-user-select: text; }
+
+/* The playhead: the turn the recording sits inside, playing or paused, its timecode in the accent and
+   bold with a small play triangle before it, the player's own sign, on the button that already plays
+   from there. The accent, never the crux orange, so the two never read as one mark. Since 28 October
+   (Adam's choice C of three drawn) it has no rule of its own. Until then it was a rule in the accent at
+   .55, 3 pixels before the words and 2 clear of the current passage's rule, the two reading as a double
+   line, and below 1000 pixels a short dash above the words. The triangle takes its own width, so on
+   that row alone the menu's dots stand about 11 pixels further left. The triangle and the time never
+   part across two lines: on one of the interviewer's rows that carries a note, a timecode of seven or
+   eight figures runs up to 10 pixels out of the margin to the left instead, on its one line. A
+   timecode open for correction hides the button and the triangle with it. */
+.turn.listening .time { color: var(--accent); font-weight: 600; white-space: nowrap; }
+.turn.listening .time::before {
+  content: ""; display: inline-block; width: 6px; height: 7px; margin-right: 5px;
+  background: var(--accent); clip-path: polygon(0 0, 100% 50%, 0 100%); vertical-align: 0;
+}
+
+/* the control that opens the row's menu, on the timecode's line and to its left, always in view in
+   the faint ink since 16 October, when a tester found the menu only by chance, where until then it
+   showed with the margin under the cursor. On its own line under the timecode it hung below a turn
+   of one line, over the next turn's name and out of reach of the pointer. */
+.gutter-time { display: inline-flex; align-items: baseline; gap: 6px; }
+/* the failure line on a card, in the one warning tint, never the crux orange (15 October) */
+.warn { font-size: 13px; line-height: 1.5; color: var(--amber); margin: 18px 0 0;
+  border-left: 2px solid var(--amber); padding-left: 12px; }
+/* a line beside a control that says it failed, as Check under a database's key does, in the same tint, where
+   it stood in the small print's grey beside Sift's red and the card's amber (17 October, later) */
+.said-failed { color: var(--amber); }
+/* and over the colour a line's own class gives it later in the sheets: the AI's notes, the Zotero card's, the
+   second screener's, the canvas's and the trail's (17 October, later) */
+.ai-note.said-failed, .sf-zot-said.said-failed, .sf-two-said.said-failed, .th-note.said-failed,
+.th-qnone.said-failed { color: var(--amber); }
+
+.turn-text {
+  font-family: var(--serif); font-size: 15px; line-height: 1.6; color: var(--ink-faint);
+  max-width: 54ch; white-space: pre-wrap; cursor: text;
+}
+/* A key quote where it stands in its passage (16 October), the crux orange's wash and its rule under
+   words that keep their passage's ink, each piece of a quote put together with an ellipsis marked on
+   its own. A click on it brings its statement forward, and its key quote under the pointer or
+   holding the caret lights it, a stronger wash and a firmer rule. Highlights went the same day, and
+   the key quotes took their place as the one orange in the text. Its spaces fold as a line wraps, so
+   the wash and the rule stop at its last word on each line, where a space hung past it at the edge.
+   Since 18 October (Adam's choice from a drawing) each statement's marks take its own colour by its place
+   in its passage's list, `data-es-colour`: the first the crux orange and its wash as before, the next five
+   the participant colours of the GETs board's map in its order, Blue, Plum, Brown, Indigo and Teal,
+   leaving out Olive, which reads as the orange under colour blindness, and a seventh starting the round
+   again. The same attribute colours a statement's number and its key quote's stripe on the card, so a
+   removal or a move recolours every mark, dot and stripe after it at once. Statement 1's wash is the
+   crux's, Excel's orange under the deeper crux rule, and each other's is its bright tint, `--es-tint1`
+   to `--es-tint5`, at `--es-wash` at rest and `--es-lit` lit, so the words on it read at least as well
+   as on the crux's in the same theme. */
+[data-es-colour="0"] { --es: var(--crux); }
+[data-es-colour="1"] { --es: var(--th-case0); --es-tint: var(--es-tint1); }
+[data-es-colour="2"] { --es: var(--th-case2); --es-tint: var(--es-tint2); }
+[data-es-colour="3"] { --es: var(--th-case3); --es-tint: var(--es-tint3); }
+[data-es-colour="4"] { --es: var(--th-case4); --es-tint: var(--es-tint4); }
+[data-es-colour="5"] { --es: var(--th-case5); --es-tint: var(--es-tint5); }
+/* the second statement on words two statements share, its line under the first's */
+[data-es-colour-b="0"] { --es-b: var(--crux); }
+[data-es-colour-b="1"] { --es-b: var(--th-case0); }
+[data-es-colour-b="2"] { --es-b: var(--th-case2); }
+[data-es-colour-b="3"] { --es-b: var(--th-case3); }
+[data-es-colour-b="4"] { --es-b: var(--th-case4); }
+[data-es-colour-b="5"] { --es-b: var(--th-case5); }
+.turn-text .kq {
+  --es-w: color-mix(in srgb, var(--es-tint) var(--es-wash), transparent);
+  --es-wl: color-mix(in srgb, var(--es-tint) var(--es-lit), transparent);
+  background: var(--es-w); white-space: pre-line;
+  box-shadow: 0 1px 0 var(--es); padding-bottom: 1px; cursor: pointer;
+  transition: background var(--quick), box-shadow var(--quick);
+}
+.turn-text .kq[data-es-colour="0"] { --es-w: var(--crux-wash); --es-wl: color-mix(in srgb, var(--crux) 24%, transparent); }
+.turn-text .kq.lit, .turn-text .kq:hover {
+  background: var(--es-wl); box-shadow: 0 2px 0 var(--es);
+}
+/* Words two statements share keep the first's wash and take a line for each, the first's where it stands on any
+   key quote and the second's under it past a gap of the passage's own ground, so both show and nothing moves.
+   The lines are drawn inside the mark's padding, which a line of words never makes room for. */
+.turn-text .kq[data-es-colour-b] {
+  padding-bottom: 4px; box-shadow: none;
+  background:
+    linear-gradient(var(--es), var(--es)) 0 calc(100% - 2px) / 100% 1px no-repeat,
+    linear-gradient(var(--es-b), var(--es-b)) 0 100% / 100% 1px no-repeat,
+    linear-gradient(var(--es-w), var(--es-w)) 0 0 / 100% calc(100% - 3px) no-repeat;
+}
+.turn-text .kq[data-es-colour-b].lit, .turn-text .kq[data-es-colour-b]:hover {
+  padding-bottom: 6px; box-shadow: none;
+  background:
+    linear-gradient(var(--es), var(--es)) 0 calc(100% - 3px) / 100% 2px no-repeat,
+    linear-gradient(var(--es-b), var(--es-b)) 0 100% / 100% 2px no-repeat,
+    linear-gradient(var(--es-wl), var(--es-wl)) 0 0 / 100% calc(100% - 5px) no-repeat;
+}
+/* a quote being built and the find's washes stand over such words as over any key quote */
+.turn-text .kq[data-es-colour-b].pending { --es-w: color-mix(in srgb, var(--accent) 22%, transparent); --es-wl: var(--es-w); }
+/* in a passage set in the faint ink, every one but the current, a key quote's words take the soft ink, which keeps
+   4.5 to 1 on its wash and on its lit wash in both themes, where the faint ink read at 3.8 to 1 there in dark and
+   4.5 in light (17 October, later) */
+.turn:not(.current) .turn-text .kq { color: var(--ink-soft); }
+.turn-text::selection, .turn-text ::selection { background: var(--crux-wash); }
+/* a piece of the quote being built. Light, and never orange: orange means crux. */
+.turn-text .pending { background: color-mix(in srgb, var(--accent) 22%, transparent);
+  box-shadow: 0 1px 0 var(--rule-firm); border-radius: 1px; }
+.turn-text .find-on { color: var(--ink); }
+
+/* The row's menu, in the popover's paper and border, one entry stacked on the next and a thin
+   rule between the groups. A cut carries its rows and timecodes in small type under it, and a
+   speaker the sheet has not had is typed into the small box the last assignment turns into. */
+.row-menu {
+  position: absolute; z-index: 9; padding: 4px; display: grid; gap: 2px; min-width: min(13em, 100%);
+  max-width: 100%;
+  background: var(--card); border: 1px solid var(--rule-firm); border-radius: 3px;
+  box-shadow: var(--lift); animation: rise .14s cubic-bezier(.2,.7,.3,1) both;
+}
+/* the entries are ghost buttons, and `button.ghost` sits later in this file with the same weight,
+   so the menu's own rules name the class to outrank it: no border until the entry is under the
+   pointer or focused */
+.row-menu button.ghost { justify-content: flex-start; border-color: transparent; white-space: nowrap; }
+.row-menu button.ghost:hover, .row-menu button.ghost:focus-visible { border-color: var(--rule-firm); background: var(--paper-sunk); }
+.row-menu-rule { height: 1px; background: var(--rule); margin: 3px 4px; }
+.transcript:focus { outline: 0; }
+/* the one line on a confirm card that says what merges or what is cut, in the reading face */
+.assign-line, .trim-line { font-family: var(--serif); font-size: 17px; line-height: 1.5; color: var(--ink); margin: 6px 0 0; }
+
+/* the player, at the foot of the sheet's own column. The audio element is the engine and stays out
+   of sight: everything visible here is the app's own, in the same faces as the rest of the page.
+   The bar takes the whole width of the column, so the track has the room the sheet has. */
+.player { display: flex; align-items: center; gap: 14px; padding: 8px 0 0; flex: none;
+  min-height: 48px; border-top: 1px solid var(--rule); margin-top: 10px; padding-top: 10px; }
+.player audio { display: none; }
+/* on a phone the recording's name and the Offset button take a line of their own under the bar, so the
+   name reads whole where it fits and is cut only at its end, its whole name under the pointer */
+@media (max-width: 520px) {
+  .player { flex-wrap: wrap; column-gap: 10px; row-gap: 6px; }
+}
+
+/* the one turn being worked on, its name in the full ink of its words, never the crux orange, which in
+   the transcript marks a key quote alone (17 October), as Larger current passage off has it */
+.turn.current { padding-top: 24px; padding-bottom: 24px; }
+.turn.current .turn-gutter { top: 30px; }
+.turn.current .speaker { color: var(--ink); font-size: 11px; }
+.turn.current .time { font-size: 12px; }
+.turn.current .turn-text {
+  font-size: 21px; line-height: 1.62; color: var(--ink); max-width: 34em;
+}
+/* the current passage's rule stands over its done bar, which shares its place in the margin, solid in
+   the ink, so the green under it never shows through
+   and no orange stands in the margin (17 October, where until then it was the orange taken toward the
+   paper) */
+.turn.current::before {
+  content: ""; position: absolute; grid-column: var(--tx-col); grid-row: 1 / 4;
+  left: 98px; top: 4px; bottom: 4px; width: 2px;
+  background: var(--ink); border-radius: 1px; z-index: 1;
+}
+
+/* ───────────────────────────────────────────── the columns' cells (17 October) ── */
+
+/* Each of her passages carries its exploratory notes in the notes column, the way Smith, Flowers and
+   Larkin have them typed into a column alongside the transcript, the current passage's the notes field
+   itself, the rest read-only in the faint ink with the field's own padding, so their words sit where
+   the field's would. The interviewer's passages carry none, and an interviewer note open on one stands
+   there in its own field. */
+.turn-notes-text {
+  font-size: 13.5px; line-height: 1.5; color: var(--ink-faint); white-space: pre-wrap; overflow-wrap: anywhere;
+  padding: 7px 9px; border: 1px solid transparent; margin-top: -6px;
+}
+.turn-notes-text:empty { display: none; }
+
+/* Each of her passages carries its experiential statements in the statements column, numbered as the
+   card numbers them, in the reading face and the soft ink, read-only, each a target that goes to its
+   passage with the caret in it. A statement still to write shows its key quote in the faint ink. */
+.es-list { list-style: none; margin: -2px 0 0; padding: 0; display: grid; gap: 6px; }
+.es-go {
+  display: flex; align-items: baseline; gap: 8px; width: 100%; padding: 2px 4px; margin: 0 -4px;
+  background: none; border: 0; border-radius: var(--r-control); font: inherit; text-align: left; cursor: pointer;
+  font-family: var(--serif); font-size: 14.5px; line-height: 1.45; color: var(--ink-soft);
+}
+.es-go:hover { color: var(--ink); }
+/* each number in a dot of its statement's colour, as on the card, so the marks in the passage beside it read
+   by their colour too (18 October) */
+.es-n {
+  flex: none; align-self: flex-start; min-width: 17px; height: 17px; margin-top: 2px; padding: 0 4px;
+  border-radius: var(--r-pill); display: flex; align-items: center; justify-content: center;
+  background: var(--es); color: var(--card); font-family: var(--sans); font-size: var(--fs-small); font-weight: 600; line-height: 1;
+}
+.es-words { min-width: 0; overflow-wrap: break-word; }
+
+/* The minimap (16 October): a card at the bottom right of the transcript column since 17 October,
+   where until then it was a strip the column's full height, and since 17 October, later, Adam's
+   drawing of that evening, one card of one size, about 135 by 300, whatever the interview's length,
+   its contents scaled to fit like a measuring jug. The transcript stands in it as one narrow column
+   62 pixels wide: each of her passages a block in the faint ink at four fifths, a mid grey at 3 to 1
+   or more on the card in both themes, the interviewer's turns a thin mark in the firm rule at two
+   fifths of the column's width where they fall between blocks, pale as drawn, a track 4 pixels wide
+   down its left, its outline in the firm rule, holding the green of saved beside each passage done
+   and nothing beside one not done, no light green anywhere, the part in view a box in a solid line of
+   the ink with the column outside it dimmed, a light wash under the pointer (18 October, where from 17
+   October, later, it was a wash with no edge Adam could not see, and before that an edge in the soft
+   ink), and the time at its right,
+   dashes and labels in the faint ink like a jug's. The card holds the map alone. Its button stands
+   outside it in the corner, a small card of its own on one bottom edge with it, whether the map shows
+   or not, so a press never moves it, and while the map does not show the card fades away and leaves
+   the button, taking no pointer. With Off nothing stands in the corner. The card stands clear of the
+   column's own scrollbar, which stays, keeps its place when Back to where I was shows, which stands to its
+   left on one bottom edge with it, 6px from the column's foot (17 October, later, where the card stood
+   4px higher), or where the column has no room beside it, as at 360px with the card open, at the head
+   of the column over a strip where its words fade out, so it never cuts through a line, gives way
+   while the passage being worked on or a field in focus would stand under it, its map going and then
+   the card and its button whole, at every width, and the column's foot keeps room under the last
+   passage so it scrolls clear of the card. Where the sheet and the fields stack, at 1100px of window
+   and below, the card gives way to its button, and a press there opens it over the column until the
+   passage being worked on, its notes or a field in focus comes under it, when it closes to its button
+   again. */
+.minimap {
+  position: absolute; right: 14px; bottom: 6px; z-index: 3;
+  display: flex; align-items: flex-end; gap: 4px;
+  transition: opacity var(--quick), visibility var(--quick);
+}
+.minimap.shut { pointer-events: none; }
+.minimap.gone, .minimap.off { opacity: 0; visibility: hidden; }
+.minimap-card {
+  padding: 4px; background: var(--card); border: 1px solid var(--rule-firm); border-radius: var(--r-card);
+  box-shadow: var(--rest); transition: opacity .35s, visibility .35s;
+}
+.minimap.shut .minimap-card { opacity: 0; visibility: hidden; }
+.minimap-area {
+  position: relative; width: 125px; height: 290px;
+  cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.minimap-map { position: absolute; left: 17px; top: 5px; width: 62px; height: 280px; }
+/* the box's layer 3 pixels wider than the column at each side, as the box is, and holding what the box
+   draws to the column, its dimming with it, clear of the track and the time */
+.minimap-views { position: absolute; left: 14px; top: 5px; width: 68px; height: 280px; overflow: hidden; pointer-events: none; }
+.minimap-map i, .minimap-map span { position: absolute; display: block; }
+.mm-track { left: -12px; top: 0; bottom: 0; width: 4px; box-sizing: border-box; border: 1px solid var(--rule-firm); }
+.mm-done { left: -12px; width: 4px; background: var(--good); }
+.mm-block { left: 0; right: 0; border-radius: 1px; background: color-mix(in srgb, var(--ink-faint) 80%, transparent); }
+.mm-ask { left: 0; width: 40%; height: 1px; background: var(--rule-firm); }
+.mm-dash { left: 66px; width: 6px; height: 1px; margin-top: -0.5px; background: var(--ink-faint); }
+.mm-dash.short { width: 3px; }
+.mm-time {
+  left: 74px; font-family: var(--mono); font-size: 9px; line-height: 1; color: var(--ink-faint);
+  white-space: nowrap; transform: translateY(-50%);
+}
+/* The box over the part in view, as Adam chose it on 18 October from four looks drawn for him, A's line
+   with D's dimming: the view left clear inside a solid line of the ink 2 pixels thick, near white in
+   dark, and the column outside it dimmed by the card's paper laid over it, `--dim`, at 35 per cent in
+   light, its blocks lighter, and a little less in dark, at 25. The line is the box's inset shadow and
+   the dimming a spread of 600 pixels round it, which the layer's overflow keeps on the column. The line
+   holds 3 to 1 or more against the paper, the blocks and the dimmed blocks in both themes and stands on
+   the paper 5 pixels clear of the green, the blocks in view stay whole, and the dimmed ones stay in
+   sight, fainter by design. Before it the box was a wash of the ink with no edge that he could not see. */
+.minimap-views {
+  --mm-line: inset 0 0 0 2px var(--ink);
+  --mm-ground: 0 0 0 600px var(--dim);
+}
+.minimap-view {
+  position: absolute; display: block; left: 0; right: 0; pointer-events: auto; cursor: grab;
+  box-shadow: var(--mm-line), var(--mm-ground);
+  border-radius: var(--r-tag); transition: background-color var(--quick);
+}
+/* a step darker under the pointer, a light wash of the ink in the clear view */
+.minimap-area:hover .minimap-view { background-color: color-mix(in srgb, var(--ink) 8%, transparent); }
+.minimap-area.dragging, .minimap-area.dragging .minimap-view { cursor: grabbing; }
+/* the button, a small card of its own outside the map's, in the card's paper, edge and lift */
+.minimap-btn {
+  pointer-events: auto;
+  display: grid; place-items: center; flex: none; width: 32px; height: 32px; padding: 0; margin: 0;
+  background: var(--card); border: 1px solid var(--rule-firm); border-radius: var(--r-card); box-shadow: var(--rest);
+  color: var(--ink-soft); cursor: pointer;
+  transition: background var(--quick), color var(--quick);
+}
+.minimap-btn svg { width: 15px; height: 15px; }
+.minimap-btn:hover { background: var(--paper-sunk); color: var(--ink); }
+.minimap-btn:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+.minimap-btn[aria-pressed="true"] { color: var(--ink); }
+/* Since 21 October (Adam's drawings, from a tester, who selects the words first) each statement is a box of its
+   own, and each box stands level with its own quote in the passage, the card's top lifted to the first one's
+   by `--lift` and each later box dropped to its own by `--drop` (levelPairs), never above the box before it,
+   so two close quotes stack their boxes in order. The foot ends the last box. */
+.es-card {
+  margin: calc(-6px + var(--lift, 0px)) 0 0; padding: 0;
+  cursor: auto;
+}
+/* a card lifted level with a quote low in the passage can run past the words, so its row keeps 12 pixels
+   under it before the next passage */
+.turn.current > .turn-es:has(> .es-card) { padding-bottom: 12px; }
+/* A save refused over a passage changed since the page loaded it (18 October): one line in the amber at the
+   card's head with Reload and Overwrite, and after Reload what was typed under it, in plain text he can
+   select and copy from */
+.stale {
+  margin: 0 0 10px; padding: 8px 10px 10px; border: 1px solid var(--amber); border-radius: 6px;
+  background: var(--paper-sunk);
+}
+.stale[hidden], .stale-mine[hidden], .stale [hidden] { display: none; }
+/* its foot keeps to the column's foot while a card of several pairs runs past it, above the column's faded
+   edge, so Next stays in reach as he writes, and stands at the card's own foot otherwise */
+.es-foot {
+  position: sticky; bottom: 30px; z-index: 2; display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  margin: 0; padding: 10px 12px 12px; background: var(--card);
+  border: 1px solid var(--rule-firm); border-top-color: var(--rule); box-shadow: var(--rest);
+  border-bottom-left-radius: var(--r-card); border-bottom-right-radius: var(--r-card);
+}
+/* the AI's suggestions, open, stand between the last box and its foot, in the same paper and edges */
+.es-card .ai:not([hidden]) {
+  margin: 0; padding: 10px 12px; background: var(--card);
+  border-left: 1px solid var(--rule-firm); border-right: 1px solid var(--rule-firm); border-top: 1px solid var(--rule);
+}
+/* the paper under it the row's own: the page's, the sunk paper of the wash while the pointer is on the
+   words and of the band with Larger current passage off */
+.turn.current { --under-foot: var(--paper); }
+.turn.current:hover, #work.same-size .turn.current { --under-foot: var(--paper-sunk); }
+.turn.current:has(#es-card:hover, #en:hover, #note-entry:hover) { --under-foot: var(--paper); }
+.field-label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; color: var(--ink-soft); }
+/* "saved to the workbook" takes no room while it is not shown, its width and the 8 pixels before Next
+   going once it has faded, so after the first Next the foot never keeps a gap for it on a row of its own
+   until a reload (18 October, polish 10) */
+.saved { font-size: 11.5px; color: var(--good); opacity: 0; white-space: nowrap; overflow: hidden;
+  max-width: 0; margin-right: 0; transition: opacity .3s, max-width 0s .3s, margin-right 0s .3s; }
+.saved.on { opacity: 1; max-width: 16em; margin-right: 8px; transition: opacity .3s; }
+
+textarea {
+  width: 100%; resize: none; overflow: hidden; background: var(--card);
+  border: 1px solid var(--field-edge); border-radius: 3px; padding: 11px 13px;
+  font-family: var(--serif); font-size: 17px; line-height: 1.55;
+  transition: border-color .16s, box-shadow .16s;
+}
+textarea:focus { outline: 0; border-color: var(--field-edge); box-shadow: var(--focus); }
+/* and a field of one line takes the same ring, at no weight of its own so a field that sets its own keeps it, where
+   Rename's New name and Settings' fields showed no ring and read as unfocused (17 October, later) */
+:where(input[type="text"], input[type="search"], input:not([type])):focus { box-shadow: var(--focus); }
+textarea::placeholder { color: var(--ink-faint); font-style: italic; }
+
+.nudges { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+/* The pairs: each its number beside its statement, then the statement's count and its nudges, then
+   the Key quote label in its small capitals alone on its line and its own key quote, a faint rule between
+   one pair and the next (14 October, the number beside the statement since 17 October, where a heading,
+   Experiential statement and its number, stood over it). Remove is a bin alone at the pair's top right,
+   level with the statement's first line, the statement ending short of it (18 October, Adam's drawing,
+   where a red-edged Remove with its word stood at the right of the Key quote label). It takes the whole
+   pair, so while it has the pointer or the keyboard's focus a red line drawn round the pair shows what
+   goes. The line is drawn over the pair's margins and moves nothing. */
+.pairs { display: grid; gap: 0; }
+/* each pair its number at the left beside its statement, as the passage's other statements are
+   numbered in the column, and its fields to the right (17 October) */
+.pair {
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 8px;
+  padding: 10px 12px 12px; background: var(--card); border: 1px solid var(--rule-firm);
+  border-radius: var(--r-card); box-shadow: var(--rest);
+}
+.pair + .pair { margin-top: calc(8px + var(--drop, 0px)); }
+/* the last box runs on into the card's foot */
+.pairs > .pair:last-child { border-bottom: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; padding-bottom: 12px; }
+/* its number in a dot of the statement's colour, the card's paper on it, and its key quote with a stripe of
+   that colour at its left, the colour by its place as its marks in the passage take it (18 October) */
+.pair-num {
+  align-self: start; min-width: 20px; height: 20px; margin-top: 8px; padding: 0 5px; border-radius: var(--r-pill);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--es); color: var(--card); font-size: var(--fs-small); font-weight: 600; line-height: 1; cursor: text;
+}
+.pair .pair-kq { border-left: 3px solid var(--es); padding-left: 7px; }
+.pair-body { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 6px; }
+.pair-body > * { grid-column: 1 / -1; }
+.pair-body > .pair-es { grid-column: 1; grid-row: 1; }
+.pair-es, .pair-kq { padding: 7px 9px; line-height: 1.45; }
+.pair-qhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 9px 0 5px; }
+/* the bin, in the quiet ink on no ground, red with a wash of it under the pointer and red with the danger's
+   ring from the keyboard */
+.pair-body > .pair-remove {
+  grid-column: 2; grid-row: 1; align-self: start; margin-top: 6px;
+  display: inline-grid; place-items: center; width: 28px; height: 28px; padding: 0;
+  background: none; border: 1px solid transparent; border-radius: var(--r-control);
+  color: var(--ink-soft); cursor: pointer; transition: color .14s, background .14s;
+}
+.pair-remove:hover, .pair-remove:focus-visible { color: var(--danger); background: color-mix(in srgb, var(--danger) 9%, transparent); }
+.pair-remove:focus-visible { outline: 0; border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger); }
+.pair::after {
+  content: ""; position: absolute; inset: -1px; pointer-events: none;
+  border: 1.5px solid var(--danger); border-radius: var(--r-card); opacity: 0; transition: opacity .16s;
+}
+.pair:has(.pair-remove:hover)::after,
+.pair:has(.pair-remove:focus-visible)::after { opacity: 1; }
+.pair-qlabel { display: block; font-size: 10.5px; }
+.pair-kq { font-size: 15.5px; }
+/* The arrow beside the quote (21 October, Adam's ruling): lit while words are selected in the passage, the
+   crux orange's edge and ink on the card, and a press takes them as this statement's quote, as Q does. At
+   rest it is the bin's quiet ink. */
+.pair-body > .pair-kq, .pair-body > .pair-kq-line { grid-column: 1; }
+.ai { border-top: 1px solid var(--rule); padding-top: 10px; }
+.ai-note { font-size: 11.5px; color: var(--ink-faint); }
+.tags { list-style: none; margin: 9px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.tags li { font-size: 11.5px; color: var(--ink-soft); border: 1px solid var(--rule-firm);
+  border-radius: 2px; padding: 2px 8px; }
+.candidates { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
+.candidates button {
+  width: 100%; text-align: left; background: var(--card); border: 1px solid var(--rule);
+  border-radius: 3px; padding: 8px 11px; cursor: pointer; font-family: var(--serif);
+  font-size: 15px; color: var(--ink-soft); transition: border-color .16s, color .16s;
+}
+.candidates button:hover { border-color: var(--rule-firm); color: var(--ink); }
+/* the bench in settings shows its candidates in the same face and frame, as lines to read, since
+   nothing there goes into a field */
+.candidates .said {
+  display: block; background: var(--card); border: 1px solid var(--rule); border-radius: 3px;
+  padding: 8px 11px; font-family: var(--serif); font-size: 15px; color: var(--ink-soft);
+}
+button.ghost.small { padding: 5px 10px; font-size: 12px; }
+button.ghost.small .btn-icon { width: 14px; height: 14px; }
+#note { font-size: 16px; }
+
+button.ghost, button.primary {
+  display: inline-flex; align-items: center; gap: 7px;
+  border-radius: 3px; padding: 8px 14px; cursor: pointer; border: 1px solid var(--rule-firm);
+  background: none; font-size: 13px; white-space: nowrap;
+  transition: background .16s, border-color .16s, color .16s, transform .1s;
+}
+button.ghost { color: var(--ink-soft); }
+button.ghost:hover { background: var(--paper-sunk); color: var(--ink); border-color: var(--ink-faint); }
+/* Skip or Next is the one filled button, in the accent Adam marks a crux with. Paper on orange in
+   the light theme, the dark paper on the lighter orange in the dark one, so the text reads in both. */
+button.primary { background: var(--crux); color: var(--paper); border-color: var(--crux); font-weight: 500; }
+button.primary:hover { transform: translateY(-1px);
+  background: color-mix(in srgb, var(--crux) 86%, var(--ink)); border-color: transparent; }
+button:active { transform: translateY(0); }
+/* a filled button that cannot be pressed loses its fill and its outline, its word faint and dimmed, as the
+   bar's tools and the columns menu show a button that cannot be pressed, so it never looks ready and never
+   reads as a second Cancel, in light and dark alike (Share a copy's look since 26 October, every app's since
+   6 November, when Add boards on Open a shared copy looked ready in the dark theme) */
+button.primary:disabled, button.primary:disabled:hover { background: none; color: var(--ink-faint);
+  border-color: transparent; opacity: .55; cursor: default; transform: none; }
+button.ghost:focus-visible, button.primary:focus-visible {
+  outline: 0; border-color: var(--crux); box-shadow: var(--focus);
+}
+/* Every Remove and Delete button with words, Distil and Sift alike, a confirm card's among them: a
+   red outline and a bin before its word, from this one rule (12 October, later), the Remove on each
+   pair of the turn screen among them from 14 October until 18 October, when it became a bin alone. */
+button.btn-remove, button.ghost.btn-remove, button.primary.btn-remove {
+  color: var(--danger); background: none; border-color: color-mix(in srgb, var(--danger) 60%, transparent);
+}
+button.btn-remove:hover, button.ghost.btn-remove:hover, button.primary.btn-remove:hover {
+  color: var(--danger); background: color-mix(in srgb, var(--danger) 9%, transparent); border-color: var(--danger);
+  transform: none;
+}
+button.btn-remove:focus-visible { border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger); }
+/* in a menu an entry that takes something away keeps the menu's quiet edge until it is under the
+   pointer, its red word and bin saying what it does */
+.row-menu button.ghost.btn-remove, .th-vmenu button.ghost.btn-remove { border-color: transparent; }
+.row-menu button.ghost.btn-remove:hover, .th-vmenu button.ghost.btn-remove:hover { border-color: var(--danger); }
+button.btn-remove::before {
+  content: ""; flex: none; width: 13px; height: 13px; background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5h16M9.5 6.5V4.2h5v2.3M6.2 6.5l.9 13.3h9.8l.9-13.3M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5h16M9.5 6.5V4.2h5v2.3M6.2 6.5l.9 13.3h9.8l.9-13.3M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+/* a drawn line icon on every button in the row, in the stroke style the sparkle is drawn in */
+.btn-icon { width: 15px; height: 15px; flex: none; display: block; }
+/* a key hint, or a time, on a button in the faint ink, which reads at 4.5 to 1 or more on paper, card and sunk
+   paper in both themes, where at .55 of its button's word it read at 2.2 to 3.8 to 1 (17 October). Kept to
+   the weight of a class, so a rule that names its own colour wins: the reasons' number and code, and a key
+   beside a decision's word, which stands in the word's own colour (sift.css). The time on Back to where I was
+   takes this one since 17 October, later, where it stood in the crux. */
+:where(button) .mono { color: var(--ink-faint); }
+
+/* The guidance, a sheet over the right of the screen (16 October, Adam's decision on a tester's
+   feedback, where until then it was a rail with a column of its own): closed by default, it slides in
+   from the right edge under the research question from the bar's Guidance tool or g, in the sidebars' paper
+   with a dialog's lift and a card's firm edge, so the fields it stands over read as under it and never
+   as cut mid-word (17 October, where the faint rule left no edge at 1280), and takes no width from the
+   transcript or the fields. Its close button, the same tool, g, Esc or a click outside it closes it.
+   Under reduced motion it shows and goes with no slide, as every transition does. */
+.guide {
+  position: fixed; top: calc(48px + var(--band)); right: 0; bottom: 0; z-index: calc(var(--z-bar) - 1);
+  width: min(340px, 100vw); overflow-y: auto; overscroll-behavior: contain;
+  padding: 22px 24px 40px;
+  background: var(--paper-sunk); border-left: 1px solid var(--rule-firm); box-shadow: var(--lift);
+  transform: translateX(100%); visibility: hidden;
+  transition: transform var(--quick) var(--ease), visibility 0s linear var(--quick);
+}
+.guide.open { transform: none; visibility: visible; transition: transform var(--quick) var(--ease); }
+/* at a phone's width it takes the whole width, as the Cases panel does, leaving no strip of cut words
+   beside it (17 October) */
+@media (max-width: 520px) {
+  .guide { width: 100%; border-left: 0; }
+}
+/* At a desk width the open sheet lies over the last column whole, its left edge at the column's, so
+   the columns before it stand whole beside it and no strip of a column is left with its words cut at
+   the sheet's edge, and at every width it stands under the research question, which stays whole above
+   it (17 October, after the screenshot check). Where the last column is under 300 pixels, and at
+   1100px and below, it is 340 pixels wide, and a wash of the paper over the rest of the screen, under
+   the title bar, says that what stands beside it is under it. app.js measures the column and says
+   which, `guide-whole` and `--guide-w` on #work (measureColumns, 17 October, where until then it
+   took the width of the panel of fields). */
+.guide.open { box-shadow: var(--lift), 0 0 0 100vmax color-mix(in srgb, var(--paper) 62%, transparent); }
+.guide .guide-close { top: 10px; right: 10px; }
+/* one heading over the whole sheet, in the label face a step above the section headings under it,
+   clear of the close button */
+.rail-title {
+  font-size: 12.5px; letter-spacing: .14em; text-transform: uppercase; line-height: 1.45;
+  color: var(--ink-soft); font-weight: 600;
+  margin: 0 0 24px; padding: 6px 40px 12px 0; border-bottom: 1px solid var(--rule);
+}
+.rules { margin: 0; padding: 0; list-style: none; counter-reset: r; }
+.rules li {
+  counter-increment: r; font-size: 13px; line-height: 1.5; color: var(--ink-soft);
+  padding: 7px 0 7px 26px; position: relative; border-bottom: 1px solid var(--rule);
+}
+.rules li:last-child { border-bottom: 0; }
+.rules li::before {
+  content: counter(r); position: absolute; left: 0; top: 7px;
+  font-family: var(--mono); font-size: 10px; color: var(--ink-faint);
+}
+.switch { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-faint); margin-top: 18px; cursor: pointer; }
+
+/* ───────────────────────────────────────────────────── overlays ── */
+
+.overlay {
+  position: fixed; inset: 0; z-index: 60; display: grid; place-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  background: color-mix(in srgb, var(--paper) 72%, transparent);
+  backdrop-filter: blur(6px); padding: var(--gutter);
+  animation: fade .2s ease both;
+}
+/* The card takes the height of what is in it and stops at the height the overlay leaves it, so a
+   card that fits carries no scrollbar and only one taller than the window scrolls. */
+.card {
+  background: var(--card); border: 1px solid var(--rule); border-radius: 5px;
+  box-shadow: var(--lift); padding: 34px; width: min(560px, 100%);
+  max-width: calc(100vw - 2 * var(--gutter));
+  position: relative; max-height: 100%; overflow: auto; overscroll-behavior: contain;
+  animation: rise .28s cubic-bezier(.2,.7,.3,1) both;
+}
+/* a card holding the focus itself, as it opens with no field to take it, draws no ring (a11yfix) */
+.card[tabindex="-1"]:focus { outline: 0; }
+/* the shortcuts are a table of two columns and read better across a wider measure, which is also
+   what keeps the card inside the window and off a scrollbar */
+#help .card { width: min(700px, 100%); }
+.card h2 { font-family: var(--serif); font-weight: 400; font-size: 24px; margin: 6px 0 14px; }
+/* a card's kicker is a label, in the soft ink as labels are, never the crux orange, which design.md
+   gives a crux, a key quote and the app's one accent alone (17 October, after the screenshot check
+   found Participant and Audit trail in orange) */
+.kicker { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); margin: 0; font-weight: 600; }
+.card-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+/* Trim the transcript from t carries three buttons, Cancel and a cut toward each end, so it takes the room to hold
+   them on one row wherever the window has it, where at 560px its filled button stood on a row of its own at 1280
+   (17 October, later). A narrow window wraps them as every card's do. */
+#trim .card { width: min(640px, 100%); }
+/* Done at the foot right of a card that applies its changes as you go (13 October), Set columns
+   among them, the card's primary button alone in its actions: it closes the card as its X does (see
+   `cardDone` in app.js), and a card with its own Save or confirm never has one */
+.card-actions.card-done { justify-content: flex-end; margin-top: 22px; }
+
+/* Every checkbox and radio ticks from its whole row (13 October): the row is the tick's label, or a
+   row marked `data-tick-row` that holds other controls too (see `tickRowClick` in app.js), with a
+   pointer over all of it and the row's wash under the pointer, so it reads as one target. The wash,
+   `--tick-wash` in tokens.css, is a tint of the ink, so it shows on the card, the paper and the sunk
+   sidebars alike, in light and dark. A label inside such a row leaves the wash to the row, and a tick
+   that is off keeps the plain cursor. */
+label:has(input[type="checkbox"]:not(:disabled)), label:has(input[type="radio"]:not(:disabled)),
+[data-tick-row] { cursor: pointer; }
+label:has(input[type="checkbox"]:not(:disabled)):hover, label:has(input[type="radio"]:not(:disabled)):hover {
+  background: var(--tick-wash); box-shadow: 0 0 0 3px var(--tick-wash); border-radius: 3px;
+}
+[data-tick-row]:hover { background: var(--tick-wash); }
+[data-tick-row] label:has(input[type="checkbox"], input[type="radio"]):hover { background: none; box-shadow: none; }
+
+/* Every radio drawn by the app, never the browser's: a ring in the faint ink with nothing inside it while it is
+   unchosen, and chosen, the ring and a dot in the middle in the ink, as every tick is, so an unchosen radio is
+   plainly empty in both themes, where the browser's own filled the dark's with grey and it read as almost chosen
+   (17 October, later). Sift's Zotero card set the crux through --tick until its radios took the ink with every
+   other tick, which left --tick with no rule to set it. */
+input[type="radio"] {
+  -webkit-appearance: none; appearance: none; flex: none; box-sizing: border-box;
+  width: 13px; height: 13px; border: 1.5px solid var(--ink-faint); border-radius: 50%;
+  background: transparent; cursor: pointer;
+}
+input[type="radio"]:checked {
+  border-color: var(--ink);
+  background: radial-gradient(circle, var(--ink) 0 2.5px, transparent 3px);
+}
+input[type="radio"]:disabled { opacity: .45; cursor: default; }
+/* Every checkbox drawn by the app too, never the browser's (loose01, 1 November 2026): a square in the faint ink,
+   and ticked, the square filled with the ink and a check in the card's colour cut into it. The browser's own box
+   with accent-color drew the filled box in Chrome, but the Mac's window engine drew the system's own, a pale grey
+   box with a dark check, at 100% as at Large, which is how the Export menu's Descriptions read at Large, since
+   the system draws its control as it likes for the window's state and leaves accent-color aside. The check is
+   the box's own piece, so it follows the theme. */
+input[type="checkbox"] {
+  -webkit-appearance: none; appearance: none; flex: none; box-sizing: border-box; position: relative;
+  width: 13px; height: 13px; border: 1.5px solid var(--ink-faint); border-radius: 3px;
+  background: transparent; cursor: pointer;
+}
+input[type="checkbox"]:checked { border-color: var(--ink); background: var(--ink); }
+input[type="checkbox"]:checked::before {
+  content: ''; position: absolute; inset: 0; margin: auto; width: 8px; height: 8px; background: var(--card);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+/* a tick for several, some of them ticked, half set: the box filled with a dash cut into it (6 November 2026,
+   All boards on Open a shared copy's card, the first tick of the app's that is half set) */
+input[type="checkbox"]:indeterminate { border-color: var(--ink); background: var(--ink); }
+input[type="checkbox"]:indeterminate::before {
+  content: ''; position: absolute; inset: 0; margin: auto; width: 7px; height: 1.5px; background: var(--card);
+}
+input[type="checkbox"]:disabled { opacity: .45; cursor: default; }
+/* A radio or a tick reached from the keyboard takes a ring in the crux, as a focused button's border is, set
+   off the box by the card's colour (23 October, sendcard: the wash alone it had since 17 October, which
+   replaced the browser's own blue, was all but invisible on a tick) */
+input[type="radio"]:focus-visible, input[type="checkbox"]:focus-visible {
+  outline: 0; box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--crux);
+}
+
+/* the way out of a card: a close in the corner, and Esc from anywhere */
+.card-close {
+  position: absolute; top: 12px; right: 12px; width: 39px; height: 39px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: 1px solid transparent; border-radius: 4px;
+  color: var(--ink-faint); cursor: pointer;
+}
+.card-close:hover { border-color: var(--rule-firm); color: var(--ink); }
+/* from the keyboard the app's ring, where it took the browser's own blue (18 October) */
+.card-close:focus-visible { outline: 0; border-color: var(--rule-firm); color: var(--ink); box-shadow: var(--focus-small); }
+.card-close svg { width: 18px; height: 18px; display: block; }
+
+/* Send feedback's card, in the trim card's style: the note in a box of a few lines in the reading
+   face, the reply line under it in the small type, the line on what travels, and a failure in the
+   warning's colour under that */
+#feedback .card { width: min(520px, 100%); }
+/* the confirm card AI features opens when it is ticked, a small card over Settings */
+#ai-confirm .card { width: min(500px, 100%); }
+/* its heading on one line, AI features (experimental), and its warning as a short lead and four points (22 October) */
+#ai-confirm h2 { white-space: nowrap; font-size: min(24px, 6.4vw); }
+.ai-confirm-list { margin: 12px 0 0; padding-left: 1.2em; font-size: 14.5px; line-height: 1.55; color: var(--ink-soft); }
+.ai-confirm-list li + li { margin-top: 6px; }
+.feedback-box { display: block; min-height: 104px; }
+.feedback-contact {
+  display: block; width: 100%; margin-top: 10px; padding: 7px 10px; font: inherit; font-size: 13.5px;
+  color: var(--ink); background: var(--paper); border: 1px solid var(--field-edge); border-radius: 3px;
+}
+.feedback-contact:focus { outline: 0; border-color: var(--field-edge); }
+
+/* Make a workbook, a transcript's card in the create card's style and wider: a table's columns
+   each with its chooser over its heading, wrapping on a phone, then the first passages as they will
+   land, a column a role chosen, the notes with their lines, the table scrolling sideways inside its
+   own box when the card is narrow. Any other file's first turns in three columns, the speaker, the
+   timecode and two lines of the words. Then the interviewer. */
+#import .card { width: min(880px, 100%); }
+.import-time-row input, .import-audio input { width: 6em; }
+.import-audio select { max-width: 55%; }
+.nowrap { white-space: nowrap; }
+#rename .switches input { accent-color: var(--ink); }
+/* New project, the import card's style and wider: the folder's path in the code face with Choose
+   beside it, the drop place, which lights while a file is dragged over the window, and a row for
+   each transcript, its name and count over its first turns, its interviewer and its fields, which
+   wrap on a phone */
+#newproject .card { width: min(760px, 100%); }
+/* New project's card: the folder with Choose, the name, the question and the drop place */
+.np-folder-pick { flex: 0 1 30em; min-width: 0; flex-wrap: nowrap; }
+.np-folder-pick input { flex: 1; min-width: 0; width: auto; }
+/* New project's cards, Distil's and the one Sift and Trace share: the labels in one column and every field
+   from one left edge to the card's right, the folder's with Choose at its end, where the folder's field
+   started 90px left of the name's and ended 90px past it (17 October, later). Under 701px each label stands
+   over its field, as it did. */
+@media (min-width: 701px) {
+  :is(#newproject, #rv-card) .card > .setting:not(.stacked) > :is(label, .rv-choices-label) { flex: 0 0 7.5em; }
+  :is(#newproject, #rv-card) .card > .setting:not(.stacked) > :is(.np-folder-pick, input, .rv-pick) {
+    flex: 1 1 0; width: auto; max-width: none;
+  }
+}
+.feedback-contact::placeholder { color: var(--ink-faint); font-style: italic; }
+.feedback-said { margin-top: 10px; }
+/* Send is disabled while the note is empty, in a disabled primary button's own look (button.primary:disabled, as Done
+   on /design has it), and the progress cursor is for the while it is sending alone (29 October, fbcard) */
+#feedback-send.busy:disabled { cursor: progress; }
+.find-input {
+  width: 100%; min-width: 0; padding: 6px 9px; font-size: 14px; color: var(--ink);
+  background: var(--paper); border: 1px solid var(--field-edge); border-radius: 3px;
+}
+.find-input:focus { outline: 0; border-color: var(--field-edge); }
+/* a find field's placeholder in the faint ink, as Settings' fields have theirs, where the browser's own
+   grey read at 4.0 to 4.3 to 1 on the reference page (17 October, the cards' sweep) */
+.find-input::placeholder { color: var(--ink-faint); }
+
+/* Search across Distil (17 October, search.js): a card under the bar of the screen in front, its top
+   measured into --search-top with the research question's band under the bar, under the bar and every
+   overlay. The field and Search in on its first line, then the filters in a column at the left and the
+   results at the right, each scrolling on its own. While it is open a wash of the paper lies over the rest
+   of the screen, under the bar, as over the guidance sheet's, so no word cut beside it, under it or at its
+   foot reads as the card's (17 October, after the screenshot check). Below 700px it takes the window's
+   whole width and the filters stand over the results (see docs/design.md). */
+.search-card {
+  position: fixed; top: calc(var(--search-top, 48px) + var(--sp-4)); left: 0; right: 0; margin: 0 auto;
+  z-index: calc(var(--z-bar) - 1); width: min(880px, calc(100vw - 2 * var(--gutter))); max-width: none;
+  max-height: calc(100vh - var(--search-top, 48px) - var(--sp-4) - var(--gutter));
+  padding: var(--sp-7) var(--sp-8) var(--sp-6); display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: var(--lift), 0 0 0 100vmax color-mix(in srgb, var(--paper) 80%, transparent);
+  animation: rise .18s cubic-bezier(.2,.7,.3,1) both;
+}
+.search-head { display: flex; align-items: center; gap: var(--sp-6); flex: none; }
+.search-input { flex: 1 1 12em; font-size: var(--fs-read); -webkit-appearance: none; appearance: none; }
+/* no clearing cross of the browser's own, which stood in its blue: the words select whole as the card opens */
+.search-input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
+.search-in { display: inline-flex; align-items: center; gap: var(--sp-4); flex: none; font-size: var(--fs-ui); color: var(--ink-soft); cursor: pointer; }
+.search-in select {
+  font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--field-edge);
+  border-radius: var(--r-control); padding: var(--sp-2) var(--sp-4);
+}
+.search-in select:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+/* Whole word and Match case after Search in, two ticks as Find and replace's own, 12.5px in the soft ink, the
+   box in the ink, each ticking from its whole label (searchmods, 6 November 2026) */
+.search-mods { display: flex; flex-wrap: wrap; flex: none; align-items: center; gap: var(--sp-3) var(--sp-8); }
+.search-mod { display: inline-flex; align-items: center; gap: var(--sp-3); font-size: var(--fs-ui); color: var(--ink-soft); cursor: pointer; white-space: nowrap; }
+.search-mod input { accent-color: var(--ink); }
+.search-body {
+  display: grid; grid-template-columns: minmax(0, 13em) minmax(0, 1fr); gap: var(--sp-8);
+  margin-top: var(--sp-6); min-height: 0; flex: 1 1 auto;
+}
+.search-card.bare .search-body { grid-template-columns: minmax(0, 1fr); }
+.search-side { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scroll-padding-bottom: 28px; }
+.search-tick {
+  display: flex; align-items: baseline; gap: var(--sp-4); padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-box); font-size: var(--fs-ui); color: var(--ink-soft); cursor: pointer;
+}
+/* under the pointer a tick's row takes the fainter ground a result takes, and never the tick's wash, which
+   the shared rule for a tick's row gives and a ticked row keeps here, so a row under the pointer never reads
+   as ticked (17 October, later) */
+.search-card .search-filters label.search-tick:hover {
+  background: color-mix(in srgb, var(--paper-sunk) 45%, transparent); box-shadow: none; color: var(--ink);
+}
+.search-card .search-filters label.search-tick.on { background: var(--tick-wash); color: var(--ink); }
+.search-tick input { accent-color: var(--ink); margin: 0; flex: none; }
+.search-tick-word { flex: 1 1 auto; min-width: 0; }
+.search-n { flex: none; font-family: var(--mono); font-size: var(--fs-small); color: var(--ink-faint); }
+.search-group { margin: var(--sp-6) 0 var(--sp-2) var(--sp-3); }
+.search-group:first-child { margin-top: 0; }
+.search-results { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scroll-padding-bottom: 28px; }
+/* while more results wait below, the last row in sight fades out at the card's foot rather than standing cut
+   through its letters, the mask taking the ink for its opaque part since only its alpha counts (searchFade) */
+.search-side.more-below, .search-results.more-below { -webkit-mask-image: linear-gradient(to bottom, var(--ink) calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to bottom, var(--ink) calc(100% - 28px), transparent); }
+.search-list { list-style: none; margin: 0; padding: 0; }
+.search-hit {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-1); padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--r-box); cursor: pointer;
+}
+.search-hit + .search-hit { margin-top: var(--sp-1); }
+/* under the pointer a fainter ground than the one in focus, so two never read as chosen */
+.search-hit:hover { background: color-mix(in srgb, var(--paper-sunk) 45%, transparent); }
+/* the result in focus, the selected row's bar in the crux at its left on the sunk paper */
+.search-hit.on { background: var(--paper-sunk); box-shadow: inset 3px 0 0 var(--crux); }
+.search-kind {
+  font-size: var(--fs-label); letter-spacing: var(--label-track); text-transform: uppercase;
+  font-weight: 600; color: var(--ink-soft);
+}
+.search-words { font-family: var(--serif); font-size: var(--fs-read); line-height: 1.45; color: var(--ink); }
+.search-mark { background: var(--find-wash); color: var(--ink); border-radius: var(--r-tag); }
+/* what a result landed on, a key excerpt in Sift's list under the note, under the find's wash until the record
+   is drawn again (18 October) */
+.search-lit { background: var(--find-wash); border-radius: var(--r-box); }
+.search-at { font-size: var(--fs-small); color: var(--ink-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.search-said { margin: var(--sp-4) var(--sp-5); font-size: var(--fs-ui); color: var(--ink-faint); }
+.search-said.warn { color: var(--amber); }
+.search-foot { flex: none; margin-top: var(--sp-5); padding-top: var(--sp-4); border-top: 1px solid var(--rule); }
+
+.figures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0 0; }
+.figures div { border-top: 1px solid var(--rule); padding-top: 10px; }
+.figures dt { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+.figures dd { margin: 5px 0 0; font-family: var(--serif); font-size: 27px; }
+/* a finished case has no pace, so two figures share the width */
+.figures.two { grid-template-columns: repeat(2, 1fr); }
+/* a pace not yet measured is a sentence, set in the small type and not in the numeral face */
+.figures dd.pending { margin-top: 9px; font-family: var(--sans); font-size: 13px; line-height: 1.45; color: var(--ink-soft); }
+
+.keys { width: 100%; border-collapse: collapse; font-size: 13px; }
+/* a key and its phrase on one baseline, where at the top of their cells the key's smaller code face stood 3px
+   above its phrase on every shortcuts card (17 October, later) */
+.keys td { padding: 8px 0; border-bottom: 1px solid var(--rule); vertical-align: baseline; color: var(--ink-soft); }
+.keys td:first-child { width: 165px; color: var(--ink); white-space: nowrap; padding-right: 14px; }
+/* each row's phrase, a few words in the small sans, wrapping where the card runs short and never cut at its
+   edge, the key beside it whole (17 October, where Sift's longer phrases ran out of the card) */
+.keys td + td { font-family: var(--sans); white-space: normal; overflow-wrap: anywhere; }
+
+.setting { display: flex; align-items: center; gap: 14px; margin: 12px 0; font-size: 13px; }
+.setting label { flex: 1; color: var(--ink-soft); }
+/* a field 190px wide where there is room, and narrower where there is not, never past its row
+   (15 October). Its width stays the basis, so the key's and a project name's own widths hold, and no
+   flex here, so the folder field's own flex in a card holds too */
+.setting input {
+  width: 190px; min-width: 0; max-width: 100%; background: var(--paper); border: 1px solid var(--field-edge);
+  border-radius: 3px; padding: 7px 10px;
+}
+.setting input:focus { outline: 0; border-color: var(--field-edge); }
+/* a setting's placeholder, Folder on New project among them, in the faint ink, 4.5 to 1, where the browser's
+   own grey read at 4.0 to 1 in dark (17 October) */
+.setting input::placeholder { color: var(--ink-faint); }
+.switches { display: grid; gap: 7px; margin-top: 12px; }
+/* the key and the prompt: a row of small buttons with a line of status beside them, and a
+   monospaced box for the prompt, which is the one field here that wants its own height */
+.key-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.key-row:has(#key-said:empty):has(#btn-key-clear[hidden]) { display: none; }
+/* the key's field with Check key beside it, in one line */
+.key-line { display: flex; align-items: center; gap: 8px; }
+.key-line input { flex: 1 1 auto; min-width: 0; }
+.key-line button { flex: none; }
+/* AI features (experimental), 21 October: the paragraph first, plain body type with no icon and no alarm
+   colour, set apart only by its place and the rule under it, then one switch larger than any other on the
+   page, a slide drawn beside the real box, which stays in the tab order, the whole row its target */
+.ai-warn { padding-bottom: 16px; border-bottom: 1px solid var(--rule); margin-bottom: 18px; }
+.ai-warn p { font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); margin: 0 0 10px; max-width: 62ch; }
+.ai-warn p:last-child { margin-bottom: 0; }
+.ai-master { display: flex; align-items: center; gap: 14px; cursor: pointer; padding: 6px 0 4px; width: fit-content; position: relative; }
+.ai-master-word { font-size: 15px; color: var(--ink); font-weight: 600; }
+.ai-master input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+.ai-slide {
+  position: relative; flex: none; width: 52px; height: 30px; border-radius: 15px; box-sizing: border-box;
+  background: var(--paper-sunk); border: 1px solid var(--rule-firm); transition: background .18s ease, border-color .18s ease;
+}
+.ai-slide::after {
+  content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--paper); box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 30%, transparent);
+  transition: transform .18s ease;
+}
+.ai-master input:checked + .ai-slide { background: var(--ink); border-color: var(--ink); }
+.ai-master input:checked + .ai-slide::after { transform: translateX(22px); }
+.ai-master input:focus-visible + .ai-slide { outline: 2px solid var(--ink); outline-offset: 2px; }
+.ai-master-state { font-size: 13px; color: var(--ink-soft); min-width: 2em; }
+.ai-master .when-on, .ai-master:has(input:checked) .when-off { display: none; }
+.ai-master:has(input:checked) .when-on { display: inline; }
+#ai-more { margin-top: 18px; }
+#ai-more .ai-features { margin-top: 18px; }
+.key-row .fineprint { margin: 0; }
+/* Updates under General, in the window alone: the version running with What's new as the block's first
+   row, then what the last check found under Check now and a failure as the card's amber line, each close
+   under its row (18 October) */
+.update-version { margin: 0 0 var(--sp-4); color: var(--ink); }
+#update-state, #update-set .warn { margin-top: var(--sp-4); }
+.setting.stacked { display: block; }
+.setting.stacked label { display: block; margin-bottom: 8px; }
+#set-key { width: 250px; font-family: var(--mono); font-size: 12px; letter-spacing: .04em; }
+/* the AI's Address, Deployment and a model typed (aiprov's drawing, aipage), as wide as the lists beside them,
+   the address in the key's type */
+#set-address, #set-deployment, #set-other-name { width: 300px; }
+#set-address { font-family: var(--mono); font-size: 12px; }
+/* the where line with room above and below, apart from the Provider list and the row after it */
+#ai-where { margin: 18px 0; width: fit-content; }
+#deployment-row { margin-top: 18px; }
+.prompt-box {
+  width: 100%; height: 250px; overflow: auto; resize: vertical;
+  background: var(--paper); font-family: var(--mono); font-size: 11.5px; line-height: 1.55;
+}
+.switches label { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--ink-soft); cursor: pointer; }
+/* every tick of a row of switches in the ink wherever the row stands, so the reference page's Ticks and
+   fields show them as Settings and Rename do, where they stood there in the browser's own blue (17 October,
+   the cards' sweep) */
+.switches input { accent-color: var(--ink); }
+
+/* Settings: a wider card of a steady height, its categories down the left and the chosen one on
+   the right. The content scrolls inside its own column, so the list and Save stay where they are
+   and the card does not change size from one category to the next. */
+#settings .card {
+  width: min(760px, 100%); height: min(720px, 100%); max-width: calc(100vw - 2 * var(--gutter));
+  display: flex; flex-direction: column; overflow: hidden; padding-bottom: 22px;
+}
+#settings .card > h2 { margin-bottom: 18px; }
+/* the list is as wide as its longest name, Experiential statements, on one line */
+.settings-body {
+  flex: 1; min-height: 0; display: grid; grid-template-columns: 204px minmax(0, 1fr);
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+}
+.settings-nav {
+  display: flex; flex-direction: column; gap: 2px; padding: 16px 14px 16px 0;
+  border-right: 1px solid var(--rule);
+}
+.settings-nav button {
+  text-align: left; background: none; border: 0; border-left: 2px solid transparent;
+  border-radius: 0 3px 3px 0; padding: 8px 12px; font-size: 13px; color: var(--ink-soft);
+  cursor: pointer; white-space: nowrap; transition: background .16s, color .16s, border-color .16s;
+}
+.settings-nav button:hover { background: var(--paper-sunk); color: var(--ink); }
+.settings-nav button.on { border-left-color: var(--app-colour); background: var(--paper-sunk); color: var(--ink); font-weight: 500; }
+/* the tab chosen takes its rule in the app's colour (the split's third build), drawing 8 of its plan */
+.settings-nav button.on[data-part="distil"] { border-left-color: var(--part-distil); }
+.settings-nav button.on[data-part="sift"] { border-left-color: var(--part-sift); }
+.settings-nav button.on[data-part="trace"] { border-left-color: var(--part-trace); }
+/* Sift's, Distil's and Trace's names carry their marks, at 16px, drawn for 16 pixels. Distil's stands
+   again before its first tab, shown only where the tabs become a row and its name goes (15 October,
+   later) */
+.settings-nav .mark, .nav-group .mark { display: inline-block; width: 16px; height: 16px; margin-right: 7px;
+  vertical-align: -3px; }
+.settings-nav .tab-mark { display: none; }
+.settings-nav button:focus-visible { outline: 0; box-shadow: var(--focus); }
+.settings-panes { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px 6px 22px 28px; }
+.pane-title { font-family: var(--serif); font-weight: 400; font-size: 20px; margin: 0 0 8px; color: var(--ink); }
+/* a small heading inside a category, Nudges under Experiential statements, in the shortcuts card's
+   small-heading face */
+.pane-sub { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600;
+  color: var(--ink-soft); margin: 26px 0 0; }
+/* a category's first small heading, straight under its title, as Appearance stands under General */
+.pane-title + .pane-sub.pane-first { margin-top: 14px; }
+/* Distil's name in the list, in the tabs' own face and case as Sift and Trace stand, its mark over
+   theirs, and its three parts set in under it (15 October, later). The same name stands as a kicker
+   over each part's title */
+.nav-group { margin: 0; padding: 8px 12px 4px 14px; font-size: 13px; color: var(--ink-soft); }
+.settings-nav button.nav-sub { padding-left: 24px; }
+.pane-kicker { margin: 0 0 2px; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600;
+  color: var(--ink-faint); }
+.settings-pane > .fineprint:first-of-type { margin-top: 0; }
+#settings .card-actions { margin-top: 0; padding-top: 18px; }
+/* Restart and Quit at the left of the foot of Settings, Save at its right */
+.settings-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  gap: 8px 16px; padding-top: 18px; }
+#settings .settings-foot .card-actions { padding-top: 0; margin-left: auto; }
+.server-ops { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.server-ops .fineprint { margin: 0; }
+.setting select {
+  width: 300px; max-width: 100%; background: var(--paper); border: 1px solid var(--field-edge);
+  border-radius: 3px; padding: 7px 10px; font: inherit; font-size: 13px; color: var(--ink);
+}
+.setting select:focus { outline: 0; border-color: var(--field-edge); }
+.setting select:disabled { color: var(--ink-faint); }
+#ai-choice { margin-top: 6px; }
+#settings .switches input { accent-color: var(--ink); }
+#ai-restart { margin: 12px 0 4px; color: var(--ink-soft); }
+#model-note, #local-note, #pets-model-note { margin: -4px 0 12px; }
+#model-price { margin: -4px 0 8px; }
+#ai-both { margin: 6px 0 0; }
+/* Celebrations under Project: its line sits under its tick, and Sound greys while it waits on it.
+   Work in rounds' line sits under its tick the same way (16 October) */
+.cheer-line, .rounds-line { margin: 6px 0 0; }
+/* the line under Language (fmtcore, 28 October 2026), the whole of it the link, set in under the rows' words */
+.translate-line { margin: 12px 0 4px 26px; }
+.translate-line a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.switches label:has(input:disabled) { opacity: .5; cursor: default; }
+/* the bench: the turn before in the smaller faint type the sheet gives an interviewer's turn, the
+   participant's turn in a box of the reading face under it, and the button and its answer under
+   that exactly as they stand under the statement field */
+.bench { margin-top: 26px; padding-top: 4px; border-top: 1px solid var(--rule); }
+/* A note box wraps its words, so it never scrolls sideways and only its vertical scroll is kept. WebKit, the engine of
+   Idiograph's Mac window, lays a textarea's placeholder out wider than the box once the page is zoomed (Text size Large,
+   or a zoom in), by roughly the box's width times the zoom less one, and overflow auto drew a horizontal bar with a
+   near-full thumb under the empty Send feedback box (29 October, fbcard). */
+.question-box {
+  width: 100%; min-height: 84px; overflow-x: hidden; overflow-y: auto; resize: vertical; background: var(--paper);
+  border: 1px solid var(--field-edge); border-radius: 3px; padding: 9px 11px;
+  font-family: var(--serif); font-size: 15px; line-height: 1.5;
+}
+.question-box:focus { outline: 0; border-color: var(--field-edge); }
+#set-project-name[readonly], .question-box[readonly] { background: var(--paper-sunk); color: var(--ink-soft); }
+.setting-name { display: block; margin-bottom: 8px; color: var(--ink-soft); }
+
+/* Below about 700px the categories become a row of tabs over the content. */
+@media (max-width: 700px) {
+  #settings .card { padding: 26px 20px 18px; }
+  .settings-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  /* sideways alone: a scroll bar under the tabs took their height, and the row drew a second bar up and down
+     beside them (zoomsweep, 30 October: a 720 window at Text size Large, 576 CSS pixels) */
+  .settings-nav {
+    flex-direction: row; gap: 0; padding: 0; overflow-x: auto; overflow-y: hidden;
+    border-right: 0; border-bottom: 1px solid var(--rule);
+  }
+  .settings-nav button {
+    border-left: 0; border-bottom: 2px solid transparent; border-radius: 3px 3px 0 0;
+    padding: 10px 12px 8px; flex: none;
+  }
+  .settings-nav button.on { border-bottom-color: var(--app-colour); }
+  .settings-nav button.on[data-part="distil"] { border-bottom-color: var(--part-distil); }
+  .settings-nav button.on[data-part="sift"] { border-bottom-color: var(--part-sift); }
+  .settings-nav button.on[data-part="trace"] { border-bottom-color: var(--part-trace); }
+  .nav-group { display: none; }
+  .settings-nav .tab-mark { display: inline-block; }
+  .settings-nav button.nav-sub { padding-left: 12px; }
+  /* room at the right for the scrollbar, which a Mac draws over the content, so no field runs under
+     it and loses its right edge (15 October) */
+  .settings-panes { padding: 16px 12px 20px 2px; }
+  .setting { flex-wrap: wrap; }
+  .setting select, #set-key, #set-address, #set-deployment, #set-other-name { width: 100%; }
+}
+
+#confetti { position: fixed; inset: 0; z-index: 70; pointer-events: none; display: none; }
+#confetti.on { display: block; }
+@keyframes haul {
+  0% { opacity: 0; transform: translate(-50%, calc(-50% + 7px)); animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+  7% { opacity: 1; transform: translate(-50%, -50%); }
+  75% { opacity: 1; transform: translate(-50%, -50%); animation-timing-function: ease-in; }
+  100% { opacity: 0; transform: translate(-50%, -50%); }
+}
+
+/* the line at the foot rises above the find and replace card while the card stands at the foot, centred
+   by its margins rather than a transform, which the rise it comes in on undoes (14 October) */
+.toast {
+  position: fixed; left: 0; right: 0; margin: 0 auto; bottom: calc(26px + var(--find-room, 0px)); box-sizing: border-box;
+  background: var(--ink); color: var(--paper); padding: 11px 18px; border-radius: 3px;
+  font-size: 13px; z-index: 80; box-shadow: var(--lift);
+  width: max-content; max-width: min(620px, calc(100vw - 2 * var(--gutter)));
+  animation: rise .22s cubic-bezier(.2,.7,.3,1) both;
+}
+/* What's new's line at the foot, once after an update (18 October, the fourth Tauri build): the toast's
+   ground and place, its two plain buttons in the paper's tone, and a toast that comes while it shows
+   stands above it */
+.foot-line {
+  position: fixed; left: 0; right: 0; margin: 0 auto; bottom: calc(26px + var(--find-room, 0px)); box-sizing: border-box;
+  display: flex; align-items: center; gap: 12px; width: max-content; max-width: min(620px, calc(100vw - 2 * var(--gutter)));
+  background: var(--ink); color: var(--paper); padding: 7px 8px 7px 18px; border-radius: 3px;
+  font-size: 13px; z-index: 79; box-shadow: var(--lift);
+  animation: rise .22s cubic-bezier(.2,.7,.3,1) both;
+}
+.foot-line[hidden] { display: none; }
+.foot-line .ghost { color: var(--paper); border-color: color-mix(in srgb, var(--paper) 45%, transparent); }
+.foot-line .ghost:hover { color: var(--ink); }
+.foot-close { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 3px;
+  background: none; color: var(--paper); cursor: pointer; }
+.foot-close svg { width: 14px; height: 14px; }
+.foot-close:hover { background: color-mix(in srgb, var(--paper) 16%, transparent); }
+/* a toast stands 8 pixels over it, and the home screen's foot leaves room for it, so the last line scrolls
+   clear above it with 24 pixels between, Add transcripts at 360 among them, --foot-h its height as app.js
+   measures it, two rows on a phone (18 October, where the toast took it as one row) */
+body.foot-on .toast { bottom: calc(26px + var(--foot-h, 44px) + 8px + var(--find-room, 0px)); }
+body.foot-on .lib-body { padding-bottom: max(72px, calc(26px + var(--foot-h, 44px) + var(--find-room, 0px) + 24px)); }
+/* the version's notes: its date under its number, then a plain paragraph a line. Since wnspan (29 October
+   2026) the sheet holds several versions, newest first, a rule between one and the next: they scroll between
+   the kicker and Done, which stay in reach, and Earlier versions stands under the last */
+.whatsnew-card { width: min(560px, 100%); display: flex; flex-direction: column; overflow: hidden; }
+.whatsnew-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin-top: 8px; }
+#whatsnew-title { margin-top: 0; }
+.whatsnew-date { margin: calc(-1 * var(--sp-4)) 0 var(--sp-8); }
+#whatsnew-rest > .whatsnew-version { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--rule); }
+.whatsnew-version h2:focus { outline: none; }
+.whatsnew-earlier { margin-top: 4px; }
+/* About Idiograph (20 October), in What's new's measure: the name, the version and the author close
+   together, the licence in the small print, then the acknowledgements, the reference set in under its
+   first line as a reference list has it */
+.about-card { width: min(560px, 100%); }
+.about-version { margin: calc(-1 * var(--sp-4)) 0 0; }
+.about-by { margin: var(--sp-6) 0 0; font-size: var(--fs-body); color: var(--ink); }
+.about-version, .about-licence { color: var(--ink-soft); }
+.about-licence { margin-top: var(--sp-4); }
+.about-card a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.about-head { margin: var(--sp-8) 0 var(--sp-4); }
+.about-thanks p { margin: 0 0 var(--sp-6); font-size: var(--fs-body); line-height: 1.55; color: var(--ink); }
+.about-thanks .about-ref { padding-left: 2em; text-indent: -2em; color: var(--ink-soft); }
+/* the Support card (supportcard, 28 October 2026) in About's look: its small headings a little closer, the
+   citation with Copy at its right, Ko-fi's button keeping its own colour with no underline, and the line after it.
+   The private preview's line under the heading (supportcard2, 29 October) is a plain paragraph, no stamp, and with
+   it and Contribute code the headings come 18px under the part above, not 22, so the card stays whole in the
+   window as it opens, 1280 by 800 */
+.support-card .about-head { margin: 18px 0 6px; }
+.support-body p { margin: 0; font-size: var(--fs-body); line-height: 1.55; color: var(--ink); }
+.support-card a.kofi { color: var(--kofi-ink); text-decoration: none; }
+.support-cite { display: flex; align-items: flex-start; gap: 14px; }
+.support-cite .about-ref { flex: 1; padding-left: 2em; text-indent: -2em; color: var(--ink-soft); }
+.support-body .support-fund { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin-top: 10px; }
+/* Home's link to it after Ko-fi, a touch larger than Settings' links, never coloured, and Settings' own a little
+   apart from About's, so the two links read as two */
+.lp-support { margin-left: 2px; font-size: 13px; }
+#settings-support { margin-left: 6px; }
+/* Settings' way in to About, at its foot beside Restart and Quit, a quiet link rather than a button */
+.linklike { background: none; border: 0; padding: 0; font: inherit; font-size: 12.5px; color: var(--ink-soft);
+  text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.linklike:hover { color: var(--ink); }
+.whatsnew-notes p { margin: 0 0 var(--sp-6); font-size: var(--fs-body); line-height: 1.55; color: var(--ink); }
+/* the Restart the restart line carries, on the toast's dark ground */
+.toast .restart-now { color: var(--paper); border-color: color-mix(in srgb, var(--paper) 45%, transparent); }
+.toast .restart-now:hover { color: var(--ink); }
+
+@keyframes rise { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+@media (max-width: 1000px) {
+  #work { --col-gap: 20px; }
+  .reading { padding: 10px 20px 12px; }
+  /* the done bar stands at the left edge of the transcript's column here, where the margin was, and
+     the words keep 12px clear of it, the round markers' names with them */
+  .turn > :is(.turn-text, .turn-edit, .quote-preview) { margin-left: 12px; }
+  .col-head[data-col="transcript"] { padding-left: 12px; }
+  .turn-gutter { position: static; width: auto; flex-direction: row; align-items: baseline;
+    gap: 12px; text-align: left; margin: 0 0 10px 12px; }
+  .turn.current .turn-gutter { top: auto; }
+  .turn.current::before { display: none; }
+  .lede { font-size: 22px; }
+  .figures, .figures.two { grid-template-columns: 1fr; }
+}
+/* Up to 800px two columns, the statements and the transcript in their order, each passage's notes under
+   its words in the transcript's column, its notes field among them, and the notes' heading gone with
+   their column (17 October, Adam's call: the statements always a column). */
+@media (max-width: 800px) {
+  .turn, .cols-head { grid-template-columns: var(--cols2); }
+  .turn.current::before { grid-column: var(--tx-col2); }
+  .turn > .turn-es, .col-head[data-col="statements"] { grid-column: var(--es-col2); }
+  .col-head[data-col="transcript"] { grid-column: var(--tx-col2); }
+  .col-head[data-col="notes"] { display: none; }
+  .turn > .turn-notes { grid-row: auto; margin-left: 12px; }
+  .turn-notes-text { margin-top: 8px; }
+  /* under the words a note stands behind a hairline, so a faint note never reads as the speaker's words */
+  .turn-notes-text { border-left-color: var(--rule); }
+}
+/* At a phone's width each passage stacks (17 October): its name and time, its words, then its
+   statements and its notes in their order, `--es-ord` and `--en-ord`, the headings gone with the
+   columns, a round's marker on one line across the column. From 600px down since 30 October (zoomsweep):
+   the two columns' least widths and the row's padding take 554 pixels, the page's gutters and the
+   column's scroll bar some 43 more, and between 561 and 600 the transcript drew a sideways scroll bar,
+   as a 720 window did at Text size Large, 576 CSS pixels. */
+@media (max-width: 600px) {
+  .cols-head { display: none; }
+  .turn { display: flex; flex-direction: column; align-items: stretch; }
+  .turn > .turn-gutter { order: 0; }
+  .turn > :is(.turn-text, .turn-edit, .quote-preview) { order: 1; }
+  .turn > .turn-es { order: var(--es-ord); margin: 12px 0 0 12px; }
+  .turn > .turn-notes { order: var(--en-ord); }
+}
+@media (max-width: 620px) {
+  .rail { --rail-gap: 8px; }
+  #work .rail-btn + .rail-btn { margin-left: -5px; }
+  #work .rail-grow ~ .rail-btn { width: 24px; }
+  /* the band stacks its label over the question */
+  .band { position: static; flex-direction: column; gap: 3px; }
+  .reading { padding-left: var(--gutter); padding-right: var(--gutter); }
+  .row-menu button.ghost { white-space: normal; text-align: left; }
+}
+@media (max-width: 480px) {
+  /* the bar's last room: tighter spacing, slimmer buttons, a smaller demo tag, and the buttons
+     pushed right by a margin rather than by a spacer that takes a gap of its own */
+  .rail { --rail-gap: 4px; padding: 0 12px; font-size: 12px; }
+  #work .rail { --rail-gap: 4px; }
+  /* and the statements bar's sides 8px, as Sift's and Trace's at this width, so the case name keeps its letters
+     beside Distil's steps (18 October) */
+  #work .rail { padding-left: 8px; padding-right: 8px; }
+  /* in a case of two sheets the switch gives way once the case name has given all it has, so the bar
+     stays inside a phone's width (13 October, later) */
+  #work .rail-case { flex-shrink: 100; }
+  #work .sheet-pick { flex-shrink: 1; min-width: 0; }
+  #work .sheet-pick select { max-width: 100%; }
+  .rail-grow { display: none; }
+  .rail-btn { width: 20px; }
+  #work .rail-btn + .rail-btn { margin-left: -2px; }
+  #work .rail-grow ~ .rail-btn { width: 18px; }
+  .card { padding: 26px 18px; }
+  /* About's lockup keeps its mark's height, 28px, clear above it and at its left inside the card's edge (headroom, 6
+     November 2026, docs/design.md, Clear space), which the phone's 26px and 18px left short */
+  .about-card { padding: 28px; }
+  #settings .card { padding: 22px 16px 16px; }
+  .settings-panes { padding: 14px 12px 18px 0; }
+  /* the row of tabs wraps rather than scrolling sideways, its two lines balanced (the split's pages, 21
+     October): Sift's five tabs had left AI features alone on a second line, where Idiograph's seven wrap
+     four and three. So the tabs flow as words do, and the browser evens the lines */
+  .settings-nav { display: block; text-wrap: pretty; overflow-x: visible; font-size: 0; }
+  .settings-nav button, .settings-nav button.nav-sub { display: inline-block; padding: 8px 9px 6px; font-size: 13px; }
+  /* each label over its field, where beside it a label ran to three lines (15 October, later) */
+  #settings .setting { flex-direction: column; align-items: flex-start; gap: 6px; }
+  #settings .setting > label { flex: none; }
+  #settings .setting > input, #settings .setting > select { width: 100%; }
+  .keys td { display: block; }
+  .keys td:first-child { width: auto; border-bottom: 0; padding-bottom: 0; }
+}
+/* At a phone's width the statements bar's tools slim once more, 16px each, so an unfinished case with rounds on,
+   the fullest the bar gets, keeps its name's first letters and their ellipsis beside Distil's steps at 360px,
+   where it kept the first alone (18 October) */
+@media (max-width: 400px) {
+  #work .rail-grow ~ .rail-btn { width: 16px; }
+}
+:root { --rail-h: 46px; }
+/* Below 700px, where beside its 470 pixels a strip of the panel under it would show its labels cut at
+   the card's edge, Find and replace takes the window's whole width at its foot, its top edge the card's
+   rule over its lift, as the guidance sheet takes the whole width at a phone's width (17 October,
+   later, where at 360 the first letters of the panel's labels stood beside it). */
+@media (max-width: 700px) {
+  /* and Search the window's whole width under the bar, the field on a line of its own over Search in, and the
+     filters over the results (17 October) */
+  .search-card {
+    top: var(--search-top, 48px); width: auto; border-width: 0 0 1px; border-radius: 0;
+    padding: var(--sp-6) var(--gutter) var(--sp-5); max-height: calc(100vh - var(--search-top, 48px));
+  }
+  .search-head { flex-wrap: wrap; gap: var(--sp-4) var(--sp-6); }
+  .search-input { flex-basis: 100%; }
+  .search-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: var(--sp-4); }
+  /* the filters as the Kind heading and three whole rows of ticks, each row 26px, never a row cut through its
+     letters, and More under them while more rows wait (searchMore) */
+  .search-side { overflow: visible; }
+  .search-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1) var(--sp-3);
+    max-height: calc(4 * 26px + 3 * var(--sp-1)); overflow: hidden; }
+  .search-filters.all { max-height: none; }
+  .search-tick { box-sizing: border-box; height: 26px; align-items: center; }
+  .search-group, .search-group:first-child { flex-basis: 100%; height: 26px; line-height: 26px; margin: 0; padding: 0 0 0 var(--sp-3); }
+  .search-more { margin: var(--sp-2) 0 0 var(--sp-3); }
+  /* a heading whose rows are all behind More shows nothing, the box ending above it (searchMore) */
+  .search-group.over-none { visibility: hidden; }
+}
+
+/* the Mac's folder dialog on its way (app.js, picking) */
+body.picking, body.picking button { cursor: progress; }
+
+/* ── The bars above every screen (option C of Adam's bars, 26 October 2026) ───────────────────────────────────
+   The title bar: the app's lockup at its left, Home from every screen, then the stages as tabs where the app has
+   them, then the screen's own tools, a rule, and Search, Feedback and Settings, Settings at the right end. Under
+   it the research question's band opens with the path, Home, the project and where in it he is, each a step
+   back, in place of the back arrow. Every tool keeps its word where the bar holds it, and where it runs short the
+   words go first, then a tab's long name (barFit in shell.js). The Preview Edition's stamp stands on Home and
+   About alone. */
+.bar-brand { flex: none; display: inline-flex; align-items: center; margin: 0 8px 0 -5px; padding: 5px; border: 0;
+  border-radius: 5px; background: none; color: var(--ink); line-height: 0; cursor: pointer; }
+.bar-brand svg.lockup { display: block; width: auto; max-width: none; height: 15px; }
+.bar-brand .bar-markonly { display: none; width: 18px; height: 18px; margin: 0; }
+.bar-brand:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.bar-brand:focus-visible { outline: 0; box-shadow: var(--focus); }
+.rail-sep.bar-tools-sep { height: 16px; margin: 0 2px; }
+/* Home's head keeps the same rule for its tools (homehead, 5 November 2026, Adam): their words from 761px, given way
+   by barFit when its top row runs short */
+@media (min-width: 761px) {
+  :is(.screen > .rail, .lib-top) .bar-tool { width: auto; min-width: 26px; gap: 5px; padding: 0 5px; }
+  :is(.screen > .rail, .lib-top) .bar-word { display: inline; }
+  :is(.screen > .rail.bar-fit-words, .lib-top.bar-fit-words) .bar-tool { width: 26px; min-width: 26px; padding: 0; gap: 0; }
+  :is(.screen > .rail.bar-fit-words, .lib-top.bar-fit-words) .bar-word { display: none; }
+}
+:is(.screen > .rail, .lib-top) .bar-word[hidden] { display: none; }
+
+/* the path at the head of the band (option D of the bars, Adam, 6 November 2026, Home's step gone, the lockup being
+   Home): the project's name a button in a light outline with a chevron, as the participant's chooser beside it is
+   (Adam, about 18:00 that day), opening the menu its card has on Home, a long name giving way to its ellipsis at 22em
+   with the chevron kept and the whole name in its tooltip, then on a participant's stages the participant's chooser
+   and a timepoint's. The same in Sift's and Trace's band */
+.ds-path { display: flex; align-items: center; gap: 6px; flex: 0 1 auto; min-width: 0; max-width: 100%; white-space: nowrap; }
+.ds-path-sep { flex: none; font-size: 14px; color: var(--ink-faint); }
+.ds-path .ds-proj { display: inline-flex; align-items: center; gap: 6px; flex: 0 1 auto; min-width: 0; margin: 0;
+  padding: 3px 8px 3px 9px; background: none; border: 1px solid var(--rule); border-radius: 5px; font: inherit;
+  font-family: var(--serif); color: var(--ink); cursor: pointer; }
+.ds-path .ds-proj:hover, .ds-path .ds-proj[aria-expanded="true"] { border-color: var(--rule-firm); }
+.ds-path .ds-proj:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+.ds-proj-name { flex: 0 1 auto; min-width: 1.9em; max-width: 22em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 15.5px; }
+.ds-proj .ds-chevron { width: 10px; height: 10px; flex: none; color: var(--ink-faint); }
+.ds-proj:hover .ds-chevron, .ds-proj[aria-expanded="true"] .ds-chevron { color: var(--ink); }
+/* the way back to the table from a record: a small link before the name, there only away from the table (sifttable) */
+.ds-path .ds-back { display: inline-flex; align-items: center; gap: 3px; flex: none; margin: 0 4px 0 0; padding: 3px 6px 3px 3px; background: none;
+  border: 0; border-radius: 5px; font: inherit; font-family: var(--serif); font-size: 14px; color: var(--ink-soft); cursor: pointer; }
+.ds-path .ds-back[hidden] { display: none; }
+.ds-path .ds-back .ds-back-mark { width: 11px; height: 11px; flex: none; }
+.ds-path .ds-back:hover { color: var(--ink); }
+.ds-path .ds-back:hover .ds-back-word { text-decoration: underline; text-underline-offset: 3px; }
+.ds-path .ds-back:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+.ds-path-menu { position: fixed; z-index: 60; min-width: 13em; max-width: min(19em, calc(100vw - 16px)); }
+.ds-path .rail-tag { flex: none; }
+.ds-path-rule { flex: none; width: 1px; align-self: stretch; margin: 2px 0; background: var(--rule); }
+.band:has(> .ds-path) { align-items: center; flex-wrap: wrap; row-gap: 6px; column-gap: 18px; }
+.band:has(> .ds-path) > .band-label { align-self: center; }
+.band:has(> .ds-path) > .band-question { flex: 1 1 360px; min-width: 0; margin: 0; }
+.band.band-unasked > :is(.ds-path-rule, .band-label, .band-question) { display: none; }
+
+/* At 760px and below Sift's bar, whose steps have long names, stands on two rows, the lockup's mark and the tools'
+   icons on the first, the steps on a row of their own under it, scrolling sideways under a fade at their right
+   where they pass the edge, and Idiograph's bars do the same only below 720px, the app's narrowest window since
+   26 October 2026, so at 720 its tabs, in their short names, keep the one row beside the lockup. At 760px and
+   below the path takes a line of its own over the question */
+@media (max-width: 760px) {
+  .screen:has(> .rail > .sf-steps) { --rail-h: 88px; }
+  .screen > .rail:has(> .sf-steps) { flex-wrap: wrap; align-content: flex-start; row-gap: 0; height: var(--rail-h);
+    padding: 0 12px; --rail-gap: 8px; }
+  .screen > .rail:has(> .sf-steps) > * { order: 1; }
+  .screen > .rail > .sf-steps { order: 2; flex: 0 0 calc(100% + 24px); height: 42px; margin: 0 -12px -1px;
+    padding: 0 12px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+  .screen > .rail > .sf-steps::-webkit-scrollbar { display: none; }
+  .screen > .rail:has(> .sf-steps) .bar-brand { height: 46px; padding: 0 5px; }
+  .screen > .rail:has(> .sf-steps) .bar-brand svg.lockup { display: none; }
+  .screen > .rail:has(> .sf-steps) .bar-brand .bar-markonly { display: block; }
+  .screen > .rail > .ds-tabs.over { -webkit-mask-image: linear-gradient(to right, var(--ink) calc(100% - 40px), transparent);
+    mask-image: linear-gradient(to right, var(--ink) calc(100% - 40px), transparent); }
+  .band:has(> .ds-path) > .ds-path { flex: 1 0 100%; }
+  .band:has(> .ds-path) > .ds-path-rule { display: none; }
+}
+@media (max-width: 719px) {
+  .screen:has(> .rail > .ds-tabs) { --rail-h: 88px; }
+  .screen > .rail:has(> .ds-tabs) { flex-wrap: wrap; align-content: flex-start; row-gap: 0; height: var(--rail-h);
+    padding: 0 12px; --rail-gap: 8px; }
+  .screen > .rail:has(> .ds-tabs) > * { order: 1; }
+  .screen > .rail > .ds-tabs { order: 2; flex: 0 0 calc(100% + 24px); height: 42px; margin: 0 -12px -1px;
+    padding: 0 12px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+  .screen > .rail > .ds-tabs::-webkit-scrollbar { display: none; }
+  .screen > .rail:has(> .ds-tabs) .bar-brand { height: 46px; padding: 0 5px; }
+  .screen > .rail:has(> .ds-tabs) .bar-brand svg.lockup { display: none; }
+  .screen > .rail:has(> .ds-tabs) .bar-brand .bar-markonly { display: block; }
+}
+/* and at 620px and below, where the band stacks its parts, each its own height, the path with room under it */
+@media (max-width: 620px) {
+  .band:has(> .ds-path) { flex-wrap: nowrap; align-items: flex-start; }
+  .band:has(> .ds-path) > :is(.ds-path, .band-label, .band-question) { flex: none; }
+  .band:has(> .ds-path) > .ds-path { margin-bottom: 8px; }
+  .band:has(> .ds-path) > .band-label { align-self: flex-start; }
+}

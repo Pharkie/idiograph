@@ -1,0 +1,37 @@
+{
+  "trace_cli.trace.the_ais_passages": "  {at}  {what}: the AI's passages, {get}.",
+  "trace_cli.trace.undone_line": "  {at}  {what}: undone, line {get}.",
+  "trace_cli.trace.the_researchers_note": "  {at}  {what}: the researcher's note.",
+  "trace_cli.trace.ai_passages": "    AI passages ({model}): {failed}",
+  "trace_cli.trace.ai_passages_page": "    AI passages ({model}): page {page}, \"{passage}\"",
+  "trace_cli.trace.the_sentence_before": "    The sentence before: {before}",
+  "trace_cli.n.claim": {
+    "one": "{n} claim",
+    "other": "{n} claims"
+  },
+  "trace_cli.trace.in_judged_not_judged": "{name} in {name2}: {claims}, {judged} judged, {not_judged} not judged.",
+  "trace_cli.trace.none_yet": "none yet",
+  "trace_cli.trace.the_documents_are": "{no_doc} The documents are {list}.",
+  "trace_cli.n.citation": {
+    "one": "{n} citation",
+    "other": "{n} citations"
+  },
+  "trace_cli.n.reference": {
+    "one": "{n} reference",
+    "other": "{n} references"
+  },
+  "trace_cli.trace.judged_supports_question_doesn_t_support": "{doc}  {name}: {claims}, {judged} judged, {supports} Supports, {question} Question, {not_supported} Doesn't support, {citations} with no reference, {never_cited} never cited, {pdf} of {references} with a PDF.",
+  "trace_cli.trace.its_reference_list": ", its reference list {name}.",
+  "trace_cli.n.manuscript": {
+    "one": "{n} manuscript",
+    "other": "{n} manuscripts"
+  },
+  "trace_cli.trace.trace_project": "Trace project {name}: {manuscripts}",
+  "trace_cli.trace.that_folder_is_not_there": "That folder is not there.",
+  "trace_cli.trace_row_said.note": ", note: ",
+  "trace_cli.trace_row_said.not_judged": "Not judged",
+  "trace_cli.trace_row_said.never_cited": "Never cited  {ref}  {reference}{pdf}",
+  "trace_cli.trace_row_said.no_reference": "No reference  {short}  {section}: {sentence}",
+  "trace_cli.trace_row_said.no_pdf": ", no PDF",
+  "trace_cli.trace_row_said.pdf": ", PDF"
+}

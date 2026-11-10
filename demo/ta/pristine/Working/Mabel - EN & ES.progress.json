@@ -1,0 +1,53 @@
+{
+ "version": 1,
+ "rows": {
+  "Initial:3": "has-content",
+  "Initial:5": "has-content",
+  "Initial:7": "has-content",
+  "Initial:9": "has-content",
+  "Initial:11": "has-content",
+  "Initial:13": "has-content",
+  "Initial:15": "has-content",
+  "Initial:17": "has-content",
+  "Initial:19": "has-content",
+  "Initial:21": "has-content",
+  "Initial:23": "has-content",
+  "Initial:25": "has-content",
+  "Initial:27": "reviewed-empty",
+  "Initial:29": "has-content",
+  "Initial:31": "has-content",
+  "Initial:33": "has-content",
+  "Initial:35": "has-content",
+  "Initial:37": "has-content",
+  "Initial:39": "reviewed-empty"
+ },
+ "rounds": {
+  "1": {
+   "seconds": 1990,
+   "completed": "2026-10-15T15:02:37"
+  },
+  "2": {
+   "seconds": 1310,
+   "completed": "2026-10-16T09:41:20"
+  }
+ },
+ "days": {
+  "2026-10-15": {
+   "rounds": 1
+  },
+  "2026-10-16": {
+   "rounds": 1
+  }
+ },
+ "last": {
+  "sheet": "Initial",
+  "row": 39
+ },
+ "flags": [],
+ "trims": [],
+ "edits": [],
+ "assignments": [],
+ "complete": {
+  "at": "2026-10-16T09:43:05"
+ }
+}

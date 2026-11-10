@@ -1,0 +1,10 @@
+{
+  "lists.and.two": "{a} and {b}",
+  "lists.and.start": "{a}, {b}",
+  "lists.and.middle": "{a}, {b}",
+  "lists.and.end": "{a} and {b}",
+  "lists.or.two": "{a} or {b}",
+  "lists.or.start": "{a}, {b}",
+  "lists.or.middle": "{a}, {b}",
+  "lists.or.end": "{a} or {b}"
+}

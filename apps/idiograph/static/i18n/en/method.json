@@ -1,0 +1,10 @@
+{
+  "method.label": "Method",
+  "method.ipa": "IPA",
+  "method.ta": "Thematic analysis",
+  "method.name_ipa": "Interpretative Phenomenological Analysis",
+  "method.name_ta": "Thematic analysis",
+  "method.refused_two": "A project's method is ipa or ta, so nothing was written.",
+  "method.refused_fixed": "This project's method is {method}, chosen when it was made, and it stays, so nothing was written.",
+  "method.refused_timepoints": "A thematic analysis project has no timepoints yet, so nothing was saved."
+}

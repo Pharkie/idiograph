@@ -1,0 +1,306 @@
+{
+ "about": "Mabel's coding in the thematic analysis demo, invented, on the same interview as the IPA demo's. Every participant turn in order, found by its opening words: each extract as said with its codes, and the passage's note, or empty for a turn reviewed and left uncoded. Then the times of the work. make_demo.py builds the workbook and the progress file from this and the interview CSV in demo/source/.",
+ "built": "2026-10-16T12:00:00",
+ "turns": [
+  {
+   "at": "Well. It's noisy, for a start.",
+   "extracts": [
+    {
+     "text": "It's like having the lights on.",
+     "codes": [
+      "A house filled or emptied by the dog"
+     ]
+    },
+    {
+     "text": "And now nothing's where I left it.",
+     "codes": [
+      "A house filled or emptied by the dog"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "No. And I'm a tidy person",
+   "extracts": [
+    {
+     "text": "But a house where things stay put is a house where nothing's happening.",
+     "codes": [
+      "A house filled or emptied by the dog"
+     ]
+    },
+    {
+     "text": "It means somebody's been living here.",
+     "codes": [
+      "A house filled or emptied by the dog"
+     ]
+    }
+   ],
+   "note": "The house again, as with Juno, but here the dog's mess is the proof that someone lives here."
+  },
+  {
+   "at": "She gets me up at seven.",
+   "extracts": [
+    {
+     "text": "Before her I'd lie there till nine some days, there wasn't anything to get up for.",
+     "codes": [
+      "A reason to get up"
+     ]
+    },
+    {
+     "text": "Now it's seven o'clock, dressing gown, kettle on, let her out, and we're on the green by half past.",
+     "codes": [
+      "Days arranged round the dog",
+      "A reason to get up"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Oh, it's a whole society.",
+   "extracts": [
+    {
+     "text": "Oh, it's a whole society. You wouldn't know it unless you had a dog.",
+     "codes": [
+      "A life opening out"
+     ]
+    },
+    {
+     "text": "I'd lived on this estate twenty years and I didn't know them.",
+     "codes": [
+      "A life opening out"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "It's lovely.",
+   "extracts": [
+    {
+     "text": "it's saved me a bit",
+     "codes": [
+      "A life opening out",
+      "Caring for myself through the dog"
+     ]
+    },
+    {
+     "text": "you're not there to see people, you're there for the dog, and the talking just happens round the edges.",
+     "codes": [
+      "The dog as a reason nobody argues with",
+      "A life opening out"
+     ]
+    }
+   ],
+   "note": "The same reason Juno and Rowan give, put to the opposite use: it lets talk happen rather than stopping it."
+  },
+  {
+   "at": "Did I? Well. Yes.",
+   "extracts": [
+    {
+     "text": "you can't feed a dog and not feed yourself, it looks ridiculous. So I eat.",
+     "codes": [
+      "Caring for myself through the dog"
+     ]
+    },
+    {
+     "text": "someone's depending on me",
+     "codes": [
+      "A reason to get up"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "No. Oh, no.",
+   "extracts": [
+    {
+     "text": "The first six months I thought I'd made a terrible mistake.",
+     "codes": [
+      "Two feelings at once"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Well, my daughter came down",
+   "extracts": [
+    {
+     "text": "Mum, the dog has to go.",
+     "codes": [
+      "Others judging the dog's place"
+     ]
+    },
+    {
+     "text": "But it felt like she was taking something off me.",
+     "codes": [
+      "Others judging the dog's place"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I felt small.",
+   "extracts": [
+    {
+     "text": "what if it had been my hip. What happens to her then. What happens to me.",
+     "codes": [
+      "Keeping watch",
+      "Settling the dog's future"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I took her to classes.",
+   "extracts": [
+    {
+     "text": "I took her to classes. At my age!",
+     "codes": [
+      "A life opening out"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Better.",
+   "extracts": [
+    {
+     "text": "But she brings Pepper a chew when she comes now. That's how I know.",
+     "codes": [
+      "Others judging the dog's place"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "All the time.",
+   "extracts": [
+    {
+     "text": "She could well outlive me.",
+     "codes": [
+      "Settling the dog's future"
+     ]
+    },
+    {
+     "text": "It's with the solicitor, with my will.",
+     "codes": [
+      "Settling the dog's future"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Yes, his niece, Carol.",
+   "empty": true
+  },
+  {
+   "at": "Strange.",
+   "extracts": [
+    {
+     "text": "Like I'd put something down.",
+     "codes": [
+      "Settling the dog's future"
+     ]
+    },
+    {
+     "text": "And now if anything happens she won't be left in an empty house waiting.",
+     "codes": [
+      "Settling the dog's future"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Yes. Because she does, you see.",
+   "extracts": [
+    {
+     "text": "she's at the window when I come back. Every time.",
+     "codes": [
+      "Wanted without conditions"
+     ]
+    },
+    {
+     "text": "That's the bit I needed settled.",
+     "codes": [
+      "Settling the dog's future"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Oh, she never knew him.",
+   "extracts": [
+    {
+     "text": "I find I'm telling her the things I'd have told him.",
+     "codes": [
+      "Talking to the dog",
+      "The dog in a person's place"
+     ]
+    },
+    {
+     "text": "It had nowhere to go. Now it goes to her.",
+     "codes": [
+      "The dog in a person's place"
+     ]
+    }
+   ],
+   "note": "Forty years of telling someone about the day, and the telling goes on with Pepper as its listener. The dog keeps a habit of the marriage alive."
+  },
+  {
+   "at": "Well. That's a sore point",
+   "extracts": [
+    {
+     "text": "She's on the bed now. On his side.",
+     "codes": [
+      "The dog in a person's place"
+     ]
+    },
+    {
+     "text": "she says it's not hygienic",
+     "codes": [
+      "Others judging the dog's place"
+     ]
+    },
+    {
+     "text": "It's nice to hear breathing in the night again.",
+     "codes": [
+      "A house filled or emptied by the dog"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Only that I didn't expect it.",
+   "extracts": [
+    {
+     "text": "I didn't expect to be fitter at seventy three than I was at sixty.",
+     "codes": [
+      "Caring for myself through the dog"
+     ]
+    },
+    {
+     "text": "I was shut in and she opened the door.",
+     "codes": [
+      "A life opening out"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Is that it?",
+   "empty": true
+  }
+ ],
+ "work": {
+  "rounds": [
+   {
+    "seconds": 1990,
+    "completed": "2026-10-15T15:02:37"
+   },
+   {
+    "seconds": 1310,
+    "completed": "2026-10-16T09:41:20"
+   }
+  ],
+  "complete": "2026-10-16T09:43:05"
+ }
+}

@@ -1,0 +1,118 @@
+{
+ "schema": 1,
+ "created": "2026-10-19T14:30:00+01:00",
+ "updated": "2026-10-19T14:30:00+01:00",
+ "codes": [
+  {
+   "id": "k1",
+   "name": "Days arranged round the dog",
+   "description": "Times, routes and rooms set by what the dog needs, often noticed only once they are in place."
+  },
+  {
+   "id": "k2",
+   "name": "Rules nobody wrote down",
+   "description": "Routines and rules between person and dog that grew up without being agreed in words."
+  },
+  {
+   "id": "k3",
+   "name": "Who does the dog's work",
+   "description": "Who gets up, walks and carries the care, and what that says between the people in the house."
+  },
+  {
+   "id": "k4",
+   "name": "A reason to get up",
+   "description": "The dog's needs giving a morning a shape it lacked, or the lack of one once the dog has gone."
+  },
+  {
+   "id": "k5",
+   "name": "A house filled or emptied by the dog",
+   "description": "The dog as what makes a house feel lived in, felt most when the dog is out of it."
+  },
+  {
+   "id": "k6",
+   "name": "The dog as a reason nobody argues with",
+   "description": "The dog given as the reason for being somewhere, or not, which other people accept without question."
+  },
+  {
+   "id": "k7",
+   "name": "Talking to the dog",
+   "description": "Speaking to the dog out loud, as to a person, about the day or about nothing."
+  },
+  {
+   "id": "k8",
+   "name": "The dog as a way round hard talk",
+   "description": "The dog standing in for, or interrupting, talk that people find hard with each other."
+  },
+  {
+   "id": "k9",
+   "name": "Doubts kept unsaid",
+   "description": "Doubts or regrets about the dog that are felt and kept back from the people nearest."
+  },
+  {
+   "id": "k10",
+   "name": "Wanted without conditions",
+   "description": "The dog's welcome felt as asking for nothing, with nothing that has to have been got right."
+  },
+  {
+   "id": "k11",
+   "name": "The dog in a person's place",
+   "description": "The dog taking a place, a role or a habit that a person once held."
+  },
+  {
+   "id": "k12",
+   "name": "A life opening out",
+   "description": "New people, places and habits that came with the dog."
+  },
+  {
+   "id": "k13",
+   "name": "A life closing in",
+   "description": "A life narrowing round the dog's needs: fewer outings, fewer people, fewer yeses."
+  },
+  {
+   "id": "k14",
+   "name": "Caring for myself through the dog",
+   "description": "Looking after the dog bringing looking after oneself with it: meals, exercise, a quiet head."
+  },
+  {
+   "id": "k15",
+   "name": "Keeping watch",
+   "description": "Alertness on the dog's behalf, for its safety or for others', that does not switch off."
+  },
+  {
+   "id": "k16",
+   "name": "Rehearsing the dog's death",
+   "description": "Imagining the dog's illness or death ahead of time, and being caught out by how much it hurts."
+  },
+  {
+   "id": "k17",
+   "name": "Settling the dog's future",
+   "description": "Deciding where the dog will live and with whom, by rehoming it or by a will."
+  },
+  {
+   "id": "k18",
+   "name": "Others judging the dog's place",
+   "description": "Family, neighbours or landlords questioning whether the dog should stay, and answering them."
+  },
+  {
+   "id": "k19",
+   "name": "Asking whether it was my fault",
+   "description": "Asking whether the dog's troubles, or its going, were the person's own doing."
+  },
+  {
+   "id": "k20",
+   "name": "Loss without a name yet",
+   "description": "Missing a dog that is still alive elsewhere, a feeling the speaker cannot yet name."
+  },
+  {
+   "id": "k21",
+   "name": "The dog's joy lifting a mood",
+   "description": "The dog's pleasure taking a bad mood away, sometimes before the person is ready to let it go."
+  },
+  {
+   "id": "k22",
+   "name": "Two feelings at once",
+   "description": "Holding opposite feelings about the same thing at once, and saying so."
+  }
+ ],
+ "history": []
+}

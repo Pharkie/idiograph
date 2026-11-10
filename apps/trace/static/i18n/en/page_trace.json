@@ -1,0 +1,19 @@
+{
+  "page_trace.lede": "Every claim checked against its source, on your own computer.",
+  "page_trace.projects": "Projects",
+  "page_trace.new_project": "New project",
+  "page_trace.open_project_folder": "Open project folder",
+  "page_trace.no_project": "No project yet.",
+  "page_trace.trace_projects": "Trace projects",
+  "page_trace.project": "Project",
+  "page_trace.project_name": "Project name",
+  "page_trace.folder": "Folder",
+  "page_trace.remove": "Remove from Trace",
+  "page_trace.ai_warn": "Many researchers are trying AI in their work, and guidance on reporting it in research is still forming, so check what your university and your journals say now. AI makes mistakes, invents facts and can lend false confidence to a judgement. With these features on, the passages and sources you ask about are sent to the AI provider you choose. These features are experimental and not for a manuscript's real checking. The advice is to keep them off unless you are researching AI in scholarly writing. They are there to suggest and to help you think, never to judge a claim for you.",
+  "page_trace.ai_feature": "AI passages for each claim",
+  "page_trace.ai_confirm.head": "Not recommended for a manuscript's real checking.",
+  "page_trace.ai_confirm.new": "If you are new to checking claims against their sources, learning to do it by hand matters. You may not be able to tell a good passage from a poor one.",
+  "page_trace.ai_confirm.mistakes": "AI makes mistakes and invents things, and can sound surer than it is.",
+  "page_trace.ai_confirm.sent": "The passages and sources you ask about are sent to the AI provider you choose, so they leave your computer. Check your university's and journals' rules first.",
+  "page_trace.ai_confirm.acknowledge": "You may need to acknowledge its use when you publish."
+}

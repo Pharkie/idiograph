@@ -1,0 +1,7 @@
+{
+  "bundle": {
+    "resources": {
+      "../../../build/tauri-server/": "server/"
+    }
+  }
+}

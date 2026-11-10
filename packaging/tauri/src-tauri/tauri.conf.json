@@ -1,0 +1,73 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Idiograph",
+  "mainBinaryName": "Idiograph",
+  "version": "0.9.24",
+  "identifier": "uk.co.adamknowles.idiograph",
+  "app": {
+    "windows": [],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg", "nsis"],
+    "publisher": "Adam Knowles",
+    "copyright": "© 2026 Adam Knowles",
+    "license": "AGPL-3.0-only",
+    "category": "Education",
+    "shortDescription": "Idiograph",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": {
+      "../../../docs/manual.md": "docs/manual.md",
+      "../../../docs/whats-new.md": "docs/whats-new.md"
+    },
+    "fileAssociations": [
+      {
+        "ext": ["idiograph"],
+        "name": "Idiograph.SharedCopy",
+        "description": "Idiograph shared copy",
+        "role": "Editor",
+        "rank": "Owner",
+        "exportedType": {
+          "identifier": "uk.co.adamknowles.idiograph.shared-copy",
+          "conformsTo": ["public.data", "public.content"]
+        }
+      }
+    ],
+    "macOS": {
+      "minimumSystemVersion": "12.0",
+      "signingIdentity": "-"
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "installerHooks": "windows/hooks.nsh",
+        "installerIcon": "icons/icon.ico",
+        "uninstallerIcon": "icons/icon.ico",
+        "sidebarImage": "windows/sidebar.bmp",
+        "languages": ["English"],
+        "customLanguageFiles": {
+          "English": "windows/English.nsh"
+        }
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDNDRUE2QTM1NkVGQjNFNjMKUldSalB2dHVOV3JxUEk2clBDaFg1cUZ4S281VTJaTmE4YjUwMFNZU2tLRzN4aFJITzZ2SlA0YncK",
+      "endpoints": ["https://github.com/Pharkie/idiograph/releases/latest/download/latest.json"],
+      "requireSignedVersion": true,
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
+}

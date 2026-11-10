@@ -1,0 +1,5 @@
+{
+  "typeset.failed": "The pages could not be made.",
+  "typeset.slow": "The pages took too long to make, so none were made.",
+  "typeset.missing": "This copy cannot make pages, as a part it needs is missing. Install it again."
+}

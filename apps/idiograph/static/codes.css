@@ -1,0 +1,248 @@
+/* A thematic analysis project's code list and its codes (codes, 2 November 2026, Adam's choice of the drawings:
+   coding A, the code list as its own tab, the board's code cards), in the app's own tokens, the drawings' look */
+
+/* ───────────────────────────────────────────────── the Code list screen ── */
+
+.cd-screen { height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: var(--paper); position: relative; }
+.cd-screen .rail { flex: none; }
+.cd-screen .band { position: relative; top: auto; z-index: 2; flex: none; }
+.cd-body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(300px, 520px) minmax(0, 1fr); }
+.cd-list { min-height: 0; overflow: auto; padding: 22px 28px 24px 32px; border-right: 1px solid var(--rule); }
+.cd-tools { display: flex; align-items: center; gap: 10px; }
+.cd-find { flex: 0 1 300px; min-width: 0; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--field-edge);
+  border-radius: var(--r-control); background: var(--card); font-family: var(--serif); font-size: 15px; color: var(--ink); }
+.cd-find::placeholder { color: var(--ink-faint); font-style: italic; }
+.cd-find:focus { outline: 0; box-shadow: var(--focus-small); }
+.cd-new-box { margin-top: 8px; display: flex; }
+.cd-new-field { flex: 1 1 auto; }
+.cd-total { margin: 14px 0 6px; font-size: 12px; color: var(--ink-soft); }
+.cd-head, .cd-row { display: grid; grid-template-columns: minmax(0, 1fr) 70px 90px 24px; column-gap: 10px; align-items: baseline; }
+.cd-head { padding: 0 8px 6px; border-bottom: 1px solid var(--rule); }
+.cd-head span { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; color: var(--ink-soft); }
+.cd-head span.on::after { content: " \2193"; letter-spacing: 0; }
+.cd-rows { list-style: none; margin: 0; padding: 0; }
+.cd-row { padding: 9px 8px; border-bottom: 1px solid var(--rule); cursor: default; }
+.cd-row:hover { background: var(--paper-sunk); }
+.cd-row.on { background: var(--card); box-shadow: inset 3px 0 0 var(--crux); }
+.cd-row:focus { outline: 0; }
+.cd-row:focus-visible { box-shadow: inset 3px 0 0 var(--crux), var(--focus-small); }
+.cd-row-name { font-family: var(--serif); font-size: 15.5px; line-height: 1.35; color: var(--ink); overflow-wrap: anywhere; }
+.cd-row.none .cd-row-name { color: var(--ink-soft); font-style: italic; }
+.cd-row-sub { display: none; }
+.cd-row-n { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.cd-row-more { align-self: center; width: 24px; height: 22px; padding: 0; border: 1px solid transparent; border-radius: var(--r-control);
+  background: transparent; color: var(--ink-soft); font-size: 15px; line-height: 1; cursor: pointer; }
+.cd-row-more:hover { border-color: var(--rule-firm); color: var(--ink); }
+.cd-row-empty { padding: 14px 8px; font-family: var(--serif); font-size: 15px; color: var(--ink-soft); }
+
+.cd-open { min-height: 0; overflow: auto; padding: 22px 36px 28px; }
+.cd-kicker { margin: 0; }
+.cd-name { font-family: var(--serif); font-size: 26px; font-weight: 400; line-height: 1.25; color: var(--ink); margin: 6px 0 4px; }
+.cd-name-field { width: 100%; box-sizing: border-box; font: inherit; color: inherit; padding: 2px 8px; margin-left: -9px;
+  border: 1px solid var(--field-edge); border-radius: var(--r-control); background: var(--card); }
+.cd-name-field:focus { outline: 0; box-shadow: var(--focus-small); }
+.cd-counts { font-size: 13px; color: var(--ink-soft); margin: 0 0 14px; }
+.cd-acts { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+.cd-desc-label { display: block; margin-bottom: 6px; }
+.cd-desc { display: block; width: 100%; box-sizing: border-box; resize: none; overflow: hidden; padding: 8px 10px; margin: 0 0 18px;
+  border: 1px solid var(--rule-firm); border-radius: var(--r-control); background: var(--card);
+  font-family: var(--serif); font-size: 15px; line-height: 1.45; color: var(--ink); }
+.cd-desc:focus { outline: 0; box-shadow: var(--focus-small); }
+.cd-none { font-family: var(--serif); font-size: 16px; color: var(--ink-soft); margin: 4px 0 0; }
+.cd-who-head { display: flex; align-items: center; gap: 8px; margin: 14px 0 6px; font-family: var(--serif); font-size: 17px;
+  font-weight: 400; color: var(--ink); }
+.cd-who-head .gt-badge { margin-right: 0; }
+.cd-who-n { font-family: var(--sans); font-size: 12px; color: var(--ink-soft); }
+.cd-xs { list-style: none; margin: 0; padding: 0; }
+.cd-x { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; column-gap: 12px; align-items: baseline;
+  padding: 6px 0 6px 12px; border-left: 3px solid var(--rule-firm); margin: 0 0 6px; }
+.cd-time { font-family: var(--mono); font-size: 11.5px; color: var(--ink-soft); }
+.cd-q { font-family: var(--serif); font-size: 15px; line-height: 1.4; color: var(--ink); overflow-wrap: anywhere; }
+#cd-open .cd-go { white-space: nowrap; border-color: transparent; background: transparent; color: var(--ink-soft); }
+#cd-open .cd-go:hover, #cd-open .cd-go:focus-visible { color: var(--ink); border-color: var(--rule-firm); }
+
+.cd-status { flex: none; height: var(--es-status-h); display: flex; align-items: center; gap: 0; padding: 0 10px 0 var(--gutter);
+  background: var(--card); border-top: 1px solid var(--rule-firm); font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
+.cd-grow { flex: 1 1 auto; }
+.cd-step { margin-left: 6px; }
+.cd-status > .cd-count + .cd-count::before { content: ""; display: inline-block; width: 1px; height: 14px; background: var(--rule);
+  margin: 0 10px; vertical-align: -3px; }
+
+.cd-menu { position: absolute; z-index: 45; padding: 4px; display: grid; gap: 2px; min-width: 13em;
+  background: var(--card); border: 1px solid var(--rule-firm); border-radius: 3px; box-shadow: var(--lift); }
+.cd-menu[hidden] { display: none; }
+.cd-menu button.ghost { justify-content: flex-start; border-color: transparent; white-space: nowrap; }
+.cd-menu button.ghost:hover, .cd-menu button.ghost:focus-visible { border-color: var(--rule-firm); background: var(--paper-sunk); color: var(--ink); }
+.cd-menu-rule { height: 1px; background: var(--rule); margin: 3px 4px; }
+
+/* Merge two codes */
+.cd-merge-card { max-width: 520px; }
+.cd-merge-line { font-family: var(--serif); font-size: 17px; line-height: 1.5; color: var(--ink); margin: 6px 0 8px; }
+.cd-merge-into { display: block; width: 100%; box-sizing: border-box; padding: 8px 10px; margin: 0 0 14px;
+  border: 1px solid var(--rule-firm); border-radius: var(--r-control); background: var(--card); font-family: var(--serif);
+  font-size: 16px; color: var(--ink); }
+.cd-merge-will { font-family: var(--serif); font-size: 16px; line-height: 1.5; color: var(--ink); margin: 0 0 6px; }
+
+@media (max-width: 900px) {
+  .cd-body { grid-template-columns: minmax(260px, 42%) minmax(0, 1fr); }
+  .cd-list { padding: 18px 16px 20px; }
+  .cd-open { padding: 18px 20px 24px; }
+  .cd-head, .cd-row { grid-template-columns: minmax(0, 1fr) 24px; column-gap: 6px; }
+  .cd-head span:nth-child(2), .cd-head span:nth-child(3), .cd-row-n { display: none; }
+  .cd-row-sub { display: block; margin-top: 2px; font-family: var(--sans); font-size: 12px; color: var(--ink-soft); }
+  .cd-x { grid-template-columns: 48px minmax(0, 1fr); }
+  #cd-open .cd-go { grid-column: 2; justify-self: start; margin: 2px 0 0 -9px; }
+}
+
+/* ───────────────────────────────────────────────── coding: a code on each extract ── */
+
+/* Coding A: each extract a box, its codes as chips under it, Add a code with the project's codes suggested */
+.ta-codes .pair { display: none; }
+.cx-list { display: grid; gap: 12px; }
+.cx { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 8px;
+  padding: 10px 12px 12px; background: var(--card); border: 1px solid var(--rule-firm); border-radius: var(--r-card);
+  box-shadow: var(--rest); }
+.cx-num { margin-top: 0; cursor: default; }
+/* the extract's number in the passage after its last words, in its colour, as its box is numbered */
+.turn-text .cx-pn { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px;
+  padding: 0 4px; margin: 0 1px 0 3px; box-sizing: border-box; border-radius: var(--r-pill); background: var(--es);
+  color: var(--card); font-family: var(--sans); font-size: 11px; font-weight: 600; line-height: 1; vertical-align: 3px;
+  user-select: none; -webkit-user-select: none; }
+.turn-text .cx-pn::after { content: attr(data-n); }
+.cx-body { min-width: 0; }
+.cx-label { display: block; margin: 2px 0 6px; font-size: 10.5px; }
+.cx-quote { margin: 0; padding: 6px 9px 6px 8px; border-left: 3px solid var(--es); font-family: var(--serif);
+  font-size: 15.5px; line-height: 1.45; color: var(--ink); background: var(--paper); border-radius: 0 3px 3px 0; overflow-wrap: anywhere; }
+.cx-codes-label { display: block; margin: 10px 0 6px; font-size: 10.5px; }
+.cx-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cx-chip { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 3px 4px 3px 10px;
+  border: 1px solid var(--rule-firm); border-radius: var(--r-pill); background: var(--paper-sunk);
+  font-family: var(--serif); font-size: 14.5px; line-height: 1.3; color: var(--ink); }
+.cx-chip-name { overflow-wrap: anywhere; }
+.cx-chip-x { flex: none; width: 20px; height: 20px; padding: 0; display: inline-grid; place-items: center; border: 0; border-radius: 50%;
+  background: transparent; color: var(--ink-soft); font-family: var(--sans); font-size: 14px; line-height: 1; cursor: pointer; }
+.cx-chip-x:hover, .cx-chip-x:focus-visible { background: var(--rule); color: var(--ink); outline: 0; }
+.cx-add { margin-top: 8px; position: relative; }
+.cx-field { display: block; width: 100%; box-sizing: border-box; padding: 6px 9px; border: 1px solid var(--field-edge);
+  border-radius: var(--r-control); background: var(--card); font-family: var(--serif); font-size: 15px; color: var(--ink); line-height: 1.4; }
+.cx-field::placeholder { color: var(--ink-faint); font-style: italic; }
+.cx-field:focus { outline: 0; border-color: var(--crux); box-shadow: var(--focus-small); }
+.cx-sugg { position: relative; z-index: 30; margin-top: 4px; padding: 4px; display: grid; gap: 1px; list-style: none;
+  background: var(--card); border: 1px solid var(--rule-firm); border-radius: 3px; box-shadow: var(--lift); }
+.cx-sugg[hidden] { display: none; }
+/* brought into view clear of the status bar and the card's foot */
+.cx-sugg { scroll-margin-bottom: 96px; }
+.cx-sugg-row { display: grid; gap: 1px; padding: 6px 9px; border-radius: 3px; border: 1px solid transparent; cursor: pointer; }
+.cx-sugg-row.on { background: var(--paper-sunk); border-color: var(--rule-firm); }
+.cx-sugg-name { font-family: var(--serif); font-size: 15px; color: var(--ink); }
+.cx-sugg-name b { font-weight: 600; }
+.cx-sugg-n { font-size: 12px; color: var(--ink-soft); }
+.cx-sugg-new { font-size: 13px; color: var(--ink); }
+.cx-sugg-rule { height: 1px; background: var(--rule); margin: 3px 4px; }
+
+/* AI suggest beside the extract's Codes, and its answer under Add a code in the same list (taaibuild, Coding A) */
+.cx-codes-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 10px 0 6px; }
+.cx-codes-row .cx-codes-label { margin: 0; }
+.cx-ai-ask { flex: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; padding-top: 3px; padding-bottom: 3px; }
+.cx-ai-ask .btn-icon { width: 15px; height: 15px; }
+.cx-ai-ask.on { color: var(--ink); border-color: var(--rule-firm); background: var(--paper-sunk); }
+.cx-ai { margin-top: 10px; }
+.cx-ai-head { display: flex; align-items: center; gap: 8px; margin: 0 0 2px; }
+.cx-ai-head .field-label { font-size: 10.5px; }
+.cx-ai-head .ai-close { margin-left: auto; width: 22px; height: 22px; }
+.cx-ai-list { margin-top: 2px; box-shadow: none; }
+.cx-ai-list li { list-style: none; display: grid; }
+.cx-ai-pick { width: 100%; text-align: left; background: none; font: inherit; }
+.cx-ai-pick:hover, .cx-ai-pick:focus-visible { background: var(--paper-sunk); border-color: var(--rule-firm); outline: 0; }
+.cx-ai-note { margin: 4px 0 0; font-size: 13px; color: var(--ink-soft); }
+.cx-ai-note.failed { color: var(--ink); }
+
+/* ───────────────────────────────────────────────── the Themes board: a code's card ── */
+
+.th-card.gt-code .gt-whos { display: flex; flex-wrap: wrap; gap: 2px 0; align-items: center; margin-top: 6px; }
+.th-card.gt-code .gt-whos .gt-badge { margin-right: 3px; }
+.th-card.gt-code .gt-wn { font-size: 10.5px; color: var(--ink-soft); margin: 0 8px 0 0; font-variant-numeric: tabular-nums; }
+
+/* ──────────────────────── the Themes board as the thematic map (themesbuild, 2 November 2026) ── */
+
+/* Compact on the status bar: each code's card its name alone, the switch pressed in as Extracts and Notes are */
+.th-zoomer .th-compact-btn[aria-pressed="true"] { background: var(--paper-sunk); border-color: var(--rule-firm); color: var(--ink); }
+.th-zoomer .th-compact-btn[hidden] { display: none; }
+.th-stage.th-status-lean .th-zoomer .th-compact-btn { display: none; }
+.th-card.gt-code:not(:has(.gt-kicker)) { padding-top: 7px; padding-bottom: 7px; }
+.th-card.gt-code:not(:has(.gt-kicker)) .th-text { font-size: 13.5px; -webkit-line-clamp: 2; }
+
+/* the panel's tabs, Codes and Participants, in place of its head, clear of its cross */
+.th-cpanel .gt-ptabs { padding-right: 52px; }
+.th-cpanel .th-phead[hidden], .gt-ptabs[hidden] { display: none; }
+.th-cpanel .gt-ptabs:not([hidden]) + .gt-find { padding-top: 12px; }
+/* the Codes tab: Not placed, then In themes, each code a row with its extracts and each participant's count */
+.gt-csec { margin: 0 0 8px; }
+.gt-csec-head .gt-chev { color: var(--ink-faint); }
+.gt-crows { list-style: none; margin: 2px 0 0 12px; padding: 0; display: grid; gap: 2px; }
+.gt-coderow .gt-whos { flex-wrap: wrap; align-items: center; gap: 0; font-size: 11.5px; color: var(--ink-soft); }
+.gt-coderow .gt-xn { margin-right: 8px; }
+.gt-coderow .gt-badge { margin-right: 3px; }
+.gt-coderow .gt-wn { margin-right: 7px; font-variant-numeric: tabular-nums; }
+.gt-coderow.gt-nodrag { cursor: default; }
+
+/* the Inspector on a code: its counts, its description, its theme, its acts, and its extracts by participant */
+.gt-inspect .th-panel-meta.gt-whos { display: flex; flex-wrap: wrap; align-items: center; gap: 0; }
+.gt-inspect .th-panel-meta.gt-whos .gt-badge { margin-right: 3px; }
+.gt-inspect .th-panel-meta.gt-whos .gt-wn { margin-right: 8px; font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.gt-clabel { display: block; margin: 14px 0 4px; }
+.gt-inspect .gt-cdesc, html[data-method="ta"] .gt-inspect .th-gdesc { display: block; width: 100%; box-sizing: border-box; min-height: 58px; resize: vertical; }
+.gt-cin { display: flex; align-items: baseline; gap: 10px; margin: 14px 0 10px; }
+.gt-cin .section-label { margin: 0; }
+.gt-cin-name { font-family: var(--serif); font-size: 14.5px; color: var(--ink); overflow-wrap: anywhere; }
+.gt-cacts, .gt-tacts { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
+.gt-cwho { display: flex; align-items: center; gap: 4px; margin: 12px 0 4px; font-size: 13px; color: var(--ink); }
+.gt-cwho-n { margin-left: auto; font-size: 12px; color: var(--ink-faint); }
+.gt-cx { padding: 3px 0 5px; }
+.gt-cxq { margin: 0; font-family: var(--serif); font-style: italic; font-size: 14.5px; line-height: 1.4; color: var(--ink); }
+.gt-cxfoot { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 2px 0 0; }
+/* Go to the passage as the Code list draws it: a quiet button whose edge shows on hover */
+button.ghost.gt-cgo { margin-left: 4px; white-space: nowrap; border-color: transparent; background: transparent; color: var(--ink-soft); }
+button.ghost.gt-cgo:hover, button.ghost.gt-cgo:focus-visible { color: var(--ink); border-color: var(--rule-firm); }
+/* a tick on an extract: its participant's key extract under the theme, the mark IPA's board gives a row's quote */
+.gt-cx.gt-cxt { display: grid; grid-template-columns: 22px minmax(0, 1fr); column-gap: 6px; }
+.gt-cx .th-tick { width: 18px; height: 18px; margin-top: 3px; }
+/* the theme's Note under its own label, clear of it, where IPA's panel draws the box up under its buttons */
+html[data-method="ta"] .gt-inspect textarea.th-gnote { margin-top: 2px; }
+
+/* the Inspector on a theme: its codes and subthemes, and each participant's extracts */
+.gt-tcodes, .gt-tpeople { list-style: none; margin: 4px 0 14px; padding: 0; display: grid; gap: 4px; }
+.gt-tcodes li { display: flex; align-items: baseline; gap: 8px; font-family: var(--serif); font-size: 14.5px; color: var(--ink); }
+.gt-tcodes li.gt-tsub { color: var(--ink-soft); font-style: italic; }
+.gt-tpeople li { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--ink); }
+.gt-tpeople li.gt-none { color: var(--ink-faint); }
+.gt-tcodes .gt-tn, .gt-tpeople .gt-tn { margin-left: auto; font-family: var(--sans); font-style: normal; font-size: 12px; color: var(--ink-faint);
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* the table of themes: each code with its extracts by participant under it */
+.tb-item.gt-tcode { flex-wrap: wrap; }
+.gt-txs { list-style: none; flex: 1 0 100%; margin: -2px 0 4px; padding: 0 0 0 30px; display: grid; gap: 3px; }
+.gt-txs li { display: flex; align-items: baseline; gap: 6px; font-size: 13px; color: var(--ink-soft); }
+.gt-txs .gt-badge { align-self: center; }
+.gt-txwho { flex: none; min-width: 4.5em; color: var(--ink); }
+.gt-txq { font-family: var(--serif); font-style: italic; color: var(--ink); overflow-wrap: anywhere; }
+.gt-taway .tb-nogrip { visibility: hidden; }
+
+/* The quick keys on the Coding screen (quickkeysB, 9 November 2026, Adam's choice of option B with A's keys): the
+   selection's toolbar gains In vivo code and a second line of the five codes used last, the last one first with a
+   firmer edge, each a click that codes the words. The right-click menu lists the same with each key in a column at
+   its right, as a window's menus show theirs, and the shortcuts card their rows, in a thematic analysis project
+   alone */
+.sel-recent { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 4px; padding: 5px 4px 3px; margin-top: 2px;
+  border-top: 1px solid var(--rule); }
+.sel-recent[hidden] { display: none; }
+.sel-chip { display: inline-flex; align-items: center; max-width: 100%; padding: 3px 10px; cursor: pointer;
+  border: 1px solid var(--rule-firm); border-radius: var(--r-pill); background: var(--paper-sunk);
+  font-family: var(--serif); font-size: 14px; line-height: 1.3; color: var(--ink); text-align: left; overflow-wrap: anywhere; }
+.sel-chip.last { border-color: var(--ink-soft); }
+.sel-chip:hover, .sel-chip:focus-visible { border-color: var(--ink); outline: 0; }
+.row-menu button.ghost.with-key { justify-content: space-between; gap: 24px; }
+.row-menu-key { font-family: var(--mono); font-size: 12px; color: var(--ink-faint); min-width: 1.2em; text-align: right; }
+.row-menu-head { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; color: var(--ink-soft);
+  padding: 4px 9px 2px; }
+html:not([data-method="ta"]) #help .help-ta, #help.on-themes .help-ta { display: none; }

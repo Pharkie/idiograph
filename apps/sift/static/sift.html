@@ -1,0 +1,652 @@
+<!-- Sift's parts of the family's page (the family codebase's third build, 22 October 2026). The server puts
+     each part in static/index.html where a slot of its name stands, in the family's order of the apps, so the
+     page is as it was when these lines stood there: its stylesheets, its line on Home, its Home section, its
+     screen and its cards, its tabs and panes in Settings, its paragraph, its switch and its card under AI
+     features, and its scripts. Each part starts at a line naming it, part then a colon and its name, in a
+     comment of its own. -->
+<!--part:head-->
+<link rel="stylesheet" href="/frame.css">
+<link rel="stylesheet" href="/sift.css">
+<link rel="stylesheet" href="/sift_search.css">
+<!--part:lede-->
+    <p class="lede" data-only="sift">{{page_sift.lede.a_systematic_review_s_searches}}</p>
+<!--part:home-first-->
+      <!-- Sift, a literature review's searches and screening: a card for each Sift project, and New
+           project and Open project folder under them, each opening the Sift project card. A server
+           from before Sift sends nothing, and the section stays hidden -->
+      <section class="proj home-sec" id="sift-home" data-only="sift" hidden>
+        <h2 class="proj-h"><button type="button" class="proj-head" id="sift-head" aria-expanded="true"
+            aria-controls="sift-body"><span class="proj-name">{{page_sift.home_first.projects}}</span></button></h2>
+        <div class="proj-body" id="sift-body">
+          <ul class="home-cards sf-rows" id="sift-list"></ul>
+          <div class="demo-actions home-acts sf-open-line"><button type="button" class="ghost small" id="sift-new">{{page_sift.home_first.new_project}}</button><button
+               type="button" class="ghost small" id="sift-open">{{page_sift.home_first.open_project_folder}}</button></div>
+        </div>
+      </section>
+
+<!--part:screens-->
+<!-- ───────────────────────────────────────────────── sift ── -->
+<!-- Sift, screening for a systematic review (sift.js). It opens on the table of the stage's records,
+     and a click or Enter on a row opens that record, whose way back, Esc or the browser's Back returns
+     to the table. At the top the title bar, the way back, the review's name and its steps in one row,
+     Search strategy, Title and abstract and Full text, drawn by sift_search.js, then the tools, and
+     under it a line over the views with Filters at its left and Set columns and PRISMA flow at its
+     right, and in the table the headings, which sort, and the filters in a sidebar at the table's
+     left, opened and closed from that line. A bar at the foot holds the count and each decision's
+     count. The PRISMA flow is a sidebar at the right of either view, its left edge dragged wider or
+     narrower, an overlay at phone width. The record shows its abstract in large type, its proposals
+     and the three decisions, and its PDF in a pane that folds away and takes a dropped PDF. With the
+     app's AI switch off there is no proposal, no AI control and no AI setting -->
+<section id="sift" class="screen sf-screen" hidden>
+  <div class="rail sf-rail">
+    <!-- Sift's lockup, Home from the screen, then the review's steps as tabs in the order the work goes, Search
+         strategy, then Title and abstract and Full text, each stage with its count of records, the one he is on
+         in front and Full text greyed until a record passes title and abstract (12 October), the screening's
+         name in the path under them since option C of the bars (26 October 2026) -->
+    <button type="button" class="rail-home bar-brand" id="sf-home" title="{{page_sift.screens.home_cmd_shift_h}}" aria-label="{{page_sift.screens.home}}"><svg
+            class="mark part-sift bar-markonly" aria-hidden="true" focusable="false"><use href="/marks.svg#sift-18"/></svg></button>
+    <nav class="sf-steps" id="sf-steps" aria-label="{{page_sift.screens.steps}}" hidden></nav>
+    <span class="rail-grow"></span>
+    <!-- The tools in the order every bar keeps, each an icon and its word (see .bar-tool in style.css):
+         the screen's own first, Export, whose menu writes or sends the screening, and the second
+         screener, then the PDF on a record, then the tools every bar ends with, Shortcuts, Send
+         feedback and Settings last (16 October, when Appearance went into Settings, General). The
+         table's own tools and PRISMA flow stand on the line under the bar (12 October) -->
+    <button class="rail-btn bar-tool" id="sf-export" type="button" title="{{page_sift.screens.export}}" aria-label="{{page_sift.screens.export}}" aria-haspopup="menu"
+            aria-expanded="false" aria-controls="sf-export-menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 14.2V3.8M8.2 7.4 12 3.6l3.8 3.8"/><path d="M9 10.2H7.3a1.8 1.8 0 0 0-1.8 1.8v6.4a1.8 1.8 0 0 0 1.8 1.8h9.4a1.8 1.8 0 0 0 1.8-1.8V12a1.8 1.8 0 0 0-1.8-1.8H15"/></svg><span class="bar-word" aria-hidden="true">{{page_sift.screens.export}}</span>
+    </button>
+    <!-- the second screener, while the project has one or the screening's log holds their side -->
+    <button class="rail-btn bar-tool" id="sf-two-btn" type="button" title="{{page_sift.screens.second_screener}}" aria-label="{{page_sift.screens.second_screener}}"
+            aria-haspopup="dialog" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="8.6" cy="8.4" r="3.1"/><path d="M3 19.5c.4-3.3 2.7-5.3 5.6-5.3s5.2 2 5.6 5.3"/><circle cx="16.4" cy="9.4" r="2.6"/><path d="M15.4 14.4c.4-.1.7-.1 1-.1 2.5 0 4.4 1.7 4.7 4.6"/></svg><span class="bar-word" aria-hidden="true">{{page_sift.screens.second_screener}}</span>
+    </button>
+    <button class="rail-btn bar-tool" id="sf-pdf-toggle" type="button" title="{{page_sift.screens.the_pdf_p}}" aria-label="{{page_sift.screens.the_pdf}}" aria-pressed="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 3.5h7l4.5 4.5v12.5H7z"/><path d="M14 3.5V8h4.5"/></svg><span class="bar-word" aria-hidden="true">{{page_sift.screens.pdf}}</span>
+    </button>
+    <span class="rail-sep bar-tools-sep" aria-hidden="true"></span>
+    <!-- Search over the Sift project, and with Everything over every project (18 October, search.js) -->
+    <button class="rail-btn bar-tool" id="sf-search" type="button" title="{{page_sift.screens.search_cmd_f}}" aria-label="{{page_sift.screens.search}}"
+            aria-haspopup="dialog" aria-expanded="false" aria-controls="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/></svg><span class="bar-word" aria-hidden="true">{{page_sift.screens.search}}</span>
+    </button>
+    <button class="rail-btn bar-tool" id="sf-help" type="button" title="{{page_sift.screens.shortcuts}}" aria-label="{{page_sift.screens.shortcuts_2}}">?<span class="bar-word" aria-hidden="true">{{page_sift.screens.shortcuts_2}}</span></button>
+    <button class="rail-btn bar-tool rail-feedback" id="sf-feedback" type="button" title="{{page_sift.screens.send_feedback}}" aria-label="{{page_sift.screens.send_feedback}}" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9.3 8.3a2.7 2.7 0 0 1 5.4 0M10.3 6.1 9 4.2M13.7 6.1 15 4.2"/><rect x="7.3" y="8.3" width="9.4" height="12" rx="4.7"/><path d="M12 11.6v8.7"/><path d="M7.3 13.2H4M7.6 17.2l-3 1.6M7.8 10.4 5.2 8.5M16.7 13.2H20M16.4 17.2l3 1.6M16.2 10.4l2.6-1.9"/></svg><span class="bar-word" aria-hidden="true">{{page_sift.screens.feedback}}</span>
+    </button>
+    <button class="rail-btn bar-tool" id="sf-settings" type="button" title="{{page_sift.screens.sift_s_settings}}" aria-label="{{page_sift.screens.sift_s_settings}}">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54A.48.48 0 0 0 13.92 2h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.73 8.47a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg><span class="bar-word" aria-hidden="true">{{page_sift.screens.settings}}</span>
+    </button>
+  </div>
+  <!-- the path, the screening, whose click is the table from a record, and the review's question after it (option C
+       of the bars, 26 October 2026, in place of the back arrow), with no Home since option D (6 November 2026): the
+       lockup is Home -->
+  <div class="band" id="sf-band">
+    <nav class="ds-path" aria-label="{{page_sift.screens.where_you_are}}">
+      <button type="button" class="ds-proj" id="sf-name" aria-haspopup="true" aria-expanded="false"><span class="ds-proj-name"></span><svg class="ds-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 4.6 6 7.6l3-3"/></svg></button>
+    </nav>
+    <span class="ds-path-rule" aria-hidden="true"></span>
+    <span class="field-label band-label">{{page_sift.screens.research_question}}</span>
+    <p class="band-question" id="sf-band-question"></p>
+  </div>
+  <div class="sf-main" id="sf-main">
+    <!-- the line under the title bar, over either view (12 October): on the table Filters at its left,
+         over the sidebar it opens, with Clear all while anything is set, and Set columns at its right,
+         then PRISMA flow at the far right on either view, over the sidebar it opens and shuts, the way
+         this browser last left it -->
+    <div class="sf-tv-top" id="sf-tv-top" data-view="table">
+      <button class="sf-tv-tool sf-tv-only" id="sf-facets-toggle" type="button" title="{{page_sift.screens.filters}}" aria-label="{{page_sift.screens.filters}}" aria-pressed="false"
+              aria-controls="sf-facets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5.5h16l-6.2 7.2v5.6l-3.6 1.8v-7.4z"/></svg><span
+              class="sf-tv-word" id="sf-facets-word" aria-hidden="true">{{page_sift.screens.filters}}</span></button>
+      <button type="button" class="quiet sf-facets-clear sf-tv-only" id="sf-facets-clear" hidden>{{page_sift.screens.clear_all}}</button>
+      <span class="sf-tv-grow"></span>
+      <button class="sf-tv-tool sf-tv-only" id="sf-tv-cols" type="button" title="{{page_sift.screens.set_columns}}" aria-label="{{page_sift.screens.set_columns}}" aria-haspopup="dialog"><svg
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"
+              aria-hidden="true" focusable="false"><rect x="3.5" y="4.5" width="17" height="15" rx="1.6"/><path d="M9.2 4.5v15M14.8 4.5v15"/></svg><span
+              class="sf-tv-word" aria-hidden="true">{{page_sift.screens.set_columns}}</span></button>
+      <!-- Set up the form, at Extract and appraise alone (13 October, later) -->
+      <button class="sf-tv-tool sf-tv-only" id="sf-form-set" type="button" title="{{page_sift.screens.set_up_the_form}}" aria-label="{{page_sift.screens.set_up_the_form}}"
+              aria-haspopup="dialog" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4.5" y="3.5" width="15" height="17" rx="1.6"/><path
+              d="M8 8h8M8 12h8M8 16h5"/></svg><span class="sf-tv-word" aria-hidden="true">{{page_sift.screens.set_up_the_form}}</span></button>
+      <button class="sf-tv-tool" id="sf-flow-toggle" type="button" title="{{page_sift.screens.prisma_flow}}" aria-label="{{page_sift.screens.prisma_flow}}" aria-pressed="false"
+              aria-controls="sf-side"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.5" y="4.5" width="17" height="15" rx="1.6"/><path
+              d="M14.5 4.5v15"/><path d="M16.8 8.5h1.6M16.8 12h1.6M16.8 15.5h1.6"/></svg><span class="sf-tv-word" aria-hidden="true">{{page_sift.screens.prisma_flow}}</span></button>
+    </div>
+    <!-- the views and the PRISMA flow's sidebar at their right, its left edge dragged wider or narrower -->
+    <div class="sf-views" id="sf-views">
+    <div class="sf-area" id="sf-area">
+      <!-- stage 2 before any record has passed stage 1 -->
+      <p class="sf-ft-empty" id="sf-ft-empty" hidden>{{page_sift.screens.records_with_yes_or_maybe}}</p>
+      <div class="sf-body" id="sf-body" hidden>
+        <main class="sf-record" id="sf-record">
+          <p class="sf-none" id="sf-none" hidden>{{page_sift.screens.no_records_shown}}</p>
+          <article class="sf-card" id="sf-card">
+            <p class="sf-meta"><span class="sf-num" id="sf-num"></span><span class="sf-pill" id="sf-pill" data-decision=""></span><span
+               class="sf-pill sf-rpill" id="sf-rpill"></span><span class="sf-tadec" id="sf-tadec" hidden>{{page_sift.screens.at_title_and_abstract}} <span
+               class="sf-pill" id="sf-tadec-pill" data-decision=""></span></span><span class="sf-cal" id="sf-cal"
+               title="{{page_sift.screens.a_calibration_record_which_the}}" hidden>{{page_sift.screens.calibration}}</span><span
+               class="sf-fm-done" id="sf-fm-done" hidden>{{page_sift.screens.done}}</span><span
+               class="sf-meta-rest" id="sf-meta"></span></p>
+            <h1 class="sf-title" id="sf-title"></h1>
+            <p class="sf-authors" id="sf-authors"></p>
+            <p class="sf-links" id="sf-links"></p>
+            <!-- at Extract and appraise the record's form, its fields under their sections' headings, each kept as
+                 it is left, in place of the screening's parts under it, drawn by sift.js (13 October, later) -->
+            <div class="sf-form" id="sf-form" role="group" aria-label="{{page_sift.screens.the_form}}" hidden></div>
+            <div class="sf-screening-parts" id="sf-screening-parts">
+            <!-- the words marked in the abstract, named: the grounds of a proposal, and since 14 October his key
+                 excerpts, each in its mark's colour, and hidden on a press -->
+            <p class="sf-gline" id="sf-gline" hidden><span class="sf-gline-said" id="sf-gline-said"></span><span
+               class="sf-gline-ex" id="sf-gline-ex" hidden>{{page_sift.screens.key_excerpts}}</span><button type="button"
+               class="quiet sf-gline-btn" id="sf-gline-btn"></button></p>
+            <div class="sf-abstract" id="sf-abstract"></div>
+            <!-- each suggestion under its title, which says what made it and its source, the sparkles on an AI's
+                 alone, put on by sift.js as it starts, then its decision, reason and grounds, and Accept
+                 suggestion, which decides as a press of that decision and its reason does, Enter on the
+                 first (14 October) -->
+            <div class="sf-proposal" id="sf-proposal" role="group" aria-labelledby="sf-prop-title" hidden>
+              <p class="sf-prop-title" id="sf-prop-title"><span class="sf-prop-spark" id="sf-prop-spark" hidden></span><span
+                 class="sf-prop-said" id="sf-prop-said"></span></p>
+              <p class="sf-prop-head"><span class="sf-prop-word" id="sf-prop-word"></span></p>
+              <p class="sf-prop-reason" id="sf-prop-reason"></p>
+              <p class="sf-grounds" id="sf-grounds" hidden></p>
+              <button type="button" class="sf-take" id="sf-take" data-decision="" hidden><svg class="btn-icon" viewBox="0 0 24 24"
+                      fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      aria-hidden="true" focusable="false"><path d="M4.5 12.7 9.6 17.8 19.5 7"/></svg><span
+                      class="sf-take-word">{{page_sift.screens.accept_suggestion}}</span> <span class="mono sf-act-key">{{page_sift.screens.enter}}</span></button>
+            </div>
+            <div class="sf-proposal" id="sf-proposal-2" role="group" aria-labelledby="sf-prop-title-2" hidden>
+              <p class="sf-prop-title" id="sf-prop-title-2"><span class="sf-prop-spark" id="sf-prop-spark-2" hidden></span><span
+                 class="sf-prop-said" id="sf-prop-said-2"></span></p>
+              <p class="sf-prop-head"><span class="sf-prop-word" id="sf-prop-word-2"></span></p>
+              <p class="sf-prop-reason" id="sf-prop-reason-2"></p>
+              <p class="sf-grounds" id="sf-grounds-2" hidden></p>
+              <button type="button" class="sf-take" id="sf-take-2" data-decision="" hidden><svg class="btn-icon" viewBox="0 0 24 24"
+                      fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      aria-hidden="true" focusable="false"><path d="M4.5 12.7 9.6 17.8 19.5 7"/></svg><span
+                      class="sf-take-word">{{page_sift.screens.accept_suggestion}}</span></button>
+            </div>
+            <!-- Sift's own AI proposals, with the app's AI switch and the screening's own on: for this
+                 record, and for every record of the round still to screen, which says its calls first. Each
+                 takes the sparkles from sift.js as it starts -->
+            <div class="sf-ai" id="sf-ai" hidden>
+              <button type="button" class="ghost small sf-ai-btn" id="sf-ai-one" title="{{page_sift.screens.a_proposal_for_this_record}}"><span id="sf-ai-one-word">{{page_sift.screens.ai_propose}}</span></button>
+              <button type="button" class="ghost small sf-ai-btn" id="sf-ai-all" title="{{page_sift.screens.a_proposal_for_every_record}}"><span id="sf-ai-all-word">{{page_sift.screens.ai_propose_for_the_rows}}</span></button>
+            </div>
+            <!-- the three decisions in the stage's words with their keys, Yes, Maybe and No at title and
+                 abstract, Include, Maybe and Exclude at full text, set by sift.js as the stage is drawn -->
+            <div class="sf-acts" id="sf-acts" role="group" aria-label="{{page_sift.screens.decision}}">
+              <button type="button" class="sf-act sf-accept" data-decision="include" aria-pressed="false"><span class="sf-act-word">{{page_sift.screens.yes}}</span> <span class="mono sf-act-key">Y</span></button>
+              <button type="button" class="sf-act sf-maybe" data-decision="maybe" aria-pressed="false"><span class="sf-act-word">{{page_sift.screens.maybe}}</span> <span class="mono sf-act-key">M</span></button>
+              <button type="button" class="sf-act sf-reject" data-decision="exclude" aria-pressed="false"><span class="sf-act-word">{{page_sift.screens.no}}</span><span class="sf-code" id="sf-code"></span> <span class="mono sf-act-key">N</span></button>
+            </div>
+            <textarea class="sf-note" id="sf-note" rows="2" placeholder="{{page_sift.screens.note_on_this_decision}}" aria-label="{{page_sift.screens.note_on_this_decision}}" spellcheck="true" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"></textarea>
+            <!-- his key excerpts (14 October): words of the title or abstract kept with H, Cmd or Ctrl adding a piece,
+                 each in quotation marks with Remove, in the order made, drawn by sift.js -->
+            <div class="sf-excerpts" id="sf-excerpts" role="group" aria-labelledby="sf-ex-head">
+              <p class="sf-ex-head"><span class="sf-flabel" id="sf-ex-head">{{page_sift.screens.key_excerpts}}</span> <span class="mono sf-ex-key">H</span></p>
+              <ol class="sf-ex-list" id="sf-ex-list" hidden></ol>
+            </div>
+            <!-- a drawn record once he can see the second screener's side: his decision and theirs side by
+                 side, each with its reason and note, and where the two differ the outcome, Agreed with
+                 the decision, To a third reviewer and that reviewer's decision, with the replies from
+                 the differences workbook, drawn by sift.js -->
+            <div class="sf-two-rec" id="sf-two-rec" role="group" aria-label="{{page_sift.screens.second_screener}}" hidden></div>
+            <!-- his own fields on the record, each kept as it is left: the participants, a guess from the
+                 abstract shown with a question mark until confirmed or typed, the rating, the notes, the
+                 digest, the critique and the columns he added, drawn by sift.js -->
+            <div class="sf-fields" id="sf-fields">
+              <div class="sf-frow"><label class="sf-flabel" for="sf-f-participants">{{page_sift.screens.no_of_participants}}</label><span class="sf-fval"><input
+                   class="sf-field sf-f-num" id="sf-f-participants" data-field="participants" type="text" inputmode="numeric"
+                   autocomplete="off" spellcheck="false"><button type="button" class="ghost small" id="sf-f-confirm" hidden>{{page_sift.screens.confirm}}</button></span></div>
+              <div class="sf-frow"><span class="sf-flabel" id="sf-f-rating-label">{{page_sift.screens.my_rating}}</span><span class="sf-fval"><span
+                   class="sf-stars" id="sf-f-rating" role="group" aria-labelledby="sf-f-rating-label"></span><span class="sf-blank"
+                   id="sf-f-unrated" hidden>{{page_sift.screens.not_rated}}</span></span></div>
+              <div class="sf-frow sf-frow-long"><label class="sf-flabel" for="sf-f-notes">{{page_sift.screens.notes}}</label><textarea class="sf-field" id="sf-f-notes"
+                   data-field="notes" rows="2" spellcheck="true" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"></textarea></div>
+              <div class="sf-frow sf-frow-long"><label class="sf-flabel" for="sf-f-digest">{{page_sift.screens.digest}}</label><textarea class="sf-field" id="sf-f-digest"
+                   data-field="digest" rows="3" spellcheck="true" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"></textarea></div>
+              <div class="sf-frow sf-frow-long"><label class="sf-flabel" for="sf-f-critique">{{page_sift.screens.critique}}</label><textarea class="sf-field" id="sf-f-critique"
+                   data-field="critique" rows="3" spellcheck="true" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"></textarea></div>
+              <div class="sf-f-own" id="sf-f-own"></div>
+              <div class="sf-f-own sf-f-form" id="sf-f-form"></div>
+            </div>
+            <!-- the record's study, his links of reports of one study and Sift's suggestions, then what
+                 OpenAlex and Crossref say of it, drawn by sift.js (13 October) -->
+            <div class="sf-study" id="sf-study" role="group" aria-label="{{page_sift.screens.study}}"></div>
+            <dl class="sf-more sf-facts" id="sf-facts"></dl>
+            <!-- the terms of each block of the plan the record holds (13 October, later) -->
+            <dl class="sf-more sf-terms" id="sf-terms" hidden></dl>
+            <dl class="sf-more" id="sf-more" hidden></dl>
+            </div>
+          </article>
+        </main>
+        <!-- the record's PDF, or No PDF. where it has none, Add PDF standing once, in the record's links (17 October):
+             a PDF dropped anywhere on the record, or chosen, is kept as pdfs/<rec_id>.pdf -->
+        <aside class="sf-pdf" id="sf-pdf" aria-label="{{page_sift.screens.pdf}}">
+          <iframe class="sf-frame" id="sf-frame" title="{{page_sift.screens.pdf}}" hidden></iframe>
+          <p class="sf-nopdf" id="sf-nopdf">{{page_sift.screens.no_pdf}}</p>
+          <input type="file" id="sf-pdf-file" accept="application/pdf,.pdf" hidden>
+          <!-- over the record while a file is dragged, so the PDF viewer never takes the drop -->
+          <div class="sf-drop" id="sf-drop" aria-hidden="true"><span>{{page_sift.screens.drop_the_pdf}}</span></div>
+        </aside>
+      </div>
+      <!-- the table, where Sift opens: under the line with Filters at its top left, over the sidebar it
+           opens, and Set columns and PRISMA flow at its right (12 October), the filters in a sidebar at
+           its left that folds away, a group of tick boxes
+           for each column a pick can filter, each with its live count, its right edge dragged wider or
+           narrower, and every record of the stage a row of real text, so the browser's own find finds
+           anything shown, its number first and its headings sorting, drawn by sift.js. It scrolls in
+           its own box -->
+      <div class="sf-tv" id="sf-tv">
+        <div class="sf-tv-main">
+          <aside class="sf-facets" id="sf-facets" aria-label="{{page_sift.screens.filters}}" hidden>
+            <h2 class="sr-only">{{page_sift.screens.filters}}</h2>
+            <div class="sf-groups" id="sf-groups"></div>
+          </aside>
+          <div class="sf-facets-edge" id="sf-facets-edge" role="separator" aria-orientation="vertical" aria-controls="sf-facets"
+               aria-label="{{page_sift.screens.the_filters_width}}" title="{{page_sift.screens.drag_to_widen_or_narrow}}" tabindex="0" hidden></div>
+          <div class="sf-tv-box" id="sf-tv-box"><table class="sf-tbl" id="sf-tbl"><thead id="sf-thead"></thead><tbody
+               id="sf-tbody"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+    <div class="sf-side-edge" id="sf-side-edge" role="separator" aria-orientation="vertical" aria-controls="sf-side"
+         aria-label="{{page_sift.screens.the_prisma_flow_s_width}}" title="{{page_sift.screens.drag_to_widen_or_narrow_2}}" tabindex="0" hidden></div>
+    <aside class="sf-side" id="sf-side" aria-label="{{page_sift.screens.prisma_flow}}" hidden>
+      <div class="sf-side-top"><h2 class="sf-side-head">{{page_sift.screens.prisma_flow}}</h2><button class="card-close sf-side-close" id="sf-side-close"
+           type="button" aria-label="{{page_sift.screens.close}}" title="{{page_sift.screens.close}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+           stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div>
+      <div class="sf-flow" id="sf-flow" role="img" aria-label="{{page_sift.screens.the_prisma_flow_of_this}}"></div>
+      <!-- Start again, quiet under the flow: the screening begun afresh after one question, its log kept -->
+      <p class="sf-side-foot"><button type="button" class="quiet" id="sf-reset">{{page_sift.screens.start_again}}</button></p>
+    </aside>
+    </div>
+  </div>
+  <!-- the foot: how many records show, and where the record open stands among them, Undo once there
+       is a decision or a note to take back, as U does (12 October), then each decision's count, each
+       in its colour -->
+  <div class="sf-foot" id="sf-foot">
+    <span class="sf-count" id="sf-count"></span>
+    <button type="button" class="ghost small sf-undo" id="sf-undo" hidden>{{page_sift.screens.undo}}</button>
+    <span class="sf-tally" id="sf-tally"></span>
+  </div>
+  <!-- Export's menu, under its button in the title bar: Export to Zotero, which opens its card, Export
+       included records, off while no record is included at full text, and Export PRISMA counts, the
+       flow's numbers as a CSV (12 October). Arrows move in it and Esc closes it -->
+  <div class="sf-menu" id="sf-export-menu" role="menu" aria-label="{{page_sift.screens.export}}" hidden>
+    <button type="button" class="sf-menu-item" role="menuitem" id="sf-zotero" aria-haspopup="dialog">{{page_sift.screens.export_to_zotero}}</button>
+    <button type="button" class="sf-menu-item" role="menuitem" id="sf-included">{{page_sift.screens.export_included_records}}</button>
+    <button type="button" class="sf-menu-item" role="menuitem" id="sf-counts">{{page_sift.screens.export_prisma_counts}}</button>
+    <button type="button" class="sf-menu-item" role="menuitem" id="sf-form-export">{{page_sift.screens.export_the_form}}</button>
+  </div>
+  <!-- the tip over a slider's chart in the filters, its bar's run and count of records, shown at once
+       while the pointer is in the bar's column (12 October) -->
+  <div class="sf-bar-tip" id="sf-bar-tip" aria-hidden="true" hidden></div>
+</section>
+
+<!-- the reasons, a short list over the record once No or N is pressed at title and abstract, Exclude or
+     E at full text, numbered, one taken by a press or its number, Esc to cancel -->
+<div class="overlay sf-why" id="sf-why" hidden>
+  <div class="card sf-why-card" role="dialog" aria-labelledby="sf-why-head">
+    <h2 class="sf-why-head" id="sf-why-head">{{page_sift.screens.reason_for_no}}</h2>
+    <ol class="sf-reasons" id="sf-reasons" role="radiogroup" aria-labelledby="sf-why-head"></ol>
+  </div>
+</div>
+
+<!-- Sift's shortcuts, over the Sift screen alone, the decisions in the stage's words and keys as it opens -->
+<div class="overlay" id="sf-keys" hidden>
+  <div class="card">
+    <button class="card-close" id="sf-keys-close" type="button" tabindex="-1" aria-label="{{page_sift.screens.close}}" title="{{page_sift.screens.close}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <p class="kicker">{{page_sift.screens.shortcuts_2}}</p>
+    <h2>Sift</h2>
+    <table class="keys">
+      <tr><td class="mono" id="sf-kk-include">Y</td><td id="sf-kw-include">{{page_sift.screens.yes}}</td></tr>
+      <tr><td class="mono" id="sf-kk-maybe">M</td><td id="sf-kw-maybe">{{page_sift.screens.maybe}}</td></tr>
+      <tr><td class="mono" id="sf-kk-exclude">{{page_sift.screens.n_then_a_number}}</td><td id="sf-kw-exclude">{{page_sift.screens.no_for_that_reason}}</td></tr>
+      <tr id="sf-key-enter"><td class="mono">{{page_sift.screens.enter}}</td><td>{{page_sift.screens.on_a_record_accept_the}}</td></tr>
+      <tr><td class="mono">&#8593; / &#8595;</td><td>{{page_sift.screens.in_the_table_the_row}}</td></tr>
+      <tr><td class="mono">{{page_sift.screens.enter_or_a_click}}</td><td>{{page_sift.screens.in_the_table_open_the}}</td></tr>
+      <tr><td class="mono">&#8592; / &#8594;</td><td>{{page_sift.screens.on_a_record_the_record}}</td></tr>
+      <tr><td class="mono">{{page_sift.screens.u_or_cmd_ctrl_z}}</td><td>{{page_sift.screens.undo_the_last_decision_note}}</td></tr>
+      <tr><td class="mono">T</td><td>{{page_sift.screens.the_note_on_this_decision}}</td></tr>
+      <tr><td class="mono">H</td><td>{{page_sift.screens.on_a_record_keep_the}}</td></tr>
+      <tr><td class="mono">{{page_sift.screens.cmd_ctrl_select}}</td><td>{{page_sift.screens.on_a_record_add_another}}</td></tr>
+      <tr><td class="mono">P</td><td>{{page_sift.screens.the_pdf_shown_or_folded}}</td></tr>
+      <tr><td class="mono">{{page_sift.screens.cmd_ctrl_f}}</td><td>{{page_sift.screens.open_search}}</td></tr>
+      <tr><td class="mono">?</td><td>{{page_sift.screens.this_card}}</td></tr>
+      <tr><td class="mono">{{page_sift.screens.esc}}</td><td>{{page_sift.screens.close_leave_a_field_or}}</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- the table's columns, from Set columns on the line over the table: each shown or hidden from anywhere on its row and
+     moved up or down, his own renamed, their choices changed or removed, a removal asked first, Reset to default, and a
+     column added, a name and a type, text, a choice list or a number. Each change is kept at once in sift.json, so Done
+     at the foot right closes the card as its X does (13 October). The ID is in no row, since it is always first -->
+<div class="overlay" id="sf-cols" hidden>
+  <div class="card sf-cols-card">
+    <button class="card-close" id="sf-cols-close" type="button" tabindex="-1" aria-label="{{page_sift.screens.close}}" title="{{page_sift.screens.close}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <p class="kicker">Sift</p>
+    <h2>{{page_sift.screens.set_columns}}</h2>
+    <ol class="sf-cols-list" id="sf-cols-list"></ol>
+    <p class="sr-only" id="sf-cols-said" aria-live="polite"></p>
+    <p class="sf-cols-reset"><button class="ghost small" id="sf-cols-reset" type="button">{{page_sift.screens.reset_to_default}}</button></p>
+    <h3 class="sf-cols-h">{{page_sift.screens.add_a_column}}</h3>
+    <div class="sf-cols-add">
+      <input id="sf-col-name" type="text" placeholder="{{page_sift.screens.name}}" aria-label="{{page_sift.screens.name}}" autocomplete="off" spellcheck="false">
+      <label class="sheet-pick"><select id="sf-col-type" aria-label="{{page_sift.screens.type}}"><option value="text">{{page_sift.screens.text}}</option><option
+              value="choice">{{page_sift.screens.choice_list}}</option><option value="number">{{page_sift.screens.number}}</option></select><svg class="sheet-chevron" viewBox="0 0 12 12" fill="none"
+              stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+              focusable="false"><path d="M3 4.6 6 7.6l3-3"/></svg></label>
+      <button class="ghost small" id="sf-col-add" type="button">{{page_sift.screens.add}}</button>
+    </div>
+    <textarea class="sf-col-options" id="sf-col-options" rows="3" placeholder="{{page_sift.screens.choices_one_a_line}}" aria-label="{{page_sift.screens.choices}}"
+              spellcheck="false" hidden></textarea>
+    <div class="card-actions card-done"><button class="primary" id="sf-cols-done" type="button" data-done>{{page_sift.screens.done}}</button></div>
+  </div>
+</div>
+
+<!-- Set up the form, from the line over the table at Extract and appraise (13 October, later): each field of
+     his in the form's order, those in no section first, then each section under its heading, each field with
+     the one handle, its name, type, where it shows, Remove, its key, Not reported, its section, the Sift
+     column it starts from, the field and values it is shown for and its choices, and each heading with the
+     handle, its name and Remove. Add a field and Add a section at the foot. Each change is kept at once in
+     sift.json, so Done closes the card as its X does -->
+<div class="overlay" id="sf-fc" hidden>
+  <div class="card sf-fc-card">
+    <button class="card-close" id="sf-fc-close" type="button" tabindex="-1" aria-label="{{page_sift.screens.close}}" title="{{page_sift.screens.close}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <p class="kicker">Sift</p>
+    <h2>{{page_sift.screens.set_up_the_form}}</h2>
+    <ol class="sf-fc-list" id="sf-fc-list"></ol>
+    <p class="sr-only" id="sf-fc-said" aria-live="polite"></p>
+    <h3 class="sf-cols-h">{{page_sift.screens.add_a_field}}</h3>
+    <div class="sf-cols-add">
+      <input id="sf-fc-name" type="text" placeholder="{{page_sift.screens.name}}" aria-label="{{page_sift.screens.name}}" autocomplete="off" spellcheck="false">
+      <!-- its Type a select drawn as a field's own Type is above it, with its border and arrow, where it stood borderless
+           as the sheet switcher (17 October, later) -->
+      <label class="sf-fc-sel"><select id="sf-fc-type" aria-label="{{page_sift.screens.type}}"><option value="text">{{page_sift.screens.text}}</option><option
+              value="choice">{{page_sift.screens.choice_list}}</option><option value="number">{{page_sift.screens.number}}</option><option value="yesno">{{page_sift.screens.yes_or_no}}</option><option
+              value="multi">{{page_sift.screens.several_choices}}</option><option value="long">{{page_sift.screens.long_text}}</option><option value="passages">{{page_sift.screens.passages}}</option></select></label>
+      <button class="ghost small" id="sf-fc-add" type="button">{{page_sift.screens.add}}</button>
+    </div>
+    <textarea class="sf-col-options" id="sf-fc-options" rows="3" placeholder="{{page_sift.screens.choices_one_a_line}}" aria-label="{{page_sift.screens.choices}}"
+              spellcheck="false" hidden></textarea>
+    <h3 class="sf-cols-h">{{page_sift.screens.add_a_section}}</h3>
+    <div class="sf-cols-add">
+      <input id="sf-fc-sec-name" type="text" placeholder="{{page_sift.screens.heading}}" aria-label="{{page_sift.screens.heading}}" autocomplete="off" spellcheck="false">
+      <button class="ghost small" id="sf-fc-sec-add" type="button">{{page_sift.screens.add}}</button>
+    </div>
+    <div class="card-actions card-done"><button class="primary" id="sf-fc-done" type="button" data-done>{{page_sift.screens.done}}</button></div>
+  </div>
+</div>
+
+<!-- The second screener, from Sift's title bar, for the stage showing (PRISMA 2020 item 8): who screens
+     what share, the calibration records, each draw and its seed, how many came back and, while a draw
+     is blind, how many of its records he has still to decide, never which way theirs went. Once both
+     have decided a draw's records, the agreement before any discussion, its kappa and table, Draw a
+     further share below the setting, and the differences. Their workbook and the differences workbook
+     are written beside the screening, and a returned one is taken back by a drop or by Take back a
+     workbook -->
+<div class="overlay" id="sf-two" hidden>
+  <div class="card sf-two-card" role="dialog" aria-labelledby="sf-two-head">
+    <button class="card-close" id="sf-two-close" type="button" tabindex="-1" aria-label="{{page_sift.screens.close}}" title="{{page_sift.screens.close}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <p class="kicker">Sift</p>
+    <h2 id="sf-two-head">{{page_sift.screens.second_screener}}</h2>
+    <div class="sf-two-body" id="sf-two-body"></div>
+    <p class="sf-two-said" id="sf-two-said" role="status" aria-live="polite"></p>
+    <div class="card-actions sf-two-acts">
+      <button class="ghost" id="sf-two-take" type="button">{{page_sift.screens.take_back_a_workbook}}</button>
+      <button class="ghost" id="sf-two-diff" type="button">{{page_sift.screens.make_the_differences_workbook}}</button>
+      <button class="primary" id="sf-two-make" type="button">{{page_sift.screens.make_the_second_screener_s}}</button>
+    </div>
+    <input type="file" id="sf-two-file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+  </div>
+</div>
+
+<!-- Export to Zotero, from Export's menu in Sift's title bar (Sync to Zotero until 12 October): the
+     records that go, those included at full text, the rows the table shows or every record, each with
+     its count, then what Export would do, said before it is pressed, and once pressed how far it has
+     gone and what it did. It calls no model -->
+<div class="overlay" id="sf-zot" hidden>
+  <div class="card sf-zot-card" role="dialog" aria-labelledby="sf-zot-head">
+    <button class="card-close" id="sf-zot-close" type="button" tabindex="-1" aria-label="{{page_sift.screens.close}}" title="{{page_sift.screens.close}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <p class="kicker">Sift</p>
+    <h2 id="sf-zot-head">{{page_sift.screens.export_to_zotero}}</h2>
+    <div class="sf-zot-which" id="sf-zot-which" role="radiogroup" aria-label="{{page_sift.screens.records}}">
+      <label><input type="radio" name="sf-zot-which" value="included" checked> <span id="sf-zot-w-included">{{page_sift.screens.included_at_full_text}}</span></label>
+      <label><input type="radio" name="sf-zot-which" value="filter"> <span id="sf-zot-w-filter">{{page_sift.screens.the_rows_the_table_shows}}</span></label>
+      <label><input type="radio" name="sf-zot-which" value="all"> <span id="sf-zot-w-all">{{page_sift.screens.every_record}}</span></label>
+    </div>
+    <p class="sf-zot-said" id="sf-zot-said" role="status" aria-live="polite"></p>
+    <div class="card-actions">
+      <button class="ghost" id="sf-zot-cancel" type="button">{{page_sift.screens.cancel}}</button>
+      <button class="primary" id="sf-zot-go" type="button" disabled>{{page_sift.screens.export}}</button>
+    </div>
+  </div>
+</div>
+
+<!-- Country on a map, from Show on map beside Country in the filters (13 October, later): the map alone,
+     a circle on each country its records name, its area following the count the Country group shows,
+     the other filters applied, set apart where they would overlap, each with its number and its
+     country's name (13 October, evening), the records with no country a line under it, the projection
+     and the borders' source in a note under that, and the map saved for a paper as a PNG or an SVG. It
+     draws from static/world.json and fetches nothing from the web -->
+<div class="overlay" id="sf-map" hidden>
+  <div class="card sf-map-card" id="sf-map-card" role="dialog" aria-modal="true" aria-labelledby="sf-map-head" tabindex="-1">
+    <button class="card-close" id="sf-map-close" type="button" tabindex="-1" aria-label="{{page_sift.screens.close}}" title="{{page_sift.screens.close}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <h2 class="sr-only" id="sf-map-head"></h2>
+    <div class="sf-map-frame" id="sf-map-frame">
+      <div class="sf-map-box" id="sf-map-box"></div>
+      <div class="sf-map-tip" id="sf-map-tip" aria-hidden="true" hidden></div>
+    </div>
+    <ul class="sr-only" id="sf-map-list"></ul>
+    <p class="sf-map-line" id="sf-map-line"></p>
+    <p class="sf-map-line sf-map-note" id="sf-map-note"></p>
+    <div class="card-actions sf-map-acts">
+      <button class="ghost" id="sf-map-svg" type="button"></button>
+      <button class="ghost" id="sf-map-png" type="button"></button>
+    </div>
+  </div>
+</div>
+
+<!-- One question before Sift goes on: the calls a proposal for the round will make, or whether to
+     replace a record's PDF -->
+<div class="overlay" id="sf-ask" hidden>
+  <div class="card">
+    <h2 id="sf-ask-head"></h2>
+    <p class="trim-line" id="sf-ask-line"></p>
+    <div class="card-actions">
+      <button class="ghost" id="sf-ask-no" type="button">{{page_sift.screens.cancel}}</button>
+      <button class="primary" id="sf-ask-yes" type="button"></button>
+    </div>
+  </div>
+</div>
+
+<!--part:settings-tab-->
+        <button type="button" role="tab" id="tab-databases" data-pane="databases" aria-controls="pane-databases" data-only="sift">{{page_sift.settings_tab.databases}}</button>
+        <button type="button" role="tab" id="tab-sift" data-pane="sift" aria-controls="pane-sift" data-only="sift">{{page_sift.home_first.projects}}</button>
+        <button type="button" role="tab" id="tab-zotero" data-pane="zotero" aria-controls="pane-zotero" data-only="sift">{{page_sift.settings_tab.zotero}}</button>
+<!--part:settings-pane-->
+        <!-- Sift's own, which Sift's cog opens: a row of the Sift projects' names when there are
+             several, under Sift's name as Trace's is, each for its newest screening, the screening
+             open first when the card opens over one. Then its databases, whatever the AI switch says, the
+             user's own list in his order, each with its platform, By API or By export, and for By
+             API its key fields, which show only Saved or Not set, then Add, the list saved with Save
+             and a key at once with its own. Then the project chosen's own parts: PDFs, Find open-access PDFs with the email
+             Unpaywall asks for, whatever the switch says, and with AI features ticked its AI
+             proposals, the switch and the prompt kept in sift.json beside its CSV and saved with
+             Save, and the bench under them. Then Zotero, whatever the switch says, since a sync
+             calls no model -->
+        <section class="settings-pane" id="pane-sift" role="tabpanel" aria-labelledby="tab-sift" hidden>
+          <h3 class="pane-title">{{page_sift.home_first.projects}}</h3>
+          <p class="fineprint" id="sfp-none">{{page_sift.settings_pane.no_project_yet}}</p>
+          <!-- the row of the Sift projects' names when there are several, over the chosen one's own parts -->
+          <div class="proj-pick" id="sfp-pick" role="group" aria-label="{{page_sift.settings_pane.sift_projects}}" hidden></div>
+          <div id="sfp-block" hidden>
+            <!-- the Sift project's name and research question, saved with Save as an IPA project's are,
+                 kept in the app's own list and never in its folder, and Remove from Idiograph, which
+                 forgets the project after a one-line confirm and never touches its folder or a file in it -->
+            <div class="sfp-own" id="sfp-own">
+              <h4 class="pane-sub" id="sfp-own-sub">{{page_sift.settings_pane.project}}</h4>
+              <div class="setting"><label for="sfp-name">{{page_sift.settings_pane.project_name}}</label><input id="sfp-name" type="text" spellcheck="false"></div>
+              <div class="setting stacked">
+                <label for="sfp-question">{{page_sift.screens.research_question}}</label>
+                <textarea id="sfp-question" class="question-box" rows="3" spellcheck="true" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"></textarea>
+              </div>
+              <div class="setting stacked">
+                <span class="setting-name">{{page_sift.settings_pane.folder}}</span>
+                <div class="root-line"><p class="path" id="sfp-root"></p><button type="button"
+                     class="ghost small btn-remove" id="sfp-remove">{{page_sift.settings_pane.remove_from_sift}}</button></div>
+              </div>
+              <p class="fineprint" id="sfp-said" hidden></p>
+            </div>
+            <!-- the project's second screener (PRISMA 2020 item 8), off on a new project: his name or
+                 initials and theirs, the share drawn at each stage, every record by default, the
+                 calibration records, none by default, and the kappa below which Sift offers a further
+                 draw, 0.6 by default (McHugh 2012). Saved with Save and kept in the app's own list, as
+                 the name and the question are -->
+            <div class="sfp-two" id="sfp-two" hidden>
+              <h4 class="pane-sub" id="sfp-two-sub">{{page_sift.screens.second_screener}}</h4>
+              <div class="switches"><label><input type="checkbox" id="sfp-two-on"> {{page_sift.settings_pane.a_second_screener_for_this}}</label></div>
+              <div class="sfp-two-fields" id="sfp-two-fields">
+                <div class="setting"><label for="sfp-two-first">{{page_sift.settings_pane.your_name_or_initials}}</label><input id="sfp-two-first"
+                     type="text" spellcheck="false" maxlength="40" autocomplete="off"></div>
+                <div class="setting"><label for="sfp-two-name">{{page_sift.settings_pane.their_name_or_initials}}</label><input id="sfp-two-name"
+                     type="text" spellcheck="false" maxlength="40" autocomplete="off"></div>
+                <div class="setting"><label for="sfp-two-every">{{page_sift.settings_pane.share_drawn_at_each_stage}}</label><span class="sfp-two-share"><select
+                     id="sfp-two-every"><option value="every">{{page_sift.screens.every_record}}</option><option value="share">{{page_sift.settings_pane.a_share}}</option></select><input
+                     id="sfp-two-share" type="number" min="1" max="99" step="1" inputmode="numeric" aria-label="{{page_sift.settings_pane.the_share_in_per_cent}}"><span
+                     class="sfp-two-pc" id="sfp-two-pc">%</span></span></div>
+                <div class="setting"><label for="sfp-two-cal">{{page_sift.settings_pane.calibration_records}}</label><input id="sfp-two-cal" type="number"
+                     min="0" max="2000" step="1" inputmode="numeric"></div>
+                <div class="setting"><label for="sfp-two-kappa">{{page_sift.settings_pane.offer_a_further_draw_below}}</label><input
+                     id="sfp-two-kappa" type="number" min="0" max="1" step="0.05" inputmode="decimal"></div>
+              </div>
+            </div>
+            <div class="sfp-pdfs" id="sfp-pdfs">
+              <h4 class="pane-sub" id="sfp-sub">{{page_sift.settings_pane.pdfs_and_citations}}</h4>
+              <p class="fineprint">{{page_sift.settings_pane.looks_up_each_record_that}}</p>
+              <div class="setting sf-oa-row">
+                <label for="sf-oa-email">{{page_sift.settings_pane.your_email_for_unpaywall}}</label>
+                <input id="sf-oa-email" type="email" autocomplete="email" spellcheck="false">
+              </div>
+              <div class="key-row">
+                <button class="ghost small" id="sf-oa-go" type="button"><span id="sf-oa-word">{{page_sift.settings_pane.find_open_access_pdfs}}</span></button>
+                <span class="fineprint" id="sf-oa-said" role="status" aria-live="polite"></span>
+              </div>
+              <!-- Fill from OpenAlex, beside it (13 October, in place of Find citation counts): what a run
+                   fills from OpenAlex and Crossref by each record's DOI, for a screening whose run came
+                   before runs filled it -->
+              <p class="fineprint">{{page_sift.settings_pane.fill_from_openalex_asks_openalex}}</p>
+              <div class="key-row">
+                <button class="ghost small" id="sf-fill-go" type="button"><span id="sf-fill-word">{{page_sift.settings_pane.fill_from_openalex}}</span></button>
+                <span class="fineprint" id="sf-fill-said" role="status" aria-live="polite"></span>
+              </div>
+            </div>
+            <div id="sfa-block" data-ai-set>
+            <div id="sfa-inner" hidden>
+              <h4 class="pane-sub" id="sfa-sub">{{page_sift.settings_pane.ai_proposals}}</h4>
+              <p class="fineprint restart-line" id="sfa-restart" hidden>{{page_sift.settings_pane.restart_the_server_to_finish}}</p>
+              <div id="sfa-fields" hidden>
+                <div class="switches"><label><input type="checkbox" id="sfa-ai"> {{page_sift.settings_pane.ai_proposals_for_this_screening}}</label></div>
+                <div class="setting stacked">
+                  <label for="sfa-prompt">{{page_sift.settings_pane.prompt}}</label>
+                  <textarea id="sfa-prompt" class="prompt-box" rows="12" spellcheck="false" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"></textarea>
+                </div>
+                <div class="key-row">
+                  <button class="ghost small" id="sfa-reset" type="button">{{page_sift.screens.reset_to_default}}</button>
+                  <span class="fineprint">{{page_sift.settings_pane.placeholders}} <span class="mono">{stage}</span>, <span class="mono">{codes}</span></span>
+                </div>
+                <p class="fineprint" id="sfa-model"></p>
+                <!-- the bench: the prompt as it stands in the box, saved or not, tried on one record picked here,
+                     what comes back shown and nothing written. Try takes the sparkles from sift.js -->
+                <div class="sf-bench" id="sf-bench">
+                  <label for="sf-bench-rec">{{page_sift.settings_pane.try_the_prompt_on_a}}</label>
+                  <label class="sheet-pick sf-bench-pick"><select id="sf-bench-rec"></select><svg class="sheet-chevron" viewBox="0 0 12 12"
+                         fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true" focusable="false"><path d="M3 4.6 6 7.6l3-3"/></svg></label>
+                  <p class="fineprint" id="sf-bench-cost"></p>
+                  <button class="ghost small" id="sf-bench-try" type="button"><span id="sf-bench-word">{{page_sift.settings_pane.try}}</span></button>
+                  <div class="sf-bench-out" id="sf-bench-out" hidden>
+                    <p class="sf-bench-head"><span class="sf-pill" id="sf-bench-pill" data-decision=""></span><span class="sf-bench-reason"
+                       id="sf-bench-reason"></span><span class="ai-note" id="sf-bench-note"></span></p>
+                    <p class="sf-bench-grounds" id="sf-bench-grounds"></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- Sift's Databases, every project's, the user's own list in his order -->
+        <section class="settings-pane" id="pane-databases" role="tabpanel" aria-labelledby="tab-databases" hidden>
+          <div class="dbs" id="dbs-block">
+            <h3 class="pane-title" id="dbs-sub">{{page_sift.settings_tab.databases}}</h3>
+            <p class="fineprint restart-line" id="dbs-restart" hidden>{{page_sift.settings_pane.restart_the_server_to_finish}}</p>
+            <ul class="dbs-list" id="dbs-list"></ul>
+            <div class="agents-guide dbs-add" id="dbs-add-line"><select id="dbs-pick" aria-label="{{page_sift.settings_pane.database}}"></select><input
+                 id="dbs-other" type="text" spellcheck="false" placeholder="{{page_sift.screens.name}}" aria-label="{{page_sift.settings_pane.the_database_s_name}}" hidden><button
+                 type="button" class="ghost small" id="dbs-add">{{page_sift.screens.add}}</button></div>
+          </div>
+        </section>
+
+        <!-- Sift's Zotero, the library a sync goes to -->
+        <section class="settings-pane" id="pane-zotero" role="tabpanel" aria-labelledby="tab-zotero" hidden>
+          <!-- Zotero: the library a sync goes to, his own, the key's owner's, or a group's by its id,
+               and the key, kept in the keychain as every key is and showing only Saved or Not set,
+               with Save and Remove at once. A key saved is checked at once, Zotero's answer said in
+               one line, as is the library when it changes. The library and the group's id go with
+               Save at the foot -->
+          <div class="zot" id="zot-block">
+            <h3 class="pane-title" id="zot-sub">{{page_sift.settings_tab.zotero}}</h3>
+            <p class="fineprint restart-line" id="zot-restart" hidden>{{page_sift.settings_pane.restart_the_server_to_finish}}</p>
+            <div id="zot-fields">
+              <div class="dbs-key"><label class="dbs-key-label" for="zot-library">{{page_sift.settings_pane.library}}</label><select class="zot-select"
+                   id="zot-library"><option value="user">{{page_sift.settings_pane.your_own}}</option><option value="group">{{page_sift.settings_pane.a_group_s}}</option></select></div>
+              <div class="dbs-key" id="zot-group-row" hidden><label class="dbs-key-label" for="zot-group">{{page_sift.settings_pane.group_id}}</label><input
+                   id="zot-group" class="dbs-key-field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></div>
+              <div class="dbs-key zot-key"><label class="dbs-key-label" for="zot-key">{{page_sift.settings_pane.key}}</label><input id="zot-key"
+                   class="dbs-key-field" type="password" autocomplete="off" autocapitalize="off" spellcheck="false"
+                   placeholder="{{page_sift.settings_pane.not_set}}"><button type="button" class="ghost small" id="zot-key-save">{{page_sift.settings_pane.save}}</button><button
+                   type="button" class="ghost small btn-remove" id="zot-key-clear" hidden>{{page_sift.settings_pane.remove}}</button></div>
+              <div class="dbs-foot"><span class="fineprint dbs-said" id="zot-said" role="status" aria-live="polite"></span></div>
+            </div>
+          </div>
+        </section>
+
+<!--part:ai-warn-->
+            <p data-only="sift">{{page_sift.ai_warn.many_researchers_are_trying_ai}}</p>
+<!--part:ai-feature-->
+            <label data-only="sift"><input type="checkbox" data-ai-feature="proposals"> {{page_sift.ai_feature.ai_proposals_in_screening}}</label>
+<!--part:ai-confirm-->
+    <div class="ai-confirm-body" data-only="sift">
+      <p class="trim-line">{{page_sift.ai_confirm.not_recommended_for_a_review}}</p>
+      <ul class="ai-confirm-list">
+        <li>{{page_sift.ai_confirm.if_you_are_new_to}}</li>
+        <li>{{page_sift.ai_confirm.ai_makes_mistakes_and_invents}}</li>
+        <li>{{page_sift.ai_confirm.the_records_you_ask_about}}</li>
+        <li>{{page_sift.ai_confirm.you_may_need_to_report}}</li>
+      </ul>
+    </div>
+<!--part:scripts-->
+<script src="/sift.js"></script>
+<script src="/sift_search.js"></script>
+<script src="/sift_settings.js"></script>

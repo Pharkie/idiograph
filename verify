@@ -1,0 +1,1900 @@
+#!/usr/bin/env python3
+"""The Idiograph merge gate and its commit command. One script, one machine-readable verdict.
+
+Copied from the gate of the repository Idiograph was split from (20 October 2026). The app is
+this repo's root and its suite is tests/. The real study data the suite's reference checks read,
+the names the scans look for and the real-name scan's script live only on the maintainer's Mac,
+named in the local gate file (GATE_LOCAL below). Without it those checks skip and say so.
+
+USAGE
+
+    ./verify --fast     seconds, no gate: document budgets, the pseudonym scan, the
+                        case-folder-name scan, the conflict markers and the
+                        participants'-words scan from its cache
+    ./verify --docs     adds the banned-pattern report, and proves the diff is docs only
+    ./verify            the full gate: everything, plus py_compile, the gate's own
+                        tests, the real-name scan, the participants'-words scan
+                        reading the case data when it changed, and the Idiograph suite
+    ./commit -m "<message>" -- <path>...
+                        commits exactly the named paths, nothing else staged or not
+                        (./commit runs ./verify --commit)
+
+READ THE LAST LINE OF STDOUT, NEVER THE EXIT CODE.
+
+    VERIFY: GREEN merge=yes mode=full sha=<sha> tree=clean snap=<tree sha>
+    VERIFY: RED merge=no mode=full sha=<sha> tree=dirty reason=budgets snap=<tree sha>
+    COMMIT: GREEN sha=<new sha>
+    COMMIT: RED reason=<slug>
+
+`merge=yes` appears only on GREEN. This repo has no branches and no remote, so
+it means safe to commit, nothing more. `tree=clean` reports whether
+`git status --porcelain` is empty and is informational: Adam's working tree
+carries unrelated edits most of the time, and that is not a failure.
+
+THE SNAPSHOT. Every run checks a frozen copy, never the tree itself. It clones
+every tracked file and every untracked unignored one (APFS clonefile, so no bytes
+are copied) into $IDIOGRAPH_VERIFY_TMP/idiograph-verify-snap-<pid>/, freezes a copy
+of the index beside it, and hashes the copy into a git tree object through a
+temporary index. That tree is `snap=` on the verdict, so a commit can be checked
+against what passed. An edit or a commit in the real tree mid-run changes nothing
+that is checked. The copy is removed at the end, whatever the verdict. The real
+study data is outside the repository, so the name scan and the Idiograph suite
+read the real folders, never writing to them.
+
+TWO LOCKS, both in $IDIOGRAPH_VERIFY_TMP (default /tmp). The run lock,
+idiograph-verify-run.lock, is held for the whole run, so a second run refuses
+with reason=locked. The commit lock, idiograph-verify.lock, is held by a run only
+while it takes its snapshot, and by ./commit while it checks and commits, so a
+commit waits seconds for a run, never minutes.
+
+THE SHARED MAC. A full run shares Adam's Mac by the rule in
+~/.claude/coordinator-principles.md, "Sharing one Mac between fleets", as
+~/.claude/bin/heavy does. Before it takes any lock, it waits as
+~/.claude/machine-load/waiting/academy-<pid>.json. While a Harbour gate heads
+Harbour's queue, it waits with no time limit. Harbour marks its head
+"queueHead": true in waiting/, and once any live Harbour waiter carries the field,
+the flag alone decides. Until then Harbour's head is its earliest live waiter by
+enqueuedAt (else the id's leading milliseconds, else the file's time), in
+waiting/ or in Harbour's own queue folder, where an entry with no project is
+Harbour's. Otherwise it waits while another project has a waiter that queued
+before it and has waited over 20 minutes, or while its own place would make more
+than the machine's two, each live announced run counting its "places" (1 when
+absent, 2 for Harbour's full gate), at most 60 minutes in all. A file counts only
+while its pid lives and that process started no later than a minute after the
+file's own time, so a reused pid counts for nothing. It then takes the run lock
+(refusing locked as ever, its waiter file gone) and is announced, "places": 1, as
+~/.claude/machine-load/academy-<pid>.json until it ends. Both go however it
+ends. A run started inside another announced run, as when heavy runs ./verify,
+has its place already, so it neither waits nor is announced again. --fast, --docs
+and ./commit take no place, never wait, and run or commit while a full run waits.
+HEAVY_NO_WAIT=1 skips the wait, and HEAVY_QUEUES names the queue folders as it
+does for heavy. IDIOGRAPH_MACHINE_LOAD names another machine-load folder,
+IDIOGRAPH_MACHINE_QUEUES its queue folders, IDIOGRAPH_MACHINE_CAP another cap in
+seconds and IDIOGRAPH_MACHINE_OLD another 20 minutes in seconds, for the gate's own
+tests. With IDIOGRAPH_VERIFY_TMP set and no IDIOGRAPH_MACHINE_LOAD, or on a machine
+with neither heavy nor the folder, a run neither waits nor is announced, and says
+so in one line.
+
+./commit takes the commit lock, waiting up to three minutes, runs the fast
+checks on the tree as it will stand (HEAD plus the named paths), and commits
+exactly the named paths. When it changes code (.py, .js, verify, commit, anything
+under tests/ or Tools/idiograph/) it also needs a GREEN full verdict in
+.verify/history.log whose snap holds that code's present content.
+
+THE RULE BOTH SESSIONS FOLLOW: commit only through ./commit, never a bare git
+commit, and land code on a GREEN full gate, the train's. No warning to the other
+session is needed before a full gate.
+
+THE FULL GATE IS THE COORDINATOR'S TRAIN, about four a day and one before the
+hand-over (Adam, 18 October). A build finishes with its targeted check instead,
+once, at the end: Tools/idiograph/tests/test_idiograph.py --changed, or --area.
+The gate sets IDIOGRAPH_TRAIN=1 for the Idiograph suite, which runs every area in
+a train alone and skips itself anywhere else, and a suite that skipped itself
+here is RED with reason=idiograph-not-run. The coordinator runs the train in the
+background:
+
+    ./verify > .verify/last.log 2>&1 &
+    until grep -q '^VERIFY:' .verify/last.log; do sleep 10; done; tail -1 .verify/last.log
+
+Never block inside a tool call for longer than the prompt cache lives. Diagnose
+a red before re-running it.
+
+iCloud keeps the older side of a clash between its upload and a local write as
+"<name> 2.<ext>" beside the file. Such a copy is never part of the snapshot. A
+copy byte for byte the same as its file at HEAD, in the index or on disk is
+moved to .verify/icloud-copies/ at the start of a run. A copy that differs is
+left where it is and named, since it may hold work.
+
+Every verdict is appended to .verify/history.log.
+"""
+
+from __future__ import annotations
+
+import collections
+import csv
+import ctypes
+import hashlib
+import io
+import json
+import os
+import re
+import shutil
+import signal
+import stat
+import subprocess
+import sys
+import tempfile
+import time
+import zipfile
+from array import array
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+VENV_PY = ROOT / ".venv" / "bin" / "python3"
+
+# openpyxl and lxml live only in the project venv, and checks that reach for
+# them must not fail on the system python. Re-exec once, then carry on.
+#
+# Test sys.prefix, never the resolved path of sys.executable: `.venv/bin/python3`
+# is a symlink to the same Homebrew binary as the system `python3`, so resolving
+# both makes them compare equal and the re-exec silently never happens. That bug
+# shipped for about ten minutes on 21 September 2026 and the full gate caught it.
+# The prefix is compared resolved, because python reports a symlinked .venv (a
+# worktree's) by its target, and the environment flag stops a second exec.
+REEXEC_FLAG = "IDIOGRAPH_VERIFY_REEXEC"
+if (VENV_PY.is_file() and not os.environ.get(REEXEC_FLAG)
+        and Path(sys.prefix).resolve() != (ROOT / ".venv").resolve()):
+    os.environ[REEXEC_FLAG] = "1"
+    os.execv(str(VENV_PY), [str(VENV_PY), str(Path(__file__).resolve()), *sys.argv[1:]])
+
+TMP = Path(os.environ.get("IDIOGRAPH_VERIFY_TMP", "").strip() or "/tmp")
+COMMIT_LOCK = TMP / "idiograph-verify.lock"
+RUN_LOCK = TMP / "idiograph-verify-run.lock"
+SNAP_PREFIX = "idiograph-verify-snap-"
+COMMIT_PREFIX = "idiograph-commit-"
+COMMIT_WAIT = 180.0
+VERIFY_DIR = ROOT / ".verify"
+HISTORY = VERIFY_DIR / "history.log"
+GREEN_FULL_RX = re.compile(r"VERIFY: GREEN .*\bmode=full\b.*\bsnap=([0-9a-f]{40})\b")
+
+# A temporary index over the snapshot reuses the stat data of the real index, so
+# only what changed gets hashed. Clones keep size and mtime but not inode or
+# ctime, which is why the comparison is minimal.
+SNAP_GIT_CONFIG = (
+    "-c", "core.checkStat=minimal", "-c", "core.trustctime=false",
+    "-c", "core.fsmonitor=false", "-c", "core.untrackedCache=false",
+)
+
+# The local gate file (21 October 2026). Where the real study data lives, the names the gate scans
+# for and the paths of the maintainer's own scripts stay out of the public tree, in a file on the
+# maintainer's Mac that the gate and the suite read when it is there. IDIOGRAPH_GATE_LOCAL names it
+# elsewhere. With no such file the checks that need it say so in one line and skip. Its keys are in
+# docs/internals.md, "The local gate file".
+GATE_LOCAL = Path(os.environ.get("IDIOGRAPH_GATE_LOCAL", "").strip()
+                  or "~/.config/idiograph/gate.local.json").expanduser()
+
+
+def _gate_local() -> dict:
+    try:
+        data = json.loads(GATE_LOCAL.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+LOCAL = _gate_local()
+
+
+def _local_text(key: str) -> str:
+    value = LOCAL.get(key)
+    return value.strip() if isinstance(value, str) else ""
+
+
+# The folder that holds the real data the suite's reference checks read, IDIOGRAPH_ACADEMY first.
+_ACADEMY_TEXT = os.environ.get("IDIOGRAPH_ACADEMY", "").strip() or _local_text("academy")
+ACADEMY = Path(_ACADEMY_TEXT).expanduser() if _ACADEMY_TEXT else None
+MAIN_DATA = ACADEMY / _local_text("main_data") if ACADEMY and _local_text("main_data") else None
+REGISTER_NAME = _local_text("register")
+# The real-name scan's script stays in the maintainer's own study folder, beside the register it
+# reads. The key is an absolute path, or one under `academy`.
+def _name_scan() -> Path | None:
+    text = _local_text("name_scan")
+    if not text:
+        return None
+    path = Path(text).expanduser()
+    if path.is_absolute():
+        return path
+    return ACADEMY / path if ACADEMY else None
+
+
+NAME_SCAN = _name_scan()
+
+# The Idiograph suite runs every area in a train alone (Adam, 18 October). This variable,
+# set for the gate's run, makes that run one. The suite's last line once it has run.
+IDIOGRAPH_TRAIN = "IDIOGRAPH_TRAIN"
+SUITE_COUNT_RX = re.compile(r"^\d+ passed, \d+ failed, \d+ skipped$", re.M)
+
+# The real-name scan exits non-zero on ANY hit. Over this tree it finds four that are not
+# leaks (checked 21 October 2026). Gating on a rise above them catches a NEW hit without
+# leaving the gate permanently red.
+NAME_SCAN_BASELINE = 4
+
+DOCS_OK_SUFFIXES = {".md", ".txt"}
+DOCS_OK_PREFIXES = ("docs/", ".claude/")
+
+TEXT_SUFFIXES = {
+    ".md", ".txt", ".csv", ".tsv", ".py", ".sh", ".json", ".yaml", ".yml",
+    ".toml", ".ini", ".cfg", ".tex", ".bib", ".html", ".htm", ".xml", ".bat",
+    ".code-workspace", ".gitignore",
+}
+
+# What ./commit treats as code, which needs a GREEN full snap holding it.
+CODE_SUFFIXES = {".py", ".js"}
+CODE_FILES = {"verify", "commit"}
+# Every path in this repo is the app, as everything under Tools/idiograph/ was in the repository it came from.
+CODE_PREFIXES = ("",)
+
+# The names no tracked file may carry, as patterns in the local file's "forbidden_names", so the
+# check that guards a name never publishes it. None there, and the scan skips.
+PSEUDONYM_EXEMPT = {"CLAUDE.md", "conventions.md"}
+PSEUDONYM_RXS = [re.compile(p, re.IGNORECASE) for p in LOCAL.get("forbidden_names") or []
+                 if isinstance(p, str) and p]
+
+# GRAVITY case folders are named `P<n> - <Pseudonym>-<Other>`, so the suffix on a
+# quoted folder path is the leak vector: it travels inside anything that names a
+# path, which is most reports, scripts and status files. Anything entering git
+# history must name a case by pseudonym alone. This runs in every mode.
+CASE_FOLDER_RX = re.compile(r"P\d - [A-Z][a-z]+-[A-Z][a-z]+")
+
+# The folder whose changed markdown the --docs banned-pattern report reads, from the local file.
+CASE_STUDY_DIR = _local_text("case_study_dir")
+BANNED = (
+    ("em dash", re.compile("—")),
+    ('the word "would"', re.compile(r"\bwould\b", re.IGNORECASE)),
+    ("semicolon", re.compile(";")),
+)
+
+
+# ---------------------------------------------------------------- helpers
+
+
+def git_env(extra: dict[str, str] | None = None) -> dict[str, str]:
+    # No optional locks: a read must never take index.lock from under the other session.
+    env = dict(os.environ, GIT_OPTIONAL_LOCKS="0")
+    if extra:
+        env.update(extra)
+    return env
+
+
+def git_run(*args: str, env: dict[str, str] | None = None, cwd: Path | None = None,
+            stdin: bytes | None = None) -> tuple[int, bytes, str]:
+    proc = subprocess.run(["git", *args], cwd=cwd or ROOT, input=stdin, capture_output=True,
+                          env=git_env(env), check=False)
+    return proc.returncode, proc.stdout, proc.stderr.decode("utf-8", "replace")
+
+
+def git(*args: str, env: dict[str, str] | None = None) -> str:
+    return git_run(*args, env=env)[1].decode("utf-8", "replace")
+
+
+def git_z(*args: str, env: dict[str, str] | None = None) -> list[str]:
+    """A NUL-separated listing, so a path with an accent arrives unquoted."""
+    out = git_run(*args, env=env)[1].decode("utf-8", "surrogateescape")
+    return [p for p in out.split("\0") if p]
+
+
+def head_sha() -> str:
+    return git("rev-parse", "--short", "HEAD").strip() or "unknown"
+
+
+def tree_state(env: dict[str, str] | None = None) -> str:
+    return "clean" if not git_z("status", "--porcelain", "-z", env=env) else "dirty"
+
+
+def is_text(rel: str) -> bool:
+    path = Path(rel)
+    return path.suffix.lower() in TEXT_SUFFIXES or path.name == ".gitignore"
+
+
+def checks_read(rel: str) -> bool:
+    """Whether some check reads this file, so it must reach the snapshot as a file."""
+    return is_text(rel) or rel in CODE_FILES or rel.startswith(CODE_PREFIXES)
+
+
+def is_code(rel: str) -> bool:
+    return Path(rel).suffix.lower() in CODE_SUFFIXES or rel in CODE_FILES or rel.startswith(CODE_PREFIXES)
+
+
+def pid_alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True  # alive, owned by another user
+    return True
+
+
+# iCloud's copy of a file or folder: the name, a space, a number from 2, then the extension
+ICLOUD_COPY_RX = re.compile(r"^(?P<stem>.+) (?:[2-9]|[1-9]\d+)(?P<ext>\.[^. ]+)?$")
+ICLOUD_DIR = VERIFY_DIR / "icloud-copies"
+
+
+def icloud_original(rel: str) -> str | None:
+    """The file an untracked path is iCloud's copy of, or None. A part of the path is a copy only
+    when the name without its number stands beside it, so a "Chapter 2.docx" with no
+    "Chapter.docx" is a file in its own right."""
+    parts = rel.split("/")
+    for i, part in enumerate(parts):
+        m = ICLOUD_COPY_RX.match(part)
+        if not m:
+            continue
+        name = m.group("stem") + (m.group("ext") or "")
+        if (ROOT.joinpath(*parts[:i]) / name).exists():
+            return "/".join([*parts[:i], name, *parts[i + 1:]])
+    return None
+
+
+def blob(spec: str) -> str | None:
+    code, out, _ = git_run("rev-parse", "--verify", "-q", spec)
+    return out.decode().strip() or None
+
+
+def sweep_icloud_copies() -> list[str]:
+    """Move iCloud's copies that match their file at HEAD, in the index or on disk into
+    .verify/icloud-copies/, and name the ones that differ, which are left in place."""
+    lines: list[str] = []
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    for rel in git_z("ls-files", "-z", "--others", "--exclude-standard"):
+        orig = icloud_original(rel)
+        if not orig:
+            continue
+        copy = git("hash-object", "--", rel).strip()
+        same = {blob(f"HEAD:{orig}"), blob(f":{orig}")}
+        if (ROOT / orig).is_file():
+            same.add(git("hash-object", "--", orig).strip())
+        if copy and copy in same:
+            dest = ICLOUD_DIR / stamp / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            os.replace(ROOT / rel, dest)
+            lines.append(f"[icloud] moved a copy of {orig} that matched it")
+            parent = (ROOT / rel).parent
+            while parent != ROOT and parent.is_dir() and not any(parent.iterdir()):
+                parent.rmdir()
+                parent = parent.parent
+        else:
+            lines.append(f"[icloud] left a copy of {orig} that differs from it, check it: {rel}")
+    return lines
+
+
+def run(cmd: list[str], cwd: Path | None = None,
+        env: dict[str, str] | None = None) -> tuple[int, str]:
+    full_env = dict(os.environ)
+    if env:
+        full_env.update(env)
+    proc = subprocess.run(
+        cmd, cwd=cwd or ROOT, capture_output=True, text=True, check=False, env=full_env
+    )
+    return proc.returncode, (proc.stdout + proc.stderr)
+
+
+class Lock:
+    """Machine-wide lock: a directory with the owning PID inside it.
+
+    The directory is built under a private name with its PID file already written,
+    then renamed into place, so no other process ever sees a lock without a PID.
+    A lock whose PID is dead is stale and is cleared.
+    """
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+
+    def acquire(self) -> bool:
+        for _ in range(3):
+            if self._create():
+                return True
+            if not self._clear_if_stale():
+                return False
+        return False
+
+    def wait(self, seconds: float, what: str) -> bool:
+        """Acquire, waiting up to `seconds` with one line saying what it waits for."""
+        deadline = time.time() + seconds
+        noted = False
+        while True:
+            if self.acquire():
+                return True
+            if time.time() >= deadline:
+                return False
+            if not noted:
+                print(f"[lock] waiting up to {seconds:.0f}s for the commit lock, held by PID "
+                      f"{self.holder()} ({what})", flush=True)
+                noted = True
+            time.sleep(0.25)
+
+    def holder(self) -> str:
+        pid = self._pid_in(self.path)
+        return str(pid) if pid is not None else "unknown"
+
+    def release(self) -> None:
+        if self._pid_in(self.path) == os.getpid():
+            self._remove(self.path)
+
+    @staticmethod
+    def _pid_in(path: Path) -> int | None:
+        try:
+            return int((path / "pid").read_text().strip())
+        except (OSError, ValueError):
+            return None
+
+    def _create(self) -> bool:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = Path(tempfile.mkdtemp(prefix=f".{self.path.name}.", dir=self.path.parent))
+        (tmp / "pid").write_text(f"{os.getpid()}\n")
+        try:
+            os.rename(tmp, self.path)
+            return True
+        except OSError:
+            self._remove(tmp)
+            return False
+
+    def _clear_if_stale(self) -> bool:
+        """Clear a lock whose owner is dead. True when the lock is gone, False while it is held."""
+        pid = self._pid_in(self.path)
+        if pid is not None and pid != os.getpid() and pid_alive(pid):
+            return False
+        tomb = self.path.with_name(f".{self.path.name}.stale.{os.getpid()}.{time.time_ns()}")
+        try:
+            os.rename(self.path, tomb)
+        except FileNotFoundError:
+            return True
+        except OSError:
+            return False
+        if self._pid_in(tomb) != pid:
+            # A new owner took it between the read and the rename: hand it back.
+            try:
+                os.rename(tomb, self.path)
+            except OSError:
+                pass
+            return False
+        self._remove(tomb)
+        return True
+
+    @staticmethod
+    def _remove(path: Path) -> None:
+        try:
+            (path / "pid").unlink(missing_ok=True)
+            path.rmdir()
+        except OSError:
+            shutil.rmtree(path, ignore_errors=True)
+
+
+def remove_tree(base: Path, links: list[Path] | None = None) -> bool:
+    """Remove a snapshot or commit folder. Links into the real tree go first, and rmtree
+    never follows a link, so nothing outside the folder is touched."""
+    for link in links or []:
+        try:
+            if link.is_symlink():
+                link.unlink()
+        except OSError:
+            pass
+
+    def retry(func, path, _exc):
+        try:
+            os.chmod(os.path.dirname(path), 0o700)
+            func(path)
+        except OSError:
+            pass
+
+    if base.is_symlink():
+        base.unlink()
+    elif base.exists():
+        if sys.version_info >= (3, 12):
+            shutil.rmtree(base, onexc=retry)
+        else:
+            shutil.rmtree(base, onerror=retry)
+    return not os.path.lexists(base)
+
+
+def sweep_stale_work() -> None:
+    """Remove a snapshot or commit folder left by a run that died before its cleanup."""
+    for prefix in (SNAP_PREFIX, COMMIT_PREFIX):
+        for path in TMP.glob(prefix + "*"):
+            match = re.fullmatch(re.escape(prefix) + r"(\d+)", path.name)
+            if match and path.is_dir() and not path.is_symlink() and not pid_alive(int(match.group(1))):
+                remove_tree(path)
+
+
+def on_signal(signum, _frame):
+    raise SystemExit(128 + signum)
+
+
+# ---------------------------------------------------------------- the shared Mac
+
+
+# The rule ~/.claude/bin/heavy keeps, done here so the files go in the same finally as the locks.
+MACHINE_PROJECT = "idiograph"
+MACHINE_KIND = "verify-full"
+# This fleet's names. Idiograph's builders announce from this repo as "idiograph", and a waiter
+# of the same fleet never holds the gate as another project's queue does.
+MACHINE_OWN = {"academy", "idiograph"}
+HEAVY = Path.home() / ".claude" / "bin" / "heavy"
+MACHINE_HOME = Path.home() / ".claude" / "machine-load"
+OLD_WAITER = 20 * 60.0  # seconds a waiter that queued first waits before a full run yields to it
+PID_GRACE_MS = 60 * 1000  # a file's process may start this long after the file's own time
+MACHINE_PLACES = 2  # the Mac's heavy places, machine-wide
+MACHINE_RUN_PLACES = 1  # what a full run takes, in its announcement
+MACHINE_CAP = 3600.0
+# Adam, 17 October about 19:35: while a Harbour full gate heads Harbour's queue, no run of another
+# fleet starts, with no time limit. Runs already going finish.
+GATE_PROJECT = "harbour"  # whose gate goes first, and whose queue folder entries carry no project
+GATE_KIND = "gate"
+GATE_HEADS = "a Harbour gate heads Harbour's queue"
+
+
+def span(seconds: float) -> str:
+    return f"{seconds:.0f}s" if seconds < 120 else f"{seconds / 60:.0f} min"
+
+
+def env_seconds(name: str, default: float) -> float:
+    value = os.environ.get(name, "").strip()
+    try:
+        return max(0.0, float(value)) if value else default
+    except ValueError:
+        return default
+
+
+def heavy_queues() -> list[Path]:
+    """The other queue folders heavy reads (Harbour's, until its harness writes waiting/ files),
+    taken from heavy itself so the two never drift. Its line reads QUEUES="<folders>" or, since
+    17 October, QUEUES="${HEAVY_QUEUES-<folders>}", where a HEAVY_QUEUES in the environment wins."""
+    try:
+        match = re.search(r'^QUEUES="(\$\{HEAVY_QUEUES-)?([^"}]*)\}?"',
+                          HEAVY.read_text(encoding="utf-8"), re.M)
+    except OSError:
+        return []
+    if not match:
+        return []
+    folders = match.group(2)
+    if match.group(1) and "HEAVY_QUEUES" in os.environ:
+        folders = os.environ["HEAVY_QUEUES"]
+    return [Path(p) for p in folders.split()]
+
+
+def queues_for_tests() -> list[Path]:
+    """The gate's own tests name their queue folders in IDIOGRAPH_MACHINE_QUEUES, split as PATH is."""
+    value = os.environ.get("IDIOGRAPH_MACHINE_QUEUES", "")
+    return [Path(p) for p in value.split(os.pathsep) if p.strip()]
+
+
+def ancestor_pids() -> set[int]:
+    """This process's parent, its parent's parent and so on, from one ps call."""
+    parents: dict[int, int] = {}
+    try:
+        out = subprocess.run(["ps", "-A", "-o", "pid=,ppid="], capture_output=True, text=True,
+                             timeout=10).stdout
+        for line in out.splitlines():
+            pid, _, ppid = line.strip().partition(" ")
+            if pid.isdigit() and ppid.strip().isdigit():
+                parents[int(pid)] = int(ppid.strip())
+    except (OSError, subprocess.SubprocessError):
+        pass
+    found: set[int] = set()
+    pid = os.getppid()
+    while pid > 1 and pid not in found:
+        found.add(pid)
+        pid = parents.get(pid, 0)
+    return found
+
+
+def machine_entries(folder: Path) -> list[tuple[Path, dict]]:
+    entries = []
+    for path in sorted(folder.glob("*.json")):
+        try:
+            entry = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if isinstance(entry, dict):
+            entries.append((path, entry))
+    return entries
+
+
+def written_ms(entry: dict, path: Path) -> float:
+    """A file's own time, as heavy takes it: its enqueuedAt, else its startedAt, else its mtime."""
+    try:
+        if "enqueuedAt" in entry:
+            return float(entry["enqueuedAt"])
+        if "startedAt" in entry:
+            stamp = str(entry["startedAt"]).replace("Z", "+00:00")
+            return datetime.fromisoformat(stamp).timestamp() * 1000
+    except (TypeError, ValueError, OverflowError, OSError):
+        pass
+    try:
+        return path.stat().st_mtime * 1000
+    except OSError:
+        return time.time() * 1000
+
+
+def queued_ms(entry: dict, path: Path) -> float:
+    """When a waiter queued, as heavy takes it: its enqueuedAt, else the leading milliseconds of
+    its id (Harbour's queue names its entries <ms>-<pid>), else the file's own time."""
+    try:
+        return float(entry["enqueuedAt"])
+    except (KeyError, TypeError, ValueError, OverflowError):
+        pass
+    try:
+        return float(str(entry.get("id", "")).split("-")[0])
+    except (TypeError, ValueError, OverflowError):
+        return written_ms(entry, path)
+
+
+def process_began_ms(pid: int) -> float | None:
+    """When a process started, from ps in whole seconds, or None when ps cannot say."""
+    try:
+        out = subprocess.run(["ps", "-o", "lstart=", "-p", str(pid)], capture_output=True,
+                             text=True, timeout=10, env={**os.environ, "LC_ALL": "C"}).stdout
+        return datetime.strptime(out.strip(), "%a %b %d %H:%M:%S %Y").timestamp() * 1000
+    except (OSError, ValueError, OverflowError, subprocess.SubprocessError):
+        return None
+
+
+def entry_alive(entry: dict, path: Path) -> bool:
+    """heavy's rule: a file counts only while its pid lives (a permission error is another
+    user's live process) and that process started no later than a minute after the file's own
+    time, so a reused pid is dead. A process ps cannot date counts as alive."""
+    try:
+        pid = int(entry.get("pid", 0))
+        if pid <= 0 or not pid_alive(pid):
+            return False
+    except (TypeError, ValueError, OverflowError, OSError):
+        return False
+    began = process_began_ms(pid)
+    return began is None or began <= written_ms(entry, path) + PID_GRACE_MS
+
+
+def entry_places(entry: dict) -> int:
+    """The places a run takes: its "places" (Harbour's full gate takes both, 2), 1 when absent."""
+    try:
+        return max(1, int(entry.get("places", 1)))
+    except (TypeError, ValueError):
+        return 1
+
+
+def write_json(path: Path, record: dict) -> None:
+    """Written whole under a name no reader globs, then renamed into place."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    try:
+        tmp.write_text(json.dumps(record) + "\n", encoding="utf-8")
+        os.replace(tmp, path)
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+class MachinePlace:
+    """A full run's heavy place on the shared Mac: a waiter file while it waits, an announcement
+    while it runs, and release() removes both however the run ends."""
+
+    def __init__(self) -> None:
+        self.folder: Path | None = None
+        self.queues: list[Path] = []
+        self.waiter: Path | None = None
+        self.announced: Path | None = None
+        self.inside: Path | None = None  # the announcement of a run this one was started inside
+        self.enqueued: int | None = None  # this run's place in the queue, its waiter's enqueuedAt
+        self.why_not = ""
+        self.how = "no wait"
+        self.name = f"{MACHINE_PROJECT}-{os.getpid()}.json"
+        self.record = {"project": MACHINE_PROJECT, "pid": os.getpid(), "kind": MACHINE_KIND,
+                       "cwd": str(ROOT), "places": MACHINE_RUN_PLACES}
+        override = os.environ.get("IDIOGRAPH_MACHINE_LOAD", "").strip()
+        if override:
+            self.folder = Path(override) if Path(override).is_dir() else None
+            self.queues = queues_for_tests()
+            self.why_not = f"IDIOGRAPH_MACHINE_LOAD names no folder ({override})"
+        elif os.environ.get("IDIOGRAPH_VERIFY_TMP", "").strip():
+            self.why_not = "a test run (IDIOGRAPH_VERIFY_TMP set, no IDIOGRAPH_MACHINE_LOAD)"
+        elif HEAVY.is_file() or MACHINE_HOME.is_dir():
+            self.folder, self.queues = MACHINE_HOME, heavy_queues()
+        else:
+            self.why_not = "no ~/.claude/bin/heavy or ~/.claude/machine-load on this machine"
+        self.cap = env_seconds("IDIOGRAPH_MACHINE_CAP", MACHINE_CAP)
+        # The tests' 20 minutes: a waiter counts only while its process started no later than a
+        # minute after it queued, so a test cannot write one that has waited 20 minutes.
+        self.old_ms = env_seconds("IDIOGRAPH_MACHINE_OLD", OLD_WAITER) * 1000
+
+    def busy(self) -> str | None:
+        """Why a full run waits now, by heavy's rule. First, a Harbour gate at the head of
+        Harbour's queue: the run waits with no time limit (Adam, 17 October). Harbour's queue is
+        not first come, first served, so Harbour marks its head "queueHead": true in waiting/,
+        rewritten every poll. Once any live Harbour waiter carries the field, the flag alone
+        decides. Until then the head is Harbour's earliest live waiter in waiting/ or its own
+        queue folder (an entry there with no project is Harbour's). Then another project's waiter that queued before it and has waited over 20 minutes, or too
+        few of the machine's two heavy places free for its own one, each live run counting its
+        places. Yielding only to an earlier waiter keeps two fleets' waiters from each waiting on
+        the other (17 October). A file counts only while entry_alive() says its run lives."""
+        now = time.time() * 1000
+        mine = now if self.enqueued is None else self.enqueued
+        heads: dict[str, tuple[float, str]] = {}
+        aged = False
+        flagged = False  # a live Harbour waiter carries "queueHead", so the flag alone decides
+        marked: list[dict] = []  # the live Harbour waiters marked "queueHead": true
+        folders = [(self.folder / "waiting", False)] + [(q, True) for q in self.queues]
+        for folder, harbour_queue in folders:
+            for path, entry in machine_entries(folder):
+                project = str(entry.get("project") or (GATE_PROJECT if harbour_queue else ""))
+                if project in MACHINE_OWN or not entry_alive(entry, path):
+                    continue
+                if project == GATE_PROJECT and "queueHead" in entry:
+                    flagged = True
+                    if entry.get("queueHead") is True:
+                        marked.append(entry)
+                theirs = queued_ms(entry, path)
+                if project not in heads or theirs < heads[project][0]:
+                    heads[project] = (theirs, str(entry.get("kind", "")))
+                if theirs < mine and now - theirs > self.old_ms:
+                    aged = True
+        if flagged:
+            if any(entry.get("kind") == GATE_KIND for entry in marked):
+                return GATE_HEADS
+        elif heads.get(GATE_PROJECT, (0.0, ""))[1] == GATE_KIND:
+            return GATE_HEADS
+        if aged:
+            return "another project's queue"
+        held = sum(entry_places(e) for p, e in machine_entries(self.folder) if entry_alive(e, p))
+        if held + MACHINE_RUN_PLACES > MACHINE_PLACES:
+            return "two heavy places held"
+        return None
+
+    def started_inside(self) -> Path | None:
+        """The live announcement of a run this one was started inside, such as heavy's own when
+        heavy runs ./verify. That run already holds this one's place, waited for by the same rule,
+        and has started, so it finishes whatever heads a queue now."""
+        ancestors = ancestor_pids()
+        for path, entry in machine_entries(self.folder):
+            try:
+                pid = int(entry.get("pid", 0))
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if pid in ancestors and entry_alive(entry, path):
+                return path
+        return None
+
+    def wait(self) -> None:
+        """Wait by the rule, as a waiter, before the run lock: with no time limit while a Harbour
+        gate heads Harbour's queue, otherwise at most the cap. The waiter file stands until
+        announce() or release(), so the run stays in the queue until it holds the lock."""
+        if self.folder is None:
+            print(f"[machine] {self.why_not}, so this run neither waits nor is announced", flush=True)
+            return
+        self.inside = self.started_inside()
+        if self.inside is not None:
+            print(f"[machine] started inside the run announced in {self.inside}, so this run "
+                  "neither waits nor is announced again", flush=True)
+            return
+        if os.environ.get("HEAVY_NO_WAIT", "") == "1":
+            self.how = "HEAVY_NO_WAIT=1, no wait"
+            return
+        start = time.time()
+        self.enqueued = int(start * 1000)
+        why = self.busy()
+        if not why:
+            return
+        self.waiter = self.folder / "waiting" / self.name
+        try:
+            write_json(self.waiter, {**self.record, "enqueuedAt": self.enqueued})
+        except OSError as exc:
+            self.give_up(exc)
+            return
+        self.say_waiting(why)
+        poll = min(15.0, max(0.2, self.cap / 20))
+        while why and (why == GATE_HEADS or time.time() - start < self.cap):
+            left = self.cap - (time.time() - start)
+            time.sleep(poll if why == GATE_HEADS else max(0.0, min(poll, left)))
+            was, why = why, self.busy()
+            if why and why != was:
+                self.say_waiting(why)
+        self.how = (f"waited {span(time.time() - start)}" if not why
+                    else f"waited the cap of {span(self.cap)}, running anyway")
+
+    @staticmethod
+    def say_waiting(why: str) -> None:
+        limit = ", with no time limit" if why == GATE_HEADS else ""
+        print(f"[machine] waiting: {why}{limit}, since {datetime.now():%H:%M}", flush=True)
+
+    def announce(self) -> None:
+        """Holding the run lock: leave the queue and announce the run, in one line. A run started
+        inside another's announced run is not announced again."""
+        if self.folder is None or self.inside is not None:
+            return
+        try:
+            if self.waiter is not None:
+                self.waiter.unlink(missing_ok=True)
+                self.waiter = None
+            self.announced = self.folder / self.name
+            started = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            write_json(self.announced, {**self.record, "startedAt": started})
+        except OSError as exc:
+            self.give_up(exc)
+            return
+        print(f"[machine] {self.how}, announced in {self.announced}", flush=True)
+
+    def give_up(self, exc: OSError) -> None:
+        print(f"[machine] could not write to {self.folder} ({exc}), so this run goes unannounced",
+              flush=True)
+        self.release()
+        self.folder = None
+
+    def release(self) -> None:
+        for path in (self.waiter, self.announced):
+            if path is not None:
+                try:
+                    path.unlink(missing_ok=True)
+                except OSError as exc:
+                    print(f"[machine] could not remove {path}: {exc}")
+        self.waiter = self.announced = None
+
+
+# ---------------------------------------------------------------- the snapshot
+
+
+@dataclass
+class View:
+    """What the checks read: files under `root`, and the index as it stood at the freeze."""
+
+    root: Path
+    tracked: list[str]
+    staged: dict[str, str | None]  # path to its blob in the index, None when staged for deletion
+    changed: list[str]  # paths that differ from HEAD
+    head: str = "unknown"
+    tree: str = "dirty"
+    snap: str | None = None
+    links: list[Path] = field(default_factory=list)
+
+    def link(self, rel: str, target: Path) -> None:
+        """Point a gitignored path of the snapshot at the real one, for a check that reads it."""
+        dest = self.root / rel
+        if os.path.lexists(dest) or not target.exists():
+            return
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        os.symlink(target, dest)
+        self.links.append(dest)
+
+
+class SnapshotError(Exception):
+    pass
+
+
+_LIBC = None
+
+
+def clonefile(src: Path, dst: Path) -> bool:
+    """APFS clonefile(2), never following a link: shares the blocks, copies no bytes."""
+    global _LIBC
+    if _LIBC is None:
+        try:
+            _LIBC = ctypes.CDLL("/usr/lib/libSystem.B.dylib", use_errno=True)
+            _LIBC.clonefile.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_uint32]
+            _LIBC.clonefile.restype = ctypes.c_int
+        except (OSError, AttributeError):
+            _LIBC = False
+    if not _LIBC:
+        return False
+    return _LIBC.clonefile(os.fsencode(src), os.fsencode(dst), 1) == 0  # 1 is CLONE_NOFOLLOW
+
+
+def index_entries(env: dict[str, str]) -> dict[str, tuple[str, str]]:
+    entries: dict[str, tuple[str, str]] = {}
+    for rec in git_z("ls-files", "-z", "-s", env=env):
+        info, _, path = rec.partition("\t")
+        mode, sha, _stage = info.split()
+        entries[path] = (mode, sha)
+    return entries
+
+
+def take_snapshot(base: Path) -> tuple[View, list[str]]:
+    """Clone the tree into base/tree, freeze the index into base/meta, hash the copy into a tree.
+
+    Runs under the commit lock, which is why it does nothing slow it can avoid.
+    """
+    files, meta = base / "tree", base / "meta"
+    base.parent.mkdir(parents=True, exist_ok=True)
+    base.mkdir(mode=0o700)  # private: the clones are Adam's files, and the folder is in /tmp
+    files.mkdir()
+    meta.mkdir()
+    notes: list[str] = []
+
+    real_index = Path(git("rev-parse", "--git-path", "index").strip())
+    if not real_index.is_absolute():
+        real_index = ROOT / real_index
+    frozen = meta / "index"
+    if real_index.is_file():
+        shutil.copy2(real_index, frozen)
+    env = {"GIT_INDEX_FILE": str(frozen)}
+
+    head = head_sha()
+    tree = tree_state(env)
+    entries = index_entries(env)
+    tracked = list(entries)
+    untracked = [p for p in git_z("ls-files", "-z", "--others", "--exclude-standard", env=env)
+                 if not icloud_original(p)]
+    staged = {p: entries.get(p, (None, None))[1]
+              for p in git_z("diff-index", "-z", "--cached", "--name-only", "HEAD", env=env)}
+
+    cloned = copied = 0
+    unsnapped: list[str] = []
+    for rel in sorted(set(tracked) | set(untracked)):
+        src = ROOT / rel
+        try:
+            info = os.lstat(src)
+        except OSError:
+            continue  # deleted in the tree, so absent from the snapshot too
+        if stat.S_ISDIR(info.st_mode):
+            continue  # a nested repository, which git lists and never descends into
+        dst = files / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        if clonefile(src, dst):
+            cloned += 1
+            continue
+        try:
+            if stat.S_ISLNK(info.st_mode):
+                os.symlink(os.readlink(src), dst)
+            elif checks_read(rel):
+                shutil.copy2(src, dst)
+            else:
+                unsnapped.append(rel)
+                continue
+            copied += 1
+        except OSError as exc:
+            notes.append(f"[snapshot] could not copy {rel}: {exc}")
+            unsnapped.append(rel)
+
+    # The tree object: the frozen index, brought up to the snapshot's content.
+    work = meta / "snap-index"
+    if frozen.is_file():
+        shutil.copy2(frozen, work)
+    wenv = {"GIT_INDEX_FILE": str(work)}
+    code, _, err = git_run(*SNAP_GIT_CONFIG, f"--work-tree={files}", "add", "-A", env=wenv)
+    if code != 0:
+        raise SnapshotError(f"git add over the snapshot failed: {err.strip()}")
+    for rel in unsnapped:
+        # Not in the snapshot, so no check reads it, but the tree must still hold it.
+        src = ROOT / rel
+        mode = "100755" if os.access(src, os.X_OK) else "100644"
+        sha = git("hash-object", "-w", "--", str(src)).strip()
+        if not sha and rel in entries:
+            mode, sha = entries[rel]
+            notes.append(f"[snapshot] {rel} is unreadable, so the snap holds it as the index does")
+        if sha:
+            git_run("update-index", "--add", "--cacheinfo", f"{mode},{sha},{rel}", env=wenv)
+    code, out, err = git_run("write-tree", env=wenv)
+    snap = out.decode().strip()
+    if code != 0 or not re.fullmatch(r"[0-9a-f]{40,64}", snap):
+        raise SnapshotError(f"git write-tree failed: {err.strip()}")
+    changed = git_z("diff-tree", "-r", "-z", "--no-renames", "--name-only", "HEAD", snap)
+
+    notes.insert(0, f"[snapshot] {cloned} file(s) cloned, {copied} copied, "
+                    f"{len(unsnapped)} hashed in place, into {base}")
+    view = View(root=files, tracked=tracked, staged=staged, changed=changed,
+                head=head, tree=tree, snap=snap)
+    return view, notes
+
+
+def cat_blobs(shas: list[str]) -> dict[str, bytes]:
+    """Blob contents from the object store, which never changes under a reader."""
+    if not shas:
+        return {}
+    code, out, _ = git_run("cat-file", "--batch", stdin=("\n".join(shas) + "\n").encode())
+    blobs: dict[str, bytes] = {}
+    pos = 0
+    while pos < len(out):
+        end = out.index(b"\n", pos)
+        header = out[pos:end].decode().split()
+        pos = end + 1
+        if len(header) == 3:
+            size = int(header[2])
+            blobs[header[0]] = out[pos:pos + size]
+            pos += size + 1
+    return blobs
+
+
+def view_texts(view: View, paths: list[str], exempt: set[str] = frozenset(), wanted=None):
+    """Text files of the view as (label, text): from its files, then any staged
+    content that differs from them, read from the frozen index. `wanted` says which
+    paths to read, the text kinds (`is_text`) by default."""
+    wanted_fn = wanted or is_text
+    on_disk: dict[str, str] = {}
+    for rel in paths:
+        if rel in exempt or not wanted_fn(rel):
+            continue
+        try:
+            on_disk[rel] = (view.root / rel).read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        yield rel, on_disk[rel]
+    wanted = {rel: sha for rel, sha in view.staged.items()
+              if sha and rel not in exempt and wanted_fn(rel)}
+    contents = cat_blobs(sorted(set(wanted.values())))
+    for rel, sha in sorted(wanted.items()):
+        if sha in contents:
+            text = contents[sha].decode("utf-8", errors="replace")
+            if text != on_disk.get(rel):
+                yield f"{rel} (staged)", text
+
+
+# ---------------------------------------------------------------- checks
+
+
+def check_budgets(view: View) -> tuple[bool, str, str | None]:
+    # The gate's own tests take seconds, so they skip here and run in the full gate below.
+    if not (view.root / "gate_tests").is_dir():
+        return True, "[budgets] gate_tests/ does not exist, skipped", None
+    code, out = run([sys.executable, "-m", "unittest", "discover", "-s", "gate_tests"], cwd=view.root,
+                    env={"IDIOGRAPH_GATE_TESTS": "0"})
+    ok = code == 0
+    return ok, out.strip(), None if ok else "budgets"
+
+
+def check_gate_tests(view: View) -> tuple[bool, str, str | None]:
+    if not (view.root / "gate_tests" / "test_gate.py").is_file():
+        return True, "[gate] gate_tests/test_gate.py does not exist, skipped", None
+    code, out = run([sys.executable, "-m", "unittest", "discover", "-s", "gate_tests", "-p", "test_gate.py"],
+                    cwd=view.root, env={"IDIOGRAPH_GATE_TESTS": "1"})
+    ok = code == 0
+    return ok, f"[gate] the gate's own tests {'pass' if ok else 'failed'}\n{out.strip()}", None if ok else "gate"
+
+
+def check_pseudonym(view: View) -> tuple[bool, str, str | None]:
+    if not PSEUDONYM_RXS:
+        return True, f"[pseudonym] no forbidden names in {GATE_LOCAL}, skipped", None
+    hits: list[str] = []
+    scanned = 0
+    for label, text in view_texts(view, view.tracked, exempt=PSEUDONYM_EXEMPT):
+        scanned += 1
+        if any(rx.search(text) for rx in PSEUDONYM_RXS):
+            hits.append(label)
+    if hits:
+        body = "\n".join(f"  the forbidden name appears in: {h}" for h in hits)
+        return False, f"[pseudonym] {len(hits)} hit(s) in {scanned} files\n{body}", "pseudonym"
+    return True, f"[pseudonym] clean, {scanned} tracked and staged text files scanned", None
+
+
+def check_case_folder_names(view: View) -> tuple[bool, str, str | None]:
+    """No case-folder suffix may be in git history, or on its way in.
+
+    Scans every tracked file plus everything staged. Untracked files are out of
+    scope by design: they are not in history and not entering it, and the
+    backlog carries the job of scrubbing the ones that will be committed. A hit
+    is reported by path and count, never by quoting the matched text.
+    """
+    hits: list[str] = []
+    scanned = 0
+    for label, text in view_texts(view, view.tracked):
+        scanned += 1
+        found = len(CASE_FOLDER_RX.findall(text))
+        if found:
+            hits.append(f"  {label}: {found} case-folder reference(s), name the case by pseudonym alone")
+    if hits:
+        return (
+            False,
+            f"[case folders] {len(hits)} file(s) in or entering history\n" + "\n".join(hits),
+            "case-folder-name",
+        )
+    return True, f"[case folders] clean, {scanned} tracked and staged text files scanned", None
+
+
+# Conflict markers (26 October 2026): train 55 passed with a 3-way apply's markers left in
+# tests/README.md. A file is refused when it holds all three kinds of marker line, an opener, a
+# divider and a closer, each at a line's start, so a Markdown rule of seven equals signs alone never is.
+CONFLICT_OPEN_RX = re.compile(r"^<{7}(?: |$)", re.M)
+CONFLICT_MID_RX = re.compile(r"^={7}$", re.M)
+CONFLICT_CLOSE_RX = re.compile(r"^>{7}(?: |$)", re.M)
+# files never read for markers: pictures, sound, archives, fonts, workbooks and other binaries
+CONFLICT_SKIP_SUFFIXES = {
+    ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".icns", ".pdf", ".zip", ".gz", ".m4a",
+    ".mp3", ".mp4", ".wav", ".mov", ".xlsx", ".docx", ".pptx", ".woff", ".woff2", ".ttf", ".otf",
+    ".idiograph", ".dmg", ".exe", ".msi",
+}
+
+
+def conflict_lines(text: str) -> list[int]:
+    """The line numbers of a text's conflict markers, or none unless it holds all three kinds."""
+    found = [rx.search(text) for rx in (CONFLICT_OPEN_RX, CONFLICT_MID_RX, CONFLICT_CLOSE_RX)]
+    if not all(found):
+        return []
+    hits = set()
+    for rx in (CONFLICT_OPEN_RX, CONFLICT_MID_RX, CONFLICT_CLOSE_RX):
+        hits |= {text.count("\n", 0, m.start()) + 1 for m in rx.finditer(text)}
+    return sorted(hits)
+
+
+def check_conflict_markers(view: View) -> tuple[bool, str, str | None]:
+    """No tracked or staged file may hold the conflict markers a 3-way apply leaves. Every file
+    but the binary kinds is read, code, styles and scripts among them."""
+    hits: list[str] = []
+    scanned = 0
+    readable = lambda rel: Path(rel).suffix.lower() not in CONFLICT_SKIP_SUFFIXES
+    for label, text in view_texts(view, view.tracked, wanted=readable):
+        if "\0" in text:
+            continue
+        scanned += 1
+        lines = conflict_lines(text)
+        if lines:
+            shown = ", ".join(str(n) for n in lines[:6]) + (" ..." if len(lines) > 6 else "")
+            hits.append(f"  {label}: conflict markers at line(s) {shown}")
+    if hits:
+        return (False, f"[conflict markers] {len(hits)} file(s) hold a 3-way apply's markers\n" + "\n".join(hits),
+                "conflict-markers")
+    return True, f"[conflict markers] clean, {scanned} tracked and staged files scanned", None
+
+
+def check_docs_scope(view: View) -> tuple[bool, str, str | None]:
+    offenders = [
+        p
+        for p in view.changed
+        if Path(p).suffix.lower() not in DOCS_OK_SUFFIXES
+        and not p.startswith(DOCS_OK_PREFIXES)
+    ]
+    if offenders:
+        body = "\n".join(f"  not a docs path: {p}" for p in offenders[:25])
+        more = "" if len(offenders) <= 25 else f"\n  ... and {len(offenders) - 25} more"
+        return (
+            False,
+            f"[docs scope] {len(offenders)} non-docs path(s) changed\n{body}{more}",
+            "diff-not-docs-only",
+        )
+    return True, "[docs scope] the diff is docs only", None
+
+
+def report_banned_patterns(view: View) -> str:
+    targets = [
+        p
+        for p in view.changed
+        if CASE_STUDY_DIR and p.startswith(CASE_STUDY_DIR) and p.lower().endswith(".md")
+    ]
+    if not targets:
+        return "[banned patterns] no changed case-study markdown, nothing to report"
+    lines = [f"[banned patterns] report only, never a failure, {len(targets)} file(s)"]
+    for rel in targets:
+        try:
+            text = (view.root / rel).read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            lines.append(f"  {rel}: unreadable")
+            continue
+        counts = [
+            f"{label} x{len(rx.findall(text))}"
+            for label, rx in BANNED
+            if rx.search(text)
+        ]
+        lines.append(f"  {rel}: {', '.join(counts) if counts else 'clean'}")
+    return "\n".join(lines)
+
+
+def check_py_compile(view: View) -> tuple[bool, str, str | None]:
+    files = [p for p in view.tracked if p.endswith(".py") and ".bak" not in Path(p).name]
+    if not files:
+        return True, "[py_compile] no tracked .py files, skipped", None
+    # Compile into a temp directory. `python -m py_compile` writes .pyc files
+    # into a __pycache__ beside each source, and the gate must not write into
+    # the tree it checks.
+    import py_compile
+
+    errors = []
+    with tempfile.TemporaryDirectory(prefix="idiograph-verify-pyc-") as tmp:
+        for i, rel in enumerate(files):
+            try:
+                py_compile.compile(
+                    str(view.root / rel),
+                    cfile=str(Path(tmp) / f"{i}.pyc"),
+                    doraise=True,
+                    quiet=2,
+                )
+            except py_compile.PyCompileError as exc:
+                errors.append(f"  {rel}: {exc}")
+            except OSError as exc:
+                errors.append(f"  {rel}: {exc}")
+    if errors:
+        body = "\n".join(errors)
+        return False, f"[py_compile] {len(errors)} file(s) failed\n{body}", "py-compile"
+    return True, f"[py_compile] {len(files)} tracked file(s) compile", None
+
+
+def check_name_scan(view: View) -> tuple[bool, str, str | None]:
+    """The maintainer's real-name scan over the snapshot, so no tracked file carries a real name.
+    The script stays in the study folder and reads the register beside its own case data there.
+    The script, the data and the register are named only in the local gate file. --include-p2
+    because the script leaves out a top-level folder of one case unless asked, and every folder
+    of this tree is scanned."""
+    if not (NAME_SCAN and MAIN_DATA and REGISTER_NAME):
+        return True, f"[name scan] not set up in {GATE_LOCAL}, skipped", None
+    script = NAME_SCAN
+    register = MAIN_DATA / REGISTER_NAME
+    if not script.is_file():
+        return True, f"[name scan] script missing at {script}, skipped", None
+    if not register.is_file():
+        return True, "[name scan] pseudonym register absent (it is never committed), skipped", None
+    code, out = run([sys.executable, str(script), "--root", str(view.root), "--include-p2"],
+                    cwd=view.root)
+    found = 0
+    for label in ("[filenames]", "[contents]"):
+        match = re.search(re.escape(label) + r"\s+(\d+) hit", out)
+        if match:
+            found += int(match.group(1))
+    if "ERROR" in out and code not in (0, 1):
+        return False, f"[name scan] did not run\n{out.strip()}", "name-scan-error"
+    summary = (
+        f"[name scan] {found} hit(s), baseline {NAME_SCAN_BASELINE}\n"
+        + "\n".join(
+            "  " + line
+            for line in out.splitlines()
+            if line.startswith(("[", "  "))
+        )
+    )
+    if found > NAME_SCAN_BASELINE:
+        return False, summary, "real-name-leak"
+    return True, summary, None
+
+
+# Participants' words (10 November 2026). Before the repository went public a check was found using
+# a participant's own spoken lines as its invented fixture, and another the maintainer's PET title for
+# a real participant. So no tracked file may hold eight words running from a participant's turn, a
+# statement, a quote or a PET's title of any case the local gate file reaches: `main_data`'s case
+# folders and those of each folder in `words_sources` (a list of folders under `academy`), their
+# workbooks, CSVs and board files. The runs are kept only as hashes, so neither the cache nor the
+# gate's output holds a word. A run found in WORDS_COMMON or more cases is everyday speech and
+# dropped. The interviewer's turns are left out, the speaker or speakers the local file's
+# `interviewer` names ("Interviewer" with none). A hit names the file and how many runs, never the
+# words or the case.
+WORDS_RUN = 8
+WORDS_COMMON = 3
+WORDS_VERSION = 2
+WORDS_CACHE_DIR = VERIFY_DIR
+WORDS_CACHE_NAME = "participant-words.bin"
+WORDS_MEMO_NAME = "participant-words-files.json"
+WORD_RX = re.compile(r"[^\W_]+")
+WORDS_TABLES = {".xlsx", ".csv"}
+# a case's boards, `<stem>.themes.json` and a timepoint's `<stem>.themes-t2.json`, for its PETs' titles
+WORDS_BOARDS_RX = re.compile(r"\.themes(-t\d+)?\.json$", re.IGNORECASE)
+# the words a board keeps: a label's title and description, a card's statement, a note
+WORDS_BOARD_KEYS = {"label", "description", "text"}
+# files of the tree read as the zip they are, their text parts' words scanned
+WORDS_ZIPS = {".xlsx", ".docx", ".pptx", ".zip", ".idiograph"}
+WORDS_ZIP_PARTS = (".xml", ".json", ".csv", ".txt", ".md")
+WORDS_CASE_RX = re.compile(r"P\d+\s*-\s*([^\W\d_]+)")
+WORDS_ROLES = {
+    "name": lambda h: h in ("name", "speaker"),
+    "turn": lambda h: h in ("transcript", "text") or h.startswith("transcript"),
+    "es": lambda h: "experien" in h and "state" in h,
+    "kq": lambda h: "key quote" in h or h in ("quote", "quotes"),
+    "ctx": lambda h: h == "other speaker",
+    "title": lambda h: h in ("pet", "sub-theme", "lpet", "sub lpet", "get"),
+}
+
+
+def words_of(text: str) -> list[str]:
+    """A text's words, lower case, apostrophes dropped, so "don't" and "Don’t" are one word."""
+    return WORD_RX.findall(text.replace("'", "").replace("’", "").lower())
+
+
+def word_runs(words: list[str]):
+    """Each run of WORDS_RUN words as a 64-bit hash."""
+    hasher = hashlib.blake2b
+    for run in zip(*(words[i:] for i in range(WORDS_RUN))):
+        yield int.from_bytes(hasher(" ".join(run).encode("utf-8"), digest_size=8).digest(), "big")
+
+
+def words_roots() -> list[Path]:
+    roots = [MAIN_DATA] if MAIN_DATA else []
+    extra = LOCAL.get("words_sources")
+    if ACADEMY and isinstance(extra, list):
+        roots += [ACADEMY / item for item in extra if isinstance(item, str) and item.strip()]
+    return [root for root in roots if root.is_dir()]
+
+
+def words_interviewers() -> set[str]:
+    value = LOCAL.get("interviewer")
+    names = [value] if isinstance(value, str) else value if isinstance(value, list) else []
+    return {n.strip().lower() for n in names if isinstance(n, str) and n.strip()} or {"interviewer"}
+
+
+def words_case(folder: str) -> str:
+    """A case by its pseudonym, from a folder named `P<n> - <Pseudonym>...`, else the folder's name."""
+    match = WORDS_CASE_RX.match(folder)
+    return (match.group(1) if match else folder).strip().lower()
+
+
+def words_files(roots: list[Path]) -> list[tuple[str, Path]]:
+    """Every workbook, CSV and board file in each root's case folders, a folder starting with _ or .
+    left out (an _Archive's older copies)."""
+    found: list[tuple[str, Path]] = []
+    for root in roots:
+        for case_dir in sorted(root.iterdir()):
+            if not case_dir.is_dir() or case_dir.name.startswith((".", "_")):
+                continue
+            case = words_case(case_dir.name)
+            for dirpath, dirnames, filenames in os.walk(case_dir):
+                dirnames[:] = sorted(d for d in dirnames if not d.startswith((".", "_")))
+                for name in sorted(filenames):
+                    if name.startswith(("~$", ".")):
+                        continue
+                    if Path(name).suffix.lower() in WORDS_TABLES or WORDS_BOARDS_RX.search(name):
+                        found.append((case, Path(dirpath) / name))
+    return found
+
+
+def words_table(header, rows, interviewers: set[str]):
+    """The participant's words of one table: each row's turn unless the interviewer's, its statements,
+    its quotes, another speaker's words and a PET's title, the columns found by their headings as the
+    app finds them."""
+    cols: dict[str, int] = {}
+    for i, raw in enumerate(list(header)[:12]):
+        heading = str(raw or "").strip().lower()
+        for role, test in WORDS_ROLES.items():
+            if role not in cols and test(heading):
+                cols[role] = i
+                break
+    said = [role for role in ("turn", "es", "kq", "ctx", "title") if role in cols]
+    if not said:
+        return
+    for row in rows:
+        row = list(row)
+        cell = lambda role: row[cols[role]] if role in cols and cols[role] < len(row) else None
+        who = str(cell("name") or "").strip().lower()
+        for role in said:
+            if role == "turn" and who in interviewers:
+                continue
+            value = cell(role)
+            if isinstance(value, str) and value.strip():
+                yield value
+
+
+def words_on_board(value):
+    """A board file's words: every title, description, statement, note and quote in it."""
+    if isinstance(value, dict):
+        for key, inner in value.items():
+            if key in WORDS_BOARD_KEYS and isinstance(inner, str):
+                yield inner
+            elif key == "quoted" and isinstance(inner, dict):
+                yield from (text for text in inner.values() if isinstance(text, str))
+            else:
+                yield from words_on_board(inner)
+    elif isinstance(value, list):
+        for inner in value:
+            yield from words_on_board(inner)
+
+
+def words_in_file(path: Path, interviewers: set[str]):
+    """A workbook, CSV or board file's participant words, the workbook opened read-only."""
+    if WORDS_BOARDS_RX.search(path.name):
+        yield from words_on_board(json.loads(path.read_text(encoding="utf-8")))
+        return
+    if path.suffix.lower() == ".csv":
+        reader = csv.reader(io.StringIO(path.read_text(encoding="utf-8-sig", errors="replace")))
+        header = next(reader, None)
+        if header:
+            yield from words_table(header, reader, interviewers)
+        return
+    import openpyxl
+
+    book = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    try:
+        for sheet in book.worksheets:
+            rows = sheet.iter_rows(values_only=True)
+            header = next(rows, None)
+            if header:
+                yield from words_table(header, rows, interviewers)
+    finally:
+        book.close()
+
+
+def words_key(files: list[tuple[str, Path]], interviewers: set[str]) -> str:
+    """The sources as they stand, by each file's size and time, so an unchanged set reads no workbook."""
+    digest = hashlib.sha256(json.dumps([WORDS_VERSION, WORDS_RUN, WORDS_COMMON, sorted(interviewers)]).encode())
+    for case, path in files:
+        info = path.stat()
+        digest.update(f"{case}\0{path}\0{info.st_size}\0{info.st_mtime_ns}\n".encode("utf-8", "replace"))
+    return digest.hexdigest()
+
+
+def words_build(files: list[tuple[str, Path]], interviewers: set[str]) -> tuple[set[int], int]:
+    """The runs of every case, those in WORDS_COMMON cases or more dropped, and how many files would not read."""
+    per_case: dict[str, set[int]] = {}
+    unread = 0
+    for case, path in files:
+        runs = per_case.setdefault(case, set())
+        try:
+            for text in words_in_file(path, interviewers):
+                runs.update(word_runs(words_of(text)))
+        except Exception:  # noqa: BLE001  a file iCloud has not brought down, or a broken one
+            unread += 1
+    seen: collections.Counter = collections.Counter()
+    for runs in per_case.values():
+        seen.update(runs)
+    return {run for run, cases in seen.items() if cases < WORDS_COMMON}, unread
+
+
+def words_write(path: Path, data: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    part = path.with_name(f"{path.name}.{os.getpid()}.part")
+    part.write_bytes(data)
+    os.replace(part, path)
+
+
+def words_load(key: str) -> set[int] | None:
+    try:
+        data = (WORDS_CACHE_DIR / WORDS_CACHE_NAME).read_bytes()
+        head, body = data.split(b"\n", 1)
+        if json.loads(head).get("key") != key:
+            return None
+        runs = array("Q")
+        runs.frombytes(body)
+        return set(runs)
+    except (OSError, ValueError):
+        return None
+
+
+def words_known(build: bool) -> tuple[set[int] | None, str, str]:
+    """The participants' runs, from the cache when the sources are unchanged, else read when `build`.
+    None, with the reason, when there is nothing to read or the cache will not do."""
+    roots = words_roots()
+    if not roots:
+        return None, "", f"no case data reachable from {GATE_LOCAL}, skipped"
+    interviewers = words_interviewers()
+    files = words_files(roots)
+    if not files:
+        return None, "", "no workbook or CSV in the case folders, skipped"
+    cases = len({case for case, _ in files})
+    key = words_key(files, interviewers)
+    known = words_load(key)
+    if known is not None:
+        return known, key, f"{len(known)} runs from {len(files)} files of {cases} cases, cached"
+    if not build:
+        return None, key, "the sources changed since the cache was made, the full gate reads them, skipped"
+    try:
+        import openpyxl  # noqa: F401
+    except ImportError:
+        return None, key, "openpyxl is missing, skipped"
+    known, unread = words_build(files, interviewers)
+    if unread:
+        said = f"{unread} of {len(files)} files would not read, so nothing is cached"
+    else:
+        runs = array("Q", sorted(known))
+        words_write(WORDS_CACHE_DIR / WORDS_CACHE_NAME, json.dumps({"key": key}).encode() + b"\n" + runs.tobytes())
+        said = "cached"
+    return known, key, f"{len(known)} runs read from {len(files)} files of {cases} cases, {said}"
+
+
+def zip_text(path: Path) -> str:
+    """The text parts of a workbook, a Word file or another zip of the tree, their markup set aside."""
+    try:
+        with zipfile.ZipFile(path) as archive:
+            parts = [archive.read(name).decode("utf-8", errors="replace") for name in archive.namelist()
+                     if name.lower().endswith(WORDS_ZIP_PARTS)]
+    except (OSError, zipfile.BadZipFile, RuntimeError):
+        return ""
+    return re.sub(r"<[^>]+>", " ", "\n".join(parts))
+
+
+def words_tree(view: View):
+    """Every tracked and staged file of the snapshot as text, JSON, code and scripts among them, and the
+    tree's workbooks and Word files by their text parts. Pictures, fonts and other binaries are passed over."""
+    readable = lambda rel: Path(rel).suffix.lower() not in CONFLICT_SKIP_SUFFIXES
+    for label, text in view_texts(view, view.tracked, wanted=readable):
+        if "\0" not in text:
+            yield label, text
+    for rel in view.tracked:
+        if Path(rel).suffix.lower() in WORDS_ZIPS and (view.root / rel).is_file():
+            text = zip_text(view.root / rel)
+            if text:
+                yield rel, text
+
+
+def check_participant_words(view: View, build: bool = True) -> tuple[bool, str, str | None]:
+    """No tracked file holds eight words running from a participant's words (the note above). Each file's
+    count is remembered by its content, so an unchanged file is not read for runs again."""
+    known, key, said = words_known(build)
+    if known is None:
+        return True, f"[participant words] {said}", None
+    memo_path = WORDS_CACHE_DIR / WORDS_MEMO_NAME
+    try:
+        memo = json.loads(memo_path.read_text(encoding="utf-8"))
+        memo = memo.get("files", {}) if memo.get("key") == key else {}
+    except (OSError, ValueError, AttributeError):
+        memo = {}
+    fresh: dict[str, int] = {}
+    hits: list[str] = []
+    scanned = 0
+    for label, text in words_tree(view):
+        scanned += 1
+        sha = hashlib.sha1(text.encode("utf-8", "replace")).hexdigest()
+        found = memo.get(sha)
+        if not isinstance(found, int):
+            found = len(known.intersection(word_runs(words_of(text))))
+        fresh[sha] = found
+        if found:
+            hits.append(f"  {label}: {found} run(s) of eight words from a participant's words")
+    try:
+        words_write(memo_path, json.dumps({"key": key, "files": fresh}).encode("utf-8"))
+    except OSError:
+        pass
+    if hits:
+        return (False, f"[participant words] {len(hits)} file(s) hold a participant's words, "
+                       f"{said}\n" + "\n".join(hits), "participant-words")
+    return True, f"[participant words] clean, {scanned} tracked and staged files scanned, {said}", None
+
+
+def check_participant_words_cached(view: View) -> tuple[bool, str, str | None]:
+    """The fast gate's and ./commit's scan: the cache's runs alone, never a workbook read."""
+    return check_participant_words(view, build=False)
+
+
+def check_idiograph(view: View) -> tuple[bool, str, str | None]:
+    """The snapshot's suite, its reference checks pointed at the real case data, and the
+    real participant data linked in for the check that reads participants' words. The
+    full suite runs in the coordinator's train alone (Adam, 18 October), and this run is
+    one, so IDIOGRAPH_TRAIN=1 tells the suite so. Outside a train it skips itself."""
+    tests = view.root / "tests"
+    if not tests.is_dir():
+        return True, "[idiograph] tests does not exist yet, skipped", None
+    # No -t: the start directory is its own top level, so a plain tests folder
+    # with no __init__.py stays importable. Passing the parent broke this once.
+    # the suite reads the same local gate file, and the real data's folders when there are any
+    env = {"IDIOGRAPH_GATE_LOCAL": str(GATE_LOCAL), IDIOGRAPH_TRAIN: "1"}
+    if MAIN_DATA:
+        env["IDIOGRAPH_MAIN_DATA"] = str(MAIN_DATA)
+    if ACADEMY:
+        env["IDIOGRAPH_ACADEMY"] = str(ACADEMY)
+    code, out = run([sys.executable, "-m", "unittest", "discover", "-s", str(tests)],
+                    cwd=view.root, env=env)
+    # The empty-suite branch comes first: unittest exits 5, not 0, when it
+    # collects nothing, and an empty suite is a gap to report, not a failure.
+    if "NO TESTS RAN" in out or "Ran 0 tests" in out:
+        # As of 21 September 2026 the Idiograph suite is a standalone script with
+        # its own runner, not unittest TestCases, so discovery collects nothing.
+        # Say so rather than reporting a pass nobody earned. Fix: expose TestCases
+        # there, or teach this check that tool's own entry point.
+        return True, "[idiograph] discovery collected 0 tests, so nothing was checked here", None
+    if code != 0:
+        return False, f"[idiograph] suite failed\n{out.strip()}", "idiograph"
+    # The suite prints its count line when it has run. A skip without one means it took
+    # this run for one outside a train, so nothing was checked, and that is no pass.
+    if "skipped=" in out and not SUITE_COUNT_RX.search(out):
+        return False, f"[idiograph] the suite skipped itself, so nothing was checked\n{out.strip()}", \
+            "idiograph-not-run"
+    return True, f"[idiograph] suite passes\n{out.strip()}", None
+
+
+FAST_CHECKS = [
+    ("budgets", check_budgets),
+    ("pseudonym", check_pseudonym),
+    ("case folders", check_case_folder_names),
+    ("conflict markers", check_conflict_markers),
+    ("participant words", check_participant_words_cached),
+]
+
+
+def run_checks(checks, view: View) -> tuple[bool, str | None]:
+    ok, reason = True, None
+    for name, fn in checks:
+        passed, output, why = fn(view)
+        print(output or f"[{name}] no output", flush=True)
+        if not passed and ok:
+            ok, reason = False, why
+    return ok, reason
+
+
+# ---------------------------------------------------------------- the gate
+
+
+def verdict(ok: bool, mode: str, sha: str, tree: str, reason: str | None,
+            snap: str | None = None) -> str:
+    line = (
+        f"VERIFY: {'GREEN' if ok else 'RED'} "
+        f"merge={'yes' if ok else 'no'} mode={mode} sha={sha} tree={tree}"
+    )
+    if not ok and reason:
+        line += f" reason={reason}"
+    if snap:
+        line += f" snap={snap}"
+    return line
+
+
+def emit(line: str) -> None:
+    VERIFY_DIR.mkdir(exist_ok=True)
+    stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    with HISTORY.open("a", encoding="utf-8") as fh:
+        fh.write(f"{stamp} {line}\n")
+    print(line, flush=True)
+
+
+def gate(mode: str) -> int:
+    """A full run waits its turn on the shared Mac before any lock, so a waiting run blocks no
+    other run or commit. The waiter or announcement goes however the run ends."""
+    place = MachinePlace() if mode == "full" else None
+    try:
+        if place:
+            place.wait()
+        return gate_run(mode, place)
+    finally:
+        if place:
+            place.release()
+
+
+def gate_run(mode: str, place: MachinePlace | None) -> int:
+    """Lock, snapshot, check, clean up, and only then the verdict, so it is the last line."""
+    run_lock = Lock(RUN_LOCK)
+    if not run_lock.acquire():
+        if place:
+            place.release()
+        print(f"[lock] a run holds {RUN_LOCK}, PID {run_lock.holder()}")
+        emit(verdict(False, mode, head_sha(), tree_state(), "locked"))
+        return 1
+    base = TMP / f"{SNAP_PREFIX}{os.getpid()}"
+    held: list[View] = []
+    try:
+        if place:
+            place.announce()
+        line = gate_locked(mode, base, held)
+    finally:
+        if not remove_tree(base, held[0].links if held else None):
+            print(f"[snapshot] could not remove {base}")
+        if place:
+            place.release()
+        run_lock.release()
+    emit(line)
+    return 0 if line.startswith("VERIFY: GREEN") else 1
+
+
+def gate_locked(mode: str, base: Path, held: list[View]) -> str:
+    """The run under the run lock. The commit lock is held only while the snapshot is taken."""
+    started = time.time()
+    sweep_stale_work()
+    commit_lock = Lock(COMMIT_LOCK)
+    if not commit_lock.wait(COMMIT_WAIT, "a commit, or a run taking its snapshot"):
+        print(f"[lock] gave up on {COMMIT_LOCK}, PID {commit_lock.holder()} holds it")
+        return verdict(False, mode, head_sha(), tree_state(), "locked")
+    locked_at = time.time()
+    try:
+        swept = sweep_icloud_copies()
+        remove_tree(base)
+        view, notes = take_snapshot(base)
+        held.append(view)
+    except (OSError, SnapshotError, ValueError) as exc:
+        print(f"[snapshot] failed: {exc}")
+        return verdict(False, mode, head_sha(), tree_state(), "snapshot-failed")
+    finally:
+        commit_lock.release()
+
+    print(f"[verify] mode={mode} sha={view.head} tree={view.tree} snap={view.snap}")
+    for line in swept + notes:
+        print(line)
+    print(f"[lock] commit lock released after {time.time() - locked_at:.1f}s, "
+          "the checks below read the snapshot", flush=True)
+
+    checks = list(FAST_CHECKS)
+    if mode == "full":
+        # the full gate reads the sources when they changed, where the fast one only takes the cache
+        checks = [(name, check_participant_words if fn is check_participant_words_cached else fn)
+                  for name, fn in checks]
+    if mode == "docs":
+        checks.append(("docs scope", check_docs_scope))
+    if mode == "full":
+        checks += [
+            ("py_compile", check_py_compile),
+            ("gate", check_gate_tests),
+            ("name scan", check_name_scan),
+            ("idiograph", check_idiograph),
+        ]
+    ok, reason = run_checks(checks, view)
+    if mode in ("docs", "full"):
+        print(report_banned_patterns(view))
+    print(f"[verify] {time.time() - started:.1f}s", flush=True)
+    return verdict(ok, mode, view.head, view.tree, reason, view.snap)
+
+
+# ---------------------------------------------------------------- ./commit
+
+
+COMMIT_USAGE = './commit -m "<message>" -- <path>...'
+
+
+def commit_verdict(ok: bool, sha: str | None = None, reason: str | None = None) -> int:
+    emit(f"COMMIT: GREEN sha={sha}" if ok else f"COMMIT: RED reason={reason}")
+    return 0 if ok else 1
+
+
+def parse_commit_args(argv: list[str]) -> tuple[list[str], list[str], str | None]:
+    messages: list[str] = []
+    i = 0
+    while i < len(argv):
+        arg = argv[i]
+        if arg == "--":
+            break
+        if arg in ("-m", "--message"):
+            if i + 1 >= len(argv):
+                return [], [], f"{arg} needs a message"
+            messages.append(argv[i + 1])
+            i += 2
+        elif arg.startswith("--message="):
+            messages.append(arg.split("=", 1)[1])
+            i += 1
+        elif arg.startswith("-m") and len(arg) > 2:
+            messages.append(arg[2:])
+            i += 1
+        else:
+            return [], [], f"unknown argument {arg!r}, the paths go after --"
+    paths = argv[i + 1:]
+    if not any(m.strip() for m in messages):
+        return [], [], "a message is needed"
+    if not paths:
+        return [], [], "name the paths to commit after --"
+    rels = []
+    root = os.path.realpath(ROOT)
+    for p in paths:
+        full = os.path.abspath(p)
+        full = os.path.join(os.path.realpath(os.path.dirname(full)), os.path.basename(full))
+        rel = os.path.relpath(full, root)
+        if rel == ".." or rel.startswith("../"):
+            return [], [], f"{p} is outside the repo"
+        rels.append(rel)
+    return messages, rels, None
+
+
+def ls_tree(tree: str, paths: list[str]) -> dict[str, str] | None:
+    code, out, _ = git_run("ls-tree", "-r", "-z", "--full-tree", tree, "--", *paths,
+                           env={"GIT_LITERAL_PATHSPECS": "1"})
+    if code != 0:
+        return None
+    held = {}
+    for rec in out.decode("utf-8", "surrogateescape").split("\0"):
+        if rec:
+            info, _, path = rec.partition("\t")
+            held[path] = info.split()[2]
+    return held
+
+
+def green_snap_for(code: dict[str, str | None]) -> tuple[bool, str]:
+    """Find a GREEN full verdict whose snap holds every code path as it is about to be committed."""
+    try:
+        lines = HISTORY.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        lines = []
+    snaps: list[tuple[str, str]] = []
+    for line in reversed(lines):
+        match = GREEN_FULL_RX.search(line)
+        if match and match.group(1) not in {s for s, _ in snaps}:
+            snaps.append((match.group(1), line.split(" ", 1)[0]))
+    paths = sorted(code)
+    if not snaps:
+        return False, ("[commit] code needs a GREEN full gate first, and no GREEN full verdict "
+                       f"with a snap is in .verify/history.log: {', '.join(paths)}")
+    latest: list[str] | None = None
+    for snap, stamp in snaps[:100]:
+        held = ls_tree(snap, paths)
+        if held is None:
+            continue
+        differ = [p for p in paths if held.get(p) != code[p]]
+        if not differ:
+            return True, f"[commit] the full gate passed this code: snap {snap[:12]} at {stamp}"
+        if latest is None:
+            latest = differ
+    return False, ("[commit] no GREEN full snap holds the present content of: "
+                   f"{', '.join(latest or paths)} (run the full gate, then commit)")
+
+
+def commit_main(argv: list[str]) -> int:
+    messages, paths, problem = parse_commit_args(argv)
+    if problem:
+        print(f"[commit] {problem}. Usage: {COMMIT_USAGE}")
+        return commit_verdict(False, reason="usage")
+    lock = Lock(COMMIT_LOCK)
+    if not lock.wait(COMMIT_WAIT, "a run taking its snapshot, or another commit"):
+        print(f"[lock] gave up on {COMMIT_LOCK} after {COMMIT_WAIT:.0f}s, PID {lock.holder()} holds it")
+        return commit_verdict(False, reason="locked")
+    work = TMP / f"{COMMIT_PREFIX}{os.getpid()}"
+    try:
+        sweep_stale_work()
+        remove_tree(work)
+        work.mkdir(mode=0o700)
+        return commit_locked(messages, paths, work)
+    finally:
+        remove_tree(work)
+        lock.release()
+
+
+def commit_locked(messages: list[str], paths: list[str], work: Path) -> int:
+    env = {"GIT_INDEX_FILE": str(work / "index"), "GIT_LITERAL_PATHSPECS": "1"}
+    old = git("rev-parse", "--verify", "-q", "HEAD").strip()
+    code, _, err = git_run("read-tree", old, env=env)
+    if code != 0:
+        print(f"[commit] could not read HEAD: {err.strip()}")
+        return commit_verdict(False, reason="commit-failed")
+    # HEAD plus the named paths as they stand: git commit --only, built where it can be checked. A
+    # named file HEAD holds and the real index no longer does, after `git rm --cached`, goes as
+    # removed with its file left on disk, since add alone puts back a file it finds there.
+    held = set(git_z("ls-files", "-z", "--", *paths, env=env))
+    gone = sorted(held - set(git_z("ls-files", "-z", "--", *paths, env={"GIT_LITERAL_PATHSPECS": "1"})))
+    rest = [p for p in paths if p not in gone]
+    code, err = 0, ""
+    if rest:
+        code, _, err = git_run("add", "-A", "--", *rest, env=env)
+    if code == 0 and gone:
+        code, _, err = git_run("rm", "-q", "--cached", "--", *gone, env=env)
+    if code != 0:
+        print(f"[commit] git would not take those paths: {err.strip()}")
+        return commit_verdict(False, reason="bad-path")
+    changed = git_z("diff-index", "-z", "--cached", "--name-only", old, env=env)
+    if not changed:
+        print("[commit] the named paths match HEAD, so there is nothing to commit")
+        return commit_verdict(False, reason="nothing-to-commit")
+    print(f"[commit] {len(changed)} path(s): {', '.join(changed)}")
+
+    # The fast checks, on the tree as it will stand: its text files and tests, from the index.
+    entries = index_entries(env)
+    tree_dir = work / "tree"
+    tree_dir.mkdir()
+    wanted = [p for p in entries if is_text(p) or p.startswith("tests/")]
+    code, _, err = git_run("checkout-index", "-z", "--stdin", f"--prefix={tree_dir}/", env=env,
+                           stdin="\0".join(wanted).encode("utf-8", "surrogateescape"))
+    if code != 0:
+        print(f"[commit] could not lay out the tree to check: {err.strip()}")
+        return commit_verdict(False, reason="commit-failed")
+    view = View(root=tree_dir, tracked=list(entries), staged={}, changed=changed)
+    ok, reason = run_checks(FAST_CHECKS, view)
+    if not ok:
+        return commit_verdict(False, reason=reason)
+
+    code_paths = {p: entries.get(p, (None, None))[1] for p in changed if is_code(p)}
+    if code_paths:
+        gated, line = green_snap_for(code_paths)
+        print(line)
+        if not gated:
+            return commit_verdict(False, reason="code-not-gated")
+
+    code, out, err = git_run("write-tree", env=env)
+    tree = out.decode().strip()
+    message = git_run("stripspace", stdin="\n\n".join(messages).encode())[1]
+    code2, out2, err2 = git_run("commit-tree", tree, "-p", old, "-F", "-", stdin=message)
+    new = out2.decode().strip()
+    if code != 0 or code2 != 0 or not new:
+        print(f"[commit] git could not write the commit: {(err + err2).strip()}")
+        return commit_verdict(False, reason="commit-failed")
+    subject = message.decode("utf-8", "replace").splitlines()[0] if message.strip() else ""
+    code, _, err = git_run("update-ref", "-m", f"commit: {subject}", "HEAD", new, old)
+    if code != 0:
+        print(f"[commit] HEAD moved while this commit was checked, so nothing was committed: {err.strip()}")
+        return commit_verdict(False, reason="head-moved")
+
+    # The real index takes the committed paths, as git commit --only leaves it. Nothing else in it moves.
+    for attempt in range(20):
+        code, _, err = git_run("reset", "-q", new, "--", *changed, env={"GIT_LITERAL_PATHSPECS": "1"})
+        if code == 0:
+            break
+        time.sleep(0.25)
+    else:
+        print(f"[commit] the commit landed, but the index still holds the old content of the "
+              f"committed paths: run git reset -q -- <those paths>. git said: {err.strip()}")
+    return commit_verdict(True, sha=git("rev-parse", "--short", new).strip())
+
+
+# ---------------------------------------------------------------- driver
+
+
+def main() -> int:
+    signal.signal(signal.SIGTERM, on_signal)
+    signal.signal(signal.SIGHUP, on_signal)
+    argv = sys.argv[1:]
+    if argv[:1] == ["--commit"]:
+        return commit_main(argv[1:])
+    args = set(argv)
+    if args & {"-h", "--help"}:
+        print(__doc__)
+        return 0
+    mode = "fast" if "--fast" in args else "docs" if "--docs" in args else "full"
+    return gate(mode)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

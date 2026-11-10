@@ -1,0 +1,21 @@
+/* The two open fonts every print view and PDF is set in (typst1, 9 November 2026): Charis SIL for the text and
+   Nunito Sans for headings and labels, both under the SIL Open Font Licence 1.1 (OFL-CharisSIL.txt and
+   OFL-NunitoSans.txt beside them), cut to Latin for English and Spanish. Typst reads the same files from this
+   folder (family/typeset.py), so a print view on screen and its PDF are set in the same type. Served from the
+   app itself, never a font service. */
+@font-face { font-family: "Charis SIL"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("/fonts/CharisSIL-Regular-latin.ttf") format("truetype"); }
+@font-face { font-family: "Charis SIL"; font-style: italic; font-weight: 400; font-display: swap;
+  src: url("/fonts/CharisSIL-Italic-latin.ttf") format("truetype"); }
+@font-face { font-family: "Charis SIL"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("/fonts/CharisSIL-Bold-latin.ttf") format("truetype"); }
+@font-face { font-family: "Charis SIL"; font-style: italic; font-weight: 700; font-display: swap;
+  src: url("/fonts/CharisSIL-BoldItalic-latin.ttf") format("truetype"); }
+@font-face { font-family: "Nunito Sans"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("/fonts/NunitoSans-Regular-latin.ttf") format("truetype"); }
+@font-face { font-family: "Nunito Sans"; font-style: italic; font-weight: 400; font-display: swap;
+  src: url("/fonts/NunitoSans-Italic-latin.ttf") format("truetype"); }
+@font-face { font-family: "Nunito Sans"; font-style: normal; font-weight: 600; font-display: swap;
+  src: url("/fonts/NunitoSans-SemiBold-latin.ttf") format("truetype"); }
+@font-face { font-family: "Nunito Sans"; font-style: italic; font-weight: 600; font-display: swap;
+  src: url("/fonts/NunitoSans-SemiBoldItalic-latin.ttf") format("truetype"); }

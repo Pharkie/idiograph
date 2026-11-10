@@ -1,0 +1,4 @@
+{
+  "distil.nudge.quote_about": "Catches quotation marks inside a statement. For example, \"Feels 'properly at home' with the dog around\". In the corpus one statement in seven carries a quote, and then a single crux word.",
+  "distil.nudge.semicolon_about": "Catches a semicolon inside a statement. For example, \"Missing the dog\" and \"dreading the empty apartment\" joined by one."
+}

@@ -1,0 +1,116 @@
+/* Trace (15 October), the third part beside Sift and Distil. Its screen wears Sift's frame, its bar,
+   table, filters, record, PDF pane and foot, shared through #trace and never copied, from the family's
+   frame.css since 30 October 2026 (sift.css until the cutover of 23 October, which left Trace's own app
+   without it), and these are its own parts alone. */
+
+/* the line over the table: Filters, the manuscript open, where its references come from and Add file at its
+   left, and with the AI switch on AI find passages for the rows shown at its right, wrapping on a phone */
+.tr-top { flex-wrap: wrap; row-gap: 4px; }
+.tr-top[hidden], .sf-foot[hidden] { display: none; }
+.tr-doc-line select, .tr-path-line input {
+  height: 26px; max-width: min(20em, 100%); background: var(--card); border: 1px solid var(--field-edge); border-radius: 4px;
+  padding: 0 6px; font: inherit; font-size: 12.5px; color: var(--ink);
+}
+/* the typed path, off a Mac, wide enough for its placeholder whole (15 October, later) */
+.tr-path-line input { width: 20em; max-width: 100%; }
+.tr-path-line[hidden], .tr-doc-line select[hidden], .tr-list[hidden] { display: none; }
+.tr-list { font-size: 12.5px; color: var(--ink-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 22em; }
+.tr-ai-all { flex: none; }
+/* a reference list alone, said once over its table */
+.tr-alone { margin: 0; padding: 6px var(--gutter, 16px); font-size: 13px; color: var(--ink-soft); border-bottom: 1px solid var(--rule); }
+.tr-alone[hidden] { display: none; }
+/* nothing added yet: one line and the way to choose a file */
+/* the screen's width up to 34em, so on a phone the typed path has the row, where the block shrank to its words */
+.tr-empty { margin: 48px auto; width: 100%; max-width: 34em; padding: 0 var(--gutter); text-align: center; }
+.tr-empty[hidden] { display: none; }
+.tr-empty-line { font-size: 15px; line-height: 1.6; color: var(--ink-soft); }
+.tr-empty-go { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
+/* the typed path here is the toolbar's box, its width and its type, and as tall as Add file beside it, where
+   a width of its own in a box that shrank to fit it left it about 160px wide, its placeholder cut short (15
+   October, later) */
+.tr-empty-go .tr-path-line input { height: 38px; }
+/* the table's widths, the claim the widest, the sentence before it in the faint ink, and the reference
+   under the claim only where the Reference column has given way */
+.tr-tbl .sf-k-title { --w: 30em; }
+.tr-tbl .sf-k-ref { --w: 11em; }
+.tr-tbl .sf-k-sections { --w: 10em; }
+.tr-tbl .sf-k-pdf { --w: 5em; }
+.tr-tbl .sf-k-dec { --w: 9em; }
+.tr-tbl .sf-k-note { --w: 14em; }
+.tr-c-claim { font-size: 13.5px; line-height: 1.45; }
+.tr-before { color: var(--ink-faint); }
+.tr-c-under { display: none; margin-top: 3px; font-size: 12px; color: var(--ink-soft); }
+.tr-c-ref { font-size: 13px; line-height: 1.4; }
+/* a reference's label after its grey pill keeps to one line, under the pill where the column is narrow */
+.tr-short { white-space: nowrap; }
+.tr-c-sec .sf-cat { margin: 0 4px 4px 0; }
+/* a reference never cited in the soft ink, its grey Never cited pill beside it. A citation with no reference
+   keeps its claim in the ink, its grey No reference pill saying what is missing, so the claim never reads as
+   the faint sentence before one */
+.tr-uncited .tr-c-ref { color: var(--ink-soft); }
+/* the record: the section, the sentence before it faint, the claim in the transcript's serif, the forms it
+   cites in, then the reference in a quiet box with its links and how many of its claims are judged, and the
+   AI's passage */
+.tr-set { font-size: 12px; color: var(--ink-faint); }
+.tr-set:empty { display: none; }
+.sf-meta[hidden], .tr-refbox[hidden], .sf-pill[hidden] { display: none; }
+.tr-sec { margin: 0 0 4px; font-size: 12px; color: var(--ink-faint); }
+.tr-sec:empty { display: none; }
+.tr-before-rec { margin: 0 0 6px; font-family: var(--serif); font-size: 16px; line-height: 1.55; color: var(--ink-faint); }
+.tr-before-rec[hidden] { display: none; }
+.tr-said { font-family: var(--serif); font-size: 21px; line-height: 1.5; overflow-wrap: anywhere; }
+.tr-said[hidden] { display: none; }
+/* a reference never cited says so in the heading's place, and wraps as a claim does, where the blank line's
+   one line ran past the screen at 360 (15 October, later) */
+.tr-said.sf-blank { white-space: normal; }
+.tr-as { margin: 0 0 14px; font-size: 12.5px; color: var(--ink-soft); }
+.tr-as:empty { display: none; }
+.tr-refbox { margin: 0 0 16px; padding: 10px 12px; border-left: 2px solid var(--rule-firm); }
+.tr-ref { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink); overflow-wrap: anywhere; }
+.tr-links { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 6px 0 0; }
+.tr-links[hidden] { display: none; }
+/* its DOI and Show in Zotero as every link to a page outside the app, underlined in the accent and the ink under
+   the pointer, where they stood in the browser's own blue (17 October, later) */
+.tr-links a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+.tr-links a:hover { color: var(--ink); }
+.tr-judged { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-faint); }
+.tr-judged:empty { display: none; }
+.tr-pass { margin: 0 0 16px; padding: 8px 12px; border-radius: 4px; background: var(--paper-sunk); }
+.tr-pass[hidden] { display: none; }
+.tr-pass-head { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; font-size: 12.5px; color: var(--ink-faint); }
+.tr-pass-head .btn-icon { width: 14px; height: 14px; }
+.tr-page { font-size: 12px; padding: 0; }
+.tr-passage { margin: 4px 0 0; font-family: var(--serif); font-size: 15px; line-height: 1.5; color: var(--ink-soft); quotes: "\201C" "\201D"; }
+.tr-passage::before { content: open-quote; }
+.tr-passage::after { content: close-quote; }
+.tr-pass-none { margin: 0; font-size: 13px; color: var(--ink-faint); }
+/* Supports, Question and Doesn't support side by side, each in its decision's colour */
+.tr-acts[hidden], .sf-note[hidden], .sf-pdf[hidden] { display: none; }
+@media (max-width: 759px) {
+  .tr-tbl .sf-k-title { --w: 18em; }
+}
+/* below about 600px the table keeps the claim, its judgement and its PDF in the first sight, the reference
+   under the claim, and Section and Note stand on the record alone, with no sideways scroll */
+@media (max-width: 599px) {
+  .tr-tbl .sf-k-ref, .tr-tbl .sf-k-sections, .tr-tbl .sf-k-note,
+  .tr-tbl .tr-c-ref, .tr-tbl .tr-c-sec, .tr-tbl .tr-c-note { display: none; }
+  .tr-c-under { display: block; }
+  .tr-tbl { table-layout: auto; width: 100%; min-width: 0; }
+  .tr-tbl .sf-k-title { --w: auto; }
+  .tr-tbl .sf-k-dec { --w: 6.5em; }
+  .tr-tbl .sf-k-pdf { --w: 3.5em; }
+  .tr-tbl td.sf-c-title { white-space: normal; }
+  .tr-list { max-width: 100%; }
+}
+/* below 480px Supports, Question and Doesn't support drop their key letters, Y, Q and N, the keys still on
+   the shortcuts card, and each takes the width its word needs, so the three sit on one line each down to a
+   320px phone, where three equal columns broke Doesn't support over two */
+@media (max-width: 479px) {
+  /* the typed path a row of its own, as wide as the screen, so its placeholder reads whole */
+  .tr-path-line { flex: 1 1 100%; }
+  .tr-path-line input { width: 100%; }
+  #tr-ai-all-word { white-space: normal; }
+  .tr-acts .sf-act-key { display: none; }
+  .tr-acts { display: flex; }
+  .tr-acts .sf-act { flex: 1 1 auto; white-space: nowrap; font-size: 14px; padding-left: 4px; padding-right: 4px; }
+}

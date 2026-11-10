@@ -1,0 +1,6 @@
+# what the holding page Worker never serves
+README.md
+wrangler.jsonc
+.assetsignore
+.wrangler
+.DS_Store

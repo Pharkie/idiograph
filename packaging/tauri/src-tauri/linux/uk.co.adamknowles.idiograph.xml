@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Idiograph's shared copy as a file type of its own, for the .deb to put in /usr/share/mime/packages
+     (linux3, 8 November 2026). Tauri writes the type's name into the desktop entry's MimeType line and
+     nothing else, so without this file a desktop has no name for a .idiograph file. The shared-mime-info
+     package's own dpkg trigger brings the database up to date. The icon is the picture the .deb puts in the
+     hicolor theme's mimetypes folders under that name (linuxfix, 9 November 2026). It is the generic icon too:
+     GTK 4's Files looks for every name in the desktop's own theme before hicolor, so Adwaita's
+     application-x-generic, the fallback name otherwise, came first and the file showed a blank page (linuxvm2,
+     9 November 2026). -->
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-idiograph-shared-copy">
+    <comment>Idiograph shared copy</comment>
+    <icon name="application-x-idiograph"/>
+    <generic-icon name="application-x-idiograph"/>
+    <glob pattern="*.idiograph"/>
+  </mime-type>
+</mime-info>

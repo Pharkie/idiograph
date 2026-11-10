@@ -1,0 +1,27 @@
+{
+  "sift_settings.decided_ft": "full text {decided} of {records} decided",
+  "sift_settings.decided_ta": {
+    "one": "{decided} of {n} record decided",
+    "other": "{decided} of {n} records decided"
+  },
+  "sift_settings.not_there": "Not there now",
+  "sift_settings.run_line": "{run}, {state}",
+  "sift_settings.run_of": "Run of {day}",
+  "sift_settings.no_screening": "no screening yet",
+  "sift_settings.version_draft": "Version {version}, a draft",
+  "sift_settings.version_registered": "Version {version}, registered",
+  "sift_settings.no_plan": "No search plan yet",
+  "sift_settings.plan_draft": "Plan version {version}, a draft",
+  "sift_settings.plan_registered": "Plan version {version}, registered",
+  "sift_settings.sift_project": "Sift project",
+  "sift_settings.this_screening": "This screening",
+  "sift_settings.name_run": "{name}, run of {day}",
+  "sift_settings.this_project": "this project",
+  "sift_settings.removed": "Removed {name}.",
+  "sift_settings.calls_go": "Calls go to {model}, as chosen in Settings, AI features.",
+  "sift_settings.saved": "Saved",
+  "sift_settings.not_set": "Not set",
+  "sift_settings.key_removed": "Key removed.",
+  "sift_settings.no_key": "There was no key to remove.",
+  "sift_settings.checking": "Checking"
+}

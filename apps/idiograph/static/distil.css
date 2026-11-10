@@ -1,0 +1,1620 @@
+/* Idiograph's own styles, Distil's screens, cards and parts of Home and Settings (the family codebase's
+   fifth build, 23 October 2026, until then in style.css): every rule here names an id or a class only
+   Idiograph's markup and scripts use. It loads after the family's style.css and before themes.css. Three of
+   Idiograph's rules stay in style.css where they stood, and a narrow window's rule naming both apps' parts
+   is split, its Idiograph part here, so a rule that came later in the one file still wins. */
+.section-label.spaced { margin-top: 34px; }
+.app-mark { color: var(--app-colour); }
+.proj-head > .mark ~ .proj-question { grid-column: 2; }
+.proj-question { font-family: var(--serif); font-size: 15px; line-height: 1.5; color: var(--ink-soft);
+  max-width: 46em; overflow-wrap: anywhere; }
+.proj-question:empty, .proj-question[hidden] { display: none; }
+/* Share a copy's card (23 October, design E): Whole project or Choose participants, then under a rule
+   the audio tick or a row for each participant in columns, the statements a muted mark with no box, a
+   dash on a row not ticked, the columns narrower in a narrow window */
+#share-card .card { width: min(600px, 100%); }
+.sc-modes { margin-top: 8px; gap: 10px; }
+.switches label.sc-radio { align-items: flex-start; }
+.sc-radio input { margin-top: 3px; }
+.sc-radio > span { display: flex; flex-direction: column; gap: 2px; }
+.sc-sub { font-size: 12px; color: var(--ink-faint); }
+.sc-below { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--rule); }
+.sc-below .switches { margin-top: 0; }
+.sc-grid { --sc-st: 150px; --sc-pe: 56px; --sc-au: 120px; display: grid; column-gap: 18px; row-gap: 7px; align-items: center; }
+.sc-head { color: var(--ink-soft); font-size: 13px; align-self: end; padding-bottom: 6px; line-height: 1.3; border-bottom: 1px solid var(--rule); margin-bottom: 4px; }
+.sc-name, .sc-tick { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--ink-soft); cursor: pointer; min-width: 0; }
+.sc-tick { white-space: nowrap; }
+.sc-cell { display: flex; justify-self: start; }
+.sc-grid input { accent-color: var(--ink); }
+.sc-fixed { display: flex; color: var(--ink-faint); padding-left: 2px; }
+.sc-dash { color: var(--ink-faint); font-size: 13px; padding-left: 3px; }
+.sc-mark { width: 13px; height: 13px; flex: none; color: var(--ink-faint); }
+@media (max-width: 559px) {
+  .sc-grid { --sc-st: 80px; --sc-pe: 30px; --sc-au: 76px; column-gap: 8px; }
+  .sc-head { font-size: 12px; }
+  .sc-tick { gap: 6px; }
+}
+/* Open a shared copy, a copy of one of his projects coming back (boardsbackA, Adam's option A, 26 October,
+   rebuilt 6 November, copyback): the copy's line, the name on the boards and what a board comes in as, the
+   two choices, then a tick for all of them, each participant's name over a tick for each of its boards,
+   their own names, and once under them how its statements came, and at the foot what is missing beside a
+   button that cannot be pressed */
+#copy-back .card { width: min(560px, 100%); }
+.cb-copy { font-size: 13px; color: var(--ink-soft); margin: 6px 0 0; overflow-wrap: anywhere; }
+.setting.cb-who { margin-bottom: 4px; }
+.setting.cb-who input { width: 220px; flex: 0 0 auto; }
+.cb-as { font-size: 12px; color: var(--ink-faint); margin: 0 0 12px; overflow-wrap: anywhere; }
+.cb-all-row { margin: 0 0 8px; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
+.cb-all-row[hidden] { display: none; }
+.cb-rows { display: grid; gap: 12px; font-size: 13px; }
+.cb-p { margin: 0 0 5px; color: var(--ink); font-size: 13px; overflow-wrap: anywhere; }
+.cb-tick { display: flex; align-items: center; gap: 9px; padding: 2px 0; font-size: 13px; color: var(--ink-soft); cursor: pointer; min-width: 0; overflow-wrap: anywhere; }
+.cb-tick input { accent-color: var(--ink); flex: none; }
+.cb-line { margin: 6px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-soft); }
+.cb-need { align-self: center; margin-right: 6px; font-size: 12.5px; color: var(--ink-soft); }
+@media (max-width: 559px) {
+  .setting.cb-who input { width: 160px; }
+}
+/* Boards, Current board only or All boards, under the choice (sendboardsA, Adam's option A, 26 October) */
+.sc-boardrow { display: flex; flex-wrap: wrap; align-items: center; column-gap: 22px; row-gap: 8px; font-size: 14px; }
+.sc-boardrow label.sc-radio { display: flex; align-items: center; gap: 9px; cursor: pointer; }
+.sc-boardrow .sc-radio input { margin-top: 0; }
+.sc-boards-word { color: var(--ink-soft); font-size: 13px; }
+@media (max-width: 559px) {
+  .sc-boardrow { flex-direction: column; align-items: flex-start; }
+}
+.sent-file-name { font-size: 13px; color: var(--ink-soft); overflow-wrap: anywhere; }
+.hp-back {
+  flex: none; width: 34px; height: 34px; margin-top: 1px; display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: 1px solid var(--rule-firm); border-radius: 50%; color: var(--ink-soft); font-size: 16px;
+  line-height: 1; cursor: pointer; transition: background .16s, color .16s;
+}
+.hp-back:hover { background: var(--paper-sunk); color: var(--ink); }
+.hp-back:focus-visible { outline: 0; box-shadow: var(--focus); border-color: var(--crux); }
+.hp-title { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+/* Project settings beside the project's name and question, at the head's right (settingsplit) */
+.hp-set { flex: none; margin: 4px 0 0 auto; }
+.hp-name { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; margin: 0; font-family: var(--serif);
+  font-weight: 400; font-size: 24px; line-height: 1.3; color: var(--ink); overflow-wrap: anywhere; }
+.hp-name .tag { font-family: var(--sans); }
+/* a demo's card (demos, 3 November 2026): its tag goes under the name where the two would not fit on one line,
+   so the name is never cut for "Thematic analysis demo" */
+.home-card.is-demo .hc-head { flex-wrap: wrap; row-gap: 4px; }
+
+/* The rows (items 201 to 203): one full-width row per case, its columns lined up from row to row
+   through a subgrid, the handle, the case with its tags and dots, and the two halves side by side,
+   each a button with its line in the small type. Files opens under the row across its width.
+   Under 560px the halves stack under the name. */
+.prows { list-style: none; margin: 0 0 16px; padding: 0; display: grid; column-gap: 12px;
+  grid-template-columns: 26px minmax(8em, 1fr) minmax(0, 1.3fr) minmax(0, 1.3fr); }
+.prows > .empty { grid-column: 1 / -1; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.pcard {
+  position: relative; min-width: 0; grid-column: 1 / -1; display: grid; grid-template-columns: subgrid;
+  align-items: center; row-gap: 0; margin: 0 0 8px; padding: 7px 10px 7px 4px;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 4px;
+}
+@supports not (grid-template-columns: subgrid) {
+  .pcard { grid-template-columns: 26px minmax(8em, 1fr) minmax(0, 1.3fr) minmax(0, 1.3fr); column-gap: 12px; }
+}
+.pcard.dragging { border-color: var(--rule-firm); box-shadow: var(--lift); z-index: 3; }
+.pcard > .pc-grip { grid-column: 1; }
+.pcard > .pc-head { grid-column: 2; }
+.pcard > .pc-es { grid-column: 3; }
+.pcard > .pc-pets { grid-column: 4; }
+.pcard > .pc-unstarted { grid-column: 3 / 5; }
+/* a thematic analysis project's row, its coding the whole width with no PETs beside it (tadraw) */
+.pcard.ta > .pc-es { grid-column: 3 / 5; }
+.pcard > .pc-files { grid-column: 2 / -1; }
+.pcard.dragging .pc-grip { cursor: grabbing; }
+.pc-head { position: relative; display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0; }
+.pc-name { font-family: var(--serif); font-size: 19px; font-weight: 400; line-height: 1.3; margin: 0;
+  flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-head .tag { flex: none; }
+.pcard .pc-menu { top: calc(100% + 4px); right: 0; min-width: 9em; }
+.pc-half {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px; width: 100%; min-width: 0;
+  background: none; border: 0; border-left: 1px solid var(--rule); text-align: left; cursor: pointer;
+  padding: 7px 8px 7px 12px; transition: background .16s, padding .16s;
+}
+.pc-half:hover:not(:disabled) { background: var(--paper-sunk); padding-left: 16px; }
+.pc-half:disabled { cursor: not-allowed; opacity: .55; }
+.pc-unstarted { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; min-width: 0;
+  border-left: 1px solid var(--rule); padding: 4px 0 4px 12px; }
+.pc-none { font-size: 13.5px; color: var(--ink-faint); margin: 0; }
+.pc-start { flex: none; }
+.pc-files { border-top: 1px solid var(--rule); margin-top: 6px; padding-top: 4px; min-width: 0; }
+.pc-files .case-list { margin: 0; }
+.pc-files .case-list li:first-child { border-top: 0; }
+.pc-files .case-list li:last-child { border-bottom: 0; }
+.pc-files .case-row { flex-wrap: wrap; gap: 2px 8px; padding: 8px 4px 8px 2px; }
+.pc-files .case-row:hover { padding-left: 6px; }
+.pc-files .case-name { font-size: 14px; flex: 1 1 100%; }
+.pc-files .case-board, .pc-files .case-meta { margin-left: 0; text-align: left; max-width: 100%; flex: 0 1 auto; }
+/* the GETs of a project, a wide card after its rows, the order of the work (18 October), the rows' own foot
+   standing over it and Add transcripts under it */
+.gets-place { margin: 0 0 16px; }
+.gets-wide {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; min-width: 0;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 4px; text-align: left; cursor: pointer;
+  padding: 14px 16px; transition: background .16s, border-color .16s;
+}
+.gets-wide:hover { background: var(--paper-sunk); border-color: var(--rule-firm); }
+.pc-half:focus-visible, .pc-dots:focus-visible { border-color: var(--crux); }
+@media (max-width: 559px) {
+  .prows { grid-template-columns: 26px minmax(0,1fr); }
+  .pcard { grid-template-columns: 26px minmax(0,1fr); }
+  .pcard > .pc-es, .pcard > .pc-pets, .pcard > .pc-unstarted, .pcard > .pc-files { grid-column: 2; }
+  .pcard > .pc-grip { grid-row: 1; }
+  .pc-half, .pc-unstarted { border-left: 0; border-top: 1px solid var(--rule); padding-left: 2px; }
+  .pc-half:hover:not(:disabled) { padding-left: 8px; }
+}
+/* a participant in a project of two or more timepoints (20 October): the name across the row, then a cell
+   a timepoint, its label in bold and its description, where it stands under it, and PETs after them. A
+   timepoint with no interview is a dashed cell that opens nothing. On a phone the cells stack */
+.pcard.longi > .pc-head { grid-column: 2 / -1; }
+.pcard.longi > .pc-grip { grid-row: 1; }
+.pc-tps { grid-column: 2 / -1; display: grid; grid-template-columns: repeat(var(--tps, 2), minmax(0, 1fr)) minmax(0, 1fr);
+  gap: 8px; margin: 6px 0 4px; min-width: 0; }
+.pc-tps .pc-half { border: 1px solid var(--rule); border-radius: 3px; padding: 8px 10px; background: var(--paper); }
+.pc-tps .pc-half:hover:not(:disabled) { padding-left: 10px; background: var(--paper-sunk); border-color: var(--rule-firm); }
+.pc-tps .pc-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pc-tps .pc-label b { font-weight: 600; }
+.pc-tp.none { border-style: dashed; background: none; cursor: default; }
+.pc-tp.none .pc-label { color: var(--ink-soft); }
+@media (max-width: 899px) { .pc-tps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 559px) {
+  .pc-tps { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .pcard.longi > .pc-head, .pcard.longi > .pc-tps { grid-column: 2; }
+  .pc-tps .pc-half { border-top: 1px solid var(--rule); padding-left: 10px; }
+}
+
+.case-list { list-style: none; margin: 0 0 42px; padding: 0; }
+.case-list li { border-top: 1px solid var(--rule); }
+.case-list li:last-child { border-bottom: 1px solid var(--rule); }
+.case-row {
+  display: flex; align-items: baseline; gap: 14px; width: 100%;
+  background: none; border: 0; text-align: left; cursor: pointer;
+  padding: 15px 8px 15px 2px; transition: background .16s, padding .16s; min-width: 0;
+}
+.case-row:hover { background: var(--paper-sunk); padding-left: 10px; }
+.case-row:disabled { cursor: not-allowed; opacity: .55; }
+.case-name { font-family: var(--serif); font-size: 19px; flex: 0 1 auto; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.case-meta { font-size: 12px; color: var(--ink-faint); margin-left: auto; text-align: right;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 48%; flex: none; }
+/* a phase marked complete, Statements, PETs or both as Case complete, in the row's small type a
+   shade darker than the rest of it */
+.case-mark { color: var(--ink-soft); }
+/* the Current board of a case whose themes file marks one, in the row's small type after the
+   case and its sheets, cut short with an ellipsis when the row runs out of room */
+.case-board { font-size: 12px; color: var(--ink-faint); white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; max-width: 30%; flex: 0 1 auto; min-width: 0; }
+.rail-tag { line-height: 1.6; }
+.days-grid {
+  display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 11px); grid-auto-columns: 11px;
+  gap: 3px; width: max-content; margin-left: auto;
+}
+.days-line { font-size: 12.5px; line-height: 1.55; color: var(--ink-faint); margin: 10px 0 0; }
+@media (max-width: 559px) {
+  .days .days-grid { margin-left: 0; }
+}
+/* and on Idiograph's bars the mark is Home (20 October), a button with nothing round it but a soft square
+   on hover and the focus ring, the mark's 7px kept on the button */
+.rail-home { flex: none; display: inline-flex; align-items: center; justify-content: center; padding: 3px;
+  margin: 0 calc(4px - var(--rail-gap)) 0 -3px; border: 0; border-radius: 5px; background: none; cursor: pointer; }
+.rail-home .mark { margin-right: 0; }
+.rail-home:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.rail-home:focus-visible { outline: 0; box-shadow: var(--focus); }
+.rail-item { white-space: nowrap; }
+.rail-sheet { font-size: 12.5px; color: var(--ink-soft); margin-left: 6px; white-space: nowrap; }
+/* the sheet after the tabs, with a rule between them */
+#work #es-steps-sep ~ .rail-sheet, #work #es-steps-sep ~ .sheet-pick { margin-left: 0; }
+/* and the tabs stand 12px from the project's name and the rule 12px from the last tab, as on PETs and GETs,
+   where the bar's own gap is 8 */
+#work #es-steps-sep, #work .ds-tabs { margin-left: 4px; }
+/* the timepoint in the sheet's place in a project of two or more (20 October): its label large, T2, its
+   description smaller beside it, gone where the bar runs short, the chevron after them, and its menu of
+   the participant's timepoints under it */
+.tp-pick { position: relative; display: inline-flex; align-items: center; }
+.tp-now {
+  display: inline-flex; align-items: baseline; gap: 6px; position: relative; background: none; border: 0;
+  border-radius: 3px; margin: 0; padding: 2px 15px 2px 0; font: inherit; color: var(--ink-soft);
+  white-space: nowrap; cursor: pointer;
+}
+.tp-now:hover, .tp-now[aria-expanded="true"] { color: var(--ink); }
+.tp-now:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+.tp-now-label { font-size: 15px; font-weight: 600; color: var(--ink); }
+.tp-now-desc { font-size: 12.5px; max-width: 14em; overflow: hidden; text-overflow: ellipsis; }
+.tp-now:hover .sheet-chevron { color: var(--ink); }
+:is(#tp-menu, #th-tp-menu) { top: calc(100% + 6px); left: -6px; width: max-content; min-width: 17em; max-width: min(26em, calc(100vw - 24px));
+  padding: 8px 4px 6px; }
+.tp-menu-head { margin: 0 8px 4px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600;
+  color: var(--ink-soft); white-space: nowrap; }
+:is(#tp-menu, #th-tp-menu) button.ghost { display: grid; grid-template-columns: 1em auto minmax(0, 1fr) auto; align-items: baseline; gap: 8px;
+  width: 100%; text-align: left; font-size: 13px; color: var(--ink); padding: 6px 10px 6px 6px; }
+:is(#tp-menu, #th-tp-menu) .tp-tick { color: var(--ink); }
+:is(#tp-menu, #th-tp-menu) .tp-item-desc { color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; }
+:is(#tp-menu, #th-tp-menu) .tp-item-state { margin-left: 14px; font-size: 12px; color: var(--ink-faint); }
+:is(#tp-menu, #th-tp-menu) button.ghost.tp-sheet { grid-template-columns: 1em 1em minmax(0, 1fr) auto; font-size: 12.5px; color: var(--ink-soft); }
+:is(#tp-menu, #th-tp-menu) button.ghost:disabled { color: var(--ink-faint); cursor: default; opacity: 1; }
+@media (max-width: 900px) { .tp-now-desc { display: none; }
+}
+@media (min-width: 560px) { #th-tp-menu { top: calc(100% + 13px); }
+}
+@media (max-width: 559px) { :is(#tp-menu, #th-tp-menu) { position: fixed; top: var(--rail-h, 46px); left: 12px; right: 12px; width: auto; min-width: 0; max-width: none; }
+}
+@media (max-width: 559px) { #th-tp-menu { top: calc(var(--rail-h, 46px) + 10px); }
+}
+.rail-item b { color: var(--ink); }
+/* the speaker's name before the place, "Juno, passage 8 of 120", a long name cut short with its
+   ellipsis and said whole in the place's tooltip (15 October) */
+.rail-speaker { display: inline-block; max-width: 11em; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }
+/* "in round 1", the narrow bar's form of "in this round" and the round's own count, shown where they
+   go, so a bare "7 of 16" never stands (16 October) */
+.rail-short { display: none; }
+/* a phase marked complete with passages undecided stands its mark before the place, so the place
+   takes its short form at every width, no speaker's name and "in round 1" (16 October) */
+#work.es-reopened #rail-who, #work.es-reopened #rail-in-round, #work.es-reopened #rail-round-sep,
+#work.es-reopened #rail-round-item { display: none; }
+#work.es-reopened .rail-short { display: inline; }
+.rail-sep { width: 1px; height: 13px; background: var(--rule-firm); }
+.rail:has(> .ds-tabs) { background: color-mix(in srgb, var(--paper-sunk) 92%, transparent); }
+.ds-tabs { flex: none; align-self: stretch; display: flex; align-items: flex-end; gap: 2px; min-width: 0;
+  margin: 0 0 -1px; position: relative; z-index: 1; }
+.ds-tab { flex: none; display: inline-flex; align-items: center; height: 36px; padding: 0 5px; position: relative;
+  border: 1px solid transparent; border-bottom: 0; border-radius: 8px 8px 0 0; }
+.ds-tab[hidden] { display: none; }
+.ds-tab.on { background: var(--paper); border-color: var(--rule); }
+.ds-tab-name { background: none; border: 0; margin: 0; padding: 4px 8px; border-radius: 4px; font: inherit;
+  font-size: 15px; line-height: 1.2; color: var(--ink-soft); cursor: pointer; white-space: nowrap; }
+.ds-tab-name:hover { color: var(--ink); }
+.ds-tab.on .ds-tab-name { color: var(--ink); font-weight: 600; cursor: default; }
+.ds-tab-name:focus-visible, .ds-who:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+.ds-who { display: inline-flex; align-items: center; gap: 6px; min-width: 0; background: none; border: 0;
+  border-left: 1px solid var(--rule); border-radius: 0 4px 4px 0; margin: 0 0 0 2px; padding: 2px 6px 2px 10px;
+  font: inherit; color: var(--ink); cursor: pointer; }
+.ds-who .rail-case { font-size: 15px; flex: 0 1 auto; min-width: 1.9em; }
+.ds-chevron { width: 10px; height: 10px; flex: none; color: var(--ink-faint); }
+.ds-who:hover .ds-chevron, .ds-who[aria-expanded="true"] .ds-chevron { color: var(--ink); }
+/* the picker's menu: the participants, the one in front ticked, Open in a new window at each one's right */
+.ds-whomenu { position: fixed; z-index: 40; width: max-content; min-width: 16em; max-width: min(26em, calc(100vw - 16px)); }
+.ds-who-item { display: flex; align-items: center; gap: 4px; }
+.ds-whomenu button.ghost.ds-who-row { flex: 1 1 auto; display: grid; grid-template-columns: 1em minmax(0, 1fr); gap: 8px;
+  text-align: left; }
+.ds-whomenu .tp-tick { color: var(--ink); }
+.ds-whomenu button.ghost.ds-who-window { flex: none; font-size: 12px; color: var(--ink-faint); }
+.ds-whomenu .ds-who-row.on { cursor: default; }
+/* the clock's reset: a circular arrow, smaller and closer than the bar's other buttons, so it reads
+   as part of the clock rather than as a control of its own */
+.rail-clock-reset { width: 18px; height: 20px; margin-left: -5px; }
+.rail-clock-reset svg { width: 12px; height: 12px; }
+
+.progress-strip { height: 2px; background: var(--rule); position: sticky; top: var(--rail-h, 46px); z-index: 29; }
+/* the case's line and the round's count decided passages, so they are drawn in the green of a decided
+   passage's done bar, never the crux orange, which marks crux and key quotes alone on this screen
+   (16 October) */
+.progress-strip span, .round-bar span {
+  display: block; height: 100%; width: 0; background: var(--good);
+  transition: width .45s cubic-bezier(.2,.7,.3,1);
+}
+/* the line is 2px, so its title is given a taller target that paints nothing */
+.progress-strip::before { content: ""; position: absolute; left: 0; right: 0; top: -3px; bottom: -4px; }
+/* the round in front of him, beside "n of m in this round": the same thin line, 40px long since
+   13 October (64px before), with padding round it only so the title has something to hover */
+.round-bar {
+  display: inline-block; vertical-align: middle; box-sizing: content-box;
+  width: 40px; height: 2px; padding: 6px 0; margin-left: 8px;
+  background: var(--rule); background-clip: content-box;
+}
+
+/* The phase marked complete, where the round counts stood: a small tick in the app's green, the
+   words in the bar's own small type and the date fainter after them. It is a control, since a
+   click opens the card that reopens it, so it takes the pointer and darkens under it. With every
+   turn decided and the phase not marked, the counts give way to one quiet control in the style of
+   the case list's Reset demo. */
+.rail-mark {
+  flex: none; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  background: none; border: 0; padding: 2px 0; font: inherit; color: var(--ink-soft); cursor: pointer;
+}
+.rail-mark:hover { color: var(--ink); }
+.rail-tick { width: 12px; height: 12px; flex: none; color: var(--good); }
+.mark-date { margin-left: 2px; color: var(--ink-faint); }
+.rail-mark .mark-short { display: none; }
+.rail-mark.undecided .mark-full { display: none; }
+.rail-mark.undecided .mark-short { display: inline; }
+.rail-markable { gap: 0; padding: 0; border-bottom: 1px solid var(--rule-firm); }
+.rail-markable:hover { border-bottom-color: currentColor; }
+/* the bar's one focus ring from the keyboard, where it drew the browser's own (17 October, later) */
+.rail-mark:focus-visible { outline: 0; box-shadow: var(--focus-small); border-radius: var(--r-control); }
+/* marked with every turn decided, the thin line under the bar goes. Its 2px stay, in the paper, so
+   the band under it keeps its place against the bar */
+#work.es-complete .progress-strip { background: var(--paper); }
+#work.es-complete #progress-fill, #work.es-complete .progress-strip::before { display: none; }
+/* the small line under the round card's figures in a case with more than one sheet, the sheet to
+   come and its rounds, in the card's small type */
+.done-then { margin: 12px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-soft); }
+/* the line on the case-complete card once the case is marked, where Mark complete stood */
+.done-marked { display: flex; align-items: center; gap: 7px; margin: 14px 0 0; font-size: 13px; color: var(--ink-soft); }
+.done-marked::before {
+  content: ""; width: 10px; height: 5px; margin-top: -3px; flex: none;
+  border-left: 2px solid var(--good); border-bottom: 2px solid var(--good); transform: rotate(-45deg);
+}
+.band-label { flex: none; }
+.band-question {
+  flex: 1 1 auto; min-width: 0; margin: 0; overflow-wrap: anywhere;
+  font-family: var(--serif); font-size: 16.5px; line-height: 1.45; color: var(--ink);
+}
+/* no question yet: the line that says where to set one, in the chrome's own face */
+.band-question.band-none { font-family: var(--sans); font-size: 13px; color: var(--ink-faint); }
+.band-link {
+  background: none; border: 0; padding: 0; cursor: pointer; font: inherit;
+  color: var(--ink-soft); border-bottom: 1px solid var(--rule-firm);
+}
+.band-link:hover { color: var(--ink); border-bottom-color: currentColor; }
+
+/* A turn an AI agent wrote in a conversation: one line under the right end of the bar, its words,
+   Show it and a cross, in the card's paper. */
+.es-outside {
+  position: fixed; top: 54px; right: var(--gutter); z-index: 30; display: flex; align-items: baseline; gap: 6px;
+  max-width: min(420px, calc(100vw - 2 * var(--gutter))); padding: 9px 36px 9px 13px; font-size: 12.5px;
+  color: var(--ink); background: var(--card); border: 1px solid var(--rule-firm); border-radius: 5px;
+  box-shadow: var(--lift); animation: rise .16s cubic-bezier(.2,.7,.3,1) both;
+}
+.es-outside[hidden] { display: none; }
+.es-outside-close {
+  position: absolute; top: 5px; right: 5px; width: 24px; height: 24px; padding: 0; display: inline-flex;
+  align-items: center; justify-content: center; background: none; border: 0; color: var(--ink-faint); cursor: pointer;
+}
+.es-outside-close svg { width: 12px; height: 12px; }
+.es-outside-close:hover { color: var(--ink); }
+/* Add Idiograph to Claude Desktop: the entry it adds and the line for Claude Code, in the code face */
+.mcp-card { margin: 4px 0 6px; }
+.es-status {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; height: var(--es-status-h);
+  display: flex; align-items: center; gap: 1px; padding: 0 10px 0 var(--gutter);
+  background: var(--card); border-top: 1px solid var(--rule-firm);
+  font-size: 12px; color: var(--ink-soft); white-space: nowrap; user-select: none; -webkit-user-select: none;
+}
+.es-status .rail-item { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.es-status-sep { flex: none; width: 1px; height: 14px; background: var(--rule); margin: 0 10px; }
+.es-count { flex: none; }
+.es-grow { flex: 1 1 auto; }
+.es-count:empty, .es-status:has(.es-count:empty, #rail-place[hidden]) .es-count-sep { display: none; }
+.es-sbtn {
+  flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 24px; min-width: 28px; padding: 0 7px; margin: 0;
+  background: none; border: 1px solid transparent; border-radius: 3px;
+  font: inherit; font-size: 12px; color: var(--ink-soft); cursor: pointer;
+}
+.es-sbtn:hover { border-color: var(--rule-firm); color: var(--ink); background: var(--paper-sunk); }
+.es-sbtn:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+.es-sbtn svg { width: 15px; height: 15px; display: block; }
+.es-sbtn[aria-pressed="true"] { background: var(--paper-sunk); border-color: var(--rule-firm); color: var(--ink); }
+.es-help { font-weight: 600; }
+.es-sword { font-weight: 400; }
+#work:not(.minimap-on) #es-map-btn { display: none; }
+@media (min-width: 801px) {
+  #work.cols-sized .reading { max-width: none; padding-left: var(--read-l, 24px); padding-right: var(--read-r, 24px); }
+  #work.cols-sized .turn-text, #work.cols-sized .turn.current .turn-text { max-width: none; }
+}
+.col-edges { position: absolute; inset: 0 auto auto 0; width: 0; height: 0; z-index: 6; }
+.col-edges[hidden] { display: none; }
+/* An edge is a hit area the resize cursor finds. Between two columns, `.between` (edgesDraw), it is 12 px wide on the
+   gap's middle, where the 8 px one stood, with a faint rule always shown down the columns and a pill handle on it
+   at the middle of the columns' visible height (`--edge-mid`, from the edge's top), two upright bars on a chip,
+   staying in view as the columns scroll under it since the edges lie over them, not in them. The two outer edges,
+   the margins, stay 8 px with a line on hover only. Hovered, in a drag or with the focus, the rule is darker and
+   2 px and the pill fills in the soft ink with its bars in the card's paper, so the handle itself says it is under
+   the pointer (Adam, 6 November, option C of a drawing of three). The rule is pale and stands in the gap, as the
+   transcript's own dark bar is dark, inside its column and the passage's height. */
+.col-edge {
+  position: absolute; width: 8px; cursor: col-resize; touch-action: none; outline: 0;
+  user-select: none; -webkit-user-select: none;
+}
+.col-edge.between { width: 12px; margin-left: -2px; }
+.col-edge::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 3.5px; width: 1px; background: var(--ink);
+  opacity: 0; transition: opacity .12s;
+}
+.col-edge.between::before { left: 5.5px; opacity: 1; background: var(--rule-firm); transition: background-color .12s; }
+.col-edge:hover::before, .col-edge.dragging::before, .col-edge:focus-visible::before {
+  opacity: 1; background: var(--ink-faint); width: 2px; margin-left: -.5px;
+}
+.col-edge.between::after {
+  content: ""; position: absolute; left: 0; width: 12px; height: 48px; box-sizing: border-box;
+  top: calc(var(--edge-mid, 50%) - 24px);
+  border: 1px solid var(--rule-firm); border-radius: 6px; background-color: var(--card);
+  background-image: linear-gradient(var(--ink-faint), var(--ink-faint)), linear-gradient(var(--ink-faint), var(--ink-faint));
+  background-size: 1.5px 20px, 1.5px 20px; background-repeat: no-repeat;
+  background-position: calc(50% - 2.25px) 50%, calc(50% + 2.25px) 50%;
+  transition: background-color .12s, border-color .12s;
+}
+.col-edge.between:hover::after, .col-edge.between.dragging::after, .col-edge.between:focus-visible::after {
+  border-color: var(--ink-soft); background-color: var(--ink-faint);
+  background-image: linear-gradient(var(--card), var(--card)), linear-gradient(var(--card), var(--card));
+}
+.col-edge:focus-visible { box-shadow: var(--focus-small); border-radius: 3px; }
+body.edge-dragging, body.edge-dragging * { cursor: col-resize !important; user-select: none; -webkit-user-select: none; }
+@media (max-width: 800px) { .col-edges { display: none; }
+}
+/* a passage changed in another window of the app, washed for a moment in the crux orange as it comes in,
+   the wash fading as a key quote's does (20 October, two windows in step) */
+.came-in { animation: came-in 2s ease-out both; border-radius: 3px; }
+@media (prefers-reduced-motion: reduce) { .came-in { animation: none; }
+}
+.col-head.drop-before::before, .col-head.drop-after::after {
+  content: ""; position: absolute; top: 0; bottom: 6px; width: 3px; border-radius: 2px; background: var(--ink);
+}
+.col-head.drop-before::before { left: calc(var(--col-gap) / -2 - 2px); }
+/* the column a heading let go would stack with (21 October): a box in the ink round it, the half it would
+   take in the faint tint of the ink a ticked row takes, so its words read as clearly as the rest in light and
+   dark, and a line in the ink where the two would meet, which app.js puts in the gap between two cards or
+   lines nearest the middle, never through words (colsSplit, 21 October) */
+.stack-drop { position: absolute; z-index: 7; pointer-events: none; border: 2px solid var(--ink); border-radius: 6px; }
+.stack-drop[hidden] { display: none; }
+.stack-drop-half { position: absolute; left: 0; right: 0; top: 50%; height: 50%; background: var(--tick-wash); }
+.stack-drop[data-half="upper"] .stack-drop-half { border-radius: 4px 4px 0 0; }
+.stack-drop[data-half="lower"] .stack-drop-half { border-radius: 0 0 4px 4px; }
+/* the line where the two would meet spans the column's own width, the box standing 16px outside it, so the
+   line ends short of the box's sides (panels2) */
+.stack-drop-half::before { content: ""; position: absolute; left: 14px; right: 14px; height: 2px; border-radius: 1px; background: var(--ink); }
+.stack-drop[data-half="upper"] .stack-drop-half::before { bottom: 0; }
+.stack-drop[data-half="lower"] .stack-drop-half::before { top: 0; }
+body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-select: none; -webkit-user-select: none; }
+@media (max-width: 800px) { .stack-drop { display: none; }
+}
+.col-head.drop-after::after { right: calc(var(--col-gap) / -2 - 2px); }
+/* Columns' menu (18 October, Adam's drawing): its three sections under their names, a rule between them,
+   Back to the book's order an entry of the row menu's kind, and a choice not offered faint and taking no
+   pointer, as Side by side and Stacked are while a column is hidden */
+.cols-menu .cols-book-btn { width: 100%; margin: 0; }
+.view-row.row-off { color: var(--ink-faint); cursor: default; }
+#work.hide-en .turn > .note-cell { grid-column: var(--tx-col); grid-row: auto; margin: 8px 0 0 108px; }
+#work.cols-alone { --tx-track: minmax(300px, 820px); }
+#work.cols-alone .col-head .pc-grip { display: none; }
+
+/* Stacked, notes under statements (18 October, Adam's drawing): above 800px the transcript is one column
+   and beside it, on the statements' side, a column of two halves, the current passage's statements above
+   and its notes below, each scrolling on its own, a divider between them at the statements' share
+   (`--stack-a`, `--stack-b`). The rows keep the words alone in one track, the statements' heading stands
+   over the stacked column and the notes' name over their half. Its foot keeps to the half's foot, so Next
+   stays in reach. At 800px and below today's rules hold, the statements a column and the notes under the
+   words, so the column is never drawn there. */
+.cols-body { flex: 1 1 0; min-height: 200px; display: flex; }
+.cols-body > .transcript-wrap { flex: 1 1 0; min-width: 0; }
+@media (min-width: 801px) {
+  #work.cols-stacked .cols-body {
+    display: grid; grid-template-columns: var(--stk-cols); grid-template-rows: minmax(0, 1fr); column-gap: var(--col-gap);
+  }
+  #work.cols-stacked .cols-body > .transcript-wrap { grid-column: var(--tx-col2); grid-row: 1; min-height: 0; }
+  #work.cols-stacked .stack {
+    grid-column: var(--es-col2); grid-row: 1; min-height: 0; display: grid;
+    grid-template-rows: minmax(0, var(--stack-a, 1fr)) auto minmax(0, var(--stack-b, 1fr));
+  }
+  #work.cols-stacked .cols-head { grid-template-columns: var(--stk-cols); padding: 0 0 8px; }
+  #work.cols-stacked .col-head[data-col="statements"] { grid-column: var(--es-col2); padding-left: 8px; }
+  #work.cols-stacked .col-head[data-col="transcript"] { grid-column: var(--tx-col2); padding-left: 116px; }
+  #work.cols-stacked .col-head[data-col="notes"] { display: none; }
+  #work.cols-stacked .transcript { --cols: minmax(0, 1fr); --tx-col: 1; }
+  #work.cols-stacked .turn > :is(.turn-es, .turn-notes:not(.note-cell)) { display: none; }
+  #work.cols-stacked .turn > .note-cell { grid-column: 1; grid-row: auto; margin: 8px 0 0 108px; }
+  /* the stack the other way up (21 October): the notes' heading over the stacked column, the notes above
+     the divider and the statements under it with their heading and grip, the upper half's share above */
+  #work.cols-stacked.stack-notes-top .col-head[data-col="statements"] { display: none; }
+  #work.cols-stacked.stack-notes-top .col-head[data-col="notes"] { display: flex; grid-column: var(--es-col2); padding-left: 8px; }
+  #work.cols-stacked.stack-notes-top .stack { grid-template-rows: minmax(0, var(--stack-a, 1fr)) auto auto minmax(0, var(--stack-b, 1fr)); }
+  #work.stack-notes-top .stack-en { grid-row: 1; padding-top: 4px; }
+  #work.stack-notes-top .stack-en .stack-head { display: none; }
+  #work.stack-notes-top .stack-divider { grid-row: 2; }
+  #work.stack-notes-top .stack-es-head { display: flex; grid-row: 3; }
+  #work.stack-notes-top .stack-es { grid-row: 4; padding-top: 0; }
+}
+@media (min-width: 801px) and (max-width: 1000px) {
+  #work.cols-stacked .col-head[data-col="transcript"] { padding-left: 20px; }
+  #work.cols-stacked .turn > .note-cell { margin-left: 12px; }
+}
+.stack-half { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding: 4px 8px 8px; }
+/* each half scrolls on its own, and while more of it waits above or below its edge fades there, as the
+   transcript's and the search's do (stackFade, 21 October): below, the cards fade out just over Next while
+   the card's foot keeps to the half's foot (--fade-foot, its height from the half's foot), the foot itself
+   whole, the mask taking the ink for its opaque part since only its alpha counts */
+.stack-half { --fade-foot: 0px; --fade-top: 0px; }
+.stack-half.more-below { -webkit-mask-image: linear-gradient(to bottom, var(--ink) calc(100% - var(--fade-foot) - 48px), transparent calc(100% - var(--fade-foot) - 2px), var(--ink) calc(100% - var(--fade-foot) - 1px));
+  mask-image: linear-gradient(to bottom, var(--ink) calc(100% - var(--fade-foot) - 48px), transparent calc(100% - var(--fade-foot) - 2px), var(--ink) calc(100% - var(--fade-foot) - 1px)); }
+.stack-half.more-above { -webkit-mask-image: linear-gradient(to bottom, var(--ink) var(--fade-top), transparent var(--fade-top), var(--ink) calc(var(--fade-top) + 44px));
+  mask-image: linear-gradient(to bottom, var(--ink) var(--fade-top), transparent var(--fade-top), var(--ink) calc(var(--fade-top) + 44px)); }
+.stack-half.more-above.more-below { -webkit-mask-image: linear-gradient(to bottom, var(--ink) var(--fade-top), transparent var(--fade-top), var(--ink) calc(var(--fade-top) + 44px), var(--ink) calc(100% - var(--fade-foot) - 48px), transparent calc(100% - var(--fade-foot) - 2px), var(--ink) calc(100% - var(--fade-foot) - 1px));
+  mask-image: linear-gradient(to bottom, var(--ink) var(--fade-top), transparent var(--fade-top), var(--ink) calc(var(--fade-top) + 44px), var(--ink) calc(100% - var(--fade-foot) - 48px), transparent calc(100% - var(--fade-foot) - 2px), var(--ink) calc(100% - var(--fade-foot) - 1px)); }
+.stack-es { --under-foot: var(--paper); }
+.stack-es .es-card { margin: 0; }
+.stack-es .es-foot { bottom: 0; }
+/* the half's own paper under a kept foot down to the half's foot, its padding, so no edge of the card shows there */
+.stack-es .es-foot.stuck::after { height: 9px; }
+.stack-en { display: flex; flex-direction: column; padding-top: 6px; }
+.stack-label { flex: none; margin: 0; }
+/* the lower column's heading in the stack, its grip before its name as over the columns (21 October), the
+   statements' shown only while they stand under the notes */
+.stack-head { flex: none; display: flex; align-items: center; gap: 6px; min-width: 0; margin: 0 0 8px; }
+.stack-head .pc-grip { flex: none; }
+.stack-head.dragging { opacity: .55; }
+.stack-es-head { display: none; padding: 6px 8px 0; }
+.stack-cell { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.stack-cell #en {
+  flex: 1 1 auto; min-height: 7.5em; height: auto; margin: 0; overflow-y: auto; scrollbar-width: thin;
+  font-family: var(--sans); font-size: 13.5px; line-height: 1.5; padding: 7px 9px;
+}
+/* the divider, a hairline across the column with a short handle on it, the pointer's row-resize, the
+   handle in the faint ink under the pointer and in a drag, and the app's ring from the keyboard */
+.stack-divider {
+  position: relative; height: 14px; display: grid; place-items: center; cursor: row-resize; touch-action: none;
+  outline: 0; user-select: none; -webkit-user-select: none;
+}
+.stack-divider::before { content: ""; position: absolute; left: 8px; right: 8px; top: 50%; height: 1px; background: var(--rule-firm); }
+.stack-grip { position: relative; width: 40px; height: 5px; border-radius: 3px; background: var(--card); border: 1px solid var(--rule-firm); }
+.stack-divider:hover .stack-grip, .stack-divider.dragging .stack-grip { background: var(--paper-sunk); border-color: var(--ink-faint); }
+.stack-divider:focus-visible .stack-grip { border-color: var(--ink-soft); box-shadow: var(--focus-small); }
+
+/* The transcript column: the whole sheet in order, scrolling inside a fixed height so the player
+   below it never moves. The mask is the cue that there is more above and below. The wrapper
+   holds the column's own height and gives the back to turn button something to sit against that
+   does not scroll with the turns. */
+.transcript-wrap { flex: 1 1 0; min-height: 200px; position: relative; display: flex; }
+/* room under the last turn so it can still come to the middle */
+.transcript-rows { padding: 26px 0 180px; }
+
+/* the way back, only while the passage is out of sight, in a strip of its own under the column: the
+   column gives up the strip's height while the button shows, so the button never sits over a line
+   of the transcript at any width (16 October) */
+.transcript-wrap.away .transcript { margin-bottom: 44px; }
+.back-to-turn {
+  position: absolute; right: 12px; bottom: 6px; z-index: 5;
+  border: 1px solid var(--rule-firm); border-radius: 3px; padding: 6px 11px;
+  background: var(--card); color: var(--ink-soft); font-size: 12px; cursor: pointer;
+  box-shadow: var(--lift); animation: rise .18s cubic-bezier(.2,.7,.3,1) both;
+  transition: background .16s, border-color .16s, color .16s;
+}
+.back-to-turn:hover { background: var(--paper-sunk); color: var(--ink); border-color: var(--ink-faint); }
+/* its time is a timecode on a button, so it stands in the faint ink every key and time on a button takes, where
+   until 17 October it stood in the crux orange, which means a crux, a key quote and the filled button alone */
+
+/* The count (items 157 and 166): the new place in the round, the numbers alone in the numeral face
+   over the middle of the sheet's column and never over the fields, on every step on that decides a
+   turn. No box, no border: it grows out of a blur as it fades in, keeps growing a little while it
+   holds, and grows on into a blur as it fades out, 850ms in all. The number in the ink, where until 17
+   October, later, it stood in the crux orange, which means a crux, and what it is out of fainter, with a
+   soft halo of the page's own colour so it parts from the text under it. It takes no pointer and no focus, and under reduced motion it never shows. The place
+   in the top bar brightens in the same instant and settles back to the ink. */
+.count-flash {
+  position: absolute; left: var(--flash-x, 50%); top: 50%; z-index: 4;
+  transform: translate(-50%, -50%); opacity: 0; visibility: hidden;
+  pointer-events: none; user-select: none; -webkit-user-select: none; white-space: nowrap;
+  font-family: var(--serif); font-size: 136px; line-height: 1; color: var(--ink);
+  font-variant-numeric: lining-nums; text-shadow: 0 0 28px var(--paper), 0 0 10px var(--paper);
+}
+.count-flash .count-of { font-size: .55em; color: var(--ink-faint); }
+.count-flash.on { visibility: visible; animation: count-flash 850ms both; }
+/* the place in the round ticks from the faint ink up to the ink, a count's own, where until 17 October, later,
+   it ticked in the crux orange */
+#rail-turn.tick { animation: count-tick 700ms ease-out both; }
+
+/* A passage decided carries a thin bar at the edge of its words, in the margin where the current
+   passage's rule stands, the green of saved and never the crux orange (16 October): full where it
+   has a statement, fainter where it was decided with nothing, skipped or passed, and none while it is
+   undecided. It runs the whole height of the row, so the bars of rows next to each other join, and
+   the interviewer's passages between two decided ones carry it on, so a stretch of decided work
+   reads as one. The current passage's rule stands over it. Where the margin lies along the top it
+   stands at the row's left edge. */
+.turn-done { display: none; position: absolute; top: 0; bottom: 0; left: 98px; width: 2px; pointer-events: none; }
+/* the green at full strength, where a mix with the paper read grey in light (16 October) */
+.turn[data-done] .turn-done { display: block; background: var(--good); }
+.turn[data-done="1"] .turn-done { background: color-mix(in srgb, var(--good) 45%, transparent); }
+.row-menu-open { color: var(--ink-faint); font-size: 13px; line-height: 1; transition: color .14s; }
+.row-menu-open:hover, .row-menu-open:focus-visible { color: var(--ink); }
+
+/* a row carrying an interviewer note shows a small pen on its timecode's line, first on it whatever
+   the order it was drawn in, so the notes can be seen down the column. The turn whose note is open
+   keeps the hover's wash */
+.note-mark { display: inline-flex; align-self: center; order: -1; color: var(--ink-soft); }
+.note-mark svg { width: 12px; height: 12px; display: block; }
+.turn.noting { background: var(--paper-sunk); }
+
+/* a timecode open for correction, where the timecode stood and in its face */
+.time-edit {
+  width: 6.2em; font-size: 11px; text-align: right; color: var(--ink); cursor: text;
+  background: var(--paper); border: 1px solid var(--field-edge); border-radius: 3px;
+  padding: 2px 5px; margin: 0;
+}
+.time-edit:focus { outline: 0; border-color: var(--ink-faint); }
+.turn.current .time-edit { font-size: 12px; }
+.turn-text .kq[data-es-colour-b].find-hit { --es-w: var(--find-wash); --es-wl: var(--es-w); }
+.turn-text .kq[data-es-colour-b].find-hit.find-on { --es-w: var(--find-on); }
+/* An occurrence the find has found: a yellow wash, never the orange, written nowhere. Over a key
+   quote its rule stays. The one in focus is stronger, with an edge, and its words at full contrast.
+   Every one's words stand in the ink, since in a passage set in the faint ink, the interviewer's, the
+   wash took them to 2.7 to 1 in dark and 4.35 in light (17 October, the cards' sweep). */
+.turn-text .find-hit { background: var(--find-wash); border-radius: 2px; color: var(--ink); }
+.turn-text .find-hit.find-on { background: var(--find-on); box-shadow: 0 0 0 1px var(--find-edge); }
+.row-menu button.with-note { flex-direction: column; align-items: flex-start; gap: 1px; }
+.row-menu-note { font-family: var(--mono); font-size: 11px; letter-spacing: -.01em; color: var(--ink-faint); }
+/* The toolbar by the selection (16 October), in the menus' paper: Key quote and Give to another
+   speaker, their keys in their tooltips (17 October), placed by the page above the selection's first line or
+   under its last, inside the column and on the words' side of notes beside them, so it never covers
+   the words or the notes. Under the title bar, never over it. It fades in where it stands, since a
+   rise from below passed over the line under it (16 October, later). Its edges never cut a line of
+   words through its letters: it steps clear of a line it would clip, or grows over that line whole, its
+   buttons in its middle (18 October, where it covered half the line above the selection). */
+.sel-bar {
+  position: fixed; z-index: calc(var(--z-bar) - 1); display: flex; flex-wrap: wrap; gap: 2px; padding: 3px;
+  align-items: center; align-content: center;
+  max-width: calc(100vw - 2 * var(--gutter));
+  background: var(--card); border: 1px solid var(--rule-firm); border-radius: 3px;
+  box-shadow: var(--lift); animation: fade .14s ease both;
+}
+.sel-bar[hidden] { display: none; }
+.sel-bar button.ghost { border-color: transparent; white-space: nowrap; gap: 6px; }
+.sel-bar button.ghost:hover, .sel-bar button.ghost:focus-visible { border-color: var(--rule-firm); background: var(--paper-sunk); }
+.assign-ask { display: grid; gap: 6px; padding: 6px 6px 4px; }
+.assign-name {
+  width: 15em; background: var(--paper); border: 1px solid var(--rule-firm); border-radius: 3px;
+  padding: 6px 9px; font-size: 13px;
+}
+.assign-name:focus { outline: 0; border-color: var(--ink-faint); }
+.assign-hint { font-size: 11px; color: var(--ink-faint); padding: 0 6px 4px; }
+
+/* The quote being built, under the turn: a label saying what it is, the key that commits it, and
+   the quote itself in the reading face. */
+.quote-preview {
+  margin-top: 12px; max-width: 34em; border-left: 2px solid var(--rule-firm);
+  padding-left: 12px;
+}
+.quote-preview-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 3px; }
+.quote-preview-text {
+  font-family: var(--serif); font-size: 14.5px; line-height: 1.5; color: var(--ink-soft);
+}
+
+/* A turn open for correction. The box stands where the text stood, in the same measure and the
+   same face, so the correction is read the way the turn is read. */
+.turn-edit { max-width: 34em; margin-top: 2px; }
+.turn-edit-box {
+  font-family: var(--serif); font-size: 15px; line-height: 1.6; color: var(--ink);
+  border-color: var(--field-edge); padding: 9px 12px;
+}
+.turn.current .turn-edit-box { font-size: 19px; line-height: 1.62; }
+.turn-edit-foot { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.turn-edit-hint { font-size: 11px; color: var(--ink-faint); margin-right: auto; }
+/* No min-width of 0 here, on purpose. The bar cannot be squeezed below the button and the two
+   times, so the file name beside it ellipsises before the track ever shrinks. */
+.player-bar { display: flex; align-items: center; gap: 12px; flex: 1 1 auto; height: 48px; }
+.player-bar[hidden] { display: none; }
+
+/* twice the size it was, and still a drawn ring in the app's own ink */
+.player-btn {
+  flex: none; width: 48px; height: 48px; border-radius: 50%; cursor: pointer;
+  border: 1px solid var(--rule-firm); background: var(--card); color: var(--ink-soft);
+  font-size: 19px; line-height: 1; padding: 0 0 0 3px;
+  display: flex; align-items: center; justify-content: center;
+  transition: color .16s, border-color .16s;
+}
+/* under the pointer the play button and the track go to the ink, as a control does, the playhead keeping the
+   accent at rest, where until 17 October, later, they went to the crux orange */
+.player-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
+.player-bar.playing .player-btn { padding-left: 0; font-size: 15px; letter-spacing: 2px; }
+
+/* Five seconds either way, an arrow icon with a small 5 either side of Play (jumpbtns, 8 November). The icon is
+   drawn in the ink and never shrinks: the track and the file name give way. */
+.player-jump {
+  flex: none; display: flex; align-items: center; justify-content: center; cursor: pointer;
+  background: none; border: 0; color: var(--ink-soft); padding: 0; transition: color .16s;
+}
+.player-jump:hover { color: var(--ink); }
+.jump-ico { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 1.7;
+  stroke-linecap: round; stroke-linejoin: round; }
+.jump-ico text { fill: currentColor; stroke: none; font: 600 9px var(--sans, system-ui); }
+
+.player-time { font-size: 11.5px; color: var(--ink-soft); flex: none;
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+.player-time.dim { color: var(--ink-faint); }
+
+/* the floor under the track is what makes the file name give way first: the bar cannot be
+   squeezed past it, so the name ellipsises rather than the track thinning out */
+.player-scrub { position: relative; flex: 1 1 auto; min-width: 120px; height: 20px;
+  cursor: pointer; touch-action: none; }
+.player-track, .player-fill {
+  position: absolute; left: 0; top: 50%; height: 3px; margin-top: -1.5px; border-radius: 2px;
+}
+.player-track { right: 0; background: var(--rule); }
+.player-fill { width: 0; background: var(--accent); }
+.player-scrub:hover .player-fill { background: var(--ink); }
+.player-knob {
+  position: absolute; top: 50%; left: 0; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--paper);
+}
+.player-scrub:hover .player-knob { background: var(--ink); }
+
+.player-note { font-size: 11.5px; color: var(--ink-faint); overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+  flex: 0 1 auto; min-width: 0; max-width: 38%; text-align: right; }
+/* with no recording the note stands alone, so it takes the row and wraps, where its share of a bar that is not
+   there cut No recording found for its sheet short at 360 (15 October, later) */
+.player-bar[hidden] + .player-note { max-width: none; white-space: normal; text-align: left; }
+/* the recording's offset beside its name (20 October), a small button drawn as the play button is, a
+   ring of the firm rule in the card's ground, going to the ink under the pointer, its words on one line */
+.player-offset { flex: 0 0 auto; background: var(--card); border: 1px solid var(--rule-firm); border-radius: 13px;
+  padding: 4px 11px; font: inherit; font-size: 11.5px; line-height: 1.3; color: var(--ink-soft); cursor: pointer;
+  white-space: nowrap; transition: color .16s, border-color .16s; }
+.player-offset:hover { color: var(--ink); border-color: var(--ink-faint); }
+@media (max-width: 520px) {
+  .player-bar:not([hidden]) { flex: 1 1 100%; }
+  .player-bar:not([hidden]) ~ .player-note { flex: 1 1 0; max-width: none; text-align: left; }
+  .player-offset { margin-left: auto; }
+}
+
+/* Round markers (item 155): a hairline across the column before the first row of every round,
+   the round's name in the margin in the speaker's small capitals and its state under it, where a
+   turn carries its timecode. Done is faint with the small tick in the app's green, now carries the
+   current turn's orange in its words and its rule, and to do is faint. A marker is not a turn, so
+   the wash on hover, the dimming and the current turn's rules never reach it, and it stands the
+   same height in all three states so the sheet never jumps when one changes. */
+.round-mark {
+  position: relative; width: 100%; min-height: 34px; margin: 14px 0 2px;
+  padding: 0 8px; background: none; border: 0; border-radius: 0; font: inherit;
+  text-align: left; cursor: pointer; color: var(--ink-faint);
+  user-select: none; -webkit-user-select: none;
+}
+.round-mark:first-child { margin-top: 0; }
+/* a round's marker stands in the transcript's column, its name in the margin and its rule over the
+   words' measure, where the passages are (17 October) */
+.round-mark > .round-mark-rule { grid-column: var(--tx-col); margin-left: 108px; }
+.round-mark-gutter {
+  position: absolute; grid-column: var(--tx-col); left: 0; top: 0; width: 92px;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 3px; text-align: right;
+}
+.round-mark-name { font-size: 10.5px; line-height: 14px; letter-spacing: .12em; text-transform: uppercase;
+  font-weight: 600; white-space: nowrap; }
+.round-mark-state { display: inline-flex; align-items: center; gap: 4px; height: 14px; font-size: 11px; white-space: nowrap; }
+.round-mark-tick { display: none; width: 11px; height: 11px; flex: none; color: var(--good); }
+.round-mark.done .round-mark-tick { display: block; }
+.round-mark-rule { display: block; height: 0; margin-top: 7px; border-top: 1px solid var(--rule); }
+/* a round to do says so in its word, in the faint ink at full strength since 17 October, later, where an opacity
+   of .8 took its name and its word to 3.4 to 3.6 to 1 */
+.round-mark.now { color: var(--ink); }
+.round-mark.now .round-mark-rule { border-top-color: var(--ink); opacity: .55; }
+.round-mark:hover .round-mark-name { color: var(--ink); }
+.turn-notes #en {
+  display: block; margin: -6px 0 0; font-family: var(--sans); font-size: 13.5px; line-height: 1.5; padding: 7px 9px;
+}
+.note-cell .note-entry { margin-top: -6px; }
+.es-quote { color: var(--ink-faint); font-style: italic; }
+
+/* Larger current passage off: every passage at one size, the current one at the full ink on a band
+   of the sunk paper with a hairline round it, never the crux orange, which means a crux, and the
+   column no longer grows and shrinks as it moves. */
+#work.same-size .turn.current {
+  padding-top: 9px; padding-bottom: 9px;
+  background: var(--paper-sunk); box-shadow: inset 0 0 0 1px var(--rule-firm);
+}
+#work.same-size .turn.current::before { display: none; }
+#work.same-size .turn.current .turn-gutter { top: 12px; }
+#work.same-size .turn.current .speaker { font-size: 10.5px; color: var(--ink); }
+#work.same-size .turn.current .time { font-size: 11px; }
+#work.same-size .turn.current .turn-text { font-size: 15px; line-height: 1.6; max-width: 54ch; }
+#work.same-size .turn.current .turn-edit-box { font-size: 15px; line-height: 1.6; }
+#work.same-size .turn.current .time-edit { font-size: 11px; }
+
+/* the View menu, under its button at the right of the bar, in the menus' paper: three radio rows and
+   a tick under a rule, each row its tick's label, so the whole row ticks it */
+.view-menu { position: fixed; z-index: var(--z-find); width: max-content; max-width: calc(100vw - 16px); }
+.view-row { display: flex; align-items: center; gap: 9px; padding: 6px 10px; font-size: 13px;
+  color: var(--ink-soft); white-space: nowrap; }
+.view-row input { margin: 0; flex: none; accent-color: var(--ink); }
+.transcript-wrap .back-to-turn { right: var(--mm-room, 12px); }
+/* where Back to where I was has no room beside the card it stands at the column's head, over a strip where
+   the column's words fade out, its mask's clear head 44 pixels deep and its fade 30 below, so it never
+   cuts through a line and the words never move */
+.transcript-wrap.away.mm-lift .transcript {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 44px, var(--ink) 74px, var(--ink) calc(100% - 30px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 44px, var(--ink) 74px, var(--ink) calc(100% - 30px), transparent 100%);
+}
+.transcript-wrap.mm-lift .back-to-turn { top: 6px; bottom: auto; }
+/* a card he opened by a press over the transcript's words stands on a band where they fade out, the
+   column's full width from 12 pixels above the card to its foot, the fade 24 pixels deep, so the card's
+   edges never cut a line, as at 360px (18 October, where the card crossed the lines beside it) */
+.transcript-wrap.mm-band .transcript {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, var(--ink) 30px, var(--ink) calc(100% - var(--mm-band) - 24px), transparent calc(100% - var(--mm-band)));
+  mask-image: linear-gradient(to bottom, transparent 0, var(--ink) 30px, var(--ink) calc(100% - var(--mm-band) - 24px), transparent calc(100% - var(--mm-band)));
+}
+.transcript-wrap.away.mm-lift.mm-band .transcript {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 44px, var(--ink) 74px, var(--ink) calc(100% - var(--mm-band) - 24px), transparent calc(100% - var(--mm-band)));
+  mask-image: linear-gradient(to bottom, transparent 44px, var(--ink) 74px, var(--ink) calc(100% - var(--mm-band) - 24px), transparent calc(100% - var(--mm-band)));
+}
+/* the tip over a passage, its speaker and its timecode, in the small type on a quiet chip */
+.minimap-tip {
+  position: fixed; z-index: var(--z-find); pointer-events: none; white-space: nowrap;
+  padding: 3px 8px; border-radius: 3px; font-size: 11.5px; line-height: 1.4;
+  background: var(--card); border: 1px solid var(--rule-firm); color: var(--ink-soft); box-shadow: var(--rest);
+}
+.minimap-tip .mono { margin-left: 4px; color: var(--ink-faint); }
+.minimap-tip[hidden] { display: none; }
+#work.minimap-on .transcript-rows { padding-bottom: 322px; }
+/* the minimap's name over its three choices in the View menu, a label as a card's kicker is */
+.view-head {
+  padding: 6px 10px 2px; font-size: 10.5px; letter-spacing: var(--label-track); text-transform: uppercase;
+  font-weight: 600; color: var(--ink-soft);
+}
+
+/* ───────────────────────────────────────────── the current passage's card ── */
+
+/* The current passage's statements, a card in its row of the statements column (17 October), where
+   until then the fields stood in a panel of their own at the right that scrolled inside itself. The
+   card and its row grow with its pairs, one statement as a rule, sometimes two and rarely more, never a
+   scroll box inside the card. Its foot holds Add another and AI suggest at its left and the one filled
+   button at its right. What waits for a passage, the card, the notes field and an interviewer note,
+   stands out of sight in the park. */
+.es-park { display: none; }
+.stale-line { margin: 0 0 8px; font-size: 13px; line-height: 1.4; color: var(--ink); }
+.stale-pairs { margin: 4px 0 8px; padding-left: 20px; font-size: 13px; line-height: 1.4; color: var(--ink); }
+.stale-pairs li + li { margin-top: 6px; }
+.stale-es, .stale-kq { display: block; user-select: text; }
+.stale-kq { color: var(--ink-soft); font-style: italic; }
+.stale-notes { margin: 2px 0 8px; font-size: 13px; line-height: 1.4; color: var(--ink-soft); white-space: pre-wrap; user-select: text; }
+.stale-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Kept at the column's foot (`stuck`, 18 October), it ends the card there: a hairline under it and the
+   row's own paper from it to the column's foot, so nothing of the card shows below Next, and the fields
+   above it fading into it, so none is cut through its letters at its edge. */
+.es-foot.stuck { border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: 0 1px 0 var(--rule-firm); }
+.es-foot.stuck::before {
+  content: ""; position: absolute; left: 0; right: 0; bottom: calc(100% + 1px); height: 44px; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--card));
+}
+.es-foot.stuck::after {
+  content: ""; position: absolute; left: -4px; right: -4px; top: calc(100% + 1px); height: 31px;
+  background: var(--under-foot);
+}
+#work.same-size .turn.current:has(#es-card:hover, #en:hover, #note-entry:hover) { --under-foot: var(--paper-sunk); }
+/* The current passage's card in reach where a long passage leaves the column too short for it (cardlarge, 30
+   October 2026, `CARD_REACH` in distil.js, which marks the passage `reach-long` and sets `--reach-cap`). Way A:
+   its words capped to the room the column leaves them, scrolling inside themselves and fading at an edge with
+   more beyond it, as the column does, the masks taking the ink for their opaque part since only its alpha counts. */
+#work.reach-cap .turn.current.reach-long > .turn-text {
+  max-height: var(--reach-cap); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+}
+#work.reach-cap .reach-long > .turn-text.reach-below {
+  -webkit-mask-image: linear-gradient(to bottom, var(--ink) calc(100% - 30px), transparent);
+  mask-image: linear-gradient(to bottom, var(--ink) calc(100% - 30px), transparent);
+}
+#work.reach-cap .reach-long > .turn-text.reach-above {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, var(--ink) 30px);
+  mask-image: linear-gradient(to bottom, transparent, var(--ink) 30px);
+}
+#work.reach-cap .reach-long > .turn-text.reach-above.reach-below {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, var(--ink) 30px, var(--ink) calc(100% - 30px), transparent);
+  mask-image: linear-gradient(to bottom, transparent, var(--ink) 30px, var(--ink) calc(100% - 30px), transparent);
+}
+/* Way B: the card held in view, beside the words between the column's faded head and foot, lifted level with its
+   quote by its cell (`--reach-lift`) so it can still rise to the foot from there, its height capped and scrolling
+   inside itself with its foot kept to its own foot, as the stacked column's card does */
+#work.reach-hold .turn.current.reach-long > .turn-es::before { content: ""; display: block; height: var(--reach-lift, 0px); }
+#work.reach-hold .turn.current.reach-long .es-card {
+  position: sticky; top: 30px; bottom: 30px; margin-top: -6px;
+  max-height: var(--reach-cap); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+}
+#work.reach-hold .reach-long .es-foot { bottom: 0; }
+#work.reach-hold .reach-long .es-foot.stuck::after { display: none; }
+#work.reach-hold .reach-long .es-card.reach-above {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, var(--ink) 30px);
+  mask-image: linear-gradient(to bottom, transparent, var(--ink) 30px);
+}
+/* and where the card stands under the words, the words pass behind it over the column's foot, on the row's paper,
+   fading into it above the card and hidden under it down to the column's foot */
+@media (max-width: 600px) {
+  #work.reach-hold .turn.current.reach-long > .turn-es {
+    position: sticky; bottom: 30px; z-index: 3; padding-top: 8px; background: var(--under-foot);
+    box-shadow: 0 30px 0 var(--under-foot);
+  }
+  #work.reach-hold .turn.current.reach-long > .turn-es::before {
+    position: absolute; left: 0; right: 0; bottom: 100%; height: 30px; pointer-events: none;
+    background: linear-gradient(to bottom, transparent, var(--under-foot));
+  }
+}
+/* the saved line and the one filled button kept together at the foot's right, on a line of their own where the
+   column is too narrow for the three, so Next always ends the card at its right */
+.es-next { margin-left: auto; display: inline-flex; align-items: center; }
+.entry-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+.entry-hint { font-size: 11.5px; color: var(--ink-faint); }
+/* the twin a pair's empty field measures its prompt in, out of sight */
+.hint-twin { position: absolute; visibility: hidden; pointer-events: none; left: 0; top: 0; }
+
+/* The count under each statement. The label face, quiet, and amber and bold on a statement past
+   the band the length nudge reads. */
+.wordcount {
+  margin-top: 7px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  font-weight: 600; color: var(--ink-faint);
+}
+.wordcount:empty { margin-top: 0; }
+/* A line past the band is reversed out rather than tinted, because the tint read as quietly as
+   the rest of the row. The paper on the amber, which is the trick the Save button plays with the
+   crux, so one rule carries both themes. */
+.wordcount .over {
+  background: var(--amber); color: var(--paper); font-weight: 700;
+  display: inline-block; padding: 2px 7px; border-radius: 3px; line-height: 1.4;
+}
+.nudge { font-size: 12px; color: var(--ink-faint); display: flex; gap: 8px; align-items: baseline;
+  animation: fade .2s ease both; }
+/* a nudge's mark in the one warning tint, where it stood in the crux orange (17 October, later) */
+.nudge i { font-style: normal; color: var(--amber); flex: none; }
+.pair-body > .pair-take {
+  grid-column: 2; align-self: start; margin-top: 6px;
+  display: inline-grid; place-items: center; width: 28px; height: 28px; padding: 0;
+  background: none; border: 1px solid transparent; border-radius: var(--r-control);
+  color: var(--ink-faint); cursor: default; transition: color .14s, background .14s, border-color .14s;
+}
+.pair-take svg { width: 15px; height: 15px; }
+.pair-take.lit { color: var(--crux); border-color: var(--crux); background: var(--card); cursor: pointer; }
+.pair-take.lit:hover { background: var(--crux-wash); }
+.pair-take:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+/* Two ways of hiding a quote (21 October, Adam). A set quote's label is a small toggle, its chevron right
+   while hidden and down while whole, which folds or opens that quote alone whatever the bar says. Folded
+   alone under Quotes on (`kq-shut`) a quote keeps its first line, ending in an ellipsis. Quotes off on the
+   status bar hides every quote's words, no first line and no arrow, only the label and its chevron left, so
+   the statements stand clear, and one opened alone (`kq-open`) shows whole. An empty quote is never folded
+   or hidden, so its line and the arrow stay in reach. */
+.pair-kq-line, .pair-qtoggle { display: none; }
+#work.quotes-folded .pair.kq-filled:not(.kq-open) .pair-kq,
+#work.quotes-folded .pair.kq-filled:not(.kq-open) .pair-take,
+#work:not(.quotes-folded) .pair.kq-filled.kq-shut .pair-kq { display: none; }
+#work:not(.quotes-folded) .pair.kq-filled.kq-shut .pair-kq-line {
+  display: block; min-width: 0; padding: 7px 9px; border: 1px solid var(--rule); border-left: 3px solid var(--es);
+  border-radius: 3px; background: var(--card); font-family: var(--serif); font-size: 15.5px; line-height: 1.45;
+  color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
+}
+.pair.kq-filled .pair-qlabel { display: none; }
+.pair.kq-filled .pair-qtoggle {
+  display: inline-flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; border: 0;
+  font: inherit; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600;
+  color: var(--ink-soft); cursor: pointer;
+}
+.pair-qtoggle:hover { color: var(--ink); }
+.pair-qtoggle:focus-visible { outline: 0; box-shadow: var(--focus-small); border-radius: 2px; }
+/* its chevron, right while folded and down while opened */
+.pair-qtoggle::after {
+  content: ""; width: 5px; height: 5px; margin: 0 2px 0 3px; border: solid currentColor; border-width: 0 1.6px 1.6px 0;
+  transform: rotate(-45deg); transition: transform .14s;
+}
+.pair-qtoggle[aria-expanded="true"]::after { transform: rotate(45deg); margin-top: -3px; }
+
+/* Quotes to pair, under Find: the turns saved before the pairs whose quotes and statements differ
+   in number, each a line that opens its turn, in a list that scrolls past a few */
+.find-pair { border-top: 1px solid var(--rule); margin-top: 12px; padding-top: 10px; }
+.find-pair .section-label { margin: 0 0 6px; }
+.find-pair-list { list-style: none; margin: 0; padding: 0; max-height: 168px; overflow-y: auto; }
+.find-pair-go {
+  width: 100%; text-align: left; background: none; border: 0; border-radius: 3px; padding: 4px 6px;
+  font-size: 13px; color: var(--ink-soft); cursor: pointer;
+}
+/* a pair under the pointer takes the sunk paper, a row's under the pointer, where until 17 October, later, it took
+   the crux orange's wash */
+.find-pair-go:hover { background: var(--paper-sunk); color: var(--ink); }
+/* the time in the faint ink, as every key hint on a button is, and in the ink on the wash under the pointer,
+   where the faint ink read at 3.5 to 1 in dark (17 October) */
+.find-pair-go .mono { margin-right: 6px; color: var(--ink-faint); }
+.find-pair-go:hover .mono { color: var(--ink); }
+
+/* the suggestions, off unless he turns them on. The button stands at the card's foot and the section
+   opens over the foot once it is pressed, so the answers arrive by the fields they go into. The key
+   concepts read as a row of words, the candidates as three lines he can take or leave. */
+.ai-block .ai { margin-top: 12px; }
+.ai-head { display: flex; align-items: baseline; gap: 10px; }
+.ai-head .section-label { margin: 0; }
+.ai-close {
+  margin-left: auto; width: 26px; height: 26px; padding: 0; align-self: center;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: 1px solid transparent; border-radius: 4px; color: var(--ink-faint); cursor: pointer;
+}
+.ai-close:hover { border-color: var(--rule-firm); color: var(--ink); }
+.ai-close svg { width: 14px; height: 14px; display: block; }
+#ai-label { display: block; margin-top: 10px; }
+
+/* An interviewer note: one field in the notes column beside his passage, while it is open (17 October,
+   where until then it stood in the panel in place of the three fields) */
+.note-entry .entry-head { margin-bottom: 5px; gap: 8px; }
+.note-time { font-size: 11.5px; color: var(--ink-faint); }
+.th-vmenu button.ghost.btn-remove:disabled { color: var(--ink-faint); }
+/* The one button carries both its words and both its icons and shows the pair its state names, so
+   the word changes as he types with nothing redrawn. The two words share one cell, so the button
+   keeps the width of the wider and nothing beside it moves. */
+#btn-commit[data-act="skip"] .act-icon[data-for="next"],
+#btn-commit[data-act="next"] .act-icon[data-for="skip"] { display: none; }
+.act-words { display: inline-grid; justify-items: start; }
+.act-words > span { grid-area: 1 / 1; }
+#btn-commit[data-act="skip"] .act-words [data-for="next"],
+#btn-commit[data-act="next"] .act-words [data-for="skip"] { visibility: hidden; }
+#work.guide-whole .guide { width: var(--guide-w); }
+#work.guide-whole .guide.open { box-shadow: var(--lift); }
+/* the bar's tool pressed in while the sheet is open, as Inspector is on the boards' bars */
+#btn-guide[aria-expanded="true"] { color: var(--ink); border-color: var(--rule-firm); background: var(--paper-sunk); }
+/* a line with examples keeps room at its end for the small arrow that opens them, two columns under it,
+   Less this and More this, the statements in the reading face (21 October) */
+.rules li:has(.rule-ex-open) { padding-right: 28px; }
+.rule-ex-open {
+  position: absolute; right: 0; top: 5px; width: 22px; height: 22px; padding: 0; display: grid; place-items: center;
+  border: 0; border-radius: 4px; background: none; color: var(--ink-faint); cursor: pointer;
+}
+.rule-ex-open svg { width: 14px; height: 14px; transition: transform .15s ease; }
+.rule-ex-open:hover { color: var(--ink); background: var(--paper-sunk); }
+.rule-ex-open[aria-expanded="true"] { color: var(--ink); }
+.rule-ex-open[aria-expanded="true"] svg { transform: rotate(180deg); }
+.rule-ex { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px -28px 2px 0; }
+.rule-ex[hidden] { display: none; }
+.rule-ex-side { display: grid; gap: 3px; align-content: start; padding: 7px 9px; border-radius: 4px; background: var(--paper-sunk); }
+.rule-ex-head { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); }
+.rule-ex-text { font-family: var(--serif); font-size: 14px; line-height: 1.4; color: var(--ink); }
+/* Adam's framing of the rules under them, a step smaller than a rule and set off by the firm rule above */
+.rules-framing {
+  margin: 6px 0 0; padding-top: 12px; border-top: 1px solid var(--rule-firm);
+  font-size: 12.5px; line-height: 1.5; color: var(--ink-soft);
+}
+.examples { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.examples li { animation: fade .3s ease both; }
+.examples q {
+  font-family: var(--serif); font-size: 15px; line-height: 1.45; color: var(--ink); quotes: none;
+  display: block;
+}
+.examples .src { font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); margin-top: 3px; display: block; }
+.card h2.spaced { margin-top: 30px; }
+/* the shortcuts card's two groups, Statements and Themes, each with its own small headings */
+.card h3.help-sub { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600;
+  color: var(--ink-soft); margin: 22px 0 2px; }
+.import-map { display: flex; flex-wrap: wrap; gap: 10px 12px; margin-top: 12px; }
+/* each chooser as wide as its longest role, so no role is ever cut short, the row wrapping instead */
+.import-col { display: flex; flex-direction: column; gap: 4px; flex: 0 0 auto; max-width: 100%; }
+.import-col select {
+  width: auto; max-width: 100%; background: var(--paper); border: 1px solid var(--field-edge); border-radius: 3px;
+  padding: 6px 8px; font: inherit; font-size: 13px; color: var(--ink);
+}
+.import-col select:focus { outline: 0; border-color: var(--field-edge); }
+.import-col-head { font-size: 12px; color: var(--ink-faint); overflow-wrap: break-word; }
+.import-turns.is-table { border-top: 0; }
+.import-preview { overflow-x: auto; margin-bottom: 4px; }
+/* a soft fade at an edge of the preview where more columns lie beyond it, the sign that it scrolls sideways */
+.import-fade { position: relative; }
+.import-fade::before, .import-fade::after {
+  content: ''; position: absolute; top: 0; bottom: 4px; width: 36px; pointer-events: none; opacity: 0;
+  transition: opacity 0.15s;
+}
+.import-fade::before { left: 0; background: linear-gradient(to right, var(--card), transparent); }
+.import-fade::after { right: 0; background: linear-gradient(to left, var(--card), transparent); }
+.import-fade.more-left::before, .import-fade.more-right::after { opacity: 1; }
+.import-table {
+  width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; line-height: 1.45;
+}
+.import-table.n4 { min-width: 38em; }
+.import-table.n5 { min-width: 48em; }
+.import-table th {
+  text-align: left; vertical-align: bottom; font-weight: 600; font-size: 12px; color: var(--ink-soft);
+  padding: 0 10px 6px 0; border-bottom: 1px solid var(--rule-firm);
+}
+.import-table td {
+  vertical-align: top; padding: 7px 10px 7px 0; border-bottom: 1px solid var(--rule); overflow-wrap: break-word;
+}
+.import-table .ip-name { width: 7.5em; color: var(--ink-soft); }
+/* a time is one piece, never broken across two lines (20 October): the column takes the width of its
+   longest time, which the page sets on its heading */
+.import-table .ip-ts { width: 4.4em; color: var(--ink-faint); font-variant-numeric: tabular-nums; white-space: nowrap;
+  overflow-wrap: normal; }
+.import-table td.ip-text { font-family: var(--serif); color: var(--ink); }
+.import-table td.ip-en, .import-table td.ip-es { white-space: pre-line; color: var(--ink-soft); }
+.import-turns { margin: 14px 0 4px; border-top: 1px solid var(--rule); }
+.import-turn {
+  display: grid; grid-template-columns: minmax(0, 8.5em) 3.6em minmax(0, 1fr); gap: 10px;
+  padding: 7px 0; border-bottom: 1px solid var(--rule); font-size: 13px; line-height: 1.45;
+}
+.import-name { color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.import-time { color: var(--ink-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.import-text {
+  font-family: var(--serif); color: var(--ink); overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.import-count { margin-top: 8px; }
+.import-brings { margin-top: 2px; }
+.import-as { margin-top: 0; }
+/* the speakers a row each with the role's chooser, the Time column's format and the recording, in the
+   card's settings rows (20 October). A time that cannot be read stands struck through in the preview */
+.import-sub { font-size: 12px; font-weight: 600; color: var(--ink-soft); margin: 16px 0 2px; }
+.import-who .setting, .import-time-row .setting, .import-audio .setting { margin: 8px 0; }
+.import-speaker .setting-label { overflow-wrap: anywhere; }
+.import-speaker-n { color: var(--ink-faint); }
+.import-time-row { margin-top: 6px; }
+.import-audio { margin-top: 12px; border-top: 1px solid var(--rule); padding-top: 4px; }
+.import-unread { color: var(--amber); white-space: nowrap; }
+/* clear of the small print above it, so neither looks cut */
+.import-bad { margin-top: 16px; }
+/* the Offset card's field, the card's Time codes, Frames a second and Offset rows: each label on one
+   line, its field the width a number of seconds takes, under the label where the two do not fit */
+#offset .card { width: min(440px, 100%); }
+#offset .setting, .import-time-row .setting, #import-offset-row { flex-wrap: wrap; row-gap: 6px; }
+#offset .setting label, #import-fps-row label, #import-offset-row label { flex: 1 0 auto; white-space: nowrap; }
+#offset .setting input { width: 7em; }
+@media (max-width: 520px) {
+  .import-turn { grid-template-columns: minmax(0, 6em) auto minmax(0, 1fr); gap: 8px; }
+  .import-preview { overflow-x: visible; }
+  .import-fade::before, .import-fade::after { display: none; }
+  .import-table, .import-table.n4, .import-table.n5 { min-width: 0; }
+  .import-table, .import-table tbody { display: block; }
+  .import-table thead { display: none; }
+  .import-table tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--rule); }
+  .import-table td { display: block; width: auto; padding: 0; border-bottom: 0; }
+  .import-table td:empty { display: none; }
+  .import-table td.ip-name { grid-column: 1; width: auto; }
+  .import-table td.ip-ts { grid-column: 2; width: auto; text-align: right; }
+  .import-table td.ip-text, .import-table td.ip-en, .import-table td.ip-es { grid-column: 1 / -1; margin-top: 3px; }
+  .import-table td.ip-en, .import-table td.ip-es { margin-top: 6px; }
+  .import-table td[data-head]::before { content: attr(data-head); display: block; font-family: var(--sans);
+    font-size: 12px; font-weight: 600; color: var(--ink-faint); white-space: normal; }
+}
+/* Rename, in the create card's style (16 October): the name now in the serif where the field stands
+   below it, the tick, and what will change a short list in the card's own size, a long file name
+   breaking where it must on a phone */
+.rn-key { flex: 1; color: var(--ink-soft); }
+.rn-now { width: 190px; max-width: 100%; font-family: var(--serif); color: var(--ink); overflow-wrap: anywhere; }
+/* what will change, under its lead-in, and both away while a refusal says why nothing will (17 October) */
+.rn-lead { margin: 16px 0 0; font-size: 13px; color: var(--ink); }
+.rn-list { margin: 4px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--ink-soft); }
+.rn-list li { margin: 2px 0; overflow-wrap: anywhere; }
+.rn-list:empty { display: none; }
+#np-name { width: 300px; max-width: 100%; }
+.np-drop {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 12px;
+  margin-top: 18px; padding: 18px 14px; border: 1px dashed var(--rule-firm); border-radius: 4px;
+  font-size: 13px; color: var(--ink-faint); text-align: center;
+}
+.np-drop.dragging { border-color: var(--accent); background: var(--paper-sunk); color: var(--ink); }
+.np-rows { list-style: none; margin: 10px 0 0; padding: 0; }
+.np-row { border-bottom: 1px solid var(--rule); padding: 14px 0 12px; }
+.np-row-head { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.np-file { font-size: 13.5px; color: var(--ink); overflow-wrap: anywhere; min-width: 0; }
+.np-count { font-size: 12.5px; color: var(--ink-faint); white-space: nowrap; }
+.np-remove {
+  margin-left: auto; align-self: center; flex: none; width: 30px; height: 30px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center; background: none;
+  border: 1px solid transparent; border-radius: 4px; color: var(--ink-faint); cursor: pointer;
+}
+.np-remove:hover, .np-remove:focus-visible { border-color: var(--rule-firm); color: var(--ink); outline: 0; }
+.np-remove svg { width: 15px; height: 15px; display: block; }
+.np-row-said { margin-top: 8px; }
+.np-turns { margin-top: 10px; }
+.np-row .setting { margin: 8px 0; }
+.np-fields { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-top: 10px; }
+.np-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 9em; min-width: 0; font-size: 12px; color: var(--ink-soft); }
+.np-field input {
+  width: 100%; background: var(--paper); border: 1px solid var(--field-edge); border-radius: 3px;
+  padding: 7px 10px; font-size: 13px;
+}
+.np-field input:focus { outline: 0; border-color: var(--field-edge); }
+.np-field.np-num { flex: 0 0 4.6em; }
+/* a row's Timepoint chooser, in a project of two or more (20 October), as the fields beside it */
+.np-field select { width: 100%; background: var(--paper); border: 1px solid var(--field-edge); border-radius: 3px;
+  padding: 7px 10px; font: inherit; font-size: 13px; color: var(--ink); }
+.np-field select:focus { outline: 0; border-color: var(--field-edge); }
+/* Add transcripts: the line of a row that joins a case there, in the small type */
+.np-joins { margin: 8px 0 0; font-size: 12.5px; color: var(--ink-soft); }
+/* A project from ATLAS.ti, NVivo or MAXQDA on the card (21 October): its file's name and kind over a
+   row a source, each ticked from its whole head, a source left unticked in the faint ink, then the
+   choosers in the card's settings rows and the lines of what comes in and what is left out */
+.qd { margin-top: 18px; }
+.qd-head { padding-bottom: 4px; }
+.qd-rows { margin-top: 4px; }
+.qd-tick { cursor: pointer; }
+.qd-tick input { margin: 0; flex: none; align-self: center; accent-color: var(--ink); }
+.qd-row.is-off .np-file, .qd-row.is-off .np-count { color: var(--ink-faint); }
+.qd-choices .view-row { padding: 6px 0; margin: 4px 0; cursor: pointer; }
+.qd-choices select { max-width: 60%; }
+.qd-lines { margin-top: 12px; }
+.qd-lines .fineprint { margin: 4px 0 0; }
+.qd-said { margin-top: 12px; }
+/* Names replaced as a transcript comes in (namesui, 8 November 2026): a replacement in the preview tinted, the name it
+   replaced as its tooltip, a find left as written underlined faintly, the row's Names line under its fields, the
+   Review card's finds by entry with a tick each, and Names to replace, the project's list as a table */
+.nm-swap { background: var(--crux-wash); box-shadow: inset 0 -1px 0 var(--crux); border-radius: 2px; padding: 0 2px; }
+.nm-kept { box-shadow: inset 0 -1px 0 var(--ink-faint); }
+.np-field.np-real { flex: 1 1 9em; }
+.np-sheet-row .import-col { flex: 0 1 auto; }
+.np-sheet select { min-width: 176px; }
+.np-names { margin: 14px 0 0; }
+.np-names .import-sub { margin-top: 0; }
+.np-names-line { display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; font-size: 13px; color: var(--ink-soft); }
+.np-names-said { flex: 1 1 16em; }
+.nm-card { width: min(640px, 100%); }
+.nm-group { margin: 18px 0 0; }
+.nm-group-head { display: flex; align-items: baseline; gap: 8px; font-size: 13.5px; padding-bottom: 6px; border-bottom: 1px solid var(--rule); }
+.nm-group-head b { font-weight: 600; color: var(--ink); }
+.nm-group-head > span { color: var(--ink-soft); }
+.nm-group-head .nm-to { color: var(--ink); }
+.nm-group-head .nm-n { margin-left: auto; color: var(--ink-faint); font-size: 12.5px; }
+.nm-hit { display: flex; align-items: baseline; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--rule); font-size: 13.5px; cursor: pointer; }
+.nm-hit input { margin: 0; flex: none; transform: translateY(1px); accent-color: var(--ink); }
+.nm-hit .nm-who { flex: 0 0 8.5em; color: var(--ink-faint); font-size: 12.5px; }
+.nm-hit .nm-ctx { flex: 1 1 auto; min-width: 0; font-family: var(--serif); color: var(--ink-soft); overflow-wrap: anywhere; }
+.nm-hit .nm-ctx b { font-weight: 600; color: var(--ink); }
+.nm-hit.is-off .nm-ctx { color: var(--ink-faint); }
+.nm-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 14px; }
+.nm-table th { text-align: left; font-size: 12px; font-weight: 600; color: var(--ink-soft); padding: 0 8px 6px 0; border-bottom: 1px solid var(--rule); }
+.nm-table td { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+.nm-table input[type=text], .nm-table select { width: 100%; box-sizing: border-box; background: var(--paper); border: 1px solid var(--field-edge);
+  border-radius: 3px; padding: 6px 8px; font: inherit; color: var(--ink); }
+.nm-table input[type=text]:focus, .nm-table select:focus { outline: 0; border-color: var(--field-edge); }
+.nm-table td.nm-in { width: 8.5em; }
+.nm-table td.nm-case { width: 7.5em; white-space: nowrap; }
+.nm-table td.nm-case label { display: flex; gap: 6px; align-items: center; color: var(--ink-soft); font-size: 12.5px; cursor: pointer; }
+.nm-table td.nm-case input { accent-color: var(--ink); }
+.nm-table td.nm-x { width: 32px; padding-right: 0; text-align: right; }
+.nm-acts { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.nm-check { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--rule); }
+.nm-check-line { display: flex; gap: 8px 10px; align-items: center; flex-wrap: wrap; font-size: 13.5px; color: var(--ink-soft); margin-top: 10px; }
+.nm-check-line > span { flex: 1 1 18em; }
+.import-table.n6 { min-width: 60em; }
+.import-table td.ip-kq { white-space: pre-line; font-family: var(--serif); color: var(--ink-soft); }
+@media (max-width: 520px) {
+  .import-table.n6 { min-width: 0; }
+  .import-table td.ip-kq { grid-column: 1 / -1; margin-top: 6px; }
+}
+
+/* Find and replace, in the trim card's paper, border and title but smaller, standing at the top
+   right under the bar with no veil, so the sheet and its washes stay in sight. Over the bar's
+   height and under every overlay. Stacked, below 1100px, it stands at the foot of the window
+   instead, over the fields, and leaves the sheet above it clear. */
+/* under the research question, as the guidance sheet stands, so the question reads whole while the card is open,
+   where at 1280 the card's top hid the question's end (17 October, later) */
+.find-card {
+  position: fixed; top: calc(62px + var(--band)); right: var(--gutter); z-index: 40;
+  width: min(470px, calc(100vw - 2 * var(--gutter))); max-height: calc(100vh - 76px - var(--band));
+  padding: 20px 22px 18px;
+  animation: rise .18s cubic-bezier(.2,.7,.3,1) both;
+}
+.find-card h2 { font-size: 20px; margin: 0 0 14px; }
+.find-fields { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px 12px; }
+.find-label { font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; }
+.find-ticks { display: flex; flex-wrap: wrap; gap: 6px 20px; margin-top: 12px; font-size: 12.5px; color: var(--ink-soft); }
+.find-tick { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+/* Whole word and Match case in the ink, as every tick of the app's own is, where they stood in the
+   browser's own blue (17 October, the cards' sweep) */
+.find-tick input { accent-color: var(--ink); }
+.find-count { margin: 12px 0 0; min-height: 1.5em; font-size: 13px; line-height: 1.5; color: var(--ink); }
+.find-total { margin-left: 8px; font-size: 12px; color: var(--ink-faint); }
+.find-total:empty { margin-left: 0; }
+.find-actions { margin-top: 14px; gap: 6px; }
+.find-actions button.ghost, .find-actions button.primary { padding: 6px 11px; }
+.find-gap { flex: 1 1 0; min-width: 0; }
+.find-actions button:disabled { opacity: .45; cursor: default; transform: none; }
+.find-actions button.primary:disabled:hover { background: none; border-color: transparent; }
+.settings-nav .tab-short { display: none; }
+.setting .setting-label { flex: 1; color: var(--ink-soft); }
+/* a project's method under Settings, Projects, shown and never changed (tadraw) */
+.set-method { flex: none; color: var(--ink); }
+/* the PETs category's limit, the bar's stepper at the size of the card's own fields */
+.cap-step { display: inline-flex; align-items: center; gap: 4px; flex: none; white-space: nowrap; color: var(--ink-soft); }
+.cap-btn {
+  width: 26px; height: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: 1px solid var(--rule-firm); border-radius: 3px; color: var(--ink-soft);
+  font-size: 14px; line-height: 1; cursor: pointer;
+}
+.cap-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
+.cap-btn:disabled { opacity: .4; cursor: default; }
+.cap-text { padding: 0 6px; font-variant-numeric: tabular-nums; }
+.cap-text b { color: var(--ink); }
+/* Timepoints under Projects (20 October): the stepper as the PETs limit's, its line close under it, then
+   with two or more a row each, the label narrow and the description the rest */
+#tp-block { padding: 0; }
+.tp-setting { margin-bottom: 4px; }
+.tp-line { margin: 0 0 10px; }
+.tp-rows { display: grid; grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr); gap: 6px 10px; margin: 0 0 12px;
+  font-size: 13px; }
+.tp-head { font-size: 12px; color: var(--ink-soft); }
+.tp-rows input { width: 100%; min-width: 0; background: var(--paper); border: 1px solid var(--field-edge);
+  border-radius: 3px; padding: 7px 10px; font: inherit; color: var(--ink); }
+.tp-rows input:focus { outline: 0; border-color: var(--field-edge); }
+.tp-rows input[readonly] { color: var(--ink-soft); }
+/* the import card's Timepoint chooser, clear of the recording's row over it */
+.import-tp { margin-top: 14px; }
+.import-tp .fineprint { margin: 6px 0 0; }
+#set-cap-line { margin: -4px 0 0; }
+/* a nudge's tick with its info mark after the label, a small circled i in the faint ink, and the
+   tooltip under the row on hover and on focus, in the small type over the paper */
+.nudge-row { position: relative; display: flex; align-items: center; gap: 6px; }
+/* Project settings (settingsplit, 5 November 2026): Settings' look in one column, the project's own settings scrolling
+   between two rules, so its name, Save and the close stay where they are */
+#projset .card { width: min(640px, 100%); height: min(720px, 100%); display: flex; flex-direction: column; overflow: hidden;
+  padding-bottom: 22px; }
+#projset .card > h2 { margin-bottom: 18px; }
+.projset-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 6px 22px 0;
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+#projset .card-actions { margin-top: 0; padding-top: 18px; }
+#projset .switches input { accent-color: var(--ink); }
+/* the statement length, a small number with its unit after it */
+.words-set { display: inline-flex; align-items: center; gap: 6px; }
+.setting .words-n { width: 4.6em; padding: 5px 6px; text-align: center; }
+.words-unit { font-size: 13px; color: var(--ink-soft); }
+.info-mark {
+  width: 20px; height: 20px; padding: 0; flex: none; display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: 0; border-radius: 50%; color: var(--ink-faint); cursor: help;
+}
+.info-mark svg { width: 15px; height: 15px; }
+.info-mark:hover, .info-mark:focus-visible { color: var(--ink); }
+.info-mark:focus-visible { outline: 0; box-shadow: var(--focus); }
+.info-tip {
+  display: none; position: absolute; left: 0; top: calc(100% + 4px); z-index: 5; width: min(380px, 100%);
+  background: var(--paper); border: 1px solid var(--rule-firm); border-radius: 3px; box-shadow: var(--lift);
+  padding: 8px 11px; font-size: 12.5px; line-height: 1.5; color: var(--ink-soft); pointer-events: none;
+}
+.info-mark:hover + .info-tip, .info-mark:focus + .info-tip { display: block; }
+.info-tip.up { top: auto; bottom: calc(100% + 4px); }
+.bench-prior {
+  display: block; width: 100%; min-height: 0; overflow: auto; resize: none; field-sizing: content;
+  max-height: 9em; background: none; border: 1px solid transparent; border-radius: 3px;
+  padding: 2px 0 8px; font-family: var(--serif); font-size: 14px; line-height: 1.55;
+  color: var(--ink-faint);
+}
+.bench-prior:focus { box-shadow: none; border-color: var(--field-edge); padding-left: 8px; padding-right: 8px; }
+.bench-box {
+  width: 100%; height: 150px; overflow: auto; resize: vertical; background: var(--paper);
+  border: 1px solid var(--field-edge); border-radius: 3px; padding: 9px 11px;
+  font-family: var(--serif); font-size: 15px; line-height: 1.55;
+}
+#bench-label { display: block; margin-top: 10px; }
+/* the Project category: the name, the question in the reading face, and the root as a path */
+#set-project-name { width: 300px; max-width: 100%; }
+#project-restart { margin: 12px 0 4px; color: var(--ink-soft); }
+@media (max-width: 700px) {
+  /* in the row Experiential statements says Statements, its whole name in its tooltip, and
+     Distil's name goes, its parts standing in the row as the others do */
+  .settings-nav .tab-full { display: none; }
+  .settings-nav .tab-short { display: inline; }
+  #set-project-name { width: 100%; }
+}
+
+/* Today's haul (item 158): after Take a break, one line in the card's paper, border and shadow,
+   standing where the card stood, in the reading face. It rises in as the card did, holds, and fades
+   over its last second, about four seconds in all. It takes no pointer and no focus, and under
+   reduced motion it shows and goes without the fade. */
+.haul {
+  position: fixed; left: 50%; top: 50%; z-index: 60; transform: translate(-50%, -50%); margin: 0;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 5px; box-shadow: var(--lift);
+  padding: 18px 28px; width: max-content; max-width: calc(100vw - 2 * var(--gutter));
+  font-family: var(--serif); font-size: 20px; line-height: 1.4; color: var(--ink-soft);
+  pointer-events: none; user-select: none; -webkit-user-select: none;
+}
+.haul.on { animation: haul 4000ms both; }
+@media (prefers-reduced-motion: reduce) {
+  .count-flash { display: none !important; }
+}
+@media (max-width: 1100px) {
+  .find-card { top: auto; bottom: var(--gutter); }
+}
+@media (max-width: 1000px) {
+  #work.hide-en .turn > .note-cell { margin-left: 12px; }
+  .turn-done, .turn.current .turn-done { left: 0; right: auto; width: 3px; }
+  /* and nothing of the current passage stands in the scrollbar's lane at the column's right edge: its
+     band, with Larger current passage off, keeps its hairline above, below and at the left, where the
+     right one read as a scrollbar at 360 (16 October) */
+  #work.same-size .turn.current { box-shadow: inset 1px 0 0 var(--rule-firm), inset 0 1px 0 var(--rule-firm), inset 0 -1px 0 var(--rule-firm); }
+  /* the margin lies along the top here, so a round's marker is its name, its state and the rule on one
+     line in the transcript's column, the rule running behind the name from its paper */
+  .round-mark { min-height: 22px; align-items: center; }
+  .round-mark-gutter { position: relative; z-index: 1; grid-row: 1; justify-self: start; width: auto;
+    flex-direction: row; align-items: center; gap: 8px; margin-left: 12px; padding-right: 12px; background: var(--paper); }
+  .round-mark > .round-mark-rule { grid-row: 1; margin: 0 0 0 12px; }
+}
+@media (max-width: 800px) {
+  .round-mark { grid-template-columns: var(--cols2); }
+  .turn > :is(.turn-text, .turn-edit, .quote-preview, .turn-gutter, .turn-done, .turn-notes), .round-mark > .round-mark-rule, .round-mark-gutter { grid-column: var(--tx-col2); }
+  .turn-notes #en, .note-cell .note-entry { margin-top: 8px; }
+}
+/* with the passages, which stack from 600px down (style.css) */
+@media (max-width: 600px) {
+  .round-mark { grid-template-columns: minmax(0, 1fr); }
+  .round-mark > .round-mark-rule, .round-mark-gutter { grid-column: 1; }
+}
+@media (max-width: 1439px) {
+  #rail-daily { display: none; }
+  #work:not(.rounds-off) #rail-who, .round-bar { display: none; }
+  /* Since 18 October, when Distil's steps came onto the bar, the rest gives way here so a name of 30 letters
+     stays whole at 1280px and the steps keep their words, where these waited until 760px: the mark keeps its
+     tick, the one word and the date, Distil's first step naming the screen, and with rounds on the words "in
+     this round" and the round's own count give way to "in round 1", "passage 7 of 16 in round 1", the round's
+     count said whole in the place's tooltip (16 October) */
+  .rail-mark .mark-full { display: none; }
+  .rail-mark .mark-short { display: inline; }
+  #rail-in-round, #rail-round-sep, #rail-round-item { display: none; }
+  .rail-short { display: inline; }
+}
+@media (max-width: 1140px) {
+  /* a mark with turns undecided says "Complete · 2 undecided", the counts beside it */
+  .mark-turns { display: none; }
+}
+@media (max-width: 940px) {
+  #rail-clock, .rail-clock-sep { display: none; }
+  /* the clock's reset goes with the clock */
+  #rail-clock-reset { display: none; }
+  /* and then the tick alone, the counts beside it and the words in its tooltip */
+  #rail-mark-left, .rail-mark.undecided .mark-short { display: none; }
+}
+@media (max-width: 760px) {
+  /* with passages undecided the tick stands beside the counts with no rule between */
+  #work.es-reopened #rail-mark-sep { display: none; }
+}
+@media (max-width: 620px) {
+  .rail-long, .rail-sep { display: none; }
+  /* and then the tick and the word, the date in its tooltip */
+  .mark-date { display: none; }
+}
+@media (max-width: 480px) {
+  /* The status bar on a phone (21 October, Adam's drawing 13): the speaker's name goes, "passage 7 of 39", and
+     with rounds on "in round 1" goes to the place's tooltip, the statements' count and the recording's name
+     beside the player go, and Minimap, Quotes and Shortcuts keep their icons alone */
+  #rail-who, #work #rail-in-round-n, .es-count, .es-count-sep, .es-sword { display: none; }
+  .es-status { padding-left: 12px; padding-right: 8px; }
+  .player-bar:not([hidden]) + .player-note { display: none; }
+  /* and the name keeps room for a few letters at 360, "passage" and the numbers whole, and a phase
+     marked complete gives way to its tick, each said whole in its tooltip (16 October) */
+  .rail-mark .mark-short { display: none; }
+  /* View gives way here since 18 October, so Distil's steps keep their words and the case name a letter or
+     two, its choices kept under Distil in Settings and the minimap off at this width already, and Guidance,
+     the first tool left, takes the tools to the right edge, where View did */
+  #btn-view { display: none; }
+  #work #btn-guide { margin-left: auto; }
+  .rail-tag { padding: 2px 4px; letter-spacing: .06em; }
+  .find-card { padding: 18px 16px 14px; }
+  #settings .setting > .setting-label { flex: none; }
+}
+@media (max-width: 700px) {
+  .find-card { left: 0; right: 0; bottom: 0; width: auto; max-width: none; border-width: 1px 0 0; border-radius: 0; }
+}
+
+/* Dangerously skip permissions under Using your own AI agents, and an agent's action waiting for his yes
+   (holds.py, 27 October 2026, as drawn on 26 October) */
+.agent-holds { margin-top: 18px; }
+.hold-line {
+  position: fixed; top: 54px; right: var(--gutter); z-index: 40;
+  width: min(380px, calc(100vw - 2 * var(--gutter))); padding: 12px 40px 12px 14px; border-radius: 5px;
+  background: var(--crux); border: 1px solid var(--crux); color: var(--paper); box-shadow: var(--lift);
+  animation: rise .16s cubic-bezier(.2,.7,.3,1) both;
+}
+.hold-line[hidden] { display: none; }
+.hold-line .th-exported-head { color: var(--paper); font-weight: 600; font-size: 13px; display: flex; align-items: center;
+  flex-wrap: wrap; gap: 6px 10px; margin: 0; }
+.hold-line .card-close { position: absolute; color: var(--paper); top: 50%; right: 4px; transform: translateY(-50%);
+  width: 28px; height: 28px; }
+.hold-line .card-close[hidden] { display: none; }
+.hold-line .card-close svg { width: 13px; height: 13px; }
+.hold-line .card-close:hover { background: color-mix(in srgb, var(--paper) 18%, transparent); }
+.hold-line .th-outside-show { margin-left: auto; padding: 4px 12px; border: 0; border-radius: 4px; background: var(--paper);
+  color: var(--crux); font: inherit; font-weight: 600; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+.hold-line .th-outside-show[hidden] { display: none; }
+.hold-line .th-outside-show:hover { background: color-mix(in srgb, var(--paper) 88%, var(--crux)); color: var(--crux); }
+.hold-card .hold-asked { margin: 10px 0 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
+.hold-card .hold-changed { margin: 10px 0 0; font-size: 13.5px; color: var(--amber); line-height: 1.5; }
+.hold-card .hold-changed[hidden] { display: none; }
+.hold-card .hold-what { margin: 16px 0 6px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+.hold-card .mcp-code { white-space: pre-wrap; word-break: normal; overflow-wrap: anywhere; max-height: 40vh; overflow: auto; }
+.hold-card button.ghost { border-color: var(--ink-faint); }
+/* Approve's words the light paper in both themes, on the light theme's crux, so they read alike */
+.hold-card button.primary { background: var(--hold-yes); border-color: var(--hold-yes); color: var(--hold-yes-ink); }
+/* The card for several (holdbatchA, Adam's option A of 1 November 2026): the head and the foot stay put while the
+   list scrolls between its rules. A row is its tick's label, the agent and when, and Details, the whole row ticking
+   (data-tick-row). Details opens the row's own card under it */
+.holds-batch { width: min(640px, 100%); display: flex; flex-direction: column; overflow: hidden; }
+.holds-batch h2 { margin: 0; }
+.holds-batch .hb-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.holds-batch .hb-top button { flex: none; }
+.holds-batch .hb-top button[hidden] { display: none; }
+.holds-batch .hb-sum { margin: 8px 0 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
+.holds-batch .hb-sum[hidden] { display: none; }
+.holds-batch .hb-list { margin: 14px -10px 0; padding: 0 10px; overflow-y: auto; min-height: 0; flex: 1 1 auto;
+  overscroll-behavior: contain; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.holds-batch .hb-ask { margin: 14px 0 4px; font-size: 13px; line-height: 1.5; color: var(--ink-soft); overflow-wrap: anywhere; }
+.holds-batch .hb-rows { list-style: none; margin: 0 0 10px; padding: 0; }
+.holds-batch .hb-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px;
+  padding: 3px 6px; margin: 0 -6px; border-radius: 3px; }
+.holds-batch .hb-row + li, .holds-batch .hb-detail + li { border-top: 1px solid color-mix(in srgb, var(--rule) 60%, transparent); }
+.holds-batch .hb-row label { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--ink); padding: 6px 0; min-width: 0; }
+.holds-batch .hb-row label input { flex: none; margin: 0; }
+.holds-batch .hb-what { display: block; overflow-wrap: anywhere; }
+.holds-batch .hb-changed { display: block; font-size: 12.5px; color: var(--amber); margin-top: 2px; }
+.holds-batch .hb-when { font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
+.holds-batch .hb-more { display: inline-flex; align-items: center; gap: 4px; }
+.holds-batch .hb-more svg { width: 12px; height: 12px; transition: transform .16s; }
+.holds-batch .hb-more[aria-expanded="true"] svg { transform: rotate(180deg); }
+.holds-batch .hb-detail { margin: 0 -6px; padding: 0 6px 12px 31px; }
+.holds-batch .hb-detail .hold-asked { margin: 2px 0 0; }
+.holds-batch .hb-detail .hold-changed { margin: 6px 0 0; }
+.holds-batch .hb-detail .hold-what { margin: 10px 0 6px; }
+/* Project history (historyui, 3 November 2026): a tall sheet as the card for several holds is, as tall as what it
+   holds up to the window's height, the list scrolling between its rules, each day's head over its changes, each
+   change its time in a narrow column and who, what changed and the agent's account of your request beside it */
+.ph-sheet { width: min(680px, 100%); height: auto; max-height: min(880px, 100%); display: flex; flex-direction: column;
+  overflow: hidden; }
+.ph-sheet h2 { margin: 0; }
+.ph-sheet .ph-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; }
+.ph-sheet .ph-filter { margin: 0; flex: none; }
+.ph-sheet .ph-list { margin: 16px -10px 0; padding: 0 10px 12px; overflow-y: auto; min-height: 0; flex: 1 1 auto;
+  overscroll-behavior: contain; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); outline: 0; }
+.ph-sheet .ph-list[hidden], .ph-sheet .ph-none[hidden] { display: none; }
+.ph-sheet .ph-none { margin: 16px 0 0; font-size: 14px; color: var(--ink-soft); }
+.ph-sheet .ph-heading { min-width: 0; }
+.ph-sheet .ph-count { margin: 4px 0 0; font-size: 12.5px; color: var(--ink-faint); }
+.ph-sheet .ph-count[hidden] { display: none; }
+/* each day's head sticks at the list's top while its changes scroll under it, on the sheet's own colour */
+.ph-sheet .ph-day-head { position: sticky; top: 0; z-index: 1; margin: 0 -10px 8px; padding: 14px 10px 6px;
+  background: var(--card); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600;
+  color: var(--ink-soft); font-family: inherit; }
+.ph-sheet .ph-recs { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.ph-sheet .ph-rec { display: grid; grid-template-columns: 4.6em minmax(0, 1fr); column-gap: 12px; font-size: 13.5px;
+  line-height: 1.45; }
+.ph-sheet .ph-time { color: var(--ink-soft); font-size: 12px; padding-top: 1px; white-space: nowrap; }
+.ph-sheet .ph-body { min-width: 0; overflow-wrap: anywhere; }
+.ph-sheet .ph-who { color: var(--ink-soft); font-size: 12.5px; }
+.ph-sheet .ph-line { color: var(--ink); }
+.ph-sheet .ph-asked { color: var(--ink-faint); font-size: 12.5px; font-style: italic; margin-top: 1px; }
+.ph-sheet .card-actions { margin-top: 18px; }
+.holds-batch .hb-detail .mcp-code { max-height: none; margin: 0; }
+.holds-batch .card-actions { margin-top: 18px; flex: none; }
+.holds-batch .card-actions button[hidden] { display: none; }
+.holds-batch .card-actions button.ghost:disabled { color: var(--ink-faint); border-color: var(--rule); cursor: default; }
+/* Done closes the card, the app's own filled button, never Approve's colour */
+.holds-batch #hb-done { background: var(--crux); border-color: var(--crux); color: var(--paper); }
+
+.holds-batch .hb-done { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: start; gap: 10px;
+  padding: 8px 0; font-size: 14px; color: var(--ink); list-style: none; }
+.holds-batch .hb-done + .hb-done { border-top: 1px solid color-mix(in srgb, var(--rule) 60%, transparent); }
+.holds-batch .hb-done svg { width: 15px; height: 15px; margin-top: 2px; color: var(--ink-soft); }
+.holds-batch .hb-done.not svg { color: var(--amber); }
+.holds-batch .hb-done .hb-state { font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; }
+.holds-batch .hb-done.not .hb-state { color: var(--amber); }
+.holds-batch .hb-done .hb-why { display: block; font-size: 12.5px; color: var(--amber); margin-top: 2px; }
+.holds-batch .hb-done-list { margin: 6px 0; padding: 0; overflow-wrap: anywhere; }
+/* a thematic analysis project in front (tadraw): Settings without the PETs category, which it has no use for */
+html[data-method="ta"] #tab-pets { display: none; }
+
+/* Working together in Project settings and its two cards (wtkeys, 8 November 2026), as wtdesign drew them */
+.wt-sec .wt-route { margin: 4px 0 0; }
+.wt-sec .wt-path { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; }
+.wt-sec .wt-path .path { flex: 1; margin: 0; }
+.wt-sec .wt-folder-said { margin: 12px 0 0; }
+/* the relay code, under Send through, while the project is not on the relay yet (relaywire) */
+.wt-sec .wt-code { gap: 10px; margin: 8px 0 0; }
+.wt-sec .wt-code-line { margin: 4px 0 0; }
+.wt-list { list-style: none; margin: 8px 0 0; padding: 0; border-top: 1px solid var(--rule); }
+.wt-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 9px 0;
+  border-bottom: 1px solid var(--rule); font-size: 13px; color: var(--ink); }
+.wt-list .wt-who b { font-weight: 600; }
+.wt-list .wt-sub { display: block; font-size: 12px; color: var(--ink-faint); margin-top: 1px; }
+.wt-list select { font: inherit; font-size: 13px; padding: 4px 8px; border: 1px solid var(--field-edge, var(--rule-firm));
+  border-radius: var(--r-control); background: var(--paper); color: var(--ink); }
+.wt-list .wt-gets { display: flex; align-items: center; gap: 8px; }
+.wt-list .wt-btns { display: flex; align-items: center; gap: 8px; }
+.wt-list .wt-computers { grid-column: 1 / -1; list-style: none; margin: 2px 0 0; padding: 0 0 0 14px; border-left: 2px solid var(--rule); }
+.wt-list .wt-computers li { grid-template-columns: minmax(0, 1fr) auto; padding: 4px 0; border: 0; font-size: 13px; color: var(--ink-soft); }
+.wt-asked { margin: 6px 0 0; }
+.wt-asked .fineprint { margin: 2px 0 0; }
+.wt-acts { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
+.wt-h { display: block; font-size: 13px; color: var(--ink-soft); margin: 16px 0 0; }
+.wt-h.wt-first { margin-top: 0; }
+.wt-card .wt-box { margin: 8px 0 0; padding: 10px 12px; border: 1px solid var(--rule-firm); border-radius: var(--r-box);
+  background: var(--paper-sunk); font-family: var(--mono); font-size: 12.5px; color: var(--ink); overflow-wrap: anywhere;
+  line-height: 1.6; user-select: all; }
+.wt-card .wt-copy { display: flex; gap: 8px; margin: 8px 0 0; }
+.wt-card .wt-answered { margin: 22px 0 0; padding: 16px 0 0; border-top: 1px solid var(--rule); }
+.wt-card .wt-code { font-family: var(--mono); font-size: 30px; letter-spacing: .14em; color: var(--ink); margin: 10px 0 0; }
+.wt-card textarea { width: 100%; box-sizing: border-box; margin: 6px 0 0; padding: 8px 10px; font-family: var(--mono);
+  font-size: 13px; border: 1px solid var(--field-edge, var(--rule-firm)); border-radius: var(--r-control);
+  background: var(--paper); color: var(--ink); resize: vertical; }
+
+/* Working together on the project's page (wtowners, 8 November 2026, shot 05, option A): a tag on a participant
+   another works on, or one of his out for review, and under the question what came in today and what waits to send */
+.tag.wt-own { border-color: var(--ink-soft); color: var(--ink-soft); }
+.tag.wt-rev { border-color: var(--accent); color: var(--accent); }
+.wt-team { width: max-content; max-width: 100%; margin: 10px 0 0; display: grid; gap: 4px; font-size: 13px; color: var(--ink-soft); }
+.wt-team span { display: inline-flex; align-items: center; gap: 7px; }
+.wt-team svg { width: 14px; height: 14px; flex: none; }
+.wt-team .wt-wait { color: var(--amber); }

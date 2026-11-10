@@ -1,0 +1,8 @@
+{
+  "table.clear": "Clear",
+  "table.find": "Find",
+  "table.find_in": "Find in {group}",
+  "table.show_less": "Show less",
+  "table.show_more": "Show more",
+  "table.file_unreadable": "That file could not be read."
+}

@@ -1,0 +1,322 @@
+{
+ "about": "Rowan's coding in the thematic analysis demo, invented, on the same interview as the IPA demo's. Every participant turn in order, found by its opening words: each extract as said with its codes, and the passage's note, or empty for a turn reviewed and left uncoded. Then the times of the work. make_demo.py builds the workbook and the progress file from this and the interview CSV in demo/source/.",
+ "built": "2026-10-15T12:00:00",
+ "turns": [
+  {
+   "at": "Yeah. Erm. Where to start.",
+   "extracts": [
+    {
+     "text": "so I keep starting to say it is and then it's was.",
+     "codes": [
+      "Loss without a name yet"
+     ]
+    },
+    {
+     "text": "I mean that both ways.",
+     "codes": [
+      "Two feelings at once"
+     ]
+    },
+    {
+     "text": "The flat was her flat. I just lived in it.",
+     "codes": [
+      "Days arranged round the dog",
+      "A house filled or emptied by the dog"
+     ]
+    }
+   ],
+   "note": "Tense slips from the first lines, is and was. The flat was hers: the arranging went so far that the home itself changed hands."
+  },
+  {
+   "at": "Yeah. The good way first.",
+   "extracts": [
+    {
+     "text": "whole days could go by and I wouldn't speak to anyone. And then there's this dog leaning on my knee under the desk.",
+     "codes": [
+      "The dog in a person's place"
+     ]
+    },
+    {
+     "text": "Everything had to be arranged round her.",
+     "codes": [
+      "Days arranged round the dog"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "So I'd be up at quarter past five.",
+   "extracts": [
+    {
+     "text": "So we went when nobody else did.",
+     "codes": [
+      "Days arranged round the dog",
+      "A life closing in"
+     ]
+    },
+    {
+     "text": "I used to joke I'd gone nocturnal. I wasn't really joking.",
+     "codes": [
+      "A life closing in"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Some of them were lovely, actually.",
+   "extracts": [
+    {
+     "text": "this is all right, this is ours",
+     "codes": [
+      "The dog's joy lifting a mood"
+     ]
+    },
+    {
+     "text": "I never stopped listening, the whole time I had her.",
+     "codes": [
+      "Keeping watch"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "No. And I didn't notice",
+   "extracts": [
+    {
+     "text": "My body was still doing it for her.",
+     "codes": [
+      "Keeping watch",
+      "Loss without a name yet"
+     ]
+    }
+   ],
+   "note": "The watching outlives the dog. Keeping watch and loss on one line."
+  },
+  {
+   "at": "She'd lie under the desk",
+   "extracts": [
+    {
+     "text": "So after that I didn't leave her. I mean I didn't leave her at all, for months. I got everything delivered.",
+     "codes": [
+      "A life closing in",
+      "Days arranged round the dog"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Erm. At the time I'd have said it was fine.",
+   "extracts": [
+    {
+     "text": "I'd stopped saying yes to things so long ago that people had stopped asking.",
+     "codes": [
+      "A life closing in"
+     ]
+    },
+    {
+     "text": "The dog was the reason, and it's a good reason, nobody argues with it.",
+     "codes": [
+      "The dog as a reason nobody argues with"
+     ]
+    }
+   ],
+   "note": "Juno's words almost exactly, from a very different life with a dog."
+  },
+  {
+   "at": "There was a letter.",
+   "extracts": [
+    {
+     "text": "any further incident and they'd have to review the tenancy",
+     "codes": [
+      "Others judging the dog's place"
+     ]
+    },
+    {
+     "text": "I can't keep her safe here. Or I can't keep everyone else safe.",
+     "codes": [
+      "Keeping watch"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Yeah. I've gone back and forth",
+   "extracts": [
+    {
+     "text": "That wasn't her fault. That was mine.",
+     "codes": [
+      "Asking whether it was my fault"
+     ]
+    },
+    {
+     "text": "I chose the flat and then I chose her, and I never thought about the two together.",
+     "codes": [
+      "Asking whether it was my fault"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I tried everything first.",
+   "extracts": [
+    {
+     "text": "I tried everything first. I want that on the record.",
+     "codes": [
+      "Asking whether it was my fault"
+     ]
+    },
+    {
+     "text": "She said some dogs need a different life, not a different owner, and sometimes it's both.",
+     "codes": [
+      "Settling the dog's future"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Awful. And a relief.",
+   "extracts": [
+    {
+     "text": "Awful. And a relief. Both at once, and I was ashamed of the relief, I still am a bit.",
+     "codes": [
+      "Two feelings at once",
+      "Doubts kept unsaid"
+     ]
+    },
+    {
+     "text": "I felt like I was lying to her.",
+     "codes": [
+      "Doubts kept unsaid"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "The rescue had a couple.",
+   "extracts": [
+    {
+     "text": "I said yes before she'd told me anything else about them.",
+     "codes": [
+      "Settling the dog's future"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I drove her up there myself.",
+   "extracts": [
+    {
+     "text": "And I talked to her the whole way, I don't even know what about.",
+     "codes": [
+      "Talking to the dog"
+     ]
+    },
+    {
+     "text": "She didn't look back again. Which is what you'd want. I know that's what you'd want.",
+     "codes": [
+      "Settling the dog's future",
+      "Two feelings at once"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "End of June.",
+   "empty": true
+  },
+  {
+   "at": "I sat in the car in their yard",
+   "extracts": [
+    {
+     "text": "I just felt very light, like my arms didn't have anything to hold.",
+     "codes": [
+      "Loss without a name yet"
+     ]
+    },
+    {
+     "text": "and the flat was, it was just a flat.",
+     "codes": [
+      "A house filled or emptied by the dog"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Quiet. Very quiet.",
+   "extracts": [
+    {
+     "text": "I still wake up at quarter past five, three months on.",
+     "codes": [
+      "Days arranged round the dog",
+      "Loss without a name yet"
+     ]
+    },
+    {
+     "text": "I lie there and there's nothing to get up for, so I just lie there.",
+     "codes": [
+      "A reason to get up"
+     ]
+    }
+   ],
+   "note": "A reason to get up seen from its absence. Mabel's turn 2 says the same from the other side."
+  },
+  {
+   "at": "I don't know, exactly.",
+   "extracts": [
+    {
+     "text": "It's like I'm glad and something else at the same time, and the something else hasn't got a name yet.",
+     "codes": [
+      "Two feelings at once",
+      "Loss without a name yet"
+     ]
+    }
+   ],
+   "note": "Glad, and something with no name yet. He misses a dog who is alive and happy elsewhere, a loss with no death to mark it."
+  },
+  {
+   "at": "People ask me that.",
+   "extracts": [
+    {
+     "text": "I think I'd want to know first whether I failed her or whether I did the right thing for her",
+     "codes": [
+      "Asking whether it was my fault"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Only that she was a good dog.",
+   "extracts": [
+    {
+     "text": "She wasn't a problem. She was frightened. There's a difference.",
+     "codes": [
+      "Others judging the dog's place"
+     ]
+    },
+    {
+     "text": "Every morning for eighteen months I got one sock.",
+     "codes": [
+      "Rules nobody wrote down"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "No. No, I think that's everything.",
+   "empty": true
+  }
+ ],
+ "work": {
+  "rounds": [
+   {
+    "seconds": 2210,
+    "completed": "2026-10-14T14:18:09"
+   },
+   {
+    "seconds": 1480,
+    "completed": "2026-10-15T10:22:44"
+   }
+  ],
+  "complete": "2026-10-15T10:24:10"
+ }
+}

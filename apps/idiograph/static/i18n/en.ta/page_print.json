@@ -1,0 +1,16 @@
+{
+  "page_print.gets.board_gone": "That board is no longer among the project's themes boards, so nothing was printed.",
+  "page_print.gets.no_get": "That theme is no longer on the board, so there is no trail to show.",
+  "page_print.gets.project": "Themes",
+  "page_print.gets.table": "Theme table",
+  "page_print.gets.table_name": "Table of themes",
+  "page_print.gets.all": "Themes",
+  "page_print.gets.none": "No themes on this board yet.",
+  "page_print.gets.statements": {"one": "{n} code", "other": "{n} codes"},
+  "page_print.gets.under_this_get": "Under this theme",
+  "page_print.gets.no_quote": "No extract",
+  "page_print.kind.quote": "Extract",
+  "page_print.kind.statement": "Code",
+  "page_print.kind.sub_theme": "Subtheme",
+  "page_print.kind.get": "Theme"
+}

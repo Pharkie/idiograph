@@ -1,0 +1,25 @@
+{
+ "about": [
+  "The family's boundaries, the baseline tests/areas/a253_boundaries.py checks against (22 October 2026).",
+  "owners: each module and page file still at the root, by its path, and its owner: the family's (the mixed ones, server.py and app.js among them, until they are split), idiograph, sift or trace. A file in family/ or apps/<app>/ is its folder's and needs no line.",
+  "crossings: each place the family reaches into an app's code or one app into another's, which may only go down: a build that cuts one writes this file again with python3 tests/areas/a253_boundaries.py --write.",
+  "foreign: for each app, the modules, page files, data files, docs and demo its build ships that are another app's, 0 for each app and strict since the sixth build, 23 October 2026, each bundle carrying the family's and its own alone."
+ ],
+ "owners": {
+  "boot.py": "family",
+  "cli.py": "family",
+  "convert.py": "idiograph",
+  "diff_workbooks.py": "idiograph",
+  "make_template.py": "idiograph",
+  "mcp_server.py": "family",
+  "server.py": "family",
+  "wipe_draft.py": "idiograph"
+ },
+ "count": 0,
+ "crossings": [],
+ "foreign": {
+  "idiograph": 0,
+  "sift": 0,
+  "trace": 0
+ }
+}

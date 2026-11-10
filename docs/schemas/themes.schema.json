@@ -1,0 +1,116 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "idiograph/themes.schema.json",
+ "title": "An Idiograph themes file, <case>/Working/<stem>.themes.json",
+ "description": "A case's PETs boards. Written by themes.py and the command line, and touched by nothing else.",
+ "type": "object",
+ "required": ["boards"],
+ "properties": {
+  "schema": {"type": "integer", "minimum": 1},
+  "case": {"type": "string"},
+  "workbook": {"type": "string"},
+  "created": {"type": "string"},
+  "updated": {"type": "string"},
+  "current": {"type": "string"},
+  "chosen": {"type": "string"},
+  "complete": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/complete"}]},
+  "boards": {"type": "array", "items": {"$ref": "#/$defs/board"}}
+ },
+ "$defs": {
+  "complete": {
+   "type": "object",
+   "required": ["at"],
+   "properties": {"at": {"type": "string", "minLength": 1}, "board": {"type": "string"}, "name": {"type": "string"}}
+  },
+  "agent": {
+   "type": "object",
+   "required": ["by", "at"],
+   "properties": {"by": {"const": "agent"}, "tool": {"type": "string"}, "request": {"type": "string"},
+                  "at": {"type": "string", "minLength": 1}}
+  },
+  "made": {
+   "type": "object",
+   "required": ["by", "at"],
+   "properties": {"by": {"enum": ["agent", "ai"]}, "tool": {"type": "string"}, "request": {"type": "string"},
+                  "model": {"type": "string"}, "from": {"type": "string"}, "hash": {"type": "string"},
+                  "edited": {"type": "string"}, "at": {"type": "string", "minLength": 1}}
+  },
+  "card": {
+   "type": "object",
+   "required": ["x", "y"],
+   "properties": {"x": {"type": "number"}, "y": {"type": "number"}, "text": {"type": "string"}, "live": {"type": "string"}}
+  },
+  "group": {
+   "type": "object",
+   "required": ["id", "label", "members"],
+   "properties": {"id": {"type": "string", "minLength": 1}, "label": {"type": "string", "minLength": 1},
+                  "note": {"type": "string"}, "members": {"type": "array", "items": {"type": "string"}},
+                  "x": {"type": "number"}, "y": {"type": "number"}}
+  },
+  "sticky": {
+   "type": "object",
+   "required": ["id"],
+   "properties": {"id": {"type": "string", "minLength": 1}, "text": {"type": "string"},
+                  "colour": {"enum": ["yellow", "pink", "green", "blue"]},
+                  "x": {"type": "number"}, "y": {"type": "number"}, "in": {"type": "string"}}
+  },
+  "line": {
+   "type": "object",
+   "required": ["by", "text"],
+   "properties": {"by": {"enum": ["analyst", "ai"]}, "text": {"type": "string"}, "at": {"type": "string"},
+                  "model": {"type": "string"}}
+  },
+  "state": {
+   "type": "object",
+   "properties": {
+    "cards": {"type": "object", "additionalProperties": {"$ref": "#/$defs/card"}},
+    "groups": {"type": "array", "items": {"$ref": "#/$defs/group"}},
+    "discarded": {"type": "array", "items": {"type": "string"}},
+    "picks": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}},
+    "stacks": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}},
+    "notes": {"type": "array", "items": {"$ref": "#/$defs/sticky"}},
+    "quoted": {"type": "object", "additionalProperties": {"type": "string"}},
+    "ai": {"type": "object", "properties": {"discarded": {"type": "object", "additionalProperties": {"type": "string"}}}},
+    "cut": {"type": "array", "items": {"type": "object"}}
+   }
+  },
+  "revision": {
+   "type": "object",
+   "required": ["id", "state"],
+   "properties": {"id": {"type": "string", "minLength": 1}, "at": {"type": "string"}, "name": {"type": "string"},
+                  "auto": {"type": "boolean"}, "state": {"$ref": "#/$defs/state"}, "made": {"$ref": "#/$defs/agent"}}
+  },
+  "board": {
+   "type": "object",
+   "required": ["id", "name", "cards", "groups"],
+   "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "name": {"type": "string", "minLength": 1},
+    "note": {"type": "string"},
+    "created": {"type": "string"},
+    "updated": {"type": "string"},
+    "cards": {"type": "object", "additionalProperties": {"$ref": "#/$defs/card"}},
+    "groups": {"type": "array", "items": {"$ref": "#/$defs/group"}},
+    "discarded": {"type": "array", "items": {"type": "string"}},
+    "picks": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}},
+    "stacks": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}},
+    "notes": {"type": "array", "items": {"$ref": "#/$defs/sticky"}},
+    "quoted": {"type": "object", "additionalProperties": {"type": "string"}},
+    "ai": {"type": "object", "properties": {"discarded": {"type": "object", "additionalProperties": {"type": "string"}}}},
+    "origin": {
+     "description": "A board brought in from a shared copy coming back (26 October): the file, whose copy, the board's name there, when the copy was sent and when it came in, and his request.",
+     "type": "object",
+     "required": ["file"],
+     "properties": {"file": {"type": "string", "minLength": 1}, "who": {"type": "string"}, "board": {"type": "string"},
+                    "sent": {"type": "string"}, "at": {"type": "string"}, "request": {"type": "string"}}
+    },
+    "review": {"type": "object"},
+    "revise": {"type": "array", "items": {"$ref": "#/$defs/line"}},
+    "cut": {"type": "array", "items": {"type": "object"}},
+    "made": {"$ref": "#/$defs/made"},
+    "changed": {"$ref": "#/$defs/agent"},
+    "history": {"type": "array", "items": {"$ref": "#/$defs/revision"}}
+   }
+  }
+ }
+}

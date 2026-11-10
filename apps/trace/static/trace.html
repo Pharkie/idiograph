@@ -1,0 +1,63 @@
+<!-- Trace's parts of the family's page (the family codebase's second build, 22 October 2026). The server puts
+     each part in static/index.html where a slot of its name stands, in the family's order of the apps, so the
+     page is as it was when these lines stood there: its stylesheet, its line on Home, its Home section, its
+     tab and pane in Settings, its paragraph, its switch and its card under AI features, and its script. Each
+     part starts at a line naming it, part then a colon and its name, in a comment of its own. -->
+<!--part:head-->
+<link rel="stylesheet" href="/frame.css">
+<link rel="stylesheet" href="/trace.css">
+<!--part:lede-->
+    <p class="lede" data-only="trace">{{page_trace.lede}}</p>
+<!--part:home-->
+      <!-- Trace, each claim a manuscript makes of a reference held against the reference (15 October):
+           a card for each Trace project, and New project and Open project folder under them, each
+           opening the project card in Trace's words. A server from before Trace sends nothing, and the
+           section stays hidden -->
+      <section class="proj home-sec" id="trace-home" data-only="trace" hidden>
+        <h2 class="proj-h"><button type="button" class="proj-head" id="trace-head" aria-expanded="true"
+            aria-controls="trace-body"><span class="proj-name">{{page_trace.projects}}</span></button></h2>
+        <div class="proj-body" id="trace-body">
+          <ul class="home-cards sf-rows" id="trace-list"></ul>
+          <div class="demo-actions home-acts sf-open-line"><button type="button" class="ghost small" id="trace-new">{{page_trace.new_project}}</button><button
+               type="button" class="ghost small" id="trace-open">{{page_trace.open_project_folder}}</button></div>
+        </div>
+      </section>
+<!--part:settings-tab-->
+        <button type="button" role="tab" id="tab-trace" data-pane="trace" aria-controls="pane-trace" data-only="trace">{{page_trace.projects}}</button>
+<!--part:settings-pane-->
+        <!-- Trace's own (15 October): a row of the Trace projects' names when there are several, the one
+             open on Trace's screen first, then its name, saved with Save and kept in the app's own list,
+             never in its folder, its folder and Remove from Idiograph, which forgets the project after a
+             one-line confirm and never touches its folder or a file in it. With no Trace project the pane
+             holds its one line -->
+        <section class="settings-pane" id="pane-trace" role="tabpanel" aria-labelledby="tab-trace" hidden>
+          <h3 class="pane-title">{{page_trace.projects}}</h3>
+          <p class="fineprint" id="trp-none">{{page_trace.no_project}}</p>
+          <div id="trp-block" hidden>
+            <div class="proj-pick" id="trp-pick" role="group" aria-label="{{page_trace.trace_projects}}" hidden></div>
+            <h4 class="pane-sub" id="trp-sub">{{page_trace.project}}</h4>
+            <div class="setting"><label for="trp-name">{{page_trace.project_name}}</label><input id="trp-name" type="text" spellcheck="false"></div>
+            <div class="setting stacked">
+              <span class="setting-name">{{page_trace.folder}}</span>
+              <div class="root-line"><p class="path" id="trp-root"></p><button type="button"
+                   class="ghost small btn-remove" id="trp-remove">{{page_trace.remove}}</button></div>
+            </div>
+            <p class="fineprint" id="trp-said" hidden></p>
+          </div>
+        </section>
+<!--part:ai-warn-->
+            <p data-only="trace">{{page_trace.ai_warn}}</p>
+<!--part:ai-feature-->
+            <label data-only="trace"><input type="checkbox" data-ai-feature="passages"> {{page_trace.ai_feature}}</label>
+<!--part:ai-confirm-->
+    <div class="ai-confirm-body" data-only="trace">
+      <p class="trim-line">{{page_trace.ai_confirm.head}}</p>
+      <ul class="ai-confirm-list">
+        <li>{{page_trace.ai_confirm.new}}</li>
+        <li>{{page_trace.ai_confirm.mistakes}}</li>
+        <li>{{page_trace.ai_confirm.sent}}</li>
+        <li>{{page_trace.ai_confirm.acknowledge}}</li>
+      </ul>
+    </div>
+<!--part:scripts-->
+<script src="/trace.js"></script>

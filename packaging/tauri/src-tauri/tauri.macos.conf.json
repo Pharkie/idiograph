@@ -1,0 +1,9 @@
+{
+  "bundle": {
+    "macOS": {
+      "files": {
+        "Resources/server": "../../../build/tauri-server"
+      }
+    }
+  }
+}

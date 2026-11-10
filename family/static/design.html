@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en-GB" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Idiograph design</title>
+<link rel="icon" href="/favicon.png" type="image/png" sizes="32x32">
+<!--slot:icon-->
+<!-- The design system's reference page, served at /design and named in docs/design.md, in no menu
+     (15 October). It links the app's own stylesheets, the family's and each app's through the head's slot (the
+     family codebase's fifth build, 23 October 2026), so it shows what the app shows, and writes each
+     component's markup once, in the template below, which the script at the foot clones into a light
+     panel and a dark panel side by side. Open it at 1280 and 360 wide before a merge and look for
+     anything that moved. A new component goes here in the same change that makes it. -->
+<link rel="stylesheet" href="/tokens.css">
+<link rel="stylesheet" href="/style.css">
+<!--slot:head-->
+<style>
+  /* the page's own frame, in tokens alone: two panels side by side from 900px, one under the other
+     below, each on its own theme's paper */
+  .ds-head { max-width: 1280px; margin: 0 auto; padding: var(--sp-12) var(--gutter) var(--sp-8); }
+  .ds-head .lede { font-size: var(--fs-name); margin: var(--sp-4) 0 0; max-width: 40em; animation: none; }
+  .ds-panels { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-8); max-width: 1280px;
+    margin: 0 auto; padding: 0 var(--gutter) var(--sp-12); }
+  @media (min-width: 900px) { .ds-panels { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+  .ds-panel { min-width: 0; background: var(--paper); color: var(--ink); border: 1px solid var(--rule);
+    border-radius: var(--r-card); padding: var(--sp-9); }
+  .ds-theme { font-family: var(--serif); font-weight: 400; font-size: var(--fs-title); margin: 0 0 var(--sp-6); }
+  .ds-sec { padding: var(--sp-9) 0; border-top: 1px solid var(--rule); }
+  .ds-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4); margin: 0 0 var(--sp-6); }
+  .ds-note { font-size: var(--fs-small); color: var(--ink-faint); margin: 0 0 var(--sp-4); }
+  .ds-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(16em, 1fr)); gap: var(--sp-4); }
+  .ds-swatch { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--sp-5); align-items: center;
+    padding: var(--sp-3); border: 1px solid var(--rule); border-radius: var(--r-box); background: var(--card); }
+  .ds-chip { grid-row: span 3; width: 34px; height: 34px; border-radius: var(--r-control); border: 1px solid var(--rule-firm); }
+  .ds-swatch code, .ds-type code { font-family: var(--mono); font-size: var(--fs-small); color: var(--ink); }
+  .ds-what { font-size: var(--fs-small); color: var(--ink-soft); }
+  .ds-val { font-family: var(--mono); font-size: var(--fs-label); color: var(--ink-faint); }
+  .ds-type { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--sp-5); margin: 0 0 var(--sp-3); }
+  .ds-type-sample { font-family: var(--serif); color: var(--ink); }
+  /* what the app places over the page, set in the flow here so each can be seen at rest */
+  .ds-panel .toast, .ds-panel .row-menu, .ds-panel .rail { position: static; animation: none; }
+  .ds-panel .toast { margin: 0; max-width: 100%; }
+  .ds-panel .row-menu { display: inline-grid; }
+  .ds-panel .card { width: 100%; max-width: 100%; max-height: none; animation: none; }
+  .ds-panel .rail { margin: 0 0 var(--sp-4); border: 1px solid var(--rule); }
+  /* the statements bar's sample carries Distil's steps as the app's bar does, ES below 1600px (18 October), where
+     the part's word stood from 1440px alone until then (17 October, later) */
+  .ds-panel .settings-nav { display: inline-flex; padding-right: var(--sp-7); }
+  .ds-panel .th-tabs { max-width: 22em; }
+  /* the marks, four to a row, each at its sizes over its name, a part's at 16, 18 and 20 drawn for those pixels */
+  .ds-marks { display: grid; grid-template-columns: repeat(auto-fill, minmax(7.5em, 1fr)); gap: var(--sp-6); margin: 0 0 var(--sp-8); }
+  .ds-mark { display: flex; flex-direction: column; gap: var(--sp-3); }
+  .ds-mark-sizes { display: flex; align-items: flex-end; gap: var(--sp-5); color: var(--ink); }
+  .ds-mark .mark.s16 { width: 16px; height: 16px; }
+  .ds-mark .mark.s18 { width: 18px; height: 18px; }
+  .ds-mark .mark.s24 { width: 24px; height: 24px; }
+  .ds-mark-name { font-size: var(--fs-small); color: var(--ink-soft); }
+  .ds-panel .wordmark { margin: 0 0 var(--sp-4); }
+  /* the minimap stands at the column's bottom right on the statements screen, and here in the flow, shown
+     and hidden side by side */
+  .ds-panel .ds-minimap { display: inline-flex; position: relative; right: auto; bottom: auto; vertical-align: bottom;
+    margin: var(--sp-3) var(--sp-6) 0 0; }
+  /* and the board's map, which stands over the zoom bar on PETs and GETs, here in the flow at its own size (18 October) */
+  .ds-panel .ds-boardmap { position: relative; right: auto; bottom: auto; width: min(300px, 100%); margin: var(--sp-3) 0 0; }
+  /* the guidance's sheet, open and standing in the panel rather than over the screen */
+  .ds-panel .ds-sheet { position: relative; top: auto; right: auto; bottom: auto; z-index: auto; width: min(340px, 100%);
+    max-height: none; transform: none; visibility: visible; box-shadow: var(--lift); }
+  /* Search's card, standing in the panel rather than under the bar (17 October) */
+  .ds-panel .ds-search { position: relative; top: auto; left: auto; right: auto; z-index: auto; margin: 0; box-shadow: var(--lift); }
+  /* the statements screen's headings and a passage's row in the book's order, the places #work gives them in the
+     app, and the current passage's card at the width of its column (17 October) */
+  .ds-panel .ds-cols { --es-col: 1; --tx-col: 2; --en-col: 3; --col-gap: var(--sp-8);
+    --cols: minmax(0, 3fr) minmax(0, 5fr) minmax(0, 3fr); }
+  .ds-panel .ds-cols .turn:hover { background: none; }
+  .ds-panel .ds-card { max-width: 22em; }
+</style>
+</head>
+<body>
+<header class="ds-head">
+  <div class="wordmark"><svg class="lockup" viewBox="0 0 107.33 15" role="img" aria-label="Idiograph" fill="none"><use href="/marks.svg#idiograph" width="15" height="15"/><path transform="translate(19.2 12.5)" stroke="currentColor" stroke-width="1.3" stroke-linecap="square" stroke-linejoin="miter" d="M0.65 -9.35V-0.65M5.35 -0.65V-9.35H8.3A4.35 4.35 0 0 1 8.3 -0.65ZM16.95 -9.35V-0.65M21.65 -5a4.35 4.35 0 1 0 8.7 0a4.35 4.35 0 1 0 -8.7 0M41.93 -7.91A4.35 4.35 0 1 0 43.05 -5H39.5M47.35 -0.65V-9.35H50.9A2.17 2.17 0 0 1 50.9 -5H47.35M50.7 -5L54.3 -0.65M58.15 -0.65L62.1 -9.35L66.05 -0.65M59.8 -3.4H64.4M70.15 -0.65V-9.35H73.5A2.38 2.38 0 0 1 73.5 -4.6H70.15M80.18 -9.35V-0.65M87.47 -9.35V-0.65M80.18 -5H87.47"/></svg></div>
+  <p class="lede">The design system: every component once, in light and in dark, from the app's own stylesheets.
+    docs/design.md says what each is for.</p>
+</header>
+<main class="ds-panels">
+  <section class="ds-panel" data-theme="light" aria-label="Light"><h2 class="ds-theme">Light</h2><div class="ds-body"></div></section>
+  <section class="ds-panel" data-theme="dark" aria-label="Dark"><h2 class="ds-theme">Dark</h2><div class="ds-body"></div></section>
+</main>
+
+<template id="ds-components">
+  <section class="ds-sec">
+    <h3 class="section-label">Colours</h3>
+    <p class="ds-note">Each token, its value in this theme, and its contrast on paper, card and sunk paper.</p>
+    <div class="ds-swatches">
+      <div class="ds-swatch" data-token="--paper"><span class="ds-chip"></span><code>--paper</code><span class="ds-what">The page</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--paper-sunk"><span class="ds-chip"></span><code>--paper-sunk</code><span class="ds-what">Sidebars and wells</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--card"><span class="ds-chip"></span><code>--card</code><span class="ds-what">Cards and fields</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--ink"><span class="ds-chip"></span><code>--ink</code><span class="ds-what">Words</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--ink-soft"><span class="ds-chip"></span><code>--ink-soft</code><span class="ds-what">Quieter words</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--ink-faint"><span class="ds-chip"></span><code>--ink-faint</code><span class="ds-what">Small print</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--rule"><span class="ds-chip"></span><code>--rule</code><span class="ds-what">Lines</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--rule-firm"><span class="ds-chip"></span><code>--rule-firm</code><span class="ds-what">Borders</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--crux"><span class="ds-chip"></span><code>--crux</code><span class="ds-what">A crux, a quote, the one filled button</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--crux-wash"><span class="ds-chip"></span><code>--crux-wash</code><span class="ds-what">A crux's wash, a quote's, the focus ring</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--mark-dot"><span class="ds-chip"></span><code>--mark-dot</code><span class="ds-what">The dot of Idiograph's mark</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--accent"><span class="ds-chip"></span><code>--accent</code><span class="ds-what">The playhead, a quote being built</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--good"><span class="ds-chip"></span><code>--good</code><span class="ds-what">Supports, Include, saved, decided</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--amber"><span class="ds-chip"></span><code>--amber</code><span class="ds-what">Question, Maybe, a warning</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--danger"><span class="ds-chip"></span><code>--danger</code><span class="ds-what">Doesn't support, Exclude, Remove</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--find-wash"><span class="ds-chip"></span><code>--find-wash</code><span class="ds-what">What the find or a search has found</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--find-on"><span class="ds-chip"></span><code>--find-on</code><span class="ds-what">The find's one in focus</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--excerpt"><span class="ds-chip"></span><code>--excerpt</code><span class="ds-what">A key excerpt</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--pdf"><span class="ds-chip"></span><code>--pdf</code><span class="ds-what">A PDF</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--part-sift"><span class="ds-chip"></span><code>--part-sift</code><span class="ds-what">Sift's mark and tab</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--part-distil"><span class="ds-chip"></span><code>--part-distil</code><span class="ds-what">Idiograph's mark and tab rule</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--part-trace"><span class="ds-chip"></span><code>--part-trace</code><span class="ds-what">Trace's mark and tab</span><span class="ds-val"></span></div>
+    </div>
+    <p class="ds-note">The cases' colours on the GETs board, a participant each, in case order, from themes.css.</p>
+    <div class="ds-swatches">
+      <div class="ds-swatch" data-token="--th-case0"><span class="ds-chip"></span><code>--th-case0</code><span class="ds-what">Blue</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case1"><span class="ds-chip"></span><code>--th-case1</code><span class="ds-what">Olive</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case2"><span class="ds-chip"></span><code>--th-case2</code><span class="ds-what">Plum</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case3"><span class="ds-chip"></span><code>--th-case3</code><span class="ds-what">Brown</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case4"><span class="ds-chip"></span><code>--th-case4</code><span class="ds-what">Indigo</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case5"><span class="ds-chip"></span><code>--th-case5</code><span class="ds-what">Teal</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case6"><span class="ds-chip"></span><code>--th-case6</code><span class="ds-what">Purple</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case7"><span class="ds-chip"></span><code>--th-case7</code><span class="ds-what">Slate</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case8"><span class="ds-chip"></span><code>--th-case8</code><span class="ds-what">Moss</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case9"><span class="ds-chip"></span><code>--th-case9</code><span class="ds-what">Spruce</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case10"><span class="ds-chip"></span><code>--th-case10</code><span class="ds-what">Violet</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case11"><span class="ds-chip"></span><code>--th-case11</code><span class="ds-what">Aubergine</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case12"><span class="ds-chip"></span><code>--th-case12</code><span class="ds-what">Pine</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case13"><span class="ds-chip"></span><code>--th-case13</code><span class="ds-what">Denim</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case14"><span class="ds-chip"></span><code>--th-case14</code><span class="ds-what">Khaki</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case15"><span class="ds-chip"></span><code>--th-case15</code><span class="ds-what">Mulberry</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case16"><span class="ds-chip"></span><code>--th-case16</code><span class="ds-what">Fern</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case17"><span class="ds-chip"></span><code>--th-case17</code><span class="ds-what">Periwinkle</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case18"><span class="ds-chip"></span><code>--th-case18</code><span class="ds-what">Umber</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case19"><span class="ds-chip"></span><code>--th-case19</code><span class="ds-what">Grape</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case20"><span class="ds-chip"></span><code>--th-case20</code><span class="ds-what">Ocean</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case21"><span class="ds-chip"></span><code>--th-case21</code><span class="ds-what">Amethyst</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case22"><span class="ds-chip"></span><code>--th-case22</code><span class="ds-what">Jade</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case23"><span class="ds-chip"></span><code>--th-case23</code><span class="ds-what">Navy</span><span class="ds-val"></span></div>
+      <div class="ds-swatch" data-token="--th-case24"><span class="ds-chip"></span><code>--th-case24</code><span class="ds-what">Fig</span><span class="ds-val"></span></div>
+    </div>
+  </section>
+
+  <section class="ds-sec">
+    <h3 class="section-label">Marks</h3>
+    <p class="ds-note">Idiograph's mark at 16, 20 and 24, each part's at 16, 18 and 20 as Settings, the title bars and the home screen draw it, then 24, a part's in its own colour, then the lockup.</p>
+    <div class="ds-marks">
+      <div class="ds-mark"><span class="ds-mark-sizes"><svg class="mark s16" aria-hidden="true" focusable="false"><use href="/marks.svg#idiograph"/></svg><svg class="mark" aria-hidden="true" focusable="false"><use href="/marks.svg#idiograph"/></svg><svg class="mark s24" aria-hidden="true" focusable="false"><use href="/marks.svg#idiograph"/></svg></span><span class="ds-mark-name">Idiograph</span></div>
+      <div class="ds-mark"><span class="ds-mark-sizes"><svg class="mark part-sift s16" aria-hidden="true" focusable="false"><use href="/marks.svg#sift-16"/></svg><svg class="mark part-sift s18" aria-hidden="true" focusable="false"><use href="/marks.svg#sift-18"/></svg><svg class="mark part-sift" aria-hidden="true" focusable="false"><use href="/marks.svg#sift-20"/></svg><svg class="mark part-sift s24" aria-hidden="true" focusable="false"><use href="/marks.svg#sift"/></svg></span><span class="ds-mark-name">Sift</span></div>
+      <div class="ds-mark"><span class="ds-mark-sizes"><svg class="mark part-distil s16" aria-hidden="true" focusable="false"><use href="/marks.svg#idiograph-16"/></svg><svg class="mark part-distil s18" aria-hidden="true" focusable="false"><use href="/marks.svg#idiograph-18"/></svg><svg class="mark part-distil" aria-hidden="true" focusable="false"><use href="/marks.svg#idiograph-20"/></svg><svg class="mark part-distil s24" aria-hidden="true" focusable="false"><use href="/marks.svg#idiograph"/></svg></span><span class="ds-mark-name">Idiograph</span></div>
+      <div class="ds-mark"><span class="ds-mark-sizes"><svg class="mark part-trace s16" aria-hidden="true" focusable="false"><use href="/marks.svg#trace-16"/></svg><svg class="mark part-trace s18" aria-hidden="true" focusable="false"><use href="/marks.svg#trace-18"/></svg><svg class="mark part-trace" aria-hidden="true" focusable="false"><use href="/marks.svg#trace-20"/></svg><svg class="mark part-trace s24" aria-hidden="true" focusable="false"><use href="/marks.svg#trace"/></svg></span><span class="ds-mark-name">Trace</span></div>
+    </div>
+    <div class="wordmark"><svg class="lockup" viewBox="0 0 107.33 15" role="img" aria-label="Idiograph" fill="none"><use href="/marks.svg#idiograph" width="15" height="15"/><path transform="translate(19.2 12.5)" stroke="currentColor" stroke-width="1.3" stroke-linecap="square" stroke-linejoin="miter" d="M0.65 -9.35V-0.65M5.35 -0.65V-9.35H8.3A4.35 4.35 0 0 1 8.3 -0.65ZM16.95 -9.35V-0.65M21.65 -5a4.35 4.35 0 1 0 8.7 0a4.35 4.35 0 1 0 -8.7 0M41.93 -7.91A4.35 4.35 0 1 0 43.05 -5H39.5M47.35 -0.65V-9.35H50.9A2.17 2.17 0 0 1 50.9 -5H47.35M50.7 -5L54.3 -0.65M58.15 -0.65L62.1 -9.35L66.05 -0.65M59.8 -3.4H64.4M70.15 -0.65V-9.35H73.5A2.38 2.38 0 0 1 73.5 -4.6H70.15M80.18 -9.35V-0.65M87.47 -9.35V-0.65M80.18 -5H87.47"/></svg></div>
+  </section>
+
+  <section class="ds-sec">
+    <h3 class="section-label">Type</h3>
+    <p class="ds-type" data-size="--fs-label"><span class="ds-type-sample">Seed library</span><code>--fs-label</code><span class="ds-val"></span></p>
+    <p class="ds-type" data-size="--fs-small"><span class="ds-type-sample">Seed library</span><code>--fs-small</code><span class="ds-val"></span></p>
+    <p class="ds-type" data-size="--fs-ui"><span class="ds-type-sample">Seed library</span><code>--fs-ui</code><span class="ds-val"></span></p>
+    <p class="ds-type" data-size="--fs-body"><span class="ds-type-sample">Seed library</span><code>--fs-body</code><span class="ds-val"></span></p>
+    <p class="ds-type" data-size="--fs-read"><span class="ds-type-sample">Seed library</span><code>--fs-read</code><span class="ds-val"></span></p>
+    <p class="ds-type" data-size="--fs-field"><span class="ds-type-sample">Seed library</span><code>--fs-field</code><span class="ds-val"></span></p>
+    <p class="ds-type" data-size="--fs-name"><span class="ds-type-sample">Seed library</span><code>--fs-name</code><span class="ds-val"></span></p>
+    <p class="ds-type" data-size="--fs-title"><span class="ds-type-sample">Seed library</span><code>--fs-title</code><span class="ds-val"></span></p>
+    <p class="ds-type" data-size="--fs-lede"><span class="ds-type-sample">Seed library</span><code>--fs-lede</code><span class="ds-val"></span></p>
+    <h3 class="section-label">A section label</h3>
+    <p class="ds-row"><span class="field-label">A field label</span> <span class="dim">Faint words</span></p>
+    <p class="fineprint">Fine print, the faint ink at its smallest common size.</p>
+    <p class="warn">The folder could not be read.</p>
+    <p class="ds-row"><button type="button" class="ghost small">Check</button> <span class="fineprint said-failed">Seed Index did not answer (HTTP 503).</span></p>
+  </section>
+
+  <section class="ds-sec">
+    <h3 class="section-label">Buttons</h3>
+    <div class="ds-row">
+      <button type="button" class="primary">Done</button>
+      <button type="button" class="primary" disabled>Done</button>
+      <button type="button" class="ghost">Open project folder</button>
+      <button type="button" class="ghost small">Add</button>
+      <button type="button" class="ghost small btn-remove">Remove</button>
+      <button type="button" class="quiet">Add transcripts</button>
+    </div>
+    <p class="ds-note">The sparkles mark an AI control and nothing else, shown here with the AI switch on.</p>
+    <div class="ds-row">
+      <button type="button" class="ghost small" data-ai><svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.2c.95 4.2 2.65 5.9 6.85 6.85-4.2.95-5.9 2.65-6.85 6.85-.95-4.2-2.65-5.9-6.85-6.85C9.35 9.1 11.05 7.4 12 3.2Z"/><path d="M18.4 14.6c.42 1.85 1.17 2.6 3.02 3.02-1.85.42-2.6 1.17-3.02 3.02-.42-1.85-1.17-2.6-3.02-3.02 1.85-.42 2.6-1.17 3.02-3.02Z"/></svg>AI suggest</button>
+    </div>
+    <div class="sf-acts" role="group" aria-label="Decision">
+      <button type="button" class="sf-act sf-accept" aria-pressed="true"><span class="sf-act-word">Yes</span> <span class="mono sf-act-key">Y</span></button>
+      <button type="button" class="sf-act sf-maybe" aria-pressed="false"><span class="sf-act-word">Maybe</span> <span class="mono sf-act-key">M</span></button>
+      <button type="button" class="sf-act sf-reject" aria-pressed="false"><span class="sf-act-word">No</span> <span class="mono sf-act-key">N</span></button>
+    </div>
+  </section>
+
+  <section class="ds-sec">
+    <h3 class="section-label">Tags, pills and badges</h3>
+    <div class="ds-row">
+      <span class="tag">raw</span>
+      <span class="tag raw">raw</span>
+      <span class="tag locked">locked</span>
+      <span class="tag demo">demo</span>
+    </div>
+    <div class="ds-row">
+      <span class="sf-pill" data-decision="include">Yes</span>
+      <span class="sf-pill" data-decision="maybe">Maybe</span>
+      <span class="sf-pill" data-decision="exclude">No</span>
+      <span class="sf-pill" data-decision="">To screen</span>
+      <span class="sf-pill sf-pdfpill">PDF</span>
+    </div>
+    <div class="ds-row">
+      <span class="gt-badge case-0" aria-hidden="true">J</span>
+      <span class="gt-badge case-1" aria-hidden="true">Ma</span>
+      <span class="gt-badge case-2" aria-hidden="true">Mo</span>
+      <button type="button" class="gt-swatch case-5" aria-label="Juno's colour, Teal" title="Colour: Teal">J</button>
+    </div>
+  </section>
+
+  <section class="ds-sec">
+    <h3 class="section-label">Cards, rows and a dialog</h3>
+    <ul class="home-cards">
+      <li class="home-card-li"><button type="button" class="home-card"><span class="hc-head"><span class="hc-name">Seed library</span><span class="tag demo">demo</span></span><span class="hc-question">How do volunteers experience running a seed library?</span><span class="pc-line hc-line">3 cases · 43 of 78 passages</span></button></li>
+    </ul>
+    <ul class="home-cards sf-rows">
+      <li class="sf-row home-card-li"><button type="button" class="sf-row-open home-card"><span class="pc-label hc-name">Seed library screening</span><span class="pc-line">3 of 6 records decided</span></button></li>
+    </ul>
+    <div class="card" role="dialog" aria-label="Set columns">
+      <button class="card-close" type="button" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+      <p class="kicker">Sift</p>
+      <h2>Set columns</h2>
+      <p class="fineprint">A card that applies its changes as you go ends with Done at its foot right.</p>
+      <div class="card-actions card-done"><button class="primary" type="button">Done</button></div>
+    </div>
+  </section>
+
+  <section class="ds-sec">
+    <h3 class="section-label">A menu and a toast</h3>
+    <div class="ds-row">
+      <div class="row-menu">
+        <button type="button" class="ghost">Table</button>
+        <button type="button" class="ghost">Canvas</button>
+        <div class="row-menu-rule" role="separator"></div>
+        <button type="button" class="ghost">Word</button>
+      </div>
+    </div>
+    <div class="toast" role="status">Saved.</div>
+  </section>
+
+  <section class="ds-sec">
+    <h3 class="section-label">Tabs</h3>
+    <div class="ds-row">
+      <div class="settings-nav"><button type="button" class="on">General</button><button type="button">Experiential statements</button><button type="button">PETs</button><button type="button">GETs</button><button type="button">AI features</button></div>
+    </div>
+    <div class="ds-row">
+      <div class="settings-nav"><button type="button">General</button><button type="button" class="on">Experiential statements</button><button type="button">PETs</button><button type="button">GETs</button><button type="button">AI features</button></div>
+    </div>
+    <div class="th-tabs" role="tablist" aria-label="Inspector">
+      <button type="button" class="th-tab on" role="tab" aria-selected="true">Inspector</button>
+      <button type="button" class="th-tab" role="tab" aria-selected="false">Guidance</button>
+      <button type="button" class="th-tab" role="tab" aria-selected="false">History</button>
+    </div>
+    <div class="ds-row"></div>
+    <nav class="sf-steps" aria-label="Steps"><button type="button" aria-current="step">Screen by title and abstract <span class="sf-step-c">6</span></button><span class="sf-step-sep" aria-hidden="true">&#8250;</span><button type="button">Screen by full text <span class="sf-step-c">2</span></button><span class="sf-step-sep" aria-hidden="true">&#8250;</span><button type="button" aria-disabled="true">Extract and appraise</button></nav>
+  </section>
+
+  <section class="ds-sec">
+    <h3 class="section-label">Title bars</h3>
+    <div class="rail"><button class="rail-btn" type="button" title="Back">&#8592;</button><svg class="mark part-sift" aria-hidden="true" focusable="false"><use href="/marks.svg#sift-18"/></svg><span class="rail-case">Seed library screening</span><span class="rail-grow"></span><button class="rail-btn bar-tool" type="button" title="Shortcuts">?<span class="bar-word" aria-hidden="true">Shortcuts</span></button></div>
+    <div class="rail"><button class="rail-btn" type="button" title="Back">&#8592;</button><svg class="mark part-distil" aria-hidden="true" focusable="false"><use href="/marks.svg#distil-18"/></svg><span class="rail-case">Seed library</span><nav class="sf-steps ds-steps" aria-label="Steps"><button type="button" data-step="statements" aria-current="step" aria-label="Experiential statements" title="Experiential statements"><span class="ds-long">Experiential statements</span><span class="ds-short" aria-hidden="true">ES</span></button><span class="sf-step-sep" aria-hidden="true">&#8250;</span><button type="button" data-step="pets">PETs</button><span class="sf-step-sep" aria-hidden="true">&#8250;</span><button type="button" data-step="gets">GETs</button></nav><span class="rail-grow"></span><button class="rail-btn bar-tool" type="button" title="Shortcuts">?<span class="bar-word" aria-hidden="true">Shortcuts</span></button></div>
+    <div class="rail"><button class="rail-btn" type="button" title="Back">&#8592;</button><svg class="mark part-trace" aria-hidden="true" focusable="false"><use href="/marks.svg#trace-18"/></svg><span class="rail-case">Seed library protocol</span><span class="rail-grow"></span><button class="rail-btn bar-tool" type="button" title="Shortcuts">?<span class="bar-word" aria-hidden="true">Shortcuts</span></button></div>
+  </section>
+
+  <section class="ds-sec">
+    <h3 class="section-label">Ticks and fields</h3>
+    <div class="switches">
+      <label><input type="checkbox" checked> AI features</label>
+      <label><input type="checkbox"> Allow AI agents to read this project</label>
+      <label><input type="radio" name="ds-labels" checked> A B C</label>
+      <label><input type="radio" name="ds-labels"> 1 2 3</label>
+    </div>
+    <div class="setting"><label>Project name</label><input type="text" value="Seed library" aria-label="Project name" spellcheck="false"></div>
+    <input type="text" class="find-input" placeholder="Find" aria-label="Find" spellcheck="false">
+  </section>
+
+  <section class="ds-sec">
+    <h3 class="section-label">Minimap</h3>
+    <p class="ds-note">The card at the bottom right of the statements screen's transcript, shown and hidden: one card of one size whatever the interview's length, holding the map alone, the transcript as one narrow column, a block for each of her passages or a few joined, the interviewer's turns a thin mark between them, the done track with its green beside each passage done, the box over the part in view in a solid line of the ink with the rest of the column dimmed (18 October), and the time at the right like a jug's dashes, its map button a small card of its own outside it in the corner, alone while the map does not show.</p>
+    <div class="minimap ds-minimap"><div class="minimap-card"><div class="minimap-area" aria-hidden="true"><div class="minimap-map"><i class="mm-track"></i><i class="mm-done" style="top:2.1px;height:140.68px"></i><i class="mm-block" style="top:2.1px;height:20.33px"></i><i class="mm-block" style="top:24.53px;height:7.7px"></i><i class="mm-block" style="top:34.33px;height:6.63px"></i><i class="mm-block" style="top:43.05px;height:14.06px"></i><i class="mm-block" style="top:59.21px;height:11.19px"></i><i class="mm-block" style="top:72.5px;height:8.33px"></i><i class="mm-block" style="top:82.93px;height:14.33px"></i><i class="mm-block" style="top:99.36px;height:14.42px"></i><i class="mm-block" style="top:115.87px;height:11.37px"></i><i class="mm-block" style="top:129.34px;height:13.43px"></i><i class="mm-block" style="top:144.88px;height:12.71px"></i><i class="mm-block" style="top:159.69px;height:15.31px"></i><i class="mm-block" style="top:177.1px;height:7.07px"></i><i class="mm-block" style="top:186.28px;height:8.95px"></i><i class="mm-block" style="top:197.33px;height:13.7px"></i><i class="mm-block" style="top:213.13px;height:13.61px"></i><i class="mm-block" style="top:228.84px;height:17.73px"></i><i class="mm-block" style="top:248.67px;height:10.3px"></i><i class="mm-block" style="top:261.07px;height:16.83px"></i><i class="mm-ask" style="top:0.6px"></i><i class="mm-ask" style="top:23.03px"></i><i class="mm-ask" style="top:32.83px"></i><i class="mm-ask" style="top:41.55px"></i><i class="mm-ask" style="top:57.71px"></i><i class="mm-ask" style="top:71px"></i><i class="mm-ask" style="top:81.43px"></i><i class="mm-ask" style="top:97.86px"></i><i class="mm-ask" style="top:114.37px"></i><i class="mm-ask" style="top:127.84px"></i><i class="mm-ask" style="top:143.38px"></i><i class="mm-ask" style="top:158.19px"></i><i class="mm-ask" style="top:175.6px"></i><i class="mm-ask" style="top:184.78px"></i><i class="mm-ask" style="top:195.83px"></i><i class="mm-ask" style="top:211.63px"></i><i class="mm-ask" style="top:227.34px"></i><i class="mm-ask" style="top:247.17px"></i><i class="mm-ask" style="top:259.57px"></i><i class="mm-ask" style="top:278.5px"></i><i class="mm-dash" style="top:1.1px"></i><span class="mm-time" style="top:1.1px">00:00</span><i class="mm-dash" style="top:67.57px"></i><span class="mm-time" style="top:67.57px">05:00</span><i class="mm-dash" style="top:136.13px"></i><span class="mm-time" style="top:136.13px">10:00</span><i class="mm-dash" style="top:204.85px"></i><span class="mm-time" style="top:204.85px">15:00</span><i class="mm-dash" style="top:271.35px"></i><span class="mm-time" style="top:271.35px">20:00</span></div><div class="minimap-views"><i class="minimap-view" style="top:96px;height:31px"></i></div></div></div><button class="minimap-btn" type="button" title="Minimap (M)" aria-label="Minimap" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3.5 6.5 9 4.5l6 2 5.5-2v13l-5.5 2-6-2-5.5 2Z"/><path d="M9 4.5v13M15 6.5v13"/></svg></button></div>
+    <div class="minimap ds-minimap shut"><button class="minimap-btn" type="button" title="Minimap (M)" aria-label="Minimap" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3.5 6.5 9 4.5l6 2 5.5-2v13l-5.5 2-6-2-5.5 2Z"/><path d="M9 4.5v13M15 6.5v13"/></svg></button></div>
+      <p class="ds-note">The board's map on PETs and GETs (18 October), over the zoom bar at the canvas's bottom right and here in the flow: the board fitted to every card on it, each card a small rectangle in its PET's tint, on GETs in its participant's colour, every frame an outline in its tint, a sticky note on its paper, and the part in view a light wash of the ink with a quiet edge.</p>
+    <div class="th-ui th-map ds-boardmap" aria-hidden="true"><div class="th-map-area"><div class="th-map-items"><i class="tm-frame hue-0" style="left:10px;top:12px;width:84px;height:46px"></i><i class="tm-frame hue-1" style="left:104px;top:12px;width:92px;height:62px"></i><i class="tm-frame hue-1 step-1" style="left:110px;top:36px;width:48px;height:32px"></i><i class="tm-frame hue-2" style="left:206px;top:12px;width:76px;height:46px"></i><i class="tm-frame hue-3" style="left:10px;top:72px;width:84px;height:34px"></i><i class="tm-sticky sticky-yellow" style="left:236px;top:84px;width:16px;height:5px"></i><i class="tm-card in hue-0" style="left:14px;top:22px;width:20px;height:8px"></i><i class="tm-card in hue-0" style="left:14px;top:34px;width:20px;height:8px"></i><i class="tm-card in hue-0" style="left:37px;top:22px;width:20px;height:8px"></i><i class="tm-card in hue-0" style="left:37px;top:34px;width:20px;height:8px"></i><i class="tm-card in hue-0" style="left:60px;top:22px;width:20px;height:8px"></i><i class="tm-card in hue-0" style="left:60px;top:34px;width:20px;height:8px"></i><i class="tm-card in hue-1" style="left:108px;top:22px;width:20px;height:8px"></i><i class="tm-card in hue-1" style="left:131px;top:22px;width:20px;height:8px"></i><i class="tm-card in hue-1" style="left:160px;top:22px;width:20px;height:8px"></i><i class="tm-card in hue-1" style="left:114px;top:48px;width:20px;height:8px"></i><i class="tm-card in hue-1" style="left:136px;top:48px;width:20px;height:8px"></i><i class="tm-card in hue-2" style="left:210px;top:22px;width:20px;height:8px"></i><i class="tm-card in hue-2" style="left:210px;top:34px;width:20px;height:8px"></i><i class="tm-card in hue-2" style="left:233px;top:22px;width:20px;height:8px"></i><i class="tm-card in hue-2" style="left:233px;top:34px;width:20px;height:8px"></i><i class="tm-card in hue-2" style="left:256px;top:22px;width:20px;height:8px"></i><i class="tm-card in hue-2" style="left:256px;top:34px;width:20px;height:8px"></i><i class="tm-card in hue-3" style="left:14px;top:84px;width:20px;height:8px"></i><i class="tm-card in hue-3" style="left:37px;top:84px;width:20px;height:8px"></i><i class="tm-card in hue-3" style="left:60px;top:84px;width:20px;height:8px"></i><i class="tm-card" style="left:120px;top:112px;width:20px;height:8px"></i><i class="tm-card" style="left:143px;top:112px;width:20px;height:8px"></i><i class="tm-card" style="left:166px;top:112px;width:20px;height:8px"></i><i class="tm-card" style="left:189px;top:112px;width:20px;height:8px"></i><i class="tm-card" style="left:212px;top:112px;width:20px;height:8px"></i></div><i class="th-map-view" style="left:98px;top:6px;width:118px;height:74px"></i></div></div>
+    <div class="th-ui th-map ds-boardmap" aria-hidden="true"><div class="th-map-area"><div class="th-map-items"><i class="tm-frame hue-0" style="left:10px;top:12px;width:84px;height:46px"></i><i class="tm-frame hue-1" style="left:104px;top:12px;width:92px;height:62px"></i><i class="tm-frame hue-1 step-1" style="left:110px;top:36px;width:48px;height:32px"></i><i class="tm-frame hue-2" style="left:206px;top:12px;width:76px;height:46px"></i><i class="tm-frame hue-3" style="left:10px;top:72px;width:84px;height:34px"></i><i class="tm-sticky sticky-yellow" style="left:236px;top:84px;width:16px;height:5px"></i><i class="tm-card tm-case case-0" style="left:14px;top:22px;width:20px;height:8px"></i><i class="tm-card tm-case case-4" style="left:14px;top:34px;width:20px;height:8px"></i><i class="tm-card tm-case case-1" style="left:37px;top:22px;width:20px;height:8px"></i><i class="tm-card tm-case case-5" style="left:37px;top:34px;width:20px;height:8px"></i><i class="tm-card tm-case case-2" style="left:60px;top:22px;width:20px;height:8px"></i><i class="tm-card tm-case case-6" style="left:60px;top:34px;width:20px;height:8px"></i><i class="tm-card tm-case case-0" style="left:108px;top:22px;width:20px;height:8px"></i><i class="tm-card tm-case case-4" style="left:131px;top:22px;width:20px;height:8px"></i><i class="tm-card tm-case case-1" style="left:160px;top:22px;width:20px;height:8px"></i><i class="tm-card tm-case case-5" style="left:114px;top:48px;width:20px;height:8px"></i><i class="tm-card tm-case case-2" style="left:136px;top:48px;width:20px;height:8px"></i><i class="tm-card tm-case case-6" style="left:210px;top:22px;width:20px;height:8px"></i><i class="tm-card tm-case case-0" style="left:210px;top:34px;width:20px;height:8px"></i><i class="tm-card tm-case case-4" style="left:233px;top:22px;width:20px;height:8px"></i><i class="tm-card tm-case case-1" style="left:233px;top:34px;width:20px;height:8px"></i><i class="tm-card tm-case case-5" style="left:256px;top:22px;width:20px;height:8px"></i><i class="tm-card tm-case case-2" style="left:256px;top:34px;width:20px;height:8px"></i><i class="tm-card tm-case case-6" style="left:14px;top:84px;width:20px;height:8px"></i><i class="tm-card tm-case case-0" style="left:37px;top:84px;width:20px;height:8px"></i><i class="tm-card tm-case case-4" style="left:60px;top:84px;width:20px;height:8px"></i><i class="tm-card tm-case case-1" style="left:120px;top:112px;width:20px;height:8px"></i><i class="tm-card tm-case case-5" style="left:143px;top:112px;width:20px;height:8px"></i><i class="tm-card tm-case case-2" style="left:166px;top:112px;width:20px;height:8px"></i><i class="tm-card tm-case case-6" style="left:189px;top:112px;width:20px;height:8px"></i><i class="tm-card tm-case case-0" style="left:212px;top:112px;width:20px;height:8px"></i></div><i class="th-map-view" style="left:4px;top:60px;width:132px;height:70px"></i></div></div>
+  </section>
+
+  <section class="ds-sec">
+    <h3 class="section-label">Sheet</h3>
+    <p class="ds-note">The statements screen's guidance: over the right of the screen from the bar's Guidance tool, closed by default, its close button, Esc and a click outside it closing it.</p>
+    <aside class="guide open ds-sheet" aria-label="Guidance">
+      <button class="card-close guide-close" type="button" aria-label="Close" title="Close (Esc)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+      <h2 class="rail-title">Experiential statement guidance</h2>
+      <h2 class="section-label">Holding the craft</h2>
+      <ol class="rules"><li>Experience, not event.</li><li>One idea each.</li></ol>
+    </aside>
+  </section>
+
+  <section class="ds-sec">
+    <h3 class="section-label">Columns</h3>
+    <p class="ds-note">The statements screen in the book's three columns: each heading its grip and its name, Columns at their right, a passage's statements read-only beside its words and its notes after them, and the current passage's card, each pair numbered beside its statement, its bin at the pair's top right since 18 October, its Quote label alone on its line, and at its foot Add another and the one filled button. Columns' menu shows or hides the statements and the notes and stacks the notes under the statements.</p>
+    <div class="ds-cols cols-tight">
+      <div class="cols-head" role="group" aria-label="Columns">
+        <div class="col-head" data-col="statements"><button type="button" class="pc-grip" aria-label="Move Experiential statements, Alt and an arrow" title="Drag to move"><svg viewBox="0 0 12 18" aria-hidden="true" focusable="false"><circle cx="3" cy="3" r="1.4"/><circle cx="9" cy="3" r="1.4"/><circle cx="3" cy="9" r="1.4"/><circle cx="9" cy="9" r="1.4"/><circle cx="3" cy="15" r="1.4"/><circle cx="9" cy="15" r="1.4"/></svg></button><span class="field-label col-name">Experiential statements</span></div>
+        <div class="col-head" data-col="transcript"><button type="button" class="pc-grip" aria-label="Move Transcript, Alt and an arrow" title="Drag to move"><svg viewBox="0 0 12 18" aria-hidden="true" focusable="false"><circle cx="3" cy="3" r="1.4"/><circle cx="9" cy="3" r="1.4"/><circle cx="3" cy="9" r="1.4"/><circle cx="9" cy="9" r="1.4"/><circle cx="3" cy="15" r="1.4"/><circle cx="9" cy="15" r="1.4"/></svg></button><span class="field-label col-name">Transcript</span></div>
+        <div class="col-head col-last" data-col="notes" style="--pick-w: 40px"><button type="button" class="pc-grip" aria-label="Move Exploratory notes, Alt and an arrow" title="Drag to move"><svg viewBox="0 0 12 18" aria-hidden="true" focusable="false"><circle cx="3" cy="3" r="1.4"/><circle cx="9" cy="3" r="1.4"/><circle cx="3" cy="9" r="1.4"/><circle cx="9" cy="9" r="1.4"/><circle cx="3" cy="15" r="1.4"/><circle cx="9" cy="15" r="1.4"/></svg></button><span class="field-label col-name">Exploratory notes</span></div>
+        <button type="button" class="cols-pick" aria-label="Columns" aria-haspopup="true" aria-expanded="false" title="Columns: statements, transcript, notes"><span class="cols-pick-word">Columns</span><svg class="cols-pick-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 4.6 6 7.6l3-3"/></svg></button>
+      </div>
+      <article class="turn">
+        <div class="turn-gutter stop"><span class="speaker">Wren</span><span class="gutter-time"><span class="mono time">03:12</span></span></div>
+        <div class="turn-text">The hive <span class="kq" data-kq="1" data-es-colour="1" title="Experiential statement 2">goes quiet in the cold</span>, and I just <span class="kq" data-kq="0" data-es-colour="0" title="Experiential statement 1">have to trust they are alive</span> in there.</div>
+        <div class="turn-es"><ol class="es-list"><li><button type="button" tabindex="-1" class="es-go" title="Go to this statement"><span class="es-n" data-es-colour="0">1</span><span class="es-words">Trusting what she cannot see in the winter hive</span></button></li><li><button type="button" tabindex="-1" class="es-go" title="Go to this statement"><span class="es-n" data-es-colour="1">2</span><span class="es-words">The winter silence of the hive</span></button></li></ol></div>
+        <div class="turn-notes"><div class="turn-notes-text">"have to trust", waiting as a kind of faith.</div></div>
+      </article>
+    </div>
+    <div class="es-card ds-card">
+      <div class="pairs"><div class="pair" data-es-colour="0"><label class="pair-num">1</label><div class="pair-body"><textarea class="pair-es" rows="2" aria-label="Experiential statement 1" placeholder="What are they noticing, doing, feeling here?"></textarea><div class="pair-qhead"><span class="field-label pair-qlabel">Quote</span></div><textarea class="pair-kq" rows="1" aria-label="Quote">"have to trust they are alive"</textarea><button type="button" class="pair-remove" title="Remove this statement" aria-label="Remove this statement"><svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 6.5h16M9.5 6.5V4.2h5v2.3M6.2 6.5l.9 13.3h9.8l.9-13.3M10 10.5v6M14 10.5v6"/></svg></button></div></div></div>
+      <div class="es-foot"><button class="ghost small" type="button"><svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5.5v13M5.5 12h13"/></svg>Add another</button><button class="primary" type="button" style="margin-left: auto"><svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4.5 12.7 9.6 17.8 19.5 7"/></svg>Next</button></div>
+    </div>
+  </section>
+
+  <section class="ds-sec">
+    <h3 class="section-label">Search</h3>
+    <p class="ds-note">Search across the app: under the bar, a wash of the paper over the rest of the screen in the app, the field and Search in, the kinds found at the left under Kind, each ticking from its row, and the results at the right, the words found under the find's wash.</p>
+    <div class="search-card card ds-search" role="dialog" aria-label="Search">
+      <div class="search-head">
+        <input type="search" class="find-input search-input" value="seed swap" aria-label="Search" spellcheck="false">
+        <label class="search-in"><span class="search-in-word">Search in</span><select><option>This case</option><option>This project</option></select></label>
+      </div>
+      <div class="search-body">
+        <div class="search-side"><div class="search-filters">
+          <p class="section-label search-group">Kind</p>
+          <label class="search-tick on"><input type="checkbox" checked><span class="search-tick-word">Passages</span><span class="search-n">2</span></label>
+          <label class="search-tick"><input type="checkbox"><span class="search-tick-word">Statements</span><span class="search-n">1</span></label>
+          <label class="search-tick"><input type="checkbox"><span class="search-tick-word">PETs</span><span class="search-n">1</span></label>
+        </div></div>
+        <div class="search-results">
+          <ul class="search-list" role="listbox" aria-label="Results">
+            <li class="search-hit on" role="option" aria-selected="true"><span class="search-kind">Passage</span><span class="search-words">The first <mark class="search-mark">seed</mark> <mark class="search-mark">swap</mark> was in the church hall, and nobody came.</span><span class="search-at">Initial 04:12</span></li>
+            <li class="search-hit" role="option" aria-selected="false"><span class="search-kind">Passage</span><span class="search-words">Now the <mark class="search-mark">swap</mark> runs itself, the <mark class="search-mark">seed</mark> tins on the table.</span><span class="search-at">Initial 11:40</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="search-foot"><button type="button" class="quiet">Replace in the transcript</button></div>
+    </div>
+  </section>
+</template>
+
+<script src="/beat.js"></script>
+<script>
+/* Each panel takes its own copy of the components, the radio groups named apart, then each swatch its
+   colour, its value in the panel's theme and its contrast on paper, card and sunk paper, and each line
+   of the type scale its size. */
+(() => {
+  const hex = (v) => {
+    const m = /^#([0-9a-f]{6})([0-9a-f]{2})?$/i.exec(v.trim());
+    return m && !m[2] ? [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16) / 255) : null;
+  };
+  const lum = (rgb) => {
+    const l = rgb.map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2];
+  };
+  const ratio = (a, b) => {
+    const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+    return (hi + 0.05) / (lo + 0.05);
+  };
+  const tpl = document.getElementById('ds-components');
+  document.querySelectorAll('.ds-panel').forEach((panel, k) => {
+    const body = panel.querySelector('.ds-body');
+    body.appendChild(tpl.content.cloneNode(true));
+    body.querySelectorAll('input[type="radio"]').forEach((r) => { r.name = `${r.name}-${k}`; });
+    const look = getComputedStyle(panel);
+    const tok = (name) => look.getPropertyValue(name).trim();
+    const grounds = ['--paper', '--card', '--paper-sunk'].map((g) => hex(tok(g)));
+    body.querySelectorAll('.ds-swatch').forEach((s) => {
+      const name = s.dataset.token;
+      s.querySelector('.ds-chip').style.background = `var(${name})`;
+      const rgb = hex(tok(name));
+      const said = rgb && grounds.every(Boolean) ? ` · ${grounds.map((g) => ratio(rgb, g).toFixed(1)).join(' · ')}` : '';
+      s.querySelector('.ds-val').textContent = tok(name) + said;
+    });
+    body.querySelectorAll('.ds-type').forEach((p) => {
+      p.querySelector('.ds-type-sample').style.fontSize = `var(${p.dataset.size})`;
+      p.querySelector('.ds-val').textContent = tok(p.dataset.size);
+    });
+  });
+})();
+</script>
+</body>
+</html>

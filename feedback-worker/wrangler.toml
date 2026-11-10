@@ -1,0 +1,14 @@
+# Idiograph's feedback collector. README.md beside this file has the steps.
+name = "idiograph-feedback"
+main = "worker.js"
+compatibility_date = "2026-10-03"
+workers_dev = true
+
+# The D1 database the notes go into, made by `wrangler d1 create idiograph-feedback` on 3 October
+# 2026. The id is not a secret.
+[[d1_databases]]
+binding = "DB"
+database_name = "idiograph-feedback"
+database_id = "a861dcc8-6ce7-41a5-a0e2-dc91b62ec40d"
+
+# ADMIN_TOKEN and IP_SALT are secrets, set with `wrangler secret put`, and never written here.

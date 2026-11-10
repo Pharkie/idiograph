@@ -1,0 +1,13 @@
+#!/bin/sh
+# Idiograph's command line from source, macOS or Linux: the venv's python running cli.py, from
+# wherever it is called, so a relative --root reads from there. The venv is the one beside this
+# file, as a downloaded copy's first run makes it, and else the one two folders up, at the root of
+# the repo the folder sits in, as run.sh finds them. In the Mac app it is the app's executable with
+# cli first:
+#   /Applications/Idiograph.app/Contents/MacOS/Idiograph cli cases
+# See docs/agents.md.
+HERE="$(cd "$(dirname "$0")" && pwd)"
+PY="$HERE/.venv/bin/python3"
+[ -x "$PY" ] || PY="$HERE/../../.venv/bin/python3"
+[ -x "$PY" ] || PY="python3"
+exec "$PY" "$HERE/cli.py" "$@"

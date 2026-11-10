@@ -1,0 +1,21 @@
+{
+  "holds.gets_board": "the themes board {name}",
+  "holds.n.statements": {
+    "one": "{n} code",
+    "other": "{n} codes"
+  },
+  "holds.n.gets": {
+    "one": "{n} theme",
+    "other": "{n} themes"
+  },
+  "holds.would.take_head": "{who}'s changes come into every themes board, {boards}:",
+  "holds.would.take_kept": "Each themes board is kept first in its History, as \"Before {who}'s changes came in\", so Restore puts it back.",
+  "holds.would.trim_are": "{case}, {sheet}: {span} are cut, {count}, {marked} of them with a code, a note, an extract or a highlight.",
+  "holds.would.trim_is": "{case}, {sheet}: {span} is cut, {count}, {marked} of them with a code, a note, an extract or a highlight.",
+  "holds.would.card_off": "On {board}, the card {card} '{text}' comes off, its code removed.",
+  "holds.what.apply_gets": "take themes off {thing}",
+  "holds.what.take": "bring {who}'s changes into the themes, taking codes off them",
+  "holds.what.write": "write {case}, {sheet}, row {row}, taking a code off the boards",
+  "holds.thing.gets": "the themes",
+  "holds.done.take": "{who}'s changes are in the themes, each board keeping a revision first."
+}

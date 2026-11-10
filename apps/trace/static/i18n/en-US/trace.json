@@ -1,0 +1,6 @@
+{
+  "trace.col.judgement": "Judgment",
+  "trace.undo_tip": "Undo the last judgment or note, {ref}",
+  "trace.judgement": "Judgment",
+  "trace.keys.undo": "Undo the last judgment or note"
+}

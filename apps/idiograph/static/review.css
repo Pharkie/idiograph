@@ -1,0 +1,83 @@
+/* Working together's comments and review (wtreview, 8 November 2026, review.js), as wtshots 06, 08, 10 and 11
+   drew them. Nothing here shows while Working together is off. */
+
+/* Ask for review: the teammates' ticks, the line for them */
+.wt-card .wt-h { display: block; font-size: 13px; color: var(--ink-soft); margin: 16px 0 0; }
+.wt-card textarea { width: 100%; box-sizing: border-box; margin: 6px 0 0; padding: 8px 10px; font: inherit; font-size: 13.5px;
+  border: 1px solid var(--field-edge, var(--rule-firm)); border-radius: var(--r-control); background: var(--paper);
+  color: var(--ink); resize: vertical; }
+.wt-card .switches { margin-top: 8px; }
+
+/* the reviewer's tray: a row of the screen under the toolbar, right-aligned, taking its room from the columns and the
+   canvas through --band (review.js rvwTrayDraw), where the drawing's floating one stood over Columns and a grip */
+.wt-tray { position: relative; z-index: 2; flex: none; display: flex; align-items: center; justify-content: flex-end;
+  font-size: 13px; color: var(--ink-soft); white-space: nowrap; padding: 10px var(--gutter); background: var(--paper);
+  border-bottom: 1px solid var(--rule); }
+.wt-tray[hidden] { display: none; }
+.wt-tray-in { display: flex; align-items: center; gap: 12px; }
+.wt-tray b { color: var(--ink); font-weight: 600; }
+.wt-tray button.primary { padding: 5px 12px; font-size: 12.5px; white-space: nowrap; }
+
+/* Comment under a statement, and the box a comment is written in */
+.wt-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
+.wt-tools > button.ghost.small { display: inline-flex; align-items: center; gap: 6px; }
+.wt-tools .btn-icon { width: 14px; height: 14px; }
+.wt-draft { flex: 1 1 100%; margin: 10px 12px 0 0; padding: 10px 12px; border: 1px solid var(--rule-firm); border-radius: var(--r-box);
+  background: var(--paper); }
+.wt-draft .wt-d-label { display: block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600;
+  color: var(--ink-soft); }
+.wt-draft textarea { width: 100%; box-sizing: border-box; margin: 6px 0 0; padding: 7px 9px; font-family: var(--serif);
+  font-size: 16px; border: 1px solid var(--field-edge, var(--rule-firm)); border-radius: var(--r-control);
+  background: var(--card); color: var(--ink); resize: vertical; }
+.wt-draft .wt-d-acts { display: flex; justify-content: flex-end; gap: 8px; margin: 8px 0 0; }
+
+/* the box over a passage's words or beside a PET's or GET's label */
+.wt-pop { position: fixed; z-index: 61; width: 340px; max-width: calc(100vw - 16px); padding: 12px; background: var(--card);
+  border: 1px solid var(--rule-firm); border-radius: var(--r-card); box-shadow: var(--lift); }
+.wt-pop .wt-was { margin: 0 0 8px; font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--ink-soft);
+  line-height: 1.4; max-height: 6.5em; overflow: auto; }
+.wt-pop .wt-draft { margin: 0; padding: 0; border: 0; background: none; }
+
+/* under the passage: his drafts and the threads not resolved */
+.wt-es { margin: 12px 0 0; display: grid; gap: 10px; }
+.wt-es[hidden] { display: none; }
+.wt-note { margin: 0; padding: 8px 10px; border-left: 3px solid var(--accent); background: var(--paper-sunk); font-size: 13px;
+  color: var(--ink); line-height: 1.5; }
+.wt-note .wt-on, .wt-item .wt-on { display: block; color: var(--ink-soft); font-family: var(--serif); font-style: italic;
+  margin: 0 0 3px; }
+.wt-note .wt-said, .wt-item .wt-said { margin: 2px 0 0; }
+.wt-note b, .wt-item b { font-weight: 600; }
+.wt-note .wt-i-acts { margin-top: 6px; }
+
+/* the owner's line takes the held line's look (.hold-line), placed by review.js */
+.wt-line { top: 54px; }
+
+/* the review card */
+.wt-review { width: min(600px, calc(100vw - 48px)); max-height: calc(100vh - 60px); display: flex; flex-direction: column; }
+.wt-review .card-close { position: absolute; top: 14px; right: 14px; }
+.wt-review .wt-list-r { margin: 14px -10px 0; padding: 0 10px; overflow-y: auto; }
+.wt-review .wt-asked { margin: 8px 0 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
+.wt-review .wt-asked[hidden] { display: none; }
+.wt-item { padding: 14px 0; border-top: 1px solid var(--rule); }
+.wt-item .wt-k { display: block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600;
+  color: var(--ink-soft); }
+.wt-item .wt-on { margin: 4px 0 0; font-size: 14px; }
+.wt-item .wt-said { margin: 6px 0 0; font-size: 14px; }
+.wt-i-acts { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin: 10px 0 0; }
+.wt-i-acts .wt-state { margin-right: auto; font-size: 12.5px; color: var(--ink-soft); }
+.wt-item .wt-draft { margin-top: 10px; }
+
+/* suggestions (wtsuggest, 10 November 2026, shots 08, 09 and 11): the box's Now and its optional why, and on the
+   card Now beside the teammate's words, a changed one's line */
+.wt-draft .wt-now-is { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-soft); }
+.wt-draft input#wt-text { width: 100%; box-sizing: border-box; margin: 6px 0 0; padding: 7px 9px; font-family: var(--serif);
+  font-size: 16px; border: 1px solid var(--field-edge, var(--rule-firm)); border-radius: var(--r-control);
+  background: var(--card); color: var(--ink); }
+.wt-draft .wt-d-why { display: block; margin: 10px 0 0; font-size: 12.5px; color: var(--ink-soft); }
+.wt-draft #wt-why { font-family: inherit; font-size: 13.5px; }
+.wt-item .wt-row { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 8px; margin: 6px 0 0; font-size: 14px; }
+.wt-item .wt-row span:first-child { font-size: 12px; color: var(--ink-faint, var(--ink-soft)); padding-top: 2px; }
+.wt-item .wt-row span:last-child { color: var(--ink-soft); }
+.wt-item .wt-row-new span:last-child { color: var(--ink); font-weight: 600; }
+.wt-item .wt-stale { margin: 6px 0 0; font-size: 12.5px; color: var(--amber, var(--ink-soft)); }
+.wt-note .wt-answer { color: var(--ink-soft); }

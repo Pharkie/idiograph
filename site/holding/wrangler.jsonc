@@ -1,0 +1,14 @@
+// The holding page's Worker: static assets alone (this folder, less what .assetsignore names), on idiograph.app and www.idiograph.app
+// and nowhere else, so neither a workers.dev address nor a preview address. Deployed by the coordinator with
+// `wrangler deploy` from this folder, on Adam's yes
+{
+  "name": "idiograph-holding",
+  "compatibility_date": "2026-10-01",
+  "assets": { "directory": "." },
+  "routes": [
+    { "pattern": "idiograph.app", "custom_domain": true },
+    { "pattern": "www.idiograph.app", "custom_domain": true }
+  ],
+  "workers_dev": false,
+  "preview_urls": false
+}

@@ -1,0 +1,381 @@
+/* Sift's Search strategy in one column, in the order of the work (12 October, later): the plan under
+   its one tag, then Searches, a row for each database with how it runs at its left and its search at
+   its right, the two stacked under 760 pixels, then Register, then Search runs as a table, its rows
+   stacked under 760 pixels, and New run. Every colour is a token of style.css or sift.css, so light
+   and dark follow the rest of the app. */
+
+#sift-search .rail { --rail-gap: 10px; }
+#sift-search button:disabled { opacity: .45; cursor: default; transform: none; }
+
+.sfs-body { max-width: 1080px; margin: 0 auto; padding: 22px var(--gutter) 70px; }
+/* a save refused since the plan changed in another window (19 October): the line and Reload and
+   Overwrite at the head of the screen, held in view as the column scrolls */
+.sfs-stale {
+  position: sticky; top: 8px; z-index: 5; margin: 0 0 22px; padding: 12px 14px;
+  background: var(--card); border: 1px solid var(--rule-firm); border-radius: 5px; box-shadow: var(--lift);
+}
+.sfs-stale[hidden] { display: none; }
+.sfs-stale-line { margin: 0 0 8px; font-size: 13px; line-height: 1.45; color: var(--ink); }
+.sfs-stale-acts { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+/* the project's research question at the head of the plan, in the type of a Distil project's own */
+.sfs-question { margin: 0; max-width: 46em; font-family: var(--serif); font-size: 16px; line-height: 1.5; color: var(--ink); }
+#sfs-question-part[hidden] { display: none; }
+.sfs-step { margin: 0 0 34px; min-width: 0; }
+/* the plan's one tag beside its heading, Draft or Registered with its date */
+.sfs-h .sfs-state { margin-left: 4px; font-size: 11px; letter-spacing: .02em; }
+.sfs-wide { border-top: 1px solid var(--rule); padding-top: 22px; }
+.sfs-part { margin: 0 0 26px; }
+.sfs-h {
+  display: flex; align-items: center; gap: 9px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 600; margin: 0 0 14px; font-family: var(--sans);
+}
+/* each part's number, in the order the work goes */
+.sfs-n {
+  display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; letter-spacing: 0;
+  border: 1px solid var(--rule-firm); color: var(--ink-soft); font-size: 11px;
+}
+.sfs-h3 { font-size: 13px; font-weight: 600; color: var(--ink); margin: 0 0 6px; }
+.sfs-hint { margin: 0 0 10px; font-size: 12.5px; line-height: 1.5; color: var(--ink-faint); }
+.sfs-label { font-size: 12.5px; color: var(--ink-soft); font-weight: 600; margin: 0 0 6px; }
+.sfs-dim, .sfs-none { color: var(--ink-faint); font-size: 12.5px; }
+
+#sift-search input[type="text"] {
+  background: var(--card); border: 1px solid var(--field-edge); border-radius: 3px; padding: 6px 9px;
+  font-size: 13.5px; min-width: 0; max-width: 100%;
+}
+#sift-search input[type="text"]:focus { outline: 0; border-color: var(--field-edge); box-shadow: var(--focus); }
+/* overflow-x hidden as the note boxes have it, so the terms' placeholder, which WebKit lays out wider than the box at any zoom but 100%, never draws a sideways bar (29 October) */
+#sift-search textarea { font-family: var(--mono); font-size: 13px; line-height: 1.55; padding: 8px 10px; resize: vertical; overflow-x: hidden; overflow-y: auto; }
+/* a choice on this screen, boxed so it reads as one */
+.sfs-select {
+  background: var(--card); border: 1px solid var(--field-edge); border-radius: 3px; font: inherit; font-size: 12.5px;
+  color: var(--ink); padding: 4px 6px; max-width: 100%; min-width: 0;
+}
+.sfs-select:focus-visible { outline: 0; border-color: var(--field-edge); box-shadow: var(--focus); }
+/* a disclosure: a button with a chevron that turns as it opens */
+.sfs-toggle .sfs-chev { width: 12px; height: 12px; flex: none; transition: transform .16s; }
+.sfs-toggle[aria-expanded="true"] .sfs-chev { transform: rotate(90deg); }
+
+/* the databases in one list in the plan's order, a row each with its box to tick, its platform, how
+   it runs and whether its access is not set */
+.sfs-dbs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.sfs-db { min-width: 0; background: var(--card); border: 1px solid var(--rule); border-radius: 4px; font-size: 13.5px; }
+.sfs-db:hover { border-color: var(--rule-firm); }
+.sfs-db-line { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; padding: 7px 8px 7px 10px; min-width: 0; }
+.sfs-db-pick { display: flex; align-items: center; gap: 8px; flex: 1 1 10em; min-width: 0; cursor: pointer; }
+/* a database's tick and a document type's in the ink, as Settings' are, where the browser's own blue, no token's
+   colour, stood (17 October) */
+.sfs-db-pick input, .sfs-type input { accent-color: var(--ink); }
+.sfs-db-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sfs-db-plat { flex: none; font-size: 12px; color: var(--ink-faint); }
+.sfs-cog {
+  flex: none; display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0;
+  border-radius: 4px; background: none; color: var(--ink-faint); cursor: pointer;
+}
+.sfs-cog svg { width: 15px; height: 15px; }
+.sfs-cog:hover, .sfs-cog[aria-expanded="true"] { color: var(--ink); background: var(--paper-sunk); }
+.sfs-acc { border: 1px solid var(--rule); border-radius: 3px; padding: 9px 11px 10px; margin: 8px 0 0; font-size: 13px; background: var(--paper); }
+.sfs-acc .dbs-head { gap: 8px 18px; }
+.sfs-acc-field { display: inline-flex; align-items: center; gap: 7px; color: var(--ink-soft); }
+.sfs-add-db { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 0; }
+.sfs-add-line { display: inline-flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; }
+.sfs-add-line input { width: min(18em, 100%); }
+
+/* Settings, under Projects: his own databases, a row each, its key fields under it */
+.dbs-list { list-style: none; margin: 10px 0 6px; padding: 0; display: grid; gap: 8px; }
+.dbs-row {
+  padding: 9px 11px; background: var(--card); border: 1px solid var(--rule); border-radius: 4px; font-size: 13px;
+  min-width: 0;
+}
+.dbs-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.dbs-name { flex: 1 1 10em; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.dbs-row select, .dbs-add select, .sfs-acc select {
+  background: var(--paper); border: 1px solid var(--field-edge); border-radius: 3px; font: inherit; font-size: 12.5px;
+  color: var(--ink); padding: 4px 6px; max-width: 100%;
+}
+.dbs-fixed { font-size: 12.5px; color: var(--ink-faint); padding: 0 4px; }
+.dbs-key { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; margin-top: 8px; }
+.dbs-key-label { flex: 0 0 9.5em; color: var(--ink-soft); }
+.dbs-key-field {
+  flex: 1 1 12em; min-width: 0; background: var(--paper); border: 1px solid var(--field-edge); border-radius: 3px;
+  padding: 5px 8px; font: inherit; font-size: 12.5px;
+}
+.dbs-key-field:focus { outline: 0; border-color: var(--field-edge); }
+/* Saved in the faint ink, 4.5 to 1, where the browser's own grey read at 4.0 to 1 in dark (17 October) */
+.dbs-key-field::placeholder { color: var(--ink-faint); }
+.dbs-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin-top: 8px; }
+.dbs-said { margin: 0; overflow-wrap: anywhere; min-width: 0; }
+.dbs-add { align-items: center; }
+.dbs-add input {
+  background: var(--paper); border: 1px solid var(--field-edge); border-radius: 3px; padding: 4px 8px; font: inherit;
+  font-size: 12.5px; min-width: 0; width: 12em; max-width: 100%;
+}
+.sfs-tag {
+  flex: none; font-size: 10.5px; letter-spacing: .04em; color: var(--ink-faint); border: 1px solid var(--rule);
+  border-radius: 3px; padding: 0 5px; line-height: 1.6; text-transform: none; font-weight: 500;
+}
+.sfs-tag.api { color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, transparent); }
+.sfs-tag.hand, .sfs-tag.draft { color: var(--amber); border-color: color-mix(in srgb, var(--amber) 40%, transparent); }
+
+/* a block: Block 1 and its name, then Search in over its terms, a problem with a term under them, then
+   Search in, by database, with a line for each database that differs while it is shut, Remove at its
+   foot, AND between two blocks */
+.sfs-block { background: var(--card); border: 1px solid var(--rule); border-radius: 4px; padding: 12px; }
+.sfs-block-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 10px; }
+.sfs-bnum { flex: none; font-size: 12px; font-weight: 600; letter-spacing: .04em; color: var(--ink-soft); }
+.sfs-block-head .sfs-bname { flex: 1 1 10em; font-family: var(--serif); font-size: 16px !important; }
+.sfs-search-in { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 6px; }
+.sfs-search-in .sfs-label { margin: 0; }
+.sfs-terms { min-height: 6.5em; width: 100%; }
+.sfs-bproblems { margin: 6px 0 0; overflow-wrap: anywhere; }
+.sfs-block-foot { display: flex; justify-content: flex-end; margin: 10px 0 0; }
+.sfs-and { text-align: center; font-size: 11px; letter-spacing: .14em; color: var(--ink-faint); margin: 8px 0; font-weight: 600; }
+.sfs-own { margin-top: 10px; font-size: 12.5px; color: var(--ink-soft); }
+.sfs-own-said { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-soft); overflow-wrap: anywhere; }
+.sfs-own-rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 6px 14px; margin-top: 8px; }
+.sfs-own-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.sfs-own-row > span { min-width: 0; overflow-wrap: anywhere; }
+.sfs-own-row select { max-width: 62%; }
+
+/* the limits: Years, from and to, then the document types under their own label */
+.sfs-years { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 12px; font-size: 13px; color: var(--ink-soft); }
+.sfs-years .sfs-label { margin: 0; }
+.sfs-years input { width: 5.5em; margin-left: 6px; }
+.sfs-types { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.sfs-type { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+/* the benchmark papers, a row each, its DOI in a box, the paper's title beside it and Remove */
+.sfs-bench-rows { display: grid; gap: 6px; margin: 0 0 8px; }
+.sfs-paper {
+  display: grid; grid-template-columns: minmax(0, 15em) minmax(0, 1fr) auto; align-items: center; gap: 6px 12px;
+  padding: 6px 8px; background: var(--card); border: 1px solid var(--rule); border-radius: 4px; min-width: 0;
+}
+#sift-search .sfs-doi { font-family: var(--mono); font-size: 12.5px; width: 100%; }
+.sfs-paper-title { min-width: 0; font-size: 13px; line-height: 1.4; color: var(--ink); overflow-wrap: anywhere; }
+/* a benchmark line that is no DOI, a warning in the one warning tint, never Exclude's red (17 October, later) */
+.sfs-paper-not { color: var(--amber); font-size: 12.5px; }
+/* the key works (13 October), a row each, its title and year, its DOI and Remove, then Add a key work's
+   line, a DOI or a title and its year, and the works OpenAlex offers to pick from, a button each */
+.sfs-paper.sfs-kw { grid-template-columns: minmax(0, 1fr) auto auto; }
+.sfs-kw-add { margin: 0 0 8px; }
+.sfs-kw-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0 0 8px; }
+.sfs-kw-line #sfs-kw-text { flex: 1 1 18em; min-width: 0; }
+.sfs-kw-line #sfs-kw-year { width: 5.5em; }
+.sfs-kw-picks { display: grid; gap: 6px; }
+.sfs-kw-picks p { margin: 0; }
+.sfs-kw-which { font-size: 12.5px; color: var(--ink-soft); }
+.sfs-kw-pick {
+  display: grid; gap: 2px; text-align: left; padding: 6px 10px; background: var(--card); border: 1px solid var(--rule);
+  border-radius: 4px; font: inherit; color: var(--ink); cursor: pointer;
+}
+.sfs-kw-pick:hover, .sfs-kw-pick:focus-visible { border-color: var(--ink-faint); }
+.sfs-kw-pt { font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
+/* the exclusion reasons, one list, a row each, the handle that drags it, the home screen's
+   `.pc-grip` at a row's height, its code and what it means, and Remove (12 October, later) */
+.sfs-reasons { display: grid; gap: 6px; margin: 0 0 8px; }
+.sfs-reason {
+  display: grid; grid-template-columns: auto 6.5em minmax(0, 1fr) auto; align-items: center; gap: 6px 10px;
+  padding: 6px 8px 6px 2px; background: var(--card); border: 1px solid var(--rule); border-radius: 4px; min-width: 0;
+}
+.sfs-reason > .pc-grip { height: 26px; }
+.sfs-reason.dragging { position: relative; z-index: 2; border-color: var(--rule-firm); box-shadow: var(--lift); }
+.sfs-reason.dragging .pc-grip { cursor: grabbing; }
+#sift-search .sfs-rcode { font-family: var(--mono); font-size: 12.5px; width: 100%; }
+#sift-search .sfs-rmeaning { width: 100%; }
+.sfs-rtools { display: inline-flex; align-items: center; gap: 4px; }
+
+/* Searches: a row for each database, its name, how it runs, its cog and an export's steps at the left,
+   its search at the right with Edit manually, one edited manually open to edit with its reason */
+.sfs-strs { display: grid; gap: 10px; }
+.sfs-str {
+  display: grid; grid-template-columns: minmax(0, 17em) minmax(0, 1fr); gap: 10px 24px; padding: 12px 14px;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 4px; min-width: 0;
+}
+.sfs-str.open { border-color: var(--rule-firm); }
+.sfs-str-how, .sfs-str-text { min-width: 0; }
+.sfs-str-head { display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap; }
+.sfs-str-name { font-weight: 600; font-size: 13.5px; overflow-wrap: anywhere; min-width: 0; }
+.sfs-str-text .sfs-q { margin-top: 0; }
+.sfs-str-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.sfs-q {
+  font-family: var(--mono); font-size: 12.5px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere;
+  background: var(--paper-sunk); border: 1px solid var(--rule); border-radius: 3px; padding: 9px 11px; margin: 6px 0;
+  max-height: 22em; overflow: auto;
+}
+.sfs-hand-box { display: grid; gap: 6px; margin: 6px 0; }
+.sfs-hand-box .sfs-hand-q { min-height: 5em; }
+.sfs-str-text:has(.sfs-hand-box) > .sfs-q { display: none; }
+.sfs-note { font-size: 12.5px; color: var(--ink-faint); margin: 3px 0; }
+/* the rewrites Sift made for a database, under Rewrites, one to a line (14 October) */
+.sfs-rewrites { margin: 6px 0 4px; font-size: 12.5px; color: var(--ink-soft); }
+.sfs-rw-head { margin: 0 0 2px; font-size: 11.5px; font-weight: 600; color: var(--ink-faint); }
+.sfs-rewrites ul { margin: 0; padding-left: 1.2em; display: grid; gap: 1px; }
+.sfs-rewrites li { overflow-wrap: anywhere; }
+/* the plan held unsaved while a phrase holds truncation, in the one warning tint (17 October, later) */
+.sfs-state.unsaved { color: var(--amber); border-color: color-mix(in srgb, var(--amber) 45%, transparent); }
+
+/* Register: Export search_plan.md with Open and Copy and the steps to register it beside them, then
+   the line that says to mark it once registered, the reason for a draft after the first, what stands
+   in the way and Mark as registered, and once registered when and where and what an edit makes */
+.sfs-export { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 22px; margin: 0 0 14px; }
+.sfs-reg-steps { margin: 2px 0 0; padding-left: 1.3em; flex: 1 1 20em; max-width: 40em; display: grid; gap: 4px;
+  font-size: 13px; line-height: 1.5; color: var(--ink-soft); }
+/* a link to a registry, as every link to a page outside the app, underlined in the accent and the ink under the
+   pointer, where the registries' and the databases' sites stood in the crux orange (17 October, later) */
+.sfs-reg-steps a, .sfs-reg-when a, .sfs-site { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.sfs-reg-steps a:hover, .sfs-reg-when a:hover, .sfs-site:hover { color: var(--ink); }
+.sfs-reg-text { margin: 0 0 10px; max-width: 46em; font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); }
+.sfs-reg-when { margin: 0 0 12px; font-size: 14px; overflow-wrap: anywhere; }
+.sfs-reg-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; }
+.sfs-reg-next { margin: 8px 0 0; font-size: 13px; color: var(--ink-soft); }
+.sfs-why-line input { width: min(34em, 100%); }
+/* what stands in the way of the plan, in the one warning tint, as every failure and warning line is, where it
+   stood in Exclude's red (17 October, later) */
+.sfs-problems { margin: 8px 0; }
+.sfs-problems p { margin: 2px 0; font-size: 13px; color: var(--amber); }
+/* Mark as registered's card: the registry, then its number or link */
+.sfs-mark-where { border: 0; margin: 4px 0 12px; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.sfs-mark-where legend { padding: 0; margin: 0 0 8px; }
+.sfs-mark-where label { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; cursor: pointer; }
+/* each radio in the ink, as every tick is, where the browser's own blue stood (17 October) */
+.sfs-mark-where input { accent-color: var(--ink); }
+.sfs-mark-number { display: grid; gap: 6px; margin: 0 0 6px; }
+.sfs-mark input[type="text"] {
+  background: var(--card); border: 1px solid var(--field-edge); border-radius: 3px; padding: 6px 9px; font-size: 13.5px;
+  min-width: 0; width: 100%; max-width: 100%;
+}
+.sfs-mark input[type="text"]:focus { outline: 0; border-color: var(--field-edge); box-shadow: var(--focus); }
+#sfs-registry-other { flex: 1 1 12em; width: auto; }
+/* the plan's earlier versions under its heading, each with its plan as search_plan.md had it */
+.sfs-versions { margin: -6px 0 18px; font-size: 13px; color: var(--ink-soft); }
+.sfs-ver-one { margin: 8px 0 0 12px; }
+.sfs-ver-head { font-weight: 600; color: var(--ink); }
+.sfs-versions p { margin: 4px 0; }
+.sfs-md { max-height: 26em; }
+
+/* Search runs: a table, a run a row, its number and day, Trial or Registered search, its counts, and
+   Active or Make active, under each row what it waits for, what failed and its Details, then New run,
+   each database and how, then Start new run and which run's decisions it keeps */
+.sfs-runs-table { width: 100%; border-collapse: collapse; margin: 0 0 24px; font-size: 13.5px; }
+.sfs-runs-table th, .sfs-runs-table td { text-align: left; padding: 8px 10px 8px 0; vertical-align: middle; }
+.sfs-runs-table thead th { font-size: 11.5px; font-weight: 600; color: var(--ink-faint); border-bottom: 1px solid var(--rule-firm); }
+.sfs-runs-table .sfs-num { text-align: right; font-variant-numeric: tabular-nums; }
+.sfs-run > * { border-top: 1px solid var(--rule); }
+.sfs-run-name { font-weight: 600; white-space: nowrap; }
+.sfs-run-open { text-align: right; padding-right: 0 !important; white-space: nowrap; }
+.sfs-run-sub td { padding: 0 0 9px; }
+/* Active, the run the screening reads, in the ink on a firm border, where it stood in the crux orange (17 October,
+   later) */
+.sfs-open-tag { color: var(--ink); border-color: var(--rule-firm); font-size: 11.5px; padding: 1px 7px; }
+.sfs-run-wait { display: grid; gap: 4px; margin: 2px 0 6px; font-size: 12.5px; color: var(--amber); }
+/* a database that failed, under its run's row, in the one warning tint as a card's failure line is, where it
+   stood in Exclude's red (17 October, later) */
+.sfs-run-fail { margin: 2px 0 6px; font-size: 12.5px; color: var(--amber); overflow-wrap: anywhere; }
+.sfs-run-more { font-size: 12.5px; color: var(--ink-soft); }
+.sfs-run-more ul { margin: 6px 0 0; padding-left: 1.3em; display: grid; gap: 2px; }
+.sfs-run-more li { overflow-wrap: anywhere; }
+.sfs-new-what { margin: 0 0 8px; font-size: 13.5px; color: var(--ink-soft); }
+.sfs-run-line { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
+.sfs-run-line .primary { flex: none; }
+/* Keep the decisions from, beside Start new run, the earlier run whose screening the next run carries */
+.sfs-follow { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-soft); min-width: 0; }
+.sfs-follow select {
+  background: var(--paper); border: 1px solid var(--field-edge); border-radius: 3px; font: inherit; font-size: 12.5px;
+  color: var(--ink); padding: 3px 6px; max-width: 100%;
+}
+.sfs-sources {
+  list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; align-items: start;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+}
+.sfs-src {
+  display: flex; flex-wrap: wrap; align-items: center; align-content: flex-start; gap: 4px 12px; padding: 7px 10px;
+  font-size: 13px; background: var(--card); border: 1px solid var(--rule); border-radius: 4px; min-width: 0;
+}
+/* the database's name a pill in its own colour, as the screening's table and record give it */
+.sfs-src-name { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.sfs-src-name .sf-db { font-size: 12.5px; white-space: normal; }
+.sfs-src-how { font-size: 11.5px; color: var(--ink-faint); }
+.sfs-src-state { margin-left: auto; color: var(--ink-soft); }
+.sfs-src.done .sfs-src-state { color: var(--good); }
+/* a database while it runs in the ink, where it stood in the crux orange, the waiting ones in the amber (17
+   October, later) */
+.sfs-src.running .sfs-src-state { color: var(--ink); }
+.sfs-src.failed .sfs-src-state { color: var(--amber); }
+.sfs-src.awaiting .sfs-src-state { color: var(--amber); }
+.sfs-todo { margin: 10px 0 0; padding: 0 0 0 1.4em; display: grid; gap: 6px; font-size: 12.5px; color: var(--ink-soft); }
+.sfs-todo li { padding-left: 2px; overflow-wrap: anywhere; }
+.sfs-todo li::marker { color: var(--ink-faint); }
+.sfs-drop {
+  display: block; text-align: center; padding: 7px; font-size: 12px; color: var(--ink-faint);
+  border: 1px dashed var(--rule-firm); border-radius: 3px; cursor: pointer; transition: background .16s, border-color .16s;
+}
+/* under the pointer or a file dragged over it, the sunk paper and the ink, as a button under the pointer, where
+   until 17 October, later, it took the crux orange and its wash */
+.sfs-drop:hover, .sfs-drop.dragging { border-color: var(--ink-faint); background: var(--paper-sunk); color: var(--ink); }
+.sfs-missed { color: var(--amber); overflow-wrap: anywhere; }
+/* Check truncation under New run and its table, a row a term in each database, a flagged row's flag in
+   amber (14 October) */
+.sfs-check-line { margin: 0 0 10px; }
+.sfs-check { margin: 0 0 14px; overflow-x: auto; }
+.sfs-terms-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sfs-terms-table caption { text-align: left; font-size: 12.5px; color: var(--ink-soft); padding: 0 0 6px; }
+.sfs-terms-table th, .sfs-terms-table td { text-align: left; padding: 6px 10px 6px 0; vertical-align: top; }
+.sfs-terms-table thead th { font-size: 11.5px; font-weight: 600; color: var(--ink-faint); border-bottom: 1px solid var(--rule-firm); }
+.sfs-terms-table tbody > tr > * { border-top: 1px solid var(--rule); }
+.sfs-terms-table tbody th { font-family: var(--mono); font-size: 12.5px; font-weight: 500; overflow-wrap: anywhere; }
+.sfs-terms-table .sfs-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sfs-terms-table .sfs-flag { overflow-wrap: anywhere; }
+.sfs-flagged .sfs-flag { color: var(--amber); font-weight: 600; }
+
+/* under 760px the review's steps take a row of their own under the way back and Appearance, as on
+   Screening, so the bar never scrolls the page sideways (12 October) */
+@media (max-width: 759px) {
+  /* its first row 11px from the top, as on Screening (15 October, later) */
+  #sift-search .sfs-rail { flex-wrap: wrap; height: auto; min-height: 46px; row-gap: 0; align-content: flex-start;
+    padding-top: 11px; padding-bottom: 4px; }
+  /* the review's name after the mark gives way with its ellipsis, never pushing Appearance onto the next row, as
+     on Screening (15 October, later) */
+  #sift-search .rail-case { flex: 100 1 0; max-width: max-content; }
+  /* a database's search under its name and how it runs */
+  .sfs-str { grid-template-columns: minmax(0, 1fr); padding: 11px 12px; }
+  .sfs-body { padding-top: 18px; }
+  /* each run a block of its own: its number and day with Active or Make active beside them, then each
+     count with its name, so the table never scrolls the page sideways */
+  .sfs-runs-table thead { display: none; }
+  .sfs-runs-table, .sfs-runs-table tbody, .sfs-run-sub { display: block; }
+  .sfs-run { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; padding: 9px 0 4px;
+    border-top: 1px solid var(--rule); }
+  .sfs-run > * { border-top: 0; padding: 2px 0 !important; }
+  .sfs-run-name { grid-column: 1; grid-row: 1; white-space: normal; }
+  .sfs-run-open { grid-column: 2; grid-row: 1 / span 2; align-self: start; }
+  .sfs-run td:not(.sfs-run-open) { grid-column: 1; text-align: left !important; }
+  .sfs-run td:empty { display: none; }
+  .sfs-run td.sfs-num::before { content: attr(data-label) " "; color: var(--ink-faint); }
+  .sfs-run-sub td { display: block; padding: 0 0 8px; }
+  /* each term of Check truncation's table a block of its own, its database and counts named */
+  .sfs-terms-table thead { display: none; }
+  .sfs-terms-table, .sfs-terms-table caption, .sfs-terms-table tbody, .sfs-terms-table tr { display: block; }
+  .sfs-terms-table tr { padding: 7px 0 5px; border-top: 1px solid var(--rule); }
+  .sfs-terms-table tbody > tr > * { display: block; border-top: 0; padding: 1px 0; text-align: left !important; }
+  .sfs-terms-table td:empty { display: none; }
+  .sfs-terms-table td::before { content: attr(data-label) " "; color: var(--ink-faint); font-weight: 400; }
+  /* a paper's title under its DOI, a reason's tools under its words */
+  .sfs-paper { grid-template-columns: minmax(0, 1fr) auto; }
+  .sfs-paper-title { grid-column: 1 / -1; grid-row: 2; }
+  .sfs-paper-title:empty { display: none; }
+  /* a key work's title over its DOI and Remove */
+  .sfs-paper.sfs-kw { grid-template-columns: minmax(0, 1fr) auto; }
+  .sfs-kw .sfs-paper-title { grid-column: 1; grid-row: 1; }
+  .sfs-kw .sfs-dim { grid-column: 1; grid-row: 2; }
+  .sfs-kw .sfs-kw-remove { grid-column: 2; grid-row: 1 / span 2; }
+  .sfs-reason { grid-template-columns: auto 5.5em minmax(0, 1fr); }
+  .sfs-rtools { grid-column: 1 / -1; justify-self: end; }
+}
+
+@media (max-width: 479px) {
+  /* the bar keeps its theme button at the right, and each string its Copy, where the app's narrow
+     bars give up the space between */
+  #sift-search .rail-grow { display: block; }
+  .dbs-key-label { flex-basis: 100%; }
+  .sfs-src-state { margin-left: 0; }
+  .sfs-own-rows { grid-template-columns: minmax(0, 1fr); }
+}

@@ -1,0 +1,361 @@
+# Idiograph on GitHub's machines: the suite, then the installers. The suite runs with Python 3.11, the
+# oldest the app runs on, on Windows, on a Mac and on Linux, on every pull request, on Windows before a
+# tag's installers, and by hand. A push to main runs nothing (23 October 2026, Adam: a release ran
+# twice, the tag's run and the push's, and the push's mostly repeated the tag's, on a hard monthly
+# budget shared with his other private repositories), and nor does another branch's push, since
+# builders working in the cloud push branches of their own. The full gate runs on the maintainer's Mac
+# before every commit to main. A pull request runs as `pull_request`, never the target form that carries the base's
+# permissions, so a fork's run has a read-only token and no secret, and GitHub holds a first-time contributor's run until it is approved.
+# The Linux job also compiles every .py, checks every script of the page's own with node --check and
+# looks for a case folder's second name, the parts of ./verify that need no real data. The real-name
+# and forbidden-name scans and the checks on real study data run only on the maintainer's Mac, since
+# what they read never leaves it. The installers are Tauri's, the window around the frozen server
+# (17 October, the third Tauri build): Idiograph-Setup.exe for Windows, and for the Mac Idiograph.dmg
+# and Idiograph.app.tar.gz, the file the updater takes. They are built by hand from the Actions tab and
+# on a version tag, v and its number, never on a push to main, and a tag also puts all three on a draft
+# release, which packaging/release.py collects, signs on Adam's Mac and uploads to the releases
+# repository. By hand the Mac app is built only when asked. No secret is used, since the update files
+# are signed on Adam's Mac and never here, and nothing comes from the network but the packages
+# packaging/build_mac.py pins, Rust and its crates, Tauri's CLI and python.org's Python.
+#
+# Each app built and released on its own (20 October, the three-app split's build 6): a tag names the
+# app, sift-v1.0.0 Sift's, trace-v1.0.0 Trace's, and a bare v0.9.3 (or idiograph-v0.9.3) Idiograph's,
+# and the run builds that app alone, Sift-Setup.exe, Sift.dmg and Sift.app.tar.gz on Sift's draft
+# release. By hand the app is chosen, Idiograph by default. packaging/release.py --which reads the tag,
+# so the rule from tag to app is written once.
+name: Tests and installers
+
+on:
+  push:
+    tags: ["v*", "idiograph-v*", "sift-v*", "trace-v*"]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: The app whose installers are built
+        type: choice
+        options: [idiograph, sift, trace]
+        default: idiograph
+      installer:
+        description: Build the app's Windows installer after the suite
+        type: boolean
+        default: true
+      mac_app:
+        description: Build the Mac app and its disk image
+        type: boolean
+        default: false
+      macos:
+        description: Run the suite on a Mac too
+        type: boolean
+        default: false
+      linux_server:
+        description: Freeze the app's server on Linux and start it once, headless
+        type: boolean
+        default: false
+      linux_app:
+        description: Build the Linux window, its AppImage and .deb, and start the AppImage under xvfb
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# the suite prints the names of its checks, some beyond what a Windows pipe's own code page holds
+env:
+  PYTHONIOENCODING: utf-8
+  TAURI_CLI_VERSION: "2.12.1"
+  # python.org's Python for the Mac app, which build_mac.py freezes for Apple Silicon alone (relfix, 9 November 2026)
+  MAC_PYTHON: "3.13.7"
+  # the tag a run builds for, or the app asked for by hand, which packaging/release.py --which reads
+  BUILD_FOR: ${{ github.ref_type == 'tag' && github.ref_name || inputs.app || 'idiograph' }}
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 75
+    env:
+      INSTALLER: ${{ github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.installer) }}
+    steps:
+      # the files as committed, as GitHub's zip gives them, never turned to CRLF by the runner's git
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            .github/workflows/windows-installer.yml
+            packaging/build_mac.py
+      # openpyxl and et_xmlfile at the build's own pins, with no lxml, so openpyxl writes with the
+      # writer the installers ship (area 174), and typst-py, the typesetting engine of a run from source, at
+      # the version whose Typst the installers' typesetter is pinned to (typst1, 9 November 2026)
+      - run: python -m pip install --disable-pip-version-check openpyxl==3.1.5 et_xmlfile==2.0.0 cryptography==50.0.2 typst==0.15.2
+      - run: python tests/test_idiograph.py
+
+      # the installer, on the Python the app then carries
+      - if: env.INSTALLER == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            .github/workflows/windows-installer.yml
+            packaging/build_mac.py
+      - if: env.INSTALLER == 'true'
+        name: Rust and Tauri's CLI
+        shell: pwsh
+        run: |
+          rustup default stable
+          rustc --version
+          npm install --no-fund --no-audit --prefix build/tauri-cli "@tauri-apps/cli@$env:TAURI_CLI_VERSION"
+      - if: env.INSTALLER == 'true'
+        name: The app this run builds
+        shell: bash
+        run: python packaging/release.py --which "$BUILD_FOR" >> "$GITHUB_ENV"
+      # PyInstaller from its source, its bootloader compiled by the machine's own Visual Studio, which
+      # PyInstaller's waf finds through vswhere, so no compiler step is needed (22 October 2026). The
+      # typesetter, packaging/tauri/typeset, is built by cargo beside the frozen server, signed with it (typst1)
+      - if: env.INSTALLER == 'true'
+        run: python packaging/build_windows.py --app ${{ env.APP }}
+        env:
+          IDIOGRAPH_TAURI_CLI: ${{ github.workspace }}\build\tauri-cli\node_modules\@tauri-apps\cli\tauri.js
+      # Windows Defender on what the build made, where the machine has it on: a finding stops the run
+      # with the file and the detection's name, before anything is uploaded (22 October 2026, after
+      # Defender's Trojan:Win32/Bearfoos.x!ml on 0.9.3). A cloud !ml guess may not show here
+      - if: env.INSTALLER == 'true'
+        name: Windows Defender's scan
+        run: python packaging/build_windows.py --app ${{ env.APP }} --scan
+      - if: env.INSTALLER == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-Setup
+          path: dist/${{ env.APP_NAME }}-Setup.exe
+          if-no-files-found: error
+          retention-days: 3
+
+  # the Mac app for Apple Silicon alone (M1 or later, relfix, 9 November 2026), on an Apple Silicon runner,
+  # its disk image and its update file
+  mac-app:
+    if: github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.mac_app)
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: python.org's Python
+        run: |
+          curl -fsSL -o python.pkg "https://www.python.org/ftp/python/$MAC_PYTHON/python-$MAC_PYTHON-macos11.pkg"
+          sudo installer -pkg python.pkg -target /
+      - name: Rust for Apple Silicon, Tauri's CLI and the app this run builds
+        run: |
+          rustup target add aarch64-apple-darwin
+          npm install --no-fund --no-audit --prefix build/tauri-cli "@tauri-apps/cli@$TAURI_CLI_VERSION"
+          python3 packaging/release.py --which "$BUILD_FOR" >> "$GITHUB_ENV"
+      - run: python3 packaging/build_mac.py --unsigned --app ${{ env.APP }}
+        env:
+          IDIOGRAPH_TAURI_CLI: ${{ github.workspace }}/build/tauri-cli/node_modules/@tauri-apps/cli/tauri.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-Mac
+          path: |
+            dist/${{ env.APP_NAME }}.dmg
+            dist/${{ env.APP_NAME }}.app.tar.gz
+          if-no-files-found: error
+          retention-days: 3
+
+  # the app's server frozen on Linux and started once with no display (linux2, 8 November 2026, build 2 of
+  # the Linux plan): PyInstaller as on Windows, on ubuntu-22.04 so the frozen Python runs on 22.04 and
+  # newer, then `--smoke` starts it, asks /api/server, asks it to quit and fails unless it answered and
+  # ended. No window, no installer and nothing uploaded. By hand alone since linux57 (9 November 2026):
+  # a tag's linux-app freezes the server and repeats this smoke itself. continue-on-error, and no other
+  # job needs it
+  linux-server:
+    if: github.event_name == 'workflow_dispatch' && inputs.linux_server
+    runs-on: ubuntu-22.04
+    continue-on-error: true
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            .github/workflows/windows-installer.yml
+            packaging/build_mac.py
+      - name: The app this run builds
+        run: python3 packaging/release.py --which "$BUILD_FOR" >> "$GITHUB_ENV"
+      - name: Freeze the server and start it once
+        run: python3 packaging/build_linux.py --app "$APP" --smoke
+      - name: The server's log, when the smoke failed
+        if: failure()
+        run: tail -n 60 "build/pyinstaller-dist/${APP_NAME}-smoke.log" || true
+
+  # the Linux window (linux3, 8 November 2026, build 3 of the Linux plan): the server frozen as above, then
+  # Tauri's bundler for an AppImage and a .deb, x86_64, on ubuntu-22.04 with WebKitGTK 4.1 (the .deb depends
+  # on libwebkit2gtk-4.1-0, the AppImage carries it), the .deb unpacked and checked, and the AppImage started
+  # under xvfb to serve /api/server and end (packaging/tauri/drive_linux.py). The files are kept as an
+  # artifact for a tester, and on a tag the release job puts them on the draft release when this job got to
+  # its last step (the `ok` output), since packaging/release.py signs the AppImage as the Linux update and
+  # the .deb goes out beside it (linux57, 9 November 2026). continue-on-error, and the release job runs
+  # whatever this one did, so a failed Linux job cannot hold back a Mac or Windows release while it is
+  # new. It freezes the server itself and repeats linux-server's smoke, so linux-server is for a run by
+  # hand that wants that alone
+  linux-app:
+    if: github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.linux_app)
+    runs-on: ubuntu-22.04
+    continue-on-error: true
+    timeout-minutes: 60
+    outputs:
+      ok: ${{ steps.done.outputs.ok }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            .github/workflows/windows-installer.yml
+            packaging/build_mac.py
+      # what Tauri 2 needs on Debian and Ubuntu (WebKitGTK 4.1, GTK 3 and the rest), file and patchelf for
+      # the AppImage's tools, libfuse2 for them to run, and xvfb, x11-utils and dbus for the start
+      - name: Packages for Tauri, the AppImage and xvfb
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential curl wget file patchelf libssl-dev \
+            libwebkit2gtk-4.1-dev libgtk-3-dev libxdo-dev libayatana-appindicator3-dev librsvg2-dev \
+            libfuse2 xvfb x11-utils dbus
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-linux-${{ hashFiles('packaging/tauri/src-tauri/Cargo.lock', 'packaging/tauri/typeset/Cargo.lock') }}
+      - name: Rust, Tauri's CLI and the app this run builds
+        run: |
+          rustup default stable
+          rustc --version
+          npm install --no-fund --no-audit --prefix build/tauri-cli "@tauri-apps/cli@$TAURI_CLI_VERSION"
+          python3 packaging/release.py --which "$BUILD_FOR" >> "$GITHUB_ENV"
+      - name: Freeze the server, bundle the window and unpack the .deb
+        run: python3 packaging/build_linux.py --app "$APP" --smoke --window
+        env:
+          IDIOGRAPH_TAURI_CLI: ${{ github.workspace }}/build/tauri-cli/node_modules/@tauri-apps/cli/tauri.js
+      - name: Start the AppImage under xvfb
+        run: >-
+          xvfb-run -a dbus-run-session --
+          python3 packaging/tauri/drive_linux.py --app "dist/${APP_NAME}-x86_64.AppImage" --id "$APP" --out build/drive-linux
+      - name: The logs, when a step failed
+        if: failure()
+        run: |
+          tail -n 60 "build/pyinstaller-dist/${APP_NAME}-smoke.log" || true
+          tail -n 60 "build/drive-linux/${APP}-window.log" || true
+      # said only when every step above passed, which is what lets a release carry these files
+      - id: done
+        run: echo "ok=true" >> "$GITHUB_OUTPUT"
+      # kept even when the start failed, so a tester can try the files on a real desktop
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: ${{ env.APP_NAME }}-Linux
+          path: |
+            dist/${{ env.APP_NAME }}-x86_64.AppImage
+            dist/${{ env.APP_NAME }}-amd64.deb
+          if-no-files-found: warn
+          retention-days: 3
+
+  # a version tag's three files, the tagged app's alone, on a draft release, which packaging/release.py collects,
+  # and the Linux AppImage and .deb too when linux-app passed. It runs once Windows and the Mac have passed,
+  # whatever linux-app did, since that job is allowed to fail
+  release:
+    if: github.ref_type == 'tag' && !cancelled() && needs.windows.result == 'success' && needs.mac-app.result == 'success'
+    needs: [windows, mac-app, linux-app]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 packaging/release.py --which "$GITHUB_REF_NAME" >> "$GITHUB_ENV"
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-Setup
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-Mac
+      - if: needs.linux-app.outputs.ok == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-Linux
+      - name: The draft release
+        run: |
+          files=("$APP_NAME-Setup.exe" "$APP_NAME.dmg" "$APP_NAME.app.tar.gz")
+          for f in "$APP_NAME-x86_64.AppImage" "$APP_NAME-amd64.deb"; do
+            if [ "$LINUX_OK" = true ] && [ -f "$f" ]; then files+=("$f"); fi
+          done
+          gh release create "$GITHUB_REF_NAME" "${files[@]}" \
+            --draft --verify-tag --repo "$GITHUB_REPOSITORY" --title "$APP_NAME $GITHUB_REF_NAME" \
+            --notes "$APP_NAME-Setup.exe installs $APP_NAME on Windows, $APP_NAME.dmg on a Mac, the AppImage and .deb are for Linux, and packaging/release.py signs the updates."
+        env:
+          LINUX_OK: ${{ needs.linux-app.outputs.ok }}
+          GH_TOKEN: ${{ github.token }}
+
+  # the suite on a Mac, on every pull request, and by hand when asked
+  macos:
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.macos)
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            .github/workflows/windows-installer.yml
+            packaging/build_mac.py
+      - run: python -m pip install --disable-pip-version-check openpyxl==3.1.5 et_xmlfile==2.0.0 cryptography==50.0.2 typst==0.15.2
+      - run: python tests/test_idiograph.py
+
+  # Linux, on every pull request: the suite, then the parts of ./verify that need no real data.
+  # ./verify itself runs only on the maintainer's Mac, since its snapshot takes APFS clones and it waits
+  # its turn on that machine
+  linux:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            .github/workflows/windows-installer.yml
+            packaging/build_mac.py
+      - run: python -m pip install --disable-pip-version-check openpyxl==3.1.5 et_xmlfile==2.0.0 cryptography==50.0.2 typst==0.15.2
+      - run: python tests/test_idiograph.py
+      - name: Every .py compiles
+        run: git ls-files -z '*.py' | xargs -0 python -m py_compile
+      - name: Every script of the page's own parses
+        # the scripts each app's build ships, from the folder lists (build_mac.py --scripts)
+        run: |
+          for app in idiograph sift trace; do
+            python packaging/build_mac.py --scripts --app "$app" > "$RUNNER_TEMP/scripts-$app.txt" || exit 1
+          done
+          for f in $(sort -u "$RUNNER_TEMP"/scripts-*.txt); do node --check "$f" || exit 1; done
+      - name: No case folder's second name in a tracked file
+        shell: python
+        run: |
+          import re, subprocess, sys
+          rx = re.compile(r"P\d - [A-Z][a-z]+-[A-Z][a-z]+")
+          hits = []
+          for path in subprocess.run(["git", "ls-files", "-z"], capture_output=True, text=True).stdout.split("\0"):
+              try:
+                  text = open(path, encoding="utf-8").read()
+              except (OSError, UnicodeDecodeError):
+                  continue
+              if rx.search(text):
+                  hits.append(path)
+          for path in hits:
+              print(f"a case folder's second name in {path}, name the case by pseudonym alone")
+          sys.exit(1 if hits else 0)

@@ -1,0 +1,80 @@
+{
+ "version": 1,
+ "rows": {
+  "Initial:3": "has-content",
+  "Initial:5": "has-content",
+  "Initial:7": "has-content",
+  "Initial:9": "has-content",
+  "Initial:11": "has-content",
+  "Initial:13": "has-content",
+  "Initial:15": "has-content",
+  "Initial:17": "has-content",
+  "Initial:19": "has-content",
+  "Initial:21": "has-content",
+  "Initial:23": "has-content",
+  "Initial:25": "has-content",
+  "Initial:27": "has-content",
+  "Initial:29": "has-content",
+  "Initial:31": "has-content",
+  "Initial:33": "has-content",
+  "Initial:35": "has-content",
+  "Initial:37": "has-content",
+  "Initial:39": "has-content",
+  "Initial:41": "has-content",
+  "Initial:43": "has-content",
+  "Initial:45": "has-content",
+  "Initial:47": "has-content",
+  "Initial:49": "has-content",
+  "Initial:51": "has-content",
+  "Initial:53": "has-content",
+  "Initial:55": "reviewed-empty",
+  "Initial:57": "has-content",
+  "Initial:59": "has-content",
+  "Initial:61": "has-content",
+  "Initial:63": "has-content",
+  "Initial:65": "has-content",
+  "Initial:67": "has-content",
+  "Initial:69": "has-content",
+  "Initial:71": "has-content",
+  "Initial:73": "has-content",
+  "Initial:75": "has-content",
+  "Initial:77": "reviewed-empty",
+  "Initial:79": "has-content"
+ },
+ "rounds": {
+  "1": {
+   "seconds": 2460,
+   "completed": "2026-10-12T10:40:12"
+  },
+  "2": {
+   "seconds": 2710,
+   "completed": "2026-10-13T11:05:48"
+  },
+  "3": {
+   "seconds": 1180,
+   "completed": "2026-10-14T09:52:30"
+  }
+ },
+ "days": {
+  "2026-10-12": {
+   "rounds": 1
+  },
+  "2026-10-13": {
+   "rounds": 1
+  },
+  "2026-10-14": {
+   "rounds": 1
+  }
+ },
+ "last": {
+  "sheet": "Initial",
+  "row": 79
+ },
+ "flags": [],
+ "trims": [],
+ "edits": [],
+ "assignments": [],
+ "complete": {
+  "at": "2026-10-14T09:55:01"
+ }
+}

@@ -1,0 +1,58 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "idiograph/project.schema.json",
+ "title": "An Idiograph project file, <project root>/idiograph-project.json",
+ "description": "The project's own settings, written by Settings, Projects, his order of its rows, written by a drag on the home screen, how its PETs are labelled, written by PET labels under Export on the PETs screen or in Settings, Projects, how its timecodes are written, and the new names Rename keeps for cases whose folders it kept. A key beyond these is kept as it is.",
+ "type": "object",
+ "properties": {
+  "name": {"type": "string"},
+  "research_question": {"type": "string"},
+  "updated": {"type": ["string", "null"]},
+  "agents": {
+   "type": "object",
+   "required": ["allowed"],
+   "properties": {"allowed": {"type": "boolean"}, "at": {"type": ["string", "null"]}}
+  },
+  "order": {"type": "array", "items": {"type": "string"}},
+  "uid": {
+   "description": "The project's own id, written at its first send and never changed after, so a shared copy coming back is known as this project's (26 October).",
+   "type": "string", "minLength": 1
+  },
+  "copy_of": {
+   "description": "In a copy opened from a shared file, the project it came from: its name, its id, when it was sent and from which Idiograph, when it was opened, and the print of each statement sent, by participant and key (21 and 26 October).",
+   "type": "object",
+   "properties": {"name": {"type": "string"}, "opened": {"type": "string"}, "uid": {"type": "string"},
+                  "sent": {"type": "string"}, "version": {"type": "string"},
+                  "statements": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": {"type": "string"}}}}
+  },
+  "names": {
+   "description": "The new pseudonym Rename gave a case whose folder it kept, by the folder's label, its second part never written, one capitalised word each (16 October).",
+   "type": "object",
+   "additionalProperties": {"type": "string", "pattern": "^[A-Z][a-z]+$"}
+  },
+  "names_key": {
+   "description": "From namesrule (8 November 2026) alone: the random key under which the app's own folder kept this project's list of real names. Since namesui the list is idiograph-names.json in the project's folder, and the key is taken out of this file the first time the list is read.",
+   "type": "string",
+   "pattern": "^[0-9a-f]{32}$"
+  },
+  "pet_labels": {
+   "description": "How the Word document, the print view and the PET draft label the PETs: letters, A, A1, A1.1, as Smith, Flowers and Larkin's Box 5.6 letters them, the default when the key is missing, or numbers, PET 1, PET 1a, 1a.1.",
+   "type": "string",
+   "enum": ["letters", "numbers"]
+  },
+  "timecodes": {
+   "description": "How every timecode of the project is written, on screen, in print, in Word and in the command line's turn lines (28 October): 75:12, the hours folded into the minutes, 1:15:12, the hours once past the hour, the default when the key is missing, or 01:15:12, the hours always. The files and --json keep their own forms.",
+   "type": "string",
+   "enum": ["75:12", "1:15:12", "01:15:12"]
+  },
+  "timepoints": {
+   "description": "A longitudinal project's timepoints in order, written by Settings, Projects, only with two or more (20 October). Each is known by its place, 1 to 10, its label shown where room is short, T1, and its description beside it where there is room, Before the season. With no key the project has one timepoint.",
+   "type": "array",
+   "minItems": 2,
+   "maxItems": 10,
+   "items": {"type": "object", "required": ["label"],
+             "properties": {"label": {"type": "string", "minLength": 1, "maxLength": 12},
+                            "description": {"type": "string", "maxLength": 60}}}
+  }
+ }
+}

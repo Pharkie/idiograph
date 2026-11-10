@@ -1,0 +1,44 @@
+{
+  "agentlog.title": "Agent log",
+  "agentlog.none": "Nothing in the last 7 days.",
+  "agentlog.summary": {
+    "one": "{n} entry in the last 7 days",
+    "other": "{n} entries in the last 7 days"
+  },
+  "agentlog.open": "Open",
+  "agentlog.kicker": "Settings",
+  "agentlog.in": "in {project}",
+  "agentlog.in_closed": {
+    "one": "in a project agents may not read",
+    "other": "in {n} projects agents may not read"
+  },
+  "agentlog.switch_on": "Dangerously skip permissions turned on",
+  "agentlog.switch_off": "Dangerously skip permissions turned off",
+  "agentlog.from_window": "In the app window",
+  "agentlog.from_browser": "In a browser tab",
+  "agentlog.details": "Details",
+  "agentlog.agent": "Agent",
+  "agentlog.project": "Project",
+  "agentlog.command": "Command",
+  "agentlog.refused": "Refused",
+  "agentlog.says_asked": "{agent} says you asked",
+  "agentlog.the_agent": "The agent",
+  "agentlog.repeated": "Repeated",
+  "agentlog.times": {
+    "one": "{n} time, the first {when}",
+    "other": "{n} times, the first {when}"
+  },
+  "agentlog.copy": "Copy",
+  "agentlog.done": "Done",
+  "agentlog.close": "Close",
+  "agentlog.today": "Today {time}",
+  "agentlog.yesterday": "Yesterday {time}",
+  "agentlog.on_day": "{day} {time}",
+  "agentlog.declined": "You declined it in the app.",
+  "agentlog.op_agents_log": "Read the agent log",
+  "agentlog.op_unknown": "A command {app} doesn't have",
+  "agentlog.not_known": "Not known",
+  "agentlog.why_hold": "No command approves a waiting action. Only you do, in the app.",
+  "agentlog.why_not_allowed": "This project does not allow AI agents to read it.",
+  "agentlog.window": "The last 7 days"
+}

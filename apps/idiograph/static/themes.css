@@ -1,0 +1,2681 @@
+/* Idiograph, the PETs screen. The same paper, ink, faces and buttons as the rest of the app, set
+   in style.css: this file adds the canvas, the cards on it, the labels and frames over them, the
+   bin and the zoom in the corners, the board menu, the sidebar with its tabs, the Inspector and its
+   player among them, New AI board's card, and the tints a theme is drawn in: eight for the
+   top-level themes, each its own, a lighter step of its
+   theme's for a sub-theme, and a neutral grey past the eight. None of the tints is the crux
+   orange, because orange means crux. Beside them are the four papers of a sticky note, soft
+   pastels apart from every tint, and the dark blue ink its words are written in, and the eight
+   colours of the cases on the GETs board, one a participant (16 October), apart from each other
+   and from every judgement's colour under colour blindness, never the crux orange and never red,
+   each reading at 4.5 to 1 as a badge's ground under its letter. In dark they were spread in hue and
+   lightness later that day, where Blue, Indigo, Purple and Slate had read as one pale lilac: Blue a
+   pale sky, Indigo a strong blue violet, Purple a strong orchid, Plum a pale mauve beside it, Slate a
+   grey, each pair apart as small marks too. They are a palette, read by this part alone, beside the
+   app's tokens in tokens.css, on [data-theme] as those are. */
+
+:root, [data-theme="light"] {
+  --th-h0: #3E7C8A;
+  --th-h1: #5B6FA8;
+  --th-h2: #6E8B3D;
+  --th-h3: #8A5A8C;
+  --th-h4: #8F7A1F;
+  --th-h5: #A4566A;
+  --th-h6: #4F8A6B;
+  --th-h7: #6B6B80;
+  --th-grey: #8C8C8C;
+  /* the cases' colours on the GETs board, one a participant, in case order by default */
+  --th-case0: #0D6ABB;
+  --th-case1: #706D06;
+  --th-case2: #774E6D;
+  --th-case3: #5B4315;
+  --th-case4: #2841B9;
+  --th-case5: #02544C;
+  --th-case6: #851286;
+  --th-case7: #616491;
+  /* and seventeen more past the eight (21 October), More colours in the picker, each neighbour in the
+     picker's order kept apart under protanopia, deuteranopia and tritanopia (area 239) */
+  --th-case8: #2A311A;
+  --th-case9: #325453;
+  --th-case10: #6C36BE;
+  --th-case11: #47055B;
+  --th-case12: #113434;
+  --th-case13: #3F5F8A;
+  --th-case14: #61573E;
+  --th-case15: #513A49;
+  --th-case16: #333D01;
+  --th-case17: #5C509D;
+  --th-case18: #372D02;
+  --th-case19: #4B3882;
+  --th-case20: #076C92;
+  --th-case21: #5E1C94;
+  --th-case22: #013728;
+  --th-case23: #033B7A;
+  --th-case24: #412F50;
+  /* the white a sub-theme's tint steps toward, in either theme */
+  --th-step-to: #FFFFFF;
+  /* the ground a participant's picture on Trajectories is drawn on, white in either theme, as a drawn portrait
+     or a photograph is */
+  --tf-face-ground: #FFFFFF;
+  /* a sticky note's four papers, its ink, which reads on all four, its slight paper shadow, and the
+     edge of a dot of its paper */
+  --th-sticky-yellow: #FFF0A3;
+  --th-sticky-pink: #FDD5DF;
+  --th-sticky-green: #D3EDC4;
+  --th-sticky-blue: #CDE3F7;
+  --th-sticky-ink: #1E3770;
+  --th-sticky-shadow: 0 1px 1px rgba(31,27,22,.10), 0 4px 10px rgba(31,27,22,.12);
+  --th-sticky-edge: rgba(31,27,22,.18);
+}
+
+[data-theme="dark"] {
+  --th-h0: #7FB8C4;
+  --th-h1: #9CAEE0;
+  --th-h2: #A9C47A;
+  --th-h3: #C79BC9;
+  --th-h4: #D3BF6A;
+  --th-h5: #E09AAC;
+  --th-h6: #8CC4A5;
+  --th-h7: #A9A9BE;
+  --th-grey: #9A9A9A;
+  --th-case0: #7DD0FA;
+  --th-case1: #ABBD3E;
+  --th-case2: #D3A9C4;
+  --th-case3: #A08237;
+  --th-case4: #5B8BFF;
+  --th-case5: #019D7E;
+  --th-case6: #BD65BE;
+  --th-case7: #838593;
+  --th-case8: #CED51F;
+  --th-case9: #40AC9F;
+  --th-case10: #B7A9D2;
+  --th-case11: #BE84FF;
+  --th-case12: #7DCECE;
+  --th-case13: #879AB1;
+  --th-case14: #DAD1B4;
+  --th-case15: #AD799B;
+  --th-case16: #BBE263;
+  --th-case17: #C9B7FE;
+  --th-case18: #91865C;
+  --th-case19: #9187A0;
+  --th-case20: #5393C5;
+  --th-case21: #D8D1FD;
+  --th-case22: #66E4C8;
+  --th-case23: #C8D9F3;
+  --th-case24: #D892E8;
+  --th-sticky-yellow: #E4D58A;
+  --th-sticky-pink: #E2B9C4;
+  --th-sticky-green: #B8D2AA;
+  --th-sticky-blue: #B2C8DD;
+  --th-sticky-ink: #172C5E;
+  --th-sticky-shadow: 0 1px 2px rgba(0,0,0,.5), 0 6px 14px rgba(0,0,0,.45);
+  --th-sticky-edge: rgba(0,0,0,.3);
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="auto"], [data-theme="system"] {
+    --th-h0: #7FB8C4;
+    --th-h1: #9CAEE0;
+    --th-h2: #A9C47A;
+    --th-h3: #C79BC9;
+    --th-h4: #D3BF6A;
+    --th-h5: #E09AAC;
+    --th-h6: #8CC4A5;
+    --th-h7: #A9A9BE;
+    --th-grey: #9A9A9A;
+    --th-case0: #7DD0FA;
+    --th-case1: #ABBD3E;
+    --th-case2: #D3A9C4;
+    --th-case3: #A08237;
+    --th-case4: #5B8BFF;
+    --th-case5: #019D7E;
+    --th-case6: #BD65BE;
+    --th-case7: #838593;
+    --th-case8: #CED51F;
+    --th-case9: #40AC9F;
+    --th-case10: #B7A9D2;
+    --th-case11: #BE84FF;
+    --th-case12: #7DCECE;
+    --th-case13: #879AB1;
+    --th-case14: #DAD1B4;
+    --th-case15: #AD799B;
+    --th-case16: #BBE263;
+    --th-case17: #C9B7FE;
+    --th-case18: #91865C;
+    --th-case19: #9187A0;
+    --th-case20: #5393C5;
+    --th-case21: #D8D1FD;
+    --th-case22: #66E4C8;
+    --th-case23: #C8D9F3;
+    --th-case24: #D892E8;
+    --th-sticky-yellow: #E4D58A;
+    --th-sticky-pink: #E2B9C4;
+    --th-sticky-green: #B8D2AA;
+    --th-sticky-blue: #B2C8DD;
+    --th-sticky-ink: #172C5E;
+    --th-sticky-shadow: 0 1px 2px rgba(0,0,0,.5), 0 6px 14px rgba(0,0,0,.45);
+    --th-sticky-edge: rgba(0,0,0,.3);
+  }
+}
+
+/* the canvas's dot grid, from the firm rule of the element's own theme */
+:root, [data-theme] { --th-dot: color-mix(in srgb, var(--rule-firm) 70%, transparent); }
+
+.hue-0 { --hue-base: var(--th-h0); --hue: var(--hue-base); }
+.hue-1 { --hue-base: var(--th-h1); --hue: var(--hue-base); }
+.hue-2 { --hue-base: var(--th-h2); --hue: var(--hue-base); }
+.hue-3 { --hue-base: var(--th-h3); --hue: var(--hue-base); }
+.hue-4 { --hue-base: var(--th-h4); --hue: var(--hue-base); }
+.hue-5 { --hue-base: var(--th-h5); --hue: var(--hue-base); }
+.hue-6 { --hue-base: var(--th-h6); --hue: var(--hue-base); }
+.hue-7 { --hue-base: var(--th-h7); --hue: var(--hue-base); }
+.hue-grey { --hue-base: var(--th-grey); --hue: var(--hue-base); }
+/* a sub-theme is its theme's tint a step lighter, and a sub-theme of that a step lighter again */
+.step-1 { --hue: color-mix(in srgb, var(--hue-base) 64%, var(--th-step-to)); }
+.step-2 { --hue: color-mix(in srgb, var(--hue-base) 42%, var(--th-step-to)); }
+/* a sticky note's paper, on the note and on its dots */
+.sticky-yellow { --sticky: var(--th-sticky-yellow); }
+.sticky-pink { --sticky: var(--th-sticky-pink); }
+.sticky-green { --sticky: var(--th-sticky-green); }
+.sticky-blue { --sticky: var(--th-sticky-blue); }
+/* a case's colour, on its cards, its badge, its swatch and its row of the colour choice */
+.case-0 { --case: var(--th-case0); }
+.case-1 { --case: var(--th-case1); }
+.case-2 { --case: var(--th-case2); }
+.case-3 { --case: var(--th-case3); }
+.case-4 { --case: var(--th-case4); }
+.case-5 { --case: var(--th-case5); }
+.case-6 { --case: var(--th-case6); }
+.case-7 { --case: var(--th-case7); }
+.case-8 { --case: var(--th-case8); }
+.case-9 { --case: var(--th-case9); }
+.case-10 { --case: var(--th-case10); }
+.case-11 { --case: var(--th-case11); }
+.case-12 { --case: var(--th-case12); }
+.case-13 { --case: var(--th-case13); }
+.case-14 { --case: var(--th-case14); }
+.case-15 { --case: var(--th-case15); }
+.case-16 { --case: var(--th-case16); }
+.case-17 { --case: var(--th-case17); }
+.case-18 { --case: var(--th-case18); }
+.case-19 { --case: var(--th-case19); }
+.case-20 { --case: var(--th-case20); }
+.case-21 { --case: var(--th-case21); }
+.case-22 { --case: var(--th-case22); }
+.case-23 { --case: var(--th-case23); }
+.case-24 { --case: var(--th-case24); }
+
+/* ───────────────────────────────────────── the ways in, on other screens ── */
+
+/* beside each annotated case in the list, a quiet word that opens its PETs */
+.case-list li.has-themes { display: flex; align-items: center; gap: 10px; }
+.case-list li.has-themes .case-row { flex: 1 1 auto; min-width: 0; }
+.case-themes {
+  flex: none; background: none; border: 0; border-bottom: 1px solid var(--rule-firm); padding: 0;
+  margin-right: 4px; cursor: pointer; font: inherit; font-size: 12px; color: var(--ink-faint);
+}
+.case-themes:hover { color: var(--ink); border-bottom-color: currentColor; }
+
+/* ──────────────────────────────────────────────────────── the screen ── */
+
+.th-screen { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+.th-screen .rail { flex: none; }
+/* The way back is a place and no tool (see The title bar in docs/design.md), so on PETs and GETs alike
+   it never takes a tool's box, at rest or under the pointer, where its arrow goes to the ink, and the
+   keyboard's focus rings it (17 October, after the screenshot check found it boxed on PETs, under the
+   pointer the way back from GETs had left there, and plain on GETs). Its word went on 18 October, when
+   the steps came to name every screen of Distil. */
+#th-back:hover { border-color: transparent; }
+#th-back:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+/* The case name and the board's give way: they truncate with an ellipsis, the whole name in the
+   tooltip, once the counts have stepped down and the names have a row of their own (see thCountFit), and each, with its switcher round it,
+   keeps room for its first letter, the ellipsis and its chevron, the Current board's ribbon too, so
+   neither is ever cut through a letter or run under its chevron (17 October). */
+.th-screen .rail-case { flex-shrink: .01; min-width: 1.9em; }
+.th-screen .th-vname { min-width: 1.8em; }
+/* the band the turn screen carries, under the bar, in the flow of the screen rather than stuck */
+.th-screen .band { position: relative; top: auto; z-index: 2; flex: none; }
+.th-screen .band[hidden] { display: none; }
+
+/* The canvas and the sidebars share the rest of the window, side by side at a desk width: the
+   window less the bar and the band, whose height the page measures into --band, the same measure
+   the turn screen's columns take off theirs. */
+.th-body { position: relative; flex: none; height: calc(100vh - var(--rail-h, 46px) - var(--band)); min-height: 0; display: flex; }
+
+/* beside the board's name: "Board 1 · Auto-saved" */
+.th-save { font-size: 11.5px; white-space: nowrap; flex: none; color: var(--ink-faint); margin-left: -4px;
+  transition: opacity .3s; }
+.th-save::before { content: "\00B7"; margin-right: 7px; color: var(--ink-faint); }
+.th-save.done { color: var(--good); }
+/* a save that failed in the one warning tint, as every failure line is, where it stood in the crux orange
+   (17 October, later) */
+.th-save.failed { color: var(--amber); white-space: normal; max-width: 34em; line-height: 1.3; }
+
+/* The canvas: the rest of the window, a faint grid of dots that moves and scales with the cards,
+   and the cards themselves on a world that pans and zooms as one piece. */
+.th-stage {
+  position: relative; flex: 1 1 auto; min-height: 0; min-width: 0; overflow: hidden; touch-action: none;
+  background-color: var(--paper);
+  background-image: radial-gradient(circle, var(--th-dot) 1px, transparent 1.3px);
+  background-size: 22px 22px;
+  cursor: default; user-select: none; -webkit-user-select: none; outline: 0;
+}
+.th-stage.th-grab, .th-stage.th-hand { cursor: grab; }
+.th-stage.th-panning, .th-stage.th-panning .th-card, .th-stage.th-panning .th-label { cursor: grabbing; }
+.th-stage.th-grab .th-card, .th-stage.th-grab .th-label,
+.th-stage.th-hand .th-card, .th-stage.th-hand .th-label { cursor: grab; }
+.th-stage.off .th-ui { display: none; }
+.th-world { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; }
+.th-frames { position: absolute; left: 0; top: 0; pointer-events: none; }
+
+.th-note {
+  position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); margin: 0;
+  max-width: min(30em, calc(100% - 2 * var(--gutter))); text-align: center; pointer-events: none;
+  font-size: 13.5px; line-height: 1.5; color: var(--ink-soft);
+}
+
+/* ── a card: the statement in the reading face, the timecode under it ── */
+
+.th-card {
+  position: absolute; width: 200px; padding: 9px 11px 7px;
+  background: var(--card); border: 1px solid var(--rule-firm); border-radius: 4px;
+  box-shadow: var(--rest), var(--edges, 0 0 transparent); cursor: grab;
+  transition: box-shadow .14s, border-color .14s, scale .12s ease-out, rotate .16s ease-out;
+}
+.th-card:hover { border-color: var(--ink-faint); }
+.th-text {
+  margin: 0; font-family: var(--serif); font-size: 14.5px; line-height: 1.38; color: var(--ink);
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+  overflow-wrap: anywhere;
+}
+/* the canvas in print shows every statement whole, its four-line clamp lifted, and the screen keeps it */
+.th-whole .th-text { display: block; -webkit-line-clamp: none; overflow: visible; }
+/* the words give way to the box that edits them, which holds the whole statement */
+.th-text[hidden] { display: none; }
+.th-foot { display: flex; align-items: baseline; gap: 8px; margin-top: 5px; min-height: 14px; }
+.th-time { font-family: var(--mono); font-size: 10.5px; letter-spacing: -.01em; color: var(--ink-faint);
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* a card from a sheet after the first carries the sheet's name, small, in the label face */
+.th-sheet { font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600;
+  color: var(--ink-soft); border: 1px solid var(--rule-firm); border-radius: 2px; padding: 0 4px; }
+.th-mark { margin-left: auto; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase;
+  font-weight: 600; color: var(--amber); }
+
+/* A statement's own key quote under its words, inside the card (Adam, 19 October, way A of the drawings): the
+   reading face in italic, a step smaller and in the soft ink, behind a short rule of the crux orange, three
+   lines at most, the whole in its tooltip and a click away. A card with no key quote has none */
+.th-kq {
+  margin: 6px 0 0; padding: 0 0 0 8px; border-left: 2px solid var(--crux);
+  font-family: var(--serif); font-style: italic; font-size: 12.5px; line-height: 1.38; color: var(--ink-soft);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
+  box-sizing: border-box; max-width: 100%; min-width: 0; white-space: normal; cursor: pointer;
+}
+.th-kq:hover { color: var(--ink); }
+/* Full (Adam, 30 October, the button's third way): the whole quote, every piece, no clamp, and nothing to click,
+   so the card's own pointer and no change of ink under it */
+.th-kq.th-kq-full { display: block; -webkit-line-clamp: none; overflow: visible; cursor: inherit; }
+.th-kq.th-kq-full:hover { color: var(--ink-soft); }
+/* a GETs statement card's exploratory notes under its quote (20 October): the sans face, upright, behind a rule
+   of the faint ink, three lines at most, the whole in its tooltip, nothing to click */
+.th-kq.th-en { font-family: inherit; font-style: normal; font-size: 11.5px; line-height: 1.4; border-left-color: var(--rule-firm); cursor: default; }
+.th-kq.th-en:hover { color: var(--ink-soft); }
+
+/* in a group: a wash of the group's tint, and a rule of it down the left edge */
+.th-card.in {
+  background: color-mix(in srgb, var(--hue) 11%, var(--card));
+  border-color: color-mix(in srgb, var(--hue) 45%, var(--rule-firm));
+  box-shadow: inset 3px 0 0 var(--th-edge, var(--hue)), var(--rest), var(--edges, 0 0 transparent);
+}
+/* and on that wash a card's timecode and its count of statements stand in the soft ink, which keeps 4.5 to 1 or more
+   on every tint's wash in both themes, where the faint ink read at 3.7 to 3.9 to 1 in dark (17 October, later), as
+   the audit trail card's small print does on its boxes */
+.th-card.in .th-foot .th-time, .th-card.in .th-foot .gt-n { color: var(--ink-soft); }
+/* a line no longer in the workbook stays where it was, faded */
+.th-card.missing { opacity: .45; border-style: dashed; }
+.th-card.missing .th-mark { color: var(--ink-soft); }
+
+.th-card.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), var(--lift-low), var(--edges, 0 0 transparent); }
+.th-card.in.sel { box-shadow: inset 3px 0 0 var(--th-edge, var(--hue)), 0 0 0 2px var(--accent), var(--lift-low), var(--edges, 0 0 transparent); }
+/* Motion, in the register of the Finder and the iOS home screen, clearly there and never bouncy or
+   slow: a card or a theme picked up lifts, four per cent and a deep shadow over 120 ms, everything
+   that moves leans up to six degrees into the way it travels and stands up when he stops, what came
+   along with a label trails it by 140 ms, and a drop lands over 220 ms with a visible overshoot,
+   coming down in size and standing up from its lean as it lands. What moved without being held, a
+   card nudged clear or the cards an Auto-arrange gathers, slides over 240 ms. All of it rides on
+   the transform properties alone, and the reduced motion setting takes it all away. */
+.th-card.dragging, .th-label.dragging { pointer-events: none; scale: 1.04; }
+.th-card.dragging, .th-card.landing { box-shadow: var(--lift-high), var(--edges, 0 0 transparent); }
+.th-card.in.dragging, .th-card.in.landing { box-shadow: inset 3px 0 0 var(--th-edge, var(--hue)), var(--lift-high), var(--edges, 0 0 transparent); }
+.th-label.dragging, .th-label.landing { box-shadow: var(--lift-high); }
+.th-card.trailing, .th-label.trailing {
+  transition: box-shadow .14s, border-color .14s, scale .12s ease-out, rotate .16s ease-out, translate 140ms ease-out;
+}
+/* While it is dragged (18 October, the Mac window's judder): its lean follows the pointer frame by frame with
+   no transition, which WebKit, the Mac window's engine, began afresh on every move of every card dragged, at
+   30 frames a second and less where Chromium kept 120. Once he stops it stands up over 160 ms, `.standing`,
+   as it always has. It is never made a layer of its own (`will-change`), which in WebKit cost more than it
+   saved, 31 frames a second against 60 on the demo's board. */
+.th-card.dragging { transition: box-shadow .14s, border-color .14s, scale .12s ease-out; }
+.th-label.dragging { transition: scale .12s ease-out; }
+.th-sticky.dragging { transition: box-shadow .14s, scale .12s ease-out; }
+/* what came along with a label trails it by 140 ms as before, eased frame by frame by the page (thTrail) */
+.th-card.dragging.trailing, .th-label.dragging.trailing, .th-sticky.dragging.trailing {
+  transition: box-shadow .14s, border-color .14s, scale .12s ease-out;
+}
+.th-card.dragging.standing, .th-label.dragging.standing, .th-sticky.dragging.standing {
+  transition: box-shadow .14s, border-color .14s, scale .12s ease-out, rotate .16s ease-out;
+}
+.th-card.ease-from, .th-label.ease-from { transition: none; }
+.th-card.easing, .th-label.easing {
+  transition: translate .22s cubic-bezier(.34,1.5,.64,1), rotate .22s cubic-bezier(.34,1.5,.64,1),
+    scale .22s cubic-bezier(.34,1.5,.64,1), box-shadow .22s ease-out, border-color .14s;
+}
+.th-card.nudging, .th-label.nudging {
+  transition: translate .24s cubic-bezier(.34,1.5,.64,1), box-shadow .14s, border-color .14s;
+}
+/* dropped and then sent clear of a neighbour, it slides there as a nudge does while it lands */
+.th-card.easing.sent, .th-label.easing.sent {
+  transition: translate .24s cubic-bezier(.34,1.5,.64,1), rotate .22s cubic-bezier(.34,1.5,.64,1),
+    scale .22s cubic-bezier(.34,1.5,.64,1), box-shadow .22s ease-out, border-color .14s;
+}
+/* Alt held in a drag: what leaves its theme shows it, out of the frame and without the tint */
+.th-card.in.leaving { background: var(--card); border-color: var(--rule-firm); box-shadow: var(--lift-high), var(--edges, 0 0 transparent); }
+.th-label.leaving, .th-frame.leaving { --hue: var(--th-grey); }
+@media (prefers-reduced-motion: reduce) {
+  .th-card, .th-label { scale: none !important; rotate: none !important; }
+}
+
+/* The tip that follows a card in a theme, or a sub-theme, while it is dragged, a little below and
+   to the right of the pointer: what Alt, Option on a Mac, does at the drop, in the small type on a
+   quiet chip. With Alt held it says what letting go does, a shade firmer. */
+.th-tip {
+  position: fixed; z-index: 40; pointer-events: none; white-space: nowrap;
+  padding: 3px 8px; border-radius: 3px; font-size: 11.5px; line-height: 1.4;
+  background: var(--card); border: 1px solid var(--rule-firm); color: var(--ink-soft);
+  box-shadow: var(--rest);
+}
+.th-tip.alt { color: var(--ink); border-color: var(--ink-faint); }
+.th-tip[hidden] { display: none; }
+
+/* ── a label: the theme's title in the serif, over what it holds ── */
+
+/* the world has no width of its own, so a label is told to take its own: one line up to 340px,
+   and wrapped past it, rather than one word a line */
+.th-label {
+  position: absolute; display: flex; align-items: baseline; gap: 7px;
+  width: max-content; max-width: 340px; padding: 2px 6px 4px 2px; border-radius: 3px;
+  border-bottom: 2px solid var(--hue); cursor: grab; white-space: normal;
+  font-family: var(--serif); font-size: 17.5px; line-height: 1.28; color: var(--ink);
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
+  transition: scale .12s ease-out, rotate .16s ease-out;
+}
+.th-label.upper { font-size: 21px; letter-spacing: .005em; border-bottom-width: 3px; }
+.th-swatch { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--hue);
+  align-self: center; }
+/* On the GETs board a GET's title takes its dot and its underline in the ink, off the cases' palette,
+   so a GET never reads as a participant's colour (16 October, later), and so do the left edge of each
+   card in it, the stripe of its head in the Table and the underline of its title in the audit trail
+   (17 October, where they kept a tint that read pale blue in dark). Its frame and its cards keep its
+   tint as their wash. */
+.gets-mode .th-label { border-bottom-color: var(--ink); }
+.gets-mode .th-swatch { background: var(--ink); }
+.gets-mode .th-card.in { --th-edge: var(--ink); }
+/* the title alone, as words that wrap: its count is the badge on its frame's corner */
+.th-words { min-width: 0; overflow-wrap: anywhere; }
+.th-title { overflow-wrap: anywhere; }
+/* a label's description under its title (Adam, 21 October): a secondary heading, four fifths of the title's
+   size and lighter, so a sub-PET's reads smaller again than its PET's, the whole in the tooltip. Since 31 October
+   (Adam: "I'd rather have it wider than deeper") a label with one runs as wide as what it holds (thLabelsWiden),
+   and past that takes six lines at most, where it took two. The server's estimate, themes.label_size, takes the same */
+.th-desc {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; line-clamp: 6; overflow: hidden;
+  margin-top: 2px; font-size: .8em; line-height: 1.3; letter-spacing: 0; color: var(--ink-soft);
+}
+.th-label.described .th-swatch { align-self: flex-start; margin-top: .5em; }
+.th-label.described { align-items: flex-start; }
+.th-label.described .th-del, .th-label.described .th-arr, .th-label.described .th-noted,
+.th-label.described .th-picked { align-self: flex-start; margin-top: 2px; }
+/* the description's box under the title's while they are open, in its size */
+.th-desc-box { margin-top: 3px; font-size: .8em; line-height: 1.3; }
+/* in the Inspector, under the title in its head, the same words in a box of their own */
+.th-gdesc { display: block; width: 100%; margin: 0 0 10px; font-family: var(--serif); font-size: 15px; line-height: 1.35;
+  resize: vertical; }
+.th-gdesc-read { margin: 0 0 10px; font-family: var(--serif); font-size: 15px; line-height: 1.35; color: var(--ink-soft); }
+/* a PET's description on its card on the GETs board, two lines at most, the whole in its tooltip */
+.gt-desc {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+  margin: 2px 0 0; font-family: var(--serif); font-size: 13px; line-height: 1.3; color: var(--ink-soft);
+}
+/* the label's two small controls, which show under the pointer or with the label selected: the
+   grid that arranges what it holds, and the cross that deletes it */
+.th-del, .th-arr {
+  flex: none; align-self: center; width: 20px; height: 20px; padding: 0; margin-left: 2px;
+  display: inline-flex; align-items: center; justify-content: center; opacity: 0;
+  background: none; border: 1px solid transparent; border-radius: 3px; color: var(--ink-faint);
+  cursor: pointer; transition: opacity .14s;
+}
+.th-arr { margin-left: 0; }
+.th-del + .th-arr, .th-arr + .th-del { margin-left: -4px; }
+.th-del svg { width: 11px; height: 11px; display: block; }
+.th-arr svg { width: 12px; height: 12px; display: block; }
+.th-label:hover .th-del, .th-label.sel .th-del, .th-label:hover .th-arr, .th-label.sel .th-arr { opacity: 1; }
+.th-del:hover, .th-arr:hover { border-color: var(--rule-firm); color: var(--ink); }
+/* The "⋯" that opens what a right-click offers (16 October): on a label after its cross, showing as
+   they do, and on a selected card at its top right corner, clear of its words, as a selected note
+   carries its cross. Never while it is dragged or open for editing. */
+.th-more {
+  flex: none; align-self: center; width: 20px; height: 20px; padding: 0; margin-left: -4px;
+  display: inline-flex; align-items: center; justify-content: center; opacity: 0;
+  background: none; border: 1px solid transparent; border-radius: 3px; color: var(--ink-faint);
+  font-size: 13px; line-height: 1; cursor: pointer; transition: opacity .14s;
+}
+.th-label:hover .th-more, .th-label.sel .th-more { opacity: 1; }
+/* on a label it stands at the top right corner, clear of the title and the cross, as a card's does, so the title
+   keeps the room the server lays a label out by, LABEL_CHROME, where after the cross it took 23px of the title's
+   line and a long GET's title wrapped onto a line more than its board left it, over the cards above (17 October,
+   later) */
+.th-label .th-more {
+  position: absolute; top: -10px; right: -14px; margin: 0; border-radius: 50%;
+  background: var(--card); border-color: var(--rule-firm); color: var(--ink-soft);
+}
+.th-more:hover { border-color: var(--rule-firm); color: var(--ink); }
+.th-card .th-more {
+  position: absolute; top: -9px; right: -9px; margin: 0; display: none; opacity: 1; border-radius: 50%;
+  background: var(--card); border-color: var(--rule-firm); color: var(--ink-soft);
+}
+.th-card.sel .th-more { display: inline-flex; }
+.th-card.dragging .th-more, .th-card.editing .th-more, .th-label.dragging .th-more { display: none; }
+.th-card .th-more:hover { color: var(--ink); border-color: var(--ink-faint); }
+.th-label.sel { box-shadow: 0 0 0 2px var(--accent); }
+/* a label with quotes picked to carry it carries a small mark of them, in its tint */
+.th-picked { flex: none; align-self: center; display: inline-flex; color: var(--hue); }
+.th-picked svg { width: 13px; height: 13px; display: block; }
+/* and a label with a note a small mark of lines beside its count, drawn the same way */
+.th-noted { flex: none; align-self: center; display: inline-flex; color: var(--hue); }
+.th-noted svg { width: 13px; height: 13px; display: block; }
+.th-label.target { background: color-mix(in srgb, var(--hue) 20%, var(--paper));
+  box-shadow: 0 0 0 2px var(--hue); }
+.th-label.editing { cursor: text; z-index: 4; }
+.th-title-edit {
+  font-family: var(--serif); font-size: inherit; line-height: 1.2; color: var(--ink);
+  background: var(--card); border: 1px solid var(--field-edge); border-radius: 3px;
+  padding: 2px 6px; min-width: 0; max-width: 300px;
+}
+.th-title-edit:focus { outline: 0; border-color: var(--ink-faint); box-shadow: var(--focus); }
+.th-title-edit::placeholder { color: var(--ink-faint); font-style: italic; }
+/* a label's title open for editing: as wide as the title stood, wrapping as it wrapped, as tall as its words */
+.th-title-box { display: block; max-width: 300px; line-height: 1.28; resize: none; overflow: hidden; }
+/* The title's box and its description's lie over the label, the title's words where the title's stood: the
+   box's border and padding (1px, 2px above and below, 6px left and 2px right, TH_TITLE_INSET and TH_TITLE_RIGHT in
+   themes.js) outside the title's column, so the label keeps its size and nothing on the board moves while they are
+   open (subpetjump, 10 November). The description's box takes the description's size and leading, its words on
+   the description's line, and the label's small controls step aside while the boxes are open */
+.th-label.editing .th-words { position: relative; }
+.th-title-boxes { position: absolute; left: -7px; top: -3px; }
+.th-title-boxes .th-title-box { max-width: none; padding-right: 2px; letter-spacing: inherit; overflow-wrap: anywhere; }
+.th-title-boxes .th-desc-box { margin-top: 0; font-size: .8em; line-height: 1.3; }
+.th-label.editing .th-arr, .th-label.editing .th-del, .th-label.editing .th-more, .th-label.editing .th-noted,
+.th-label.editing .th-picked { visibility: hidden; }
+/* a statement opened on its card by a double-click: the box over the card's words, in the card's
+   serif at its size, as wide as the card and as tall as the words, the text one line that wraps */
+.th-card.editing { cursor: text; z-index: 3; }
+.th-card-edit {
+  display: block; width: calc(100% + 8px); max-width: none; margin: -3px -4px 0; padding: 2px 3px;
+  font-size: 14.5px; line-height: 1.38; resize: none; overflow: hidden;
+}
+/* the same box over the statement in the Inspector, in the Inspector's size */
+.th-panel-edit { margin: 4px -4px 2px; font-size: 18px; line-height: 1.35; }
+
+/* ── a sticky note: his words to himself, on a small slip of coloured paper ── */
+
+/* Sized to its words: as wide as they run, 64px at the least and 160px at the most, where they
+   wrap, and as tall as its lines with no square to fill and no inner scroll. A slight paper shadow
+   and no border, the words in the system's handwriting face in a dark blue ink that reads on all
+   four papers in either theme. It zooms with the rest of the world. */
+.th-sticky {
+  position: absolute; width: max-content; min-width: 64px; max-width: 160px; padding: 12px 12px 14px;
+  background: var(--sticky, var(--th-sticky-yellow)); border: 0; border-radius: 2px;
+  box-shadow: var(--th-sticky-shadow); cursor: grab;
+  font-family: var(--hand); font-size: 16px; line-height: 1.3; color: var(--th-sticky-ink);
+  transition: box-shadow .14s, scale .12s ease-out, rotate .16s ease-out;
+}
+.th-sticky-text { margin: 0; min-height: 1.3em; white-space: pre-wrap; overflow-wrap: anywhere; }
+.th-sticky.sel { box-shadow: 0 0 0 2px var(--accent), var(--th-sticky-shadow); }
+/* A note selected alone carries its four colours in a small strip just under its bottom edge, its
+   own ringed, one click to recolour it, clear of the cross on its top corner. The strip zooms with
+   the canvas, and goes while the note is dragged or its words are open. */
+.th-sticky.alone { z-index: 2; }
+.th-strip {
+  position: absolute; left: 0; top: calc(100% + 6px); display: none; align-items: center; gap: 5px;
+  padding: 4px 5px; background: var(--card); border: 1px solid var(--rule-firm); border-radius: 11px;
+  box-shadow: var(--rest); cursor: default;
+}
+.th-sticky.alone .th-strip { display: inline-flex; }
+.th-sticky.dragging .th-strip, .th-sticky.editing .th-strip { display: none; }
+.th-strip-dot {
+  flex: none; width: 14px; height: 14px; padding: 0; border-radius: 50%; cursor: pointer;
+  background: var(--sticky); border: 1px solid var(--th-sticky-edge);
+}
+.th-strip-dot.on { box-shadow: 0 0 0 1.5px var(--card), 0 0 0 3px var(--ink-soft); }
+.th-strip-dot:hover { border-color: var(--ink-faint); }
+/* the small cross a selected note carries, on its corner so it never covers a word */
+.th-sticky-del {
+  position: absolute; top: -9px; right: -9px; width: 20px; height: 20px; padding: 0;
+  display: none; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer;
+  background: var(--card); border: 1px solid var(--rule-firm); color: var(--ink-soft);
+}
+.th-sticky-del svg { width: 10px; height: 10px; display: block; }
+.th-sticky.sel .th-sticky-del { display: inline-flex; }
+.th-sticky.editing .th-sticky-del, .th-sticky.dragging .th-sticky-del { display: none; }
+.th-sticky-del:hover { color: var(--ink); border-color: var(--ink-faint); }
+/* its words open on the canvas, in its own face on its own paper: the note's own text holds them
+   unseen, a hair wider for the caret, so the note fits them as he types, and the box lies over it */
+.th-sticky.editing { cursor: text; z-index: 3; }
+.th-sticky.editing .th-sticky-text { visibility: hidden; padding-right: 2px; }
+.th-sticky-edit {
+  position: absolute; left: 12px; top: 12px; width: calc(100% - 24px); height: calc(100% - 26px);
+  display: block; max-width: none; min-width: 0; min-height: 0; margin: 0; padding: 0;
+  font-family: var(--hand); font-size: 16px; line-height: 1.3; color: var(--th-sticky-ink);
+  white-space: pre-wrap; overflow-wrap: anywhere;
+  background: transparent; border: 0; border-radius: 0; resize: none; overflow: hidden;
+}
+.th-sticky-edit:focus { border: 0; box-shadow: none; }
+/* A note lifts, leans and lands as a card does: four per cent and a deep shadow picked up, a trail
+   of 140 ms behind a label it came along with, a drop over 220 ms with an overshoot, a nudge over
+   240 ms, and none of it with reduced motion set. */
+.th-stage.th-grab .th-sticky, .th-stage.th-hand .th-sticky { cursor: grab; }
+.th-stage.th-viewing .th-sticky { cursor: default; }
+.th-sticky.dragging { pointer-events: none; scale: 1.04; }
+.th-sticky.dragging, .th-sticky.landing { box-shadow: var(--lift-high); }
+.th-sticky.trailing {
+  transition: box-shadow .14s, scale .12s ease-out, rotate .16s ease-out, translate 140ms ease-out;
+}
+.th-sticky.ease-from { transition: none; }
+.th-sticky.easing {
+  transition: translate .22s cubic-bezier(.34,1.5,.64,1), rotate .22s cubic-bezier(.34,1.5,.64,1),
+    scale .22s cubic-bezier(.34,1.5,.64,1), box-shadow .22s ease-out;
+}
+.th-sticky.nudging { transition: translate .24s cubic-bezier(.34,1.5,.64,1), box-shadow .14s; }
+.th-sticky.easing.sent {
+  transition: translate .24s cubic-bezier(.34,1.5,.64,1), rotate .22s cubic-bezier(.34,1.5,.64,1),
+    scale .22s cubic-bezier(.34,1.5,.64,1), box-shadow .22s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .th-sticky { scale: none !important; rotate: none !important; }
+}
+.th-sticky-edit::placeholder { color: color-mix(in srgb, var(--th-sticky-ink) 45%, transparent); font-style: normal; }
+
+/* every theme draws its frame, faintly, in its own tint, round its label and all it holds, and
+   the frame follows them wherever they go */
+.th-frame { --th-frame-r: 12px; position: absolute; border: 1px solid color-mix(in srgb, var(--hue) 38%, transparent);
+  border-radius: var(--th-frame-r); background: color-mix(in srgb, var(--hue) 4%, transparent);
+  transition: background .14s, border-color .14s; }
+/* Its count, the statements at any depth, in a small badge sitting on the frame's bottom edge at
+   its left corner: the small sans, not bold, in the tint as its text and outline, its corners
+   rounded as the frame's are. Half of it lies inside the frame's padding and half in the margin
+   beyond, so it never covers a card, and it never takes a click. The count's figures take the theme's
+   own tint a third of the way to the ink, 5 to 1 or more on paper in both themes, where a sub-theme's
+   lighter step and the paler tints read at 1.5 to 4.4 (17 October, later), the outline keeping the step. */
+.th-badge {
+  position: absolute; left: 12px; bottom: -8px; height: 14px; min-width: 20px; padding: 0 5px;
+  display: inline-flex; align-items: center; justify-content: center; pointer-events: none;
+  font-family: var(--sans); font-size: 10.5px; font-weight: 400; line-height: 12px; white-space: nowrap;
+  font-variant-numeric: tabular-nums; color: color-mix(in srgb, var(--hue-base, var(--hue)) 65%, var(--ink)); background: var(--paper);
+  border: 1px solid color-mix(in srgb, var(--hue) 70%, transparent); border-radius: var(--th-frame-r);
+}
+/* the theme a drop there joins */
+.th-frame.target { border: 1.5px solid var(--hue); background: color-mix(in srgb, var(--hue) 10%, transparent); }
+.th-frame.target .th-badge { bottom: -8.5px; }
+
+/* "Merge into" and the title, over the title strip a drag would merge into (18 October, Adam's choice
+   from a drawing, where until then a large Merge over a whole frame offered to merge wherever the
+   pointer was). Laid over the strip at its place, its size and its type, the strip lit in its tint a
+   step stronger than a lit label, ringed in the tint, the two words in the sans in the tint's ink and
+   the title in the serif after them. It never takes a click, and what is dragged passes over it. */
+.th-merge {
+  position: absolute; z-index: 4; pointer-events: none; box-sizing: border-box;
+  display: flex; align-items: baseline; gap: 6px; width: max-content; max-width: 340px;
+  padding: 2px 6px 4px 2px; border-radius: 3px; border-bottom: 2px solid var(--hue);
+  font-family: var(--serif); font-size: 17.5px; line-height: 1.28; color: var(--ink);
+  background: color-mix(in srgb, var(--hue) 26%, var(--paper)); box-shadow: 0 0 0 2px var(--hue);
+}
+.th-merge.upper { font-size: 21px; border-bottom-width: 3px; }
+.th-merge[hidden] { display: none; }
+.th-merge-word { flex: none; font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: .01em;
+  color: color-mix(in srgb, var(--hue-base, var(--hue)) 65%, var(--ink)); }
+.th-merge-line { min-width: 0; overflow-wrap: anywhere; }
+/* The line where a drop in a theme's body comes in its order (18 October): 3 pixels across at any
+   zoom, which the page sets, in the theme's tint at its full strength, its ends rounded, standing in
+   the gap beside the card it comes before or after, or lying across the gap between two rows. */
+.th-insert { position: absolute; z-index: 4; pointer-events: none; border-radius: 3px;
+  background: var(--hue-base, var(--hue)); box-shadow: 0 0 0 1px var(--paper); }
+.th-insert[hidden] { display: none; }
+.th-card.dragging, .th-label.dragging, .th-sticky.dragging { z-index: 5; }
+
+/* A stack (19 October, Adam's choice from the drawings): the top carries paper edges under it, one for
+   each statement stacked under it up to four, each a card's paper a step down and right with its rule,
+   and past four a small plus on the corner where the edges end,
+   and its count on its foot, "3 stacked", which shows the stack or stacks it again. Shown open, in place,
+   it has no edges: its cards stand under it a little in, each a card as any is, a rule of its tint down
+   their left from the top, and Stack again under the last. The card a drop would stack under shows an
+   outline while what is dragged is over its middle. */
+.th-card.edges-1 { --edges: 3px 3px 0 -1px var(--card), 3px 3px 0 0 var(--rule-firm); }
+.th-card.edges-2 { --edges: 3px 3px 0 -1px var(--card), 3px 3px 0 0 var(--rule-firm),
+  6px 6px 0 -1px var(--card), 6px 6px 0 0 var(--rule-firm); }
+.th-card.edges-3 { --edges: 3px 3px 0 -1px var(--card), 3px 3px 0 0 var(--rule-firm),
+  6px 6px 0 -1px var(--card), 6px 6px 0 0 var(--rule-firm), 9px 9px 0 -1px var(--card), 9px 9px 0 0 var(--rule-firm); }
+.th-card.edges-4 { --edges: 3px 3px 0 -1px var(--card), 3px 3px 0 0 var(--rule-firm),
+  6px 6px 0 -1px var(--card), 6px 6px 0 0 var(--rule-firm), 9px 9px 0 -1px var(--card), 9px 9px 0 0 var(--rule-firm),
+  12px 12px 0 -1px var(--card), 12px 12px 0 0 var(--rule-firm); }
+.th-edgemore {
+  position: absolute; right: -19px; bottom: -19px; width: 13px; height: 13px; box-sizing: border-box;
+  display: grid; place-items: center; border: 1px solid var(--rule-firm); border-radius: 50%;
+  font-family: var(--sans); font-size: 11px; font-weight: 600; line-height: 1; color: var(--ink-soft);
+  background: var(--card); pointer-events: none;
+}
+.th-stackn {
+  margin-left: auto; flex: none; padding: 0 7px; border: 1px solid var(--rule-firm); border-radius: 999px;
+  font-family: var(--sans); font-size: 10.5px; line-height: 15px; color: var(--ink-soft); background: var(--card);
+  cursor: pointer;
+}
+.th-stackn:hover { color: var(--ink); border-color: var(--ink-faint); }
+.th-mark + .th-stackn { margin-left: 0; }
+.th-card.stack-on { outline: 2px solid var(--accent); outline-offset: 4px; }
+/* over a card's middle the dragged card steps down and right of the pointer, smaller, so the card it would stack under shows its outline (drawing B) */
+.th-card.dragging.over-stack { transform: translate(46%, 52%) scale(.88); box-shadow: var(--lift-high); }
+.th-card.th-under { width: 186px; }
+.th-stackrail { position: absolute; width: 2px; border-radius: 1px; pointer-events: none;
+  background: color-mix(in srgb, var(--hue, var(--rule-firm)) 60%, var(--rule-firm)); }
+.th-restack {
+  position: absolute; margin: 0; padding: 1px 10px 2px; border: 1px solid var(--rule-firm); border-radius: 999px;
+  font-family: var(--sans); font-size: 11.5px; line-height: 17px; color: var(--ink-soft); background: var(--card);
+  cursor: pointer; white-space: nowrap;
+}
+.th-restack:hover { color: var(--ink); border-color: var(--ink-faint); }
+
+/* the lasso, in the screen's own units over the canvas */
+.th-lasso { position: absolute; pointer-events: none; border: 1px dashed var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, transparent); border-radius: 2px; }
+
+/* ── the corners: the discard pile, bottom left, and the zoom, bottom right ── */
+
+.th-ui { position: absolute; z-index: 5; }
+.th-ui:focus, .th-ui button:focus { outline: 0; }
+.th-discard:focus-visible, .th-zoomer button:focus-visible { box-shadow: var(--focus); }
+
+/* The bin, in the app's line style, with the word under it and its count on it: drop cards on it
+   the way a Mac takes a file to its bin. It wakes when a drag starts, and its lid lifts when what
+   is dragged is over it. */
+.th-discard {
+  left: var(--gutter); bottom: var(--gutter);
+  display: inline-flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 10px 7px;
+  background: color-mix(in srgb, var(--card) 86%, transparent); border: 1px solid transparent; border-radius: 10px;
+  color: var(--ink-faint); cursor: pointer;
+  transition: background .14s, border-color .14s, color .14s, transform .14s;
+}
+.th-bin { position: relative; display: block; width: 46px; height: 46px; }
+.th-bin svg { width: 46px; height: 46px; display: block; overflow: visible; }
+.th-bin-lid { transform-box: fill-box; transform-origin: 0% 100%; transition: transform .16s; }
+/* the word in the soft ink at rest too, the empty bin's drawing alone in the faint ink, so Discard reads at 4.5
+   to 1 or more in the shots in both themes, where at rest the faint ink read at 3.5 to 3.6 (17 October, later) */
+.th-bin-word { font-size: 11px; letter-spacing: .02em; color: var(--ink-soft); }
+.th-discard.over .th-bin-word { color: inherit; }
+/* the count in the ink while the pile holds anything, as below, and never fainter than the soft ink */
+.th-pile-count {
+  position: absolute; right: -6px; top: 6px; min-width: 18px; height: 18px; padding: 0 5px;
+  display: inline-flex; align-items: center; justify-content: center; border-radius: 9px;
+  font-family: var(--mono); font-size: 10.5px; font-variant-numeric: tabular-nums; line-height: 1;
+  background: var(--card); border: 1px solid var(--rule-firm); color: var(--ink-soft);
+}
+/* no count on the bin while the pile is empty, as no count of nothing is said on the bars (17 October) */
+.th-pile-count[hidden] { display: none; }
+.th-discard:hover, .th-discard.has { color: var(--ink-soft); }
+.th-discard:hover { border-color: var(--rule-firm); }
+.th-discard.has .th-pile-count { color: var(--ink); border-color: var(--ink-faint); }
+.th-discard.armed { border: 1px dashed var(--ink-faint); color: var(--ink-soft); transform: scale(1.06); }
+.th-discard.over { background: var(--paper-sunk); border: 1px solid var(--ink); color: var(--ink); transform: scale(1.12); }
+.th-discard.over .th-bin-lid { transform: rotate(-16deg) translateY(-2px); }
+
+.th-pile {
+  left: var(--gutter); bottom: calc(var(--gutter) + 92px);
+  width: min(360px, calc(100% - 2 * var(--gutter))); max-height: min(60vh, calc(100% - 90px));
+  overflow-y: auto; overscroll-behavior: contain;
+  background: var(--card); border: 1px solid var(--rule-firm); border-radius: 5px;
+  box-shadow: var(--lift); padding: 16px 16px 12px; animation: rise .16s cubic-bezier(.2,.7,.3,1) both;
+}
+.th-pile .card-close { top: 6px; right: 6px; width: 30px; height: 30px; }
+.th-pile .card-close svg { width: 14px; height: 14px; }
+.th-pile-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.th-pile-list li { border-top: 1px solid var(--rule); padding: 8px 2px 7px; }
+.th-pile-text { font-family: var(--serif); font-size: 14px; line-height: 1.4; color: var(--ink-soft); }
+/* why an AI proposal discarded it, when it said, in the small type under the statement */
+.th-pile-why { margin-top: 3px; font-size: 11.5px; line-height: 1.4; color: var(--ink-faint); }
+/* the reason under a card an AI left out of every PET or GET, in the pile's small type, two lines at
+   most, the whole of it in the card's tooltip and the Inspector */
+.th-card-why {
+  margin-bottom: 0; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.th-pile-foot { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.th-pile-foot button { margin-left: auto; }
+.th-pile-empty { font-size: 12.5px; color: var(--ink-faint); margin: 0 0 6px; }
+
+.th-zoomer {
+  right: var(--gutter); bottom: var(--gutter); display: flex; align-items: center; gap: 2px;
+  background: var(--card); border: 1px solid var(--rule-firm); border-radius: 4px; padding: 3px;
+}
+.th-zoomer button {
+  background: none; border: 1px solid transparent; border-radius: 3px; height: 28px; min-width: 28px;
+  padding: 0 7px; cursor: pointer; color: var(--ink-soft); font-size: 12px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+.th-zoomer button:hover { border-color: var(--rule-firm); color: var(--ink); background: var(--paper-sunk); }
+.th-zoomer svg { width: 15px; height: 15px; display: block; }
+#th-zoom-level { font-family: var(--mono); font-size: 11px; min-width: 48px; font-variant-numeric: tabular-nums; }
+/* the pointer and the hand, the one on drawn pressed in */
+.th-zoomer .th-mode { min-width: 28px; padding: 0 6px; }
+.th-zoomer .th-mode svg { width: 15px; height: 15px; }
+.th-zoomer .th-mode.on { background: var(--paper-sunk); border-color: var(--rule-firm); color: var(--ink); }
+.th-zoom-sep { width: 1px; height: 16px; background: var(--rule); margin: 0 2px; }
+/* The zoom bar, the shortcuts at its end, keeps clear of the bin however narrow the canvas gets with
+   the sidebars open beside it (see thCorners): its words never wrap, in a canvas too narrow for both
+   side by side the words Fit all go, and in one narrower still the bar stands over the bin, wrapping
+   onto a second row where one will not hold it, and the pile opens over the bar. */
+.th-zoomer { white-space: nowrap; }
+.th-stage.th-tight .th-zoomer .th-fit-word { display: none; }
+.th-stage.th-tighter .th-zoomer {
+  bottom: calc(var(--gutter) + var(--th-bin-up, 92px));
+  flex-wrap: wrap; justify-content: flex-end; max-width: calc(100% - 2 * var(--gutter));
+}
+.th-stage.th-tighter .th-pile {
+  bottom: calc(var(--gutter) + var(--th-bin-up, 92px) + var(--th-zoom-up, 44px));
+  max-height: calc(100% - 2 * var(--gutter) - var(--th-bin-up, 92px) - var(--th-zoom-up, 44px));
+}
+
+/* The status bar (Adam, 19 October, A of the drawings): the zoom bar laid along the canvas's whole foot as
+   Excel's and Photoshop's status bars are, on the card's paper under a fine rule, the board's counts at its
+   left, each number in the mono face so it holds still as it changes, and the tools at its right in their
+   order, the pointer and the hand, the zoom, Fit all, the map's button and Shortcuts. The bin, the map and
+   the pile stand above it. Off, the bar is the floating zoom bar of before at the bottom right, its counts
+   gone and Shortcuts at its end. */
+.th-status-counts { display: none; }
+.th-zoomer .th-help { font-weight: 600; }
+.th-help-word { font-weight: 400; }
+.th-stage:not(.th-status-on) .th-help-word, .th-stage.th-status-short .th-help-word,
+.th-stage.th-status-short .th-zoomer .th-fit-word { display: none; }
+.th-stage.th-status-on .th-zoomer {
+  left: 0; right: 0; bottom: 0; border-width: 1px 0 0; border-radius: 0; padding: 2px 10px 2px 14px; gap: 1px;
+  background: var(--card); z-index: 6;
+}
+.th-stage.th-status-on .th-zoomer button { height: 24px; }
+.th-stage.th-status-on .th-status-counts {
+  display: flex; align-items: center; flex: 1 0 auto; margin-right: 12px; overflow: hidden;
+  font-size: 12px; color: var(--ink-soft); white-space: nowrap; cursor: default;
+}
+.th-stat + .th-stat { margin-left: 12px; padding-left: 12px; border-left: 1px solid var(--rule); }
+.th-stat-n { font-family: var(--mono); font-size: 11.5px; color: var(--ink); font-variant-numeric: tabular-nums; }
+/* Where the bar runs short it gives way in the order Adam set on 26 October 2026, the counts last, so at 1280 the
+   bar always says the whole sentence, "122 ES: 118 in PETs, 0 stacked, 2 set aside, 2 not placed | 5 PETs", beside
+   Canvas and Table. First the tools' words go, Fit all, Minimap, Quotes, Notes and Shortcuts standing as icons
+   with their words as tooltips (th-status-short, above and with .th-btn-word). Then any count he ticked beyond the
+   total and its parts, how many are selected and the close pairs (th-status-opt). Then the spacing closes up
+   (th-status-shortest), then the tools themselves go, the pointer and the hand, the minimap's button and Shortcuts
+   (th-status-shorter), the zoom's minus and plus and the pairs' steps (th-status-tiny), then Quotes, Notes and
+   Close pairs (th-status-lean). Only then do the counts go, the PETs first (th-status-trim), and in a canvas
+   narrower than the app's smallest window the total with every part but In PETs and Not placed
+   (th-status-least), so no total ever stands over parts that do not reach it, and last In PETs (th-status-bare).
+   Canvas and Table never go. Each part carries its own comma, so a part gone takes its comma with it */
+.th-stage.th-status-opt .th-stat[data-stat="selected"], .th-stage.th-status-opt .th-stat[data-stat="close"] { display: none; }
+.th-stage.th-status-shorter .th-zoomer .th-mode, .th-stage.th-status-shorter .th-zoomer .th-mode + .th-zoom-sep,
+.th-stage.th-status-shorter .th-zoomer .th-map-sep, .th-stage.th-status-shorter .th-zoomer .th-map-btn,
+.th-stage.th-status-shorter .th-zoomer .th-help-sep, .th-stage.th-status-shorter .th-zoomer .th-help { display: none; }
+.th-stage.th-status-lean .th-zoomer .th-quotes-btn, .th-stage.th-status-lean .th-zoomer .th-notes-btn,
+.th-stage.th-status-lean .th-zoomer .th-close-btn { display: none; }
+.th-stage.th-status-trim .th-stat[data-stat="pets"] { display: none; }
+.th-stage.th-status-least .th-stat-total, .th-stage.th-status-least .th-part:not([data-stat="placed"], [data-stat="unplaced"]) { display: none; }
+.th-stage.th-status-least .th-stat-sum:not(:has(.th-part[data-stat="placed"])) .th-part[data-stat="unplaced"] .th-sep { display: none; }
+.th-stage.th-status-least .th-stat-unit { text-transform: capitalize; }
+.th-stage.th-status-bare .th-part[data-stat="placed"], .th-stage.th-status-bare .th-part[data-stat="unplaced"] .th-sep { display: none; }
+/* the icons never shrink, nor the buttons, where they had been squeezed to nothing beside their words, and the
+   counts never shrink, so no word is ever cut and a bar too full overflows and gives way a step at a time */
+.th-stage.th-status-on .th-zoomer > button, .th-stage.th-status-on .th-zoomer button > svg { flex-shrink: 0; }
+.th-stage.th-status-shortest.th-status-on .th-zoomer { padding: 2px 4px 2px 10px; }
+.th-stage.th-status-shortest .th-status-counts { margin-right: 4px; }
+.th-stage.th-status-shortest .th-stat + .th-stat { margin-left: 8px; padding-left: 8px; }
+.th-stage.th-status-shortest #th-zoom-level { min-width: 40px; }
+.th-stage.th-status-shortest.th-status-on .th-zoomer button { min-width: 26px; padding: 0 5px; }
+.th-stage.th-status-on .th-discard { bottom: calc(var(--gutter) + var(--th-status-h, 0px)); }
+.th-stage.th-status-on .th-map { bottom: calc(var(--th-status-h, 0px) + 8px); }
+.th-stage.th-status-on .th-pile { bottom: calc(var(--gutter) + var(--th-status-h, 0px) + var(--th-bin-up, 92px)); }
+
+/* The toolbar (Adam, 21 October, the toolbar drawings), the palette of 19 October grown into one toolbar
+   in two places. Docked, its place by default, it runs along #th-dock under the research question, the
+   band's paper and rule, each tool its icon and its word in a row, the grip's six dots at its left end and
+   Undo and Redo pushed to its right end. Floating, pulled off by the grip, it stands on the canvas in a
+   column on the card's paper with a firm edge and a menu's lift, so cards pass under it on a pan, the
+   same tools with the same words. Align's six and Spread's two are faint until cards are selected. While
+   cards are dragged it goes faint and lets the pointer through, so a drop over it lands on the board. */
+.th-dock { position: relative; z-index: 2; flex: none; display: flex; align-items: center; min-width: 0;
+  padding: 3px var(--gutter) 3px calc(var(--gutter) - 8px); background: var(--paper); border-bottom: 1px solid var(--rule); }
+.th-dock[hidden] { display: none; }
+.th-palette {
+  display: flex; flex-direction: column; align-items: stretch; gap: 1px; width: max-content; box-sizing: border-box;
+  padding: 2px 5px 6px; background: var(--card); border: 1px solid var(--rule-firm); border-radius: 8px;
+  box-shadow: var(--lift); transition: opacity .14s;
+}
+.th-palette.docked {
+  position: static; flex: 1 1 auto; flex-direction: row; align-items: center; gap: 1px; width: auto; min-width: 0;
+  padding: 0; background: none; border: 0; border-radius: 0; box-shadow: none; overflow: hidden;
+}
+.th-palette-grip {
+  display: flex; align-items: center; justify-content: center; flex: none; height: 16px; color: var(--ink-faint);
+  cursor: grab; touch-action: none;
+}
+.th-palette-grip svg { width: 18px; height: 9px; display: block; }
+.th-palette.docked .th-palette-grip { width: 24px; height: 32px; margin-right: 2px; }
+.th-palette.docked .th-palette-grip svg { transform: rotate(90deg); }
+.th-palette-grip:hover { color: var(--ink-soft); }
+.th-palette.moving, .th-palette.moving .th-palette-grip { cursor: grabbing; }
+.th-palette.moving { box-shadow: var(--lift), 0 6px 18px color-mix(in srgb, var(--ink) 14%, transparent); }
+.th-pal-btn {
+  display: inline-flex; align-items: center; justify-content: flex-start; gap: 5px; flex: none; height: 30px;
+  padding: 0 7px 0 5px; background: none; border: 1px solid transparent; border-radius: 5px; color: var(--ink-soft);
+  font-family: var(--sans); font-size: 13px; white-space: nowrap; cursor: pointer;
+}
+.th-palette.docked .th-pal-btn { height: 32px; }
+.th-pal-btn svg { width: 18px; height: 18px; display: block; flex: none; }
+.th-pal-btn:hover:not(:disabled) { background: var(--paper-sunk); border-color: var(--rule-firm); color: var(--ink); }
+.th-pal-btn:focus-visible { box-shadow: var(--focus); }
+.th-pal-btn:disabled { color: var(--ink-faint); opacity: .7; cursor: default; }
+.th-pal-btn[aria-expanded="true"] { background: var(--paper-sunk); border-color: var(--rule-firm); color: var(--ink); }
+.th-pal-split { display: flex; align-items: center; }
+.th-pal-split .th-pal-arrange { flex: 1 1 auto; border-top-right-radius: 0; border-bottom-right-radius: 0; padding-right: 4px; }
+.th-pal-split .th-pal-way { width: 22px; padding: 0; justify-content: center; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.th-pal-split .th-pal-way svg { width: 14px; height: 14px; }
+.th-pal-set { display: flex; flex-direction: column; align-items: stretch; gap: 1px; }
+.th-palette.docked .th-pal-set { flex-direction: row; align-items: center; gap: 1px; }
+.th-pal-head { padding: 7px 8px 2px; font-family: var(--sans); font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
+.th-palette.docked .th-pal-head { padding: 0 3px 0 2px; font-size: 13px; }
+.th-pal-space { display: none; }
+.th-palette.docked .th-pal-space { display: block; flex: none; width: 6px; }
+.th-pal-gap { display: none; }
+.th-palette.docked .th-pal-gap { display: block; flex: 1 1 0; min-width: 8px; }
+.th-palette-rule { flex: none; height: 1px; background: var(--rule); margin: 4px 4px; }
+.th-palette.docked .th-palette-rule { width: 1px; height: 22px; margin: 0 5px; }
+.th-palette.docked .th-pal-end { display: none; }
+/* the dots that hold Align and Spread, always on the docked bar (option B) and where the floating column is too short */
+.th-pal-more { display: none; }
+.th-palette.fold .th-pal-fits { display: none; }
+.th-palette.fold .th-pal-more { display: inline-flex; justify-content: center; }
+/* a narrower bar gives way: Select all loses its word, then Align and Spread theirs, then every word goes */
+.th-palette.terse .th-pal-fits .th-pal-word, .th-palette.terse .th-pal-head, .th-palette.snug #th-selall .th-pal-word,
+.th-palette.bare .th-pal-word, .th-palette.bare .th-pal-head { display: none; }
+.th-palette.bare .th-pal-btn:not(.th-pal-way), .th-palette.terse .th-pal-fits .th-pal-btn { padding: 0 7px; }
+.th-palette.bare .th-pal-split .th-pal-arrange { padding-right: 2px; }
+.th-stage:has(.th-discard.armed) .th-palette { opacity: .3; pointer-events: none; }
+/* where the floating toolbar docks again: a dashed slot across the top of the canvas while its grip is
+   dragged, firmer when letting go there would dock it */
+.th-dock-slot { left: 10px; right: 10px; top: 6px; height: 36px; box-sizing: border-box; pointer-events: none;
+  border: 1.5px dashed var(--ink-faint); border-radius: 6px; background: color-mix(in srgb, var(--paper-sunk) 70%, transparent); }
+.th-dock-slot[hidden] { display: none; }
+.th-dock-slot.near { border-color: var(--ink-soft); background: var(--paper-sunk); }
+/* Auto-arrange's ways and the dots' Align and Spread, menus under the toolbar's button */
+.th-tbmenu .th-tbicon { display: inline-flex; flex: none; margin-right: 10px; color: var(--ink-soft); }
+.th-tbmenu .th-tbicon svg { width: 16px; height: 16px; display: block; }
+.th-tbmenu button:disabled { color: var(--ink-faint); }
+.th-tbmenu .th-cmenu-head { padding-bottom: 2px; }
+.th-tbmenu button.ghost { display: flex; align-items: center; }
+/* a row that opens more beside the menu, Align and More colours: its chevron at the right, the row held
+   lit while what it opened shows */
+.row-menu .th-mkey.th-msub { font-family: var(--sans); font-size: 15px; line-height: 1; }
+.row-menu button.th-msubon, .row-menu button[aria-expanded="true"] { background: var(--paper-sunk); border-color: var(--rule-firm); }
+.gt-colours button.gt-more { display: flex; align-items: center; }
+
+/* The board's minimap (18 October, Adam's yes of 17 October), Miro's and tldraw's way: a card 8 pixels
+   above the zoom bar at the canvas's bottom right, the bar's width, which thMapPlace sets, and 160 pixels
+   high, on the card's paper, edge, corners and lift as the transcript's minimap stands, over the bar
+   still where the bar stands over the bin. Each card on the board is a small rectangle in its PET's
+   tint, the theme's own at its whole strength however deep the card sits, and on GETs in its
+   participant's colour, a card in no PET in the faint ink at four fifths, as the transcript's blocks
+   are, each sticky note its own paper inside a fine edge of the faint ink, and every frame an outline in its tint, a
+   sub-theme's a step lighter as on the canvas. The part in view is clear inside a solid line of the ink,
+   the rest of the map dimmed, as on the transcript's card. It fades in and out as the transcript's card
+   does, taking no pointer while it does not show, and with Off, and at 767 pixels of window and below,
+   the map and its button go. The bin, the pile and the export's line stand after it, so each opens over it. */
+.th-map {
+  right: var(--gutter); bottom: calc(var(--gutter) + var(--th-zoom-up, 44px));
+  width: var(--th-map-w, 300px); height: 160px; box-sizing: border-box; padding: 4px;
+  background: var(--card); border: 1px solid var(--rule-firm); border-radius: var(--r-card); box-shadow: var(--rest);
+  transition: opacity .35s, visibility .35s;
+}
+.th-map.shut { opacity: 0; visibility: hidden; pointer-events: none; }
+.th-stage.th-tighter .th-map { bottom: calc(var(--gutter) + var(--th-bin-up, 92px) + var(--th-zoom-up, 44px)); }
+.th-stage.th-map-off .th-map, .th-stage.th-map-off .th-zoomer .th-map-sep, .th-stage.th-map-off .th-zoomer .th-map-btn { display: none; }
+.th-map-area {
+  position: relative; width: 100%; height: 100%; overflow: hidden;
+  cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.th-map-items { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none; }
+.th-map-items i { position: absolute; display: block; box-sizing: border-box; }
+.tm-frame { border: 1px solid var(--hue); border-radius: var(--r-tag); }
+.tm-sticky { background: var(--sticky); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink-faint) 70%, transparent); }
+.tm-card { border-radius: 1px; background: color-mix(in srgb, var(--ink-faint) 80%, transparent); }
+.tm-card.in { background: var(--hue-base); }
+.tm-card.tm-case { background: var(--case); }
+.tm-card.missing { opacity: .45; }
+/* The part in view as the transcript's minimap draws it since Adam chose its look on 18 October: clear inside
+   a solid line of the ink 2 pixels thick, near white in dark, the map outside it dimmed by the card's paper
+   laid over it, `--dim`, the line the box's inset shadow and the dimming a spread of 600 pixels the area's
+   overflow keeps on the map, a light wash of the ink under the pointer. Until 18 October it was a wash of
+   the ink with a quiet edge, which after Fit all covered the whole map and said nothing of where the view
+   was (see thMapAround). */
+.th-map-view {
+  position: absolute; display: block; box-sizing: border-box; cursor: grab;
+  box-shadow: inset 0 0 0 2px var(--ink), 0 0 0 600px var(--dim); border-radius: var(--r-tag);
+  transition: background-color var(--quick);
+}
+.th-map-view[hidden] { display: none; }
+.th-map-area:hover .th-map-view { background-color: color-mix(in srgb, var(--ink) 8%, transparent); }
+.th-map-area.dragging, .th-map-area.dragging .th-map-view { cursor: grabbing; }
+/* its button at the end of the zoom bar pressed in while the map shows, on the sunk paper inside the firm edge
+   in the ink, as the bar's Pointer and Hand show the one in use, where until 18 October the ink alone against
+   the soft ink of the others read as not pressed */
+.th-zoomer .th-map-btn[aria-pressed="true"] { background: var(--paper-sunk); border-color: var(--rule-firm); color: var(--ink); }
+/* Key quotes on cards (Adam, 19 October, about 20:55), its button among the view tools pressed in the same way
+   while the quotes show */
+.th-zoomer .th-quotes-btn[aria-pressed="true"] { background: var(--paper-sunk); border-color: var(--rule-firm); color: var(--ink); }
+/* and its mark after the word since 30 October: two lines for Short, four for Full, its room kept at Off so a
+   click never moves the tools beside it from under the pointer */
+.th-zoomer .th-quotes-mark { display: inline-flex; flex: none; margin-left: -2px; }
+.th-zoomer .th-quotes-mark svg { width: 8px; height: 12px; }
+.th-zoomer .th-quotes-btn[data-quotes="off"] .th-quotes-mark { visibility: hidden; }
+.th-zoomer .th-quotes-btn:not([data-quotes="full"]) .th-qm-full, .th-zoomer .th-quotes-btn[data-quotes="full"] .th-qm-short { display: none; }
+.th-qmenu .th-qway.on { color: var(--ink); font-weight: 600; }
+/* Notes on cards (20 October), on the GETs board alone, pressed in the same way while the notes show */
+.th-zoomer .th-notes-btn[aria-pressed="true"] { background: var(--paper-sunk); border-color: var(--rule-firm); color: var(--ink); }
+.th-zoomer .th-notes-btn[hidden] { display: none; }
+/* The words beside the minimap's, the quotes' and the notes' icons (Adam, 20 October, from a tester's feedback),
+   on the status bar, which go first as the bar runs short, as Fit all and Shortcuts do, the icon staying */
+.th-btn-word { font-weight: 400; }
+.th-stage:not(.th-status-on) .th-btn-word, .th-stage.th-status-short .th-btn-word { display: none; }
+@media (max-width: 767px) {
+  .th-stage .th-map, .th-zoomer .th-map-sep, .th-zoomer .th-map-btn { display: none; }
+}
+
+/* what an export wrote, in the top right of the canvas, until it is closed */
+.th-exported {
+  right: var(--gutter); top: var(--gutter); width: min(380px, calc(100% - 2 * var(--gutter)));
+  background: var(--card); border: 1px solid var(--rule-firm); border-radius: 5px; box-shadow: var(--lift);
+  padding: 12px 40px 12px 14px; animation: rise .16s cubic-bezier(.2,.7,.3,1) both;
+}
+.th-exported .card-close { top: 4px; right: 4px; width: 28px; height: 28px; }
+.th-exported .card-close svg { width: 13px; height: 13px; }
+.th-exported-head { margin: 0 0 6px; font-size: 12.5px; color: var(--ink); }
+.th-exported-files { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 3px; }
+.th-exported-files li { font-size: 11px; line-height: 1.4; color: var(--ink-soft); overflow-wrap: anywhere; }
+/* the one-time line after the first Word export of PETs (supportcard), under a thin rule, its link kept whole */
+.th-once { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--rule); font-size: 13px; line-height: 1.5;
+  color: var(--ink-soft); }
+.th-once a { color: inherit; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+
+/* ─────────────────────────────────────────────────────── the boards ── */
+
+/* the switcher is the board's name with no box of its own and a small chevron after it, the way
+   the sheet switcher is drawn on the turn screen */
+.th-vpick {
+  position: relative; flex: 0 .01 auto; min-width: 0; display: inline-flex; align-items: center;
+  background: none; border: 0; border-radius: 3px; margin: 0; padding: 2px 15px 2px 0;
+  font: inherit; font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; cursor: pointer;
+}
+.th-vpick:hover, .th-vpick[aria-expanded="true"] { color: var(--ink); }
+.th-vpick:hover .sheet-chevron, .th-vpick[aria-expanded="true"] .sheet-chevron { color: var(--ink); }
+.th-vpick:focus-visible { outline: 0; box-shadow: var(--focus); }
+.th-vname { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* the switcher keeps room for a letter of the name, its ellipsis and its chevron, the ribbon too when it
+   shows, so the name is never run under the chevron (17 October, as the name keeps its own) */
+#themes .th-vpick { min-width: calc(1.8em + 15px); }
+#themes .th-vpick:has(.th-vchosen:not([hidden])) { min-width: calc(1.8em + 31px); }
+/* the Current board's mark, a small ribbon, beside the name in the switcher, and in the menu after
+   the name with the word Current in the small type */
+.th-vchosen { flex: none; display: inline-flex; align-items: center; gap: 4px; margin-left: 5px; color: var(--ink-soft); }
+.th-vchosen[hidden] { display: none; }
+.th-vchosen svg { width: 11px; height: 11px; display: block; }
+.th-vline { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 2px; min-width: 0; }
+.th-vline .th-vchosen { align-self: center; }
+.th-vchosen-word { font-size: 10.5px; letter-spacing: .06em; color: var(--ink-faint); }
+/* "with AI" after the name of a board an AI made, small and faint, its tooltip naming the model and
+   the source */
+.th-withai { flex: none; margin-left: 6px; font-size: 10.5px; letter-spacing: .02em; color: var(--ink-faint);
+  font-weight: 400; white-space: nowrap; }
+/* "Yours" after the name of a reviewer's own board of a participant someone else works on (team_board.js,
+   ownboards), as "with AI" is said */
+.th-vown { flex: none; margin-left: 6px; font-size: 10.5px; letter-spacing: .02em; color: var(--ink-faint);
+  font-weight: 400; white-space: nowrap; }
+
+/* the menu, in the row menu's paper: every board with its note, then what a board can do */
+.th-vmenu {
+  position: fixed; z-index: 50; width: min(20em, calc(100vw - 16px));
+  max-height: calc(100vh - 70px); overflow-y: auto; overscroll-behavior: contain;
+}
+.th-vhead { margin: 6px 8px 4px; }
+/* the board on the canvas names its group of entries, on one line */
+.th-vscope { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.th-vmenu .th-vitem { display: flex; align-items: flex-start; gap: 8px; width: 100%; text-align: left;
+  padding: 7px 10px 7px 6px; border-radius: 3px; }
+.th-vmenu button.ghost.th-vitem { white-space: normal; }
+.th-vcheck { flex: none; width: 14px; height: 18px; display: inline-flex; align-items: center; color: var(--ink); }
+.th-vcheck svg { width: 12px; height: 12px; display: block; }
+.th-vtext { display: grid; gap: 2px; min-width: 0; flex: 1 1 auto; }
+.th-vlabel { font-family: var(--serif); font-size: 15px; line-height: 1.3; color: var(--ink-soft);
+  overflow-wrap: anywhere; }
+.th-vitem.on .th-vlabel { color: var(--ink); }
+/* every note, the current one's too, stops at two lines, with the whole of it in its tooltip and in
+   Edit the note */
+.th-vnote { font-size: 12px; line-height: 1.45; color: var(--ink-faint); white-space: pre-line;
+  overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; }
+.th-vitem.on .th-vnote { color: var(--ink-soft); }
+.th-vedit {
+  width: 100%; background: var(--paper); border: 1px solid var(--field-edge); border-radius: 3px;
+  padding: 5px 8px; font-size: 13px; line-height: 1.45; color: var(--ink);
+}
+input.th-vedit { font-family: var(--serif); font-size: 15px; }
+textarea.th-vedit { resize: vertical; min-height: 4.4em; margin-top: 4px; }
+.th-vedit:focus { outline: 0; border-color: var(--ink-faint); box-shadow: var(--focus); }
+.th-vedit::placeholder { color: var(--ink-faint); font-style: italic; }
+.th-vmenu button.ghost:disabled { opacity: .45; cursor: default; background: none; border-color: transparent; }
+/* New AI board carries the sparkles, the one AI act in the menu */
+.th-vmenu button.th-vai .btn-icon { width: 14px; height: 14px; }
+/* the menu's line when an act on a board could not go ahead, in the one warning tint as every failure line is,
+   where it stood in the crux orange (17 October, later) */
+.th-vsaid { margin: 4px 8px 6px; font-size: 12px; line-height: 1.45; color: var(--amber); }
+/* the PETs marked complete, on the row of the board it was marked on: a small tick in the app's
+   green, PETs complete and the date, in the small type */
+.th-vdone { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; line-height: 1.45; color: var(--ink-soft); }
+.th-vdone svg { width: 11px; height: 11px; flex: none; color: var(--good); }
+.th-vdone-date { color: var(--ink-faint); }
+
+/* ──────────────────────────────────────────────────────── the cases ── */
+
+/* the participant picker sits in the PETs tab since 20 October (see .ds-who in style.css), and GETs, the
+   project's, holds none */
+#themes.gets-mode:not(.lpets-mode) #th-cases { display: none; }
+/* its menu: each case with the board it opens on, and Open as table at its right */
+.th-casemenu { width: min(24em, calc(100vw - 16px)); }
+.th-crow { display: flex; align-items: flex-start; gap: 4px; }
+.th-vmenu .th-crow .th-vitem { flex: 1 1 auto; width: auto; min-width: 0; }
+.th-vmenu button.ghost.th-ctable { flex: none; margin-top: 4px; font-size: 12px; white-space: nowrap; }
+
+/* the right-click menu on a card or a label, the row menu's paper at the pointer */
+.th-cmenu { position: fixed; z-index: 60; max-width: calc(100vw - 16px); }
+.th-cmenu button:disabled { opacity: .45; cursor: default; background: none; border-color: transparent; }
+/* a sticky note's colours in its menu, each a dot of its paper, the one it has ticked */
+.th-cmenu .th-dot { flex: none; width: 12px; height: 12px; margin-right: 8px; border-radius: 50%;
+  background: var(--sticky); box-shadow: inset 0 0 0 1px var(--th-sticky-edge); }
+.th-dot-on { display: inline-flex; margin-left: auto; padding-left: 14px; color: var(--ink-soft); }
+.th-dot-on svg { width: 12px; height: 12px; display: block; }
+/* Copy to board, chosen: the boards the theme can go to, under a line naming it */
+.th-cmenu-head { margin: 4px 10px 6px; max-width: 22em; font-size: 11.5px; line-height: 1.4;
+  color: var(--ink-faint); overflow-wrap: anywhere; }
+/* Save a revision, open in the board menu: a box for its name and Save beside it */
+.th-vrev { display: flex; align-items: center; gap: 6px; padding: 4px 6px; }
+.th-vrev .th-vedit { flex: 1 1 auto; min-width: 0; font-family: var(--sans); font-size: 13px; }
+
+/* ──────────────────────────────────────────────── a revision on view ── */
+
+/* The canvas dimmed and read-only under a line at its top, "Viewing the revision of 12:04", with
+   Restore and Back. Nothing on it moves, so the cards keep the arrow. */
+.th-stage.th-viewing .th-world { opacity: .55; filter: saturate(.55); }
+.th-stage.th-viewing .th-card, .th-stage.th-viewing .th-label { cursor: default; }
+/* centred by its margins rather than a transform, which the rise it comes in on undoes */
+.th-revbar {
+  left: 0; right: 0; top: var(--gutter); margin: 0 auto; width: max-content;
+  max-width: calc(100% - 2 * var(--gutter)); box-sizing: border-box;
+  display: flex; align-items: baseline; gap: 8px; padding: 7px 14px; white-space: nowrap;
+  background: var(--card); border: 1px solid var(--rule-firm); border-radius: 18px; box-shadow: var(--lift);
+  font-size: 12.5px; color: var(--ink); animation: rise .16s cubic-bezier(.2,.7,.3,1) both;
+}
+.th-revbar[hidden] { display: none; }
+.th-revbar-line { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.th-revbar-sep { color: var(--ink-faint); }
+.th-revbar-btn {
+  background: none; border: 0; padding: 0; font: inherit; color: var(--ink-soft); cursor: pointer;
+  text-decoration: underline; text-decoration-color: var(--rule-firm); text-underline-offset: 2px;
+}
+.th-revbar-btn:hover { color: var(--ink); text-decoration-color: currentColor; }
+
+/* The shortcuts card over this screen: the PETs keys alone, and the general rows that still
+   apply, and over the turn screen every group but those general rows */
+#help.on-themes .help-turn { display: none; }
+#help.on-themes .help-themes-head { margin-top: 6px; }
+#help:not(.on-themes) .help-themes { display: none; }
+#help:not(.on-gets) .help-gets { display: none; }
+#help.on-gets .help-pets { display: none; }
+
+/* ──────────────────────────────────────────────────── the AI's help ── */
+
+/* New AI board's card, from the board menu, in the trim card's style: its title, one line of small
+   type, the hint box the card's width, the stepper under it, and Make and Cancel. */
+#th-aicard .card { width: min(460px, 100%); }
+#th-aicard h2 { overflow-wrap: anywhere; }
+.th-aicard-line { margin: 0 0 16px; }
+.th-ai-hint {
+  display: block; width: 100%; padding: 7px 10px; font: inherit; font-size: 13.5px;
+  color: var(--ink); background: var(--paper); border: 1px solid var(--rule-firm); border-radius: 3px;
+}
+.th-ai-hint:focus { outline: 0; border-color: var(--ink-faint); box-shadow: var(--focus); }
+.th-ai-hint::placeholder { color: var(--ink-faint); font-style: italic; }
+.th-cap { display: flex; align-items: center; gap: 2px; margin-top: 12px; font-size: 12.5px;
+  color: var(--ink-soft); white-space: nowrap; }
+.th-cap-btn {
+  width: 24px; height: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: 1px solid var(--rule-firm); border-radius: 3px; color: var(--ink-soft);
+  font-size: 13px; line-height: 1; cursor: pointer;
+}
+.th-cap-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
+.th-cap-btn:disabled { opacity: .4; cursor: default; }
+.th-cap-text { padding: 0 6px; font-variant-numeric: tabular-nums; }
+/* From, under the title: All statements or the board on the canvas by name, two options in one
+   control, the one chosen pressed in as the pointer and the hand are. A long name runs to an
+   ellipsis, its whole in the tooltip. */
+.th-from { display: inline-flex; max-width: 100%; gap: 2px; margin: 0 0 12px; padding: 2px;
+  border: 1px solid var(--rule-firm); border-radius: 4px; }
+.th-from-opt {
+  flex: none; height: 26px; padding: 0 10px; font: inherit; font-size: 12.5px; color: var(--ink-soft);
+  background: none; border: 1px solid transparent; border-radius: 3px; cursor: pointer; white-space: nowrap;
+}
+#th-from-board { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.th-from-opt:hover { color: var(--ink); }
+.th-from-opt.on { background: var(--paper-sunk); border-color: var(--rule-firm); color: var(--ink); }
+.th-from-opt:focus-visible { outline: 0; box-shadow: var(--focus); }
+/* the card's one line, a restart to finish an update, which is no failure, in the soft ink where it stood in the
+   crux orange (17 October, later) */
+.th-aicard-said { margin: 12px 0 0; color: var(--ink-soft); }
+.th-names-go.busy { cursor: progress; opacity: .75; }
+.th-names-go.busy .btn-icon { animation: th-pulse 1.2s ease-in-out infinite; }
+@keyframes th-pulse { 50% { opacity: .3; } }
+/* the canvas waits while a new AI board is asked, and the line in its top right says so */
+.th-stage.th-busy, .th-stage.th-busy .th-card, .th-stage.th-busy .th-label { cursor: progress; }
+.th-made-line { margin: 0; font-size: 11.5px; line-height: 1.45; color: var(--ink-soft); overflow-wrap: anywhere; }
+.th-made-line[hidden] { display: none; }
+.th-made .th-exported-head { margin: 0 0 4px; }
+.th-made .th-exported-head:last-of-type { margin-bottom: 0; }
+.th-made.busy .th-exported-head { color: var(--ink-soft); }
+.th-exported-head.failed { color: var(--amber); }
+
+/* A board added or changed outside the page, in a conversation with an AI agent: the line in the
+   same corner, Show it a quiet link after its words. The turn screen's line takes the same link. */
+.th-outside-show {
+  background: none; border: 0; padding: 0; margin-left: 4px; cursor: pointer; font: inherit;
+  color: var(--ink-soft); border-bottom: 1px solid var(--rule-firm); white-space: nowrap;
+}
+.th-outside-show:hover { color: var(--ink); border-bottom-color: currentColor; }
+/* Changes made elsewhere (Adam, 20 October, from a tester's feedback): a change from outside the app, an AI
+   agent's or a hand on the file, in a bright card in the top right that stays until he acts, Update a solid
+   button after the words. A change from another window of the app comes in by itself and shows nothing. */
+#th-outside { background: var(--crux); border-color: var(--crux); color: var(--paper); }
+#th-outside .th-exported-head { color: var(--paper); font-weight: 600; font-size: 13px; display: flex; align-items: center;
+  flex-wrap: wrap; gap: 6px 10px; margin: 0; }
+#th-outside .card-close { color: var(--paper); top: 50%; transform: translateY(-50%); }
+#th-outside .card-close:hover { background: color-mix(in srgb, var(--paper) 18%, transparent); }
+#th-outside .th-outside-show {
+  margin-left: auto; padding: 4px 12px; border: 0; border-radius: 4px; background: var(--paper); color: var(--crux);
+  font-weight: 600; font-size: 12.5px;
+}
+#th-outside .th-outside-show:hover { background: color-mix(in srgb, var(--paper) 88%, var(--crux)); color: var(--crux); }
+/* a save refused because the board changed since the page read it: the line, then Reload and Overwrite */
+.th-stale .th-exported-head { margin: 0 0 8px; line-height: 1.45; }
+.th-stale-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.th-stale-acts[hidden], #th-stale-back[hidden] { display: none; }
+/* a statement's short id after its timecode in the Inspector, small and faint, and why an agent
+   left a statement out of every PET, under it in the pile's words */
+.th-sid { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); opacity: .8; }
+.th-left-why { margin: -12px 0 18px; }
+
+/* In a label's panel, under its note: AI suggest PET titles, then the three titles, each a pick
+   with Edit beside it, in the label's own tint. */
+.th-names { margin: -8px 0 20px; }
+.th-names-head { display: flex; align-items: center; gap: 8px; }
+.th-names-close {
+  margin-left: auto; width: 26px; height: 26px; padding: 0; display: inline-flex; align-items: center;
+  justify-content: center; background: none; border: 1px solid transparent; border-radius: 3px;
+  color: var(--ink-faint); cursor: pointer;
+}
+.th-names-close svg { width: 12px; height: 12px; display: block; }
+.th-names-close:hover { border-color: var(--rule-firm); color: var(--ink); }
+.th-names-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
+.th-names-list li { display: flex; align-items: flex-start; gap: 6px; }
+.th-name-pick {
+  flex: 1 1 auto; min-width: 0; text-align: left; padding: 6px 10px; cursor: pointer;
+  font-family: var(--serif); font-size: 15px; line-height: 1.35; color: var(--ink); overflow-wrap: anywhere;
+  background: var(--paper); border: 1px solid var(--rule-firm); border-radius: 4px;
+  box-shadow: inset 2px 0 0 color-mix(in srgb, var(--hue, var(--accent)) 70%, transparent);
+  transition: border-color .14s, background .14s;
+}
+.th-name-pick:hover { border-color: var(--hue, var(--accent)); background: color-mix(in srgb, var(--hue, var(--accent)) 7%, var(--paper)); }
+.th-name-edit { flex: none; margin-top: 3px; }
+.th-names-note { margin: 8px 0 0; font-size: 12px; line-height: 1.45; color: var(--ink-faint); }
+.th-names-note.failed { color: var(--amber); }
+
+/* ───────────────────────────────────────────────────────── the sidebar ── */
+
+/* Each tab's head names what it is about: the Inspector the theme's title in its tint or the kind
+   of thing selected, and nothing with nothing selected, the tabs about the board the board's
+   name, with its note under it in the small type when it has one. The Cases panel's head clears
+   its cross. */
+.th-phead { flex: none; min-width: 0; padding: 15px 20px 13px; border-bottom: 1px solid var(--rule); }
+.th-cpanel .th-phead { padding-right: 52px; }
+.th-pname {
+  margin: 0; font-family: var(--serif); font-size: 17px; line-height: 1.34; color: var(--ink); overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+}
+/* For a statement or a sticky note the Inspector's head names the kind, Statement or Sticky note, in
+   the kicker's style, on a line as tall as a title's, and the body under it carries the thing itself,
+   once and whole. With nothing selected the head goes, since the tab above it already says
+   Inspector. */
+.th-phead-empty { display: none; }
+.th-phead-kind .th-pname {
+  font-family: inherit; font-size: 11px; line-height: calc(17px * 1.34); letter-spacing: .14em;
+  text-transform: uppercase; font-weight: 600; color: var(--ink-faint);
+}
+.th-bnote {
+  margin: 4px 0 0; font-size: 11.5px; line-height: 1.45; color: var(--ink-faint); white-space: pre-line;
+  overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+}
+
+/* The sidebar's tabs at its head, Inspector, Guidance, History, Review and Revise, and on the GETs
+   screen Inspector, History and Table, in the label face, the one showing underlined. They share
+   the sidebar's width between them, so five fit in its 360px with room to spare. */
+.th-tabs { flex: none; display: flex; padding: 10px 12px 0; border-bottom: 1px solid var(--rule); }
+.th-tab {
+  flex: 1 1 auto; background: none; border: 0; border-bottom: 2px solid transparent; margin: 0 0 -1px; padding: 4px 3px 8px;
+  font: inherit; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; white-space: nowrap;
+  color: var(--ink-faint); cursor: pointer;
+}
+.th-tab:hover { color: var(--ink-soft); }
+.th-tab.on { color: var(--ink); border-bottom-color: var(--ink); }
+.th-tab:focus-visible { outline: 0; box-shadow: var(--focus); }
+
+/* The History tab: Save a revision at the top with a box for its name, then the revisions newest
+   first under the day they were made, each its time, its name or Automatic, and Restore. The one
+   on view is marked. */
+.th-rev-save { display: flex; align-items: center; gap: 8px; margin: 4px 0 18px; }
+.th-rev-save .th-vedit { flex: 1 1 auto; min-width: 0; font-size: 13px; }
+.th-rev-day { margin: 14px 0 4px; }
+.th-revs { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.th-rev { display: flex; align-items: center; gap: 8px; border-radius: 4px; padding: 1px 2px 1px 0; }
+.th-rev:hover { background: var(--paper-sunk); }
+.th-rev.on { background: color-mix(in srgb, var(--accent) 10%, transparent); box-shadow: inset 2px 0 0 var(--accent); }
+.th-rev-view {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: 10px; text-align: left;
+  background: none; border: 0; padding: 6px 6px; font: inherit; color: var(--ink); cursor: pointer;
+}
+.th-rev-view .th-time { flex: none; font-size: 11.5px; color: var(--ink-soft); }
+.th-rev-said { min-width: 0; font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
+.th-rev.auto .th-rev-said { color: var(--ink-faint); font-size: 12px; }
+.th-rev .ghost.small { flex: none; }
+
+/* The Review tab: AI review and the line saying what it does, then the questions, each a card with
+   what it is about as a link, a tick and a cross, the question in the serif, why in the small type
+   and the rule faint. A question considered keeps its tick on, and one dismissed fades. */
+.th-review-head { display: flex; align-items: center; gap: 8px; margin: 10px 0 0; }
+.th-review-go.busy { cursor: progress; opacity: .75; }
+.th-review-go.busy .btn-icon { animation: th-pulse 1.2s ease-in-out infinite; }
+.th-review-what { margin: 8px 0 14px; font-size: 11.5px; line-height: 1.45; color: var(--ink-faint); }
+.th-review-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.th-review-item {
+  min-width: 0; padding: 9px 10px 10px 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper);
+  box-shadow: inset 2px 0 0 var(--rule-firm); transition: opacity .16s, border-color .16s;
+}
+.th-review-item.considered { box-shadow: inset 2px 0 0 var(--good); }
+.th-review-item.dismissed { opacity: .5; }
+.th-review-item.dismissed .th-review-q { text-decoration: line-through; text-decoration-color: var(--rule-firm); }
+.th-review-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.th-review-about {
+  min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;
+  background: none; border: 0; padding: 0; font: inherit; font-size: 11.5px; color: var(--ink-soft); cursor: pointer;
+  text-decoration: underline; text-decoration-color: var(--rule-firm); text-underline-offset: 2px;
+}
+button.th-review-about:hover { color: var(--ink); text-decoration-color: currentColor; }
+.th-review-about.none { cursor: default; text-decoration: none; color: var(--ink-faint); }
+.th-review-acts { flex: none; display: inline-flex; gap: 4px; margin-left: auto; }
+.th-review-mark {
+  width: 24px; height: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--card); border: 1px solid var(--rule-firm); border-radius: 4px; color: var(--ink-faint); cursor: pointer;
+  transition: background .14s, border-color .14s, color .14s;
+}
+.th-review-mark svg { width: 13px; height: 13px; display: block; }
+.th-review-mark:hover { border-color: var(--ink-faint); color: var(--ink); }
+.th-review-mark.considered.on { background: var(--good); border-color: var(--good); color: var(--card); }
+.th-review-mark.dismissed.on { background: var(--ink-faint); border-color: var(--ink-faint); color: var(--card); }
+.th-review-q { margin: 7px 0 0; font-family: var(--serif); font-size: 15px; line-height: 1.42; color: var(--ink);
+  overflow-wrap: anywhere; }
+.th-review-why { margin: 5px 0 0; font-size: 12px; line-height: 1.45; color: var(--ink-soft); overflow-wrap: anywhere; }
+.th-review-rule { margin: 5px 0 0; font-size: 10.5px; letter-spacing: .06em; color: var(--ink-faint); }
+.th-review-made { margin: 12px 0 0; font-size: 11.5px; color: var(--ink-faint); }
+
+/* Rounds: the newest under its head, each earlier one folded under a line that opens and closes
+   it, newest first, and each question's number in the small type at its top left. */
+.th-round-head { margin: 0 0 8px; font-size: 11.5px; font-weight: 600; color: var(--ink-soft); }
+.th-round-fold {
+  display: flex; align-items: center; gap: 7px; width: 100%; margin: 18px 0 0; padding: 8px 0 0;
+  background: none; border: 0; border-top: 1px solid var(--rule); font: inherit; font-size: 11.5px;
+  color: var(--ink-soft); text-align: left; cursor: pointer;
+}
+.th-round-fold::before { content: "▸"; color: var(--ink-faint); font-size: 10px; transition: transform .16s; }
+.th-round-fold.open::before { transform: rotate(90deg); }
+.th-round-fold:hover { color: var(--ink); }
+.th-round-fold.open + .th-review-list { margin-top: 10px; }
+.th-review-n { flex: none; min-width: 9px; font-size: 11px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+
+/* The exchange under a question, told apart by type alone: his lines in the ink, the AI's in the
+   faint type with the model's name small after it. Reply opens a small box under it, with Send. */
+.th-thread { margin: 9px 0 0; padding: 8px 0 0; border-top: 1px solid var(--rule); display: grid; gap: 6px; }
+.th-thread-me, .th-thread-ai { margin: 0; font-size: 12.5px; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
+.th-thread-me { color: var(--ink); }
+.th-thread-ai { color: var(--ink-faint); }
+.th-thread-model { margin-left: 2px; font-size: 10.5px; letter-spacing: .02em; white-space: nowrap; }
+.th-reply-link {
+  margin: 7px 0 0; padding: 0; background: none; border: 0; font: inherit; font-size: 11.5px; color: var(--ink-soft);
+  cursor: pointer; text-decoration: underline; text-decoration-color: var(--rule-firm); text-underline-offset: 2px;
+}
+.th-reply-link:hover, .th-reply-link.on { color: var(--ink); text-decoration-color: currentColor; }
+.th-reply { margin: 4px 0 0; }
+.th-reply .th-vedit { display: block; font-size: 13px; }
+.th-reply-acts { display: flex; justify-content: flex-end; margin: 6px 0 0; }
+.th-reply-send.busy { cursor: progress; opacity: .75; }
+.th-reply-send.busy .btn-icon { animation: th-pulse 1.2s ease-in-out infinite; }
+
+/* The Revise tab: the thread of his requests and the answers as a reply's exchange reads, the
+   newest at the foot, then the box and Send. A request runs to four lines at most, the rest a scroll
+   inside it, so a long one never pushes the box and Send out of view. */
+.th-revise-thread { margin: 0 0 12px; padding: 0; border-top: 0; gap: 8px; }
+.th-revise-thread .th-thread-me { max-height: calc(1.45em * 4); overflow-y: auto; overscroll-behavior: contain; }
+.th-revise { margin: 0; }
+
+/* The Guidance tab: each heading in the label face a step smaller than the rail's own heading, as
+   the rail's sections are, and the lines under it in the serif at the rail's size, plain lines each
+   with a small mark, not a bulleted list. The foot says where the lines live, in the small type.
+   The panel's body scrolls when the panel is shorter than the text. */
+.th-guide-group + .th-guide-group { margin-top: 20px; }
+.th-guide-group h3.section-label { margin-bottom: 7px; }
+.th-guide-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.th-guide-lines li {
+  position: relative; padding-left: 15px; font-family: var(--serif); font-size: 13px; line-height: 1.5;
+  color: var(--ink-soft); overflow-wrap: anywhere;
+}
+.th-guide-lines li::before {
+  content: ""; position: absolute; left: 1px; top: .78em; width: 6px; height: 1px; background: var(--ink-faint);
+}
+.th-guide-from {
+  margin: 24px 0 0; padding-top: 12px; border-top: 1px solid var(--rule);
+  font-size: 11.5px; line-height: 1.45; color: var(--ink-faint);
+}
+
+/* The sidebar button in the bar, after Export: the panel icon in the rail toggle's style, pressed in
+   while the sidebar is open */
+.rail-btn.th-door.on { color: var(--ink); border-color: var(--rule-firm); background: var(--paper-sunk); }
+
+/* the export control's menu, under it at the right of the bar */
+.th-xmenu { position: fixed; z-index: 50; width: max-content; max-width: calc(100vw - 16px); }
+/* its two parts, the table's and the canvas's, the one for the view shown (exportA), each under a small head
+   in the soft ink, its words in line with the entries' */
+.th-xpart { display: grid; gap: 2px; }
+.th-xpart[hidden] { display: none; }
+.th-xhead { margin: 0; padding: 6px 15px 2px; font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+/* PET labels at the foot of the menu, its name and then A B C and 1 2 3 in the From control's style,
+   and the same pair under Projects in Settings. On the demo the pair is fixed, the letters pressed */
+.th-xlabels { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 3px 4px 2px 10px; font-size: 13px; color: var(--ink-soft); }
+.th-xlabels .th-from, .set-labels { margin: 0; flex: none; }
+.th-from-opt:disabled { cursor: default; }
+.th-from-opt:disabled:not(.on) { opacity: .5; }
+
+/* At a desk width the sidebar open takes a column of its own at the right of the canvas, the full
+   height of it, and the canvas narrows to make room. Below about 900px it lies over the canvas
+   instead, so the canvas keeps the whole width. Its tabs show one at a time, each the full height
+   under the tabs. The Cases panel on the GETs screen is the same paper at the left. */
+.th-side, .th-panel {
+  position: relative; flex: none; width: 360px; display: flex; flex-direction: column; min-height: 0;
+  background: var(--card); border-left: 1px solid var(--rule); z-index: 12;
+}
+.th-side > .th-panel { flex: 1 1 auto; width: auto; border-left: 0; z-index: auto; }
+.th-panel-close { top: 8px; right: 8px; width: 32px; height: 32px; }
+.th-panel-close svg { width: 15px; height: 15px; }
+.th-panel-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  padding: 20px 20px 18px; }
+.th-panel-body .kicker { color: var(--ink-faint); }
+.th-panel-title { margin: 8px 0 6px; font-family: var(--serif); font-size: 18px; line-height: 1.35;
+  color: var(--ink); overflow-wrap: anywhere; }
+/* a double-click on the statement there opens it for editing in place */
+.th-panel-title[data-edit] { margin-top: 0; cursor: text; }
+/* A sticky note in the Inspector: its words in a box in its own face, then its four colours as
+   dots, the one it has ringed, then Remove from PET when it is in one. */
+.th-panel-body textarea.th-sticky-box { display: block; margin: 0 0 14px; font-family: var(--hand); font-size: 16px;
+  line-height: 1.3; color: var(--th-sticky-ink); background: var(--sticky, var(--th-sticky-yellow)); }
+.th-sticky-read { margin: 0 0 14px; font-family: var(--hand); font-size: 16px; line-height: 1.3; }
+.th-dots { display: flex; align-items: center; gap: 10px; margin: 0 0 20px; }
+.th-dot { width: 22px; height: 22px; padding: 0; border-radius: 50%; cursor: pointer;
+  background: var(--sticky); border: 1px solid var(--th-sticky-edge); }
+.th-dot.on { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ink-soft); }
+.th-dot:disabled { cursor: default; opacity: .6; }
+/* With nothing selected the Inspector says so, in the small type */
+.th-inspect-none { margin: 0; }
+/* a theme's title in the head, underlined in its tint, a rule that holds across the clamped lines */
+.th-panel-label { text-decoration: underline 2px var(--hue); text-underline-offset: 5px; text-decoration-skip-ink: none; }
+.th-panel-meta { display: flex; align-items: baseline; gap: 8px; margin: 10px 0 20px;
+  font-size: 12px; color: var(--ink-faint); }
+.th-panel-body .section-label { margin-bottom: 4px; }
+/* Remove from theme, under the meta line of a card or a sub-theme in one */
+/* Take out of PET, of GET or of sub-theme (20 October, from a tester's feedback): a move, never a bin, so in the ink
+   with an arrow leaving a frame before its words, where Remove and Delete carry the red bin */
+button.btn-out { display: inline-flex; align-items: center; gap: 6px; }
+button.btn-out::before {
+  content: ""; flex: none; width: 13px; height: 13px; background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 4.5H5.5v15H14M10 12h10M16.5 8.5 20 12l-3.5 3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 4.5H5.5v15H14M10 12h10M16.5 8.5 20 12l-3.5 3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.th-leave-row { display: flex; align-items: baseline; gap: 8px; margin: -10px 0 20px; min-width: 0; }
+.th-leave-from { min-width: 0; font-size: 11.5px; color: var(--ink-faint); overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+/* A theme's note, under the count and Remove from theme and above the quotes, in the board note's
+   box. On a revision on view it is the words alone, read-only, in the same frame. */
+.th-panel-body textarea.th-gnote { display: block; margin: -10px 0 20px; }
+.th-gnote-read { margin: -10px 0 20px; padding: 5px 8px; border: 1px solid var(--rule); border-radius: 3px;
+  font-size: 13px; line-height: 1.45; color: var(--ink-soft); white-space: pre-line; overflow-wrap: anywhere; }
+.th-gnote-old { margin: -10px 0 20px; }
+.th-restart { margin-top: 4px; }
+
+.th-qrow { border-top: 1px solid var(--rule); padding: 12px 0 10px; }
+.th-qrow:first-of-type { border-top: 0; padding-top: 6px; }
+.th-qcards { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 3px; }
+.th-qcards li { font-family: var(--serif); font-size: 13.5px; line-height: 1.4; color: var(--ink-soft);
+  padding-left: 9px; box-shadow: inset 2px 0 0 color-mix(in srgb, var(--hue, var(--rule-firm)) 60%, transparent); }
+.th-qlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.th-q { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; align-items: start;
+  padding: 6px 6px 6px 0; border-radius: 4px; }
+.th-q.on { background: color-mix(in srgb, var(--hue, var(--accent)) 10%, transparent); }
+.th-qbody { min-width: 0; }
+.th-qtext { margin: 1px 0 3px; font-family: var(--serif); font-size: 15px; line-height: 1.42; color: var(--ink);
+  overflow-wrap: anywhere; }
+.th-qbody .th-time { margin-right: 8px; }
+.th-qnone { margin: 2px 0 0; font-size: 12px; color: var(--ink-faint); }
+.th-play-none { width: 30px; }
+/* a theme's picked quotes at the head of its Inspector: the words alone, no play and no tick */
+.th-picked .th-q { grid-template-columns: minmax(0, 1fr); }
+/* and under them the room the count's line keeps, so Auto-arrange, Remove from PET or the note, each drawn 10px up
+   into that room, stands clear of the last quote's foot, where until 18 October it stood over it */
+.th-qlist.th-picked { margin-bottom: 20px; }
+
+/* the play button is the turn screen's, smaller: a drawn ring in the app's own ink */
+.th-play, .th-pbtn {
+  flex: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; padding: 0 0 0 2px;
+  border: 1px solid var(--rule-firm); background: var(--card); color: var(--ink-soft);
+  font-size: 11px; line-height: 1; display: flex; align-items: center; justify-content: center;
+  transition: color .16s, border-color .16s;
+}
+/* under the pointer it goes to the ink, as a control does, and playing it takes the accent, the playhead's, where
+   until 17 October, later, both stood in the crux orange */
+.th-play:hover, .th-pbtn:hover { color: var(--ink); border-color: var(--ink-faint); }
+.th-play.playing, .th-pbar.playing .th-pbtn { padding-left: 0; font-size: 9.5px; letter-spacing: 1px;
+  color: var(--accent); border-color: var(--accent); }
+
+/* the tick that picks a quote to carry the theme, in the label's own tint once it is on */
+.th-tick {
+  flex: none; width: 24px; height: 24px; margin-top: 3px; padding: 0; border-radius: 4px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--card); border: 1px solid var(--rule-firm); color: transparent;
+  transition: background .14s, border-color .14s, color .14s;
+}
+.th-tick svg { width: 14px; height: 14px; display: block; }
+.th-tick:hover { border-color: var(--ink-faint); color: var(--ink-faint); }
+.th-tick.on { background: var(--hue, var(--accent)); border-color: var(--hue, var(--accent)); color: var(--card); }
+
+/* the panel's own player, at its foot */
+.th-player { flex: none; border-top: 1px solid var(--rule); padding: 8px 20px 10px; }
+.th-pbar { display: flex; align-items: center; gap: 10px; height: 36px; }
+.th-pbar[hidden] { display: none; }
+.th-pbtn { width: 32px; height: 32px; font-size: 12px; }
+.th-pscrub { min-width: 60px; }
+.th-pnote { display: block; max-width: 100%; text-align: left; margin-top: 2px; }
+
+/* The bar gives way in order, the way the turn screen's does, and nothing in it overlaps or scrolls
+   sideways down to 400px. It reads the way back, the case switcher, PETs, GETs, the board switcher
+   with its save state, the counts, Export, the sidebar button, the bug for Send feedback and the cog,
+   and nothing else, so the AI switch makes no difference to it. The case name truncates with its
+   whole name in its tooltip at any width, and so does the board's, though both only once the counts
+   have given all they can. Below 900px the save state keeps its mark alone, below 740px the counts
+   and the GETs step go, and below 560px the words Experiential statements on the way back go, the
+   arrow staying with the words in its tooltip, which keeps the long back word past the turn
+   screen's 620 step, where the gaps close up and the rule before the board goes. At 480px the
+   buttons slim, and the word PETs stays down to 400. Measured on 5 October 2026 on Rowan's case
+   opened from Experiential statements, the bug and the Current board's ribbon counted, the bar at
+   its fullest needs 896px, 833 with the save state's mark alone, 577 without the counts, 537 once
+   the gaps close up, 400 without the back word and 335 with the buttons slimmed, so the save
+   state's step sits 4px above the 896, and the counts, never cut, step down by thCountFit's measure
+   wherever the bar runs short above 740px (17 October). Since 18 October the bar reads the way back, the
+   arrow alone, the case switcher, Distil's steps, Experiential statements or ES, PETs and GETs, at every
+   width, the board, the counts, New sticky note, Group, Undo, Export and the rest, and where a name is
+   still cut once the counts have gone it takes its two rows, the steps on the first. Measured on Rowan's
+   case opened from Experiential statements it needs 975px at its fullest, 836 with the save state's mark
+   alone, 673 without the counts, 652 once the gaps close up and 522 with the buttons slimmed, and the GETs
+   bar 852, 789, 687, 663 and 529, so below about 700px both take their two rows. */
+/* The icons at the right of the bar stand as the turn screen's do, 4px apart where the bar's other
+   items stand 12px, 3px apart below 620px and 2px apart below 480px, the bug for Send feedback among
+   them just before the cog (item 199). */
+#themes .rail-btn + .rail-btn { margin-left: -8px; }
+@media (max-width: 900px) {
+  .th-save { font-size: 0; }
+  .th-save::before { font-size: 11.5px; }
+  .th-save::after { content: "\2713"; font-size: 11.5px; }
+  .th-save.saving::after { content: "\2026"; }
+  .th-save.failed { font-size: 11.5px; }
+  .th-save.failed::after { content: none; }
+}
+/* Below about 900px the sidebar lies over the canvas, and stops above its bottom corners, the bin
+   and the zoom bar with its ?, which thCorners measures, so both stay in reach and in view with the
+   sidebar open at any width, the bar standing over the bin first where the canvas is narrow. */
+@media (max-width: 900px) {
+  .th-side { position: absolute; top: 0; right: 0; bottom: var(--th-corners-up, 0px); width: min(360px, 100%);
+    box-shadow: var(--lift); border-bottom: 1px solid var(--rule); }
+  /* and the bin and the zoom bar stand over both sidebars, so a measure taken before the canvas settled
+     never leaves them under a sidebar, the full-width Cases panel at a phone's width among them (17
+     October) */
+  .th-discard, .th-zoomer { z-index: 13; }
+}
+/* the canvas's own small controls keep the turn screen's step */
+@media (max-width: 620px) {
+  .th-zoomer .th-fit-word { display: none; }
+  #themes .rail-btn + .rail-btn { margin-left: -5px; }
+}
+@media (max-width: 480px) {
+  /* the spacer goes at this width, so Export, the first of the tools since 19 October, when Sticky note and
+     Group went to the palette, pushes them to the edge */
+  #th-export { margin-left: auto; }
+  /* and the case's name and the board's give way in full measure, each
+     to its ellipsis, where their small share of the shrinking left the bar 50px past a phone 360 wide
+     (16 October) */
+  #themes .th-vpick, .th-screen .rail-case { flex-shrink: 1; }
+  /* the save state keeps to a failure alone here, its tick and its dots giving the names their room */
+  .th-save:not(.failed) { display: none; }
+  .th-save { margin-left: 0; }
+  #themes .rail-btn + .rail-btn { margin-left: -2px; }
+}
+/* The board keeps its rule before it at every width, where below 620px every bar's rules go, so "PETs" or "GETs"
+   never runs into the board's name as one phrase, "PETs Board 1" at 360 and 480 with 4px between them (17 October,
+   later). */
+#themes .rail-sep:not([hidden]) { display: block; }
+
+/* The statements left (item 160): the turn screen's count over the middle of the canvas, "4 left"
+   in the numeral face and the ink with its word fainter, where until 17 October, later, it stood in the
+   crux orange, growing out of a blur and on into one, 850ms in all, over the cards and under the sidebars. The last one placed shows one line in its
+   place, "Every statement placed.", smaller and held longer while the confetti runs. It takes no
+   pointer and no focus, and under reduced motion it never shows. */
+.th-flash {
+  position: absolute; left: 50%; top: 50%; z-index: 6;
+  transform: translate(-50%, -50%); opacity: 0; visibility: hidden;
+  pointer-events: none; user-select: none; -webkit-user-select: none; white-space: nowrap;
+  font-family: var(--serif); font-size: 136px; line-height: 1; color: var(--ink);
+  font-variant-numeric: lining-nums; text-shadow: 0 0 28px var(--paper), 0 0 10px var(--paper);
+}
+.th-flash .th-flash-of { font-size: .55em; color: var(--ink-faint); }
+.th-flash.on { visibility: visible; animation: count-flash 850ms both; }
+.th-flash.line { font-size: 52px; }
+.th-flash.line.on { animation: th-flash-line 2600ms both; }
+@keyframes th-flash-line {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.8); filter: blur(5px); animation-timing-function: cubic-bezier(.2,.8,.2,1); }
+  12% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0); animation-timing-function: linear; }
+  70% { opacity: 1; transform: translate(-50%, -50%) scale(1.04); filter: blur(0); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); filter: blur(4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .th-flash { display: none !important; }
+}
+
+/* ──────────────────────────────────────────────────────────── GETs ── */
+
+/* The GETs bar mirrors the PETs bar: the project's name in place of the case, with no switcher
+   behind it, no Export, and the Cases panel's button before the sidebar's. The sidebar holds the
+   Inspector, History and Table, since Guidance, Review and Revise are the PETs screen's. */
+/* The GETs screen has all six tabs, so they sit a little closer to keep to the sidebar's width, and
+   the row's own margins narrow to hold them. Measured on 7 October 2026 the six need 344px, past the
+   335 the PETs margins leave, AI revise running 9px into the right margin, and 6px a side leaves
+   347. The sidebar is 360px at every width, so a phone at 360 reads the row as a desk does. */
+.gets-mode .th-tab { letter-spacing: .03em; padding-left: 2px; padding-right: 2px; }
+.gets-mode .th-tabs { padding-left: 6px; padding-right: 6px; }
+.rail-btn.gt-door[hidden], #th-export[hidden] { display: none; }
+.rail-btn.gt-door.on { color: var(--ink); border-color: var(--rule-firm); background: var(--paper-sunk); }
+/* Cases stands first on the GETs bar, at its left end over its sidebar, the way back after it */
+#themes .rail-btn.gt-door { margin-left: 0; }
+
+/* the row at the head of All cases, and under the Demo card, that opens a project's GETs */
+.case-list li.gets-row .case-name { font-size: 17px; }
+
+/* A GETs card: its kind and pseudonym over its words, "PET · Juno", in the small sans, then the
+   words in the serif, what it names under them, and its marks in the foot, PETs not complete or
+   no longer in its case. A participant note is his own words, on a paper of its own. */
+/* The kicker is one line of a fixed height, the badge at its start and the words after it cut short
+   with an ellipsis, so a badge grown as the canvas zooms out rises into the card's head and the card
+   keeps its height. */
+.gt-kicker { display: flex; align-items: flex-end; height: 15px; margin: 0 0 3px; font-size: 11px; line-height: 15px;
+  font-weight: 600; letter-spacing: .02em; color: var(--ink-faint); white-space: nowrap; }
+.gt-ktext { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.gt-card.gt-pet .gt-kicker, .gt-card.gt-sub .gt-kicker { color: var(--ink-soft); }
+.gt-card .th-text.gt-empty { color: var(--ink-faint); font-style: italic; }
+.gt-from { margin: 4px 0 0; font-size: 11px; line-height: 14px; color: var(--ink-soft);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gt-n { font-size: 10.5px; color: var(--ink-faint); white-space: nowrap; }
+.gt-mark { margin-left: auto; font-size: 10px; letter-spacing: .02em; color: var(--amber); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.gt-card .th-foot { min-width: 0; }
+/* a GETs or LGETs card's mark, "LPETs not complete", goes whole to a line of its own under the count
+   when the two do not fit side by side, cut only past the card's whole width (21 October, tp3's shots) */
+.gt-card .th-foot { flex-wrap: wrap; row-gap: 2px; }
+.gt-card .th-foot .gt-mark { max-width: 100%; }
+/* A PET's or a sub-theme's count is the chevron that unfolds its card in place (21 October): the count's own
+   small sans, the chevron before it pointing right while folded and down while unfolded */
+.gt-unfold { display: inline-flex; align-items: center; gap: 2px; margin: 0 0 0 -3px; padding: 1px 5px 1px 2px; border: 0;
+  border-radius: 3px; background: none; font-family: var(--sans); line-height: 14px; color: var(--ink-soft); cursor: pointer; }
+.gt-unfold:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.gt-unfold .gt-chev { width: 12px; height: 12px; flex: none; transform: rotate(-90deg); transition: transform .14s; }
+.gt-unfold.open .gt-chev { transform: none; }
+.th-card.in .th-foot .gt-unfold { color: var(--ink-soft); }
+/* what it unfolds to, under its foot behind a hairline: each statement in the serif a step smaller, its quote in
+   the italic behind the crux orange's short rule and its notes behind the faint ink's, as on a statement's card,
+   three lines each at most, the whole in the tooltip, its timecode under them, a sub-theme's title in the sans
+   over its statements, and a stack under its top a step in behind a rule */
+.gt-unfolded { margin: 7px -11px 0; padding: 2px 11px 2px; border-top: 1px solid var(--rule); cursor: grab; }
+.th-card.in .gt-unfolded { border-top-color: color-mix(in srgb, var(--hue) 35%, var(--rule)); }
+.gt-ulist, .gt-ustack { list-style: none; margin: 0; padding: 0; }
+.gt-uline { padding: 6px 0 0; }
+.gt-ulist > .gt-uline + .gt-uline { margin-top: 3px; border-top: 1px dashed color-mix(in srgb, var(--rule) 70%, transparent); }
+.gt-utext { margin: 0; font-family: var(--serif); font-size: 13px; line-height: 1.36; color: var(--ink); overflow-wrap: anywhere; }
+.gt-uq, .gt-uen { margin: 4px 0 0; padding: 0 0 0 7px; border-left: 2px solid var(--crux); color: var(--ink-soft);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.gt-uq { font-family: var(--serif); font-style: italic; font-size: 12px; line-height: 1.36; }
+/* whole while Quotes on cards is at Full (30 October) */
+.gt-uq.gt-uq-full { display: block; -webkit-line-clamp: none; overflow: visible; }
+.gt-uen { font-size: 11px; line-height: 1.4; border-left-color: var(--rule-firm); }
+.gt-ufoot { display: flex; align-items: baseline; gap: 6px; margin: 3px 0 0; min-height: 13px; }
+.th-card.in .gt-ufoot .th-time { color: var(--ink-soft); }
+.gt-usub { margin: 10px 0 0; font-family: var(--sans); font-size: 11.5px; line-height: 1.35; font-weight: 600; color: var(--ink);
+  overflow-wrap: anywhere; }
+.gt-ukind { display: block; font-size: 10px; font-weight: 600; letter-spacing: .02em; color: var(--ink-soft); }
+.gt-ustack { margin: 4px 0 0 2px; padding-left: 9px; border-left: 2px solid color-mix(in srgb, var(--hue, var(--rule-firm)) 60%, var(--rule-firm)); }
+.gt-ustack .gt-uline { padding-top: 4px; }
+.gt-card.gt-pn { background: color-mix(in srgb, var(--accent) 6%, var(--card)); border-style: dashed; }
+.gt-card.gt-pn.in { background: color-mix(in srgb, var(--hue) 9%, var(--card)); }
+/* Its case's colour along its top edge, the border there three pixels and the padding two less so
+   the card keeps its height, in every state, the GET's tint keeping the left edge, and the badge of
+   the participant's initial before its kicker, the letter in the card's colour on the case's
+   (16 October). The badge goes with the case's name in the GET table and the audit trail too. */
+.th-card.gt-card, .th-card.gt-card.in.leaving { border-top: 3px solid var(--case, var(--rule-firm)); padding-top: 7px; }
+.gt-badge { display: inline-block; flex: none; min-width: 15px; height: 15px; margin-right: 5px; padding: 0 4px; box-sizing: border-box;
+  border-radius: 10px; background: var(--case, var(--ink-faint)); color: var(--card); font-family: var(--sans);
+  font-size: 10px; font-weight: 600; line-height: 15px; letter-spacing: 0; text-align: center; vertical-align: 1px; }
+/* Its letter never under 9px on the screen (16 October, later): on a card it grows by the canvas's
+   --gt-up as the canvas zooms out, up to the card's top edge, and past that keeps its disc without
+   the letter, which could no longer be read. Beside a name in the audit trail and the GET table it
+   is drawn larger, by the name's size. */
+.th-card .gt-badge { zoom: var(--gt-up, 1); }
+.gt-far .th-card .gt-badge { color: transparent; }
+.tr-who .gt-badge { zoom: 1.2; }
+.gt-twho .gt-badge { zoom: 1.1; }
+
+/* A GET under the minimum keeps its place and its cards, and its badge takes a dashed outline, with
+   "Under the minimum of 3" in the badge's tooltip and the label's. */
+.th-badge.under { border-style: dashed; pointer-events: auto; cursor: default; }
+
+/* The Cases panel at the left of the canvas, in the sidebar's paper, every case of the study in
+   case order with one search over all of it. Below about 900px it lies over the canvas, as the
+   sidebar at the right does. */
+.th-cpanel { order: -1; width: 300px; border-left: 0; border-right: 1px solid var(--rule); }
+.gt-find { flex: none; padding: 0 20px; }
+.gt-find input { width: 100%; box-sizing: border-box; }
+/* the list scrolls from right under the search, and once it has scrolled its top edge fades over a
+   line's height, so a row passing under the field fades out and never stands cut in half there, as the
+   transcript's column fades, while at rest the first row stands whole (17 October, after the
+   screenshot check at 360). The mask reads the ink's alpha alone. */
+.gt-cases { padding-top: 14px; }
+.gt-cases.scrolled {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, var(--ink) 26px);
+  mask-image: linear-gradient(to bottom, transparent 0, var(--ink) 26px); }
+.gt-case { border-top: 1px solid var(--rule); padding: 8px 0 10px; }
+.gt-case:first-child { border-top: 0; }
+.gt-case.out .gt-cname { color: var(--ink-faint); }
+.gt-chead { display: flex; align-items: center; gap: 6px; }
+.gt-fold { display: inline-flex; align-items: center; gap: 6px; flex: 1 1 auto; min-width: 0; padding: 2px 0;
+  background: none; border: 0; cursor: pointer; text-align: left; font: inherit; color: var(--ink); }
+.gt-fold .gt-chev { width: 12px; height: 12px; flex: none; color: var(--ink-faint); transform: rotate(-90deg); transition: transform .14s; }
+.gt-fold.open .gt-chev { transform: none; }
+.gt-cname { font-family: var(--serif); font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gt-cmenu { opacity: 1; flex: none; background: none; border: 0; cursor: pointer; padding: 2px 4px; }
+.gt-cmarks { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 2px 0 0 18px; font-size: 11.5px; color: var(--ink-faint); }
+.gt-case.changed .gt-cmarks span:last-child { color: var(--amber); }
+/* the swatch on a case's row, its badge in its colour, which opens the colour choice (16 October) */
+.gt-swatch { flex: none; display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px;
+  padding: 0 5px; box-sizing: border-box; border: 0; border-radius: 10px; background: var(--case); color: var(--card);
+  font-family: var(--sans); font-size: 10.5px; font-weight: 600; line-height: 1; cursor: pointer; }
+.gt-swatch:hover { box-shadow: 0 0 0 2px var(--paper-sunk), 0 0 0 3px var(--rule-firm); }
+.gt-swatch:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+/* the colour choice: Default and the eight, each a whole row with the case's badge in its colour, the
+   swatch's size, so the colours are told apart as the cards will carry them (16 October, later) */
+.th-cmenu .th-dot.gt-cdot { width: auto; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box;
+  border-radius: 10px; background: var(--case); box-shadow: none; color: var(--card); font-family: var(--sans);
+  font-size: 10.5px; font-weight: 600; line-height: 18px; text-align: center; }
+/* a colour another participant has (21 October): faint, with whose it is at the row's right, and not choosable */
+.th-cmenu.gt-colours button:disabled { opacity: 1; }
+.th-cmenu.gt-colours button:disabled > span:not(.th-dot) { color: var(--ink-faint); }
+.th-cmenu.gt-colours button:disabled .gt-cdot { opacity: .45; }
+.gt-whose { margin-left: auto; padding-left: 18px; font-size: 12px; color: var(--ink-faint); }
+.gt-colours button:has(.gt-whose) { display: flex; align-items: center; }
+/* More colours: the 25 in a grid of five, each a disc of its colour with the case's badge, its own ringed,
+   another participant's struck through, and the key under them */
+.gt-more-colours { padding: 4px 10px 8px; }
+.gt-cells { display: grid; grid-template-columns: repeat(var(--gt-cols, 5), 28px); gap: 8px; margin: 2px 2px 0; }
+.gt-cell { position: relative; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  background: var(--case); color: var(--card); font-family: var(--sans); font-size: 11px; font-weight: 600; line-height: 28px; }
+.gt-cell:hover:not(:disabled) { box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px var(--rule-firm); }
+.gt-cell.on { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ink); }
+.gt-cell.taken, .th-cmenu .gt-cell.taken:disabled { background: none; border: 2px solid var(--case); box-sizing: border-box;
+  cursor: default; opacity: 1; }
+.gt-cell.taken::after { content: ""; position: absolute; left: 50%; top: 2px; bottom: 2px; width: 2px; margin-left: -1px;
+  background: var(--case); transform: rotate(45deg); border-radius: 1px; }
+.gt-cells-key { display: flex; align-items: center; gap: 8px; margin: 10px 2px 0; font-size: 12px; color: var(--ink-faint); }
+.gt-cell.gt-key-cell { --case: var(--ink-faint); width: 16px; height: 16px; flex: none; }
+.gt-cell.gt-key-cell::after { top: 1px; bottom: 1px; width: 1.5px; }
+/* The tree under a case (16 October): its PETs, each with its own statements and then its
+   sub-themes with theirs, and Not in a PET last, each level a step in, a chevron at its left. */
+.gt-tree, .gt-tree ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.gt-tree { margin: 6px 0 0 12px; }
+/* an open level's guide line runs from under its chevron down to its last row (16 October, later) */
+.gt-tree ul { margin: 3px 0 0 8px; padding-left: 8px; border-left: 1px solid var(--rule-firm); }
+.gt-row { display: grid; gap: 1px; padding: 4px 8px; border-radius: 4px; cursor: grab; user-select: none;
+  -webkit-user-select: none; border: 1px solid transparent; }
+.gt-row:hover { background: var(--paper-sunk); border-color: var(--rule); }
+.gt-row.on { box-shadow: inset 2px 0 0 var(--accent); }
+.gt-row.gt-hold { grid-template-columns: 14px minmax(0, 1fr) auto; column-gap: 4px; padding-left: 2px; }
+.gt-hold .gt-tw { grid-row: 1 / span 2; align-self: start; }
+.gt-hold .gt-rkind, .gt-hold .gt-rtext { grid-column: 2; }
+.gt-hold .gt-rn { grid-column: 3; grid-row: 1; }
+.gt-tw, .gt-none { display: inline-flex; align-items: center; padding: 2px 0; background: none; border: 0; cursor: pointer;
+  font: inherit; color: var(--ink-faint); }
+.gt-tw .gt-chev, .gt-none .gt-chev { width: 12px; height: 12px; flex: none; transform: rotate(-90deg); transition: transform .14s; }
+.gt-tw.open .gt-chev, .gt-none.open .gt-chev { transform: none; }
+.gt-none { gap: 6px; width: 100%; padding: 4px 8px 4px 3px; border-radius: 4px; text-align: left; }
+.gt-none:hover { background: var(--paper-sunk); }
+.gt-none .gt-rtext { flex: 1 1 auto; font-family: var(--sans); font-size: 12.5px; color: var(--ink-soft); }
+.gt-rn { font-size: 10.5px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.gt-rkind { font-size: 10.5px; font-weight: 600; letter-spacing: .02em; color: var(--ink-faint); }
+.gt-rtext { font-family: var(--serif); font-size: 14px; line-height: 1.35; color: var(--ink); overflow-wrap: anywhere; }
+.gt-rfoot { display: flex; align-items: baseline; gap: 6px; }
+.gt-where { margin-left: auto; font-size: 10.5px; color: var(--ink-faint); }
+.gt-where.discarded { text-decoration: line-through; }
+.gt-where.placed { color: var(--ink-soft); }
+/* a top's statements stacked under it on its case's board (20 October): "3 stacked" after its place, as its card on
+   PETs carries it, a click folding them open under it a step in */
+.gt-stk { flex: none; padding: 0 5px; border: 1px solid var(--rule-firm); border-radius: 8px; background: none; cursor: pointer;
+  font: inherit; font-size: 10.5px; line-height: 15px; color: var(--ink-soft); }
+.gt-stk:hover, .gt-stk.open { background: var(--paper-sunk); color: var(--ink); }
+.gt-tree li.gt-stack > ul { margin-top: 0; }
+.gt-stacked { margin: 2px 0 4px 10px; }
+.gt-stacked > .gt-said { font-size: 11px; }
+.gt-stacked > .gt-list { margin: 2px 0 0; }
+
+/* the Inspector on a GETs card: a statement's PET and GET, its quotes and notes, a PET's parts */
+.gt-inspect .section-label { margin-top: 18px; }
+.gt-list { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 6px; font-size: 13px; line-height: 1.45; color: var(--ink-soft); }
+.gt-list .gt-quote { font-family: var(--serif); font-style: italic; font-size: 14.5px; color: var(--ink); }
+.gt-list .gt-said { font-family: var(--serif); font-size: 14px; color: var(--ink); }
+.gt-list .gt-none { color: var(--ink-faint); }
+.gt-list .gt-none .gt-said { margin-left: 8px; font-family: var(--sans); font-size: 12px; color: var(--ink-faint); }
+.gt-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; margin: 0 0 4px; font-size: 13px; }
+.gt-facts dt { color: var(--ink-faint); font-size: 11.5px; font-weight: 600; }
+.gt-facts dd { margin: 0; color: var(--ink); }
+.gt-read { margin: 4px 0 0; font-size: 13px; line-height: 1.45; color: var(--ink-soft); white-space: pre-line; overflow-wrap: anywhere; }
+.th-panel-body textarea.gt-pn { display: block; margin: 0 0 20px; }
+.th-panel-meta .gt-mark { margin-left: 0; }
+
+
+/* GETs in Settings: the minimum's band beside its stepper, and the study, each case with its tick */
+.gets-band { flex: none; }
+.gets-study { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; font-size: 13px; }
+.gets-study label { display: inline-flex; align-items: center; gap: 9px; color: var(--ink-soft); cursor: pointer; }
+/* each case's tick in the ink, as every tick is, off the crux orange (17 October) */
+.gets-study input[type="checkbox"] { accent-color: var(--ink); }
+.gets-study .gets-why { display: block; margin: 4px 0 0 25px; width: calc(100% - 25px); box-sizing: border-box;
+  background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; padding: 5px 8px; font: inherit;
+  font-size: 13px; color: var(--ink); }
+/* what stands in the way of Save, in the one warning tint, where it stood in the crux orange (17 October, later) */
+.gets-study .gets-said { color: var(--amber); font-size: 12px; }
+
+/* the Cases panel the same, over the canvas below 900px and clear of its bottom corners */
+@media (max-width: 900px) {
+  .th-cpanel { position: absolute; top: 0; left: 0; right: auto; bottom: var(--th-corners-up, 0px); width: min(300px, 100%);
+    box-shadow: var(--lift); border-bottom: 1px solid var(--rule); }
+}
+/* at a phone's width it takes the whole width, leaving no strip of cut-off cards beside it (16 October, later) */
+@media (max-width: 520px) {
+  .th-cpanel { width: 100%; border-right: 0; }
+}
+/* A GET's count in its audit trail, and Audit trail in its Inspector. Then a row's key quote and his note for
+   it, in the board's Table view, where the sidebar's GET table held them until 19 October. */
+.gt-tbadge { flex: none; padding: 0 7px; border: 1px solid color-mix(in srgb, var(--hue, var(--accent)) 55%, transparent);
+  border-radius: 9px; font-size: 11px; line-height: 17px; color: var(--ink-soft); background: var(--card); white-space: nowrap; }
+.gt-tbadge.under { border-style: dashed; }
+.gt-trail-go { margin: 8px 0 2px 8px; }
+.gt-tkey { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin: 8px 0 0; }
+.gt-tlabel { flex: 0 0 100%; font-size: 10.5px; font-weight: 600; letter-spacing: .02em; color: var(--ink-faint); }
+.gt-tq { font-family: var(--serif); font-style: italic; font-size: 14.5px; line-height: 1.35; color: var(--ink); }
+.gt-rnote { margin: 8px 0 0; padding: 4px 8px; border-radius: 3px; background: var(--paper-sunk); font-size: 12.5px; line-height: 1.45;
+  color: var(--ink-soft); white-space: pre-line; overflow-wrap: anywhere; cursor: text; }
+.gt-rnote-add { margin-top: 8px; }
+.gt-rnote-box { display: block; width: 100%; box-sizing: border-box; margin: 8px 0 0; font-family: var(--sans); font-size: 13px; }
+
+/* the key quote's tick in the Inspector, as a pick's is on the PETs screen: the one he ticked filled
+   in the GET's tint, and the one a row starts with a lighter fill */
+.gt-ticks { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; }
+.gt-tickrow { display: flex; align-items: flex-start; gap: 10px; }
+.gt-tickq { display: grid; gap: 2px; min-width: 0; }
+.gt-tickq .gt-quote { font-family: var(--serif); font-style: italic; font-size: 14.5px; line-height: 1.4; color: var(--ink); overflow-wrap: anywhere; }
+.gt-pickmark { font-size: 10.5px; color: var(--ink-faint); }
+.th-tick.on.gt-auto { background: color-mix(in srgb, var(--hue, var(--accent)) 45%, var(--card)); border-color: var(--hue, var(--accent)); }
+
+/* The audit trail's card over the screen, wide enough for its five columns and readable down to
+   900px, with the trail scrolling sideways below that. */
+.gt-trail-card { width: min(1320px, 100%); max-width: calc(100vw - 2 * var(--gutter)); padding: 28px 30px 30px; }
+.gt-trail-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin: 6px 48px 0 0; }
+.gt-trail-head h2 { margin: 0; flex: 0 1 auto; min-width: 0; overflow-wrap: anywhere; border-bottom: 3px solid var(--ink); }
+.gt-trail-head .ghost.small { margin-left: auto; }
+.gt-trail-note { margin: 8px 0 0; font-size: 13px; line-height: 1.45; color: var(--ink-soft); white-space: pre-line; }
+.gt-trail-body { margin-top: 14px; overflow-x: auto; }
+.gt-trail-body .tr-get { min-width: 760px; }
+
+/* The trail itself, the rules the print view carries in the app's own paper and ink: five columns
+   at their shares of the width, each taking the room its longest word needs where its share falls
+   short, so a word wraps whole and never through a letter (17 October, later), every row of every
+   block on the same five columns as subgrids of `.tr-wide`, and the lines drawn from each row, a stub
+   from a node to the middle of the gap and an upright piece there, drawn in the cell of the column after
+   it, so they meet at any width. The card's body scrolls sideways where the columns need more. A
+   browser with no subgrid keeps each row's own five shares, as before. */
+.tr-get { --hue: var(--hue-base, var(--accent)); --g: 22px; --c: 12px; --rp: 8px; }
+.tr-wide { display: grid; column-gap: var(--g);
+  grid-template-columns: minmax(min-content, 31fr) minmax(min-content, 21fr) minmax(min-content, 21fr) minmax(min-content, 15fr) minmax(min-content, 12fr); }
+.tr-cols, .tr-block, .tr-rows, .tr-row { grid-column: 1 / -1; display: grid; column-gap: var(--g);
+  grid-template-columns: minmax(0, 31fr) minmax(0, 21fr) minmax(0, 21fr) minmax(0, 15fr) minmax(0, 12fr);
+  grid-template-columns: subgrid; }
+.tr-who, .tr-none { grid-column: 1 / -1; }
+/* a thematic analysis project's trail, four columns with no PET's (tagaps, 1 November 2026) */
+.tr-wide.tr-four { grid-template-columns: minmax(min-content, 31fr) minmax(min-content, 21fr) minmax(min-content, 21fr) minmax(min-content, 12fr); }
+.tr-four .tr-cols, .tr-four .tr-block, .tr-four .tr-rows, .tr-four .tr-row {
+  grid-template-columns: minmax(0, 31fr) minmax(0, 21fr) minmax(0, 21fr) minmax(0, 12fr); grid-template-columns: subgrid; }
+.tr-cols { margin: 0 0 4px; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; color: var(--ink-faint); }
+/* the heads each block carries for paper, which the card shows once under its title (17 October, later) */
+.tr-cols.tr-again { display: none; }
+.tr-block { padding: 10px 0 6px; border-top: 1px solid var(--rule); }
+.tr-who { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0 0 8px; font-family: var(--serif);
+  font-weight: 400; font-size: 17px; color: var(--ink); }
+.tr-none { margin: 0 0 6px; font-size: 12.5px; color: var(--ink-soft); }
+.tr-row { position: relative; padding-bottom: var(--rp); }
+.tr-c { position: relative; min-width: 0; }
+.tr-c.node { padding: 5px 9px 6px; border-radius: 4px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue) 45%, transparent);
+  background: color-mix(in srgb, var(--hue) 6%, var(--card)); font-size: 12.5px; line-height: 1.4; overflow-wrap: break-word; }
+.tr-c.in::after { content: ""; position: absolute; top: var(--c); right: calc(var(--g) / -2); width: calc(var(--g) / 2);
+  border-top: 1px solid var(--hue); }
+.tr-c.out::before { content: ""; position: absolute; top: var(--c); left: calc(var(--g) / -2); width: calc(var(--g) / 2);
+  border-top: 1px solid var(--hue); }
+.tr-c.pass::after { content: ""; position: absolute; top: var(--c); left: calc(var(--g) / -2); right: calc(var(--g) / -2);
+  border-top: 1px solid var(--hue); }
+.tr-c.dashed::after { border-top-style: dashed; }
+.tr-sp { position: absolute; width: 0; left: calc(var(--g) / -2); border-left: 1px solid var(--hue); }
+.tr-sp.down { top: var(--c); bottom: calc(-1 * var(--rp)); }
+.tr-sp.full { top: 0; bottom: calc(-1 * var(--rp)); }
+.tr-sp.up { top: 0; height: var(--c); }
+.tr-kind, .tr-where, .tr-within, .tr-key, .tr-mark { display: block; font-size: 10.5px; line-height: 1.4; color: var(--ink-faint); }
+/* on a node's wash the small print leaves the faint ink, which read at 4.1 to 1 there in dark: the soft ink,
+   7 to 1 or more in light and dark (17 October, the cards' sweep) */
+.tr-c.node .tr-kind, .tr-c.node .tr-where, .tr-c.node .tr-within, .tr-c.node .tr-unread { color: var(--ink-soft); }
+.tr-kind { font-weight: 600; letter-spacing: .02em; }
+.tr-title { font-family: var(--serif); font-size: 14px; color: var(--ink); }
+.tr-st { display: block; font-family: var(--serif); font-size: 13.5px; color: var(--ink); }
+.tr-st + .tr-st { margin-top: 4px; }
+.tr-q { font-family: var(--serif); font-style: italic; font-size: 13.5px; color: var(--ink); }
+.tr-key { color: var(--ink-soft); font-weight: 600; }
+.tr-mark { color: var(--amber); }
+.tr-who .tr-mark { display: inline; font-family: var(--sans); font-size: 11.5px; }
+/* the passage at 13px under the trail's own name, since Trace's `.tr-said`, a claim's sentence at 21px in
+   trace.css, loads after this sheet and took the trail's passages to 21px (17 October, the cards' sweep) */
+.tr-get .tr-said { display: block; font-family: var(--serif); font-size: 13px; line-height: inherit; color: var(--ink-soft); }
+.tr-said b { color: var(--ink); font-weight: 600; }
+.tr-unread { color: var(--ink-faint); font-family: var(--sans); }
+.tr-c.pn { box-shadow: none; outline: 1px dashed var(--rule-firm); outline-offset: -1px; background: var(--card); }
+.tr-c.playable { cursor: pointer; }
+.tr-c.playable:hover { box-shadow: inset 0 0 0 1px var(--hue); }
+.tr-c.playable.playing { box-shadow: inset 0 0 0 2px var(--hue); }
+.tr-c.playable:focus-visible { outline: 0; box-shadow: var(--focus); }
+
+/* The print card (31 October, literal words): What to print, a list of four, then Under each participant, a list of
+   two, each choice a whole row inside its label, the radio, its name and a line under it in the soft ink saying
+   what it gives; wide enough at 1280 that each line stays on one, wrapping in a narrow window. Then the three ticks,
+   each a row of its own. */
+.gt-print-card { width: min(720px, 100%); }
+.gt-print-what, .gt-print-detail { display: grid; gap: 2px; margin: 0 0 16px; }
+.gt-print-what[hidden], .gt-print-detail[hidden] { display: none; }
+.gt-print-head { margin: 0 0 4px; font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+.gt-choice { display: flex; align-items: flex-start; gap: 10px; padding: 6px 8px; margin: 0 -8px; border-radius: 4px;
+  font-size: 14px; color: var(--ink); cursor: pointer; }
+.gt-choice:hover { background: var(--paper-sunk); }
+.gt-choice input { margin: 3px 0 0; flex: none; accent-color: var(--ink); }
+.gt-choice > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gt-choice-line { font-size: 12.5px; line-height: 1.4; color: var(--ink-soft); }
+.gt-print-ticks { display: grid; gap: 10px; justify-items: start; }
+.gt-print-notes { display: flex; width: fit-content; align-items: center; gap: 9px; margin: 0; font-size: 13.5px; color: var(--ink-soft); cursor: pointer; }
+.gt-print-notes input { accent-color: var(--ink); }
+
+/* Open beside this one: the canvas splits, his own on the left as it is and the other on the right,
+   read-only under a line naming it, and below about 900px the two stack. */
+.th-body.th-split > .th-stage, .th-body.th-split > .th-beside { flex: 1 1 0; }
+.th-beside { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column;
+  border-left: 1px solid var(--rule-firm); background: var(--paper); }
+.th-beside[hidden] { display: none; }
+.th-beside-bar { flex: none; display: flex; align-items: baseline; gap: 8px; min-width: 0; padding: 8px 46px 8px 14px;
+  border-bottom: 1px solid var(--rule); background: var(--card); font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; }
+.th-beside-case { font-family: var(--serif); font-size: 15px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
+.th-beside-board { overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
+.th-beside-ro { flex: none; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; color: var(--ink-faint); }
+.th-beside-bar .rail-grow { flex: 1 1 auto; }
+.th-beside-close { top: 2px; right: 6px; width: 32px; height: 32px; }
+.th-beside-close svg { width: 15px; height: 15px; }
+.th-bstage { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; touch-action: none; cursor: grab;
+  background-color: var(--paper); background-image: radial-gradient(circle, var(--th-dot) 1px, transparent 1.3px);
+  background-size: 22px 22px; user-select: none; -webkit-user-select: none; }
+.th-bstage.th-panning { cursor: grabbing; }
+.th-bstage .th-card, .th-bstage .th-label { cursor: inherit; }
+.th-bstage .th-card:hover { border-color: var(--rule); }
+@media (max-width: 900px) {
+  .th-body.th-split { flex-wrap: wrap; }
+  .th-body.th-split > .th-stage, .th-body.th-split > .th-beside { flex: 1 1 100%; height: 50%; }
+  .th-body.th-split > .th-beside { border-left: 0; border-top: 1px solid var(--rule-firm); }
+}
+
+/* the case switcher's two at the right of a case, Open beside this one over Open as table */
+.th-casemenu { width: min(28em, calc(100vw - 16px)); }
+.th-cacts { flex: none; display: flex; flex-direction: column; align-items: flex-end; }
+.th-vmenu .th-cacts button.ghost.th-ctable { margin-top: 2px; }
+
+/* ── Canvas and Table (19 October): two views of one board ──
+   The switch on the bar in the From control's look, the view showing pressed in. The table lies over
+   the canvas, which stays laid out under it, so every measure the canvas takes still holds. The
+   canvas's own corner tools go while it shows, and the lines in the top right stay over it. */
+.th-faces { margin: 0 0 0 4px; flex: none; }
+.th-faces[hidden] { display: none; }
+.th-faces .th-from-opt { height: 24px; padding: 0 9px; }
+/* the palette stands over the table too (20 October, way 1), Group, Undo and Redo, a sticky note being the
+   canvas's alone. The table measures itself by the stage, not the window, so beside the Inspector or the
+   Cases panel it takes the narrow layout as a narrow window does. Where the stage is wide the table moves
+   in past the palette so nothing lies under it, and where it is narrow the palette lies flat in a row at
+   the table's foot right, floating as it does over the canvas, the table's foot room clearing it */
+.th-screen.table-face .th-stage { container: tbstage / inline-size; }
+.th-screen.table-face .th-stage .th-palette { z-index: 6; }
+/* the table keeps Group, Select all, Undo and Redo, a sticky note, Auto-arrange, Align and Spread being the
+   canvas's alone (21 October) */
+.th-screen.table-face #th-sticky, .th-screen.table-face .th-palette .th-pal-canvas,
+.th-screen.table-face .th-palette.fold .th-pal-more { display: none; }
+@container tbstage (min-width: 701px) {
+  .th-screen.table-face .th-stage:has(> .th-palette:not(.right)) .th-table { padding-left: calc(var(--th-pal-w, 40px) + 24px); }
+  .th-screen.table-face .th-stage:has(> .th-palette.right) .th-table { padding-right: calc(var(--th-pal-w, 40px) + 24px); }
+}
+@container tbstage (max-width: 700px) {
+  .th-screen.table-face .th-stage .th-palette { flex-direction: row; width: auto; height: 40px; padding: 3px 5px 3px 3px;
+    left: auto !important; top: auto !important; right: 16px !important; bottom: calc(var(--th-status-h, 0px) + 12px); }
+  .th-screen.table-face .th-stage .th-palette .th-pal-word { display: none; }
+  /* room at the table's foot as tall as the palette and its gap, and as much again, so the last rows and the
+     Binned list scroll clear of it */
+  .th-screen.table-face .th-stage:has(> .th-palette) .tb-page { padding-bottom: calc(12px + 40px + 28px); }
+  .th-screen.table-face .th-stage .th-palette-grip { display: none; }
+  .th-screen.table-face .th-stage .th-palette-rule { width: 1px; height: 22px; margin: 0 3px; }
+}
+.th-screen.table-face .th-stage { cursor: auto; background-image: none; }
+/* the table keeps the status bar's counts alone, standing above it, and loses the floating zoom bar */
+.th-screen.table-face .th-stage:not(.th-status-on) .th-zoomer, .th-screen.table-face .th-zoomer > :not(.th-status-counts),
+.th-screen.table-face .th-map, .th-screen.table-face .th-discard,
+.th-screen.table-face .th-pile, .th-screen.table-face .th-tip, .th-screen.table-face .th-flash { display: none; }
+.th-screen.table-face .th-world { visibility: hidden; }
+.th-table { position: absolute; inset: 0; z-index: 4; overflow: auto; background: var(--paper); --tb-q: clamp(180px, 38cqw, 470px);
+  user-select: text; -webkit-user-select: text; touch-action: auto; cursor: auto; }
+.th-table[hidden] { display: none; }
+.th-stage.th-status-on .th-table { bottom: var(--th-status-h, 0px); }
+.tb-page { position: relative; max-width: 1120px; margin: 0 auto; padding: 22px var(--gutter, 16px) 64px; }
+.tb-top { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; margin: 0 0 16px; }
+.tb-heading { margin: 0; font-family: var(--serif); font-size: 19px; font-weight: 400; color: var(--ink); }
+.tb-sub { font-size: 12.5px; color: var(--ink-soft); }
+/* on a PETs board the participant heads the table, larger, the table's name smaller under it, and the
+   board's name and the buttons sit level with that second line (Adam, 20 October) */
+.tb-top:has(.tb-titles) { align-items: last baseline; }
+.tb-titles { min-width: 0; }
+.tb-who-head { font-size: 26px; line-height: 1.2; }
+.tb-table-name { margin: 2px 0 0; font-family: var(--serif); font-size: 15px; color: var(--ink-soft); }
+.tb-top .rail-grow { flex: 1 1 auto; }
+.tb-acts { display: flex; gap: 6px; flex: none; }
+.tb-none { margin: 28px 0; color: var(--ink-soft); font-size: 13.5px; }
+/* a PET, its sub-themes and groups set in a little further each, a rule in its tint down its side */
+.tb-pet { margin: 0 0 18px; padding: 0 0 0 12px; border-left: 3px solid var(--hue); }
+.tb-label { margin: 10px 0 0 14px; padding-left: 10px; border-left: 2px solid var(--hue); }
+.tb-head { display: flex; align-items: center; gap: 6px; min-height: 34px; padding: 3px 6px 3px 0; border-radius: 4px;
+  background: color-mix(in srgb, var(--hue) 13%, transparent); }
+.tb-label > .tb-head { background: color-mix(in srgb, var(--hue) 8%, transparent); min-height: 30px; }
+.tb-code { flex: none; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink); }
+.tb-title { min-width: 0; flex: 0 1 auto; margin: 0; padding: 2px 4px; border: 1px solid transparent; border-radius: 3px;
+  background: none; font: inherit; color: var(--ink); text-align: left; cursor: text; overflow-wrap: anywhere; }
+.tb-pet > .tb-head .tb-code, .tb-pet > .tb-head .tb-title { font-size: 14.5px; letter-spacing: .02em; text-transform: uppercase; }
+.tb-label > .tb-head .tb-code, .tb-label > .tb-head .tb-title { font-size: 14px; font-weight: 600; }
+.tb-label.deep > .tb-head .tb-title { font-style: italic; }
+.tb-title:hover { border-color: var(--rule-firm); }
+.tb-title:focus-visible { outline: 0; box-shadow: var(--focus); }
+.tb-title-box { flex: 1 1 auto; min-width: 8em; max-width: 40em; font: inherit; font-size: 14px; padding: 3px 6px;
+  border: 1px solid var(--field-edge); border-radius: 3px; background: var(--card); color: var(--ink); }
+.tb-count { flex: none; margin-left: auto; font-size: 11.5px; color: var(--ink-faint); white-space: nowrap; }
+/* a label's description in the Table view, a line of its own in the heading's band, set in a little under the
+   title, in the serif and never in capitals, whole (Adam, 21 October) */
+.tb-head.tb-described { border-radius: 4px 4px 0 0; }
+.tb-desc { margin: 0; padding: 0 8px 6px 34px; border-radius: 0 0 4px 4px; font-family: var(--serif); font-size: 14px;
+  line-height: 1.35; color: var(--ink-soft); background: color-mix(in srgb, var(--hue) 13%, transparent); }
+.tb-label > .tb-desc { background: color-mix(in srgb, var(--hue) 8%, transparent); }
+.tb-note { margin: 4px 0 0 34px; font-style: italic; font-size: 13px; color: var(--ink-soft); }
+/* each statement a row of two columns about equal, its words and where it is, and its own key quote */
+.tb-body { padding: 2px 0 4px; min-height: 8px; }
+.tb-st { display: flex; align-items: flex-start; gap: 6px; padding: 6px 6px 6px 0; border-bottom: 1px solid var(--rule); }
+.tb-st:last-child { border-bottom: 0; }
+/* the quotes' column one width all down the page, so every quote starts at one edge at every depth */
+.tb-cols { flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) var(--tb-q); gap: 4px 22px; }
+.tb-text { margin: 0; font-family: var(--serif); font-size: 14.5px; line-height: 1.4; color: var(--ink); }
+.tb-ref { font-family: var(--sans); font-size: 11.5px; color: var(--ink-faint); white-space: nowrap; }
+.tb-quote { margin: 0; font-family: var(--serif); font-style: italic; font-size: 13.5px; line-height: 1.4; color: var(--ink-soft); }
+.tb-gone { font-size: 11px; color: var(--amber); }
+/* a stack's count, a button that shows the stack under its top and stacks it again, as S does */
+.tb-stacked { margin: 0 0 0 2px; padding: 0 5px; border: 1px solid var(--rule-firm); border-radius: 9px; background: var(--card);
+  font-family: var(--sans); font-size: 11px; line-height: 16px; color: var(--ink-soft); white-space: nowrap; cursor: pointer; }
+.tb-stacked:hover { color: var(--ink); border-color: var(--ink-faint); }
+.tb-stacked[aria-expanded="true"] { background: var(--paper-sunk); color: var(--ink); }
+/* a statement under a top, while its stack shows, set in a step under it with no grip of its own */
+.tb-under { margin-left: 28px; border-left: 2px dotted var(--rule-firm); padding-left: 6px; }
+.tb-nogrip { cursor: default; visibility: hidden; }
+/* a row selected, the canvas's own selection, marked as a card selected is */
+.tb-st, .tb-item, .tb-head { position: relative; cursor: default; }
+.tb-st.tb-sel, .tb-item.tb-sel, .tb-sel > .tb-head { border-radius: 4px; background: color-mix(in srgb, var(--accent) 10%, var(--paper));
+  box-shadow: 0 0 0 2px var(--accent); }
+.tb-st.tb-sel { border-bottom-color: transparent; }
+/* a row's menu, its ⋯ shown on a row the pointer is over or one selected */
+.tb-more { flex: none; align-self: center; width: 22px; height: 22px; padding: 0; margin: 0 0 0 2px; display: inline-flex;
+  align-items: center; justify-content: center; opacity: 0; background: var(--card); border: 1px solid var(--rule-firm);
+  border-radius: 50%; color: var(--ink-soft); font-size: 13px; line-height: 1; cursor: pointer; transition: opacity .14s; }
+.tb-st:hover > .tb-more, .tb-item:hover > .tb-more, .tb-head:hover > .tb-more, .tb-sel > .tb-more, .tb-sel > .tb-head > .tb-more,
+.tb-more:focus-visible { opacity: 1; }
+.tb-more:hover { color: var(--ink); border-color: var(--ink-faint); }
+@media (hover: none) { .tb-more { opacity: 1; } }
+.th-table.tb-dragging .tb-more { opacity: 0; }
+/* a title strip a drop would merge into, lit in its tint with Merge into over it, as the canvas's */
+.tb-head.tb-merge { box-shadow: 0 0 0 2px var(--hue, var(--ink)); background: color-mix(in srgb, var(--hue) 26%, var(--paper)); }
+.tb-merge-word { flex: none; order: -1; margin-left: 4px; font-family: var(--sans); font-size: 12px; font-weight: 600;
+  color: color-mix(in srgb, var(--hue-base, var(--hue)) 65%, var(--ink)); }
+/* the bin at the foot, each statement with Put back */
+.tb-binned { align-items: center; }
+.tb-binned .tb-text { flex: 1 1 auto; min-width: 0; color: var(--ink-soft); }
+.tb-binned > button { flex: none; }
+/* the grip on every row: drag to put it in another place, or Alt with an arrow from the keyboard */
+.tb-grip { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 26px;
+  margin: 0; padding: 0; border: 0; border-radius: 3px; background: none; color: var(--ink-faint); cursor: grab; touch-action: none; }
+.tb-grip svg { width: 12px; height: 16px; }
+.tb-grip:hover { color: var(--ink); background: var(--paper-sunk); }
+.tb-grip:focus-visible { outline: 0; box-shadow: var(--focus); color: var(--ink); }
+.th-table.tb-locked .tb-grip { visibility: hidden; }
+.th-table.tb-dragging, .th-table.tb-dragging * { cursor: grabbing !important; user-select: none; -webkit-user-select: none; }
+.tb-lifted { opacity: .45; }
+.tb-line { position: absolute; z-index: 2; height: 3px; margin-top: -1.5px; border-radius: 2px; background: var(--hue, var(--ink));
+  pointer-events: none; }
+.tb-line[hidden] { display: none; }
+.tb-into { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hue, var(--ink)) 55%, transparent); border-radius: 4px; }
+.tb-pullinto { box-shadow: 0 0 0 2px color-mix(in srgb, var(--hue, var(--ink)) 70%, transparent); border-radius: 4px; }
+/* Not placed at the end, its statements in the same rows, each dragging into a PET */
+.tb-rest { margin: 26px 0 0; }
+.tb-rest-head { margin: 0 0 4px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+/* the GET table as a view: each GET with its count, then a row for every case, what of it sits under it */
+.tb-get .tb-badge { flex: none; margin-left: auto; font-size: 11.5px; color: var(--ink-soft); white-space: nowrap; }
+.tb-get .tb-badge.under { color: var(--amber); }
+.tb-subs { margin: 0 0 6px; }
+.tb-getsub { margin-top: 6px; }
+.tb-getsub:first-child { margin-top: 2px; }
+.tb-case { display: grid; grid-template-columns: minmax(7em, 12em) 1fr; gap: 4px 16px; padding: 6px 0; border-bottom: 1px solid var(--rule); }
+.tb-case:last-child { border-bottom: 0; }
+.tb-who { margin: 0; font-size: 13px; color: var(--ink); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.tb-items { margin: 0; padding: 0; list-style: none; min-width: 0; }
+.tb-item { display: flex; align-items: flex-start; gap: 6px; padding: 2px 0; }
+.tb-item .tb-kind { flex: none; font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); padding-top: 4px; }
+.tb-item .tb-said { min-width: 0; font-family: var(--serif); font-size: 14px; line-height: 1.4; color: var(--ink); }
+.tb-item .tb-in { font-size: 11.5px; color: var(--ink-faint); }
+.tb-nothing { margin: 0; font-size: 12.5px; color: var(--ink-faint); padding-top: 3px; }
+/* a row's key quote and his note for it under what it holds, and a GET's Audit trail under its title,
+   since the sidebar's Table tab that held them went (19 October) */
+.tb-said-of { min-width: 0; }
+.tb-said-of .gt-tkey { margin-top: 6px; }
+.tb-who .gt-mark { margin-left: 0; }
+.tb-trail { margin: 4px 0 6px 2px; }
+@container tbstage (max-width: 700px) {
+  .tb-cols { grid-template-columns: 1fr; }
+  .tb-case { grid-template-columns: 1fr; }
+  .tb-label { margin-left: 6px; padding-left: 8px; }
+  .tb-note { margin-left: 28px; }
+  .tb-count { display: none; }
+}
+
+/* A key quote shown whole beside its card (Adam, 19 October, way A of the drawings): KEY QUOTE in the label face
+   with the row's timecode and its play button, the quote in the reading face in italic, then under a hairline
+   Show in passage and Esc, on the card's paper with a menu's lift */
+.th-kqpop {
+  position: fixed; z-index: 40; width: min(340px, calc(100vw - 32px)); box-sizing: border-box;
+  padding: 12px 14px 8px; background: var(--card); border: 1px solid var(--rule-firm); border-radius: 5px;
+  box-shadow: var(--lift); animation: rise .14s cubic-bezier(.2,.7,.3,1) both;
+}
+.th-kqpop[hidden] { display: none; }
+.th-kqpop-head { display: flex; align-items: center; gap: 12px; margin: 0 0 6px; }
+.th-kqpop-kicker { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; color: var(--ink-soft); }
+.th-kqpop-head .th-play { margin-left: -6px; }
+.th-kqpop-text {
+  margin: 0; font-family: var(--serif); font-style: italic; font-size: 14.5px; line-height: 1.45; color: var(--ink);
+  max-height: 40vh; overflow-y: auto; overflow-wrap: anywhere;
+}
+.th-kqpop-foot {
+  display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 6px;
+  border-top: 1px solid var(--rule);
+}
+.th-kqpop-go { padding: 4px 0; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); background: none; border: 0; cursor: pointer; }
+.th-kqpop-go:hover { color: var(--ink); text-decoration: underline; }
+.th-kqpop-esc { font-size: 11px; color: var(--ink-faint); }
+
+/* Close pairs (Adam, 20 October, way B and way 1 of the drawings): a thin line in the amber between two
+   statements of one group from one sheet within the gap of each other, under the cards and over the frames,
+   so it keeps to the gaps between cards and never crosses a card's words. Quiet at rest, a fine dashed line
+   at half strength, and strong while either card is hovered or selected, the line itself is under the
+   pointer, or its pair is the one the status bar stepped to. A wide clear line under it takes the click. */
+.th-links { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
+.th-link { fill: none; stroke: var(--amber); stroke-width: 2; stroke-dasharray: 5 3; stroke-opacity: .7;
+  stroke-linejoin: round; transition: stroke-opacity var(--quick), stroke-width var(--quick); }
+.th-link-hit { fill: none; stroke: transparent; stroke-width: 12; pointer-events: stroke; cursor: pointer; }
+.th-link-end { fill: var(--card); stroke: var(--amber); stroke-width: 1.6; stroke-opacity: .8; transition: fill var(--quick); }
+circle.th-link-hit { fill: transparent; stroke: none; pointer-events: fill; }
+.th-pair:hover .th-link, .th-pair.hot .th-link, .th-pair.on .th-link, .th-pair.cur .th-link {
+  stroke-opacity: 1; stroke-width: 2.6; stroke-dasharray: none; }
+.th-pair:hover .th-link-end, .th-pair.hot .th-link-end, .th-pair.on .th-link-end, .th-pair.cur .th-link-end {
+  fill: var(--amber); stroke-opacity: 1; }
+/* the card a Stack under in the pair's menu would keep on top, while the pointer is on its entry */
+.th-card.th-pair-top { box-shadow: 0 0 0 2px var(--amber), var(--rest); }
+.th-zoomer .th-close-btn[hidden] { display: none; }
+.th-zoomer .th-close-btn[aria-pressed="true"] { background: var(--paper-sunk); border-color: var(--rule-firm); color: var(--ink); }
+/* the count at the end of the bar's counts, "3 close pairs" and "2 of 3 close pairs", with ‹ and › */
+.th-stat-close { display: inline-flex; align-items: center; color: var(--amber); cursor: pointer; }
+.th-cp-long, .th-cp-short { margin-left: .3em; }
+.th-stat-close .th-stat-n { color: var(--amber); }
+.th-zoomer .th-cpstep { min-width: 20px; height: 20px; padding: 0 4px; margin-left: 2px; font-size: 15px; line-height: 1;
+  color: var(--amber); }
+.th-zoomer .th-cpstep:first-of-type { margin-left: 6px; }
+.th-cp-short { display: none; }
+.th-stage.th-status-shorter .th-cp-long { display: none; }
+.th-stage.th-status-shorter .th-cp-short { display: inline; }
+@media (max-width: 767px) {
+  .th-stage.th-status-on .th-cp-long { display: none; }
+  .th-stage.th-status-on .th-cp-short { display: inline; }
+}
+/* and in a bar shorter still, the pairs' ‹ and › and the zoom's minus and plus go, the count stepping on a click */
+.th-stage.th-status-tiny .th-cpstep, .th-stage.th-status-tiny #th-zoom-out, .th-stage.th-status-tiny #th-zoom-in { display: none; }
+/* the gap's menu over the bar, as the counts' menu stands, the gap in use ticked */
+.th-cpmenu { position: fixed; z-index: var(--z-find); width: max-content; max-width: calc(100vw - 16px); }
+.th-cpmenu-head { margin: 4px 10px 4px; max-width: 18em; font-size: 12px; line-height: 1.4; color: var(--ink-soft); }
+.th-cpmenu .th-cp-tick { display: inline-flex; width: 16px; height: 16px; margin-right: 6px; flex: none; }
+.th-cpmenu .th-cp-tick svg { width: 16px; height: 16px; }
+.th-cpmenu .th-cpgap.on { color: var(--ink); font-weight: 600; }
+.th-cpapart { display: flex; align-items: center; gap: 10px; padding: 2px 4px 2px 10px; font-size: 13px; color: var(--ink); }
+.th-cpapart-words { flex: 1 1 auto; white-space: nowrap; }
+/* the pair's menu: its gap at its head, and Not the same with a line under it */
+.th-pmenu-head { margin: 4px 10px 4px; font-size: 12px; color: var(--amber); font-weight: 600; }
+.th-pmenu .th-pmenu-two { flex-direction: column; align-items: flex-start; gap: 1px; }
+.th-pmenu-sub { font-size: 11.5px; color: var(--ink-faint); }
+/* a row's link mark in the Table view, with how far apart, lit while its pair is the one stepped to */
+.tb-pair { display: inline-flex; align-items: center; gap: 4px; margin: 0 0 0 2px; padding: 0 6px; border: 1px solid var(--amber);
+  border-radius: 9px; background: var(--card); font-family: var(--sans); font-size: 11px; line-height: 16px;
+  color: var(--amber); white-space: nowrap; cursor: pointer; vertical-align: 1px; }
+.tb-pair svg { width: 14px; height: 14px; display: block; }
+.tb-pair:hover, .tb-pair.cur { background: color-mix(in srgb, var(--amber) 12%, var(--card)); }
+/* the Inspector on both of a close pair, one under the other */
+.th-pairone { padding: 10px 0 4px; border-top: 1px solid var(--rule); margin-top: 10px; }
+.th-pair-text { margin: 0 0 4px; font-family: var(--serif); font-size: 16px; line-height: 1.4; color: var(--ink); }
+.th-pair-acts { flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+/* the close pairs' count keeps its rule before it where the bar runs short and the counts before it go */
+.th-status-counts .th-stat.th-stat-close:not(:first-child) { margin-left: 10px !important; padding-left: 10px !important;
+  border-left: 1px solid var(--rule) !important; }
+
+/* The board's sidebar in place of the bin (Adam, 20 October, way A of the drawings): on PETs the panel at
+   the left of the canvas holds Not placed, the statements waiting off the canvas in interview order, each
+   its time first, and on both boards Set aside is pinned to its foot, folded until he opens it, its count
+   at the right. A row drags onto the canvas, several when they are selected, and lights for a moment where
+   a card taken out lands. */
+.th-cpanel .th-panel-body.gt-cases { padding-bottom: 12px; }
+.ts-head { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+.ts-fold { display: inline-flex; align-items: center; gap: 6px; flex: 1 1 auto; min-width: 0; padding: 4px 0;
+  background: none; border: 0; cursor: pointer; text-align: left; font: inherit; color: var(--ink); }
+.ts-fold .gt-chev { width: 12px; height: 12px; flex: none; color: var(--ink-faint); transform: rotate(-90deg); transition: transform .14s; }
+.ts-fold.open .gt-chev { transform: none; }
+.ts-name { font-family: var(--sans); font-size: 14px; font-weight: 600; }
+.ts-n { flex: none; font-family: var(--mono); font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.ts-acts { margin: 2px 0 8px 18px; }
+.ts-list { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 2px; }
+/* the timecode's column as wide as the project's timecodes need, 01:15:12 the widest (28 October) */
+.ts-row { display: grid; grid-template-columns: minmax(46px, max-content) minmax(0, 1fr) auto; column-gap: 8px; align-items: start;
+  padding: 5px 6px; border-radius: 4px; border: 1px solid transparent; cursor: grab; user-select: none; -webkit-user-select: none; }
+.ts-row:hover { background: var(--paper-sunk); border-color: var(--rule); }
+.ts-row.sel { background: var(--crux-wash); border-color: var(--rule-firm); }
+.ts-row.ts-lifted { opacity: .45; border: 1px dashed var(--rule-firm); background: none; }
+.ts-row.missing .ts-text { color: var(--ink-faint); }
+.ts-time { padding-top: 3px; font-size: 11.5px; color: var(--ink-soft); }
+.ts-lead { padding-top: 1px; }
+.ts-body { display: grid; gap: 3px; min-width: 0; }
+.ts-text { font-family: var(--serif); font-size: 15px; line-height: 1.35; color: var(--ink); overflow-wrap: anywhere; }
+.ts-why { font-family: var(--sans); font-size: 12px; line-height: 1.4; color: var(--ink-soft); }
+.ts-stk { justify-self: start; padding: 0 8px; border: 1px solid var(--rule-firm); border-radius: 10px;
+  font-family: var(--sans); font-size: 12px; line-height: 18px; color: var(--ink-soft); }
+.ts-act { align-self: center; }
+.ts-sheet { margin: 8px 0 2px; padding: 0 6px; display: flex; align-items: center; gap: 8px; font-family: var(--sans);
+  font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+.ts-sheet::after { content: ''; flex: 1 1 auto; border-top: 1px solid var(--rule); }
+@keyframes ts-lit { from { background: var(--crux-wash); box-shadow: inset 0 0 0 1px var(--rule-firm); } to { background: transparent; box-shadow: none; } }
+.ts-lit { animation: ts-lit 1.6s ease-out; }
+@media (prefers-reduced-motion: reduce) { .ts-lit { animation: none; } }
+/* Set aside at the panel's foot, a line over it, as tall as it needs up to 45% of the panel, its rows
+   scrolling inside it */
+.th-aside { flex: none; max-height: 45%; overflow-y: auto; overscroll-behavior: contain; padding: 8px 20px 10px;
+  border-top: 1px solid var(--rule); background: var(--card); }
+.th-aside:empty { display: none; }
+/* a card dragged from the canvas: the sidebar shows where it would go, Not placed or Set aside */
+.th-cpanel.armed .gt-cases, .th-cpanel.armed .th-aside { outline: 1px dashed var(--rule-firm); outline-offset: -4px; }
+.th-screen:not(.gets-mode) .th-cpanel.armed .gt-cases.over, .th-cpanel.armed .th-aside.over { background: var(--paper-sunk); outline: 1px solid var(--ink); }
+.gets-mode .th-cpanel.armed .gt-cases { outline: 0; }
+/* What is dragged from the sidebar on either board, a card under the pointer, or a card for each row when
+   there are several, with how many on the one picked up. They lie in a layer over everything at the
+   canvas's zoom (thPullLift), and lift and lean as a card dragged on the canvas does (21 October). */
+.th-pull { position: fixed; left: 0; top: 0; z-index: 70; pointer-events: none; transform-origin: 0 0; }
+.ts-ghost-n { position: absolute; top: -9px; right: -9px; min-width: 20px; height: 20px; padding: 0 6px; box-sizing: border-box;
+  border-radius: 10px; background: var(--ink); color: var(--card); font-family: var(--sans); font-size: 12px; font-weight: 600;
+  line-height: 20px; text-align: center; }
+/* the count waiting on the sidebar's button, a small pill after its name, none while none waits */
+.th-door-n { display: inline-block; margin-left: 6px; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
+  border-radius: 8px; background: var(--ink-soft); color: var(--card); font-family: var(--mono); font-size: 10.5px;
+  line-height: 16px; text-align: center; pointer-events: none; }
+.th-door-n[hidden] { display: none; }
+/* a key beside a menu entry, Backspace or X, in the faint mono */
+.th-cmenu .th-mkey { margin-left: auto; padding-left: 18px; font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); }
+.th-cmenu button:has(.th-mkey) { display: flex; align-items: center; }
+/* Not placed and Set aside on the status bar open the sidebar on their section */
+.th-stat-go { cursor: pointer; border-radius: 3px; }
+.th-stat-go:hover { background: var(--paper-sunk); }
+.th-discard[hidden] { display: none !important; }
+
+/* the left panel's door keeps the count it carries on PETs beside its icon wherever the tools show their icons
+   alone, where in a 26px box the count was cut (20 October) */
+#themes .rail-btn.gt-door:has(.th-door-n:not([hidden])) { width: auto; min-width: 26px; padding: 0 4px; gap: 0; }
+
+/* ───────────────────────────────────────────────── the Trajectories board ── */
+
+/* (21 October, timepoints part 3) the project's own trajectories, since 10 November 2026 as bands down the screen
+   (layout F below), with the status bar along the foot */
+.tj-screen { height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: var(--paper); }
+.tj-screen .rail { flex: none; }
+.tj-screen .band { position: relative; top: auto; z-index: 2; flex: none; }
+.tj-screen .band[hidden] { display: none; }
+#tj-back:hover { border-color: transparent; }
+#tj-back:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+.tj-body { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 20px 24px 32px; }
+.tj-said[hidden] { display: none; }
+/* Layout F (trajbuild2, 10 November 2026, Adam's Freeform page after revD): each trajectory a band down the
+   screen, its head shaded in its colour with its icon, title and sentence and a rule in its colour under them,
+   then the timepoints across, then each participant: their picture, name, label and tags in a cell of their own
+   beside a row for each of their LPETs, the LPET's title and domain, then at each timepoint its key quote over
+   its state. Not placed is a band of its own, dashed, first */
+.tj-board { display: block; width: 100%; }
+.tf-band { --tc: var(--ink-soft); position: relative; background: var(--card); border: 1px solid var(--rule); border-radius: var(--r-card);
+  margin-bottom: 18px; box-shadow: var(--rest); }
+.tf-band.tj-over { border-color: var(--ink-soft); box-shadow: inset 0 0 0 1px var(--ink-soft); }
+.tf-band-none { background: transparent; border-style: dashed; border-color: var(--rule-firm); box-shadow: none; }
+.tf-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto auto; align-items: start; gap: 4px 12px;
+  padding: 12px 14px; border-radius: var(--r-card) var(--r-card) 0 0;
+  background: color-mix(in srgb, var(--tc) 9%, var(--card)); border-bottom: 2px solid var(--tc); }
+.tf-head-none { display: flex; align-items: center; background: transparent; border-bottom: 1px dashed var(--rule-firm); padding: 10px 14px; }
+.tf-head-none .tj-title-fixed { flex: 1 1 auto; }
+.tf-icon { width: 46px; height: 31px; color: var(--tc); margin-top: 2px; }
+.tf-icon svg { width: 46px; height: 31px; display: block; }
+.tf-icon-none { width: 0; margin: 0; }
+.tf-headw { min-width: 0; }
+.tf-title.tj-title { display: block; width: 100%; color: var(--tc); font-size: 21px; padding: 0 4px; margin-left: -5px; }
+.tf-desc { display: block; width: 100%; max-width: 70ch; margin: 2px 0 0 -5px; padding: 1px 4px; resize: none; overflow: hidden;
+  font: inherit; font-size: 14px; line-height: 1.4; color: var(--ink); background: transparent; border: 1px solid transparent;
+  border-radius: var(--r-control); }
+.tf-desc:hover { border-color: var(--rule); }
+.tf-desc:focus { outline: 0; border-color: var(--field-edge); background: var(--card); box-shadow: var(--focus-small); }
+/* a field's placeholder shows only while it has the focus or the pointer, so an empty one says nothing at rest */
+.tf-board textarea::placeholder { color: transparent; }
+.tf-board textarea:is(:focus, :hover)::placeholder, .tf-tagin::placeholder { color: var(--ink-faint); }
+.tf-swatch { align-self: center; width: 26px; height: 26px; padding: 5px; border: 1px solid var(--rule-firm); border-radius: var(--r-control);
+  background: var(--card); cursor: pointer; }
+.tf-swatch span { display: block; width: 100%; height: 100%; border-radius: 50%; background: var(--tc); }
+.tf-swatch:focus-visible, .tf-sw:focus-visible, .tf-ic:focus-visible, .tf-more:focus-visible, .tf-dot:focus-visible,
+.tf-face:focus-visible, .tf-pill-b:focus-visible, .tf-x:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+.tf-head .tj-remove, .tf-head .tj-count { align-self: center; }
+/* the trajectory's colour and icon, opened from its swatch */
+.tf-cpick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 12px 16px 4px; padding: 10px 14px;
+  background: var(--paper); border: 1px solid var(--rule-firm); border-radius: var(--r-card); }
+.tf-cpick-l { font-size: 12.5px; color: var(--ink-soft); }
+.tf-sws, .tf-ics { display: flex; flex-wrap: wrap; gap: 6px; margin-right: 14px; }
+.tf-sw { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--card); box-shadow: 0 0 0 1px var(--rule-firm); cursor: pointer; padding: 0; }
+.tf-sw.on { box-shadow: 0 0 0 2px var(--ink); }
+.tf-sw-none { background: linear-gradient(135deg, transparent 45%, var(--ink-faint) 46%, var(--ink-faint) 54%, transparent 55%), var(--card); }
+.tf-ic { width: 44px; height: 30px; padding: 4px 6px; border: 1px solid var(--rule); border-radius: var(--r-control); background: var(--card);
+  color: var(--tc); cursor: pointer; }
+.tf-ic svg { width: 100%; height: 100%; display: block; }
+.tf-ic.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.tf-ic-none { width: auto; font: inherit; font-size: 12px; color: var(--ink-soft); }
+.tf-cpick .tf-done { margin-left: auto; }
+/* the grid: the participant's cell, the LPET's title, then a column for each timepoint */
+.tf-grid { display: grid; grid-template-columns: 150px 168px repeat(var(--tps, 3), minmax(0, 1fr)); column-gap: 20px; padding: 4px 16px 6px; }
+.tf-th { padding: 10px 0 8px; font-size: 14px; font-weight: 600; color: var(--ink); text-align: left; border-bottom: 1px solid var(--rule-firm);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tf-th0 { border-bottom-color: transparent; }
+.tf-pcell { grid-column: 1; position: relative; padding: 12px 22px 12px 0; cursor: grab; border-radius: var(--r-control); }
+.tf-pcell:focus-visible { outline: 0; box-shadow: var(--focus); }
+.tf-pcell.tj-lifted { opacity: .55; }
+.tf-who { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.tf-who .tf-pills { flex-direction: column; align-items: flex-start; margin-top: 4px; }
+.tf-name { font-size: 15px; color: var(--ink); }
+.tf-label { display: block; font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--ink-soft); }
+.tf-more { position: absolute; top: 10px; right: 0; width: 22px; height: 22px; display: grid; place-items: center; padding: 0;
+  border: 0; border-radius: var(--r-control); background: none; color: var(--ink-faint); cursor: pointer; opacity: 0; }
+.tf-more svg { width: 14px; height: 14px; }
+.tf-pcell:is(:hover, :focus-within) .tf-more, .tf-more[aria-expanded="true"] { opacity: 1; }
+.tf-more:hover { color: var(--ink); background: var(--paper-sunk); }
+.tf-menu { position: absolute; z-index: 5; top: 34px; left: 0; min-width: 210px; display: flex; flex-direction: column; padding: 4px;
+  background: var(--card); border: 1px solid var(--rule-firm); border-radius: var(--r-card); box-shadow: var(--lift); cursor: default; }
+.tf-mi { text-align: left; font: inherit; font-size: 13px; color: var(--ink); background: none; border: 0; border-radius: var(--r-control); padding: 6px 10px; cursor: pointer; }
+.tf-mi:hover, .tf-mi:focus-visible { outline: 0; background: var(--paper-sunk); }
+.tf-msep { height: 1px; margin: 4px 6px; background: var(--rule); }
+.tf-pcell .tj-note { margin-top: 8px; min-height: 3.2em; }
+.tf-pic, .tf-pill { --pc: var(--case); }
+.tf-dot { background: var(--case); }
+.tf-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.tf-pill { display: inline-flex; align-items: center; gap: 3px; padding: 1px 8px; border-radius: 999px; font-size: 11px; line-height: 16px; white-space: nowrap;
+  color: color-mix(in srgb, var(--pc) 70%, var(--ink)); background: color-mix(in srgb, var(--pc) 16%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--pc) 35%, transparent); }
+.tf-pic { flex: none; display: inline-grid; place-items: center; border-radius: 50%; overflow: hidden; background: var(--tf-face-ground);
+  border: 1px solid color-mix(in srgb, var(--pc) 45%, transparent); }
+.tf-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tf-pic-none { background: var(--pc); color: var(--card); font-family: var(--serif); font-size: 18px; font-weight: 600; }
+.tf-rowc { padding: 12px 0; min-width: 0; }
+.tf-rowc.tf-rule { border-top: 1px solid var(--rule); }
+.tf-rowc-none { font-size: 13px; color: var(--ink-faint); }
+.tf-psep { grid-column: 1 / -1; border-top: 1px solid var(--rule-firm); }
+.tf-grid > .tf-psep:last-child { display: none; }
+.tf-ltitle { margin: 0 0 4px; font-size: 13px; line-height: 1.35; font-weight: 600; color: var(--part-sift); }
+/* a cell: the key quote, his bold kept, the first standing in fainter, then the state typed in place */
+.tf-q { margin: 0 0 6px; font-family: var(--serif); font-style: italic; font-size: 13px; line-height: 1.42; color: var(--ink); cursor: pointer;
+  border-radius: var(--r-control); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.tf-quotes-full .tf-q { display: block; -webkit-line-clamp: none; overflow: visible; }
+.tf-q:hover { background: var(--paper-sunk); }
+.tf-q:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+.tf-q b { font-weight: 700; }
+.tf-q-auto { color: var(--ink-soft); }
+.tf-q-none { font-family: var(--sans); font-style: normal; font-size: 12px; color: var(--ink-faint); cursor: default; }
+.tf-q-none:hover { background: none; }
+.tf-time { font-family: var(--mono); font-style: normal; font-size: 10.5px; color: var(--ink-faint); white-space: nowrap; }
+.tf-state { display: block; width: 100%; margin: 0 0 0 -4px; padding: 1px 3px; resize: none; overflow: hidden; font: inherit; font-size: 12.5px;
+  line-height: 1.38; color: var(--part-sift); background: transparent; border: 1px solid transparent; border-radius: var(--r-control); }
+.tf-state:hover { border-color: var(--rule); }
+.tf-state:focus { outline: 0; border-color: var(--field-edge); background: var(--card); box-shadow: var(--focus-small); }
+.tf-choose { display: flex; flex-direction: column; gap: 2px; margin: 0 0 8px; padding: 4px; background: var(--paper);
+  border: 1px solid var(--rule-firm); border-radius: var(--r-control); }
+.tf-choice { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 6px; align-items: start; text-align: left; padding: 5px 6px;
+  border: 0; border-radius: var(--r-control); background: none; cursor: pointer; font-family: var(--serif); font-style: italic;
+  font-size: 12.5px; line-height: 1.4; color: var(--ink); }
+.tf-choice:hover, .tf-choice:focus-visible { outline: 0; background: var(--paper-sunk); }
+.tf-tick { width: 16px; height: 16px; margin-top: 1px; border: 1px solid var(--field-edge); border-radius: 3px; display: grid; place-items: center;
+  color: transparent; background: var(--card); }
+.tf-tick svg { width: 12px; height: 12px; }
+.tf-choice.on .tf-tick { color: var(--card); background: var(--crux); border-color: var(--crux); }
+/* the participant's editor, opened in place */
+.tf-edit { grid-column: 1 / -1; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; margin: 12px 0; padding: 14px 16px;
+  background: var(--paper); border: 1px solid var(--rule-firm); border-radius: var(--r-card); }
+.tf-edit-pic { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.tf-edit-picb { display: flex; flex-direction: column; gap: 4px; }
+.tf-edit-fields { display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+.tf-edit-l { display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; gap: 10px; font-size: 12.5px; color: var(--ink-soft); }
+.tf-edit-in { font: inherit; font-size: 14px; color: var(--ink); background: var(--card); border: 1px solid var(--field-edge);
+  border-radius: var(--r-control); padding: 4px 8px; max-width: 320px; }
+.tf-edit-in[disabled] { border-color: var(--rule); color: var(--ink-soft); background: transparent; }
+.tf-edit-in:focus { outline: 0; box-shadow: var(--focus-small); }
+.tf-edit-label { font-family: var(--serif); font-style: italic; }
+.tf-edit-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.tf-pill-x { font-size: 12px; padding: 0 2px 0 0; }
+.tf-pill-b { font: inherit; color: inherit; background: none; border: 0; padding: 2px 2px 2px 10px; border-radius: 999px; cursor: pointer; }
+.tf-x { display: inline-grid; place-items: center; width: 16px; height: 16px; padding: 0; border: 0; border-radius: 50%; background: none;
+  color: inherit; cursor: pointer; }
+.tf-x svg { width: 9px; height: 9px; }
+.tf-pill-open { outline: 2px solid var(--ink-soft); outline-offset: 1px; }
+.tf-tagin { width: 120px; font-size: 12.5px; padding: 2px 8px; }
+.tf-dots { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.tf-dots-l { font-size: 12px; color: var(--ink-soft); margin-right: 4px; }
+.tf-dot { width: 18px; height: 18px; padding: 0; border-radius: 50%; border: 2px solid var(--card); box-shadow: 0 0 0 1px var(--rule-firm); cursor: pointer; }
+.tf-dot.on { box-shadow: 0 0 0 2px var(--ink); }
+.tf-edit-lpets { align-items: start; }
+.tf-edit-ticks { display: flex; flex-direction: column; gap: 4px; }
+.tf-tickrow { display: flex; align-items: baseline; gap: 7px; font-size: 13px; color: var(--ink); cursor: pointer; }
+.tf-faces { display: grid; grid-template-columns: repeat(12, 36px); gap: 6px; margin-bottom: 4px; }
+.tf-face { width: 36px; height: 36px; padding: 0; border: 1px solid var(--rule); border-radius: 50%; overflow: hidden; background: var(--tf-face-ground); cursor: pointer; }
+.tf-face img { width: 100%; height: 100%; display: block; }
+.tf-face.on { box-shadow: 0 0 0 2px var(--ink); }
+.tf-edit-done { align-self: end; }
+.tf-empty { min-height: 28px; }
+.tf-band-none .tf-empty { min-height: 0; }
+.tf-new { padding: 2px 0 8px; }
+.tf-new .tj-new { width: auto; border: 1px dashed var(--rule-firm); padding: 10px 16px; }
+.tf-new .tj-head { max-width: 360px; }
+/* the status bar along the foot, as the boards' */
+.tj-status { flex: none; display: flex; align-items: center; gap: 1px; padding: 2px 10px 2px 14px; background: var(--card);
+  border-top: 1px solid var(--rule-firm); white-space: nowrap; overflow: hidden; }
+.tj-status-counts { display: flex; align-items: center; flex: 1 1 auto; min-width: 0; margin-right: 12px; font-size: 12px; color: var(--ink-soft); overflow: hidden; }
+.tj-status-counts .th-stat + .th-stat { margin-left: 10px; padding-left: 10px; border-left: 1px solid var(--rule); }
+.tj-status-counts .th-stat-n { color: var(--ink); font-variant-numeric: tabular-nums; }
+.tj-sbtn { background: none; border: 1px solid transparent; border-radius: 3px; height: 24px; min-width: 28px; padding: 0 7px; color: var(--ink-soft);
+  font: inherit; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.tj-sbtn svg { width: 15px; height: 15px; display: block; }
+.tj-sbtn:hover { color: var(--ink); background: var(--paper-sunk); }
+.tj-sbtn:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+.tj-sbtn[aria-pressed="true"] { background: var(--paper-sunk); border-color: var(--rule-firm); color: var(--ink); }
+.tj-sbtn .th-quotes-mark { display: inline-flex; margin-left: -2px; }
+.tj-sbtn .th-quotes-mark svg { width: 8px; height: 12px; }
+.tj-sbtn[data-quotes="off"] .th-quotes-mark { visibility: hidden; }
+.tj-sbtn:not([data-quotes="full"]) .th-qm-full, .tj-sbtn[data-quotes="full"] .th-qm-short { display: none; }
+.tj-head { display: flex; align-items: center; gap: 8px; min-height: 34px; }
+.tj-title { flex: 1 1 auto; width: 0; min-width: 0; margin: 0; font-family: var(--serif); font-size: 19px; font-weight: 600;
+  color: var(--ink); background: transparent; border: 1px solid transparent; border-radius: var(--r-control); padding: 3px 6px; }
+input.tj-title:hover { border-color: var(--rule); }
+input.tj-title:focus { outline: 0; border-color: var(--field-edge); background: var(--card); box-shadow: var(--focus-small); }
+.tj-title-fixed { font-family: var(--sans); font-size: 13px; letter-spacing: var(--label-track); text-transform: uppercase;
+  color: var(--ink-soft); padding-left: 2px; }
+.tj-count { flex: none; font-size: 12.5px; color: var(--ink-faint); min-width: 1.5em; text-align: right; }
+.tj-remove { flex: none; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: none;
+  color: var(--ink-faint); border-radius: var(--r-control); cursor: pointer; }
+.tj-remove:hover { color: var(--ink); background: var(--card); }
+.tj-remove svg { width: 13px; height: 13px; }
+.tj-new { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; border: 0; background: none; font: inherit;
+  font-size: 14px; color: var(--ink-soft); cursor: pointer; border-radius: var(--r-control); }
+.tj-new:hover { color: var(--ink); background: var(--paper-sunk); }
+.tj-new svg { width: 15px; height: 15px; }
+.tj-note { width: 100%; resize: none; overflow: hidden; min-height: 4.4em; font: inherit; font-size: 13px; line-height: 1.4; color: var(--ink);
+  background: var(--paper); border: 1px solid var(--field-edge); border-radius: var(--r-control); padding: 5px 7px; }
+.tj-note:focus { outline: 0; border-color: var(--field-edge); box-shadow: var(--focus-small); }
+/* the bar holding the Not placed band's button */
+.tj-bar { flex: none; display: flex; align-items: center; padding: 10px 24px; border-bottom: 1px solid var(--rule); }
+.tj-bar .rail-btn.gt-door { margin-left: 0; }
+.tj-bar .rail-btn.gt-door.on { color: var(--ink); border-color: var(--rule-firm); background: var(--paper-sunk); }
+.tj-bar .rail-btn.gt-door:has(.th-door-n:not([hidden])) { width: auto; min-width: 26px; gap: 5px; padding: 0 7px; }
+/* at 720 the participant and each LPET's title take a line of their own over the timepoints, which keep their columns */
+@media (max-width: 900px) {
+  .tj-bar { padding: 10px 16px; }
+  .tj-body { padding: 14px 16px 28px; }
+  .tf-grid { grid-template-columns: repeat(var(--tps, 3), minmax(0, 1fr)); column-gap: 14px; padding: 2px 12px 4px; }
+  .tf-th0 { display: none; }
+  .tf-pcell { grid-column: 1 / -1; grid-row: auto !important; padding: 12px 26px 2px 0; }
+  .tf-who { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 8px; }
+  .tf-who .tf-label { display: inline; }
+  .tf-who .tf-pills { flex-direction: row; margin-top: 0; }
+  .tf-rowc { padding: 8px 0; }
+  .tf-rowc:has(> .tf-lpet), .tf-rowc-none { grid-column: 1 / -1 !important; padding: 10px 0 0; }
+  .tf-rowc:has(> .tf-lpet) .tf-lpet { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+  .tf-rowc:has(> .tf-lpet) .tf-ltitle { margin: 0; }
+  .tf-rowc.tf-rule:not(:has(> .tf-lpet)) { border-top: 0; }
+  .tf-head { padding: 10px 12px; gap: 4px 10px; }
+  .tf-icon, .tf-icon svg { width: 36px; height: 24px; }
+  .tf-edit { grid-template-columns: minmax(0, 1fr); }
+  .tf-edit-pic { flex-direction: row; }
+  .tf-edit-picb { flex-direction: row; flex-wrap: wrap; }
+  .tf-faces { grid-template-columns: repeat(8, 36px); }
+  .tf-edit-done { justify-self: end; }
+}
+
+/* ─────────────────────────────────────────── Idiograph's bars, option C (Adam, 26 October 2026) ── */
+
+/* Every stage a tab, one size and one baseline: the others in a lighter fill with the same outline, the one in
+   front the paper of the band under it, standing on the bar's lower edge and opening into the band, the whole
+   tab its button. The participant's chooser left the tab in front for the path */
+.screen > .rail .ds-tabs { gap: 3px; }
+/* every Idiograph bar starts its tabs where the statements bar does (barsD, 6 November 2026): the boards', Trajectories'
+   and the code list's bar stood them 4px further left, so with every tab as wide as its bold name a switch of screen
+   still moved them. Below the narrowest window they take their own row as before */
+@media (min-width: 720px) {
+  :is(#themes, #traj, #codes-screen) > .rail > .ds-tabs { margin-left: 4px; }
+}
+.ds-tab { height: 34px; padding: 0; border: 1px solid var(--rule); border-bottom: 0; border-radius: 7px 7px 0 0;
+  background: color-mix(in srgb, var(--paper) 45%, transparent); }
+.ds-tab:hover { background: color-mix(in srgb, var(--paper) 75%, transparent); }
+.ds-tab.on { height: 37px; background: var(--paper); border-color: var(--rule); }
+.ds-tab-name { align-self: stretch; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 7px 7px 0 0;
+  font-size: 14.5px; line-height: 1; }
+.ds-tab-name:focus-visible { box-shadow: inset 0 0 0 2px var(--crux); }
+.screen > .rail.bar-fit-tabs .ds-tabs .ds-long { display: none; }
+.screen > .rail.bar-fit-tabs .ds-tabs .ds-short { display: inline; }
+#th-export[hidden] + .bar-tools-sep { display: none; }
+
+/* the participant's chooser and the timepoint's in the path, each in a light outline, a chevron after it */
+.ds-path .ds-who { flex: 0 1 auto; min-width: 0; margin: 0; padding: 3px 8px 3px 9px; border: 1px solid var(--rule);
+  border-radius: 5px; font-family: var(--serif); }
+.ds-path .ds-who:hover, .ds-path .ds-who[aria-expanded="true"] { border-color: var(--rule-firm); }
+.ds-path .ds-who .rail-case { font-size: 15.5px; min-width: 1.9em; }
+.ds-path .ds-who[hidden], .ds-path-who:has(+ .ds-who[hidden]), .ds-path-tp:has(+ .tp-pick[hidden]) { display: none; }
+.ds-path .tp-pick { flex: none; }
+.ds-path .tp-now { padding: 3px 24px 3px 9px; border: 1px solid var(--rule); border-radius: 5px; }
+.ds-path .tp-now:hover, .ds-path .tp-now[aria-expanded="true"] { border-color: var(--rule-firm); }
+.ds-path .tp-now .sheet-chevron { right: 9px; }
+@media (max-width: 559px) {
+  :is(#tp-menu, #th-tp-menu) { top: calc(var(--rail-h, 46px) + 52px); }
+}
+
+/* The toolbar under the band, whether the tools are docked in it or float on the canvas: the left sidebar's
+   button at its left end, its word showing, then the board and its save state, the tools, and the Inspector's
+   button at its right end, each over the panel it opens */
+#th-dock { padding-left: calc(var(--gutter) - 6px); padding-right: calc(var(--gutter) - 6px); }
+#th-dock > .bar-tool { flex: none; width: auto; min-width: 30px; height: 30px; gap: 7px; padding: 0 8px; margin: 0; }
+#th-dock > .bar-tool .bar-word { display: inline; font-size: 13px; }
+#th-dock > .bar-tool .th-door-n { margin-left: -1px; }
+/* the count after the word keeps the gap the word keeps from the icon, which the icon-alone rule above took away */
+#themes #th-dock > .rail-btn.gt-door:has(.th-door-n:not([hidden])) { gap: 5px; padding: 0 7px; }
+#th-dock > .rail-btn.gt-door[hidden] { display: none; }
+.th-boardset { display: flex; align-items: center; gap: 8px; flex: 0 1 auto; min-width: 0; margin: 0 6px; }
+.th-boardset .th-vpick { font-size: 14px; color: var(--ink); }
+.th-boardset .th-save { margin-left: 0; }
+.th-boardset .th-save::before { content: none; }
+/* the board's name over its save state, Auto-saved in smaller words under it (Adam's idea, 6 November 2026, barsD),
+   so the pair takes the width of the name alone and Canvas and Table come up beside it; a failed save's line wraps
+   under the name, never wider than the toolbar gives it */
+.th-boardname { display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px;
+  flex: 0 1 auto; min-width: 0; }
+.th-boardname .th-vpick { max-width: 100%; padding-top: 0; padding-bottom: 0; line-height: 1.2; }
+.th-boardset .th-boardname .th-save { font-size: 10.5px; line-height: 1.15; }
+.th-boardset .th-boardname .th-save::after { content: none; }
+.th-boardset .th-boardname .th-save.failed { max-width: 22em; }
+#th-dock > .th-dock-rule { flex: none; height: 22px; margin: 0 4px; }
+#th-dock > .th-dock-gap { flex: 1 1 0; min-width: 8px; }
+#th-dock:has(> .th-palette) > .th-dock-gap { display: none; }
+#th-dock > .th-door { margin-left: 2px; }
+
+/* The statements screen's own toolbar (barsD, 6 November 2026), the boards' toolbar's row and tools under its band:
+   docked, its grip, Find and replace, the passages before and after and Undo and Redo at its right end along the
+   row; pulled off by its grip, a column on the card's paper over the columns, the row under the band gone, and a
+   dashed slot across the columns' top while it is dragged, where it docks again */
+#es-dock { padding-left: calc(var(--gutter) - 6px); padding-right: calc(var(--gutter) - 6px); }
+#es-dock > .th-palette { flex: 1 1 auto; }
+#es-stage > .th-palette { z-index: 30; }
+#es-stage > .th-palette:not(.docked) { padding: 4px 5px 6px; }
+#es-stage > .th-palette:not(.docked) .th-palette-grip { width: 100%; margin: 0 auto 2px; }
+#es-stage > .th-dock-slot { z-index: 29; }
+
+/* Canvas and Table on the toolbar directly after Auto-saved (Adam, 26 October 2026: not a status bar thing), never
+   giving way, the toolbar's tools narrowing first, and staying in the table, where the canvas's tools go, so the
+   way back to the canvas is always there */
+.th-boardset .th-faces { flex: none; margin: 0; padding: 1px; }
+
+/* The statements screen's status bar: the sheet before the place, and the round, the clock and Mark complete
+   after the counts, which came from the title bar */
+#es-status .rail-sheet, #es-status .sheet-pick { flex: 0 1 auto; min-width: 0; margin: 0; }
+#es-status .sheet-pick select { font-size: inherit; }
+#es-status .es-sheet-rule { display: none; }
+#es-status:has(> .rail-sheet:not([hidden]):not(:empty), > .sheet-pick:not([hidden])) .es-sheet-rule { display: block; }
+#es-status > .rail-sep { flex: none; width: 1px; height: 14px; margin: 0 10px; background: var(--rule); }
+#es-status > .rail-sep[hidden] { display: none; }
+#es-status > .rail-item, #es-status > .rail-mark { flex: none; }
+#es-status > .rail-clock-reset { margin-left: 2px; }
+#es-status > #rail-daily { margin-left: 12px; }
+@media (max-width: 760px) {
+  #es-status > #rail-daily, #es-status > .rail-clock-reset { display: none; }
+}
+@media (max-width: 480px) {
+  #es-status > .rail-sep { margin: 0 6px; }
+  #es-status > #rail-clock-sep, #es-status > #rail-clock { display: none; }
+}
+
+/* the Trajectories bar's tools keep their place after the save state */
+#traj > .rail .th-save { margin-right: 6px; }
+
+/* At 760px and below the tabs show their short names, the doors their icons and the count, and the toolbar
+   stands on two lines, the doors and the board over the tools */
+@media (max-width: 760px) {
+  .ds-tabs .ds-long { display: none; }
+  .ds-tabs .ds-short { display: inline; }
+  .ds-tab-name { padding: 0 9px; font-size: 14px; }
+  #th-dock { flex-wrap: wrap; padding-top: 0; padding-bottom: 0; }
+  #th-dock > :not(.th-palette) { order: 1; }
+  #th-dock > .bar-tool { height: 36px; margin: 2px 0; }
+  #th-dock > .bar-tool .bar-word { display: none; }
+  #themes #th-dock > .th-dock-rule { display: none; }
+  #th-dock:has(> .th-palette) > .th-dock-gap { display: block; }
+  #th-dock > .th-palette { order: 2; flex: 1 0 calc(100% + 2 * var(--gutter) - 12px);
+    margin: 0 calc(6px - var(--gutter)); padding: 0 calc(var(--gutter) - 6px); border-top: 1px solid var(--rule); }
+  /* the board's row has room for the save state's words, Auto-saved never giving way */
+  .th-boardset .th-save { font-size: 11.5px; }
+  .th-boardset .th-save::after { content: none; }
+}
+
+/* the bars of option C below the app's narrowest window, 720 wide: every Idiograph bar the same sides and the same
+   row of tabs, and the band's parts down its left edge, one under another */
+@media (max-width: 719px) {
+  :is(#work, #themes, #traj) > .rail:has(> .ds-tabs) { padding-left: 12px; padding-right: 12px; }
+  :is(#work, #themes, #traj) > .rail > .ds-tabs { margin: 0 -12px -1px; }
+}
+@media (max-width: 480px) {
+  .screen > .rail:has(> .ds-tabs) > .rail-grow { display: block; }
+  #themes #th-export { margin-left: 0; }
+}

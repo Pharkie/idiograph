@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en-GB" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Idiograph</title>
+<!-- the tab's icon: the mark drawn for 16 pixels, its dark tile when the system is dark, and a 32 pixel
+     PNG drawn by the server for a browser that takes no SVG icon (15 October) -->
+<link rel="icon" href="/favicon.png" type="image/png" sizes="32x32">
+<!--slot:icon-->
+<link rel="stylesheet" href="/tokens.css">
+<link rel="stylesheet" href="/style.css">
+<!--slot:head-->
+<!-- the mark coming in on Idiograph's Home (22 October 2026): decided before the first paint, so on an open that
+     plays it the lockup's mark and name never show first. Once a window, never with reduced motion, and app.js's
+     homeMarkPlay takes the class off when it ends or does not play -->
+<script>
+try {
+  var d = document.documentElement;
+  if ((d.getAttribute('data-app') || 'idiograph') === 'idiograph' && !sessionStorage.getItem('idiograph.homeMark')
+    && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('home-mark-due');
+} catch (e) { /* private window */ }
+</script>
+</head>
+<!-- `ai-off` until the settings say AI features is on: every part of the markup marked
+     data-ai stands hidden while it is there (see aiPage in app.js) -->
+<body class="ai-off">
+
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<!-- ────────────────────────────────────────────── library ── -->
+<section id="library" class="screen">
+  <!-- the head: the wordmark and its line, top right the days, eight weeks of small squares, a
+       column a week with Monday at the top and this week on the right, each tinted by the rounds
+       closed that day across every case, and one line under them, and over the days Search, Send
+       feedback and Settings, each icon and its word as on every bar (12 October), Settings opening on
+       General. On a narrow screen the days go under the wordmark. A server with no /api/days leaves them hidden. The wordmark is the
+       lockup (15 October), Idiograph's mark from marks.svg and its name in tracked capitals drawn
+       with the mark's square stroke, so no font is needed -->
+  <header class="lib-head">
+    <!-- the head's top row (homehead, 5 November 2026, Adam): the lockup at the left and the tools at the right, their
+         tops on one line, as close under the title bar as a screen's bar keeps its tools, the words shown and given
+         way by the bars' own rule (barFit) -->
+    <div class="lib-top">
+      <!-- each app's lockup (the split's third build, 20 October 2026), its mark and its name in the same tracked
+           capitals drawn with the square stroke, the page showing its own app's alone (data-only). Idiograph's
+           carries the Preview Edition stamp (Adam's lockup of 21 October), shown while the server's
+           PREVIEW_EDITION is on -->
+      <div class="wordmark"><span data-only="idiograph" class="pe"><svg class="lockup" viewBox="0 0 107.33 15" role="img" aria-label="Idiograph" fill="none"><use href="/marks.svg#idiograph" width="15" height="15"/><path transform="translate(19.2 12.5)" stroke="currentColor" stroke-width="1.3" stroke-linecap="square" stroke-linejoin="miter" d="M0.65 -9.35V-0.65M5.35 -0.65V-9.35H8.3A4.35 4.35 0 0 1 8.3 -0.65ZM16.95 -9.35V-0.65M21.65 -5a4.35 4.35 0 1 0 8.7 0a4.35 4.35 0 1 0 -8.7 0M41.93 -7.91A4.35 4.35 0 1 0 43.05 -5H39.5M47.35 -0.65V-9.35H50.9A2.17 2.17 0 0 1 50.9 -5H47.35M50.7 -5L54.3 -0.65M58.15 -0.65L62.1 -9.35L66.05 -0.65M59.8 -3.4H64.4M70.15 -0.65V-9.35H73.5A2.38 2.38 0 0 1 73.5 -4.6H70.15M80.18 -9.35V-0.65M87.47 -9.35V-0.65M80.18 -5H87.47"/></svg><span class="pe-stamp">{{page.preview_edition}}</span></span><span data-only="sift"><svg class="lockup lockup-sift" viewBox="0 0 53.05 15" role="img" aria-label="Sift" fill="none"><use href="/marks.svg#sift" width="15" height="15"/><path transform="translate(19.2 12.5)" stroke="currentColor" stroke-width="1.3" stroke-linecap="square" stroke-linejoin="miter" d="M7.15 -7.92A3.35 2.175 0 1 0 4 -5A3.35 2.175 0 1 1 0.85 -2.08M11.95 -9.35V-0.65M16.55 -0.65V-9.35H22.2M16.55 -5H21.2M26.5 -9.35H33.2M29.85 -9.35V-0.65"/></svg></span><span data-only="trace"><svg class="lockup lockup-trace" viewBox="0 0 72.85 15" role="img" aria-label="Trace" fill="none"><use href="/marks.svg#trace" width="15" height="15"/><path transform="translate(19.2 12.5)" stroke="currentColor" stroke-width="1.3" stroke-linecap="square" stroke-linejoin="miter" d="M0.65 -9.35H7.35M4 -9.35V-0.65M11.65 -0.65V-9.35H15.2A2.17 2.17 0 0 1 15.2 -5H11.65M15 -5L18.6 -0.65M22.6 -0.65L26.55 -9.35L30.5 -0.65M24.25 -3.4H28.85M42.48 -7.8A4.35 4.35 0 1 0 42.48 -2.2M53 -9.35H46.98V-0.65H53M46.98 -5H52.3"/></svg></span></div>
+      <div class="lib-tools">
+      <!-- Search over the project on a project's page (17 October, search.js), and on the picker over
+           everything the home screen lists (18 October) -->
+      <button type="button" class="rail-btn bar-tool" id="lib-search" title="{{page.search.title}}" aria-label="{{page.search.label}}"
+              aria-haspopup="dialog" aria-expanded="false" aria-controls="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/></svg><span class="bar-word" aria-hidden="true">{{page.search.label}}</span>
+      </button>
+      <button type="button" class="rail-btn bar-tool rail-feedback" id="lib-feedback" title="{{page.feedback.title}}" aria-label="{{page.feedback.title}}" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9.3 8.3a2.7 2.7 0 0 1 5.4 0M10.3 6.1 9 4.2M13.7 6.1 15 4.2"/><rect x="7.3" y="8.3" width="9.4" height="12" rx="4.7"/><path d="M12 11.6v8.7"/><path d="M7.3 13.2H4M7.6 17.2l-3 1.6M7.8 10.4 5.2 8.5M16.7 13.2H20M16.4 17.2l3 1.6M16.2 10.4l2.6-1.9"/></svg><span class="bar-word" aria-hidden="true">{{page.feedback.word}}</span>
+      </button>
+      <button type="button" class="rail-btn bar-tool lib-settings" id="lib-settings" title="{{page.settings.title}}" aria-label="{{page.settings.title}}">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54A.48.48 0 0 0 13.92 2h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.73 8.47a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg><span class="bar-word" aria-hidden="true">{{page.settings.title}}</span>
+      </button>
+      </div>
+    </div>
+    <!-- what the Preview Edition means (Adam, 21 October 2026), in a quiet panel right under the lockup, so the
+         stamp and what it means stand together (22 October), Idiograph's alone and shown while the server's
+         PREVIEW_EDITION is on, a small warning sign at its start drawn as the bars' icons are, in the crux orange -->
+    <p class="pe-note" data-only="idiograph"><svg class="pe-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.3 4.2 2.9 17.5A2 2 0 0 0 4.6 20.5h14.8a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4.5"/><path d="M12 17.2v.1"/></svg><span>{{page.preview_note}}</span></p>
+<!--slot:lede-->
+    <!-- every app's highlights under its line, short items in a row that wraps whole (Adam, 21 October).
+         Idiograph's, as the launch film has them (22 October): Free, Open source, No cloud, Flexible, "Built
+         for IPA" taken out since 2 November (methods2, Adam: the app is for thematic analysis too).
+         Sift's and Trace's: Free, Open source, Flexible, No cloud.
+         Beside Free, Adam's Ko-fi (22 October): Ko-fi's own button, its cup with the heart that wiggles and
+         its bold Quicksand, small and quiet since 26 October, both copied into the app under vendor/. No script or frame from Ko-fi and nothing
+         fetched from it or any font service, since this page holds the local API to the participants' files,
+         and the link opens in the system's browser, as About's address does. After Ko-fi, inside Free's item so it
+         keeps with Ko-fi when the row wraps, the quiet link to the Support card (supportcard, 28 October 2026,
+         Adam's wording 1), in Settings' About link's look. The row wraps as two groups, Free with Ko-fi and its
+         link, then Open source, No cloud and Flexible together, so no word is ever left alone on a line (homehead,
+         5 November 2026, Adam) -->
+    <ul class="lede-points" aria-label="{{page.lede.label}}"><li class="lp-free"><span>{{page.lede.free}}</span><a class="kofi" href="https://ko-fi.com/X8X01NIXRB" target="_blank" rel="noopener" title="{{page.lede.kofi_title}}"><img class="kofi-cup" src="/vendor/kofi/cup-border.png" alt="{{page.lede.kofi_alt}}" width="15" height="10">{{page.lede.kofi}}</a><button type="button" class="linklike lp-support" id="lib-support">{{page.lede.support}}</button></li><li class="lp-rest"><span>{{page.lede.open_source}}</span><span data-only="idiograph">{{page.lede.no_cloud}}</span><span>{{page.lede.flexible}}</span><span data-only="sift trace">{{page.lede.no_cloud}}</span></li></ul>
+    <div class="days" id="days" data-only="idiograph" hidden></div>
+  </header>
+
+  <div class="lib-body">
+    <!-- Idiograph's own updates, in its window alone (18 October, the fourth Tauri build), at the head of the
+         home screen and in its flow, so it never covers a control: at the first start the question whether
+         to check, two plain buttons, asked once, then a newer version offered when it does not download by
+         itself, its download under way, and once it is ready Relaunch now and Later, which hides the line
+         until the next start. A browser's tab shows none of it -->
+    <div class="update-line" id="update-line" role="region" aria-label="{{page.updates.title}}" hidden>
+      <div class="update-words"><p class="update-said" id="update-said"></p><p class="fineprint update-more" id="update-more" hidden></p></div>
+      <div class="update-acts" id="update-acts"><button type="button" class="ghost small" id="update-yes"></button><button
+           type="button" class="ghost small" id="update-no"></button></div>
+    </div>
+    <!-- each app's Home (the split's third build, 20 October 2026): its own projects under Projects, a
+         section that folds, a card for each, then its New project and Open project folder, Idiograph's the
+         demo's card after its own, and at the foot the other two apps. The page holds all three sections
+         and shows its own app's alone (data-only, from the server's data-app) -->
+    <div id="home-pick">
+<!--slot:home-first-->
+<!--slot:home-->
+
+      <!-- the family at the foot of every Home (the split's third build, decision 4: always shown): the other
+           two apps under their names, each a card with its icon, its name, its one line, and Open when it is
+           installed here or Download when not, drawn from /api/family -->
+      <section class="family" id="family" aria-labelledby="family-h" hidden>
+        <h2 class="family-h" id="family-h"></h2>
+        <ul class="family-list" id="family-list"></ul>
+      </section>
+    </div>
+
+<!--slot:home-page-->
+  </div>
+</section>
+
+<!--slot:work-->
+<!-- Search across Distil (17 October, search.js), and across Sift, Trace and every project (18 October): a
+     card under the bar of the statements screen, PETs, GETs, a project's page, Sift's screening, its Search
+     strategy, Trace or the home screen's picker, with no veil. The field, and Search in at its right, This
+     case, This project, This Sift project, This Trace project or Everything, then Whole word and Match case,
+     two ticks as Find and replace's, Whole word ticked at first and Match case not (searchmods), then at the left the kinds found
+     with their counts under Kind, with Everything under the parts' names and the projects under Project, and
+     Case and Sheet once wider than a case, each ticking from its row, below 700px the Kind heading and three whole rows of ticks with More
+     under them when there are more, the column fading at its foot at a desk width while more wait below, and at the right the results, each its kind, its words under the find's wash and where
+     it is. Arrows and Enter walk them, Esc closes. A wash of the paper lies over the rest of the screen while
+     it is open. Under a This case search on the statements screen, Replace in the transcript opens Find and
+     replace with the words typed -->
+<div class="search-card card" id="search" role="dialog" aria-label="{{page.search.label}}" hidden>
+  <h2 class="sr-only">{{page.search.label}}</h2>
+  <div class="search-head">
+    <input type="search" class="find-input search-input" id="search-text" placeholder="{{page.search.label}}" aria-label="{{page.search.label}}"
+           role="combobox" aria-expanded="true" aria-controls="search-list" aria-autocomplete="list"
+           spellcheck="false" autocomplete="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false">
+    <label class="search-in"><span class="search-in-word">{{page.search.in}}</span><select id="search-scope"></select></label>
+    <div class="search-mods">
+      <label class="search-mod"><input type="checkbox" id="search-word" checked> {{page.search.whole_word}}</label>
+      <label class="search-mod"><input type="checkbox" id="search-case"> {{page.search.match_case}}</label>
+    </div>
+  </div>
+  <div class="search-body">
+    <div class="search-side" id="search-side" hidden>
+      <div class="search-filters" id="search-filters"></div>
+      <button type="button" class="quiet search-more" id="search-more" aria-controls="search-filters" aria-expanded="false" hidden>{{page.search.more}}</button>
+    </div>
+    <div class="search-results" id="search-results">
+      <ul class="search-list" id="search-list" role="listbox" aria-label="{{page.search.results}}" hidden></ul>
+      <p class="search-said" id="search-said" aria-live="polite" hidden></p>
+    </div>
+  </div>
+  <div class="search-foot" id="search-foot" hidden>
+    <button type="button" class="quiet" id="search-replace">{{page.search.replace}}</button>
+  </div>
+</div>
+
+<!--slot:screens-->
+<!-- the menu of the project's name in a screen's band, Idiograph's, Sift's and Trace's (barsD, Adam, 6 November 2026):
+     the menu its card has on Home, drawn by the family's code (projectMenuHtml in shell.js) under the name -->
+<div class="row-menu hc-menu ds-path-menu" id="path-menu" role="menu" hidden></div>
+<!-- ──────────────────────────────────────────── overlays ── -->
+<!--slot:cards-->
+<div class="overlay" id="settings" hidden>
+  <div class="card">
+    <button class="card-close" id="settings-close" type="button" tabindex="-1" aria-label="{{page.close}}" title="{{page.close}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <p class="kicker" id="settings-kicker">Idiograph</p>
+    <h2>{{page.settings.title}}</h2>
+    <!-- the categories down the left and the chosen one on the right (the split's third build, drawing 8 of
+         the plan, 20 October 2026): General first, the same in all three apps, Appearance, Celebrations,
+         Updates and Closing, then the app's own, Idiograph's Experiential statements, PETs, GETs, Export and
+         Projects, Sift's Databases, Projects and Zotero, Trace's Projects, and last AI features, each app's
+         own. The page shows its own app's tabs alone (data-only). Below about 700px the list becomes a row of
+         tabs above the content and Experiential statements says Statements. The home screen's Settings
+         opens on General and each screen's own settings on its own category, and the category chosen holds
+         while the card is open. The tab chosen takes its rule in the app's colour -->
+    <div class="settings-body">
+      <div class="settings-nav" id="settings-nav" role="tablist" aria-label="{{page.settings.categories}}" aria-orientation="vertical">
+        <button type="button" role="tab" id="tab-general" data-pane="general" aria-controls="pane-general">{{page.settings.general}}</button>
+        <button type="button" role="tab" id="tab-formats" data-pane="formats" aria-controls="pane-formats">{{page.settings.formats}}</button>
+<!--slot:settings-tab-->
+        <button type="button" role="tab" id="tab-ai" data-pane="ai" aria-controls="pane-ai">{{page.ai.title}}</button>
+      </div>
+      <div class="settings-panes" id="settings-panes">
+<!--slot:settings-first-->
+        <!-- General, the same in all three apps: Appearance, Language, Celebrations, Updates and Closing -->
+        <section class="settings-pane" id="pane-general" role="tabpanel" aria-labelledby="tab-general">
+          <h3 class="pane-title">{{page.settings.general}}</h3>
+          <!-- Appearance, light, dark or the computer's own, applied the moment a row is ticked, kept in the
+               app's settings with Save and in this browser for the first paint (the split's third build) -->
+          <h4 class="pane-sub pane-first" id="appearance-sub">{{page.appearance.title}}</h4>
+          <div class="switches" id="appearance-set" role="radiogroup" aria-labelledby="appearance-sub">
+            <label><input type="radio" name="set-appearance" id="set-appearance-light" value="light"> {{page.appearance.light}}</label>
+            <label><input type="radio" name="set-appearance" id="set-appearance-dark" value="dark"> {{page.appearance.dark}}</label>
+            <label><input type="radio" name="set-appearance" id="set-appearance-system" value="system"> {{page.appearance.system}}</label>
+          </div>
+          <!-- both analysis screens' flourishes: the confetti, the count, the line a break shows and
+               the PETs count, on by default, and Sound, off by default, which waits on Celebrations -->
+          <!-- Text size, in Idiograph's own window alone, where it is the window's zoom, the View menu's Bigger
+               Text, Smaller Text and Actual Size moving it too, the two in step (Adam, 20 October, Settled 12).
+               Applied the moment a row is ticked and kept by the window. A browser's tab has its own zoom -->
+          <div id="text-size-block" hidden>
+            <h4 class="pane-sub" id="text-size-sub">{{page.text_size.title}}</h4>
+            <div class="switches" id="text-size-set" role="radiogroup" aria-labelledby="text-size-sub">
+              <label><input type="radio" name="set-text-size" id="set-text-small" value="small"> {{page.text_size.small}}</label>
+              <label><input type="radio" name="set-text-size" id="set-text-medium" value="medium"> {{page.text_size.medium}}</label>
+              <label><input type="radio" name="set-text-size" id="set-text-large" value="large"> {{page.text_size.large}}</label>
+            </div>
+          </div>
+          <h4 class="pane-sub" id="cheer-sub">{{page.cheer.title}}</h4>
+          <!-- a switch for each screen (Adam, 20 October): Experiential statements, PETs and GETs, where one
+               switch stood for all three, a settings file from before read as all three as it was -->
+          <div class="switches" id="cheer-set" role="group" aria-labelledby="cheer-sub">
+            <label data-only="idiograph"><input type="checkbox" id="set-cheer-statements" data-cheer="statements"> {{page.cheer.statements}}</label>
+            <label data-only="idiograph"><input type="checkbox" id="set-cheer-pets" data-cheer="pets"> {{page.cheer.pets}}</label>
+            <label data-only="idiograph"><input type="checkbox" id="set-cheer-gets" data-cheer="gets"> {{page.cheer.gets}}</label>
+            <label data-only="sift trace"><input type="checkbox" id="set-celebrations"> {{page.cheer.title}}</label>
+          </div>
+          <!-- the line names what is celebrated, the round only while Work in rounds is ticked (16 October) -->
+          <p class="fineprint cheer-line" id="cheer-line" data-only="idiograph">{{shell.cheer.line}}</p>
+          <div class="switches"><label><input type="checkbox" id="set-sound"> {{page.cheer.sound}}</label></div>
+          <!-- Updates, in Idiograph's own window alone (18 October, the fourth Tauri build), before Closing: the
+               version running with What's new, Check for updates, which the home screen asks once,
+               Download updates without asking, which waits on it, both written on Save each only once it
+               has moved, and Check now with the last check's time and what it found, Adam's words (18
+               October, the fifth Tauri build). A browser's tab shows none of it -->
+          <div id="update-set" hidden>
+            <h4 class="pane-sub" id="update-sub">{{page.updates.title}}</h4>
+            <div class="key-row update-version"><span id="update-running"></span><button type="button" class="ghost small"
+                 id="update-notes">{{page.updates.whats_new}}</button></div>
+            <div class="switches">
+              <label><input type="checkbox" id="set-update-check"> {{page.updates.check}}</label>
+              <label><input type="checkbox" id="set-update-download"> {{page.updates.download_auto}}</label>
+            </div>
+            <p class="fineprint" id="update-privacy">{{shell.updates.privacy}}</p>
+            <div class="key-row"><button type="button" class="ghost small" id="update-check-now">{{page.updates.check_now}}</button><button
+                 type="button" class="ghost small" id="update-get" hidden>{{shell.updates.download}}</button><button type="button"
+                 class="ghost small" id="update-relaunch" hidden>{{shell.updates.relaunch_now}}</button><span class="fineprint" id="update-checked"></span></div>
+            <p class="fineprint" id="update-state" hidden></p>
+            <p class="warn" id="update-failed" hidden></p>
+          </div>
+          <!-- the app itself, last of General: it quits by itself a few minutes after its last tab
+               closes, unless something is still running, on for a new install (16 October) -->
+          <h4 class="pane-sub" id="close-sub">{{page.closing.title}}</h4>
+          <div class="switches"><label><input type="checkbox" id="set-quit-closed"> <span id="quit-closed-word">{{shell.closing.quit_when_closed}}</span></label></div>
+        </section>
+
+        <!-- Language and formats (fmtcore, 28 October 2026, Adam's B and wording 1 of that day), after General in all
+             three apps: Language, moved here from General (i18nus), then Dates, Times of day and Numbers, each
+             starting on Same as this computer, named by what the computer gives, each choice written as an
+             example of itself (drawFormats). Ticking a row saves it and loads the page again in it, Settings open
+             again here, so it applies at once with no restart. Under Language one line, the whole of it the link
+             to the page on translating the app carries (/translating) -->
+        <section class="settings-pane" id="pane-formats" role="tabpanel" aria-labelledby="tab-formats" hidden>
+          <h3 class="pane-title">{{page.settings.formats}}</h3>
+          <div id="language-block">
+            <h4 class="pane-sub pane-first" id="language-sub">{{page.language.title}}</h4>
+            <div class="switches" id="language-set" role="radiogroup" aria-labelledby="language-sub">
+              <label><input type="radio" name="set-language" id="set-language-computer" value=""> <span id="language-computer-word">{{page.language.computer}}</span></label>
+              <label><input type="radio" name="set-language" id="set-language-en-gb" value="en-GB"> {{page.language.en_gb}}</label>
+              <label><input type="radio" name="set-language" id="set-language-en-us" value="en-US"> {{page.language.en_us}}</label>
+            </div>
+            <p class="fineprint translate-line"><a href="/translating" target="_blank" rel="noopener" id="translate-link">{{page.language.translate}}</a></p>
+          </div>
+          <h4 class="pane-sub" id="dates-sub">{{page.formats.dates}}</h4>
+          <div class="switches" id="dates-set" role="radiogroup" aria-labelledby="dates-sub">
+            <label><input type="radio" name="set-dates" value=""> <span data-format-word="dates" data-computer></span></label>
+            <label><input type="radio" name="set-dates" value="dmy"> <span data-format-word="dates"></span></label>
+            <label><input type="radio" name="set-dates" value="mdy"> <span data-format-word="dates"></span></label>
+            <label><input type="radio" name="set-dates" value="ymd"> <span data-format-word="dates"></span></label>
+          </div>
+          <h4 class="pane-sub" id="time-sub">{{page.formats.time}}</h4>
+          <div class="switches" id="time-set" role="radiogroup" aria-labelledby="time-sub">
+            <label><input type="radio" name="set-time" value=""> <span data-format-word="time" data-computer></span></label>
+            <label><input type="radio" name="set-time" value="24"> <span data-format-word="time"></span></label>
+            <label><input type="radio" name="set-time" value="12"> <span data-format-word="time"></span></label>
+          </div>
+          <h4 class="pane-sub" id="numbers-sub">{{page.formats.numbers}}</h4>
+          <div class="switches" id="numbers-set" role="radiogroup" aria-labelledby="numbers-sub">
+            <label><input type="radio" name="set-numbers" value=""> <span data-format-word="numbers" data-computer></span></label>
+            <label><input type="radio" name="set-numbers" value="comma"> <span data-format-word="numbers"></span></label>
+            <label><input type="radio" name="set-numbers" value="point"> <span data-format-word="numbers"></span></label>
+            <label><input type="radio" name="set-numbers" value="space"> <span data-format-word="numbers"></span></label>
+            <label><input type="radio" name="set-numbers" value="apostrophe"> <span data-format-word="numbers"></span></label>
+          </div>
+        </section>
+<!--slot:settings-pane-->
+
+        <!-- AI features (experimental), each app's own and its last category (Adam, 21 October 2026): first a
+             plain paragraph on why they are not advised, each app's own, set apart only by its place and the
+             rule under it, then one large slide switch, the same setting as before (ai_suggest), off on a new
+             install. Turning it on still asks first, in a small card of its own over Settings. Under it, shown
+             only while it is on, in his order: Provider, API key with Check key beside it, Model, then a switch
+             for each AI feature of this app. The key is the one the three apps share -->
+        <section class="settings-pane" id="pane-ai" role="tabpanel" aria-labelledby="tab-ai" hidden>
+          <h3 class="pane-title">{{page.ai.title}}</h3>
+          <div class="ai-warn" id="ai-warn">
+<!--slot:ai-warn-->
+          </div>
+          <!-- the one switch, a slide drawn beside the box, the whole row its target, a switch to a screen reader -->
+          <label class="ai-master" id="ai-sub">
+            <span class="ai-master-word">{{page.ai.features}}</span>
+            <input type="checkbox" id="set-ai" role="switch">
+            <span class="ai-slide" aria-hidden="true"></span>
+            <span class="ai-master-state" aria-hidden="true"><span class="when-off">{{page.ai.off}}</span><span class="when-on">{{page.ai.on}}</span></span>
+          </label>
+          <div id="ai-more" data-ai-set>
+          <p class="fineprint" id="ai-restart" hidden>{{shell.restart_line}}</p>
+          <div id="ai-settings">
+            <div class="setting" id="ai-provider-row">
+              <label for="set-provider">{{page.ai.provider}}</label>
+              <select id="set-provider">
+                <option value="anthropic">{{page.ai.provider_anthropic}}</option>
+                <option value="mistral">{{page.ai.provider_mistral}}</option>
+                <option value="gemini">{{page.ai.provider_gemini}}</option>
+                <option value="openai">{{page.ai.provider_openai}}</option>
+                <option value="azure">{{page.ai.provider_azure}}</option>
+                <option value="other">{{page.ai.provider_other}}</option>
+                <option value="local">{{page.ai.provider_local}}</option>
+                <option value="lmstudio">{{page.ai.provider_lmstudio}}</option>
+              </select>
+            </div>
+            <!-- aiprov's drawing, built by aipage (8 November 2026): where the passages go, one plain line under the
+                 Provider list, the provider's own fact as its published terms put it, then the address for Azure, Another
+                 service and the two local ones (theirs filled with the usual address) -->
+            <p class="fineprint" id="ai-where" hidden></p>
+            <div class="setting" id="ai-address" hidden><label for="set-address">{{page.ai.address}}</label>
+              <input id="set-address" type="url" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+            <div id="ai-key">
+              <div class="setting"><label for="set-key">{{page.ai.key}}</label>
+                <div class="key-line"><input id="set-key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
+                  <button type="button" class="ghost small" id="btn-key-check">{{page.ai.check_key}}</button></div></div>
+              <div class="key-row">
+                <span class="fineprint" id="key-said" role="status"></span>
+                <button class="ghost small btn-remove" id="btn-key-clear" hidden>{{page.ai.remove}}</button>
+              </div>
+            </div>
+            <div id="ai-choice">
+              <div id="ai-anthropic">
+                <div class="setting"><label for="set-model">{{page.ai.model}}</label><select id="set-model"></select></div>
+                <p class="fineprint" id="model-price" hidden></p>
+                <p class="fineprint" id="model-note"></p>
+              </div>
+              <div id="ai-local" hidden>
+                <p class="fineprint" id="local-note"></p>
+                <div class="setting" id="local-model-row"><label for="set-local-model">{{page.ai.model}}</label><select id="set-local-model"></select></div>
+              </div>
+              <!-- every other provider's model, its list from the service, a name typed where it lists none, and
+                   Azure's deployment by its name in place of a list -->
+              <div id="ai-other" hidden>
+                <div class="setting" id="other-model-row"><label for="set-other-model" id="other-model-label">{{page.ai.model}}</label><select id="set-other-model"></select>
+                  <input id="set-other-name" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-labelledby="other-model-label" hidden></div>
+                <div class="setting" id="deployment-row" hidden><label for="set-deployment">{{page.ai.deployment}}</label>
+                  <input id="set-deployment" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+                <p class="fineprint" id="other-note"></p>
+              </div>
+            </div>
+          </div>
+          <!-- a switch for each of this app's AI features, ticked while it is on, off kept in the app's settings
+               as ai_features_off, each one's controls and calls gone while it is off -->
+          <div class="switches ai-features" id="ai-features" role="group" aria-label="{{page.ai.features}}">
+<!--slot:ai-feature-->
+          </div>
+          </div>
+          <!-- Using your own AI agents (Adam, 21 and 22 October 2026): shown whether the switch is on or off, since an
+               agent works without the app's own AI, and a box to paste into the agent, this install's command
+               line, MCP server and guide, from /api/agent-start, with Copy -->
+          <div class="agent-start" id="agent-start">
+            <h4 class="pane-sub" id="agent-start-sub">{{page.agents.title}}</h4>
+            <p class="agent-start-line" data-only="idiograph">{{page.agents.line_projects}}</p>
+            <p class="agent-start-line" data-only="sift trace">{{page.agents.line}}</p>
+            <pre class="mcp-code agent-text" id="agent-text" tabindex="0" aria-labelledby="agent-start-sub"></pre>
+            <div class="agents-guide"><button type="button" class="ghost small" id="agent-copy">{{shell.agent.copy}}</button></div>
+            <p class="fineprint" id="agent-said" hidden></p>
+<!--slot:agent-more-->
+            <!-- The agent log (agentlog, Adam's option B of 3 November 2026, agent_log.py), every app's its own since
+                 siftlog that day: one line, how many entries in the last 7 days, and Open, which shows them in a
+                 sheet over Settings. "Nothing in the last 7 days." and no Open when there are none -->
+            <div class="agent-log" id="agent-log">
+              <h4 class="pane-sub" id="agent-log-sub">{{agentlog.title}}</h4>
+              <p class="al-none" id="agent-log-none">{{agentlog.none}}</p>
+              <div class="al-sum" id="agent-log-sum" hidden><span id="agent-log-line"></span>
+                <button type="button" class="ghost small" id="agent-log-open">{{agentlog.open}}</button></div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+    <!-- the foot: the app itself in a short section of its own at the left, Restart and Quit, and in
+         their place the restart line for a server from before them, then Save at the right -->
+    <div class="settings-foot">
+      <section class="server-ops" id="server-ops" aria-label="Idiograph">
+        <button type="button" class="ghost small" id="server-restart" hidden>{{shell.server.restart}}</button>
+        <button type="button" class="ghost small" id="server-quit" hidden>{{shell.server.quit}}</button>
+        <p class="fineprint" id="server-old" hidden>{{shell.restart_line}}</p>
+        <!-- the way in to About in a browser tab, and in the window beside its menus (20 October), and beside it
+             the way in to the Support card (supportcard, 28 October 2026) -->
+        <button type="button" class="linklike" id="settings-about">{{page.about.word}} <span class="app-name">Idiograph</span></button>
+        <button type="button" class="linklike" id="settings-support">{{page.support.title}}</button>
+      </section>
+      <div class="card-actions">
+        <button class="primary" id="settings-save">{{page.settings.save}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Ticking AI features asks first, over Settings, in the trim card's style: a fuller warning in each app's
+     own terms, and two buttons as a browser's warning for a bad certificate has them (Adam, 22 October):
+     Back to safety, the default, in focus, taking Enter and Esc, and I understand the risks, plainer.
+     Settings stays open behind it -->
+<div class="overlay" id="ai-confirm" hidden>
+  <div class="card" role="alertdialog" aria-labelledby="ai-confirm-title">
+    <h2 id="ai-confirm-title">{{page.ai.title}}</h2>
+<!--slot:ai-confirm-->
+    <div class="card-actions">
+      <button class="ghost" id="ai-confirm-go">{{page.ai.understand}}</button>
+      <button class="primary" id="ai-confirm-cancel">{{page.ai.keep_off}}</button>
+    </div>
+  </div>
+</div>
+
+<!-- Remove from the app, from a project's menu or its settings, in each of the three apps (removetrash, 10 November
+     2026, Adam: "there should be a possibility" to delete the files too): the project's name, the question, a line
+     saying where its folder goes, and one tick, off to start, to move the folder to the system's Trash as well.
+     Cancel and Esc remove nothing -->
+<div class="overlay" id="remove-card" hidden>
+  <div class="card remove-card" role="dialog" aria-modal="true" aria-labelledby="rm-title">
+    <p class="kicker" id="rm-project"></p>
+    <h2 id="rm-title"></h2>
+    <p class="rm-line" id="rm-line"></p>
+    <div class="switches"><label><input type="checkbox" id="rm-trash"> <span id="rm-trash-word"></span></label></div>
+    <div class="card-actions">
+      <button class="ghost" type="button" id="rm-cancel">{{page.cancel}}</button>
+      <button class="primary btn-remove" type="button" id="rm-go">{{trash.card.remove}}</button>
+    </div>
+  </div>
+</div>
+
+<!-- The agent log's sheet over Settings (agentlog, 3 November 2026), in the pattern of the card for several held
+     actions: its entries newest first, a line each, Details opening the row's own in place, the list scrolling
+     between the title and the foot, and Done at the right. Nothing clears it: it keeps the last 7 days -->
+<div class="overlay" id="agent-log-sheet" hidden>
+  <div class="card agent-log-sheet" role="dialog" aria-labelledby="al-title">
+    <button class="card-close" id="al-close" type="button" aria-label="{{agentlog.close}}" title="{{agentlog.close}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+    <p class="kicker">{{agentlog.kicker}}</p>
+    <h2 id="al-title">{{agentlog.title}}</h2>
+    <p class="al-count" id="al-count">{{agentlog.window}}</p>
+    <p class="fineprint" id="al-said" hidden></p>
+    <div class="al-list" id="al-list"></div>
+    <div class="card-actions">
+      <button type="button" class="primary" id="al-done">{{agentlog.done}}</button>
+    </div>
+  </div>
+</div>
+
+<!--slot:cards-more-->
+<!-- Sift's New project and Open project folder, in New project's card: the folder, chosen in the
+     Mac's dialog or typed, the Sift project's name, and for a new one its question. Create project
+     makes it in the folder, or in a new folder inside it named for it when it holds anything, and
+     Open project keeps it in the list and opens it. A folder holding several Sift projects offers
+     each by its folder's name under the folder. Esc cancels -->
+<div class="overlay" id="rv-card" hidden>
+  <div class="card">
+    <p class="kicker" id="rv-kicker">Sift</p>
+    <h2>{{shell.project.new}}</h2>
+    <div class="setting np-folder"><label for="rv-folder">{{page.project.folder}}</label><span class="add-typed np-folder-pick"><input
+         id="rv-folder" type="text" spellcheck="false" placeholder="{{page.project.folder}}"><button type="button" class="ghost small"
+         id="rv-choose">{{page.project.choose}}</button></span></div>
+    <div class="setting rv-choices" id="rv-choices" role="group" aria-labelledby="rv-choices-label" hidden><span
+         class="rv-choices-label" id="rv-choices-label">{{page.project.project}}</span><span class="rv-pick" id="rv-pick"></span></div>
+    <div class="setting"><label for="rv-name">{{page.project.name}}</label><input id="rv-name" type="text" spellcheck="false"></div>
+    <div class="setting stacked" id="rv-question-line"><label for="rv-question">{{page.project.question}}</label>
+      <textarea id="rv-question" class="question-box" rows="2" spellcheck="true"></textarea></div>
+    <p class="warn" id="rv-said" role="status" hidden></p>
+    <div class="card-actions">
+      <button class="ghost" id="rv-cancel">{{page.cancel}}</button>
+      <button class="primary" id="rv-go">{{shell.project.create}}</button>
+    </div>
+  </div>
+</div>
+
+<!--slot:cards-last-->
+<!-- Send feedback, from the bug in either bar, in the style of the trim card: the note, a reply
+     address if he wants one, one line on what travels with it, and Send beside Cancel. Esc cancels.
+     The words stay in the box while the app is open, so a card closed by mistake loses nothing, and
+     only a note sent clears it. Send is disabled while the box is empty or holds only spaces (feedbackReady). -->
+<div class="overlay" id="feedback" hidden>
+  <div class="card">
+    <h2>{{page.feedback.title}}</h2>
+    <textarea id="feedback-text" class="question-box feedback-box" rows="4" placeholder="{{page.feedback.placeholder}}" spellcheck="true" aria-label="{{page.feedback.note_label}}" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"></textarea>
+    <input type="text" class="feedback-contact" id="feedback-contact" placeholder="{{page.feedback.contact}}" spellcheck="false" autocomplete="off" aria-label="{{page.feedback.contact}}" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false">
+    <p class="fineprint">{{page.feedback.what_goes}}</p>
+    <p class="warn feedback-said" id="feedback-said" role="status" hidden></p>
+    <div class="card-actions">
+      <button class="ghost" id="feedback-cancel" type="button">{{page.cancel}}</button>
+      <button class="primary" id="feedback-send" type="button" disabled>{{shell.feedback.send}}</button>
+    </div>
+  </div>
+</div>
+
+<!-- the line at the foot inside a status that is always there, so a screen reader hears each line as it is said -->
+<div id="toast-live" role="status" aria-live="polite"><div id="toast" class="toast" hidden></div></div>
+
+<!-- What's new (18 October, the fourth Tauri build): once after an update, in Idiograph's own window, a line
+     at the foot saying the version it was updated to, with What's new, which opens the sheet below, and
+     Close. It shows once, and the sheet is reached again from Settings, General and the Help menu -->
+<div class="foot-line" id="whatsnew-line" role="status" hidden>
+  <span id="whatsnew-said"></span>
+  <button type="button" class="ghost small" id="whatsnew-open">{{page.updates.whats_new}}</button>
+  <button type="button" class="foot-close" id="whatsnew-close" aria-label="{{page.close}}" title="{{page.close}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+</div>
+
+<!-- the versions' notes, from docs/whats-new.md as the app carries it: each version's number, its date and a
+     plain line a part, newest first, every version since the one that ran before after an update (wnspan, 29
+     October 2026), then Earlier versions, which adds the rest below and goes. The versions scroll inside the
+     sheet, so Done stays in reach -->
+<div class="overlay" id="whatsnew" hidden>
+  <div class="card whatsnew-card" role="dialog" aria-labelledby="whatsnew-title">
+    <button class="card-close" id="whatsnew-x" type="button" tabindex="-1" aria-label="{{page.close}}" title="{{page.close}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <p class="kicker">{{page.updates.whats_new}}</p>
+    <div class="whatsnew-body" id="whatsnew-body">
+      <section class="whatsnew-version">
+        <h2 id="whatsnew-title"></h2>
+        <p class="fineprint whatsnew-date" id="whatsnew-date"></p>
+        <div class="whatsnew-notes" id="whatsnew-notes"></div>
+      </section>
+      <div id="whatsnew-rest"></div>
+      <button type="button" class="ghost small whatsnew-earlier" id="whatsnew-earlier" hidden>{{page.whatsnew.earlier}}</button>
+    </div>
+    <div class="card-actions">
+      <button class="primary" id="whatsnew-done" type="button">{{page.done}}</button>
+    </div>
+  </div>
+</div>
+
+<!-- About Idiograph (20 October): the name, the version, the author, the licence and the acknowledgements,
+     from the Mac's Idiograph menu, Windows's Help menu and the foot of Settings, closed with Done or Esc.
+     Its links out of the app open in the system's browser from the window, as every one does -->
+<div class="overlay" id="about" hidden>
+  <div class="card about-card" role="dialog" aria-labelledby="about-title">
+    <button class="card-close" id="about-x" type="button" tabindex="-1" aria-label="{{page.close}}" title="{{page.close}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <!-- Idiograph's About opens on its lockup with the Preview Edition stamp (21 October) in place of the kicker
+         and the name, the dialog still labelled by the name, Sift's and Trace's About as before -->
+    <p class="kicker" data-only="sift trace">{{page.about.word}}</p>
+    <h2 id="about-title" class="app-name" data-only="sift trace">Idiograph</h2>
+    <div class="about-lockup pe" data-only="idiograph"><svg class="lockup" viewBox="0 0 107.33 15" role="img" aria-label="Idiograph" fill="none"><use href="/marks.svg#idiograph" width="15" height="15"/><path transform="translate(19.2 12.5)" stroke="currentColor" stroke-width="1.3" stroke-linecap="square" stroke-linejoin="miter" d="M0.65 -9.35V-0.65M5.35 -0.65V-9.35H8.3A4.35 4.35 0 0 1 8.3 -0.65ZM16.95 -9.35V-0.65M21.65 -5a4.35 4.35 0 1 0 8.7 0a4.35 4.35 0 1 0 -8.7 0M41.93 -7.91A4.35 4.35 0 1 0 43.05 -5H39.5M47.35 -0.65V-9.35H50.9A2.17 2.17 0 0 1 50.9 -5H47.35M50.7 -5L54.3 -0.65M58.15 -0.65L62.1 -9.35L66.05 -0.65M59.8 -3.4H64.4M70.15 -0.65V-9.35H73.5A2.38 2.38 0 0 1 73.5 -4.6H70.15M80.18 -9.35V-0.65M87.47 -9.35V-0.65M80.18 -5H87.47"/></svg><span class="pe-stamp">{{page.preview_edition}}</span></div>
+    <p class="fineprint about-version" id="about-version"></p>
+    <p class="about-by">{{page.about.by}}</p>
+    <!-- the licence's line (21 October): the author named once, on the line above (it is the original, so never
+         the "Based on" credit NOTICE's section 7(b) term asks a derived work to keep), its link the LICENSE
+         the app carries, at /licence, which opens in a window of the app's own, the no-warranty line the
+         licence's Appropriate Legal Notices ask for, and the code's address, a link that opens in the
+         system's browser -->
+    <p class="fineprint about-licence">&copy; 2026.
+      {{page.about.licence_html}}
+      <a href="https://github.com/Pharkie/idiograph" target="_blank" rel="noopener">github.com/Pharkie/idiograph</a></p>
+    <h3 class="section-label about-head">{{page.about.thanks_title}}</h3>
+    <!-- wording A of three put to Adam (20 October). The article has no DOI yet: once the QMiP Bulletin
+         gives it one, its link goes after the reference -->
+    <div class="about-thanks">
+      <p>{{page.about.thanks_curt}}</p>
+      <p class="about-ref">Strangward, C. (2026). Reflections on performing an IPA investigation using
+        ATLAS.ti: Theory and practice. <i>QMiP Bulletin</i>, (42).</p>
+      <p>{{page.about.made_html}}</p>
+    </div>
+    <div class="card-actions">
+      <button class="primary" id="about-done" type="button">{{page.done}}</button>
+    </div>
+  </div>
+</div>
+
+<!-- Support Idiograph (supportcard, 28 October 2026, Adam's wording 1 of that day's Section 17): short parts in
+     About's look, from Home's link after Ko-fi, Settings' link beside About and the line after the first Word export
+     of PETs. Under the heading, plain, the private preview's line (supportcard2, Adam, 29 October: a private alpha
+     by invitation, so testers keep it to themselves). Cite it, the APA citation with the running version and Copy
+     (shell.js fills it, since a citation is never translated), Translate it, the Language row's own line to
+     /translating, Send feedback, opening the app's own card, Contribute code, its link to the code on GitHub since the
+     repository went public (pubreadme, 10 November 2026), where "ask me for access" opened Send feedback, Fund it, the costs in pounds, Claude Code first, Ko-fi's button, the same anchor as Home's, and a
+     department's or a grant's way to ask, then Thanks. Nothing is fetched at run time: no script, frame or image
+     from outside the app. Closed with Done, the close or Esc, Settings under it staying -->
+<div class="overlay" id="support" hidden>
+  <div class="card about-card support-card" role="dialog" aria-labelledby="support-title">
+    <button class="card-close" id="support-x" type="button" tabindex="-1" aria-label="{{page.close}}" title="{{page.close}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <h2 id="support-title">{{page.support.title}}</h2>
+    <div class="support-body">
+      <p class="support-private">{{page.support.private}}</p>
+      <h3 class="section-label about-head">{{page.support.cite}}</h3>
+      <div class="support-cite"><p class="about-ref" id="support-ref"></p><button type="button" class="ghost small" id="support-copy">{{page.support.copy}}</button></div>
+      <h3 class="section-label about-head">{{page.support.translate}}</h3>
+      <p><a href="/translating" target="_blank" rel="noopener">{{page.language.translate}}</a></p>
+      <div id="support-feedback">
+        <h3 class="section-label about-head">{{page.feedback.title}}</h3>
+        <p>{{page.support.feedback_html}}</p>
+      </div>
+      <div id="support-code">
+        <h3 class="section-label about-head">{{page.support.code}}</h3>
+        <p>{{page.support.code_html}}</p>
+      </div>
+      <h3 class="section-label about-head">{{page.support.fund}}</h3>
+      <p>{{page.support.costs}}</p>
+      <p class="support-fund"><a class="kofi" href="https://ko-fi.com/X8X01NIXRB" target="_blank" rel="noopener" title="{{page.lede.kofi_title}}"><img class="kofi-cup" src="/vendor/kofi/cup-border.png" alt="{{page.lede.kofi_alt}}" width="15" height="10">{{page.lede.kofi}}</a><span id="support-grant">{{page.support.grant_html}}</span></p>
+      <h3 class="section-label about-head">{{page.support.thanks}}</h3>
+      <p>{{page.support.thanks_line}}</p>
+    </div>
+    <div class="card-actions">
+      <button class="primary" id="support-done" type="button">{{page.done}}</button>
+    </div>
+  </div>
+</div>
+
+<!-- Restart and Quit from Settings: Restarting while the server starts again, then the page
+     reloads itself, and once it is closed the line that says how to open it again -->
+<div class="server-gone" id="server-gone" role="alertdialog" aria-labelledby="server-gone-head" hidden>
+  <div class="card server-gone-card">
+    <p class="kicker">Idiograph</p>
+    <h2 id="server-gone-head"></h2>
+    <p class="fineprint" id="server-gone-line"></p>
+  </div>
+</div>
+
+<!--i18n-->
+<script src="/i18n.js"></script>
+<script src="/beat.js"></script>
+<script src="/quote.js"></script>
+<script src="/table.js"></script>
+<script src="/shell.js"></script>
+<script src="/agentlog.js"></script>
+<!--slot:scripts-->
+<script src="/search.js"></script>
+</body>
+</html>

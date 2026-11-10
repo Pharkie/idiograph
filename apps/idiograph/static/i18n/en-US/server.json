@@ -1,0 +1,11 @@
+{
+  "server.participant_project_their_colour_changed": "That participant is not in this project, so their color was not changed.",
+  "server.one_participants_colours_nothing_changed": "That is not one of the participants' colors, so nothing was changed.",
+  "server.colour_another_participant_s_nothing": "That color is another participant's, so nothing was changed.",
+  "server.folder_more": "Its folder is not there anymore.",
+  "server.nothing_sent_tick_participant_first": "Nothing was sent. Select a participant first.",
+  "server.file_more_export_again_write": "That file is not there anymore. Export again to write it.",
+  "server.make_pseudonym_one_capitalised_word": "Make the pseudonym for {name} one capitalized word.",
+  "server.make_new_name_one_capitalised": "Make the new name one capitalized word, so nothing was changed.",
+  "server.timepoints_both_labelled_nothing_saved": "Timepoints {first} and {i} are both labeled {label}, so nothing was saved."
+}

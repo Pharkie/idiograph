@@ -1,0 +1,134 @@
+{
+  "themes.count.statements": {
+    "one": "{n} code",
+    "other": "{n} codes"
+  },
+  "themes.count.subs_then": {
+    "one": "{n} subtheme · {said}",
+    "other": "{n} subthemes · {said}"
+  },
+  "themes.unit.sub": "subtheme",
+  "themes.unit.get": "theme",
+  "themes.unit.gets": "themes",
+  "themes.empty.statements": "No codes for this participant yet.",
+  "themes.empty.pets_project": "No codes on this board yet.",
+  "themes.label.picked": {
+    "one": "One extract picked",
+    "other": "{n} extracts picked"
+  },
+  "themes.quote": "Extract",
+  "themes.statement": "Code",
+  "themes.stack.here": {
+    "one": "Stack the selected code under this one",
+    "other": "Stack the {n} selected under this one"
+  },
+  "themes.stack.select_two": "Select two codes or more, then press S.",
+  "themes.pair.menu_head": "Close pairs, codes from one sheet within",
+  "themes.inspector.no_quote": "No extract for this code.",
+  "themes.flash.every_statement": "Every code placed.",
+  "themes.aside.in_no_get": "That card is in no theme. X sets it aside.",
+  "themes.card.no_passage": "This code's passage is no longer in the transcript.",
+  "themes.edit.empty": "A code cannot be left empty. Esc leaves it as it was.",
+  "themes.edit.missing": "This code is no longer in the workbook, so it cannot be edited.",
+  "themes.inspector.none_gets": "Select a card or a theme.",
+  "themes.inspector.picked": {
+    "one": "one extract picked",
+    "other": "{n} extracts picked"
+  },
+  "themes.quotes": "Extracts",
+  "themes.quotes_way.off": "Extracts: off",
+  "themes.quotes_way.short": "Extracts: short",
+  "themes.quotes_way.full": "Extracts: full",
+  "themes.quotes_way.head": "Extracts on cards",
+  "themes.inspector.no_quotes": "No extract for these codes.",
+  "themes.inspector.no_statements": "No codes under this label.",
+  "themes.inspector.picked_quotes": "Picked extracts",
+  "themes.delete.n_statements": {
+    "one": "one code",
+    "other": "{n} codes"
+  },
+  "themes.delete.n_gets": {
+    "one": "one theme",
+    "other": "{n} themes"
+  },
+  "themes.table.this_statement": "this code",
+  "themes.table.no_gets": "No themes on this board yet.",
+  "themes.kind.sub": "Subtheme",
+  "themes.cases.window_tip": "{name}'s codes in a window of its own",
+  "themes.status.es": "codes",
+  "themes.status.selected_es": "{n} codes selected",
+  "themes.steps.es_who": "Coding for {who}",
+  "themes.steps.es": "Coding for this participant",
+  "themes.gets.n_subs": {
+    "one": "one subtheme",
+    "other": "{n} subthemes"
+  },
+  "themes.gets.added_subs": {
+    "one": "Added a subtheme.",
+    "other": "Added {n} subthemes."
+  },
+  "themes.gets.notes": "Notes",
+  "themes.gets.no_notes": "No notes on this passage.",
+  "themes.gets.subs": "Subthemes",
+  "themes.gets.no_statements": "No codes of its own.",
+  "themes.gets.nothing_under": "Nothing under this theme",
+  "themes.gets.nothing_no_pets": "No codes, so nothing under this theme",
+  "themes.gets.not_in": "Codes",
+  "themes.gets.gone": "No longer in {who}'s codes",
+  "themes.gets.unread": "Its codes could not be read",
+  "themes.gets.took": "Brought in the changes to {names}'s codes.",
+  "themes.gets.by_none": "Every code is in a theme or set aside, so nothing was moved.",
+  "themes.gets.by_tip": "A row for each participant's codes not in a theme",
+  "themes.outside.cases": "{names}: codes changed outside Idiograph.",
+  "themes.side.back_gets": "Back on the board, in no theme",
+  "themes.side.all_tip": "Every code waiting here onto the canvas, as one pile in the middle",
+  "themes.side.search_statements": "Search codes",
+  "themes.side.search_statements_label": "Search the codes not placed and set aside",
+  "themes.gets.quote_for": "Extract for {label}",
+  "themes.gets.tick_chosen": "The extract you ticked. Click to take the tick off.",
+  "themes.gets.tick_auto": "The extract it starts with",
+  "themes.gets.tick_other": "The extract of {who} under {label}",
+  "themes.gets.export_tip": "The theme table, the audit trail, the full set or the canvas, for print or PDF in a tab of its own",
+  "themes.table.get_name": "Table of themes",
+  "themes.revision.named.statement_edited": "{who}'s code edited: \"{old}\" to \"{new}\"",
+  "themes.revision.named.statement_edited_bare": "Code edited: \"{old}\" to \"{new}\"",
+  "themes.step.took_sub_out": "Took a subtheme out of its theme",
+  "themes.step.picked": "Picked an extract",
+  "themes.step.added_subs": {
+    "one": "Added a subtheme",
+    "other": "Added {n} subthemes"
+  },
+  "themes.step.placed_under_get": "Placed a card under another theme",
+  "themes.step.put_on_board": {
+    "one": "Put a code on the board",
+    "other": "Put {n} codes on the board"
+  },
+  "themes.step.put_all_on_board": {
+    "one": "Put a code on the board",
+    "other": "Put all {n} codes on the board"
+  },
+  "themes.step.table_note": "Wrote a note for a row of the theme table",
+  "themes.step.ticked_quote": "Ticked an extract for the theme table",
+  "themes.step.unticked_quote": "Took the tick off an extract",
+  "themes.step.statement_edited": "Edited a code",
+  "themes.status.card": "code",
+  "themes.status.cards": "codes",
+  "themes.status.cards_head": "Codes",
+  "themes.status.selected_cards": {
+    "one": "{n} code selected",
+    "other": "{n} codes selected"
+  },
+  "themes.label.description": "Definition",
+  "themes.menu.desc_edit": "Edit definition",
+  "themes.menu.desc_remove": "Remove definition",
+  "themes.menu.desc_add": "Add definition",
+  "themes.step.desc_written": "Wrote a definition",
+  "themes.step.desc_removed": "Removed a definition",
+  "themes.step.renamed_described": "Renamed a label and its definition",
+  "themes.gets.guidance_from": "From ta_themes_guidance.md beside the app.",
+  "themes.gets.guidance_file": "From ta_themes_guidance.md beside the app.",
+  "themes.review.what": "Asks questions of these themes from the thematic analysis guidance. Nothing moves.",
+  "themes.review.go_tip": "Questions of these themes from the AI, with the thematic analysis guidance.",
+  "themes.review.go_tip_model": "Questions of these themes from the AI, with the thematic analysis guidance. {model} answers.",
+  "themes.review.about_unplaced": "Not placed: show it in the sidebar"
+}

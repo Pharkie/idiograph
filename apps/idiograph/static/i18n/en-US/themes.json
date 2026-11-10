@@ -1,0 +1,24 @@
+{
+  "themes.review.round_ticked": {
+    "one": "Round {round} · {n} question · {ticked} checked",
+    "other": "Round {round} · {n} questions · {ticked} checked"
+  },
+  "themes.sticky.tip": "A sticky note. Double-click to edit it, right-click for its color.",
+  "themes.align.centre_name": "Align center",
+  "themes.align.centre": "Center",
+  "themes.sticky.colour": "Color",
+  "themes.menu.its_colour": "Its color",
+  "themes.colour.aubergine": "Eggplant",
+  "themes.gets.colour_tip": "Color: {colour}",
+  "themes.gets.colour_label": "{who}'s color, {colour}",
+  "themes.gets.whose_colour": "{who}'s color",
+  "themes.gets.more_colours": "More colors",
+  "themes.gets.cell_whose": "{colour}, {who}'s color",
+  "themes.gets.cell_own": "{colour}, {who}'s color now",
+  "themes.unsaved.colour": "The canvas is not saved yet, so the color was not changed.",
+  "themes.gets.tick_chosen": "The quote you checked. Click to take the check mark off.",
+  "themes.step.aligned_centre": "Aligned {n} to the center",
+  "themes.step.recoloured_sticky": "Recolored a sticky note",
+  "themes.step.ticked_quote": "Checked a quote for the GET table",
+  "themes.step.unticked_quote": "Took the check mark off a quote"
+}

@@ -1,0 +1,60 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "idiograph/progress.schema.json",
+ "title": "An Idiograph progress file, <case>/Working/<stem>.progress.json",
+ "description": "A case's progress through its experiential statements. Written by rounds.py and the command line.",
+ "type": "object",
+ "properties": {
+  "version": {"type": "integer", "minimum": 1},
+  "rows": {"type": "object", "additionalProperties": {"enum": ["has-content", "reviewed-empty"]}},
+  "rounds": {"type": "object", "additionalProperties": {
+   "type": "object",
+   "properties": {"seconds": {"type": "number", "minimum": 0},
+                  "completed": {"type": ["string", "number", "null"]}}}},
+  "days": {"type": "object", "additionalProperties": {
+   "type": "object", "properties": {"rounds": {"type": "integer", "minimum": 0}}}},
+  "last": {"anyOf": [{"type": "null"}, {"type": "object", "required": ["sheet", "row"],
+                                         "properties": {"sheet": {"type": "string"}, "row": {"type": "integer"}}}]},
+  "last_commit_at": {"type": ["number", "null"]},
+  "last_commit_round": {"anyOf": [{"type": "null"}, {"type": "string", "pattern": "^[0-9]+$"}, {"type": "integer", "minimum": 1}]},
+  "flags": {"type": "array"},
+  "trims": {"type": "array", "items": {"type": "object", "required": ["sheet"],
+                                       "properties": {"sheet": {"type": "string"}}}},
+  "edits": {"type": "array", "items": {"$ref": "#/$defs/edit"}},
+  "assignments": {"type": "array", "items": {"type": "object"}},
+  "complete": {"anyOf": [{"type": "null"}, {"type": "object", "required": ["at"],
+                                             "properties": {"at": {"type": "string", "minLength": 1}}}]},
+  "timepoints": {"description": "In a longitudinal project, each sheet at T2 or later by its name, the timepoint's place, a sheet not named at T1 (20 October).",
+                 "type": "object", "additionalProperties": {"type": "integer", "minimum": 2}},
+  "complete_timepoints": {"description": "Statements complete for each timepoint after T1, by its place, T1's being complete (20 October).",
+                          "type": "object", "additionalProperties": {
+                           "type": "object", "required": ["at"], "properties": {"at": {"type": "string", "minLength": 1}}}}
+ },
+ "$defs": {
+  "edit": {
+   "type": "object",
+   "required": ["sheet", "row"],
+   "properties": {
+    "sheet": {"type": "string"},
+    "row": {"type": "integer"},
+    "old": {"type": "string"},
+    "new": {"type": "string"},
+    "when": {"type": "string"},
+    "by": {"const": "agent"},
+    "tool": {"type": "string"},
+    "request": {"type": "string"},
+    "before": {"$ref": "#/$defs/fields"},
+    "after": {"$ref": "#/$defs/fields"},
+    "backup": {"type": "string"},
+    "heading": {"description": "The quotes column's heading renamed by quote-heading, at row 1 (23 October).", "type": "boolean"}
+   }
+  },
+  "fields": {
+   "type": "object",
+   "properties": {"es": {"type": "array", "items": {"type": "string"}},
+                  "en": {"type": "array", "items": {"type": "string"}},
+                  "kq": {"type": "array", "items": {"type": "string"}}},
+   "additionalProperties": false
+  }
+ }
+}

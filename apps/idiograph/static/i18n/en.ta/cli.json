@@ -1,0 +1,151 @@
+{
+  "cli.kind.statement": {
+    "one": "Code",
+    "other": "Codes"
+  },
+  "cli.kind.quote": {
+    "one": "Extract",
+    "other": "Extracts"
+  },
+  "cli.kind.enote": {
+    "one": "Note",
+    "other": "Notes"
+  },
+  "cli.kind.sub": {
+    "one": "Subtheme",
+    "other": "Subthemes"
+  },
+  "cli.kind.get": {
+    "one": "Theme",
+    "other": "Themes"
+  },
+  "cli.kind.getnote": {
+    "one": "Theme note",
+    "other": "Theme notes"
+  },
+  "cli.card.es": "Code",
+  "cli.card.sub": "Subtheme",
+  "cli.card.gone": "(no longer in the workbook)",
+  "cli.statements_complete": "Coding marked complete on {when}.",
+  "cli.statements_progress": "Coding in progress.",
+  "cli.statement_length": "Code length: {n} words.",
+  "cli.statements_head": {
+    "one": "{case}: {n} code, short ids S1 to S{n}",
+    "other": "{case}: {n} codes, short ids S1 to S{n}"
+  },
+  "cli.no_statements": "{case}: no codes yet",
+  "cli.quote_alone": "Extract {ref}, with no code: {text}",
+  "cli.quote": "Extract {ref}: {text}",
+  "cli.gets_head": "Themes, {name} ({id}).",
+  "cli.gets_history": {
+    "one": "The themes board {name}'s History, newest first: {n} revision.",
+    "other": "The themes board {name}'s History, newest first: {n} revisions."
+  },
+  "cli.gets_revision": "The themes board {name}'s revision {id} of {when}. Restore makes it the board.",
+  "cli.gets_revision_named": "The themes board {name}'s revision {id} of {when}, {called}. Restore makes it the board.",
+  "cli.gets.take_none": "Nothing has changed in {name}'s codes since they came in. Nothing was written.",
+  "cli.gets.take_dry": "Dry run, nothing was written. It would bring {name}'s changes into every themes board:",
+  "cli.gets.take": "Brought {name}'s changes into every themes board, each keeping a revision first, \"Before {name}'s changes came in\", so Restore puts it back.",
+  "cli.gets.fresh_dry": "Dry run, nothing was written. It would make the themes board {name}, every card in the pile, and put it on the canvas.",
+  "cli.gets.fresh": "Made the themes board {name}, every card in the pile. It is the board on the canvas, and the other boards are as before.",
+  "cli.gets.duplicate_dry": "Dry run, nothing was written. It would copy the themes board {name} as {copy} and put it on the canvas.",
+  "cli.gets.duplicate": "Copied the themes board {name} as {copy}, which is now on the canvas. {name} is as it was.",
+  "cli.gets.rename_same": "The themes board {name} is called that already. Nothing was written.",
+  "cli.gets.rename_dry": "Dry run, nothing was written. It would rename the themes board {name} as {wanted}.",
+  "cli.gets.rename": "Renamed the themes board {name} as {wanted}. It is recorded in its History, as \"{kept}\".",
+  "cli.gets.note_same": "The themes board {name}'s note reads that already. Nothing was written.",
+  "cli.gets.note_off_dry": "Dry run, nothing was written. It would take the themes board {name}'s note off.",
+  "cli.gets.note_set_dry": "Dry run, nothing was written. It would set the themes board {name}'s note to \"{words}\".",
+  "cli.gets.note_off": "Took the themes board {name}'s note off. It is recorded in its History, as \"{kept}\".",
+  "cli.gets.note_set": "Set the themes board {name}'s note to \"{words}\". It is recorded in its History, as \"{kept}\".",
+  "cli.gets.canvas_same": "The themes board {name} is on the canvas already. Nothing was written.",
+  "cli.gets.canvas_dry": "Dry run, nothing was written. It would put the themes board {name} on the canvas, in place of {was}.",
+  "cli.gets.canvas": "The themes board {name} is now on the canvas, in place of {was}. Nothing on any board changed.",
+  "cli.gets.current_same": "The themes board {name} is the Current board already. Nothing was written.",
+  "cli.gets.current_dry": "Dry run, nothing was written. It would mark the themes board {name} as the Current board.",
+  "cli.gets.current_dry_instead": "Dry run, nothing was written. It would mark the themes board {name} as the Current board, in place of {before}.",
+  "cli.gets.current": "The themes board {name} is now the Current board. It is recorded in its History, as \"{kept}\".",
+  "cli.gets.current_instead": "The themes board {name} is now the Current board, in place of {before}. It is recorded in its History, as \"{kept}\".",
+  "cli.gets.delete_dry": "Dry run, nothing was written. It would delete the themes board {name}{was} after a copy of it in _Archive.",
+  "cli.gets.delete": "Deleted the themes board {name}{was}. A copy of it as it stood, its History with it, is in _Archive, {file}.",
+  "cli.gets.revision_dry": "Dry run, nothing was written. It would keep the themes board {name} as it stands in its History, as \"{called}\".",
+  "cli.gets.revision": "Kept the themes board {name} as it stands in its History, as \"{called}\". Nothing on the board changed.",
+  "cli.gets.restore_dry": "Dry run, nothing was written. It would make the themes board {name}'s revision of {when} the board, keeping it as it stands first in its History, as \"{kept}\".",
+  "cli.gets.restore": "Restored the themes board {name}'s revision of {when}. The board as it stood is kept first in its History, as \"{kept}\", so Restore puts it back.",
+  "cli.n.statement": {
+    "one": "{n} code",
+    "other": "{n} codes"
+  },
+  "cli.n.quote": {
+    "one": "{n} extract",
+    "other": "{n} extracts"
+  },
+  "cli.n.lone_quote": {
+    "one": "{n} lone extract",
+    "other": "{n} lone extracts"
+  },
+  "cli.n.exploratory_note": {
+    "one": "{n} note",
+    "other": "{n} notes"
+  },
+  "cli.n.sub_theme_card": {
+    "one": "{n} subtheme card",
+    "other": "{n} subtheme cards"
+  },
+  "cli.n.pet_and_sub_theme_card": {
+    "one": "{n} code and subtheme card",
+    "other": "{n} code and subtheme cards"
+  },
+  "cli.validate.the_gets_file": "The themes file",
+  "cli.validate.the_gets_file_2": "the themes file",
+  "cli.import_raw.wrote_the_participants_workbook_from_for": "Wrote {shown}, the participant's workbook, from {name}, for {case}. It opens on Coding, and names who made it and his request.",
+  "cli.import_raw.dry_run_nothing_was_written_it": "Dry run, nothing was written. It would write {shown}, the participant's workbook, from {name}, for {case}, the one Coding opens.",
+  "cli.turn_trim.dry_run_nothing_was_written_it": "Dry run, nothing was written. {case}, {sheet}: it would cut {span}{times}, {rows}, {marked} of them with a code, a note, an extract or a highlight, leaving {rows2}.",
+  "cli.turn_write.the_boards_could_not_be_read": "The boards could not be read, so their cards were not moved with the codes: {exc}",
+  "cli.turn_write.exploratory_notes": "notes",
+  "cli.turn_write.the_quote_is_not_in_the": "The extract {quoted} is not in the turn's words as they stand.",
+  "cli.turn_write.the_turns_quotes_go_with_its": "The turn's extracts go with its codes by place, and {statements} would leave its {quotes} unpaired. Send the extracts with them, or pairs.",
+  "cli.turn_write.for_a_statement_and_its_quote": "{quotes} for {statements}. A code and its extract go by place: give one extract a code, an empty one for a code with none, or send pairs.",
+  "cli.turn_write.the_quote": "The extract {quoted} {not_lone}",
+  "cli.turn_write.that_turn_is_the_interviewers_and": "That turn is the interviewer's, and codes, notes and extracts belong to the participant's turns.",
+  "cli.turn_write.the_file_names_no_statements_notes": "The file names no codes, notes or extracts, so there is nothing to write.",
+  "cli.said.not_lone": "is not a lone extract of this turn, so there is nothing of that to remove.",
+  "cli.said.not_this_line": "is not the key of a code of this passage. Send each pair's key as turn show gives it, or none.",
+  "cli.said.key_twice": "is sent for two pairs. Each code of the passage is one pair at most.",
+  "cli.span_lines.the_quote_in_rows_of": "The extract {quote} {verb} in rows {listed} of {sheet}, {time}.",
+  "cli.effect_lines.the_turns_with_no_statement_of": "{verb} the turn's {quotes}, with no code of {v_} own, as {v_2}: ",
+  "cli.card_lines.on_the_card_its_statement_removed": "On {name}, the card {key_} '{text}' {went}, its code removed.",
+  "cli.card_lines.on_the_card_where_its_statement": "On {name}, the card {from_} '{text}' {went} {to}, where its code now is.",
+  "cli.quote_refusal.the_quote_skips_the_passage_at": "The extract {said} skips the passage at row {row}: an extract takes in only the same speaker's passages next to its own, one after another, with nothing but the interviewer's turns between.",
+  "cli.quote_refusal.the_quote_takes_words_from_another": "The extract {said} takes words from another speaker's passage at row {row}, and an extract holds one speaker's words.",
+  "cli.quote_refusal.the_quote_takes_words_from_row": "The extract {said} takes words from row {row}, which is not next to this passage: an extract takes in only the same speaker's passages next to its own, with nothing but the interviewer's turns between.",
+  "cli.quote_refusal.the_quote_takes_words_from_the": "The extract {said} takes words from the interviewer's turn at row {row}, and an extract holds the participant's words alone.",
+  "cli.turn_lines.quote_with_no_statement": "  Extract, with no code: {quote}{ran}",
+  "cli.turn_lines.quote": "    Extract: {quote}{ran}",
+  "cli.turn_lines.statement": "  Code: {statement}",
+  "cli.gets_settings.saved_in_the_gets_file": "Saved in the themes file:",
+  "cli.gets_settings.the_most_gets_a_new_ai": "The most themes a new AI board proposes from {get} to {get2}.",
+  "cli.settings_lines.the_most_gets_a_new_ai": "The most themes a new AI board proposes: {cap}.",
+  "cli.gets_subs.added_to_the_gets_board_each": "Added {cards} to the themes board {name}, each in the nearest free spot. {kept_line}",
+  "cli.gets_subs.dry_run_nothing_was_written_it": "Dry run, nothing was written. It would add {cards} to the themes board {name}, each in the nearest free spot:",
+  "cli.gets_complete.reopened_gets": "Reopened the themes.",
+  "cli.gets_complete.marked_gets_complete_on": "Marked the themes complete on {get}.",
+  "cli.gets_complete.dry_run_nothing_was_written_it": "Dry run, nothing was written. It would reopen the themes, marked complete since {when}.",
+  "cli.gets_complete.dry_run_nothing_was_written_it_2": "Dry run, nothing was written. It would mark the themes complete on {get}.",
+  "cli.gets_complete.gets_are_not_marked_complete_nothing": "The themes are not marked complete. Nothing was written.",
+  "cli.gets_complete.gets_are_marked_complete_already_since": "The themes are marked complete already, since {when}, on {get}. Nothing was written.",
+  "cli.changes_lines.the_copy_differs_in_a_statements": "The copy differs in a code's words, a note or a pick.",
+  "cli.gets_apply.dry_run_nothing_was_written_on": "Dry run, nothing was written. On the themes board {name} it would have: {v_}",
+  "cli.gets_apply.arranged_in_no_get_by_participant": "arranged {cards} in no theme by participant, a row each for {listed}, below the themes, which stay where they are",
+  "cli.gets_apply.the_gets": "the themes",
+  "cli.gets_apply.nothing_to_change_every_pet_and": "Nothing to change, every code and subtheme on {name} is in a theme or set aside. Nothing was written.",
+  "cli.gets_apply.a_get": "a theme",
+  "cli.gets_apply.operation_arranges_by_give_by_participant": "Operation {n} arranges by {one_line}. Give \"by\": \"participant\", the one way a themes board arranges.",
+  "cli.gets_data.this_project_has_no_gets_file": "This project has no themes file yet. It comes with the first act on the Themes screen.",
+  "cli.gets_canvas.this_project_has_no_participants_yet": "This project has no participants yet, so its themes canvas is empty.",
+  "cli.project_boards_in.nothing_else_in_the_project_would": "Nothing else in the project would change: no code, note, setting or other board.",
+  "cli.project_boards_in.most_in_copy_wording": "    Most of {from_}'s codes are not in this project, so most come in the copy's wording. To see it beside yours as it was, open the copy as a project of its own: project open-copy with --from-name.",
+  "cli.send_listed.the_statements_alone": "the codes alone",
+  "cli.send_lines.the_statements": "{label}: the codes",
+  "cli.length.nudges_a_statement_past": "{name} nudges a code past {words}."
+}
