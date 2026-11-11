@@ -1329,8 +1329,8 @@ def save(root: Path, books: list[dict], version: dict, revision=None) -> dict:
     # in a thematic analysis project the page sends each code's lead alone, its rows laid back beside it (codes)
     if ta_now():
         kept = codes_mod().unfold(kept, data, was)
-    # a GET sent with no description at all keeps the file's (see `themes.descriptions_kept`)
-    kept = themes.descriptions_kept(kept, version.get("groups"), was.get("groups"))
+    # a GET sent with no key for a field keeps the file's, its description or an LPET's domain (see `themes.fields_kept`)
+    kept = themes.fields_kept(kept, version.get("groups"), was.get("groups"))
     # a case that came in with this save, after the page last drew the board, lands in its pile too
     for case in taken:
         lay_in(kept, cards_of(case, data["cases"][case]), data)

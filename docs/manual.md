@@ -5266,7 +5266,9 @@ timepoints:
     on the same words.
   - An LPET's domain shows as a pill under its title. An LPET in two or more domains has them separated
     by commas, "Relationships, Psychological", and each shows as a pill of its own in its own colour,
-    the same colour wherever that domain is used across the project.
+    the same colour wherever that domain is used across the project. An LPET keeps its domain through
+    every change to the LPETs board, made on the canvas or by an agent: a statement brought in, an LPET
+    retitled, moved or merged.
   - The status bar along the foot counts the participants placed and not placed and the trajectories,
     and holds Quotes, which steps through off, short (three lines) and full, and Notes, each
     participant's note on why they stand there (the old Why box), off until he turns it on. Both are

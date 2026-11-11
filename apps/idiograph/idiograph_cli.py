@@ -4301,7 +4301,7 @@ def cmd_board_apply(p: Project, args) -> tuple:
         if structural:
             # a change of levels keeps the layout as the canvas does, and one that puts a statement
             # into a label elsewhere lays out afresh the themes it touches
-            revised = {"groups": after["groups"], "picks": after["picks"]}
+            revised = {"groups": after["groups"], "picks": after["picks"], "made": info.get("made") or []}
             # and a statement put into a label elsewhere goes in under what it holds, its neighbours where they
             # stood (agentorder, 10 November 2026: a fresh layout of the PET it went into read its sub-PETs and
             # statements in another order)
@@ -4704,7 +4704,8 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         made_before = list(info.get("made") or [])
         after, info = as_gets(after, info)
         if structural:
-            revised = {"groups": after["groups"], "picks": {}}
+            # a GET it made may take the id of one it took away, and carries nothing of that one's but its place
+            revised = {"groups": after["groups"], "picks": {}, "made": info.get("made") or []}
             # one brought into a label lands under what it holds, as board apply lands a statement moved into a PET
             landed = (themes.land_kept(plain, revised, gets_mod.card_height, strict=True, statements_in=bool(into))
                       or themes.land(plain, revised, gets_mod.card_height))

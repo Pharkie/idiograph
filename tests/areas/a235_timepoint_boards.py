@@ -354,5 +354,232 @@ def test_timepoint_boards(scratch):
               and not any(order_key in g["members"] for g in loose["groups"])
               and "T1's statement 'Expecting order' onto the board in no LPET" in json.dumps(got),
               json.dumps(got)[:400])
+
+        _fields_kept(scratch, call, run, book, lfile, lboard, lpid,
+                     {"asking": akey, "shed": f"T1/es/{themes.card_key('Before', r1[1], 0)}", "order": order_key, "soil": skey},
+                     t2["version"]["id"])
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept
+
+
+# The page's own acts on the LPETs board as its scripts make them, each from the board as the page loads it (thLoad),
+# the body each save sends kept in `out` by its name (domainkeep, 11 November 2026)
+PAGE_ACTS = r"""
+TH.mode = 'gets'; TH.lpets = true;
+const load = () => {
+  const cards = {};
+  for (const c of DATA.cards) cards[c.key] = Object.assign({}, c);
+  return { cards, groups: DATA.groups.map((g) => Object.assign({}, g, { members: g.members.slice() })),
+    discarded: DATA.discarded.slice(), picks: {}, stickies: [], rows: JSON.parse(JSON.stringify(DATA.rows || {})), waits: false };
+};
+const out = {};
+// a row of the Participants panel let go in an LPET, as gtPullDrop lets it go there
+{ const v = load(); v.cards[ROW.key] = Object.assign({}, ROW); thJoin(v, [ROW.key], 'G2'); out.drag = thBody(v, META); }
+// an LPET moved by its title strip
+{ const v = load(); const g = thGroup(v, 'G1'); g.x += 40; g.y += 30; out.move = thBody(v, META); }
+// retitled
+{ const v = load(); thGroup(v, 'G1').label = 'Renamed on the page'; out.rename = thBody(v, META); }
+// one LPET let go on the other's title strip, which takes it in
+{ const v = load(); thJoin(v, ['G2'], 'G1'); out.merge = thBody(v, META); }
+// an LPET deleted, and the step undone
+{ const v = load(); const before = thSnap(v, new Set()); thDelete(v, 'G2'); out.deleted = thBody(v, META);
+  thPut(v, before); out.undone = thBody(v, META); }
+"""
+
+
+def _fields_kept(scratch, call, run, book, lfile, lboard, lpid, keys, t2_id):
+    """An LPET's domain, and every other field a label carries, kept on every path that writes a board
+    (domainkeep, 11 November 2026). A data run's bring_in into an LPET took every LPET's domain off four boards,
+    since `gets apply` landed its change through `themes.land`, which built each label afresh from the fields the
+    change speaks of. Each path is driven on Wren's LPETs board with a domain on both LPETs, a note on one and a
+    description on the other: the page's drag from the Participants panel, a move, a rename, a merge and undo, its
+    scripts run in node and in a browser, an old page's save that sends no domain, and every `gets apply` op; then a
+    GET on the LGETs board and a PET on a timepoint's board through their own applies."""
+    import html as html_mod
+    import subprocess
+    import tempfile
+
+    import themes
+
+    n = [0]
+
+    def ops_file(operations) -> str:
+        n[0] += 1
+        path = scratch / f"a235-keep-{n[0]}.json"
+        path.write_text(json.dumps({"operations": list(operations)}), encoding="utf-8")
+        return str(path)
+
+    def apply(note, operations, board=lpid, lpets=True):
+        return run("gets", "apply", board, *(["--lpets", "Wren"] if lpets else []), "--ops", ops_file(operations), "--note", note)
+
+    def fields(b=None) -> dict:
+        return {g["id"]: {k: v for k, v in g.items() if k not in ("members", "x", "y")} for g in (b or lboard())["groups"]}
+
+    def members(gid: str) -> list:
+        return next(g["members"] for g in lboard()["groups"] if g["id"] == gid)
+
+    # a second LPET of the T1 PET left in none, described, and a note on the first, then a domain on each
+    parents = themes.parents_of(lboard()["groups"])
+    shed_pet = next(k for k in lboard()["cards"] if "/es/" not in k and k not in parents)
+    code, done, err = apply("Two LPETs", [{"op": "make", "title": "A shed of her own", "members": [shed_pet], "ref": "S"},
+                                          {"op": "describe", "label": "S", "description": "A room for tools"},
+                                          {"op": "note", "label": "G1", "note": "Asked over the fence"}])
+    def domains_on(**more):
+        # each LPET's domain set as Trajectories sets it, so a path that takes them off is seen by itself
+        given = dict({"G1": "Practical", "G2": "Family, Town"}, **more)
+        call("/api/trajectories-ops", {"workbook": str(book), "ops": [
+            {"op": "domain", "participant": "Wren", "lpet": gid, "domain": d} for gid, d in given.items()]})
+
+    domains_on()
+    want = {"G1": {"id": "G1", "label": "From order to neighbours", "note": "Asked over the fence", "domain": "Practical"},
+            "G2": {"id": "G2", "label": "A shed of her own", "description": "A room for tools", "domain": "Family, Town"}}
+    check("235 keep: two LPETs on Wren's board, a domain on each, a note on one and a description on the other",
+          code == 0 and fields() == want, err + str(fields()))
+
+    # ── the page's acts, its scripts in node and in a browser, each save read back from the file
+    lp = call("/api/gets", {"workbook": str(book), "lpets": True})
+    line = {c["case"]: c for c in lp["cases"]}["T2"]["lines"][keys["asking"].split("/es/", 1)[1]]
+    b = lboard()
+    head = ("const DATA = " + json.dumps({k: lp[k] for k in ("cards", "groups", "discarded", "rows")}) + ";\n"
+            + "const META = " + json.dumps({"id": b["id"], "name": b.get("name"), "note": b.get("note") or "",
+                                            "created": b.get("created"), "updated": b.get("updated"), "v": themes.board_version(b)}) + ";\n"
+            + "const ROW = " + json.dumps({"key": keys["asking"], "case": "T2", "kind": "es", "text": line["text"], "x": 40, "y": 600}) + ";\n")
+    themes_js = support.TOOL / "apps" / "idiograph" / "static" / "themes.js"
+    node = shutil.which("node")
+    in_node = None
+    if node:
+        ran = support.run_node(support.i18n_js() + themes_js.read_text(encoding="utf-8") + "\n" + head + PAGE_ACTS
+                               + "\nconsole.log(JSON.stringify(out));\n", scratch, "a235-keep-page.js")
+        in_node = json.loads(ran.stdout) if ran.returncode == 0 and ran.stdout.strip() else None
+        if in_node is None:
+            print(ran.stderr[:600])
+    in_browser = None
+    exe = support.browser()
+    if exe is not None:
+        with tempfile.TemporaryDirectory(prefix="idiograph-235-") as tmp:
+            folder = Path(tmp)
+            (folder / "words.js").write_text(support.i18n_js(), encoding="utf-8")
+            (folder / "acts.js").write_text(head + PAGE_ACTS + "\ndocument.getElementById('out').textContent = JSON.stringify(out);\n",
+                                            encoding="utf-8")
+            (folder / "page.html").write_text('<!doctype html><html><head><meta charset="utf-8"></head><body><pre id="out"></pre>'
+                                              f'<script src="words.js"></script><script src="{themes_js.as_uri()}"></script>'
+                                              '<script src="acts.js"></script></body></html>', encoding="utf-8")
+            cmd = [str(exe), "--headless", "--disable-gpu", "--no-first-run", "--no-default-browser-check", "--disable-extensions",
+                   "--disable-background-networking", "--disable-component-update", "--disable-sync", "--disable-default-apps",
+                   "--password-store=basic", "--use-mock-keychain", f"--user-data-dir={folder / 'profile'}",
+                   "--allow-file-access-from-files", "--window-size=1280,800", "--virtual-time-budget=3000", "--dump-dom",
+                   (folder / "page.html").as_uri()]
+            try:
+                dumped = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=120).stdout
+            except (OSError, subprocess.TimeoutExpired) as exc:
+                dumped = str(exc)
+        got = dumped.split('<pre id="out">', 1)[1].split("</pre>", 1)[0] if '<pre id="out">' in dumped else ""
+        in_browser = json.loads(html_mod.unescape(got)) if got.startswith("{") else None
+    if node:
+        check("235 keep: the page's acts on the LPETs board run in node: the panel's drag, a move, a rename, a merge, "
+              "a delete and its undo", in_node is not None and sorted(in_node) == ["deleted", "drag", "merge", "move", "rename", "undone"],
+              str(in_node)[:300])
+    else:
+        support.skip("235 keep: the page's acts in node", "no node on this machine")
+    if exe is not None:
+        check("235 keep: and in a browser the page's scripts send the same saves as in node",
+              in_browser is not None and (in_node is None or in_browser == in_node), str(in_browser)[:300])
+    else:
+        support.skip("235 keep: the page's acts in a browser", "no Chrome, Chromium, Brave or Edge on this computer")
+    bodies = in_node or in_browser
+    if bodies:
+        domains = lambda: {g: f.get("domain") for g, f in fields().items()}  # noqa: E731
+        kept, dragged = {}, False
+        for name in ("drag", "move", "rename", "merge", "deleted", "undone"):
+            # each act's save in turn, as the page sends it from the board it last read
+            call("/api/gets-save", {"workbook": str(book), "lpets": True,
+                                    "version": dict(bodies[name], v=themes.board_version(lboard()))})
+            kept[name] = domains()
+            dragged = dragged or (name == "drag" and keys["asking"] in members("G2"))
+        both = {"G1": "Practical", "G2": "Family, Town"}
+        check("235 keep: the page's saves keep each LPET's domain: the statement dragged in from the panel, an LPET "
+              "moved, retitled, let go on another's title, and deleted then undone, its domain back with it",
+              dragged and all(kept[x] == both for x in ("drag", "move", "rename", "merge", "undone"))
+              and kept["deleted"] == {"G1": "Practical"}, str(kept))
+        old = dict(bodies["undone"], v=themes.board_version(lboard()),
+                   groups=[dict({k: v for k, v in g.items() if k != "domain"}, label="Renamed on an old page" if g["id"] == "G1" else g["label"])
+                           for g in bodies["undone"]["groups"]])
+        call("/api/gets-save", {"workbook": str(book), "lpets": True, "version": old})
+        check("235 keep: a save from a page that sends no domain keeps the file's, its rename taken",
+              fields() == dict(want, G1=dict(want["G1"], label="Renamed on an old page")), str(fields()))
+
+    # ── every gets apply op on the LPETs board: each label keeps every field the op did not change
+    steps = [
+        ("bring_in into an LPET", [{"op": "bring_in", "statement": keys["asking"], "to": "G2"}], {}),
+        ("bring_in onto the board", [{"op": "bring_in", "statement": keys["shed"]}], {}),
+        ("retitle", [{"op": "retitle", "label": "G1", "title": "Neighbours as teachers"}], {"G1": {"label": "Neighbours as teachers"}}),
+        ("note and describe", [{"op": "note", "label": "G2", "note": "Forks under the sacks"},
+                               {"op": "describe", "label": "G1", "description": "From packets to people"}],
+         {"G2": {"note": "Forks under the sacks"}, "G1": {"description": "From packets to people"}}),
+        ("move", [{"op": "move", "items": [keys["soil"]], "to": "G2"}], {}),
+        ("make", [{"op": "make", "title": "Tools", "inside": "G2", "members": [keys["asking"]]}], {"G3": {"id": "G3", "label": "Tools"}}),
+        ("merge", [{"op": "merge", "label": "G3", "into": "G2"}], {"G3": None}),
+        ("make and apart", [{"op": "make", "title": "Loose ones", "members": [keys["order"], keys["shed"]], "ref": "L"},
+                            {"op": "apart", "label": "L"}], {}),
+        ("order", None, {}),
+        ("arrange by participant", [{"op": "arrange", "by": "participant"}], {}),
+        ("align", [{"op": "align", "items": ["G1", "G2"], "to": "top"}], {}),
+    ]
+    domains_on()
+    lost = []
+    for what, operations, changes in steps:
+        if operations is None:
+            operations = [{"op": "order", "under": "G2", "items": list(reversed(members("G2")))}]
+        before = fields()
+        code, done, err = apply(what, operations)
+        expected = dict(before)
+        for gid, change in changes.items():
+            if change is None:
+                expected.pop(gid, None)
+            else:
+                expected[gid] = dict(expected.get(gid) or {}, **change)
+        if code != 0 or fields() != expected:
+            lost.append(f"{what}: {code} {err[:200]} {fields()}")
+    check("235 keep: gets apply --lpets keeps each LPET's domain, note and description through bring_in into an LPET and "
+          "onto the board, retitle, note, describe, move, make, merge, apart, order, arrange and align, each op's own "
+          "change taken", not lost and fields()["G1"].get("domain") == "Practical" and fields()["G2"].get("domain") == "Family, Town",
+          "\n".join(lost) + str(fields()))
+
+    # a GET a change makes may take the id of one it took away, and takes none of that one's domain
+    code, _, err = apply("A spare", [{"op": "make", "title": "Spare", "members": []}])
+    spare = next((g for g, f in fields().items() if f["label"] == "Spare"), "")
+    domains_on(**{spare: "Weather"})
+    had = fields()
+    code, _, err = apply("Merge the spare, make a fresh one", [{"op": "merge", "label": spare, "into": "G1"},
+                                                                {"op": "make", "title": "Fresh start", "members": []}])
+    now = fields()
+    check("235 keep: an LPET a change makes in the id of one it merged away carries none of that one's domain, the "
+          "others keeping theirs", code == 0 and had.get(spare, {}).get("domain") == "Weather" and now["G1"].get("domain") == "Practical"
+          and now.get(spare) == {"id": spare, "label": "Fresh start"} and now["G1"] == had["G1"] and now["G2"] == had["G2"],
+          err + str(now))
+
+    # ── a GET on the project's LGETs board and a PET on a timepoint's board, through their own applies
+    lg = call("/api/gets", {"workbook": str(book)})
+    lpet_card = next(c["key"] for c in lg["cards"] if c["kind"] == "pet")
+    call("/api/gets-save", {"workbook": str(book), "version": dict(
+        lg["version"], cards={c["key"]: {"x": c["x"], "y": c["y"]} for c in lg["cards"]}, discarded=[], picks={}, notes=[],
+        groups=[{"id": "G1", "label": "Neighbours", "members": [lpet_card], "x": 0, "y": -60, "domain": "Town",
+                 "description": "A GET described"}])})
+    code, _, err = apply("Retitle a GET", [{"op": "retitle", "label": "G1", "title": "Neighbours first"},
+                                           {"op": "make", "title": "Second", "members": []}], board=lg["version"]["id"], lpets=False)
+    project = {g["id"]: g for g in call("/api/gets", {"workbook": str(book)})["groups"]}
+    check("235 keep: on the LGETs board a GET keeps its domain and description through gets apply's retitle and make",
+          code == 0 and project.get("G1", {}).get("domain") == "Town" and project["G1"].get("description") == "A GET described"
+          and project["G1"]["label"] == "Neighbours first", err + str(project))
+    st = call("/api/themes", {"workbook": str(book), "timepoint": 2})
+    call("/api/themes-save", {"workbook": str(book), "timepoint": 2, "version": dict(
+        st["version"], cards={c["key"]: {"x": c["x"], "y": c["y"], "text": c["text"]} for c in st["cards"]}, discarded=[], picks={},
+        groups=[dict(g, domain="Town") for g in st["groups"]])})
+    gid = st["groups"][0]["id"]
+    code, _, err = run("board", "apply", "Wren", t2_id, "--timepoint", "T2", "--ops",
+                       ops_file([{"op": "retitle", "label": gid, "title": "Neighbours, kept"}, {"op": "make", "title": "Another", "members": []}]),
+                       "--note", "Retitle a PET")
+    pets = {g["id"]: g for g in call("/api/themes", {"workbook": str(book), "timepoint": 2})["groups"]}
+    check("235 keep: on a timepoint's PETs board a label keeps a field the applier never speaks of through board apply's "
+          "retitle and make", code == 0 and pets.get(gid, {}).get("domain") == "Town" and pets[gid]["label"] == "Neighbours, kept",
+          err + str(pets))

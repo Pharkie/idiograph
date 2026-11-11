@@ -810,7 +810,8 @@ refused when one is wrong, nothing written:
   (`spans`, his bold in the key quote, of its `text` as `trajectories show` gives it, `[]` clearing it, never
   the transcript, ticking the quote standing in), and `domain` (`lpet`, `domain`, "" taking it off): domains
   are separated by commas, `"Practical, Family"` two, each its own pill with its own colour across the
-  project
+  project. A domain stays on its LPET through every `gets apply` on the LPETs board and every save of the
+  board in the app (domainkeep, 11 November 2026): an operation changes only what it names
 - `states_from_notes`, with a `participant` or for everyone: each LPET's note's paragraphs headed by a
   timepoint ("T1: ...", "T2 (Midsummer): ...") moved into the rows whose state is empty, a state already
   there kept and said, the note left as it was. Run it with `--dry-run` first and show him the lines.

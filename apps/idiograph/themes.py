@@ -850,25 +850,6 @@ def description_of(group) -> str:
     return " ".join(str((group or {}).get(DESCRIPTION) or "").split()) if isinstance(group, dict) else ""
 
 
-def descriptions_kept(kept: dict, sent, held) -> dict:
-    """A board a page saves, `kept` as `normalise` leaves it, each label that the page sent with no
-    `description` at all keeping the one `held`, the file's labels, gives it. A page of now sends every
-    label's, "" for none, so one he took off goes, and a page loaded from an older copy of the app, which
-    sent none, never takes one away (22 October: such a save had wiped every description on a board)."""
-    said = {str(g.get("id")) for g in sent or [] if isinstance(g, dict) and DESCRIPTION in g}
-    file = {str(g.get("id")): description_of(g) for g in held or [] if isinstance(g, dict)}
-    back = {gid: words for gid, words in file.items() if words and gid not in said}
-    if not back:
-        return kept
-    def put(g: dict) -> dict:
-        # in the place `normalise` gives it, after the title and the note and before the members
-        out = {k: v for k, v in g.items() if k in ("id", "label", "note")}
-        out[DESCRIPTION] = back[g["id"]]
-        out.update({k: v for k, v in g.items() if k not in out})
-        return out
-    return dict(kept, groups=[put(g) if g["id"] in back else g for g in kept["groups"]])
-
-
 def layer(depth: int) -> str:
     """What a label is called at its depth, 0 at the top of the canvas: a PET, a sub-theme inside a
     PET, and a group at any depth below a sub-theme, a group inside a group a group too."""
@@ -1240,6 +1221,75 @@ def _number(value, fallback: float = 0) -> int:
     return int(round(number)) if math.isfinite(number) else int(fallback)
 
 
+def label_kept(group: dict, gid: str) -> dict:
+    """A label as the file holds it, by its id, the one place that says what a label carries: its title,
+    `Untitled` when it has none, its note stripped, its description on one line (see `description_of`), an
+    LPET's domain, its members and its place. A field with nothing in it is left out, so a file from before it
+    reads and writes as it did. Its members are read as they come, `normalise` checking them."""
+    kept = {"id": gid, "label": str(group.get("label") or "").strip() or UNTITLED}
+    note = str(group.get("note") or "").strip()
+    if note:
+        kept["note"] = note
+    # its description, a line under its title (Adam, 21 October), kept apart from the note
+    if description_of(group):
+        kept[DESCRIPTION] = description_of(group)
+    # an LPET's domain (trajbuild2, 10 November 2026), a word or two, shown as its pill on Trajectories
+    domain = " ".join(str(group.get(DOMAIN) or "").split())[:40]
+    if domain:
+        kept[DOMAIN] = domain
+    kept.update(members=[str(m) for m in group.get("members") or []],
+                x=_number(group.get("x")), y=_number(group.get("y")))
+    return kept
+
+
+# What a change through the applier (`themes_ai.revise_ops`) says of a label: that it is there, its title, its note,
+# its description and what it holds. The rest of the label is the board's, its domain and its place among it.
+CHANGE_SAYS = ("id", "label", "note", DESCRIPTION, "members")
+# What a page's save says of every label it sends, whatever the label holds: its id, title, members and place, and
+# its note, which the page leaves out for none (`thLabelOut`). Any other field it sends no key for at all it never
+# spoke of.
+PAGE_SAYS = ("id", "label", "note", "members", "x", "y")
+
+
+def label_landed(old: dict | None, said: dict, made: bool = False) -> dict:
+    """A label a change landed, `said` as the applier left it, starting from the board's label of that id, `old`,
+    whole: the change's title, note, description and members over everything else `old` carried, its domain among
+    them, and its place. A label the change made, `made`, carries nothing of a label gone that had its id but the
+    place, as before (domainkeep, 11 November 2026: a bring_in into one LPET took every LPET's domain off the board,
+    since the landing built each label afresh from the fields the change speaks of)."""
+    old = old or {}
+    kept = {} if made else {k: v for k, v in old.items() if k not in CHANGE_SAYS}
+    kept.update(id=said["id"], label=said.get("label") or UNTITLED)
+    if str(said.get("note") or "").strip():
+        kept["note"] = said["note"]
+    if description_of(said):
+        kept[DESCRIPTION] = description_of(said)
+    kept.update(members=list(said.get("members") or []), x=old.get("x", 0), y=old.get("y", 0))
+    return kept
+
+
+def fields_kept(kept: dict, sent, held) -> dict:
+    """A board a page saves, `kept` as `normalise` leaves it, each label keeping every field of the file's label of
+    that id, `held` the file's labels, that the page sent no key for at all and does not always say (`PAGE_SAYS`):
+    a description from a page loaded from an older copy of the app, which sent none (22 October, descloss), an
+    LPET's domain, which no board screen edits, and any field a label comes to carry, so a page that does not know
+    a field never takes it away (domainkeep, 11 November 2026). A key sent, "" among them, is the page's word, so a
+    description he took off goes."""
+    said = {str(g.get("id") or "").strip(): set(g) for g in sent or [] if isinstance(g, dict)}
+    file = {}
+    for g in held or []:
+        gid = str(g.get("id") or "").strip() if isinstance(g, dict) else ""
+        if gid and gid not in file:
+            file[gid] = label_kept(g, gid)
+
+    def put(g: dict) -> dict:
+        back = {k: v for k, v in (file.get(g["id"]) or {}).items() if k not in PAGE_SAYS and k not in said.get(g["id"], ())}
+        # in the order `label_kept` gives a label's fields
+        return label_kept(dict(back, **g), g["id"]) if back else g
+
+    return dict(kept, groups=[put(g) for g in kept["groups"]])
+
+
 def normalise(version: dict, live: set[str] | None = None) -> dict:
     """A board as the file holds it, whatever the page sent, its history left out.
 
@@ -1318,20 +1368,7 @@ def normalise(version: dict, live: set[str] | None = None) -> dict:
         if not gid or gid in ids or gid in cards:
             continue
         ids.add(gid)
-        kept = {"id": gid, "label": str(group.get("label") or "").strip() or UNTITLED}
-        note = str(group.get("note") or "").strip()
-        if note:
-            kept["note"] = note
-        # its description, a line under its title (Adam, 21 October), kept apart from the note
-        if description_of(group):
-            kept[DESCRIPTION] = description_of(group)
-        # an LPET's domain (trajbuild2, 10 November 2026), a word or two, shown as its pill on Trajectories
-        domain = " ".join(str(group.get(DOMAIN) or "").split())[:40]
-        if domain:
-            kept[DOMAIN] = domain
-        kept.update(members=[str(m) for m in group.get("members") or []],
-                    x=_number(group.get("x")), y=_number(group.get("y")))
-        groups.append(kept)
+        groups.append(label_kept(group, gid))
 
     owner: dict[str, str] = {}
     for group in groups:
@@ -2502,8 +2539,8 @@ def save(workbook: Path, version: dict, case: str, revision=None) -> dict:
         # and one that last read the board before another window saved it, or before any other
         # change, is refused with nothing written, its canvas still on the page (19 October)
         refuse_stale(was, sent.get("v"), i18n.t("server.board_changed_since_page_loaded"))
-        # a label sent with no description at all keeps the file's (see `descriptions_kept`)
-        kept = descriptions_kept(kept, sent.get("groups"), was.get("groups"))
+        # a label sent with no key for a field keeps the file's, its description or its domain (see `fields_kept`)
+        kept = fields_kept(kept, sent.get("groups"), was.get("groups"))
         kept.update(created=str(was.get("created") or kept["created"]),
                     name=str(was.get("name") or kept["name"]), note=str(was.get("note") or ""))
         # what an agent did to the board is the file's, and the page never sends it
@@ -2927,8 +2964,10 @@ def _tree(by_id: dict, gid: str) -> list:
 def land(version: dict, revised: dict, height=None) -> dict:
     """A board with a revise's labels and picks landed on it, `revised` holding `groups`, each label
     by its id with its title, its note and its members, and `picks`, as `themes_ai.revise_ops`
-    leaves them. It is the page's landing of AI revise done here, for a change that comes from the
-    command line, where no canvas is open to land it.
+    leaves them, and `made`, the ids of the labels the change made, when it has any. It is the page's
+    landing of AI revise done here, for a change that comes from the command line, where no canvas is
+    open to land it. Each label keeps whatever else the board's label of its id carried, its domain
+    among it, as the page's landing does (see `label_landed`).
 
     Everything the change did not touch keeps its place. A theme whose labels or members changed,
     and a theme new to the board, is laid out afresh as a round blob (see `blob`), its cards in the
@@ -2943,16 +2982,9 @@ def land(version: dict, revised: dict, height=None) -> dict:
     before = layout_boxes(v, height)
     old_by = {g["id"]: g for g in v["groups"]}
     old_parents = parents_of(v["groups"])
-    groups = []
-    for g in revised.get("groups") or []:
-        old = old_by.get(g["id"]) or {}
-        kept = {"id": g["id"], "label": g.get("label") or UNTITLED}
-        if str(g.get("note") or "").strip():
-            kept["note"] = g["note"]
-        if description_of(g):
-            kept[DESCRIPTION] = description_of(g)
-        kept.update(members=list(g.get("members") or []), x=old.get("x", 0), y=old.get("y", 0))
-        groups.append(kept)
+    # each label from the board's own, whole, the change's title, note, description and members over it
+    made = {str(m) for m in revised.get("made") or []}
+    groups = [label_landed(old_by.get(g["id"]), g, g["id"] in made) for g in revised.get("groups") or []]
     after = normalise(dict(v, groups=groups, picks=dict(revised.get("picks") or {})))
     by_id = {g["id"]: g for g in after["groups"]}
     parents = parents_of(after["groups"])
@@ -3099,16 +3131,9 @@ def land_kept(version: dict, revised: dict, height=None, strict: bool = False,
     v = normalise(version)
     old_by = {g["id"]: g for g in v["groups"]}
     old_parents = parents_of(v["groups"])
-    groups = []
-    for g in revised.get("groups") or []:
-        old = old_by.get(g["id"]) or {}
-        kept = {"id": g["id"], "label": g.get("label") or UNTITLED}
-        if str(g.get("note") or "").strip():
-            kept["note"] = g["note"]
-        if description_of(g):
-            kept[DESCRIPTION] = description_of(g)
-        kept.update(members=list(g.get("members") or []), x=old.get("x", 0), y=old.get("y", 0))
-        groups.append(kept)
+    # each label from the board's own, whole, the change's title, note, description and members over it
+    made = {str(m) for m in revised.get("made") or []}
+    groups = [label_landed(old_by.get(g["id"]), g, g["id"] in made) for g in revised.get("groups") or []]
     after = normalise(dict(v, groups=groups, picks=dict(revised.get("picks") or {})))
     by_id = {g["id"]: g for g in after["groups"]}
     parents = parents_of(after["groups"])
