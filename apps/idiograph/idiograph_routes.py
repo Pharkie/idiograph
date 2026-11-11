@@ -56,6 +56,7 @@ import names as names_mod
 import nudges as nudges_mod
 import print_pdf
 import project_history as hist_mod
+import participants as people_mod
 import project_pack as pack_mod
 import qdpx as qdpx_mod
 import rounds as rounds_mod
@@ -1555,6 +1556,8 @@ def case_payload(path: Path) -> dict:
         # the band over the columns and the Project category in Settings. A page that finds no
         # `project` here is in front of a server from before it, and says so
         "project": read_project(project_root(path)),
+        # the participant's picture, label and pen portrait, beside the name in the bar (pbiobuild)
+        "person": person_for_book(path),
         # whether the bug in the bar shows: only when the build carries the collector's address
         "feedback": bool(srv.feedback_url(cfg)),
     }
@@ -1684,7 +1687,18 @@ def participants(root: Path | None, cases: list[dict], recent: list[dict], cfg: 
     held = data.get("cases") if isinstance((data or {}).get("cases"), dict) else {}
     cards = [dict(card_of(g["case"], g["rows"], cfg, held, recent), folder=g["folder"])
              for g in sorted(groups.values(), key=lambda g: card_order(g["case"], g["folder"]))]
+    with_people(root, cards)
     return in_his_order(cards, order_of(project_file(root)))
+
+
+def with_people(root: Path, cards: list[dict]) -> list[dict]:
+    """Each row's participant's picture, label and pen portrait (pbiobuild), `person`, with their colour on the
+    GETs board for the initial where there is no picture."""
+    people = people_view(root)
+    colours = people_colours(root, [c["case"] for c in cards])
+    for card in cards:
+        card["person"] = person_of(root, people, card["case"], colours.get(card["case"]))
+    return cards
 
 
 def in_his_order(cards: list[dict], order: list[str]) -> list[dict]:
@@ -1701,10 +1715,11 @@ def in_his_order(cards: list[dict], order: list[str]) -> list[dict]:
 def demo_cards(rows: list[dict], root: Path | None = None) -> list[dict]:
     """The demo's rows, Juno, Rowan and Mabel, each from its one row, as a project's are drawn, and
     always in this order, which is fixed, the IPA demo's or with `root` the thematic analysis demo's."""
-    data = gets_file(Path(root) if root is not None else srv.DEMO_DIR)
+    at = Path(root) if root is not None else srv.DEMO_DIR
+    data = gets_file(at)
     held = data.get("cases") if isinstance((data or {}).get("cases"), dict) else {}
     cfg = srv.config()
-    return [card_of(row["case"], [row], cfg, held, [], demo=True) for row in rows]
+    return with_people(at, [card_of(row["case"], [row], cfg, held, [], demo=True) for row in rows])
 
 
 def project_section(root: Path, recent: list[dict], cfg: dict, cases: list[dict] | None = None) -> dict:
@@ -1731,6 +1746,9 @@ def api_cases(_: dict) -> dict:
     project's, `cases` and `recent` every project's."""
     cfg = srv.config()
     roots = srv.project_roots(cfg)
+    # Trajectories' old labels and pictures moved into the participants' own sets the first time (pbiobuild)
+    for root in roots:
+        people_settled(root)
     listed = [(root, list_cases(root) if root.exists() else []) for root in roots]
     cases = [row for _root, rows in listed for row in rows]
     recent = recent_entries(cases)
@@ -5209,6 +5227,10 @@ def qdpx_export(root: Path, dest: Path | None = None, participants=None, recordi
         people = qdpx_people(root, participants)
         if not people:
             raise WorkbookError(i18n.t("server.qdpx_out_nobody"))
+        # each participant's pen portrait goes as their case's description (pbiobuild), their picture never
+        sets = people_view(root)
+        for person in people:
+            person["portrait"] = people_mod.find(sets, person["label"]).get("portrait") or ""
         method = method_of(data)
         with i18n.in_method(method):
             plan = qdpx_out.plan(root, info["name"], method, info["research_question"], people, timepoints_of(data),
@@ -5474,13 +5496,21 @@ def rename_plan(root: Path, folder: Path, name, with_folder: bool, cfg: dict) ->
             folder_lines.append(i18n.t("server.rename.picture_takes_name"))
             if good:
                 plan["moves"].append(picture)
+        # their own picture, the participant's set's, in the project's pictures folder (pbiobuild)
+        own_file = next((data for entry, _path, data in roots if entry.file == srv.PROJECT_FILE), None)
+        picture = case_files.set_picture_move(root, own_file, plan, olds, new if good else own)
+        if picture is not None:
+            folder_lines.append(i18n.t("server.rename.set_picture_takes_name"))
+            if good:
+                plan["moves"].append(picture)
     # a kept folder notes the new name in the project's file, and a name noted there before goes once
     # the folder takes the new name or the new name is the folder's own (`case_files.project_line`)
     plan["kept_folder"] = not with_folder or target is None
     for entry, path, data in roots:
         line = entry.line(data, plan)
         if line:
-            lines.append(line)
+            # the project's own file may say two things, his order and the participant's own set (pbiobuild)
+            lines += line if isinstance(line, list) else [line]
             plan["carried"].append((entry, path, data))
     plan["recent"] = recent_in(folder)
     if plan["recent"]:
@@ -7041,7 +7071,8 @@ def api_themes(body: dict) -> dict:
         answer = dict(answer, timepoint=themes_mod.timepoint_now(), timepoints=participant_timepoints(path))
     return dict(answer, path=srv.rel_path(path), demo=srv.is_demo(path), ai=srv.ai_state(cfg), platform=srv.PLATFORM,
                 project=read_project(project_root(path)), config=cfg, print=PRINT_PATH, notes=True,
-                guidance=themes_guidance(), feedback=bool(srv.feedback_url(cfg)), word=True)
+                guidance=themes_guidance(), feedback=bool(srv.feedback_url(cfg)), word=True,
+                person=person_for_book(path))
 
 
 def api_themes_save(body: dict) -> dict:
@@ -7201,7 +7232,10 @@ def api_themes_cases(body: dict) -> dict:
     switcher opens a case through `/api/themes` with that `board`, and its table in a tab of its
     own. Nothing is written."""
     path = case_path(body.get("workbook") or body.get("path") or body["workbook"])
-    return {"cases": themes_cases(path)}
+    cases = themes_cases(path)
+    # each with their picture, label and pen portrait (pbiobuild)
+    root = project_root(path)
+    return {"cases": with_people(root, cases) if root is not None else cases}
 
 
 def api_participants(body: dict) -> dict:
@@ -7217,6 +7251,9 @@ def api_participants(body: dict) -> dict:
            for b in books]
     if not any(p["current"] for p in out):
         out.insert(0, {"case": case_label(path), "path": srv.rel_path(path), "current": True})
+    # each with their picture, label and pen portrait (pbiobuild)
+    if root is not None:
+        with_people(root, out)
     return {"project": read_project(root).get("name") or "", "participants": out}
 
 
@@ -7344,10 +7381,18 @@ def gets_reply(root: Path, body: dict, answer: dict) -> dict:
         if case.get("workbook"):
             case["path"] = srv.rel_path(Path(case.pop("workbook")))
     ai = srv.ai_state(cfg, "gets")
-    # on LPETs the participant is the canvas's own, by their label, with their timepoints (21 October)
+    # on LPETs the participant is the canvas's own, by their label, with their timepoints (21 October), and their
+    # picture, label and pen portrait for the bar (pbiobuild)
     if LPETS_FOR.get() is not None:
         who = LPETS_FOR.get()
-        answer = dict(answer, lpets=True, participant=case_label(who), timepoints=participant_timepoints(who))
+        answer = dict(answer, lpets=True, participant=case_label(who), timepoints=participant_timepoints(who),
+                      person=person_for_book(who))
+    else:
+        # each participant of the GETs' or the LGETs' Participants panel with their own set (pbiobuild)
+        people = people_view(root)
+        for case in answer.get("cases") or []:
+            if isinstance(case, dict) and case.get("case"):
+                case["person"] = person_of(root, people, case["case"])
     # and on LGETs the project's timepoints, which the cards cite (21 October)
     if LGETS_FOR.get() is not None:
         answer = dict(answer, lgets=True, timepoints=root_timepoints(root))
@@ -7706,7 +7751,9 @@ def traj_people(root: Path) -> list[dict]:
     board their LPETs come into LGETs from, each of those LPETs as a row across the timepoints (trajbuild2,
     10 November 2026, see `gets.lpet_rows`), every quote of each of their interviews, `quotes`, by the
     timepoint's key, which a cell may take beyond its LPET's own (trajchoose, 11 November 2026, see
-    `gets.interview_quotes`), and their workbook. Only reads."""
+    `gets.interview_quotes`), and their workbook. Their picture and label are their own, from the project file
+    (pbiobuild, `people_view`). Only reads."""
+    people = people_view(root)
     with board_scope(root):
         books = gets_books(root)
         data = gets_mod.load(root)
@@ -7724,7 +7771,8 @@ def traj_people(root: Path) -> list[dict]:
             except (WorkbookError, OSError):
                 rows, quotes = [], {}
             out.append({"case": b["case"], "colour": look[b["case"]]["colour"], "lpets": titles, "rows": rows,
-                        "quotes": quotes, "path": srv.rel_path(Path(b["workbook"]))})
+                        "quotes": quotes, "path": srv.rel_path(Path(b["workbook"])),
+                        "person": people_mod.find(people, b["case"])})
     return out
 
 
@@ -7759,9 +7807,10 @@ def traj_reply(root: Path, body: dict, data: dict | None, more: dict | None = No
     """The Trajectories board as the screen draws it, with the project for the bar."""
     cfg = srv.config()
     project = read_project(root)
+    people = people_view(root)
     answer = traj_mod.board(data, traj_people(root))
     for c in answer["participants"]:
-        c["picture_url"] = traj_picture_url(root, c.get("picture") or "")
+        c["picture_url"] = person_url(root, people_mod.find(people, c["case"]))
     return dict(answer, **(more or {}), project=project, demo=project["demo"],
                 root=srv.rel_path(root), path=str(body.get("workbook") or body.get("path") or ""), config=cfg,
                 platform=srv.PLATFORM, feedback=bool(srv.feedback_url(cfg)), timepoints=root_timepoints(root))
@@ -7849,9 +7898,19 @@ def traj_apply(root: Path, body: dict) -> dict:
     if wants:
         for case in cases:
             lpets[case] = [{"id": r["id"], "title": r["title"]} for r in opened(case)["rows"]]
-    done = traj_mod.change(root, cases, ops, when, dry_run=ticked(body.get("dry_run"), False),
+    # a participant's label and picture are their own set's, in the project file (pbiobuild): the board's title and
+    # picture ops change that set, Trajectories' old labels and pictures moved into it first when it writes
+    dry = ticked(body.get("dry_run"), False)
+    wants_set = isinstance(ops, list) and any(isinstance(o, dict) and o.get("op") in ("title", "picture") for o in ops)
+    held_set = person_change(root, dry=dry or not wants_set)
+
+    def commit_all() -> None:
+        commit()
+        held_set.write(hist_mod.asker(body))
+
+    done = traj_mod.change(root, cases, ops, when, dry_run=dry,
                            note=str(body.get("note") or ""), tool=str(body.get("tool") or ""),
-                           lpets=lpets, lpet_op=lpet_op, commit=commit)
+                           lpets=lpets, lpet_op=lpet_op, commit=commit_all, set_person=held_set.apply)
     return traj_reply(root, body, done["data"], {"changes": done["changes"], "dry_run": done["dry_run"]})
 
 
@@ -7880,6 +7939,220 @@ def stream_traj_picture(handler, query: dict) -> None:
     if not query.get("root") or not srv.within_root(root) or not name or name.startswith("set:"):
         return handler._send(403, b"That picture is not a project's.", "text/plain; charset=utf-8")
     file = traj_mod.pictures_of(root) / name
+    if not file.is_file() or not srv.within_root(file):
+        return handler._send(404, b"No picture of that name.", "text/plain; charset=utf-8")
+    kind = {"png": "image/png", "jpg": "image/jpeg", "svg": "image/svg+xml"}[name.rsplit(".", 1)[1]]
+    handler.send_response(200)
+    handler.send_header("Content-Type", kind)
+    handler.send_header("Content-Length", str(file.stat().st_size))
+    handler.send_header("Cache-Control", "no-store")
+    # an SVG drawn as a picture runs nothing, and opened alone it may still run nothing
+    handler.send_header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'")
+    handler.end_headers()
+    handler.wfile.write(file.read_bytes())
+
+
+# ------------------------------------------------------------------ each participant's own set (pbiobuild)
+
+# Each participant's picture, label and pen portrait (pbiobuild, 11 November 2026, Adam's layout A), kept once for
+# the project in its file under `participants` (see `participants.py`). Every screen that names a participant reads
+# it through `person_of`: the project page's rows, the pickers, the bars over the statements screen, PETs and LPETs
+# and the GETs' Participants panel, and Trajectories reads its picture and label from it. One route changes it,
+# /api/participant, which the page's row, `participant set` and MCP's `participant_set` all run.
+
+
+def people_view(root: Path | None) -> dict:
+    """Every participant's set of the project at a root, by label, Trajectories' old labels and pictures merged in
+    where the project file holds none (`participants.view`). Only reads."""
+    if root is None:
+        return {}
+    return people_mod.view(root, project_file(Path(root)))
+
+
+def person_url(root: Path, kept: dict) -> str:
+    """Where the page reads a participant's picture: one of the set from the app's own files, his own from the
+    project's `pictures/` through `stream_person_picture`, its time in the address so a new one is read afresh, and
+    one Trajectories keeps still from its own folder."""
+    picture = str(kept.get("picture") or "")
+    if not picture or picture.startswith("set:") or kept.get("from_traj"):
+        return traj_picture_url(root, picture)
+    file = people_mod.pictures_of(root) / picture
+    try:
+        stamp = file.stat().st_mtime_ns
+    except OSError:
+        return ""
+    return "/participant-picture?" + urlencode({"root": srv.rel_path(root), "name": picture, "v": stamp})
+
+
+def person_of(root: Path | None, people: dict, case: str, colour: int | None = None) -> dict:
+    """One participant's set as the screens draw it (`participants.shown`)."""
+    kept = people_mod.find(people, case)
+    return people_mod.shown(case, kept, person_url(root, kept) if root is not None else "", colour)
+
+
+def person_for_book(path: Path) -> dict | None:
+    """The set of the participant a workbook belongs to, for the bar over their screens, with their colour on the
+    GETs board. None outside a project."""
+    root = project_root(Path(path))
+    if root is None:
+        return None
+    case = case_label(path)
+    return person_of(root, people_view(root), case, people_colours(root, project_cases(root) + [case]).get(case))
+
+
+def people_colours(root: Path, cases: list[str]) -> dict[str, int]:
+    """Each participant's colour on the GETs board, his choice or their place round the palette among `cases`,
+    the project's participants."""
+    return {c: v["colour"] for c, v in gets_mod.looks(list(dict.fromkeys(cases)), gets_file(root)).items()}
+
+
+def project_file_held(root: Path) -> dict:
+    """The project file for a write: an empty one when there is none, refused when it is there and cannot be read,
+    so nothing is written over a file that can be recovered."""
+    file = Path(root) / srv.PROJECT_FILE
+    if not file.exists():
+        return {}
+    try:
+        data = json.loads(file.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        raise WorkbookError(i18n.t("server.could_read_nothing_written", name=file.name)) from None
+    if not isinstance(data, dict):
+        raise WorkbookError(i18n.t("server.could_read_nothing_written", name=file.name))
+    return data
+
+
+def people_settle(root: Path, who: dict | None = None) -> list[str]:
+    """Trajectories' old labels and pictures moved into the participants' own sets for good, once, the caller
+    holding the project's lock (`participants.settle`), with one History line. The demo is fixed and moves none."""
+    if root is None or srv.is_demo_root(root) or not people_mod.unsettled(root):
+        return []
+    data = project_file_held(root)
+    lines = people_mod.settle(root, data, Path(root) / srv.PROJECT_FILE, themes_mod.now_iso(), srv.save_json,
+                              traj_mod.write)
+    if lines:
+        hist_mod.record(root, "participant set", lines, who)
+    return lines
+
+
+def people_settled(root: Path | None) -> None:
+    """The project page's listing moves Trajectories' old labels and pictures over the first time
+    (`people_settle`), under the project's lock. Busy or unwritable, it is left for the next, every screen reading
+    them merged meanwhile."""
+    if root is None or not Path(root).is_dir() or srv.is_demo_root(root) or not people_mod.unsettled(root):
+        return
+    with contextlib.suppress(WorkbookError, OSError):
+        with writing(root=root):
+            people_settle(root)
+
+
+class person_change:
+    """A change to the participants' sets of a project, made in memory by `apply` and written by `write`, once:
+    the pictures, the project file with every other key kept, and one History record. With `dry` it reads the sets
+    as every screen does and writes nothing. Otherwise Trajectories' old labels and pictures are moved over first
+    (`people_settle`). The caller holds the project's lock."""
+
+    def __init__(self, root: Path, dry: bool = False):
+        self.root, self.dry = Path(root), dry
+        self.files: dict = {}
+        self.lines: list[str] = []
+        self.settled: list[str] = []
+        self.names = pseudo_list(root)
+        if dry:
+            self.project = {}
+            self.people = {k: {f: v for f, v in kept.items() if f != "from_traj"}
+                           for k, kept in people_view(root).items()}
+            return
+        if srv.is_demo_root(self.root):
+            raise WorkbookError(i18n.t("server.demo_s_project_fixed"))
+        self.settled = people_settle(self.root)
+        self.project = project_file_held(self.root)
+        self.people = people_mod.own_of(self.project)
+
+    def apply(self, case: str, given: dict) -> list[str]:
+        if srv.is_demo_root(self.root):
+            raise WorkbookError(i18n.t("server.demo_s_project_fixed"))
+        said = people_mod.apply(self.people, case, given, self.files, self.names)
+        self.lines += said
+        return said
+
+    def write(self, who: dict | None = None) -> None:
+        if self.dry or not self.lines:
+            return
+        when = themes_mod.now_iso()
+        if self.files:
+            traj_mod.picture_files(self.root, self.files, when, folder=people_mod.pictures_of(self.root))
+        sets = people_mod.written(self.people)
+        if sets:
+            self.project[people_mod.KEY] = sets
+        else:
+            self.project.pop(people_mod.KEY, None)
+        srv.save_json(self.root / srv.PROJECT_FILE, self.project)
+        hist_mod.record(self.root, "participant set", self.lines, who)
+
+
+def project_cases(root: Path) -> list[str]:
+    """Every participant of a project by their label, as its page lists them, each once."""
+    return list(dict.fromkeys(row["case"] for row in list_cases(root) if row.get("case")))
+
+
+def participant_asked(body: dict) -> tuple[Path, str]:
+    """The project and the participant a call names: `root`, the project's id, or `path`, a workbook of it, and
+    `case`, the participant by their label or pseudonym, any case. Refused when they are not one of its."""
+    root = asked_root(body, write=True)
+    if root is None:
+        raise WorkbookError(i18n.t("server.project_folder_project_could_saved"))
+    named = body.get("case") or (case_label(case_path(body["path"])) if body.get("path") else "")
+    case = traj_mod.find_case(project_cases(root), named)
+    if case is None:
+        raise WorkbookError(i18n.t("server.trajectory_not_a_participant", name=traj_mod.words(named) or "Nobody"))
+    return root, case
+
+
+def participant_answer(root: Path, case: str, people: dict | None = None) -> dict:
+    """A participant's set as the route, `participant show` and MCP answer it."""
+    people = people_view(root) if people is None else people
+    return person_of(root, people, case, people_colours(root, project_cases(root) + [case]).get(case))
+
+
+def api_participant(body: dict) -> dict:
+    """A participant's picture, label and pen portrait (pbiobuild, 11 November 2026), read with `op` `show`, or
+    changed with any of `label`, `portrait`, `picture` (`set:face07`, or "" to take it off), `data` (a picture as
+    the page sends it, a data URL) or `from` (an image file's path, an agent's), each left out kept as it is and ""
+    clearing it. The whole is refused, nothing written, for the demo, a participant not of the project, a label
+    or a pen portrait over its limit or holding a name from the project's list of names to replace, or a picture
+    that cannot be read. With `dry_run` nothing is written. Answers `person`, the set as it is or would be,
+    `changes`, a line each, kept in the project's History, and `dry_run`."""
+    given = {k: body.get(k) for k in ("label", "portrait", "picture", "data", "from") if body.get(k) is not None}
+    show = str(body.get("op") or ("set" if given else "show")) == "show"
+    if not show and srv.is_demo_root(asked_root(body, write=True)):
+        raise WorkbookError(i18n.t("server.demo_s_project_fixed"))
+    root, case = participant_asked(body)
+    if show:
+        return {"case": case, "person": participant_answer(root, case), "changes": [], "dry_run": False}
+    if ticked(body.get("dry_run"), False):
+        held = person_change(root, dry=True)
+        lines = held.apply(case, given)
+        person = participant_answer(root, case, held.people)
+        # a picture not yet written has no address, so the dry run shows none for it
+        return {"case": case, "person": dict(person, picture_url="") if held.files else person, "changes": lines,
+                "dry_run": True}
+    with writing(root=root):
+        held = person_change(root)
+        lines = held.apply(case, given)
+        held.write(hist_mod.asker(body))
+    return {"case": case, "person": participant_answer(root, case), "changes": held.settled + lines, "dry_run": False}
+
+
+def stream_person_picture(handler, query: dict) -> None:
+    """A participant's own picture from the project's `pictures/` folder, by its name alone, never a path."""
+    try:
+        root = srv.abs_path(query.get("root", ""))
+    except Exception:
+        return handler._send(400, b"Bad path", "text/plain; charset=utf-8")
+    name = traj_mod.picture_kept(query.get("name", ""))
+    if not query.get("root") or not srv.within_root(root) or not name or name.startswith("set:"):
+        return handler._send(403, b"That picture is not a project's.", "text/plain; charset=utf-8")
+    file = people_mod.pictures_of(root) / name
     if not file.is_file() or not srv.within_root(file):
         return handler._send(404, b"No picture of that name.", "text/plain; charset=utf-8")
     kind = {"png": "image/png", "jpg": "image/jpeg", "svg": "image/svg+xml"}[name.rsplit(".", 1)[1]]
@@ -9322,6 +9595,7 @@ ROUTES = {
     "/api/trajectories": api_trajectories,
     "/api/trajectories-ops": api_trajectories_ops,
     "/api/trajectories-turns": api_trajectories_turns,
+    "/api/participant": api_participant,
     "/api/codes": api_codes,
     "/api/codes-ops": api_codes_ops,
     "/api/codes-extract": api_codes_extract,
@@ -9364,6 +9638,7 @@ srv.register("idiograph", routes=ROUTES,
              # from the page and never a GET, and /api/mcp only from the server's own page
              post_only=("/api/choose-root", "/api/projects", "/api/new-project", "/api/add-transcripts", "/api/names", "/api/qdpx",
                         "/api/open-sent", "/api/send-project", "/api/qdpx-export", "/api/boards-in", "/api/order", "/api/rename",
+                        "/api/participant",
                         "/api/mcp", "/api/quote-heading", "/api/holds", "/api/team",
                         "/api/team-board", "/api/team-review"),
              # an agent's action waiting for his yes is answered by the app alone, never an agent (holds.py)
@@ -9376,7 +9651,7 @@ srv.register("idiograph", routes=ROUTES,
                           "/api/settings": "skip_permissions", "/api/project": "agents"},
              get_paths={PRINT_PATH: print_view, GETS_PRINT_PATH: gets_print_view},
              streams={"/audio": stream_audio, SEND_PATH: send_zip, QDPX_PATH: qdpx_download,
-                      "/traj-picture": stream_traj_picture},
+                      "/traj-picture": stream_traj_picture, "/participant-picture": stream_person_picture},
              search_scope={"case": search_scope, "project": search_scope}, search_rows=search_rows,
              defaults=SETTINGS_DEFAULTS,
              own_settings=OWN_SETTINGS,

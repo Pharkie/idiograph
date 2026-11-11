@@ -405,7 +405,8 @@ def fresh_counts() -> dict:
 
 def plan(root: Path, name: str, method: str, question: str, people: list[dict], timepoints: list[dict],
          recordings: bool = False, codebook: dict | None = None, version: str = "") -> dict:
-    """The package for `people`, each `{"label", "book"}`, its workbook read here (`workbook.read_case`, a
+    """The package for `people`, each `{"label", "book"}` and with `portrait` the participant's pen portrait, their
+    case's description (pbiobuild), its workbook read here (`workbook.read_case`, a
     workbook open in Excel refused), as plain records the writer takes: the codes as a tree, the sources,
     notes, sets and cases, and `counts`. `timepoints` the project's, `codebook` a thematic analysis project's
     code list (`codes.load`), `recordings` whether each sheet's recording goes in."""
@@ -462,7 +463,8 @@ def plan(root: Path, name: str, method: str, question: str, people: list[dict], 
             sources.append(src)
         out["sources"] += sources
         counts["sources"] += len(sources)
-        out["cases"].append({"guid": guid(), "name": label, "sources": [s.guid for s in sources]})
+        out["cases"].append({"guid": guid(), "name": label, "sources": [s.guid for s in sources],
+                             "description": str(person.get("portrait") or "")})
         if ta:
             continue
         who = node(label, False)
@@ -570,6 +572,8 @@ def qde(p: dict) -> bytes:
         cases = sub(project, "Cases")
         for c in p["cases"]:
             case = sub(cases, "Case", guid=c["guid"], name=c["name"])
+            # the participant's pen portrait (pbiobuild), first, as Project.xsd's CaseType asks
+            text_of(case, "Description", c.get("description") or "")
             for s in c["sources"]:
                 sub(case, "SourceRef", targetGUID=s)
     if p["sources"]:

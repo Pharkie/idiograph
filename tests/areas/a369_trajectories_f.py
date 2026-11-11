@@ -280,7 +280,9 @@ def test_trajectories_f(scratch):
         png = traj_mod.png_write(w, h, rgba)
         source = base / "wren portrait.png"
         source.write_bytes(png)
-        pics = traj_mod.pictures_of(garden)
+        # the participant's own picture since pbiobuild, in the project's pictures folder, for every screen
+        import participants as people_mod
+        pics = people_mod.pictures_of(garden)
         dry = call("/api/trajectories-ops", {"workbook": str(wren), "dry_run": True, "ops": [
             {"op": "picture", "participant": "Wren", "from": str(source)}]})
         check("369: a picture's dry run writes no file", dry["changes"] == ["Wren's picture changed."] and not pics.exists(),
@@ -289,10 +291,10 @@ def test_trajectories_f(scratch):
         kept_pic = pics / "Wren.png"
         pw, ph, _ = traj_mod.png_read(kept_pic.read_bytes()) if kept_pic.exists() else (0, 0, b"")
         wc = next(c for c in done["participants"] if c["case"] == "P1 - Wren")
-        check("369: his own picture is kept in the project's trajectories/pictures, a square scaled to 256, the "
-              "source left where it was, the page given its address",
+        check("369: his own picture is kept in the project's pictures folder, the participant's own, a square scaled to "
+              "256, the source left where it was, the page given its address",
               (pw, ph) == (256, 256) and source.read_bytes() == png and wc["picture"] == "Wren.png"
-              and wc["picture_url"].startswith("/traj-picture?"), f"{pw}x{ph} {wc.get('picture_url')}")
+              and wc["picture_url"].startswith("/participant-picture?"), f"{pw}x{ph} {wc.get('picture_url')}")
         done = call("/api/trajectories-ops", {"workbook": str(wren), "ops": [{"op": "picture", "participant": "Wren", "set": "face07"}]})
         wc = next(c for c in done["participants"] if c["case"] == "P1 - Wren")
         check("369: one of the set in its place, the picture before kept in the pictures' _Archive, never deleted",
@@ -638,7 +640,8 @@ def _survives_rename(call, run, garden: Path, cfg_file: Path, wren: Path):
     import themes as themes_mod
     import trajectories as traj_mod
 
-    pics = traj_mod.pictures_of(garden)
+    import participants as people_mod
+    pics = people_mod.pictures_of(garden)
     tfile = garden / traj_mod.FILE
     face = garden.parent / "a369-rename-face.png"
     face.write_bytes(traj_mod.png_write(2, 2, bytearray(b"\x40\x80\x20\xff" * 4)))
@@ -708,7 +711,7 @@ def _survives_rename(call, run, garden: Path, cfg_file: Path, wren: Path):
           "name",
           code == 0 and moved == before and not (garden / "P1 - Wren").exists()
           and (pics / "Linnet.png").is_file() and not (pics / "Wren.png").exists()
-          and json.loads(tfile.read_text(encoding="utf-8"))["placed"]["P1 - Linnet"]["picture"] == "Linnet.png"
+          and json.loads((garden / "idiograph-project.json").read_text(encoding="utf-8"))["participants"]["P1 - Linnet"]["picture"] == "Linnet.png"
           and gets_mod.lpets_path(linnet).is_file() and themes_mod.themes_path(linnet, 2).is_file()
           and not [n for n in working if n.startswith("P1 Wren")],
           (err or "") + str(working) + str({k: v for k, v in moved.items() if k != "picture"})[:300])

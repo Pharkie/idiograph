@@ -1113,6 +1113,26 @@ TOOLS = [
           "folder": {"type": "boolean", "description": "The participant's folder and the files named after them take "
                                                        "the new name too."}},
          ["case", "name"], writes="changes"),
+    mcp.tool("participant_show", "A participant's picture, label and pen portrait", ("participant", "show"),
+         "A participant's picture, label and pen portrait, as the project page's row shows them: label, a few words, "
+         "portrait, one short paragraph, and picture, one of the app's drawn set (set:face01 to set:face24), a file's "
+         "name in the project's pictures folder, or empty for none. With no case, every participant's of the project. "
+         "cases answers each participant's too. The real name is never kept here.",
+         {"case": dict(mcp.CASE, description="The participant, by their pseudonym. Every participant when left out.")}),
+    mcp.tool("participant_set", "Set a participant's picture, label or pen portrait", ("participant", "set"),
+         "Set a participant's picture, label or pen portrait, as their row on the project's page does, each left out "
+         "kept as it is and an empty string clearing it. One record in the project's History. Trajectories shows "
+         "the same label and picture. A label is up to 60 characters, a pen portrait one paragraph of up to 800, its "
+         "line breaks folded into spaces. A label or portrait holding a name from the project's list of names to "
+         "replace is refused, nothing written: never put a real name here. The demo's are fixed. Write his approved "
+         "wording only, run dry_run first.",
+         {"case": mcp.CASE, "label": dict({"type": "string"}, description="A few words, \"Pepper's keeper\". Empty clears it."),
+          "portrait": dict({"type": "string"}, description="The pen portrait, one short paragraph of plain text. Empty clears it."),
+          "picture": dict({"type": "string"}, description="One of the app's drawn set, set:face01 to set:face24, or empty to take "
+                                                "the picture off."),
+          "picture_file": dict(mcp.TEXT, description="An image file's path, PNG, JPEG or SVG, kept in the project's "
+                                                     "pictures folder, made square and small, in place of picture.")},
+         ["case"], writes="changes"),
     mcp.tool("participant_complete", "Mark a participant's statements complete", ("participant", "complete"),
          "Mark a participant's experiential statements complete, as Mark complete on the statements screen does, or "
          "with reopen reopen them. Only the mark in the progress file changes, and marking statements marked already "
@@ -1550,6 +1570,13 @@ def arguments(t: dict, given: dict, args):
         args.name, args.folder = given.get("name"), given.get("folder") is True
         args.reopen, args.timepoint = given.get("reopen") is True, given.get("timepoint")
         args.notes = given.get("notes") is True
+        # a participant's picture, label and pen portrait (pbiobuild): each left out kept, "" clearing it
+        args.case = given.get("case")
+        args.label, args.portrait = given.get("label"), given.get("portrait")
+        picture = given.get("picture")
+        args.no_picture = act == "set" and picture is not None and not str(picture).strip()
+        args.picture = None if args.no_picture else picture
+        args.picture_file = given.get("picture_file")
     if t["annotations"]["readOnlyHint"] is False:
         args.note, args.dry_run = given.get("request", ""), given.get("dry_run") is True
     if (command, act) == ("board", "new"):

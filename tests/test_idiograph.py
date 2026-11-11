@@ -414,6 +414,7 @@ AREAS = {
     "a369_trajectories_f": "idiograph",
     "a371_agent_order_kept": "idiograph",
     "a372_participant_words": "shared",
+    "a373_participant_set": "idiograph",
 }
 
 

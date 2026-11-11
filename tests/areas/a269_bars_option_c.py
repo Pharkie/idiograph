@@ -107,6 +107,7 @@ let TH = { lpets: false, mode: 'pets', lgets: false, config: {} };
 const thGets = () => TH.mode === 'gets';
 const thPaletteFit = () => {};
 """ + "\n".join(["const whoName = " + app.split("const whoName = ", 1)[1].split("\n", 1)[0],
+                 "const caseShown = " + app.split("const caseShown = ", 1)[1].split("\n", 1)[0],
                  "const TH_TOOLS = " + tjs.split("const TH_TOOLS = ", 1)[1].split("\n};", 1)[0] + "\n};",
                  "const thStageNow = " + tjs.split("const thStageNow = ", 1)[1].split("\n", 1)[0],
                  "const thDocked = " + tjs.split("const thDocked = ", 1)[1].split("\n", 1)[0],
@@ -142,9 +143,10 @@ const thPaletteFit = () => {};
     run = subprocess.run([node, str(script)], capture_output=True, text=True, encoding="utf-8", timeout=60)
     o = json.loads(run.stdout) if run.returncode == 0 and run.stdout.strip() else {}
     check("269: in node, the participant's chooser shows on PETs and LPETs and not on GETs or LGETs, and names the "
-          "participant alone on every stage, Wren for P1 - Wren, the whole label in its tooltip and for what names the case",
+          "participant by number and pseudonym on every stage, P1 Wren for P1 - Wren as the rows do since pbiobuild's "
+          "layout A, the whole label in its tooltip and for what names the case",
           o.get("chooser") == {"pets": True, "lpets": True, "gets": False, "lgets": False}
-          and o.get("who") == ["Wren", "P1 - Wren", "P1 - Wren"] and o.get("plain") == ["Mabel", "Mabel"], str(o)[:400])
+          and o.get("who") == ["P1 Wren", "P1 - Wren", "P1 - Wren"] and o.get("plain") == ["Mabel", "Mabel"], str(o)[:400])
     check("269: in node, with the tools floating the toolbar's dock still shows, holding the sidebars' buttons, and "
           "docked again the tools stand between the board and the Inspector's button",
           o.get("floating") == {"dock": True, "pal": "th-stage"}

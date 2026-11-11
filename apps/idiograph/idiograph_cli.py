@@ -381,6 +381,7 @@ def cmd_cases(p: Project, args) -> tuple:
     study = gets_mod.study_of(held, [b["case"] for b in p.books])
     inside = [b for b in p.books if study[b["case"]]["in"]]
     minimum, band = gets_mod.minimum_of(gets_mod.settings_of(held), len(inside))
+    people = routes.people_view(p.root)
     rows = []
     for b in p.books:
         book = Path(b["workbook"])
@@ -402,7 +403,10 @@ def cmd_cases(p: Project, args) -> tuple:
             boards.append(entry)
         # in a project of two or more timepoints, each one with its sheets and where it stands
         tps = routes.card_timepoints(book, cfg.get("interviewer") or "") if routes.longitudinal(p.info["timepoints"]) else None
+        # their picture, label and pen portrait (pbiobuild), as participant show gives them
+        person = routes.person_of(p.root, people, b["case"])
         rows.append({"case": b["case"], "workbook": book.name, "in_study": study[b["case"]]["in"],
+                     "label": person["label"], "portrait": person["portrait"], "picture": person["picture"],
                      "statements_complete": rounds_mod.complete_of(book), "pets_complete": themes.complete_of(data),
                      "current": next((x["name"] for x in boards if x["current"]), None), "boards": boards,
                      **({"timepoints": [timepoint_entry(t) for t in tps]} if tps else {}),
@@ -422,7 +426,8 @@ def cmd_cases(p: Project, args) -> tuple:
              *([i18n.t("cli.said.timepoints", timepoints=timepoints_said(project['timepoints']))] if project.get("timepoints") else []),
              *([] if ta else [i18n.t("cli.cases.a_get_needs_of_the", minimum=minimum, participants=i18n.t("cli.n.participant", n=len(inside)), whose=whose)]), ""]
     for r in rows:
-        lines.append(f"{r['case']}: {r['workbook']}{'' if r['in_study'] else i18n.t('cli.cases.out_of_the_study')}")
+        lines.append(f"{r['case']}{', ' + r['label'] if r['label'] else ''}: {r['workbook']}"
+                     f"{'' if r['in_study'] else i18n.t('cli.cases.out_of_the_study')}")
         said = [i18n.t("cli.statements_complete", when=cli.when_said(r["statements_complete"])) if r["statements_complete"]
                 else i18n.t("cli.statements_progress")]
         if r.get("timepoints"):
@@ -1909,6 +1914,79 @@ def cmd_participant_rename(p: Project, args) -> tuple:
     out = {"case": b["case"], "old": old, "new": answer["new"], "label": new_label,
            "changes": answer["lines"], "folder_changes": answer["folder_lines"], "dry_run": bool(args.dry_run)}
     return out, lines
+
+
+def person_answer(person: dict) -> dict:
+    """A participant's set as the command line answers it: their label, pseudonym, label, pen portrait and
+    picture, `set:face07`, a file's name in the project's pictures folder, or "" for none."""
+    return {k: person.get(k) or "" for k in ("case", "who", "label", "portrait", "picture")}
+
+
+def person_lines(person: dict) -> list[str]:
+    """A participant's set in plain lines, the participant first."""
+    none = i18n.t("cli.participant_show.none")
+    picture = person.get("picture") or ""
+    said = (picture if picture.startswith("set:") else i18n.t("cli.participant_show.own_picture", name=picture)) \
+        if picture else none
+    return [person.get("case") or "",
+            "  " + i18n.t("cli.participant_show.label", label=person.get("label") or none),
+            "  " + i18n.t("cli.participant_show.picture", picture=said),
+            "  " + i18n.t("cli.participant_show.portrait", portrait=person.get("portrait") or none)]
+
+
+def cmd_participant_show(p: Project, args) -> tuple:
+    """`participant show`: a participant's picture, label and pen portrait (pbiobuild, 11 November 2026), as the
+    project page's row shows them, or with no participant named every participant's of the project, in case order.
+    It reads and writes nothing."""
+    named = getattr(args, "case", None)
+    try:
+        if named:
+            got = routes.api_participant(dict(project_body(p), op="show", case=named))
+            return {"participant": person_answer(got["person"])}, person_lines(got["person"])
+        people = routes.people_view(p.root)
+        cases = sorted(routes.project_cases(p.root), key=gets_mod.case_order)
+        listed = [routes.person_of(p.root, people, case) for case in cases]
+    except (WorkbookError, srv.OutsideRoot) as exc:
+        raise cli.Refused(str(exc)) from None
+    lines = [i18n.t("cli.participant_show.head_all", name=p.info["name"])]
+    for person in listed:
+        lines += person_lines(person)
+    return {"participants": [person_answer(x) for x in listed]}, lines
+
+
+def cmd_participant_set(p: Project, args) -> tuple:
+    """`participant set`: a participant's picture, label and pen portrait (pbiobuild, 11 November 2026), as the
+    project page's row sets them (`routes.api_participant`): --label and --portrait, "" clearing either, --picture
+    one of the set, `set:face07`, --picture-file an image file of his, kept in the project's pictures folder, made
+    square and small, or --no-picture, each left out kept as it is. A label or a pen portrait holding a name from the
+    project's list of names to replace is refused, nothing written. The demo's are fixed. With --dry-run what would
+    change, and nothing written. One record in the project's History."""
+    if p.demo:
+        raise cli.Refused(i18n.t("cli.said.the_demos_project_is_fixed"))
+    body = dict(project_body(p), op="set", case=args.case)
+    for key, given in (("label", args.label), ("portrait", args.portrait), ("picture", args.picture),
+                       ("from", args.picture_file)):
+        if given is not None:
+            body[key] = given
+    if args.no_picture:
+        body["picture"] = ""
+    if not any(k in body for k in ("label", "portrait", "picture", "from")):
+        raise cli.Refused(i18n.t("cli.participant_set.none_given"))
+    if not themes_ai.one_line(args.note) and not args.dry_run:
+        raise cli.Refused(_w("NO_PROJECT_REQUEST"))
+    try:
+        if args.dry_run:
+            got = routes.api_participant(dict(body, dry_run=True))
+        else:
+            # the route takes the project's lock itself, as the app's own call does
+            got = routes.api_participant(dict(body, **asked_by(args)))
+    except (WorkbookError, srv.OutsideRoot) as exc:
+        raise cli.Refused(str(exc), i18n.t("cli.said.nothing_was_written")) from None
+    head = (i18n.t("cli.said.dry_run_nothing_was_written") if args.dry_run else
+            i18n.t("cli.said.saved_in_the_project_file") if got["changes"] else i18n.t("cli.said.nothing_changed"))
+    lines = [head] + got["changes"] + [""] + person_lines(got["person"])
+    return {"participant": person_answer(got["person"]), "changes": got["changes"],
+            "dry_run": bool(args.dry_run)}, lines
 
 
 def cmd_participant_complete(p: Project, args) -> tuple:
@@ -7201,6 +7279,8 @@ COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             ("agents", "log"): lambda p, args: cmd_agents_log(args),
             ("participant", "rename"): cmd_participant_rename, ("participant", "complete"): cmd_participant_complete,
             ("participant", "export"): cmd_participant_export,
+            # each participant's picture, label and pen portrait (pbiobuild, 11 November 2026)
+            ("participant", "set"): cmd_participant_set, ("participant", "show"): cmd_participant_show,
             ("hold", None): lambda p, args: holds.cmd_hold(p, args), ("hold", "show"): lambda p, args: holds.cmd_hold_show(p, args),
             # Working together's comments and review (wtreview, 8 November 2026, see review.py)
             **review_mod.COMMANDS}
@@ -7887,8 +7967,9 @@ def arguments(sub, common, writes) -> None:
     x = tm.add_parser("boards", parents=[common], help="the boards sent and come in, each with its answer")
     x.add_argument("--case", default=None, help="a participant, to say whether his board of it can go")
     pt = sub.add_parser("participant", parents=[common], help="a participant renamed, their statements marked "
-                                                              "complete, or exported as the statements "
-                                                              "CSV").add_subparsers(dest="act", required=True)
+                                                              "complete, exported as the statements CSV, or their "
+                                                              "picture, label and pen portrait set or "
+                                                              "shown").add_subparsers(dest="act", required=True)
     x = pt.add_parser("rename", parents=[common, writes],
                       help="a participant renamed, as Rename on their menu on the project's page renames them")
     x.add_argument("case", help="the participant, by their pseudonym")
@@ -7901,6 +7982,19 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--reopen", action="store_true", help="reopen the statements in place of marking them complete")
     x.add_argument("--timepoint", default=None, help="in a project of two or more timepoints, the timepoint, by its "
                                                      "number or its label, T1 when left out")
+    x = pt.add_parser("set", parents=[common, writes],
+                      help="a participant's picture, label and pen portrait, as their row on the project's page sets "
+                           "them, each left out kept as it is")
+    x.add_argument("case", help="the participant, by their pseudonym")
+    x.add_argument("--label", default=None, help="a few words, \"\" clearing it")
+    x.add_argument("--portrait", default=None, help="the pen portrait, one short paragraph, \"\" clearing it")
+    x.add_argument("--picture", default=None, help="one of the app's drawn set, set:face01 to set:face24")
+    x.add_argument("--picture-file", default=None, help="an image file of his, PNG, JPEG or SVG, kept in the "
+                                                         "project's pictures folder, made square and small")
+    x.add_argument("--no-picture", action="store_true", help="take the picture off, the initial on their colour shown")
+    x = pt.add_parser("show", parents=[common],
+                      help="a participant's picture, label and pen portrait, or with none named every participant's")
+    x.add_argument("case", nargs="?", default=None, help="the participant, by their pseudonym, every one when left out")
     x = pt.add_parser("export", parents=[common, writes],
                       help="a participant's statements as the statements CSV, as Export in Settings writes it")
     x.add_argument("case", help="the participant, by their pseudonym")

@@ -3285,6 +3285,47 @@ messages name a participant by their folder. The act works out every file's new 
 keeps a copy of exactly those that change, and records each write in `back` through `case_files.snapshot`,
 its mode with its bytes, so `unrename` puts the list of names to replace back at its own mode.
 
+**Each participant's picture, label and pen portrait (pbiobuild, 11 November 2026, Adam's layout A of
+pbiodraw's proposal).** `participants.py` is the set: `one` reads a participant's `label` (up to `LABEL_MAX`,
+Trajectories' 60), `portrait` (up to `PORTRAIT_MAX`, 800, its whitespace folded) and `picture` (`set:faceNN`, or a
+file's name, through `trajectories.picture_kept`), kept in the project file under `participants` by the
+participant's label, as `order` and `names` are, the file every screen already reads. `view` is what every
+screen and agent reads, the project file's own with Trajectories' old `placed[case]["title"]` and `["picture"]`
+merged in wherever the project file holds none, a picture from there marked `from_traj` so `person_url` gives
+its `/traj-picture` address. A read writes nothing. `settle` moves those over for good, under the project's
+lock: a picture's file copied from `trajectories/pictures/` into `pictures/` (its original left), both files
+copied to `_Archive/` as `(pre-participants <date-time>)`, the project file written, then `title` and `picture`
+taken off `placed` with a line in the Trajectories file's History and the same line in the project's
+(`people_settle`). `api_cases` runs it for each project once there is something to move (`people_settled`,
+which leaves it for the next listing when the lock is busy), and so does the first write of a set
+(`person_change`). `apply` changes one participant's set in memory, each field left out kept, "" clearing it,
+refused whole when a label or portrait is over its limit or holds a name of the project's list of names to
+replace (`real_name_in`, every entry whoever it is for, through `names.find`, the refusal naming the entry by its
+number, never the name), or a picture is not one of the set or cannot be read (Trajectories' own `picture_bytes`,
+`data_url` and `read_picture`). A picture's bytes go through `trajectories.picture_files` with `folder` the
+participants' `pictures/`, the one replaced moved to its `_Archive`. In the routes `person_change` holds a
+change, dry or not, `api_participant` is `/api/participant` (`op` `show`, or any of `label`, `portrait`,
+`picture`, `data`, `from`), `stream_person_picture` serves `/participant-picture`, `person_of` and
+`participants.shown` give the page's `person` (`case`, `who`, `label`, `portrait`, `picture`, `picture_url`,
+`colour`, their place round the GETs palette among the project's participants), and `with_people` adds it to the
+project page's rows (`participants`, `demo_cards`), the statements picker (`api_participants`), the PETs
+switcher (`api_themes_cases`), and `person_for_book` to `/api/open`, `/api/themes` and an LPETs answer, and
+`gets_reply` to each case of the GETs' and LGETs' Participants panel, and `qdpx_export` gives `qdpx_out.plan` each
+participant's `portrait`, written as their `Case`'s `Description`, first in it as Project.xsd asks. Trajectories' `title` and `picture` ops
+take `set_person`, which `traj_apply` gives as a `person_change`'s `apply`, its `commit` writing the set after
+the LPETs boards, and `trajectories.board` reads each card's `title` and `picture` from the participant's
+`person`. Rename carries the set: `case_files.set_of` finds it, `project_line` answers a list now, his order's line
+and "Their picture, label and pen portrait in the project", `project_carry` moves the key and the picture's new name,
+and `set_picture_move` moves their own picture's file, named after them, with the folder ticked ("Their picture
+in the project's pictures folder takes the new name"). On the page `personPic` draws the picture or the initial on `case-N`, Trajectories'
+`.tf-pic`, `cardHtml` puts it with `.pp-label` and `ppPortraitHtml` on a row, `ppOpen`, `ppDraw`, `ppClose`,
+`ppKeepFields` and `ppSave` are the fields across the row (each change through `/api/participant`, one at a time
+in `PP.chain`, a field sent only when it differs from what was last sent), `ppMenuText` the pickers' rows,
+`ppBarDraw` the bars' `#rail-pic`/`#rail-label` and `#th-pic`/`#th-label`, and `gtCasesDraw` the Participants
+panel's `.pp-gwho`. The demo's two project files carry a set for the three. The command line's `participant
+set` and `participant show` and MCP's `participant_set` and `participant_show` run the same route, and the
+parity check holds `/api/participant` to them. Area 373 checks it.
+
 A statement card's passage is `thToPassage` in `themes.js`, from Go to the passage in `thMenuItems`,
 which `thMenuDo` takes as `passage`, `thIsStatement` saying which cards are, every card on the PETs
 canvas and a card of kind `es` on GETs, LGETs and LPETs, where until getsedit (below) a double-click on a

@@ -313,7 +313,7 @@ def test_themes(scratch):
           and "loadLibrary()" in fn(app, "openThemes") and "if (TH.back) await TH.back();" in fn(js, "themesLeave"))
     check("the path names the case by what the server sends, the pseudonym (its name alone in the chooser since option C "
           "of the bars, 26 October 2026)",
-          "thWhoDraw(data.case || TH.label);" in fn(js, "themesOpen"))
+          "thWhoDraw(data.case || TH.label, data.person || null);" in fn(js, "themesOpen"))
     check("a server from before the screen gets the restart line and nothing else",
           "thNote(needsRestart(err) ? RESTART_LINE : err.message, !needsRestart(err));\n    return;" in fn(js, "themesOpen")
           and "TH.live = true;" in fn(js, "themesOpen")

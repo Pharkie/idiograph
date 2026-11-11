@@ -727,13 +727,16 @@ def _carried_through(base: Path, tree) -> None:
                 "cards": sorted((swap(c["key"]), c.get("x"), c.get("y"), c.get("text")) for c in answer["cards"]),
                 "status": next(c["status"] for c in answer["cases"] if c["case"] == case)}
 
+    # her label and picture are her own set's since pbiobuild, kept in the project file, the picture in `pictures/`
+    import participants as people_mod
+
     def traj_kept(book: Path, case: str) -> dict:
         b = call("/api/trajectories", {"workbook": str(book)})
         card = next(c for c in b["participants"] if c["case"] == case)
         col = next((c for c in b["columns"] if case in c["participants"]), None)
         pic = card["picture"]
         return dict({k: card.get(k) for k in ("column", "note", "title", "tags", "hidden", "colour")},
-                    picture=(traj_mod.pictures_of(root) / pic).read_bytes() if pic and not pic.startswith("set:") else pic,
+                    picture=(people_mod.pictures_of(root) / pic).read_bytes() if pic and not pic.startswith("set:") else pic,
                     at=col["participants"].index(case) if col else None,
                     rows=[(r["id"], r["title"], r["shown"]) for r in card["rows"]])
 
@@ -800,10 +803,12 @@ def _carried_through(base: Path, tree) -> None:
     t2_before = call("/api/themes", {"workbook": str(moss), "timepoint": 2})
     traj_before = traj_kept(moss, "P1 - Moss")
     placed_before = json.loads(tfile.read_text(encoding="utf-8"))["placed"]["P1 - Moss"]
+    own_before = json.loads((root / "idiograph-project.json").read_text(encoding="utf-8"))["participants"]["P1 - Moss"]
     check("156: the invented project of two timepoints has every file a rename must carry Moss through: the GETs from "
-          "its one timepoint, the LGETs, the Trajectories board with her own picture, and the list of names to replace",
+          "its one timepoint, the LGETs, the Trajectories board, her own picture and label in the project file, and the "
+          "list of names to replace",
           all(p.is_file() for p in (gfile, lgfile, tfile, nfile)) and lg_before["status"] == "in"
-          and placed_before.get("picture") == "Moss.png" and gets_mod.lpets_path(moss).is_file()
+          and own_before.get("picture") == "Moss.png" and gets_mod.lpets_path(moss).is_file()
           and themes_mod.themes_path(moss, 2).is_file(), str(lg_before)[:300])
 
     # the plan: a line for each file, nothing written
@@ -815,7 +820,8 @@ def _carried_through(base: Path, tree) -> None:
           tree(root) == before
           and all(x in plan["lines"] for x in ("The project's GETs", "The project's LGETs", "The Trajectories board",
                                                "The project's list of names to replace"))
-          and "Their picture on the Trajectories board takes the new name" in ticked["folder_lines"]
+          and "Their picture in the project's pictures folder takes the new name" in ticked["folder_lines"]
+          and "Their picture, label and pen portrait in the project" in plan["lines"]
           and any("LPETs" in x for x in ticked["folder_lines"]) and plan["folder_lines"] == [],
           str([plan["lines"], ticked["folder_lines"]]))
 
@@ -910,7 +916,7 @@ def _carried_through(base: Path, tree) -> None:
     check("156: the LGETs open with Lark in, every card in its place, and the Trajectories board keeps everything, "
           "her picture's file named after her now",
           lg_now == lg_before and traj_now == traj_before
-          and (traj_mod.pictures_of(root) / "Lark.png").is_file() and not (traj_mod.pictures_of(root) / "Moss.png").exists(),
+          and (people_mod.pictures_of(root) / "Lark.png").is_file() and not (people_mod.pictures_of(root) / "Moss.png").exists(),
           str([lg_now == lg_before, str(traj_now)[:300]]))
     entries = json.loads(nfile.read_text(encoding="utf-8"))["entries"]
     record = hist_mod.load(root)[-1]
@@ -918,7 +924,7 @@ def _carried_through(base: Path, tree) -> None:
           entries[0]["for"] == "Lark" and entries[0]["to"] == "Lark" and record["op"] == "participant rename"
           and all(f"{x}." in record["changes"] for x in ("The project's LGETs", "The Trajectories board",
                                                          "The project's list of names to replace",
-                                                         "Their picture on the Trajectories board takes the new name")),
+                                                         "Their picture in the project's pictures folder takes the new name")),
           str(record["changes"]))
 
 

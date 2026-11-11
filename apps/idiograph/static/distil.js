@@ -1675,11 +1675,19 @@ function cardHtml(p, fixed) {
   let html = fixed || p.demo ? '<span class="pc-grip none" aria-hidden="true"></span>' : gripHtml(name);
   // Rename after Files, on a case in a folder of its own and never on the demo's, whose names are fixed
   const renames = !fixed && !p.demo && p.folder !== false;
-  // the second rank under the project's name, for a screen reader, its look the h3's (a11yfix)
-  html += `<div class="pc-head"><h3 class="pc-name" aria-level="2" title="${escAttr(name)}">${esc(name)}</h3>${tags}`
-    + `<button type="button" class="pc-dots" data-act="menu" aria-haspopup="true" aria-expanded="false" title="${escAttr(renames ? t('distil.card.files_rename') : t('distil.card.files'))}" aria-label="${escAttr(t('distil.card.files_of', { name }))}">&#8943;</button>`
+  // Edit, the participant's picture, label and pen portrait, on every row but the demo's (pbiobuild)
+  const edits = !fixed && !p.demo && !!p.person;
+  const dotsTitle = renames ? (edits ? t('distil.card.files_rename_edit') : t('distil.card.files_rename'))
+    : (edits ? t('distil.card.files_edit') : t('distil.card.files'));
+  // the participant's picture before the name and their label under it (pbiobuild, layout A), the second rank
+  // under the project's name for a screen reader, its look the h3's (a11yfix)
+  html += `<div class="pc-head${p.person ? ' pp-head' : ''}">${p.person ? personPic(p.person, 44) : ''}`
+    + `<div class="pp-who"><h3 class="pc-name" aria-level="2" title="${escAttr(name)}">${esc(name)}</h3>`
+    + `${p.person && p.person.label ? `<span class="pp-label" title="${escAttr(p.person.label)}">${esc(p.person.label)}</span>` : ''}</div>${tags}`
+    + `<button type="button" class="pc-dots" data-act="menu" aria-haspopup="true" aria-expanded="false" title="${escAttr(dotsTitle)}" aria-label="${escAttr(t('distil.card.files_of', { name }))}">&#8943;</button>`
     + `<div class="row-menu pc-menu" role="menu" hidden><button type="button" class="ghost" role="menuitem" data-act="files">${esc(t('distil.card.files'))}</button>`
-    + `${renames ? `<button type="button" class="ghost" role="menuitem" data-act="rename">${esc(t('distil.card.rename'))}</button>` : ''}</div></div>`;
+    + `${renames ? `<button type="button" class="ghost" role="menuitem" data-act="rename">${esc(t('distil.card.rename'))}</button>` : ''}`
+    + `${edits ? `<button type="button" class="ghost" role="menuitem" data-act="edit">${esc(t('distil.card.edit'))}</button>` : ''}</div></div>`;
   if (p.path && Array.isArray(p.timepoints) && p.timepoints.length >= 2) {
     // a project of two or more timepoints (20 October): a cell a timepoint, its label and description,
     // then where it stands, and a timepoint with no interview a dashed cell, then PETs as before
@@ -1704,7 +1712,262 @@ function cardHtml(p, fixed) {
       + (p.start ? `<button type="button" class="ghost pc-start" data-act="start">${esc(t('distil.card.start'))}</button>` : '')
       + '</div>';
   }
+  // the pen portrait's first two lines across the row under the name, the whole in its tooltip (pbiobuild)
+  if (p.person) html += ppPortraitHtml(p.person);
   return `${html}<div class="pc-files" hidden><ul class="case-list"></ul></div>`;
+}
+
+/* ──────────────────────────── a participant's picture, label and pen portrait ── */
+
+/* Each participant's own set (pbiobuild, 11 November 2026, Adam's layout A of pbiodraw's proposal): their picture,
+   one of the app's drawn set or his own file, their label, a few words, and their pen portrait, a short paragraph,
+   kept once for the project and carried by every answer that names them as `person` (see participants.py). The
+   picture stands before the name wherever the participant is chosen or named, the label beside it, and on the
+   project page's rows and in the pickers the pen portrait's first two lines under them. With no picture, the
+   initial on their colour, as Trajectories draws it. */
+
+/* the picture as a circle `size` pixels across, decorative beside the name it stands by */
+function personPic(person, size) {
+  const p = person || {};
+  const colour = `case-${(Number(p.colour) || 0) % 25}`;
+  const box = `width:${size}px;height:${size}px`;
+  if (p.picture_url) return `<span class="tf-pic pp-pic ${colour}" style="${box}"><img src="${escAttr(p.picture_url)}" alt=""></span>`;
+  const initial = String(p.who || p.case || '?').replace(/^P\d+\s*-\s*/, '').slice(0, 1) || '?';
+  return `<span class="tf-pic tf-pic-none pp-pic ${colour}" style="${box};font-size:${Math.round(size * 0.42)}px" aria-hidden="true">${esc(initial)}</span>`;
+}
+
+/* the pen portrait on a row, two lines and the whole in its tooltip, nothing when there is none */
+function ppPortraitHtml(person) {
+  const text = person && person.portrait ? String(person.portrait) : '';
+  return text ? `<p class="pp-portrait" title="${escAttr(text)}">${esc(text)}</p>` : '';
+}
+
+/* The fields across the row (layout A): the picture with Change picture..., Choose from the set and Remove, the
+   participant greyed, the label and the pen portrait, each kept as it is left, Done at the foot. Choose from the set
+   opens the drawn faces under the fields, shut each time the fields open. */
+const PP = { editing: '', faces: false, busy: false, root: '', li: null, p: null };
+
+function ppEditHtml(p) {
+  const person = p.person || {};
+  const name = caseShown(p.case);
+  // a field drawn again while its save is on its way shows what was typed, never the set before it
+  const typed = (key) => (PP.sent && key in PP.sent ? PP.sent[key] : String(person[key] || ''));
+  const faces = PP.faces ? `<div class="tf-faces pp-faces" role="group" aria-label="${escAttr(t('trajectories.choose_face'))}">`
+    + (PP_FACES.map((f, i) => `<button type="button" class="tf-face${person.picture === `set:${f}` ? ' on' : ''}" data-pp-face="${f}"`
+      + ` aria-pressed="${person.picture === `set:${f}`}" aria-label="${escAttr(t('trajectories.face_n', { n: i + 1 }))}"><img src="/faces/${f}.svg" alt=""></button>`).join(''))
+    + '</div>' : '';
+  return `<div class="pp-edit" role="group" aria-label="${escAttr(t('distil.person.edit_label', { who: name }))}">`
+    + `<div class="tf-edit-pic pp-edit-pic">${personPic(person, 64)}<div class="tf-edit-picb">`
+    + `<button type="button" class="ghost small" data-pp="own">${esc(t('trajectories.change_picture'))}</button>`
+    + `<button type="button" class="ghost small" data-pp="faces" aria-expanded="${PP.faces}">${esc(t('trajectories.choose_from_set'))}</button>`
+    + (person.picture ? `<button type="button" class="ghost small" data-pp="nopic">${esc(t('trajectories.remove_picture'))}</button>` : '')
+    + '</div></div><div class="pp-edit-fields">'
+    + `<label class="pp-l"><span>${esc(t('distil.person.participant'))}</span><input class="tf-edit-in pp-in" value="${escAttr(name)}" disabled></label>`
+    + `<label class="pp-l"><span>${esc(t('distil.person.label'))}</span><input class="tf-edit-in pp-in pp-in-label" maxlength="60" data-pp-field="label" value="${escAttr(typed('label'))}"></label>`
+    + `<label class="pp-l top"><span>${esc(t('distil.person.portrait'))}</span><textarea class="tf-edit-in pp-in pp-in-portrait" maxlength="800" rows="4" data-pp-field="portrait">${esc(typed('portrait'))}</textarea></label>`
+    + `${faces}<div class="pp-foot"><button type="button" class="primary small" data-pp="done">${esc(t('trajectories.done'))}</button></div></div></div>`;
+}
+
+/* a participant in a picker: the name as the rows say it, their label under it and the pen portrait's first two
+   lines under that, for the statements screen's picker and the PETs and LPETs switcher alike */
+function ppMenuText(label, person) {
+  const p = person || {};
+  return `<span class="pp-mi"><span class="pp-mname">${esc(caseShown(label))}</span>`
+    + (p.label ? `<span class="pp-label">${esc(p.label)}</span>` : '')
+    + (p.portrait ? `<span class="pp-bio">${esc(p.portrait)}</span>` : '') + '</span>';
+}
+
+/* the picture and the label beside the name in the bar over a participant's screens (layout A): `pic` and `lab`
+   the bar's two spans, the label giving way first in a narrow window, the whole in its tooltip */
+function ppBarDraw(pic, lab, person) {
+  const p = person || null;
+  if (pic) {
+    pic.innerHTML = p ? personPic(p, 24) : '';
+    pic.hidden = !p;
+  }
+  if (lab) {
+    lab.textContent = p && p.label ? p.label : '';
+    lab.title = p && p.label ? p.label : '';
+    lab.hidden = !(p && p.label);
+  }
+}
+
+// the app's drawn set, static/faces/face01.svg to face24.svg, as Trajectories offers it
+const PP_FACES = Array.from({ length: 24 }, (_, i) => `face${String(i + 1).padStart(2, '0')}`);
+
+/* the fields opened across a row, any other row's shut first, the field he double-clicked in front */
+function ppOpen(li, p, where, field = 'label') {
+  if (!li || !p || !p.person || p.demo || !where.id) return;
+  ppClose();
+  Object.assign(PP, { editing: p.case, faces: false, root: where.id, li, p, sent: {} });
+  li.classList.add('pp-open');
+  ppDraw();
+  const f = li.querySelector(field === 'portrait' ? '.pp-in-portrait' : '.pp-in-label');
+  if (f) { f.focus(); f.setSelectionRange(f.value.length, f.value.length); }
+}
+
+/* the fields drawn again in place, the field in front kept in front */
+function ppDraw() {
+  const li = PP.li;
+  if (!li) return;
+  const front = document.activeElement && li.contains(document.activeElement) ? document.activeElement.dataset.ppField || document.activeElement.dataset.pp : '';
+  const old = li.querySelector('.pp-edit');
+  const was = li.querySelector('.pp-portrait');
+  const box = document.createElement('div');
+  box.innerHTML = ppEditHtml(PP.p);
+  const edit = box.firstElementChild;
+  if (old) old.replaceWith(edit);
+  else li.insertBefore(edit, li.querySelector('.pc-files'));
+  if (was) was.hidden = true;
+  ppFit(edit.querySelector('.pp-in-portrait'));
+  if (front) {
+    const again = li.querySelector(`[data-pp-field="${front}"], [data-pp="${front}"]`);
+    if (again) again.focus();
+  }
+}
+
+/* the pen portrait's box as tall as its words, five lines at the least (its CSS), so no line is ever cut */
+function ppFit(box) {
+  if (!box) return;
+  box.style.height = 'auto';
+  box.style.height = `${box.scrollHeight + box.offsetHeight - box.clientHeight}px`;
+}
+
+/* the fields shut, what was typed kept first, and the row drawn again with what is kept */
+function ppClose(focusRow = false) {
+  const li = PP.li;
+  if (!li) return;
+  ppKeepFields();
+  const edit = li.querySelector('.pp-edit');
+  if (edit) edit.remove();
+  li.classList.remove('pp-open');
+  ppRowFill(li, PP.p);
+  const name = li.querySelector('.pc-dots');
+  Object.assign(PP, { editing: '', faces: false, li: null, p: null });
+  if (focusRow && name) name.focus();
+}
+
+/* the row's picture, label and pen portrait as the participant's set now stands */
+function ppRowFill(li, p) {
+  if (!li || !p) return;
+  const person = p.person || {};
+  const pic = li.querySelector('.pc-head > .pp-pic');
+  if (pic) pic.outerHTML = personPic(person, 44);
+  const who = li.querySelector('.pp-who');
+  let label = who && who.querySelector('.pp-label');
+  if (who && person.label) {
+    if (!label) { label = document.createElement('span'); label.className = 'pp-label'; who.appendChild(label); }
+    label.textContent = person.label;
+    label.title = person.label;
+  } else if (label) label.remove();
+  const was = li.querySelector('.pp-portrait');
+  const box = document.createElement('div');
+  box.innerHTML = ppPortraitHtml(person);
+  if (was) was.remove();
+  if (box.firstElementChild && !li.querySelector('.pp-edit')) li.insertBefore(box.firstElementChild, li.querySelector('.pc-files'));
+}
+
+/* a change to the participant's set, through the one route agents use too, one at a time in the order made, the
+   answer taken as the row's own. A refusal says its line and keeps nothing. */
+PP.chain = Promise.resolve();
+function ppSave(given) {
+  const p = PP.p;
+  const root = PP.root;
+  if (!p) return Promise.resolve(false);
+  const run = async () => {
+    try {
+      const got = await api('/api/participant', Object.assign({ root, case: p.case }, given));
+      if (got && got.person) p.person = Object.assign({}, p.person, got.person);
+      return true;
+    } catch (err) {
+      say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
+      return false;
+    }
+  };
+  const done = PP.chain.then(run);
+  PP.chain = done.catch(() => false);
+  return done;
+}
+
+/* the label and the pen portrait kept as they stand in their fields, each only when it differs from what was last
+   kept or sent */
+function ppKeepFields() {
+  const li = PP.li;
+  const p = PP.p;
+  if (!li || !p) return Promise.resolve();
+  PP.sent = PP.sent || {};
+  const given = {};
+  for (const f of li.querySelectorAll('[data-pp-field]')) {
+    const key = f.dataset.ppField;
+    const now = f.value.replace(/\s+/g, ' ').trim();
+    const was = key in PP.sent ? PP.sent[key] : String((p.person || {})[key] || '');
+    if (now !== was) given[key] = now;
+  }
+  if (!Object.keys(given).length) return Promise.resolve();
+  Object.assign(PP.sent, given);
+  return ppSave(given).then((ok) => {
+    if (!ok) for (const key of Object.keys(given)) delete PP.sent[key];
+    if (PP.li !== li) ppRowFill(li, p);
+  });
+}
+
+/* his own picture, read in the page and made a square of 256 pixels at its middle, as Trajectories makes it */
+async function ppOwnPicture(file) {
+  if (!file || !PP.p) return;
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const side = Math.min(img.naturalWidth, img.naturalHeight);
+    if (!side) throw new Error('empty');
+    const to = Math.min(256, side);
+    const canvas = document.createElement('canvas');
+    canvas.width = to;
+    canvas.height = to;
+    canvas.getContext('2d').drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, to, to);
+    if (await ppSave({ data: canvas.toDataURL('image/png') })) ppDraw();
+  } catch {
+    say(t('trajectories.picture_unread'), 9000);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+/* the fields' own clicks and keys, wired once on the rows' list */
+function ppWire() {
+  const list = $('hp-list');
+  if (!list || list.dataset.ppWired) return;
+  list.dataset.ppWired = '1';
+  list.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-pp], [data-pp-face]');
+    if (!b || !PP.li || !PP.li.contains(b)) return;
+    e.stopPropagation();
+    if (b.dataset.ppFace) { if (await ppSave({ picture: `set:${b.dataset.ppFace}` })) ppDraw(); return; }
+    const what = b.dataset.pp;
+    if (what === 'done') { ppClose(true); return; }
+    if (what === 'faces') { PP.faces = !PP.faces; ppDraw(); return; }
+    if (what === 'nopic') { if (await ppSave({ picture: '' })) ppDraw(); return; }
+    if (what === 'own') $('pp-picture-file').click();
+  });
+  list.addEventListener('focusout', (e) => {
+    const f = e.target.closest && e.target.closest('[data-pp-field]');
+    if (f && PP.li && PP.li.contains(f)) ppKeepFields();
+  });
+  // the pen portrait's box grows with its words as they are typed
+  list.addEventListener('input', (e) => {
+    if (e.target.classList && e.target.classList.contains('pp-in-portrait')) ppFit(e.target);
+  });
+  list.addEventListener('keydown', (e) => {
+    if (!PP.li || !PP.li.contains(e.target)) return;
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); ppClose(true); return; }
+    if (e.key === 'Enter' && e.target.dataset.ppField === 'label') { e.preventDefault(); ppKeepFields(); }
+  });
+  $('pp-picture-file').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    ppOwnPicture(file);
+  });
 }
 
 /* The rows of a project, in the order the server sends, his order. Each row's buttons do what
@@ -1715,6 +1978,12 @@ function cardHtml(p, fixed) {
    and either way the order is saved in the project's file (see `saveOrder`). `where` is the
    project, `{id}`, or `{fixed: true}` for the demo, whose rows have no handle. */
 function drawCards(list, cards, where = {}) {
+  // fields open on a row of this list are kept as they stand and shut, the rows drawn afresh (pbiobuild)
+  if (PP.li && list.contains(PP.li)) {
+    ppKeepFields();
+    Object.assign(PP, { editing: '', faces: false, li: null, p: null });
+  }
+  ppWire();
   list.innerHTML = '';
   if (!cards.length) {
     list.innerHTML = `<li class="empty">${esc(t('distil.card.no_workbooks'))}</li>`;
@@ -1752,12 +2021,24 @@ function drawCards(list, cards, where = {}) {
         return;
       }
       if (what === 'rename') { shut(); openRename(where.id, p); return; }
+      if (what === 'edit') { shut(); ppOpen(li, p, where); return; }
       // Working together: Ask for review, on a participant he owns (review.js)
       if (what === 'wtask') { shut(); rvwAskOpen(where.id, p); return; }
       if (what === 'statements') openCaseIn(p.path);
       else if (what === 'timepoint') openCaseIn(p.path, { timepoint: Number(act.dataset.tp) });
       else if (what === 'pets') openThemesIn(p.path, p.case);
       else if (what === 'start') (p.start.kind === 'transcript' ? offerImport(p.start) : offerCreate(p.start));
+    };
+    // a double-click on the name, the label or the pen portrait opens the participant's fields across the row
+    // (pbiobuild, layout A), the one double-clicked in front
+    li.ondblclick = (e) => {
+      if (fixed || p.demo || PP.li === li) return;
+      const on = e.target.closest('.pc-name, .pp-label, .pp-portrait');
+      if (!on) return;
+      e.preventDefault();
+      const sel = window.getSelection && window.getSelection();
+      if (sel) sel.removeAllRanges();
+      ppOpen(li, p, where, on.classList.contains('pp-portrait') ? 'portrait' : 'label');
     };
     // the arrows walk the menu as the band's does, and Esc gives the dots the focus back (a11yfix)
     menu.onkeydown = (e) => menuKeys(e, menu, () => { shut(); dots.focus(); });
@@ -3885,9 +4166,12 @@ function startCase(data, opts = {}) {
   // the project's name beside the mark, and the participant's in the tab's picker, each truncating when the
   // bar runs short, the whole name in its tooltip (20 October)
   const who = data.case || data.name;
-  $('rail-case').textContent = whoName(who);
+  // its number and pseudonym, P2 Mabel, as the rows and the picker say it (pbiobuild, layout A as drawn)
+  $('rail-case').textContent = caseShown(who);
   $('rail-case').title = who;
   $('es-who').title = t('distil.case.who_title', { who });
+  // their picture before the name and their label after it (pbiobuild, layout A)
+  if (typeof ppBarDraw === 'function') ppBarDraw($('rail-pic'), $('rail-label'), data.person);
   pathProjectDraw('rail-project', data.project);
   esWhoMenu(false);
   dsTabsDraw('es-steps', data.project, 'statements');
@@ -6768,18 +7052,25 @@ function esWhoDraw(list, said = '') {
   ES_WHO.list = list;
   const menu = $('es-whomenu');
   let html = `<p class="tp-menu-head">${esc(t('distil.who.head'))}</p>`;
+  // each participant with their picture, label and the pen portrait's first two lines (pbiobuild, layout A)
+  const people = list.some((p) => p.person);
   list.forEach((p, i) => {
+    const who = people ? `${personPic(p.person, 32)}${ppMenuText(p.case, p.person)}` : `<span>${esc(p.case)}</span>`;
     html += `<div class="ds-who-item"><button type="button" class="ghost ds-who-row${p.current ? ' on' : ''}" role="menuitemradio"`
-      + ` aria-checked="${p.current}" data-who="${i}"><span class="tp-tick" aria-hidden="true">${p.current ? '&#10003;' : ''}</span>`
-      + `<span>${esc(p.case)}</span></button><button type="button" class="ghost small ds-who-window" data-window="${i}"`
+      + ` aria-checked="${p.current}" data-who="${i}"${p.person && p.person.portrait ? ` title="${escAttr(p.person.portrait)}"` : ''}>`
+      + `<span class="tp-tick" aria-hidden="true">${p.current ? '&#10003;' : ''}</span>`
+      + `${who}</button><button type="button" class="ghost small ds-who-window" data-window="${i}"`
       + ` title="${escAttr(t('distil.who.window_title', { who: p.case }))}">${esc(t('distil.who.window'))}</button></div>`;
   });
   if (said) html += `<p class="th-vsaid">${esc(said)}</p>`;
+  menu.classList.toggle('pp-menu', people);
   menu.innerHTML = html;
-  // under the chooser in the path
+  // under the chooser in the path, and with the participants' pictures and portraits hung clear of the band's foot,
+  // which the label can make two lines tall (pbiobuild, as drawn)
   const box = $('es-who').getBoundingClientRect();
+  const foot = people && $('band') ? $('band').getBoundingClientRect().bottom + 10 : 0;
   menu.style.left = `${Math.max(8, Math.min(box.left - 6, window.innerWidth - menu.offsetWidth - 8))}px`;
-  menu.style.top = `${box.bottom + 6}px`;
+  menu.style.top = `${Math.max(box.bottom + 6, foot)}px`;
 }
 
 /* another participant from the picker: the passage in front saved first, then theirs opened on their

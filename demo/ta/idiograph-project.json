@@ -2,5 +2,22 @@
   "name": "Living with a dog",
   "method": "ta",
   "research_question": "How do people make sense of sharing a home with a dog?",
-  "updated": "2026-10-20T09:15:00+01:00"
+  "updated": "2026-10-20T09:15:00+01:00",
+  "participants": {
+    "Juno": {
+      "label": "The reluctant convert",
+      "portrait": "Lives with her partner. Said no to a dog for about four years, then took on Bramble, a rescue lurcher. Does the morning walk most days, forty minutes. Found the first year hard and told no one. Comes home earlier now for Bramble, and her partner has noticed.",
+      "picture": "set:face19"
+    },
+    "Mabel": {
+      "label": "Pepper's keeper",
+      "portrait": "Widowed, 73, lives alone. Got Pepper two years after her husband died. On the green with her every morning. Broke her wrist last January when Pepper pulled her over on ice. Her daughter said Pepper had to go, and Mabel kept her. Has arranged for Pepper in her will.",
+      "picture": "set:face16"
+    },
+    "Rowan": {
+      "label": "The night walker",
+      "portrait": "Lives in a flat with a shared staircase. Took on Skye, a rescue collie cross. Skye was frightened of other dogs, so walks were at half five and eleven at night. Skye nipped another tenant's terrier on the stairs, and a letter came about the tenancy. Gave Skye back to the rescue, who found Skye a home on a smallholding.",
+      "picture": "set:face17"
+    }
+  }
 }

@@ -198,6 +198,8 @@ AGENT_OPS = {
                          ("team", "reply"), ("team", "thread"), ("team", "review-done"), ("team", "suggest"),
                          ("team", "suggestion-answer")],
     "/api/rename": [("participant", "rename")],
+    # each participant's picture, label and pen portrait (pbiobuild, 11 November 2026)
+    "/api/participant": [("participant", "set"), ("participant", "show")],
     "/api/complete": [("participant", "complete")],
     "/api/export": [("participant", "export")],
     "/api/themes-boards": [("board", "note"), ("board", "history"), ("board", "revision"), ("board", "restore"),

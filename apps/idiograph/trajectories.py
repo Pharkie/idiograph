@@ -321,7 +321,7 @@ def at_of(op: dict, n: int, limit: int) -> int:
 
 
 def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=None,
-          files: dict | None = None, read_file=None) -> list[str]:
+          files: dict | None = None, read_file=None, set_person=None) -> list[str]:
     """Each operation run on `data` in order, in place, answering a line for each change. Refused as a
     whole, with `data` to be thrown away, when one is wrong:
 
@@ -348,7 +348,11 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
 
     `lpets` is each participant's LPETs, `[{"id", "title"}]`, for `hide` and `show`. A picture's bytes go into
     `files`, by the name they are kept under, `None` for one taken off, for `change` to write. `read_file` reads
-    `from`, so a test or a hold can stand in for the disk."""
+    `from`, so a test or a hold can stand in for the disk.
+
+    With `set_person` (pbiobuild, 11 November 2026) the label and the picture are the participant's own, kept in
+    the project file for every screen (`participants.py`): `title` and `picture` are names for that set's change,
+    `set_person(case, given)` running it and answering its lines, and this file keeps neither."""
     if not isinstance(ops, list):
         raise WorkbookError(i18n.t("server.trajectories_operations_list_nothing_changed"))
     lpets = lpets or {}
@@ -495,6 +499,13 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
                 if note != held["note"]:
                     held["note"] = note
                     said.append(f"The note on {name} " + ("changed." if note else "cleared."))
+            elif kind == "title" and set_person is not None:
+                said += set_person(case, {"label": op.get("title") if op.get("title") is not None else ""})
+            elif kind == "picture" and set_person is not None:
+                given = ({"picture": f"set:{words(op.get('set')).lower()}"} if op.get("set") not in (None, "")
+                         else {"data": op.get("data")} if op.get("data") not in (None, "")
+                         else {"from": op.get("from")} if op.get("from") not in (None, "") else {"picture": ""})
+                said += set_person(case, given)
             elif kind == "title":
                 title = words(op.get("title"))
                 if len(title) > LABEL_MAX:
@@ -734,10 +745,11 @@ def png_write(w: int, h: int, rgba: bytearray) -> bytes:
             + chunk(b"IDAT", zlib.compress(lines, 9)) + chunk(b"IEND", b""))
 
 
-def picture_files(root: Path, files: dict, when: str) -> None:
-    """The pictures a change made, written into the project's pictures folder, and each one it replaced or took
-    off moved to the folder's `_Archive` with the time in its name, never deleted."""
-    folder = pictures_of(root)
+def picture_files(root: Path, files: dict, when: str, folder: Path | None = None) -> None:
+    """The pictures a change made, written into the project's pictures folder, Trajectories' own or with `folder`
+    another (the participants' own, `participants.pictures_of`), and each one it replaced or took off moved to the
+    folder's `_Archive` with the time in its name, never deleted."""
+    folder = pictures_of(root) if folder is None else Path(folder)
     stamp = re.sub(r"[^0-9]", "", str(when))[:14] or "0"
     for name, body in files.items():
         if body is not None:
@@ -783,10 +795,14 @@ def board(data: dict | None, people: list[dict]) -> dict:
         rows = [dict(r, shown=r["id"] not in hidden,
                      domains=[{"word": w, "colour": colour_for(unsaid, w)} for w in domains_of(r.get("domain"))])
                 for r in p.get("rows") or []]
-        cards.append(dict(p, who=who(p["case"]), column=held.get("column"), note=held.get("note") or "",
-                          title=held.get("title") or "",
+        # the label and the picture the participant's own (pbiobuild), as the caller reads them, else this file's
+        own = p.get("person") if isinstance(p.get("person"), dict) else None
+        cards.append(dict({k: v for k, v in p.items() if k != "person"}, who=who(p["case"]), column=held.get("column"),
+                          note=held.get("note") or "",
+                          title=(own.get("label") or "") if own is not None else held.get("title") or "",
                           tags=[{"word": t, "colour": colours.get(t.lower(), 0)} for t in held.get("tags") or []],
-                          picture=held.get("picture") or "", hidden=sorted(hidden), rows=rows))
+                          picture=(own.get("picture") or "") if own is not None else held.get("picture") or "",
+                          hidden=sorted(hidden), rows=rows))
     cases = [x["case"] for x in cards]
     return {"columns": [dict({k: v for k, v in c.items() if k != "order"}, participants=order_of(data, c, cases))
                         for c in data["columns"]],
@@ -797,7 +813,7 @@ def board(data: dict | None, people: list[dict]) -> dict:
 
 
 def change(root: Path, cases: list[str], ops, when: str, dry_run: bool = False, note: str = "",
-           tool: str = "", lpets: dict | None = None, lpet_op=None, commit=None) -> dict:
+           tool: str = "", lpets: dict | None = None, lpet_op=None, commit=None, set_person=None) -> dict:
     """The operations applied to the project's board and written, with a History line, unless `dry_run`
     or nothing changed. `lpet_op` runs an operation on a participant's LPETs board in memory, and `commit`
     writes those boards, called only once every operation has passed. Answers `changes`, a line each,
@@ -806,7 +822,7 @@ def change(root: Path, cases: list[str], ops, when: str, dry_run: bool = False, 
     data = json.loads(json.dumps(held)) if held else fresh(when)
     data.setdefault("tags", {})
     files: dict = {}
-    said = apply(data, cases, ops, lpets=lpets, lpet_op=lpet_op, files=files)
+    said = apply(data, cases, ops, lpets=lpets, lpet_op=lpet_op, files=files, set_person=set_person)
     if said and not dry_run:
         if commit is not None:
             commit()

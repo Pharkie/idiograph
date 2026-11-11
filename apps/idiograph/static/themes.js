@@ -1965,7 +1965,7 @@ async function themesOpen(path, opts = {}) {
   thStepsDraw();
   thBandDraw();
   thAiDraw();
-  thWhoDraw(data.case || TH.label);
+  thWhoDraw(data.case || TH.label, data.person || null);
   TH.demo = !!data.demo;
   $('th-demo').hidden = !data.demo;
   thStage().classList.remove('off');
@@ -9068,14 +9068,22 @@ async function thCasemenu(open) {
 
 function thCasemenuDraw(cases, said = '') {
   TH.cases = cases;
+  const menu0 = (on) => { const m = $('th-casemenu'); if (m && m.classList) m.classList.toggle('pp-menu', on); };
   const mark = `<span class="th-vchosen">${TH_CHOSEN_ICON}<span class="th-vchosen-word">${esc(t('themes.board.current'))}</span></span>`;
   let html = `<p class="section-label th-vhead">${esc(t('themes.cases.head'))}</p>`;
+  // each participant with their picture, label and the pen portrait's first two lines (pbiobuild, layout A)
+  const people = cases.some((c) => c.person);
+  menu0(people);
   cases.forEach((c, i) => {
-    const text = `<span class="th-vtext"><span class="th-vline"><span class="th-vlabel">${esc(c.case)}</span></span>`
-      + `<span class="th-vnote">${esc(c.board_name)}${thWithAi(c.with_ai)}${c.chosen ? mark : ''}</span></span>`;
+    const p = c.person || {};
+    const pic = people ? personPic(c.person, 32) : '';
+    const text = `<span class="th-vtext"><span class="th-vline"><span class="th-vlabel">${esc(people ? caseShown(c.case) : c.case)}</span></span>`
+      + (p.label ? `<span class="pp-label">${esc(p.label)}</span>` : '')
+      + `<span class="th-vnote">${esc(c.board_name)}${thWithAi(c.with_ai)}${c.chosen ? mark : ''}</span>`
+      + (p.portrait ? `<span class="pp-bio">${esc(p.portrait)}</span>` : '') + '</span>';
     const item = c.current
-      ? `<div class="th-vitem on"><span class="th-vcheck">${TH_TICK_ICON}</span>${text}</div>`
-      : `<button type="button" class="ghost th-vitem" tabindex="-1" data-case="${i}" title="${escAttr(t('themes.cases.on_board', { name: c.case, board: c.board_name }))}"><span class="th-vcheck"></span>${text}</button>`;
+      ? `<div class="th-vitem on"${p.portrait ? ` title="${escAttr(p.portrait)}"` : ''}><span class="th-vcheck">${TH_TICK_ICON}</span>${pic}${text}</div>`
+      : `<button type="button" class="ghost th-vitem" tabindex="-1" data-case="${i}" title="${escAttr(t('themes.cases.on_board', { name: c.case, board: c.board_name }))}"><span class="th-vcheck"></span>${pic}${text}</button>`;
     // another case also opens beside this one, read-only, the canvas split in two
     const beside = c.current || TH.lpets ? '' : `<button type="button" class="ghost small th-ctable" tabindex="-1" data-beside="${i}"`
       + ` title="${escAttr(t('themes.cases.beside_tip', { board: c.board_name, name: c.case }))}">${esc(t('themes.cases.beside'))}</button>`;
@@ -9091,8 +9099,10 @@ function thCasemenuDraw(cases, said = '') {
   menu.innerHTML = html;
   if (typeof menuRoles === 'function') menuRoles(menu);
   const box = $('th-cases').getBoundingClientRect();
+  // with the participants' pictures and portraits hung clear of the band's foot (pbiobuild, as drawn)
+  const foot = people && $('th-band') && !$('th-band').hidden ? $('th-band').getBoundingClientRect().bottom + 10 : 0;
   menu.style.left = `${Math.max(8, Math.min(box.left - 6, window.innerWidth - menu.offsetWidth - 8))}px`;
-  menu.style.top = `${box.bottom + 8}px`;
+  menu.style.top = `${Math.max(box.bottom + 8, foot)}px`;
 }
 
 /* Another case's PETs from the switcher: this canvas saved first, then that case opens on its
@@ -10812,12 +10822,15 @@ const thWhere = () => (TH.lpets ? { lpets: true } : TH.tp && !thGets() ? { timep
    case's label is P1 - Wren, as the statements screen shows it, the whole label in its tooltip and kept for what
    names the case in full, an export's heading and the window's title (thCaseLabel). LPETs showed the label
    until then where PETs showed the name. */
-function thWhoDraw(label) {
+function thWhoDraw(label, person = null) {
   const el = $('th-case');
   const full = String(label || '');
-  el.textContent = whoName(full);
+  // its number and pseudonym, P2 Mabel, as the rows and the picker say it (pbiobuild, layout A as drawn)
+  el.textContent = caseShown(full);
   el.dataset.label = full;
   el.title = full;
+  // their picture before the name and their label after it (pbiobuild, layout A)
+  if (typeof ppBarDraw === 'function') ppBarDraw($('th-pic'), $('th-label'), person);
 }
 
 const thCaseLabel = () => {
@@ -12910,7 +12923,9 @@ function gtCasesDraw() {
     if (c.status === 'changed') marks.push(GT_CHANGED);
     html += `<section class="gt-case${c.in ? '' : ' out'}${c.status === 'changed' ? ' changed' : ''}">`
       + `<div class="gt-chead"><button type="button" class="gt-fold${caseOpen ? ' open' : ''}" tabindex="-1" data-gfold="${i}" aria-expanded="${caseOpen}">`
-      + `${GT_CHEV}<span class="gt-cname">${esc(c.who)}</span></button>`
+      + `${GT_CHEV}${c.person ? personPic(Object.assign({}, c.person, { colour: look.colour }), 26) : ''}`
+      + `<span class="pp-gwho"${c.person && c.person.portrait ? ` title="${escAttr(c.person.portrait)}"` : ''}><span class="gt-cname">${esc(c.who)}</span>`
+      + `${c.person && c.person.label ? `<span class="pp-label pp-glabel">${esc(c.person.label)}</span>` : ''}</span></button>`
       + `<button type="button" class="gt-swatch case-${look.colour}" tabindex="-1" data-gcolour="${i}" aria-haspopup="menu" `
       + `title="${escAttr(t('themes.gets.colour_tip', { colour: GT_COLOURS[look.colour] }))}" aria-label="${escAttr(t('themes.gets.colour_label', { who: c.who, colour: GT_COLOURS[look.colour] }))}">${esc(look.badge)}</button>`
       + `<button type="button" class="row-menu-open gt-cmenu" tabindex="-1" data-gmenu="${i}" title="${escAttr(t('themes.gets.case_menu_tip'))}">&#8943;</button></div>`

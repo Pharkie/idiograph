@@ -260,6 +260,29 @@ Board 3", and both for Participant complete. Its Current board follows, "Current
 marked "create annotated workbook" and a transcript's "make a workbook", each in the soft ink on its
 own border, where until 17 October, later, they stood in the crux orange.
 
+**A participant's picture, label and pen portrait (11 November 2026, pbiobuild, layout A).** Each participant
+of every project, IPA and thematic analysis alike, has a picture, a label of a few words and a pen portrait, a
+short paragraph to remind him who they were, beside the number and pseudonym their folder gives them. The real
+name is never kept here. A row shows the picture before the name, one of the app's 24 drawn portraits or his own
+file, or with none the participant's initial in their colour, the label under the name, and the pen portrait's
+first two lines across the row under them, the whole in its tooltip. A double-click on the name, the label or
+the pen portrait, or Edit in the dots, opens the fields across the row: the picture with Change picture...,
+Choose from the set and Remove, the participant greyed, Label and Pen portrait, each kept as it is left, and
+Done at the foot. Choose from the set opens the drawn portraits under the fields. His own picture is cut
+square, made small and kept in the project folder's `pictures/`, the one it replaces moved to that folder's
+`_Archive`, never deleted. A label is up to 60 characters and a pen portrait up to 800, its line breaks folded
+into spaces. A label or pen portrait holding a name from the project's list of names to replace is refused in
+one line, "The pen portrait holds a name from the project's list of names to replace, entry 3, so nothing was
+changed.", nothing kept. The demo's three have theirs and are fixed. The participant picker on the statements
+screen, and the switcher on PETs and LPETs, list everyone with their picture, label and two lines of the pen
+portrait, and the bar over the statements screen, PETs, LPETs and a thematic analysis project's Coding shows the
+picture before the name, said with its number as the rows say it, "P1 Wren", and the label after it, the label
+giving way first in a narrow window. On GETs and
+LGETs the Participants panel shows each participant's picture beside the name and the label under it, the pen
+portrait in its tooltip. Trajectories shows the same picture and label, and its editor changes them for every
+screen. Each change is a record in the project's History, and an agent sets them with `participant set`. Export as
+REFI-QDA gives each participant's pen portrait as their case's description, and no picture goes into any export.
+
 **Rename (16 October).** A pseudonym given once sometimes changes, so Rename, in the dots on a
 participant's row after Files, gives the participant a new one (a tester's ask, Adam's word). Its card
 holds the name now, a field for the new name, one unticked row, Rename the folder too, and under them
@@ -311,7 +334,9 @@ LPETs' cards and where each stands, their trajectory and their place in it, thei
 picture, and the LPETs hidden there. Their PETs boards at every timepoint take the new name. Ticked, a
 workbook that takes the new name keeps its LPETs and its PETs boards at every timepoint, and their own
 picture on Trajectories, named after them, takes the new name too: "Their picture on the Trajectories board
-takes the new name". The list of names to replace keeps no copy in `_Archive/`, since it holds real names
+takes the new name". Since 11 November (pbiobuild) their picture, label and pen portrait go with them,
+"Their picture, label and pen portrait in the project", and ticked their own picture's file takes the new name,
+"Their picture in the project's pictures folder takes the new name". The list of names to replace keeps no copy in `_Archive/`, since it holds real names
 and the app copies it nowhere. Rename is refused too when a file it would change is there and cannot be
 read, "idiograph-trajectories.json could not be read, so nothing was changed.", and when the folder would
 move while Working together is on, since the team knows each participant by their folder.
@@ -4988,8 +5013,12 @@ timepoints:
     trajectory, Left and Right to the trajectory before or after, Backspace to Not placed.
   - A double-click on a participant's cell, or Edit in its menu, opens their editor in place. Change
     picture... takes an image file, cut square, made small and kept in the project folder
-    (`trajectories/pictures/`), and a picture replaced or removed goes to that folder's `_Archive`, never
-    deleted. Choose from the set picks one of the app's 24 drawn portraits. Remove takes the picture off,
+    (`pictures/` since 11 November, the participant's own, `trajectories/pictures/` before), and a picture
+    replaced or removed goes to that folder's `_Archive`, never deleted. The picture and the label are the
+    participant's own since 11 November (pbiobuild), so the project page, the pickers and the bars show the
+    ones set here. A label and a picture this board kept before move into the participant's own the first time
+    the project's page lists them or one is changed, a copy of both files kept in `_Archive/` first,
+    `(pre-participants <date-time>)`, with one line in the project's History. Choose from the set picks one of the app's 24 drawn portraits. Remove takes the picture off,
     and with none the participant's initial shows in their colour. Then come their label, their tags
     (Add a tag, a tag's cross taking it off), a tag's colour, which is that word's colour on everyone who
     has it across the project, and LPETs shown, a tick for each LPET, all shown until he takes one off.

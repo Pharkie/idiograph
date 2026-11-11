@@ -175,7 +175,7 @@ does.
 
 The tools are `cases`, `search`, `statements`, `board_list`, `board_show`, `board_compare`, `board_new`,
 `board_apply`, `board_current`, `board_canvas`, `board_rename`, `board_duplicate`, `board_delete`,
-`board_export`, `gets_export`, `gets_show`, `gets_apply`, `gets_take`, `gets_colour`, `turn_show`, `turn_write`, `turn_edit`, `turn_interviewer_note`, `turn_assign`, `turn_assign_undo`, `turn_trim`, `turn_trim_undo`, `import`, `audio_offset`, `audio_attach`, `quote_heading`, `transcript_replace`, `transcript_replace_undo`, `validate`, `hold`, `hold_show`, `agent_log`, `project_send`, `project_send_list`, `project_export_qdpx`, `project_open_copy`, `project_add_transcripts`, `project_boards_in`, `project_set`, `project_show`, `project_history`, `names_list`, `names_check`, `names_replace`, `names_remove`, `project_new`, `participant_rename`, `participant_complete` `participant_export`,
+`board_export`, `gets_export`, `gets_show`, `gets_apply`, `gets_take`, `gets_colour`, `turn_show`, `turn_write`, `turn_edit`, `turn_interviewer_note`, `turn_assign`, `turn_assign_undo`, `turn_trim`, `turn_trim_undo`, `import`, `audio_offset`, `audio_attach`, `quote_heading`, `transcript_replace`, `transcript_replace_undo`, `validate`, `hold`, `hold_show`, `agent_log`, `project_send`, `project_send_list`, `project_export_qdpx`, `project_open_copy`, `project_add_transcripts`, `project_boards_in`, `project_set`, `project_show`, `project_history`, `names_list`, `names_check`, `names_replace`, `names_remove`, `project_new`, `participant_rename`, `participant_complete` `participant_export`, `participant_set`, `participant_show`,
 `board_note`, `board_history`, `board_revision`, `board_restore`, `board_copy`, `board_complete`, `gets_fresh`, `gets_duplicate`,
 `gets_rename`, `gets_note`, `gets_canvas`, `gets_current`, `gets_delete`, `gets_complete`, `gets_history`,
 `gets_revision`, `gets_restore`, `gets_subs`, `gets_settings` and `gets_settings_set`,
@@ -788,9 +788,11 @@ refused when one is wrong, nothing written:
   `at`, their place in it), `order` (`participant`, `at`), `note` (`participant`, `note`, his note on why),
   `title` (`participant`, `title`), `tags` (`participant`, `tags`, the whole list), `picture`
   (`participant`, and `set`, one of `face01` to `face24`, or `from`, an image file's path, kept in the
-  project's `trajectories/pictures/`, a PNG made square and small, the one before moved to its `_Archive`,
-  or neither to take it off), and `hide` and `show` (`participant`, `lpet`, by id or title, on this screen
-  alone)
+  project's `pictures/`, a PNG made square and small, the one before moved to its `_Archive`, or neither to
+  take it off), and `hide` and `show` (`participant`, `lpet`, by id or title, on this screen alone). The label
+  and the picture are the participant's own since pbiobuild (11 November 2026), kept in the project file for
+  every screen, so `title` and `picture` here are names for `participant set`, its refusals among them, and
+  `trajectories show` reads them from there
 - `tag_colour` (`tag`, `colour`, one of the participants' 25 colours by name), the tag's colour on everyone
   who has it
 - `note_board` (`note`, his note for the whole screen, up to 2,000 characters, its lines kept, "" clearing it),
@@ -1274,8 +1276,8 @@ or `--pdf` in a TA project is refused, pointing to `gets export --word`.
 `participant rename` renames a participant as Rename on their menu on the project's page does
 (`/api/rename`): their name on the passages of each sheet of each workbook, their PETs boards at every
 timepoint, every file at the project's root that names them (the GETs, the LGETs, the Trajectories board,
-the list of names to replace and the project's file), and with `--folder` their folder and the files named
-after them too, their LPETs and their picture on Trajectories among them. Everything they had on the LGETs
+the list of names to replace and the project's file, their picture, label and pen portrait among it), and with
+`--folder` their folder and the files named after them too, their LPETs and their picture among them. Everything they had on the LGETs
 and on Trajectories stays theirs. A copy of each file it changes goes into `_Archive/` first, but the list
 of names to replace, which holds real names and is copied nowhere, and a write that fails puts back
 everything before it. The dry run lists each change, and refuses as the rename would: a name not one
@@ -1289,11 +1291,34 @@ timepoints at `--timepoint`, T1 when left out. Only the mark in the progress fil
 statements marked already keeps the first time. `cases` answers each participant's
 `statements_complete`.
 
+`participant set` (pbiobuild, 11 November 2026) sets a participant's picture, label and pen portrait, as the
+fields across their row on the project's page do (`/api/participant`), in every project, IPA and thematic
+analysis alike. `--label` is a few words, up to 60 characters, `--portrait` one short paragraph of plain text, up
+to 800, its line breaks folded into spaces, each "" to clear it. `--picture` is one of the app's drawn set,
+`set:face01` to `set:face24`, `--picture-file` an image file of his, PNG, JPEG or SVG, kept in `pictures/` at the
+project's root, made square and small, the one it replaces moved to `pictures/_Archive/`, and `--no-picture` takes
+the picture off, the initial on their colour standing in. Each left out is kept as it is. A label or pen portrait
+that holds a name from the project's list of names to replace is refused, nothing written, the refusal naming the
+list's entry by its number and never the name: never put a real name here. The demo's are fixed. One record a
+save in the project's History. `participant show` prints one participant's set, or with none named every
+participant's, and `cases` answers each participant's `label`, `portrait` and `picture`. Trajectories shows the
+same label and picture, and its `title` and `picture` ops set them. Write his approved wording only.
+
+```
+idiograph participant set Mabel --label "Pepper's keeper" --portrait "Widowed, 73, lives alone." --dry-run
+idiograph participant set Mabel --picture set:face16 --note "his words" --tool "Claude Code"
+idiograph participant set Mabel --picture-file "/Users/him/mabel.png" --note "his words"
+idiograph participant set Mabel --no-picture --note "his words"
+idiograph participant show Mabel
+```
+
 MCP's tools are `project_set` with `name`, `research_question`, `pet_labels`, `timecodes` and `method`, `project_new` with
 `folder`, `name`, `research_question`, `transcripts`, a list of `file`, `pseudonym`, `interview`, `sheet` and
-`columns`, and `speakers`, `participant_rename` with `case`, `name` and `folder`, and `participant_complete` with `case`,
-`reopen` and `timepoint`. The routes take `dry_run` too: `/api/project` with the name, the question,
-`pet_labels` or `timecodes`, `/api/new-project`'s `make`, and `/api/complete`. Make each change only on his word.
+`columns`, and `speakers`, `participant_rename` with `case`, `name` and `folder`, `participant_complete` with `case`,
+`reopen` and `timepoint`, `participant_set` with `case`, `label`, `portrait`, `picture` ("" takes it off) and
+`picture_file`, and `participant_show` with `case`, every participant when left out. The routes take `dry_run` too:
+`/api/project` with the name, the question, `pet_labels` or `timecodes`, `/api/new-project`'s `make`,
+`/api/complete` and `/api/participant`. Make each change only on his word.
 
 ## Writing
 

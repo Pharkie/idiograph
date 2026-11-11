@@ -18,7 +18,8 @@ the History and how it carries them: the GETs and the LGETs (every key and strin
 card of theirs, and the workbook's new name), the Trajectories board (where they are placed, his order of each
 trajectory and, with the folder ticked, their picture's file, named after them), the list of names to replace (an
 entry for the participant, and the pseudonym it writes when it is theirs), and the project's own file (his order of
-the participants and the note of a kept folder's new name). Every other file at a root that the code names is in
+the participants, the note of a kept folder's new name, and the participant's own picture, label and pen portrait,
+with their picture's file in `pictures/`, named after them, when the folder is ticked, pbiobuild). Every other file at a root that the code names is in
 `KEPT`, with why a rename leaves it as it is. Area 156 reads every such name in the code and fails on one in
 neither, so a new file cannot be missed.
 
@@ -39,6 +40,7 @@ from typing import Callable, NamedTuple
 import gets as gets_mod
 import i18n
 import names as names_mod
+import participants as people_mod
 import rounds as rounds_mod
 import server as srv
 import themes as themes_mod
@@ -331,25 +333,63 @@ def project_states(data: dict | None, plan: dict) -> tuple[bool, bool, bool, boo
     return in_order or plan["kept_folder"] or folder in names, in_order, noted, unnoted
 
 
-def project_line(data: dict | None, plan: dict) -> str | None:
-    """The line for the project's own file: his order of the participants when it names them, the new name noted
-    there while the folder keeps its own, or an earlier name noted there that goes."""
+def set_of(data: dict | None, plan: dict) -> str | None:
+    """The key the participant's own set, picture, label and pen portrait, is kept under in the project's file
+    (pbiobuild, `participants.py`), or None when it keeps none for them."""
+    held = (data or {}).get(people_mod.KEY)
+    return next((x for x in plan["was"] if isinstance(held, dict) and x in held), None)
+
+
+def project_line(data: dict | None, plan: dict) -> list[str] | None:
+    """The lines for the project's own file: his order of the participants when it names them, the new name noted
+    there while the folder keeps its own, or an earlier name noted there that goes, and the participant's own set
+    when it keeps one."""
     on, in_order, noted, unnoted = project_states(data, plan)
+    lines = []
     if not on:
+        pass
+    elif noted:
+        lines.append(i18n.t("server.rename.project_order_noted") if in_order else i18n.t("server.rename.project_noted"))
+    elif unnoted:
+        lines.append(i18n.t("server.rename.project_order_unnoted") if in_order else i18n.t("server.rename.project_unnoted"))
+    else:
+        lines.append(i18n.t("server.rename.project_order"))
+    if set_of(data, plan):
+        lines.append(i18n.t("server.rename.project_set"))
+    return lines or None
+
+
+def set_picture_move(root: Path, data: dict | None, plan: dict, olds, new: str) -> tuple[Path, Path] | None:
+    """The participant's own picture in the project's pictures folder (pbiobuild), named after them, and where it
+    moves with the folder ticked, or None for none, one of the set, or one whose name does not carry the pseudonym."""
+    key = set_of(data, plan)
+    name = traj_mod.picture_kept(((data or {}).get(people_mod.KEY) or {}).get(key, {}).get("picture")) if key else ""
+    if not name or name.startswith("set:"):
         return None
-    if noted:
-        return i18n.t("server.rename.project_order_noted") if in_order else i18n.t("server.rename.project_noted")
-    if unnoted:
-        return i18n.t("server.rename.project_order_unnoted") if in_order else i18n.t("server.rename.project_unnoted")
-    return i18n.t("server.rename.project_order")
+    path = people_mod.pictures_of(root) / name
+    if not path.is_file() or renamed(name, olds, "\u0000") == name:
+        return None
+    return path, path.with_name(renamed(name, olds, new))
 
 
 def project_carry(data: dict | None, plan: dict) -> dict:
-    """The project's own file: his order naming the participant by the new label, and the new name noted by the
-    folder's label while the folder keeps its own name, a name noted there before gone once the folder takes it."""
+    """The project's own file: his order naming the participant by the new label, the participant's own set kept
+    by it with their picture's file by its new name where it moves, and the new name noted by the folder's label
+    while the folder keeps its own name, a name noted there before gone once the folder takes it."""
     out = copy.deepcopy(data or {})
     if "order" in out:
         out["order"] = list(dict.fromkeys(plan["new_label"] if x in plan["was"] else x for x in order_of(out)))
+    key = set_of(out, plan)
+    if key is not None:
+        sets = out[people_mod.KEY]
+        mine = sets.pop(key)
+        for x in plan["was"]:
+            sets.pop(x, None)
+        moves = {Path(a).name: Path(b).name for a, b in plan["moves"]
+                 if Path(a).parent == people_mod.pictures_of(plan["root"])}
+        if isinstance(mine, dict) and mine.get("picture") in moves:
+            mine["picture"] = moves[mine["picture"]]
+        sets[plan["new_label"]] = mine
     kept = dict(out.get("names") or {}) if isinstance(out.get("names"), dict) else {}
     folder = srv.display_case(plan["folder"].name)
     kept.pop(folder, None)

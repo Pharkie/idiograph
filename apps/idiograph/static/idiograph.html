@@ -66,6 +66,8 @@
         <button type="button" class="ghost small hp-set" id="hp-settings">{{page_idiograph.projset.title}}</button>
       </header>
       <ul id="hp-list" class="prows"></ul>
+      <!-- Change picture... on a row's fields: his own picture for the participant (pbiobuild) -->
+      <input type="file" id="pp-picture-file" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif" hidden>
       <div class="gets-place" id="hp-gets" hidden></div>
       <div class="demo-actions" id="hp-acts">
         <button type="button" class="quiet proj-transcripts" id="hp-transcripts">{{page_idiograph.home_page.add_transcripts}}</button>
@@ -168,7 +170,8 @@
       <span class="tag demo rail-tag" id="rail-demo" hidden>{{page_idiograph.work.demo}}</span>
       <span class="ds-path-sep" aria-hidden="true">&#8250;</span>
       <button type="button" class="ds-who" id="es-who" aria-haspopup="true"
-         aria-expanded="false" title="{{page_idiograph.work.go_another_participant}}"><span class="rail-case" id="rail-case"></span><svg
+         aria-expanded="false" title="{{page_idiograph.work.go_another_participant}}"><span class="pp-barpic" id="rail-pic"
+         aria-hidden="true"></span><span class="rail-case" id="rail-case"></span><span class="pp-barlab" id="rail-label"></span><svg
          class="ds-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
          stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 4.6 6 7.6l3-3"/></svg></button>
       <span class="ds-path-sep ds-path-tp" aria-hidden="true">&#8250;</span>
@@ -631,7 +634,8 @@
       <span class="tag demo rail-tag" id="th-demo" hidden>{{page_idiograph.screens.demo}}</span>
       <span class="ds-path-sep ds-path-who" aria-hidden="true">&#8250;</span>
       <button type="button" class="ds-who" id="th-cases" aria-haspopup="true" aria-expanded="false"
-         title="{{page_idiograph.screens.go_another_participant}}"><span class="rail-case" id="th-case"></span><svg class="ds-chevron"
+         title="{{page_idiograph.screens.go_another_participant}}"><span class="pp-barpic" id="th-pic" aria-hidden="true"></span><span
+         class="rail-case" id="th-case"></span><span class="pp-barlab" id="th-label"></span><svg class="ds-chevron"
          viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
          stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 4.6 6 7.6l3-3"/></svg></button>
       <span class="ds-path-sep ds-path-tp" aria-hidden="true">&#8250;</span>

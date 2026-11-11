@@ -1617,3 +1617,82 @@ html[data-method="ta"] #tab-pets { display: none; }
 .wt-team span { display: inline-flex; align-items: center; gap: 7px; }
 .wt-team svg { width: 14px; height: 14px; flex: none; }
 .wt-team .wt-wait { color: var(--amber); }
+
+/* Each participant's picture, label and pen portrait (pbiobuild, 11 November 2026, Adam's layout A of pbiodraw's
+   proposal): on the project page's rows the picture before the name, the label under it and the pen portrait's
+   first two lines across the row, the fields typed in place across the row, in both pickers the same with two
+   lines of the portrait, and in the bars over a participant's screens the picture and the label beside the name,
+   the label giving way first. The picture is Trajectories' .tf-pic, the initial on the participant's colour where
+   there is none. */
+.pp-label { font-family: var(--serif); font-style: italic; color: var(--ink-soft); }
+.pcard .pc-head.pp-head { gap: 12px; }
+.pp-head > .pp-pic { margin: 2px 0; }
+.pp-who { display: flex; flex-direction: column; min-width: 0; flex: 0 1 auto; }
+.pp-who .pc-name { line-height: 1.25; }
+.pp-who .pp-label { font-size: 14.5px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pcard > .pp-portrait { grid-column: 2 / -1; margin: 2px 0 6px; padding: 0 0 0 56px; max-width: 62em;
+  font-family: var(--serif); font-size: 14.5px; line-height: 1.45; color: var(--ink-soft);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pcard > .pp-portrait[hidden] { display: none; }
+/* the fields across the row, the picture and its three buttons at the left, Done at the foot right */
+.pcard > .pp-edit { grid-column: 2 / -1; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px;
+  margin: 12px 16px 10px 0; padding: 14px 16px; background: var(--paper); border: 1px solid var(--rule-firm);
+  border-radius: var(--r-card); }
+.pp-edit-fields { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.pp-l { display: grid; grid-template-columns: 104px minmax(0, 1fr); align-items: center; gap: 10px; font-size: 12.5px; color: var(--ink-soft); }
+.pp-l.top { align-items: start; }
+.pp-l.top > span { padding-top: 6px; }
+.pp-edit .pp-in { width: 100%; max-width: 340px; box-sizing: border-box; padding: 5px 8px; }
+.pp-edit .pp-in-label { font-family: var(--serif); font-style: italic; }
+/* the pen portrait's box five whole lines at least, and as tall as its words (ppFit), never a line cut */
+.pp-edit textarea.pp-in { max-width: 640px; font-family: var(--serif); font-size: 14.5px; line-height: 1.45; resize: vertical;
+  min-height: calc(5 * 1.45em + 12px); overflow-y: hidden; }
+.pp-faces { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 0 114px; }
+.pp-foot { display: flex; justify-content: flex-end; }
+/* in a narrower window the picture and its buttons go over the fields, as Trajectories' editor does, and a row's
+   picture is smaller and the statements half gives a little room to the name and to PETs, so at 720 the name and
+   "in GETs" both stay whole */
+@media (min-width: 560px) and (max-width: 900px) {
+  .prows:has(> .pcard .pp-head) { grid-template-columns: 26px minmax(8em, 1fr) minmax(0, 1.08fr) minmax(0, 1.22fr); }
+}
+@media (max-width: 900px) {
+  .pcard .pp-head > .pp-pic { width: 34px !important; height: 34px !important; font-size: 14px !important; }
+  .pcard .pc-head.pp-head { gap: 9px; }
+  .pcard > .pp-portrait { padding-left: 43px; }
+  .pcard > .pp-edit { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .pp-edit .tf-edit-pic { flex-direction: row; justify-content: flex-start; }
+  .pp-edit .tf-edit-picb { flex-direction: row; flex-wrap: wrap; }
+}
+@media (max-width: 559px) {
+  .pcard > .pp-portrait { grid-column: 2; padding-left: 0; }
+  .pcard > .pp-edit { grid-column: 2; grid-template-columns: minmax(0, 1fr); margin-right: 0; }
+  .pp-l { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .pp-faces { margin-left: 0; }
+}
+/* the pickers: each participant's picture, name, label and the portrait's first two lines */
+.pp-mi { display: flex; flex-direction: column; gap: 2px; min-width: 0; text-align: left; white-space: normal; }
+.pp-mi .pp-mname { font-size: 14px; color: var(--ink); }
+.pp-mi .pp-label, .th-casemenu.pp-menu .pp-label { font-size: 13.5px; }
+.pp-mi .pp-bio, .th-casemenu.pp-menu .pp-bio { font-family: var(--serif); font-size: 12.5px; line-height: 1.4; color: var(--ink-soft);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ds-whomenu.pp-menu { width: min(600px, calc(100vw - 16px)); max-width: min(600px, calc(100vw - 16px)); }
+.ds-whomenu.pp-menu .ds-who-item { align-items: flex-start; }
+.ds-whomenu.pp-menu button.ghost.ds-who-row { grid-template-columns: 1em 32px minmax(0, 1fr); align-items: start; gap: 10px;
+  padding-top: 8px; padding-bottom: 8px; }
+.ds-whomenu.pp-menu .tp-tick { padding-top: 7px; }
+.ds-whomenu.pp-menu .ds-who-window { margin-top: 6px; }
+.th-casemenu.pp-menu { width: min(36em, calc(100vw - 16px)); }
+.th-casemenu.pp-menu .th-vitem > .pp-pic { margin-top: 1px; }
+/* the bars: the picture before the name and the label after it, the label giving way first */
+.pp-barpic { display: inline-flex; flex: none; }
+.pp-barpic[hidden], .pp-barlab[hidden] { display: none; }
+.pp-barlab { flex: 0 1000 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: var(--serif); font-style: italic; font-size: 14.5px; color: var(--ink-soft); }
+.pp-barlab::before { content: "\00B7"; font-style: normal; color: var(--ink-faint); margin: 0 7px 0 1px; }
+@media (max-width: 899px) { .pp-barlab { display: none; } }
+/* the GETs' and LGETs' Participants panel: the picture beside the name, the label under it */
+.pp-gwho { display: flex; flex-direction: column; align-items: flex-start; gap: 0; min-width: 0; text-align: left; }
+.pp-gwho .gt-cname { max-width: 100%; line-height: 1.3; }
+.pp-gwho .pp-glabel { margin: 0; font-size: 13px; line-height: 1.25; max-width: 100%; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; }
+.gt-fold > .pp-pic { margin: 1px 0; }
