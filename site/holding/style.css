@@ -165,7 +165,6 @@ main.fp {
   padding: 8px var(--gutter) 64px;
 }
 .fp h1 { font: 400 clamp(34px, 3vw + 18px, 46px)/1.15 var(--serif); margin: 28px 0 10px; letter-spacing: -0.01em; }
-.fp-intro { font: 400 clamp(17px, 0.5vw + 14px, 20px)/1.55 var(--serif); color: var(--ink-soft); margin: 0; max-width: 34em; }
 .fp [hidden] { display: none !important; }
 
 .fp .find { margin: 28px 0 0; display: none; }
