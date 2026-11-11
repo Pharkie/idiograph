@@ -33,7 +33,7 @@ The pictures show the demo's invented interviews.
 
 1. **Human first, AI assisted.** The analyst makes every decision. The AI suggests a statement, a board or three titles, each to be weighed, taken, changed or ignored. It is always the assistant, never the author.
 
-2. **Your files, your machine.** It writes into the Excel workbook you already use, plain files beside it that any tool can read. Privacy first and built for GDPR: participant data never leaves your machine unless you send a passage to an AI model. No account, no subscription. The AI features are the one running cost, pay as you go on your own key, or none at all with a local model.
+2. **Your files, your machine.** It writes into the Excel workbook you already use, the table supervisors read, always current, beside plain files any tool opens. Privacy first and built for GDPR: participant data never leaves your machine unless you send a passage to an AI model. No account, no subscription. The AI features are the one running cost, pay as you go on your own key, or none at all with a local model.
 
 3. **IPA by the book.** Built on the method's phenomenological, hermeneutic and idiographic ground, every default set by its key literature: Smith, Flowers and Larkin's steps, vocabulary and tables, one participant in depth before the next. Personal habits are settings, never defaults.
 

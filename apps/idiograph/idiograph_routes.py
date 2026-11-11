@@ -1559,12 +1559,13 @@ def case_payload(path: Path) -> dict:
     }
 
 
-def refresh_summary(path: Path) -> dict:
+def refresh_summary(path: Path, sheets: list | None = None) -> dict:
     """The summary the page redraws from. Beside the case's figures it carries every sheet's,
     `sheetRounds` with the rounds done, left and the minutes left on each, and `sheetsDone` and
-    `sheetsLeft` for the case, so the round-done card counts the sheet it closed a round on."""
+    `sheetsLeft` for the case, so the round-done card counts the sheet it closed a round on.
+    `sheets`, from a save that has just written the workbook (`workbook.outline_of`), spares reading it again."""
     cfg = srv.config()
-    case = wb_mod.read_case(path)
+    case = {"sheets": sheets} if sheets is not None else wb_mod.read_case(path)
     rnds = rounds_mod.build_rounds(case["sheets"], cfg["round_minutes"], cfg["interviewer"])
     progress = rounds_mod.load_progress(path)
     return summary_of(path, case, progress, rnds, cfg)
@@ -6250,9 +6251,11 @@ def api_commit(body: dict) -> dict:
         try:
             result = wb_mod.save_turn(path, body["sheet"], int(body["row"]),
                                       body.get("es"), body.get("en"), body.get("kq"), pairs=pairs,
-                                      was=None if was is None else str(was))
+                                      was=None if was is None else str(was), outline=True)
         except wb_mod.StaleTurn as exc:
             return {"error": str(exc), "stale": exc.now, "status": 409}
+        # the counts below come from the workbook as just saved, never a second read of it (savespeed)
+        outline = result.pop("outline")
         moved = result.pop("statements", None)
         edits = themes_mod.reworded(moved["before"], moved["after"]) if moved else {}
         if edits:
@@ -6295,7 +6298,7 @@ def api_commit(body: dict) -> dict:
                                                            themes_mod.now_iso())
         except (WorkbookError, OSError):
             pass
-    result["progress"] = refresh_summary(path)
+    result["progress"] = refresh_summary(path, outline)
     result["state"] = progress["rows"][key]
     return result
 

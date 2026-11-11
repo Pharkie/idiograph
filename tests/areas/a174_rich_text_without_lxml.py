@@ -336,6 +336,30 @@ def drive(fixtures: str, out: str) -> None:
     wb_mod.create_from_source(folder / "Source" / SOURCE, folder / "Made - EN & ES.xlsx")
     book = case("added")
     wb_mod.add_from_source(book.parent / "Source" / SOURCE, [ADDED], book)
+    # the one-pass save every path above makes (savespeed, 11 November 2026) against openpyxl's own save and the
+    # shared-strings pass after it: every part the same bytes, in the same order, the times apart (the fixture names
+    # no time it was made, so each load gives it its own)
+    import shared_strings
+    folder = case("onepass").parent
+    stamp = re.compile(rb"<dcterms:(created|modified)[^>]*>[^<]*</dcterms:\1>")
+
+    def parts(path):
+        with zipfile.ZipFile(path) as z:
+            return [(i.filename, i.compress_type, stamp.sub(b"", z.read(i.filename))) for i in z.infolist()]
+
+    apart = []
+    for name in (BOOK, f"Source/{SOURCE}"):
+        two, one = folder / "two.xlsx", folder / "one.xlsx"
+        wb = openpyxl.load_workbook(folder / name, rich_text=True)
+        wb.save(two)
+        shared_strings.convert(two)
+        wb.close()
+        wb = openpyxl.load_workbook(folder / name, rich_text=True)
+        shared_strings.save(wb, one)
+        wb.close()
+        a, b = parts(two), parts(one)
+        apart += [name] if len(a) != len(b) else [f"{name}: {x[0]}" for x, y in zip(a, b) if x != y]
+    answers["one_pass"] = apart
     (out / "answers.json").write_text(json.dumps(answers), encoding="utf-8")
 
 
@@ -485,6 +509,14 @@ def test_rich_text_without_lxml(scratch):
              if child.returncode == 0 else [child.stderr.strip()[-300:]])
     check("174: with Windows's line endings in et_xmlfile's text mode, every save path writes each line feed as a "
           "line feed, the same shared strings and cells as the shipped writer elsewhere", not apart, str(apart))
+
+    # the one-pass save (savespeed, 11 November 2026), on the fixture and its raw source, part by part
+    said = {where: json.loads((folder / "answers.json").read_text(encoding="utf-8")).get("one_pass")
+            for where, folder in (("shipped", shipped), ("here", here), ("windows", windows))
+            if (folder / "answers.json").exists()}
+    check("174: the one-pass save writes every part byte for byte as openpyxl's own save and the shared-strings pass "
+          "after it did, on the shipped writer, on this Python's own and with Windows's line endings",
+          len(said) == 3 and all(v == [] for v in said.values()), str(said))
 
     # the highlight run as the build script and the demo write it comes out byte for byte the same
     with zipfile.ZipFile(path_of(shipped, "save")) as z:

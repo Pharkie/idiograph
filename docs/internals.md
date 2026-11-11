@@ -1962,6 +1962,15 @@ and a reply on PETs are sent whole (see Known gaps).
 
 ## How the workbook is written
 
+**Why the workbook is the store** (Adam's ruling of 11 November 2026, after storeeval's evaluation). The
+transcript, the exploratory notes and the statements live in the participant's Excel workbook, not in a file
+of Idiograph's own, for three reasons: it is the IPA table supervisors and examiners read, it opens in Excel
+with no Idiograph at all, and it is current at every save, with no export step to forget. The cost is a save
+of under a tenth of a second at 600 passages (savespeed's figures below). It would change, to a native file per participant
+with the workbook as an export, if workbooks well past 2,000 passages became usual, if Working together
+needed two people on one participant at once, if testers lost work to Excel's lock or a format fault, or if
+Adam decided that for 1.0 the workbook is an export and not the record.
+
 Every save takes the same path, in `workbook.py`:
 
 1. Refuse if `~$<name>.xlsx` sits beside the workbook.
@@ -1981,9 +1990,14 @@ Every save takes the same path, in `workbook.py`:
    takes a note, its heading in the first empty header cell after the last used one, G in the
    standard layout, in the header font and 42 wide, and found by its header on every read after
    that, wherever it sits.
-4. Save to a temp file in the same directory.
+4. Have openpyxl write the workbook into memory, nothing packed (`shared_strings.save`, its
+   `ExcelWriter` run as openpyxl's own `save_workbook` runs it).
 5. Convert the inline strings openpyxl writes into a shared-strings part, the way Excel writes
-   them (`shared_strings.py`). Excel for Mac rejected a workbook with inline rich text on
+   them (`shared_strings.share`), check every XML part with expat and pack the file once into a temp
+   file in the same directory, its CRCs checked after (`shared_strings.pack`). Until savespeed (11
+   November 2026) openpyxl packed the file to disk, the pass read it back, packed it again and checked
+   it by building a minidom tree of every part, about half of a save's time. The parts are byte for byte
+   what that wrote, which area 174 holds on both writers. Excel for Mac rejected a workbook with inline rich text on
    19 September 2026, which is why this step exists. Since 17 October each string is set out as
    Excel writes it, so the shared strings are the same bytes whether openpyxl wrote with lxml or
    with ElementTree: an empty element with no space before its slash, a character past ASCII as
@@ -1995,6 +2009,17 @@ Every save takes the same path, in `workbook.py`:
    the body colour, Georgia in black, gained it on every save, which marks the run to Excel as one
    in the workbook's body font.
 6. `os.replace` over the original.
+
+**What a save costs** (savespeed, 11 November 2026). `/api/commit` answers the page's counts from the
+workbook it has just saved, `save_turn(..., outline=True)` handing `workbook.outline_of` of it to
+`refresh_summary`, each passage's sheet, row, speaker, seconds, statements and other speaker's mark read as
+`read_case` reads them, so a commit no longer reads the whole file a second time (area 58 holds the counts
+the same as a fresh read's). Median of five on the evaluation's invented workbooks, on Adam's Mac, before
+and after: a statement saved 140 to 74 ms at 600 passages and 512 to 231 ms at 2,000, the whole commit 179
+to 83 ms and 608 to 242 ms, a correction 138 to 77 ms and 505 to 231 ms, Replace all there and back 360 to
+195 ms and 1,144 to 562 ms. Opening is unchanged, 33 and 101 ms. `shared_strings.normalise_string`
+runs each of its passes only on a string holding what that pass looks for, and `edged` looks at a run's two
+ends where a pattern ending in `$` had been tried at every character.
 
 **A statement and its quote.** Column C holds the statements and column F the quotes, each
 cell's entries separated by a blank line, and the two pair by place: the first quote is the first
@@ -7531,7 +7556,7 @@ several, which is remade by hand.
 | `apps/idiograph/idiograph_routes.py`, `idiograph_cli.py`, `idiograph_mcp.py`, `idiograph_find.py`, `idiograph_main.py`, `statement_prompts.py` | Idiograph's routes, its commands, its tools, its part of Search, its entry and its statements prompt, each registered with the family's module (see The family's folders). |
 | `apps/idiograph/workbook.py` | The files this process wrote (`WRITTEN`, `note_written`, `written_here`, `still_written`, 20 October). Reading, writing, rich text, create-from-source, correcting a turn and its timecode, trimming the ends and putting them back, assigning words to another speaker and putting them back, the lock guard. |
 | `convert.py` | A transcript in another shape read into turns, VTT, SRT, plain text, CSV, Excel and Word, the column, speaker and interviewer guesses, the interview's name guessed from a file's, and the raw source written from it, one sheet or a sheet an interview. The standard library and openpyxl only. |
-| `apps/idiograph/shared_strings.py` | The inline-to-shared-strings conversion Excel needs, each string set out as Excel writes it, the same bytes whichever XML writer openpyxl used (17 October). Ported from a study folder's own script, `xlsx_inline_to_shared_strings.py`, which has not yet taken the 17 October change. |
+| `apps/idiograph/shared_strings.py` | The inline-to-shared-strings conversion Excel needs, each string set out as Excel writes it, the same bytes whichever XML writer openpyxl used (17 October), and since savespeed (11 November) every save of the app in one pass, `save`, openpyxl's write in memory, the conversion and one packing. Ported from a study folder's own script, `xlsx_inline_to_shared_strings.py`, which has not yet taken the 17 October change. |
 | `apps/idiograph/rounds.py` | Rounds, row state, the sidecar, pace, the one re-key for rows inserted and deleted, the trim and assignment records and their undo, the daily target and the streak, and the mark that the phase is complete, set and cleared with nothing else written. |
 | `apps/idiograph/nudges.py` | The live nudges, from `ipa_annotation_audit.py`. |
 | `apps/idiograph/corpus.py` | The examples panel and the prompt's `{examples}`: the two pools, and the demo's statements when neither is there. |

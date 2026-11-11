@@ -37,12 +37,23 @@ read used to fold the pair back into a line feed, but since the carriage return 
 above, each save on Windows put one more carriage return before every line feed in every cell of
 several lines. `keep_line_feeds` below opens that path in binary mode, which writes the words as they
 are on every system, and it is in place as soon as this module is imported.
+
+One pass, not two (savespeed, 11 November 2026). The app's own saves go through `save`, which has
+openpyxl write the workbook into memory unpacked, makes the same parts `convert` makes, checks each
+XML part with the standard library's expat (the parser minidom itself is built on, without the tree)
+and packs the file once. The parts are byte for byte what openpyxl's save and then `convert` wrote, so
+Excel for Mac, LibreOffice and openpyxl read the same file as before. It cut a statement save's time
+by about half: the old way packed every part twice, read the file back twice and built a whole
+document tree of every part to check it.
 """
 import contextlib
+import datetime
+import io
 import os
 import re
 import shutil
 import sys
+import xml.parsers.expat
 import zipfile
 from pathlib import Path
 
@@ -53,8 +64,8 @@ EMPTY = re.compile(r'<([\w:]+)((?:\s+[\w:]+="[^"]*")*)\s+/>')
 # a character reference, which lxml writes for every character past ASCII
 CHARREF = re.compile(r"&#(?:([0-9]+)|x([0-9a-fA-F]+));")
 TEXT = re.compile(r"<t(\s[^>]*)?>(.*?)</t>", re.S)
-# a space, a tab, a line feed or a carriage return at either end of a run's words, written or as a reference
-EDGE = re.compile(r"^(?:\s|&#(?:9|10|13|x9|xA|xD);)|(?:\s|&#(?:9|10|13|x9|xA|xD);)$")
+# a tab, a line feed or a carriage return as a reference, at either end of a run's words (see `edged`)
+EDGE_REFS = ("&#9;", "&#10;", "&#13;", "&#x9;", "&#xA;", "&#xD;")
 # the theme's body font, in the theme part openpyxl writes or keeps
 THEME_BODY = re.compile(r'<(?:\w+:)?minorFont>\s*<(?:\w+:)?latin typeface="([^"]*)"', re.S)
 SS_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"
@@ -128,21 +139,33 @@ def _character(m: "re.Match[str]") -> str:
     return chr(code)
 
 
+def edged(text: str) -> bool:
+    """Whether a run's words begin or end with a space of any kind (what `\\s` matches, `str.isspace`), or a
+    tab, a line feed or a carriage return written as a reference. Only the two ends are looked at, where a
+    pattern ending in `$` was tried at every character of the words (savespeed, 11 November 2026)."""
+    return bool(text) and (text[0].isspace() or text[-1].isspace()
+                           or text.startswith(EDGE_REFS) or text.endswith(EDGE_REFS))
+
+
 def _words(m: "re.Match[str]") -> str:
     """One `<t>` as Excel writes it: a carriage return as `&#13;`, and `xml:space="preserve"` on
     words with a space at either end."""
     attrs, text = m.group(1) or "", m.group(2).replace("\r", "&#13;")
-    if EDGE.search(text) and "xml:space=" not in attrs:
+    if edged(text) and "xml:space=" not in attrs:
         attrs += ' xml:space="preserve"'
     return f"<t{attrs}>{text}</t>"
 
 
 def normalise_string(body: str, font: str = "Calibri") -> str:
     """One string's XML, plain or rich, set out as Excel writes it, the same whichever writer made
-    it (see the module's head), `font` the theme's body font."""
-    body = EMPTY.sub(r"<\1\2/>", body)
-    body = CHARREF.sub(_character, body)
-    body = RPR.sub(lambda r: normalise_rpr(r.group(1), font), body)
+    it (see the module's head), `font` the theme's body font. Each pass runs only on a string that
+    holds what it looks for, which leaves its result as it was and spares most cells three of the four."""
+    if "/>" in body:
+        body = EMPTY.sub(r"<\1\2/>", body)
+    if "&#" in body:
+        body = CHARREF.sub(_character, body)
+    if "<rPr>" in body:
+        body = RPR.sub(lambda r: normalise_rpr(r.group(1), font), body)
     return TEXT.sub(_words, body)
 
 
@@ -150,11 +173,61 @@ def convert(path: Path, check: bool = False) -> int:
     """Rewrite `path` in place. Returns the number of cells converted."""
     path = Path(path)
     with zipfile.ZipFile(path) as z:
-        names = z.namelist()
-        parts = {n: z.read(n) for n in names}
+        parts = {n: z.read(n) for n in z.namelist()}
+    converted = share(parts, check)
+    if not converted or check:
+        return converted
+    tmp = path.with_suffix(".sharedstrings.tmp.xlsx")
+    try:
+        pack(parts, tmp)
+        shutil.move(str(tmp), str(path))
+    finally:
+        if tmp.exists():
+            tmp.unlink()
+    return converted
+
+
+def save(wb, path: Path) -> int:
+    """`wb` written to `path` with its strings shared, the same parts `wb.save(path)` and then `convert(path)`
+    wrote, in one pass (see the module's head): openpyxl's own writer, as `openpyxl.writer.excel.save_workbook`
+    runs it, into memory with nothing packed, then `share` and `pack`. Returns the number of cells converted."""
+    from openpyxl.writer.excel import ExcelWriter
+    path = Path(path)
+    if wb.read_only or wb.write_only:
+        wb.save(path)
+        return convert(path)
+    buffer = io.BytesIO()
+    # what save_workbook sets before it writes, the time the file was last changed
+    wb.properties.modified = datetime.datetime.now(tz=datetime.timezone.utc).replace(tzinfo=None)
+    ExcelWriter(wb, zipfile.ZipFile(buffer, "w", zipfile.ZIP_STORED, allowZip64=True)).save()
+    with zipfile.ZipFile(buffer) as z:
+        parts = {n: z.read(n) for n in z.namelist()}
+    converted = share(parts)
+    pack(parts, path)
+    return converted
+
+
+def pack(parts: dict, path: Path) -> None:
+    """The parts packed into `path` in their order, each XML part checked first by expat, so a part
+    that is not well formed raises with nothing written, and the file checked after by its CRCs."""
+    for n, data in parts.items():
+        if n.endswith(".xml") or n.endswith(".rels"):
+            xml.parsers.expat.ParserCreate(namespace_separator=" ").Parse(data, True)
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as out:
+        for n, data in parts.items():
+            out.writestr(n, data)
+    with zipfile.ZipFile(path) as z:
+        if z.testzip() is not None:
+            raise zipfile.BadZipFile(f"{path.name} did not pack whole")
+
+
+def share(parts: dict, check: bool = False) -> int:
+    """The inline strings of `parts`, a workbook's parts by name in their order, moved into a shared-strings
+    part as the module's head sets out, in place. A workbook that already shares its strings is left
+    alone. With `check` the parts are counted and left as they were. Returns the number of cells converted."""
     if "xl/sharedStrings.xml" in parts:
         return 0
-
+    names = list(parts)
     strings: list[str] = []
     index: dict[str, int] = {}
 
@@ -166,8 +239,9 @@ def convert(path: Path, check: bool = False) -> int:
 
     converted = 0
     font = body_font(parts)
+    sheets: dict[str, bytes] = {}
     for name in [n for n in names if n.startswith("xl/worksheets/sheet")]:
-        xml = parts[name].decode("utf-8")
+        text = parts[name].decode("utf-8")
 
         def repl(m: "re.Match[str]") -> str:
             nonlocal converted
@@ -176,12 +250,13 @@ def convert(path: Path, check: bool = False) -> int:
             converted += 1
             return f'<c{before} t="s"{after}><v>{intern(body)}</v></c>'
 
-        new = CELL.sub(repl, xml)
-        if new != xml:
-            parts[name] = new.encode("utf-8")
+        new = CELL.sub(repl, text)
+        if new != text:
+            sheets[name] = new.encode("utf-8")
 
     if not converted or check:
         return converted
+    parts.update(sheets)
 
     si = "".join(f"<si>{b}</si>" for b in strings)
     parts["xl/sharedStrings.xml"] = (
@@ -202,19 +277,6 @@ def convert(path: Path, check: bool = False) -> int:
         rid = max(used) + 1 if used else 1
         rels = rels.replace("</Relationships>", f'<Relationship Id="rId{rid}" Type="{SS_REL}" Target="sharedStrings.xml"/></Relationships>')
         parts[rels_name] = rels.encode("utf-8")
-
-    tmp = path.with_suffix(".sharedstrings.tmp.xlsx")
-    with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as out:
-        for n in list(parts):
-            out.writestr(n, parts[n])
-    # verify before replacing the original
-    with zipfile.ZipFile(tmp) as z:
-        assert z.testzip() is None
-        import xml.dom.minidom as md
-        for n in z.namelist():
-            if n.endswith(".xml") or n.endswith(".rels"):
-                md.parseString(z.read(n))
-    shutil.move(str(tmp), str(path))
     return converted
 
 

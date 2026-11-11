@@ -32,7 +32,7 @@ from openpyxl.styles.cell_style import StyleArray
 from openpyxl.styles.colors import Color
 from openpyxl.utils import get_column_letter
 
-import shared_strings  # noqa: F401  keeps a line feed a line feed on Windows, before any save
+import shared_strings  # keeps a line feed a line feed on Windows, before any save, and makes every save
 # the family's one error, by the name every module here has always caught it by (family/errors.py)
 import i18n
 import locks
@@ -722,17 +722,9 @@ def read_case(path: Path, form: str | None = None) -> dict:
     guard_lock(path)
     wb = openpyxl.load_workbook(path, rich_text=True)
     sheets = []
-    for ws in wb.worksheets:
-        cols = detect_columns(ws)
-        if not {"name", "ts", "transcript"} <= set(cols):
-            continue
+    for ws, cols in _passage_sheets(wb):
         rows = []
-        for r in range(2, ws.max_row + 1):
-            name = ws.cell(r, cols["name"]).value
-            tval = ws.cell(r, cols["ts"]).value
-            dval = ws.cell(r, cols["transcript"]).value
-            if name is None and tval is None and dval is None:
-                continue
+        for r, name, tval, dval in _passages(ws, cols):
             es_value = ws.cell(r, cols["es"]).value if "es" in cols else None
             kq_value = ws.cell(r, cols["kq"]).value if "kq" in cols else None
             rows.append({
@@ -759,6 +751,43 @@ def read_case(path: Path, form: str | None = None) -> dict:
         sheets.append({"name": ws.title, "columns": cols, "rows": rows})
     wb.close()
     return {"path": str(path), "name": path.stem, "sheets": sheets}
+
+
+def _passage_sheets(wb):
+    """Each sheet `read_case` reads, one with a name, a timestamp and a transcript column, with its columns."""
+    for ws in wb.worksheets:
+        cols = detect_columns(ws)
+        if {"name", "ts", "transcript"} <= set(cols):
+            yield ws, cols
+
+
+def _passages(ws, cols):
+    """Each row of a sheet `read_case` reads as a passage, its number with its name, timestamp and transcript
+    values, a row with all three empty left out."""
+    for r in range(2, ws.max_row + 1):
+        name = ws.cell(r, cols["name"]).value
+        tval = ws.cell(r, cols["ts"]).value
+        dval = ws.cell(r, cols["transcript"]).value
+        if name is None and tval is None and dval is None:
+            continue
+        yield r, name, tval, dval
+
+
+def outline_of(wb) -> list[dict]:
+    """The sheets of a workbook already open as the counts read them (`rounds.build_rounds` and
+    `rounds.summary`): each passage's sheet, row, speaker, seconds, statements and whether it is another
+    speaker's, read exactly as `read_case` reads them, and nothing else. A save hands it back from the workbook
+    it has just written, so the page's counts come without reading the file a second time (savespeed, 11
+    November 2026)."""
+    sheets = []
+    for ws, cols in _passage_sheets(wb):
+        rows = [{"sheet": ws.title, "row": r, "name": (str(name).strip() if name is not None else ""),
+                 "seconds": ts_seconds(tval),
+                 "es": field_to_lines(ws.cell(r, cols["es"]).value if "es" in cols else None),
+                 "context": bool("ctx" in cols and str(ws.cell(r, cols["ctx"]).value or "").strip())}
+                for r, name, tval, _dval in _passages(ws, cols)]
+        sheets.append({"name": ws.title, "rows": rows})
+    return sheets
 
 
 # ------------------------------------------------------------------ writing
@@ -822,9 +851,8 @@ def _atomic_save(wb, path: Path) -> None:
     boards_pass_check(path)
     tmp = path.with_name(f".{path.stem}.idiograph.tmp.xlsx")
     try:
-        wb.save(tmp)
-        from shared_strings import convert
-        convert(tmp)
+        # openpyxl's write and the shared strings in one pass, the file packed once (savespeed, 11 November 2026)
+        shared_strings.save(wb, tmp)
         os.replace(tmp, path)
         note_written(path)
     finally:
@@ -833,7 +861,7 @@ def _atomic_save(wb, path: Path) -> None:
 
 
 def save_turn(path: Path, sheet: str, row: int, es: str, en: str, kq: str, pairs=None,
-              was: str | None = None) -> dict:
+              was: str | None = None, outline: bool = False) -> dict:
     """Write the three annotation cells of one row. Nothing else in the workbook is touched.
 
     With `pairs`, each a statement and its key quote, the statements and the quotes are written
@@ -844,7 +872,10 @@ def save_turn(path: Path, sheet: str, row: int, es: str, en: str, kq: str, pairs
     `was` is the version the writer last read (see `passage_version`). When the cells hold another
     now and the save would change any of them, it raises `StaleTurn` with nothing written, so a
     second window or an agent never writes over words it has not seen. A save that changes nothing
-    is answered as ever."""
+    is answered as ever.
+
+    With `outline` the answer carries the workbook's sheets as the counts read them, `outline`, taken
+    from the workbook as saved (see `outline_of`), for the page's counts without a second read."""
     path = Path(path)
     guard_lock(path)
     wb = openpyxl.load_workbook(path, rich_text=True)
@@ -888,12 +919,15 @@ def save_turn(path: Path, sheet: str, row: int, es: str, en: str, kq: str, pairs
     if changed:
         _atomic_save(wb, path)
     es_now, en_now, kq_now = held("es"), held("en"), held("kq")
+    sheets = outline_of(wb) if outline else None
     wb.close()
     out = {"row": row, "sheet": sheet, "written": written, "changed": changed,
            "pairs": pairs_of(es_now, kq_now), "unpaired": unpaired(es_now, kq_now),
            "v": passage_version(es_now, en_now, kq_now)}
     if es_was is not None:
         out["statements"] = {"before": es_was, "after": split_entries(es_now)}
+    if sheets is not None:
+        out["outline"] = sheets
     return out
 
 

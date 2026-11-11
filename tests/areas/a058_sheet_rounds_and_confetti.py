@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 import shutil
 
+import openpyxl
+
 import rounds as rounds_mod
 import workbook as wb_mod
 
@@ -114,6 +116,44 @@ def test_sheet_rounds_and_confetti(scratch):
               answer["recorded"] and str(on_second["number"]) in after["rounds"] and "1" in after["rounds"]
               and after["rounds"]["1"] == legacy["rounds"]["1"] and on_second["on_sheet"] == 1
               and on_second["number"] > 1, f"round {on_second['number']}, first on the 2d sheet")
+
+        # ── savespeed (11 November 2026): a save's counts come from the workbook it has just written, exactly
+        # what reading the file again gives, on two sheets with another speaker's turn, and the file is not read again
+        quick = demo_copy(root, "Counts", "Juno - EN & ES.xlsx")
+        copied_second_sheet(quick)
+        book = openpyxl.load_workbook(quick, rich_text=True)
+        ws = book["2d"]
+        ctx = ws.max_column + 1
+        ws.cell(1, ctx).value = wb_mod.CONTEXT_HEADER
+        theirs = [r for r in range(2, ws.max_row + 1) if ws.cell(r, 1).value == her]
+        ws.cell(theirs[1], ctx).value = "Beekeeper next door"
+        wb_mod._atomic_save(book, quick)
+        book.close()
+        reads, kept = [], wb_mod.read_case
+        steps = ({"sheet": "2d", "row": theirs[0], "es": "Watching the hive door at dawn", "en": "", "kq": ""},
+                 {"sheet": DEMO_SHEET, "row": theirs[2]},
+                 {"sheet": "2d", "row": theirs[0], "es": "", "en": "", "kq": ""})
+        apart = []
+        for body in steps:
+            wb_mod.read_case = lambda *a, **k: reads.append(a) or kept(*a, **k)
+            try:
+                said = idiograph_routes.api_commit(dict(body, path=str(quick)))
+            finally:
+                wb_mod.read_case = kept
+            fresh = idiograph_routes.refresh_summary(quick)
+            if said["progress"] != fresh:
+                apart.append({k: (said["progress"].get(k), fresh.get(k)) for k in fresh
+                              if said["progress"].get(k) != fresh.get(k)})
+        wb = openpyxl.load_workbook(quick, rich_text=True)
+        outline = wb_mod.outline_of(wb)
+        wb.close()
+        keys = ("sheet", "row", "name", "seconds", "es", "context")
+        read = [{"name": s["name"], "rows": [{k: r[k] for k in keys} for r in s["rows"]]}
+                for s in wb_mod.read_case(quick)["sheets"]]
+        check("savespeed: a statement saved, a passage skipped and a statement cleared each answer the counts a fresh "
+              "read of the workbook gives, another speaker's turn among them, without reading the workbook again",
+              not apart and not reads and outline == read and any(r["context"] for s in read for r in s["rows"]),
+              f"{json.dumps(apart)[:600]} {len(reads)} reads")
     finally:
         server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = saved
 
