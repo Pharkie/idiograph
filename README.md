@@ -2,7 +2,7 @@
 
 [![A few seconds of Idiograph's film](docs/images/film-preview.webp)](https://idiograph.app)
 
-Idiograph is an app for Interpretative Phenomenological Analysis (IPA) and reflexive thematic analysis,
+Idiograph is an app for Interpretative Phenomenological Analysis (IPA),
 for researchers who analyse their interviews themselves and want a place made for the method. It runs
 on your own computer, a Mac, Windows or Linux.
 
@@ -27,7 +27,7 @@ checks each claim a manuscript makes against its reference.
 
 The pictures show the demo's invented interviews.
 
-> ⚠️ This is an early preview, a proof of concept to explore what software for IPA and thematic analysis can be. It has not been fully tested or reviewed, so please don't rely on it for anything important: your data could be damaged or lost, so keep copies of your work. It is not yet a replacement for the software you use day to day. Tell me what you think with the bug button or by email. Please keep it to yourself for now: don't share it or post about it.
+> ⚠️ This is an early preview, a proof of concept to explore what software for IPA can be. It has not been fully tested or reviewed, so please don't rely on it for anything important: your data could be damaged or lost, so keep copies of your work. It is not yet a replacement for the software you use day to day. Tell me what you think with the bug button or by email. Please keep it to yourself for now: don't share it or post about it.
 
 ## Three principles
 

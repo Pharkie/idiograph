@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Idiograph</title>
-<meta name="description" content="Idiograph is free, open-source software for Interpretative Phenomenological Analysis and reflexive thematic analysis, for Mac, Windows and Linux. A Preview.">
+<meta name="description" content="Idiograph is free, open-source software for Interpretative Phenomenological Analysis, for Mac, Windows and Linux. A Preview.">
 <meta name="robots" content="noindex">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#FBF7EF" media="(prefers-color-scheme: light)">
@@ -13,6 +13,7 @@
 <link rel="icon" href="favicon.png" type="image/png" sizes="32x32">
 <link rel="stylesheet" href="style.css">
 <script>
+document.documentElement.classList.add('js');
 try {
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('home-mark-due');
 } catch (e) { }
@@ -29,14 +30,45 @@ try {
 <main>
   <h1 class="wordmark"><span class="pe"><svg class="lockup" viewBox="0 0 107.33 15" role="img" aria-label="Idiograph" fill="none"><use href="#idiograph" width="15" height="15"/><path transform="translate(19.2 12.5)" stroke="currentColor" stroke-width="1.3" stroke-linecap="square" stroke-linejoin="miter" d="M0.65 -9.35V-0.65M5.35 -0.65V-9.35H8.3A4.35 4.35 0 0 1 8.3 -0.65ZM16.95 -9.35V-0.65M21.65 -5a4.35 4.35 0 1 0 8.7 0a4.35 4.35 0 1 0 -8.7 0M41.93 -7.91A4.35 4.35 0 1 0 43.05 -5H39.5M47.35 -0.65V-9.35H50.9A2.17 2.17 0 0 1 50.9 -5H47.35M50.7 -5L54.3 -0.65M58.15 -0.65L62.1 -9.35L66.05 -0.65M59.8 -3.4H64.4M70.15 -0.65V-9.35H73.5A2.38 2.38 0 0 1 73.5 -4.6H70.15M80.18 -9.35V-0.65M87.47 -9.35V-0.65M80.18 -5H87.47"/></svg><span class="pe-stamp">Preview Edition</span></span></h1>
 
-  <video class="film" controls playsinline preload="none" poster="film-poster.jpg" width="1920" height="1080">
-    <source src="idiograph-film.mp4" type="video/mp4">
-    <a href="idiograph-film.mp4">Watch the film (65 seconds)</a>
-  </video>
+  <p class="lede">Software for Interpretative Phenomenological Analysis</p>
 
-  <p class="about">Idiograph is free, open-source software for Interpretative Phenomenological Analysis and reflexive thematic analysis, for researchers who work closely with interview transcripts. You write notes and experiential statements beside each passage, then gather them into personal and group experiential themes. It runs on your own computer, Mac, Windows or Linux, and keeps your project in files there.</p>
+  <div class="film-box" id="film-box">
+    <video class="film" controls playsinline preload="none" poster="film-poster.jpg" width="1920" height="1080">
+      <source src="idiograph-film.mp4" type="video/mp4">
+      <a href="idiograph-film.mp4">Watch the film (65 seconds)</a>
+    </video>
+    <button class="film-play" type="button" aria-label="Play the film"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8.6 5.9v12.2a.9.9 0 0 0 1.4.75l9.3-6.1a.9.9 0 0 0 0-1.5L10 5.15a.9.9 0 0 0-1.4.75z"/></svg></button>
+  </div>
+<script>
+(() => {
+  const box = document.getElementById('film-box');
+  const film = box.querySelector('video');
+  film.controls = false;
+  box.classList.add('film-ready');
+  const on = (keys) => {
+    if (box.classList.contains('film-on')) return;
+    box.classList.add('film-on');
+    setTimeout(() => {
+      film.controls = true;
+      if (keys === true) film.focus({ preventScroll: true });
+    }, 0);
+  };
+  const start = (e) => {
+    if (box.classList.contains('film-on')) return;
+    e.preventDefault();
+    on(e.detail === 0);
+    const played = film.play();
+    if (played && played.catch) played.catch(() => { });
+  };
+  box.querySelector('.film-play').addEventListener('click', start);
+  film.addEventListener('click', start);
+  film.addEventListener('play', on);
+})();
+</script>
 
-  <p class="pe-note"><svg class="pe-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.3 4.2 2.9 17.5A2 2 0 0 0 4.6 20.5h14.8a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4.5"/><path d="M12 17.2v.1"/></svg><span>This is an early preview, a proof of concept to explore what software for IPA and thematic analysis can be. It has not been fully tested or reviewed, so please don't rely on it for anything important: your data could be damaged or lost, so keep copies of your work. It is not yet a replacement for the software you use day to day. Tell me what you think with the bug button or by email. Please keep it to yourself for now: don't share it or post about it.</span></p>
+  <p class="about">Idiograph is free, open-source software for researchers who work closely with interview transcripts. You write notes and experiential statements beside each passage, then gather them into personal and group experiential themes. It runs on your own computer, Mac, Windows or Linux, and keeps your project in files there.</p>
+
+  <p class="pe-note"><svg class="pe-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.3 4.2 2.9 17.5A2 2 0 0 0 4.6 20.5h14.8a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4.5"/><path d="M12 17.2v.1"/></svg><span>This is an early preview, a proof of concept to explore what software for IPA can be. It has not been fully tested or reviewed, so please don't rely on it for anything important: your data could be damaged or lost, so keep copies of your work. It is not yet a replacement for the software you use day to day. Tell me what you think with the bug button or by email. Please keep it to yourself for now: don't share it or post about it.</span></p>
 
   <div class="get" id="get">
     <p class="get-line" id="get-line">Idiograph is for Mac, Windows and Linux computers.</p>

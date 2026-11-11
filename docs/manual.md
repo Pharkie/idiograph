@@ -186,7 +186,7 @@ names has moved. On a Mac the entry 0.9.0 wrote still works.
 
 **Open a participant.** Idiograph's Home opens with its wordmark and the Preview Edition stamp, the
 panel saying what the preview means right under them, then its line, "Software for Interpretative
-Phenomenological Analysis and thematic analysis", and under it four short items in a row, Free, Open
+Phenomenological Analysis", and under it four short items in a row, Free, Open
 source, No cloud and Flexible. When the row wraps, Free and its Ko-fi button keep together, and so do Open source,
 No cloud and Flexible, so no word is left alone on a line. Sift's and Trace's Homes carry four under their own
 lines, Free, Open source, Flexible and No cloud (22 October). Beside Free stands a

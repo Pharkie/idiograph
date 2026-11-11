@@ -43,7 +43,7 @@ APPS: dict[str, dict] = {
 # Each app's one line, as the other two apps' Homes name it at their foot (the split's third build, 20
 # October 2026, drawings 1 to 3 of the plan Adam accepted), the English. Home shows it from the catalogue,
 # `shell.family.line.<app>` (i18nleft4, `server.family_line`)
-APPS["idiograph"]["line"] = "IPA and thematic analysis: statements, PETs and GETs, or codes and themes"
+APPS["idiograph"]["line"] = "Interpretative Phenomenological Analysis: statements, PETs and GETs"
 APPS["sift"]["line"] = "Screening for a systematic review, by PRISMA 2020"
 APPS["trace"]["line"] = "Each claim a manuscript makes, held against its reference"
 for _key, _app in APPS.items():
