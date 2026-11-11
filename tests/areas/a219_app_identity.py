@@ -168,7 +168,7 @@ def test_app_identity(scratch):
         check("since the sixth build Sift's and Trace's settings files hold no setting of Idiograph's, its defaults "
               "Idiograph's alone, nor Trace's any of Sift's",
               idio_keys and not idio_keys & set(sift_cfg) and not idio_keys & set(trace_cfg)
-              and {"interviewer", "corpus", "themes", "nudges"} <= idio_keys,
+              and {"interviewer", "corpus", "nudges"} <= idio_keys,
               str(sorted(idio_keys & (set(sift_cfg) | set(trace_cfg)))))
         check("Idiograph's settings and recent list are byte for byte as they were, every first start only reading them",
               digest(trial / "config.json", trial / "state.json") == before)

@@ -9,9 +9,9 @@ import idiograph_routes
 
 
 def test_board_cap(scratch):
-    print("\n218. The most PETs an AI board proposes limits the AI's boards alone (20 October, an agent's board of four "
-          "warned past a cap of three): board new makes every PET a structure gives and never names a cap, and cases "
-          "reads the AI's limit from the settings file the app reads")
+    print("\n218. A board an agent makes holds every PET a structure gives (20 October, an agent's board of four "
+          "warned past a cap of three), and since New AI board went on 11 November 2026 (aiout) no limit is read: "
+          "a settings file that still holds one names none in cases, its JSON or the guide")
     import cli
     import server as server_mod
     import themes as themes_mod
@@ -63,13 +63,10 @@ def test_board_cap(scratch):
         code, text, err = run("cases")
         code_json, data, _ = run("cases", "--json")
         data = json.loads(data)
-        check("218: cases names no limit on a new board, and its JSON carries the AI's limit from the settings file, 3",
-              code == 0 and "PETs" not in text.split("Rowan:", 1)[0] and "cap" not in text.lower()
-              and data["project"]["ai_board_most_pets"] == 3 and "pet_cap" not in data["project"], text[:300])
-        settings(7)
-        code_json, data, _ = run("cases", "--json")
-        check("218: a limit Settings saves, 7, is the one cases reads next",
-              code_json == 0 and json.loads(data)["project"]["ai_board_most_pets"] == 7)
+        check("218: cases names no limit on a new board, its JSON none either, the settings file's left unread (aiout)",
+              code == 0 and code_json == 0 and "PETs" not in text.split("Rowan:", 1)[0] and "cap" not in text.lower()
+              and "ai_board_most_pets" not in data["project"] and "pet_cap" not in data["project"]
+              and json.loads(config.read_text(encoding="utf-8"))["themes"] == {"cap": 3}, text[:300])
         guide = idiograph_routes.agents_project(root)
         check("218: the guide's place for this project names no limit on a new board",
               "PETs" not in guide and "cap" not in guide.lower() and "A GET needs" in guide, guide)

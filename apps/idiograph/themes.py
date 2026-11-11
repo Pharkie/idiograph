@@ -24,8 +24,6 @@ What he does with the cards lives in a themes file beside the progress file,
                  "notes": [{"id": "n1", "text": "merge with Mornings?", "colour": "yellow",
                             "x": 260, "y": -120, "in": "g1"}],
                  "quoted": {"Initial:12:0": "the words of the quote"},
-                 "revise": [{"by": "analyst", "text": "...", "at": "..."},
-                            {"by": "ai", "text": "...", "at": "...", "model": "..."}],
                  "cut": [{"trim": "<trim id>", "cards": {...}, "members": {"g1": [...]},
                           "discarded": [...], "picks": {"g1": [...]}}],
                  "history": [{"id": "r1", "at": "...", "name": "", "auto": true,
@@ -151,39 +149,29 @@ LOOSE = "loose"
 SET_ASIDE = "Set aside"
 STARTS = ("empty", "canvas")
 OPS = ("new", "duplicate", "rename", "note", "switch", "delete", "choose", "complete", "reopen")
-# The AI's grouping arrives as a board of its own, through the same op as the rest, so the file
-# stays one shape. Only the server's AI route asks for it: the board menu never does.
+# A board laid out whole by the server arrives as a board of its own, through the same op as the rest,
+# so the file stays one shape: an agent's board make and a REFI-QDA import. The board menu never asks
+# for it.
 PROPOSE = "propose"
-PROPOSAL = "AI board"
 # What a board can do with its themes and its history, through `/api/themes-boards`: copy a theme
 # to another board, keep a revision by hand, show one, and restore one.
 BOARD_OPS = ("copy", "revision", "view", "restore")
 AUTO_KEEP = 48       # the automatic revisions a board keeps, the oldest going past it
-# The AI review a board keeps, round by round: the newest round at the top of `review`, the rounds
-# before it under `earlier`, oldest first, each question open, considered or dismissed, with the
-# exchange under it when he has replied. A round asks three questions at most, and one from before
-# the rounds kept up to twelve, which stay.
-REVIEW_MAX = 12
-REVIEW_STATES = ("open", "considered", "dismissed")
-REVIEW_TEXT = 400    # the longest a question or its why runs, one sentence each
-REVIEW_ROUNDS = 50   # the rounds a board keeps, the oldest going past it
-THREAD_BY = ("analyst", "ai")
-THREAD_MAX = 40      # the lines the exchange under one question keeps, the oldest going past it
-THREAD_TEXT = 2000   # the longest one line of it runs
+# What the app's own AI left with a board before 11 November 2026, when its AI boards, reviews and
+# revisions went (aiout): `review`, a board's review rounds, and `revise`, its revise thread. Neither is
+# read: each is carried as the file holds it, so a board that has one opens and saves as any other.
+FROM_BEFORE = ("review", "revise")
+REQUEST_TEXT = 2000  # the longest his request in an agent's mark runs
 # What an AI agent in a conversation did to a board, through the command line: `made`, the board it
 # made, and `changed`, the last change it made to a board, each `{"by": "agent", "tool", "request",
-# "at"}`. The page never sends either, so a save keeps the file's. A board New AI board made carries
-# `made` too, `{"by": "ai", "model", "from", "at"}`, and either kind of `made` keeps `hash`, the
-# board's state hash when it was made, and `edited`, the time of his first save that changed it.
+# "at"}`. The page never sends either, so a save keeps the file's. `made` keeps `hash`, the board's
+# state hash when it was made, and `edited`, the time of his first save that changed it.
 AGENT_KEYS = ("made", "changed")
 # what a change made by a teammate's suggestion, accepted by its owner, keeps beside `by: "member"` (wtsuggest)
 MEMBER_KEYS = ("member", "accepted_by", "suggestion")
-# what the board menu says after the name of a board an AI made, and once he has changed it
-WITH_AI = "with AI"
+# what the board menu says after the name of a board an agent made, once he has changed it
 EDITED = "edited by you since"
-# an AI board from before `made`, read from its note: "Proposed by Haiku 4.5 from Board 4 on ..."
-# and "Made by Claude Code in a conversation on ..."
-PROPOSED_NOTE = re.compile(r"^Proposed by (?P<model>.+?) from (?P<source>.+?) on \d{1,2} [A-Z][a-z]+ \d{4} at \d")
+# an agent's board from before `made`, read from its note: "Made by Claude Code in a conversation on ..."
 AGENT_NOTE = re.compile(r"^Made by (?P<tool>.+?) in a conversation on \d")
 # a save from a page that last saw a board before an agent changed it keeps the page's canvas as a
 # revision of this name, and leaves the board as the agent left it
@@ -238,7 +226,7 @@ def refuse_stale(board: dict, seen, message: str) -> None:
         raise StaleBoard(message, str(board.get("id") or ""), board_version(board))
 
 # The canvas's own measures, estimated here the way the page draws them, for a layout made before
-# the page has measured anything: the first pile, a new card's place, the AI's proposal and a copy.
+# the page has measured anything: the first pile, a new card's place, a board laid out whole and a copy.
 # A card is 200px wide and as tall as its lines, four at most. The page measures the real ones, and
 # each estimate here is a little over the page's and within a margin of it, so a frame laid out here
 # holds the frame the page draws and a layout made here needs no shift there.
@@ -1306,15 +1294,12 @@ def normalise(version: dict, live: set[str] | None = None) -> dict:
     A group's picks keep only quotes of a row with a card under that group, at any depth, once each.
     With `live`, the quote keys the workbook holds now, a pick whose quote has gone is dropped too.
 
-    `ai` is what an AI proposal left with the board: `{"discarded": {key: reason}}`, why it
-    discarded each statement it discarded, kept for a card the board holds and a reason with words
-    in it. A board with none carries no `ai` at all.
+    `ai` is why a statement was left out, `{"discarded": {key: reason}}`, as an agent's board make
+    gives it, or a New AI board gave it before 11 November 2026, kept for a card the board holds and a
+    reason with words in it. A board with none carries no `ai` at all.
 
-    `review` is the board's AI review, its newest round `{"at", "model", "items"}` with the rounds
-    before it under `earlier`, oldest first, each item a question with what it is about, the rule
-    it rests on, why it was asked, its state, open, considered or dismissed, and `thread`, his
-    replies and the answers, when he has replied. Twelve to a round at most, each a line of its
-    own, and a review with no questions is none. A review from before the rounds is one round.
+    `review` and `revise`, a board's AI review and revise thread from before 11 November 2026, are
+    carried as the file holds them and never read (see `FROM_BEFORE`).
 
     `quoted` is the words of each quote the picks name, kept for the picks that stay. `cut` is the
     cards a trim cut, kept until the trim is undone (see `cut_of`). A board with neither carries
@@ -1325,9 +1310,6 @@ def normalise(version: dict, live: set[str] | None = None) -> dict:
     `stacks` are the statements stacked under a top (see `stacks_kept`), and a board with none
     carries none. A stacked statement leaves every group and the bin. `not_same` are the close pairs
     marked Not the same (see `not_same_kept`), and a board with none carries none.
-
-    `revise` is the board's AI revise thread, his requests and the answers in the order they came,
-    each a line as `thread_of` keeps one, and a board with none carries none.
 
     `made` and `changed` say what an AI agent in a conversation did to the board, the board it made
     and the last change it made (see `agent_mark`), and a board with neither carries neither.
@@ -1435,12 +1417,9 @@ def normalise(version: dict, live: set[str] | None = None) -> dict:
     reasons = ai_reasons(version, cards)
     if reasons:
         out["ai"] = {"discarded": reasons}
-    review = review_of(version)
-    if review:
-        out["review"] = review
-    revise = revise_of(version)
-    if revise:
-        out["revise"] = revise
+    for key in FROM_BEFORE:
+        if version.get(key):
+            out[key] = version[key]
     for key in AGENT_KEYS:
         mark = made_mark(version.get(key)) if key == "made" else agent_mark(version.get(key))
         if mark:
@@ -1536,86 +1515,12 @@ def one_line(value, limit: int) -> str:
     return " ".join(str(value or "").split())[:limit].strip()
 
 
-def review_of(version: dict) -> dict | None:
-    """A board's AI review as the file keeps it, or None when it has none with a question in it.
-
-    The newest round is the review itself, `{"at", "model", "items"}`, and the rounds before it go
-    under `earlier`, oldest first, fifty rounds at most. A review from before the rounds has no
-    `earlier` and reads as one round, and one with a single round writes none, so it reads and
-    writes as it did. What an item is about stays as it was written, a theme's id or a statement's
-    key, even when that is no longer on the board, so an undo that brings it back finds its link
-    again."""
-    raw = version.get("review") if isinstance(version, dict) else None
-    if not isinstance(raw, dict):
-        return None
-    earlier = raw.get("earlier") if isinstance(raw.get("earlier"), list) else []
-    rounds = [r for r in (review_round(x) for x in earlier + [raw]) if r][-REVIEW_ROUNDS:]
-    if not rounds:
-        return None
-    out = dict(rounds[-1])
-    if len(rounds) > 1:
-        out["earlier"] = rounds[:-1]
-    return out
-
-
-def review_round(raw) -> dict | None:
-    """One round of a review: its time, its model and its questions, twelve at most, or None when
-    it has no question in it."""
-    if not isinstance(raw, dict):
-        return None
-    items = []
-    for item in raw.get("items") if isinstance(raw.get("items"), list) else []:
-        if not isinstance(item, dict):
-            continue
-        question = one_line(item.get("question"), REVIEW_TEXT)
-        if not question:
-            continue
-        about = one_line(item.get("about"), 200) if item.get("about") is not None else ""
-        state = item.get("state") if item.get("state") in REVIEW_STATES else REVIEW_STATES[0]
-        kept = {"about": about or None, "question": question, "rule": one_line(item.get("rule"), 12),
-                "why": one_line(item.get("why"), REVIEW_TEXT), "state": state}
-        thread = thread_of(item.get("thread"))
-        if thread:
-            kept["thread"] = thread
-        items.append(kept)
-        if len(items) == REVIEW_MAX:
-            break
-    if not items:
-        return None
-    return {"at": one_line(raw.get("at"), 40), "model": one_line(raw.get("model"), 120), "items": items}
-
-
-def thread_of(raw) -> list[dict]:
-    """The exchange under one question, in order: each line his, `by` analyst, or the AI's, `by`
-    ai, with its words stripped at the ends and their lines kept, its time and, for the AI's, the
-    model that answered. A line with no words goes, and past forty the oldest go."""
-    out = []
-    for line in raw if isinstance(raw, list) else []:
-        if not isinstance(line, dict) or line.get("by") not in THREAD_BY:
-            continue
-        text = "\n".join(" ".join(part.split()) for part in str(line.get("text") or "").strip().splitlines())
-        text = re.sub(r"\n{3,}", "\n\n", text)[:THREAD_TEXT].strip()
-        if not text:
-            continue
-        kept = {"by": line["by"], "text": text, "at": one_line(line.get("at"), 40)}
-        if line["by"] == "ai":
-            kept["model"] = one_line(line.get("model"), 120)
-        out.append(kept)
-    return out[-THREAD_MAX:]
-
-
-def revise_of(version: dict) -> list[dict]:
-    """A board's AI revise thread as the file keeps it: his requests and the answers in the order
-    they came, each line as `thread_of` keeps one, forty at most, and none for a board without."""
-    return thread_of(version.get("revise")) if isinstance(version, dict) else []
-
-
 def agent_mark(raw) -> dict | None:
     """What an AI agent did, as a board keeps it: `{"by": "agent", "tool", "request", "at"}`, the
     tool it worked in, his request in his words and the time, or None for anything else."""
     if not isinstance(raw, dict) or raw.get("by") not in ("agent", "member") or not one_line(raw.get("at"), 40):
         return None
-    out = {"by": raw["by"], "tool": one_line(raw.get("tool"), 80), "request": one_line(raw.get("request"), THREAD_TEXT),
+    out = {"by": raw["by"], "tool": one_line(raw.get("tool"), 80), "request": one_line(raw.get("request"), REQUEST_TEXT),
            "at": one_line(raw.get("at"), 40)}
     # a teammate's suggestion accepted (wtsuggest, 10 November 2026): who suggested it, who accepted it, and its id
     if raw["by"] == "member":
@@ -1627,18 +1532,13 @@ def agent_mark(raw) -> dict | None:
 
 
 def made_mark(raw) -> dict | None:
-    """Who made a board, as it keeps it: an agent's mark (see `agent_mark`), or New AI board's,
-    `{"by": "ai", "model", "from", "at"}`, the model's plain name and what it was made from. Either
-    keeps `from` when it has one, `hash`, the board's state hash as it was made, and `edited`, the
-    time his first save changed it. None for anything else."""
-    if not isinstance(raw, dict) or not one_line(raw.get("at"), 40):
+    """Who made a board, as it keeps it: an agent's mark (see `agent_mark`), keeping `from` when it has
+    one, `hash`, the board's state hash as it was made, and `edited`, the time his first save changed
+    it. None for anything else, the mark a New AI board left before 11 November 2026 among them, so
+    such a board is an ordinary one."""
+    if not isinstance(raw, dict) or not one_line(raw.get("at"), 40) or raw.get("by") not in ("agent", "member"):
         return None
-    if raw.get("by") in ("agent", "member"):
-        out = agent_mark(raw)
-    elif raw.get("by") == "ai" and one_line(raw.get("model"), 120):
-        out = {"by": "ai", "model": one_line(raw.get("model"), 120), "at": one_line(raw.get("at"), 40)}
-    else:
-        return None
+    out = agent_mark(raw)
     for key, limit in (("from", 160), ("hash", 80), ("edited", 40)):
         if one_line(raw.get(key), limit):
             out[key] = one_line(raw.get(key), limit)
@@ -1646,20 +1546,16 @@ def made_mark(raw) -> dict | None:
 
 
 def made_said(board: dict) -> dict | None:
-    """What the board menu says of a board an AI made, `{"by", "said", "edited"}`: the tooltip's
-    words, "Opus 5.5, from all statements" or "Claude Code in a conversation, from Board 2", and
-    whether he has changed it since. A board from before `made` is read from its note, and one no
-    AI made, a duplicate among them, is None."""
+    """What the board menu says of a board an agent made, `{"by", "said", "edited"}`: the tooltip's
+    words, "Claude Code in a conversation, from Board 2", and whether he has changed it since. A board
+    from before `made` is read from its note, and one no agent made, a duplicate among them, is None."""
     mark = made_mark(board.get("made")) if isinstance(board, dict) else None
     if mark:
-        who = (mark["model"] if mark["by"] == "ai" else mark.get("tool") or "" if mark["by"] == "member"
+        who = (mark.get("tool") or "" if mark["by"] == "member"
                else f"{mark.get('tool') or 'An agent'} in a conversation")
         said = who + (f", from {mark['from']}" if mark.get("from") else "")
         return {"by": mark["by"], "said": said, "edited": bool(mark.get("edited"))}
     note = str((board or {}).get("note") or "") if isinstance(board, dict) else ""
-    found = PROPOSED_NOTE.match(note)
-    if found:
-        return {"by": "ai", "said": f"{found['model']}, from {found['source']}", "edited": False}
     found = AGENT_NOTE.match(note)
     if found:
         return {"by": "agent", "said": f"{found['tool']} in a conversation", "edited": False}
@@ -1732,29 +1628,9 @@ def short_ids(cards: list[dict]) -> dict[str, str]:
     return {c["key"]: f"S{i}" for i, c in enumerate(cards, start=1)}
 
 
-def review_rounds(review) -> list[dict]:
-    """A review's rounds in order, oldest first: those under `earlier`, then the newest, the review
-    itself."""
-    if not isinstance(review, dict):
-        return []
-    return [r for r in review.get("earlier") or [] if isinstance(r, dict)] + [review]
-
-
-def review_items(review) -> list[dict]:
-    """Every question of a review, round by round, oldest first."""
-    return [i for r in review_rounds(review) for i in r.get("items") or [] if isinstance(i, dict)]
-
-
-def review_mapped(review: dict, fn) -> dict:
-    """A review with `fn` applied to each of its questions, in every round."""
-    out = dict(review, items=[fn(i) for i in review.get("items") or []])
-    if review.get("earlier"):
-        out["earlier"] = [dict(r, items=[fn(i) for i in r.get("items") or []]) for r in review["earlier"]]
-    return out
-
-
 def ai_reasons(version: dict, cards: dict) -> dict[str, str]:
-    """Why an AI proposal discarded each statement, by card key, for the cards the board holds."""
+    """Why each statement was left out, by card key, for the cards the board holds: an agent's reason,
+    or an AI proposal's from before 11 November 2026."""
     ai = version.get("ai") if isinstance(version.get("ai"), dict) else {}
     thrown = ai.get("discarded") if isinstance(ai.get("discarded"), dict) else {}
     out = {}
@@ -2076,7 +1952,7 @@ def follow(version: dict, cards: list[dict], quotes: dict | None = None, moves: 
     key while no other card has taken it, which marks it changed where a line reads differently there
     and missing where none does, and otherwise moves past every line of its row, which marks it
     missing. A key that moves moves everywhere the board names it: its cards, its groups' members,
-    its discards, the AI's reasons and the review's `about`. So a line inserted at the top of a cell
+    its discards and the AI's reasons. So a line inserted at the top of a cell
     leaves every card in its theme and its place.
 
     `own`, when given, is the keys of cards that were never a statement of the workbook's at their key,
@@ -2160,9 +2036,6 @@ def follow(version: dict, cards: list[dict], quotes: dict | None = None, moves: 
             v["not_same"] = [[keymap.get(a, a), keymap.get(b, b)] for a, b in v["not_same"]]
         if v.get("ai"):
             v["ai"] = {"discarded": {keymap.get(k, k): why for k, why in v["ai"]["discarded"].items()}}
-        if v.get("review"):
-            v["review"] = review_mapped(v["review"], lambda i: dict(i, about=keymap.get(i["about"], i["about"]))
-                                        if i.get("about") else i)
 
     if quotes is not None and v["picks"]:
         held = v.get("quoted") or {}
@@ -2286,8 +2159,8 @@ def merge(cards: list[dict], version: dict, quotes=None) -> dict:
     that differs from the text the board was made with, the card is marked `changed` and carries the
     stored text as `stored`. A stored card whose line has gone is marked `missing` and shows the
     stored text in its place. A live line the board has never seen is a `new` card, in the nearest
-    free spot to the middle of the canvas. `discard_reasons` is why an AI proposal discarded each
-    card it discarded, for the pile.
+    free spot to the middle of the canvas. `discard_reasons` is why a statement was left out, an
+    agent's reason or an AI proposal's from before, for the pile.
     """
     if isinstance(quotes, dict):
         live = quote_keys(quotes)
@@ -2319,23 +2192,20 @@ def merge(cards: list[dict], version: dict, quotes=None) -> dict:
         out.append({"key": key, "sheet": sheet, "row": row, "line": line, "text": card["text"],
                     "seconds": None, "time": "", "x": card["x"], "y": card["y"], "missing": True,
                     **({LOOSE: True} if card.get(LOOSE) else {})})
-    # why an AI proposal discarded what it did, by card key: the board's `ai` under a name of its
-    # own, because `ai` on the screen's answers is the bar's AI state. `review` is the board's last
-    # AI review with the state of each question, or None. `stickies` is the board's sticky notes,
-    # under a name of its own because `notes` on the screen's answers says a save keeps a theme's
-    # note, and a server from before the sticky notes sends none. `revise` is the board's AI revise
-    # thread, his requests and the answers, and a server from before it sends none. `stacks` is each
-    # top's stacked statements, and a server from before them sends none. `not_same` is the close pairs
-    # marked Not the same, and a server from before them sends none
+    # why a statement was left out, by card key: the board's `ai` under a name of its own, because `ai`
+    # on the screen's answers is the bar's AI state. `stickies` is the board's sticky notes, under a name
+    # of its own because `notes` on the screen's answers says a save keeps a theme's note, and a server
+    # from before the sticky notes sends none. `stacks` is each top's stacked statements, and a server
+    # from before them sends none. `not_same` is the close pairs marked Not the same, and a server from
+    # before them sends none
     return {"cards": out, "groups": version["groups"], "discarded": version["discarded"],
             "picks": version["picks"], "discard_reasons": (version.get("ai") or {}).get("discarded") or {},
-            "review": version.get("review"), "stickies": version.get("notes") or [],
-            "revise": version.get("revise") or [], "stacks": version.get("stacks") or {},
-            "not_same": version.get("not_same") or []}
+            "stickies": version.get("notes") or [],
+            "stacks": version.get("stacks") or {}, "not_same": version.get("not_same") or []}
 
 
 def summary(version: dict, raw: dict | None = None) -> dict:
-    """A board as the board menu lists it, with `with_ai` when an AI made it (see `made_said`), and
+    """A board as the board menu lists it, with `with_ai` when an agent made it (see `made_said`), and
     `v`, its version (see `board_version`), from `raw`, the board as the file holds it, when `version`
     is a normalised copy, and none when `raw` is empty, a board the file does not hold yet."""
     out = {k: version.get(k) for k in ("id", "name", "note", "created", "updated")}
@@ -2380,8 +2250,6 @@ def state(workbook: Path, case: str, read: dict | None = None, board: str | None
             "complete": complete_of(data), "versions": versions or [summary(version)],
             "version": summary(normalise(version), version), "saved": saved, "quotes": read["quotes"],
             "history": history_list(version), "sids": short_ids(read["cards"]), **merged}
-
-
 
 
 def chosen_of(data: dict | None) -> str | None:
@@ -2549,15 +2417,12 @@ def save(workbook: Path, version: dict, case: str, revision=None) -> dict:
             mark = made_mark(was.get(key)) if key == "made" else agent_mark(was.get(key))
             if mark:
                 kept[key] = mark
-        # a page from before the reasons sends no `ai`, and the ones the file holds stay, and so
-        # does the review for a page from before it
-        if "ai" not in sent and normalise(was).get("ai"):
-            kept["ai"] = normalise(was)["ai"]
-        if "review" not in sent and normalise(was).get("review"):
-            kept["review"] = normalise(was)["review"]
-        # and the revise thread for a page from before it
-        if "revise" not in sent and normalise(was).get("revise"):
-            kept["revise"] = normalise(was)["revise"]
+        # a page from before the reasons sends no `ai`, and the ones the file holds stay, and the page
+        # sends no `review` or `revise`, what the app's own AI left with a board before 11 November 2026,
+        # so the ones the file holds stay as they are
+        for key in ("ai",) + FROM_BEFORE:
+            if key not in sent and normalise(was).get(key):
+                kept[key] = normalise(was)[key]
         # and a page from before the stacks sends no `stacks`, so the file's stay as they were
         if "stacks" not in sent and normalise(was).get("stacks"):
             kept = normalise(dict(kept, stacks=normalise(was)["stacks"]))
@@ -2570,7 +2435,7 @@ def save(workbook: Path, version: dict, case: str, revision=None) -> dict:
             held_notes = notes_of(normalise(was), {g["id"] for g in kept["groups"]}, set(kept["cards"]))
             if held_notes:
                 kept["notes"] = held_notes
-        # a board an AI made is marked edited by his first save that changes it
+        # a board an agent made is marked edited by his first save that changes it
         if kept.get("made"):
             kept["made"] = edited_mark(kept["made"], kept, when, kept.get("changed"))
         held = {"history": history_of(was)}
@@ -2962,12 +2827,11 @@ def _tree(by_id: dict, gid: str) -> list:
 
 
 def land(version: dict, revised: dict, height=None) -> dict:
-    """A board with a revise's labels and picks landed on it, `revised` holding `groups`, each label
+    """A board with a change's labels and picks landed on it, `revised` holding `groups`, each label
     by its id with its title, its note and its members, and `picks`, as `themes_ai.revise_ops`
-    leaves them, and `made`, the ids of the labels the change made, when it has any. It is the page's
-    landing of AI revise done here, for a change that comes from the command line, where no canvas is
-    open to land it. Each label keeps whatever else the board's label of its id carried, its domain
-    among it, as the page's landing does (see `label_landed`).
+    leaves them, and `made`, the ids of the labels the change made, when it has any: a change that
+    comes from the command line, where no canvas is open to land it. Each label keeps whatever else
+    the board's label of its id carried, its domain among it (see `label_landed`).
 
     Everything the change did not touch keeps its place. A theme whose labels or members changed,
     and a theme new to the board, is laid out afresh as a round blob (see `blob`), its cards in the
@@ -4115,12 +3979,6 @@ def board_op(workbook: Path, op: str, body: dict, case: str, dry_run: bool = Fal
 # with them through `rounds.rekey_rows`, and the themes file moves through `rekey`, in the same
 # request and with the same row map, so the two never disagree.
 
-# What a review's `about` reads when the card it names went with a trim, until the trim is undone:
-# `cut:<trim id>:Initial:3:0`. It names nothing on the board, so the Review tab says the card is no
-# longer there, and the trim's undo gives the key back.
-CUT_MARK = "cut:"
-
-
 def _row_map(keys, mapper) -> dict:
     """Where each card or quote key lands when its row moves: `mapper` takes a row key, `Initial:12`,
     and gives the row it moves to, or None when the row was cut. A key keeps its line. Rows merged
@@ -4153,7 +4011,8 @@ def _moved(board: dict, mapper, cut: str | None = None, back: str | None = None)
     """A board, or a revision's state, normalised, with its rows moved by `mapper` (see `_row_map`).
 
     The cards and the picks move with their rows, and so does every place the board names a key:
-    the groups' members, the discards, the AI's reasons, the picks' words and the review's `about`.
+    the groups' members, the discards, the AI's reasons and the picks' words. A review from before
+    11 November 2026 stays as the file holds it.
     Cards on a row that was cut leave the board for a record under `cut` with the trim's id `cut`:
     each card, the groups it sat in, whether it was discarded, the picks on its row with their words
     and the AI's reasons. `back` is the id of a trim being undone: its record's cards come back
@@ -4163,10 +4022,7 @@ def _moved(board: dict, mapper, cut: str | None = None, back: str | None = None)
     v = normalise(board)
     reasons = dict((v.get("ai") or {}).get("discarded") or {})
     quoted = dict(v.get("quoted") or {})
-    review = v.get("review")
-    named = {str(i["about"]) for i in review_items(review)
-             if i.get("about") and not str(i["about"]).startswith(CUT_MARK)}
-    cmap = _row_map(set(v["cards"]) | {a for a in named if split_card_key(a)[1] is not None}, mapper)
+    cmap = _row_map(set(v["cards"]), mapper)
     qmap = _row_map({k for chosen in v["picks"].values() for k in chosen} | set(quoted), mapper)
     gone = {k for k, m in cmap.items() if m is None}
     qgone = {k for k, m in qmap.items() if m is None}
@@ -4198,16 +4054,6 @@ def _moved(board: dict, mapper, cut: str | None = None, back: str | None = None)
     picks = {g: [quote(k) for k in chosen if quote(k) is not None] for g, chosen in v["picks"].items()}
     quoted = {quote(k): t for k, t in quoted.items() if quote(k) is not None}
     reasons = {card(k): why for k, why in reasons.items() if card(k) is not None}
-
-    def about_of(item: dict) -> dict:
-        about = item.get("about")
-        if about in gone:
-            about = f"{CUT_MARK}{cut or ''}:{about}"
-        elif about in cmap:
-            about = cmap[about]
-        return dict(item, about=about)
-
-    review = review_mapped(review, about_of) if review else review
 
     def put_back(into: list, keys: list) -> list:
         # each key goes back where transcript order puts it among the keys there, which is where
@@ -4241,10 +4087,6 @@ def _moved(board: dict, mapper, cut: str | None = None, back: str | None = None)
             for k, why in (record.get("ai") or {}).items():
                 reasons.setdefault(k, why)
         records = kept
-        mark = f"{CUT_MARK}{back}:"
-        if review:
-            review = review_mapped(review, lambda i: dict(i, about=i["about"][len(mark):])
-                                   if str(i.get("about") or "").startswith(mark) else i)
 
     out = dict(v, cards=cards, groups=groups, discarded=discarded, picks=picks)
     # a stack and a pair marked Not the same move with their rows too, and a statement cut leaves them
@@ -4253,12 +4095,10 @@ def _moved(board: dict, mapper, cut: str | None = None, back: str | None = None)
                          for t, ks in v["stacks"].items() if card(t) is not None}
     if v.get("not_same"):
         out["not_same"] = [[card(a), card(b)] for a, b in v["not_same"] if card(a) is not None and card(b) is not None]
-    for key in ("ai", "review", "quoted", "cut"):
+    for key in ("ai", "quoted", "cut"):
         out.pop(key, None)
     if reasons:
         out["ai"] = {"discarded": reasons}
-    if review:
-        out["review"] = review
     if quoted:
         out["quoted"] = quoted
     if records:
@@ -4300,7 +4140,7 @@ def rekey(workbook: Path, mapper, cut: str | None = None, back: str | None = Non
         return follow(fields, read["cards"], read["quotes"]) if read is not None else fields
 
     before = json.dumps(data, sort_keys=True, ensure_ascii=False)
-    content = STATE_KEYS + ("review",)
+    content = STATE_KEYS
     for board in boards_of(data):
         fields = moved(board)
         rest = {k: value for k, value in board.items() if k not in content}
@@ -4577,9 +4417,8 @@ def drop_cards(version: dict, keys) -> dict:
     """A board with each card of `keys` taken off it, as Remove does for a card missing from the
     workbook. A stack stays whole: when a top goes, the first statement under it that stays takes
     its place as the top (see `make_top`), the rest still under it. Every place the board names a
-    card gone loses it, its label's members, the bin, the stacks, Not the same and the AI's reasons,
-    and a review question about one then names a card no longer there. Its labels stay, emptied or
-    not. Nothing is written."""
+    card gone loses it, its label's members, the bin, the stacks, Not the same and the AI's reasons.
+    Its labels stay, emptied or not. Nothing is written."""
     v = json.loads(json.dumps(normalise(version)))
     gone = {str(k) for k in keys if str(k) in v["cards"]}
     if not gone:
@@ -4598,9 +4437,6 @@ def drop_cards(version: dict, keys) -> dict:
         v["not_same"] = [p for p in v["not_same"] if not set(p) & gone]
     if v.get("ai"):
         v["ai"] = {"discarded": {k: why for k, why in v["ai"]["discarded"].items() if k not in gone}}
-    if v.get("review"):
-        v["review"] = review_mapped(v["review"], lambda i: dict(i, about=f"{CUT_MARK}:{i['about']}")
-                                    if i.get("about") in gone else i)
     return normalise(v)
 
 
@@ -4620,9 +4456,6 @@ def keys_renamed(version: dict, cmap: dict, qmap: dict) -> dict:
         v["not_same"] = [[card(a), card(b)] for a, b in v["not_same"]]
     if v.get("ai"):
         v["ai"] = {"discarded": {card(k): why for k, why in v["ai"]["discarded"].items()}}
-    if v.get("review"):
-        v["review"] = review_mapped(v["review"], lambda i: dict(i, about=cmap[i["about"]])
-                                    if i.get("about") in cmap else i)
     v["picks"] = {g: [quote(k) for k in chosen if quote(k) is not None] for g, chosen in v["picks"].items()}
     if v.get("quoted"):
         v["quoted"] = {quote(k): t for k, t in v["quoted"].items() if quote(k) is not None}
@@ -4742,8 +4575,6 @@ def passage_written(workbook: Path, sheet: str, row: int, old: list[str], new: l
         for key in STATE_OPTIONAL:
             board.pop(key, None)
         board.update({k: state[k] for k in STATE_KEYS if k in state}, updated=when)
-        if after.get("review"):
-            board["review"] = after["review"]
         if changed:
             board["changed"] = dict(changed, at=when)
             board["changed"]["hash"] = state_hash(made_state(normalise(board)))
@@ -4780,8 +4611,8 @@ def _free_name(versions: list[dict], wanted: str) -> str:
 
 def board_name(versions: list[dict], wanted: str = "") -> str:
     """A new board's name: the one he typed, kept clear of every other, or `Board N`, the next free
-    number past the boards there are. An AI board is named as his own are, and the board menu
-    says after its name that an AI made it (see `made_said`)."""
+    number past the boards there are. An agent's board is named as his own are, and the board menu
+    says after its name that an agent made it (see `made_said`)."""
     if wanted.strip():
         return _free_name(versions, wanted.strip())
     taken = {str(v.get("name") or "").strip().lower() for v in versions}
@@ -4792,7 +4623,7 @@ def board_name(versions: list[dict], wanted: str = "") -> str:
 
 
 def proposal_name(versions: list[dict]) -> str:
-    """The name a new AI board takes, `Board N`, as every new board's is. A name from before,
+    """The name a board laid out whole takes, `Board N`, as every new board's is. A name from before,
     `AI board 3`, stays as it is."""
     return board_name(versions)
 
@@ -4804,8 +4635,7 @@ def version_op(workbook: Path, op: str, body: dict, case: str, dry_run: bool = F
     `new` adds an empty board, every card waiting in the sidebar, or with `start` of `canvas` every
     card on the canvas as a pile in the middle (see `blank_version`), and makes it current. `duplicate`
     copies a board, the current one unless `id` names another, under a new name, its sticky notes
-    and its AI revise thread with it, with its own empty note, no review and no history, and makes
-    the copy current. `rename` and `note` change one board's
+    with it, with its own empty note and no history, and makes the copy current. `rename` and `note` change one board's
     name or note. `switch` makes another board current and changes nothing else. `delete` takes one
     out, and is refused on the last: the board beside it becomes current when it was, and a board
     marked as the Current board takes the mark with it, unless one board is left, which takes the
@@ -4821,12 +4651,12 @@ def version_op(workbook: Path, op: str, body: dict, case: str, dry_run: bool = F
     the first time, and reopening with no mark writes nothing. Unmarking or deleting the board the
     mark names leaves the mark as it stands.
 
-    `propose` is the AI's grouping: `version` laid out by the server, added at the end under the
+    `propose` is a board laid out whole: `version` laid out by the server, added at the end under the
     next `Board N` name, as New board names one, or under `name` kept clear of every other (a REFI-QDA
     import's "From ATLAS.ti", see `server.qdpx_board`), with `note`, with no sticky notes, and made
     current, its `made` taking the hash of the board as made. The board it was made from is left as
-    it was, as every other board is. A board an AI agent made through the command line comes the
-    same way, with `made` saying so, and with `seed` false, so on a case with no file yet it is the
+    it was, as every other board is. A board an AI agent made through the command line comes this
+    way, with `made` saying so, and with `seed` false, so on a case with no file yet it is the
     file's first board, Board 1, with no empty board written before it, as its dry run names it. A
     duplicate never carries `made` or `changed`. With `dry_run` (26 October) every check is made and
     nothing is written.
@@ -4869,7 +4699,7 @@ def version_op(workbook: Path, op: str, body: dict, case: str, dry_run: bool = F
 
     if op == PROPOSE:
         made = normalise(body.get("version") if isinstance(body.get("version"), dict) else {})
-        # an AI board starts with no sticky notes, which are his alone
+        # a board laid out whole starts with no sticky notes, which are his alone
         made.pop("notes", None)
         made.update(id=_next_id(versions), name=board_name(versions, str(body.get("name") or "")),
                     note=str(body.get("note") or "").strip(), created=when, updated=when)
@@ -4887,9 +4717,10 @@ def version_op(workbook: Path, op: str, body: dict, case: str, dry_run: bool = F
         current = fresh["id"]
     elif op == "duplicate":
         copy = json.loads(json.dumps(normalise(target)))
-        # a copy starts its own review, as it starts its own note and its own history, and it is
-        # his, made by his press, whatever an agent did to the board it was copied from
-        copy.pop("review", None)
+        # a copy is his, made by his press, whatever an agent did to the board it was copied from, and
+        # carries nothing the app's own AI left with the board before 11 November 2026
+        for key in FROM_BEFORE:
+            copy.pop(key, None)
         # and a copy of a board brought in from a shared copy is his, not the other analyst's
         copy.pop(ORIGIN, None)
         for key in AGENT_KEYS:
@@ -5287,15 +5118,15 @@ def draft_markdown(workbook: Path, case: str, vid=None, labels: str = LETTERS,
 
 
 def outline(read: dict, version: dict) -> dict:
-    """A board as a document sets it out, for the AI review and the print view.
+    """A board as a document sets it out, for the titles' prompt and the print view.
 
     Its themes in canvas order, each with its own statements in the order the canvas reads them,
     higher first, the quotes picked to carry it in transcript order, its `note` and its `description`
     when it has them, and its sub-themes, at any depth, in the order their frames read among its cards. A theme's `order`
     gives its statements' keys and its sub-themes' ids in one list as the canvas reads them, so a
     sub-theme takes its place among the cards where its frame's top sits. Then the statements left
-    unplaced and those discarded, both in transcript order, each with the reason an AI gave for
-    leaving it out when it gave one. Each statement carries its key, sheet, timecode and words as
+    unplaced and those discarded, both in transcript order, each with the reason it was left out when
+    an agent gave one, or an AI proposal before. Each statement carries its key, sheet, timecode and words as
     the workbook reads now, whether its line has gone, and `quote`, its own quote, the one at
     its place among its row's quotes, empty when it has none or its line has gone. A top carries
     `stacked`, the statements stacked under it set out the same way, which are listed nowhere else. `read` is
@@ -5315,9 +5146,9 @@ def outline(read: dict, version: dict) -> dict:
     quotes = {q["key"]: (row, q["text"]) for row in read["quotes"].values() for q in row["quotes"]}
     # a quote that takes in the passages next to its own is placed by its range (see `spread_quotes`)
     spans = {q["key"]: q["time"] for row in read["quotes"].values() for q in row["quotes"] if q.get("span")}
-    reasons = merged.get("discard_reasons") or {}
     stacks = merged.get("stacks") or {}
     stacked = stacked_keys(merged)
+    reasons = merged.get("discard_reasons") or {}
 
     def statement(key: str, top: bool = True) -> dict:
         c = cards[key]

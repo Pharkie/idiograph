@@ -231,8 +231,8 @@ def _follow_checks(scratch, root, server_mod, themes_mod):
           and after["v1"]["picks"] == {"g1": [f"{S}:4:0"]} and after["v1"]["quoted"] == {f"{S}:4:0": Q9}
           and after["v2"]["groups"] == after["v1"]["groups"],
           str([g["members"] for g in after["v1"]["groups"]]))
-    check("and the review's about: a card that went with the cut is named as cut, the rest move",
-          [i["about"] for i in after["v1"]["review"]["items"]] == [f"cut:{cut['id']}:{S}:3:0", f"{S}:6:0", "g1", None],
+    check("aiout: a review from before stays as the file held it, its about never moved",
+          after["v1"]["review"] == was["v1"][1] and [i["about"] for i in after["v1"]["review"]["items"]] == [f"{S}:3:0", f"{S}:11:0", "g1", None],
           str([i["about"] for i in after["v1"]["review"]["items"]]))
     record = after["v1"].get("cut") or [{}]
     check("the cards on cut rows go under cut, with the trim's id, their themes, their discard, their picks and the reasons",
@@ -260,7 +260,7 @@ def _follow_checks(scratch, root, server_mod, themes_mod):
     check("the untrim puts the cut cards back in their themes, with their places, discards, picks and reasons",
           now["v1"][0] == was["v1"][0] and now["v2"][0] == was["v2"][0] and "cut" not in board(work)
           and "themes" not in back, str(sorted(set(now["v1"][0]) ^ set(was["v1"][0]))))
-    check("and every revision as it was, and the review's about named again",
+    check("and every revision as it was, and the review as it was",
           now["v1"][2] == was["v1"][2] and now["v1"][1] == was["v1"][1] and now["v2"][1] == was["v2"][1])
     ok, said = agree(work)
     check("after the untrim the progress file and the themes file agree", ok, said)

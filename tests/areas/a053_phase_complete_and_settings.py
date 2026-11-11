@@ -21,7 +21,6 @@ def test_phase_complete_and_settings(scratch):
 
     page = support.page_text()
     app = support.text("family/static/shell.js", "apps/idiograph/static/distil.js")
-    js = support.text("apps/idiograph/static/themes.js")
     fn = lambda src, name: src.split(f"function {name}(", 1)[1].split("\n}", 1)[0]
 
     # ── A. the record: `complete` in the progress file, and nothing else written
@@ -119,16 +118,13 @@ def test_phase_complete_and_settings(scratch):
               rounds_mod.complete_of(broken) is None
               and {Path(c["path"]).name: c for c in idiograph_routes.api_cases({})["cases"]}[broken.name]["complete"] is None)
 
-        # ── the PETs category's stepper writes `themes.cap`, the key the bar's stepper writes
+        # aiout (11 November 2026): the PETs category's limit went with New AI board, and a file that holds one keeps it
         server_mod.CONFIG_PATH = scratch / "complete-config.json"
         server_mod.CONFIG_PATH.write_text(json.dumps({"interviewer": "Adam", "themes": {"cap": 5}}), encoding="utf-8")
         wrote = server_mod.api_settings({"interviewer": "Adam", "themes": {"cap": 7}})
         on_disk = json.loads(server_mod.CONFIG_PATH.read_text(encoding="utf-8"))
-        check("116: a Save that carries the PETs category's limit writes themes.cap, and the bar takes it",
-              on_disk["themes"]["cap"] == 7 and wrote["ai"]["cap"] == 7)
-        server_mod.api_settings({"interviewer": "Adam"})
-        check("116: a Save with the limit unmoved leaves themes.cap as the bar left it",
-              json.loads(server_mod.CONFIG_PATH.read_text(encoding="utf-8"))["themes"]["cap"] == 7)
+        check("116, aiout: a Save no longer writes a limit, the file's left as it was, and the bar's AI state has none",
+              on_disk["themes"] == {"cap": 5} and "cap" not in wrote["ai"])
     finally:
         (server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.CONFIG_PATH, server_mod.STATE_MEMORY) = saved
 
@@ -243,34 +239,5 @@ def test_phase_complete_and_settings(scratch):
     card = page.split('<div class="overlay" id="settings"', 1)[1].split('<div class="overlay"', 1)[0]
     # Idiograph's keys of the card in its own hook since the fifth build (23 October 2026)
     saver = fn(app, "distilSettingsBody")
-    check("116: the PETs category writes themes.cap on Save, as the bar's stepper does, once it has moved",
-          "if (capNow() !== S.capOpened) body.themes = { cap: capNow() };" in saver
-          and "const capOf = (n) => Math.max(2, Math.min(9, Math.round(Number(n)) || 5));" in app
-          and "$('set-cap-down').onclick = () => capStep(-1);" in app and "$('set-cap-up').onclick = () => capStep(1);" in app
-          and "api('/api/settings', { themes: { cap: next } })" in js)
-    opener = fn(app, "distilSettingsOpen")
-    check("116: the card opens with the limit the PETs screen holds over that screen, and the settings' elsewhere, the GETs board's among them",
-          "const live = ctx.themes && typeof TH !== 'undefined' && TH.mode !== 'gets' && TH.cap ? TH.cap : held;" in opener
-          and "S.capOpened = capOf(live);" in opener and "drawCap(S.capOpened);" in opener)
-    if node:
-        source = "\n".join([next(line for line in app.splitlines() if line.startswith("const capOf = ")),
-                            next(line for line in app.splitlines() if line.startswith("const capNow = ")),
-                            # drawCap writes the limit's sentence under the stepper too (165)
-                            "const CAP_LINES = " + app.split("const CAP_LINES = ", 1)[1].split(";\n", 1)[0] + ";",
-                            "function capLine(" + fn(app, "capLine") + "\n}",
-                            "function drawCap(" + fn(app, "drawCap") + "\n}",
-                            next(line for line in app.splitlines() if line.startswith("const capStep = "))])
-        script = scratch / "cap-check.js"
-        script.write_text(support.i18n_js() +
-            "const els = {};\n"
-            "const $ = (id) => els[id] || (els[id] = { textContent: '', disabled: false });\n"
-            + source + "\n"
-            "const out = [];\n"
-            "drawCap(5); for (let k = 0; k < 6; k += 1) capStep(1); out.push([capNow(), $('set-cap-up').disabled]);\n"
-            "for (let k = 0; k < 9; k += 1) capStep(-1); out.push([capNow(), $('set-cap-down').disabled]);\n"
-            "out.push([capOf('x'), capOf(12), capOf(1), capOf(6.4)]);\n"
-            "console.log(JSON.stringify(out));\n", encoding="utf-8")
-        run = subprocess.run([node, str(script)], capture_output=True, text=True, encoding="utf-8")
-        out = json.loads(run.stdout) if run.returncode == 0 else None
-        check("116: in node, the stepper runs from 2 to 9 and stops there", out == [[9, True], [2, True], [5, 9, 2, 6]],
-              str(out) if out else run.stderr.strip()[:200])
+    check("116, aiout: the PETs category has no limit's stepper and Save sends none",
+          "capNow" not in saver and "themes" not in saver and "set-cap" not in app and "set-cap" not in card and "capStep" not in app)

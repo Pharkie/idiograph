@@ -10,7 +10,7 @@ command line by `cli.register_own`, which the command line's import of this modu
 
 Every rule is the app's: the cards are read by `themes.read_cards`, a board is laid out by
 `themes_ai.lay_out` and added through `themes.version_op`, a change to one goes through the
-operations AI revise uses, `themes_ai.revise_ops`, a turn is written as `/api/commit` writes it,
+board's applier, `themes_ai.revise_ops`, a turn is written as `/api/commit` writes it,
 and every write takes the file lock the server takes (see `locks.py`). Nothing here re-implements
 any of them. It works with the server running or not, and the page notices what it writes.
 
@@ -373,10 +373,7 @@ def pair(key: str, sids: dict) -> str:
 # ------------------------------------------------------------------- cases
 
 def cmd_cases(p: Project, args) -> tuple:
-    # the most PETs an AI board proposes, the app's own setting from the config it reads, a limit on
-    # the AI's proposals alone and never on a board made from a structure
     cfg = srv.config()
-    cap = themes_ai.clean_cap((cfg.get("themes") or {}).get("cap") if isinstance(cfg.get("themes"), dict) else None)
     try:
         held = gets_mod.load(p.root)
     except WorkbookError:
@@ -412,7 +409,7 @@ def cmd_cases(p: Project, args) -> tuple:
                      **({"unread": unread} if unread else {})})
     project = {"name": p.info["name"], "research_question": p.info["research_question"], "demo": p.demo,
                "method": p.info.get("method", "ipa"),
-               "ai_board_most_pets": cap, "gets_minimum": minimum, "smith_band": band, "cases_in_study": len(inside),
+               "gets_minimum": minimum, "smith_band": band, "cases_in_study": len(inside),
                "gets_file": held is not None}
     if routes.longitudinal(p.info["timepoints"]):
         project["timepoints"] = [{"n": t["n"], "label": t["label"], "description": t["description"]}
@@ -2988,7 +2985,7 @@ def carried_stacks(built: dict, source: dict) -> None:
 
 
 def board_note(tool: str, request: str, counts: dict, when: str, own: str = "") -> str:
-    """A board made in a conversation, said in its note as an AI board's note says how it was made."""
+    """A board made in a conversation, said in its note: who made it, when, for what, and its counts."""
     said = (f"Made by {tool} in a conversation on {cli.when_said(when)}, for the request '{themes_ai.one_line(request)}'. "
             f"{cli.plural(counts['pets'], 'PET')}, {counts['placed']} placed, {counts['left']} not placed.")
     return said + (f" Its note: {own}" + ("" if own[-1:] in ".?!" else ".") if own else "")
@@ -2996,7 +2993,7 @@ def board_note(tool: str, request: str, counts: dict, when: str, own: str = "") 
 
 def mark(args, when: str, made_from: str = "") -> dict:
     """Who made a board in a conversation, the tool and his request, and `from`, the board it came
-    from, as New AI board's mark keeps them."""
+    from."""
     out = {"by": "agent", "tool": themes_ai.one_line(args.tool) or cli.TOOL, "request": themes_ai.one_line(args.note), "at": when}
     # a teammate's suggestion accepted (wtsuggest, 10 November 2026): by the member who suggested it, and who accepted
     member = getattr(args, "_member", None)
@@ -3008,8 +3005,8 @@ def mark(args, when: str, made_from: str = "") -> dict:
 
 
 def source_of(data: dict | None) -> str:
-    """What an agent's new board came from, by the rule New AI board on the canvas keeps: the board on
-    the canvas by its name, or all statements on a case with no board yet."""
+    """What an agent's new board came from: the board on the canvas by its name, or all statements on a
+    case with no board yet."""
     board = themes.current_version(data)
     return str(board.get("name") or themes.FIRST_NAME) if board else themes_ai.FROM_ALL
 
@@ -4283,7 +4280,7 @@ def cmd_board_apply(p: Project, args) -> tuple:
         # a pick from here is his, so it keeps every quote it names, as a tick on the PETs screen
         # does, and not the two an AI answer is held to (see `themes.picks_kept`)
         # and a description from here is his too, which the applier takes from board apply alone (21 October)
-        start = dict(themes_ai.revise_start(read, followed), pick_max=None, human=True)
+        start = dict(themes_ai.revise_start(read, followed), pick_max=None)
         ops = name_ids(ops, read, keys)
         # an order runs after the rest, on the board they leave, since it moves where things stand, and
         # an operation on a stack runs after the applier's and before an order
@@ -4677,7 +4674,7 @@ def cmd_gets_apply(p: Project, args) -> tuple:
                                  **({"note": g["note"]} if g.get("note") else {}),
                                  **({themes.DESCRIPTION: g[themes.DESCRIPTION]} if g.get(themes.DESCRIPTION) else {}))
                             for g in plain["groups"]],
-                 "picks": {}, "quotes": {}, "human": True}
+                 "picks": {}, "quotes": {}}
         # an order runs after the rest, on the board they leave, as on a PETs board
         # and Arrange by participant after that, on the board the change and its orders leave (19 October)
         listed = [(n, op) for n, op in enumerate(ops, start=1) if not is_order(op) and not is_arrange(op) and not is_layout(op)]
@@ -5244,8 +5241,6 @@ def settings_lines(view: dict) -> list[str]:
     band = i18n.t("cli.settings_lines.smiths_band_for", participants=i18n.t("cli.n.participant", n=view['total'])) if view["band"] else ""
     lines = [i18n.t("cli.settings_lines.a_get_needs_of_the_in", minimum=view['minimum'], participants=i18n.t("cli.n.participant", n=view['total']), band=band),
              i18n.t("cli.settings_lines.one_per_pet", v_='on' if view['settings']['one_per_pet'] else 'off')]
-    if view["settings"].get("cap") is not None:
-        lines.append(i18n.t("cli.settings_lines.the_most_gets_a_new_ai", cap=view['settings']['cap']))
     for s in view["study"]:
         lines.append(f"  {s['who']}: " + (i18n.t("cli.settings_lines.in_the_study") if s["in"] else i18n.t("cli.settings_lines.out_of_the_study", reason=s['reason'])))
     return lines
@@ -5254,7 +5249,7 @@ def settings_lines(view: dict) -> list[str]:
 def cmd_gets_settings(p: Project, args) -> tuple:
     """The study's own settings, under GETs in Project settings, read as `settings_view` reads them, or saved as its
     save does through `gets.settings_op`: --minimum, a whole number or band for Smith's band, --one-per-pet on
-    or off, --cap, the most GETs a new AI board proposes, --out Name=reason taking a participant out of the
+    or off, --out Name=reason taking a participant out of the
     study with his reason and --in putting one back. Kept in the GETs file, no part of any board, so no
     History. With --dry-run what would change, and nothing written."""
     view = gets_mod.settings_view(p.root, p.books)
@@ -5267,8 +5262,6 @@ def cmd_gets_settings(p: Project, args) -> tuple:
         if said not in ("on", "off", "true", "false", "yes", "no"):
             raise cli.Refused(i18n.t("cli.gets_settings.say_one_per_pet_on_or"))
         body["one_per_pet"] = said in ("on", "true", "yes")
-    if getattr(args, "cap", None) is not None:
-        body["cap"] = args.cap
     study = {}
     for item in getattr(args, "out", None) or []:
         who, _, reason = str(item).partition("=")
@@ -5293,8 +5286,6 @@ def cmd_gets_settings(p: Project, args) -> tuple:
             changes.append(i18n.t("cli.gets_settings.the_minimum_from_to", said=said(was.get('minimum')), said2=said(now.get('minimum'))))
         if was["one_per_pet"] != now["one_per_pet"]:
             changes.append(i18n.t("cli.gets_settings.one_per_pet_from_to", v_='on' if was['one_per_pet'] else 'off', v_2='on' if now['one_per_pet'] else 'off'))
-        if was.get("cap") != now.get("cap"):
-            changes.append(i18n.t("cli.gets_settings.the_most_gets_a_new_ai", get=was.get('cap') or gets_mod.CAP, get2=now.get('cap')))
         before = {s["case"]: s for s in view["study"]}
         for case, mark_ in after["study"].items():
             old = before.get(case) or {"in": True, "reason": ""}
@@ -7451,7 +7442,6 @@ def arguments(sub, common, writes) -> None:
                      help="the study's settings under GETs in Project settings, read, or saved with the options given")
     x.add_argument("--minimum", default=None, help="the participants a GET needs, a whole number, or band for Smith's band")
     x.add_argument("--one-per-pet", dest="one_per_pet", default=None, help="on or off")
-    x.add_argument("--cap", type=int, default=None, help="the most GETs a new AI board proposes, from 2 to 9")
     x.add_argument("--out", action="append", default=None,
                    help="a participant out of the study with his reason, Name=reason, given again for each one more")
     x.add_argument("--in", dest="back_in", action="append", default=None,

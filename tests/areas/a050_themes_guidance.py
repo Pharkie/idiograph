@@ -95,9 +95,9 @@ TH.ai = { on: true };
 out.none = thSideStored();
 TH.sideOpen = true; TH.tab = 'guidance'; thSideKeep();
 out.open = [thSideStored(), store[thSideKey('pets')]];
-TH.sideOpen = false; TH.tab = 'review'; thSideKeep();
+TH.sideOpen = false; TH.tab = 'history'; thSideKeep();
 out.shut = thSideStored();
-store[thSideKey('pets')] = '{"open": true, "tab": "quotes"}';
+store[thSideKey('pets')] = '{"open": true, "tab": "review"}';
 out.stale = thSideStored();
 store[thSideKey('pets')] = 'not json';
 out.junk = thSideStored();
@@ -113,7 +113,7 @@ console.log(JSON.stringify(out));
     out = json.loads(run.stdout)
     check("110, 183: in node, nothing stored is closed on the Inspector, and what is kept comes back as it was",
           out["none"] == {"open": False, "tab": "inspector"} and out["open"][0] == {"open": True, "tab": "guidance"}
-          and json.loads(out["open"][1]) == {"open": True, "tab": "guidance"} and out["shut"] == {"open": False, "tab": "review"}
-          and out["tabs"] == ["inspector", "guidance", "history", "review", "revise"], str(out))
-    check("110, 183: in node, a tab that is no more, a value that is not ours or a blocked store fall back to closed on the Inspector",
+          and json.loads(out["open"][1]) == {"open": True, "tab": "guidance"} and out["shut"] == {"open": False, "tab": "history"}
+          and out["tabs"] == ["inspector", "guidance", "history"], str(out))
+    check("110, 183: in node, a tab that is no more, Review among them since aiout, a value that is not ours or a blocked store fall back to closed on the Inspector",
           out["stale"] == out["junk"] == out["blocked"] == {"open": False, "tab": "inspector"}, str(out))

@@ -120,7 +120,6 @@ const S = {
   doneFinished: false, // the round card on screen is the case-complete card
   doneSheet: false,  // the round card on screen is the sheet-done card
   nextSheet: null,   // the sheet its Next sheet goes to
-  capOpened: null,   // the limit on an AI board's PETs as Settings opened with it
 };
 
 /* ───────────────────────────────────────────────────────── plumbing ── */
@@ -2658,7 +2657,7 @@ function settingsCase() {
   if (!$('library').hidden) return { path: null, gets: null, themes: false, project: null, config: S.libConfig || (S.data && S.data.config) || {} };
   return { path: null, themes: false, project: null, config: {} };
 }
-const OVERLAYS = ['round-done', 'help', 'settings', 'ai-confirm', 'projset', 'create', 'import', 'newproject', 'rv-card', 'trim', 'th-confirm', 'th-aicard', 'assign', 'feedback', 'whatsnew', 'rename', 'complete', 'about', 'support', 'skip-confirm', 'hold-card', 'holds-batch', 'remove-card'];
+const OVERLAYS = ['round-done', 'help', 'settings', 'ai-confirm', 'projset', 'create', 'import', 'newproject', 'rv-card', 'trim', 'th-confirm', 'assign', 'feedback', 'whatsnew', 'rename', 'complete', 'about', 'support', 'skip-confirm', 'hold-card', 'holds-batch', 'remove-card'];
 // the cards this page holds, its own app's and the family's, never another app's since each ships alone (panefix)
 const overlaysHere = () => OVERLAYS.filter((id) => $(id));
 const anyOverlayOpen = () => overlaysHere().some((id) => !$(id).hidden);
@@ -2729,8 +2728,7 @@ function paneKeys(e) {
 }
 
 /* `pane` opens the card on that category: the home screen's Settings on General, the PETs and GETs
-   screens' cogs on PETs, and `ai`, the Review tab's link to the switch, on
-   General with the switch at the top. With none it opens on the category of the screen it was
+   screens' cogs on PETs. With none it opens on the category of the screen it was
    opened over, never where it was left the time before. */
 function openSettings(pane) {
   const ctx = settingsCase();

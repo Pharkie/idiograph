@@ -250,11 +250,11 @@ function world(withWindow, app) {
               and "recent: trRecent" in support.text("apps/trace/static/trace.js"), str(got.get("recent"))[:400] + str(got.get("byApp")))
     else:
         skip("167: the page's window parts under node", "node is not on this machine")
-    check("167: Ctrl+Y redoes off a Mac, on the statements screen, on a board and in a board's reply box, as Windows "
+    check("167: Ctrl+Y redoes off a Mac, on the statements screen and on a board, as Windows "
           "names Redo and the window's Edit menu presses it",
           "const REDO_Y = (e) => !MAC && e.ctrlKey && !e.shiftKey && !e.altKey && (e.key === 'y' || e.key === 'Y');" in app_js
           and "|| REDO_Y(e)) {\n    const backwards = !e.shiftKey && !REDO_Y(e);" in app_js
-          and themes_js.count("REDO_Y(e)") == 4)
+          and themes_js.count("REDO_Y(e)") == 2)
 
     # ── C. window.js under node: the settings kept, the place, closing, the menu's acts, the zoom keys
     if node:

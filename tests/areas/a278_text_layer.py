@@ -245,10 +245,9 @@ console.log(JSON.stringify(out));
                   + line(themes, "const TH_DAY = ") + line(themes, "const TH_DAY_YEAR = ")
                   + "const thSameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()\n"
                     "  && a.getDate() === b.getDate();\n"
-                  + line(themes, "const thClockOf = ") + fn(themes, "thWhen") + fn(themes, "thDayOf")
-                  + fn(themes, "thReviewMade"))
+                  + line(themes, "const thClockOf = ") + fn(themes, "thWhen") + fn(themes, "thDayOf"))
         dates = r"""
-const out = { long: [], short: [], weekdays: [], when: [], day: [], made: [] };
+const out = { long: [], short: [], weekdays: [], when: [], day: [] };
 const now = new Date(2026, 9, 28, 9, 0);
 for (let m = 1; m <= 12; m++) {
   const mm = String(m).padStart(2, '0');
@@ -256,7 +255,6 @@ for (let m = 1; m <= 12; m++) {
   out.short.push(whenOf(`2026-${mm}-03T14:05:00`).day);
   out.when.push(thWhen(new Date(2025, m - 1, 1, 12, 4).toISOString(), now));
   out.day.push(thDayOf(new Date(2026, m - 1, 9, 8, 0), now));
-  out.made.push(thReviewMade({ model: 'a model', at: new Date(2026, m - 1, 9, 7, 30).toISOString() }, now));
 }
 // a week of the days' squares from a Monday, as daysModel writes each square's tooltip
 for (let k = 0; k < 7; k++) out.weekdays.push(tDate(new Date(Date.UTC(2026, 8, 7 + k)), DAYS_TIP));
@@ -280,8 +278,6 @@ console.log(JSON.stringify(out));
                   "a day this year, every month as the table did",
                   d["when"] == [f"1 {m} 2025 12:04" for m in MONTHS_LONG]
                   and d["day"] == [f"9 {m} 2026" for m in MONTHS_LONG], str([d["when"], d["day"]]))
-            check("278: a review's line says Made by a model on 9 March at 07:30. as the table did",
-                  d["made"][2] == "Made by a model on 9 March at 07:30.", str(d["made"]))
             check("278: what is not a date stands as it is, as before", d["notDate"] == ["soon", "", "2026-13-01"],
                   str(d["notDate"]))
 

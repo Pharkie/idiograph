@@ -318,10 +318,10 @@ def test_themes(scratch):
           "thNote(needsRestart(err) ? RESTART_LINE : err.message, !needsRestart(err));\n    return;" in fn(js, "themesOpen")
           and "TH.live = true;" in fn(js, "themesOpen")
           and fn(js, "themesOpen").index("needsRestart") < fn(js, "themesOpen").index("TH.live = true;"))
-    check("the screen talks to its six routes, the settings for its limit and the recording's, its project for PET labels, the statements' export for the interviewer notes (settingsplit, 5 November), and writes a workbook through one route alone, a statement edited in place (124, 208)",
+    check("the screen talks to its six routes, the settings for the recording's, its project for PET labels, the statements' export for the interviewer notes (settingsplit, 5 November), and writes a workbook through one route alone, a statement edited in place (124, 208)",
           sorted(set(re.findall(r"'(/api/[a-z-]+)'", js)))
           == ["/api/board-order", "/api/codes", "/api/codes-ops", "/api/edit-statement", "/api/export", "/api/gets", "/api/gets-ai", "/api/gets-boards", "/api/gets-cases", "/api/gets-ops", "/api/gets-save",
-              "/api/gets-settings", "/api/gets-trail", "/api/project", "/api/settings", "/api/stamp", "/api/themes", "/api/themes-ai", "/api/themes-boards", "/api/themes-cases",
+              "/api/gets-trail", "/api/project", "/api/settings", "/api/stamp", "/api/themes", "/api/themes-ai", "/api/themes-boards", "/api/themes-cases",
               "/api/themes-export", "/api/themes-save", "/api/themes-versions"]
           and js.count("TH_EDIT_ROUTE") == 3
           and "api(`/api/audio?${" in js and "/api/commit" not in js and "/api/rows" not in js)

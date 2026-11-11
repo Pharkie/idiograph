@@ -37,7 +37,6 @@ def test_descriptions(scratch):
     import gets_print
     import server as server_mod
     import themes
-    import themes_ai
     import themes_print
     import themes_word
 
@@ -131,18 +130,14 @@ def test_descriptions(scratch):
     check("242: the same descriptions again change nothing and write nothing",
           again[0] == 0 and again[1].get("changed") is False and board() == after, again[1].get("said", ""))
 
-    # ── C. refusals: one with no description given, and the AI's revise, which never writes one
+    # ── C. refusals: one with no description given, or on a label not on the board (the AI's revise, which was refused
+    # one, went on 11 November 2026, aiout, and the applier now serves board apply and gets apply alone)
     held = themes_file.read_bytes()
     bad = answer("board", "apply", "Rowan", "v1", "--ops", ops({"op": "describe", "label": pet}), "--note", "x")
     unknown = answer("board", "apply", "Rowan", "v1", "--ops", ops({"op": "describe", "label": "g999", "description": "x"}),
                      "--note", "x")
-    plain_start = themes_ai.revise_start(themes.read_cards(book), after)
-    ai = themes_ai.revise_ops(plain_start, [{"op": "describe", "label": pet, "description": "An AI's words"}])
-    check("242: a describe with no description, or on a label not on the board, is refused whole with nothing written, "
-          "and an AI revise's describe is refused, a description being his own words",
-          bad[0] != 0 and unknown[0] != 0 and themes_file.read_bytes() == held
-          and not ai[1] and len(ai[2]) == 1 and groups_of({"groups": ai[0]["groups"]})[pet].get("description") == PET_DESC,
-          f"{bad[2]} {unknown[2]} {ai[2]}")
+    check("242: a describe with no description, or on a label not on the board, is refused whole with nothing written",
+          bad[0] != 0 and unknown[0] != 0 and themes_file.read_bytes() == held, f"{bad[2]} {unknown[2]}")
 
     # ── D. the print view and the Word table, with the tick on and off
     on = print_off(descriptions=True)

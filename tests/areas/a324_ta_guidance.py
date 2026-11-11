@@ -119,11 +119,11 @@ def test_ta_guidance(scratch: Path):
           "guidance" in (out.get("taTabs") or []) and "guidance" in (out.get("ipaTabs") or []), why)
     check("324: from a server before it, sending no TA lines, a TA project's board leaves the tab out, as before",
           "guidance" not in (out.get("taOldServer") or ["guidance"]), why)
-    # its own AI review since taaibuild, and still no AI revise (area 326)
-    check("324: with AI features on, a TA project's board shows its own AI review and hides AI revise, and an "
-          "IPA project's board shows all five tabs",
-          out.get("taDrawn") == ["inspector", "guidance", "history", "review"]
-          and out.get("ipaDrawn") == ["inspector", "guidance", "history", "review", "revise"], why)
+    # its own AI review went with IPA's on 11 November 2026 (aiout, area 326)
+    check("324: with AI features on, a TA project's board and an IPA project's each show the three tabs that stay, "
+          "no AI review or revise since aiout",
+          out.get("taDrawn") == ["inspector", "guidance", "history"]
+          and out.get("ipaDrawn") == ["inspector", "guidance", "history"], why)
     opened = js.split("async function themesOpen(", 1)[1].split("\n}\n", 1)[0]
     method_at = opened.find("tMethod(TH.project && TH.project.method);")
     check("324: opening a board sets the AI's controls again once the project's method is known, so a TA board opened "

@@ -131,10 +131,7 @@ def test_sticky_notes(scratch):
         csv_text = export_mod.output_path(work).read_text(encoding="utf-8-sig")
         printed = themes_print.page(work, "Juno", "v1", DEMO_QUESTION, auto=False)
         outline = themes_mod.outline(read, board("v1"))
-        merged = themes_mod.merge(read["cards"], board("v1"))
-        prompts = (themes_ai.review_user(outline)
-                   + themes_ai.group_user(themes_ai.statements_of(merged), themes_ai.labels_of(merged), "")
-                   + themes_ai.pet_user(themes_ai.names_target(read, board("v1"), "g1")))
+        prompts = themes_ai.pet_user(themes_ai.names_target(read, board("v1"), "g1"))
         words = ("Not sure about this one", "merge with group 4", OTHER)
         found = [name for name, text in (("draft", draft), ("CSV", csv_text), ("print", printed),
                                           ("outline", json.dumps(outline, ensure_ascii=False)), ("prompts", prompts))

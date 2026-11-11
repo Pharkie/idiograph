@@ -1864,8 +1864,7 @@ AGENTS_PLACE = re.compile(r"<!-- project -->.*?<!-- /project -->", re.S)
 
 def agents_project(root: Path) -> str:
     """This project in the words the guide's place for it takes: its name, its research question,
-    and the participants a GET needs. Never the most PETs an AI board proposes, which limits the app's
-    AI boards alone, never a board an agent makes from a structure."""
+    and the participants a GET needs."""
     project = read_project(root)
     try:
         held = gets_mod.load(root)
@@ -5715,8 +5714,6 @@ def api_rename(body: dict) -> dict:
     return rename_case(root, folder, body.get("name"), with_folder, srv.config(), who=hist_mod.asker(body))
 
 
-
-
 def passage_in(payload: dict, at: dict) -> bool:
     """Whether a case's transcript still has a participant passage at `at`, its sheet and row."""
     who = str(payload["config"].get("interviewer") or "").strip().lower()
@@ -6518,8 +6515,6 @@ def api_replace(body: dict) -> dict:
                            request=themes_ai.one_line(body.get("request") or ""))
 
 
-
-
 def undo_in_case(path: Path, batch: str, redo: bool = False, dry_run: bool = False, tool: str = "",
                  request: str = "") -> dict:
     """Undo a find and replace, or with `redo` apply it again, by the batch id it answered with.
@@ -7074,9 +7069,6 @@ def api_themes(body: dict) -> dict:
     # and `notes` says a save keeps a theme's note, which a server from before the notes would drop.
     # `guidance` is the board panel's Guidance tab, read from its file on every open, and a page in
     # front of a server from before it says to restart in the tab's place.
-    # `from_all` says New AI board takes `from`, and a server from before it would make the board
-    # from the canvas, so the card says to restart when All statements is chosen. `revisable` says
-    # the route takes a revise and a save keeps the board's thread, which a server from before drops.
     # `word` says the export takes `op` of `word`, which a server from before it would answer with
     # the markdown draft and the CSV
     # in a project of two or more timepoints, the timepoint this canvas is at and the participant's
@@ -7085,8 +7077,7 @@ def api_themes(body: dict) -> dict:
         answer = dict(answer, timepoint=themes_mod.timepoint_now(), timepoints=participant_timepoints(path))
     return dict(answer, path=srv.rel_path(path), demo=srv.is_demo(path), ai=srv.ai_state(cfg), platform=srv.PLATFORM,
                 project=read_project(project_root(path)), config=cfg, print=PRINT_PATH, notes=True,
-                guidance=themes_guidance(), feedback=bool(srv.feedback_url(cfg)), from_all=True, revisable=True,
-                word=True)
+                guidance=themes_guidance(), feedback=bool(srv.feedback_url(cfg)), word=True)
 
 
 def api_themes_save(body: dict) -> dict:
@@ -7155,7 +7146,7 @@ def api_themes_versions(body: dict) -> dict:
     With `dry_run` (26 October, for the agents' board ops) every check is made and nothing is written."""
     path = case_path(body.get("workbook") or body.get("path") or body["workbook"])
     op = str(body.get("op") or "")
-    # the AI's proposal comes in only through /api/themes-ai, which lays it out itself
+    # a board laid out whole comes in only through the server's own callers, which lay it out themselves
     if op == themes_mod.PROPOSE:
         raise WorkbookError(themes_mod.NOT_A_BOARD_OP, code="unknown_op")
     with writing(path, boards=True):
@@ -7375,9 +7366,7 @@ def gets_head(root: Path | None, rows: list[dict] | None = None) -> dict | None:
 
 def gets_reply(root: Path, body: dict, answer: dict) -> dict:
     """A GETs answer with what the screen draws around the canvas: the project's name in the bar,
-    the band, the demo tag, the settings for the cog, and `ai`, the switch, the PETs screen's model
-    and his limit on the GETs a new AI board makes, the GETs file's own. `gets_ai` says this server
-    takes `/api/gets-ai`, which a page in front of one from before it learns from a refusal, and
+    the band, the demo tag, the settings for the cog, and `ai`, the switch and the PETs screen's model.
     `guidance` is the GETs sections of `pet_guidance.md` for the Guidance tab, a thematic analysis project's
     `ta_themes_guidance.md` (tarail), with `guidance_ta` to say so. Each case of the
     Cases panel carries `path`, its workbook as the screen names one, for Open beside, and `root`
@@ -7390,7 +7379,7 @@ def gets_reply(root: Path, body: dict, answer: dict) -> dict:
     for case in answer.get("cases") or []:
         if case.get("workbook"):
             case["path"] = srv.rel_path(Path(case.pop("workbook")))
-    ai = dict(srv.ai_state(cfg, "gets"), cap=gets_mod.cap_of(answer.get("settings") or {}))
+    ai = srv.ai_state(cfg, "gets")
     # on LPETs the participant is the canvas's own, by their label, with their timepoints (21 October)
     if LPETS_FOR.get() is not None:
         who = LPETS_FOR.get()
@@ -7399,9 +7388,8 @@ def gets_reply(root: Path, body: dict, answer: dict) -> dict:
     if LGETS_FOR.get() is not None:
         answer = dict(answer, lgets=True, timepoints=root_timepoints(root))
     return dict(answer, path=str(body.get("workbook") or body.get("path") or ""), demo=project["demo"],
-                case=answer.get("participant") or project["name"], project=project, config=cfg, ai=ai, gets_ai=True,
-                from_all=True, last_opened=last,
-                revisable=True, platform=srv.PLATFORM, notes=True, feedback=bool(srv.feedback_url(cfg)),
+                case=answer.get("participant") or project["name"], project=project, config=cfg, ai=ai,
+                last_opened=last, platform=srv.PLATFORM, notes=True, feedback=bool(srv.feedback_url(cfg)),
                 guidance=(themes_guidance(i18n.long_text(TA_THEMES_GUIDANCE)) if project.get("method") == "ta"
                           else themes_ai.gets_guidance_lines()), guidance_ta=project.get("method") == "ta",
                 root=srv.rel_path(root), gets_print=GETS_PRINT_PATH)
@@ -7734,14 +7722,6 @@ def api_gets_settings(body: dict) -> dict:
                                           asker=hist_mod.asker(body))
         return answer if answer.get("dry_run") else gets_reply(root, body, answer)
     return dict(gets_mod.settings_view(root, books), project=read_project(root))
-
-
-GETS_AI_OPS = ("group", "names", "review", "reply", "revise", "room")
-# a thematic analysis project's Themes board asks its own review and a reply alone, with no revise, no AI board and no
-# titles (taaibuild, 3 November 2026, Adam's Themes A)
-TA_AI_OPS = ("review", "reply")
-
-
 
 
 def traj_root(body: dict) -> Path:
@@ -8084,26 +8064,12 @@ def api_codes_undo(body: dict) -> dict:
 
 
 def api_gets_ai(body: dict) -> dict:
-    """The GETs screen's AI help, with `op` of `group`, `names`, `review`, `reply` or `revise`, as
-    `/api/themes-ai` gives the PETs screen's, through the same route, `pets_route`, with the key and
-    the project's research question, and all refused while the switch in Settings is off. The board
-    is the one `version` names, the one on the canvas when none is, read from the GETs file with
-    every case not yet in as it would come in, and nothing but `group` and a changing `revise`
-    writes, the GETs file alone, never a workbook or a themes file.
-
-    `group` sends every case of the study by its pseudonym, each PET with its note, sub-themes and
-    statements, with the GETs section of the guidance, his minimum, One GET per PET as set, his
-    limit, `cap` or the GETs file's, and the `hint`, and with `from` of `board` that board's GETs and
-    placements as the start, and adds the answer as a new board, `Board N`, made current, the board
-    it came from untouched. A second call picks the quote of each row, a GET and a case, into
-    the board's `rows`. What the answer left out stays in Not placed with its reason under it.
-    `names` answers with three titles for the GET `group` names. `review` and `reply` answer as on
-    the PETs screen, and the page keeps them with the board. `revise` applies the answer's
-    operations to the board as it stands through `themes_ai.revise_ops`, and when they change it
-    keeps the board as a revision, "Before: " and his request, and answers with `revised`, the GETs,
-    the picks and the rows afterwards, for the page to land as one step of undo. `room` asks
-    nothing, and says how many statements' words a new AI board would leave out for room, made
-    from every case's PETs and from the board."""
+    """The GETs screen's AI help, three titles for a GET, `op` of `names`, as `/api/themes-ai` gives the
+    PETs screen's, through the same route, `pets_route`, with the key and the project's research question,
+    and refused while the switch in Settings is off. `group` names the GET, on the board `version` names,
+    the one on the canvas when none is, read from the GETs file with every case not yet in as it would
+    come in. Nothing is written. A thematic analysis project's Themes board asks nothing (aiout, 11
+    November 2026: the board's AI review went, an agent of his own through MCP doing that work)."""
     if LPETS_FOR.get() is not None:
         raise WorkbookError(i18n.t("server.ai_s_help_lpets_yet"))
     if LGETS_FOR.get() is not None:
@@ -8111,16 +8077,12 @@ def api_gets_ai(body: dict) -> dict:
     cfg = srv.config()
     if not srv.ai_on(cfg, "gets"):
         return {"error": themes_ai.OFF}
-    op = str(body.get("op") or "")
-    if op not in GETS_AI_OPS:
-        return {"error": i18n.t("server.something_ai_help_does_nothing"), "code": "unknown_op"}
     root = gets_root(body)
-    books = gets_books(root)
     project = read_project(root)
+    if str(body.get("op") or "") != "names" or codes_mod.is_ta(project.get("method")):
+        return {"error": i18n.t("server.something_ai_help_does_nothing"), "code": "unknown_op"}
+    books = gets_books(root)
     question = project["research_question"]
-    ta = codes_mod.is_ta(project.get("method"))
-    if ta and op not in TA_AI_OPS:
-        return {"error": i18n.t("codes.ai.board_review_only"), "code": "unknown_op"}
     route = pets_route(cfg, {"research_question": question})
     started = time.monotonic()
     with srv._lock:
@@ -8129,116 +8091,14 @@ def api_gets_ai(body: dict) -> dict:
     source = themes_mod.find_version(data, vid) if vid else themes_mod.current_version(data)
     if source is None:
         raise WorkbookError(i18n.t("server.board_gone_gets_asked"))
-    bid = str(source.get("id") or gets_mod.FIRST_BOARD)
     study_marks = gets_mod.study_of(data, [e["case"] for e in cases])
     inside = [e["case"] for e in cases if study_marks[e["case"]]["in"]]
-    settings = gets_mod.settings_of(data)
-    minimum, _band = gets_mod.minimum_of(settings, len(inside))
-    who = route_name(route)
-    seconds = lambda: round(time.monotonic() - started, 1)
-    if op in ("names", "review", "reply", "revise"):
-        board = gets_mod.ai_outline(data, source, inside, minimum)
-    if ta:
-        return ta_board_ai(root, op, body, board, gets_mod.normal(source, data)["groups"], source, bid, question,
-                           route, who, seconds)
-    if op == "names":
-        result = themes_ai.gets_names(themes_ai.gets_names_target(board, str(body.get("group") or "")), question, route)
-        if "error" not in result:
-            result.update(model_name=who, seconds=seconds())
-        return result
-    if op == "review":
-        asked = themes_ai.asked_of(themes_mod.review_of(source))
-        result = themes_ai.gets_review(board, question, route, asked=asked)
-        if "error" in result:
-            return result
-        return {"review": {"at": themes_mod.now_iso(), "model": who, "items": result["items"]},
-                "board": bid, "model_name": who, "asked": len(asked), "seconds": seconds()}
-    if op == "reply":
-        item = review_item(themes_mod.review_of(source), body.get("round"), body.get("item"), body.get("question"))
-        result = themes_ai.gets_reply(board, item, str(body.get("text") or "")[:4000], question, route)
-        if "error" in result:
-            return result
-        return {"reply": {"by": "ai", "text": result["text"], "at": themes_mod.now_iso(), "model": who},
-                "board": bid, "model_name": who, "seconds": seconds()}
-    if op == "revise":
-        words = str(body.get("text") or "")[:4000]
-        start = gets_mod.revise_start(source, data, inside)
-        result = themes_ai.gets_revise(board, start, themes_mod.revise_of(source), words, question, route)
-        if "error" in result:
-            return result
-        out = {"revise": {"by": "ai", "text": result["said"], "at": themes_mod.now_iso(), "model": who},
-               "refused": result["refused"], "board": bid, "model_name": who, "seconds": seconds()}
-        if result.get("changed"):
-            revised = result["revised"]
-            rows = gets_mod.rows_after(revised["groups"], revised["picks"], gets_mod.normal(source, data)["rows"])
-            with writing(root=root):
-                kept = gets_mod.board_op(root, books, "revision", {"id": bid, "name": themes_ai.revision_name(words)})
-            out.update(revised=dict(revised, picks={}, rows=rows), history=kept.get("history"),
-                       revision=kept.get("revision"))
-        return out
-    # a new AI board, from every case's PETs or from the board on the canvas
-    whole = str(body.get("from") or "all") != "board"
-    study = gets_mod.ai_study(data, cases)
-    labels = None if whole else gets_mod.ai_labels(source, data)
-    skip = set() if whole else gets_mod.ai_skip(source)
-    cap = themes_ai.clean_cap(body.get("cap"), gets_mod.cap_of(settings))
-    if op == "room":
-        made = lambda labels_, skip_: themes_ai.gets_room_cut(study, labels_, question, route, cap, minimum,
-                                                               len(inside), settings["one_per_pet"], skip_)
-        return {"room": {"all": made(None, set()), "board": made(gets_mod.ai_labels(source, data), gets_mod.ai_skip(source))},
-                "board": bid}
-    hint = themes_ai.clean_hint(body.get("hint"))
-    result = themes_ai.gets_group(study, labels, question, hint, route, cap=cap, minimum=minimum, total=len(inside),
-                                  one_per_pet=settings["one_per_pet"], skip=skip)
-    if "error" in result:
-        return result
-    made_from = gets_mod.FROM_PETS if whole else str(source.get("name") or gets_mod.FIRST_NAME)
-    reasons = themes_ai.left_reasons(result)
-    cards, thrown = gets_mod.ai_cards(data, study, result, None if whole else source)
-    version = themes_ai.gets_ids(themes_ai.lay_out(result["groups"], cards, thrown, size=gets_mod.card_height,
-                                                   why=set(reasons.get("discarded") or {})))
-    if reasons:
-        version["ai"] = reasons
-    version["rows"] = {}
-    # the quote of each row, one second call for the whole board through the same route, a row
-    # it skips keeping the table's default, and a call that fails leaving every row so
-    targets = gets_mod.row_targets(data, version, inside)
-    picked = themes_ai.gets_pick_quotes(targets, question, route)
-    version["rows"] = gets_mod.picked_rows(targets, picked.get("picks") or {})
-    chosen = sum(len(r) for r in version["rows"].values())
-    note = themes_ai.gets_note(who, made_from, hint, result, cap=cap, picked=(chosen, len(targets)))
-    with writing(root=root):
-        answer = gets_mod.propose(root, books, version, note,
-                                  {"by": "ai", "model": who, "from": made_from, "at": themes_mod.now_iso()})
-    made = {"name": answer["version"]["name"], "id": answer["version"]["id"], "from": made_from,
-            "source": "all" if whole else "board", "hint": hint, "cap": cap, "themes": len(result["groups"]),
-            "placed": result["placed"], "left": result["left"], "left_out": len(result.get("left_out") or []),
-            "reason": result.get("reason") or "", "picked": chosen, "rows": len(targets),
-            "unpicked": bool(targets) and not chosen, "cut": result.get("cut", 0), "model_name": who,
-            "seconds": seconds()}
-    return gets_reply(root, body, dict(answer, made=made))
-
-
-def ta_board_ai(root: Path, op: str, body: dict, outline: dict, groups: list[dict], source: dict, bid: str,
-                question: str, route: dict, who: str, seconds) -> dict:
-    """A thematic analysis project's Themes board's AI help (taaibuild): `review` asks up to three questions of the
-    board from `ta_themes_guidance.md`, each resting on a numbered line of it, and `reply` answers his words on one,
-    both in the shape IPA's answer, for the page to keep with the board as it keeps IPA's rounds. The board goes with
-    the code list, each code's extracts by participant. Nothing is written."""
-    view = codes_list(root)
-    if op == "review":
-        asked = themes_ai.asked_of(themes_mod.review_of(source))
-        result = ta_ai.review(outline, view, groups, question, route, asked=asked)
-        if "error" in result:
-            return result
-        return {"review": {"at": themes_mod.now_iso(), "model": who, "items": result["items"]},
-                "board": bid, "model_name": who, "asked": len(asked), "seconds": seconds()}
-    item = review_item(themes_mod.review_of(source), body.get("round"), body.get("item"), body.get("question"))
-    result = ta_ai.reply(outline, view, groups, item, str(body.get("text") or "")[:4000], question, route)
-    if "error" in result:
-        return result
-    return {"reply": {"by": "ai", "text": result["text"], "at": themes_mod.now_iso(), "model": who},
-            "board": bid, "model_name": who, "seconds": seconds()}
+    minimum, _band = gets_mod.minimum_of(gets_mod.settings_of(data), len(inside))
+    board = gets_mod.ai_outline(data, source, inside, minimum)
+    result = themes_ai.gets_names(themes_ai.gets_names_target(board, str(body.get("group") or "")), question, route)
+    if "error" not in result:
+        result.update(model_name=route_name(route), seconds=round(time.monotonic() - started, 1))
+    return result
 
 
 # each file of copies of a participant's statements by the name its boards go by
@@ -8400,194 +8260,49 @@ def route_name(route: dict) -> str:
     return ai_mod.route_model(route)
 
 
-def review_item(review: dict | None, round_no, item_no, question=None) -> dict | None:
-    """One question of a board's review, by its round, oldest first from 0, and its place in that
-    round. With `question`, the words the page shows, a question at that place with other words is
-    looked for by its words in every round, the newest first, and None when no round has it."""
-    rounds = themes_mod.review_rounds(review)
-    try:
-        found = rounds[int(round_no)]["items"][int(item_no)] if int(round_no) >= 0 and int(item_no) >= 0 else None
-    except (TypeError, ValueError, IndexError, KeyError):
-        found = None
-    said = " ".join(str(question or "").split()).lower()
-    if not said or (found and found["question"].lower() == said):
-        return found
-    return next((i for r in reversed(rounds) for i in r["items"] if i["question"].lower() == said), None)
-
-
 def api_themes_ai(body: dict) -> dict:
-    """The Themes screen's AI help, with `op` of `group`, `names`, `review`, `reply` or `revise`.
-    All go out through the PETs route, `pets_route`, the PETs screen's own provider and model when
-    Settings sets them and a suggestion's when not, with the key and the project's research
-    question, and all are refused while the switch in Settings is off. None but a revise touches
-    the board on the canvas, and none writes the workbook.
+    """The PETs screen's AI help, three titles for a PET or a sub-theme, `op` of `names`. It goes out
+    through the PETs route, `pets_route`, the PETs screen's own provider and model when Settings sets
+    them and a suggestion's when not, with the key and the project's research question, and is
+    refused while the switch in Settings is off. Nothing is written.
 
-    `group` reads the board named by `version`, the current one when none is, sends every card
-    of it that is not discarded with the labels it has, the `hint` and his limit, `cap` or the one
-    in the settings, and adds the proposal as a new board through `themes.version_op`, which
-    becomes current and is named `Board N` as New board names one, `made` saying who made it and
-    from what. The statements the answer left out stay in Not placed, each with its reason under
-    it, and nothing goes to the bin. With `from` of `all` it sends
-    every statement of the case instead, with no labels and none discarded. A second call then
-    picks the quote that carries each PET and sub-theme, written as picks, and a label that keeps
-    his own picks is not asked about. The answer is the screen's state afterwards, as `/api/themes`
-    gives it, with `made` saying what was made, from what, `source`, `all` or `board`, and how many
-    PETs carry picks. An answer that cannot be read, that places nothing or that runs past the
-    limit is one line and makes no board. A picks call that fails leaves the board with no picks.
-
-    `names` takes the label by its id, `group`, on the board `version` names, the current one when
-    none is, and builds the prompt from the workbook and the board: the theme with its statements
-    in canvas order, each with every quote of its turn, the picks marked, its sub-themes, and
-    the other labels. It answers with up to three `names`, and `said` when quotes went for room. A
-    page from before it sends `statements`, `label`, `note` and `others` with no `group`, which
-    builds the prompt it always did. Nothing is written.
-
-    `review` reads the board named by `version`, the current one when none is, as `themes.outline`
-    sets it out, with every question the board's earlier rounds asked and his state on each, and
-    answers with `review`, its time, the model and between one and three questions, each open, and
-    `asked`, how many earlier questions went. Nothing is written: the page keeps the review with
-    the board as a new round, and its autosave writes it.
-
-    `reply` takes one question of that board's review by its round, `round`, and its place in it,
-    `item`, with `question` to match, and his words, `text`, and sends the board as the review
-    sends it with the question, its why and the exchange under it so far, as the file holds them.
-    It answers with `reply`, the answer's words, its time and the model. Nothing is written: the
-    page keeps the exchange with the question, and its autosave writes it.
-
-    `revise` takes his request, `text`, on the board `version` names, and sends the board as it
-    stands with its revise thread as the file holds them, the page having saved first. The answer's
-    operations are read strictly against the board (see `themes_ai.parse_revise`). When they change
-    it, the board as it stands is kept first as a revision named "Before: " and his request, through
-    `themes.board_op`, and the answer carries `revised`, the labels and picks afterwards, with
-    `history` and `revision`, for the page to land on the canvas as one step of undo and save. It
-    answers with `revise`, the answer's line for the thread, ending with what the prompt left out
-    for room when it left anything out, and `refused`, the reasons for any operation left out. The
-    page keeps his request and the answer in the board's thread.
-    """
+    It takes the label by its id, `group`, on the board `version` names, the current one when none is,
+    and builds the prompt from the workbook and the board: the theme with its statements in canvas
+    order, each with every quote of its turn, the picks marked, its sub-themes, and the other labels.
+    It answers with up to three `names`, and `said` when quotes went for room. A page from before it
+    sends `statements`, `label`, `note` and `others` with no `group`, which builds the prompt it always
+    did. New AI board, AI review and AI revise went on 11 November 2026 (aiout, Adam: an agent of his
+    own through MCP does that work)."""
     cfg = srv.config()
     if not srv.ai_on(cfg, "pets"):
         return {"error": themes_ai.OFF}
     path = case_path(body.get("workbook") or body.get("path") or body["workbook"])
-    op = str(body.get("op") or "")
-    if op not in ("group", "names", "review", "reply", "revise"):
+    if str(body.get("op") or "") != "names":
         return {"error": i18n.t("server.something_ai_help_does_nothing"), "code": "unknown_op"}
     route = pets_route(cfg, {"path": str(path)})
     started = time.monotonic()
-
     gid = str(body.get("group") or "")
-    if op == "names" and not gid:
+    if not gid:
         # a page from before the whole theme went sends its statements as bare text
         statements = [str(t) for t in body.get("statements") or [] if str(t).strip()][:300]
         others = [str(t) for t in body.get("others") or [] if str(t).strip()][:100]
         result = themes_ai.names(statements, str(body.get("label") or ""), others,
                                  route["research_question"], route, note=str(body.get("note") or "")[:4000])
-        if "error" not in result:
-            result.update(model_name=route_name(route), seconds=round(time.monotonic() - started, 1))
-        return result
-
-    case = case_label(path)
-    vid = str(body.get("version") or "") or None
-    with srv._lock:
-        read = themes_mod.read_cards(path)
-        data = themes_mod.load(path)
-    source = themes_mod.pick_version(data, vid)
-    if source is None:
-        if vid and themes_mod.boards_of(data):
-            raise WorkbookError(i18n.t("server.board_gone_themes_asked"))
-        source = themes_mod.blank_version(read["cards"])
-    if op == "names":
+    else:
+        vid = str(body.get("version") or "") or None
+        with srv._lock:
+            read = themes_mod.read_cards(path)
+            data = themes_mod.load(path)
+        source = themes_mod.pick_version(data, vid)
+        if source is None:
+            if vid and themes_mod.boards_of(data):
+                raise WorkbookError(i18n.t("server.board_gone_themes_asked"))
+            source = themes_mod.blank_version(read["cards"])
         # the theme as the workbook and the board hold it, built here, never from what the page sends
         result = themes_ai.pet_names(themes_ai.names_target(read, source, gid), route["research_question"], route)
-        if "error" not in result:
-            result.update(model_name=route_name(route), seconds=round(time.monotonic() - started, 1))
-        return result
-    if op == "review":
-        # the questions come back to the page, which keeps them with the board: nothing is written.
-        # Ask again carries every question the board's earlier rounds asked, as the file holds them
-        asked = themes_ai.asked_of(themes_mod.review_of(source))
-        result = themes_ai.review(themes_mod.outline(read, source), route["research_question"], route, asked=asked)
-        if "error" in result:
-            return result
-        who = route_name(route)
-        return {"review": {"at": themes_mod.now_iso(), "model": who, "items": result["items"]},
-                "board": str(source.get("id") or themes_mod.FIRST_VERSION), "model_name": who,
-                "asked": len(asked), "seconds": round(time.monotonic() - started, 1)}
-    if op == "reply":
-        # the question and the exchange under it as the file holds them, the page having saved first
-        item = review_item(themes_mod.review_of(source), body.get("round"), body.get("item"), body.get("question"))
-        result = themes_ai.reply(themes_mod.outline(read, source), item, str(body.get("text") or "")[:4000],
-                                 route["research_question"], route)
-        if "error" in result:
-            return result
-        who = route_name(route)
-        return {"reply": {"by": "ai", "text": result["text"], "at": themes_mod.now_iso(), "model": who},
-                "board": str(source.get("id") or themes_mod.FIRST_VERSION), "model_name": who,
-                "seconds": round(time.monotonic() - started, 1)}
-    if op == "revise":
-        # the board and its thread as the file holds them, the page having saved first. A change is
-        # kept as a revision of the board as it stood before the page lands it
-        words = str(body.get("text") or "")[:4000]
-        result = themes_ai.revise(read, source, words, route["research_question"], route)
-        if "error" in result:
-            return result
-        who = route_name(route)
-        board = str(source.get("id") or themes_mod.FIRST_VERSION)
-        out = {"revise": {"by": "ai", "text": result["said"], "at": themes_mod.now_iso(), "model": who},
-               "refused": result["refused"], "board": board, "model_name": who,
-               "seconds": round(time.monotonic() - started, 1)}
-        if result.get("changed"):
-            with writing(path, boards=True):
-                kept = themes_mod.board_op(path, "revision", {"id": board, "name": themes_ai.revision_name(words)},
-                                           case)
-            out.update(revised=result["revised"], history=kept.get("history"), revision=kept.get("revision"))
-        return out
-    # `from` of `all` sends every statement of the case, the set a new empty board starts with, with
-    # no labels and none discarded, and anything else the board on the canvas, as before
-    whole = str(body.get("from") or "") == "all"
-    merged = themes_mod.merge(read["cards"], themes_mod.blank_version(read["cards"]) if whole else source,
-                              read["quotes"])
-    hint = themes_ai.clean_hint(body.get("hint"))
-    cap = themes_ai.clean_cap(body.get("cap"), srv.ai_state(cfg)["cap"])
-    statements = themes_ai.statements_of(merged)
-    result = themes_ai.group(statements, None if whole else themes_ai.labels_of(merged), route["research_question"],
-                             hint, route, cap=cap)
-    if "error" in result:
-        return result
-    who = route_name(route)
-    made_from = themes_ai.FROM_ALL if whole else str(source.get("name") or themes_mod.FIRST_NAME)
-    # what the answer left out stays in Not placed with its reason under it, and the bin holds only
-    # what he put there himself (item 182)
-    left_out = [t["key"] for t in result.get("left_out") or []]
-    reasons = themes_ai.left_reasons(result)
-    version = themes_ai.lay_out(result["groups"], merged["cards"], merged["discarded"],
-                                why=set((reasons.get("discarded") or {})))
-    # the quote that carries each PET, one second call for the whole board through the same route,
-    # written as a tick by hand writes it, its words beside it. A label the proposal titles as one of
-    # his that carries his picks keeps them and is not asked about. A call that fails leaves the
-    # board with no picks
-    carried = {} if whole else themes_ai.carry_picks(version, merged["groups"], merged["picks"])
-    targets = themes_ai.picks_targets(version, read["quotes"], read["sheets"], set(carried))
-    picked = themes_ai.pick_quotes(targets, route["research_question"], route)
-    version["picks"] = {**carried, **(picked.get("picks") or {})}
-    version["quoted"] = themes_ai.quoted_of(version["picks"], read["quotes"])
-    unpicked = bool(targets) and not picked.get("picks")
-    # why each statement was left out stays with the board, under its card in Not placed, and the
-    # note keeps to one line
-    if reasons:
-        version["ai"] = reasons
-    counted = themes_ai.picked_count(version)
-    # who made the board and from what, for "with AI" after its name in the board menu
-    version["made"] = {"by": "ai", "model": who, "from": made_from, "at": themes_mod.now_iso()}
-    with writing(path, boards=True):
-        answer = themes_mod.version_op(path, themes_mod.PROPOSE, {
-            "version": version, "note": themes_ai.note(who, made_from, hint, result, cap=cap, picked=counted)}, case)
-    made = {"name": answer["version"]["name"], "id": answer["version"]["id"], "from": made_from,
-            "source": "all" if whole else "board",
-            "hint": hint, "cap": cap, "themes": len(result["groups"]), "placed": result["placed"],
-            "left": result["left"], "left_out": len(left_out), "discarded": 0, "reason": result.get("reason") or "",
-            "picked": counted[0], "unpicked": unpicked,
-            "model_name": who, "seconds": round(time.monotonic() - started, 1)}
-    return dict(answer, path=srv.rel_path(path), demo=srv.is_demo(path), ai=srv.ai_state(cfg), made=made)
+    if "error" not in result:
+        result.update(model_name=route_name(route), seconds=round(time.monotonic() - started, 1))
+    return result
 
 
 def case_relative(workbook: Path, target: Path) -> str:
@@ -9299,9 +9014,6 @@ SETTINGS_DEFAULTS = (
         # Experiential statements one, which is what a file from before the two keys gets.
         "pets_provider": "",
         "pets_model": "",
-        # The Themes screen's own settings: `cap` is the limit on the themes a new AI proposal makes,
-        # the stepper beside its hint, from two to nine.
-        "themes": {"cap": themes_ai.CAP},
         # "Dangerously skip permissions" under Using your own AI agents (Adam, 26 and 27 October 2026): off on a new
         # install, so an agent's action that deletes a board, puts an old revision over one or replaces words
         # across every participant waits for his yes in the app (see holds.py), and on, it runs at once
@@ -9316,14 +9028,10 @@ OWN_DEFAULTS = {key: value for _before, block in SETTINGS_DEFAULTS for key, valu
 
 def read_settings(cfg: dict, saved: dict) -> None:
     """Idiograph's own settings as the family's `merge_config` reads them from the file (the family codebase's
-    fourth build, 22 October 2026, from it), each in place: the nudges and the Themes screen's limit over their
-    defaults, the statements screen's columns, and the boards' quotes, notes, close pairs, toolbar and arrange
+    fourth build, 22 October 2026, from it), each in place: the nudges over their defaults, the statements screen's columns, and the boards' quotes, notes, close pairs, toolbar and arrange
     way, each read as its default where the file holds something else. The status bar is General's, the
     family's (the sixth build, 23 October 2026)."""
     cfg["nudges"] = {**OWN_DEFAULTS["nudges"], **saved.get("nudges", {})}
-    held = saved.get("themes") if isinstance(saved.get("themes"), dict) else {}
-    cfg["themes"] = {**OWN_DEFAULTS["themes"], **held}
-    cfg["themes"]["cap"] = themes_ai.clean_cap(cfg["themes"].get("cap"))
     # the three columns' order, an old notes' place read as the order nearest it, which a save then writes
     # in its place, and anything else the book's
     cfg["statements_columns"] = statements_columns(saved.get("statements_columns"), saved.get("notes_place", ""))
@@ -9361,8 +9069,8 @@ def save_settings(cfg: dict, body: dict) -> None:
     """Idiograph's own settings as a save sends them, into `cfg` before the family's `api_settings` writes it
     (the family codebase's fourth build, 22 October 2026, from it): the interviewer, the rounds and the
     statements' prompt, the PETs screen's own model, the nudges, the ticks of the statements screen, the
-    exports and the boards, the close pairs' gap, the status bar's counts, the toolbar, the minimap, the
-    columns and the Themes screen's limit, each only as the page sends it."""
+    exports and the boards, the close pairs' gap, the status bar's counts, the toolbar, the minimap and the
+    columns, each only as the page sends it."""
     # Your name, the name documents carry, the print views' foot and Word's author (31 October 2026), one line
     if "your_name" in body:
         cfg["your_name"] = " ".join(str(body["your_name"] or "").split())[:120]
@@ -9439,15 +9147,6 @@ def save_settings(cfg: dict, body: dict) -> None:
         if kept:
             held[screen] = kept
         cfg["column_widths"] = column_widths(held)
-    # the Themes screen's stepper sends its limit alone, and the rest of the file stays as it was
-    if isinstance(body.get("themes"), dict) and "cap" in body["themes"]:
-        cfg["themes"] = {**cfg.get("themes", {}), "cap": themes_ai.clean_cap(body["themes"]["cap"])}
-
-
-def ai_more(cfg: dict) -> dict:
-    """What else the family's `ai_state` carries for Idiograph's screens: his limit on the themes a
-    proposal makes, the Themes screen's stepper."""
-    return {"cap": themes_ai.clean_cap((cfg.get("themes") or {}).get("cap") if isinstance(cfg.get("themes"), dict) else None)}
 
 
 def research_question(body: dict) -> str:
@@ -9574,7 +9273,6 @@ def send_zip(handler, query: dict) -> None:
         made.unlink(missing_ok=True)
 
 
-
 def start(one_root: bool) -> None:
     """What Idiograph does as the family's server starts (`main`): a clone of the repo carries the demo cases'
     workbooks and none of their gitignored sidecars, which come from the pristine copy here, never over a file
@@ -9612,7 +9310,7 @@ OWN_SETTINGS = ("interviewer", "round_minutes", "daily_target", "ai_prompt", "pe
                 "export_stacked", "export_for_sending", "export_descriptions", "card_quotes", "card_quotes_full",
                 "es_quotes", "close_pairs", "traj_quotes", "traj_notes",
                 "close_gap", "status_counts", "palette_place", "palette_docked", "arrange_way", "minimap",
-                "statements_columns", "columns_hidden", "columns_stacked", "stack_top", "stack_split", "themes",
+                "statements_columns", "columns_hidden", "columns_stacked", "stack_top", "stack_split",
                 "skip_permissions")
 
 # Idiograph's routes, each path's handler, as the server's table held them before the split
@@ -9718,7 +9416,7 @@ srv.register("idiograph", routes=ROUTES,
              search_scope={"case": search_scope, "project": search_scope}, search_rows=search_rows,
              defaults=SETTINGS_DEFAULTS,
              own_settings=OWN_SETTINGS,
-             read_settings=read_settings, save_settings=save_settings, ai_choice=pets_choice, ai_more=ai_more,
+             read_settings=read_settings, save_settings=save_settings, ai_choice=pets_choice,
              question=research_question, scope=route_scope, start=start, holding=demo_holding)
 
 

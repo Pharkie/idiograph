@@ -427,7 +427,7 @@ def merge_config(saved: dict) -> dict:
     # the status bar, General's, on unless the file says otherwise
     cfg["status_bar"] = saved.get("status_bar") is not False
     # each app's own settings as it reads them from the file, of the apps this run serves alone (see `register`):
-    # Idiograph's nudges, its Themes screen's limit, its columns and its boards' bars
+    # Idiograph's nudges, its columns and its boards' bars
     for read in hooks(SETTINGS_READ):
         read(cfg, saved)
     cfg["celebration_screens"] = celebrations_of(saved)
@@ -1035,10 +1035,10 @@ def ai_on(cfg: dict, feature: str) -> bool:
 
 
 def ai_state(cfg: dict, feature: str = "pets") -> dict:
-    """Whether the switch in Settings is on, with the feature's own, `pets` or `gets`, the model the Themes screen's help asks and his limit
-    on the themes a proposal makes, for the page to draw its controls by. The model is the PETs
-    screen's own when one is set. Read from the settings alone: the key is never looked up. The PETs
-    screen's model and the limit are Idiograph's, each as its registration gives it (`AI_CHOICE`, `AI_MORE`)."""
+    """Whether the switch in Settings is on, with the feature's own, `pets` or `gets`, and the model the Themes
+    screen's help asks, for the page to draw its controls by. The model is the PETs screen's own when one is
+    set. Read from the settings alone: the key is never looked up. The PETs screen's model is Idiograph's, as
+    its registration gives it (`AI_CHOICE`)."""
     own = next((choice(cfg) for choice in hooks(AI_CHOICE)), {})
     provider = own.get("provider") or cfg.get("ai_provider")
     provider = provider if provider in ai_mod.PROVIDERS else ai_mod.ANTHROPIC
@@ -1049,10 +1049,7 @@ def ai_state(cfg: dict, feature: str = "pets") -> dict:
         name = ai_mod.route_model(ai_route_fields(cfg, provider, own.get("model")))
     else:
         name = ai_mod.model_name(own.get("model") or cfg.get("model") or ai_mod.MODEL)
-    out = {"on": ai_on(cfg, feature), "provider": provider, "model_name": name}
-    for more in hooks(AI_MORE):
-        out.update(more(cfg))
-    return out
+    return {"on": ai_on(cfg, feature), "provider": provider, "model_name": name}
 
 
 # Show in Finder: `open -R` on the file, on a Mac alone. A name here so the suite can stand in for it.
@@ -2646,7 +2643,6 @@ SCOPES: list = []               # a scope an app runs its routes' requests in, a
 SETTINGS_READ: list = []        # an app's settings as `merge_config` reads them from the file, each taking (cfg, saved)
 SETTINGS_SAVE: list = []        # an app's settings as `api_settings` saves them, each taking (cfg, body)
 AI_CHOICE: list = []            # an app's screen's own provider and model for `ai_state`, taking the settings
-AI_MORE: list = []              # what else `ai_state` carries for an app's screens, taking the settings
 QUESTION: list = []             # the research question an AI route fills its prompt with, taking the body
 STARTS: list = []               # what an app does as the server starts, its hook taking whether the run is of one --root
 
@@ -2654,7 +2650,7 @@ STARTS: list = []               # what an app does as the server starts, its hoo
 def register(app: str, routes: dict | None = None, post_only=(), get_paths: dict | None = None, home=None,
              search_scope=None, search_rows=None, silent=(), settings: dict | None = None, key_files=(),
              holding=None, streams: dict | None = None, own_page=(), defaults=(), own_settings=None,
-             read_settings=None, save_settings=None, ai_choice=None, ai_more=None, question=None, scope=None,
+             read_settings=None, save_settings=None, ai_choice=None, question=None, scope=None,
              start=None, window_only=None) -> None:
     """What `app` answers, from its own module: `routes`, each path's handler, those of them that answer a
     POST alone in `post_only`, `get_paths`, the paths it answers a GET at outside /api/, `home`, the key of its
@@ -2666,8 +2662,8 @@ def register(app: str, routes: dict | None = None, post_only=(), get_paths: dict
     GETs answer through the handler itself, `own_page`, its routes only its own page may ask, `defaults`, its
     settings with their defaults in blocks each before a setting of the family's (`place_defaults`),
     `own_settings`, the keys of its own another app's save leaves alone (Sift's too since the sixth build), `read_settings` and `save_settings`,
-    its settings as the file is read and as a save sends them, `ai_choice` and `ai_more`, its screen's own
-    model and what else the AI's state carries, `question`, the research question an AI route asks, `scope`,
+    its settings as the file is read and as a save sends them, `ai_choice`, its screen's own
+    model, `question`, the research question an AI route asks, `scope`,
     the scope its routes' requests run in, and `start`, what it does as the server starts. `window_only` (agentlock,
     2 November 2026), its routes that govern agents, each with the one key of a body that makes it so or None
     for every call, answered only with the window's key (see `WINDOW_ONLY`). Called once, as its module is
@@ -2685,7 +2681,7 @@ def register(app: str, routes: dict | None = None, post_only=(), get_paths: dict
         SETTINGS_BY_APP[app] = tuple(own_settings)
     # each hook kept with its app's name, since only the apps a run serves run theirs (see `hooks`)
     for hook, held in ((read_settings, SETTINGS_READ), (save_settings, SETTINGS_SAVE), (ai_choice, AI_CHOICE),
-                       (ai_more, AI_MORE), (question, QUESTION), (scope, SCOPES), (start, STARTS), (holding, HOLDS)):
+                       (question, QUESTION), (scope, SCOPES), (start, STARTS), (holding, HOLDS)):
         if hook is not None:
             held.append((app, hook))
     if settings:

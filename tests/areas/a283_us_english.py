@@ -70,14 +70,12 @@ def test_us_english(scratch: Path):
           and "i18n/en/menus.json" in carried, str(sorted(p for p in carried if p.startswith("i18n/en-US"))))
 
     # ── Center where English says Centre, through t() in Python and in the served page
+    # (the overlay's one count, a review round's "checked", went with the AI review on 11 November 2026, aiout)
     said = {tag: (i18n.t("page_idiograph.screens.centre", lang=tag),
-                  i18n.t("themes.review.round_ticked", round=2, n=3, ticked=1, lang=tag),
                   i18n.t("server.colour_another_participant_s_nothing", lang=tag)) for tag in ("en", "en-GB", US)}
-    check("283: in Python en-US says Center where English, and English (UK), says Centre, its counts and refusals too",
-          said["en"] == said["en-GB"] == ("Centre", "Round 2 · 3 questions · 1 ticked", "That colour is another "
-                                          "participant's, so nothing was changed.")
-          and said[US] == ("Center", "Round 2 · 3 questions · 1 checked", "That color is another participant's, so "
-                                                                   "nothing was changed."), str(said))
+    check("283: in Python en-US says Center where English, and English (UK), says Centre, its refusals too",
+          said["en"] == said["en-GB"] == ("Centre", "That colour is another participant's, so nothing was changed.")
+          and said[US] == ("Center", "That color is another participant's, so nothing was changed."), str(said))
     check("283: a message the overlay leaves alone reads English's in en-US",
           i18n.t("themes.pile.put_back", lang=US) == i18n.t("themes.pile.put_back", lang="en") == "Put back")
     menus = {k: v for k, v in i18n.messages(US, roots).items() if k.startswith("menus.")}
@@ -162,7 +160,7 @@ const word = { textContent: '' };
 const $ = (id) => (id === 'language-computer-word' ? word : null);
 globalThis.document = { querySelectorAll: () => rows };
 const out = {
-  centre: t('page_idiograph.screens.centre'), round: t('themes.review.round_ticked', { round: 2, n: 1, ticked: 1 }),
+  centre: t('page_idiograph.screens.centre'),
   color: t('themes.sticky.colour'),
   date: tDate(new Date(Date.UTC(2026, 9, 28)), { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }),
   short: tDate(new Date(Date.UTC(2026, 8, 3)), { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }),
@@ -196,9 +194,9 @@ console.log(JSON.stringify(out));
         ran = subprocess.run([node, str(harness)], capture_output=True, text=True, encoding="utf-8", timeout=60)
         js[tag] = json.loads(ran.stdout.strip().splitlines()[-1]) if ran.returncode == 0 and ran.stdout.strip() else {"error": ran.stderr[-300:]}
     en, us = js["en"], js[US]
-    check("283: in the scripts en-US says Center and Color where English says Centre and Colour, counts in their forms",
-          [en.get("centre"), en.get("round"), en.get("color")] == ["Centre", "Round 2 · 1 question · 1 ticked", "Colour"]
-          and [us.get("centre"), us.get("round"), us.get("color")] == ["Center", "Round 2 · 1 question · 1 checked", "Color"],
+    check("283: in the scripts en-US says Center and Color where English says Centre and Colour",
+          [en.get("centre"), en.get("color")] == ["Centre", "Colour"]
+          and [us.get("centre"), us.get("color")] == ["Center", "Color"],
           str([en, us]))
     check("283: a date through tDate is in American order in en-US and British in English, Sep kept in British",
           en.get("date") == "28 October 2026" and us.get("date") == "October 28, 2026"

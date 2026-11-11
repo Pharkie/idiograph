@@ -31,13 +31,10 @@ out.selected = [thStatusSelected({ cards: new Set(['a']), groups: new Set(), sti
   thStatusSelected({ cards: new Set(['a']), groups: new Set(), stickies: new Set() }, true),
   thStatusSelected({ cards: new Set(['a']), groups: new Set(['g']), stickies: new Set() }, false)];
 out.count = [gtCountText(1, 1), gtCountText(3, 8)];
-out.grouping = [gtGrouping({ pets: 1, subs: 0 }), gtGrouping({ pets: 6, subs: 1 }), gtGrouping({ pets: 2, subs: 3 })];
 TH.gets = { cases: [{ case: 'a', who: 'Ash' }, { case: 'b', who: 'Bryn' }, { case: 'c', who: 'Cole' }] };
 out.took = [gtTookSaid(['a']), gtTookSaid(['a', 'b']), gtTookSaid(['a', 'b', 'c'])];
-out.round = [thRoundHead({ items: [{ state: 'open' }] }, 1), thRoundHead({ items: [{ state: 'considered' }, { state: 'open' }] }, 2, true)];
 out.pairs = [thPairWords({ same: true }), thPairWords({ unit: 'rows', gap: 1 }), thPairWords({ unit: 'rows', gap: 3 }),
   thPairWords({ unit: 's', gap: 12 }), thGapWords(30), thGapWords(60), thGapWords(120)];
-out.cut = [gtCutLine(1), gtCutLine(4)];
 console.log(JSON.stringify(out));
 """
 
@@ -56,7 +53,7 @@ console.log(JSON.stringify(out));
 
 def test_boards_words(scratch: Path):
     print("\n281. The boards' words through the text layer: in node the status bar's counts, a GET's participants, the "
-          "AI board's grouping and cut lines, the participants whose changes came in, a review's round, a close pair and "
+          "participants whose changes came in, a close pair and "
           "the table's Show more and Clear, each count's form picked by its count and each slot filled as before the "
           "move (28 October 2026)")
     node = shutil.which("node")
@@ -82,20 +79,12 @@ def test_boards_words(scratch: Path):
           str(out["sum"]) + str(out["selected"]))
     check("281: a GET's count says one participant and eight participants by the study's total",
           out["count"] == ["1 of 1 participant", "3 of 8 participants"], str(out["count"]))
-    check("281: grouping says one PET or six, and the sub-themes after them only when there are any",
-          out["grouping"] == ["Grouping one PET", "Grouping 6 PETs and one sub-theme", "Grouping 2 PETs and 3 sub-themes"],
-          str(out["grouping"]))
     check("281: the participants whose changes came in are one list in the language's way, and with their PETs",
           out["took"] == ["Brought in the changes to Ash's PETs.", "Brought in the changes to Ash and Bryn's PETs.",
                           "Brought in the changes to Ash, Bryn and Cole's PETs."], str(out["took"]))
-    check("281: a review's round says its questions by their count, and a folded one how many he ticked",
-          out["round"] == ["Round 1 · 1 question", "Round 2 · 2 questions · 1 ticked"], str(out["round"]))
     check("281: a close pair says one row, three rows, the seconds and the menu's gaps as before",
           out["pairs"] == ["Same passage", "1 row apart", "3 rows apart", "12 s apart", "30 seconds", "1 minute", "2 minutes"],
           str(out["pairs"]))
-    check("281: the AI board's cut line says one statement or four",
-          "the words of one statement, the lowest" in out["cut"][0] and "the words of 4 statements, the lowest" in out["cut"][1],
-          str(out["cut"]))
 
     table = scratch / "table-words-281.js"
     table.write_text(support.table_js() + TABLE, encoding="utf-8")

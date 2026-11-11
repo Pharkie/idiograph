@@ -16,7 +16,7 @@ import mcp_server as mcp
 OPERATIONS = {
     "type": "array", "items": {"type": "object"},
     "description": (
-        "The operations AI revise uses, run in order, each on the board the ones before it left: "
+        "The board's operations, run in order, each on the board the ones before it left: "
         '{"op": "retitle", "label": "g2", "title": "..."}, {"op": "note", "label": "g2", "note": "..."}, '
         '{"op": "move", "items": ["S4"], "to": "g1"}, or "to": null with a "reason" to leave statements in '
         'Not placed, {"op": "make", "ref": "new1", "title": "...", "inside": null, "members": ["S1"]}, '
@@ -143,7 +143,7 @@ TOOLS = [
                                        "with its quote, skip, the default, leaves it out."}},
          ["case", "file"], writes="adds"),
     mcp.tool("board_apply", "Change a board", ("board", "apply"),
-         "Change a PETs board with the operations AI revise uses. They run in order, and one that cannot "
+         "Change a PETs board with the board's operations. They run in order, and one that cannot "
          "stand refuses the whole change. The board as it stood is kept first in its History, so Restore "
          "undoes the change. The toolbar's tools run last: "
          '{"op": "arrange", "label": "g2", "way": "column"} arranges a label\'s cards as Auto-arrange does, way grid, '
@@ -1230,15 +1230,13 @@ TOOLS = [
          {"board": GETS_BOARD}, writes="changes"),
     mcp.tool("gets_settings", "The study's GETs settings", ("gets", "settings"),
          "The study's own settings under GETs in Project settings: the participants a GET needs and whether that is Smith's "
-         "band, one per PET, the most GETs a new AI board proposes, and each participant in the study or out with "
-         "his reason."),
+         "band, one per PET, and each participant in the study or out with his reason."),
     mcp.tool("gets_settings_set", "Save the study's GETs settings", ("gets", "settings"),
          "Save the study's own settings as Project settings saves them, each left out kept as it is: minimum, a whole "
-         "number or band for Smith's band, one_per_pet, cap, out, participants taken out of the study each with his "
+         "number or band for Smith's band, one_per_pet, out, participants taken out of the study each with his "
          "reason, and in, participants put back. Run dry_run first, which says each change, and save only on his word.",
          {"minimum": {"type": ["integer", "string"], "description": "The participants a GET needs, or band for Smith's band."},
           "one_per_pet": {"type": "boolean", "description": "One per PET, on or off."},
-          "cap": {"type": "integer", "minimum": 2, "maximum": 9, "description": "The most GETs a new AI board proposes."},
           "out": {"type": "object", "additionalProperties": {"type": "string"},
                   "description": 'Participants out of the study, each with his reason, {"Wren": "Interviewed for the pilot alone"}.'},
           "in": {"type": "array", "items": {"type": "string"}, "description": "Participants put back in the study."}},
@@ -1393,7 +1391,6 @@ def arguments(t: dict, given: dict, args):
         setting = t["name"] == "gets_settings_set"
         args.minimum = given.get("minimum") if setting else None
         args.one_per_pet = ("on" if given["one_per_pet"] else "off") if setting and "one_per_pet" in given else None
-        args.cap = given.get("cap") if setting else None
         out = given.get("out") if setting and isinstance(given.get("out"), dict) else {}
         args.out = [f"{who}={why}" for who, why in out.items()] or None
         args.back_in = (list(given.get("in") or []) or None) if setting else None

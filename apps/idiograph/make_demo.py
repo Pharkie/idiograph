@@ -481,7 +481,7 @@ def record_work(workbook: Path, name: str, notes: dict, progress: dict) -> dict:
 
 
 def make_board(workbook: Path, name: str, notes: dict) -> dict:
-    """The case's PETs on Board 1, laid out the way the canvas lays out an AI board, each theme's
+    """The case's PETs on Board 1, laid out the way an agent's board make lays one out, each theme's
     description, note and picked key quote added, then saved, marked the Current board and marked complete,
     through the themes module's own save and board ops with its clock at the annotations' times.
 
@@ -670,7 +670,7 @@ def gets_books(root: Path) -> list[dict]:
 def build_gets(root: Path, demo: Path | None = None) -> dict:
     """The GETs board across the three cases built into `root`, a folder holding them as
     `build_written` leaves them: every case taken in, each GET with its PETs and sub-PETs, its title,
-    description and note, laid out as the server lays out an AI board, the PET and sub-PET cards it
+    description and note, laid out as the server lays out a board made whole, the PET and sub-PET cards it
     leaves out set aside, the quote of each row of the GET table ticked, then saved through the GETs
     screen's own save, made the Current board and marked complete, with the clock at the times the
     source gives. Every PET and sub-PET of the three is named once, and a name that is not one of
@@ -909,7 +909,7 @@ def ta_layout(themes: list[dict], groups: list[dict], texts: dict[str, str]) -> 
     """A board of `groups` (each theme's label, definition and lead cards, its subthemes inside) with every card
     placed on a grid: each top theme a column of its own, left to right in the plan's order, its codes two to a
     row under its label, then each subtheme's label and codes below them. The groups' ids are G1 on, the top themes
-    first, then the subthemes, as an AI board's are. Answers the board's cards, groups and set aside."""
+    first, then the subthemes, as a GETs board's are. Answers the board's cards, groups and set aside."""
     import gets as gets_mod
 
     body = TA_COLS * themes_mod.CARD_W + (TA_COLS - 1) * TA_GAP

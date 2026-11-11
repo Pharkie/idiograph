@@ -207,7 +207,6 @@ console.log(JSON.stringify({
   counts: [pet, sub, grp, deep].map((id) => thCountText(v, id)),
   intoSub, intoGroup, up: [parents[one] === sub, parents[two] === deep, thAncestors(v, two).length],
   menus: ['S:2:0', 'S:5:0', 'S:7:0'].map((key) => thMenuItems(v, { kind: 'card', id: key }).map((i) => i.label)),
-  ai: gtAiCount(true),
 }));
 """, encoding="utf-8")
         run = subprocess.run([node, str(script)], capture_output=True, text=True, encoding="utf-8")
@@ -228,8 +227,6 @@ console.log(JSON.stringify({
                   out["menus"] == [["Inspect", "Go to the passage", "Group", "Take out of sub-theme", "Set aside"],
                                    ["Inspect", "Go to the passage", "Group", "Take out of group", "Set aside"],
                                    ["Inspect", "Go to the passage", "Group", "Ungroup", "Take out of group", "Set aside"]], str(out["menus"]))
-            check("92: in node, New AI board on GETs counts the PETs and sub-themes it sends, a sub-theme's groups riding inside it",
-                  out["ai"] == {"pets": 1, "subs": 2}, str(out["ai"]))
 
     # ── H. the command line and MCP: board new with groups at any depth, board current, an apply keeping groups
     proj = scratch / "groups-cli-root"
@@ -389,7 +386,7 @@ console.log(JSON.stringify({
               and themes_mod.unit(after, by_label["A sound she knows"]["id"]) == "group", (out + err)[:300])
         start = themes_ai.revise_start(rj, themes_mod.follow(after, rj["cards"], rj["quotes"]))
         revised, applied, refused_ops, _info = themes_ai.revise_ops(start, [{"op": "retitle", "label": "g2", "title": "An invented title"}])
-        check("92: an AI revise that touches none of his groups keeps every one as it stood",
+        check("92: a change through the applier that touches none of his groups keeps every one as it stood",
               not refused_ops and {g["id"]: g["members"] for g in revised["groups"]} == {g["id"]: g["members"] for g in start["groups"]})
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY = saved
@@ -451,14 +448,6 @@ console.log(JSON.stringify({
         newb = idiograph_routes.api_gets_ops({"workbook": str(wren), "op": "new"})
         check("92: New board lays every PET and sub-theme in the pile and no group",
               {c["key"] for c in newb["cards"] if c["key"].startswith("Wren/")} == {"Wren/g1", "Wren/g2", "Wren/g5"})
-        held = json.loads(gfile.read_text(encoding="utf-8"))
-        study = gets_mod.ai_study(held, [{"case": "Wren", "status": "in"}, {"case": "Rowan", "status": "in"}])
-        wpets = {p["key"]: p for p in next(e for e in study if e["case"] == "Wren")["pets"]}
-        sub_item = wpets["Wren/g1"]["subs"][0]
-        check("92: New AI board sends a sub-theme as one item, its groups' statements riding inside it after its own",
-              sub_item["key"] == "Wren/g2" and sub_item["subs"] == []
-              and [s["key"] for s in sub_item["statements"]] == [f"Wren/es/{wk[1]}", f"Wren/es/{wk[2]}", f"Wren/es/{wk[3]}"]
-              and [s["key"] for s in wpets["Wren/g1"]["statements"]] == [f"Wren/es/{wk[0]}"])
         # a group and a sub-theme new to the case, then Take
         nest2 = json.loads(json.dumps(nest))
         nest2[1]["members"].append("g6")

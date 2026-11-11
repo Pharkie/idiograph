@@ -196,48 +196,14 @@ def test_gets_sub_cards(scratch):
               == "Every sub-theme has a card on this board already, so nothing was added."
               and subs <= set(json.loads(gfile.read_text(encoding="utf-8"))["boards"][2]["cards"]))
 
-        # \u2500\u2500 F. New AI board works from the same cards: each sub-theme an item it may place under any GET
-        held = json.loads(gfile.read_text(encoding="utf-8"))
+        # \u2500\u2500 F. the guidance's own words: a GET can draw on a PET or on one of its sub-themes (New AI board, which
+        # placed them, went on 11 November 2026, aiout)
         data, cases, _disk, _taken = gets_mod.assemble(root, idiograph_routes.gets_books(root), themes_mod.now_iso())
-        study = gets_mod.ai_study(data, cases)
-        units, ups = themes_ai.gets_units(study)
-        system = themes_ai.gets_group_system(DEMO_QUESTION, 5, 3, 4)
-        loose = themes_ai.gets_group_system(DEMO_QUESTION, 5, 3, 4, one_per_pet=False)
-        user = themes_ai.gets_group_user(study, None)
-        section5 = guidance.split("## 5. Group experiential themes", 1)[1].split("\n## ", 1)[0]
-        rule3 = next(t for n, t in themes_ai.guidance_items(5) if n == 3)
-        check("86, 207: the AI board's input sends each sub-theme by its own key, an item to place, its group riding inside it",
-              subs <= set(units) and "Wren/g4" not in units and ups["Wren/g3"] == "Wren/g1"
-              and "  - Sub-theme Wren/g3: Early light in the hall" in user and "Wren/g4" not in user
-              and "each an item of its own to place" in user and "Group the PETs and sub-themes into GETs." in user)
-        check("86: the prompt says a GET can draw on a PET or on one of its sub-themes, the guidance's own words, with One GET per PET on and off",
-              all("A GET can draw on a PET or on one of its sub-themes" in t for t in (system, loose, rule3, section5))
-              and "(Smith et al., 2022, ch. 5, Step 7)" in rule3 and themes_ai.SUBS_AS_ITEMS in system and themes_ai.SUBS_AS_ITEMS in loose
-              and "Placing a PET does not place its sub-themes" in system and "<PET or sub-theme key>" in system
-              and "Place every PET and sub-theme that belongs under a GET" in system)
-        answer = {"gets": [{"label": "Mornings", "members": ["Wren/g1", "Wren/g3", "Rowan/g1"]},
-                           {"label": "First sounds", "members": ["Rowan/g7", "Mabel/g1"], "groups": [{"label": "Gates", "members": ["Fern/g2"]}]}],
-                  "left_out": [{"key": "Rowan/g6", "reason": "It stands apart"}]}
-        parsed = themes_ai.parse_gets(json.dumps(answer), units, ups)
-        check("86: its parser takes a sub-theme under any GET, with its PET or apart from it, at any depth",
-              [g["members"] for g in parsed["groups"]] == [["Wren/g1", "Wren/g3", "Rowan/g1"], ["Rowan/g7", "Mabel/g1"]]
-              and parsed["groups"][1]["groups"] == [{"label": "Gates", "members": ["Fern/g2"]}]
-              and parsed["placed"] == 6 and parsed["subs"] == 3 and parsed["left"] == len(units) - 6 and parsed["repeated"] == 0
-              and parsed["left_out"] == [{"key": "Rowan/g6", "reason": "It stands apart"}], str(parsed)[:300])
-        cards_ai, thrown = gets_mod.ai_cards(data, study, parsed)
-        laid = themes_ai.gets_ids(themes_ai.lay_out(parsed["groups"], cards_ai, thrown, size=gets_mod.card_height))
-        under = {m for g in laid["groups"] for m in g["members"]}
-        check("86: the new AI board holds a card for every PET and sub-theme, each it left out in Not placed",
-              {c["key"] for c in cards_ai} == set(units) and thrown == [] and set(laid["cards"]) == set(units)
-              and "Rowan/g6" not in under and "Mabel/g7" not in under and "Wren/g3" in under)
-        check("86: its note counts the sub-themes placed apart from the PETs",
-              "2 GETs, 3 PETs and 3 sub-themes placed, " in themes_ai.gets_note("Haiku 4.5", "every participant's PETs", "", parsed, cap=5)
-              and "1 PET placed, 0 not placed." in themes_ai.gets_note("Haiku 4.5", "x", "", {"groups": [{}], "placed": 1, "left": 0}))
-        skipped = themes_ai.gets_group_user(study, None, "", frozenset(), frozenset({"Wren/g1"}))
-        sunits, _ups = themes_ai.gets_units(study, frozenset({"Wren/g1"}))
-        check("86: from a board, a PET in its bin is not sent, and its sub-themes still are, items of their own",
-              "PET Wren/g1:" not in skipped and "Sub-theme Wren/g3: Early light in the hall" in skipped
-              and "Wren/g1" not in sunits and "Wren/g3" in sunits and "Wren/g4" not in sunits)
+        section4 = guidance.split("## 4. Group experiential themes", 1)[1].split("\n## ", 1)[0]
+        rule3 = next(t for n, t in themes_ai.guidance_items(4) if n == 3)
+        check("86: the guidance says a GET can draw on a PET or on one of its sub-themes",
+              all("A GET can draw on a PET or on one of its sub-themes" in t for t in (rule3, section4))
+              and "(Smith et al., 2022, ch. 5, Step 7)" in rule3)
 
         # \u2500\u2500 G. the count and the table, a PET under one GET and its sub-theme under another
         split = {"id": "bx", "name": "Split", "cards": {k: {"x": 0, "y": 0} for k in ("Wren/g1", "Wren/g3", "Rowan/g1", "Rowan/g6")},
@@ -256,15 +222,12 @@ def test_gets_sub_cards(scratch):
               and tab["G2"]["Wren"]["items"][0]["kind"] == "sub" and tab["G2"]["Wren"]["items"][0]["statements"] == 3
               and [it["kind"] for it in tab["G1"]["Rowan"]["items"]] == ["pet", "sub"] and not tab["G2"]["Rowan"]["counted"])
         outline = gets_mod.ai_outline(data, split, inside, 3)
-        start = gets_mod.revise_start(split, data, inside)
-        board_text = "\n".join(themes_ai.gets_board_parts(outline))
         target = themes_ai.gets_names_target(outline, "G2")
-        check("86: Review, Revise and AI suggest GET titles read a sub-theme's card as a dragged one",
+        check("86: AI suggest GET titles reads a sub-theme's card as a dragged one",
               outline["themes"][1]["cards"][0]["kind"] == "sub" and outline["themes"][1]["cards"][0]["title"] == "Early light in the hall"
-              and "Wren/g3" in start["items"] and "- Sub-theme Wren/g3 (Wren): Early light in the hall" in board_text
-              and "Sub-theme Wren/g3 (Wren): Early light in the hall" in themes_ai.gets_names_user(target), board_text[:300])
+              and "Sub-theme Wren/g3 (Wren): Early light in the hall" in themes_ai.gets_names_user(target))
 
-        # \u2500\u2500 H. the page: the menu, the drag's card, the AI's count and one step of undo, in node
+        # \u2500\u2500 H. the page: the menu, the drag's card and one step of undo, in node
         panel = {c["case"]: c for c in idiograph_routes.api_gets({"workbook": any_book})["cases"]}
         node = shutil.which("node")
         if not node:
@@ -291,9 +254,7 @@ thDone = (before, what) => { thStep(before, what); };
 const out = {};
 const drag = gtCardFrom(ENTRY, 'sub', 'g3');
 out.drag = [drag.key, drag.kind, drag.text, drag.statements, gtKicker(drag), gtKicker(SERVED)];
-out.grouping = [gtGrouping({ pets: 6, subs: 3 }), gtGrouping({ pets: 1, subs: 1 }), gtGrouping({ pets: 2, subs: 0 })];
 TH.gets = { cases: [ENTRY] };
-out.count = gtAiCount(true);
 (async () => {
   TH.mode = 'gets'; TH.live = true; TH.busy = false; TH.dirty = false; TH.path = 'Wren.xlsx';
   TH.meta = { id: 'b3', name: 'Board 3' };
@@ -320,10 +281,6 @@ out.count = gtAiCount(true);
             check("86: in node, a sub-theme's card is the one the Cases panel's drag makes, its kicker Sub-theme and the case",
                   out_node.get("drag") == ["Wren/g3", "sub", "Early light in the hall", 3, "Sub-theme \u00b7 Wren", "Sub-theme \u00b7 Wren"],
                   run.stderr.strip()[:300] or str(out_node.get("drag")))
-            check("86, 207: in node, New AI board counts the PETs and the sub-themes it sends, a group riding inside its sub-theme, and says both while it groups",
-                  out_node.get("count") == {"pets": 2, "subs": 2}
-                  and out_node.get("grouping") == ["Grouping 6 PETs and 3 sub-themes", "Grouping one PET and one sub-theme", "Grouping 2 PETs"],
-                  str(out_node.get("count")) + str(out_node.get("grouping")))
             keys2 = [c["key"] for c in list(added.values())[:2]]
             got = out_node.get("add") or {}
             check("86: in node, Add every sub-theme asks the server and lands its cards as one step of undo",

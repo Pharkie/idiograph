@@ -40,11 +40,9 @@ def test_sidebar(scratch):
           and "if (TH.mode === 'gets' && !thIsStatement(TH.v, key)) { gtCardOpen(key); return; }" in fn(js, "thCardEditOpen")
           and "thInspectorOpen({ kind: 'card', id: key });" in fn(js, "gtCardOpen"))
     check("183: every path that opened a panel on a tab opens the sidebar on that tab, and nothing of the two panels is left",
-          "thSideOpen('review');" in fn(js, "thReviewAsk") and "thSideOpen('revise');" in fn(js, "thReviseSend")
-          and "thInspectorOpen(item);" in fn(js, "thNamesAsk") and "thInspectorOpen({ kind: 'group', id });" in fn(js, "thNoteOpen")
+          "thInspectorOpen(item);" in fn(js, "thNamesAsk") and "thInspectorOpen({ kind: 'group', id });" in fn(js, "thNoteOpen")
           and "if (noted) thInspectorOpen({ kind: 'group', id: noted });" in fn(js, "thUndo")
           and "if (tab) thSideOpen(tab.dataset.tab);" in js
-          and "thSideOpen" not in fn(js, "thReviewShow")
           and not re.search(r"thBoard(Open|Shut|Door|Restore|Keep|Stored)|thInspector(Shut|Door|Restore|Keep|Stored)|thDoorsDraw|thFront", js))
 
     # ── E. the bars
@@ -100,7 +98,7 @@ thInspectorKey(); out.i = state(); out.iShows = TH.panel;
 thInspectorKey(); out.iAgain = state();
 thSideDoor(); out.reopen = state();
 thSideOpen('table'); out.petsTable = state().tab;
-thSideOpen('review'); thSideDoor(); out.kept = JSON.parse(store[thSideKey('pets')]);
+thSideOpen('guidance'); thSideDoor(); out.kept = JSON.parse(store[thSideKey('pets')]);
 TH.mode = 'gets';
 thSideRestore(); out.getsFresh = state();
 thSideOpen('table'); out.getsTable = state();
@@ -140,10 +138,10 @@ console.log(JSON.stringify(out));
           and out["iAgain"] == dict(closed, tab="inspector") and out["reopen"] == shows("inspector", False),
           str(out["i"]) + str(out["iAgain"]))
     check("183, updated 19 October (199): in node, Table is a tab on neither screen, and the tab left showing is kept for each screen apart",
-          out["petsTable"] == "inspector" and out["kept"] == {"open": False, "tab": "review"}
+          out["petsTable"] == "inspector" and out["kept"] == {"open": False, "tab": "guidance"}
           and out["getsFresh"] == dict(closed, tab="inspector") and out["getsTable"] == shows("inspector", False)
           and out["getsGuidance"] == "guidance" and out["leave"] == [False, {"open": True, "tab": "history"}]
-          and out["backOnPets"] == {"open": False, "tab": "review"} and out["backOnGets"] == {"open": True, "tab": "history"},
+          and out["backOnPets"] == {"open": False, "tab": "guidance"} and out["backOnGets"] == {"open": True, "tab": "history"},
           str({k: out[k] for k in ("petsTable", "kept", "leave", "backOnPets", "backOnGets")}))
     check("183, 156, 208: in node, Inspect comes first in a card's and a label's menu, Go to the passage after it on a card, "
           "New group inside after it on a label, and on a revision on view the card keeps the two and the label Inspect and the copy",

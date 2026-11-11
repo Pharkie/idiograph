@@ -13,7 +13,7 @@ import idiograph_routes
 
 def test_pets_bar(scratch):
     print("\n52. The PETs bar carries less: the Current board, the Inspector, one door to the sidebar, "
-          "the share glyph and New AI board from the board menu")
+          "and the share glyph (New AI board went from the board menu on 11 November 2026, aiout)")
     import subprocess
     import server as server_mod
     import themes as themes_mod
@@ -102,19 +102,14 @@ def test_pets_bar(scratch):
           and "chosen" not in fn(js, "thBody"))
 
     # ── C. the sidebar: its button, no handles, and what opens it
-    check("114: n, Note and a PET note undone or done again open the Inspector, and the review's link leaves it as it was",
+    check("114: n, Note and a PET note undone or done again open the Inspector, and a drag leaves it as it was",
           "thInspectorOpen(item);" in fn(js, "thNamesAsk") and "thInspectorOpen({ kind: 'group', id });" in fn(js, "thNoteOpen")
           and "if (noted) thInspectorOpen({ kind: 'group', id: noted });" in fn(js, "thUndo")
-          and "thInspectorOpen" not in fn(js, "thReviewShow") and "thInspectorOpen" not in fn(js, "thDragStart"))
+          and "thInspectorOpen" not in fn(js, "thDragStart"))
 
-    # ── D. the share glyph, and New AI board's card
-    spark_entry = menu.split("data-vop=\"ai\"", 1)[1].split("</button>", 1)[0]
-    check("118: New AI board in the board menu carries the sparkles, and is there only with the switch on",
-          "${TH_SPARK_ICON}${esc(t('themes.board.ai'))}" in spark_entry and "(thAiOn() ? `<button" in menu
-          and "else if (what === 'ai') thAiCard(true);" in js)
-    check("118: with the switch off the card puts itself away, and the stepper still saves under themes",
-          "if (!thAiOn() && !$('th-aicard').hidden) thAiCard(false);" in fn(js, "thAiDraw")
-          and "api('/api/settings', { themes: { cap: next } })" in fn(js, "thCapStep"))
+    # ── D. the board menu: no New AI board and no sparkles since aiout
+    check("118, aiout: the board menu carries no New AI board and no sparkles, and the page no card for one",
+          'data-vop="ai"' not in menu and "TH_SPARK_ICON" not in menu and "thAiCard" not in js)
 
     # ── F. the page's own model, in node
     node = shutil.which("node")

@@ -10714,7 +10714,7 @@ function distilScreenPane() {
 }
 
 /* Idiograph's parts of Settings as the card opens (openSettings): the statements screen's interviewer, rounds
-   and view, the statement prompt, the nudges and the PETs limit, the app's own alone since settingsplit (Adam, 5
+   and view, the statement prompt and the nudges, the app's own alone since settingsplit (Adam, 5
    November 2026), a project's being in Project settings */
 function distilSettingsOpen(ctx, c) {
   // Dangerously skip permissions, off unless the settings say it is on
@@ -10739,13 +10739,6 @@ function distilSettingsOpen(ctx, c) {
   $('set-prompt').value = c.ai_prompt || S.promptDefault || '';
   $('nudge-switches').innerHTML = Object.entries(NUDGES).map(([k, [label, about]]) =>
     nudgeRow(k, label, about, !!(c.nudges || {})[k])).join('');
-  // the limit as the PETs screen holds it when the card opens over that screen, which the bar's
-  // own stepper may have moved since the settings were read, and as the settings hold it elsewhere.
-  // Over the GETs screen the bar's stepper is the GETs limit, from the GETs file, so the settings' own
-  const held = c.themes && c.themes.cap !== undefined ? c.themes.cap : 5;
-  const live = ctx.themes && typeof TH !== 'undefined' && TH.mode !== 'gets' && TH.cap ? TH.cap : held;
-  S.capOpened = capOf(live);
-  drawCap(S.capOpened);
 }
 
 /* ──────────────────────────────────────── GETs in Project settings ── */
@@ -10869,31 +10862,6 @@ function placeTip(e) {
   tip.classList.toggle('up', room < (tip.offsetHeight || 120) + 12);
 }
 
-/* The PETs category's stepper, the limit on the PETs an AI board proposes, "up to 5 PETs", from
-   two to nine, the stepper the PETs bar carries. Save writes it to `themes.cap`, the key the bar's
-   own stepper writes, and only when it has moved, so a limit the bar changed since the card opened
-   is never put back. */
-const capOf = (n) => Math.max(2, Math.min(9, Math.round(Number(n)) || 5));
-const capNow = () => capOf($('set-cap-n').textContent);
-
-/* The limit as `limit_line` in themes_ai.py puts it to the model: one fewer than the limit or the
-   limit, and one more only with a reason. The line under this stepper and the tooltip of the AI
-   board card's stepper both say it. */
-const CAP_LINES = { 2: t('distil.cap.line_2'), 3: t('distil.cap.line_3'), 4: t('distil.cap.line_4'), 5: t('distil.cap.line_5'),
-  6: t('distil.cap.line_6'), 7: t('distil.cap.line_7'), 8: t('distil.cap.line_8'), 9: t('distil.cap.line_9') };
-function capLine(n) {
-  return CAP_LINES[capOf(n)];
-}
-
-function drawCap(n) {
-  $('set-cap-n').textContent = String(n);
-  $('set-cap-down').disabled = n <= 2;
-  $('set-cap-up').disabled = n >= 9;
-  $('set-cap-line').textContent = capLine(n);
-}
-
-const capStep = (by) => drawCap(capOf(capNow() + by));
-
 /* The test bench: one turn of the demo case, with the turn before it above the box, sent through the
    same two passes as the button under the statement field, with the fields that button sends and
    the provider, the model, the prompt and the question as they stand in the panel, saved or not.
@@ -10990,8 +10958,6 @@ function distilSettingsBody(body) {
   const view = viewChoice();
   const said = (v) => JSON.stringify(v);
   for (const key of Object.keys(view)) if (!S.viewOpened || said(view[key]) !== said(S.viewOpened[key])) body[key] = view[key];
-  // the PETs category's limit, under `themes` as the bar's stepper writes it, once it has moved
-  if (capNow() !== S.capOpened) body.themes = { cap: capNow() };
 }
 
 
@@ -12523,8 +12489,6 @@ function distilBoot() {
   $('rail-mark').onclick = () => openComplete();
   $('complete-cancel').onclick = () => { hide('complete'); focusEntry(); };
   $('complete-reopen').onclick = () => reopenComplete();
-  $('set-cap-down').onclick = () => capStep(-1);
-  $('set-cap-up').onclick = () => capStep(1);
   // GETs in Settings: the switch, the minimum's stepper, and each case's tick and reason
   $('set-min-down').onclick = () => getsMinStep(-1);
   $('set-min-up').onclick = () => getsMinStep(1);
@@ -12891,9 +12855,7 @@ function searchBoardAway() {
   thXmenu(false);
   thCasemenu(false);
   thSideShut(false);
-  thAiCard(false);
   thExported(null);
-  thMade(null);
   thMenuClose();
   $('themes').hidden = true;
 }

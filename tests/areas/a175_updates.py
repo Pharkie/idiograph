@@ -164,8 +164,10 @@ def test_updates(scratch):
         os.environ[server_mod.MANUAL_FILE] = old_manual
     check("175: What's new is docs/whats-new.md, a section a version newest first, carried beside the manual in every "
           "bundle and answered by the server as /api/whats-new, none for a copy without it",
-          [v["version"] for v in versions][:2] == [newer, own_version] and versions[0]["date"] == "20 October 2026"
-          and len(versions[0]["lines"]) == 3 and own and own[0]["version"] == server_mod.VERSION
+          versions[0]["version"] == newer and own_version in [v["version"] for v in versions[1:3]] and versions[0]["date"] == "20 October 2026"
+          and len(versions[0]["lines"]) == 3 and own and server_mod.VERSION in [v["version"] for v in own[:2]]
+          and (own[0]["version"] == server_mod.VERSION
+               or tuple(map(int, own[0]["version"].split("."))) > tuple(map(int, server_mod.VERSION.split("."))))
           and all(1 <= len(v["lines"]) <= 8 for v in own) and missing == {"versions": []}
           and server_mod.ROUTES.get("/api/whats-new") is server_mod.api_whats_new and "/api/whats-new" not in server_mod.POST_ONLY
           and conf["bundle"]["resources"].get("../../../docs/whats-new.md") == "docs/whats-new.md"

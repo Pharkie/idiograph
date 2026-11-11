@@ -854,16 +854,6 @@
       <button type="button" class="ghost small" id="th-reveal" tabindex="-1" hidden>{{page_idiograph.screens.show_finder}}</button>
     </div>
 
-    <!-- what a new AI board came back with, where the export's line goes, in the top right of the
-         canvas: what was made and how, or the one line saying why no board was made -->
-    <div class="th-ui th-exported th-made" id="th-made" hidden role="status">
-      <button class="card-close" id="th-made-close" type="button" tabindex="-1" aria-label="{{page_idiograph.screens.close}}" title="{{page_idiograph.screens.close}}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
-      </button>
-      <p class="th-exported-head" id="th-made-head"></p>
-      <p class="th-made-line" id="th-made-line" hidden></p>
-    </div>
-
     <!-- a board added or changed outside the page, in a conversation with an AI agent or another
          window: one line in the same corner, and Show it, which saves the canvas first, then loads -->
     <div class="th-ui th-exported th-made th-outside" id="th-outside" hidden role="status">
@@ -998,8 +988,8 @@
   </div>
 
   <!-- The sidebar at the right of the canvas, full height, one tab showing at a time: the
-       Inspector, about the card or the label selected, then Guidance, History, Review and Revise,
-       about the board as a whole. The GETs screen's own Table tab went on 19 October, the Canvas and
+       Inspector, about the card or the label selected, then Guidance and History, about the board
+       as a whole. The GETs screen's own Table tab went on 19 October, the Canvas and
        Table switch on the bar showing the GET table. The sidebar
        button in the bar opens it on the tab left showing and closes it again, `i` and Inspect in a
        right-click menu open it on the Inspector, and a click on the canvas never opens or switches
@@ -1011,8 +1001,6 @@
       <button type="button" class="th-tab on" role="tab" tabindex="-1" data-tab="inspector" aria-selected="true">{{page_idiograph.screens.inspector}}</button>
       <button type="button" class="th-tab" role="tab" tabindex="-1" data-tab="guidance" aria-selected="false">{{page_idiograph.screens.guidance}}</button>
       <button type="button" class="th-tab" role="tab" tabindex="-1" data-tab="history" aria-selected="false">{{page_idiograph.screens.history}}</button>
-      <button type="button" class="th-tab" role="tab" tabindex="-1" data-tab="review" aria-selected="false" data-ai>{{page_idiograph.screens.ai_review}}</button>
-      <button type="button" class="th-tab" role="tab" tabindex="-1" data-tab="revise" aria-selected="false" data-ai>{{page_idiograph.screens.ai_revise}}</button>
     </div>
     <!-- The Inspector, for the card or the label selected: the statement or the note, the quotes
          of its rows with play, and on a label a tick on each. Showing, it follows the selection, and
@@ -1036,8 +1024,8 @@
       </div>
     </div>
     <!-- The tabs about the board as a whole: its name, its note under it when it has one, then the
-         tab's own body, Guidance, the lines of themes_guidance.md to hand, History, its revisions to
-         view and restore, Review, the AI's questions of it, and Revise, his requests for changes to it. -->
+         tab's own body, Guidance, the lines of themes_guidance.md to hand, and History, its revisions
+         to view and restore. -->
     <div class="th-panel th-bpanel" id="th-bpanel" role="tabpanel" hidden aria-label="{{page_idiograph.screens.board}}">
       <div class="th-phead th-bhead"><p class="th-pname" id="th-bpanel-name"></p><p class="th-bnote" id="th-bpanel-note" hidden></p></div>
       <div class="th-panel-body" id="th-bpanel-body"></div>
@@ -1422,9 +1410,8 @@
         </section>
 
         <!-- PETs: the PETs screen's own, where the on-screen guidance comes from, then under
-             AI its own model, the Experiential statements one unless another is chosen, the key when
-             only this screen needs it, and the limit on the PETs an AI board proposes, the stepper the
-             bar carries, written to themes.cap on Save, with the sentence the prompt asks by -->
+             AI its own model for the suggested titles, the Experiential statements one unless another
+             is chosen, and the key when only this screen needs it -->
         <section class="settings-pane" id="pane-pets" role="tabpanel" aria-labelledby="tab-pets" hidden>
           <h3 class="pane-title">{{page_idiograph.settings_pane.pets}}</h3>
           <p class="fineprint">{{page_idiograph.settings_pane.guidance_file_html}}</p>
@@ -1439,15 +1426,6 @@
             <p class="fineprint" id="pets-model-note"></p>
           </div>
           <div id="pets-key-slot"></div>
-          <div class="setting">
-            <span class="setting-label" id="set-cap-label">{{page_idiograph.settings_pane.most_pets_ai_board}}</span>
-            <span class="cap-step" role="group" aria-labelledby="set-cap-label" title="{{page_idiograph.settings_pane.most_pets_proposal_makes}}">
-              <button type="button" class="cap-btn" id="set-cap-down" aria-label="{{page_idiograph.settings_pane.fewer_pets}}">&#8722;</button>
-              <span class="cap-text" id="set-cap-text">{{page_idiograph.settings_pane.cap_html}}</span>
-              <button type="button" class="cap-btn" id="set-cap-up" aria-label="{{page_idiograph.settings_pane.more_pets}}">+</button>
-            </span>
-          </div>
-          <p class="fineprint" id="set-cap-line">{{page_idiograph.settings_pane.ai_board_makes_4}}</p>
           </div>
         </section>
 
@@ -1457,8 +1435,8 @@
             <p data-only="idiograph">{{page_idiograph.ai_warn.these_features_passages_ask}}</p>
 <!--part:ai-feature-->
             <label data-only="idiograph"><input type="checkbox" data-ai-feature="statements"> {{page_idiograph.ai_feature.suggested_statements_passage}}</label>
-            <label data-only="idiograph"><input type="checkbox" data-ai-feature="pets"> {{page_idiograph.ai_feature.ai_boards_titles_questions}}</label>
-            <label data-only="idiograph"><input type="checkbox" data-ai-feature="gets"> {{page_idiograph.ai_feature.ai_boards_titles_questions_2}}</label>
+            <label data-only="idiograph"><input type="checkbox" data-ai-feature="pets"> {{page_idiograph.ai_feature.suggested_titles_pet}}</label>
+            <label data-only="idiograph"><input type="checkbox" data-ai-feature="gets"> {{page_idiograph.ai_feature.suggested_titles_get}}</label>
 <!--part:ai-confirm-->
     <div class="ai-confirm-body" data-only="idiograph">
       <p class="trim-line">{{page_idiograph.ai_confirm.not_recommended_most_analysis}}</p>
@@ -2186,32 +2164,6 @@
     <div class="card-actions">
       <button class="ghost" id="th-confirm-cancel">{{page_idiograph.cards_last.cancel}}</button>
       <button class="primary btn-remove" id="th-confirm-go">{{page_idiograph.cards_last.delete_board_2}}</button>
-    </div>
-  </div>
-</div>
-
-<!-- New AI board, from the board menu: a board of its own, grouped by the AI from all the case's
-     statements or from the board on the canvas, which is left as it is. A hint when he gives one,
-     and his limit on the PETs, kept in config.json under themes. Enter in the hint is Make, Esc is
-     Cancel. In the trim card's style. -->
-<div class="overlay" id="th-aicard" hidden data-ai>
-  <div class="card">
-    <h2 id="th-aicard-title">{{page_idiograph.cards_last.new_ai_board}}</h2>
-    <div class="th-from" id="th-from" role="radiogroup" aria-label="{{page_idiograph.cards_last.made}}">
-      <button type="button" class="th-from-opt on" id="th-from-all" tabindex="-1" role="radio" aria-checked="true" data-from="all">{{page_idiograph.cards_last.all_statements}}</button>
-      <button type="button" class="th-from-opt" id="th-from-board" tabindex="-1" role="radio" aria-checked="false" data-from="board">{{page_idiograph.cards_last.board_1}}</button>
-    </div>
-    <p class="fineprint th-aicard-line" id="th-aicard-line"></p>
-    <input type="text" class="th-ai-hint" id="th-ai-hint" placeholder="{{page_idiograph.cards_last.hint_such_fewer_groups}}" spellcheck="true" autocomplete="off" aria-label="{{page_idiograph.cards_last.hint_grouping}}" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false">
-    <div class="th-cap" id="th-cap" title="{{page_idiograph.cards_last.ai_board_makes_4}}">
-      <button type="button" class="th-cap-btn" id="th-cap-down" tabindex="-1" aria-label="{{page_idiograph.cards_last.fewer_pets}}">&#8722;</button>
-      <span class="th-cap-text" id="th-cap-text">{{page_idiograph.cards_last.cap_html}}</span>
-      <button type="button" class="th-cap-btn" id="th-cap-up" tabindex="-1" aria-label="{{page_idiograph.cards_last.more_pets}}">+</button>
-    </div>
-    <p class="fineprint th-aicard-said" id="th-aicard-said" hidden></p>
-    <div class="card-actions">
-      <button class="ghost" id="th-aicard-cancel">{{page_idiograph.cards_last.cancel}}</button>
-      <button class="primary" id="th-ai-make"><svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.2c.95 4.2 2.65 5.9 6.85 6.85-4.2.95-5.9 2.65-6.85 6.85-.95-4.2-2.65-5.9-6.85-6.85C9.35 9.1 11.05 7.4 12 3.2Z"/><path d="M18.4 14.6c.42 1.85 1.17 2.6 3.02 3.02-1.85.42-2.6 1.17-3.02 3.02-.42-1.85-1.17-2.6-3.02-3.02 1.85-.42 2.6-1.17 3.02-3.02Z"/></svg>{{page_idiograph.cards_last.make}}</button>
     </div>
   </div>
 </div>

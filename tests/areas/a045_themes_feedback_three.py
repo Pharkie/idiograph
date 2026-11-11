@@ -33,15 +33,11 @@ def test_themes_feedback_three(scratch):
             found = re.search(r'id="([^"]+)"', button.split(">", 1)[0])
             sparkled.append(found.group(1) if found else "?")
     names_go = fn(js, "thNamesHtml")
-    review_go = fn(js, "thReviewDraw")
-    vmenu_ai = fn(js, "thVmenuDraw")
-    check("104, 118, 173: the sparkles are on exactly the AI controls: btn-ai, btn-bench, Make, New AI board, the panel's th-names-go, th-review-go and a reply's Send",
-          sorted(sparkled) == ["btn-ai", "btn-bench", "th-ai-make"] and page.count(SPARKLES) == 3
-          and js.count(SPARKLES) == 1 and js.count("TH_SPARK_ICON") == 6 and "${TH_SPARK_ICON}" in fn(js, "thReplyBoxHtml")
-          and "${TH_SPARK_ICON}" in fn(js, "thReviseDraw")
-          and vmenu_ai.count("TH_SPARK_ICON") == 1 and 'data-vop="ai"' in vmenu_ai.split("${TH_SPARK_ICON}", 1)[0].rsplit("<button", 1)[1]
-          and "th-names-go" in names_go and "${TH_SPARK_ICON}" in names_go
-          and "th-review-go" in review_go and "${TH_SPARK_ICON}" in review_go and SPARKLES not in app, str(sparkled))
+    check("104, 118, 173: the sparkles are on exactly the AI controls: btn-ai, btn-bench and the panel's th-names-go, "
+          "New AI board, AI review and AI revise having gone (aiout)",
+          sorted(sparkled) == ["btn-ai", "btn-bench"] and page.count(SPARKLES) == 2
+          and js.count(SPARKLES) == 1 and js.count("TH_SPARK_ICON") == 2
+          and "th-names-go" in names_go and "${TH_SPARK_ICON}" in names_go and SPARKLES not in app, str(sparkled))
 
     def callers(src, needles):
         out = []
@@ -51,18 +47,16 @@ def test_themes_feedback_three(scratch):
                 out.append(name.group(1))
         return out
     ai_routes = ("api('/api/suggest',", "api('/api/suggest-sample', body)", "api('/api/themes-ai',", "api(thAiPath(),")
-    check("104: the functions that call a model are the five the sparkled controls run, and nothing else calls them",
-          callers(app, ai_routes) == ["askAI", "runBench"] and callers(js, ai_routes) == ["thAutoGroup", "thNamesAsk", "thReviewAsk", "thReplySend", "thReviseSend"]
+    check("104: the functions that call a model are the three the sparkled controls run, and nothing else calls them",
+          callers(app, ai_routes) == ["askAI", "runBench"] and callers(js, ai_routes) == ["thNamesAsk"]
           and "$('btn-ai').onclick = () => askAI();" in app and app.count("askAI(") == 2
           and "$('btn-bench').onclick = () => runBench();" in app and app.count("runBench(") == 2
-          and "$('th-ai-make').onclick = () => thAutoGroup();" in js
-          and "if (names && names.dataset.names === 'go') { thNamesAsk(); return; }" in js
-          and "if (review) { thReviewAsk(); return; }" in js and js.count("thReviewAsk(") == 2,
+          and "if (names && names.dataset.names === 'go') { thNamesAsk(); return; }" in js,
           f"{callers(app, ai_routes)} {callers(js, ai_routes)}")
     check("104: Auto-arrange and every other control carry none",
           SPARKLES not in js.split("const TH_ARR_ICON = '", 1)[1].split("';", 1)[0]
           and "TH_SPARK_ICON" not in fn(js, "thArrangeHtml") + fn(js, "thRender") + fn(js, "thMenuOpen")
-          and "TH_SPARK_ICON" not in fn(js, "thVmenuDraw").replace("${TH_SPARK_ICON}${esc(t('themes.board.ai'))}", ""))
+          and "TH_SPARK_ICON" not in fn(js, "thVmenuDraw"))
 
     # ── 105. the Alt tip
     check("105: nothing about it is saved",

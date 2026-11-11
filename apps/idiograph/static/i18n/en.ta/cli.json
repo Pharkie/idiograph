@@ -124,8 +124,6 @@
   "cli.turn_lines.quote": "    Extract: {quote}{ran}",
   "cli.turn_lines.statement": "  Code: {statement}",
   "cli.gets_settings.saved_in_the_gets_file": "Saved in the themes file:",
-  "cli.gets_settings.the_most_gets_a_new_ai": "The most themes a new AI board proposes from {get} to {get2}.",
-  "cli.settings_lines.the_most_gets_a_new_ai": "The most themes a new AI board proposes: {cap}.",
   "cli.gets_subs.added_to_the_gets_board_each": "Added {cards} to the themes board {name}, each in the nearest free spot. {kept_line}",
   "cli.gets_subs.dry_run_nothing_was_written_it": "Dry run, nothing was written. It would add {cards} to the themes board {name}, each in the nearest free spot:",
   "cli.gets_complete.reopened_gets": "Reopened the themes.",

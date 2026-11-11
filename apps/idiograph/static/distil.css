@@ -1292,7 +1292,7 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .setting .setting-label { flex: 1; color: var(--ink-soft); }
 /* a project's method under Settings, Projects, shown and never changed (tadraw) */
 .set-method { flex: none; color: var(--ink); }
-/* the PETs category's limit, the bar's stepper at the size of the card's own fields */
+/* a stepper at the size of the card's own fields, the timepoints' and the GETs minimum's */
 .cap-step { display: inline-flex; align-items: center; gap: 4px; flex: none; white-space: nowrap; color: var(--ink-soft); }
 .cap-btn {
   width: 26px; height: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
@@ -1303,7 +1303,7 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .cap-btn:disabled { opacity: .4; cursor: default; }
 .cap-text { padding: 0 6px; font-variant-numeric: tabular-nums; }
 .cap-text b { color: var(--ink); }
-/* Timepoints under Projects (20 October): the stepper as the PETs limit's, its line close under it, then
+/* Timepoints under Projects (20 October): the stepper, its line close under it, then
    with two or more a row each, the label narrow and the description the rest */
 #tp-block { padding: 0; }
 .tp-setting { margin-bottom: 4px; }
@@ -1318,7 +1318,6 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 /* the import card's Timepoint chooser, clear of the recording's row over it */
 .import-tp { margin-top: 14px; }
 .import-tp .fineprint { margin: 6px 0 0; }
-#set-cap-line { margin: -4px 0 0; }
 /* a nudge's tick with its info mark after the label, a small circled i in the faint ink, and the
    tooltip under the row on hover and on focus, in the small type over the paper */
 .nudge-row { position: relative; display: flex; align-items: center; gap: 6px; }

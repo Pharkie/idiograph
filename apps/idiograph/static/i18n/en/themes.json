@@ -7,20 +7,6 @@
   "themes.history.when": "{day} {time}",
   "themes.history.today": "Today",
   "themes.history.yesterday": "Yesterday",
-  "themes.review.made": "Made.",
-  "themes.review.made_by": "Made by {model}.",
-  "themes.review.made_today": "Made at {time} today.",
-  "themes.review.made_today_by": "Made by {model} at {time} today.",
-  "themes.review.made_on": "Made on {day} at {time}.",
-  "themes.review.made_on_by": "Made by {model} on {day} at {time}.",
-  "themes.review.round": {
-    "one": "Round {round} · {n} question",
-    "other": "Round {round} · {n} questions"
-  },
-  "themes.review.round_ticked": {
-    "one": "Round {round} · {n} question · {ticked} ticked",
-    "other": "Round {round} · {n} questions · {ticked} ticked"
-  },
   "themes.read_only": "This revision is read-only. Restore it, or go Back to the board.",
   "themes.count.statements": {
     "one": "{n} statement",
@@ -245,7 +231,6 @@
     "one": "Moved one item",
     "other": "Moved {n} items"
   },
-  "themes.step.revised_ai": "Revised by the AI",
   "themes.step.added_subs": {
     "one": "Added a sub-theme",
     "other": "Added {n} sub-themes"
@@ -371,8 +356,6 @@
   "themes.board.new_empty": "New board, empty",
   "themes.board.new_canvas_tip": "A board with no PETs, every statement on the canvas as a pile in the middle. This one stays as it is.",
   "themes.board.new_canvas": "New board, all on the canvas",
-  "themes.board.ai_tip": "A board of its own, grouped by the AI from {name}, which stays as it is",
-  "themes.board.ai": "New AI board",
   "themes.board.done_tip": "PETs marked complete on {day}",
   "themes.board.done_tip_time": "PETs marked complete on {day} at {time}",
   "themes.board.done_tip_name": "PETs marked complete on {day}, on {name}",
@@ -472,37 +455,6 @@
   "themes.cases.window_tip": "{name}'s statements in a window of its own",
   "themes.cases.table_tip": "{board} of {name} in a tab of its own, read-only",
   "themes.cases.table": "Open as table",
-  "themes.ai.model_default": "the model chosen in Settings, PETs",
-  "themes.ai.card_line": "A new board, made by {who}. {from} is left as it is.",
-  "themes.ai.all_statements": "all statements",
-  "themes.ai.card_title": "New AI board from {from}",
-  "themes.ai.all_statements_head": "All statements",
-  "themes.ai.grouping_pets": {
-    "one": "Grouping one PET",
-    "other": "Grouping {n} PETs"
-  },
-  "themes.ai.grouping_statements": {
-    "one": "Grouping one statement",
-    "other": "Grouping {n} statements"
-  },
-  "themes.ai.no_pets": "There are no PETs in the study to group yet.",
-  "themes.ai.no_statements": "There are no statements on the canvas to group.",
-  "themes.unsaved.asked": "The canvas is not saved yet, so nothing was asked.",
-  "themes.ai.n_gets": {
-    "one": "{n} GET",
-    "other": "{n} GETs"
-  },
-  "themes.ai.n_pets": {
-    "one": "{n} PET",
-    "other": "{n} PETs"
-  },
-  "themes.ai.unpicked": "No quotes picked.",
-  "themes.ai.head": "{name}: {themes}",
-  "themes.ai.head_left": "{name}: {themes}, {left} not placed",
-  "themes.ai.line": "{name} made. {key} + Z does not undo a board, delete it from the board menu.",
-  "themes.ai.line_from": "{name} made from {from}. {key} + Z does not undo a board, delete it from the board menu.",
-  "themes.ai.line_hint": "{name} made, with the hint '{hint}'. {key} + Z does not undo a board, delete it from the board menu.",
-  "themes.ai.line_from_hint": "{name} made from {from}, with the hint '{hint}'. {key} + Z does not undo a board, delete it from the board menu.",
   "themes.names.tip": "Three titles for this {unit}, from the AI (N). Nothing changes until you pick one.",
   "themes.ai.asking": "Asking",
   "themes.names.pets": "AI suggest PET titles",
@@ -512,32 +464,6 @@
   "themes.names.select": "Select a PET, then press N.",
   "themes.names.empty": "There are no statements under that label yet.",
   "themes.names.none": "The answer carried no titles.",
-  "themes.review.what": "Asks questions of this board from the IPA guidance. Nothing moves.",
-  "themes.review.go_tip": "Questions of this board from the AI, with the IPA guidance.",
-  "themes.review.go_tip_model": "Questions of this board from the AI, with the IPA guidance. {model} answers.",
-  "themes.review.go": "AI review",
-  "themes.review.about_aside": "Set aside: show it in the sidebar",
-  "themes.review.about_select": "Select it on the canvas",
-  "themes.review.about_gone": "No longer on the board",
-  "themes.review.about_whole": "The whole board",
-  "themes.review.about_unplaced": "Not placed: show it in the sidebar",
-  "themes.review.considered": "Considered",
-  "themes.review.dismiss": "Dismiss",
-  "themes.review.rule": "Rule {rule}",
-  "themes.review.reply": "Reply",
-  "themes.reply.placeholder": "A question back, or your view",
-  "themes.reply.label": "Your reply",
-  "themes.reply.tip": "Your reply goes. Cmd + Enter sends, Esc closes.",
-  "themes.reply.tip_to": "Your reply goes to {model}. Cmd + Enter sends, Esc closes.",
-  "themes.reply.sending": "Sending",
-  "themes.reply.send": "Reply to AI",
-  "themes.review.changed": "The board changed while the review was asked, so its questions were set aside.",
-  "themes.revise.ask": "What should change?",
-  "themes.revise.tip": "The request goes. Cmd + Enter sends.",
-  "themes.revise.tip_to": "The request goes to {model}. Cmd + Enter sends.",
-  "themes.revise.busy": "Revising",
-  "themes.revise.go": "AI revise board",
-  "themes.revise.changed": "The board changed while it was asked, so nothing was changed.",
   "themes.sid_tip": "Its short id, which an AI agent names it by",
   "themes.card.left_out": "Left out: {why}",
   "themes.outside.show": "Show it",
@@ -611,19 +537,7 @@
   "themes.colour.jade": "Jade",
   "themes.colour.navy": "Navy",
   "themes.colour.fig": "Fig",
-  "themes.gets.from_all": "every participant's PETs",
   "themes.gets.guidance_from": "From pet_guidance.md beside the app, the GETs sections the AI reads on this screen.",
-  "themes.gets.cap_line": "An AI board makes {low} or {n} GETs, and one more only when it earns its place.",
-  "themes.gets.cut_line": {
-    "one": "To fit what the model can take, Idiograph left out the words of one statement, the lowest in their PETs.",
-    "other": "To fit what the model can take, Idiograph left out the words of {n} statements, the lowest in their PETs."
-  },
-  "themes.gets.from_all_head": "Every participant's PETs",
-  "themes.ai.grouping_pets_subs": "Grouping {pets} and {subs}",
-  "themes.gets.n_subs": {
-    "one": "one sub-theme",
-    "other": "{n} sub-themes"
-  },
   "themes.gets.from_aside": "Set aside in its PETs",
   "themes.gets.from_unplaced": "Not placed in its PETs",
   "themes.gets.from_get": "{unit}: {title} · {get}: {label}",

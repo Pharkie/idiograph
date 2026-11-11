@@ -143,7 +143,7 @@ def test_agent_cli(scratch):
         check("79: cases names the project, its question and the minimum, never a cap, then each case with its workbook, phases and boards",
               code == 0 and "Dogs, a scratch project" in text and DEMO_QUESTION in text and "PETs" not in text.split("\n\n", 1)[0]
               and "Rowan: Rowan - EN & ES.xlsx" in text and "Boards: Board 1 (v1, the Current board, on the canvas)" in text
-              and data["project"]["ai_board_most_pets"] == 5 and data["project"]["gets_minimum"] == 3 and data["project"]["smith_band"]
+              and "ai_board_most_pets" not in data["project"] and data["project"]["gets_minimum"] == 3 and data["project"]["smith_band"]
               and rowan_row["workbook"] == "Rowan - EN & ES.xlsx" and rowan_row["statements_complete"]
               and rowan_row["pets_complete"]["board"] == "v1" and rowan_row["current"] == "Board 1"
               and rowan_row["boards"] == [{"id": "v1", "name": "Board 1", "current": True, "canvas": True}])

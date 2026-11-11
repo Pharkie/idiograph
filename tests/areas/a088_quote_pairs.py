@@ -270,15 +270,11 @@ def test_quote_pairs(scratch):
 
     # ── D. downstream: a statement's own quote, a PET's picks from its statements' own, an old pick kept
     read = themes_mod.read_cards(book)
-    sheets = read["sheets"]
     board = themes_mod.blank_version(read["cards"])
     k13 = [f"{DEMO_SHEET}:13:{i}" for i in range(3)]
     board.update(groups=[{"id": "g1", "label": "Kept apart", "members": [f"{DEMO_SHEET}:21:1", f"{DEMO_SHEET}:27:1"], "x": 0, "y": 0},
                          {"id": "g2", "label": "The first of two", "members": [f"{DEMO_SHEET}:21:0", k13[1]], "x": 900, "y": 0}],
                  picks={"g1": [f"{DEMO_SHEET}:21:0", f"{DEMO_SHEET}:27:1"]})
-    targets = {t["id"]: [q["key"] for q in t["quotes"]] for t in themes_ai.picks_targets(themes_mod.normalise(board), read["quotes"], sheets)}
-    check("88: a PET's quotes to pick from are its statements' own",
-          targets == {"g1": [f"{DEMO_SHEET}:27:1"], "g2": [f"{DEMO_SHEET}:21:0"]}, str(targets))
     kept_picks = themes_mod.normalise(board, themes_mod.quote_keys(read["quotes"]))["picks"]
     check("88: a quote picked already stays picked when its statement sits under another PET, never dropped by itself",
           kept_picks["g1"] == [f"{DEMO_SHEET}:21:0", f"{DEMO_SHEET}:27:1"])
@@ -287,11 +283,6 @@ def test_quote_pairs(scratch):
     check("88: a statement sent to the AI with its quote sends its own, and a picked one stays marked",
           user.count('"q27"') == 1 and '"q21"' not in user and "(picked)" in user
           and user.index("Placed second") < user.index('"q27"'), f"{user.count('(picked)')} picked")
-    revise = themes_ai.revise_board(read, board)
-    owns = {s["key"]: [q["key"] for q in s["quotes"]] for t in revise["themes"] for s in t["statements"]}
-    check("88: a revise sends each statement with its own quote",
-          owns[f"{DEMO_SHEET}:21:0"] == [f"{DEMO_SHEET}:21:0"] and owns[f"{DEMO_SHEET}:21:1"] == []
-          and owns[k13[1]] == [], str(owns))
     themes_mod.save(book, board, "Juno")
     html = themes_print.page(book, "Juno", auto=False)
     check("88: the print view carries the picked quotes and never the mark",

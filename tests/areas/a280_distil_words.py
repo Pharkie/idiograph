@@ -24,7 +24,6 @@ out.trim = [trimLine({ count: 1, from: '00:10', to: '' }), trimLine({ count: 2, 
   trimLine({ count: 4, from: '01:00', to: '03:15', direction: 'after' }), trimShort({ count: 2, direction: 'before' }),
   trimShort({ count: 5, direction: 'after' })];
 out.kq = [kqTitle([0]), kqTitle([0, 2]), kqTitle([1, 3, 4])];
-out.caps = [5, 7, 9].map((n) => capLine(n));
 // a copy coming back's line under a participant's boards (copyback, 6 November 2026), each statement counted once
 const said = (key, kind, wording) => ({ key, kind, wording });
 out.match = [cbLineSaid({ boards: [{ statements: 1, not_matched: [] }] }, 'Curt'),
@@ -58,7 +57,7 @@ def test_distil_words(scratch: Path):
         return "\n".join(lines[start:end + 1])
 
     pieces = [support.i18n_js(), whole("standLine"), whole("cardGetsLine"), whole("trimLine"), whole("trimShort"),
-              whole("kqTitle"), const("capOf"), const("CAP_LINES"), whole("capLine"),
+              whole("kqTitle"),
               whole("cbWhose"), whole("cbLineSaid")]
     script = scratch / "distil-words-280.js"
     script.write_text("\n".join(pieces) + SCENARIO, encoding="utf-8")
@@ -80,10 +79,6 @@ def test_distil_words(scratch: Path):
     check("280: a quote's mark names its statement, or its statements as a list through tList",
           out["kq"] == ["Experiential statement 1", "Experiential statements 1 and 3", "Experiential statements 2, 4 and 5"],
           str(out["kq"]))
-    check("280: the PETs limit's line names the one past the limit whole, an eighth with its an",
-          out["caps"] == ["An AI board makes 4 or 5 PETs, and a sixth only when it earns its place.",
-                          "An AI board makes 6 or 7 PETs, and an eighth only when it earns its place.",
-                          "An AI board makes 8 or 9 PETs, and a tenth only when it earns its place."], str(out["caps"]))
     check("280: a copy coming back says once under a participant's boards how its statements came, one and many, each "
           "counted once across the boards, whose wording each keeps, the other analyst's with no name",
           out["match"] == ["Its statement matches yours.", "All 6 statements match yours.",

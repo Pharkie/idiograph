@@ -195,8 +195,8 @@ def test_sift_fixes(scratch):
     sift_keys = {"databases", "sift_email", "zotero"}
     first = {app: json.loads((folders[app] / "config.json").read_text(encoding="utf-8")) for app in folders}
     check("256: after each app's first start its settings file holds the family's settings and its own alone, "
-          "Idiograph's interviewer, corpus, themes and nudges in Idiograph's, Sift's databases in Sift's",
-          {"interviewer", "corpus", "themes", "nudges"} <= idio_keys <= set(first["idiograph"])
+          "Idiograph's interviewer, corpus and nudges in Idiograph's, Sift's databases in Sift's",
+          {"interviewer", "corpus", "nudges"} <= idio_keys <= set(first["idiograph"])
           and not sift_keys & set(first["idiograph"]) and not idio_keys & (set(first["sift"]) | set(first["trace"]))
           and sift_keys <= set(first["sift"]) and not sift_keys & set(first["trace"])
           and all(first[a].get("status_bar") is True for a in first), str({a: sorted(c)[:6] for a, c in first.items()}))
@@ -223,9 +223,9 @@ def test_sift_fixes(scratch):
     check("256: General's keys save in every app, the status bar and the AI switch among them",
           all(s[0].get("status_bar") is False and s[0].get("ai_suggest") is True for s in saves.values()),
           str({a: s[0].get("status_bar") for a, s in saves.items()}))
-    check("256: the AI state an app's page draws by carries Idiograph's limit in Idiograph's alone",
-          "cap" in saves["idiograph"][1]["ai"] and "cap" not in saves["sift"][1]["ai"] and "cap" not in saves["trace"][1]["ai"])
-    kinds = ("SETTINGS_READ", "SETTINGS_SAVE", "AI_CHOICE", "AI_MORE", "QUESTION", "SCOPES", "HOLDS", "STARTS")
+    check("256: the AI state an app's page draws by carries no limit in any app since New AI board went (aiout)",
+          not any("cap" in saves[a][1]["ai"] for a in ("idiograph", "sift", "trace")))
+    kinds = ("SETTINGS_READ", "SETTINGS_SAVE", "AI_CHOICE", "QUESTION", "SCOPES", "HOLDS", "STARTS")
     owners = {kind: {owner for owner, _hook in getattr(server_mod, kind)} for kind in kinds}
     ran = {app: {kind for kind in kinds if server_mod.hooks(getattr(server_mod, kind), app)} for app in ("idiograph", "sift", "trace")}
     check("256: each server runs the settings, AI, question, scope, quit and start hooks of the apps it serves alone, "

@@ -1,9 +1,8 @@
 """Area 326: a thematic analysis project's own AI (taaibuild, 3 November 2026, Adam's choice by dialog that evening:
 Coding A, Themes A, the prompts as taai drafted them). On the Coding screen AI suggest asks for codes for one
 extract, the project's codes that fit first with their counts, then new names, and nothing is written until he
-takes one, which lands as an ordinary code. On the Themes board AI review asks up to three questions from
-ta_themes_guidance.md, each resting on a numbered line of it, and the board keeps the round as IPA's boards keep
-theirs. Neither shows with AI features off, and an IPA project's AI is as it was. The model is a stub of the
+takes one, which lands as an ordinary code. It does not show with AI features off, and an IPA project's AI is as it
+was. The Themes board's AI review went on 11 November 2026 (aiout), and every op of the GETs route is refused there. The model is a stub of the
 suite's own, as IPA's checks stub it, and the projects are scratch copies of the demo on its invented topic."""
 from __future__ import annotations
 
@@ -46,7 +45,7 @@ out.offFeature = cxAiOn();
 S.data.config = { ai_suggest: true };
 method = 'ipa';
 out.onIpa = cxAiOn();
-// the Themes board: AI review in a thematic analysis project, no AI revise, and IPA's as before
+// the Themes board: no AI tab in a thematic analysis project, nor on IPA's since aiout
 TH.mode = 'gets';
 TH.project = { method: 'ta' };
 TH.guidanceTa = true;
@@ -56,22 +55,16 @@ out.taIpaAi = thAiOn();
 TH.ai = { on: false };
 out.taTabsOff = thTabsOf('gets');
 TH.ai = { on: true };
-TH.guidance = [{ heading: 'What a theme is', lines: ['a', 'b', 'c', 'd', 'e'] },
-  { heading: 'Generating themes', lines: ['f', 'g', 'h', 'i'] }, { heading: 'Before you finish', lines: ['q'] }];
-out.ruleTa = [thReviewRule('2'), thReviewRule('7'), thReviewRule('40')];
-TH.codeList = { codes: [{ id: 'k8', name: 'Talk over the fence', description: '' }] };
-out.aboutTa = thReviewAbout({ groups: [], cards: {}, discarded: [] }, 'k8');
 TH.project = { method: 'ipa' };
 out.ipaTabs = thTabsOf('gets');
-out.ruleIpa = thReviewRule('3');
 console.log(JSON.stringify(out));
 """
 
 
 def test_ta_ai(scratch: Path):
     print("\n326. A thematic analysis project's own AI: codes for an extract on Coding, nothing written until one is "
-          "taken, and the Themes board's review from its own guidance, its rounds kept, none of it with AI features off "
-          "and an IPA project's AI as before (taaibuild, 3 November)")
+          "taken, none with AI features off, an IPA project's AI as before (taaibuild, 3 November), and the Themes "
+          "board's review gone (aiout, 11 November)")
     import ai_suggest as ai_mod
     import codes as codes_mod
     import gets as gets_mod
@@ -102,24 +95,6 @@ def test_ta_ai(scratch: Path):
         sent.append({"system": system, "user": user})
         if ta_ai.CODE_INTRO in system:
             text = json.dumps(answer["codes"])
-        elif ta_ai.REVIEW_TASK in system and ta_ai.ASKED in system:
-            text = json.dumps({"items": [
-                {"about": "G2", "question": "Does 'Being led' say what the leading means for them?", "line": "16",
-                 "why": "It has no definition."},
-                {"about": "G1", "question": "Does 'Gates and stairs' hold one central idea, or gather all the house?",
-                 "line": "2", "why": "Asked before."}]})
-        elif ta_ai.REVIEW_TASK in system:
-            codes_ = re.findall(r"- Code (k\d+) ", user)
-            text = json.dumps({"items": [
-                {"about": "G1", "question": "Does 'Gates and stairs' hold one central idea, or gather all the house?",
-                 "line": "2", "why": "Its codes name two places."},
-                {"about": codes_[-1] if codes_ else None, "question": "Does this code wait in Not placed for a reason?",
-                 "line": "9", "why": "No theme holds it."},
-                {"about": "Nowhere", "question": "Is the map ready?", "line": "99", "why": "x"}]})
-        elif ta_ai.REPLY_TASK in system:
-            text = "The two codes share the gate, and the board shows the stair apart from it."
-        elif themes_ai.GETS_REVIEW_TASK in system:
-            text = json.dumps({"items": [{"about": None, "question": "Is the GET whole?", "rule": "1", "why": "x"}]})
         else:
             text = "{}"
         return 200, json.dumps({"content": [{"type": "text", "text": text}], "stop_reason": "end_turn"})
@@ -188,84 +163,38 @@ def test_ta_ai(scratch: Path):
               "error" not in taken and new_code and new_code["extracts"] == 1 and new_code["description"] == ""
               and '"ai"' not in raw and "AI" not in raw, str(taken)[:300])
 
-        # ── C. the review: questions from the TA guidance, each on a numbered line, the round kept with the board
+        # ── C. the Themes board's AI review went (aiout): every op of the GETs route refused, nothing sent or written
         before = sha_all(root)
         n = len(sent)
-        reviewed = call("/api/gets-ai", {"workbook": str(book), "op": "review"})
-        asked = sent[-1] if len(sent) > n else {}
-        items = (reviewed.get("review") or {}).get("items") or []
-        loose = [c for c in after["codes"] if c["extracts"] and c["name"] == CODES[4]]
-        check("326: the review asks from ta_themes_guidance.md, its lines numbered and Before you finish as the "
-              "reviewer's questions, the demo's example sentence left out, and no IPA in it",
-              "1. A theme is a pattern of shared meaning" in asked.get("system", "")
-              and "The questions a reviewer asks of a set of themes:\n1. Can you name" in asked.get("system", "")
-              and "Walks as the one hour" not in asked.get("system", "") and "IPA" not in asked.get("system", ""))
-        check("326: the board goes theme by theme with its definition, each code by its id with each participant's "
-              "count and its extracts, then the codes in Not placed",
-              "Theme G1: Gates and stairs" in asked.get("user", "")
-              and "Definition: The way in and the way up, and who leads" in asked.get("user", "")
-              and re.search(r"- Code k\d+ " + re.escape(CODES[0]) + r" \(Juno \d", asked.get("user", ""))
-              and "Codes in Not placed:" in asked.get("user", "") and (not loose or CODES[4] in asked.get("user", "").split("Codes in Not placed:")[1]))
-        check("326: the answer is read against the board: a theme, a code by its id, the line each rests on, one about "
-              "nothing on the board kept as the whole board and a line past the guidance left blank",
-              len(items) == 3 and items[0]["about"] == "G1" and items[0]["rule"] == "2"
-              and re.fullmatch(r"k\d+", str(items[1]["about"] or "")) and items[1]["rule"] == "9"
-              and items[2]["about"] is None and items[2]["rule"] == "" and reviewed.get("asked") == 0, str(items)[:400])
-        check("326: a review writes nothing, the board's round kept by the page's save as IPA's is",
-              sha_all(root) == before and "error" not in reviewed)
-        # the page keeps the round with the board, and Ask again sends it with what he did with each
-        version = themes_mod.current_version(gets_mod.load(root))
-        version = dict(gets_mod.normal(version, gets_mod.load(root)))
-        items[0]["state"] = "considered"
-        version["review"] = reviewed["review"]
-        gets_mod.save(root, books, version)
-        n = len(sent)
-        again = call("/api/gets-ai", {"workbook": str(book), "op": "review"})
-        second = sent[-1] if len(sent) > n else {}
-        kept_round = themes_mod.review_of(themes_mod.current_version(gets_mod.load(root))) or {}
-        check("326: the review's round is kept on the board, and Ask again sends its questions with his tick",
-              [i["question"] for i in kept_round.get("items") or []] == [i["question"] for i in items]
-              and again.get("asked") == 3 and "(ticked, actioned)" in second.get("user", "")
-              and "Never ask again" in second.get("system", "")
-              and [i["about"] for i in (again.get("review") or {}).get("items") or []] == ["G2"], str(again)[:300])
-        replied = call("/api/gets-ai", {"workbook": str(book), "op": "reply", "round": 0, "item": 0,
-                                        "question": items[0]["question"], "text": "They are one way in."})
-        check("326: a reply answers his words on a question, from the board and the TA guidance",
-              (replied.get("reply") or {}).get("text", "").startswith("The two codes share the gate")
-              and ta_ai.REPLY_TASK in sent[-1]["system"] and "He writes now: They are one way in." in sent[-1]["user"])
-        n = len(sent)
-        refused = [call("/api/gets-ai", {"workbook": str(book), "op": op}) for op in ("group", "names", "revise", "room")]
-        check("326: a thematic analysis board's AI board, titles and revise are refused, nothing sent",
-              all(r.get("error") and r.get("code") == "unknown_op" for r in refused) and len(sent) == n)
+        refused = [call("/api/gets-ai", {"workbook": str(book), "op": op})
+                   for op in ("review", "reply", "group", "names", "revise", "room")]
+        check("326: a thematic analysis board's review, reply, AI board, titles and revise are each refused, nothing sent "
+              "or written (aiout)",
+              all(r.get("error") and r.get("code") == "unknown_op" for r in refused) and len(sent) == n
+              and sha_all(root) == before, str(refused[0]))
 
         # ── D. AI features off, or its feature's own switch: nothing asked, one line
         before = sha_all(root)
         n = len(sent)
         settings(ai_suggest=False)
-        off = [call("/api/codes-suggest", dict(body)), call("/api/gets-ai", {"workbook": str(book), "op": "review"})]
-        settings(ai_features_off=["statements", "gets"])
-        off += [call("/api/codes-suggest", dict(body)), call("/api/gets-ai", {"workbook": str(book), "op": "review"})]
+        off = [call("/api/codes-suggest", dict(body))]
+        settings(ai_features_off=["statements"])
+        off += [call("/api/codes-suggest", dict(body))]
         settings()
-        check("326: with AI features off, or each feature's own switch, codes and the review are one line, nothing sent "
-              "and nothing written", all(r.get("error") == themes_ai.OFF for r in off) and len(sent) == n
+        check("326: with AI features off, or its feature's own switch, codes are one line, nothing sent and nothing written", all(r.get("error") == themes_ai.OFF for r in off) and len(sent) == n
               and sha_all(root) == before, str(off)[:300])
 
-        # ── E. an IPA project: no codes to suggest, and its GETs review IPA's as before
+        # ── E. an IPA project: no codes to suggest
         refused_ipa = None
         try:
             refused_ipa = call("/api/codes-suggest", dict(body, workbook=str(ipa_book)))
         except Exception as exc:  # the code list's refusal in an IPA project
             refused_ipa = {"error": str(exc)}
-        ipa_review = call("/api/gets-ai", {"workbook": str(ipa_book), "op": "review"})
-        check("326: an IPA project has no codes to suggest, and its GETs review is IPA's, never the TA prompt",
-              "IPA" in str(refused_ipa.get("error"))
-              and all(themes_ai.GETS_REVIEW_TASK in s["system"] and ta_ai.REVIEW_TASK not in s["system"] for s in sent[n:])
-              and ("error" in ipa_review or (ipa_review.get("review") or {}).get("items")),
-              f"{refused_ipa} {str(ipa_review)[:200]}")
+        check("326: an IPA project has no codes to suggest", "IPA" in str(refused_ipa.get("error")), str(refused_ipa))
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY, ai_mod.find_key, ai_mod.http_call = kept
 
-    # ── F. the page: AI suggest's list, the Review tab, each only with AI features on in a TA project
+    # ── F. the page: AI suggest's list only with AI features on in a TA project, and no AI tab on a Themes board
     support.node_text_layer(scratch)
     js = support.text("family/static/shell.js").split("const aiOn = ", 1)[1].split("\n", 1)[0]
     shell = support.text("family/static/shell.js")
@@ -295,11 +224,11 @@ def test_ta_ai(scratch: Path):
     check("326: AI suggest is on only with AI features and its switch on, in a thematic analysis project",
           out.get("onTa") is True and out.get("offTa") is False and out.get("offFeature") is False
           and out.get("onIpa") is False and "AI suggest" in (out.get("button") or ""), why)
-    check("326: a thematic analysis board has AI review and no AI revise, none with AI features off, IPA's AI still off "
-          "there, and an IPA board's five tabs as before",
-          out.get("taTabs") == ["inspector", "guidance", "history", "review"] and out.get("taIpaAi") is False
+    check("326: a thematic analysis board has no AI tab with AI features on or off, IPA's AI still off there, and an "
+          "IPA board's tabs the three that stay (aiout)",
+          out.get("taTabs") == ["inspector", "guidance", "history"] and out.get("taIpaAi") is False
           and out.get("taTabsOff") == ["inspector", "guidance", "history"]
-          and out.get("ipaTabs") == ["inspector", "guidance", "history", "review", "revise"], why)
+          and out.get("ipaTabs") == ["inspector", "guidance", "history"], why)
     # ── G. the card stays where it stood when a code is added: levelPairs passes over a TA project's pairs, which are
     # drawn nowhere under its extracts' boxes, and lifts an IPA statement's box to its quote as before
     distil = support.text("apps/idiograph/static/distil.js")
@@ -334,7 +263,3 @@ console.log(JSON.stringify(out));
     check("326: adding a code in a TA project leaves the Coding card where it stood, its hidden pairs never measured, and "
           "an IPA statement's box still lifted level with its quote",
           lift.get("ta") is None and lift.get("ipa") == "130px", (lifted.stdout + lifted.stderr)[-400:])
-    check("326: a question's line shows as its guidance section in a TA project, Rule N in IPA's, and a code in Not "
-          "placed is named by the code list",
-          out.get("ruleTa") == ["What a theme is", "Generating themes", ""] and out.get("ruleIpa") == "Rule 3"
-          and (out.get("aboutTa") or {}).get("name") == "Talk over the fence" and (out.get("aboutTa") or {}).get("unplaced"), why)

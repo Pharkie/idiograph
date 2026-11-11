@@ -389,7 +389,7 @@ def test_gets(scratch):
           and 'id="gets-study"' in sheet and "api('/api/gets-settings', gets)" in fn(app, "saveProjectSettings"))
     check("75, 83: no sparkles of the GETs mode's own, its AI controls the PETs screen's, and the screen told the real switch",
           "TH_SPARK_ICON" not in js.split("── GETs ── */", 1)[1].split("/* ── wiring ── */", 1)[0]
-          and "ai=ai, gets_ai=True" in inspect.getsource(idiograph_routes.gets_reply))
+          and "config=cfg, ai=ai," in inspect.getsource(idiograph_routes.gets_reply))
 
     node = shutil.which("node")
     if not node:

@@ -27,8 +27,7 @@ def test_page_words(scratch: Path):
     # the page as served, the catalogue its scripts take inline left out
     page = re.sub(r"<script>var I18N = .*?</script>", "", support.page_text(), flags=re.S)
     ids = ["rail-who", "rail-speaker", "rail-unit", "rail-turn", "rail-turns", "rail-in-round", "rail-in-round-n",
-           "rail-round-n", "round-bar", "round-fill", "rail-round", "rail-rounds", "note-hint", "set-cap-n", "set-min-n",
-           "th-cap-n"]
+           "rail-round-n", "round-bar", "round-fill", "rail-round", "rail-rounds", "note-hint", "set-min-n"]
     gone = [i for i in ids if len(re.findall(rf'\bid="{i}"', page)) != 1]
     check("279: the sentences moved whole keep each element the scripts fill, once, in the page as served",
           not gone and "{{" not in page and "page_idiograph." not in page, ", ".join(gone))

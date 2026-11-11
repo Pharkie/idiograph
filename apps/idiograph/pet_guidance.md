@@ -1,6 +1,6 @@
 # Personal experiential themes: guidance for grouping and review
 
-Section 3 feeds the auto-group prompt and section 4 the AI review. Sections 5 and 6 do the same on the GETs screen. The AI offers a first try and questions. Every analytic judgement stays with the analyst.
+Sections 1 and 3 feed the suggested titles for a PET, and section 4 those for a GET. The GETs screen's Guidance tab shows sections 4 and 5. The AI offers titles, and every analytic judgement stays with the analyst.
 
 ## 1. What a personal experiential theme is
 
@@ -32,29 +32,7 @@ A personal experiential theme (PET) is a cluster of one participant's experienti
 10. One or two quotes carry each theme, chosen from its statements' key quotes for richness, feeling, metaphor and range (Smith et al., 2022, p. 114). Check the title against them, and that quote and statement share a time frame. Map every statement to its quote before settling, since a better quote can sit elsewhere.
 11. Recurrence grounds a theme: a pattern found many times cannot be called invented. Three to five rich statements can hold a theme (Smith & Nizza, 2022, ch. 4), and not everything connects to everything.
 
-## 4. Questions a reviewer asks of a grouping
-
-1. This theme holds one statement: does it belong in a neighbouring theme, or does a title need widening?
-2. This statement fits two themes equally: where does it do more work, and are the two themes one?
-3. Does this title say only what happened, or what it was like for the participant and what they made of it?
-4. Is this title a topic or a category, with no experience or stance in it?
-5. Does this title echo a question the interview asked, not a pattern in the answers?
-6. These two themes share a core: are they one theme with two facets?
-7. This theme holds two different experiences: does it split into two themes, or into sub-themes?
-8. Does every statement here fit the title, and does the title reach every statement?
-9. Has a broad word in the title erased what distinguishes its statements?
-10. Does this title speak in the researcher's theory, jargon or metaphor more than in the participant's words?
-11. Does the title match the temperature of its statements, or does it amplify or flatten them?
-12. Does the title claim a cause or an explanation?
-13. This statement is left out of every theme, or discarded: does it fail the research question, or is it negative or contradicting material that sits awkwardly?
-14. Which one or two quotes carry this theme, do they say what the title says, and if none can, what grounds it?
-15. Are there more themes than the three to five most important things this case says, or a sub-theme with one statement?
-16. Does this title tell a small story, a movement or turn in the participant's experience, or is it a static label?
-17. Does this title have existential merit, naming what the experience was like for the participant with their stance, or does it name only an event, a fact or a topic?
-18. Does this title keep the participant's stance as it is, ambivalence included, or has it smoothed it into gladness?
-19. Does this title land on first reading, in the participant's own charged word where there is one, or is it flat and forgettable?
-
-## 5. Group experiential themes
+## 4. Group experiential themes
 
 A group experiential theme (GET) is a pattern of shared and distinctive features across the participants' PETs, built by looking across every case's PET table for where the cases converge and where they diverge (Smith et al., 2022, ch. 5, Step 7). It holds the participants together and keeps each one apart. It is never a group norm, an average or a summary of the sample.
 
@@ -68,7 +46,7 @@ A group experiential theme (GET) is a pattern of shared and distinctive features
 8. No cause. A GET says what the experience is like and what it comes to mean, never why it happened, within a GET or between GETs. A participant's own link between things is reported as theirs (project rules).
 9. Sub-themes only where a GET holds distinct facets, as in a PET (section 3, rule 7).
 
-## 6. Questions a reviewer asks of a GETs board
+## 5. Questions a reviewer asks of a GETs board
 
 1. Does this GET say what its participants share, and does it also show where they part?
 2. Has this GET become a group norm or an average, with the particular participants lost in it?
@@ -86,7 +64,7 @@ A group experiential theme (GET) is a pattern of shared and distinctive features
 14. Does this title have existential merit, naming what the experience was like for the participants with their stance, or does it name only an event, a fact or a topic?
 15. Does this title land on first reading, in the participants' own charged word where there is one, or is it flat and forgettable?
 
-## 7. Sources
+## 6. Sources
 
 - Nigbur, D., & Chatfield, S. L. (2025). Naming themes in Interpretative Phenomenological Analysis (IPA): Recommendations and examples. *International Journal of Qualitative Methods, 24*, 1–10.
 - Smith, J. A. (2011). Evaluating the contribution of interpretative phenomenological analysis. *Health Psychology Review, 5*(1), 9–27.

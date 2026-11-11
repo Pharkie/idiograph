@@ -1,5 +1,5 @@
 """Area 288: every date, time, number and length of time onto the formats (fmtsweep, 28 October 2026). The places
-that wrote a time of day by hand (a board's History, the AI review's line, Mark complete's time, Updates' last
+that wrote a time of day by hand (a board's History, the AI review's line until it went, Mark complete's time, Updates' last
 check), Sift's and Search's British dates and counts and the numbers with decimals in a sentence go through
 i18n.js's tTime, tDate and tNum, so they follow Settings, Language and formats. The end card's time left and the
 break's line say a length of time one way, from the catalogue. The server's dates for a person to read, a print
@@ -58,7 +58,7 @@ def test_format_places(scratch: Path):
         pieces = "".join([
             stmt(themes, "const TH_DAY = "), stmt(themes, "const TH_DAY_YEAR = "), stmt(themes, "const thSameDay = "),
             stmt(themes, "const thClockOf = "), stmt(themes, "function thWhen("), stmt(themes, "function thDayOf("),
-            stmt(themes, "function thHistoryDays("), stmt(themes, "function thReviewMade("),
+            stmt(themes, "function thHistoryDays("),
             stmt(distil, "function whenOf("), stmt(distil, "function formatMinutes("), stmt(distil, "function haulTime("),
             stmt(shell, "const esc = "), stmt(shell, "function updWhen("), stmt(sset, "function reviewDay("),
             stmt(ssearch, "function sfsExported("), stmt(ssearch, "function sfsCheckable("),
@@ -82,7 +82,6 @@ const sample = () => {
   return {
     history: thHistoryDays(history, now).map((d) => [d.day, d.items.map((i) => i.time)]),
     when: [thWhen(at, now), thWhen(new Date(2025, 9, 1, 9, 4), now)],
-    review: thReviewMade({ at: new Date(2026, 9, 1, 9, 4).toISOString(), model: 'Wren' }, now),
     mark: whenOf('2026-10-03T14:05:00'),
     updates: updWhen(new Date(2026, 8, 30, 14, 5).toISOString()),
     reviewDay: reviewDay('2026-10-28'),
@@ -121,7 +120,7 @@ console.log(JSON.stringify(out));
               "the sweep, in English (UK) with 28 Oct 2026 and 14:05 chosen",
               uk.get("history") == [["Today", ["14:05"]], ["1 October 2026", ["09:04"]]]
               and uk.get("when") == ["14:05", "1 October 2025 09:04"]
-              and uk.get("review") == "Made by Wren on 1 October at 09:04." and uk.get("mark") == {"day": "3 Oct 2026", "time": "14:05"}
+              and uk.get("mark") == {"day": "3 Oct 2026", "time": "14:05"}
               and uk.get("updates") == "30 September at 14:05", str(uk or en))
         uk12 = en.get("us", {})
         check("288: with Oct 28, 2026 and 2:05 pm chosen the same places say 2:05 pm and 9:04 am, no leading zero, and "

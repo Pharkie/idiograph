@@ -1,6 +1,6 @@
 ---
 name: idiograph
-description: Work on an Idiograph project, IPA or thematic analysis, through its command line, or its MCP tools in Claude Desktop, at the researcher's request: search across participants, read a participant's experiential statements, PETs and GETs, compare boards, make a new board, change one with the operations AI revise uses, mark the Current board, set a board's order, change a label's level, take a participant's changes into the GETs, put a board on the canvas, rename, duplicate or delete one, or write a passage's statements, notes and quotes. Use when he asks for help with his Idiograph project, its statements, its PETs or its GETs, or its codes and themes. Sift and Trace have skills of their own.
+description: Work on an Idiograph project, IPA or thematic analysis, through its command line, or its MCP tools in Claude Desktop, at the researcher's request: search across participants, read a participant's experiential statements, PETs and GETs, compare boards, make a new board, change one with the board's operations, mark the Current board, set a board's order, change a label's level, take a participant's changes into the GETs, put a board on the canvas, rename, duplicate or delete one, or write a passage's statements, notes and quotes. Use when he asks for help with his Idiograph project, its statements, its PETs or its GETs, or its codes and themes. Sift and Trace have skills of their own.
 ---
 
 # Idiograph for AI agents
@@ -59,9 +59,11 @@ keep or throw away.
 each project's under its name when Idiograph holds several. Read them before anything else.
 <!-- /project -->
 
-A board made from a structure holds as many PETs as the structure gives. The most PETs an AI board
-proposes, in Settings, limits only the app's AI boards, and `cases --json` carries it as
-`ai_board_most_pets`.
+A board made from a structure holds as many PETs as the structure gives.
+
+The app's own AI boards, reviews and revisions on PETs, GETs and Themes went on 11 November 2026: you, an
+agent of his own through MCP or the command line, do that work. A board one made before then is an ordinary
+board, and a board's review rounds and revise thread from before stay in its file, read by nothing.
 
 ## The files, and the one way to touch them
 
@@ -832,10 +834,10 @@ the list lacks, from `turn write` or from his typing, joins the list on its next
 list has it made on its first read, each GETs board keeping a revision first. An IPA project has no code list and
 refuses every one of these commands with a plain line.
 
-With AI features on, the app's own AI suggests codes for an extract on the Coding screen and asks review questions
-of the Themes board (3 November 2026). Those are the app's own AI, which you work in place of, so no command calls
-them. A code he takes from a suggestion is an ordinary code, put on with `codes add` as you would, with no mark of
-the AI, and a review's rounds are kept with the board as on an IPA board.
+With AI features on, the app's own AI suggests codes for an extract on the Coding screen (3 November 2026). That is
+the app's own AI, which you work in place of, so no command calls it. A code he takes from a suggestion is an
+ordinary code, put on with `codes add` as you would, with no mark of the AI. The Themes board's AI review went on
+11 November 2026, and you ask a board's questions in its place.
 
 ```bash
 idiograph codes list
@@ -1335,9 +1337,8 @@ came from: a PET, sub-theme or group with the same title as one there, or half o
 statements, is that label kept, and every label and statement it keeps stands where it stood, each
 in the order given, a statement that changed label going in under what its new label holds and
 everything else making room, nothing overlapping. `--layout "Board 3"` keeps another board's layout,
-and `--layout fresh` lays it out the way the app lays out an AI board, as before. Its tooltip names your tool and the board it came from, the one on the canvas
-when you made it, or all statements on a participant with no board yet, as New AI board's names its model and
-its board. Every id must be a statement of the participant, each statement once, each pick a
+and `--layout fresh` lays it out in round blobs, as before. Its tooltip names your tool and the board it came from, the one on the canvas
+when you made it, or all statements on a participant with no board yet. Every id must be a statement of the participant, each statement once, each pick a
 quote of the participant, and every
 label needs a title. A PET holds statements and sub-themes under `subs`. A sub-theme holds statements
 and groups under `groups`, and a group holds statements and groups of its own the same way, at any
@@ -1375,7 +1376,7 @@ was. `delete` takes a board out and refuses the last one. It has no History to u
 the board as it stood, its History with it, goes first into the participant's `_Archive/` as JSON, and the
 answer names it. Rename, duplicate or delete one only when he asks.
 
-A change to a board, as operations, the ones the app's AI revise uses:
+A change to a board, as operations:
 
 ```
 idiograph board apply Rowan v2 --ops change.json --note "Retitle the lonely year" --tool "Claude Code"
@@ -1968,9 +1969,8 @@ idiograph gets settings --minimum band --in Hollis --note "his words" --tool "Cl
 ```
 
 With no option it reads them: the participants a GET needs and whether that is Smith's band, one per
-PET, the most GETs a new AI board proposes when he has set it, and each participant in the study or
-out with his reason. `--minimum` takes a whole number or `band`, `--one-per-pet` on or off, `--cap`
-the most GETs a new AI board proposes, from 2 to 9, `--out Name=reason` takes a participant out of the
+PET, and each participant in the study or out with his reason. `--minimum` takes a whole number or
+`band`, `--one-per-pet` on or off, `--out Name=reason` takes a participant out of the
 study with his reason, needed, and `--in` puts one back, each given again for one more. Each left out
 is kept as it is, the answer says each change, and they are the GETs file's, no part of any board, so
 no board's History: the project's own History keeps each save, as `project history` reads it.
@@ -1981,7 +1981,7 @@ MCP's tools are `board_note` with `note`, `board_history` and `board_restore` wi
 `gets_duplicate`, `gets_rename` and `gets_revision` with `name`, `gets_note` with `note`, `gets_canvas`,
 `gets_current`, `gets_delete`, `gets_complete` with `reopen`, `gets_history` and `gets_restore` with
 `revision`, `gets_subs`, the read-only `gets_settings`, and `gets_settings_set` with `minimum`,
-`one_per_pet`, `cap`, `out`, an object of names to reasons, and `in`, a list. The routes take `dry_run`
+`one_per_pet`, `out`, an object of names to reasons, and `in`, a list. The routes take `dry_run`
 too. Change, restore or delete a board, mark PETs or GETs complete, or change the study's settings, only on his word.
 
 ## Working together

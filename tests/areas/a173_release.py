@@ -414,9 +414,14 @@ def test_release(scratch):
         none_said = "taken"
     except SystemExit as exc:
         none_said = str(exc)
+    # the server's own version heads the file, or comes second under a section for the next version, written as a
+    # change lands and before the bump (aiout, 11 November 2026)
+    number = lambda v: tuple(int(x) for x in v.split("."))
     check("173: docs/whats-new.md holds the versions newest first, each its number and date then a plain line a part, "
           "eight at most, the server's own version among them, and the release takes that version's section",
-          heading and heading[0][0] == server_mod.VERSION and dict(heading).get("0.9.1") == date and 1 <= len(notes.splitlines()) <= 8
+          heading and server_mod.VERSION in [v for v, _ in heading[:2]]
+          and (heading[0][0] == server_mod.VERSION or number(heading[0][0]) > number(server_mod.VERSION))
+          and dict(heading).get("0.9.1") == date and 1 <= len(notes.splitlines()) <= 8
           and "eight at most" not in notes and long_said.startswith("docs/whats-new.md has 9 lines")
           and none_said == "docs/whats-new.md has no section for 9.9.9." and "\u2014" not in whats_new
           and not any(re.search(rf"\b{n}\b", whats_new) for n in STUDY_PSEUDONYMS), str(heading))

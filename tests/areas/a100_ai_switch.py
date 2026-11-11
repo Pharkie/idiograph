@@ -164,13 +164,13 @@ def test_ai_switch(scratch):
           len(walk.found) >= 30 and not loose, f"{len(walk.found)} found, loose: {loose[:4]}")
     sparkled = [ids for w, routed, ids in walk.found if w == "sparkles"]
     check("100: the sparkles in the markup are on the AI controls alone, each under data-ai or data-ai-set",
-          len(sparkled) == 3 and all(routed for w, routed, _ids in walk.found if w == "sparkles")
-          and page.count(SPARKLES) == 3 and SPARKLES not in app, str(sparkled))
+          len(sparkled) == 2 and all(routed for w, routed, _ids in walk.found if w == "sparkles")
+          and page.count(SPARKLES) == 2 and SPARKLES not in app, str(sparkled))
     marked = {m.group(1): m.group(0) for m in re.finditer(r'<[a-z0-9]+[^>]*\bid="([\w-]+)"[^>]*\bdata-ai\b(?!-)[^>]*>', page)}
-    check("100: data-ai marks the turn's AI block, the two AI tabs, the n row of the shortcuts and New AI board's card",
-          {"ai-block", "th-aicard"} <= set(marked)
-          and 'data-tab="review" aria-selected="false" data-ai>AI review</button>' in page
-          and 'data-tab="revise" aria-selected="false" data-ai>AI revise</button>' in page
+    check("100: data-ai marks the turn's AI block and the n row of the shortcuts, the two AI tabs and New AI board's card "
+          "gone since aiout",
+          {"ai-block"} <= set(marked) and "th-aicard" not in marked
+          and 'data-tab="review"' not in page and 'data-tab="revise"' not in page
           and '<tr data-ai><td class="mono">N</td><td>AI suggest PET titles</td></tr>' in page, str(sorted(marked)))
 
     # ── E. the scripts: every line that shows an AI word or the sparkles answers to the switch
@@ -205,15 +205,11 @@ def test_ai_switch(scratch):
         "TH_SPARK_ICON": "icon",
         # the GETs foot asked as the tab draws since tarail, so a thematic analysis project's names its own file
         "TH_GUIDANCE_FROM": "foot", "thGuidanceDraw": "foot",
-        "thVmenuDraw": "guard", "thNamesHtml": "guard", "thReviewDraw": "guard", "thReviseDraw": "guard",
-        "thReviseSend": "guard", "thSidHtml": "guard",
-        "thReplyBoxHtml": "thReviewItemHtml",     # drawn only by Review's questions, which a guard draws
-        "thAiFromDraw": "card", "gtAiFromDraw": "card", "gtCapLine": "card",
+        "thNamesHtml": "guard", "thSidHtml": "guard",
         "gtPanelDraw": "thNamesHtml",
     }
     APP_MAP = {
         "NUDGES": "advice",                       # the em dash nudge's example, writing advice, no feature
-        "capLine": "set", "CAP_LINES": "set",     # the PETs limit's line, under data-ai-set, and the card's tooltip
         "sfaShow": "set",                         # Sift's AI proposals' model line, under data-ai-set
         "PROVIDER_ROWS": "set",                   # the AI page's providers and their where lines, under data-ai-set (aipage)
         "AGENTS_LINE": "set", "agentsLine": "set", "drawAgents": "set", "agentsGuide": "set", "mcpShow": "set",
@@ -230,13 +226,11 @@ def test_ai_switch(scratch):
     def answers(src, name, how):
         if how == "guard":
             return guard(src, name)
-        if how == "card":
-            return "if (!TH.live || TH.busy || !thAiOn() || !TH.meta) return;" in fn(tjs, "thAiCard")
         if how == "foot":
             return "if (!thAiOn()) body.lastElementChild.textContent" in fn(tjs, "thGuidanceDraw")
         if how == "set":
             return "agents-block" in page and "pets-ai" in page
-        if how in ("thReviewItemHtml", "thNamesHtml"):
+        if how == "thNamesHtml":
             return f"{name}(" in fn(tjs, how) or name in fn(tjs, how) or f"{how}(" in fn(tjs, name)
         if how == "own agent":
             return 'id="agent-start"' in page and 'id="agent-start" data-ai' not in page
@@ -246,7 +240,7 @@ def test_ai_switch(scratch):
     unanswered = [n for n, how in THEMES_MAP.items() if n in t_owners and not answers(tjs, n, how)] \
         + [n for n, how in APP_MAP.items() if n in a_owners and not answers(app, n, how)]
     check("100: every AI word and every sparkles icon in app.js and themes.js answers to the switch or is the record of AI work",
-          not stray and not unanswered and len(t_owners) >= 12, f"stray {stray}, unanswered {unanswered}")
+          not stray and not unanswered and len(t_owners) >= 4, f"stray {stray}, unanswered {unanswered} {sorted(t_owners)}")
     check("100: the turn screen's button and the page's class come from aiOn, and every settings answer puts it on the page",
           "$('btn-ai').hidden = !(S.data && aiFor(S.data.config, 'statements'));" in fn(app, "resetAI")
           and "return aiOn(cfg) && !off.includes(feature);" in fn(app, "aiFor")
@@ -272,10 +266,10 @@ def test_ai_switch(scratch):
         under[wrap] = page[at:i] if at >= 0 else ""
     wanted = {"ai-more": ["ai-restart", "set-provider", "set-model", "set-local-model", "set-key", "btn-key-check", "ai-features"],
               "es-ai": ["set-prompt", "btn-bench"],
-              "pets-ai": ["set-pets-model", "pets-key-slot", "set-cap-down", "set-cap-line"],
+              "pets-ai": ["set-pets-model", "pets-key-slot"],
               "agents-block": ["agents-sub", "set-agents", "agents-guide", "mcp-show", "mcp-card"],
               "sfa-block": ["sfa-ai", "sfa-prompt", "sfa-reset", "sfa-model", "sf-bench-rec", "sf-bench-try"]}
-    check("100, 9 October: the provider, the model, the key, the prompt, the bench, the PETs model and limit, the agents' block "
+    check("100, 9 October: the provider, the model, the key, the prompt, the bench, the PETs model, the agents' block "
           "and Sift's AI proposals with their bench each sit under data-ai-set",
           all(f'id="{i}"' in under[w] for w, ids in wanted.items() for i in ids)
           and 'id="set-ai"' not in "".join(under.values()) and 'id="ai-warn"' not in "".join(under.values()),
@@ -334,7 +328,6 @@ globalThis.sfaLoad = () => loads.push('sift');
 // proposals asked on Sift's page alone (sift_settings.js)
 globalThis.FAMILY_APPS = { idiograph: { aiLoad: () => loadSample() }, sift: { aiLoad: () => sfaLoad() } };
 globalThis.S = { models: null };
-globalThis.capLine = (n) => `An AI board makes ${n - 1} or ${n} PETs.`;
 globalThis.RESTART_LINE = 'Restart the server to finish this update.';
 thPanelShow = (item) => { TH.panel = item || null; };
 thPanelDraw = () => {};
@@ -361,7 +354,7 @@ out.unticked = { box: $('set-ai').checked, card: !$('ai-confirm').hidden, wraps:
 
 // the PETs screen, its switch as the server sent it
 const card = (x, y) => ({ x, y, text: 'Walks before the town wakes' });
-TH.v = { cards: { 'S:1:0': card(0, 0), 'S:2:0': card(300, 0) }, groups: [], discarded: [], picks: {}, review: null, revise: [] };
+TH.v = { cards: { 'S:1:0': card(0, 0), 'S:2:0': card(300, 0) }, groups: [], discarded: [], picks: {} };
 const g = thMakeGroup(TH.v, ['S:2:0'], 'Early walks');
 TH.live = true; TH.mode = 'pets'; TH.sids = { 'S:1:0': 'S1' };
 TH.meta = { id: 'v1', name: 'Board 1' }; TH.boards = [{ id: 'v1', name: 'Board 1' }]; TH.chosen = null;
@@ -370,8 +363,6 @@ const screen = () => {
   const o = {};
   o.tabs = thTabsOf('pets'); o.getsTabs = thTabsOf('gets');
   o.names = thNamesHtml({ kind: 'group', id: g });
-  thReviewDraw(); o.review = $('th-bpanel-body').innerHTML;
-  thReviseDraw(); o.revise = $('th-bpanel-body').innerHTML;
   o.sid = thSidHtml('S:1:0');
   thGuidanceDraw(); o.foot = $('th-bpanel-body').lastElementChild.textContent;
   TH.mode = 'gets'; thGuidanceDraw(); o.getsFoot = $('th-bpanel-body').lastElementChild.textContent; TH.mode = 'pets';
@@ -380,10 +371,9 @@ const screen = () => {
 };
 TH.ai = { on: false, model_name: '' }; out.off = screen();
 TH.ai = { on: true, model_name: 'Haiku 4.5' }; out.on = screen();
-// on, with the sidebar on AI review, then the switch turned off: the Inspector takes its place
-thSideOpen('review'); out.onTab = TH.tab;
+// on, with the sidebar on Guidance, then the switch turned off: the tab stays, no tab being the AI's since aiout
+thSideOpen('guidance'); out.onTab = TH.tab;
 TH.ai = { on: false, model_name: '' }; thAiDraw(); out.offTab = [TH.tab, TH.sideOpen];
-TH.tab = 'revise'; TH.sideOpen = false; thAiDraw(); out.offShut = TH.tab;
 console.log(JSON.stringify(out));
 """, encoding="utf-8")
     run = subprocess.run([node, str(script)], capture_output=True, text=True, encoding="utf-8")
@@ -405,25 +395,23 @@ console.log(JSON.stringify(out));
     off, on = out["off"], out["on"]
     check("100: in node, with it off the PETs and GETs screens show no AI tab, title, review, revise, short id or AI board",
           off["tabs"] == ["inspector", "guidance", "history"] and off["getsTabs"] == ["inspector", "guidance", "history"]
-          and off["names"] == "" and off["review"] == "" and off["revise"] == "" and off["sid"] == ""
+          and off["names"] == "" and off["sid"] == ""
           and "New AI board" not in off["menu"] and SPARKLES not in off["menu"] and "New board" in off["menu"],
           str({k: off[k] for k in ("tabs", "getsTabs", "names", "sid")}))
     check("100: in node, with it off Guidance's foot names its file and says nothing of the AI",
           off["foot"] == "From themes_guidance.md beside the app." and off["getsFoot"] == "From pet_guidance.md beside the app.",
           off["foot"] + " | " + off["getsFoot"])
-    check("100: in node, with it on every feature shows as before, each AI control with the sparkles",
-          on["tabs"] == ["inspector", "guidance", "history", "review", "revise"]
-          and on["getsTabs"] == ["inspector", "guidance", "history", "review", "revise"]
+    check("100: in node, with it on the titles and the short id show, the titles with the sparkles, and no AI tab or AI "
+          "board since aiout",
+          on["tabs"] == ["inspector", "guidance", "history"]
+          and on["getsTabs"] == ["inspector", "guidance", "history"]
           and "AI suggest PET titles" in on["names"] and SPARKLES in on["names"]
-          and "AI review" in on["review"] and SPARKLES in on["review"]
-          and "AI revise board" in on["revise"] and SPARKLES in on["revise"]
-          and "S1" in on["sid"] and "New AI board" in on["menu"] and SPARKLES in on["menu"]
+          and "S1" in on["sid"] and "New AI board" not in on["menu"] and SPARKLES not in on["menu"]
           and on["foot"] == "From themes_guidance.md beside the app. The AI reads pet_guidance.md."
           and on["getsFoot"] == "From pet_guidance.md beside the app, the GETs sections the AI reads on this screen.",
           on["foot"])
-    check("100: in node, the switch turned off moves the sidebar off an AI tab onto the Inspector, open or shut",
-          out["onTab"] == "review" and out["offTab"] == ["inspector", True] and out["offShut"] == "inspector",
-          str(out["offTab"]) + out["offShut"])
+    check("100: in node, the switch turned off leaves the sidebar on the tab it shows, none being the AI's",
+          out["onTab"] == "guidance" and out["offTab"] == ["guidance", True], str(out["offTab"]))
 
     # ── H. the command line and MCP work whatever the switch
     check("100: the command line and the MCP server never read the switch, so they work whatever it says",

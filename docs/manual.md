@@ -47,8 +47,7 @@ search. A quote is what was a key quote, on the statements screen, on cards, in 
 Search, on the status bar's Quotes on cards and in the prints. The command line and the MCP tools
 keep their names, case, cases and key_quote, so nothing that reads them breaks. Since 22 October the
 last three places say Quote too: the workbook's own column in a new participant's workbook, the
-statements CSV's last column, and the lines a new AI board on GETs writes ("Quotes picked for 7 of 9
-rows."). A workbook whose column says Key quotes, made before then, reads and saves as it always
+statements CSV's last column, and the lines a new AI board on GETs wrote until 11 November 2026. A workbook whose column says Key quotes, made before then, reads and saves as it always
 did, and Idiograph leaves its heading as it is. Since 23 October an AI agent can rename that heading to
 Quote at his word, one participant's workbook or every one in the project, through Idiograph's own
 command line or MCP tool, with a dry run first. Only the heading changes, and a copy of the workbook as it
@@ -1397,8 +1396,7 @@ line, so the notes can be seen down the column, and the pen goes when the note i
 
 The note goes to `/api/interviewer-note` and into the workbook's Interviewer notes column (see
 [docs/internals.md](internals.md), How the workbook is written), and nowhere else. It is never a stop, never counted and never nudged, and
-it is in none of the CSV, the PET draft, the themes file, the review, the proposal, the prompts or
-anything sent to a model. Nothing in the progress file changes, so the rounds, the row states and
+it is in none of the CSV, the PET draft, the themes file, the prompts or anything sent to a model. Nothing in the progress file changes, so the rounds, the row states and
 the passed passages are as they were. The route refuses a workbook Excel has open with the passage
 screen's line, and a row whose speaker is not the interviewer named in Settings with "Interviewer
 notes belong to the interviewer's passages." An empty note clears the cell, and a note that has not
@@ -1903,15 +1901,14 @@ tick box with a small circled i after its label, the length nudge's "word count 
 using the open project's number (see Statement length), and with AI features on, under AI, the Experiential
 statements prompt and its test bench. PETs holds what the PETs screen alone uses: one line of small type
 saying the on-screen guidance is `themes_guidance.md` beside the app, then under View the Status bar
-tick, and with AI features on, under AI, its own model, Same as Experiential statements unless another is
-chosen, the key when only this screen needs it, and the most PETs an AI board proposes, the stepper "up
-to 5 PETs" from 2 to 9 that the PETs bar carries, with a line under it saying what the limit asks for.
-AI features comes last (see AI features). Since 5 November 2026 Settings holds the app's own settings alone, the
+tick, and with AI features on, under AI, its own model for the suggested titles, Same as Experiential
+statements unless another is chosen, and the key when only this screen needs it. AI features comes last (see AI features). Since 5 November 2026 Settings holds the app's own settings alone, the
 same on Home and inside a project: GETs' rules, a project's name, question and the rest are in that project's
 Project settings (see Project settings), and the exports are the boards' Export menus'.
 
-Every key in `config.json` stays where it was, the nudges under `nudges` and the limit under `themes` as
-`cap`, and the PETs screen's model is `pets_provider` and `pets_model`. Each screen's own settings open
+Every key in `config.json` stays where it was, the nudges under `nudges`, and the PETs screen's model is
+`pets_provider` and `pets_model`. The most PETs a New AI board proposed, under `themes` as `cap`, went with
+New AI board on 11 November 2026, and a file that holds it keeps it unread. Each screen's own settings open
 the card on its own category: the Settings on Home on General, the statements screen's cog on
 Experiential statements, the PETs and GETs screens' cogs on PETs, Sift's cog on its
 Projects and the searches' Settings on Databases, and Trace's cog on its Projects. A line that names a choice made in Settings names its category, "as
@@ -1919,13 +1916,8 @@ chosen in Settings, General". The category chosen holds while the card is open, 
 to the screen's own category again, so nothing about it is kept in the browser. Below about 700px the list becomes a row of tabs over the content, and
 Experiential statements says Statements with its whole name in its tooltip, the row wrapping on a phone,
 and each field narrows with its row and stops short of the scrollbar, so none loses its right edge. Below
-480px each label stands over its field. Save at the foot saves every category, writes the limit to
-`themes.cap` only when the stepper has moved, so a limit the PETs bar changed since the card opened is
-never put back, and writes a project's file only when its name, its question or its tick has changed.
-Opened over the GETs board, the stepper shows the most PETs an AI board proposes as the settings hold it,
-never the GETs bar's own limit, and that limit holds for the AI's boards alone: a board an agent makes
-from a structure holds as many PETs as it gives, and the command line never speaks of a cap (20 October).
-Over a demo participant, Projects shows the demo's own values read-only, under a line saying the demo's
+480px each label stands over its field. Save at the foot saves every category, and writes a project's
+file only when its name, its question or its tick has changed. Over a demo participant, Projects shows the demo's own values read-only, under a line saying the demo's
 project is fixed. A page in front of a server that has not been restarted since this came in shows
 "Restart the server to finish this update." in place of what the server has not got yet, and the rest of
 the card, Save included, works as before. Opening the page reads the settings and writes nothing to
@@ -1948,17 +1940,17 @@ Azure OpenAI), then a switch for each of that app's AI features, ticked until yo
 asks the provider which models the key can use: "This key works." and the Model list filled with them, or
 "This key was not accepted." and the list left as it was. An accepted key typed in the field is stored, each provider's its own and
 the three apps sharing it, and with the field empty Check key checks the stored one. A refused key says who
-refused it and why, in the amber, "Mistral refused the key (HTTP 401)." Idiograph's features are Suggested statements for a passage, AI boards,
-titles and questions on PETs, and AI boards, titles and questions on GETs. Sift's is AI proposals in
+refused it and why, in the amber, "Mistral refused the key (HTTP 401)." Idiograph's features are Suggested statements for a passage, Suggested
+titles for a PET and Suggested titles for a GET. Sift's is AI proposals in
 screening, and Trace's AI passages for each claim. A feature unticked shows none of its controls and asks
 no model, and the server refuses its calls. Off, no screen shows an AI control, tab, menu entry,
-shortcut, tooltip or line: no AI suggest, New AI board, AI suggest PET titles, AI review or AI revise, no
+shortcut, tooltip or line: no AI suggest or AI suggest PET titles, no
 `N` row in the shortcuts, no AI sentence at the foot of Guidance and no statement's short id, and the
 server refuses every call to a model. Settings then shows the switch, its line and Using your own AI agents (below) and nothing else about
-the AI, neither the provider, the model, the key, the prompt and the bench, nor the PETs model and limit,
+the AI, neither the provider, the model, the key, the prompt and the bench, nor the PETs model,
 nor Sift's AI proposals, nor in Project settings the agents' tick, their guide and Add Idiograph to Claude
 Desktop, and it asks the server nothing about them. The record of what an AI made stays whatever the
-switch: "with AI" after a board's name, the reason an AI gave under a card, and History. At the end of the
+switch: "with AI" after the name of a board an agent made, the reason an agent gave under a card, and History. At the end of the
 page, whether the switch is on or off, Using your own AI agents says you can work with your projects through
 AI agents you already use, such as Claude Code, OpenAI's Codex or Google's Gemini CLI, through the app's command line and MCP server, and gives a
 box of words to paste into the agent, with Copy: where this copy of the app keeps its command line, its MCP
@@ -2045,7 +2037,7 @@ computer gives beside it, and each choice is written as an example of itself: Da
 2026-10-28, Times of day 14:05 or 2:05 pm, Numbers 1,234.5, 1.234,5, 1 234,5 or 1’234.5. The one you tick applies
 at once: the page loads again and comes back where you were, Settings still open on this page. The order of a
 date is the setting's, the month's name the language's. Every date, time of day and number the app shows follows
-them, a board's History and the line of its AI review, Mark complete's day and time, Updates' last check, Sift's
+them, a board's History, Mark complete's day and time, Updates' last check, Sift's
 dates, counts and kappa, Search's count, and so do a print view's date and the interviewer notes file's Exported
 on. The end card's time left and the break's line say a length of time one way, 45 min, 1 h or 1 h 25 min, where
 the end card said 85 min and 1 h 30 before. Under Language, "Help translate Idiograph into your
@@ -2237,14 +2229,10 @@ first, the default, then every Anthropic model the Experiential statements selec
 local models when Ollama answers, then the models of the other provider chosen for Experiential statements,
 each with its provider's name, "mistral-large-latest, Mistral", each labelled as it is there. A line of small type under it names
 the model the PETs screen uses now, "Uses Haiku 4.5, the Experiential statements model." or "Uses
-Opus 5.5.", and follows both selects as they change. New AI board, AI suggest PET titles and AI
-review all ask it, and the line on New AI board's card names it. The test bench stays on the
+Opus 5.5.", and follows both selects as they change. AI suggest PET titles and AI suggest GET titles
+ask it. The test bench stays on the
 Experiential statements model. With Local under Experiential statements and an Anthropic model for
 PETs, the key row stands under the PETs model instead, the same field and the same keychain item.
-Under the stepper a line of small type says what the limit asks of the model, as `limit_line` in
-`themes_ai.py` puts it, "An AI board makes 4 or 5 PETs, and a sixth only when it earns its place.",
-and follows the stepper from "1 or 2 PETs, and a third" at 2 to "8 or 9 PETs, and a tenth" at 9. The
-stepper in New AI board's card carries the same sentence in its tooltip.
 
 **Send feedback.** For a tester to send Adam a quick note, a bug or an idea, with no email. A small
 bug, a quiet line icon with no sparkles since it is not the AI's, sits at the right of every top bar, just before the cog, Send feedback in its tooltip, so it stands in one place on the Experiential statements, PETs and GETs bars, and since 16 October on Sift's, Search strategy's and Trace's and at the head of Home beside Settings, where until then the statements, PETs and GETs bars alone had it (see One title bar).
@@ -2749,8 +2737,8 @@ Its cross sits at its head, then a search over its statements, then two sections
 participant's statements not on the board, in interview order, each with its time first, a sheet after
 the first under its own name, and its count at the right of its head. A stack waits as one row at its
 top's time, with "2 stacked" under it, and a statement whose line has gone from the workbook comes last,
-under Missing from the workbook, with Remove. A statement an AI board left out has its reason under it in
-the small type. **Set aside**, pinned to the panel's foot and folded until he opens it, holds what the bin
+under Missing from the workbook, with Remove. A statement an agent left out with a reason has it under it in
+the small type, and so does one a New AI board left out before 11 November 2026. **Set aside**, pinned to the panel's foot and folded until he opens it, holds what the bin
 held, each with Put back, which sends it to wait in Not placed, its count at the right of its head. Every
 board from before opens with its binned cards under Set aside, and the file keeps them as it did.
 
@@ -2862,9 +2850,8 @@ the three is one step of undo. Delete note, or the small cross a selected note
 carries on its corner, takes it off the board, and one step of undo brings it back where it was, in the
 PET it was in. The sidebar is for statements alone: a note never goes there, and one dragged onto it goes
 back where it was, as a label does. A note goes nowhere a statement goes, not into the counts, the PET
-draft, the CSV's PET column, the print view, the outline the review and the print view share, or
-anything sent to a model, so the review and a new AI board never see one, and an AI board starts with
-none. The notes are the board's `notes` in the themes file (see Autosave and the file). A page in front
+draft, the CSV's PET column, the print view, the outline the print view and the titles share, or
+anything sent to a model, and a board an agent makes starts with none. The notes are the board's `notes` in the themes file (see Autosave and the file). A page in front
 of a server from before them says "Restart the server to finish this update." on the double-click and
 makes none.
 
@@ -2879,7 +2866,7 @@ keeps its own stack, so a switch to another board and back finds its steps where
 go when PETs opens on another participant. A step undone or redone is saved like any other
 act. The board ops below are not steps on it: they change the file at once, and a delete asks
 first. A restore, and a copy onto the board on screen, are one step each (see Copy to board and
-History), and so is a revise, the whole of it (see Revise).
+History).
 
 **Boards.** A grouping tried side by side with another is a board. The board's name in the top bar is a
 switcher, in the sheet switcher's style: the name, a small chevron, and a click or `V` opens the menu
@@ -2896,18 +2883,17 @@ after Delete this board does the same. The entries come in two groups, each unde
 in the style of the menu's BOARDS heading. Under the list comes the board on the canvas by name, "BOARD
 1", with what it can do: Rename, Add a note, which reads Edit the note once the board has one,
 Duplicate, Mark as current or Unmark current, Save a revision, and Delete this board last. Then a
-hairline, and under NEW the entries that make a board: New board, and New AI board with the sparkles
-with AI features on (see AI help). New board, empty, adds a board with no PETs, every
+hairline, and under NEW the entries that make a board. New board, empty, adds a board with no PETs, every
 statement waiting in the sidebar, New board, all on the canvas, one with every statement on the canvas as
 a pile in the middle (20 October, see The sidebar), and Duplicate a copy of the board on the canvas, groups, places, discards,
-picks and sticky notes, with its revise thread, the natural way to try another grouping. Either goes on the canvas at once with its name,
+picks and sticky notes, the natural way to try another grouping. Either goes on the canvas at once with its name,
 "Board 3" or "Board 1 copy", open in the menu to be typed over, Enter keeping it and Esc keeping the one
 it had. Rename opens the same box on the board on the canvas, and a name another board has, whatever
 its participant, is refused with a line in the menu. Add a note opens a box of a few lines in the place of the
 note, for why the board exists. `Cmd + Enter`
 or a click away keeps it, Esc leaves it as it was, and a duplicate starts with a note of its own, empty,
 and a history of its own, empty. Save a revision opens a box for a name, which may stay empty, and Enter
-or Save beside it keeps the revision, while Esc or a click away keeps none. Guidance, History and Review
+or Save beside it keeps the revision, while Esc or a click away keeps none. Guidance and History
 are no longer in the menu, since the sidebar's own tabs do that (see The sidebar). Delete this board
 shows a card in the trim card's style, "Delete Mornings apart, with its 3 PETs and the 9 statements
 placed in them.", with Enter to delete and Esc to cancel, and the board beside it, the one before when
@@ -2915,17 +2901,15 @@ there is one, takes the canvas. With one board left the entry is disabled and th
 Esc closes the menu, and so does a click anywhere else.
 
 Names are just names. Every new board is "Board N", the next number free past the boards there are,
-whether he made it, New AI board made it or an AI agent did through the command line, and a name he
-typed stays as he typed it. After the name of a board an AI made, in the board menu and in the participant
-switcher under each participant, a small faint "with AI" follows, its tooltip naming the model and the
-source, "Opus 5.5, from all statements" or "Opus 5.5, from Board 2", and for a board an agent made
-the tool and its source by the same rule, the board on the canvas when it was made, "Claude Code in a conversation,
-from Board 2". The board
+whether he made it or an AI agent did through the command line, and a name he
+typed stays as he typed it. After the name of a board an agent made, in the board menu and in the participant
+switcher under each participant, a small faint "with AI" follows, its tooltip naming the tool and its
+source, the board on the canvas when it was made, "Claude Code in a conversation, from Board 2". The board
 keeps its state hash as it was made, and his first save whose state differs from it adds "edited by
 you since" to both the words and the tooltip, while a save that changes nothing leaves them as they
-were. A name from before stays as it is, "AI board 3" among them, and such a board carries "with AI"
-too, read from who made it or from its note, "Proposed by Haiku 4.5 from Board 1 on ...". A duplicate
-is his, and carries no "with AI".
+were. A name from before stays as it is, "AI board 3" among them. A board New AI board made before 11
+November 2026 is an ordinary board now and carries no "with AI". A duplicate is his, and carries no
+"with AI".
 
 **The Current board.** One board can be marked as the one he is going with, the one to send a
 supervisor, and on screen the word is Current. Mark as current, in the board menu, marks the board on
@@ -2983,8 +2967,8 @@ and does nothing. The server does the copy, so the file never holds half of one.
 **The sidebar.** One sidebar at the right of the canvas holds what is about the selection and what
 is about the board, as Figma keeps its properties on the right, one tab at a time, the tabs in this
 order: Inspector (see The Inspector), about the card or the label selected, then Guidance (see
-Guidance), History, Review (see Review) and Revise (see Revise), about the board as a whole, each of
-those four under the board's name and its note. Its button, Inspector, at the right end of the top
+Guidance) and History, about the board as a whole, each of those two under the board's name and its
+note. Its button, Inspector, at the right end of the top
 bar over it, the standard panel icon, a frame with its right part filled, opens it on the tab left
 showing and closes it again, "Show Inspector" or "Hide Inspector" in its tooltip with its key, `I`,
 pressed in while it is open. Until 16 October it was named Sidebar and stood before the cog, its
@@ -2996,8 +2980,7 @@ opens it, so closed, the canvas runs edge to edge. A click on a card or a label 
 opens or switches the sidebar, and nor does a lasso or a drag, so a selection made with History
 showing leaves History showing. A double-click stays as it is, opening a card's statement for
 editing and a label's title. Note in a label's right-click menu, `N` and an undo or a redo of a
-PET's note open it on the Inspector, AI review on AI review and AI revise board on AI revise, and a question's link
-in AI review selects on the canvas and leaves Review showing. Esc and a click on empty canvas never close
+PET's note open it on the Inspector. Esc and a click on empty canvas never close
 it, a switch to another board keeps it open on the new board, and leaving the screen puts it away
 until the next open. Whether it is open, and on which tab, is kept in the browser for each screen,
 PETs and GETs apart, as the statements screen's guidance open or closed is, so a reload and the next open of the screen
@@ -3020,9 +3003,9 @@ keeps the board as it stood when it came on, and from then on, fifteen minutes o
 since, the next save keeps the board as it stood before it, under the time of that save. With no
 act waiting the timer saves at once, so a pause in the work still keeps one. An automatic revision
 is made only when the board differs from its last revision, by a stable hash of
-the state. A restore keeps one first, and so does a copy onto the board, and so does a revise that
-changes the board, named "Before: " and his request (see Revise). Every revision made by
-hand, named or not, and every one made before a restore, a copy or a revise is kept, with
+the state. A restore keeps one first, and so does a copy onto the board, and so does an agent's change,
+named "Before: " and his request. Every revision made by
+hand, named or not, and every one made before a restore, a copy or an agent's change is kept, with
 the last 48 automatic ones: a 49th takes the oldest automatic one away. A board deleted takes its
 history with it.
 
@@ -3057,7 +3040,7 @@ lets go, and a key or a control that changes a board, a tick, Put back, Rename, 
 `Cmd + Z`, says in one line that the revision is read-only. The lasso, a click to select, the Inspector
 and its player, the pile's list, the zoom and the right-click copy on a label all work. Back, or Esc,
 puts the board back on the canvas as it was left. The autosave and the timer wait while a revision is on
-view, and a board op, a new AI board or leaving the screen puts the board back first. Restore, on the
+view, and a board op or leaving the screen puts the board back first. Restore, on the
 line or on a row, keeps the board as it stands as a revision named for the one restored,
 "Before restoring 12:04", then makes the revision's state the board's. On the canvas it is one step of undo, and
 one line says what was restored and what was kept.
@@ -3207,9 +3190,8 @@ own, apart from the PET it sits in. A label with a note carries a small mark of 
 count, drawn as the picks mark is, and its tooltip carries the note after the count. The note travels
 with the board: Duplicate copies it, Copy to board carries it with the PET and its sub-themes, a
 revision holds it and Restore brings it back. While a revision is on view the note shows read-only, as
-the rest does. With AI features on, New AI board sends each label's note with the label, and AI
-suggest PET titles sends the note of the label it names, each prompt saying in one line what a note
-is, and a board with no notes sends its prompts as it did. The note is the group's `note` in the
+the rest does. With AI features on, AI suggest PET titles sends the note of the label it names, the
+prompt saying in one line what a note is, and a label with no note sends its prompt as it did. The note is the group's `note` in the
 themes file, kept stripped, and a group with none carries none, so a file from before the notes reads and
 writes as it did. `/api/themes` carries `notes`, and a page in front of a server from before them says
 "Restart the server to finish this update." in the place of the box, since that server would drop a note
@@ -3513,108 +3495,30 @@ its own with `auto=0`, the dialog shut and nothing on it to change. Two tables o
 side in separate tabs, to look for what resonates from one participant to another. The participant on the screen
 offers it too, a save still to go written first, and nothing else is written by it.
 
-**AI help.** With AI features on in Settings, and its PETs switch, the screen carries three more
-controls, New AI board in the board menu, AI suggest PET titles in a label's Inspector and AI review in the sidebar's Review tab, with Reply to AI in the reply box under each of its questions and AI revise board in the
-AI revise tab after it. Since 6 October 2026 (item 191) the two tabs read AI review and AI revise. All of them go out
-through the PETs model set in Settings under PETs, the
-Experiential statements one unless another is chosen there, with the same key (see Settings, The PETs
-model). All of them carry the project's research question. Their prompts are their own, in
-`themes_ai.py`, because the prompt in Settings asks for statements in a shape a grouping cannot use. The
-IPA guidance they carry is one file, `pet_guidance.md` beside the app, written from Smith, Flowers and
-Larkin (2022), Smith and Nizza (2022), Nigbur and Chatfield (2025) and the project's own rules: its
-section 3, the rules for a PET, goes to the grouping, section 1, what a PET is, with rules 5, 6, 8 and
-11 of section 3, the title, its register, negative and unresolved material as valid and recurrence as
-grounding, to the titles, section 3 with section 4, the questions a reviewer asks, to the review,
-section 3 to a reply, and sections 1 and 3 to a revise. It is the
-guidance both prompts and the review use, read afresh on every call, and
-editing it changes what the AI is told, with no restart. A file with no rules under its section 3 is one line, and nothing is asked.
-Nothing moves by itself: none of them touches the board on the canvas but a revise he sends, which
-one Undo takes back. Every control that calls an AI
-model carries the sparkles New AI board carries, drawn the same way, AI suggest under the statement
-field, AI suggest in the test bench in Settings, New AI board in the board menu and Make in its card,
-Reply to AI in the reply box under a review's question, AI revise board in the AI revise tab, AI
-suggest PET titles in a label's Inspector and AI review in the Review tab, and no other control does,
-Auto-arrange and the sidebar button included.
+**AI help.** With AI features on in Settings, and its PETs switch, the screen carries one more
+control, AI suggest PET titles in a label's Inspector. It goes out through the PETs model set in
+Settings under PETs, the Experiential statements one unless another is chosen there, with the same key
+(see Settings, The PETs model), and carries the project's research question. Its prompt is its own,
+in `themes_ai.py`. The IPA guidance it carries is one file, `pet_guidance.md` beside the app, written
+from Smith, Flowers and Larkin (2022), Smith and Nizza (2022), Nigbur and Chatfield (2025) and the
+project's own rules: section 1, what a PET is, with rules 5, 6, 8 and 11 of section 3, the title, its
+register, negative and unresolved material as valid and recurrence as grounding. It is read afresh on
+every call, and editing it changes what the AI is told, with no restart. A file with no rules under
+its section 3 is one line, and nothing is asked. Nothing moves by itself: a title goes on only when he
+picks it. Every control that calls an AI model carries the sparkles, AI suggest under the statement
+field, AI suggest in the test bench in Settings and AI suggest PET titles in a label's Inspector, and
+no other control does, Auto-arrange and the sidebar button included.
+
+New AI board, AI review and AI revise went on 11 November 2026 (Adam): an agent of his own through MCP
+does that work better (see Working with an AI agent). A board an AI made before then is an ordinary
+board now, and a board's review rounds and revise thread from before, `review` and `revise`, stay in
+the themes file as they were, read by nothing and never sent.
 
 The cog at the right of the PETs bar opens the same Settings card the statements screen's does, on PETs,
-its own category, with its own model under AI. Saving it shows at once, New AI board in the board menu with the
-switch, the model's name and the limit in its card, and the band takes a question changed in Project settings.
-A change to the rounds made from here, Work in rounds ticked or unticked among them, reopens the statements screen's participant on the way back to it.
-
-New AI board sits in the board menu under New board, with the sparkles, since it is an AI act, and only
-with the switch on. It opens a small card in the trim card's style: a title, "New AI board from all
-statements", or "New AI board from Board 3" with the board chosen, From under it, one line of small
-type, "A new board, made by Haiku 4.5. Board 3 is left as it is.", the model's plain name in it, a box
-for a hint, "A hint, such as fewer groups", empty each time the card opens and there only if he wants
-it, and a stepper for his limit on the PETs, "up to 5 PETs", from 2 to 9, kept in `config.json` under
-`themes` as `{"cap": 5}` a moment after the last press, which a smoke server's `--config` keeps off
-the live file. Then come Make, with the sparkles, and Cancel. Enter in the hint box is Make, and Esc is
-Cancel. Make saves the canvas, then, with the board chosen in From, sends every card of the board on
-the canvas that is not discarded, by its key, sheet, timecode and words, with that board's labels
-and the keys under each, which the prompt calls his own to keep, merge or replace, the hint when there
-is one, and the limit. It asks for between one fewer than the limit and the limit, and one more only with a reason in a
-`reason` field. It carries the eleven rules of section 3 of the guidance file as the file words them,
-among them that a PET holds more than one statement, and asks that a statement be left out of every PET
-only where rule 4 would let it go, with why in a `left_out` list of `{key, reason}`, every other
-statement placed, saying that what it leaves out stays in Not placed for him to judge and nothing it
-answers is set aside. Where his limit and the rules differ on how many PETs, the limit comes first,
-and with no research question set a statement is left out only when it says nothing of the
-participant's experience. The answer is read strictly: a key the participant does not have is left out, a key
-named twice keeps the first group, a statement left out that is placed already stays placed, an answer
-that says `discarded` in place of `left_out` reads the same, a blank label is Untitled, a sub-theme with
-no members goes, and a nest deeper than one level folds into the sub-theme above it. A proposal of more
-PETs than the limit and one is refused with a line, and no board is made.
-
-The proposal is laid out as a board of its own. Each PET is a round blob, its label at the top and its
-cards packed under it in rows that fill a circle, the margin between them, each sub-theme a blob of its
-own inside the PET's frame, the margin clear of the PET's own cards. The PETs are set out on the plane
-in the answer's order, row by row inside a circle, two margins between their frames, the cards left out
-wait in the sidebar's Not placed, each with the reason the answer gave under it, Set aside holding only what he put there himself, and nothing lies over anything else. It is
-written through the board ops as the next board, "Board 7", named as New board names one, with a note
-of one line: "Proposed by Haiku 4.5 from Board 4 on 2 October 2026 at 12:02, up to 5 PETs. 5 PETs, 69
-placed, 12 not placed.", the hint after the time when there was one, and the model's reason, when it
-gave one, as a second sentence, "Its reason: ...". Why it left out each statement goes into the board
-under `ai`, `{"discarded": {"Initial:30:1": "..."}}`, the key keeping the name it had when an AI board
-set such a statement aside, which `normalise` keeps for the cards the board holds and a save from
-a page that sends none leaves as it was. Each card in Not placed shows its reason under its words in
-the small type, cut to two lines, the whole of it in its tooltip and, as "Left
-out: ...", in the Inspector, and once he puts it in a PET it shows none. He marquees the ones he agrees
-with and sets them aside himself. The screen's answers carry the reasons as `discard_reasons`,
-since their own `ai` is the switch's state. The canvas then shows it, and the top right of the canvas,
-where an export's line goes, says what came back, "Board 7: 4 PETs, 12 not placed", and under it how it
-was made: "Board 7 made from Board 1, with the hint 'fewer groups'. Cmd + Z does not undo a board,
-delete it from the board menu." The line stays until its cross or Esc. A re-roll is New AI board again,
-a fresh board each time. The
-grouping is one call per Make, with room for a participant of a hundred statements and two minutes to answer,
-five for a model that thinks, and the canvas waits while it and the call for the quotes run, the same
-corner saying "Grouping 18 statements". An answer that cannot be read, that places nothing or that ran
-out of room, and a refusal, is one line there, and no board is made.
-
-From, under the card's title, is two options in one control, All statements and the board on the
-canvas by its name, "Board 3", and All statements is chosen each time the card opens. With All
-statements, Make sends every statement of the participant, every sheet, by its key, sheet, timecode and
-words, with no labels and none discarded, the same set a new empty board starts with, and the prompt
-says nothing of his own groups, so New AI board with Board 7 on the canvas starts from the
-statements and never from Board 7. With the board chosen it sends that board as above. The title
-says which, and so do the note, "Proposed by Haiku 4.5 from all statements on 2 October 2026 at
-12:02", and the line, "Board 7 made from all statements". The route takes `from`, `all` or
-`board`, and `/api/themes` carries `from_all` to say so. A server from before it, which would make
-the board from the canvas whatever was chosen, gets "Restart the server to finish this update." in
-the card when All statements is chosen, and nothing is made.
-
-Before the board is written, Make sends a second call for the whole board, through the same model:
-each PET and each sub-theme by its title, with the quotes of the cards under it, each statement's
-own, each
-by its pick key and its words, and the research question. It asks for each the one quote that best
-carries its title in the participant's own words, a second only when no single quote carries it, and
-no reason. The answer is read strictly: a key not among that label's quotes is dropped, more than two
-keep the first two, and a label with none keeps none. The picks are written into the new board as a
-tick by hand writes them, so they show in the Inspector and as the quote mark beside the count, as
-any pick does. A label whose cards carry no quotes is not sent. Made from the
-board on the canvas, a label the proposal titles as one of his that carries his picks keeps those of
-them whose row is still under it, and is not sent. The note gains "Quotes picked for 4 of 5 PETs."
-after its counts. When the second call fails or times out the board is still made, with no picks,
-and the line at the top right says "No quotes picked." after its usual words.
+its own category, with its own model under AI. Saving it shows at once, the switch and the model's name
+in the Inspector's titles, and the band takes a question changed in Project settings. A change to the
+rounds made from here, Work in rounds ticked or unticked among them, reopens the statements screen's
+participant on the way back to it.
 
 AI suggest PET titles, one label with the sparkles, sits in the Inspector for a label alone, a PET or a
 sub-theme, and never for a card, since a title belongs to a group of statements. `N` outside a field
@@ -3628,14 +3532,13 @@ afresh on every call, a line on what an experiential statement is, the researche
 a stretch of the transcript means for the participant with the participant's own phrasing kept in the
 quotes beside it, then the task, three titles from different angles, each grounded in the
 statements and their quotes and none repeating a label on the canvas, then rules 5, 6, 8 and 11, the
-format line and the shape of the answer. A guidance file without section 1 sends the one sentence on a
-PET the grouping carries in its place. The user prompt sets the PET out as the review sets a PET out:
-its title, or "no title yet", his note on it, then each statement in the order the canvas reads them,
+format line and the shape of the answer. A guidance file without section 1 sends one sentence on a
+PET in its place. The user prompt sets the PET out: its title, or "no title yet", his note on it, then each statement in the order the canvas reads them,
 with its sheet when the participant has more than one and its timecode, and under it its own quote in
 inverted commas with its timecode, a picked quote marked "(picked)". A passage with no quotes
 says nothing under its statement. The sub-themes sit under it the same way, then come the other labels
 on the canvas and the closing line. A sub-theme asked for says which PET it sits in. When the two
-prompts would pass the room a grouping's prompt has, the quotes of the statements lowest on the canvas
+prompts would pass the room a local model's context leaves, the quotes of the statements lowest on the canvas
 go first, and one line under the titles says so. The titles come back in the Inspector: a click on one
 makes it the label's title, Edit opens the label's box with the title in it to type over, and the cross
 ignores them. Applying is one step of undo, like a rename, and a second press asks again.
@@ -3652,7 +3555,7 @@ ticked, off by default, and Save keeps the tick in the project file with the dat
 under it gives, "Allowed on 5 October 2026." The demo is always open to an agent, its tick on and
 fixed. The tick is each project's own, kept in its own file. Write a guide for AI agents, under the
 tick, writes `AGENTS.md` at that project's root, the guide
-with the project's name, research question, PET cap and GETs minimum filled in, where an agent
+with the project's name, research question and GETs minimum filled in, where an agent
 opened there finds it. It never writes over a file of his own, and a second press offers Update it
 for the one it wrote. Since 26 October every word of the project an agent reads, what a participant
 said and what anyone wrote, comes to it marked as the participants' and the researcher's words, to read
@@ -3661,7 +3564,7 @@ passage. An agent acts on his request alone. It can search the participants as S
 participant's passages, statements, notes and PETs, each found with its place and its speaker, so a question
 across the cases reads only the passages it needs (20 October). It can list the study, read every
 statement with its passage, quotes, notes and where each board places it, show a board, compare
-boards, make a board, change one with the operations Revise uses, the same for GETs, take a label's
+boards, make a board, change one with the board's operations, the same for GETs, take a label's
 note off, set the order of the PETs or of what sits in a label on the board as it is, each moved
 into the place of the one that read there before so his layout keeps its rows, put a board on the
 canvas, rename, duplicate or delete one, a deleted board copied into the participant's `_Archive` first, move a
@@ -3687,7 +3590,7 @@ request '...'". A change to a
 board keeps the board as it stood in History first, "Before: " and his request, so Restore takes
 it back. It never sets a statement aside: one it finds fits no PET stays in Not placed, and the
 Inspector gives its reason under it, "Left out: ...", and under Set aside, should he set it aside, the
-pile gives it as it gives an AI board's. With AI features on, a statement's short id, `S12`, stands
+pile gives it under its words. With AI features on, a statement's short id, `S12`, stands
 small and faint after its timecode in the Inspector, the same id the agent names it by, so either
 can name one in the conversation. The page notices what an agent writes. On a focus of the window and every thirty
 seconds the PETs and GETs screens ask. A change made in another window of this Idiograph is his own
@@ -3745,140 +3648,18 @@ the project's `AGENTS.md` once Write a guide for AI agents has written it. With 
 and the project's `AGENTS.md` give the same line as the tools. An agent adds an exploratory note to a
 passage and keeps the notes there, where before a write of notes took the place of them all.
 
-**Review.** Review is the sidebar's tab after History, before Revise, and the sidebar button opens the sidebar on it when it was the tab left showing (see The sidebar). It holds one control with the sparkles, AI
-review, and a line of small type, "Asks questions of this board from the IPA guidance. Nothing moves." A
-press saves the canvas, then sends the board on the canvas as the file holds it, set out as the print
-view sets it: every PET with its id, its title and its sub-themes nested, the statements under each by
-key, sheet, timecode and words in the order the canvas reads them, the picked quotes with their
-timecodes, the statements not placed and those discarded with the reason a proposal gave, with the
-research question. A PET with a note carries it under its title as "Analyst's note:", and the system
-prompt then says a note is his own reasoning for the PET, to be weighed when a question is asked of it,
-a line it leaves out for a board with no notes. The system prompt carries sections 3 and 4 of the
-guidance file, the rules and the questions, and asks for three questions at most, the most
-consequential first and fewer when fewer matter. Each is put plainly about the board in the third
-person, never in the first person and with no opinion of its own, a question and never a verdict, and
-never a new title or grouping, as the prompt's one example is put: "Does the sub-theme 'Managing bodily
-overwhelm' sit at ease under a parent title about joy, or is the uncomfortable side of her experience
-softened by its frame?" The why under each says plainly what on the board prompted it. The answer is
-strict JSON, `{"items": [{"about", "question", "rule", "why"}]}`, and is read strictly: fences go, an
-`about` that names nothing on the board, a PET's id or a statement's key, is the whole board, a
-question asked twice goes, and so does one an earlier round asked, past three the first three stay,
-and an answer with none is one line, as are one cut off at its length limit and a refusal. It has the
-grouping's token ceiling and wait, one call per press, and a board with no PETs is refused with a line.
-
-The questions come back as a round, under its head, "Round 2 · 3 questions", each a card: its number,
-1, 2 or 3, in the small type at its top left, what it is about, the title of a PET or the first words
-of a statement, as a link that selects it on the canvas and fits it in view, the sidebar left open on Review, or opens the sidebar on Set aside for a statement set aside, then a tick, Considered, and a cross, Dismiss, the question in the
-serif, why in the small type and the rule it rests on, faint. The same tick or cross again puts a
-question back to open, and a dismissed one fades. A line under the round says when it was made and by
-which model, "Made by Haiku 4.5 at 14:05 today." A second press asks again. It sends, with the board,
-every question the earlier rounds asked of it and what he did with each, ticked for actioned, crossed
-for set aside, or left open, and the prompt asks for questions not yet asked, never one he ticked or
-crossed. The new round goes on top, and each earlier round folds under one line, newest first, "Round
-1 · 3 questions · 2 ticked", which a click opens and closes.
-
-Under each card, Reply opens a small box for his words back, a question, "What do you think of moving
-these into their own PET?", or his view, "I think the joy frame holds because...". Reply to AI, with the
-sparkles, since his reply goes to the AI (item 191, once Send), or Cmd + Enter in the box, saves the canvas, then sends the board as
-the review sends it, the card's question and why, the exchange under it so far and his words, in one
-call through the PETs model, and asks for a short answer of two to five sentences in the same voice,
-answering what he asked and taking his view seriously, agreeing with it or questioning it from the
-board's statements, never deciding for him. Esc closes the box. `Cmd + Z` in the box, or in Revise's, takes back its own
-typing first, and once it has none left the board's last step, `Cmd + Shift + Z` the same for redo, with no Esc first. The answer comes under his words in
-the card and the box closes, the two told apart by type alone, his lines in the ink and the AI's in the
-faint type with the model's name small after it, and Reply again carries the exchange on. A failure is
-one line in the card, his words kept in the box, and a page in front of a server from before the
-replies says "Restart the server to finish this update." there.
-
-The review is kept in the board under `review`, its newest round `{"at", "model", "items": [{"about",
-"question", "rule", "why", "state", "thread"}]}` with the rounds before it under `earlier`, oldest
-first, each `{"at", "model", "items"}`. The state is `open`, `considered` or `dismissed`, and `thread`
-is the exchange under the question, each line `{"by", "text", "at"}`, `by` `analyst` for his and `ai`
-for an answer, which carries its `model` too. A board keeps fifty rounds and a question forty lines of
-its exchange, the oldest going past them. The autosave writes it and `normalise` keeps it, so a reload
-shows the tab as it was left, and a review from before the rounds, one flat list, reads as one round.
-A tick, a cross or a reply is no step of undo, keeps no revision and moves nothing on the canvas. A
-duplicate starts with no review of its own. With the switch off the tab is hidden, and a page in
-front of a server from before the review, or before its rounds, says "Restart the server to finish
-this update."
-
-**Revise.** Revise is the sidebar's tab after Review, for a change to the board asked in his own
-words, when one PET needs rewriting and a new AI board would be too much. It holds the thread of this
-board's requests, his lines in the ink and the answers in the faint type with the model's name small
-after each, as a reply's exchange reads, the newest at the foot, each of his requests four lines at most with the rest a
-scroll inside it, the tab opening at its foot, then a box, "What should change?", and
-AI revise board, with the sparkles, the one control in the tab that carries them, Revising while it
-works (item 191, once Send). AI revise board, or Cmd + Enter in the box,
-saves the canvas, then sends the board as the file holds it, each PET by its id with its title, its
-note, its statements by key, sheet, timecode and words in the order the canvas reads them, each with
-its own quote by its key, the quotes picked to carry it and its sub-themes nested under it,
-then the statements not placed, with the research question, sections 1 and 3 of the guidance file, the
-thread so far and his request, in one call through the PETs model. The canvas waits while it is asked.
-Sticky notes, what is set aside and the interviewer's notes never go. When the two prompts would pass the PETs
-model's room, the quotes of the statements lowest on the canvas go first, one statement at a time,
-then, with none left, the oldest lines of the thread, and every statement, label and his request go
-whole whatever the room. The answer's line in the thread then ends by saying so, "To fit what the
-model can take, Idiograph left out the quotes of the 3 statements lowest on the canvas.", and "To
-fit what the model can take, Idiograph left out the four oldest messages in this conversation." when
-lines went.
-
-The answer is a list of operations, never a whole board, so everything he did not ask about keeps its
-place: retitle a label, write its note afresh, move statements or labels into a label or out to Not
-placed, make a label with its members, a PET or a sub-theme inside one, merge one label into another,
-take a label apart, its members going to the PET it sat in or out to Not placed, and pick the quote
-that carries a label. It never sets a statement aside or touches one set aside, a statement's words or a sticky note. The answer is
-read strictly, each operation in order on the board as the ones before it left it: one that names a
-statement, a label or a quote that is not there, that would put a label inside itself or that asks for
-anything else is left out whole, and the rest stand.
-
-When the answer changes the board, the server first keeps the board as it stood as a revision named
-"Before: " and his request on one line, cut at a word past 80 characters, so History lists every step
-and Restore goes back to any of them. The change then lands on the board on the canvas, not on a new
-board. A label it kept stays where it stands. What came into a label is gathered under what the label
-holds already, a new PET's statements on the nearest clear spot to where they stood and a new
-sub-theme's under its PET's, and the neighbours make way as they do for a drop. What left for Not placed
-slides clear of every PET. The labels it changed land as a drop lands, and one Undo puts the whole
-change back. The answer goes into the thread under his request, one or two plain sentences of what
-changed in the review's impersonal voice, "Retitled 'Walks' as 'Evening walks that close the day
-together' and moved three statements from 'A house that holds two' into it." When an operation was left
-out, the thread says what changed from what was applied and adds what was left out, "Left out one
-change, which named a label not on the board." A request the operations cannot meet changes nothing,
-and the answer says why. The box empties for the next request, so a series of edits reads as a
-conversation, and Esc leaves the box.
-
-A failure changes nothing and is one line under the thread, his words kept in the box. The thread is
-kept in the board under `revise`, each line `{"by", "text", "at"}` with `model` on an answer, forty
-lines at most, the oldest going past them. The autosave writes it, a duplicate carries it, since it is
-the board's own story, and it goes to no model but in the next revise of this board. With the switch
-off the tab is hidden, and a page in front of a server from before it says "Restart the server to
-finish this update." at Send and asks nothing.
-
-`/api/themes-ai` carries all of them, with `op` of `group`, the workbook, `version`, `hint`, `cap` and `from`,
-`names`, the workbook, `version` and `group`, the label's id, `review`, the workbook and `version`,
-`revise`, the workbook, `version` and `text`, or
-`reply`, the workbook, `version`, `round`, `item`, `question` and `text`,
-through the same `ai_route` as a suggestion, and refuses each with the switch off. `names` answers with
-up to three `names`, and `said` when quotes went for room, and writes nothing. The page also sends
-`statements`, `label`, `note` and `others` beside the id, the shape a server from before this reads, and
-a body with no `group`, from a page before it, builds the prompt it always did from them, so neither
-side breaks the other. `review` answers with `review`, its time, its model and its questions, and
-`asked`, how many earlier questions it sent, and writes nothing. `reply` finds the question in the
-board's saved review by its round, counted from the oldest at 0, and its place in it, or by its words
-when that place holds another, and answers with `reply`, `{"by": "ai", "text", "at", "model"}`, and
-writes nothing. `revise` answers with `revise`, the answer's line in that shape, and `refused`, the
-reason for each operation left out, and when the answer changes the board, with `revised`, its labels
-and picks afterwards with `made` and `gone`, and `history` and `revision`, the revision it kept, the one
-thing it writes. `/api/themes` carries `revisable` to say a server takes it. `group` answers with the screen's state, the new
-board current, and `made`, what was made and from what, its `source`, `all` or `board`, the limit, the
-PETs, the placed, `left`, the statements not placed, `left_out`, those the answer left out with a
-reason, the reason, `picked`, the PETs with picks, and `unpicked`, when the picks call came back with
-none. The board it writes keeps `made` too, `{"by": "ai", "model", "from", "at", "hash"}`, which the
-board menu's "with AI" is read from (see Boards). `/api/themes` carries `ai`, whether the switch is on, which model answers and the limit,
-read from the settings and never the key, `platform`, which says whether Show in Finder can be offered,
-`project`, for the band, and `config`, the settings Settings opens with over this screen.
-`/api/settings` answers a save with `ai` beside `config`, so New AI board's card takes a new model at
-once. A page in front of a server from before this reads the switch from its own copy of the settings,
-and a press then says "Restart the server to finish this update." and does nothing else.
+`/api/themes-ai` carries the titles, `op` of `names`, the workbook, `version` and `group`, the label's
+id, through the same `ai_route` as a suggestion, refuses with the switch off, and refuses any other op
+as something the AI help does not do. It answers with up to three `names`, and `said` when quotes went
+for room, and writes nothing. The page also sends `statements`, `label`, `note` and `others` beside the
+id, the shape a server from before this reads, and a body with no `group`, from a page before it,
+builds the prompt it always did from them, so neither side breaks the other. `/api/themes` carries
+`ai`, whether the switch is on and which model answers, read from the settings and never the key,
+`platform`, which says whether Show in Finder can be offered, `project`, for the band, and `config`,
+the settings Settings opens with over this screen. `/api/settings` answers a save with `ai` beside
+`config`, so the titles take a new model at once. A page in front of a server from before this reads
+the switch from its own copy of the settings, and a press then says "Restart the server to finish this
+update." and does nothing else.
 
 **Guidance.** Guidance, the sidebar's tab after the Inspector, holds a short reminder to hand while grouping, as
 the statements screen's guidance holds one for statements: how many PETs, how to group, how to title,
@@ -3897,15 +3678,15 @@ headings as written. `/api/themes` carries them as `guidance`, a list of `{"head
 the file's order, read afresh on every open of the screen, so an edit shows on the next reload with
 no restart. A missing file is an empty list, and the tab then says there are no lines to show. A
 page in front of a server from before the tab gets no `guidance`, and the tab says "Restart the
-server to finish this update." The AI never reads this file. What the proposal, the titles and the
-review are told is `pet_guidance.md` (see AI help), the fuller text this one is distilled from.
+server to finish this update." The AI never reads this file. What the titles are told is
+`pet_guidance.md` (see AI help), the fuller text this one is distilled from.
 
 **Autosave and the file.** Every act writes the whole board on the canvas about 300 ms after the last
 one, one save at a time. Beside the board's name the save state reads "Auto-saved" with a tick whenever
 the canvas is what the file holds, from the moment the screen opens, so a fresh open says "Board 1 ·
 Auto-saved", and "Saving" while a save runs. A save that fails leaves a line there saying why, in the
 amber as every failure line is, where it stood in the crux orange until 17 October, later, as did the
-boards menu's line when a board op cannot go ahead and an AI title's or review's line, and the
+boards menu's line when a board op cannot go ahead and an AI title's line, and the
 way back then keeps the canvas open. Opening writes nothing: a participant with no file is offered its first
 board, and the file is written on his first move or his first board op. It is
 `<case>/Working/<stem>.themes.json`, beside the progress file and with the stem the progress file uses:
@@ -3934,17 +3715,18 @@ id, its label, its note when it has one (see PET notes), its members, which are 
 other groups, and the place of its label. `picks` holds each label's picked quotes by quote key, and a
 label with none is left out. `quoted` holds the words of each picked quote as the workbook read them at
 the last save, which the server writes and the page never sends, and `cut` the cards a trim cut, a
-record a trim under its id, kept until that trim is undone. `ai`, on a board an AI proposal made, holds
-why it discarded what it did, and a board with no reasons carries none. `review` is the board's AI
-review, its newest round with the rounds before it under `earlier` and his replies under each question
-(see Review), and a save from a page that sends none leaves the file's as it was. `notes` is the
+record a trim under its id, kept until that trim is undone. `ai` holds why a statement was left out,
+by an agent or by a New AI board before 11 November 2026, and a board with no reasons carries none.
+`review` and `revise`, a board's AI review rounds and revise thread from before 11 November 2026, are
+kept as the file holds them, read by nothing, and the page sends neither, so a save leaves the file's as
+they were. `notes` is the
 board's sticky notes (see Sticky notes), each its id, its words with their lines, its colour, yellow,
 pink, green or blue, its place, and `in`, the id of the group it sits in, which `normalise` drops when
 it names no group, so the note stands free. A note is never among a group's members. A board with none
 carries none, so a file from before them reads and writes as it did and the schema stays 2, and a save
 from a page that sends no `notes` leaves the file's as they were. A revision holds them, so its hash
 takes a note's words, its colour and its place, Restore brings them back, Duplicate copies them, and
-neither Copy to board nor an AI board carries one. `/api/themes` carries them as `stickies`, since its
+neither Copy to board nor a board an agent makes carries one. `/api/themes` carries them as `stickies`, since its
 `notes` says a save keeps a PET's note. Whatever the
 page sends, the server keeps a member in one group at most, takes a discarded card out of every group,
 and keeps a pick only once, only for a label that is there and only of a row with a card under it.
@@ -4006,7 +3788,7 @@ with the same words, the spacing aside and the case kept, that no other card has
 row first and then anywhere on its sheet. So a line inserted at the top of a cell, or taken out of
 the middle of one, leaves every other card in its PET and its place with no mark, and so does a pair
 removed on the statements screen or a pair whose place on its passage moved. The key changes
-everywhere the board names it, its PETs, Set aside, the AI's reasons and the review, and the file
+everywhere the board names it, its PETs, Set aside and the reasons for what was left out, and the file
 takes the new keys on the next save, since opening writes nothing. A revision follows its words the
 same way when it is shown and when it is restored, so a restore lands on the keys the workbook holds
 now. Only then does the rule for a line apply. A stored card whose line reads differently at its key
@@ -4091,14 +3873,14 @@ chevron.
 **The canvas.** As on the PETs screen: `G` puts a label over the selection, a label over cards is a
 GET and a label over labels a sub-theme, and a GET takes the next of G1, G2. Boards, the Current
 board, history, undo, Set aside, sticky notes, Auto-arrange and the Inspector stand as they do there,
-through the GETs routes, and the sidebar holds the Inspector, Guidance, History, Table, Review and Revise (see Table and AI help). The
+through the GETs routes, and the sidebar holds the Inspector, Guidance and History (see Table and AI help). The
 minimap stands above the zoom bar as it does there, each card in its participant's colour wherever it stands, and each GET's and
 sub-theme's frame an outline in its tint (18 October). Every PET
 and every sub-theme of a participant lands in the pile as a card of its own on first coming
 in, in no GET, so a sub-theme can sit under one GET and its PET under another. A sub-theme's groups,
 at any depth, ride inside its card with no card of their own: its count takes in their statements, its
-Inspector lists them under Groups, and New AI board sends their statements with the sub-theme's. Take,
-New board, Add every sub-theme and New AI board all work this way. New board lays
+Inspector lists them under Groups, and AI suggest GET titles sends their statements with the sub-theme's.
+Take, New board and Add every sub-theme all work this way. New board lays
 every participant's PETs and sub-themes in the pile afresh, in an order seeded from their keys. Add every
 sub-theme, in the board menu after Save a revision, gives a board made before sub-themes came in as
 cards a card for each sub-theme of the study it has none of, a card set aside counting as one, all
@@ -4368,71 +4150,28 @@ as the app's pages do. From the audit trail's card it prints that GET's trail
 alone. `gets_print.py` renders it.
 
 **AI help.** With AI features on in Settings, and its GETs switch, the GETs screen carries the PETs screen's AI
-controls one layer up, each with the sparkles, through the PETs model and the same key: New AI board in
-the board menu, AI suggest GET titles in the Inspector of a GET, and the Review and Revise tabs of the
-sidebar. They carry the project's research question and the GETs sections of `pet_guidance.md`,
-section 5, what a GET is and its rules, from Smith, Flowers and Larkin (2022, ch. 5, Step 7), and
-section 6, the questions a reviewer asks of a GETs board, read afresh on every call. Guidance, the
-sidebar's tab after the Inspector, shows the same two sections here, with "From pet_guidance.md beside
-the app, the GETs sections the AI reads on this screen." at its foot. Every participant of the study goes by
-its pseudonym, each PET with its note, its sub-themes and their statements, by sheet, timecode and
-words, and a participant with no PETs yet is named as such. Participant notes, sticky notes and a row's note
-never go to a model, and nothing on the screen writes a workbook or a themes file. A board an AI made
-carries "with AI" after its name in the board menu, as on PETs (see Boards, under PETs).
-
-New AI board sits under New board in the PETs card's shape: "New AI board from every participant's PETs", or
-"New AI board from Board 3" with the board chosen, From under it, Every participant's PETs or the board on
-the canvas, the line naming the model, the hint box, a stepper "up to 5 GETs" from 2 to 9, kept in the
-GETs file under `settings` as `cap` beside the minimum, and Make. Make sends every participant of the study
-with his minimum, One GET per PET as Settings has it, his limit and the hint, and from the board that
-board's GETs with the PETs and sub-themes under each, his own to keep, merge or replace, a PET or a
-sub-theme it has set aside not sent. It asks for GETs with their sub-themes, each PET and each of its
-sub-themes an item of its own, as their cards are, under one GET or sub-theme or left out with a
-reason, a sub-theme with its PET or apart from it, since a GET can draw on a PET or on one of its
-sub-themes (section 5, rule 3). Placing a PET does not place its sub-themes. The answer is read
-strictly: a key the study does not have is dropped, a PET or a sub-theme named twice keeps its first
-place, or with One GET per PET off takes a second card under the second GET, a sub-theme stands under
-any GET, its PET's or another, a blank title is Untitled, and more GETs than one past the limit is refused
-whole, as is an answer that places nothing. When the prompt would pass the route's room, the words of
-the statements lowest in their PETs go first, every PET losing its lowest before any loses its next,
-never a title, and the card's line says so before Make, as do the note and the line after it: "To
-fit what the model can take, Idiograph left out the words of 12 statements, the lowest in their PETs."
-The board
-is laid out in round blobs as on PETs, its GETs G1 on, written as the next board, "Board 4", and made
-current, the board it came from as it was. A second call then picks one quote for each row, a GET
-and a participant, from the quotes of that participant's items under the GET, written into the row as a tick by
-hand writes it, and a row it skips keeps the table's default. A PET or a sub-theme left out stays in
-Not placed, with its reason under its card when the answer gave one, and nothing is set aside. The
-new board holds a card for every PET and every sub-theme of the study, as New board does. The note and
-the top right of the canvas say what came back, the sub-themes placed when there are any, "Proposed by
-Opus 5.5 from every participant's PETs on 5 October 2026 at 19:02, up to 5 GETs. 4 GETs, 7 PETs and 2
-sub-themes placed, 2 not placed. Quotes picked for 7 of 9 rows." and "Board 4: 4 GETs, 2 not
-placed".
+titles one layer up, with the sparkles, through the PETs model and the same key: AI suggest GET titles
+in the Inspector of a GET. It carries the project's research question and section 4 of `pet_guidance.md`,
+what a GET is and its rules, from Smith, Flowers and Larkin (2022, ch. 5, Step 7), read afresh on every
+call. Guidance, the sidebar's tab after the Inspector, shows that section and section 5, the questions a
+reviewer asks of a GETs board, with "From pet_guidance.md beside the app, the GETs sections the AI reads
+on this screen." at its foot. Each card goes by its participant's pseudonym, each PET with its note, its
+sub-themes and their statements, by sheet, timecode and words. Participant notes, sticky notes and a row's
+note never go to a model, and nothing on the screen writes a workbook or a themes file. New AI board, AI
+review and AI revise went from GETs as from PETs on 11 November 2026, and a board one made is an ordinary
+board now.
 
 AI suggest GET titles sits in the Inspector of a GET or of a GET's sub-theme, and `N` asks it as on
 PETs. It sends what sits under it across the participants, each PET and sub-theme by its title with its
 statements, each participant named and one with nothing there said so, and its count against the minimum,
 "It holds material from 2 of the 3 participants, and his minimum is 3.", with the other GETs' titles so
-the three stay distinct, and rules 5 to 8 of section 5, recurrence, negative and incomplete
+the three stay distinct, and rules 5 to 8 of section 4, recurrence, negative and incomplete
 trajectories, the title in the participants' language, typically five to nine words, and no cause. A
 click on one takes it, and Undo puts the old title back.
 
-AI review and AI revise work as on PETs, the same threads, Reply to AI and AI revise board. Review sends the board GET by
-GET, each with its count, its note, its cards, each row's quote and the participants with nothing
-under it, then what is not placed and set aside, and asks rounds of up to three impersonal questions
-from section 6. Revise sends the board as it stands, each card's quotes by `<case>/<sheet>:<row>:<place>`,
-a PET's picks and its statements' own, a statement's its own,
-and takes the PETs screen's operations through the same reader: retitle, note, move a card into a GET
-or out to Not placed, make, merge, take apart, and pick a row's quote, one for each participant.
-It never touches what is set aside, a participant note or a sticky note, keeps the board as it stood as a
-revision, "Before: " and his request, in the GETs file's own History, and lands as one step of undo,
-the rows with it. When its prompt would pass the room, the words of the lowest statements go first,
-as Make's do, then the thread's oldest lines, and the answer's line in the thread says so, as on PETs.
-
-`/api/gets-ai` carries all of it, with `op` of `group`, `names`, `review`, `reply`, `revise` or
-`room`, the last asking nothing and saying how many statements' words a new AI board would leave out,
-and refuses each with the switch off. A page in front of a server from before it shows the controls
-from its own copy of the settings, and a press says "Restart the server to finish this update."
+`/api/gets-ai` carries it, `op` of `names`, and refuses with the switch off, any other op, and on a thematic
+analysis project's Themes board. A page in front of a server from before it shows the control from its own
+copy of the settings, and a press says "Restart the server to finish this update."
 
 **GETs' rules.** Project settings holds them under GETs (Settings' own category from 20 October until 5 November 2026, and the cog over this screen opens Settings on PETs since): One GET per PET,
 the Minimum stepper with "Smith's band" beside it while he has not changed it, and the study, each
@@ -4446,7 +4185,7 @@ temporary file and moved over the old one as the themes file is, and the demo's 
 
 ```
 {"schema": 1, "created": "...", "updated": "...", "current": "b1", "chosen": "b1", "complete": null,
- "settings": {"minimum": null, "one_per_pet": true, "cap": 5},
+ "settings": {"minimum": null, "one_per_pet": true},
  "study": {"P8 - Wren": {"in": true}, "P9 - Ash": {"in": false, "reason": "a pilot"}},
  "colours": {"P8 - Wren": 5},
  "cases": {"P8 - Wren": {"workbook": "P8 Wren - EN & ES.xlsx", "board": "v3", "name": "Board 3",
@@ -4468,10 +4207,9 @@ the GET table's rows by GET and then by participant, `{"G1": {"P8 - Wren": {"quo
 ""}}}`, the quote he ticked by its sheet, row and place among the row's quotes, and his note
 for the row. A row with neither is left out, and so is a GET no longer on the board, so a new GET
 that takes a gone one's id starts with none. The page sends the rows with the board, and a page from
-before them sends none, which keeps the rows the file holds. `cap` under `settings` is his limit on
-the GETs a new AI board makes, there once he has stepped it. A board an AI made keeps `made`, `{"by":
-"ai", "model", "from", "at", "hash"}`, with `edited` from his first save that changed it, `ai` the
-reasons for what it left out, and `review` and `revise` as a PETs board keeps them. `colours` holds
+before them sends none, which keeps the rows the file holds. A board keeps `ai`, the reasons for what an
+agent left out, and `review` and `revise` from before 11 November 2026, as a PETs board keeps them. A
+`cap` under `settings` from before then, the most GETs a New AI board proposed, is read as nothing. `colours` holds
 the colour he chose for a participant, by its label, its place in the participants' palette from 0, Blue, to 7,
 Slate, and is missing until he chooses one, a participant not in it taking its place in participant order (see
 Colours). Rename carries it to the participant's new label. A page in front of
@@ -4853,19 +4591,16 @@ of `guidance.md` and `themes_guidance.md`, and an edit shows on the next load. A
 it was.
 
 **Thematic analysis's AI** (3 November 2026). With AI features on in Settings, a thematic analysis project has
-two AI features of its own, written from its guidance, and none of IPA's. On the Coding screen each extract has
+one AI feature of its own, written from its guidance, and none of IPA's. On the Coding screen each extract has
 AI suggest beside its Codes, under the Experiential statements switch. A press sends that passage, the
 interviewer's passage before it, the extract, its codes and the project's code list, and the answer stands under
 Add a code as AI suggestions: up to three of the project's codes that fit, each with its extracts and participants
 counted, then up to two new codes as New code "...". A click on one puts it on the extract as Add a code would, one
 step of undo, and nothing is written until you click. A code you take is an ordinary code with no mark that the AI
-offered it. The x puts the list away, and the next passage starts with none. On the Themes board the sidebar has
-AI review, under the GETs switch, and no AI revise, New AI board or AI titles. AI review asks up to three questions
-of the board from the Themes guidance, each naming the section it rests on under its why, such as What a theme is,
-with a tick, a cross and Reply as on IPA's boards. Each round is kept with the board, a second press of AI review asks only what
-earlier rounds did not, and nothing on the board moves. Each uses the provider, key and model its IPA twin uses,
-AI suggest the Experiential statements one and AI review the PETs one, and sends only the passage or the board in
-question.
+offered it. The x puts the list away, and the next passage starts with none. It uses the provider, key and
+model the Experiential statements' AI suggest uses, and sends only the passage in question. The Themes board's
+AI review went on 11 November 2026, and a board's review rounds from before stay in the GETs file, read by
+nothing.
 
 Compact on the status bar shows each code's card as its name alone, so one screen holds more of the board. The
 cards stay where you put them. It is off on a new install and kept, as Extracts is. Press it again for the cards
@@ -5437,7 +5172,7 @@ written. A copy of the demo folder added as a project lists its three participan
 **Building it.** `make_demo.py --written` builds the whole finished demo from its sources with no
 recording: for each participant the workbook through create-from-source, every passage through the
 passage screen's own saves, the progress file with its rounds closed and Statements complete, and the
-board laid out as an AI board is, its descriptions, notes and picks added, then saved, marked current and
+board laid out as an agent's board make lays one out, its descriptions, notes and picks added, then saved, marked current and
 marked complete through the PETs screen's own functions, and then the GETs board across the three, laid
 out the same way, its descriptions, notes and ticked quotes added, saved, marked current and marked
 complete through the GETs screen's own functions. The clock is held at the times the sources give,

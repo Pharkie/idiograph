@@ -64,11 +64,12 @@ def test_frames(scratch):
         size.update({gid: list(b[2:4]) for gid, b in drawn["labels"].items()})
         return board, size
 
-    proposal = themes_ai.parse_grouping(json.dumps({"groups": [
-        {"label": "Mornings that belong to the dog and to nobody else in the house", "members": k[0:4]},
+    # a structure laid out whole, as an agent's board make lays one out (the AI's grouping went on 11 November 2026)
+    proposal = {"groups": [
+        {"label": "Mornings that belong to the dog and to nobody else in the house", "members": k[0:4], "groups": []},
         {"label": "A house that holds two", "members": [k[4]],
          "groups": [{"label": "Walks taken alone", "members": k[5:8]}, {"label": "Nights", "members": k[8:10]}]},
-        {"label": "Short", "members": k[10:12]}, {"label": "A fourth with one", "members": [k[12]]}]}), k)
+        {"label": "Short", "members": k[10:12], "groups": []}, {"label": "A fourth with one", "members": [k[12]], "groups": []}]}
     source = themes_mod.blank_version(read["cards"])
     merged = themes_mod.merge(read["cards"], source)
     laid = themes_ai.lay_out(proposal["groups"], merged["cards"], merged["discarded"])

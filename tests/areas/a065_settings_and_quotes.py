@@ -14,11 +14,10 @@ import statement_prompts
 
 def test_settings_and_quotes(scratch):
     print("\n65. Settings' AI folded into Experiential statements and a model of the PETs screen's own (162), the "
-          "test bench said to be invented data (163), an info mark on every nudge (164), the PET limit said as it "
-          "works (165), and AI suggest sending the turn's key quotes (168)")
+          "test bench said to be invented data (163), an info mark on every nudge (164) and AI suggest sending the turn's key quotes (168), the PET limit "
+          "(165) gone with New AI board on 11 November 2026 (aiout)")
     import subprocess
     import server as server_mod
-    import themes_ai
 
     app = support.text("family/static/shell.js", "apps/idiograph/static/distil.js")
     fn = lambda src, name: src.split(f"function {name}(", 1)[1].split("\n}", 1)[0]
@@ -47,20 +46,20 @@ def test_settings_and_quotes(scratch):
     no_local = {"anthropic": lists["anthropic"], "local": ai_mod.local_models(None, transport=down)}
     haiku, opus = ai_mod.model_name("claude-haiku-4-5"), ai_mod.model_name("claude-opus-5-5")
 
-    # ── C. the nudges, the limit and the quotes, from the page's own code
+    # ── C. the nudges and the quotes, from the page's own code
     node = shutil.which("node")
     out = None
     if not node:
-        skip("162 to 168: the PETs select, the info marks, the limit and the quotes in node", "no node on this machine")
+        skip("162 to 168: the PETs select, the info marks and the quotes in node", "no node on this machine")
     else:
         source = "\n".join([const("esc"), const("escAttr"), const("keyHome"), const("PROVIDER_ROWS"), const("PROVIDER_NAMES"),
                             const("LOOPBACK"), const("providerNow"), const("rowsOf"), const("openaiShaped"), const("hostOf"),
                             const("whoOf"), const("otherModel"), const("petsProvider"), const("NUDGES"),
                             const("WORDS_DEFAULT"), const("WORDS_MIN"), const("WORDS_MAX"),
-                            const("INFO_ICON"), const("capOf"), const("capNow"), const("CAP_LINES"), const("capStep"),
+                            const("INFO_ICON"),
                             const("QUOTES_MAX"), const("QUOTE_CHARS")]
                            + [whole(n) for n in ("petsValue", "petsChoice", "modelLabel", "statementsLabel", "drawPetsNote", "drawKeyPlace",
-                                                 "fillPetsModels", "nudgeRow", "capLine", "drawCap", "keyQuotes",
+                                                 "fillPetsModels", "nudgeRow", "keyQuotes",
                                                  "suggestBody")])
         script = scratch / "settings-and-quotes.js"
         script.write_text(support.i18n_js() +
@@ -102,9 +101,6 @@ def test_settings_and_quotes(scratch):
             "  petsValue({ pets_provider: 'local', pets_model: 'qwen2.5:7b' }), petsValue(undefined)];\n"
             "out.nudges = Object.entries(NUDGES).map(([k, [label, about]]) => [k, label, about, nudgeRow(k, label, about, k !== 'arrow')]);\n"
             "out.icon = INFO_ICON;\n"
-            "out.lines = [2, 3, 4, 5, 6, 7, 8, 9].map((n) => capLine(n));\n"
-            "drawCap(5); out.drawn = $('set-cap-line').textContent; capStep(1); out.stepped = $('set-cap-line').textContent;\n"
-            "for (let k = 0; k < 9; k += 1) capStep(-1); out.floor = $('set-cap-line').textContent;\n"
             "out.quotes = keyQuotes('\"I needed the walk\"\\n\\n  \\u201cevery gate\\u201d  \\nplain words');\n"
             "out.empty = [keyQuotes(''), keyQuotes('  \\n \\n'), keyQuotes(undefined)];\n"
             "out.many = keyQuotes(Array.from({ length: 12 }, (_, i) => `\"q${i}\"`).join('\\n'));\n"
@@ -211,7 +207,6 @@ def test_settings_and_quotes(scratch):
 
         settings(pets_provider="anthropic", pets_model="claude-opus-5-5")
         sent.clear()
-        idiograph_routes.api_themes_ai({"workbook": str(work), "op": "group"})
         idiograph_routes.api_themes_ai({"workbook": str(work), "op": "names", "statements": ["Mornings kept for the dog"],
                                   "label": "Mornings"})
         asked_pets = [c["model"] for c in sent]
@@ -222,13 +217,14 @@ def test_settings_and_quotes(scratch):
         sent.clear()
         idiograph_routes.api_suggest({"turn": turn, "prior": "", "time": "", "name": "Juno", "path": str(work)})
         button = [c["model"] for c in sent]
-        check("162: with a PETs model set, the AI board and the titles ask it and the card names it, the bench and AI suggest the statements model",
-              asked_pets == ["claude-opus-5-5", "claude-opus-5-5"] and opened["ai"]["model_name"] == opus
+        check("162: with a PETs model set, the titles ask it and the screen names it, the bench and AI suggest the statements model",
+              asked_pets == ["claude-opus-5-5"] and opened["ai"]["model_name"] == opus
               and bench and set(bench) == {"claude-haiku-4-5"} and button and set(button) == {"claude-haiku-4-5"},
               f"{asked_pets} {bench} {button}")
         settings()
         sent.clear()
-        idiograph_routes.api_themes_ai({"workbook": str(work), "op": "group"})
+        idiograph_routes.api_themes_ai({"workbook": str(work), "op": "names", "statements": ["Mornings kept for the dog"],
+                                  "label": "Mornings"})
         check("162: with none set they ask the statements model, as before",
               [c["model"] for c in sent] == ["claude-haiku-4-5"]
               and idiograph_routes.api_themes({"workbook": str(work)})["ai"]["model_name"] == haiku)
@@ -292,7 +288,3 @@ def test_settings_and_quotes(scratch):
         rows = {k: (label, about, row) for k, label, about, row in out["nudges"]}
         check("164: an info mark and a tooltip for every nudge the server checks, in its order",
               list(rows) == list(nudges.CHECKS), str(list(rows)))
-
-    # ── H. the PET limit said as it works (165)
-    check("165: limit_line asks for one fewer than the limit or the limit, and one more only with a reason",
-          all(f"Make between {n - 1} and {n} themes. Make {n + 1} only when" in themes_ai.limit_line(n) for n in range(2, 10)))

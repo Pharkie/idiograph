@@ -1,7 +1,7 @@
 /* Idiograph, the PETs screen. The same paper, ink, faces and buttons as the rest of the app, set
    in style.css: this file adds the canvas, the cards on it, the labels and frames over them, the
    bin and the zoom in the corners, the board menu, the sidebar with its tabs, the Inspector and its
-   player among them, New AI board's card, and the tints a theme is drawn in: eight for the
+   player among them, and the tints a theme is drawn in: eight for the
    top-level themes, each its own, a lighter step of its
    theme's for a sub-theme, and a neutral grey past the eight. None of the tints is the crux
    orange, because orange means crux. Beside them are the four papers of a sticky note, soft
@@ -748,9 +748,9 @@
 .th-pile-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .th-pile-list li { border-top: 1px solid var(--rule); padding: 8px 2px 7px; }
 .th-pile-text { font-family: var(--serif); font-size: 14px; line-height: 1.4; color: var(--ink-soft); }
-/* why an AI proposal discarded it, when it said, in the small type under the statement */
+/* why it was left out, when an agent said, in the small type under the statement */
 .th-pile-why { margin-top: 3px; font-size: 11.5px; line-height: 1.4; color: var(--ink-faint); }
-/* the reason under a card an AI left out of every PET or GET, in the pile's small type, two lines at
+/* the reason under a card left out of every PET or GET, in the pile's small type, two lines at
    most, the whole of it in the card's tooltip and the Inspector */
 .th-card-why {
   margin-bottom: 0; overflow-wrap: anywhere;
@@ -1084,8 +1084,6 @@ textarea.th-vedit { resize: vertical; min-height: 4.4em; margin-top: 4px; }
 .th-vedit:focus { outline: 0; border-color: var(--ink-faint); box-shadow: var(--focus); }
 .th-vedit::placeholder { color: var(--ink-faint); font-style: italic; }
 .th-vmenu button.ghost:disabled { opacity: .45; cursor: default; background: none; border-color: transparent; }
-/* New AI board carries the sparkles, the one AI act in the menu */
-.th-vmenu button.th-vai .btn-icon { width: 14px; height: 14px; }
 /* the menu's line when an act on a board could not go ahead, in the one warning tint as every failure line is,
    where it stood in the crux orange (17 October, later) */
 .th-vsaid { margin: 4px 8px 6px; font-size: 12px; line-height: 1.45; color: var(--amber); }
@@ -1154,54 +1152,23 @@ textarea.th-vedit { resize: vertical; min-height: 4.4em; margin-top: 4px; }
 
 /* ──────────────────────────────────────────────────── the AI's help ── */
 
-/* New AI board's card, from the board menu, in the trim card's style: its title, one line of small
-   type, the hint box the card's width, the stepper under it, and Make and Cancel. */
-#th-aicard .card { width: min(460px, 100%); }
-#th-aicard h2 { overflow-wrap: anywhere; }
-.th-aicard-line { margin: 0 0 16px; }
-.th-ai-hint {
-  display: block; width: 100%; padding: 7px 10px; font: inherit; font-size: 13.5px;
-  color: var(--ink); background: var(--paper); border: 1px solid var(--rule-firm); border-radius: 3px;
-}
-.th-ai-hint:focus { outline: 0; border-color: var(--ink-faint); box-shadow: var(--focus); }
-.th-ai-hint::placeholder { color: var(--ink-faint); font-style: italic; }
-.th-cap { display: flex; align-items: center; gap: 2px; margin-top: 12px; font-size: 12.5px;
-  color: var(--ink-soft); white-space: nowrap; }
-.th-cap-btn {
-  width: 24px; height: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
-  background: none; border: 1px solid var(--rule-firm); border-radius: 3px; color: var(--ink-soft);
-  font-size: 13px; line-height: 1; cursor: pointer;
-}
-.th-cap-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
-.th-cap-btn:disabled { opacity: .4; cursor: default; }
-.th-cap-text { padding: 0 6px; font-variant-numeric: tabular-nums; }
-/* From, under the title: All statements or the board on the canvas by name, two options in one
-   control, the one chosen pressed in as the pointer and the hand are. A long name runs to an
-   ellipsis, its whole in the tooltip. */
+/* Two options in one control, the one chosen pressed in as the pointer and the hand are: the export
+   card's labels and the bar's Canvas and Table. */
 .th-from { display: inline-flex; max-width: 100%; gap: 2px; margin: 0 0 12px; padding: 2px;
   border: 1px solid var(--rule-firm); border-radius: 4px; }
 .th-from-opt {
   flex: none; height: 26px; padding: 0 10px; font: inherit; font-size: 12.5px; color: var(--ink-soft);
   background: none; border: 1px solid transparent; border-radius: 3px; cursor: pointer; white-space: nowrap;
 }
-#th-from-board { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .th-from-opt:hover { color: var(--ink); }
 .th-from-opt.on { background: var(--paper-sunk); border-color: var(--rule-firm); color: var(--ink); }
 .th-from-opt:focus-visible { outline: 0; box-shadow: var(--focus); }
-/* the card's one line, a restart to finish an update, which is no failure, in the soft ink where it stood in the
-   crux orange (17 October, later) */
-.th-aicard-said { margin: 12px 0 0; color: var(--ink-soft); }
 .th-names-go.busy { cursor: progress; opacity: .75; }
 .th-names-go.busy .btn-icon { animation: th-pulse 1.2s ease-in-out infinite; }
 @keyframes th-pulse { 50% { opacity: .3; } }
-/* the canvas waits while a new AI board is asked, and the line in its top right says so */
-.th-stage.th-busy, .th-stage.th-busy .th-card, .th-stage.th-busy .th-label { cursor: progress; }
-.th-made-line { margin: 0; font-size: 11.5px; line-height: 1.45; color: var(--ink-soft); overflow-wrap: anywhere; }
-.th-made-line[hidden] { display: none; }
+/* the lines in the canvas's top right that are not the export's, a board changed outside and a save refused */
 .th-made .th-exported-head { margin: 0 0 4px; }
 .th-made .th-exported-head:last-of-type { margin-bottom: 0; }
-.th-made.busy .th-exported-head { color: var(--ink-soft); }
-.th-exported-head.failed { color: var(--amber); }
 
 /* A board added or changed outside the page, in a conversation with an AI agent: the line in the
    same corner, Show it a quiet link after its words. The turn screen's line takes the same link. */
@@ -1283,9 +1250,8 @@ textarea.th-vedit { resize: vertical; min-height: 4.4em; margin-top: 4px; }
   overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
 }
 
-/* The sidebar's tabs at its head, Inspector, Guidance, History, Review and Revise, and on the GETs
-   screen Inspector, History and Table, in the label face, the one showing underlined. They share
-   the sidebar's width between them, so five fit in its 360px with room to spare. */
+/* The sidebar's tabs at its head, Inspector, Guidance and History, on either screen, in the label face,
+   the one showing underlined. They share the sidebar's width between them. */
 .th-tabs { flex: none; display: flex; padding: 10px 12px 0; border-bottom: 1px solid var(--rule); }
 .th-tab {
   flex: 1 1 auto; background: none; border: 0; border-bottom: 2px solid transparent; margin: 0 0 -1px; padding: 4px 3px 8px;
@@ -1314,84 +1280,6 @@ textarea.th-vedit { resize: vertical; min-height: 4.4em; margin-top: 4px; }
 .th-rev-said { min-width: 0; font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
 .th-rev.auto .th-rev-said { color: var(--ink-faint); font-size: 12px; }
 .th-rev .ghost.small { flex: none; }
-
-/* The Review tab: AI review and the line saying what it does, then the questions, each a card with
-   what it is about as a link, a tick and a cross, the question in the serif, why in the small type
-   and the rule faint. A question considered keeps its tick on, and one dismissed fades. */
-.th-review-head { display: flex; align-items: center; gap: 8px; margin: 10px 0 0; }
-.th-review-go.busy { cursor: progress; opacity: .75; }
-.th-review-go.busy .btn-icon { animation: th-pulse 1.2s ease-in-out infinite; }
-.th-review-what { margin: 8px 0 14px; font-size: 11.5px; line-height: 1.45; color: var(--ink-faint); }
-.th-review-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
-.th-review-item {
-  min-width: 0; padding: 9px 10px 10px 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper);
-  box-shadow: inset 2px 0 0 var(--rule-firm); transition: opacity .16s, border-color .16s;
-}
-.th-review-item.considered { box-shadow: inset 2px 0 0 var(--good); }
-.th-review-item.dismissed { opacity: .5; }
-.th-review-item.dismissed .th-review-q { text-decoration: line-through; text-decoration-color: var(--rule-firm); }
-.th-review-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.th-review-about {
-  min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;
-  background: none; border: 0; padding: 0; font: inherit; font-size: 11.5px; color: var(--ink-soft); cursor: pointer;
-  text-decoration: underline; text-decoration-color: var(--rule-firm); text-underline-offset: 2px;
-}
-button.th-review-about:hover { color: var(--ink); text-decoration-color: currentColor; }
-.th-review-about.none { cursor: default; text-decoration: none; color: var(--ink-faint); }
-.th-review-acts { flex: none; display: inline-flex; gap: 4px; margin-left: auto; }
-.th-review-mark {
-  width: 24px; height: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
-  background: var(--card); border: 1px solid var(--rule-firm); border-radius: 4px; color: var(--ink-faint); cursor: pointer;
-  transition: background .14s, border-color .14s, color .14s;
-}
-.th-review-mark svg { width: 13px; height: 13px; display: block; }
-.th-review-mark:hover { border-color: var(--ink-faint); color: var(--ink); }
-.th-review-mark.considered.on { background: var(--good); border-color: var(--good); color: var(--card); }
-.th-review-mark.dismissed.on { background: var(--ink-faint); border-color: var(--ink-faint); color: var(--card); }
-.th-review-q { margin: 7px 0 0; font-family: var(--serif); font-size: 15px; line-height: 1.42; color: var(--ink);
-  overflow-wrap: anywhere; }
-.th-review-why { margin: 5px 0 0; font-size: 12px; line-height: 1.45; color: var(--ink-soft); overflow-wrap: anywhere; }
-.th-review-rule { margin: 5px 0 0; font-size: 10.5px; letter-spacing: .06em; color: var(--ink-faint); }
-.th-review-made { margin: 12px 0 0; font-size: 11.5px; color: var(--ink-faint); }
-
-/* Rounds: the newest under its head, each earlier one folded under a line that opens and closes
-   it, newest first, and each question's number in the small type at its top left. */
-.th-round-head { margin: 0 0 8px; font-size: 11.5px; font-weight: 600; color: var(--ink-soft); }
-.th-round-fold {
-  display: flex; align-items: center; gap: 7px; width: 100%; margin: 18px 0 0; padding: 8px 0 0;
-  background: none; border: 0; border-top: 1px solid var(--rule); font: inherit; font-size: 11.5px;
-  color: var(--ink-soft); text-align: left; cursor: pointer;
-}
-.th-round-fold::before { content: "▸"; color: var(--ink-faint); font-size: 10px; transition: transform .16s; }
-.th-round-fold.open::before { transform: rotate(90deg); }
-.th-round-fold:hover { color: var(--ink); }
-.th-round-fold.open + .th-review-list { margin-top: 10px; }
-.th-review-n { flex: none; min-width: 9px; font-size: 11px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
-
-/* The exchange under a question, told apart by type alone: his lines in the ink, the AI's in the
-   faint type with the model's name small after it. Reply opens a small box under it, with Send. */
-.th-thread { margin: 9px 0 0; padding: 8px 0 0; border-top: 1px solid var(--rule); display: grid; gap: 6px; }
-.th-thread-me, .th-thread-ai { margin: 0; font-size: 12.5px; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
-.th-thread-me { color: var(--ink); }
-.th-thread-ai { color: var(--ink-faint); }
-.th-thread-model { margin-left: 2px; font-size: 10.5px; letter-spacing: .02em; white-space: nowrap; }
-.th-reply-link {
-  margin: 7px 0 0; padding: 0; background: none; border: 0; font: inherit; font-size: 11.5px; color: var(--ink-soft);
-  cursor: pointer; text-decoration: underline; text-decoration-color: var(--rule-firm); text-underline-offset: 2px;
-}
-.th-reply-link:hover, .th-reply-link.on { color: var(--ink); text-decoration-color: currentColor; }
-.th-reply { margin: 4px 0 0; }
-.th-reply .th-vedit { display: block; font-size: 13px; }
-.th-reply-acts { display: flex; justify-content: flex-end; margin: 6px 0 0; }
-.th-reply-send.busy { cursor: progress; opacity: .75; }
-.th-reply-send.busy .btn-icon { animation: th-pulse 1.2s ease-in-out infinite; }
-
-/* The Revise tab: the thread of his requests and the answers as a reply's exchange reads, the
-   newest at the foot, then the box and Send. A request runs to four lines at most, the rest a scroll
-   inside it, so a long one never pushes the box and Send out of view. */
-.th-revise-thread { margin: 0 0 12px; padding: 0; border-top: 0; gap: 8px; }
-.th-revise-thread .th-thread-me { max-height: calc(1.45em * 4); overflow-y: auto; overscroll-behavior: contain; }
-.th-revise { margin: 0; }
 
 /* The Guidance tab: each heading in the label face a step smaller than the rail's own heading, as
    the rail's sections are, and the lines under it in the serif at the rail's size, plain lines each
@@ -1636,13 +1524,7 @@ button.btn-out::before {
 
 /* The GETs bar mirrors the PETs bar: the project's name in place of the case, with no switcher
    behind it, no Export, and the Cases panel's button before the sidebar's. The sidebar holds the
-   Inspector, History and Table, since Guidance, Review and Revise are the PETs screen's. */
-/* The GETs screen has all six tabs, so they sit a little closer to keep to the sidebar's width, and
-   the row's own margins narrow to hold them. Measured on 7 October 2026 the six need 344px, past the
-   335 the PETs margins leave, AI revise running 9px into the right margin, and 6px a side leaves
-   347. The sidebar is 360px at every width, so a phone at 360 reads the row as a desk does. */
-.gets-mode .th-tab { letter-spacing: .03em; padding-left: 2px; padding-right: 2px; }
-.gets-mode .th-tabs { padding-left: 6px; padding-right: 6px; }
+   same three tabs as on PETs. */
 .rail-btn.gt-door[hidden], #th-export[hidden] { display: none; }
 .rail-btn.gt-door.on { color: var(--ink); border-color: var(--rule-firm); background: var(--paper-sunk); }
 /* Cases stands first on the GETs bar, at its left end over its sidebar, the way back after it */

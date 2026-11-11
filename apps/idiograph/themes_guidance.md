@@ -1,8 +1,8 @@
 # Themes guidance
 
 The lines the PETs screen shows in the board panel under Guidance, the way the Experiential
-statements screen shows its rail. Distilled from `pet_guidance.md` beside this file, which is the full guidance the AI
-proposal, the title suggestion and the review read, and that file from Smith, Flowers and Larkin
+statements screen shows its rail. Distilled from `pet_guidance.md` beside this file, which is the full guidance the AI's
+title suggestions read, and that file from Smith, Flowers and Larkin
 (2022), Smith and Nizza (2022), Nigbur and Chatfield (2025) and the project's supervision notes.
 Each heading is a small group in the panel and each line under it starts with `- `. The server reads
 the file afresh on every open, so edit it here and it changes in the app on the next reload. Keep

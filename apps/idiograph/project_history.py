@@ -2,8 +2,8 @@
 
 A change to the project itself, or to a participant as a whole, kept no History before: `project set` (the name,
 the research question, the PET labels, the timecodes, and from the app the privacy tick), `timepoints`, `length`,
-`participant rename`, `participant complete` and its reopen, and `gets settings` (the minimum, one per PET, the
-most a new AI board proposes, a participant out of the study or back in). Each now adds one record to
+`participant rename`, `participant complete` and its reopen, and `gets settings` (the minimum, one per PET, a
+participant out of the study or back in). Each now adds one record to
 `idiograph-history.json` at the project's root: when, the op, what changed from what to what, a line each, and
 who asked, the app, or an agent by its tool with his request, as a board's History records an agent's change, the
 tool carrying "approved in the app" or "without asking" where a hold applies (`holds.APPROVED`, `holds.WITHOUT`).

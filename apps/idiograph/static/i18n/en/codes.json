@@ -130,6 +130,5 @@
   "codes.ai.none": "No codes suggested for this extract.",
   "codes.ai.all_taken": "Every suggestion is on the extract.",
   "codes.ai.no_extract": "This extract has no words, so nothing was asked.",
-  "codes.ai.no_guidance": "The guidance in ta_guidance.md could not be read, so nothing was asked.",
-  "codes.ai.board_review_only": "On a thematic analysis board the AI asks review questions and answers a reply, and nothing more."
+  "codes.ai.no_guidance": "The guidance in ta_guidance.md could not be read, so nothing was asked."
 }

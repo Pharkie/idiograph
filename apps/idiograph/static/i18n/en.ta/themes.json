@@ -59,10 +59,6 @@
   "themes.status.selected_es": "{n} codes selected",
   "themes.steps.es_who": "Coding for {who}",
   "themes.steps.es": "Coding for this participant",
-  "themes.gets.n_subs": {
-    "one": "one subtheme",
-    "other": "{n} subthemes"
-  },
   "themes.gets.added_subs": {
     "one": "Added a subtheme.",
     "other": "Added {n} subthemes."
@@ -126,9 +122,5 @@
   "themes.step.desc_removed": "Removed a definition",
   "themes.step.renamed_described": "Renamed a label and its definition",
   "themes.gets.guidance_from": "From ta_themes_guidance.md beside the app.",
-  "themes.gets.guidance_file": "From ta_themes_guidance.md beside the app.",
-  "themes.review.what": "Asks questions of these themes from the thematic analysis guidance. Nothing moves.",
-  "themes.review.go_tip": "Questions of these themes from the AI, with the thematic analysis guidance.",
-  "themes.review.go_tip_model": "Questions of these themes from the AI, with the thematic analysis guidance. {model} answers.",
-  "themes.review.about_unplaced": "Not placed: show it in the sidebar"
+  "themes.gets.guidance_file": "From ta_themes_guidance.md beside the app."
 }

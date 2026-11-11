@@ -16,18 +16,15 @@ import idiograph_routes
 
 
 def test_themes_feedback(scratch):
-    print("\n42. Themes, the first feedback: the wheel, no overlaps, the bin, frames, tints, the limit and Finder")
+    print("\n42. Themes, the first feedback: the wheel, no overlaps, the bin, frames, tints and Finder")
     import subprocess
     import server as server_mod
     import themes as themes_mod
-    import themes_ai
 
     root = scratch / "themes-fb-root"
     work = demo_copy(root, "Juno", "Juno - EN & ES.xlsx")
     (root / "idiograph-project.json").write_text(json.dumps(
         {"name": "Scratch", "research_question": GRAVITY_QUESTION}), encoding="utf-8")
-    read = themes_mod.read_cards(work)
-    k = [c["key"] for c in read["cards"]]
 
     # ── A. nothing overlaps: a shift clear by the margin, a block kept together, a new card's place
     gap = themes_mod.MARGIN
@@ -46,7 +43,7 @@ def test_themes_feedback(scratch):
           and not themes_mod.clash(moved_block[0], (0, 0, 200, 80), gap - 1), f"{bx}, {by}")
     check("a block clear already stays where it landed", themes_mod.free_offset([(900, 900, 200, 80)], others, gap) == (0, 0))
 
-    # ── B. the limit on the themes, in config.json under `themes`, through the settings
+    # ── B. the screen's state (the limit on an AI board's themes went with it on 11 November 2026, aiout)
     real = (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.PLATFORM, idiograph_routes.REVEAL,
             ai_mod.find_key, ai_mod.http_call)
     config_path = scratch / "themes-fb" / "config.json"
@@ -70,80 +67,10 @@ def test_themes_feedback(scratch):
         ai_mod.http_call = wire
         idiograph_routes.REVEAL = lambda target: revealed.append(Path(target))
         opened = idiograph_routes.api_themes({"workbook": str(work)})
-        check("with nothing saved the limit is five, and /api/themes carries it with the model's plain name",
-              opened["ai"]["cap"] == 5 and opened["ai"]["model_name"] == "Haiku 4.5"
-              and server_mod.config()["themes"] == {"cap": 5})
-        server_mod.api_settings({"themes": {"cap": 3}})
-        stored = json.loads(config_path.read_text(encoding="utf-8"))
-        check("the stepper's limit is written under themes and read back",
-              stored["themes"] == {"cap": 3} and idiograph_routes.api_themes({"workbook": str(work)})["ai"]["cap"] == 3
-              and stored["ai_suggest"] is True and stored["model"] == "claude-haiku-4-5")
-        server_mod.api_settings({"interviewer": "Adam"})
-        kept = json.loads(config_path.read_text(encoding="utf-8"))["themes"]
-        server_mod.api_settings({"themes": {"cap": 14}})
-        high = json.loads(config_path.read_text(encoding="utf-8"))["themes"]["cap"]
-        server_mod.api_settings({"themes": {"cap": "one"}})
-        check("a save from Settings keeps the limit, and the limit stays between two and nine",
-              kept == {"cap": 3} and high == 9 and server_mod.config()["themes"]["cap"] == 5
-              and themes_ai.clean_cap(1) == 2 and themes_ai.clean_cap(9.4) == 9)
+        check("aiout: /api/themes carries the model's plain name and no limit, the AI board's having gone",
+              opened["ai"]["model_name"] == "Haiku 4.5" and "cap" not in opened["ai"] and "themes" not in server_mod.config())
         check("the server says which platform it runs on, so Show in Finder shows on a Mac alone",
               opened["platform"] == sys.platform)
-
-        # ── C. the prompt asks for between one fewer and the limit, with the IPA guidance
-        system = themes_ai.group_system(GRAVITY_QUESTION, 3)
-        check("the prompt carries the limit: one fewer to the limit, one more only with a reason",
-              "His limit is 3 themes. Make between 2 and 3 themes. Make 4 only when" in system
-              and 'say why in "reason"' in system and '"reason": "..."' in system)
-
-        # ── D. the parser takes `reason` and what is left out, an older answer's `discarded` the same, and refuses past the limit and one
-        answer = {"groups": [{"label": f"Theme {i}", "members": [k[i]]} for i in range(4)],
-                  "discarded": [{"key": k[5], "reason": "It is about the weather; not the dog \u2014 at all"},
-                                {"key": k[0], "reason": "placed already"}, {"key": "Initial:999:0", "reason": "no"},
-                                k[6]],
-                  "reason": "Walks stand apart from the mornings"}
-        parsed = themes_ai.parse_grouping(json.dumps(answer), k, cap=3)
-        check("the parser takes the reason and each one left out with why, a key placed or unknown left out of it (182)",
-              parsed["reason"] == "Walks stand apart from the mornings"
-              and parsed["left_out"] == [{"key": k[5], "reason": "It is about the weather, not the dog, at all"},
-                                         {"key": k[6], "reason": ""}]
-              and parsed["placed"] == 4 and parsed["left"] == len(k) - 4 and parsed["repeated"] == 1
-              and parsed["unknown"] == 1, str(parsed)[:200])
-        over = dict(answer, groups=[{"label": f"Theme {i}", "members": [k[i]]} for i in range(5)])
-        check("a proposal of more PETs than the limit and one is refused with a line",
-              themes_ai.parse_grouping(json.dumps(over), k, cap=3)
-              == {"error": "The answer proposed 5 PETs, more than one past the limit of 3, so no board was made."}
-              and "error" not in themes_ai.parse_grouping(json.dumps(over), k, cap=4))
-
-        replies[:] = [lambda p: json.dumps({"groups": [
-            {"label": "Mornings that belong to the dog", "members": keys_in(p)[0:5]},
-            {"label": "A house that holds two", "members": keys_in(p)[5:9]},
-            {"label": "Walks taken alone", "members": keys_in(p)[9:12]},
-            {"label": "The evenings that close the day", "members": keys_in(p)[12:15]}],
-            "discarded": [{"key": keys_in(p)[15], "reason": "a line about the weather"}],
-            "reason": "Walks are apart from the house"})]
-        made = idiograph_routes.api_themes_ai({"workbook": str(work), "op": "group", "cap": 3})
-        data = json.loads(themes_mod.themes_path(work).read_text(encoding="utf-8"))
-        new = data["boards"][-1]
-        thrown = keys_in(sent[-1])[15]
-        check("the request carries the limit asked for, and what the answer left out stays in Not placed, never the bin (182)",
-              "His limit is 3 themes." in sent[-1]["system"] and made["made"]["cap"] == 3
-              and made["made"]["themes"] == 4 and made["made"]["left_out"] == 1 and thrown not in new["discarded"]
-              and not any(thrown in g["members"] for g in new["groups"]))
-        check("the note is one line, with the model's reason as a second sentence, and no reason for what was left out in it",
-              "up to 3 PETs. 4 PETs, 15 placed, 3 not placed. Quotes picked for 0 of 4 PETs. "
-              "Its reason: Walks are apart from the house." in new["note"]
-              and "\n" not in new["note"] and "a line about the weather" not in new["note"], new["note"])
-        check("why each statement was left out goes into the board under ai, for its card in Not placed",
-              new["ai"] == {"discarded": {thrown: "a line about the weather"}}, str(new.get("ai")))
-        before = themes_mod.themes_path(work).read_bytes()
-        replies[:] = [lambda p: json.dumps({"groups": [{"label": f"T{i}", "members": [keys_in(p)[i]]} for i in range(6)]})]
-        refused = idiograph_routes.api_themes_ai({"workbook": str(work), "op": "group", "cap": 3})
-        check("a proposal past the limit and one makes no board", set(refused) == {"error"}
-              and "more than one past the limit of 3" in refused["error"]
-              and themes_mod.themes_path(work).read_bytes() == before)
-        replies[:] = [lambda p: json.dumps({"groups": [{"label": "One", "members": keys_in(p)[:3]}]})]
-        idiograph_routes.api_themes_ai({"workbook": str(work), "op": "group"})
-        check("with no limit sent, the one in the settings goes", "His limit is 5 themes." in sent[-1]["system"])
 
         # ── E. the export names its files the case's way, and Show in Finder
         out = idiograph_routes.api_themes_export({"workbook": str(work)})

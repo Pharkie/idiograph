@@ -17,10 +17,8 @@ def test_themes_feedback_two(scratch):
           "the band, the frame, leaving, the menu, the card, the bar, motion")
     import csv
     import subprocess
-    from datetime import datetime
     import server as server_mod
     import themes as themes_mod
-    import themes_ai
 
     root = scratch / "themes-fb2-root"
     work = demo_copy(root, "Juno", "Juno - EN & ES.xlsx")
@@ -87,19 +85,7 @@ def test_themes_feedback_two(scratch):
     bare = list(csv.reader(Path(export_mod.export(plain)["path"]).read_text(encoding="utf-8-sig").splitlines()))[1:]
     check("85: with no themes file the CSV keeps transcript order", [r[2] for r in bare] == [text[key] for key in k])
 
-    # ── 88. the proposal's note in one line, the reasons in the board
-    when = datetime(2026, 10, 2, 12, 2)
-    result = {"groups": [{}] * 5, "placed": 69, "left": 12, "left_out": [{"key": a1, "reason": "off the question"}] * 11}
-    one = themes_ai.note("Haiku 4.5", "Board 4", "", result, when, 5)
-    two = themes_ai.note("Haiku 4.5", "Board 4", "", dict(result, reason="walks stand apart"), when, 5)
-    check("88: the note is one line, as the brief writes it",
-          one == "Proposed by Haiku 4.5 from Board 4 on 2 October 2026 at 12:02, up to 5 PETs. "
-                 "5 PETs, 69 placed, 12 not placed.", one)
-    check("88: the model's reason, when it gave one, is a second sentence, and no statement left out is named",
-          two == one + " Its reason: walks stand apart." and "off the question" not in two and "\n" not in two)
-    check("88: the reasons go into the board under ai, by key, for what was left out (182)",
-          themes_ai.left_reasons({"left_out": [{"key": a1, "reason": "off the question"}, {"key": a2, "reason": ""}]})
-          == {"discarded": {a1: "off the question"}} and themes_ai.left_reasons({"left_out": []}) == {})
+    # ── 88. the reasons for what was left out, in the board (an agent's since the AI board went, aiout)
     kept = themes_mod.normalise(dict(version, ai={"discarded": {a1: "  off   the question ", "Initial:999:0": "gone",
                                                                 a2: "", a3: None}}))
     check("88: normalise keeps a reason for a card the board holds, and nothing when there is none",
@@ -126,7 +112,7 @@ def test_themes_feedback_two(scratch):
               and opened["config"]["model"] == "claude-haiku-4-5" and "key" not in json.dumps(opened["config"]).lower())
         saved = server_mod.api_settings({"model": "claude-sonnet-4-5"})
         check("87: a save from Settings answers with the bar's AI state beside the settings",
-              saved["ai"]["model_name"] != "Haiku 4.5" and saved["ai"]["on"] is True and saved["ai"]["cap"] == 5
+              saved["ai"]["model_name"] != "Haiku 4.5" and saved["ai"]["on"] is True and "cap" not in saved["ai"]
               and set(saved) == {"config", "ai"}, str(saved["ai"]))
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE = real

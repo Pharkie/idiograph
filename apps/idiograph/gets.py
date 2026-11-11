@@ -70,8 +70,6 @@ FIRST_NAME = themes.FIRST_NAME
 OPS = themes.OPS
 BOARD_OPS = ("revision", "view", "restore", "subs")
 SETTINGS = {"minimum": None, "one_per_pet": True}
-# his limit on the GETs a new AI board makes, the stepper in its card, as the PETs one runs
-CAP, CAP_MIN, CAP_MAX = 5, 2, 9
 # a GETs card carries its kind and its case over its words, "PET · Rowan", a line the PETs
 # screen's cards do not have, so every estimate of its height takes that line on
 KICKER_H = 18
@@ -653,26 +651,15 @@ def survey(books: list[dict], data: dict, light: bool = False) -> list[dict]:
 # --------------------------------------------------------------- the study
 
 def settings_of(data: dict | None) -> dict:
-    """The study's own settings: `minimum`, null for Smith's band, `one_per_pet`, and `cap`, his limit
-    on the GETs a new AI board makes, there once he has stepped it and five until then."""
+    """The study's own settings: `minimum`, null for Smith's band, and `one_per_pet`. The limit New AI
+    board kept here before 11 November 2026, `cap`, is read as nothing."""
     held = (data or {}).get("settings") if isinstance((data or {}).get("settings"), dict) else {}
     minimum = held.get("minimum")
     try:
         minimum = max(1, int(minimum)) if minimum is not None else None
     except (TypeError, ValueError):
         minimum = None
-    out = {"minimum": minimum, "one_per_pet": held.get("one_per_pet") is not False}
-    try:
-        if held.get("cap") is not None:
-            out["cap"] = max(CAP_MIN, min(CAP_MAX, int(held["cap"])))
-    except (TypeError, ValueError):
-        pass
-    return out
-
-
-def cap_of(settings: dict) -> int:
-    """His limit on the GETs a new AI board makes, from two to nine, five by default."""
-    return int(settings.get("cap") or CAP)
+    return {"minimum": minimum, "one_per_pet": held.get("one_per_pet") is not False}
 
 
 def study_of(data: dict | None, cases) -> dict:
@@ -1272,8 +1259,8 @@ def answer(data: dict, cases: list[dict], disk: dict | None, board: str | None =
             "version": themes.summary(kept, on_disk(disk, shown)), "saved": disk is not None,
             "cards": cards_shown(kept, data), "groups": kept["groups"], "discarded": kept["discarded"],
             "picks": {}, "discard_reasons": (kept.get("ai") or {}).get("discarded") or {},
-            "review": kept.get("review"), "revise": kept.get("revise") or [], "stickies": kept.get("notes") or [],
-            "rows": kept["rows"], "history": themes.history_list(shown), "sheets": [], "quotes": {},
+            "stickies": kept.get("notes") or [], "rows": kept["rows"], "history": themes.history_list(shown),
+            "sheets": [], "quotes": {},
             "cases": [panel(e, data, study, look.get(e["case"])) for e in cases], "study": study,
             "colours": colours_of(data),
             "settings": settings, "minimum": minimum, "band": is_band, "total": len(inside),
@@ -1349,13 +1336,13 @@ def save(root: Path, books: list[dict], version: dict, revision=None) -> dict:
     # none, which keeps the rows the file holds
     if "rows" not in version and was.get("rows"):
         kept["rows"] = rows_of(dict(was, groups=kept["groups"]))
-    # a page from before the AI help on GETs sends no reasons, review or revise thread, and the
-    # file's stay
+    # a page from before the reasons sends no `ai`, and the page sends no `review` or `revise`, what the
+    # app's own AI left with a board before 11 November 2026, so the file's stay as they are
     held_was = normal(was, data)
-    for key in ("ai", "review", "revise"):
+    for key in ("ai",) + themes.FROM_BEFORE:
         if key not in version and held_was.get(key):
             kept[key] = held_was[key]
-    # a board an AI made is marked edited by his first save that changes it
+    # a board an agent made is marked edited by his first save that changes it
     if kept.get("made"):
         kept["made"] = themes.edited_mark(kept["made"], kept, when, kept.get("changed"))
     held = {"history": themes.history_of(was)}
@@ -1447,7 +1434,8 @@ def version_op(root: Path, books: list[dict], op: str, body: dict, dry_run: bool
         current = fresh["id"]
     elif op == "duplicate":
         copy = json.loads(json.dumps(normal(target, data)))
-        copy.pop("review", None)
+        for key in themes.FROM_BEFORE:
+            copy.pop(key, None)
         for key in themes.AGENT_KEYS:
             copy.pop(key, None)
         name = " ".join(str(body.get("name") or "").split())
@@ -1917,7 +1905,7 @@ def take(root: Path, books: list[dict], case: str) -> dict:
 
 def settings_op(root: Path, books: list[dict], body: dict, dry_run: bool = False, asker: dict | None = None) -> dict:
     """The study's own settings, kept in the file: `minimum`, a whole number or null for Smith's
-    band, `one_per_pet`, `cap`, his limit on the GETs a new AI board makes, and `study`, each case in
+    band, `one_per_pet`, and `study`, each case in
     or out with the reason he gave. An act, so every case not yet in comes in first. With `dry_run`
     (26 October, for the agents' gets settings) every check is made and nothing is written: the
     answer is the settings and each case's place in the study as they would be. A save that changes a
@@ -1937,12 +1925,6 @@ def settings_op(root: Path, books: list[dict], body: dict, dry_run: bool = False
             raise WorkbookError(i18n.t("server.minimum_whole_number_nothing_changed"))
     if "one_per_pet" in body:
         held["one_per_pet"] = bool(body.get("one_per_pet"))
-    # New AI board's stepper sends its limit alone, from two to nine
-    if body.get("cap") is not None:
-        try:
-            held["cap"] = max(CAP_MIN, min(CAP_MAX, int(float(body["cap"]))))
-        except (TypeError, ValueError):
-            raise WorkbookError(i18n.t("server.limit_whole_number_nothing_changed"))
     data["settings"] = held
     sent = body.get("study") if isinstance(body.get("study"), dict) else {}
     study = data.setdefault("study", {})
@@ -1977,8 +1959,6 @@ def settings_changes(was: dict, now: dict, was_study: dict | None = None, now_st
     if was.get("one_per_pet") != now.get("one_per_pet"):
         on = lambda v: "on" if v else "off"
         out.append(f"One per PET from {on(was.get('one_per_pet'))} to {on(now.get('one_per_pet'))}.")
-    if was.get("cap") != now.get("cap") and now.get("cap") is not None:
-        out.append(f"The most GETs a new AI board proposes from {was.get('cap') or CAP} to {now.get('cap')}.")
     for case, mark in (now_study or {}).items():
         old = (was_study or {}).get(case) or {"in": True, "reason": ""}
         if old["in"] != mark["in"] or (not mark["in"] and old["reason"] != mark["reason"]):
@@ -2203,146 +2183,17 @@ def table(data: dict, board: dict, inside: list[str]) -> list[dict]:
     return out
 
 
-# ---------------------------------------------------------------- the AI help
+# ---------------------------------------------------------------- the AI's titles
 #
-# What the GETs screen's AI help sends and lands, as plain dicts `themes_ai` reads: every case of
-# the study by its pseudonym with its PETs, sub-themes and their statements, a board set out GET by
-# GET, the rows a new AI board's quotes are picked for, and the plain board a revise works on.
-# A participant note, a sticky note and a row's note never go into any of it.
-
-FROM_PETS = "every participant's PETs"
+# What a GET's suggested titles are sent, as plain dicts `themes_ai` reads: a board set out GET by
+# GET, each card by its participant's pseudonym. A participant note, a sticky note and a row's note
+# never go into it.
 
 
-def ai_study(data: dict, cases: list[dict]) -> list[dict]:
-    """Every case of the study as the AI is sent it, in case order: its pseudonym, whether its PETs
-    are complete, and each top-level PET by its card's key with its title, his note on it, its
-    statements in the order its board reads them, each with its sheet, timecode and words, and its
-    sub-themes the same way, each by its own card's key, an item of its own to place, a sub-theme's
-    groups at any depth riding inside it, their statements after its own. A case with no
-    PETs yet says so, and so does one whose PETs could not be read. A case out of the study is not
-    sent."""
-    study = study_of(data, [e["case"] for e in cases])
-    held = data.get("cases") or {}
-    out = []
-    for e in sorted(cases, key=lambda x: case_order(x["case"])):
-        case = e["case"]
-        if not study[case]["in"]:
-            continue
-        rec = held.get(case)
-        entry = {"case": case, "who": who(case), "none": True, "complete": False, "pets": []}
-        if e.get("status") == "unread" and not rec:
-            entry["said"] = "its PETs could not be read"
-        if not rec or rec.get("state") == "none":
-            out.append(entry)
-            continue
-        pets = {p["id"]: p for p in rec.get("pets") or []}
-        lines = rec.get("lines") or {}
-
-        def beneath(p: dict, seen: frozenset) -> list[str]:
-            # a label's statements and then its groups', at any depth, in the order the copy keeps them
-            out = list(p.get("statements") or [])
-            for s in p.get("subs") or []:
-                if s in pets and s not in seen:
-                    out += beneath(pets[s], seen | {s})
-            return out
-
-        def one(p: dict, seen: frozenset) -> dict:
-            # a sub-theme's groups ride inside it, as they ride inside its card, never an item of their own
-            inside = len(seen) > 1
-            keys = beneath(p, seen) if inside else list(p.get("statements") or [])
-            statements = [{"key": card_of(case, "es", k), "sheet": lines[k].get("sheet") or "",
-                           "time": lines[k].get("time") or "", "text": lines[k]["text"]}
-                          for k in keys if k in lines]
-            subs = [] if inside else [one(pets[s], seen | {s}) for s in p.get("subs") or [] if s in pets and s not in seen]
-            return {"key": card_of(case, "group", p["id"]), "title": p["title"], "note": str(p.get("note") or ""),
-                    "statements": statements, "subs": subs}
-
-        entry.update(none=False, complete=bool(rec.get("complete")),
-                     pets=[one(p, frozenset({p["id"]})) for p in rec.get("pets") or [] if p.get("parent") is None])
-        out.append(entry)
-    return out
-
-
-def ai_skip(board: dict) -> set[str]:
-    """The PETs and sub-themes a board's bin holds, which a new AI board from it does not send."""
-    return {k for k in board.get("discarded") or [] if split_key(k)["kind"] == "group" and not split_key(k)["copy"]}
-
-
-def ai_labels(board: dict, data: dict) -> list[dict]:
-    """His GETs on a board, nested as they sit and in the order the canvas reads them, each with the
-    keys of the PETs and sub-themes under it once each, and its note when it has one. Statements and
-    participant notes under a GET are his own pulls, and are not sent."""
-    kept = normal(board, data)
-    shown = named(kept, data)
-    drawn = themes.layout_boxes(shown, card_height)
-    by_id = {g["id"]: g for g in kept["groups"]}
-    parents = themes.parents_of(kept["groups"])
-    thrown = set(kept["discarded"])
-
-    def one(gid: str, seen: frozenset) -> dict:
-        members = themes.theme_order(shown, gid, drawn)
-        keys = []
-        for m in members:
-            if m in by_id or m in thrown or m not in kept["cards"] or split_key(m)["kind"] != "group":
-                continue
-            base = card_of(split_key(m)["case"], "group", split_key(m)["ident"])
-            if base not in keys:
-                keys.append(base)
-        out = {"id": gid, "label": by_id[gid]["label"], "members": keys,
-               "groups": [one(m, seen | {m}) for m in members if m in by_id and m not in seen]}
-        if str(by_id[gid].get("note") or "").strip():
-            out["note"] = by_id[gid]["note"]
-        return out
-
-    return [one(g, frozenset({g})) for g in themes.canvas_order([g["id"] for g in kept["groups"] if g["id"] not in parents], by_id)]
-
-
-def ai_cards(data: dict, study: list[dict], result: dict, source: dict | None = None) -> tuple[list[dict], list[str]]:
-    """The cards of a new AI board, for `themes_ai.lay_out`, and the ones it keeps in the bin: every
-    PET and every sub-theme of each case in the study, a card each as New board gives them, each
-    second card the answer placed, and from a board its own PET and sub-theme cards, those in its
-    bin staying there where they lay. A card the answer left out stands in Not placed. Participant
-    notes and pulled statements are his own, and stay on his board."""
-    titles, keys = {}, []
-    for case in study:
-        def walk(p: dict) -> None:
-            titles[p["key"]] = p["title"]
-            keys.append(p["key"])
-            for sub in p.get("subs") or []:
-                walk(sub)
-        for p in case.get("pets") or []:
-            walk(p)
-    spots: dict[str, tuple[int, int]] = {}
-    thrown: list[str] = []
-    if source is not None:
-        for k, c in (source.get("cards") or {}).items():
-            sk = split_key(k)
-            if sk["kind"] != "group" or sk["copy"]:
-                continue
-            spots[k] = (int(c.get("x") or 0), int(c.get("y") or 0))
-            if k not in keys:
-                keys.append(k)
-            if k in (source.get("discarded") or []):
-                thrown.append(k)
-    placed = [m for g in result.get("groups") or [] for m in g["members"] + [x for s in g["groups"] for x in s["members"]]]
-    for m in placed:
-        if m not in keys:
-            keys.append(m)
-    cards = []
-    for k in keys:
-        sk = split_key(k)
-        base = card_of(sk["case"], "group", sk["ident"])
-        rec = (data.get("cases") or {}).get(sk["case"]) or {}
-        text = titles.get(base) or next((p["title"] for p in rec.get("pets") or [] if p["id"] == sk["ident"]), themes.UNTITLED)
-        x, y = spots.get(k, (0, 0))
-        cards.append({"key": k, "text": text, "x": x, "y": y})
-    return cards, thrown
-
-
-def propose(root: Path, books: list[dict], version: dict, note: str, made: dict | None = None) -> dict:
-    """A new AI board added to the GETs file, as `new` adds one: laid out by the server, under the
-    next `Board N` name, with its note, no participant notes or sticky notes, `made` saying what made
-    it with the hash of the board as made, and made current. Every other board stays as it was."""
+def propose(root: Path, books: list[dict], version: dict, note: str) -> dict:
+    """A board laid out whole added to the GETs file, as `new` adds one: laid out by the server, under
+    the next `Board N` name, with its note, no participant notes or sticky notes, and made current.
+    Every other board stays as it was."""
     when = themes.now_iso()
     data, cases, _disk, _taken = assemble(root, books, when)
     boards = boards_of(data)
@@ -2354,8 +2205,6 @@ def propose(root: Path, books: list[dict], version: dict, note: str, made: dict 
     kept = normal(board, data)
     kept.update(id=bid, name=board["name"], note=board["note"], created=when, updated=when)
     kept.pop("notes", None)
-    if made:
-        kept["made"] = themes.stamp_made(themes.made_mark(made), kept)
     boards.append(kept)
     data["boards"] = boards
     data["current"] = bid
@@ -2363,11 +2212,9 @@ def propose(root: Path, books: list[dict], version: dict, note: str, made: dict 
     return dict(answer(data, cases, data, board=bid), op="propose")
 
 
-def ai_card(rec: dict, key: str, card: dict, reasons: dict) -> dict | None:
-    """One card of a GETs board as the AI is sent it, or None for a participant note: a PET or a
-    sub-theme with its title, note, statements, its picks and its statements' own quotes, a
-    statement with its sheet, timecode, words and its own quote, each quote by `<case>/<sheet>:<row>:<place>`, and the
-    reason an AI left it out when it gave one."""
+def ai_card(rec: dict, key: str, card: dict) -> dict | None:
+    """One card of a GETs board as a title's prompt is sent it, or None for a participant note: a PET or
+    a sub-theme with its title, note and statements, a statement with its sheet, timecode and words."""
     k = split_key(key)
     it = item_of(rec, key, card)
     if it["kind"] == "pn":
@@ -2375,30 +2222,20 @@ def ai_card(rec: dict, key: str, card: dict, reasons: dict) -> dict | None:
     lines = rec.get("lines") or {}
     out = {"key": key, "case": k["case"], "who": who(k["case"]), "kind": it["kind"], "gone": bool(it["gone"])}
     if it["kind"] in ("pet", "sub"):
-        # its picks, then each statement's own quote, so a pick of another statement's quote stays
-        quotes = list(it.get("picks") or [])
-        for lk in it.get("lines") or []:
-            quotes += [q for q in line_quotes(lines.get(lk) or {}, lk) if q["key"] not in {x["key"] for x in quotes}]
         out.update(title=it.get("title") or "", note=it.get("note") or "",
                    statements=[{"key": card_of(k["case"], "es", lk), "sheet": lines[lk].get("sheet") or "",
                                 "time": lines[lk].get("time") or "", "text": lines[lk]["text"]}
-                               for lk in it.get("lines") or [] if lk in lines],
-                   quotes=quotes)
+                               for lk in it.get("lines") or [] if lk in lines])
     else:
-        out.update(text=it.get("text") or "", sheet=it.get("sheet") or "", time=it.get("time") or "",
-                   quotes=list(it.get("quotes") or []))
-    out["quotes"] = [{"key": f"{k['case']}/{q['key']}", "text": q["text"]} for q in out.get("quotes") or []]
-    if reasons.get(key):
-        out["reason"] = reasons[key]
+        out.update(text=it.get("text") or "", sheet=it.get("sheet") or "", time=it.get("time") or "")
     return out
 
 
 def ai_outline(data: dict, board: dict, inside: list[str], minimum: int) -> dict:
-    """A GETs board as the review, a reply, a revise and the titles set it out: each GET in canvas
-    order with its id, title, note and count, its cards in the order the canvas reads them, each
-    row's quote, the participants with nothing under it, and its sub-themes under it, then the
-    cards not placed and those in the bin, each with the reason an AI gave when it gave one. A
-    participant note is never in it. Reads the file alone, and writes nothing."""
+    """A GETs board as the titles set it out: each GET in canvas order with its id, title, note and
+    count, its cards in the order the canvas reads them, the participants with nothing under it, and
+    its sub-themes under it. A participant note is never in it. Reads the file alone, and writes
+    nothing."""
     kept = normal(board, data)
     shown = named(kept, data)
     drawn = themes.layout_boxes(shown, card_height)
@@ -2406,40 +2243,32 @@ def ai_outline(data: dict, board: dict, inside: list[str], minimum: int) -> dict
     parents = themes.parents_of(kept["groups"])
     thrown = set(kept["discarded"])
     held = data.get("cases") or {}
-    reasons = (kept.get("ai") or {}).get("discarded") or {}
     cases = sorted(inside, key=case_order)
-    rows = {g["id"]: g["rows"] for g in table(data, board, inside)}
 
     def card(key: str) -> dict | None:
-        return ai_card(held.get(split_key(key)["case"]) or {}, key, shown["cards"][key], reasons)
+        return ai_card(held.get(split_key(key)["case"]) or {}, key, shown["cards"][key])
 
-    def get(gid: str, seen: frozenset, top: bool) -> dict:
+    def get(gid: str, seen: frozenset) -> dict:
         members = themes.theme_order(shown, gid, drawn)
         cards = [c for c in (card(m) for m in members if m not in by_id and m in shown["cards"] and m not in thrown) if c]
-        subs = [get(m, seen | {m}, False) for m in members if m in by_id and m not in seen]
+        subs = [get(m, seen | {m}) for m in members if m in by_id and m not in seen]
         there = {split_key(k)["case"] for k in themes.cards_under(by_id, gid)
                  if k in shown["cards"] and k not in thrown and split_key(k)["kind"] != "pn"}
-        out = {"id": gid, "label": by_id[gid]["label"], "note": str(by_id[gid].get("note") or ""),
-               "count": count(kept, gid, set(inside)), "cards": cards, "themes": subs,
-               "missing": [who(c) for c in cases if c not in there]}
-        if top:
-            out["rows"] = [{"case": r["case"], "who": r["who"], "quote": r["quote"], "chosen": r["chosen"]}
-                           for r in rows.get(gid) or [] if r["counted"] and r.get("quote")]
-        return out
+        return {"id": gid, "label": by_id[gid]["label"], "note": str(by_id[gid].get("note") or ""),
+                "count": count(kept, gid, set(inside)), "cards": cards, "themes": subs,
+                "missing": [who(c) for c in cases if c not in there]}
 
-    order = lambda k: (case_order(split_key(k)["case"]), k)
     return {"name": kept["name"], "total": len(inside), "minimum": minimum, "study": [who(c) for c in cases],
-            "themes": [get(g, frozenset({g}), True)
-                       for g in themes.canvas_order([g["id"] for g in kept["groups"] if g["id"] not in parents], by_id)],
-            "unplaced": [c for c in (card(k) for k in sorted((k for k in shown["cards"] if k not in parents and k not in thrown), key=order)) if c],
-            "discarded": [c for c in (card(k) for k in sorted((k for k in thrown if k in shown["cards"]), key=order)) if c]}
+            "themes": [get(g, frozenset({g}))
+                       for g in themes.canvas_order([g["id"] for g in kept["groups"] if g["id"] not in parents], by_id)]}
 
 
 def row_targets(data: dict, board: dict, inside: list[str]) -> list[dict]:
-    """The rows a new AI board's quotes are picked for, a GET and a case each, in table order:
-    its id, `G1/<case>`, the GET's id and title, the case's pseudonym, and the quotes of that
-    case's items under the GET, each by its key, `<sheet>:<row>:<place>`, and its words, once each.
-    A row with nothing that counts, or with no quotes, is not asked about."""
+    """The rows of a board's GET table with the quotes each could take, a GET and a case each, in table
+    order, which the demo's key quotes are picked from: its id, `G1/<case>`, the GET's id and title,
+    the case's pseudonym, and the quotes of that case's items under the GET, each by its key,
+    `<sheet>:<row>:<place>`, and its words, once each. A row with nothing that counts, or with no
+    quotes, is left out."""
     held = data.get("cases") or {}
     out = []
     for g in table(data, board, inside):
@@ -2458,83 +2287,6 @@ def row_targets(data: dict, board: dict, inside: list[str]) -> list[dict]:
                 out.append({"id": f"{g['id']}/{row['case']}", "get": g["id"], "label": g["label"], "case": row["case"],
                             "who": row["who"], "quotes": quotes})
     return out
-
-
-def picked_rows(targets: list[dict], picks: dict) -> dict:
-    """The rows a picks answer chose, as the board keeps them, `{G: {case: {"quote", "note"}}}`."""
-    by_id = {t["id"]: t for t in targets}
-    out: dict = {}
-    for rid, keys in (picks or {}).items():
-        t = by_id.get(rid)
-        if t and keys:
-            out.setdefault(t["get"], {})[t["case"]] = {"quote": keys[0], "note": ""}
-    return out
-
-
-def revise_start(board: dict, data: dict, inside: list[str]) -> dict:
-    """The plain board a revise's applier works on, from a stored GETs board, in the shape
-    `themes_ai.revise_start` gives a PETs one: `items`, the cards an operation may name, neither in
-    the bin nor participant notes, `groups`, each GET by its id with its title, its note, its
-    description and its members, `picks`, each GET's rows' quotes he ticked, by `<case>/<quote>`, and `card_quotes`,
-    the quote keys each card carries, with `prefix`, `G`, `pick_max`, one quote for each case of the
-    study, and `unit`, what its cards are called."""
-    kept = normal(board, data)
-    shown = named(kept, data)
-    held = data.get("cases") or {}
-    thrown = set(kept["discarded"])
-    items, carried = [], {}
-    for key, c in shown["cards"].items():
-        if key in thrown or split_key(key)["kind"] == "pn":
-            continue
-        items.append(key)
-        it = ai_card(held.get(split_key(key)["case"]) or {}, key, c, {})
-        carried[key] = [q["key"] for q in (it or {}).get("quotes") or []]
-    groups = []
-    for g in kept["groups"]:
-        # the GET whole but for where it stands, its note and its description with it (22 October)
-        one = {k: v for k, v in g.items() if k not in ("x", "y")}
-        one["members"] = list(g["members"])
-        groups.append(one)
-    picks = {gid: [f"{case}/{row['quote']}" for case, row in cases.items() if row.get("quote")]
-             for gid, cases in (kept.get("rows") or {}).items()}
-    return {"items": items, "groups": groups, "picks": {g: k for g, k in picks.items() if k}, "quotes": {},
-            "card_quotes": carried, "prefix": "G", "pick_max": max(1, len(inside)), "unit": "card"}
-
-
-def rows_after(groups: list[dict], picks: dict, rows: dict) -> dict:
-    """The GET table's rows after a revise, from the picks it left: each GET's rows by case, the key
-    quote the first pick of that case's, a pick on a sub-theme going to the row of the GET it sits
-    in when that row has none, and his notes for the rows kept as they were for every GET still on
-    the board."""
-    by_id = {g["id"]: g for g in groups}
-    parents = themes.parents_of(groups)
-
-    def top(gid: str) -> str:
-        seen = set()
-        while gid in parents and gid not in seen:
-            seen.add(gid)
-            gid = parents[gid]
-        return gid
-
-    out: dict = {}
-    for gid, cases in (rows or {}).items():
-        if gid in by_id and gid not in parents:
-            for case, row in cases.items():
-                if str(row.get("note") or "").strip():
-                    out.setdefault(gid, {})[case] = {"quote": "", "note": row["note"]}
-    order = [g for g in picks if g not in parents] + [g for g in picks if g in parents]
-    taken: set = set()
-    for gid in order:
-        if gid not in by_id:
-            continue
-        head = top(gid)
-        for key in picks.get(gid) or []:
-            case, _, quote = str(key).partition("/")
-            if not quote or (head, case) in taken:
-                continue
-            taken.add((head, case))
-            out.setdefault(head, {}).setdefault(case, {"quote": "", "note": ""})["quote"] = quote
-    return rows_of({"groups": groups, "rows": out})
 
 
 # ---------------------------------------------------------------- the LPET table's rows on Trajectories

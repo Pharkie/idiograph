@@ -8,7 +8,7 @@ from an older copy of the app sends.
 The checks drive each path in turn on a board with descriptions on two PETs and a sub-PET, and read the file
 after each: the page's own save, run in node, after a rename, a reorder and a move, and a description taken
 off there; an old page's save; a page loaded before a description was written, which meets the stale-save
-notice and takes nothing away; the AI revise's landing on the page; turn write rewording a statement and
+notice and takes nothing away; turn write rewording a statement and
 widening a quote; board apply's retitle, note, move, make, order under a label and of the PETs, merge, stack
 and align; a revision kept and restored; a theme copied to another board; and on the GETs board, a GET's
 description through take and through the page's save, old and new. The fixtures are the demo's invented
@@ -141,14 +141,6 @@ const out = {};
         check("247: a description taken off on the page goes from the file on its save, sent as \"\", the others kept",
               got["changed"] is True and descs(board()) == {pet: PET_DESC, two: TWO_DESC}, str(descs(board())))
         apply("Put it back", {"op": "describe", "label": sub, "description": SUB_DESC})
-
-        # the AI revise's landing on the page: a revise that gives labels without descriptions keeps them
-        revised = {"groups": [{k: x for k, x in g.items() if k not in ("description", "x", "y")} for g in board()["groups"]],
-                   "picks": board()["picks"]}
-        got = page_body(board(), "thReviseTake(v, " + json.dumps(revised) + ", () => ({ w: 200, h: 80 }));")
-        landed = {g["id"]: g.get("description") for g in (got or {}).get("body", {}).get("groups") or []}
-        check("247: an AI revise landed on the page keeps each label's description, which a revise never writes",
-              got is not None and all(landed.get(g) == d for g, d in want.items()), str(landed))
 
         # ── B. a page loaded before a description was written meets the stale-save notice and takes nothing away
         before = board()
@@ -289,7 +281,3 @@ const out = {};
           "of now, and takes it off when sent as \"\"",
           kept_old == GET_DESC and kept_new == GET_DESC and gdesc() is None, f"{kept_old} {kept_new} {gdesc()}")
     answer("gets", "apply", "b1", "--ops", ops({"op": "describe", "label": gid, "description": GET_DESC}), "--note", "Again")
-    start_g = gets_mod.revise_start(json.loads(gfile.read_text(encoding="utf-8"))["boards"][0],
-                                    json.loads(gfile.read_text(encoding="utf-8")), ["Juno", "Rowan", "Mabel"])
-    check("247: the GETs AI revise starts from each GET whole, its description with it, so its landing keeps it",
-          next(g for g in start_g["groups"] if g["id"] == gid).get("description") == GET_DESC, "")

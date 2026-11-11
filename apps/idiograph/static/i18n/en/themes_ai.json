@@ -1,77 +1,23 @@
 {
   "themes_ai.off": "AI features are off. Turn them on in Settings, AI features.",
-  "themes_ai.placed_nothing": "The answer placed no statements, so no board was made.",
-  "themes_ai.no_statements": "There are no statements on the canvas to group.",
   "themes_ai.no_titles": "The answer carried no titles.",
   "themes_ai.nothing_to_name": "There are no statements under that PET to name.",
   "themes_ai.no_such_pet": "That PET is no longer on the board, so nothing was asked.",
-  "themes_ai.too_many": "The answer proposed {n} PETs, more than one past the limit of {cap}, so no board was made.",
-  "themes_ai.no_questions": "The answer carried no questions.",
-  "themes_ai.no_answer": "The answer was empty.",
-  "themes_ai.no_reply": "There are no words in the reply, so nothing was asked.",
-  "themes_ai.no_such_question": "That question is no longer with this board, so nothing was asked.",
-  "themes_ai.nothing_to_review": "There are no PETs on this board yet, so there is nothing to review.",
   "themes_ai.no_guidance": "The guidance in pet_guidance.md could not be read, so nothing was asked.",
   "themes_ai.from_all": "all statements",
-  "themes_ai.no_request": "There are no words in the request, so nothing was asked.",
-  "themes_ai.no_changes": "The answer carried no changes the board can take, so nothing was changed.",
   "themes_ai.nothing_changed": "Nothing was changed.",
   "themes_ai.unknown_statement": "named a statement not on the board",
   "themes_ai.unknown_label": "named a label not on the board",
   "themes_ai.unknown_quote": "named a quote not under that label",
-  "themes_ai.not_done": "asked for something revise does not do",
+  "themes_ai.not_done": "asked for something a change to a board does not do",
   "themes_ai.inside_itself": "would have put a label inside itself",
   "themes_ai.unreadable": "could not be read",
-  "themes_ai.no_pets_to_group": "There are no PETs in the study to group yet.",
-  "themes_ai.placed_no_pets": "The answer placed no PETs, so no board was made.",
-  "themes_ai.too_many_gets": "The answer proposed {n} GETs, more than one past the limit of {cap}, so no board was made.",
   "themes_ai.no_such_get": "That GET is no longer on the board, so nothing was asked.",
   "themes_ai.nothing_under": "There is nothing under that GET to name yet.",
-  "themes_ai.nothing_to_review_gets": "There are no GETs on this board yet, so there is nothing to review.",
   "themes_ai.revision_before": "Before: {request}",
-  "themes_ai.note.head": "Proposed by {model} from {source} on {day} {month} {year} at {time}",
-  "themes_ai.note.head_hint": "Proposed by {model} from {source} on {day} {month} {year} at {time}, with the hint '{hint}'",
-  "themes_ai.note.up_to_pets": {
-    "one": "{head}, up to {n} PET",
-    "other": "{head}, up to {n} PETs"
-  },
-  "themes_ai.note.up_to_gets": {
-    "one": "{head}, up to {n} GET",
-    "other": "{head}, up to {n} GETs"
-  },
-  "themes_ai.note.pets_counts": {
-    "one": "{head}. {n} PET, {placed} placed, {left} not placed.",
-    "other": "{head}. {n} PETs, {placed} placed, {left} not placed."
-  },
-  "themes_ai.note.pets_picked": {
-    "one": "Quotes picked for {picked} of {n} PET.",
-    "other": "Quotes picked for {picked} of {n} PETs."
-  },
-  "themes_ai.note.gets_counts": "{head}. {gets}, {placed} placed, {left} not placed.",
-  "themes_ai.note.gets_n": {
-    "one": "{n} GET",
-    "other": "{n} GETs"
-  },
-  "themes_ai.note.pets_n": {
-    "one": "{n} PET",
-    "other": "{n} PETs"
-  },
-  "themes_ai.note.subs_n": {
-    "one": "{n} sub-theme",
-    "other": "{n} sub-themes"
-  },
-  "themes_ai.note.rows_picked": {
-    "one": "Quotes picked for {picked} of {n} row.",
-    "other": "Quotes picked for {picked} of {n} rows."
-  },
-  "themes_ai.note.reason": "Its reason: {why}",
   "themes_ai.room.quotes": {
     "one": "To fit what the model can take, Idiograph left out the quotes of the statement lowest on the canvas.",
     "other": "To fit what the model can take, Idiograph left out the quotes of the {n} statements lowest on the canvas."
-  },
-  "themes_ai.room.thread": {
-    "one": "To fit what the model can take, Idiograph left out the oldest message in this conversation.",
-    "other": "To fit what the model can take, Idiograph left out the {count} oldest messages in this conversation."
   },
   "themes_ai.room.words": {
     "one": "To fit what the model can take, Idiograph left out the words of {count} statement, the lowest in their PETs.",
@@ -99,12 +45,6 @@
   "themes_ai.count.label": {
     "one": "{count} label",
     "other": "{count} labels"
-  },
-  "themes_ai.refused.one": "Left out one change, which {why}.",
-  "themes_ai.refused.part": "{count} {why}",
-  "themes_ai.refused.many": {
-    "one": "Left out {count} change: {list}.",
-    "other": "Left out {count} changes: {list}."
   },
   "themes_ai.change.retitled": "retitled '{label}' as '{title}'",
   "themes_ai.change.note_rewrote": "rewrote the note on '{label}'",

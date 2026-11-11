@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import re
 import shutil
 
 import ai_suggest as ai_mod
@@ -118,41 +117,13 @@ def test_theme_notes(scratch):
               f'<h3 class="sub-title">A1. Walks</h3>\n<p class="tnote">{sub_html}</p>\n<div class="item">' in page
               and page.count('<p class="tnote">') == 2)
 
-        # ── E. the outline, and the review
+        # ── E. the outline (the review went on 11 November 2026, aiout)
         outline = themes_mod.outline(read, board("v1"))
         bare = themes_mod.outline(read, plain)
         check("outline carries each theme's note when it has one, a sub-theme's too, and none otherwise",
               outline["themes"][0]["note"] == WHY and outline["themes"][0]["themes"][0]["note"] == SUB
               and all("note" not in t for t in outline["themes"][1:]) and "note" not in bare["themes"][0])
-        user = themes_ai.review_user(outline)
-        check("the review's prompt shows a note under its theme as the analyst's note, on one line",
-              f"Theme g1: Mornings (1 sub-theme · 4 statements)\n  Analyst's note: {WHY_LINE}\n  - {k[0]} (" in user
-              and f"  Sub-theme g2: Walks (2 statements)\n    Analyst's note: {SUB}\n    - {k[2]} (" in user
-              and user.count("Analyst's note:") == 2)
-        check("and leaves the line out for a theme with none, a board with no notes asked as before",
-              "Analyst's note" not in themes_ai.review_user(bare)
-              and themes_ai.review_user(bare) == "\n".join(l for l in user.split("\n") if "Analyst's note:" not in l))
-        with_notes = themes_ai.review_system(GRAVITY_QUESTION, notes=True)
-        without = themes_ai.review_system(GRAVITY_QUESTION)
-        check("the review's system prompt says what a note is only when a theme carries one",
-              themes_ai.NOTES_REVIEW in with_notes and "his own reasoning for the theme" in with_notes
-              and "Weigh it when you ask a question of that theme." in with_notes
-              and themes_ai.NOTES_REVIEW not in without and without == with_notes.replace(themes_ai.NOTES_REVIEW + "\n\n", ""))
-
-        # ── F. the grouping and the titles
-        merged = themes_mod.merge(read["cards"], board("v1"))
-        labels = themes_ai.labels_of(merged)
-        labels_bare = themes_ai.labels_of(themes_mod.merge(read["cards"], plain))
-        statements = themes_ai.statements_of(merged)
-        asked = themes_ai.group_user(statements, labels, "")
-        asked_bare = themes_ai.group_user(statements, labels_bare, "")
-        check("a new AI proposal sends each label's note on the line after it, nested as it sits",
-              labels[0]["note"] == WHY and labels[0]["groups"][0]["note"] == SUB and "note" not in labels[1]
-              and f"- Mornings: {k[0]}, {k[1]}\n  Note: {WHY_LINE}\n  - Walks: {k[2]}, {k[3]}\n    Note: {SUB}\n- Blank" in asked)
-        check("and says in one line what a note is, a line a board with no notes goes without",
-              asked.count(themes_ai.NOTES_GROUP) == 1 and themes_ai.NOTES_GROUP not in asked_bare and "Note:" not in asked_bare
-              and asked_bare == "\n".join(l for l in asked.replace(themes_ai.NOTES_GROUP + "\n", "").split("\n")
-                                          if not l.lstrip().startswith("Note: ")))
+        # ── F. the titles (New AI board went on 11 November 2026, aiout)
         named = themes_ai.names_user(["one", "two"], "Mornings", ["Walks"], WHY)
         check("AI suggest for theme titles sends the label's note, saying in one line what it is",
               f"{themes_ai.NOTE_NAMES} {WHY_LINE}" in named and named.count(themes_ai.NOTE_NAMES) == 1)
@@ -171,10 +142,6 @@ def test_theme_notes(scratch):
             sent.append(payload)
             return 200, json.dumps({"content": [{"type": "text", "text": replies[0](payload)}], "stop_reason": "end_turn"})
 
-        def grouping(payload):
-            found = re.findall(r"^- (\S+:\d+:\d+) \(", payload["messages"][-1]["content"], re.M)
-            return json.dumps({"groups": [{"label": "One", "members": found[:3]}, {"label": "Two", "members": found[3:6]}]})
-
         server_mod.CONFIG_PATH = config_path
         ai_mod.find_key = lambda *a, **kw: "k-test"
         ai_mod.http_call = wire
@@ -186,21 +153,6 @@ def test_theme_notes(scratch):
         check("the titles route takes the label's note from the page into the prompt, and none without one",
               f"{themes_ai.NOTE_NAMES} {WHY_LINE}" in sent[0]["messages"][0]["content"]
               and themes_ai.NOTE_NAMES not in sent[1]["messages"][0]["content"])
-        replies[:] = [lambda payload: json.dumps({"items": [{"about": "g1", "question": "Does the title read as a topic?",
-                                                             "rule": "5", "why": "It reads as a topic."}]})]
-        sent.clear()
-        idiograph_routes.api_themes_ai({"workbook": str(work), "op": "review", "version": "v1"})
-        reviewed = themes_ai.review(bare, GRAVITY_QUESTION, {"provider": "anthropic", "key": "k-test"}, wire)
-        check("the review route sends the notes and says what one is, and a board with none gets neither",
-              len(sent) == 2 and f"Analyst's note: {WHY_LINE}" in sent[0]["messages"][0]["content"]
-              and themes_ai.NOTES_REVIEW in sent[0]["system"] and themes_ai.NOTES_REVIEW not in sent[1]["system"]
-              and "Analyst's note" not in sent[1]["messages"][0]["content"] and reviewed.get("items"))
-        replies[:] = [grouping]
-        sent.clear()
-        idiograph_routes.api_themes_ai({"workbook": str(work), "op": "group", "version": "v1", "hint": ""})
-        check("the grouping route sends his labels with their notes, and the workbook is never written",
-              f"  Note: {WHY_LINE}" in sent[0]["messages"][0]["content"]
-              and themes_ai.NOTES_GROUP in sent[0]["messages"][0]["content"] and work.read_bytes() == book)
     finally:
         server_mod.ROOT_OVERRIDE = saved_root
         server_mod.CONFIG_PATH, ai_mod.find_key, ai_mod.http_call = real
@@ -215,7 +167,7 @@ def test_theme_notes(scratch):
           and "else if (e.key === 'Escape') { e.preventDefault(); thNoteDone(false); }" in keys
           and keys.index("e.stopPropagation();") < keys.index("thNoteDone(true)")
           and "if (e.target && e.target.id === 'th-gnote' && !TH.noteRedraw) thNoteDone(true);" in js
-          and "'.th-title-edit, .th-vedit, .th-ai-hint'" in fn(js, "thKeyDown"))
+          and "'.th-title-edit, .th-vedit'" in fn(js, "thKeyDown"))
     done = fn(js, "thNoteDone")
     check("a note kept is one step of undo like a rename, and undo and redo show it in the Inspector, opened when closed (114)",
           "thSetNote(v, ed.id, text)" in done and "thDone(before," in done and "note: ed.id" in done

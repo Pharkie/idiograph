@@ -1558,22 +1558,18 @@ function thBody(v, meta) {
     out.notes = base.stickies.map((n) => Object.assign({ id: n.id, text: thStickyClean(n.text), colour: n.colour,
       x: Math.round(n.x), y: Math.round(n.y) }, n.in && thIsGroup(v, n.in) ? { in: n.in } : {}));
   }
-  // why an AI proposal discarded what it did goes back as it came, for the pile
+  // why a statement was left out goes back as it came, for the pile
   if (v.ai && v.ai.discarded && Object.keys(v.ai.discarded).length) out.ai = JSON.parse(JSON.stringify(v.ai));
-  // and the board's last AI review, each question with the state he left it in
-  if (v.review && Array.isArray(v.review.items) && v.review.items.length) out.review = JSON.parse(JSON.stringify(v.review));
-  // and its AI revise thread, his requests and the answers
-  if (Array.isArray(v.revise) && v.revise.length) out.revise = JSON.parse(JSON.stringify(v.revise));
   // on the GETs screen, the GET table's rows go with the board, even none
   if (TH.mode === 'gets' && v.rows) out.rows = gtRowsKept(v);
   return out;
 }
 
-/* Why an AI proposal left a card out, when it said. The reasons keep the name they had when an
-   AI board put such a card in the bin, `discarded`. */
+/* Why a card was left out, when an agent said, or a New AI board before 11 November 2026. The reasons
+   keep the name they had when an AI board put such a card in the bin, `discarded`. */
 const thWhy = (v, key) => (v.ai && v.ai.discarded && v.ai.discarded[key]) || '';
 
-/* A card an AI left out of every PET or GET stands in Not placed with its reason under its words,
+/* A card left out of every PET or GET with a reason stands in Not placed with it under its words,
    in the small type the bin's pile gives a reason, two lines at most, the whole of it in the card's
    tooltip and the Inspector. Put in a PET or a GET, it shows none (item 182). */
 function thWhyHtml(v, key, owner) {
@@ -1643,275 +1639,6 @@ function thCopyTargets(boards, current, viewing) {
   const here = (boards || []).find((b) => b.id === current);
   if (viewing && here) out.push({ id: here.id, name: here.name, here: true });
   for (const b of boards || []) if (b.id !== current) out.push({ id: b.id, name: b.name, here: false });
-  return out;
-}
-
-/* ── the review: the AI's questions of a board, kept with it ── */
-
-/* A board's review is its newest round, { at, model, items: [{ about, question, rule, why, state,
-   thread }] }, with the rounds before it under `earlier`, oldest first, each item open, considered
-   or dismissed, and `thread` his replies and the answers. A review from before the rounds is one
-   round. Nothing about it is a step of undo, and nothing on the canvas changes with it. */
-const thFirstWords = (text, n = 6) => {
-  const words = String(text || '').split(/\s+/).filter(Boolean);
-  return words.length > n ? `${words.slice(0, n).join(' ')}…` : words.join(' ');
-};
-
-/* What a question is about, as the board holds it now: a theme or a sub-theme by its title, a
-   statement by its first words, a discarded one marked so, and null for what the board no longer
-   has or for a question about the whole board. */
-function thReviewAbout(v, about) {
-  if (!about || !v) return null;
-  const g = thGroup(v, about);
-  if (g) return { kind: 'group', id: about, name: g.label };
-  // a thematic analysis project's question names a code by its id in the code list: its card, or Not placed
-  // where it has none on the board (taaibuild)
-  const code = thTa() && TH.codeList ? (TH.codeList.codes || []).find((c) => c.id === about) : null;
-  if (code) {
-    const key = typeof gtCodeCard === 'function' ? gtCodeCard(v, gtCodeNorm(code.name)) : null;
-    if (!key) return { kind: 'code', id: about, name: code.name, unplaced: true };
-    return { kind: 'card', id: key, name: code.name, discarded: v.discarded.includes(key) };
-  }
-  const c = v.cards[about];
-  if (!c || c.missing) return null;
-  return { kind: 'card', id: about, name: thFirstWords(c.text), discarded: v.discarded.includes(about) };
-}
-
-/* What a question rests on, faint under its why: IPA's rule by its number, and in a thematic analysis project the
-   section of ta_themes_guidance.md its numbered line is under, the guidance's lines numbered through its sections
-   but the last, Before you finish, as the prompt numbers them (taaibuild) */
-function thReviewRule(rule) {
-  if (!thTa()) return t('themes.review.rule', { rule });
-  const n = Number(rule);
-  const sections = Array.isArray(TH.guidance) ? TH.guidance.slice(0, -1) : [];
-  let at = 0;
-  for (const s of sections) {
-    at += (s.lines || []).length;
-    if (n >= 1 && n <= at) return s.heading;
-  }
-  return '';
-}
-
-/* A tick or a cross: the state it names, or open again when the item has it already. */
-function thReviewMark(review, i, state) {
-  const item = review && Array.isArray(review.items) ? review.items[i] : null;
-  if (!item || !['considered', 'dismissed'].includes(state)) return null;
-  item.state = item.state === state ? 'open' : state;
-  return item.state;
-}
-
-/* The line under the list: when the review was made and by which model. */
-function thReviewMade(review, now = new Date()) {
-  const model = review && review.model ? review.model : '';
-  const d = new Date(review && review.at);
-  if (Number.isNaN(d.getTime())) return model ? t('themes.review.made_by', { model }) : t('themes.review.made');
-  if (thSameDay(d, now)) return t(model ? 'themes.review.made_today_by' : 'themes.review.made_today', { model, time: thClockOf(d) });
-  const year = d.getFullYear() !== now.getFullYear();
-  return t(model ? 'themes.review.made_on_by' : 'themes.review.made_on', { model, day: tDate(d, year ? TH_DAY_YEAR : TH_DAY), time: thClockOf(d) });
-}
-
-/* A review's rounds in order, oldest first: those under `earlier`, then the newest, the review
-   itself. A review from before the rounds is one round. */
-function thReviewRounds(review) {
-  if (!review || !Array.isArray(review.items)) return [];
-  const earlier = Array.isArray(review.earlier) ? review.earlier.filter((r) => r && Array.isArray(r.items)) : [];
-  return earlier.concat([review]);
-}
-
-/* A round's head, "Round 2 · 3 questions", and an earlier round's folded line, which adds how many
-   he ticked when he ticked any, "Round 1 · 3 questions · 2 ticked". */
-function thRoundHead(round, n, folded = false) {
-  const items = (round && round.items) || [];
-  const ticked = items.filter((i) => i.state === 'considered').length;
-  return folded && ticked ? t('themes.review.round_ticked', { round: n, n: items.length, ticked })
-    : t('themes.review.round', { round: n, n: items.length });
-}
-
-/* Ask again's answer as the board keeps it: the new round on top, the one there before folded
-   under `earlier` after the rounds before it. */
-function thReviewNext(review, fresh) {
-  const was = thReviewRounds(review).map((r) => ({ at: r.at, model: r.model, items: r.items }));
-  const out = { at: fresh.at, model: fresh.model, items: fresh.items };
-  if (was.length) out.earlier = was;
-  return out;
-}
-
-/* A question by its key, 'round:place', the round counted oldest first from 0. */
-function thReviewItem(review, key) {
-  const [r, i] = String(key || '').split(':').map(Number);
-  const round = thReviewRounds(review)[r];
-  return round && Number.isInteger(i) && i >= 0 && round.items[i] ? round.items[i] : null;
-}
-
-/* His words and the answer to them, kept under the question in the order they came, his marked
-   analyst and the answer ai with the model that gave it. */
-function thReplyKeep(item, words, answer, at) {
-  if (!Array.isArray(item.thread)) item.thread = [];
-  item.thread.push({ by: 'analyst', text: words, at },
-    { by: 'ai', text: answer.text, at: answer.at, model: answer.model });
-  return item.thread;
-}
-
-/* ── AI revise: the change the answer made, landed on the canvas ── */
-
-/* A revise's request and its answer kept in the board's thread, oldest first, forty lines at most
-   as the server keeps them. */
-const TH_REVISE_KEEP = 40;
-function thReviseKeep(v, words, answer, at) {
-  const thread = Array.isArray(v.revise) ? v.revise : [];
-  thread.push({ by: 'analyst', text: words, at }, { by: 'ai', text: answer.text, at: answer.at, model: answer.model });
-  v.revise = thread.slice(-TH_REVISE_KEEP);
-  return v.revise;
-}
-
-/* The labels and picks a revise's answer left, `revised`, taken onto the board: each label by its id
-   with its title, its note and its members, `made` the labels it made and `gone` each label it took
-   away with where its members went. A label it kept stays where it stands. What came into a label
-   that did not hold it before, at any depth, is gathered under what that label holds already, in
-   the order it read, and a new label's members are gathered into a block of their own, a
-   sub-theme's under its theme's and a theme's on the nearest clear spot to where they stood. Then
-   the neighbours make way, as they do for a drop (see thMakeWay). What leaves for Not placed, and
-   what a label taken apart held, stays where it stands. A sticky note in a label taken away goes
-   where its members went, and nothing in the bin moves. Returns what thDone lands as a drop:
-   `settle`, all that moved, `labels`, the labels it changed or made, `lifted`, those and what
-   moved, `cards`, the cards that moved, and `from`, where each new label stood once gathered. */
-function thReviseTake(v, revised, size) {
-  const out = { settle: [], labels: [], lifted: new Set(), cards: [], from: {} };
-  if (thLocked(v) || !revised || !Array.isArray(revised.groups)) return out;
-  const old = {};
-  for (const g of v.groups) old[g.id] = g;
-  const parents = thParents(v);
-  const held = {};
-  for (const key of Object.keys(v.cards)) held[key] = thAncestors(v, key, parents);
-  for (const g of v.groups) held[g.id] = thAncestors(v, g.id, parents);
-  const ids = new Set(revised.groups.map((g) => String(g.id)));
-  const there = (m) => ids.has(m) || thOnCanvas(v, m);
-  const was = JSON.stringify({ groups: v.groups.map((g) => [g.id, g.label, thNoteOf(g), g.members]), picks: v.picks || {} });
-  v.groups = revised.groups.map((g) => {
-    const at = old[g.id];
-    // the label as it was, whole, so what the revise does not speak of stays, its description among them
-    const kept = Object.assign({}, at || {}, { id: String(g.id), label: thLabelKept(String(g.label || '').trim()) });
-    delete kept.note;
-    const note = String(g.note || '').trim();
-    if (note) kept.note = note;
-    if ('description' in g) {
-      delete kept.description;
-      if (thDescOf(g)) kept.description = thDescOf(g);
-    }
-    return Object.assign(kept, { members: (g.members || []).map(String).filter(there), x: at ? at.x : 0, y: at ? at.y : 0 });
-  });
-  v.picks = {};
-  for (const [gid, keys] of Object.entries(revised.picks || {})) if (ids.has(gid) && keys.length) v.picks[gid] = keys.slice();
-  const gone = revised.gone || {};
-  for (const n of thStickies(v)) {
-    let at = n.in;
-    const seen = new Set();
-    while (at && !ids.has(at) && !seen.has(at)) { seen.add(at); at = gone[at]; }
-    if (at && ids.has(at)) n.in = at; else delete n.in;
-  }
-  // a label changed: made, retitled, noted, its members or its picks other than they were
-  const then = JSON.parse(was);
-  const before = Object.fromEntries(then.groups.map(([id, label, note, members]) => [id, { label, note, members }]));
-  const picked = (p, id) => JSON.stringify((p || {})[id] || []);
-  for (const g of v.groups) {
-    const b = before[g.id];
-    if (!b || b.label !== g.label || b.note !== thNoteOf(g) || JSON.stringify(b.members) !== JSON.stringify(g.members)
-      || picked(then.picks, g.id) !== picked(v.picks, g.id)) out.labels.push(g.id);
-  }
-  // what came into a label that never held it, by the label, the deepest first
-  const now = thParents(v);
-  const into = new Map();
-  for (const g of v.groups) {
-    for (const m of g.members) {
-      if (!old[g.id] || !(held[m] || []).includes(g.id)) {
-        if (!into.has(g.id)) into.set(g.id, []);
-        into.get(g.id).push(m);
-      }
-    }
-  }
-  const depth = (id) => thAncestors(v, id, now).length;
-  const order = [...into.keys()].sort((a, b) => depth(b) - depth(a));
-  const moved = new Set();
-  for (const gid of order) {
-    const units = into.get(gid);
-    const fresh = !old[gid];
-    const blocks = new Set(units.flatMap((u) => [...thBlock(v, [u])]));
-    let lay = thLayout(v, size, null);
-    const boxOf = (id) => (thIsGroup(v, id) ? (lay[id] && lay[id].body ? lay[id].frame : lay[id].label) : Object.assign({ x: v.cards[id].x, y: v.cards[id].y }, size(id)));
-    const read = thReadOrder(units.map((id) => ({ id, x: boxOf(id).x, y: boxOf(id).y })));
-    const boxes = read.map((id) => ({ id, box: boxOf(id) }));
-    // a grid about as wide as the square root of the pieces, the way Auto-arrange lays one
-    const cols = Math.ceil(Math.sqrt(boxes.length));
-    const width = Math.max(...boxes.map((b) => b.box.w), cols * TH_CARD.w + (cols - 1) * TH_MARGIN);
-    const spots = [];
-    let x = 0;
-    let y = 0;
-    let tall = 0;
-    for (const b of boxes) {
-      if (x > 0 && x + b.box.w > width) { y += tall + TH_MARGIN; x = 0; tall = 0; }
-      spots.push({ b, x, y });
-      tall = Math.max(tall, b.box.h);
-      x += b.box.w + TH_MARGIN;
-    }
-    const block = { w: Math.max(...spots.map((s) => s.x + s.b.box.w)), h: Math.max(...spots.map((s) => s.y + s.b.box.h)) };
-    // where the block goes: under what the label holds already, or under its label, and a new
-    // theme's where its members stood, from the middle of them
-    const up = now[gid];
-    let origin;
-    if (fresh && up === undefined) {
-      const mid = thUnion(boxes.map((b) => b.box));
-      origin = { x: mid.x + mid.w / 2 - block.w / 2, y: mid.y + mid.h / 2 - block.h / 2 };
-    } else {
-      const host = fresh ? up : gid;
-      const apart = fresh ? new Set([gid, ...blocks]) : blocks;
-      const body = thLayout(v, size, apart, true)[host];
-      const g = thGroup(v, host);
-      const top = body && body.body ? { x: body.body.x, y: body.body.y + body.body.h + TH_MARGIN }
-        : { x: g.x, y: g.y + size(host).h + TH_GAP };
-      // a new sub-theme's own label and frame stand over its members
-      origin = fresh ? { x: top.x + TH_FRAME_X, y: top.y + TH_FRAME_Y + size(gid).h + TH_GAP } : top;
-    }
-    for (const s of spots) {
-      thShift(v, thBlock(v, [s.b.id]), Math.round(origin.x + s.x - s.b.box.x), Math.round(origin.y + s.y - s.b.box.y));
-    }
-    let moving = fresh ? thBlock(v, [gid]) : blocks;
-    if (fresh && up === undefined) {
-      // a new theme on the nearest spot clear of every theme and every card in none
-      lay = thLayout(v, size, null);
-      const others = (thNeighbours(v, now).get('') || []).filter((id) => !moving.has(id))
-        .map((id) => ({ id, box: thSolid(v, size, lay, id) })).filter((o) => o.box);
-      const frame = lay[gid] && lay[gid].frame;
-      if (frame) {
-        const { dx, dy } = thFreeOffset([{ id: gid, box: frame }], others, TH_MARGIN);
-        if (dx || dy) thShift(v, moving, dx, dy);
-      }
-      moving = thBlock(v, [gid]);
-    }
-    thMakeWay(v, size, moving, fresh ? (up === undefined ? '' : up) : gid);
-    for (const id of moving) moved.add(id);
-  }
-  // what left for Not placed, a card, or a label with all it holds, slides clear of every theme
-  // to the nearest free spot, as a card taken out of its theme does
-  const leavers = [...Object.keys(v.cards).filter((key) => thOnCanvas(v, key)), ...v.groups.map((g) => g.id)]
-    .filter((id) => parents[id] !== undefined && now[id] === undefined && !moved.has(id));
-  for (const id of leavers) {
-    const lay = thLayout(v, size, null);
-    const block = thBlock(v, [id]);
-    const box = thSolid(v, size, lay, id);
-    const others = (thNeighbours(v, now).get('') || []).filter((o) => !block.has(o))
-      .map((o) => ({ id: o, box: thSolid(v, size, lay, o) })).filter((o) => o.box);
-    const { dx, dy } = box ? thFreeOffset([{ id, box }], others, TH_MARGIN) : { dx: 0, dy: 0 };
-    if (dx || dy) thShift(v, block, dx, dy);
-    for (const b of block) moved.add(b);
-  }
-  thLayout(v, size, null);
-  for (const gid of revised.made || []) {
-    const g = thGroup(v, gid);
-    if (g) out.from[gid] = { x: g.x, y: g.y };
-  }
-  out.settle = [...moved];
-  out.cards = out.settle.filter((id) => v.cards[id]);
-  out.lifted = new Set([...out.labels, ...out.settle.filter((id) => !thIsSticky(v, id))]);
   return out;
 }
 
@@ -2000,7 +1727,7 @@ const TH = {
   panelOpen: false,   // the sidebar is open on the Inspector
   lastPick: null,     // the card or the label clicked last, which the Inspector shows with several selected
   boardOpen: false,   // the sidebar is open on a tab about the board
-  tab: 'inspector',   // the sidebar's tab, open or closed: inspector, guidance, history, review, revise or table
+  tab: 'inspector',   // the sidebar's tab, open or closed: inspector, guidance or history
   guidance: null,     // the Guidance tab's headings and lines, and null from a server before them
   history: null,      // the board's revisions, newest first, and null from a server before them
   viewing: null,      // a revision on view: { rev, live, z, removed }, the board itself kept aside
@@ -2018,32 +1745,11 @@ const TH = {
   audioSheet: null,   // the sheet the panel's player is loaded for
   seekKey: null,      // the quote whose play button cued it, for the toggle
   cueAt: 0,
-  ai: null,           // the switch in Settings, the model and the limit, as the server sent them
-  cap: 5,             // the most PETs a new AI board has, the stepper in its card
-  capTimer: null,
-  aiFrom: 'all',      // New AI board's From: 'all', every statement of the case, or 'board', the one on the canvas
-  aiRoom: null,       // on GETs, how many statements' words a new AI board would leave out for room, { all, board }
-  aiRoomAsk: 0,       // the room in flight, so a slow answer never lands on a newer card
-  fromAll: false,     // the server takes From, and one from before it would make the board from the canvas
+  ai: null,           // the switch in Settings and the model, as the server sent them
   platform: '',       // the server's, so Show in Finder is offered on a Mac alone
   exported: null,     // the files the last export wrote, as the screen names them
-  grouping: false,    // a new AI board is on its way
-  made: null,         // what the last new AI board came back with, in the top right of the canvas
   names: null,        // the names asked for, { key, target, busy, names, error }
   namesAsk: 0,        // the names in flight, so a slow answer never lands on a newer one
-  reviewing: false,   // an AI review is on its way
-  reviewAsk: 0,       // the review in flight, so a slow answer never lands on a newer one
-  reviewSaid: '',     // why the last review asked for did not come back
-  reviewFolds: new Set(), // the earlier rounds opened under their line, by their place, oldest first from 0
-  replies: new Map(), // the reply boxes open, by question key 'round:place', each { text, busy, said, ask }
-  replyAsk: 0,        // the replies sent, so a slow answer never lands on a newer send
-  replyEra: 0,        // the boxes put away, so an answer to one lands nowhere
-  boxHist: new Map(), // each reply box's own undo by its key, { past, future, now, at, kind } (see thBoxUndo)
-  revising: false,    // a revise is on its way
-  reviseAsk: 0,       // the revise in flight, so a slow answer never lands on a newer screen
-  reviseSaid: '',     // why the last revise asked for changed nothing
-  reviseText: '',     // the words in the Revise tab's box, kept as the tab is drawn again
-  revisable: false,   // the server takes a revise, which one from before it does not
   printable: false,   // the server has the print view, which one from before it does not
   notable: false,     // the server keeps a theme's note, which one from before the notes drops
   noting: null,       // the note open in the panel, { id, value }, until it is kept or let go
@@ -2164,7 +1870,6 @@ async function themesOpen(path, opts = {}) {
   thXmenu(false);
   thCasemenu(false);
   thSideShut(false);
-  thAiCard(false);
   thMenuClose();
   thHand(false);
   thViewDraw();
@@ -2176,14 +1881,6 @@ async function themesOpen(path, opts = {}) {
   TH.mapMode = '';
   TH.mapMarks = [];
   TH.mapViewAt = '';
-  TH.reviewSaid = '';
-  TH.reviewAsk += 1;
-  TH.reviewing = false;
-  thReplyDrop();
-  TH.reviseSaid = '';
-  TH.reviseText = '';
-  TH.reviseAsk += 1;
-  TH.revising = false;
   $('themes').hidden = false;
   // the band stays out of the way until the project comes with the case
   $('th-band').hidden = true;
@@ -2202,7 +1899,6 @@ async function themesOpen(path, opts = {}) {
   thSaveLine('', '');
   thExported(null);
   TH.names = null;
-  thMade(null);
   thOutside(null);
   TH.sids = {};
   TH.known = {};
@@ -2235,13 +1931,9 @@ async function themesOpen(path, opts = {}) {
   TH.config = data.config || (typeof S !== 'undefined' && ((S.data && S.data.config) || S.libConfig)) || null;
   TH.ai = data.ai || { on: aiOn(TH.config), model_name: '' };
   aiPage(TH.config);
-  // on the GETs screen a server from before its AI help sends the switch off whatever it is, so
-  // the page's own copy stands in, the controls show, and a press says to restart
-  if (TH.mode === 'gets' && !data.gets_ai) TH.ai = { on: aiFor(TH.config, 'gets'), model_name: '', cap: 5 };
   // the AI's help is the GETs' and the PETs', and none of it is on a participant's LPETs yet (21 October)
   TH.lgets = !!(thGets() && !TH.lpets && data.lgets);
   if (TH.lpets || TH.lgets) TH.ai = Object.assign({}, TH.ai, { on: false });
-  TH.cap = thCapOf(TH.ai.cap);
   TH.platform = data.platform || '';
   // a server from before the print view sends no `print`, and the entry then says to restart
   TH.printable = !!data.print;
@@ -2251,12 +1943,6 @@ async function themesOpen(path, opts = {}) {
   // a server from before the notes sends no `notes`, and would drop one on the save, so the panel
   // says to restart in the place of the box
   TH.notable = !!data.notes;
-  // a server from before New AI board's From sends no `from_all`, and the card then says to restart
-  // when All statements is chosen
-  TH.fromAll = !!data.from_all;
-  // a server from before AI revise sends no `revisable`, and Send in the Revise tab then says to
-  // restart and asks nothing, since its save would drop the thread
-  TH.revisable = !!data.revisable;
   // the Guidance tab's lines, read from themes_guidance.md on every open, and a server from before
   // them sends none, so the tab says to restart
   TH.guidance = Array.isArray(data.guidance) ? data.guidance : null;
@@ -2329,14 +2015,10 @@ function thLoad(data, opts = {}) {
     groups: data.groups.map((g) => Object.assign({}, g, { members: g.members.slice() })),
     discarded: data.discarded.slice(),
     picks: JSON.parse(JSON.stringify(data.picks || {})),
-    // why an AI proposal discarded what it did, which the pile shows and a save sends back as `ai`
+    // why a statement was left out, which the pile shows and a save sends back as `ai`
     ai: { discarded: Object.assign({}, data.discard_reasons || {}) },
-    // the board's last AI review, which the Review tab lists and a save sends back as it stands
-    review: data.review ? JSON.parse(JSON.stringify(data.review)) : null,
     // his sticky notes, and null from a server before them, which would drop one on the save
     stickies: Array.isArray(data.stickies) ? data.stickies.map((n) => Object.assign({}, n)) : null,
-    // the board's AI revise thread, which the Revise tab lists, and null from a server before it
-    revise: Array.isArray(data.revise) ? JSON.parse(JSON.stringify(data.revise)) : null,
     // the statements stacked under each top, and none from a server before the stacks
     stacks: data.stacks && typeof data.stacks === 'object' ? JSON.parse(JSON.stringify(data.stacks)) : {},
     // the close pairs marked Not the same, and none from a server before them
@@ -2354,12 +2036,6 @@ function thLoad(data, opts = {}) {
   // a stack shown open stays open while the same board is on the canvas
   if (!TH.meta || TH.meta.id !== (data.version || {}).id) TH.opened = new Set();
   TH.shifts = [];
-  // a line about a review asked of another board goes with it
-  if (!TH.meta || TH.meta.id !== (data.version || {}).id) TH.reviewSaid = '';
-  // and so do the Revise tab's line and the words in its box
-  if (!TH.meta || TH.meta.id !== (data.version || {}).id) { TH.reviseSaid = ''; TH.reviseText = ''; }
-  // and so do its reply boxes and the rounds opened under their lines
-  if (!TH.meta || TH.meta.id !== (data.version || {}).id) thReplyDrop();
   TH.meta = Object.assign({}, data.version);
   TH.boards = (data.versions || [data.version]).map((x) => Object.assign({}, x));
   // the boards as the file holds them now, which a change made outside is told from, and the short
@@ -2455,9 +2131,7 @@ async function themesLeave() {
   thXmenu(false);
   thCasemenu(false);
   thSideShut(false);
-  thAiCard(false);
   thExported(null);
-  thMade(null);
   thMenuClose();
   $('themes').hidden = true;
   if (TH.back) await TH.back();
@@ -5552,7 +5226,7 @@ async function thSaveOnce() {
     if (data.version && data.version.v && TH.meta && TH.path === path && data.version.id === TH.meta.id) TH.meta.v = data.version.v;
     // its own save is never a change made outside
     if (data.updated && TH.meta && TH.path === path) TH.known[TH.meta.id] = data.updated;
-    // an AI board he has now changed says so in the board menu at once
+    // an agent's board he has now changed says so in the board menu at once
     if (data.version && TH.path === path) {
       const listed = TH.boards.find((b) => b.id === data.version.id);
       if (listed && data.version.with_ai) listed.with_ai = data.version.with_ai;
@@ -6026,9 +5700,7 @@ async function thToPassage(key) {
     thXmenu(false);
     thCasemenu(false);
     thSideShut(false);
-    thAiCard(false);
     thExported(null);
-    thMade(null);
     thMenuClose();
     $('themes').hidden = true;
   };
@@ -6600,9 +6272,6 @@ function thSettingsSaved(data, project) {
   if (data && data.config) TH.config = data.config;
   if (data && data.ai) TH.ai = data.ai;
   else if (data && data.config) TH.ai = Object.assign({}, TH.ai || {}, { on: aiFor(data.config, TH.mode === 'gets' ? 'gets' : 'pets') });
-  // the GETs limit is the GETs file's, and a save from Settings carries the PETs one
-  if (TH.mode === 'gets' && TH.ai) TH.ai = Object.assign({}, TH.ai, { cap: TH.cap });
-  TH.cap = thCapOf(TH.ai && TH.ai.cap !== undefined ? TH.ai.cap : TH.cap);
   if (project && TH.project && !TH.project.demo) { TH.project = project; thBandDraw(); }
   thAiDraw();
   // the minimap's Auto, On or Off, under Experiential statements' View, rule the board's map too
@@ -6709,20 +6378,16 @@ function thPanelDrop() {
 }
 
 /* The sidebar's tabs in order, one showing at a time: the Inspector, about the selection, then
-   Guidance, the lines of themes_guidance.md to hand, History, the board's revisions, Review, the
-   AI's questions of it, and Revise, his requests for changes to it. The GETs screen has every one
-   of them, its Guidance the GETs sections of pet_guidance.md. Its Table tab went on 19 October, the
-   Canvas and Table switch on the bar doing its job (Adam). With AI
-   features off the two AI tabs are not among them, and their buttons stand hidden (data-ai). */
-const TH_TABS = ['inspector', 'guidance', 'history', 'review', 'revise'];
-const GT_TABS = ['inspector', 'guidance', 'history', 'review', 'revise'];
-const TH_AI_TABS = ['review', 'revise'];
+   Guidance, the lines of themes_guidance.md to hand, and History, the board's revisions. The GETs
+   screen has every one of them, its Guidance the GETs sections of pet_guidance.md. Its Table tab went
+   on 19 October, the Canvas and Table switch on the bar doing its job (Adam), and Review and Revise,
+   the AI's, on 11 November 2026 (aiout). */
+const TH_TABS = ['inspector', 'guidance', 'history'];
+const GT_TABS = ['inspector', 'guidance', 'history'];
 // a thematic analysis project's board has its own Guidance, ta_themes_guidance.md's (tarail, 3 November 2026), which
 // a server from before it does not send, and the tab then stands hidden there, the GETs lines being IPA's (themesbuild)
-// and its AI is its own review alone, on its Themes board, with no AI revise (taaibuild, 3 November 2026)
-const thTabsOf = (mode) => (mode === 'gets' ? GT_TABS : TH_TABS).filter((t) => (thAiOn() || !TH_AI_TABS.includes(t)
-  || (t === 'review' && mode === 'gets' && thTaAiOn()))
-  && !(t === 'guidance' && mode === 'gets' && thTa() && !TH.guidanceTa));
+const thTabsOf = (mode) => (mode === 'gets' ? GT_TABS : TH_TABS)
+  .filter((t) => !(t === 'guidance' && mode === 'gets' && thTa() && !TH.guidanceTa));
 
 /* a tab of the screen's own, or its first, the Inspector */
 const thTabOf = (tab, mode = TH.mode) => (thTabsOf(mode).includes(tab) ? tab : thTabsOf(mode)[0]);
@@ -6778,8 +6443,8 @@ function thSideDoor() {
   else thSideOpen(TH.tab);
 }
 
-/* The sidebar open on a tab, from its button, its tabs, `i`, Inspect, Note, `n`, AI review and Send
-   in Revise: on the Inspector, on `item` when one is given, or else on what is selected. */
+/* The sidebar open on a tab, from its button, its tabs, `i`, Inspect, Note and `n`: on the Inspector,
+   on `item` when one is given, or else on what is selected. */
 function thSideOpen(tab, item, keep = true) {
   if (!TH.live) return;
   const to = thTabOf(tab);
@@ -6793,9 +6458,8 @@ function thSideOpen(tab, item, keep = true) {
   if (TH.panelOpen) thPanelShow(item === undefined ? thPanelPick() : item);
   else {
     thBoardDraw();
-    // Revise opens at its foot, the newest request, the box and Send, and every other tab at its top
-    const body = $('th-bpanel-body');
-    if (was !== to) body.scrollTop = to === 'revise' ? body.scrollHeight : 0;
+    // a tab opens at its top
+    if (was !== to) $('th-bpanel-body').scrollTop = 0;
   }
   if (keep) thSideKeep();
 }
@@ -6850,12 +6514,8 @@ function thSideDraw() {
 
 function thTabsDraw() {
   for (const b of document.querySelectorAll('#th-tabs [data-tab]')) {
-    // a tab the screen does not have stands hidden: Guidance where its lines are not there, AI review and AI revise
-    // with AI features off or in a thematic analysis project (tarail)
+    // a tab the screen does not have stands hidden: Guidance where its lines are not there (tarail)
     if (b.dataset.tab !== 'inspector' && b.dataset.tab !== 'history') b.hidden = !thTabsOf(TH.mode).includes(b.dataset.tab);
-    // the Review tab is IPA's AI, marked data-ai, which a thematic analysis project's page hides whole, and there it is
-    // its own review, shown by thTabsOf alone (taaibuild)
-    if (b.dataset.tab === 'review' && b.toggleAttribute) b.toggleAttribute('data-ai', !thTa());
     const on = b.dataset.tab === TH.tab;
     b.classList.toggle('on', on);
     b.setAttribute('aria-selected', String(on));
@@ -6878,9 +6538,7 @@ function thBoardHead() {
 function thBoardDraw() {
   if (!TH.boardOpen) return;
   thBoardHead();
-  if (TH.tab === 'guidance') thGuidanceDraw();
-  else if (TH.tab === 'revise') thReviseDraw();
-  else if (TH.tab === 'review') thReviewDraw(); else thHistoryDraw();
+  if (TH.tab === 'guidance') thGuidanceDraw(); else thHistoryDraw();
 }
 
 /* The Guidance tab: each heading of themes_guidance.md in the label face, and the lines under it in
@@ -7360,8 +7018,8 @@ function thVmenuPlace() {
 /* Every board by name, the one on the canvas ticked, the Current board with its mark and the word
    Current after its name, each with its note under it. Then, under the name of the board on the
    canvas, what it can do: Rename, Add a note or Edit the note, Duplicate, Mark as current or Unmark
-   current, Save a revision and Delete this board. Then, after a hairline and under New, New board and
-   New AI board with the switch on. Rename and the note open a box in the place of the name or the
+   current, Save a revision and Delete this board. Then, after a hairline and under New, New board.
+   Rename and the note open a box in the place of the name or the
    note, and Save a revision a box for its name in its place. */
 function thVmenuDraw(said = '') {
   const cur = TH.meta ? TH.meta.id : null;
@@ -7419,9 +7077,7 @@ function thVmenuDraw(said = '') {
     + (TH.mode === 'gets'
       ? `<button type="button" class="ghost" tabindex="-1" data-vop="new" title="${escAttr(t('themes.board.new_tip'))}">${esc(t('themes.board.new'))}</button>`
       : `<button type="button" class="ghost" tabindex="-1" data-vop="new" title="${escAttr(t('themes.board.new_empty_tip'))}">${esc(t('themes.board.new_empty'))}</button>`
-        + `<button type="button" class="ghost" tabindex="-1" data-vop="new-canvas" title="${escAttr(t('themes.board.new_canvas_tip'))}">${esc(t('themes.board.new_canvas'))}</button>`)
-    // an AI act, so it carries the sparkles, and it is there only with the switch on
-    + (thAiOn() ? `<button type="button" class="ghost th-vai" tabindex="-1" data-vop="ai" title="${escAttr(t('themes.board.ai_tip', { name: named }))}">${TH_SPARK_ICON}${esc(t('themes.board.ai'))}</button>` : '');
+        + `<button type="button" class="ghost" tabindex="-1" data-vop="new-canvas" title="${escAttr(t('themes.board.new_canvas_tip'))}">${esc(t('themes.board.new_canvas'))}</button>`);
   // the PETs phase, the case's and no one board's, last after a hairline: Mark PETs complete on the
   // Current board, there only while one is marked, and Reopen PETs once it is marked
   const chosenBoard = TH.boards.find((x) => x.id === TH.chosen);
@@ -7864,7 +7520,6 @@ function thExported(info) {
   if ($('th-once')) $('th-once').remove();
   box.hidden = !info;
   if (!info) return;
-  thMade(null);
   $('th-exported-head').textContent = t('themes.exported', { name: info.name });
   $('th-exported-files').innerHTML = info.shown.map((f) => `<li class="mono">${esc(f)}</li>`).join('');
   $('th-reveal').hidden = !(info.reveal && TH.platform === 'darwin');
@@ -9495,201 +9150,22 @@ async function thTable(c) {
 
 /* ── the AI's help ── */
 
-/* With the switch in Settings on: New AI board in the board menu, AI suggest for PET titles in the
-   Inspector and AI review in the sidebar's Review tab. None moves anything on the canvas by
-   itself: New AI board makes a board of its own, and a title goes on only when it is picked. All ask the PETs
-   model set in Settings under PETs, the Experiential statements one unless another is chosen,
-   whose plain name New AI board's card gives. `TH.ai.on` is the switch, AI features, as aiOn in
-   app.js reads it from the settings, or as the server read it from the same file. */
+/* With the switch in Settings on: AI suggest for titles in the Inspector, a PET's on the PETs screen
+   and a GET's on the GETs screen, which moves nothing on the canvas by itself: a title goes on only
+   when it is picked. It asks the PETs model set in Settings under PETs, the Experiential statements
+   one unless another is chosen. `TH.ai.on` is the switch, AI features, as aiOn in app.js reads it from
+   the settings, or as the server read it from the same file. New AI board, AI review and AI revise
+   went on 11 November 2026 (aiout, Adam: his own agent through MCP does that work). */
 // IPA's, never in a thematic analysis project (tadraw)
 const thAiOn = () => !!(TH.ai && TH.ai.on) && !thTa();
-// a thematic analysis project's own, its Themes board's review and a reply alone (taaibuild, 3 November 2026, Themes
-// A): its questions from ta_themes_guidance.md, with no AI revise, no New AI board and no AI titles
-const thTaAiOn = () => !!(TH.ai && TH.ai.on) && thTa() && TH.mode === 'gets' && !TH.lpets && !TH.lgets;
-// the review on the screen in front, IPA's or a thematic analysis project's
-const thReviewOn = () => thAiOn() || thTaAiOn();
 
-/* The route the AI help asks: the PETs screen's, or on the GETs screen its own, which a server from
-   before it answers with not found, and the press then says to restart. */
+/* The route the titles ask: the PETs screen's, or on the GETs screen its own. */
 const thAiPath = () => (TH.mode === 'gets' ? '/api/gets-ai' : '/api/themes-ai');
 
-/* his limit on the PETs a new AI board has, a whole number from two to nine */
-const thCapOf = (n) => Math.max(2, Math.min(9, Math.round(Number(n)) || 5));
-
-/* The switch, the model or the limit changed: the stepper, the Inspector's titles and the Board
-   panel's Review drawn afresh, and with the switch off the card put away, the AI board's line in
-   the corner taken down and the sidebar moved off an AI tab onto the Inspector. The board menu
-   offers New AI board on its next open. */
+/* The switch or the model changed: the Inspector's titles and the Guidance tab's foot drawn afresh. */
 function thAiDraw() {
-  thCapDraw();
-  if (!thAiOn() && !$('th-aicard').hidden) thAiCard(false);
-  if (!thAiOn() && TH.made) thMade(null);
-  if (TH_AI_TABS.includes(TH.tab) && !thTabsOf(TH.mode).includes(TH.tab)) {
-    if (TH.sideOpen) { thSideOpen('inspector'); return; }
-    TH.tab = thTabOf(TH.tab);
-  }
   if (TH.panelOpen) thPanelDraw();
   if (TH.boardOpen) thBoardDraw();
-}
-
-/* the stepper in New AI board's card, its tooltip the sentence the line under the stepper in
-   Settings says, from capLine in app.js */
-function thCapDraw() {
-  $('th-cap-n').textContent = String(TH.cap);
-  $('th-cap').title = capLine(TH.cap);
-  $('th-cap-down').disabled = TH.cap <= 2;
-  $('th-cap-up').disabled = TH.cap >= 9;
-  // the stepper counts GETs on the GETs screen and PETs on the PETs screen
-  const text = $('th-cap-text');
-  const unit = text && text.querySelector ? text.querySelector('.th-cap-unit') : null;
-  if (unit) unit.textContent = ` ${TH.mode === 'gets' ? t('themes.unit.gets') : t('themes.unit.pets')}`;
-  if (TH.mode === 'gets') $('th-cap').title = gtCapLine(TH.cap);
-}
-
-/* The stepper in New AI board's card: a step down or up, remembered in the settings under `themes`
-   a moment after the last press. A server from before it keeps the limit for the page alone. */
-function thCapStep(by) {
-  const next = thCapOf(TH.cap + by);
-  if (next === TH.cap) return;
-  TH.cap = next;
-  if (TH.ai) TH.ai.cap = next;
-  thCapDraw();
-  clearTimeout(TH.capTimer);
-  TH.capTimer = setTimeout(() => {
-    if (TH.mode === 'gets') api('/api/gets-settings', { workbook: TH.path, op: 'save', cap: next }).catch(() => { /* kept for this page */ });
-    else api('/api/settings', { themes: { cap: next } }).catch(() => { /* kept for this page */ });
-  }, 600);
-}
-
-/* New AI board, from the board menu: a small card in the trim card's style, "New AI board from all
-   statements", From under the title, All statements each time the card opens, one line saying a
-   new board is made by the model and the board on the canvas is left as it is, the hint box, empty
-   each time, the stepper, and Make and Cancel. Enter in the hint is Make, Esc is Cancel. */
-function thAiCard(open) {
-  const card = $('th-aicard');
-  if (!card) return;
-  if (!open) { card.hidden = true; return; }
-  if (!TH.live || TH.busy || !thAiOn() || !TH.meta) return;
-  thVmenu(false);
-  const from = TH.meta.name;
-  const who = TH.ai && TH.ai.model_name ? TH.ai.model_name : t('themes.ai.model_default');
-  TH.aiFrom = 'all';
-  thAiFromDraw();
-  $('th-aicard-line').textContent = t('themes.ai.card_line', { who, from });
-  $('th-ai-hint').value = '';
-  thCapDraw();
-  if (TH.mode === 'gets') gtAiCardDraw();
-  card.hidden = false;
-  $('th-ai-hint').focus();
-}
-
-/* From in New AI board's card: All statements, every statement of the case with none of his
-   groups, or the board on the canvas by name, its PETs his to keep, merge or replace. The title
-   says which, and a choice puts away the line a refused Make left. */
-function thAiFromDraw() {
-  const board = TH.meta ? TH.meta.name : '';
-  const from = TH.aiFrom === 'board' ? board : t('themes.ai.all_statements');
-  $('th-aicard-title').textContent = t('themes.ai.card_title', { from });
-  $('th-from-board').textContent = board;
-  $('th-from-board').title = board;
-  for (const b of document.querySelectorAll('#th-from [data-from]')) {
-    const on = b.dataset.from === (TH.aiFrom === 'board' ? 'board' : 'all');
-    b.classList.toggle('on', on);
-    b.setAttribute('aria-checked', String(on));
-  }
-  $('th-aicard-said').hidden = true;
-  // on the GETs screen From names every case's PETs, and back on PETs All statements again
-  if (TH.mode === 'gets') gtAiFromDraw();
-  else $('th-from-all').textContent = t('themes.ai.all_statements_head');
-}
-
-/* The top right of the canvas, where the export's line goes, holds what a new AI board came back
-   with: what was made, "AI board 2: 4 PETs, 1 discarded", and how it was made, or the one line
-   saying why no board was. While it is asked the line says so. Its cross or Esc puts it away, and
-   one line at a time sits in that corner. */
-function thMade(info) {
-  TH.made = info || null;
-  const box = $('th-made');
-  if (!box) return;
-  box.hidden = !info;
-  if (!info) return;
-  thExported(null);
-  thOutside(null);
-  $('th-made-head').textContent = info.head || '';
-  $('th-made-head').classList.toggle('failed', !!info.failed);
-  $('th-made-line').textContent = info.line || '';
-  $('th-made-line').hidden = !info.line;
-  box.classList.toggle('busy', !!info.busy);
-}
-
-/* The canvas waits while a new AI board is asked, the way it waits for a board op, and the top right
-   says what is being grouped. */
-function thAiBusy(on, n) {
-  TH.grouping = on;
-  thStage().classList.toggle('th-busy', !!on);
-  const gets = TH.mode === 'gets';
-  if (on && gets) thMade({ head: typeof n === 'object' ? gtGrouping(n) : t('themes.ai.grouping_pets', { n }), busy: true });
-  else if (on) thMade({ head: t('themes.ai.grouping_statements', { n }), busy: true });
-}
-
-/* Make, in New AI board's card: with All statements every statement of the case goes, with none of
-   his groups, and with the board every card of it that is not discarded, with its labels, then the
-   hint and the limit, and the grouping comes back as a board of its own, the quote that carries
-   each PET picked, which the canvas then shows. The board it was made from stays as it was. A
-   re-roll is the same entry again, a fresh board each time. A refusal or an answer that cannot be
-   read is one line in the top right, and no board is made. */
-async function thAutoGroup() {
-  if (!TH.live || TH.busy || !thAiOn()) return;
-  // a server from before From would make the board from the canvas, so with All statements chosen
-  // the card says to restart and nothing is asked
-  const whole = TH.aiFrom !== 'board';
-  if (whole && !TH.fromAll) {
-    $('th-aicard-said').textContent = RESTART_LINE;
-    $('th-aicard-said').hidden = false;
-    return;
-  }
-  const hint = $('th-ai-hint').value.trim().replace(/\s+/g, ' ');
-  thAiCard(false);
-  thTitleDone(true);
-  thNoteDone(true);
-  thVmenu(false);
-  // a new board is made from the board itself, so a revision on view goes first
-  thViewEnd();
-  const n = TH.mode === 'gets' ? gtAiCount(whole)
-    : Object.keys(TH.v.cards).filter((key) => (whole || thOnCanvas(TH.v, key)) && !TH.v.cards[key].missing).length;
-  if (TH.mode === 'gets' ? !(n.pets + n.subs) : !n) { thMade({ head: TH.mode === 'gets' ? t('themes.ai.no_pets') : t('themes.ai.no_statements'), failed: true }); return; }
-  TH.busy = true;
-  thAiBusy(true, n);
-  let data = null;
-  try {
-    await thFlush();
-    if (TH.dirty) { thMade({ head: t('themes.unsaved.asked'), failed: true }); return; }
-    data = await api(thAiPath(), { workbook: TH.path, op: 'group', version: TH.meta.id, hint, cap: TH.cap,
-      from: whole ? 'all' : 'board' });
-  } catch (err) {
-    thMade({ head: needsRestart(err) ? RESTART_LINE : err.message, failed: true });
-    return;
-  } finally {
-    TH.busy = false;
-    thAiBusy(false);
-  }
-  if (!data || !TH.live || $('themes').hidden) return;
-  thLoad(data, { fit: true });
-  const made = data.made || {};
-  const name = made.name || TH.meta.name;
-  const from = made.from || '';
-  const madeHint = made.hint || '';
-  // what came back, and how it was made
-  const key = MAC ? t('themes.key.cmd') : t('themes.key.ctrl');
-  const themes = made.themes === undefined ? '' : t(TH.mode === 'gets' ? 'themes.ai.n_gets' : 'themes.ai.n_pets', { n: made.themes });
-  // what the answer left out stays in Not placed, and nothing goes to the bin (item 182)
-  const thrown = made.left || 0;
-  // the picks call failed, or picked nothing, and the board came without picks
-  const unpicked = made.unpicked ? ` ${t('themes.ai.unpicked')}` : '';
-  // the words of some statements left out of a GETs prompt for room are said too
-  const cut = made.cut ? ` ${gtCutLine(made.cut)}` : '';
-  thMade({ head: themes ? (thrown ? t('themes.ai.head_left', { name, themes, left: thrown }) : t('themes.ai.head', { name, themes })) : name,
-    line: t(from ? (madeHint ? 'themes.ai.line_from_hint' : 'themes.ai.line_from') : (madeHint ? 'themes.ai.line_hint' : 'themes.ai.line'), { name, from, hint: madeHint, key }) + unpicked + cut });
 }
 
 /* The names block in the panel, for a label alone, a PET or a sub-theme, and never for a card: the
@@ -9769,436 +9245,6 @@ function thNameApply(i, edit) {
   thDone(before, t('themes.step.renamed'), { settle: [], was, labels: [g.id] });
 }
 
-/* ── the review ── */
-
-const TH_REVIEW_WHAT = t('themes.review.what');
-
-/* The Review tab of the sidebar: AI review, with the sparkles, and the line saying what it
-   does, then the newest round under its head, "Round 2 · 3 questions", each question a card: its
-   number, what it is about as a link to it on the canvas, a tick and a cross, the question in the
-   serif, why in the small type and the rule it rests on, faint, the exchange under it, and Reply.
-   The line under a round says when it was made and by which model. Each earlier round folds under
-   one line, newest first, which a click opens and closes. With the switch off the tab is hidden
-   and draws nothing. It always shows the board itself, a revision on view or not, and a reply being
-   typed survives the tab being drawn again. */
-function thReviewDraw() {
-  const body = $('th-bpanel-body');
-  const v = thLiveV();
-  const typing = document.activeElement && document.activeElement.dataset
-    && document.activeElement.dataset.replyBox !== undefined ? document.activeElement : null;
-  const caret = typing ? { key: typing.dataset.replyBox, start: typing.selectionStart, end: typing.selectionEnd } : null;
-  let html = '';
-  // IPA's review, or a thematic analysis project's own (taaibuild)
-  if (thAiOn() || thTaAiOn()) {
-    const busy = TH.reviewing;
-    const rounds = v ? thReviewRounds(v.review) : [];
-    html += '<div class="th-review-head">'
-      + `<button type="button" class="ghost small th-review-go${busy ? ' busy' : ''}" tabindex="-1" data-review="go"${busy ? ' disabled' : ''} `
-      + `title="${escAttr(TH.ai && TH.ai.model_name ? t('themes.review.go_tip_model', { model: TH.ai.model_name }) : t('themes.review.go_tip'))}">`
-      + `${TH_SPARK_ICON}${esc(busy ? t('themes.ai.asking') : t('themes.review.go'))}</button></div>`
-      // asked as it draws, so a thematic analysis project's line names its own guidance (taaibuild)
-      + `<p class="th-review-what">${esc(thTa() ? t('themes.review.what') : TH_REVIEW_WHAT)}</p>`;
-    if (TH.reviewSaid) html += `<p class="th-names-note failed">${esc(TH.reviewSaid)}</p>`;
-    for (let r = rounds.length - 1; r >= 0; r -= 1) {
-      const round = rounds[r];
-      const newest = r === rounds.length - 1;
-      const open = newest || TH.reviewFolds.has(r);
-      html += newest
-        ? `<h3 class="th-round-head">${esc(thRoundHead(round, r + 1))}</h3>`
-        : `<button type="button" class="th-round-fold${open ? ' open' : ''}" tabindex="-1" data-review-fold="${r}" `
-          + `aria-expanded="${open}">${esc(thRoundHead(round, r + 1, true))}</button>`;
-      if (open) {
-        html += `<ol class="th-review-list">${round.items.map((item, i) => thReviewItemHtml(v, item, `${r}:${i}`, i)).join('')}</ol>`
-          + `<p class="th-review-made">${esc(thReviewMade(round))}</p>`;
-      }
-    }
-  }
-  body.className = 'th-panel-body th-review';
-  body.innerHTML = html;
-  const box = caret ? body.querySelector(`[data-reply-box="${caret.key}"]`) : null;
-  if (box) {
-    box.focus();
-    box.setSelectionRange(caret.start, caret.end);
-  }
-}
-
-function thReviewItemHtml(v, item, key, i) {
-  const about = thReviewAbout(v, item.about);
-  const state = ['considered', 'dismissed'].includes(item.state) ? item.state : 'open';
-  const link = about
-    ? `<button type="button" class="th-review-about" tabindex="-1" data-review-show="${key}" title="${escAttr(about.discarded ? t('themes.review.about_aside') : about.unplaced ? t('themes.review.about_unplaced') : t('themes.review.about_select'))}">${esc(about.name)}</button>`
-    : `<span class="th-review-about none">${esc(item.about ? t('themes.review.about_gone') : t('themes.review.about_whole'))}</span>`;
-  const mark = (to, icon, word) => `<button type="button" class="th-review-mark ${to}${state === to ? ' on' : ''}" tabindex="-1" `
-    + `data-review-mark="${key}" data-state="${to}" aria-pressed="${state === to}" aria-label="${escAttr(word)}" title="${escAttr(word)}">${icon}</button>`;
-  const thread = Array.isArray(item.thread) ? item.thread : [];
-  const reply = TH.replies.get(key);
-  return `<li class="th-review-item ${state}"><div class="th-review-top"><span class="th-review-n">${i + 1}</span>${link}<span class="th-review-acts">`
-    + `${mark('considered', TH_TICK_ICON, t('themes.review.considered'))}${mark('dismissed', TH_DEL_ICON, t('themes.review.dismiss'))}</span></div>`
-    + `<p class="th-review-q">${esc(item.question)}</p>`
-    + (item.why ? `<p class="th-review-why">${esc(item.why)}</p>` : '')
-    + (item.rule && thReviewRule(item.rule) ? `<p class="th-review-rule">${esc(thReviewRule(item.rule))}</p>` : '')
-    + (thread.length ? `<div class="th-thread">${thread.map(thThreadLineHtml).join('')}</div>` : '')
-    + `<button type="button" class="th-reply-link${reply ? ' on' : ''}" tabindex="-1" data-reply="${key}" aria-expanded="${!!reply}">${esc(t('themes.review.reply'))}</button>`
-    + (reply ? thReplyBoxHtml(key, reply) : '')
-    + '</li>';
-}
-
-/* One line of the exchange under a question, told apart by type alone: his in the ink, the AI's in
-   the faint type with the model's name small after it. */
-function thThreadLineHtml(line) {
-  if (line.by !== 'ai') return `<p class="th-thread-me">${esc(line.text)}</p>`;
-  return `<p class="th-thread-ai">${esc(line.text)}${line.model ? ` <span class="th-thread-model">${esc(line.model)}</span>` : ''}</p>`;
-}
-
-/* The small box Reply opens under a question: his words, and Send, with the sparkles, since it
-   asks the AI. A failure is one line under it, his words kept in the box. */
-function thReplyBoxHtml(key, reply) {
-  const model = TH.ai && TH.ai.model_name ? TH.ai.model_name : '';
-  return `<div class="th-reply"><textarea class="th-vedit th-reply-box" data-reply-box="${key}" rows="3" maxlength="2000" spellcheck="true" `
-    + `placeholder="${escAttr(t('themes.reply.placeholder'))}" aria-label="${escAttr(t('themes.reply.label'))}"${reply.busy ? ' readonly' : ''}>${esc(reply.text || '')}</textarea>`
-    + `<div class="th-reply-acts"><button type="button" class="ghost small th-reply-send${reply.busy ? ' busy' : ''}" tabindex="-1" `
-    + `data-reply-send="${key}"${reply.busy ? ' disabled' : ''} title="${escAttr(model ? t('themes.reply.tip_to', { model }) : t('themes.reply.tip'))}">`
-    + `${TH_SPARK_ICON}${esc(reply.busy ? t('themes.reply.sending') : t('themes.reply.send'))}</button></div>`
-    + (reply.said ? `<p class="th-names-note failed">${esc(reply.said)}</p>` : '')
-    + '</div>';
-}
-
-/* ── a reply box's own undo ── */
-
-/* A reply box, the Review tab's or the Revise tab's, keeps an undo of its own, so Cmd + Z there takes
-   back its typing first, a run of typing or of deleting at a time as any text box does, and once it
-   has none left goes on to the board's undo, Shift + Cmd + Z the same for redo, with no Esc first. The
-   page keeps it rather than the browser, since the browser's undo comes after the key and says
-   nothing of what is left. It is kept by the box's key while the words in the box are the ones it last
-   saw, so a box drawn again keeps it, and a box whose words the page set, sent or emptied, starts
-   again with nothing to undo. */
-const TH_BOX_PAUSE = 800;   // the pause in ms that starts a new step of typing
-
-function thBoxKey(box) {
-  if (!box || !box.classList || !box.classList.contains('th-reply-box')) return null;
-  return box.dataset && box.dataset.replyBox !== undefined ? `reply:${box.dataset.replyBox}` : 'revise';
-}
-
-function thBoxHist(box) {
-  const key = thBoxKey(box);
-  if (!key) return null;
-  let h = TH.boxHist.get(key);
-  if (!h || h.now !== box.value) {
-    h = { past: [], future: [], now: box.value, at: 0, kind: '' };
-    TH.boxHist.set(key, h);
-  }
-  return h;
-}
-
-/* Before an edit of his in a reply box: the words and the caret as they stand become a step, unless
-   it carries on a run of typing or of deleting with no pause. The browser's own undo is never asked
-   for, since Cmd + Z in the box is the page's. */
-function thBoxBefore(e, now = Date.now()) {
-  const type = String(e.inputType || '');
-  if (!type || type.startsWith('history')) return;
-  const box = e.target;
-  const h = thBoxHist(box);
-  if (!h) return;
-  const kind = type.startsWith('delete') ? 'delete' : (type === 'insertText' || type === 'insertCompositionText') ? 'type' : type;
-  const run = kind === h.kind && (kind === 'type' || kind === 'delete') && now - h.at < TH_BOX_PAUSE;
-  if (!run) h.past.push({ value: box.value, start: box.selectionStart, end: box.selectionEnd });
-  h.future = [];
-  h.kind = kind;
-  h.at = now;
-}
-
-/* after any edit in a reply box, the words its undo last saw */
-function thBoxAfter(e) {
-  const key = thBoxKey(e.target);
-  const h = key ? TH.boxHist.get(key) : null;
-  if (h) h.now = e.target.value;
-}
-
-/* Cmd + Z in a reply box, or with Shift its redo: a step of its own typing back, the words and the
-   caret as they were, told to the tab as typing is, or with none left the board's own step. A box
-   on its way to the AI, read-only until the answer, keeps its words and leaves the press to the
-   board. Answers which took it, 'box' or 'board'. */
-function thBoxUndo(box, backwards) {
-  const h = box.readOnly ? null : thBoxHist(box);
-  const from = h ? (backwards ? h.past : h.future) : [];
-  if (!from.length) {
-    thUndo(backwards);
-    return 'board';
-  }
-  const step = from.pop();
-  (backwards ? h.future : h.past).push({ value: box.value, start: box.selectionStart, end: box.selectionEnd });
-  box.value = step.value;
-  box.setSelectionRange(step.start, step.end);
-  h.now = box.value;
-  h.kind = '';
-  box.dispatchEvent(new Event('input', { bubbles: true }));
-  return 'box';
-}
-
-/* AI review: the board as the file holds it, the canvas saved first, goes with the rules and the
-   reviewer's questions, and the questions come back to the tab and are kept with the board by the
-   autosave. A second press asks again, the server sending every earlier question with his tick,
-   cross or neither, and the new round goes on top with the one before folded under its line. One
-   call per press, and nothing on the canvas changes. A server from before the rounds, which says
-   nothing of the earlier questions, says to restart. */
-async function thReviewAsk() {
-  if (!TH.live || TH.busy || !thReviewOn() || TH.reviewing || !TH.meta) return;
-  thTitleDone(true);
-  thNoteDone(true);
-  // a review is of the board itself, so a revision on view goes first
-  thViewEnd();
-  const path = TH.path;
-  const board = TH.meta.id;
-  const ask = ++TH.reviewAsk;
-  TH.reviewing = true;
-  TH.reviewSaid = '';
-  thSideOpen('review');
-  let data = null;
-  let said = '';
-  try {
-    await thFlush();
-    if (TH.dirty) said = t('themes.unsaved.asked');
-    else data = await api(thAiPath(), { workbook: path, op: 'review', version: board });
-  } catch (err) {
-    said = needsRestart(err) || refusedAs(err, 'unknown_op') ? RESTART_LINE : err.message;
-  }
-  if (ask !== TH.reviewAsk) return;
-  TH.reviewing = false;
-  if (!said && data && (!data.review || typeof data.asked !== 'number')) said = RESTART_LINE;
-  const v = thLiveV();
-  if (!said && (TH.path !== path || !TH.meta || TH.meta.id !== board || !v)) {
-    said = t('themes.review.changed');
-  }
-  TH.reviewSaid = said;
-  if (!said) {
-    v.review = thReviewNext(v.review, data.review);
-    TH.reviewFolds = new Set();
-    thSoon();
-  }
-  if (TH.boardOpen && TH.tab === 'review') thBoardDraw();
-}
-
-/* A tick, Considered, or a cross, Dismiss, on one question, by its key: saved with the board, and
-   the same again puts it back to open. Nothing else changes. */
-function thReviewSet(key, state) {
-  const v = thLiveV();
-  const [r, i] = String(key).split(':').map(Number);
-  const round = v ? thReviewRounds(v.review)[r] : null;
-  if (!TH.live || !round || thReviewMark(round, i, state) === null) return;
-  thSoon();
-  thBoardDraw();
-}
-
-/* An earlier round's line: its questions shown under it, or folded away again. Nothing is saved. */
-function thReviewFold(r) {
-  if (TH.reviewFolds.has(r)) TH.reviewFolds.delete(r); else TH.reviewFolds.add(r);
-  thBoardDraw();
-}
-
-/* Reply under a question: its box opened, empty, with the caret in it, or closed again, unless an
-   answer to it is on its way. */
-function thReplyOpen(key) {
-  const held = TH.replies.get(key);
-  if (held && held.busy) return;
-  if (held) { TH.replies.delete(key); thBoardDraw(); return; }
-  TH.replies.set(key, { text: '', busy: false, said: '', ask: 0 });
-  thBoardDraw();
-  const box = $('th-bpanel-body').querySelector(`[data-reply-box="${key}"]`);
-  if (box) box.focus();
-}
-
-/* Esc in a reply's box: the box closed, his words with it. An answer on its way still lands. */
-function thReplyClose(key) {
-  TH.replies.delete(key);
-  thBoardDraw();
-}
-
-/* Every reply box put away, on an open of the screen and on another board, and every earlier
-   round folded. An answer on its way lands nowhere. */
-function thReplyDrop() {
-  TH.replies = new Map();
-  TH.replyEra += 1;
-  TH.reviewFolds = new Set();
-}
-
-/* Send, or Cmd + Enter in the box: the canvas saved first, then the board as the review sends it,
-   the question, its why and the exchange under it as the file holds them, and his words, in one
-   call through the PETs route. The answer goes under his words in the card and is kept with the
-   board by the autosave, and the box closes. A failure is one line in the card, his words kept in
-   the box, and a server from before the replies says to restart. Nothing on the canvas changes. */
-async function thReplySend(key) {
-  const held = TH.replies.get(key);
-  const words = held ? String(held.text || '').trim() : '';
-  if (!TH.live || TH.busy || !thReviewOn() || !TH.meta || !held || held.busy || !words) return;
-  const v = thLiveV();
-  const item = v ? thReviewItem(v.review, key) : null;
-  if (!item) return;
-  // a reply is on the board itself, so a revision on view goes first
-  thViewEnd();
-  const path = TH.path;
-  const board = TH.meta.id;
-  const [r, i] = key.split(':').map(Number);
-  const question = item.question;
-  const ask = ++TH.replyAsk;
-  const era = TH.replyEra;
-  const at = new Date().toISOString();
-  Object.assign(held, { busy: true, said: '', ask });
-  thBoardDraw();
-  let data = null;
-  let said = '';
-  try {
-    await thFlush();
-    if (TH.dirty) said = t('themes.unsaved.asked');
-    else data = await api(thAiPath(), { workbook: path, op: 'reply', version: board, round: r, item: i, question, text: words });
-  } catch (err) {
-    said = needsRestart(err) || refusedAs(err, 'unknown_op') ? RESTART_LINE : err.message;
-  }
-  // another board, or the screen opened afresh, sets the answer aside
-  if (era !== TH.replyEra || TH.path !== path || !TH.meta || TH.meta.id !== board) return;
-  if (!said && data && !data.reply) said = RESTART_LINE;
-  const now = thLiveV();
-  const target = now ? thReviewItem(now.review, key) : null;
-  if (!said && (!target || target.question !== question)) return;
-  const box = TH.replies.get(key);
-  const mine = !box || box.ask === ask;
-  if (said) {
-    if (mine) TH.replies.set(key, { text: words, busy: false, said, ask: 0 });
-  } else {
-    thReplyKeep(target, words, data.reply, at);
-    if (box && mine) TH.replies.delete(key);
-    thSoon();
-  }
-  if (TH.boardOpen && TH.tab === 'review') thBoardDraw();
-}
-
-/* What a question is about, selected on the canvas and fitted in view, the sidebar left open on
-   Review. A discarded statement opens the pile, where its card is. */
-function thReviewShow(key) {
-  const held = thLiveV();
-  const item = held ? thReviewItem(held.review, key) : null;
-  if (!TH.live || !item) return;
-  thViewEnd();
-  const about = thReviewAbout(TH.v, item.about);
-  if (!about) { thBoardDraw(); return; }
-  if (about.discarded) { thListOpenAt('aside'); return; }
-  // a code in Not placed has no card, and the sidebar's list shows it (taaibuild)
-  if (about.unplaced) { if (!TH.casesOpen) gtCasesOpen(); return; }
-  thSelectOnly({ kind: about.kind, id: about.id });
-  TH.lastPick = { kind: about.kind, id: about.id };
-  thPanelFollow();
-  const s = thSize(about.id);
-  const c = TH.v.cards[about.id];
-  thFitTo(about.kind === 'group' ? (TH.layout[about.id] || {}).frame : { x: c.x, y: c.y, w: s.w, h: s.h });
-}
-
-/* ── AI revise ── */
-
-/* The Revise tab of the sidebar: the thread of this board's requests, his in the ink and the
-   answers in the faint type with the model's name, as a reply's exchange reads, the newest at the
-   foot, then the box and Send, with the sparkles, the only thing in the tab that carries them. A
-   failure is one line under the thread, his words kept in the box. With the switch off the tab is
-   hidden and draws nothing. It always shows the board itself, a revision on view or not, and the
-   words being typed survive the tab being drawn again. */
-const TH_REVISE_ASK = t('themes.revise.ask');
-
-function thReviseDraw() {
-  const body = $('th-bpanel-body');
-  const v = thLiveV();
-  const typing = document.activeElement && document.activeElement.id === 'th-revise-box';
-  const caret = typing ? { start: document.activeElement.selectionStart, end: document.activeElement.selectionEnd } : null;
-  let html = '';
-  if (thAiOn()) {
-    const busy = TH.revising;
-    const thread = v && Array.isArray(v.revise) ? v.revise : [];
-    const model = TH.ai && TH.ai.model_name ? TH.ai.model_name : '';
-    if (thread.length) html += `<div class="th-thread th-revise-thread">${thread.map(thThreadLineHtml).join('')}</div>`;
-    if (TH.reviseSaid) html += `<p class="th-names-note failed">${esc(TH.reviseSaid)}</p>`;
-    html += `<div class="th-reply th-revise"><textarea class="th-vedit th-reply-box" id="th-revise-box" data-revise-box="1" rows="3" `
-      + `maxlength="2000" spellcheck="true" placeholder="${escAttr(TH_REVISE_ASK)}" aria-label="${escAttr(TH_REVISE_ASK)}"${busy ? ' readonly' : ''}>`
-      + `${esc(TH.reviseText || '')}</textarea>`
-      + `<div class="th-reply-acts"><button type="button" class="ghost small th-reply-send th-revise-send${busy ? ' busy' : ''}" tabindex="-1" `
-      + `data-revise-send="1"${busy ? ' disabled' : ''} title="${escAttr(model ? t('themes.revise.tip_to', { model }) : t('themes.revise.tip'))}">`
-      + `${TH_SPARK_ICON}${esc(busy ? t('themes.revise.busy') : t('themes.revise.go'))}</button></div></div>`;
-  }
-  body.className = 'th-panel-body th-revise-tab';
-  body.innerHTML = html;
-  const box = $('th-revise-box');
-  if (box && caret) {
-    box.focus();
-    box.setSelectionRange(caret.start, caret.end);
-  }
-}
-
-/* Send, or Cmd + Enter in the box: the canvas saved first, then his request on the board as the
-   file holds it, with the thread so far, in one call through the PETs route, the canvas waiting
-   as it waits for a new AI board. The server keeps the board as it stood as a revision, "Before:
-   his request", when the answer changes it, and the change lands on the canvas as a drop does,
-   the labels it changed shown landing, one step of undo for the whole of it, and is saved. His
-   request and the answer go into the thread and the box empties for the next. A failure changes
-   nothing and is one line under the thread, his words kept in the box. A server from before it
-   says to restart and is asked nothing. */
-async function thReviseSend() {
-  const words = String(TH.reviseText || '').trim();
-  if (!TH.live || TH.busy || !thAiOn() || !TH.meta || TH.revising || !words) return;
-  if (!TH.revisable) { TH.reviseSaid = RESTART_LINE; if (TH.boardOpen && TH.tab === 'revise') thBoardDraw(); return; }
-  thTitleDone(true);
-  thNoteDone(true);
-  // a revise is of the board itself, so a revision on view goes first
-  thViewEnd();
-  const path = TH.path;
-  const board = TH.meta.id;
-  const ask = ++TH.reviseAsk;
-  const at = new Date().toISOString();
-  TH.revising = true;
-  TH.reviseSaid = '';
-  TH.busy = true;
-  thStage().classList.add('th-busy');
-  thSideOpen('revise');
-  let data = null;
-  let said = '';
-  try {
-    await thFlush();
-    if (TH.dirty) said = t('themes.unsaved.asked');
-    else data = await api(thAiPath(), { workbook: path, op: 'revise', version: board, text: words });
-  } catch (err) {
-    said = needsRestart(err) || refusedAs(err, 'unknown_op') ? RESTART_LINE : err.message;
-  } finally {
-    TH.busy = false;
-    thStage().classList.remove('th-busy');
-  }
-  if (ask !== TH.reviseAsk) return;
-  TH.revising = false;
-  if (!said && data && !data.revise) said = RESTART_LINE;
-  if (!said && (TH.path !== path || !TH.meta || TH.meta.id !== board || !TH.v || TH.viewing)) {
-    said = t('themes.revise.changed');
-  }
-  if (said) {
-    TH.reviseSaid = said;
-    if (TH.boardOpen && TH.tab === 'revise') thBoardDraw();
-    return;
-  }
-  const v = TH.v;
-  // the revision kept of the board as it stood, for the History tab
-  if (Array.isArray(data.history)) TH.history = data.history;
-  if (data.revised) {
-    const before = thSnap(v, TH.removed);
-    const was = thLabelBoxes(TH.layout);
-    const from = thSpots(v);
-    const landed = thReviseTake(v, data.revised, thSize);
-    if (TH.mode === 'gets' && data.revised.rows) v.rows = JSON.parse(JSON.stringify(data.revised.rows));
-    Object.assign(from.groups, landed.from);
-    thAck(landed.cards);
-    thDone(before, t('themes.step.revised_ai'), { settle: landed.settle, stay: true, was, from, lifted: landed.lifted, labels: landed.labels });
-  }
-  thReviseKeep(v, words, data.revise, at);
-  TH.reviseText = '';
-  thSoon();
-  if (TH.boardOpen && TH.tab === 'revise') {
-    thBoardDraw();
-    $('th-bpanel-body').scrollTop = $('th-bpanel-body').scrollHeight;
-  }
-}
-
 /* ── work done outside the page, by an AI agent in a conversation ── */
 
 /* A statement's short id, S1 on, small and faint after its timecode in the Inspector, so he and an
@@ -10234,7 +9280,6 @@ function thOutside(info) {
   if (!box) return;
   box.hidden = !info;
   if (!info) return;
-  thMade(null);
   thExported(null);
   $('th-outside-line').textContent = info.line;
   box.title = info.said || '';
@@ -10385,7 +9430,6 @@ const TH_STALE_RELOADED = t('themes.stale.reloaded');
 function thStaleShow(info) {
   TH.stale = { board: String(info.board || ''), v: String(info.v || '') };
   TH.staleKept = null;
-  thMade(null);
   thExported(null);
   thOutside(null);
   thStaleDraw();
@@ -11423,7 +10467,6 @@ function thTableBoardKey(e) {
     else if (TH.casemenu) thCasemenu(false);
     else if (TH.xmenu) thXmenu(false);
     else if (TH.exported) thExported(null);
-    else if (TH.made) thMade(null);
     else if (TH.viewing) thViewEnd();
     else if (TH.opened && TH.opened.size && !(TH.sel.cards.size || TH.sel.groups.size || TH.sel.stickies.size)) thStackShow(null);
     else if (TH.sel.cards.size || TH.sel.groups.size || TH.sel.stickies.size) { thClearSel(); thPanelFollow(); }
@@ -11472,15 +10515,6 @@ function thKeyDown(e) {
     else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); TH.doomed = null; hide('th-confirm'); }
     return;
   }
-  // New AI board's card: Enter in it is Make, unless a button of its own has the focus, and Esc is
-  // Cancel
-  if (!$('th-aicard').hidden) {
-    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); thAiCard(false); }
-    else if (e.key === 'Enter' && !MOD(e) && !(e.target && e.target.closest && e.target.closest('button'))) {
-      e.preventDefault(); e.stopPropagation(); thAutoGroup();
-    }
-    return;
-  }
   // the GETs screen's print card and its audit trail keep their own keys, and the canvas hears none
   if (gtKeys(e)) return;
   if (anyOverlayOpen()) return;
@@ -11490,17 +10524,9 @@ function thKeyDown(e) {
   if (e.key === 'Escape' && TH.drag) { e.preventDefault(); e.stopPropagation(); thDragCancel(); return; }
   // and a row dragged from the sidebar goes back to it
   if (e.key === 'Escape' && TH.spull) { e.preventDefault(); e.stopPropagation(); thSPullEnd(e, true); return; }
-  // Cmd + Z in a reply box takes back its own typing first, and once it has none left the board's
-  // last step, Shift + Cmd + Z the same for redo, with no Esc first (see thBoxUndo)
-  if (((MOD(e) && (e.key === 'z' || e.key === 'Z')) || REDO_Y(e)) && thBoxKey(e.target)) {
-    e.preventDefault();
-    e.stopPropagation();
-    thBoxUndo(e.target, !e.shiftKey && !REDO_Y(e));
-    return;
-  }
   // the Search card over the canvas keeps its own keys, its field typing what it types (search.js)
   if (e.target && e.target.closest && e.target.closest('.search-card')) return;
-  if (e.target && e.target.closest && e.target.closest('.th-title-edit, .th-vedit, .th-ai-hint')) return;
+  if (e.target && e.target.closest && e.target.closest('.th-title-edit, .th-vedit')) return;
   e.stopPropagation();
   // the right-click menu goes first: Esc puts it away, and any other key does too
   if (TH.menu) { if (e.key === 'Escape') { e.preventDefault(); thMenuClose(); return; } thMenuClose(); }
@@ -11536,7 +10562,6 @@ function thKeyDown(e) {
     else if (TH.xmenu) thXmenu(false);
     else if (TH.pileOpen) thPile(false);
     else if (TH.exported) thExported(null);
-    else if (TH.made) thMade(null);
     else if (TH.viewing) thViewEnd();
     else if (TH.hand) thHand(false);
     // a stack shown open is stacked again, and with the selection the selection goes first
@@ -11873,7 +10898,6 @@ async function thToTraj() {
     thXmenu(false);
     thCasemenu(false);
     thSideShut(false);
-    thAiCard(false);
     thMenuClose();
     $('themes').hidden = true;
   };
@@ -11901,7 +10925,6 @@ async function thToCodes(how = {}) {
     thXmenu(false);
     thCasemenu(false);
     thSideShut(false);
-    thAiCard(false);
     thMenuClose();
     $('themes').hidden = true;
   };
@@ -11982,9 +11005,7 @@ async function thToStatements() {
     thXmenu(false);
     thCasemenu(false);
     thSideShut(false);
-    thAiCard(false);
     thExported(null);
-    thMade(null);
     thMenuClose();
     $('themes').hidden = true;
   };
@@ -12577,64 +11598,6 @@ function gtBadgeUp(z) {
   const need = GT_BADGE_FLOOR / (GT_BADGE_LETTER * (Number(z) || 1));
   return { up: Math.min(GT_BADGE_MOST, Math.max(1, need)), far: need > GT_BADGE_MOST + 1e-9 };
 }
-
-/* ── the AI help on the GETs screen, the PETs screen's controls one layer up ── */
-
-const GT_FROM_ALL = t('themes.gets.from_all');
-const gtCapLine = (n) => t('themes.gets.cap_line', { low: n - 1, n });
-const gtCutLine = (n) => t('themes.gets.cut_line', { n });
-
-/* New AI board's card on the GETs screen: From names every case's PETs or the board on the canvas,
-   and the line under it says, once the server has worked it out without asking anything, when the
-   prompt would leave statements' words out for room. A server from before it says nothing more. */
-function gtAiCardDraw() {
-  gtAiFromDraw();
-  TH.aiRoom = null;
-  const ask = ++TH.aiRoomAsk;
-  api('/api/gets-ai', { workbook: TH.path, op: 'room', version: TH.meta ? TH.meta.id : null, cap: TH.cap })
-    .then((data) => {
-      if (ask !== TH.aiRoomAsk || !data || !data.room) return;
-      TH.aiRoom = data.room;
-      gtAiFromDraw();
-    })
-    .catch(() => { /* a server from before it, and the card says no more */ });
-}
-
-function gtAiFromDraw() {
-  const board = TH.meta ? TH.meta.name : '';
-  $('th-aicard-title').textContent = t('themes.ai.card_title', { from: TH.aiFrom === 'board' ? board : GT_FROM_ALL });
-  $('th-from-all').textContent = t('themes.gets.from_all_head');
-  const who = TH.ai && TH.ai.model_name ? TH.ai.model_name : t('themes.ai.model_default');
-  const cut = TH.aiRoom ? Number(TH.aiRoom[TH.aiFrom === 'board' ? 'board' : 'all']) || 0 : 0;
-  $('th-aicard-line').textContent = t('themes.ai.card_line', { who, from: board }) + (cut ? ` ${gtCutLine(cut)}` : '');
-}
-
-/* What New AI board on GETs waits on: the PETs and sub-themes it sends, each an item of its own
-   (item 193), every case's, or those on the board on the canvas that are not in the bin, counted
-   apart, `{ pets, subs }`. A sub-theme's groups ride inside it and count for nothing apart. */
-function gtAiCount(whole) {
-  const out = { pets: 0, subs: 0 };
-  if (whole) {
-    for (const c of ((TH.gets && TH.gets.cases) || []).filter((x) => x.in && !x.none)) {
-      const byId = Object.fromEntries((c.pets || []).map((p) => [p.id, p]));
-      for (const p of c.pets || []) {
-        if (!p.parent) out.pets += 1;
-        else if (byId[p.parent] && !byId[p.parent].parent) out.subs += 1;
-      }
-    }
-    return out;
-  }
-  for (const [key, c] of Object.entries(TH.v.cards)) {
-    if (TH.v.discarded.includes(key)) continue;
-    if (c.kind === 'pet') out.pets += 1;
-    else if (c.kind === 'sub') out.subs += 1;
-  }
-  return out;
-}
-
-/* what the canvas says while a new AI board on GETs is made, "Grouping 6 PETs and 3 sub-themes" */
-const gtGrouping = (n) => (n.subs ? t('themes.ai.grouping_pets_subs', { pets: t('themes.delete.n_pets', { n: n.pets }), subs: t('themes.gets.n_subs', { n: n.subs }) })
-  : t('themes.ai.grouping_pets', { n: n.pets }));
 
 /* the cases of the study: those Settings has not taken out */
 function gtInside() {
@@ -15498,7 +14461,6 @@ function themesBoot() {
     else if (what === 'note') thVEdit('note');
     else if (what === 'revision') thVEdit('revision');
     else if (what === 'revision-go') { const box = $('th-vedit-rev'); thVmenu(false); thSaveRevision(box ? box.value : ''); }
-    else if (what === 'ai') thAiCard(true);
     else if (what === 'subs') gtAddSubs();
     else if (what === 'bypart') gtArrangeByParticipant();
     else if (what === 'choose') thChoose();
@@ -15572,8 +14534,7 @@ function themesBoot() {
     const tab = e.target.closest('[data-tab]');
     if (tab) thSideOpen(tab.dataset.tab);
   });
-  // the tabs about the board keep the focus off their buttons the same way: History's revisions,
-  // and Review's AI review, a tick or a cross on a question and its link
+  // the tabs about the board keep the focus off their buttons the same way: History's revisions
   const board = $('th-bpanel');
   board.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
   board.addEventListener('click', (e) => {
@@ -15582,47 +14543,6 @@ function themesBoot() {
     const restore = e.target.closest('[data-rev-restore]');
     if (restore) { thRestoreRevision(restore.dataset.revRestore); return; }
     if (e.target.closest('[data-rev-save]')) { thSaveRevision(($('th-rev-name') || {}).value || ''); return; }
-    const review = e.target.closest('[data-review]');
-    if (review) { thReviewAsk(); return; }
-    const mark = e.target.closest('[data-review-mark]');
-    if (mark) { thReviewSet(mark.dataset.reviewMark, mark.dataset.state); return; }
-    const shown = e.target.closest('[data-review-show]');
-    if (shown) { thReviewShow(shown.dataset.reviewShow); return; }
-    const fold = e.target.closest('[data-review-fold]');
-    if (fold) { thReviewFold(Number(fold.dataset.reviewFold)); return; }
-    const replying = e.target.closest('[data-reply]');
-    if (replying) { thReplyOpen(replying.dataset.reply); return; }
-    const send = e.target.closest('[data-reply-send]');
-    if (send) { thReplySend(send.dataset.replySend); return; }
-    if (e.target.closest('[data-revise-send]')) { thReviseSend(); return; }
-  });
-  // the Revise tab's box keeps its own keys too: Cmd + Enter sends and Esc leaves the box, and what
-  // he types is kept as the tab is drawn again
-  board.addEventListener('keydown', (e) => {
-    if (!e.target || e.target.id !== 'th-revise-box') return;
-    e.stopPropagation();
-    if (e.key === 'Enter' && MOD(e)) { e.preventDefault(); thReviseSend(); }
-    else if (e.key === 'Escape') { e.preventDefault(); e.target.blur(); }
-  });
-  board.addEventListener('input', (e) => {
-    if (e.target && e.target.id === 'th-revise-box' && !TH.revising) TH.reviseText = e.target.value;
-  });
-  // a reply box's own undo hears every edit in it, before and after
-  document.addEventListener('beforeinput', thBoxBefore, true);
-  document.addEventListener('input', thBoxAfter, true);
-  // a reply's box keeps its own keys, which nothing on this screen or the turn screen hears:
-  // Cmd + Enter sends, Esc closes the box, and what he types is kept as the tab is drawn again
-  board.addEventListener('keydown', (e) => {
-    const key = e.target && e.target.dataset ? e.target.dataset.replyBox : undefined;
-    if (key === undefined) return;
-    e.stopPropagation();
-    if (e.key === 'Enter' && MOD(e)) { e.preventDefault(); thReplySend(key); }
-    else if (e.key === 'Escape') { e.preventDefault(); thReplyClose(key); }
-  });
-  board.addEventListener('input', (e) => {
-    const key = e.target && e.target.dataset ? e.target.dataset.replyBox : undefined;
-    const held = key === undefined ? null : TH.replies.get(key);
-    if (held && !held.busy) held.text = e.target.value;
   });
   // the box for a revision's name in the History tab: Enter keeps the revision, Esc lets go, and
   // nothing on this screen or the turn screen hears its keys
@@ -15711,18 +14631,7 @@ function themesBoot() {
   // a board added or changed outside the page, and its line in the corner
   thOutsideBoot();
 
-  // New AI board's card: Make and Cancel, and the stepper, which leaves the focus in the hint box
-  $('th-ai-make').onclick = () => thAutoGroup();
-  $('th-aicard-cancel').onclick = () => thAiCard(false);
-  for (const id of ['th-cap-down', 'th-cap-up']) $(id).addEventListener('pointerdown', (e) => e.preventDefault());
-  $('th-cap-down').onclick = () => thCapStep(-1);
-  $('th-cap-up').onclick = () => thCapStep(1);
-  // From, which leaves the focus in the hint box as the stepper does
-  for (const b of document.querySelectorAll('#th-from [data-from]')) {
-    b.addEventListener('pointerdown', (e) => e.preventDefault());
-    b.onclick = () => { TH.aiFrom = b.dataset.from; thAiFromDraw(); };
-  }
-  // the export's line: Show in Finder, and its cross, and the AI board's line beside it
+  // the export's line: Show in Finder, and its cross
   $('th-exported').addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
   $('th-reveal').onclick = () => thReveal();
   $('th-exported-close').onclick = () => thExported(null);
@@ -15732,8 +14641,6 @@ function themesBoot() {
     e.preventDefault();
     if (window.openSupport) window.openSupport();
   });
-  $('th-made').addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
-  $('th-made-close').onclick = () => thMade(null);
   $('th-pplay').onclick = () => thPlayToggle();
   for (const ev of ['play', 'pause', 'ended', 'timeupdate', 'loadedmetadata', 'durationchange', 'seeked']) {
     $('th-player').addEventListener(ev, thPlayerDraw);
