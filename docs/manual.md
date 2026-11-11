@@ -283,6 +283,18 @@ portrait in its tooltip. Trajectories shows the same picture and label, and its 
 screen. Each change is a record in the project's History, and an agent sets them with `participant set`. Export as
 REFI-QDA gives each participant's pen portrait as their case's description, and no picture goes into any export.
 
+**The label and the pen portrait in the exports (11 November 2026, pbioexport).** Pen portrait, the last tick under
+Export on PETs and on the print view, puts the participant's label, in italics, and their pen portrait under their
+name at the head of the table of PETs, in the print view, the PDF and the Word document. Participants table, the last
+tick on the GETs Export card, puts a first page before the GET table, the audit trail or all of it in one document:
+a table of each participant in order, their number, pseudonym, label and pen portrait, as a write-up carries it, and
+the part after it starts on the next page under its heading. In all of it in one document it follows the contents.
+A thematic analysis project's theme table carries it too, in its PDF and its Word document. Both ticks are off on a
+new install and kept as they are left. A participant with no label or pen portrait gets nothing under their name, and
+a row with its cells empty in the table. The number is the one the folder gives, P2, or the participant's place in the
+order where the folder has none. Participants table is not offered for the canvas, one GET's trail or a participant's
+LPETs. No picture goes into any export, since a photograph of a real participant identifies them.
+
 **Rename (16 October).** A pseudonym given once sometimes changes, so Rename, in the dots on a
 participant's row after Files, gives the participant a new one (a tester's ask, Adam's word). Its card
 holds the name now, a field for the new name, one unticked row, Rename the folder too, and under them
@@ -3498,7 +3510,9 @@ row, so the page never parts them from it. It is off on a new install, so the to
 alone, and it reaches the Word document and the PET draft too (19 October, see Stacks). A fourth tick
 beside them, Leave out the board's name (For sending until 31 October), is for the copy he sends his supervisor (19 October). Before them all stands
 Descriptions (21 October), on on a new install, which puts each PET's and sub-PET's description under its
-title on the page and in the Word document, and leaves it out when unticked (see Descriptions). With Leave
+title on the page and in the Word document, and leaves it out when unticked (see Descriptions). After them all
+stands Pen portrait (11 November), off on a new install, which puts the participant's label and pen portrait under
+their name (see The label and the pen portrait in the exports). With Leave
 out the board's name on, the PDF
 saves by the participant alone, "P9 - Wren.pdf", where it otherwise saves as "P9 - Wren - Board 3 -
 PETs.pdf", the Word document the same, and the page carries no board's name and no Current board
@@ -4150,7 +4164,10 @@ under each GET, with its quote", and Their key quote only, "The one quote chosen
 choice the book leaves to the analyst, where they read Full and Selected. Then Descriptions, Include participant notes,
 unticked each time, its tick in the ink since 17 October, later, where it was the crux orange, and
 Leave out the board's name (For sending until 31 October), the same tick as under Export on PETs and kept with it, which leaves the board's name
-off the page, its PET tables and its title, so the PDF saves as "Study - GET table" (19 October). Canvas on one page prints the canvas itself as Print under Export does on the PETs canvas (see
+off the page, its PET tables and its title, so the PDF saves as "Study - GET table" (19 October), and last
+Participants table (11 November), off on a new install and kept as it is left, which puts a table of the participants
+on a first page (see The label and the pen portrait in the exports), shown for the GET table, the audit trail and all
+of it in one document. Canvas on one page prints the canvas itself as Print under Export does on the PETs canvas (see
 Export, under PETs), every card whole, on one landscape page under the project's name and the board's, Under each participant
 gone while it is chosen. Print opens the print view in a tab of its own,
 `/gets/print?root=<path>&board=<id>&what=table`, with `trail` or `all`, `detail=selected` and
@@ -4665,7 +4682,8 @@ with the project's name at its head and "Table of themes" under it, then each th
 description and note, its subthemes under it, and under each its codes, each with whose it is and where, "(Juno,
 Initial, 00:14)", and its extract on the next line. With Their key extract only chosen, each theme holds every
 participant's key extract alone. Descriptions, Include participant notes and Leave out the board's name apply as
-they do to the PDF. It is saved at the project's root, where the PDF goes, as "<project> - Board 1 - Theme
+they do to the PDF, and Participants table puts the participants table on its first page, under Participants, the
+themes starting on the next. It is saved at the project's root, where the PDF goes, as "<project> - Board 1 - Theme
 table.docx", never over a file there, and its author is the name in Settings, General, Your name.
 
 On a desk's width the card's Folder and Name fields start at one left edge and run to its right, as

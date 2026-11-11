@@ -7621,9 +7621,11 @@ async function thLabels(value) {
    open. The print view carries the same ticks and saves to the same keys. Include stacked
    statements, the third, puts the statements stacked under a top beneath it (19 October). For
    sending, the fourth, names the PDF and the Word document by the case alone and leaves the board's
-   name off the page (Adam, 19 October), and the GETs print card carries it too, on the same key. */
+   name off the page (Adam, 19 October), and the GETs print card carries it too, on the same key. Pen
+   portrait, the last, puts the participant's label and pen portrait under their name (pbioexport, 11
+   November 2026). The GETs print card's Participants table, `export_participants`, is sent by the card. */
 const TH_INCLUDES = { export_not_placed: 'unplaced', export_binned: 'binned', export_stacked: 'stacked',
-  export_for_sending: 'sending', export_descriptions: 'descriptions' };
+  export_for_sending: 'sending', export_descriptions: 'descriptions', export_portrait: 'portrait' };
 // Descriptions, the one tick on on a new install (Adam, 21 October)
 const TH_INCLUDES_ON = ['export_descriptions'];
 const thIncluded = (key) => (TH_INCLUDES_ON.includes(key) ? !(TH.config && TH.config[key] === false) : !!(TH.config && TH.config[key]));
@@ -13775,7 +13777,15 @@ function gtPrintDraw() {
   if ($('gt-print-png')) $('gt-print-png').hidden = !(p.what === 'canvas' && !p.gid);
   // and a thematic analysis project's theme table Microsoft Word (taword)
   if ($('gt-print-word')) $('gt-print-word').hidden = !(thTa() && !TH.lpets && p.what === 'table' && !p.gid);
+  // Participants table, for the GET table, the trail and all of it, never the canvas, one GET's trail or a
+  // participant's LPETs, whose columns are their timepoints (pbioexport)
+  if ($('gt-print-people-row')) $('gt-print-people-row').hidden = !gtPeopleShown(p);
 }
+
+/* whether the card shows Participants table for what it prints, and whether a print opens with the participants
+   table: the tick shown and ticked */
+function gtPeopleShown(p) { return !!p && p.what !== 'canvas' && !p.gid && !TH.lpets; }
+function gtPeopleSent(p) { return gtPeopleShown(p) && thIncluded('export_participants'); }
 
 function gtPrintShut() {
   TH.printing = null;
@@ -13790,6 +13800,7 @@ function gtPrintUrl(p, notes) {
   if (notes) q.notes = '1';
   q.sending = thIncluded('export_for_sending') ? '1' : '0';
   q.descriptions = thIncluded('export_descriptions') ? '1' : '0';
+  q.participants = gtPeopleSent(p) ? '1' : '0';
   if (p.gid) q.get = p.gid;
   // the page is read on screen first, and its own Print opens the dialog (187)
   q.auto = '0';
@@ -13841,7 +13852,7 @@ async function gtPdfGo() {
   try {
     made = await api('/api/gets-boards', { root: TH.root || '', board: TH.meta.id, op: 'pdf', what: p.gid ? 'trail' : p.what,
       detail: p.detail, notes, get: p.gid || '', sending: thIncluded('export_for_sending'),
-      descriptions: thIncluded('export_descriptions') });
+      descriptions: thIncluded('export_descriptions'), participants: gtPeopleSent(p) });
   } catch (err) {
     say(needsRestart(err) ? RESTART_LINE : (err.message || t('themes.pdf.failed')), 9000);
     return;
@@ -13866,7 +13877,8 @@ async function gtWordGo(p, notes) {
   let made = null;
   try {
     made = await api('/api/gets-boards', { root: TH.root || '', board: TH.meta.id, op: 'word', detail: p.detail, notes,
-      sending: thIncluded('export_for_sending'), descriptions: thIncluded('export_descriptions') });
+      sending: thIncluded('export_for_sending'), descriptions: thIncluded('export_descriptions'),
+      participants: gtPeopleSent(p) });
   } catch (err) {
     say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
     return;
@@ -14198,8 +14210,12 @@ function gtBoot() {
     if (detail && TH.printing) { TH.printing.detail = detail.dataset.detail; gtPrintDraw(); }
   });
   $('gt-print-cancel').onclick = () => gtPrintShut();
-  // Leave out the board's name saves as it changes, as it does in the PETs screen's Export
-  $('gt-print-sending').onchange = (e) => thInclude('export_for_sending', e.target.checked);
+  // the card's kept ticks, Descriptions, Leave out the board's name and Participants table, each save as it
+  // changes, as the PETs screen's Export's do (pbioexport: Descriptions here drew from the settings and saved none)
+  card.addEventListener('change', (e) => {
+    const box = e.target.closest('[data-include]');
+    if (box) thInclude(box.dataset.include, box.checked);
+  });
   $('gt-print-close').onclick = () => gtPrintShut();
   $('gt-print-go').onclick = () => gtPrintGo();
   if ($('gt-print-pdf')) $('gt-print-pdf').onclick = () => gtPdfGo();

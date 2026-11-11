@@ -8,14 +8,24 @@ a Trajectories board from before, its labels and pictures on `placed`, opens wit
 and none writing, until the project page's listing moves them into the participants' own, losslessly, both files
 copied to `_Archive/` first.
 
+The exports (pbioexport, 11 November 2026): Pen portrait, off until ticked and kept in the settings, puts the
+participant's label and pen portrait under the head of the table of PETs, its print view, PDF and Word document
+alike, and nothing for a participant with neither, and Participants table, the same, puts a first page listing
+each participant in order, number, pseudonym, label and pen portrait, a row's cells empty where there is none, in the
+GET table's and the full set's print view and PDF and a thematic analysis project's theme table in Word, the part
+after it from a new page under its heading. No picture goes in any of them. The command line and MCP take both.
+
 The fixtures are invented: a project on learning to swim as an adult, two made-up participants, Orla and Piers,
-an interviewer called Kit, and a made-up name for the list of names to replace."""
+an interviewer called Kit, and a made-up name for the list of names to replace, and for the exports copies of the
+two demos, the IPA one with Mabel's set taken out and the thematic analysis one with Rowan's."""
 from __future__ import annotations
 
 import base64
 import hashlib
 import json
+import re
 import shutil
+import zipfile
 from pathlib import Path
 
 from workbook import WorkbookError
@@ -322,5 +332,234 @@ def test_participant_set(scratch):
               and "P2 - Piers" not in sets and sets["P2 - Rupert"]["label"] == "Racing on Sundays"
               and sets["P2 - Rupert"]["picture"] == "Rupert.png" and (people_mod.pictures_of(pool) / "Rupert.png").is_file()
               and not (people_mod.pictures_of(pool) / "Piers.png").exists(), str([plan["lines"], sets])[:500])
+    finally:
+        server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept
+    exports(scratch)
+
+
+# ------------------------------------------------------------------ the exports (pbioexport)
+
+FLAT = lambda s: "".join(str(s).split()).casefold()
+
+
+def demo_copy(src: Path, project: Path, root: Path, without: str) -> Path:
+    """A copy of a demo as a project of its own, the command line allowed to read it, `without`'s set taken out."""
+    shutil.rmtree(root, ignore_errors=True)
+    for name in ("Juno", "Mabel", "Rowan"):
+        (root / name / "Working").mkdir(parents=True)
+        shutil.copy2(src / f"{name} - EN & ES.xlsx", root / name / f"{name} - EN & ES.xlsx")
+        for side in sorted((src / "Working").glob(f"{name} - *")):
+            shutil.copy2(side, root / name / "Working" / side.name)
+    for extra in ("idiograph-gets.json", "idiograph-codes.json"):
+        if (src / extra).exists():
+            shutil.copy2(src / extra, root / extra)
+    data = json.loads(project.read_text(encoding="utf-8"))
+    data["participants"].pop(without)
+    data["agents"] = {"allowed": True, "at": "2026-11-11T12:00:00+00:00"}
+    (root / "idiograph-project.json").write_text(json.dumps(data), encoding="utf-8")
+    return root
+
+
+def paragraphs(docx: Path) -> list[str]:
+    """A Word document's paragraphs' words, a table's cells each a paragraph of their own, in the file's order."""
+    with zipfile.ZipFile(docx) as z:
+        xml = z.read("word/document.xml").decode("utf-8")
+    return ["".join(re.findall(r"<w:t[^>]*>([^<]*)</w:t>", p)) for p in re.findall(r"<w:p>.*?</w:p>|<w:p/>", xml)]
+
+
+def exports(scratch: Path) -> None:
+    print("\n373. The exports (pbioexport): Pen portrait puts the participant's label and pen portrait under the head of "
+          "the table of PETs, Participants table a first page listing every participant before the GET table and the "
+          "theme table, both off until ticked and kept, nothing for a participant with none, no picture anywhere, and "
+          "the command line and MCP taking both")
+    import cli
+    import gets as gets_mod
+    import gets_print
+    import mcp_server
+    import pdftext
+    import server as server_mod
+    import themes as th_mod
+    import themes_word
+    import idiograph_routes as routes
+
+    base = scratch / "a373x"
+    shutil.rmtree(base, ignore_errors=True)
+    ipa = demo_copy(support.DEMO_SHIPPED, support.source("demo/idiograph-project.json"), base / "ipa", "Mabel")
+    ta = demo_copy(support.source("demo/ta/pristine"), support.source("demo/ta/idiograph-project.json"), base / "ta",
+                   "Rowan")
+    sets = json.loads(support.source("demo/idiograph-project.json").read_text(encoding="utf-8"))["participants"]
+    juno, rowan = sets["Juno"], sets["Rowan"]
+    cfg_file = scratch / "a373x-config.json"
+    cfg_file.write_text(json.dumps({"projects": [], "interviewer": "Kit", "corpus": "", "gravity_reference": "",
+                                    "corpus_exclude": []}), encoding="utf-8")
+    kept = (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY)
+    book = lambda root, name: root / name / f"{name} - EN & ES.xlsx"
+    try:
+        server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE = cfg_file, str(ipa)
+        server_mod.STATE_PATH, server_mod.STATE_MEMORY = scratch / "a373x-state.json", {"recent": []}
+
+        # (h) the two ticks: off on a new install, kept in the settings as he leaves them, a request's own word first
+        fresh = (routes.export_portrait({}), routes.export_participants({}))
+        merged = server_mod.merge_config({})
+        server_mod.api_settings({"export_portrait": True, "export_participants": True})
+        saved = json.loads(cfg_file.read_text(encoding="utf-8"))
+        kept_on = (routes.export_portrait({}), routes.export_participants({}),
+                   routes.export_portrait({"portrait": "0"}), routes.export_participants({"participants": False}))
+        server_mod.api_settings({"export_portrait": False, "export_participants": False})
+        check("373: Pen portrait and Participants table are off on a new install, kept in the settings as he leaves "
+              "them, and a request's own 1 or 0 goes first",
+              fresh == (False, False) and merged["export_portrait"] is False and merged["export_participants"] is False
+              and saved.get("export_portrait") is True and saved.get("export_participants") is True
+              and kept_on == (True, True, False, False) and routes.export_portrait({"portrait": "1"}) is True,
+              str([fresh, saved, kept_on]))
+
+        # (i) the table of PETs' print view: the label and the pen portrait under the head, before the PETs
+        code, on = routes.themes_print_page({"workbook": str(book(ipa, "Juno")), "auto": "0", "portrait": "1"})
+        _c, off = routes.themes_print_page({"workbook": str(book(ipa, "Juno")), "auto": "0"})
+        _c, none = routes.themes_print_page({"workbook": str(book(ipa, "Mabel")), "auto": "0", "portrait": "1"})
+        who = re.compile(r'<section class="who">\s*<p class="who-label">' + re.escape(juno["label"])
+                         + r'</p>\s*<p class="who-portrait">' + re.escape(juno["portrait"]) + r"</p>\s*</section>")
+        check("373: the print view with Pen portrait puts the label and the pen portrait under the head and before the "
+              "PETs, its own tick ticked, and leaves them out without it",
+              code == 200 and who.search(on) is not None
+              and on.index("</header>") < on.index('class="who"') < on.index("<main>")
+              and 'id="include-portrait" checked' in on and 'class="who"' not in off
+              and 'id="include-portrait"' in off and 'id="include-portrait" checked' not in off,
+              on.split("</header>", 1)[-1][:300])
+        check("373: a participant with no label or pen portrait gets nothing under the head, no empty block",
+              'class="who' not in none and 'id="include-portrait" checked' in none, none.split("</header>", 1)[-1][:200])
+
+        # (j) its PDF and Word document, through the route the Export menu calls
+        pdf_on = routes.api_themes_export({"workbook": str(book(ipa, "Juno")), "op": "pdf", "portrait": True})
+        pdf_off = routes.api_themes_export({"workbook": str(book(ipa, "Juno")), "op": "pdf", "portrait": False})
+        on_bytes, off_bytes = Path(pdf_on["path"]).read_bytes(), Path(pdf_off["path"]).read_bytes()
+        first, plain_first = FLAT(pdftext.pages_text(on_bytes)[0]), FLAT(pdftext.pages_text(off_bytes)[0])
+        board, _version = themes_word.board_of(book(ipa, "Juno"))
+        pet = FLAT(board["themes"][0]["label"])
+        check("373: the PDF with Pen portrait has the label and then the pen portrait on its first page, after the "
+              "participant and before the first PET, and the PDF without has neither, and no picture in either",
+              -1 < first.index(FLAT("Juno")) < first.find(FLAT(juno["label"])) < first.find(FLAT(juno["portrait"]))
+              < first.find(pet)
+              and FLAT(juno["label"]) not in plain_first and FLAT(juno["portrait"]) not in plain_first
+              and b"/Subtype /Image" not in on_bytes, first[:300])
+        mabel_on = routes.api_themes_export({"workbook": str(book(ipa, "Mabel")), "op": "pdf", "portrait": True})
+        mabel_off = routes.api_themes_export({"workbook": str(book(ipa, "Mabel")), "op": "pdf", "portrait": False})
+        check("373: for a participant with neither, the PDF with the tick is the PDF without it, word for word",
+              pdftext.pages_text(Path(mabel_on["path"]).read_bytes())
+              == pdftext.pages_text(Path(mabel_off["path"]).read_bytes()))
+        folder = book(ipa, "Juno").parent
+        before = set(folder.glob("*.docx"))
+        routes.api_themes_export({"workbook": str(book(ipa, "Juno")), "op": "word", "portrait": True})
+        word_on = (set(folder.glob("*.docx")) - before).pop()
+        before = set(folder.glob("*.docx"))
+        routes.api_themes_export({"workbook": str(book(ipa, "Juno")), "op": "word"})
+        word_off = (set(folder.glob("*.docx")) - before).pop()
+        with zipfile.ZipFile(word_on) as z:
+            names_in = z.namelist()
+            doc = z.read("word/document.xml").decode("utf-8")
+        said_on, said_off = paragraphs(word_on), paragraphs(word_off)
+        check("373: the Word document with Pen portrait has the label in italics and the pen portrait under the "
+              "participant and the table's name, the document without goes straight to the PETs, and no picture",
+              said_on[:4] == ["Juno", themes_word.TITLE, juno["label"], juno["portrait"]]
+              and said_off[2] == said_on[4] and juno["label"] not in said_off
+              and re.search(r"<w:i/><w:iCs/></w:rPr><w:t[^>]*>" + re.escape(juno["label"]), doc)
+              and not any(n.startswith("word/media") for n in names_in), str(said_on[:5]))
+
+        # (k) the GET table's print view: the participants table first, every participant of the study in order,
+        # a row's cells empty where there is none, then the GET table from a new page under its heading
+        _c, table_on = routes.gets_print_page({"root": str(ipa), "what": "table", "auto": "0", "participants": "1"})
+        _c, table_off = routes.gets_print_page({"root": str(ipa), "what": "table", "auto": "0"})
+        main = table_on.split("<main>", 1)[1].lstrip()
+        rows = re.findall(r'<tr><td class="pt-n">([^<]*)</td><td class="pt-who">([^<]*)</td>'
+                          r'<td class="pt-label">([^<]*)</td><td class="pt-portrait">([^<]*)</td></tr>', main)
+        unq = lambda s: s.replace("&#x27;", "'")
+        check("373: the GET table's print view with Participants table opens with the table, each participant in "
+              "order with their number, pseudonym, label and pen portrait, Mabel's cells empty, then the GET table "
+              "from a new page under its heading, and without it the GET table alone as before",
+              main.startswith('<section class="part first people" id="participants"><h2>Participants</h2>')
+              and [tuple(unq(c) for c in r) for r in rows]
+              == [("1", "Juno", juno["label"], juno["portrait"]), ("2", "Mabel", "", ""),
+                  ("3", "Rowan", rowan["label"], rowan["portrait"])]
+              and '<section class="part" id="table"><h2>GET table</h2>' in main
+              and 'id="participants"' not in table_off and '<section class="part first" id="table"><section' in table_off
+              and "<img" not in table_on and "/faces/" not in table_on, main[:400])
+        _c, all_on = routes.gets_print_page({"root": str(ipa), "what": "all", "auto": "0", "participants": "1"})
+        contents = all_on.split('<section class="contents">', 1)[1].split("</section>", 1)[0]
+        after = all_on.split('<section class="contents">', 1)[1].split("</section>", 1)[1]
+        check("373: the full set lists Participants first in its contents and sets the table first after them, the "
+              "PET tables then from a new page",
+              re.search(r"<ol><li><a href=\"#participants\">Participants</a></li><li><a href=\"#pets\">", contents)
+              is not None and after.lstrip("\n").startswith('<section class="part first people" id="participants">')
+              and '<section class="part pets" id="pets">' in all_on, contents[:300])
+
+        # (l) its PDF, through the print card's route: the first page the participants table alone
+        current = th_mod.current_version(gets_mod.load(ipa))["id"]
+        made = routes.api_gets_boards({"root": str(ipa), "board": current, "op": "pdf", "what": "table",
+                                       "participants": True})
+        plain = routes.api_gets_boards({"root": str(ipa), "board": current, "op": "pdf", "what": "table"})
+        pages = [FLAT(p) for p in pdftext.pages_text(Path(made["path"]).read_bytes())]
+        plain_pages = [FLAT(p) for p in pdftext.pages_text(Path(plain["path"]).read_bytes())]
+        parts = gets_print.study_parts(ipa, routes.gets_books(ipa), None, th_mod.now_iso())
+        gets = [FLAT(g["label"]) for g in gets_print.gets_table(parts)]
+        check("373: the GET table's PDF with Participants table has the table alone on its first page, its heads and "
+              "each participant's words in order, the GET table from the second page under its heading, one page "
+              "more than without it, and no picture",
+              all(FLAT(w) in pages[0] for w in ("Participants", "Number", "Pseudonym", "Label", "Pen portrait"))
+              and -1 < pages[0].find(FLAT(juno["portrait"])) < pages[0].find("mabel") < pages[0].find(FLAT(rowan["label"]))
+              and not any(g in pages[0] for g in gets) and gets[0] in pages[1]
+              and pages[1].count(FLAT("GET table")) == pages[0].count(FLAT("GET table")) + 1
+              and len(pages) == len(plain_pages) + 1 and gets[0] in plain_pages[0]
+              and b"/Subtype /Image" not in Path(made["path"]).read_bytes(), str(pages[:2])[:500])
+
+        # (m) a thematic analysis project's theme table in Word: the participants table on its first page, a row's
+        # cells empty where there is none, the themes from the next
+        server_mod.ROOT_OVERRIDE = str(ta)
+        ta_board = th_mod.current_version(gets_mod.load(ta))["id"]
+        body = {"root": str(ta), "board": ta_board, "op": "word", "participants": True}
+        with routes.route_scope("/api/gets-boards", body):
+            word = routes.api_gets_boards(body)
+        with zipfile.ZipFile(word["path"]) as z:
+            doc = z.read("word/document.xml").decode("utf-8")
+            names_in = z.namelist()
+        said = paragraphs(Path(word["path"]))
+        ta_sets = json.loads(support.source("demo/ta/idiograph-project.json").read_text(encoding="utf-8"))["participants"]
+        cells = ["Number", "Pseudonym", "Label", "Pen portrait", "1", "Juno", ta_sets["Juno"]["label"],
+                 ta_sets["Juno"]["portrait"], "2", "Mabel", ta_sets["Mabel"]["label"], ta_sets["Mabel"]["portrait"],
+                 "3", "Rowan", "", ""]
+        check("373: the theme table in Word with Participants table has the table on its first page under its "
+              "heading, its heads repeated on each page and no row split, Rowan's cells empty, then a page's end "
+              "before the first theme, and no picture",
+              said[:3] == ["Living with a dog", "Table of themes", "Participants"] and said[3:19] == cells
+              and doc.count("<w:tbl>") == 1 and "<w:tblHeader/>" in doc and doc.count("<w:cantSplit/>") == 4
+              and doc.index("</w:tbl>") < doc.index('<w:br w:type="page"/>')
+              and not any(n.startswith("word/media") for n in names_in), str(said[:20])[:500])
+
+        # (n) the command line and MCP take both
+        server_mod.ROOT_OVERRIDE = str(ipa)
+
+        def run(*args):
+            code, out, err = cli.run(["--root", str(ipa), "--config", str(cfg_file), *args, "--json"])
+            return code, (support.plain(json.loads(out)) if out.strip() else {}), err
+
+        out_dir = base / "out"
+        out_dir.mkdir()
+        code, said_pdf, err = run("board", "export", "Juno", "--pdf", "--portrait", "--out", str(out_dir))
+        code2, said_gets, err2 = run("gets", "export", "--participants", "--out", str(out_dir))
+        code3, _said, err3 = run("board", "export", "Juno", "--draft", "--portrait")
+        pdfs = {p.name: FLAT(pdftext.pages_text(p.read_bytes())[0]) for p in out_dir.glob("*.pdf")}
+        check("373: board export --portrait and gets export --participants make the same files as the ticks, and "
+              "--draft refuses --portrait",
+              code == 0 and code2 == 0 and said_pdf.get("portrait") is True and said_gets.get("participants") is True
+              and FLAT(juno["portrait"]) in pdfs.get(said_pdf.get("file"), "")
+              and FLAT("Pen portrait") in pdfs.get(said_gets.get("file"), "") and code3 != 0
+              and "--portrait" in (err3 or "") + json.dumps(_said), (err or "") + (err2 or "") + str(pdfs)[:300])
+        board_tool = next(x for x in mcp_server.TOOLS if x["name"] == "board_export")
+        gets_tool = next(x for x in mcp_server.TOOLS if x["name"] == "gets_export")
+        asked = [mcp_server.arguments(t, given, {"project": None}, "test") for t, given in (
+            (board_tool, {"case": "Juno", "portrait": True}), (board_tool, {"case": "Juno"}),
+            (gets_tool, {"participants": True}), (gets_tool, {}))]
+        check("373: MCP's board_export takes portrait and gets_export participants, both off when left out",
+              [asked[0].portrait, asked[1].portrait, asked[2].participants, asked[3].participants]
+              == [True, False, True, False], str([getattr(a, "portrait", None) for a in asked]))
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept

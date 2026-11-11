@@ -219,6 +219,9 @@ TOOLS = [
           "for_sending": {"type": "boolean",
                           "description": "True names the file by the participant alone, P1 - Ada.pdf, with no board's name on "
                                          "the page, as Leave out the board's name does. Left out, the board is named."},
+          "portrait": {"type": "boolean",
+                       "description": "True puts the participant's label and pen portrait under the head, never their "
+                                      "picture, as Pen portrait does. Left out, they stay out."},
           "replace": {"type": "boolean",
                       "description": "With format pdf, true writes over a PDF of the same name, so its name stays the "
                                      "same from one export to the next. Left out, the date goes in the name."},
@@ -257,11 +260,16 @@ TOOLS = [
           "descriptions": {"type": "boolean", "description": "False leaves each label's description out from under its "
                                                              "title, as Descriptions unticked does. Left out, they show."},
           "get": dict(mcp.TEXT, description="One GET's audit trail alone, by its id, G2."),
+          "participants": {"type": "boolean",
+                           "description": "True puts a first page listing each participant, their number, pseudonym, "
+                                          "label and pen portrait, never their picture, as Participants table does. "
+                                          "Left out, it stays out."},
           "word": {"type": "boolean",
                    "description": "In a thematic analysis project, true writes its table of themes as a Word document "
                                   "at the project's root, as Microsoft Word on its Table view does, never over a file "
-                                  "there. Takes selected, notes, for_sending, descriptions and dry_run alone. Refused "
-                                  "in an IPA project, whose tables of PETs go to Word through board_export."},
+                                  "there. Takes selected, notes, for_sending, descriptions, participants and dry_run "
+                                  "alone. Refused in an IPA project, whose tables of PETs go to Word through "
+                                  "board_export."},
           "replace": {"type": "boolean", "description": "True writes over a PDF of the same name. Left out, the "
                                                         "date goes in the name."},
           "canvas": {"type": "string", "enum": ["pdf", "png"],
@@ -1426,12 +1434,14 @@ def arguments(t: dict, given: dict, args):
         args.no_descriptions = given.get("descriptions") is False
         args.for_sending, args.replace = given.get("for_sending") is True, given.get("replace") is True
         args.board_note, args.out = given.get("board_note") is True, given.get("out")
+        args.portrait = given.get("portrait") is True
     if (command, act) == ("gets", "export"):
         args.out, args.what, args.get = given.get("out"), given.get("what") or "table", given.get("get")
         args.canvas = given.get("canvas") if given.get("canvas") in ("pdf", "png") else None
         args.selected, args.notes = given.get("selected") is True, given.get("notes") is True
         args.for_sending, args.replace = given.get("for_sending") is True, given.get("replace") is True
         args.no_descriptions = given.get("descriptions") is False
+        args.participants = given.get("participants") is True
     if (command, act) == ("board", "show"):
         args.labels = given.get("labels")
         args.close = given.get("close")

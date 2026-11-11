@@ -2356,8 +2356,9 @@ def cmd_board_export(p: Project, args) -> tuple:
     `--binned` asks for them, a top stands for the statements stacked under it unless `--stacked`
     puts them under it, as Include stacked statements does, and `--for-sending` names the file by the
     case alone and leaves the board's name off the page, as Leave out the board's name does. `--board-note` puts the
-    board's note under the PDF's head, as the print view's Board note does. The PDF is made by Typst from the
-    board, as the app's Export as PDF makes it, with no window and no browser. `--draft` writes
+    board's note under the PDF's head, as the print view's Board note does. `--portrait` puts the participant's
+    label and pen portrait under the head, never their picture, as Pen portrait does (pbioexport). The PDF is made
+    by Typst from the board, as the app's Export as PDF makes it, with no window and no browser. `--draft` writes
     the PET draft and the statements CSV, as the PETs screen's Export does (see `board_draft`)."""
     word, pdf = bool(getattr(args, "word", False)), bool(getattr(args, "pdf", False))
     if getattr(args, "canvas", None):
@@ -2388,6 +2389,9 @@ def cmd_board_export(p: Project, args) -> tuple:
              "stacked": bool(getattr(args, "stacked", False)), "sending": bool(getattr(args, "for_sending", False)),
              # each label's description under its title, as the Descriptions tick, on unless --no-descriptions
              "descriptions": not getattr(args, "no_descriptions", False)}
+    # the participant's label and pen portrait under the head with --portrait, as Pen portrait (pbioexport)
+    portrait = bool(getattr(args, "portrait", False))
+    who = routes.portrait_printed(book, {"portrait": portrait})
     # the case named as the PETs screen names it in the document and the file, from its folder
     with wb_mod.case_held(book, export=True):
         if pdf:
@@ -2396,12 +2400,12 @@ def cmd_board_export(p: Project, args) -> tuple:
                                        labels=labels, note=bool(getattr(args, "board_note", False)),
                                        out=getattr(args, "out", None), replace=bool(getattr(args, "replace", False)),
                                        dry_run=args.dry_run, project=p.info.get("name") or "",
-                                       researcher=routes.researcher_name(), **ticks)
+                                       researcher=routes.researcher_name(), who=who, **ticks)
             except WorkbookError as exc:
                 raise cli.Refused(str(exc)) from None
         else:
             made = themes_word.write(book, case_name(book), board.get("id"), dry_run=args.dry_run, labels=labels,
-                                     author=routes.researcher_name(), **ticks)
+                                     author=routes.researcher_name(), who=who, **ticks)
     beside = not pdf or Path(made["folder"]).resolve() == book.parent.resolve()
     where = i18n.t("cli.said.at_the_root_of_s_folder", case=b['case']) if beside else f"in {made['folder']}"
     counts = made["counts"]
@@ -2415,7 +2419,7 @@ def cmd_board_export(p: Project, args) -> tuple:
         text = i18n.t("cli.board_export.wrote", name=made['name'], where=where, said=said, dated=dated)
     out = {"case": b["case"], "board": made["version"]["id"], "name": made["version"]["name"], "file": made["name"],
            "format": "pdf" if pdf else "word", "dated": made["dated"], "replaced": bool(made.get("replaced")),
-           "for_sending": ticks["sending"], "counts": counts, "labels": labels, "said": text}
+           "for_sending": ticks["sending"], "portrait": portrait, "counts": counts, "labels": labels, "said": text}
     if pdf:
         out.update(path=made["path"], folder=made["folder"], board_note=bool(getattr(args, "board_note", False)),
                    not_placed=ticks["unplaced"], binned=ticks["binned"], stacked=ticks["stacked"])
@@ -2451,7 +2455,8 @@ def board_canvas(p: Project, args) -> tuple:
     file there unless `--replace`. It changes nothing he made."""
     canvas_refused(args, (("--labels", "labels"), ("--not-placed", "not_placed"), ("--set-aside", "binned"),
                           ("--stacked", "stacked"), ("--for-sending", "for_sending"),
-                          ("--no-descriptions", "no_descriptions"), ("--board-note", "board_note")))
+                          ("--no-descriptions", "no_descriptions"), ("--board-note", "board_note"),
+                          ("--portrait", "portrait")))
     b = p.case(args.case)
     book = Path(b["workbook"])
     board = pick_board(load_board_file(book), args.board)
@@ -2492,7 +2497,8 @@ def board_draft(p: Project, args) -> tuple:
                                    ("--for-sending", getattr(args, "for_sending", False)),
                                    ("--no-descriptions", getattr(args, "no_descriptions", False)),
                                    ("--replace", getattr(args, "replace", False)),
-                                   ("--board-note", getattr(args, "board_note", False)), ("--out", getattr(args, "out", None)))
+                                   ("--board-note", getattr(args, "board_note", False)), ("--out", getattr(args, "out", None)),
+                                   ("--portrait", getattr(args, "portrait", False)))
              if on]
     if given:
         raise cli.Refused(f"{', '.join(given)}: {_w('DRAFT_ALONE')}")
@@ -2523,9 +2529,10 @@ def cmd_gets_export(p: Project, args) -> tuple:
     folder or a file, as the GETs screen's print card
     makes it (see `print_pdf.write_gets`): the GET table, the audit trail or the full set by `--what`,
     every item or with `--selected` the quote alone, participant notes only with `--notes`, the
-    board's name off with `--for-sending`, one GET's trail with `--get`. With no board named, the Current
-    board. Never over a file there unless `--replace`. It reads the GETs file and the workbooks and
-    changes nothing."""
+    board's name off with `--for-sending`, one GET's trail with `--get`, and with `--participants` a first page
+    listing each participant with their label and pen portrait, as Participants table does (pbioexport). With no
+    board named, the Current board. Never over a file there unless `--replace`. It reads the GETs file and the
+    workbooks and changes nothing."""
     data = gets_data(p)
     board = pick_board(data, args.board)
     if getattr(args, "word", False):
@@ -2534,13 +2541,15 @@ def cmd_gets_export(p: Project, args) -> tuple:
         return gets_canvas(p, args, board)
     get = " ".join(str(getattr(args, "get", None) or "").split()) or None
     what = getattr(args, "what", None) or "table"
+    people = routes.people_printed(p.root, {"participants": bool(getattr(args, "participants", False))})
     try:
         made = print_pdf.write_gets(p.root, p.books, p.info, board, what=what,
                                     detail="selected" if getattr(args, "selected", False) else "full",
                                     notes=bool(getattr(args, "notes", False)), get=get,
                                     sending=bool(getattr(args, "for_sending", False)), out=getattr(args, "out", None),
                                     replace=bool(getattr(args, "replace", False)), dry_run=args.dry_run,
-                                    descriptions=not getattr(args, "no_descriptions", False), researcher=routes.researcher_name())
+                                    descriptions=not getattr(args, "no_descriptions", False), researcher=routes.researcher_name(),
+                                    people=people)
     except WorkbookError as exc:
         raise cli.Refused(str(exc)) from None
     c = made["counts"]
@@ -2553,7 +2562,8 @@ def cmd_gets_export(p: Project, args) -> tuple:
     out = {"board": made["version"]["id"], "name": made["version"]["name"], "file": made["name"], "path": made["path"],
            "folder": made["folder"], "format": "pdf", "what": made["what"], "detail": made["detail"],
            "notes": made["notes"], "get": made["get"], "for_sending": bool(getattr(args, "for_sending", False)),
-           "dated": made["dated"], "replaced": bool(made.get("replaced")), "counts": c, "said": text}
+           "participants": people is not None, "dated": made["dated"], "replaced": bool(made.get("replaced")),
+           "counts": c, "said": text}
     return (dict(out, dry_run=True) if args.dry_run else out), [text]
 
 
@@ -2561,18 +2571,20 @@ def gets_word_export(p: Project, args, board: dict) -> tuple:
     """A thematic analysis project's table of themes as a Word document (`--word`, taword, 1 November 2026), as
     Microsoft Word on its Table view makes it (see `gets_word`): at the project's root where its PDF goes, never over
     a file there, every code and extract or with `--selected` each participant's key extract alone, participant notes
-    only with `--notes`, the board's name left out with `--for-sending`, its author Your name. Refused in an IPA
-    project, whose tables of PETs go to Word through board export. It changes nothing."""
+    only with `--notes`, the board's name left out with `--for-sending`, the participants table on its first page
+    with `--participants`, its author Your name. Refused in an IPA project, whose tables of PETs go to Word through
+    board export. It changes nothing."""
     given = [flag for flag, attr in (("--pdf", "pdf"), ("--canvas", "canvas"), ("--out", "out"), ("--what", "what"),
                                      ("--get", "get"), ("--replace", "replace")) if getattr(args, attr, None)]
     if given:
         raise cli.Refused(i18n.t("cli.gets_word_export.word_takes_selected_notes_for_sending", list=', '.join(given)))
+    people = routes.people_printed(p.root, {"participants": bool(getattr(args, "participants", False))})
     try:
         gets_word.refuse_unless_ta()
         made = gets_word.write(p.root, p.books, p.info, board, detail="selected" if getattr(args, "selected", False) else "full",
                                notes=bool(getattr(args, "notes", False)), sending=bool(getattr(args, "for_sending", False)),
                                descriptions=not getattr(args, "no_descriptions", False), author=routes.researcher_name(),
-                               dry_run=args.dry_run)
+                               dry_run=args.dry_run, people=people)
     except WorkbookError as exc:
         raise cli.Refused(str(exc)) from None
     c = made["counts"]
@@ -2582,7 +2594,8 @@ def gets_word_export(p: Project, args, board: dict) -> tuple:
     text = i18n.t("cli.gets_word_export.in", head=head, name=made['name'], folder=made['folder'], said=said, dated=dated)
     out = {"board": made["version"]["id"], "name": made["version"]["name"], "file": made["name"], "path": made["path"],
            "folder": made["folder"], "format": "word", "detail": made["detail"], "notes": made["notes"],
-           "for_sending": bool(getattr(args, "for_sending", False)), "dated": made["dated"], "counts": c, "said": text}
+           "for_sending": bool(getattr(args, "for_sending", False)), "participants": people is not None,
+           "dated": made["dated"], "counts": c, "said": text}
     return (dict(out, dry_run=True) if args.dry_run else out), [text]
 
 
@@ -2595,7 +2608,7 @@ def gets_canvas(p: Project, args, board: dict) -> tuple:
     if getattr(args, "what", None) not in (None, "table"):
         raise cli.Refused(f"--what: {_w('CANVAS_ALONE')}")
     canvas_refused(args, (("--selected", "selected"), ("--for-sending", "for_sending"),
-                          ("--no-descriptions", "no_descriptions"), ("--get", "get")))
+                          ("--no-descriptions", "no_descriptions"), ("--get", "get"), ("--participants", "participants")))
     if not p.books:
         raise cli.Refused(i18n.t("cli.gets_canvas.this_project_has_no_participants_yet"))
     name = str(board.get("name") or themes.FIRST_NAME)
@@ -7444,6 +7457,9 @@ def arguments(sub, common, writes) -> None:
                    help="with --pdf, write over a PDF of the same name in place of putting the date in the name")
     x.add_argument("--board-note", action="store_true",
                    help="with --pdf, put the board's note under the head, as the print view's Board note does")
+    x.add_argument("--portrait", action="store_true",
+                   help="put the participant's label and pen portrait under the head, never their picture, as Pen "
+                        "portrait does, left out without it")
     x.add_argument("--out", default=None,
                    help="with --pdf, where it goes, a folder or a file name ending .pdf, beside the workbook "
                         "without it")
@@ -7458,8 +7474,8 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--pdf", action="store_true", help="a PDF of the print view, the default")
     x.add_argument("--word", action="store_true",
                    help="a thematic analysis project's table of themes as a Word document at the project's root, "
-                        "never over a file there. Takes --selected, --notes, --for-sending, --no-descriptions and "
-                        "--dry-run")
+                        "never over a file there. Takes --selected, --notes, --for-sending, --no-descriptions, "
+                        "--participants and --dry-run")
     x.add_argument("--canvas", default=None, choices=("pdf", "png"),
                    help="the canvas itself, as the print card's Canvas on one page makes it: pdf on one landscape "
                         "page, or png, the whole canvas pictured at twice its scale, at the project's root. Takes "
@@ -7475,6 +7491,9 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--no-descriptions", action="store_true",
                    help="leave each GET's and PET's description out from under its title, as Descriptions unticked does")
     x.add_argument("--get", default=None, help="one GET's audit trail alone, by its id, G2")
+    x.add_argument("--participants", action="store_true",
+                   help="a first page listing each participant, their number, pseudonym, label and pen portrait, "
+                        "never their picture, as Participants table does, left out without it")
     x.add_argument("--replace", action="store_true",
                    help="write over a PDF of the same name in place of putting the date in the name")
     x.add_argument("--dry-run", action="store_true", help="say what would be written and write nothing")

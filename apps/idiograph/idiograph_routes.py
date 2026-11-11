@@ -7574,7 +7574,7 @@ def gets_pdf_place(root: Path, body: dict) -> dict:
                                     detail=str(body.get("detail") or "full"), notes=body.get("notes") in (True, 1, "1"),
                                     get=str(body.get("get") or "") or None, sending=export_sending(body),
                                     dry_run=body.get("dry_run") is True, descriptions=export_descriptions(body),
-                                    researcher=researcher_name())
+                                    researcher=researcher_name(), people=people_printed(root, body))
     out = {"pdf": made["name"], "shown": [made["name"]], "path": made["path"], "name": made["name"],
            "dated": made["dated"], "version": made["version"]}
     return dict(out, dry_run=True) if made.get("dry_run") else out
@@ -7595,7 +7595,7 @@ def gets_word_write(root: Path, body: dict) -> dict:
         made = gets_word.write(root, gets_books(root), read_project(root), board, detail=str(body.get("detail") or "full"),
                                notes=body.get("notes") in (True, 1, "1"), sending=export_sending(body),
                                descriptions=export_descriptions(body), author=researcher_name(),
-                               dry_run=body.get("dry_run") is True)
+                               dry_run=body.get("dry_run") is True, people=people_printed(root, body))
     return {"word": made["name"], "shown": [made["name"]], "path": made["path"], "name": made["name"],
             "dated": made["dated"], "counts": made["counts"], "version": made["version"],
             **({"dry_run": True} if made.get("dry_run") else {})}
@@ -7699,7 +7699,8 @@ def gets_print_page(query: dict) -> tuple[int, str]:
     `detail` of `full` or `selected`, `notes=1` to bring participant notes in, `get` for one GET's
     trail and `auto=0` to leave the print dialog shut. Rendered from the GETs file as the screen
     would show it, every case not yet in shown as it would come in, and nothing written anywhere.
-    `sending`, 1 or 0, leaves the board's name off, as the PETs table's print view does."""
+    `sending`, 1 or 0, leaves the board's name off, as the PETs table's print view does. `participants`, 1 or 0,
+    puts the participants table first or leaves it out, the settings deciding without it (pbioexport)."""
     try:
         root = gets_print_root(query)
         with srv._lock, route_scope(GETS_PRINT_PATH, query):
@@ -7709,7 +7710,7 @@ def gets_print_page(query: dict) -> tuple[int, str]:
                                         notes=str(query.get("notes") or "") == "1", get=str(query.get("get") or "") or None,
                                         auto=str(query.get("auto") or "") != "0", audio=gets_audio(books),
                                         sending=export_sending(query), descriptions=export_descriptions(query),
-                                        researcher=researcher_name())
+                                        researcher=researcher_name(), people=people_printed(root, query))
     except srv.OutsideRoot as exc:
         return 403, themes_print.refusal(str(exc))
     except WorkbookError as exc:
@@ -8618,7 +8619,8 @@ def api_themes_export(body: dict) -> dict:
         with writing(path, export=True):
             made = themes_word.write(path, case, vid, labels=labels, unplaced=unplaced, binned=binned,
                                      stacked=export_stacked(body), sending=export_sending(body),
-                                     descriptions=export_descriptions(body), author=researcher_name())
+                                     descriptions=export_descriptions(body), author=researcher_name(),
+                                     who=portrait_printed(path, body))
         shown = case_relative(path, Path(made["path"]))
         return {"word": shown, "shown": [shown], "paths": [srv.display_path(srv.rel_path(Path(made["path"])))],
                 "dated": made["dated"], "counts": made["counts"], "version": made["version"], "labels": labels}
@@ -8655,7 +8657,8 @@ def themes_pdf_place(path: Path, case: str, vid, labels: str, body: dict) -> dic
         made = print_pdf.write(path, case, vid, held["research_question"], labels=labels, unplaced=unplaced,
                                binned=binned, stacked=export_stacked(body), sending=export_sending(body),
                                dry_run=body.get("dry_run") is True, descriptions=export_descriptions(body),
-                               project=held.get("name") or "", researcher=researcher_name())
+                               project=held.get("name") or "", researcher=researcher_name(),
+                               who=portrait_printed(path, body))
     shown = case_relative(path, Path(made["path"]))
     out = {"pdf": shown, "shown": [shown], "path": made["path"], "name": made["name"], "dated": made["dated"],
            "version": made["version"], "labels": labels}
@@ -8765,6 +8768,38 @@ def export_stacked(given: dict) -> bool:
     return value in (True, 1, "1", "true")
 
 
+def export_portrait(given: dict) -> bool:
+    """Whether an export of the table of PETs, the print view, the PDF or the Word document, puts the participant's
+    label and pen portrait under the head (pbioexport, 11 November 2026): as the request says, `portrait` as 1 or 0
+    in a query or true or false in a body, and otherwise as Pen portrait under Export was last left, off on a new
+    install."""
+    return export_tick(given, "portrait", "export_portrait")
+
+
+def export_participants(given: dict) -> bool:
+    """Whether a print of the GETs, the GET table, the audit trail or the full set, its PDF and a theme table's Word
+    document, opens with the participants table (pbioexport): as the request says, `participants` as 1 or 0 in a
+    query or true or false in a body, and otherwise as Participants table on the print card was last left, off on
+    a new install."""
+    return export_tick(given, "participants", "export_participants")
+
+
+def portrait_printed(path: Path, given: dict) -> dict | None:
+    """What the table of PETs prints of its participant under the head (pbioexport): their label and pen portrait,
+    never their picture (`participants.printed`), an empty set for a participant with neither, and None while Pen
+    portrait is off (`export_portrait`)."""
+    if not export_portrait(given):
+        return None
+    root = project_root(Path(path))
+    return people_mod.printed(people_mod.find(people_view(root), case_label(path)))
+
+
+def people_printed(root: Path, given: dict) -> dict | None:
+    """Every participant's set for a print of the GETs' participants table (pbioexport), read as every screen reads
+    them (`people_view`), and None while Participants table is off (`export_participants`)."""
+    return people_view(Path(root)) if export_participants(given) else None
+
+
 # The print view of a board, a page the browser prints or saves as PDF, by GET.
 PRINT_PATH = "/themes/print"
 
@@ -8788,7 +8823,8 @@ def themes_print_page(query: dict) -> tuple[int, str]:
     Not placed and Discarded at its end or leave them out, and without them the page follows his two
     ticks as the settings hold them (see `export_includes`). `sending`, 1 or 0, leaves the board's
     name off the page and out of its title, which names the PDF, or keeps them, the settings deciding
-    without it (see `export_sending`)."""
+    without it (see `export_sending`). `portrait`, 1 or 0, puts the participant's label and pen portrait under
+    the head or leaves them out, the settings deciding without it (see `portrait_printed`)."""
     try:
         path = case_path(str(query.get("workbook") or ""))
         case = case_label(path)
@@ -8801,7 +8837,8 @@ def themes_print_page(query: dict) -> tuple[int, str]:
                                           note=str(query.get("note") or "") == "1", labels=pet_labels_for(path),
                                           unplaced=unplaced, binned=binned, stacked=export_stacked(query),
                                           sending=export_sending(query), descriptions=export_descriptions(query),
-                                          project=held.get("name") or "", researcher=researcher_name())
+                                          project=held.get("name") or "", researcher=researcher_name(),
+                                          who=portrait_printed(path, query))
     except srv.OutsideRoot as exc:
         return 403, themes_print.refusal(str(exc))
     except WorkbookError as exc:
@@ -9189,6 +9226,13 @@ SETTINGS_DEFAULTS = (
         # sub-PET's and GET's description under its title in the print view and the Word table. On on a new
         # install, his last choice kept
         "export_descriptions": True,
+        # Pen portrait under Export and on the print view (pbioexport, 11 November 2026): the participant's label
+        # and pen portrait under the head of the table of PETs, print view, PDF and Word. Off on a new install, his
+        # last choice kept
+        "export_portrait": False,
+        # Participants table on the GETs print card (pbioexport): a first page listing each participant with their
+        # label and pen portrait. Off on a new install, his last choice kept
+        "export_participants": False,
     }),
     # The PETs and GETs boards' status bar along the foot (Adam, 19 October, A of the drawings), on by default and
     # turned off from View and from Settings, View, is General's, `status_bar`, the family's since the sixth build
@@ -9330,8 +9374,8 @@ def save_settings(cfg: dict, body: dict) -> None:
     # Work in rounds and the larger current passage, saved as they stand, the View menu's one sent alone,
     # the PETs table's export's ticks, each sent alone from Export or the print view, and the boards' bars
     for name in ("work_in_rounds", "larger_passage", "export_not_placed", "export_binned", "export_stacked",
-                 "export_for_sending", "export_descriptions", "card_quotes", "card_quotes_full", "card_notes",
-                 "card_compact", "es_quotes", "close_pairs", "traj_notes"):
+                 "export_for_sending", "export_descriptions", "export_portrait", "export_participants", "card_quotes",
+                 "card_quotes_full", "card_notes", "card_compact", "es_quotes", "close_pairs", "traj_notes"):
         if name in body:
             cfg[name] = bool(body[name])
     if body.get("traj_quotes") in ("off", "short", "full"):
@@ -9549,7 +9593,8 @@ def gets_print_view(query: dict) -> tuple[int, bytes, str]:
 # (the split's second build, 20 October 2026, from the server's SETTINGS_BY_APP)
 OWN_SETTINGS = ("interviewer", "round_minutes", "daily_target", "ai_prompt", "pets_provider", "pets_model",
                 "nudges", "work_in_rounds", "larger_passage", "export_not_placed", "export_binned",
-                "export_stacked", "export_for_sending", "export_descriptions", "card_quotes", "card_quotes_full",
+                "export_stacked", "export_for_sending", "export_descriptions", "export_portrait",
+                "export_participants", "card_quotes", "card_quotes_full",
                 "es_quotes", "close_pairs", "traj_quotes", "traj_notes",
                 "close_gap", "status_counts", "palette_place", "palette_docked", "arrange_way", "minimap",
                 "statements_columns", "columns_hidden", "columns_stacked", "stack_top", "stack_split",

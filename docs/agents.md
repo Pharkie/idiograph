@@ -1270,7 +1270,7 @@ board" too, and a held action's card says themes, codes and extracts. The words 
 `apps/idiograph/static/i18n/en/cli.json` and TA's in `en.ta/cli.json`. A TA project's table of themes goes to Word with `gets export --word` (MCP `gets_export` with
 `word`), as Microsoft Word on its Table view writes it, at the project's root as "<project> - Board 1 - Theme
 table.docx", never over a file there, its author Your name. It takes `--selected`, `--notes`, `--for-sending`,
-`--no-descriptions` and `--dry-run`. An IPA project's `gets export --word` is refused, and `board export --word`
+`--no-descriptions`, `--participants` and `--dry-run`. An IPA project's `gets export --word` is refused, and `board export --word`
 or `--pdf` in a TA project is refused, pointing to `gets export --word`.
 
 `participant rename` renames a participant as Rename on their menu on the project's page does
@@ -1804,7 +1804,9 @@ through MCP, names it by the participant alone, `<case>.docx`, as Leave out the 
 PET's and sub-PET's description stands under its title unless `--no-descriptions`, `"descriptions": false`
 through MCP, leaves it out, as Descriptions unticked does (21 October). The
 document, and the PDF below, open with the participant as the main heading, "P9 Wren", under Heading 1
-in Word, and the table's name smaller under it (20 October).
+in Word, and the table's name smaller under it (20 October). `--portrait`, `portrait` through MCP, puts the
+participant's label in italics and their pen portrait under it, as Pen portrait under Export does (pbioexport, 11
+November 2026), nothing for a participant with neither and never their picture. `--draft` and `--canvas` refuse it.
 
 The same table as a PDF, the print view's landscape page, with the same options:
 
@@ -1856,7 +1858,12 @@ view names it, `<project> - <board> - GET table.pdf`, `Audit trail` or `GETs`, w
 after it for one GET, at the project's root beside the GETs file, and takes `--out`, `--replace` and
 `--dry-run` as `board export --pdf` does.
 With no board named, the Current board. It only reads the GETs file and the workbooks. Through MCP
-it is `gets_export`, with `out`, `what`, `selected`, `notes`, `for_sending`, `get` and `replace`.
+it is `gets_export`, with `out`, `what`, `selected`, `notes`, `for_sending`, `get`, `participants` and `replace`.
+`--participants` puts a first page before the GET table, the trail or all of it (after the contents), a table of
+each participant in order, their number, pseudonym, label and pen portrait, a cell empty where they have none and
+never their picture, and the part after it starts on the next page under its heading, as Participants table on the
+print card does (pbioexport, 11 November 2026). A TA project's `gets export --word` takes it too. `--canvas` refuses
+it.
 
 The canvas itself, as a PDF or a picture, as Export on the PETs canvas makes it, Print, Save as PDF and Save as an
 image, and Canvas on one page on the GETs print card (1 November 2026):

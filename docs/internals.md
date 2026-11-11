@@ -3352,6 +3352,36 @@ panel's `.pp-gwho`. The demo's two project files carry a set for the three. The 
 set` and `participant show` and MCP's `participant_set` and `participant_show` run the same route, and the
 parity check holds `/api/participant` to them. Area 373 checks it.
 
+**The label and the pen portrait in the exports (pbioexport, 11 November 2026, the Exports of pbiodraw's
+proposal).** `participants.printed` is what an export takes of a participant, their `label` and `portrait`, never
+the picture, and `table_rows(people, cases, name)` the participants table's rows, `number` (`number_of`: the folder's
+P2, else the place in the order), `pseudonym`, `label` and `portrait`, "" where there is none, with `table_heads`
+from `page_print.people.*`. Two ticks, both off on a new install and in `OWN_SETTINGS`: `export_portrait`, Pen
+portrait, last under Export on PETs (`#th-inc-portrait`, in `TH_INCLUDES` so `thIncludesSent` sends `portrait` with
+Print, PDF and Word) and last of `themes_print.INCLUDES` on the print view, and `export_participants`, Participants
+table, last on the GETs print card (`#gt-print-people`, its row `#gt-print-people-row` hidden by `gtPrintDraw` for the
+canvas, one GET's trail and LPETs through `gtPeopleShown`, sent as `participants` by `gtPrintUrl`, `gtPdfGo` and
+`gtWordGo` through `gtPeopleSent`). The card's `[data-include]` ticks now save as they change through one listener,
+where Descriptions there drew from the settings and saved nothing. The routes read them with `export_portrait` and
+`export_participants` (`export_tick`), and `portrait_printed(path, given)` gives the set or None, `people_printed(root,
+given)` every participant's (`people_view`) or None. The table of PETs takes `who`: `themes_print.page` puts
+`who_html` (`section.who`, `.who-label` in italics, `.who-portrait`) after the head and before the board's note, its
+tick checked when `who` is not None, `typst_data`'s `who` sets the same in `pets_table.typ` (190 mm wide, kept
+together, 12pt under), and `themes_word.blocks` adds `who_blocks` after the Subtitle, the label a kept italic
+paragraph. A participant with neither gets nothing. The GETs print takes `people`: `walked` gives `people`, the rows
+for `parts["inside"]` named by `gets.who`, none in LPETs, `page` sets `people_section` (`section.part.first.people`,
+`table.pt` with `pt-n`, `pt-who`, `pt-label`, `pt-portrait`, heads repeated, rows never split) first, after a full
+set's contents with its line first there, and gives the table's and the trail's parts their `h2` and their new page.
+`typst_data` gives `people` (`heads`, `rows`) and `names.people`, `gets-parts.typ` holds `part-head` (moved from
+gets-all.typ) and `people-table`, `gets.typ` sets the table, a page break and the next part's heading, and
+`gets-all.typ` lists it first in the contents and sets it after them. A theme table's Word document
+(`gets_word.blocks`) puts `people_blocks` after the Subtitle: Heading 2 "Participants", a `themes_word.TABLE`
+paragraph (`table_xml`, `cell_xml`: fixed columns `PEOPLE_WIDTHS`, a firm rule over it, under its heads and under it,
+a light one between rows, `w:tblHeader` and `w:cantSplit`) and a `BREAK`, a page's end. `print_pdf.write` takes
+`who`, `write_gets` `people`. The command line's `board export --portrait` and `gets export --participants` (also
+with `--word`) and MCP's `portrait` and `participants` call the same writers through `routes.portrait_printed` and
+`routes.people_printed`, `--draft` and `--canvas` refusing them. Area 373 checks it.
+
 A statement card's passage is `thToPassage` in `themes.js`, from Go to the passage in `thMenuItems`,
 which `thMenuDo` takes as `passage`, `thIsStatement` saying which cards are, every card on the PETs
 canvas and a card of kind `es` on GETs, LGETs and LPETs, where until getsedit (below) a double-click on a
@@ -3654,6 +3684,8 @@ included, and `--root` makes `projects` that one folder for one run without writ
 | `export_not_placed`, `export_binned` | The PETs table's export's two ticks (18 October), Include not placed and Include binned experiential statements, off by default. `themes.js` draws them under Export (`thIncludesDraw`), saves each alone through `thInclude` and sends both with Table, `unplaced` and `binned` in the print view's query, and with Word, in the body (`thIncludesSent`). The print view draws the same two beside Board note, `themes_print.INCLUDES`, and its script posts the key to `/api/settings` and draws the page again by its query. `server.export_includes` takes the request's value, else the settings', and `themes_print.page` and `themes_word.blocks` leave Not placed and the bin, headed `themes_print.BINNED`, Binned experiential statements, out without them. The command line's `board export` takes `--not-placed` and `--binned`, MCP's `not_placed` and `binned`, both off when left out. |
 | `export_stacked` | The third tick under Export (19 October), Include stacked statements, off by default, beside the two above and drawn and saved the same way, `stacked` in the print view's query and Word's body. `server.export_stacked` takes the request's value, else the settings', and `themes.stacks_shown` keeps or drops each top's `stacked` in the outline the print view, the Word document and the PET draft read. The command line's `board export` takes `--stacked`, MCP's `stacked`. |
 | `export_descriptions` | Descriptions (21 October), first among the ticks under Export, beside Board note on the print view and on the GETs print card, on by default (`server.export_descriptions`: on unless the request or the file says false), `descriptions` in the print view's, the GETs print's and the Word export's requests. Off, `themes.descriptions_shown` drops every label's description from the outline the print view and the Word table read, and `gets_print.page` from its GETs and PET tables. |
+| `export_portrait` | Pen portrait (pbioexport, 11 November 2026), last under Export on PETs and on the print view, off by default: the participant's label and pen portrait under the head of the table of PETs, its print view, PDF and Word, `portrait` in their requests (`routes.export_portrait`, `portrait_printed`). The command line's `board export --portrait`, MCP's `portrait`. |
+| `export_participants` | Participants table (pbioexport), last on the GETs print card, off by default: a first page listing each participant before the GET table, the trail or the full set, and a theme table's Word document, `participants` in their requests (`routes.export_participants`, `people_printed`). The command line's `gets export --participants`, MCP's `participants`. |
 | `export_for_sending` | Leave out the board's name (For sending from 19 to 31 October, the key and the API's `for_sending` and `sending` kept), beside the two under Export and on the GETs print card, off by default, in `TH_INCLUDES` so it is drawn, saved and sent as they are, `sending` in the print view's and the GETs print's query and in the Word export's body. `server.export_sending` takes the request's value, else the settings'. `themes_print.page` then leaves the board's name off its foot and titles the page by the case alone (`title_of`), which names the PDF the browser saves, `themes_word.file_stem` names the document `<case>.docx`, `free_name` putting the date in brackets after it when taken, and `gets_print.page` leaves the board off its head, its PET tables and its title. The foot is kept in all of them. |
 | `minimap` | The minimap's card at the bottom right of the statements screen's transcript column (16 October, a card since 17 October), `auto`, `on` or `off` since 17 October, later, `auto` by default, so a file without it reads Auto, an old true Auto and an old false Off. The View menu and Settings' View both set it, and `api_settings` saves it through `minimap_mode`. |
 | `round_minutes` | The transcript minutes in a round, 10 by default. |

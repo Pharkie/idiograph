@@ -137,6 +137,31 @@
   })
 })
 
+// a part's heading, as the HTML's `.part > h2`: the serif at 16pt over a rule, a full set's and, with the
+// participants table before them, the GET table's and the trail's (moved here from gets-all.typ, pbioexport)
+#let part-head(s) = block(sticky: true, above: 0pt, below: 8pt, width: 100%, stroke: (bottom: 0.75pt + rule-firm),
+  inset: (bottom: 3pt), text(font: serif, size: 16pt, fill: ink, s))
+
+// the participants table (pbioexport, 11 November 2026, with Participants table ticked), from the data's `people`:
+// a row for each participant in order, the number in the quiet sans, the pseudonym and the label in the serif, the
+// pen portrait taking the rest of the width, as the HTML's `table.pt`. The column heads repeat on each page and a
+// row is never split, as the GET table's.
+#let people-table(p) = {
+  let cell(body) = table.cell(breakable: false, body)
+  let rows = p.rows.map(r => (
+    cell(lh(1.5, text(font: sans, size: 9pt, fill: soft, number-width: "tabular", r.number))),
+    cell(lh(1.35, text(font: serif, size: 11pt, fill: ink, r.pseudonym))),
+    cell(lh(1.35, text(font: serif, size: 10.5pt, fill: ink, r.label))),
+    cell(lh(1.4, text(font: serif, size: 10pt, fill: ink, r.portrait))),
+  )).flatten()
+  block(above: 0pt, below: 0pt, table(
+    columns: (18mm, 34mm, 60mm, 1fr), inset: (x: 6pt, y: 4pt), align: left + top,
+    stroke: (x, y) => if y == 0 { (bottom: px + rule-firm) } else { (bottom: px + rule) },
+    table.header(repeat: true, ..p.heads.map(h => table.cell(inset: (x: 6pt, top: 2pt, bottom: 3pt),
+      caps(h, size: 7.5pt, weight: "semibold")))),
+    ..rows))
+}
+
 // the page: A4 landscape with a 14mm margin, the foot in the bottom margin
 #let gets-page(d, body) = {
   set document(title: d.title)

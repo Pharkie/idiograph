@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """A thematic analysis project's table of themes as a Word document (taword, 1 November 2026, Adam: "yes, add it"),
 the theme table his Table view shows on the project's board of themes, in the shape `themes_word` gives a table of
-PETs: portrait A4, Word's own heading styles, no table, no colour.
+PETs: portrait A4, Word's own heading styles, no colour, and no table but the participants table when it is asked
+for.
 
 The document opens with the project's name under Heading 1 and under it, smaller in Word's Subtitle style, the
 table's name in the method's words, "Table of themes". Then each theme in the order the canvas reads them under
@@ -14,6 +15,10 @@ the workbook says so in its reference. A participant note comes only with Includ
 after whose it is. Each participant's note for a theme, the row note the theme table keeps, follows the theme's codes
 in italics. With Their key extract only, each theme holds every participant's key extract alone, as the printed
 table does.
+
+With Participants table ticked on the print card (pbioexport, 11 November 2026) the first page lists each
+participant in order under Heading 2, "Participants", a table of their number, pseudonym, label and pen portrait,
+a cell empty where they have none and never a picture, and the themes begin on the next page.
 
 The file goes at the project's root, where the theme table's PDF goes, as "<project> - <board> - Theme table.docx",
 and never over a file there (`themes_word.free_name`), the date and time in the name when it is taken. With Leave
@@ -28,6 +33,7 @@ from pathlib import Path
 import gets as gt
 import gets_print
 import i18n
+import participants as people_mod
 import print_pdf
 import themes as th
 import themes_word as tw
@@ -120,22 +126,38 @@ def board_blocks(parts: dict, notes: bool = False, selected: bool = False, descr
     return out
 
 
+# the participants table's columns in twentieths of a point, the number, the pseudonym, the label and the pen
+# portrait, together the width between an A4 page's margins of an inch (pbioexport)
+PEOPLE_WIDTHS = (1100, 1500, 2100, 4326)
+
+
+def people_blocks(rows: list[dict]) -> list[dict]:
+    """The participants table's first page (pbioexport): its heading, the table, then the page's end."""
+    return [{"style": 2, "runs": [run(i18n.t("page_print.people.heading"))]},
+            {"style": tw.TABLE, "heads": people_mod.table_heads(), "widths": list(PEOPLE_WIDTHS),
+             "rows": [[r["number"], r["pseudonym"], r["label"], r["portrait"]] for r in rows]},
+            {"style": tw.BREAK, "runs": []}]
+
+
 def blocks(project: dict, parts: dict, notes: bool = False, selected: bool = False,
-           descriptions: bool = True) -> list[dict]:
-    """The document as paragraphs: the project and the table's name, then the themes."""
+           descriptions: bool = True, people: dict | None = None) -> list[dict]:
+    """The document as paragraphs: the project and the table's name, with `people` (Participants table ticked) the
+    participants table on the first page, then the themes."""
     name = " ".join(str(project.get("name") or "").split()) or i18n.t("page_print.gets.project")
+    first = people_blocks(people_mod.table_rows(people, parts["inside"], gt.who)) if people is not None else []
     return ([{"style": 1, "runs": [run(name)]}, {"style": tw.SUBTITLE, "runs": [run(i18n.t("page_print.gets.table_name"))]}]
-            + board_blocks(parts, notes, selected, descriptions))
+            + first + board_blocks(parts, notes, selected, descriptions))
 
 
 def write(root: Path, books: list[dict], project: dict, board: dict, detail: str = "full", notes: bool = False,
           sending: bool = False, descriptions: bool = True, author: str = "", dry_run: bool = False,
-          now: datetime | None = None) -> dict:
+          now: datetime | None = None, people: dict | None = None) -> dict:
     """Write a board of themes as a Word document at the project's root, never over a file there, named as its PDF
     is with .docx, every code and extract or with `detail` "selected" each participant's key extract alone,
     participant notes only with `notes`, the board's name left out with `sending`, each theme's description under
-    its title with `descriptions`, `author` Your name. With `dry_run` nothing is written and the answer names the
-    file it would write. A board no longer there is refused."""
+    its title with `descriptions`, `author` Your name, and with `people`, every participant's set (Participants
+    table ticked), the participants table on the first page. With `dry_run` nothing is written and the answer
+    names the file it would write. A board no longer there is refused."""
     root = Path(root)
     now = now or datetime.now().astimezone()
     parts = gets_print.study_parts(root, books, str(board.get("id") or "") or None, th.now_iso())
@@ -154,7 +176,7 @@ def write(root: Path, books: list[dict], project: dict, board: dict, detail: str
            "detail": "selected" if detail == "selected" else "full", "notes": bool(notes)}
     if dry_run:
         return dict(out, dry_run=True)
-    paras = blocks(project, parts, notes, detail == "selected", descriptions)
+    paras = blocks(project, parts, notes, detail == "selected", descriptions, people)
     title = f"{' '.join(str(name).split())}, {i18n.t('page_print.gets.table_name')}"
     data = tw.package(paras, title, now, author)
     while True:

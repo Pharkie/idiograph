@@ -579,7 +579,7 @@
     "other": "{n} codes"
   },
   "cli.gets_word_export.of": "{themes}, {codes} of {participants}",
-  "cli.gets_word_export.word_takes_selected_notes_for_sending": "{list}: --word takes --selected, --notes, --for-sending, --no-descriptions and --dry-run alone. The Word document goes at the project's root and is never written over.",
+  "cli.gets_word_export.word_takes_selected_notes_for_sending": "{list}: --word takes --selected, --notes, --for-sending, --no-descriptions, --participants and --dry-run alone. The Word document goes at the project's root and is never written over.",
   "cli.gets_export.in": "{head} {name} in {folder}: {gets_what}, {said}.{dated}",
   "cli.board_draft.wrote_in_s_folder_from_in": "Wrote {files} in {case}'s folder, from {name}: {statements} in the CSV.",
   "cli.board_draft.dry_run_nothing_was_written_it": "Dry run, nothing was written. It would write {files} in {case}'s folder, from {name}.{over}",

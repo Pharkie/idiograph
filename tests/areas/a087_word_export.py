@@ -267,7 +267,7 @@ def test_word_export(scratch):
     after_mcp_dry = docx()
     mcp_made = mcp.call(tool, {"case": "Wren", "board": "Board 1"})
     check("87: MCP's board_export takes dry_run and no request, marked as writing and never destroying, and writes as the command line",
-          tool["command"] == ("board", "export") and set(tool["inputSchema"]["properties"]) == {"case", "board", "labels", "not_placed", "set_aside", "binned", "stacked", "descriptions", "format", "for_sending", "replace", "board_note", "out", "dry_run", "timepoint", "canvas"}
+          tool["command"] == ("board", "export") and set(tool["inputSchema"]["properties"]) == {"case", "board", "labels", "not_placed", "set_aside", "binned", "stacked", "descriptions", "format", "for_sending", "replace", "board_note", "out", "dry_run", "timepoint", "canvas", "portrait"}
           and tool["inputSchema"]["required"] == ["case"] and tool["annotations"]["readOnlyHint"] is False
           and tool["annotations"]["destructiveHint"] is False
           and mcp_dry["isError"] is False and support.unfenced(mcp_dry["content"][0]["text"]).startswith("Dry run, nothing was written.")

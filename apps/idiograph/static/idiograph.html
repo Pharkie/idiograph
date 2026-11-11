@@ -758,6 +758,10 @@
          participant alone, no board's name on the page or in its foot, off on a new install and kept as he leaves it
          (Adam, 19 October) -->
     <label class="view-row" title="{{page_idiograph.screens.no_boards_name_file}}"><input type="checkbox" id="th-inc-sending" data-include="export_for_sending"> {{page_idiograph.screens.leave_out_boards_name}}</label>
+    <!-- Pen portrait: the participant's label and pen portrait under their name at the head of the print view, the PDF
+         and the Word document, never their picture, off on a new install and kept as he leaves it (pbioexport,
+         11 November 2026) -->
+    <label class="view-row" title="{{page_idiograph.screens.pen_portrait_tip}}"><input type="checkbox" id="th-inc-portrait" data-include="export_portrait"> {{page_idiograph.screens.pen_portrait}}</label>
     <!-- PET labels: the book's letters, A, A1, A1.1, or numbers, PET 1, PET 1a, 1a.1, for every case
          of the project, saved in its project file at once. Fixed on the demo -->
     <div class="row-menu-rule" role="separator"></div>
@@ -2148,6 +2152,10 @@
       <label class="gt-print-notes" title="{{page_idiograph.cards_last.each_gets_pets_description}}"><input type="checkbox" id="gt-print-descriptions" data-include="export_descriptions"> {{page_idiograph.cards_last.descriptions}}</label>
       <label class="gt-print-notes"><input type="checkbox" id="gt-print-notes"> {{page_idiograph.cards_last.include_participant_notes}}</label>
       <label class="gt-print-notes" title="{{page_idiograph.cards_last.no_boards_name_file}}"><input type="checkbox" id="gt-print-sending" data-include="export_for_sending"> {{page_idiograph.cards_last.leave_out_boards_name}}</label>
+      <!-- Participants table: a first page listing each participant, their number, pseudonym, label and pen portrait,
+           never their picture, for the GET table, the audit trail and all of it, off on a new install and kept as he
+           leaves it (pbioexport, 11 November 2026). Hidden for the canvas, one GET's trail and a participant's LPETs -->
+      <label class="gt-print-notes" id="gt-print-people-row" title="{{page_idiograph.cards_last.participants_table_tip}}"><input type="checkbox" id="gt-print-people" data-include="export_participants"> {{page_idiograph.cards_last.participants_table}}</label>
     </div>
     <div class="card-actions">
       <button class="ghost" id="gt-print-cancel">{{page_idiograph.cards_last.cancel}}</button>

@@ -355,6 +355,9 @@ body { max-width: 265mm; }
 .date { font-size: 9pt; }
 .note { font-size: 8.5pt; }
 main > :last-child, main > :last-child > :last-child { margin-bottom: 0; }
+.who { margin: 0 0 12pt; max-width: 190mm; break-inside: avoid; page-break-inside: avoid; }
+.who-label { margin: 0; font-family: var(--serif); font-size: 11pt; font-style: italic; line-height: 1.35; }
+.who-portrait { margin: 2pt 0 0; font-family: var(--serif); font-size: 10pt; line-height: 1.4; color: var(--ink-soft); }
 """
 BLOCKS = """
 .pet { margin: 0; padding: 0 0 0 11pt; border-left: 2pt solid var(--hue); }
@@ -634,27 +637,40 @@ def foot_fit(pieces: list[str], fit: int, middle: str, css: str, numbered: bool 
 # the export's ticks, each by its id on the page, its key in config.json, the query the page is drawn by
 # and its words, all off on a new install: the two that put Not placed and Discarded in the export (18
 # October), the third that puts the statements stacked under a top beneath it (19 October), and For
-# sending, which leaves the board's name off the page and out of the file's name (Adam, 19 October)
+# sending, which leaves the board's name off the page and out of the file's name (Adam, 19 October). Pen portrait,
+# last (pbioexport, 11 November 2026), puts the participant's label and pen portrait under the head (`who_html`)
 INCLUDES = (("include-descriptions", "export_descriptions", "descriptions"),
             ("include-unplaced", "export_not_placed", "unplaced"),
             ("include-binned", "export_binned", "binned"),
             ("include-stacked", "export_stacked", "stacked"),
-            ("for-sending", "export_for_sending", "sending"))
+            ("for-sending", "export_for_sending", "sending"),
+            ("include-portrait", "export_portrait", "portrait"))
 
 
 def include_words() -> tuple:
     """Each tick's words in INCLUDES' order, in the run's language."""
     return (i18n.t("page_print.tick.descriptions"), i18n.t("page_print.tick.unplaced"), i18n.t("page_print.tick.binned"),
-            i18n.t("page_print.tick.stacked"), i18n.t("page_print.tick.sending"))
+            i18n.t("page_print.tick.stacked"), i18n.t("page_print.tick.sending"), i18n.t("page_print.tick.portrait"))
 
 
 def include_ticks(unplaced: bool, binned: bool, stacked: bool = False, sending: bool = False,
-                  descriptions: bool = True) -> str:
+                  descriptions: bool = True, portrait: bool = False) -> str:
     """The page's ticks, each toggling from its whole row inside its label, as the page is drawn."""
     return "".join(f'<label class="tick"><input type="checkbox" id="{box}"' + (" checked" if on else "")
                    + f"> {esc(words)}</label>"
                    for (box, _key, _query), words, on in zip(INCLUDES, include_words(),
-                                                              (descriptions, unplaced, binned, stacked, sending)))
+                                                              (descriptions, unplaced, binned, stacked, sending,
+                                                               portrait)))
+
+
+def who_html(who: dict | None) -> list[str]:
+    """The participant's label and pen portrait under the head, with Pen portrait ticked (pbioexport, 11 November
+    2026): the label in italics on a line of its own and the portrait under it, each only when they have one, and
+    nothing at all for a participant with neither. `who` is `participants.printed`'s, so never a picture."""
+    who = who or {}
+    parts = [f'<p class="{kind}">{esc(who[key])}</p>'
+             for key, kind in (("label", "who-label"), ("portrait", "who-portrait")) if who.get(key)]
+    return ['<section class="who">', *parts, "</section>"] if parts else []
 
 
 def about_block(project: str, asked: str) -> list[str]:
@@ -745,11 +761,13 @@ def block_data(theme: dict, shades: dict, depth: int, numbers: dict) -> dict:
 def typst_data(workbook: Path, case: str, board: str | None = None, question: str = "",
                now: datetime | None = None, note: bool = False, labels: str = th.LETTERS,
                unplaced: bool = False, binned: bool = False, stacked: bool = False, sending: bool = False,
-               descriptions: bool = True, project: str = "", researcher: str = "", confidential: bool = True) -> dict:
+               descriptions: bool = True, project: str = "", researcher: str = "", confidential: bool = True,
+               who: dict | None = None) -> dict:
     """The table of PETs as the Typst template reads it, from the same walk and the same arguments as `page`:
-    the head, the board's note with `note`, the PETs, the empty board's line, Not placed and the statements set
-    aside with their ticks, and the foot in its three parts, the project the one piece that may be cut. With
-    `sending` the board stays out of the foot and the document's title, as on the HTML view."""
+    the head, the participant's label and pen portrait with `who`, the board's note with `note`, the PETs, the
+    empty board's line, Not placed and the statements set aside with their ticks, and the foot in its three parts,
+    the project the one piece that may be cut. With `sending` the board stays out of the foot and the document's
+    title, as on the HTML view."""
     board_, shades, numbers = walk(workbook, board, labels, stacked, descriptions)
     named = "" if sending else board_["name"]
     table = i18n.t("page_print.pets.table_name")
@@ -773,6 +791,8 @@ def typst_data(workbook: Path, case: str, board: str | None = None, question: st
         "question": " ".join(str(question or "").split()),
         "labels": {"project": i18n.t("page_print.project"), "question": i18n.t("page_print.research_question"),
                    "board_note": i18n.t("page_print.pets.board_note")},
+        # the label and the pen portrait under the head, "" each where there is none or Pen portrait is off
+        "who": {"label": (who or {}).get("label") or "", "portrait": (who or {}).get("portrait") or ""},
         "note": said if note else "",
         "themes": [block_data(t, shades, 0, numbers) for t in board_["themes"]],
         "none": "" if board_["themes"] else i18n.t("page_print.pets.none"),
@@ -787,7 +807,8 @@ def typst_data(workbook: Path, case: str, board: str | None = None, question: st
 def page(workbook: Path, case: str, board: str | None = None, question: str = "", auto: bool = True,
          now: datetime | None = None, note: bool = False, labels: str = th.LETTERS,
          unplaced: bool = False, binned: bool = False, stacked: bool = False, sending: bool = False,
-         descriptions: bool = True, project: str = "", researcher: str = "", confidential: bool = True) -> str:
+         descriptions: bool = True, project: str = "", researcher: str = "", confidential: bool = True,
+         who: dict | None = None) -> str:
     """The print view of a board of a case, the current one when `board` names none, as one HTML
     page, the table of Personal Experiential Themes. The case is named as given, by its pseudonym. A
     board the file does not hold is refused. `auto` opens the print dialog once the fonts have
@@ -796,7 +817,9 @@ def page(workbook: Path, case: str, board: str | None = None, question: str = ""
     with `unplaced` and Discarded only with `binned`, each left out entirely otherwise. A top stands
     for the statements stacked under it, which come under it, in a quieter row, only with `stacked`.
     With `sending` the board's name and Current board stay off the page and out of its title, the
-    foot kept. Each label's description sits under its title only with `descriptions`, on by default."""
+    foot kept. Each label's description sits under its title only with `descriptions`, on by default.
+    `who`, given with Pen portrait ticked and None without, is the participant's label and pen portrait
+    (`participants.printed`), set under the head, its tick on the page ticked."""
     board_, shades, numbers = walk(workbook, board, labels, stacked, descriptions)
     asked = " ".join(str(question or "").split())
     said = str(board_["note"] or "").strip()
@@ -806,6 +829,8 @@ def page(workbook: Path, case: str, board: str | None = None, question: str = ""
     head = ['<header class="head">', '<div class="top">', '<div class="titles">', f'<h1 class="case">{esc(case_title(case))}</h1>',
             f'<p class="table-name">{esc(i18n.t("page_print.pets.table_name"))}</p>', "</div>",
             *about_block(" ".join(str(project or "").split()), asked), "</div>", "</header>"]
+    # the participant's label and pen portrait under the head with Pen portrait ticked, before the board's note
+    head += who_html(who)
     if note and said:
         head.append(f'<p class="note"><span class="label">{esc(i18n.t("page_print.pets.board_note"))}</span>{esc(said)}</p>')
     body = [block_html(t, shades, numbers=numbers) for t in board_["themes"]]
@@ -837,7 +862,7 @@ def page(workbook: Path, case: str, board: str | None = None, question: str = ""
         "<!doctype html>", f'<html lang="{page_lang()}">', "<head>", '<meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
         f"<title>{esc(title)}</title>", FONTS_LINK, f"<style>{STYLE}{page_foot(pieces, middle, numbered=True, fit=fit)}</style>", "</head>", "<body>",
-        f'<div class="controls noprint">{tick}{include_ticks(unplaced, binned, stacked, sending, descriptions)}<button type="button" id="print">{esc(i18n.t("page_print.print"))}</button></div>',
+        f'<div class="controls noprint">{tick}{include_ticks(unplaced, binned, stacked, sending, descriptions, who is not None)}<button type="button" id="print">{esc(i18n.t("page_print.print"))}</button></div>',
         *head, "<main>", *body, *rest, "</main>",
         f"<footer>{esc(foot + ('  ' + chr(183) + '  ' + middle if middle else ''))}</footer>",
         foot_fit(pieces, fit, middle, STYLE),

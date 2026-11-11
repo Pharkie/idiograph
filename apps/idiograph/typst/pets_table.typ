@@ -214,6 +214,17 @@
 
   head(d)
   v(10pt)
+  // the participant's label in italics and their pen portrait under it, with Pen portrait ticked (pbioexport), each
+  // only when there is one, as the HTML's `.who`: 190 mm wide at most, kept together, 12pt under it
+  if d.who.label != "" or d.who.portrait != "" {
+    block(above: 0pt, below: 12pt, width: 190mm, breakable: false, {
+      if d.who.label != "" { lh(1.35, text(size: 11pt, style: "italic", d.who.label)) }
+      if d.who.portrait != "" {
+        block(above: if d.who.label != "" { 2pt } else { 0pt }, below: 0pt,
+          lh(1.4, text(size: 10pt, fill: soft, d.who.portrait)))
+      }
+    })
+  }
   if d.note != "" {
     block(above: 0pt, below: 12pt, lh(1.4, text(font: sans, size: 8.5pt, fill: soft)[#label(d.labels.board_note)#h(6pt)#d.note]))
   }

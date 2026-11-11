@@ -5,7 +5,9 @@ looks too finished to send.
 
 The document opens with the participant under Heading 1, large, "P9 Wren", or the name alone when the
 case has no number, "Juno", so Word's navigation pane names the participant, and under it the table's
-name, "Table of Personal Experiential Themes", smaller in Word's Subtitle style (Adam, 20 October). Then the
+name, "Table of Personal Experiential Themes", smaller in Word's Subtitle style (Adam, 20 October). With Pen
+portrait ticked under Export (pbioexport, 11 November 2026) the participant's label follows in italics and their
+pen portrait under it, each only when they have one, and never their picture. Then the
 PETs in the order the canvas reads them, the order he sets for the story they tell, each lettered
 in bold capitals as Box 5.6 letters them, "A. HOME LIFE", the title kept in its own case in the text
 and shown in capitals by the run's All caps, so a copy keeps his casing, under Heading 2. A
@@ -30,7 +32,8 @@ The order is `themes.outline`'s and the labels `themes.pet_numbers`', read throu
 as the print view reads them, so the two never disagree, and the PET draft takes the same labels.
 The styles are plain: Normal in a serif at 11pt, Heading 1 to 5 under Word's own names, so the
 navigation pane and a reference document take them, restyled to the book's look, real bold, italic
-and All caps, and no colour, no fill, no list and no table anywhere.
+and All caps, and no colour, no fill, no list and no table anywhere in the table of PETs. The one table
+the writer sets is a theme table's participants table (`table_xml`, `gets_word`).
 
 A `.docx` is a zip of XML parts, and this module writes them with the standard library alone. The
 file goes at the case's root, beside the workbook, as `<P9 Wren> - PETs (<board name>).docx`, and
@@ -70,6 +73,11 @@ SET_IN = 360
 DESC_SIZE, DESC_COLOUR = 20, "595959"
 # the two kinds of paragraph that are neither Normal nor a heading
 STATEMENT, QUOTE = "statement", "quote"
+# and two that are no paragraph (pbioexport, 11 November 2026): a table, its `heads` and `rows` of plain text with
+# its columns' `widths` in twentieths of a point, a theme table's participants table, and a page's end
+TABLE, BREAK = "table", "break"
+# the participants table's type, 10pt, its rules a thin grey and its heads' a step darker, as the print's
+TABLE_SIZE, TABLE_RULE, TABLE_RULE_FIRM = 20, "D9D9D9", "A6A6A6"
 MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml"
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
@@ -123,14 +131,28 @@ def statement_blocks(s: dict) -> list[dict]:
     return out
 
 
+def who_blocks(who: dict | None) -> list[dict]:
+    """The participant's label and pen portrait under the head, with Pen portrait ticked (pbioexport, 11 November
+    2026): the label in italics, kept with the portrait, and the portrait under it, each only when there is one,
+    and nothing for a participant with neither. `who` is `participants.printed`'s, so never a picture."""
+    who = who or {}
+    out = []
+    if who.get("label"):
+        out.append({"style": STATEMENT, "keep": bool(who.get("portrait")), "runs": [run(who["label"], italic=True)]})
+    if who.get("portrait"):
+        out.append({"style": 0, "runs": [run(who["portrait"])]})
+    return out
+
+
 def blocks(case: str, board: dict, labels: str = th.LETTERS, unplaced: bool = False,
-           binned: bool = False) -> list[dict]:
+           binned: bool = False, who: dict | None = None) -> list[dict]:
     """The document as a list of paragraphs, each with its style and its runs. `board` is what
     `themes.outline` gives, and a theme's `order` places its sub-themes among its statements.
     `labels` is the project's way of labelling its PETs, the book's letters unless it says numbers.
     Not placed comes after only with `unplaced` and Discarded only with `binned`, the print view's
-    two ticks, each left out entirely otherwise."""
-    out = [{"style": 1, "runs": [run(heading(case))]}, {"style": SUBTITLE, "runs": [run(TITLE)]}]
+    two ticks, each left out entirely otherwise. `who`, with Pen portrait ticked, puts the participant's
+    label and pen portrait under the head."""
+    out = [{"style": 1, "runs": [run(heading(case))]}, {"style": SUBTITLE, "runs": [run(TITLE)]}, *who_blocks(who)]
     # the labels and the order the print view takes too, from `themes`, so the two never disagree
     numbers = th.pet_numbers(board["themes"], labels)
 
@@ -164,6 +186,12 @@ def plain(paras: list[dict]) -> list[str]:
     quote set in, for a look at it without Word and for the suite."""
     out = []
     for p in paras:
+        # a table a line a row, its cells parted by " | ", and a page's end no line at all
+        if p["style"] == TABLE:
+            out.extend(" | ".join(cells) for cells in [p["heads"], *p["rows"]])
+            continue
+        if p["style"] == BREAK:
+            continue
         text = "".join(r["text"].upper() if r.get("caps") else r["text"] for r in p["runs"] if not r.get("desc"))
         out.append(f"    {text}" if p["style"] == QUOTE else text)
         # a description is a line of its own in its heading
@@ -177,8 +205,42 @@ def xml_text(text: str) -> str:
     return escape(UNWRITABLE.sub("", " ".join(str(text).replace("\t", " ").splitlines())))
 
 
+def cell_xml(text: str, width: int, head: bool = False) -> str:
+    """A table's cell, its words in one paragraph at the table's size with no space after, a head's in bold over
+    the firmer rule."""
+    rule = (f'<w:tcBorders><w:bottom w:val="single" w:sz="6" w:space="0" w:color="{TABLE_RULE_FIRM}"/></w:tcBorders>'
+            if head else "")
+    words = (f'<w:r><w:rPr>{"<w:b/><w:bCs/>" if head else ""}<w:sz w:val="{TABLE_SIZE}"/><w:szCs w:val="{TABLE_SIZE}"/>'
+             f'</w:rPr><w:t xml:space="preserve">{xml_text(text)}</w:t></w:r>') if text else ""
+    return (f'<w:tc><w:tcPr><w:tcW w:w="{width}" w:type="dxa"/>{rule}</w:tcPr>'
+            f'<w:p><w:pPr><w:spacing w:before="0" w:after="0"/></w:pPr>{words}</w:p></w:tc>')
+
+
+def table_xml(p: dict) -> str:
+    """A table (pbioexport, 11 November 2026, the theme table's participants table): plain, as a write-up's table is
+    set, a rule over it, one under its heads and one under it, a thin grey one between the rows, the heads repeated
+    on each page and a row never split across one, its columns at their `widths`."""
+    widths = [int(w) for w in p["widths"]]
+    rules = (f'<w:tblBorders><w:top w:val="single" w:sz="6" w:space="0" w:color="{TABLE_RULE_FIRM}"/>'
+             f'<w:bottom w:val="single" w:sz="6" w:space="0" w:color="{TABLE_RULE_FIRM}"/>'
+             f'<w:insideH w:val="single" w:sz="4" w:space="0" w:color="{TABLE_RULE}"/></w:tblBorders>')
+    margins = ('<w:tblCellMar><w:top w:w="60" w:type="dxa"/><w:left w:w="100" w:type="dxa"/>'
+               '<w:bottom w:w="60" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tblCellMar>')
+    rows = [f'<w:tr><w:trPr><w:cantSplit/><w:tblHeader/></w:trPr>'
+            + "".join(cell_xml(h, w, head=True) for h, w in zip(p["heads"], widths)) + "</w:tr>"]
+    rows += ['<w:tr><w:trPr><w:cantSplit/></w:trPr>' + "".join(cell_xml(c, w) for c, w in zip(cells, widths)) + "</w:tr>"
+             for cells in p["rows"]]
+    grid = "".join(f'<w:gridCol w:w="{w}"/>' for w in widths)
+    return (f'<w:tbl><w:tblPr><w:tblW w:w="{sum(widths)}" w:type="dxa"/>{rules}<w:tblLayout w:type="fixed"/>{margins}'
+            f'</w:tblPr><w:tblGrid>{grid}</w:tblGrid>' + "".join(rows) + "</w:tbl>")
+
+
 def paragraph(p: dict) -> str:
     style = p["style"]
+    if style == TABLE:
+        return table_xml(p)
+    if style == BREAK:
+        return '<w:p><w:r><w:br w:type="page"/></w:r></w:p>'
     if style == QUOTE:
         props = f'<w:pPr><w:ind w:left="{SET_IN}"/></w:pPr>'
     elif style == SUBTITLE:
@@ -355,17 +417,19 @@ def free_name(folder: Path, stem: str, now: datetime, ext: str = ".docx") -> tup
 
 def write(workbook: Path, case: str, vid=None, now: datetime | None = None, dry_run: bool = False,
           labels: str = th.LETTERS, unplaced: bool = False, binned: bool = False, stacked: bool = False,
-          sending: bool = False, descriptions: bool = True, author: str = "") -> dict:
+          sending: bool = False, descriptions: bool = True, author: str = "", who: dict | None = None) -> dict:
     """Write a board as a Word document at the case's root, beside the workbook, never over a file
     there, its PETs labelled the project's way, `labels`, Not placed in it only with `unplaced` and
     Discarded only with `binned`, the statements stacked under a top beneath it only with `stacked`,
     and named by the case alone with `sending`, each label's description under its title only with
-    `descriptions`, on by default. With `dry_run` nothing is written and the answer names
-    the file it would write."""
+    `descriptions`, on by default, and with `who`, Pen portrait ticked, the participant's label and pen
+    portrait under the head. With `dry_run` nothing is written and the answer names the file it would
+    write."""
     workbook = Path(workbook)
     now = now or datetime.now().astimezone()
     board, version = board_of(workbook, vid)
-    paras = blocks(case, th.descriptions_shown(th.stacks_shown(board, stacked), descriptions), labels, unplaced, binned)
+    paras = blocks(case, th.descriptions_shown(th.stacks_shown(board, stacked), descriptions), labels, unplaced, binned,
+                   who)
     folder = workbook.parent
     stem = file_stem(case, version.get("name"), sending)
     counts = {"pets": len(board["themes"]), "statements": sum(len(t["statements"]) for t in walk(board["themes"])),

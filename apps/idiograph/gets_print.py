@@ -34,6 +34,7 @@ import openpyxl
 import boot
 import gets as gt
 import i18n
+import participants as people_mod
 import themes as th
 import themes_print as tp
 from workbook import WorkbookError, detect_columns, ts_seconds
@@ -557,6 +558,22 @@ def table_section(get: dict, tint: str, total: int, minimum: int, notes: bool, s
     return "\n".join(out)
 
 
+# ------------------------------------------------------------- the participants table
+
+def people_section(rows: list[dict]) -> str:
+    """The participants table (pbioexport, 11 November 2026, with Participants table ticked), the first part of
+    the page, under its heading as a full set's parts are: a row for each participant in order, their number, their
+    pseudonym, their label and their pen portrait, a cell empty where they have none, and never a picture. The
+    heads repeat on each page and a row is never split, as the GET table's."""
+    heads = "".join(f"<th>{esc(h)}</th>" for h in people_mod.table_heads())
+    body = "".join(f'<tr><td class="pt-n">{esc(r["number"])}</td><td class="pt-who">{esc(r["pseudonym"])}</td>'
+                   f'<td class="pt-label">{esc(r["label"])}</td><td class="pt-portrait">{esc(r["portrait"])}</td></tr>'
+                   for r in rows)
+    return (f'<section class="part first people" id="participants"><h2>{esc(i18n.t("page_print.people.heading"))}</h2>'
+            f'<div class="gt-wide"><table class="pt"><thead><tr>{heads}</tr></thead><tbody>{body}</tbody></table></div>'
+            "</section>")
+
+
 # ------------------------------------------------------------- the PET tables
 
 def pet_tops(rec: dict, selected: bool, descriptions: bool) -> tuple[list[dict], dict]:
@@ -698,6 +715,20 @@ table.gt { width: 100%; min-width: 720px; border-collapse: collapse; }
 .gt td.kqcell { width: 70mm; font-family: var(--serif); font-size: 10.5pt; line-height: 1.35; }
 .gt td.rnote { width: 50mm; font-size: 9pt; line-height: 1.4; color: var(--ink-soft); white-space: pre-line; }
 .gt tr.empty td.who { color: var(--ink-faint); }
+/* the participants table (pbioexport): the GET table's heads and rules, the number in the quiet sans, the pseudonym
+   and the label in the serif, the pen portrait taking the rest of the width */
+.part.people { margin-bottom: 18pt; }
+table.pt { width: 100%; min-width: 720px; border-collapse: collapse; }
+.pt thead { display: table-header-group; }
+.pt th { text-align: left; font-weight: 600; font-size: 7.5pt; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-faint); padding: 2pt 6pt 3pt; border-bottom: 1px solid var(--rule-firm); }
+.pt td { vertical-align: top; padding: 4pt 6pt; border-bottom: 1px solid var(--rule); }
+.pt tr { break-inside: avoid; page-break-inside: avoid; }
+.pt td.pt-n { width: 18mm; font-family: var(--sans); font-size: 9pt; line-height: 1.5; color: var(--ink-soft);
+  font-variant-numeric: tabular-nums; }
+.pt td.pt-who { width: 34mm; font-family: var(--serif); font-size: 11pt; line-height: 1.35; }
+.pt td.pt-label { width: 60mm; font-family: var(--serif); font-size: 10.5pt; line-height: 1.35; }
+.pt td.pt-portrait { font-family: var(--serif); font-size: 10pt; line-height: 1.4; }
 .it { font-family: var(--serif); font-size: 10.5pt; line-height: 1.35; margin: 0 0 4pt; }
 .it .kind { font-family: var(--sans); font-size: 7.5pt; font-weight: 600; letter-spacing: .04em; color: var(--ink-faint); }
 .it .n, .it .within, .it .mine { font-family: var(--sans); font-size: 8pt; color: var(--ink-faint); }
@@ -912,11 +943,14 @@ def head_of(project: dict, parts: dict, what: str) -> dict:
 
 
 def walked(root: Path, books: list[dict], project: dict, board: str | None, what: str, get: str | None,
-           sending: bool, descriptions: bool, now: datetime | None) -> dict:
+           sending: bool, descriptions: bool, now: datetime | None, people: dict | None = None) -> dict:
     """One walk of a board of the GETs for a print, which the HTML page (`page`) and the Typst data (`typst_data`)
     both read, so the two cannot disagree about what is on it: what is printed, the study's parts, the table, the
-    GETs whose trails are printed, the cases' copies, the words of the trails' turns, the part's name and the
-    page's title. A board or a GET the file no longer holds is refused."""
+    GETs whose trails are printed, the cases' copies, the words of the trails' turns, the part's name, the
+    page's title and, with `people` (Participants table ticked, every participant's set), the participants
+    table's rows, every participant of the study in order (`participants.table_rows`), and none for a
+    participant's LPETs, whose columns are their timepoints. A board or a GET the file no longer holds is
+    refused."""
     what = what if what in WHATS else "table"
     parts = study_parts(root, books, board, th.now_iso())
     table_ = gets_table(parts)
@@ -932,8 +966,11 @@ def walked(root: Path, books: list[dict], project: dict, board: str | None, what
     kind = {"table": i18n.t("page_print.gets.table"), "trail": i18n.t("page_print.gets.trail"), "all": gets_word}[what]
     title = (i18n.t("page_print.gets.title_sending", name=name, what=kind) if sending
              else i18n.t("page_print.gets.title", name=name, board=parts["board"].get("name") or th.FIRST_NAME, what=kind))
+    rows = None
+    if people is not None and not gt.in_lpets():
+        rows = people_mod.table_rows(people, parts["inside"], gt.who)
     return {"what": what, "parts": parts, "table": table_, "trails": trails, "recs": recs, "words": words,
-            "kind": kind, "title": title}
+            "kind": kind, "title": title, "people": rows}
 
 
 def foot_of(project: dict, parts: dict, kind: str, sending: bool, researcher: str, confidential: bool,
@@ -951,15 +988,17 @@ def foot_of(project: dict, parts: dict, kind: str, sending: bool, researcher: st
 def page(root: Path, books: list[dict], project: dict, board: str | None = None, what: str = "table",
          detail: str = "full", notes: bool = False, get: str | None = None, auto: bool = True, audio=None,
          now: datetime | None = None, sending: bool = False, descriptions: bool = True, researcher: str = "",
-         confidential: bool = True) -> str:
+         confidential: bool = True, people: dict | None = None) -> str:
     """The GET table, the audit trail or the full set of a board of the GETs, the current one when
     `board` names none, as one HTML page. `get` keeps the trail to one GET. `audio` gives a turn the
     address of its recording, or None when its case has none. A board the file does not hold is
     refused. `auto` opens the print dialog once the fonts have loaded. With `sending`, For sending
     ticked, no board is named on the page or in its title, which names the PDF, "Study - GET table"
     in place of "Study - Board 2 - GET table", and the foot is kept (Adam, 19 October). Each GET's and
-    PET's description sits under its title only with `descriptions`, on by default (21 October)."""
-    w = walked(root, books, project, board, what, get, sending, descriptions, now)
+    PET's description sits under its title only with `descriptions`, on by default (21 October). With
+    `people`, Participants table ticked (pbioexport, 11 November 2026), the participants table comes first,
+    after a full set's contents, and the part after it from a new page under its own heading."""
+    w = walked(root, books, project, board, what, get, sending, descriptions, now, people)
     what, parts, table_, trails, recs = w["what"], w["parts"], w["table"], w["trails"], w["recs"]
     selected = detail == "selected"
     tints = tint_of(parts["board"])
@@ -967,18 +1006,26 @@ def page(root: Path, books: list[dict], project: dict, board: str | None = None,
     body: list[str] = []
     pet_tables, get_table = esc(i18n.t("page_print.gets.pet_tables")), esc(i18n.t("page_print.gets.table"))
     audit, none = esc(i18n.t("page_print.gets.trail")), esc(i18n.t("page_print.gets.none"))
+    rows = w["people"]
     if what == "all":
         # a thematic analysis project's full set has no PET tables, its participants having none (tagaps)
         pets = "" if ta() else (f'<li><a href="#pets">{pet_tables}</a><ol>'
                                 + "".join(f'<li><a href="#pets-{esc(gt.who(c))}">{esc(gt.who(c))}</a></li>' for c in parts["inside"])
                                 + "</ol></li>")
+        listed = (f'<li><a href="#participants">{esc(i18n.t("page_print.people.heading"))}</a></li>'
+                  if rows is not None else "")
         body.append(f'<section class="contents"><h2>{esc(i18n.t("page_print.gets.contents"))}</h2><ol>'
-                    + pets + f'<li><a href="#table">{get_table}</a></li><li><a href="#trail">{audit}</a><ol>'
+                    + listed + pets + f'<li><a href="#table">{get_table}</a></li><li><a href="#trail">{audit}</a><ol>'
                     + "".join(f'<li><a href="#trail-{esc(g["id"])}">{esc(g["label"])}</a></li>' for g in table_)
                     + "</ol></li></ol></section>")
+    # the participants table first, after a full set's contents (pbioexport), and then the part printed after it
+    # from a new page under its own heading, as a full set's parts are
+    if rows is not None:
+        body.append(people_section(rows))
+    headed, first = what == "all" or rows is not None, rows is None
     if what == "all" and not ta():
         labels = th.pet_labels_of(project.get("pet_labels"))
-        body.append(f'<section class="part first pets" id="pets"><h2>{pet_tables}</h2>'
+        body.append(f'<section class="part{" first" if first else ""} pets" id="pets"><h2>{pet_tables}</h2>'
                     + "".join(pet_section(c, recs.get(c) or {}, selected, labels, sending, descriptions)
                               for c in parts["inside"])
                     + "</section>")
@@ -986,16 +1033,16 @@ def page(root: Path, books: list[dict], project: dict, board: str | None = None,
         tables = "".join(table_section(g, tints.get(g["id"], "hue-grey"), total, minimum, notes, selected) for g in table_)
         if not table_:
             tables = f'<p class="none">{none}</p>'
-        body.append(f'<section class="part{" first" if what == "table" else ""}" id="table">'
-                    + (f"<h2>{get_table}</h2>" if what == "all" else "") + tables + "</section>")
+        body.append(f'<section class="part{" first" if what == "table" and first else ""}" id="table">'
+                    + (f"<h2>{get_table}</h2>" if headed else "") + tables + "</section>")
     if what in ("trail", "all"):
         words = w["words"]
         sections = "".join(trail_section(g, tints.get(g["id"], "hue-grey"), recs, words, total, minimum, notes,
                                          selected, audio) for g in trails)
         if not trails:
             sections = f'<p class="none">{none}</p>'
-        body.append(f'<section class="part{" first" if what == "trail" else ""}" id="trail">'
-                    + (f"<h2>{audit}</h2>" if what == "all" else "") + sections + "</section>")
+        body.append(f'<section class="part{" first" if what == "trail" and first else ""}" id="trail">'
+                    + (f"<h2>{audit}</h2>" if headed else "") + sections + "</section>")
     title = w["title"]
     foot, middle, pieces, fit = foot_of(project, parts, w["kind"], sending, researcher, confidential, now)
     style =f"{tp.HEAD}{tp.ROW}{PAGE}{tp.scoped(tp.BLOCKS, '.pets')}{STYLE}{CASES}{TRAIL}{tp.TAIL}"
@@ -1140,12 +1187,15 @@ def trail_data(get: dict, hue: dict, recs: dict, words: dict, total: int, minimu
 
 def typst_data(root: Path, books: list[dict], project: dict, board: str | None = None, what: str = "table",
                detail: str = "full", notes: bool = False, get: str | None = None, now: datetime | None = None,
-               sending: bool = False, descriptions: bool = True, researcher: str = "", confidential: bool = True) -> dict:
+               sending: bool = False, descriptions: bool = True, researcher: str = "", confidential: bool = True,
+               people: dict | None = None) -> dict:
     """The GET table, the audit trail or both of a board of the GETs as the Typst templates take them (TEMPLATE),
     from the same walk as the HTML page (`walked`), with the same arguments as `page`, every word the page prints
     in the run's language: the head, the foot in its pieces, and each GET's part. `all` gives the table and the
-    trail, a full set's PET tables being the table of PETs' own. Reads only, and writes nothing."""
-    w = walked(root, books, project, board, what, get, sending, descriptions, now)
+    trail, a full set's PET tables being the table of PETs' own. With `people` (Participants table ticked) the
+    participants table's heads and rows under `people`, which the templates set first (pbioexport). Reads only,
+    and writes nothing."""
+    w = walked(root, books, project, board, what, get, sending, descriptions, now, people)
     what, parts = w["what"], w["parts"]
     selected = detail == "selected"
     hues = hues_of(parts["board"])
@@ -1161,7 +1211,10 @@ def typst_data(root: Path, books: list[dict], project: dict, board: str | None =
                                                                 "question": i18n.t("page_print.research_question")}),
            "foot": {"left": [p for p in pieces if p], "fit": fit, "middle": middle, "page": [before, between, after]},
            "none": i18n.t("page_print.gets.none"), "selected": selected,
-           "names": {"table": i18n.t("page_print.gets.table"), "trail": i18n.t("page_print.gets.trail")}}
+           "names": {"table": i18n.t("page_print.gets.table"), "trail": i18n.t("page_print.gets.trail"),
+                     "people": i18n.t("page_print.people.heading")}}
+    if w["people"] is not None:
+        out["people"] = {"heads": people_mod.table_heads(), "rows": w["people"]}
     if what in ("table", "all"):
         out["table"] = [table_data(g, hues.get(g["id"], grey), total, minimum, notes, selected) for g in w["table"]]
     if what in ("trail", "all"):

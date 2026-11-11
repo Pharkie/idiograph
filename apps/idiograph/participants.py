@@ -341,3 +341,46 @@ def shown(case: str, kept: dict, url: str, colour: int | None) -> dict:
     place in the participants' palette, for the initial on their colour where there is no picture."""
     return {"case": case, "who": who(case), "label": kept.get("label") or "", "portrait": kept.get("portrait") or "",
             "picture": kept.get("picture") or "", "picture_url": url, "colour": colour if colour is not None else 0}
+
+
+# ------------------------------------------------------------------ in the exports (pbioexport)
+
+# The exports carry a participant's label and pen portrait, never the picture, since a photo of a real participant
+# identifies them (pbioexport, 11 November 2026, the Exports of pbiodraw's proposal, Adam's choice): the table of
+# PETs, its print view, PDF and Word document, with Pen portrait under Export ticked, the two under the
+# participant's heading, and the GET table, the audit trail and the full set, print view and PDF, and a thematic
+# analysis project's theme table in Word too, with Participants table on the print card ticked, a first page
+# listing each participant in order. A participant with neither adds nothing under their heading, and has a row
+# with its cells empty in the table.
+PRINTED = ("label", "portrait")
+
+
+def printed(kept: dict | None) -> dict:
+    """A participant's label and pen portrait as an export prints them, each left out when empty, the picture
+    never."""
+    kept = kept if isinstance(kept, dict) else {}
+    return {k: words(kept.get(k)) for k in PRINTED if words(kept.get(k))}
+
+
+def number_of(case: str, place: int) -> str:
+    """A participant's number in the participants table: the one their folder gives them, P2 for `P2 - Mabel`, and
+    for a folder with none their place in the order, from 1."""
+    found = re.match(r"^(P\d+)\b", str(case or "").strip())
+    return found.group(1) if found else str(place)
+
+
+def table_rows(people: dict[str, dict], cases: list[str], name=who) -> list[dict]:
+    """The participants table's rows, one for each of `cases` in their order: the number, the pseudonym as `name`
+    gives it, the label and the pen portrait, "" where they have none."""
+    out = []
+    for place, case in enumerate(cases, start=1):
+        kept = printed(find(people, case))
+        out.append({"number": number_of(case, place), "pseudonym": name(case), "label": kept.get("label", ""),
+                    "portrait": kept.get("portrait", "")})
+    return out
+
+
+def table_heads() -> list[str]:
+    """The participants table's column heads, in the run's language."""
+    return [i18n.t("page_print.people.number"), i18n.t("page_print.people.pseudonym"),
+            i18n.t("page_print.people.label"), i18n.t("page_print.people.portrait")]

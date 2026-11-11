@@ -105,13 +105,15 @@ def place(folder: Path, stem: str, replace: bool, now: datetime, dry_run: bool, 
 def write(workbook: Path, case: str, vid=None, question: str = "", labels: str = th.LETTERS,
           unplaced: bool = False, binned: bool = False, stacked: bool = False, sending: bool = False,
           note: bool = False, out=None, replace: bool = False, dry_run: bool = False,
-          now: datetime | None = None, descriptions: bool = True, project: str = "", researcher: str = "") -> dict:
+          now: datetime | None = None, descriptions: bool = True, project: str = "", researcher: str = "",
+          who: dict | None = None) -> dict:
     """Write a board's table of PETs as a PDF beside the workbook, or where `out` names, a folder or a
     file, as the print view
     draws it with the same ticks: Board note (`note`), Include not placed, Include binned experiential
     statements, Include stacked statements and For sending, each off as on a new install, and the
-    labels the project's. With `dry_run` nothing is printed or written and the answer names the file it
-    would write."""
+    labels the project's. `who`, with Pen portrait ticked, is the participant's label and pen portrait
+    (`participants.printed`), set under the head. With `dry_run` nothing is printed or written and the
+    answer names the file it would write."""
     workbook = Path(workbook)
     now = now or datetime.now().astimezone()
     board, version = themes_word.board_of(workbook, vid)
@@ -122,7 +124,7 @@ def write(workbook: Path, case: str, vid=None, question: str = "", labels: str =
     made = place(folder, stem, replace, now, dry_run, lambda: typeset_pdf(themes_print.TEMPLATE, themes_print.typst_data(
         workbook, case, str(version.get("id") or "") or None, question, now=now, note=note,
         labels=labels, unplaced=unplaced, binned=binned, stacked=stacked, sending=sending, descriptions=descriptions,
-        project=project, researcher=researcher)))
+        project=project, researcher=researcher, who=who)))
     return dict(made, counts=counts, version=th.summary(version), labels=th.pet_labels_of(labels))
 
 
@@ -140,13 +142,14 @@ def gets_what(what: str) -> str:
 def write_gets(root: Path, books: list[dict], project: dict, board: dict, what: str = "table",
                detail: str = "full", notes: bool = False, get: str | None = None, sending: bool = False,
                out=None, replace: bool = False, dry_run: bool = False, now: datetime | None = None,
-               descriptions: bool = True, researcher: str = "") -> dict:
+               descriptions: bool = True, researcher: str = "", people: dict | None = None) -> dict:
     """Write a GETs board as a PDF at the project's root, beside the GETs file, or where `out` names, as
     the GETs screen's print card makes it: the GET
     table, the audit trail or the full set (`what`), Full or Selected (`detail`), Include participant
     notes (`notes`) and For sending, one GET's trail alone with `get`, the defaults the card's own, the
-    GET table, Full and both ticks off. Named as the print view names the PDF, "Study -
-    Board 2 - GET table", with the GET's id after it for one GET's trail. With `dry_run` nothing is
+    GET table, Full and both ticks off. `people`, with Participants table ticked, is every participant's set
+    (`participants.view`), and a first page lists the participants. Named as the print view names the PDF,
+    "Study - Board 2 - GET table", with the GET's id after it for one GET's trail. With `dry_run` nothing is
     printed or written. The GETs file and the workbooks are only read."""
     import gets_print
     now = now or datetime.now().astimezone()
@@ -158,7 +161,7 @@ def write_gets(root: Path, books: list[dict], project: dict, board: dict, what: 
     bid = str(board.get("id") or "") or None
     # its data made first, dry run or not, so a board or a GET no longer there is refused before a name is given
     data = gets_print.typst_data(root, books, project, bid, what=what, detail=detail, notes=notes, get=get, now=now,
-                                 sending=sending, descriptions=descriptions, researcher=researcher)
+                                 sending=sending, descriptions=descriptions, researcher=researcher, people=people)
     template = gets_print.FULL_TEMPLATE if what == "all" else gets_print.TEMPLATE
     parts = gets_print.study_parts(root, books, bid, th.now_iso())
     table = gets_print.gets_table(parts)
