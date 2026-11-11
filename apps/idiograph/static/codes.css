@@ -195,7 +195,7 @@
 .gt-cin { display: flex; align-items: baseline; gap: 10px; margin: 14px 0 10px; }
 .gt-cin .section-label { margin: 0; }
 .gt-cin-name { font-family: var(--serif); font-size: 14.5px; color: var(--ink); overflow-wrap: anywhere; }
-.gt-cacts, .gt-tacts { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
+.gt-cacts { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
 .gt-cwho { display: flex; align-items: center; gap: 4px; margin: 12px 0 4px; font-size: 13px; color: var(--ink); }
 .gt-cwho-n { margin-left: auto; font-size: 12px; color: var(--ink-faint); }
 .gt-cx { padding: 3px 0 5px; }

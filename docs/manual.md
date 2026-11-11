@@ -4035,7 +4035,7 @@ them as they were, each change one step of undo. A note sits under any GET and n
 On a statement, its sheet and timecode, its PET and that PET's GET, its own quote and its
 exploratory notes. Under a GET, a PET's picks and a statement's quote carry the ticks of Key
 quote for that GET (see Table). On a participant note, his words in a box. On a GET, its count, the
-minimum when it is under it, Auto-arrange, Audit trail (see The audit trail), its note, "Why this
+minimum when it is under it, Auto-arrange and Audit trail side by side on one row (see The audit trail), its note, "Why this
 GET", and the participants of the study, a participant with nothing under it saying "Nothing under this
 GET".
 
@@ -4625,7 +4625,7 @@ the one ticked is that participant's key extract for the theme, which the theme 
 shows. Until you tick one, the first of theirs in the theme is ticked faintly. A tick is a step of undo.
 
 The Inspector on a theme shows its Definition, the theme's central idea, in the box that was its description, then
-how many codes, extracts and participants it holds, Auto-arrange and Audit trail, its codes and subthemes in the
+how many codes, extracts and participants it holds, Auto-arrange and Audit trail side by side on one row, its codes and subthemes in the
 order of its frame, each participant's extracts counted from every code under it, and its Note.
 
 **Thematic analysis's guidance** (3 November 2026). A thematic analysis project's Coding screen has its own

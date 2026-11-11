@@ -6748,11 +6748,12 @@ function thPickedHtml(v, item, picks) {
   return items.length ? `<h3 class="section-label">${esc(t('themes.inspector.picked_quotes'))}</h3><ul class="th-qlist th-picked">${items.join('')}</ul>` : '';
 }
 
-/* Auto-arrange, in a label's panel: the same as the small control on the label. */
-function thArrangeHtml(id) {
-  if (thLocked(TH.v)) return '';
-  return '<div class="th-leave-row"><button type="button" class="ghost small th-arrange" tabindex="-1" '
-    + `data-arrange="${escAttr(id)}" title="${escAttr(t('themes.arrange.panel_tip'))}">${esc(t('themes.label.arrange_label'))}</button></div>`;
+/* Auto-arrange, in a label's panel: the same as the small control on the label. `more` is a button that rides on
+   its row, a GET's Audit trail, which stays when a revision on view takes the arranging away. */
+function thArrangeHtml(id, more = '') {
+  const arrange = thLocked(TH.v) ? '' : '<button type="button" class="ghost small th-arrange" tabindex="-1" '
+    + `data-arrange="${escAttr(id)}" title="${escAttr(t('themes.arrange.panel_tip'))}">${esc(t('themes.label.arrange_label'))}</button>`;
+  return arrange || more ? `<div class="th-leave-row${more ? ' gt-acts' : ''}">${arrange}${more}</div>` : '';
 }
 
 /* A theme's note, in its panel under the count and above the quotes: a box of a few lines in the
@@ -11457,7 +11458,7 @@ function gtThemePanelHtml(v, g, owner) {
   return `<label class="section-label gt-clabel" for="th-gdesc">${esc(t('codes.board.definition'))}</label>` + thDescHtml(v, g)
     + `<p class="kicker">${esc(owner !== undefined ? t('themes.kind.sub') : t('codes.board.theme'))}</p>`
     + `<p class="th-panel-meta"><span>${esc(counts)}</span></p>`
-    + (arrange || trail ? `<div class="th-leave-row gt-tacts">${arrange}${trail}</div>` : '')
+    + (arrange || trail ? `<div class="th-leave-row gt-acts">${arrange}${trail}</div>` : '')
     + thLeaveHtml(v, g.id, owner)
     + `<h3 class="section-label">${esc(t('codes.codes'))}</h3>`
     + (rows.length ? `<ul class="gt-tcodes">${rows.join('')}</ul>` : `<p class="th-qnone">${esc(t('themes.inspector.no_statements'))}</p>`)
@@ -12185,7 +12186,7 @@ function gtPanelDraw(v, item, owner) {
       ? `<button type="button" class="ghost small gt-trail-go" tabindex="-1" data-gtrail="${escAttr(g.id)}">${esc(t('themes.gets.trail'))}</button>` : '';
     html = thDescHtml(v, g) + `<p class="kicker">${esc(owner !== undefined ? t('themes.kind.sub') : t('themes.unit.get'))}</p>`
       + `<p class="th-panel-meta"><span>${esc(gtCountText(n, total))}</span>${under ? `<span class="gt-mark">${esc(t('themes.gets.under_min', { min: minimum }))}</span>` : ''}</p>`
-      + thArrangeHtml(g.id) + trail + thLeaveHtml(v, g.id, owner) + thNoteHtml(v, g)
+      + thArrangeHtml(g.id, trail) + thLeaveHtml(v, g.id, owner) + thNoteHtml(v, g)
       // three titles from the AI for a GET or a sub-theme, with the sparkles, and Undo puts the old back
       + thNamesHtml(item, { unit: owner !== undefined ? t('themes.unit.sub') : t('themes.unit.get') })
       + `<h3 class="section-label">${esc(t('themes.cases.head'))}</h3>` + gtList(rows, t('themes.gets.no_participant'));

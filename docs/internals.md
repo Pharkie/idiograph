@@ -3380,6 +3380,14 @@ draws the panel, and the board's `v` comes from the answer's `copies` for the fi
 the Inspector's double-click opens the box there as on PETs. The Shortcuts card's `help-gets` row is
 `page_idiograph.cards.edit_or_inspector`.
 
+The Inspector's buttons under a label's count sit on one `.th-leave-row` (auditgap, 11 November 2026), whose
+margins, 10px up under the count and 20px below, are what the Take out row and the note box after it count on.
+`thArrangeHtml(id, more)` draws Auto-arrange and a GET's Audit trail as `more` on the one row, and a theme's
+panel in a thematic analysis project draws the same row, with `.gt-acts` on it, which wraps in a longer language.
+A button drawn outside such a row, as Audit trail was, or a row with margins of its own, as the theme panel's
+`.gt-tacts` was, ends under the box that follows it: Audit trail under a GET's note box by 8px, and Auto-arrange
+under a sub-theme's Take out by 4px.
+
 On the server `api_edit_statement` holds the case's lock and the root's (`writing(path, root=...)`), reads
 `copies_before` first, writes the line, carries it to the case's boards through `themes.statement_edited`
 (at the sheet's timepoint, `at_sheet_timepoint`, since a GETs board sends no `timepoint`), then
