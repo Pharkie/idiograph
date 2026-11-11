@@ -137,7 +137,7 @@
   "server.something_ai_help_does_nothing": "That is not something the AI help does, so nothing was asked.",
   "server.show_finder_mac_only": "Show in Finder is there on a Mac only.",
   "server.file_more_export_again_write": "That file is not there any more. Export again to write it.",
-  "server.op_list_check_approve_decline": "The op is list, check, approve or decline.",
+  "server.op_list_check_approve_decline": "The op is list, counts, check, approve or decline.",
   "server.project_one_idiograph_s": "That project is not one of Idiograph's.",
   "server.holds_changed_waits": "This changed since {agent} asked, so nothing was done. It still waits for your yes.",
   "server.holds_what_changed_waits": "{what} changed since {agent} asked, so nothing was done. It still waits for your yes.",

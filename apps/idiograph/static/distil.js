@@ -131,7 +131,7 @@ function distilHomeDraw(data) {
   $('home-project').hidden = !page;
   if (demo) drawDemoPage(demo);
   else if (page) drawPage(page);
-  else drawPick(data, sections);
+  else { drawPick(data, sections); homeHoldsRead(); }
 }
 
 /* Idiograph's projects for Open Recent (see windowRecent), in the home screen's order with the demo last */
@@ -13302,6 +13302,8 @@ async function searchToProject(go) {
    happened, with its cross. Only the page answers one, through /api/holds. */
 const HOLDS = { list: [], after: '', open: null, busy: false };
 const HOLDS_EVERY = 4 * 1000;
+// how long one action may take before its card says it is working (holdsprog)
+const HOLD_SLOW_MS = 500;
 
 const holdAgent = (h) => (h && h.tool) || t('distil.holds.the_agent');
 
@@ -13348,13 +13350,65 @@ function holdDraw() {
   holdPlace();
 }
 
-async function holdsTick() {
-  if (!$('hold-line') || HOLDS.busy || document.hidden || !holdScreen()) { holdDraw(); return; }
+/* every action waiting in the app's projects, as the server has them now */
+async function holdsRead() {
   try {
     const data = await api('/api/holds', { op: 'list' });
     HOLDS.list = Array.isArray(data.holds) ? data.holds : [];
   } catch { HOLDS.list = []; }
+}
+
+async function holdsTick() {
+  if (!$('hold-line') || HOLDS.busy || document.hidden || !holdScreen()) { holdDraw(); return; }
+  await holdsRead();
   holdDraw();
+}
+
+/* ── Waiting actions on Home's project cards (holdsprog, Adam, 11 November 2026: 13 waited and Home never said) ── */
+
+/* A project with actions waiting for his yes says so on its card, "13 actions are waiting for your yes", in the crux
+   orange the Preview note's sign is, and a press on the line opens the project on a participant's PETs screen,
+   where the line in the corner stands, with the card for them open. The counts are one call after the picker is
+   drawn, `/api/holds` with `counts`, for every project the page lists: the server reads each project's holds file
+   and nothing else of it (holds.counts), and a project with none shows no line. Home asks each time the picker is
+   drawn, so each time it is shown again, and not while it stays up. The line is a button beside the card's own and
+   never in it. An answer that lands after a newer ask is dropped. */
+let homeHoldsAsk = 0;
+
+async function homeHoldsRead() {
+  const ask = ++homeHoldsAsk;
+  // the room for the line goes with the old cards, and comes back with the line
+  for (const id of ['projects', 'demo-projects']) if ($(id)) $(id).classList.remove('has-holds');
+  let counts = [];
+  try {
+    const data = await api('/api/holds', { op: 'counts' });
+    counts = Array.isArray(data.counts) ? data.counts : [];
+  } catch { counts = []; }
+  if (ask !== homeHoldsAsk) return;
+  const by = new Map(counts.filter((c) => c && Number(c.n) > 0).map((c) => [String(c.id), Number(c.n)]));
+  for (const li of document.querySelectorAll('#projects .home-card-li, #demo-projects .home-card-li')) {
+    const id = li.querySelector('.home-card').dataset.id;
+    const old = li.querySelector('.hc-hold');
+    if (old) old.remove();
+    li.classList.toggle('has-hold', by.has(id));
+    if (by.has(id)) {
+      li.insertAdjacentHTML('beforeend',
+        `<button type="button" class="hc-hold" data-id="${escAttr(id)}">${esc(t('distil.home.holds_waiting', { n: by.get(id) }))}</button>`);
+    }
+  }
+  for (const id of ['projects', 'demo-projects']) if ($(id)) $(id).classList.toggle('has-holds', !!$(id).querySelector('.hc-hold'));
+}
+
+/* The line pressed: the project opens as his own way in opens it, its page and then the first participant's PETs,
+   so Back walks the same way, and the list of actions is read afresh for the card, which opens over the screen */
+async function holdsOpenFromHome(id) {
+  const there = isDemoId(id) ? (demosOf(S.lib).find((d) => d.id === id) || {}).cards : (sectionsOf(S.lib).find((s) => s.id === id) || {}).participants;
+  const first = (there || []).find((p) => p && p.path);
+  await openPage(id);
+  if (first) await openThemesIn(first.path, first.case);
+  await holdsRead();
+  holdDraw();
+  holdReview();
 }
 
 /* The card for one action, its words as the server last read them */
@@ -13400,6 +13454,11 @@ async function holdAnswer(op) {
   HOLDS.busy = true;
   $('hold-approve').disabled = true;
   $('hold-decline').disabled = true;
+  // a quiet line, and no bar for one action, only when the answer takes longer than about half a second (holdsprog)
+  const slow = setTimeout(() => {
+    $('hold-run').textContent = t(op === 'approve' ? 'distil.holds.approving' : 'distil.holds.declining');
+    $('hold-run').hidden = false;
+  }, HOLD_SLOW_MS);
   try {
     const data = await api('/api/holds', { op, root: h.root, id: h.id, page: pageId() });
     if (data.changed) {
@@ -13422,6 +13481,8 @@ async function holdAnswer(op) {
     hide('hold-card');
     HOLDS.open = null;
   } finally {
+    clearTimeout(slow);
+    $('hold-run').hidden = true;
     HOLDS.busy = false;
     $('hold-approve').disabled = false;
     $('hold-decline').disabled = false;
@@ -13482,6 +13543,7 @@ function hbChangedLine(h) {
 }
 
 function hbDraw() {
+  $('holds-batch').querySelector('.holds-batch').classList.remove('running');
   const n = HB.list.length;
   const k = HB.list.filter((h) => HB.ticked.has(hbKey(h))).length;
   $('hb-agent').textContent = hbAgent(HB.list);
@@ -13549,27 +13611,51 @@ async function holdsBatchOpen() {
   } catch (err) { say(err.message, 9000); }
 }
 
-/* Decline N or Approve N: the ticked rows answered in order, then the card says what happened */
+/* While a list is answered the card is its heading and a bar (holdsprog, Adam, 11 November 2026, after 13 slow approvals
+   that "just sat there"): the list, the ticks, Tick all and both buttons give way to "Approving 4 of 13" and a bar
+   that fills as each finishes, and nothing on the card can be changed meanwhile. Esc does nothing until the run ends
+   (holdKeys looks at HOLDS.busy) and the card has no other way to close. `done` is how many have finished, so the
+   line and the bar agree */
+function hbRun(op, done, total) {
+  $('holds-batch').querySelector('.holds-batch').classList.add('running');
+  $('hb-title').textContent = t(op === 'approve' ? 'distil.holds.approving_of' : 'distil.holds.declining_of', { n: done, m: total });
+  $('hb-bar').setAttribute('aria-valuemax', String(total));
+  $('hb-bar').setAttribute('aria-valuenow', String(done));
+  $('hb-fill').style.width = `${total ? (done / total) * 100 : 0}%`;
+}
+
+/* Decline N or Approve N: the ticked rows answered one at a time, in the order shown, each through /api/holds with
+   one id so the card can count them, then the card says what happened. An error on one keeps what was done before
+   it, says that one was not done with the error's words, and leaves the rest waiting, unasked */
 async function hbAnswer(op) {
   const picked = HB.list.filter((h) => HB.ticked.has(hbKey(h)));
   if (!picked.length || HOLDS.busy) return;
   HOLDS.busy = true;
-  for (const id of ['hb-decline', 'hb-approve', 'hb-all']) $(id).disabled = true;
+  hbRun(op, 0, picked.length);
+  const outcomes = [];
+  let reached = picked.length;
   try {
-    const data = await api('/api/holds', { op, holds: picked.map((h) => ({ root: h.root, id: h.id })), page: pageId() });
-    HB.after = { op, picked, outcomes: data.outcomes || [], left: HB.list.filter((h) => !HB.ticked.has(hbKey(h))) };
+    for (const [i, h] of picked.entries()) {
+      try {
+        const data = await api('/api/holds', { op, holds: [{ root: h.root, id: h.id }], page: pageId() });
+        outcomes.push(...(data.outcomes || []));
+      } catch (err) {
+        outcomes.push({ root: h.root, id: h.id, outcome: 'failed', reason: err.message });
+        reached = i + 1;
+        break;
+      }
+      hbRun(op, outcomes.length, picked.length);
+    }
+    HB.after = { op, picked, outcomes, left: HB.list.filter((h) => !HB.ticked.has(hbKey(h))), unreached: picked.slice(reached) };
     hbAfter();
     if (op === 'approve' && picked.some((h) => h.op === 'project remove')) holdProjectGone();
     if (op === 'approve' && HB.after.outcomes.some((o) => o.outcome === 'approved')) {
       if (holdScreen() === 'themes' && typeof thStampTick === 'function') thStampTick(true);
       if (holdScreen() === 'work' && typeof esStampTick === 'function') esStampTick();
     }
-  } catch (err) {
-    say(err.message, 9000);
   } finally {
     HOLDS.busy = false;
     $('hb-all').disabled = false;
-    if (!HB.after) hbDraw();
     holdsTick();
   }
 }
@@ -13578,9 +13664,11 @@ async function hbAnswer(op) {
    rows not ticked still waiting. Review the N waiting opens the card again for those still waiting */
 function hbAfter() {
   const a = HB.after;
+  $('holds-batch').querySelector('.holds-batch').classList.remove('running');
   const done = a.outcomes.filter((o) => o.outcome === a.op + 'd');
   const notDone = a.outcomes.filter((o) => o.outcome !== a.op + 'd');
-  const still = notDone.filter((o) => o.outcome === 'changed').length + a.left.length;
+  const unreached = a.unreached || [];
+  const still = notDone.filter((o) => o.outcome === 'changed').length + a.left.length + unreached.length;
   $('hb-title').textContent = t(a.op === 'approve' ? 'distil.holds.approved_of' : 'distil.holds.declined_of', { n: done.length, m: a.picked.length });
   const sum = [notDone.length ? t('distil.holds.not_done', { n: notDone.length }) : '', still ? t('distil.holds.still_wait', { n: still }) : '']
     .filter(Boolean).join(' ');
@@ -13597,8 +13685,11 @@ function hbAfter() {
     const h = Object.assign({}, byKey.get(`${o.root}\n${o.id}`), o.hold || {});
     rows += `<li class="hb-done not">${HB_WARN}<span>${esc(hbWhat(h))}<span class="hb-why">${esc(o.reason || '')}</span></span><span class="hb-state">${esc(t('distil.holds.state_not_done'))}</span></li>`;
   }
-  for (const h of a.left) {
-    rows += `<li class="hb-done not">${HB_WARN}<span>${esc(hbWhat(h))}<span class="hb-why">${esc(t('distil.holds.not_ticked'))}</span></span><span class="hb-state">${esc(t('distil.holds.state_waiting'))}</span></li>`;
+  // the ticked rows a run did not reach, then the rows not ticked
+  for (const [list, why] of [[unreached, 'distil.holds.not_reached'], [a.left, 'distil.holds.not_ticked']]) {
+    for (const h of list) {
+      rows += `<li class="hb-done not">${HB_WARN}<span>${esc(hbWhat(h))}<span class="hb-why">${esc(t(why))}</span></span><span class="hb-state">${esc(t('distil.holds.state_waiting'))}</span></li>`;
+    }
   }
   $('hb-list').innerHTML = `<ul class="hb-done-list">${rows}</ul>`;
   $('hb-list').scrollTop = 0;
@@ -13688,9 +13779,12 @@ function holdKeys(e) {
     if (e.key === 'Enter') { e.preventDefault(); skipConfirm(e.target === $('skip-confirm-go')); return true; }
   }
   if ($('hold-card') && !$('hold-card').hidden && e.key === 'Escape') {
-    e.preventDefault(); hide('hold-card'); HOLDS.open = null; return true;
+    e.preventDefault();
+    if (!HOLDS.busy) { hide('hold-card'); HOLDS.open = null; }
+    return true;
   }
-  // Esc on the card for several closes it, the actions still waiting, or after an answer as Done does
+  // Esc on the card for several closes it, the actions still waiting, or after an answer as Done does. While it
+  // answers (hbAnswer) it does nothing, and the card has no other way to close until the run ends (holdsprog)
   if ($('holds-batch') && !$('holds-batch').hidden && e.key === 'Escape') {
     e.preventDefault();
     if (!HOLDS.busy) hbClose();
@@ -13718,6 +13812,10 @@ function holdsBoot() {
     $('set-skip-holds').onchange = () => skipSwitch();
     $('skip-confirm-go').onclick = () => skipConfirm(true);
     $('skip-confirm-cancel').onclick = () => skipConfirm(false);
+  }
+  // a project's card's line for the actions waiting (holdsprog), on Home's two lists of cards
+  for (const list of ['projects', 'demo-projects']) {
+    if ($(list)) $(list).addEventListener('click', (e) => { const b = e.target.closest('.hc-hold'); if (b) holdsOpenFromHome(b.dataset.id); });
   }
   window.addEventListener('focus', () => holdsTick());
   window.addEventListener('resize', () => { if (!$('hold-line').hidden) holdPlace(); });

@@ -641,6 +641,32 @@ reached as /var and as /private/var gave two keys and every hold read as changed
 the route is the page's own (`own_page`), no command or tool approves or declines, and `hold show` takes several
 ids (MCP `hold_show` with `ids`) to read each one's outcome, `holds` in the order given. Area 314.
 
+**Progress while several are answered, and waiting actions on Home** (holdsprog, 11 November 2026, Adam, after 13 slow
+approvals on one participant that "just sat there", and Home saying nothing of them, ruled by dialog: count and bar, on
+the project's card). `hbAnswer` no longer sends the ticked rows in one call: it sends each, in the order shown, as
+`/api/holds` with `holds` of one `{root, id}`, so `holds.answer_all` runs unchanged and the outcome has the shape it
+had, and `hbRun` gives the card the class `running` (`.holds-batch.running`, which hides `#hb-all`, `.hb-sum`,
+`.hb-list` and `.card-actions` and shows `#hb-run`) with the heading, `distil.holds.approving_of` or `declining_of`
+("Approving 4 of 13", `n` the ones finished, so line and bar agree), and `#hb-bar`, a `role="progressbar"` whose
+`#hb-fill` is `n` over the total, in the round bar's colours (`--rule` under `--good`, its ease) at 4px. `holdKeys`
+ignores Esc while `HOLDS.busy`, and the card has no other way to close. A call that throws (the server gone, a refused
+route) stops there: that row is `failed` with the error's words, the rows after it are `HB.after.unreached` and read
+"Not reached. It still waits for your yes." (`distil.holds.not_reached`), counted in `still`, and `hbAfter` then draws
+the result as it always did. One action alone (`holdAnswer`) shows `#hold-run`, "Approving..." or "Declining...",
+only once `HOLD_SLOW_MS` (500) has passed, and its Esc is likewise ignored while it answers. For Home,
+`/api/holds` has a fourth read, `counts`: `holds.counts(roots)` reads each listed project's `idiograph-holds.json` and
+counts `waiting`, with no `shown`, no dry run and nothing else of the project, so Home reads no more of a project
+than before (a project that never had a hold costs one failed open), and the route names each by `project_id`, the id
+its card has (`[{id, root, n}]`, none with `n` of 0). `distilHomeDraw` calls `homeHoldsRead` after `drawPick`, so the
+counts are asked each time the picker is drawn, Home shown again or the way back from a project's page, and not while
+it stays up. A project's card takes a `.hc-hold` button beside its own (a button inside a button is not markup), its
+`li` `has-hold` and its list `has-holds`, which keeps the room under every card of the list so the row stays level, `distil.home.holds_waiting` ("{n} actions are waiting for your yes" without the full
+stop) in `--crux`, the orange of the Preview note's sign. A press (`holdsOpenFromHome`, delegated from `#projects` and
+`#demo-projects` in `holdsBoot`) opens the project's page and the first participant's PETs the way his own clicks
+do (`openPage`, `openThemesIn`, so Back walks them), reads the list afresh (`holdsRead`, split out of `holdsTick`)
+and opens the card as Review does, for every action waiting, not only that project's. Area 314 holds the one-id calls
+and `counts`, area 110's harness stubs `homeHoldsRead`.
+
 **A command and an MCP server per app** (20 October, the fifth build of the split). `sift` and `trace`,
 with their `.bat` twins, sit beside `idiograph` at the root, each running `cli.py --app <app>`, and a
 frozen build is the app its executable is, `Sift cli ...`. `cli.parser(app)` gives Sift the `sift`

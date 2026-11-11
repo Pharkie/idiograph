@@ -650,6 +650,15 @@
     "one": "Review the one waiting",
     "other": "Review the {n} waiting"
   },
+  "distil.holds.approving_of": "Approving {n} of {m}",
+  "distil.holds.declining_of": "Declining {n} of {m}",
+  "distil.holds.approving": "Approving…",
+  "distil.holds.declining": "Declining…",
+  "distil.holds.not_reached": "Not reached. It still waits for your yes.",
+  "distil.home.holds_waiting": {
+    "one": "{n} action is waiting for your yes",
+    "other": "{n} actions are waiting for your yes"
+  },
   "distil.pair.words": {
     "one": "{n} word",
     "other": "{n} words"

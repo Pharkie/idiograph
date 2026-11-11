@@ -1540,6 +1540,7 @@
     <p class="hold-changed" id="hold-changed" hidden></p>
     <p class="hold-what">{{page_idiograph.cards_more.what_would_do}}</p>
     <pre class="mcp-code" id="hold-would"></pre>
+    <p class="hold-run" id="hold-run" role="status" hidden></p>
     <div class="card-actions">
       <button class="ghost" id="hold-decline">{{page_idiograph.cards_more.decline}}</button>
       <button class="primary" id="hold-approve">{{page_idiograph.cards_more.approve}}</button>
@@ -1550,13 +1551,16 @@
 <!-- Review with more than one action waiting (holdbatchA, Adam's option A of 1 November 2026): one card listing
      them all under his request, a row each with its tick, the agent and when, and Details opening the row's own
      card in place. Every row ticked as it opens but one that changed since the agent asked. Decline and Approve
-     name how many are ticked. After, the same card says what was done, each not done with its reason -->
+     name how many are ticked. While they run (holdsprog, 11 November 2026) the card is its heading, "Approving 4 of 13",
+     and a bar. After, the same card says what was done, each not done with its reason -->
 <div class="overlay" id="holds-batch" hidden>
   <div class="card hold-card holds-batch" role="alertdialog" aria-labelledby="hb-title">
     <p class="kicker" id="hb-agent"></p>
     <div class="hb-top"><h2 id="hb-title"></h2><button type="button" class="ghost small" id="hb-all"></button></div>
     <p class="hb-sum" id="hb-sum" hidden></p>
     <div class="hb-list" id="hb-list"></div>
+    <div class="hb-run" id="hb-run"><div class="hb-bar" id="hb-bar" role="progressbar" aria-labelledby="hb-title" aria-valuemin="0"
+         aria-valuemax="1" aria-valuenow="0"><span id="hb-fill"></span></div></div>
     <div class="card-actions">
       <button class="ghost" id="hb-decline"></button>
       <button class="primary" id="hb-approve"></button>

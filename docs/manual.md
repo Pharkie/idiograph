@@ -2019,6 +2019,16 @@ the card again for those, and Done closes it, the line in the corner saying how 
 answers never count as a change: ten deletes on one participant go through together. Only a change made
 since the agent asked by something else, another window or another command, leaves one waiting.
 
+While Approve or Decline answers a list (11 November), the card gives up its rows and buttons for one line, Approving 4 of 13
+or Declining 4 of 13, and a bar that fills as each one finishes. Nothing on the card can be changed until the last
+is done, and Esc does nothing meanwhile. The actions go one at a time, in the order shown. If one cannot be done, the
+card then says which were done, that one with its reason, and that the rest still wait for your yes. One action
+approved from its own card says Approving... under what it would do only when it takes longer than half a second.
+
+On Home, a project with actions waiting says so on its card, in orange, "13 actions are waiting for your yes", and
+nothing shows for a project with none. Press the line and the project opens on its first participant's PETs screen,
+with the card for the waiting actions open. Home counts them each time it is shown.
+
 Under Using your own AI agents, **Dangerously
 skip permissions** is off on a new install. Ticking it asks first, I understand the risks, turn on, or Back
 to safety. On, agents no longer wait, and History says the agent did it without asking. It shows whether AI

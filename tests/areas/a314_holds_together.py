@@ -6,7 +6,10 @@ invented copy of the demo: ten held deletes on one participant approved in one c
 changed by the one before; a hold whose board another window changed since refused with its reason while the rest
 go through; a list declined, the boards staying; a hold not in the list still waiting, and approved alone after
 the others without being called changed; a single Approve after another the same; and an agent reading each
-one's outcome with `hold show` of several ids and MCP's `hold_show` with ids, no command or tool answering one."""
+one's outcome with `hold show` of several ids and MCP's `hold_show` with ids, no command or tool answering one.
+Since 11 November (holdsprog) the card sends its ticked rows one id at a time so it can count them, each done and none
+called changed by the one before, and Home's cards learn how many wait in each project from one `counts` call that
+reads the holds files alone."""
 from __future__ import annotations
 
 import json
@@ -196,5 +199,74 @@ def test_holds_together(scratch: Path):
         check("314: still no command and no tool approves or declines, alone or in a list",
               not any(k[0] == "hold" and k[1] not in (None, "show") for k in idiograph_cli.COMMANDS)
               and not any("approve" in t or "decline" in t for t in tools))
+
+        # 8. one id at a time, as the card counts them (holdsprog, 11 November 2026), and Home's counts: one call for every
+        # project it lists, each as Home names it, from the holds files alone, none for a project with none waiting
+        root2 = scratch / "holds-314" / "Cats"
+        make_project(root2)
+        config2 = scratch / "holds-314" / "config2.json"
+        config2.write_text(json.dumps(dict(config, projects=[{"root": str(root)}, {"root": str(root2)}])), encoding="utf-8")
+
+        def run_in(where: Path, *args):
+            return cli.run(["--config", str(config2), "--root", str(where), *args])
+
+        def ask_in(where: Path, case: str, name: str) -> str:
+            code, out, err = run_in(where, "--json", "board", "delete", case, name, "--note", ASKED, "--tool", "Claude Code")
+            got = support.plain(json.loads(out)) if out.strip() else {}
+            return (got.get("held") or {}).get("id") or f"refused: {err[:120]}"
+
+        def in_both(body: dict) -> dict:
+            server_mod.CONFIG_PATH = config2
+            try:
+                return routes.api_holds(body)
+            finally:
+                server_mod.CONFIG_PATH = kept[1]
+
+        holds.RUN_AT_ONCE = True
+        for n in (12, 13, 14):
+            run_in(root, "board", "duplicate", "Juno", "Board 1", "--name", f"Board {n}", "--note", "Another try")
+        for n in (2, 3):
+            run_in(root2, "board", "duplicate", "Rowan", "Board 1", "--name", f"Board {n}", "--note", "Another try")
+        holds.RUN_AT_ONCE = None
+        mine = [ask_in(root, "Juno", f"Board {n}") for n in (12, 13, 14)]
+        theirs = [ask_in(root2, "Rowan", f"Board {n}") for n in (2, 3)]
+        check("314: the fixture's five deletes wait", all(i.startswith("h") for i in mine + theirs), str(mine + theirs))
+
+        def counted(body_op: str = "counts") -> dict:
+            return {c["root"]: c for c in in_both({"op": body_op})["counts"]}
+
+        listed_now = in_both({"op": "list"})["holds"]
+        by_root = {}
+        for h in listed_now:
+            by_root[h["root"]] = by_root.get(h["root"], 0) + 1
+        got = counted()
+        check("314: Home's counts name each project by the id Home draws its card with, the number waiting, in one call",
+              {r: c["n"] for r, c in got.items()} == by_root and len(got) == 2
+              and sorted(by_root.values()) == [2, 3]
+              and all(c["id"] == routes.project_id(Path(r)) for r, c in got.items()), json.dumps([got, by_root]))
+
+        # the counts read the holds files and nothing of a hold's own words: shown() is never called
+        kept_shown = holds.shown
+        holds.shown = lambda *a, **k: (_ for _ in ()).throw(AssertionError("counts called shown"))
+        try:
+            got_again = counted()
+            quiet = {r: c["n"] for r, c in got_again.items()} == by_root
+        except AssertionError:
+            quiet = False
+        finally:
+            holds.shown = kept_shown
+        check("314: the counts read no hold's words and run no dry run, the holds file of each project alone", quiet)
+
+        # one id per call, in the order shown: each done, none called changed by the one before, the count falling
+        one_by_one = [in_both({"op": "approve", "holds": listed(mine[i:i + 1])})["outcomes"][0] for i in range(3)]
+        left = counted()
+        check("314: three approved one id at a time, in order, are each done and none called changed, the count falling",
+              [o["outcome"] for o in one_by_one] == ["approved"] * 3 and [o["id"] for o in one_by_one] == mine
+              and names("Juno") == ["Board 1", "Board 6", "Board 7"]
+              and [c["n"] for r, c in left.items()] == [2] and routes.project_id(root2) in [c["id"] for c in left.values()],
+              json.dumps([[o["outcome"] for o in one_by_one], names("Juno"), left]))
+        in_both({"op": "decline", "holds": [{"root": str(root2), "id": theirs[0]}]})
+        in_both({"op": "approve", "holds": [{"root": str(root2), "id": theirs[1]}]})
+        check("314: a project with none waiting, answered or declined, has no count", counted() == {}, json.dumps(counted()))
     finally:
         holds.RUN_AT_ONCE, server_mod.CONFIG_PATH = kept

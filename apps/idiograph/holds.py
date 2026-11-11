@@ -1147,6 +1147,19 @@ def waiting(roots: list[Path]) -> list[dict]:
     return sorted(out, key=lambda v: v["at"])
 
 
+def counts(roots: list[Path]) -> list[tuple[Path, int]]:
+    """How many holds wait in each of the projects at `roots`, for the cards on Home (holdsprog, 11 November 2026),
+    the projects with none left out. It reads the holds file at each root and nothing else of the project: no
+    workbook, no board, no dry run (`shown` is not called), so a project that never had a hold costs one failed open
+    and Home reads no more of any project than it did."""
+    out = []
+    for root in roots:
+        n = sum(1 for h in load(root)["holds"] if h.get("status") == "waiting")
+        if n:
+            out.append((Path(root), n))
+    return out
+
+
 def __getattr__(name: str) -> str:
     """The refusals other modules and the checks name as this module's, each read in the run's language when
     asked for (the text layer, 28 October 2026)."""

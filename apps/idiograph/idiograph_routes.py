@@ -9048,7 +9048,8 @@ def held_actions(body: dict) -> dict:
     written but History's line. Each names the project by its `root`, one of the app's, and the action by `id`.
     With `holds`, a list of `{root, id}`, in place of the one (holdbatchA, 1 November 2026, the card for several),
     `check` answers each as its card's row opens, and `approve` and `decline` answer each in the order given with
-    its outcome (`holds.answer_all`)."""
+    its outcome (`holds.answer_all`), which the card sends one hold at a time to count them (holdsprog, 11 November
+    2026). `counts` is Home's, how many wait in each project."""
     import cli
     import holds as holds_mod
     body = body if isinstance(body, dict) else {}
@@ -9056,6 +9057,10 @@ def held_actions(body: dict) -> dict:
     roots = holds_roots()
     if op == "list":
         return {"holds": holds_mod.waiting(roots)}
+    if op == "counts":
+        # Home's cards (holdsprog, 11 November 2026): how many wait in each project, in one call, named as Home names
+        # a project (`project_id`), from each project's holds file alone (`holds.counts`)
+        return {"counts": [{"id": project_id(root), "root": str(root), "n": n} for root, n in holds_mod.counts(roots)]}
     if op not in ("check", "approve", "decline"):
         raise WorkbookError(i18n.t("server.op_list_check_approve_decline"))
 
