@@ -517,8 +517,9 @@ TOOLS = [
          "In a project of two or more timepoints, the Trajectories board after the LGETs: his note for the whole "
          "board, `note`, then the project's own trajectories, each with its sentence, colour and icon and the participants placed in it in his order, then "
          "those not placed, each participant with their colour, label, tags, picture, his note on why, their LPETs' "
-         "titles, and rows: each LPET with its domain, whether it is shown, and a cell for each timepoint holding its "
-         "state, its key quote (ticked, chosen, or the first standing in), his bold in it as [start, end] spans, and "
+         "titles, and rows: each LPET with its domain and its domains apart, each with its colour, whether it is "
+         "shown, and a cell for each timepoint holding its state, its key quote (ticked, chosen, or the first standing "
+         "in) without the marks the workbook keeps round it, his bold in it as [start, end] spans of those words, and "
          "the quotes it could take. A project of one timepoint has none."),
     mcp.tool("trajectories_apply", "Change the Trajectories board", ("trajectories", "apply"),
          "Change the Trajectories board with its own operations, all or nothing, as the board itself does: "
@@ -538,8 +539,9 @@ TOOLS = [
          '"..."} (his note for the whole screen, shown under its title while Notes is on, "" clearing it). On the participant\'s LPETs '
          'board, the LPET table\'s row at a timepoint: {"op": "state", "participant": "Wren", "lpet": "G1", '
          '"timepoint": "T2", "state": "..."}, {"op": "quote", ..., "quote": "<quote key>"} ticks its key quote, '
-         '"" takes the tick off, {"op": "bold", ..., "spans": [[0, 12]]} his bold in the key quote, never the '
-         'transcript, {"op": "domain", "participant": "Wren", "lpet": "G1", "domain": "Practical"}, and '
+         '"" takes the tick off, {"op": "bold", ..., "spans": [[0, 12]]} his bold in the key quote, of its words '
+         'as trajectories_show gives them, never the transcript, {"op": "domain", "participant": "Wren", "lpet": '
+         '"G1", "domain": "Practical, Family"} (commas between domains, each its own pill and colour), and '
          '{"op": "states_from_notes"} (with or without a participant) moves each LPET\'s note\'s paragraphs headed '
          "T1, T2 into its rows' states where they hold none, the note left as it was. A trajectory goes by its id, "
          "c1, or its title, a participant by their pseudonym, an LPET by its id or title. Run dry_run first.",

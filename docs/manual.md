@@ -5245,7 +5245,12 @@ timepoints:
     the row ticks, and until he ticks one the first quote stands in, fainter. A click on the quote opens
     the quotes it can take, and choosing one ticks it there. Words chosen in a key quote go bold with
     Cmd+B (Ctrl+B on Windows and Linux), kept with the row, never in the transcript. A timepoint with no
-    quote says No quote over the state.
+    quote says No quote over the state. A quote shows in the screen's own quotation marks once, the
+    marks its workbook keeps round it left off there and the workbook left as it is, and its bold stays
+    on the same words.
+  - An LPET's domain shows as a pill under its title. An LPET in two or more domains has them separated
+    by commas, "Relationships, Psychological", and each shows as a pill of its own in its own colour,
+    the same colour wherever that domain is used across the project.
   - The status bar along the foot counts the participants placed and not placed and the trajectories,
     and holds Quotes, which steps through off, short (three lines) and full, and Notes, each
     participant's note on why they stand there (the old Why box), off until he turns it on. Both are

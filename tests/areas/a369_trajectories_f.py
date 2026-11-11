@@ -107,10 +107,11 @@ def test_trajectories_f(scratch):
         ash = garden / "P2 - Ash" / "P2 Ash - EN & ES.xlsx"
         w1, w2 = said_rows(wren, "Before", "Wren"), said_rows(wren, "Midsummer", "Wren")
         wb_mod.save_turn(wren, "Before", w1[0], "Trusting the packet", "", "Tidy rows, like the seed packets.")
-        wb_mod.save_turn(wren, "Before", w1[1], "Not yet inside the shed", "", "I had not looked inside it yet.")
+        # two Quote cells that keep their own inverted commas, straight and curly, as a workbook from Excel may (trajfix)
+        wb_mod.save_turn(wren, "Before", w1[1], "Not yet inside the shed", "", '"I had not looked inside it yet."')
         wb_mod.save_turn(wren, "Midsummer", w2[0], "Told over the fence\nAsking next door", "",
                          "The man next door just leaned on the fence and told me.\nleaned on the fence")
-        wb_mod.save_turn(wren, "Midsummer", w2[1], "Clearing the shed", "", "Under the sacks there were forks older than me.")
+        wb_mod.save_turn(wren, "Midsummer", w2[1], "Clearing the shed", "", "“Under the sacks there were forks older than me.”")
         wb_mod.save_turn(ash, "Before", said_rows(ash, "Before", "Ash")[0], "Growing a grandmother's plot", "",
                          "To grow what my grandmother grew.")
         wb_mod.save_turn(ash, "Midsummer", said_rows(ash, "Midsummer", "Ash")[0], "Failing, then asking", "",
@@ -328,7 +329,8 @@ def test_trajectories_f(scratch):
         check("369: trajectories apply from the command line, its dry run first, then the domain on Ash's LPET and "
               "the sentence, which trajectories show reads with the rows",
               code == 0 and tdry.get("dry_run") is True and mid == first and code2 == 0 and code3 == 0
-              and ash_rows and ash_rows[0]["domain"] == "Family" and ash_rows[0]["domain_colour"] is not None
+              and ash_rows and ash_rows[0]["domain"] == "Family" and [d["word"] for d in ash_rows[0]["domains"]] == ["Family"]
+              and ash_rows[0]["domains"][0]["colour"] is not None
               and json.loads(tfile.read_text(encoding="utf-8"))["history"][-1].get("note") == "His domains and sentences",
               (err or "") + (err2 or "") + (err3 or ""))
         tool = next(t for t in mcp_server.TOOLS if t["name"] == "trajectories_apply")
@@ -360,6 +362,81 @@ def test_trajectories_f(scratch):
         done = call("/api/trajectories-ops", {"workbook": str(wren), "ops": [{"op": "note_board", "note": ""}]})
         check("369: an empty note clears it from the file", done["changes"] == ["The board's note cleared."]
               and "note" not in json.loads(tfile.read_text(encoding="utf-8")) and done["note"] == "", str(done["changes"]))
+
+        # (k) trajfix, 11 November 2026: a key quote whose Quote cell keeps its own marks shown once marked with his
+        # bold on the same words, and an LPET in two domains given two pills, each its own colour
+        def wren_row(answer: dict, gid: str) -> dict:
+            return next(r for r in next(c for c in answer["participants"] if c["case"] == "P1 - Wren")["rows"] if r["id"] == gid)
+
+        def kept_board() -> dict:
+            held = json.loads(wren_lp.read_text(encoding="utf-8"))
+            return held, next(bd for bd in held["boards"] if bd["id"] == held.get("current"))
+
+        g2 = wren_row(call("/api/trajectories", {"workbook": str(wren)}), "G2")
+        c1, c2 = g2["cells"]["T1"], g2["cells"]["T2"]
+        check("369: a key quote whose Quote cell keeps its own straight or curly marks is given without them, in its "
+              "cell and among the quotes it can take",
+              c1["quote"]["text"] == "I had not looked inside it yet."
+              and c2["quote"]["text"] == "Under the sacks there were forks older than me."
+              and all(q["text"][:1] not in "\"“'" and q["text"][-1:] not in "\"”'" for q in c1["choices"] + c2["choices"])
+              and c1["choices"] and c2["choices"], str(g2["cells"])[:600])
+        wb_before = wren.read_bytes()
+        done = call("/api/trajectories-ops", {"workbook": str(wren), "ops": [
+            {"op": "bold", "participant": "Wren", "lpet": "G2", "timepoint": "T1", "spans": [[0, 5]]}]})
+        cell = wren_row(done, "G2")["cells"]["T1"]
+        held, src = kept_board()
+        raw = gets_mod.quote_at(held["cases"]["T1"], cell["quote"]["key"])["text"]
+        kept_bold = src["rows"]["G2"]["T1"].get("bold")
+        check("369: bold on the first words of a quote shown without its marks stays on those words: kept against the "
+              "quote as the workbook keeps it, past its opening mark, and shown on them, the workbook untouched",
+              raw.startswith('"I had') and cell["bold"] == [[0, 5]] and cell["quote"]["text"][0:5] == "I had"
+              and kept_bold == [[1, 6]] and raw[1:6] == "I had" and wren.read_bytes() == wb_before,
+              f"{cell} {kept_bold} {raw!r}")
+        said = refused({"workbook": str(wren), "ops": [{"op": "bold", "participant": "Wren", "lpet": "G2", "timepoint": "T1",
+                                                         "spans": [[0, len(raw)]]}]})
+        check("369: bold is measured against the words without their marks, so a span to the end of the quote as the "
+              "workbook keeps it is past them and refused", "Bold is a list" in said, said)
+        # a bold kept against the marks, as one made before this fix was, read back on its words
+        lp = call("/api/gets", {"workbook": str(wren), "lpets": True})
+        raw2 = gets_mod.quote_at(held["cases"]["T2"], c2["quote"]["key"])["text"]
+        rows = json.loads(json.dumps(lp["rows"]))
+        rows.setdefault("G2", {})["T2"] = {"quote": c2["quote"]["key"], "note": "", "bold": [[0, 6], [len(raw2) - 1, len(raw2)]]}
+        version = dict(lp["version"], cards={c["key"]: {"x": c["x"], "y": c["y"]} for c in lp["cards"]},
+                       groups=lp["groups"], rows=rows, discarded=[], picks={}, notes=[])
+        call("/api/gets-save", {"workbook": str(wren), "lpets": True, "version": version})
+        cell = wren_row(call("/api/trajectories", {"workbook": str(wren)}), "G2")["cells"]["T2"]
+        check("369: a bold kept against a quote's curly marks, the opening one and the closing one, shows on the word "
+              "after the opening mark, and the span on the closing mark alone is left out",
+              raw2[0] == "“" and raw2[0:6] == "“Under" and cell["bold"] == [[0, 5]]
+              and cell["quote"]["text"][0:5] == "Under", f"{cell} {raw2!r}")
+
+        f = json.loads(tfile.read_text(encoding="utf-8"))
+        practical = f["tags"]["Practical"]
+        t_before, lp_before = tfile.read_bytes(), wren_lp.read_bytes()
+        dry = call("/api/trajectories-ops", {"workbook": str(wren), "dry_run": True, "ops": [
+            {"op": "domain", "participant": "Wren", "lpet": "G2", "domain": "Neighbours, Practical"}]})
+        check("369: a domain of two in a dry run writes nothing", tfile.read_bytes() == t_before
+              and wren_lp.read_bytes() == lp_before
+              and dry["changes"] == ["Wren's 'The shed became a room of her own' is Neighbours, Practical now."], str(dry["changes"]))
+        done = call("/api/trajectories-ops", {"workbook": str(wren), "ops": [
+            {"op": "domain", "participant": "Wren", "lpet": "G2", "domain": "Neighbours, Practical"}]})
+        f = json.loads(tfile.read_text(encoding="utf-8"))
+        g1, g2 = wren_row(done, "G1"), wren_row(done, "G2")
+        check("369: two domains separated by a comma are two pills, each with its own colour: Practical the one it has "
+              "on Wren's other LPET, Neighbours given its own by the op and kept in the file, never the two as one word",
+              g2["domain"] == "Neighbours, Practical"
+              and [d["word"] for d in g2["domains"]] == ["Neighbours", "Practical"]
+              and g2["domains"][1]["colour"] == practical == g1["domains"][0]["colour"]
+              and g2["domains"][0]["colour"] == f["tags"].get("Neighbours") != practical
+              and "Neighbours, Practical" not in f["tags"], f"{g2['domains']} {f['tags']}")
+        shown = traj_mod.board({"columns": [], "placed": {}, "tags": {"Town": 3}},
+                               [{"case": "P1 - Wren", "colour": 0, "lpets": [], "rows": [
+                                   {"id": "G1", "title": "x", "domain": " Town ,, seeds , town", "cells": {}}]}])
+        ds = shown["participants"][0]["rows"][0]["domains"]
+        check("369: domains are read trimmed, an empty one and a repeat left out, and one no op has coloured yet shown in "
+              "a colour of its own, nothing kept for it",
+              [d["word"] for d in ds] == ["Town", "seeds"] and ds[0]["colour"] == 3 and ds[1]["colour"] not in (None, 3)
+              and shown["tags"] == {"Town": 3}, str(ds))
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept
     _keys_in_browser()
@@ -375,7 +452,7 @@ const needsRestart = () => false; const RESTART_LINE = '';
 const api = async (path, body) => { SENT.push(body.ops || body); return JSON.parse(JSON.stringify(DATA)); };
 const cell = (q, key, chosen, bold) => ({ state: 'A state', chosen, bold, missing: false,
   quote: q ? { key, text: q, time: 'T1, 03:12' } : null, choices: q ? [{ key, text: q, time: '03:12' }, { key: key + 'b', text: 'Another', time: '04:00' }] : [] });
-const row = (id, title) => ({ id, title, domain: 'Practical', domain_colour: 3, shown: true,
+const row = (id, title) => ({ id, title, domain: 'Practical, Town', domains: [{ word: 'Practical', colour: 3 }, { word: 'Town', colour: 5 }], shown: true,
   cells: { T1: cell('I had tidy rows in my head', 'Before:3:0', false, []), T2: cell('', '', false, []), T3: cell('I ask first', 'Harvest:2:0', true, [[0, 1]]) } });
 const DATA = { project: null, demo: false, unplaced: [], note: 'A credit line', config: { traj_quotes: 'short', traj_notes: false },
   timepoints: [{ n: 1, label: 'T1', description: 'Before the season' }, { n: 2, label: 'T2', description: 'Midsummer' }, { n: 3, label: 'T3', description: 'After the harvest' }],
@@ -402,6 +479,7 @@ const run = async () => {
   out.auto = !!document.querySelector('.tf-q.tf-q-auto');
   out.noQuote = document.querySelectorAll('.tf-q-none').length;
   out.bold = document.querySelector('.tf-band[data-col="c1"] .tf-qtext b') ? document.querySelector('.tf-band[data-col="c1"] .tf-qtext b').textContent : '';
+  out.domains = [...document.querySelector('.tf-lpet').querySelectorAll('.tf-pill')].map((el) => `${el.textContent} ${[...el.classList].find((c) => c.startsWith('case-'))}`);
   key(p('P2 - Ash'), 'ArrowUp'); await settle();
   key(p('P1 - Wren'), 'ArrowRight'); await settle();
   key(p('P3 - Fern'), 'Backspace'); await settle();
@@ -476,6 +554,8 @@ def _keys_in_browser():
           "in drawn fainter, No quote where there is none, and his bold drawn",
           out.get("bands") == ["c1", "c2"] and out.get("heads") == ["T1: Before the season", "T2: Midsummer", "T3: After the harvest"]
           and out.get("auto") is True and out.get("noQuote") == 3 and out.get("bold") == "I", str(out)[:600])
+    check("369: in a browser an LPET in two domains shows two pills, each in its own colour (trajfix)",
+          out.get("domains") == ["Practical case-3", "Town case-5"], str(out.get("domains")))
     check("369: Up moves a participant within their trajectory, Right to the next, Backspace to Not placed",
           sent[:3] == [{"op": "order", "participant": "P2 - Ash", "at": 0}, {"op": "place", "participant": "P1 - Wren", "column": "c2"},
                        {"op": "place", "participant": "P3 - Fern", "column": None}], str(sent[:3]))

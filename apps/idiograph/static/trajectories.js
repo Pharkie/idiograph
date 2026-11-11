@@ -304,7 +304,8 @@ function trajPersonHtml(case_, tps) {
   }
   shown.forEach((r, i) => {
     const rule = i ? ' tf-rule' : '';
-    const domain = r.domain ? tjPill(r.domain, r.domain_colour) : '';
+    // each of the LPET's domains a pill in its own colour, the server reading commas between them
+    const domain = (r.domains || []).length ? `<span class="tf-pills">${r.domains.map((d) => tjPill(d.word, d.colour)).join('')}</span>` : '';
     html += `<div class="tf-rowc${rule}"><div class="tf-lpet"><p class="tf-ltitle">${esc(r.title)}</p>${domain}</div></div>`;
     for (const tp of tps) html += `<div class="tf-rowc${rule}">${trajCellHtml(c, r, tp)}</div>`;
   });

@@ -740,9 +740,11 @@ idiograph trajectories apply --ops traj.json --note "his words" --tool "Claude C
 sentence), `colour`, `icon` and `participants` in his order, then `unplaced`, and `participants`, each with
 `case`, `who`, `colour`, `lpets` (their LPETs' titles), `column`, `note`, `title` (their own label, "The late
 starter"), `tags` (each `{"word", "colour"}`), `picture` and `hidden`, and `rows`: each LPET with its `id`,
-`title`, `domain`, `shown`, and `cells` by timepoint, each with its `state`, its key `quote` (`key`, `text`,
-`time`, or none), `chosen` (false while the first quote stands in), `bold` (`[start, end]` spans of the
-quote's characters) and `choices`, the quotes it can take. Then `tags`, each tag's colour, `timepoints`, and
+`title`, `domain` (as kept, commas between its domains), `domains` (each `{"word", "colour"}`), `shown`, and
+`cells` by timepoint, each with its `state`, its key `quote` (`key`, `text`, the words without the marks the
+workbook keeps round them, `time`, or none), `chosen` (false while the first quote stands in), `bold`
+(`[start, end]` spans of the characters of that `text`) and `choices`, the quotes it can take, without their
+marks too. Then `tags`, each tag's colour, `timepoints`, and
 `note`, his note for the whole board ("" when there is none), which the lines print first as "Note: ...".
 
 `trajectories apply` takes the board's own operations, a list or `{"operations": [...]}`, run in order, all
@@ -767,8 +769,10 @@ refused when one is wrong, nothing written:
 - on the participant's LPETs board, the LPET table's row at a timepoint, by `lpet` (id or title) and
   `timepoint` (`T2`, `2`, its label or description): `state` (`state`, the row's note), `quote` (`quote`, a
   key from the cell's `choices`, "" taking his tick off, the first quote then standing in) and `bold`
-  (`spans`, his bold in the key quote, `[]` clearing it, never the transcript, ticking the quote standing
-  in), and `domain` (`lpet`, `domain`, "" taking it off)
+  (`spans`, his bold in the key quote, of its `text` as `trajectories show` gives it, `[]` clearing it, never
+  the transcript, ticking the quote standing in), and `domain` (`lpet`, `domain`, "" taking it off): domains
+  are separated by commas, `"Practical, Family"` two, each its own pill with its own colour across the
+  project
 - `states_from_notes`, with a `participant` or for everyone: each LPET's note's paragraphs headed by a
   timepoint ("T1: ...", "T2 (Midsummer): ...") moved into the rows whose state is empty, a state already
   there kept and said, the note left as it was. Run it with `--dry-run` first and show him the lines.

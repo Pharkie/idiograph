@@ -3021,6 +3021,20 @@ timepoint (`state`, `quote`, `chosen`, `bold`, `choices`, `missing`), and `traj_
 participant as `rows`. The LPETs screen and the LPET table keep the domain and the bold but do not draw them
 yet (backlogged).
 
+A key quote's own marks and several domains (trajfix, 11 November 2026, from Adam's shots of his study).
+A Quote cell that holds its own inverted commas came through `lpet_rows` as it was and the page set its
+curly marks round them, `“"...”"`. `lpet_rows` now gives each quote and each of `choices` without them,
+through `quote_cut`, which takes `themes.bare` (the rule of thBareQuote and canvas_out's `bare_quote`) and
+answers how many characters came off the front. His bold stays kept against the quote as the LPETs file's
+copy holds it, marks and all, so a bold made before the fix stays on its words: `lpet_rows` moves the
+spans back by that many to show them, clipped to the words and an empty one dropped, and `row_op`, which
+reads the rows as kept (`bare=False`), takes `spans` against the words alone and moves them forward by as
+many to keep them. The workbook is never touched. An LPET's `domain` stays one string, read with commas
+between domains by `trajectories.domains_of` (each trimmed, an empty part or a repeat left out). `board`
+gives each row `domains`, `[{"word", "colour"}]`, a word no op has coloured yet coloured on a copy of
+`tags` by `colour_for` as the next op would, so opening writes nothing, and the `domain` op gives each word
+its colour with `colour_for`. The page draws each as a `.tf-pill` inside `.tf-pills`.
+
 Pictures: `picture_bytes` keeps a PNG cut square at its middle and scaled to 256 in the standard library
 (`png_read`, `square`, `png_write`), a JPEG of 400 KB or less or an SVG of 200 KB or less with no script as
 it came, refusing anything else. `change` writes them to `<project>/trajectories/pictures/<Pseudonym>.png`

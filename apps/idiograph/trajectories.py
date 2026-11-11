@@ -14,7 +14,8 @@ a file in `trajectories/pictures/` in the project folder or one of the app's set
 initial on their colour, and `hidden`, the ids of the LPETs this screen leaves out, every LPET shown until he
 hides one. Under them each LPET is a row: its title and its domain, then at each timepoint its key quote over
 its state. The domain is the LPET's own, on the participant's LPETs board, and its colour comes from `tags`
-too. The state, the key quote and his bold in it are the LPET table's row on that board (`gets.row_op`), and
+too, each domain its own when commas separate several. The state, the key quote, its words without the marks the
+workbook keeps round them, and his bold in it are the LPET table's row on that board (`gets.row_op`), and
 this module hands those operations, LPET_OPS, to the caller's `lpet_op`.
 
 The file is `idiograph-trajectories.json` at the project's root, written only once a change is made:
@@ -200,6 +201,17 @@ def case_order(case: str) -> list:
 
 def words(text) -> str:
     return " ".join(str(text or "").split())
+
+
+def domains_of(text) -> list[str]:
+    """An LPET's domains: its one `domain` string read with commas between domains, "Relationships,
+    Psychological" two, each trimmed, an empty one or a repeat left out (trajfix, 11 November 2026)."""
+    out: list[str] = []
+    for part in str(text or "").split(","):
+        word = words(part)[:TAG_MAX]
+        if word and word.lower() not in (w.lower() for w in out):
+            out.append(word)
+    return out
 
 
 def find_column(data: dict, name) -> dict | None:
@@ -442,8 +454,9 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
             case = participant()
             lines = lpet_op(case, op, n)
             said += lines
-            if kind == "domain" and words(op.get("domain")):
-                colour_for(data, words(op.get("domain"))[:TAG_MAX])
+            # each of an LPET's domains its own colour across the project, as a tag has
+            for word in domains_of(op.get("domain")) if kind == "domain" else []:
+                colour_for(data, word)
         else:
             case = participant()
             held = data["placed"].setdefault(case, {"column": None, "note": ""})
@@ -754,16 +767,20 @@ def board(data: dict | None, people: list[dict]) -> dict:
     order, those not placed, and each participant's card, `case`, `who`, `colour`, `lpets` (their LPETs'
     titles), `column`, `note`, `title`, `tags` (each `{"word", "colour"}`), `picture` and `hidden`, and the
     board's own `note`. `people` is
-    each participant of the project with their colour and LPETs, and `rows`, each LPET with its cells."""
+    each participant of the project with their colour and LPETs, and `rows`, each LPET with its cells, to which
+    the board adds `shown` and `domains`, each of its domains as `{"word", "colour"}` (`domains_of`)."""
     data = normal(data) if data else {"columns": [], "placed": {}, "tags": {}, "history": [], "updated": None}
     placed = data.get("placed") or {}
     colours = {w.lower(): n for w, n in (data.get("tags") or {}).items()}
+    # a domain no op has coloured yet, one of two set before they were read apart, shown in the colour the next
+    # op would give it, worked out on a copy, so opening writes nothing
+    unsaid = {"tags": dict(data.get("tags") or {})}
     cards = []
     for p in sorted(people, key=lambda x: case_order(x["case"])):
         held = placed.get(p["case"]) or {}
         hidden = set(held.get("hidden") or [])
         rows = [dict(r, shown=r["id"] not in hidden,
-                     domain_colour=colours.get(str(r.get("domain") or "").lower()) if r.get("domain") else None)
+                     domains=[{"word": w, "colour": colour_for(unsaid, w)} for w in domains_of(r.get("domain"))])
                 for r in p.get("rows") or []]
         cards.append(dict(p, who=who(p["case"]), column=held.get("column"), note=held.get("note") or "",
                           title=held.get("title") or "",

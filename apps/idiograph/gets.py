@@ -2506,10 +2506,23 @@ def row_choices(items: list[dict], rec: dict) -> list[dict]:
     return out
 
 
-def lpet_rows(data: dict, board: dict | None, inside: list[str]) -> list[dict]:
+def quote_cut(said) -> tuple[str, int]:
+    """A key quote's words as Trajectories shows them, without the marks the workbook keeps round them
+    (`themes.bare`, as thBareQuote and canvas_out's `bare_quote`), and how many characters that took off its
+    front (trajfix, 11 November 2026). His bold is kept against the quote as the copy holds it, marks and all,
+    so it is moved by that many to show and back by as many to keep, and stays on the same words. The words
+    always sit in the copy at the first place they match, unless a quote is nothing but marks."""
+    raw = str(said or "")
+    text = themes.bare(raw)
+    return text, max(0, raw.find(text)) if text else 0
+
+
+def lpet_rows(data: dict, board: dict | None, inside: list[str], bare: bool = True) -> list[dict]:
     """Each LPET of the board in canvas order, its title, description and domain, and a cell for each timepoint
     in `inside`: its `state`, its key quote, `quote` (`{"key", "text", "time"}` or None), whether he ticked it,
-    `chosen`, his bold in it, and the quotes it could take, `choices`. Reads alone."""
+    `chosen`, his bold in it, and the quotes it could take, `choices`. Each quote's words come without the marks
+    the workbook keeps round them and his bold is measured against them (`quote_cut`), unless `bare` is false,
+    which gives both as the row keeps them, for `row_op`. Reads alone."""
     if board is None:
         return []
     by_id = {g["id"]: g for g in normal(board, data)["groups"]}
@@ -2519,9 +2532,14 @@ def lpet_rows(data: dict, board: dict | None, inside: list[str]) -> list[dict]:
         for row in g["rows"]:
             rec = (data.get("cases") or {}).get(row["case"]) or {}
             q = row.get("quote")
+            text, cut = quote_cut(q["text"]) if q and bare else (q["text"] if q else "", 0)
+            bold = [[max(0, a - cut), min(len(text), b - cut)] for a, b in row.get("bold") or []]
+            choices = row_choices(row["items"], rec)
+            if bare:
+                choices = [dict(c, text=themes.bare(c["text"])) for c in choices]
             cells[row["case"]] = {"state": row.get("note") or "", "chosen": bool(row.get("chosen")),
-                                  "quote": {"key": q["key"], "text": q["text"], "time": q.get("time") or ""} if q else None,
-                                  "bold": row.get("bold") or [], "choices": row_choices(row["items"], rec),
+                                  "quote": {"key": q["key"], "text": text, "time": q.get("time") or ""} if q else None,
+                                  "bold": [s for s in bold if s[0] < s[1]], "choices": choices,
                                   "missing": rec.get("state") != "in"}
         out.append({"id": g["id"], "title": g["label"], "description": g.get("description") or "",
                     "domain": str((by_id.get(g["id"]) or {}).get(themes.DOMAIN) or ""), "cells": cells})
@@ -2578,11 +2596,12 @@ def row_op(data: dict, board: dict, inside: list[str], labels: dict, op: dict, n
     """One operation on the LPET table's rows or an LPET of `board`, in place, answering its lines, refused as a
     whole when it is wrong: `state` (`lpet`, `timepoint`, `state`), `quote` (`lpet`, `timepoint`, `quote`, a
     quote's key, or none to take his tick off), `bold` (`lpet`, `timepoint`, `spans`, `[[start, end]]` of the
-    key quote's words, none clearing it, the quote standing in ticked with it), `domain` (`lpet`, `domain`, ""
-    taking it off) and `states_from_notes` (each LPET's note's paragraphs headed by a timepoint into its rows'
+    key quote's words as `lpet_rows` gives them, without the marks round them, none clearing it, the quote
+    standing in ticked with it), `domain` (`lpet`, `domain`, several separated by commas, "" taking it off) and `states_from_notes` (each LPET's note's paragraphs headed by a timepoint into its rows'
     notes where they hold none, the note left as it was). `name` is the participant's, for the lines."""
     kind = str(op.get("op") or "")
-    rows = {g["id"]: g for g in lpet_rows(data, board, inside)}
+    # the quotes and his bold as the rows keep them, marks and all: spans come in against the words alone
+    rows = {g["id"]: g for g in lpet_rows(data, board, inside, bare=False)}
     groups = {g["id"]: g for g in board.get("groups") or [] if isinstance(g, dict)}
     if not isinstance(board.get("rows"), dict):
         board["rows"] = {}
@@ -2670,12 +2689,14 @@ def row_op(data: dict, board: dict, inside: list[str], labels: dict, op: dict, n
     q = cell.get("quote")
     if q is None:
         raise WorkbookError(i18n.t("server.trajectory_bold_no_quote", lpet=r["title"], timepoint=at))
+    # the spans are of the words as Trajectories shows them, kept moved back past the marks they lost
+    text, cut = quote_cut(q["text"])
     given = op.get("spans") if op.get("spans") is not None else []
     whole = lambda s: (isinstance(s, (list, tuple)) and len(s) == 2
-                       and all(isinstance(x, int) and not isinstance(x, bool) for x in s) and 0 <= s[0] < s[1] <= len(q["text"]))
+                       and all(isinstance(x, int) and not isinstance(x, bool) for x in s) and 0 <= s[0] < s[1] <= len(text))
     if not isinstance(given, list) or not all(whole(s) for s in given):
-        raise WorkbookError(i18n.t("server.trajectory_bold_spans", most=len(q["text"])))
-    spans = spans_kept([list(s) for s in given])
+        raise WorkbookError(i18n.t("server.trajectory_bold_spans", most=len(text)))
+    spans = spans_kept([[s[0] + cut, s[1] + cut] for s in given])
     if spans == (stored.get("bold") or []) and (stored.get("quote") or "") == q["key"]:
         return []
     if not spans and not stored.get("bold"):
