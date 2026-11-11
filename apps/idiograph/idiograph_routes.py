@@ -40,6 +40,7 @@ import app_search
 import audio as audio_mod
 import boot
 import canvas_out
+import case_files
 import codes as codes_mod
 import convert as convert_mod
 import corpus
@@ -5289,10 +5290,14 @@ def qdpx_download(handler, query: dict) -> None:
 # folder kept keeps the new name in the project file's `names` (see `label_for`). A copy of every file
 # it writes goes to `_Archive/` first, the app's backup convention, the case's for its own files and
 # the project's for the GETs file and the project file. The interviewer's passages, every backup and
-# every export already written stay as they are.
+# every export already written stay as they are. Since renamefix (11 November 2026) every file that names
+# the participant, beside their workbooks and at the project's root, the LGETs, the Trajectories board and
+# the list of names to replace among them, is named in one place, `case_files`, which this follows.
 RENAME_LABEL = "pre-rename"
-# a pseudonym as a whole word in a file's or a folder's name
-WORD = r"(?<![A-Za-z]){}(?![A-Za-z])"
+WORD = case_files.WORD
+renamed = case_files.renamed
+relabel_all = case_files.relabel_all
+names_label = case_files.names_label
 
 
 def rename_folder_of(root: Path, label: str) -> Path:
@@ -5319,13 +5324,6 @@ def case_books(folder: Path) -> list[Path]:
     source in its folder, then the raw sources in its own `Source/`, never a backup, a lock or a hidden
     file (see `own_books`)."""
     return own_books(folder, "annotated") + own_books(folder, "raw") + own_books(folder / "Source", "raw")
-
-
-def renamed(name: str, olds, new: str) -> str:
-    """A file's or a folder's name with each pseudonym of `olds` in it as a whole word taken by `new`."""
-    for old in olds:
-        name = re.sub(WORD.format(re.escape(old)), new, name)
-    return name
 
 
 def passages_said(counts: dict) -> str:
@@ -5358,48 +5356,16 @@ def first_up(text: str) -> str:
 
 def sidecars_said(book: Path, said: str) -> str:
     """The Rename card's line for a workbook named after the participant, `said` as `books_said` names it, taking
-    the new name, and what it keeps as it does, its progress and its PETs boards, where it has them (each a whole
-    sentence in the catalogue since i18nleft4, 2 November 2026)."""
-    with_it = [what for what, side in ((i18n.t("server.rename.progress"), rounds_mod.progress_path(book)),
-                                       (i18n.t("server.rename.pets_boards_kept"), themes_mod.themes_path(book)))
-               if side.is_file()]
+    the new name, and what it keeps as it does, its progress, its PETs boards and its LPETs, where it has them, every
+    file named after it moving with it (`case_files.sidecars`), each a whole sentence in the catalogue since
+    i18nleft4, 2 November 2026."""
+    with_it = [what for what, there in ((i18n.t("server.rename.progress"), rounds_mod.progress_path(book).is_file()),
+                                        (i18n.t("server.rename.pets_boards_kept"), bool(case_files.boards_files(book))),
+                                        (i18n.t("server.rename.lpets_kept"), gets_mod.lpets_path(book).is_file()))
+               if there]
     if with_it:
         return first_up(i18n.t("server.rename.book_takes_name_keeps", book=said, kept=formats.list_words(with_it)))
     return first_up(i18n.t("server.rename.book_takes_name", book=said))
-
-
-def project_said(in_order: bool, noted: bool, unnoted: bool) -> str:
-    """The Rename card's line for the project's own file: his order of the participants when it names
-    the case, the new name noted there while the folder keeps its own, or an earlier name noted there
-    that goes."""
-    if noted:
-        return i18n.t("server.rename.project_order_noted") if in_order else i18n.t("server.rename.project_noted")
-    if unnoted:
-        return i18n.t("server.rename.project_order_unnoted") if in_order else i18n.t("server.rename.project_unnoted")
-    return i18n.t("server.rename.project_order")
-
-
-def relabel_all(value, old: str, new: str):
-    """Every key and string in a file's JSON that names the case `old`, the label itself or a card's key
-    under it, `old/...`, given the label `new`, everything else as it was."""
-    def one(text):
-        if text == old:
-            return new
-        return new + text[len(old):] if isinstance(text, str) and text.startswith(old + "/") else text
-    if isinstance(value, dict):
-        return {one(k): relabel_all(v, old, new) for k, v in value.items()}
-    if isinstance(value, list):
-        return [relabel_all(v, old, new) for v in value]
-    return one(value) if isinstance(value, str) else value
-
-
-def names_label(value, label: str) -> bool:
-    """Whether a file's JSON names the case `label` anywhere, as a key, a string or a card's key."""
-    if isinstance(value, dict):
-        return any(names_label(k, label) or names_label(v, label) for k, v in value.items())
-    if isinstance(value, list):
-        return any(names_label(v, label) for v in value)
-    return isinstance(value, str) and (value == label or value.startswith(label + "/"))
 
 
 def recent_in(folder: Path) -> list[dict]:
@@ -5415,20 +5381,24 @@ def rename_plan(root: Path, folder: Path, name, with_folder: bool, cfg: dict) ->
     """What a rename of the case in `folder` to `name` will change, said before anything is, and the
     plan its act follows, both from the files as they stand and nothing written. `lines` says each
     thing it writes in the researcher's words, never by a file the app keeps (16 October): the
-    participant's name on the passages of each sheet of each workbook, the case's PETs boards, the
-    project's GETs, the project's own file and the recent list, and `folder_lines` the folder and each
-    workbook it moves when the folder is ticked, which keeps its progress and PETs boards, the page
-    showing them under the first. Each state says exactly what its act writes, so the project's
-    note of the new name, which a kept folder needs, leaves the list as the tick takes the folder. A
-    name that is not yet one capitalised word says each move by what it moves alone."""
+    participant's name on the passages of each sheet of each workbook, the case's PETs boards, each file
+    at the project's root that names them (`case_files.PROJECT`: the GETs, the LGETs, the Trajectories
+    board, the list of names to replace and the project's own file) and the recent list, and
+    `folder_lines` the folder and each workbook it moves when the folder is ticked, which keeps its
+    progress, PETs boards and LPETs, and their picture on the Trajectories board, the page showing them
+    under the first. Each state says exactly what its act writes, so the project's note of the new
+    name, which a kept folder needs, leaves the list as the tick takes the folder. A name that is not
+    yet one capitalised word says each move by what it moves alone. A file it would write that is there
+    and cannot be read is kept in `unread`, which refuses the rename (see `rename_refusal`)."""
     names = names_at(root)
     label = label_for(folder, names)
     old, own = gets_mod.who(label), gets_mod.who(srv.display_case(folder.name))
     new = " ".join(str(name or "").split())
     good = bool(ONE_WORD.match(new)) and new != old
     interviewer = str(cfg.get("interviewer") or "")
-    plan = {"root": root, "folder": folder, "label": label, "old": old, "own": own, "new": new, "books": [],
-            "themes": [], "gets": False, "project": False, "recent": [], "moves": [], "target": None}
+    plan = {"root": root, "folder": folder, "label": label, "old": old, "own": own, "new": new,
+            "new_label": relabel(label, new) if good else "", "books": [], "themes": [], "sides": [],
+            "carried": [], "recent": [], "moves": [], "target": None, "unread": None}
     lines, folder_lines = [], []
     said = books_said(folder)
     books = list(said)
@@ -5444,23 +5414,37 @@ def rename_plan(root: Path, folder: Path, name, with_folder: bool, cfg: dict) ->
             plan["books"].append(book)
             lines.append(i18n.t("server.rename.name_on_in", old=old, passages=passages_said(counts), book=said[book])
                          if several else i18n.t("server.rename.name_on", old=old, passages=passages_said(counts)))
-    # the labels the case goes by in its files, its own and any other its themes file gives it, which
-    # the GETs file keys it by (see `themes_case`)
+    # the labels the case goes by in its files, its own and any other a PETs boards file of any timepoint
+    # gives it, which the GETs file keys it by (see `themes_case`), and every file beside each workbook
+    # that names the participant inside, read now (`case_files.side_files`)
     plan["was"] = [label]
-    boards = [book for book in books if themes_mod.themes_path(book).is_file()]
+    for book in books:
+        for kind, path in case_files.side_files(book, with_folder):
+            try:
+                data = case_files.read_json(path)
+            except case_files.Unreadable as exc:
+                plan["unread"] = plan["unread"] or exc.path
+                continue
+            plan["sides"].append((kind, book, path, data))
+            held = str(data.get("case") or "").strip() if kind == "boards" else ""
+            if held and held not in plan["was"]:
+                plan["was"].append(held)
+    boards = [book for book in books if case_files.boards_files(book)]
     for book in boards:
         plan["themes"].append(book)
         lines.append(i18n.t("server.rename.pets_boards") if len(boards) == 1
                      else i18n.t("server.rename.pets_boards_of", book=said[book]))
-        held = themes_case(book)
-        if held and held not in plan["was"]:
-            plan["was"].append(held)
-    data = gets_file(root)
-    if data is not None and any(names_label(data, x) for x in plan["was"]):
-        plan["gets"] = True
-        lines.append(i18n.t("server.rename.project_gets"))
-    # with the folder ticked, the folder and every workbook named after the participant, each with its
-    # sidecars, and a folder whose name carries no pseudonym is kept and the name goes into `names`
+    # each file at the project's root that may name the participant, read now
+    roots = []
+    for entry in case_files.PROJECT:
+        path = entry.path(root)
+        try:
+            roots.append((entry, path, case_files.read_json(path)))
+        except case_files.Unreadable as exc:
+            plan["unread"] = plan["unread"] or exc.path
+    # with the folder ticked, the folder and every workbook named after the participant, each with every
+    # file named after it in `Working/`, and their own picture on the Trajectories board, and a folder whose
+    # name carries no pseudonym is kept and the name goes into `names`
     olds = [x for x in dict.fromkeys([old, own]) if x]
     target = None
     if with_folder:
@@ -5478,34 +5462,41 @@ def rename_plan(root: Path, folder: Path, name, with_folder: bool, cfg: dict) ->
         for book in books:
             if renamed(book.name, olds, "\u0000") == book.name:
                 continue
-            # one line for the workbook, its progress and its PETs boards going with it, said in words
-            # and never by the file's new name (17 October, after the screenshot check)
+            # one line for the workbook, its progress, its PETs boards and its LPETs going with it, said in
+            # words and never by the file's new name (17 October, after the screenshot check)
             folder_lines.append(sidecars_said(book, said[book]))
-            for item in [book, rounds_mod.progress_path(book), themes_mod.themes_path(book)]:
-                if item.is_file() and good:
+            for item in [book] + case_files.sidecars(book):
+                if item.is_file() and good and item not in dict(plan["moves"]):
                     plan["moves"].append((item, item.with_name(renamed(item.name, olds, new))))
-    kept_folder = not with_folder or target is None
-    order = order_of(project_file(root))
-    in_order = any(x in order for x in plan["was"])
+        traj = next((data for entry, _path, data in roots if entry.file == traj_mod.FILE), None)
+        picture = case_files.picture_move(root, traj, plan, olds, new if good else own)
+        if picture is not None:
+            folder_lines.append(i18n.t("server.rename.picture_takes_name"))
+            if good:
+                plan["moves"].append(picture)
     # a kept folder notes the new name in the project's file, and a name noted there before goes once
-    # the folder takes the new name or the new name is the folder's own (see `rename_case`)
-    noted = kept_folder and new != own
-    unnoted = not noted and srv.display_case(folder.name) in names
-    plan["project"] = in_order or kept_folder or srv.display_case(folder.name) in names
-    if plan["project"]:
-        lines.append(project_said(in_order, noted, unnoted))
+    # the folder takes the new name or the new name is the folder's own (`case_files.project_line`)
+    plan["kept_folder"] = not with_folder or target is None
+    for entry, path, data in roots:
+        line = entry.line(data, plan)
+        if line:
+            lines.append(line)
+            plan["carried"].append((entry, path, data))
     plan["recent"] = recent_in(folder)
     if plan["recent"]:
         lines.append(i18n.t("server.rename.recent"))
-    answer = {"case": label, "old": old, "new": new if good else "", "label": relabel(label, new) if good else "",
+    answer = {"case": label, "old": old, "new": new if good else "", "label": plan["new_label"],
               "lines": lines, "folder_lines": folder_lines, "folder": bool(with_folder and target is not None)}
     return answer, plan
 
 
 def rename_refusal(root: Path, folder: Path, plan: dict, cfg: dict) -> str | None:
     """The one line a rename is refused with, or None: a name not typed, the one it has, not one
-    capitalised word, the interviewer's, or another case's in the project, a workbook of the case Excel
-    has open, its `~$` file beside it, and a folder or a file the move would land on that is there."""
+    capitalised word, the interviewer's, or another case's in the project, a file it would carry the
+    participant through that is there and cannot be read (renamefix), the folder or a file moving while
+    Working together is on, since the team knows a participant by their folder (`case_files.KEPT`), a
+    workbook of the case Excel has open, its `~$` file beside it, and a folder or a file the move would land
+    on that is there."""
     new, old = plan["new"], plan["old"]
     if not new:
         return i18n.t("server.type_new_name_nothing_changed")
@@ -5523,6 +5514,10 @@ def rename_refusal(root: Path, folder: Path, plan: dict, cfg: dict) -> str | Non
     taken = {gets_mod.who(label_for(p, names)).lower() if p.is_dir() else p.stem.lower() for p in others}
     if new.lower() in taken:
         return i18n.t("server.another_participant_s_name_project", new=new)
+    if plan.get("unread") is not None:
+        return i18n.t("server.not_renamed_unread", name=plan["unread"].name)
+    if (plan["target"] is not None or plan["moves"]) and case_files.team_on(root):
+        return i18n.t("server.rename.team_folder")
     for book in plan["all"]:
         if wb_mod.lock_file(book).exists():
             return i18n.t("server.open_excel_close_excel_first_2", name=book.name)
@@ -5550,7 +5545,8 @@ def keep_copy(path: Path, archive: Path, stamp: str, made: list) -> None:
 
 def unrename(back: list, made: list) -> None:
     """What a failed rename changed put back, the last step first: each file moved moved back, each file
-    written given its bytes again, and every copy and folder it made taken away."""
+    written given its bytes again, with its mode where the step kept it (the list of names to replace is
+    its owner's alone, `case_files.snapshot`), and every copy and folder it made taken away."""
     for step in reversed(back):
         with contextlib.suppress(OSError):
             if step[0] == "move":
@@ -5559,7 +5555,11 @@ def unrename(back: list, made: list) -> None:
                 os.rename(step[2], step[1])
             elif step[0] == "bytes":
                 tmp = step[1].with_name(f".{step[1].name}.idiograph.tmp")
-                tmp.write_bytes(step[2])
+                mode = step[3] if len(step) > 3 else 0o666
+                with os.fdopen(os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, mode), "wb") as fh:
+                    fh.write(step[2])
+                if len(step) > 3:
+                    os.chmod(tmp, mode)
                 os.replace(tmp, step[1])
             elif step[0] == "file":
                 step[1].unlink()
@@ -5574,8 +5574,9 @@ def unrename(back: list, made: list) -> None:
 def rename_case(root: Path, folder: Path, name, with_folder: bool, cfg: dict, who: dict | None = None) -> dict:
     """Rename made (see `rename_plan` for what it changes): refused in one line with nothing changed
     (see `rename_refusal`), else a copy of every file it writes into `_Archive/`, then the Name cells,
-    the themes files, the progress files' backups when the folder moves, the GETs file, the project
-    file and the files named after the participant, under the case's lock and the project's, then the
+    each file beside a workbook that names the participant (`case_files.side_files`), each file at the
+    root that does (`case_files.PROJECT`) and the files named after the participant, under the case's
+    lock and the project's, then the
     folder under the project's alone, since Windows renames no folder with a file open in it, and the
     recent list last. A write that fails puts back everything before it and says one line. The answer
     is the plan as it was said, `lines` and `folder_lines`, and the case's new label."""
@@ -5590,78 +5591,41 @@ def rename_case(root: Path, folder: Path, name, with_folder: bool, cfg: dict, wh
             said = rename_refusal(root, folder, plan, cfg)
             if said:
                 raise WorkbookError(said)
-            label, new_label, new = plan["label"], relabel(plan["label"], plan["new"]), plan["new"]
+            label, new_label, new = plan["label"], plan["new_label"], plan["new"]
             moves = dict(plan["moves"])
             target = plan["target"]
             case_archive, root_archive = folder / "_Archive", root / "_Archive"
-            writes = ([b for b in plan["books"]] + [themes_mod.themes_path(b) for b in plan["themes"]]
-                      + [rounds_mod.progress_path(b) for b in books if target is not None and rounds_mod.progress_path(b).is_file()])
-            for path in dict.fromkeys(writes):
+            # what each file beside a workbook and each at the root becomes, worked out whole before anything
+            # is written (`case_files`), so a copy is kept of exactly the files that change
+            sides, roots = [], []
+            for kind, book, path, data in plan["sides"]:
+                after = case_files.carry_side(kind, book, data, plan)
+                if after != data:
+                    sides.append((kind, book, path, after))
+            for entry, path, data in plan["carried"]:
+                after = entry.carry(data, plan)
+                if after != data:
+                    roots.append((entry, path, after))
+            for path in dict.fromkeys(plan["books"] + [path for _kind, _book, path, _after in sides]):
                 keep_copy(path, case_archive, stamp, made)
-            gets_path = gets_mod.gets_path(root)
-            project_path = root / srv.PROJECT_FILE
-            for path, on in ((gets_path, plan["gets"]), (project_path, plan["project"] and project_path.is_file())):
-                if on:
+            for entry, path, _after in roots:
+                if entry.archive and path.is_file():
                     keep_copy(path, root_archive, stamp, made)
             # the speaker's name in every sheet of each workbook that carries it
             for book in plan["books"]:
                 back.append(("bytes", book, book.read_bytes()))
                 wb_mod.rename_speaker(book, plan["old"], new, interviewer)
-            # the case's name in each themes file, and the workbook's new name where it moves
-            for book in plan["themes"]:
-                side = themes_mod.themes_path(book)
-                back.append(("bytes", side, side.read_bytes()))
-                data = json.loads(side.read_text(encoding="utf-8"))
-                data["case"] = new_label
-                if book in moves and data.get("workbook") == book.name:
-                    data["workbook"] = moves[book].name
-                themes_mod.write(book, data)
-            # a trim's or an assignment's copy in the case's _Archive, found again in the folder it moves to
-            if target is not None:
-                was, now = srv.rel_path(folder), srv.rel_path(target)
-                for book in books:
-                    side = rounds_mod.progress_path(book)
-                    if not side.is_file():
-                        continue
-                    data = json.loads(side.read_text(encoding="utf-8"))
-                    hit = False
-                    for key in ("trims", "assignments"):
-                        for rec in data.get(key) or []:
-                            held = str(rec.get("backup") or "") if isinstance(rec, dict) else ""
-                            if held == was or held.startswith(was + "/") or held.startswith(was + "\\"):
-                                rec["backup"] = now + held[len(was):]
-                                hit = True
-                    if hit:
-                        back.append(("bytes", side, side.read_bytes()))
-                        rounds_mod.save_progress(book, data)
-            if plan["gets"]:
-                back.append(("bytes", gets_path, gets_path.read_bytes()))
-                data = gets_mod.load(root)
-                for was_label in plan["was"]:
-                    data = relabel_all(data, was_label, new_label)
-                held = (data.get("cases") or {}).get(new_label)
-                if isinstance(held, dict):
-                    for book, moved in moves.items():
-                        if held.get("workbook") == book.name:
-                            held["workbook"] = moved.name
-                gets_mod.write(root, data)
-            if plan["project"]:
-                if project_path.is_file():
-                    back.append(("bytes", project_path, project_path.read_bytes()))
-                else:
-                    back.append(("file", project_path))
-                data = project_file(root)
-                if "order" in data:
-                    data["order"] = list(dict.fromkeys(new_label if x in plan["was"] else x for x in order_of(data)))
-                kept = dict(data.get("names") or {}) if isinstance(data.get("names"), dict) else {}
-                kept.pop(srv.display_case(folder.name), None)
-                if target is None and new != plan["own"]:
-                    kept[srv.display_case(folder.name)] = new
-                if kept:
-                    data["names"] = kept
-                else:
-                    data.pop("names", None)
-                srv.save_json(project_path, data)
+            # the case's name in each PETs boards file of every timepoint, the workbook's new name in them and
+            # in the LPETs where it moves, and a trim's or an assignment's copy in the case's _Archive found
+            # again in the folder it moves to
+            for kind, book, path, after in sides:
+                back.append(case_files.snapshot(path))
+                case_files.write_side(kind, book, path, after)
+            # each file at the root that names the participant: the GETs, the LGETs, the Trajectories board,
+            # the list of names to replace and the project's own file
+            for entry, path, after in roots:
+                back.append(case_files.snapshot(path))
+                entry.write(root, path, after)
             # the files named after the participant, each workbook with its sidecars
             for item, moved in plan["moves"]:
                 os.replace(item, moved)

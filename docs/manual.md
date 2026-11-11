@@ -303,6 +303,19 @@ project's file keeps the new name by the folder's, `names`, which every screen r
 keep their names, as Files shows them. The demo's names are fixed, so its rows have no Rename, and a
 workbook sitting in the root itself has none either.
 
+Since 11 November (renamefix) Rename carries the participant through every file of the project that names
+them. The list adds "The project's LGETs" when the LGETs hold the participant, "The Trajectories board" when
+they are on it, and "The project's list of names to replace" when it has an entry for them or writes their
+name, which then writes the new one. Everything they had on the LGETs and on Trajectories stays theirs: their
+LPETs' cards and where each stands, their trajectory and their place in it, their label, tags, note and
+picture, and the LPETs hidden there. Their PETs boards at every timepoint take the new name. Ticked, a
+workbook that takes the new name keeps its LPETs and its PETs boards at every timepoint, and their own
+picture on Trajectories, named after them, takes the new name too: "Their picture on the Trajectories board
+takes the new name". The list of names to replace keeps no copy in `_Archive/`, since it holds real names
+and the app copies it nowhere. Rename is refused too when a file it would change is there and cannot be
+read, "idiograph-trajectories.json could not be read, so nothing was changed.", and when the folder would
+move while Working together is on, since the team knows each participant by their folder.
+
 The list finds the annotated workbook of each participant and its raw source, nothing else: a workbook
 under a project's root with a Name, a Timestamp and a Transcript column. Columns are found by their
 headers, so another study's CSV layout (`Speaker | Time | Experiential statements | Text |

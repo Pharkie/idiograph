@@ -350,8 +350,13 @@ def test_rename_and_go_to_passage(scratch):
               and len(states["ticked"]["answer"]["folder_lines"]) == 3
               and len(states["ticked"]["moves"]) == 4 and states["kept"]["answer"]["folder_lines"] == [],
               str(states["ticked"]["answer"]["folder_lines"]))
+
+        # ── G. renamefix, 11 November 2026: every file that names the participant carried through, the LGETs, the
+        # Trajectories board and the list of names to replace among them, with the folder kept and ticked
+        _carried_through(base, tree)
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept
+    _every_file_named()
 
     if not node:
         skip("156: the canvas's passage in node", "no node on this machine")
@@ -652,4 +657,284 @@ console.log(rows.map((r) => level.get(r.i)).join(''));
           lone["flow"]["search"]["active"] is False and lone["flow"]["duplicates"] is None
           and 'db["Records identified<br/>from databases<br/>No active run to count"]' in lone_flow
           and "dup[" not in lone_flow and sift.NO_ACTIVE == "No active run to count", lone_flow[:300])
+
+
+# Every word invented: Kit asks two beekeepers about their first year with a hive, in spring and after the honey.
+MOSS_T1 = ("Kit: [00:00:03] What did you expect of the hive?\nMoss: [00:00:09] Quiet bees in neat rows of comb.\n"
+           "Kit: [00:00:20] And the suit?\nMoss: [00:01:10] I had not tried it on yet.\n")
+MOSS_T2 = ("Kit: [00:00:02] And now?\nMoss: [00:00:06] The woman next door showed me how to lift a frame.\n"
+           "Kit: [00:00:30] The suit?\nMoss: [00:00:40] It lives by the door now.\n")
+FERN_T1 = "Kit: [00:00:03] Why bees?\nFern: [00:00:08] My aunt kept them by the orchard.\n"
+FERN_T2 = "Kit: [00:00:03] And now?\nFern: [00:00:07] The swarm left and I asked the club.\n"
+
+
+def _carried_through(base: Path, tree) -> None:
+    """Every file that names a participant carried through a rename (renamefix, 11 November 2026, found by
+    pbiodraw: the Trajectories board and the LGETs key a participant by their label and a rename left them behind,
+    and with the folder ticked the LPETs and the PETs boards after T1 stayed under the workbook's old name). An
+    invented project of two timepoints, its GETs made while it had one, each participant's PETs boards at both, their
+    LPETs, the LGETs, the Trajectories board and the list of names to replace, renamed with the folder kept and then
+    ticked, every one of them read back as the app and an agent read it."""
+    import base64
+    import gets as gets_mod
+    import i18n
+    import names as names_mod
+    import project_history as hist_mod
+    import server as server_mod
+    import themes as themes_mod
+    import trajectories as traj_mod
+
+    b64 = lambda text: base64.b64encode(text.encode("utf-8")).decode("ascii")
+
+    def call(route: str, body: dict) -> dict:
+        with idiograph_routes.route_scope(route, body):
+            return server_mod.ROUTES[route](body)
+
+    def row(name, text, who, interview, **more):
+        return dict({"name": name, "data": b64(text), "pseudonym": who, "interview": interview,
+                     "speakers": {"Kit": "interviewer", who: "participant"}}, **more)
+
+    def said_rows(book: Path, sheet: str, who: str) -> list[int]:
+        wb = openpyxl.load_workbook(book, read_only=True)
+        try:
+            return [r for r, values in enumerate(wb[sheet].iter_rows(min_row=2, max_col=1, values_only=True), start=2)
+                    if str(values[0] or "").strip() == who]
+        finally:
+            wb.close()
+
+    def board_of(book: Path, tp, groups: list) -> None:
+        at = {"timepoint": tp} if tp else {}
+        st = call("/api/themes", dict({"workbook": str(book)}, **at))
+        keys = [c["key"] for c in st["cards"]]
+        v = dict(st["version"], cards={k: {"x": 0, "y": 40 * i} for i, k in enumerate(keys)},
+                 groups=[{"id": f"g{i + 1}", "label": label, "members": [keys[j] for j in on], "x": 300 * i, "y": -40}
+                         for i, (label, on) in enumerate(groups)], discarded=[], picks={})
+        call("/api/themes-save", dict({"workbook": str(book), "version": v}, **at))
+
+    def lpets_of(book: Path, groups: list) -> None:
+        lp = call("/api/gets", {"workbook": str(book), "lpets": True})
+        pet = {c["text"]: c["key"] for c in lp["cards"] if c["kind"] == "pet"}
+        lv = dict(lp["version"], cards={c["key"]: {"x": c["x"], "y": c["y"]} for c in lp["cards"]},
+                  groups=[{"id": f"G{i + 1}", "label": label, "members": [pet[t] for t in titles], "x": 400 * i, "y": -60}
+                          for i, (label, titles) in enumerate(groups)], discarded=[], picks={}, notes=[])
+        call("/api/gets-save", {"workbook": str(book), "lpets": True, "version": lv})
+
+    def board_kept(answer: dict, case: str) -> dict:
+        """A cross-case board as the app opens it, by what it holds: each label's members and each card's place and
+        words, the participant read as `case`, and their status."""
+        swap = lambda text: str(text).replace(case, "<P>")
+        return {"groups": sorted((g["label"], sorted(swap(m) for m in g["members"])) for g in answer["groups"]),
+                "cards": sorted((swap(c["key"]), c.get("x"), c.get("y"), c.get("text")) for c in answer["cards"]),
+                "status": next(c["status"] for c in answer["cases"] if c["case"] == case)}
+
+    def traj_kept(book: Path, case: str) -> dict:
+        b = call("/api/trajectories", {"workbook": str(book)})
+        card = next(c for c in b["participants"] if c["case"] == case)
+        col = next((c for c in b["columns"] if case in c["participants"]), None)
+        pic = card["picture"]
+        return dict({k: card.get(k) for k in ("column", "note", "title", "tags", "hidden", "colour")},
+                    picture=(traj_mod.pictures_of(root) / pic).read_bytes() if pic and not pic.startswith("set:") else pic,
+                    at=col["participants"].index(case) if col else None,
+                    rows=[(r["id"], r["title"], r["shown"]) for r in card["rows"]])
+
+    root = base / "Hives"
+    root.mkdir(parents=True)
+    made = idiograph_routes.api_new_project({"op": "make", "folder": str(root), "name": "Hives",
+                                             "research_question": "How do new beekeepers live their first year?",
+                                             "files": [row("moss-spring.txt", MOSS_T1, "Moss", "Spring"),
+                                                       row("fern-spring.txt", FERN_T1, "Fern", "Spring")]})
+    rid = made["project"]["id"]
+    moss = root / "P1 - Moss" / "P1 Moss - EN & ES.xlsx"
+    fern = root / "P2 - Fern" / "P2 Fern - EN & ES.xlsx"
+    m1, f1 = said_rows(moss, "Spring", "Moss"), said_rows(fern, "Spring", "Fern")
+    wb_mod.save_turn(moss, "Spring", m1[0], "Expecting order", "", "Quiet bees in neat rows of comb.")
+    wb_mod.save_turn(moss, "Spring", m1[1], "The suit unworn", "", "I had not tried it on yet.")
+    wb_mod.save_turn(fern, "Spring", f1[0], "An aunt's orchard", "", "My aunt kept them by the orchard.")
+    board_of(moss, None, [("Order expected", [0]), ("Not yet dressed for it", [1])])
+    board_of(fern, None, [("A family craft", [0])])
+    # the GETs, made while the project had one timepoint, kept as they were once it has two
+    gshown = call("/api/gets", {"workbook": str(moss)})
+    pets = {c["text"]: c["key"] for c in gshown["cards"] if c["kind"] == "pet"}
+    call("/api/gets-save", {"workbook": str(moss), "version": dict(
+        gshown["version"], cards={c["key"]: {"x": c["x"], "y": c["y"]} for c in gshown["cards"]},
+        groups=[{"id": "G1", "label": "Inheriting a craft", "members": [pets["Order expected"], pets["A family craft"]],
+                 "x": 0, "y": -60}], discarded=[], picks={}, notes=[])})
+    idiograph_routes.api_project({"root": rid, "timepoints": [{"label": "T1", "description": "Spring"},
+                                                              {"label": "T2", "description": "After the honey"}]})
+    idiograph_routes.api_project({"root": rid, "agents": True})
+    idiograph_routes.api_add_transcripts({"op": "add", "root": rid, "files": [
+        row("moss-honey.txt", MOSS_T2, "Moss", "Honey", timepoint=2),
+        row("fern-honey.txt", FERN_T2, "Fern", "Honey", timepoint=2)]})
+    m2, f2 = said_rows(moss, "Honey", "Moss"), said_rows(fern, "Honey", "Fern")
+    wb_mod.save_turn(moss, "Honey", m2[0], "Shown by a neighbour", "", "showed me how to lift a frame")
+    wb_mod.save_turn(moss, "Honey", m2[1], "The suit by the door", "", "It lives by the door now.")
+    wb_mod.save_turn(fern, "Honey", f2[0], "Asking the club", "", "I asked the club.")
+    board_of(moss, 2, [("Learning from a neighbour", [0]), ("Dressed for it", [1])])
+    board_of(fern, 2, [("Asking after a loss", [0])])
+    lpets_of(moss, [("A neighbour in place of the book", ["Order expected", "Learning from a neighbour"]),
+                    ("The suit became an everyday thing", ["Not yet dressed for it", "Dressed for it"])])
+    lpets_of(fern, [("A craft passed down, then shared", ["A family craft", "Asking after a loss"])])
+    lg = call("/api/gets", {"workbook": str(moss)})
+    lkey = {c["text"]: c["key"] for c in lg["cards"] if c["kind"] == "pet"}
+    call("/api/gets-save", {"workbook": str(moss), "version": dict(
+        lg["version"], cards={c["key"]: {"x": c["x"] + 7, "y": c["y"]} for c in lg["cards"]},
+        groups=[{"id": "G1", "label": "Learning from others",
+                 "members": [lkey["A neighbour in place of the book"], lkey["A craft passed down, then shared"]],
+                 "x": 0, "y": -60}], discarded=[], picks={}, notes=[])})
+    face = base / "hive-face.png"
+    face.write_bytes(traj_mod.png_write(2, 2, bytearray(b"\x20\x60\xa0\xff" * 4)))
+    call("/api/trajectories-ops", {"workbook": str(moss), "ops": [
+        {"op": "add", "title": "Settling in"}, {"op": "place", "participant": "Fern", "column": "Settling in"},
+        {"op": "place", "participant": "Moss", "column": "Settling in"},
+        {"op": "title", "participant": "Moss", "title": "The careful starter"},
+        {"op": "tags", "participant": "Moss", "tags": ["Town", "First hive"]},
+        {"op": "note", "participant": "Moss", "note": "Learnt by watching next door"},
+        {"op": "hide", "participant": "Moss", "lpet": "G2"},
+        {"op": "picture", "participant": "Moss", "from": str(face)}]})
+    names_mod.save_at(root, [{"real": ["Quillon"], "to": "Moss", "for": "Moss", "case": False},
+                             {"real": ["Pemberly"], "to": "Fern", "for": "Fern", "case": False}])
+    gfile, lgfile, tfile, nfile = (root / gets_mod.FILE, root / gets_mod.LGETS_FILE, root / traj_mod.FILE,
+                                   names_mod.path_at(root))
+    lg_before = board_kept(call("/api/gets", {"workbook": str(moss)}), "P1 - Moss")
+    lp_before = call("/api/gets", {"workbook": str(moss), "lpets": True})
+    t2_before = call("/api/themes", {"workbook": str(moss), "timepoint": 2})
+    traj_before = traj_kept(moss, "P1 - Moss")
+    placed_before = json.loads(tfile.read_text(encoding="utf-8"))["placed"]["P1 - Moss"]
+    check("156: the invented project of two timepoints has every file a rename must carry Moss through: the GETs from "
+          "its one timepoint, the LGETs, the Trajectories board with her own picture, and the list of names to replace",
+          all(p.is_file() for p in (gfile, lgfile, tfile, nfile)) and lg_before["status"] == "in"
+          and placed_before.get("picture") == "Moss.png" and gets_mod.lpets_path(moss).is_file()
+          and themes_mod.themes_path(moss, 2).is_file(), str(lg_before)[:300])
+
+    # the plan: a line for each file, nothing written
+    before = tree(root)
+    plan = idiograph_routes.api_rename({"op": "plan", "root": rid, "case": "P1 - Moss", "name": "Rook", "folder": False})
+    ticked = idiograph_routes.api_rename({"op": "plan", "root": rid, "case": "P1 - Moss", "name": "Rook", "folder": True})
+    check("156: the plan has a line each for the GETs, the LGETs, the Trajectories board and the list of names to "
+          "replace, and ticked a line for her picture and one saying her workbook keeps its LPETs, writing nothing",
+          tree(root) == before
+          and all(x in plan["lines"] for x in ("The project's GETs", "The project's LGETs", "The Trajectories board",
+                                               "The project's list of names to replace"))
+          and "Their picture on the Trajectories board takes the new name" in ticked["folder_lines"]
+          and any("LPETs" in x for x in ticked["folder_lines"]) and plan["folder_lines"] == [],
+          str([plan["lines"], ticked["folder_lines"]]))
+
+    # the refusals: a file that cannot be read, Working together on with the folder ticked, and a write that fails
+    def refused(body: dict) -> str:
+        was, mode = tree(root), nfile.stat().st_mode & 0o777
+        try:
+            idiograph_routes.api_rename(body)
+            return "renamed"
+        except WorkbookError as exc:
+            same = tree(root) == was and nfile.stat().st_mode & 0o777 == mode
+            return str(exc) if same else "written: " + str(exc)
+
+    good = tfile.read_bytes()
+    tfile.write_text("{ not json", encoding="utf-8")
+    unread = refused({"op": "rename", "root": rid, "case": "P1 - Moss", "name": "Rook", "folder": False})
+    tfile.write_bytes(good)
+    team = root / "team.json"
+    team.write_text(json.dumps({"on": True}), encoding="utf-8")
+    teamed = refused({"op": "rename", "root": rid, "case": "P1 - Moss", "name": "Rook", "folder": True})
+    team.unlink()
+    real_write = traj_mod.write
+
+    def broken(*_args, **_kw):
+        raise OSError(28, "No space left on device", str(tfile))
+    traj_mod.write = broken
+    try:
+        failed = refused({"op": "rename", "root": rid, "case": "P1 - Moss", "name": "Rook", "folder": True})
+    finally:
+        traj_mod.write = real_write
+    check("156: a file to carry that cannot be read refuses the rename by its name, nothing changed",
+          unread == f"{traj_mod.FILE} could not be read, so nothing was changed.", unread)
+    check("156: with Working together on the folder keeps its name, refused in one line, nothing changed",
+          teamed == i18n.t("server.rename.team_folder"), teamed)
+    check("156: a write that fails halfway puts back every file before it, the workbooks, the LGETs and the list of "
+          "names to replace with its own mode among them, and keeps no copy",
+          failed not in ("", "renamed") and not failed.startswith("written: ")
+          and (root / "P1 - Moss").is_dir() and not (root / "P1 - Rook").exists(), failed)
+
+    # renamed with the folder kept
+    archive_before = set(p.name for p in (root / "_Archive").iterdir()) if (root / "_Archive").is_dir() else set()
+    done = idiograph_routes.api_rename({"op": "rename", "root": rid, "case": "P1 - Moss", "name": "Rook", "folder": False})
+    lgdata, gdata = json.loads(lgfile.read_text(encoding="utf-8")), json.loads(gfile.read_text(encoding="utf-8"))
+    check("156: with the folder kept the answer's lines are the plan's, and the GETs and the LGETs name the old label "
+          "nowhere", done["lines"] == plan["lines"] and done["case"] == "P1 - Rook"
+          and "P1 - Moss" not in json.dumps(lgdata) and "P1 - Moss" not in json.dumps(gdata)
+          and "P1 - Rook" in lgdata["cases"] and "P1 - Rook" in gdata["cases"], str(done["lines"]))
+    lg_now = board_kept(call("/api/gets", {"workbook": str(moss)}), "P1 - Rook")
+    check("156: the LGETs open with Rook in, her LPETs where they stood in their GET, every card in its place",
+          lg_now == lg_before, str(lg_now)[:300])
+    held = json.loads(tfile.read_text(encoding="utf-8"))
+    traj_now = traj_kept(moss, "P1 - Rook")
+    check("156: the Trajectories board keeps everything Moss had as Rook's, her trajectory, her place in its order, "
+          "her label, tags, note, hidden LPET and picture, the file naming her old label nowhere",
+          traj_now == traj_before and held["placed"]["P1 - Rook"] == placed_before
+          and "P1 - Moss" not in json.dumps(held["placed"]) + json.dumps(held["columns"]), str(traj_now)[:300])
+    entries = json.loads(nfile.read_text(encoding="utf-8"))["entries"]
+    check("156: the list of names to replace has her entry for Rook, writing Rook, Fern's as it was, still its "
+          "owner's alone",
+          entries[0]["for"] == "Rook" and entries[0]["to"] == "Rook" and entries[0]["real"] == ["Quillon"]
+          and entries[1] == {"real": ["Pemberly"], "to": "Fern", "for": "Fern", "case": False}
+          and nfile.stat().st_mode & 0o777 == 0o600, str(entries[0]))
+    t2 = json.loads(themes_mod.themes_path(moss, 2).read_text(encoding="utf-8"))
+    copies = set(p.name for p in (root / "_Archive").iterdir()) - archive_before
+    check("156: her PETs boards at T2 name her Rook too, and the project's _Archive keeps a copy of the GETs, the "
+          "LGETs and the Trajectories board, and none of the list of names to replace",
+          t2["case"] == "P1 - Rook"
+          and {n.split(" (pre-rename ")[0] for n in copies} >= {"idiograph-gets", "idiograph-lgets", "idiograph-trajectories"}
+          and not [n for n in copies if n.startswith("idiograph-names")], str(sorted(copies)))
+
+    # renamed again with the folder ticked: her folder, workbook, LPETs, PETs boards and picture move
+    idiograph_routes.api_rename({"op": "rename", "root": rid, "case": "P1 - Rook", "name": "Lark", "folder": True})
+    lark = root / "P1 - Lark" / "P1 Lark - EN & ES.xlsx"
+    working = sorted(p.name for p in (lark.parent / "Working").iterdir()) if lark.is_file() else []
+    lpdata = json.loads(gets_mod.lpets_path(lark).read_text(encoding="utf-8")) if lark.is_file() else {}
+    lgdata = json.loads(lgfile.read_text(encoding="utf-8"))
+    check("156: ticked, every file named after her workbook moves with it, her LPETs and her PETs boards at T2 among "
+          "them, nothing left under the old name, and her LPETs and the LGETs name the workbook as it is now",
+          not (root / "P1 - Moss").exists() and lark.is_file() and not [n for n in working if "Moss" in n]
+          and {"P1 Lark - EN & ES.lpets.json", "P1 Lark - EN & ES.themes-t2.json", "P1 Lark - EN & ES.themes.json",
+               "P1 Lark - EN & ES.progress.json"} <= set(working)
+          and {r["workbook"] for r in (lpdata.get("cases") or {}).values()} == {lark.name}
+          and lgdata["cases"]["P1 - Lark"]["workbook"] == lark.name, str(working))
+    lp_after = call("/api/gets", {"workbook": str(lark), "lpets": True})
+    t2_after = call("/api/themes", {"workbook": str(lark), "timepoint": 2})
+    check("156: her LPETs and her PETs boards at T2 open as they were, every LPET with its PETs",
+          sorted((g["label"], sorted(g["members"])) for g in lp_after["groups"])
+          == sorted((g["label"], sorted(g["members"])) for g in lp_before["groups"])
+          and [g["label"] for g in t2_after["groups"]] == [g["label"] for g in t2_before["groups"]] != [],
+          str([g["label"] for g in lp_after["groups"]]))
+    lg_now, traj_now = board_kept(call("/api/gets", {"workbook": str(lark)}), "P1 - Lark"), traj_kept(lark, "P1 - Lark")
+    check("156: the LGETs open with Lark in, every card in its place, and the Trajectories board keeps everything, "
+          "her picture's file named after her now",
+          lg_now == lg_before and traj_now == traj_before
+          and (traj_mod.pictures_of(root) / "Lark.png").is_file() and not (traj_mod.pictures_of(root) / "Moss.png").exists(),
+          str([lg_now == lg_before, str(traj_now)[:300]]))
+    entries = json.loads(nfile.read_text(encoding="utf-8"))["entries"]
+    record = hist_mod.load(root)[-1]
+    check("156: the list of names to replace follows her again, and History keeps the rename with a line for each file",
+          entries[0]["for"] == "Lark" and entries[0]["to"] == "Lark" and record["op"] == "participant rename"
+          and all(f"{x}." in record["changes"] for x in ("The project's LGETs", "The Trajectories board",
+                                                         "The project's list of names to replace",
+                                                         "Their picture on the Trajectories board takes the new name")),
+          str(record["changes"]))
+
+
+def _every_file_named() -> None:
+    """Every file at a project's root the code names (`idiograph-<name>.json` and Working together's `team.json`) is
+    either carried through a rename, in `case_files.PROJECT`, or left as it is with its reason, in `KEPT`, so a new
+    file that keys by participant cannot be missed (renamefix, 11 November 2026)."""
+    import re
+    import case_files
+    named = set()
+    for folder in ("apps", "family"):
+        for path in sorted((support.TOOL / folder).rglob("*.py")):
+            named |= set(re.findall(r"[\"'](idiograph-[a-z-]+\.json|team\.json)[\"']", path.read_text(encoding="utf-8")))
+    carried = {c.file for c in case_files.PROJECT}
+    loose = sorted(named - carried - set(case_files.KEPT))
+    check("156: every file at a project's root the code names is carried through a rename or kept with its reason, "
+          "and none is both", bool(named) and not loose and not carried & set(case_files.KEPT)
+          and {"idiograph-lgets.json", "idiograph-trajectories.json", "idiograph-names.json"} <= carried, str(loose))
 

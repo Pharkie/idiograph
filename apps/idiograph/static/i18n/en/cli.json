@@ -637,6 +637,7 @@
   "cli.participant_complete.at_t": " at T{tp}",
   "cli.participant_complete.s_statements": "{who}'s statements",
   "cli.participant_rename.a_copy_of_each_file_it": "A copy of each file it changed is in _Archive.",
+  "cli.participant_rename.names_no_copy": "The list of names to replace keeps no copy, since it holds real names and Idiograph copies it nowhere.",
   "cli.participant_rename.renamed_as_now_it_changed": "Renamed {old} as {new}, now {new_label}. It changed:",
   "cli.participant_rename.renaming_as_would_change": "Renaming {old} as {new} would change:",
   "cli.project_new.its_method_fixed_now_it_is": "Its method: {method_name}, fixed now it is made.",

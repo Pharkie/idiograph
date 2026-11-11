@@ -1272,11 +1272,15 @@ table.docx", never over a file there, its author Your name. It takes `--selected
 or `--pdf` in a TA project is refused, pointing to `gets export --word`.
 
 `participant rename` renames a participant as Rename on their menu on the project's page does
-(`/api/rename`): their name on the passages of each sheet of each workbook, their PETs boards, the
-project's GETs and its file, and with `--folder` their folder and the files named after them too. A copy
-of each file it changes goes into `_Archive/` first, and a write that fails puts back everything before
-it. The dry run lists each change, and refuses as the rename would: a name not one capitalised word, the
-interviewer's, another participant's, or a workbook open in Excel. The demo's are fixed. Idiograph's own
+(`/api/rename`): their name on the passages of each sheet of each workbook, their PETs boards at every
+timepoint, every file at the project's root that names them (the GETs, the LGETs, the Trajectories board,
+the list of names to replace and the project's file), and with `--folder` their folder and the files named
+after them too, their LPETs and their picture on Trajectories among them. Everything they had on the LGETs
+and on Trajectories stays theirs. A copy of each file it changes goes into `_Archive/` first, but the list
+of names to replace, which holds real names and is copied nowhere, and a write that fails puts back
+everything before it. The dry run lists each change, and refuses as the rename would: a name not one
+capitalised word, the interviewer's, another participant's, a workbook open in Excel, a file it would change
+that cannot be read, or `--folder` while Working together is on. The demo's are fixed. Idiograph's own
 list of recent participants is the app's, which the command line never touches.
 
 `participant complete` marks a participant's experiential statements complete as Mark complete on the

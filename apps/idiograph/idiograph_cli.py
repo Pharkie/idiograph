@@ -1870,9 +1870,12 @@ def cmd_project_new(args) -> tuple:
 
 def cmd_participant_rename(p: Project, args) -> tuple:
     """A participant renamed as Rename on their menu on the project's page renames them
-    (`routes.api_rename`): their name on the passages of each sheet, their PETs boards, the project's GETs
-    and its file, and with --folder their folder and the files named after them too, a copy of each file
-    changed kept in `_Archive/` first. With --dry-run what would change, and nothing written."""
+    (`routes.api_rename`): their name on the passages of each sheet, their PETs boards, every file at the
+    project's root that names them (`case_files.PROJECT`: the GETs, the LGETs, the Trajectories board, the
+    list of names to replace and the project's file), and with --folder their folder and the files named
+    after them too, their LPETs and their picture on Trajectories among them, a copy of each file changed
+    kept in `_Archive/` first but the list of names to replace, which is copied nowhere. With --dry-run what
+    would change, and nothing written."""
     b = p.case(args.case)
     if not themes_ai.one_line(args.note) and not args.dry_run:
         raise cli.Refused(_w("NO_PROJECT_REQUEST"))
@@ -1900,6 +1903,9 @@ def cmd_participant_rename(p: Project, args) -> tuple:
     else:
         lines = ([i18n.t("cli.participant_rename.renamed_as_now_it_changed", old=old, new=answer['new'], new_label=new_label)] + what
                  + [i18n.t("cli.participant_rename.a_copy_of_each_file_it")])
+        # the list of names to replace holds real names, so Idiograph copies it nowhere (renamefix)
+        if i18n.t("server.rename.names_list") in answer["lines"]:
+            lines.append(i18n.t("cli.participant_rename.names_no_copy"))
     out = {"case": b["case"], "old": old, "new": answer["new"], "label": new_label,
            "changes": answer["lines"], "folder_changes": answer["folder_lines"], "dry_run": bool(args.dry_run)}
     return out, lines

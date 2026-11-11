@@ -441,6 +441,10 @@ def test_trajectories_f(scratch):
         # (l) trajchoose, 11 November 2026: a key quote from anywhere in the interview, or a passage of any of the
         # participant's transcripts, ticked with nothing moved and no workbook written, and kept across a reload
         _choose_from_anywhere(call, refused, run, wren, ash, wren_lp, said_rows, kept_board, wren_row)
+
+        # (m) renamefix, 11 November 2026: everything Wren has on Trajectories survives a rename, MCP's with the
+        # folder kept, then the command line's with it ticked
+        _survives_rename(call, run, garden, cfg_file, wren)
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept
     _keys_in_browser()
@@ -622,6 +626,96 @@ def _choose_from_anywhere(call, refused, run, wren: Path, ash: Path, wren_lp: Pa
           c2["chosen"] is True and c2["quote"]["text"] == "looked inside it" and moved.get("start") == len("Honestly, I had not ")
           and c2b["chosen"] is False and c2b["quote"]["source"] == "lpet" and c2b["quote"]["key"] == own2[0]
           and c2b["bold"] == [], f"{c2} {c2b}")
+
+
+def _survives_rename(call, run, garden: Path, cfg_file: Path, wren: Path):
+    """Everything Wren has on Trajectories kept through a rename (renamefix, 11 November 2026, found by pbiodraw: the
+    board keys a participant by their label and a rename left it behind): MCP's rename with the folder kept, then the
+    command line's with it ticked, which moves her LPETs, her PETs boards at T2 and her picture with her workbook."""
+    import gets as gets_mod
+    import mcp_server
+    import project_history as hist_mod
+    import themes as themes_mod
+    import trajectories as traj_mod
+
+    pics = traj_mod.pictures_of(garden)
+    tfile = garden / traj_mod.FILE
+    face = garden.parent / "a369-rename-face.png"
+    face.write_bytes(traj_mod.png_write(2, 2, bytearray(b"\x40\x80\x20\xff" * 4)))
+    call("/api/trajectories-ops", {"workbook": str(wren), "ops": [
+        {"op": "picture", "participant": "Wren", "from": str(face)}, {"op": "hide", "participant": "Wren", "lpet": "G2"},
+        {"op": "note", "participant": "Wren", "note": "Asks next door first"}]})
+
+    def kept(book: Path, case: str) -> dict:
+        """What a participant has on the board, by its meaning, their picture by its bytes."""
+        board = call("/api/trajectories", {"workbook": str(book)})
+        card = next(c for c in board["participants"] if c["case"] == case)
+        col = next((c for c in board["columns"] if case in c["participants"]), None)
+        pic = card["picture"]
+        rows = [dict({k: r.get(k) for k in ("id", "title", "domain", "shown")},
+                     cells={t: dict({k: c.get(k) for k in ("state", "chosen", "bold", "missing")},
+                                    quote=(c.get("quote") or {}).get("text"), key=(c.get("quote") or {}).get("key"))
+                            for t, c in r["cells"].items()})
+                for r in card["rows"]]
+        return dict({k: card.get(k) for k in ("column", "note", "title", "tags", "hidden", "colour", "lpets")},
+                    picture=(pics / pic).read_bytes() if pic and not pic.startswith("set:") else pic, rows=rows,
+                    at=col["participants"].index(case) if col else None, unplaced=case in board["unplaced"])
+
+    before = kept(wren, "P1 - Wren")
+    check("369: before the rename Wren has her own picture, a title, tags, a note, an LPET hidden and her rows with "
+          "their states and key quotes", isinstance(before["picture"], bytes) and before["title"] and before["tags"]
+          and before["note"] and before["hidden"] and any(c["state"] for r in before["rows"] for c in r["cells"].values()),
+          str({k: v for k, v in before.items() if k != "picture"})[:400])
+
+    # MCP's rename, the folder kept
+    srv = mcp_server.Server(str(garden), config=str(cfg_file))
+    srv.receive(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "initialize",
+                            "params": {"protocolVersion": "2025-06-18", "clientInfo": {"name": "claude-code"}}}))
+
+    def tool(tool_name, **given):
+        return srv.receive(json.dumps({"jsonrpc": "2.0", "id": 2, "method": "tools/call",
+                                       "params": {"name": tool_name, "arguments": given}}))["result"]
+    t_before = tfile.read_bytes()
+    dry = tool("participant_rename", case="Wren", name="Robin", folder=False, dry_run=True, request="She chose a new pseudonym")
+    dry_said = json.dumps(support.plain(dry.get("structuredContent") or {}))
+    check("369: MCP's rename in a dry run lists the Trajectories board and writes nothing",
+          not dry["isError"] and "The Trajectories board" in dry_said and tfile.read_bytes() == t_before, dry_said[:400])
+    res = tool("participant_rename", case="Wren", name="Robin", folder=False, request="She chose a new pseudonym")
+    after = kept(wren, "P1 - Robin")
+    held = json.loads(tfile.read_text(encoding="utf-8"))
+    check("369: renamed by MCP with the folder kept, everything Wren had on Trajectories is Robin's: her trajectory and "
+          "her place in its order, her label, tags, note, picture, hidden LPET, colour and every row's state, key quote "
+          "and bold, the file naming her old label nowhere",
+          not res["isError"] and after == before and "P1 - Wren" not in json.dumps(held["placed"])
+          and "P1 - Wren" not in json.dumps(held["columns"]),
+          json.dumps(support.plain(res.get("structuredContent") or {}))[:300] + str(after == before))
+
+    # the command line's, the folder ticked: her folder, workbook, LPETs, PETs boards and picture move
+    t_before = tfile.read_bytes()
+    code, dry, err = run("participant", "rename", "Robin", "Linnet", "--folder", "--dry-run")
+    folder_said = " ".join(dry.get("folder_changes") or [])
+    check("369: the command line's dry run with --folder lists the Trajectories board and her picture taking the new "
+          "name, her workbook keeping its LPETs, and writes nothing",
+          code == 0 and "The Trajectories board" in dry.get("changes", []) and "picture" in folder_said
+          and "LPETs" in folder_said and tfile.read_bytes() == t_before and (garden / "P1 - Wren").is_dir(),
+          (err or "") + str(dry)[:400])
+    code, done, err = run("participant", "rename", "Robin", "Linnet", "--folder", "--note", "Her folder too")
+    linnet = garden / "P1 - Linnet" / "P1 Linnet - EN & ES.xlsx"
+    moved = kept(linnet, "P1 - Linnet") if code == 0 and linnet.is_file() else {}
+    working = sorted(p.name for p in (linnet.parent / "Working").iterdir()) if linnet.is_file() else []
+    check("369: renamed by the command line with --folder, everything is Linnet's still, her picture's file named "
+          "after her now, her LPETs and her PETs boards at T2 moved with her workbook and nothing left under the old "
+          "name",
+          code == 0 and moved == before and not (garden / "P1 - Wren").exists()
+          and (pics / "Linnet.png").is_file() and not (pics / "Wren.png").exists()
+          and json.loads(tfile.read_text(encoding="utf-8"))["placed"]["P1 - Linnet"]["picture"] == "Linnet.png"
+          and gets_mod.lpets_path(linnet).is_file() and themes_mod.themes_path(linnet, 2).is_file()
+          and not [n for n in working if n.startswith("P1 Wren")],
+          (err or "") + str(working) + str({k: v for k, v in moved.items() if k != "picture"})[:300])
+    record = hist_mod.load(garden)[-1]
+    check("369: the project's History keeps the rename with its Trajectories line and its picture's",
+          record["op"] == "participant rename" and "The Trajectories board." in record["changes"]
+          and any("picture" in x for x in record["changes"]), str(record)[:400])
 
 
 KEYS_DRIVER = r"""

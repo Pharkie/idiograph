@@ -3259,6 +3259,31 @@ brings the renamed row to the middle of the window and, where the page cannot sc
 toast, stands the toast just above it through its `bottom`, which `say` clears for the next line. `cardHtml` puts
 Rename after Files where the row is no demo's and its card says `folder`, which `participants` sends.
 
+**Every file that names a participant (renamefix, 11 November 2026).** pbiodraw found that a rename left the
+Trajectories board and the LGETs behind, both keyed by the participant's label, and with the folder ticked left
+the LPETs file and the PETs boards after T1 under the workbook's old stem. `case_files.py` is now the one place
+every such file is named, and `rename_plan`, `rename_refusal` and `rename_case` follow it, so the app's Rename,
+`participant rename` and MCP's `participant_rename` all carry the participant through each. Beside a workbook,
+`sidecars` is every file in its `Working/` named `<stem>.<anything>` (a file named after a longer-named file of
+the folder left to that one), which moves with the workbook, and `side_files` those that name the participant
+inside, read by the plan and carried by `carry_side`: each PETs boards file's `case` and `workbook` at every
+timepoint, the LPETs file's `workbook` for each timepoint, and the progress file's trim and assignment
+`backup` paths when the folder moves. At the root `PROJECT` lists each file with its line, its carry and its
+write: the GETs and the LGETs (`relabel_all` over every label in `was`, the copy's `workbook`, the GETs through
+`gets.write` with its one-writer guard and the LGETs through the same write at `FILE_AT`), the Trajectories
+board (`placed` by the new label, each trajectory's `order`, and the picture's name when `picture_move` moves
+its file, named after the participant, with the folder ticked), the list of names to replace (`for` and `to`
+naming the old pseudonym take the new, written by `names.save_at` at mode 600 and never copied into
+`_Archive/`), and the project's own file (`order` and `names`, as before). `KEPT` names every other root file
+the code names with why a rename leaves it: the project's History, the code list, the holds, a shared copy's
+manifest and `team.json`. Area 156's `_every_file_named` reads every `idiograph-*.json` and `team.json` in
+`apps/` and `family/` and fails on one in neither. The plan reads each file first, so one that is there and
+cannot be read is `unread` and refuses the rename (`server.not_renamed_unread`), and with Working together on a
+move of the folder or a file is refused (`server.rename.team_folder`), since the team's signed list and its
+messages name a participant by their folder. The act works out every file's new contents before it writes,
+keeps a copy of exactly those that change, and records each write in `back` through `case_files.snapshot`,
+its mode with its bytes, so `unrename` puts the list of names to replace back at its own mode.
+
 A statement card's passage is `thToPassage` in `themes.js`, from Go to the passage in `thMenuItems`,
 which `thMenuDo` takes as `passage`, `thIsStatement` saying which cards are, every card on the PETs
 canvas and a card of kind `es` on GETs, LGETs and LPETs, where until getsedit (below) a double-click on a

@@ -1103,10 +1103,12 @@ TOOLS = [
          ["folder", "transcripts"], writes="adds"),
     mcp.tool("participant_rename", "Rename a participant", ("participant", "rename"),
          "Rename a participant, as Rename on their menu on the project's page does: their name on the passages of "
-         "each sheet, their PETs boards, the project's GETs and its file, and with folder their folder and the "
-         "files named after them too, a copy of each file changed kept in _Archive first. A name that is not one "
-         "capitalised word, the interviewer's, another participant's, or a workbook open in Excel is refused. The "
-         "demo's are fixed. Run dry_run first, which lists each change, and rename only on his word.",
+         "each sheet, their PETs boards at every timepoint, the project's GETs, LGETs, Trajectories board, list of "
+         "names to replace and its file, and with folder their folder and the files named after them too, their "
+         "LPETs and their picture on Trajectories with them, a copy of each file changed kept in _Archive first. A "
+         "name that is not one capitalised word, the interviewer's, another participant's, a workbook open in "
+         "Excel, a file it would change that cannot be read, or the folder while Working together is on is "
+         "refused. The demo's are fixed. Run dry_run first, which lists each change, and rename only on his word.",
          {"case": mcp.CASE, "name": dict(mcp.TEXT, description="The new pseudonym, one capitalised word."),
           "folder": {"type": "boolean", "description": "The participant's folder and the files named after them take "
                                                        "the new name too."}},
