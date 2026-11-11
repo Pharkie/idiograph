@@ -901,6 +901,36 @@ def lay_in(board: dict, entries: list[tuple[str, str]], data: dict) -> None:
         board.setdefault("cards", {})[k] = dict(spots[k])
 
 
+def statement_line(data: dict, key: str) -> dict | None:
+    """The statement a card's key names in its case's copy, `<case>/es/<line>`, as the Participants panel lists
+    it: on LPETs a timepoint's, on GETs and LGETs a participant's. None for a key of another kind or a statement
+    the copy does not hold."""
+    k = split_key(key)
+    if k["kind"] != "es":
+        return None
+    rec = (data.get("cases") or {}).get(k["case"])
+    line = (rec.get("lines") or {}).get(k["ident"]) if isinstance(rec, dict) and isinstance(rec.get("lines"), dict) else None
+    return line if isinstance(line, dict) else None
+
+
+def bring_in(board: dict, data: dict, keys: list[str]) -> list[str]:
+    """Statements brought onto a board from the Participants panel, each alone, never its PET's other statements,
+    the card a row dragged onto the canvas makes (lpetadd, 11 November 2026, `gtCardFrom` and `gtPullDrop` on the
+    page): its words from its case's copy, which `normal` keeps on a statement's card as it keeps the page's, in no
+    label, in the nearest free spot to the middle, as a case's cards come in (`lay_in`). A key on the board already
+    or naming no statement of a copy is passed over. The board is changed in place, and the answer is the keys
+    brought in."""
+    entries = []
+    for key in keys:
+        line = statement_line(data, key)
+        if line is not None and key not in (board.get("cards") or {}) and key not in dict(entries):
+            entries.append((key, str(line.get("text") or "")))
+    lay_in(board, entries, data)
+    for key, text in entries:
+        board["cards"][key]["text"] = text
+    return [k for k, _ in entries]
+
+
 def take_in(data: dict, cases: list[dict], when: str) -> list[str]:
     """Every case not yet in comes in: its snapshot into the file, its place in the study, and a
     card for each of its PETs and sub-themes into the pile of every board. The cases taken, by
@@ -958,14 +988,39 @@ def rows_of(board: dict) -> dict:
                 continue
             quote = " ".join(str(row.get("quote") or "").split())
             note = str(row.get("note") or "").replace("\r\n", "\n").replace("\r", "\n").strip()
-            if quote or note:
+            # a key quote taken from the transcript on Trajectories (trajchoose, 11 November 2026), in place of a tick
+            passage = None if quote else passage_kept(row.get("passage"))
+            if quote or note or passage:
                 kept = {"quote": quote, "note": note[:4000]}
+                if passage:
+                    kept["passage"] = passage
                 # his bold in the key quote (trajbuild2, 10 November 2026), kept with the quote it marks
-                bold = spans_kept(row.get("bold")) if quote else []
+                bold = spans_kept(row.get("bold")) if quote or passage else []
                 if bold:
                     kept["bold"] = bold
                 out.setdefault(str(gid), {})[str(case)] = kept
     return out
+
+
+# the longest passage of the transcript a row keeps as its key quote
+PASSAGE_MAX = 20000
+
+
+def passage_kept(given) -> dict | None:
+    """A key quote taken from the transcript as a row keeps it (trajchoose, 11 November 2026): the interview by its
+    timepoint's key, `at`, `T3`, the turn, `turn`, `<sheet>:<row>`, the place of its words in the turn's words by
+    character, `start` and `end`, and the words, `text`, so a turn whose words change since is noticed. None for
+    anything else."""
+    if not isinstance(given, dict):
+        return None
+    at, turn, text = str(given.get("at") or ""), str(given.get("turn") or ""), str(given.get("text") or "")
+    start, end = given.get("start"), given.get("end")
+    sheet, _, row = turn.rpartition(":")
+    whole = all(isinstance(x, int) and not isinstance(x, bool) for x in (start, end))
+    if (not re.fullmatch(r"T\d+", at) or not sheet or not row.isdigit() or not whole or not 0 <= start < end
+            or end - start != len(text) or not text.strip() or len(text) > PASSAGE_MAX):
+        return None
+    return {"at": at, "turn": turn, "start": start, "end": end, "text": text}
 
 
 def spans_kept(given) -> list[list[int]]:
@@ -2489,10 +2544,18 @@ def rows_after(groups: list[dict], picks: dict, rows: dict) -> dict:
 # quote he ticked is its key quote, the first standing in until he ticks one, and `bold` his bold in it. Run
 # inside `lpets`, on the board the participant's LPETs come into LGETs from (`source_board`), so the LPETs
 # screen's Inspector, the LPET table and Trajectories show the same tick and the same note.
+#
+# A key quote comes from one of three places (trajchoose, 11 November 2026, Adam's ruling): the LPET's own
+# statements' quotes at that timepoint, `lpet`, as the Inspector offers them, the participant's other quotes from
+# that interview, `interview`, a statement in another LPET or in none, ticked by its key just the same, and a
+# passage of the transcript, `transcript`, any of the participant's interviews, kept on the row as `passage`.
+# Ticking one moves no statement and writes no workbook.
+SOURCES = ("lpet", "interview", "transcript")
+
 
 def row_choices(items: list[dict], rec: dict) -> list[dict]:
     """The quotes a row can take as its key quote, as the Inspector offers them: each PET's and sub-theme's picks,
-    then its statements' quotes, and a statement's own, once each."""
+    then its statements' quotes, and a statement's own, once each, each from the LPET, `source` `lpet`."""
     out: list[dict] = []
     lines = rec.get("lines") or {}
     for it in items:
@@ -2502,8 +2565,90 @@ def row_choices(items: list[dict], rec: dict) -> list[dict]:
                 found += line_quotes(lines.get(key) or {}, key)
         for q in found:
             if not any(x["key"] == q["key"] for x in out):
-                out.append({"key": q["key"], "text": q["text"], "time": q.get("time") or ""})
+                out.append({"key": q["key"], "text": q["text"], "time": q.get("time") or "", "source": "lpet"})
     return out
+
+
+def interview_quotes(data: dict, inside: list[str], bare: bool = True) -> dict:
+    """Every statement's own quote in each timepoint's interview as the participant's LPETs file holds it, by the
+    timepoint's key, each once in transcript order, `{"T1": [{"key", "text", "time"}]}`: the quotes a cell may take
+    beyond its LPET's own, whether their statement sits in another LPET or in none (trajchoose, 11 November 2026).
+    Without the marks the workbook keeps round them unless `bare` is false. Reads alone."""
+    out = {}
+    for tp in inside:
+        rec = (data.get("cases") or {}).get(tp) or {}
+        found, seen = [], set()
+        for key, line in (rec.get("lines") or {}).items():
+            for q in line_quotes(line, key) if isinstance(line, dict) else []:
+                text = themes.bare(q["text"]) if bare else q["text"]
+                if q["key"] not in seen and text.strip():
+                    seen.add(q["key"])
+                    found.append({"key": q["key"], "text": text, "time": q.get("time") or ""})
+        out[tp] = found
+    return out
+
+
+def cite_of(data: dict, at: str) -> str:
+    """The label a timepoint's quotes are cited with, T3, as its copy cites them, its label in scope failing that."""
+    return str(((data.get("cases") or {}).get(at) or {}).get("cite") or (NAMES.get() or {}).get(at) or at)
+
+
+def passage_found(kept: dict | None, turns) -> dict | None:
+    """A passage a row keeps as the transcript has it now: its turn's words at its place, or where the same words
+    stand in that turn since an edit moved them, with the turn's time. None when the turn or its words are gone,
+    and the row's key quote then falls back as a lost one does. `turns` gives a timepoint's turns by its key."""
+    if not kept or turns is None:
+        return None
+    turn = next((t for t in turns(kept["at"]) or [] if t["turn"] == kept["turn"]), None)
+    if turn is None:
+        return None
+    words = str(turn.get("text") or "")
+    start = kept["start"] if words[kept["start"]:kept["end"]] == kept["text"] else words.find(kept["text"])
+    if start < 0:
+        return None
+    return {"at": kept["at"], "turn": kept["turn"], "start": start, "end": start + len(kept["text"]),
+            "text": kept["text"], "time": turn.get("time") or ""}
+
+
+def passage_from(given, labels: dict, inside: list[str], turns, name: str) -> dict:
+    """A passage an operation names, checked against the transcript as it is now: `interview`, a timepoint by its
+    key, number or label, `turn`, `<sheet>:<row>` as `turn show` gives it (or `sheet` and `row`), and `start` and
+    `end`, places in the turn's words by character, the whole turn without them, widened to whole words with the
+    spaces at its edges left out. Refused when it is not in the participant's transcript."""
+    if not isinstance(given, dict):
+        raise WorkbookError(i18n.t("server.trajectory_passage_shape"))
+    at = timepoint_of(given.get("interview"), labels)
+    if at is None or at not in inside:
+        raise WorkbookError(i18n.t("server.trajectory_no_such_timepoint",
+                                   timepoint=" ".join(str(given.get("interview") or "").split()) or "none"))
+    said = tp_names(labels, at)[0]
+    here = (turns(at) if turns is not None else None) or []
+    if not here:
+        raise WorkbookError(i18n.t("server.trajectory_no_transcript", name=name, timepoint=said))
+    asked = str(given.get("turn") or "").strip()
+    if not asked and given.get("sheet") not in (None, "") and given.get("row") not in (None, ""):
+        asked = themes.row_key(str(given["sheet"]), given["row"])
+    turn = next((t for t in here if t["turn"] == asked), None)
+    if turn is None:
+        raise WorkbookError(i18n.t("server.trajectory_no_such_turn", turn=asked or "none", name=name, timepoint=said))
+    words = str(turn["text"])
+    start = given.get("start", 0) if given.get("start") is not None else 0
+    end = given.get("end", len(words)) if given.get("end") is not None else len(words)
+    if not all(isinstance(x, int) and not isinstance(x, bool) for x in (start, end)) or not 0 <= start < end <= len(words):
+        raise WorkbookError(i18n.t("server.trajectory_passage_span", most=len(words)))
+    while start < end and words[start].isspace():
+        start += 1
+    while end > start and words[end - 1].isspace():
+        end -= 1
+    if start >= end:
+        raise WorkbookError(i18n.t("server.trajectory_passage_span", most=len(words)))
+    while start > 0 and not words[start - 1].isspace():
+        start -= 1
+    while end < len(words) and not words[end].isspace():
+        end += 1
+    if end - start > PASSAGE_MAX:
+        raise WorkbookError(i18n.t("server.trajectory_passage_span", most=len(words)))
+    return {"at": at, "turn": turn["turn"], "start": start, "end": end, "text": words[start:end]}
 
 
 def quote_cut(said) -> tuple[str, int]:
@@ -2517,28 +2662,44 @@ def quote_cut(said) -> tuple[str, int]:
     return text, max(0, raw.find(text)) if text else 0
 
 
-def lpet_rows(data: dict, board: dict | None, inside: list[str], bare: bool = True) -> list[dict]:
+def lpet_rows(data: dict, board: dict | None, inside: list[str], bare: bool = True, turns=None) -> list[dict]:
     """Each LPET of the board in canvas order, its title, description and domain, and a cell for each timepoint
-    in `inside`: its `state`, its key quote, `quote` (`{"key", "text", "time"}` or None), whether he ticked it,
-    `chosen`, his bold in it, and the quotes it could take, `choices`. Each quote's words come without the marks
-    the workbook keeps round them and his bold is measured against them (`quote_cut`), unless `bare` is false,
-    which gives both as the row keeps them, for `row_op`. Reads alone."""
+    in `inside`: its `state`, its key quote, `quote` (`{"key", "text", "time", "source"}` or None), whether he
+    ticked it, `chosen`, his bold in it, and the LPET's own quotes it could take, `choices`. A quote's `source` is
+    where it comes from (SOURCES): a ticked statement's quote outside the LPET is `interview`, and a passage of
+    the transcript is `transcript` with an empty key, its interview `at` and `passage` (`{"at", "turn", "start",
+    "end"}`), read through `turns`, which gives a timepoint's turns by its key, a passage whose words are gone
+    falling back as a lost quote does. Each quote's words come without the marks the workbook keeps round them and
+    his bold is measured against them (`quote_cut`), unless `bare` is false, which gives both as the row keeps
+    them, for `row_op`. Reads alone."""
     if board is None:
         return []
-    by_id = {g["id"]: g for g in normal(board, data)["groups"]}
+    kept = normal(board, data)
+    by_id = {g["id"]: g for g in kept["groups"]}
     out = []
     for g in table(data, board, inside):
         cells = {}
         for row in g["rows"]:
             rec = (data.get("cases") or {}).get(row["case"]) or {}
-            q = row.get("quote")
-            text, cut = quote_cut(q["text"]) if q and bare else (q["text"] if q else "", 0)
-            bold = [[max(0, a - cut), min(len(text), b - cut)] for a, b in row.get("bold") or []]
+            q, chosen, bold = row.get("quote"), bool(row.get("chosen")), row.get("bold") or []
             choices = row_choices(row["items"], rec)
+            stored = (kept["rows"].get(g["id"]) or {}).get(row["case"]) or {}
+            found = passage_found(stored.get("passage"), turns) if stored.get("passage") else None
+            if found:
+                cite = cite_of(data, found["at"])
+                q = {"key": "", "text": found["text"], "time": f"{cite}, {found['time']}" if found["time"] else cite,
+                     "source": "transcript", "at": found["at"],
+                     "passage": {k: found[k] for k in ("at", "turn", "start", "end")}}
+                chosen, bold = True, stored.get("bold") or []
+            elif q:
+                own = not chosen or any(c["key"] == q["key"] for c in choices)
+                q = {"key": q["key"], "text": q["text"], "time": q.get("time") or "", "source": "lpet" if own else "interview"}
+            text, cut = quote_cut(q["text"]) if q and bare else (q["text"] if q else "", 0)
+            bold = [[max(0, a - cut), min(len(text), b - cut)] for a, b in bold]
             if bare:
                 choices = [dict(c, text=themes.bare(c["text"])) for c in choices]
-            cells[row["case"]] = {"state": row.get("note") or "", "chosen": bool(row.get("chosen")),
-                                  "quote": {"key": q["key"], "text": text, "time": q.get("time") or ""} if q else None,
+            cells[row["case"]] = {"state": row.get("note") or "", "chosen": chosen,
+                                  "quote": dict(q, text=text) if q else None,
                                   "bold": [s for s in bold if s[0] < s[1]], "choices": choices,
                                   "missing": rec.get("state") != "in"}
         out.append({"id": g["id"], "title": g["label"], "description": g.get("description") or "",
@@ -2592,16 +2753,20 @@ def states_in_note(note: str, labels: dict) -> dict:
     return {k: "\n".join(v).strip() for k, v in out.items() if "\n".join(v).strip()}
 
 
-def row_op(data: dict, board: dict, inside: list[str], labels: dict, op: dict, name: str) -> list[str]:
+def row_op(data: dict, board: dict, inside: list[str], labels: dict, op: dict, name: str, turns=None) -> list[str]:
     """One operation on the LPET table's rows or an LPET of `board`, in place, answering its lines, refused as a
-    whole when it is wrong: `state` (`lpet`, `timepoint`, `state`), `quote` (`lpet`, `timepoint`, `quote`, a
-    quote's key, or none to take his tick off), `bold` (`lpet`, `timepoint`, `spans`, `[[start, end]]` of the
-    key quote's words as `lpet_rows` gives them, without the marks round them, none clearing it, the quote
-    standing in ticked with it), `domain` (`lpet`, `domain`, several separated by commas, "" taking it off) and `states_from_notes` (each LPET's note's paragraphs headed by a timepoint into its rows'
-    notes where they hold none, the note left as it was). `name` is the participant's, for the lines."""
+    whole when it is wrong: `state` (`lpet`, `timepoint`, `state`), `quote` (`lpet`, `timepoint`, and `quote`, the
+    key of a quote of the LPET's own or of another statement of that interview, or `passage`, a passage of any of
+    the participant's interviews as `passage_from` reads one, or neither to take his tick off), `bold` (`lpet`,
+    `timepoint`, `spans`, `[[start, end]]` of the key quote's words as `lpet_rows` gives them, without the marks
+    round them, none clearing it, the quote standing in ticked with it), `domain` (`lpet`, `domain`, several
+    separated by commas, "" taking it off) and `states_from_notes` (each LPET's note's paragraphs headed by a
+    timepoint into its rows' notes where they hold none, the note left as it was). `name` is the participant's,
+    for the lines, and `turns` gives a timepoint's turns of their transcript by its key. Nothing here moves a
+    statement or writes a workbook."""
     kind = str(op.get("op") or "")
     # the quotes and his bold as the rows keep them, marks and all: spans come in against the words alone
-    rows = {g["id"]: g for g in lpet_rows(data, board, inside, bare=False)}
+    rows = {g["id"]: g for g in lpet_rows(data, board, inside, bare=False, turns=turns)}
     groups = {g["id"]: g for g in board.get("groups") or [] if isinstance(g, dict)}
     if not isinstance(board.get("rows"), dict):
         board["rows"] = {}
@@ -2624,11 +2789,14 @@ def row_op(data: dict, board: dict, inside: list[str], labels: dict, op: dict, n
         row = {"quote": "", "note": ""}
         row.update((held.get(gid) or {}).get(key) or {})
         row.update(change)
-        if not row.get("quote"):
+        # a statement's quote ticked or a passage taken, never both
+        if row.get("quote") or not row.get("passage"):
+            row.pop("passage", None)
+        if not row.get("quote") and not row.get("passage"):
             row.pop("bold", None)
         if not row.get("bold"):
             row.pop("bold", None)
-        if row.get("quote") or row.get("note"):
+        if row.get("quote") or row.get("note") or row.get("passage"):
             held.setdefault(gid, {})[key] = row
         else:
             (held.get(gid) or {}).pop(key, None)
@@ -2679,11 +2847,22 @@ def row_op(data: dict, board: dict, inside: list[str], labels: dict, op: dict, n
         return [f"{name}'s '{r['title']}' at {at}: state " + ("changed." if text else "cleared.")]
     if kind == "quote":
         given = str(op.get("quote") or "").strip()
-        if given and not any(q["key"] == given for q in cell.get("choices") or []):
-            raise WorkbookError(i18n.t("server.trajectory_no_such_quote", quote=given, lpet=r["title"], timepoint=at))
-        if given == (stored.get("quote") or ""):
+        if op.get("passage") not in (None, "", {}):
+            if given:
+                raise WorkbookError(i18n.t("server.trajectory_quote_or_passage"))
+            # a passage of the transcript, from this interview or another of the participant's
+            taken = passage_from(op.get("passage"), labels, inside, turns, name)
+            if not stored.get("quote") and stored.get("passage") == taken:
+                return []
+            row_set(r["id"], key, {"quote": "", "passage": taken, "bold": []})
+            where = ", ".join(w for w in (tp_names(labels, taken["at"])[0], passage_found(taken, turns)["time"]) if w)
+            return [f"{name}'s '{r['title']}' at {at}: key quote ticked from the transcript, {where}."]
+        # a statement's quote of that interview, the LPET's own or another's, a statement in another LPET or in none
+        if given and quote_at((data.get("cases") or {}).get(key) or {}, given) is None:
+            raise WorkbookError(i18n.t("server.trajectory_no_such_quote", quote=given, name=name, timepoint=at))
+        if given == (stored.get("quote") or "") and not stored.get("passage"):
             return []
-        row_set(r["id"], key, {"quote": given, "bold": []})
+        row_set(r["id"], key, {"quote": given, "passage": None, "bold": []})
         return [f"{name}'s '{r['title']}' at {at}: " + ("key quote ticked." if given else "key quote's tick taken off.")]
     # bold, on the quote he ticked or the one standing in, which his bold ticks
     q = cell.get("quote")
@@ -2697,11 +2876,14 @@ def row_op(data: dict, board: dict, inside: list[str], labels: dict, op: dict, n
     if not isinstance(given, list) or not all(whole(s) for s in given):
         raise WorkbookError(i18n.t("server.trajectory_bold_spans", most=len(text)))
     spans = spans_kept([[s[0] + cut, s[1] + cut] for s in given])
-    if spans == (stored.get("bold") or []) and (stored.get("quote") or "") == q["key"]:
+    # a passage he took keeps its place, and a statement's quote, his or the one standing in, is ticked with it
+    passage = q.get("source") == "transcript" and bool(cell.get("chosen"))
+    same = bool(stored.get("passage")) if passage else (stored.get("quote") or "") == q["key"]
+    if spans == (stored.get("bold") or []) and same:
         return []
     if not spans and not stored.get("bold"):
         return []
-    row_set(r["id"], key, {"quote": q["key"], "bold": spans})
+    row_set(r["id"], key, {"bold": spans} if passage else {"quote": q["key"], "passage": None, "bold": spans})
     return [f"{name}'s '{r['title']}' at {at}: bold in its key quote " + ("changed." if spans else "taken off.")]
 
 

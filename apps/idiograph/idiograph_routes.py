@@ -7757,7 +7757,9 @@ def traj_people(root: Path) -> list[dict]:
     """Each participant of the project for their card on the Trajectories board: their label, their colour
     on the LGETs board, his choice or their place round the palette, the titles of their LPETs, from the
     board their LPETs come into LGETs from, each of those LPETs as a row across the timepoints (trajbuild2,
-    10 November 2026, see `gets.lpet_rows`), and their workbook. Only reads."""
+    10 November 2026, see `gets.lpet_rows`), every quote of each of their interviews, `quotes`, by the
+    timepoint's key, which a cell may take beyond its LPET's own (trajchoose, 11 November 2026, see
+    `gets.interview_quotes`), and their workbook. Only reads."""
     with board_scope(root):
         books = gets_books(root)
         data = gets_mod.load(root)
@@ -7770,18 +7772,31 @@ def traj_people(root: Path) -> list[dict]:
             except (WorkbookError, OSError):
                 titles = []
             try:
-                rows = traj_lpets(Path(b["workbook"]))[2]
+                lp = traj_lpets(Path(b["workbook"]))
+                rows, quotes = lp[2], gets_mod.interview_quotes(lp[0], lp[3]) if lp[0] else {}
             except (WorkbookError, OSError):
-                rows = []
+                rows, quotes = [], {}
             out.append({"case": b["case"], "colour": look[b["case"]]["colour"], "lpets": titles, "rows": rows,
-                        "path": srv.rel_path(Path(b["workbook"]))})
+                        "quotes": quotes, "path": srv.rel_path(Path(b["workbook"]))})
     return out
+
+
+def traj_turns(book: Path):
+    """A participant's transcript turns at a timepoint by its key, T2, for a key quote taken from the transcript
+    (trajchoose, 11 November 2026), the workbook read once while it is unchanged (`themes.transcript_turns`). A
+    workbook that cannot be read has none, so a passage kept from it falls back as a lost quote does."""
+    def turns(at: str) -> list[dict]:
+        try:
+            return [t for t in themes_mod.transcript_turns(Path(book)) if tp_label(t["at"]) == at]
+        except (WorkbookError, OSError):
+            return []
+    return turns
 
 
 def traj_lpets(book: Path) -> tuple[dict | None, dict | None, list[dict], list[str], dict]:
     """A participant's LPETs file as Trajectories reads it: the file, the board their LPETs come into LGETs from,
-    each LPET as a row across the timepoints, the timepoints' keys and their labels. A participant with no LPETs
-    file has no rows. Only reads."""
+    each LPET as a row across the timepoints, a passage of their transcript read where a row keeps one, the
+    timepoints' keys and their labels. A participant with no LPETs file has no rows. Only reads."""
     tps = project_timepoints(book)
     inside = [tp_label(t["n"]) for t in tps]
     labels = {tp_label(t["n"]): [t["label"], t["description"]] for t in tps}
@@ -7790,7 +7805,7 @@ def traj_lpets(book: Path) -> tuple[dict | None, dict | None, list[dict], list[s
         if not data:
             return None, None, [], inside, labels
         board, _complete = gets_mod.source_board(data)
-        return data, board, gets_mod.lpet_rows(data, board, inside), inside, labels
+        return data, board, gets_mod.lpet_rows(data, board, inside, turns=traj_turns(book)), inside, labels
 
 
 def traj_reply(root: Path, body: dict, data: dict | None, more: dict | None = None) -> dict:
@@ -7810,6 +7825,30 @@ def api_trajectories(body: dict) -> dict:
     participant's card and those not placed. Opening writes nothing."""
     root = traj_root(body)
     return traj_reply(root, body, traj_mod.load(root))
+
+
+def api_trajectories_turns(body: dict) -> dict:
+    """A participant's transcript at a timepoint for a key quote taken from it on Trajectories (trajchoose, 11
+    November 2026): `participant`, by label or pseudonym, and `timepoint`, the cell's when none is named. Answers
+    each of their turns with words, the interviewer's and another speaker's left out, its `turn`, `<sheet>:<row>`,
+    time and words, and `interviews`, the timepoints they have a transcript at. Only reads. An agent reads the same
+    turns with `turn show`, and the `quote` op takes the passage."""
+    root = traj_root(body)
+    books = gets_books(root)
+    case = traj_mod.find_case([b["case"] for b in books], body.get("participant"))
+    if case is None:
+        raise WorkbookError(i18n.t("server.trajectory_not_a_participant",
+                                   name=traj_mod.words(body.get("participant")) or "Nobody"))
+    book = Path(next(b["workbook"] for b in books if b["case"] == case))
+    tps = root_timepoints(root)
+    labels = {tp_label(t["n"]): [t["label"], t["description"]] for t in tps}
+    at = gets_mod.timepoint_of(body.get("timepoint"), labels) or tp_label(1)
+    who = wb_mod._norm(srv.config().get("interviewer"))
+    every = themes_mod.transcript_turns(book)
+    held = {tp_label(t["at"]) for t in every}
+    return {"participant": case, "timepoint": at, "interviews": [k for k in labels if k in held],
+            "turns": [{"turn": t["turn"], "time": t["time"], "text": t["text"]} for t in every
+                      if tp_label(t["at"]) == at and not t["context"] and not (who and wb_mod._norm(t["name"]) == who)]}
 
 
 def api_trajectories_ops(body: dict) -> dict:
@@ -7845,7 +7884,8 @@ def traj_apply(root: Path, body: dict) -> dict:
                 return []
             raise WorkbookError(i18n.t("server.trajectory_no_lpets", name=traj_mod.who(case)))
         with lpets_scope(by_case[case]):
-            return gets_mod.row_op(at["data"], at["board"], at["inside"], at["labels"], op, traj_mod.who(case))
+            return gets_mod.row_op(at["data"], at["board"], at["inside"], at["labels"], op, traj_mod.who(case),
+                                   turns=traj_turns(by_case[case]))
 
     def commit() -> None:
         for case, at in held.items():
@@ -9616,6 +9656,7 @@ ROUTES = {
     "/api/gets-ai": api_gets_ai,
     "/api/trajectories": api_trajectories,
     "/api/trajectories-ops": api_trajectories_ops,
+    "/api/trajectories-turns": api_trajectories_turns,
     "/api/codes": api_codes,
     "/api/codes-ops": api_codes_ops,
     "/api/codes-extract": api_codes_extract,

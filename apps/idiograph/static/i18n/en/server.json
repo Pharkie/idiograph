@@ -225,7 +225,12 @@
   "server.trajectory_no_such_timepoint": "{timepoint} is not one of the project's timepoints, so nothing was changed.",
   "server.trajectory_domain_long": "Make the domain {most} characters or fewer, so nothing was changed.",
   "server.trajectory_state_long": "Make the state {most} characters or fewer, so nothing was changed.",
-  "server.trajectory_no_such_quote": "{quote} is not a quote of {lpet} at {timepoint}, so nothing was changed.",
+  "server.trajectory_no_such_quote": "{quote} is not a quote of {name}'s interview at {timepoint}, so nothing was changed.",
+  "server.trajectory_quote_or_passage": "A key quote is a quote's key or a passage of the transcript, not both, so nothing was changed.",
+  "server.trajectory_passage_shape": "A passage is its interview, its turn, and the start and end of its words in the turn, so nothing was changed.",
+  "server.trajectory_no_transcript": "{name} has no transcript at {timepoint}, so nothing was changed.",
+  "server.trajectory_no_such_turn": "{turn} is not a turn of {name}'s transcript at {timepoint}, so nothing was changed.",
+  "server.trajectory_passage_span": "A passage's start and end are places in the turn's words, from 0 to {most}, with words between them, so nothing was changed.",
   "server.trajectory_bold_no_quote": "{lpet} has no quote at {timepoint} to make bold, so nothing was changed.",
   "server.trajectory_bold_spans": "Bold is a list of [start, end] places in the key quote's words, each from 0 to {most}, so nothing was changed.",
   "server.timepoints_held": {

@@ -3285,6 +3285,12 @@ dragged onto the GET table goes under the GET or the sub-theme it is let go on, 
 over that list, as a drop on the canvas does: its card comes in, or the one there already moves, out of the
 Set aside when it was there, one step of undo.
 
+Since 11 November 2026 an AI agent can do what dragging a statement's row from the Participants panel does, on
+GETs, LGETs and a participant's LPETs alike: it brings that one statement onto the board, into the GET or LPET you
+name, or onto the canvas in none, never the rest of its PET's statements. It runs a dry run first and keeps the board
+as it stood in its History, as its other changes do. A statement on the board already, another participant's on
+their LPETs, or a GET or LPET the board has not got is refused, with nothing changed (see the guide for agents).
+
 **Export.** Export in the top bar, the share glyph, a box with an arrow up out of it, drawn in the app's
 line style, opens a small menu under it, in the row menu's paper, and since 1 November it follows the view (Adam: "I
 always switch to the table view if I want to print or export the table"). In Table view it is headed The table:
@@ -5242,8 +5248,18 @@ timepoints:
     Done closes it.
   - Each cell is that LPET's row of the LPET table at that timepoint, so the LPETs screen's table and
     Trajectories show the same. The state is the row's note, typed in place. The key quote is the quote
-    the row ticks, and until he ticks one the first quote stands in, fainter. A click on the quote opens
-    the quotes it can take, and choosing one ticks it there. Words chosen in a key quote go bold with
+    the row ticks, and until he ticks one the first quote stands in, fainter. A click on the quote, or on
+    No quote, opens the quotes it can take, in three parts. In this LPET holds the LPET's own quotes at
+    that timepoint. Elsewhere in this interview holds the participant's other quotes from that interview,
+    whose statements sit in another LPET or in none. From the transcript comes last. Choosing one ticks it there, and
+    nothing else changes: no statement moves and the workbook is not written. Choose a passage... under From
+    the transcript opens the participant's transcript under the row, at that timepoint's interview, with a
+    button for each of their other interviews, a box that finds words in the turns, and each turn's words.
+    Select words in a turn and press Take the words selected, or press Take the whole turn, and that passage
+    is the key quote (whole words, from any of the interviews, 11 November 2026). A quote from elsewhere or
+    from the transcript shows as the LPET's own do, with the timepoint before its time only when it comes
+    from another interview. A ticked quote whose statement, or a passage whose words, are later gone gives
+    way to the first quote again. Words chosen in a key quote go bold with
     Cmd+B (Ctrl+B on Windows and Linux), kept with the row, never in the transcript. A timepoint with no
     quote says No quote over the state. A quote shows in the screen's own quotation marks once, the
     marks its workbook keeps round it left off there and the workbook left as it is, and its bold stays

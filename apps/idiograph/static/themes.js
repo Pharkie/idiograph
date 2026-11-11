@@ -14563,9 +14563,11 @@ function gtRowsKept(v) {
     for (const [kase, row] of Object.entries(cases)) {
       const quote = String((row && row.quote) || '').trim();
       const note = String((row && row.note) || '').trim();
+      // a key quote taken from the transcript on Trajectories (trajchoose), kept as it came while no quote is ticked
+      const passage = !quote && row && row.passage && typeof row.passage === 'object' ? JSON.parse(JSON.stringify(row.passage)) : null;
       // his bold in the key quote, made on Trajectories (trajbuild2), goes back as it came while the quote stays
-      const bold = quote && row && Array.isArray(row.bold) && row.bold.length ? JSON.parse(JSON.stringify(row.bold)) : null;
-      if (quote || note) (out[gid] = out[gid] || {})[kase] = Object.assign({ quote, note }, bold ? { bold } : {});
+      const bold = (quote || passage) && row && Array.isArray(row.bold) && row.bold.length ? JSON.parse(JSON.stringify(row.bold)) : null;
+      if (quote || note || passage) (out[gid] = out[gid] || {})[kase] = Object.assign({ quote, note }, passage ? { passage } : {}, bold ? { bold } : {});
     }
   }
   return out;
@@ -14650,10 +14652,10 @@ function gtRowSet(v, gid, kase, change) {
   const rows = JSON.parse(JSON.stringify(gtRows(v)));
   const was = (rows[gid] || {})[kase] || {};
   const row = Object.assign({ quote: '', note: '' }, was, change);
-  // a new key quote leaves the bold of the one before it
-  if (row.quote !== (was.quote || '')) delete row.bold;
+  // a new key quote leaves the bold of the one before it, and the passage of the transcript it took the place of
+  if (row.quote !== (was.quote || '')) { delete row.bold; delete row.passage; }
   rows[gid] = rows[gid] || {};
-  if (row.quote || row.note) rows[gid][kase] = row;
+  if (row.quote || row.note || row.passage) rows[gid][kase] = row;
   else delete rows[gid][kase];
   if (!Object.keys(rows[gid]).length) delete rows[gid];
   v.rows = rows;

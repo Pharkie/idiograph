@@ -18,6 +18,8 @@ T1_TEXT = ("Kit: [00:00:03] What did you expect of the plot?\nWren: [00:00:08] T
 T2_TEXT = ("Kit: [00:00:02] How is it now?\nWren: [00:00:06] I ask the neighbours before I read the packet.\n"
            "Kit: [00:00:30] Why them?\nWren: [00:12:33] They know this soil.\n")
 COMPOST_TEXT = ("Kit: [00:00:03] What did you expect of the heap?\nWren: [00:00:08] That it would smell.\n")
+# Hazel, a second newcomer, interviewed before the season alone (lpetadd)
+HAZEL_TEXT = ("Kit: [00:00:02] What did you expect of the plot?\nHazel: [00:00:07] I would water it by the moon.\n")
 THREE = [{"label": "T1", "description": "Before the season"}, {"label": "T2", "description": "Midsummer"},
          {"label": "T3", "description": "After the harvest"}]
 
@@ -52,13 +54,13 @@ def test_timepoint_boards(scratch):
         return dict({"name": name, "data": b64(text), "pseudonym": who, "interview": interview,
                      "speakers": {"Kit": "interviewer", who: "participant"}}, **more)
 
-    def said_rows(book: Path, sheet: str) -> list[int]:
+    def said_rows(book: Path, sheet: str, who: str = "Wren") -> list[int]:
         import openpyxl
         wb = openpyxl.load_workbook(book, read_only=True)
         try:
             ws = wb[sheet]
             return [r for r, values in enumerate(ws.iter_rows(min_row=2, max_col=1, values_only=True), start=2)
-                    if str(values[0] or "").strip() == "Wren"]
+                    if str(values[0] or "").strip() == who]
         finally:
             wb.close()
 
@@ -248,5 +250,109 @@ def test_timepoint_boards(scratch):
         check("235: the MCP server's board and gets tools take the timepoint and the LPETs",
               "timepoint" in json.dumps(tools.get("board_show", {})) and "lpets" in json.dumps(tools.get("gets_show", {})),
               str(sorted(tools))[:300])
+
+        # ── E. a statement brought onto the LPETs board, into an LPET, as a row of the Participants panel dragged
+        # there brings it (lpetadd, 11 November 2026): the op and the page's save leave the same board
+        idiograph_routes.api_add_transcripts({"op": "add", "root": root_id, "files": [
+            row("hazel.txt", HAZEL_TEXT, "Hazel", "Before", timepoint=1)]})
+        hbook = next(garden.glob("*Hazel*/*Hazel*.xlsx"))
+        hrow = said_rows(hbook, "Before", "Hazel")[0]
+        wb_mod.save_turn(hbook, "Before", hrow, "Watering by the moon", "", "")
+        soil, asking = themes.card_key("Midsummer", r2[1], 0), themes.card_key("Midsummer", r2[0], 0)
+        skey, akey = f"T2/es/{soil}", f"T2/es/{asking}"
+        order_key = f"T1/es/{themes.card_key('Before', r1[0], 0)}"
+
+        def shape(board: dict) -> dict:
+            """What holds what on a board, the cards' keys and a statement's words, never where they stand."""
+            return {"cards": sorted(board["cards"]), "words": {k: c.get("text") for k, c in board["cards"].items() if "/es/" in k},
+                    "groups": sorted((g["id"], g["label"], tuple(g["members"])) for g in board["groups"]),
+                    "aside": sorted(board.get("discarded") or [])}
+
+        def lboard() -> dict:
+            held = json.loads(lfile.read_text(encoding="utf-8"))
+            return next(b for b in held["boards"] if b["id"] == held["current"])
+
+        # the page's drag: the row's card, its words from the timepoint's copy, let go in the LPET, sent with the save
+        lp0 = call("/api/gets", {"workbook": str(book), "lpets": True})
+        lpid = lp0["version"]["id"]
+        g1 = next(g for g in lp0["groups"] if g["label"] == "From order to neighbours")
+        line = {c["case"]: c for c in lp0["cases"]}["T2"]["lines"][soil]
+        cards0 = {c["key"]: {"x": c["x"], "y": c["y"], "text": c["text"]} for c in lp0["cards"]}
+        groups0 = [dict(g, members=list(g["members"])) for g in lp0["groups"]]
+        call("/api/gets-save", {"workbook": str(book), "lpets": True, "version": dict(
+            lp0["version"], cards=dict(cards0, **{skey: {"x": g1["x"] + 10, "y": g1["y"] + 300, "text": line["text"]}}),
+            groups=[dict(g, members=g["members"] + ([skey] if g["id"] == g1["id"] else [])) for g in groups0],
+            discarded=[], picks={}, notes=[])})
+        dragged = shape(lboard())
+        # and the board put back as it was, for the op to do the same
+        back = call("/api/gets", {"workbook": str(book), "lpets": True})
+        call("/api/gets-save", {"workbook": str(book), "lpets": True, "version": dict(
+            back["version"], cards=cards0, groups=groups0, discarded=[], picks={}, notes=[])})
+        check("235: the drag's save carded the T2 statement in the LPET, and the board is put back without it",
+              skey in dragged["cards"] and skey not in lboard()["cards"], json.dumps(dragged)[:400])
+
+        code, at_t2, err = run("statements", "Wren", "--timepoint", "T2")
+        soil_id = next((r["id"] for r in at_t2.get("statements", []) if r["key"] == soil), "")
+        bring = scratch / "a235-bring.json"
+        bring.write_text(json.dumps({"operations": [{"op": "bring_in", "statement": soil_id, "timepoint": "T2",
+                                                     "to": g1["id"]}]}), encoding="utf-8")
+        before_bytes = lfile.read_bytes()
+        code, dry, err = run("gets", "apply", lpid, "--lpets", "Wren", "--ops", str(bring), "--dry-run",
+                             "--note", "Bring in the soil")
+        check("235: bring_in's dry run names the statement it would card and where, and writes nothing",
+              code == 0 and soil_id and lfile.read_bytes() == before_bytes and [b["key"] for b in dry.get("brought", [])] == [skey]
+              and "T2's statement 'The soil is known by others' into 'From order to neighbours'" in dry.get("said", ""),
+              err or json.dumps(dry)[:400])
+        revisions = len(lboard().get("history") or [])
+        code, done, err = run("gets", "apply", lpid, "--lpets", "Wren", "--ops", str(bring), "--note", "Bring in the soil",
+                              "--tool", "Claude Code")
+        after = lboard()
+        check("235: gets apply --lpets brings the T2 statement in by its id into the LPET, alone, its PET's other "
+              "statement left off, with History keeping the board first",
+              code == 0 and skey in after["cards"] and akey not in after["cards"]
+              and skey in next(g["members"] for g in after["groups"] if g["id"] == g1["id"])
+              and after["cards"][skey].get("text") == "The soil is known by others"
+              and len(after.get("history") or []) == revisions + 1
+              and (after.get("history") or [{}])[0].get("name", "").endswith("Bring in the soil"),
+              err or json.dumps(done)[:400])
+        check("235: the board read back holds what the drag's save left: the same cards, words, LPETs and members",
+              shape(after) == dragged, json.dumps({"op": shape(after), "drag": dragged})[:600])
+
+        refuse = scratch / "a235-refuse.json"
+        hazel_key = f"{hbook.parent.name}/es/{themes.card_key('Before', hrow, 0)}"
+        refuse.write_text(json.dumps({"operations": [
+            {"op": "bring_in", "statement": order_key},
+            {"op": "bring_in", "statement": skey},
+            {"op": "bring_in", "statement": f"T1/es/{themes.card_key('Before', r1[0], 1)}", "to": "G9"},
+            {"op": "bring_in", "statement": "S1", "participant": "Hazel", "to": g1["id"]},
+            {"op": "bring_in", "statement": hazel_key},
+            {"op": "bring_in", "statement": "S9", "timepoint": "T2"},
+            {"op": "bring_in", "statement": "S1"}]}), encoding="utf-8")
+        before_bytes = lfile.read_bytes()
+        code, said_out, err = run("gets", "apply", lpid, "--lpets", "Wren", "--ops", str(refuse), "--note", "Odd ones")
+        err = err + json.dumps(said_out)
+        check("235: bring_in refuses a statement on the board already, saying where, an unknown LPET, another "
+              "participant's, one not at the timepoint and one with no timepoint, the whole change, nothing written",
+              code == 1 and lfile.read_bytes() == before_bytes
+              and "Operation 2 brings in 'The soil is known by others', which is on the board already, in 'From order to neighbours'" in err
+              and "Operation 3 brings 'Trusting the packet' into G9, which is no LPET on this board" in err
+              and "Operation 4 names a statement of Hazel's, and these are Wren's LPETs" in err
+              and f"Operation 5 names {hazel_key}, which is not one of Wren's statements at any of their timepoints" in err
+              and "Operation 6 names S9, which is not one of T2's statements" in err
+              and "Operation 7 names S1 with no timepoint" in err and "Operation 1" not in err, err)
+
+        # through MCP, by the card's key, onto the board in no LPET
+        srv = mcp_server.Server(str(garden), config=str(cfg_file))
+        srv.receive(json.dumps({"jsonrpc": "2.0", "id": 0, "method": "initialize",
+                                "params": {"protocolVersion": "2025-06-18", "clientInfo": {"name": "claude-code"}}}))
+        got = srv.receive(json.dumps({"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {
+            "name": "gets_apply", "arguments": {"lpets": "Wren", "board": lpid, "operations": [{"op": "bring_in", "statement": order_key}],
+                                                "request": "Expecting order on the board"}}}))["result"]
+        loose = lboard()
+        check("235: MCP's gets_apply brings a T1 statement onto the LPETs board in no LPET, by its card's key",
+              not got.get("isError") and order_key in loose["cards"]
+              and not any(order_key in g["members"] for g in loose["groups"])
+              and "T1's statement 'Expecting order' onto the board in no LPET" in json.dumps(got),
+              json.dumps(got)[:400])
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept

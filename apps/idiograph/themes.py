@@ -724,6 +724,57 @@ def spread_quotes(sheet: str, spoken: list[dict], quotes: dict, cards: list[dict
                 c.update(by_key[c["key"]])
 
 
+# The turns read for a key quote taken from the transcript on Trajectories (trajchoose, 11 November 2026), held
+# while the workbook stands as it was read, so a board drawn again after each change opens it once
+TURNS_HELD: dict = {}
+TURNS_MOST = 24
+
+
+def transcript_turns(workbook: Path, form: str | None = None) -> list[dict]:
+    """Every turn of the workbook's transcript sheets that has words, in sheet order: its `turn`, `<sheet>:<row>`,
+    its sheet and row, `at`, the timepoint its sheet is at by the participant's progress file (1 for T1, and in a
+    project of one), the speaker's `name`, whether the workbook marks it another speaker's, `context`, its
+    `seconds` and `time`, and its words as the transcript cell holds them. Opened read-only, as `read_cards`
+    opens it, never against Excel's lock. A workbook not there has none."""
+    workbook = Path(workbook)
+    form = form or timecodes_for(workbook)
+    try:
+        stat = workbook.stat()
+    except OSError:
+        return []
+    placed = placed_sheets(workbook)
+    key = (str(workbook.resolve()), stat.st_mtime_ns, stat.st_size, form, tuple(sorted(placed.items())))
+    if key in TURNS_HELD:
+        return TURNS_HELD[key]
+    try:
+        book = openpyxl.load_workbook(workbook, read_only=True, data_only=True)
+    except Exception as exc:
+        raise WorkbookError(i18n.t("server.could_read", name=workbook.name, exc=exc))
+    out = []
+    try:
+        for ws in book.worksheets:
+            cols = detect_columns(ws)
+            if not {"name", "ts", "transcript"} <= set(cols):
+                continue
+            width = max(cols.values())
+            for r, values in enumerate(ws.iter_rows(min_row=2, max_col=width, values_only=True), start=2):
+                values = tuple(values) + (None,) * (width - len(values))
+                text = str(values[cols["transcript"] - 1] or "")
+                if not text.strip():
+                    continue
+                seconds = ts_seconds(values[cols["ts"] - 1])
+                out.append({"turn": row_key(ws.title, r), "sheet": ws.title, "row": r, "at": placed.get(ws.title, 1),
+                            "name": str(values[cols["name"] - 1] or "").strip(),
+                            "context": bool("ctx" in cols and str(values[cols["ctx"] - 1] or "").strip()),
+                            "seconds": seconds, "time": timecode(seconds, form), "text": text})
+    finally:
+        book.close()
+    for old in [k for k in TURNS_HELD if k[0] == key[0]] + list(TURNS_HELD)[:max(0, len(TURNS_HELD) - TURNS_MOST + 1)]:
+        TURNS_HELD.pop(old, None)
+    TURNS_HELD[key] = out
+    return out
+
+
 def quote_keys(quotes: dict) -> set[str]:
     return {q["key"] for row in (quotes or {}).values() for q in row.get("quotes") or []}
 

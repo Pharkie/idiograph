@@ -670,6 +670,28 @@ idiograph board apply Wren v1 --timepoint 2 --ops ops.json --dry-run
 idiograph gets show --lpets Wren
 ```
 
+**A statement brought onto a board** (11 November 2026). What dragging a statement's row from the Participants
+panel onto a GETs, LGETs or LPETs board does, `gets apply` does with `bring_in`: that one statement's card comes
+onto the board, never the rest of its PET's statements, into the GET or LPET `to` names, by its id or its title,
+or onto the canvas in none when `to` is left out. Name the statement by its card's key, the case, `/es/` and its
+key, `T2/es/Midsummer:5:0`, or by its id or its key as `statements` gives them, with `timepoint` on LPETs, each
+timepoint's ids its own, or `participant` on GETs and LGETs, and on LGETs `timepoint` too for an id.
+
+```
+[{"op": "bring_in", "statement": "S12", "timepoint": "T2", "to": "G1"}]
+idiograph gets apply b1 --lpets Wren --ops bring.json --dry-run
+idiograph gets apply b1 --lpets Wren --ops bring.json --note "his words" --tool "Claude Code"
+```
+
+It runs before the change's other operations, so a `move` or an `order` after it can name its card, and a
+`make` before it can be its `to` by its ref. The card takes its words from the participant's copy, as the
+panel's row does, and lands under what the label holds, everything else keeping its place. A statement written
+since the copy came in is there once `gets take` brings the changes in. The dry run and the answer give
+`brought`, each with its `key`, `case`, `who`, `text`, `label` and `title`, and the board as it stood is kept
+first in its History. Refused whole, with nothing written: a statement on the board already, said where (a
+`move` changes that), another participant's on LPETs, one the copy has not got, a timepoint or a label the
+board has not got, and one brought in twice. MCP's `gets_apply` takes the same operation, with `lpets`.
+
 Since 9 November 2026 a board and a participant's LPETs can come from his own tables, made in Excel
 before Idiograph. `board import` makes a PETs board from a table of PETs, a CSV or an Excel sheet with
 the columns PET, Sub-theme, Experiential statements, Location and Quote, a PET's or sub-theme's title
@@ -742,9 +764,14 @@ sentence), `colour`, `icon` and `participants` in his order, then `unplaced`, an
 starter"), `tags` (each `{"word", "colour"}`), `picture` and `hidden`, and `rows`: each LPET with its `id`,
 `title`, `domain` (as kept, commas between its domains), `domains` (each `{"word", "colour"}`), `shown`, and
 `cells` by timepoint, each with its `state`, its key `quote` (`key`, `text`, the words without the marks the
-workbook keeps round them, `time`, or none), `chosen` (false while the first quote stands in), `bold`
+workbook keeps round them, `time`, `source`, or none), `chosen` (false while the first quote stands in), `bold`
 (`[start, end]` spans of the characters of that `text`) and `choices`, the quotes it can take, without their
-marks too. Then `tags`, each tag's colour, `timepoints`, and
+marks too, each with its `source`: `lpet`, the LPET's own at that timepoint, first, then `interview`, the
+participant's other quotes from that interview, each with `lpet`, the id of the LPET its statement sits in, or
+null for none (trajchoose, 11 November 2026). A key quote taken from the transcript has `source`
+`transcript`, an empty `key`, `at`, the interview's timepoint, its `time` cited with it, and `passage`
+(`at`, `turn`, `start`, `end`). The lines list each cell's choices under it, the ticked one starred. Then
+`tags`, each tag's colour, `timepoints`, and
 `note`, his note for the whole board ("" when there is none), which the lines print first as "Note: ...".
 
 `trajectories apply` takes the board's own operations, a list or `{"operations": [...]}`, run in order, all
@@ -768,7 +795,13 @@ refused when one is wrong, nothing written:
   shown under the screen's title while Notes is on (trajnote, 10 November 2026)
 - on the participant's LPETs board, the LPET table's row at a timepoint, by `lpet` (id or title) and
   `timepoint` (`T2`, `2`, its label or description): `state` (`state`, the row's note), `quote` (`quote`, a
-  key from the cell's `choices`, "" taking his tick off, the first quote then standing in) and `bold`
+  key from the cell's `choices`, the LPET's own or another statement's of that interview, ticked with no
+  statement moved, or in its place `passage`, `{"interview": "T3", "turn": "Harvest:4", "start": 0, "end":
+  40}`, a passage of any of the participant's interviews as its key quote, `turn` the sheet and row `turn
+  show` gives, `start` and `end` places in the turn's words, the whole turn without them, widened to whole
+  words, refused when that interview has no transcript, the turn is not in it, the span is not in its words or
+  a `quote` comes with it. A `quote` of "" takes his tick off, the first quote then standing in, as it does
+  when a ticked statement or a passage's words are gone) and `bold`
   (`spans`, his bold in the key quote, of its `text` as `trajectories show` gives it, `[]` clearing it, never
   the transcript, ticking the quote standing in), and `domain` (`lpet`, `domain`, "" taking it off): domains
   are separated by commas, `"Practical, Family"` two, each its own pill with its own colour across the

@@ -437,9 +437,191 @@ def test_trajectories_f(scratch):
               "a colour of its own, nothing kept for it",
               [d["word"] for d in ds] == ["Town", "seeds"] and ds[0]["colour"] == 3 and ds[1]["colour"] not in (None, 3)
               and shown["tags"] == {"Town": 3}, str(ds))
+
+        # (l) trajchoose, 11 November 2026: a key quote from anywhere in the interview, or a passage of any of the
+        # participant's transcripts, ticked with nothing moved and no workbook written, and kept across a reload
+        _choose_from_anywhere(call, refused, run, wren, ash, wren_lp, said_rows, kept_board, wren_row)
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept
     _keys_in_browser()
+
+
+def _choose_from_anywhere(call, refused, run, wren: Path, ash: Path, wren_lp: Path, said_rows, kept_board, wren_row):
+    """A key quote from one of three places (trajchoose, 11 November 2026, Adam's ruling): the LPET's own, the
+    participant's other quotes from that interview, and a passage of any of their transcripts, each ticked through
+    the quote op with its dry run, kept across a reload and through a save of the LPETs board, bold on each, the
+    refusals, trajectories show's choices with their source, and a passage whose words go falling back."""
+    import mcp_server
+    import workbook as wb_mod
+
+    books = {p: p.read_bytes() for p in (wren, ash)}
+    board = call("/api/trajectories", {"workbook": str(wren)})
+    wc = next(c for c in board["participants"] if c["case"] == "P1 - Wren")
+    g1, g2 = (next(r for r in wc["rows"] if r["id"] == g) for g in ("G1", "G2"))
+    own1 = [q["key"] for q in g1["cells"]["T2"]["choices"]]
+    own2 = [q["key"] for q in g2["cells"]["T2"]["choices"]]
+    at_t2 = [q["key"] for q in wc["quotes"]["T2"]]
+    check("369: the board gives each participant every quote of each interview, those of a cell's own LPET and of "
+          "another's alike, in transcript order, and none where they were not interviewed",
+          len(own1) == 2 and len(own2) == 1 and at_t2 == own1 + own2 and wc["quotes"]["T3"] == []
+          and all(q["source"] == "lpet" for q in g1["cells"]["T2"]["choices"]), str(wc["quotes"])[:400])
+
+    # an own quote ticked reads as from the LPET
+    cell = g1["cells"]["T2"]
+    check("369: a quote of the LPET's own ticked reads with its source, lpet", cell["chosen"] is True
+          and cell["quote"]["source"] == "lpet", str(cell["quote"]))
+
+    # the participant's other quote from that interview, a statement in another LPET
+    other = own2[0]
+    tick = [{"op": "quote", "participant": "Wren", "lpet": "G1", "timepoint": "T2", "quote": other}]
+    lp_before = wren_lp.read_bytes()
+    dry = call("/api/trajectories-ops", {"workbook": str(wren), "dry_run": True, "ops": tick})
+    check("369: a quote from elsewhere in the interview in a dry run says so and writes nothing",
+          dry["changes"] == ["Wren's 'Asking next door took the place of the packet' at T2: key quote ticked."]
+          and wren_lp.read_bytes() == lp_before, str(dry["changes"]))
+    call("/api/trajectories-ops", {"workbook": str(wren), "ops": tick})
+    again = call("/api/trajectories", {"workbook": str(wren)})
+    c1, c2 = wren_row(again, "G1")["cells"]["T2"], wren_row(again, "G2")["cells"]["T2"]
+    lt = call("/api/gets", {"workbook": str(wren), "lpets": True})
+    check("369: ticked, it is G1's key quote at T2 after a reload, shown as an own one without its marks, read "
+          "from elsewhere in the interview, the LPETs screen's tick the same, and no statement moved: G1 and G2 offer "
+          "the quotes they did, the workbooks untouched",
+          c1["chosen"] is True and c1["quote"]["key"] == other and c1["quote"]["source"] == "interview"
+          and c1["quote"]["text"] == "Under the sacks there were forks older than me."
+          and lt["rows"]["G1"]["T2"]["quote"] == other
+          and [q["key"] for q in c1["choices"]] == own1 and [q["key"] for q in c2["choices"]] == own2
+          and all(p.read_bytes() == v for p, v in books.items()), str(c1)[:400])
+    done = call("/api/trajectories-ops", {"workbook": str(wren), "ops": [
+        {"op": "bold", "participant": "Wren", "lpet": "G1", "timepoint": "T2", "spans": [[0, 5]]}]})
+    c1 = wren_row(done, "G1")["cells"]["T2"]
+    _held, src = kept_board()
+    check("369: bold on a quote from elsewhere is kept on its words, against the quote as the workbook keeps it, "
+          "the tick unchanged", c1["bold"] == [[0, 5]] and c1["quote"]["text"][0:5] == "Under"
+          and c1["quote"]["key"] == other and src["rows"]["G1"]["T2"] == {"quote": other, "note": src["rows"]["G1"]["T2"]["note"],
+                                                                        "bold": [[1, 6]]}, str(src["rows"].get("G1")))
+    said = refused({"workbook": str(wren), "ops": [dict(tick[0], quote=g1["cells"]["T1"]["choices"][0]["key"])]})
+    said2 = refused({"workbook": str(wren), "ops": [dict(tick[0], quote="Midsummer:99:0")]})
+    check("369: a quote of another interview, or one not there, is refused, nothing written",
+          "not a quote of Wren's interview at T2" in said and "not a quote of" in said2, said + " | " + said2)
+
+    # a passage of the transcript: the participant's turns at an interview, the interviewer's left out
+    turns = call("/api/trajectories-turns", {"workbook": str(wren), "participant": "Wren", "timepoint": "T1"})
+    w1 = said_rows(wren, "Before", "Wren")
+    shed = next(t for t in turns["turns"] if "looked inside" in t["text"])
+    check("369: the turns route gives Wren's turns at T1 alone, each with its sheet and row, the interviewer's left "
+          "out, and the interviews she has a transcript at",
+          [t["turn"] for t in turns["turns"]] == [f"Before:{w1[0]}", f"Before:{w1[1]}"]
+          and turns["interviews"] == ["T1", "T2"] and shed["text"].strip() == "I had not looked inside it yet.",
+          str(turns)[:400])
+    at = shed["text"].index("ooked")
+    passage = {"interview": "Before the season", "turn": shed["turn"], "start": at, "end": at + len("ooked inside it")}
+    take = [{"op": "quote", "participant": "Wren", "lpet": "G2", "timepoint": "T2", "passage": passage}]
+    lp_before = wren_lp.read_bytes()
+    dry = call("/api/trajectories-ops", {"workbook": str(wren), "dry_run": True, "ops": take})
+    check("369: a passage of another interview in a dry run says where it comes from and writes nothing",
+          dry["changes"] == [f"Wren's 'The shed became a room of her own' at T2: key quote ticked from the transcript, "
+                             f"T1, {shed['time']}."] and wren_lp.read_bytes() == lp_before, str(dry["changes"]))
+    call("/api/trajectories-ops", {"workbook": str(wren), "ops": take})
+    again = call("/api/trajectories", {"workbook": str(wren)})
+    c2 = wren_row(again, "G2")["cells"]["T2"]
+    _held, src = kept_board()
+    kept_row = src["rows"]["G2"]["T2"]
+    check("369: taken, the passage is G2's key quote at T2 after a reload, widened to whole words, its time cited "
+          "with T1 as it is another interview's, kept on the LPET table's row with its words, his bold of the quote "
+          "before it gone, and no workbook written",
+          c2["chosen"] is True and c2["quote"]["source"] == "transcript" and c2["quote"]["text"] == "looked inside it"
+          and c2["quote"]["at"] == "T1" and c2["quote"]["time"] == f"T1, {shed['time']}" and c2["bold"] == []
+          and c2["quote"]["passage"] == {"at": "T1", "turn": shed["turn"], "start": at - 1, "end": at - 1 + len("looked inside it")}
+          and kept_row.get("quote") == "" and kept_row.get("passage", {}).get("text") == "looked inside it"
+          and "bold" not in kept_row and all(p.read_bytes() == v for p, v in books.items()), f"{c2} {kept_row}")
+    done = call("/api/trajectories-ops", {"workbook": str(wren), "ops": [
+        {"op": "bold", "participant": "Wren", "lpet": "G2", "timepoint": "T2", "spans": [[0, 6]]}]})
+    c2 = wren_row(done, "G2")["cells"]["T2"]
+    _held, src = kept_board()
+    check("369: bold on a passage is kept on the row with the passage, which stays ticked",
+          c2["bold"] == [[0, 6]] and c2["quote"]["source"] == "transcript" and src["rows"]["G2"]["T2"].get("bold") == [[0, 6]]
+          and src["rows"]["G2"]["T2"].get("passage", {}).get("turn") == shed["turn"], str(src["rows"].get("G2")))
+    # the LPETs screen's own save sends the rows back as it holds them, the passage with them
+    lp = call("/api/gets", {"workbook": str(wren), "lpets": True})
+    version = dict(lp["version"], cards={c["key"]: {"x": c["x"], "y": c["y"]} for c in lp["cards"]},
+                   groups=lp["groups"], rows=lp["rows"], discarded=[], picks={}, notes=[])
+    call("/api/gets-save", {"workbook": str(wren), "lpets": True, "version": version})
+    c2 = wren_row(call("/api/trajectories", {"workbook": str(wren)}), "G2")["cells"]["T2"]
+    check("369: a save of the LPETs board keeps the passage and its bold", c2["quote"]["source"] == "transcript"
+          and c2["bold"] == [[0, 6]], str(c2)[:300])
+
+    # the whole turn, the cell's own interview
+    whole = [{"op": "quote", "participant": "Wren", "lpet": "G1", "timepoint": "T1",
+              "passage": {"interview": "T1", "turn": f"Before:{w1[0]}"}}]
+    done = call("/api/trajectories-ops", {"workbook": str(wren), "ops": whole})
+    c = wren_row(done, "G1")["cells"]["T1"]
+    check("369: a whole turn of the cell's own interview taken without a start or an end, the bold before it gone",
+          c["quote"]["text"] == "Tidy rows, like the seed packets." and c["quote"]["at"] == "T1" and c["bold"] == [], str(c))
+
+    # the refusals, each writing nothing
+    lp_before = wren_lp.read_bytes()
+    said = {
+        "T3": refused({"workbook": str(wren), "ops": [dict(take[0], passage=dict(passage, interview="T3"))]}),
+        "T9": refused({"workbook": str(wren), "ops": [dict(take[0], passage=dict(passage, interview="T9"))]}),
+        "turn": refused({"workbook": str(wren), "ops": [dict(take[0], passage=dict(passage, turn="Before:99"))]}),
+        "other": refused({"workbook": str(wren), "ops": [dict(take[0], passage=dict(passage, turn="Midsummer:3"))]}),
+        "span": refused({"workbook": str(wren), "ops": [dict(take[0], passage=dict(passage, start=0, end=999))]}),
+        "blank": refused({"workbook": str(wren), "ops": [dict(take[0], passage=dict(passage, start=1, end=1))]}),
+        "both": refused({"workbook": str(wren), "ops": [dict(take[0], quote=other)]}),
+        "shape": refused({"workbook": str(wren), "ops": [dict(take[0], passage="T1")]}),
+    }
+    check("369: a passage at an interview she has no transcript at, a timepoint not there, a turn not in that "
+          "interview, a span past the turn's words or with none, a quote and a passage at once, and a passage that is "
+          "not one are each refused, nothing written",
+          "Wren has no transcript at T3" in said["T3"] and "not one of the project's timepoints" in said["T9"]
+          and "Before:99 is not a turn of Wren's transcript at T1" in said["turn"] and "is not a turn of" in said["other"]
+          and "from 0 to" in said["span"] and "from 0 to" in said["blank"] and "not both" in said["both"]
+          and "A passage is its interview" in said["shape"] and wren_lp.read_bytes() == lp_before, str(said))
+
+    # the command line: trajectories show lists each cell's choices with their source, and the op's passage form
+    code, shown, err = run("trajectories", "show")
+    wrc = next((c for c in shown.get("participants") or [] if c["case"] == "P1 - Wren"), {})
+    cg1 = next((r for r in wrc.get("rows") or [] if r["id"] == "G1"), {}).get("cells", {}).get("T2", {})
+    sources = [(q["key"], q["source"], q.get("lpet")) for q in cg1.get("choices") or []]
+    check("369: trajectories show gives each cell's choices, the LPET's own then the others of that interview with "
+          "the LPET each sits in, and its key quote's source",
+          code == 0 and sources == [(own1[0], "lpet", None), (own1[1], "lpet", None), (other, "interview", "G2")]
+          and cg1["quote"]["source"] == "interview" and "quotes" not in wrc, (err or "") + str(sources))
+    tool = next(t for t in mcp_server.TOOLS if t["name"] == "trajectories_apply")
+    check("369: the MCP server's trajectories_apply names the passage form", '"passage"' in tool["description"]
+          and "interview" in tool["description"])
+    # a statement in no LPET: the shed's PET at T1 taken out of G2 on the LPETs board, its quote still offered
+    lp = call("/api/gets", {"workbook": str(wren), "lpets": True})
+    groups = [dict(g, members=[m for m in g["members"] if not (g["id"] == "G2" and m.startswith("T1/"))]) for g in lp["groups"]]
+    version = dict(lp["version"], cards={c["key"]: {"x": c["x"], "y": c["y"]} for c in lp["cards"]},
+                   groups=groups, rows=lp["rows"], discarded=[], picks={}, notes=[])
+    call("/api/gets-save", {"workbook": str(wren), "lpets": True, "version": version})
+    shed_key = next(q["key"] for q in wc["quotes"]["T1"] if "looked inside" in q["text"])
+    code, shown, err = run("trajectories", "show")
+    wrc = next((c for c in shown.get("participants") or [] if c["case"] == "P1 - Wren"), {})
+    t1 = {r["id"]: r["cells"]["T1"] for r in wrc.get("rows") or []}
+    tick_none = [{"op": "quote", "participant": "Wren", "lpet": "G1", "timepoint": "T1", "quote": shed_key}]
+    done = call("/api/trajectories-ops", {"workbook": str(wren), "ops": tick_none})
+    c = wren_row(done, "G1")["cells"]["T1"]
+    check("369: a statement's quote in no LPET is offered to every LPET's cell at that timepoint, its LPET none, and "
+          "ticked from there, the passage before it put aside",
+          code == 0 and "G2" in t1 and not [q for q in t1["G2"]["choices"] if q["source"] == "lpet"]
+          and (shed_key, "interview", None) in [(q["key"], q["source"], q.get("lpet")) for q in t1.get("G1", {}).get("choices") or []]
+          and c["chosen"] is True and c["quote"]["key"] == shed_key and c["quote"]["source"] == "interview",
+          (err or "") + str(t1)[:400] + str(c)[:200])
+
+    # an edit that moves the passage's words keeps them, and one that takes them away falls back to the first
+    row = int(shed["turn"].rsplit(":", 1)[1])
+    wb_mod.edit_turn(wren, "Before", row, "Honestly, I had not looked inside it yet.")
+    c2 = wren_row(call("/api/trajectories", {"workbook": str(wren)}), "G2")["cells"]["T2"]
+    moved = c2["quote"].get("passage") or {}
+    wb_mod.edit_turn(wren, "Before", row, "I had not opened it yet.")
+    c2b = wren_row(call("/api/trajectories", {"workbook": str(wren)}), "G2")["cells"]["T2"]
+    check("369: a turn edited around the passage keeps it on the same words, and one whose words are gone falls "
+          "back to the first quote standing in, as a lost quote does",
+          c2["chosen"] is True and c2["quote"]["text"] == "looked inside it" and moved.get("start") == len("Honestly, I had not ")
+          and c2b["chosen"] is False and c2b["quote"]["source"] == "lpet" and c2b["quote"]["key"] == own2[0]
+          and c2b["bold"] == [], f"{c2} {c2b}")
 
 
 KEYS_DRIVER = r"""
@@ -449,7 +631,13 @@ const escAttr = (s) => esc(s).replace(/"/g, '&quot;');
 const say = () => {}; const SENT = [];
 const pathProjectDraw = () => {}; const dsTabsDraw = () => {}; const dsTabsWatch = () => {};
 const needsRestart = () => false; const RESTART_LINE = '';
-const api = async (path, body) => { SENT.push(body.ops || body); return JSON.parse(JSON.stringify(DATA)); };
+const TURNS = { turns: [{ turn: 'Before:3', time: '03:12', text: 'I had tidy rows in my head and a shed I never opened.' },
+  { turn: 'Before:5', time: '35:55', text: 'The neighbour told me the shed was mine.' }], interviews: ['T1', 'T2'] };
+const ASKED = [];
+const api = async (path, body) => {
+  if (path === '/api/trajectories-turns') { ASKED.push(body); return JSON.parse(JSON.stringify(TURNS)); }
+  SENT.push(body.ops || body); return JSON.parse(JSON.stringify(DATA));
+};
 const cell = (q, key, chosen, bold) => ({ state: 'A state', chosen, bold, missing: false,
   quote: q ? { key, text: q, time: 'T1, 03:12' } : null, choices: q ? [{ key, text: q, time: '03:12' }, { key: key + 'b', text: 'Another', time: '04:00' }] : [] });
 const row = (id, title) => ({ id, title, domain: 'Practical, Town', domains: [{ word: 'Practical', colour: 3 }, { word: 'Town', colour: 5 }], shown: true,
@@ -461,7 +649,13 @@ const DATA = { project: null, demo: false, unplaced: [], note: 'A credit line', 
     { id: 'c2', title: 'Mixed', participants: ['P3 - Fern'] }],
   participants: [['P1 - Wren', 'Wren', 'c1'], ['P2 - Ash', 'Ash', 'c1'], ['P3 - Fern', 'Fern', 'c2']].map((p, i) => ({ case: p[0], who: p[1], colour: i,
     column: p[2], note: '', title: 'A label', tags: [{ word: 'Town', colour: 3 }], picture: '', picture_url: '', lpets: ['Asking next door'],
-    rows: [row('G1', 'Asking next door')] })) };
+    rows: [row('G1', 'Asking next door')],
+    // every quote of each interview, the cell's own and one from elsewhere (trajchoose)
+    quotes: { T1: [{ key: 'Before:3:0', text: 'I had tidy rows in my head', time: 'T1, 03:12' }, { key: 'Before:7:0', text: 'A quote from elsewhere', time: 'T1, 07:40' }],
+      T2: [], T3: [] } })) };
+// Fern's key quote at T3 a passage of T1's transcript
+DATA.participants[2].rows[0].cells.T3 = { state: '', chosen: true, bold: [], missing: false, choices: [],
+  quote: { key: '', text: 'Everyone came', time: 'T1, 05:00', source: 'transcript', at: 'T1', passage: { at: 'T1', turn: 'Before:9', start: 0, end: 13 } } };
 """
 
 KEYS_AFTER = r"""
@@ -490,10 +684,10 @@ const run = async () => {
   key(q, 'b', { metaKey: true }); await settle();
   // the chooser: a click on the quote opens it, a tick sends the quote op
   document.querySelector('.tf-q[data-cell="P1 - Wren|G1|T1"]').click(); await settle();
-  out.choices = document.querySelectorAll('.tf-choose .tf-choice').length;
+  out.choices = document.querySelectorAll('.tf-choose .tf-choose-part:first-child .tf-choice').length;
   document.querySelectorAll('.tf-choose .tf-choice')[1].click(); await settle();
   key(document.querySelector('.tf-q[data-cell="P1 - Wren|G1|T3"]'), 'Enter'); await settle();
-  out.chooserAgain = document.querySelectorAll('.tf-choose .tf-choice').length;
+  out.chooserAgain = document.querySelectorAll('.tf-choose .tf-choose-part:first-child .tf-choice').length;
   document.querySelector('.tf-choose .tf-choice.on').click(); await settle();
   // the drop's place in a band: above Ash's middle is place 0
   const band = document.querySelector('.tf-band[data-col="c1"]');
@@ -505,6 +699,46 @@ const run = async () => {
   const note = document.getElementById('tj-board-note');
   out.noteOn = !note.hidden && note.value === 'A credit line' && note.getBoundingClientRect().height > 0;
   note.focus(); note.value = 'Pictures by a friend'; key(note, 'Enter'); await settle();
+  // trajchoose: the chooser's three parts in his order, a quote from elsewhere ticked, and the passage picker
+  TJ.data.config.traj_notes = false; trajDraw();
+  const open = async (id) => { document.querySelector(`.tf-q[data-cell="${id}"]`).click(); await settle(); };
+  await open('P1 - Wren|G1|T1');
+  out.parts = [...document.querySelectorAll('.tf-choose .tf-choose-h')].map((h) => h.textContent);
+  out.order = [...document.querySelectorAll('.tf-choose [data-qkey]')].map((b) => b.dataset.qkey);
+  document.querySelector('.tf-choose [data-qkey="Before:7:0"]').click(); await settle();
+  // a cell with no quote opens the chooser too, its transcript part alone
+  await open('P2 - Ash|G1|T2');
+  out.partsNone = [...document.querySelectorAll('.tf-choose .tf-choose-h')].map((h) => h.textContent);
+  document.querySelector('.tf-q[data-cell="P2 - Ash|G1|T2"]').click(); await settle();
+  // a passage of another interview shows its timepoint before its time, an own quote its time alone
+  out.passTime = document.querySelector('.tf-q[data-cell="P3 - Fern|G1|T3"] .tf-time').textContent;
+  out.ownTime = document.querySelector('.tf-q[data-cell="P1 - Wren|G1|T1"] .tf-time').textContent;
+  // Choose a passage... opens the picker on the cell's own interview
+  await open('P1 - Wren|G1|T1');
+  document.querySelector('.tf-choose [data-passage-open]').click(); await settle(); await settle();
+  out.asked = ASKED.slice();
+  out.tabs = [...document.querySelectorAll('.tf-pass .tf-pass-tp')].map((b) => `${b.textContent}${b.getAttribute('aria-pressed') === 'true' ? '*' : ''}`);
+  out.turns = document.querySelectorAll('.tf-pass .tf-turn').length;
+  out.inRow = (() => { const p = document.querySelector('.tf-pass'); const q = document.querySelector('.tf-q[data-cell="P1 - Wren|G1|T1"]');
+    return !!p && p.getBoundingClientRect().top > q.getBoundingClientRect().bottom; })();
+  const find = document.querySelector('.tf-pass-find');
+  find.value = 'NEIGHBOUR'; find.dispatchEvent(new Event('input', { bubbles: true })); await settle();
+  out.found = [...document.querySelectorAll('.tf-pass .tf-turn-w')].map((w) => w.dataset.turnw);
+  out.marked = [...document.querySelectorAll('.tf-pass mark.tf-found')].map((m) => m.textContent);
+  out.findKept = document.activeElement === find || document.querySelector('.tf-pass-find') === find;
+  find.value = ''; find.dispatchEvent(new Event('input', { bubbles: true })); await settle();
+  out.takeOff = document.querySelector('[data-take-words]').disabled;
+  const w = document.querySelector('.tf-turn-w[data-turnw="Before:5"]');
+  const sel = document.createRange(); sel.setStart(w.firstChild, 4); sel.setEnd(w.firstChild, 13);
+  getSelection().removeAllRanges(); getSelection().addRange(sel); await settle();
+  out.takeOn = !document.querySelector('[data-take-words]').disabled;
+  document.querySelector('[data-take-words]').click(); await settle();
+  out.closed = !document.querySelector('.tf-pass');
+  // the whole turn, from the other interview's tab
+  await open('P2 - Ash|G1|T1');
+  document.querySelector('.tf-choose [data-passage-open]').click(); await settle(); await settle();
+  document.querySelector('.tf-pass [data-pass-at="T2"]').click(); await settle();
+  document.querySelector('.tf-pass [data-whole="Before:3"]').click(); await settle();
   out.sent = SENT;
   document.getElementById('out').textContent = JSON.stringify(out);
 };
@@ -517,7 +751,8 @@ def _keys_in_browser():
     server answered by a stand-in that records what is sent: Up moves a participant within their trajectory, Right
     to the next, Backspace to Not placed, Cmd+B on words of a quote standing in sends their spans, a click on a
     quote opens its chooser and a tick sends its key, a tick on the ticked one takes it off, and a drop above a
-    participant's middle lands before them."""
+    participant's middle lands before them. Since trajchoose the chooser's three parts in order, No quote opening
+    it, a passage's time cited with its interview, and the passage picker's interviews, find box and two takes."""
     import html as html_mod
     import subprocess
     import tempfile
@@ -573,3 +808,28 @@ def _keys_in_browser():
           and sent[6] == {"op": "note_board", "note": "Pictures by a friend"}, str(out)[:300] + str(sent[6:7]))
     check("369: a participant dropped above another's middle goes before them, below every one at the end",
           out.get("dropTop") == 1 and out.get("dropEnd") == 2, str(out)[:300])
+    # trajchoose, 11 November 2026
+    check("369: in a browser the chooser's parts come in his order, In this LPET, Elsewhere in this interview, From "
+          "the transcript, the LPET's own quotes first, and a tick on a quote from elsewhere sends its key",
+          out.get("parts") == ["In this LPET", "Elsewhere in this interview", "From the transcript"]
+          and out.get("order") == ["Before:3:0", "Before:3:0b", "Before:7:0"] and len(sent) > 7
+          and sent[7] == {"op": "quote", "participant": "P1 - Wren", "lpet": "G1", "timepoint": "T1", "quote": "Before:7:0"},
+          str(out.get("parts")) + str(out.get("order")) + str(sent[7:8]))
+    check("369: a cell with no quote opens the chooser too, From the transcript alone, and a passage of another "
+          "interview shows that interview before its time, an own quote its time alone",
+          out.get("partsNone") == ["From the transcript"] and out.get("passTime") == "T1, 05:00"
+          and out.get("ownTime") == "03:12", str({k: out.get(k) for k in ("partsNone", "passTime", "ownTime")}))
+    check("369: Choose a passage opens the picker under the row on the cell's interview, its interviews to switch "
+          "between, the find box keeping only the turns with the words and marking them, any case",
+          out.get("asked", [{}])[0] == {"workbook": "x", "participant": "P1 - Wren", "timepoint": "T1"}
+          and out.get("tabs") == ["T1*", "T2"] and out.get("turns") == 2 and out.get("inRow") is True
+          and out.get("found") == ["Before:5"] and out.get("marked") == ["neighbour"] and out.get("findKept") is True,
+          str({k: out.get(k) for k in ("asked", "tabs", "turns", "inRow", "found", "marked", "findKept")}))
+    check("369: words selected in a turn are taken with Take the words selected, sending the passage's interview, "
+          "turn and span, and Take the whole turn on another interview's tab sends the turn alone",
+          out.get("takeOff") is True and out.get("takeOn") is True and out.get("closed") is True and len(sent) > 9
+          and sent[8] == {"op": "quote", "participant": "P1 - Wren", "lpet": "G1", "timepoint": "T1",
+                          "passage": {"interview": "T1", "turn": "Before:5", "start": 4, "end": 13}}
+          and sent[9] == {"op": "quote", "participant": "P2 - Ash", "lpet": "G1", "timepoint": "T1",
+                          "passage": {"interview": "T2", "turn": "Before:3"}},
+          str({k: out.get(k) for k in ("takeOff", "takeOn", "closed")}) + str(sent[8:10]))

@@ -154,11 +154,15 @@ AGENT_OPS = {
     "/api/themes-versions": [("board", "new"), ("board", "rename"), ("board", "duplicate"), ("board", "delete"),
                              ("board", "current"), ("board", "canvas"), ("board", "note"), ("board", "complete")],
     "/api/gets": [("gets", "show")],
+    # every save of a GETs, LGETs or LPETs board, a statement dragged in from the Participants panel among them
+    # (gets apply's bring_in, lpetadd, 11 November 2026)
     "/api/gets-save": [("gets", "apply")],
     "/api/gets-cases": [("gets", "take"), ("gets", "colour")],
     "/api/gets-trail": [("gets", "export")],
     "/api/trajectories": [("trajectories", "show")],
     "/api/trajectories-ops": [("trajectories", "apply")],
+    # the transcript's turns a key quote's passage is found in (trajchoose, 11 November 2026), read with turn show
+    "/api/trajectories-turns": [("turn", "show")],
     # a thematic analysis project's code list (codes, 2 November 2026)
     "/api/codes": [("codes", "list"), ("codes", "show")],
     "/api/codes-ops": [("codes", "new"), ("codes", "rename"), ("codes", "describe"), ("codes", "merge"),

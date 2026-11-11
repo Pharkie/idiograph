@@ -7,8 +7,10 @@
    placed in it: their picture, name, own label and tags, and each of their LPETs a row, its title and domain, then
    at each timepoint its key quote over its state. A cell is that LPET's row of the LPET table at that timepoint, so
    its state is the row's note and its key quote the row's tick, the first quote standing in fainter until he ticks
-   one, and a click on the quote opens the quotes it can take. Words chosen in a key quote go bold with Cmd+B, kept
-   on the row, never in the transcript.
+   one, and a click on the quote opens the quotes it can take: the LPET's own, then the participant's other quotes
+   from that interview, then a passage of the transcript, found in a picker under the row, any of their interviews
+   (trajchoose, 11 November 2026). Words chosen in a key quote go bold with Cmd+B, kept on the row, never in the
+   transcript.
 
    A trajectory's title and sentence are typed in place, its swatch opens its colour and icon, New trajectory adds
    one, and its cross takes it away, its participants going back to Not placed with all that is kept on them. A
@@ -27,7 +29,10 @@
 
 const TJ_SIDE_KEY = 'idiograph-trajectories-side';
 const TJ = { path: '', back: null, to: 'cases', data: null, ask: 0, busy: false, drag: null, project: null, sideOpen: true,
-  editing: '', picking: '', choosing: '', menu: '', faces: false, tagOpen: '' };
+  editing: '', picking: '', choosing: '', menu: '', faces: false, tagOpen: '',
+  // the passage picker (trajchoose, 11 November 2026): the cell it is open for, the interview shown, the words
+  // found, the turns read for each participant's interview, and the words chosen in a turn
+  passage: '', passageAt: '', find: '', turns: {}, picked: null };
 const TJ_NOT_PLACED = t('trajectories.not_placed');
 const TJ_QUOTES_WAYS = ['off', 'short', 'full'];
 // each way's words and each icon's name, every key written out so the catalogue's check finds it
@@ -67,7 +72,8 @@ async function trajOpen(path, how = {}) {
   TJ.path = path;
   TJ.back = how.back || null;
   TJ.to = typeof TH_STEPS !== 'undefined' && TH_STEPS.includes(how.to) ? how.to : 'cases';
-  Object.assign(TJ, { editing: '', picking: '', choosing: '', menu: '', faces: false, tagOpen: '' });
+  Object.assign(TJ, { editing: '', picking: '', choosing: '', menu: '', faces: false, tagOpen: '', passage: '', passageAt: '',
+    find: '', turns: {}, picked: null });
   $('traj').hidden = false;
   TJ.sideOpen = trajSideStored();
   trajLoad(data);
@@ -287,7 +293,9 @@ function trajPersonHtml(case_, tps) {
   const c = tjCard(case_);
   if (!c) return '';
   const shown = (c.rows || []).filter((r) => r.shown !== false);
-  const span = Math.max(1, shown.length);
+  // the passage picker open under one of their rows takes a row of the grid of its own
+  const picking = shown.find((r) => TJ.passage.startsWith(`${c.case}|${r.id}|`));
+  const span = Math.max(1, shown.length) + (picking ? 1 : 0);
   const tags = (c.tags || []).length ? `<span class="tf-pills">${c.tags.map((tg) => tjPill(tg.word, tg.colour)).join('')}</span>` : '';
   const note = tjNotesOn()
     ? `<textarea class="tj-note tf-fit" rows="2" maxlength="2000" data-case="${escAttr(c.case)}" data-fkey="note-${escAttr(c.case)}"
@@ -308,6 +316,7 @@ function trajPersonHtml(case_, tps) {
     const domain = (r.domains || []).length ? `<span class="tf-pills">${r.domains.map((d) => tjPill(d.word, d.colour)).join('')}</span>` : '';
     html += `<div class="tf-rowc${rule}"><div class="tf-lpet"><p class="tf-ltitle">${esc(r.title)}</p>${domain}</div></div>`;
     for (const tp of tps) html += `<div class="tf-rowc${rule}">${trajCellHtml(c, r, tp)}</div>`;
+    if (picking === r) html += trajPassHtml(c, r);
   });
   return `${html}<div class="tf-psep"></div>`;
 }
@@ -327,6 +336,10 @@ function tjBoldHtml(text, bold) {
 
 /* a quote's time without its timepoint, "T1, 03:12" read as 03:12 under the column T1 */
 const tjTime = (time) => String(time || '').replace(/^[^,]*,\s*/, '');
+/* a key quote's time in a cell: the timepoint before it only when the words come from another interview, as a
+   passage of T3's transcript in a T2 cell does (trajchoose) */
+const tjTimeIn = (q, tp) => (q.at && q.at !== tp.key ? String(q.time || '') : tjTime(q.time));
+const TJ_TICK = '<span class="tf-tick" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M3.5 8.5l3 3 6-7"/></svg></span>';
 
 function trajCellHtml(c, r, tp) {
   const cell = (r.cells || {})[tp.key] || {};
@@ -335,25 +348,191 @@ function trajCellHtml(c, r, tp) {
   let quote = '';
   if (tjQuotesWay() !== 'off') {
     const said = t('trajectories.key_quote', { tp: tp.label });
+    // a cell with no quote of its own opens the chooser too, for a quote from elsewhere in the interview or the
+    // transcript
     quote = q
       ? `<p class="tf-q${cell.chosen ? '' : ' tf-q-auto'}" tabindex="0" role="button" data-cell="${escAttr(id)}" data-fkey="q-${escAttr(id)}" aria-expanded="${TJ.choosing === id}"
-          aria-label="${escAttr(said)}" title="${escAttr(t(cell.chosen ? 'trajectories.choose_quote' : 'trajectories.choose_quote_first'))}">“<span class="tf-qtext" data-qcell="${escAttr(id)}">${tjBoldHtml(q.text, cell.bold)}</span>” <span class="tf-time">${esc(tjTime(q.time))}</span></p>`
-      : `<p class="tf-q tf-q-none">${esc(t('trajectories.no_quote'))}</p>`;
-    if (TJ.choosing === id) quote += trajChooserHtml(id, cell);
+          aria-label="${escAttr(said)}" title="${escAttr(t(cell.chosen ? 'trajectories.choose_quote' : 'trajectories.choose_quote_first'))}">“<span class="tf-qtext" data-qcell="${escAttr(id)}">${tjBoldHtml(q.text, cell.bold)}</span>” <span class="tf-time">${esc(tjTimeIn(q, tp))}</span></p>`
+      : `<p class="tf-q tf-q-none" tabindex="0" role="button" data-cell="${escAttr(id)}" data-fkey="q-${escAttr(id)}" aria-expanded="${TJ.choosing === id}"
+          aria-label="${escAttr(said)}" title="${escAttr(t('trajectories.choose_quote'))}">${esc(t('trajectories.no_quote'))}</p>`;
+    if (TJ.choosing === id) quote += trajChooserHtml(id, c, cell, tp);
   }
   const state = `<textarea class="tf-state tf-fit" rows="1" maxlength="4000" data-state="${escAttr(id)}" data-fkey="s-${escAttr(id)}"
       aria-label="${escAttr(t('trajectories.state_label', { tp: tp.label, lpet: r.title }))}" placeholder="${escAttr(t('trajectories.state_placeholder'))}">${esc(cell.state || '')}</textarea>`;
   return `<div class="tf-cell">${quote}${state}</div>`;
 }
 
-/* the quotes a cell can take as its key quote, each with its tick, opened under the quote */
-function trajChooserHtml(id, cell) {
-  const ticked = cell.chosen && cell.quote ? cell.quote.key : '';
-  const rows = (cell.choices || []).map((q, i) => `<button type="button" class="tf-choice${q.key === ticked ? ' on' : ''}" role="menuitemcheckbox"
-      aria-checked="${q.key === ticked}" data-choose="${escAttr(id)}" data-qkey="${escAttr(q.key)}" data-fkey="ch-${escAttr(id)}-${i}">`
-    + `<span class="tf-tick" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M3.5 8.5l3 3 6-7"/></svg></span>`
-    + `<span class="tf-choice-w">“${esc(q.text)}” <span class="tf-time">${esc(tjTime(q.time))}</span></span></button>`).join('');
-  return `<div class="tf-choose" role="menu" aria-label="${escAttr(t('trajectories.choose_quote'))}">${rows}</div>`;
+/* the quotes a cell can take as its key quote, each with its tick, opened under the quote, from three places in
+   his order (trajchoose, 11 November 2026): the LPET's own at that timepoint, the participant's other quotes from
+   that interview, and a passage of the transcript, which opens the picker under the row */
+function trajChooserHtml(id, c, cell, tp) {
+  const q = cell.quote;
+  const ticked = cell.chosen && q && q.source !== 'transcript' ? q.key : '';
+  const own = cell.choices || [];
+  const keys = new Set(own.map((x) => x.key));
+  const others = ((c.quotes || {})[tp.key] || []).filter((x) => !keys.has(x.key));
+  let n = 0;
+  const row = (x) => `<button type="button" class="tf-choice${x.key === ticked ? ' on' : ''}" role="menuitemcheckbox"
+      aria-checked="${x.key === ticked}" data-choose="${escAttr(id)}" data-qkey="${escAttr(x.key)}" data-fkey="ch-${escAttr(id)}-${n++}">`
+    + `${TJ_TICK}<span class="tf-choice-w">“${esc(x.text)}” <span class="tf-time">${esc(tjTime(x.time))}</span></span></button>`;
+  const part = (head, rows) => `<div class="tf-choose-part" role="group" aria-label="${escAttr(head)}"><p class="tf-choose-h" aria-hidden="true">${esc(head)}</p>${rows}</div>`;
+  let html = '';
+  if (own.length) html += part(t('trajectories.from_lpet'), own.map(row).join(''));
+  if (others.length) html += part(t('trajectories.from_interview'), others.map(row).join(''));
+  // the passage he took, ticked, then the way to choose one
+  const taken = cell.chosen && q && q.source === 'transcript'
+    ? `<button type="button" class="tf-choice on" role="menuitemcheckbox" aria-checked="true" data-choose="${escAttr(id)}" data-qkey="" data-fkey="ch-${escAttr(id)}-passage">`
+      + `${TJ_TICK}<span class="tf-choice-w">“${esc(q.text)}” <span class="tf-time">${esc(tjTimeIn(q, tp))}</span></span></button>` : '';
+  const open = TJ.passage === id;
+  html += part(t('trajectories.from_transcript'), `${taken}<button type="button" class="tf-choice tf-choice-pass" role="menuitem" data-passage-open="${escAttr(id)}"
+      data-fkey="ch-${escAttr(id)}-open" aria-expanded="${open}"><span class="tf-pass-ic" aria-hidden="true">${TJ_PLUS}</span><span class="tf-choice-w">${esc(t('trajectories.choose_passage'))}</span></button>`);
+  return `<div class="tf-choose" role="menu" aria-label="${escAttr(t('trajectories.choose_quote'))}">${html}</div>`;
+}
+
+/* ── the passage picker: a turn of the participant's transcript found and its words taken as a key quote ── */
+
+const tjTurnsKey = (case_, at) => `${case_}|${at}`;
+const tjFlat = (s) => String(s || '').toLowerCase().replace(/\s+/g, ' ');
+
+/* the picker under the row it was opened from: the interviews to switch between, the find box, the turns, and the
+   words chosen in one taken or the whole turn */
+function trajPassHtml(c, r) {
+  const [, , tp] = TJ.passage.split('|');
+  const at = TJ.passageAt || tp;
+  const held = TJ.turns[tjTurnsKey(c.case, at)];
+  const known = held ? held.interviews : [at];
+  const tps = tjTimepoints().filter((x) => known.includes(x.key) || x.key === at);
+  const tabs = tps.map((x) => `<button type="button" class="tf-pass-tp${x.key === at ? ' on' : ''}" data-pass-at="${escAttr(x.key)}" data-fkey="pass-at-${escAttr(x.key)}"
+      aria-pressed="${x.key === at}" title="${escAttr(tjTpName(x))}">${esc(x.label)}</button>`).join('');
+  const head = t('trajectories.from_transcript');
+  return `<div class="tf-pass" role="group" aria-label="${escAttr(head)}" data-pass="${escAttr(TJ.passage)}">`
+    + `<div class="tf-pass-head"><p class="tf-pass-l">${esc(head)}</p>`
+    + `<span class="tf-pass-tps" role="group" aria-label="${escAttr(t('trajectories.interview'))}">${tabs}</span>`
+    + `<input class="tf-pass-find" type="search" data-pass-find="1" data-fkey="pass-find" value="${escAttr(TJ.find)}"
+        placeholder="${escAttr(t('trajectories.find_transcript'))}" aria-label="${escAttr(t('trajectories.find_transcript'))}"></div>`
+    + `<div class="tf-pass-list" role="list">${trajPassListHtml(c, r, at)}</div>`
+    + `<div class="tf-pass-foot"><button type="button" class="primary small" data-take-words="1" data-fkey="pass-take"${TJ.picked ? '' : ' disabled'}>${esc(t('trajectories.take_words'))}</button>`
+    + `<button type="button" class="ghost small" data-pass-done="1" data-fkey="pass-done">${esc(t('trajectories.done'))}</button></div></div>`;
+}
+
+/* the turns of the interview shown, those holding the words found, each found word marked and the passage he
+   took marked in its turn */
+function trajPassListHtml(c, r, at) {
+  const held = TJ.turns[tjTurnsKey(c.case, at)];
+  if (!held) return '';
+  const [, , tp] = TJ.passage.split('|');
+  const cell = ((r.cells || {})[tp]) || {};
+  const mine = cell.chosen && cell.quote && cell.quote.source === 'transcript' && cell.quote.at === at ? cell.quote.passage : null;
+  const find = tjFlat(TJ.find).trim();
+  return held.turns.filter((x) => !find || tjFlat(x.text).includes(find)).map((x) => {
+    const marks = [];
+    if (find) {
+      const flat = String(x.text).toLowerCase();
+      for (let i = flat.indexOf(find); i >= 0 && marks.length < 50; i = flat.indexOf(find, i + find.length)) marks.push([i, i + find.length, 'tf-found']);
+    }
+    if (mine && mine.turn === x.turn && !marks.some(([a, b]) => a < mine.end && mine.start < b)) marks.push([mine.start, mine.end, 'tf-taken']);
+    marks.sort((p, q) => p[0] - q[0]);
+    let words = '';
+    let from = 0;
+    for (const [a, b, cls] of marks) {
+      words += esc(x.text.slice(from, a)) + `<mark class="${cls}">${esc(x.text.slice(a, b))}</mark>`;
+      from = b;
+    }
+    words += esc(x.text.slice(from));
+    return `<div class="tf-turn${mine && mine.turn === x.turn ? ' tf-turn-on' : ''}" role="listitem"><span class="tf-time">${esc(x.time)}</span>`
+      + `<p class="tf-turn-w" data-turnw="${escAttr(x.turn)}">${words}</p>`
+      + `<button type="button" class="ghost small tf-turn-all" data-whole="${escAttr(x.turn)}" data-fkey="whole-${escAttr(x.turn)}">${esc(t('trajectories.take_turn'))}</button></div>`;
+  }).join('');
+}
+
+/* a participant's turns at an interview, read once for the picker */
+async function trajTurnsLoad(case_, at) {
+  const key = tjTurnsKey(case_, at);
+  if (TJ.turns[key]) return TJ.turns[key];
+  try {
+    const answer = await api('/api/trajectories-turns', { workbook: TJ.path, participant: case_, timepoint: at });
+    TJ.turns[key] = { turns: answer.turns || [], interviews: answer.interviews || [at] };
+  } catch (err) {
+    say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
+    TJ.turns[key] = { turns: [], interviews: [at] };
+  }
+  return TJ.turns[key];
+}
+
+/* the picker opened for a cell, on the interview of the passage it holds, else its own, else the first the
+   participant has */
+async function trajPassOpen(id) {
+  const [case_, lpet, tp] = id.split('|');
+  const r = ((tjCard(case_) || {}).rows || []).find((x) => x.id === lpet);
+  const q = r && ((r.cells || {})[tp] || {}).quote;
+  Object.assign(TJ, { passage: id, find: '', picked: null, passageAt: q && q.source === 'transcript' && q.at ? q.at : tp });
+  trajDraw();
+  const held = await trajTurnsLoad(case_, TJ.passageAt);
+  if (TJ.passage !== id) return;
+  if (!held.turns.length && held.interviews.length && !held.interviews.includes(TJ.passageAt)) {
+    TJ.passageAt = held.interviews[0];
+    await trajTurnsLoad(case_, TJ.passageAt);
+    if (TJ.passage !== id) return;
+  }
+  trajDraw();
+  const on = document.querySelector('.tf-pass .tf-turn-on');
+  if (on) on.scrollIntoView({ block: 'nearest' });
+  const find = document.querySelector('.tf-pass-find');
+  if (find) find.focus({ preventScroll: true });
+}
+
+/* another of the participant's interviews in the picker */
+async function trajPassAt(at) {
+  const id = TJ.passage;
+  const [case_] = id.split('|');
+  Object.assign(TJ, { passageAt: at, picked: null });
+  await trajTurnsLoad(case_, at);
+  if (TJ.passage === id) trajDraw();
+}
+
+/* the list alone drawn again as he types in the find box, so the box keeps its caret */
+function trajPassFind(value) {
+  TJ.find = value;
+  TJ.picked = null;
+  const [case_, lpet] = TJ.passage.split('|');
+  const c = tjCard(case_);
+  const r = c && (c.rows || []).find((x) => x.id === lpet);
+  const list = document.querySelector('.tf-pass-list');
+  if (c && r && list) list.innerHTML = trajPassListHtml(c, r, TJ.passageAt);
+  trajPassPicked();
+}
+
+/* the words chosen in one turn of the picker, by character in its words, or null */
+function trajPassPicked() {
+  const sel = window.getSelection();
+  let picked = null;
+  if (sel && sel.rangeCount && !sel.isCollapsed) {
+    const range = sel.getRangeAt(0);
+    const node = (n) => (n.nodeType === 1 ? n : n.parentElement);
+    const box = node(range.startContainer) && node(range.startContainer).closest('.tf-pass .tf-turn-w');
+    if (box && box.contains(range.endContainer)) {
+      const upTo = (n, offset) => { const rr = document.createRange(); rr.setStart(box, 0); rr.setEnd(n, offset); return rr.toString().length; };
+      const a = upTo(range.startContainer, range.startOffset);
+      const b = upTo(range.endContainer, range.endOffset);
+      if (a < b && box.textContent.slice(a, b).trim()) picked = { turn: box.dataset.turnw, a, b };
+    }
+  }
+  TJ.picked = picked;
+  const take = document.querySelector('.tf-pass [data-take-words]');
+  if (take) take.disabled = !picked;
+}
+
+/* a passage taken as the cell's key quote, the whole turn without `a` and `b` */
+function trajPassTake(turn, a, b) {
+  const [case_, lpet, tp] = TJ.passage.split('|');
+  const passage = { interview: TJ.passageAt, turn };
+  if (a !== undefined) Object.assign(passage, { start: a, end: b });
+  Object.assign(TJ, { passage: '', choosing: '', picked: null, find: '' });
+  window.getSelection().removeAllRanges();
+  trajOps([{ op: 'quote', participant: case_, lpet, timepoint: tp, passage }]).then(() => {
+    const back = document.querySelector(`[data-fkey="${CSS.escape(`q-${case_}|${lpet}|${tp}`)}"]`);
+    if (back) back.focus();
+  });
 }
 
 /* the participant's menu: Edit, then Move to each other trajectory or Not placed, Move up and Move down */
@@ -567,8 +746,8 @@ function trajBold() {
 }
 
 function trajCloseAll() {
-  const open = TJ.choosing || TJ.menu || TJ.picking;
-  Object.assign(TJ, { choosing: '', menu: '', picking: '' });
+  const open = TJ.choosing || TJ.menu || TJ.picking || TJ.passage;
+  Object.assign(TJ, { choosing: '', menu: '', picking: '', passage: '', picked: null, find: '' });
   return !!open;
 }
 
@@ -637,9 +816,21 @@ function trajWire() {
     if ((x = el('[data-choose]'))) {
       const [case_, lpet, tp] = x.dataset.choose.split('|');
       const ticked = x.getAttribute('aria-checked') === 'true';
+      if (TJ.passage) Object.assign(TJ, { passage: '', picked: null, find: '' });
       trajOps([{ op: 'quote', participant: case_, lpet, timepoint: tp, quote: ticked ? '' : x.dataset.qkey }]);
       return;
     }
+    // the passage picker, opened from the chooser's last part, its clicks its own
+    if ((x = el('[data-passage-open]'))) {
+      const id = x.dataset.passageOpen;
+      if (TJ.passage === id) { Object.assign(TJ, { passage: '', picked: null, find: '' }); trajDraw(); } else trajPassOpen(id);
+      return;
+    }
+    if ((x = el('[data-pass-at]'))) { trajPassAt(x.dataset.passAt); return; }
+    if ((x = el('[data-whole]'))) { trajPassTake(x.dataset.whole); return; }
+    if (el('[data-take-words]')) { const p = TJ.picked; if (p) trajPassTake(p.turn, p.a, p.b); return; }
+    if (el('[data-pass-done]')) { const back = TJ.passage; Object.assign(TJ, { passage: '', picked: null, find: '' }); trajDraw(); const to = back && board.querySelector(`[data-fkey="${CSS.escape(`ch-${back}-open`)}"]`); if (to) to.focus(); return; }
+    if (el('.tf-pass') || el('.tf-choose')) return;
     if ((x = el('.tf-q[data-cell]'))) {
       // a click that chose words is for Cmd+B, not the chooser
       const sel = window.getSelection();
@@ -697,6 +888,16 @@ function trajWire() {
     }
     if (e.key === 'Escape') {
       if (TJ.editing && e.target.closest('.tf-edit')) { const case_ = TJ.editing; Object.assign(TJ, { editing: '', faces: false, tagOpen: '' }); trajDraw(); trajFocus(case_); e.preventDefault(); return; }
+      // Esc in the passage picker closes it alone, the chooser staying open
+      if (TJ.passage && e.target.closest('.tf-pass')) {
+        const back = TJ.passage;
+        Object.assign(TJ, { passage: '', picked: null, find: '' });
+        e.preventDefault();
+        trajDraw();
+        const to = board.querySelector(`[data-fkey="${CSS.escape(`ch-${back}-open`)}"]`);
+        if (to) to.focus();
+        return;
+      }
       const back = TJ.choosing ? `q-${TJ.choosing}` : TJ.menu ? `more-${TJ.menu}` : TJ.picking ? `swatch-${TJ.picking}` : '';
       if (trajCloseAll()) {
         e.preventDefault();
@@ -710,7 +911,7 @@ function trajWire() {
     const row = e.target.closest('.tf-choice, .tf-mi');
     if (row && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
       e.preventDefault();
-      const all = [...row.parentElement.querySelectorAll('.tf-choice, .tf-mi')];
+      const all = [...row.closest('.tf-choose, .tf-menu').querySelectorAll('.tf-choice, .tf-mi')];
       const to = all[Math.max(0, Math.min(all.length - 1, all.indexOf(row) + (e.key === 'ArrowDown' ? 1 : -1)))];
       if (to) to.focus();
       return;
@@ -732,7 +933,12 @@ function trajWire() {
   });
   board.addEventListener('input', (e) => {
     if (e.target.classList && e.target.classList.contains('tf-fit')) trajFit(e.target);
+    if (e.target.dataset && e.target.dataset.passFind) trajPassFind(e.target.value);
   });
+  // the words chosen in a turn of the passage picker, so Take the words selected knows them; its own press keeps
+  // the choice where a press would end it
+  document.addEventListener('selectionchange', () => { if (TJ.passage) trajPassPicked(); });
+  board.addEventListener('pointerdown', (e) => { if (e.target.closest('[data-take-words]')) e.preventDefault(); });
   board.addEventListener('focusout', (e) => {
     const title = e.target.closest('input.tj-title[data-col]');
     if (title) { trajTitleDone(title); return; }

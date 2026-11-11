@@ -15,8 +15,9 @@ initial on their colour, and `hidden`, the ids of the LPETs this screen leaves o
 hides one. Under them each LPET is a row: its title and its domain, then at each timepoint its key quote over
 its state. The domain is the LPET's own, on the participant's LPETs board, and its colour comes from `tags`
 too, each domain its own when commas separate several. The state, the key quote, its words without the marks the
-workbook keeps round them, and his bold in it are the LPET table's row on that board (`gets.row_op`), and
-this module hands those operations, LPET_OPS, to the caller's `lpet_op`.
+workbook keeps round them, and his bold in it are the LPET table's row on that board (`gets.row_op`), the key
+quote the LPET's own, another statement's of that interview or a passage of any of the participant's transcripts
+(trajchoose, 11 November 2026), and this module hands those operations, LPET_OPS, to the caller's `lpet_op`.
 
 The file is `idiograph-trajectories.json` at the project's root, written only once a change is made:
 

@@ -510,8 +510,14 @@ def cmd_timepoints(p: Project, args) -> tuple:
 
 
 
+TRAJ_SOURCES = {"lpet": lambda: i18n.t("cli.traj_lines.source_lpet"),
+                 "interview": lambda: i18n.t("cli.traj_lines.source_interview"),
+                 "transcript": lambda: i18n.t("cli.traj_lines.source_transcript")}
+
+
 def traj_lines(answer: dict) -> list[str]:
-    """The Trajectories board in plain lines: each trajectory with its participants, their LPETs and notes."""
+    """The Trajectories board in plain lines: each trajectory with its participants, their LPETs and notes, and
+    under each cell the quotes it can take with where each comes from, the ticked one starred (trajchoose)."""
     cards = {c["case"]: c for c in answer["participants"]}
 
     def card(case: str) -> list[str]:
@@ -526,9 +532,15 @@ def traj_lines(answer: dict) -> list[str]:
             for key, cell in (r.get("cells") or {}).items():
                 q = cell.get("quote")
                 said = ((f"\"{q['text']}\" {q.get('time') or ''}".strip()
-                         + ("" if cell.get("chosen") else " " + i18n.t("cli.traj_lines.first")))
+                         + ("" if cell.get("chosen") else " " + i18n.t("cli.traj_lines.first"))
+                         + (f" ({TRAJ_SOURCES[q['source']]()})" if q.get("source") in ("interview", "transcript") else ""))
                         if q else i18n.t("cli.traj_lines.no_quote"))
                 out.append(f"         {key}: {cell.get('state') or '-'} | {said}")
+                ticked = q.get("key") if q and cell.get("chosen") else None
+                for ch in cell.get("choices") or []:
+                    out.append(i18n.t("cli.traj_lines.choice", mark="*" if ch["key"] == ticked else "-",
+                                      source=TRAJ_SOURCES.get(ch.get("source"), TRAJ_SOURCES["lpet"])(),
+                                      text=ch["text"], time=ch.get("time") or "", qkey=ch["key"]))
         if c["note"]:
             out.append(i18n.t("cli.traj_lines.why", note=c['note']))
         return out
@@ -546,8 +558,31 @@ def traj_lines(answer: dict) -> list[str]:
 
 
 def traj_answer(answer: dict) -> dict:
+    """The board as the command line gives it, each cell's `choices` every quote it can take: the LPET's own,
+    `source` `lpet`, then the participant's other quotes of that interview, `interview`, each with `lpet`, the id
+    of the LPET it sits in, None for none (trajchoose, 11 November 2026). A passage of the transcript is taken by
+    the `quote` op's `passage`, its turns read with `turn show`. Called on the answer before `traj_lines`."""
     keep = ("note", "columns", "unplaced", "participants", "tags", "updated", "timepoints", "palette", "icons", "faces")
-    return {k: answer[k] for k in keep if k in answer}
+    out = {k: answer[k] for k in keep if k in answer}
+    people = []
+    for c in out.get("participants") or []:
+        quotes = c.get("quotes") or {}
+        sits = {ch["key"]: r["id"] for r in c.get("rows") or [] for cell in (r.get("cells") or {}).values()
+                for ch in cell.get("choices") or []}
+        rows = []
+        for r in c.get("rows") or []:
+            cells = {}
+            for key, cell in (r.get("cells") or {}).items():
+                own = [dict(ch, source="lpet") for ch in cell.get("choices") or []]
+                taken = {ch["key"] for ch in own}
+                others = [dict(q, source="interview", lpet=sits.get(q["key"])) for q in quotes.get(key) or []
+                          if q["key"] not in taken]
+                cells[key] = dict(cell, choices=own + others)
+            rows.append(dict(r, cells=cells))
+        people.append(dict({k: v for k, v in c.items() if k != "quotes"}, rows=rows))
+    if "participants" in out:
+        out["participants"] = people
+    return out
 
 
 def cmd_trajectories_show(p: Project, args) -> tuple:
@@ -558,7 +593,8 @@ def cmd_trajectories_show(p: Project, args) -> tuple:
         raise cli.Refused(str(exc)) from None
     head = [i18n.t("cli.trajectories_show.trajectories_of", name=p.info['name']) + (i18n.t("cli.n.trajectory", n=len(answer["columns"]))
                                                     if answer["columns"] else i18n.t("cli.trajectories_show.none_named_yet"))]
-    return traj_answer(answer), head + traj_lines(answer)
+    out = traj_answer(answer)
+    return out, head + traj_lines(out)
 
 
 def cmd_trajectories_apply(p: Project, args) -> tuple:
@@ -567,7 +603,8 @@ def cmd_trajectories_apply(p: Project, args) -> tuple:
     participant or take
     them out, their order, note, label, tags and picture, a tag's colour, an LPET hidden or shown, and on a
     participant's LPETs board an LPET's state, key quote and bold at a timepoint, its domain, and the states
-    moved from the LPETs' notes (trajbuild2, 10 November 2026)."""
+    moved from the LPETs' notes (trajbuild2, 10 November 2026). A key quote is the LPET's own, another statement's
+    of that interview by its key, or a passage of any of the participant's interviews (trajchoose, 11 November 2026)."""
     if p.demo:
         raise cli.Refused(i18n.t("cli.said.the_demos_project_is_fixed"))
     if not themes_ai.one_line(args.note) and not args.dry_run:
@@ -587,7 +624,7 @@ def cmd_trajectories_apply(p: Project, args) -> tuple:
     head = (i18n.t("cli.said.dry_run_nothing_was_written") if args.dry_run else
             i18n.t("cli.trajectories_apply.saved_in_the_projects_trajectories_file") if answer["changes"] else i18n.t("cli.said.nothing_changed"))
     out = dict(traj_answer(answer), changes=answer["changes"], dry_run=bool(args.dry_run))
-    return out, [head] + answer["changes"] + [""] + traj_lines(answer)
+    return out, [head] + answer["changes"] + [""] + traj_lines(out)
 
 
 # ----------------------------------------------------------------- the code list (codes, 2 November 2026)
@@ -4466,6 +4503,155 @@ def gets_guard(p: Project) -> None:
             raise cli.Refused(str(exc)) from None
 
 
+# A statement brought onto a GETs, LPETs or LGETs board from the Participants panel, as a row dragged onto the canvas
+# brings its card (lpetadd, 11 November 2026, found by a data run on a participant's LPETs): `{"op": "bring_in",
+# "statement": "S12", "timepoint": "T2", "to": "G1"}`, the statement alone, never its PET's other statements, into a
+# label or, with no `to`, onto the board in none. It runs first, so the change's other operations can name its card
+BRING_IN = ("bring_in", "bring")
+
+
+def is_bring_in(op) -> bool:
+    return isinstance(op, dict) and themes_ai.one_line(op.get("op") or op.get("type")).lower() in BRING_IN
+
+
+def bring_in_unit() -> str:
+    """What a label is on the board in front: an LPET, an LGET, or a GET (a theme in a thematic analysis project)."""
+    if gets_mod.in_lpets():
+        return i18n.t("cli.bring_in.unit_lpet")
+    if gets_mod.in_lgets():
+        return i18n.t("cli.bring_in.unit_lget")
+    return i18n.t("cli.bring_in.unit_get")
+
+
+def bring_in_whose(case: str) -> str:
+    """Whose a statement is on the board in front, "T2's" on LPETs, "Rowan's" on GETs."""
+    return i18n.t("cli.bring_in.whose", who=gets_mod.who(case))
+
+
+def bring_in_entry(p: Project, op: dict, n: int, said: str) -> tuple[dict, str | None]:
+    """The study's entry whose statement an operation names by its id or its key, with the timepoint to read it
+    at: on LPETs the timepoint, `timepoint`, by its key, number or label, on GETs and LGETs the participant,
+    `participant`, and on LGETs a timepoint too for an id, since each of their timepoints numbers its own."""
+    if gets_mod.in_lpets():
+        labels = gets_mod.NAMES.get() or {}
+        given = op.get("timepoint")
+        if given in (None, ""):
+            raise cli.Refused(i18n.t("cli.bring_in.no_timepoint", n=n, statement=said,
+                                     listed=listed(list(labels) or ["T1"])), i18n.t("cli.said.nothing_was_written"))
+        key = gets_mod.timepoint_of(given, labels)
+        entry = next((b for b in p.books if b["case"] == key), None)
+        if entry is None:
+            raise cli.Refused(i18n.t("cli.bring_in.no_such_timepoint", n=n, given=themes_ai.one_line(given),
+                                     listed=listed(list(labels) or ["T1"])), i18n.t("cli.said.nothing_was_written"))
+        return entry, entry.get("timepoint")
+    given = themes_ai.one_line(op.get("participant"))
+    if not given:
+        raise cli.Refused(i18n.t("cli.bring_in.no_participant", n=n, statement=said),
+                          i18n.t("cli.said.nothing_was_written"))
+    entry = p.case(given)
+    if not gets_mod.in_lgets():
+        return entry, entry.get("timepoint")
+    labels = gets_mod.LGETS.get() or {}
+    key = gets_mod.timepoint_of(op.get("timepoint"), labels) if op.get("timepoint") not in (None, "") else None
+    if key is None and SID.match(said):
+        raise cli.Refused(i18n.t("cli.bring_in.no_timepoint", n=n, statement=said, listed=listed(list(labels) or ["T1"])),
+                          i18n.t("cli.said.nothing_was_written"))
+    return entry, (int(key[1:]) if key else None)
+
+
+def bring_ins(p: Project, ops: list, kept: dict, data: dict) -> list[dict]:
+    """Each `bring_in` of a change read against the board as the file holds it, `kept`, and the study's copies in
+    `data`: the card's key, its case, its words and where it goes. A statement named by its card's key as `gets show`
+    gives one, `T2/es/Midsummer:5:0`, or by its id or its key with its timepoint or its participant (see
+    `bring_in_entry`), as `statements` gives them. Refused whole, nothing written, for one of no copy here, another
+    participant's on LPETs, one on the board already, said where, or one brought in twice."""
+    out, problems = [], []
+    lp = gets_mod.in_lpets()
+    mine = case_name(Path(routes.LPETS_FOR.get())) if lp and routes.LPETS_FOR.get() is not None else ""
+    parents = themes.parents_of(kept.get("groups") or [])
+    titles = {g["id"]: g["label"] for g in kept.get("groups") or []}
+    aside = set(kept.get("discarded") or [])
+    held = data.get("cases") or {}
+    # the refs a make of the change gives the labels it makes, which a bring_in after it may name
+    refs = set()
+    for n, op in enumerate(ops, start=1):
+        if isinstance(op, dict) and themes_ai.one_line(op.get("op") or op.get("type")).lower() == "make":
+            if themes_ai.one_line(op.get("ref")):
+                refs.add(themes_ai.one_line(op.get("ref")))
+        if not is_bring_in(op):
+            continue
+        said = themes_ai.one_line(op.get("statement") or op.get("item"))
+        if not said:
+            problems.append(i18n.t("cli.bring_in.no_statement", n=n))
+            continue
+        other = themes_ai.one_line(op.get("participant"))
+        if lp and other and other.lower() not in (mine.lower(), gets_mod.who(mine).lower(), mine.lower().split(" - ")[0]):
+            problems.append(i18n.t("cli.bring_in.other_participant", n=n, other=other, who=gets_mod.who(mine)))
+            continue
+        try:
+            if "/es/" in said:
+                case, _, ident = said.partition("/es/")
+            else:
+                entry, at = bring_in_entry(p, op, n, said)
+                case, ident = entry["case"], said
+                if SID.match(said):
+                    # its id as `statements` gives it at that timepoint, read from the workbook as it stands
+                    with themes.scoped(at):
+                        read = themes.read_cards(Path(entry["workbook"]))
+                    ident = ids_of(read)[1].get(f"S{int(SID.match(said).group(1))}") or said
+        except cli.Refused as exc:
+            problems += [x for x in exc.lines if x != i18n.t("cli.said.nothing_was_written")]
+            continue
+        key = gets_mod.card_of(case, "es", ident)
+        line = gets_mod.statement_line(data, key)
+        if line is None:
+            if lp and case not in held:
+                problems.append(i18n.t("cli.bring_in.not_theirs", n=n, statement=said, who=gets_mod.who(mine)))
+            else:
+                problems.append(i18n.t("cli.bring_in.not_a_statement", n=n, statement=said, whose=bring_in_whose(case)))
+            continue
+        shown = f"'{line.get('text') or said}'"
+        if key in kept["cards"]:
+            if key in aside:
+                problems.append(i18n.t("cli.bring_in.on_board_aside", n=n, statement=shown))
+            elif parents.get(key):
+                problems.append(i18n.t("cli.bring_in.on_board_in", n=n, statement=shown, label=titles.get(parents[key], parents[key])))
+            else:
+                problems.append(i18n.t("cli.bring_in.on_board_loose", n=n, statement=shown, unit=bring_in_unit()))
+            continue
+        first = next((b["n"] for b in out if b["key"] == key), None)
+        if first is not None:
+            problems.append(i18n.t("cli.bring_in.twice", first=first, n=n, statement=shown))
+            continue
+        to = themes_ai.one_line(op.get("to") or op.get("into"))
+        if to.lower() in ("", "null", "none"):
+            to = None
+        elif to not in titles and to not in refs:
+            # a label by its title too, when one label has it, as trajectories apply names an LPET
+            named = [g for g, t in titles.items() if " ".join(str(t).split()).lower() == to.lower()]
+            if len(named) != 1:
+                problems.append(i18n.t("cli.bring_in.no_label", n=n, statement=shown, to=to, unit=bring_in_unit()))
+                continue
+            to = named[0]
+        out.append({"n": n, "key": key, "case": case, "text": str(line.get("text") or ""), "to": to})
+    if problems:
+        raise cli.Refused(*problems, i18n.t("cli.said.nothing_was_written"))
+    return out
+
+
+def bring_in_said(brought: list[dict], landed: dict) -> list[str]:
+    """What each statement brought in did, where it stands on the board the change left."""
+    parents = themes.parents_of(landed.get("groups") or [])
+    titles = {g["id"]: g["label"] for g in landed.get("groups") or []}
+    out = []
+    for b in brought:
+        gid = parents.get(b["key"])
+        b.update(label=gid, title=titles.get(gid) if gid else None)
+        out.append(i18n.t("cli.bring_in.into", whose=bring_in_whose(b["case"]), text=b["text"], label=titles.get(gid, gid))
+                   if gid else i18n.t("cli.bring_in.loose", whose=bring_in_whose(b["case"]), text=b["text"], unit=bring_in_unit()))
+    return out
+
+
 def cmd_gets_apply(p: Project, args) -> tuple:
     gets_guard(p)
     gets_data(p)
@@ -4480,6 +4666,10 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         board = pick_board(data, args.board, default="canvas")
         fresh_or_refused(spec, gets_mod.on_disk(gets_mod.load(p.root), board), i18n.t("cli.gets_apply.gets_show"))
         kept = gets_mod.normal(board, data)
+        # a statement brought in from the Participants panel (lpetadd) comes onto the board first, alone, in no
+        # label, where the other operations can name its card, as the page's drag puts it there
+        brought = bring_ins(p, ops, kept, data)
+        gets_mod.bring_in(kept, data, [b["key"] for b in brought])
         texts = {c["key"]: gets_mod.layout_text(c["text"], c.get(themes.DESCRIPTION)) for c in gets_mod.cards_shown(kept, data)}
         plain = dict(kept, cards={k: dict(c, text=texts.get(k) or c.get("text") or "") for k, c in kept["cards"].items()})
         start = {"items": [k for k in plain["cards"] if k not in plain["discarded"]],
@@ -4499,16 +4689,24 @@ def cmd_gets_apply(p: Project, args) -> tuple:
                if themes_ai.one_line(op.get("by")).lower() != "participant"]
         if bad:
             raise cli.Refused(*bad, i18n.t("cli.said.nothing_was_written"))
+        # a statement brought in goes into its label by a move where its operation stands, so a label a make made
+        # before it takes it by its ref, and one brought in to no label stays where it came in
+        into = {b["n"]: {"op": "move", "items": [b["key"]], "to": b["to"]} for b in brought if b["to"] is not None}
+        listed = [(n, into.get(n, op)) for n, op in listed if not is_bring_in(op) or n in into]
         if listed:
             after, applied, info = apply_ops(start, [op for _, op in listed], [n for n, _ in listed])
         else:
             after, applied, info = start, [], {}
+        # the moves that took them in are said as bringing them in, not as moves
+        if len(applied) == len(listed):
+            applied = [a for (n, _), a in zip(listed, applied) if n not in into]
         structural = themes_ai._structure(after) != themes_ai._structure(start)
         made_before = list(info.get("made") or [])
         after, info = as_gets(after, info)
         if structural:
             revised = {"groups": after["groups"], "picks": {}}
-            landed = (themes.land_kept(plain, revised, gets_mod.card_height, strict=True)
+            # one brought into a label lands under what it holds, as board apply lands a statement moved into a PET
+            landed = (themes.land_kept(plain, revised, gets_mod.card_height, strict=True, statements_in=bool(into))
                       or themes.land(plain, revised, gets_mod.card_height))
         else:
             landed = themes.normalise(json.loads(json.dumps(plain)))
@@ -4532,12 +4730,13 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         laid = json.dumps([landed.get("cards"), landed.get("groups"), landed.get("notes")], sort_keys=True) != laid_from
         if problems:
             raise cli.Refused(*problems, i18n.t("cli.said.nothing_was_written"))
-        if not structural and not any(o["moved"] for o in ordered) and not arranged and not laid:
+        if not structural and not brought and not any(o["moved"] for o in ordered) and not arranged and not laid:
             text = (i18n.t("cli.gets_apply.nothing_to_change_every_pet_and", name=kept['name'])
                     if arranges and not loose else
                     i18n.t("cli.said.nothing_to_change_already_reads_that", name=kept['name']))
             return {"board": kept["id"], "changed": False, "said": text}, [text]
-        parts = [themes_ai.change_line(applied, start)] if applied else []
+        parts = bring_in_said(brought, landed)
+        parts += [themes_ai.change_line(applied, start)] if applied else []
         parts += [order_said(o, landed, {}, i18n.t("cli.gets_apply.the_gets")) for o in ordered]
         if arranged:
             rows = list(dict.fromkeys(gets_mod.who(gets_mod.split_key(k)["case"]) for k in arranged))
@@ -4553,10 +4752,13 @@ def cmd_gets_apply(p: Project, args) -> tuple:
                 raise cli.Refused(str(exc), i18n.t("cli.said.nothing_was_written")) from None
         revision = themes_ai.revision_name(request)
         shown_orders = [{k: o[k] for k in ("under", "order", "moved", "how", "arranged")} for o in ordered]
+        # each statement brought in: its card's key, whose it is, its words and the label it went into, or none
+        brought_out = [{"key": b["key"], "case": b["case"], "who": gets_mod.who(b["case"]), "text": b["text"],
+                        "label": b.get("label"), "title": b.get("title")} for b in brought]
         if args.dry_run:
             text = i18n.t("cli.gets_apply.dry_run_nothing_was_written_on", name=kept['name'], v_=said[0].lower() + said[1:])
             return {"dry_run": True, "board": kept["id"], "applied": applied, "ordered": shown_orders, "arranged": arranged,
-                    "said": text, "revision": revision}, [text]
+                    "brought": brought_out, "said": text, "revision": revision}, [text]
         made = themes.add_revision(board, name=revision, at=when)
         made["made"] = mark(args, when)
         state = themes.state_of(landed)
@@ -4567,7 +4769,7 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         gets_mod.write(p.root, gets_mod._file(data, when))
     text = f"{said} {kept_line(board.get('name'), revision)}"
     return {"board": board.get("id"), "name": board.get("name"), "applied": applied, "ordered": shown_orders,
-            "arranged": arranged, "made": info.get("made"), "gone": info.get("gone"),
+            "arranged": arranged, "brought": brought_out, "made": info.get("made"), "gone": info.get("gone"),
             "revision": themes.revision_summary(made), "said": text}, [text]
 
 
@@ -7369,13 +7571,15 @@ def arguments(sub, common, writes) -> None:
     tj = sub.add_parser("trajectories", parents=[common],
                         help="in a project of two or more timepoints, the Trajectories board: the project's own "
                              "trajectories, each participant placed in one with a note on why").add_subparsers(dest="act", required=True)
-    tj.add_parser("show", parents=[common], help="the board, each trajectory with its participants")
+    tj.add_parser("show", parents=[common], help="the board, each trajectory with its participants, and each cell's "
+                                                 "quotes with where each comes from")
     x = tj.add_parser("apply", parents=[common, writes], help="change the board with its operations, all or nothing")
     x.add_argument("--ops", required=True, help='a JSON file, a list of operations or {"operations": [...]}: '
                                                 '{"op": "add", "title": "Positive"}, rename, move, remove, describe, '
                                                 'colour, icon, {"op": "place", "participant": "Wren", "column": '
                                                 '"Positive"}, order, note, title, tags, tag_colour, picture, hide, '
-                                                'show, and on an LPET state, quote, bold, domain, states_from_notes')
+                                                'show, and on an LPET state, quote (a quote\'s key, or a passage: '
+                                                'interview, turn and start and end), bold, domain, states_from_notes')
     cd = sub.add_parser("codes", parents=[common],
                         help="in a thematic analysis project, the code list: codes many extracts share, each extract "
                              "one quote").add_subparsers(dest="act", required=True)

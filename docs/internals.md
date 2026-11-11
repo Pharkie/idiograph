@@ -2748,6 +2748,27 @@ quotes (`CELL_QUOTE`) and lines, then the board is made by `gets.version_op`'s `
 after on the board under `locks.root`, since `themes_ai.clean_note` keeps one paragraph. MCP's
 `board_import` and `gets_import` hand `file` over as `--from`. `table_import` is in `build_mac`'s modules.
 
+**A statement brought onto a board** (lpetadd, 11 November 2026, from a data run on a participant's LPETs, where
+`gets apply` could only move cards already there). `cli.cmd_gets_apply` takes `{"op": "bring_in", ...}`
+(`cli.BRING_IN`, `bring` too), what the Participants panel's drag does (`gtCardFrom`, `gtPullDrop`).
+`cli.bring_ins` reads each against the board as `gets.normal` holds it and the study's copies: the card's key
+given whole, or made from `statement`, an id read through `themes.read_cards` at the timepoint as `statements`
+numbers them or a key, and the entry `cli.bring_in_entry` finds, the timepoint on LPETs through
+`gets.timepoint_of` over `gets.NAMES`, the participant on GETs and LGETs through `Project.case`, and on LGETs a
+timepoint over `gets.LGETS` for an id. The line is `gets.statement_line`, the copy's line the page's row reads,
+and `to` is a label's id, the ref of a make before it, or a title one label has. Every refusal is gathered and
+the change refused whole. `gets.bring_in` then lays the cards in before anything else runs, through `lay_in` as
+`take_in` lays a new case's, each with its words, which `gets.normal` keeps on a statement's card as it keeps
+those the drag's save sends to `/api/gets-save` (`thBody`), so the two clients leave the same board but for
+where the card stands (area 235 compares them). A `bring_in` with `to` becomes a `move` at its place among the
+applier's operations, so a ref resolves, and is left out of `applied` and `change_line`. A change that brings
+one into a label lands with `land_kept(..., strict=True, statements_in=True)`, under what the label holds, as
+`cmd_board_apply` lands a statement moved into a PET, and every other `gets apply` lands as before. One
+brought in to no label is a change of its own, never "Nothing to change". `bring_in_said` says each, the unit
+by `bring_in_unit`, LPET, LGET or GET (a theme in a thematic analysis project), where `codes.follow_moved` takes
+it as a card brought in, its code's other rows following. The parity check needs nothing new, `/api/gets-save`
+being `gets apply` already. Area 235.
+
 **Column matching** (19 October, Adam: "let them check that it's correctly detected the columns").
 A Word table, a CSV and an Excel file are read the same way: a guess of a column for each of
 `convert.ROLES`, `name`, `ts`, `text`, `en`, `es` and since 9 November `kq`, then `convert.choose(guess, given, width)`.
@@ -3035,6 +3056,39 @@ gives each row `domains`, `[{"word", "colour"}]`, a word no op has coloured yet 
 `tags` by `colour_for` as the next op would, so opening writes nothing, and the `domain` op gives each word
 its colour with `colour_for`. The page draws each as a `.tf-pill` inside `.tf-pills`.
 
+A key quote from anywhere in the interview (trajchoose, 11 November 2026, Adam's ruling). A cell's key quote
+comes from one of three places, `gets.SOURCES`: `lpet`, the LPET's own at that timepoint (`row_choices`, each
+now with its `source`), `interview`, any other statement's own quote of that timepoint's interview, its
+statement in another LPET or in none (`interview_quotes`, read from the LPETs file's copy of that timepoint,
+whose `lines` hold every statement, placed or not), and `transcript`, a passage of any of the participant's
+interviews. A statement's quote is ticked by its key as before, so `table` and `quote_at` find it and the
+LPETs screen's table shows the same tick, and `row_op` now takes any key `quote_at` finds in that timepoint's copy.
+A passage is kept on the row as `passage`, `{"at": "T3", "turn": "<sheet>:<row>", "start", "end", "text"}`,
+with `quote` empty (`passage_kept`, which `rows_of` calls, so `normal` and a save keep it, and themes.js
+`gtRowsKept` sends it back and `gtRowSet` drops it when a quote is ticked in the Inspector). `passage_from`
+reads the op's `passage` (`interview` by key, number or label, `turn` or `sheet` and `row`, `start` and `end`,
+the whole turn without them) against the transcript and widens it to whole words, refusing an interview with
+no transcript, a turn not there, a span outside its words, and a quote and a passage at once.
+`passage_found` reads a kept passage back at its place, or where its words stand in that turn after an edit,
+and `lpet_rows` gives it as the cell's quote with `source` `transcript`, an empty key, `at`, its time cited
+with that timepoint's label (`cite_of`) and `passage`. A passage whose turn or words are gone gives nothing,
+so the row falls back to the first quote as a lost tick does. Bold on a passage keeps the passage, and bold
+on a quote standing in still ticks it. The transcript is read by `themes.transcript_turns`, every turn with
+words of the workbook's transcript sheets with its timepoint by `placed_sheets`, read-only and held in
+`TURNS_HELD` while the workbook's time and size stay the same, so drawing the board after each change opens it
+once. `traj_turns` in idiograph_routes.py hands `lpet_rows` and `row_op` a reader by timepoint key, and
+`traj_people` adds each participant's `quotes`, `interview_quotes` by timepoint, which the page and
+`traj_answer` take each cell's other quotes from (the command line's choices carry `lpet`, the LPET each sits
+in). `/api/trajectories-turns` answers the participant's own turns at a timepoint, the interviewer's (Settings'
+interviewer) and another speaker's left out, and `interviews`, the timepoints they have a transcript at. An
+agent reads the same with `turn show`, so the parity list maps it there. On the page `trajChooserHtml` draws
+the three parts (`.tf-choose-part`, `.tf-choose-h`), a cell with No quote opens it too, and Choose a
+passage... opens `trajPassHtml` in a grid row of its own under the LPET's row (columns 2 to the end, the
+participant's cell spanning one more row): the interviews (`data-pass-at`), a find box redrawing the list
+alone (`trajPassFind`, `<mark class="tf-found">`), and the turns, the passage taken marked `tf-taken`. A
+`selectionchange` listener keeps the words selected in one turn (`trajPassPicked`), Take the words selected
+sending them as `start` and `end` and Take the whole turn the turn alone (`trajPassTake`).
+
 Pictures: `picture_bytes` keeps a PNG cut square at its middle and scaled to 256 in the standard library
 (`png_read`, `square`, `png_write`), a JPEG of 400 KB or less or an SVG of 200 KB or less with no script as
 it came, refusing anything else. `change` writes them to `<project>/trajectories/pictures/<Pseudonym>.png`
@@ -3051,7 +3105,8 @@ runs nothing. The set is 24 line portraits in `apps/idiograph/static/faces/`, dr
 
 The screen (`trajectories.js`, the `.tf-*` block in themes.css): `trajBandHtml` draws a band, its head
 in its colour's token, `trajPersonHtml` a participant, `trajCellHtml` a cell, the stand-in
-quote `.tf-q-auto`, `trajChooserHtml` the quotes a cell can take as radios, `trajEditHtml` the editor in
+quote `.tf-q-auto`, `trajChooserHtml` the quotes a cell can take as radios in its three parts, `trajPassHtml`
+the passage picker, `trajEditHtml` the editor in
 place, `trajPickerHtml` the colour and icon. A picture, a tag's pill and a tag's colour dot take their colour from the cases' `case-N` classes (`--case`, as `--pc`), and a picture stands on `--tf-face-ground`, white in either theme. Every change goes through `trajOps`. Keys on a focused cell
 (`trajMove`, `trajPlace`) and Cmd or Ctrl+B in a key quote (`trajChosenSpan`, `trajBold`). A drag of a
 participant's cell drops at the place under the pointer (`trajDropAt`). Settings `traj_quotes` (`off`,

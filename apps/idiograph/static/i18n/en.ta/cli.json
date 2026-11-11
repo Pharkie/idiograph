@@ -147,5 +147,10 @@
   "cli.project_boards_in.most_in_copy_wording": "    Most of {from_}'s codes are not in this project, so most come in the copy's wording. To see it beside yours as it was, open the copy as a project of its own: project open-copy with --from-name.",
   "cli.send_listed.the_statements_alone": "the codes alone",
   "cli.send_lines.the_statements": "{label}: the codes",
-  "cli.length.nudges_a_statement_past": "{name} nudges a code past {words}."
+  "cli.length.nudges_a_statement_past": "{name} nudges a code past {words}.",
+  "cli.bring_in.unit_get": "theme",
+  "cli.bring_in.into": "brought in {whose} code '{text}' into '{label}'",
+  "cli.bring_in.loose": "brought in {whose} code '{text}' onto the board in no {unit}",
+  "cli.bring_in.no_statement": "Operation {n} brings in no code. Give \"statement\": its card's key as gets show gives one, or its id or its key as statements gives them, S12, with its \"participant\".",
+  "cli.bring_in.not_a_statement": "Operation {n} names {statement}, which is not one of {whose} codes."
 }

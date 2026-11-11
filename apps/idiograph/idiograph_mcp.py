@@ -279,7 +279,13 @@ TOOLS = [
          "every PET and sub-theme card in no GET and not set aside goes in a row for its participant, below the "
          "GETs, which stay where they are, each PET with its sub-themes beside it. It runs after the other "
          'operations. {"op": "arrange", "label": "G2", "way": "column"}, align and spread work as on a PETs board, '
-         "on cards by their keys. The board as it stood is kept first in its History.",
+         'on cards by their keys. {"op": "bring_in", "statement": "S12", "timepoint": "T2", "to": "G1"} does what '
+         "dragging a statement's row from the Participants panel does: that one statement's card comes onto the "
+         "board, never its PET's other statements, into the GET or LPET to names by its id or title, or with no to "
+         "onto the canvas in none. Name the statement by its card's key, T2/es/Midsummer:5:0, or by its id or key as "
+         "statements gives them with its timepoint on LPETs or its participant on GETs. It runs first, so later "
+         "operations can name its card, and one on the board already is refused, said where. "
+         "The board as it stood is kept first in its History.",
          {"board": dict(mcp.TEXT, description="The GETs board by its id or its name."), "operations": OPERATIONS,
           "version": BOARD_VERSION},
          ["board", "operations"], writes="changes"),
@@ -519,8 +525,10 @@ TOOLS = [
          "those not placed, each participant with their colour, label, tags, picture, his note on why, their LPETs' "
          "titles, and rows: each LPET with its domain and its domains apart, each with its colour, whether it is "
          "shown, and a cell for each timepoint holding its state, its key quote (ticked, chosen, or the first standing "
-         "in) without the marks the workbook keeps round it, his bold in it as [start, end] spans of those words, and "
-         "the quotes it could take. A project of one timepoint has none."),
+         "in) without the marks the workbook keeps round it, with its source, his bold in it as [start, end] spans of "
+         "those words, and choices, every quote it could take with its source: lpet, the LPET's own, then interview, "
+         "the participant's other quotes of that interview, each with the LPET it sits in or none. A key quote taken "
+         "from the transcript has source transcript and its passage. A project of one timepoint has none."),
     mcp.tool("trajectories_apply", "Change the Trajectories board", ("trajectories", "apply"),
          "Change the Trajectories board with its own operations, all or nothing, as the board itself does: "
          '{"op": "add", "title": "Positive"} (with "at", its place from 0), {"op": "rename", "column": "Positive", '
@@ -539,7 +547,12 @@ TOOLS = [
          '"..."} (his note for the whole screen, shown under its title while Notes is on, "" clearing it). On the participant\'s LPETs '
          'board, the LPET table\'s row at a timepoint: {"op": "state", "participant": "Wren", "lpet": "G1", '
          '"timepoint": "T2", "state": "..."}, {"op": "quote", ..., "quote": "<quote key>"} ticks its key quote, '
-         '"" takes the tick off, {"op": "bold", ..., "spans": [[0, 12]]} his bold in the key quote, of its words '
+         "one of the cell's choices, the LPET's own or another statement's of that interview, nothing moved, "
+         '{"op": "quote", ..., "passage": {"interview": "T3", "turn": "Harvest:4", "start": 0, "end": 40}} takes a '
+         "passage of any of the participant's interviews as its key quote, turn as turn_show gives sheet and row, "
+         "start and end places in the turn's words (the whole turn without them), widened to whole words, refused "
+         'when it is not in the transcript, "" takes the tick off, {"op": "bold", ..., "spans": [[0, 12]]} his bold '
+         'in the key quote, of its words '
          'as trajectories_show gives them, never the transcript, {"op": "domain", "participant": "Wren", "lpet": '
          '"G1", "domain": "Practical, Family"} (commas between domains, each its own pill and colour), and '
          '{"op": "states_from_notes"} (with or without a participant) moves each LPET\'s note\'s paragraphs headed '
