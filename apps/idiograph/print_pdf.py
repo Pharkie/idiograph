@@ -136,7 +136,8 @@ GETS_WHAT_KEYS = {"table": "page_print.gets.table", "trail": "page_print.gets.tr
 def gets_what(what: str) -> str:
     """What a GETs PDF holds as its name says it, "GET table", "Audit trail" or "GETs", a thematic analysis
     project's "Theme table" and "Themes"."""
-    return i18n.t(GETS_WHAT_KEYS[what])
+    import gets_print
+    return gets_print.gword(GETS_WHAT_KEYS[what])
 
 
 def write_gets(root: Path, books: list[dict], project: dict, board: dict, what: str = "table",

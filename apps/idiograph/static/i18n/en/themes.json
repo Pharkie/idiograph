@@ -288,6 +288,7 @@
   "themes.guidance.none": "No guidance lines to show.",
   "themes.inspector.none": "Select a statement or a PET.",
   "themes.inspector.none_gets": "Select a card or a GET.",
+  "themes.inspector.none_lpets": "Select a card or an LPET.",
   "themes.pair.close_pair": "Close pair",
   "themes.inspector.edit_tip": "Double-click to edit",
   "themes.inspector.picked": {
@@ -587,6 +588,7 @@
   "themes.gets.no_statements": "No statements of its own.",
   "themes.gets.picks": "Picks",
   "themes.gets.nothing_under": "Nothing under this GET",
+  "themes.gets.nothing_under_lpet": "Nothing under this LPET",
   "themes.names.gets": "AI suggest GET titles",
   "themes.gets.no_participant": "No participant in the study.",
   "themes.gets.also_menu": "Place also under…",
@@ -631,6 +633,7 @@
   "themes.gets.beside": "Open beside",
   "themes.gets.took": "Brought in the changes to {names}'s PETs.",
   "themes.gets.nothing_no_pets": "No PETs, so nothing under this GET",
+  "themes.gets.nothing_no_pets_lpet": "No PETs, so nothing under this LPET",
   "themes.gets.not_from": "Not from the transcript",
   "themes.gets.row_note_placeholder": "A note for this row",
   "themes.gets.row_note_label": "Note for {who}",

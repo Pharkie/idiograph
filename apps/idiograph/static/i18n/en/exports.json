@@ -10,6 +10,8 @@
   "exports.not_interviewed": "Not interviewed",
   "exports.nothing_under_get": "Nothing under this GET",
   "exports.no_pets_nothing_under_get": "No PETs, so nothing under this GET",
+  "exports.nothing_under_lpet": "Nothing under this LPET",
+  "exports.no_pets_nothing_under_lpet": "No PETs, so nothing under this LPET",
   "exports.not_from_transcript": "Not from the transcript",
   "exports.counted": "{title} ({n})",
   "exports.where_gone": "{where}, no longer in the workbook",

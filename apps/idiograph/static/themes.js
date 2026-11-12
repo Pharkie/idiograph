@@ -1802,6 +1802,7 @@ const TH = {
   stale: null,        // a save refused since the board changed under the page, { board, v }, until Reload or Overwrite
   staleKept: null,    // after Reload, the revision his canvas went into, { board, revision }, for Put my canvas back
   stampAsk: 0,       // the stamp in flight, so a slow answer never lands on a newer screen
+  lpetPassages: {},   // on LPETs the key quotes taken from the transcript on Trajectories, by LPET id and then timepoint
   lpetDomains: {},    // on LPETs each LPET's domains by its id, each { word, colour }, as Trajectories draws them
   lpetsWho: '',       // whose LPETs are on the canvas, by their label, which the domain's operation names
   domainEdit: null,   // an LPET's domain being typed in its Inspector, { id, value }
@@ -2089,6 +2090,7 @@ function thLoad(data, opts = {}) {
   if (TH.mode === 'gets') {
     // each LPET's domains as their pills, and whose LPETs these are, which the domain's operation names (lpetmarks)
     TH.lpetDomains = Object.assign({}, data.lpet_domains || {});
+    TH.lpetPassages = Object.assign({}, data.lpet_passages || {});
     TH.lpetsWho = data.participant || '';
     gtLoad(data);
     // a thematic analysis project's code list, which the status bar and the Codes panel count from (themesbuild)
@@ -6661,7 +6663,7 @@ function thPanelDraw() {
     thPanelHead(v, null);
     $('th-panel-body').className = 'th-panel-body th-inspect-empty';
     $('th-panel-body').innerHTML = `<p class="th-qnone th-inspect-none">${esc(TH_INSPECT_NONE)}</p>`;
-    if (TH.mode === 'gets') $('th-panel-body').firstElementChild.textContent = t('themes.inspector.none_gets');
+    if (TH.mode === 'gets') $('th-panel-body').firstElementChild.textContent = t(TH.lpets ? 'themes.inspector.none_lpets' : 'themes.inspector.none_gets');
     thPlayerDraw();
     return;
   }
@@ -8185,12 +8187,12 @@ function gtTableFace(v) {
       const bare = !row.counted && row.none;
       const marks = gtCaseMarks(row).filter((m) => !(bare && m === gtNoPets()))
         .map((m) => `<span class="gt-mark">${esc(m)}</span>`).join('');
-      const kq = row.counted && row.quote
+      const kq = (row.counted || row.passage) && row.quote
         ? `<p class="gt-tkey"><span class="gt-tlabel">${esc(t('themes.quote'))}</span><span class="gt-tq">${gtBoldHtml(row.quote.text, row.bold)}</span>`
-          + `<span class="th-time">${esc(row.quote.time)}</span><span class="th-sheet">${esc(row.quote.sheet)}</span></p>` : '';
+          + `<span class="th-time">${esc(row.quote.time)}</span>${row.quote.sheet ? `<span class="th-sheet">${esc(row.quote.sheet)}</span>` : ''}</p>` : '';
       html += `<div class="tb-case"><p class="tb-who" data-tcase="${escAttr(row.kase)}" data-tget="${escAttr(g.id)}">${gtBadgeHtml(row.kase)}${esc(row.who)}${marks}</p><div class="tb-said-of">`
         + (row.items.length ? `<ul class="tb-items">${row.items.map((it) => item(it, g.id)).join('')}</ul>`
-          : `<p class="tb-nothing">${esc(bare ? GT_NOTHING_NO_PETS : GT_NOTHING)}</p>`)
+          : `<p class="tb-nothing">${esc(gtNothing(bare))}</p>`)
         + kq + gtRowNoteHtml(g.id, row) + '</div></div>';
     }
     html += '</div></section>';
@@ -12172,7 +12174,7 @@ function gtPanelDraw(v, item, owner) {
         + thLeftOutHtml(v, item.id, owner)
         + thLeaveHtml(v, item.id, owner)
         + `<dl class="gt-facts"><dt>${esc(t('themes.unit.pet'))}</dt><dd>${esc(pet ? pet.title : line.discarded ? t('themes.gets.binned') : t('themes.status.name_unplaced'))}</dd>`
-        + `<dt>${esc(t('themes.unit.get'))}</dt><dd>${esc(get ? thLabelShown(get.label) : t('themes.status.name_unplaced'))}</dd></dl>`
+        + `<dt>${esc(thGetWord())}</dt><dd>${esc(get ? thLabelShown(get.label) : t('themes.status.name_unplaced'))}</dd></dl>`
         + (ticks || (`<h3 class="section-label">${esc(t('themes.quote'))}</h3>`
           + gtList(gtLineQuotes(line, gtSplit(item.id).ident).map((q) => `<li class="gt-quote">${esc(q.text)}</li>`), t('themes.inspector.no_quote'))))
         + `<h3 class="section-label">${esc(t('themes.gets.notes'))}</h3>`
@@ -12213,18 +12215,18 @@ function gtPanelDraw(v, item, owner) {
     const inside = gtInside();
     const there = new Set(thCardsUnder(v, g.id).map((k) => v.cards[k]).filter((c) => c && c.kind !== 'pn').map((c) => c.case));
     const rows = ((TH.gets && TH.gets.cases) || []).filter((c) => inside.has(c.case))
-      .map((c) => `<li class="${there.has(c.case) ? '' : 'gt-none'}"><span>${esc(c.who)}</span>${there.has(c.case) ? '' : `<span class="gt-said">${esc(t('themes.gets.nothing_under'))}</span>`}</li>`);
+      .map((c) => `<li class="${there.has(c.case) ? '' : 'gt-none'}"><span>${esc(c.who)}</span>${there.has(c.case) ? '' : `<span class="gt-said">${esc(gtNothing(false))}</span>`}</li>`);
     // a GET's audit trail opens from here, and from under its title in the board's Table view
     const trail = owner === undefined
       ? `<button type="button" class="ghost small gt-trail-go" tabindex="-1" data-gtrail="${escAttr(g.id)}">${esc(t('themes.gets.trail'))}</button>` : '';
-    html = thDescHtml(v, g) + `<p class="kicker">${esc(owner !== undefined ? t('themes.kind.sub') : t('themes.unit.get'))}</p>`
+    html = thDescHtml(v, g) + `<p class="kicker">${esc(owner !== undefined ? t('themes.kind.sub') : thGetWord())}</p>`
       + `<p class="th-panel-meta"><span>${esc(gtCountText(n, total))}</span>${under ? `<span class="gt-mark">${esc(t('themes.gets.under_min', { min: minimum }))}</span>` : ''}</p>`
       + thArrangeHtml(g.id, trail) + thLeaveHtml(v, g.id, owner)
       // an LPET's domain above its note, the pills Trajectories and its label draw (lpetmarks)
       + (TH.lpets && owner === undefined ? gtDomainHtml(v, g) : '')
       + thNoteHtml(v, g)
       // three titles from the AI for a GET or a sub-theme, with the sparkles, and Undo puts the old back
-      + thNamesHtml(item, { unit: owner !== undefined ? t('themes.unit.sub') : t('themes.unit.get') })
+      + thNamesHtml(item, { unit: owner !== undefined ? t('themes.unit.sub') : thGetWord() })
       + `<h3 class="section-label">${esc(t('themes.cases.head'))}</h3>` + gtList(rows, t('themes.gets.no_participant'));
   }
   const box = $('th-gnote');
@@ -13463,6 +13465,8 @@ const GT_NOTHING = t('themes.gets.nothing_under');
    beside the name and the line under it (17 October, after the screenshot check), as gets.py's
    NOTHING_NO_PETS says it in the trail and on paper */
 const GT_NOTHING_NO_PETS = t('themes.gets.nothing_no_pets');
+// and a participant's LPETs say LPET where the others say GET (lpetgaps, 12 November 2026)
+const gtNothing = (bare) => (TH.lpets ? t(bare ? 'themes.gets.nothing_no_pets_lpet' : 'themes.gets.nothing_under_lpet') : bare ? GT_NOTHING_NO_PETS : GT_NOTHING);
 const GT_NOT_FROM = t('themes.gets.not_from');
 
 /* a quote's key, `<sheet>:<row>:<place>`, read as the server's split_card_key reads it */
@@ -13620,9 +13624,12 @@ function gtTable(v) {
       const items = gtCaseItems(v, gid, c.case, under);
       const kq = gtKeyQuote(v, gid, c.case, items);
       const stored = (gtRows(v)[gid] || {})[c.case] || {};
+      // a key quote taken from the transcript on Trajectories (lpetgaps), as the server's table gives it
+      const taken = TH.lpets && !stored.quote ? ((TH.lpetPassages || {})[gid] || {})[c.case] : null;
       // his bold in the quote he ticked, made on Trajectories (lpetmarks), as the server's table gives it
-      return { kase: c.case, who: c.who, items, counted: items.some((it) => it.kind !== 'pn'), quote: kq.quote,
-        chosen: kq.chosen, note: stored.note || '', bold: kq.chosen && Array.isArray(stored.bold) ? stored.bold : [],
+      return { kase: c.case, who: c.who, items, counted: items.some((it) => it.kind !== 'pn'), quote: taken ? taken.quote : kq.quote,
+        chosen: kq.chosen || !!taken, passage: !!taken, note: stored.note || '',
+        bold: taken ? taken.bold : kq.chosen && Array.isArray(stored.bold) ? stored.bold : [],
         none: !!c.none, open: !c.none && !c.complete, changed: c.status === 'changed' };
     });
     return { id: gid, label: g.label, note: thNoteOf(g), count: gtCount(v, gid), rows };
@@ -13750,6 +13757,7 @@ function gtDomainsTake(data) {
   const listed = TH.boards.find((b) => b.id === now.id);
   if (listed) Object.assign(listed, { updated: now.updated }, now.v ? { v: now.v } : {});
   TH.lpetDomains = Object.assign({}, data.lpet_domains || {});
+  TH.lpetPassages = Object.assign({}, data.lpet_passages || {});
   // and each label's domain as the file holds it, which the page's saves send back as it holds them
   const held = new Map((data.groups || []).map((g) => [g.id, g.domain]));
   for (const g of TH.v.groups) {

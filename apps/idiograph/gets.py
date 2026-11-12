@@ -2433,6 +2433,43 @@ def quote_bold(said, bold) -> list[tuple[str, bool]]:
     return [(t, on) for t, on in runs]
 
 
+def book_turns(book):
+    """A participant's transcript turns at a timepoint by its key, T2, as `passage_found` reads them: the workbook
+    read once while it is unchanged. A workbook that cannot be read has none, so a passage kept from it falls back."""
+    def turns(at: str) -> list[dict]:
+        try:
+            return [t for t in themes.transcript_turns(Path(book)) if f"T{t['at']}" == at]
+        except (WorkbookError, OSError):
+            return []
+    return turns
+
+
+def passage_cells(data: dict, board: dict | None, turns, bare: bool = True) -> dict:
+    """The key quotes the LPET table shows that were taken from the transcript on Trajectories (lpetgaps,
+    12 November 2026), by LPET and then timepoint: `{"quote": {"key", "text", "time", "sheet"}, "bold"}`, the quote
+    as `lpet_rows` gives it with the time Trajectories gives it, read where Trajectories keeps it, the row's
+    `passage`. A passage whose words are gone is left out, and the row shows its first quote as before. With
+    `bare` the words come without the marks the workbook keeps round them and his bold is moved to match, as the
+    page draws them, else both as the row keeps them, for `quote_bold` to move. Reads alone."""
+    if board is None:
+        return {}
+    out: dict = {}
+    for gid, cases in normal(board, data)["rows"].items():
+        for case, stored in cases.items():
+            found = passage_found(stored.get("passage"), turns) if stored.get("passage") else None
+            if not found:
+                continue
+            cite = cite_of(data, found["at"])
+            text, bold = found["text"], stored.get("bold") or []
+            if bare:
+                text, cut = quote_cut(text)
+                bold = [[max(0, a - cut), min(len(text), b - cut)] for a, b in bold]
+            out.setdefault(gid, {})[case] = {
+                "quote": {"key": "", "text": text, "sheet": "", "time": f"{cite}, {found['time']}" if found["time"] else cite},
+                "bold": [s for s in bold if s[0] < s[1]]}
+    return out
+
+
 def lpet_domains(data: dict, board: dict | None) -> list[str]:
     """Each LPET's domain on `board` as it keeps it, "" for none, in the order the LPET table reads them, the order
     `lpet_rows` gives its rows (lpetmarks): read without the table's cells, so every participant's can be read

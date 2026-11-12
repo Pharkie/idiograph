@@ -261,7 +261,7 @@ def test_gets_ai(scratch):
           and js.count("'/api/gets-ai'") == 2 and "needsRestart(err)" in fn(js, "thNamesAsk"))
     panel = fn(js, "gtPanelDraw")
     check("83: AI suggest GET titles in a GET's Inspector, the PETs control's words changed, its one step of undo the rename's",
-          "thNamesHtml(item, { unit: owner !== undefined ? t('themes.unit.sub') : t('themes.unit.get') })" in panel
+          "thNamesHtml(item, { unit: owner !== undefined ? t('themes.unit.sub') : thGetWord() })" in panel
           and "thDone(before, t('themes.step.renamed')" in fn(js, "thNameApply") and "thLeftOutHtml(v, item.id, owner)" in panel)
     node = shutil.which("node")
     if not node:

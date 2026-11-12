@@ -730,6 +730,33 @@ def _choose_from_anywhere(call, refused, run, wren: Path, ash: Path, wren_lp: Pa
     check("369: a save of the LPETs board keeps the passage and its bold", c2["quote"]["source"] == "transcript"
           and c2["bold"] == [[0, 6]], str(c2)[:300])
 
+    # the LPET table shows the passage Trajectories keeps as the key quote (lpetgaps, 12 November 2026): on the LPETs
+    # screen, in its print view and the PDF's data, with his bold, and its Inspector and print say LPET where they mean it
+    import gets_print
+    import idiograph_routes as routes
+    lp = call("/api/gets", {"workbook": str(wren), "lpets": True})
+    cell = (lp.get("lpet_passages") or {}).get("G2", {}).get("T2") or {}
+    check("369: the LPETs screen is given the key quote taken from the transcript for the LPET table, its words, its time "
+          "cited as Trajectories cites it and his bold, and none for a cell with a quote ticked",
+          cell.get("quote", {}).get("text") == "looked inside it" and cell["quote"]["time"] == f"T1, {shed['time']}"
+          and cell["bold"] == [[0, 6]] and "T2" not in (lp.get("lpet_passages") or {}).get("G1", {}),
+          str(lp.get("lpet_passages")))
+    root = routes.gets_root({"workbook": str(wren)})
+    code, page = routes.gets_print_page({"workbook": str(wren), "lpets": "1", "board": lp["version"]["id"],
+                                         "what": "table", "auto": "0"})
+    with routes.lpets_scope(wren):
+        data = gets_print.typst_data(root, routes.gets_books(root), routes.read_project(root), lp["version"]["id"], what="table")
+    rows = {r["who"]: r for r in next(g for g in data["table"] if g["id"] == "G2")["rows"]}
+    check("369: the LPET table's print view and the PDF's data show the key quote taken from the transcript with his bold "
+          "in it, in place of the LPET's first quote",
+          code == 200 and "<i>‘<b>looked</b> inside it’</i>" in page
+          and rows["T2"]["quote"]["words"] == [["looked", True], [" inside it", False]], page[page.find('class="kqcell"'):][:400])
+    check("369: and the LPET table's print says LPET where it meant the LPET, not GET, in its column head, its trail's "
+          "heads and the PDF's data",
+          "Under this LPET" in page and "Under this GET" not in page and "LPET table" in page
+          and data["table"][0]["heads"][1] == "Under this LPET" and data["names"]["table"] == "LPET table",
+          str(data["table"][0]["heads"]) + str(data["names"]))
+
     # the whole turn, the cell's own interview
     whole = [{"op": "quote", "participant": "Wren", "lpet": "G1", "timepoint": "T1",
               "passage": {"interview": "T1", "turn": f"Before:{w1[0]}"}}]

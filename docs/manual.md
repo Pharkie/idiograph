@@ -5079,6 +5079,9 @@ timepoints:
   on the LPET of the board on the canvas, so Trajectories shows it when that is the board the LGETs take.
   The canvas is saved first, and the change is not part of the canvas's undo. The LPET table's key quote
   shows his bold from Trajectories on the same words, in the table and in its print view and PDF.
+  A key quote taken from the transcript on Trajectories is the quote the table shows, with its bold, in the
+  table and in its print view and PDF. The LPETs screen's Inspector and its print view and PDF say LPET where
+  they mean one, never GET.
 - the LGETs tab, after LPETs, opens the project's LGETs (21 October), longitudinal group themes made
   from every participant's LPETs as GETs are made from their PETs, the same canvas and the same ways.
   Each card is an LPET, "LPET · Wren" over its title, in the participant's colour, and a label over cards

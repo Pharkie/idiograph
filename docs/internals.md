@@ -3161,7 +3161,17 @@ The LPET table's row carries `bold` while its quote is the one he ticked (`gtTab
 `gtBoldHtml` on the quote as the row keeps it, and the print view's `quote_html` and the Typst data's `quote_data`
 (`words`, runs with whether each is bold, `gets-table.typ`'s `quote-of`) take `gets.quote_bold`, the quote without
 its marks with the spans moved past them, as `lpet_rows` does. A passage taken from the transcript is not the
-LPET table's quote (the first quote stands in there), so its bold shows on Trajectories alone.
+LPET table's quote until lpetgaps (12 November 2026): `gets.passage_cells` reads the row's `passage` through
+`passage_found` and `book_turns` (the turns of the participant's workbook) and gives the quote Trajectories shows,
+its time cited the same, with his bold. `gets_reply` on a participant's LPETs adds it as `lpet_passages` (by LPET id
+and timepoint, words without their marks, bold moved to match), which themes.js keeps as `TH.lpetPassages` and
+`gtTable` puts in place of the first quote (`row.passage`). `gets_print.gets_table` does the same from the row as the
+file keeps it, and `quote_bold` moves the spans for the print view and the Typst data. A passage whose words are gone
+leaves the first quote standing, as on Trajectories. The words that name a GET in the table's print and PDF
+(`gets_print.LPET_WORDS`, read through `gword` and `nothing_words`: the column head, the kind in the trail's heads,
+the table's name, the empty-board line, the nothing-under line) and in the Inspector (`thGetWord()`, the
+`themes.inspector.none_lpets` and `themes.gets.nothing_*_lpet` lines) are the LPET catalogue keys on a participant's
+LPETs.
 
 A key quote's own marks and several domains (trajfix, 11 November 2026, from Adam's shots of his study).
 A Quote cell that holds its own inverted commas came through `lpet_rows` as it was and the page set its

@@ -73,7 +73,7 @@ def heads(four: bool = False) -> str:
     """The five columns' heads, once under a GET's title and on paper at the top of each block with paths (see
     block_html), in the run's language, or the four of a thematic analysis project (see `four_of`)."""
     cols = (i18n.t("page_print.kind.passage"), i18n.t("page_print.kind.quote"), i18n.t("page_print.kind.statement"),
-            i18n.t("page_print.kind.pet"), i18n.t("page_print.kind.get"))
+            i18n.t("page_print.kind.pet"), gword("page_print.kind.get"))
     cols = tuple(cols[n] for n in shown(four))
     return '<div class="tr-cols" aria-hidden="true">' + "".join(f"<span>{esc(c)}</span>" for c in cols) + "</div>"
 
@@ -81,6 +81,41 @@ def heads(four: bool = False) -> str:
 ROOM = 320          # the most characters of a turn the trail shows round a quote
 
 esc = lambda text: html.escape(str(text or ""), quote=True)
+
+
+# the words of the GET table's print that name a GET, with the ones a participant's LPETs print says instead
+# (lpetgaps, 12 November 2026), so the LPET table and its PDF never say GET where they mean an LPET
+LPET_WORDS = {
+    "page_print.gets.under_this_get": (lambda **m: i18n.t("page_print.gets.under_this_get", **m),
+        lambda **m: i18n.t("page_print.gets.under_this_lpet", **m)),
+    "page_print.kind.get": (lambda **m: i18n.t("page_print.kind.get", **m),
+        lambda **m: i18n.t("page_print.kind.lpet", **m)),
+    "page_print.gets.table": (lambda **m: i18n.t("page_print.gets.table", **m),
+        lambda **m: i18n.t("page_print.gets.lpet_table", **m)),
+    "page_print.gets.project": (lambda **m: i18n.t("page_print.gets.project", **m),
+        lambda **m: i18n.t("page_print.gets.lpets_project", **m)),
+    "page_print.gets.none": (lambda **m: i18n.t("page_print.gets.none", **m),
+        lambda **m: i18n.t("page_print.gets.no_lpets", **m)),
+    "page_print.gets.no_get": (lambda **m: i18n.t("page_print.gets.no_get", **m),
+        lambda **m: i18n.t("page_print.gets.no_lpet", **m)),
+    "exports.nothing_under_get": (lambda **m: i18n.t("exports.nothing_under_get", **m),
+        lambda **m: i18n.t("exports.nothing_under_lpet", **m)),
+    "exports.no_pets_nothing_under_get": (lambda **m: i18n.t("exports.no_pets_nothing_under_get", **m),
+        lambda **m: i18n.t("exports.no_pets_nothing_under_lpet", **m))}
+
+
+def gword(key: str, **more) -> str:
+    """A print catalogue's sentence, the LPET words for a participant's LPETs in place of the GETs' (LPET_WORDS),
+    each key written out where it is used so the catalogue's check finds it."""
+    pair = LPET_WORDS.get(key)
+    if pair is None:
+        return i18n.t(key, **more)
+    return pair[1 if gt.in_lpets() else 0](**more)
+
+
+def nothing_words(bare: bool) -> str:
+    """What a row with nothing of the case under its GET says, or under its LPET."""
+    return gword("exports.no_pets_nothing_under_get" if bare else "exports.nothing_under_get")
 
 
 # ------------------------------------------------------------------ the turns
@@ -392,7 +427,7 @@ def block_html(get: dict, row: dict, rec: dict, words: dict | None, notes: bool,
             + "".join(f'<span class="tr-mark">{esc(m)}</span>' for m in marks) + "</h3>")
     body = ""
     if not row["counted"]:
-        body += f'<p class="tr-none">{esc(gt.NOTHING_NO_PETS if bare else gt.NOTHING)}</p>'
+        body += f'<p class="tr-none">{esc(nothing_words(bare))}</p>'
     elif selected and not (row.get("quote") and nodes):
         body += f'<p class="tr-none">{esc(i18n.t("page_print.gets.no_quote"))}</p>'
     if nodes:
@@ -536,7 +571,7 @@ def table_section(get: dict, tint: str, total: int, minimum: int, notes: bool, s
            f'<h3 class="bar"><span class="title">{esc(get["label"])}{get_desc(get)}</span>{badge(get, total, minimum)}</h3>']
     if get["note"]:
         out.append(f'<p class="tnote">{esc(get["note"])}</p>')
-    cols = ([i18n.t("page_print.gets.participant")] + ([] if selected else [i18n.t("page_print.gets.under_this_get")])
+    cols = ([i18n.t("page_print.gets.participant")] + ([] if selected else [gword("page_print.gets.under_this_get")])
             + [i18n.t("page_print.kind.quote"), i18n.t("page_print.gets.note")])
     # the table in a box of its own, which scrolls sideways where a narrow window cannot give its columns room
     out.append('<div class="gt-wide"><table class="gt"><thead><tr>' + "".join(f"<th>{esc(h)}</th>" for h in cols) + "</tr></thead><tbody>")
@@ -547,8 +582,8 @@ def table_section(get: dict, tint: str, total: int, minimum: int, notes: bool, s
                + "".join(f'<span class="mark">{esc(m)}</span>' for m in marks) + "</td>")
         # Selected keeps the quote alone, and a participant note only when he ticked them
         items = "".join(item_html(it, notes) for it in row["items"] if not selected or it["kind"] == "pn")
-        nothing = "" if row["counted"] else f'<p class="none">{esc(gt.NOTHING_NO_PETS if bare else gt.NOTHING)}</p>'
-        quote = quote_html(row["quote"], row.get("bold")) if row["counted"] else ""
+        nothing = "" if row["counted"] else f'<p class="none">{esc(nothing_words(bare))}</p>'
+        quote = quote_html(row["quote"], row.get("bold")) if row["counted"] or row.get("passage") else ""
         cells = [who]
         if selected:
             cells.append(f'<td class="kqcell">{nothing}{quote}{items}</td>')
@@ -917,10 +952,18 @@ def gets_table(parts: dict) -> list[dict]:
     """The table of the board, each row saying whether its case changed since it came in, with its
     case's colour and badge as the GETs board gives them."""
     out = gt.table(parts["data"], parts["board"], parts["inside"])
+    # an LPET's key quote taken from the transcript on Trajectories, as that screen shows it (lpetgaps)
+    taken: dict = {}
+    if gt.in_lpets() and parts["books"]:
+        taken = gt.passage_cells(parts["data"], parts["board"], gt.book_turns(next(iter(parts["books"].values()))), bare=False)
     looks = parts.get("looks") or {}
     for g in out:
         for row in g["rows"]:
             row["changed"] = row["case"] in parts["changed"]
+            row["passage"] = False
+            cell = (taken.get(g["id"]) or {}).get(row["case"])
+            if cell:
+                row.update(quote=cell["quote"], chosen=True, bold=cell["bold"], passage=True)
             look = looks.get(row["case"])
             if look:
                 row.update(colour=look["colour"], badge=look["badge"])
@@ -991,13 +1034,13 @@ def walked(root: Path, books: list[dict], project: dict, board: str | None, what
     if not descriptions:
         table_ = [{k: v for k, v in g.items() if k != th.DESCRIPTION} for g in table_]
     if get and not any(g["id"] == get for g in table_):
-        raise WorkbookError(i18n.t("page_print.gets.no_get"))
+        raise WorkbookError(gword("page_print.gets.no_get"))
     trails = [g for g in table_ if not get or g["id"] == get]
     recs = parts["data"].get("cases") or {}
     words = read_turns(trails, recs, parts["books"]) if what in ("trail", "all") else {}
-    gets_word = i18n.t("page_print.gets.project")
+    gets_word = gword("page_print.gets.project")
     name = project.get("name") or gets_word
-    kind = {"table": i18n.t("page_print.gets.table"), "trail": i18n.t("page_print.gets.trail"), "all": gets_word}[what]
+    kind = {"table": gword("page_print.gets.table"), "trail": i18n.t("page_print.gets.trail"), "all": gets_word}[what]
     title = (i18n.t("page_print.gets.title_sending", name=name, what=kind) if sending
              else i18n.t("page_print.gets.title", name=name, board=parts["board"].get("name") or th.FIRST_NAME, what=kind))
     rows = None
@@ -1039,8 +1082,8 @@ def page(root: Path, books: list[dict], project: dict, board: str | None = None,
     tints = tint_of(parts["board"])
     total, minimum = len(parts["inside"]), parts["minimum"]
     body: list[str] = []
-    pet_tables, get_table = esc(i18n.t("page_print.gets.pet_tables")), esc(i18n.t("page_print.gets.table"))
-    audit, none = esc(i18n.t("page_print.gets.trail")), esc(i18n.t("page_print.gets.none"))
+    pet_tables, get_table = esc(i18n.t("page_print.gets.pet_tables")), esc(gword("page_print.gets.table"))
+    audit, none = esc(i18n.t("page_print.gets.trail")), esc(gword("page_print.gets.none"))
     rows = w["people"]
     if what == "all":
         # a thematic analysis project's full set has no PET tables, its participants having none (tagaps)
@@ -1100,7 +1143,7 @@ def trail_view(root: Path, books: list[dict], board: str | None, get: str, audio
     table_ = gets_table(parts)
     g = next((x for x in table_ if x["id"] == get), None)
     if g is None:
-        raise WorkbookError(i18n.t("page_print.gets.no_get"))
+        raise WorkbookError(gword("page_print.gets.no_get"))
     recs = parts["data"].get("cases") or {}
     words = read_turns([g], recs, parts["books"])
     tint = tint_of(parts["board"]).get(get, "hue-grey")
@@ -1156,15 +1199,15 @@ def quote_data(q: dict, bold=None) -> dict:
 
 def table_data(get: dict, hue: dict, total: int, minimum: int, notes: bool, selected: bool) -> dict:
     """One GET of the table, as `table_section` sets it."""
-    heads = ([i18n.t("page_print.gets.participant")] + ([] if selected else [i18n.t("page_print.gets.under_this_get")])
+    heads = ([i18n.t("page_print.gets.participant")] + ([] if selected else [gword("page_print.gets.under_this_get")])
              + [i18n.t("page_print.kind.quote"), i18n.t("page_print.gets.note")])
     rows = []
     for row in get["rows"]:
         bare = row["none"] and not row["counted"] and not ta()
         items = [item_data(it) for it in row["items"] if (not selected or it["kind"] == "pn") and (notes or it["kind"] != "pn")]
-        q = row["quote"] if row["counted"] else None
+        q = row["quote"] if row["counted"] or row.get("passage") else None
         rows.append(dict(who_data(row, row_marks(row, bare)), empty=not row["counted"], items=items,
-                         nothing="" if row["counted"] else (gt.NOTHING_NO_PETS if bare else gt.NOTHING),
+                         nothing="" if row["counted"] else (nothing_words(bare)),
                          quote=dict(quote_data(q, row.get("bold")), time=q["time"], sheet=q["sheet"]) if q else None,
                          no_quote=i18n.t("page_print.gets.no_quote") if row["counted"] and not q else "",
                          note=row["note"] or ""))
@@ -1209,14 +1252,14 @@ def trail_data(get: dict, hue: dict, recs: dict, words: dict, total: int, minimu
     four = four_of(get)
     cols = shown(four)
     named = (i18n.t("page_print.kind.passage"), i18n.t("page_print.kind.quote"), i18n.t("page_print.kind.statement"),
-             i18n.t("page_print.kind.pet"), i18n.t("page_print.kind.get"))
+             i18n.t("page_print.kind.pet"), gword("page_print.kind.get"))
     blocks = []
     for row in get["rows"]:
         nodes = block_nodes(row, recs.get(row["case"]) or {}, words.get(row["case"], {}), notes, selected)
         bare = row["none"] and not row["counted"] and not ta()
         none = ""
         if not row["counted"]:
-            none = gt.NOTHING_NO_PETS if bare else gt.NOTHING
+            none = nothing_words(bare)
         elif selected and not (row.get("quote") and nodes):
             none = i18n.t("page_print.gets.no_quote")
         rows = [{"cells": [cell_data(r["cells"][c]) for c in cols], "spines": [r["spines"].get(c) or "" for c in cols]}
@@ -1252,8 +1295,8 @@ def typst_data(root: Path, books: list[dict], project: dict, board: str | None =
            "head": dict(head_of(project, parts, what), labels={"project": i18n.t("page_print.project"),
                                                                 "question": i18n.t("page_print.research_question")}),
            "foot": {"left": [p for p in pieces if p], "fit": fit, "middle": middle, "page": [before, between, after]},
-           "none": i18n.t("page_print.gets.none"), "selected": selected,
-           "names": {"table": i18n.t("page_print.gets.table"), "trail": i18n.t("page_print.gets.trail"),
+           "none": gword("page_print.gets.none"), "selected": selected,
+           "names": {"table": gword("page_print.gets.table"), "trail": i18n.t("page_print.gets.trail"),
                      "people": i18n.t("page_print.people.heading")}}
     if w["people"] is not None:
         out["people"] = w["people"]

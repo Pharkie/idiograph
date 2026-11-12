@@ -7649,6 +7649,17 @@ def lpet_pills(root: Path, groups: list) -> dict:
     return {gid: [{"word": w, "colour": hues[w.lower()]} for w in traj_mod.domains_of(text)] for gid, text in said.items()}
 
 
+def lpet_passages(book: Path, board: dict) -> dict:
+    """The key quotes of a participant's LPET table taken from the transcript on Trajectories, by the LPET's id and
+    then the timepoint's key, each `{"quote": {"key", "text", "time", "sheet"}, "bold"}` as the table draws it
+    (lpetgaps, 12 November 2026), read where Trajectories keeps them, the row's `passage`. Only reads."""
+    try:
+        data = gets_mod.load(Path(book))
+        return gets_mod.passage_cells(data, board, gets_mod.book_turns(book)) if data else {}
+    except (WorkbookError, OSError):
+        return {}
+
+
 def gets_reply(root: Path, body: dict, answer: dict) -> dict:
     """A GETs answer with what the screen draws around the canvas: the project's name in the bar,
     the band, the demo tag, the settings for the cog, and `ai`, the switch and the PETs screen's model.
@@ -7674,6 +7685,8 @@ def gets_reply(root: Path, body: dict, answer: dict) -> dict:
         # each LPET's domains on the board, as pills in the colours Trajectories gives them (lpetmarks)
         if isinstance(answer.get("groups"), list):
             answer["lpet_domains"] = lpet_pills(root, answer["groups"])
+            # and the key quotes taken from the transcript on Trajectories, which the LPET table shows (lpetgaps)
+            answer["lpet_passages"] = lpet_passages(who, answer)
     else:
         # each participant of the GETs' or the LGETs' Participants panel with their own set (pbiobuild)
         people = people_view(root)
