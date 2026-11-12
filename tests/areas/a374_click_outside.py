@@ -163,6 +163,11 @@ def test_click_outside(scratch: Path):
     if exe is None:
         skip("374: a click outside a card in a real browser", "no Chrome, Chromium, Brave or Edge on this computer")
         return
+    try:
+        import lxml  # noqa: F401  the cards' markup is read with it, as area 340 reads the package
+    except ImportError:
+        skip("374: a click outside a card in a real browser", "lxml is not installed")
+        return
     shell = support.text("family/static/shell.js")
     markup = card_markup(support.every_page(), ["help", "sf-cols", "remove-card", "rename", "holds-batch", "about"])
     # the shell's Esc, from its own lines: Remove's card first, then the cards of its list, then an X no Esc takes

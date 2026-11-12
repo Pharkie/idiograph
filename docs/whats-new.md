@@ -5,9 +5,10 @@ Newest first. Each version's notes are what the updater shows, eight lines at mo
 
 What goes here: only major new features and real changes to how something works, among them what your AI agents can do, and any change to safety, privacy or your data. One plain line each, saying what you can now do, not how the screen shows it. Never: changed wording, labels or layout, small fixes, or a feature's parts (its buttons, tabs, counts). Several changes to one feature are one line. A version with nothing major has one line, or none.
 
-## 0.9.26, 12 November 2026
+## 0.9.27, 12 November 2026
 
 Each participant can have a picture, a label and a pen portrait, shown beside their name and, when you tick it, in your exports.
+Set a project's demographic categories, such as gender or age range, then each participant's values: they show as coloured pills by the name and go into the Participants table.
 REFI-QDA files carry LPETs and LGETs too, out and back in.
 Approving several of an agent's actions at once shows how far it has got, and Home says when actions wait for your yes.
 AI boards, reviews and revisions on PETs, GETs and Themes are gone: an agent of your own through MCP does that work.

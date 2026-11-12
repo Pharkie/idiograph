@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 from pathlib import Path
 
@@ -883,7 +884,8 @@ def _carried_through(base: Path, tree) -> None:
           "owner's alone",
           entries[0]["for"] == "Rook" and entries[0]["to"] == "Rook" and entries[0]["real"] == ["Quillon"]
           and entries[1] == {"real": ["Pemberly"], "to": "Fern", "for": "Fern", "case": False}
-          and nfile.stat().st_mode & 0o777 == 0o600, str(entries[0]))
+          # its mode is checked where a file has one: Windows keeps no owner-only bits
+          and (os.name == "nt" or nfile.stat().st_mode & 0o777 == 0o600), str(entries[0]))
     t2 = json.loads(themes_mod.themes_path(moss, 2).read_text(encoding="utf-8"))
     copies = set(p.name for p in (root / "_Archive").iterdir()) - archive_before
     check("156: her PETs boards at T2 name her Rook too, and the project's _Archive keeps a copy of the GETs, the "
