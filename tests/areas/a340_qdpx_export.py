@@ -325,12 +325,67 @@ LINNET_T2 = "Kit: [00:00:02] And this season?\nLinnet: [00:00:08] The leeks rott
 TWO = [{"label": "T1", "description": "The first spring"}, {"label": "T2", "description": "The second autumn"}]
 
 
+def lpets_on(call, book: Path, groups: list[dict], rows: dict | None = None) -> None:
+    """A participant's LPETs saved as the LPETs canvas saves them, each member a timepoint's PET or sub-PET by its
+    timepoint and title, else its statement by its words, alone on a card, or an LPET's id, its sub-LPET."""
+    lp = call("/api/gets", {"workbook": str(book), "lpets": True})
+    pet = {(c["case"], c["text"]): c["key"] for c in lp["cards"] if c["kind"] in ("pet", "sub")}
+    said = {(rec["case"], line["text"]): f"{rec['case']}/es/{key}" for rec in lp["cases"]
+            for key, line in (rec.get("lines") or {}).items()}
+    cards = {c["key"]: {"x": c["x"], "y": c["y"]} for c in lp["cards"]}
+    made = []
+    for i, g in enumerate(groups):
+        members = [m if isinstance(m, str) else pet.get(m) or said[m] for m in g["members"]]
+        for m, key in zip(g["members"], members):
+            if "/es/" in key:
+                cards[key] = {"x": 900, "y": 60 * i, "text": m[1]}
+        made.append(dict(g, members=members, x=400 * i, y=-60))
+    call("/api/gets-save", {"workbook": str(book), "lpets": True, "version": dict(
+        lp["version"], cards=cards, groups=made, discarded=[], picks={}, notes=[], rows=rows or {})})
+
+
+def lpets_board(book: Path) -> list:
+    """A participant's LPETs as the round trip keeps them, from the board the LGETs take: each LPET with its title,
+    description, note and domain, its sub-LPETs the same way and its cards, a timepoint's PET by its title and a
+    statement by its words, each with its timepoint."""
+    import gets
+    import themes
+    with gets.lpets(book, {"T1": "T1", "T2": "T2"}):
+        data = gets.load(book) or {}
+    board = gets.source_board(data)[0] or {"groups": []}
+    held = data.get("cases") or {}
+    by = {g["id"]: g for g in board["groups"]}
+    parents = themes.parents_of(board["groups"])
+
+    def card(key):
+        k = gets.split_key(key)
+        rec = held.get(k["case"]) or {}
+        if k["kind"] == "group":
+            return k["case"], next((p["title"] for p in rec.get("pets") or [] if p["id"] == k["ident"]), "")
+        return k["case"], ((rec.get("lines") or {}).get(k["ident"]) or {}).get("text", "")
+
+    def label(gid):
+        g = by[gid]
+        return (g["label"], themes.description_of(g), g.get("note") or "", g.get(themes.DOMAIN) or "",
+                tuple(sorted((label(m) if m in by else card(m) for m in g["members"]), key=str)))
+    return sorted((label(g) for g in by if g not in parents), key=str)
+
+
+def lgets_board(root: Path) -> list:
+    """The project's LGETs board on the canvas as the round trip keeps it (see `project_board`)."""
+    import idiograph_routes as routes
+    with routes.lgets_scope(root):
+        return project_board(root)
+
+
 def trip_timepoints(scratch: Path, agents: dict) -> None:
     import base64
 
     import audio as audio_mod
     import cli
+    import gets
     import idiograph_routes as routes
+    import qdpx
     import server as srv
     import themes
     import workbook as wb_mod
@@ -412,19 +467,78 @@ def trip_timepoints(scratch: Path, agents: dict) -> None:
         board(linnet, 1, [{"id": "g1", "label": "A father's crop", "members": ["Following a father's leeks"]}], [])
         board(linnet, 2, [{"id": "g1", "label": "Laughing it off", "members": ["Laughing at a failed crop"]}], [])
 
-        back = scratch / "a340-tp" / "Back again"
-        (back / "Imports").mkdir(parents=True)
-        (back / "idiograph-project.json").write_text(json.dumps({"name": "Back again", "method": "ipa", "agents": agents,
-                                                                  "timepoints": TWO}), encoding="utf-8")
-        code, done, err = cli_run(root, "project", "export-qdpx", "--to", str(back / "Imports" / "trip.qdpx"),
-                                  "--recordings", "--json")
-        code2, dry, err2 = cli_run(back, "qdpx", "Imports/trip.qdpx", "--dry-run", "--json")
-        names = {s["source"]: s["name"] for s in dry.get("sources") or []}
-        # each source named "P1 - Fern - Spring", the participant's label and the interview
-        spec = ",".join("{}={}:{}:{}".format(n, name.split(" - ")[1], name[1], "T2" if name.endswith("Autumn") else "T1")
-                        for n, name in names.items())
-        code3, made, err3 = cli_run(back, "qdpx", "Imports/trip.qdpx", "--sources", spec, "--pets", "--note",
-                                    "the round trip", "--json")
+        def empty(name: str, timepoints=TWO) -> Path:
+            at = scratch / "a340-tp" / name
+            (at / "Imports").mkdir(parents=True)
+            held = {"name": name, "method": "ipa", "agents": agents}
+            if timepoints:
+                held["timepoints"] = timepoints
+            (at / "idiograph-project.json").write_text(json.dumps(held), encoding="utf-8")
+            return at
+
+        def trip(back: Path, *more) -> tuple:
+            """The export into `back`'s Imports, its dry run, and each source brought in at its timepoint."""
+            code, done, err = cli_run(root, "project", "export-qdpx", "--to", str(back / "Imports" / "trip.qdpx"),
+                                      *more, "--json")
+            code2, dry, err2 = cli_run(back, "qdpx", "Imports/trip.qdpx", "--dry-run", "--json")
+            names = {s["source"]: s["name"] for s in dry.get("sources") or []}
+            # each source named "P1 - Fern - Spring", the participant's label and the interview
+            spec = ",".join("{}={}:{}:{}".format(n, name.split(" - ")[1], name[1], "T2" if name.endswith("Autumn") else "T1")
+                            for n, name in names.items())
+            code3, made, err3 = cli_run(back, "qdpx", "Imports/trip.qdpx", "--sources", spec, "--pets", "--note",
+                                        "the round trip", "--json")
+            return code, done, err, code2, dry, err2, code3, made, err3, names
+
+        def timepoint_pets(a: Path, b: Path) -> bool:
+            same = True
+            for tp in (1, 2):
+                with themes.scoped(tp):
+                    want = pets_of(a, themes.current_version(themes.load(a)))
+                with themes.scoped(tp):
+                    db = themes.load(b) if b.exists() else None
+                    same &= want == (pets_of(b, themes.current_version(db)) if db else None)
+            return same
+
+        # a package of timepoints with no LPETs yet comes back as it did before them (qdpxlpets)
+        plain = empty("Back plain")
+        *_, made, err, _names = trip(plain)
+        check("340: a package of timepoints with no LPETs comes back as before, each timepoint's PETs on its own board, "
+              "and makes no LPETs and no LGETs (qdpxlpets)",
+              sorted(made.get("written") or []) == ["P1 - Fern", "P2 - Linnet"]
+              and timepoint_pets(fern, plain / "P1 - Fern" / "P1 Fern - EN & ES.xlsx")
+              and not list(plain.rglob("*" + gets.LPETS_TAIL)) and not (plain / gets.LGETS_FILE).exists(),
+              str([err, made])[:400])
+
+        # each participant's LPETs, a sub-LPET, a statement on its own, a domain and the LPET table, and the LGETs
+        lpets_on(call, fern, [
+            {"id": "G1", "label": "From alone to looked after", "description": "Help arrives in the second year",
+             "note": "Read the first spring against the second autumn", "domain": "Belonging",
+             "members": [("T1", "Finding a way in"), ("T2", "A neighbour's seedlings")]},
+            {"id": "G2", "label": "Nearly leaving", "members": [("T1", "Nearly giving up")]}],
+            {"G1": {"T1": {"quote": "", "note": "Left alone with the bindweed"},
+                    "T2": {"quote": f"Autumn:{rows_of(fern, 'Autumn', 'Fern')[0]}:0", "note": "Looked after"}}})
+        lpets_on(call, linnet, [
+            {"id": "G1", "label": "Growing into the plot", "description": "From a father's crop to her own",
+             "domain": "Family", "members": [("T1", "A father's crop"), "G2"]},
+            {"id": "G2", "label": "Laughing it off later", "description": "The second autumn",
+             "members": [("T2", "Laughing it off")]}])
+        lg = call("/api/gets", {"workbook": str(fern)})
+        lcard = {(c["who"], c["text"]): c["key"] for c in lg["cards"] if c["kind"] in ("pet", "sub")}
+        lsaid = {(rec["case"], line["text"]): f"{rec['case']}/es/{k}" for rec in lg["cases"]
+                 for k, line in (rec.get("lines") or {}).items()}
+        laugh = lsaid[("P2 - Linnet", "Laughing at a failed crop")]
+        call("/api/gets-save", {"workbook": str(fern), "version": dict(
+            lg["version"], cards=dict({c["key"]: {"x": c["x"], "y": c["y"]} for c in lg["cards"]},
+                                      **{laugh: {"x": 900, "y": 0, "text": "Laughing at a failed crop"}}),
+            groups=[{"id": "G1", "label": "Others on the plots", "description": "Neighbours and fathers",
+                     "note": "Both lean on someone", "x": 0, "y": -60,
+                     "members": [lcard[("Fern", "From alone to looked after")], lcard[("Linnet", "Growing into the plot")]]},
+                    {"id": "G2", "label": "Going on after a failure", "x": 500, "y": -60,
+                     "members": [lcard[("Fern", "Nearly leaving")], laugh]}],
+            discarded=[], picks={}, notes=[])})
+
+        back = empty("Back again")
+        code, done, err, code2, dry, err2, code3, made, err3, names = trip(back, "--recordings")
         check("340: a project of two timepoints goes out as one source an interview and comes back each interview at "
               "its timepoint", code == 0 and code2 == 0 and code3 == 0 and len(names) == 4
               and sorted(made.get("written") or []) == ["P1 - Fern", "P2 - Linnet"],
@@ -463,5 +577,50 @@ def trip_timepoints(scratch: Path, agents: dict) -> None:
               "where it did and shows the time it had",
               copied is not None and copied.read_bytes() == (folder / "Fern-Spring.m4a").read_bytes()
               and audio_mod.offset_in(copied.parent) == -1.5, str(copied))
+
+        # ── the LPETs and the LGETs (qdpxlpets, 12 November 2026)
+        package = back / "Imports" / "trip.qdpx"
+        read = qdpx.read_package(package)
+        with zipfile.ZipFile(package) as z:
+            qde = z.read("project.qde")
+        try:
+            from lxml import etree
+            schema = etree.XMLSchema(etree.parse(str(support.source("tests/refi-qda/Project.xsd"))))
+            valid = schema.validate(etree.fromstring(qde))
+        except ImportError:
+            schema, valid = None, True
+        notes = [n["text"] for n in read["notes"].values()]
+        check("340: each LPET goes as a code under its participant's LPETs code and a set of its statements, each LGET a "
+              "set, the domain and the LPET table's state and key quote as notes, the package valid against Project.xsd",
+              valid and done.get("counts", {}).get("lpets") == 3 and done["counts"].get("sub_lpets") == 1
+              and done["counts"].get("lgets") == 2
+              and {"From alone to looked after", "Nearly leaving", "Growing into the plot", "Laughing it off later",
+                   "Others on the plots", "Going on after a failure"} <= {s["name"] for s in read["sets"]}
+              and "Belonging" in notes and any("Left alone with the bindweed" in n and "leaves me his spare seedlings" in n
+                                               for n in notes),
+              ("; ".join(str(e) for e in schema.error_log)[:300] if schema is not None else "") + str(done.get("counts")))
+        check("340: the dry run names the LPETs and the LGETs apart from the code groups, which stay each timepoint's PETs",
+              dry.get("lpets") == ["From alone to looked after", "Nearly leaving", "Growing into the plot"]
+              and dry.get("lgets") == ["Others on the plots", "Going on after a failure"]
+              and not set(dry.get("groups") or []) & {"From alone to looked after", "Others on the plots"},
+              str({k: dry.get(k) for k in ("groups", "lpets", "lgets")}))
+        same_lpets = all(lpets_board(a) == lpets_board(b) and lpets_board(a)
+                         for a, b in ((fern, back / "P1 - Fern" / "P1 Fern - EN & ES.xlsx"),
+                                      (linnet, back / "P2 - Linnet" / "P2 Linnet - EN & ES.xlsx")))
+        check("340: and each participant's LPETs come back on a new board of their LPETs canvas, each LPET with its "
+              "title, description, note and domain holding the same timepoint PETs and statements, a sub-LPET inside "
+              "its LPET", same_lpets,
+              str(lpets_board(back / "P2 - Linnet" / "P2 Linnet - EN & ES.xlsx"))[:500])
+        check("340: and the LGETs as a new board on the LGETs canvas, each LGET with its description and note holding "
+              "the same LPETs and statements of the same participants",
+              lgets_board(back) == lgets_board(root) and len(lgets_board(back)) == 2, str(lgets_board(back))[:500])
+
+        # a project of one timepoint takes the PETs and leaves the LPETs and LGETs out, never making a GET of an LGET
+        flat = empty("Back flat", timepoints=None)
+        *_, made, err, _names = trip(flat)
+        check("340: brought into a project of one timepoint, the package makes PETs and no LPETs, LGETs or GETs",
+              sorted(made.get("written") or []) == ["P1 - Fern", "P2 - Linnet"]
+              and not list(flat.rglob("*" + gets.LPETS_TAIL)) and not (flat / gets.LGETS_FILE).exists()
+              and not (flat / gets.FILE).exists(), str([err, made])[:400])
     finally:
         srv.CONFIG_PATH, srv.ROOT_OVERRIDE, srv.STATE_PATH, srv.STATE_MEMORY = kept

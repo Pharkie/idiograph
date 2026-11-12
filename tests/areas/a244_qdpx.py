@@ -208,6 +208,22 @@ def test_qdpx(scratch):
         quote = qdpx.assemble_quote([at(t, "I planted beans before anything else"), at(t, "My father grew beans every summer")], t)
         check("244: pieces of one passage make one quote in transcript order, an ellipsis where they are not next to each other",
               quote == '"My father grew beans every summer … I planted beans before anything else"', quote)
+        # another programme's package is read as before LPETs travelled (qdpxlpets, 12 November 2026): a code named
+        # LPETs is a code like any, and a set holding a code that cannot be coded beside one that can is a code group
+        mixed = scratch / "a244-mixed.qdpx"
+        mixed.write_bytes(package(
+            "ATLAS.ti 23.2", '<Code guid="p1" name="Wren" isCodable="false"><Code guid="l1" name="LPETs" isCodable="false">'
+            '<Code guid="l2" name="Later on" isCodable="false"/></Code>' + code("k1", "Finding a way in") + "</Code>",
+            f'<TextSource guid="t1" name="Wren interview" plainTextPath="internal://t1.txt">'
+            f'{selection("q1", at(ATLAS_TEXT, "I needed a way in"), ["k1"])}</TextSource>',
+            {"Sources/t1.txt": ATLAS_TEXT.encode("utf-8")},
+            extra='<Sets><Set guid="s1" name="Later on"><MemberCode targetGUID="l2"/><MemberCode targetGUID="k1"/></Set></Sets>'))
+        got = qdpx.read_package(mixed)
+        check("244: another programme's code named LPETs is no LPET, and its set of codes is a code group and a set of "
+              "codes that cannot be coded as before",
+              qdpx.lpet_codes(got) == {} and qdpx.lpet_trees(got) == [] and qdpx.lpet_sets(got) == ({}, [])
+              and [g["name"] for g in qdpx.code_groups(got)] == ["Later on"]
+              and [g["name"] for g in qdpx.upper_groups(got)] == ["Later on"], str(qdpx.code_groups(got))[:300])
 
         # -- A. ATLAS.ti: the dry run writes nothing, then the apply with the PET draft
         before, original = files(root), digest(pkg_path)

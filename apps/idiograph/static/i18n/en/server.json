@@ -489,6 +489,14 @@
     "one": "{n} GET as a set",
     "other": "{n} GETs as sets"
   },
+  "server.qdpx_out_lpets": {
+    "one": "{n} LPET",
+    "other": "{n} LPETs"
+  },
+  "server.qdpx_out_lgets": {
+    "one": "{n} LGET as a set",
+    "other": "{n} LGETs as sets"
+  },
   "server.qdpx_out_notes": {
     "one": "{n} exploratory note",
     "other": "{n} exploratory notes"
@@ -527,5 +535,28 @@
   "server.qdpx_out_left_large": {
     "one": "{n} recording over 2 GB is left out",
     "other": "{n} recordings over 2 GB are left out"
+  },
+  "server.qdpx_out_left_lpet_table": {
+    "one": "{n} LPET's states and key quotes are a note on its set",
+    "other": "{n} LPETs' states and key quotes are notes on their sets"
+  },
+  "server.qdpx_imported_from": "Imported from {file} ({package}) on {day}.",
+  "server.qdpx_note_pets": "From {file} ({package}), a PET a code group, brought in on {day}.",
+  "server.qdpx_note_gets": "From {file} ({package}), a GET a set of PETs, brought in on {day}.",
+  "server.qdpx_note_themes": "From {file} ({package}), a theme a set of codes, brought in on {day}.",
+  "server.qdpx_note_lpets": "From {file} ({package}), an LPET a set of statements, brought in on {day}.",
+  "server.qdpx_note_lgets": "From {file} ({package}), an LGET a set of LPETs, brought in on {day}.",
+  "server.qdpx_left_lpets": {
+    "one": "{n} LPET",
+    "other": "{n} LPETs"
+  },
+  "server.qdpx_left_lgets": {
+    "one": "{n} LGET",
+    "other": "{n} LGETs"
+  },
+  "server.qdpx_left_one_timepoint": "{list} left out, since this project has one timepoint",
+  "server.qdpx_left_lpet_table": {
+    "one": "{n} LPET's states and key quotes left out",
+    "other": "{n} LPETs' states and key quotes left out"
   }
 }

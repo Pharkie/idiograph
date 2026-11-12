@@ -660,11 +660,16 @@ def set_tree(pkg: dict, one: dict) -> dict:
 def code_groups(pkg: dict) -> list[dict]:
     """The code groups a PET draft takes, each `{"name", "codes", "description", "tree"}`: the project's sets
     that hold codes that can be coded, each with its own description, and with none, each parent code with the
-    codes under it, itself among them. `tree` is the group as `set_tree` reads it, its sub-groups nested."""
+    codes under it, itself among them. `tree` is the group as `set_tree` reads it, its sub-groups nested.
+
+    In a package Idiograph wrote a PET's set holds statements alone, so a set holding a code that cannot be coded,
+    a GET's, an LPET's or an LGET's, is never a PET, and a package with no such set has no PETs (qdpxlpets)."""
     codes = pkg["codes"]
+    own = ours(pkg)
     groups = [{"name": s["name"], "codes": s["codes"], "description": s.get("description") or "", "tree": set_tree(pkg, s)}
-              for s in pkg["sets"] if s["name"] and any(codes[g]["codable"] for g in s["codes"])]
-    if groups:
+              for s in pkg["sets"] if s["name"] and any(codes[g]["codable"] for g in s["codes"])
+              and not (own and any(not codes[g]["codable"] for g in s["codes"]))]
+    if groups or own:
         return groups
     out = []
     for c in codes.values():
@@ -683,12 +688,13 @@ def code_groups(pkg: dict) -> list[dict]:
 def upper_groups(pkg: dict) -> list[dict]:
     """The sets that hold codes that cannot be coded, as Idiograph writes each GET, a set of PETs (qdpx_out.py):
     each `{"name", "description", "note", "codes"}`, its codes those that cannot be coded, in its order, its note
-    the set's member notes as one."""
+    the set's member notes as one. A set holding an LPET's code is an LPET's or an LGET's (`lpet_sets`), never a GET."""
     codes = pkg["codes"]
+    lpets = lpet_codes(pkg)
     out = []
     for s in pkg["sets"]:
         held = [g for g in s["codes"] if not codes[g]["codable"]]
-        if s["name"] and held:
+        if s["name"] and held and not any(g in lpets for g in held):
             out.append({"name": s["name"], "description": s.get("description") or "", "codes": held,
                         "note": note_text(pkg, s)})
     return out
@@ -697,6 +703,90 @@ def upper_groups(pkg: dict) -> list[dict]:
 def ours(pkg: dict) -> bool:
     """Whether Idiograph wrote the package, by its `origin`."""
     return str(pkg.get("origin") or "").startswith("Idiograph")
+
+
+# LPETs and LGETs (qdpxlpets, 12 November 2026). A statement already sits under its timepoint's PET in the codebook,
+# so Idiograph writes each LPET as a code that cannot be coded under its participant's LPETs code, holding no
+# statement, and a set of its own holding that code and every statement under the LPET, and each LGET as a set of
+# its LPETs' codes and their statements (qdpx_out.py). Read from Idiograph's own packages alone.
+
+def named(key: str) -> set[str]:
+    """A name Idiograph's export gives, in the language of the run and in English."""
+    return {i18n.t(key), i18n.t(key, lang="en")}
+
+
+def lpet_codes(pkg: dict) -> dict[str, dict]:
+    """Each LPET's and sub-LPET's code by its guid, in the codebook's order: every code that cannot be coded inside a
+    participant's LPETs code, each with its participant's code, `participant`, and the LPET it sits in, `parent`,
+    None for an LPET. None from another programme."""
+    if not ours(pkg):
+        return {}
+    codes, names, out = pkg["codes"], named("exports.qdpx_lpets"), {}
+
+    def walk(at: str, who: str, up: str | None) -> None:
+        for x in codes[at]["children"]:
+            if not codes[x]["codable"]:
+                out[x] = {"participant": who, "parent": up}
+                walk(x, who, x)
+
+    for g, c in codes.items():
+        top = codes.get(c["parent"]) if c["parent"] else None
+        if not c["codable"] and c["name"] in names and top is not None and top["parent"] is None:
+            walk(g, c["parent"], None)
+    return out
+
+
+def lpet_sets(pkg: dict) -> tuple[dict[str, dict], list[dict]]:
+    """Each LPET's own set by its code, and the LGETs. An LPET's own set is the first set that holds its code and no
+    other LPET's and bears its name, as Idiograph writes every LPET before any LGET. Every other set holding an
+    LPET's code is an LGET, each `{"name", "description", "note", "lpets", "codes"}`, `lpets` the LPETs' codes in
+    its order and `codes` every statement it holds."""
+    lpets = lpet_codes(pkg)
+    codes = pkg["codes"]
+    own: dict[str, dict] = {}
+    lgets: list[dict] = []
+    for s in pkg["sets"]:
+        held = [g for g in s["codes"] if g in lpets]
+        if not held:
+            continue
+        if len(held) == 1 and held[0] not in own and codes[held[0]]["name"] == s["name"]:
+            own[held[0]] = s
+        elif s["name"]:
+            lgets.append({"name": s["name"], "description": s.get("description") or "", "note": note_text(pkg, s),
+                          "lpets": held, "codes": [g for g in s["codes"] if codes[g]["codable"]]})
+    return own, lgets
+
+
+def lpet_trees(pkg: dict) -> list[dict]:
+    """Each participant's LPETs as an LPETs draft takes them, in the codebook's order, each `{"code", "name",
+    "description", "note", "domain", "codes", "all", "groups", "participant"}`: `all` every statement its set holds,
+    `codes` those no sub-LPET of it holds, `groups` its sub-LPETs the same way, its description its set's, its
+    note its code's and its domain its set's note of that name. None from another programme."""
+    lpets = lpet_codes(pkg)
+    own, _lgets = lpet_sets(pkg)
+    codes = pkg["codes"]
+    domains = named("exports.qdpx_note_domain")
+
+    def tree(g: str) -> dict:
+        s = own.get(g) or {"codes": [], "description": "", "notes": []}
+        every = [x for x in s["codes"] if codes[x]["codable"]]
+        subs = [tree(x) for x in codes[g]["children"] if x in lpets]
+        theirs = {x for t in subs for x in t["all"]}
+        domain = next((pkg["notes"][n]["text"] for n in s.get("notes") or []
+                       if n in pkg["notes"] and pkg["notes"][n]["name"] in domains), "")
+        return {"code": g, "name": codes[g]["name"], "description": s.get("description") or codes[g]["description"],
+                "note": note_text(pkg, codes[g]), "domain": " ".join(str(domain).split())[:40],
+                "codes": [x for x in every if x not in theirs], "all": every, "groups": subs,
+                "participant": lpets[g]["participant"]}
+
+    return [tree(g) for g, at in lpets.items() if at["parent"] is None]
+
+
+def lpet_tables(pkg: dict) -> int:
+    """How many LPETs' sets hold their LPET table's states and key quotes as a note, which no import takes back."""
+    own, _lgets = lpet_sets(pkg)
+    names = named("exports.qdpx_note_lpet_table")
+    return sum(1 for s in own.values() if any(pkg["notes"].get(n, {}).get("name") in names for n in s.get("notes") or []))
 
 
 def set_aside(pkg: dict) -> set[str]:

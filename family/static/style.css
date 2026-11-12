@@ -179,7 +179,7 @@ html[data-edition="preview"] .about-lockup.pe { --pe-size: 10px; --pe-drop: 5px;
 .lede {
   grid-area: lede;
   font-family: var(--serif); font-size: 27px; line-height: 1.35;
-  max-width: 21em; margin: 26px 0 0; color: var(--ink); text-wrap: balance;
+  max-width: 34em; margin: 26px 0 0; color: var(--ink); text-wrap: balance;
   animation: rise .5s cubic-bezier(.2,.7,.3,1) both;
 }
 /* every app's highlights under its line (Adam, 20 and 21 October), four short items in the small type and the

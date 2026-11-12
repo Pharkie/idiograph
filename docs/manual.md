@@ -4751,7 +4751,8 @@ default:
   timed from the recording's sync points.
 
 On request, a PETs board "From ATLAS.ti" (or NVivo, or MAXQDA) is made on each participant's canvas,
-a PET a code group holding the statements its codes made. A quotation that runs past its passage's
+a PET a code group holding the statements its codes made. From a file Idiograph wrote, in a project of timepoints, each
+participant's LPETs and the LGETs come in as boards too (see Export as REFI-QDA). A quotation that runs past its passage's
 end is cut there. What does not come in is said in one line: PDF documents and pictures, variables,
 free memos, links and networks, sets beyond the PET draft, codes on the interviewer's passages. The
 same lines go into each workbook's History in its progress file. The `.qdpx` itself is only read.
@@ -4935,8 +4936,18 @@ and each timepoint's PETs to that timepoint's board. In thematic analysis the co
 description, and the themes as a new board on the Themes canvas, each sub-theme inside its theme. What does not
 come back (9 November 2026): where each card lay, which the new boards lay out afresh, stacks, whose statements
 come back side by side, the boards' names, history and other boards, a board marked complete, the quote ticked
-for a PET or a GET table's row, sticky notes and participant notes, which REFI-QDA has no place for, and the LPETs
-and LGETs of a project of timepoints, which the file does not yet hold.
+for a PET or a GET table's row, and sticky notes and participant notes, which REFI-QDA has no place for.
+In a project of timepoints each participant's LPETs go too (12 November 2026), from the board the LGETs take:
+each LPET is a code under the participant's LPETs code, with its description and note, its sub-LPETs inside it,
+and a set of every statement under it, its domain and the LPET table's states and key quotes notes on that set.
+Each LGET is a set of its LPETs and their statements. Brought back into a project of timepoints, each
+participant's LPETs come back on a new board of their LPETs canvas, each LPET with its description, note and
+domain holding the same PETs of each timepoint and the same statements on cards of their own, each sub-LPET
+inside its LPET, and the LGETs on a new board of the LGETs canvas, each with its description and note holding
+the same LPETs. The LPET table's states and key quotes stay in their note, since the table keeps a key quote by
+where it stands in the transcript, and so does the bold in a key quote. An LGET inside another comes back as
+part of it, as a GET inside another does, and a second card of an LPET stays out. Brought into a project of one
+timepoint, the PETs come in and the LPETs and LGETs are left out, and the lines say so.
 
 **Sending some participants, or leaving kinds out** (23 October). Through Share a copy's ticks, the
 command line and the MCP server, a send can hold only some participants and leave out what you choose, so another analyst can make PETs for one of your participants without

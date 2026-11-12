@@ -97,6 +97,13 @@ ALSO = {"idiograph": ("Pharkie/idiograph-releases",)}
 # what a release's notes say each computer downloads, in the order the table lists them, by the key in `names`
 WHICH_FILE = (("Mac with Apple Silicon (M1 or later)", "dmg"), ("Windows", "windows"),
               ("Linux: Ubuntu or Debian", "deb"), ("Linux: any other", "linux"))
+# what the notes say under the table about the first open of an unsigned preview, as the README and the
+# site's download say it (Adam, 12 November 2026: on the release page as well)
+FIRST_OPEN = ("### The first time you open it", "",
+              "The preview is not signed yet, so your computer asks once before it opens Idiograph.", "",
+              "- **Mac:** macOS says it cannot check the app. Open System Settings, then Privacy and Security, "
+              "and click Open Anyway.",
+              "- **Windows:** Windows says it protected your PC. Click More info, then Run anyway.")
 # the three files a version ships as, the names the draft and the releases repository give them
 DMG, MAC_UPDATE, WINDOWS = "Idiograph.dmg", "Idiograph.app.tar.gz", "Idiograph-Setup.exe"
 FILES = (DMG, MAC_UPDATE, WINDOWS)
@@ -321,7 +328,7 @@ def which_file(tag: str, held, app: str = app_identity.DEFAULT) -> str:
     rows = [f"| {computer} | [{named[key]}]({download_url(tag, named[key], app)}) |"
             for computer, key in WHICH_FILE if named[key] in held]
     return "\n".join(["### Which file do I need?", "", "| Your computer | The file |", "| --- | --- |", *rows, "",
-                      "The other files are for the app's own updates."])
+                      "The other files are for the app's own updates.", "", *FIRST_OPEN])
 
 
 def sign_all(key: minisign.SecretKey, public: str, files: dict[str, Path], version: str,

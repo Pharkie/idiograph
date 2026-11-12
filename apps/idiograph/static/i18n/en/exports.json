@@ -26,5 +26,10 @@
   "exports.qdpx_set_aside": "Set aside",
   "exports.qdpx_note_exploratory": "Exploratory note",
   "exports.qdpx_note_interviewer": "Interviewer note",
-  "exports.qdpx_note_label": "Note"
+  "exports.qdpx_note_label": "Note",
+  "exports.qdpx_lpets": "LPETs",
+  "exports.qdpx_note_domain": "Domain",
+  "exports.qdpx_note_lpet_table": "LPET table",
+  "exports.qdpx_lpet_state": "State at {timepoint}: {state}",
+  "exports.qdpx_lpet_quote": "Key quote at {timepoint}: {quote}"
 }

@@ -320,7 +320,8 @@ def test_release(scratch):
           and sorted(old_manifest.get("platforms", {})) == sorted(own_manifest.get("platforms", {}))
           and all(e["url"].startswith("https://github.com/Pharkie/idiograph-releases/releases/download/v0.9.1/")
                   and e["signature"] == own_manifest["platforms"][k]["signature"] for k, e in old_manifest.get("platforms", {}).items())
-          and "### Which file do I need?" in own_notes
+          and "### Which file do I need?" in own_notes and "### The first time you open it" in own_notes
+          and "### The first time you open it" in old_notes
           and "| Mac with Apple Silicon (M1 or later) | [Idiograph.dmg](https://github.com/Pharkie/idiograph/releases/download/v0.9.1/Idiograph.dmg) |" in own_notes
           and "| Windows | [Idiograph-Setup.exe](https://github.com/Pharkie/idiograph/releases/download/v0.9.1/Idiograph-Setup.exe) |" in own_notes
           and "AppImage" not in own_notes and ".deb" not in own_notes

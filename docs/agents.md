@@ -503,9 +503,18 @@ each sub-PET inside its PET, each label's description and note, the statements s
 the GETs as a new GETs board (a GET's note is its set's member note), a recording with its offset,
 and in thematic analysis each code's description on the code list and the themes as a new Themes
 board. Give each source its timepoint in `--sources` (`3=Wren:1:T2`) in a project of timepoints, and
-the interview comes back under its own name. Lost on the way: card places, stacks, board names and
-history, a board marked complete, picks and GET table rows, sticky notes, participant notes, LPETs
-and LGETs, and the interviewer's name, which comes back as Settings gives it. A quote across passages
+the interview comes back under its own name. Each participant's LPETs go too (qdpxlpets, 12 November
+2026), from the board the LGETs take: each LPET a code under the participant's `LPETs` code with its
+description and note, sub-LPETs inside, and a set holding that code and every statement under it, its
+domain a note named `Domain` on the set and the LPET table's states and key quotes one named `LPET table`.
+Each LGET is a set of its LPETs' codes and their statements, its note a member note. `qdpx --pets` into a
+project of timepoints brings each participant's LPETs back as a new board of their LPETs canvas, each
+timepoint's PET whose every statement an LPET holds its card, the rest of its statements cards of their
+own, with each LPET's description, note and domain, and the LGETs as a new LGETs board. The dry run's
+`lpets` and `lgets` name them. Into a project of one timepoint they are left out and said. Lost on the
+way: card places, stacks, board names and history, a board marked complete, picks and GET table rows,
+the LPET table's states and key quotes (words in the note alone) and its bold, an LGET inside another (its LPETs come
+back in the outer one), a second card of an LPET, sticky notes, participant notes, and the interviewer's name, which comes back as Settings gives it. A quote across passages
 comes back as a statement on each passage. MCP's tool is `project_export_qdpx`, with `to`,
 `participants` and `recordings`.
 

@@ -92,6 +92,8 @@
   "cli.qdpx.each_gets_a_pets_board_from": " Each gets a PETs board From {package}, a PET a code group.",
   "cli.qdpx.dry_run_nothing_was_written_cannot": "Dry run, nothing was written. {name} cannot be brought in yet: {said}",
   "cli.qdpx.its_code_groups": "Its code groups: {list}.",
+  "cli.qdpx.its_lpets": "Its LPETs: {list}.",
+  "cli.qdpx.its_lgets": "Its LGETs: {list}.",
   "cli.n.source": {
     "one": "{n} source",
     "other": "{n} sources"

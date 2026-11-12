@@ -4464,9 +4464,11 @@ def plural_of(n: int, one: str) -> str:
     return f"{n} {one if n == 1 else one + 's'}"
 
 
-def qdpx_lines(path: Path, pkg: dict, asks: dict, chosen: list[dict], mapped: list[dict], cases: int) -> list[str]:
+def qdpx_lines(path: Path, pkg: dict, asks: dict, chosen: list[dict], mapped: list[dict], cases: int,
+               long: bool = False) -> list[str]:
     """What the import brings and what it leaves out, the plan's section 4: one line of what comes in
-    and one of what does not, the lines each workbook's History keeps."""
+    and one of what does not, the lines each workbook's History keeps. `long` says the project has two
+    timepoints or more, which an Idiograph package's LPETs and LGETs need (qdpxlpets)."""
     c = qdpx_counts(mapped) if mapped else {}
     srcs = [pkg["sources"][r["source"] - 1] for r in chosen]
     passages = sum(len(m["turns"]) for m in mapped)
@@ -4536,9 +4538,19 @@ def qdpx_lines(path: Path, pkg: dict, asks: dict, chosen: list[dict], mapped: li
             walk(g["tree"])
         if i18n.method_now() == "ta":
             carried |= {guid for guid, code in pkg["codes"].items() if code["codable"]}
+        # an LPET's description comes in on its label, or the LPET goes with the line below (qdpxlpets)
+        carried |= set(qdpx_mod.lpet_codes(pkg))
     described = sum(1 for guid, code in pkg["codes"].items() if code["described"] and guid not in carried)
     if described:
         left.append(f"{plural_of(described, 'code description')} left out")
+    if asks["pets"] and asks["codes"] == "statements":
+        lpets, lgets = len(qdpx_mod.lpet_trees(pkg)), len(qdpx_mod.lpet_sets(pkg)[1])
+        if (lpets or lgets) and not long:
+            said = [x for x in (i18n.t("server.qdpx_left_lpets", n=lpets) if lpets else "",
+                                i18n.t("server.qdpx_left_lgets", n=lgets) if lgets else "") if x]
+            left.append(i18n.t("server.qdpx_left_one_timepoint", list=formats.list_words(said, "and")))
+        elif qdpx_mod.lpet_tables(pkg):
+            left.append(i18n.t("server.qdpx_left_lpet_table", n=qdpx_mod.lpet_tables(pkg)))
     if pkg["sets"] and not (asks["pets"] and asks["codes"] == "statements"):
         left.append(f"{plural_of(len(pkg['sets']), 'set')} left out")
     for key, word in (("links", "link"), ("graphs", "network")):
@@ -4728,7 +4740,7 @@ def qdpx_import(root: Path, path: Path, body: dict, make: bool = False, made: st
     basis = chosen or [{"source": n, "pseudonym": str(n)} for n in readable]
     lines = qdpx_lines(path, pkg, asks, basis, [readable[r["source"]] for r in basis],
                        # a source with no pseudonym yet counted as a participant of its own, as the card shows it
-                       len(cases) or len({r["pseudonym"] or f"#{r['source']}" for r in basis}))
+                       len(cases) or len({r["pseudonym"] or f"#{r['source']}" for r in basis}), long=longitudinal(tps))
     source_of = {e["name"]: e["source"] for e in entries}
     answer = {"file": path.name, "package": pkg["package"], "origin": pkg["origin"], "sources": views,
               "choices": {k: asks[k] for k in ("codes", "comments", "loose", "memos", "recordings", "pets", "user")},
@@ -4737,6 +4749,9 @@ def qdpx_import(root: Path, path: Path, body: dict, make: bool = False, made: st
                                                 "timepoint": i.get("timepoint", 1)} for i in c["interviews"]]}
                                for c in cases],
               "groups": [g["name"] for g in qdpx_mod.code_groups(pkg)] if asks["codes"] == "statements" else [],
+              # an Idiograph package's LPETs and LGETs, by name (qdpxlpets)
+              "lpets": [t["name"] for t in qdpx_mod.lpet_trees(pkg)] if asks["codes"] == "statements" else [],
+              "lgets": [g["name"] for g in qdpx_mod.lpet_sets(pkg)[1]] if asks["codes"] == "statements" else [],
               "lines": lines, "said": said, **pseudo_answer(run, body)}
     asks["names"] = run.entries
     if not make:
@@ -4789,6 +4804,8 @@ def qdpx_write(root: Path, path: Path, pkg: dict, asks: dict, cases: list[dict],
                         qdpx_themes(root, path, pkg, done, back)
                     elif not longitudinal(timepoints_of(project_file(root))):
                         qdpx_gets(root, path, pkg, done, back)
+                    else:
+                        qdpx_lgets(root, path, pkg, done, back)
             except Exception:
                 unadd(made, back)
                 team_sync.unadding(root, ours)
@@ -4846,8 +4863,7 @@ def qdpx_case(path: Path, pkg: dict, asks: dict, case: dict, entries: list[dict]
             # the difference between the transcript's own times and the recording's, its offset (qdpx.offset_of)
             audio_mod.write_offset(place, mapped.get("offset") or 0.0)
             back.append(("file", place / audio_mod.OFFSET_FILE))
-    described = "" if case["joins"] else (made_by or f"Imported from {path.name} ({pkg['package']}) on "
-                                                     f"{datetime.now().day} {datetime.now():%B %Y}.")
+    described = "" if case["joins"] else (made_by or i18n.t("server.qdpx_imported_from", **qdpx_note(path, pkg)))
     put_pairs(book, rows, described)
     if not case["joins"]:
         back.append(progress_step(book))
@@ -4863,19 +4879,213 @@ def qdpx_case(path: Path, pkg: dict, asks: dict, case: dict, entries: list[dict]
             fh.write(f"Memos from {path.name} ({pkg['package']})\n\n" + "\n".join(memos))
         back.append(("file", target))
     ids: dict[str, str] = {}
+    lpet_ids: dict[str, str] = {}
+    cards: dict[str, list[tuple[str, str]]] = {}
     # a thematic analysis project's themes are the project's, one board for every participant (qdpx_themes)
     if asks["pets"] and asks["codes"] == "statements" and i18n.method_now() != "ta":
         groups = qdpx_mod.code_groups(pkg)
         aside = qdpx_mod.set_aside(pkg)
-        when = datetime.now()
+        note = i18n.t("server.qdpx_note_pets", **qdpx_note(path, pkg))
         for tp in sorted({s["timepoint"] for s in statements}):
             with themes_mod.scoped(board_timepoint(book, tp)):
                 side = themes_mod.themes_path(book)
             back.append(("progress", side, side.read_bytes() if side.exists() else None))
-            note = f"From {path.name} ({pkg['package']}), a PET a code group, brought in on {when.day} {when:%B %Y}."
             qdpx_board(book, [s for s in statements if s["timepoint"] == tp], groups, f"From {pkg['package']}", note, tp,
                        aside, ids if tp == 1 else None)
-    return {"book": book, "statements": statements, "ids": ids}
+        if longitudinal(project_timepoints(book)):
+            # their LPETs, from the boards just made, and each statement's card for the LGETs (qdpxlpets)
+            cards = statement_cards(book, statements)
+            qdpx_lpets(path, pkg, book, cards, back, lpet_ids)
+    return {"book": book, "statements": statements, "ids": ids, "lpets": lpet_ids, "cards": cards}
+
+
+def qdpx_note(path: Path, pkg: dict) -> dict:
+    """What a note an import writes into the project fills in, its words from the catalogue at each call
+    (qdpxlpets, 12 November 2026): the file, its programme and the day, in the computer's format."""
+    return {"file": path.name, "package": pkg["package"], "day": formats.date_words(datetime.now())}
+
+
+def statement_cards(book: Path, statements: list[dict]) -> dict[str, list[tuple[str, str]]]:
+    """Each statement an import made, by its code, as a card of the participant's LPETs canvas names it: its
+    timepoint's key and its card's key at that timepoint, `("T1", "Spring:3:0")`."""
+    out: dict[str, list[tuple[str, str]]] = {}
+    for tp in sorted({s["timepoint"] for s in statements}):
+        with themes_mod.scoped(board_timepoint(book, tp)):
+            read = themes_mod.read_cards(book)
+        keys: dict = {}
+        for card in read["cards"]:
+            keys.setdefault((card["sheet"], card["row"], card["text"]), card["key"])
+        for s in statements:
+            key = keys.get((s["sheet"], s["row"], s["es"])) if s["timepoint"] == tp else None
+            if key and (tp_label(tp), key) not in out.get(s["code"], []):
+                out.setdefault(s["code"], []).append((tp_label(tp), key))
+    return out
+
+
+def label_order(items: list[dict]) -> list[dict]:
+    """Labels as `themes_ai.lay_out` numbers them: the top ones first, then each one's sub-labels in turn, each
+    followed by its own."""
+    order = list(items)
+
+    def nested(inner: list[dict]) -> None:
+        for item in inner:
+            order.append(item)
+            nested(item["groups"])
+    for item in items:
+        nested(item["groups"])
+    return order
+
+
+def qdpx_lpets(path: Path, pkg: dict, book: Path, cards: dict, back: list, ids: dict) -> dict | None:
+    """A participant's LPETs draft (qdpxlpets, 12 November 2026): a new board on their LPETs canvas, each LPET of the
+    package that holds a statement this import made for them (`qdpx.lpet_trees`) an LPET, its sub-LPETs inside it,
+    with its description, note and domain. An LPET holds each timepoint's PET, or sub-PET, whose every statement it
+    holds, as the board just made reads them, and the rest of its statements each on a card of its own, laid out as
+    a new board is and added through the board's own op (`gets.propose`), made current. `cards` is each statement's
+    card by its code (`statement_cards`), and `ids` takes each LPET's code to its id on the board, for the LGETs
+    draft. None when no LPET holds a statement of theirs."""
+    trees = [t for t in qdpx_mod.lpet_trees(pkg) if any(c in cards for c in t["all"])]
+    if not trees:
+        return None
+    with lpets_scope(book):
+        books = gets_books(book)
+        when = themes_mod.now_iso()
+        data, _cases, _disk, _taken = gets_mod.assemble(book, books, when)
+        held = data.get("cases") or {}
+        pile = gets_mod.blank_board(data, "draft", "", when)["cards"]
+        texts = {gets_mod.card_of(case, "group", p["id"]): gets_mod.layout_text(p["title"], themes_mod.description_of(p))
+                 for case, rec in held.items() for p in rec.get("pets") or []}
+        laid_cards = [{"key": k, "text": texts.get(k, ""), "x": c["x"], "y": c["y"]} for k, c in pile.items()]
+        lines: dict[str, str] = {}
+        used: set[str] = set()
+
+        def members_of(codes: list[str]) -> list[str]:
+            want_at: dict[str, list[str]] = {}
+            for code in codes:
+                for tkey, key in cards.get(code, []):
+                    if key not in want_at.setdefault(tkey, []):
+                        want_at[tkey].append(key)
+            out = []
+            for tkey in sorted(want_at, key=gets_mod.case_order):
+                rec = held.get(tkey) or {}
+                said = rec.get("lines") or {}
+                rest = {k for k in want_at[tkey] if k in said}
+                pets = {p["id"]: p for p in rec.get("pets") or []}
+                # a PET before its sub-PETs, so a PET wholly inside is one card
+                for card, _title in gets_mod.cards_of(tkey, rec):
+                    under = set(gets_mod.under(gets_mod.split_key(card)["ident"], pets))
+                    if card in pile and card not in used and under and under <= rest:
+                        used.add(card)
+                        out.append(card)
+                        rest -= under
+                for key in want_at[tkey]:
+                    card = gets_mod.card_of(tkey, "es", key)
+                    if key in rest and card not in used:
+                        used.add(card)
+                        out.append(card)
+                        lines[card] = str((said.get(key) or {}).get("text") or "")
+            return out
+
+        def label(tree: dict) -> dict | None:
+            members = members_of(tree["codes"])
+            inner = [x for x in (label(t) for t in tree["groups"]) if x]
+            if not members and not inner:
+                return None
+            return {"label": themes_ai.clean_label(tree["name"]) or "Code group", "members": members, "groups": inner,
+                    "description": tree["description"], "note": tree["note"], "domain": tree["domain"],
+                    "code": tree["code"]}
+
+        made = [x for x in (label(t) for t in trees) if x]
+        if not made:
+            return None
+        laid_cards += [{"key": k, "text": t, "x": 0, "y": 0} for k, t in lines.items()]
+        laid = themes_ai.gets_ids(themes_ai.lay_out(made, laid_cards, [], size=gets_mod.card_height))
+        by_id = {g["id"]: g for g in laid["groups"]}
+        for n, item in enumerate(label_order(made), start=1):
+            g = by_id.get(f"G{n}")
+            if g is None:
+                continue
+            for key, value in ((themes_mod.DESCRIPTION, item["description"]), ("note", item["note"]),
+                               (themes_mod.DOMAIN, item["domain"])):
+                if value:
+                    g[key] = value
+            ids[item["code"]] = g["id"]
+        side = gets_mod.gets_path(book)
+        back.append(("progress", side, side.read_bytes() if side.exists() else None))
+        return gets_mod.propose(book, books, dict(laid, picks={}, rows={}), i18n.t("server.qdpx_note_lpets", **qdpx_note(path, pkg)))
+
+
+def qdpx_lgets(root: Path, path: Path, pkg: dict, done: list[dict], back: list) -> dict | None:
+    """The LGETs draft (qdpxlpets, 12 November 2026): a new board on the project's LGETs canvas, each LGET of the
+    package (`qdpx.lpet_sets`) an LGET holding the LPETs this import made that it names, and the statements it
+    holds under none of them each on a card of its own, with its description and note, laid out as a new board is
+    and added through the board's own op (`gets.propose`), made current. `done` is each participant's workbook, its
+    LPETs' ids by their codes and its statements' cards (`qdpx_case`). None when no LGET holds one of them."""
+    _own, lgets = qdpx_mod.lpet_sets(pkg)
+    if not lgets:
+        return None
+    every: dict[str, list[str]] = {}
+
+    def walk(tree: dict) -> None:
+        every[tree["code"]] = tree["all"]
+        for t in tree["groups"]:
+            walk(t)
+    for tree in qdpx_mod.lpet_trees(pkg):
+        walk(tree)
+    with lgets_scope(root):
+        books = gets_books(root)
+        when = themes_mod.now_iso()
+        data, _cases, _disk, _taken = gets_mod.assemble(root, books, when)
+        held = data.get("cases") or {}
+        case_of = {str(Path(b["workbook"]).resolve()): b["case"] for b in books}
+        keys: dict[str, str] = {}
+        statements: dict[str, list[str]] = {}
+        texts: dict[str, str] = {}
+        for one in done:
+            case = case_of.get(str(Path(one["book"]).resolve()))
+            rec = held.get(case) or {}
+            known = {p["id"] for p in rec.get("pets") or []}
+            for code, gid in (one.get("lpets") or {}).items():
+                if gid in known:
+                    keys[code] = gets_mod.card_of(case, "group", gid)
+            said = rec.get("lines") or {}
+            for code, at in (one.get("cards") or {}).items():
+                for _tkey, key in at:
+                    if key in said:
+                        card = gets_mod.card_of(case, "es", key)
+                        statements.setdefault(code, []).append(card)
+                        texts[card] = str(said[key].get("text") or "")
+        groups, loose, taken = [], [], set()
+        for g in lgets:
+            # a card in one LGET alone, as a board keeps it, so a second card of an LPET stays out
+            members = [keys[c] for c in g["lpets"] if c in keys]
+            under = {x for c in g["lpets"] for x in every.get(c, [])}
+            members += [k for code in g["codes"] if code not in under for k in statements.get(code, [])]
+            members = [k for i, k in enumerate(members) if k not in taken and k not in members[:i]]
+            taken.update(members)
+            loose += [m for m in members if gets_mod.split_key(m)["kind"] == "es"]
+            if members:
+                groups.append({"label": themes_ai.clean_label(g["name"]) or "Code group", "members": members,
+                               "groups": [], "description": g["description"], "note": g["note"]})
+        if not groups:
+            return None
+        pile = gets_mod.blank_board(data, "draft", "", when)["cards"]
+        said = {gets_mod.card_of(case, "group", p["id"]): gets_mod.layout_text(p["title"], themes_mod.description_of(p))
+                for case, rec in held.items() for p in rec.get("pets") or []}
+        cards = ([{"key": k, "text": said.get(k, ""), "x": c["x"], "y": c["y"]} for k, c in pile.items()]
+                 + [{"key": k, "text": texts.get(k, ""), "x": 0, "y": 0} for k in loose])
+        laid = themes_ai.gets_ids(themes_ai.lay_out(groups, cards, [], size=gets_mod.card_height))
+        by_id = {g["id"]: g for g in laid["groups"]}
+        for n, item in enumerate(groups, start=1):
+            g = by_id.get(f"G{n}")
+            if g is not None:
+                if item["description"]:
+                    g[themes_mod.DESCRIPTION] = item["description"]
+                if item["note"]:
+                    g["note"] = item["note"]
+        side = gets_mod.gets_path(root)
+        back.append(("progress", side, side.read_bytes() if side.exists() else None))
+        return gets_mod.propose(root, books, dict(laid, picks={}, rows={}), i18n.t("server.qdpx_note_lgets", **qdpx_note(path, pkg)))
 
 
 def qdpx_gets(root: Path, path: Path, pkg: dict, done: list[dict], back: list) -> dict | None:
@@ -4919,9 +5129,7 @@ def qdpx_gets(root: Path, path: Path, pkg: dict, done: list[dict], back: list) -
             g["note"] = item["note"]
     side = gets_mod.gets_path(root)
     back.append(("progress", side, side.read_bytes() if side.exists() else None))
-    day = datetime.now()
-    note = f"From {path.name} ({pkg['package']}), a GET a set of PETs, brought in on {day.day} {day:%B %Y}."
-    return gets_mod.propose(root, books, dict(laid, picks={}, rows={}), note)
+    return gets_mod.propose(root, books, dict(laid, picks={}, rows={}), i18n.t("server.qdpx_note_gets", **qdpx_note(path, pkg)))
 
 
 def qdpx_themes(root: Path, path: Path, pkg: dict, done: list[dict], back: list) -> dict | None:
@@ -5008,9 +5216,7 @@ def qdpx_themes(root: Path, path: Path, pkg: dict, done: list[dict], back: list)
             g["note"] = item["note"]
     # each code's extracts in one place, as the Themes canvas keeps a code one card
     codes_mod.gather(laid, data)
-    day = datetime.now()
-    note = f"From {path.name} ({pkg['package']}), a theme a set of codes, brought in on {day.day} {day:%B %Y}."
-    return gets_mod.propose(root, books, dict(laid, picks={}, rows={}), note)
+    return gets_mod.propose(root, books, dict(laid, picks={}, rows={}), i18n.t("server.qdpx_note_themes", **qdpx_note(path, pkg)))
 
 
 def qdpx_codes(pkg: dict, mapped: dict, asks: dict) -> dict[int, list[tuple[str, str]]]:
@@ -5185,6 +5391,10 @@ def qdpx_export_lines(answer: dict, dry_run: bool) -> list[str]:
             parts.append(i18n.t("server.qdpx_out_pets", n=c["pets"]))
         if c["gets"]:
             parts.append(i18n.t("server.qdpx_out_gets", n=c["gets"]))
+        if c.get("lpets"):
+            parts.append(i18n.t("server.qdpx_out_lpets", n=c["lpets"]))
+        if c.get("lgets"):
+            parts.append(i18n.t("server.qdpx_out_lgets", n=c["lgets"]))
     if c["notes"]:
         parts.append(i18n.t("server.qdpx_out_notes", n=c["notes"]))
     if c["recordings"]:
@@ -5199,6 +5409,7 @@ def qdpx_export_lines(answer: dict, dry_run: bool) -> list[str]:
             "no_words": lambda n: i18n.t("server.qdpx_out_left_no_words", n=n),
             "sticky_notes": lambda n: i18n.t("server.qdpx_out_left_sticky", n=n),
             "participant_notes": lambda n: i18n.t("server.qdpx_out_left_pn", n=n),
+            "lpet_tables": lambda n: i18n.t("server.qdpx_out_left_lpet_table", n=n),
             "recordings_left": lambda n: i18n.t("server.qdpx_out_left_large", n=n)}
     left = [word(c[key]) for key, word in said.items() if c.get(key)]
     if left:

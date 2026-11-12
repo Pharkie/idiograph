@@ -27,12 +27,19 @@ Project.xsd sets it out, and `Sources/`, each file named by a new GUID. The mapp
     Not placed, Set aside                 a code of each name under the participant's, holding those statements
     a theme, a sub-theme (TA)             a code that cannot be coded holding its codes, and each theme a set
     a GET                                 a set of the PETs and statements under it, its note a member note
+    an LPET, a sub-LPET                   a code that cannot be coded under the participant's LPETs code, in
+                                          the board's order, its description its own, and a set of its own
+                                          holding that code and every statement under it, its domain and its
+                                          LPET table's states and key quotes notes of the set
+    an LGET                               a set of the LPETs' codes under it and every statement under them,
+                                          its note a member note
     a participant                         a case holding its sources, and a code holding its PETs (IPA)
     a label's note                        a note linked to its code
 
 The boards are each participant's PETs board as the GETs take it (`gets.source_board`: the board marked
 complete, else the Current board, else the one last open), at each timepoint in a project of two or
-more. Nothing here writes a project's file. The standard library and the app's own readers alone.
+more, and there their LPETs board as the LGETs take it, the same way. Nothing here writes a project's
+file. The standard library and the app's own readers alone.
 """
 from __future__ import annotations
 
@@ -352,6 +359,152 @@ def gets_sets(plan: dict, root: Path, pets: dict, statements: dict, chosen: set)
     return out
 
 
+def lpet_table(rec_of, rows: dict, names: dict) -> str:
+    """An LPET's rows of the LPET table as a note's words, a line for each timepoint where he wrote its state or
+    ticked its key quote, in the timepoints' order: "State at T1: ..." and "Key quote at T1: "..."". A quote a
+    stand-in for none ticked, and his bold, stay out. `rec_of` gives a timepoint's copy by its key."""
+    lines = []
+    for key, label in names.items():
+        row = rows.get(key) if isinstance(rows.get(key), dict) else {}
+        state = str(row.get("note") or "").strip()
+        if state:
+            lines.append(i18n.t("exports.qdpx_lpet_state", timepoint=label, state=state))
+        said = ""
+        if row.get("quote"):
+            said = (gets_mod.quote_at(rec_of(key), row["quote"]) or {}).get("text") or ""
+        elif isinstance(row.get("passage"), dict):
+            said = str(row["passage"].get("text") or "")
+        said = " ".join(themes_mod.bare(said).split())
+        if said:
+            lines.append(i18n.t("exports.qdpx_lpet_quote", timepoint=label, quote=f'"{said}"'))
+    return "\n".join(lines)
+
+
+def lpets_tree(plan: dict, book: Path, statements: dict[str, dict], names: dict) -> tuple[dict | None, list[dict], dict]:
+    """A participant's LPETs as codes and sets (qdpxlpets, 12 November 2026), from the board the LGETs take
+    (`gets.source_board`): under an LPETs code each LPET a code that cannot be coded, in the board's order,
+    with its description and note, its sub-LPETs inside it. A statement already sits under its timepoint's
+    PET, so each LPET and sub-LPET is also a set holding its own code and every statement under it at any
+    depth, its timepoint PETs' and its own, which another programme reads as a set of statements and
+    Idiograph's import knows by the code. Its domain and its LPET table's states and key quotes are notes
+    of the set. `names` is each timepoint's label by its key, `T1`. Answers the LPETs code, None for a
+    participant with no LPETs, the sets, and each LPET's code and statements by its id on the board, for
+    the LGETs."""
+    counts = plan["counts"]
+    with gets_mod.lpets(book, names):
+        data = gets_mod.load(book)
+    board = gets_mod.source_board(data)[0] if data else None
+    if board is None:
+        return None, [], {}
+    kept = gets_mod.normal(board, data)
+    by_id = {g["id"]: g for g in kept["groups"]}
+    parents = themes_mod.parents_of(kept["groups"])
+    thrown = set(kept.get("discarded") or [])
+    held = data.get("cases") if isinstance(data.get("cases"), dict) else {}
+    rows = kept.get("rows") or {}
+    sets: list[dict] = []
+    ids: dict[str, dict] = {}
+
+    def keys_of(member: str) -> list[str]:
+        k = gets_mod.split_key(member)
+        rec = held.get(k["case"]) if isinstance(held.get(k["case"]), dict) else {}
+        if k["kind"] == "es":
+            return [k["ident"]]
+        if k["kind"] != "group":
+            return []
+        pets = {p["id"]: p for p in rec.get("pets") or [] if isinstance(p, dict) and p.get("id")}
+        return gets_mod.under(k["ident"], pets) if k["ident"] in pets else []
+
+    def lpet(gid: str, seen: frozenset) -> tuple[dict, list[str]]:
+        g = by_id[gid]
+        out = node(g["label"], False, themes_mod.description_of(g), label_note(plan, g))
+        mine: list[str] = []
+        for m in g["members"]:
+            if m in by_id:
+                if m not in seen:
+                    sub, theirs = lpet(m, seen | {m})
+                    out["children"].append(sub)
+                    counts["sub_lpets"] += 1
+                    mine += [c for c in theirs if c not in mine]
+                continue
+            if m in thrown:
+                continue
+            for key in keys_of(m):
+                st = statements.get(key)
+                if st and st["node"]["guid"] not in mine:
+                    mine.append(st["node"]["guid"])
+        notes = []
+        domain = " ".join(str(g.get(themes_mod.DOMAIN) or "").split())
+        if domain:
+            notes.append({"guid": guid(), "name": i18n.t("exports.qdpx_note_domain"), "text": domain})
+        table = lpet_table(lambda key: held.get(key) if isinstance(held.get(key), dict) else {},
+                           rows.get(gid) if isinstance(rows.get(gid), dict) else {}, names)
+        if table:
+            notes.append({"guid": guid(), "name": i18n.t("exports.qdpx_note_lpet_table"), "text": table})
+            counts["lpet_tables"] += 1
+        plan["notes"] += notes
+        # the set named as its code is, so the import finds the one by the other
+        sets.append({"guid": guid(), "name": out["name"], "description": themes_mod.description_of(g),
+                     "codes": [out["guid"]] + mine, "notes": [n["guid"] for n in notes]})
+        ids[gid] = {"node": out["guid"], "statements": mine}
+        return out, mine
+
+    holder = node(i18n.t("exports.qdpx_lpets"), False)
+    for gid in themes_mod.canvas_order([g["id"] for g in kept["groups"] if g["id"] not in parents], by_id):
+        holder["children"].append(lpet(gid, frozenset({gid}))[0])
+        counts["lpets"] += 1
+    counts["sticky_notes"] += len(board.get("notes") or [])
+    return (holder if holder["children"] else None), sets, ids
+
+
+def lgets_sets(plan: dict, root: Path, lpets: dict, statements: dict, chosen: set, names: dict) -> list[dict]:
+    """The LGETs board on the canvas (qdpxlpets, 12 November 2026), each LGET a set of the codes of the LPETs under
+    it at any depth and of every statement under them, and of the statements on it alone, in the board's order,
+    only the participants exported, its note a member note, as a GET is written. `lpets` is each participant's
+    LPETs by id (`lpets_tree`) and `statements` each one's statement codes by key."""
+    counts = plan["counts"]
+    with gets_mod.lgets(root, names):
+        data = gets_mod.load(root)
+    boards = gets_mod.boards_of(data)
+    if not boards:
+        return []
+    board = next((b for b in boards if b.get("id") == data.get("current")), boards[0])
+    kept = gets_mod.normal(board, data)
+    by_id = {g["id"]: g for g in kept["groups"]}
+    parents = themes_mod.parents_of(kept["groups"])
+    out = []
+
+    def under(gid: str, seen: frozenset, into: list[str]) -> None:
+        for m in by_id[gid]["members"]:
+            if m in by_id:
+                if m not in seen:
+                    under(m, seen | {m}, into)
+                continue
+            k = gets_mod.split_key(m)
+            if k["case"] not in chosen:
+                continue
+            if k["kind"] == "pn":
+                counts["participant_notes"] += 1
+                continue
+            if k["kind"] == "group":
+                held = lpets.get(k["case"], {}).get(k["ident"])
+                codes = [held["node"]] + held["statements"] if held else []
+            else:
+                st = statements.get(k["case"], {}).get(k["ident"])
+                codes = [st["node"]["guid"]] if st and st.get("node") else []
+            into += [c for c in codes if c not in into]
+
+    for gid in themes_mod.canvas_order([g["id"] for g in kept["groups"] if g["id"] not in parents], by_id):
+        members: list[str] = []
+        under(gid, frozenset({gid}), members)
+        g = by_id[gid]
+        out.append({"guid": guid(), "name": g["label"], "description": themes_mod.description_of(g), "codes": members,
+                    "notes": label_note(plan, g)})
+        counts["lgets"] += 1
+    counts["sticky_notes"] += len(board.get("notes") or [])
+    return out
+
+
 def themes_tree(plan: dict, root: Path, codes: dict[str, dict], row_code: dict) -> list[dict]:
     """A thematic analysis project's Themes board as codes: each theme a node holding its sub-themes and its
     codes, a code in the first theme that holds one of its extracts, then the codes in no theme. Each theme is
@@ -399,7 +552,8 @@ def themes_tree(plan: dict, root: Path, codes: dict[str, dict], row_code: dict) 
 def fresh_counts() -> dict:
     keys = ("statements", "quotes", "no_quote", "quote_missing", "across", "loose", "notes", "interviewer_notes",
             "label_notes", "pets", "sub_pets", "gets", "themes", "codes", "sources", "recordings", "recordings_left",
-            "untimed", "renamed", "no_words", "sticky_notes", "participant_notes")
+            "untimed", "renamed", "no_words", "sticky_notes", "participant_notes", "lpets", "sub_lpets", "lgets",
+            "lpet_tables")
     return {k: 0 for k in keys}
 
 
@@ -425,6 +579,10 @@ def plan(root: Path, name: str, method: str, question: str, people: list[dict], 
     row_code: dict = {}
     pets_by: dict[str, dict] = {}
     statements_by: dict[str, dict] = {}
+    lpets_by: dict[str, dict] = {}
+    # each timepoint's label by its key, T1, as the LPETs and the LGETs name them
+    names = {f"T{tp['n'] if isinstance(tp, dict) and 'n' in tp else i + 1}":
+             str((tp.get("label") if isinstance(tp, dict) else "") or f"T{i + 1}") for i, tp in enumerate(timepoints or [])}
     for person in people:
         label, book = person["label"], Path(person["book"])
         case = wb_mod.read_case(book)
@@ -481,6 +639,13 @@ def plan(root: Path, name: str, method: str, question: str, people: list[dict], 
                 nodes = [held] if nodes else []
             who["children"] += nodes
             out["sets"] += sets
+        if longitudinal:
+            # their LPETs, after every timepoint's PETs (qdpxlpets)
+            held, sets, ids = lpets_tree(out, book, statements, names)
+            if held is not None:
+                who["children"].append(held)
+            out["sets"] += sets
+            lpets_by[label] = ids
         # a statement no board names, on a sheet no timepoint reads, still a code under its participant
         rest = [st["node"] for st in statements.values() if not st.get("used")]
         if rest:
@@ -494,6 +659,9 @@ def plan(root: Path, name: str, method: str, question: str, people: list[dict], 
         counts["codes"] = len(codes)
     elif not longitudinal:
         out["sets"] += gets_sets(out, root, pets_by, statements_by, {p["label"] for p in people})
+    else:
+        # the LGETs after every participant's LPETs, so each LPET's own set comes first (qdpxlpets)
+        out["sets"] += lgets_sets(out, root, lpets_by, statements_by, {p["label"] for p in people}, names)
     return out
 
 

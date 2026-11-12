@@ -504,7 +504,9 @@ TOOLS = [
           "recordings": {"type": "string", "enum": ["copy", "leave"],
                          "description": "A recording in the package: copy (default) or leave."},
           "pets": {"type": "boolean", "description": "With codes as statements, a PETs board From <package> on each "
-                                                     "participant's canvas, a PET a code group. Only on his word."},
+                                                     "participant's canvas, a PET a code group, and from Idiograph's own "
+                                                     "package in a project of timepoints each participant's LPETs and "
+                                                     "the LGETs as boards too. Only on his word."},
           "user": {"type": "string", "description": "One coder's work alone, by name. Every coder's when left out."},
           "skip": {"type": "array", "items": {"type": "string"},
                   "description": "Finds of the project's list of names to leave as written, each an entry's number and "
@@ -815,7 +817,9 @@ TOOLS = [
          "there already never written over. Each interview is a text source, its passages as the transcript has "
          "them with their speakers and times. In an IPA project each experiential statement is a code applied to "
          "its quote, one with no quote applied to its whole passage, the PETs and sub-PETs codes holding them in "
-         "the board's order with their descriptions, each PET and each GET a set too. In a thematic analysis "
+         "the board's order with their descriptions, each PET and each GET a set too. In a project of timepoints "
+         "each LPET is a code under its participant's LPETs code and a set of its statements, and each LGET a set "
+         "of its LPETs and their statements. In a thematic analysis "
          "project each code is a code with its description, applied to its extracts, the themes holding them. "
          "Exploratory notes are notes on their passages. Run dry_run first, which says what it would hold and "
          "how statements with no quote go, and write it only on his word.",

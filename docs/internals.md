@@ -2668,6 +2668,35 @@ the extracts, gathered by code, where the import used to make a PETs board for e
 which becomes the recording's offset, from any programme. From an Idiograph package a passage's
 statements keep the selections' order in the file, and a source's interview is its name after its
 case's. Area 340's third part trips an invented project of two timepoints.
+
+**LPETs and LGETs in REFI-QDA** (12 November 2026, qdpxlpets). A statement already sits under its timepoint's PET
+in the codebook, so `qdpx_out.lpets_tree` reads a participant's LPETs file inside `gets.lpets`, from
+`gets.source_board` as LGETs take it, and writes each LPET as a code that cannot be coded under the participant's
+LPETs code (`exports.qdpx_lpets`), after their timepoints' codes, with its description and its note's `NoteRef`, its
+sub-LPETs inside, and each LPET and sub-LPET as a set named as its code, holding the code first and then every
+statement under it at any depth (a timepoint PET's through `gets.under`, a statement card's own). Its domain is a
+note named `exports.qdpx_note_domain` and the rows he wrote of the LPET table a note named
+`exports.qdpx_note_lpet_table` (`lpet_table`, a state or a ticked key quote a line), both `MemberNote`s of the set.
+`lgets_sets` writes each top LGET of the LGETs file's current board inside `gets.lgets` as a set of its LPETs' codes
+and their statements and its statement cards' codes, after every participant's LPETs, its note a `MemberNote`. The
+reader learns them from an Idiograph package alone: `qdpx.lpet_codes` (every code that cannot be coded inside a
+participant's LPETs code, by the name in the run's language or English), `lpet_sets` (an LPET's own set is the
+first holding its code alone of the LPETs' and bearing its name, any other set holding one an LGET), `lpet_trees`
+(each LPET's statements, its own being those no sub-LPET holds, its domain from the set's note) and
+`lpet_tables`. `code_groups` takes from an Idiograph package only sets of statements alone, so neither a GET's,
+an LPET's nor an LGET's set becomes a PET, and finds no PETs in one with none, and `upper_groups` leaves out a set
+holding an LPET's code. In a project of timepoints `routes.qdpx_case` then makes the LPETs draft,
+`qdpx_lpets`, inside `lpets_scope`: `statement_cards` finds each statement's card at its timepoint, `gets.assemble`
+takes in the timepoint boards just made, a PET or sub-PET card (`gets.cards_of`, a PET before its sub-PETs) goes
+into an LPET when the LPET holds every statement under it and no card went before, the rest are statement cards,
+`themes_ai.lay_out` lays them out (`label_order` its numbering, which carries each label's description, note and
+`themes.DOMAIN`) and `gets.propose` adds the board. `qdpx_write` then makes the LGETs draft, `qdpx_lgets`, inside
+`lgets_scope`, each LPET's card by the id `qdpx_lpets` gave it, the statements no LPET of the LGET holds on
+cards of their own, a card in one LGET alone. Into a project of one timepoint `qdpx_lines` says they are left
+out, and in one of timepoints that the LPET table's rows are. The notes an import writes into the project, the
+boards' (`server.qdpx_note_pets`, `_gets`, `_themes`, `_lpets`, `_lgets`) and a new workbook's description
+(`server.qdpx_imported_from`), now come from the catalogue through `qdpx_note`, the day by `formats.date_words`
+in the computer's format. Area 340's third part trips the LPETs and LGETs too.
 **Names replaced as a transcript comes in** (namesrule, 8 November 2026, the first of three builds, Adam's picks of that
 day). `family/names.py` is the whole of it: the store, the rules and a key file's read. A project's list is
 `{"entries": [{"real": [spellings], "to", "for", "case"}]}` in `idiograph-names.json` (`names.FILE`) at the project's root

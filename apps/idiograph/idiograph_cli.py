@@ -7100,6 +7100,11 @@ def cmd_qdpx(p: Project, args) -> tuple:
     lines += [qdpx_source_line(v) for v in answer["sources"]]
     if answer["groups"]:
         lines.append(i18n.t("cli.qdpx.its_code_groups", list=', '.join(answer['groups'])))
+    # an Idiograph package's LPETs and LGETs (qdpxlpets)
+    if answer.get("lpets"):
+        lines.append(i18n.t("cli.qdpx.its_lpets", list=', '.join(answer['lpets'])))
+    if answer.get("lgets"):
+        lines.append(i18n.t("cli.qdpx.its_lgets", list=', '.join(answer['lgets'])))
     lines += answer["lines"] + names_lines(answer)
     if args.dry_run:
         if answer["said"]:
@@ -7641,7 +7646,8 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--recordings", default=None, help="a recording in the project copied into Source (copy, the "
                                                       "default) or leave")
     x.add_argument("--pets", action="store_true", help="with codes as statements, a PETs board From <package>, a PET "
-                                                       "a code group")
+                                                       "a code group, and from Idiograph's own package in a project of "
+                                                       "timepoints each participant's LPETs and the LGETs as boards too")
     x.add_argument("--user", default=None, help="one coder's work alone, by name, every coder's when left out")
     x.add_argument("--speakers", default=None, help="each speaker's role, Name=Role with commas, the guess when left out")
     x.add_argument("--skip", action="append", default=None, metavar="ENTRY:N",
