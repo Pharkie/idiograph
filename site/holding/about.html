@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About Idiograph</title>
+<meta name="description" content="Who made Idiograph, software for Interpretative Phenomenological Analysis, and why.">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#FBF7EF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16130E" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.png" type="image/png" sizes="32x32">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<svg class="symbols" aria-hidden="true" focusable="false"><symbol id="idiograph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
+  <path d="M8.5 3.5H4.5V20.5H8.5M15.5 3.5H19.5V20.5H15.5"/>
+  <circle cx="12" cy="12" r="2.7" stroke="none" style="fill: var(--mark-dot, currentColor)"/>
+</symbol></svg>
+<header class="site-head">
+  <a class="site-home" href="index.html" aria-label="Idiograph, home"><span class="pe"><svg class="lockup" viewBox="0 0 107.33 15" role="img" aria-label="Idiograph" fill="none"><use href="#idiograph" width="15" height="15"/><path transform="translate(19.2 12.5)" stroke="currentColor" stroke-width="1.3" stroke-linecap="square" stroke-linejoin="miter" d="M0.65 -9.35V-0.65M5.35 -0.65V-9.35H8.3A4.35 4.35 0 0 1 8.3 -0.65ZM16.95 -9.35V-0.65M21.65 -5a4.35 4.35 0 1 0 8.7 0a4.35 4.35 0 1 0 -8.7 0M41.93 -7.91A4.35 4.35 0 1 0 43.05 -5H39.5M47.35 -0.65V-9.35H50.9A2.17 2.17 0 0 1 50.9 -5H47.35M50.7 -5L54.3 -0.65M58.15 -0.65L62.1 -9.35L66.05 -0.65M59.8 -3.4H64.4M70.15 -0.65V-9.35H73.5A2.38 2.38 0 0 1 73.5 -4.6H70.15M80.18 -9.35V-0.65M87.47 -9.35V-0.65M80.18 -5H87.47"/></svg><span class="pe-stamp">Preview Edition</span></span></a>
+  <nav class="site-nav" aria-label="Site"><a href="features.html">Features</a><a href="#get">Download</a><a href="about.html" aria-current="page">About</a></nav>
+</header>
+<main class="ap">
+  <h1>About</h1>
+  <section class="ap-who" aria-labelledby="who-head">
+    <img class="ap-photo" src="adam.jpg" width="256" height="256" alt="Adam Knowles">
+    <div class="ap-who-text">
+      <h2 class="ap-name" id="who-head">Adam Knowles</h2>
+      <p class="ap-bio">I am a psychotherapist, supervisor, teacher and researcher in London, registered with the UKCP. I trained at Regent&#x27;s University London, and I am a PhD candidate in Psychological Sciences at Birkbeck, University of London. My PhD is on ayahuasca, and a newer strand of my research looks at experiences of space travel.</p>
+      <p class="ap-site"><a href="https://adamknowles.co.uk">adamknowles.co.uk</a></p>
+    </div>
+  </section>
+  <section class="ap-letter" aria-labelledby="why-head">
+    <h2 id="why-head">Why I made Idiograph</h2>
+    <p>For years I looked for software that follows IPA properly, and I never found it.</p>
+    <p>The big qualitative packages are built for coding. IPA can be made to fit them with workarounds, such as a project for each interview and code groups standing in for themes. None I found was built around IPA&#x27;s own steps: exploratory notes and experiential statements beside the transcript, then each participant&#x27;s personal experiential themes, then group themes across them.</p>
+    <p>Most of them charge a yearly fee. Some keep participants&#x27; words on a company&#x27;s servers abroad, which an ethics board has to hear about. Some newer AI tools write the themes for you, when in IPA the interpretation is the researcher&#x27;s own work. So I did my analysis in Word and Excel, as most IPA students do.</p>
+    <p>Now that AI can help one person build software like this, I set out to make my own, working with Claude, an AI model by Anthropic. Idiograph is the result. It is free and open source. It follows Smith, Flowers and Larkin&#x27;s steps, words and tables, keeps your work in an Excel workbook on your own computer, and leaves every decision to you.</p>
+    <p>It is an early preview, and I would love to hear how you get on with it, and where it falls short. Please tell me through Send feedback, the bug button on every screen of the app, or <a href="https://github.com/Pharkie/idiograph/issues">open an issue on GitHub</a>.</p>
+    <p class="ap-sign">Adam</p>
+  </section>
+  <div class="fp-foot">
+  <div class="get" id="get">
+    <p class="get-line" id="get-line">Idiograph is for Mac, Windows and Linux computers.</p>
+    <p class="get-more"><a href="features.html">Features</a><a href="https://github.com/Pharkie/idiograph/releases/latest" id="get-other">All downloads</a><a href="https://github.com/Pharkie/idiograph">Source on GitHub</a></p>
+  </div>
+  </div>
+</main>
+<script src="get.js"></script>
+</body>
+</html>

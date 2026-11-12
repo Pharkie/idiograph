@@ -7,7 +7,8 @@
   const rows = [...document.querySelectorAll('.list .fr')];
   const fold = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const textOf = (r, sel) => [...r.querySelectorAll(sel)].map((e) => e.textContent).join(' ');
-  const seen = new Map(rows.map((r) => [r, fold(textOf(r, '.fr-name, .fr-line'))]));
+  const tagOf = (r) => fold(textOf(r, '.fr-mark .tag')).replace(/\s+/g, '');
+  const seen = new Map(rows.map((r) => [r, fold(textOf(r, '.fr-name, .fr-line')) + ' ' + tagOf(r)]));
   const sentences = new Map(rows.map((r) => {
     const d = r.querySelector('.fr-detail');
     return [r, d ? d.textContent.trim().split(/(?<=[.!?])\s+(?=[A-Z0-9"“(])/) : []];
@@ -43,7 +44,7 @@
   };
   const run = () => {
     if (!box) return;
-    const asked = fold(box.value).split(/\s+/).filter(Boolean);
+    const asked = fold(box.value).replace(/(^|[^a-z0-9])not\s+planned($|[^a-z0-9])/g, '$1notplanned$2').split(/\s+/).filter(Boolean);
     let res = matcher(asked, true);
     if (!rows.some((r) => res.every((re) => has(re, text.get(r))))) res = matcher(asked, false);
     let shown = 0;

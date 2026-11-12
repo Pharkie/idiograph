@@ -33,6 +33,13 @@
     other.textContent = 'Other downloads';
   };
 
+  const firstOpen = (which) => {
+    const own = document.getElementById('fo-' + which);
+    if (!own) return;
+    own.parentNode.prepend(own);
+    own.open = true;
+  };
+
   const intelMac = async () => {
     try {
       if (uad && uad.getHighEntropyValues) {
@@ -51,11 +58,13 @@
 
   if (os === 'windows') offer('Download for Windows', 'Idiograph-Setup.exe');
   else if (os === 'linux') offer('Download for Linux', 'Idiograph-amd64.deb', 'The .deb is for Ubuntu, Debian and Mint.', ['Other Linux: AppImage', 'Idiograph-x86_64.AppImage']);
-  else if (os === 'phone') plain('Idiograph runs on a Mac, Windows or Linux computer, not on a phone or tablet.');
+  else if (os === 'phone') plain('Idiograph is a desktop app for Mac, Windows and Linux. Visit this page on one of those computers to download it.');
   else if (os === 'mac') {
     intelMac().then((intel) => {
       if (intel) plain('Idiograph for Mac needs an Apple Silicon Mac (M1 or later), and this looks like an Intel Mac.');
       else offer('Download for Mac', 'Idiograph.dmg', 'For Apple Silicon Macs (M1 or later).');
+      if (!intel) firstOpen('mac');
     });
   }
+  if (os === 'windows') firstOpen('windows');
 })();
