@@ -557,16 +557,31 @@ def fresh_counts() -> dict:
     return {k: 0 for k in keys}
 
 
+def variables_of(categories: list[dict] | None) -> list[dict]:
+    """The project's demographics as REFI-QDA's variables (demobuild, 12 November 2026), one a category, each of
+    Text, its description saying its kind and, for a list, its values one a line in their order, so Idiograph's own
+    import brings the list back in that order. Colours and Show as a pill have no place in the standard."""
+    out = []
+    for c in categories or []:
+        head = i18n.t("demographics.qdpx.list_head") if c["kind"] == "list" else i18n.t("demographics.qdpx.words_head")
+        lines = [head] + ([v["word"] for v in c["values"]] if c["kind"] == "list" else [])
+        out.append({"guid": guid(), "name": c["name"], "kind": c["kind"], "description": "\n".join(lines)})
+    return out
+
+
 def plan(root: Path, name: str, method: str, question: str, people: list[dict], timepoints: list[dict],
-         recordings: bool = False, codebook: dict | None = None, version: str = "") -> dict:
+         recordings: bool = False, codebook: dict | None = None, version: str = "",
+         categories: list[dict] | None = None) -> dict:
     """The package for `people`, each `{"label", "book"}` and with `portrait` the participant's pen portrait, their
-    case's description (pbiobuild), its workbook read here (`workbook.read_case`, a
+    case's description (pbiobuild), and with `values` their demographics by category, `categories` the project's
+    (demobuild), its workbook read here (`workbook.read_case`, a
     workbook open in Excel refused), as plain records the writer takes: the codes as a tree, the sources,
     notes, sets and cases, and `counts`. `timepoints` the project's, `codebook` a thematic analysis project's
     code list (`codes.load`), `recordings` whether each sheet's recording goes in."""
     root = Path(root)
     out = {"name": name, "method": method, "question": question, "user": guid(), "codes": [], "sources": [],
-           "notes": [], "sets": [], "cases": [], "counts": fresh_counts(), "origin": f"Idiograph {version}".strip()}
+           "notes": [], "sets": [], "cases": [], "counts": fresh_counts(), "origin": f"Idiograph {version}".strip(),
+           "variables": variables_of(categories)}
     counts = out["counts"]
     interviewer = wb_mod.interviewer_name()
     longitudinal = len(timepoints or []) > 1
@@ -622,7 +637,11 @@ def plan(root: Path, name: str, method: str, question: str, people: list[dict], 
         out["sources"] += sources
         counts["sources"] += len(sources)
         out["cases"].append({"guid": guid(), "name": label, "sources": [s.guid for s in sources],
-                             "description": str(person.get("portrait") or "")})
+                             "description": str(person.get("portrait") or ""),
+                             # their demographics, each category's value by its variable (demobuild)
+                             "values": [(v["guid"], ", ".join([held] if isinstance(held, str) else held))
+                                        for v in out["variables"]
+                                        for held in [(person.get("values") or {}).get(v["name"])] if held]})
         if ta:
             continue
         who = node(label, False)
@@ -736,12 +755,23 @@ def qde(p: dict) -> bytes:
         held = sub(book, "Codes")
         for c in p["codes"]:
             code_el(held, c)
+    if p.get("variables"):
+        # the demographics' categories (demobuild), after the code book as Project.xsd orders them
+        held = sub(project, "Variables")
+        for v in p["variables"]:
+            el = sub(held, "Variable", guid=v["guid"], name=v["name"], typeOfVariable="Text")
+            text_of(el, "Description", v.get("description") or "")
     if p["cases"]:
         cases = sub(project, "Cases")
         for c in p["cases"]:
             case = sub(cases, "Case", guid=c["guid"], name=c["name"])
             # the participant's pen portrait (pbiobuild), first, as Project.xsd's CaseType asks
             text_of(case, "Description", c.get("description") or "")
+            # then their demographics, a value for each category they have one in, free words joined by commas
+            for ref, value in c.get("values") or []:
+                held = sub(case, "VariableValue")
+                sub(held, "VariableRef", targetGUID=ref)
+                sub(held, "TextValue").text = value
             for s in c["sources"]:
                 sub(case, "SourceRef", targetGUID=s)
     if p["sources"]:

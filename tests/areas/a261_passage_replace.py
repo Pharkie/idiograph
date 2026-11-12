@@ -200,6 +200,8 @@ AGENT_OPS = {
     "/api/rename": [("participant", "rename")],
     # each participant's picture, label and pen portrait (pbiobuild, 11 November 2026)
     "/api/participant": [("participant", "set"), ("participant", "show")],
+    # the project's demographics (demobuild, 12 November 2026)
+    "/api/demographics": [("demographics", "show"), ("demographics", "apply"), ("demographics", "move-tags")],
     "/api/complete": [("participant", "complete")],
     "/api/export": [("participant", "export")],
     "/api/themes-boards": [("board", "note"), ("board", "history"), ("board", "revision"), ("board", "restore"),

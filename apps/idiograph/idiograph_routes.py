@@ -44,6 +44,7 @@ import case_files
 import codes as codes_mod
 import convert as convert_mod
 import corpus
+import demographics as demo_mod
 import export as export_mod
 import formats
 import i18n
@@ -1735,6 +1736,8 @@ def project_section(root: Path, recent: list[dict], cfg: dict, cases: list[dict]
     team = team_sync.status(root) if root.is_dir() else None
     if team is not None:
         section["team"] = team
+    # the project's demographics' categories, for the participant's fields on a row (demobuild)
+    section["demographics"] = demo_mod.answer(people_view(root).cats) if root.is_dir() else []
     return section
 
 
@@ -4366,6 +4369,8 @@ def qdpx_asks(body: dict) -> dict:
             raise WorkbookError(i18n.t("server.choice_not", key=key, choices=formats.list_words(offered, "or"), given=body.get(key)))
         out[key] = value
     out["pets"] = body.get("pets") is True
+    # the package's variables as the participants' demographics, ticked unless a call says otherwise (demobuild)
+    out["demographics"] = body.get("demographics") is not False
     out["user"] = " ".join(str(body.get("user") or "").split())
     out["speakers"] = body.get("speakers") if isinstance(body.get("speakers"), dict) else None
     rows = body.get("sources")
@@ -4522,7 +4527,7 @@ def qdpx_lines(path: Path, pkg: dict, asks: dict, chosen: list[dict], mapped: li
     unread = sum(1 for s in pkg["sources"] if s["kind"] in ("text", "audio", "video") and s["text"] is None)
     if unread:
         left.append(f"{plural_of(unread, 'source')} with no text in the package left out")
-    if pkg["variables"]:
+    if pkg["variables"] and not asks.get("demographics"):
         left.append(f"{plural_of(pkg['variables'], 'variable')} left out")
     if pkg["free_memos"]:
         left.append(f"{plural_of(len(pkg['free_memos']), 'free memo')} left out")
@@ -4753,12 +4758,50 @@ def qdpx_import(root: Path, path: Path, body: dict, make: bool = False, made: st
               "lpets": [t["name"] for t in qdpx_mod.lpet_trees(pkg)] if asks["codes"] == "statements" else [],
               "lgets": [g["name"] for g in qdpx_mod.lpet_sets(pkg)[1]] if asks["codes"] == "statements" else [],
               "lines": lines, "said": said, **pseudo_answer(run, body)}
+    # the package's variables as the participants' demographics (demobuild, 12 November 2026), with Demographics
+    # ticked: each category with its kind and who has what among the lines, checked as a dry run of the project's
+    # own change, and left out with a line saying why where it would be refused
+    answer["variables"] = pkg["variables"]
+    demo_plan = None
+    if asks["demographics"] and pkg["variables"] and cases:
+        guids = {c["label"]: [pkg["sources"][source_of[i["name"]] - 1]["guid"] for i in c["interviews"]
+                              if source_of.get(i["name"])] for c in cases}
+        cats, values, differ = demo_mod.from_package(pkg, guids)
+        if cats:
+            try:
+                qdpx_demographics(root, cats, values, dry=True)
+                demo_plan = (cats, values)
+                answer["lines"] = lines = lines + demo_mod.package_lines(cats, values, differ)
+            except WorkbookError as exc:
+                answer["lines"] = lines = lines + [i18n.t("demographics.qdpx.left_out", why=str(exc))]
     asks["names"] = run.entries
     if not make:
         return answer
     if said:
         raise WorkbookError(said)
-    return dict(answer, made=qdpx_write(root, path, pkg, asks, cases, entries, readable, lines, made))
+    made_list = qdpx_write(root, path, pkg, asks, cases, entries, readable, lines, made)
+    if demo_plan is not None:
+        qdpx_demographics(root, *demo_plan, who={"by": "agent", "tool": made, "request": ""} if made else None)
+    return dict(answer, made=made_list)
+
+
+def qdpx_demographics(root: Path, cats: list[dict], values: dict, dry: bool = False, who: dict | None = None) -> list[str]:
+    """A package's demographics into the project (demobuild): its categories added, a list the project has given
+    the values it lacks, then each participant's values, in one History record. With `dry` nothing is written, so
+    the import's dry run refuses what the change would refuse. A participant the dry run cannot find yet, one the
+    import makes, is set by their label all the same."""
+    def run(held) -> list[str]:
+        lines = held.demographics(demo_mod.package_ops(cats, held.cats))
+        for label, mine in values.items():
+            lines += held.apply(label, {"values": mine})
+        return lines
+    if dry:
+        return run(person_change(root, dry=True))
+    with writing(root=root):
+        held = person_change(root)
+        lines = run(held)
+        held.write(who)
+    return lines
 
 
 def qdpx_write(root: Path, path: Path, pkg: dict, asks: dict, cases: list[dict], entries: list[dict],
@@ -5441,11 +5484,14 @@ def qdpx_export(root: Path, dest: Path | None = None, participants=None, recordi
         sets = people_view(root)
         for person in people:
             person["portrait"] = people_mod.find(sets, person["label"]).get("portrait") or ""
+            # and their demographics, each category a variable of the package (demobuild)
+            person["values"] = demo_mod.values_for(people_mod.find(sets, person["label"]).get("values"), sets.cats)
         method = method_of(data)
         with i18n.in_method(method):
             plan = qdpx_out.plan(root, info["name"], method, info["research_question"], people, timepoints_of(data),
                                  recordings=recordings is True,
-                                 codebook=codes_mod.load(root) if method == "ta" else None, version=srv.VERSION)
+                                 codebook=codes_mod.load(root) if method == "ta" else None, version=srv.VERSION,
+                                 categories=sets.cats)
             name = dest.name if dest is not None else qdpx_out.file_name(info["name"])
             answer = {"file": name, "method": method, "participants": [p["label"] for p in people],
                       "counts": plan["counts"], "dry_run": bool(dry_run or dest is None)}
@@ -7987,7 +8033,7 @@ def traj_check(root: Path) -> Path:
     return root
 
 
-def traj_people(root: Path) -> list[dict]:
+def traj_people(root: Path, people: dict | None = None) -> list[dict]:
     """Each participant of the project for their card on the Trajectories board: their label, their colour
     on the LGETs board, his choice or their place round the palette, the titles of their LPETs, from the
     board their LPETs come into LGETs from, each of those LPETs as a row across the timepoints (trajbuild2,
@@ -7995,7 +8041,7 @@ def traj_people(root: Path) -> list[dict]:
     timepoint's key, which a cell may take beyond its LPET's own (trajchoose, 11 November 2026, see
     `gets.interview_quotes`), and their workbook. Their picture and label are their own, from the project file
     (pbiobuild, `people_view`). Only reads."""
-    people = people_view(root)
+    people = people_view(root) if people is None else people
     with board_scope(root):
         books = gets_books(root)
         data = gets_mod.load(root)
@@ -8045,14 +8091,22 @@ def traj_lpets(book: Path) -> tuple[dict | None, dict | None, list[dict], list[s
         return data, board, gets_mod.lpet_rows(data, board, inside, turns=traj_turns(book)), inside, labels
 
 
-def traj_reply(root: Path, body: dict, data: dict | None, more: dict | None = None) -> dict:
+def traj_reply(root: Path, body: dict, data: dict | None, more: dict | None = None, people: dict | None = None) -> dict:
     """The Trajectories board as the screen draws it, with the project for the bar."""
     cfg = srv.config()
     project = read_project(root)
-    people = people_view(root)
-    answer = traj_mod.board(data, traj_people(root))
+    people = people_view(root) if people is None else people
+    answer = traj_mod.board(data, traj_people(root, people))
+    cats = getattr(people, "cats", None) or []
+    tags = demo_mod.cat_named(cats, demo_mod.TAGS)
     for c in answer["participants"]:
-        c["picture_url"] = person_url(root, people_mod.find(people, c["case"]))
+        kept = people_mod.find(people, c["case"])
+        c["picture_url"] = person_url(root, kept)
+        # the pills of the categories shown as pills in place of its tags, and its tags the participant's values in
+        # the project's Tags category, each with that value's colour (demobuild, 12 November 2026)
+        c["pills"] = demo_mod.pills(cats, kept.get("values"))
+        mine = demo_mod.given_words(demo_mod.values_for(kept.get("values"), [tags]).get(tags["name"])) if tags else []
+        c["tags"] = [{"word": w, "colour": (demo_mod.value_named(tags, w) or {"colour": 0})["colour"]} for w in mine]
     return dict(answer, **(more or {}), project=project, demo=project["demo"],
                 root=srv.rel_path(root), path=str(body.get("workbook") or body.get("path") or ""), config=cfg,
                 platform=srv.PLATFORM, feedback=bool(srv.feedback_url(cfg)), timepoints=root_timepoints(root))
@@ -8155,7 +8209,9 @@ def traj_apply(root: Path, body: dict) -> dict:
     # a participant's label and picture are their own set's, in the project file (pbiobuild): the board's title and
     # picture ops change that set, Trajectories' old labels and pictures moved into it first when it writes
     dry = ticked(body.get("dry_run"), False)
-    wants_set = isinstance(ops, list) and any(isinstance(o, dict) and o.get("op") in ("title", "picture") for o in ops)
+    # and their tags, their values in the project's Tags category, with a tag's colour (demobuild)
+    wants_set = isinstance(ops, list) and any(isinstance(o, dict) and o.get("op") in ("title", "picture", "tags", "tag_colour")
+                                              for o in ops)
     held_set = person_change(root, dry=dry or not wants_set)
 
     def commit_all() -> None:
@@ -8165,7 +8221,9 @@ def traj_apply(root: Path, body: dict) -> dict:
     done = traj_mod.change(root, cases, ops, when, dry_run=dry,
                            note=str(body.get("note") or ""), tool=str(body.get("tool") or ""),
                            lpets=lpets, lpet_op=lpet_op, commit=commit_all, set_person=held_set.apply)
-    return traj_reply(root, body, done["data"], {"changes": done["changes"], "dry_run": done["dry_run"]})
+    # a dry run of their label, picture or tags answers the participants as they would be
+    return traj_reply(root, body, done["data"], {"changes": done["changes"], "dry_run": done["dry_run"]},
+                      held_set.view() if dry and wants_set else None)
 
 
 def traj_picture_url(root: Path, picture: str) -> str:
@@ -8219,10 +8277,12 @@ def stream_traj_picture(handler, query: dict) -> None:
 
 def people_view(root: Path | None) -> dict:
     """Every participant's set of the project at a root, by label, Trajectories' old labels and pictures merged in
-    where the project file holds none (`participants.view`). Only reads."""
+    where the project file holds none (`participants.view`), with the project's demographics' categories as `cats`
+    and Trajectories' old tags merged into their Tags (demobuild, `demographics.view`). Only reads."""
     if root is None:
-        return {}
-    return people_mod.view(root, project_file(Path(root)))
+        return demo_mod.People()
+    project = project_file(Path(root))
+    return demo_mod.view(Path(root), project, people_mod.view(root, project))
 
 
 def person_url(root: Path, kept: dict) -> str:
@@ -8241,9 +8301,11 @@ def person_url(root: Path, kept: dict) -> str:
 
 
 def person_of(root: Path | None, people: dict, case: str, colour: int | None = None) -> dict:
-    """One participant's set as the screens draw it (`participants.shown`)."""
+    """One participant's set as the screens draw it (`participants.shown`), with their demographics' values and
+    pills where the set carries the project's categories (demobuild)."""
     kept = people_mod.find(people, case)
-    return people_mod.shown(case, kept, person_url(root, kept) if root is not None else "", colour)
+    return people_mod.shown(case, kept, person_url(root, kept) if root is not None else "", colour,
+                            getattr(people, "cats", None))
 
 
 def person_for_book(path: Path) -> dict | None:
@@ -8280,21 +8342,41 @@ def project_file_held(root: Path) -> dict:
 def people_settle(root: Path, who: dict | None = None) -> list[str]:
     """Trajectories' old labels and pictures moved into the participants' own sets for good, once, the caller
     holding the project's lock (`participants.settle`), with one History line. The demo is fixed and moves none."""
-    if root is None or srv.is_demo_root(root) or not people_mod.unsettled(root):
+    if root is None or srv.is_demo_root(root):
+        return []
+    lines = []
+    if people_mod.unsettled(root):
+        data = project_file_held(root)
+        lines = people_mod.settle(root, data, Path(root) / srv.PROJECT_FILE, themes_mod.now_iso(), srv.save_json,
+                                  traj_mod.write)
+        if lines:
+            hist_mod.record(root, "participant set", lines, who)
+    return lines + demo_settle(root, who)
+
+
+def demo_settle(root: Path, who: dict | None = None) -> list[str]:
+    """Trajectories' old tags moved into each participant's values in the Tags category for good, once, the caller
+    holding the project's lock (`demographics.settle`, demobuild), with one History line, both files copied to
+    `_Archive/` first. The demo is fixed and moves none."""
+    if root is None or srv.is_demo_root(root) or not demo_mod.unsettled(root):
         return []
     data = project_file_held(root)
-    lines = people_mod.settle(root, data, Path(root) / srv.PROJECT_FILE, themes_mod.now_iso(), srv.save_json,
-                              traj_mod.write)
+    lines = demo_mod.settle(root, data, Path(root) / srv.PROJECT_FILE, themes_mod.now_iso(), srv.save_json,
+                            traj_mod.write, people_mod.own_of, people_mod.written, people_mod.KEY)
     if lines:
-        hist_mod.record(root, "participant set", lines, who)
+        hist_mod.record(root, "demographics", lines, who)
     return lines
+
+
+def people_unsettled(root: Path) -> bool:
+    return people_mod.unsettled(root) or demo_mod.unsettled(root)
 
 
 def people_settled(root: Path | None) -> None:
     """The project page's listing moves Trajectories' old labels and pictures over the first time
-    (`people_settle`), under the project's lock. Busy or unwritable, it is left for the next, every screen reading
-    them merged meanwhile."""
-    if root is None or not Path(root).is_dir() or srv.is_demo_root(root) or not people_mod.unsettled(root):
+    (`people_settle`), and its old tags into the Tags category (demobuild), under the project's lock. Busy or
+    unwritable, it is left for the next, every screen reading them merged meanwhile."""
+    if root is None or not Path(root).is_dir() or srv.is_demo_root(root) or not people_unsettled(root):
         return
     with contextlib.suppress(WorkbookError, OSError):
         with writing(root=root):
@@ -8305,7 +8387,12 @@ class person_change:
     """A change to the participants' sets of a project, made in memory by `apply` and written by `write`, once:
     the pictures, the project file with every other key kept, and one History record. With `dry` it reads the sets
     as every screen does and writes nothing. Otherwise Trajectories' old labels and pictures are moved over first
-    (`people_settle`). The caller holds the project's lock."""
+    (`people_settle`), and its old tags into the Tags category. The caller holds the project's lock.
+
+    The project's demographics change here too (demobuild, 12 November 2026, `demographics.py`): a participant's
+    values with `values` in `apply`, the categories and their values with `demographics`, each line in the one
+    History record, `participant set` or, for a change of the categories, `demographics`. A change that takes a
+    value off anyone copies the project file to `_Archive/` first."""
 
     def __init__(self, root: Path, dry: bool = False):
         self.root, self.dry = Path(root), dry
@@ -8313,23 +8400,74 @@ class person_change:
         self.lines: list[str] = []
         self.settled: list[str] = []
         self.names = pseudo_list(root)
+        self.op = "participant set"
+        self.took = False
         if dry:
-            self.project = {}
-            self.people = {k: {f: v for f, v in kept.items() if f != "from_traj"}
-                           for k, kept in people_view(root).items()}
-            return
-        if srv.is_demo_root(self.root):
-            raise WorkbookError(i18n.t("server.demo_s_project_fixed"))
-        self.settled = people_settle(self.root)
-        self.project = project_file_held(self.root)
-        self.people = people_mod.own_of(self.project)
+            self.project = project_file(self.root)
+            view = people_view(root)
+            self.people = {k: {f: v for f, v in kept.items() if f != "from_traj"} for k, kept in view.items()}
+            self.cats = json.loads(json.dumps(view.cats))
+        else:
+            if srv.is_demo_root(self.root):
+                raise WorkbookError(i18n.t("server.demo_s_project_fixed"))
+            self.settled = people_settle(self.root)
+            self.project = project_file_held(self.root)
+            self.people = people_mod.own_of(self.project)
+            self.cats = demo_mod.cats_of(self.project)
+        self.table = {"how": self.project.get(demo_mod.TABLE_KEY)}
+
+    def real_name(self, text: str) -> int | None:
+        return people_mod.real_name_in(text, self.names)
 
     def apply(self, case: str, given: dict) -> list[str]:
         if srv.is_demo_root(self.root):
             raise WorkbookError(i18n.t("server.demo_s_project_fixed"))
-        said = people_mod.apply(self.people, case, given, self.files, self.names)
+        said = []
+        values = given.get("values")
+        if values is not None:
+            # Trajectories' `tags` op names the Tags category, made the first time it is needed
+            if isinstance(values, dict) and demo_mod.TAGS in values and demo_mod.cat_named(self.cats, demo_mod.TAGS) is None:
+                said += self.demographics([{"op": "add", "name": demo_mod.TAGS, "kind": "words"}], line=False)
+            said += demo_mod.set_values(self.cats, self.people, people_mod.key_of(self.people, case), values,
+                                        self.real_name)
+        if given.get("tag_colour") is not None:
+            # Trajectories' `tag_colour`: the word's colour in Tags, or in the category that holds it
+            asked = given["tag_colour"]
+            word = traj_mod.words(asked.get("tag"))
+            holder = next((c for c in sorted(self.cats, key=lambda c: c["name"] != demo_mod.TAGS)
+                           if demo_mod.value_named(c, word)), None)
+            if holder is None:
+                raise WorkbookError(i18n.t("server.trajectory_no_such_tag", tag=word or "with no words"))
+            said += self.demographics([{"op": "value_colour", "category": holder["name"], "value": word,
+                                        "colour": asked.get("colour")}], line=False)
+        if case:
+            said += people_mod.apply(self.people, case,
+                                     {k: v for k, v in given.items() if k not in ("values", "tag_colour")},
+                                     self.files, self.names)
         self.lines += said
         return said
+
+    def demographics(self, ops, line: bool = True) -> list[str]:
+        """The categories and their values changed with `demographics.apply`'s operations."""
+        if srv.is_demo_root(self.root):
+            raise WorkbookError(i18n.t("server.demo_s_project_fixed"))
+        said, took = demo_mod.apply(self.cats, self.people, ops, self.real_name, self.table)
+        self.took = self.took or took
+        if line:
+            self.op = "demographics"
+            self.lines += said
+        return said
+
+    def tidied(self) -> None:
+        demo_mod.tidy(self.cats, self.people)
+
+    def view(self) -> "demo_mod.People":
+        """The sets as they stand in memory, with the categories, as `people_view` reads them, for a dry run's
+        answer."""
+        self.tidied()
+        out = demo_mod.People(self.people)
+        out.cats = self.cats
+        return out
 
     def write(self, who: dict | None = None) -> None:
         if self.dry or not self.lines:
@@ -8337,13 +8475,23 @@ class person_change:
         when = themes_mod.now_iso()
         if self.files:
             traj_mod.picture_files(self.root, self.files, when, folder=people_mod.pictures_of(self.root))
+        path = self.root / srv.PROJECT_FILE
+        if self.took and path.exists():
+            demo_mod.archive_copy(path, demo_mod.stamp_of(when))
+        self.tidied()
         sets = people_mod.written(self.people)
         if sets:
             self.project[people_mod.KEY] = sets
         else:
             self.project.pop(people_mod.KEY, None)
-        srv.save_json(self.root / srv.PROJECT_FILE, self.project)
-        hist_mod.record(self.root, "participant set", self.lines, who)
+        if self.cats:
+            self.project[demo_mod.KEY] = demo_mod.written(self.cats)
+        else:
+            self.project.pop(demo_mod.KEY, None)
+        if self.table.get("how") in demo_mod.HOWS:
+            self.project[demo_mod.TABLE_KEY] = self.table["how"]
+        srv.save_json(path, self.project)
+        hist_mod.record(self.root, self.op, self.lines, who)
 
 
 def project_cases(root: Path) -> list[str]:
@@ -8377,8 +8525,13 @@ def api_participant(body: dict) -> dict:
     clearing it. The whole is refused, nothing written, for the demo, a participant not of the project, a label
     or a pen portrait over its limit or holding a name from the project's list of names to replace, or a picture
     that cannot be read. With `dry_run` nothing is written. Answers `person`, the set as it is or would be,
-    `changes`, a line each, kept in the project's History, and `dry_run`."""
-    given = {k: body.get(k) for k in ("label", "portrait", "picture", "data", "from") if body.get(k) is not None}
+    `changes`, a line each, kept in the project's History, and `dry_run`.
+
+    `values` (demobuild, 12 November 2026) sets their demographics, `{"Gender": "Female", "Nationality":
+    ["Spanish"]}`, a list's one value, free words as a list or with commas between them, "" clearing one, each
+    category left out kept, refused whole for a category the project lacks or a value not in a list
+    (`demographics.set_values`)."""
+    given = {k: body.get(k) for k in ("label", "portrait", "picture", "data", "from", "values") if body.get(k) is not None}
     show = str(body.get("op") or ("set" if given else "show")) == "show"
     if not show and srv.is_demo_root(asked_root(body, write=True)):
         raise WorkbookError(i18n.t("server.demo_s_project_fixed"))
@@ -8388,7 +8541,7 @@ def api_participant(body: dict) -> dict:
     if ticked(body.get("dry_run"), False):
         held = person_change(root, dry=True)
         lines = held.apply(case, given)
-        person = participant_answer(root, case, held.people)
+        person = participant_answer(root, case, held.view())
         # a picture not yet written has no address, so the dry run shows none for it
         return {"case": case, "person": dict(person, picture_url="") if held.files else person, "changes": lines,
                 "dry_run": True}
@@ -8397,6 +8550,61 @@ def api_participant(body: dict) -> dict:
         lines = held.apply(case, given)
         held.write(hist_mod.asker(body))
     return {"case": case, "person": participant_answer(root, case), "changes": held.settled + lines, "dry_run": False}
+
+
+def demographics_answer(root: Path, people: dict | None = None, table: dict | None = None) -> dict:
+    """The project's demographics as Project settings draws them and `demographics show` answers them: the
+    categories in his order, each with its kind, values and their colours, `show` and `export`, `table`, how the
+    participants table carries them, each participant's values in case order, the starting set Add category offers,
+    the participants' palette's names, and `pending`, whether Trajectories' old tags wait to move into Tags."""
+    people = people_view(root) if people is None else people
+    cats = getattr(people, "cats", None) or []
+    project = project_file(root)
+    how = (table or {}).get("how") if (table or {}).get("how") in demo_mod.HOWS else None
+    listed = []
+    for case in sorted(project_cases(root), key=traj_mod.case_order):
+        values = demo_mod.values_for(people_mod.find(people, case).get("values"), cats)
+        listed.append({"case": case, "who": traj_mod.who(case), "values": values})
+    return {"demographics": demo_mod.answer(cats), "table": how or demo_mod.how_of(project, method_of(project)),
+            "participants": listed, "starters": demo_mod.starters(), "colours": list(demo_mod.COLOURS),
+            "pending": demo_mod.unsettled(root)}
+
+
+def api_demographics(body: dict) -> dict:
+    """The project's demographics (demobuild, 12 November 2026, `demographics.py`): with `op` `show` read as
+    `demographics_answer` gives them, with `apply` changed by `ops`, a list run in order and refused whole, nothing
+    written, when one is wrong (`demographics.apply`), and with `move_tags` Trajectories' old tags moved into the
+    Tags category now rather than at the project page's next listing. With `dry_run` nothing is written and
+    `changes` says what would change. A change goes into the project's History, `note` and `tool` an agent's. The
+    demo's are fixed."""
+    op = str(body.get("op") or ("apply" if body.get("ops") is not None else "show"))
+    if op not in ("show", "apply", "move_tags"):
+        raise WorkbookError(i18n.t("demographics.refuse.route_op", op=op))
+    root = asked_root(body, write=op != "show")
+    if root is None:
+        raise WorkbookError(i18n.t("server.project_folder_project_could_saved"))
+    if op == "show":
+        return dict(demographics_answer(root), changes=[], dry_run=False)
+    if srv.is_demo_root(root):
+        raise WorkbookError(i18n.t("server.demo_s_project_fixed"))
+    dry = ticked(body.get("dry_run"), False)
+    if op == "move_tags":
+        if dry:
+            people = people_view(root)
+            return dict(demographics_answer(root, people), changes=demo_mod.move_plan(root, project_file(root), people),
+                        dry_run=True)
+        with writing(root=root):
+            lines = demo_settle(root, hist_mod.asker(body))
+        return dict(demographics_answer(root), changes=lines, dry_run=False)
+    if dry:
+        held = person_change(root, dry=True)
+        lines = held.demographics(body.get("ops"))
+        return dict(demographics_answer(root, held.view(), held.table), changes=lines, dry_run=True)
+    with writing(root=root):
+        held = person_change(root)
+        lines = held.demographics(body.get("ops"))
+        held.write(hist_mod.asker(body))
+    return dict(demographics_answer(root), changes=held.settled + lines, dry_run=False)
 
 
 def stream_person_picture(handler, query: dict) -> None:
@@ -9046,13 +9254,25 @@ def portrait_printed(path: Path, given: dict) -> dict | None:
     if not export_portrait(given):
         return None
     root = project_root(Path(path))
-    return people_mod.printed(people_mod.find(people_view(root), case_label(path)))
+    people = people_view(root)
+    # and their demographics on a line under the label, the categories ticked for the exports (demobuild)
+    cats = [c for c in getattr(people, "cats", None) or [] if demo_mod.exported(c)]
+    return people_mod.printed(people_mod.find(people, case_label(path)), cats)
 
 
 def people_printed(root: Path, given: dict) -> dict | None:
     """Every participant's set for a print of the GETs' participants table (pbioexport), read as every screen reads
-    them (`people_view`), and None while Participants table is off (`export_participants`)."""
-    return people_view(Path(root)) if export_participants(given) else None
+    them (`people_view`), and None while Participants table is off (`export_participants`). With the demographics
+    (demobuild, 12 November 2026) `table` says how the table carries them: One row each or In sum, the project's
+    choice (`demographics.how_of`), and the categories ticked on the print card, those shown as pills until he
+    changes one, each kept in the project file (`demographics apply`'s `export` and `table`)."""
+    if not export_participants(given):
+        return None
+    people = people_view(Path(root))
+    project = project_file(Path(root))
+    people.table = {"how": demo_mod.how_of(project, method_of(project)),
+                    "cats": [c["name"] for c in people.cats if demo_mod.exported(c)]}
+    return people
 
 
 # The print view of a board, a page the browser prints or saves as PDF, by GET.
@@ -9896,6 +10116,8 @@ ROUTES = {
     "/api/trajectories-ops": api_trajectories_ops,
     "/api/trajectories-turns": api_trajectories_turns,
     "/api/participant": api_participant,
+    # the project's demographics (demobuild, 12 November 2026)
+    "/api/demographics": api_demographics,
     "/api/codes": api_codes,
     "/api/codes-ops": api_codes_ops,
     "/api/codes-extract": api_codes_extract,
@@ -9938,7 +10160,7 @@ srv.register("idiograph", routes=ROUTES,
              # from the page and never a GET, and /api/mcp only from the server's own page
              post_only=("/api/choose-root", "/api/projects", "/api/new-project", "/api/add-transcripts", "/api/names", "/api/qdpx",
                         "/api/open-sent", "/api/send-project", "/api/qdpx-export", "/api/boards-in", "/api/order", "/api/rename",
-                        "/api/participant",
+                        "/api/participant", "/api/demographics",
                         "/api/mcp", "/api/quote-heading", "/api/holds", "/api/team",
                         "/api/team-board", "/api/team-review"),
              # an agent's action waiting for his yes is answered by the app alone, never an agent (holds.py)

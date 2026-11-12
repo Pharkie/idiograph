@@ -180,7 +180,7 @@ does.
 
 The tools are `cases`, `search`, `statements`, `board_list`, `board_show`, `board_compare`, `board_new`,
 `board_apply`, `board_current`, `board_canvas`, `board_rename`, `board_duplicate`, `board_delete`,
-`board_export`, `gets_export`, `gets_show`, `gets_apply`, `gets_take`, `gets_colour`, `turn_show`, `turn_write`, `turn_edit`, `turn_interviewer_note`, `turn_assign`, `turn_assign_undo`, `turn_trim`, `turn_trim_undo`, `import`, `audio_offset`, `audio_attach`, `quote_heading`, `transcript_replace`, `transcript_replace_undo`, `validate`, `hold`, `hold_show`, `agent_log`, `project_send`, `project_send_list`, `project_export_qdpx`, `project_open_copy`, `project_add_transcripts`, `project_boards_in`, `project_set`, `project_show`, `project_history`, `names_list`, `names_check`, `names_replace`, `names_remove`, `project_new`, `participant_rename`, `participant_complete` `participant_export`, `participant_set`, `participant_show`,
+`board_export`, `gets_export`, `gets_show`, `gets_apply`, `gets_take`, `gets_colour`, `turn_show`, `turn_write`, `turn_edit`, `turn_interviewer_note`, `turn_assign`, `turn_assign_undo`, `turn_trim`, `turn_trim_undo`, `import`, `audio_offset`, `audio_attach`, `quote_heading`, `transcript_replace`, `transcript_replace_undo`, `validate`, `hold`, `hold_show`, `agent_log`, `project_send`, `project_send_list`, `project_export_qdpx`, `project_open_copy`, `project_add_transcripts`, `project_boards_in`, `project_set`, `project_show`, `project_history`, `names_list`, `names_check`, `names_replace`, `names_remove`, `project_new`, `participant_rename`, `participant_complete` `participant_export`, `participant_set`, `participant_show`, `demographics_show`, `demographics_apply`, `demographics_move_tags`,
 `board_note`, `board_history`, `board_revision`, `board_restore`, `board_copy`, `board_complete`, `gets_fresh`, `gets_duplicate`,
 `gets_rename`, `gets_note`, `gets_canvas`, `gets_current`, `gets_delete`, `gets_complete`, `gets_history`,
 `gets_revision`, `gets_restore`, `gets_subs`, `gets_settings` and `gets_settings_set`,
@@ -806,9 +806,11 @@ refused when one is wrong, nothing written:
   take it off), and `hide` and `show` (`participant`, `lpet`, by id or title, on this screen alone). The label
   and the picture are the participant's own since pbiobuild (11 November 2026), kept in the project file for
   every screen, so `title` and `picture` here are names for `participant set`, its refusals among them, and
-  `trajectories show` reads them from there
+  `trajectories show` reads them from there. Their tags are their values in the project's Tags category of
+  demographics since demobuild (12 November 2026), so `tags` is a name for `participant set --value Tags=...`,
+  the category made the first time, and each card answers `pills`, those of the categories shown as pills
 - `tag_colour` (`tag`, `colour`, one of the participants' 25 colours by name), the tag's colour on everyone
-  who has it
+  who has it, a name since demobuild for `demographics apply`'s `value_colour` on Tags
 - `note_board` (`note`, his note for the whole screen, up to 2,000 characters, its lines kept, "" clearing it),
   shown under the screen's title while Notes is on (trajnote, 10 November 2026)
 - on the participant's LPETs board, the LPET table's row at a timepoint, by `lpet` (id or title) and
@@ -1330,13 +1332,65 @@ idiograph participant set Mabel --no-picture --note "his words"
 idiograph participant show Mabel
 ```
 
+**Demographics** (demobuild, 12 November 2026). A project keeps its own categories, in his order, each a list
+(`list`, one value each from its values, Gender or Age range) or free words (`words`, up to 12 for each
+participant, Nationality), each value with its colour, one of the participants' 25, so Female reads the same
+colour on every row, and whether it shows as a pill on the rows, the pickers and Trajectories (`show`).
+`demographics show` (MCP's `demographics_show`) answers the categories, each with `export` (whether it goes into
+the participants table and the PETs' pen portrait line), `table`, how the participants table carries them (`each`,
+a column each, or `sum`, counts), each participant's `values`, and `pending`, true while Trajectories' old tags
+wait to move. `demographics apply --ops` (MCP's `demographics_apply`) changes them, a list run in order and
+refused whole, nothing written, when one is wrong: `add` (`name`, `kind`, `values`, `show`, `at`), `rename`
+(`category`, `name`), `kind` (a list turned to free words keeps every value, free words turned to a list make the
+words in use its values, refused while someone has two), `show`, `move` (`at`), `remove` (its values come off
+everyone), `export` (`category`, `export`), `table` (`how`), and on a value `value_add` (a list's alone, with
+`colour` and `at`), `value_rename` (`to`, on everyone who has it), `value_colour`, `value_move` (`at`),
+`value_remove` (off everyone who has it) and `value_to` (`to`, another category: the word and everyone who has it
+move there, joining a value of the same words, refused where a list holds another value for one of them). A
+value taken off anyone copies the project file to `_Archive/` first, and the History record keeps what went.
+`participant set --value "Category=..."` (MCP's `participant_set` with `values`, `{"Gender": "Female",
+"Nationality": ["Spanish"]}`) sets a participant's own: a list's value, free words with commas between them,
+nothing after the = clearing it, each category left out kept. A value not in a list is refused naming the list's
+values ("Age range has no value 25 to 34. Its values are 18 to 29, 30 to 39, ... so nothing was changed."), and so
+are two values for a list, a category the project lacks, a word over 40 characters and a word holding a name from
+the project's list of names to replace. `cases` and `participant show` answer each participant's `values`.
+
+Trajectories' tags from before move into a Tags category of free words the first time the project page lists
+the project, each word keeping the colour Trajectories gave it, both files copied to `_Archive/` first, the
+colour map LPETs' domains share kept whole, or now with `demographics move-tags` (MCP's
+`demographics_move_tags`), whose dry run lists each participant's tags. Sorting them is his: propose the whole
+sort as one `demographics apply` of `value_to` ops, its dry run listing each word, where it goes and who has it,
+and apply it on his yes. Never move or sort a project's tags without his word.
+
+```
+idiograph demographics show
+idiograph demographics apply --ops cats.json --dry-run
+idiograph demographics apply --ops cats.json --note "his words" --tool "Claude Code"
+idiograph demographics move-tags --dry-run
+idiograph participant set Juno --value "Gender=Female" --value "Age range=40 to 49" --value "Nationality=Spanish" --dry-run
+idiograph participant set Juno --value "Nationality=" --note "his words"
+```
+
+The participants table on the GETs print card carries the categories ticked for it, a column each after the
+label with the pen portrait on a line of its own under each row, or with `table` `sum` the participants table as
+before and a short table of each category's values counted ("Gender: Female (2), Male (1)"). A category shown as
+a pill is ticked until `export` says otherwise. The PETs' Pen portrait puts the same categories' words on a line
+under the label. Export as REFI-QDA writes each category as a Text variable, a list's values in its description,
+and each participant's values on their case, and `qdpx` brings a package's variables in as categories unless
+`--no-demographics` (MCP's `import_qdpx` with `demographics` false): a value on a case goes to the participant
+the case becomes, a value on a source to the participant whose interview it is, a variable of 12 values or fewer a
+list. Demographics can name someone in a small study: nothing leaves the project unless ticked, and In sum gives
+a write-up's counts without a row tying a pseudonym to an age.
+
 MCP's tools are `project_set` with `name`, `research_question`, `pet_labels`, `timecodes` and `method`, `project_new` with
 `folder`, `name`, `research_question`, `transcripts`, a list of `file`, `pseudonym`, `interview`, `sheet` and
 `columns`, and `speakers`, `participant_rename` with `case`, `name` and `folder`, `participant_complete` with `case`,
-`reopen` and `timepoint`, `participant_set` with `case`, `label`, `portrait`, `picture` ("" takes it off) and
-`picture_file`, and `participant_show` with `case`, every participant when left out. The routes take `dry_run` too:
+`reopen` and `timepoint`, `participant_set` with `case`, `label`, `portrait`, `picture` ("" takes it off),
+`picture_file` and `values`, `participant_show` with `case`, every participant when left out, `demographics_show`,
+`demographics_apply` with `operations` and `demographics_move_tags`. The routes take `dry_run` too:
 `/api/project` with the name, the question, `pet_labels` or `timecodes`, `/api/new-project`'s `make`,
-`/api/complete` and `/api/participant`. Make each change only on his word.
+`/api/complete`, `/api/participant` and `/api/demographics` (`op` `show`, `apply` with `ops`, or `move_tags`). Make
+each change only on his word.
 
 ## Writing
 

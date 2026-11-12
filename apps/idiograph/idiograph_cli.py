@@ -43,7 +43,9 @@ import boot
 import canvas_out
 import cli
 import convert as convert_mod
+import demographics as demo_mod
 import export as export_mod
+import formats
 import gets as gets_mod
 import gets_word
 import holds
@@ -407,6 +409,7 @@ def cmd_cases(p: Project, args) -> tuple:
         person = routes.person_of(p.root, people, b["case"])
         rows.append({"case": b["case"], "workbook": book.name, "in_study": study[b["case"]]["in"],
                      "label": person["label"], "portrait": person["portrait"], "picture": person["picture"],
+                     "values": person.get("values") or {},
                      "statements_complete": rounds_mod.complete_of(book), "pets_complete": themes.complete_of(data),
                      "current": next((x["name"] for x in boards if x["current"]), None), "boards": boards,
                      **({"timepoints": [timepoint_entry(t) for t in tps]} if tps else {}),
@@ -1919,8 +1922,15 @@ def cmd_participant_rename(p: Project, args) -> tuple:
 
 def person_answer(person: dict) -> dict:
     """A participant's set as the command line answers it: their label, pseudonym, label, pen portrait and
-    picture, `set:peep07`, a file's name in the project's pictures folder, or "" for none."""
-    return {k: person.get(k) or "" for k in ("case", "who", "label", "portrait", "picture")}
+    picture, `set:peep07`, a file's name in the project's pictures folder, or "" for none, and their demographics'
+    values by category (demobuild), a list's one word and free words a list."""
+    return dict({k: person.get(k) or "" for k in ("case", "who", "label", "portrait", "picture")},
+                values=dict(person.get("values") or {}))
+
+
+def values_said(values: dict) -> str:
+    """A participant's values in a line, "Gender Female, Nationality Spanish and Irish"."""
+    return ", ".join(f"{name} {formats.list_words(demo_mod.given_words(v))}" for name, v in (values or {}).items())
 
 
 def person_lines(person: dict) -> list[str]:
@@ -1932,7 +1942,20 @@ def person_lines(person: dict) -> list[str]:
     return [person.get("case") or "",
             "  " + i18n.t("cli.participant_show.label", label=person.get("label") or none),
             "  " + i18n.t("cli.participant_show.picture", picture=said),
-            "  " + i18n.t("cli.participant_show.portrait", portrait=person.get("portrait") or none)]
+            "  " + i18n.t("cli.participant_show.portrait", portrait=person.get("portrait") or none),
+            "  " + i18n.t("demographics.cli.values", values=values_said(person.get("values")) or none)]
+
+
+def values_asked(given) -> dict:
+    """`--value "Category=..."` read into `{category: value}`, given again for each category, commas between free
+    words and nothing after the = clearing it (demobuild)."""
+    out = {}
+    for raw in given or []:
+        name, sep, value = str(raw).partition("=")
+        if not sep or not name.strip():
+            raise cli.Refused(i18n.t("demographics.cli.value_shape", given=raw))
+        out[name.strip()] = value.strip()
+    return out
 
 
 def cmd_participant_show(p: Project, args) -> tuple:
@@ -1971,7 +1994,13 @@ def cmd_participant_set(p: Project, args) -> tuple:
             body[key] = given
     if args.no_picture:
         body["picture"] = ""
-    if not any(k in body for k in ("label", "portrait", "picture", "from")):
+    # their demographics, --value "Gender=Female" for each category (demobuild)
+    values = values_asked(getattr(args, "value", None))
+    if isinstance(getattr(args, "values", None), dict):
+        values.update(args.values)
+    if values:
+        body["values"] = values
+    if not any(k in body for k in ("label", "portrait", "picture", "from", "values")):
         raise cli.Refused(i18n.t("cli.participant_set.none_given"))
     if not themes_ai.one_line(args.note) and not args.dry_run:
         raise cli.Refused(_w("NO_PROJECT_REQUEST"))
@@ -1988,6 +2017,85 @@ def cmd_participant_set(p: Project, args) -> tuple:
     lines = [head] + got["changes"] + [""] + person_lines(got["person"])
     return {"participant": person_answer(got["person"]), "changes": got["changes"],
             "dry_run": bool(args.dry_run)}, lines
+
+
+# ----------------------------------------------------------------- demographics (demobuild, 12 November 2026)
+
+def demographics_lines(answer: dict) -> list[str]:
+    """The project's demographics in plain lines: each category with its kind and values, then each participant's
+    values, then a line while Trajectories' old tags wait to move."""
+    lines = []
+    for c in answer["demographics"]:
+        kind = i18n.t("demographics.cli.list") if c["kind"] == "list" else i18n.t("demographics.cli.words")
+        shown = i18n.t("demographics.cli.shown") if c["show"] else ""
+        values = ", ".join(f"{v['word']} ({demo_mod.COLOURS[v['colour']]})" for v in c["values"])
+        lines.append(i18n.t("demographics.cli.category", name=c["name"], kind=kind, shown=shown,
+                            values=values or i18n.t("cli.participant_show.none")))
+    if not answer["demographics"]:
+        lines.append(i18n.t("demographics.cli.none"))
+    lines.append(i18n.t("demographics.cli.table_each") if answer["table"] == "each" else i18n.t("demographics.cli.table_sum"))
+    lines.append("")
+    for p in answer["participants"]:
+        lines.append(f"{p['case']}: {values_said(p['values']) or i18n.t('cli.participant_show.none')}")
+    if answer.get("pending"):
+        lines += ["", i18n.t("demographics.cli.pending")]
+    return lines
+
+
+def demographics_out(answer: dict) -> dict:
+    return {k: answer[k] for k in ("demographics", "table", "participants", "pending")}
+
+
+def cmd_demographics_show(p: Project, args) -> tuple:
+    """`demographics show`: the project's categories, each with its kind, its values in order and their colours, and
+    whether it shows as a pill, how the participants table carries them, and each participant's values, as Project
+    settings shows them. It reads and writes nothing."""
+    try:
+        answer = routes.api_demographics(dict(project_body(p), op="show"))
+    except (WorkbookError, srv.OutsideRoot) as exc:
+        raise cli.Refused(str(exc)) from None
+    return demographics_out(answer), [i18n.t("demographics.cli.head", name=p.info["name"])] + demographics_lines(answer)
+
+
+def cmd_demographics_apply(p: Project, args) -> tuple:
+    """`demographics apply`: the categories and their values changed with their operations, as Project settings
+    changes them, all or nothing, a dry run first: add, rename, kind, show, move, remove, export, table, and on a
+    value value_add, value_rename, value_colour, value_move, value_remove and value_to. A value taken off anyone
+    copies the project file to _Archive first, and the History record keeps the values that went."""
+    if p.demo:
+        raise cli.Refused(i18n.t("cli.said.the_demos_project_is_fixed"))
+    if not themes_ai.one_line(args.note) and not args.dry_run:
+        raise cli.Refused(_w("NO_PROJECT_REQUEST"))
+    spec = cli.read_spec(args.ops)
+    ops = spec.get("operations") if isinstance(spec, dict) else spec
+    body = dict(project_body(p), op="apply", ops=ops, dry_run=bool(args.dry_run))
+    try:
+        answer = routes.api_demographics(body if args.dry_run else dict(body, **asked_by(args)))
+    except (WorkbookError, srv.OutsideRoot) as exc:
+        raise cli.Refused(str(exc), i18n.t("cli.said.nothing_was_written")) from None
+    head = (i18n.t("cli.said.dry_run_nothing_was_written") if args.dry_run else
+            i18n.t("cli.said.saved_in_the_project_file") if answer["changes"] else i18n.t("cli.said.nothing_changed"))
+    return (dict(demographics_out(answer), changes=answer["changes"], dry_run=bool(args.dry_run)),
+            [head] + answer["changes"] + [""] + demographics_lines(answer))
+
+
+def cmd_demographics_move_tags(p: Project, args) -> tuple:
+    """`demographics move-tags`: Trajectories' old tags moved into each participant's values in the Tags category
+    now, as the project page's next listing would move them, each word keeping its colour, both files copied to
+    _Archive first. With --dry-run each participant's tags that would move, and nothing written."""
+    if p.demo:
+        raise cli.Refused(i18n.t("cli.said.the_demos_project_is_fixed"))
+    if not themes_ai.one_line(args.note) and not args.dry_run:
+        raise cli.Refused(_w("NO_PROJECT_REQUEST"))
+    body = dict(project_body(p), op="move_tags", dry_run=bool(args.dry_run))
+    try:
+        answer = routes.api_demographics(body if args.dry_run else dict(body, **asked_by(args)))
+    except (WorkbookError, srv.OutsideRoot) as exc:
+        raise cli.Refused(str(exc), i18n.t("cli.said.nothing_was_written")) from None
+    head = (i18n.t("cli.said.dry_run_nothing_was_written") if args.dry_run else
+            i18n.t("cli.said.saved_in_the_project_file") if answer["changes"] else i18n.t("demographics.cli.no_tags"))
+    return (dict(demographics_out(answer), changes=answer["changes"], dry_run=bool(args.dry_run)),
+            [head] + answer["changes"])
 
 
 def cmd_participant_complete(p: Project, args) -> tuple:
@@ -7090,7 +7198,9 @@ def cmd_qdpx(p: Project, args) -> tuple:
             "codes": getattr(args, "codes", None), "comments": getattr(args, "comments", None),
             "loose": getattr(args, "loose", None), "memos": getattr(args, "memos", None),
             "recordings": getattr(args, "recordings", None), "pets": getattr(args, "pets", False) is True,
-            "user": getattr(args, "user", None), "skip": getattr(args, "skip", None)}
+            "user": getattr(args, "user", None), "skip": getattr(args, "skip", None),
+            # the package's variables as the participants' demographics unless --no-demographics (demobuild)
+            "demographics": not getattr(args, "no_demographics", False)}
     try:
         answer = routes.qdpx_import(p.root, path, body, make=not args.dry_run, made=made_by(args, path))
     except WorkbookError as exc:
@@ -7300,6 +7410,9 @@ COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             ("participant", "export"): cmd_participant_export,
             # each participant's picture, label and pen portrait (pbiobuild, 11 November 2026)
             ("participant", "set"): cmd_participant_set, ("participant", "show"): cmd_participant_show,
+            # the project's demographics (demobuild, 12 November 2026)
+            ("demographics", "show"): cmd_demographics_show, ("demographics", "apply"): cmd_demographics_apply,
+            ("demographics", "move-tags"): cmd_demographics_move_tags,
             ("hold", None): lambda p, args: holds.cmd_hold(p, args), ("hold", "show"): lambda p, args: holds.cmd_hold_show(p, args),
             # Working together's comments and review (wtreview, 8 November 2026, see review.py)
             **review_mod.COMMANDS}
@@ -7649,6 +7762,9 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--pets", action="store_true", help="with codes as statements, a PETs board From <package>, a PET "
                                                        "a code group, and from Idiograph's own package in a project of "
                                                        "timepoints each participant's LPETs and the LGETs as boards too")
+    x.add_argument("--no-demographics", action="store_true",
+                   help="leave the package's variables out, which otherwise come in as the participants' demographics, "
+                        "each variable a category")
     x.add_argument("--user", default=None, help="one coder's work alone, by name, every coder's when left out")
     x.add_argument("--speakers", default=None, help="each speaker's role, Name=Role with commas, the guess when left out")
     x.add_argument("--skip", action="append", default=None, metavar="ENTRY:N",
@@ -8019,9 +8135,28 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--picture-file", default=None, help="an image file of his, PNG, JPEG or SVG, kept in the "
                                                          "project's pictures folder, made square and small")
     x.add_argument("--no-picture", action="store_true", help="take the picture off, the initial on their colour shown")
+    x.add_argument("--value", action="append", default=None, metavar="CATEGORY=VALUE",
+                   help="one of their demographics, \"Gender=Female\", a list's value or free words with commas "
+                        "between them, nothing after the = clearing it, given again for each category")
     x = pt.add_parser("show", parents=[common],
                       help="a participant's picture, label and pen portrait, or with none named every participant's")
     x.add_argument("case", nargs="?", default=None, help="the participant, by their pseudonym, every one when left out")
+    # the project's demographics (demobuild, 12 November 2026)
+    dm = sub.add_parser("demographics", parents=[common],
+                        help="the participants' demographics: the project's categories, each a list or free words, "
+                             "and each participant's values").add_subparsers(dest="act", required=True)
+    dm.add_parser("show", parents=[common], help="every category with its values and colours, and each participant's "
+                                                 "values")
+    x = dm.add_parser("apply", parents=[common, writes], help="change the categories and their values with their "
+                                                               "operations, all or nothing")
+    x.add_argument("--ops", required=True, help='a JSON file, a list of operations or {"operations": [...]}: '
+                                                '{"op": "add", "name": "Gender", "kind": "list", "values": ["Female", '
+                                                '"Male"]}, rename, kind, show, move, remove, export, table, and on a '
+                                                'value value_add, value_rename, value_colour, value_move, value_remove '
+                                                'and value_to')
+    dm.add_parser("move-tags", parents=[common, writes], help="Trajectories' old tags moved into each participant's "
+                                                              "values in the Tags category now, each word keeping its "
+                                                              "colour")
     x = pt.add_parser("export", parents=[common, writes],
                       help="a participant's statements as the statements CSV, as Export in Settings writes it")
     x.add_argument("case", help="the participant, by their pseudonym")

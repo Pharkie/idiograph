@@ -228,7 +228,9 @@ def test_trajectories_f(scratch):
         t_before = tfile.read_bytes()
         dry = call("/api/trajectories-ops", {"workbook": str(wren), "dry_run": True, "ops": ops})
         check("369: the trajectory's and the participants' ops in a dry run say each change and write nothing",
-              tfile.read_bytes() == t_before and len(dry["changes"]) == 10 and "Positive is Green now." in dry["changes"]
+              # the tags are the participants' values in the project's Tags category since demobuild, made here
+              tfile.read_bytes() == t_before and len(dry["changes"]) == 11 and "Tags added, free words." in dry["changes"]
+              and "Positive is Green now." in dry["changes"]
               and "Positive's icon is rising now." in dry["changes"], str(dry["changes"]))
         done = call("/api/trajectories-ops", {"workbook": str(wren), "ops": ops})
         f = json.loads(tfile.read_text(encoding="utf-8"))
@@ -240,14 +242,16 @@ def test_trajectories_f(scratch):
               and pos["participants"] == ["P2 - Ash", "P1 - Wren"] and cards["P1 - Wren"]["title"] == "The late starter"
               and [t["word"] for t in cards["P2 - Ash"]["tags"]] == ["Town", "Village"]
               and cards["P2 - Ash"]["tags"][0]["colour"] == cards["P1 - Wren"]["tags"][0]["colour"]
-              and set(f["tags"]) == {"Town", "First plot", "Village", "Practical"}
+              and set(f["tags"]) == {"Practical"}
+              and [v["word"] for v in next(c for c in json.loads((garden / "idiograph-project.json").read_text(
+                  encoding="utf-8"))["demographics"] if c["name"] == "Tags")["values"]] == ["Town", "First plot", "Village"]
               and f["history"][-1]["changes"][0] == "Positive added.", str(f)[:600])
         town = cards["P1 - Wren"]["tags"][0]["colour"]
         done = call("/api/trajectories-ops", {"workbook": str(wren), "ops": [{"op": "tag_colour", "tag": "TOWN", "colour": "Teal"}]})
         cards = {c["case"]: c for c in done["participants"]}
         check("369: a tag's colour changed once is changed on every participant with it",
               town != 5 and cards["P1 - Wren"]["tags"][0]["colour"] == 5 and cards["P2 - Ash"]["tags"][0]["colour"] == 5
-              and done["changes"] == ["Town is Teal now, wherever it is used."], str(done["changes"]))
+              and done["changes"] == ["Tags' Town is Teal now."], str(done["changes"]))
         said = refused({"workbook": str(wren), "ops": [{"op": "colour", "column": "Positive", "colour": "Mauve"}]})
         check("369: a colour not of the palette is refused", "not a trajectory's colour" in said, said)
 

@@ -45,6 +45,7 @@ import re
 import shutil
 from pathlib import Path
 
+import demographics as demo_mod
 import i18n
 import names as names_mod
 import trajectories as traj_mod
@@ -54,7 +55,8 @@ KEY = "participants"
 LABEL_MAX = traj_mod.LABEL_MAX
 PORTRAIT_MAX = 800
 PICTURES = ("pictures",)
-FIELDS = ("label", "portrait", "picture")
+# and each participant's demographics, their values by category (demobuild, 12 November 2026, `demographics.py`)
+FIELDS = ("label", "portrait", "picture", "values")
 ARCHIVE_LABEL = "pre-participants"
 
 
@@ -79,6 +81,9 @@ def one(raw) -> dict:
     picture = traj_mod.picture_kept(raw.get("picture"))
     if picture:
         out["picture"] = picture
+    values = demo_mod.values_kept(raw.get("values"))
+    if values:
+        out["values"] = values
     return out
 
 
@@ -335,12 +340,18 @@ def settle(root: Path, project: dict, project_path: Path, when: str, save_json, 
 
 # ------------------------------------------------------------------ as the screens and the agents read it
 
-def shown(case: str, kept: dict, url: str, colour: int | None) -> dict:
+def shown(case: str, kept: dict, url: str, colour: int | None, cats: list | None = None) -> dict:
     """One participant's set as a screen draws it and an agent reads it: `case`, `who`, `label`, `portrait`,
     `picture` (`set:peep07`, his own file's name, or ""), `picture_url`, where the page reads it, and `colour`, their
-    place in the participants' palette, for the initial on their colour where there is no picture."""
-    return {"case": case, "who": who(case), "label": kept.get("label") or "", "portrait": kept.get("portrait") or "",
-            "picture": kept.get("picture") or "", "picture_url": url, "colour": colour if colour is not None else 0}
+    place in the participants' palette, for the initial on their colour where there is no picture. With the
+    project's categories (demobuild), `values`, theirs by category in the categories' order, and `pills`, those of
+    the categories shown as pills, each `{"category", "word", "colour"}`."""
+    out = {"case": case, "who": who(case), "label": kept.get("label") or "", "portrait": kept.get("portrait") or "",
+           "picture": kept.get("picture") or "", "picture_url": url, "colour": colour if colour is not None else 0}
+    if cats is not None:
+        out["values"] = demo_mod.values_for(kept.get("values"), cats)
+        out["pills"] = demo_mod.pills(cats, kept.get("values"))
+    return out
 
 
 # ------------------------------------------------------------------ in the exports (pbioexport)
@@ -355,11 +366,16 @@ def shown(case: str, kept: dict, url: str, colour: int | None) -> dict:
 PRINTED = ("label", "portrait")
 
 
-def printed(kept: dict | None) -> dict:
+def printed(kept: dict | None, cats: list | None = None) -> dict:
     """A participant's label and pen portrait as an export prints them, each left out when empty, the picture
-    never."""
+    never, and with the project's categories (demobuild) `values`, theirs in the categories ticked for the exports
+    on one line, "Female, 70 and over, British", left out when they have none."""
     kept = kept if isinstance(kept, dict) else {}
-    return {k: words(kept.get(k)) for k in PRINTED if words(kept.get(k))}
+    out = {k: words(kept.get(k)) for k in PRINTED if words(kept.get(k))}
+    line = demo_mod.shown_line(cats, kept.get("values")) if cats else ""
+    if line:
+        out["values"] = line
+    return out
 
 
 def number_of(case: str, place: int) -> str:
@@ -380,7 +396,29 @@ def table_rows(people: dict[str, dict], cases: list[str], name=who) -> list[dict
     return out
 
 
-def table_heads() -> list[str]:
-    """The participants table's column heads, in the run's language."""
-    return [i18n.t("page_print.people.number"), i18n.t("page_print.people.pseudonym"),
-            i18n.t("page_print.people.label"), i18n.t("page_print.people.portrait")]
+def table_heads(cats: list | None = None) -> list[str]:
+    """The participants table's column heads, in the run's language, and with categories (demobuild) a column for
+    each after the label in place of the pen portrait's, which takes a line of its own under each row."""
+    heads = [i18n.t("page_print.people.number"), i18n.t("page_print.people.pseudonym"),
+             i18n.t("page_print.people.label")]
+    return heads + [c["name"] for c in cats] if cats else heads + [i18n.t("page_print.people.portrait")]
+
+
+def table_of(people: dict, cases: list[str], name=who) -> dict:
+    """The participants table as every export prints it (pbioexport, and demobuild's columns): `heads`, `rows` (as
+    `table_rows` gives them, each with `values`, its cell in each category's column), `columns`, whether the
+    categories have columns and the pen portrait a line of its own under each row, and `sums`, In sum's counts,
+    each category's `{"name", "counts"}`, with `sum_heads`. A category goes as the GETs print card's tick for it
+    says, `people.table` (`{"how", "cats"}`) as the route reads them, none for a set with no categories."""
+    spec = getattr(people, "table", None) or {}
+    named = [n.lower() for n in spec.get("cats") or []]
+    cats = [c for c in getattr(people, "cats", None) or [] if c["name"].lower() in named]
+    each = spec.get("how") != "sum" and bool(cats)
+    rows = table_rows(people, cases, name)
+    for row, case in zip(rows, cases):
+        values = demo_mod.values_for(find(people, case).get("values"), cats)
+        row["values"] = [demo_mod.cell(c, values) for c in cats] if each else []
+    sums = (demo_mod.sums(cats, [find(people, case).get("values") for case in cases])
+            if spec.get("how") == "sum" and cats else [])
+    return {"heads": table_heads(cats if each else None), "rows": rows, "columns": each, "sums": sums,
+            "sum_heads": [i18n.t("page_print.people.category"), i18n.t("page_print.people.in_sum")]}

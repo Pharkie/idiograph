@@ -22,6 +22,8 @@
   "page_print.people.pseudonym": "Pseudonym",
   "page_print.people.label": "Label",
   "page_print.people.portrait": "Pen portrait",
+  "page_print.people.category": "Category",
+  "page_print.people.in_sum": "In sum",
   "page_print.gets.board_gone": "That board is no longer in the GETs file, so nothing was printed.",
   "page_print.gets.no_get": "That GET is no longer on the board, so there is no trail to show.",
   "page_print.gets.project": "GETs",

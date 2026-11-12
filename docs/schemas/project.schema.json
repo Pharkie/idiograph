@@ -45,6 +45,23 @@
    "type": "string",
    "enum": ["75:12", "1:15:12", "01:15:12"]
   },
+  "demographics": {
+   "description": "The participants' demographics' categories in his order (demobuild, 12 November 2026), written by Project settings' Demographics and demographics apply: each a name, its kind, list (one value for each participant, from its values) or words (free words), whether it shows as a pill, its values in order each with its colour, a place in the participants' palette from 0, and export, whether it goes into the participants table and the PETs' pen portrait line, left out to follow show. Each participant's values are kept in their own set under participants, by the category's name.",
+   "type": "array",
+   "maxItems": 20,
+   "items": {"type": "object", "required": ["name", "kind"],
+             "properties": {"name": {"type": "string", "minLength": 1, "maxLength": 40},
+                            "kind": {"type": "string", "enum": ["list", "words"]},
+                            "show": {"type": "boolean"}, "export": {"type": "boolean"},
+                            "values": {"type": "array", "items": {"type": "object", "required": ["word"],
+                                       "properties": {"word": {"type": "string", "minLength": 1, "maxLength": 40},
+                                                      "colour": {"type": "integer", "minimum": 0, "maximum": 24}}}}}}
+  },
+  "participants_table": {
+   "description": "How the participants table on the GETs Export card carries the demographics (demobuild): each, a column for each category ticked, or sum, a short table of each one's values counted. A thematic analysis project's sum and an IPA project's each when it is missing.",
+   "type": "string",
+   "enum": ["each", "sum"]
+  },
   "timepoints": {
    "description": "A longitudinal project's timepoints in order, written by Settings, Projects, only with two or more (20 October). Each is known by its place, 1 to 10, its label shown where room is short, T1, and its description beside it where there is room, Before the season. With no key the project has one timepoint.",
    "type": "array",

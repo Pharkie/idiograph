@@ -143,6 +143,24 @@ def words_of(el) -> str:
     return "" if el is None else "".join(el.itertext()).strip()
 
 
+VALUE_KINDS = ("TextValue", "BooleanValue", "IntegerValue", "FloatValue", "DateValue", "DateTimeValue")
+
+
+def values_of(el) -> dict[str, dict]:
+    """The variables' values an element holds, a case's (NVivo's case attributes) or a source's (MAXQDA's document
+    variables), by the variable's guid: `{"kind", "text"}`, its kind TextValue, BooleanValue and the rest, an empty
+    one left out (demobuild, 12 November 2026)."""
+    out = {}
+    for v in kids(el, "VariableValue"):
+        ref = kid(v, "VariableRef")
+        guid = ref.get("targetGUID") if ref is not None else None
+        held = next((x for x in v if local(x.tag) in VALUE_KINDS), None)
+        text = " ".join(words_of(held).split()) if held is not None else ""
+        if guid and text:
+            out[guid] = {"kind": local(held.tag), "text": text}
+    return out
+
+
 def parse_qde(data: bytes):
     """project.qde parsed, refused when it carries a document type, so no entity is ever expanded."""
     head = data[:4096 * 16].lower()
@@ -284,7 +302,7 @@ def read_root(pkg: Package, root) -> dict:
     cases = []
     for c in within(root, "Cases", "Case"):
         cases.append({"name": c.get("name") or "", "sources": [r.get("targetGUID") for r in kids(c, "SourceRef")],
-                      "values": len(kids(c, "VariableValue"))})
+                      "values": len(kids(c, "VariableValue")), "variables": values_of(c)})
     sources = []
     holder = kid(root, "Sources")
     for el in ([] if holder is None else list(holder)):
@@ -298,12 +316,17 @@ def read_root(pkg: Package, root) -> dict:
                 src = by_guid.get(g)
                 if src is not None and src["name"].startswith(f"{c['name']} - "):
                     src["interview"] = src["name"][len(c["name"]) + 3:].strip()
-    variables = len(within(root, "Variables", "Variable"))
+    # the variables, a participant's demographics (demobuild, 12 November 2026): each with its name, its type and its
+    # description, which in an Idiograph package lists a list's values in their order
+    listed = [{"guid": v.get("guid") or "", "name": " ".join(str(v.get("name") or "").split()),
+               "type": v.get("typeOfVariable") or "Text", "description": words_of(kid(v, "Description"))}
+              for v in within(root, "Variables", "Variable")]
+    variables = len(listed)
     referenced = ({g for s in sources for g in s["memos"]} | {g for s in sources for sel in s["selections"] for g in sel["notes"]}
                   | {g for c in codes.values() for g in c["notes"]} | {g for s in sets for g in s["notes"]})
     return {"origin": root.get("origin") or "", "package": package_name(root.get("origin") or ""),
             "name": root.get("name") or "", "users": users, "codes": codes, "sets": sets, "notes": notes,
-            "cases": cases, "sources": sources, "variables": variables,
+            "cases": cases, "sources": sources, "variables": variables, "variable_list": listed,
             "values": sum(c["values"] for c in cases),
             "links": len(list(kid(root, "Links") if kid(root, "Links") is not None else [])),
             "graphs": len(list(kid(root, "Graphs") if kid(root, "Graphs") is not None else [])),
@@ -321,7 +344,7 @@ def read_source(pkg: Package, el, n: int) -> dict:
     src = {"n": n, "guid": el.get("guid") or "", "name": " ".join(str(el.get("name") or f"Source {n}").split()),
            "kind": kind, "text": None, "missing": "", "selections": [], "sync": [], "media": None,
            "memos": [r.get("targetGUID") for r in kids(el, "NoteRef") if r.get("targetGUID")],
-           "lost": 0}
+           "lost": 0, "variables": values_of(el)}
     if kind == "text":
         src["text"], src["missing"] = text_at(pkg, el)
         for s in kids(el, "PlainTextSelection"):

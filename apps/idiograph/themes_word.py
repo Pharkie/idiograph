@@ -205,15 +205,27 @@ def xml_text(text: str) -> str:
     return escape(UNWRITABLE.sub("", " ".join(str(text).replace("\t", " ").splitlines())))
 
 
-def cell_xml(text: str, width: int, head: bool = False) -> str:
+def cell_xml(text: str, width: int, head: bool = False, span: int = 1) -> str:
     """A table's cell, its words in one paragraph at the table's size with no space after, a head's in bold over
-    the firmer rule."""
+    the firmer rule, and with `span` across that many of the table's columns (demobuild, the pen portrait's line)."""
     rule = (f'<w:tcBorders><w:bottom w:val="single" w:sz="6" w:space="0" w:color="{TABLE_RULE_FIRM}"/></w:tcBorders>'
             if head else "")
     words = (f'<w:r><w:rPr>{"<w:b/><w:bCs/>" if head else ""}<w:sz w:val="{TABLE_SIZE}"/><w:szCs w:val="{TABLE_SIZE}"/>'
              f'</w:rPr><w:t xml:space="preserve">{xml_text(text)}</w:t></w:r>') if text else ""
-    return (f'<w:tc><w:tcPr><w:tcW w:w="{width}" w:type="dxa"/>{rule}</w:tcPr>'
+    spans = f'<w:gridSpan w:val="{span}"/>' if span > 1 else ""
+    return (f'<w:tc><w:tcPr><w:tcW w:w="{width}" w:type="dxa"/>{spans}{rule}</w:tcPr>'
             f'<w:p><w:pPr><w:spacing w:before="0" w:after="0"/></w:pPr>{words}</w:p></w:tc>')
+
+
+def row_cells(cells: list, widths: list[int]) -> str:
+    """A row's cells at their columns' widths, a cell given as `{"text", "span"}` taking that many columns."""
+    out, at = [], 0
+    for c in cells:
+        span = max(1, int(c.get("span") or 1)) if isinstance(c, dict) else 1
+        text = c.get("text", "") if isinstance(c, dict) else c
+        out.append(cell_xml(text, sum(widths[at:at + span]), span=span))
+        at += span
+    return "".join(out)
 
 
 def table_xml(p: dict) -> str:
@@ -228,8 +240,7 @@ def table_xml(p: dict) -> str:
                '<w:bottom w:w="60" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tblCellMar>')
     rows = [f'<w:tr><w:trPr><w:cantSplit/><w:tblHeader/></w:trPr>'
             + "".join(cell_xml(h, w, head=True) for h, w in zip(p["heads"], widths)) + "</w:tr>"]
-    rows += ['<w:tr><w:trPr><w:cantSplit/></w:trPr>' + "".join(cell_xml(c, w) for c, w in zip(cells, widths)) + "</w:tr>"
-             for cells in p["rows"]]
+    rows += ['<w:tr><w:trPr><w:cantSplit/></w:trPr>' + row_cells(cells, widths) + "</w:tr>" for cells in p["rows"]]
     grid = "".join(f'<w:gridCol w:w="{w}"/>' for w in widths)
     return (f'<w:tbl><w:tblPr><w:tblW w:w="{sum(widths)}" w:type="dxa"/>{rules}<w:tblLayout w:type="fixed"/>{margins}'
             f'</w:tblPr><w:tblGrid>{grid}</w:tblGrid>' + "".join(rows) + "</w:tbl>")

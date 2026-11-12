@@ -1,0 +1,98 @@
+/* Participants' demographics (demobuild, 12 November 2026, Adam's option A of demodraw's proposal, with B's table):
+   the pills, Trajectories' own (.tf-pill in themes.css), a value's colour its place in the participants' palette;
+   Project settings' section, each category a row with its values as pills under its name; the profile's fields; Edit
+   the table's card; and the GETs print card's choices under Participants table. */
+
+.dm-pill { font-size: 12px; line-height: 17px; padding: 1px 9px; font-family: var(--sans); font-style: normal; }
+.dm-pill[hidden] { display: none; }
+.tf-pill-x.dm-pill { padding: 1px 2px 1px 9px; }
+.dm-pw { padding-right: 1px; }
+
+/* a row's line of pills under the label, at the name's left edge, one line, the last giving way to "+2" */
+.pcard > .dm-rowpills { grid-column: 2 / -1; display: flex; flex-wrap: nowrap; gap: 5px; min-width: 0; overflow: hidden;
+  margin: 6px 0 6px; padding: 0 0 0 56px; }
+.pcard > .dm-rowpills[hidden] { display: none; }
+.pcard > .dm-rowpills + .pp-portrait { margin-top: 0; }
+.dm-pill.dm-more { color: var(--ink-soft); background: transparent; border-color: var(--rule-firm); cursor: default; }
+@media (max-width: 900px) { .pcard > .dm-rowpills { padding-left: 43px; } }
+@media (max-width: 559px) { .pcard > .dm-rowpills { grid-column: 2; padding-left: 0; } }
+
+/* a picker's pills, small, after the label, and under the name in GETs' Participants panel */
+.dm-mini { display: flex; flex-wrap: wrap; gap: 4px; margin: 2px 0 1px; }
+.dm-mini .dm-pill { font-size: 11px; line-height: 15px; padding: 0 7px; }
+.pp-gwho .dm-mini { margin-top: 3px; }
+
+/* the profile's fields: a line for each category after the pen portrait */
+.dm-fields { display: flex; flex-direction: column; gap: 9px; padding-top: 2px; }
+.dm-choices { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; min-width: 0; }
+button.dm-pill { font: inherit; font-size: 12px; cursor: pointer; }
+button.dm-pill:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+.dm-choice.dm-opt { color: var(--ink-faint); background: transparent; border: 1px dashed var(--rule-firm); }
+.dm-choice.dm-opt:hover { color: var(--ink-soft); border-color: var(--ink-faint); }
+.dm-wordin { width: 96px; font-size: 12.5px; padding: 2px 9px; border-radius: 999px; }
+.dm-l > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Project settings: each category a row, its grip, its name and kind, Show as a pill and its menu, its values under */
+.dm-cats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.dm-cat { position: relative; display: grid; grid-template-columns: 16px minmax(0, 1fr) auto auto; column-gap: 10px; row-gap: 6px;
+  align-items: center; padding: 9px 0; border-top: 1px solid var(--rule); }
+.dm-cat:first-child { border-top: 0; }
+.dm-cat.dm-dragging { opacity: .45; }
+.dm-grip { display: inline-grid; place-items: center; width: 16px; height: 22px; padding: 0; border: 0; background: none;
+  color: var(--ink-faint); cursor: grab; border-radius: var(--r-control); }
+.dm-grip svg { width: 9px; height: 14px; fill: currentColor; }
+.dm-grip:hover { color: var(--ink-soft); }
+.dm-grip:focus-visible, .dm-dots:focus-visible, .dm-addv:focus-visible { outline: 0; box-shadow: var(--focus-small); }
+.dm-chead { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.dm-cname { font-size: 14px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dm-kind { font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
+.dm-tick { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; cursor: pointer; }
+.dm-tick input { margin: 0; }
+.dm-menuwrap { position: relative; display: inline-flex; }
+.dm-dots { font-size: 16px; line-height: 1; color: var(--ink-soft); background: none; border: 0; padding: 2px 4px; border-radius: var(--r-control); cursor: pointer; }
+.dm-dots:hover { color: var(--ink); background: var(--paper-sunk); }
+.dm-menu { position: absolute; z-index: 6; top: calc(100% + 4px); right: 0; min-width: 190px; }
+.dm-menu button { display: flex; width: 100%; align-items: center; }
+.dm-menu button.dm-on::after { content: '\2713'; margin-left: auto; padding-left: 16px; color: var(--ink-soft); }
+.dm-vals { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.dm-addv { font: inherit; font-size: 12px; line-height: 17px; color: var(--ink-soft); background: var(--card); border: 1px solid var(--rule-firm);
+  border-radius: 999px; padding: 1px 9px; cursor: pointer; }
+.dm-addv:hover { color: var(--ink); }
+.dm-rename { font-size: 13px; padding: 2px 8px; max-width: 220px; }
+.dm-vrename, .dm-vadd { width: 120px; font-size: 12px; padding: 1px 9px; border-radius: 999px; }
+.dm-vpanel { grid-column: 2 / -1; display: flex; flex-direction: column; gap: 8px; padding: 6px 0 2px; }
+.dm-vpanel .tf-dot { width: 16px; height: 16px; }
+.dm-vacts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.dm-vacts .dm-menu { left: 0; right: auto; }
+.dm-caret { width: 10px; height: 6px; margin-left: 6px; color: var(--ink-soft); flex: none; vertical-align: middle; }
+.dm-new { margin: 6px 0 0 26px; }
+.dm-new .tf-edit-in { width: 220px; font-size: 13px; }
+.dm-everyone { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 4px; padding: 10px 0 2px;
+  border-top: 1px solid var(--rule); }
+.dm-foot { position: relative; margin-top: 8px; }
+/* Add category is the sheet's last control, so its menu opens upward, over the categories */
+.dm-addmenu { left: 0; right: auto; top: auto; bottom: calc(100% + 4px); }
+.dm-addmenu button { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 18px; }
+.dm-addmenu button.dm-had { color: var(--ink-faint); }
+.dm-check { color: var(--ink-faint); }
+.dm-msep { display: block; height: 1px; margin: 4px 6px; background: var(--rule); }
+
+/* Edit the table: a row a participant, a column a category */
+.card.dm-tcard { width: min(980px, calc(100vw - 48px)); max-width: none; }
+.dm-twrap { overflow-x: auto; margin: 4px 0 0; }
+.dm-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.dm-table th { text-align: left; font-weight: 400; font-size: 12.5px; color: var(--ink-soft); padding: 6px 8px 8px;
+  border-bottom: 1px solid var(--rule-firm); white-space: nowrap; }
+.dm-table td { padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+.dm-table td.dm-twho { font-family: var(--serif); font-size: 15px; color: var(--ink); white-space: nowrap; }
+.dm-tsel { width: 100%; min-width: 120px; font: inherit; font-size: 13px; }
+.dm-twords { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; min-width: 150px; box-sizing: border-box; padding: 3px 5px;
+  min-height: 29px; border: 1px solid var(--field-edge); border-radius: var(--r-control); background: var(--card); }
+.dm-tin { flex: 1 1 60px; min-width: 60px; font: inherit; font-size: 12.5px; border: 0; padding: 1px 4px; background: transparent; color: var(--ink); }
+.dm-tin:focus { outline: 0; }
+.dm-twords:focus-within { box-shadow: var(--focus-small); }
+
+/* the GETs print card: One row each or In sum, then a tick for each category, under Participants table */
+.gt-print-dm { display: flex; flex-direction: column; gap: 6px; margin: 2px 0 0 24px; }
+.gt-print-dm[hidden] { display: none; }
+.dm-prow { display: flex; flex-wrap: wrap; gap: 4px 16px; }

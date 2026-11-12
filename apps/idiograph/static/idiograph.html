@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="/themes.css">
 <link rel="stylesheet" href="/codes.css">
 <link rel="stylesheet" href="/review.css">
+<link rel="stylesheet" href="/demographics.css">
 <!--part:lede-->
     <p class="lede" data-only="idiograph">{{page_idiograph.lede.software_interpretative_phenomenological_analysis}}</p>
 <!--part:home-->
@@ -1769,11 +1770,61 @@
             </div>
             <p class="fineprint" id="mcp-said" hidden></p>
             </div>
+            <!-- Demographics (demobuild, 12 November 2026, Adam's option A with B's table): last in the sheet, where a
+                 list that grows has room. Each category with its grip, name and kind, Show as a pill and its menu, its
+                 values as pills, a click on one opening its colours, Rename..., Move to and Remove, then Everyone's
+                 values with Edit the table, and Add category with its starting set. Each change saves at once
+                 (demographics.js), none for a demo -->
+            <div class="dm-sec" id="dm-block" hidden>
+            <h4 class="pane-sub" id="dm-sub">{{demographics.page.heading}}</h4>
+            <ul class="dm-cats" id="dm-cats" aria-labelledby="dm-sub"></ul>
+            <div class="dm-new" id="dm-new-row" hidden><input class="tf-edit-in" id="dm-new-name" type="text" maxlength="40"
+                 spellcheck="false" autocomplete="off" aria-label="{{demographics.page.new_name}}" placeholder="{{demographics.page.new_name}}"></div>
+            <div class="dm-everyone"><span class="setting-label">{{demographics.page.everyone}}</span><button type="button"
+                 class="ghost small" id="dm-table-open">{{demographics.page.edit_table}}</button></div>
+            <div class="dm-foot"><button type="button" class="ghost small dm-add" id="dm-add" aria-haspopup="menu"
+                 aria-expanded="false">{{demographics.page.add_category}}<svg class="dm-caret" viewBox="0 0 10 6" aria-hidden="true"
+                 focusable="false"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                 stroke-linejoin="round"/></svg></button><div class="row-menu dm-menu dm-addmenu" id="dm-add-menu" role="menu" hidden></div></div>
+            <p class="fineprint" id="dm-said" hidden></p>
+            </div>
           </div>
           <p class="fineprint" id="project-said" hidden></p>
     </div>
     <div class="card-actions">
       <button class="primary" id="projset-save">{{page.settings.save}}</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit the table (demobuild, B's table beside A): everyone's values in one card, a row each and a column each, a
+     list's pick-list and free words as pills with Add, each change saved at once through the participant's own route,
+     Done at its foot -->
+<div class="overlay" id="dm-table" hidden>
+  <div class="card dm-tcard" role="dialog" aria-labelledby="dm-table-title">
+    <button class="card-close" id="dm-table-close" type="button" tabindex="-1" aria-label="{{page_idiograph.screens.close}}" title="{{page_idiograph.screens.close}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <p class="kicker" id="dm-table-kicker"></p>
+    <h2 id="dm-table-title">{{demographics.page.heading}}</h2>
+    <div class="dm-twrap"><table class="dm-table" id="dm-table-grid"></table></div>
+    <p class="fineprint" id="dm-table-said" hidden></p>
+    <div class="card-actions card-done"><button class="primary" type="button" data-done>{{trajectories.done}}</button></div>
+  </div>
+</div>
+
+<!-- Remove of a category or a value someone has: the dry run's line, who had what, before it goes -->
+<div class="overlay" id="dm-confirm" hidden>
+  <div class="card" role="dialog" aria-labelledby="dm-confirm-title">
+    <button class="card-close" id="dm-confirm-close" type="button" tabindex="-1" aria-label="{{page_idiograph.screens.close}}" title="{{page_idiograph.screens.close}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <p class="kicker">{{demographics.page.heading}}</p>
+    <h2 id="dm-confirm-title"></h2>
+    <p class="trim-line" id="dm-confirm-line"></p>
+    <div class="card-actions">
+      <button class="ghost" type="button" id="dm-confirm-cancel">{{page_idiograph.cards_last.cancel}}</button>
+      <button class="primary btn-remove" type="button" id="dm-confirm-go">{{demographics.page.remove}}</button>
     </div>
   </div>
 </div>
@@ -2156,6 +2207,9 @@
            never their picture, for the GET table, the audit trail and all of it, off on a new install and kept as he
            leaves it (pbioexport, 11 November 2026). Hidden for the canvas, one GET's trail and a participant's LPETs -->
       <label class="gt-print-notes" id="gt-print-people-row" title="{{page_idiograph.cards_last.participants_table_tip}}"><input type="checkbox" id="gt-print-people" data-include="export_participants"> {{page_idiograph.cards_last.participants_table}}</label>
+      <!-- under it while it is ticked (demobuild): One row each or In sum, and a tick for each category, kept in the
+           project's file (demographics.js) -->
+      <div class="gt-print-dm" id="gt-print-dm" hidden></div>
     </div>
     <div class="card-actions">
       <button class="ghost" id="gt-print-cancel">{{page_idiograph.cards_last.cancel}}</button>
@@ -2223,3 +2277,4 @@
 <script src="/team_board.js"></script>
 <script src="/agentlog_idiograph.js"></script>
 <script src="/review.js"></script>
+<script src="/demographics.js"></script>

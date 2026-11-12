@@ -131,12 +131,30 @@ def board_blocks(parts: dict, notes: bool = False, selected: bool = False, descr
 PEOPLE_WIDTHS = (1100, 1500, 2100, 4326)
 
 
-def people_blocks(rows: list[dict]) -> list[dict]:
-    """The participants table's first page (pbioexport): its heading, the table, then the page's end."""
-    return [{"style": 2, "runs": [run(i18n.t("page_print.people.heading"))]},
-            {"style": tw.TABLE, "heads": people_mod.table_heads(), "widths": list(PEOPLE_WIDTHS),
-             "rows": [[r["number"], r["pseudonym"], r["label"], r["portrait"]] for r in rows]},
-            {"style": tw.BREAK, "runs": []}]
+def people_blocks(table: dict) -> list[dict]:
+    """The participants table's first page (pbioexport): its heading, the table, then the page's end. `table` is
+    `participants.table_of`'s: with the demographics' columns (demobuild) a column for each category after the label,
+    sharing the pen portrait's width, and the pen portrait in a row of its own under each participant's across them,
+    and with In sum a short table after it of each category's values counted."""
+    if table.get("columns"):
+        n = len(table["heads"]) - 3
+        rest = sum(PEOPLE_WIDTHS) - PEOPLE_WIDTHS[0] - PEOPLE_WIDTHS[1] - 1700
+        widths = [PEOPLE_WIDTHS[0], PEOPLE_WIDTHS[1], 1700] + [rest // n] * (n - 1) + [rest - rest // n * (n - 1)]
+        rows = []
+        for r in table["rows"]:
+            rows.append([r["number"], r["pseudonym"], r["label"], *r["values"]])
+            if r["portrait"]:
+                rows.append(["", {"text": r["portrait"], "span": len(widths) - 1}])
+    else:
+        widths = list(PEOPLE_WIDTHS)
+        rows = [[r["number"], r["pseudonym"], r["label"], r["portrait"]] for r in table["rows"]]
+    out = [{"style": 2, "runs": [run(i18n.t("page_print.people.heading"))]},
+           {"style": tw.TABLE, "heads": table["heads"], "widths": widths, "rows": rows}]
+    if table.get("sums"):
+        out.append({"style": 0, "runs": [run("")]})
+        out.append({"style": tw.TABLE, "heads": table["sum_heads"], "widths": [2600, sum(PEOPLE_WIDTHS) - 2600],
+                    "rows": [[s["name"], s["counts"]] for s in table["sums"]]})
+    return out + [{"style": tw.BREAK, "runs": []}]
 
 
 def blocks(project: dict, parts: dict, notes: bool = False, selected: bool = False,
@@ -144,7 +162,7 @@ def blocks(project: dict, parts: dict, notes: bool = False, selected: bool = Fal
     """The document as paragraphs: the project and the table's name, with `people` (Participants table ticked) the
     participants table on the first page, then the themes."""
     name = " ".join(str(project.get("name") or "").split()) or i18n.t("page_print.gets.project")
-    first = people_blocks(people_mod.table_rows(people, parts["inside"], gt.who)) if people is not None else []
+    first = people_blocks(people_mod.table_of(people, parts["inside"], gt.who)) if people is not None else []
     return ([{"style": 1, "runs": [run(name)]}, {"style": tw.SUBTITLE, "runs": [run(i18n.t("page_print.gets.table_name"))]}]
             + first + board_blocks(parts, notes, selected, descriptions))
 

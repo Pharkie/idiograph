@@ -641,7 +641,7 @@
   "cli.participant_rename.a_copy_of_each_file_it": "A copy of each file it changed is in _Archive.",
   "cli.participant_rename.names_no_copy": "The list of names to replace keeps no copy, since it holds real names and Idiograph copies it nowhere.",
   "cli.participant_rename.renamed_as_now_it_changed": "Renamed {old} as {new}, now {new_label}. It changed:",
-  "cli.participant_set.none_given": "Give --label, --portrait, --picture, --picture-file or --no-picture.",
+  "cli.participant_set.none_given": "Give --label, --portrait, --picture, --picture-file, --no-picture or --value.",
   "cli.participant_show.head_all": "{name}: each participant's picture, label and pen portrait",
   "cli.participant_show.label": "Label: {label}",
   "cli.participant_show.picture": "Picture: {picture}",

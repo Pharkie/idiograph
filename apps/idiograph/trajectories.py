@@ -387,7 +387,9 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
 
     With `set_person` (pbiobuild, 11 November 2026) the label and the picture are the participant's own, kept in
     the project file for every screen (`participants.py`): `title` and `picture` are names for that set's change,
-    `set_person(case, given)` running it and answering its lines, and this file keeps neither."""
+    `set_person(case, given)` running it and answering its lines, and this file keeps neither. Since demobuild (12
+    November 2026) `tags` and `tag_colour` are names too, for their values in the project's Tags category and that
+    value's colour (`demographics.py`)."""
     if not isinstance(ops, list):
         raise WorkbookError(i18n.t("server.trajectories_operations_list_nothing_changed"))
     lpets = lpets or {}
@@ -475,6 +477,9 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
                 else:
                     data.pop("note", None)
                 said.append("The board's note " + ("changed." if note else "cleared."))
+        elif kind == "tag_colour" and set_person is not None:
+            # a tag is a word of the participants' Tags category since demobuild: its colour is that value's
+            said += set_person("", {"tag_colour": {"tag": op.get("tag"), "colour": op.get("colour")}})
         elif kind == "tag_colour":
             word = words(op.get("tag"))
             held = next((w for w in data["tags"] if w.lower() == word.lower()), None)
@@ -536,6 +541,12 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
                     said.append(f"The note on {name} " + ("changed." if note else "cleared."))
             elif kind == "title" and set_person is not None:
                 said += set_person(case, {"label": op.get("title") if op.get("title") is not None else ""})
+            elif kind == "tags" and set_person is not None:
+                # their tags are their values in the Tags category since demobuild (12 November 2026)
+                given = op.get("tags")
+                if not isinstance(given, list) or any(not isinstance(t, str) for t in given):
+                    raise WorkbookError(i18n.t("server.trajectory_tags_list"))
+                said += set_person(case, {"values": {"Tags": given}})
             elif kind == "picture" and set_person is not None:
                 given = ({"picture": f"set:{words(op.get('set')).lower()}"} if op.get("set") not in (None, "")
                          else {"data": op.get("data")} if op.get("data") not in (None, "")

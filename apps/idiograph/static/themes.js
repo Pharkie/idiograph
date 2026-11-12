@@ -9108,6 +9108,8 @@ function thCasemenuDraw(cases, said = '') {
     const pic = people ? personPic(c.person, 32) : '';
     const text = `<span class="th-vtext"><span class="th-vline"><span class="th-vlabel">${esc(people ? caseShown(c.case) : c.case)}</span></span>`
       + (p.label ? `<span class="pp-label">${esc(p.label)}</span>` : '')
+      // the pills of their demographics after the label (demobuild)
+      + (typeof dmPillsInline === 'function' ? dmPillsInline(p.pills) : '')
       + `<span class="th-vnote">${esc(c.board_name)}${thWithAi(c.with_ai)}${c.chosen ? mark : ''}</span>`
       + (p.portrait ? `<span class="pp-bio">${esc(p.portrait)}</span>` : '') + '</span>';
     const item = c.current
@@ -12965,7 +12967,9 @@ function gtCasesDraw() {
       + `<div class="gt-chead"><button type="button" class="gt-fold${caseOpen ? ' open' : ''}" tabindex="-1" data-gfold="${i}" aria-expanded="${caseOpen}">`
       + `${GT_CHEV}${c.person ? personPic(Object.assign({}, c.person, { colour: look.colour }), 26) : ''}`
       + `<span class="pp-gwho"${c.person && c.person.portrait ? ` title="${escAttr(c.person.portrait)}"` : ''}><span class="gt-cname">${esc(c.who)}</span>`
-      + `${c.person && c.person.label ? `<span class="pp-label pp-glabel">${esc(c.person.label)}</span>` : ''}</span></button>`
+      + `${c.person && c.person.label ? `<span class="pp-label pp-glabel">${esc(c.person.label)}</span>` : ''}`
+      // the pills of their demographics under the name (demobuild)
+      + `${c.person && typeof dmPillsInline === 'function' ? dmPillsInline(c.person.pills) : ''}</span></button>`
       + `<button type="button" class="gt-swatch case-${look.colour}" tabindex="-1" data-gcolour="${i}" aria-haspopup="menu" `
       + `title="${escAttr(t('themes.gets.colour_tip', { colour: GT_COLOURS[look.colour] }))}" aria-label="${escAttr(t('themes.gets.colour_label', { who: c.who, colour: GT_COLOURS[look.colour] }))}">${esc(look.badge)}</button>`
       + `<button type="button" class="row-menu-open gt-cmenu" tabindex="-1" data-gmenu="${i}" title="${escAttr(t('themes.gets.case_menu_tip'))}">&#8943;</button></div>`
@@ -13946,6 +13950,8 @@ function gtPrintDraw() {
   // Participants table, for the GET table, the trail and all of it, never the canvas, one GET's trail or a
   // participant's LPETs, whose columns are their timepoints (pbioexport)
   if ($('gt-print-people-row')) $('gt-print-people-row').hidden = !gtPeopleShown(p);
+  // and under it One row each or In sum and the categories that go (demobuild, demographics.js)
+  if (typeof dmPrintDraw === 'function') dmPrintDraw(gtPeopleShown(p), TH.root || '');
 }
 
 /* whether the card shows Participants table for what it prints, and whether a print opens with the participants

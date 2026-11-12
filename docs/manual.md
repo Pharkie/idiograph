@@ -299,6 +299,46 @@ a row with its cells empty in the table. The number is the one the folder gives,
 order where the folder has none. Participants table is not offered for the canvas, one GET's trail or a participant's
 LPETs. No picture goes into any export, since a photograph of a real participant identifies them.
 
+**Demographics (12 November 2026, demobuild).** Each project sets its own categories of what describes a
+participant, in Project settings under Demographics, last in the sheet. A category is a List, one value each from
+its values (Gender, Age range), or Free words, up to 12 each (Nationality, Occupation). Add category offers a
+starting set, Gender (Female, Male, Non-binary), Age range (18 to 29, 30 to 39, 40 to 49, 50 to 59, 60 to 69, 70
+and over, bands that never overlap), Nationality, First language and Occupation, each to take or leave, and New
+category... for one of his own. Each value has a colour of its own from the participants' palette, so Female reads
+the same colour on every row: a click on a value shows its colours, Rename..., Move to and Remove, and a list's
++ Add takes one more. A category's dots hold Rename..., List or Free words and Remove, its grip drags it to its
+place (Alt and an arrow moves it one place), and a value drags along its category the same way. A value renamed is
+renamed on everyone who has it. Removing a value or a category takes it off everyone who had it, after a card
+saying who had what, the project file copied to `_Archive` first and the project's History keeping what went.
+Move to puts a value, and everyone who has it, into another category, joining a value of the same words there. A
+list turned to free words keeps every value, and free words turned to a list make the words in use its values.
+
+A participant's values are set in their fields across their row (Edit participant profile), a line for each
+category after the pen portrait: a list's values to click, the one chosen filled in its colour and the rest dashed,
+a click on it again clearing it, and free words typed into Add, Enter or a comma ending each, the cross taking one
+away. Everyone's values, Edit the table, opens a card of every participant's values at once, a row each and a
+column each, for filling in a dozen participants together. The categories with Show as a pill ticked show their
+values as pills on the project page's rows, on one line under the label, the last giving way to "+2" when the line
+runs out, its tooltip naming them, and in the pickers after the label, under the name in the GETs' Participants
+panel, and on Trajectories. The bars over a participant's screens name them in their tooltips.
+
+Trajectories' own tags from before became each participant's values in a Tags category of free words the first
+time the project page listed the project, each word keeping the colour Trajectories gave it, both files copied to
+`_Archive` first. Trajectories shows the pills of the categories shown in place of its tags, and its editor's Tags
+are the Tags category's. Sort them with Move to, Female into Gender and 40 to 49 into Age range.
+
+On the GETs Export card, under Participants table, One row each puts a column for each category ticked after the
+label, with the pen portrait on a line of its own under each row, and In sum keeps the table as it was and adds a
+short table of each category's values counted, "Female (2), Male (1)", as a write-up reports a sample, a thematic
+analysis project's first choice. A tick for each category says which go, those shown as pills ticked until he
+changes one, and both are kept for the project. The PETs' Pen portrait puts the same categories' words on a line
+under the label. Export as REFI-QDA carries each category as a variable and each participant's values on their
+case, and bringing a REFI-QDA project in turns its variables into categories under the import card's Demographics
+tick, a value on a case going to the participant the case becomes and a value on a document to the participant
+whose interview it is. Demographics can identify someone in a small study: nothing leaves the project unless
+ticked, In sum gives the counts without a row tying a pseudonym to an age, the starting set offers age bands and
+never an age, and a value holding a name from the project's list of names to replace is refused.
+
 **Rename (16 October).** A pseudonym given once sometimes changes, so Rename..., in a participant's fields (Edit participant profile in the dots) after the greyed
 name, gives the participant a new one (a tester's ask, Adam's word). Its card
 holds the name now, a field for the new name, one unticked row, Rename the folder too, and under them

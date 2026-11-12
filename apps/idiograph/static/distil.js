@@ -1202,6 +1202,8 @@ function drawPage(s) {
   const list = $('hp-list');
   if (s.there === false) list.innerHTML = `<li class="empty">${esc(t('distil.page.folder_gone'))}</li>`;
   else drawCards(list, s.participants || [], { id: s.id });
+  // the project's demographics for the profile's fields, and the rows' pills fitted to their line (demobuild)
+  if (typeof dmPage === 'function') dmPage(s);
   // Working together's tags on the rows and its lines under the question, while it is on (team.js, wtowners)
   if (typeof wtPageDraw === 'function') wtPageDraw(s.team || null);
   drawGetsCard($('hp-gets'), s.gets);
@@ -1710,6 +1712,8 @@ function cardHtml(p, fixed) {
       + '</div>';
   }
   // the pen portrait's first two lines across the row under the name, the whole in its tooltip (pbiobuild)
+  // the pills of the categories shown as pills on one line under the label, the pen portrait under them (demobuild)
+  if (p.person && typeof dmPillsHtml === 'function') html += dmPillsHtml(p.person.pills);
   if (p.person) html += ppPortraitHtml(p.person);
   return `${html}<div class="pc-files" hidden><ul class="case-list"></ul></div>`;
 }
@@ -1764,6 +1768,8 @@ function ppEditHtml(p) {
     + `${!p.demo && p.folder !== false ? `<button type="button" class="ghost small pp-rename" data-pp="rename">${esc(t('distil.card.rename_ellipsis'))}</button>` : ''}</span></label>`
     + `<label class="pp-l"><span>${esc(t('distil.person.label'))}</span><input class="tf-edit-in pp-in pp-in-label" maxlength="60" data-pp-field="label" value="${escAttr(typed('label'))}"></label>`
     + `<label class="pp-l top"><span>${esc(t('distil.person.portrait'))}</span><textarea class="tf-edit-in pp-in pp-in-portrait" maxlength="800" rows="4" data-pp-field="portrait">${esc(typed('portrait'))}</textarea></label>`
+    // a line for each of the project's demographics' categories after the pen portrait (demobuild, demographics.js)
+    + (typeof dmFieldsHtml === 'function' ? dmFieldsHtml(p) : '')
     + `${faces}<div class="pp-foot"><button type="button" class="primary small" data-pp="done">${esc(t('trajectories.done'))}</button></div></div></div>`;
 }
 
@@ -1773,6 +1779,8 @@ function ppMenuText(label, person) {
   const p = person || {};
   return `<span class="pp-mi"><span class="pp-mname">${esc(caseShown(label))}</span>`
     + (p.label ? `<span class="pp-label">${esc(p.label)}</span>` : '')
+    // the pills of the categories shown, after the label (demobuild)
+    + (typeof dmPillsInline === 'function' ? dmPillsInline(p.pills) : '')
     + (p.portrait ? `<span class="pp-bio">${esc(p.portrait)}</span>` : '') + '</span>';
 }
 
@@ -1780,13 +1788,16 @@ function ppMenuText(label, person) {
    the bar's two spans, the label giving way first in a narrow window, the whole in its tooltip */
 function ppBarDraw(pic, lab, person) {
   const p = person || null;
+  // the bar is full already, so their demographics' pills are named in the tooltips alone (demobuild)
+  const values = p && typeof dmPillsWords === 'function' ? dmPillsWords(p.pills) : '';
   if (pic) {
     pic.innerHTML = p ? personPic(p, 24) : '';
     pic.hidden = !p;
+    pic.title = values;
   }
   if (lab) {
     lab.textContent = p && p.label ? p.label : '';
-    lab.title = p && p.label ? p.label : '';
+    lab.title = p && p.label ? [p.label, values].filter(Boolean).join(' · ') : '';
     lab.hidden = !(p && p.label);
   }
 }
@@ -1824,6 +1835,9 @@ function ppDraw() {
   if (old) old.replaceWith(edit);
   else li.insertBefore(edit, li.querySelector('.pc-files'));
   if (was) was.hidden = true;
+  // and its demographics' pills, as its pen portrait (demobuild)
+  const pills = li.querySelector('.dm-rowpills');
+  if (pills) pills.hidden = true;
   ppFit(edit.querySelector('.pp-in-portrait'));
   if (front) {
     const again = li.querySelector(`[data-pp-field="${front}"], [data-pp="${front}"]`);
@@ -1870,6 +1884,8 @@ function ppRowFill(li, p) {
   box.innerHTML = ppPortraitHtml(person);
   if (was) was.remove();
   if (box.firstElementChild && !li.querySelector('.pp-edit')) li.insertBefore(box.firstElementChild, li.querySelector('.pc-files'));
+  // and the pills of their demographics over the pen portrait (demobuild)
+  if (typeof dmRowFill === 'function') dmRowFill(li, person);
 }
 
 /* a change to the participant's set, through the one route agents use too, one at a time in the order made, the
@@ -3669,7 +3685,7 @@ async function qdAdd(file) {
     data = await npBase64(file);
   } catch { npSaid(t('distil.qd.unreadable', { file: file.name })); return; }
   NP.qdpx = { file: file.name, data, held: '', read: null, ask: 0, rows: new Map(), roles: {}, said: '', timer: 0,
-    choices: Object.fromEntries(QD_CHOICES.map(([k, , opts]) => [k, opts[0][0]])), pets: false };
+    choices: Object.fromEntries(QD_CHOICES.map(([k, , opts]) => [k, opts[0][0]])), pets: false, demographics: true };
   npSaid('');
   drawQd();
   await qdRead();
@@ -3709,7 +3725,7 @@ function qdSources() {
   });
 }
 
-const qdAsks = () => ({ ...NP.qdpx.choices, pets: NP.qdpx.pets && NP.qdpx.choices.codes === 'statements',
+const qdAsks = () => ({ ...NP.qdpx.choices, pets: NP.qdpx.pets && NP.qdpx.choices.codes === 'statements', demographics: NP.qdpx.demographics !== false,
   speakers: NP.qdpx.roles, sources: qdSources() });
 
 /* The file read as the card now stands: sent whole the first time, by its key after, and whole again
@@ -3814,7 +3830,10 @@ function qdChoosersHtml(r) {
     + opts.map(([v, l]) => `<option value="${v}"${q.choices[k] === v ? ' selected' : ''}>${esc(l)}</option>`).join('') + '</select></label>');
   const pets = q.choices.codes === 'statements' && (r.groups || []).length
     ? `<label class="view-row qd-pets"><input type="checkbox" data-qd="pets"${q.pets ? ' checked' : ''}> ${esc(t('distil.qd.draft_pets'))}</label>` : '';
-  return `<div class="import-who qd-choices" role="group" aria-label="${escAttr(t('distil.qd.what_comes'))}"><p class="import-sub">${esc(t('distil.qd.what_comes'))}</p>${rows.join('')}${pets}</div>`;
+  // the package's variables as the participants' demographics, ticked (demobuild)
+  const demo = r.variables
+    ? `<label class="view-row qd-pets"><input type="checkbox" data-qd="demographics"${q.demographics !== false ? ' checked' : ''}> ${esc(t('demographics.page.import_tick'))}</label>` : '';
+  return `<div class="import-who qd-choices" role="group" aria-label="${escAttr(t('distil.qd.what_comes'))}"><p class="import-sub">${esc(t('distil.qd.what_comes'))}</p>${rows.join('')}${pets}${demo}</div>`;
 }
 
 function qdHtml() {
@@ -3900,6 +3919,7 @@ function qdChange(e) {
   else if (name === 'timepoint' && row) row.timepoint = Number(e.target.value) || 1;
   else if (name === 'speaker') q.roles[e.target.dataset.speaker] = e.target.value;
   else if (name === 'pets') q.pets = e.target.checked;
+  else if (name === 'demographics') q.demographics = e.target.checked;
   else if (name.startsWith('choice-')) q.choices[name.slice(7)] = e.target.value;
   else return;
   // a tick or the codes' choice changes what the card holds at once, before the server's answer
@@ -11432,6 +11452,8 @@ function openProjectSettings(p) {
   loadGetsPane(ta ? null : getsTarget(shown));
   // Working together (wtkeys, team.js), off until turned on, drawn once the server says how it stands
   if (typeof wtOpen === 'function') wtOpen(shown);
+  // Demographics, last in the sheet (demobuild, demographics.js)
+  if (typeof dmOpen === 'function') dmOpen(shown);
   show('projset');
   $('projset-body').scrollTop = 0;
   $('set-project-name').focus();

@@ -146,20 +146,57 @@
 // a row for each participant in order, the number in the quiet sans, the pseudonym and the label in the serif, the
 // pen portrait taking the rest of the width, as the HTML's `table.pt`. The column heads repeat on each page and a
 // row is never split, as the GET table's.
+//
+// With the demographics (demobuild, 12 November 2026), `columns`: a column for each category ticked after the label,
+// the pen portrait on a line of its own under the row, kept with it, and `sums`, In sum's short table after it, each
+// category ticked with its values counted.
 #let people-table(p) = {
   let cell(body) = table.cell(breakable: false, body)
-  let rows = p.rows.map(r => (
-    cell(lh(1.5, text(font: sans, size: 9pt, fill: soft, number-width: "tabular", r.number))),
-    cell(lh(1.35, text(font: serif, size: 11pt, fill: ink, r.pseudonym))),
-    cell(lh(1.35, text(font: serif, size: 10.5pt, fill: ink, r.label))),
-    cell(lh(1.4, text(font: serif, size: 10pt, fill: ink, r.portrait))),
-  )).flatten()
+  let cols = p.at("columns", default: false)
+  let rows = if cols {
+    let span = p.heads.len() - 1
+    p.rows.map(r => {
+      let line = r.portrait != ""
+      let under = if line { (bottom: none) } else { (bottom: px + rule) }
+      (
+        table.cell(breakable: false, stroke: under, lh(1.5, text(font: sans, size: 9pt, fill: soft, number-width: "tabular", r.number))),
+        table.cell(breakable: false, stroke: under, lh(1.35, text(font: serif, size: 11pt, fill: ink, r.pseudonym))),
+        table.cell(breakable: false, stroke: under, lh(1.35, text(font: serif, size: 10.5pt, fill: ink, r.label))),
+        ..r.values.map(v => table.cell(breakable: false, stroke: under, lh(1.35, text(font: serif, size: 10pt, fill: ink, v)))),
+        ..(if line { (
+          table.cell(breakable: false, inset: (x: 6pt, top: 0pt, bottom: 4pt), []),
+          table.cell(breakable: false, colspan: span, inset: (x: 6pt, top: 0pt, bottom: 4pt),
+            lh(1.4, text(font: serif, size: 10pt, fill: soft, r.portrait))),
+        ) } else { () }),
+      )
+    }).flatten()
+  } else {
+    p.rows.map(r => (
+      cell(lh(1.5, text(font: sans, size: 9pt, fill: soft, number-width: "tabular", r.number))),
+      cell(lh(1.35, text(font: serif, size: 11pt, fill: ink, r.pseudonym))),
+      cell(lh(1.35, text(font: serif, size: 10.5pt, fill: ink, r.label))),
+      cell(lh(1.4, text(font: serif, size: 10pt, fill: ink, r.portrait))),
+    )).flatten()
+  }
+  let widths = if cols { (18mm, 34mm, 44mm, ..range(p.heads.len() - 3).map(i => 1fr)) } else { (18mm, 34mm, 60mm, 1fr) }
   block(above: 0pt, below: 0pt, table(
-    columns: (18mm, 34mm, 60mm, 1fr), inset: (x: 6pt, y: 4pt), align: left + top,
+    columns: widths, inset: (x: 6pt, y: 4pt), align: left + top,
     stroke: (x, y) => if y == 0 { (bottom: px + rule-firm) } else { (bottom: px + rule) },
     table.header(repeat: true, ..p.heads.map(h => table.cell(inset: (x: 6pt, top: 2pt, bottom: 3pt),
       caps(h, size: 7.5pt, weight: "semibold")))),
     ..rows))
+  let sums = p.at("sums", default: ())
+  if sums.len() > 0 {
+    block(above: 14pt, below: 0pt, table(
+      columns: (52mm, 1fr), inset: (x: 6pt, y: 4pt), align: left + top,
+      stroke: (x, y) => if y == 0 { (bottom: px + rule-firm) } else { (bottom: px + rule) },
+      table.header(repeat: true, ..p.sum_heads.map(h => table.cell(inset: (x: 6pt, top: 2pt, bottom: 3pt),
+        caps(h, size: 7.5pt, weight: "semibold")))),
+      ..sums.map(s => (
+        cell(lh(1.5, text(font: sans, size: 9pt, fill: soft, s.name))),
+        cell(lh(1.35, text(font: serif, size: 10.5pt, fill: ink, s.counts))),
+      )).flatten()))
+  }
 }
 
 // the page: A4 landscape with a 14mm margin, the foot in the bottom margin

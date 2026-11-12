@@ -296,7 +296,10 @@ function trajPersonHtml(case_, tps) {
   // the passage picker open under one of their rows takes a row of the grid of its own
   const picking = shown.find((r) => TJ.passage.startsWith(`${c.case}|${r.id}|`));
   const span = Math.max(1, shown.length) + (picking ? 1 : 0);
-  const tags = (c.tags || []).length ? `<span class="tf-pills">${c.tags.map((tg) => tjPill(tg.word, tg.colour)).join('')}</span>` : '';
+  // the pills of the participant's demographics shown as pills, in place of its tags (demobuild), its tags from a
+  // server from before
+  const pills = Array.isArray(c.pills) ? c.pills : (c.tags || []);
+  const tags = pills.length ? `<span class="tf-pills">${pills.map((tg) => tjPill(tg.word, tg.colour)).join('')}</span>` : '';
   const note = tjNotesOn()
     ? `<textarea class="tj-note tf-fit" rows="2" maxlength="2000" data-case="${escAttr(c.case)}" data-fkey="note-${escAttr(c.case)}"
         aria-label="${escAttr(t('trajectories.note_label', { who: c.who }))}" placeholder="${escAttr(t('trajectories.note_placeholder'))}">${esc(c.note || '')}</textarea>` : '';

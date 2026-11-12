@@ -507,6 +507,10 @@ TOOLS = [
                                                      "participant's canvas, a PET a code group, and from Idiograph's own "
                                                      "package in a project of timepoints each participant's LPETs and "
                                                      "the LGETs as boards too. Only on his word."},
+          "demographics": {"type": "boolean", "description": "The package's variables as the participants' "
+                                                             "demographics, each variable a category, a value on a case "
+                                                             "or on a participant's source theirs. True when left out, "
+                                                             "false leaves them out."},
           "user": {"type": "string", "description": "One coder's work alone, by name. Every coder's when left out."},
           "skip": {"type": "array", "items": {"type": "string"},
                   "description": "Finds of the project's list of names to leave as written, each an entry's number and "
@@ -1130,7 +1134,8 @@ TOOLS = [
     mcp.tool("participant_show", "A participant's picture, label and pen portrait", ("participant", "show"),
          "A participant's picture, label and pen portrait, as the project page's row shows them: label, a few words, "
          "portrait, one short paragraph, and picture, one of the app's drawn set (set:peep01 to set:peep40), a file's "
-         "name in the project's pictures folder, or empty for none. With no case, every participant's of the project. "
+         "name in the project's pictures folder, or empty for none, and values, their demographics by category, a "
+         "list's one value as a string and free words as a list. With no case, every participant's of the project. "
          "cases answers each participant's too. The real name is never kept here.",
          {"case": dict(mcp.CASE, description="The participant, by their pseudonym. Every participant when left out.")}),
     mcp.tool("participant_set", "Set a participant's picture, label or pen portrait", ("participant", "set"),
@@ -1145,8 +1150,49 @@ TOOLS = [
           "picture": dict({"type": "string"}, description="One of the app's drawn set, set:peep01 to set:peep40, or empty to take "
                                                 "the picture off."),
           "picture_file": dict(mcp.TEXT, description="An image file's path, PNG, JPEG or SVG, kept in the project's "
-                                                     "pictures folder, made square and small, in place of picture.")},
+                                                     "pictures folder, made square and small, in place of picture."),
+          "values": {"type": "object", "additionalProperties": {"type": ["string", "array"], "items": {"type": "string"}},
+                     "description": 'Their demographics by category, {"Gender": "Female", "Nationality": ["Spanish"]}: '
+                                    "a list's value, one of its values as demographics_show gives them, or free words "
+                                    "as a list, an empty string or list clearing one, each category left out kept. A "
+                                    "value not in a list, two for a list or a category the project lacks is refused, "
+                                    "nothing written."}},
          ["case"], writes="changes"),
+    # the project's demographics (demobuild, 12 November 2026)
+    mcp.tool("demographics_show", "The participants' demographics", ("demographics", "show"),
+         "The project's demographics as Project settings shows them: each category in his order with its kind, list "
+         "(one value each, from its values) or words (free words), its values in order each with its colour, one of "
+         "the participants' 25, show (its pill on the rows, the pickers and Trajectories) and export (whether it "
+         "goes into the participants table and the PETs' pen portrait line), table, how the participants table "
+         "carries them (each, a column each, or sum, counts), each participant's values, and pending, true while "
+         "Trajectories' old tags wait to move into the Tags category."),
+    mcp.tool("demographics_apply", "Change the demographics' categories", ("demographics", "apply"),
+         "Change the project's demographics' categories and values, all or nothing, as Project settings does: "
+         '{"op": "add", "name": "Age range", "kind": "list", "values": ["18 to 29", "30 to 39"], "show": true, '
+         '"at": 1} (kind list or words, words without it), {"op": "rename", "category": "Gender", "name": "..."}, '
+         '{"op": "kind", "category": "Nationality", "kind": "list"} (a list turned to words keeps every value, words '
+         'turned to a list make the words in use its values, refused while someone has two), {"op": "show", '
+         '"category": "Tags", "show": false}, {"op": "move", "category": "Tags", "at": 0}, {"op": "remove", '
+         '"category": "..."} (its values come off everyone), {"op": "export", "category": "Nationality", "export": '
+         'false} (out of the participants table and the pen portrait line), {"op": "table", "how": "sum"} (each or '
+         'sum), and on a value {"op": "value_add", "category": "Gender", "value": "Non-binary", "colour": "Plum", '
+         '"at": 2} (a list\'s alone, free words come from the participants), {"op": "value_rename", "category": ..., '
+         '"value": ..., "to": ...}, {"op": "value_colour", ..., "colour": "Teal"} (one of the participants\' 25 '
+         'colours), {"op": "value_move", ..., "at": 0}, {"op": "value_remove", ...} (off everyone who has it), and '
+         '{"op": "value_to", "category": "Tags", "value": "Female", "to": "Gender"} (the word and everyone who has '
+         "it moved into another category, joining a value of the same words there, refused where a list holds "
+         "another value for one of them). A value taken off anyone copies the project file to _Archive first, and "
+         "History keeps the values that went. Sort Trajectories' old tags with value_to, all in one call. Run "
+         "dry_run first, which lists each change, and change only on his word.",
+         {"operations": {"type": "array", "minItems": 1, "items": {"type": "object"},
+                         "description": "The operations, run in order."}},
+         ["operations"], writes="changes"),
+    mcp.tool("demographics_move_tags", "Move Trajectories' tags into Tags", ("demographics", "move-tags"),
+         "Move Trajectories' old tags into each participant's values in the project's Tags category now, as the "
+         "project page's next listing would, each word keeping the colour Trajectories gave it, both files copied to "
+         "_Archive first, the colour map LPETs' domains share kept whole. Run dry_run first, which lists each "
+         "participant's tags, and move only on his word.",
+         {}, [], writes="changes"),
     mcp.tool("participant_complete", "Mark a participant's statements complete", ("participant", "complete"),
          "Mark a participant's experiential statements complete, as Mark complete on the statements screen does, or "
          "with reopen reopen them. Only the mark in the progress file changes, and marking statements marked already "
@@ -1512,6 +1558,7 @@ def arguments(t: dict, given: dict, args):
         for key in ("codes", "comments", "loose", "memos", "recordings", "user"):
             setattr(args, key, given.get(key))
         args.pets = given.get("pets") is True
+        args.no_demographics = given.get("demographics") is False
     if command == "timepoints":
         # read with none, set with the list, the command line's --from handed over already read
         args.source = {"timepoints": given["timepoints"]} if t["name"] == "timepoints_set" else None
@@ -1593,6 +1640,8 @@ def arguments(t: dict, given: dict, args):
         args.no_picture = act == "set" and picture is not None and not str(picture).strip()
         args.picture = None if args.no_picture else picture
         args.picture_file = given.get("picture_file")
+        # their demographics by category (demobuild)
+        args.value, args.values = None, given.get("values") if isinstance(given.get("values"), dict) else None
     if t["annotations"]["readOnlyHint"] is False:
         args.note, args.dry_run = given.get("request", ""), given.get("dry_run") is True
     if (command, act) == ("board", "new"):

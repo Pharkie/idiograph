@@ -204,7 +204,7 @@ def test_participant_set(scratch):
               code == 0 and dry.get("dry_run") is True and code2 == 0 and code3 == 0 and code4 == 0 and code5 == 0
               and shown["participant"] == {"case": "P2 - Piers", "who": "Piers", "label": "Racing on Sundays",
                                            "portrait": "Seventy, retired. Learnt for his granddaughter.",
-                                           "picture": "set:peep12"}
+                                           "picture": "set:peep12", "values": {}}
               and [p["case"] for p in every["participants"]] == ["P1 - Orla", "P2 - Piers"]
               and piers_row.get("label") == "Racing on Sundays" and piers_row.get("picture") == "set:peep12"
               and record.get("by") == "agent" and record.get("tool") == "a373"
@@ -301,14 +301,16 @@ def test_participant_set(scratch):
         t_after = json.loads(tfile.read_text(encoding="utf-8"))
         sets = json.loads(pfile.read_text(encoding="utf-8"))["participants"]
         archive = sorted(p.name for p in (pool / "_Archive").iterdir()) if (pool / "_Archive").is_dir() else []
-        record = hist_mod.load(pool)[-1]
+        record, tags_record = hist_mod.load(pool)[-2:]
         check("373: the project page's listing moves them over: Orla's label and her picture's file copied into "
               "pictures/ (the original left), Piers's own label kept, the board's labels and pictures gone from "
-              "placed with everything else there kept, both files copied to _Archive first, one History line",
-              sets["P1 - Orla"] == {"label": "The rail holder", "picture": "Orla.png"}
+              "placed with everything else there kept, both files copied to _Archive first, one History line, and its "
+              "tags moved into the Tags category beside them (demobuild)",
+              sets["P1 - Orla"] == {"label": "The rail holder", "picture": "Orla.png", "values": {"Tags": ["Pool"]}}
               and (people_mod.pictures_of(pool) / "Orla.png").read_bytes() == small and (tpics / "Orla.png").is_file()
               and sets["P2 - Piers"]["label"] == "Racing on Sundays" and sets["P2 - Piers"]["picture"] == "set:peep12"
-              and t_after["placed"]["P1 - Orla"] == {"column": "c1", "note": "Trusts the rail less each week", "tags": ["Pool"]}
+              and t_after["placed"]["P1 - Orla"] == {"column": "c1", "note": "Trusts the rail less each week"}
+              and tags_record["changes"] == ["Tags of 1 participant moved from Trajectories to the Tags category."]
               and "title" not in json.dumps(t_after["placed"]) and "picture" not in json.dumps(t_after["placed"])
               and any(n.startswith("idiograph-trajectories (pre-participants ") for n in archive)
               and any(n.startswith("idiograph-project (pre-participants ") for n in archive)
@@ -327,7 +329,7 @@ def test_participant_set(scratch):
                                                                               "set": "peep09"}]})
         sets = json.loads(pfile.read_text(encoding="utf-8"))["participants"]
         check("373: Trajectories' title and picture ops set the participant's own, the board's file keeping neither",
-              sets["P1 - Orla"] == {"label": "Floating now", "picture": "set:peep09"}
+              sets["P1 - Orla"] == {"label": "Floating now", "picture": "set:peep09", "values": {"Tags": ["Pool"]}}
               and "title" not in json.dumps(json.loads(tfile.read_text(encoding="utf-8"))["placed"])
               and done["changes"] == ["Orla's label from The rail holder to Floating now.", "Orla's picture changed."],
               str(done["changes"]))

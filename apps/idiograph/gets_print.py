@@ -562,18 +562,40 @@ def table_section(get: dict, tint: str, total: int, minimum: int, notes: bool, s
 
 # ------------------------------------------------------------- the participants table
 
-def people_section(rows: list[dict]) -> str:
+def people_section(table: dict) -> str:
     """The participants table (pbioexport, 11 November 2026, with Participants table ticked), the first part of
     the page, under its heading as a full set's parts are: a row for each participant in order, their number, their
     pseudonym, their label and their pen portrait, a cell empty where they have none, and never a picture. The
-    heads repeat on each page and a row is never split, as the GET table's."""
-    heads = "".join(f"<th>{esc(h)}</th>" for h in people_mod.table_heads())
-    body = "".join(f'<tr><td class="pt-n">{esc(r["number"])}</td><td class="pt-who">{esc(r["pseudonym"])}</td>'
-                   f'<td class="pt-label">{esc(r["label"])}</td><td class="pt-portrait">{esc(r["portrait"])}</td></tr>'
-                   for r in rows)
+    heads repeat on each page and a row is never split, as the GET table's. `table` is `participants.table_of`'s.
+
+    With the demographics (demobuild, 12 November 2026), One row each puts a column for each category ticked after
+    the label and the pen portrait on a line of its own under the row, the two kept together, and In sum a short
+    table after it, each category ticked with its values counted."""
+    heads = "".join(f"<th>{esc(h)}</th>" for h in table["heads"])
+    if table.get("columns"):
+        span = len(table["heads"]) - 1
+        has = ' class="pt-has"'
+        body = "".join(
+            f'<tbody class="pt-one"><tr{has if r["portrait"] else ""}><td class="pt-n">{esc(r["number"])}</td>'
+            f'<td class="pt-who">{esc(r["pseudonym"])}</td><td class="pt-label">{esc(r["label"])}</td>'
+            + "".join(f'<td class="pt-value">{esc(v)}</td>' for v in r["values"]) + "</tr>"
+            + (f'<tr class="pt-line"><td class="pt-n"></td><td class="pt-portrait" colspan="{span}">{esc(r["portrait"])}</td></tr>'
+               if r["portrait"] else "") + "</tbody>"
+            for r in table["rows"])
+    else:
+        body = "<tbody>" + "".join(
+            f'<tr><td class="pt-n">{esc(r["number"])}</td><td class="pt-who">{esc(r["pseudonym"])}</td>'
+            f'<td class="pt-label">{esc(r["label"])}</td><td class="pt-portrait">{esc(r["portrait"])}</td></tr>'
+            for r in table["rows"]) + "</tbody>"
+    sums = ""
+    if table.get("sums"):
+        sum_heads = "".join(f"<th>{esc(h)}</th>" for h in table["sum_heads"])
+        sums = (f'<table class="pt pt-sum"><thead><tr>{sum_heads}</tr></thead><tbody>'
+                + "".join(f'<tr><td class="pt-cat">{esc(s["name"])}</td><td class="pt-counts">{esc(s["counts"])}</td></tr>'
+                          for s in table["sums"]) + "</tbody></table>")
     return (f'<section class="part first people" id="participants"><h2>{esc(i18n.t("page_print.people.heading"))}</h2>'
-            f'<div class="gt-wide"><table class="pt"><thead><tr>{heads}</tr></thead><tbody>{body}</tbody></table></div>'
-            "</section>")
+            f'<div class="gt-wide"><table class="pt{" pt-cols" if table.get("columns") else ""}"><thead><tr>{heads}</tr></thead>'
+            f'{body}</table>{sums}</div></section>')
 
 
 # ------------------------------------------------------------- the PET tables
@@ -731,6 +753,16 @@ table.pt { width: 100%; min-width: 720px; border-collapse: collapse; }
 .pt td.pt-who { width: 34mm; font-family: var(--serif); font-size: 11pt; line-height: 1.35; }
 .pt td.pt-label { width: 60mm; font-family: var(--serif); font-size: 10.5pt; line-height: 1.35; }
 .pt td.pt-portrait { font-family: var(--serif); font-size: 10pt; line-height: 1.4; }
+/* the demographics (demobuild): a column for each category in the serif at the label's size, the pen portrait on a
+   line of its own under its row, the two kept together, and In sum's short table after the participants' */
+.pt.pt-cols td.pt-label { width: 44mm; }
+.pt td.pt-value { font-family: var(--serif); font-size: 10pt; line-height: 1.35; }
+.pt tbody.pt-one { break-inside: avoid; page-break-inside: avoid; }
+.pt tr.pt-has td { border-bottom: 0; padding-bottom: 1pt; }
+.pt tr.pt-line td { padding-top: 0; color: var(--ink-soft); }
+table.pt.pt-sum { margin-top: 14pt; min-width: 0; }
+.pt-sum td.pt-cat { width: 52mm; font-family: var(--sans); font-size: 9pt; line-height: 1.5; color: var(--ink-soft); }
+.pt-sum td.pt-counts { font-family: var(--serif); font-size: 10.5pt; line-height: 1.35; }
 .it { font-family: var(--serif); font-size: 10.5pt; line-height: 1.35; margin: 0 0 4pt; }
 .it .kind { font-family: var(--sans); font-size: 7.5pt; font-weight: 600; letter-spacing: .04em; color: var(--ink-faint); }
 .it .n, .it .within, .it .mine { font-family: var(--sans); font-size: 8pt; color: var(--ink-faint); }
@@ -970,7 +1002,8 @@ def walked(root: Path, books: list[dict], project: dict, board: str | None, what
              else i18n.t("page_print.gets.title", name=name, board=parts["board"].get("name") or th.FIRST_NAME, what=kind))
     rows = None
     if people is not None and not gt.in_lpets():
-        rows = people_mod.table_rows(people, parts["inside"], gt.who)
+        # with the demographics' columns or In sum's counts the print card's ticks ask for (demobuild)
+        rows = people_mod.table_of(people, parts["inside"], gt.who)
     return {"what": what, "parts": parts, "table": table_, "trails": trails, "recs": recs, "words": words,
             "kind": kind, "title": title, "people": rows}
 
@@ -1223,7 +1256,7 @@ def typst_data(root: Path, books: list[dict], project: dict, board: str | None =
            "names": {"table": i18n.t("page_print.gets.table"), "trail": i18n.t("page_print.gets.trail"),
                      "people": i18n.t("page_print.people.heading")}}
     if w["people"] is not None:
-        out["people"] = {"heads": people_mod.table_heads(), "rows": w["people"]}
+        out["people"] = w["people"]
     if what in ("table", "all"):
         out["table"] = [table_data(g, hues.get(g["id"], grey), total, minimum, notes, selected) for g in w["table"]]
     if what in ("trail", "all"):

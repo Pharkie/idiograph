@@ -302,7 +302,12 @@ def test_qdpx(scratch):
               and rows[4][2] == "Help from the committee" and rows[4][4] == "help that arrived from the committee"
               and (ash / "Source" / "Interview" / "Source" / "Ash.m4a").is_file()
               and "Ash spoke faster about the rotavator." in memo.read_text(encoding="utf-8")
-              and any("1 variable left out" in line and "1 free memo left out" in line for line in done["lines"]),
+              and any("1 free memo left out" in line for line in done["lines"])
+              # the case's variable comes in as Ash's demographics, Demographics ticked (demobuild)
+              and "Demographics, Years on the plot, a list: 3 for Ash." in done["lines"]
+              and any((kept or {}).get("values") == {"Years on the plot": "3"} for case, kept in json.loads(
+                  (root / "idiograph-project.json").read_text(encoding="utf-8")).get("participants", {}).items()
+                      if case.endswith("Ash")),
               err or str(done.get("lines")))
 
         # -- D. MAXQDA: one coder's work alone, comments as statements

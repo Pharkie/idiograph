@@ -3451,6 +3451,55 @@ a light one between rows, `w:tblHeader` and `w:cantSplit`) and a `BREAK`, a page
 with `--word`) and MCP's `portrait` and `participants` call the same writers through `routes.portrait_printed` and
 `routes.people_printed`, `--draft` and `--canvas` refusing them. Area 373 checks it.
 
+**Demographics (demobuild, 12 November 2026, Adam's option A of demodraw's proposal with B's Edit the table).**
+`demographics.py` holds them. The project file keeps the categories under `demographics`, a list in his order, each
+`{"name", "kind" (list or words), "show", "values": [{"word", "colour"}], "export"?}`, a colour a place in
+`trajectories.TAG_NAMES`, and `participants_table` (`each` or `sum`, `how_of` giving a thematic analysis project's
+`sum` and an IPA one's `each` where it is missing). Each participant's values sit in their own set,
+`participants[case]["values"]`, `{"Gender": "Female", "Nationality": ["Spanish"]}`, which `participants.one` keeps
+(`values_kept`, read loosely) and `FIELDS` counts, so Rename (`case_files.project_carry`) and a shared copy carry
+them. `cats_of` reads the categories, `values_for` a participant's against them (a list's value spelt as the list
+spells it, a value of a category gone left out), `pills` the pills of the categories shown, `shown_line` the
+words of those ticked for the exports (`exported`: `export`, else `show`), `cell` and `sums` the participants
+table's cell and In sum's counts. `apply(cats, people, ops, real_name, table)` runs `demographics apply`'s
+operations in place, refused whole (`refuse`, `demographics.refuse.*`), answering its lines and whether a value
+came off anyone, `set_values` a participant's, `tidy` drops what no category holds and each free word nobody has
+before a save, and `fresh_colour` gives a new value the palette's least used colour. Trajectories' old tags: `view`
+merges `placed[case]["tags"]` into a Tags category (`merge_tags`, each word keeping its colour from the file's
+`tags` map) for every read, writing nothing, `settle` moves them for good under the project's lock, both files to
+`_Archive/` as `(pre-demographics <date-time>)`, the project file written, then `tags` taken off `placed` with its
+History line, the `tags` map kept whole since LPETs' domains share it (`colour_for`), and `move_plan` is its dry run.
+In the routes `people_view` returns `demographics.People`, a dict with `cats` (and for an export `table`), so
+`person_of` gives `person.values` and `person.pills` to every answer that carries `person`. `people_settle` runs
+`demo_settle` after the labels' move, `people_settled` (the listing) once either waits, and `person_change` holds the
+categories (`cats`, `table`), `apply` takes `values` (and makes Tags for Trajectories' `tags` op) and `tag_colour`,
+`demographics` the operations, `view` a dry run's sets, and `write` archives first when a value went (`took`),
+tidies and writes `demographics`, `participants_table` and the sets in one save with one History record (`participant
+set`, or `demographics` for the categories). `api_demographics` is `/api/demographics` (`op` `show`, `apply` with
+`ops`, `move_tags`), post only, `demographics_answer` its answer. `project_section` gives each project page's
+`demographics` for the profile's fields. `traj_apply` sends `tags` and `tag_colour` to the set (trajectories.apply's
+`set_person`), and `traj_reply` gives each card `pills` and `tags` from Tags. The exports: `people_printed` sets
+`People.table` (`{"how", "cats"}`), `participants.table_of` gives `heads`, `rows` with `values`, `columns` and `sums`,
+`gets_print.people_section` draws the columns (`table.pt.pt-cols`, a `tbody.pt-one` a participant, `tr.pt-line`
+the pen portrait across the rest) or `table.pt.pt-sum` after it, `gets-parts.typ`'s `people-table` the same with a
+`colspan` cell, and `gets_word.people_blocks` the same through `themes_word.row_cells` (a `{"text", "span"}` cell is a
+`w:gridSpan`). `portrait_printed` passes the ticked categories to `participants.printed`, whose `values` line the
+table of PETs prints. REFI-QDA: `qdpx_out.variables_of` writes a Text `Variable` a category after the code book (a
+list's description its head line then its values a line each) and `VariableValue`s on each `Case` after its
+description. `qdpx.values_of` reads a case's and a source's, `read_root` gives `variable_list`, and
+`demographics.from_package` maps them for the import (a case's value to the participant whose sources it holds, a
+source's to its participant, the first interview's where two differ, an Idiograph package's lists from their
+descriptions, another's a list at 12 values or fewer, Booleans Yes and No, numbers in order), `package_lines` the
+dry run's lines and `package_ops` the operations. `qdpx_import` checks them with a dry `qdpx_demographics` and runs it
+after `qdpx_write`, `asks["demographics"]` the card's tick (`--no-demographics`, MCP's `demographics`). On the page
+`demographics.js` holds it all: `dmPillsHtml`, `dmPillsInline`, `dmFit` (the "+N" pill), `dmRowFill`, `dmFieldsHtml`
+and `dmWire` for the profile's fields (through `ppSave`), `dmOpen`, `dmDraw`, `dmApply` and `dmRemove` (a dry run's
+line in `#dm-confirm`) for Project settings' `#dm-block`, `dmTableOpen` for `#dm-table`, and `dmPrintDraw` for the
+GETs print card's `#gt-print-dm`, each hooked from `distil.js`, `themes.js` and `trajectories.js` by one line,
+`demographics.css` its look. The command line's `demographics show|apply|move-tags` and `participant set --value`,
+and MCP's `demographics_show`, `demographics_apply`, `demographics_move_tags` and `participant_set`'s `values`, run
+the same routes. Area 375 checks it, with 373, 369, 244 and 84 brought up to date.
+
 A statement card's passage is `thToPassage` in `themes.js`, from Go to the passage in `thMenuItems`,
 which `thMenuDo` takes as `passage`, `thIsStatement` saying which cards are, every card on the PETs
 canvas and a card of kind `es` on GETs, LGETs and LPETs, where until getsedit (below) a double-click on a
