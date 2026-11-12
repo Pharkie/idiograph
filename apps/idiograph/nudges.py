@@ -14,7 +14,7 @@ QUOTE = re.compile(r"['‘’\"“”]")
 TELL = re.compile(r"\b(reads?|casts?|recasts?)\s+.{0,40}?\sas\b", re.I)
 ARROW = re.compile(r"[→⇒➔➡]|\s>\s|->")
 FIRST = re.compile(r"\s*([A-Za-z']+)")
-NOUN_LED = {"she", "her", "the", "it", "his", "they", "a", "an", "he"}
+PERSON_LED = {"she", "her", "his", "they", "their", "he"}
 
 # Corpus norms, from the census of 1,560 statements: median 10 words, 78% in the 7 to 15 band.
 # No minimum (Adam, 21 September 2026): a fifth of his own statements run to six words or fewer.
@@ -25,7 +25,7 @@ CHECKS = ("length", "lead", "quote", "semicolon", "emdash", "arrow", "readsas")
 
 LABELS = {
     "length": "word count past 15",
-    "lead": "opens with The, She, Her, A or An",
+    "lead": "opens with She, He or They",
     "quote": "carries a quoted fragment",
     "semicolon": "carries a semicolon",
     "emdash": "carries an em dash",
@@ -58,8 +58,8 @@ def check_statement(text: str, enabled=CHECKS, high: int = HIGH) -> list[dict]:
 
     if n > high:
         add("length", f"over {high} words. Tighten it, or split out a second idea.")
-    if first_word(stripped) in NOUN_LED:
-        add("lead", "opens with The, She, Her or A. The corpus drops the subject.")
+    if first_word(stripped) in PERSON_LED:
+        add("lead", "opens with She, He or They. The corpus drops the subject.")
     if QUOTE.search(stripped):
         add("quote", "a quoted fragment. One statement in seven, and a single crux word.")
     if ";" in stripped:

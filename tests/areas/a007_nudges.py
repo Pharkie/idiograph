@@ -9,7 +9,12 @@ def test_nudges():
     print("\n6. Nudges, from the audit checks")
     cases = [
         ("Cracking first, every morning", [], "one of the demo's own, four words"),
-        ("She cracks first every morning and goes down to the dog", ["lead"], "The/She/Her lead"),
+        ("She cracks first every morning and goes down to the dog", ["lead"], "She lead"),
+        ("A house never empty, and a dog always at the door", [], "A opening is no lead flag"),
+        ("The dog decides when the morning begins", [], "The opening is no lead flag"),
+        ("He waits at the door until the dog is back", ["lead"], "He lead"),
+        ("His mornings begin with the dog", ["lead"], "His lead"),
+        ("They walk before the street wakes", ["lead"], "They lead"),
         ("Reads the barking as her fault and a shame to confess to the neighbours", ["readsas"], "reads-as"),
         ("Mornings hers; evenings the dog's", ["semicolon"], "semicolon"),
         ("Pulled down the stairs \u2014 by a lead", ["emdash"], "em dash"),

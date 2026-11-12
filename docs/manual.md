@@ -5576,9 +5576,9 @@ change, written there only when it is not 15. The demo's is fixed.
 before work becomes the one part of the day she keeps for herself", at 18 words. In a census of
 1,560 statements the median ran to 10 words, and 78% to between 7 and 15.
 
-*Opens with The, She, Her or A.* Catches a statement that opens on its subject or an article, The,
-She, Her, A and the like. For example, "She feels calmer once the dog is asleep". The corpus drops
-the subject, as in "Calmer once the dog is asleep".
+*Opens with She, He or They.* Catches a statement that opens on the participant, She, Her, He, His,
+They or Their. For example, "She feels calmer once the dog is asleep". The corpus drops the subject,
+as in "Calmer once the dog is asleep". An opening with The or A is fine.
 
 *A quoted fragment.* Catches inverted commas inside a statement. For example, "Feels 'properly at
 home' with the dog around". In the corpus one statement in seven carries a quote, and then a single
