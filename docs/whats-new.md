@@ -5,7 +5,7 @@ Newest first. Each version's notes are what the updater shows, eight lines at mo
 
 What goes here: only major new features and real changes to how something works, among them what your AI agents can do, and any change to safety, privacy or your data. One plain line each, saying what you can now do, not how the screen shows it. Never: changed wording, labels or layout, small fixes, or a feature's parts (its buttons, tabs, counts). Several changes to one feature are one line. A version with nothing major has one line, or none.
 
-## 0.9.25, 12 November 2026
+## 0.9.26, 12 November 2026
 
 Each participant can have a picture, a label and a pen portrait, shown beside their name and, when you tick it, in your exports.
 REFI-QDA files carry LPETs and LGETs too, out and back in.
