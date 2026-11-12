@@ -87,6 +87,9 @@ export async function launch() {
     };
     return {
       errors, evaluate, resize: size,
+      // the page's own DevTools calls and its events, for a tool that drives the page (clip.mjs)
+      cdp: s,
+      on: (method, fn) => listeners.push((msg) => { if (msg.sessionId === sessionId && msg.method === method) fn(msg.params); }),
       initScript: (source) => s('Page.addScriptToEvaluateOnNewDocument', { source }),
       goto: async (url) => { const loaded = new Promise((ok) => loads.push(ok)); await s('Page.navigate', { url }); await loaded; },
       wait: (ms) => new Promise((ok) => setTimeout(ok, ms)),

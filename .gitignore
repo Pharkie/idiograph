@@ -86,3 +86,7 @@ packaging/tauri/node_modules/
 
 # the lists of real names a project replaces on import (namesrule), kept in the app folder when run from source
 /names/
+
+# the Screenshots page's clips on the website (siteclips, 12 November 2026), served by the site from its own folder
+# and kept in git with it, where the launch film is copied in before each deploy
+!site/holding/clips/*.mp4

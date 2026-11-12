@@ -6940,6 +6940,46 @@ speed. Beside it the recordings, `<NN>-<way>-<width>-<scheme>.mp4` and the same 
 with its heading and "Check: ..." and its `.caption.json`, so `review_shot.js pack` lists them. The raw frames stay
 in a folder of their own.
 
+#### Clips for the website (siteclips, 12 November 2026)
+
+The website's Screenshots page (`site/holding/screenshots.html`, its README) shows six short clips of the real app,
+recorded by two more tools here and a script a clip in `packaging/motion/clips/`. `chrome.mjs`'s page carries `cdp`,
+its own DevTools calls, and `on`, its events, for them.
+
+- `node packaging/motion/clip.mjs --script packaging/motion/clips/<name>.mjs --out <raw>/<name> --port <port>` opens
+  the app at 1280 by 800, device scale 2, runs the script's `setup(h)` unrecorded, then its `act(h)` while Chrome's
+  own screencast (`Page.startScreencast`) writes each frame it paints, with its time, as `f00000.jpg` on and
+  `frames.json`. It records the page, never the screen. A pointer is drawn in the page where the mouse is, an arrow
+  with a ring that darkens while pressed, moved by the page's own pointer events. `h` moves it over a time with an
+  ease (`move`), clicks, drags (`drag`, pressed, a pause, carried, a pause, let go), types a letter at a time
+  (`type`), presses keys (`key`), turns the wheel, answers the next file chooser (`chooseFiles`) and carries a drag
+  the page makes with the browser's own drag and drop (`dragNative`, through `Input.setInterceptDrags`, which a
+  headless page otherwise never carries on). `--probe` runs the set-up alone and shoots `probe.png`.
+- `node packaging/motion/clip-encode.mjs --raw <raw>/<name> --out site/holding/clips/<name> [--then <raw>/<second>
+  --join 0.8] [--from 0.3] [--hold 1.2] [--fade 0.6] [--crf 24] [--strip <png>]` lays the frames on a steady 30 a
+  second by their times, scales them to 1920 wide, holds the last frame and fades it into the first so the loop
+  comes round without a jump, and writes `<name>.mp4` (H.264, `-tune animation`, its index at the front, no sound),
+  `<name>.webm` (VP9) and `<name>.jpg`, the poster, 1600 wide, from the held end. `--then` joins a second recording
+  after the first with a fade, `--strip` makes a contact strip of a frame a second for the check.
+
+The scripts: `app.mjs` holds what they share (Home without the mark, a participant opened from their row, a label or
+a waiting statement found, a statement dragged in from the sidebar, a field emptied, words found on the screen for a
+drag that selects them, a box scrolled with an ease). `transcripts.mjs` brings in `files/Ellis - interview.csv`, an
+invented interview, through Add transcripts, `steps.mjs` empties Juno's statement and quote at 13:00 and writes them
+again as they were, then opens PETs and GETs, `tables.mjs` opens the Table view and then the print view in the same
+tab, `canvas.mjs` makes on a new board the demo's own PET "Caught" going soft from two of its sub-PETs,
+`workbook.mjs` shows Juno's files and `workbook-sheet.mjs` her workbook's first sheet as `sheet.py` draws it from
+the file (its cells, widths, fonts and frozen panes, read only, never a spreadsheet program's window), and
+`longitudinal.mjs` places an LPET in an LGET and a participant in a trajectory. That one runs on an invented study
+of three timepoints, "First year on an allotment", made by `make_lipa.py <empty folder> --config <settings>`
+through the command line alone: the project with each participant's first interview, its timepoints, the later
+interviews with their statements and quotes, a PETs board at each timepoint from a table, each participant's LPETs
+from a table, the LGETs and Trajectories. It stops twice for the app: once for Allow AI agents to read this project
+in Project settings (AI features on to show it), and once for a card moved on LGETs, whose file comes with the
+first act on the screen, and each run goes on from the step after the last one done. Every recording runs on a
+scratch copy, the demo's made whole from its pristine copy by `make_demo.fill`, with a settings file of its own,
+Celebrations off so no count stands over a canvas, and AI features off, as on a new install.
+
 ## Files
 
 ### The bars of option C (26 October 2026)
