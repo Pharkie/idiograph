@@ -266,8 +266,8 @@ def test_app_identity(scratch):
 
         # ── versions.json, read by each reader
         real = app_identity.versions()
-        check("versions.json holds Idiograph 0.9.24, Sift 1.0.0 and Trace 1.0.0",
-              real == {"idiograph": "0.9.24", "sift": "1.0.0", "trace": "1.0.0"}, json.dumps(real))
+        check("versions.json holds Idiograph 0.9.25, Sift 1.0.0 and Trace 1.0.0",
+              real == {"idiograph": "0.9.25", "sift": "1.0.0", "trace": "1.0.0"}, json.dumps(real))
         invented = base / "versions.json"
         invented.write_text(json.dumps({"idiograph": "4.5.6", "sift": "7.8.9", "trace": "2.3.4"}), encoding="utf-8")
         was_file = app_identity.VERSIONS_FILE
