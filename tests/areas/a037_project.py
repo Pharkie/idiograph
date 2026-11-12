@@ -35,12 +35,12 @@ def test_project(scratch):
     shipped = json.loads(server_mod.DEMO_PROJECT.read_text(encoding="utf-8"))
     # and since pbiobuild (11 November 2026) each of its three participants' picture, label and pen portrait
     sets = shipped.get("participants") if isinstance(shipped.get("participants"), dict) else {}
-    check("the demo ships its own project file with a name, a question, a timestamp and its three participants' "
-          "picture, label and pen portrait",
+    check("the demo ships its own project file with a name, a question, a timestamp, its demographic categories and "
+          "its three participants' picture, label, pen portrait and values",
           server_mod.DEMO_PROJECT == server_mod.DEMO_DIR / "idiograph-project.json"
-          and set(shipped) == {"name", "research_question", "updated", "participants"}
+          and set(shipped) == {"name", "research_question", "updated", "participants", "demographics"}
           and set(sets) == {"Juno", "Mabel", "Rowan"}
-          and all(set(v) == {"label", "portrait", "picture"} and str(v["picture"]).startswith("set:peep")
+          and all(set(v) == {"label", "portrait", "picture", "values"} and str(v["picture"]).startswith("set:peep")
                   for v in sets.values())
           and shipped["name"] == "Living with a dog" and shipped["research_question"] == DEMO_QUESTION
           and dt.datetime.fromisoformat(shipped["updated"]).tzinfo is not None, str(shipped))

@@ -443,13 +443,13 @@ def pdfs(scratch: Path) -> None:
     try:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE = cfg_file, str(ipa)
         server_mod.STATE_PATH, server_mod.STATE_MEMORY = scratch / "a375x-state.json", {"recent": []}
-        routes.api_demographics({"root": str(ipa), "ops": [
-            {"op": "add", "name": "Gender", "kind": "list", "values": ["Female", "Male"]},
-            {"op": "add", "name": "Age range", "kind": "list", "values": ["30 to 39", "40 to 49", "70 and over"]},
-            {"op": "add", "name": "Nationality", "kind": "words"}]})
-        for case, values in (("Juno", {"Gender": "Female", "Age range": "40 to 49", "Nationality": "Spanish"}),
-                             ("Mabel", {"Gender": "Female", "Age range": "70 and over", "Nationality": "British"}),
-                             ("Rowan", {"Gender": "Male", "Age range": "30 to 39", "Nationality": "Irish"})):
+        # the demo brings Gender, Age range and Lives with (demodemo), so the copy adds a fourth category of its own,
+        # and Mabel's values, whose set this copy has taken out, are given again as the demo has them
+        routes.api_demographics({"root": str(ipa), "ops": [{"op": "add", "name": "Nationality", "kind": "words"}]})
+        for case, values in (("Juno", {"Nationality": "Spanish"}),
+                             ("Mabel", {"Gender": "Female", "Age range": "70 and over", "Lives with": "Alone",
+                                        "Nationality": "British"}),
+                             ("Rowan", {"Nationality": "Irish"})):
             routes.api_participant({"root": str(ipa), "case": case, "values": values})
         current = th_mod.current_version(gets_mod.load(ipa))["id"]
         each = routes.api_gets_boards({"root": str(ipa), "board": current, "op": "pdf", "what": "table",
@@ -462,7 +462,8 @@ def pdfs(scratch: Path) -> None:
         juno = json.loads((ipa / "idiograph-project.json").read_text(encoding="utf-8"))["participants"]["Juno"]
         check("375: the GET table's PDF with Participants table: a column for each category after the label and the pen "
               "portrait on its own line under the row, and In sum the counts in a short table after it",
-              all(FLAT(w) in first for w in ("Gender", "Age range", "Nationality", "40 to 49", "Spanish", juno["portrait"]))
+              all(FLAT(w) in first for w in ("Gender", "Age range", "Lives with", "Nationality", "40 to 49", "Partner", "Spanish",
+                                      juno["portrait"]))
               and FLAT("Pen portrait") not in first
               and all(FLAT(w) in sum_first for w in ("Pen portrait", "In sum", "Female (2), Male (1)",
                                                       "30 to 39 (1), 40 to 49 (1), 70 and over (1)")),

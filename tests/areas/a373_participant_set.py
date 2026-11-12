@@ -245,7 +245,8 @@ def test_participant_set(scratch):
               and {p["case"]: (p.get("person") or {}).get("label") for p in picker["participants"]}
               == {"P1 - Orla": "", "P2 - Piers": "Racing on Sundays"}
               and opened["person"]["portrait"] == "Seventy, retired. Learnt for his granddaughter."
-              and all(set(d) == {"Juno", "Mabel", "Rowan"} and all(len(v) == 3 for v in d.values()) for d in demo_sets),
+              and all(set(d) == {"Juno", "Mabel", "Rowan"} and all(len(v) == 4 and set(v["values"]) == {"Gender", "Age range", "Lives with"}
+                                                                  for v in d.values()) for d in demo_sets),
               str([rows, demo_sets])[:400])
         # Rename... in the fields opens the one Rename card the menu used to, and the menu holds no Rename
         js = support.source("apps/idiograph/static/distil.js").read_text(encoding="utf-8")
@@ -432,6 +433,13 @@ def the_set() -> None:
 FLAT = lambda s: "".join(str(s).split()).casefold()
 
 
+def demo_cells(person: dict) -> list[str]:
+    """A demo participant's demographics as the participants table's cells read them, one per category in the demo's
+    order (Gender, Age range, Lives with), free words joined with commas (demodemo, 12 November 2026)."""
+    return [", ".join(v) if isinstance(v, list) else str(v)
+            for v in (person["values"][c] for c in ("Gender", "Age range", "Lives with"))]
+
+
 def demo_copy(src: Path, project: Path, root: Path, without: str) -> Path:
     """A copy of a demo as a project of its own, the command line allowed to read it, `without`'s set taken out."""
     shutil.rmtree(root, ignore_errors=True)
@@ -560,16 +568,23 @@ def exports(scratch: Path) -> None:
         _c, table_on = routes.gets_print_page({"root": str(ipa), "what": "table", "auto": "0", "participants": "1"})
         _c, table_off = routes.gets_print_page({"root": str(ipa), "what": "table", "auto": "0"})
         main = table_on.split("<main>", 1)[1].lstrip()
-        rows = re.findall(r'<tr><td class="pt-n">([^<]*)</td><td class="pt-who">([^<]*)</td>'
-                          r'<td class="pt-label">([^<]*)</td><td class="pt-portrait">([^<]*)</td></tr>', main)
+        rows = [(m[0], m[1], m[2], re.findall(r'<td class="pt-value">([^<]*)</td>', m[3]), m[4])
+                for m in re.findall(r'<tbody class="pt-one"><tr[^>]*><td class="pt-n">([^<]*)</td>'
+                                    r'<td class="pt-who">([^<]*)</td><td class="pt-label">([^<]*)</td>((?:<td class="pt-value">[^<]*</td>)*)</tr>'
+                                    r'(?:<tr class="pt-line"><td class="pt-n"></td><td class="pt-portrait" colspan="\d+">([^<]*)</td></tr>)?</tbody>',
+                                    main)]
         unq = lambda s: s.replace("&#x27;", "'")
-        check("373: the GET table's print view with Participants table opens with the table, each participant in "
-              "order with their number, pseudonym, label and pen portrait, Mabel's cells empty, then the GET table "
-              "from a new page under its heading, and without it the GET table alone as before",
+        heads = re.findall(r"<th>([^<]*)</th>", main.split("</thead>", 1)[0])
+        check("373: the GET table's print view with Participants table opens with the table, its heads the number, "
+              "pseudonym and label then the demo's three categories, each participant in order with their label and "
+              "their demographics in their cells and their pen portrait on a line under, Mabel's cells empty, then the "
+              "GET table from a new page under its heading, and without it the GET table alone as before",
               main.startswith('<section class="part first people" id="participants"><h2>Participants</h2>')
-              and [tuple(unq(c) for c in r) for r in rows]
-              == [("1", "Juno", juno["label"], juno["portrait"]), ("2", "Mabel", "", ""),
-                  ("3", "Rowan", rowan["label"], rowan["portrait"])]
+              and heads == ["Number", "Pseudonym", "Label", "Gender", "Age range", "Lives with"]
+              and [(r[0], r[1], unq(r[2]), [unq(v) for v in r[3]], unq(r[4])) for r in rows]
+              == [("1", "Juno", juno["label"], demo_cells(juno), juno["portrait"]),
+                  ("2", "Mabel", "", ["", "", ""], ""),
+                  ("3", "Rowan", rowan["label"], demo_cells(rowan), rowan["portrait"])]
               and '<section class="part" id="table"><h2>GET table</h2>' in main
               and 'id="participants"' not in table_off and '<section class="part first" id="table"><section' in table_off
               and "<img" not in table_on and "/faces/" not in table_on, main[:400])
@@ -592,10 +607,12 @@ def exports(scratch: Path) -> None:
         parts = gets_print.study_parts(ipa, routes.gets_books(ipa), None, th_mod.now_iso())
         gets = [FLAT(g["label"]) for g in gets_print.gets_table(parts)]
         check("373: the GET table's PDF with Participants table has the table alone on its first page, its heads and "
-              "each participant's words in order, the GET table from the second page under its heading, one page "
+              "each participant's label, demographics and pen portrait in order, the GET table from the second page under its heading, one page "
               "more than without it, and no picture",
-              all(FLAT(w) in pages[0] for w in ("Participants", "Number", "Pseudonym", "Label", "Pen portrait"))
-              and -1 < pages[0].find(FLAT(juno["portrait"])) < pages[0].find("mabel") < pages[0].find(FLAT(rowan["label"]))
+              FLAT("Participants") + FLAT("NumberPseudonymLabelGenderAge rangeLives with") in pages[0]
+              and -1 < pages[0].find(FLAT(juno["label"] + " ".join(demo_cells(juno)))) < pages[0].find(FLAT(juno["portrait"]))
+              < pages[0].find("mabel") < pages[0].find(FLAT(rowan["label"] + " ".join(demo_cells(rowan))))
+              < pages[0].find(FLAT(rowan["portrait"]))
               and not any(g in pages[0] for g in gets) and gets[0] in pages[1]
               and pages[1].count(FLAT("GET table")) == pages[0].count(FLAT("GET table")) + 1
               and len(pages) == len(plain_pages) + 1 and gets[0] in plain_pages[0]
@@ -613,16 +630,21 @@ def exports(scratch: Path) -> None:
             names_in = z.namelist()
         said = paragraphs(Path(word["path"]))
         ta_sets = json.loads(support.source("demo/ta/idiograph-project.json").read_text(encoding="utf-8"))["participants"]
-        cells = ["Number", "Pseudonym", "Label", "Pen portrait", "1", "Juno", ta_sets["Juno"]["label"],
-                 ta_sets["Juno"]["portrait"], "2", "Mabel", ta_sets["Mabel"]["label"], ta_sets["Mabel"]["portrait"],
-                 "3", "Rowan", "", ""]
+        # a thematic analysis project's table carries the demographics In sum (demodemo): the four heads of the
+        # plain table, a participant with none having empty cells, then a short table of each category's values
+        # counted over the participants who have them, Rowan's set being out of this copy
+        cells = (["Number", "Pseudonym", "Label", "Pen portrait",
+                  "1", "Juno", ta_sets["Juno"]["label"], ta_sets["Juno"]["portrait"],
+                  "2", "Mabel", ta_sets["Mabel"]["label"], ta_sets["Mabel"]["portrait"], "3", "Rowan", "", "",
+                  "", "Category", "In sum", "Gender", "Female (2)", "Age range", "40 to 49 (1), 70 and over (1)",
+                  "Lives with", "Partner (1), Alone (1)", ""])
         check("373: the theme table in Word with Participants table has the table on its first page under its "
-              "heading, its heads repeated on each page and no row split, Rowan's cells empty, then a page's end "
-              "before the first theme, and no picture",
-              said[:3] == ["Living with a dog", "Table of themes", "Participants"] and said[3:19] == cells
-              and doc.count("<w:tbl>") == 1 and "<w:tblHeader/>" in doc and doc.count("<w:cantSplit/>") == 4
-              and doc.index("</w:tbl>") < doc.index('<w:br w:type="page"/>')
-              and not any(n.startswith("word/media") for n in names_in), str(said[:20])[:500])
+              "heading, its heads repeated on each page and no row split, Rowan's cells empty, the demographics counted "
+              "In sum under it, then a page's end before the first theme, and no picture",
+              said[:3] == ["Living with a dog", "Table of themes", "Participants"] and said[3:3 + len(cells)] == cells
+              and doc.count("<w:tbl>") == 2 and "<w:tblHeader/>" in doc and doc.count("<w:cantSplit/>") == 8
+              and doc.rindex("</w:tbl>") < doc.index('<w:br w:type="page"/>')
+              and not any(n.startswith("word/media") for n in names_in), str(said[3:60]))
 
         # (n) the command line and MCP take both
         server_mod.ROOT_OVERRIDE = str(ipa)
@@ -641,7 +663,7 @@ def exports(scratch: Path) -> None:
               "--draft refuses --portrait",
               code == 0 and code2 == 0 and said_pdf.get("portrait") is True and said_gets.get("participants") is True
               and FLAT(juno["portrait"]) in pdfs.get(said_pdf.get("file"), "")
-              and FLAT("Pen portrait") in pdfs.get(said_gets.get("file"), "") and code3 != 0
+              and FLAT("NumberPseudonymLabelGenderAge rangeLives with") in pdfs.get(said_gets.get("file"), "") and code3 != 0
               and "--portrait" in (err3 or "") + json.dumps(_said), (err or "") + (err2 or "") + str(pdfs)[:300])
         board_tool = next(x for x in mcp_server.TOOLS if x["name"] == "board_export")
         gets_tool = next(x for x in mcp_server.TOOLS if x["name"] == "gets_export")
