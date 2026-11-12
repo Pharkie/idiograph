@@ -125,9 +125,9 @@ def test_mac_app(scratch):
               and held.read_bytes() == (pristine / "Working" / "Juno - EN & ES.themes.json").read_bytes()
               and copy.read_bytes() == recording.read_bytes())
         copy.unlink()
-        building = idiograph_routes.ensure_demo_recording()
+        back = idiograph_routes.ensure_demo_recording()
         check("73: a recording gone missing comes back from the bundle, and nothing is spoken or built",
-              building is False and copy.is_file() and not idiograph_routes._demo_building)
+              back == copy and copy.read_bytes() == recording.read_bytes())
         check("73: neither touched the bundle, the repo's demo or make_demo's own paths",
               tree(bundle) == shipped and tree(support.source("demo")) == repo_demo
               and (make_demo.CASE, make_demo.WORKBOOK, make_demo.PRISTINE) == made
@@ -389,4 +389,4 @@ def test_mac_app(scratch):
           'shutil.copyfile(src / "pristine" / f"{stem}.xlsx", into / name / f"{stem}.xlsx")' in build_src
           and 'shutil.copyfile(src / "pristine" / kept, into / kept)' in build_src and "(DEMO_GETS, DEMO_CODES)" in build_src
           and "shipped_config()" in build_src and 'raise SystemExit("The shipped config names a project, and it must not.")' in build_src
-          and "make_demo.RECORDING = Path(sys.argv[2])" in build_src and '"*.themes.json", "_Archive"' in build_src)
+          and "stage_recordings(demo)" in build_src and '"*.themes.json", "_Archive"' in build_src)

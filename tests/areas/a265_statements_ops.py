@@ -109,7 +109,7 @@ def test_statements_ops(scratch):
                                                    "--time", "00:00:15", "--dry-run"))
     check("265: turn edit's dry run says the words and the timecode would change, and writes nothing",
           code == 0 and clean and dry.get("dry_run") is True and dry.get("changed") is True and dry.get("old") == words
-          and dry.get("old_time") == "00:14" and dry.get("time") == "00:15", err or json.dumps(dry)[:300])
+          and dry.get("old_time") == "00:21" and dry.get("time") == "00:15", err or json.dumps(dry)[:300])
     ask = "Take the Erm out of Juno's first answer"
     code, done, err = run("turn", "edit", "Juno", "Initial", "3", "--text", fixed, "--time", "00:00:15",
                           "--note", ask, "--tool", "Claude Code")

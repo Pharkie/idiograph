@@ -79,8 +79,8 @@ transcripts.
 ## Your transcript
 
 A participant's folder holds an Excel workbook with three columns, Name, Timestamp and Transcript, one
-passage per row, as in `template/Transcript template.xlsx`. A VTT or SRT file, plain text, a Word, CSV
-or Excel file in its `Source` folder is offered with "make a workbook".
+passage per row, as in `template/Transcript template.xlsx`. A VTT, SRT, text, Word, CSV or Excel
+file in its `Source` folder is offered with "make a workbook".
 
 ## AI
 
@@ -102,15 +102,16 @@ stored key can use, sending nothing of yours.
 
 ## Contributing
 
-Pull requests are welcome under the same licence. GitHub runs the suite on each, and after the first
-run so does `.venv/bin/python tests/test_idiograph.py --train`.
+Pull requests are welcome under the same licence. GitHub runs the suite on each, as does
+`.venv/bin/python tests/test_idiograph.py --train`.
 
 The [manual](docs/manual.md) describes every screen, the [internals](docs/internals.md) how it runs.
 
 ## Licence and support
 
 Idiograph, Sift and Trace are under the GNU Affero General Public License version 3, in `LICENSE`,
-with two terms of its section 7 and the third-party software in `NOTICE.md`. If it helps your work,
-please consider buying me a coffee, and a GitHub star helps others find it.
+with two terms of its section 7 and the third-party software in `NOTICE.md`. The demo's recordings, AI
+voices made with Google Gemini, are the one exception, under `packaging/recording/LICENSE-audio.md`.
+If it helps your work, please consider buying me a coffee, and a GitHub star helps others find it.
 
 <a href='https://ko-fi.com/X8X01NIXRB' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>

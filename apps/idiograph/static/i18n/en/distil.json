@@ -311,7 +311,6 @@
   "distil.mark.done_marked": "Experiential statements marked complete, {day}.",
   "distil.audio.pause": "Pause",
   "distil.audio.play": "Play",
-  "distil.audio.building": "Building the demo recording",
   "distil.audio.none": "No recording for this sheet.",
   "distil.audio.would_not_play": "That recording would not play.",
   "distil.audio.offset_value": "Offset {value} s",

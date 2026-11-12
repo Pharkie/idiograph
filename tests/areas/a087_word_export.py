@@ -168,14 +168,14 @@ def test_word_export(scratch):
           doc[start + 1] == {"style": "Normal", "num": "", "lvl": "", "text": g1["note"], "italic": True, "bold": False}
           and all(f"{s['text']} {at(s)}" in texts for s in g1["statements"])
           and doc[start + 2]["text"] == f"{g1['statements'][0]['text']} {at(g1['statements'][0])}"
-          and "Walking when nobody else does (Initial, 01:48)" in texts
+          and "Walking when nobody else does (Initial, 01:39)" in texts
           and [p["text"] for p in doc[deep_at + 1:deep_at + 3] if p["italic"]] == ["Kept apart <for now> & on its own",
                                                                                   "A second line he wrote."],
           str(doc[start + 1:start + 3]))
     quoted = [t for t in texts if "this is all right, this is ours" in t]
     check("87, 205: no Quotes heading, the picked quote once, as its statement's own, in single curly marks under it",
           quoted == ["\u2018this is all right, this is ours\u2019"]
-          and texts[texts.index(quoted[0]) - 1] == "Frost, an empty field and her loops (Initial, 02:37)"
+          and texts[texts.index(quoted[0]) - 1] == "Frost, an empty field and her loops (Initial, 02:19)"
           and not any('"' in t or "\u201c" in t or "\u2018\u2018" in t for t in texts)
           and themes_word.bare('"\u201csaid\u201d"') == "said" and themes_word.bare("\u2018said\u2019") == "said",
           str(quoted))
@@ -185,7 +185,7 @@ def test_word_export(scratch):
     check("87, 205: Not placed and Discarded after the PETs, in transcript order, each quote under its statement",
           rest == want_rest and "A statement on row 2 (Follow-up, 02:00)" in rest
           and rest[rest.index("A statement on row 2 (Follow-up, 02:00)") + 1] == "\u2018a quote on row 2\u2019"
-          and texts[texts.index(dc_head) + 1] == "Nocturnal, and not really joking (Initial, 01:48)", str(rest[:3]))
+          and texts[texts.index(dc_head) + 1] == "Nocturnal, and not really joking (Initial, 01:39)", str(rest[:3]))
     check("87, 205: no key at the end, each reference naming its sheet",
           not any(t.startswith("Key:") or "(#" in t for t in texts) and doc[-1]["style"] != "Heading2")
     check("87: the document's words are its paragraphs as the module sets them out, run for run",

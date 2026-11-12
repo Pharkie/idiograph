@@ -338,7 +338,7 @@ def test_wininstaller(scratch):
     check("142: the build takes build_mac's pins but certifi, its modules and its stage, and freezes the Windows launcher",
           build.PINS == tuple(p for p in build_mac.PINS if not p.startswith("certifi")) and len(build.PINS) == 4
           and build.MODULES == build_mac.MODULES and build.ENTRY == support.source("packaging/windows_launcher.py")
-          and "stage_recording(build_mac.stage_cases(stage))" in build_src and ".venv" not in build_src.split('"""', 2)[2]
+          and "build_mac.stage_recordings(build_mac.stage_cases(stage))" in build_src and ".venv" not in build_src.split('"""', 2)[2]
           and "demo = stage_cases(stage)" in inspect.getsource(build_mac.stage_demo))
     ico = build.ico_bytes((16, 32, 256))
     count = struct.unpack("<HHH", ico[:6])
@@ -347,33 +347,15 @@ def test_wininstaller(scratch):
           count == (0, 1, 3) and [e[0] for e in entries] == [16, 32, 0] and all(e[4:6] == (1, 32) for e in entries)
           and all(ico[e[7]:e[7] + 8] == b"\x89PNG\r\n\x1a\n" and e[7] + e[6] <= len(ico) for e in entries)
           and entries[0][7] == 6 + 16 * 3, str(entries))
-    # Juno's recording: spoken on a Mac into a folder where only it is committed, under a name that
-    # carries the hash of the transcript it was spoken from. Three invented folders stand in for it
-    kept_dir = build.RECORDINGS
-    name = build.recording_name()
-    folders_ = {k: base / "recordings" / k for k in ("none", "stale", "spoken")}
-    for folder in folders_.values():
-        folder.mkdir(parents=True, exist_ok=True)
-    (folders_["stale"] / "Juno-Initial-0123456789abcdef.m4a").write_bytes(b"spoken from an older transcript")
-    (folders_["spoken"] / name).write_bytes(b"spoken from this transcript")
-    lines, staged_audio = {}, {}
-    try:
-        for key, folder in folders_.items():
-            build.RECORDINGS = folder
-            demo_dir = base / "recordings" / f"stage-{key}"
-            lines[key] = build.stage_recording(demo_dir)
-            staged_audio[key] = (demo_dir / build_mac.RECORDING).is_file()
-    finally:
-        build.RECORDINGS = kept_dir
+    # the demo's recordings (recvoices, 12 November 2026): committed in packaging/recording, each under a name that
+    # carries the hash of the transcript it was made from, staged by build_mac's own `stage_recordings`, which area 16
+    # checks, and nothing spoken here
     ignored_tool = read(support.source(".gitignore")).splitlines()
-    check("142: Juno's recording goes in only when it was spoken from the transcript as it stands, and else the build says it ships without",
-          name == f"Juno-Initial-{build.transcript_sum()[:16]}.m4a" and len(build.transcript_sum()) == 64
-          and staged_audio == {"none": False, "stale": False, "spoken": True}
-          and lines["spoken"] == f"with Juno's recording, {name}" and lines["none"] == lines["stale"]
-          and lines["none"].startswith("without Juno's recording") and "packaging/recording/*" in ignored_tool
-          and "!packaging/recording/Juno-Initial-*.m4a" in ignored_tool
-          and build.RECORDINGS == support.source("packaging/recording") and "transcript_sum()[:16]" in build_src
-          and '.replace(b"\\r\\n", b"\\n")' in build_src, str(lines))
+    check("142: the Windows build stages the demo's recordings through the Mac build's own step, speaks nothing, and the "
+          "recordings and their licence are the folder's committed files",
+          "packaging/recording/*" in ignored_tool and "!packaging/recording/*-Initial-*.m4a" in ignored_tool
+          and "!packaging/recording/LICENSE-audio.md" in ignored_tool
+          and not hasattr(build, "speak") and "--speak" not in build_src and "make_demo" not in build_src)
     stage, frozen, dist = base / "stage", base / "frozen" / "Idiograph", base / "dist"
     # the installer is Tauri's NSIS one since 17 October (the third Tauri build, area 173), its settings in
     # tauri.conf.json and its own steps in hooks.nsh, where Inno Setup's script stood
@@ -533,8 +515,9 @@ def test_wininstaller(scratch):
           "says each step and runs none",
           dry == 0 and json_.loads((out / "build" / "tauri-config.json").read_text(encoding="utf-8")) == {"version": server_mod.VERSION}
           and (out / "build" / "Idiograph-windows.spec").is_file() and (staged / "Idiograph.ico").is_file()
-          and (staged / "demo" / "Juno" / "Source" / "Initial" / "Source" / "Juno-Initial.m4a").is_file() == bool(build.spoken_recording())
-          and ("with Juno's recording" if build.spoken_recording() else "without Juno's recording") in said
+          and all((staged / "demo" / build_mac.recording_path(n)).is_file() == bool(build_mac.committed_recording(n))
+                  for n in build_mac.DEMO_CASES)
+          and build_mac.stage_recordings(base / "dry-again") in said
           and (staged / "demo" / "Rowan" / "Rowan - EN & ES.xlsx").is_file() and not (out / "build" / "venv").exists()
           and all(w_ in said for w_ in ("Would make", "Would run PyInstaller", "Would run Tauri", "NSIS installer", "Unsigned"))
           and sorted(p.name for p in TOOL.iterdir()) == before, said[-300:])

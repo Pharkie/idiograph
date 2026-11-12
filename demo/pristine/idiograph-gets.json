@@ -35,7 +35,7 @@
     "workbook": 1791123600000000000,
     "themes": 1791123600000000000
    },
-   "hash": "196bf4741198c4932296cb9e42cb6a1909709c98c8590d4fb17f75251ea8476f",
+   "hash": "369b90e2a03f8d693e91a36806bda1e239e6505e7eaf4080c3a6ed9df2443ad0",
    "state": "in",
    "pets": [
     {
@@ -327,8 +327,8 @@
     "Initial:3:0": {
      "sheet": "Initial",
      "row": 3,
-     "time": "00:14",
-     "seconds": 14,
+     "time": "00:21",
+     "seconds": 21,
      "text": "Finding her already waiting on the second stair",
      "quotes": [
       "\"Even when it is quiet it is not empty.\""
@@ -342,8 +342,8 @@
     "Initial:3:1": {
      "sheet": "Initial",
      "row": 3,
-     "time": "00:14",
-     "seconds": 14,
+     "time": "00:21",
+     "seconds": 21,
      "text": "Softening before the day has properly started",
      "quotes": [
       "\"Even when it is quiet it is not empty.\""
@@ -357,8 +357,8 @@
     "Initial:3:2": {
      "sheet": "Initial",
      "row": 3,
-     "time": "00:14",
-     "seconds": 14,
+     "time": "00:21",
+     "seconds": 21,
      "text": "A house that is quiet and never empty",
      "quotes": [
       "\"Even when it is quiet it is not empty.\""
@@ -372,8 +372,8 @@
     "Initial:5:0": {
      "sheet": "Initial",
      "row": 5,
-     "time": "00:51",
-     "seconds": 51,
+     "time": "01:10",
+     "seconds": 70,
      "text": "Caught out by a tenderness never claimed before",
      "quotes": [
       "\"I have started groaning back at her.\""
@@ -387,8 +387,8 @@
     "Initial:5:1": {
      "sheet": "Initial",
      "row": 5,
-     "time": "00:51",
-     "seconds": 51,
+     "time": "01:10",
+     "seconds": 70,
      "text": "Talking aloud to an animal at half six",
      "quotes": [
       "\"I have started groaning back at her.\""
@@ -402,8 +402,8 @@
     "Initial:5:2": {
      "sheet": "Initial",
      "row": 5,
-     "time": "00:51",
-     "seconds": 51,
+     "time": "01:10",
+     "seconds": 70,
      "text": "Groaning back, and hearing it happen",
      "quotes": [
       "\"I have started groaning back at her.\""
@@ -417,8 +417,8 @@
     "Initial:7:0": {
      "sheet": "Initial",
      "row": 7,
-     "time": "01:25",
-     "seconds": 85,
+     "time": "01:54",
+     "seconds": 114,
      "text": "Losing the argument to a photograph",
      "quotes": [
       "\"once you have seen a photograph like that you have already lost the argument, you just have not admitted it yet\""
@@ -432,8 +432,8 @@
     "Initial:7:1": {
      "sheet": "Initial",
      "row": 7,
-     "time": "01:25",
-     "seconds": 85,
+     "time": "01:54",
+     "seconds": 114,
      "text": "Won over by the lean in the yard",
      "quotes": [
       "\"once you have seen a photograph like that you have already lost the argument, you just have not admitted it yet\""
@@ -447,8 +447,8 @@
     "Initial:7:2": {
      "sheet": "Initial",
      "row": 7,
-     "time": "01:25",
-     "seconds": 85,
+     "time": "01:54",
+     "seconds": 114,
      "text": "Two versions of how the decision was made",
      "quotes": [
       "\"once you have seen a photograph like that you have already lost the argument, you just have not admitted it yet\""
@@ -462,8 +462,8 @@
     "Initial:9:0": {
      "sheet": "Initial",
      "row": 9,
-     "time": "02:10",
-     "seconds": 130,
+     "time": "02:51",
+     "seconds": 171,
      "text": "The day opening with who gets up",
      "quotes": [
       "\"I crack first. I am not proud of it.\""
@@ -477,8 +477,8 @@
     "Initial:9:1": {
      "sheet": "Initial",
      "row": 9,
-     "time": "02:10",
-     "seconds": 130,
+     "time": "02:51",
+     "seconds": 171,
      "text": "Cracking first, every morning",
      "quotes": [
       "\"I crack first. I am not proud of it.\""
@@ -492,8 +492,8 @@
     "Initial:9:2": {
      "sheet": "Initial",
      "row": 9,
-     "time": "02:10",
-     "seconds": 130,
+     "time": "02:51",
+     "seconds": 171,
      "text": "Not proud of being the one who goes",
      "quotes": [
       "\"I crack first. I am not proud of it.\""
@@ -507,8 +507,8 @@
     "Initial:11:0": {
      "sheet": "Initial",
      "row": 11,
-     "time": "02:48",
-     "seconds": 168,
+     "time": "03:41",
+     "seconds": 221,
      "text": "Twelve minutes standing for something much larger",
      "quotes": [
       "\"It is what the twelve minutes says.\""
@@ -522,8 +522,8 @@
     "Initial:11:1": {
      "sheet": "Initial",
      "row": 11,
-     "time": "02:48",
-     "seconds": 168,
+     "time": "03:41",
+     "seconds": 221,
      "text": "Anger taken off at the bottom of the stairs",
      "quotes": [
       "\"It is what the twelve minutes says.\""
@@ -537,8 +537,8 @@
     "Initial:11:2": {
      "sheet": "Initial",
      "row": 11,
-     "time": "02:48",
-     "seconds": 168,
+     "time": "03:41",
+     "seconds": 221,
      "text": "Wanting to stay cross and not managing it",
      "quotes": [
       "\"It is what the twelve minutes says.\""
@@ -552,8 +552,8 @@
     "Initial:13:0": {
      "sheet": "Initial",
      "row": 13,
-     "time": "03:27",
-     "seconds": 207,
+     "time": "04:26",
+     "seconds": 266,
      "text": "Never getting to have it out",
      "quotes": [
       "\"Five years of it never getting said.\""
@@ -567,8 +567,8 @@
     "Initial:13:1": {
      "sheet": "Initial",
      "row": 13,
-     "time": "03:27",
-     "seconds": 207,
+     "time": "04:26",
+     "seconds": 266,
      "text": "Five years of the unsaid",
      "quotes": [
       "\"Five years of it never getting said.\""
@@ -582,8 +582,8 @@
     "Initial:13:2": {
      "sheet": "Initial",
      "row": 13,
-     "time": "03:27",
-     "seconds": 207,
+     "time": "04:26",
+     "seconds": 266,
      "text": "A mood that does not survive the stairs",
      "quotes": [
       "\"Five years of it never getting said.\""
@@ -597,8 +597,8 @@
     "Initial:15:0": {
      "sheet": "Initial",
      "row": 15,
-     "time": "03:55",
-     "seconds": 235,
+     "time": "05:02",
+     "seconds": 302,
      "text": "The same forty minutes, every inch known",
      "quotes": [
       "\"there are mornings where I genuinely think she is walking me\""
@@ -612,8 +612,8 @@
     "Initial:15:1": {
      "sheet": "Initial",
      "row": 15,
-     "time": "03:55",
-     "seconds": 235,
+     "time": "05:02",
+     "seconds": 302,
      "text": "Walked by the dog on some mornings",
      "quotes": [
       "\"there are mornings where I genuinely think she is walking me\""
@@ -627,8 +627,8 @@
     "Initial:15:2": {
      "sheet": "Initial",
      "row": 15,
-     "time": "03:55",
-     "seconds": 235,
+     "time": "05:02",
+     "seconds": 302,
      "text": "A hedge that has never once produced anything",
      "quotes": [
       "\"there are mornings where I genuinely think she is walking me\""
@@ -642,8 +642,8 @@
     "Initial:17:0": {
      "sheet": "Initial",
      "row": 17,
-     "time": "04:31",
-     "seconds": 271,
+     "time": "05:52",
+     "seconds": 352,
      "text": "Surprised to hear herself say she loves it",
      "quotes": [
       "\"And now it is the bit of the day that is mine.\""
@@ -657,8 +657,8 @@
     "Initial:17:1": {
      "sheet": "Initial",
      "row": 17,
-     "time": "04:31",
-     "seconds": 271,
+     "time": "05:52",
+     "seconds": 352,
      "text": "Resenting forty minutes she did not have",
      "quotes": [
       "\"And now it is the bit of the day that is mine.\""
@@ -672,8 +672,8 @@
     "Initial:17:2": {
      "sheet": "Initial",
      "row": 17,
-     "time": "04:31",
-     "seconds": 271,
+     "time": "05:52",
+     "seconds": 352,
      "text": "The one part of the day that is hers",
      "quotes": [
       "\"And now it is the bit of the day that is mine.\""
@@ -687,8 +687,8 @@
     "Initial:17:3": {
      "sheet": "Initial",
      "row": 17,
-     "time": "04:31",
-     "seconds": 271,
+     "time": "05:52",
+     "seconds": 352,
      "text": "A respectable reason to be unavailable",
      "quotes": [
       "\"And now it is the bit of the day that is mine.\""
@@ -702,8 +702,8 @@
     "Initial:19:0": {
      "sheet": "Initial",
      "row": 19,
-     "time": "05:05",
-     "seconds": 305,
+     "time": "06:32",
+     "seconds": 392,
      "text": "Her enthusiasm for a wet hedge",
      "quotes": [
       "\"you cannot stand next to that much enthusiasm for a hedge and stay in a bad mood\""
@@ -717,8 +717,8 @@
     "Initial:19:1": {
      "sheet": "Initial",
      "row": 19,
-     "time": "05:05",
-     "seconds": 305,
+     "time": "06:32",
+     "seconds": 392,
      "text": "No bad mood surviving that much joy",
      "quotes": [
       "\"you cannot stand next to that much enthusiasm for a hedge and stay in a bad mood\""
@@ -732,8 +732,8 @@
     "Initial:19:2": {
      "sheet": "Initial",
      "row": 19,
-     "time": "05:05",
-     "seconds": 305,
+     "time": "06:32",
+     "seconds": 392,
      "text": "A child who will never be embarrassed by her",
      "quotes": [
       "\"you cannot stand next to that much enthusiasm for a hedge and stay in a bad mood\""
@@ -747,8 +747,8 @@
     "Initial:21:0": {
      "sheet": "Initial",
      "row": 21,
-     "time": "05:36",
-     "seconds": 336,
+     "time": "07:11",
+     "seconds": 431,
      "text": "Furious and thrilled while she runs",
      "quotes": [
       "\"the look on her at full stretch is worth more to me than the twenty minutes of worry\""
@@ -762,8 +762,8 @@
     "Initial:21:1": {
      "sheet": "Initial",
      "row": 21,
-     "time": "05:36",
-     "seconds": 336,
+     "time": "07:11",
+     "seconds": 431,
      "text": "Aged four years at the gate",
      "quotes": [
       "\"the look on her at full stretch is worth more to me than the twenty minutes of worry\""
@@ -777,8 +777,8 @@
     "Initial:21:2": {
      "sheet": "Initial",
      "row": 21,
-     "time": "05:36",
-     "seconds": 336,
+     "time": "07:11",
+     "seconds": 431,
      "text": "Letting her off every morning anyway",
      "quotes": [
       "\"the look on her at full stretch is worth more to me than the twenty minutes of worry\""
@@ -792,8 +792,8 @@
     "Initial:21:3": {
      "sheet": "Initial",
      "row": 21,
-     "time": "05:36",
-     "seconds": 336,
+     "time": "07:11",
+     "seconds": 431,
      "text": "Her freedom worth the worry",
      "quotes": [
       "\"the look on her at full stretch is worth more to me than the twenty minutes of worry\""
@@ -807,8 +807,8 @@
     "Initial:23:0": {
      "sheet": "Initial",
      "row": 23,
-     "time": "06:22",
-     "seconds": 382,
+     "time": "08:08",
+     "seconds": 488,
      "text": "Her time stopping being hers",
      "quotes": [
       "\"I have made a mistake here. I did not say that out loud to anybody.\""
@@ -822,8 +822,8 @@
     "Initial:23:1": {
      "sheet": "Initial",
      "row": 23,
-     "time": "06:22",
-     "seconds": 382,
+     "time": "08:08",
+     "seconds": 488,
      "text": "No more going off at an hour's notice",
      "quotes": [
       "\"I have made a mistake here. I did not say that out loud to anybody.\""
@@ -837,8 +837,8 @@
     "Initial:23:2": {
      "sheet": "Initial",
      "row": 23,
-     "time": "06:22",
-     "seconds": 382,
+     "time": "08:08",
+     "seconds": 488,
      "text": "Six months in, thinking it a mistake",
      "quotes": [
       "\"I have made a mistake here. I did not say that out loud to anybody.\""
@@ -852,8 +852,8 @@
     "Initial:23:3": {
      "sheet": "Initial",
      "row": 23,
-     "time": "06:22",
-     "seconds": 382,
+     "time": "08:08",
+     "seconds": 488,
      "text": "A thought never said to anybody",
      "quotes": [
       "\"I have made a mistake here. I did not say that out loud to anybody.\""
@@ -867,8 +867,8 @@
     "Initial:25:0": {
      "sheet": "Initial",
      "row": 25,
-     "time": "07:01",
-     "seconds": 421,
+     "time": "09:02",
+     "seconds": 542,
      "text": "Unable to regret a dog with a past",
      "quotes": [
       "\"But I would be lying if I told you it never comes back.\""
@@ -882,8 +882,8 @@
     "Initial:25:1": {
      "sheet": "Initial",
      "row": 25,
-     "time": "07:01",
-     "seconds": 421,
+     "time": "09:02",
+     "seconds": 542,
      "text": "Her flinch at a raised arm, even now",
      "quotes": [
       "\"But I would be lying if I told you it never comes back.\""
@@ -897,8 +897,8 @@
     "Initial:25:2": {
      "sheet": "Initial",
      "row": 25,
-     "time": "07:01",
-     "seconds": 421,
+     "time": "09:02",
+     "seconds": 542,
      "text": "Regret coming back on wet February nights",
      "quotes": [
       "\"But I would be lying if I told you it never comes back.\""
@@ -912,8 +912,8 @@
     "Initial:27:0": {
      "sheet": "Initial",
      "row": 27,
-     "time": "07:37",
-     "seconds": 457,
+     "time": "09:47",
+     "seconds": 587,
      "text": "Two minutes looking at the door",
      "quotes": [
       "\"She was not begging. She was just waiting.\""
@@ -927,8 +927,8 @@
     "Initial:27:1": {
      "sheet": "Initial",
      "row": 27,
-     "time": "07:37",
-     "seconds": 457,
+     "time": "09:47",
+     "seconds": 587,
      "text": "Her waiting, not begging",
      "quotes": [
       "\"She was not begging. She was just waiting.\""
@@ -942,8 +942,8 @@
     "Initial:27:2": {
      "sheet": "Initial",
      "row": 27,
-     "time": "07:37",
-     "seconds": 457,
+     "time": "09:47",
+     "seconds": 587,
      "text": "Turning round together at the postbox",
      "quotes": [
       "\"She was not begging. She was just waiting.\""
@@ -957,8 +957,8 @@
     "Initial:27:3": {
      "sheet": "Initial",
      "row": 27,
-     "time": "07:37",
-     "seconds": 457,
+     "time": "09:47",
+     "seconds": 587,
      "text": "Closer on the worst night than on the nice walks",
      "quotes": [
       "\"She was not begging. She was just waiting.\""
@@ -972,8 +972,8 @@
     "Initial:29:0": {
      "sheet": "Initial",
      "row": 29,
-     "time": "08:27",
-     "seconds": 507,
+     "time": "10:47",
+     "seconds": 647,
      "text": "Closeness proved by what it cost",
      "quotes": [
       "\"the easy days do not prove anything, do they\""
@@ -987,8 +987,8 @@
     "Initial:29:1": {
      "sheet": "Initial",
      "row": 29,
-     "time": "08:27",
-     "seconds": 507,
+     "time": "10:47",
+     "seconds": 647,
      "text": "Anybody can walk a dog in June",
      "quotes": [
       "\"the easy days do not prove anything, do they\""
@@ -1002,8 +1002,8 @@
     "Initial:29:2": {
      "sheet": "Initial",
      "row": 29,
-     "time": "08:27",
-     "seconds": 507,
+     "time": "10:47",
+     "seconds": 647,
      "text": "Giving up together as an agreement",
      "quotes": [
       "\"the easy days do not prove anything, do they\""
@@ -1017,8 +1017,8 @@
     "Initial:31:0": {
      "sheet": "Initial",
      "row": 31,
-     "time": "09:05",
-     "seconds": 545,
+     "time": "11:32",
+     "seconds": 692,
      "text": "Rules neither of them wrote down",
      "quotes": [
       "\"We have never once had a conversation and we both know exactly where we stand.\""
@@ -1032,8 +1032,8 @@
     "Initial:31:1": {
      "sheet": "Initial",
      "row": 31,
-     "time": "09:05",
-     "seconds": 545,
+     "time": "11:32",
+     "seconds": 692,
      "text": "Knowing where they stand without a word",
      "quotes": [
       "\"We have never once had a conversation and we both know exactly where we stand.\""
@@ -1047,8 +1047,8 @@
     "Initial:31:2": {
      "sheet": "Initial",
      "row": 31,
-     "time": "09:05",
-     "seconds": 545,
+     "time": "11:32",
+     "seconds": 692,
      "text": "A strange thing to have with another creature",
      "quotes": [
       "\"We have never once had a conversation and we both know exactly where we stand.\""
@@ -1062,8 +1062,8 @@
     "Initial:33:0": {
      "sheet": "Initial",
      "row": 33,
-     "time": "09:43",
-     "seconds": 583,
+     "time": "12:16",
+     "seconds": 736,
      "text": "Claws on the hall floor before the door opens",
      "quotes": [
       "\"She puts her whole weight against your legs and stands there with her head down.\""
@@ -1077,8 +1077,8 @@
     "Initial:33:1": {
      "sheet": "Initial",
      "row": 33,
-     "time": "09:43",
-     "seconds": 583,
+     "time": "12:16",
+     "seconds": 736,
      "text": "The lean, never the jump",
      "quotes": [
       "\"She puts her whole weight against your legs and stands there with her head down.\""
@@ -1092,8 +1092,8 @@
     "Initial:33:2": {
      "sheet": "Initial",
      "row": 33,
-     "time": "09:43",
-     "seconds": 583,
+     "time": "12:16",
+     "seconds": 736,
      "text": "The earless rabbit brought every time",
      "quotes": [
       "\"She puts her whole weight against your legs and stands there with her head down.\""
@@ -1107,8 +1107,8 @@
     "Initial:35:0": {
      "sheet": "Initial",
      "row": 35,
-     "time": "10:21",
-     "seconds": 621,
+     "time": "13:00",
+     "seconds": 780,
      "text": "Being wanted, plainly",
      "quotes": [
       "\"I have never had a welcome like that off anything in my life.\""
@@ -1122,8 +1122,8 @@
     "Initial:35:1": {
      "sheet": "Initial",
      "row": 35,
-     "time": "10:21",
-     "seconds": 621,
+     "time": "13:00",
+     "seconds": 780,
      "text": "Nobody else that pleased to see her",
      "quotes": [
       "\"I have never had a welcome like that off anything in my life.\""
@@ -1137,8 +1137,8 @@
     "Initial:35:2": {
      "sheet": "Initial",
      "row": 35,
-     "time": "10:21",
-     "seconds": 621,
+     "time": "13:00",
+     "seconds": 780,
      "text": "Everything stopping when the key goes in",
      "quotes": [
       "\"I have never had a welcome like that off anything in my life.\""
@@ -1152,8 +1152,8 @@
     "Initial:37:0": {
      "sheet": "Initial",
      "row": 37,
-     "time": "10:57",
-     "seconds": 657,
+     "time": "13:44",
+     "seconds": 824,
      "text": "Once finding reasons to stay out",
      "quotes": [
       "\"But I want the door bit. So I come home.\""
@@ -1167,8 +1167,8 @@
     "Initial:37:1": {
      "sheet": "Initial",
      "row": 37,
-     "time": "10:57",
-     "seconds": 657,
+     "time": "13:44",
+     "seconds": 824,
      "text": "A clock on her now",
      "quotes": [
       "\"But I want the door bit. So I come home.\""
@@ -1182,8 +1182,8 @@
     "Initial:37:2": {
      "sheet": "Initial",
      "row": 37,
-     "time": "10:57",
-     "seconds": 657,
+     "time": "13:44",
+     "seconds": 824,
      "text": "Coming home for the door",
      "quotes": [
       "\"But I want the door bit. So I come home.\""
@@ -1197,8 +1197,8 @@
     "Initial:39:0": {
      "sheet": "Initial",
      "row": 39,
-     "time": "11:24",
-     "seconds": 684,
+     "time": "14:21",
+     "seconds": 861,
      "text": "Back early for a Thursday",
      "quotes": [
       "\"you will come home for the dog\""
@@ -1212,8 +1212,8 @@
     "Initial:39:1": {
      "sheet": "Initial",
      "row": 39,
-     "time": "11:24",
-     "seconds": 684,
+     "time": "14:21",
+     "seconds": 861,
      "text": "Hearing she will come home for the dog",
      "quotes": [
       "\"you will come home for the dog\""
@@ -1227,8 +1227,8 @@
     "Initial:39:2": {
      "sheet": "Initial",
      "row": 39,
-     "time": "11:24",
-     "seconds": 684,
+     "time": "14:21",
+     "seconds": 861,
      "text": "Not pretending it is not true",
      "quotes": [
       "\"you will come home for the dog\""
@@ -1242,8 +1242,8 @@
     "Initial:41:0": {
      "sheet": "Initial",
      "row": 41,
-     "time": "11:49",
-     "seconds": 709,
+     "time": "14:49",
+     "seconds": 889,
      "text": "Uncomfortable, and unable to argue",
      "quotes": [
       "\"She does not need me to have got anything right.\""
@@ -1257,8 +1257,8 @@
     "Initial:41:1": {
      "sheet": "Initial",
      "row": 41,
-     "time": "11:49",
-     "seconds": 709,
+     "time": "14:49",
+     "seconds": 889,
      "text": "The dog is easier",
      "quotes": [
       "\"She does not need me to have got anything right.\""
@@ -1272,8 +1272,8 @@
     "Initial:41:2": {
      "sheet": "Initial",
      "row": 41,
-     "time": "11:49",
-     "seconds": 709,
+     "time": "14:49",
+     "seconds": 889,
      "text": "No memory of last Tuesday",
      "quotes": [
       "\"She does not need me to have got anything right.\""
@@ -1287,8 +1287,8 @@
     "Initial:41:3": {
      "sheet": "Initial",
      "row": 41,
-     "time": "11:49",
-     "seconds": 709,
+     "time": "14:49",
+     "seconds": 889,
      "text": "What was going on still waiting in the hall",
      "quotes": [
       "\"She does not need me to have got anything right.\""
@@ -1302,8 +1302,8 @@
     "Initial:43:0": {
      "sheet": "Initial",
      "row": 43,
-     "time": "12:26",
-     "seconds": 746,
+     "time": "15:42",
+     "seconds": 942,
      "text": "Forty stupid voices for her",
      "quotes": [
       "\"Or it means we have found something to talk about instead of talking.\""
@@ -1317,8 +1317,8 @@
     "Initial:43:1": {
      "sheet": "Initial",
      "row": 43,
-     "time": "12:26",
-     "seconds": 746,
+     "time": "15:42",
+     "seconds": 942,
      "text": "Talking about her instead of talking",
      "quotes": [
       "\"Or it means we have found something to talk about instead of talking.\""
@@ -1332,8 +1332,8 @@
     "Initial:43:2": {
      "sheet": "Initial",
      "row": 43,
-     "time": "12:26",
-     "seconds": 746,
+     "time": "15:42",
+     "seconds": 942,
      "text": "Unsure she wants to reach the bottom of it",
      "quotes": [
       "\"Or it means we have found something to talk about instead of talking.\""
@@ -1347,8 +1347,8 @@
     "Initial:45:0": {
      "sheet": "Initial",
      "row": 45,
-     "time": "13:03",
-     "seconds": 783,
+     "time": "16:31",
+     "seconds": 991,
      "text": "Going straight to the worst thing",
      "quotes": [
       "\"it went straight to the worst thing\""
@@ -1362,8 +1362,8 @@
     "Initial:45:1": {
      "sheet": "Initial",
      "row": 45,
-     "time": "13:03",
-     "seconds": 783,
+     "time": "16:31",
+     "seconds": 991,
      "text": "In the car inside four minutes",
      "quotes": [
       "\"it went straight to the worst thing\""
@@ -1377,8 +1377,8 @@
     "Initial:45:2": {
      "sheet": "Initial",
      "row": 45,
-     "time": "13:03",
-     "seconds": 783,
+     "time": "16:31",
+     "seconds": 991,
      "text": "Doing the sums on the way",
      "quotes": [
       "\"it went straight to the worst thing\""
@@ -1392,8 +1392,8 @@
     "Initial:47:0": {
      "sheet": "Initial",
      "row": 47,
-     "time": "13:35",
-     "seconds": 815,
+     "time": "17:11",
+     "seconds": 1031,
      "text": "Shaking, when she is the one people ring",
      "quotes": [
       "\"when did I let something matter this much\""
@@ -1407,8 +1407,8 @@
     "Initial:47:1": {
      "sheet": "Initial",
      "row": 47,
-     "time": "13:35",
-     "seconds": 815,
+     "time": "17:11",
+     "seconds": 1031,
      "text": "A bright calm voice she did not recognise",
      "quotes": [
       "\"when did I let something matter this much\""
@@ -1422,8 +1422,8 @@
     "Initial:47:2": {
      "sheet": "Initial",
      "row": 47,
-     "time": "13:35",
-     "seconds": 815,
+     "time": "17:11",
+     "seconds": 1031,
      "text": "Her silence in the back as knowing",
      "quotes": [
       "\"when did I let something matter this much\""
@@ -1437,8 +1437,8 @@
     "Initial:47:3": {
      "sheet": "Initial",
      "row": 47,
-     "time": "13:35",
-     "seconds": 815,
+     "time": "17:11",
+     "seconds": 1031,
      "text": "When did something come to matter this much",
      "quotes": [
       "\"when did I let something matter this much\""
@@ -1452,8 +1452,8 @@
     "Initial:49:0": {
      "sheet": "Initial",
      "row": 49,
-     "time": "14:11",
-     "seconds": 851,
+     "time": "17:58",
+     "seconds": 1078,
      "text": "Fifteen minutes and forty quid",
      "quotes": [
       "\"I saved that up for the car park\""
@@ -1467,8 +1467,8 @@
     "Initial:49:1": {
      "sheet": "Initial",
      "row": 49,
-     "time": "14:11",
-     "seconds": 851,
+     "time": "17:58",
+     "seconds": 1078,
      "text": "Crying saved up for the car park",
      "quotes": [
       "\"I saved that up for the car park\""
@@ -1482,8 +1482,8 @@
     "Initial:49:2": {
      "sheet": "Initial",
      "row": 49,
-     "time": "14:11",
-     "seconds": 851,
+     "time": "17:58",
+     "seconds": 1078,
      "text": "Shocked at the size of what she felt",
      "quotes": [
       "\"I saved that up for the car park\""
@@ -1497,8 +1497,8 @@
     "Initial:51:0": {
      "sheet": "Initial",
      "row": 51,
-     "time": "14:46",
-     "seconds": 886,
+     "time": "18:43",
+     "seconds": 1123,
      "text": "Organising her grief in advance, in traffic",
      "quotes": [
       "\"So that Saturday was a rehearsal.\""
@@ -1512,8 +1512,8 @@
     "Initial:51:1": {
      "sheet": "Initial",
      "row": 51,
-     "time": "14:46",
-     "seconds": 886,
+     "time": "18:43",
+     "seconds": 1123,
      "text": "A Saturday as a rehearsal",
      "quotes": [
       "\"So that Saturday was a rehearsal.\""
@@ -1527,8 +1527,8 @@
     "Initial:51:2": {
      "sheet": "Initial",
      "row": 51,
-     "time": "14:46",
-     "seconds": 886,
+     "time": "18:43",
+     "seconds": 1123,
      "text": "Finding the whole thing ready to go",
      "quotes": [
       "\"So that Saturday was a rehearsal.\""
@@ -1542,8 +1542,8 @@
     "Initial:53:0": {
      "sheet": "Initial",
      "row": 53,
-     "time": "15:16",
-     "seconds": 916,
+     "time": "19:19",
+     "seconds": 1159,
      "text": "Trying not to think about the end",
      "quotes": [
       "\"it is a waste of a Tuesday evening to sit there grieving a dog who is snoring at you\""
@@ -1557,8 +1557,8 @@
     "Initial:53:1": {
      "sheet": "Initial",
      "row": 53,
-     "time": "15:16",
-     "seconds": 916,
+     "time": "19:19",
+     "seconds": 1159,
      "text": "Watching her run in her dreams",
      "quotes": [
       "\"it is a waste of a Tuesday evening to sit there grieving a dog who is snoring at you\""
@@ -1572,8 +1572,8 @@
     "Initial:53:2": {
      "sheet": "Initial",
      "row": 53,
-     "time": "15:16",
-     "seconds": 916,
+     "time": "19:19",
+     "seconds": 1159,
      "text": "Grieving a dog who is snoring at her",
      "quotes": [
       "\"it is a waste of a Tuesday evening to sit there grieving a dog who is snoring at you\""
@@ -1587,8 +1587,8 @@
     "Initial:55:0": {
      "sheet": "Initial",
      "row": 55,
-     "time": "15:49",
-     "seconds": 949,
+     "time": "20:01",
+     "seconds": 1201,
      "text": "A foot taken away from the nail clippers",
      "quotes": [
       "\"looks at me like I have suggested something disgusting\""
@@ -1602,8 +1602,8 @@
     "Initial:55:1": {
      "sheet": "Initial",
      "row": 55,
-     "time": "15:49",
-     "seconds": 949,
+     "time": "20:01",
+     "seconds": 1201,
      "text": "Two hours free at the groomer's",
      "quotes": [
       "\"looks at me like I have suggested something disgusting\""
@@ -1617,8 +1617,8 @@
     "Initial:57:0": {
      "sheet": "Initial",
      "row": 57,
-     "time": "16:14",
-     "seconds": 974,
+     "time": "20:31",
+     "seconds": 1231,
      "text": "Not knowing what to do with herself",
      "quotes": [
       "\"it was a wrong quiet, like when the fridge stops humming\""
@@ -1632,8 +1632,8 @@
     "Initial:57:1": {
      "sheet": "Initial",
      "row": 57,
-     "time": "16:14",
-     "seconds": 974,
+     "time": "20:31",
+     "seconds": 1231,
      "text": "A wrong quiet, like the fridge stopping",
      "quotes": [
       "\"it was a wrong quiet, like when the fridge stops humming\""
@@ -1647,8 +1647,8 @@
     "Initial:57:2": {
      "sheet": "Initial",
      "row": 57,
-     "time": "16:14",
-     "seconds": 974,
+     "time": "20:31",
+     "seconds": 1231,
      "text": "Looking at the second stair",
      "quotes": [
       "\"it was a wrong quiet, like when the fridge stops humming\""
@@ -1662,8 +1662,8 @@
     "Initial:59:0": {
      "sheet": "Initial",
      "row": 59,
-     "time": "16:48",
-     "seconds": 1008,
+     "time": "21:17",
+     "seconds": 1277,
      "text": "The house on standby without her",
      "quotes": [
       "\"Furniture waiting for somebody.\""
@@ -1677,8 +1677,8 @@
     "Initial:59:1": {
      "sheet": "Initial",
      "row": 59,
-     "time": "16:48",
-     "seconds": 1008,
+     "time": "21:17",
+     "seconds": 1277,
      "text": "A home arranged round her, never decided",
      "quotes": [
       "\"Furniture waiting for somebody.\""
@@ -1692,8 +1692,8 @@
     "Initial:59:2": {
      "sheet": "Initial",
      "row": 59,
-     "time": "16:48",
-     "seconds": 1008,
+     "time": "21:17",
+     "seconds": 1277,
      "text": "A rule given up under a blanket",
      "quotes": [
       "\"Furniture waiting for somebody.\""
@@ -1707,8 +1707,8 @@
     "Initial:59:3": {
      "sheet": "Initial",
      "row": 59,
-     "time": "16:48",
-     "seconds": 1008,
+     "time": "21:17",
+     "seconds": 1277,
      "text": "The house as a set, furniture waiting",
      "quotes": [
       "\"Furniture waiting for somebody.\""
@@ -1722,8 +1722,8 @@
     "Initial:61:0": {
      "sheet": "Initial",
      "row": 61,
-     "time": "17:19",
-     "seconds": 1039,
+     "time": "21:56",
+     "seconds": 1316,
      "text": "Fetching her twenty minutes early",
      "quotes": [
       "\"That a whole house can go on standby waiting for a dog.\""
@@ -1737,8 +1737,8 @@
     "Initial:61:1": {
      "sheet": "Initial",
      "row": 61,
-     "time": "17:19",
-     "seconds": 1039,
+     "time": "21:56",
+     "seconds": 1316,
      "text": "Floral and appalled",
      "quotes": [
       "\"That a whole house can go on standby waiting for a dog.\""
@@ -1752,8 +1752,8 @@
     "Initial:61:2": {
      "sheet": "Initial",
      "row": 61,
-     "time": "17:19",
-     "seconds": 1039,
+     "time": "21:56",
+     "seconds": 1316,
      "text": "A whole house waiting for a dog",
      "quotes": [
       "\"That a whole house can go on standby waiting for a dog.\""
@@ -1767,8 +1767,8 @@
     "Initial:63:0": {
      "sheet": "Initial",
      "row": 63,
-     "time": "17:49",
-     "seconds": 1069,
+     "time": "22:35",
+     "seconds": 1355,
      "text": "So much resting on one animal",
      "quotes": [
       "\"That is the thought I do not let myself finish.\""
@@ -1782,8 +1782,8 @@
     "Initial:63:1": {
      "sheet": "Initial",
      "row": 63,
-     "time": "17:49",
-     "seconds": 1069,
+     "time": "22:35",
+     "seconds": 1355,
      "text": "The thought she does not let herself finish",
      "quotes": [
       "\"That is the thought I do not let myself finish.\""
@@ -1797,8 +1797,8 @@
     "Initial:63:2": {
      "sheet": "Initial",
      "row": 63,
-     "time": "17:49",
-     "seconds": 1069,
+     "time": "22:35",
+     "seconds": 1355,
      "text": "A dog who cannot be told any of it",
      "quotes": [
       "\"That is the thought I do not let myself finish.\""
@@ -1812,8 +1812,8 @@
     "Initial:65:0": {
      "sheet": "Initial",
      "row": 65,
-     "time": "18:16",
-     "seconds": 1096,
+     "time": "23:12",
+     "seconds": 1392,
      "text": "Doing her voice, complaints about the service",
      "quotes": [
       "\"That is when the dog voices come out.\""
@@ -1827,8 +1827,8 @@
     "Initial:65:1": {
      "sheet": "Initial",
      "row": 65,
-     "time": "18:16",
-     "seconds": 1096,
+     "time": "23:12",
+     "seconds": 1392,
      "text": "The funniest thing in the house",
      "quotes": [
       "\"That is when the dog voices come out.\""
@@ -1842,8 +1842,8 @@
     "Initial:65:2": {
      "sheet": "Initial",
      "row": 65,
-     "time": "18:16",
-     "seconds": 1096,
+     "time": "23:12",
+     "seconds": 1392,
      "text": "Dog voices at half nine",
      "quotes": [
       "\"That is when the dog voices come out.\""
@@ -1857,8 +1857,8 @@
     "Initial:67:0": {
      "sheet": "Initial",
      "row": 67,
-     "time": "18:51",
-     "seconds": 1131,
+     "time": "23:54",
+     "seconds": 1434,
      "text": "A list nobody starts at half nine",
      "quotes": [
       "\"But the dog is a very good door to close on it.\""
@@ -1872,8 +1872,8 @@
     "Initial:67:1": {
      "sheet": "Initial",
      "row": 67,
-     "time": "18:51",
-     "seconds": 1131,
+     "time": "23:54",
+     "seconds": 1434,
      "text": "Her mother unwell and not talked about",
      "quotes": [
       "\"But the dog is a very good door to close on it.\""
@@ -1887,8 +1887,8 @@
     "Initial:67:2": {
      "sheet": "Initial",
      "row": 67,
-     "time": "18:51",
-     "seconds": 1131,
+     "time": "23:54",
+     "seconds": 1434,
      "text": "A dog as a door to close on it",
      "quotes": [
       "\"But the dog is a very good door to close on it.\""
@@ -1902,8 +1902,8 @@
     "Initial:69:0": {
      "sheet": "Initial",
      "row": 69,
-     "time": "19:23",
-     "seconds": 1163,
+     "time": "24:31",
+     "seconds": 1471,
      "text": "Relieved, and uneasy about the relief",
      "quotes": [
       "\"So which is it. I do not know which it is.\""
@@ -1917,8 +1917,8 @@
     "Initial:69:1": {
      "sheet": "Initial",
      "row": 69,
-     "time": "19:23",
-     "seconds": 1163,
+     "time": "24:31",
+     "seconds": 1471,
      "text": "The reason they share a room at all",
      "quotes": [
       "\"So which is it. I do not know which it is.\""
@@ -1932,8 +1932,8 @@
     "Initial:69:2": {
      "sheet": "Initial",
      "row": 69,
-     "time": "19:23",
-     "seconds": 1163,
+     "time": "24:31",
+     "seconds": 1471,
      "text": "Not knowing which it is",
      "quotes": [
       "\"So which is it. I do not know which it is.\""
@@ -1947,8 +1947,8 @@
     "Initial:71:0": {
      "sheet": "Initial",
      "row": 71,
-     "time": "20:01",
-     "seconds": 1201,
+     "time": "25:25",
+     "seconds": 1525,
      "text": "Round and round it without an answer",
      "quotes": [
       "\"the answer changes depending on the week I have had\""
@@ -1962,8 +1962,8 @@
     "Initial:71:1": {
      "sheet": "Initial",
      "row": 71,
-     "time": "20:01",
-     "seconds": 1201,
+     "time": "25:25",
+     "seconds": 1525,
      "text": "The answer changing with the week",
      "quotes": [
       "\"the answer changes depending on the week I have had\""
@@ -1977,8 +1977,8 @@
     "Initial:73:0": {
      "sheet": "Initial",
      "row": 73,
-     "time": "20:14",
-     "seconds": 1214,
+     "time": "25:43",
+     "seconds": 1543,
      "text": "Goodnight said out loud, as to a person",
      "quotes": [
       "\"she just thumps her tail twice on the bed. Twice. Never three times.\""
@@ -1992,8 +1992,8 @@
     "Initial:73:1": {
      "sheet": "Initial",
      "row": 73,
-     "time": "20:14",
-     "seconds": 1214,
+     "time": "25:43",
+     "seconds": 1543,
      "text": "Two thumps of the tail, never three",
      "quotes": [
       "\"she just thumps her tail twice on the bed. Twice. Never three times.\""
@@ -2007,8 +2007,8 @@
     "Initial:73:2": {
      "sheet": "Initial",
      "row": 73,
-     "time": "20:14",
-     "seconds": 1214,
+     "time": "25:43",
+     "seconds": 1543,
      "text": "Unable to skip the ridiculous ritual",
      "quotes": [
       "\"she just thumps her tail twice on the bed. Twice. Never three times.\""
@@ -2022,8 +2022,8 @@
     "Initial:75:0": {
      "sheet": "Initial",
      "row": 75,
-     "time": "20:50",
-     "seconds": 1250,
+     "time": "26:29",
+     "seconds": 1589,
      "text": "The regret never said to her partner",
      "quotes": [
       "\"I know I am kinder to her than I am to the people in my house\""
@@ -2037,8 +2037,8 @@
     "Initial:75:1": {
      "sheet": "Initial",
      "row": 75,
-     "time": "20:50",
-     "seconds": 1250,
+     "time": "26:29",
+     "seconds": 1589,
      "text": "Kinder to the dog than to the people at home",
      "quotes": [
       "\"I know I am kinder to her than I am to the people in my house\""
@@ -2052,8 +2052,8 @@
     "Initial:75:2": {
      "sheet": "Initial",
      "row": 75,
-     "time": "20:50",
-     "seconds": 1250,
+     "time": "26:29",
+     "seconds": 1589,
      "text": "Patient with a sock, not with a cupboard door",
      "quotes": [
       "\"I know I am kinder to her than I am to the people in my house\""
@@ -2067,8 +2067,8 @@
     "Initial:77:0": {
      "sheet": "Initial",
      "row": 77,
-     "time": "21:25",
-     "seconds": 1285,
+     "time": "27:15",
+     "seconds": 1635,
      "text": "Easier to say than she thought",
      "quotes": [
       "\"It is not really a confession, is it, it is just how it is.\""
@@ -2082,8 +2082,8 @@
     "Initial:77:1": {
      "sheet": "Initial",
      "row": 77,
-     "time": "21:25",
-     "seconds": 1285,
+     "time": "27:15",
+     "seconds": 1635,
      "text": "Not a confession, just how it is",
      "quotes": [
       "\"It is not really a confession, is it, it is just how it is.\""
@@ -2097,8 +2097,8 @@
     "Initial:79:0": {
      "sheet": "Initial",
      "row": 79,
-     "time": "21:45",
-     "seconds": 1305,
+     "time": "27:39",
+     "seconds": 1659,
      "text": "None of it dramatic",
      "quotes": [
       "\"if you asked me to describe home, she would be in the description and I would not have to think about it first\""
@@ -2112,8 +2112,8 @@
     "Initial:79:1": {
      "sheet": "Initial",
      "row": 79,
-     "time": "21:45",
-     "seconds": 1305,
+     "time": "27:39",
+     "seconds": 1659,
      "text": "Hair on the coat anyway",
      "quotes": [
       "\"if you asked me to describe home, she would be in the description and I would not have to think about it first\""
@@ -2127,8 +2127,8 @@
     "Initial:79:2": {
      "sheet": "Initial",
      "row": 79,
-     "time": "21:45",
-     "seconds": 1305,
+     "time": "27:39",
+     "seconds": 1659,
      "text": "Into the middle of the house, on no particular day",
      "quotes": [
       "\"if you asked me to describe home, she would be in the description and I would not have to think about it first\""
@@ -2142,8 +2142,8 @@
     "Initial:79:3": {
      "sheet": "Initial",
      "row": 79,
-     "time": "21:45",
-     "seconds": 1305,
+     "time": "27:39",
+     "seconds": 1659,
      "text": "Home with her in the description",
      "quotes": [
       "\"if you asked me to describe home, she would be in the description and I would not have to think about it first\""
@@ -2166,7 +2166,7 @@
     "workbook": 1791123600000000000,
     "themes": 1791123600000000000
    },
-   "hash": "99c27e313f4d9152840b4c79f1ccbd94ed9b5408c957c4e8732105afb4e510d1",
+   "hash": "c53a800fdc9c609d045acbbf7c8bcfd865c2ba9e37a90c252c3b4094604d3b2e",
    "state": "in",
    "pets": [
     {
@@ -2334,8 +2334,8 @@
     "Initial:3:0": {
      "sheet": "Initial",
      "row": 3,
-     "time": "00:18",
-     "seconds": 18,
+     "time": "00:15",
+     "seconds": 15,
      "text": "A dog like having the lights on",
      "quotes": [
       "\"It's like having the lights on.\""
@@ -2349,8 +2349,8 @@
     "Initial:3:1": {
      "sheet": "Initial",
      "row": 3,
-     "time": "00:18",
-     "seconds": 18,
+     "time": "00:15",
+     "seconds": 15,
      "text": "A house where everything stayed put",
      "quotes": [
       "\"It's like having the lights on.\""
@@ -2364,8 +2364,8 @@
     "Initial:5:0": {
      "sheet": "Initial",
      "row": 5,
-     "time": "01:04",
-     "seconds": 64,
+     "time": "00:58",
+     "seconds": 58,
      "text": "A tidy person glad of disorder",
      "quotes": [
       "\"a house where things stay put is a house where nothing's happening\""
@@ -2379,8 +2379,8 @@
     "Initial:5:1": {
      "sheet": "Initial",
      "row": 5,
-     "time": "01:04",
-     "seconds": 64,
+     "time": "00:58",
+     "seconds": 58,
      "text": "Things staying put, nothing happening",
      "quotes": [
       "\"a house where things stay put is a house where nothing's happening\""
@@ -2394,8 +2394,8 @@
     "Initial:5:2": {
      "sheet": "Initial",
      "row": 5,
-     "time": "01:04",
-     "seconds": 64,
+     "time": "00:58",
+     "seconds": 58,
      "text": "Signs that somebody has been living here",
      "quotes": [
       "\"a house where things stay put is a house where nothing's happening\""
@@ -2409,8 +2409,8 @@
     "Initial:7:0": {
      "sheet": "Initial",
      "row": 7,
-     "time": "01:41",
-     "seconds": 101,
+     "time": "01:29",
+     "seconds": 89,
      "text": "Got up at seven by a polite stare",
      "quotes": [
       "\"there wasn't anything to get up for\""
@@ -2424,8 +2424,8 @@
     "Initial:7:1": {
      "sheet": "Initial",
      "row": 7,
-     "time": "01:41",
-     "seconds": 101,
+     "time": "01:29",
+     "seconds": 89,
      "text": "Lying in till nine, nothing to get up for",
      "quotes": [
       "\"there wasn't anything to get up for\""
@@ -2439,8 +2439,8 @@
     "Initial:7:2": {
      "sheet": "Initial",
      "row": 7,
-     "time": "01:41",
-     "seconds": 101,
+     "time": "01:29",
+     "seconds": 89,
      "text": "Waterproof trousers for the first time",
      "quotes": [
       "\"there wasn't anything to get up for\""
@@ -2454,8 +2454,8 @@
     "Initial:9:0": {
      "sheet": "Initial",
      "row": 9,
-     "time": "02:31",
-     "seconds": 151,
+     "time": "02:09",
+     "seconds": 129,
      "text": "A morning society seen only with a dog",
      "quotes": [
       "\"You wouldn't know it unless you had a dog.\""
@@ -2469,8 +2469,8 @@
     "Initial:9:1": {
      "sheet": "Initial",
      "row": 9,
-     "time": "02:31",
-     "seconds": 151,
+     "time": "02:09",
+     "seconds": 129,
      "text": "Twenty years on the estate, knowing nobody",
      "quotes": [
       "\"You wouldn't know it unless you had a dog.\""
@@ -2484,8 +2484,8 @@
     "Initial:9:2": {
      "sheet": "Initial",
      "row": 9,
-     "time": "02:31",
-     "seconds": 151,
+     "time": "02:09",
+     "seconds": 129,
      "text": "The dogs' names first, then the people's",
      "quotes": [
       "\"You wouldn't know it unless you had a dog.\""
@@ -2499,8 +2499,8 @@
     "Initial:11:0": {
      "sheet": "Initial",
      "row": 11,
-     "time": "03:19",
-     "seconds": 199,
+     "time": "02:46",
+     "seconds": 166,
      "text": "Losing the habit of people",
      "quotes": [
       "\"the talking just happens round the edges\""
@@ -2514,8 +2514,8 @@
     "Initial:11:1": {
      "sheet": "Initial",
      "row": 11,
-     "time": "03:19",
-     "seconds": 199,
+     "time": "02:46",
+     "seconds": 166,
      "text": "Talk happening round the edges",
      "quotes": [
       "\"the talking just happens round the edges\""
@@ -2529,8 +2529,8 @@
     "Initial:11:2": {
      "sheet": "Initial",
      "row": 11,
-     "time": "03:19",
-     "seconds": 199,
+     "time": "02:46",
+     "seconds": 166,
      "text": "Walking Terry's greyhounds for a fortnight",
      "quotes": [
       "\"the talking just happens round the edges\""
@@ -2544,8 +2544,8 @@
     "Initial:13:0": {
      "sheet": "Initial",
      "row": 13,
-     "time": "04:05",
-     "seconds": 245,
+     "time": "03:22",
+     "seconds": 202,
      "text": "Toast standing up, most nights",
      "quotes": [
       "\"you can't feed a dog and not feed yourself, it looks ridiculous\""
@@ -2559,8 +2559,8 @@
     "Initial:13:1": {
      "sheet": "Initial",
      "row": 13,
-     "time": "04:05",
-     "seconds": 245,
+     "time": "03:22",
+     "seconds": 202,
      "text": "Saying she was fine and not being",
      "quotes": [
       "\"you can't feed a dog and not feed yourself, it looks ridiculous\""
@@ -2574,8 +2574,8 @@
     "Initial:13:2": {
      "sheet": "Initial",
      "row": 13,
-     "time": "04:05",
-     "seconds": 245,
+     "time": "03:22",
+     "seconds": 202,
      "text": "Eating again with someone depending on her",
      "quotes": [
       "\"you can't feed a dog and not feed yourself, it looks ridiculous\""
@@ -2589,8 +2589,8 @@
     "Initial:15:0": {
      "sheet": "Initial",
      "row": 15,
-     "time": "04:50",
-     "seconds": 290,
+     "time": "04:03",
+     "seconds": 243,
      "text": "Six months of thinking it a mistake",
      "quotes": [
       "\"Flat on my face. Broke my wrist.\""
@@ -2604,8 +2604,8 @@
     "Initial:15:1": {
      "sheet": "Initial",
      "row": 15,
-     "time": "04:50",
-     "seconds": 290,
+     "time": "04:03",
+     "seconds": 243,
      "text": "Pulled flat on the ice",
      "quotes": [
       "\"Flat on my face. Broke my wrist.\""
@@ -2619,8 +2619,8 @@
     "Initial:17:0": {
      "sheet": "Initial",
      "row": 17,
-     "time": "05:29",
-     "seconds": 329,
+     "time": "04:35",
+     "seconds": 275,
      "text": "Being told the dog had to go",
      "quotes": [
       "\"it felt like she was taking something off me\""
@@ -2634,8 +2634,8 @@
     "Initial:17:1": {
      "sheet": "Initial",
      "row": 17,
-     "time": "05:29",
-     "seconds": 329,
+     "time": "04:35",
+     "seconds": 275,
      "text": "The one proper row in years",
      "quotes": [
       "\"it felt like she was taking something off me\""
@@ -2649,8 +2649,8 @@
     "Initial:17:2": {
      "sheet": "Initial",
      "row": 17,
-     "time": "05:29",
-     "seconds": 329,
+     "time": "04:35",
+     "seconds": 275,
      "text": "Treated like a child with a puppy",
      "quotes": [
       "\"it felt like she was taking something off me\""
@@ -2664,8 +2664,8 @@
     "Initial:19:0": {
      "sheet": "Initial",
      "row": 19,
-     "time": "06:15",
-     "seconds": 375,
+     "time": "05:09",
+     "seconds": 309,
      "text": "Feeling small, and frightened too",
      "quotes": [
       "\"What happens to her then. What happens to me.\""
@@ -2679,8 +2679,8 @@
     "Initial:19:1": {
      "sheet": "Initial",
      "row": 19,
-     "time": "06:15",
-     "seconds": 375,
+     "time": "05:09",
+     "seconds": 309,
      "text": "What if it had been her hip",
      "quotes": [
       "\"What happens to her then. What happens to me.\""
@@ -2694,8 +2694,8 @@
     "Initial:19:2": {
      "sheet": "Initial",
      "row": 19,
-     "time": "06:15",
-     "seconds": 375,
+     "time": "05:09",
+     "seconds": 309,
      "text": "Knowing by morning she would keep her",
      "quotes": [
       "\"What happens to her then. What happens to me.\""
@@ -2709,8 +2709,8 @@
     "Initial:21:0": {
      "sheet": "Initial",
      "row": 21,
-     "time": "06:53",
-     "seconds": 413,
+     "time": "05:36",
+     "seconds": 336,
      "text": "Training classes at seventy three",
      "quotes": [
       "\"Just stop dead and stand there like a lamppost until she comes back.\""
@@ -2724,8 +2724,8 @@
     "Initial:21:1": {
      "sheet": "Initial",
      "row": 21,
-     "time": "06:53",
-     "seconds": 413,
+     "time": "05:36",
+     "seconds": 336,
      "text": "Standing like a lamppost until she comes back",
      "quotes": [
       "\"Just stop dead and stand there like a lamppost until she comes back.\""
@@ -2739,8 +2739,8 @@
     "Initial:23:0": {
      "sheet": "Initial",
      "row": 23,
-     "time": "07:39",
-     "seconds": 459,
+     "time": "06:11",
+     "seconds": 371,
      "text": "A brief all right, nothing more said",
      "quotes": [
       "\"But she brings Pepper a chew when she comes now. That's how I know.\""
@@ -2754,8 +2754,8 @@
     "Initial:23:1": {
      "sheet": "Initial",
      "row": 23,
-     "time": "07:39",
-     "seconds": 459,
+     "time": "06:11",
+     "seconds": 371,
      "text": "A chew for Pepper as the sign",
      "quotes": [
       "\"But she brings Pepper a chew when she comes now. That's how I know.\""
@@ -2769,8 +2769,8 @@
     "Initial:25:0": {
      "sheet": "Initial",
      "row": 25,
-     "time": "08:21",
-     "seconds": 501,
+     "time": "06:44",
+     "seconds": 404,
      "text": "Doing the sums on who goes first",
      "quotes": [
       "\"She could well outlive me.\""
@@ -2784,8 +2784,8 @@
     "Initial:25:1": {
      "sheet": "Initial",
      "row": 25,
-     "time": "08:21",
-     "seconds": 501,
+     "time": "06:44",
+     "seconds": 404,
      "text": "Pepper likely to outlive her",
      "quotes": [
       "\"She could well outlive me.\""
@@ -2799,8 +2799,8 @@
     "Initial:25:2": {
      "sheet": "Initial",
      "row": 25,
-     "time": "08:21",
-     "seconds": 501,
+     "time": "06:44",
+     "seconds": 404,
      "text": "A home for Pepper written into the will",
      "quotes": [
       "\"She could well outlive me.\""
@@ -2814,8 +2814,8 @@
     "Initial:29:0": {
      "sheet": "Initial",
      "row": 29,
-     "time": "09:08",
-     "seconds": 548,
+     "time": "07:26",
+     "seconds": 446,
      "text": "Pepper's name beside the house and the watch",
      "quotes": [
       "\"Her waiting by the door for me.\""
@@ -2829,8 +2829,8 @@
     "Initial:29:1": {
      "sheet": "Initial",
      "row": 29,
-     "time": "09:08",
-     "seconds": 548,
+     "time": "07:26",
+     "seconds": 446,
      "text": "Lighter, like putting something down",
      "quotes": [
       "\"Her waiting by the door for me.\""
@@ -2844,8 +2844,8 @@
     "Initial:29:2": {
      "sheet": "Initial",
      "row": 29,
-     "time": "09:08",
-     "seconds": 548,
+     "time": "07:26",
+     "seconds": 446,
      "text": "The picture of her waiting at the door",
      "quotes": [
       "\"Her waiting by the door for me.\""
@@ -2859,8 +2859,8 @@
     "Initial:31:0": {
      "sheet": "Initial",
      "row": 31,
-     "time": "09:53",
-     "seconds": 593,
+     "time": "08:04",
+     "seconds": 484,
      "text": "At the window every time she returns",
      "quotes": [
       "\"I couldn't bear the thought of her doing that and me never coming.\""
@@ -2874,8 +2874,8 @@
     "Initial:31:1": {
      "sheet": "Initial",
      "row": 31,
-     "time": "09:53",
-     "seconds": 593,
+     "time": "08:04",
+     "seconds": 484,
      "text": "Little thought of her own end",
      "quotes": [
       "\"I couldn't bear the thought of her doing that and me never coming.\""
@@ -2889,8 +2889,8 @@
     "Initial:31:2": {
      "sheet": "Initial",
      "row": 31,
-     "time": "09:53",
-     "seconds": 593,
+     "time": "08:04",
+     "seconds": 484,
      "text": "The dog all right after she has gone",
      "quotes": [
       "\"I couldn't bear the thought of her doing that and me never coming.\""
@@ -2904,8 +2904,8 @@
     "Initial:33:0": {
      "sheet": "Initial",
      "row": 33,
-     "time": "10:33",
-     "seconds": 633,
+     "time": "08:36",
+     "seconds": 516,
      "text": "Telling the dog what she told Dennis",
      "quotes": [
       "\"It had nowhere to go. Now it goes to her.\""
@@ -2919,8 +2919,8 @@
     "Initial:33:1": {
      "sheet": "Initial",
      "row": 33,
-     "time": "10:33",
-     "seconds": 633,
+     "time": "08:36",
+     "seconds": 516,
      "text": "Forty years of telling someone her day",
      "quotes": [
       "\"It had nowhere to go. Now it goes to her.\""
@@ -2934,8 +2934,8 @@
     "Initial:33:2": {
      "sheet": "Initial",
      "row": 33,
-     "time": "10:33",
-     "seconds": 633,
+     "time": "08:36",
+     "seconds": 516,
      "text": "Catching herself on the price of butter",
      "quotes": [
       "\"It had nowhere to go. Now it goes to her.\""
@@ -2949,8 +2949,8 @@
     "Initial:35:0": {
      "sheet": "Initial",
      "row": 35,
-     "time": "11:16",
-     "seconds": 676,
+     "time": "09:09",
+     "seconds": 549,
      "text": "On the bed now, on his side",
      "quotes": [
       "\"It's nice to hear breathing in the night again.\""
@@ -2964,8 +2964,8 @@
     "Initial:35:1": {
      "sheet": "Initial",
      "row": 35,
-     "time": "11:16",
-     "seconds": 676,
+     "time": "09:09",
+     "seconds": 549,
      "text": "Breathing in the night again",
      "quotes": [
       "\"It's nice to hear breathing in the night again.\""
@@ -2979,8 +2979,8 @@
     "Initial:37:0": {
      "sheet": "Initial",
      "row": 37,
-     "time": "11:58",
-     "seconds": 718,
+     "time": "09:43",
+     "seconds": 583,
      "text": "Not expecting any of it",
      "quotes": [
       "\"I was shut in and she opened the door.\""
@@ -2994,8 +2994,8 @@
     "Initial:37:1": {
      "sheet": "Initial",
      "row": 37,
-     "time": "11:58",
-     "seconds": 718,
+     "time": "09:43",
+     "seconds": 583,
      "text": "Fitter at seventy three than at sixty",
      "quotes": [
       "\"I was shut in and she opened the door.\""
@@ -3009,8 +3009,8 @@
     "Initial:37:2": {
      "sheet": "Initial",
      "row": 37,
-     "time": "11:58",
-     "seconds": 718,
+     "time": "09:43",
+     "seconds": 583,
      "text": "Shut in until the dog opened the door",
      "quotes": [
       "\"I was shut in and she opened the door.\""
@@ -3033,7 +3033,7 @@
     "workbook": 1791123600000000000,
     "themes": 1791123600000000000
    },
-   "hash": "de252536f9e1ed1ee274d672260970f0e8e59ca5ca490301ebbafeb702a4f2b6",
+   "hash": "490347edc0cab635b5b369a0de08d4f9c44d0480e0a12125cf93ed1bd16e55cc",
    "state": "in",
    "pets": [
     {
@@ -3188,8 +3188,8 @@
     "Initial:3:0": {
      "sheet": "Initial",
      "row": 3,
-     "time": "00:21",
-     "seconds": 21,
+     "time": "00:17",
+     "seconds": 17,
      "text": "Slipping between is and was",
      "quotes": [
       "\"The flat was her flat. I just lived in it.\""
@@ -3203,8 +3203,8 @@
     "Initial:3:1": {
      "sheet": "Initial",
      "row": 3,
-     "time": "00:21",
-     "seconds": 21,
+     "time": "00:17",
+     "seconds": 17,
      "text": "Eighteen months of her being everything",
      "quotes": [
       "\"The flat was her flat. I just lived in it.\""
@@ -3218,8 +3218,8 @@
     "Initial:3:2": {
      "sheet": "Initial",
      "row": 3,
-     "time": "00:21",
-     "seconds": 21,
+     "time": "00:17",
+     "seconds": 17,
      "text": "Living in a flat that was hers",
      "quotes": [
       "\"The flat was her flat. I just lived in it.\""
@@ -3233,8 +3233,8 @@
     "Initial:5:0": {
      "sheet": "Initial",
      "row": 5,
-     "time": "01:02",
-     "seconds": 62,
+     "time": "00:54",
+     "seconds": 54,
      "text": "The best company at a lonely time",
      "quotes": [
       "\"Everything had to be arranged round her.\""
@@ -3248,8 +3248,8 @@
     "Initial:5:1": {
      "sheet": "Initial",
      "row": 5,
-     "time": "01:02",
-     "seconds": 62,
+     "time": "00:54",
+     "seconds": 54,
      "text": "A dog leaning on his knee under the desk",
      "quotes": [
       "\"Everything had to be arranged round her.\""
@@ -3263,8 +3263,8 @@
     "Initial:5:2": {
      "sheet": "Initial",
      "row": 5,
-     "time": "01:02",
-     "seconds": 62,
+     "time": "00:54",
+     "seconds": 54,
      "text": "Taken over before he saw it happen",
      "quotes": [
       "\"Everything had to be arranged round her.\""
@@ -3278,8 +3278,8 @@
     "Initial:7:0": {
      "sheet": "Initial",
      "row": 7,
-     "time": "01:48",
-     "seconds": 108,
+     "time": "01:39",
+     "seconds": 99,
      "text": "Walking when nobody else does",
      "quotes": [
       "\"So we went when nobody else did.\""
@@ -3293,8 +3293,8 @@
     "Initial:7:1": {
      "sheet": "Initial",
      "row": 7,
-     "time": "01:48",
-     "seconds": 108,
+     "time": "01:39",
+     "seconds": 99,
      "text": "Nocturnal, and not really joking",
      "quotes": [
       "\"So we went when nobody else did.\""
@@ -3308,8 +3308,8 @@
     "Initial:9:0": {
      "sheet": "Initial",
      "row": 9,
-     "time": "02:37",
-     "seconds": 157,
+     "time": "02:19",
+     "seconds": 139,
      "text": "Frost, an empty field and her loops",
      "quotes": [
       "\"this is all right, this is ours\"",
@@ -3324,8 +3324,8 @@
     "Initial:9:1": {
      "sheet": "Initial",
      "row": 9,
-     "time": "02:37",
-     "seconds": 157,
+     "time": "02:19",
+     "seconds": 139,
      "text": "A moment that was theirs alone",
      "quotes": [
       "\"this is all right, this is ours\"",
@@ -3340,8 +3340,8 @@
     "Initial:9:2": {
      "sheet": "Initial",
      "row": 9,
-     "time": "02:37",
-     "seconds": 157,
+     "time": "02:19",
+     "seconds": 139,
      "text": "Always listening for another dog",
      "quotes": [
       "\"this is all right, this is ours\"",
@@ -3356,8 +3356,8 @@
     "Initial:11:0": {
      "sheet": "Initial",
      "row": 11,
-     "time": "03:23",
-     "seconds": 203,
+     "time": "02:54",
+     "seconds": 174,
      "text": "Crossing the road for a dog not there",
      "quotes": [
       "\"My body was still doing it for her.\""
@@ -3371,8 +3371,8 @@
     "Initial:11:1": {
      "sheet": "Initial",
      "row": 11,
-     "time": "03:23",
-     "seconds": 203,
+     "time": "02:54",
+     "seconds": 174,
      "text": "A body still keeping watch for her",
      "quotes": [
       "\"My body was still doing it for her.\""
@@ -3386,8 +3386,8 @@
     "Initial:13:0": {
      "sheet": "Initial",
      "row": 13,
-     "time": "03:57",
-     "seconds": 237,
+     "time": "03:22",
+     "seconds": 202,
      "text": "Her head finding his foot again",
      "quotes": [
       "\"So after that I didn't leave her.\""
@@ -3401,8 +3401,8 @@
     "Initial:13:1": {
      "sheet": "Initial",
      "row": 13,
-     "time": "03:57",
-     "seconds": 237,
+     "time": "03:22",
+     "seconds": 202,
      "text": "The note through the door, the marked frame",
      "quotes": [
       "\"So after that I didn't leave her.\""
@@ -3416,8 +3416,8 @@
     "Initial:13:2": {
      "sheet": "Initial",
      "row": 13,
-     "time": "03:57",
-     "seconds": 237,
+     "time": "03:22",
+     "seconds": 202,
      "text": "Not leaving her at all, for months",
      "quotes": [
       "\"So after that I didn't leave her.\""
@@ -3431,8 +3431,8 @@
     "Initial:15:0": {
      "sheet": "Initial",
      "row": 15,
-     "time": "04:57",
-     "seconds": 297,
+     "time": "04:07",
+     "seconds": 247,
      "text": "Not feeling the loss while it happened",
      "quotes": [
       "\"I'd stopped saying yes to things so long ago that people had stopped asking.\""
@@ -3446,8 +3446,8 @@
     "Initial:15:1": {
      "sheet": "Initial",
      "row": 15,
-     "time": "04:57",
-     "seconds": 297,
+     "time": "04:07",
+     "seconds": 247,
      "text": "His sister seeing he never went out",
      "quotes": [
       "\"I'd stopped saying yes to things so long ago that people had stopped asking.\""
@@ -3461,8 +3461,8 @@
     "Initial:15:2": {
      "sheet": "Initial",
      "row": 15,
-     "time": "04:57",
-     "seconds": 297,
+     "time": "04:07",
+     "seconds": 247,
      "text": "A reason nobody argues with",
      "quotes": [
       "\"I'd stopped saying yes to things so long ago that people had stopped asking.\""
@@ -3476,8 +3476,8 @@
     "Initial:17:0": {
      "sheet": "Initial",
      "row": 17,
-     "time": "05:46",
-     "seconds": 346,
+     "time": "04:46",
+     "seconds": 286,
      "text": "A letter putting the tenancy in doubt",
      "quotes": [
       "\"I can't keep her safe here.\""
@@ -3491,8 +3491,8 @@
     "Initial:17:1": {
      "sheet": "Initial",
      "row": 17,
-     "time": "05:46",
-     "seconds": 346,
+     "time": "04:46",
+     "seconds": 286,
      "text": "Unable to keep her or others safe",
      "quotes": [
       "\"I can't keep her safe here.\""
@@ -3506,8 +3506,8 @@
     "Initial:19:0": {
      "sheet": "Initial",
      "row": 19,
-     "time": "06:36",
-     "seconds": 396,
+     "time": "05:24",
+     "seconds": 324,
      "text": "Choosing the flat, then choosing her",
      "quotes": [
       "\"That wasn't her fault. That was mine.\""
@@ -3521,8 +3521,8 @@
     "Initial:19:1": {
      "sheet": "Initial",
      "row": 19,
-     "time": "06:36",
-     "seconds": 396,
+     "time": "05:24",
+     "seconds": 324,
      "text": "A life she could not do",
      "quotes": [
       "\"That wasn't her fault. That was mine.\""
@@ -3536,8 +3536,8 @@
     "Initial:19:2": {
      "sheet": "Initial",
      "row": 19,
-     "time": "06:36",
-     "seconds": 396,
+     "time": "05:24",
+     "seconds": 324,
      "text": "Taking the fault as his own",
      "quotes": [
       "\"That wasn't her fault. That was mine.\""
@@ -3551,8 +3551,8 @@
     "Initial:21:0": {
      "sheet": "Initial",
      "row": 21,
-     "time": "07:11",
-     "seconds": 431,
+     "time": "05:51",
+     "seconds": 351,
      "text": "Trying everything first, on the record",
      "quotes": [
       "\"some dogs need a different life, not a different owner\""
@@ -3566,8 +3566,8 @@
     "Initial:21:1": {
      "sheet": "Initial",
      "row": 21,
-     "time": "07:11",
-     "seconds": 431,
+     "time": "05:51",
+     "seconds": 351,
      "text": "Exercises that never helped on the stairs",
      "quotes": [
       "\"some dogs need a different life, not a different owner\""
@@ -3581,8 +3581,8 @@
     "Initial:23:0": {
      "sheet": "Initial",
      "row": 23,
-     "time": "08:03",
-     "seconds": 483,
+     "time": "06:32",
+     "seconds": 392,
      "text": "Awful and a relief at once",
      "quotes": [
       "\"I felt like I was lying to her.\""
@@ -3596,8 +3596,8 @@
     "Initial:23:1": {
      "sheet": "Initial",
      "row": 23,
-     "time": "08:03",
-     "seconds": 483,
+     "time": "06:32",
+     "seconds": 392,
      "text": "Ashamed of the relief, still",
      "quotes": [
       "\"I felt like I was lying to her.\""
@@ -3611,8 +3611,8 @@
     "Initial:23:2": {
      "sheet": "Initial",
      "row": 23,
-     "time": "08:03",
-     "seconds": 483,
+     "time": "06:32",
+     "seconds": 392,
      "text": "Feeling he was lying to her",
      "quotes": [
       "\"I felt like I was lying to her.\""
@@ -3626,8 +3626,8 @@
     "Initial:25:0": {
      "sheet": "Initial",
      "row": 25,
-     "time": "08:43",
-     "seconds": 523,
+     "time": "07:12",
+     "seconds": 432,
      "text": "Saying yes before hearing anything else",
      "quotes": [
       "\"But it felt like she knew.\""
@@ -3641,8 +3641,8 @@
     "Initial:25:1": {
      "sheet": "Initial",
      "row": 25,
-     "time": "08:43",
-     "seconds": 523,
+     "time": "07:12",
+     "seconds": 432,
      "text": "Her head in his lap, as if she knew",
      "quotes": [
       "\"But it felt like she knew.\""
@@ -3656,8 +3656,8 @@
     "Initial:27:0": {
      "sheet": "Initial",
      "row": 27,
-     "time": "09:27",
-     "seconds": 567,
+     "time": "07:47",
+     "seconds": 467,
      "text": "Driving her there himself",
      "quotes": [
       "\"She didn't look back again.\""
@@ -3671,8 +3671,8 @@
     "Initial:27:1": {
      "sheet": "Initial",
      "row": 27,
-     "time": "09:27",
-     "seconds": 567,
+     "time": "07:47",
+     "seconds": 467,
      "text": "She did not look back again",
      "quotes": [
       "\"She didn't look back again.\""
@@ -3686,8 +3686,8 @@
     "Initial:31:0": {
      "sheet": "Initial",
      "row": 31,
-     "time": "10:28",
-     "seconds": 628,
+     "time": "08:35",
+     "seconds": 515,
      "text": "Arms with nothing to hold",
      "quotes": [
       "\"I just felt very light, like my arms didn't have anything to hold.\""
@@ -3701,8 +3701,8 @@
     "Initial:31:1": {
      "sheet": "Initial",
      "row": 31,
-     "time": "10:28",
-     "seconds": 628,
+     "time": "08:35",
+     "seconds": 515,
      "text": "Not crying when he thought he would",
      "quotes": [
       "\"I just felt very light, like my arms didn't have anything to hold.\""
@@ -3716,8 +3716,8 @@
     "Initial:31:2": {
      "sheet": "Initial",
      "row": 31,
-     "time": "10:28",
-     "seconds": 628,
+     "time": "08:35",
+     "seconds": 515,
      "text": "Keeping her bowl without knowing why",
      "quotes": [
       "\"I just felt very light, like my arms didn't have anything to hold.\""
@@ -3731,8 +3731,8 @@
     "Initial:33:0": {
      "sheet": "Initial",
      "row": 33,
-     "time": "11:08",
-     "seconds": 668,
+     "time": "09:11",
+     "seconds": 551,
      "text": "Still waking at quarter past five",
      "quotes": [
       "\"I still wake up at quarter past five, three months on.\""
@@ -3746,8 +3746,8 @@
     "Initial:33:1": {
      "sheet": "Initial",
      "row": 33,
-     "time": "11:08",
-     "seconds": 668,
+     "time": "09:11",
+     "seconds": 551,
      "text": "Nothing to get up for, so lying there",
      "quotes": [
       "\"I still wake up at quarter past five, three months on.\""
@@ -3761,8 +3761,8 @@
     "Initial:33:2": {
      "sheet": "Initial",
      "row": 33,
-     "time": "11:08",
-     "seconds": 668,
+     "time": "09:11",
+     "seconds": 551,
      "text": "Glad of the photo, then the phone face down",
      "quotes": [
       "\"I still wake up at quarter past five, three months on.\""
@@ -3776,8 +3776,8 @@
     "Initial:35:0": {
      "sheet": "Initial",
      "row": 35,
-     "time": "11:49",
-     "seconds": 709,
+     "time": "09:50",
+     "seconds": 590,
      "text": "Glad and something else with no name",
      "quotes": [
       "\"If it was settled I wouldn't need to say it every day, would I.\""
@@ -3791,8 +3791,8 @@
     "Initial:35:1": {
      "sheet": "Initial",
      "row": 35,
-     "time": "11:49",
-     "seconds": 709,
+     "time": "09:50",
+     "seconds": 590,
      "text": "Saying she is better off, every day",
      "quotes": [
       "\"If it was settled I wouldn't need to say it every day, would I.\""
@@ -3806,8 +3806,8 @@
     "Initial:35:2": {
      "sheet": "Initial",
      "row": 35,
-     "time": "11:49",
-     "seconds": 709,
+     "time": "09:50",
+     "seconds": 590,
      "text": "Needing to keep saying it",
      "quotes": [
       "\"If it was settled I wouldn't need to say it every day, would I.\""
@@ -3821,8 +3821,8 @@
     "Initial:37:0": {
      "sheet": "Initial",
      "row": 37,
-     "time": "12:28",
-     "seconds": 748,
+     "time": "10:24",
+     "seconds": 624,
      "text": "Not yet, without knowing what yet means",
      "quotes": [
       "\"whether I failed her or whether I did the right thing for her\""
@@ -3836,8 +3836,8 @@
     "Initial:37:1": {
      "sheet": "Initial",
      "row": 37,
-     "time": "12:28",
-     "seconds": 748,
+     "time": "10:24",
+     "seconds": 624,
      "text": "Not knowing whether he failed her",
      "quotes": [
       "\"whether I failed her or whether I did the right thing for her\""
@@ -3851,8 +3851,8 @@
     "Initial:39:0": {
      "sheet": "Initial",
      "row": 39,
-     "time": "13:10",
-     "seconds": 790,
+     "time": "10:58",
+     "seconds": 658,
      "text": "Frightened, not a problem",
      "quotes": [
       "\"She wasn't a problem. She was frightened.\""
@@ -3866,8 +3866,8 @@
     "Initial:39:1": {
      "sheet": "Initial",
      "row": 39,
-     "time": "13:10",
-     "seconds": 790,
+     "time": "10:58",
+     "seconds": 658,
      "text": "One sock every morning for eighteen months",
      "quotes": [
       "\"She wasn't a problem. She was frightened.\""

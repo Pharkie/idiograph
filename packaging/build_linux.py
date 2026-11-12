@@ -18,9 +18,9 @@ Python then runs on, as the plan asks). The steps:
 1. A build venv, `build/venv`, with build_mac's PINS, made with the Python running this script or the one
    `--python` names, 3.11 or later. PyInstaller's own prebuilt Linux bootloader, since the Windows build's
    reason for compiling one (Defender's guess about a shared bootloader) does not apply.
-2. The stage, `build/stage`: for Idiograph the demo's three cases through build_mac's `stage_cases`, and
-   Juno's recording where one is committed for this transcript (it cannot be spoken here, `say` being a
-   Mac's), and `config.json` from `server.shipped_config(app)`.
+2. The stage, `build/stage`: for Idiograph the demo's three cases through build_mac's `stage_cases`, and their
+   recordings through its `stage_recordings`, each where one is committed for its transcript as it stands, with
+   their licence beside it, and `config.json` from `server.shipped_config(app)`.
 3. PyInstaller, one folder, from `packaging/linux_launcher.py`: a single executable named for the app
    (`Idiograph`, `Sift`, `Trace`), by whose name the frozen server knows which app it is, which is also
    what `app.rs`'s `server_exe` looks for on Linux. A run of its `cli --help` proves it finds every module.
@@ -118,19 +118,6 @@ def build_venv(build: Path, python: Path) -> Path:
 
 
 # ── 2. the stage ──────────────────────────────────────────────────────────────────────────────
-
-def stage_recording(demo: Path) -> str:
-    """Juno's recording into the staged demo where one is committed for the transcript as it stands, and
-    the line that says which. It is spoken on a Mac (`build_windows.py --speak`), never here."""
-    found = build_mac.committed_recording()
-    if not found:
-        return ("without Juno's recording, none being spoken for this transcript in packaging/recording, "
-                "so the player says there is no recording")
-    target = demo / build_mac.RECORDING
-    target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(found, target)
-    return f"with Juno's recording, {found.name}"
-
 
 def stage_config(stage: Path, py: Path, app: str = app_identity.DEFAULT) -> Path | None:
     """config.json as the app ships it, or None when this Python cannot import the server, as in a dry
@@ -433,7 +420,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         py = build_venv(build, choose_python(args.python))
 
-    staged = (stage_recording(build_mac.stage_cases(stage)) if build_mac.ships_demo(app)
+    staged = (build_mac.stage_recordings(build_mac.stage_cases(stage)) if build_mac.ships_demo(app)
               else "none, the demo being Idiograph's,")
     config = stage_config(stage, py, app)
     spec = write_spec(build, stage, app)

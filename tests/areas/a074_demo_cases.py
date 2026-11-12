@@ -36,8 +36,8 @@ def test_demo_cases(scratch):
     demo = support.source("demo")
     pristine = demo / "pristine"
     repo_demo = tree(demo)
-    # every case of the demo is built from its sources since 26 October, Juno's too, the two written
-    # ones with no recording
+    # every case of the demo is built from its sources since 26 October, Juno's too, and each has its
+    # recording since 12 November (recvoices)
     written = make_demo.CASES
     book_of = lambda folder, name: Path(folder) / f"{name} - EN & ES.xlsx"
 
@@ -81,8 +81,7 @@ def test_demo_cases(scratch):
               ", ".join(f"{k} {hashlib.sha256(parts[k].read_bytes()).hexdigest()[:8]}" for k in parts))
         live = book_of(demo / name, name)
         check(f"74: {name}'s live case folder holds the workbook as it ships, in the shape Juno's takes",
-              live.is_file() and live.read_bytes() == parts["workbook"].read_bytes()
-              and (name == make_demo.PARTICIPANT or not (demo / name / "Source").exists()), live.parent.name)
+              live.is_file() and live.read_bytes() == parts["workbook"].read_bytes(), live.parent.name)
 
     # ── 3. annotated as Adam annotates: every turn decided, the register, quotes verbatim, no fills
     for name in written:
@@ -183,7 +182,7 @@ def test_demo_cases(scratch):
     juno_side = json.loads((pristine / "Working" / "Juno - EN & ES.progress.json").read_text(encoding="utf-8"))
     check("74: Juno ships finished, her board and her mark in her pristine copy, her CSV and recording where they were",
           (pristine / "Working" / "Juno - EN & ES.themes.json").exists() and "complete" in juno_side
-          and len(juno_rows) == 79 and make_demo.RECORDING == demo / "Juno" / "Source" / "Initial" / "Source" / "Juno-Initial.m4a"
+          and len(juno_rows) == 79 and make_demo.recording() == demo / "Juno" / "Source" / "Initial" / "Source" / "Juno-Initial.m4a"
           and make_demo.CASES == ("Juno", "Rowan", "Mabel") and idiograph_routes.DEMO_CASES == make_demo.CASES
           and idiograph_routes.demo_title(server_mod.DEMO_WORKBOOK) == idiograph_routes.DEMO_TITLE
           and idiograph_routes.demo_workbooks()[0] == server_mod.DEMO_WORKBOOK)
@@ -285,8 +284,15 @@ def test_demo_cases(scratch):
               and [c["current"] for c in switcher] == [False, True, False]
               and [c["chosen"] for c in switcher] == [True, True, True], str([c["case"] for c in switcher]))
         heard = idiograph_routes.api_audio({"path": str(rowan), "sheet": "Initial"})
-        check("74: Rowan has no recording and the player stays quiet, nothing built for him",
-              heard["found"] is False and not heard.get("building") and not idiograph_routes._demo_building, heard.get("note", ""))
+        stand_in = shipped / "Rowan" / "Source" / "Initial" / "Source" / "Rowan-Initial.m4a"
+        stand_in.parent.mkdir(parents=True)
+        stand_in.write_bytes(b"a stand-in for Rowan's recording")
+        played = idiograph_routes.api_audio({"path": str(rowan), "sheet": "Initial"})
+        check("74: Rowan's recording, missing from the demo the app works on, comes back from the shipped copy as Juno's "
+              "does, and with none shipped his player stays quiet, nothing built",
+              heard["found"] is False and not heard.get("building") and played["found"] is True
+              and played["name"] == "Rowan-Initial.m4a"
+              and make_demo.recording("Rowan", work).read_bytes() == stand_in.read_bytes(), heard.get("note", ""))
         wb_mod.save_turn(rowan, "Initial", 3, "A statement written on camera", None, None)
         (work / "idiograph-gets.json").write_text("{}", encoding="utf-8")
         answer = idiograph_routes.api_reset_demo({})
@@ -332,23 +338,17 @@ def test_demo_cases(scratch):
     stage = scratch / "demo-cases-stage" / "stage"
     shutil.rmtree(stage.parent, ignore_errors=True)
     stage.mkdir(parents=True)
-    stand_in = scratch / "demo-cases-stage" / "recording.m4a"
-    stand_in.write_bytes(b"a stand-in for the recording")
-    real = build.recording
-    try:
-        build.recording = lambda folder, py: stand_in
-        staged = build.stage_demo(stage, Path(sys.executable))
-    finally:
-        build.recording = real
+    staged = build.stage_demo(stage)
     files = tree(staged)
     want = [f"{n}/{n} - EN & ES.xlsx" for n in make_demo.CASES] + [
         f"{n}/Working/{n} - EN & ES.progress.json" for n in make_demo.CASES] + [
         f"{n}/Working/{n} - EN & ES.themes.json" for n in written] + [
         f"pristine/Working/{n} - EN & ES.themes.json" for n in written] + [
         make_demo.GETS_FILE, f"pristine/{make_demo.GETS_FILE}"]
-    check("74: the build stages the three cases from pristine, their boards and the GETs with them, and Juno's recording",
+    check("74: the build stages the three cases from pristine, their boards and the GETs with them, and their recordings",
           all(w in files for w in want) and files[make_demo.GETS_FILE] == files[f"pristine/{make_demo.GETS_FILE}"]
-          and files[Path(build.RECORDING).as_posix()] == hashlib.sha256(stand_in.read_bytes()).hexdigest()
+          and all(files[build.recording_path(n).as_posix()] == hashlib.sha256(make_demo.committed(n).read_bytes()).hexdigest()
+                  for n in make_demo.CASES)
           and all(files[f"{n}/{n} - EN & ES.xlsx"] == files[f"pristine/{n} - EN & ES.xlsx"] for n in make_demo.CASES)
           and build.DEMO_CASES == make_demo.CASES, f"{len(files)} files staged")
     spec_text = build.write_spec(scratch / "demo-cases-stage", stage, "0.9.0").read_text(encoding="utf-8")

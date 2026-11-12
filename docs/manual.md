@@ -5183,8 +5183,9 @@ with a dog, is three invented interviews about sharing a home with a dog, with J
 Nobody real is in them. The participants, the dogs, the households and every word of the
 transcripts were written for this and are a composite of nobody. Since 26 October the demo is a
 finished project, a worked example of IPA from the first passage to the GETs (Adam, 24 October: "a
-complete worked example as if the project was finished"). Juno's has a recording, and Rowan's and
-Mabel's are shorter, about thirteen minutes each with no recording. Each comes annotated: every passage
+complete worked example as if the project was finished"). Juno, Mabel and Rowan each have a recording
+(12 November 2026), Juno's about twenty-eight minutes, Rowan's and Mabel's shorter, about eleven and ten. Each
+comes annotated: every passage
 decided, with its experiential statements, its exploratory note, its key quote and a highlight here
 and there, the rounds closed and Statements complete, and its PETs on Board 1, the Current board,
 marked complete, five PETs with sub-PETs, a description under every title, a note and a picked quote
@@ -5197,8 +5198,7 @@ between them and other people, the house with a dog in it, losing each other and
 costs, each in their own way, and part in how they live them. Rowan gave his dog up and has not settled
 what that was. The PETs tables and the GET table are the app's own, made from those boards, so Open as
 table and the exports show a finished project's tables. Every participant's interviewer is named as the
-transcript names them, Adam today, and a recording rebuilt with `make_demo.py` writes the name from
-`interviewer` in `config.json` into Juno's transcript first.
+transcript names them, Adam today.
 
 The demo sits beside the app rather than under a project's root, in `demo/`: the transcripts in
 `demo/source/` in the raw three-column shape, `Juno - interview.csv` and the two beside it, with
@@ -5220,8 +5220,8 @@ halves, its lines and Files as any row has, and a small demo tag. Each opens the
 participant opens, and while one is open the tag stands beside the name in the top bar, so a recording of
 the screen says on its face that these are not a participant's words. None ever enters the recent
 list. On
-the PETs screen the participant picker of any demo participant lists the three. Rowan and Mabel have no
-recording, and nothing shows at the foot for it, as for any workbook without one (17 October). Each
+the PETs screen the participant picker of any demo participant lists the three. Each plays its recording
+in the player at the foot, as any participant with one does, and a click on a timecode plays that passage. Each
 opens on its last passage. Rowan's and Mabel's last was decided with no statement, skipped as zero is a
 fine answer for a passage, so its empty first statement under Statements complete on the bar is a
 passage read and left blank. Juno's holds her own summary of living with a dog. Every passage of each
@@ -5239,8 +5239,8 @@ the same demonstration can be given twice. A workbook open in Excel refuses the 
 written. A copy of the demo folder added as a project lists its three participants once: its
 `pristine/` folder is never read as a participant.
 
-**Building it.** `make_demo.py --written` builds the whole finished demo from its sources with no
-recording: for each participant the workbook through create-from-source, every passage through the
+**Building it.** `make_demo.py --written`, or a plain run, builds the whole finished demo from its sources,
+the recordings aside: for each participant the workbook through create-from-source, every passage through the
 passage screen's own saves, the progress file with its rounds closed and Statements complete, and the
 board laid out as an agent's board make lays one out, its descriptions, notes and picks added, then saved, marked current and
 marked complete through the PETs screen's own functions, and then the GETs board across the three, laid
@@ -5267,27 +5267,32 @@ time. Its project is fixed as the IPA demo's is, Reset demo on its page puts its
 board back as they ship, and the IPA demo never reads its participants as cases of its own. Agents open it
 with `--demo ta` (see Agents).
 
-**The recording.** `make_demo.py` speaks every passage with macOS `say`, one clip per passage, Daniel for
-the interviewer and Flo (English (UK)) for the participant. It measures each clip, writes the
-timecodes in the CSV from the cumulative lengths plus half a second of gap, and joins the clips
-into one `.m4a` at `demo/Juno/Source/Initial/Source/`, where the player finds it. Clicking a
-timecode lands on the words of that passage. It runs about twenty two minutes for 4,300 spoken words,
-because both voices ignore `say -r` and speak at about 190 words a minute rather than the 150 the
-transcript was written for.
+**The recordings** (12 November 2026). Each participant's interview is spoken passage by passage in voices
+made with Google's Gemini, four synthetic voices designed for the demo: the interviewer a calm man with a
+southern English accent, Juno a Spanish woman long in England, Mabel a woman of seventy-three from Lancashire and
+Rowan a quiet young man from Dublin. Juno's runs about twenty-eight minutes, Rowan's about eleven and a half and
+Mabel's about ten and a half. Each transcript's timecodes are written from the measured passages with half a
+second between them, so clicking a timecode lands on the words of that passage. They replace the macOS `say`
+voices the demo had until then, which spoke Juno's alone.
 
-The recording is gitignored. The transcript, the workbook and the pristine sidecar are committed.
-The first time Juno's participant is opened on a machine that has never built the recording, the server
-starts the build in a thread of its own and the player note says "Building the demo recording"
-until the file lands, then picks it up. By hand:
+The three recordings are committed in `packaging/recording/`, each named by the participant, the sheet and the
+hash of the transcript it was made from, with their own licence beside them, `LICENSE-audio.md`: AI-generated
+speech, to be copied and shared only unchanged and only as part of Idiograph or a version of it, and never used
+to train or evaluate an AI model. The README's licence line says they are the one exception to the AGPL.
+
+The demo's own copy of each, in `demo/<name>/Source/Initial/Source/`, is gitignored. The first time a
+participant's player looks for it, the server copies it in from `packaging/recording/`, in a moment, and the
+installed app ships all three in its demo. Nothing is spoken on your computer. A transcript edited since its
+recording was made has none, since its timecodes no longer match the voices, and its player shows nothing, as
+for any workbook without one. By hand, each recording put in place:
 
 ```
-.venv/bin/python Tools/idiograph/make_demo.py --audio-only
+.venv/bin/python apps/idiograph/make_demo.py --audio-only
 ```
 
-Without `--audio-only` it rebuilds the timecodes and then the whole demo as `--written` builds it, and
-`--force` lets it replace workbooks that are already there. On a machine with no `say` a plain run
-refuses and says so, because the recording is the one thing here nothing else on the machine can
-produce, and `--written` needs no `say`.
+An edited passage is voiced again by `packaging/recording/voice_demo.py`, which speaks that passage alone, joins
+the recording again and writes the timecodes, then builds the demo again (see Internals, The demo's
+recordings).
 
 ## Experiential statement guidance
 

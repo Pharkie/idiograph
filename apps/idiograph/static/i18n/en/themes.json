@@ -315,7 +315,6 @@
   "themes.player.pause": "Pause",
   "themes.player.play": "Play",
   "themes.player.looking": "looking for the recording",
-  "themes.player.building": "Building the demo recording",
   "themes.player.none": "No recording for this sheet.",
   "themes.player.failed": "That recording did not play.",
   "themes.board.tip": "{name}. Boards (V)",

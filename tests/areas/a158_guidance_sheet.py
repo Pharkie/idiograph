@@ -257,8 +257,6 @@ const state = () => ({ wrap: !$('player-wrap').hidden, bar: !$('player-bar').hid
   const p = loadAudio('Initial', 0); out.looking = state(); await p; out.none = state();
   playFrom(12); out.said = said.slice();
   ANSWER = { found: true, url: '/audio?x', name: 'Wren.m4a' }; S.audioSheet = null; await loadAudio('Second', 0); out.found = state();
-  ANSWER = { building: true, note: 'Building the demo recording' }; S.audioSheet = null; await loadAudio('Third', 0); out.building = state();
-  ANSWER = { building: true, note: 'Building the demo recording' }; const again = LATER.shift(); again(); out.again = state();
   ANSWER = 'fail'; S.audioSheet = null; await loadAudio('Fourth', 0); out.failed = state();
   console.log(JSON.stringify(out));
 })();
@@ -268,14 +266,11 @@ const state = () => ({ wrap: !$('player-wrap').hidden, bar: !$('player-bar').hid
         run = subprocess.run([node, str(script)], capture_output=True, text=True, encoding="utf-8", timeout=60)
         o = json.loads(run.stdout) if run.returncode == 0 and run.stdout.strip() else {}
         check("158, 17 October: in node, nothing shows while the recording is looked for or when there is none, a press on "
-              "a timecode says the server's line, a recording found shows the player, the demo's being made shows its note "
-              "and keeps it through the look again, and a failure shows nothing",
+              "a timecode says the server's line, a recording found shows the player, and a failure shows nothing",
               o.get("looking") == {"wrap": False, "bar": False, "note": ""}
               and o.get("none") == {"wrap": False, "bar": False, "note": "No recording found for Initial."}
               and o.get("said") == ["No recording found for Initial."]
               and o.get("found") == {"wrap": True, "bar": True, "note": "Wren.m4a"}
-              and o.get("building") == {"wrap": True, "bar": False, "note": "Building the demo recording"}
-              and o.get("again") == {"wrap": True, "bar": False, "note": "Building the demo recording"}
               and o.get("failed") == {"wrap": False, "bar": False, "note": "No recording for this sheet."}, (run.stdout + run.stderr)[:300])
 
     # the participant is they in the guidance and in every prompt the screen shows

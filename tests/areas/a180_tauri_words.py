@@ -1,21 +1,20 @@
 """Area 180: the fifth Tauri build (18 October 2026), Adam's words for the updater, the crash notice shown
 once, a failed start in plain words, the installer's every stock line said plainly, his public key, and
-the small things: a `say` that hangs ended, and et_xmlfile pinned where the app sets itself up.
+the small things: a `say` that hangs ended (until 12 November 2026, when nothing is spoken any more), and
+et_xmlfile pinned where the app sets itself up.
 
 Every string here is Adam's, word for word, from his choice of the screenshot check's suggestions at 11:50
 on 18 October, but the failed start's, which follows the crash notice's. Since the test review of 18 October the
-words are review shots, and what runs stays: the notice's script in a page, a say that hangs ended, et_xmlfile
+words are review shots, and what runs stays: the notice's script in a page, et_xmlfile
 pinned, and no pseudonym in what the build ships.
 """
 from __future__ import annotations
 
 import json
-import os
 import re
 import shutil
 import subprocess
 import sys
-import time
 from pathlib import Path
 
 from . import support
@@ -92,60 +91,11 @@ console.log(JSON.stringify({ page: run(true), none: run(false) }));
     else:
         skip("180: the page's notice script under node", "node is not on this machine" if not node else "the script was not found")
 
-    # ── G. a say that hangs ended, the build carrying on
+    # ── G. the build's own words. Its say that hangs, ended, went with the speaking itself on 12 November 2026
+    # (recvoices): the demo's recordings are copied, and area 16 checks that no build calls say
     sys.path.insert(0, str(support.source("packaging")))
     import build_mac
     bm = read(support.source("packaging/build_mac.py"))
-    if sys.platform == "win32":
-        skip("180: a say that hangs ended, and the recording the build carries on with", "a process group is ended on a Mac or Linux alone")
-    else:
-        hang = scratch / "hang"
-        hang.mkdir()
-        fake_py = hang / "fake-python"
-        marker = hang / "child.pid"
-        # a stand-in for the build venv's python: it starts a child that sleeps, as make_demo starts say, and hangs
-        fake_py.write_text(f"#!/bin/sh\nsleep 120 &\necho $! > '{marker}'\nwait\n", encoding="utf-8")
-        fake_py.chmod(0o755)
-        t0 = time.time()
-        why = build_mac.speak_recording(fake_py, hang / "kept.m4a", wait=1)
-        took = time.time() - t0
-        written = marker.read_text(encoding="utf-8").strip() if marker.is_file() else ""
-        child = int(written) if written.isdigit() else 0
-
-        def alive(pid: int) -> bool:
-            try:
-                os.kill(pid, 0)
-                return True
-            except (OSError, ValueError):
-                return False
-        # the ended child is gone once the system has taken it back, a moment after
-        gone_by = time.time() + 5
-        while child and alive(child) and time.time() < gone_by:
-            time.sleep(0.2)
-        child_alive = bool(child) and alive(child)
-        old = (build_mac.RECORDING, build_mac.TRANSCRIPT, build_mac.RECORDINGS, build_mac.speak_recording)
-        transcript = hang / "Juno - interview.csv"
-        transcript.write_bytes(b"Name,Timestamp,Transcript\r\nJuno,00:00:01,About the dog\r\n")
-        cached_dir = hang / "recordings"
-        cached_dir.mkdir()
-        import hashlib
-        text_sum = hashlib.sha256(transcript.read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:16]
-        cached = cached_dir / f"Juno-Initial-{text_sum}.m4a"
-        cached.write_bytes(b"a recording of the check's own")
-        try:
-            build_mac.RECORDING = Path("no-such-folder") / "Juno-Initial.m4a"
-            build_mac.TRANSCRIPT, build_mac.RECORDINGS = transcript, cached_dir
-            build_mac.speak_recording = lambda py, kept, wait=None: "Speaking had not finished after 15 minutes and was ended"
-            with_cache = build_mac.recording(hang / "build", fake_py)
-            cached.unlink()
-            without = build_mac.recording(hang / "build2", fake_py)
-        finally:
-            build_mac.RECORDING, build_mac.TRANSCRIPT, build_mac.RECORDINGS, build_mac.speak_recording = old
-        check("180: a say that hangs is ended within its wait, the child it started gone with it, and the build carries "
-              "on with the recording spoken for this transcript, or without one",
-              why is not None and why.startswith("Speaking had not finished after") and took < 10 and child and not child_alive
-              and with_cache == cached and without is None and not list((hang / "build" / "recording").glob("*.m4a")),
-              f"{why} {took:.1f}s child {child} alive {child_alive} cache {with_cache} without {without}")
 
     # ── H. et_xmlfile pinned where the app sets itself up
     run_sh, run_bat = read(support.source("run.sh")), read(support.source("run.bat"))
@@ -161,6 +111,6 @@ console.log(JSON.stringify({ page: run(true), none: run(false) }));
 
     # ── J. no study's participant named in what the build ships
     new_text = "\n".join([english, hooks, rust_fn(main_rs, "not_started"), rust_fn(main_rs, "ended_js"),
-                          bm[bm.index("def recording("):bm.index("def stage_config(")]])
+                          bm[bm.index("def recording_path("):bm.index("def stage_config(")]])
     check("180: what the fifth build ships names no study's participant",
           not any(re.search(rf"\b{n}\b", new_text) for n in STUDY_PSEUDONYMS))

@@ -7,17 +7,18 @@ October): every participant's turns decided, with experiential statements, explo
 quotes and highlights, their rounds closed and Statements complete, a PETs board with PETs,
 sub-PETs, descriptions, notes and picked quotes marked complete, and a GETs board across the three
 with descriptions and the GET table's quotes ticked, marked complete. The PET tables and the GET
-table are the app's own, made from those boards. Juno's has a recording, Rowan's and Mabel's are
-shorter written interviews. It lives beside the app rather than under the case root:
+table are the app's own, made from those boards. Each of the three has a recording (recvoices, 12 November
+2026), Rowan's and Mabel's interviews shorter than Juno's. It lives beside the app rather than under the case root:
 
     demo/source/Juno - interview.csv          Juno's transcript, committed, Rowan's and Mabel's beside it
     demo/source/Juno - annotations.json       her statements, notes, quotes and her PET board, theirs beside it
     demo/source/GETs.json                     the GETs board across the three
     demo/Juno/Juno - EN & ES.xlsx             the annotated workbook, built from those two
     demo/Juno/Working/...progress.json        the sidecar, and the case's board beside it
-    demo/Juno/Source/Initial/Source/          the recording, generated here and gitignored
+    demo/Juno/Source/Initial/Source/          the recording, copied in from packaging/recording and gitignored
     demo/idiograph-gets.json                  the GETs file, gitignored, put back from pristine
     demo/pristine/                            the copy Reset demo restores from, the GETs file with it
+    packaging/recording/                      the three recordings, committed, and their licence
 
     .venv/bin/python apps/idiograph/make_demo.py
     .venv/bin/python apps/idiograph/make_demo.py --written --force
@@ -28,15 +29,15 @@ and notes in `demo/ta/source/<name> - coding.json`, the code list and the Themes
 built through the same functions (`ship_ta`) into `demo/ta/pristine/` and the live cases beside it, the code list
 and the Themes board's file at `demo/ta/`. `--written` builds both demos, `--ta` the thematic analysis one alone.
 
-`--audio-only` rebuilds the recording and leaves the CSV, the workbooks and their sidecars alone, which
-is what the server runs in a background thread the first time the demo is opened on a machine that
-has never built it. `--written`, or `--workbook-only`, does the reverse: the three cases and the GETs,
-with no recording, so it needs no `say`. `--force` replaces workbooks that are already there.
+`--audio-only` puts each participant's committed recording in place in the demo and builds nothing, which is
+what the server does for a participant opened with none. A plain run, `--written` or `--workbook-only`, builds
+the three cases and the GETs, then the thematic analysis demo. `--force` replaces workbooks that are already there.
 
-The recording is macOS `say`, one clip per turn, two voices. The clips are measured and the
-timecodes in the CSV are written from the cumulative durations plus a short gap, so clicking a
-timecode in the app lands on the words of that turn. Without `say` a plain run refuses to start:
-the demo recording is the one thing here that no other tool on the machine can produce.
+The recordings are Google Gemini's voices, one clip per turn, made by `packaging/recording/voice_demo.py` into a
+folder of clips outside the repo, which then calls `build_recording` here: the clips measured, the timecodes in
+the CSV written from the cumulative lengths plus half a second of gap, so clicking a timecode in the app lands on
+the words of that turn, and the clips joined into the recording committed for the CSV as then written. Nothing
+here speaks.
 
 Everything goes through the functions the app itself calls, with the clock held at the times the
 annotations files give, every part of each workbook's zip dated the same and the files the GETs read
@@ -68,6 +69,7 @@ HERE = boot.ROOT
 
 import openpyxl
 
+import audio as audio_mod
 import rounds as rounds_mod
 import themes as themes_mod
 import workbook as wb_mod
@@ -79,10 +81,10 @@ WORKBOOK = CASE / "Juno - EN & ES.xlsx"
 PRISTINE = DEMO / "pristine"
 SHEET = "Initial"
 PARTICIPANT = "Juno"
-RECORDING = CASE / "Source" / SHEET / "Source" / f"{PARTICIPANT}-{SHEET}.m4a"
 
-# The two written cases, with no recording, and the three the demo holds, Juno first. Each case is a
-# folder of its name holding `<name> - EN & ES.xlsx`, the name the app gives any annotated workbook.
+# The two cases after Juno's, and the three the demo holds, Juno first. Each case is a folder of its name holding
+# `<name> - EN & ES.xlsx`, the name the app gives any annotated workbook, and each has its recording since 12
+# November 2026 (recvoices).
 WRITTEN = ("Rowan", "Mabel")
 CASES = (PARTICIPANT,) + WRITTEN
 EN_ES = " - EN & ES.xlsx"
@@ -100,11 +102,11 @@ CODES_FILE = "idiograph-codes.json"
 TA_THEMES = "Themes.json"
 PROJECT_FILE = "idiograph-project.json"
 
-# Two clear built-in voices, one for each speaker. Both ship with macOS, and `say -v '?'` lists
-# them. Neither honours `-r`, so the pace is the voice's own, about 180 words a minute.
-VOICE_INTERVIEWER = "Daniel"
-VOICE_PARTICIPANT = "Flo (English (UK))"
-RATE = 22050
+# The three recordings, committed in packaging/recording, each named by `audio.demo_recording_name`, with their
+# own licence beside them, which a build stages beside each recording so it travels with it, and the half second
+# of silence between one turn's clip and the next's
+RECORDINGS = HERE / "packaging" / "recording"
+AUDIO_LICENCE = "LICENSE-audio.md"
 GAP_SECONDS = 0.5
 
 BRACKET = re.compile(r"\[[^\]]*\]")
@@ -161,25 +163,41 @@ def spoken(text: str) -> str:
     return BRACKET.sub(" ", str(text)).replace("[[", " ").strip()
 
 
-# ------------------------------------------------------------- the recording
+# ------------------------------------------------------------- the recordings
 
 def have(tool: str) -> bool:
     return shutil.which(tool) is not None
 
 
-def say_clip(text: str, voice: str, out: Path) -> None:
-    """One turn, spoken into a WAV. The text goes through a file, so no quoting can bite."""
-    with tempfile.NamedTemporaryFile("w", suffix=".txt", encoding="utf-8", delete=False) as fh:
-        fh.write(text or " ")
-        script = Path(fh.name)
-    try:
-        subprocess.run(["say", "-v", voice, "-f", str(script),
-                        "--data-format", f"LEI16@{RATE}", "-o", str(out)],
-                       check=True, capture_output=True)
-    except subprocess.CalledProcessError as exc:
-        raise DemoError(f"say failed on {voice}: {exc.stderr.decode('utf-8', 'replace').strip()}")
-    finally:
-        script.unlink(missing_ok=True)
+def recording(name: str = PARTICIPANT, demo: Path | None = None) -> Path:
+    """Where a participant's recording sits in the demo, `<name>/Source/Initial/Source/<name>-Initial.m4a`,
+    where the player finds it."""
+    return (Path(demo) if demo is not None else DEMO) / name / "Source" / SHEET / "Source" / f"{name}-{SHEET}.m4a"
+
+
+def committed(name: str = PARTICIPANT, demo: Path | None = None, folder: Path | None = None) -> Path:
+    """The participant's recording as committed for their transcript as it stands, in `folder`, packaging/recording
+    unless a caller gives another, whether or not it is there."""
+    return Path(folder or RECORDINGS) / audio_mod.demo_recording_name(name, SHEET, written_sources(name, demo)[0])
+
+
+def place_recording(name: str = PARTICIPANT, demo: Path | None = None, folder: Path | None = None,
+                    licence: bool = False) -> Path | None:
+    """A participant's committed recording copied into its place in `demo`, through a file of its own so a player
+    never reads half of one, and the recordings' licence beside it when `licence` asks, as a build stages them.
+    Answers the recording in place, or None with nothing copied when none was made from the transcript as it
+    stands, an edited turn's timecodes no longer matching the voices."""
+    source = committed(name, demo, folder)
+    if not source.is_file():
+        return None
+    target = recording(name, demo)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    tmp = target.with_name(f".{target.stem}.copying{target.suffix}")
+    shutil.copyfile(source, tmp)
+    os.replace(tmp, target)
+    if licence:
+        shutil.copyfile(source.parent / AUDIO_LICENCE, target.parent / AUDIO_LICENCE)
+    return target
 
 
 def clip_seconds(path: Path) -> float:
@@ -231,48 +249,54 @@ def to_m4a(source: Path, out: Path) -> None:
     tmp.replace(out)
 
 
-def build_recording(write_csv: bool = True, verbose: bool = True) -> dict:
-    """Speak every turn, measure the clips, and join them into the one recording.
+def build_recording(name: str, clips: list[Path], write_csv: bool = True, verbose: bool = True,
+                    folder: Path | None = None, demo: Path | None = None) -> dict:
+    """One participant's turn clips, a WAV for each turn in the transcript's order, all of one rate, measured and
+    joined with half a second between them into the recording committed for the transcript, in `folder`,
+    packaging/recording unless a caller gives another.
 
-    With `write_csv` the timecodes in the source CSV are rewritten from the measured durations, so
-    a timecode click in the app lands on the words of that turn. The server rebuilds the recording
-    without it, because the committed CSV and the workbook already carry those timecodes and the
-    voices produce the same lengths every time.
-    """
-    if not have("say"):
-        raise DemoError("This machine has no `say`, so the demo recording cannot be built here. "
-                        "The demo workbook and its transcript still work, without audio.")
-    rows = read_turns()
-    who = interviewer()
-    with tempfile.TemporaryDirectory(prefix="demo-audio-") as tmp:
-        scratch = Path(tmp)
-        clips, at, starts = [], 0.0, []
-        for i, row in enumerate(rows):
-            clip = scratch / f"{i:03d}.wav"
-            voice = VOICE_PARTICIPANT if row["Name"].strip() == PARTICIPANT else VOICE_INTERVIEWER
-            say_clip(spoken(row["Transcript"]), voice, clip)
-            clips.append(clip)
-            starts.append(at)
-            at += clip_seconds(clip) + GAP_SECONDS
-            if verbose and (i + 1) % 20 == 0:
-                print(f"  {i + 1} of {len(rows)} turns spoken")
-        joined = scratch / "joined.wav"
-        join_clips(clips, GAP_SECONDS, joined)
-        length = clip_seconds(joined)
-        to_m4a(joined, RECORDING)
+    With `write_csv` each turn's Timestamp in the CSV is written from the measured clips first, so a timecode click
+    in the app lands on the words of that turn, and the recording is named by the CSV as then written. Without it
+    the CSV must already hold those timecodes, and is refused otherwise. A recording of the participant's made from
+    another transcript is taken away, since its timecodes would land on the wrong words. Answers the turns, the
+    recording's length, size and path, and how many timecodes moved."""
+    csv_path = written_sources(name, demo)[0]
+    rows = read_turns(csv_path)
+    clips = [Path(c) for c in clips]
+    if len(clips) != len(rows):
+        raise DemoError(f"{name}'s transcript has {len(rows)} turns and there are {len(clips)} clips.")
+    shape = None
+    for clip in clips:
+        with wave.open(str(clip), "rb") as fh:
+            got = (fh.getnchannels(), fh.getsampwidth(), fh.getframerate())
+        if shape is not None and got != shape:
+            raise DemoError(f"{clip.name} of {name}'s clips is not of the same rate and shape as the first.")
+        shape = got
+    starts, at = [], 0.0
+    for clip in clips:
+        starts.append(at)
+        at += clip_seconds(clip) + GAP_SECONDS
     moved = [i for i, row in enumerate(rows) if row["Timestamp"] != hhmmss(starts[i])]
-    if write_csv:
+    if moved and not write_csv:
+        raise DemoError(f"{len(moved)} of {name}'s timecodes no longer match the clips, so the CSV is written first.")
+    if moved:
         for row, start in zip(rows, starts):
             row["Timestamp"] = hhmmss(start)
-            if row["Name"].strip() != PARTICIPANT:
-                row["Name"] = who
-        write_turns(rows)
-    result = {"turns": len(rows), "seconds": length, "bytes": RECORDING.stat().st_size,
-              "path": RECORDING, "moved": len(moved)}
+        write_turns(rows, csv_path)
+    target = committed(name, demo, folder)
+    with tempfile.TemporaryDirectory(prefix="demo-audio-") as tmp:
+        joined = Path(tmp) / "joined.wav"
+        join_clips(clips, GAP_SECONDS, joined)
+        length = clip_seconds(joined)
+        to_m4a(joined, target)
+    for old in target.parent.glob(f"{name}-{SHEET}-*.m4a"):
+        if old != target:
+            old.unlink()
+    result = {"turns": len(rows), "seconds": length, "bytes": target.stat().st_size, "path": target,
+              "moved": len(moved)}
     if verbose:
-        print(f"  recording: {hhmmss(length)}, {result['bytes'] / 1e6:.1f} MB, {RECORDING.name}")
-        if not write_csv and moved:
-            print(f"  note: {len(moved)} timecodes in the CSV no longer match the clips")
+        print(f"  {name}: {hhmmss(length)}, {result['bytes'] / 1e6:.1f} MB, {target.name}, "
+              f"{len(moved)} of {len(rows)} timecodes moved")
     return result
 
 
@@ -1068,15 +1092,20 @@ def ship_ta(force: bool = False, demo: Path | None = None, verbose: bool = True)
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Build the bundled demo, a finished IPA project, for the app.")
-    ap.add_argument("--audio-only", action="store_true", help="rebuild only Juno's recording")
-    ap.add_argument("--workbook-only", action="store_true",
-                    help="build the three cases and the GETs with no recording, as --written does")
+    ap.add_argument("--audio-only", action="store_true",
+                    help="put each participant's committed recording in place in the demo, and build nothing")
+    ap.add_argument("--workbook-only", action="store_true", help="the same as a plain run, as --written is")
     ap.add_argument("--force", action="store_true", help="replace workbooks that are already there")
     ap.add_argument("--written", action="store_true",
-                    help="build the three cases and the GETs, which needs no recording and no say, then the "
-                         "thematic analysis demo")
+                    help="build the three cases and the GETs, then the thematic analysis demo, as a plain run does")
     ap.add_argument("--ta", action="store_true", help="build the thematic analysis demo alone")
     args = ap.parse_args()
+    if args.audio_only:
+        for name in CASES:
+            placed = place_recording(name)
+            print(f"  {name}: {placed.name} in place" if placed else
+                  f"  {name}: no recording made from the transcript as it stands, so none is in place")
+        return 0
     if args.ta:
         try:
             print("Building the thematic analysis demo.")
@@ -1087,20 +1116,11 @@ def main() -> int:
         print("Done.")
         return 0
 
-    written = args.written or args.workbook_only
-    if not written and not have("say"):
-        print("This machine has no `say`, so the demo cannot be built here. It is macOS only.",
-              file=sys.stderr)
-        return 2
     try:
-        if not written:
-            print("Speaking the demo transcript.")
-            build_recording(write_csv=not args.audio_only)
-        if not args.audio_only:
-            print("Building the demo.")
-            ship_all(force=args.force)
-            print("Building the thematic analysis demo.")
-            ship_ta(force=args.force)
+        print("Building the demo.")
+        ship_all(force=args.force)
+        print("Building the thematic analysis demo.")
+        ship_ta(force=args.force)
     except (DemoError, wb_mod.WorkbookError) as exc:
         print(str(exc), file=sys.stderr)
         return 1

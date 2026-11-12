@@ -8,6 +8,7 @@ What goes here: only major new features and real changes to how something works,
 ## 0.9.25, 11 November 2026
 
 AI boards, reviews and revisions on PETs, GETs and Themes are gone: an agent of your own through MCP does that work.
+The demo's three interviews each have a recording, in more natural voices.
 
 ## 0.9.24, 10 November 2026
 

@@ -7439,12 +7439,11 @@ function cueAudio(seconds) {
   else player.addEventListener('loadedmetadata', go, { once: true });
 }
 
-/* The player shows once a recording is found, or while the demo's is being made, and a sheet with
-   none shows nothing at the foot (17 October), where a line said "No recording found for" the sheet
-   on every case without one. Its note still holds the server's words, which a press on a timecode or
-   Space says at the foot, as a line after an act. `again` is the look again while the demo's is made,
-   which leaves its note standing until the answer comes. */
-async function loadAudio(sheet, cueSeconds, again = false) {
+/* The player shows once a recording is found, and a sheet with none shows nothing at the foot (17 October),
+   where a line said "No recording found for" the sheet on every case without one. Its note still holds the
+   server's words, which a press on a timecode or Space says at the foot, as a line after an act. A demo
+   participant's recording is copied in by the server as it answers, never made (recvoices, 12 November 2026). */
+async function loadAudio(sheet, cueSeconds) {
   if (S.audioSheet === sheet) { cueAudio(cueSeconds); return; }
   S.audioSheet = sheet;
   const player = $('player');
@@ -7455,10 +7454,8 @@ async function loadAudio(sheet, cueSeconds, again = false) {
   $('player-offset').hidden = true;
   S.listening = null;
   $('player-bar').hidden = true;
-  if (!again) {
-    $('player-wrap').hidden = true;
-    $('player-note').textContent = '';
-  }
+  $('player-wrap').hidden = true;
+  $('player-note').textContent = '';
   drawPlayer();
   try {
     const data = await api(`/api/audio?${new URLSearchParams({ path: S.data.path, sheet })}`);
@@ -7473,17 +7470,6 @@ async function loadAudio(sheet, cueSeconds, again = false) {
       // the whole name under the pointer, where a narrow window cuts it at its end
       $('player-note').title = data.name;
       cueAudio(cueSeconds);
-    } else if (data.building) {
-      /* The demo recording is not committed, so the first open of it on a machine that has never
-         built one finds nothing to play. The server speaks it in a thread of its own and the note
-         says so until the file lands. */
-      $('player-note').textContent = data.note || t('distil.audio.building');
-      $('player-wrap').hidden = false;
-      setTimeout(() => {
-        if (S.audioSheet !== sheet || !S.data) return;
-        S.audioSheet = null;
-        loadAudio(sheet, cueSeconds, true);
-      }, 5000);
     } else {
       $('player-wrap').hidden = true;
       $('player-note').textContent = data.note || t('distil.audio.none');

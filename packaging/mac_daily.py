@@ -16,8 +16,7 @@ The steps, each said in one line:
    job's and Adam's installed copy are, with `--build <sha>` so the app carries `build.json` naming the
    commit, which About shows after the version ("Version 0.9.23, build e45b1af") and a note from Send
    feedback carries. The version is main's own, versions.json's, the week's release's number. The build
-   folder, `.verify/macdaily/build`, is kept from day to day, so its venv, Juno's recording and cargo's
-   work are made once. It runs through `~/.claude/bin/heavy idiograph build`, the shared Mac's queue.
+   folder, `.verify/macdaily/build`, is kept from day to day, so its venv and cargo's work are made once. It runs through `~/.claude/bin/heavy idiograph build`, the shared Mac's queue.
 3. The checks: the app, its server and its typesetter arm64 alone, the bundle's version versions.json's, `codesign
    --verify --deep --strict`, the server's `cli --help`, the typesetter beside the server typesetting a one-line
    page with the fonts the app carries (typst1, 9 November 2026), and the server started from inside the app in a home

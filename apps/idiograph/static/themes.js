@@ -6933,11 +6933,11 @@ async function thAudioFor(sheet) {
       $('th-pnote').textContent = data.name;
       return true;
     }
-    $('th-pnote').textContent = data.note || (data.building ? t('themes.player.building') : t('themes.player.none'));
+    $('th-pnote').textContent = data.note || t('themes.player.none');
   } catch {
     if (TH.audioSheet === sheet) $('th-pnote').textContent = t('themes.player.none');
   }
-  // asked again on the next press, which is when a recording still being built may be there
+  // asked again on the next press
   TH.audioSheet = null;
   return false;
 }

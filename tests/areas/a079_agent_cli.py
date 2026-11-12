@@ -359,7 +359,7 @@ def test_agent_cli(scratch):
               and progress["last"] == support.plain(json.loads(side_before))["last"])
         code, text, _ = run("turn", "show", "Juno", "Initial", "14-15")
         check("79: turn show gives a run of turns, the interviewer's marked, with what each holds",
-              code == 0 and "Initial, row 14, 03:51, Adam (the interviewer)" in text
+              code == 0 and "Initial, row 14, 04:57, Adam (the interviewer)" in text
               and "  Statement: A walk she knows better than anyone" in text)
 
         # \u2500\u2500 H. one writer at a time, across the server and the command line

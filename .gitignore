@@ -1,6 +1,6 @@
 # Carried from the .gitignore of the repository Idiograph was split from
 # (20 October 2026): the rules that reached Tools/idiograph from the root. They sit first, so the
-# lines below, the app's own, still win where they say otherwise (the committed Juno recording).
+# lines below, the app's own, still win where they say otherwise (the demo's committed recordings).
 .DS_Store
 *.m4a
 *.mp3
@@ -39,11 +39,14 @@ demo/*/_Archive/
 # then the app, the image and the installer
 build/
 dist/
-# Juno's recording spoken on a Mac for the Windows build, packaging/build_windows.py --speak, the one
-# piece of audio committed (Adam's word, 14 October 2026) so GitHub's build carries it. The interview
-# is invented, and only the recording spoken from the transcript as it stands is kept
+# The demo's three recordings (recvoices, 12 November 2026), Gemini's voices joined by
+# packaging/recording/voice_demo.py, the one audio committed (Adam's word, 14 October 2026) so every
+# build carries it, each kept only for the transcript it was made from, with their licence and the
+# tool beside them. The interviews are invented
 packaging/recording/*
-!packaging/recording/Juno-Initial-*.m4a
+!packaging/recording/*-Initial-*.m4a
+!packaging/recording/LICENSE-audio.md
+!packaging/recording/voice_demo.py
 # the GETs file at the demo's own root, and the exports the GETs screen writes there
 demo/idiograph-gets.json
 demo/Working/

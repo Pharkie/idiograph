@@ -32,11 +32,10 @@ It is built on an Apple Silicon Mac, and refused on an Intel one.
    PyInstaller, openpyxl, certifi and cryptography go into it at the versions pinned in PINS, and
    dmgbuild, which makes the disk image, at those in DMG_PINS, never into the repo's own `.venv`.
 2. The stage, `build/stage`: the demo as Reset demo leaves it, its three cases from
-   `demo/pristine/`, Rowan's and Mabel's with their boards, and Juno's recording, copied from the
-   checkout's demo when it was made there and else spoken here by `make_demo.py` into
-   `build/recording`, within fifteen minutes, a `say` that hangs ended and the one spoken for the same
-   transcript in `packaging/recording` taken in its place, and `config.json` from
-   `server.shipped_config()`, which names no project.
+   `demo/pristine/`, Rowan's and Mabel's with their boards, each case's recording copied from those
+   committed in `packaging/recording` with their licence, `LICENSE-audio.md`, beside each (recvoices, 12
+   November 2026: nothing is spoken), a case whose transcript has none made from it as it stands staged
+   without one, said in one line, and `config.json` from `server.shipped_config()`, which names no project.
 3. PyInstaller, one folder, from `packaging/mac_launcher.py`, which finds every module of the app
    from there, with the static page, the licences, the config and the app's own files of
    `app_identity.FILES` as its data, Idiograph's three guidance files, demo and transcript template among
@@ -62,14 +61,12 @@ It is built on an Apple Silicon Mac, and refused on an Intel one.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import platform
 import plistlib
 import re
 import shutil
-import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -83,6 +80,7 @@ import boot  # noqa: E402  the family's folders on the path (boot.py)
 boot.setup()
 
 import app_identity  # noqa: E402  which of the three apps a build is
+import audio as audio_mod  # noqa: E402  the one name a demo recording is committed under, the standard library alone
 import bundle as window  # noqa: E402  Tauri's bundler run on the window, packaging/tauri/bundle.py
 import typeset_helper  # noqa: E402  the typesetter beside the frozen server, packaging/typeset_helper.py
 
@@ -131,14 +129,13 @@ EXCLUDES = ["tkinter", "test", "typst"]
 # PyInstaller never takes
 WINDOW_DOCS = ("manual", "whats_new")
 DEMO_WORKBOOK = "Juno - EN & ES.xlsx"
-RECORDING = Path("Juno") / "Source" / "Initial" / "Source" / "Juno-Initial.m4a"
-# Juno's transcript, the recordings spoken from it for the Windows build, committed, each named for the
-# transcript's hash (build_windows.py), and how long speaking one here may take before a `say` that has
-# hung is ended: about three minutes is usual, and the fourth Tauri build's hung for twelve after 7 of
-# its 39 clips (18 October)
-TRANSCRIPT = TOOL / "demo" / "source" / "Juno - interview.csv"
+# The demo's recordings (recvoices, 12 November 2026): each case's committed in packaging/recording, named by
+# the hash of the transcript it was made from (`audio.demo_recording_name`), staged where the player finds it,
+# `<name>/Source/Initial/Source/<name>-Initial.m4a`, with the recordings' own licence beside each, so it travels
+# with it. Nothing is spoken: `packaging/recording/voice_demo.py` makes them, once, when a transcript changes
 RECORDINGS = HERE / "recording"
-SPEAK_WAIT = 15 * 60
+AUDIO_LICENCE = "LICENSE-audio.md"
+DEMO_SHEET = "Initial"
 # the demo's three cases, each staged from the pristine copy with its sidecar and its board, and the
 # GETs file across them, since the demo is a finished project (26 October)
 DEMO_CASES = ("Juno", "Rowan", "Mabel")
@@ -266,9 +263,9 @@ def bundle_inputs(stage: Path, app: str = app_identity.DEFAULT) -> tuple[list[st
 
 def listing(app: str = app_identity.DEFAULT, windows: bool = False) -> list[tuple[str, str]]:
     """What a build of `app` ships, without building: (its path in the bundle, where it comes from),
-    the modules as PYZ/<name>, the page, the data, Idiograph's demo as the stage lays it out and the config.
-    `windows` is the Windows build's, without certifi and with the recording only when one is
-    committed for the transcript as it stands."""
+    the modules as PYZ/<name>, the page, the data, Idiograph's demo as the stage lays it out, each case's recording
+    where one is committed for its transcript as it stands, and the config. `windows` is the Windows build's,
+    without certifi."""
     import tempfile
     rows = [(f"PYZ/{name}", str(path.relative_to(TOOL))) for name, path in module_files(app).items()]
     rows += [] if windows else [("PYZ/certifi", "the build venv's certifi")]
@@ -284,8 +281,12 @@ def listing(app: str = app_identity.DEFAULT, windows: bool = False) -> list[tupl
             demo = stage_cases(Path(tmp))
             rows += [(f"demo/{p.relative_to(demo).as_posix()}", "the demo, staged from demo/")
                      for p in sorted(demo.rglob("*")) if p.is_file()]
-        if not windows or committed_recording():
-            rows.append((f"demo/{RECORDING.as_posix()}", "Juno's recording, spoken or committed"))
+        for name in DEMO_CASES:
+            found = committed_recording(name)
+            if found:
+                inside = recording_path(name)
+                rows.append((f"demo/{inside.as_posix()}", f"packaging/recording/{found.name}"))
+                rows.append((f"demo/{(inside.parent / AUDIO_LICENCE).as_posix()}", f"packaging/recording/{AUDIO_LICENCE}"))
     rows.append(("config.json", f"server.shipped_config({app_identity.check(app)!r})"))
     rows.append((typeset_helper.NAME, "packaging/tauri/typeset, built by cargo beside the frozen server (.exe on Windows)"))
     return sorted(rows)
@@ -357,22 +358,18 @@ def build_venv(build: Path, python: Path) -> Path:
 
 # ── 2. the stage ──────────────────────────────────────────────────────────────────────────────
 
-def stage_demo(stage: Path, py: Path) -> Path:
-    """The demo as Reset demo leaves it, its three cases with Juno's recording. Nothing of a demo
+def stage_demo(stage: Path) -> Path:
+    """The demo as Reset demo leaves it, its three cases with their recordings. Nothing of a demo
     worked on here, no live themes file and no backup, ever reaches the stage: every case comes
     from the pristine copy, whose boards and GETs file are the ones the demo ships with."""
     demo = stage_cases(stage)
-    found = recording(stage.parent, py)
-    if found:
-        target = demo / RECORDING
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(found, target)
+    say(f"Staged the demo {stage_recordings(demo)}")
     return demo
 
 
 def stage_cases(stage: Path) -> Path:
-    """The demo's three cases in the stage as `stage_demo` lays them out, without Juno's recording,
-    which the Windows build adds only where one was spoken for it (see `build_windows.py`)."""
+    """The demo's three cases in the stage as `stage_demo` lays them out, without their recordings, which
+    `stage_recordings` adds, the Windows and Linux builds' as the Mac's."""
     demo, source = stage / "demo", TOOL / "demo"
     shutil.rmtree(demo, ignore_errors=True)
     demo.mkdir(parents=True)
@@ -399,66 +396,40 @@ def stage_cases(stage: Path) -> Path:
     return demo
 
 
-def recording(build: Path, py: Path) -> Path | None:
-    """The demo recording made on this Mac: the checkout's own when the app has made it there, else
-    one spoken by make_demo into `build/recording`, kept for the next build while the transcript is
-    the same. Nothing is spoken into the checkout. Speaking has SPEAK_WAIT to finish: a `say` that
-    hangs is ended with everything it started, and the build carries on with the recording spoken for
-    this same transcript in `packaging/recording`, the one the Windows build ships, or without one,
-    said in one line, as the Windows build does (18 October, the fifth Tauri build, where the fourth
-    build's `say` hung for twelve minutes and its recording was put in by hand)."""
-    made = TOOL / "demo" / RECORDING
-    if made.is_file():
-        say("Demo recording copied from the checkout's demo")
-        return made
-    kept = build / "recording" / f"{hashlib.sha256(TRANSCRIPT.read_bytes()).hexdigest()[:16]}.m4a"
-    if kept.is_file():
-        say("Demo recording kept from an earlier build")
-        return kept
-    say("Speaking the demo recording, a few minutes")
-    kept.parent.mkdir(parents=True, exist_ok=True)
-    why = speak_recording(py, kept)
-    if why is None:
-        return kept
-    kept.unlink(missing_ok=True)
-    cached = committed_recording()
-    if cached:
-        say(f"{why}, so the build carries on with {cached.name}, spoken for this transcript in packaging/recording")
-        return cached
-    say(f"{why}, and none is spoken for this transcript in packaging/recording, so the demo ships without "
-        "Juno's recording and its player says there is none")
-    return None
+def recording_path(name: str) -> Path:
+    """Where a case's recording sits in the demo, as the player finds it, `<name>/Source/Initial/Source/<name>-Initial.m4a`."""
+    return Path(name) / "Source" / DEMO_SHEET / "Source" / f"{name}-{DEMO_SHEET}.m4a"
 
 
-def speak_recording(py: Path, kept: Path, wait: float | None = None) -> str | None:
-    """make_demo speaking Juno's recording into `kept`, in a process group of its own, so a `say` that
-    hangs is ended with it after `wait` seconds, SPEAK_WAIT unless a check gives another. None when it
-    is spoken, else what went wrong, in a few words."""
-    cmd = [str(py), "-c", "import sys; from pathlib import Path; sys.path.insert(0, sys.argv[1]); "
-           "import boot; boot.setup(); import make_demo; make_demo.RECORDING = Path(sys.argv[2]); "
-           "make_demo.build_recording(write_csv=False, verbose=False)", str(TOOL), str(kept)]
-    proc = subprocess.Popen(cmd, start_new_session=True)
-    limit = SPEAK_WAIT if wait is None else wait
-    try:
-        code = proc.wait(timeout=limit)
-    except subprocess.TimeoutExpired:
-        try:
-            os.killpg(proc.pid, signal.SIGKILL)
-        except OSError:
-            proc.kill()
-        proc.wait()
-        return f"Speaking had not finished after {round(limit / 60, 1):g} minutes and was ended"
-    if code != 0 or not kept.is_file():
-        return "Speaking the recording failed"
-    return None
-
-
-def committed_recording() -> Path | None:
-    """Juno's recording in packaging/recording when it was spoken from the transcript as it stands, its
-    name carrying the hash of the transcript's text, as `build_windows.py` names it."""
-    text = TRANSCRIPT.read_bytes().replace(b"\r\n", b"\n")
-    path = RECORDINGS / f"Juno-Initial-{hashlib.sha256(text).hexdigest()[:16]}.m4a"
+def committed_recording(name: str = DEMO_CASES[0]) -> Path | None:
+    """A case's recording in packaging/recording when it was made from the case's transcript as it stands, or None,
+    when there is none or only one made from another, whose timecodes would land on the wrong words."""
+    transcript = TOOL / "demo" / "source" / f"{name} - interview.csv"
+    path = RECORDINGS / audio_mod.demo_recording_name(name, DEMO_SHEET, transcript)
     return path if path.is_file() else None
+
+
+def stage_recordings(demo: Path) -> str:
+    """Each case's committed recording into the staged demo, the licence beside each, every build's, the Mac's,
+    Windows's and Linux's, and the line that says which: a case with none made from its transcript as it stands
+    ships without, its player staying quiet as for any workbook without one."""
+    staged, missing = [], []
+    for name in DEMO_CASES:
+        found = committed_recording(name)
+        if not found:
+            missing.append(name)
+            continue
+        target = demo / recording_path(name)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(found, target)
+        shutil.copyfile(RECORDINGS / AUDIO_LICENCE, target.parent / AUDIO_LICENCE)
+        staged.append(name)
+    owners = lambda names: " and ".join(f"{n}'s" for n in names)
+    if not missing:
+        return f"with the three recordings, {owners(DEMO_CASES[:1])}, {owners(DEMO_CASES[1:])}"
+    without =(f"without {owners(missing)} recording{'s' if len(missing) > 1 else ''}, none being made from "
+               f"{'that transcript' if len(missing) == 1 else 'those transcripts'} as it stands in packaging/recording")
+    return f"with {owners(staged)} recording{'s' if len(staged) > 1 else ''} and {without}" if staged else without
 
 
 def stage_config(stage: Path, py: Path, app: str = app_identity.DEFAULT) -> Path:
@@ -694,7 +665,7 @@ def main(argv: list[str] | None = None) -> int:
     python = choose_python(args.python)
     py = build_venv(build, python)
     if ships_demo(app):
-        stage_demo(stage, py)
+        stage_demo(stage)
     stage_config(stage, py, app)
     stage_build(stage, args.build)
     version = args.version or app_version(py, app)

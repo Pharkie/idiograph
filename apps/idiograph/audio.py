@@ -12,6 +12,7 @@ on its own.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -115,6 +116,23 @@ def offset_said(seconds: float) -> str:
 
 def content_type(path: Path) -> str:
     return CONTENT_TYPES.get(Path(path).suffix.lower(), "application/octet-stream")
+
+
+# The demo's recordings (recvoices, 12 November 2026): Juno's, Mabel's and Rowan's interviews, each committed in
+# packaging/recording under the participant's name, the sheet and the first 16 hex of the hash of the transcript
+# CSV it was made from, its line endings taken as committed whatever a checkout made them. A recording is taken only
+# for the transcript it was made from, since another's timecodes would land on the wrong words. The one rule every
+# caller names a committed recording by: make_demo, the server and the three builds. The standard library alone, so
+# a build script reads it on any Python.
+
+def transcript_sum(transcript: Path) -> str:
+    """The hash of a demo transcript CSV, its line endings as committed."""
+    return hashlib.sha256(Path(transcript).read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
+def demo_recording_name(name: str, sheet: str, transcript: Path) -> str:
+    """The committed name of a demo participant's recording, `Juno-Initial-<16 hex>.m4a`."""
+    return f"{name}-{sheet}-{transcript_sum(transcript)[:16]}.m4a"
 
 
 def parse_range(header: str | None, size: int) -> tuple[int, int] | None:

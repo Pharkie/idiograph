@@ -20,4 +20,4 @@ Idiograph is written in Python and runs in a browser. Beyond Python's standard l
 
 The twenty-four pictures a participant can be given on the Trajectories screen, `static/faces/face01.svg` to `face24.svg`, are line portraits drawn for Idiograph by `packaging/make_faces.py`, part of Idiograph under the same licence. No outside set is used.
 
-The demo case is an invented interview with a participant called Juno about sharing a home with a dog. Nobody real is in it.
+The demo's three interviews, Juno's, Rowan's and Mabel's, are invented, about sharing a home with a dog. Nobody real is in them. Their recordings, in `packaging/recording/`, are AI-generated speech made with Google's Gemini in four synthetic voices designed for the demo. They are not under the GNU Affero General Public License but under their own licence beside them, `LICENSE-audio.md`, which allows copying and sharing them only unchanged and only as part of Idiograph or a modified version of it, and grants no right to use them to train, fine-tune or evaluate any AI or machine-learning model. Google does not endorse Idiograph.

@@ -229,9 +229,10 @@ def test_sift_fixes(scratch):
     owners = {kind: {owner for owner, _hook in getattr(server_mod, kind)} for kind in kinds}
     ran = {app: {kind for kind in kinds if server_mod.hooks(getattr(server_mod, kind), app)} for app in ("idiograph", "sift", "trace")}
     check("256: each server runs the settings, AI, question, scope, quit and start hooks of the apps it serves alone, "
-          "Sift's its holds, Trace's none, Idiograph's its own",
+          "Sift's its holds, Trace's none, Idiograph's its own, with no hold since its demo's recordings are copied, "
+          "never made (recvoices, 12 November 2026)",
           all(owners[kind] <= {"idiograph", "sift", "trace"} for kind in kinds) and ran["trace"] == set()
-          and ran["sift"] == {"HOLDS"} and ran["idiograph"] == set(kinds)
+          and ran["sift"] == {"HOLDS"} and ran["idiograph"] == set(kinds) - {"HOLDS"} and owners["HOLDS"] == {"sift"}
           and all(owner == "idiograph" for kind in kinds if kind != "HOLDS" for owner in owners[kind]), str(ran))
     # qdpx's held copies let go as a process ends, a hook Idiograph takes as it first holds one, never on import
     probe = ("import atexit, base64, json, sys\nseen = []\nreal = atexit.register\n"

@@ -95,9 +95,8 @@ SKIP_DIRS = {"Source", "_Archive", "Working", "_Process reports", "Photos"}
 BACKUP_STEM = re.compile(r"\((?:pre-|complete)[^()]*\)\s*$", re.IGNORECASE)
 DEMO_SHEET = "Initial"
 DEMO_TITLE = "Juno, living with a dog"
-# The demo's three cases, Juno first, each a folder of its name holding `<name> - EN & ES.xlsx`:
-# Juno's to work on, with its recording, and Rowan's and Mabel's annotated, their PETs on a marked
-# board, for the step across cases. Every one of them is a demo case, and the three make one
+# The demo's three cases, Juno first, each a folder of its name holding `<name> - EN & ES.xlsx`, each annotated,
+# their PETs on a marked board, for the step across cases, and each with its recording (recvoices, 12 November 2026). Every one of them is a demo case, and the three make one
 # project, Living with a dog, whose file is DEMO_PROJECT below.
 DEMO_CASES = ("Juno", "Rowan", "Mabel")
 DEMO_TOPIC = "living with a dog"
@@ -6911,47 +6910,44 @@ def api_trim(body: dict) -> dict:
 
 
 _demo_lock = threading.Lock()
-_demo_building = False
 
 
-def _build_demo_recording() -> None:
-    """Speak the demo transcript into its recording. Minutes of work, so never on the request."""
-    global _demo_building
+def demo_case_of(path: Path) -> str | None:
+    """The demo participant a workbook is, Juno, Rowan or Mabel of the IPA demo, or None for any other."""
     try:
-        import make_demo
-        make_demo.build_recording(write_csv=False, verbose=False)
-    except Exception:
-        import traceback
-        traceback.print_exc()
-    finally:
-        with _demo_lock:
-            _demo_building = False
+        here = Path(path).resolve()
+    except OSError:
+        return None
+    return next((name for name, book in zip(DEMO_CASES, demo_workbooks()) if here == book.resolve()), None)
 
 
-def ensure_demo_recording() -> bool:
-    """Start the demo recording if it is missing. True while a build is under way.
+def ensure_demo_recording(case: str | None = None) -> Path | None:
+    """A demo participant's recording put in place when it is missing or is not the one to copy, Juno's unless
+    `case` names Rowan or Mabel, and answered, or None when there is none.
 
-    The recording is not committed, so the first open of the demo on a machine that has never built
-    it finds nothing to play. That is when this starts, in a thread of its own and well clear of
-    the workbook lock, and the player says so until the file appears.
-    """
-    global _demo_building
-    import shutil as _shutil
+    Since 12 November 2026 (recvoices) the three recordings are committed in packaging/recording, each named by
+    the hash of the transcript it was made from, so a copy run from source copies its own in, a second's work, on
+    the request, and nothing is ever spoken. The installed app ships the three in its demo and copies the bundle's.
+    One in place of another size, the `say` recording an earlier version made or shipped, is replaced, so an update
+    or a pull brings the new voices with the new timecodes. A transcript edited since its recording was made has
+    none to copy, its timecodes no longer matching the voices, and its player stays quiet as it does for any
+    workbook without one."""
+    import make_demo
+    name = case or DEMO_CASES[0]
+    book = demo_workbooks()[DEMO_CASES.index(name)]
+    installed = srv.DEMO_DIR != srv.SHIPPED_DEMO
     with _demo_lock:
-        if _demo_building:
-            return True
-        if audio_mod.for_sheet(srv.DEMO_WORKBOOK, DEMO_SHEET) is not None:
-            return False
-        # the Mac app ships the recording built, so a missing one comes back from the bundle's copy,
-        # and nothing is ever spoken into the bundle
-        if srv.DEMO_DIR != srv.SHIPPED_DEMO:
-            srv.seed_demo()
-            return False
-        if not _shutil.which("say"):
-            return False
-        _demo_building = True
-    threading.Thread(target=_build_demo_recording, daemon=True).start()
-    return True
+        source = make_demo.recording(name, srv.SHIPPED_DEMO) if installed else make_demo.committed(name, srv.DEMO_DIR)
+        target = make_demo.recording(name, srv.DEMO_DIR)
+        try:
+            if source.is_file() and not (target.is_file() and target.stat().st_size == source.stat().st_size):
+                target.parent.mkdir(parents=True, exist_ok=True)
+                tmp = target.with_name(f".{target.stem}.copying{target.suffix}")
+                shutil.copyfile(source, tmp)
+                os.replace(tmp, target)
+        except OSError:
+            pass
+        return audio_mod.for_sheet(book, DEMO_SHEET)
 
 
 def fill_demo() -> list[Path]:
@@ -6998,10 +6994,10 @@ def api_audio(body: dict) -> dict:
     if not srv.within_root(path):
         return {"found": False, "note": i18n.t("server.workbook_sits_outside_project_folder")}
     found = audio_mod.for_sheet(path, sheet)
-    # Juno's is the demo's one recording. Rowan and Mabel have none, and their player stays quiet
-    # as it does for any workbook without one
-    if found is None and srv.is_demo(path) and Path(path).resolve() == srv.DEMO_WORKBOOK.resolve() and ensure_demo_recording():
-        return {"found": False, "building": True, "note": "Building the demo recording"}
+    # each of the demo's three participants has a recording (recvoices, 12 November 2026), put in place here when
+    # it is missing or is an older one
+    if sheet == DEMO_SHEET and demo_case_of(path):
+        found = ensure_demo_recording(demo_case_of(path))
     if found is None or not srv.within_root(found):
         return {"found": False, "note": i18n.t("server.recording_found", sheet=sheet)}
     # the offset playback adds to every time code, kept beside the recording (20 October)
@@ -9571,11 +9567,6 @@ def start(one_root: bool) -> None:
     team_sync.start(lambda: [Path(r) for r in srv.project_roots()])
 
 
-def demo_holding() -> str:
-    """What of Idiograph's holds a quit (the family's `holding`): the demo's recording being made."""
-    return "the demo's recording" if _demo_building else ""
-
-
 def print_view(query: dict) -> tuple[int, bytes, str]:
     """The print view of a board, `/themes/print` (see `themes_print_page`), as the family's server sends a page
     of its own, its margins and its beat in it."""
@@ -9706,7 +9697,7 @@ srv.register("idiograph", routes=ROUTES,
              defaults=SETTINGS_DEFAULTS,
              own_settings=OWN_SETTINGS,
              read_settings=read_settings, save_settings=save_settings, ai_choice=pets_choice,
-             question=research_question, scope=route_scope, start=start, holding=demo_holding)
+             question=research_question, scope=route_scope, start=start)
 
 
 def __getattr__(name: str) -> str:

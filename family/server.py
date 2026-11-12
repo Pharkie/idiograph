@@ -2075,7 +2075,7 @@ def finish(op: str, port: int) -> None:
 # use as well (see `in_use`). Once no sign has come for QUIT_AFTER seconds and nothing is running,
 # the server quits by Quit's own path, the serving stopped and then `finish`, so every write has
 # finished and its lock is let go. A request in hand, a write, a Restart or a Quit under way, a Sift
-# search run, a Zotero sync or the demo's recording being made holds it, and the time starts again
+# search run or a Zotero sync holds it, and the time starts again
 # once that ends. The tick at the end of General, `quit_when_closed`, is read at every look, so
 # turning it off holds at once, and STAY_OPEN in the environment keeps a run open whatever the tick
 # says, as the suite's servers and a smoke's do.
@@ -2279,8 +2279,8 @@ def quit_wait() -> float:
 
 def holding() -> str:
     """What holds a quit, in a few words, or "" for nothing: a request in hand, a write, a Restart or
-    a Quit under way, or an app's work as it registers it (`HOLDS`), Idiograph's the demo's recording being
-    made, Sift's a search run or a Zotero sync."""
+    a Quit under way, or an app's work as it registers it (`HOLDS`), Sift's a search run or a Zotero sync, Idiograph
+    holding none since its demo's recordings are copied, never made (recvoices, 12 November 2026)."""
     if LIFE["requests"]:
         return "a request"
     if _lock.locked():

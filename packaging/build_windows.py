@@ -7,7 +7,6 @@ install it.
     py packaging\\build_windows.py --sign-sha1 <thumbprint>   signed with that certificate (see SIGNTOOL)
     py packaging\\build_windows.py --test-app --out <folder>  a check's build, Idiograph Test
     python3 packaging/build_windows.py --dry-run      on any machine: the files written, every step said, none run
-    python3 packaging/build_windows.py --speak        on a Mac: Juno's recording spoken into packaging/recording
     python3 packaging/build_windows.py --list --app sift   on any machine: what Sift's build would ship
 
 The counterpart of `build_mac.py`, whose pins, modules, data files and stage it takes, so the two
@@ -24,12 +23,11 @@ apps carry the same code and the same demo. GitHub's Windows machine runs it fro
    the prebuilt bootloader every PyInstaller app shares, malware's included, and one built here has
    bytes of its own.
 2. The stage, `build\\stage`: for Idiograph, the demo's three cases as Reset demo leaves them, through build_mac's
-   `stage_cases`, and Juno's recording where one was spoken for this transcript. Windows has no
-   `say` to speak it, so `--speak` on a Mac speaks it into `packaging/recording`, the one piece of
-   audio committed, so GitHub's build carries it, under a name that carries the hash of the transcript
-   it was spoken from. A build takes it only when that hash is the transcript's, since another's
-   timecodes would land on the wrong words, and else ships the demo without it and says so in one
-   line, the player then saying there is no recording. Sift's and Trace's builds carry no demo. `config.json`
+   `stage_cases`, and their recordings through its `stage_recordings`, each committed in `packaging/recording`
+   under a name that carries the hash of the transcript it was made from, the licence beside each (recvoices, 12
+   November 2026). A build takes a case's only when that hash is its transcript's, since another's timecodes would
+   land on the wrong words, and else ships that case without it and says so in one line, its player then staying
+   quiet. Sift's and Trace's builds carry no demo. `config.json`
    from `server.shipped_config(app)`, which names no project, and the icon as `Idiograph.ico`, drawn by
    make_app's `draw_icon`, the Mac icon's drawing, at each size Windows asks, up to 32 from the
    mark drawn for 16 pixels.
@@ -116,10 +114,6 @@ BOOTLOADER_SAID = "compile the bootloader"
 # Windows Defender's command line, in its own updated platform folder or where Windows put it first
 DEFENDER_PLATFORM = r"%ProgramData%\Microsoft\Windows Defender\Platform"
 DEFENDER_FIRST = r"%ProgramFiles%\Windows Defender\MpCmdRun.exe"
-# where Juno's recording is spoken for the Windows build, committed, each file named for the hash
-# of the transcript it was spoken from (see `recording_name`)
-RECORDINGS = HERE / "recording"
-TRANSCRIPT = TOOL / "demo" / "source" / "Juno - interview.csv"
 # the sizes Windows draws the icon at, from the taskbar's to the large tiles'
 ICO_SIZES = (16, 24, 32, 48, 64, 128, 256)
 # Signing, the one place: signtool's command, `$f` the file, for a certificate by its thumbprint.
@@ -206,58 +200,6 @@ def build_venv(build: Path, python: Path) -> Path:
 
 
 # ── 2. the stage ──────────────────────────────────────────────────────────────────────────────
-
-def transcript_sum() -> str:
-    """The hash of Juno's transcript, its line endings as committed whatever the checkout made them."""
-    return hashlib.sha256(TRANSCRIPT.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
-
-
-def recording_name() -> str:
-    """The name of Juno's recording spoken from the transcript as it stands, its hash's first 16 hex."""
-    return f"Juno-Initial-{transcript_sum()[:16]}.m4a"
-
-
-def spoken_recording() -> Path | None:
-    """Juno's recording in packaging/recording when it was spoken from the transcript as it stands,
-    or None, when there is none or only one spoken from another."""
-    path = RECORDINGS / recording_name()
-    return path if path.is_file() else None
-
-
-def stage_recording(demo: Path) -> str:
-    """Juno's recording into the staged demo where one was spoken for it, and the line that says which."""
-    found = spoken_recording()
-    if not found:
-        return ("without Juno's recording, none being spoken for this transcript in packaging/recording, "
-                "so the player says there is no recording")
-    target = demo / build_mac.RECORDING
-    target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(found, target)
-    return f"with Juno's recording, {found.name}"
-
-
-def speak() -> int:
-    """Juno's recording spoken on this Mac into packaging/recording, by make_demo with the voices the
-    Mac app's has, under the name `recording_name` gives, and any spoken from another transcript
-    taken away."""
-    if sys.platform != "darwin" or not shutil.which("say"):
-        raise SystemExit("Juno's recording is spoken on a Mac, with its own voices.")
-    try:
-        import make_demo
-    except ImportError as exc:
-        raise SystemExit(f"Run it with the Python the app runs on, which has openpyxl: {exc}")
-    RECORDINGS.mkdir(parents=True, exist_ok=True)
-    target = RECORDINGS / recording_name()
-    make_demo.RECORDING = target
-    made = make_demo.build_recording(write_csv=False, verbose=True)
-    if made.get("moved"):
-        raise SystemExit("The transcript's timecodes no longer match the voices. Run make_demo.py first.")
-    for old in RECORDINGS.glob("Juno-Initial-*.m4a"):
-        if old != target:
-            old.unlink()
-    say(f"Spoke {target.relative_to(TOOL).as_posix()}, {target.stat().st_size / 1e6:.1f} MB")
-    return 0
-
 
 def ico_bytes(sizes=ICO_SIZES, app: str = app_identity.DEFAULT) -> bytes:
     """The icon of `app` as a Windows .ico: make_app's drawing at each size, each image a PNG, which
@@ -502,7 +444,6 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--sign-sha1", help="the thumbprint of the code-signing certificate to sign with")
     ap.add_argument("--test-app", action="store_true", help="the test app, Idiograph Test, for a check")
     ap.add_argument("--dry-run", action="store_true", help="write the spec and Tauri's settings, say every step, run none")
-    ap.add_argument("--speak", action="store_true", help="on a Mac, speak Juno's recording into packaging/recording")
     ap.add_argument("--scan", action="store_true", help="after a build, scan what it made with Windows Defender")
     # a check's own release, for the test app alone (18 October, the fourth Tauri build), as build_mac.py has
     ap.add_argument("--version", help="the test app's version, in place of its own in versions.json")
@@ -513,8 +454,6 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     if args.list:
         return build_mac.print_list(args.app, windows=True)
-    if args.speak:
-        return speak()
     if (args.version or args.whats_new or args.update_key or args.update_url) and not args.test_app:
         raise SystemExit("--version, --whats-new, --update-key and --update-url are for the test app alone.")
     if bool(args.update_key) != bool(args.update_url):
@@ -548,7 +487,8 @@ def main(argv: list[str] | None = None) -> int:
         py = build_venv(build, choose_python(args.python))
 
     # Idiograph's demo alone, since the sixth build (23 October 2026) no other app's build carries it
-    staged = stage_recording(build_mac.stage_cases(stage)) if build_mac.ships_demo(app) else "none, the demo being Idiograph's,"
+    staged = (build_mac.stage_recordings(build_mac.stage_cases(stage)) if build_mac.ships_demo(app)
+              else "none, the demo being Idiograph's,")
     config = stage_config(stage, py, app)
     (stage / f"{named['name']}.ico").write_bytes(ico_bytes(app=app))
     spec = write_spec(build, stage, app, version, product)

@@ -126,8 +126,8 @@ has, which goes on working, and is offered no update. `build_mac.py` refuses to 
 cryptography at the versions it pins, from the newest python.org Python of 3.11 or later when one is
 installed and else the Python running it, refused unless it runs as arm64 (`runs_arm64`).
 It stages the demo as Reset demo leaves it, its three cases from `demo/pristine/` with their boards
-and the GETs file, and Juno's recording, the checkout's when the app has made one there and else spoken
-by `make_demo.py` into `build/recording`, and `config.json` from `server.shipped_config()`, which
+and the GETs file, and each case's recording copied from `packaging/recording/` with its licence beside it
+(`stage_recordings`, see The demo's recordings), and `config.json` from `server.shipped_config()`, which
 names no root. PyInstaller freezes `packaging/mac_launcher.py` and every module it reaches, with
 `template/Transcript template.xlsx` among its data, into one folder, the server, and the build runs
 its `cli --help` before it goes on. Since 17 October (the third Tauri build) Tauri's bundler makes the
@@ -718,13 +718,12 @@ Windows machine runs it from `.github/workflows/windows-installer.yml`, after th
 a tag `v` and a number, and a tag's installer goes on a draft release beside the Mac's files. It takes
 `build_mac.py`'s pins, certifi left out since Python on Windows checks HTTPS against Windows's own
 certificates, its modules, its data files and its stage, so the two apps carry the same code and
-demo. Windows has no `say`, so `python3 packaging/build_windows.py --speak`, on a Mac, speaks Juno's
-recording into `packaging/recording/`, committed as the one piece of audio in git (Adam's word, 14
-October 2026) so GitHub's build carries it, under
-a name that carries the first 16 hex of the hash of the transcript it was spoken from. A build
-takes it only when that is the transcript's own, since another's timecodes would land on the wrong
-words, and else ships the demo without it and says so in one line, as GitHub's build does, the
-player then saying there is no recording. The icon is `Idiograph.ico`, make_app's drawing at each size Windows asks, up to 32 from the mark drawn for 16 pixels. PyInstaller makes
+demo. The demo's three recordings are committed in `packaging/recording/`, the one audio in git (Adam's word, 14
+October 2026), so GitHub's build carries them, each under a name that carries the first 16 hex of the hash of
+the transcript it was made from, and the Windows build stages them through the Mac build's `stage_recordings`
+(see The demo's recordings). A build takes a case's only when that is its transcript's own, since another's
+timecodes would land on the wrong words, and else ships that case without it and says so in one line, its
+player then staying quiet. `--speak`, which spoke Juno's on a Mac with `say`, went on 12 November 2026. The icon is `Idiograph.ico`, make_app's drawing at each size Windows asks, up to 32 from the mark drawn for 16 pixels. PyInstaller makes
 one folder with two executables from `packaging/windows_launcher.py`: `Idiograph.exe`, windowed,
 which runs the server, and `Idiograph-console.exe`, its console twin, for `cli`, `mcp` and `stop`,
 since a windowed program cannot print to the terminal that ran it, and Add Idiograph to Claude
@@ -1272,8 +1271,8 @@ costs about 120 Actions minutes. The maintainer's own Mac copy is built on his M
 archive` into `.verify/macdaily/src-<sha>`, never the working tree, and runs that export's own `build_mac.py
 --unsigned --build <sha> --out .verify/macdaily` through `~/.claude/bin/heavy idiograph build`: the workflow's
 mac-app job's build, the same pins, the frozen server, Tauri's bundle at the pinned CLI, arm64 alone and
-signed ad hoc as the job signs it. The build folder is kept between days, so the venv, Juno's recording and
-cargo's work are made once. `--build` makes `stage_build` write `build.json`, `{"build": "<short sha>"}`, into
+signed ad hoc as the job signs it. The build folder is kept between days, so the venv and cargo's work are
+made once. `--build` makes `stage_build` write `build.json`, `{"build": "<short sha>"}`, into
 the stage, shipped at the bundle's top, and a build without it removes any an earlier one left, so a release
 never carries one. `app_identity.build` reads it in a frozen app alone, `server.BUILD`, empty from source and
 in a release. `/api/server` answers `version` and `build`, Home's answers carry `build`, About says "Version
@@ -1541,11 +1540,9 @@ said Run. `tauri.conf.json`'s `"pubkey"` is Adam's own public key, minisign's 3C
 `make_update_key.sh` made on his Mac and which is public, where a placeholder that refused every update
 had stood, so a build that ships checks every update against it, and `release.py` signs only with the
 key whose public half it is. A check never uses it: the test app takes a throwaway key through
-`--test-app --update-key` as before. `build_mac.py` gives speaking Juno's recording `SPEAK_WAIT`,
-fifteen minutes, in a process group of its own, so a `say` that hangs is ended with everything it
-started, as the fourth build's hung for twelve minutes after 7 of its 39 clips, and the build carries on
-with the recording spoken for this same transcript in `packaging/recording`, the one the Windows build
-ships, or without one, said in one line. `run.sh` and `run.bat` install et_xmlfile at 2.0.0 beside
+`--test-app --update-key` as before. Until 12 November 2026 `build_mac.py` spoke Juno's recording with
+`say`, `SPEAK_WAIT` ending one that hung, as the fourth build's did for twelve minutes after 7 of its 39 clips.
+Since then (recvoices) every build copies the committed recordings and nothing is spoken. `run.sh` and `run.bat` install et_xmlfile at 2.0.0 beside
 openpyxl, the version the build and GitHub's suite pin, so a copy run from source writes its workbooks as
 the suite tests them. GitHub's Windows checks see the crash notice once, the page's alone and the window
 closed as it says (`drive_windows_two.py`), a failed start's words (`IDIOGRAPH_ARGS` with a switch the
@@ -1939,8 +1936,8 @@ program on this machine, an agent's included, is a sign of use as it comes and a
 a quit while it is in hand. `watch_idle` starts `idle_quit` on a thread of its own from `main`,
 which looks every `QUIT_LOOK` seconds, 15, and once no sign has come for `QUIT_AFTER`, five minutes,
 and `holding` names nothing, a request in hand, a write under `_lock`, a Restart or a Quit under way,
-a Sift search run in `SEARCH_RUNS`, a Zotero sync in `ZOTERO_SYNCS` or the demo's recording being
-made, decides the quit under `_life`, the lock every request takes as it comes, prints
+a Sift search run in `SEARCH_RUNS` or a Zotero sync in `ZOTERO_SYNCS` (Idiograph holds none since 12
+November 2026, its demo's recordings being copied on the request, never made), decides the quit under `_life`, the lock every request takes as it comes, prints
 `QUIT_LINE` and stops the serving. `main` then closes the socket and runs `finish` as it does for
 Quit, so every write in hand has finished, the server's lock is let go and the pid file a launcher
 keeps is cleared, and opening the app again starts it at once. Anything holding it, the tick off, or
@@ -3609,6 +3606,55 @@ GETs file with them, as a new copy so no cached read of the GETs file outlives i
 exports' `demo/Working/`. A normal start of the server copies in any of a case's three files that is
 missing, and the GETs file when it is, never over one there, so a clone opens the demo as it ships, and
 a run with `--root` leaves the demo alone.
+
+**The demo's recordings** (recvoices, 12 November 2026, from Adam's word of 11 November that the `say` voices
+"sound so robot", Gemini 3.8 Flash TTS his choice and the casting left to Claude). Each of the three interviews is
+spoken turn by turn in one of four voices made by Gemini's voice design and stored with Google, the interviewer's
+(a calm southern English man), Juno's (a Spanish woman long in England), Mabel's (a woman of 73 from Lancashire)
+and Rowan's (a quiet Dublin man), none cloned from anyone. Each turn's clip is 16-bit mono WAV at 24 kHz, trimmed to
+its speech with 0.12 seconds either side and levelled to -20 dB, and `make_demo.build_recording(name, clips)`
+measures the clips (`clip_seconds`), writes each turn's `Timestamp` in `demo/source/<name> - interview.csv` from
+their lengths and the half-second gap (`GAP_SECONDS`), joins them (`join_clips`) and encodes the join at 48 kbps AAC
+(`to_m4a`) into `packaging/recording/<name>-Initial-<hash>.m4a`, the hash the first 16 hex of the CSV as then
+written, its line endings taken as committed (`audio.demo_recording_name`, the one rule make_demo, the server and
+the three builds name a recording by), and takes away that participant's older recording. Without `write_csv` it
+refuses a CSV whose timecodes the clips no longer give. The lengths: Juno's 28:27, about 10.6 MB, Rowan's 11:40,
+about 4.3 MB, Mabel's 10:28, about 3.9 MB. `packaging/recording/LICENSE-audio.md` is their own licence, the one
+exception to the AGPL (the README's licence line and `NOTICE.md` say so): AI-generated speech, copied and shared
+only unchanged and only as part of Idiograph or a modified version, no right to train, fine-tune or evaluate a
+model, the voices synthetic and the interviews invented, and Google not endorsing Idiograph.
+
+Each case's recording sits where the player finds it, `demo/<name>/Source/Initial/Source/<name>-Initial.m4a`
+(`make_demo.recording(name)`), gitignored. `make_demo.place_recording(name)` copies the committed one there
+through a file of its own, and answers None, copying nothing, when none was made from the transcript as it
+stands. `/api/audio` on a demo participant (`demo_case_of`, the IPA demo's three alone) calls
+`ensure_demo_recording(name)`: from source it copies the committed recording into place, a second's work on the
+request, and in the installed app the bundle's. One already in place of another size, the `say` recording an earlier
+version made or shipped, is replaced the same way, so an update or a pull brings the new voices with the new
+timecodes. The player's "Building the demo
+recording" state, the thread that spoke Juno's with `say` and the quit it held (`demo_holding`) went with it.
+`make_demo.py --audio-only` places all three by hand. The builds stage all three through `build_mac.stage_recordings`
+(the Mac's `stage_demo`, `build_windows.py` and `build_linux.py`), `LICENSE-audio.md` beside each so it travels with
+it, and a case whose transcript has no recording made from it ships without its audio, said in one line.
+
+**Re-voicing an edited turn.** A change to a demo transcript's words changes its hash, so its recording no longer
+matches and is not taken, until the turn is voiced again: `packaging/recording/voice_demo.py --clips <folder>`,
+with the folder of clips kept outside the repo or in its own ignored `.verify/`, never where git takes it up
+(the maintainer's of 12 November is `.verify/keep/demo-voices-12Nov26/clips/`). The tool holds the four voice IDs, the descriptions they were designed
+from, each part's style (Juno's own, a slower one for the interviewer's turns of under 10 words, the plain one for
+Mabel's and Rowan's) and the pace rules (a take kept at 110 to 210 words a minute over its speech, or under 8 words,
+and with no noise in its tail, else taken again once). It keeps `<clips>/<Name>/NNN.wav` and `NNN.json` for each
+turn, NNN the row from 0, the record holding the key of the voice, style and text it was spoken from, so a run
+speaks only the turns whose key changed, one call every 6.5 seconds (Tier 1 allows 10 a minute and 100 a day),
+then joins each interview whose every turn is spoken through `build_recording`, and when a timecode moved builds the
+demo again (`ship_all`, `ship_ta`) so the workbooks, the pristine copy, the GETs and the thematic analysis demo
+carry the new times. `--status` says what a run would speak and calls nothing, `--join-only` joins clips already
+made with no call, `--no-build` leaves the demo for `make_demo.py --written --force`, and `--budget` (2 dollars)
+stops a run before its ledger, `<clips>/ledger.jsonl`, would pass it. The key is `GEMINI_API_KEY` in the Keychain,
+read at run time and sent only in the request's header, never printed or written. A turn added or removed
+changes the rows after it, so their clips are renumbered by hand, or the interview voiced again whole. The
+annotations' rounds (`work.rounds`) must match the rounds the new timecodes make, ten minutes each, or the build
+says so. Then the change is committed with the new recording, the CSV and the rebuilt demo together.
 
 **The thematic analysis demo** (demos, 3 November 2026, Adam that evening: two methods, so two demos, apart from
 his projects). `demo/ta/` is a thematic analysis project of its own inside the demo's folder, the same three
@@ -5506,10 +5552,10 @@ use it, and `boot` runs it over `#help .keys td.mono` as over every title with `
 capital, alone, in brackets, after a `+` and after "press", and every key written by hand stands in its
 capital too (area 171). Since i18nleft (1 November 2026) the keys' names it reads and writes are the
 catalogue's, `shell.keys.cmd`, `ctrl`, `option`, `alt`, `shift`, `home` and `end`, so a language whose sentences say
-Strg for Ctrl names it so and `keyName` finds it there. `loadAudio(sheet, cueSeconds, again)` keeps `#player-wrap` hidden
-until `/api/audio` finds a recording or says the demo's is building, `again` the look again that
-keeps the building note, and with none the note keeps the server's words for `playFrom` and
-`togglePlay` to say. `#sel-quote`, `#sel-give` and `#btn-quote` carry their words alone, their keys in
+Strg for Ctrl names it so and `keyName` finds it there. `loadAudio(sheet, cueSeconds)` keeps `#player-wrap` hidden
+until `/api/audio` finds a recording, and with none the note keeps the server's words for `playFrom` and
+`togglePlay` to say. Its look again while the demo's recording was being made, and the note that said so,
+went on 12 November 2026 (recvoices), the server copying a demo participant's in as it answers. `#sel-quote`, `#sel-give` and `#btn-quote` carry their words alone, their keys in
 their titles, and the quote candidate's head its label alone, so `.sel-bar .mono` and
 `.quote-preview-hint` are gone. `.bar-tool` is `font-size: 15px` and `font-weight: 600`, so the
 typed `?` of every bar's Shortcuts matches the drawn icons, and `.bar-word` keeps `font-weight: 400`.
@@ -7733,10 +7779,10 @@ several, which is remade by hand.
 | `.github/` | `workflows/windows-installer.yml`, the suite on GitHub's Windows machine, a Mac and Linux on every pull request (never on a push to main), Linux adding py_compile, node --check and the case-folder rule, then the Windows installer by hand and on a version tag, the Mac app, its disk image and update file on a tag or when asked, and all three on a draft release on a tag (see The installers, the release and the update key, and GitHub's checks). |
 | `family/make_app.py` | Builds `Idiograph.app`: the Info.plist, the launcher script and the icon, Idiograph's mark drawn with the standard library from `SHAPES`, the sizes up to 32 from `SHAPES_16`, the mark drawn for 16 pixels, and packed by `iconutil`. `--desktop` adds the Desktop symlink. The server draws the tab's PNG icon with it, so the builds ship it among their modules. |
 | `Idiograph.app` | The Mac launcher `family/make_app.py` builds. Committed, so the Desktop symlink and the Dock have something to point at on a fresh checkout. |
-| `packaging/` | `build_mac.py`, which builds the Mac app with its own Python and its disk image, and `mac_launcher.py`, that app's executable (see The Mac app, under Running it), and `build_windows.py`, which builds the Windows app and `Idiograph-Setup.exe`, `windows_launcher.py`, its two executables, and `recording/`, gitignored, where `--speak` puts Juno's recording for it (see The Windows app), and `tauri/`, Idiograph in a window of its own, `src-tauri/` the window, its installer's own steps in `src-tauri/windows/hooks.nsh`, `window.js` its page's side, `bundle.py`, Tauri's bundler run around the frozen server, `drive_mac.py`, `drive_windows.py` and `drive_common.py` its checks, with `drive_installer.py`, `drive_installed_mac.py` and `heading.js` the installers' (see The window), and `release.py`, `minisign.py` and `make_update_key.sh`, the release and its key (see The installers, the release and the update key), and `repath.py`, which remakes a patch made before a move (see The family's folders), and `review_shot.js`, the screenshots builders hand Adam with their heading, Before and After and dashed boxes, and its pack, with `shot_box.js`, which measures the boxes and the crop in the page (see Review shots, under Tests). |
+| `packaging/` | `build_mac.py`, which builds the Mac app with its own Python and its disk image, and `mac_launcher.py`, that app's executable (see The Mac app, under Running it), and `build_windows.py`, which builds the Windows app and `Idiograph-Setup.exe`, `windows_launcher.py`, its two executables, and `recording/`, gitignored, where `--speak` puts Juno's recording for it (see The Windows app), and `tauri/`, Idiograph in a window of its own, `src-tauri/` the window, its installer's own steps in `src-tauri/windows/hooks.nsh`, `window.js` its page's side, `bundle.py`, Tauri's bundler run around the frozen server, `drive_mac.py`, `drive_windows.py` and `drive_common.py` its checks, with `drive_installer.py`, `drive_installed_mac.py` and `heading.js` the installers' (see The window), and `release.py`, `minisign.py` and `make_update_key.sh`, the release and its key (see The installers, the release and the update key), and `repath.py`, which remakes a patch made before a move (see The family's folders), and `review_shot.js`, the screenshots builders hand Adam with their heading, Before and After and dashed boxes, and its pack, with `shot_box.js`, which measures the boxes and the crop in the page (see Review shots, under Tests), and `recording/`, the demo's three recordings, their licence `LICENSE-audio.md` and `voice_demo.py`, which voices them in Gemini's voices (see The demo's recordings). |
 | `build/` | The build venv, the stage and PyInstaller's work, made by `packaging/build_mac.py` or `packaging/build_windows.py`, with Tauri's: the window's source laid out in `tauri/`, cargo's `target/` and the settings laid over `tauri.conf.json`, and a release's files in `release/<tag>`. Gitignored. |
 | `dist/` | `Idiograph.app`, `Idiograph.dmg` and `Idiograph.app.tar.gz`, as `packaging/build_mac.py` leaves them, and `Idiograph-Setup.exe`, as `packaging/build_windows.py` does. Gitignored. |
-| `apps/idiograph/make_demo.py` | The bundled demo, a finished project: Juno's timecodes and spoken recording, the three cases built from their sources, the GETs across them, and Reset demo. |
+| `apps/idiograph/make_demo.py` | The bundled demo, a finished project: each participant's recording joined from its voiced clips and its timecodes written from them, the recordings put in place, the three cases built from their sources, the GETs across them, and Reset demo. |
 | `demo/` | The demo itself: the sources, the three cases with their sidecars, the pristine copy, the generated recording, and `idiograph-project.json`, the demo's own project. |
 | `make_template.py` | Builds `template/Transcript template.xlsx`, its three invented rows written out in the script. |
 | `template/` | `Transcript template.xlsx`, the three columns a transcript is read in as it stands. |
@@ -7840,7 +7886,7 @@ route listens, so a project made on the relay while the app is open is heard wit
   Inno Setup install among it, and on no tester's PC yet. Its launcher's logic is checked on a Mac with
   every Windows call stood in for. `packaging/build_windows.py --sign-sha1` has not yet run, there
   being no certificate, nor Tauri's signing of the window and the installer with it. GitHub's build
-  takes Juno's recording from `packaging/recording/` only when it was spoken from the transcript as it
+  takes each demo recording from `packaging/recording/` only when it was made from its transcript as it
   stands.
 - The signing and notarising half of `packaging/build_mac.py` has not yet run, since the Mac it
   was written on holds no Developer ID identity. The unsigned build is the one tried. Notarising would
