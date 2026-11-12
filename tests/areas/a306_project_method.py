@@ -225,7 +225,7 @@ console.log(JSON.stringify(out));
         o = {}
     check("306: in the page's scripts the method in front swaps the words and IPA's come back",
           o.get("ipa") == "Experiential statements" and o.get("inTa") == "Codes" and o.get("after") == "Experiential statements"
-          and o.get("ta") == "1 code / 4 codes" and o.get("kept") == "Files" and o.get("base") == "Experiential statements"
+          and o.get("ta") == "1 code / 4 codes" and o.get("kept") == "Show files" and o.get("base") == "Experiential statements"
           and o.get("back") == "Experiential statements", (ran.stdout + ran.stderr)[-600:])
 
     # 7. the gaps phase one left (tagaps, 1 November 2026): the server's lines, the exports and the print in TA's

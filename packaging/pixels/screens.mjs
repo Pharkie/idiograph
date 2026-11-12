@@ -132,8 +132,8 @@ export const SCREENS = {
       document.querySelector('#hp-list .pc-dots').click();
       document.querySelector('#hp-list .pc-menu [data-act="files"]').click();
     } },
-    // A row's menu holds Rename only for a participant in a folder of its own, as in a copy of demo/, and the rows of
-    // demo/pristine, the root every group shares, have none, so there the card opens as the menu would open it and
+    // A row's fields hold Rename... only for a participant in a folder of its own, as in a copy of demo/, and the rows of
+    // demo/pristine, the root every group shares, have none, so there the card opens as the fields would open it and
     // shows the server's refusal where a copy of demo/ shows the list of what will change (loose31, 31 October 2026:
     // the click on a Rename that was not there stopped the group at this screen). The participant is opened first, as
     // d-work opens it, so that list names the recent list whatever the server showed before
@@ -143,8 +143,11 @@ export const SCREENS = {
       const row = document.querySelector('#hp-list .pcard');
       const cases = S.lib.projects[0].cases;
       await api('/api/open', { path: (cases.find((c) => c.case === row.dataset.case) || cases[0]).path });
-      const item = row.querySelector('.pc-menu [data-act="rename"]');
-      if (item) { row.querySelector('.pc-dots').click(); item.click(); } else openRename(S.lib.projects[0].id, { case: row.dataset.case });
+      row.querySelector('.pc-dots').click();
+      const edit = row.querySelector('.pc-menu [data-act="edit"]');
+      if (edit) edit.click();
+      const item = row.querySelector('[data-pp="rename"]');
+      if (item) item.click(); else openRename(S.lib.projects[0].id, { case: row.dataset.case });
     } },
     { name: 'd-add', wait: '#newproject', open: async () => {
       if (document.getElementById('home-project').hidden) document.querySelector('#projects .home-card').click();

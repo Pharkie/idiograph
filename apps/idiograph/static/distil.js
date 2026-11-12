@@ -1673,21 +1673,18 @@ function cardHtml(p, fixed) {
   // the case as the row names it, "P1 Ada", its P-number and pseudonym with no dash between
   const name = String(p.case || '').replace(/^(P\d+)\s*-\s*/, '$1 ');
   let html = fixed || p.demo ? '<span class="pc-grip none" aria-hidden="true"></span>' : gripHtml(name);
-  // Rename after Files, on a case in a folder of its own and never on the demo's, whose names are fixed
-  const renames = !fixed && !p.demo && p.folder !== false;
   // Edit, the participant's picture, label and pen portrait, on every row but the demo's (pbiobuild)
   const edits = !fixed && !p.demo && !!p.person;
-  const dotsTitle = renames ? (edits ? t('distil.card.files_rename_edit') : t('distil.card.files_rename'))
-    : (edits ? t('distil.card.files_edit') : t('distil.card.files'));
+  const dotsTitle = edits ? t('distil.card.files_edit') : t('distil.card.files');
   // the participant's picture before the name and their label under it (pbiobuild, layout A), the second rank
   // under the project's name for a screen reader, its look the h3's (a11yfix)
   html += `<div class="pc-head${p.person ? ' pp-head' : ''}">${p.person ? personPic(p.person, 44) : ''}`
     + `<div class="pp-who"><h3 class="pc-name" aria-level="2" title="${escAttr(name)}">${esc(name)}</h3>`
     + `${p.person && p.person.label ? `<span class="pp-label" title="${escAttr(p.person.label)}">${esc(p.person.label)}</span>` : ''}</div>${tags}`
     + `<button type="button" class="pc-dots" data-act="menu" aria-haspopup="true" aria-expanded="false" title="${escAttr(dotsTitle)}" aria-label="${escAttr(t('distil.card.files_of', { name }))}">&#8943;</button>`
-    + `<div class="row-menu pc-menu" role="menu" hidden><button type="button" class="ghost" role="menuitem" data-act="files">${esc(t('distil.card.files'))}</button>`
-    + `${renames ? `<button type="button" class="ghost" role="menuitem" data-act="rename">${esc(t('distil.card.rename'))}</button>` : ''}`
-    + `${edits ? `<button type="button" class="ghost" role="menuitem" data-act="edit">${esc(t('distil.card.edit'))}</button>` : ''}</div></div>`;
+    + `<div class="row-menu pc-menu" role="menu" hidden>`
+    + `${edits ? `<button type="button" class="ghost" role="menuitem" data-act="edit">${esc(t('distil.card.edit'))}</button>` : ''}`
+    + `<button type="button" class="ghost" role="menuitem" data-act="files">${esc(t('distil.card.files'))}</button></div></div>`;
   if (p.path && Array.isArray(p.timepoints) && p.timepoints.length >= 2) {
     // a project of two or more timepoints (20 October): a cell a timepoint, its label and description,
     // then where it stands, and a timepoint with no interview a dashed cell, then PETs as before
@@ -1762,7 +1759,9 @@ function ppEditHtml(p) {
     + `<button type="button" class="ghost small" data-pp="faces" aria-expanded="${PP.faces}">${esc(t('trajectories.choose_from_set'))}</button>`
     + (person.picture ? `<button type="button" class="ghost small" data-pp="nopic">${esc(t('trajectories.remove_picture'))}</button>` : '')
     + '</div></div><div class="pp-edit-fields">'
-    + `<label class="pp-l"><span>${esc(t('distil.person.participant'))}</span><input class="tf-edit-in pp-in" value="${escAttr(name)}" disabled></label>`
+    + `<label class="pp-l"><span>${esc(t('distil.person.participant'))}</span><span class="pp-namerow"><input class="tf-edit-in pp-in" value="${escAttr(name)}" disabled>`
+    // Rename... after the greyed name, on a participant in a folder of its own and never the demo's, whose names are fixed
+    + `${!p.demo && p.folder !== false ? `<button type="button" class="ghost small pp-rename" data-pp="rename">${esc(t('distil.card.rename_ellipsis'))}</button>` : ''}</span></label>`
     + `<label class="pp-l"><span>${esc(t('distil.person.label'))}</span><input class="tf-edit-in pp-in pp-in-label" maxlength="60" data-pp-field="label" value="${escAttr(typed('label'))}"></label>`
     + `<label class="pp-l top"><span>${esc(t('distil.person.portrait'))}</span><textarea class="tf-edit-in pp-in pp-in-portrait" maxlength="800" rows="4" data-pp-field="portrait">${esc(typed('portrait'))}</textarea></label>`
     + `${faces}<div class="pp-foot"><button type="button" class="primary small" data-pp="done">${esc(t('trajectories.done'))}</button></div></div></div>`;
@@ -1946,6 +1945,7 @@ function ppWire() {
     if (b.dataset.ppFace) { if (await ppSave({ picture: `set:${b.dataset.ppFace}` })) ppDraw(); return; }
     const what = b.dataset.pp;
     if (what === 'done') { ppClose(true); return; }
+    if (what === 'rename') { openRename(PP.root, PP.p); return; }
     if (what === 'faces') { PP.faces = !PP.faces; ppDraw(); return; }
     if (what === 'nopic') { if (await ppSave({ picture: '' })) ppDraw(); return; }
     if (what === 'own') $('pp-picture-file').click();
@@ -2016,11 +2016,10 @@ function drawCards(list, cards, where = {}) {
       if (what === 'files') {
         shut();
         files.hidden = !files.hidden;
-        menu.querySelector('button').textContent = files.hidden ? t('distil.card.files') : t('distil.card.hide_files');
+        menu.querySelector('[data-act="files"]').textContent = files.hidden ? t('distil.card.files') : t('distil.card.hide_files');
         dots.focus();
         return;
       }
-      if (what === 'rename') { shut(); openRename(where.id, p); return; }
       if (what === 'edit') { shut(); ppOpen(li, p, where); return; }
       // Working together: Ask for review, on a participant he owns (review.js)
       if (what === 'wtask') { shut(); rvwAskOpen(where.id, p); return; }

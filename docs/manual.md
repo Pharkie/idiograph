@@ -247,10 +247,10 @@ opens the create card on its newest raw source, or with none the make a workbook
 transcript in another shape (both below).
 
 A participant's workbook is its annotated one, and of two in its folder the one opened last, else the
-newest. The three dots after its name open a small menu holding Files, then Rename on a participant in a
-folder of its own (see Rename), and Files lists
+newest. The three dots after its name open a small menu holding Edit participant profile, then Show files (see A participant's picture, label and
+pen portrait, which is also where Rename lives), and Show files lists
 under the row every file of the participant, the annotated workbooks, the raw sources and the
-transcripts, each a row with its tag that does what it always did, and Hide files folds it away.
+transcripts, each a row with its tag that does what it always did, and Hide files, as the item then reads, folds it away.
 An annotated workbook's row opens the participant and carries PETs beside it, with its sheets and marks in
 the small type, "Initial, 2d · Statements complete" once the statements are marked, "PETs complete"
 once the PETs are, and "Participant complete" in their place once both are. The date sits in the tooltip,
@@ -266,8 +266,9 @@ short paragraph to remind him who they were, beside the number and pseudonym the
 name is never kept here. A row shows the picture before the name, one of the app's 24 drawn portraits or his own
 file, or with none the participant's initial in their colour, the label under the name, and the pen portrait's
 first two lines across the row under them, the whole in its tooltip. A double-click on the name, the label or
-the pen portrait, or Edit in the dots, opens the fields across the row: the picture with Change picture...,
-Choose from the set and Remove, the participant greyed, Label and Pen portrait, each kept as it is left, and
+the pen portrait, or Edit participant profile, first in the dots, opens the fields across the row: the picture with Change picture...,
+Choose from the set and Remove, the participant greyed with Rename... after it (on a participant in a folder of
+its own, never the demo's, and it opens the Rename card below), Label and Pen portrait, each kept as it is left, and
 Done at the foot. Choose from the set opens the drawn portraits under the fields. His own picture is cut
 square, made small and kept in the project folder's `pictures/`, the one it replaces moved to that folder's
 `_Archive`, never deleted. A label is up to 60 characters and a pen portrait up to 800, its line breaks folded
@@ -295,8 +296,8 @@ a row with its cells empty in the table. The number is the one the folder gives,
 order where the folder has none. Participants table is not offered for the canvas, one GET's trail or a participant's
 LPETs. No picture goes into any export, since a photograph of a real participant identifies them.
 
-**Rename (16 October).** A pseudonym given once sometimes changes, so Rename, in the dots on a
-participant's row after Files, gives the participant a new one (a tester's ask, Adam's word). Its card
+**Rename (16 October).** A pseudonym given once sometimes changes, so Rename..., in a participant's fields (Edit participant profile in the dots) after the greyed
+name, gives the participant a new one (a tester's ask, Adam's word). Its card
 holds the name now, a field for the new name, one unticked row, Rename the folder too, and under them
 the list of what will change, drawn before anything is written and drawn again as the name is typed
 and the row ticked. The list stands under the words What will change, one plain thing that changes

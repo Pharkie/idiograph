@@ -243,6 +243,14 @@ def test_participant_set(scratch):
               and opened["person"]["portrait"] == "Seventy, retired. Learnt for his granddaughter."
               and all(set(d) == {"Juno", "Mabel", "Rowan"} and all(len(v) == 3 for v in d.values()) for d in demo_sets),
               str([rows, demo_sets])[:400])
+        # Rename... in the fields opens the one Rename card the menu used to, and the menu holds no Rename
+        js = support.source("apps/idiograph/static/distil.js").read_text(encoding="utf-8")
+        menu = js[js.index('class="row-menu pc-menu"'):][:600]
+        check("373: Rename... after the greyed name in a participant's fields opens the Rename card, and the dots menu "
+              "holds Edit participant profile then Show files and no Rename",
+              'data-pp="rename"' in js and "if (what === 'rename') { openRename(PP.root, PP.p); return; }" in js
+              and 'data-act="rename"' not in js and menu.index('data-act="edit"') < menu.index('data-act="files"'),
+              menu[:200])
         import zipfile
         dest = base / "Swimming late.qdpx"
         routes.qdpx_export(pool, dest)

@@ -3371,7 +3371,7 @@ and "Their picture, label and pen portrait in the project", `project_carry` move
 and `set_picture_move` moves their own picture's file, named after them, with the folder ticked ("Their picture
 in the project's pictures folder takes the new name"). On the page `personPic` draws the picture or the initial on `case-N`, Trajectories'
 `.tf-pic`, `cardHtml` puts it with `.pp-label` and `ppPortraitHtml` on a row, `ppOpen`, `ppDraw`, `ppClose`,
-`ppKeepFields` and `ppSave` are the fields across the row (each change through `/api/participant`, one at a time
+`ppKeepFields` and `ppSave` are the fields across the row (12 November, ppmenu: the dots menu holds Edit participant profile then Show files, and Rename... after the greyed name, `data-pp="rename"`, opens `openRename`, on a participant in a folder of its own, the menu holding no Rename) (each change through `/api/participant`, one at a time
 in `PP.chain`, a field sent only when it differs from what was last sent), `ppMenuText` the pickers' rows,
 `ppBarDraw` the bars' `#rail-pic`/`#rail-label` and `#th-pic`/`#th-label`, and `gtCasesDraw` the Participants
 panel's `.pp-gwho`. The demo's two project files carry a set for the three. The command line's `participant
