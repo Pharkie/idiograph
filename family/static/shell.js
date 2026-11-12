@@ -2499,6 +2499,8 @@ function cardFocusIn(o) {
 
 function cardOpen(o) {
   if (!cardShown(o) || CARDS.open.includes(o)) return;
+  // a card opened afresh holds no words typed in it yet (clickout)
+  OUTSIDE.typed.delete(o);
   cardLabel(o);
   const box = cardBox(o);
   const now = document.activeElement;
@@ -2572,6 +2574,111 @@ function cardsWatch() {
     for (const o of [...CARDS.open]) if (!o.isConnected) { CARDS.open.splice(CARDS.open.indexOf(o), 1); CARDS.from.delete(o); }
   }).observe(document.body, { childList: true });
   for (const o of document.querySelectorAll(CARD_SELECTOR)) if (cardShown(o)) cardOpen(o);
+}
+
+/* ── a click outside a card (clickout, Adam, 12 November 2026: "make sure that's consistent across the app") ──
+
+   A press and its release both on the backdrop round the card in front do what Esc does on that card: the card is
+   sent Esc, as though Esc were pressed while it holds the focus, so each card answers as its own Esc does and a card
+   added later has it with nothing more. A card with Done at its foot applies its changes as you go and closes as Done
+   does, its Esc and its Done being one. Three things leave the card open, as a stray click must never cost anything:
+   - words typed and not yet saved: a text box changed since the card opened, on a card that saves with a button.
+     Esc still does what it did. A card with Done (`data-done`) saves its box as the press leaves it, and closes
+   - a card busy with its work, an import or an export under way or an agent's actions being answered, which each
+     app says through `cardBusy`, and the shell for its own cards: the click is ignored, as the holds' card ignores
+     Esc while it answers
+   - a press that starts inside the card and ends outside it, words being selected or a slider dragged, or one that
+     starts outside and ends inside: both the press and its release must be on the backdrop
+   The menus and popovers that close on a click outside, the Search card and the guidance among them, keep theirs. */
+const OUTSIDE = { down: null, up: null, typed: new WeakSet() };
+const CARD_WORDS = 'textarea, input:not([type]), input[type="text"], input[type="search"], input[type="email"], '
+  + 'input[type="url"], input[type="number"], input[type="tel"], input[type="password"]';
+
+/* the card whose backdrop is under the pointer: the overlay itself, none of its parts, and not its scroll bar */
+function cardBackdrop(e) {
+  const o = e.target;
+  if (!(o instanceof Element) || !o.classList.contains('overlay') || !cardShown(o)) return null;
+  if (e.offsetX > o.clientWidth || e.offsetY > o.clientHeight) return null;
+  return o;
+}
+
+/* the card stays: words typed in it on a card that saves with a button, or the card busy with its work */
+function cardHeld(o) {
+  if (OUTSIDE.typed.has(o) && !cardBox(o).querySelector('.card-actions [data-done]')) return true;
+  // the shell's own, New project's card making the project and Send feedback's sending its note
+  if ((o.id === 'rv-card' && RVC.busy) || (o.id === 'feedback' && FEEDBACK.busy)) return true;
+  return !!appsSay('cardBusy', o);
+}
+
+/* what Esc does on the card in front, sent to the card itself, the keyboard's mark put back as the pointer left it */
+function cardOutside(o) {
+  const keyed = CARDS.keyed;
+  cardBox(o).dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true, cancelable: true }));
+  CARDS.keyed = keyed;
+}
+
+/* Done at the foot right of a card that applies its changes as you go, Set columns among them (13
+   October): it closes the card as the card's X does, the X kept, and says there is nothing more to
+   do. One rule for every such card, a `data-done` button in `.card-actions.card-done`, which presses
+   the card's own close, so a card needs nothing more of its own. A card with its own Save or confirm
+   never has one. Here in the shell since clickout, so Sift's cards, which never load Idiograph's script, have it */
+function cardDone(e) {
+  const btn = e.target && e.target.closest ? e.target.closest('button[data-done]') : null;
+  const card = btn ? btn.closest('.card') : null;
+  const x = card ? card.querySelector('.card-close') : null;
+  if (!x) return false;
+  x.click();
+  return true;
+}
+
+/* A card with an X and no Esc of its own, an app's that no list names, closes as its X does on Esc */
+function cardEscX() {
+  const o = cardTop();
+  if (!o || !o.classList.contains('overlay')) return false;
+  const x = [...cardBox(o).querySelectorAll('.card-close')].find((b) => !b.disabled && b.getClientRects().length);
+  if (!x) return false;
+  x.click();
+  return true;
+}
+
+/* About, What's new and Support, which the window's menus open over any screen, close alone on Esc, Settings under
+   them staying, ahead of a screen's own keys, Sift's and Trace's, which once kept Esc from them there. What's new's
+   Esc once shut Settings with it, where its Done shuts it alone (clickout) */
+const CARDS_ALONE = ['about', 'whatsnew', 'support'];
+
+function cardAloneKeys(e) {
+  const o = e.key === 'Escape' ? cardTop() : null;
+  if (!o || !CARDS_ALONE.includes(o.id)) return;
+  e.preventDefault();
+  e.stopPropagation();
+  hide(o.id);
+}
+
+function cardsOutsideWatch() {
+  document.addEventListener('click', cardDone);
+  window.addEventListener('keydown', cardAloneKeys, true);
+  // a word typed in a card's box, never a tick, a choice or a slider
+  document.addEventListener('input', (e) => {
+    const box = e.target;
+    if (!(box instanceof Element) || !(box.isContentEditable || box.matches(CARD_WORDS))) return;
+    const o = box.closest('.overlay');
+    if (o) OUTSIDE.typed.add(o);
+  }, true);
+  document.addEventListener('pointerdown', (e) => { OUTSIDE.down = e.button === 0 ? cardBackdrop(e) : null; OUTSIDE.up = null; }, true);
+  // a press on the backdrop of a card that stays leaves the caret where it was, in the words being typed
+  document.addEventListener('mousedown', (e) => {
+    const o = e.button === 0 ? cardBackdrop(e) : null;
+    if (o && cardHeld(o)) e.preventDefault();
+  }, true);
+  document.addEventListener('pointerup', (e) => { OUTSIDE.up = e.button === 0 ? cardBackdrop(e) : null; }, true);
+  document.addEventListener('click', (e) => {
+    const o = OUTSIDE.down;
+    const both = !!o && OUTSIDE.up === o && e.target === o;
+    OUTSIDE.down = null;
+    OUTSIDE.up = null;
+    if (!both || e.button !== 0 || !cardShown(o) || cardHeld(o)) return;
+    cardOutside(o);
+  }, true);
 }
 
 /* Send feedback. The bug in either bar opens one card: a box for the note, a line for a reply
@@ -2657,7 +2764,8 @@ function settingsCase() {
   if (!$('library').hidden) return { path: null, gets: null, themes: false, project: null, config: S.libConfig || (S.data && S.data.config) || {} };
   return { path: null, themes: false, project: null, config: {} };
 }
-const OVERLAYS = ['round-done', 'help', 'settings', 'ai-confirm', 'projset', 'create', 'import', 'newproject', 'rv-card', 'trim', 'th-confirm', 'assign', 'feedback', 'whatsnew', 'rename', 'complete', 'about', 'support', 'skip-confirm', 'hold-card', 'holds-batch', 'remove-card'];
+// the recording's offset among them since clickout, so Esc and a click outside it cancel it as its Cancel does
+const OVERLAYS = ['round-done', 'help', 'settings', 'ai-confirm', 'projset', 'create', 'import', 'newproject', 'rv-card', 'trim', 'th-confirm', 'assign', 'feedback', 'whatsnew', 'rename', 'complete', 'about', 'support', 'skip-confirm', 'hold-card', 'holds-batch', 'remove-card', 'offset'];
 // the cards this page holds, its own app's and the family's, never another app's since each ships alone (panefix)
 const overlaysHere = () => OVERLAYS.filter((id) => $(id));
 const anyOverlayOpen = () => overlaysHere().some((id) => !$(id).hidden);
@@ -4242,8 +4350,9 @@ function boot() {
   barLockups();
   // the project's name in every screen's band opens its menu (barsD)
   bandMenuBoot();
-  // every card a dialog that keeps Tab and gives the focus back (a11yfix)
+  // every card a dialog that keeps Tab and gives the focus back (a11yfix), and closed by a click outside it (clickout)
   cardsWatch();
+  cardsOutsideWatch();
   setInterval(titleKeep, 500);
   $('btn-key-check').onclick = () => checkKey();
   // Enter in the key's field is Check key
@@ -4348,15 +4457,12 @@ function boot() {
   document.addEventListener('keydown', (e) => {
     // Send feedback's card keeps its keys on either screen: Esc cancels, Cmd + Enter sends, so
     // does Enter in the reply line, and every other key types
-    // About closes alone on Esc, and Settings under it stays
-    if (!$('about').hidden && e.key === 'Escape') { e.preventDefault(); hide('about'); return; }
+    // About, What's new and Support close alone on Esc ahead of every screen's keys (cardsOutsideWatch, clickout)
     // Remove's card over Settings or Home: Esc removes nothing, and its own buttons and tick take the rest
     if (!$('remove-card').hidden) {
       if (e.key === 'Escape') { e.preventDefault(); rmAnswer(false); }
       return;
     }
-    // and so does the Support card
-    if (!$('support').hidden && e.key === 'Escape') { e.preventDefault(); hide('support'); return; }
     // and the agent log's sheet over Settings, every app's (agentlog.js)
     if (typeof agentLogKeys === 'function' && agentLogKeys(e)) return;
     if (!$('feedback').hidden) {
@@ -4376,6 +4482,7 @@ function boot() {
       // and its find card, then the panels, then the app's way back, and only then leaving the field
       if (appsKeys('keysEscape', e)) return;
       if (anyOverlayOpen()) { overlaysHere().forEach(hide); return; }
+      if (cardEscX()) return;
       if (appsKeys('keysEscapeLast', e)) return;
       if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') document.activeElement.blur();
       return;

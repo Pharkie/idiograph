@@ -464,7 +464,11 @@ console.log(JSON.stringify({
           and "$('sf-why').hidden = !SF.picking;" in fn(sjs, "sfReasonsDraw") and "${i - off < 9 ? i - off + 1 : ''}" in fn(sjs, "sfReasonsDraw")
           and "sfDecide('exclude', codes[Number(key) - 1].code, true)" in down
           and "if (key === 'Escape' || sfKeyDecision(key, SF.stage) === 'exclude') { e.preventDefault(); sfPicking(false); return; }" in down
-          and "if (e.target === $('sf-why')) sfPicking(false);" in fn(sjs, "sfBoot") and ".sf-why-card { width: min(26em, 100%);" in scss)
+          # a press beside them is every card's click outside since clickout (area 374), which sends Esc, and no longer
+          # its own click, which a press on the list let go beside it took for one
+          and "$('sf-why').addEventListener('click'" not in sjs
+          and "function cardsOutsideWatch(" in support.text("family/static/shell.js")
+          and ".sf-why-card { width: min(26em, 100%);" in scss)
     run = fn(sjs, "sfOaRun")
     check("111: Find open-access PDFs sits under Sift in Settings outside the AI switch, for the project chosen there, asks "
           "the email once, then each record with no PDF in turn, and says the count at the end",

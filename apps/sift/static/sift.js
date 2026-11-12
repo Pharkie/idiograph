@@ -4170,8 +4170,8 @@ function sfMapBoot() {
   $('sf-map-note').textContent = SF_MAP_WORDS.note;
   $('sf-map-png').textContent = SF_MAP_WORDS.png;
   $('sf-map-svg').textContent = SF_MAP_WORDS.svg;
+  // its close, and a click outside it as on every card (the shell's cardsOutsideWatch, clickout)
   $('sf-map-close').onclick = sfMapClose;
-  $('sf-map').addEventListener('click', (e) => { if (e.target === $('sf-map')) sfMapClose(); });
   const box = $('sf-map-box');
   const dot = (e) => (e.target && e.target.closest ? e.target.closest('.sf-map-dot') : null);
   box.addEventListener('pointerover', (e) => { const d = dot(e); if (d) sfMapTip(d); });
@@ -5468,8 +5468,7 @@ function sfBoot() {
     const file = $('sf-pdf-file').files && $('sf-pdf-file').files[0];
     if (file) sfDropPdf(file);
   });
-  // a press beside the reasons cancels them, as Esc does
-  $('sf-why').addEventListener('click', (e) => { if (e.target === $('sf-why')) sfPicking(false); });
+  // a press beside the reasons cancels them, as Esc does, by the shell's rule for every card (clickout)
   // Find open-access PDFs, Find citation counts and the bench, under Sift in Settings
   $('sf-oa-go').onclick = sfOaRun;
   $('sf-fill-go').onclick = sfFillRun;

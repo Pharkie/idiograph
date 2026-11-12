@@ -604,7 +604,8 @@ such as Rename's New name showed none (17 October, later). A card's close in its
 same ring, where the guidance's close drew the blue (18 October). Since 8 November every card, Settings and
 Shortcuts among them, keeps the keyboard inside it while it is open: opened from the keyboard its first field
 takes the focus, or Done, `Tab` and `Shift + Tab` go round inside it, and when it closes the focus goes back to
-what opened it. A screen reader hears each card as a dialog named by its title. View, Export, the boards and the
+what opened it. Since 12 November a click outside a card closes it as `Esc` does, but a card with words you have typed
+and not yet saved, or one still at work, stays open. A screen reader hears each card as a dialog named by its title. View, Export, the boards and the
 participants on PETs, and a participant's menu on a project's page, take the arrows: opened from the keyboard
 the first item has the focus, `Up` and `Down` move, `Home` and `End` go to the first and the last, `Enter`
 chooses and `Esc` closes back to the button. `Tab` leaves a participant's handle on a project's page, where it

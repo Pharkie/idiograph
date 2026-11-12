@@ -2215,21 +2215,6 @@ function tickRowClick(e) {
 document.addEventListener('pointerdown', (e) => { tickPressed = e.target; }, true);
 document.addEventListener('click', (e) => { tickRowClick(e); tickPressed = null; });
 
-/* Done at the foot right of a card that applies its changes as you go, Set columns among them (13
-   October): it closes the card as the card's X does, the X kept, and says there is nothing more to
-   do. One rule for every such card, a `data-done` button in `.card-actions.card-done`, which presses
-   the card's own close, so a card needs nothing more of its own. A card with its own Save or confirm
-   never has one. */
-function cardDone(e) {
-  const btn = e.target && e.target.closest ? e.target.closest('button[data-done]') : null;
-  const card = btn ? btn.closest('.card') : null;
-  const x = card ? card.querySelector('.card-close') : null;
-  if (!x) return false;
-  x.click();
-  return true;
-}
-document.addEventListener('click', cardDone);
-
 /* Files: every file of a case the old list showed, each a row with its tag that does what its row
    did, its sheets and marks in the small type. An annotated workbook opens the case and carries
    PETs beside it, a raw source opens the create card and a transcript in another shape the make a
@@ -12933,6 +12918,18 @@ function distilKeysEscape(e) {
   return false;
 }
 
+/* Idiograph's cards busy with their work, which a click outside them leaves open (clickout, the shell's cardHeld): a
+   copy or a REFI-QDA file being written, boards coming back, a workbook or a project being made, a participant being
+   renamed, an agent's actions being answered and a review being sent */
+function distilCardBusy(o) {
+  const review = typeof RVW !== 'undefined' && RVW.busy;
+  const busy = {
+    'share-card': SC.busy, 'qdpx-card': QX.busy, 'copy-back': CB.busy, import: IMPORT.busy, newproject: NP.busy,
+    rename: RN.busy, 'hold-card': HOLDS.busy, 'holds-batch': HOLDS.busy, 'wt-ask': review, 'wt-review': review,
+  };
+  return !!busy[o.id];
+}
+
 /* Esc's last, after the panels: the way back to the turn */
 function distilKeysEscapeLast(e) {
   // first it brings the column back to the turn, from wherever the caret is and without
@@ -13858,6 +13855,7 @@ FAMILY_APPS.idiograph = {
   keysEscapeLast: (...a) => distilKeysEscapeLast(...a),
   keysCards: (...a) => distilKeysCards(...a),
   keys: (...a) => distilKeys(...a),
+  cardBusy: (...a) => distilCardBusy(...a),
 };
 
 distilBoot();

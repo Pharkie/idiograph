@@ -636,6 +636,8 @@ FAMILY_APPS.sift = {
   settingsBody: sfpBody, settingsSends: sfpSendsAll, settingsSend: sfpSend, settingsSaved: sfpSettingsSaved,
   spot: siftSpot, searchWhere: siftSearchWhere, searchClear: siftSearchClear, searchLeave: siftSearchLeave,
   searchTo: siftSearchTo,
+  // Export to Zotero's card, busy while its export runs, stays open on a click outside it (clickout)
+  cardBusy: (o) => o.id === 'sf-zot' && !!(SF.zot && SF.zot.running),
 };
 // the home screen's answer may come before this script is read, and Sift's section then takes it now
 if (APP === 'sift' && S.lib) drawSiftHome(S.lib);

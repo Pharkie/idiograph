@@ -6839,6 +6839,27 @@ a11yfix, on a11ycheck's findings. Every card is `.overlay` or `#search`, and she
 
 `screenHeads`, run with `titleKeep`, gives each `.screen` that shows no `h1` a `h1.sr-only.screen-head` in the words of its bar's tab in front (`aria-current`), or the app's name on Home's picker. The project's rows' names are `h3` with `aria-level="2"`, Search has an `h2.sr-only`, and Sift's and Trace's filters an `h2.sr-only` over their groups. `#toast` stands inside `#toast-live`, `role="status"`, so a line said is heard, and Sift's and Trace's screens go before `#toast-live`. `#saved` is a status. The quote box is named `distil.pair.quote_n`, and the handle's words are `shell.grip.label` and `shell.grip.title`. The handle's `onkeydown` has a block body, so a key `gripKeys` does not take, Tab among them, is not cancelled. Area 339 checks the keys.
 
+### A click outside a card (12 November 2026)
+
+clickout, Adam: a click anywhere outside a card closes it, the same across the three apps. `cardsOutsideWatch` (shell.js,
+from `boot` after `cardsWatch`) keeps the `.overlay` under a `pointerdown` and under its `pointerup` (`cardBackdrop`: the
+overlay itself, never a part of it, and not its scroll bar), and on the `click` with both on the same backdrop sends that
+card's box an Esc keydown (`cardOutside`), so each card answers as its own Esc does, through whichever handler takes it,
+and a card added later has it with nothing more. `CARDS.keyed` is put back after, so the pointer's mark stands. A press
+inside the card let go outside, or the other way round, closes nothing. `cardHeld` leaves the card open, and a
+`mousedown` on its backdrop is then cancelled so the caret stays in the box: words typed since the card opened (an
+`input` in a `CARD_WORDS` box or an editable part marks the overlay in `OUTSIDE.typed`, cleared by `cardOpen`), unless
+the card has a `data-done` Done in its `.card-actions`, which applies as you go, then New project's card while
+`RVC.busy`, Send feedback while `FEEDBACK.busy` and any card an app's `cardBusy(o)` names. Idiograph's `distilCardBusy`
+names Share a copy, REFI-QDA, a copy coming back, the import, New project, Rename, the agent's actions' two cards and
+Working together's two while their work is under way, and Sift's names Export to Zotero while it runs. `cardDone` moved
+from distil.js to shell.js, so Sift's Set columns and its form's Done close their card, which they did not since Sift
+stopped loading Idiograph's script. `cardEscX`, in the shell's Esc after the `OVERLAYS`, presses the X of a card no list
+names and no app's Esc takes, Working together's invite and join cards. `offset` joined `OVERLAYS`. About, What's new
+and Support close alone on Esc from `cardAloneKeys`, a window keydown heard before any screen's, where Sift's and
+Trace's own keys kept Esc from them over their screens and What's new's Esc shut Settings with it. Sift's map and its
+reasons lost their own backdrop clicks, which closed on a press inside let go outside. Area 374 drives it.
+
 ### The text layer
 
 Since 28 October 2026 (i18ncore, Adam's ruling of that night: every on-screen word through one place, English only

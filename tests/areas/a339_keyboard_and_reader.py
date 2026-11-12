@@ -188,6 +188,8 @@ def test_keyboard_and_reader(scratch: Path):
         line_of(shell, "const CARDS = "), line_of(shell, "const CARD_SELECTOR = "), line_of(shell, "const CARD_STOPS = "),
         line_of(shell, "const CARD_FIELDS = "), line_of(shell, "const cardBox = "), line_of(shell, "const cardShown = "),
         line_of(shell, "const cardTop = "),
+        # the words typed in each card, which a card opened afresh clears (clickout, area 374)
+        line_of(shell, "const OUTSIDE = "),
         whole(shell, "function cardLabel("), whole(shell, "function cardStops("), whole(shell, "function cardFocusIn("),
         whole(shell, "function cardOpen("), whole(shell, "function cardClose("), whole(shell, "function cardTab("),
         whole(shell, "function cardsWatch("),
