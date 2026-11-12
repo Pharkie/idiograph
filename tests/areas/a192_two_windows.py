@@ -210,7 +210,7 @@ const turn = { getBoundingClientRect() { const t = col.top + fieldAt - 40 - col.
 const document = { activeElement: field };
 const $ = (id) => (id === 'work' ? work : col);
 const VIEW = { el: null, at: 0, w: 0, h: 0 };
-""" + whole("viewAnchor") + "\n" + whole("keepView") + r"""
+""" + whole("colRoom") + "\n" + whole("viewAnchor") + "\n" + whole("keepView") + r"""
 viewAnchor();
 const was = field.getBoundingClientRect().top;
 // the window narrowed: the column narrower and the field 500px further down its content, the scroll as it was
@@ -232,6 +232,68 @@ console.log(JSON.stringify({ was, away, narrow, back, lost: away > col.top + col
     check("192: narrowing the window while typing keeps the field holding the caret where it stood in the column, "
           "where it was pushed out of sight, and widening again keeps it there",
           got.get("lost") is True and got.get("narrow") == got.get("was") and got.get("back") == got.get("was"),
+          f"{got} {done.stderr[-300:]}")
+
+    # the way back's strip is no resize (wobble, 12 November 2026): the passage leaving sight brings Back to where I
+    # was and the 44 pixels the column gives it, which the column's observer read as a new size, so keepView scrolled
+    # the passage back and the wheel could not leave it, and a long passage's card flipped between held and free
+    strip_js = r"""
+const SPEAKER_CLEAR = 24;
+const work = { hidden: false };
+// a column 600 tall in its wrap, the passage 300 tall at 1,700 down its content, in sight at the start
+const wrap = { clientHeight: 600 };
+const col = { scrollTop: 1400, clientWidth: 900, clientHeight: 600, top: 100, parentElement: wrap,
+  getBoundingClientRect() { return { top: this.top, bottom: this.top + this.clientHeight }; },
+  contains(el) { return el === turn; }, querySelector() { return turn; } };
+const turn = { getBoundingClientRect() { const t = col.top + 1700 - col.scrollTop; return { top: t, bottom: t + 300, width: 600, height: 300 }; } };
+// a long passage's card and words for reachOf, the card beside the words
+const pair = { querySelector: () => ({ getBoundingClientRect: () => ({ bottom: 300 }) }) };
+const card = { getClientRects: () => [1], getBoundingClientRect: () => ({ left: 0, right: 300, top: 200 }),
+  querySelector: (q) => (q === '.pair' ? pair : { offsetHeight: 50 }) };
+const words = { getBoundingClientRect: () => ({ left: 340, right: 900, top: 230 }), scrollHeight: 490 };
+const row = { querySelector: () => words, contains: () => true, getBoundingClientRect: () => ({ top: 200 }) };
+const getComputedStyle = () => ({ lineHeight: '30px' });
+const document = { activeElement: null };
+const $ = (id) => (id === 'work' ? work : id === 'es-card' ? card : col);
+const VIEW = { el: null, at: 0, w: 0, h: 0 };
+""" + "\n".join(whole(n) for n in ("colRoom", "viewAnchor", "keepView", "reachOf")) + r"""
+// the strip as the IntersectionObserver brings it, the passage out of the column's band 24 pixels in from each edge,
+// and the column's observer running keepView whenever the column's box changes
+let strips = 0;
+const settle = () => {
+  const b = turn.getBoundingClientRect();
+  const box = col.getBoundingClientRect();
+  const away = !(b.bottom > box.top + 24 && b.top < box.bottom - 24);
+  const h = wrap.clientHeight - (away ? 44 : 0);
+  if (h !== col.clientHeight) { col.clientHeight = h; strips += 1; keepView(); }
+};
+viewAnchor();
+const free = reachOf(row).long;
+// a hundred small turns of the wheel up, 10 pixels each, each scroll taken by viewAnchor as the page's listener takes it
+for (let i = 0; i < 100; i += 1) { col.scrollTop -= 10; viewAnchor(); settle(); }
+const up = 1400 - col.scrollTop;
+// the long passage's measure with the strip there, as it stands now
+col.clientHeight = wrap.clientHeight - 44;
+const held = reachOf(row).long;
+// and down past the passage the other way
+col.scrollTop = 1400; settle(); viewAnchor();
+for (let i = 0; i < 100; i += 1) { col.scrollTop += 10; viewAnchor(); settle(); }
+const down = col.scrollTop - 1400;
+// a real resize still keeps the passage where it stood
+col.scrollTop = 1600; settle(); viewAnchor();
+const at = turn.getBoundingClientRect().top;
+wrap.clientHeight = 480; col.clientHeight = 480; col.clientWidth = 700; keepView();
+console.log(JSON.stringify({ up, down, strips, free, held, kept: turn.getBoundingClientRect().top === at }));
+"""
+    script = scratch / "a192-strip.js"
+    script.write_text(strip_js, encoding="utf-8")
+    done = subprocess.run([node, str(script)], capture_output=True, text=True, encoding="utf-8", timeout=60)
+    got = json.loads(done.stdout) if done.returncode == 0 and done.stdout.strip() else {}
+    check("192: the wheel takes the column off the current passage both ways, the way back's strip coming as the "
+          "passage leaves sight and recalling nothing, a long passage's card held or free alike with the strip, and a "
+          "real resize still keeping the passage where it stood",
+          got.get("up") == 1000 and got.get("down") == 1000 and got.get("strips", 0) >= 2
+          and got.get("free") is False and got.get("held") is False and got.get("kept") is True,
           f"{got} {done.stderr[-300:]}")
 
     drag_js = r"""

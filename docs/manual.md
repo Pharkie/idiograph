@@ -769,7 +769,8 @@ October). Scrolling them by hand moves nothing else and leaves the cursor where 
 passages are context and never a stop. Scroll the passage out of sight and a "Back to where I was" button appears
 with its timecode on it, in a strip of its own at the foot of the columns, which gives up that strip
 while the button shows, so it never covers a line at any width (16 October), which `Esc` does too from anywhere on the page,
-leaving whatever is in the fields alone. A click on a passage, `Cmd + J` and `Cmd + K` move at any
+leaving whatever is in the fields alone. The wheel takes the columns as far from the passage as you like, either way,
+and over a long passage's card it scrolls the card and then the columns. A click on a passage, `Cmd + J` and `Cmd + K` move at any
 time and any passage can be revisited.
 
 **The status bar on the statements screen (21 October, Adam's drawings).** Along the window's foot, under

@@ -6373,7 +6373,8 @@ function markCurrent(row) {
 
 /* The way back. The button is hidden while the turn is in the column's viewport and shows as soon
    as it is scrolled out of it, so it is only ever there when it is needed. While it shows, the column
-   gives up a strip at its foot for it, so it never covers a line (16 October). */
+   gives up a strip at its foot for it, so it never covers a line (16 October). Nothing that measures the
+   column counts the strip (`colRoom`, wobble, 12 November 2026). */
 let turnWatch;
 function wayBack(on) {
   $('back-to-turn').hidden = !on;
@@ -6415,6 +6416,17 @@ const CARD_REACH = 'hold';
    glide still running. */
 const REACH = { need: 0, room: 0, long: false, under: false, settle: 0, glide: 0 };
 
+/* The column's height as the window and the columns give it, the way back's strip left out (wobble, 12 November
+   2026). While the passage is out of sight the column gives up 44 pixels at its foot for Back to where I was, and
+   read as a new size that strip had keepView scroll the passage back into sight, which took the strip away, so the
+   wheel could not take the column off the passage and the screen jumped as he tried, and it flipped a long
+   passage's card between held and free, its scroll bar coming and going and its boxes moving sideways. The strip
+   is the column's margin inside its wrap, so the wrap's height is the column's whole. */
+function colRoom() {
+  const col = $('transcript');
+  return col.parentElement ? col.parentElement.clientHeight : col.clientHeight;
+}
+
 function reachOf(el) {
   const card = $('es-card');
   const col = $('transcript');
@@ -6431,7 +6443,7 @@ function reachOf(el) {
   // under them, and the card's 12 pixels under them where it stands there, never under two lines
   const line = parseFloat(getComputedStyle(words).lineHeight) || 24;
   const above = w.top - el.getBoundingClientRect().top;
-  const room = Math.max(line * 2, col.clientHeight - SPEAKER_CLEAR - 30 - above - 9 - (under ? need + 12 : 0));
+  const room = Math.max(line * 2, colRoom() - SPEAKER_CLEAR - 30 - above - 9 - (under ? need + 12 : 0));
   return { need: Math.ceil(need), room: Math.floor(room), long: words.scrollHeight > room + 1, under, line };
 }
 
@@ -6457,8 +6469,8 @@ function reachDraw() {
   el.classList.add('reach-long');
   if (CARD_REACH === 'cap') el.style.setProperty('--reach-cap', `${r.room}px`);
   if (CARD_REACH === 'hold') {
-    const most = col.clientHeight - 30 - 30 - 4;
-    const cap = r.under ? Math.min(most - r.line * 3, Math.max(r.need + 8, col.clientHeight / 2)) : most;
+    const most = colRoom() - 30 - 30 - 4;
+    const cap = r.under ? Math.min(most - r.line * 3, Math.max(r.need + 8, colRoom() / 2)) : most;
     el.style.setProperty('--reach-cap', `${Math.floor(Math.max(r.need, cap))}px`);
   }
   requestAnimationFrame(() => {
@@ -6493,13 +6505,15 @@ function reachInView() {
    holding the caret when it is in view, else the passage being worked on when it is, is taken with its
    distance from the column's top on every scroll and every move of the focus, and once the column has
    its new size it is put back at that distance, and whole in view where it fits. A place read while a new
-   size is still to be laid out is left alone, and nothing is kept once he has scrolled both out of view. */
+   size is still to be laid out is left alone, and nothing is kept once he has scrolled both out of view. The
+   way back's strip coming or going is no new size (`colRoom`, wobble): the passage leaving his sight brings
+   the strip, and recalled for it the passage came back under his wheel, every time. */
 const VIEW = { el: null, at: 0, w: 0, h: 0 };
 
 function viewAnchor() {
   const col = $('transcript');
   if ($('work').hidden || !col) return;
-  if (VIEW.el && (col.clientWidth !== VIEW.w || col.clientHeight !== VIEW.h)) return;
+  if (VIEW.el && (col.clientWidth !== VIEW.w || colRoom() !== VIEW.h)) return;
   const box = col.getBoundingClientRect();
   const seen = (el) => {
     if (!el || !col.contains(el)) return false;
@@ -6512,16 +6526,16 @@ function viewAnchor() {
   VIEW.el = el;
   VIEW.at = el ? el.getBoundingClientRect().top - box.top : 0;
   VIEW.w = col.clientWidth;
-  VIEW.h = col.clientHeight;
+  VIEW.h = colRoom();
 }
 
 function keepView() {
   const col = $('transcript');
   const el = VIEW.el;
   if ($('work').hidden || !col) return;
-  if (col.clientWidth === VIEW.w && col.clientHeight === VIEW.h) return;
+  if (col.clientWidth === VIEW.w && colRoom() === VIEW.h) return;
   VIEW.w = col.clientWidth;
-  VIEW.h = col.clientHeight;
+  VIEW.h = colRoom();
   if (!el || !col.contains(el)) return;
   const box = col.getBoundingClientRect();
   col.scrollTop += el.getBoundingClientRect().top - box.top - VIEW.at;

@@ -904,11 +904,14 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 }
 /* Way B: the card held in view, beside the words between the column's faded head and foot, lifted level with its
    quote by its cell (`--reach-lift`) so it can still rise to the foot from there, its height capped and scrolling
-   inside itself with its foot kept to its own foot, as the stacked column's card does */
+   inside itself with its foot kept to its own foot, as the stacked column's card does. The wheel over it scrolls it
+   and, at its top or its foot, the column, as any box inside a page does (wobble, 12 November 2026), where it kept
+   the wheel to itself and the card standing the column's height left no place in the statements' column to scroll
+   the column from */
 #work.reach-hold .turn.current.reach-long > .turn-es::before { content: ""; display: block; height: var(--reach-lift, 0px); }
 #work.reach-hold .turn.current.reach-long .es-card {
   position: sticky; top: 30px; bottom: 30px; margin-top: -6px;
-  max-height: var(--reach-cap); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+  max-height: var(--reach-cap); overflow-y: auto; scrollbar-width: thin;
 }
 #work.reach-hold .reach-long .es-foot { bottom: 0; }
 #work.reach-hold .reach-long .es-foot.stuck::after { display: none; }

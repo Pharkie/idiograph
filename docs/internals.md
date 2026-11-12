@@ -5211,6 +5211,20 @@ passage's boxes before it measures, and `drawTurn` centres a long passage once m
 (`document.fonts.ready`) on a column drawn anew. Nothing moves while he types: `reachDraw` runs on centring and
 on a resize, never on input.
 
+**The way back's strip is no resize (wobble, 12 November 2026).** Adam, in his Mac app on Juno: the wheel would not
+scroll the column up, and the card's boxes moved sideways as he tried. The passage leaving sight brings Back to
+where I was and the 44 pixel strip `.transcript-wrap.away .transcript` takes from the column's foot. The column's
+`ResizeObserver` read that as a new size and ran `keepView`, which put the passage, still in sight inside the
+observer's 24 pixel margin, back whole in view, which took the strip away again: in WebKit a thousand pixels of
+wheel up moved the column between 25 and 500, at every window size from 1100 by 700 to 1500 by 1000, every Text
+size and with the columns dragged or not, and d198429 did the same, so no train since caused it. At Large the strip also took the passage between long and not, so
+its card went between held and free, its 13 pixel scroll bar coming and going. `colRoom()` is the column's height
+without the strip, its wrap's, and `viewAnchor`, `keepView`, `reachOf` and `reachDraw` read it in place of
+`clientHeight`, so the strip changes no measure and recalls nothing, and a resize of the window or the columns
+still keeps the view. A held card no longer has `overscroll-behavior: contain`, so the wheel over it scrolls the
+card and then the column, where the card standing the column's height left no place in the statements' column to
+scroll from. Area 192 wheels a column of stand-ins past its passage both ways.
+
 **The columns shown, hidden or stacked (18 October).** Adam's drawing of four layouts and one menu.
 `columns_hidden`, `columns_stacked` and `stack_split` stand in `config.json` beside `statements_columns`,
 cleaned by `columns_hidden` and `stack_split` in `server.py` (`HIDEABLE_COLUMNS`, `STACK_SPLIT`,
