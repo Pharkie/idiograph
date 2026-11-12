@@ -127,6 +127,15 @@ def test_exports_typst(scratch: Path):
             shutil.copy2(src / f"{name} - EN & ES.xlsx", root / name / f"{name} - EN & ES.xlsx")
             for side in sorted((src / "Working").glob(f"{name} - *")):
                 shutil.copy2(side, root / name / "Working" / side.name)
+        # Juno places every statement since 12 November 2026 (esredo2), so one is taken out of its PET on this copy,
+        # for Not placed to have one to print
+        side = root / "Juno" / "Working" / "Juno - EN & ES.themes.json"
+        held = json.loads(side.read_text(encoding="utf-8"))
+        first = held["boards"][0]
+        picked = {k for chosen in (first.get("picks") or {}).values() for k in chosen}
+        leaf = next(g for g in first["groups"] if len([m for m in g["members"] if m in first["cards"]]) > 2)
+        leaf["members"].remove(next(m for m in leaf["members"] if m in first["cards"] and m not in picked))
+        side.write_text(json.dumps(held, ensure_ascii=False), encoding="utf-8")
         (root / srv.PROJECT_FILE).write_text(json.dumps({"name": "Dogs at home, an invented study",
                                                          "research_question": support.DEMO_QUESTION,
                                                          "agents": {"allowed": True, "at": "2026-11-09T20:00:00+00:00"}}),

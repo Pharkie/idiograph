@@ -175,7 +175,7 @@ def test_board_view(scratch):
         return
     opened, far = o["open"], o["far"]
     check("305: an open fits the board, every card on the canvas in view",
-          opened["drawn"] > 50 and opened["inView"] == opened["drawn"], opened)
+          opened["drawn"] == len(state["cards"]) > 20 and opened["inView"] == opened["drawn"], opened)
     check("305: a switch to a board whose cards stand far off comes on with them in view, never the blank place the "
           "board left was shown at", far["board"] == "v2" and far["inView"] == far["drawn"] and far["view"] != opened["view"], far)
     check("305: a switch back finds each board on the view it was left in, the open's fit and his own at 100%",

@@ -172,9 +172,12 @@ def test_qdpx_export(scratch):
     shutil.rmtree(out, ignore_errors=True)
     out.mkdir()
     code, dry, err = run(root, "project", "export-qdpx", "--dry-run", "--json")
+    # every statement of the demo as it ships, each with its own quote since 12 November 2026 (esredo2)
+    cards = sum(len(themes.read_cards(p)["cards"]) for p in sorted((shipped / "pristine").glob("*.xlsx")))
     check("340: a dry run says what the file would hold, every participant, statement, PET and GET, and writes nothing",
           code == 0 and dry["dry_run"] is True and dry["participants"] == ["Juno", "Mabel", "Rowan"]
-          and dry["counts"]["statements"] > 100 and dry["counts"]["pets"] == 15 and dry["counts"]["gets"] == 5
+          and dry["counts"]["statements"] == dry["counts"]["quotes"] == cards > 50 and dry["counts"]["no_quote"] == 0
+          and dry["counts"]["pets"] == 9 and dry["counts"]["gets"] == 5
           and tree(root) == before and not list(out.iterdir()), err or str(dry)[:400])
     code, done, err = run(root, "project", "export-qdpx", "--to", str(out), "--json")
     package = out / "Living with a dog.qdpx"

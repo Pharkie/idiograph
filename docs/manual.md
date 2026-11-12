@@ -534,7 +534,7 @@ Table view too, so the way back to the canvas is always in reach, and T still sw
 counts and its tools alone. Where it runs short, as at 1280
 with the sidebar open and every count ticked, the tools' words give way first, Fit all, Minimap, Quotes and
 Shortcuts standing as icons with their words in their tooltips, so the counts always say the whole sentence there,
-"122 ES: 118 in PETs, 0 stacked, 2 set aside, 2 not placed | 5 PETs" (Adam, 26 October).
+"18 ES: 17 in PETs, 0 stacked, 0 set aside, 1 not placed | 3 PETs" on the demo's Mabel (Adam, 26 October).
 Since the same day (Adam's option B) Align and Spread stand under the toolbar's three dots, after Auto-arrange:
 the dots open a menu of two sections, Align with Left, Centre and Right, Top, Middle and Bottom, and Spread with
 Across and Down, each with its icon and its word, doing to the selection what its button did and faint as the
@@ -5211,17 +5211,17 @@ finished project, a worked example of IPA from the first passage to the GETs (Ad
 complete worked example as if the project was finished"). Juno, Mabel and Rowan each have a recording
 (12 November 2026), Juno's about twenty-eight minutes, Rowan's and Mabel's shorter, about eleven and ten. Each
 comes annotated: every passage
-decided, with its experiential statements, its exploratory note, its key quote and a highlight here
-and there, the rounds closed and Statements complete, and its PETs on Board 1, the Current board,
-marked complete, five PETs with sub-PETs, a description under every title, a note and a picked quote
-on each PET, a statement or two not placed and one or two discarded. Juno's holds 122 statements in
-five PETs and eight sub-PETs, Rowan's and Mabel's 46 each. The GETs board across the three, Board 1 of
-the demo's GETs, the Current board and marked complete, holds five GETs, each with its description and
-note, from the PETs and sub-PETs of all three, the sub-PETs whose PET carries them set aside, and the
-quote of each participant's row ticked in the GET table. The three share the shape of the day, the dog
-between them and other people, the house with a dog in it, losing each other and what keeping a dog
-costs, each in their own way, and part in how they live them. Rowan gave his dog up and has not settled
-what that was. The PETs tables and the GET table are the app's own, made from those boards, so Open as
+decided, with its experiential statements, each beside its own key quote, its exploratory note and a
+highlight here and there, the rounds closed and Statements complete, and its PETs on Board 1, the
+Current board, marked complete, three PETs with sub-PETs, a description under every title and a picked
+quote on each PET. Juno's holds 36 statements in three PETs and nine sub-PETs, Rowan's 24 in three PETs
+and seven sub-PETs, and Mabel's 18 in three PETs and two sub-PETs, one of hers not placed (the analysis redone
+on 12 November 2026). The GETs board across the three, Board 1 of the demo's GETs, the Current board and marked
+complete, holds five GETs, each with its description, from the PETs and sub-PETs of all three, the
+sub-PETs whose PET carries them set aside, and the quote of each participant's row ticked in the GET
+table. The three share a home come alive with the dog, the dog as a way back to people or round them,
+being changed by the dog, holding on to the dog through what it costs, and the parting from the dog,
+each in their own way. Rowan gave his dog up and has not settled what that was. The PETs tables and the GET table are the app's own, made from those boards, so Open as
 table and the exports show a finished project's tables. Every participant's interviewer is named as the
 transcript names them, Adam today.
 
@@ -5266,10 +5266,12 @@ written. A copy of the demo folder added as a project lists its three participan
 
 **Building it.** `make_demo.py --written`, or a plain run, builds the whole finished demo from its sources,
 the recordings aside: for each participant the workbook through create-from-source, every passage through the
-passage screen's own saves, the progress file with its rounds closed and Statements complete, and the
-board laid out as an agent's board make lays one out, its descriptions, notes and picks added, then saved, marked current and
+passage screen's own saves, each statement with its own key quote, a quote of pieces found piece by piece in its
+passage and joined with an ellipsis as the passage screen joins them, the progress file with its rounds closed and
+Statements complete, and the board laid out as an agent's board make lays one out, its descriptions and picks
+added, then saved, marked current and
 marked complete through the PETs screen's own functions, and then the GETs board across the three, laid
-out the same way, its descriptions, notes and ticked quotes added, saved, marked current and marked
+out the same way, its descriptions and ticked quotes added, saved, marked current and marked
 complete through the GETs screen's own functions. The clock is held at the times the sources give,
 every part of each workbook's zip is dated alike and the files the GETs read are dated alike while they
 read them, so the same sources build the same files byte for byte. It writes `demo/pristine/` and the

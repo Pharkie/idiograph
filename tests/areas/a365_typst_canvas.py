@@ -219,7 +219,7 @@ def test_typst_canvas(scratch: Path):
     pdf = canvas_out.typeset_canvas(juno, "pdf")
     page = flat("".join(pdftext.pages_text(pdf)))
     lost = [c["text"][:30] for c in juno["cards"] if flat(c["text"]) not in page]
-    check("Juno's board on one page, every statement on it whole", len(juno["cards"]) > 100 and not lost,
+    check("Juno's board on one page, every statement on it whole", len(juno["cards"]) > 30 and not lost,
           str(lost[:3]))
     gets_data = canvas_out.gets_data(demo, make_demo.gets_books(demo), "Demo")
     png = canvas_out.typeset_canvas(gets_data, "png")

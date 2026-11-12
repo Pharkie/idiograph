@@ -3658,10 +3658,17 @@ holds the rows a chevron turned the other way until the search changes.
 does. Since 26 October it is a finished project (Adam, 24 October). `demo/source/` holds each
 interview as a CSV and `<name> - annotations.json` beside it: every participant turn's statements,
 note, quotes and highlight, or empty, the times of the work, and the board, each PET and sub-PET with
-its title, description and statements and each PET with its note and picks, the highlights kept as the
-file's own and drawn as plain words since 16 October. `demo/source/GETs.json` holds the GETs board:
-each GET's title, description, note and members, a PET or sub-PET named by participant and title, the
-quote ticked for each participant's row, and the cards set aside. `make_demo.py --written`
+its title, description and statements and each PET with its picks (and a note where one is given), the
+highlights kept as the file's own and drawn as plain words since 16 October. A turn's `kq` is one quote a
+statement, quote i statement i's, a gap marked with an ellipsis (esredo2, 12 November 2026: until then a
+turn's one quote paired by place with its first statement, often the wrong one). `annotate` finds each
+quote with `workbook.quote_turns`, piece by piece in order in its turn or running on into the same
+speaker's turns next to it, refuses words that differ from the transcript's but for spacing, case and
+curly marks, writes it as `assembleQuote` in quote.js does, the pieces joined by " … " in inverted commas,
+and saves the turn through `save_turn`'s `pairs`, so every statement holds its own quote and no turn is
+left to pair. `demo/source/GETs.json` holds the GETs board:
+each GET's title, description, note where it has one, and members, a PET or sub-PET named by participant
+and title, the quote ticked for each participant's row, and the cards set aside. `make_demo.py --written`
 (`ship_all`) builds each case into the workbook, the progress file and the themes file
 (`build_written`), then the GETs across the three into `idiograph-gets.json` (`build_gets`, through
 `gets.assemble`, `themes_ai.lay_out` with `gets.card_height`, `gets.row_targets`, `gets.save` and

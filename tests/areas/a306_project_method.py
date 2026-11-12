@@ -408,7 +408,8 @@ def ta_word(ta: Path, ipa: Path, call, config_file: Path, ipa_words):
           and "gets export --word" in said(ta, "board", "export", "Juno", "--word"), dry)
     shown = {m: said(r, "gets", "show") for m, r in (("ta", ta), ("ipa", ipa))}
     own = {m: said(r, "statements", "Juno") for m, r in (("ta", ta), ("ipa", ipa))}
-    kinds = {m: said(r, "search", "stair") for m, r in (("ta", ta), ("ipa", ipa))}
+    # a word the demo's statements hold, codes in the TA copy (the demo's analysis redone 12 November 2026)
+    kinds = {m: said(r, "search", "regret") for m, r in (("ta", ta), ("ipa", ipa))}
     check("306: the command line's own lines in a TA project are TA's (gets show, statements, project show, search's "
           "kinds) and an IPA project's IPA's",
           shown["ta"].startswith("Themes, Board 1 (b1).") and "  Code Juno: " in shown["ta"]

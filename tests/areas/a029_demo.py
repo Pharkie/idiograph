@@ -73,18 +73,24 @@ def test_demo(scratch):
           f"{len(sheet['rows'])} rows, Adam's six columns")
     made = sheet["rows"]
     hers = [r for r in made if r["name"] == make_demo.PARTICIPANT]
-    check("every turn of hers carries statements, a note and a key quote, and none of the interviewer's does",
-          hers and all(r["es"].strip() and r["en"].strip() and r["kq"].strip() for r in hers)
+    # since 12 November 2026 (esredo2) a turn may hold a note alone, and each statement holds its own quote
+    stated = [r for r in hers if r["es"].strip()]
+    check("every turn of hers carries a note, most a statement and its key quote, and none of the interviewer's does",
+          hers and all(r["en"].strip() for r in hers) and len(stated) >= len(hers) * 3 // 4
+          and all(r["kq"].strip() for r in stated)
           and not any(r["es"].strip() or r["en"].strip() or r["kq"].strip() for r in made if r not in hers),
-          f"{len(hers)} turns of hers")
+          f"{len(stated)} of {len(hers)} turns of hers with a statement")
     lengths = [len(line.split()) for r in hers for line in r["es"].splitlines() if line.strip()]
-    check("her statements are in the register they are written in",
-          lengths and all(2 <= n <= 10 for n in lengths) and not any('"' in r["es"] for r in hers),
+    check("her statements are in the register they are written in, none over fifteen words",
+          lengths and all(3 <= n <= 15 for n in lengths) and not any('"' in r["es"] for r in hers),
           f"{len(lengths)} statements, {min(lengths)} to {max(lengths)} words")
-    check("every key quote is verbatim from its turn, in inverted commas",
-          all(q.startswith('"') and q.endswith('"') and q.strip('"') in r["text"]
-              for r in hers for q in r["kq"].splitlines() if q.strip()),
-          "the quote is in inverted commas and its words are in the turn")
+    paired = [(i, p) for i, r in enumerate(made) if r in hers for p in r["pairs"]]
+    check("each statement has its own key quote, in inverted commas, its pieces verbatim and in order in its turn",
+          len(paired) == len(lengths) and not any(r["unpaired"] for r in hers)
+          and all(p["es"] and p["kq"].startswith('"') and p["kq"].endswith('"')
+                  and {t for t, _s, _e in wb_mod.quote_turns(made, i, p["kq"], make_demo.interviewer())} == {i}
+                  for i, p in paired),
+          f"{len(paired)} statements, each with its quote")
     marked = [(r["row"], "".join(x["text"] for x in r["runs"] if x["crux"])) for r in made
               if any(x["crux"] for x in r["runs"])]
     wb = openpyxl.load_workbook(built, rich_text=True)

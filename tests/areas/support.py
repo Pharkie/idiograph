@@ -319,7 +319,14 @@ PARTICIPANTS = in_repo("participants")
 # laid out in a pristine copy's shape, `DEMO_PRISTINE`, the workbooks at its root and their sidecars in
 # its `Working/`. The shipped demo itself, `demo/pristine/`, is read where a check is about the demo
 # as it ships (areas 29, 73 and 74).
+#
+# Since 12 November 2026 (esredo2) the fixture's annotations are its own, in `tests/demo_fixture/`: Juno's
+# first six turns and Rowan's and Mabel's whole annotations as the demo's sources held them until that day,
+# when the demo's analysis was redone, so the checks written on the fixture keep the cases they were
+# written on, three statements a turn among them, and the demo's analysis can change without them.
+# The transcripts are still the demo's own.
 DEMO_SHIPPED = source("demo/pristine")
+DEMO_FIXTURE = source("tests/demo_fixture")
 HEAD_START = 6
 
 
@@ -331,7 +338,7 @@ def head_start(into: Path) -> Path:
     import tempfile
     import make_demo
     rows = make_demo.read_turns()
-    notes = make_demo.read_annotations(make_demo.written_sources(make_demo.PARTICIPANT)[1])
+    notes = make_demo.read_annotations(DEMO_FIXTURE / "Juno - head start.json")
     into.mkdir(parents=True, exist_ok=True)
     book = into / make_demo.WORKBOOK.name
     with tempfile.TemporaryDirectory(prefix="demo-fixture-") as tmp:
@@ -354,16 +361,18 @@ def head_start(into: Path) -> Path:
 
 
 def undescribed(into: Path) -> Path:
-    """A copy of the demo's sources in `into/source/`, every PET's and sub-PET's description taken out of
-    the annotations, as the demo's boards were before 26 October. Answers `into`, a demo folder
-    `make_demo.build_written` builds from."""
+    """The demo's transcripts and the fixture's annotations of Rowan and Mabel in `into/source/`, every PET's
+    and sub-PET's description taken out of the annotations, as the demo's boards were before 26 October.
+    Answers `into`, a demo folder `make_demo.build_written` builds from."""
     import make_demo
     folder = into / "source"
     folder.mkdir(parents=True, exist_ok=True)
     for name in make_demo.CASES:
         csv_path, notes_path = make_demo.written_sources(name)
         shutil.copyfile(csv_path, folder / csv_path.name)
-        notes = json.loads(notes_path.read_text(encoding="utf-8"))
+        if name not in make_demo.WRITTEN:
+            continue
+        notes = json.loads((DEMO_FIXTURE / notes_path.name).read_text(encoding="utf-8"))
         for pet in notes["board"]["pets"]:
             for label in [pet] + list(pet.get("subs") or []):
                 label.pop("description", None)

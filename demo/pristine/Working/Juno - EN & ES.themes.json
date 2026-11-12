@@ -20,897 +20,359 @@
    "updated": "2026-09-28T14:10:00+01:00",
    "cards": {
     "Initial:3:0": {
-     "x": 5,
-     "y": -1129,
-     "text": "Finding her already waiting on the second stair"
-    },
-    "Initial:3:1": {
-     "x": -205,
-     "y": -1129,
-     "text": "Softening before the day has properly started"
-    },
-    "Initial:3:2": {
-     "x": -310,
-     "y": -1019,
-     "text": "A house that is quiet and never empty"
+     "x": -756,
+     "y": 401,
+     "text": "A house never empty with the dog, even when quiet"
     },
     "Initial:5:0": {
-     "x": -100,
-     "y": -1239,
-     "text": "Caught out by a tenderness never claimed before"
-    },
-    "Initial:5:1": {
-     "x": -100,
-     "y": -1019,
-     "text": "Talking aloud to an animal at half six"
-    },
-    "Initial:5:2": {
-     "x": 110,
-     "y": -1019,
-     "text": "Groaning back, and hearing it happen"
+     "x": 73,
+     "y": 312,
+     "text": "Caught out going soft over the dog"
     },
     "Initial:7:0": {
-     "x": -310,
-     "y": -929,
-     "text": "Losing the argument to a photograph"
-    },
-    "Initial:7:1": {
-     "x": -100,
-     "y": -929,
-     "text": "Won over by the lean in the yard"
-    },
-    "Initial:7:2": {
-     "x": 110,
-     "y": -929,
-     "text": "Two versions of how the decision was made"
-    },
-    "Initial:9:0": {
-     "x": -693,
-     "y": 423,
-     "text": "The day opening with who gets up"
-    },
-    "Initial:9:1": {
-     "x": -588,
-     "y": 333,
-     "text": "Cracking first, every morning"
-    },
-    "Initial:9:2": {
-     "x": -483,
-     "y": 423,
-     "text": "Not proud of being the one who goes"
+     "x": 73,
+     "y": 402,
+     "text": "Won over by the dog before she would admit it"
     },
     "Initial:11:0": {
-     "x": -693,
-     "y": 513,
-     "text": "Twelve minutes standing for something much larger"
-    },
-    "Initial:11:1": {
-     "x": -483,
-     "y": 513,
-     "text": "Anger taken off at the bottom of the stairs"
-    },
-    "Initial:11:2": {
-     "x": -588,
-     "y": 603,
-     "text": "Wanting to stay cross and not managing it"
+     "x": 19,
+     "y": -656,
+     "text": "Always the one up for the dog, and feeling taken for granted"
     },
     "Initial:13:0": {
-     "x": -259,
-     "y": 64,
-     "text": "Never getting to have it out"
-    },
-    "Initial:13:1": {
-     "x": -259,
-     "y": -6,
-     "text": "Five years of the unsaid"
-    },
-    "Initial:13:2": {
-     "x": -259,
-     "y": 154,
-     "text": "A mood that does not survive the stairs"
-    },
-    "Initial:15:0": {
-     "x": -1368,
-     "y": 174,
-     "text": "The same forty minutes, every inch known"
-    },
-    "Initial:15:1": {
-     "x": -1158,
-     "y": 174,
-     "text": "Walked by the dog on some mornings"
-    },
-    "Initial:15:2": {
-     "x": -1368,
-     "y": 264,
-     "text": "A hedge that has never once produced anything"
+     "x": 19,
+     "y": -746,
+     "text": "Anger taken off her by the dog, so it never gets said"
     },
     "Initial:17:0": {
-     "x": -1368,
-     "y": 84,
-     "text": "Surprised to hear herself say she loves it"
+     "x": 73,
+     "y": 726,
+     "text": "From resenting the morning walk to loving it as her own time"
     },
     "Initial:17:1": {
-     "x": 194,
-     "y": -390,
-     "text": "Resenting forty minutes she did not have"
-    },
-    "Initial:17:2": {
-     "x": -1263,
-     "y": -6,
-     "text": "The one part of the day that is hers"
-    },
-    "Initial:17:3": {
-     "x": -1158,
-     "y": 84,
-     "text": "A respectable reason to be unavailable"
+     "x": 73,
+     "y": 836,
+     "text": "Glad to be out of reach with the dog"
     },
     "Initial:19:0": {
-     "x": -1158,
-     "y": 264,
-     "text": "Her enthusiasm for a wet hedge"
+     "x": 73,
+     "y": 926,
+     "text": "The dog's joy quieting her head and her moods"
     },
     "Initial:19:1": {
-     "x": -1368,
-     "y": 354,
-     "text": "No bad mood surviving that much joy"
-    },
-    "Initial:19:2": {
-     "x": -1158,
-     "y": 354,
-     "text": "A child who will never be embarrassed by her"
+     "x": -100,
+     "y": -968,
+     "text": "The dog like a child who will never grow away from her"
     },
     "Initial:21:0": {
-     "x": -1557,
-     "y": 736,
-     "text": "Furious and thrilled while she runs"
-    },
-    "Initial:21:1": {
-     "x": -1557,
-     "y": 826,
-     "text": "Aged four years at the gate"
-    },
-    "Initial:21:2": {
-     "x": -1557,
-     "y": 646,
-     "text": "Letting her off every morning anyway"
-    },
-    "Initial:21:3": {
-     "x": -1557,
-     "y": 556,
-     "text": "Her freedom worth the worry"
+     "x": 451,
+     "y": 1014,
+     "text": "The dog's joy worth the worry"
     },
     "Initial:23:0": {
-     "x": 194,
-     "y": -480,
-     "text": "Her time stopping being hers"
-    },
-    "Initial:23:1": {
-     "x": -16,
-     "y": -390,
-     "text": "No more going off at an hour's notice"
-    },
-    "Initial:23:2": {
-     "x": 89,
-     "y": -570,
-     "text": "Six months in, thinking it a mistake"
-    },
-    "Initial:23:3": {
-     "x": -16,
-     "y": -480,
-     "text": "A thought never said to anybody"
+     "x": -305,
+     "y": 744,
+     "text": "Regretting the dog in a hard first year, her time no longer hers"
     },
     "Initial:25:0": {
-     "x": -16,
-     "y": -300,
-     "text": "Unable to regret a dog with a past"
+     "x": -305,
+     "y": 854,
+     "text": "Unable to say she regrets a dog with a hard past"
     },
     "Initial:25:1": {
-     "x": 194,
-     "y": -300,
-     "text": "Her flinch at a raised arm, even now"
-    },
-    "Initial:25:2": {
-     "x": -16,
-     "y": -210,
-     "text": "Regret coming back on wet February nights"
+     "x": -305,
+     "y": 944,
+     "text": "The regret gone, mostly, but back on wet winter nights"
     },
     "Initial:27:0": {
-     "x": -969,
-     "y": 623,
-     "text": "Two minutes looking at the door"
-    },
-    "Initial:27:1": {
-     "x": -1179,
-     "y": 713,
-     "text": "Her waiting, not begging"
-    },
-    "Initial:27:2": {
-     "x": -969,
-     "y": 713,
-     "text": "Turning round together at the postbox"
-    },
-    "Initial:27:3": {
-     "x": -1074,
-     "y": 533,
-     "text": "Closer on the worst night than on the nice walks"
+     "x": 451,
+     "y": 834,
+     "text": "Moved by the dog waiting on her decision"
     },
     "Initial:29:0": {
-     "x": -1179,
-     "y": 623,
-     "text": "Closeness proved by what it cost"
-    },
-    "Initial:29:1": {
-     "x": -1179,
-     "y": 803,
-     "text": "Anybody can walk a dog in June"
-    },
-    "Initial:29:2": {
-     "x": -969,
-     "y": 803,
-     "text": "Giving up together as an agreement"
+     "x": 451,
+     "y": 744,
+     "text": "Closest to the dog on the night it cost her"
     },
     "Initial:31:0": {
-     "x": -1179,
-     "y": 893,
-     "text": "Rules neither of them wrote down"
-    },
-    "Initial:31:1": {
-     "x": -969,
-     "y": 893,
-     "text": "Knowing where they stand without a word"
-    },
-    "Initial:31:2": {
-     "x": -1074,
-     "y": 983,
-     "text": "A strange thing to have with another creature"
+     "x": 451,
+     "y": 924,
+     "text": "Unspoken rules with the dog, strange to have"
     },
     "Initial:33:0": {
-     "x": 451,
-     "y": 203,
-     "text": "Claws on the hall floor before the door opens"
-    },
-    "Initial:33:1": {
-     "x": 661,
-     "y": 203,
-     "text": "The lean, never the jump"
-    },
-    "Initial:33:2": {
-     "x": 451,
-     "y": 293,
-     "text": "The earless rabbit brought every time"
+     "x": -359,
+     "y": -548,
+     "text": "The dog's welcome home the best bit of her day"
     },
     "Initial:35:0": {
-     "x": 556,
-     "y": 43,
-     "text": "Being wanted, plainly"
-    },
-    "Initial:35:1": {
-     "x": 451,
-     "y": 113,
-     "text": "Nobody else that pleased to see her"
-    },
-    "Initial:35:2": {
-     "x": 661,
-     "y": 113,
-     "text": "Everything stopping when the key goes in"
+     "x": -359,
+     "y": -618,
+     "text": "Wanted as by nobody else"
     },
     "Initial:37:0": {
-     "x": 661,
-     "y": 293,
-     "text": "Once finding reasons to stay out"
-    },
-    "Initial:37:1": {
-     "x": 451,
-     "y": 383,
-     "text": "A clock on her now"
-    },
-    "Initial:37:2": {
-     "x": 661,
-     "y": 383,
-     "text": "Coming home for the door"
+     "x": -359,
+     "y": -728,
+     "text": "From finding reasons to stay out to coming home for the dog"
     },
     "Initial:39:0": {
-     "x": 661,
-     "y": 635,
-     "text": "Back early for a Thursday"
-    },
-    "Initial:39:1": {
-     "x": 451,
-     "y": 635,
-     "text": "Hearing she will come home for the dog"
-    },
-    "Initial:39:2": {
-     "x": 451,
-     "y": 725,
-     "text": "Not pretending it is not true"
+     "x": -359,
+     "y": -458,
+     "text": "Unsettled by her partner's remark that she comes home for the dog"
     },
     "Initial:41:0": {
-     "x": 661,
-     "y": 725,
-     "text": "Uncomfortable, and unable to argue"
-    },
-    "Initial:41:1": {
-     "x": 556,
-     "y": 565,
-     "text": "The dog is easier"
-    },
-    "Initial:41:2": {
-     "x": 451,
-     "y": 815,
-     "text": "No memory of last Tuesday"
-    },
-    "Initial:41:3": {
-     "x": 661,
-     "y": 815,
-     "text": "What was going on still waiting in the hall"
+     "x": -100,
+     "y": -1188,
+     "text": "Finding the dog easier than people, and not liking what that says"
     },
     "Initial:43:0": {
-     "x": -35,
-     "y": 605,
-     "text": "Forty stupid voices for her"
-    },
-    "Initial:43:1": {
-     "x": -140,
-     "y": 405,
-     "text": "Talking about her instead of talking"
-    },
-    "Initial:43:2": {
-     "x": 175,
-     "y": 695,
-     "text": "Unsure she wants to reach the bottom of it"
-    },
-    "Initial:45:0": {
-     "x": 1042,
-     "y": 176,
-     "text": "Going straight to the worst thing"
-    },
-    "Initial:45:1": {
-     "x": 1252,
-     "y": 176,
-     "text": "In the car inside four minutes"
-    },
-    "Initial:45:2": {
-     "x": 937,
-     "y": 266,
-     "text": "Doing the sums on the way"
+     "x": -100,
+     "y": -224,
+     "text": "Unsure whether the dog is good for the couple or a way of not talking"
     },
     "Initial:47:0": {
-     "x": 1147,
-     "y": 266,
-     "text": "Shaking, when she is the one people ring"
-    },
-    "Initial:47:1": {
-     "x": 1357,
-     "y": 266,
-     "text": "A bright calm voice she did not recognise"
-    },
-    "Initial:47:2": {
-     "x": 937,
-     "y": 356,
-     "text": "Her silence in the back as knowing"
-    },
-    "Initial:47:3": {
-     "x": 1147,
-     "y": 356,
-     "text": "When did something come to matter this much"
+     "x": -791,
+     "y": 1015,
+     "text": "Shaken by fear for the dog, and by how much she has come to matter"
     },
     "Initial:49:0": {
-     "x": 1357,
-     "y": 356,
-     "text": "Fifteen minutes and forty quid"
-    },
-    "Initial:49:1": {
-     "x": 937,
-     "y": 446,
-     "text": "Crying saved up for the car park"
-    },
-    "Initial:49:2": {
-     "x": 1147,
-     "y": 446,
-     "text": "Shocked at the size of what she felt"
+     "x": -581,
+     "y": 1015,
+     "text": "Tears of relief held back until the car park"
     },
     "Initial:51:0": {
-     "x": 1042,
-     "y": 86,
-     "text": "Organising her grief in advance, in traffic"
-    },
-    "Initial:51:1": {
-     "x": 1147,
-     "y": 16,
-     "text": "A Saturday as a rehearsal"
-    },
-    "Initial:51:2": {
-     "x": 1252,
-     "y": 86,
-     "text": "Finding the whole thing ready to go"
+     "x": -686,
+     "y": 905,
+     "text": "Grief for the dog found ready in advance, and not welcome"
     },
     "Initial:53:0": {
-     "x": 1357,
-     "y": 446,
-     "text": "Trying not to think about the end"
-    },
-    "Initial:53:1": {
-     "x": 1042,
-     "y": 536,
-     "text": "Watching her run in her dreams"
-    },
-    "Initial:53:2": {
-     "x": 1252,
-     "y": 536,
-     "text": "Grieving a dog who is snoring at her"
-    },
-    "Initial:55:0": {
-     "x": -100,
-     "y": -620,
-     "text": "A foot taken away from the nail clippers"
-    },
-    "Initial:55:1": {
-     "x": 1042,
-     "y": 877,
-     "text": "Two hours free at the groomer's"
+     "x": -686,
+     "y": 1125,
+     "text": "Trying not to think of the dog's death, and laughing herself out of it"
     },
     "Initial:57:0": {
-     "x": 1252,
-     "y": 877,
-     "text": "Not knowing what to do with herself"
-    },
-    "Initial:57:1": {
-     "x": 1252,
-     "y": 787,
-     "text": "A wrong quiet, like the fridge stopping"
-    },
-    "Initial:57:2": {
-     "x": 937,
-     "y": 967,
-     "text": "Looking at the second stair"
+     "x": -756,
+     "y": 601,
+     "text": "Lost in a wrong quiet without the dog"
     },
     "Initial:59:0": {
-     "x": 1147,
-     "y": 697,
-     "text": "The house on standby without her"
-    },
-    "Initial:59:1": {
-     "x": 1147,
-     "y": 967,
-     "text": "A home arranged round her, never decided"
-    },
-    "Initial:59:2": {
-     "x": 1357,
-     "y": 967,
-     "text": "A rule given up under a blanket"
-    },
-    "Initial:59:3": {
-     "x": 1042,
-     "y": 787,
-     "text": "The house as a set, furniture waiting"
-    },
-    "Initial:61:0": {
-     "x": 1042,
-     "y": 1057,
-     "text": "Fetching her twenty minutes early"
-    },
-    "Initial:61:1": {
-     "x": 215,
-     "y": 450,
-     "text": "Floral and appalled"
-    },
-    "Initial:61:2": {
-     "x": 1252,
-     "y": 1057,
-     "text": "A whole house waiting for a dog"
+     "x": -756,
+     "y": 691,
+     "text": "The house 'on standby' without the dog"
     },
     "Initial:63:0": {
-     "x": 1042,
-     "y": 1147,
-     "text": "So much resting on one animal"
-    },
-    "Initial:63:1": {
-     "x": 1252,
-     "y": 1147,
-     "text": "The thought she does not let herself finish"
-    },
-    "Initial:63:2": {
-     "x": 1147,
-     "y": 1237,
-     "text": "A dog who cannot be told any of it"
+     "x": -686,
+     "y": 1235,
+     "text": "A bit alarming, how much of home rests on the dog"
     },
     "Initial:65:0": {
-     "x": 175,
-     "y": 495,
-     "text": "Doing her voice, complaints about the service"
-    },
-    "Initial:65:1": {
-     "x": -245,
-     "y": 605,
-     "text": "The funniest thing in the house"
-    },
-    "Initial:65:2": {
-     "x": -35,
-     "y": 495,
-     "text": "Dog voices at half nine"
+     "x": 5,
+     "y": -114,
+     "text": "Real fun in doing the dog's voices together"
     },
     "Initial:67:0": {
-     "x": 70,
-     "y": 405,
-     "text": "A list nobody starts at half nine"
-    },
-    "Initial:67:1": {
-     "x": -245,
-     "y": 495,
-     "text": "Her mother unwell and not talked about"
-    },
-    "Initial:67:2": {
-     "x": -35,
-     "y": 315,
-     "text": "A dog as a door to close on it"
+     "x": -205,
+     "y": -24,
+     "text": "Escaping hard talk through the dog"
     },
     "Initial:69:0": {
-     "x": -245,
-     "y": 695,
-     "text": "Relieved, and uneasy about the relief"
+     "x": 5,
+     "y": -24,
+     "text": "Relieved by the dog's interruption, then a bit uneasy at the relief"
     },
     "Initial:69:1": {
-     "x": 175,
-     "y": 605,
-     "text": "The reason they share a room at all"
-    },
-    "Initial:69:2": {
-     "x": -35,
-     "y": 695,
-     "text": "Not knowing which it is"
-    },
-    "Initial:71:0": {
-     "x": -140,
-     "y": 785,
-     "text": "Round and round it without an answer"
-    },
-    "Initial:71:1": {
-     "x": 70,
-     "y": 785,
-     "text": "The answer changing with the week"
+     "x": -205,
+     "y": -114,
+     "text": "The dog the reason the couple share a room at all"
     },
     "Initial:73:0": {
-     "x": -394,
-     "y": -566,
-     "text": "Goodnight said out loud, as to a person"
-    },
-    "Initial:73:1": {
-     "x": -394,
-     "y": -476,
-     "text": "Two thumps of the tail, never three"
-    },
-    "Initial:73:2": {
-     "x": -394,
-     "y": -386,
-     "text": "Unable to skip the ridiculous ritual"
+     "x": 73,
+     "y": 492,
+     "text": "Goodnight to the dog out loud: a ridiculous ritual she could not skip"
     },
     "Initial:75:0": {
-     "x": 194,
-     "y": -210,
-     "text": "The regret never said to her partner"
-    },
-    "Initial:75:1": {
-     "x": 451,
-     "y": 905,
-     "text": "Kinder to the dog than to the people at home"
-    },
-    "Initial:75:2": {
-     "x": 661,
-     "y": 905,
-     "text": "Patient with a sock, not with a cupboard door"
-    },
-    "Initial:77:0": {
-     "x": 1625,
-     "y": -85,
-     "text": "Easier to say than she thought"
-    },
-    "Initial:77:1": {
-     "x": 1625,
-     "y": 5,
-     "text": "Not a confession, just how it is"
+     "x": -100,
+     "y": -1078,
+     "text": "More patience for the dog than for the people at home, and she knows it"
     },
     "Initial:79:0": {
-     "x": -205,
-     "y": -729,
-     "text": "None of it dramatic"
-    },
-    "Initial:79:1": {
-     "x": 5,
-     "y": -729,
-     "text": "Hair on the coat anyway"
-    },
-    "Initial:79:2": {
-     "x": 5,
-     "y": -839,
-     "text": "Into the middle of the house, on no particular day"
-    },
-    "Initial:79:3": {
-     "x": -205,
-     "y": -839,
-     "text": "Home with her in the description"
+     "x": -756,
+     "y": 491,
+     "text": "The dog become part of home through ordinary days"
     }
    },
    "groups": [
     {
      "id": "g1",
-     "label": "Caught going soft, after four years of saying no dog",
-     "note": "Caught, as if found out. The photograph and the lean in the yard settle it before the argument ends, and the goodnight ritual is the tenderness she would once have laughed at. Home now has the dog in its description.",
-     "description": "The one who said no dog finds herself talking to one at half six, won over before she would admit it",
+     "label": "Finding “the dog is easier” than the people at home, and uneasy about it",
+     "description": "Drawn home by a welcome nobody else gives her, from a dog who will never grow away from her, glad of the dog as a way round rows and hard talk, and unsure what that says about her and her partner",
      "members": [
-      "Initial:5:0",
-      "Initial:3:1",
-      "Initial:3:0",
-      "Initial:3:2",
-      "Initial:5:1",
-      "Initial:5:2",
-      "Initial:7:0",
-      "Initial:7:1",
-      "Initial:7:2",
-      "Initial:79:3",
-      "Initial:79:2",
-      "Initial:79:0",
-      "Initial:79:1",
-      "g6",
-      "g7"
+      "Initial:41:0",
+      "Initial:75:0",
+      "Initial:19:1",
+      "g4",
+      "g5",
+      "g6"
      ],
-     "x": -408,
-     "y": -1329
+     "x": -373,
+     "y": -1327
     },
     {
      "id": "g2",
-     "label": "Out on the lane, where the day becomes hers",
-     "note": "The walk she resented the first year is now the part of the day that is hers. She watches the dog's nose and the bad mood does not survive it.",
-     "description": "Forty minutes nobody can claim, her head quiet beside a dog's joy in a wet hedge",
+     "label": "Home “never empty” with the dog, and its loss already rehearsed",
+     "description": "The dog at the centre of home, felt most when she is out of it, and a false alarm that showed her grief ready and waiting",
      "members": [
-      "Initial:17:2",
-      "Initial:17:0",
-      "Initial:17:3",
-      "Initial:15:0",
-      "Initial:15:1",
-      "Initial:15:2",
-      "Initial:19:0",
-      "Initial:19:1",
-      "Initial:19:2",
-      "g8",
-      "g9"
+      "g7",
+      "g8"
      ],
-     "x": -1571,
-     "y": -74
+     "x": -805,
+     "y": 132
     },
     {
      "id": "g3",
-     "label": "Five years of it never getting said",
-     "note": "The morning row is never had because the wag takes it away, and the half nine list is closed with a chin on a knee. She holds both readings open: good for them, or a way round each other.",
-     "description": "A dog who takes the mood off her, and a couple who talk about the dog instead",
+     "label": "“Caught” going soft for the dog she said no to",
+     "description": "Won over against her picture of herself, through a first year's regret she never said, to a walk of her own and a closeness that costs her",
      "members": [
-      "Initial:13:1",
-      "Initial:13:0",
-      "Initial:13:2",
+      "g9",
       "g10",
-      "g11"
+      "g11",
+      "g12"
      ],
-     "x": -707,
-     "y": -74
+     "x": -319,
+     "y": 132
     },
     {
      "id": "g4",
-     "label": "Wanted at the door, and finding the dog is easier",
-     "note": "Being wanted, plainly, is what brings her home. Her partner's remark lands, and she will not pretend it is not true: the dog needs nothing to have been got right.",
-     "description": "A welcome like no other brings her home, and says something about the people there",
+     "label": "Drawn home by a welcome nobody else gives her",
+     "description": "Once she found reasons to stay out, and now she comes home for the door, which her partner has noticed",
      "members": [
-      "Initial:35:0",
-      "Initial:35:1",
-      "Initial:35:2",
-      "Initial:33:0",
-      "Initial:33:1",
-      "Initial:33:2",
       "Initial:37:0",
-      "Initial:37:1",
-      "Initial:37:2",
-      "g12"
+      "Initial:35:0",
+      "Initial:33:0",
+      "Initial:39:0"
      ],
-     "x": 437,
-     "y": -74
+     "x": -359,
+     "y": -846
     },
     {
      "id": "g5",
-     "label": "Grieving in advance a dog who is snoring at her",
-     "note": "The drive to the vet shows her the size of it, and the thorn makes it a rehearsal. She stops the thought every time, and laughs at herself for grieving a sleeping dog.",
-     "description": "A thorn shows her the end already rehearsed, and a house that goes flat without her",
+     "label": "A morning grievance the dog takes away unsaid",
+     "description": "Always the one who gets up, and the mood gone by the bottom of the stairs",
      "members": [
-      "Initial:51:1",
-      "Initial:51:0",
-      "Initial:51:2",
-      "Initial:45:0",
-      "Initial:45:1",
-      "Initial:45:2",
-      "Initial:47:0",
-      "Initial:47:1",
-      "Initial:47:2",
-      "Initial:47:3",
-      "Initial:49:0",
-      "Initial:49:1",
-      "Initial:49:2",
-      "Initial:53:0",
-      "Initial:53:1",
-      "Initial:53:2",
-      "g13"
+      "Initial:13:0",
+      "Initial:11:0"
      ],
-     "x": 923,
-     "y": -74
+     "x": 19,
+     "y": -846
     },
     {
      "id": "g6",
-     "label": "Goodnight out loud, and two thumps back",
-     "description": "A ritual too ridiculous to skip",
+     "label": "Half nine: closer through the dog, or talking about her “instead of talking”",
+     "description": "The dog keeps them in one room and laughing, and is a way out of the list, and she cannot say which",
      "members": [
-      "Initial:73:0",
-      "Initial:73:1",
-      "Initial:73:2"
+      "Initial:43:0",
+      "Initial:69:1",
+      "Initial:65:0",
+      "Initial:67:0",
+      "Initial:69:0"
      ],
-     "x": -394,
-     "y": -647
+     "x": -205,
+     "y": -324
     },
     {
      "id": "g7",
-     "label": "The first year's regret, never said",
-     "note": "It went away, mostly. It comes back on wet Sunday nights, and her partner has never heard it.",
-     "description": "Thinking it a mistake, and never able to say so about a dog with a past",
+     "label": "The dog at the centre of home, felt most in her absence",
+     "description": "Never empty with her, and two hours without her a wrong quiet in a house that waits",
      "members": [
-      "Initial:23:2",
-      "Initial:23:3",
-      "Initial:23:0",
-      "Initial:23:1",
-      "Initial:17:1",
-      "Initial:25:0",
-      "Initial:25:1",
-      "Initial:25:2",
-      "Initial:75:0"
+      "Initial:3:0",
+      "Initial:79:0",
+      "Initial:57:0",
+      "Initial:59:0"
      ],
-     "x": -16,
-     "y": -647
+     "x": -756,
+     "y": 283
     },
     {
      "id": "g8",
-     "label": "Letting her run, and ageing at the gate",
-     "description": "Her freedom weighed against the worry every morning, and always let go",
+     "label": "Grief for the dog rehearsed on a false alarm, then pushed away",
+     "description": "Shaking on the drive to the vet, crying in the car park, and the thought of the end not let finish",
      "members": [
-      "Initial:21:3",
-      "Initial:21:2",
-      "Initial:21:0",
-      "Initial:21:1"
+      "Initial:51:0",
+      "Initial:47:0",
+      "Initial:49:0",
+      "Initial:53:0",
+      "Initial:63:0"
      ],
-     "x": -1557,
-     "y": 456
+     "x": -791,
+     "y": 805
     },
     {
      "id": "g9",
-     "label": "Closest on the night it cost her something",
-     "note": "The bad night proves what the easy days cannot. The rules of the house are kept without a word between them.",
-     "description": "Turning back together in the rain, an agreement neither of them wrote down",
+     "label": "Won over against her picture of herself",
+     "description": "Not a soppy person, she thought, and now goodnight said out loud",
      "members": [
-      "Initial:27:3",
-      "Initial:29:0",
-      "Initial:27:0",
-      "Initial:27:1",
-      "Initial:27:2",
-      "Initial:29:1",
-      "Initial:29:2",
-      "Initial:31:0",
-      "Initial:31:1",
-      "Initial:31:2"
+      "Initial:5:0",
+      "Initial:7:0",
+      "Initial:73:0"
      ],
-     "x": -1179,
-     "y": 456
+     "x": 73,
+     "y": 212
     },
     {
      "id": "g10",
-     "label": "Cracking first at twenty past six",
-     "description": "Who gets up, and what being the one who always goes says",
+     "label": "A first year's regret, too terrible to say and never quite gone",
+     "description": "Her time no longer hers, a mistake thought and kept silent, and back on wet nights",
      "members": [
-      "Initial:9:1",
-      "Initial:9:0",
-      "Initial:9:2",
-      "Initial:11:0",
-      "Initial:11:1",
-      "Initial:11:2"
+      "Initial:23:0",
+      "Initial:25:0",
+      "Initial:25:1"
      ],
-     "x": -693,
-     "y": 256
+     "x": -305,
+     "y": 626
     },
     {
      "id": "g11",
-     "label": "A dog between them at half nine",
-     "note": "Two ways at once, her own words for it, and the answer changes with the week.",
-     "description": "The voices, the list nobody starts, and not knowing which it is",
+     "label": "A walk once resented, now “the bit of the day that is mine”",
+     "description": "Forty minutes nobody can claim, beside a dog's joy in a wet hedge",
      "members": [
-      "Initial:67:2",
-      "Initial:43:1",
-      "Initial:67:0",
-      "Initial:67:1",
-      "Initial:65:2",
-      "Initial:65:0",
-      "Initial:65:1",
-      "Initial:43:0",
-      "Initial:69:1",
-      "Initial:69:0",
-      "Initial:69:2",
-      "Initial:43:2",
-      "Initial:71:0",
-      "Initial:71:1"
+      "Initial:17:0",
+      "Initial:17:1",
+      "Initial:19:0"
      ],
-     "x": -245,
-     "y": 256
+     "x": 73,
+     "y": 626
     },
     {
      "id": "g12",
-     "label": "Coming home for the dog, and what that says",
-     "description": "Easier than a person, and kinder to her than to the people in the house",
+     "label": "A wordless closeness, proved by what it costs her",
+     "description": "Closest on the worst night, an understanding with no word said, and the worry of letting her run",
      "members": [
-      "Initial:41:1",
-      "Initial:39:1",
-      "Initial:39:0",
-      "Initial:39:2",
-      "Initial:41:0",
-      "Initial:41:2",
-      "Initial:41:3",
-      "Initial:75:1",
-      "Initial:75:2"
+      "Initial:29:0",
+      "Initial:27:0",
+      "Initial:31:0",
+      "Initial:21:0"
      ],
      "x": 451,
-     "y": 465
-    },
-    {
-     "id": "g13",
-     "label": "A house on standby without her",
-     "note": "The quiet is wrong. Two hours flat, and the thought of longer is the one she does not finish.",
-     "description": "Two hours at the groomer's and the home is a set, furniture waiting",
-     "members": [
-      "Initial:59:0",
-      "Initial:59:3",
-      "Initial:57:1",
-      "Initial:55:1",
-      "Initial:57:0",
-      "Initial:57:2",
-      "Initial:59:1",
-      "Initial:59:2",
-      "Initial:61:0",
-      "Initial:61:2",
-      "Initial:63:0",
-      "Initial:63:1",
-      "Initial:63:2"
-     ],
-     "x": 937,
-     "y": 638
+     "y": 626
     }
    ],
-   "discarded": [
-    "Initial:55:0",
-    "Initial:61:1"
-   ],
+   "discarded": [],
    "picks": {
     "g1": [
-     "Initial:3:0"
+     "Initial:41:0"
     ],
     "g2": [
-     "Initial:17:0"
+     "Initial:3:0",
+     "Initial:51:0"
     ],
     "g3": [
-     "Initial:13:0"
-    ],
-    "g4": [
-     "Initial:35:0"
-    ],
-    "g5": [
-     "Initial:51:0"
+     "Initial:5:0"
     ]
    },
    "quoted": {
-    "Initial:3:0": "\"Even when it is quiet it is not empty.\"",
-    "Initial:17:0": "\"And now it is the bit of the day that is mine.\"",
-    "Initial:13:0": "\"Five years of it never getting said.\"",
-    "Initial:35:0": "\"I have never had a welcome like that off anything in my life.\"",
-    "Initial:51:0": "\"So that Saturday was a rehearsal.\""
+    "Initial:41:0": "\"The dog is easier. That is the thing I keep landing on and then moving off, because it is not a nice thing to think about yourself. She does not need me to have got anything right.\"",
+    "Initial:3:0": "\"I suppose she is just there. That is the first thing. Bramble is just there, all the time. … The house is never empty now. Even when it is quiet it is not empty.\"",
+    "Initial:51:0": "\"She had a thorn in her foot and I had spent twenty minutes organising my own grief in advance, in traffic. … So that Saturday was a rehearsal. And I did not enjoy finding out that I have got the whole thing ready to go.\"",
+    "Initial:5:0": "\"It is like being caught. I am not a soppy person, or I did not think I was. … And I have started groaning back at her. That is the state of me now.\""
    }
   }
  ]

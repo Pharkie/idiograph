@@ -448,29 +448,51 @@ def clock(at: str):
         themes_mod.now_iso = held
 
 
+def quote_of(rows: list[dict], i: int, words: str, name: str, interviewer: str) -> str:
+    """The key quote `words` of a statement on `rows[i]`, a sheet's rows in order, as the turn screen puts one
+    together (`assembleQuote` in quote.js): each piece between the ellipses found in order in the turn, or running
+    on into the same speaker's turns next to it (quotespan), taken as the transcript has it, the pieces joined with
+    an ellipsis and the whole in inverted commas. A piece not there in order, or words that differ from the
+    transcript's but for spacing, case or curly marks, is an error, so the quote is always as said."""
+    found = wb_mod.quote_turns(rows, i, words, interviewer)
+    if not found:
+        raise DemoError(f"The key quote {words!r} is not in {name}'s turn at row {rows[i]['row']}, its pieces in order.")
+    pieces = [" ".join(rows[t]["text"][start:end].split()) for t, start, end in found]
+    quote = " … ".join(pieces)
+    if quote != " … ".join(" ".join(p.split()) for p in wb_mod.quote_pieces(words)):
+        raise DemoError(f"The key quote {words!r} of {name}'s is not word for word as said at row {rows[i]['row']}.")
+    return f'"{quote}"'
+
+
 def annotate(workbook: Path, name: str, notes: dict) -> dict:
-    """Every participant turn decided, through the turn screen's own saves: its statements, its
-    exploratory note and its key quotes, each quote checked against the turn and put in inverted
-    commas as the turn screen puts it, and its highlight, or the turn marked reviewed and empty.
-    Answers the progress file as it then stands, not yet written."""
+    """Every participant turn decided, through the turn screen's own saves: its statements, each with its own key
+    quote (the annotations' quote i is statement i's, and the workbook holds them paired, as the turn screen's pairs
+    save them), its exploratory note and its highlight, or the turn marked reviewed and empty. Each quote is found
+    piece by piece in the turn and put together as the turn screen puts one (see `quote_of`). Answers the progress
+    file as it then stands, not yet written."""
     case = wb_mod.read_case(workbook)
-    turns = [row for sheet in case["sheets"] for row in sheet["rows"] if row["name"] == name]
+    every = [row for sheet in case["sheets"] for row in sheet["rows"]]
+    others = sorted({row["name"] for row in every} - {name})
+    interviewer = others[0] if others else ""
+    turns = [i for i, row in enumerate(every) if row["name"] == name]
     given = notes["turns"]
     if len(turns) != len(given):
         raise DemoError(f"{name} has {len(turns)} turns and the annotations give {len(given)}.")
     progress = rounds_mod.load_progress(workbook)
-    for row, item in zip(turns, given):
+    for place, item in zip(turns, given):
+        row = every[place]
         if not row["text"].startswith(str(item.get("at") or "\0")):
             raise DemoError(f"{name}'s turn at row {row['row']} does not start with {item.get('at')!r}.")
         key = rounds_mod.row_key(SHEET, row["row"])
         if item.get("empty"):
             progress["rows"][key] = rounds_mod.REVIEWED_EMPTY
             continue
-        for quote in item.get("kq") or []:
-            if quote not in row["text"]:
-                raise DemoError(f"The key quote {quote!r} is not in {name}'s turn at row {row['row']}.")
-        quotes = "\n".join(f'"{q}"' for q in item.get("kq") or [])
-        wb_mod.save_turn(workbook, SHEET, row["row"], "\n".join(item["es"]), item.get("en", ""), quotes)
+        statements, quotes = list(item.get("es") or []), list(item.get("kq") or [])
+        if len(quotes) > len(statements):
+            raise DemoError(f"{name}'s turn at row {row['row']} has a key quote with no statement of its own.")
+        pairs = [{"es": s, "kq": quote_of(every, place, quotes[k], name, interviewer) if k < len(quotes) and quotes[k] else ""}
+                 for k, s in enumerate(statements)]
+        wb_mod.save_turn(workbook, SHEET, row["row"], None, item.get("en", ""), None, pairs=pairs)
         progress["rows"][key] = rounds_mod.HAS_CONTENT
         phrase = item.get("crux")
         if phrase:
@@ -478,7 +500,7 @@ def annotate(workbook: Path, name: str, notes: dict) -> dict:
             if at < 0:
                 raise DemoError(f"The phrase {phrase!r} is not in {name}'s turn at row {row['row']}.")
             wb_mod.save_crux(workbook, SHEET, row["row"], at, at + len(phrase), phrase, op="add")
-    progress["last"] = {"sheet": SHEET, "row": turns[-1]["row"]}
+    progress["last"] = {"sheet": SHEET, "row": every[turns[-1]]["row"]}
     return progress
 
 

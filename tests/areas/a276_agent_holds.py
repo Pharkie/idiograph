@@ -124,7 +124,8 @@ def test_agent_holds(scratch: Path):
                               spec("gmerge.json", {"operations": [{"op": "merge", "label": "G2", "into": "G1"}]})),
             "transcript replace": ask("transcript", "replace", "--all", "--find", "dog", "--with", "hound"),
             "turn trim": ask("turn", "trim", "Mabel", "Initial", "3", "--before"),
-            "turn write": ask("turn", "write", "Rowan", "Initial", "7", "--from", spec("turn.json", {"statements": []})),
+            # the passage's statement and its own quote together, since each statement holds its own (esredo2)
+            "turn write": ask("turn", "write", "Rowan", "Initial", "7", "--from", spec("turn.json", {"pairs": []})),
             "participant rename": ask("participant", "rename", "Mabel", "Maple", "--folder"),
             "project send": ask("project", "send", "--to", str(to)),
         }

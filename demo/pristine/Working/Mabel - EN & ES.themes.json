@@ -20,400 +20,178 @@
    "updated": "2026-10-02T15:30:00+01:00",
    "cards": {
     "Initial:3:0": {
-     "x": 790,
-     "y": 104,
+     "x": -170,
+     "y": -523,
      "text": "A dog like having the lights on"
     },
-    "Initial:3:1": {
-     "x": 685,
-     "y": 194,
-     "text": "A house where everything stayed put"
-    },
     "Initial:5:0": {
-     "x": 895,
-     "y": 194,
-     "text": "A tidy person glad of disorder"
-    },
-    "Initial:5:1": {
-     "x": 685,
-     "y": 284,
-     "text": "Things staying put, nothing happening"
-    },
-    "Initial:5:2": {
-     "x": 895,
-     "y": 284,
-     "text": "Signs that somebody has been living here"
+     "x": -170,
+     "y": -433,
+     "text": "Glad of the mess: after two still years, signs of life in the house"
     },
     "Initial:7:0": {
      "x": -100,
-     "y": -731,
-     "text": "Got up at seven by a polite stare"
-    },
-    "Initial:7:1": {
-     "x": -100,
-     "y": -641,
-     "text": "Lying in till nine, nothing to get up for"
-    },
-    "Initial:7:2": {
-     "x": 110,
-     "y": -410,
-     "text": "Waterproof trousers for the first time"
+     "y": 1,
+     "text": "Up at seven for the dog, where before there was nothing to get up for"
     },
     "Initial:9:0": {
-     "x": -990,
-     "y": 64,
-     "text": "A morning society seen only with a dog"
-    },
-    "Initial:9:1": {
-     "x": -1095,
-     "y": 154,
-     "text": "Twenty years on the estate, knowing nobody"
-    },
-    "Initial:9:2": {
-     "x": -885,
-     "y": 154,
-     "text": "The dogs' names first, then the people's"
+     "x": -100,
+     "y": 221,
+     "text": "Through the dog, a morning society she never knew was there"
     },
     "Initial:11:0": {
-     "x": -1095,
-     "y": 244,
-     "text": "Losing the habit of people"
-    },
-    "Initial:11:1": {
-     "x": -885,
-     "y": 244,
-     "text": "Talk happening round the edges"
-    },
-    "Initial:11:2": {
-     "x": -1095,
-     "y": 334,
-     "text": "Walking Terry's greyhounds for a fortnight"
+     "x": 5,
+     "y": 111,
+     "text": "Back among people without having to try, after losing the habit"
     },
     "Initial:13:0": {
-     "x": -170,
-     "y": -349,
-     "text": "Toast standing up, most nights"
-    },
-    "Initial:13:1": {
-     "x": -170,
-     "y": -259,
-     "text": "Saying she was fine and not being"
-    },
-    "Initial:13:2": {
-     "x": -170,
-     "y": -169,
-     "text": "Eating again with someone depending on her"
+     "x": -205,
+     "y": 111,
+     "text": "With the dog depending on her, eating properly again after a bad winter"
     },
     "Initial:15:0": {
-     "x": -329,
-     "y": 55,
-     "text": "Six months of thinking it a mistake"
-    },
-    "Initial:15:1": {
-     "x": -329,
-     "y": 145,
-     "text": "Pulled flat on the ice"
+     "x": 453,
+     "y": -40,
+     "text": "Six months of thinking the dog a terrible mistake"
     },
     "Initial:17:0": {
-     "x": -518,
-     "y": 466,
-     "text": "Being told the dog had to go"
-    },
-    "Initial:17:1": {
-     "x": -518,
-     "y": 556,
-     "text": "The one proper row in years"
-    },
-    "Initial:17:2": {
-     "x": -623,
-     "y": 646,
-     "text": "Treated like a child with a puppy"
+     "x": -294,
+     "y": 585,
+     "text": "Her daughter's care felt as being treated like a child"
     },
     "Initial:19:0": {
-     "x": -329,
-     "y": 215,
-     "text": "Feeling small, and frightened too"
+     "x": -399,
+     "y": 675,
+     "text": "Feeling small, and frightened for herself and the dog"
     },
     "Initial:19:1": {
-     "x": 332,
-     "y": 68,
-     "text": "What if it had been her hip"
-    },
-    "Initial:19:2": {
-     "x": -329,
-     "y": 305,
-     "text": "Knowing by morning she would keep her"
+     "x": -294,
+     "y": 495,
+     "text": "Sure by morning she was keeping the dog"
     },
     "Initial:21:0": {
-     "x": -175,
-     "y": 484,
-     "text": "Training classes at seventy three"
-    },
-    "Initial:21:1": {
-     "x": -175,
-     "y": 574,
-     "text": "Standing like a lamppost until she comes back"
+     "x": -189,
+     "y": 675,
+     "text": "Learning patience with the dog at seventy three, and it paying off, mostly"
     },
     "Initial:23:0": {
-     "x": -413,
-     "y": 646,
-     "text": "A brief all right, nothing more said"
-    },
-    "Initial:23:1": {
-     "x": -518,
-     "y": 736,
-     "text": "A chew for Pepper as the sign"
+     "x": -294,
+     "y": 785,
+     "text": "Peace with her daughter, unspoken, shown in a chew"
     },
     "Initial:25:0": {
-     "x": 227,
-     "y": 158,
-     "text": "Doing the sums on who goes first"
-    },
-    "Initial:25:1": {
-     "x": 437,
-     "y": 158,
-     "text": "Pepper likely to outlive her"
-    },
-    "Initial:25:2": {
-     "x": 227,
-     "y": 248,
-     "text": "A home for Pepper written into the will"
+     "x": 59,
+     "y": 695,
+     "text": "Providing for a dog likely to outlive her, practical more than gloomy"
     },
     "Initial:29:0": {
-     "x": 437,
-     "y": 248,
-     "text": "Pepper's name beside the house and the watch"
-    },
-    "Initial:29:1": {
-     "x": 227,
-     "y": 338,
-     "text": "Lighter, like putting something down"
-    },
-    "Initial:29:2": {
-     "x": 437,
-     "y": 338,
-     "text": "The picture of her waiting at the door"
+     "x": 59,
+     "y": 495,
+     "text": "Lighter once the dog's future was settled"
     },
     "Initial:31:0": {
-     "x": 227,
-     "y": 428,
-     "text": "At the window every time she returns"
-    },
-    "Initial:31:1": {
-     "x": 1149,
-     "y": -75,
-     "text": "Little thought of her own end"
-    },
-    "Initial:31:2": {
-     "x": 437,
-     "y": 428,
-     "text": "The dog all right after she has gone"
+     "x": 59,
+     "y": 585,
+     "text": "Unable to bear the thought of the dog waiting and her never coming"
     },
     "Initial:33:0": {
-     "x": 720,
-     "y": 576,
-     "text": "Telling the dog what she told Dennis"
-    },
-    "Initial:33:1": {
-     "x": 720,
-     "y": 666,
-     "text": "Forty years of telling someone her day"
-    },
-    "Initial:33:2": {
-     "x": 720,
-     "y": 756,
-     "text": "Catching herself on the price of butter"
+     "x": -170,
+     "y": -323,
+     "text": "Telling the dog her day, as she once told Dennis"
     },
     "Initial:35:0": {
-     "x": 685,
-     "y": 374,
-     "text": "On the bed now, on his side"
-    },
-    "Initial:35:1": {
-     "x": 895,
-     "y": 374,
-     "text": "Breathing in the night again"
+     "x": -170,
+     "y": -233,
+     "text": "Glad of the dog's breathing in the night, on his side of the bed"
     },
     "Initial:37:0": {
-     "x": 1149,
-     "y": 15,
-     "text": "Not expecting any of it"
-    },
-    "Initial:37:1": {
      "x": -100,
-     "y": -551,
-     "text": "Fitter at seventy three than at sixty"
-    },
-    "Initial:37:2": {
-     "x": -885,
-     "y": 334,
-     "text": "Shut in until the dog opened the door"
+     "y": -745,
+     "text": "Opened out of a shut-in life by the dog, and mostly glad"
     }
    },
    "groups": [
     {
      "id": "g1",
-     "label": "A dog giving her days a start and a shape",
-     "note": "Up at seven and out by half past, where the days before had no start. Eating properly again sits with it.",
-     "description": "Up at seven after two years with nothing to get up for",
+     "label": "“Shut in” after Dennis died, until the dog opened the door",
+     "description": "A still house come alive with someone in it to tell, and a reason to get up, eat and be among people again",
      "members": [
-      "Initial:7:0",
-      "Initial:7:1",
-      "Initial:37:1",
-      "g6"
+      "Initial:37:0",
+      "g4",
+      "g5"
      ],
-     "x": -184,
-     "y": -848
+     "x": -219,
+     "y": -884
     },
     {
      "id": "g2",
-     "label": "Out on the green and among people again",
-     "note": "A society she had lived beside for twenty years, open to her with the dog. The talk comes round the edges, and she gives help back.",
-     "description": "A morning society she lived beside for twenty years, open to her with a dog",
+     "label": "Holding on to Pepper, and to her own say over her life",
+     "description": "After the fall and her daughter's “the dog has to go”, frightened and sure by morning, and patient until the dog and her daughter came round",
      "members": [
-      "Initial:9:0",
-      "Initial:9:1",
-      "Initial:9:2",
-      "Initial:11:0",
-      "Initial:11:1",
-      "Initial:11:2",
-      "Initial:37:2"
+      "Initial:19:1",
+      "Initial:17:0",
+      "Initial:19:0",
+      "Initial:21:0",
+      "Initial:23:0"
      ],
-     "x": -1095,
-     "y": -13
+     "x": -399,
+     "y": 377
     },
     {
      "id": "g3",
-     "label": "Keeping Pepper after the fall, against her daughter",
-     "note": "The fall, the row in the car and the classes. She holds on, and her daughter comes round without a word said about it.",
-     "description": "A broken wrist, the one proper row in years, and holding on",
+     "label": "Lighter for knowing Pepper will not be left waiting when she dies",
+     "description": "A dog likely to outlive her, provided for in her will, so the picture of her waiting at the window can be put down",
      "members": [
-      "Initial:15:0",
-      "Initial:15:1",
-      "Initial:19:0",
-      "Initial:19:2",
-      "g7",
-      "g8"
+      "Initial:29:0",
+      "Initial:31:0",
+      "Initial:25:0"
      ],
-     "x": -637,
-     "y": -13
+     "x": 59,
+     "y": 377
     },
     {
      "id": "g4",
-     "label": "Making sure Pepper is never left waiting for her",
-     "note": "The thought of losing turned round: she expects to go first, and has put the dog's future in writing. The dog waiting at the door is the picture she could not bear.",
-     "description": "Expecting to go first, she writes the dog a future",
+     "label": "“Like having the lights on”: the house alive again",
+     "description": "Mess, a listener and breathing in the night, where things used to stay put",
      "members": [
-      "Initial:19:1",
-      "Initial:25:0",
-      "Initial:25:1",
-      "Initial:25:2",
-      "Initial:29:0",
-      "Initial:29:1",
-      "Initial:29:2",
-      "Initial:31:0",
-      "Initial:31:2"
+      "Initial:3:0",
+      "Initial:5:0",
+      "Initial:33:0",
+      "Initial:35:0"
      ],
-     "x": 227,
-     "y": -13
+     "x": -170,
+     "y": -623
     },
     {
      "id": "g5",
-     "label": "Life in the house again, and someone to tell",
-     "note": "Mess where things used to stay put, a listener for forty years of telling, breathing in the night. Dennis is close in all of it.",
-     "description": "Mess, breathing in the night and a listener, where things used to stay put",
+     "label": "Needed again, and out among people without trying",
+     "description": "Up at seven, eating properly, and a morning society on the green",
      "members": [
-      "Initial:3:0",
-      "Initial:3:1",
-      "Initial:5:0",
-      "Initial:5:1",
-      "Initial:5:2",
-      "Initial:35:0",
-      "Initial:35:1",
-      "g9"
-     ],
-     "x": 685,
-     "y": -13
-    },
-    {
-     "id": "g6",
-     "label": "Eating again, and sitting down to it",
-     "description": "No more toast standing up, with someone depending on her",
-     "members": [
+      "Initial:7:0",
       "Initial:13:0",
-      "Initial:13:1",
-      "Initial:13:2"
+      "Initial:11:0",
+      "Initial:9:0"
      ],
-     "x": -170,
-     "y": -449
-    },
-    {
-     "id": "g7",
-     "label": "Told the dog had to go",
-     "note": "The row and its mending, neither talked through.",
-     "description": "Treated like a child, and mended with a chew",
-     "members": [
-      "Initial:17:0",
-      "Initial:17:1",
-      "Initial:17:2",
-      "Initial:23:0",
-      "Initial:23:1"
-     ],
-     "x": -623,
-     "y": 407
-    },
-    {
-     "id": "g8",
-     "label": "Learning to stop dead",
-     "description": "Classes at seventy three, standing like a lamppost",
-     "members": [
-      "Initial:21:0",
-      "Initial:21:1"
-     ],
-     "x": -175,
-     "y": 407
-    },
-    {
-     "id": "g9",
-     "label": "Telling her what she would have told Dennis",
-     "description": "Forty years of telling someone her day, with nowhere for it to go until now",
-     "members": [
-      "Initial:33:0",
-      "Initial:33:1",
-      "Initial:33:2"
-     ],
-     "x": 720,
-     "y": 476
+     "x": -205,
+     "y": -99
     }
    ],
-   "discarded": [
-    "Initial:7:2"
-   ],
+   "discarded": [],
    "picks": {
     "g1": [
-     "Initial:7:0"
+     "Initial:37:0"
     ],
     "g2": [
-     "Initial:9:0"
-    ],
-    "g3": [
      "Initial:17:0"
     ],
-    "g4": [
-     "Initial:25:0"
-    ],
-    "g5": [
-     "Initial:3:0",
-     "Initial:33:0"
+    "g3": [
+     "Initial:31:0"
     ]
    },
    "quoted": {
-    "Initial:7:0": "\"there wasn't anything to get up for\"",
-    "Initial:9:0": "\"You wouldn't know it unless you had a dog.\"",
-    "Initial:17:0": "\"it felt like she was taking something off me\"",
-    "Initial:25:0": "\"She could well outlive me.\"",
-    "Initial:3:0": "\"It's like having the lights on.\"",
-    "Initial:33:0": "\"It had nowhere to go. Now it goes to her.\""
+    "Initial:37:0": "\"Only that I didn't expect it. Any of it. … She opened the door, really, that's what it is. I was shut in and she opened the door. Some mornings I'd still rather she hadn't, when it's sleeting. But mostly I'm glad.\"",
+    "Initial:17:0": "\"She thought she was looking after me, and she was, I know she was. But it felt like she was taking something off me. Like I was a child who'd been given a puppy and couldn't be trusted with it.\"",
+    "Initial:31:0": "\"When I go to the shops she's at the window when I come back. Every time. … And I couldn't bear the thought of her doing that and me never coming.\""
    }
   }
  ]

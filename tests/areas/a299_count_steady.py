@@ -185,7 +185,8 @@ def test_count_steady(scratch):
     import themes
     import workbook as wb_mod
 
-    # the demo as it ships, Juno's 122 statements, never the suite's head start of six passages
+    # the demo as it ships, every one of Juno's statements, never the suite's head start of six passages
+    shipped = len(themes.read_cards(support.DEMO_SHIPPED / "Juno - EN & ES.xlsx")["cards"])
     book = scratch / "a299" / "Juno - EN & ES.xlsx"
     book.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(support.DEMO_SHIPPED / "Juno - EN & ES.xlsx", book)
@@ -226,7 +227,7 @@ def test_count_steady(scratch):
     n = got.get("at_open")
     check("299: at the open the status bar counts the statements the workbook holds, an interviewer's turn's among "
           "them, as the board's cards do",
-          isinstance(n, int) and n == got.get("book") == cards == 123, f"{detail('at_open', 'book')} cards {cards}")
+          isinstance(n, int) and n == got.get("book") == cards == shipped + 1 > 20, f"{detail('at_open', 'book')} cards {cards}")
     forward, back = got.get("forward") or [], got.get("back") or []
     check("299: a step onto every passage and back again leaves the count where it was",
           len(forward) == len(back) > 2 and set(forward) == set(back) == {n} and got.get("jump") == n,

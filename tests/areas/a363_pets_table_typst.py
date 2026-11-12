@@ -71,6 +71,14 @@ def make_board(root: Path, th) -> Path:
     (root / "P4 - Heron" / "Working").mkdir(parents=True)
     book = root / "P4 - Heron" / "P4 Heron - EN & ES.xlsx"
     shutil.copy2(support.DEMO_SHIPPED / "Juno - EN & ES.xlsx", book)
+    # the demo's Juno holds one or two statements a passage since 12 November 2026 (esredo2), so two invented ones go
+    # on each of her passages to give the board its sixty cards and more, each its own pair with no quote
+    import workbook as wb_mod
+    hers = [r for s in wb_mod.read_case(book)["sheets"] for r in s["rows"] if r["name"] == "Juno"]
+    for i, r in enumerate(hers):
+        extra = [{"es": f"Invented statement {2 * i + k + 1}, about the plot at first light and what it asks of her",
+                  "kq": ""} for k in range(2)]
+        wb_mod.save_turn(book, r["sheet"], r["row"], None, None, None, pairs=list(r["pairs"]) + extra)
     read = th.read_cards(book)
     board = th.blank_version(read["cards"])
     take = iter(c["key"] for c in read["cards"])

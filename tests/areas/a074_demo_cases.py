@@ -83,6 +83,38 @@ def test_demo_cases(scratch):
         check(f"74: {name}'s live case folder holds the workbook as it ships, in the shape Juno's takes",
               live.is_file() and live.read_bytes() == parts["workbook"].read_bytes(), live.parent.name)
 
+    # ── 2b. a quote of pieces (esredo2, 12 November 2026): each piece found in order in the turn, or running on into
+    # her next turn as the turn screen allows (quotespan), written in its statement's own row, and a quote out of
+    # order or not in her words refused with nothing built
+    def mabel_with(quote):
+        folder = scratch / "demo-quote-pieces"
+        shutil.rmtree(folder, ignore_errors=True)
+        (folder / "source").mkdir(parents=True)
+        csv_path, notes_path = make_demo.written_sources("Mabel")
+        shutil.copyfile(csv_path, folder / "source" / csv_path.name)
+        notes = json.loads(notes_path.read_text(encoding="utf-8"))
+        notes["turns"][0]["kq"][0] = quote
+        (folder / "source" / notes_path.name).write_text(json.dumps(notes, ensure_ascii=False), encoding="utf-8")
+        try:
+            return make_demo.build_written("Mabel", folder / "built", folder)["workbook"], ""
+        except make_demo.DemoError as exc:
+            return None, str(exc)
+
+    across = "That's the nearest I can get to it. … And I'm a tidy person, or I was."
+    book, said = mabel_with(across)
+    mabel_rows = wb_mod.read_case(book)["sheets"][0]["rows"] if book else []
+    first = next((i for i, r in enumerate(mabel_rows) if r["name"] == "Mabel"), 0)
+    check("74: a quote whose second piece is in her next turn is written whole in its statement's own row, "
+          "and found across the two",
+          book and mabel_rows[first]["pairs"][0]["kq"] == f'"{across}"'
+          and mabel_rows[first + 2]["pairs"][0]["kq"] == f'"{sources["Mabel"][1]["turns"][1]["kq"][0]}"'
+          and [k for k, _s, _e in wb_mod.quote_turns(mabel_rows, first, f'"{across}"', sorted(interviewer)[0])]
+          == [first, first + 2], said)
+    _, swapped = mabel_with("That's the nearest I can get to it. … It's like having the lights on.")
+    _, unsaid = mabel_with("It's like having the LIGHTS on.")
+    check("74: a quote with its pieces out of order, or in words she did not say, refuses the build",
+          "its pieces in order" in swapped and "not word for word as said" in unsaid, f"{swapped} | {unsaid}")
+
     # ── 3. annotated as Adam annotates: every turn decided, the register, quotes verbatim, no fills
     for name in written:
         book = book_of(pristine, name)
@@ -103,10 +135,25 @@ def test_demo_cases(scratch):
               and summary["turnsDone"] == summary["turnsTotal"] == len(theirs),
               f"{list(states.values()).count(rounds_mod.REVIEWED_EMPTY)} reviewed and empty of {len(theirs)}")
         statements = [line for r in theirs for line in r["es"].splitlines() if line.strip()]
-        quoted = [(r, q) for r in theirs for q in r["kq"].splitlines() if q.strip()]
-        check(f"74: {name}'s key quotes are verbatim from their turns, in inverted commas, each turn with a note",
-              quoted and all(q.startswith('"') and q.endswith('"') and q.strip('"') in r["text"] for r, q in quoted)
-              and all(r["en"].strip() and r["kq"].strip() for r in theirs if r["es"].strip()), f"{len(quoted)} quotes")
+        # each statement with its own quote since 12 November 2026 (esredo2): the annotations' quote i is statement
+        # i's, saved paired, its pieces found in order in the turn and joined with an ellipsis as the turn screen
+        # joins them
+        at = {r["row"]: i for i, r in enumerate(sheet["rows"])}
+        pairs = [(r, p) for r in theirs for p in r["pairs"]]
+        given = [(s, f'"{q}"') for item in notes["turns"] for s, q in zip(item.get("es") or [], item.get("kq") or [])]
+        check(f"74: {name}'s statements each hold their own key quote, as the annotations pair them, none to pair",
+              len(pairs) == len(statements) > 0 and not any(r["unpaired"] for r in theirs)
+              and [(p["es"], p["kq"]) for _r, p in pairs] == given, f"{len(pairs)} statements")
+        pieced = [p for _r, p in pairs if "…" in p["kq"]]
+        check(f"74: {name}'s key quotes are verbatim from their turns, in inverted commas, piece by piece in order, "
+              "each turn with content holding a note",
+              pieced and all(p["kq"].startswith('"') and p["kq"].endswith('"')
+                             and {k for k, _s, _e in wb_mod.quote_turns(sheet["rows"], at[r["row"]], p["kq"],
+                                                                        sorted(interviewer)[0])} == {at[r["row"]]}
+                             for r, p in pairs)
+              and all(r["en"].strip() for r in theirs
+                      if progress["rows"].get(rounds_mod.row_key("Initial", r["row"])) == rounds_mod.HAS_CONTENT),
+              f"{len(pieced)} of {len(pairs)} quotes in pieces")
         runs = [x for r in theirs for x in r["runs"] if x["crux"]]
         book_open = openpyxl.load_workbook(book, rich_text=True)
         fills = [c for row in book_open[book_open.sheetnames[0]].iter_rows() for c in row
@@ -136,15 +183,18 @@ def test_demo_cases(scratch):
               len(boards) == 1 and board["name"] == "Board 1" and data.get("chosen") == board["id"]
               and themes_mod.complete_of(data) == {"at": data["complete"]["at"], "board": board["id"], "name": "Board 1"}
               and data.get("case") == name and themes_mod.chosen_name(book) == "Board 1")
-        check(f"74: {name}'s board has four or five PETs, sub-themes in some, each PET with a note and a key quote picked, "
-              "and every PET and sub-theme with a description",
-              4 <= len(pets) <= 5 and subs and all(g.get("note") for g in pets)
+        # three PETs each since 12 November 2026 (esredo2), as the annotations title them, no note on a label
+        check(f"74: {name}'s board has the annotations' three PETs, sub-themes in some, each PET with a key quote "
+              "picked, and every PET and sub-theme with a description",
+              [g["label"] for g in pets] == [p["title"] for p in notes["board"]["pets"]] and len(pets) == 3 and subs
               and all(themes_mod.description_of(g) for g in groups)
               and all(board["picks"].get(g["id"]) for g in pets) and set(board.get("quoted") or {}) == {
                   k for chosen in board["picks"].values() for k in chosen},
               f"{len(pets)} PETs, {len(subs)} sub-themes")
-        check(f"74: {name}'s board leaves a statement or two unplaced and one or two discarded, the rest placed",
-              1 <= len(unplaced) <= 2 and 1 <= len(gone) <= 2 and len(placed) + len(unplaced) + len(gone) == len(statements)
+        check(f"74: {name}'s board places every statement but those the annotations leave unplaced or discard",
+              len(unplaced) == len(notes["board"].get("unplaced") or [])
+              and len(gone) == len(notes["board"].get("discarded") or [])
+              and len(placed) + len(unplaced) + len(gone) == len(statements)
               and set(board["cards"]) == {c["key"] for c in themes_mod.read_cards(book)["cards"]},
               f"{len(placed)} placed, {len(unplaced)} unplaced, {len(gone)} discarded")
         shown = themes_mod.state(book, name)
@@ -152,7 +202,7 @@ def test_demo_cases(scratch):
               shown["saved"] and shown["chosen"] == "v1" and not [c for c in shown["cards"]
                                                                  if c.get("new") or c.get("changed") or c.get("missing")])
 
-    # ── 5. the GETs across the three, finished: five GETs, each with its description and note, every
+    # ── 5. the GETs across the three, finished: five GETs, each with its description, every
     # participant in from a board marked complete, the board current and marked complete, every card
     # placed or set aside, every row of the GET table with its quote ticked
     import gets as gets_mod
@@ -166,8 +216,8 @@ def test_demo_cases(scratch):
           sorted(held.get("cases") or {}) == sorted(make_demo.CASES)
           and all(r["state"] == "in" and r["complete"] and r["name"] == "Board 1" for r in held["cases"].values()))
     placed = {m for g in board["groups"] for m in g["members"]}
-    check("74: five GETs, each with a description and a note, each drawing on all three participants",
-          len(tops) == 5 and all(themes_mod.description_of(g) and g.get("note") for g in tops)
+    check("74: five GETs, each with a description, each drawing on all three participants",
+          len(tops) == 5 and all(themes_mod.description_of(g) for g in tops)
           and all({gets_mod.split_key(m)["case"] for m in g["members"]} == set(make_demo.CASES) for g in tops),
           str([len(g["members"]) for g in tops]))
     check("74: every PET and sub-PET card is under a GET or set aside, none left not placed",

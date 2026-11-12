@@ -12,6 +12,7 @@ REFI-QDA files carry LPETs and LGETs too, out and back in.
 Approving several of an agent's actions at once shows how far it has got, and Home says when actions wait for your yes.
 AI boards, reviews and revisions on PETs, GETs and Themes are gone: an agent of your own through MCP does that work.
 The demo's three interviews each have a recording, in more natural voices.
+The demo's analysis is redone as an example of IPA: fewer, stronger experiential statements, each with its own quote, and new PETs and GETs.
 
 ## 0.9.24, 10 November 2026
 

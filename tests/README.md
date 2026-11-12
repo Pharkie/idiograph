@@ -44,6 +44,10 @@ the area prints, and the first thirty print the numbers they were written with.
 
 `areas/support.py` holds what more than one area uses: the paths, the check counter and its two
 calls, `check` and `skip`, the demo fixture, the helpers and constants, and the suite's own checks.
+The demo fixture's annotations are its own since 12 November 2026, in `demo_fixture/`: Juno's first six
+passages and Rowan's and Mabel's whole annotations as the demo held them until the demo's analysis was redone
+that day, built on the demo's transcripts, so a check written on the fixture keeps its cases whatever the demo's
+analysis becomes. A check about the demo as it ships reads `demo/pristine/` (`support.DEMO_SHIPPED`).
 An area imports from it what it needs, and nothing in it is copied into an area. A file of the app is
 read by its path as it is now, `support.source("family/static/shell.js")` for its Path or
 `support.text("apps/sift/static/sift.js")` for its text, several paths given to `text` joined in order, and
