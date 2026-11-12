@@ -8169,12 +8169,14 @@ def traj_apply(root: Path, body: dict) -> dict:
 
 
 def traj_picture_url(root: Path, picture: str) -> str:
-    """Where the page reads a participant's picture: one of the set from the app's own files, his own from the
-    project folder through `stream_traj_picture`, its time in the address so a new one is read afresh."""
+    """Where the page reads a participant's picture: one of the set from the app's own files, one of the set
+    before as its nearest now, his own from the project folder through `stream_traj_picture`, its time in the
+    address so a new one is read afresh."""
     if not picture:
         return ""
     if picture.startswith("set:"):
-        return f"/faces/{picture[4:]}.svg"
+        face = traj_mod.face_of(picture[4:])
+        return f"/faces/{face}.svg" if face else ""
     file = traj_mod.pictures_of(root) / picture
     try:
         stamp = file.stat().st_mtime_ns
@@ -8370,7 +8372,7 @@ def participant_answer(root: Path, case: str, people: dict | None = None) -> dic
 
 def api_participant(body: dict) -> dict:
     """A participant's picture, label and pen portrait (pbiobuild, 11 November 2026), read with `op` `show`, or
-    changed with any of `label`, `portrait`, `picture` (`set:face07`, or "" to take it off), `data` (a picture as
+    changed with any of `label`, `portrait`, `picture` (`set:peep07`, or "" to take it off), `data` (a picture as
     the page sends it, a data URL) or `from` (an image file's path, an agent's), each left out kept as it is and ""
     clearing it. The whole is refused, nothing written, for the demo, a participant not of the project, a label
     or a pen portrait over its limit or holding a name from the project's list of names to replace, or a picture

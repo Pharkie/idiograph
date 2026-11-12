@@ -3215,10 +3215,25 @@ Pictures: `picture_bytes` keeps a PNG cut square at its middle and scaled to 256
 it came, refusing anything else. `change` writes them to `<project>/trajectories/pictures/<Pseudonym>.png`
 through `picture_files`, the one replaced or taken off moved to `pictures/_Archive` with the time in its name, never deleted. The page
 sends a picture already squared to 256 by a canvas as a data URL (`trajOwnPicture`), an agent a path
-(`from`). `traj_picture_url` answers `/faces/faceNN.svg` for the set, `set:faceNN`, and `/traj-picture` for
+(`from`). `traj_picture_url` answers `/faces/peepNN.svg` for the set, `set:peepNN`, and `/traj-picture` for
 his own, `stream_traj_picture` serving it by name alone from the project's pictures folder with a CSP that
-runs nothing. The set is 24 line portraits in `apps/idiograph/static/faces/`, drawn by
-`packaging/make_faces.py` for the app and under its licence (NOTICE.md). Change picture... is an
+runs nothing. The set (peeps, 12 November 2026, Adam: black and white) is forty heads and shoulders from Open
+Peeps, Pablo Stanley's CC0 library, in `apps/idiograph/static/faces/peep01.svg` to `peep40.svg`, `FACES`.
+`packaging/make_peeps.py` makes them, once, when the set changes, never at run time: each is asked of DiceBear's
+public HTTP API (`api.dicebear.com/11.x/open-peeps/svg`) by explicit parts, its `SET` row naming the head,
+expression, facial hair and glasses, so no seed chooses, every colour asked as a stand-in. The download is
+untrusted data: one with a doctype or an entity is refused, and the script parses it and writes only its paths
+and groups, each path's outline and each transform checked, each `<use>` of a part inlined, the clip and the
+metadata dropped, every fill mapped from its stand-in to the app's ink `#2B2620`, white or one warm grey
+`#C9C2B8` (grey hair, a grey top or headscarf), and any other colour stops the run. Skin is left white. Every
+picture shares one window on Open Peeps' 704 square, `VIEW` (45, 0, 710, 710), head and shoulders with the
+face a little right of centre as Open Peeps turns it, so the circle the app draws holds the tallest hair in the
+set (the afro, the bun) whole. The set before, `face01` to `face24` (24 line portraits by `make_faces.py`,
+gone), stays readable: `FACES_BEFORE` maps each to its nearest now by hair and glasses or beard, `face_of`
+reads either name, `picture_kept` keeps an old name as the file has it, `traj_picture_url` answers its nearest's
+file, and an old name chosen again through the route, the command line, MCP or a Trajectories op is written as
+its new one. The pickers mark the chosen face by its address (`picture_url`), so an old name shows its
+nearest as chosen. `.tf-faces` lays them out in four rows of ten, five of eight in a narrow window. Change picture... is an
 `<input type=file>` (`#tj-picture-file`): wry 0.57's `WryWebViewUIDelegate` answers
 `runOpenPanelWithParameters` with an `NSOpenPanel` in the Mac's window, so it opens there as in a browser
 (it passes no file types, so the panel offers any file, and one that is no picture is refused with
@@ -3367,7 +3382,7 @@ its mode with its bytes, so `unrename` puts the list of names to replace back at
 
 **Each participant's picture, label and pen portrait (pbiobuild, 11 November 2026, Adam's layout A of
 pbiodraw's proposal).** `participants.py` is the set: `one` reads a participant's `label` (up to `LABEL_MAX`,
-Trajectories' 60), `portrait` (up to `PORTRAIT_MAX`, 800, its whitespace folded) and `picture` (`set:faceNN`, or a
+Trajectories' 60), `portrait` (up to `PORTRAIT_MAX`, 800, its whitespace folded) and `picture` (`set:peepNN`, or a
 file's name, through `trajectories.picture_kept`), kept in the project file under `participants` by the
 participant's label, as `order` and `names` are, the file every screen already reads. `view` is what every
 screen and agent reads, the project file's own with Trajectories' old `placed[case]["title"]` and `["picture"]`

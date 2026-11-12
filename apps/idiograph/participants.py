@@ -5,8 +5,9 @@ proposal, by dialog about 18:10).
 Every participant of every project, IPA and thematic analysis alike, has a set of their own beside the number and
 pseudonym their folder gives them:
 
-1. a **picture**, one of the app's drawn set, `set:face07` (`trajectories.FACES`), his own file kept in `pictures/`
-   at the project's root, or none, which shows the initial on the participant's colour,
+1. a **picture**, one of the app's drawn set, `set:peep07` (`trajectories.FACES`), his own file kept in `pictures/`
+   at the project's root, or none, which shows the initial on the participant's colour. One of the set before,
+   `set:face07`, is kept as it is and shown as its nearest now (`trajectories.FACES_BEFORE`),
 2. a **label**, a few words, "Pepper's keeper", up to LABEL_MAX characters,
 3. a **pen portrait**, one short paragraph of plain text, up to PORTRAIT_MAX characters, its line breaks folded
    into spaces.
@@ -15,7 +16,7 @@ The set is kept once for the project, in the project's own file, `idiograph-proj
 by the participant's label as his order (`order`) and Rename's names (`names`) are:
 
     "participants": {"P2 - Mabel": {"label": "Pepper's keeper", "portrait": "Widowed, 73, lives alone.",
-                                    "picture": "set:face16"},
+                                    "picture": "set:peep07"},
                      "P1 - Juno": {"label": "The reluctant convert", "picture": "Juno.png"}}
 
 The real name is never kept here. A save whose label or pen portrait holds a name from the project's list of names
@@ -186,7 +187,7 @@ def real_name_in(text: str, entries: list[dict]) -> int | None:
 def apply(people: dict[str, dict], case: str, given: dict, files: dict, names: list[dict] | None = None,
           read_file=None) -> list[str]:
     """One participant's set changed in `people`, in place, answering a line for each change. `given` holds any of
-    `label` and `portrait`, a string, "" clearing it, and for the picture one of `picture`, `set:face07` or "" to
+    `label` and `portrait`, a string, "" clearing it, and for the picture one of `picture`, `set:peep07` or "" to
     take it off, `from`, an image file's path, or `data`, a data URL as the page sends one. A key left out keeps
     what is there. Refused as a whole, with `people` to be thrown away, when one is wrong: a label or a pen
     portrait over its limit or holding a name from the list of names to replace (`names`), a picture that is not
@@ -240,9 +241,8 @@ def apply(people: dict[str, dict], case: str, given: dict, files: dict, names: l
             if said_pic.lower() in ("", "none", "null"):
                 now = ""
             else:
-                face = said_pic[4:] if said_pic.lower().startswith("set:") else said_pic
-                face = face.lower()
-                if face not in traj_mod.FACES:
+                face = traj_mod.face_of(said_pic[4:] if said_pic.lower().startswith("set:") else said_pic)
+                if not face:
                     raise WorkbookError(i18n.t("server.trajectory_no_such_face", face=said_pic,
                                                first=traj_mod.FACES[0], last=traj_mod.FACES[-1]))
                 now = f"set:{face}"
@@ -337,7 +337,7 @@ def settle(root: Path, project: dict, project_path: Path, when: str, save_json, 
 
 def shown(case: str, kept: dict, url: str, colour: int | None) -> dict:
     """One participant's set as a screen draws it and an agent reads it: `case`, `who`, `label`, `portrait`,
-    `picture` (`set:face07`, his own file's name, or ""), `picture_url`, where the page reads it, and `colour`, their
+    `picture` (`set:peep07`, his own file's name, or ""), `picture_url`, where the page reads it, and `colour`, their
     place in the participants' palette, for the initial on their colour where there is no picture."""
     return {"case": case, "who": who(case), "label": kept.get("label") or "", "portrait": kept.get("portrait") or "",
             "picture": kept.get("picture") or "", "picture_url": url, "colour": colour if colour is not None else 0}

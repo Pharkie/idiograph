@@ -1312,7 +1312,8 @@ statements marked already keeps the first time. `cases` answers each participant
 fields across their row on the project's page do (`/api/participant`), in every project, IPA and thematic
 analysis alike. `--label` is a few words, up to 60 characters, `--portrait` one short paragraph of plain text, up
 to 800, its line breaks folded into spaces, each "" to clear it. `--picture` is one of the app's drawn set,
-`set:face01` to `set:face24`, `--picture-file` an image file of his, PNG, JPEG or SVG, kept in `pictures/` at the
+`set:peep01` to `set:peep40` (one of the set before, `set:face01` to `set:face24`, is taken as its nearest),
+`--picture-file` an image file of his, PNG, JPEG or SVG, kept in `pictures/` at the
 project's root, made square and small, the one it replaces moved to `pictures/_Archive/`, and `--no-picture` takes
 the picture off, the initial on their colour standing in. Each left out is kept as it is. A label or pen portrait
 that holds a name from the project's list of names to replace is refused, nothing written, the refusal naming the
@@ -1323,7 +1324,7 @@ same label and picture, and its `title` and `picture` ops set them. Write his ap
 
 ```
 idiograph participant set Mabel --label "Pepper's keeper" --portrait "Widowed, 73, lives alone." --dry-run
-idiograph participant set Mabel --picture set:face16 --note "his words" --tool "Claude Code"
+idiograph participant set Mabel --picture set:peep07 --note "his words" --tool "Claude Code"
 idiograph participant set Mabel --picture-file "/Users/him/mabel.png" --note "his words"
 idiograph participant set Mabel --no-picture --note "his words"
 idiograph participant show Mabel

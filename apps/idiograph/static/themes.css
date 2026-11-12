@@ -2413,7 +2413,8 @@ circle.th-link-hit { fill: transparent; stroke: none; pointer-events: fill; }
 .tf-edit-lpets { align-items: start; }
 .tf-edit-ticks { display: flex; flex-direction: column; gap: 4px; }
 .tf-tickrow { display: flex; align-items: baseline; gap: 7px; font-size: 13px; color: var(--ink); cursor: pointer; }
-.tf-faces { display: grid; grid-template-columns: repeat(12, 36px); gap: 6px; margin-bottom: 4px; }
+/* the drawn set, forty, in four rows of ten, five of eight in a narrow window, so no row is left short (peeps) */
+.tf-faces { display: grid; grid-template-columns: repeat(10, 36px); gap: 6px; margin-bottom: 4px; }
 .tf-face { width: 36px; height: 36px; padding: 0; border: 1px solid var(--rule); border-radius: 50%; overflow: hidden; background: var(--tf-face-ground); cursor: pointer; }
 .tf-face img { width: 100%; height: 100%; display: block; }
 .tf-face.on { box-shadow: 0 0 0 2px var(--ink); }

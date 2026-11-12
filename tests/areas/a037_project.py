@@ -40,7 +40,7 @@ def test_project(scratch):
           server_mod.DEMO_PROJECT == server_mod.DEMO_DIR / "idiograph-project.json"
           and set(shipped) == {"name", "research_question", "updated", "participants"}
           and set(sets) == {"Juno", "Mabel", "Rowan"}
-          and all(set(v) == {"label", "portrait", "picture"} and str(v["picture"]).startswith("set:face")
+          and all(set(v) == {"label", "portrait", "picture"} and str(v["picture"]).startswith("set:peep")
                   for v in sets.values())
           and shipped["name"] == "Living with a dog" and shipped["research_question"] == DEMO_QUESTION
           and dt.datetime.fromisoformat(shipped["updated"]).tzinfo is not None, str(shipped))

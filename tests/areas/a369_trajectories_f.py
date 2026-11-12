@@ -296,10 +296,10 @@ def test_trajectories_f(scratch):
               "256, the source left where it was, the page given its address",
               (pw, ph) == (256, 256) and source.read_bytes() == png and wc["picture"] == "Wren.png"
               and wc["picture_url"].startswith("/participant-picture?"), f"{pw}x{ph} {wc.get('picture_url')}")
-        done = call("/api/trajectories-ops", {"workbook": str(wren), "ops": [{"op": "picture", "participant": "Wren", "set": "face07"}]})
+        done = call("/api/trajectories-ops", {"workbook": str(wren), "ops": [{"op": "picture", "participant": "Wren", "set": "peep07"}]})
         wc = next(c for c in done["participants"] if c["case"] == "P1 - Wren")
         check("369: one of the set in its place, the picture before kept in the pictures' _Archive, never deleted",
-              wc["picture"] == "set:face07" and wc["picture_url"] == "/faces/face07.svg" and not kept_pic.exists()
+              wc["picture"] == "set:peep07" and wc["picture_url"] == "/faces/peep07.svg" and not kept_pic.exists()
               and len(list((pics / "_Archive").glob("Wren *.png"))) == 1, str(wc["picture"]))
         small = traj_mod.png_write(2, 2, bytearray(b"\x10\x20\x30\xff" * 4))
         url = "data:image/png;base64," + base64.b64encode(small).decode("ascii")
@@ -911,7 +911,7 @@ const row = (id, title) => ({ id, title, domain: 'Practical, Town', domains: [{ 
   cells: { T1: cell('I had tidy rows in my head', 'Before:3:0', false, []), T2: cell('', '', false, []), T3: cell('I ask first', 'Harvest:2:0', true, [[0, 1]]) } });
 const DATA = { project: null, demo: false, unplaced: [], note: 'A credit line', config: { traj_quotes: 'short', traj_notes: false },
   timepoints: [{ n: 1, label: 'T1', description: 'Before the season' }, { n: 2, label: 'T2', description: 'Midsummer' }, { n: 3, label: 'T3', description: 'After the harvest' }],
-  palette: { good: 'Green' }, faces: ['face01'],
+  palette: { good: 'Green' }, faces: ['peep01'],
   columns: [{ id: 'c1', title: 'Positive', colour: 'good', icon: 'rising', participants: ['P1 - Wren', 'P2 - Ash'] },
     { id: 'c2', title: 'Mixed', participants: ['P3 - Fern'] }],
   participants: [['P1 - Wren', 'Wren', 'c1'], ['P2 - Ash', 'Ash', 'c1'], ['P3 - Fern', 'Fern', 'c2']].map((p, i) => ({ case: p[0], who: p[1], colour: i,

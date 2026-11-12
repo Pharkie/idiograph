@@ -557,8 +557,8 @@ function trajMenuHtml(c) {
    each kept at once, Done at its foot */
 function trajEditHtml(c) {
   const faces = TJ.faces
-    ? `<div class="tf-faces" role="group" aria-label="${escAttr(t('trajectories.choose_face'))}">${((TJ.data && TJ.data.faces) || []).map((f, i) => `<button type="button" class="tf-face${c.picture === `set:${f}` ? ' on' : ''}"
-        data-face="${escAttr(f)}" data-fkey="face-${escAttr(f)}" aria-pressed="${c.picture === `set:${f}`}" aria-label="${escAttr(t('trajectories.face_n', { n: i + 1 }))}"><img src="/faces/${escAttr(f)}.svg" alt=""></button>`).join('')}</div>` : '';
+    ? `<div class="tf-faces" role="group" aria-label="${escAttr(t('trajectories.choose_face'))}">${((TJ.data && TJ.data.faces) || []).map((f, i) => `<button type="button" class="tf-face${c.picture_url === `/faces/${f}.svg` ? ' on' : ''}"
+        data-face="${escAttr(f)}" data-fkey="face-${escAttr(f)}" aria-pressed="${c.picture_url === `/faces/${f}.svg`}" aria-label="${escAttr(t('trajectories.face_n', { n: i + 1 }))}"><img src="/faces/${escAttr(f)}.svg" alt=""></button>`).join('')}</div>` : '';
   const tags = (c.tags || []).map((tg) => `<span class="tf-pill tf-pill-x case-${(Number(tg.colour) || 0) % 25}${TJ.tagOpen === tg.word ? ' tf-pill-open' : ''}">`
     + `<button type="button" class="tf-pill-b" data-tag="${escAttr(tg.word)}" data-fkey="tag-${escAttr(tg.word)}" aria-expanded="${TJ.tagOpen === tg.word}"
         title="${escAttr(t('trajectories.tag_colour', { tag: tg.word }))}">${esc(tg.word)}</button>`

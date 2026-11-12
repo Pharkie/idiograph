@@ -1919,7 +1919,7 @@ def cmd_participant_rename(p: Project, args) -> tuple:
 
 def person_answer(person: dict) -> dict:
     """A participant's set as the command line answers it: their label, pseudonym, label, pen portrait and
-    picture, `set:face07`, a file's name in the project's pictures folder, or "" for none."""
+    picture, `set:peep07`, a file's name in the project's pictures folder, or "" for none."""
     return {k: person.get(k) or "" for k in ("case", "who", "label", "portrait", "picture")}
 
 
@@ -1958,7 +1958,7 @@ def cmd_participant_show(p: Project, args) -> tuple:
 def cmd_participant_set(p: Project, args) -> tuple:
     """`participant set`: a participant's picture, label and pen portrait (pbiobuild, 11 November 2026), as the
     project page's row sets them (`routes.api_participant`): --label and --portrait, "" clearing either, --picture
-    one of the set, `set:face07`, --picture-file an image file of his, kept in the project's pictures folder, made
+    one of the set, `set:peep07`, --picture-file an image file of his, kept in the project's pictures folder, made
     square and small, or --no-picture, each left out kept as it is. A label or a pen portrait holding a name from the
     project's list of names to replace is refused, nothing written. The demo's are fixed. With --dry-run what would
     change, and nothing written. One record in the project's History."""
@@ -8015,7 +8015,7 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("case", help="the participant, by their pseudonym")
     x.add_argument("--label", default=None, help="a few words, \"\" clearing it")
     x.add_argument("--portrait", default=None, help="the pen portrait, one short paragraph, \"\" clearing it")
-    x.add_argument("--picture", default=None, help="one of the app's drawn set, set:face01 to set:face24")
+    x.add_argument("--picture", default=None, help="one of the app's drawn set, set:peep01 to set:peep40")
     x.add_argument("--picture-file", default=None, help="an image file of his, PNG, JPEG or SVG, kept in the "
                                                          "project's pictures folder, made square and small")
     x.add_argument("--no-picture", action="store_true", help="take the picture off, the initial on their colour shown")

@@ -10,7 +10,7 @@ with its colour, one of PALETTE, its icon, one of ICONS, and its sentence, `desc
 participants in his order, `order`, any not named there after them in case order. Each participant keeps
 their own label, `title` ("The late starter"), their tags, free words whose colour is kept once for the
 project in `tags`, a place in the participants' palette, so a tag reads the same on everyone, their picture,
-a file in `trajectories/pictures/` in the project folder or one of the app's set, `set:face07`, with none the
+a file in `trajectories/pictures/` in the project folder or one of the app's set, `set:peep07`, with none the
 initial on their colour, and `hidden`, the ids of the LPETs this screen leaves out, every LPET shown until he
 hides one. Under them each LPET is a row: its title and its domain, then at each timepoint its key quote over
 its state. The domain is the LPET's own, on the participant's LPETs board, and its colour comes from `tags`
@@ -73,8 +73,20 @@ ICONS = ("rising", "mixed", "falling", "level")
 TAG_NAMES = ("Blue", "Olive", "Plum", "Brown", "Indigo", "Teal", "Purple", "Slate",
              "Moss", "Spruce", "Violet", "Aubergine", "Pine", "Denim", "Khaki", "Mulberry", "Fern", "Periwinkle", "Umber",
              "Grape", "Ocean", "Amethyst", "Jade", "Navy", "Fig")
-# the app's own set of pictures, static/faces/face01.svg to face24.svg
-FACES = tuple(f"face{n:02d}" for n in range(1, 25))
+# the app's own set of pictures (peeps, 12 November 2026): forty Open Peeps drawn in ink, static/faces/peep01.svg
+# to peep40.svg, made by packaging/make_peeps.py
+FACES = tuple(f"peep{n:02d}" for n in range(1, 41))
+# The drawn set before it, face01 to face24 (eight heads of hair, each plain, with glasses, and with a beard or
+# earrings), which projects hold still: each is read as its nearest in the set now, the same hair and, where the
+# set has them, the same glasses or beard. Nothing a project holds is rewritten by a read, and one of them chosen
+# again is kept as its new name.
+FACES_BEFORE = {
+    "face01": "peep02", "face02": "peep27", "face03": "peep01", "face04": "peep38", "face05": "peep03",
+    "face06": "peep32", "face07": "peep39", "face08": "peep12", "face09": "peep19", "face10": "peep33",
+    "face11": "peep15", "face12": "peep07", "face13": "peep37", "face14": "peep21", "face15": "peep13",
+    "face16": "peep18", "face17": "peep09", "face18": "peep22", "face19": "peep01", "face20": "peep23",
+    "face21": "peep36", "face22": "peep14", "face23": "peep13", "face24": "peep26",
+}
 PICTURES = ("trajectories", "pictures")
 PICTURE_SIZE = 256
 PICTURE_SIDE_MAX = 2000
@@ -172,12 +184,19 @@ def tags_kept(given) -> list[str]:
     return out[:TAGS_MAX]
 
 
+def face_of(name) -> str:
+    """One of the set by its name, `peep07`, one from the set before as its nearest now, or "" when it is
+    neither."""
+    name = str(name or "").strip().lower()
+    return name if name in FACES else FACES_BEFORE.get(name, "")
+
+
 def picture_kept(given) -> str:
-    """A picture's name as the file keeps it: one of the set, `set:face07`, or a file's name in the project's
-    pictures folder, never a path."""
+    """A picture's name as the file keeps it: one of the set, `set:peep07`, one of the set before, `set:face07`,
+    kept as it is, or a file's name in the project's pictures folder, never a path."""
     name = str(given or "").strip()
     if name.startswith("set:"):
-        return name if name[4:] in FACES else ""
+        return name if name[4:] in FACES or name[4:] in FACES_BEFORE else ""
     return name if re.fullmatch(r"[A-Za-z0-9][\w .-]{0,118}\.(png|jpg|svg)", name) else ""
 
 
@@ -354,7 +373,8 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
     - `title`, `participant`, `title`, their own label, an empty one clearing it
     - `tags`, `participant`, `tags`, a list of words, all of their tags, an empty list clearing them
     - `tag_colour`, `tag`, `colour`, by its name in the participants' palette, for every participant
-    - `picture`, `participant`, and `set`, one of FACES, or `from`, an image file's path, or `data`, a data URL
+    - `picture`, `participant`, and `set`, one of FACES (one of FACES_BEFORE kept as its nearest), or `from`, an
+      image file's path, or `data`, a data URL
       as the page sends one, or none of them to take the picture off
     - `hide` and `show`, `participant`, `lpet`, by its id or its title, on this screen alone
     - `state`, `quote`, `bold`, `domain` and `states_from_notes`, run on the participant's LPETs board by
@@ -553,8 +573,8 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
             elif kind == "picture":
                 was = held.get("picture") or ""
                 if op.get("set") not in (None, ""):
-                    face = words(op.get("set")).lower()
-                    if face not in FACES:
+                    face = face_of(words(op.get("set")))
+                    if not face:
                         raise WorkbookError(i18n.t("server.trajectory_no_such_face", face=words(op.get("set")),
                                                    first=FACES[0], last=FACES[-1]))
                     now = f"set:{face}"

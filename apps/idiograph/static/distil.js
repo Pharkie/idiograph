@@ -1750,8 +1750,8 @@ function ppEditHtml(p) {
   // a field drawn again while its save is on its way shows what was typed, never the set before it
   const typed = (key) => (PP.sent && key in PP.sent ? PP.sent[key] : String(person[key] || ''));
   const faces = PP.faces ? `<div class="tf-faces pp-faces" role="group" aria-label="${escAttr(t('trajectories.choose_face'))}">`
-    + (PP_FACES.map((f, i) => `<button type="button" class="tf-face${person.picture === `set:${f}` ? ' on' : ''}" data-pp-face="${f}"`
-      + ` aria-pressed="${person.picture === `set:${f}`}" aria-label="${escAttr(t('trajectories.face_n', { n: i + 1 }))}"><img src="/faces/${f}.svg" alt=""></button>`).join(''))
+    + (PP_FACES.map((f, i) => `<button type="button" class="tf-face${ppFaceOn(person, f) ? ' on' : ''}" data-pp-face="${f}"`
+      + ` aria-pressed="${ppFaceOn(person, f)}" aria-label="${escAttr(t('trajectories.face_n', { n: i + 1 }))}"><img src="/faces/${f}.svg" alt=""></button>`).join(''))
     + '</div>' : '';
   return `<div class="pp-edit" role="group" aria-label="${escAttr(t('distil.person.edit_label', { who: name }))}">`
     + `<div class="tf-edit-pic pp-edit-pic">${personPic(person, 64)}<div class="tf-edit-picb">`
@@ -1791,8 +1791,14 @@ function ppBarDraw(pic, lab, person) {
   }
 }
 
-// the app's drawn set, static/faces/face01.svg to face24.svg, as Trajectories offers it
-const PP_FACES = Array.from({ length: 24 }, (_, i) => `face${String(i + 1).padStart(2, '0')}`);
+// the app's drawn set, static/faces/peep01.svg to peep40.svg, as Trajectories offers it (trajectories.FACES)
+const PP_FACES = Array.from({ length: 40 }, (_, i) => `peep${String(i + 1).padStart(2, '0')}`);
+
+/* whether a participant's picture is this one of the set: by where it is read, so one from the set before,
+   `set:face16`, shows as chosen on its nearest now (trajectories.FACES_BEFORE) */
+function ppFaceOn(person, f) {
+  return !!person && person.picture_url === `/faces/${f}.svg`;
+}
 
 /* the fields opened across a row, any other row's shut first, the field he double-clicked in front */
 function ppOpen(li, p, where, field = 'label') {

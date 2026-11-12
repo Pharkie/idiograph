@@ -263,13 +263,16 @@ own border, where until 17 October, later, they stood in the crux orange.
 **A participant's picture, label and pen portrait (11 November 2026, pbiobuild, layout A).** Each participant
 of every project, IPA and thematic analysis alike, has a picture, a label of a few words and a pen portrait, a
 short paragraph to remind him who they were, beside the number and pseudonym their folder gives them. The real
-name is never kept here. A row shows the picture before the name, one of the app's 24 drawn portraits or his own
+name is never kept here. A row shows the picture before the name, one of the app's 40 drawn portraits or his own
 file, or with none the participant's initial in their colour, the label under the name, and the pen portrait's
 first two lines across the row under them, the whole in its tooltip. A double-click on the name, the label or
 the pen portrait, or Edit participant profile, first in the dots, opens the fields across the row: the picture with Change picture...,
 Choose from the set and Remove, the participant greyed with Rename... after it (on a participant in a folder of
 its own, never the demo's, and it opens the Rename card below), Label and Pen portrait, each kept as it is left, and
-Done at the foot. Choose from the set opens the drawn portraits under the fields. His own picture is cut
+Done at the foot. Choose from the set opens the drawn portraits under the fields, four rows of ten. Since 12
+November (peeps) they are forty heads and shoulders from Open Peeps, Pablo Stanley's drawings, in black and
+white, with a range of ages, hair, headscarves and turbans, beards and glasses. A picture chosen from the 24
+before shows as the nearest of the forty until another is chosen. His own picture is cut
 square, made small and kept in the project folder's `pictures/`, the one it replaces moved to that folder's
 `_Archive`, never deleted. A label is up to 60 characters and a pen portrait up to 800, its line breaks folded
 into spaces. A label or pen portrait holding a name from the project's list of names to replace is refused in

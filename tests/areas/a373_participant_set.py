@@ -15,6 +15,10 @@ each participant in order, number, pseudonym, label and pen portrait, a row's ce
 GET table's and the full set's print view and PDF and a thematic analysis project's theme table in Word, the part
 after it from a new page under its heading. No picture goes in any of them. The command line and MCP take both.
 
+The drawn set (peeps, 12 November 2026): forty Open Peeps in the app's ink, each file holding only shapes, the
+project page offering the same forty as Trajectories, and the twenty-four before kept working, a project file's
+`set:face16` read as it is and shown as its nearest, one chosen again written as its new name.
+
 The fixtures are invented: a project on learning to swim as an adult, two made-up participants, Orla and Piers,
 an interviewer called Kit, and a made-up name for the list of names to replace, and for the exports copies of the
 two demos, the IPA one with Mabel's set taken out and the thematic analysis one with Rowan's."""
@@ -96,32 +100,32 @@ def test_participant_set(scratch):
         before, records = sha(pfile), len(hist_mod.load(pool))
         dry = routes.api_participant({"root": rid, "case": "Orla", "label": "Holding the rail",
                                       "portrait": "Forty-one, a nurse.\nLearnt with her son's class.",
-                                      "picture": "set:face07", "dry_run": True})
+                                      "picture": "set:peep07", "dry_run": True})
         check("373: a dry run says each change, answers the set as it would be and writes nothing",
               dry["dry_run"] is True and sha(pfile) == before and len(hist_mod.load(pool)) == records
-              and dry["person"]["label"] == "Holding the rail" and dry["person"]["picture"] == "set:face07"
+              and dry["person"]["label"] == "Holding the rail" and dry["person"]["picture"] == "set:peep07"
               and dry["changes"] == ["Orla's label is Holding the rail now.", "Orla's pen portrait written.",
                                      "Orla's picture changed."], str(dry["changes"]))
         done = routes.api_participant({"root": rid, "case": "Orla", "label": "Holding the rail",
                                        "portrait": "Forty-one, a nurse.\nLearnt with her son's class.",
-                                       "picture": "set:face07"})
+                                       "picture": "set:peep07"})
         held = json.loads(pfile.read_text(encoding="utf-8"))
         record = hist_mod.load(pool)[-1]
         check("373: saved in the project file under participants by the participant's label, the portrait's line "
               "breaks folded, every other key as it was, and one record in the project's History",
               held["participants"] == {"P1 - Orla": {"label": "Holding the rail",
                                                      "portrait": "Forty-one, a nurse. Learnt with her son's class.",
-                                                     "picture": "set:face07"}}
+                                                     "picture": "set:peep07"}}
               and {k: v for k, v in held.items() if k != "participants"} == held_before
               and record["op"] == "participant set" and record["changes"] == done["changes"]
-              and done["person"]["picture_url"] == "/faces/face07.svg", str(held)[:400])
+              and done["person"]["picture_url"] == "/faces/peep07.svg", str(held)[:400])
         done = routes.api_participant({"root": rid, "case": "P1 - Orla", "label": "Holding the rail"})
         check("373: a save that changes nothing writes no record", done["changes"] == []
               and len(hist_mod.load(pool)) == records + 1, str(done["changes"]))
         done = routes.api_participant({"root": rid, "case": "orla", "portrait": ""})
         check("373: an empty field clears it, the others kept, and a participant goes by their pseudonym in any case",
               json.loads(pfile.read_text(encoding="utf-8"))["participants"]["P1 - Orla"]
-              == {"label": "Holding the rail", "picture": "set:face07"}
+              == {"label": "Holding the rail", "picture": "set:peep07"}
               and done["changes"] == ["Orla's pen portrait cleared."], str(done["changes"]))
 
         # (b) refusals, nothing written: a real name from the list, a field over its limit, a face not of the set,
@@ -134,7 +138,7 @@ def test_participant_set(scratch):
                                  "portrait": "Learnt beside Barnaby at the leisure centre."})
         long_label = refused({"root": rid, "case": "Orla", "label": "x" * 61})
         long_portrait = refused({"root": rid, "case": "Orla", "portrait": "y" * 801})
-        no_face = refused({"root": rid, "case": "Orla", "picture": "set:face99"})
+        no_face = refused({"root": rid, "case": "Orla", "picture": "set:peep99"})
         nobody = refused({"root": rid, "case": "Quentin", "label": "Nobody"})
         check("373: a label or a pen portrait holding a name from the list of names to replace, whoever its entry is "
               "for, is refused naming the entry by its number and never the name, nothing written",
@@ -145,7 +149,7 @@ def test_participant_set(scratch):
               said_label + " | " + said_portrait)
         check("373: a label over 60 characters, a pen portrait over 800, a face not of the set and a participant not "
               "of the project are each refused, nothing written",
-              "60 characters" in long_label and "800 characters" in long_portrait and "face99" in no_face
+              "60 characters" in long_label and "800 characters" in long_portrait and "peep99" in no_face
               and "Quentin is not a participant" in nobody and sha(pfile) == before,
               " | ".join([long_label, long_portrait, no_face, nobody]))
 
@@ -185,10 +189,10 @@ def test_participant_set(scratch):
             return code, (support.plain(json.loads(out)) if out.strip() else {}), err
 
         before = sha(pfile)
-        code, dry, err = run("participant", "set", "Piers", "--label", "Racing on Sundays", "--picture", "set:face12",
+        code, dry, err = run("participant", "set", "Piers", "--label", "Racing on Sundays", "--picture", "set:peep12",
                              "--dry-run")
         code2, done, err2 = run("participant", "set", "Piers", "--label", "Racing on Sundays", "--portrait",
-                                "Seventy, retired. Learnt for his granddaughter.", "--picture", "set:face12",
+                                "Seventy, retired. Learnt for his granddaughter.", "--picture", "set:peep12",
                                 "--note", "His words for Piers", "--tool", "a373")
         code3, shown, err3 = run("participant", "show", "Piers")
         code4, every, err4 = run("participant", "show")
@@ -200,9 +204,9 @@ def test_participant_set(scratch):
               code == 0 and dry.get("dry_run") is True and code2 == 0 and code3 == 0 and code4 == 0 and code5 == 0
               and shown["participant"] == {"case": "P2 - Piers", "who": "Piers", "label": "Racing on Sundays",
                                            "portrait": "Seventy, retired. Learnt for his granddaughter.",
-                                           "picture": "set:face12"}
+                                           "picture": "set:peep12"}
               and [p["case"] for p in every["participants"]] == ["P1 - Orla", "P2 - Piers"]
-              and piers_row.get("label") == "Racing on Sundays" and piers_row.get("picture") == "set:face12"
+              and piers_row.get("label") == "Racing on Sundays" and piers_row.get("picture") == "set:peep12"
               and record.get("by") == "agent" and record.get("tool") == "a373"
               and record.get("request") == "His words for Piers",
               (err or "") + (err2 or "") + (err3 or "") + (err4 or "") + (err5 or "") + str(record)[:200])
@@ -260,7 +264,7 @@ def test_participant_set(scratch):
         check("373: Export as REFI-QDA gives each participant's pen portrait as their case's description, first in the "
               "case, and no picture",
               "<Description>Seventy, retired. Learnt for his granddaughter.</Description>" in case_xml
-              and case_xml.index("<Description>") < case_xml.index("<SourceRef") and "face12" not in qde,
+              and case_xml.index("<Description>") < case_xml.index("<SourceRef") and "peep12" not in qde,
               qde.split("<Cases>", 1)[-1].split("</Cases>", 1)[0][:700])
         demo_said = refused({"root": "demo", "case": "Juno", "label": "Changed"})
         check("373: the demo's are fixed", demo_said == "The demo's project is fixed.", demo_said)
@@ -290,7 +294,7 @@ def test_participant_set(scratch):
         check("373: an old Trajectories file opens with its labels and pictures, the participant's own label kept over "
               "the board's, every screen reading them merged, and no read writes either file",
               cards["P1 - Orla"]["title"] == "The rail holder" and cards["P1 - Orla"]["picture_url"].startswith("/traj-picture?")
-              and cards["P2 - Piers"]["title"] == "Racing on Sundays" and cards["P2 - Piers"]["picture"] == "set:face12"
+              and cards["P2 - Piers"]["title"] == "Racing on Sundays" and cards["P2 - Piers"]["picture"] == "set:peep12"
               and shown["label"] == "The rail holder" and shown["picture"] == "Orla.png"
               and sha(tfile) == t_before and sha(pfile) == p_before, str([cards["P1 - Orla"].get("title"), shown])[:300])
         routes.api_cases({})
@@ -303,7 +307,7 @@ def test_participant_set(scratch):
               "placed with everything else there kept, both files copied to _Archive first, one History line",
               sets["P1 - Orla"] == {"label": "The rail holder", "picture": "Orla.png"}
               and (people_mod.pictures_of(pool) / "Orla.png").read_bytes() == small and (tpics / "Orla.png").is_file()
-              and sets["P2 - Piers"]["label"] == "Racing on Sundays" and sets["P2 - Piers"]["picture"] == "set:face12"
+              and sets["P2 - Piers"]["label"] == "Racing on Sundays" and sets["P2 - Piers"]["picture"] == "set:peep12"
               and t_after["placed"]["P1 - Orla"] == {"column": "c1", "note": "Trusts the rail less each week", "tags": ["Pool"]}
               and "title" not in json.dumps(t_after["placed"]) and "picture" not in json.dumps(t_after["placed"])
               and any(n.startswith("idiograph-trajectories (pre-participants ") for n in archive)
@@ -320,10 +324,10 @@ def test_participant_set(scratch):
               and cards["P1 - Orla"]["picture_url"].startswith("/participant-picture?"), str(cards["P1 - Orla"])[:300])
         done = routes.api_trajectories_ops({"workbook": str(piers), "ops": [
             {"op": "title", "participant": "Orla", "title": "Floating now"}, {"op": "picture", "participant": "Orla",
-                                                                              "set": "face09"}]})
+                                                                              "set": "peep09"}]})
         sets = json.loads(pfile.read_text(encoding="utf-8"))["participants"]
         check("373: Trajectories' title and picture ops set the participant's own, the board's file keeping neither",
-              sets["P1 - Orla"] == {"label": "Floating now", "picture": "set:face09"}
+              sets["P1 - Orla"] == {"label": "Floating now", "picture": "set:peep09"}
               and "title" not in json.dumps(json.loads(tfile.read_text(encoding="utf-8"))["placed"])
               and done["changes"] == ["Orla's label from The rail holder to Floating now.", "Orla's picture changed."],
               str(done["changes"]))
@@ -340,9 +344,85 @@ def test_participant_set(scratch):
               and "P2 - Piers" not in sets and sets["P2 - Rupert"]["label"] == "Racing on Sundays"
               and sets["P2 - Rupert"]["picture"] == "Rupert.png" and (people_mod.pictures_of(pool) / "Rupert.png").is_file()
               and not (people_mod.pictures_of(pool) / "Piers.png").exists(), str([plan["lines"], sets])[:500])
+
+        # (o) a picture from the drawn set before (peeps, 12 November 2026): a project file holding set:face16 reads
+        # as it is, shown as its nearest now, nothing written by the read, and one of them chosen again through the
+        # route, the command line or a Trajectories op is kept as its new name
+        held = json.loads(pfile.read_text(encoding="utf-8"))
+        held["participants"]["P1 - Orla"]["picture"] = "set:face16"
+        pfile.write_text(json.dumps(held, indent=1), encoding="utf-8")
+        before = sha(pfile)
+        orla = pool / "P1 - Orla" / "P1 Orla - EN & ES.xlsx"
+        shown = routes.api_participant({"root": rid, "case": "Orla", "op": "show"})["person"]
+        card = next(c for c in routes.api_trajectories({"workbook": str(orla)})["participants"]
+                    if c["case"] == "P1 - Orla")
+        row_person = next(c.get("person") or {} for c in routes.api_cases({})["projects"][0]["participants"]
+                          if c["case"] == "P1 - Orla")
+        check("373: a picture from the set before is kept as the file has it and shown as its nearest now, on the "
+              "participant, Trajectories' card and the project page's row, and no read writes the file",
+              shown["picture"] == "set:face16" and shown["picture_url"] == "/faces/peep18.svg"
+              and card["picture_url"] == "/faces/peep18.svg" and row_person.get("picture_url") == "/faces/peep18.svg"
+              and sha(pfile) == before, str([shown, card.get("picture_url")])[:300])
+        done = routes.api_participant({"root": rid, "case": "Orla", "picture": "set:face12"})
+        by_route = json.loads(pfile.read_text(encoding="utf-8"))["participants"]["P1 - Orla"]["picture"]
+        code, _out, err = run("participant", "set", "Orla", "--picture", "set:face05", "--note", "x")
+        by_cli = json.loads(pfile.read_text(encoding="utf-8"))["participants"]["P1 - Orla"]["picture"]
+        routes.api_trajectories_ops({"workbook": str(orla), "ops": [{"op": "picture", "participant": "Orla",
+                                                                     "set": "face21"}]})
+        by_op = json.loads(pfile.read_text(encoding="utf-8"))["participants"]["P1 - Orla"]["picture"]
+        no_old = refused({"root": rid, "case": "Orla", "picture": "set:face25"})
+        check("373: one of the set before chosen again is kept as its nearest now, through the route, the command "
+              "line and Trajectories alike, and a name in neither set is refused",
+              by_route == "set:peep07" and done["person"]["picture_url"] == "/faces/peep07.svg"
+              and code == 0 and by_cli == "set:peep03" and by_op == "set:peep36" and "face25" in no_old,
+              str([by_route, by_cli, by_op, err, no_old])[:300])
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept
+    the_set()
     exports(scratch)
+
+
+def the_set() -> None:
+    """The drawn set itself (peeps): every picture offered is a file of the app's own, written in ink alone with
+    nothing in it but shapes, every name of the set before read as one of them, and the demo's three given theirs."""
+    import xml.etree.ElementTree as ET
+    import trajectories as traj_mod
+
+    faces = support.source("apps/idiograph/static/faces")
+    files = sorted(p.stem for p in faces.glob("*.svg"))
+    allowed = {"svg": {"viewBox", "width", "height"}, "rect": {"x", "y", "width", "height", "fill"},
+               "g": {"transform"}, "path": {"d", "fill", "fill-rule"}}
+    odd, colours = [], set()
+    for name in files:
+        root = ET.fromstring((faces / f"{name}.svg").read_text(encoding="utf-8"))
+        for el in root.iter():
+            tag = el.tag.split("}")[-1]
+            if tag not in allowed or set(el.attrib) - allowed[tag]:
+                odd.append(f"{name}: {tag} {sorted(el.attrib)}")
+            if el.get("fill"):
+                colours.add(el.get("fill"))
+    check("373: Choose from the set offers forty pictures, each a file of the app's own holding only shapes, no "
+          "script, link or style, in the app's ink, white and one grey",
+          len(traj_mod.FACES) == 40 and files == list(traj_mod.FACES) and not odd
+          and colours <= {"#2B2620", "#FFFFFF", "#C9C2B8"}, str([files[:3], odd[:3], colours]))
+    js = support.source("apps/idiograph/static/distil.js").read_text(encoding="utf-8")
+    offered = re.search(r"const PP_FACES = Array\.from\(\{ length: (\d+) \}, \(_, i\) => `(\w+)\$", js)
+    check("373: the project page's Choose from the set offers the same forty as Trajectories",
+          offered is not None and int(offered.group(1)) == len(traj_mod.FACES)
+          and f"{offered.group(2)}01" == traj_mod.FACES[0], offered.group(0) if offered else "no PP_FACES")
+    check("373: every picture of the set before, face01 to face24, is read as one of the set now",
+          sorted(traj_mod.FACES_BEFORE) == [f"face{n:02d}" for n in range(1, 25)]
+          and set(traj_mod.FACES_BEFORE.values()) <= set(traj_mod.FACES)
+          and all(traj_mod.picture_kept(f"set:{old}") == f"set:{old}" for old in traj_mod.FACES_BEFORE),
+          str(traj_mod.FACES_BEFORE))
+    demo = [json.loads(support.source(f).read_text(encoding="utf-8"))["participants"]
+            for f in ("demo/idiograph-project.json", "demo/ta/idiograph-project.json")]
+    pictures = [{k: v.get("picture") for k, v in d.items()} for d in demo]
+    check("373: the demo's three have pictures of the set now, each their own, the same in both demos",
+          pictures[0] == pictures[1] and set(pictures[0]) == {"Juno", "Mabel", "Rowan"}
+          and len(set(pictures[0].values())) == 3
+          and all(str(v).startswith("set:") and v[4:] in traj_mod.FACES for v in pictures[0].values()),
+          str(pictures))
 
 
 # ------------------------------------------------------------------ the exports (pbioexport)

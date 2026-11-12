@@ -551,7 +551,7 @@ TOOLS = [
          '"c1", "icon": "rising"} (rising, mixed, falling, level or none), {"op": "title", "participant": "Wren", '
          '"title": "The late starter"} (their own label), {"op": "tags", "participant": "Wren", "tags": ["Town"]} '
          '(all their tags), {"op": "tag_colour", "tag": "Town", "colour": "Brown"} (one of the participants\' 25 '
-         'colours, for everyone with it), {"op": "picture", "participant": "Wren", "set": "face07"} or "from": an '
+         'colours, for everyone with it), {"op": "picture", "participant": "Wren", "set": "peep07"} or "from": an '
          'image file\'s path (kept in the project folder, scaled), or neither to take it off, {"op": "hide", '
          '"participant": "Wren", "lpet": "G2"} and "show" (an LPET on this screen alone), {"op": "note_board", "note": '
          '"..."} (his note for the whole screen, shown under its title while Notes is on, "" clearing it). On the participant\'s LPETs '
@@ -1129,7 +1129,7 @@ TOOLS = [
          ["case", "name"], writes="changes"),
     mcp.tool("participant_show", "A participant's picture, label and pen portrait", ("participant", "show"),
          "A participant's picture, label and pen portrait, as the project page's row shows them: label, a few words, "
-         "portrait, one short paragraph, and picture, one of the app's drawn set (set:face01 to set:face24), a file's "
+         "portrait, one short paragraph, and picture, one of the app's drawn set (set:peep01 to set:peep40), a file's "
          "name in the project's pictures folder, or empty for none. With no case, every participant's of the project. "
          "cases answers each participant's too. The real name is never kept here.",
          {"case": dict(mcp.CASE, description="The participant, by their pseudonym. Every participant when left out.")}),
@@ -1142,7 +1142,7 @@ TOOLS = [
          "wording only, run dry_run first.",
          {"case": mcp.CASE, "label": dict({"type": "string"}, description="A few words, \"Pepper's keeper\". Empty clears it."),
           "portrait": dict({"type": "string"}, description="The pen portrait, one short paragraph of plain text. Empty clears it."),
-          "picture": dict({"type": "string"}, description="One of the app's drawn set, set:face01 to set:face24, or empty to take "
+          "picture": dict({"type": "string"}, description="One of the app's drawn set, set:peep01 to set:peep40, or empty to take "
                                                 "the picture off."),
           "picture_file": dict(mcp.TEXT, description="An image file's path, PNG, JPEG or SVG, kept in the project's "
                                                      "pictures folder, made square and small, in place of picture.")},
