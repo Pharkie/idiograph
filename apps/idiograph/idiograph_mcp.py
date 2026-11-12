@@ -564,7 +564,9 @@ TOOLS = [
          'when it is not in the transcript, "" takes the tick off, {"op": "bold", ..., "spans": [[0, 12]]} his bold '
          'in the key quote, of its words '
          'as trajectories_show gives them, never the transcript, {"op": "domain", "participant": "Wren", "lpet": '
-         '"G1", "domain": "Practical, Family"} (commas between domains, each its own pill and colour), and '
+         '"G1", "domain": "Practical, Family"} (commas between domains, each its own pill and colour, shown on '
+         'Trajectories and on the LPET\'s label), each of these on the LPETs board LGETs take, or with "board": '
+         '"b2" on that board of the participant\'s LPETs, by its id or name, and '
          '{"op": "states_from_notes"} (with or without a participant) moves each LPET\'s note\'s paragraphs headed '
          "T1, T2 into its rows' states where they hold none, the note left as it was. A trajectory goes by its id, "
          "c1, or its title, a participant by their pseudonym, an LPET by its id or title. Run dry_run first.",

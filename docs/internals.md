@@ -3135,8 +3135,33 @@ characters) so a save from the LPETs canvas keeps it. `states_from_notes` reads 
 `gets.rows_of` and `table` carry `bold`, and themes.js `gtRowsKept` keeps it and `gtRowSet` drops it with a
 new quote, so the LPET table keeps what Trajectories made. `gets.lpet_rows` gives each LPET's `cells` per
 timepoint (`state`, `quote`, `chosen`, `bold`, `choices`, `missing`), and `traj_people` adds them to each
-participant as `rows`. The LPETs screen and the LPET table keep the domain and the bold but do not draw them
-yet (backlogged).
+participant as `rows`. The LPETs screen and the LPET table kept the domain and the bold without drawing them
+until lpetmarks (below).
+
+The LPETs screen draws the domain and the bold (lpetmarks, 12 November 2026). Any of the LPET ops takes `board`,
+one of the participant's LPETs boards by its id or name, and runs on it in place of the one `gets.source_board`
+gives (the LPETs screen's canvas is the last board open, which need not be the Current or the marked one). One not
+there is refused (`server.trajectory_no_such_board`). `traj_apply` keeps each board of the file as it was by its
+id, and `commit` stamps `updated` on each that changed and writes the file once. `gets_reply` on a participant's
+LPETs adds `lpet_domains`, each LPET with a domain by its id, `[{"word", "colour"}]`, from `lpet_pills`: the
+colours are `trajectories.domain_colours`, which `board` now takes too, `tags` and then a word no op has coloured
+walked on a copy in Trajectories' order (every participant in case order, the LPETs of the board LGETs take in the
+table's order, `gets.lpet_domains`, which reads no cells), so both screens give a word the same colour. A board
+with no domain reads nothing more. themes.js draws them as `.tf-pill` inside `.tf-pills.th-domains` in a top
+label's `.th-words` (`gtDomainPills`, the label `.domained`), and `themes.label_size` adds their row (`PILL_H`,
+`PILL_GAP`, `PILL_PX`, `PILL_PAD`, each word a tenth over) for `domain`. The Inspector on a top LPET has Domain
+(`gtDomainHtml`, `#gt-ldomain`), opened by Add domain or Edit domain in its menu (`gtDomainOpen`). `gtDomainSet`
+flushes the canvas, sends `/api/trajectories-ops` `domain` with `board` and the participant (`TH.lpetsWho`, the
+answer's `participant`), then reads `/api/gets` for the board's new `v` and `updated` and its `lpet_domains`
+(`gtDomainsTake`) with no reload, so the canvas, the selection and the undo stay, and sets each label's `domain` on
+the page to the file's, which `thLabelOut` sends back as it holds it. The canvas's undo never steps over a domain:
+`thPut` keeps the one a label on the board has now, and a label put back after it went (deleted, then undone) comes
+with the one it had, so its domain returns with it as before.
+The LPET table's row carries `bold` while its quote is the one he ticked (`gtTable`, as `gets.table`), drawn by
+`gtBoldHtml` on the quote as the row keeps it, and the print view's `quote_html` and the Typst data's `quote_data`
+(`words`, runs with whether each is bold, `gets-table.typ`'s `quote-of`) take `gets.quote_bold`, the quote without
+its marks with the spans moved past them, as `lpet_rows` does. A passage taken from the transcript is not the
+LPET table's quote (the first quote stands in there), so its bold shows on Trajectories alone.
 
 A key quote's own marks and several domains (trajfix, 11 November 2026, from Adam's shots of his study).
 A Quote cell that holds its own inverted commas came through `lpet_rows` as it was and the page set its
@@ -3215,7 +3240,10 @@ which `trajNoteDraw` hides while `traj_notes` is off and fills from the answer u
 Enter or leaving it sends `note_board`, Shift+Enter a new line, Esc puts it back. There is no Trajectories
 PDF or picture yet, so it goes into no export. Area 369 holds the ops, their dry runs, the migration, the stand-in, the bold, the domain
 kept through an LPETs save, the shared tag colour, the moves, hide and show, the pictures, the CLI and MCP,
-and the keys, Cmd+B, the chooser and a drop's place in a headless browser.
+and the keys, Cmd+B, the chooser and a drop's place in a headless browser, and since lpetmarks an LPET's domain
+set from either screen and on a board LGETs do not take, its pills' colours the same on both, his bold in the LPET
+table's print view, Typst data and PDF, and in node `thPut` and `gtDomainsTake` on a domain, the pills, the menu's
+entry and `gtBoldHtml`.
 
 **The project file.** `idiograph-project.json` at a project's root, `{"name", "research_question",
 "updated"}`, which Settings writes under Projects (see Projects in the [manual](manual.md)). With no

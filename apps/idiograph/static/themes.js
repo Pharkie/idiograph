@@ -1502,7 +1502,14 @@ function thPut(v, snap) {
     if (!(key in cards) && !snap.removed.includes(key)) cards[key] = card;
   }
   v.cards = cards;
+  // an LPET's domain is set through its own operation, never a step of the canvas's undo (lpetmarks): a label on the
+  // board keeps the one it has now, and one put back after it went comes with the one it had
+  const domains = new Map(v.groups.map((g) => [g.id, g.domain]));
   v.groups = JSON.parse(JSON.stringify(snap.groups));
+  for (const g of v.groups) {
+    if (!domains.has(g.id)) continue;
+    if (domains.get(g.id)) g.domain = domains.get(g.id); else delete g.domain;
+  }
   v.discarded = snap.discarded.filter((key) => key in cards);
   v.picks = JSON.parse(JSON.stringify(snap.picks || {}));
   if (snap.stacks) v.stacks = JSON.parse(JSON.stringify(snap.stacks));
@@ -1795,6 +1802,10 @@ const TH = {
   stale: null,        // a save refused since the board changed under the page, { board, v }, until Reload or Overwrite
   staleKept: null,    // after Reload, the revision his canvas went into, { board, revision }, for Put my canvas back
   stampAsk: 0,       // the stamp in flight, so a slow answer never lands on a newer screen
+  lpetDomains: {},    // on LPETs each LPET's domains by its id, each { word, colour }, as Trajectories draws them
+  lpetsWho: '',       // whose LPETs are on the canvas, by their label, which the domain's operation names
+  domainEdit: null,   // an LPET's domain being typed in its Inspector, { id, value }
+  domainSaving: null, // and one on its way to the file, shown in the box until it is there
   map: null,          // the minimap's fit, its scale and its place in its area, null while it is not drawn
   mapBoard: null,     // the board's own fit, which the view's box is weighed against (see thMapAround)
   mapItems: null,     // what the map draws, as thMapItems last listed it
@@ -2076,6 +2087,9 @@ function thLoad(data, opts = {}) {
   thDrawBoard();
   thNote(Object.keys(cards).length ? '' : t('themes.empty.statements'));
   if (TH.mode === 'gets') {
+    // each LPET's domains as their pills, and whose LPETs these are, which the domain's operation names (lpetmarks)
+    TH.lpetDomains = Object.assign({}, data.lpet_domains || {});
+    TH.lpetsWho = data.participant || '';
     gtLoad(data);
     // a thematic analysis project's code list, which the status bar and the Codes panel count from (themesbuild)
     if (thTa()) gtCodeListRead(); else TH.codeList = null;
@@ -2269,8 +2283,11 @@ function thRender() {
     const desc = thDescOf(g);
     if (desc) { el.title = `${thLabelShown(g.label)}\n${desc}\n\n${el.title}`; el.classList.add('described'); }
     const picked = ((v.picks || {})[g.id] || []).length;
+    // an LPET's domains under its title and description, the pills Trajectories draws (lpetmarks)
+    const pills = gtDomainPills(v, g.id, parents);
+    if (pills) el.classList.add('domained');
     el.innerHTML = `<span class="th-swatch" aria-hidden="true"></span>`
-      + `<span class="th-words"><span class="th-title">${esc(thLabelShown(g.label))}</span>${desc ? `<span class="th-desc">${esc(desc)}</span>` : ''}</span>`
+      + `<span class="th-words"><span class="th-title">${esc(thLabelShown(g.label))}</span>${desc ? `<span class="th-desc">${esc(desc)}</span>` : ''}${pills}</span>`
       + (noted ? `<span class="th-noted" role="img" aria-label="${escAttr(t('themes.label.has_note'))}">${TH_NOTE_ICON}</span>` : '')
       + (picked ? `<span class="th-picked" title="${escAttr(t('themes.label.picked', { n: picked }))}">${TH_PICK_ICON}</span>` : '')
       + `<button type="button" class="th-arr" tabindex="-1" title="${escAttr(t('themes.label.arrange_tip'))}" aria-label="${escAttr(t('themes.label.arrange_label'))}">${TH_ARR_ICON}</button>`
@@ -5546,6 +5563,9 @@ function thTitleOpen(id, opts = {}) {
   over.appendChild(desc);
   title.style.visibility = 'hidden';
   if (shown) shown.style.visibility = 'hidden';
+  // an LPET's pills keep their room unseen too, under the description's box (lpetmarks)
+  const pills = el.querySelector('.th-domains');
+  if (pills) pills.style.visibility = 'hidden';
   el.classList.add('editing');
   column.appendChild(over);
   fit();
@@ -6615,6 +6635,12 @@ function thPanelDraw() {
   const describing = TH.describing;
   if (describing && !(TH.panelOpen && TH.panel && TH.panel.kind === 'group' && TH.panel.id === describing.id)) {
     thDescDone(true);
+    return;
+  }
+  // and an LPET's domain being typed (lpetmarks)
+  const domaining = TH.domainEdit;
+  if (domaining && !(TH.panelOpen && TH.panel && TH.panel.kind === 'group' && TH.panel.id === domaining.id)) {
+    gtDomainDone(true);
     return;
   }
   // a note open in the panel is kept when the panel goes off its label, the way a click away keeps it
@@ -8160,7 +8186,7 @@ function gtTableFace(v) {
       const marks = gtCaseMarks(row).filter((m) => !(bare && m === gtNoPets()))
         .map((m) => `<span class="gt-mark">${esc(m)}</span>`).join('');
       const kq = row.counted && row.quote
-        ? `<p class="gt-tkey"><span class="gt-tlabel">${esc(t('themes.quote'))}</span><span class="gt-tq">${esc(row.quote.text)}</span>`
+        ? `<p class="gt-tkey"><span class="gt-tlabel">${esc(t('themes.quote'))}</span><span class="gt-tq">${gtBoldHtml(row.quote.text, row.bold)}</span>`
           + `<span class="th-time">${esc(row.quote.time)}</span><span class="th-sheet">${esc(row.quote.sheet)}</span></p>` : '';
       html += `<div class="tb-case"><p class="tb-who" data-tcase="${escAttr(row.kase)}" data-tget="${escAttr(g.id)}">${gtBadgeHtml(row.kase)}${esc(row.who)}${marks}</p><div class="tb-said-of">`
         + (row.items.length ? `<ul class="tb-items">${row.items.map((it) => item(it, g.id)).join('')}</ul>`
@@ -10254,6 +10280,8 @@ function thMenuItems(v, item, copyable = true) {
     ...(String((v.groups.find((g) => g.id === item.id) || {}).description || '').trim()
       ? [{ label: t('themes.menu.desc_edit'), act: 'desc' }, { label: t('themes.menu.desc_remove'), act: 'undesc' }]
       : [{ label: t('themes.menu.desc_add'), act: 'desc' }]),
+    // an LPET's domain, which Trajectories draws too, on a top label of the LPETs board (lpetmarks)
+    ...(TH.lpets && holder === undefined ? [{ label: t(gtDomainsOf(item.id).length ? 'themes.menu.domain_edit' : 'themes.menu.domain_add'), act: 'domain' }] : []),
     { label: t('themes.board.note_label'), act: 'note' }, copy);
   // Working together: a reviewer's Comment on a PET or a GET (review.js)
   if (typeof rvwLabelItems === 'function') items.push(...rvwLabelItems(v, item));
@@ -10418,6 +10446,7 @@ function thMenuDo(choice, row) {
   else if (choice.act === 'rename') thTitleOpen(item.id);
   else if (choice.act === 'note') thNoteOpen(item.id);
   else if (choice.act === 'desc') thDescOpen(item.id);
+  else if (choice.act === 'domain') gtDomainOpen(item.id);
   else if (choice.act === 'undesc') thDescRemove(item.id);
   else if (choice.act === 'discard') thDiscardOne(item.id);
   else if (choice.act === 'delete') thDeleteLabels([item.id]);
@@ -12188,7 +12217,10 @@ function gtPanelDraw(v, item, owner) {
       ? `<button type="button" class="ghost small gt-trail-go" tabindex="-1" data-gtrail="${escAttr(g.id)}">${esc(t('themes.gets.trail'))}</button>` : '';
     html = thDescHtml(v, g) + `<p class="kicker">${esc(owner !== undefined ? t('themes.kind.sub') : t('themes.unit.get'))}</p>`
       + `<p class="th-panel-meta"><span>${esc(gtCountText(n, total))}</span>${under ? `<span class="gt-mark">${esc(t('themes.gets.under_min', { min: minimum }))}</span>` : ''}</p>`
-      + thArrangeHtml(g.id, trail) + thLeaveHtml(v, g.id, owner) + thNoteHtml(v, g)
+      + thArrangeHtml(g.id, trail) + thLeaveHtml(v, g.id, owner)
+      // an LPET's domain above its note, the pills Trajectories and its label draw (lpetmarks)
+      + (TH.lpets && owner === undefined ? gtDomainHtml(v, g) : '')
+      + thNoteHtml(v, g)
       // three titles from the AI for a GET or a sub-theme, with the sparkles, and Undo puts the old back
       + thNamesHtml(item, { unit: owner !== undefined ? t('themes.unit.sub') : t('themes.unit.get') })
       + `<h3 class="section-label">${esc(t('themes.cases.head'))}</h3>` + gtList(rows, t('themes.gets.no_participant'));
@@ -12197,6 +12229,9 @@ function gtPanelDraw(v, item, owner) {
   const held = TH.noting && box && document.activeElement === box
     ? { start: box.selectionStart, end: box.selectionEnd, top: box.scrollTop } : null;
   const descHeld = thDescHeld();
+  // and an LPET's domain being typed keeps its words and its caret the same way (lpetmarks)
+  const dbox = $('gt-ldomain');
+  const domainHeld = TH.domainEdit && dbox && document.activeElement === dbox ? { start: dbox.selectionStart, end: dbox.selectionEnd } : null;
   TH.noteRedraw = true;
   $('th-panel-body').className = `th-panel-body gt-inspect${item.kind === 'group' ? ` ${thTintClass(thTints(v)[item.id])}` : ''}`;
   $('th-panel-body').innerHTML = html;
@@ -12204,6 +12239,8 @@ function gtPanelDraw(v, item, owner) {
   const again = held ? $('th-gnote') : null;
   if (again) { again.focus(); again.setSelectionRange(held.start, held.end); again.scrollTop = held.top; }
   thDescRefocus(descHeld);
+  const dagain = domainHeld ? $('gt-ldomain') : null;
+  if (dagain) { dagain.focus(); dagain.setSelectionRange(domainHeld.start, domainHeld.end); }
   thPlayerDraw();
 }
 
@@ -13578,15 +13615,144 @@ function gtTable(v) {
     const rows = cases.map((c) => {
       const items = gtCaseItems(v, gid, c.case, under);
       const kq = gtKeyQuote(v, gid, c.case, items);
+      const stored = (gtRows(v)[gid] || {})[c.case] || {};
+      // his bold in the quote he ticked, made on Trajectories (lpetmarks), as the server's table gives it
       return { kase: c.case, who: c.who, items, counted: items.some((it) => it.kind !== 'pn'), quote: kq.quote,
-        chosen: kq.chosen, note: ((gtRows(v)[gid] || {})[c.case] || {}).note || '', none: !!c.none,
-        open: !c.none && !c.complete, changed: c.status === 'changed' };
+        chosen: kq.chosen, note: stored.note || '', bold: kq.chosen && Array.isArray(stored.bold) ? stored.bold : [],
+        none: !!c.none, open: !c.none && !c.complete, changed: c.status === 'changed' };
     });
     return { id: gid, label: g.label, note: thNoteOf(g), count: gtCount(v, gid), rows };
   });
 }
 
 const gtCaseMarks = (row) => [thTa() ? '' : row.none ? gtNoPets() : row.open ? gtNotComplete() : '', row.changed ? GT_CHANGED : ''].filter(Boolean);
+
+/* A key quote's words with his bold in it (lpetmarks, 12 November 2026), each of his spans a <b>: made on
+   Trajectories and kept on the LPET table's row against the quote as the row keeps it, the words this table shows */
+function gtBoldHtml(text, bold) {
+  const s = String(text || '');
+  let out = '';
+  let at = 0;
+  for (const [a, b] of (bold || []).filter((x) => Array.isArray(x) && x[0] < x[1]).sort((x, y) => x[0] - y[0])) {
+    if (b <= at) continue;
+    const from = Math.max(a, at);
+    out += esc(s.slice(at, from)) + `<b>${esc(s.slice(from, b))}</b>`;
+    at = b;
+  }
+  return out + esc(s.slice(at));
+}
+
+/* ── an LPET's domain on the LPETs screen (lpetmarks, 12 November 2026) ──
+
+   Trajectories draws each LPET's domains as pills under its title, each word in the colour it has across the
+   project, and the LPETs screen draws the same pills on the LPET's label, from the server (`lpet_domains`, by the
+   LPET's id). The domain is set from the LPET's Inspector, or Add domain in its menu, through Trajectories' own
+   operation, `domain`, on the board on the canvas, so the two screens always agree and an agent does the same. The
+   page takes the file's domains back after it (gtDomainsTake), its saves sending them as they come, and the canvas's
+   undo never steps over one (thPut). */
+const gtDomainsOf = (gid) => (TH.lpets && !TH.viewing && ((TH.lpetDomains || {})[gid])) || [];
+
+/* the pills on an LPET's label, a top label of the LPETs board alone, or nothing */
+function gtDomainPills(v, gid, parents = thParents(v)) {
+  if (!TH.lpets || parents[gid] !== undefined) return '';
+  const said = gtDomainsOf(gid);
+  if (!said.length) return '';
+  return `<span class="tf-pills th-domains">${said.map((d) => `<span class="tf-pill case-${(Number(d.colour) || 0) % 25}">${esc(d.word)}</span>`).join('')}</span>`;
+}
+
+/* the domain as its box shows it, its words between commas */
+const gtDomainText = (gid) => gtDomainsOf(gid).map((d) => d.word).join(', ');
+
+/* The LPET's domain in its Inspector, above its note, a line of words between commas, kept as the box loses the
+   focus or on Enter, Esc leaving it as it was. Read-only on a revision on view. */
+function gtDomainHtml(v, g) {
+  const text = gtDomainText(g.id);
+  const head = `<label class="section-label gt-clabel" for="gt-ldomain">${esc(t('themes.domain.label'))}</label>`;
+  if (thLocked(v)) return text ? `<div class="gt-ldomain-row">${head}<p class="gt-read">${esc(text)}</p></div>` : '';
+  const typed = TH.domainEdit && TH.domainEdit.id === g.id ? TH.domainEdit.value
+    : TH.domainSaving && TH.domainSaving.id === g.id ? TH.domainSaving.value : text;
+  return `<div class="gt-ldomain-row">${head}<input type="text" class="th-vedit gt-ldomain" id="gt-ldomain" data-domain="${escAttr(g.id)}" `
+    + `maxlength="40" spellcheck="true" autocomplete="off" value="${escAttr(typed)}"></div>`;
+}
+
+function gtDomainStart(box) {
+  if (TH.domainEdit && TH.domainEdit.id === box.dataset.domain) return;
+  TH.domainEdit = { id: box.dataset.domain, value: box.value };
+}
+
+function gtDomainDone(keep) {
+  const ed = TH.domainEdit;
+  if (!ed) return;
+  TH.domainEdit = null;
+  const box = $('gt-ldomain');
+  const text = (box && box.dataset.domain === ed.id ? box.value : ed.value).replace(/\s+/g, ' ').trim();
+  if (!keep || text === gtDomainText(ed.id)) { if (TH.panelOpen) thPanelDraw(); return; }
+  gtDomainSet(ed.id, text);
+}
+
+/* Add domain and Edit domain in an LPET's menu: the Inspector open on it with the domain's box taken */
+function gtDomainOpen(gid) {
+  if (!TH.live || TH.busy || !thIsGroup(TH.v, gid) || thRefuse('rename')) return;
+  thSelectOnly({ kind: 'group', id: gid });
+  TH.lastPick = { kind: 'group', id: gid };
+  thInspectorOpen({ kind: 'group', id: gid });
+  const box = $('gt-ldomain');
+  if (!box) return;
+  box.focus();
+  box.setSelectionRange(box.value.length, box.value.length);
+}
+
+/* The domain set, "" taking it off, through Trajectories' `domain` operation on the board on the canvas: the
+   canvas's own work saved first, then the board's version and its LPETs' domains taken from the file as it is now,
+   so the next save goes through and nothing else on the canvas, nor its undo, changes. Its line follows. */
+async function gtDomainSet(gid, text) {
+  if (!TH.live || TH.busy || !TH.lpets || !TH.meta || !thIsGroup(TH.v, gid) || thRefuse('rename')) {
+    if (TH.panelOpen) thPanelDraw();
+    return;
+  }
+  const id = TH.meta.id;
+  const path = TH.path;
+  TH.busy = true;
+  // the words typed stay in the box while the change is made
+  TH.domainSaving = { id: gid, value: text };
+  if (TH.panelOpen) thPanelDraw();
+  try {
+    await thFlush();
+    if (TH.dirty) {
+      say(t('themes.unsaved.domain'), 6000);
+    } else {
+      const done = await api('/api/trajectories-ops', { workbook: path, ops: [{ op: 'domain', participant: TH.lpetsWho || '', lpet: gid, board: id, domain: text }] });
+      const back = await api('/api/gets', { workbook: path, board: id });
+      if (TH.live && TH.path === path && TH.meta && TH.meta.id === id) gtDomainsTake(back);
+      if ((done.changes || []).length) say(done.changes.join(' '), 4000);
+    }
+  } catch (err) {
+    say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
+  } finally {
+    TH.busy = false;
+    TH.domainSaving = null;
+  }
+  // the label's pills drawn, with the Inspector
+  if (TH.live && TH.path === path && TH.v) thRender();
+}
+
+/* the board as the file holds it after its domain changed: its version, which the next save carries, when it
+   changed, which the stamp tells from a change made elsewhere, and its LPETs' domains */
+function gtDomainsTake(data) {
+  const now = (data && data.version) || {};
+  if (now.id !== TH.meta.id) return;
+  if (now.v) TH.meta.v = now.v;
+  if (now.updated) { TH.meta.updated = now.updated; TH.known[now.id] = now.updated; }
+  const listed = TH.boards.find((b) => b.id === now.id);
+  if (listed) Object.assign(listed, { updated: now.updated }, now.v ? { v: now.v } : {});
+  TH.lpetDomains = Object.assign({}, data.lpet_domains || {});
+  // and each label's domain as the file holds it, which the page's saves send back as it holds them
+  const held = new Map((data.groups || []).map((g) => [g.id, g.domain]));
+  for (const g of TH.v.groups) {
+    if (!held.has(g.id)) continue;
+    if (held.get(g.id)) g.domain = held.get(g.id); else delete g.domain;
+  }
+}
 
 /* a row's note: his words, a click opening them in a box, or Note to add one */
 function gtRowNoteHtml(gid, row) {
@@ -14614,6 +14780,19 @@ function themesBoot() {
     if (e.target && e.target.id === 'gt-cdesc' && TH.codeDesc && TH.codeDesc.id === e.target.dataset.code) TH.codeDesc.value = e.target.value;
   });
   panel.addEventListener('focusout', (e) => { if (e.target && e.target.id === 'gt-cdesc' && !TH.noteRedraw) gtCodeDescDone(true); });
+  // an LPET's domain in the Inspector, kept as the box loses the focus or on Enter, Esc leaving it (lpetmarks)
+  panel.addEventListener('focusin', (e) => { if (e.target && e.target.id === 'gt-ldomain') gtDomainStart(e.target); });
+  panel.addEventListener('input', (e) => {
+    if (e.target && e.target.id === 'gt-ldomain' && TH.domainEdit && TH.domainEdit.id === e.target.dataset.domain) TH.domainEdit.value = e.target.value;
+  });
+  panel.addEventListener('focusout', (e) => { if (e.target && e.target.id === 'gt-ldomain' && !TH.noteRedraw) gtDomainDone(true); });
+  panel.addEventListener('keydown', (e) => {
+    if (!e.target || e.target.id !== 'gt-ldomain') return;
+    e.stopPropagation();
+    if (e.isComposing) return;
+    if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+    else if (e.key === 'Escape') { e.preventDefault(); TH.domainEdit = null; e.target.blur(); thPanelDraw(); }
+  });
   panel.addEventListener('keydown', (e) => {
     if (!e.target || e.target.id !== 'gt-cdesc') return;
     e.stopPropagation();

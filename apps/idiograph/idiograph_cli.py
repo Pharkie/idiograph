@@ -606,7 +606,8 @@ def cmd_trajectories_apply(p: Project, args) -> tuple:
     them out, their order, note, label, tags and picture, a tag's colour, an LPET hidden or shown, and on a
     participant's LPETs board an LPET's state, key quote and bold at a timepoint, its domain, and the states
     moved from the LPETs' notes (trajbuild2, 10 November 2026). A key quote is the LPET's own, another statement's
-    of that interview by its key, or a passage of any of the participant's interviews (trajchoose, 11 November 2026)."""
+    of that interview by its key, or a passage of any of the participant's interviews (trajchoose, 11 November 2026).
+    An LPET's operation is on the board their LPETs come into LGETs from, or the one its `board` names (lpetmarks)."""
     if p.demo:
         raise cli.Refused(i18n.t("cli.said.the_demos_project_is_fixed"))
     if not themes_ai.one_line(args.note) and not args.dry_run:
@@ -7681,7 +7682,8 @@ def arguments(sub, common, writes) -> None:
                                                 'colour, icon, {"op": "place", "participant": "Wren", "column": '
                                                 '"Positive"}, order, note, title, tags, tag_colour, picture, hide, '
                                                 'show, and on an LPET state, quote (a quote\'s key, or a passage: '
-                                                'interview, turn and start and end), bold, domain, states_from_notes')
+                                                'interview, turn and start and end), bold, domain, states_from_notes, '
+                                                'each on the LPETs board LGETs take or the one its "board" names')
     cd = sub.add_parser("codes", parents=[common],
                         help="in a thematic analysis project, the code list: codes many extracts share, each extract "
                              "one quote").add_subparsers(dest="act", required=True)

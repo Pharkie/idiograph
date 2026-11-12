@@ -431,10 +431,18 @@
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; line-clamp: 6; overflow: hidden;
   margin-top: 2px; font-size: .8em; line-height: 1.3; letter-spacing: 0; color: var(--ink-soft);
 }
-.th-label.described .th-swatch { align-self: flex-start; margin-top: .5em; }
-.th-label.described { align-items: flex-start; }
+.th-label.described .th-swatch, .th-label.domained .th-swatch { align-self: flex-start; margin-top: .5em; }
+.th-label.described, .th-label.domained { align-items: flex-start; }
 .th-label.described .th-del, .th-label.described .th-arr, .th-label.described .th-noted,
-.th-label.described .th-picked { align-self: flex-start; margin-top: 2px; }
+.th-label.described .th-picked, .th-label.domained .th-del, .th-label.domained .th-arr, .th-label.domained .th-noted,
+.th-label.domained .th-picked { align-self: flex-start; margin-top: 2px; }
+/* an LPET's domains on its label on the LPETs screen (lpetmarks, 12 November 2026), the pills Trajectories draws
+   (.tf-pill), in a row under its title and its description, in the sans whatever the label is set in. The server's
+   estimate, themes.label_size, takes the same */
+.th-domains { margin-top: 4px; font-family: var(--sans); letter-spacing: 0; line-height: 16px; }
+/* its Domain in the Inspector, above the note, whose -10px tucks it under Auto-arrange's row: 14px between */
+.gt-ldomain-row { margin-bottom: 24px; }
+.gt-inspect .gt-ldomain { display: block; width: 100%; box-sizing: border-box; font-family: var(--sans); font-size: 13px; }
 /* the description's box under the title's while they are open, in its size */
 .th-desc-box { margin-top: 3px; font-size: .8em; line-height: 1.3; }
 /* in the Inspector, under the title in its head, the same words in a box of their own */

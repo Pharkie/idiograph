@@ -7572,6 +7572,37 @@ def gets_head(root: Path | None, rows: list[dict] | None = None) -> dict | None:
                 board=board or None, boards=len(gets_mod.boards_of(data)), themes=len(tops))
 
 
+def lpet_pills(root: Path, groups: list) -> dict:
+    """Each LPET's domains on a participant's LPETs board, by the LPET's id, each `{"word", "colour"}` as Trajectories
+    draws it (lpetmarks, 12 November 2026): the colour the project's trajectories file keeps for the word, and for one
+    no op has coloured yet the one Trajectories works out, from every participant's LPETs in its order
+    (`trajectories.domain_colours`), so the two screens agree. Only reads, and a board with no domain reads nothing."""
+    said = {str(g.get("id")): str(g.get(themes_mod.DOMAIN) or "") for g in groups
+            if isinstance(g, dict) and traj_mod.domains_of(g.get(themes_mod.DOMAIN))}
+    if not said:
+        return {}
+    # the project's participants, read outside the one participant's LPETs this request is on
+    token = LPETS_FOR.set(None)
+    try:
+        books = gets_books(root)
+    finally:
+        LPETS_FOR.reset(token)
+    walked: list[str] = []
+    for b in sorted(books, key=lambda x: traj_mod.case_order(x["case"])):
+        try:
+            with lpets_scope(Path(b["workbook"])):
+                data = gets_mod.load(Path(b["workbook"]))
+                walked += gets_mod.lpet_domains(data, gets_mod.source_board(data)[0]) if data else []
+        except (WorkbookError, OSError):
+            continue
+    try:
+        kept = traj_mod.load(root)
+    except WorkbookError:
+        kept = None
+    hues = traj_mod.domain_colours(kept, walked, said.values())
+    return {gid: [{"word": w, "colour": hues[w.lower()]} for w in traj_mod.domains_of(text)] for gid, text in said.items()}
+
+
 def gets_reply(root: Path, body: dict, answer: dict) -> dict:
     """A GETs answer with what the screen draws around the canvas: the project's name in the bar,
     the band, the demo tag, the settings for the cog, and `ai`, the switch and the PETs screen's model.
@@ -7594,6 +7625,9 @@ def gets_reply(root: Path, body: dict, answer: dict) -> dict:
         who = LPETS_FOR.get()
         answer = dict(answer, lpets=True, participant=case_label(who), timepoints=participant_timepoints(who),
                       person=person_for_book(who))
+        # each LPET's domains on the board, as pills in the colours Trajectories gives them (lpetmarks)
+        if isinstance(answer.get("groups"), list):
+            answer["lpet_domains"] = lpet_pills(root, answer["groups"])
     else:
         # each participant of the GETs' or the LGETs' Participants panel with their own set (pbiobuild)
         people = people_view(root)
@@ -8077,25 +8111,37 @@ def traj_apply(root: Path, body: dict) -> dict:
     def opened(case: str):
         if case not in held:
             data, board, rows, inside, labels = traj_lpets(by_case[case])
+            # each of the file's boards as it was, so a change to any of them is the one written
             held[case] = {"data": data, "board": board, "inside": inside, "labels": labels, "rows": rows,
-                          "was": json.dumps(board, sort_keys=True) if board else ""}
+                          "was": {str(b.get("id")): json.dumps(b, sort_keys=True) for b in themes_mod.boards_of(data)}}
         return held[case]
 
     def lpet_op(case: str, op: dict, n: int) -> list[str]:
         at = opened(case)
-        if at["board"] is None:
+        board = at["board"]
+        # the LPETs screen's own board, by its id or its name, which need not be the one LGETs take (lpetmarks)
+        asked = traj_mod.words(op.get("board"))
+        if asked and at["data"]:
+            board = themes_mod.find_version(at["data"], asked) or next(
+                (b for b in themes_mod.boards_of(at["data"]) if traj_mod.words(b.get("name")).lower() == asked.lower()), None)
+            if board is None:
+                raise WorkbookError(i18n.t("server.trajectory_no_such_board", name=traj_mod.who(case), board=asked))
+        if board is None:
             if op.get("op") == "states_from_notes" and op.get("participant") in (None, ""):
                 return []
             raise WorkbookError(i18n.t("server.trajectory_no_lpets", name=traj_mod.who(case)))
         with lpets_scope(by_case[case]):
-            return gets_mod.row_op(at["data"], at["board"], at["inside"], at["labels"], op, traj_mod.who(case),
+            return gets_mod.row_op(at["data"], board, at["inside"], at["labels"], op, traj_mod.who(case),
                                    turns=traj_turns(by_case[case]))
 
     def commit() -> None:
         for case, at in held.items():
-            if at["board"] is None or json.dumps(at["board"], sort_keys=True) == at["was"]:
+            changed = [b for b in themes_mod.boards_of(at["data"])
+                       if json.dumps(b, sort_keys=True) != at["was"].get(str(b.get("id")))]
+            if not changed:
                 continue
-            at["board"]["updated"] = when
+            for b in changed:
+                b["updated"] = when
             with lpets_scope(by_case[case]):
                 gets_mod.write(by_case[case], gets_mod._file(at["data"], when))
 

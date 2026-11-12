@@ -34,8 +34,13 @@
   block(above: 0pt, below: 4pt, lh(1.35, text(font: serif, size: 10.5pt, body)))
 }
 
+// the key quote, with his bold in it on its words where he made some on Trajectories (lpetmarks), as the trail
+// sets a quote's words in bold
 #let quote-of(r) = if r.quote != none {
-  lh(1.35, { emph(r.quote.text); place-of(r.quote.time, r.quote.sheet) })
+  let said = if r.quote.at("words", default: none) == none { r.quote.text } else {
+    { "\u{2018}"; r.quote.words.map(((t, b)) => if b { text(weight: "bold", t) } else { t }).join(); "\u{2019}" }
+  }
+  lh(1.35, { emph(said); place-of(r.quote.time, r.quote.sheet) })
 } else if r.no_quote != "" {
   text(font: sans, size: 9pt, fill: faint, r.no_quote)
 }

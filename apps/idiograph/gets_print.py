@@ -498,10 +498,12 @@ def item_html(it: dict, notes: bool) -> str:
     return out + "</div>"
 
 
-def quote_html(q: dict | None) -> str:
+def quote_html(q: dict | None, bold=None) -> str:
+    """A row's key quote in its cell, his bold in it kept on its words as Trajectories shows it (lpetmarks)."""
     if not q:
         return f'<span class="none">{esc(i18n.t("page_print.gets.no_quote"))}</span>'
-    return (f'<i>{esc(tp.quoted(q["text"]))}</i> <span class="tc">{esc(q["time"])}</span>'
+    words = "".join(f"<b>{esc(t)}</b>" if on else esc(t) for t, on in gt.quote_bold(q["text"], bold))
+    return (f'<i>‘{words}’</i> <span class="tc">{esc(q["time"])}</span>'
             f' <span class="sheet">{esc(q["sheet"])}</span>')
 
 
@@ -546,7 +548,7 @@ def table_section(get: dict, tint: str, total: int, minimum: int, notes: bool, s
         # Selected keeps the quote alone, and a participant note only when he ticked them
         items = "".join(item_html(it, notes) for it in row["items"] if not selected or it["kind"] == "pn")
         nothing = "" if row["counted"] else f'<p class="none">{esc(gt.NOTHING_NO_PETS if bare else gt.NOTHING)}</p>'
-        quote = quote_html(row["quote"]) if row["counted"] else ""
+        quote = quote_html(row["quote"], row.get("bold")) if row["counted"] else ""
         cells = [who]
         if selected:
             cells.append(f'<td class="kqcell">{nothing}{quote}{items}</td>')
@@ -1112,6 +1114,13 @@ def item_data(it: dict) -> dict:
             "quotes": [tp.quoted(q["text"]) for q in it["quotes"]], "notes": list(it["notes"])}
 
 
+def quote_data(q: dict, bold=None) -> dict:
+    """A row's key quote as the Typst table takes it: its words in their quotation marks, and with his bold in it
+    `words`, its runs, each with whether it is bold, as `quote_html` sets them (lpetmarks), else none."""
+    runs = gt.quote_bold(q["text"], bold)
+    return {"text": tp.quoted(q["text"]), "words": [[t, on] for t, on in runs] if any(on for _t, on in runs) else None}
+
+
 def table_data(get: dict, hue: dict, total: int, minimum: int, notes: bool, selected: bool) -> dict:
     """One GET of the table, as `table_section` sets it."""
     heads = ([i18n.t("page_print.gets.participant")] + ([] if selected else [i18n.t("page_print.gets.under_this_get")])
@@ -1123,7 +1132,7 @@ def table_data(get: dict, hue: dict, total: int, minimum: int, notes: bool, sele
         q = row["quote"] if row["counted"] else None
         rows.append(dict(who_data(row, row_marks(row, bare)), empty=not row["counted"], items=items,
                          nothing="" if row["counted"] else (gt.NOTHING_NO_PETS if bare else gt.NOTHING),
-                         quote={"text": tp.quoted(q["text"]), "time": q["time"], "sheet": q["sheet"]} if q else None,
+                         quote=dict(quote_data(q, row.get("bold")), time=q["time"], sheet=q["sheet"]) if q else None,
                          no_quote=i18n.t("page_print.gets.no_quote") if row["counted"] and not q else "",
                          note=row["note"] or ""))
     return dict({"id": get["id"], "label": get["label"], "desc": get.get(th.DESCRIPTION) or "", "note": get["note"] or "",

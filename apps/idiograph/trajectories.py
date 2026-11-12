@@ -303,6 +303,20 @@ def colour_for(data: dict, word: str) -> int:
     return n
 
 
+def domain_colours(data: dict | None, walked, more=()) -> dict[str, int]:
+    """Each domain's colour by its word in lower case, as the board draws it and the LPETs screen draws it too
+    (lpetmarks, 12 November 2026): the project's own, kept in `tags`, and a domain no op has coloured yet, one of two
+    set before they were read apart, the colour the next op would give it, worked out on a copy in the board's order,
+    `walked`, each participant's LPETs' domains as they keep them, participants in case order and LPETs in the LPET
+    table's, then `more`, so opening writes nothing and the two screens agree."""
+    unsaid = {"tags": dict((data or {}).get("tags") or {})}
+    out: dict[str, int] = {}
+    for text in list(walked) + list(more):
+        for word in domains_of(text):
+            out[word.lower()] = colour_for(unsaid, word)
+    return out
+
+
 def order_of(data: dict, col: dict, cases: list[str]) -> list[str]:
     """A trajectory's participants in his order, those he has not ordered after them in case order."""
     mine = [c for c in cases if (data["placed"].get(c) or {}).get("column") == col["id"]]
@@ -344,7 +358,8 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
       as the page sends one, or none of them to take the picture off
     - `hide` and `show`, `participant`, `lpet`, by its id or its title, on this screen alone
     - `state`, `quote`, `bold`, `domain` and `states_from_notes`, run on the participant's LPETs board by
-      `lpet_op(case, op, n)`, which answers its lines
+      `lpet_op(case, op, n)`, which answers its lines: the board their LPETs come into LGETs from, or the one
+      `board` names by its id or name (lpetmarks, 12 November 2026, for the LPETs screen's own board)
 
     `lpets` is each participant's LPETs, `[{"id", "title"}]`, for `hide` and `show`. A picture's bytes go into
     `files`, by the name they are kept under, `None` for one taken off, for `change` to write. `read_file` reads
@@ -785,15 +800,15 @@ def board(data: dict | None, people: list[dict]) -> dict:
     data = normal(data) if data else {"columns": [], "placed": {}, "tags": {}, "history": [], "updated": None}
     placed = data.get("placed") or {}
     colours = {w.lower(): n for w, n in (data.get("tags") or {}).items()}
-    # a domain no op has coloured yet, one of two set before they were read apart, shown in the colour the next
-    # op would give it, worked out on a copy, so opening writes nothing
-    unsaid = {"tags": dict(data.get("tags") or {})}
+    people = sorted(people, key=lambda x: case_order(x["case"]))
+    # each domain's colour, one no op has coloured yet worked out in the board's order (`domain_colours`)
+    hues = domain_colours(data, [r.get("domain") for p in people for r in p.get("rows") or []])
     cards = []
-    for p in sorted(people, key=lambda x: case_order(x["case"])):
+    for p in people:
         held = placed.get(p["case"]) or {}
         hidden = set(held.get("hidden") or [])
         rows = [dict(r, shown=r["id"] not in hidden,
-                     domains=[{"word": w, "colour": colour_for(unsaid, w)} for w in domains_of(r.get("domain"))])
+                     domains=[{"word": w, "colour": hues[w.lower()]} for w in domains_of(r.get("domain"))])
                 for r in p.get("rows") or []]
         # the label and the picture the participant's own (pbiobuild), as the caller reads them, else this file's
         own = p.get("person") if isinstance(p.get("person"), dict) else None

@@ -5028,6 +5028,13 @@ timepoints:
   A statement's time is cited with its timepoint, "T1, 35:55". The participant picker sits in the tab,
   as on PETs. A double-click on a statement's card edits it as on GETs (30 October), its timepoint's PETs
   boards, the LPETs' copy and the LGETs' copy taking the words at once. The AI's help is not on LPETs yet.
+  Since 12 November an LPET's domain shows on its label as its pills, under its title and description, the
+  same words in the same colours as on Trajectories. Add domain in the LPET's menu, Edit domain once it has
+  one, opens Domain in its Inspector, above its note, where the domain is typed, two or more separated by
+  commas. Enter or a click away keeps it, Esc leaves it as it was, and an empty box takes it off. It is kept
+  on the LPET of the board on the canvas, so Trajectories shows it when that is the board the LGETs take.
+  The canvas is saved first, and the change is not part of the canvas's undo. The LPET table's key quote
+  shows his bold from Trajectories on the same words, in the table and in its print view and PDF.
 - the LGETs tab, after LPETs, opens the project's LGETs (21 October), longitudinal group themes made
   from every participant's LPETs as GETs are made from their PETs, the same canvas and the same ways.
   Each card is an LPET, "LPET · Wren" over its title, in the participant's colour, and a label over cards
@@ -5086,7 +5093,8 @@ timepoints:
     by commas, "Relationships, Psychological", and each shows as a pill of its own in its own colour,
     the same colour wherever that domain is used across the project. An LPET keeps its domain through
     every change to the LPETs board, made on the canvas or by an agent: a statement brought in, an LPET
-    retitled, moved or merged.
+    retitled, moved or merged. The LPETs screen shows the same pills on the LPET's label and sets the
+    domain from the LPET's menu or its Inspector (12 November 2026).
   - The status bar along the foot counts the participants placed and not placed and the trajectories,
     and holds Quotes, which steps through off, short (three lines) and full, and Notes, each
     participant's note on why they stand there (the old Why box), off until he turns it on. Both are

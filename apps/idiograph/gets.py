@@ -2414,6 +2414,38 @@ def quote_cut(said) -> tuple[str, int]:
     return text, max(0, raw.find(text)) if text else 0
 
 
+def quote_bold(said, bold) -> list[tuple[str, bool]]:
+    """A key quote's words as the LPET table's print view and PDF set them, without the marks the workbook keeps
+    round them, in runs, each with whether his bold is on it (lpetmarks, 12 November 2026): his spans are kept
+    against the quote as the row keeps it, so each is moved past the marks it lost (`quote_cut`), as Trajectories
+    shows it. A quote with no bold is one run."""
+    text, cut = quote_cut(said)
+    marked = [False] * len(text)
+    for a, b in spans_kept(bold):
+        for i in range(max(0, a - cut), min(len(text), b - cut)):
+            marked[i] = True
+    runs: list[list] = []
+    for ch, on in zip(text, marked):
+        if runs and runs[-1][1] == on:
+            runs[-1][0] += ch
+        else:
+            runs.append([ch, on])
+    return [(t, on) for t, on in runs]
+
+
+def lpet_domains(data: dict, board: dict | None) -> list[str]:
+    """Each LPET's domain on `board` as it keeps it, "" for none, in the order the LPET table reads them, the order
+    `lpet_rows` gives its rows (lpetmarks): read without the table's cells, so every participant's can be read
+    cheaply for the domains' colours (`trajectories.domain_colours`)."""
+    if board is None:
+        return []
+    kept = normal(board, data)
+    by_id = {g["id"]: g for g in kept["groups"]}
+    parents = themes.parents_of(kept["groups"])
+    tops = themes.canvas_order([g["id"] for g in kept["groups"] if g["id"] not in parents], by_id)
+    return [str(by_id[gid].get(themes.DOMAIN) or "") for gid in tops]
+
+
 def lpet_rows(data: dict, board: dict | None, inside: list[str], bare: bool = True, turns=None) -> list[dict]:
     """Each LPET of the board in canvas order, its title, description and domain, and a cell for each timepoint
     in `inside`: its `state`, its key quote, `quote` (`{"key", "text", "time", "source"}` or None), whether he

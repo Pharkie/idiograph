@@ -322,7 +322,9 @@ def test_themes(scratch):
           sorted(set(re.findall(r"'(/api/[a-z-]+)'", js)))
           == ["/api/board-order", "/api/codes", "/api/codes-ops", "/api/edit-statement", "/api/export", "/api/gets", "/api/gets-ai", "/api/gets-boards", "/api/gets-cases", "/api/gets-ops", "/api/gets-save",
               "/api/gets-trail", "/api/project", "/api/settings", "/api/stamp", "/api/themes", "/api/themes-ai", "/api/themes-boards", "/api/themes-cases",
-              "/api/themes-export", "/api/themes-save", "/api/themes-versions"]
+              "/api/themes-export", "/api/themes-save", "/api/themes-versions",
+              # an LPET's domain, set through Trajectories' own operation (lpetmarks, 12 November 2026)
+              "/api/trajectories-ops"]
           and js.count("TH_EDIT_ROUTE") == 3
           and "api(`/api/audio?${" in js and "/api/commit" not in js and "/api/rows" not in js)
     check("its keys are taken before app.js hears them, and its undo is its own",

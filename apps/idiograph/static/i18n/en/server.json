@@ -216,6 +216,7 @@
   "server.trajectory_no_such_face": "{face} is not one of the pictures, {first} to {last}, so nothing was changed.",
   "server.trajectory_no_such_lpet": "{name} has no LPET {lpet} on the board their LPETs come into LGETs from, so nothing was changed.",
   "server.trajectory_no_lpets": "{name} has no LPETs yet, so nothing was changed.",
+  "server.trajectory_no_such_board": "{name} has no LPETs board {board}, so nothing was changed.",
   "server.trajectory_picture_large": "That picture is too large a file, so nothing was changed.",
   "server.trajectory_picture_not_there": "There is no picture at {path}, so nothing was changed.",
   "server.trajectory_picture_kind": "A picture is a PNG, a JPEG or an SVG, so nothing was changed.",

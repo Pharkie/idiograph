@@ -824,7 +824,10 @@ refused when one is wrong, nothing written:
   the transcript, ticking the quote standing in), and `domain` (`lpet`, `domain`, "" taking it off): domains
   are separated by commas, `"Practical, Family"` two, each its own pill with its own colour across the
   project. A domain stays on its LPET through every `gets apply` on the LPETs board and every save of the
-  board in the app (domainkeep, 11 November 2026): an operation changes only what it names
+  board in the app (domainkeep, 11 November 2026): an operation changes only what it names. The LPETs screen
+  shows the same pills on the LPET's label and sets the domain with this op (lpetmarks, 12 November 2026). Each
+  of these LPET ops runs on the board the participant's LPETs come into LGETs from, or with `board`, one of their
+  LPETs boards by its id or name, on that one, as the LPETs screen sends it for the board on its canvas. A board they do not have is refused
 - `states_from_notes`, with a `participant` or for everyone: each LPET's note's paragraphs headed by a
   timepoint ("T1: ...", "T2 (Midsummer): ...") moved into the rows whose state is empty, a state already
   there kept and said, the note left as it was. Run it with `--dry-run` first and show him the lines.

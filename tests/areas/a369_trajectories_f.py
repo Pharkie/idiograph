@@ -29,7 +29,8 @@ def test_trajectories_f(scratch):
           "the timepoints with its state, key quote and bold from the LPET table, the states moved from the LPETs' "
           "notes, a trajectory's sentence, colour and icon, a participant's label, tags, picture and order, an LPET "
           "hidden and its domain, each op with its dry run, through the route and the command line, and the board's "
-          "own note (trajnote, 10 November 2026)")
+          "own note (trajnote, 10 November 2026), and on the LPETs screen an LPET's domain and its key quote's bold "
+          "(lpetmarks, 12 November 2026)")
     import cli
     import gets as gets_mod
     import mcp_server
@@ -447,9 +448,178 @@ def test_trajectories_f(scratch):
         # (m) renamefix, 11 November 2026: everything Wren has on Trajectories survives a rename, MCP's with the
         # folder kept, then the command line's with it ticked
         _survives_rename(call, run, garden, cfg_file, wren)
+
+        # (n) lpetmarks, 12 November 2026: an LPET's domain the same on the LPETs screen and on Trajectories, set from
+        # either, on the LPETs screen's own board too, and his bold in a key quote in the LPET table's exports
+        _lpets_screen_marks(call, run, scratch, garden, ash)
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept
     _keys_in_browser()
+    _lpets_marks_in_node(scratch)
+
+
+def _lpets_screen_marks(call, run, scratch: Path, garden: Path, ash: Path):
+    """An LPET's domain and its key quote's bold on the LPETs screen (lpetmarks, 12 November 2026): a domain set on
+    Trajectories is the LPETs screen's LPET's, its pills in the same words and colours, and one set from the LPETs
+    screen, Trajectories' own `domain` operation on the board on its canvas, is Trajectories', each with its dry run
+    and its History; on a board LGETs do not take it changes that board alone, a board not there refused; and his bold
+    reaches the LPET table's print view, its PDF's data and its PDF."""
+    import gets as gets_mod
+    import idiograph_routes as routes
+    import trajectories as traj_mod
+
+    ash_lp = gets_mod.lpets_path(ash)
+    tfile = garden / traj_mod.FILE
+
+    def ash_row(answer: dict) -> dict:
+        return next(r for r in next(c for c in answer["participants"] if c["case"] == "P2 - Ash")["rows"] if r["id"] == "G1")
+
+    def lpets(board: str | None = None) -> dict:
+        return call("/api/gets", dict({"workbook": str(ash), "lpets": True}, **({"board": board} if board else {})))
+
+    def refused(body: dict) -> str:
+        try:
+            call("/api/trajectories-ops", body)
+        except WorkbookError as exc:
+            return str(exc)
+        return "answered"
+
+    # set on Trajectories, shown on the LPETs screen's LPET
+    done = call("/api/trajectories-ops", {"workbook": str(ash), "ops": [
+        {"op": "domain", "participant": "Ash", "lpet": "G1", "domain": "Family, Neighbours"}]})
+    lp = lpets()
+    tags = json.loads(tfile.read_text(encoding="utf-8"))["tags"]
+    check("369: a domain set on Trajectories shows on the LPETs screen's LPET, each of its domains a pill in the words "
+          "and the colour Trajectories gives it, Neighbours in the one it has on Linnet's LPET",
+          ash_row(done)["domains"] == lp["lpet_domains"].get("G1")
+          and [d["word"] for d in lp["lpet_domains"]["G1"]] == ["Family", "Neighbours"]
+          and lp["lpet_domains"]["G1"][1]["colour"] == tags["Neighbours"] and set(lp["lpet_domains"]) == {"G1"},
+          str(lp.get("lpet_domains")))
+
+    # set from the LPETs screen: the domain op on the board on its canvas, named as the screen names the participant
+    b1, v_before = lp["version"]["id"], lp["version"]["v"]
+    op = [{"op": "domain", "participant": lp["participant"], "lpet": "G1", "board": b1, "domain": "Seasons"}]
+    lp_before, t_before = ash_lp.read_bytes(), tfile.read_bytes()
+    dry = call("/api/trajectories-ops", {"workbook": str(ash), "dry_run": True, "ops": op})
+    check("369: the LPETs screen's domain in a dry run says so and writes nothing",
+          dry["changes"] == ["Ash's 'The family's beans' is Seasons now."] and ash_lp.read_bytes() == lp_before
+          and tfile.read_bytes() == t_before, str(dry["changes"]))
+    done = call("/api/trajectories-ops", {"workbook": str(ash), "ops": op})
+    lp = lpets()
+    f = json.loads(tfile.read_text(encoding="utf-8"))
+    check("369: and set, it is the LPET's domain on Trajectories too, the word given its colour across the project and "
+          "the change a line in the board's History, and the LPETs screen reads its new version",
+          [d["word"] for d in ash_row(done)["domains"]] == ["Seasons"] and ash_row(done)["domains"] == lp["lpet_domains"]["G1"]
+          and lp["lpet_domains"]["G1"][0]["colour"] == f["tags"]["Seasons"]
+          and f["history"][-1]["changes"] == ["Ash's 'The family's beans' is Seasons now."]
+          and lp["version"]["v"] != v_before and lp["version"]["id"] == b1,
+          str(lp.get("lpet_domains")) + str(f["history"][-1]))
+
+    # his bold on a key quote, then the LPET table's print view, its PDF's data and its PDF
+    call("/api/trajectories-ops", {"workbook": str(ash), "ops": [
+        {"op": "bold", "participant": "Ash", "lpet": "G1", "timepoint": "T2", "spans": [[4, 9]]}]})
+    code, page = routes.gets_print_page({"workbook": str(ash), "lpets": "1", "board": b1, "what": "table", "auto": "0"})
+    with routes.lpets_scope(ash):
+        import gets_print
+        data = gets_print.typst_data(garden, routes.gets_books(garden), routes.read_project(garden), b1, what="table")
+    rows = {r["who"]: r for r in data["table"][0]["rows"]}
+    pdf = scratch / "a369-lpets.pdf"
+    pcode, made, err = run("gets", "export", b1, "--lpets", "Ash", "--out", str(pdf))
+    check("369: his bold in a key quote reaches the LPET table's print view on its words, the quote's other words plain, "
+          "and a quote with none is as it was",
+          code == 200 and "<i>‘The <b>beans</b> failed and I asked next door.’</i>" in page
+          and "<i>‘To grow what my grandmother grew.’</i>" in page, page[page.find('class="kqcell"'):][:400])
+    check("369: and the PDF's data and the PDF made from it, the LPET table's Typst, carry it the same",
+          rows["T2"]["quote"]["words"] == [["The ", False], ["beans", True], [" failed and I asked next door.", False]]
+          and rows["T1"]["quote"]["words"] is None and pcode == 0 and pdf.is_file() and pdf.read_bytes()[:4] == b"%PDF",
+          (err or "") + str(rows.get("T2", {}).get("quote")))
+
+    # a board LGETs do not take: Board 1 chosen as the Current board, a copy on the canvas, the domain there alone
+    call("/api/gets-ops", {"workbook": str(ash), "lpets": True, "op": "choose", "id": b1})
+    copy = call("/api/gets-ops", {"workbook": str(ash), "lpets": True, "op": "duplicate", "id": b1})["version"]
+    done = call("/api/trajectories-ops", {"workbook": str(ash), "ops": [
+        {"op": "domain", "participant": "Ash", "lpet": "G1", "board": copy["name"], "domain": "Harvest"}]})
+    held = json.loads(ash_lp.read_text(encoding="utf-8"))
+    kept = {b["id"]: next(g for g in b["groups"] if g["id"] == "G1").get("domain") for b in held["boards"]}
+    lp = lpets(copy["id"])
+    check("369: on a board LGETs do not take, named by its name, the domain changes that board's LPET alone, "
+          "Trajectories keeping the one LGETs take, and the LPETs screen on that board draws it",
+          kept == {b1: "Seasons", copy["id"]: "Harvest"} and [d["word"] for d in ash_row(done)["domains"]] == ["Seasons"]
+          and [d["word"] for d in lp["lpet_domains"]["G1"]] == ["Harvest"], str(kept))
+    lp_before = ash_lp.read_bytes()
+    said = refused({"workbook": str(ash), "ops": [{"op": "domain", "participant": "Ash", "lpet": "G1", "board": "Board 9",
+                                                   "domain": "x"}]})
+    check("369: a board the participant's LPETs do not have is refused, nothing written",
+          "has no LPETs board Board 9" in said and ash_lp.read_bytes() == lp_before, said)
+
+
+def _lpets_marks_in_node(scratch: Path):
+    """The LPETs screen's part of it in node (lpetmarks): the canvas's undo never steps over an LPET's domain, so a
+    save sends the one set through the op, while an LPET deleted and undone comes back with its own; the page takes
+    the file's domains after the op; his bold drawn on a key quote's words; and an LPET's pills and Add domain on a
+    top LPET of the LPETs board alone."""
+    import shutil
+    if not shutil.which("node"):
+        support.skip("369: the LPETs screen's domain and bold in node", "no node on this computer")
+        return
+    app = support.text("family/static/shell.js", "apps/idiograph/static/distil.js").splitlines()
+    helpers = "\n".join(next(line for line in app if line.startswith(start)) for start in ("const esc = ", "const escAttr = "))
+    script = support.i18n_js() + helpers + "\n" + support.text("apps/idiograph/static/themes.js") + r"""
+const out = {};
+TH.mode = 'gets';
+TH.lpets = true;
+TH.layout = {};
+TH.lpetDomains = { G1: [{ word: 'Family', colour: 3 }, { word: 'Seasons', colour: 7 }] };
+const v = { cards: {}, groups: [{ id: 'G1', label: 'The family\'s beans', members: ['G2'], x: 0, y: 0, domain: 'Old words' },
+  { id: 'G2', label: 'Inside', members: [], x: 0, y: 40 }, { id: 'G3', label: 'Leading the supper', members: [], x: 400, y: 0, domain: 'Food' }],
+  discarded: [], picks: {}, stickies: [], rows: { G1: { T2: { quote: 'Midsummer:3:0', note: '', bold: [[4, 9]] } } } };
+TH.v = v;
+TH.meta = { id: 'b1', v: 'old', updated: 'then' };
+TH.boards = [{ id: 'b1', name: 'Board 1', updated: 'then', v: 'old' }];
+TH.known = { b1: 'then' };
+// a rename, then G3 deleted, each a step, then the op sets G1's domain and the page takes the file's back
+const first = thSnap(v, new Set());
+v.groups[0].label = 'Beans again';
+const second = thSnap(v, new Set());
+v.groups = v.groups.filter((g) => g.id !== 'G3');
+gtDomainsTake({ version: { id: 'b1', v: 'new', updated: 'now' }, groups: [{ id: 'G1', domain: 'Family, Seasons' }, { id: 'G2' }],
+  lpet_domains: TH.lpetDomains });
+out.taken = [v.groups[0].domain, TH.meta.v, TH.known.b1];
+thPut(v, second);
+out.undoDelete = v.groups.map((g) => `${g.id}:${g.domain || ''}`);
+thPut(v, first);
+out.undoRename = [v.groups[0].label, v.groups[0].domain];
+out.sent = thLabelOut(v.groups[0]);
+out.pills = gtDomainPills(v, 'G1');
+out.inner = gtDomainPills(v, 'G2');
+out.menu = thMenuItems(v, { kind: 'group', id: 'G1' }).map((x) => x.act);
+out.innerMenu = thMenuItems(v, { kind: 'group', id: 'G2' }).map((x) => x.act);
+out.bold = gtBoldHtml('The beans failed & I asked.', [[21, 27], [4, 9]]);
+TH.lpets = false;
+out.getsPills = gtDomainPills(v, 'G1');
+out.getsMenu = thMenuItems(v, { kind: 'group', id: 'G1' }).map((x) => x.act);
+console.log(JSON.stringify(out));
+"""
+    ran = support.run_node(script, scratch, "a369-lpetmarks.js")
+    try:
+        out = json.loads(ran.stdout.strip().splitlines()[-1])
+    except (ValueError, IndexError):
+        check("369: the LPETs screen's domain and bold run in node", False, (ran.stderr or ran.stdout).strip()[:400])
+        return
+    check("369: in node, the page takes the file's domain and version after the op, an undo never steps back over "
+          "it, so the save sends the one the op set, and an LPET deleted and undone comes back with its own",
+          out["taken"] == ["Family, Seasons", "new", "now"] and out["undoDelete"] == ["G1:Family, Seasons", "G2:", "G3:Food"]
+          and out["undoRename"] == ["The family's beans", "Family, Seasons"] and out["sent"].get("domain") == "Family, Seasons",
+          str({k: out[k] for k in ("taken", "undoDelete", "undoRename")}))
+    check("369: in node, a top LPET's label draws its pills as Trajectories does, each in its colour, an LPET inside "
+          "another none, and none on a board that is not the LPETs",
+          out["pills"].count('class="tf-pill case-3"') == 1 and ">Seasons</span>" in out["pills"]
+          and 'case-7' in out["pills"] and out["inner"] == "" and out["getsPills"] == "", out["pills"])
+    check("369: in node, Add domain is in a top LPET's menu on the LPETs board alone",
+          "domain" in out["menu"] and "domain" not in out["innerMenu"] and "domain" not in out["getsMenu"],
+          str(out["menu"]) + str(out["getsMenu"]))
+    check("369: in node, his bold in a key quote is drawn on its words, the rest escaped plain",
+          out["bold"] == "The <b>beans</b> failed &amp; I <b>asked.</b>", out["bold"])
 
 
 def _choose_from_anywhere(call, refused, run, wren: Path, ash: Path, wren_lp: Path, said_rows, kept_board, wren_row):

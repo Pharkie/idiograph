@@ -257,6 +257,13 @@ DESC_SCALE = 0.8
 DESC_LEADING = 1.3
 DESC_LINES = 6
 DESC_GAP = 2
+# An LPET's domains on its label on the LPETs screen (lpetmarks, 12 November 2026): a row of pills under its title
+# and its description, each word at 11px in the sans inside its padding and border, as Trajectories draws them,
+# wrapping as the words need. The page's .th-domains and .tf-pill are the same, each width here taken a tenth over.
+PILL_H = 20
+PILL_GAP = 4
+PILL_PX = 11
+PILL_PAD = 20
 # Each character's width in the serif the page draws a title and a statement in, Iowan Old Style,
 # at 17.5px, measured in the page. A character the table lacks is taken by its letter without its
 # accent, and failing that as wide as the widest there. A count is in the code face, every character
@@ -873,7 +880,8 @@ def unit(board: dict, gid: str) -> str:
     return layer(depth_of(parents, gid))
 
 
-def label_size(text, upper: bool = False, marks: int = 0, description: str = "", body: float = 0) -> tuple[int, int]:
+def label_size(text, upper: bool = False, marks: int = 0, description: str = "", body: float = 0,
+               domain: str = "") -> tuple[int, int]:
     """A label's width and height, a little over the page's: its title in the serif, wrapping at
     the widest a label runs, with its note's mark and its picks' among `marks`. A label over labels
     is set larger, at 21px, its letters a touch apart. Its count is no part of it, since the page's
@@ -881,7 +889,8 @@ def label_size(text, upper: bool = False, marks: int = 0, description: str = "",
     on until 17 October, later, a line more for a title that filled its line. A `description` sits
     under the title at four fifths of its size, six lines at most, as the page shows it. A label with
     one runs as wide as `body`, the width of what it holds, where that is wider than LABEL_W, its title
-    wrapping there too, so its frame is no wider for it (31 October)."""
+    wrapping there too, so its frame is no wider for it (31 October). An LPET's `domain`, its domains between
+    commas, adds their row of pills under the rest (lpetmarks)."""
     px, spacing, line, chrome = (21.0, 0.105, 26.88, 9) if upper else (LABEL_PX, 0, 22.4, 8)
     words = [text_width(w, px, spacing) for w in str(text or "").split()]
     space = text_width(" ", px)
@@ -896,6 +905,11 @@ def label_size(text, upper: bool = False, marks: int = 0, description: str = "",
         more, long = wrap([text_width(w, small) for w in said], text_width(" ", small), room)
         height += DESC_GAP + min(DESC_LINES, more) * small * DESC_LEADING
         width = max(width, min(wide, math.ceil(long) + LABEL_CHROME + LABEL_MARK * marks)) if more == 1 else wide
+    pills = [w for w in (" ".join(p.split()) for p in str(domain or "").split(",")) if w]
+    if pills:
+        rows, long = wrap([text_width(w, PILL_PX) * 1.1 + PILL_PAD for w in pills], PILL_GAP, room)
+        height += PILL_GAP + rows * PILL_H + (rows - 1) * PILL_GAP
+        width = max(width, min(wide, math.ceil(long) + LABEL_CHROME + LABEL_MARK * marks)) if rows == 1 else wide
     return width, math.ceil(height)
 
 
@@ -1060,7 +1074,8 @@ def layout_boxes(version: dict, height=None) -> dict:
         boxes.extend(held.get(gid, []))
         marks = bool(str(g.get("note") or "").strip()) + bool(picks.get(gid))
         body = union(boxes) if boxes else None
-        w, h = label_size(g["label"], bool(subs), marks, description_of(g), body[2] if body else 0)
+        w, h = label_size(g["label"], bool(subs), marks, description_of(g), body[2] if body else 0,
+                          domain=str(g.get(DOMAIN) or ""))
         x, y = (body[0], body[1] - LABEL_GAP - h) if body else (g.get("x", 0), g.get("y", 0))
         labels[gid] = (x, y, w, h)
         bodies[gid] = body
@@ -1117,7 +1132,8 @@ def blob(gid: str, by_id: dict, order, texts: dict, picks: dict | None = None, h
     if parts:
         spots = [(0, 0)] if len(parts) == 1 else pack_round([(p["w"], p["h"]) for p in parts], MARGIN)
         body = union((x, y, p["w"], p["h"]) for (x, y), p in zip(spots, parts))
-    w, h = label_size(by_id[gid]["label"], bool(subs), marks, description_of(by_id[gid]), body[2] if body else 0)
+    w, h = label_size(by_id[gid]["label"], bool(subs), marks, description_of(by_id[gid]), body[2] if body else 0,
+                      domain=str(by_id[gid].get(DOMAIN) or ""))
     lx, ly, whole = 0, 0, (0, 0, w, h)
     if body:
         lx, ly = body[0], body[1] - LABEL_GAP - h
@@ -3780,7 +3796,8 @@ def arrange(version: dict, gid: str, way: str = "grid", height=None) -> dict:
         if m in by_id:
             subs = any(x in by_id for x in by_id[m]["members"])
             marks = bool(str(by_id[m].get("note") or "").strip()) + bool(picks.get(m))
-            return label_size(by_id[m]["label"], subs, marks, description_of(by_id[m]), body)
+            return label_size(by_id[m]["label"], subs, marks, description_of(by_id[m]), body,
+                              domain=str(by_id[m].get(DOMAIN) or ""))
         if m in drawn["cards"]:
             return drawn["cards"][m][2], drawn["cards"][m][3]
         return drawn["notes"][m][2], drawn["notes"][m][3]
