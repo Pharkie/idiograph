@@ -296,6 +296,55 @@ console.log(JSON.stringify({ up, down, strips, free, held, kept: turn.getBoundin
           and got.get("free") is False and got.get("held") is False and got.get("kept") is True,
           f"{got} {done.stderr[-300:]}")
 
+    # the scroll bar's room to the fraction (wobble2, 12 November 2026): a Mac with a mouse plugged in draws bars that
+    # take room, 13 points, 11.82 pixels of the page at a Text size of 110%. The room the headings leave for the bar
+    # was offsetWidth less clientWidth, which WebKit rounds apart, 11 or 12 by where the column's edges fell, and with
+    # dragged widths the reading area's right margin is set from the headings, so each answer moved the column a pixel
+    # and the next was the other one. Here the column answers as WebKit does at 110%, and the margin is edgesApply's
+    bar_js = r"""
+const Z = 1.1, BAR = 13;
+const round = (v) => Math.floor(v + 0.5);
+let leftPx = 37.3, widthPx = 1000;
+const rows = { getBoundingClientRect: () => ({ width: widthPx - BAR / Z }) };
+// a box's width in whole points by where its edges fall, read back over the zoom and rounded, as WebKit gives them
+const col = {
+  get offsetWidth() { const x = leftPx * Z, w = widthPx * Z; return round((round(x + w) - round(x)) / Z); },
+  get clientWidth() { return round(round(widthPx * Z - BAR) / Z); },
+  getBoundingClientRect: () => ({ width: widthPx }),
+};
+rows.parentElement = col;
+const $ = (id) => (id === 'transcript-rows' ? rows : col);
+""" + whole("barRoom") + r"""
+// the column as the reading area leaves it with dragged widths: its right margin 42 pixels from the window's edge less
+// what the headings leave at their right, the bar's room and 8 pixels, rounded as edgesApply rounds it
+const settles = (measure, room) => {
+  let sb = 12;
+  const seen = [];
+  for (let i = 0; i < 8; i += 1) { widthPx = room - Math.round(42 - (sb + 8)); sb = measure(sb); seen.push(sb); }
+  return new Set(seen.slice(2)).size === 1;
+};
+let before = 0, after = 0, exact = true;
+for (let i = 0; i < 400; i += 1) {
+  leftPx = 30 + i * 0.29;
+  const room = 1100 + i * 0.137;
+  if (!settles(() => col.offsetWidth - col.clientWidth, room)) before += 1;
+  if (!settles((was) => barRoom(col, was), room)) after += 1;
+  if (Math.abs(barRoom(col) - 11.82) > 0.01) exact = false;
+}
+// a change of less than half a pixel is no change, a real one is taken
+const kept = barRoom(col, 11.5) === 11.5 && barRoom(col, 15) === 11.82;
+console.log(JSON.stringify({ before, after, exact, kept }));
+"""
+    script = scratch / "a192-bar.js"
+    script.write_text(bar_js, encoding="utf-8")
+    done = subprocess.run([node, str(script)], capture_output=True, text=True, encoding="utf-8", timeout=60)
+    got = json.loads(done.stdout) if done.returncode == 0 and done.stdout.strip() else {}
+    check("192: the room the transcript's scroll bar takes is its own width to the fraction wherever the column stands, "
+          "so with dragged widths at a Text size of 110% measuring the columns again moves nothing, where the rounded "
+          "measure never settled at some window widths, and the statements screen measures it so",
+          got.get("before", 0) > 0 and got.get("after") == 0 and got.get("exact") is True and got.get("kept") is True
+          and "barRoom(col" in whole("measureColumns"), f"{got} {done.stderr[-300:]}")
+
     drag_js = r"""
 // one passage's words as two text nodes, the second a key quote's mark, and drags cut inside words
 const words = 'It is the same walk... Out of the door; left, "always" (every day).';
@@ -340,6 +389,120 @@ console.log(JSON.stringify(out));
           and got.get("up") == {"text": "same walk... Out of the door;", "back": True}
           and got.get("marks") == {"text": "left, \"always\" (every", "back": False}
           and got.get("whole") == {"text": "It is the same walk...", "back": False}, f"{got} {done.stderr[-300:]}")
+
+    still_in_webkit(scratch, root, book)
+
+
+# ── 6. the statements screen still in the Mac's own window engine (wobble2, 12 November 2026): WebKit with the scroll
+# bars a mouse brings, which take room, through packaging/wk_shot.swift, the page served by the app's own handler.
+# For each dragged width tried, at Text sizes 110%, 90% and 125%, 1300 wide and 720, the columns are measured again
+# four times running, each pass after the last one's layout, and nothing moves; then with the window left alone at a
+# width the rounded measure never settled at, the column's observer stays quiet and no frame comes late
+STILL_INIT = r"""
+window.__still = { ro: 0, late: 0, on: false };
+(() => {
+  const RO = window.ResizeObserver;
+  window.ResizeObserver = class extends RO {
+    constructor(cb) { super((entries, obs) => { if (window.__still.on) for (const e of entries) if (e.target.id === 'transcript') window.__still.ro += 1; return cb(entries, obs); }); }
+  };
+  let prev = 0;
+  const tick = (now) => { if (window.__still.on && prev && now - prev > 50) window.__still.late += 1; prev = now; requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+})();
+"""
+REMEASURE = r"""(() => {
+  const cfg = S.data.config;
+  const col = $('transcript');
+  const card = $('es-card');
+  let moved = 0, tried = 0;
+  for (let right = 20; right <= 90; right += 1) {
+    for (const statements of [381, 397]) {
+      cfg.column_widths = { [colsScreen()]: { left: 32, right, statements, notes: 222 } };
+      measureColumns();
+      const seen = new Set();
+      for (let i = 0; i < 4; i += 1) {
+        measureColumns();
+        seen.add(`${$('work').style.getPropertyValue('--sb')} ${col.clientWidth} ${Math.round(card.getBoundingClientRect().left * 10) / 10}`);
+      }
+      tried += 1;
+      if (seen.size > 1) moved += 1;
+    }
+  }
+  return { tried, moved, bar: col.offsetWidth - col.clientWidth };
+})()"""
+
+
+def still_in_webkit(scratch, root, book):
+    import platform
+    import threading
+    from http.server import ThreadingHTTPServer
+    import locks
+    import server as server_mod
+    swiftc = shutil.which("swiftc")
+    if platform.system() != "Darwin" or not swiftc:
+        skip("192: the statements screen still in the Mac's own window engine", "WebKit's window engine is the Mac's alone")
+        return
+    tool = scratch / "a192-wk_shot"
+    made = subprocess.run([swiftc, "-O", str(support.source("packaging/wk_shot.swift")), "-o", str(tool)],
+                          capture_output=True, text=True, encoding="utf-8", timeout=600)
+    if made.returncode != 0:
+        check("192: wk_shot builds for the WebKit check", False, made.stderr[-400:])
+        return
+    config_file = scratch / "a192-still-config.json"
+    config_file.write_text(json.dumps({"projects": [{"root": str(root)}], "corpus": "", "corpus_exclude": [],
+                                       "gravity_reference": "", "interviewer": "Adam"}), encoding="utf-8")
+    view = ("(() => { Object.assign(S.data.config, { statements_columns: ['notes', 'transcript', 'statements'], "
+            "columns_hidden: [], columns_stacked: false }); drawView(); return 'ok'; })()")
+    steps = [{"js": f"openCase({json.dumps(str(book))}).then(() => 'opened')", "waitFor": "#transcript-rows .turn.current",
+              "wait": 600}, {"js": view, "wait": 200}]
+    sizes = [(1.1, 1300), (0.9, 1300), (1.25, 1300), (1.1, 720)]
+    for zoom, width in sizes:
+        steps += [{"size": [width, 850], "zoom": zoom, "wait": 300}, {"js": REMEASURE, "wait": 50}]
+    # left alone at 110% with a width the rounded measure flipped at, a second watched
+    steps += [{"size": [1300, 850], "zoom": 1.1, "js": "(() => { S.data.config.column_widths = { [colsScreen()]: { left: 32, "
+               "right: 22, statements: 381, notes: 222 } }; measureColumns(); return 1; })()", "wait": 700},
+              {"js": "(window.__still.on = true, 1)", "wait": 1000},
+              {"js": "({ ro: window.__still.ro, late: window.__still.late })"}]
+    steps_file = scratch / "a192-still-steps.json"
+    steps_file.write_text(json.dumps(steps), encoding="utf-8")
+    # one WebKit run, and a second if the first came back short: under a full gate's load the offscreen window can
+    # run out of its time before the last sizes, which says nothing about the layout (the gate of 13 November)
+    def run_still():
+        kept = (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY, locks.WAIT)
+        httpd = None
+        try:
+            server_mod.CONFIG_PATH = config_file
+            server_mod.ROOT_OVERRIDE = str(root)
+            server_mod.STATE_MEMORY = {"recent": []}
+            httpd = ThreadingHTTPServer(("127.0.0.1", 0), server_mod.Handler)
+            threading.Thread(target=httpd.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True).start()
+            ran = subprocess.run([str(tool), "--url", f"http://127.0.0.1:{httpd.server_address[1]}/", "--out", str(scratch / "a192-wk"),
+                                  "--steps", str(steps_file), "--width", "1300", "--height", "850", "--scale", "1",
+                                  "--init", STILL_INIT, "--timeout", "150"],
+                                 capture_output=True, text=True, encoding="utf-8", timeout=200)
+        finally:
+            if httpd:
+                httpd.shutdown()
+                httpd.server_close()
+            server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY, locks.WAIT = kept
+        said = {}
+        for line in ran.stdout.splitlines():
+            if line.startswith("js ") and ": {" in line:
+                said[int(line[3:line.index(":")])] = json.loads(line[line.index(":") + 2:])
+        measured = [said.get(3 + 2 * i, {}) for i in range(len(sizes))]
+        watched = said.get(2 + 2 * len(sizes) + 2, {})
+        return ran, measured, watched
+
+    ran, measured, watched = run_still()
+    if ran.returncode != 0 or not all(measured) or not watched:
+        ran, measured, watched = run_still()
+    check("192: in WebKit with scroll bars that take room, the statements screen's columns measured again for every "
+          "dragged width tried stand still at Text sizes 110%, 90% and 125% and at 720 wide, and left alone at 110% "
+          "its column's observer stays quiet with no frame late",
+          ran.returncode == 0 and all(m.get("tried") == 142 and m.get("moved") == 0 for m in measured)
+          and measured[0].get("bar", 0) > 0 and watched.get("ro", 99) <= 1 and watched.get("late", 99) <= 2,
+          f"{measured} {watched} {ran.stdout[-300:]} {ran.stderr[-300:]}")
+
 
 def cli_line() -> str:
     import cli

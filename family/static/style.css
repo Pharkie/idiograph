@@ -692,9 +692,11 @@ html[data-app="idiograph"][data-edition="preview"] .pe-note { display: flex; ali
 #work.hide-en :is(.turn > .turn-notes:not(.note-cell), .col-head[data-col="notes"]) { display: none; }
 #work.cols-alone :is(.turn, .round-mark, .cols-head) { justify-content: center; }
 .stack { display: none; }
+/* the scroll bar's room kept whether or not the bar is drawn (wobble2, 12 November 2026), so a sheet shorter than
+   the column, or growing past it, never moves the columns by a bar's width where the Mac draws bars that take room */
 .transcript {
   flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
-  position: relative; scrollbar-width: thin;
+  position: relative; scrollbar-width: thin; scrollbar-gutter: stable;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30px, #000 calc(100% - 30px), transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0, #000 30px, #000 calc(100% - 30px), transparent 100%);
 }

@@ -47,7 +47,7 @@ def test_home_and_settings(scratch):
         pieces = [const("esc"), const("escAttr"), const("plural"), const("HOME_KEY"), const("DEMO_ID"), const("homeHover"),
                   const("SHARE_LINE"), const("HOME_PROJECTS"), const("DEMO_TA_ID"), const("isDemoId"), const("DEMOS_OPEN"),
                   const("DEMOS_SHUT")]
-        pieces += [whole(app, n) for n in ("sectionsOf", "homeHeld", "homeKeep", "drawHome", "standLine", "cardGetsLine", "homeCardHtml",
+        pieces += [whole(app, n) for n in ("sectionsOf", "homeHeld", "homeKeep", "drawHome", "standLine", "cardGetsLine", "demoWords", "homeCardHtml",
                                            "drawPick", "openPage", "openPageNow", "closePage", "pageHead", "drawPage", "demoRows",
                                            "demoCards", "drawDemoPage", "loadLibrary", "windowPicks", "windowRecent",
                                            "homeMenuItems", "homeMenuRows", "homeMenuHtml", "projectMenuHtml", "projectMenuWord",

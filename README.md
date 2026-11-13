@@ -22,7 +22,7 @@ list shared by every participant, and Themes.
 
 ![GETs on the canvas](docs/images/gets.webp)
 
-The pictures show the demo's invented interviews.
+The pictures use the app's demo, made with AI: they show the app, not how to do IPA.
 
 > ⚠️ This is an early preview, a proof of concept to explore what software for IPA can be. It has not been fully tested or reviewed, so please don't rely on it for anything important: your data could be damaged or lost, so keep copies of your work. It is not yet a replacement for the software you use day to day. Tell me what you think with the bug button or by email. Please keep it to yourself for now: don't share it or post about it.
 
@@ -68,9 +68,9 @@ Mac, `run.bat` on Windows (with "Add python.exe to PATH" ticked in Python's inst
 
 ## First run
 
-The demo, Living with a dog, is a finished IPA project, so
-everything can be tried on nobody's words, and Reset demo puts it back. A project is a folder of
-participants' folders: Open project folder, on Home, takes one, and New project makes one from your
+The demo, Living with a dog, is invented, so
+try it on nobody's words, and Reset demo restores it. A project is a folder of
+participants' folders: Open project folder takes one, and New project makes one from your
 transcripts.
 
 ## Your transcript
@@ -108,7 +108,7 @@ The [manual](docs/manual.md) describes every screen, the [internals](docs/intern
 Idiograph is under the GNU Affero General Public License version 3, in `LICENSE`,
 with two terms of its section 7 and the third-party software in `NOTICE.md`. The demo's recordings, AI
 voices made with Google Gemini, are the one exception, under `packaging/recording/LICENSE-audio.md`.
-Portraits: Open Peeps (Pablo Stanley, CC0), Notionists (Zoish, CC0), Fluent Emoji (Microsoft, MIT).
+Portraits: Open Peeps (Pablo Stanley, CC0), Notionists (Zoish, CC0).
 If it helps your work, please consider buying me a coffee, and a GitHub star helps others find it.
 
 <a href='https://ko-fi.com/X8X01NIXRB' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>

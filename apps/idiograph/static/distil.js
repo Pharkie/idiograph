@@ -211,12 +211,87 @@ function homeCardHtml(c) {
   const dots = projectDotsHtml(c.name, homeMenuRows(items, where));
   // each demo's own tag, IPA demo or Thematic analysis demo (demos)
   const tags = (c.demo ? `<span class="tag demo">${esc(c.tag || t('distil.tag.demo'))}</span>` : '') + (c.copy ? `<span class="tag copy">${esc(t('distil.tag.copy'))}</span>` : '');
-  return `<li class="home-card-li${items.length ? ' has-menu' : ''}"><button type="button" class="home-card${c.demo ? ' is-demo' : ''}" data-id="${escAttr(c.id)}">`
+  // a demo's card says what the demo is for, beside the card's button and never in it (demowarn, 12 November 2026)
+  const warn = c.demo && c.method
+    ? `<button type="button" class="hc-warn" data-demo-note="${escAttr(c.method)}" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.3 4.2 2.9 17.5A2 2 0 0 0 4.6 20.5h14.8a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4.5"/><path d="M12 17.2v.1"/></svg><span>${esc(demoWords(c.method)[0])}</span></button>` : '';
+  return `<li class="home-card-li${items.length ? ' has-menu' : ''}${warn ? ' has-warn' : ''}"><button type="button" class="home-card${c.demo ? ' is-demo' : ''}" data-id="${escAttr(c.id)}">`
     + `<span class="hc-head"><span class="hc-name">${esc(c.name)}</span>${tags}</span>`
     + (c.question ? `<span class="hc-question">${esc(c.question)}</span>` : '')
     + `<span class="pc-line hc-line">${esc(c.line)}</span>`
-    + (c.more ? `<span class="pc-line hc-more">${esc(c.more)}</span>` : '') + `</button>${dots}</li>`;
+    + (c.more ? `<span class="pc-line hc-more">${esc(c.more)}</span>` : '') + `</button>${warn}${dots}</li>`;
 }
+
+/* The warning a demo carries (demowarn, 12 November 2026, Adam: "they are demoing the app, they are not demoing IPA").
+   Its card on Home has a line at its foot, and every screen of the demo has its Demo mark beside the project's name,
+   each a button opening the same note in a small box under it: what the demo is made of and what it is not for, in
+   Adam's first person. `kind` is `ipa`, `ta` or `lipa`. The box shuts on Esc, on a press outside it, on a second
+   press on its button, on a scroll and on a resize, and Esc returns the focus to the button. */
+let demoNoteBy = null;
+
+function demoNoteKind(mark) {
+  if (mark.dataset.demoNote) return mark.dataset.demoNote;
+  if (mark.id === 'hp-demo-ta') return 'ta';
+  if (mark.id === 'hp-demo') return 'ipa';
+  const here = typeof pathProject === 'function' ? pathProject() : null;
+  return here && here.id === DEMO_TA_ID ? 'ta' : 'ipa';
+}
+
+function demoNoteShut(back = false) {
+  const box = $('demo-note');
+  if (!box || box.hidden) return;
+  box.hidden = true;
+  const by = demoNoteBy;
+  demoNoteBy = null;
+  if (by) {
+    by.setAttribute('aria-expanded', 'false');
+    if (back && by.isConnected) by.focus({ preventScroll: true });
+  }
+}
+
+/* each demo's card line and note, by its method, every key named whole so the catalogue's check sees it used */
+function demoWords(kind) {
+  if (kind === 'ta') return [t('distil.demo.warn_ta'), t('distil.demo.note_ta_1'), t('distil.demo.note_ta_2')];
+  if (kind === 'lipa') return [t('distil.demo.warn_lipa'), t('distil.demo.note_lipa_1'), t('distil.demo.note_lipa_2')];
+  return [t('distil.demo.warn_ipa'), t('distil.demo.note_ipa_1'), t('distil.demo.note_ipa_2')];
+}
+
+function demoNoteOpen(by, kind) {
+  const box = $('demo-note');
+  if (!box) return;
+  const was = demoNoteBy;
+  demoNoteShut();
+  if (was === by) return;
+  const [head, one, two] = demoWords(kind);
+  $('demo-note-head').textContent = head;
+  $('demo-note-1').textContent = one;
+  $('demo-note-2').textContent = two;
+  box.hidden = false;
+  demoNoteBy = by;
+  by.setAttribute('aria-expanded', 'true');
+  // a card's line opens it under the card, not over the card's foot
+  const card = by.closest('.home-card-li');
+  const r = (card || by).getBoundingClientRect();
+  const w = box.offsetWidth;
+  const gap = card ? 20 : 8;
+  const h = box.offsetHeight;
+  // under it where there is room, else above it, else as far down as the window allows
+  const top = r.bottom + gap + h + 12 <= window.innerHeight ? r.bottom + gap
+    : r.top - gap - h >= 12 ? r.top - gap - h : Math.max(12, window.innerHeight - h - 12);
+  box.style.left = `${Math.max(12, Math.min(r.left, window.innerWidth - w - 12))}px`;
+  box.style.top = `${top}px`;
+  box.focus({ preventScroll: true });
+}
+
+document.addEventListener('click', (e) => {
+  const mark = e.target.closest && e.target.closest('.hc-warn, .demo-mark');
+  if (mark) { demoNoteOpen(mark, demoNoteKind(mark)); return; }
+  if (demoNoteBy && !e.target.closest('#demo-note')) demoNoteShut();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && demoNoteBy) { e.stopPropagation(); demoNoteShut(true); }
+}, true);
+window.addEventListener('resize', () => demoNoteShut());
+window.addEventListener('scroll', (e) => { if (demoNoteBy && !(e.target.closest && e.target.closest('#demo-note'))) demoNoteShut(); }, true);
 
 /* each card's dots open its menu, the family's (projectMenus in shell.js), and each item does its job (see
    homeMenuItems) */
@@ -1143,7 +1218,7 @@ function drawPick(data, sections) {
   // the demos in a section of their own, apart from his projects (demos)
   const demos = demosOf(data).map((d) => {
     if (d.project && d.project.name) HOME_PROJECTS.set(d.id, d.project);
-    return { id: d.id, demo: true, tag: d.tag, name: d.project.name || d.tag, question: String(d.project.research_question || ''),
+    return { id: d.id, demo: true, tag: d.tag, method: d.method, name: d.project.name || d.tag, question: String(d.project.research_question || ''),
       line: tIn(d.method, () => standLine(d.cards)) };
   });
   $('home-demos').hidden = !demos.length;
@@ -5019,6 +5094,22 @@ function edgeKeys(e) {
    column's, where that column is 300 pixels or more, and else it is 340 pixels with the rest of the
    screen under a wash of the paper, so no strip of a column's words is ever cut at its edge. */
 const GUIDE_WHOLE = 300;
+
+/* The room the transcript's scrollbar takes, to the fraction of a pixel it is (wobble2, 12 November 2026). Adam's
+   Mac draws scroll bars that take room, a mouse being plugged in, 13 points wide, which at a Text size of 110% is
+   11.82 pixels of the page. offsetWidth less clientWidth rounded that to 11 or 12 by where the column's edges fell
+   between two pixels, and with his dragged widths the reading area's right margin is set from the headings, which
+   leave that room at their right, so each answer moved the column a pixel and the next answer was the other one:
+   the statements column went a pixel left and right and the transcript's lines broke anew two or three times a
+   second, every passage, the screen slowing as each pass laid the whole sheet out again. The column's box less its
+   rows' box is the bar's own width wherever the column stands, and a change of less than half a pixel is no change. */
+function barRoom(col, was) {
+  const rows = $('transcript-rows');
+  const room = rows && rows.parentElement === col ?col.getBoundingClientRect().width - rows.getBoundingClientRect().width : col.offsetWidth - col.clientWidth;
+  const now = Math.max(0, Math.round(room * 100) / 100);
+  return Number.isFinite(was) && Math.abs(now - was) < 0.5 ? was : now;
+}
+
 function measureColumns() {
   const work = $('work');
   if (work.hidden) return;
@@ -5027,7 +5118,7 @@ function measureColumns() {
   reachDraw();
   if (typeof levelSoon === 'function') levelSoon();
   const col = $('transcript');
-  work.style.setProperty('--sb', `${Math.max(0, col.offsetWidth - col.clientWidth)}px`);
+  work.style.setProperty('--sb', `${barRoom(col, parseFloat(work.style.getPropertyValue('--sb')))}px`);
   // the widths held for this screen first, and the edges over the columns (20 October)
   edgesDraw();
   const shown = [...$('cols-head').querySelectorAll('.col-head')].filter((h) => h.getClientRects().length);

@@ -1002,34 +1002,88 @@ function thThemeOrder(v, gid, layout) {
   }));
 }
 
-/* Auto-arrange: a theme's cards tidied under its label in a compact block, in the order they read
-   now, top to bottom with ties broken left to right, the margin between them. Each sub-theme is
-   arranged inside its own frame first and then set in the block as one piece where it read. The
-   block keeps its top-left corner, so the label stays where it stands. Rows run as wide as about
-   the square root of the pieces, the way a grid of cards is laid. A theme's own sticky notes come
-   at the end of its block, in the order they read. False when there is nothing to arrange.
-   `way` is one of Auto-arrange's ways (21 October): `grid`, that, `column`, one above another in the
-   order they read down the PET, each sub-theme a block in its place arranged the same way, or `row`,
-   all side by side. themes.py's arrange is the same. */
-function thArrange(v, gid, size, way = 'grid') {
-  if (thLocked(v)) return false;
-  const layout = thLayout(v, size, null);
-  const body = layout[gid] && layout[gid].body;
-  if (!thGroup(v, gid) || !body) return false;
-  const spots = [];        // where each card goes, and an empty sub-theme's label, from the body's corner
+/* The shape a grid aims for, as wide as tall times this, the canvas at 1280 by 800, and inside a label a
+   little squarer, so the PETs set side by side make the canvas's shape between them, and the PETs' gap on a
+   whole board's arrange (boardgrid, 12 November 2026, Adam: boards came out "very long and narrow"). themes.py's
+   ARRANGE_ASPECT, LABEL_ASPECT and BOARD_GAP are the same. */
+const TH_ARRANGE_ASPECT = 1.6;
+const TH_LABEL_ASPECT = 1.2;
+const TH_BOARD_GAP = 4 * TH_MARGIN;
+
+/* Places for boxes of these sizes, [w, h] each, in rows no wider than `width`, in the order given, the tops of a
+   row level and `gap` between, one that would run past `width` starting the next row at the left, so they read
+   top left first, then left to right, row by row: each place from the block's corner, and the block's size.
+   themes.py's flow_rows is the same. */
+function thFlowRows(sizes, gap, width) {
+  const places = [];
+  let x = 0;
+  let y = 0;
+  let tall = 0;
+  let w = 0;
+  for (const [bw, bh] of sizes) {
+    if (x > 0 && x + bw > width) { y += tall + gap; x = 0; tall = 0; }
+    places.push([x, y]);
+    w = Math.max(w, x + bw);
+    tall = Math.max(tall, bh);
+    x += bw + gap;
+  }
+  return { places, w, h: y + tall };
+}
+
+/* The width of row that sets boxes of these sizes out nearest `aim` times as wide as tall, of two as near the
+   smaller in area, then the narrower, tried at the width of every run of them side by side and never narrower
+   than the narrowest two side by side, so two or more come out in rows across, never one column of them.
+   themes.py's row_width is the same. */
+function thRowWidth(sizes, gap, aim = TH_ARRANGE_ASPECT) {
+  const widest = Math.max(...sizes.map((s) => s[0]));
+  let least = sizes.length > 1 ? Infinity : widest;
+  for (let i = 0; i + 1 < sizes.length; i += 1) least = Math.min(least, sizes[i][0] + gap + sizes[i + 1][0]);
+  const widths = new Set([Math.max(widest, least)]);
+  for (let i = 0; i < sizes.length; i += 1) {
+    let run = 0;
+    for (let j = i; j < sizes.length; j += 1) {
+      run += sizes[j][0] + (j > i ? gap : 0);
+      if (run >= widest && run >= least) widths.add(run);
+    }
+  }
+  let best = null;
+  let chosen = Math.max(widest, least);
+  for (const width of [...widths].sort((a, b) => a - b)) {
+    const { w, h } = thFlowRows(sizes, gap, width);
+    const r = h ? w / (h * aim) : 1;
+    const key = [Math.max(r, 1 / r), w * h, width];
+    if (!best || key[0] < best[0] || (key[0] === best[0] && (key[1] < best[1] || (key[1] === best[1] && key[2] < best[2])))) {
+      best = key;
+      chosen = width;
+    }
+  }
+  return chosen;
+}
+
+/* What Auto-arrange lays a label out by: `block(gid)`, the label's cards, sticky notes and labels inside it laid
+   out `way` in the order they read now (see thArrange), each place from the corner of what it holds, a label's
+   size taken over the body it will hold, `size(id, bodyW)`, since one with a description runs as wide as that
+   (thLabelsWiden), and `put(places, x, y)`, which sets them there. themes.py's _arranger is the same. */
+function thArranger(v, size, way, layout) {
   const block = (id, seen) => {
     const notes = thReadOrder(thStickies(v).filter((n) => n.in === id).map((n) => ({ id: n.id, x: n.x, y: n.y })));
     const units = thThemeOrder(v, id, layout).concat(notes).filter((m) => !seen.has(m)).map((m) => {
       if (!thIsGroup(v, m)) return { id: m, w: size(m).w, h: size(m).h, card: true, note: thIsSticky(v, m) };
       const inner = block(m, new Set([...seen, m]));
-      const label = size(m);
+      const label = size(m, inner.w);
       return { id: m, w: Math.max(inner.w, label.w) + 2 * TH_FRAME_X, h: label.h + TH_GAP + inner.h + 2 * TH_FRAME_Y,
         inner, dx: TH_FRAME_X, dy: TH_FRAME_Y + label.h + TH_GAP };
     });
     if (!units.length) return { w: 0, h: 0, places: [] };
-    const cols = way === 'column' ? 1 : way === 'row' ? units.length : Math.ceil(Math.sqrt(units.length));
-    const card = (units.find((u) => u.card && !u.note) || { w: 200 }).w;
-    const width = way === 'row' ? Infinity : Math.max(...units.map((u) => u.w), cols * card + (cols - 1) * TH_MARGIN);
+    let width;
+    if (way === 'grid' && !units.every((u) => u.card)) {
+      // a label over labels: its sub-PETs in rows across it, as near the canvas's shape as they go
+      width = thRowWidth(units.map((u) => [u.w, u.h]), TH_MARGIN, TH_LABEL_ASPECT);
+    } else {
+      const cols = way === 'column' ? 1 : way === 'row' ? units.length : Math.ceil(Math.sqrt(units.length));
+      const card = (units.find((u) => u.card && !u.note) || { w: 200 }).w;
+      width = way === 'row' ? Infinity : Math.max(...units.map((u) => u.w), cols * card + (cols - 1) * TH_MARGIN);
+    }
     const places = [];
     let x = 0;
     let y = 0;
@@ -1046,9 +1100,82 @@ function thArrange(v, gid, size, way = 'grid') {
     }
     return { w, h: y + tall, places };
   };
-  for (const p of block(gid, new Set([gid])).places) {
-    const at = p.label ? thGroup(v, p.id) : (v.cards[p.id] || thSticky(v, p.id));
-    if (at) { at.x = Math.round(body.x + p.x); at.y = Math.round(body.y + p.y); }
+  const put = (places, ox, oy) => {
+    for (const p of places) {
+      const at = p.label ? thGroup(v, p.id) : (v.cards[p.id] || thSticky(v, p.id));
+      if (at) { at.x = Math.round(ox + p.x); at.y = Math.round(oy + p.y); }
+    }
+  };
+  return { block: (id) => block(id, new Set([id])), put };
+}
+
+/* Auto-arrange: a theme's cards tidied under its label in a compact block, in the order they read
+   now, top to bottom with ties broken left to right, the margin between them. Each sub-theme is
+   arranged inside its own frame first and then set in the block as one piece where it read. The
+   block keeps its top-left corner, so the label stays where it stands. Rows run as wide as about
+   the square root of the pieces, the way a grid of cards is laid, and a label over labels lays them in
+   rows across it as near the canvas's shape as they go (thRowWidth, boardgrid, 12 November 2026: a PET's
+   sub-PETs came out one column), each row's tops level, so it reads as it read. A theme's own sticky notes
+   come at the end of its block, in the order they read. False when there is nothing to arrange.
+   `way` is one of Auto-arrange's ways (21 October): `grid`, that, `column`, one above another in the
+   order they read down the PET, each sub-theme a block in its place arranged the same way, or `row`,
+   all side by side. themes.py's arrange is the same. */
+function thArrange(v, gid, size, way = 'grid') {
+  if (thLocked(v)) return false;
+  const layout = thLayout(v, size, null);
+  const body = layout[gid] && layout[gid].body;
+  if (!thGroup(v, gid) || !body) return false;
+  const { block, put } = thArranger(v, size, way, layout);
+  put(block(gid).places, body.x, body.y);
+  return true;
+}
+
+/* The whole board tidied, Auto-arrange with nothing selected (boardgrid, 12 November 2026, Adam: "I do auto
+   arrange to grid ... you need to make it more square"): each PET arranged inside `way` as thArrange does, then
+   the PETs themselves set out the same way, `grid` in rows as near the canvas's shape as they go, `column` one
+   under another or `row` side by side, the PETs' gap apart, from the top-left corner of where they stood. All of
+   it in the order it reads now, the PETs, each label's sub-PETs and each one's cards, the first top left, then
+   left to right, row by row, so the Table view and the exports read as before. Cards in no PET and sticky notes
+   in none keep their places, moved together below the PETs when the PETs now meet any of them. False on a board
+   with no PETs. themes.py's arrange_board is the same. */
+function thArrangeBoard(v, size, way = 'grid') {
+  if (thLocked(v)) return false;
+  const layout = thLayout(v, size, null);
+  const parents = thParents(v);
+  const tops = gtCanvasOrder(v.groups.filter((g) => parents[g.id] === undefined));
+  if (!tops.length) return false;
+  const { block, put } = thArranger(v, size, way, layout);
+  const shapes = tops.map((id) => {
+    const inner = block(id);
+    const label = size(id, inner.w);
+    return inner.places.length
+      ? { id, inner, lh: label.h, w: Math.max(inner.w, label.w) + 2 * TH_FRAME_X, h: label.h + TH_GAP + inner.h + 2 * TH_FRAME_Y }
+      : { id, inner, lh: label.h, w: label.w + 2 * TH_FRAME_X, h: label.h + 2 * TH_FRAME_Y };
+  });
+  const sizes = shapes.map((s) => [s.w, s.h]);
+  const width = way === 'grid' ? thRowWidth(sizes, TH_BOARD_GAP) : way === 'row' ? Infinity : Math.max(...sizes.map((s) => s[0]));
+  const flow = thFlowRows(sizes, TH_BOARD_GAP, width);
+  const ox = Math.min(...tops.map((id) => layout[id].frame.x));
+  const oy = Math.min(...tops.map((id) => layout[id].frame.y));
+  const frames = [];
+  shapes.forEach((s, i) => {
+    const fx = ox + flow.places[i][0];
+    const fy = oy + flow.places[i][1];
+    frames.push({ x: fx, y: fy, w: s.w, h: s.h });
+    if (s.inner.places.length) put(s.inner.places, fx + TH_FRAME_X, fy + TH_FRAME_Y + s.lh + TH_GAP);
+    else { const g = thGroup(v, s.id); g.x = Math.round(fx + TH_FRAME_X); g.y = Math.round(fy + TH_FRAME_Y); }
+  });
+  // what stands in no PET keeps its place, moved as one below the PETs when they now meet it
+  const loose = Object.keys(v.cards).filter((k) => thOnCanvas(v, k) && parents[k] === undefined);
+  const free = thStickies(v).filter((n) => !thIsGroup(v, n.in)).map((n) => n.id);
+  const boxes = loose.map((k) => ({ x: v.cards[k].x, y: v.cards[k].y, w: size(k).w, h: size(k).h }))
+    .concat(free.map((id) => { const n = thSticky(v, id); return { x: n.x, y: n.y, w: size(id).w, h: size(id).h }; }));
+  if (boxes.length && boxes.some((b) => frames.some((f) => thMeets(b, f, TH_MARGIN)))) {
+    const whole = thUnion(boxes);
+    const dx = ox - whole.x;
+    const dy = oy + flow.h + TH_BOARD_GAP - whole.y;
+    for (const k of loose) { v.cards[k].x = Math.round(v.cards[k].x + dx); v.cards[k].y = Math.round(v.cards[k].y + dy); }
+    for (const id of free) { const n = thSticky(v, id); n.x = Math.round(n.x + dx); n.y = Math.round(n.y + dy); }
   }
   return true;
 }
@@ -2166,6 +2293,20 @@ function thNote(text, failed = false) {
 
 function thSize(item) {
   return TH.sizes[item] || (TH.v && TH.v.cards[item] ? TH_CARD : TH.v && thIsSticky(TH.v, item) ? TH_STICKY : TH_LABEL);
+}
+
+/* A size as thSize gives it, and a label with a description measured over a body `body` wide, as
+   thLabelsWiden will draw it once what it holds stands there, so Auto-arrange lays its frame out at the
+   height it will have (boardgrid, 12 November 2026: a label that took more lines or fewer after an arrange
+   moved its frame's top past its row's, and the room then made read its sub-PETs in another order). */
+function thSizeAt(item, body) {
+  const el = body !== undefined && TH.els && TH.els.labels ? TH.els.labels[item] : null;
+  if (!el || !el.classList || !el.classList.contains('described') || !el.style) return thSize(item);
+  const kept = el.style.maxWidth;
+  el.style.maxWidth = body > TH_LABEL_W ? `${Math.floor(body)}px` : '';
+  const s = { w: el.offsetWidth, h: el.offsetHeight };
+  el.style.maxWidth = kept;
+  return s;
 }
 
 function thCardTitle(c) {
@@ -4232,7 +4373,19 @@ function thArrangeTool(way = thArrangeWay()) {
   const parents = thParents(v);
   let targets = [...TH.sel.groups].filter((id) => thIsGroup(v, id));
   for (const id of [...TH.sel.cards, ...TH.sel.stickies]) if (parents[id] !== undefined) targets.push(parents[id]);
-  if (!targets.length && !TH.sel.cards.size && !TH.sel.stickies.size) targets = v.groups.map((g) => g.id).filter((id) => parents[id] === undefined);
+  if (!targets.length && !TH.sel.cards.size && !TH.sel.stickies.size) {
+    // nothing selected: the whole board, the PETs set out side by side as well as each tidied inside, every
+    // place in the order it read (boardgrid, 12 November 2026), as the arrange operation with no label does
+    const tops = v.groups.map((g) => g.id).filter((id) => parents[id] === undefined);
+    if (!tops.length) { say(t('themes.arrange.none_in_pet'), 4000); return; }
+    const before = thSnap(v, TH.removed);
+    const was = thLabelBoxes(TH.layout);
+    const from = thSpots(v);
+    if (!thInFile(() => thArrangeBoard(v, thSizeAt, way))) { say(t('themes.arrange.nothing_under')); return; }
+    for (const gid of tops) thAck(thCardsUnder(v, gid));
+    thDone(before, t('themes.step.arranged_board'), { settle: [], was, from, labels: tops });
+    return;
+  }
   targets = [...new Set(targets)];
   const set = new Set(targets);
   targets = targets.filter((id) => !thAncestors(v, id, parents).some((a) => set.has(a)));
@@ -4240,7 +4393,9 @@ function thArrangeTool(way = thArrangeWay()) {
   const before = thSnap(v, TH.removed);
   const was = thLabelBoxes(TH.layout);
   const from = thSpots(v);
-  const done = targets.filter((gid) => thArrange(v, gid, thSize, way));
+  // laid out where the file keeps the board, every card at its height without its quote, so the rows read in
+  // the file as they read on the canvas, and the quotes' room is made again after (boardgrid)
+  const done = thInFile(() => targets.filter((gid) => thArrange(v, gid, thSizeAt, way)));
   if (!done.length) { say(t('themes.arrange.nothing_under')); return; }
   for (const gid of done) thAck(thCardsUnder(v, gid));
   const what = done.length === 1 ? t('themes.step.arranged', { label: thGroup(v, done[0]).label }) : t('themes.step.arranged_n', { n: done.length });
@@ -5434,7 +5589,8 @@ function thArrangeGroup(gid, way = thArrangeWay()) {
   const before = thSnap(v, TH.removed);
   const was = thLabelBoxes(TH.layout);
   const from = thSpots(v);
-  if (!thArrange(v, gid, thSize, way)) { say(t('themes.arrange.nothing_under')); return; }
+  // laid out where the file keeps the board, so its rows read in the file as on the canvas (see thArrangeTool)
+  if (!thInFile(() => thArrange(v, gid, thSizeAt, way))) { say(t('themes.arrange.nothing_under')); return; }
   thAck(thCardsUnder(v, gid));
   thDone(before, t('themes.step.arranged', { label: thGroup(v, gid).label }), { settle: [], was, from, labels: [gid] });
 }

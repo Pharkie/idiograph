@@ -2987,7 +2987,7 @@ def _shift(by_id: dict, version: dict, item: str, dx: float, dy: float) -> None:
 
 
 def land_kept(version: dict, revised: dict, height=None, strict: bool = False,
-              statements_in: bool = False) -> dict | None:
+              statements_in: bool = False, off=None) -> dict | None:
     """A board with a change of what holds what landed on it the way the canvas lands one, keeping
     the layout: `revised` as `land` takes it.
 
@@ -2995,8 +2995,15 @@ def land_kept(version: dict, revised: dict, height=None, strict: bool = False,
     its own arrangement whole. A label or a card taken up a level, to a label over the one it was
     in or to the top of the canvas, stays where it stands, as Remove from PET leaves it. A new label
     over things that all sat in one label wraps them where they stand, as `G` does. A label or a
-    card put into a label elsewhere goes in under what that label holds, at its left, those that go
-    into one label packed together. Then, level by level from the deepest, what moved goes to the
+    card put into a label elsewhere takes the next free places after what that label holds, in the
+    order the label lists them, as a grid lays them (see `next_slots`), so it reads last there and
+    the label grows across as well as down. `off` names the statements that had no place on the
+    canvas before the change, waiting in Not placed or set aside (boardgrid, 12 November 2026: an
+    agent's PETs made over them wrapped the places they last had in a pile nobody saw, and sprawled):
+    each goes into its label the same way, and a new label that holds only such statements, or new
+    labels the same, or nothing, is laid out inside and set at the next free place in its label, or at
+    the board's next free place after the last PET, so a board an agent builds comes out with its PETs
+    side by side. Then, level by level from the deepest, what moved goes to the
     nearest spot clear of its neighbours, and what stands beside a label that grew makes way for it
     by the least distance, so nothing overlaps. A statement in no PET or a sticky note in none that
     a frame now covers moves the same way. Nothing is written.
@@ -3044,6 +3051,15 @@ def land_kept(version: dict, revised: dict, height=None, strict: bool = False,
     # a fresh label inside another fresh one is laid out with it
     fresh = [g for g in fresh if not any(a in fresh for a in above(parents, g))]
     blobbed = {x for g in fresh for x, _ in _tree(by_id, g)} | {k for g in fresh for k in cards_under(by_id, g)}
+    off = set(off or ())
+
+    def unplaced(gid: str, seen: frozenset = frozenset()) -> bool:
+        """A new label with no place on the canvas: all it holds had none, a statement waiting in Not placed
+        or set aside, or is a new label the same, or it holds nothing."""
+        return all(m in off or (m in by_id and m not in old_by and m not in seen and unplaced(m, seen | {m}))
+                   for m in by_id[gid]["members"])
+
+    placed_new = [g for g in by_id if g not in old_by and g not in blobbed and unplaced(g)]
     movers: list[str] = []
     into: dict[str, list[str]] = {}
     items = [g["id"] for g in after["groups"] if g["id"] in old_by] + [k for k in after["cards"] if k not in gone]
@@ -3054,6 +3070,10 @@ def land_kept(version: dict, revised: dict, height=None, strict: bool = False,
         if now == was:
             continue
         movers.append(x)
+        # a statement that had no place on the canvas takes the next free place in its label (boardgrid)
+        if x in off and now is not None:
+            into.setdefault(now, []).append(x)
+            continue
         if now is None or now not in old_by or now in above(old_parents, x):
             continue
         if x not in by_id and strict and not statements_in:
@@ -3062,43 +3082,55 @@ def land_kept(version: dict, revised: dict, height=None, strict: bool = False,
     movers += [g for g in by_id if g not in old_by and g not in blobbed] + fresh
     tall = height or (lambda _key, text: card_height(text))
 
-    # a new label made empty (20 October), as G with nothing selected and New group inside make one: inside
-    # a label it goes in under what that label holds, and at the top it stands below the whole board, so it
-    # reads last
-    empty = [g for g in by_id if g not in old_by and g not in blobbed and not by_id[g]["members"]]
-    if empty:
-        d = layout_boxes(after, height)
-        tops = [f for g, f in d["frames"].items() if g not in parents and g not in empty]
-        boxes = tops + [b for k, b in d["cards"].items() if k not in gone]
-        foot = max((b[1] + b[3] for b in boxes), default=0)
-        left = min((f[0] for f in tops), default=0)
-        for g in empty:
-            if parents.get(g) is not None:
-                into.setdefault(parents[g], []).append(g)
-            else:
-                by_id[g].update(x=round(left), y=round(foot + 4 * MARGIN))
-                foot += (d["frames"].get(g) or (0, 0, 0, 40))[3] + 4 * MARGIN
+    # a new label with no place yet, made empty (20 October) as G with nothing selected and New group inside
+    # make one, or made over statements that waited in Not placed (boardgrid, 12 November 2026): inside a label
+    # it takes the next free place in it, its own statements laid out first, and at the top the board's next
+    # free place after the last PET, so it reads last and the PETs come out side by side, never one column
+    new_tops = [g for g in placed_new if parents.get(g) is None]
+    for g in placed_new:
+        if parents.get(g) is not None:
+            into.setdefault(parents[g], []).append(g)
 
-    # what goes into a label elsewhere, packed under what that label holds, the deepest first
+    # what goes into a label elsewhere, in the order the label lists it, at the next free places after what
+    # that label holds (see `next_slots`), the deepest first
     for target in sorted(into, key=lambda g: -depth_of(parents, g)):
-        coming = into[target]
+        listed = by_id[target]["members"]
+        coming = sorted(into[target], key=lambda m: listed.index(m) if m in listed else len(listed))
         d = layout_boxes(after, height)
-        sizes = [(d["frames"][m][2], d["frames"][m][3]) if m in by_id else (CARD_W, tall(m, texts.get(m))) for m in coming]
-        spots = pack_round(sizes, MARGIN)
-        stay = [m for m in by_id[target]["members"] if m not in coming]
-        boxes = [d["frames"][m] if m in by_id else d["cards"].get(m) for m in stay]
-        boxes = [b for b in boxes if b]
-        if boxes:
-            body = union(boxes)
-            ox, oy = body[0], body[1] + body[3] + MARGIN
-        else:
-            lab = d["labels"].get(target) or (by_id[target].get("x", 0), by_id[target].get("y", 0), 0, 0)
-            ox, oy = lab[0], lab[1] + lab[3] + LABEL_GAP
-        left = min(s[0] for s in spots)
-        top = min(s[1] for s in spots)
+
+        def box(m):
+            return d["frames"].get(m) if m in by_id else d["cards"].get(m)
+
+        stay = [m for m in theme_order(after, target, d) if m not in coming]
+        held = [d["notes"][n["id"]] for n in after.get("notes") or []
+                if isinstance(n, dict) and n.get("in") == target and n.get("id") in d["notes"]]
+        boxes = [b for b in [box(m) for m in stay] + held if b]
+        sizes = [(box(m)[2], box(m)[3]) if box(m) else (CARD_W, tall(m, texts.get(m))) for m in coming]
+        lab = (by_id[target].get("x", 0), by_id[target].get("y", 0))
+        label_h = d["labels"][target][3] if target in d["labels"] else 0
+        spots = next_slots(boxes, sizes, (lab[0], lab[1] + label_h + LABEL_GAP), MARGIN, LABEL_ASPECT,
+                           cards=not any(m in by_id for m in stay + coming))
         for m, (sx, sy) in zip(coming, spots):
-            b = d["frames"][m] if m in by_id else d["cards"][m]
-            _shift(by_id, after, m, ox + sx - left - b[0], oy + sy - top - b[1])
+            b = box(m)
+            if b is None:
+                c = after["cards"][m]
+                b = (c.get("x", 0), c.get("y", 0))
+            _shift(by_id, after, m, sx - b[0], sy - b[1])
+
+    # a new PET with no place yet at the board's next free place, after the last PET, the PETs' gap apart
+    if new_tops:
+        d = layout_boxes(after, height)
+        stay = canvas_order([t for t in by_id if t not in parents and t not in new_tops and t in d["frames"]], by_id)
+        # every statement in no PET stands in its way, one waiting in Not placed too, whose place the room made
+        # below keeps clear as it always has, so the new PET is put clear of it here and nothing else moves for it
+        others = [b for k, b in d["cards"].items() if k not in parents and k not in gone]
+        others += [d["notes"][n["id"]] for n in after.get("notes") or []
+                   if isinstance(n, dict) and n.get("in") not in by_id and n.get("id") in d["notes"]]
+        sizes = [(d["frames"][g][2], d["frames"][g][3]) for g in new_tops]
+        spots = next_slots([d["frames"][t] for t in stay], sizes, (0, 0), BOARD_GAP, ARRANGE_ASPECT,
+                           band=CARD_H, others=others)
+        for g, (sx, sy) in zip(new_tops, spots):
+            _shift(by_id, after, g, sx - d["frames"][g][0], sy - d["frames"][g][1])
 
     # a new label over things from more than one label, laid out afresh where most of it came from
     if fresh:
@@ -3771,24 +3803,112 @@ def settle_change(before: dict, after: dict, height=None) -> list[str]:
     return pushed
 
 
-def arrange(version: dict, gid: str, way: str = "grid", height=None) -> dict:
-    """A theme's cards tidied under its label in the order they read now, as Auto-arrange does on the
-    canvas: `grid`, rows about as wide as the square root of what it holds, `column`, one above another
-    down the PET, or `row`, all side by side. Each sub-theme is arranged inside its own frame first, the
-    same way, and set in the block as one piece where it read, and the theme's own sticky notes come at
-    its end. The block keeps its top-left corner, so the label stays where it stands, and what its frame
-    now meets makes room. Answers the board, normalised, nothing written. Refused for a label the board
-    does not have, or one that holds nothing."""
-    if way not in ARRANGE_WAYS:
-        raise WorkbookError(i18n.t("server.auto_arrange_s_ways_nothing", ways=', '.join(ARRANGE_WAYS)))
-    v = json.loads(json.dumps(normalise(version)))
+# The shape a grid aims for, as wide as tall times this (boardgrid, 12 November 2026, Adam: boards came out
+# "very long and narrow", so he could not see everything on screen at once): the canvas at 1280 by 800, the
+# size the app is designed at. Auto-arrange on the page and the arrange operation take the same, so the two
+# give one layout.
+ARRANGE_ASPECT = 1.6
+# inside a label a little squarer, so the PETs it sets side by side make the canvas's shape between them
+LABEL_ASPECT = 1.2
+# between the PETs a whole board's arrange sets side by side, as far apart as a board an agent lays out
+BOARD_GAP = COPY_GAP
+
+
+def flow_rows(sizes, gap: float, width: float) -> tuple[list, float, float]:
+    """Places for boxes of these sizes, (w, h) each, in rows no wider than `width`, in the order given, the
+    tops of a row level and `gap` between neighbours, one that would run past `width` starting the next row
+    at the left, so they read top left first, then left to right, row by row. Answers each place from the
+    block's top-left corner, and the block's width and height."""
+    places, x, y, tall, w = [], 0, 0, 0, 0
+    for bw, bh in sizes:
+        if x > 0 and x + bw > width:
+            y, x, tall = y + tall + gap, 0, 0
+        places.append((x, y))
+        w, tall = max(w, x + bw), max(tall, bh)
+        x += bw + gap
+    return places, w, y + tall
+
+
+def row_width(sizes, gap: float, aim: float = ARRANGE_ASPECT) -> float:
+    """The width of row that sets boxes of these sizes out (see `flow_rows`) nearest `aim` times as wide as
+    tall, of two as near the smaller in area, then the narrower: tried at the width of every run of them side
+    by side, and never narrower than the narrowest two side by side, so two or more come out in rows across
+    and never one column of them (boardgrid, 12 November 2026: a PET's sub-PETs stacked one under another).
+    The page's thRowWidth is the same."""
+    widest = max(w for w, _ in sizes)
+    least = min((sizes[i][0] + gap + sizes[i + 1][0] for i in range(len(sizes) - 1)), default=widest)
+    widths = {max(widest, least)}
+    for i in range(len(sizes)):
+        run = 0
+        for j in range(i, len(sizes)):
+            run += sizes[j][0] + (gap if j > i else 0)
+            if run >= widest and run >= least:
+                widths.add(run)
+    best, chosen = None, max(widest, least)
+    for width in sorted(widths):
+        _, w, h = flow_rows(sizes, gap, width)
+        r = w / (h * aim) if h else 1
+        key = (max(r, 1 / r), w * h, width)
+        if best is None or key < best:
+            best, chosen = key, width
+    return chosen
+
+
+def next_slots(stay: list, sizes, origin, gap: float, aim: float = ARRANGE_ASPECT, band: float = ROW_BAND,
+               others=(), cards: bool = False) -> list:
+    """The next free places after what stands in a place, for boxes of these sizes in the order given, as a
+    grid goes on (boardgrid, 12 November 2026): along the last row of `stay`, the boxes already there in the
+    order they read, while it stays within the width the grid would take for them all (see `row_width`, or
+    for statements alone, `cards`, a grid about as wide as the square root of how many), and then in a new
+    row under everything, at its left, so each reads after what was there. With nothing there they start at
+    `origin`, the top-left corner of what the place will hold. A box that would meet one of `stay` or
+    `others` starts the next row. Rows are read as `read_order` reads them, tops within `band`."""
+    sizes = [(float(w), float(h)) for w, h in sizes]
+    if not sizes:
+        return []
+    every = [(b[2], b[3]) for b in stay] + sizes
+    if cards:
+        cols = math.ceil(math.sqrt(len(every)))
+        limit = max(max(w for w, _ in every), cols * CARD_W + (cols - 1) * gap)
+    else:
+        limit = row_width(every, gap, aim)
+    placed = [tuple(b) for b in stay]
+    if placed:
+        body = union(placed)
+        left, limit = body[0], max(limit, body[2])
+        rows = read_rows({i: (b[0], b[1]) for i, b in enumerate(placed)}, band)
+        last = [placed[i] for i in rows[-1]]
+        row_y = min(b[1] for b in last)
+        x = max(b[0] + b[2] for b in last) + gap
+    else:
+        left, row_y = origin
+        x = left
+    blocks = placed + [tuple(o) for o in others]
+    out = []
+    for w, h in sizes:
+        spot = (x, row_y, w, h)
+        if x > left and (x + w - left > limit or any(clash(spot, b, gap) for b in blocks)):
+            row_y = max(b[1] + b[3] for b in placed) + gap
+            x = left
+            spot = (x, row_y, w, h)
+        while any(clash(spot, b, gap) for b in blocks):
+            # what stands in no PET in the way: the row starts under it
+            row_y = max(b[1] + b[3] for b in blocks if clash(spot, b, gap)) + gap
+            spot = (x, row_y, w, h)
+        out.append((round(x), round(row_y)))
+        placed.append(spot)
+        blocks.append(spot)
+        x += w + gap
+    return out
+
+
+def _arranger(v: dict, way: str, height=None):
+    """What Auto-arrange lays a label out by, on `v`, normalised and its labels where the page draws them:
+    `size(m, body)`, a card's, a sticky note's or a label's size, a label's over a body `body` wide, and
+    `block(gid)`, the label's cards, sticky notes and labels inside it laid out `way` in the order they read
+    now (see `arrange`), each place from the top-left corner of what it holds."""
     by_id = {g["id"]: g for g in v["groups"]}
-    if gid not in by_id:
-        raise WorkbookError(i18n.t("server.label_board_nothing_changed"))
-    drawn = sync_labels(v, height)
-    body = drawn["bodies"].get(gid)
-    if not body:
-        raise WorkbookError(i18n.t("server.nothing_under_arrange_nothing_changed", label=by_id[gid]['label']))
+    drawn = layout_boxes(v, height)
     picks = v.get("picks") or {}
     notes = [n for n in v.get("notes") or [] if isinstance(n, dict) and n.get("id")]
 
@@ -3819,9 +3939,13 @@ def arrange(version: dict, gid: str, way: str = "grid", height=None) -> dict:
                           "inner": inner, "dx": FRAME_X, "dy": FRAME_Y + lh + LABEL_GAP, "card": False})
         if not units:
             return {"w": 0, "h": 0, "places": []}
-        cols = 1 if way == "column" else len(units) if way == "row" else math.ceil(math.sqrt(len(units)))
-        card = next((u["w"] for u in units if u["card"] and not u["note"]), CARD_W)
-        width = math.inf if way == "row" else max(max(u["w"] for u in units), cols * card + (cols - 1) * MARGIN)
+        if way == "grid" and not all(u["card"] for u in units):
+            # a label over labels: its sub-PETs in rows across it, as near the canvas's shape as they go
+            width = row_width([(u["w"], u["h"]) for u in units], MARGIN, LABEL_ASPECT)
+        else:
+            cols = 1 if way == "column" else len(units) if way == "row" else math.ceil(math.sqrt(len(units)))
+            card = next((u["w"] for u in units if u["card"] and not u["note"]), CARD_W)
+            width = math.inf if way == "row" else max(max(u["w"] for u in units), cols * card + (cols - 1) * MARGIN)
         places, x, y, tall, w = [], 0, 0, 0, 0
         for u in units:
             if x > 0 and x + u["w"] > width:
@@ -3836,17 +3960,101 @@ def arrange(version: dict, gid: str, way: str = "grid", height=None) -> dict:
             x += u["w"] + MARGIN
         return {"w": w, "h": y + tall, "places": places}
 
-    for item, px, py, lab in block(gid, {gid})["places"]:
-        spot = (round(body[0] + px), round(body[1] + py))
-        if lab:
-            by_id[item].update(x=spot[0], y=spot[1])
-        elif item in v["cards"]:
-            v["cards"][item].update(x=spot[0], y=spot[1])
-        else:
-            for n in notes:
-                if n["id"] == item:
-                    n.update(x=spot[0], y=spot[1])
+    def put(places, ox: float, oy: float) -> None:
+        for item, px, py, lab in places:
+            spot = (round(ox + px), round(oy + py))
+            if lab:
+                by_id[item].update(x=spot[0], y=spot[1])
+            elif item in v["cards"]:
+                v["cards"][item].update(x=spot[0], y=spot[1])
+            else:
+                for n in notes:
+                    if n["id"] == item:
+                        n.update(x=spot[0], y=spot[1])
+
+    return by_id, drawn, size, (lambda g: block(g, {g})), put
+
+
+def arrange(version: dict, gid: str, way: str = "grid", height=None) -> dict:
+    """A theme's cards tidied under its label in the order they read now, as Auto-arrange does on the
+    canvas: `grid`, rows about as wide as the square root of what it holds, `column`, one above another
+    down the PET, or `row`, all side by side. Each sub-theme is arranged inside its own frame first, the
+    same way, and set in the block as one piece where it read, and the theme's own sticky notes come at
+    its end. A label over labels lays its sub-themes out in rows across it, as near the canvas's shape
+    as they go (see `row_width`, boardgrid, 12 November 2026: a PET's sub-PETs came out one column), each
+    row's tops level, so it reads as it read, top left first, then left to right, row by row. The block
+    keeps its top-left corner, so the label stays where it stands, and what its frame now meets makes room.
+    Answers the board, normalised, nothing written. Refused for a label the board does not have, or one
+    that holds nothing."""
+    if way not in ARRANGE_WAYS:
+        raise WorkbookError(i18n.t("server.auto_arrange_s_ways_nothing", ways=', '.join(ARRANGE_WAYS)))
+    v = json.loads(json.dumps(normalise(version)))
+    if gid not in {g["id"] for g in v["groups"]}:
+        raise WorkbookError(i18n.t("server.label_board_nothing_changed"))
+    sync_labels(v, height)
+    by_id, drawn, _size, block, put = _arranger(v, way, height)
+    body = drawn["bodies"].get(gid)
+    if not body:
+        raise WorkbookError(i18n.t("server.nothing_under_arrange_nothing_changed", label=by_id[gid]['label']))
+    put(block(gid)["places"], body[0], body[1])
     _make_room(v, [gid], height)
+    sync_labels(v, height)
+    return normalise(v)
+
+
+def arrange_board(version: dict, way: str = "grid", height=None) -> dict:
+    """The whole board tidied, as Auto-arrange with nothing selected does on the canvas (boardgrid, 12
+    November 2026, Adam: "I do auto arrange to grid ... you need to make it more square"): each PET arranged
+    inside `way` as `arrange` does, then the PETs themselves set out the same way, `grid` in rows as near the
+    canvas's shape as they go (see `row_width`), `column` one under another or `row` side by side, the PETs'
+    gap between them, from the top-left corner of where they stood. Everything goes in the order it reads now,
+    the PETs, each label's sub-PETs and each one's statements, the first top left, then left to right, row by
+    row, each row's tops level, so the board, its Table view and the exports read as they did. Statements in
+    no PET and sticky notes in none keep their places, together moved below the PETs when the PETs now meet
+    any of them. Answers the board, normalised, nothing written. Refused on a board with no PETs. The page's
+    thArrangeBoard is the same."""
+    if way not in ARRANGE_WAYS:
+        raise WorkbookError(i18n.t("server.auto_arrange_s_ways_nothing", ways=', '.join(ARRANGE_WAYS)))
+    v = json.loads(json.dumps(normalise(version)))
+    sync_labels(v, height)
+    by_id, drawn, size, block, put = _arranger(v, way, height)
+    tops = order_of(v, None, drawn)
+    if not tops:
+        raise WorkbookError(i18n.t("server.no_pets_to_arrange"))
+    shapes = []
+    for t in tops:
+        inner = block(t)
+        lw, lh = size(t, inner["w"])
+        if inner["places"]:
+            shapes.append((t, inner, lh, max(inner["w"], lw) + 2 * FRAME_X, lh + LABEL_GAP + inner["h"] + 2 * FRAME_Y))
+        else:
+            shapes.append((t, inner, lh, lw + 2 * FRAME_X, lh + 2 * FRAME_Y))
+    sizes = [(s[3], s[4]) for s in shapes]
+    width = (row_width(sizes, BOARD_GAP) if way == "grid" else math.inf if way == "row"
+             else max(w for w, _ in sizes))
+    spots, _bw, bh = flow_rows(sizes, BOARD_GAP, width)
+    ox = min(drawn["frames"][t][0] for t in tops)
+    oy = min(drawn["frames"][t][1] for t in tops)
+    frames = []
+    for (t, inner, lh, w, h), (px, py) in zip(shapes, spots):
+        fx, fy = ox + px, oy + py
+        frames.append((fx, fy, w, h))
+        if inner["places"]:
+            put(inner["places"], fx + FRAME_X, fy + FRAME_Y + lh + LABEL_GAP)
+        else:
+            by_id[t].update(x=round(fx + FRAME_X), y=round(fy + FRAME_Y))
+    # what stands in no PET keeps its place, moved as one below the PETs when they now meet it: on the PETs
+    # board a statement waiting in Not placed is off the canvas, and on the GETs board, measured by its own
+    # `height`, a card in no GET stands on it
+    parents = parents_of(v["groups"])
+    gone = off_canvas(v) | (set(waiting_keys(v)) if height is None else set())
+    loose = [k for k in v["cards"] if k not in parents and k not in gone and k in drawn["cards"]]
+    free = [n["id"] for n in v.get("notes") or [] if isinstance(n, dict) and n.get("id") and n.get("in") not in by_id]
+    boxes = [drawn["cards"][k] for k in loose] + [drawn["notes"][n] for n in free if n in drawn["notes"]]
+    if boxes and any(clash(b, f, MARGIN) for b in boxes for f in frames):
+        whole = union(boxes)
+        for item in loose + free:
+            _shift(by_id, v, item, ox - whole[0], oy + bh + BOARD_GAP - whole[1])
     sync_labels(v, height)
     return normalise(v)
 

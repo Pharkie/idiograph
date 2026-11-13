@@ -173,6 +173,9 @@ html.home-mark-due .wordmark .pe .pe-stamp { opacity: 0; animation: home-mark-sa
 .site-nav a:hover { text-decoration-color: currentColor; }
 .site-nav a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .site-nav a[aria-current="page"] { text-decoration-color: var(--crux); text-decoration-thickness: 2px; }
+.site-nav { align-items: center; }
+.site-nav a.nav-dl { margin-left: 4px; padding: 6px 16px; border-radius: 8px; background: var(--crux); color: var(--on-crux); font-weight: 600; text-decoration: none; line-height: 1.3; }
+.site-nav a.nav-dl:hover { background: var(--crux-hover); }
 
 main.fp {
   display: block; text-align: left; max-width: calc(1040px + 2 * var(--gutter));
@@ -296,6 +299,7 @@ main.sp {
 .clip { margin: 44px 0 0; scroll-margin-top: 16px; }
 .clip + .clip { margin-top: 64px; }
 .clip h2 { font: 400 24px/1.2 var(--serif); margin: 0; }
+.sp .sp-demo { margin: 22px 0 26px; max-width: 40em; font: 400 16px/1.55 var(--sans); color: var(--ink-soft); }
 .clip p { margin: 8px 0 0; max-width: 40em; font: 400 16px/1.55 var(--sans); color: var(--ink-soft); }
 .clip-box { position: relative; width: 75%; margin: 18px 0 0; }
 .clip-box video {
@@ -335,6 +339,7 @@ main.sp {
   .site-head:not(.site-head-home) .site-nav { flex-basis: 100%; padding-left: calc(var(--m) * 12 / 32); }
 }
 @media (max-width: 440px) { .site-nav { gap: 18px; } }
+@media (max-width: 480px) { .site-nav { gap: 14px; font-size: 15px; } .site-nav a.nav-dl { margin-left: 0; padding: 4px 10px; } }
 @media (max-width: 359px) { .site-head { column-gap: 10px; } .site-nav { gap: 14px; font-size: 15px; } }
 p, li, summary { text-wrap: pretty; }
 

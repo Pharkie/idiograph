@@ -458,6 +458,7 @@
   "cli.run_layouts.a_column": "a column",
   "cli.run_layouts.a_grid": "a grid",
   "cli.run_layouts.arranged_as_in_the_order_its": "arranged '{label}' as {v_}, in the order its cards read",
+  "cli.run_layouts.arranged_the_board_as": "arranged the whole board as {v_}, the PETs and every label's cards in the order they read",
   "cli.run_layouts.operation_arranges_as_give_way_grid": "Operation {n} arranges as {how}. Give \"way\": \"grid\", \"column\" or \"row\".",
   "cli.run_layouts.no_label": "no label",
   "cli.run_layouts.operation_names_which_is_not_a": "Operation {n} names {get}, which is not a label on the board.",

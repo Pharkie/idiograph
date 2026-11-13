@@ -92,6 +92,26 @@
 .hc-hold:hover { text-decoration: underline; }
 .hc-hold:focus-visible { outline: 0; box-shadow: var(--focus-small); border-radius: 2px; }
 
+/* A demo says what it is for (demowarn, 12 November 2026): on its card on Home one line at the foot, in the card's small
+   type and the crux orange the Preview note's sign is, beside the card's button and never in it, with room kept under
+   the card's lines for it, and on every screen of the demo the Demo mark a button, both opening the note in a small box
+   under them in the popover's paper and border */
+.home-card-li.has-warn { position: relative; }
+.home-card-li.has-warn .home-card { padding-bottom: 36px; }
+.hc-warn { position: absolute; left: 16px; bottom: 11px; max-width: calc(100% - 32px); display: inline-flex; align-items: center; gap: 6px;
+  padding: 0; border: 0; background: none; font: inherit; font-size: 12px; line-height: 1.4; color: var(--crux); text-align: left; cursor: pointer; }
+.hc-warn svg { flex: none; width: 14px; height: 14px; }
+.hc-warn span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hc-warn:hover span { text-decoration: underline; }
+.hc-warn:focus-visible, .demo-mark:focus-visible { outline: 0; box-shadow: var(--focus-small); border-radius: 2px; }
+button.demo-mark { font-family: var(--sans); background: none; cursor: pointer; }
+button.demo-mark:hover { background: var(--paper-sunk); }
+.demo-note { position: fixed; z-index: 40; width: min(27em, calc(100vw - 24px)); padding: 12px 14px 4px; background: var(--card);
+  color: var(--ink); border: 1px solid var(--rule-firm); border-radius: 3px; box-shadow: var(--lift); font-size: 13px; line-height: 1.5; text-align: left; }
+.demo-note:focus { outline: 0; }
+.demo-note p { margin: 0 0 10px; }
+.demo-note .demo-note-head { font-weight: 600; color: var(--crux); }
+
 /* The rows (items 201 to 203): one full-width row per case, its columns lined up from row to row
    through a subgrid, the handle, the case with its tags and dots, and the two halves side by side,
    each a button with its line in the small type. Files opens under the row across its width.
@@ -525,7 +545,7 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
   #work.cols-stacked .col-head[data-col="transcript"] { padding-left: 20px; }
   #work.cols-stacked .turn > .note-cell { margin-left: 12px; }
 }
-.stack-half { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding: 4px 8px 8px; }
+.stack-half { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-gutter: stable; padding: 4px 8px 8px; }
 /* each half scrolls on its own, and while more of it waits above or below its edge fades there, as the
    transcript's and the search's do (stackFade, 21 October): below, the cards fade out just over Next while
    the card's foot keeps to the half's foot (--fade-foot, its height from the half's foot), the foot itself

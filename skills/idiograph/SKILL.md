@@ -1294,8 +1294,8 @@ statements marked already keeps the first time. `cases` answers each participant
 fields across their row on the project's page do (`/api/participant`), in every project, IPA and thematic
 analysis alike. `--label` is a few words, up to 60 characters, `--portrait` one short paragraph of plain text, up
 to 800, its line breaks folded into spaces, each "" to clear it. `--picture` is one of the app's drawn sets
-(picsets, 12 November 2026), `set:peep01` to `set:peep80` (Open Peeps), `set:notion01` to `set:notion40`
-(Notionists) or `set:fluent01` to `set:fluent20` (Fluent Emoji), any other refused (one of the set before,
+(picsets, 12 November 2026), `set:peep01` to `set:peep80` (Open Peeps), or `set:notion01` to `set:notion40`
+(Notionists), any other refused (the Fluent Emoji of 12 November are gone, so `set:fluent01` is refused too) refused (one of the set before,
 `set:face01` to `set:face24`, is taken as its nearest),
 `--picture-file` an image file of his, PNG, JPEG or SVG, kept in `pictures/` at the
 project's root, made square and small, the one it replaces moved to `pictures/_Archive/`, and `--no-picture` takes
@@ -1413,9 +1413,11 @@ New board names one, with "with AI" after its name in the board menu, beside his
 which stay as they were. Since 19 October it keeps the layout of the board on the canvas, the one it
 came from: a PET, sub-theme or group with the same title as one there, or half or more of the same
 statements, is that label kept, and every label and statement it keeps stands where it stood, each
-in the order given, a statement that changed label going in under what its new label holds and
-everything else making room, nothing overlapping. `--layout "Board 3"` keeps another board's layout,
-and `--layout fresh` lays it out in round blobs, as before. Its tooltip names your tool and the board it came from, the one on the canvas
+in the order given, a statement that changed label going in at the next free place after what its new label
+holds and everything else making room, nothing overlapping, and a PET of statements that waited in Not placed
+at the board's next free place after the last PET (12 November). `--layout "Board 3"` keeps another board's layout,
+and `--layout fresh` lays it out afresh as the whole board's arrange does (12 November, round blobs before): the
+PETs side by side in rows in the order given, each one's sub-themes in rows across it. Its tooltip names your tool and the board it came from, the one on the canvas
 when you made it, or all statements on a participant with no board yet. Every id must be a statement of the participant, each statement once, each pick a
 quote of the participant, and every
 label needs a title. A PET holds statements and sub-themes under `subs`. A sub-theme holds statements
@@ -1478,8 +1480,9 @@ idiograph board apply Rowan v2 --ops change.json --note "Retitle the lonely year
 They run in order, each on the board the ones before it left. A later operation names a label a
 `make` made by its `ref`. A `make` with no `members`, or `"members": []`, makes an empty label to fill
 (20 October), as `G` with nothing selected and New group inside do on the canvas and in the table: with
-`inside` null a new PET, which stands below the whole board so it reads last, and with `inside` a label an
-empty sub-theme or group in it, under what it holds. The dry run says "made an empty label". Then `move`
+`inside` null a new PET, at the board's next free place after the last PET so it reads last, and with `inside` a
+label an empty sub-theme or group in it, at its next free place after what it holds. The dry run says "made an
+empty label". Then `move`
 statements into it by its `ref`. A `pick` keeps every quote it names, each once, as the ticks on the PETs
 screen do. A `note` with an empty note, `"note": ""`, takes the label's note off. A `describe` (21 October)
 writes the description under a PET's, sub-PET's or GET's title, the longer line he reads as a secondary
@@ -1613,11 +1616,19 @@ no operation changed:
 The sub-theme they sat in stays, empty, until an `apart` takes it off, as Delete this label does.
 Since 19 October a change that moves only labels, or puts a new label over statements of one label,
 keeps the layout as the canvas does: whatever stays in its label keeps its place, a label moves with
-all it holds in its own arrangement, one lifted stands where it stood, and one nested goes in under
-what its new label holds. Then what moved goes to the nearest free spot among its neighbours, and
-what stands beside a label that grew moves aside by the least distance, so nothing overlaps. A change
-that moves a statement into a label elsewhere lays out afresh the PETs it touches, as before. The
-answer says a label moved to null "lifted to the top of the board".
+all it holds in its own arrangement, one lifted stands where it stood, and one nested goes in at the
+next free place after what its new label holds. Then what moved goes to the nearest free spot among its
+neighbours, and what stands beside a label that grew moves aside by the least distance, so nothing overlaps.
+The answer says a label moved to null "lifted to the top of the board".
+
+**Where new things go (12 November).** A board you build comes out laid out as the app's Auto-arrange lays one,
+never as a column. Whatever a change puts into a label, a statement from elsewhere, one that waited in Not
+placed or was set aside, or a new sub-theme, takes the label's next free place: along its last row while the
+row stays within the width a grid of everything there would take, then a new row under it, in the order the
+label lists them, so it reads last there. A new PET made over statements that waited in Not placed, or empty,
+is laid out inside the same way and takes the board's next free place after the last PET, so the PETs come out
+side by side in rows. What already stood keeps its place: no board is rearranged by this, and a board he laid
+out stays his.
 
 The GETs take the same operations over their cards, with `idiograph gets
 apply <board> --ops change.json`, once the project has a GETs file, `order` among them since 19
@@ -1667,14 +1678,24 @@ History:
 
 ```
 {"operations": [
-  {"op": "arrange", "label": "g2", "way": "column"},
+  {"op": "arrange", "label": "g2", "way": "grid"},
+  {"op": "arrange", "way": "grid"},
   {"op": "align", "items": ["S20", "S21", "S22"], "to": "left"},
   {"op": "spread", "items": ["S20", "S21", "S22"], "to": "down"}]}
 ```
 
-`arrange` tidies a label's cards as Auto-arrange does, `way` `grid` (the default), `column`, one above
+`arrange` tidies a label's cards as Auto-arrange does, `way` `grid` (the default, give it), `column`, one above
 another in the order they read, each sub-theme a block in its place, or `row`, the label staying where it
-stands and what its frame meets making room. `align` lines up statements, sticky notes and labels (a label
+stands and what its frame meets making room. In a grid a label's statements run in rows about as wide as the
+square root of how many, and a label over sub-themes lays them in rows across it, never one column of them
+(12 November). `arrange` with no `label` (12 November) does the whole board, as Auto-arrange does with nothing
+selected: each PET arranged inside, then the PETs set out side by side in rows as near the canvas's shape at
+1280 by 800 as they go, from where the board's top-left PET stood, the PETs' gap between them, statements in no
+PET and sticky notes in none moved together below them only when the PETs now reach them. Everything goes in
+the order it reads now, the PETs, each label's sub-themes and each one's statements, top left first, then left to
+right, row by row, so the Table view, the PETs table and the exports read exactly as before. The app's
+Auto-arrange and this give the same places on the same board. Finish a board you built with `{"op": "arrange",
+"way": "grid"}`, unless he laid the board out himself: then arrange only what he asks. `align` lines up statements, sticky notes and labels (a label
 with all it holds), `to` `left`, `centre`, `right`, `top`, `middle` or `bottom`, those that would overlap
 moved on along the line, and `spread` spaces three or more evenly, `across` or `down`, between the first
 and the last. What was moved then moves as one until it is clear of what stands beside it, so nothing it

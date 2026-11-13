@@ -282,12 +282,11 @@ function trajPickerHtml(col) {
 }
 
 /* The app's drawn sets, each a tab in Choose from the set, in the order of trajectories.FACE_SETS on the server
-   (picsets, 12 November 2026): eighty Open Peeps, forty Notionists and twenty Fluent Emoji, each a run of files in
+   (picsets, 12 November 2026): eighty Open Peeps and forty Notionists, each a run of files in
    static/faces. The project page's fields (distil.js) offer the same, through faceSetsHtml. */
 const FACE_SETS = [
   { set: 'peeps', name: 'trajectories.set_peeps', faces: tfFaceRun('peep', 80) },
   { set: 'notionists', name: 'trajectories.set_notionists', faces: tfFaceRun('notion', 40) },
-  { set: 'fluent', name: 'trajectories.set_fluent', faces: tfFaceRun('fluent', 20) },
 ];
 
 function tfFaceRun(stem, count) {

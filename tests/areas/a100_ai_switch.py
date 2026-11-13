@@ -220,6 +220,9 @@ def test_ai_switch(scratch):
         "hbAgent": "own agent", "hbDraw": "own agent", "hbChangedLine": "own agent",
         # the project's History names the agent that made a change, a record shown whatever the switch (historyui)
         "phRecord": "provenance", "phWho": "provenance", "phDraw": "provenance",
+        # a demo's card line and note say the demo was made with AI, a record of how it was made, shown
+        # whatever the switch, no feature (demowarn, 12 November 2026)
+        "demoWords": "provenance",
     }
     t_owners, a_owners = owners(tjs), owners(app)
 

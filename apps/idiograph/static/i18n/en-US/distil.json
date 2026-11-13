@@ -1,4 +1,5 @@
 {
   "distil.nudge.quote_about": "Catches quotation marks inside a statement. For example, \"Feels 'properly at home' with the dog around\". In the corpus one statement in seven carries a quote, and then a single crux word.",
-  "distil.nudge.semicolon_about": "Catches a semicolon inside a statement. For example, \"Missing the dog\" and \"dreading the empty apartment\" joined by one."
+  "distil.nudge.semicolon_about": "Catches a semicolon inside a statement. For example, \"Missing the dog\" and \"dreading the empty apartment\" joined by one.",
+  "distil.demo.note_ta_2": "It demos the app, not thematic analysis. Its analysis comes from reading about reflexive thematic analysis, not from practicing it, as my IPA does, and no supervisor or peer has reviewed it. If you're learning thematic analysis, please don't take it as what a finished study looks like, or as a benchmark for codes or themes: how they read, how they're grouped or how many there should be."
 }

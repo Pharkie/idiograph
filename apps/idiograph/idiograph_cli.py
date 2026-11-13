@@ -3032,6 +3032,17 @@ def lay_board(built: dict, read: dict) -> dict:
         put(pet, f"g{i + 1}")
     version["picks"] = picks
     version["quoted"] = themes_ai.quoted_of(picks, read["quotes"])
+    # then laid out as the whole board's Auto-arrange lays one, the PETs side by side in the order given, each
+    # one's sub-themes in rows across it (boardgrid, 12 November 2026: round blobs ran tall), only the places
+    # taken from it
+    if version["groups"]:
+        laid = themes.arrange_board(version)
+        for k, c in laid["cards"].items():
+            if k in version["cards"]:
+                version["cards"][k].update(x=c["x"], y=c["y"])
+        for g in laid["groups"]:
+            if g["id"] in by_id:
+                by_id[g["id"]].update(x=g["x"], y=g["y"])
     if built["reasons"]:
         version["ai"] = {"discarded": {k: why for k, why in built["reasons"].items() if why}}
     return version
@@ -3126,7 +3137,10 @@ def carry_layout(built: dict, read: dict, source: dict) -> dict | None:
         return gid
 
     pets = [put(pet) for pet in built["pets"]]
-    landed = themes.land_kept(src, {"groups": groups, "picks": picks})
+    # a statement waiting in Not placed on the board it came from has no place on the canvas, so it takes the
+    # next free place in its label, and a new PET of such statements the board's next free place (boardgrid)
+    unseen = set(themes.waiting_keys(themes.follow(source, read["cards"], read["quotes"])))
+    landed = themes.land_kept(src, {"groups": groups, "picks": picks}, off=unseen)
     parents = themes.parents_of(landed["groups"])
     ids = {g["id"] for g in groups}
     try:
@@ -4126,6 +4140,18 @@ def run_layouts(landed: dict, ops: list, refs: dict, resolve, name, problems: li
         kind = themes_ai.one_line(op.get("op") or op.get("type")).lower()
         by_id = {g["id"]: g for g in landed["groups"]}
         how = themes_ai.one_line(op.get("way") or op.get("to") or ("grid" if kind == "arrange" else "")).lower()
+        if kind == "arrange" and not themes_ai.one_line(op.get("label")):
+            # the whole board, as Auto-arrange with nothing selected (boardgrid, 12 November 2026)
+            if how not in themes.ARRANGE_WAYS:
+                problems.append(i18n.t("cli.run_layouts.operation_arranges_as_give_way_grid", n=n, how=how or 'nothing'))
+                continue
+            try:
+                landed = themes.arrange_board(landed, how, height)
+            except WorkbookError as exc:
+                problems.append(i18n.t("cli.said.operation", n=n, exc=exc))
+                continue
+            said.append(i18n.t("cli.run_layouts.arranged_the_board_as", v_=i18n.t("cli.run_layouts.a_grid") if how == 'grid' else i18n.t("cli.run_layouts.a_column") if how == 'column' else i18n.t("cli.run_layouts.a_row")))
+            continue
         if kind == "arrange":
             label = refs.get(themes_ai.one_line(op.get("label")), themes_ai.one_line(op.get("label")))
             if label not in by_id:
@@ -4452,6 +4478,11 @@ def laid_places(landed: dict, layouts: list, refs: dict, resolve) -> list:
     out: list = []
     for _, op in layouts:
         label = refs.get(themes_ai.one_line(op.get("label")), themes_ai.one_line(op.get("label")))
+        kind = themes_ai.one_line(op.get("op") or op.get("type")).lower()
+        if kind == ARRANGE and not label:
+            # the whole board's arrange sets every place, each in the order it read
+            out += [None] + [g["id"] for g in landed["groups"]]
+            continue
         if label in by_id:
             out += [g for g, _ in themes._tree(by_id, label)]
         for x in named_list(op.get("items")):
@@ -4508,7 +4539,11 @@ def cmd_board_apply(p: Project, args) -> tuple:
             # and a statement put into a label elsewhere goes in under what it holds, its neighbours where they
             # stood (agentorder, 10 November 2026: a fresh layout of the PET it went into read its sub-PETs and
             # statements in another order)
-            landed = (themes.land_kept(followed, revised, strict=True, statements_in=True)
+            # and a statement that waited in Not placed or was set aside, which has no place on the canvas, takes
+            # the next free place in its label, as a new PET made over such statements takes the board's next
+            # free place after the last PET, so a board built here comes out side by side (boardgrid, 12 November)
+            unseen = set(themes.waiting_keys(followed)) | set(followed.get("discarded") or [])
+            landed = (themes.land_kept(followed, revised, strict=True, statements_in=True, off=unseen)
                       or themes.land(followed, revised))
         else:
             landed = themes.normalise(json.loads(json.dumps(followed)))
@@ -8132,7 +8167,7 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--label", default=None, help="a few words, \"\" clearing it")
     x.add_argument("--portrait", default=None, help="the pen portrait, one short paragraph, \"\" clearing it")
     x.add_argument("--picture", default=None, help="one of the app's drawn sets, set:peep01 to set:peep80, "
-                                                    "set:notion01 to set:notion40 or set:fluent01 to set:fluent20")
+                                                    "or set:notion01 to set:notion40")
     x.add_argument("--picture-file", default=None, help="an image file of his, PNG, JPEG or SVG, kept in the "
                                                          "project's pictures folder, made square and small")
     x.add_argument("--no-picture", action="store_true", help="take the picture off, the initial on their colour shown")

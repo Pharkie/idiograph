@@ -190,6 +190,7 @@
   "themes.step.spread_down": "Spread {n} down",
   "themes.step.arranged": "Arranged {label}",
   "themes.step.arranged_n": "Arranged {n} labels",
+  "themes.step.arranged_board": "Arranged the board",
   "themes.step.arranged_by_participant": "Arranged by participant",
   "themes.step.set_aside": {
     "one": "Set a card aside",

@@ -220,8 +220,11 @@ def test_agent_cli(scratch):
               and made["ai"] == {"discarded": {"Initial:3:0": "Tense more than an experience, for him to weigh"}})
         layout = themes_mod.layout_boxes(themes_mod.normalise(made))
         tops = [x["id"] for x in made["groups"] if x["id"] not in parents]
-        boxes = [layout["frames"][t] for t in tops] + [layout["cards"][k] for k in layout["cards"] if k not in parents]
-        check("79: it is laid out by lay_out, nothing over anything else",
+        # a statement waiting in Not placed is off the canvas (20 October), so its old place is in nobody's way
+        waiting = set(themes_mod.waiting_keys(made))
+        boxes = [layout["frames"][t] for t in tops] + [layout["cards"][k] for k in layout["cards"]
+                                                       if k not in parents and k not in waiting]
+        check("79: it is laid out by lay_out, nothing over anything else on the canvas",
               not [1 for i, a in enumerate(boxes) for b in boxes[i + 1:] if themes_mod.clash(a, b)])
 
         # \u2500\u2500 D. validation: every problem one line, and nothing written
@@ -276,7 +279,9 @@ def test_agent_cli(scratch):
         layout = themes_mod.layout_boxes(normal)
         parents = themes_mod.parents_of(normal["groups"])
         tops = [x["id"] for x in normal["groups"] if x["id"] not in parents]
-        boxes = [layout["frames"][t] for t in tops] + [layout["cards"][k] for k in layout["cards"] if k not in parents]
+        waiting = set(themes_mod.waiting_keys(normal))
+        boxes = [layout["frames"][t] for t in tops] + [layout["cards"][k] for k in layout["cards"]
+                                                       if k not in parents and k not in waiting]
         clashes = [1 for i, a in enumerate(boxes) for b in boxes[i + 1:] if themes_mod.clash(a, b)]
         untouched = g["A flat that could not hold her"]
         check("79: what the change did not touch keeps its place, and nothing overlaps after it lands",

@@ -43,6 +43,7 @@ function codesLoad(data) {
   CD.project = data.project || null;
   tMethod('ta');
   pathProjectDraw('cd-project', CD.project);
+  $('cd-demo').hidden = !data.demo;
   dsTabsDraw('cd-steps', CD.project, 'codes');
   const question = CD.project && CD.project.research_question;
   $('cd-band').classList.toggle('band-unasked', !question);

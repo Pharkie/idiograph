@@ -58,7 +58,7 @@
       <header class="hp-head">
         <button type="button" class="hp-back" id="hp-back" title="{{page_idiograph.home_page.back_home}}" aria-label="{{page_idiograph.home_page.back_home}}">&#8592;</button>
         <div class="hp-title">
-          <h1 class="hp-name"><span id="hp-name"></span><span class="tag demo" id="hp-demo" hidden>{{page_idiograph.home_page.demo}}</span><span class="tag demo" id="hp-demo-ta" hidden>{{page_idiograph.home_page.demo_ta}}</span><span class="tag copy" id="hp-copy" hidden>{{page_idiograph.home_page.copy}}</span></h1>
+          <h1 class="hp-name"><span id="hp-name"></span><button type="button" class="tag demo demo-mark" id="hp-demo" aria-haspopup="true" aria-expanded="false" hidden>{{page_idiograph.home_page.demo}}</button><button type="button" class="tag demo demo-mark" id="hp-demo-ta" aria-haspopup="true" aria-expanded="false" hidden>{{page_idiograph.home_page.demo_ta}}</button><span class="tag copy" id="hp-copy" hidden>{{page_idiograph.home_page.copy}}</span></h1>
           <p class="proj-question" id="hp-question" hidden></p>
           <!-- Working together (wtowners): what came in today and what waits to send, a line each, while it is on -->
           <p class="wt-team" id="wt-team" hidden></p>
@@ -168,7 +168,7 @@
       <button type="button" class="ds-proj" id="rail-project" aria-haspopup="true" aria-expanded="false"><span class="ds-proj-name"></span><svg class="ds-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 4.6 6 7.6l3-3"/></svg></button>
       <!-- open the demo and the tag stands beside the name, so a recording of the screen says on its face that
            these are not a participant's words -->
-      <span class="tag demo rail-tag" id="rail-demo" hidden>{{page_idiograph.work.demo}}</span>
+      <button type="button" class="tag demo rail-tag demo-mark" id="rail-demo" aria-haspopup="true" aria-expanded="false" hidden>{{page_idiograph.work.demo}}</button>
       <span class="ds-path-sep" aria-hidden="true">&#8250;</span>
       <button type="button" class="ds-who" id="es-who" aria-haspopup="true"
          aria-expanded="false" title="{{page_idiograph.work.go_another_participant}}"><span class="pp-barpic" id="rail-pic"
@@ -632,7 +632,7 @@
          PETs the timepoint's -->
     <nav class="ds-path" id="th-path" aria-label="{{page_idiograph.screens.where}}">
       <button type="button" class="ds-proj" id="th-project" aria-haspopup="true" aria-expanded="false"><span class="ds-proj-name"></span><svg class="ds-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 4.6 6 7.6l3-3"/></svg></button>
-      <span class="tag demo rail-tag" id="th-demo" hidden>{{page_idiograph.screens.demo}}</span>
+      <button type="button" class="tag demo rail-tag demo-mark" id="th-demo" aria-haspopup="true" aria-expanded="false" hidden>{{page_idiograph.screens.demo}}</button>
       <span class="ds-path-sep ds-path-who" aria-hidden="true">&#8250;</span>
       <button type="button" class="ds-who" id="th-cases" aria-haspopup="true" aria-expanded="false"
          title="{{page_idiograph.screens.go_another_participant}}"><span class="pp-barpic" id="th-pic" aria-hidden="true"></span><span
@@ -1088,7 +1088,7 @@
          project's -->
     <nav class="ds-path" id="tj-path" aria-label="{{page_idiograph.screens.where}}">
       <button type="button" class="ds-proj" id="tj-project" aria-haspopup="true" aria-expanded="false"><span class="ds-proj-name"></span><svg class="ds-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 4.6 6 7.6l3-3"/></svg></button>
-      <span class="tag demo rail-tag" id="tj-demo" hidden>{{page_idiograph.screens.demo}}</span>
+      <button type="button" class="tag demo rail-tag demo-mark" id="tj-demo" aria-haspopup="true" aria-expanded="false" hidden>{{page_idiograph.screens.demo}}</button>
     </nav>
     <span class="ds-path-rule" aria-hidden="true"></span>
     <span class="field-label band-label">{{page_idiograph.screens.research_question}}</span>
@@ -1147,6 +1147,7 @@
   <div class="band" id="cd-band">
     <nav class="ds-path" id="cd-path" aria-label="{{page_idiograph.screens.where}}">
       <button type="button" class="ds-proj" id="cd-project" aria-haspopup="true" aria-expanded="false"><span class="ds-proj-name"></span><svg class="ds-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 4.6 6 7.6l3-3"/></svg></button>
+      <button type="button" class="tag demo rail-tag demo-mark" id="cd-demo" aria-haspopup="true" aria-expanded="false" hidden>{{page_idiograph.screens.demo}}</button>
     </nav>
     <span class="ds-path-rule" aria-hidden="true"></span>
     <span class="field-label band-label">{{page_idiograph.screens.research_question}}</span>
@@ -1481,6 +1482,13 @@
       <button class="primary" id="skip-confirm-cancel">{{page_idiograph.cards_more.back_safety}}</button>
     </div>
   </div>
+</div>
+
+<!-- the note a demo's warning opens (demowarn, 12 November 2026): one box for every place that opens it, its words set by demoNoteOpen -->
+<div class="demo-note" id="demo-note" role="group" aria-labelledby="demo-note-head" tabindex="-1" hidden>
+  <p class="demo-note-head" id="demo-note-head"></p>
+  <p id="demo-note-1"></p>
+  <p id="demo-note-2"></p>
 </div>
 
 <!-- An agent's action waiting for his yes (holds.py): the bright line in the corner where an agent's change of a

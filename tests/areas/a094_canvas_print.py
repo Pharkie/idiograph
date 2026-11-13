@@ -131,7 +131,13 @@ v.groups = [
   { id: 'g5', label: 'Food', members: ['c12'], x: 0, y: 0 }];
 TH.sizes = Object.fromEntries(Object.entries(SIZE).map(([k, s]) => [k, { w: s.w, h: s.h }]));
 TH.badges = { g1: 22, g2: 20, g3: 20, g4: 22, g5: 20 };
-thArrange(v, 'g1', thSize);
+// Morning walks where the grid laid it until boardgrid (12 November 2026) set a label's sub-themes in rows across
+// it: its first two cards side by side, Rain under them, its cards and Puddles one under another, then its last card
+// and its note
+for (const [k, x, y] of [['c1', 72, 100], ['c2', 282, 100], ['c3', 72, 548], ['c4', 86, 240], ['c5', 86, 464], ['c6', 100, 358], ['c7', 310, 358]]) {
+  Object.assign(v.cards[k], { x, y });
+}
+Object.assign(v.stickies[0], { x: 282, y: 548 });
 thArrange(v, 'g4', thSize);
 let lay = thLayout(v, thSize, null);
 const f1 = lay.g1.frame;

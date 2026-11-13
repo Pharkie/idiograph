@@ -201,7 +201,7 @@ tagged "Thematic analysis demo", the same three invented participants coded in a
 the two methods can be compared on the same words. Demo projects starts folded to its head. Open it or fold it
 and Home keeps it that way, as Projects keeps its fold. On a Home with no project of yours yet, and before you
 have opened or folded it, it starts open, so the demos are there to find. Each demo's card opens its page, and
-its menu holds Project settings, read-only. Settings, the cog
+its menu holds Project settings, read-only. Everything in the demos was made with AI, so each card says so on a line at its foot, "Demoing the app, not IPA" ("not thematic analysis" on the other), and that line opens a note saying what they are not for. Inside a demo the same note opens from the Demo mark beside the project's name. Settings, the cog
 and its word, at the head of Home over the days, opens Settings on General.
 
 A card opens its project's page. At its head the way back to Home, a round arrow, with
@@ -256,9 +256,9 @@ Choose from the set and Remove, the participant greyed with Rename... after it (
 its own, never the demo's, and it opens the Rename card below), Label and Pen portrait, each kept as it is left, and
 Done at the foot. Choose from the set opens the drawn portraits under the fields, a tab for each set of them,
 the set of the picture now open first, the others a click or an arrow key away, as many in a row as the window
-holds and, in a narrow window, the rest scrolled to under the half row that shows there are more. Since 12 November (peeps and picsets) there are three sets, all in black and white and all in the
-app, never fetched: Open Peeps, eighty heads and shoulders from Pablo Stanley's drawings, Notionists, forty line
-drawings by Zoish, and Fluent Emoji, twenty of Microsoft's emoji faces drawn in ink, each with a range of ages,
+holds and, in a narrow window, the rest scrolled to under the half row that shows there are more. Since 12 November (peeps and picsets) there are two sets, both in black and white and both in the
+app, never fetched: Sketches, eighty heads and shoulders from Pablo Stanley's Open Peeps drawings, and Line
+drawings, forty by Zoish (Notionists), each with a range of ages,
 hair, headscarves and turbans, beards and glasses. A picture chosen from the 24 before shows as its nearest
 Open Peep until another is chosen. His own picture is cut
 square, made small and kept in the project folder's `pictures/`, the one it replaces moved to that folder's
@@ -888,7 +888,8 @@ stay as they were, and Reset widths puts every edge back where the screen now op
 the heading takes two lines, and Columns keeps its chevron alone where its word would not stand beside the
 heading's longest word, its tooltip saying Columns and the columns shown and a screen reader hearing
 Columns. At 800px and below the edges give way to the narrow layout above, and the
-transcript alone keeps its reading measure, with no edge to drag.
+transcript alone keeps its reading measure, with no edge to drag. The columns stand still at every Text size, with
+the widths dragged or not, where a Mac with a mouse plugged in draws scroll bars that take room (12 November).
 
 **Show, hide or stack the columns (18 October).** Working in his own order, Adam wanted to hide the
 exploratory notes, or the experiential statements, or both, the transcript always shown, and to have the
@@ -2714,6 +2715,15 @@ on Auto-arrange repeats the last way, its icon on the button, and its small arro
 one ticked, a choice running at once and kept for the button on this computer. The toolbar's Auto-arrange
 tidies each PET or label selected, or the one a selected card is in, and with nothing selected every PET on
 the board, in one step of undo. The control on a label and its menu entries take the last way too.
+
+Since 12 November a Grid lays a PET's sub-PETs out in rows across it, never one under another in a single
+column, and Auto-arrange on the toolbar with nothing selected lays out the whole board: each PET tidied
+inside, then the PETs themselves side by side in rows, the board about as wide as a 1280 by 800 window is,
+from where the top-left PET stood. Statements in no PET keep their places, moved together below the PETs
+only when the PETs would reach them. Everything stays in the order it read: the first PET top left, then left
+to right, row by row, and the same inside each PET and each sub-PET, so the Table view and the exports read
+exactly as before. Its undo step reads "Arranged the board". A board Claude or another agent builds comes out
+laid out the same way, and the agent can tidy a whole board with the same arrange.
 
 **Higher is better.** Inside a PET, higher means a better example or better quotes, so the canvas is
 read top to bottom and left to right along a row, statements whose tops sit within half a card's height

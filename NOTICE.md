@@ -18,22 +18,11 @@ Idiograph is written in Python and runs in a browser. Beyond Python's standard l
 - The REFI-QDA project schema, `Project.xsd` of QDA-XML 1.0 (18 March 2019), by the REFI-QDA working group, as the openqda project's refi-tools publish it under the GNU Affero General Public License version 3. A copy in `tests/refi-qda/` checks the REFI-QDA projects Idiograph writes. The app itself does not ship it.
 - The Ko-fi cup, Ko-fi's own artwork for its button, the cup with a heart, kept in `static/vendor/kofi/` so the button on each Home is Ko-fi's without loading anything from Ko-fi. The Ko-fi name and cup are Ko-fi Labs' and are not under this licence.
 
-The pictures a participant can be given, in `static/faces/`, are three sets, each drawn again in black and white by a script in `packaging/` that fetched them once:
+The pictures a participant can be given, in `static/faces/`, are two sets, each drawn again in black and white by a script in `packaging/` that fetched them once:
 
 - Open Peeps, `peep01.svg` to `peep80.svg`, by Pablo Stanley (https://www.openpeeps.com), dedicated to the public domain under CC0 1.0 Universal. Each was put together from Open Peeps' parts through DiceBear's `open-peeps` style (https://www.dicebear.com) by `make_peeps.py`.
 - Notionists, `notion01.svg` to `notion40.svg`, by Zoish (https://heyzoish.gumroad.com/l/notionists), dedicated to the public domain under CC0 1.0 Universal. Each was put together from Notionists' parts through DiceBear's `notionists` style by `make_notionists.py`.
-- Fluent Emoji, `fluent01.svg` to `fluent20.svg`, by Microsoft (https://github.com/microsoft/fluentui-emoji), under the MIT License, each a person's High Contrast drawing recoloured by `make_fluent.py`. The licence ships beside them as `LICENSE-fluent-emoji.txt`, and reads:
 
-  > MIT License
-  >
-  > Copyright (c) Microsoft Corporation.
-  >
-  > Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-  >
-  > The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-  >
-  > THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE
-
-CC0 asks for no credit, which is given here all the same. Neither DiceBear, Zoish, Pablo Stanley nor Microsoft endorses Idiograph.
+CC0 asks for no credit, which is given here all the same. Neither DiceBear, Zoish nor Pablo Stanley endorses Idiograph.
 
 The demo's three interviews, Juno's, Rowan's and Mabel's, are invented, about sharing a home with a dog. Nobody real is in them. Their recordings, in `packaging/recording/`, are AI-generated speech made with Google's Gemini in four synthetic voices designed for the demo. They are not under the GNU Affero General Public License but under their own licence beside them, `LICENSE-audio.md`, which allows copying and sharing them only unchanged and only as part of Idiograph or a modified version of it, and grants no right to use them to train, fine-tune or evaluate any AI or machine-learning model. Google does not endorse Idiograph.

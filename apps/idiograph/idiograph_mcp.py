@@ -146,8 +146,11 @@ TOOLS = [
          "Change a PETs board with the board's operations. They run in order, and one that cannot "
          "stand refuses the whole change. The board as it stood is kept first in its History, so Restore "
          "undoes the change. The toolbar's tools run last: "
-         '{"op": "arrange", "label": "g2", "way": "column"} arranges a label\'s cards as Auto-arrange does, way grid, '
-         'column or row. {"op": "align", "items": ["S4", "S5"], "to": "left"} lines cards up, to left, centre, right, '
+         '{"op": "arrange", "label": "g2", "way": "grid"} arranges a label\'s cards as Auto-arrange does, way grid '
+         '(the default), column or row, and {"op": "arrange", "way": "grid"} with no label the whole board as '
+         "Auto-arrange with nothing selected does, the PETs side by side in rows, every place in the order it reads. "
+         "Finish a board you built with it unless he laid the board out himself. "
+         '{"op": "align", "items": ["S4", "S5"], "to": "left"} lines cards up, to left, centre, right, '
          'top, middle or bottom. {"op": "spread", "items": ["S4", "S5", "S6"], "to": "across"} spreads three or more '
          "evenly, across or down. Change one of his boards only when he asks.",
          {"case": mcp.CASE, "board": dict(mcp.TEXT, description="The board by its id or its name."), "operations": OPERATIONS,
@@ -1134,7 +1137,7 @@ TOOLS = [
     mcp.tool("participant_show", "A participant's picture, label and pen portrait", ("participant", "show"),
          "A participant's picture, label and pen portrait, as the project page's row shows them: label, a few words, "
          "portrait, one short paragraph, and picture, one of the app's drawn sets (set:peep01 to set:peep80, "
-         "set:notion01 to set:notion40, set:fluent01 to set:fluent20), a file's "
+         "set:notion01 to set:notion40), a file's "
          "name in the project's pictures folder, or empty for none, and values, their demographics by category, a "
          "list's one value as a string and free words as a list. With no case, every participant's of the project. "
          "cases answers each participant's too. The real name is never kept here.",
@@ -1149,8 +1152,8 @@ TOOLS = [
          {"case": mcp.CASE, "label": dict({"type": "string"}, description="A few words, \"Pepper's keeper\". Empty clears it."),
           "portrait": dict({"type": "string"}, description="The pen portrait, one short paragraph of plain text. Empty clears it."),
           "picture": dict({"type": "string"}, description="One of the app's drawn sets, set:peep01 to set:peep80 (Open "
-                                                "Peeps), set:notion01 to set:notion40 (Notionists) or set:fluent01 to "
-                                                "set:fluent20 (Fluent Emoji), or empty to take the picture off."),
+                                                "Peeps) or set:notion01 to set:notion40 (Notionists), "
+                                                "or empty to take the picture off."),
           "picture_file": dict(mcp.TEXT, description="An image file's path, PNG, JPEG or SVG, kept in the project's "
                                                      "pictures folder, made square and small, in place of picture."),
           "values": {"type": "object", "additionalProperties": {"type": ["string", "array"], "items": {"type": "string"}},

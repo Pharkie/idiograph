@@ -311,6 +311,7 @@
   "server.not_a_timecode": "{timecode} is not a timecode. Write it as MM:SS or H:MM:SS.",
   "server.auto_arrange_s_ways_nothing": "Auto-arrange's ways are {ways}, so nothing was changed.",
   "server.nothing_under_arrange_nothing_changed": "There is nothing under '{label}' to arrange, so nothing was changed.",
+  "server.no_pets_to_arrange": "There are no PETs on the board to arrange, so nothing was changed.",
   "server.board_already_nothing_copied": "That {unit} is on that board already, so nothing was copied.",
   "server.gets_were_marked_complete_waiting": "GETs were not marked complete. Waiting on {waiting}.",
   "server.names_many_nothing_sent": "{want} names {names}. Name one by its label, so nothing was sent.",
