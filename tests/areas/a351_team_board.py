@@ -60,9 +60,9 @@ def set_statements(book: Path, row: int, said: list[str]) -> None:
 def test_team_board(scratch: Path):
     print("\n351. A reviewer's board sent straight in: sealed and sent, taken in once to wait, Add as next board making "
           "it the owner's next board, never current, every card in its place, Decline writing nothing, each answer "
-          "reaching the sender, an agent's answer held, nothing while off (wtboard, wtreview2)")
+          "reaching the sender, an agent's answer the app's alone, nothing while off (wtboard, wtreview2)")
+    import agent_changes
     import cli
-    import holds
     import idiograph_routes as routes
     import mcp_server
     import server as server_mod
@@ -319,17 +319,17 @@ def test_team_board(scratch: Path):
         check("351: a second take brings nothing", not again.get("came") and len(boards(adam)) == n_boards,
               json.dumps(again)[:300])
 
-        # 6. an agent's answer waits for Adam's yes, and the app's Add as next board adds it
-        holds.RUN_AT_ONCE = None
+        # 6. an agent's answer is the app's alone, since it goes back to the teammate (noholds, 13 November 2026),
+        # and the app's Add as next board adds it
+        kept_ops, agent_changes.ALL_OPS = agent_changes.ALL_OPS, None
         try:
-            code, held, err = run(adam, "team", "board-answer", "--ref", came["came"][0]["ref"], "--note", "Keep Curt's",
-                                  "--tool", "Claude Code")
+            code, held, err = run(adam, "team", "board-answer", "--ref", came["came"][0]["ref"], "--note",
+                                  "Keep Curt's", "--tool", "Claude Code")
         finally:
-            holds.RUN_AT_ONCE = True
+            agent_changes.ALL_OPS = kept_ops
         waiting = tb(adam, op="show")["board"].get("waiting") or []
-        check("351: an agent's answer to a teammate's board waits for Adam's yes, nothing answered yet",
-              ("team", "board-answer") in holds.HELD and holds.RISK[("team", "board-answer")] == (1,)
-              and code == 0 and "held" in held and len(waiting) == 1, err + json.dumps(held)[:300])
+        check("351: an agent's answer to a teammate's board is refused as the app's alone, nothing answered",
+              code != 0 and "Only the app does this" in err and len(waiting) == 1, err + json.dumps(held)[:300])
         yes = tb(adam, op="answer", ref=came["came"][0]["ref"], accept=True)
         after = boards(adam)
         new = next((b for b in after if b["id"] == yes.get("added")), {})

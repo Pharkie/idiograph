@@ -56,11 +56,13 @@ MANIFEST = "idiograph-sent.json"
 TOP = "project/"
 KIND = "idiograph-project"
 # what is never sent: the file lock a writer holds while it writes, the Mac's folder settings, the
-# owner file Excel keeps beside a workbook it has open, and the agents' actions waiting for his yes with their
-# own lock (holds.py), none of them the project's own, and the project's own History (project_history.py), whose
+# owner file Excel keeps beside a workbook it has open, the holds file of before approvals were removed with its
+# lock, and the record of agents' changes and their restore points (agent_changes.py), none of them the project's
+# own, and the project's own History (project_history.py), whose
 # lines name participants a partial send leaves out and whose requests are his to an agent, and Working together's
 # team file and its folder (team.py's log, review.py's drafts and threads), which are this install's place in a team, never a copy's
 LEFT_OUT = (LOCK_NAME, ".DS_Store", "idiograph-holds.json", ".idiograph-holds.lock", "idiograph-history.json",
+            "idiograph-agent-changes.jsonl", ".idiograph-restore",
             "team.json", ".idiograph-team",
             # the project's list of real names (namesui, 8 November 2026, `names.FILE`), never in a copy he shares
             "idiograph-names.json")

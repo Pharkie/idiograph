@@ -2765,7 +2765,7 @@ function settingsCase() {
   return { path: null, themes: false, project: null, config: {} };
 }
 // the recording's offset among them since clickout, so Esc and a click outside it cancel it as its Cancel does
-const OVERLAYS = ['round-done', 'help', 'settings', 'ai-confirm', 'projset', 'create', 'import', 'newproject', 'rv-card', 'trim', 'th-confirm', 'assign', 'feedback', 'whatsnew', 'rename', 'complete', 'about', 'support', 'skip-confirm', 'hold-card', 'holds-batch', 'remove-card', 'offset'];
+const OVERLAYS = ['round-done', 'help', 'settings', 'ai-confirm', 'projset', 'create', 'import', 'newproject', 'rv-card', 'trim', 'th-confirm', 'assign', 'feedback', 'whatsnew', 'rename', 'complete', 'about', 'support', 'remove-card', 'offset'];
 // the cards this page holds, its own app's and the family's, never another app's since each ships alone (panefix)
 const overlaysHere = () => OVERLAYS.filter((id) => $(id));
 const anyOverlayOpen = () => overlaysHere().some((id) => !$(id).hidden);

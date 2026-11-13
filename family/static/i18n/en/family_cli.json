@@ -49,8 +49,7 @@
     "one": "{n} entry",
     "other": "{n} entries"
   },
-  "family_cli.agents_log.switch_on": "{when}, Dangerously skip permissions turned on.",
-  "family_cli.agents_log.switch_off": "{when}, Dangerously skip permissions turned off.",
+  "family_cli.agents_log.note": "{when}, {project}: {line}",
   "family_cli.agents_log.entry": "{when}, {agent}: {call}. Refused: {line}",
   "family_cli.agents_log.asked": "The agent said he asked: {request}",
   "family_cli.agents_log.closed": {

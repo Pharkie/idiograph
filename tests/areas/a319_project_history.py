@@ -3,12 +3,13 @@ to the project or to a participant as a whole kept no History before: `project s
 the question, the PET labels, the timecodes, the privacy tick), `timepoints`, `length`, `participant rename`,
 `participant complete` and its reopen, and `gets settings`. Each now adds one record to `idiograph-history.json` at
 the project's root, under the project's lock: when, the op, what changed from what to what, and who asked, the app,
-or an agent by its tool with his request, "approved in the app" or "without asking" where a hold applies.
+or an agent by its tool with his request.
 
 What is checked: each op writes its record from the app's route and from the command line and MCP, with the
-request. A dry run, a refusal and a change that changes nothing write none. A held rename approved in the app and
-one run without asking say so. `project history` and MCP's `project_history` read it newest first, and a send never
-carries it. None of these ops has an undo.
+request. A dry run, a refusal and a change that changes nothing write none. An agent's rename with its folder runs at
+once since approvals were removed (noholds, 13 November 2026), its record naming the agent alone. `project history`
+and MCP's `project_history` read it newest first, and a send never carries it. None of these ops has an undo of its
+own: an agent's run of them is undone whole (area 380).
 
 The fixture is invented: the demo's three dog owners, copied into a scratch project."""
 from __future__ import annotations
@@ -46,7 +47,6 @@ def test_project_history(scratch: Path):
           "gets settings each keep a record from the app and from an agent, with the request, none for a dry run "
           "or a refusal (2 November)")
     import cli
-    import holds
     import idiograph_routes as routes
     import mcp_server
     import project_history
@@ -60,7 +60,7 @@ def test_project_history(scratch: Path):
     config = {"projects": [{"root": str(root)}], "interviewer": "Adam", "corpus": "", "gravity_reference": "",
               "corpus_exclude": []}
     config_file.write_text(json.dumps(config), encoding="utf-8")
-    kept = (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY, holds.RUN_AT_ONCE)
+    kept = (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY)
     hist = root / project_history.FILE
 
     def in_app(fn, body):
@@ -195,31 +195,18 @@ def test_project_history(scratch: Path):
               and agent_rename.get("op") == "participant rename" and agent_rename["changes"][0] == "Rowan renamed Rook."
               and len(agent_rename["changes"]) > 1 and app_rename.get("by") == "app"
               and app_rename["changes"][0] == "Rook renamed Rowan.", err + err2 + json.dumps(records()[-2:]))
-        holds.RUN_AT_ONCE = None
         n = len(records())
-        code, held, err = ask("participant", "rename", "Mabel", "Maple", "--folder")
-        waiting = len(records()) == n and (root / "Mabel").is_dir()
-        server_mod.CONFIG_PATH = config_file
-        try:
-            holds.approve(root, held.get("hold", {}).get("id") or held.get("id") or "h1")
-        finally:
-            server_mod.CONFIG_PATH = kept[0]
-        approved = last()
-        config["skip_permissions"] = True
-        config_file.write_text(json.dumps(config), encoding="utf-8")
+        code, _held, err = ask("participant", "rename", "Mabel", "Maple", "--folder")
+        renamed = last()
         code2, _s, err2 = ask("participant", "rename", "Maple", "Mabel", "--folder")
-        skipped = last()
-        check("319: a held rename writes no record while it waits, then one naming the agent \"approved in the app\", "
-              "and with Dangerously skip permissions one \"without asking\"",
-              code == 0 and waiting and len(records()) == n + 2
-              and approved.get("tool") == "Claude Code, approved in the app" and approved.get("request") == ASKED
-              and approved["changes"][0] == "Mabel renamed Maple, the folder too."
-              and code2 == 0 and skipped.get("tool") == "Claude Code, without asking"
-              and skipped["changes"][0] == "Maple renamed Mabel, the folder too.",
-              err + err2 + json.dumps(held)[:300] + json.dumps(records()[-2:]))
-        holds.RUN_AT_ONCE = kept[3]
-        config.pop("skip_permissions")
-        config_file.write_text(json.dumps(config), encoding="utf-8")
+        back = last()
+        check("319: an agent's rename with its folder runs at once, each a record naming the agent alone, as every "
+              "agent's change since approvals were removed",
+              code == 0 and code2 == 0 and len(records()) == n + 2 and (root / "Mabel").is_dir()
+              and renamed.get("tool") == "Claude Code" and renamed.get("request") == ASKED
+              and renamed["changes"][0] == "Mabel renamed Maple, the folder too."
+              and back.get("tool") == "Claude Code" and back["changes"][0] == "Maple renamed Mabel, the folder too.",
+              err + err2 + json.dumps(records()[-2:]))
 
         # 6. MCP writes with the client as its tool, and reads the History as the command line does
         mcp = mcp_server.Server(root=str(root), config=str(config_file))
@@ -240,12 +227,14 @@ def test_project_history(scratch: Path):
               and "History, newest first" in said and "Research question from none to" in said,
               err + json.dumps({k: v for k, v in read.items() if k != "content"})[:900] + said[:300])
 
-        # 7. a send never carries it
+        # 7. a send never carries it, sent from the app, since a send is the app's alone (noholds)
         out = base / "sent"
         out.mkdir(exist_ok=True)
-        holds.RUN_AT_ONCE = True
-        code, sent, err = answer("project", "send", "--to", str(out), "--note", "Send it to Curt")
-        holds.RUN_AT_ONCE = kept[3]
+        try:
+            in_app(lambda body: routes.send_project(root, out / "Dogs.idiograph"), {})
+            code, err = 0, ""
+        except WorkbookError as exc:
+            code, err = 1, str(exc)
         files = [p for p in out.iterdir() if p.suffix == ".idiograph"]
         names = zipfile.ZipFile(files[0]).namelist() if files else []
         check("319: a send never carries the project's History",
@@ -254,4 +243,4 @@ def test_project_history(scratch: Path):
     except WorkbookError as exc:
         check("319: the page's calls run", False, str(exc))
     finally:
-        server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY, holds.RUN_AT_ONCE = kept
+        server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY = kept

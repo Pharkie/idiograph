@@ -26,6 +26,10 @@ CODES = {
     "busy": "another write holds the files' lock, so nothing was written",
     "not_yours": "in a project worked on together another member works on that participant or GETs board",
     "zotero_storage_full": "the Zotero library's file storage is full, so no more PDFs go up",
+    # the agent log's (noholds, 13 November 2026): an op only the app does, refused for an agent, and the note of the
+    # actions that waited for his yes, cleared when approvals were removed
+    "app_only": "only the app does it, since no undo reaches it, so an agent was refused and nothing waits",
+    "cleared": "the actions that waited for his yes were dropped when approvals were removed, a note and no refusal",
 }
 
 

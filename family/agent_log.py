@@ -8,8 +8,9 @@ agents may not read by a count, never its name), the command with its flag names
 `KINDS`), the refusal's line and the request the agent said he made, cut to 300 characters. Never the values given:
 a word the agent handed in is taken out of the line wherever it shows, and no file's words are kept.
 
-Dangerously skip permissions turned on or off is an entry too, read from agentlock's record of the switch
-(`server.switch_record_path`), which stays the one record of it. The window shows the log under Settings, AI
+The actions that waited for his yes, dropped as a project first opens since approvals were removed (noholds, 13
+November 2026), are one entry for that project, a note of how many, code `cleared`. Dangerously skip permissions went
+with them, and its record beside the settings is read no more. The window shows the log under Settings, AI
 features, Using your own AI agents (the pane's line, and Open with the sheet), and agents read it with
 `idiograph agents log` and MCP `agent_log`, which only read. Nothing clears it (Adam, 3 November 2026: no Clear and
 no setting): it keeps the last DAYS days, an older entry dropped as the log is written or read, so it never grows
@@ -51,7 +52,10 @@ KINDS = {
     "not_allowed": "the project does not allow AI agents to read it, or none it names does",
     "no_command": "the command line or the MCP server has no such command or tool, or it is another app's",
     "page_only": "only the app's own window does it, never an agent",
-    "declined": "it waited for his yes in the app and he declined it",
+    "app_only": "only the app does it, since undo cannot reach it: sending to another person, Working together's "
+                "keys and people, the app's settings, the list of names to replace",
+    "declined": "it waited for his yes in the app and he declined it, before approvals were removed",
+    "cleared": "a note, not a refusal: the actions that waited for his yes, dropped when approvals were removed",
     "invalid": "the command was given in a shape it does not take",
     "refused": "any other refusal, its line saying why",
 }
@@ -211,37 +215,14 @@ def flush() -> None:
 
 # ------------------------------------------------------------------ reading
 
-def switches(record: Path, at: datetime) -> list:
-    """Dangerously skip permissions turned on or off, from agentlock's record beside the settings (see
-    `server.record_switch`), those of the last DAYS days, as entries. The record itself is never changed."""
-    edge = at - timedelta(days=DAYS)
-    out = []
-    try:
-        lines = Path(record).read_text(encoding="utf-8").splitlines()
-    except OSError:
-        return []
-    for line in lines:
-        try:
-            got = json.loads(line)
-        except ValueError:
-            continue
-        when = parsed(got.get("at")) if isinstance(got, dict) else None
-        if when is None or when <= edge:
-            continue
-        out.append({"kind": "switch", "at": stamp(when), "time": stamp(when), "count": 1, "on": got.get("on") is True,
-                    "from": "window" if got.get("from") == "window" else "browser"})
-    return out
-
-
 def read(path: Path | None = None, config=None) -> list:
-    """Every entry the log keeps, the switch's among them, newest first, at most MOST: the log beside the settings
-    `config` names, the server's by default, and the switch's record beside them."""
-    import server as srv
+    """Every entry the log keeps, newest first, at most MOST: the log beside the settings `config` names, the
+    server's by default. A note of the actions cleared when approvals were removed is kind "note", every other
+    entry a refusal."""
     path = Path(path) if path else place(config)
     at = now()
     data = load(path)
-    entries = [dict(e, kind="refusal") for e in kept(data["entries"], at)]
-    every = entries + switches(srv.switch_record_path(config), at)
+    every = [dict(e, kind="note" if e.get("code") == "cleared" else "refusal") for e in kept(data["entries"], at)]
     every.sort(key=lambda e: parsed(e.get("time")) or at, reverse=True)
     return every[:MOST]
 
@@ -321,9 +302,7 @@ YOU = ((r"\bhe ticks\b", "you tick"), (r"\bhe does\b", "you do"), (r"\bhe says\b
 def said(e: dict) -> str:
     """The line the window shows for a refusal: its own for one the drawings word, else the agent's to him."""
     import i18n
-    op, code = str(e.get("op") or ""), str(e.get("code") or "")
-    if op in ("hold approve", "hold decline"):
-        return i18n.t("agentlog.why_hold")
+    code = str(e.get("code") or "")
     if code == "not_allowed":
         return i18n.t("agentlog.why_not_allowed")
     line = str(e.get("line") or "")
@@ -337,15 +316,15 @@ def api_agent_log(_body=None) -> dict:
     route `/api/agent-log` since siftlog (3 November 2026), so each app shows its own: the entries newest first,
     each refusal with its line as the window says it, `said`, and `total`. The page names each op for people by
     its words (agentlog.js, and each app's own table). It reads alone. An agent reads the same with `agents log`."""
-    out = [e if e.get("kind") == "switch" else dict(e, said=said(e)) for e in read()]
+    out = [e if e.get("kind") == "note" else dict(e, said=said(e)) for e in read()]
     return {"entries": out, "total": len(out)}
 
 
 def public(e: dict) -> dict:
-    """An entry as an agent reads it: a refusal's when, agent, project, call, code, line and request, or a turn of
-    the switch, on or off and from where. Every word of the agent's comes back marked (see `cli.mark`)."""
+    """An entry as an agent reads it: a refusal's when, agent, project, call, code, line and request, or a note's
+    project and line. Every word of the agent's comes back marked (see `cli.mark`)."""
     out = {"kind": e.get("kind"), "at": e.get("at"), "time": e.get("time"), "count": int(e.get("count") or 1)}
-    if e.get("kind") == "switch":
-        return dict(out, on=e.get("on") is True, **{"from": e.get("from")})
+    if e.get("kind") == "note":
+        return dict(out, project=e.get("project") or "", code=e.get("code") or "", line=e.get("line") or "")
     return dict(out, agent=e.get("agent") or "", project=e.get("project") or "", call=e.get("call") or "",
                 code=e.get("code") or "", line=e.get("line") or "", request=e.get("request") or "")

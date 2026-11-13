@@ -60,16 +60,20 @@ demo/ta/*/_Archive/
 demo/ta/_Archive/
 # the lock the server and the command line take around a write, in a case's Working/ and at a root
 .idiograph.lock
-# an agent's actions waiting for his yes at a project's root, the demo's among them, and their own lock
+# an agent's actions that waited for his yes at a project's root before approvals were removed, and their lock, and
+# since then the record of agents' changes and their restore points (agent_changes.py)
 idiograph-holds.json
 .idiograph-holds.lock
+idiograph-agent-changes.jsonl
+.idiograph-restore/
 # this machine's own settings, its projects, corpus and reference paths, never shipped. A
 # downloaded copy has none, and its first run writes the defaults with no project
 /config.json
 # and Sift's and Trace's own, run from source (20 October, the three-app split), beside it
 /config.sift.json
 /config.trace.json
-# the record of Dangerously skip permissions beside the settings (agentlock, 2 November 2026)
+# the record of Dangerously skip permissions beside the settings (agentlock, 2 November 2026), kept and read no more
+# since the switch was removed (noholds, 13 November 2026)
 /config*.skip-permissions.jsonl
 /state.sift.json
 /state.trace.json

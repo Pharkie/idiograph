@@ -80,17 +80,6 @@
 /* a demo's card (demos, 3 November 2026): its tag goes under the name where the two would not fit on one line,
    so the name is never cut for "Thematic analysis demo" */
 .home-card.is-demo .hc-head { flex-wrap: wrap; row-gap: 4px; }
-/* A project's card says when actions wait for his yes (holdsprog, 11 November 2026): one line at the card's foot, in the
-   card's small type and the crux orange the Preview note's sign is, beside the card's button and never in it. Room
-   for it is kept under the lines of every card in that list (`has-holds`), so the cards of a row stay one height and
-   their last lines stay level. A press on it opens the project where the actions can be answered */
-.home-card-li.has-hold { position: relative; }
-.home-cards.has-holds .home-card { padding-bottom: 36px; }
-.hc-hold { position: absolute; left: 16px; bottom: 12px; max-width: calc(100% - 32px); padding: 0; border: 0; background: none;
-  font: inherit; font-size: 12px; line-height: 1.4; color: var(--crux); text-align: left; cursor: pointer;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hc-hold:hover { text-decoration: underline; }
-.hc-hold:focus-visible { outline: 0; box-shadow: var(--focus-small); border-radius: 2px; }
 
 /* A demo says what it is for (demowarn, 12 November 2026): on its card on Home one line at the foot, in the card's small
    type and the crux orange the Preview note's sign is, beside the card's button and never in it, with room kept under
@@ -1506,9 +1495,8 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
   .find-card { left: 0; right: 0; bottom: 0; width: auto; max-width: none; border-width: 1px 0 0; border-radius: 0; }
 }
 
-/* Dangerously skip permissions under Using your own AI agents, and an agent's action waiting for his yes
-   (holds.py, 27 October 2026, as drawn on 26 October) */
-.agent-holds { margin-top: 18px; }
+/* The bright line in the corner (holds.py, 27 October 2026, as drawn on 26 October), Working together's own since
+   approvals were removed (noholds, 13 November 2026): the owner's line of a review that came (review.js, .wt-line) */
 .hold-line {
   position: fixed; top: 54px; right: var(--gutter); z-index: 40;
   width: min(380px, calc(100vw - 2 * var(--gutter))); padding: 12px 40px 12px 14px; border-radius: 5px;
@@ -1527,45 +1515,7 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
   color: var(--crux); font: inherit; font-weight: 600; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
 .hold-line .th-outside-show[hidden] { display: none; }
 .hold-line .th-outside-show:hover { background: color-mix(in srgb, var(--paper) 88%, var(--crux)); color: var(--crux); }
-.hold-card .hold-asked { margin: 10px 0 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
-.hold-card .hold-changed { margin: 10px 0 0; font-size: 13.5px; color: var(--amber); line-height: 1.5; }
-.hold-card .hold-changed[hidden] { display: none; }
-.hold-card .hold-what { margin: 16px 0 6px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
-.hold-card .mcp-code { white-space: pre-wrap; word-break: normal; overflow-wrap: anywhere; max-height: 40vh; overflow: auto; }
-.hold-card button.ghost { border-color: var(--ink-faint); }
-/* Approve's words the light paper in both themes, on the light theme's crux, so they read alike */
-.hold-card button.primary { background: var(--hold-yes); border-color: var(--hold-yes); color: var(--hold-yes-ink); }
-/* The card for several (holdbatchA, Adam's option A of 1 November 2026): the head and the foot stay put while the
-   list scrolls between its rules. A row is its tick's label, the agent and when, and Details, the whole row ticking
-   (data-tick-row). Details opens the row's own card under it */
-.holds-batch { width: min(640px, 100%); display: flex; flex-direction: column; overflow: hidden; }
-.holds-batch h2 { margin: 0; }
-.holds-batch .hb-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.holds-batch .hb-top button { flex: none; }
-.holds-batch .hb-top button[hidden] { display: none; }
-.holds-batch .hb-sum { margin: 8px 0 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
-.holds-batch .hb-sum[hidden] { display: none; }
-.holds-batch .hb-list { margin: 14px -10px 0; padding: 0 10px; overflow-y: auto; min-height: 0; flex: 1 1 auto;
-  overscroll-behavior: contain; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
-.holds-batch .hb-ask { margin: 14px 0 4px; font-size: 13px; line-height: 1.5; color: var(--ink-soft); overflow-wrap: anywhere; }
-.holds-batch .hb-rows { list-style: none; margin: 0 0 10px; padding: 0; }
-.holds-batch .hb-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px;
-  padding: 3px 6px; margin: 0 -6px; border-radius: 3px; }
-.holds-batch .hb-row + li, .holds-batch .hb-detail + li { border-top: 1px solid color-mix(in srgb, var(--rule) 60%, transparent); }
-.holds-batch .hb-row label { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--ink); padding: 6px 0; min-width: 0; }
-.holds-batch .hb-row label input { flex: none; margin: 0; }
-.holds-batch .hb-what { display: block; overflow-wrap: anywhere; }
-.holds-batch .hb-changed { display: block; font-size: 12.5px; color: var(--amber); margin-top: 2px; }
-.holds-batch .hb-when { font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
-.holds-batch .hb-more { display: inline-flex; align-items: center; gap: 4px; }
-.holds-batch .hb-more svg { width: 12px; height: 12px; transition: transform .16s; }
-.holds-batch .hb-more[aria-expanded="true"] svg { transform: rotate(180deg); }
-.holds-batch .hb-detail { margin: 0 -6px; padding: 0 6px 12px 31px; }
-.holds-batch .hb-detail .hold-asked { margin: 2px 0 0; }
-.holds-batch .hb-detail .hold-changed { margin: 6px 0 0; }
-.holds-batch .hb-detail .hold-what { margin: 10px 0 6px; }
-/* Project history (historyui, 3 November 2026): a tall sheet as the card for several holds is, as tall as what it
-   holds up to the window's height, the list scrolling between its rules, each day's head over its changes, each
+/* Project history (historyui, 3 November 2026): a tall sheet, as tall as what it holds up to the window's height, the list scrolling between its rules, each day's head over its changes, each
    change its time in a narrow column and who, what changed and the agent's account of your request beside it */
 .ph-sheet { width: min(680px, 100%); height: auto; max-height: min(880px, 100%); display: flex; flex-direction: column;
   overflow: hidden; }
@@ -1592,37 +1542,7 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .ph-sheet .ph-line { color: var(--ink); }
 .ph-sheet .ph-asked { color: var(--ink-faint); font-size: 12.5px; font-style: italic; margin-top: 1px; }
 .ph-sheet .card-actions { margin-top: 18px; }
-.holds-batch .hb-detail .mcp-code { max-height: none; margin: 0; }
-.holds-batch .card-actions { margin-top: 18px; flex: none; }
-.holds-batch .card-actions button[hidden] { display: none; }
-.holds-batch .card-actions button.ghost:disabled { color: var(--ink-faint); border-color: var(--rule); cursor: default; }
-/* While Approve N or Decline N runs (holdsprog, 11 November 2026) the list, the ticks, Tick all and the buttons give way
-   to the heading, "Approving 4 of 13", and a bar between the list's two rules. The bar is the app's own thin line
-   (--rule under --good, the round's ease), 4px where the strips are 2px, since it stands alone */
-.holds-batch .hb-run { display: none; }
-.holds-batch.running .hb-run { display: flex; align-items: center; min-height: 88px; margin: 14px -10px 0; padding: 0 10px;
-  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
-.holds-batch.running :is(#hb-all, .hb-sum, .hb-list, .card-actions) { display: none; }
-.holds-batch .hb-bar { flex: 1 1 auto; height: 4px; background: var(--rule); border-radius: 2px; overflow: hidden; }
-.holds-batch .hb-bar span { display: block; height: 100%; width: 0; background: var(--good);
-  transition: width .45s cubic-bezier(.2,.7,.3,1); }
-/* the single card's quiet line while one action takes longer than half a second */
-.hold-card .hold-run { margin: 14px 0 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
-.hold-card .hold-run[hidden] { display: none; }
-/* a card answering greys its buttons, Decline too, as the card for several does */
-.hold-card button.ghost:disabled { color: var(--ink-faint); border-color: var(--rule); cursor: default; }
-/* Done closes the card, the app's own filled button, never Approve's colour */
-.holds-batch #hb-done { background: var(--crux); border-color: var(--crux); color: var(--paper); }
 
-.holds-batch .hb-done { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: start; gap: 10px;
-  padding: 8px 0; font-size: 14px; color: var(--ink); list-style: none; }
-.holds-batch .hb-done + .hb-done { border-top: 1px solid color-mix(in srgb, var(--rule) 60%, transparent); }
-.holds-batch .hb-done svg { width: 15px; height: 15px; margin-top: 2px; color: var(--ink-soft); }
-.holds-batch .hb-done.not svg { color: var(--amber); }
-.holds-batch .hb-done .hb-state { font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; }
-.holds-batch .hb-done.not .hb-state { color: var(--amber); }
-.holds-batch .hb-done .hb-why { display: block; font-size: 12.5px; color: var(--amber); margin-top: 2px; }
-.holds-batch .hb-done-list { margin: 6px 0; padding: 0; overflow-wrap: anywhere; }
 /* a thematic analysis project in front (tadraw): Settings without the PETs category, which it has no use for */
 html[data-method="ta"] #tab-pets { display: none; }
 

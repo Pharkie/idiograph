@@ -2,14 +2,14 @@
 close it).
 
 `own_origin` passes any program on this machine that names the server's own address, so a shell's curl could
-approve an agent's held action or turn on Dangerously skip permissions. What governs agents now asks for the
-window's key, made at each start and never served by any route to the window's own run. What is checked, on an
-invented copy of the demo's dog owners: a plain localhost POST to each guarded route, with no Origin, with the
-server's own Origin forged and with a wrong key, refused in one line with nothing written; the page's own call,
-carrying the key, answered, a held delete approved from it as area 276's are; the record of the switch, a line
-each time it changes, beside the settings; a run in a browser carrying its key in the page and the window's run
-never; the key read from standard input and handed on at a restart, never in an argument or the environment; and
-the agents' command line and MCP unchanged."""
+tick a project open to agents or set them up. What governs agents now asks for the window's key, made at each start
+and never served by any route to the window's own run. What is checked, on an invented copy of the demo's dog
+owners: a plain localhost POST to each guarded route, with no Origin, with the server's own Origin forged and with a
+wrong key, refused in one line with nothing written. The page's own call, carrying the key, answered. A settings
+save naming Dangerously skip permissions, removed with the holds (noholds, 13 November 2026), keeping nothing and
+writing no record. A run in a browser carrying its key in the page and the window's run never. The key read from
+standard input and handed on at a restart, never in an argument or the environment. And the agents' command line
+and MCP unchanged."""
 from __future__ import annotations
 
 import hashlib
@@ -54,7 +54,6 @@ def test_window_key(scratch: Path):
           "POST refused, the page's own call answered, the switch's record, the browser's run and the key's way "
           "across a restart (2 November)")
     import cli
-    import holds
     import mcp_server
     import server as server_mod
     import themes
@@ -68,8 +67,7 @@ def test_window_key(scratch: Path):
     config_file.write_text(json.dumps(config), encoding="utf-8")
     record = config_file.with_name("config.skip-permissions.jsonl")
     record.unlink(missing_ok=True)
-    kept = (holds.RUN_AT_ONCE, server_mod.CONFIG_PATH, dict(server_mod.WINDOW_KEY), server_mod.READ_KEY,
-            server_mod.POPEN)
+    kept = (server_mod.CONFIG_PATH, dict(server_mod.WINDOW_KEY), server_mod.READ_KEY, server_mod.POPEN)
     book = root / "Juno" / "Juno - EN & ES.xlsx"
 
     def run(*args):
@@ -80,14 +78,9 @@ def test_window_key(scratch: Path):
 
     httpd = None
     try:
-        # a hold of the agent's, a delete of a second board on Juno, waiting for his yes
-        holds.RUN_AT_ONCE = True
+        # a second board on Juno, which no plain POST may touch
         made = run("board", "duplicate", "Juno", "Board 1", "--name", "Board 2", "--note", "A second board")
-        holds.RUN_AT_ONCE = None
-        code, out, err = run("--json", "board", "delete", "Juno", "Board 2", "--note", ASKED, "--tool", "Claude Code")
-        hid = support.plain(json.loads(out))["held"]["id"] if code == 0 else ""
-        check("317: the fixture: a delete asked by an agent waits for his yes", made[0] == 0 and hid
-              and "Board 2" in boards(), err or made[2])
+        check("317: the fixture: a second board on Juno", made[0] == 0 and "Board 2" in boards(), made[2])
 
         server_mod.CONFIG_PATH = config_file
         server_mod.WINDOW_KEY.update(key=KEY, window=True)
@@ -117,9 +110,7 @@ def test_window_key(scratch: Path):
         refused = (403, {"error": server_mod.named(server_mod.i18n.t("errors.window_only"))})
         project_file = root / "idiograph-project.json"
         guarded = [
-            ("/api/holds", {"op": "approve", "root": str(root), "id": hid}),
-            ("/api/holds", {"op": "list"}),
-            ("/api/settings", {"skip_permissions": True}),
+            ("/api/names", {"op": "list", "root": str(root)}),
             ("/api/project", {"root": str(root), "agents": False}),
             ("/api/mcp", {"root": str(root), "op": "add"}),
             ("/api/agents-guide", {"root": str(root)}),
@@ -139,10 +130,8 @@ def test_window_key(scratch: Path):
               "server's own forged and with a wrong key, and a GET of one too",
               all(a == refused for got in answers.values() for a in got) and got_guide == refused,
               json.dumps({k: [a[0] for a in v] for k, v in answers.items()}) + str(got_guide))
-        check("317: and nothing is written: the hold still waits, the board is there, the settings, the project's tick "
-              "and AGENTS.md as they were, no record of the switch",
-              before == after and "Board 2" in boards() and not record.exists()
-              and next(h for h in holds.load(root)["holds"] if h["id"] == hid)["status"] == "waiting")
+        check("317: and nothing is written: the board is there, the settings, the project's tick and AGENTS.md as they "
+              "were", before == after and "Board 2" in boards() and not record.exists())
 
         # what governs nothing is answered as before, the key or not
         open_settings = call("POST", "/api/settings", {"op": "read"})
@@ -151,27 +140,16 @@ def test_window_key(scratch: Path):
               open_settings[0] == 200 and open_project[0] == 200
               and open_project[1]["project"]["agents"]["allowed"] is True)
 
-        # the page's own call, carrying the key: the list, then the card's look and Approve, as area 276's
-        listed = call("POST", "/api/holds", {"op": "list"}, key=KEY, origin=own)
-        looked = call("POST", "/api/holds", {"op": "check", "root": str(root), "id": hid}, key=KEY, origin=own)
-        approved = call("POST", "/api/holds", {"op": "approve", "root": str(root), "id": hid}, key=KEY, origin=own)
-        check("317: the page's own call with the key lists the hold, and Approve from it runs the delete",
-              listed[0] == 200 and any(h["id"] == hid for h in listed[1]["holds"]) and looked[0] == 200
-              and approved[0] == 200 and "Board 2" not in boards()
-              and next(h for h in holds.load(root)["holds"] if h["id"] == hid)["status"] != "waiting",
-              str(approved)[:300])
+        # the page's own call, carrying the key: the list of names to replace read
+        listed = call("POST", "/api/names", {"op": "list", "root": str(root)}, key=KEY, origin=own)
+        check("317: the page's own call with the key is answered", listed[0] == 200, str(listed)[:300])
 
-        # the switch: on and off from the page, a line each time it changes, none when it does not
+        # the switch went with the holds (noholds, 13 November 2026): a save naming it keeps nothing, records nothing
         on = call("POST", "/api/settings", {"skip_permissions": True}, key=KEY, origin=own)
-        again = call("POST", "/api/settings", {"skip_permissions": True}, key=KEY, origin=own)
-        off = call("POST", "/api/settings", {"skip_permissions": False}, key=KEY, origin=own)
-        lines = [json.loads(x) for x in record.read_text(encoding="utf-8").splitlines()] if record.exists() else []
-        check("317: Dangerously skip permissions from the window, on then off, a line each time it changes in a record "
-              "beside the settings: when, on or off, from where",
-              on[0] == again[0] == off[0] == 200 and [(x["on"], x["from"]) for x in lines] == [(True, "window"),
-                                                                                              (False, "window")]
-              and all(x["at"][:4].isdigit() and "T" in x["at"] for x in lines)
-              and json.loads(config_file.read_text(encoding="utf-8")).get("skip_permissions") is False, str(lines))
+        check("317: a settings save naming Dangerously skip permissions is answered and ignored, the setting kept "
+              "nowhere and no record of it written",
+              on[0] == 200 and json.loads(config_file.read_text(encoding="utf-8")).get("skip_permissions") is not True
+              and not record.exists(), str(on)[:200])
         ticked = call("POST", "/api/project", {"root": str(root), "agents": False}, key=KEY, origin=own)
         check("317: and the project's tick from the window", ticked[0] == 200
               and json.loads(project_file.read_text(encoding="utf-8"))["agents"]["allowed"] is False)
@@ -183,8 +161,8 @@ def test_window_key(scratch: Path):
         server_mod.WINDOW_KEY.update(key=KEY, window=False)
         status_b, page_b = call("GET", "/")
         in_page = isinstance(page_b, str) and f'<meta name="idiograph-key" content="{KEY}">' in page_b
-        plain_b = call("POST", "/api/holds", {"op": "list"})
-        page_b_call = call("POST", "/api/holds", {"op": "list"}, key=KEY, origin=own)
+        plain_b = call("POST", "/api/names", {"op": "list", "root": str(root)})
+        page_b_call = call("POST", "/api/names", {"op": "list", "root": str(root)}, key=KEY, origin=own)
         check("317: the window's page never holds the key, a browser's page carries it, and there a plain POST is "
               "still refused while the page's call is answered",
               status == 200 and window_page and status_b == 200 and in_page and plain_b == refused
@@ -240,7 +218,7 @@ def test_window_key(scratch: Path):
         code_cli, out_cli, err_cli = run("--json", "board", "list", "Juno")
         srv = mcp_server.Server(str(root), config=str(config_file))
         got = srv.receive(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "tools/call",
-                                      "params": {"name": "hold", "arguments": {}}}))
+                                      "params": {"name": "agent_changes", "arguments": {}}}))
         check("317: the command line and MCP answer an agent as before, no key asked of either",
               code_cli == 0 and "result" in got and not got["result"].get("isError"), err_cli or json.dumps(got)[:300])
 
@@ -256,7 +234,7 @@ def test_window_key(scratch: Path):
         if httpd is not None:
             httpd.shutdown()
             httpd.server_close()
-        holds.RUN_AT_ONCE, server_mod.CONFIG_PATH = kept[0], kept[1]
+        server_mod.CONFIG_PATH = kept[0]
         server_mod.WINDOW_KEY.clear()
-        server_mod.WINDOW_KEY.update(kept[2])
-        server_mod.READ_KEY, server_mod.POPEN = kept[3], kept[4]
+        server_mod.WINDOW_KEY.update(kept[1])
+        server_mod.READ_KEY, server_mod.POPEN = kept[2], kept[3]

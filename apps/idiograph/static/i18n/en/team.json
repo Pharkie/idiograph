@@ -161,7 +161,6 @@
   "team.cli.came_in": "Came in: {what}.",
   "team.cli.needs_code": "Not on the relay yet: run team set --code-stdin with the relay code.",
   "team.cli.agent_relay": "The relay needs a relay code, which is his to type. Ask him to turn Working together on in Project settings, or use route folder.",
-  "team.cli.code_held": "A relay code is typed in Project settings, or run this with Dangerously skip permissions on. Nothing changed.",
   "team.cli.waiting": "{n} waiting to send: no connection.",
   "team.cli.would_send": "Would send: {what}.",
   "team.cli.gets_board": "the GETs board",

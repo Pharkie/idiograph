@@ -75,9 +75,11 @@ TOOL = "an AI agent"
 class Refused(Exception):
     """A command that cannot go ahead, with each reason one plain line."""
 
-    def __init__(self, *lines: str):
+    def __init__(self, *lines: str, code: str = ""):
         super().__init__("\n".join(lines))
         self.lines = [str(line) for line in lines if str(line)]
+        # the agent log's code for it, `app_only` for an op only the app does (agent_changes.py), else "refused"
+        self.code = code
 
 
 # ------------------------------------------------------------------ output
@@ -118,6 +120,10 @@ PLAIN = frozenset((
     "method",
     # an action waiting for his yes: its op and where it stands, the app's own words (holds, 27 October 2026)
     "op", "status",
+    # the record of agents' changes and a run undone (noholds, 13 November 2026): its runs and ids, where a change
+    # came from, the app's own line of what changed and of what an undo puts back, and the commands that undo
+    "run", "via", "started", "last", "what_changed", "own", "batch", "copy", "undoes", "undo_run", "change",
+    "back_said", "gone_said",
 ))
 
 
@@ -539,6 +545,9 @@ def parser(app: str | None = None, search: bool = False) -> argparse.ArgumentPar
     writes.add_argument("--dry-run", action="store_true", help="say what would change and write nothing")
     writes.add_argument("--note", default="", help="his request in his own words, which the board and its History name")
     writes.add_argument("--tool", default="", help="the tool the agent works in, such as Claude Code")
+    # an agent's run, whose writes share one restore point (noholds, 13 November 2026, agent_changes.py)
+    writes.add_argument("--run", default="", help="the run this write belongs to, any word the agent keeps for its "
+                                                  "session, so its writes share one restore point")
     # the family's first app's own commands at the top, Idiograph's, as its module registers them
     own = OWN_APP.get(name, {})
     ap = argparse.ArgumentParser(prog="idiograph", parents=[options()], description=own.get("about"))
@@ -712,7 +721,7 @@ def add_agents_log(x) -> None:
 
 def agents_log(args, allowed=None) -> tuple:
     """The agent log (agentlog and siftlog, 3 November 2026, see agent_log.py), newest first, every app's own
-    beside its own settings: each refusal of an agent and each turn of Dangerously skip permissions, read alone.
+    beside its own settings: each refusal of an agent, read alone.
     `allowed`, Idiograph's, the names of the projects agents may read: a refusal naming another, or none it could,
     comes back only in the count `closed`, never by its name. Sift and Trace tick no project for agents, so give
     none. `--since` a day, `--limit` the newest."""
@@ -725,8 +734,7 @@ def agents_log(args, allowed=None) -> tuple:
     for e in every:
         if since and str(e.get("time") or "")[:10] < since:
             continue
-        if allowed is not None and e.get("kind") != "switch" and (
-                e.get("closed") or (e.get("project") and e["project"] not in allowed)):
+        if allowed is not None and (e.get("closed") or (e.get("project") and e["project"] not in allowed)):
             closed += 1
             continue
         shown.append(agent_log.public(e))
@@ -738,9 +746,9 @@ def agents_log(args, allowed=None) -> tuple:
     lines = [i18n.t("family_cli.agents_log.head", entries=i18n.t("family_cli.agents_log.n_entries", n=len(every)))]
     for e in shown:
         when = when_said(e["time"])
-        if e["kind"] == "switch":
-            lines.append(i18n.t("family_cli.agents_log.switch_on", when=when) if e["on"]
-                         else i18n.t("family_cli.agents_log.switch_off", when=when))
+        if e["kind"] == "note":
+            # the actions that waited, dropped when approvals were removed (noholds, 13 November 2026)
+            lines.append(i18n.t("family_cli.agents_log.note", when=when, project=e["project"], line=e["line"]))
             continue
         lines.append(i18n.t("family_cli.agents_log.entry", when=when, agent=e["agent"] or TOOL, call=e["call"],
                             line=e["line"]))
@@ -809,6 +817,9 @@ def perform(args) -> tuple[dict, list[str]]:
     for word in ("note", "tool"):
         if not hasattr(args, word):
             setattr(args, word, "")
+    # where an agent's write came from, for the project's change record: the MCP server says so, else the command line
+    if not getattr(args, "via", None):
+        args.via = "cli"
     if not hasattr(args, "dry_run"):
         args.dry_run = False
     if not hasattr(args, "project"):
@@ -914,7 +925,7 @@ def main(argv: list[str] | None = None, out=None, err=None) -> int:
             answer, lines = perform(args)
         except Refused as exc:
             code = refuse(exc.lines, args, out, err)
-            logged(app, words, args, exc.lines, "")
+            logged(app, words, args, exc.lines, exc.code)
             return code
         except (WorkbookError, FileNotFoundError, OSError) as exc:
             code = refuse([str(exc)], args, out, err)

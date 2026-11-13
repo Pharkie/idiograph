@@ -1,0 +1,53 @@
+{
+  "agentchanges.only.team": "Only the app does this, since it reaches other people or changes who works on the project: open the project in Idiograph, Project settings, Working together. Nothing was done.",
+  "agentchanges.only.send": "Only the app shares a copy of a project, since it goes to another person: in Idiograph, Share a copy on the project's menu on Home. Nothing was done.",
+  "agentchanges.only.names": "Only the app takes a name off the list of names to replace, since the list is copied nowhere and no undo can put it back: in Idiograph, Project settings, Names to replace. Nothing was done.",
+  "agentchanges.only.settings": "Only the app changes its settings, since they are the app's and no project's, so no undo reaches them: in Idiograph, Settings. Nothing was done.",
+  "agentchanges.kind.project": "the project's settings",
+  "agentchanges.kind.gets": "the GETs",
+  "agentchanges.kind.lgets": "the LGETs",
+  "agentchanges.kind.trajectories": "Trajectories",
+  "agentchanges.kind.codes": "the code list",
+  "agentchanges.kind.project_files": "the project's own files",
+  "agentchanges.part.transcript": "transcript",
+  "agentchanges.part.boards": "boards",
+  "agentchanges.part.working": "working files",
+  "agentchanges.whose": "{who}'s {what}",
+  "agentchanges.changed": "Changed {what}.",
+  "agentchanges.made": "Made {what}.",
+  "agentchanges.no_files": "No file of the project changed.",
+  "agentchanges.removed": "Removed from Idiograph's list, its folder left as it is.",
+  "agentchanges.removed_trash": "Removed from Idiograph, its folder moved to the {where}.",
+  "agentchanges.n.changes": {
+    "one": "{n} change",
+    "other": "{n} changes"
+  },
+  "agentchanges.n.runs": {
+    "one": "{n} run",
+    "other": "{n} runs"
+  },
+  "agentchanges.none": "No agent has changed {project} yet.",
+  "agentchanges.head": "{changes} by agents in {project}, in {runs}, newest first.",
+  "agentchanges.run_line": "Run {id}, {agent}, {when}, {changes}. Undo it with: {command}",
+  "agentchanges.run_undone": "Run {id}, {agent}, {when}, {changes}, undone by run {by}.",
+  "agentchanges.entry": "  {id} {when}: {op}{target}. {changed}",
+  "agentchanges.asked": "    Asked: {request}",
+  "agentchanges.own_undo": "    Its own undo: {command}",
+  "agentchanges.undo.no_run": "No run of this project is called {id}. agents changes lists them.",
+  "agentchanges.undo.already": "Run {id} is undone already, by run {by}. Undo that run to have it back.",
+  "agentchanges.undo.folder": "Run {id} renamed a participant's folder, so it is not undone whole: rename the folder back first with participant rename and --folder, then undo the run. Nothing was written.",
+  "agentchanges.undo.refused": "Run {id} is not undone, since undoing it would lose these later changes:",
+  "agentchanges.undo.later": "  {what}, changed after the run's last change.",
+  "agentchanges.undo.between": "  {what}, changed by someone else between the run's changes.",
+  "agentchanges.undo.copies_gone": "Run {id}'s restore point no longer holds {what}, so it is not undone. Nothing was written.",
+  "agentchanges.undo.demo": "The demo keeps no restore points. Reset demo puts it back as it ships.",
+  "agentchanges.undo.would": "Undoing run {id}, {changes}, would put the project back as it was before its first change:",
+  "agentchanges.undo.done": "Run {id}, {changes}, is undone: the project is back as it was before its first change.",
+  "agentchanges.undo.back": "Put back: {what}.",
+  "agentchanges.undo.gone": "Taken away, as the run made them: {what}.",
+  "agentchanges.undo.again": "The undo is run {id}, which undoes it in its turn.",
+  "agentchanges.holds_cleared": {
+    "one": "{n} action that waited was cleared when approvals were removed.",
+    "other": "{n} actions that waited were cleared when approvals were removed."
+  }
+}

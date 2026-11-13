@@ -289,7 +289,8 @@
   "cli.turn_write.for_a_statement_and_its_quote": "{quotes} for {statements}. A statement and its quote go by place: give one quote a statement, an empty one for a statement with none, or send pairs.",
   "cli.turn_write.the_quote": "The quote {quoted} {not_lone}",
   "cli.turn_write.the_sheet_has_no_column_for": "The sheet has no column for {word}.",
-  "cli.turn_write.that_turn_is_the_interviewers_and": "That turn is the interviewer's, and statements, notes and quotes belong to the participant's turns.",
+  "cli.turn_write.that_turn_is_the_interviewers_and": "That turn is the interviewer's, and statements, notes and quotes belong to the participant's turns. One left on it can only be taken off, with remove: a statement by its key, a lone quote by its words.",
+  "cli.turn_write.remove_key_or_pairs": "A statement's key under remove takes it off on its own. Send the key alone, or the passage's pairs without that statement, not both.",
   "cli.turn_write.no_turn_on_at_row": "No turn on {sheet} at row {first}.",
   "cli.turn_write.the_file_names_no_statements_notes": "The file names no statements, notes or quotes, so there is nothing to write.",
   "cli.n.exploratory_note": {
@@ -926,7 +927,6 @@
   "cli.kind_words.gone": "no longer here",
   "cli.kind_words.differs": "reading differently here",
   "cli.kind_words.missing": "not here",
-  "cli.page_only.hold": "Only the app's own window approves or declines an action waiting for his yes, never a command.",
   "cli.project_export_qdpx.say_where": "Say where to write it with --to, a file or a folder, or run it with --dry-run.",
   "cli.n.lpet": {
     "one": "{n} LPET",
@@ -986,5 +986,24 @@
   "cli.bring_in.on_board_loose": "Operation {n} brings in {statement}, which is on the board already, in no {unit}. A move takes it into one.",
   "cli.bring_in.on_board_aside": "Operation {n} brings in {statement}, which is on the board already, set aside.",
   "cli.bring_in.twice": "Operations {first} and {n} both bring in {statement}. Bring it in once.",
-  "cli.bring_in.no_label": "Operation {n} brings {statement} into {to}, which is no {unit} on this board. Name one by its id or its title as gets show gives them, or leave \"to\" out to bring it in to none."
+  "cli.bring_in.no_label": "Operation {n} brings {statement} into {to}, which is no {unit} on this board. Name one by its id or its title as gets show gives them, or leave \"to\" out to bring it in to none.",
+  "cli.copy_lines.the_copy_took_words_and_quotes": "The {name}' copy of the participant {verb} the new words and quotes",
+  "cli.copy_lines.the_copy_took_quotes": "The {name}' copy of the participant {verb} the new quotes",
+  "cli.statement_line.card_stale": "  (card stale: the card reads \"{text}\")",
+  "cli.board_text.stale_cards": "{cards} on this board read otherwise than the workbook, each marked card stale. copies refresh brings them in line.",
+  "cli.copies_refresh.nothing": "Every board's cards and every copy of the statements read as the workbook does. Nothing to change.",
+  "cli.copies_refresh.dry_run": "Dry run, nothing was written. {cards}, {statements} and {quotes} would be brought in line with the workbook.",
+  "cli.copies_refresh.wrote": "Brought {cards}, {statements} and {quotes} in line with the workbook.",
+  "cli.copies_refresh.took": "took",
+  "cli.copies_refresh.cards": "{cards} {verb} the workbook's words ({keys})",
+  "cli.copies_refresh.picks": "{picks} {verb} the workbook's quote ({keys})",
+  "cli.copies_refresh.cards_missing": "{cards} whose statement is no longer in the workbook, left on the board ({keys})",
+  "cli.copies_refresh.copy_of": "{case}, the {name}' copy",
+  "cli.copies_refresh.statements": "{statements} {verb} the workbook's words ({keys})",
+  "cli.copies_refresh.quotes": "{statements} {verb} the workbook's quotes ({keys})",
+  "cli.copies_refresh.statements_missing": "{statements} no longer in the workbook, left in the copy ({keys})",
+  "cli.copies_refresh.board_cards": "{cards} on {board} {verb} the workbook's words ({keys})",
+  "cli.copies_refresh.board_missing": "{cards} on {board} whose statement is no longer in the workbook, left there ({keys})",
+  "cli.copies_refresh.changed_mark": "A card the PETs screen marks Changed takes the workbook's words too: Idiograph cannot tell a change he has yet to look at from a card a write left behind, so the workbook wins.",
+  "cli.copies_refresh.history": "Each board it changed keeps the board as it stood first in its History, as \"{history}\", and is marked as changed in a conversation."
 }

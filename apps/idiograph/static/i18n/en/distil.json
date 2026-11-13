@@ -598,20 +598,6 @@
   "distil.title.pets": "PETs",
   "distil.title.trajectories": "Trajectories",
   "distil.search.canvas_unsaved": "The canvas is not saved yet, so it stays open.",
-  "distil.holds.the_agent": "The agent",
-  "distil.holds.waiting": {
-    "one": "{n} action is waiting for your yes.",
-    "other": "{n} actions are waiting for your yes."
-  },
-  "distil.holds.ai_agent": "AI agent",
-  "distil.holds.changed": "This changed since {agent} asked.",
-  "distil.holds.changed_done": "This changed since {agent} asked, so nothing was done.",
-  "distil.holds.batch_title": {
-    "one": "{n} action is waiting for your yes",
-    "other": "{n} actions are waiting for your yes"
-  },
-  "distil.holds.agents": "AI agents",
-  "distil.holds.agent_says": "{agent} says you asked: “{request}”",
   "distil.project_history.you": "You, in the app",
   "distil.project_history.member": "{member}'s suggestion, accepted by you",
   "distil.project_history.agent_approved": "{agent}, approved in the app",
@@ -627,46 +613,6 @@
   },
   "distil.project_history.none_app": "No change in the app yet.",
   "distil.project_history.none_agent": "No change by an agent yet.",
-  "distil.holds.no_request": "No request given",
-  "distil.holds.details": "Details",
-  "distil.holds.tick_all": "Tick all",
-  "distil.holds.untick_all": "Untick all",
-  "distil.holds.decline_n": "Decline {n}",
-  "distil.holds.approve_n": "Approve {n}",
-  "distil.holds.what_changed": "{what} changed since {agent} asked.",
-  "distil.holds.what_changed_done": "{what} changed since {agent} asked, so nothing was done.",
-  "distil.holds.since_yours_deleted": "Some of what it would change was deleted since: Details shows what it would do now.",
-  "distil.holds.since_yours_changed": "Your answers since changed what it would do: Details shows what it would do now.",
-  "distil.holds.what_would_do": "What it would do",
-  "distil.holds.what_now": "What it would do now",
-  "distil.holds.approved_of": "{n} of {m} approved and done",
-  "distil.holds.declined_of": "{n} of {m} declined",
-  "distil.holds.not_done": {
-    "one": "{n} was not done.",
-    "other": "{n} were not done."
-  },
-  "distil.holds.still_wait": {
-    "one": "{n} action still waits for your yes.",
-    "other": "{n} actions still wait for your yes."
-  },
-  "distil.holds.state_done": "Done",
-  "distil.holds.state_declined": "Declined",
-  "distil.holds.state_not_done": "Not done",
-  "distil.holds.state_waiting": "Waiting",
-  "distil.holds.not_ticked": "Not ticked. It still waits for your yes.",
-  "distil.holds.review_waiting": {
-    "one": "Review the one waiting",
-    "other": "Review the {n} waiting"
-  },
-  "distil.holds.approving_of": "Approving {n} of {m}",
-  "distil.holds.declining_of": "Declining {n} of {m}",
-  "distil.holds.approving": "Approving…",
-  "distil.holds.declining": "Declining…",
-  "distil.holds.not_reached": "Not reached. It still waits for your yes.",
-  "distil.home.holds_waiting": {
-    "one": "{n} action is waiting for your yes",
-    "other": "{n} actions are waiting for your yes"
-  },
   "distil.pair.words": {
     "one": "{n} word",
     "other": "{n} words"

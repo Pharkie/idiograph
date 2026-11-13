@@ -101,7 +101,6 @@ def test_code_list(scratch: Path):
     import cli
     import codes
     import gets
-    import holds
     import i18n
     import idiograph_routes as routes
     import mcp_server
@@ -117,7 +116,7 @@ def test_code_list(scratch: Path):
     config_file.write_text(json.dumps({"projects": [{"root": str(root)}, {"root": str(ipa)}], "interviewer": "Adam",
                                        "corpus": "", "gravity_reference": "", "corpus_exclude": [],
                                        "skip_permissions": False}), encoding="utf-8")
-    kept = (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY, holds.RUN_AT_ONCE)
+    kept = (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY)
     book = {name: root / name / f"{name} - EN & ES.xlsx" for name in NAMES}
 
     def call(route: str, body: dict):
@@ -318,24 +317,17 @@ def test_code_list(scratch: Path):
               and {(b["cards"][k]["x"], b["cards"][k]["y"]) for k in mine} == {(2000, 2000)}
               and {parents.get(k) for k in mine} == {page["groups"][0]["id"]}, json.dumps([len(mine), len(gate)]))
 
-        # 9. the command line and MCP: a list, a dry run writing nothing, a rename waiting for his yes
+        # 9. the command line and MCP: a list, a dry run writing nothing, a rename run at once since approvals were
+        # removed (noholds, 13 November 2026)
         code, got, err = answer("codes", "list")
         check("316: codes list answers the list", code == 0 and any(c["name"] == CODES[0] for c in got["codes"]), err)
         olds = {name: sha(path) for name, path in book.items()}
         code, got, err = answer("codes", "rename", CODES[0], "The latch", "--dry-run")
         check("316: a rename's dry run says what it would do and writes nothing", code == 0 and got["dry_run"]
               and got["changes"] and olds == {n: sha(p) for n, p in book.items()}, err)
-        holds.RUN_AT_ONCE = None
         code, got, err = answer("codes", "rename", CODES[0], "The latch", "--note", "Shorter name", "--tool", "Claude Code")
-        hid = (got.get("held") or {}).get("id")
-        check("316: an agent's rename waits for his yes in the app, nothing written", bool(hid)
-              and olds == {n: sha(p) for n, p in book.items()} and CODES[0] in got["held"]["question"], err or json.dumps(got)[:300])
-        server_mod.CONFIG_PATH = config_file
-        try:
-            done = routes.api_holds({"op": "approve", "root": str(root), "id": hid})
-        finally:
-            server_mod.CONFIG_PATH = kept[0]
-        check("316: approved in the app, the rename runs", code_named(listed(), "The latch") is not None, json.dumps(done)[:300])
+        check("316: an agent's rename runs at once", code == 0 and code_named(listed(), "The latch") is not None,
+              err or json.dumps(got)[:300])
         srv = mcp_server.Server(str(root), config=str(config_file))
         tools = {t["name"] for t in mcp_server.tools_for("idiograph")}
         got = srv.receive(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "tools/call",
@@ -345,7 +337,6 @@ def test_code_list(scratch: Path):
             "codes_add", "codes_remove", "codes_undo", "codes_redo"} <= tools and not got.get("isError"), json.dumps(got)[:300])
 
         # 9b. an agent's gets apply: one card of a code moved takes the code's other cards with it, a split refused
-        holds.RUN_AT_ONCE = True
         codes_now = codes.line_codes(gets.load(root))
         latch = sorted(k for k, c in codes_now.items() if c == codes.norm("The latch") and k in board()["cards"])
         ops = base / "ops.json"
@@ -363,7 +354,6 @@ def test_code_list(scratch: Path):
         code, got, err = answer("gets", "apply", "Board 1", "--ops", str(ops), "--note", "Split it", "--tool", "Claude Code")
         check("316: an agent moving two cards of one code to different places is refused, nothing written",
               code != 0 and "different places" in err and before_gets == sha(gets.gets_path(root)), err)
-        holds.RUN_AT_ONCE = None
 
         # 9c. a share of one participant takes the codes they use, and a copy coming back adds the codes it lacks
         sent = base / "Juno's copy.idiograph"
@@ -417,4 +407,4 @@ def test_code_list(scratch: Path):
               and not codes.path_of(ipa).exists() and "codes" not in state
               and ipa_books == {name: sha(ipa / name / f"{name} - EN & ES.xlsx") for name in NAMES}, said + err)
     finally:
-        server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY, holds.RUN_AT_ONCE = kept
+        server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY = kept

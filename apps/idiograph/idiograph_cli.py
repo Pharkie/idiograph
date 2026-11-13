@@ -36,6 +36,7 @@ from pathlib import Path
 
 import openpyxl
 
+import agent_changes as changes_mod
 import agent_log
 import ai_suggest as ai_mod
 import audio as audio_mod
@@ -48,7 +49,6 @@ import export as export_mod
 import formats
 import gets as gets_mod
 import gets_word
-import holds
 import i18n
 import idiograph_find
 import idiograph_routes as routes
@@ -236,6 +236,10 @@ def open_projects(args) -> tuple[list[Project], list[str]]:
         if not routes.read_project(root)["agents"]["allowed"] and not demo:
             closed.append(routes.read_project(root)["name"])
             continue
+        # an action that waited for his yes before approvals were removed (noholds, 13 November 2026) is dropped as
+        # the project first opens, and said once in the agent log
+        if not demo:
+            changes_mod.clear_holds(root)
         opened.append(Project(root, demo))
     if not opened:
         # the agent log counts the projects agents may not read, never naming one (agent_log.py)
@@ -308,17 +312,38 @@ def place_of(p: Project, args):
 
 
 def run_scoped(command, p: Project, args) -> tuple:
-    """A command run in its scope as it stands, which the app's Approve of a held action runs (see `holds`)."""
+    """A command run in its scope as it stands, which the app's own calls run, a teammate's suggestion accepted
+    among them (review.py), outside an agent's record."""
     with scope_of(p, args) as q:
         return command(q, args)
 
 
 def run_in_scope(command, p: Project, args) -> tuple:
-    """A command as an agent asked it, in its scope: one that waits for his yes in the app kept as a hold while
-    "Dangerously skip permissions" is off (`holds.gate`, 27 October 2026), every other run at once."""
+    """A command as an agent asked it, in its scope, run at once since approvals were removed (noholds, 13 November
+    2026): an op only the app does refused in a plain line, and every write kept in the project's change record
+    with its run's restore point (`agent_changes.through`). An undo of a run keeps its own (`agent_changes.undo_run`)."""
     agent_log.at_project(p.info["name"])
     with scope_of(p, args) as q:
-        return holds.gate(q, args, lambda given: command(q, given))
+        if (args.command, getattr(args, "act", None)) == ("agents", "undo-run"):
+            return command(q, args)
+        return changes_mod.through(q, args, lambda given: command(q, given), writing_ops())
+
+
+# the ops that write, each taking --dry-run, read once from the parser (see `writing_ops`)
+WRITES: set = set()
+
+
+def writing_ops() -> frozenset:
+    """Every op that writes, by its command and act: those whose parser takes --dry-run, as every write does."""
+    if not WRITES:
+        top = cli.parser()
+        sub = next(a for a in top._actions if isinstance(a, argparse._SubParsersAction))
+        for name, p in sub.choices.items():
+            acts = [a for a in p._actions if isinstance(a, argparse._SubParsersAction)]
+            for act, q in (acts[0].choices.items() if acts else [(None, p)]):
+                if any("--dry-run" in a.option_strings for a in q._actions):
+                    WRITES.add((name, act))
+    return frozenset(WRITES)
 
 
 def case_name(workbook: Path) -> str:
@@ -407,7 +432,10 @@ def cmd_cases(p: Project, args) -> tuple:
         tps = routes.card_timepoints(book, cfg.get("interviewer") or "") if routes.longitudinal(p.info["timepoints"]) else None
         # their picture, label and pen portrait (pbiobuild), as participant show gives them
         person = routes.person_of(p.root, people, b["case"])
+        # their own workbook missing, copies or another workbook in its place, which every read and write refuses
+        lost = wb_mod.displaced(book)
         rows.append({"case": b["case"], "workbook": book.name, "in_study": study[b["case"]]["in"],
+                     **({"missing": wb_mod.displaced_said(lost)} if lost is not None else {}),
                      "label": person["label"], "portrait": person["portrait"], "picture": person["picture"],
                      "values": person.get("values") or {},
                      "statements_complete": rounds_mod.complete_of(book), "pets_complete": themes.complete_of(data),
@@ -439,6 +467,8 @@ def cmd_cases(p: Project, args) -> tuple:
             said.append(i18n.t("cli.cases.pets_complete_on", name=r['pets_complete']['name']))
         if r.get("unread"):
             said.append(r["unread"])
+        if r.get("missing"):
+            said.append(r["missing"])
         lines.append("  " + " ".join(said))
         if r["boards"]:
             parts = []
@@ -1433,6 +1463,43 @@ def cmd_project_history(p: Project, args) -> tuple:
     return {"history": shown, "total": total}, lines
 
 
+def cmd_agents_changes(p: Project, args) -> tuple:
+    """`agents changes`: every change agents made in the project, newest first, from the project's change record
+    (noholds, 13 November 2026, agent_changes.py), each with its run, when, the agent, the request it gave, the op
+    and its target, what changed in a line and how to undo it, and each run with the command that undoes it.
+    `--since` a day, `--run` one run's alone, `--limit` the newest. It reads alone."""
+    got = changes_mod.listing(p.root, getattr(args, "since", None) or "", getattr(args, "run_id", None) or "",
+                              getattr(args, "limit", None))
+    name = p.info["name"]
+    if not got["changes"]:
+        return got, [i18n.t("agentchanges.none", project=name)]
+    runs = {r["id"]: r for r in got["runs"]}
+    lines = [i18n.t("agentchanges.head", project=name, changes=i18n.t("agentchanges.n.changes", n=len(got["changes"])),
+                    runs=i18n.t("agentchanges.n.runs", n=len(runs)))]
+    last = None
+    for e in got["changes"]:
+        rid = str(e.get("run") or "")
+        if rid != last and rid in runs:
+            r = runs[rid]
+            n = i18n.t("agentchanges.n.changes", n=r["changes"])
+            when = cli.when_said(r["started"])
+            lines.append(i18n.t("agentchanges.run_undone", id=rid, agent=r["agent"] or cli.TOOL, when=when, changes=n,
+                                by=r["undone"].get("run") or "") if r.get("undone") else
+                         i18n.t("agentchanges.run_line", id=rid, agent=r["agent"] or cli.TOOL, when=when, changes=n,
+                                command=r["command"]))
+        last = rid
+        target = e.get("target") or {}
+        where = ", ".join(str(target[k]) for k in ("case", "board", "sheet", "row", "run") if target.get(k))
+        lines.append(i18n.t("agentchanges.entry", id=e.get("id") or "", when=cli.when_said(e.get("at")),
+                            op=e.get("op") or "", target=f", {where}" if where else "", changed=e.get("what_changed") or ""))
+        if e.get("request"):
+            lines.append(i18n.t("agentchanges.asked", request=agent_log.agent_words(e["request"])))
+        own = (e.get("undo_with") or {}).get("own")
+        if own:
+            lines.append(i18n.t("agentchanges.own_undo", command=own))
+    return got, lines
+
+
 def cmd_agents_log(args) -> tuple:
     """The agent log (agentlog, 3 November 2026, see agent_log.py), newest first, read alone through the family's
     reader (`cli.agents_log`, every app's since siftlog the same day), given the names of the projects agents may
@@ -1494,8 +1561,7 @@ def cmd_project_set(p: Project, args) -> tuple:
 def cmd_project_remove(p: Project, args) -> tuple:
     """`project remove`: the project taken out of Idiograph's list, as Remove from Idiograph on its menu takes it
     (removetrash, 10 November 2026), its folder and every file in it left as they are, or with --trash moved to the
-    system's Trash first, never deleted, once nothing refuses it (`srv.trash_guard`). With --trash it waits for his
-    yes in the app (`holds.HELD`) unless Dangerously skip permissions is ticked. The dry run names the folder and
+    system's Trash first, never deleted, once nothing refuses it (`srv.trash_guard`). The dry run names the folder and
     moves nothing. The demo stays, and a run of one project, --root, removes none."""
     if p.demo:
         raise cli.Refused(i18n.t("server.demo_stays_nothing_removed"))
@@ -2312,15 +2378,23 @@ def shown_board(read: dict, board: dict, sids: dict, labels: str = themes.LETTER
 
     loose = {k for k, c in v["cards"].items() if c.get(themes.LOOSE)}
 
+    def stale(s: dict) -> dict:
+        # a card whose own words differ from the workbook's, which the canvas marks changed and `copies refresh`
+        # brings in line, its words beside the workbook's (cardsync, 13 November 2026)
+        card = v["cards"].get(s["key"]) or {}
+        if s.get("missing") or "text" not in card or themes.words(card["text"]) == themes.words(s["text"]):
+            return {}
+        return {"card_stale": True, "card_text": card["text"]}
+
     def statement(s: dict) -> dict:
-        out = dict(s, id=sids.get(s["key"]))
+        out = dict(s, id=sids.get(s["key"]), **stale(s))
         # one in no PET that he put on the canvas, where the rest of Not placed waits in the sidebar
         if s["key"] in loose:
             out["loose"] = True
         if s["key"] in reasons and "reason" not in out:
             out["reason"] = reasons[s["key"]]
         if s.get("stacked"):
-            out["stacked"] = [dict(x, id=sids.get(x["key"])) for x in s["stacked"]]
+            out["stacked"] = [dict(x, id=sids.get(x["key"]), **stale(x)) for x in s["stacked"]]
         return out
 
     def theme(t: dict) -> dict:
@@ -2330,6 +2404,14 @@ def shown_board(read: dict, board: dict, sids: dict, labels: str = themes.LETTER
     out = dict(tree, id=v["id"], themes=[theme(t) for t in tree["themes"]],
                unplaced=[statement(s) for s in tree["unplaced"]], discarded=[statement(s) for s in tree["discarded"]])
     out["set_aside"] = out["discarded"]
+
+    def stale_keys(items: list[dict], themes_in: list[dict]) -> list[str]:
+        keys = [x["key"] for s in items for x in [s] + list(s.get("stacked") or []) if x.get("card_stale")]
+        return keys + [k for t in themes_in for k in stale_keys(t["statements"], t["themes"])]
+
+    stale_cards = stale_keys(out["unplaced"] + out["discarded"], out["themes"])
+    if stale_cards:
+        out["stale_cards"] = stale_cards
     for key in themes.AGENT_KEYS:
         if v.get(key):
             out[key] = v[key]
@@ -2372,7 +2454,8 @@ def close_gap_asked(args) -> int:
 
 def statement_line(s: dict, pad: str) -> list[str]:
     head = pad + "  ".join(x for x in (f"{s.get('id') or ''} {s['key']}".strip(), s.get("time") or "", s["text"]) if x)
-    out = [head + (i18n.t("cli.statement_line.no_longer_in_the_workbook") if s.get("missing") else "") + (f"  ({_w('LOOSE_SAID')})" if s.get("loose") else "")]
+    out = [head + (i18n.t("cli.statement_line.no_longer_in_the_workbook") if s.get("missing") else "") + (f"  ({_w('LOOSE_SAID')})" if s.get("loose") else "")
+           + (i18n.t("cli.statement_line.card_stale", text=s["card_text"]) if s.get("card_stale") else "")]
     if s.get("reason"):
         out.append(i18n.t("cli.statement_line.why", pad=pad, reason=s['reason']))
     for x in s.get("close") or []:
@@ -2407,6 +2490,8 @@ def board_text(case: str, shown: dict) -> list[str]:
         lines.append(i18n.t("cli.board_text.last_changed_by_in_a_conversation", tool=shown['changed']['tool'] or cli.TOOL, when=cli.when_said(shown['changed']['at'])))
     if shown.get("version"):
         lines.append(i18n.t("cli.said.version", version=shown['version']))
+    if shown.get("stale_cards"):
+        lines.append(i18n.t("cli.board_text.stale_cards", cards=i18n.t("cli.n.card", n=len(shown["stale_cards"]))))
     for t in shown["themes"]:
         lines += [""] + tree_lines(t)
     lines += ["", f"{NOT_PLACED} ({len(shown['unplaced'])})"]
@@ -5563,7 +5648,12 @@ def turns_of(book: Path, sheet: str) -> tuple[list[dict], dict]:
     statements, exploratory notes and quotes, its timecode as the project writes them."""
     form = wb_mod.timecodes_for(book)
     try:
-        wb = openpyxl.load_workbook(book, read_only=True, data_only=True)
+        # never a copy standing where the case's own workbook is missing, nor the missing one (wbguard)
+        wb_mod.guard_place(book)
+    except WorkbookError as exc:
+        raise cli.Refused(str(exc)) from None
+    try:
+        wb = openpyxl.load_workbook(wb_mod.whole(book), read_only=True, data_only=True)
     except Exception as exc:
         raise cli.Refused(i18n.t("cli.turns_of.could_not_be_read", name=book.name, exc=exc))
     try:
@@ -5622,7 +5712,8 @@ def turn_lines(t: dict, interviewer: str) -> list[str]:
             lines.append(i18n.t("cli.turn_lines.quote_with_no_statement", quote=p['quote'], ran=ran))
     for item in t["notes"]:
         lines.append(i18n.t("cli.turn_lines.note", item=item))
-    if not his and t.get("version"):
+    # the interviewer's turn's too when it holds a statement or a quote, which a removal there sends back (wbguard)
+    if (not his or t["pairs"]) and t.get("version"):
         lines.append(i18n.t("cli.turn_lines.version", version=t['version']))
     return lines
 
@@ -5799,6 +5890,25 @@ def pair_keys(raw, sheet: str, row: int, held: int) -> tuple[list | None, list[s
     return (named if seen else None), problems
 
 
+def keys_off(remove: list[str] | None, sheet: str, row: int, held: int) -> tuple[set[int], list[str] | None, list[str]]:
+    """The statements a write's `remove` takes off by their keys as turn show gave them, `Initial:12:1`, by their
+    lines, the rest of `remove`, the lone quotes it names by their words, and a line for each key of this passage
+    that names no statement of it (wbguard, 13 November 2026). An entry that is not a key of this passage is a lone
+    quote's words, as before, and a key sent twice takes its statement off once."""
+    if not remove:
+        return set(), remove, []
+    off, rest, problems = set(), [], []
+    for item in remove:
+        s, r, line = themes.split_card_key(item)
+        if s != sheet or r != row or line is None:
+            rest.append(item)
+        elif not 0 <= line < held:
+            problems.append(f"{item} {_w('NOT_THIS_LINE')}")
+        else:
+            off.add(line)
+    return off, rest, problems
+
+
 def quote_lines(old_places: list[str], held: int, new_places: list[str], made: int, lines: dict) -> dict:
     """Where each quote of a passage goes when a write moves its lines: a statement's own quote
     with its statement, by `lines`, and a lone quote, past the `held` statements' places, to the lone
@@ -5947,12 +6057,29 @@ def turn_write(p: Project, args) -> tuple:
         raise cli.Refused(_w("STALE_WRITE"))
     interviewer = str(srv.config().get("interviewer") or "")
     problems = []
-    if turn["name"].strip().lower() == interviewer.strip().lower():
+    # a statement's key under `remove`, as turn show gave it, takes that statement off with its own quote, its
+    # cards on every board with it, as leaving it out of the pairs does (wbguard, 13 November 2026)
+    off, remove, key_problems = keys_off(remove, args.sheet, first, len(turn["statements"]))
+    problems += key_problems
+    sent = [k for k in ("pairs", "statements", "quotes", "notes", "add_notes") if spec.get(k) is not None]
+    if off and sent:
+        problems.append(i18n.t("cli.turn_write.remove_key_or_pairs"))
+    # the interviewer's turn takes a removal alone, of a statement by its key or a lone quote by its words, so one
+    # left there can be taken off, and nothing is added or reworded on it
+    his = turn["name"].strip().lower() == interviewer.strip().lower()
+    if his and (sent or not (off or remove)):
         problems.append(i18n.t("cli.turn_write.that_turn_is_the_interviewers_and"))
+    if off:
+        held = len(turn["statements"])
+        own = list(turn["places"][:held]) + [""] * max(0, held - len(turn["places"]))
+        statements = [s for i, s in enumerate(turn["statements"]) if i not in off]
+        places = [q for i, q in enumerate(own) if i not in off]
     # each pair's key, as turn show gave it, says which statement of the passage it is, so every
     # board's card follows its statement whatever a write removes or rewords (20 October)
     named, bad_keys = pair_keys(spec.get("pairs"), args.sheet, first, len(turn["statements"]))
     problems += bad_keys
+    if off:
+        named = [i for i in range(len(turn["statements"])) if i not in off] or None
     named_quotes = (places or []) + given_lone
     for role, word, given in (("es", "statements", statements), ("en", i18n.t("cli.turn_write.exploratory_notes"), notes),
                               ("kq", "quotes", named_quotes if any(named_quotes) else None)):
@@ -6069,6 +6196,13 @@ def turn_write(p: Project, args) -> tuple:
     reworded = {themes.card_key(args.sheet, first, i): (turn["statements"][i], after_s[i])
                 for i, j in (moves_lines or {}).items()
                 if j == i and i < len(after_s) and themes.words(turn["statements"][i]) != themes.words(after_s[i])}
+    # and each one's own quote rewritten in its place, which the copies take with it (cardsync, 13 November 2026)
+    was_q = lambda q, i: str(q[i] or "") if i < len(q) else ""
+    requoted = {themes.card_key(args.sheet, first, i): (was_q(turn["places"], i), was_q(after_q, i))
+                for i, j in (moves_lines or {}).items()
+                if j == i and i < len(after_s) and (moves_quotes or {}).get(i) == i
+                and was_q(turn["places"], i) != was_q(after_q, i)}
+    follows = bool(reworded or requoted)
 
     if args.dry_run:
         try:
@@ -6076,7 +6210,7 @@ def turn_write(p: Project, args) -> tuple:
             boards, failed = carry(now, themes.with_row(now, args.sheet, first, after_s, after_q), True)
         except (WorkbookError, OSError):
             boards, failed = [], []
-        copies = routes.follow_statements(book, reworded, {}, dry=True) if reworded else {}
+        copies = routes.follow_statements(book, reworded, {}, dry=True, quotes=requoted) if follows else {}
         effects = effects_of(boards)
         text = i18n.t("cli.turn_write.dry_run_nothing_was_written_it", said=said, where=where)
         lines = ([text] + span_lines(spans, args.sheet, True) + added_lines(added, turn["notes"], True)
@@ -6089,7 +6223,7 @@ def turn_write(p: Project, args) -> tuple:
     # the root's lock first, as the app takes it, since the GETs' copies are written with the workbook
     with locks.root(p.root), wb_mod.case_held(book):
         wb_mod.guard_lock(book)
-        copies_were = routes.copies_before(book) if reworded else {}
+        copies_were = routes.copies_before(book) if follows else {}
         backup = wb_mod.archive_copy(book, "pre-agent")
         paired = pairing and ("es" in changing or "kq" in changing)
         try:
@@ -6108,7 +6242,9 @@ def turn_write(p: Project, args) -> tuple:
         progress = rounds_mod.load_progress(book)
         key = rounds_mod.row_key(args.sheet, first)
         has = bool(changing.get("es", before["es"]))
-        progress["rows"][key] = rounds_mod.HAS_CONTENT if has else rounds_mod.REVIEWED_EMPTY
+        # the interviewer's turn is never counted, so a removal there leaves its row's state as it was (wbguard)
+        if not his:
+            progress["rows"][key] = rounds_mod.HAS_CONTENT if has else rounds_mod.REVIEWED_EMPTY
         at = now_iso()
         who = mark(args, at)
         progress.setdefault("edits", []).append({
@@ -6122,7 +6258,7 @@ def turn_write(p: Project, args) -> tuple:
         boards, failed = carry(now, themes.read_cards(book), False, mark(args, at)) if now is not None else ([], [])
         # and the GETs' copies of the participant, a board with a card of it marked changed in a conversation
         copies = routes.follow_statements(book, reworded, copies_were, changed=mark(args, at),
-                                          history=history) if reworded else {}
+                                          history=history, quotes=requoted) if follows else {}
     effects = effects_of(boards)
     carried = [{"board": x["board"], "name": x["name"], "keys": x["reworded"]} for x in boards if x["reworded"]]
     text = (i18n.t("cli.turn_write.wrote_the_on_after_a_copy", said=said, where=where, name=backup.name))
@@ -6150,7 +6286,13 @@ def copy_lines(copies: dict, history: str, dry: bool) -> list[str]:
             continue
         name = routes.COPY_NAMES[kind]
         verb = i18n.t("cli.said.would_take") if dry else "took"
-        line = i18n.t("cli.copy_lines.the_copy_of_the_participant_the", name=name, verb=verb)
+        # the new words, the new quotes or both (cardsync, 13 November 2026)
+        if done.get("quotes") and done.get("words"):
+            line = i18n.t("cli.copy_lines.the_copy_took_words_and_quotes", name=name, verb=verb)
+        elif done.get("quotes"):
+            line = i18n.t("cli.copy_lines.the_copy_took_quotes", name=name, verb=verb)
+        else:
+            line = i18n.t("cli.copy_lines.the_copy_of_the_participant_the", name=name, verb=verb)
         if done["boards"]:
             n = sum(len(x["keys"]) for x in done["boards"])
             names = listed([x["name"] for x in done["boards"]])
@@ -6160,6 +6302,110 @@ def copy_lines(copies: dict, history: str, dry: bool) -> list[str]:
             line += "."
         out.append(line)
     return out + list(copies.get("failed") or [])
+
+
+# ------------------------------------------------------- copies brought in line (cardsync)
+# (13 November 2026, from the GRAVITY session: a write that went astray left a participant's cards and LPETs on old
+# wording and old quotes, and `board show`, which prints the workbook's words by key, hid it.) `copies refresh`
+# reads every copy of each participant's statements against the workbook and brings back those that differ.
+
+def cmd_copies_refresh(p: Project, args) -> tuple:
+    """Every copy of the participants' statements brought in line with their workbooks, or one participant's with
+    `--case` (see `routes.refresh_copies`): every PETs board's cards and picks at every timepoint, and the GETs',
+    the LPETs' and the LGETs' copies and their boards' cards. One History step on each board it changes, under his
+    request, each file written once, under the participant's lock and the project's. A participant whose files
+    cannot be read or written is named and left as it is, the others brought in line. The dry run names, for each
+    participant and file, the keys that would change and those no longer in the workbook, never the words."""
+    request = themes_ai.one_line(args.note)
+    if not request and not args.dry_run:
+        raise cli.Refused(_w("NO_REQUEST"))
+    named = getattr(args, "case", None)
+    books = [p.case(named)] if named else list(p.books)
+    history = themes_ai.revision_name(request) if request else ""
+    changed = None if args.dry_run else mark(args, now_iso())
+    labels = {t["n"]: t["label"] for t in routes.root_timepoints(p.root)}
+    long = routes.longitudinal(routes.root_timepoints(p.root))
+    people = []
+    for b in books:
+        book = Path(b["workbook"])
+        try:
+            if args.dry_run:
+                done = routes.refresh_copies(book, dry=True)
+            else:
+                with locks.root(p.root), wb_mod.case_held(book):
+                    done = routes.refresh_copies(book, changed=changed, history=history)
+        except WorkbookError as exc:
+            done = {"pets": [], "copies": {}, "failed": [str(exc)]}
+        files = [{"file": "pets", "name": "PETs", "timepoint": labels.get(x["timepoint"], routes.tp_label(x["timepoint"]))
+                  if long else None, "board": x["board"], "board_name": x["name"], "cards": x["cards"],
+                  "quotes": x["quotes"], "missing": x["missing"]} for x in done["pets"]]
+        for kind, x in done["copies"].items():
+            if x["statements"] or x["quotes"] or x["missing"] or x["boards"]:
+                files.append(dict(x, file=kind, name=routes.COPY_NAMES[kind]))
+        if files or done["failed"]:
+            people.append({"case": b["case"], "files": files, "failed": done["failed"]})
+    every = [f for x in people for f in x["files"]]
+    count = lambda field, where=None: sum(len(f.get(field) or []) for f in every if where is None or f["file"] == where)
+    cards = count("cards", "pets") + sum(len(c["cards"]) for f in every for c in f.get("boards") or [])
+    statements, quotes = count("statements"), count("quotes")
+    missing = count("missing") + sum(len(c["missing"]) for f in every for c in f.get("boards") or [])
+    said = dict(cards=i18n.t("cli.n.card", n=cards), statements=i18n.t("cli.n.statement", n=statements),
+                quotes=i18n.t("cli.n.quote", n=quotes))
+    if not (cards or statements or quotes):
+        head = i18n.t("cli.copies_refresh.nothing")
+    elif args.dry_run:
+        head = i18n.t("cli.copies_refresh.dry_run", **said)
+    else:
+        head = i18n.t("cli.copies_refresh.wrote", **said)
+    lines = [head] + refresh_lines(people, args.dry_run)
+    if count("cards", "pets"):
+        lines.append(i18n.t("cli.copies_refresh.changed_mark"))
+    if not args.dry_run and (cards or statements or quotes):
+        lines.append(i18n.t("cli.copies_refresh.history", history=history))
+    return {"dry_run": bool(args.dry_run), "participants": people, "cards": cards, "statements": statements,
+            "quotes": quotes, "missing": missing, "said": head}, lines
+
+
+def refresh_lines(people: list[dict], dry: bool) -> list[str]:
+    """What `copies refresh` brings in line, a line for each participant's board or file of copies, keys alone."""
+    verb = i18n.t("cli.said.would_take") if dry else i18n.t("cli.copies_refresh.took")
+    keys = lambda ks: ", ".join(ks)
+    out = []
+    for x in people:
+        for f in x["files"]:
+            parts = []
+            if f["file"] == "pets":
+                where = f"{x['case']}, {f['name']}" + (f" {f['timepoint']}" if f.get("timepoint") else "") + f", {f['board_name']}"
+                if f["cards"]:
+                    parts.append(i18n.t("cli.copies_refresh.cards", cards=i18n.t("cli.n.card", n=len(f["cards"])),
+                                        verb=verb, keys=keys(f["cards"])))
+                if f["quotes"]:
+                    parts.append(i18n.t("cli.copies_refresh.picks", picks=i18n.t("cli.n.pick", n=len(f["quotes"])),
+                                        verb=verb, keys=keys(f["quotes"])))
+                if f["missing"]:
+                    parts.append(i18n.t("cli.copies_refresh.cards_missing", cards=i18n.t("cli.n.card", n=len(f["missing"])),
+                                        keys=keys(f["missing"])))
+            else:
+                where = i18n.t("cli.copies_refresh.copy_of", case=x["case"], name=f["name"])
+                if f["statements"]:
+                    parts.append(i18n.t("cli.copies_refresh.statements", verb=verb, keys=keys(f["statements"]),
+                                        statements=i18n.t("cli.n.statement", n=len(f["statements"]))))
+                if f["quotes"]:
+                    parts.append(i18n.t("cli.copies_refresh.quotes", verb=verb, keys=keys(f["quotes"]),
+                                        statements=i18n.t("cli.n.statement", n=len(f["quotes"]))))
+                if f["missing"]:
+                    parts.append(i18n.t("cli.copies_refresh.statements_missing", keys=keys(f["missing"]),
+                                        statements=i18n.t("cli.n.statement", n=len(f["missing"]))))
+                for c in f["boards"]:
+                    if c["cards"]:
+                        parts.append(i18n.t("cli.copies_refresh.board_cards", board=c["name"], verb=verb, keys=keys(c["cards"]),
+                                            cards=i18n.t("cli.n.card", n=len(c["cards"]))))
+                    if c["missing"]:
+                        parts.append(i18n.t("cli.copies_refresh.board_missing", board=c["name"], keys=keys(c["missing"]),
+                                            cards=i18n.t("cli.n.card", n=len(c["missing"]))))
+            out.append(f"{where}: {listed(parts)}.")
+        out += [f"{x['case']}: {line}" for line in x["failed"]]
+    return out
 
 
 # ------------------------------------------------------- the statements screen's own writes
@@ -7320,6 +7566,10 @@ def cmd_validate(p: Project, args) -> tuple:
         problems += problems_in(held, "gets", i18n.t("cli.validate.the_gets_file"))
     for b in p.books:
         book = Path(b["workbook"])
+        # their own workbook missing, copies or another workbook in its place (wbguard)
+        lost = wb_mod.displaced(book)
+        if lost is not None:
+            problems.append(wb_mod.displaced_said(lost))
         for path, name, word in ((rounds_mod.progress_path(book), "progress", i18n.t("cli.validate.progress_file")),
                                  (themes.themes_path(book), "themes", i18n.t("cli.validate.themes_file"))):
             if path.is_file():
@@ -7450,6 +7700,8 @@ COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             ("turn", "edit"): cmd_turn_edit, ("turn", "interviewer-note"): cmd_turn_interviewer_note,
             ("turn", "assign"): cmd_turn_assign, ("turn", "assign-undo"): cmd_turn_assign_undo,
             ("turn", "trim"): cmd_turn_trim, ("turn", "trim-undo"): cmd_turn_trim_undo,
+            # every copy of the statements brought in line with the workbook (cardsync, 13 November 2026)
+            ("copies", "refresh"): cmd_copies_refresh,
             ("project", "add-transcripts"): cmd_project_add_transcripts,
             ("names", "list"): cmd_names_list, ("names", "check"): cmd_names_check, ("names", "remove"): cmd_names_remove,
             ("names", "replace"): cmd_names_replace,
@@ -7488,7 +7740,9 @@ COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             # the project's demographics (demobuild, 12 November 2026)
             ("demographics", "show"): cmd_demographics_show, ("demographics", "apply"): cmd_demographics_apply,
             ("demographics", "move-tags"): cmd_demographics_move_tags,
-            ("hold", None): lambda p, args: holds.cmd_hold(p, args), ("hold", "show"): lambda p, args: holds.cmd_hold_show(p, args),
+            # every change agents made and its run, and a run undone (noholds, 13 November 2026, agent_changes.py)
+            ("agents", "changes"): lambda p, args: cmd_agents_changes(p, args),
+            ("agents", "undo-run"): lambda p, args: changes_mod.undo_run(p, args),
             # Working together's comments and review (wtreview, 8 November 2026, see review.py)
             **review_mod.COMMANDS}
 
@@ -7793,6 +8047,12 @@ def arguments(sub, common, writes) -> None:
     x = t.add_parser("trim-undo", parents=[common, writes], help="a trim undone by the id it answered with")
     x.add_argument("case")
     x.add_argument("id")
+    cp = sub.add_parser("copies", parents=[common], help="the copies of the statements the boards and the GETs, LPETs "
+                                                         "and LGETs keep").add_subparsers(dest="act", required=True)
+    x = cp.add_parser("refresh", parents=[common, writes],
+                      help="every card, pick and copy of a statement whose words or quote differ from the workbook "
+                           "brought in line with it, the dry run naming the keys")
+    x.add_argument("--case", default=None, help="one participant alone, by pseudonym, every one when left out")
     x = sub.add_parser("import", parents=[common, writes],
                        help="a transcript file made into its raw source, or a raw source into the participant's workbook, "
                             "as the import and create cards make them")
@@ -7984,19 +8244,23 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--participant", dest="case", default=None, help="this participant's workbook alone")
     x.add_argument("--redo", action="store_true", help="apply the replace again after an undo")
     sub.add_parser("validate", parents=[common], help="every file of the project against its schema")
-    hp = sub.add_parser("hold", parents=[common],
-                        help="the actions that waited for his yes in the app, a board deleted, an old revision put "
-                             "over a board or words replaced across every participant, each waiting, approved or "
-                             "declined. Only the app answers one")
-    x = hp.add_subparsers(dest="act").add_parser("show", parents=[common],
-                                                 help="one action that waited, by its id, or several, each by its id")
-    x.add_argument("id", nargs="+", help="the action's id, h3, as the answer that waited gave it, or several ids")
     ag = sub.add_parser("agents", parents=[common], help="the app's record of agents: the agent log, each refusal of "
-                                                         "an agent and each turn of Dangerously skip permissions, read "
-                                                         "alone").add_subparsers(dest="act", required=True)
+                                                         "an agent, read alone, and each project's record of every "
+                                                         "change agents made, with a run's undo"
+                        ).add_subparsers(dest="act", required=True)
     x = ag.add_parser("log", parents=[common], help="the agent log, newest first, a project agents may not read by a "
                                                     "count alone")
     cli.add_agents_log(x)
+    # every change agents made, and a run undone (noholds, 13 November 2026, agent_changes.py)
+    x = ag.add_parser("changes", parents=[common], help="every change agents made in the project, newest first, each "
+                                                        "with its run, what changed and how to undo it")
+    x.add_argument("--since", default=None, help="from this day on, 2026-11-13")
+    x.add_argument("--run", dest="run_id", default=None, help="this run's changes alone, r3")
+    x.add_argument("--limit", type=int, default=None, help="the newest changes alone, this many")
+    x = ag.add_parser("undo-run", parents=[common, writes],
+                      help="a run of an agent undone: every file it changed put back as it was before its first "
+                           "change, refused whole when that would lose a later change")
+    x.add_argument("id", help="the run's id, r3, as agents changes gives it")
     pj = sub.add_parser("project", parents=[common], help="the whole project sent as one file, or a sent one opened "
                                                           "as a copy, its settings saved, or a new project "
                                                           "made").add_subparsers(dest="act", required=True)
@@ -8266,7 +8530,7 @@ def perform(args) -> tuple[dict, list[str]]:
         if args.command == "search":
             # every project it reads when none is named, each hit naming its project
             return cmd_search(projects, closed, args)
-        if (args.command, getattr(args, "act", None)) == ("project", "boards-in"):
+        if (args.command, getattr(args, "act", None)) == ("project", "boards-in") and len(projects) > 1:
             # with no project named, the one the copy coming back belongs to
             return cmd_project_boards_in(projects, args)
         command = COMMANDS[(args.command, getattr(args, "act", None))]
@@ -8274,11 +8538,8 @@ def perform(args) -> tuple[dict, list[str]]:
             return run_in_scope(command, projects[0], args)
         if args.command in ("import", "qdpx"):
             return command(import_project(projects, args.file), args)
-        if args.command in ("cases", "validate") or (args.command, getattr(args, "act", None)) == ("hold", None):
+        if args.command in ("cases", "validate") or (args.command, getattr(args, "act", None)) == ("agents", "changes"):
             return each_project(projects, closed, command, args)
-        if (args.command, getattr(args, "act", None)) == ("hold", "show"):
-            # an action's id is its project's, so the one project that holds it
-            return holds.show_in(projects, args)
         if getattr(args, "case", None) or getattr(args, "lpets", None):
             return run_in_scope(command, project_for(projects, getattr(args, "case", None) or args.lpets), args)
         if len(projects) == 1:
@@ -8295,11 +8556,9 @@ ABOUT = ("Idiograph's command line, for an AI agent in a conversation: "
          "See docs/agents.md.")
 
 # What only the app's own window does, which an agent may ask for by its words, each refused in one line saying so
-# and kept in the agent log as page-only (agentlog, 3 November 2026)
-PAGE_ONLY = {
-    ("hold", "approve"): lambda: i18n.t("cli.page_only.hold"),
-    ("hold", "decline"): lambda: i18n.t("cli.page_only.hold"),
-}
+# and kept in the agent log as page-only (agentlog, 3 November 2026). None since approvals were removed (noholds,
+# 13 November 2026): an op only the app does is refused once parsed (`agent_changes.app_only`)
+PAGE_ONLY: dict = {}
 
 def log_where(project, root, demo, config) -> tuple[str, int]:
     """The project a refusal was asked of before one opened, for the agent log (agent_log.py): its name and 0 where

@@ -85,7 +85,6 @@
   "server.folder_out_names_nothing_written": "The folder --out names is not there, so nothing was written.",
   "server.file_out_names_ends_pdf": "A file --out names ends .pdf, so nothing was written.",
   "server.too_many_exports_board_share": "Too many exports of this board share the minute, so nothing was written.",
-  "server.action_answered_already": "That action was answered already.",
   "server.file_did_arrive_whole_nothing": "That file did not arrive whole, so nothing was opened.",
   "server.op_read_add_remove_reveal": "The op is read, add, remove or reveal.",
   "server.op_folder_read_make": "The op is folder, read or make.",
@@ -137,11 +136,6 @@
   "server.something_ai_help_does_nothing": "That is not something the AI help does, so nothing was asked.",
   "server.show_finder_mac_only": "Show in Finder is there on a Mac only.",
   "server.file_more_export_again_write": "That file is not there any more. Export again to write it.",
-  "server.op_list_check_approve_decline": "The op is list, counts, check, approve or decline.",
-  "server.project_one_idiograph_s": "That project is not one of Idiograph's.",
-  "server.holds_changed_waits": "This changed since {agent} asked, so nothing was done. It still waits for your yes.",
-  "server.holds_what_changed_waits": "{what} changed since {agent} asked, so nothing was done. It still waits for your yes.",
-  "server.holds_list_ids": "Name the actions with holds, each its root and id.",
   "server.project_folder_chosen_yet_project": "No project folder is chosen yet, so there is no project to add.",
   "server.timepoint_project": "There is no timepoint {value} in this project.",
   "server.timepoint_number_1_2_3": "A timepoint is its number, 1, 2 or 3, or its label.",
@@ -344,6 +338,8 @@
   "server.source_left_out_kind": "{name} is {kind}, so it is left out.",
   "server.folder_named_already_nothing_changed": "A folder named {name} is there already, so nothing was changed.",
   "server.open_excel_close_excel_first_2": "{name} is open in Excel. Close it in Excel first, then try again.",
+  "server.workbook_missing_copies": "The workbook {name} is missing from the folder {folder}, and in its place the folder holds {found}, copies a sync app such as iCloud Drive named. Idiograph never picks one of them, so nothing was read or written. Give the right copy its own name back, {name}, then try again.",
+  "server.workbook_missing_other": "The workbook {name} is missing from the folder {folder}, and in its place the folder holds {found}. Idiograph never takes another workbook for it, so nothing was read or written. Give the workbook its own name back, {name}, then try again.",
   "server.would_share_folder_nothing_sent": "{label} and {other} would share a folder, so nothing was sent.",
   "server.project_from_1_timepoints_nothing": "A project has from 1 to {most} timepoints, so nothing was saved.",
   "server.statement_length_whole_number_words": "The statement length is a whole number of words from {least} to {most}, so nothing was saved.",
@@ -413,21 +409,6 @@
   "server.canvas_out_names": "--out names a folder there or a file ending {ext}, so nothing was written.",
   "server.canvas_not_made": "The canvas could not be made, so nothing was written.",
   "server.canvas_empty": "There is nothing on the canvas, so nothing was written.",
-  "server.holds_agent": "The agent",
-  "server.holds_agent_inside": "the agent",
-  "server.holds_question": "{what}?",
-  "server.holds_waiting": "{agent} is waiting for your yes: {what}.",
-  "server.holds_declined": "Declined. {kept}, and {agent} is told when it asks.",
-  "server.holds_asked": "Asked",
-  "server.holds_asked_at": "Asked at {time}",
-  "server.holds_asked_on": "Asked on {day} at {time}",
-  "server.holds_asked_request": "{asked}. {agent} says you asked: “{request}”",
-  "server.holds_asked_alone": "{asked}.",
-  "server.holds_part_transcript": "{name}'s transcript",
-  "server.holds_part_boards": "{name}'s boards",
-  "server.holds_part_gets": "the GETs",
-  "server.holds_part_lgets": "the LGETs",
-  "server.holds_part_trajectories": "the Trajectories board",
   "server.rename.passages_of_sheet": {
     "one": "{n} passage of the \"{sheet}\" sheet",
     "other": "{n} passages of the \"{sheet}\" sheet"
@@ -564,5 +545,8 @@
   "server.qdpx_left_lpet_table": {
     "one": "{n} LPET's states and key quotes left out",
     "other": "{n} LPETs' states and key quotes left out"
-  }
+  },
+  "server.refresh_boards_unread": "The PETs boards could not be read, so their cards were left as they were: {exc}",
+  "server.refresh_workbook_unread": "The workbook could not be read, so the copies were left as they were: {exc}",
+  "server.refresh_copy_unread": "The {name} could not be read, so their copy was left as it was: {exc}"
 }

@@ -4,7 +4,7 @@ the card in front do what Esc does on that card, and a card with Done at its foo
 does. The card stays open when words have been typed in it and not saved, when it is busy with its work, and when a
 press starts inside it and ends outside, or the other way round. Each runs in the computer's own browser, headless, on
 the shell's own functions taken from shell.js, its Esc taken from its own lines, and the cards' own markup from the
-three apps' pages: the shortcuts card, Sift's Set columns, Remove's confirmation, Rename, the agent's actions' card and
+three apps' pages: the shortcuts card, Sift's Set columns, Remove's confirmation, Rename, New project's card and
 About. Every word typed is invented, a heron."""
 from __future__ import annotations
 
@@ -127,17 +127,17 @@ const outside = (id) => press($(id), beside(id));
   outside('rename');
   await tick();
   out.renameAgain = $('rename').hidden;
-  // ── the agent's actions' card while it answers stays, and once done closes
+  // ── New project's card while it makes the project stays, and once done closes
   BUSY = true;
-  show('holds-batch');
+  show('newproject');
   await tick();
-  outside('holds-batch');
+  outside('newproject');
   await tick();
-  out.busyHeld = !$('holds-batch').hidden;
+  out.busyHeld = !$('newproject').hidden;
   BUSY = false;
-  outside('holds-batch');
+  outside('newproject');
   await tick();
-  out.busyDone = $('holds-batch').hidden;
+  out.busyDone = $('newproject').hidden;
   // ── About over the shortcuts card: a click outside About closes it alone
   show('help');
   show('about');
@@ -169,7 +169,7 @@ def test_click_outside(scratch: Path):
         skip("374: a click outside a card in a real browser", "lxml is not installed")
         return
     shell = support.text("family/static/shell.js")
-    markup = card_markup(support.every_page(), ["help", "sf-cols", "remove-card", "rename", "holds-batch", "about"])
+    markup = card_markup(support.every_page(), ["help", "sf-cols", "remove-card", "rename", "newproject", "about"])
     # the shell's Esc, from its own lines: Remove's card first, then the cards of its list, then an X no Esc takes
     remove = shell[shell.index("if (!$('remove-card').hidden) {"):]
     remove = remove[:remove.index("\n    }\n") + 6]
@@ -181,8 +181,8 @@ def test_click_outside(scratch: Path):
         "const t = (k) => ({ 'page.done': 'Done' }[k] || k);",
         "let BUSY = false;",
         "let RM_SAID = 'not asked';",
-        # an app's answer that a card is busy, as Idiograph's names its agent's actions' card while they are answered
-        "const FAMILY_APPS = { test: { cardBusy: (o) => o.id === 'holds-batch' && BUSY } };",
+        # an app's answer that a card is busy, as Idiograph's names New project's card while it makes the project
+        "const FAMILY_APPS = { test: { cardBusy: (o) => o.id === 'newproject' && BUSY } };",
         "const RVC = { busy: false };",
         "const FEEDBACK = { busy: false };",
         whole(shell, "function appsSay("),
@@ -236,6 +236,6 @@ def test_click_outside(scratch: Path):
           "closes it, and opened again with nothing typed a click outside closes it",
           o.get("renameHeld") is True and o.get("renameCaret") is True and o.get("renameWords") == "Heron"
           and o.get("renameEsc") is True and o.get("renameAgain") is True, str(o)[:600])
-    check("374: a card its app says is busy, the agent's actions' card while they are answered, stays open on a click "
+    check("374: a card its app says is busy, New project's card while it makes the project, stays open on a click "
           "outside, and closes once it is done", o.get("busyHeld") is True and o.get("busyDone") is True, str(o)[:600])
     check("374: a click outside About closes it alone, the card under it staying", o.get("aboutAlone") is True, str(o)[:600])

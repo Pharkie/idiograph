@@ -12,10 +12,7 @@
     "one": "in a project agents may not read",
     "other": "in {n} projects agents may not read"
   },
-  "agentlog.switch_on": "Dangerously skip permissions turned on",
-  "agentlog.switch_off": "Dangerously skip permissions turned off",
-  "agentlog.from_window": "In the app window",
-  "agentlog.from_browser": "In a browser tab",
+  "agentlog.cleared": "Approvals removed",
   "agentlog.details": "Details",
   "agentlog.agent": "Agent",
   "agentlog.project": "Project",
@@ -34,11 +31,9 @@
   "agentlog.today": "Today {time}",
   "agentlog.yesterday": "Yesterday {time}",
   "agentlog.on_day": "{day} {time}",
-  "agentlog.declined": "You declined it in the app.",
   "agentlog.op_agents_log": "Read the agent log",
   "agentlog.op_unknown": "A command {app} doesn't have",
   "agentlog.not_known": "Not known",
-  "agentlog.why_hold": "No command approves a waiting action. Only you do, in the app.",
   "agentlog.why_not_allowed": "This project does not allow AI agents to read it.",
   "agentlog.window": "The last 7 days"
 }

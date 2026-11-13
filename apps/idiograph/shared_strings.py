@@ -191,11 +191,20 @@ def save(wb, path: Path) -> int:
     """`wb` written to `path` with its strings shared, the same parts `wb.save(path)` and then `convert(path)`
     wrote, in one pass (see the module's head): openpyxl's own writer, as `openpyxl.writer.excel.save_workbook`
     runs it, into memory with nothing packed, then `share` and `pack`. Returns the number of cells converted."""
-    from openpyxl.writer.excel import ExcelWriter
     path = Path(path)
     if wb.read_only or wb.write_only:
         wb.save(path)
         return convert(path)
+    data, converted = packed(wb)
+    path.write_bytes(data)
+    return converted
+
+
+def packed(wb) -> tuple[bytes, int]:
+    """`wb` packed whole in memory with its strings shared, the bytes `save` writes, checked by their CRCs, and the
+    number of cells converted. The app's own saves write them into the workbook in place (wbguard, 13 November 2026,
+    `locks.write_over`), so no file of its own ever stands beside a workbook in a folder a sync app keeps."""
+    from openpyxl.writer.excel import ExcelWriter
     buffer = io.BytesIO()
     # what save_workbook sets before it writes, the time the file was last changed
     wb.properties.modified = datetime.datetime.now(tz=datetime.timezone.utc).replace(tzinfo=None)
@@ -203,13 +212,14 @@ def save(wb, path: Path) -> int:
     with zipfile.ZipFile(buffer) as z:
         parts = {n: z.read(n) for n in z.namelist()}
     converted = share(parts)
-    pack(parts, path)
-    return converted
+    out = io.BytesIO()
+    pack(parts, out)
+    return out.getvalue(), converted
 
 
-def pack(parts: dict, path: Path) -> None:
-    """The parts packed into `path` in their order, each XML part checked first by expat, so a part
-    that is not well formed raises with nothing written, and the file checked after by its CRCs."""
+def pack(parts: dict, path) -> None:
+    """The parts packed into `path`, a file's path or a buffer, in their order, each XML part checked first by
+    expat, so a part that is not well formed raises with nothing written, and the file checked after by its CRCs."""
     for n, data in parts.items():
         if n.endswith(".xml") or n.endswith(".rels"):
             xml.parsers.expat.ParserCreate(namespace_separator=" ").Parse(data, True)
@@ -218,7 +228,7 @@ def pack(parts: dict, path: Path) -> None:
             out.writestr(n, data)
     with zipfile.ZipFile(path) as z:
         if z.testzip() is not None:
-            raise zipfile.BadZipFile(f"{path.name} did not pack whole")
+            raise zipfile.BadZipFile(f"{getattr(path, 'name', 'the workbook')} did not pack whole")
 
 
 def share(parts: dict, check: bool = False) -> int:

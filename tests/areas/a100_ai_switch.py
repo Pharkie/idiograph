@@ -146,9 +146,6 @@ def test_ai_switch(scratch):
                                  # Using your own AI agent, at the end of AI features, shown whatever the switch
                                  # says, since an agent works without the app's own AI (Adam, 21 October 2026)
                                  or "agent-start" in ids
-                                 # and Dangerously skip permissions' turn-on card, and an agent's action waiting
-                                 # for his yes, a safety rather than an AI feature (holds, 27 October 2026)
-                                 or "skip-confirm" in ids or "hold-card" in ids or "hold-line" in ids
                                  # and the agent log's sheet, a record of agents shown whatever the switch, as
                                  # Using your own AI agents is (agentlog, 3 November 2026)
                                  or "agent-log-sheet" in ids

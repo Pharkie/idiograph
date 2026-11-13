@@ -2,10 +2,15 @@
 """Reading and writing the annotation workbooks, with Excel fidelity as the hard constraint.
 
 Every write goes through the same path: refuse if Excel holds the file open, load with
-`rich_text=True`, touch only the annotation cells, save to a temp file in the same directory,
-convert the inline strings Excel dislikes into a shared-strings part, then `os.replace` over the
-original. Column widths, fonts, alignment, freeze panes, zoom and every untouched cell survive
-unchanged, which `tests/test_idiograph.py` checks cell by cell against an untouched copy.
+`rich_text=True`, touch only the annotation cells, pack the workbook whole in memory with the inline
+strings Excel dislikes made into a shared-strings part, then write it into the same file in place
+(`locks.write_over`, since wbguard, 13 November 2026, in place of a temp file put over the original by
+`os.replace`, which iCloud Drive could keep apart as a copy named `<name> 2`). Column widths, fonts,
+alignment, freeze panes, zoom and every untouched cell survive unchanged, which
+`tests/test_idiograph.py` checks cell by cell against an untouched copy.
+
+A case's workbook is the one its own files name by its stem, and when it is gone from its folder and
+other workbooks stand there, every read and write refuses, never taking one for it (`displaced`).
 
 The orange crux colour is theme 9, tint 0, the same value `gravity_build_annotated_xlsx.py` uses.
 Do not approximate it with an RGB.
@@ -17,11 +22,14 @@ import contextvars
 import copy
 import datetime as dt
 import hashlib
+import io
 import json
 import math
 import os
 import re
 import shutil
+import time
+import zipfile
 from pathlib import Path
 
 import openpyxl
@@ -83,6 +91,109 @@ def guard_lock(path: Path) -> None:
     lock = lock_file(path)
     if lock.exists():
         raise WorkbookError(i18n.t("server.open_excel_close_excel_first_2", name=Path(path).name))
+
+
+# ---------------------------------------------------------- the case's own workbook
+
+# The files beside a workbook in its case's `Working/` folder that name it by its stem and have always moved with
+# it, its progress file and its PETs boards at T1 (wbguard, 13 November 2026). A stem one of them names is a
+# workbook of the case's own.
+OWN_TAILS = (".progress.json", ".themes.json")
+
+
+def numbered(stem: str, of: str) -> bool:
+    """Whether `stem` is `of` with a number after a space, the name iCloud Drive gives a second file put at a
+    name it still holds, `P1 Ada - EN & ES 2` of `P1 Ada - EN & ES`."""
+    return bool(re.fullmatch(re.escape(of) + r" \d+", stem))
+
+
+def displaced(path: Path) -> dict | None:
+    """Whether `path`, a workbook of a case or a raw source in its `Source/`, stands where the case's own workbook is
+    missing (wbguard, 13 November 2026). On 13 November a participant's workbook went from its folder during a run of
+    writes and iCloud Drive left two copies, `<stem> 2.xlsx` and `<stem> 3.xlsx`, in its place, and the app took the
+    newest for the case and wrote into it, under a progress file of its own and with none of its boards. So a case's
+    workbook is known by its stem, the one its own files in `Working/` name (OWN_TAILS), and when that workbook is not
+    in the folder while a copy named `<stem> N.xlsx` stands there, or no workbook of the case's own does and another
+    workbook stands there, every read and write of the folder's workbooks refuses (`guard_place`) and nothing picks
+    one. None when the case's workbook is there, or the case has no files of its own yet. Else `folder`, the case's
+    folder, `missing`, the workbook's name, `found`, the names of the workbooks standing in its place, and
+    `copies`, whether they are copies a sync app named. Only reads the two folders' names."""
+    path = Path(path)
+    folder = case_folder(path)
+    try:
+        held = [p.name for p in (folder / "Working").iterdir()]
+    except OSError:
+        return None
+    known = {name[:-len(tail)] for name in held for tail in OWN_TAILS
+             if name.endswith(tail) and len(name) > len(tail) and not name.startswith(".")}
+    if not known:
+        return None
+    try:
+        books = sorted(p.stem for p in folder.iterdir() if p.suffix.lower() == ".xlsx"
+                       and not p.name.startswith(("~$", ".")) and p.is_file())
+    except OSError:
+        return None
+    missing = sorted(known - set(books))
+    if not missing:
+        return None
+    copies = [b for b in books if any(numbered(b, m) for m in missing)]
+    own = (known & set(books)) - set(copies)
+    if path.parent == folder and path.stem in own:
+        return None
+    if not copies and (own or not books):
+        return None
+    lost = next((m for m in missing if any(numbered(b, m) for b in copies)), missing[0])
+    return {"folder": folder, "missing": f"{lost}.xlsx", "found": [f"{b}.xlsx" for b in (copies or books)],
+            "copies": bool(copies)}
+
+
+def displaced_said(found: dict) -> str:
+    """The refusal `displaced` gives, in one plain line naming the folder by the case's label alone, the workbook
+    that is missing and the files standing in its place."""
+    import formats
+    import server as srv
+    said = {"folder": srv.display_case(found["folder"].name), "name": found["missing"],
+            "found": formats.list_words(found["found"])}
+    if found["copies"]:
+        return i18n.t("server.workbook_missing_copies", **said)
+    return i18n.t("server.workbook_missing_other", **said)
+
+
+def guard_place(path: Path) -> None:
+    """Refused in one line when `path` stands where its case's own workbook is missing (see `displaced`)."""
+    found = displaced(path)
+    if found is not None:
+        raise WorkbookError(displaced_said(found))
+
+
+def whole(path: Path) -> io.BytesIO:
+    """A workbook's bytes read into memory whole, for a reader to open in place of the file (wbguard, 13 November
+    2026). A save writes into the same file in place (`locks.write_over`), so a reader in another process could meet
+    it half written: while another writer holds the case's lock, bytes that are not a whole workbook by their CRCs are
+    read again after a short pause, up to `locks.WAIT`, and with the lock free they are taken as they are."""
+    path = Path(path)
+    lock = case_lock(path)
+    limit = time.monotonic() + locks.WAIT
+
+    def named(data: bytes) -> io.BytesIO:
+        # the bytes carry the file's path as their `name`, as an open file does, for what reads or reports it
+        out = io.BytesIO(data)
+        out.name = str(path)
+        return out
+
+    while True:
+        data = path.read_bytes()
+        if not locks.is_held(lock):
+            return named(data)
+        try:
+            with zipfile.ZipFile(io.BytesIO(data)) as z:
+                if z.testzip() is None:
+                    return named(data)
+        except (zipfile.BadZipFile, OSError, EOFError, ValueError):
+            pass
+        if time.monotonic() >= limit:
+            return named(data)
+        time.sleep(locks.READ_PAUSE)
 
 
 # ------------------------------------------------------------ cell contents
@@ -718,9 +829,10 @@ def read_case(path: Path, form: str | None = None) -> dict:
     """The whole workbook as the interface needs it: sheets, rows, runs, existing annotations, each
     row's timecode written as `form` says, by default as its project's timecodes say (see `timecode`)."""
     path = Path(path)
+    guard_place(path)
     form = form or timecodes_for(path)
     guard_lock(path)
-    wb = openpyxl.load_workbook(path, rich_text=True)
+    wb = openpyxl.load_workbook(whole(path), rich_text=True)
     sheets = []
     for ws, cols in _passage_sheets(wb):
         rows = []
@@ -848,16 +960,16 @@ def written_here(path) -> bool:
 
 
 def _atomic_save(wb, path: Path) -> None:
+    """A workbook saved: refused where its case's own workbook is missing (`guard_place`), then packed whole in
+    memory, openpyxl's write and the shared strings in one pass (savespeed, 11 November 2026), and written into the
+    same file in place, so a folder a sync app keeps sees the file it knows changed, never one taken away and another
+    put at its name, which iCloud Drive kept apart as `<name> 2` (wbguard, 13 November 2026, `locks.write_over`)."""
     boards_pass_check(path)
-    tmp = path.with_name(f".{path.stem}.idiograph.tmp.xlsx")
-    try:
-        # openpyxl's write and the shared strings in one pass, the file packed once (savespeed, 11 November 2026)
-        shared_strings.save(wb, tmp)
-        os.replace(tmp, path)
-        note_written(path)
-    finally:
-        if tmp.exists():
-            tmp.unlink()
+    path = Path(path)
+    guard_place(path)
+    data, _converted = shared_strings.packed(wb)
+    locks.write_over(path, data)
+    note_written(path)
 
 
 def save_turn(path: Path, sheet: str, row: int, es: str, en: str, kq: str, pairs=None,
@@ -2540,6 +2652,8 @@ def case_held(workbook: Path, wait: float | None = None, export: bool = False, b
     reviewer's own boards apart and refuses a change to the owner's, and the block is `BOARDS_ONLY`."""
     if WRITE_GUARD is not None and not export and not boards and not BOARDS_ONLY.get():
         WRITE_GUARD(Path(workbook))
+    # never a write where the case's own workbook is missing and another stands in its place (wbguard)
+    guard_place(Path(workbook))
     held = locks.held(case_lock(workbook), wait)
     return _boards_block(held) if boards else held
 

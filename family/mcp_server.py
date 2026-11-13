@@ -44,6 +44,7 @@ import argparse
 import json
 import os
 import re
+import secrets
 import shlex
 import shutil
 import subprocess
@@ -237,8 +238,8 @@ def log_tool(app: str) -> dict:
              f"The app's agent log, newest first: each time {name} refused an agent, through the command line or a "
              "tool, with when, the agent, the project, the command with its inputs' names, why, and the request the "
              "agent said he made"
-             + (", and each turn of Dangerously skip permissions. A refusal in a project agents may not read comes "
-                "back in the count closed alone, never by name." if own else ".")
+             + (". A refusal in a project agents may not read comes back in the count closed alone, never by name."
+                if own else ".")
              + " It never holds what was handed in. Nothing clears it: it keeps the last 7 days.",
              {"since": dict(TEXT, description="From this day on, 2026-11-03."),
               "limit": {"type": "integer", "minimum": 1, "description": "The newest entries alone, this many."}}, [])
@@ -447,8 +448,11 @@ def arguments(t: dict, given: dict, project: dict, client: str) -> argparse.Name
         return APP_ARGUMENTS[command](t, given, client, project)
     args = argparse.Namespace(command=command, act=act, json=True, note="", tool=client, dry_run=False, **project)
     if command == "agents":
-        # the app's agent log, every app's, read alone (agentlog and siftlog, 3 November 2026)
+        # the app's agent log, every app's, read alone (agentlog and siftlog, 3 November 2026), and Idiograph's
+        # record of the changes agents made and a run undone (noholds, 13 November 2026)
         args.since, args.limit = given.get("since"), given.get("limit")
+        args.run_id, args.id = given.get("run"), given.get("run")
+        args.note, args.dry_run = str(given.get("request") or ""), given.get("dry_run") is True
         return args
     if command == "search":
         # the app's Search, which only reads, over the cases this server reads or a Sift or Trace folder
@@ -488,6 +492,9 @@ class Server:
         self.version = None
         self.client = ""
         self._cli = None
+        # this connection's own session, its writes one run of the project's change record, so they share one
+        # restore point (noholds, 13 November 2026, agent_changes.py), never kept beyond the connection
+        self.session = f"mcp:{secrets.token_hex(8)}"
 
     # ── the command line, loaded on the first call that needs it
     def cli(self):
@@ -748,10 +755,11 @@ class Server:
             self.logged(t["name"], t, given, lines, "invalid")
             return failed(lines)
         args = arguments(t, given, self.project, self.client)
+        args.via, args.session = "mcp", self.session
         try:
             answer, lines = cli.perform(args)
         except cli.Refused as exc:
-            self.logged(t["name"], t, given, exc.lines, "")
+            self.logged(t["name"], t, given, exc.lines, getattr(exc, "code", ""))
             return failed(exc.lines)
         except (cli.WorkbookError, FileNotFoundError, OSError) as exc:
             self.logged(t["name"], t, given, [str(exc)], getattr(exc, "code", ""))

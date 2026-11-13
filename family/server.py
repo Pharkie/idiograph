@@ -1136,7 +1136,6 @@ def api_settings(body: dict) -> dict:
         cfg = config()
         return {"config": cfg, "ai": ai_state(cfg)}
     cfg = merge_config(saved_config())            # saved settings, never the --root override
-    switch_was = cfg.get(SWITCH_SETTING)
     for name in ("ai_suggest", "local_url"):
         if name in body:
             cfg[name] = body[name]
@@ -1208,9 +1207,6 @@ def api_settings(body: dict) -> dict:
     if "quit_when_closed" in body:
         cfg["quit_when_closed"] = bool(body["quit_when_closed"])
     save_json(CONFIG_PATH, cfg)
-    # Dangerously skip permissions turned on or off, a line in its record (see `record_switch`)
-    if switch_was is not None and SWITCH_SETTING in cfg and (cfg[SWITCH_SETTING] is True) != (switch_was is True):
-        record_switch(cfg[SWITCH_SETTING] is True)
     # `ai` is what the Themes screen's bar draws by, so a save from over it shows there at once
     return {"config": cfg, "ai": ai_state(cfg)}
 
@@ -1711,7 +1707,7 @@ def own_origin(headers, address) -> bool:
 # ------------------------------------------------- The window's key (agentlock, 2 November 2026)
 
 # `own_origin` passes any program on this machine that names the server's own address, so a shell's curl
-# could approve an agent's held action or turn on Dangerously skip permissions. What governs agents asks
+# could tick a project's "Allow AI agents to read this project". What governs agents asks
 # for a key besides, made at each start and never served by any route. The window makes it and hands it
 # to its page in a script it runs before the page's own, and to the server it starts on the server's
 # standard input, a pipe no other program reads, with WINDOW_KEY_FROM saying so and never the key. A run
@@ -1723,8 +1719,8 @@ KEY_HEADER = "X-Idiograph-Key"
 # `key` the one this start takes, and `window` whether the window handed it over (else the page carries it)
 WINDOW_KEY = {"key": secrets.token_urlsafe(32), "window": False}
 # each route that governs agents, with the one key of a body that makes it so, or None for every call:
-# an app's own join it (see `register`), Idiograph's /api/holds, /api/mcp, /api/agents-guide, the
-# skip_permissions setting and a project's tick for agents
+# an app's own join it (see `register`), Idiograph's /api/mcp, /api/agents-guide, /api/names and a project's
+# tick for agents
 WINDOW_ONLY: dict = {}
 # where the window's key is read from, a name so the suite can stand in for it
 READ_KEY = None
@@ -1792,29 +1788,6 @@ def key_to_stdin() -> None:
     os.close(write)
     os.dup2(read, 0)
     os.close(read)
-
-
-# Dangerously skip permissions turned on or off, a line each time in a file beside the app's settings
-# (agentlock, 2 November 2026): when, on or off, and from where, the window or a page in a browser
-SWITCH_SETTING = "skip_permissions"
-
-
-def switch_record_path(config=None) -> Path:
-    """The record of the switch, beside the settings file: `config.skip-permissions.jsonl` beside config.json, or
-    beside the settings `config` names, which the agent log reads it from (agent_log.py)."""
-    config = Path(config).expanduser().resolve() if config else CONFIG_PATH
-    return config.with_name(config.stem + ".skip-permissions.jsonl")
-
-
-def record_switch(on: bool) -> None:
-    """A line in the switch's record: when, on or off, and from where."""
-    line = {"at": datetime.now().astimezone().isoformat(timespec="seconds"), "on": bool(on),
-            "from": "window" if WINDOW_KEY["window"] else "browser"}
-    try:
-        with open(switch_record_path(), "a", encoding="utf-8", newline="\n") as fh:
-            fh.write(json.dumps(line) + "\n")
-    except OSError as exc:
-        print(f"The switch's record could not be written: {exc}", flush=True)
 
 
 def restart_blocked(system: str | None = None) -> str | None:

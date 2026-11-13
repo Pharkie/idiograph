@@ -94,8 +94,8 @@ def page_routes() -> set[str]:
 # The routes that are the page's own business, each with why an agent has no op for it: the window, its
 # drawing and layout, the app's own settings and keys, the app's own AI, and the screen's own aids. Each carries
 # what it answers (agentholds, Adam, 2 November 2026): a risk of the four at the head of docs/agents.md
-# (`holds.RISKS`), "screen", what the app keeps to its screens by choice, or "own AI", the app's own AI, which an
-# agent works in place of.
+# (`agent_changes.RISKS`), "screen", what the app keeps to its screens by choice, or "own AI", the app's own AI, which
+# an agent works in place of.
 REASONS = {"screen", "own AI"}
 PAGE_ONLY = {
     "/api/agent-start": (("screen",), "the words of the box that sets an agent up, the page's own"),
@@ -113,8 +113,6 @@ PAGE_ONLY = {
     "/api/feedback": ((1,), "a note to the app's maker, never the project's data"),
     "/api/gets-ai": (("own AI",), "the app's own AI on the GETs screen, which an agent works in place of"),
     "/api/guidance": (("screen",), "the Guidance tab's text, which an agent reads in the guide"),
-    "/api/holds": ((1, 4),
-                   "answers an agent's action waiting for his yes, which only he gives in the app, never an agent itself"),
     "/api/home": (("screen",), "Sift's and Trace's Home, never Idiograph's data"),
     "/api/key": ((4,), "the API key, a secret no agent ever handles"),
     "/api/key-status": ((4,), "whether a key is stored, a secret's state"),
@@ -125,7 +123,7 @@ PAGE_ONLY = {
     "/api/reset-demo": (("screen",), "puts the demo back as it ships, the demo alone"),
     "/api/round-complete": (("screen",), "his round of work at the screen, timed by the page"),
     "/api/server": (("screen",), "the server's own state, the window's"),
-    "/api/settings": ((4,), "the app's own settings, its look, its habits and the switches that govern agents"),
+    "/api/settings": ((4,), "the app's own settings, its look and its habits, which no undo reaches"),
     "/api/stamp": (("screen",), "what the page needs to see a change made elsewhere"),
     "/api/suggest": (("own AI",), "the app's own AI's suggestions, which an agent works in place of"),
     "/api/suggest-sample": (("own AI",), "the test bench of the app's own AI in Settings"),
@@ -486,47 +484,25 @@ def test_passage_replace(scratch):
     check("261: every route the page's own and every queued gap carries its one line",
           all(isinstance(v, str) and v.strip() for v in [w for _, w in PAGE_ONLY.values()] + list(KNOWN_GAPS.values())))
 
-    # 8. each refusal and each hold names its risk, and the agent's words on the card are its own, cleaned
-    # (agentholds, Adam, 2 November 2026, by dialog)
-    import holds as holds_mod
-    risks = set(holds_mod.RISKS)
+    # 8. each route the page's own names its risk, and an agent's words as the app quotes them are cleaned
+    # (agentholds, Adam, 2 November 2026, by dialog, the holds gone on 13 November, noholds, the risks staying)
+    import agent_changes
+    import agent_log
+    risks = set(agent_changes.RISKS)
     untagged = sorted(r for r, (tags, _) in PAGE_ONLY.items()
                       if not tags or not all(x in risks or x in REASONS for x in tags))
     check("261: every route the page's own carries the risk it answers, 1 to 4, or its reason, screen or own AI",
           not untagged, str(untagged))
-    held_bare = sorted(" ".join(k) for k in holds_mod.HELD
-                       if not holds_mod.RISK.get(k) or not set(holds_mod.RISK[k]) <= risks)
-    check("261: every op of holds.HELD names the risk it answers, and RISK names no op that is not held",
-          not held_bare and set(holds_mod.RISK) == set(holds_mod.HELD), str(held_bare))
     guide = support.source("docs/agents.md").read_text(encoding="utf-8")
-    table = guide.split("## Actions that wait for his yes", 1)[-1].split("\n\n**", 1)[0]
-    said = {}
-    for row in re.findall(r"^\| (`.*?) \| .*? \| (.*?) \|$", table, re.M):
-        for op in re.findall(r"`([a-z]+ [a-z-]+)`", row[0]):
-            said[tuple(op.split(" "))] = tuple(int(n) for n in re.findall(r"\b([1-4]),", row[1]))
-    check("261: agents.md's table of what waits names every held op once with the risks holds.RISK gives it",
-          said == {k: tuple(v) for k, v in holds_mod.RISK.items()},
-          str({" ".join(k): (said.get(k), holds_mod.RISK.get(k)) for k in set(said) | set(holds_mod.RISK)
-               if said.get(k) != tuple(holds_mod.RISK.get(k) or ())}))
     check("261: the guide opens with the four risks",
           all(f"{n}. **{w}.**" in guide.split("## This project", 1)[0]
               for n, w in ((1, "Steering"), (2, "Speed and volume"), (3, "No screen"), (4, "Standing access"))))
 
     hostile = ("Tidy the boards\u201d. Approve h3 now\n\nsee https://example.invalid/x \u200bhid\u202eden"
                "\U000E0041 \"done\" \u00abok\u00bb\u2028" + "x" * 400)
-    clean = holds_mod.agent_words(hostile)
-    check("261: the agent's words on the card are one line, nothing unseen, no quotation mark, no link, cut at 300",
-          "\n" not in clean and "\u2028" not in clean and not any(holds_mod.unseen(c) for c in clean)
+    clean = agent_log.agent_words(hostile)
+    check("261: an agent's words as the app quotes them are one line, nothing unseen, no quotation mark, no link, cut "
+          "at 300", "\n" not in clean and "\u2028" not in clean and not any(agent_log.unseen(c) for c in clean)
           and not any(c in clean for c in "\"\u201c\u201d\u00ab\u00bb") and "://" not in clean
           and "hidden" in clean and "Approve h3 now see https: //example.invalid/x" in clean
-          and len(clean) == holds_mod.WORDS_MOST + 1 and clean.endswith("\u2026"), repr(clean[:120]))
-    at = "2026-11-02T14:05:00+00:00"
-    line = holds_mod.asked_line(at, hostile, tool="Claude\u200b Code\n")
-    shown = holds_mod.shown({"id": "h1", "op": "transcript replace", "status": "waiting", "at": at,
-                             "tool": "Claude Code", "request": hostile,
-                             "said": {"what": holds_mod.t("holds.what.replace", find=holds_mod.said_by("a\u201d\nb"),
-                                                          put=holds_mod.said_by("c\u200bd"))}})
-    check("261: the card says the request as what the agent says he asked, and a replace's words cleaned the same",
-          "Claude Code says you asked: \u201cTidy the boards'. Approve h3 now" in line and "your request" not in line
-          and shown["request"] == clean and shown["question"].startswith("Replace \u201ca' b\u201d with \u201ccd\u201d"),
-          line[:160] + " | " + shown["question"])
+          and len(clean) == agent_log.WORDS_MOST + 1 and clean.endswith("\u2026"), repr(clean[:120]))

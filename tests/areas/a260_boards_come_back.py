@@ -123,8 +123,11 @@ def test_boards_come_back(scratch: Path):
         return code, (got if code == 0 else {}), err + (got.get("error", "") if code != 0 else "")
 
     def files(at: Path) -> dict:
+        # the record of agents' changes and its restore points set aside, an agent's write keeping both since noholds
+        # (13 November 2026)
         return {p.relative_to(at).as_posix(): p.read_bytes() for p in sorted(at.rglob("*"))
-                if p.is_file() and p.name != locks.NAME}
+                if p.is_file() and p.name != locks.NAME and p.name != "idiograph-agent-changes.jsonl"
+                and ".idiograph-restore" not in p.relative_to(at).parts}
 
     def themes_of(book: Path) -> dict:
         return json.loads((book.parent / "Working" / f"{book.stem}.themes.json").read_text(encoding="utf-8"))

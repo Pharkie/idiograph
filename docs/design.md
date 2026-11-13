@@ -46,7 +46,6 @@ a token block, when a `var(--name)` names nothing, and when a row below disagree
 | `--crux` | `#B04E00` | `#F79646` | A crux, a quote marked in its passage (16 October), and the app's one accent: the filled button, the focus ring's edge, the selected tab, the selected row's bar |
 | `--crux-wash` | `#F7964622` | `#F7964626` | A crux's wash, a quote's in its passage |
 | `--mark-dot` | `#F26B1D` | `#F26B1D` | The dot of Idiograph's mark wherever the mark is drawn, the launch film's orange, a graphic and never words, about 2.9 to 1 on the light paper and 6 to 1 on the dark (22 October) |
-| `--hold-yes`, `--hold-yes-ink` | `#B04E00`, `#FBF7EF` | `#B04E00`, `#FBF7EF` | Approve on the card where an agent's action waits for his yes, the light crux and its paper in both themes, so the yes reads in dark as he approved it in light (27 October) |
 | `--es-wash` | `12.5%` | `14.5%` | How much of its statement's bright tint a quote's wash takes in its passage, statements 2 to 6, the words on it reading at least as well as on the crux's wash in the same theme (18 October) |
 | `--es-lit` | `34%` | `22%` | The same wash lit, under the pointer or while its quote holds the caret, at least as readable as the crux's lit wash (18 October) |
 | `--accent` | `#786850` | `#B4A588` | The playhead, a quote being built, the demo tag, the days and a link to a page outside the app, never the crux orange |

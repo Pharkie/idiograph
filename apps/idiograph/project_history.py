@@ -5,8 +5,9 @@ the research question, the PET labels, the timecodes, and from the app the priva
 `participant rename`, `participant complete` and its reopen, and `gets settings` (the minimum, one per PET, a
 participant out of the study or back in). Each now adds one record to
 `idiograph-history.json` at the project's root: when, the op, what changed from what to what, a line each, and
-who asked, the app, or an agent by its tool with his request, as a board's History records an agent's change, the
-tool carrying "approved in the app" or "without asking" where a hold applies (`holds.APPROVED`, `holds.WITHOUT`).
+who asked, the app, or an agent by its tool with his request, as a board's History records an agent's change. A
+record from before approvals were removed (noholds, 13 November 2026) may carry "approved in the app" or "without
+asking" after its tool, which the page reads as it did (`APPROVED`, `WITHOUT`).
 
 The record is written by the route that makes the change, under the same lock, the project's own
 (`locks.root`), as the project file and the GETs file are, never by a second writer. A dry run, a refusal or a
@@ -29,6 +30,10 @@ import server as srv
 from themes import now_iso
 
 FILE = "idiograph-history.json"
+# what a record's tool carried while an agent's action waited for his yes, read in records kept before approvals
+# were removed (noholds, 13 November 2026), never written now
+APPROVED = "approved in the app"
+WITHOUT = "without asking"
 SCHEMA = 1
 HISTORY_MAX = 500
 TOOL_MAX = 80
@@ -102,27 +107,27 @@ def newest(root: Path, limit: int | None = None, offset: int = 0, by: str = "") 
 def line_shown(text) -> str:
     """A change's line as the page shows it: one line, nothing a reader cannot see, no address drawn as a link. Its
     quotation marks stay, since the line is the app's own sentence round the words it names."""
-    import holds
-    clean = "".join(ch for ch in one_line(text) if not holds.unseen(ch))
+    import agent_log
+    clean = "".join(ch for ch in one_line(text) if not agent_log.unseen(ch))
     return " ".join(clean.replace("://", ": //").split())
 
 
 def for_page(h: dict) -> dict:
     """One record as Project history on Home shows it (historyui, 3 November 2026): when, its lines,
     and who asked, the app, or an agent by its name with `hold`, "approved" or "without", where a hold applied, and
-    his request, the agent's words cleaned as a held change's card cleans them (`holds.agent_words`)."""
-    import holds
+    his request, the agent's words cleaned as the agent log cleans them (`agent_log.agent_words`)."""
+    from agent_log import NAME_MOST, agent_words
     out = {"when": str(h.get("when") or ""), "op": str(h.get("op") or ""),
            "changes": [line_shown(c) for c in h.get("changes") or [] if line_shown(c)]}
     if h.get("by") == "member":
         # a teammate's suggestion accepted (wtsuggest, 10 November 2026): who suggested it, and who accepted it
-        return dict(out, by="member", member=holds.agent_words(h.get("member"), holds.NAME_MOST),
-                    accepted_by=holds.agent_words(h.get("accepted_by"), holds.NAME_MOST))
+        return dict(out, by="member", member=agent_words(h.get("member"), NAME_MOST),
+                    accepted_by=agent_words(h.get("accepted_by"), NAME_MOST))
     if h.get("by") != "agent":
         return dict(out, by="app")
     tool, hold = one_line(h.get("tool")), ""
-    for word, ending in (("approved", holds.APPROVED), ("without", holds.WITHOUT)):
+    for word, ending in (("approved", APPROVED), ("without", WITHOUT)):
         if tool.endswith(", " + ending):
             tool, hold = tool[:-len(", " + ending)], word
-    return dict(out, by="agent", agent=holds.agent_words(tool, holds.NAME_MOST), hold=hold,
-                request=holds.agent_words(h.get("request")))
+    return dict(out, by="agent", agent=agent_words(tool, NAME_MOST), hold=hold,
+                request=agent_words(h.get("request")))

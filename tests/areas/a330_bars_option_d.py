@@ -693,10 +693,11 @@ def _remove_to_trash(scratch):
     files and folders"): off by default the folder stays, ticked it goes to the system's Trash, here a stand-in folder
     of the suite's own and never the real Trash, each guard refuses with nothing moved or removed, a move the system
     refuses keeps the project in the list, the app's own record notes each removal, and an agent's `project remove
-    --trash` waits for his yes in the app. Every fixture is invented, projects on keeping bees."""
+    --trash` runs at once since approvals were removed (noholds, 13 November 2026), the move recorded in the project's
+    record of agents' changes, which goes to the Trash with the folder. Every fixture is invented, projects on keeping
+    bees."""
     import os
     import cli
-    import holds
     import idiograph_mcp
     import idiograph_routes as routes
     import locks
@@ -738,7 +739,7 @@ def _remove_to_trash(scratch):
                                        "corpus_exclude": []}), encoding="utf-8")
     live = server_mod.CONFIG_PATH.read_bytes() if server_mod.CONFIG_PATH.exists() else None
     kept = (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY,
-            trash.TRASH, holds.RUN_AT_ONCE, dict(server_mod.PAGES))
+            trash.TRASH, dict(server_mod.PAGES))
     refused = _refusal
     where = trash.where()
     try:
@@ -846,8 +847,7 @@ def _remove_to_trash(scratch):
               and trace_gone.get("trash") is True and not Path(project).exists() and moved[-2:] == ["hedges", "pond"]
               and sift_gone["reviews"] == [] and trace_gone["traces"] == [], str([sift_gone, trace_gone])[:300])
 
-        # an agent: project remove keeps the folder at once, and with --trash waits for his yes in the app
-        holds.RUN_AT_ONCE = None
+        # an agent: project remove keeps the folder at once, and with --trash moves it to the Trash at once
         server_mod.PAGES.clear()
         hive = made("Hive diary")
         cfg = json.loads(config_file.read_text(encoding="utf-8"))
@@ -864,24 +864,24 @@ def _remove_to_trash(scratch):
         check("330: an agent's project remove --trash --dry-run names the folder and where it would go, moving nothing",
               code == 0 and plan.get("dry_run") is True and Path(plan.get("folder", "")) == hive.resolve()
               and plan.get("where") == where and hive.is_dir(), str([code, plan, err])[:300])
-        code, waits, err = agent("--trash", "--note", "Clear out the duplicate diary", "--tool", "Claude Code")
-        hold = (waits.get("held") or {})
-        check("330: an agent's project remove --trash waits for his yes in the app, nothing moved or removed",
-              code == 0 and hold.get("status") == "waiting" and hold.get("op") == "project remove"
-              and hive.is_dir() and "Hive diary" in names(), str([code, waits, err])[:400])
-        approved = routes.api_holds({"op": "approve", "root": str(hive.resolve()), "id": hold.get("id"), "page": "MINE"})
-        check("330: Approve in the app moves the folder to the Trash and takes the project off the list, the app's "
-              "record naming the agent, approved in the app",
-              (approved.get("hold") or {}).get("status") == "approved" and not hive.exists() and "Hive diary" in moved
+        code, gone, err = agent("--trash", "--note", "Clear out the duplicate diary", "--tool", "Claude Code")
+        binned = bin_dir / "Hive diary" / "idiograph-agent-changes.jsonl"
+        lines = [json.loads(x) for x in binned.read_text(encoding="utf-8").splitlines()] if binned.exists() else []
+        check("330: an agent's project remove --trash moves the folder to the Trash at once and takes the project off "
+              "the list, the app's record naming the agent, and the project's record of agents' changes, in the "
+              "folder in the Trash, naming the move",
+              code == 0 and gone.get("trash") is True and not hive.exists() and "Hive diary" in moved
               and "Hive diary" not in names()
-              and trash.records(config_file)[-1]["by"].startswith("Claude Code, approved in the app"), str(approved)[:400])
+              and trash.records(config_file)[-1]["by"].startswith("Claude Code")
+              and [x.get("op") for x in lines] == ["project remove"] and lines[0]["undo_with"].get("trash") is True,
+              str([code, gone, err, lines])[:400])
         tool = next((t for t in idiograph_mcp.TOOLS if t["name"] == "project_remove"), {})
         check("330: MCP's project_remove takes trash, the same op, and writes",
               tool.get("command") == ("project", "remove") and "trash" in tool["inputSchema"]["properties"]
               and tool["annotations"]["readOnlyHint"] is False, str(tool)[:300])
     finally:
         (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY,
-         trash.TRASH, holds.RUN_AT_ONCE, pages) = kept
+         trash.TRASH, pages) = kept
         server_mod.PAGES.clear()
         server_mod.PAGES.update(pages)
     check("330: the live settings file is exactly as it was after the Trash's checks",

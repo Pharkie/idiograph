@@ -52,10 +52,11 @@ def files_of(folder: Path) -> dict:
 def test_team_suggestions(scratch: Path):
     print("\n368. Working together's suggestions: a statement's wording and a PET's and a GET's title suggested as "
           "drafts, sent unrun with Send review, accepted through the op's own run with History by the member, a "
-          "changed one accepted by its dry run, one declined through a held agent's answer writing nothing, one on "
+          "changed one accepted by its dry run, an agent's answer refused as the app's alone and his decline writing "
+          "nothing, one on "
           "a removed statement Decline only, each answer back with the reviewer (wtsuggest)")
+    import agent_changes
     import cli
-    import holds
     import idiograph_cli as icli
     import idiograph_routes as routes
     import mcp_server
@@ -80,7 +81,7 @@ def test_team_suggestions(scratch: Path):
         homes[who] = {"root": root, "config": cfg, "book": root / "Juno" / "Juno - EN & ES.xlsx"}
     A, C = homes["adam"]["root"], homes["curt"]["root"]
     kept = (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY, team.DEVICE_PATH,
-            transport.OVERRIDE, os.environ.pop(transport.ENV, None), holds.RUN_AT_ONCE)
+            transport.OVERRIDE, os.environ.pop(transport.ENV, None), agent_changes.ALL_OPS)
     hub = {"hub": transport.Hub()}
     transport.OVERRIDE = lambda dev, data: transport.Loopback(dev.get("id") or "", hub=hub["hub"])
 
@@ -135,7 +136,7 @@ def test_team_suggestions(scratch: Path):
         return next((s for r in state["reviews"] for s in r.get("suggestions") or [] if s["id"] == sid), {})
 
     try:
-        holds.RUN_AT_ONCE = True
+        agent_changes.ALL_OPS = True
         # the team: Adam its lead, Curt joined from an invite, Juno and the GETs board Adam's
         wt("adam", op="on", name="Adam")
         made = wt("adam", op="invite")
@@ -282,32 +283,31 @@ def test_team_suggestions(scratch: Path):
               and (board.get("changed") or {}).get("member") == "Curt",
               err + json.dumps([sp, yes, board.get("changed")])[:700])
 
-        # 6. the GET's title declined by Adam's agent: held for his yes, then nothing written and the answer back
+        # 6. the GET's title: Adam's agent's decline refused as the app's alone, since the answer goes to Curt
+        # (noholds, 13 November 2026), nothing answered, then his own decline in the app writing nothing to the GETs
+        # file and the answer back
         gets_before = (A / "idiograph-gets.json").read_bytes()
         at("adam")
         mcp = mcp_server.Server(root=str(A), config=str(homes["adam"]["config"]))
-        holds.RUN_AT_ONCE = None
+        agent_changes.ALL_OPS = None
         try:
             held = mcp.call(mcp.by_name["team_suggestion_answer"],
                             {"suggestion": g["id"], "decline": True, "reason": "The longer one is hers",
                              "request": "Decline Curt's GET title."})
         finally:
-            holds.RUN_AT_ONCE = True
-        held_body = support.plain(held.get("structuredContent") or {})
-        hid = ((held_body.get("held") or {}).get("id")) or ""
+            agent_changes.ALL_OPS = True
         waits = suggestion_of(page("adam", {"op": "state", "case": ""}), g["id"]).get("status")
-        holds.approve(A, hid) if hid else None
+        page("adam", {"op": "answer", "suggestion": g["id"], "accept": False, "reason": "The longer one is hers"})
         sync("curt")
         curt_gets = page("curt", {"op": "state", "case": ""})
         mine = {s["id"]: s for s in curt_gets["suggestions"]}
-        check("368: an agent's decline of a teammate's suggestion waits for Adam's yes, nothing answered, and once "
-              "approved writes nothing to the GETs file and the answer with its reason reaches Curt, whose list "
-              "keeps it declined",
-              ("team", "suggestion-answer") in holds.HELD and holds.RISK[("team", "suggestion-answer")] == (1,)
-              and not held.get("isError") and hid and waits == "waiting"
+        check("368: an agent's decline of a teammate's suggestion is refused as the app's alone, nothing answered, and "
+              "his decline in the app writes nothing to the GETs file and the answer with its reason reaches Curt, "
+              "whose list keeps it declined",
+              held.get("isError") and "Only the app does this" in json.dumps(held) and waits == "waiting"
               and (A / "idiograph-gets.json").read_bytes() == gets_before
               and mine[g["id"]]["status"] == "declined" and mine[g["id"]]["answer_reason"] == "The longer one is hers",
-              json.dumps([held_body, curt_gets["suggestions"]])[:800])
+              json.dumps([held, curt_gets["suggestions"]])[:800])
 
         # 7. a suggestion through MCP on a statement Adam then took out is Decline only
         at("curt")
@@ -340,6 +340,6 @@ def test_team_suggestions(scratch: Path):
         check("368: the page's calls run", False, str(exc))
     finally:
         (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY, team.DEVICE_PATH,
-         transport.OVERRIDE, env, holds.RUN_AT_ONCE) = kept
+         transport.OVERRIDE, env, agent_changes.ALL_OPS) = kept
         if env is not None:
             os.environ[transport.ENV] = env

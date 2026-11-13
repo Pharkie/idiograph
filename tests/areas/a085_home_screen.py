@@ -221,8 +221,10 @@ def test_home_screen(scratch):
             idiograph_routes.api_cases({})
         finally:
             server_mod.openpyxl.load_workbook = real
+        # a workbook is opened from its bytes read whole since wbguard (13 November 2026), which carry its path as `name`
+        names = [Path(getattr(p, "name", p)).name for p in opened]
         check("85: a second listing opens no workbook that has not changed, and opens one that has, once",
-              [Path(p).name for p in opened] == [ada.name], str([Path(p).name for p in opened]))
+              names == [ada.name], str(names))
         check("85: and lands at once for the demo and seven cases", took < 1.0, f"{took * 1000:.0f} ms")
     finally:
         server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept

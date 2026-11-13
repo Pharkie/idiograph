@@ -1457,33 +1457,7 @@
         <li>{{page_idiograph.ai_confirm.may_need_acknowledge_use}}</li>
       </ul>
     </div>
-<!--part:agent-more-->
-            <!-- Dangerously skip permissions (Adam, 26 and 27 October 2026, his words, holds.py): off on a new install,
-                 after Copy with its line under it, shown whether AI features is on or off, since an agent works
-                 without the app's own AI. Ticking it asks first, in the AI features card's style -->
-            <div class="agent-holds" id="agent-holds-block">
-              <div class="switches"><label><input type="checkbox" id="set-skip-holds"> {{page_idiograph.agent_more.dangerously_skip_permissions}}</label></div>
-              <p class="fineprint" id="skip-holds-line">{{page_idiograph.agent_more.while_off_agent_waits}}</p>
-            </div>
 <!--part:cards-more-->
-<!-- Ticking Dangerously skip permissions asks first, over Settings, as ticking AI features does: Back to safety,
-     the default, in focus, and I understand the risks, turn on, plainer. Settings stays open behind it -->
-<div class="overlay" id="skip-confirm" hidden>
-  <div class="card" role="alertdialog" aria-labelledby="skip-confirm-title">
-    <h2 id="skip-confirm-title">{{page_idiograph.cards_more.dangerously_skip_permissions}}</h2>
-    <p class="trim-line">{{page_idiograph.cards_more.agents_will_no_longer}}</p>
-    <ul class="ai-confirm-list">
-      <li>{{page_idiograph.cards_more.agent_could_delete_board}}</li>
-      <li>{{page_idiograph.cards_more.words_transcript_can_try}}</li>
-      <li>{{page_idiograph.cards_more.copy_still_kept_first}}</li>
-    </ul>
-    <div class="card-actions">
-      <button class="ghost" id="skip-confirm-go">{{page_idiograph.cards_more.i_understand_risks_turn}}</button>
-      <button class="primary" id="skip-confirm-cancel">{{page_idiograph.cards_more.back_safety}}</button>
-    </div>
-  </div>
-</div>
-
 <!-- the note a demo's warning opens (demowarn, 12 November 2026): one box for every place that opens it, its words set by demoNoteOpen -->
 <div class="demo-note" id="demo-note" role="group" aria-labelledby="demo-note-head" tabindex="-1" hidden>
   <p class="demo-note-head" id="demo-note-head"></p>
@@ -1491,17 +1465,8 @@
   <p id="demo-note-2"></p>
 </div>
 
-<!-- An agent's action waiting for his yes (holds.py): the bright line in the corner where an agent's change of a
-     board shows on PETs and GETs, and under the right end of the bar on the statements screen, Review in
-     Update's place and no cross while it waits. After an answer the same line says what happened, with its cross -->
-<div class="hold-line" id="hold-line" role="status" hidden>
-  <button class="card-close" id="hold-line-close" type="button" aria-label="{{page_idiograph.cards_more.close}}" title="{{page_idiograph.cards_more.close}}" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
-  <p class="th-exported-head"><span id="hold-line-words"></span> <button type="button" class="th-outside-show"
-     id="hold-review">{{page_idiograph.cards_more.review}}</button></p>
-</div>
-
-<!-- Working together's comments and review (wtreview, 8 November 2026, review.js): the owner's line where an agent's
-     held line stands, "Curt's review of Juno: 2 comments." with Review, and the reviewer's tray, which review.js
+<!-- Working together's comments and review (wtreview, 8 November 2026, review.js): the owner's line in the corner,
+     in the look an agent's held line had, "Curt's review of Juno: 2 comments." with Review, and the reviewer's tray, which review.js
      moves to a row under the screen's toolbar (trayfix), "Review for Adam: 2 comments" with Send review -->
 <div class="hold-line wt-line" id="wt-line" role="status" hidden>
   <p class="th-exported-head"><span id="wt-line-words"></span> <button type="button" class="th-outside-show"
@@ -1539,46 +1504,6 @@
     <div class="wt-list-r" id="wt-rv-list"></div>
     <div class="card-actions">
       <button class="primary" id="wt-rv-done">{{review.page.done}}</button>
-    </div>
-  </div>
-</div>
-
-<!-- Review opens the card: the agent, the question, his request as the agent gave it, what it would do from its
-     dry run, then Decline and Approve. Esc closes it, the action still waiting -->
-<div class="overlay" id="hold-card" hidden>
-  <div class="card hold-card" role="alertdialog" aria-labelledby="hold-title">
-    <p class="kicker" id="hold-agent"></p>
-    <h2 id="hold-title"></h2>
-    <p class="hold-asked" id="hold-asked"></p>
-    <p class="hold-changed" id="hold-changed" hidden></p>
-    <p class="hold-what">{{page_idiograph.cards_more.what_would_do}}</p>
-    <pre class="mcp-code" id="hold-would"></pre>
-    <p class="hold-run" id="hold-run" role="status" hidden></p>
-    <div class="card-actions">
-      <button class="ghost" id="hold-decline">{{page_idiograph.cards_more.decline}}</button>
-      <button class="primary" id="hold-approve">{{page_idiograph.cards_more.approve}}</button>
-    </div>
-  </div>
-</div>
-
-<!-- Review with more than one action waiting (holdbatchA, Adam's option A of 1 November 2026): one card listing
-     them all under his request, a row each with its tick, the agent and when, and Details opening the row's own
-     card in place. Every row ticked as it opens but one that changed since the agent asked. Decline and Approve
-     name how many are ticked. While they run (holdsprog, 11 November 2026) the card is its heading, "Approving 4 of 13",
-     and a bar. After, the same card says what was done, each not done with its reason -->
-<div class="overlay" id="holds-batch" hidden>
-  <div class="card hold-card holds-batch" role="alertdialog" aria-labelledby="hb-title">
-    <p class="kicker" id="hb-agent"></p>
-    <div class="hb-top"><h2 id="hb-title"></h2><button type="button" class="ghost small" id="hb-all"></button></div>
-    <p class="hb-sum" id="hb-sum" hidden></p>
-    <div class="hb-list" id="hb-list"></div>
-    <div class="hb-run" id="hb-run"><div class="hb-bar" id="hb-bar" role="progressbar" aria-labelledby="hb-title" aria-valuemin="0"
-         aria-valuemax="1" aria-valuenow="0"><span id="hb-fill"></span></div></div>
-    <div class="card-actions">
-      <button class="ghost" id="hb-decline"></button>
-      <button class="primary" id="hb-approve"></button>
-      <button class="ghost" id="hb-again" hidden></button>
-      <button class="primary" id="hb-done" hidden>{{page_idiograph.cards_more.hb_done}}</button>
     </div>
   </div>
 </div>

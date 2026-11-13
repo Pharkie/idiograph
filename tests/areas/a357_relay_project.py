@@ -96,12 +96,12 @@ def test_relay_project(scratch: Path):
 
 
 def held_code(scratch: Path) -> None:
-    """A relay code never waits in a hold (smokefix, 9 November 2026, the live relay test): with Dangerously skip
-    permissions off, `team on` and `team set` with --code-stdin are refused in a line, the standard input left unread
-    and nothing written, no hold kept, where before the hold's dry run read the code and threw it away and his Approve
-    turned on with none. With the setting on, the op runs as before, here to a relay out of reach. No relay needed."""
+    """A relay code is the app's alone (smokefix, 9 November 2026, the live relay test, and noholds, 13 November 2026):
+    `team on` and `team set` with --code-stdin are refused for an agent in a line naming where to do it in the app,
+    the standard input left unread and nothing written, and a settings file still holding Dangerously skip
+    permissions on changes nothing, the switch read and ignored. No relay needed."""
+    import agent_changes
     import cli
-    import holds
     import server as server_mod
     import team
     from .a342_relay import CODE, free_port
@@ -117,7 +117,7 @@ def held_code(scratch: Path) -> None:
     make_workbook(root, "P1 - Marlow", "Marlow")
     cfg = base / "ada" / "config.json"
     closed = f"http://127.0.0.1:{free_port()}/relay/v1"
-    kept = (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, team.DEVICE_PATH, holds.RUN_AT_ONCE)
+    kept = (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, team.DEVICE_PATH, agent_changes.ALL_OPS)
 
     def settings(skip_on: bool) -> None:
         cfg.write_text(json.dumps({"projects": [{"root": str(root)}], "interviewer": "Interviewer", "your_name": "Ada",
@@ -137,25 +137,24 @@ def held_code(scratch: Path) -> None:
         return code, err + (got.get("error", "") if code else ""), given.read()
 
     try:
-        holds.RUN_AT_ONCE = None
+        agent_changes.ALL_OPS = None
         settings(False)
         before = files_of(base)
         on = run("team", "on", "--route", "relay", "--relay-url", closed, "--name", "Ada", "--code-stdin")
         put = run("team", "set", "--code-stdin")
-        line = "A relay code is typed in Project settings, or run this with Dangerously skip permissions on."
-        check("357: with Dangerously skip permissions off, team on and team set with a relay code are refused in a "
-              "line, not held: the code left unread on the standard input, no hold kept and nothing written",
+        line = "Only the app does this, since it reaches other people or changes who works on the project"
+        check("357: team on and team set with a relay code are the app's alone, refused for an agent in a line naming "
+              "where in the app: the code left unread on the standard input and nothing written",
               on[0] != 0 and put[0] != 0 and line in on[1] and line in put[1] and on[2] == put[2] == CODE + "\n"
-              and not (root / holds.FILE).exists() and files_of(base) == before, f"{on} | {put}")
+              and files_of(base) == before, f"{on} | {put}")
         settings(True)
         before = files_of(base)
         ran = run("team", "on", "--route", "relay", "--relay-url", closed, "--name", "Ada", "--code-stdin")
-        check("357: with the setting on, team on with the code runs as before, reading it, here refused by a relay out "
-              "of reach with nothing written",
-              ran[0] != 0 and line not in ran[1] and "relay could not be reached" in ran[1] and ran[2] == ""
-              and files_of(base) == before, str(ran))
+        check("357: a settings file still holding Dangerously skip permissions on changes nothing: refused the same, "
+              "the code unread", ran[0] != 0 and line in ran[1] and ran[2] == CODE + "\n" and files_of(base) == before,
+              str(ran))
     finally:
-        server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, team.DEVICE_PATH, holds.RUN_AT_ONCE = kept
+        server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, team.DEVICE_PATH, agent_changes.ALL_OPS = kept
 
 
 def drive(scratch: Path, url: str):

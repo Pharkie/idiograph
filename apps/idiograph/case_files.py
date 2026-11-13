@@ -421,8 +421,10 @@ KEPT = {
     "idiograph-history.json": "what was done, kept as it was written, the rename adding its own record",
     "idiograph-codes.json": "a thematic analysis project's codes, kept by code and never by participant, a step of "
                             "its undo naming files by their place and refused whole once one of them has changed",
-    "idiograph-holds.json": "an agent's request in its own words, a hold that names the participant reading as "
-                            "changed on its card so that Approve runs nothing",
+    "idiograph-agent-changes.jsonl": "the record of every change agents made, each kept as it was written, naming "
+                                     "the participant as they were called then",
+    "idiograph-holds.json": "the actions that waited for his yes before approvals were removed, dropped unread as "
+                            "the project first opens",
     "idiograph-sent.json": "the record inside a shared copy's own file, never at a project's root",
     "team.json": "Working together knows a participant by their folder, in its signed list and its folder "
                  "`.idiograph-team`, so the folder keeps its name while it is on and a label alone changes nothing there",

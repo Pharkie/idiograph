@@ -125,8 +125,10 @@ import openpyxl
 
 import formats
 import i18n
-from workbook import (WorkbookError, detect_columns, interviewer_name, note_written, quote_entries, quote_pieces,
-                      quote_reach, quote_turns, split_entries, time_span, timecode, timecodes_for, ts_seconds)
+from workbook import (WorkbookError, detect_columns, guard_place, interviewer_name, note_written, quote_entries,
+                      quote_pieces, quote_reach, quote_turns, split_entries, time_span, timecode, timecodes_for,
+                      ts_seconds)
+from workbook import whole as whole_book
 
 SCHEMA = 2
 # A board's id is the file's own and never shown. The first is `v1`, from the time the boards were
@@ -627,11 +629,13 @@ def read_cards(workbook: Path, explore: bool = False, turns: bool = False, form:
     say (see `workbook.timecode`), and the answer's `timecodes` says which.
     """
     workbook = Path(workbook)
+    # never a copy standing where the case's own workbook is missing (wbguard)
+    guard_place(workbook)
     form = form or timecodes_for(workbook)
     if not workbook.exists():
         raise FileNotFoundError(workbook.name)
     try:
-        book = openpyxl.load_workbook(workbook, read_only=True, data_only=True)
+        book = openpyxl.load_workbook(whole_book(workbook), read_only=True, data_only=True)
     except Exception as exc:
         raise WorkbookError(i18n.t("server.could_read", name=workbook.name, exc=exc))
     sheets, cards, quotes, explored, words_of = [], [], {}, {}, {}
@@ -4599,6 +4603,74 @@ def cards_reworded(workbook: Path, sheet: str, rows: dict, changed: dict | None 
                 board["changed"] = dict(changed, at=when)
             out.append({"board": str(board.get("id")), "name": str(board.get("name") or ""), "keys": took})
     if json.dumps(data, sort_keys=True, ensure_ascii=False) != before:
+        data["updated"] = when
+        write(workbook, data)
+    return out
+
+
+@each_timepoint
+def cards_refreshed(workbook: Path, dry: bool = False, history: str = "", changed: dict | None = None) -> list[dict]:
+    """Every PETs board of the participant brought in line with the workbook (cardsync, 13 November 2026), each
+    timepoint's file in turn when nothing set one: a card whose key holds a statement of the workbook, once the board's
+    keys have followed their words (see `follow`), and whose words read otherwise takes the workbook's, its changed
+    mark going with them, and a pick whose quote is still there at its key but reads otherwise, which a save would
+    drop, keeps its place and takes the quote's words as the workbook holds them. The board keeps no wording of his
+    own on a card, so a card the canvas marks changed, a change he has yet to look at, cannot be told from one a write
+    left behind, and the workbook wins. A card that has followed its words to another line is left to the board, and
+    one whose statement is no longer in the workbook is listed under `missing`, never taken off. Each board that
+    changes keeps itself first in its History under `history`, once, is stamped `updated`, and with `changed`, an
+    agent's mark, is marked changed in a conversation. Revisions are left as they were. The file is written once, and
+    with `dry` not at all.
+
+    Answers each board with a card or a pick to bring in line or a card missing: its id, name, `timepoint`, `cards`
+    and `quotes`, the keys that change, and `missing`, never the words."""
+    if not themes_path(workbook).exists():
+        return []
+    data = load(workbook)
+    read = read_cards(workbook)
+    live = {c["key"]: c for c in read["cards"]}
+    texts = {q["key"]: q["text"] for r in read["quotes"].values() for q in r.get("quotes") or []}
+    when = now_iso()
+    out = []
+    for board in boards_of(data):
+        if board.get(OWN):
+            continue
+        keys: dict = {}
+        moves: dict = {}
+        follow(board, read["cards"], read["quotes"], moves, keys)
+        stored = board.get("cards") if isinstance(board.get("cards"), dict) else {}
+        cards, gone = [], []
+        for k, card in stored.items():
+            if not isinstance(card, dict):
+                continue
+            to = keys.get(k, k)
+            if to not in live:
+                gone.append(k)
+            elif to == k and words(card.get("text")) != words(live[k]["text"]):
+                cards.append(k)
+        held = board.get("quoted") if isinstance(board.get("quoted"), dict) else {}
+        quotes = sorted({k for (_gid, k), to in moves.items() if to is None and k in texts and k in held
+                         and quote_words(held[k]) != quote_words(texts[k])}, key=_order)
+        if not (cards or quotes or gone):
+            continue
+        out.append({"board": str(board.get("id")), "name": str(board.get("name") or ""), "timepoint": timepoint_now(),
+                    "cards": sorted(cards, key=_order), "quotes": quotes, "missing": sorted(gone, key=_order)})
+        if dry or not (cards or quotes):
+            continue
+        was = json.loads(json.dumps({k: v for k, v in board.items() if k != "history"}))
+        add_revision(board, name=history, at=when)
+        for k in cards:
+            stored[k]["text"] = live[k]["text"]
+            stored[k].pop("live", None)
+        for k in quotes:
+            held[k] = texts[k]
+        # a card that takes longer words stands taller, and what it now meets makes way (31 October)
+        settle_change(was, board)
+        board["updated"] = when
+        if changed:
+            board["changed"] = dict(changed, at=when)
+            board["changed"]["hash"] = state_hash(made_state(normalise(board)))
+    if not dry and any(x["cards"] or x["quotes"] for x in out):
         data["updated"] = when
         write(workbook, data)
     return out

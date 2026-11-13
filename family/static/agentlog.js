@@ -3,9 +3,9 @@
    Under Settings, AI features, Using your own AI agents: one line, how many entries and the latest, and Open, or
    "Nothing yet." Open shows the log in a sheet over Settings, in the pattern of the card for several held actions:
    each entry newest first on one line, what was asked and in which project, why it was refused, when, and Details
-   opening the agent, the project, the command, the refusal and what the agent says he asked, with Copy. A turn of
-   Dangerously skip permissions is an entry of its own, with no Details. It keeps the last 7 days and nothing clears
-   it (Adam, 3 November 2026, agent_log.py). Read from /api/agent-log each time Settings
+   opening the agent, the project, the command, the refusal and what the agent says he asked, with Copy. The actions
+   that waited for his yes, dropped when approvals were removed (noholds, 13 November 2026), are an entry of their
+   own, a note with no Details. It keeps the last 7 days and nothing clears it (Adam, 3 November 2026, agent_log.py). Read from /api/agent-log each time Settings
    opens (shell.js, openSettings) and each time the sheet does. */
 
 const AGENT_LOG = { entries: [], open: -1 };
@@ -71,18 +71,19 @@ function alLineDraw() {
 function alRow(e, i) {
   const open = i === AGENT_LOG.open;
   let what;
-  if (e.kind === 'switch') {
-    what = `<span class="al-what">${esc(e.on ? t('agentlog.switch_on') : t('agentlog.switch_off'))}</span>`
-      + `<span class="al-why">${esc(e.from === 'window' ? t('agentlog.from_window') : t('agentlog.from_browser'))}</span>`;
+  if (e.kind === 'note') {
+    const where = alWhere(e);
+    what = `<span class="al-what">${esc(t('agentlog.cleared'))}${where ? ` <span class="al-in">${esc(where)}</span>` : ''}</span>`
+      + `<span class="al-why">${esc(e.line || '')}</span>`;
   } else {
     const where = alWhere(e);
     what = `<span class="al-what">${esc(alTitle(e))}${where ? ` <span class="al-in">${esc(where)}</span>` : ''}</span>`
       + `<span class="al-why">${alFlags(alSaid(e))}</span>`;
   }
-  const more = e.kind === 'switch' ? '<span></span>'
+  const more = e.kind === 'note' ? '<span></span>'
     : `<button type="button" class="ghost small al-more" data-i="${i}" aria-expanded="${open}">${esc(t('agentlog.details'))} ${AL_CHEV}</button>`;
   let li = `<li class="al-item"><div class="al-row"><div>${what}</div><span class="al-when">${esc(alWhen(e.time))}</span>${more}</div>`;
-  if (open && e.kind !== 'switch') {
+  if (open && e.kind !== 'note') {
     const words = String(e.call || '').split(' ').map((w) => `<span class="al-word">${esc(w)}</span>`).join(' ');
     const where = e.closed ? alWhere(e) : (e.project || t('agentlog.not_known'));
     li += `<div class="al-detail"><dl>`

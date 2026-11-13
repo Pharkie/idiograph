@@ -495,7 +495,9 @@ def test_names_rules(scratch):
               and not any(w in json.dumps(removed).lower() for w in REAL[:5]))
 
         # the whole project once more, the agents' Adds included, and the agent log beside the settings
-        final = leaks(folder, REAL, skip_under=("P1 - Moss", "P9 - Quill", "_Archive"))
+        # the copies kept before a write, an _Archive's and since noholds (13 November 2026) an agent run's restore
+        # point's, hold the transcript as it was, as an archive does
+        final = leaks(folder, REAL, skip_under=("P1 - Moss", "P9 - Quill", "_Archive", ".idiograph-restore"))
         log_text = " ".join(p.read_text(encoding="utf-8", errors="replace") for p in base.glob("*agent-log*.json")).lower()
         check("345: after every road and every agent call no listed name is in the project, and none in the agent log",
               not final and not any(w in log_text for w in REAL[:5]), str(final[:6]))

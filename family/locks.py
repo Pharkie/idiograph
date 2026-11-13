@@ -121,6 +121,58 @@ def replace(source: Path, target: Path, wait: float = 2.0) -> None:
             time.sleep(0.1)
 
 
+def write_over(target: Path, data: bytes, wait: float = 2.0) -> None:
+    """`data` written into `target` in place, the same file kept, its bytes made whole before a byte of the file
+    changes, then flushed to the disk, so a folder a sync app keeps sees the file it knows changed and never one
+    taken away and another put at its name. A file put at a name while the sync app still holds the old one is
+    what iCloud Drive keeps apart as `<name> 2`, `<name> 3`, and the old name then left empty (wbguard, 13 November
+    2026, after a run of writes on a participant's workbook at a load of 255). It keeps the file's permissions,
+    Finder tags and other attributes too, which a replace dropped. A write that fails part way puts the old bytes
+    back and raises. A target that is not there yet is made whole beside it and put in place (`new_tmp`,
+    `replace`). Opening it is tried again for `wait` seconds when it is refused, as `replace` is, for a reader on
+    Windows holding it a moment."""
+    target = Path(target)
+    until = time.time() + wait
+    while True:
+        try:
+            fh = open(target, "r+b")
+            break
+        except FileNotFoundError:
+            fh = None
+            break
+        except PermissionError:
+            if time.time() > until:
+                raise
+            time.sleep(0.1)
+    if fh is None:
+        tmp = new_tmp(target)
+        try:
+            with open(tmp, "wb") as out:
+                out.write(data)
+                out.flush()
+                os.fsync(out.fileno())
+            replace(tmp, target, wait)
+        finally:
+            with contextlib.suppress(OSError):
+                tmp.unlink()
+        return
+    with fh:
+        old = fh.read()
+        try:
+            fh.seek(0)
+            fh.write(data)
+            fh.truncate()
+            fh.flush()
+            os.fsync(fh.fileno())
+        except BaseException:
+            with contextlib.suppress(OSError):
+                fh.seek(0)
+                fh.write(old)
+                fh.truncate()
+                fh.flush()
+            raise
+
+
 def read_json(path: Path):
     """A file of the app's own state read as JSON: None when it is not there. One that is there but will not read
     or parse is read again a few times, a short pause between (a virus scanner or a sync app holding it a moment),

@@ -633,8 +633,8 @@ def done(root: Path, rid: str, who: dict | None = None, dry: bool = False) -> di
 # a PET's title or a GET's, each a draft in his tray until Send review. What goes is the op the command line would
 # run, not run: `turn write` with the passage's pairs for a wording, `board apply` with a `retitle` for a PET's
 # title, `gets apply` with one for a GET's, with `seen`, the words as he saw them, and his reason. On the owner's
-# install it waits on the review card, Now beside the teammate's words. Accept runs the op as `holds.approve`
-# runs a held one, on the target as it stands now, found by its words first and its key second (the rule
+# install it waits on the review card, Now beside the teammate's words. Accept runs the op through the command
+# line's own run (`idiograph_cli.run_scoped`), on the target as it stands now, found by its words first and its key second (the rule
 # `themes.follow` keeps), so a passage changed since keeps every other change (Choice 4: a changed suggestion is
 # still accepted, by its dry run). Its History record carries `by: "member"`, `member`, `accepted_by` and
 # `suggestion`, its tool "Curt's suggestion, accepted in the app". Decline writes nothing to the files. Either
@@ -811,9 +811,8 @@ def _run_args(root: Path, s: dict, found: dict, request: str) -> "argparse.Names
 
 def answer(root: Path, sid: str, accept: bool, reason: str = "", who: dict | None = None, dry: bool = False) -> dict:
     """Accept or Decline of a teammate's suggestion that waits, by its participant's owner. Accept runs its op on
-    the target as it stands now (`_target`), after its dry run, as Approve runs a held change, its History naming
-    the teammate and who accepted it. Decline writes nothing to the files. Either goes back as an `answer`."""
-    import holds
+    the target as it stands now (`_target`), after its dry run, its History naming the teammate and who accepted
+    it. Decline writes nothing to the files. Either goes back as an `answer`."""
     import idiograph_cli as icli
     import cli as family_cli
     from workbook import WorkbookError
@@ -835,7 +834,8 @@ def answer(root: Path, sid: str, accept: bool, reason: str = "", who: dict | Non
         if found["gone"]:
             raise Refused(SAID.t("review.suggest.gone", who=who_said))
         request = s.get("reason") or SAID.t("review.suggest.request", who=who_said)
-        p = holds.project_of(root)
+        import server as srv
+        p = icli.Project(Path(root), srv.is_demo_root(Path(root)))
         args = _run_args(root, s, found, request)
         try:
             _got, lines = icli.run_scoped(icli.COMMANDS[(args.command, args.act)], p, args)
@@ -1050,9 +1050,8 @@ team_sync.TAKEN_HERE["answer"] = take_answer
 def _cli_who(args) -> dict:
     """His request and the agent's tool as the History keeps them, an agent's always (`idiograph_cli.asked_by`)."""
     import cli
-    import holds
     if not one_line(getattr(args, "note", "")) and not getattr(args, "dry_run", False):
-        raise cli.Refused(holds.NO_REQUEST)
+        raise cli.Refused(i18n.t("cli.said.no_request"))
     return {"by": "agent", "tool": one_line(getattr(args, "tool", "")) or cli.TOOL,
             "request": one_line(getattr(args, "note", ""))}
 
@@ -1130,7 +1129,8 @@ def cmd_suggest(p, args) -> tuple:
 
 def cmd_suggestion_answer(p, args) -> tuple:
     """`team suggestion-answer ID [--decline] [--reason R]`: a teammate's suggestion accepted, its op run on the
-    target as it stands, or declined, nothing written, the answer going back. Held for his yes (holds.HELD)."""
+    target as it stands, or declined, nothing written, the answer going back. The app's alone for an agent, since
+    the answer goes to the teammate (`agent_changes.app_only`)."""
     who = _cli_who(args)
     got = _cli_run(answer, p.root, args.suggestion, not args.decline, args.reason or "", who, bool(args.dry_run))
     return got, _cli_said(got) + [f"  {x}" for x in got.get("would") or got.get("lines") or []]

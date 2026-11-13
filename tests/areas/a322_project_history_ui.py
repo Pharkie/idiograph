@@ -2,8 +2,8 @@
 on Home, opens a sheet of every change newest first, All, In the app or By an agent, read a page at a time through
 `/api/project-history`, which reads as `project history` and MCP's `project_history` read (one API, two clients),
 each record with when, what changed, and who asked: the app, or an agent by its name, "approved in the app" or
-"without asking" where a hold applied, and its account of his request, the agent's words cleaned as a held change's
-card cleans them (`holds.agent_words`).
+"without asking" where a hold applied in a record kept before approvals were removed (noholds, 13 November 2026), and
+its account of his request, the agent's words cleaned as the agent log cleans them (`agent_log.agent_words`).
 
 What is checked: the page's read answers newest first, as `project history` does, with `total`, a page at a time by
 `offset` and `limit` that together give every record once, and `by` the app's or the agents' alone with their own
@@ -92,8 +92,8 @@ def test_project_history_ui(scratch: Path):
 
         newest, without, app = whole["history"][0], whole["history"][2], whole["history"][-1]
         request = newest.get("request", "")
-        check("322: an agent's record names it apart from its hold, approved in the app or without asking, and the "
-              "app's names the app with no agent or request",
+        check("322: an agent's record names it apart from its hold of before, approved in the app or without asking, "
+              "and the app's names the app with no agent or request",
               newest.get("by") == "agent" and newest.get("agent") == "Claude Code" and newest.get("hold") == "approved"
               and without.get("agent") == "Claude Code" and without.get("hold") == "without"
               and without.get("request") == ASKED

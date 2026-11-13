@@ -1662,9 +1662,35 @@ def copies_untouched(root: Path, workbook: Path, books: list[dict] | None = None
     return {e["case"]: bool(at_timepoint(e, untouched, Path(workbook), held[e["case"]])) for e in entries}
 
 
+def quotes_carried(lines: dict, key: str, old: str, new: str, carried: dict | None = None) -> dict[str, list[str]]:
+    """A statement's own quote rewritten in its place, `old` to `new`, carried to a copy's lines (cardsync, 13 November
+    2026): every line of the copy on the statement's row keeps the row's quotes by place (see `row_places`), and each
+    whose place held the old quote, its words as `themes.quote_words` reads them, takes the new as the workbook holds
+    it. A line holding another quote there, a change waiting, keeps it. `carried` is the quotes the write's other
+    statements have carried already, by line, which this one builds on. Answers each line that changes by its key
+    with its quotes after. Nothing is written."""
+    sheet, row, place = themes.split_card_key(key)
+    if row is None or place is None:
+        return {}
+    out = {}
+    for lkey, line in lines.items():
+        if not isinstance(line, dict) or line.get("sheet") != sheet or line.get("row") != row:
+            continue
+        was = [str(q or "") for q in (carried or {}).get(lkey, line.get("quotes") or [])]
+        places = was + [""] * (place + 1 - len(was))
+        if themes.quote_words(places[place]) != themes.quote_words(old) or places[place] == new:
+            continue
+        places[place] = str(new or "")
+        while places and not places[-1]:
+            places.pop()
+        if places != was:
+            out[lkey] = places
+    return out
+
+
 def statements_followed(root: Path, workbook: Path, words: dict, before: dict, books: list[dict] | None = None,
                         dry: bool = False, changed: dict | None = None, history: str = "",
-                        said: dict | None = None) -> dict:
+                        said: dict | None = None, quotes: dict | None = None) -> dict:
     """A participant's statements reworded in their workbook carried to the copy the file in scope keeps of them,
     the project's GETs, inside `lgets` its LGETs or inside `lpets` the participant's LPETs (30 October 2026,
     getsedit, Adam: "Edit there too", a statement edited from a GETs board as on PETs, the GETs' copy taking the
@@ -1679,15 +1705,24 @@ def statements_followed(root: Path, workbook: Path, words: dict, before: dict, b
     the statement's key (see `themes.edit_line`), every board with a card of it keeps itself first under that line,
     whether or not its copy took the words (histreplace, 30 October 2026). With `dry` nothing is written.
 
-    Answers nothing when nothing took words and no board kept a line, else `cases`, the cases that took words,
-    `boards`, each board with a card that did, its id, name and the cards' keys, `versions`, every board as the
-    board menu lists it after the write, for the page's next save, and `histories`, each board that kept a line
-    with its revisions as the History tab lists them."""
+    `quotes`, each statement by its key with its own quote before and after, carries a quote rewritten in its place
+    the same way (cardsync, 13 November 2026: a requote had reached the copies' wording alone, so the LPETs and the
+    key quotes Trajectories reads from them kept the old quote): every line of the copy on its row takes the new
+    quote at its place where it held the old (see `quotes_carried`), and a board with a card of the statement is
+    kept and marked as one that took words is.
+
+    Answers nothing when nothing took words or a quote and no board kept a line, else `cases`, the cases that took
+    either, `words` and `quotes`, the statements' keys that took each, `boards`, each board with a card of one, its
+    id, name and the cards' keys, `versions`, every board as the board menu lists it after the write, for the page's
+    next save, and `histories`, each board that kept a line with its revisions as the History tab lists them."""
     data, entries = held_of(root, workbook, books)
     if data is None or not entries:
         return {}
     held = data["cases"]
     took: dict[str, list[str]] = {}
+    # each line of a copy that takes a quote, with its quotes after, and the statements whose quote it is
+    requoted: dict[str, dict[str, list[str]]] = {}
+    quoted: dict[str, list[str]] = {}
     for e in entries:
         lines = held[e["case"]].get("lines") if isinstance(held[e["case"]].get("lines"), dict) else {}
         for key, (old, new) in words.items():
@@ -1695,16 +1730,26 @@ def statements_followed(root: Path, workbook: Path, words: dict, before: dict, b
             if (isinstance(line, dict) and themes.words(old) != themes.words(new)
                     and themes.words(line.get("text")) == themes.words(old)):
                 took.setdefault(e["case"], []).append(key)
+        for key, (old, new) in (quotes or {}).items():
+            carried = quotes_carried(lines, key, old, new, requoted.get(e["case"]))
+            if carried:
+                requoted.setdefault(e["case"], {}).update(carried)
+                quoted.setdefault(e["case"], []).append(key)
+    # the statements whose card a board keeps marked for the write: those that took words, and those that took a quote
+    marks = {case: list(dict.fromkeys(took.get(case, []) + quoted.get(case, [])))
+             for case in held if case in took or case in quoted}
     boards = []
     for board in boards_of(data):
         cards = board.get("cards") if isinstance(board.get("cards"), dict) else {}
-        keys = [card_of(case, "es", key) for case, keys in took.items() for key in keys
+        keys = [card_of(case, "es", key) for case, keys in marks.items() for key in keys
                 if isinstance(cards.get(card_of(case, "es", key)), dict)]
         if keys:
             boards.append({"board": str(board.get("id")), "name": str(board.get("name") or FIRST_NAME), "keys": keys})
-    out = {"cases": [c for c in held if c in took], "boards": boards}
+    out = {"cases": [c for c in held if c in marks], "boards": boards,
+           "words": list(dict.fromkeys(k for keys in took.values() for k in keys)),
+           "quotes": list(dict.fromkeys(k for keys in quoted.values() for k in keys))}
     if dry:
-        return out if took else {}
+        return out if marks else {}
     when = themes.now_iso()
     # his own edit's line on each board that shows the statement, the board as it stood before the words
     noted = noted_on(data, entries, said or {}, when)
@@ -1721,6 +1766,11 @@ def statements_followed(root: Path, workbook: Path, words: dict, before: dict, b
                 if isinstance(card, dict) and "text" in card:
                     card["text"] = rec["lines"][key]["text"]
         rec["hash"] = snap_hash(rec)
+    for case, carried in requoted.items():
+        rec = held[case]
+        for lkey, places in carried.items():
+            rec["lines"][lkey]["quotes"] = places
+        rec["hash"] = snap_hash(rec)
     # a copy with nothing else waiting keeps its files' new times (see `untouched`), read afresh to be sure
     kept = kept_in(held, entries, before)
     for board in boards_of(data):
@@ -1728,11 +1778,11 @@ def statements_followed(root: Path, workbook: Path, words: dict, before: dict, b
             board["updated"] = when
             board["changed"] = dict(changed, at=when)
             board["changed"]["hash"] = themes.state_hash(themes.made_state(normal(board, data)))
-    if not took and not kept and not noted:
+    if not marks and not kept and not noted:
         return {}
     data["updated"] = when
     write(root, data)
-    if not took and not noted:
+    if not marks and not noted:
         return {}
     disk = load(root)
     return dict(out, versions=[themes.summary(b, on_disk(disk, b)) for b in boards_of(disk)],
@@ -1775,6 +1825,111 @@ def statements_noted(root: Path, workbook: Path, said: dict, books: list[dict] |
     write(root, data)
     return {"boards": noted, "histories": {str(b.get("id")): themes.history_list(b) for b in boards_of(data)
                                            if str(b.get("id")) in noted}}
+
+
+# ------------------------------------------------------- copies brought in line (cardsync)
+# (13 November 2026, from the GRAVITY session: a write that went astray left thirty statements' cards and a
+# participant's LPETs on the old wording and the old quotes, the workbook holding the new, and nothing brought them
+# back.) `copies_refreshed` reads every copy a file keeps of a participant against the workbook, statement by
+# statement, and brings back each that differs, its dry run naming the keys alone.
+
+def workbook_lines(workbook: Path) -> dict[str, dict]:
+    """Every statement of a participant's workbook at every timepoint, by its key, `Initial:12:0`, with its words and
+    its row's quotes by place, as a copy keeps them (see `snapshot` and `row_places`). Read alone."""
+    workbook = Path(workbook)
+    out: dict[str, dict] = {}
+    for n in sorted({1} | set(themes.placed_sheets(workbook).values())):
+        with themes.scoped(n):
+            read = themes.read_cards(workbook)
+        for c in read["cards"]:
+            row = (read["quotes"].get(themes.row_key(c["sheet"], c["row"])) or {}).get("quotes") or []
+            out[c["key"]] = {"text": c["text"], "quotes": row_places(row)}
+    return out
+
+
+def copies_refreshed(root: Path, workbook: Path, truth: dict, books: list[dict] | None = None, dry: bool = False,
+                     changed: dict | None = None, history: str = "") -> dict:
+    """The copy the file in scope keeps of a participant brought in line with their workbook (cardsync, 13 November
+    2026): the project's GETs, inside `lgets` its LGETs, or inside `lpets` the participant's LPETs, each of their
+    timepoints in it from `books`. `truth` is the workbook's statements by key (see `workbook_lines`). Each line of the
+    copy whose words read otherwise takes the workbook's, each whose quotes do takes the row's quotes as the workbook
+    holds them, and each board's card of a statement takes its words, whether or not a change waits to be taken: the
+    copy keeps no wording of his own, so the workbook wins, as an edit's words reach a copy (see
+    `statements_followed`). A line or a card whose statement is no longer in the workbook is listed under `missing`
+    and left as it is. Each board with a card that changes keeps the board as it stood first in its History, under
+    `history`, and with `changed`, an agent's mark, is stamped and marked changed in a conversation. A copy that then
+    reads as its files do keeps their times, so it is not marked Changed since it came in (see `kept_in`). The file is
+    written once, and with `dry` not at all.
+
+    Answers nothing when the file has no copy of the participant, else `statements`, the keys whose words change,
+    `quotes`, those whose quotes change, `missing`, those no longer in the workbook, and `boards`, each board with a
+    card that changes or is missing, its id, name, `cards` and `missing`, card keys alone, never the words."""
+    data, entries = held_of(root, workbook, books)
+    if data is None or not entries:
+        return {}
+    held = data["cases"]
+    mine = {e["case"] for e in entries}
+    statements, quotes, missing = [], [], []
+    fix: dict[str, dict[str, dict]] = {}
+    for e in entries:
+        lines = held[e["case"]].get("lines") if isinstance(held[e["case"]].get("lines"), dict) else {}
+        for key, line in lines.items():
+            if not isinstance(line, dict):
+                continue
+            now = truth.get(key)
+            if now is None:
+                missing.append(key)
+                continue
+            if themes.words(line.get("text")) != themes.words(now["text"]):
+                statements.append(key)
+                fix.setdefault(e["case"], {}).setdefault(key, {})["text"] = now["text"]
+            if [str(q or "") for q in line.get("quotes") or []] != now["quotes"]:
+                quotes.append(key)
+                fix.setdefault(e["case"], {}).setdefault(key, {})["quotes"] = list(now["quotes"])
+    boards = []
+    for board in boards_of(data):
+        cards = board.get("cards") if isinstance(board.get("cards"), dict) else {}
+        took, gone = [], []
+        for ck, card in cards.items():
+            k = split_key(ck)
+            if k["kind"] != "es" or k["case"] not in mine or not isinstance(card, dict) or "text" not in card:
+                continue
+            now = truth.get(k["ident"])
+            if now is None:
+                gone.append(ck)
+            elif themes.words(card.get("text")) != themes.words(now["text"]):
+                took.append(ck)
+        if took or gone:
+            boards.append({"board": str(board.get("id")), "name": str(board.get("name") or FIRST_NAME),
+                           "cards": took, "missing": gone})
+    out = {"statements": statements, "quotes": quotes, "missing": missing, "boards": boards}
+    if dry or not (fix or any(b["cards"] for b in boards)):
+        return out
+    when = themes.now_iso()
+    by_id = {b["board"]: b for b in boards if b["cards"]}
+    for board in boards_of(data):
+        said = by_id.get(str(board.get("id")))
+        if not said:
+            continue
+        themes.add_revision(board, name=history, at=when)
+        for ck in said["cards"]:
+            board["cards"][ck]["text"] = truth[split_key(ck)["ident"]]["text"]
+    for case, lines in fix.items():
+        rec = held[case]
+        for key, took in lines.items():
+            rec["lines"][key].update(took)
+        rec["hash"] = snap_hash(rec)
+    # a copy that now reads as its files do keeps their times, never marked Changed since it came in for this
+    kept_in(held, entries, {case: True for case in fix})
+    for board in boards_of(data):
+        if str(board.get("id")) in by_id:
+            board["updated"] = when
+            if changed:
+                board["changed"] = dict(changed, at=when)
+                board["changed"]["hash"] = themes.state_hash(themes.made_state(normal(board, data)))
+    data["updated"] = when
+    write(root, data)
+    return out
 
 
 def lines_followed(case: str, cards: dict, old_lines: dict, fresh_lines: dict) -> dict[str, str]:

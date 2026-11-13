@@ -571,102 +571,64 @@ beside the code and as the MCP resource (`mcp_server.guide_uri`). `agent_start` 
 naming the project tick. The page asks for it each time Settings opens (`drawAgentStart`), and Copy says
 Copied for a moment. Area 246.
 
-**An agent's action waiting for his yes** (holdsbuild, 27 October 2026, Adam's ruling of Section 13 on the holds
-design of 26 October). `apps/idiograph/holds.py`. Every Idiograph command an agent runs passes through
-`idiograph_cli.run_in_scope`, which hands it to `holds.gate` in its scope: an op of `holds.HELD` (board and GETs
-delete and restore, `transcript replace --all`, `replace-undo` over two workbooks or more, `turn trim`, `turn
-write` taking a placed statement off the boards, a board or GETs `apply` with a `merge` or `apart` on a board
-whose `made.by` is not `agent`, `trajectories apply` with a `remove`, `gets take` with PETs gone, `participant
-rename --folder`, `project send` of every participant or out of the folder) not run as a dry run runs its dry
-run instead, on its arguments with every file read once (`frozen`), and when its rule says so writes a hold to
-`idiograph-holds.json` at the project's root under its own lock, `.idiograph-holds.lock`, apart from the
-project's and a case's: the id, `h<n>`, the op, the agent's tool and his request, the dry run's lines (`dry`),
-what it would do as the card says it (`would_do`, `would_lines`: what goes or changes with its counts, where a copy
-is kept, and the board that stays the Current board), the arguments without the project's choices, the words of the line, the card and the line after
-each answer (`said_of`), in English and as the catalogue's keys and slots under `said` (the text layer, below), and `fingerprint`, each touched file's mtime and size. The answer is `held`, marked as
-every answer is (`op` and `status` plain in `cli.PLAIN`). With `skip_permissions` true in the settings the run
-reads (Idiograph's own setting, off by default, saved by Settings' Save), the op runs at once with its tool
-"<agent>, without asking", which every History record the op makes carries. `holds.RUN_AT_ONCE`, set by the
-suite's runner alone, runs every op as before holds, and area 276 puts it back. `hold` and `hold show <id>`
-(MCP `hold`, `hold_show`) read it. `/api/holds` is the page's own, POST only and from the server's own page
-(`own_page`), area 261 listing it so: `list` the waiting across `holds_roots()` (the app's projects, a run's
-`--root` and the demo), `check` the card's look (the dry run again, the hold taking the new lines and
-`changed` when they, clock times aside, or the fingerprint differ), `approve` (marked `approving` so it never
-runs twice, the dry run again, nothing run and `changed` when it differs, else `run_scoped` with `_approved`
-and the tool "<agent>, approved in the app", the hold `approved` with the op's answer, or `failed` with its
-refusal) and `decline` (the hold `declined`, and for a board or GETs op a revision of that board named
-"Declined in the app: ..." through `board revision` or `gets revision`). The page (`distil.js`, `holdsTick`
-every four seconds on the statements screen, PETs and GETs) draws `#hold-line` fixed where `#es-outside` or
-`#th-outside` sits, below it when it shows, Review opening `#hold-card` for the oldest, and the setting's row
-in the `agent-more` slot after Copy with `#skip-confirm` as `#ai-confirm` asks. `project_pack.LEFT_OUT` never
-sends the holds file. Area 276.
+**What agents change, and a run undone** (noholds, 13 November 2026, Adam: the holds were "approvals theatre ...
+assume that AI agents act intelligently, but also provide a safety net if they don't ... review afterwards", and by
+dialog the actions undo cannot reach are the app's alone, and a restore point for each agent run). The holds of 27
+October (`holds.py`, `/api/holds`, the hold line, the card for one and the card for several, Home's count, `hold` and
+`hold show`, Dangerously skip permissions and its record) are gone. `apps/idiograph/agent_changes.py` is the net.
+Every Idiograph command an agent runs still passes through `idiograph_cli.run_in_scope`, which hands it to
+`agent_changes.through` in its scope with `writing_ops()`, the ops whose parser takes `--dry-run`, read once from the
+parser:
 
-**The agent's words as its own, and each hold's risk** (agentholds, Adam, 2 November 2026, by dialog). The card
-quotes what the agent says he asked as the agent's, `server.holds_asked_request` ("{asked}. {agent} says you
-asked: ...") and on the card for several `distil.holds.agent_says`, its groups by project, request and agent.
-`holds.agent_words`, after Harbour's `keyWords`, cleans it when it is shown, never in the file: one line, no
-character of `Cf`, `Cc`, `Co` or `Cs` nor the fillers, the combining grapheme joiner and the variation
-selectors, every quotation mark and lookalike (`QUOTE_LIKE`, `Pi` and `Pf`) as a plain apostrophe, every `://`
-as `: //`, and at most `WORDS_MOST` characters (300) with an ellipsis, `NAME_MOST` (60) for the agent's name and a
-new name. A replace's find and put and a new code's or participant's name are kept in `said` as `said_by`, the
-words as they came, said through `agent_words` by `text_of`. `shown` gives `tool` and `request` cleaned.
-`holds.RISK` names the risk each op of `HELD` answers, of `RISKS`, the four at the head of agents.md, and each
-`PAGE_ONLY` route in area 261 carries its risk or `screen` or `own AI`. Area 261 fails on an op with none, a
-row of agents.md's table of holds that differs from `RISK`, and a route with no tag.
+- `app_only(args)` refuses, before anything is read, the ops no undo reaches, `cli.Refused` with `code` `app_only`,
+  which `cli.main` and the MCP server's `logged` carry into the agent log: Working together's outward ops and its
+  people (`TEAM_ONLY`), `project send`, `names remove` (the list is copied nowhere, so `NEVER` keeps it out of a
+  restore point) and `settings` with any of `SETTINGS_KEYS`. A dry run of one still runs. `ALL_OPS`, set by the
+  suite's runner alone, lets the checks of those ops drive them through the command line as before, and areas 321,
+  351, 357, 368 and 380 put it back to check the refusals. No agent's call reaches it.
+- A dry run, a read and an op of either demo run as ever. Otherwise, under the store's own lock (`agents.lk` in
+  `.idiograph-restore/`, never ending `.lock`, so `trash.guard` does not take it for a writer), the write finds its
+  run (`current_run`): `--run` naming a run's id or a word of the agent's (`run:<word>`, no time limit), the MCP
+  connection's `session` (`mcp:<token>`, made per `mcp_server.Server`, which sets `args.via` and `args.session` in
+  `call`), or the command line's tool (`cli:<tool>`), each continuing while its last write was within `IDLE`, 30
+  minutes. A new run (`start_run`) is given the next id from `index.json`, `r1`, `r2`, never one given before, and its
+  restore point (`point`): every `.xlsx` and `.json` under the root (`tracked`, walking no hidden folder and no
+  `_Archive`, leaving out `NEVER`: History, the list of names, team.json, the old holds file and a copy's own record)
+  copied by its sha256 into `objects/`, a file whose time and size match an earlier point's taking that copy unread,
+  so a point costs a stat of each file and a read and copy of each one changed since. `tidy` lets points go
+  `KEEP_DAYS`, 30, after their run's last write, the last `KEEP_RUNS`, 10, kept whatever their age, and `sweep` takes
+  away every copy no kept run names. A run whose first op wrote nothing, or was refused, is let go (`drop`).
+- Each file's time and size are read before and after the op (`tracked`). `settle` keeps in the run's file
+  (`runs/<id>.json`) the files it changed, those it made (changed and not in its point), those that changed between
+  its writes by someone else (`foreign`, the reading before a write differing from the run's last), and `after`, its
+  last reading. A write that changed a file, or an op of `ELSEWHERE` (the exports and Remove), appends one line to
+  `idiograph-agent-changes.jsonl` at the root (`entry_for`): `id` (`c12`), `at`, `run`, `via`, `agent`, `request`,
+  `op`, `target` (`target_of`: `case`, `board`, `sheet`, `row`, `timepoint`, `gets`), `what_changed`
+  (`changed_line`, by the files' kinds, `kind_of`: a participant's transcript, boards or working files by pseudonym,
+  the project's settings, the GETs, the LGETs, Trajectories, the code list), `files`, and `undo_with` (`undo_of`: the
+  run's command, and the op's own, a replace's `batch`, an assignment's or a trim's `id`, the workbook `copy` kept,
+  the board `revision` made, `codes undo`). Never a participant's words. A participant's folder renamed marks the run
+  `folder_renamed`. Remove from Idiograph (`removing`) writes its line before the op, since with the Trash the record
+  goes with the folder, and takes it out again when the op is refused.
+- `agents changes` (MCP `agent_changes`, `cmd_agents_changes`, `listing`) reads it newest first with the runs it
+  names, `--since`, `--run`, `--limit`. `agents undo-run <id>` (MCP `agent_undo_run`, `undo_run`) checks `conflicts`
+  first: a file the run changed that stands otherwise than its `after` (changed since its last write), or that is in
+  its `foreign` (changed by someone else between its writes), refuses it whole, each named, nothing written, and so
+  does `folder_renamed`. Otherwise it starts a run of its own (`undoes`, its key `undo:<id>`), whose point is the
+  project as it stands, then under each file's own lock (`lock_of`: the participant's `Working/.idiograph.lock`, else
+  the root's) keeps and takes away each file the run made (`kept_made`) and writes each file it changed back from its
+  copy, its time set back to the point's (`os.utime`), so an earlier run undone after it finds its files as its last
+  write left them. The run takes `undone`, the undo one line of the record, and `agents undo-run` on the undo's id puts
+  it back. `cli.PLAIN` keeps the record's own words plain (`run`, `via`, `started`, `last`, `what_changed`, `own`,
+  `batch`, `copy`, `undoes`, `undo_run`, `change`, `back_said`, `gone_said`), the agent's name and his request marked.
+- A project's `idiograph-holds.json` from before is dropped as the project first opens (`clear_holds`, from
+  `idiograph_cli.open_projects` and Home's `/api/cases`), never applied, with its lock, and its waiting count noted
+  once in the agent log, `code` `cleared`, which `agent_log.read` gives as `kind` `note`. A settings file holding
+  `skip_permissions` is read and ignored, and `config.skip-permissions.jsonl` is left where it is, read no more.
 
-**Several answered together** (holdbatchA, 1 November 2026, Adam's option A of that day). With more than one
-waiting, Review opens `#holds-batch` (`holdsBatchOpen` in `distil.js`, in `OVERLAYS`): the rows under each
-project's request (`hbGroups`), each its tick in a label in a `data-tick-row` row, the agent and `hbWhen`
-(`tTime`, the day too when not today), and Details opening the row's card under it (`HB.open`). Every row is
-ticked but one whose hold says `changed`, then `/api/holds` `check` with `holds`, a list of `{root, id}`, runs
-each dry run again and unticks those changed now. Decline N and Approve N send the ticked ones to `approve` or
-`decline` with `holds`, which `holds.answer_all` answers in the order given with each one's `outcome`
-(`approved`, `declined`, `changed` with `server.holds_changed_waits`, `failed` with its refusal, `answered` or
-`gone`) and `done`. `hbAfter` draws the outcome, `said` (`shown`'s line without its first word) for each done,
-the reason for each not done, and the rows not ticked still waiting, with Review the N waiting (`hbAgain`) and
-Done (`hbClose`, the line then counting what still waits, or saying the card's title when nothing does). One
-waiting keeps `#hold-card`. The fault it fixes: an approved board delete changes that participant's boards
-file, as a decline's History line does, so the next hold on the same file was refused once as changed (ten
-deletes, about 37 clicks). `holds.carry` runs after every Approve and Decline: a waiting hold whose files stood
-as they did just before his answer, and stand now as his answer left them, every other file as the hold has
-it, takes the new `fingerprint` and its dry run afresh, so his own answers never count as a change and
-anything else's still does. A hold that something else changed too still has the files his answer changed
-advanced, so `changed_what` (`check` and `approve`, from the fingerprints) names only what changed elsewhere,
-"Mabel's boards", in the row, the single card (`distil.holds.what_changed`) and the refusal
-(`server.holds_what_changed_waits`). A hold carried whose dry run now says otherwise, a replace whose boards
-were deleted since, takes `since_yours`, `deleted` after an approved delete else `changed`, and its row says
-so in his own terms, never as changed since the agent asked. The replace's line, card and row give the agent's
-own words, `replace “dog” with “hound” in every participant's transcript`, and the card's words say "Archive
-folder" for `_Archive`. `fingerprint` keys each file by its path with links resolved, since a project
-reached as /var and as /private/var gave two keys and every hold read as changed. Agents still answer none:
-the route is the page's own (`own_page`), no command or tool approves or declines, and `hold show` takes several
-ids (MCP `hold_show` with `ids`) to read each one's outcome, `holds` in the order given. Area 314.
-
-**Progress while several are answered, and waiting actions on Home** (holdsprog, 11 November 2026, Adam, after 13 slow
-approvals on one participant that "just sat there", and Home saying nothing of them, ruled by dialog: count and bar, on
-the project's card). `hbAnswer` no longer sends the ticked rows in one call: it sends each, in the order shown, as
-`/api/holds` with `holds` of one `{root, id}`, so `holds.answer_all` runs unchanged and the outcome has the shape it
-had, and `hbRun` gives the card the class `running` (`.holds-batch.running`, which hides `#hb-all`, `.hb-sum`,
-`.hb-list` and `.card-actions` and shows `#hb-run`) with the heading, `distil.holds.approving_of` or `declining_of`
-("Approving 4 of 13", `n` the ones finished, so line and bar agree), and `#hb-bar`, a `role="progressbar"` whose
-`#hb-fill` is `n` over the total, in the round bar's colours (`--rule` under `--good`, its ease) at 4px. `holdKeys`
-ignores Esc while `HOLDS.busy`, and the card has no other way to close. A call that throws (the server gone, a refused
-route) stops there: that row is `failed` with the error's words, the rows after it are `HB.after.unreached` and read
-"Not reached. It still waits for your yes." (`distil.holds.not_reached`), counted in `still`, and `hbAfter` then draws
-the result as it always did. One action alone (`holdAnswer`) shows `#hold-run`, "Approving..." or "Declining...",
-only once `HOLD_SLOW_MS` (500) has passed, and its Esc is likewise ignored while it answers. For Home,
-`/api/holds` has a fourth read, `counts`: `holds.counts(roots)` reads each listed project's `idiograph-holds.json` and
-counts `waiting`, with no `shown`, no dry run and nothing else of the project, so Home reads no more of a project
-than before (a project that never had a hold costs one failed open), and the route names each by `project_id`, the id
-its card has (`[{id, root, n}]`, none with `n` of 0). `distilHomeDraw` calls `homeHoldsRead` after `drawPick`, so the
-counts are asked each time the picker is drawn, Home shown again or the way back from a project's page, and not while
-it stays up. A project's card takes a `.hc-hold` button beside its own (a button inside a button is not markup), its
-`li` `has-hold` and its list `has-holds`, which keeps the room under every card of the list so the row stays level, `distil.home.holds_waiting` ("{n} actions are waiting for your yes" without the full
-stop) in `--crux`, the orange of the Preview note's sign. A press (`holdsOpenFromHome`, delegated from `#projects` and
-`#demo-projects` in `holdsBoot`) opens the project's page and the first participant's PETs the way his own clicks
-do (`openPage`, `openThemesIn`, so Back walks them), reads the list afresh (`holdsRead`, split out of `holdsTick`)
-and opens the card as Review does, for every action waiting, not only that project's. Area 314 holds the one-id calls
-and `counts`, area 110's harness stubs `homeHoldsRead`.
+The project's History keeps reading a record's tool ending "approved in the app" or "without asking"
+(`project_history.APPROVED`, `WITHOUT`) for records made before. `project_pack.LEFT_OUT` keeps the record and the
+store out of a send. The review screen that lists the record (agentreview) reads `listing` and `undo_run`. Area 380.
 
 **A command and an MCP server per app** (20 October, the fifth build of the split). `sift` and `trace`,
 with their `.bat` twins, sit beside `idiograph` at the root, each running `cli.py --app <app>`, and a
@@ -1836,11 +1798,11 @@ through it.
 
 **The window's key** (agentlock, 2 November 2026, Adam's ruling: close it). `own_origin` passes any program
 on this machine that names the server's own address, with no Origin or a forged one, so a shell's `curl`
-could have approved an agent's held action or turned on Dangerously skip permissions. What governs agents
+could have ticked a project open to agents or set agents up. What governs agents
 now asks for a key besides, in the header `X-Idiograph-Key` (`keyed`, compared in constant time), made at
-each start and never served by any route to the window's run: `/api/holds` (every op), `/api/mcp`,
-`/api/agents-guide`, `/api/settings` with `skip_permissions` in its body and `/api/project` with `agents`
-in its body (`WINDOW_ONLY`, Idiograph's through `register(window_only=...)`, each a path with None for
+each start and never served by any route to the window's run: `/api/mcp`, `/api/agents-guide`, `/api/names`
+and `/api/project` with `agents` in its body (`/api/holds` and `/api/settings` with `skip_permissions` went with
+the holds, noholds, 13 November 2026) (`WINDOW_ONLY`, Idiograph's through `register(window_only=...)`, each a path with None for
 every call or the one body key that makes it so). A call without it is refused, a GET or a POST, 403 with
 "Only Idiograph's own window can do this.", before anything is read or written. The rest of those routes,
 the settings' other keys and a project's other fields, answer as before. The page's `api` in `shell.js`
@@ -1863,9 +1825,10 @@ program on this machine can read the page and send the key, so there it is a sec
 plain POST is still refused. The window's own page never carries it. A tab open across a Restart in a
 browser takes the new key when it reloads.
 
-**The switch's record.** Each time Dangerously skip permissions changes, `api_settings` appends a line to
-`config.skip-permissions.jsonl` beside the settings file (`record_switch`): `at`, `on`, and `from`,
-`window` or `browser`. Since 3 November 2026 the agent log shows it (below). Area 317 checks all of this.
+**The switch's record.** Until 13 November 2026 each turn of Dangerously skip permissions appended a line to
+`config.skip-permissions.jsonl` beside the settings file. The switch went with the holds (noholds), the file is
+left where it is and read no more, and a settings save naming the switch keeps nothing. Area 317 checks all of
+this.
 
 **The agent log** (agentlog, 3 November 2026, Adam's option B by dialog, on refusaldraw's drawings).
 `family/agent_log.py`. Each refusal of an agent goes into `agent-log.json` beside the settings file (`place`, or
@@ -1876,7 +1839,8 @@ in one line in place of the parser's error), the parser's own (`parse_refusal`: 
 does not take), another app's command, and every `Refused` and `WorkbookError` of a command. The MCP server
 logs from `tools_call` and `call` (`Server.logged`), on the log's own thread (`agent_log.later`) so the answer
 goes first: an unknown tool, a page-only tool name (refused as a result in one line), inputs the schema refuses,
-and each tool's refusal. `holds.decline` logs a declined action (`logged_decline`). Since siftlog (3 November
+and each tool's refusal. `holds.decline` logged a declined action until the holds went (noholds, 13 November
+2026), and `agent_changes.clear_holds` notes those still waiting once, `cleared`. Since siftlog (3 November
 2026, Adam: Sift and Trace too) every app logs, each into its own file beside its own settings, Sift's and Trace's
 folders under their own app's settings, never a review's or a project's, and in the suite `IDIOGRAPH_AGENT_LOG`'s
 name with the app's added (`suite-agent-log-sift.json`). Sift's and Trace's commands take a folder first, so their
@@ -1896,9 +1860,9 @@ adds to the entry's `count` (`merged`). Kept: the last 7 days (`DAYS`), an older
 read, and within them the latest 500, a backstop against a flood. No setting and no Clear (Adam, 3 November). A write waits half a
 second for `.agent-log.lock` beside it and is dropped after: logging never fails a command.
 
-Dangerously skip permissions stays in agentlock's record, `config.skip-permissions.jsonl`, and `agent_log.read`
-merges those of the last 7 days in as entries of `kind` `switch`, the record itself never changed. The
-window reads `/api/agent-log`, the family's route since siftlog (`agent_log.api_agent_log`, in `server.ROUTES` and
+The actions that waited, dropped as a project first opens since approvals were removed (noholds, 13 November
+2026), are one entry of `code` `cleared`, which `agent_log.read` gives as `kind` `note`, the page drawing it as
+"Approvals removed" with no Details. An op only the app does is `code` `app_only`. The window reads `/api/agent-log`, the family's route since siftlog (`agent_log.api_agent_log`, in `server.ROUTES` and
 `OWN_PAGE`), each refusal with `said`, its line spoken to him (`agent_log.said`: the drawn lines, else "he" and "his" made "you" and "your"), and the page names each op as a plain action (`AL_OPS` in `family/static/agentlog.js`, each app adding its own from `agentlog_idiograph.js`, `sift_settings.js` and `trace.js`, their words in `agentlog_<app>.json`), "A command Idiograph doesn't have" (or Sift, or Trace) for none. A refusal before a project opened names the one it was asked of (`cli.where_asked`, `idiograph_cli.log_where`), "Not known" in Details where none is.
 Agents read it with `idiograph agents log [--since <day>] [--limit n]` (`sift agents log`, `trace agents log`, through
 `cli.agents_parser`) and MCP `agent_log` (`mcp_server.log_tool`, each app's own, Sift's and Trace's outside `TOOLS`), read
@@ -2017,11 +1981,12 @@ Every save takes the same path, in `workbook.py`:
    takes a note, its heading in the first empty header cell after the last used one, G in the
    standard layout, in the header font and 42 wide, and found by its header on every read after
    that, wherever it sits.
-4. Have openpyxl write the workbook into memory, nothing packed (`shared_strings.save`, its
+4. Have openpyxl write the workbook into memory, nothing packed (`shared_strings.packed`, its
    `ExcelWriter` run as openpyxl's own `save_workbook` runs it).
 5. Convert the inline strings openpyxl writes into a shared-strings part, the way Excel writes
-   them (`shared_strings.share`), check every XML part with expat and pack the file once into a temp
-   file in the same directory, its CRCs checked after (`shared_strings.pack`). Until savespeed (11
+   them (`shared_strings.share`), check every XML part with expat and pack the file once in memory,
+   its CRCs checked after (`shared_strings.pack`), where until wbguard (13 November 2026) it packed into
+   a temp file in the same directory. Until savespeed (11
    November 2026) openpyxl packed the file to disk, the pass read it back, packed it again and checked
    it by building a minidom tree of every part, about half of a save's time. The parts are byte for byte
    what that wrote, which area 174 holds on both writers. Excel for Mac rejected a workbook with inline rich text on
@@ -2035,7 +2000,37 @@ Every save takes the same path, in `workbook.py`:
    workbook's own body font, its minor font, or in none named. Until then a run in another font in
    the body colour, Georgia in black, gained it on every save, which marks the run to Excel as one
    in the workbook's body font.
-6. `os.replace` over the original.
+6. Write the bytes into the workbook in place, the same file kept (`locks.write_over`, wbguard, 13
+   November 2026): read the old bytes, write the new from the start, truncate, flush and `fsync`, and on
+   any error part way put the old bytes back and raise. A workbook not there yet is written beside it
+   under `locks.new_tmp` and put in place by `locks.replace`. Until then the temp file went over the
+   original by `os.replace`, which gives the name a new file: on 13 November, during a run of agent
+   writes at a load of 255, iCloud Drive still held the old file when a new one came to its name, kept
+   each apart as `<stem> 2.xlsx` and `<stem> 3.xlsx`, and left the name empty. A sync app sees a write
+   in place as a change to the file it knows, and the temp file, itself an item iCloud could start to
+   upload, is gone. `fsync` changes nothing iCloud sees, since it reads through the file system's
+   cache, and narrows the moment a power cut could leave the file half written. The coordinated save
+   macOS offers sync apps (`NSFileCoordinator`) is not in the standard library. The cost is the
+   atomic replace: a reader in another process could meet the file half written for that moment, so
+   `read_case`, `read_book`, `themes.read_cards` and the command line's `turns_of` open
+   `workbook.whole(path)`, the bytes read into memory, read again after a short pause while another
+   writer holds the case's lock and they fail their CRCs, up to `locks.WAIT`. The file's permissions,
+   Finder tags and other attributes stay as they were, which the replace dropped.
+
+**A case's own workbook** (wbguard, 13 November 2026). After that rename the app took the newest of
+the two copies for the case (`gets_books`), wrote into it under a progress file of its own and found no
+boards for its stem. `workbook.displaced(path)` now reads the case folder's `Working/` for the stems its
+progress files and T1 PETs boards name (`OWN_TAILS`) and the workbooks in the folder: when such a stem's
+workbook is missing and a copy named `<stem> N.xlsx` stands there, or no workbook of a known stem does
+and another workbook stands there, every path of the folder and its `Source/` but a workbook of a known
+stem is displaced, and `guard_place` refuses it in one line (`server.workbook_missing_copies` or
+`server.workbook_missing_other`) naming the folder by its label, the missing workbook and the files
+found. It runs in `read_case`, `_atomic_save`, `case_held` (every write's lock), `themes.read_cards`,
+`routes.case_path` (every page request's workbook) and the command line's `turns_of`. `gets_books` keeps
+such a case by the missing workbook's path, so its boards are still found by their stem and every read
+and write of it refuses. `card_of` gives the row `missing`, the line, and no halves, `cmd_cases` gives
+the participant `missing` and its line, and `validate` counts it a problem. Stems named only by later
+timepoints' boards or the LPETs are left out, since a rename before renamefix left those behind.
 
 **What a save costs** (savespeed, 11 November 2026). `/api/commit` answers the page's counts from the
 workbook it has just saved, `save_turn(..., outline=True)` handing `workbook.outline_of` of it to
@@ -2340,7 +2335,8 @@ records only a mark or a reopen that changes the mark, `complete_said`), `rename
 the line kept with its undo in `back`, so a failed rename takes it away too) and `gets.settings_op` (`gets
 settings`, its lines `gets.settings_changes`). `asker(body)` reads who asked: the command line and MCP send
 `tool` and `request` (`idiograph_cli.asked_by`, the tool carrying "approved in the app" or "without asking"
-from `holds.gate` and `holds.approve`), and the page sends neither, so its records say `app`. A dry run, a
+from `holds.gate` and `holds.approve` until noholds, 13 November 2026), and the page sends neither, so its records
+say `app`. A dry run, a
 refusal and a change with no line write none, and the demo keeps none. `project history` and MCP's
 `project_history` read it, `--limit` the newest. `project_pack.LEFT_OUT` never sends it. Area 319.
 
@@ -2377,7 +2373,7 @@ makes the next epoch's key, sealed to the devices left, the roster sent under th
 `/api/team` (`api_team`, ops `show`, `on`, `off`, `set`, `choose`, `invite`, `answers`, `admit`, `join`, `joined`,
 `remove`, each write under the project's lock with a `team <op>` History record), the command line's `team` and
 MCP's `team_*`, area 261's parity mapping them. `team on`, `invite`, `admit` (a match), `join` and `remove` are
-`holds.HELD`, risk 4. Transport: `send`, `fetch` and `listen` as wt-common names them, a route's factory
+`holds.HELD`, risk 4, and since noholds (13 November 2026) the app's alone for an agent (`agent_changes.TEAM_ONLY`). Transport: `send`, `fetch` and `listen` as wt-common names them, a route's factory
 `factory(device, team)` registered by its module (`transport.register`), and `Loopback`, in memory (`Hub`) or in a
 folder two servers share (`IDIOGRAPH_TEAM_LOOPBACK`), for the suite and a smoke run. With no route registered an op
 that sends is refused (`team.refused.no_route`). The page: `#wt-block` in Project settings before the agents'
@@ -2516,7 +2512,7 @@ which keeps a waiting board across a restart. `view` leaves `held` out. The rout
 `workbook` answering `state`, the participant's boards as `/api/themes` gives them, when one came or one was
 answered), the command line's `team board-send`, `board-take`, `board-answer` and `boards`, MCP's
 `team_board_send`, `team_board_take`, `team_board_answer` and `team_boards`, area 261 mapping them. `board-answer`
-is `holds.HELD`, risk 1. The page: `team_board.js`, `tmbAfterLoad` from the end of `thLoad` taking in when the
+is `holds.HELD`, risk 1, the app's alone for an agent since noholds (13 November 2026). The page: `team_board.js`, `tmbAfterLoad` from the end of `thLoad` taking in when the
 participant on the PETs canvas changes or 20 seconds have passed (and every 20 seconds while the screen is open),
 `tmbMenuItem` in the board menu under the board's name (Send board, there only while `can_send` and on a board of his
 own). A board come in is answered on review.js's line and card (`rvwBoardHtml`, `rvwBoardAnswer`), `#tmb-line` gone
@@ -2572,7 +2568,7 @@ scrolling between its rules, each day's head (Today, Yesterday, the date) over i
 (`phNear`), a late answer for another filter or project passed over (`PH.ask`). The route reads as `project
 history` does (`project_history.newest`, newest first, `total` the count with that `by`) and answers each record
 through `project_history.for_page`: the agent's name split from its hold (`hold`, "approved" or "without", from
-`holds.APPROVED` and `holds.WITHOUT`), the name and the request cleaned by `holds.agent_words`, and each line on
+`project_history.APPROVED` and `WITHOUT` since noholds), the name and the request cleaned by `agent_log.agent_words`, and each line on
 one line with nothing unseen (`line_shown`), its quotation marks kept. No record says "No change yet." (or none
 in the app or by an agent yet, under its filter). The route is the page's half of `project history` in area 261's
 parity. The app's menu bar has no Project history yet. Area 322.
@@ -3600,6 +3596,24 @@ root's lock before the case's, carries each statement reworded in its own place 
 revision's name, `copies_before` read under the lock, and its dry run through the same with `dry`, and
 says each in `copy_lines`, answering `copies`. A line moved or removed is left to Take the changes, as
 before. The parity check keeps `/api/edit-statement` with `turn write`. Area 298.
+
+**Quotes follow too, and copies refresh (cardsync, 13 November 2026, from the GRAVITY session's LPETs left on
+old quotes after a requote pass).** `turn write` also passes `requoted`, each statement in its own place whose
+own quote changed, by key with its quote before and after, to `follow_statements(..., quotes=)`, and
+`gets.statements_followed` carries it through `quotes_carried`: every line of the copy on the statement's row
+keeps the row's quotes by place (`row_places`), and each whose place held the old quote by `quote_words` takes
+the new as the cell holds it, the write's statements building on one another. Its answer gains `words` and
+`quotes`, the keys that took each, and `copy_lines` says which. The statements screen's save still leaves the
+copies to Take the changes (histreplace), and a PETs pick on a reworded quote is still dropped (area 96).
+`copies refresh` (`cli.cmd_copies_refresh`, MCP `copies_refresh`) runs `routes.refresh_copies` on each
+participant under the root's lock and the case's: `themes.cards_refreshed`, at every timepoint by
+`each_timepoint`, sets a card's text to the workbook's where `follow` keeps its key and the words differ, and a
+pick's `quoted` where `follow` would drop it while its key still holds a quote, a card whose key is not live
+listed under `missing`, then `gets.copies_refreshed` on each file of `statement_copies` in order sets each line's
+`text` and `quotes` and each `es` card's text from `gets.workbook_lines`, every timepoint's statements read
+once, and keeps a copy's files' times through `kept_in` where it now reads as they do. One revision a changed
+board under the request, the agent's `changed` mark, one write a file. `board show`'s `shown_board` marks a
+statement whose followed card text differs `card_stale` with `card_text`, and `stale_cards`. Area 381.
 
 **A History line for every statement edit (histreplace, 30 October 2026, Adam by dialog: "Add a History
 line").** His edit of a statement, from any screen, keeps one revision on every board that holds a card of
@@ -5866,7 +5880,7 @@ words as he saw them. `send` sends each draft as a `suggestion` message (`id`, `
 does not own its participant and whose `op` is its kind's (`_op_ok`). `_target` finds what a suggestion changes
 in the files as they stand, words first, key second: `stale` when only the key found it, `gone` when neither did.
 `review.answer` (route op `answer`, `team suggestion-answer`) accepts by rebuilding the op on what `_target` found
-(`_run_args`), running its dry run, then running it through `idiograph_cli.run_scoped` as `holds.approve` runs a
+(`_run_args`), running its dry run, then running it through `idiograph_cli.run_scoped` as `holds.approve` ran a
 held op, `_approved` set, the tool "Curt's suggestion, accepted in the app" (or "accepted by" an agent's tool) and
 `_member` set, which `idiograph_cli.mark` turns into `by: "member"` with `themes.MEMBER_KEYS` (`member`,
 `accepted_by`, `suggestion`) on the board's `changed` and `made` marks and the progress file's edit
@@ -5874,7 +5888,7 @@ held op, `_approved` set, the tool "Curt's suggestion, accepted in the app" (or 
 the same. Decline writes nothing to the files. Either sends an `answer` (`what: "suggestion"`, `of`, `accept`,
 `to`, `reason`), which reaches the reviewer through team_sync's one `answer` taker, now `review.take_answer`,
 handing a board's answer on to `team_sync.take_board` and keeping a suggestion's beside it with a `team take` line
-in History. `team suggestion-answer` is in `holds.HELD` (risk 1). `view` gives each review's `suggestions` (with
+in History. `team suggestion-answer` was in `holds.HELD` (risk 1), and is the app's alone for an agent since noholds (13 November 2026). `view` gives each review's `suggestions` (with
 `now`, `stale` and `gone` while it waits) and `waiting`, and the reviewer's own as `suggested` and `suggestions`.
 Their words sit under keys `cli.mark` marks. On the page, `rvwPairsDrawn` adds Suggest a wording
 (`data-wt-sline`), `rvwLabelItems` Suggest a title (`wtsuggest`, `rvwLabelSuggest`), `rvwSuggestHtml` the box,
@@ -7314,7 +7328,7 @@ language's word typed, is kept as `Untitled`), shows it through `thLabelShown` (
 word, `themes.untitled`) and asks `thUntitled` (blank, `Untitled` or the language's word), so a board saved in English
 reads as untitled in every language and a name suggestion never sends it as a title. A board a page saved in another
 language before this kept that language's word, which reads as a title until the label is named. The hold card's
-words the server says when it shows a hold (`holds.shown`): the question, the waiting line, the Declined line, the
+words the server said when it showed a hold (`holds.shown`, gone with the holds, noholds, 13 November 2026): the question, the waiting line, the Declined line, the
 agent unnamed (`server.holds_agent`, `server.holds_agent_inside`), the Asked line with its month from `dates.month.*`,
 and whose files changed (`changed_what`, its parts `server.holds_part_*` joined by `formats.list_words`, so three
 read "A, B and C"). What a hold keeps in its file when the agent asks, `what`, `done`, `kept` and `would_do`, is
@@ -7564,7 +7578,7 @@ The routes are `/api/codes` (the list, made on the first read), `/api/codes-ops`
 `/api/codes-quick` and `/api/codes-undo` (`codes_root`, `codes_reply`, `codes_apply`), the command line's `codes list`,
 `show`, `new`, `rename`, `describe`, `merge`, `delete`, `add`, `remove`, `apply-last`, `in-vivo`, `undo` and `redo`,
 MCP's `codes_*`, and `rename`, `merge`
-and `delete` among the holds (`holds.HELD`). The board revisions' words are `themes.revision.named.codes_*`.
+and `delete` among the holds (`holds.HELD`) until noholds (13 November 2026), when they ran at once and went into the record of agents' changes. The board revisions' words are `themes.revision.named.codes_*`.
 `/api/codes-suggest` is the app's own AI's codes for an extract (taaibuild, see Thematic analysis's AI), page-only
 like `/api/suggest`, an agent working in its place and taking a code with `codes add`.
 
@@ -8026,7 +8040,7 @@ several, which is remade by hand.
 | `idiograph` | The command line from source on a Mac or Linux, the venv's python running `cli.py`, the `.venv` beside it first and then the repo root's, and `idiograph.bat` beside it for Windows. |
 | `idiograph.bat` | The same on Windows. |
 | `family/app_folders.py` | Where the Mac app and the Windows app keep what they write, their data, their logs and the launch line, the one place that decides it for `server.app_paths` and both launchers, and the Windows app's two executables by name. The standard library only. |
-| `family/agent_log.py` | The agent log (agentlog, 3 November 2026), every app's since siftlog that day: each refusal of an agent kept in `agent-log.json` beside the app's own settings, its values never, its route `/api/agent-log`, repeats counted, the last 7 days and at most 500, read with agentlock's record of the switch, and cleaned as a hold's words are. |
+| `family/agent_log.py` | The agent log (agentlog, 3 November 2026), every app's since siftlog that day: each refusal of an agent kept in `agent-log.json` beside the app's own settings, its values never, its route `/api/agent-log`, repeats counted, the last 7 days and at most 500, the actions that waited before noholds one note, and an agent's words cleaned (`agent_words`). |
 | `family/locks.py` | One writer at a time: the file lock the server and the command line both take around a write, a case's in its `Working/` and the root's at the root. |
 | `apps/idiograph/project_pack.py` | A project sent as one file and opened as a copy (21 October): `<Project name>.idiograph`, a zip of `idiograph-sent.json`, its `kind`, `format` (1), `name`, `folder`, `sent`, `version` and `files`, each `path`, `bytes` and `sha256`, then every file of the folder under `project/`, a link never followed and the lock, `.DS_Store` and Excel's `~$` files left out. `read_sent` refuses a higher `format`, a file that is no sent project and a path that climbs out, `copy_folder` names the copy's folder, and `unpack` writes it through a folder beside it renamed into place once every file matches its list. A chosen send (23 October): `choose` takes every participant, `{folder, label, send}`, from `routes.send_participants`, the kinds left out and those asked for, and answers the files, each a path or the project file's bytes less `names`, under their names in the file, every chosen participant's folder by its label (`clean_name`) and a file name carrying the folder's whole name given the label in its place (`as_renamed`), and since 26 October each themes or LPETs file's `workbook` and each GETs, LGETs and Trajectories file's `cases` workbook naming the workbook as it is sent (`workbook_named`), with `left`, the files each reason leaves out (`LEFT_ORDER`, said by `LEFT_SAID`), `kinds_out` and `notes`. `kind_in_case` reads a participant's file as None (the workbook, a backup's `BACKUP_STEM` aside, and the progress file, which always go), `pets` (`PETS_FILE`, `PET_DRAFT`, a Word or PDF table beside the workbook), `audio` (`AUDIO_EXT`), `source` (anything in Source), `archive`, or `notes` (every other file, since 23 October's blinding leak), `audio`, `notes` and `source` left out unless asked (`OPT_IN`), and at the root `GETS_FILES` and a table are `gets`. GETs whose `cases`, `study` or `placed` hold a participant not sent stay out with a note, or refuse the send when asked for by name. With `pets` out, a progress file goes as `progress_without_history`, `PROGRESS_KEEP`'s keys alone, listed under `history`. `send` takes the plan as `chosen` and adds `chosen`, the participants and the kinds left out, to the manifest, which an Idiograph from before reads past, `format` staying 1. `routes.send_chosen` resolves the names and kinds and leaves the recordings out unless asked, and `send_project` runs it under the same lock. `boards` current (23 October): `current_boards` takes any plan, `choose`'s or `whole_less_audio`'s (now given every participant and `audio`), by its `cases`, each participant's folder in the file with its label, and gives each themes, LPETs, GETs and LGETs file `current_board_only` (`board_going`: `chosen`, else `current`, else the first, the board's `history` dropped, `current` and `chosen` set to it, a `complete` of another board null), keeps a PET draft or table only when `tied_to` its board's name (`board_safe`), strips every progress file's History and leaves `_Archive` out, adding `boards` and `board_choice`, and the manifest's `chosen.boards`. `inventory` gives each participant's `boards` and the root's `gets_boards` (`boards_said`). A copy coming back (26 October): `send` takes `origin`, the manifest's `uid`, `statements` (each participant's `statement_print` by key, from `routes.send_origin`), `copy_of` (`COPY_KEYS`) and since 6 November `from`, the sender's Settings Your name when it is set, never the Interviewer's, and since 8 November `boards`, each participant's boards' places prints (`themes.places_print`), `read_sent` answers them with `sent` and `version`, `new_uid` makes a project's id, and `sent_json` and `sent_boards` read a file's project file and its PETs files for `routes.boards_in`. The standard library and `locks.py` only. |
 | `apps/sift/sift.py` | Sift, screening for a systematic review: the CSV read and checked, the log appended, the decision columns written afresh from it, undo by a line of its own, the reason codes, the grounds found in the abstract, the rounds, the one count that the screen, the command line and the export share, the searches in `log.csv`, the PRISMA flow and `prisma.md`, the review's side adding records and writing its proposals, Sift's own proposals in their `ai_` columns, and the PDF path that never leaves `pdfs/`, a dropped PDF kept there. His own fields and columns, the participant guess, and the table's view, columns and filters in `sift.json`. A screening that follows an earlier run, `follow_of` its log's first line, `carried_of` the records carried, each other one `new` in `record_view`, `counts`' `follows`, and the flow from the active run's own search alone, `own_search`, since 16 October. The standard library and `locks.py` only, and it calls no model. |
@@ -8059,6 +8073,7 @@ several, which is remade by hand.
 | `apps/idiograph/team_board.py` | A reviewer's board sent straight in (wtboard, 9 November 2026): Send board seals a member's own board of a participant someone else owns as a `board` message, the owner's install takes it in as that participant's next board, never current, through `idiograph_routes.board_coming`, and Accept or Decline goes back as an `answer`. Its record is `.idiograph-team/boards.json`. A reviewer's own boards of another's participant are kept apart in `.idiograph-team/own-boards/` (`own_file`, ownboards). |
 | `apps/idiograph/static/team_board.js` | Send board in the PETs board menu, and the line that says a teammate's board came in, with Show, Decline and Accept (wtboard, 9 November 2026). |
 | `apps/idiograph/static/team.js` | Working together in Project settings, the invite's card and the join's card (wtkeys, 8 November 2026). |
+| `apps/idiograph/agent_changes.py` | Every change an agent makes and each run's restore point (noholds, 13 November 2026): the ops only the app does refused (`app_only`), every write a line of `idiograph-agent-changes.jsonl`, a run's files kept by their contents in `.idiograph-restore` before its first write, `agents changes` and `agents undo-run`, and the holds of before dropped as a project opens. |
 | `apps/idiograph/project_history.py` | The project's own History (projhistory, 2 November 2026): `idiograph-history.json`, one record for each change to the project's settings, timepoints, statement length or GETs settings, a participant renamed or marked complete, with who asked. |
 | `apps/idiograph/codes.py` | A thematic analysis project's code list (codes, 2 November 2026): `idiograph-codes.json`, the codes read from the rows and kept in step with them, rename, merge, describe, new and delete written whole across the workbooks, the GETs file and the list with a copy of each first and one step of undo, a code put on an extract or taken off, a project's first read making its list, and a code's row cards kept in one place on the Themes board (`gather`, `fold`, `unfold`). |
 | `apps/idiograph/gets_word.py` | A thematic analysis project's table of themes as a Word document (taword, 1 November 2026), in `themes_word`'s shape: the project under Heading 1 and "Table of themes" in the Subtitle style, each theme of the board in canvas order under Heading 2 in bold capitals with its description and note, its subthemes under Heading 3 to 5 as `themes.theme_order` reads them, and under each heading its codes, each with whose it is and where and its own extract set in under it (`code_blocks`), or with Their key extract only each participant's key extract (`board_blocks`), participant notes only when ticked and each row note after the theme. Written at the project's root, never over a file there, its author Your name (`write`). Reads the GETs file and the workbooks only. |
@@ -8115,9 +8130,8 @@ member has the id from the welcome or the next list, and a member who switches t
 puts and gets blobs and sets the devices under the relay's id whenever the team layer names the team's, refusing
 before it leaves (`RelayError(404, "no project")`) while there is none. The code comes from the page's Relay code
 (`set` with `code`), `on` or `set` with `--code-stdin`, goes to the relay in that one call, and is kept nowhere: not
-in team.json, the device file, History, a log or a hold. So `holds.gate` refuses `team on` and `team set` with
-`--code-stdin` (`holds.CODE_OPS`, `team.cli.code_held`) while Dangerously skip permissions is off, before the
-standard input is read, rather than keep a hold whose Approve would run without the code (smokefix, 9 November 2026). On a fresh install the device's keys are made in memory and kept
+in team.json, the device file, History or a log. An agent's `team on` and `team set` are the app's alone since
+noholds (13 November 2026, `agent_changes.app_only`), refused before the standard input is read. On a fresh install the device's keys are made in memory and kept
 only once the relay has taken the code, so a wrong code (403 `operator code`), a used-up one (429), no connection
 or any other refusal writes nothing, each said in plain words (`team.relay_refusal`). After the project is made,
 after They match and after every change to the list, `team.tell_relay` gives the relay the list's device keys.

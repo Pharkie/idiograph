@@ -386,6 +386,8 @@ def case_path(value: str) -> Path:
     p = srv.abs_path(value)
     if not value or not srv.within_root(p):
         raise srv.OutsideRoot(i18n.t("server.workbook_sits_outside_project_folder"))
+    # and never a copy standing where the case's own workbook is missing, nor the missing one (wbguard)
+    wb_mod.guard_place(p)
     return p
 
 
@@ -1237,7 +1239,8 @@ def read_book(path: Path) -> dict | None:
     if mark is not None and held and held[0] == mark:
         return held[1]
     try:
-        book = openpyxl.load_workbook(path, read_only=True)
+        # read whole into memory, never met half written by a save in another process (wbguard)
+        book = openpyxl.load_workbook(wb_mod.whole(path), read_only=True)
     except Exception:
         return None
     kinds, sheets, turns = set(), [], {}
@@ -1635,6 +1638,12 @@ def card_of(case: str, rows: list[dict], cfg: dict, held: dict, recent: list[dic
             "turns": None, "complete": None, "board": None, "boards": 0, "pets_complete": None,
             "in_gets": False, "start": None,
             "files": ([pick] if pick else []) + [r for r in rows if r is not pick]}
+    # a participant whose own workbook is missing, copies or another workbook standing in its place, says so on
+    # their row, `missing`, and opens none of them (wbguard, 13 November 2026, see `workbook.displaced`)
+    lost = next((d for d in (wb_mod.displaced(srv.abs_path(r["path"])) for r in rows if r.get("path")) if d), None)
+    if lost is not None:
+        card["missing"] = wb_mod.displaced_said(lost)
+        return card
     if pick is None:
         newest = lambda kind: max((r for r in rows if r.get("kind") == kind),
                                   key=lambda r: r.get("modified") or 0, default=None)
@@ -1748,9 +1757,14 @@ def api_cases(_: dict) -> dict:
     project's, `cases` and `recent` every project's."""
     cfg = srv.config()
     roots = srv.project_roots(cfg)
-    # Trajectories' old labels and pictures moved into the participants' own sets the first time (pbiobuild)
+    # Trajectories' old labels and pictures moved into the participants' own sets the first time (pbiobuild), and
+    # the actions that waited for his yes before approvals were removed dropped, said once in the agent log (noholds,
+    # 13 November 2026), one look for a file at each root as Home's count of them took
+    import agent_changes
     for root in roots:
         people_settled(root)
+        if root.exists():
+            agent_changes.clear_holds(root)
     listed = [(root, list_cases(root) if root.exists() else []) for root in roots]
     cases = [row for _root, rows in listed for row in rows]
     recent = recent_entries(cases)
@@ -1995,10 +2009,6 @@ def add_project(folder) -> dict:
     return {"added": True, "project": read_project(chosen)}
 
 
-# the page asking, by its id, while an approved held action runs from it (`api_holds`)
-ASKING_PAGE = contextvars.ContextVar("asking_page", default="")
-
-
 def remove_project(value, trash: bool = False, page: str = "", dry_run: bool = False, by: str = "") -> dict:
     """Remove from Idiograph: the project `value` names by its id taken out of config.json's
     `projects`, every other setting as it was. Its folder and every file in it stay exactly as they
@@ -2016,7 +2026,7 @@ def remove_project(value, trash: bool = False, page: str = "", dry_run: bool = F
     where = ""
     if trash:
         folder = srv.trash_guard(root, name, lambda at: srv.same_folder(srv.project_named(at), root),
-                                 page or ASKING_PAGE.get())
+                                 page)
         if dry_run:
             return {"removed": False, "dry_run": True, "name": name, "trash": True, "folder": str(folder),
                     "where": trash_mod.where()}
@@ -7584,10 +7594,18 @@ def gets_books(root: Path, rows: list[dict] | None = None) -> list[dict]:
             if not parts or parts[0] in GETS_SKIP:
                 continue
         folder = str(wb_mod.case_folder(path).resolve())
-        try:
-            rank = (themes_mod.themes_path(path).exists(), path.stat().st_mtime)
-        except OSError:
-            continue
+        lost = wb_mod.displaced(path)
+        if lost is not None:
+            # a case whose own workbook is missing, copies or another workbook in its place, keeps it by its stem,
+            # which every read and write then refuses, never one of them (wbguard, 13 November 2026)
+            path = lost["folder"] / lost["missing"]
+            rank = (True, float("inf"))
+            r = dict(r, pets_complete=themes_mod.pets_complete_of(path))
+        else:
+            try:
+                rank = (themes_mod.themes_path(path).exists(), path.stat().st_mtime)
+            except OSError:
+                continue
         if folder not in picked or rank > picked[folder][0]:
             picked[folder] = (rank, path, r)
     return [{"case": themes_case(path), "workbook": path, "pets_complete": r.get("pets_complete")}
@@ -8871,14 +8889,15 @@ def copies_before(path: Path) -> dict:
 
 
 def follow_statements(path: Path, words: dict, before: dict, dry: bool = False, changed: dict | None = None,
-                      history: str = "", said: dict | None = None) -> dict:
+                      history: str = "", said: dict | None = None, quotes: dict | None = None) -> dict:
     """A participant's statements reworded in place, `words` each by its key with its words before and after,
     carried to every copy across the participants (getsedit, 30 October: an edit from a GETs, LGETs or LPETs
     board lands in the workbook and every copy follows): the GETs file's, and in a project of timepoints the
     participant's LPETs' and the LGETs', each through `gets.statements_followed`, `before` from `copies_before`,
-    `said` his own edit's History line by each statement's key for every board with a card of it. Answers what
-    each file took by its kind, and `failed`, a line for a file that could not be read, its copy left as it was
-    and the workbook's change standing."""
+    `said` his own edit's History line by each statement's key for every board with a card of it, and `quotes`
+    each statement's own quote rewritten in its place, by its key with its quote before and after, carried the
+    same way (cardsync, 13 November 2026). Answers what each file took by its kind, and `failed`, a line for a
+    file that could not be read, its copy left as it was and the workbook's change standing."""
     root, kinds = statement_copies(path)
     out, failed = {}, []
     for kind in kinds:
@@ -8886,7 +8905,8 @@ def follow_statements(path: Path, words: dict, before: dict, dry: bool = False, 
             with copy_scope(kind, path, root):
                 done = gets_mod.statements_followed(root, path, words, before.get(kind) or {},
                                                     lpets_books(path) if kind == "lpets" else None,
-                                                    dry=dry, changed=changed, history=history, said=said)
+                                                    dry=dry, changed=changed, history=history, said=said,
+                                                    quotes=quotes)
         except (WorkbookError, OSError) as exc:
             failed.append(f"The {COPY_NAMES[kind]} could not be read, so their copy kept the words it had: {exc}")
             continue
@@ -8894,6 +8914,41 @@ def follow_statements(path: Path, words: dict, before: dict, dry: bool = False, 
             out[kind] = done
     if failed:
         out["failed"] = failed
+    return out
+
+
+def refresh_copies(path: Path, dry: bool = False, changed: dict | None = None, history: str = "") -> dict:
+    """Every copy of a participant's statements brought in line with their workbook (cardsync, 13 November 2026): the
+    cards of every PETs board at every timepoint (`themes.cards_refreshed`), then each file of copies across the
+    participants, the GETs file's, and in a project of timepoints the participant's LPETs' and the LGETs', in the
+    order an edit reaches them (`gets.copies_refreshed`), so the LGETs read the LPETs as they now stand. With `dry`
+    nothing is written, and with `changed`, an agent's mark, each board that changes is marked changed in a
+    conversation, keeping itself first in its History under `history`. The caller holds the locks. Answers `pets`,
+    each PETs board to bring in line, `copies`, what each file of copies would take by its kind, and `failed`, a line
+    for a file that could not be read, left as it is."""
+    out: dict = {"pets": [], "copies": {}, "failed": []}
+    try:
+        out["pets"] = themes_mod.cards_refreshed(path, dry=dry, history=history, changed=changed)
+    except (WorkbookError, OSError) as exc:
+        out["failed"].append(i18n.t("server.refresh_boards_unread", exc=exc))
+    root, kinds = statement_copies(path)
+    if not kinds:
+        return out
+    try:
+        truth = gets_mod.workbook_lines(path)
+    except (WorkbookError, OSError) as exc:
+        out["failed"].append(i18n.t("server.refresh_workbook_unread", exc=exc))
+        return out
+    for kind in kinds:
+        try:
+            with copy_scope(kind, path, root):
+                done = gets_mod.copies_refreshed(root, path, truth, lpets_books(path) if kind == "lpets" else None,
+                                                 dry=dry, changed=changed, history=history)
+        except (WorkbookError, OSError) as exc:
+            out["failed"].append(i18n.t("server.refresh_copy_unread", name=COPY_NAMES[kind], exc=exc))
+            continue
+        if done:
+            out["copies"][kind] = done
     return out
 
 
@@ -9559,77 +9614,6 @@ def api_suggest_sample(body: dict) -> dict:
 
 # ------------------------------------------- Add Idiograph to Claude Desktop
 
-def holds_roots() -> list[Path]:
-    """The projects whose waiting actions the app shows: its own list, a run's one project, and the demo."""
-    roots = list(srv.project_roots())
-    for extra in (srv.ROOT_OVERRIDE, srv.DEMO_DIR, srv.demo_ta_dir()):
-        if extra and Path(extra).is_dir() and not any(srv.same_folder(Path(extra), r) for r in roots):
-            roots.append(Path(extra))
-    return roots
-
-
-def api_holds(body: dict) -> dict:
-    """The page's route for held actions (see `held_actions`), the asking page named while it runs, `page`, so an
-    approved Remove with its folder to the Trash does not take the page approving it for another window
-    (removetrash, 10 November 2026)."""
-    token = ASKING_PAGE.set(str((body or {}).get("page") or "") if isinstance(body, dict) else "")
-    try:
-        return held_actions(body)
-    finally:
-        ASKING_PAGE.reset(token)
-
-
-def held_actions(body: dict) -> dict:
-    """An agent's action waiting for his yes in the app (holdsbuild, 27 October 2026, see holds.py), the page's own
-    route, which no agent's op answers: `list` every action waiting in the app's projects, oldest first, `check`
-    one as its card opens, its dry run again, `approve` it, run as the agent asked, and `decline` it, nothing
-    written but History's line. Each names the project by its `root`, one of the app's, and the action by `id`.
-    With `holds`, a list of `{root, id}`, in place of the one (holdbatchA, 1 November 2026, the card for several),
-    `check` answers each as its card's row opens, and `approve` and `decline` answer each in the order given with
-    its outcome (`holds.answer_all`), which the card sends one hold at a time to count them (holdsprog, 11 November
-    2026). `counts` is Home's, how many wait in each project."""
-    import cli
-    import holds as holds_mod
-    body = body if isinstance(body, dict) else {}
-    op = body.get("op") or "list"
-    roots = holds_roots()
-    if op == "list":
-        return {"holds": holds_mod.waiting(roots)}
-    if op == "counts":
-        # Home's cards (holdsprog, 11 November 2026): how many wait in each project, in one call, named as Home names
-        # a project (`project_id`), from each project's holds file alone (`holds.counts`)
-        return {"counts": [{"id": project_id(root), "root": str(root), "n": n} for root, n in holds_mod.counts(roots)]}
-    if op not in ("check", "approve", "decline"):
-        raise WorkbookError(i18n.t("server.op_list_check_approve_decline"))
-
-    def root_of(given) -> Path:
-        root = next((r for r in roots if given and srv.same_folder(Path(str(given)), r)), None)
-        if root is None:
-            raise WorkbookError(i18n.t("server.project_one_idiograph_s"))
-        return root
-
-    if "holds" in body:
-        listed = body.get("holds")
-        if not isinstance(listed, list) or not listed or not all(isinstance(x, dict) and x.get("id") for x in listed):
-            raise WorkbookError(i18n.t("server.holds_list_ids"))
-        items = [(root_of(x.get("root")), str(x["id"])) for x in listed]
-        if op != "check":
-            return holds_mod.answer_all(items, op)
-        out = []
-        for root, hid in items:
-            try:
-                out.append(dict(holds_mod.check(root, hid), root=str(root)))
-            except cli.Refused:
-                continue
-        return {"checks": out}
-    root = root_of(body.get("root"))
-    try:
-        return {"check": holds_mod.check, "approve": holds_mod.approve, "decline": holds_mod.decline}[op](
-            root, str(body.get("id") or ""))
-    except cli.Refused as exc:
-        raise WorkbookError(" ".join(exc.lines)) from None
-
-
 def api_team_review(body: dict) -> dict:
     """Working together's comments and review (wtreview, 8 November 2026): the page's route to review.py, whose ops
     the command line's `team` commands run too."""
@@ -9801,10 +9785,6 @@ SETTINGS_DEFAULTS = (
         # Experiential statements one, which is what a file from before the two keys gets.
         "pets_provider": "",
         "pets_model": "",
-        # "Dangerously skip permissions" under Using your own AI agents (Adam, 26 and 27 October 2026): off on a new
-        # install, so an agent's action that deletes a board, puts an old revision over one or replaces words
-        # across every participant waits for his yes in the app (see holds.py), and on, it runs at once
-        "skip_permissions": False,
     }),
 )
 
@@ -9848,7 +9828,9 @@ def read_settings(cfg: dict, saved: dict) -> None:
     cfg["es_palette_place"] = palette_place(saved.get("es_palette_place"))
     cfg["es_palette_docked"] = saved.get("es_palette_docked") is not False
     cfg["arrange_way"] = arrange_way(saved.get("arrange_way"))
-    cfg["skip_permissions"] = saved.get("skip_permissions") is True
+    # Dangerously skip permissions went with the holds (noholds, 13 November 2026): a file holding it is read and the
+    # key ignored, never offered to the page
+    cfg.pop("skip_permissions", None)
     cfg["your_name"] = " ".join(str(saved.get("your_name") or "").split())
 
 
@@ -9901,9 +9883,6 @@ def save_settings(cfg: dict, body: dict) -> None:
         cfg["es_palette_docked"] = body["es_palette_docked"] is not False
     if "arrange_way" in body:
         cfg["arrange_way"] = arrange_way(body["arrange_way"])
-    # Dangerously skip permissions, on only when the page sends it ticked
-    if "skip_permissions" in body:
-        cfg["skip_permissions"] = body["skip_permissions"] is True
     # the minimap's Auto, On or Off, and a page from before the choice sends its tick, true read as auto
     if "minimap" in body:
         cfg["minimap"] = minimap_mode(body["minimap"])
@@ -10093,8 +10072,7 @@ OWN_SETTINGS = ("interviewer", "round_minutes", "daily_target", "ai_prompt", "pe
                 "export_participants", "card_quotes", "card_quotes_full",
                 "es_quotes", "close_pairs", "traj_quotes", "traj_notes",
                 "close_gap", "status_counts", "palette_place", "palette_docked", "arrange_way", "minimap",
-                "statements_columns", "columns_hidden", "columns_stacked", "stack_top", "stack_split",
-                "skip_permissions")
+                "statements_columns", "columns_hidden", "columns_stacked", "stack_top", "stack_split")
 
 # Idiograph's routes, each path's handler, as the server's table held them before the split
 ROUTES = {
@@ -10173,7 +10151,6 @@ ROUTES = {
     "/api/haiku": api_suggest,                 # the name it had before, kept working
     "/api/suggest-sample": api_suggest_sample,
     "/api/mcp": api_mcp,
-    "/api/holds": api_holds,
     "/api/project-history": api_project_history,
     "/api/team": api_team,
     "/api/team-board": api_team_board,
@@ -10187,16 +10164,15 @@ srv.register("idiograph", routes=ROUTES,
              post_only=("/api/choose-root", "/api/projects", "/api/new-project", "/api/add-transcripts", "/api/names", "/api/qdpx",
                         "/api/open-sent", "/api/send-project", "/api/qdpx-export", "/api/boards-in", "/api/order", "/api/rename",
                         "/api/participant", "/api/demographics",
-                        "/api/mcp", "/api/quote-heading", "/api/holds", "/api/team",
+                        "/api/mcp", "/api/quote-heading", "/api/team",
                         "/api/team-board", "/api/team-review"),
-             # an agent's action waiting for his yes is answered by the app alone, never an agent (holds.py)
-             own_page=("/api/mcp", "/api/holds"),
+             own_page=("/api/mcp",),
              # what governs agents, from the app's own window alone, never a program on this machine (agentlock,
-             # 2 November 2026): answering a held action, adding to Claude Desktop, writing AGENTS.md, Dangerously
-             # skip permissions and a project's "Allow AI agents to read this project"
-             # and the list of real names (namesrule, 8 November 2026), which only the window reads or sets over HTTP
-             window_only={"/api/holds": None, "/api/mcp": None, "/api/agents-guide": None, "/api/names": None,
-                          "/api/settings": "skip_permissions", "/api/project": "agents"},
+             # 2 November 2026): adding to Claude Desktop, writing AGENTS.md and a project's "Allow AI agents to read
+             # this project", and the list of real names (namesrule, 8 November 2026), which only the window reads or
+             # sets over HTTP
+             window_only={"/api/mcp": None, "/api/agents-guide": None, "/api/names": None,
+                          "/api/project": "agents"},
              get_paths={PRINT_PATH: print_view, GETS_PRINT_PATH: gets_print_view},
              streams={"/audio": stream_audio, SEND_PATH: send_zip, QDPX_PATH: qdpx_download,
                       "/traj-picture": stream_traj_picture, "/participant-picture": stream_person_picture},

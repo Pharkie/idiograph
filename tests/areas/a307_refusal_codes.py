@@ -69,23 +69,15 @@ ZZ = {
                     "themes.revision.named.statement_edited": "Zz {who} rewrote <{old}> as <{new}>",
                     "themes.step.aligned_centre": "Zz {n} to the middle line",
                     "themes.step.stacked": {"one": "Zz one stacked", "other": "Zz {n} stacked"}},
-    "holds.json": {"holds.what.delete": "zz drop {thing}", "holds.pets_board": "{name} for {case}",
-                   "holds.would.deleted": "Zz {thing} goes ({counts}).", "holds.counts": "{groups} + {placed}",
-                   "holds.n.pets": {"one": "{n} zpet", "other": "{n} zpets"},
-                   "holds.done.line": "Zz done: {done}"},
     "shell.json": {"shell.keys.cmd": "Zcmd", "shell.keys.ctrl": "Zctl"},
     "themes_ai.json": {"themes_ai.change.retitled": "zz renamed <{label}> to <{title}>",
                        "themes_ai.change.apart": "zz split <{label}>", "themes_ai.change.line": "{changes}!"},
 }
-ZZ["server.json"].update({"server.holds_waiting": "Zz: {agent} waits on {what}.", "server.holds_question": "Zz {what}?"})
 # i18nleft3 (2 November 2026): a revision's time, a day with no year, the clock's am and pm, and a hold's time and
 # list of boards
 ZZ["dates.json"].update({"dates.dm": "{day}. {month}", "dates.md": "{month}/{day}",
                          "dates.clock.am": "{hour}h{minute} zam", "dates.clock.pm": "{hour}h{minute} zpm"})
 ZZ["themes.json"].update({"themes.history.when": "{day} um {time}"})
-ZZ["holds.json"].update({"holds.would.its_revision": "zz its revision {when} ({counts})",
-                         "holds.would.several_kept": "Zz {names} kept."})
-ZZ["server.json"].update({"server.holds_asked_on": "Zz asked {day} at {time}"})
 CODE_CALL = re.compile(r"refusedAs\(\s*err\s*,\s*'([a-z_]+)'\s*\)")
 
 
@@ -391,8 +383,7 @@ async function asked(name) {
               page["en"] == lists["en-GB"] and page["en-US"] == lists["en-US"], str([page, lists]))
 
     # ── E. what i18ncodes left (i18nleft, 1 November 2026): the untitled label by the file's word, the keys' names,
-    # the AI's change lines and the hold card's, each in the made-up language
-    import holds as holds_mod
+    # the AI's change lines, each in the made-up language (the hold card's went with the holds, noholds, 13 November)
     import themes_ai
     kept = (i18n.LANGUAGE, i18n.ROOTS)
     try:
@@ -402,8 +393,6 @@ async function asked(name) {
         board = {"groups": [{"id": "A", "label": "Walks"}, {"id": "B", "label": "Mornings"}], "unit": "statement"}
         zz_change = themes_ai.change_line([{"op": "retitle", "label": "A", "title": "Evening walks"},
                                            {"op": "apart", "label": "B"}], board)
-        zz_hold = holds_mod.shown({"id": "h1", "op": "board delete", "status": "waiting", "at": "2026-11-01T10:04:00+00:00",
-                                   "what": "delete Board 2 of Wren", "tool": "Claude Code", "request": "", "kept": "", "done": ""})
     finally:
         i18n.LANGUAGE, i18n.ROOTS = kept
     en_change = themes_ai.change_line([{"op": "retitle", "label": "A", "title": "Evening walks"},
@@ -412,9 +401,6 @@ async function asked(name) {
           "it was",
           zz_change == "Zz renamed <Walks> to <Evening walks> & zz split <Mornings>!"
           and en_change == "Retitled 'Walks' as 'Evening walks' and took 'Mornings' apart.", f"{zz_change} | {en_change}")
-    check("307: the hold card's question and waiting line are in the made-up language's words",
-          zz_hold["question"] == "Zz Delete Board 2 of Wren?"
-          and zz_hold["waiting"] == "Zz: Claude Code waits on delete Board 2 of Wren.", str(zz_hold))
     if not shutil.which("node"):
         skip("307: the untitled label and the keys' names in node", "node is not on this machine")
     else:
@@ -477,37 +463,13 @@ console.log(JSON.stringify(out));
           and edited["history"][0].get("slots") == {"who": "Ash", "old": "the long walk home", "new": "the short walk home"}
           and edited["history"][0]["name"] == "Ash's statement edited: \"the long walk home\" to \"the short walk home\"",
           json.dumps(edited["history"][0]))
-    ht = holds_mod.t
-    board_of = ht("holds.pets_board", name="Board 2", case="Wren")
-    held_new = {"id": "h2", "op": "board delete", "status": "approved", "at": "2026-11-01T10:04:00+00:00",
-                "tool": "Claude Code", "request": "", "what": "delete Board 2 of Wren",
-                "done": "Done. Board 2 of Wren is deleted.", "kept": "Board 2 of Wren stays as it is",
-                "would_do": ["Board 2 of Wren, 1 PET, is deleted."],
-                "said": {"what": ht("holds.what.delete", thing=board_of),
-                         "done": ht("holds.done.line", done=ht("holds.done.deleted_case", thing=board_of, case="Wren")),
-                         "kept": ht("holds.kept.stays", thing="Board 2"),
-                         "would_do": [ht("holds.would.deleted", thing=board_of,
-                                         counts=ht("holds.counts", groups=ht("holds.n.pets", n=1),
-                                                   placed=ht("holds.n.statements", n=3)))]}}
-    held_old = {k: v for k, v in held_new.items() if k != "said"}
-    english_new = holds_mod.shown(held_new)
     kept = (i18n.LANGUAGE, i18n.ROOTS)
     try:
         i18n.ROOTS = lambda: [*real_roots, fx]
         i18n.LANGUAGE = lambda: "zz"
         zz_script = i18n.script("zz")
-        zz_new, zz_old = holds_mod.shown(held_new), holds_mod.shown(held_old)
     finally:
         i18n.LANGUAGE, i18n.ROOTS = kept
-    check("307: a hold's own lines, kept as keys when the agent asked, are in the made-up language's words, in "
-          "English as they were, and a hold kept before keys reads as it was written",
-          zz_new["question"] == "Zz Zz drop Board 2 for Wren?"
-          and zz_new["would_do"] == ["Zz Board 2 for Wren goes (1 zpet + 3 statements)."]
-          and zz_new["line"] == "Zz done: Board 2 for Wren is deleted, a copy kept in Wren's Archive folder."
-          and english_new["would_do"] == ["Board 2 of Wren, 1 PET and 3 statements placed, is deleted."]
-          and zz_old["would_do"] == held_old["would_do"] and zz_old["line"] == held_old["done"],
-          json.dumps([zz_new.get("question"), zz_new.get("would_do"), zz_new.get("line"), english_new.get("would_do"),
-                      zz_old.get("line")]))
     part_g(scratch, fx, real_roots)
     part_h(scratch, real_roots)
     if not shutil.which("node"):
@@ -539,11 +501,9 @@ console.log(JSON.stringify({ names: rs.map(thRevisionSaid), steps: [TH_ALIGN_STE
 
 def part_g(scratch: Path, fx: Path, real_roots: list) -> None:
     """Part G (i18nleft3, 2 November 2026): a revision's time through the formats and the run's language, its English
-    name kept in English's own, the History saying it from its ISO in the page's language, a hold's time and its
-    boards' list said as the card shows them, a hold in its project's method's words, a TA project's History and
-    undo in TA's words, and Sift's American English."""
+    name kept in English's own, the History saying it from its ISO in the page's language, a TA project's History and
+    undo in TA's words, and Sift's American English. A hold's lines went with the holds (noholds, 13 November)."""
     import boot
-    import holds as holds_mod
     import i18n
     import server as server_mod
     import themes as themes_mod
@@ -553,7 +513,6 @@ def part_g(scratch: Path, fx: Path, real_roots: list) -> None:
     times = [local(2026, 10, 2, 12, 4), local(2026, 10, 1, 12, 4), local(2025, 10, 1, 13, 4)]
     kept = (i18n.LANGUAGE, i18n.ROOTS, i18n.CHOSEN_FORMATS)
     said: dict = {}
-    ht = holds_mod.t
     try:
         i18n.CHOSEN_FORMATS = lambda: {"dates": "dmy", "time": "24"}
         i18n.LANGUAGE = lambda: "en"
@@ -573,15 +532,6 @@ def part_g(scratch: Path, fx: Path, real_roots: list) -> None:
         last_year = datetime(datetime.now().year - 1, 10, 1, 12, 4).astimezone().isoformat()
         named = themes_mod.revision_name("before_restoring", when_at=last_year)
         zz_script = i18n.script("zz")
-        hold = {"id": "h3", "op": "board restore", "status": "waiting", "at": evening.isoformat(), "tool": "Claude Code",
-                "request": "", "what": "", "done": "", "kept": "", "would_do": [],
-                "said": {"what": ht("holds.what.delete", thing="Board 2"), "done": "", "kept": "",
-                         "would_do": [ht("holds.would.its_revision", when=holds_mod.when_of(times[1].isoformat(),
-                                                                                         evening.isoformat()),
-                                         counts="1 zpet"),
-                                      ht("holds.would.several_kept", names=holds_mod.names_of(["Ash", "Elm", "Oak"]))]}}
-        zz_hold = holds_mod.shown(hold)
-        zz_asked = holds_mod.asked_line(times[1].isoformat(), "", now=evening)
     finally:
         i18n.LANGUAGE, i18n.ROOTS, i18n.CHOSEN_FORMATS = kept
     year = int(last_year[:4])
@@ -596,35 +546,6 @@ def part_g(scratch: Path, fx: Path, real_roots: list) -> None:
           "the time's ISO beside its slots",
           str(named) == f"Before restoring 1 October {year} 12:04" and named.kind == "before_restoring"
           and named.slots == {"when": f"1 October {year} 12:04", "when_at": last_year}, f"{named} {named.slots}")
-    english_would = [holds_mod.english(x) for x in hold["said"]["would_do"]]
-    check("307: a hold's revision time and its boards' names are said as the card shows them, in the made-up "
-          "language's day, month and list marks, and in English as before, three names joined as a list",
-          zz_hold["would_do"] == ["zz its revision 1. Zoktober um 12:04 (1 zpet)", "Zz Ash / Elm & Oak kept."]
-          and english_would == ["its revision of 1 October 12:04, 1 zpet",
-                                "Ash, Elm and Oak are each kept first in their History, so Restore puts them back."]
-          and zz_asked == "Zz asked 1. Zoktober at 12:04.", json.dumps([zz_hold["would_do"], english_would, zz_asked]))
-    # a hold said in its project's method: a thematic analysis project's themes board, an IPA one's GETs board
-    roots = {}
-    for method in ("ta", "ipa"):
-        roots[method] = scratch / f"a307-method-{method}"
-        roots[method].mkdir(parents=True, exist_ok=True)
-        (roots[method] / server_mod.PROJECT_FILE).write_text(json.dumps({"name": "Moss", "method": method}),
-                                                             encoding="utf-8")
-    board = ht("holds.gets_board", name="Board 2")
-    gets_hold = {"id": "h4", "op": "gets delete", "status": "waiting", "at": evening.isoformat(), "tool": "Claude Code",
-                 "request": "", "what": "delete the GETs board Board 2", "done": "", "kept": "", "would_do": [],
-                 "said": {"what": ht("holds.what.delete", thing=board), "done": "", "kept": "",
-                          "would_do": [ht("holds.would.deleted", thing=holds_mod.upper(board),
-                                          counts=ht("holds.counts", groups=ht("holds.n.gets", n=2),
-                                                    placed=ht("holds.n.statements", n=5)))]}}
-    by_method = {m: holds_mod.shown(gets_hold, r) for m, r in roots.items()}
-    check("307: a hold reads in its project's method's words, a thematic analysis project's themes board, themes and "
-          "codes, an IPA project's GETs board, and keeps its English as IPA's",
-          by_method["ta"]["question"] == "Delete the themes board Board 2?"
-          and by_method["ta"]["would_do"] == ["The themes board Board 2, 2 themes and 5 codes placed, is deleted."]
-          and by_method["ipa"]["question"] == "Delete the GETs board Board 2?"
-          and holds_mod.english(gets_hold["said"]["what"]) == "delete the GETs board Board 2",
-          json.dumps({m: [v["question"], v["would_do"]] for m, v in by_method.items()}))
     if not shutil.which("node"):
         skip("307: the History's time from its ISO and TA's History and undo in node", "node is not on this machine")
         return

@@ -73,6 +73,10 @@ def files(at: Path) -> dict:
         # the project's own History names who asked, the app on one twin and the agent on the other (area 319)
         if p.name == "idiograph-history.json":
             continue
+        # and the record of agents' changes and a run's restore point, the agent's own bookkeeping, which the
+        # page never makes (noholds, 13 November 2026)
+        if p.name == "idiograph-agent-changes.jsonl" or ".idiograph-restore" in p.relative_to(at).parts:
+            continue
         rel = STAMPS.sub("<stamp>", p.relative_to(at).as_posix())
         if p.suffix == ".xlsx":
             wb = openpyxl.load_workbook(p)

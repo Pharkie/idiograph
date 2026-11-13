@@ -323,7 +323,6 @@ AREAS = {
     "a273_gets_steps_last_opened": "idiograph",
     "a274_agent_words_marked": "shared",
     "a275_settings_opens_alone": "shared",
-    "a276_agent_holds": "idiograph",
     "a277_drive_stops_server": "shared",
     "a278_text_layer": "shared",
     "a279_page_words": "idiograph",
@@ -356,7 +355,6 @@ AREAS = {
     "a311_print_pages": "idiograph",
     "a312_drag_design_a": "idiograph",
     "a313_canvas_out": "idiograph",
-    "a314_holds_together": "idiograph",
     "a315_passage_way_back": "idiograph",
     "a316_code_list": "idiograph",
     "a317_window_key": "idiograph",
@@ -420,6 +418,9 @@ AREAS = {
     "a376_board_hover": "idiograph",
     "a377_board_grid": "idiograph",
     "a378_board_drag": "idiograph",
+    "a380_agent_changes": "idiograph",
+    "a381_card_sync": "idiograph",
+    "a384_workbook_guard": "idiograph",
 }
 
 
@@ -499,11 +500,11 @@ def run_all(scratch: Path, only=None):
     os.environ[i18n_mod.COMPUTER_FORMATS] = '{"date": "28/10/2026", "time": "14:05", "number": "1,234.5"}'
     # and every script a check runs in node with the text layer in front, as the page has it (siftlang, 1 November 2026)
     support.node_text_layer(scratch)
-    # and an agent's action that would wait for his yes in the app runs at once in this process, as with
-    # Dangerously skip permissions on, so each op's own checks run it: area 276 checks the holds themselves
-    # (27 October 2026)
-    import holds as holds_mod
-    holds_mod.RUN_AT_ONCE = True
+    # and the ops only the app does, Working together's among them, run for the command line in this process, so each
+    # op's own checks drive it as they did before: areas 321, 351, 357, 368 and 380 check the refusals (noholds, 13
+    # November 2026)
+    import agent_changes
+    agent_changes.ALL_OPS = True
     # and the agent log a file in the scratch folder, in this process and a child, so no check's refusal of an agent
     # lands in this machine's own log (agentlog, 3 November 2026)
     import agent_log

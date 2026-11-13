@@ -231,6 +231,14 @@ annotated workbook reads "Not started" and carries one button, Start experientia
 opens the create card on its newest raw source, or with none the make a workbook card on its newest
 transcript in another shape (both below).
 
+A participant's workbook is the one their progress and PETs files name (13 November 2026). When it is gone from
+their folder and copies a sync app named stand in its place, `P2 Ada - EN & ES 2.xlsx` and `P2 Ada - EN & ES
+3.xlsx` as iCloud Drive names them, or another workbook does, the row says so in place of its two halves, naming
+the missing workbook and the files found, and Idiograph opens and writes none of them, nor does an agent: it never
+guesses which copy is the right one. Give the right file its own name back in the Finder and the row is as it was.
+Every save writes into the workbook itself, the same file kept, so iCloud Drive sees a change to the file it knows
+and keeps no copy apart.
+
 A participant's workbook is its annotated one, and of two in its folder the one opened last, else the
 newest. The three dots after its name open a small menu holding Edit participant profile, then Show files (see A participant's picture, label and
 pen portrait, which is also where Rename lives), and Show files lists
@@ -2012,50 +2020,27 @@ server and its guide for agents, and to run every change as a dry run first and 
 it writes. The paths are this install's own, the Mac app's, the Windows app's or a copy run from source. On, every
 feature shows as before.
 
-**An agent waits for your yes** (27 October). When an agent asks to delete a board, put an old revision over
-one, replace words across every participant, cut passages off a transcript, take a statement off the boards,
-rename a participant's folder or send the whole project, nothing happens yet. The line in the top right, where
-a change made in a conversation shows, says so: "Claude Code is waiting for your yes: delete Board 2 of
-Juno." It shows on the statements screen, on PETs and on GETs, and with two or more waiting it says how many.
-Review opens a card with the agent's name, the question, what the agent says you asked, "Claude Code says
-you asked: ...", in its words, and what it would do. Those are the agent's words, not yours: the card shows them
-on one line, with no hidden characters, no quotation marks and no working links, and cuts them short past 300
-characters, as it does a replace's find and put words. Approve does it, and History names the agent, approved in the app. Decline does nothing but add a line
-to the board's History, and the agent is told when it asks. Either way the line then says what happened,
-with its cross to close it. Esc closes the card and the action still waits. If the board changed since the
-agent asked, the card says so and shows what it would do now.
+**What agents change** (13 November 2026). An agent's change runs at once, as you would make it yourself, and
+nothing waits for your yes. You review afterwards. Each change an agent makes is kept in the project's record of
+agents' changes, inside its folder: when, which agent, what it says you asked, what it did and to which
+participant, board, sheet and row, what changed in a line, and how to undo it. Before an agent's first change in a
+session, Idiograph keeps a restore point of the project's workbooks and boards, so the whole session can be undone
+at once, back to how the project stood before it. A session is one conversation's connection, or an agent's changes
+within 30 minutes of each other. An undo is refused, with nothing changed, when it would lose a change made since,
+by you or another agent, and it names what changed. The record and its restore points never go with a copy you
+share. Restore points are kept for 30 days, and the last 10 sessions' whatever their age.
 
-With more than one waiting (1 November), Review opens one card listing them all under what the agent says you asked, a row
-each with what it would do, the agent and when it asked. Every row is ticked as the card opens, but for one
-that changed since the agent asked, which says whose, "Mabel's boards changed since Claude Code asked." Details opens a row's own card under it. Untick a row to
-leave it waiting, or use Tick all and Untick all at the head. Decline and Approve name how many are ticked,
-Approve 10, and answer them in order. The card then says how many were done, 9 of 10 approved and done, with
-a line for each, and why any was not done. The ones you did not tick still wait. Review the 2 waiting opens
-the card again for those, and Done closes it, the line in the corner saying how many still wait. Your own
-answers never count as a change: ten deletes on one participant go through together. Only a change made
-since the agent asked by something else, another window or another command, leaves one waiting.
+A few things are yours alone, since no undo reaches them: sending a copy of the project to someone, Working
+together's invites, people, relay code and anything sent to a teammate, Settings, and the list of names to replace.
+An agent asking for one is told where to do it in the app, and nothing waits. If an agent's actions were still
+waiting for your yes when this changed, they are cleared the first time the project opens, never carried out, and
+the agent log says how many.
 
-While Approve or Decline answers a list (11 November), the card gives up its rows and buttons for one line, Approving 4 of 13
-or Declining 4 of 13, and a bar that fills as each one finishes. Nothing on the card can be changed until the last
-is done, and Esc does nothing meanwhile. The actions go one at a time, in the order shown. If one cannot be done, the
-card then says which were done, that one with its reason, and that the rest still wait for your yes. One action
-approved from its own card says Approving... under what it would do only when it takes longer than half a second.
-
-On Home, a project with actions waiting says so on its card, in orange, "13 actions are waiting for your yes", and
-nothing shows for a project with none. Press the line and the project opens on its first participant's PETs screen,
-with the card for the waiting actions open. Home counts them each time it is shown.
-
-Under Using your own AI agents, **Dangerously
-skip permissions** is off on a new install. Ticking it asks first, I understand the risks, turn on, or Back
-to safety. On, agents no longer wait, and History says the agent did it without asking. It shows whether AI
-features is on or off, as Using your own AI agents does.
-
-**The agent log.** Under Dangerously skip permissions, the Agent log line says how many entries it holds
+**The agent log.** At the end of Using your own AI agents, the Agent log line says how many entries it holds
 from the last 7 days, "12 entries in the last 7 days", with Open, or "Nothing in the last 7 days." Each time
 Idiograph refuses an agent, through its command line or its tools, an entry is kept: a project that does not
-allow AI agents, a command it does not have, one only you do in the app, one given the wrong way, one refused
-inside a project, and an action you declined. Turning Dangerously skip permissions on or off is an entry too.
-Open shows them in a card over Settings, newest first, a line each: what was asked and in which project, why
+allow AI agents, a command it does not have, one only you do in the app, one given the wrong way, and one refused
+inside a project. Open shows them in a card over Settings, newest first, a line each: what was asked and in which project, why
 it was refused and when. Details opens the agent, the project, the command, the refusal and what the agent
 says you asked, with Copy. A project that does not allow AI agents is never named, only counted. The same
 refusal again within a minute adds to the one entry. The log keeps the last 7 days and drops what is older
@@ -3607,9 +3592,16 @@ description, and write a
 passage's statements, notes and quotes, refused while Excel has the workbook open and copied into
 `_Archive` first, with an entry in the progress file's `edits` saying so. A passage it writes keeps
 each quote with no statement that it does not name, and a statement it rewords takes the new words on
-every board's card, the PETs screen saying the board changed in a conversation when it is open. A
+every board's card, the PETs screen saying the board changed in a conversation when it is open. A new
+quote it writes for a statement goes with the statement's words into the GETs, and in a project of
+timepoints into the LPETs, the LGETs and the key quotes on Trajectories (13 November). Should a card or a
+copy ever fall behind the workbook, the agent can bring every one back in line with `copies refresh`,
+after a dry run that names each by its key: the workbook's words and quotes win, a card marked Changed
+among them, and a card whose statement has gone stays on the board for him to remove. A
 statement it removes from a passage takes its card off every board, and every card after it in that
-passage moves with its statement, so no card shows its neighbour's words (20 October). Each board it
+passage moves with its statement, so no card shows its neighbour's words (20 October). On the interviewer's
+own passages it writes nothing but a removal (13 November 2026): a statement or a quote left on one of his turns
+it can take off, a statement with its quote, its card going from every board, and nothing else. Each board it
 changes keeps the board as it stood first in its History. It can also take off a card missing from the
 workbook, as Remove does in the pile, one by one or every one on a board, and never a card whose
 statement is there. A board it makes keeps the layout of the board on the canvas for every PET, sub-theme and statement it
@@ -4367,8 +4359,8 @@ folder to hold it.
 
 **The project's own History** (2 November 2026). A change to the project itself keeps a record of when it
 was made, what it changed from what to what, and who made it: you in the app, or an AI agent by name with
-the request you gave it, "approved in the app" or "without asking" where the agent's action waited for your
-yes. Each save of the project's name, research question, PET labels, timecodes, timepoints or statement
+the request you gave it, and in a record from before 13 November "approved in the app" or "without asking" where
+the agent's action waited for your yes. Each save of the project's name, research question, PET labels, timecodes, timepoints or statement
 length keeps one, as does each save of the GETs settings, a participant renamed, and a participant's
 statements marked complete or reopened. A save that changes nothing keeps none. The records are in
 `idiograph-history.json` at the project's root, and a shared copy never carries them. An agent reads them

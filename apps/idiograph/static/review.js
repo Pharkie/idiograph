@@ -162,12 +162,12 @@ function rvwDraw() {
 
 /* ── the reviewer's tray, top right (shot 08): his drafts on this participant, and Send review ── */
 
-/* where the line and the tray stand: under the screen's toolbar at its right, below an agent's held line */
+/* where the line and the tray stand: under the screen's toolbar at its right, below the line of changes made elsewhere */
 function rvwTop() {
   const th = $('th-undo');
   const undo = th && th.getBoundingClientRect().width ? th : $('es-undo');
   let top = undo && undo.parentElement ? undo.parentElement.getBoundingClientRect().bottom + 16 : 54;
-  for (const id of ['hold-line', 'es-outside', 'th-outside']) {
+  for (const id of ['es-outside', 'th-outside']) {
     const el = $(id);
     if (el && !el.hidden && el.getBoundingClientRect().height) top = Math.max(top, el.getBoundingClientRect().bottom + 8);
   }

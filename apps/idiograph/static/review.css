@@ -49,7 +49,7 @@
 .wt-note b, .wt-item b { font-weight: 600; }
 .wt-note .wt-i-acts { margin-top: 6px; }
 
-/* the owner's line takes the held line's look (.hold-line), placed by review.js */
+/* the owner's line takes the bright line's look (.hold-line, distil.css), placed by review.js */
 .wt-line { top: 54px; }
 
 /* the review card */

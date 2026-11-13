@@ -1,7 +1,6 @@
-//! The window's key (agentlock, 2 November 2026). What governs agents, answering an agent's held action,
-//! Dangerously skip permissions, a project's tick for agents and the agents' setting up, is answered by the
-//! server only with a key made at each start, so that no other program on this machine, a shell's curl
-//! among them, can approve for him. The window makes it here from the system's own random source, hands
+//! The window's key (agentlock, 2 November 2026). What governs agents, a project's tick for agents, the list of
+//! names to replace and the agents' setting up, is answered by the server only with a key made at each start, so
+//! that no other program on this machine, a shell's curl among them, can act for him. The window makes it here from the system's own random source, hands
 //! it to the server it starts on the server's standard input (main.rs `start_server`), a pipe no other
 //! program reads, and to its page in the script every window runs before the page's own (`window_script`).
 //! It is never in an argument, an environment variable, a file or the log.
