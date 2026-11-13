@@ -1,6 +1,10 @@
 {
   "server.selection_inside_passage_select_phrase": "That selection is not inside this passage. Select the phrase again.",
   "server.sheet_called": "No sheet called {sheet} in {name}.",
+  "server.clear_formatting_words_differ": "Clearing the formatting would have changed the words of {file}, so nothing was changed.",
+  "server.clear_formatting_unreadable": "{file} could not be read, so nothing was changed: {exc}",
+  "server.clear_formatting_no_project": "That is in no project.",
+  "server.clear_formatting_no_participant": "No participant called {case} in the project.",
   "server.highlight_added_removed_nothing_else": "A highlight is added or removed, nothing else.",
   "server.passage_cannot_left_text_cancel": "A passage cannot be left with no text. Cancel the edit instead.",
   "server.one_occurrence_replaced_one_find": "One occurrence is replaced with one find at a time.",
@@ -552,5 +556,9 @@
   },
   "server.refresh_boards_unread": "The PETs boards could not be read, so their cards were left as they were: {exc}",
   "server.refresh_workbook_unread": "The workbook could not be read, so the copies were left as they were: {exc}",
-  "server.refresh_copy_unread": "The {name} could not be read, so their copy was left as it was: {exc}"
+  "server.refresh_copy_unread": "The {name} could not be read, so their copy was left as it was: {exc}",
+  "server.rows_copy_unmoved": "The {name} could not be read, so their copy stayed on the old rows: {exc}",
+  "server.passage_copy_unmoved": "The {name} could not be read, so their copy kept the statements as they were: {exc}",
+  "server.copies_rekey_which_sheet": "{case} has statements on more than one sheet ({sheets}). Name the sheet with --sheet. Nothing was written.",
+  "server.copies_rekey_clash": "Shifting {case} would put a statement on {keys}, which the copy holds already. Nothing was written."
 }

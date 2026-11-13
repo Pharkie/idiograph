@@ -49,6 +49,8 @@ Object.assign(AL_OPS, {
   'turn trim': 'agentlog_idiograph.turn_trim',
   'turn trim-undo': 'agentlog_idiograph.turn_trim_undo',
   'copies refresh': 'agentlog_idiograph.copies_refresh',
+  'copies rekey': 'agentlog_idiograph.copies_rekey',
+  'copies prune': 'agentlog_idiograph.copies_prune',
   'import': 'agentlog_idiograph.import',
   'qdpx': 'agentlog_idiograph.qdpx',
   'timepoints': 'agentlog_idiograph.timepoints',

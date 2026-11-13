@@ -78,6 +78,7 @@
   "agentchanges.op.turn_edit": "Edited a passage of the transcript",
   "agentchanges.op.turn_note": "Wrote a note on the interviewer's words",
   "agentchanges.op.replace": "Replaced words in the transcripts",
+  "agentchanges.op.clear_formatting": "Took bold and font colours out",
   "agentchanges.op.participant_set": "Changed a participant's details",
   "agentchanges.op.participant_rename": "Renamed a participant",
   "agentchanges.op.participant_complete": "Marked statements complete, or reopened them",

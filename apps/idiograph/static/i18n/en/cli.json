@@ -911,6 +911,48 @@
   "cli.said.heading_case_or_all": "Name a participant, or --all for every participant of the project, not both.",
   "cli.said.heading_neither": "Name the participant whose workbook to change, or give --all for every participant of the project.",
   "cli.said.no_heading_request": "Say his request in his own words with --note, so the progress file names it.",
+  "cli.said.no_clear_request": "Say his request in his own words with --note, so the record of agents' changes names it.",
+  "cli.n.cell": {
+    "one": "{n} cell",
+    "other": "{n} cells"
+  },
+  "cli.n.board_row": {
+    "one": "{n} key quote on the boards",
+    "other": "{n} key quotes on the boards"
+  },
+  "cli.clear_formatting.dry": "Dry run, nothing was written. It would take bold and font colours off {cells} and {rows}.",
+  "cli.clear_formatting.done": "Took bold and font colours off {cells} and {rows}. A copy of each of the {files} changed is in its _Archive, and the run's undo puts it all back.",
+  "cli.clear_formatting.nothing": "Nothing to clear, no bold and no font colour anywhere in the project.",
+  "cli.clear_formatting.line": "{case}: cleared {what}.",
+  "cli.clear_formatting.line_dry": "{case}: would clear {what}.",
+  "cli.clear_formatting.part.transcript": {
+    "one": "{n} transcript cell",
+    "other": "{n} transcript cells"
+  },
+  "cli.clear_formatting.part.quotes": {
+    "one": "{n} quote cell",
+    "other": "{n} quote cells"
+  },
+  "cli.clear_formatting.part.statements": {
+    "one": "{n} statement cell",
+    "other": "{n} statement cells"
+  },
+  "cli.clear_formatting.part.notes": {
+    "one": "{n} exploratory notes cell",
+    "other": "{n} exploratory notes cells"
+  },
+  "cli.clear_formatting.part.interviewer_notes": {
+    "one": "{n} interviewer notes cell",
+    "other": "{n} interviewer notes cells"
+  },
+  "cli.clear_formatting.part.lpet_table": {
+    "one": "{n} key quote on the LPET table",
+    "other": "{n} key quotes on the LPET table"
+  },
+  "cli.clear_formatting.part.copies": {
+    "one": "{n} key quote on another board",
+    "other": "{n} key quotes on other boards"
+  },
   "cli.said.replace_case_or_all": "Name a participant, or --all for every participant of the project, not both.",
   "cli.said.replace_find_or_pairs": "Give --find with --with, or --pairs with a file of them, not both.",
   "cli.said.no_replace_request": "Say his request in his own words with --note, so the progress file names it.",
@@ -1009,5 +1051,27 @@
   "cli.copies_refresh.bold_moved_dry": "{n} of his bold would move to the same words in the new quote",
   "cli.copies_refresh.bold_dropped": "his bold left off where the words are gone from the new quote: {n}, look at this cell",
   "cli.copies_refresh.changed_mark": "A card the PETs screen marks Changed takes the workbook's words too: Idiograph cannot tell a change he has yet to look at from a card a write left behind, so the workbook wins.",
-  "cli.copies_refresh.history": "Each board it changed keeps the board as it stood first in its History, as \"{history}\", and is marked as changed in a conversation."
+  "cli.copies_refresh.history": "Each board it changed keeps the board as it stood first in its History, as \"{history}\", and is marked as changed in a conversation.",
+  "cli.copies_followed.removed": "took off {n} removed ({keys})",
+  "cli.copies_followed.merged": "followed {n} merged into another ({keys})",
+  "cli.copies_followed.moved": "moved {n} to their new place ({keys})",
+  "cli.copies_followed.wrote": "The {name}' copy of the participant {parts}.",
+  "cli.copies_followed.dry": "The {name}' copy of the participant would have {parts}.",
+  "cli.copies_rekey.offset_both": "--from-row and --shift go together. Nothing was written.",
+  "cli.copies_rekey.offset_case": "An offset moves one participant's copy: name them with --case. Nothing was written.",
+  "cli.copies_rekey.offset_zero": "A shift of 0 moves nothing. Nothing was written.",
+  "cli.copies_rekey.nothing": "Every copy's statements stand at their keys. Nothing to move. {unmatched} cannot be matched.",
+  "cli.copies_rekey.dry_run": "Dry run, nothing was written. {moves} would move to their keys, {unmatched} cannot be matched.",
+  "cli.copies_rekey.wrote": "Moved {moves} to their keys. {unmatched} could not be matched.",
+  "cli.copies_rekey.move": "{case}, {name} {timepoint}: {which} to {to}, under {lpets}, {matched}.",
+  "cli.copies_rekey.matched": "its words there",
+  "cli.copies_rekey.unread": "other words there, which copies refresh brings in line",
+  "cli.copies_rekey.cannot": "{case}, {name} {timepoint}: {which} cannot be matched, under {lpets}.",
+  "cli.copies_rekey.history": "Each board it changed keeps the board as it stood first in its History, as \"{history}\", and is marked as changed in a conversation.",
+  "cli.copies_prune.nothing": "Every copy's statement is in the workbook. Nothing to take off. {elsewhere} stand at another key, for copies rekey.",
+  "cli.copies_prune.dry_run": "Dry run, nothing was written. {copies} would be taken off, leaving {emptied} LPET cells with no statement. {elsewhere} stand at another key, for copies rekey first.",
+  "cli.copies_prune.wrote": "Took off {copies}, leaving {emptied} LPET cells with no statement. {elsewhere} stand at another key, for copies rekey.",
+  "cli.copies_prune.copy": "{case}, {name} {timepoint}: {which} is no longer in the workbook, under {lpets}.",
+  "cli.copies_prune.elsewhere": "{case}, {name} {timepoint}: {which} stands at another key, left for copies rekey.",
+  "cli.copies_prune.emptied": "{case}, {name}, {board}: '{title}' at {timepoint} has no statement left."
 }

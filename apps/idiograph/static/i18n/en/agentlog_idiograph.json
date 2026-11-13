@@ -84,5 +84,7 @@
   "agentlog_idiograph.participant_rename": "Rename a participant",
   "agentlog_idiograph.participant_complete": "Mark a participant's statements complete",
   "agentlog_idiograph.participant_export": "Export a participant's statements",
-  "agentlog_idiograph.project_export_qdpx": "Export as a REFI-QDA project"
+  "agentlog_idiograph.project_export_qdpx": "Export as a REFI-QDA project",
+  "agentlog_idiograph.copies_rekey": "Re-point the copies of the statements",
+  "agentlog_idiograph.copies_prune": "Take off copies of statements no longer there"
 }

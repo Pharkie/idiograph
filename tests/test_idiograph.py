@@ -424,6 +424,8 @@ AREAS = {
     "a385_recordings_on_demand": "idiograph",
     "a389_agent_review": "idiograph",
     "a390_home_time": "idiograph",
+    "a392_clear_formatting": "idiograph",
+    "a393_lpet_keys": "idiograph",
 }
 
 

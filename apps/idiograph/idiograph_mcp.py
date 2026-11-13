@@ -448,6 +448,36 @@ TOOLS = [
          "participant and file the keys that would change, never the words. Refresh only on his word.",
          {"case": dict(mcp.CASE, description="One participant by their pseudonym. Every participant when left out.")},
          writes="changes"),
+    mcp.tool("copies_rekey", "Re-point the copies of the statements", ("copies", "rekey"),
+         "Re-point the GETs', the LPETs' and the LGETs' copies of a statement at the statement where a row op left "
+         "them on old row numbers, for every participant or the one named. A split, a merge, a trim and their undos "
+         "move every copy with the rows, so this repairs copies left behind before they did. By default each copy "
+         "whose key the workbook no longer holds takes the key its own words now stand at, its row first, then the "
+         "nearest, and one whose words stand nowhere is listed as cannot be matched, for copies_prune. Where the words "
+         "cannot tell, as after a copies_refresh that took the workbook's words at keys already one row off, give "
+         "case, timepoint, from_row and shift: every key of that timepoint's sheet from that row down moves by shift "
+         "rows, words or not, refused whole when one would land on a key the copy holds. Run copies_rekey before "
+         "copies_prune, so a copy one row off is never taken for a left-over, and copies_refresh after an offset. "
+         "Each board it changes keeps a revision first. Run dry_run first: it lists each statement it would move, "
+         "its timepoint, from and to keys, whether its words are at the new key and the LPETs holding it, never the "
+         "words. Re-point only on his word.",
+         {"case": dict(mcp.CASE, description="One participant by their pseudonym. Every participant when left out."),
+          "timepoint": dict(mcp.TEXT, description="In a project of timepoints, the participant's LPETs at this "
+                                                  "timepoint alone, T1 or 1."),
+          "sheet": dict(mcp.TEXT, description="The sheet an offset moves, the timepoint's when it has one alone."),
+          "from_row": {"type": "integer", "description": "With shift and case: every key from this row down moves."},
+          "shift": {"type": "integer", "description": "With from_row: how many rows the keys move, 1 down, -1 up."}},
+         writes="changes"),
+    mcp.tool("copies_prune", "Take off copies of statements no longer there", ("copies", "prune"),
+         "Take off the GETs', the LPETs' and the LGETs' copies of statements that are no longer in the workbook, for "
+         "every participant or the one named: from the copy, its PETs and every board, an LPET's card of it and a "
+         "picked or ticked quote on it with it. A copy whose words stand at another key is left and listed, for "
+         "copies_rekey first. Each board it changes keeps a revision first. Run dry_run first: it lists each copy it "
+         "would take off with the LPETs holding it, and every LPET it would leave with no statement at a timepoint, "
+         "by participant, title and timepoint, so a statement from the same interview can be put in its place on his "
+         "word before the write. Never a statement's words. Take off only on his word.",
+         {"case": dict(mcp.CASE, description="One participant by their pseudonym. Every participant when left out.")},
+         writes="changes"),
     mcp.tool("import", "Import a transcript", ("import", None),
          "Bring in a participant's transcript, as the import card's Make and the create card do, on the app's own code. "
          "A transcript file in a participant's folder or its Source, VTT, SRT, plain text, a Word file or table, a CSV or "
@@ -761,6 +791,16 @@ TOOLS = [
          "dry_run first and rename only on his word.",
          {"case": dict(mcp.CASE, description="The participant, by their pseudonym. Leave it out with all."),
           "all": {"type": "boolean", "description": "Every participant of the project, in place of case."}},
+         [], writes="changes"),
+    # bold and font colours out of a whole project (clearformat, 13 November 2026)
+    mcp.tool("clear_formatting", "Take out all bold and font colours", ("clear-formatting", None),
+         "Take every bold and every font colour out of the project, the words exactly as they were: the transcript, "
+         "statements, quotes, exploratory notes and interviewer notes of every participant's workbook, a highlight's "
+         "orange among them, and his bold in the key quotes on the LPET tables and any other board. Italics, "
+         "underline, fills and the workbook's own styles stay. Each file it changes is copied to its _Archive first, "
+         "and the whole is refused, nothing changed, if any cell's words would read otherwise. The dry run counts "
+         "cells and key quotes by participant and by part, never a word. Run dry_run first and clear only on his word.",
+         {"case": dict(mcp.CASE, description="This participant alone, by their pseudonym. Leave it out for every one.")},
          [], writes="changes"),
     mcp.tool("transcript_replace", "Find and replace", ("transcript", "replace"),
          "Find and replace across a participant's workbook, or with all every participant's, as the app's Find and "
@@ -1545,6 +1585,9 @@ def arguments(t: dict, given: dict, args):
         args.boards = list(given.get("boards") or [])
     if (command, act) == ("gets", "colour"):
         args.colour = given["colour"]
+    if (command, act) == ("copies", "rekey"):
+        args.timepoint, args.sheet = given.get("timepoint"), given.get("sheet")
+        args.from_row, args.shift = given.get("from_row"), given.get("shift")
     if command == "turn":
         # an undo names its op by id alone, every other passage op its sheet and row
         args.sheet, args.row = given.get("sheet"), None if given.get("row") is None else str(given["row"])

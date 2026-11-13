@@ -985,6 +985,35 @@ ahead and the answer names the one refused under `refused`. A second run renames
 `quote_heading`, with `case` or `all`, and the app's route is `/api/quote-heading`, with `path` and
 `dry_run`. Rename only on his word.
 
+## Taking out bold and font colours
+
+`clear-formatting` takes every bold and every font colour out of the project, the words exactly as they were
+(13 November 2026, his ruling: the quotes he picks pick out the most relevant words):
+
+```
+idiograph clear-formatting --dry-run
+idiograph clear-formatting --note "his words" --tool "Claude Code"
+idiograph clear-formatting --participant Rowan --note "his words" --tool "Claude Code"
+```
+
+It clears, in every participant's workbook, the transcript, statements, quotes, exploratory notes and
+interviewer notes cells under each sheet's header row: a run's bold and colour, an old highlight's orange among
+them, and the cell's own bold and colour. Black is no colour and stays. Italics, underline, fills, widths, the
+header row and the speaker and timecode columns stay as they are, and so do the raw transcripts in a
+participant's `Source/`, which the app only reads. On the boards it takes off his bold in the key quotes of an
+LPET table's rows, and of any other board's rows. A board's cards hold plain words, so nothing there changes.
+
+The dry run counts, by participant and by part (`transcript`, `quotes`, `statements`, `notes`,
+`interviewer_notes`, `lpet_table`, `copies`), cells in a workbook and key quotes on the boards, and names the
+files it would change. It writes nothing and never says a word. The op takes the project's lock and every
+participant's, copies each workbook and board file it changes to the `_Archive` beside it, `<name>
+(pre-clear-formatting <date-time>)`, and checks every cell's plain text before and after, in memory and again
+from the file written. Any difference refuses the whole op in one line, every file put back. It is one line in
+the record of agents' changes, and `agents undo-run` puts it all back. A second run finds nothing. With
+`--participant` it reaches that participant's workbook, their LPETs and their rows on the project's boards
+alone. MCP's tool is `clear_formatting`, with `case`, and the app's route is `/api/clear-formatting`, with `root`
+or `path`, `case` and `dry_run`. Clear only on his word, after the dry run.
+
 ## Find and replace
 
 The statements screen's Find and replace, the same replace by the app's own code (26 October). The words
@@ -1831,7 +1860,7 @@ run shows you. The dry run names every card that would move key, from and to, an
 would be taken off, under `cards`, each with its board. Each board the write changes keeps the board as
 it stood first in its History, as "Before: " and his request, and is marked as changed in a
 conversation. A GETs board's card of a statement reworded in its place takes the new words with the write
-(30 October), and one moved or removed follows its statement when he takes the participant's changes.
+(30 October), and one moved or removed follows its statement in the same write (13 November).
 
 **Copies brought back in line** (13 November). Every board's cards and the GETs', the LPETs' and the
 LGETs' copies keep a statement's words, and those copies its quotes, and a write that went astray can
@@ -1859,6 +1888,43 @@ answers "Nothing to change." The write needs his request. Each board it changes 
 stood first in its History, once, as "Before: " and his request, and is marked as changed in a
 conversation, and each file is written once. Through MCP it is `copies_refresh`, `case` left out for every
 participant.
+
+**Copies follow the rows, and two repairs** (13 November). A row op, `turn assign` (a split or a merge),
+`turn trim` and their undos, moves every copy of a participant's statements with the rows in the same write,
+the GETs', the LPETs' and the LGETs' as the PETs boards: the copy's lines, its PETs' statements and picks, every
+board's statement cards and the table's ticked quotes and passages. A write that removes a statement takes its
+copy off every one of them, an LPET's card of it with it, and one that merges two statements leaves the merged
+one standing once wherever either stood, never twice under one LPET; `turn write`'s answer says it under
+`copies_followed` (`removed`, `merged`, `moved`, by key), its dry run too. Two ops repair copies a row op left
+behind before then:
+
+```
+idiograph copies rekey --dry-run
+idiograph copies rekey --case Juno --timepoint T1 --from-row 71 --shift 1 --dry-run
+idiograph copies prune --dry-run
+```
+
+`copies rekey` re-points each copy whose key the workbook no longer holds at the key its own words now stand
+at on its sheet, its row first, then the nearest. A key the workbook still holds is never moved this way, so a
+statement reworded keeps its place, and a copy whose words stand at a key another line of the copy already
+reads the same joins it (`joins`). One whose words stand nowhere is listed under `unmatched`, for the prune.
+Where the words cannot tell, as after a `copies refresh` took the workbook's words at keys already one row off,
+`--from-row` and `--shift` with `--case` move every key of the copy on one sheet from that row down by that many
+rows, words or not, `--timepoint` keeping the LPETs to that timepoint's copy and naming the sheet when it has
+one alone (`--sheet` otherwise), refused whole when a key would land on one the copy holds. Each move is listed
+under `participants` and `files` (`file` "gets", "lpets" or "lgets") as `moves`, each with its `timepoint`,
+`from`, `to`, `matched` (whether the workbook's words at the new key are the copy's; `copies refresh` brings the
+rest in line) and `lpets`, the LPETs holding it by id and title. `copies prune` takes off each copy whose key the
+workbook does not hold and whose words stand nowhere on its sheet, from the copy, its PETs and every board, a
+pick or ticked quote on it with it, and leaves and lists under `elsewhere` one whose words stand at another key,
+for `copies rekey` first. Its dry run lists each copy (`pruned`, by key with its LPETs) and `emptied`, every LPET
+of the board the LPET table reads that it would leave with no statement at a timepoint, by participant, `lpet`
+id, `title` and `timepoint`, so a statement from the same interview can go in its place on his word before the
+write. Neither ever gives a statement's words; an LPET's title is the researcher's words and comes back marked as
+data. Both need his request, keep one History step on each board they change and mark it changed in a
+conversation. The order is rekey (an offset first where one is needed, then by the words), then prune, then
+`copies refresh`, so a copy one row off is never taken for a left-over. Through MCP they are `copies_rekey`
+(`timepoint`, `sheet`, `from_row`, `shift`) and `copies_prune`, `case` left out for every participant.
 `turn show` gives each passage's `Version`, and a write that sends it
 as `"version"` (the MCP server's `turn_write` takes `version`) is refused with nothing written when the
 passage has changed since, in the app or by another write (18 October): read it again and write from

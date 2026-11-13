@@ -3665,6 +3665,32 @@ once, and keeps a copy's files' times through `kept_in` where it now reads as th
 board under the request, the agent's `changed` mark, one write a file. `board show`'s `shown_board` marks a
 statement whose followed card text differs `card_stale` with `card_text`, and `stale_cards`. Area 381.
 
+**Copies follow the rows and the statements (lpetkeys and lpetdrop, 13 November 2026, Adam by dialog, from the
+Ayahuasca IPA project: a split left a participant's LPETs one row off from it down, and removed statements stayed
+on the LPETs).** A copy (the GETs', the LPETs', the LGETs') keeps a statement by its key, `<sheet>:<row>:<line>`,
+in its `lines` (each with `sheet`, `row` and `stacked`), each PET's `statements` and `picks`, each board's
+`<case>/es/<key>` cards and everywhere a board names them (members, bin, stacks, `not_same`, the AI's reasons,
+picks), and the table's `rows` (a ticked `quote` by key, a `passage` by its `turn`, `<sheet>:<row>`).
+`gets.copy_remapped` and `board_remapped` move them all by one map, `remap_case` doing a case's copy, boards and
+revisions and rehashing the copy, `case_keys` finding every key of a case (revisions too, unless `history` is
+off). Row ops: `routes.themes_follow` now runs `copies_follow` after `themes.rekey`, `gets.rows_moved` on each file
+of `statement_copies` with the same row mapper through `themes._row_map` (rows merged keep their lines after the
+first row's), so `api_rows` (assign, restore, untrim) and `api_trim` take the root's lock too
+(`writing(path, root=project_root(path))`) and read `copies_before` first, for `kept_in`. A trim's cut copies go
+aside under the file's `rows_cut` (`cut_aside`) and come back on its undo (`put_back_cut`). A failure is one line
+under `copies_failed`, which the turn ops print. Passage writes: `routes.passage_follow` (lock-free, the caller
+holding the root's lock) runs `gets.passage_followed` with `themes.passage_lines`: `passage_map` maps a removed
+statement to None, or to the statement it was merged into (`merged_into`: a statement another old one became,
+reworded, holding `MERGED`, 0.6, of the removed one's words), and a moved one to its new key; a merged line and
+card give way to the one they joined (`merged`), so the statement stands once. `api_commit` calls it under the
+root's lock once the case's is let go, as the History lines are, and `turn write` inside its locks, its answer
+`copies_followed`; a thematic analysis project is left to its code list. Repairs: `copies rekey`
+(`cli.cmd_copies_rekey`, `routes.rekey_copies`, `gets.copies_rekeyed`) and `copies prune`
+(`cmd_copies_prune`, `prune_copies`, `copies_pruned`), through `copies_people`, each participant under the root's
+lock and the case's. `lpets_of` names the top groups of `source_board` holding a key (its card or its PET's
+card); `evidence` counts each top group's statements per case from `table`, so the prune's `emptied` is every
+(LPET, timepoint) that goes from some to none. The before state is each changed board's History step. Area 393.
+
 **A requote keeps the pick and the key quote's bold (quotefollow, 13 November 2026, Adam by dialog: "the pick
 follows", "keep it where the words survive").** `themes.follow` no longer drops a pick whose quote is worded anew:
 when the old words are on no other quote of the row it keeps the pick on its key (`moves[(gid, key)] = key`) and
@@ -6942,6 +6968,34 @@ under `writing`, after `archive_copy(..., "pre-heading")`, recording each sheet 
 differing from the old one in cell F1 alone. The area checks a new workbook and one made from the
 template, the four headings, the CLI's `statements` the same under either heading, a `turn write` to an
 old-headed workbook changing only that row's C, E and F, and both CSVs.
+
+**Bold and font colours taken out** (clearformat, 13 November 2026, Adam's ruling: all bold and font colours out
+of a project, "the quotes that are selected pick out the most relevant words"). `clear_format.py`. Where a project
+keeps formatted text, and so what it clears: in each participant's workbook, on each sheet `_transcript_sheets`
+finds, rows 2 down, the columns of `ROLES` (`transcript`, `kq`, `es`, `en`, `note`), each `TextBlock`'s `b` and
+`color` (`cleared_value`, a run left with no font property made plain words, a cell left with no run a plain
+string) and the cell's own `Font` (`plain_font`), `marked` reading bold or a colour that is not black: theme 1 untinted,
+`FF000000`, indexed 8 or 64 and auto are black (`coloured`, by the colour's `type`, since openpyxl answers an error
+string for an attribute of another type). The crux orange of the old highlights (theme 9) goes with the rest. The
+header row, the name and timecode columns, a sheet `read_case` does not read and the `Source/` workbooks, which the
+app only reads, are left. In the JSON, `bold_rows` finds every row under a `rows` map holding a non-empty `bold`
+list (`gets.spans_kept`'s spans, his bold in a key quote: the LPET table's rows in `<stem>.lpets.json`, and any
+GETs, LGETs or Trajectories file at the root, `ROOT_BOARDS`, or other board file in a participant's `Working/`,
+every file there but the progress file), and drops the key. Cards and the copies' lines hold plain strings, so
+nothing else carries formatting. `plan` is the dry run, counts by participant and part (`PARTS`), cells and rows
+and the files by relative path, nothing written and no lock taken. `clear` runs under `routes.clear_formatting`'s
+`writing(root=..., books=...)`: each workbook to change is copied by `archive_copy(path, "pre-clear-formatting")`
+and cleared by `clear_workbook`, which compares `words_of` (every cell's plain text, every sheet) before and after in
+memory, saves through `_atomic_save`, reads the file again and compares once more, writing the old bytes back on a
+difference. Each board file is copied by `codes.root_archive` into the root's or the case's `_Archive` and written
+by `write_board` as `themes.render` writes it, through a temporary file, its string values compared before and
+after. Any failure puts back every file written so far, byte for byte, takes the copies away and raises; a word
+reading otherwise is `Differs`, `server.clear_formatting_words_differ`. The command line's `clear-formatting`
+(`--participant`), MCP's `clear_formatting` (`case`) and `/api/clear-formatting` (`root` or `path`, `case`,
+`dry_run`, post only) all run it, and an agent's write goes through `agent_changes.through` as every write does,
+its run's restore point the undo. Area 392 checks it on the demo. On a copy of a real project of three timepoints on 13
+November the workbooks held no bold or colour in those columns (only their `Source/` copies do), and 37 LPET
+table rows across 8 participants held his bold.
 
 Since 26 October (parity with the page, group 1) the statements screen's own writes have ops for agents,
 each calling the route itself with the page's body and three keys more, `dry_run`, `tool` and `request`,

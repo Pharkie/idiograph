@@ -6567,6 +6567,38 @@ def api_quote_heading(body: dict) -> dict:
                                 themes_ai.one_line(body.get("request") or ""))
 
 
+def clear_formatting(root: Path, books: list[dict], dry_run: bool = False, only: set | None = None) -> dict:
+    """All bold and font colours taken out of a project's participants `books`, the words unchanged (clearformat, 13
+    November 2026, `clear_format`): the workbooks' transcript, statements, quotes, notes and Interviewer notes, and his
+    bold on the LPET tables' rows and any other board's rows, `only` the participants whose rows a root file clears.
+    Under the project's lock and every participant's, each file it changes copied to its `_Archive` first, and the
+    whole refused, every file put back, when any cell's words would read otherwise. The dry run reads alone, no lock
+    taken. Answers the counts by participant and by part, the files by name, never a word."""
+    import clear_format
+    if dry_run:
+        return dict(clear_format.plan(root, books, only), dry_run=True)
+    with writing(root=root, books=[Path(b["workbook"]) for b in books]):
+        done = clear_format.clear(root, books, only)
+    return dict(done, dry_run=False)
+
+
+def api_clear_formatting(body: dict) -> dict:
+    """Bold and font colours out of a whole project, `root` by its id or the project of the workbook `path`, every
+    participant or `case` alone, with `dry_run` (see `clear_formatting`)."""
+    root = srv.project_named(body["root"]) if body.get("root") else project_root(case_path(body["path"]))
+    if root is None:
+        raise WorkbookError(i18n.t("server.clear_formatting_no_project"))
+    books = gets_books(root)
+    case = str(body.get("case") or "").strip()
+    only = None
+    if case:
+        books = [b for b in books if case in (str(b["case"]), gets_mod.who(str(b["case"])))]
+        if not books:
+            raise WorkbookError(i18n.t("server.clear_formatting_no_participant", case=case))
+        only = {str(b["case"]) for b in books}
+    return clear_formatting(root, books, body.get("dry_run") is True, only)
+
+
 def commit_pairs(body: dict) -> list[dict] | None:
     """The turn's pairs as the page sends them, each a statement and its quote, or None from a
     page that sends the two fields as text."""
@@ -6626,11 +6658,19 @@ def api_commit(body: dict) -> dict:
             rounds_mod.record_work(progress, int(body["round"]), time.time(),
                                    float(body.get("away") or 0))
         rounds_mod.save_progress(path, progress)
-    root = project_root(path) if said else None
+    # a statement removed or merged, or one moved in the passage, carried to every copy of it across the
+    # participants, the LPETs' among them (lpetdrop, 13 November 2026), under the project's lock as the History is
+    lines = themes_mod.passage_lines(moved["before"], moved["after"]) if moved else {}
+    follows = any(j != i for i, j in lines.items())
+    root = project_root(path) if said or follows else None
     if root is not None:
         try:
             with writing(root=root):
-                statements_noted(path, said)
+                if follows:
+                    result["copies"] = passage_follow(path, body["sheet"], int(body["row"]), moved["before"],
+                                                      moved["after"], lines)
+                if said:
+                    statements_noted(path, said)
         except (WorkbookError, OSError):
             pass
     # in a thematic analysis project a name typed as New code joins the code list (codes, 2 November 2026)
@@ -6972,17 +7012,44 @@ def carries_line(counts: dict, merging: bool) -> str:
     return i18n.t("server.passage_carries", listed=listed) if merging else i18n.t("server.passage_keeps", listed=listed)
 
 
-def themes_follow(path: Path, mapper, cut: str | None = None, back: str | None = None) -> dict:
+def themes_follow(path: Path, mapper, cut: str | None = None, back: str | None = None,
+                  before: dict | None = None) -> dict:
     """Move the case's themes file with the rows the workbook has just moved, under the same lock
-    and with the same row map as the progress file, so the two never disagree. A case with no
-    themes file has nothing to move. A file that cannot be read is left as it is, and the answer
-    carries one line saying so, under `themes`."""
+    and with the same row map as the progress file, so the two never disagree, and then every copy of
+    the participant's statements across the participants, the GETs', the LPETs' and the LGETs' (see
+    `copies_follow`), `before` from `copies_before`, so the caller holds the project's lock too. A case
+    with no themes file has nothing to move. A file that cannot be read is left as it is, and the answer
+    carries one line saying so, under `themes`, and a file of copies under `copies_failed`."""
+    out = {}
     try:
         themes_mod.rekey(path, mapper, cut=cut, back=back)
     except (WorkbookError, OSError) as exc:
-        return {"themes": str(exc) if isinstance(exc, WorkbookError) else
-                i18n.t("server.themes_file_could_written_cards")}
-    return {}
+        out["themes"] = (str(exc) if isinstance(exc, WorkbookError) else
+                         i18n.t("server.themes_file_could_written_cards"))
+    failed = copies_follow(path, mapper, cut=cut, back=back, before=before)
+    if failed:
+        out["copies_failed"] = failed
+    return out
+
+
+def copies_follow(path: Path, mapper, cut: str | None = None, back: str | None = None,
+                  before: dict | None = None) -> list[str]:
+    """Every copy of a participant's statements moved with rows their workbook has just moved (lpetkeys, 13
+    November 2026, Adam by dialog: a split had moved the PETs boards and left the LPETs one row off): the GETs
+    file's, and in a project of timepoints the participant's LPETs' and the LGETs', each through `gets.rows_moved`
+    with the row map the progress file and the PETs boards were moved by, in the same request and under the same
+    locks, so the agent's change record and its undo hold them with the rest. Answers a line for each file that
+    could not be read or written, left as it was."""
+    root, kinds = statement_copies(path)
+    failed = []
+    for kind in kinds:
+        try:
+            with copy_scope(kind, path, root):
+                gets_mod.rows_moved(root, path, mapper, lpets_books(path) if kind == "lpets" else None,
+                                    cut=cut, back=back, before=(before or {}).get(kind) or {})
+        except (WorkbookError, OSError) as exc:
+            failed.append(i18n.t("server.rows_copy_unmoved", name=COPY_NAMES[kind], exc=exc))
+    return failed
 
 
 def api_rows(body: dict) -> dict:
@@ -7019,7 +7086,8 @@ def api_rows(body: dict) -> dict:
         return dict(preview, dry_run=True) if op == "assign" else preview
 
     if op == "assign":
-        with writing(path):
+        with writing(path, root=project_root(path)):
+            before = copies_before(path)
             result = wb_mod.assign_rows(path, sheet, int(body["row"]), body.get("to"),
                                         body.get("start"), body.get("end"))
             backup = srv.rel_path(result["backup"])
@@ -7031,7 +7099,7 @@ def api_rows(body: dict) -> dict:
             rounds_mod.save_progress(path, progress)
             shift = result["shift"]
             said = themes_follow(path, lambda key: rounds_mod.shift_key(
-                key, sheet, shift["at"], shift["count"], shift["inserted"], shift.get("into"))) if shift else {}
+                key, sheet, shift["at"], shift["count"], shift["inserted"], shift.get("into")), before=before) if shift else {}
         land = {"sheet": sheet, "row": result["holder"]}
         if current.get("sheet") == sheet and current.get("row") and int(current["row"]) != result["row"]:
             shift = result["shift"]
@@ -7047,7 +7115,7 @@ def api_rows(body: dict) -> dict:
                 "after": result["after"], "land": land, **said}
 
     if op == "restore":
-        with writing(path):
+        with writing(path, root=project_root(path)):
             progress = rounds_mod.load_progress(path)
             record = rounds_mod.find_assignment(progress, body.get("id") or "")
             if record is None:
@@ -7062,12 +7130,13 @@ def api_rows(body: dict) -> dict:
                 return {"id": record["id"], "sheet": record["sheet"], "row": record["row"], "kind": record["kind"],
                         "from": record.get("from"), "to": record.get("to"), "block": dict(block),
                         "backup": record["backup"], "dry_run": True}
+            before = copies_before(path)
             result = wb_mod.restore_rows(path, record["sheet"], block["first"], block["before"],
                                          block["after"], backup, record["row"], expect=record.get("after"))
             rounds_mod.undo_assignment(progress, record)
             marked(record, tool, request, "undone_")
             rounds_mod.save_progress(path, progress)
-            said = themes_follow(path, lambda key: rounds_mod.restored_key(key, record))
+            said = themes_follow(path, lambda key: rounds_mod.restored_key(key, record), before=before)
         # the page stays on the turn it is on: one outside the block moves back with the rows, and
         # one inside it goes back to the turn it was on when the assignment was made
         first, before, after = int(block["first"]), int(block["before"]), int(block["after"])
@@ -7084,7 +7153,7 @@ def api_rows(body: dict) -> dict:
                 "appended": result["appended"], "land": land, **said}
 
     if op == "untrim":
-        with writing(path):
+        with writing(path, root=project_root(path)):
             progress = rounds_mod.load_progress(path)
             record = rounds_mod.find_trim(progress, body.get("id") or "")
             if record is None:
@@ -7105,13 +7174,14 @@ def api_rows(body: dict) -> dict:
                         "first": int(record["first"]), "last": int(record["first"]) + int(record["count"]) - 1,
                         "count": int(record["count"]), "timecode": record.get("timecode") or "",
                         "head": record.get("head") or "", "backup": record["backup"], "dry_run": True}
+            before = copies_before(path)
             result = wb_mod.restore_trim(path, record["sheet"], record["first"], record["count"], backup)
             rounds_mod.undo_trim(progress, record)
             marked(record, tool, request, "undone_")
             rounds_mod.save_progress(path, progress)
             first, count = int(record["first"]), int(record["count"])
             said = themes_follow(path, lambda key: rounds_mod.shift_key(key, record["sheet"], first, count, True),
-                                 back=record["id"])
+                                 back=record["id"], before=before)
         # the page stays on the turn it is on, moved back down with the rows below the cut
         first, count = int(record["first"]), int(record["count"])
         land = {"sheet": record["sheet"], "row": first}
@@ -7237,7 +7307,8 @@ def api_trim(body: dict) -> dict:
     tool, request = agent_marks(body)
     if body.get("dry_run") is True:
         return dict(wb_mod.trim_rows(path, sheet, row, direction, dry=True), dry_run=True)
-    with writing(path):
+    with writing(path, root=project_root(path)):
+        before = copies_before(path)
         result = wb_mod.trim_rows(path, sheet, row, direction)
         progress = rounds_mod.load_progress(path)
         record = rounds_mod.rekey_after_trim(progress, sheet, direction, row, result["timecode"],
@@ -7253,7 +7324,7 @@ def api_trim(body: dict) -> dict:
         record["sidecar"]["last_after"] = progress.get("last")
         rounds_mod.save_progress(path, progress)
         said = themes_follow(path, lambda key: rounds_mod.moved_key(key, sheet, direction, row),
-                             cut=record["id"])
+                             cut=record["id"], before=before)
     land = None
     if current.get("sheet") and current.get("row"):
         land = {"sheet": current["sheet"], "row": int(current["row"])}
@@ -9128,6 +9199,108 @@ def refresh_copies(path: Path, dry: bool = False, changed: dict | None = None, h
     return out
 
 
+def copies_timepoint(path: Path, value) -> dict | None:
+    """The participant's timepoint a repair names, by its number, its key, T2, or its label, with its key on the
+    LPETs, `case`, and its sheets, or None when the call names none. Refused when the project has no such
+    timepoint."""
+    if value in (None, ""):
+        return None
+    tps = participant_timepoints(path)
+    said = " ".join(str(value).split())
+    n = next((t["n"] for t in tps if tp_label(t["n"]).lower() == said.lower()), None)
+    if n is None:
+        n = timepoint_asked(said, tps)
+    t = next(t for t in tps if t["n"] == n)
+    return {"n": n, "case": tp_label(n), "sheets": list(t.get("sheets") or [])}
+
+
+def rekey_copies(path: Path, timepoint=None, sheet: str | None = None, from_row: int | None = None,
+                 shift: int | None = None, dry: bool = False, changed: dict | None = None, history: str = "") -> dict:
+    """Every copy of a participant's statements re-pointed where a row op left its keys behind (lpetkeys, 13
+    November 2026): the GETs file's, and in a project of timepoints the participant's LPETs' and the LGETs', in the
+    order an edit reaches them, each through `gets.copies_rekeyed`, by the statements' own words, or with `from_row`
+    and `shift` by that offset on one sheet, the timepoint's when it has one alone, `timepoint` keeping the LPETs to
+    its own copy. With `dry` nothing is written. The caller holds the locks. Answers what each file would take or
+    took by its kind, and `failed`, a line for a file that could not be read, left as it is."""
+    out: dict = {"copies": {}, "failed": []}
+    root, kinds = statement_copies(path)
+    if not kinds:
+        return out
+    tp = copies_timepoint(path, timepoint)
+    if from_row is not None and sheet is None:
+        sheets = tp["sheets"] if tp else sorted({themes_mod.split_card_key(k)[0] for k in gets_mod.workbook_lines(path)})
+        if len(sheets) != 1:
+            raise WorkbookError(i18n.t("server.copies_rekey_which_sheet", case=case_label(path), sheets=", ".join(sheets)))
+        sheet = sheets[0]
+    truth = gets_mod.workbook_lines(path)
+    for kind in kinds:
+        try:
+            with copy_scope(kind, path, root):
+                done = gets_mod.copies_rekeyed(root, path, truth, lpets_books(path) if kind == "lpets" else None,
+                                               at=tp["case"] if tp and kind == "lpets" else None, sheet=sheet,
+                                               from_row=from_row, shift=shift, dry=dry, changed=changed,
+                                               history=history)
+        except OSError as exc:
+            out["failed"].append(i18n.t("server.refresh_copy_unread", name=COPY_NAMES[kind], exc=exc))
+            continue
+        if done:
+            out["copies"][kind] = done
+    return out
+
+
+def prune_copies(path: Path, dry: bool = False, changed: dict | None = None, history: str = "") -> dict:
+    """Every copy of a participant's statements whose statement is no longer in their workbook taken off (lpetkeys,
+    13 November 2026): the GETs file's, and in a project of timepoints the participant's LPETs' and the LGETs', each
+    through `gets.copies_pruned`, a copy whose words stand at another key left for `rekey_copies`. With `dry`
+    nothing is written. The caller holds the locks. Answers what each file would take off or took off by its kind,
+    with the LPETs it leaves with no statement at a timepoint, and `failed`, a line for a file that could not be
+    read."""
+    out: dict = {"copies": {}, "failed": []}
+    root, kinds = statement_copies(path)
+    if not kinds:
+        return out
+    truth = gets_mod.workbook_lines(path)
+    for kind in kinds:
+        try:
+            with copy_scope(kind, path, root):
+                done = gets_mod.copies_pruned(root, path, truth, lpets_books(path) if kind == "lpets" else None,
+                                              dry=dry, changed=changed, history=history)
+        except (WorkbookError, OSError) as exc:
+            out["failed"].append(i18n.t("server.refresh_copy_unread", name=COPY_NAMES[kind], exc=exc))
+            continue
+        if done:
+            out["copies"][kind] = done
+    return out
+
+
+def passage_follow(path: Path, sheet: str, row: int, old: list[str], new: list[str], lines: dict,
+                   dry: bool = False) -> dict:
+    """A passage's statements written, `old` and `new` before and after and `lines` each old statement's new place
+    or None (see `themes.passage_lines`), carried to every copy of them across the participants (lpetdrop, 13
+    November 2026, Adam by dialog: as the boards do): the GETs file's, and in a project of timepoints the
+    participant's LPETs' and the LGETs', each through `gets.passage_followed`, a statement removed going from each
+    copy and its boards, one merged following the statement it joined. The caller holds the project's lock. Answers
+    what each file took by its kind, and `failed`, a line for each file that could not be read, left as it was."""
+    root, kinds = statement_copies(path)
+    # a thematic analysis project's GETs gather a code's extracts by the code list, which keeps them (see `codes`)
+    if root is None or read_project(root).get("method") == "ta":
+        return {}
+    out, failed = {}, []
+    for kind in kinds:
+        try:
+            with copy_scope(kind, path, root):
+                done = gets_mod.passage_followed(root, path, sheet, int(row), old, new, lines,
+                                                 lpets_books(path) if kind == "lpets" else None, dry=dry)
+        except (WorkbookError, OSError) as exc:
+            failed.append(i18n.t("server.passage_copy_unmoved", name=COPY_NAMES[kind], exc=exc))
+            continue
+        if done:
+            out[kind] = done
+    if failed:
+        out["failed"] = failed
+    return out
+
+
 def statements_noted(path: Path, said: dict) -> dict:
     """His statements reworded on the statements screen, `said` each one's History line by its key (see
     `themes.edit_line`), kept in the History of every board with a card of it across the participants, the GETs
@@ -10270,6 +10443,8 @@ ROUTES = {
     # the demo's recordings, downloaded the first time one is played (recdemand, 13 November 2026)
     "/api/demo-recordings": api_demo_recordings,
     "/api/quote-heading": api_quote_heading,
+    # bold and font colours out of a whole project (clearformat, 13 November 2026)
+    "/api/clear-formatting": api_clear_formatting,
     "/api/reset-demo": api_reset_demo,
     "/api/round-complete": api_round_complete,
     "/api/complete": api_complete,
@@ -10344,7 +10519,7 @@ srv.register("idiograph", routes=ROUTES,
              post_only=("/api/choose-root", "/api/projects", "/api/new-project", "/api/add-transcripts", "/api/names", "/api/qdpx",
                         "/api/open-sent", "/api/send-project", "/api/qdpx-export", "/api/boards-in", "/api/order", "/api/rename",
                         "/api/participant", "/api/demographics",
-                        "/api/mcp", "/api/quote-heading", "/api/team",
+                        "/api/mcp", "/api/quote-heading", "/api/clear-formatting", "/api/team",
                         "/api/team-board", "/api/team-review"),
              own_page=("/api/mcp",),
              # what governs agents, from the app's own window alone, never a program on this machine (agentlock,

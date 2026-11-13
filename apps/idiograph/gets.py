@@ -2061,6 +2061,628 @@ def copies_refreshed(root: Path, workbook: Path, truth: dict, books: list[dict] 
     return out
 
 
+# ------------------------------------------------------- keys that follow the rows (lpetkeys)
+# (13 November 2026, Adam by dialog, from the Ayahuasca IPA project: a passage split into two rows by `turn assign`
+# moved the PETs boards' keys with the rows and left a participant's LPETs on the old row numbers, one row off from
+# the split down, and the removed statements' copies stayed on the LPETs.) A copy keeps a statement by its key,
+# `<sheet>:<row>:<line>`, in four places: the copy's `lines`, each PET's `statements` and `picks` in the copy, each
+# board's cards `<case>/es/<key>` with every place a board names a card, and the table's rows, a ticked quote by its
+# key and a passage of the transcript by its turn, `<sheet>:<row>`. `copy_remapped` and `board_remapped` move all of
+# them by one map, so every change below moves them the same way: `rows_moved` with the rows, `passage_followed`
+# with a passage's statements, `copies_rekeyed` to repair keys a row op left behind, and `copies_pruned` to take off
+# copies whose statement is no longer in the workbook.
+
+# how much of a removed statement's words a statement must hold to be the one it was merged into
+MERGED = 0.6
+# the copies a trim cut, kept in the file until the trim is undone, as a PETs board keeps its cut cards
+ROWS_CUT = "rows_cut"
+
+
+def copy_remapped(rec: dict, cmap: dict, qmap: dict, merged=()) -> list[str]:
+    """A case's copy with its statements' keys moved by `cmap`, each key to its new key or None for a statement
+    gone, and its quotes' keys by `qmap` the same way: its lines, each with its sheet and row, the statement it is
+    stacked under, and each PET's statements and picks, a key that meets another once. A key of `merged` was
+    merged into the one it maps to: its line goes, the line it joined standing, and the PETs that held it hold
+    that one. Changed in place, and answers the lines' keys that moved or went."""
+    lines = rec.get("lines") if isinstance(rec.get("lines"), dict) else {}
+    out, said = {}, []
+    # a line merged away comes last, so the line it joined keeps its place, and takes it only where the copy
+    # held no line of that statement
+    for key, line in sorted(lines.items(), key=lambda kv: kv[0] in merged):
+        to = cmap.get(key, key)
+        if to != key:
+            said.append(key)
+        if to is None or to in out or not isinstance(line, dict):
+            continue
+        line = dict(line)
+        if to != key:
+            sheet, row, _ = themes.split_card_key(to)
+            line["sheet"], line["row"] = sheet, row
+        if line.get("stacked"):
+            top = cmap.get(line["stacked"], line["stacked"])
+            if top is None or top == to:
+                line.pop("stacked", None)
+            else:
+                line["stacked"] = top
+        out[to] = line
+    rec["lines"] = {k: out[k] for k in sorted(out, key=themes._order)}
+
+    def moved(keys, by):
+        kept = []
+        for k in keys or []:
+            to = by.get(k, k)
+            if to is not None and to not in kept:
+                kept.append(to)
+        return kept
+
+    for pet in rec.get("pets") or []:
+        if isinstance(pet, dict):
+            pet["statements"] = moved(pet.get("statements"), cmap)
+            pet["picks"] = moved(pet.get("picks"), qmap)
+    return said
+
+
+def board_remapped(board: dict, case: str, cmap: dict, qmap: dict, turns=None, merged=()) -> list[str]:
+    """A board, or a revision's state, with the statement cards of `case` moved by `cmap` (see `copy_remapped`)
+    everywhere it names them: its cards, its groups' members, the bin, the stacks, Not the same, the AI's reasons
+    and the picks, a card that meets another once, a card of `merged` giving way to the card of the statement it
+    joined. The table's rows of the case move with them, a ticked quote by `qmap` and a passage's turn by `turns`,
+    a row key to its new row key or None, a quote or a passage gone leaving the row its note. Changed in place,
+    and answers the cards' keys that moved or went."""
+    def card(k):
+        if not isinstance(k, str):
+            return k
+        s = split_key(k)
+        if s["kind"] != "es" or s["case"] != case or s["ident"] not in cmap:
+            return k
+        to = cmap[s["ident"]]
+        return None if to is None else card_of(case, "es", to)
+
+    def keys(seq):
+        out = []
+        for k in seq or []:
+            to = card(k)
+            if to is not None and to not in out:
+                out.append(to)
+        return out
+
+    said = []
+    cards = board.get("cards")
+    if isinstance(cards, dict):
+        out = {}
+        late = {card_of(case, "es", k) for k in merged}
+        for k, c in sorted(cards.items(), key=lambda kc: kc[0] in late):
+            to = card(k)
+            if to != k:
+                said.append(k)
+            if to is not None and to not in out:
+                out[to] = c
+        board["cards"] = {k: out[k] for k in sorted(out, key=lambda k: list(cards).index(k) if k in cards else len(cards))}
+    for g in board.get("groups") or []:
+        if isinstance(g, dict):
+            g["members"] = keys(g.get("members"))
+    if isinstance(board.get("discarded"), list):
+        board["discarded"] = keys(board["discarded"])
+    if isinstance(board.get("stacks"), dict):
+        stacks = {}
+        for top, under in board["stacks"].items():
+            to = card(top)
+            if to is not None:
+                stacks.setdefault(to, [])
+                stacks[to] += [k for k in keys(under) if k != to and k not in stacks[to]]
+        board["stacks"] = {t: ks for t, ks in stacks.items() if ks}
+    if isinstance(board.get("not_same"), list):
+        board["not_same"] = [[card(a), card(b)] for a, b in board["not_same"]
+                             if card(a) is not None and card(b) is not None and card(a) != card(b)]
+    if isinstance((board.get("ai") or {}).get("discarded"), dict):
+        board["ai"]["discarded"] = {card(k): why for k, why in board["ai"]["discarded"].items() if card(k) is not None}
+    if isinstance(board.get("picks"), dict):
+        board["picks"] = {g: keys(chosen) for g, chosen in board["picks"].items()}
+    rows = board.get("rows") if isinstance(board.get("rows"), dict) else {}
+    for cases in rows.values():
+        row = cases.get(case) if isinstance(cases, dict) else None
+        if not isinstance(row, dict):
+            continue
+        if row.get("quote") in qmap:
+            to = qmap[row["quote"]]
+            if to is None:
+                row.pop("quote", None)
+                row.pop("bold", None)
+            else:
+                row["quote"] = to
+        passage = row.get("passage") if isinstance(row.get("passage"), dict) else None
+        if passage and turns is not None and passage.get("turn"):
+            to = turns(str(passage["turn"]))
+            if to is None:
+                row.pop("passage", None)
+                row.pop("bold", None)
+            elif to != passage["turn"]:
+                passage["turn"] = to
+    return said
+
+
+def case_keys(data: dict, case: str, history: bool = True) -> tuple[set, set]:
+    """Every statement key and every quote key the file holds of a case, on its copy, its boards and, with `history`, their
+    revisions, so one map moves them all."""
+    rec = (data.get("cases") or {}).get(case) or {}
+    statements = set(rec.get("lines") or {})
+    quotes = set()
+    for pet in rec.get("pets") or []:
+        statements |= set((pet or {}).get("statements") or [])
+        quotes |= set((pet or {}).get("picks") or [])
+    for board in boards_of(data):
+        for state in [board] + ([r.get("state") for r in board.get("history") or [] if isinstance(r, dict)] if history else []):
+            if not isinstance(state, dict):
+                continue
+            for k in state.get("cards") or {}:
+                s = split_key(k)
+                if s["kind"] == "es" and s["case"] == case:
+                    statements.add(s["ident"])
+        for cases in (board.get("rows") or {}).values():
+            row = (cases or {}).get(case) if isinstance(cases, dict) else None
+            if isinstance(row, dict) and row.get("quote"):
+                quotes.add(str(row["quote"]))
+    return statements, quotes
+
+
+def remap_case(data: dict, case: str, cmap: dict, qmap: dict, turns=None, merged=(), history: bool = True) -> dict:
+    """One case's keys moved by `cmap` and `qmap` across the file: its copy, every board and, with `history`,
+    every revision of each, its hash following. Answers the copy's lines and each board's cards that moved or
+    went, the boards by id."""
+    rec = data["cases"][case]
+    lines = copy_remapped(rec, cmap, qmap, merged)
+    boards = {}
+    for board in boards_of(data):
+        said = board_remapped(board, case, cmap, qmap, turns, merged)
+        if said:
+            boards[str(board.get("id"))] = said
+        for revision in board.get("history") or [] if history else []:
+            if isinstance(revision, dict) and isinstance(revision.get("state"), dict):
+                board_remapped(revision["state"], case, cmap, qmap, turns, merged)
+    rec["hash"] = snap_hash(rec)
+    return {"lines": lines, "boards": boards}
+
+
+def rows_moved(root: Path, workbook: Path, mapper, books: list[dict] | None = None, cut: str | None = None,
+               back: str | None = None, before: dict | None = None) -> list[str]:
+    """The copy the file in scope keeps of a participant moved with rows their workbook has just moved (lpetkeys,
+    13 November 2026), as a PETs board moves (see `themes.rekey`): the project's GETs, inside `lgets` its LGETs, or
+    inside `lpets` the participant's LPETs, each of their timepoints from `books`. `mapper` takes a row key,
+    `Initial:12`, to the row it moves to, or None for a row cut, as the progress file was moved. Every key of the
+    copy moves with its row, the copy's lines, its PETs' statements and picks, every board's cards and the table's
+    quotes and passages, and every revision in each board's History, rows merged into one keeping their lines
+    after the first row's (see `themes._row_map`). A trim's cut rows, `cut` its id, go aside in the file under
+    `rows_cut`, and come back when the trim is undone, `back`. A copy that stood as its files did, `before` (see
+    `copies_untouched`), keeps their new times when it reads as they now do. Written once, only when a key moved.
+    Answers the keys that moved, the copy's and the cards'."""
+    data, entries = held_of(root, workbook, books)
+    if data is None or not entries:
+        return []
+    held = data["cases"]
+    was = json.dumps(data, sort_keys=True, ensure_ascii=False)
+    aside = [r for r in data.get(ROWS_CUT) or [] if isinstance(r, dict)]
+    said: list[str] = []
+    for e in entries:
+        case = e["case"]
+        statements, quotes = case_keys(data, case)
+        cmap = {k: v for k, v in themes._row_map(statements, mapper).items() if v != k}
+        qmap = {k: v for k, v in themes._row_map(quotes, mapper).items() if v != k}
+        if cut and any(v is None for v in cmap.values()):
+            aside.append(cut_aside(data, case, {k for k, v in cmap.items() if v is None}, cut))
+        if cmap or qmap:
+            done = remap_case(data, case, cmap, qmap, turns=mapper)
+            said += done["lines"] + [k for keys in done["boards"].values() for k in keys]
+        if back:
+            for record in [r for r in aside if r.get("trim") == back and r.get("case") == case]:
+                put_back_cut(data, record)
+                aside.remove(record)
+    if aside:
+        data[ROWS_CUT] = aside
+    else:
+        data.pop(ROWS_CUT, None)
+    if json.dumps(data, sort_keys=True, ensure_ascii=False) == was:
+        return []
+    kept_in(held, entries, before or {})
+    data["updated"] = themes.now_iso()
+    write(root, data)
+    return list(dict.fromkeys(said))
+
+
+def cut_aside(data: dict, case: str, gone: set, trim: str) -> dict:
+    """What a trim cuts of a case's copy, kept to put back: the lines, the PETs that held them, and each board's
+    cards of them with the groups and the bin that held them."""
+    rec = data["cases"][case]
+    record = {"trim": str(trim), "case": case,
+              "lines": {k: v for k, v in (rec.get("lines") or {}).items() if k in gone},
+              "pets": {p["id"]: [k for k in p.get("statements") or [] if k in gone]
+                       for p in rec.get("pets") or [] if isinstance(p, dict) and set(p.get("statements") or []) & gone},
+              "boards": {}}
+    keys = {card_of(case, "es", k) for k in gone}
+    for board in boards_of(data):
+        cards = {k: c for k, c in (board.get("cards") or {}).items() if k in keys}
+        if cards:
+            record["boards"][str(board.get("id"))] = {
+                "cards": cards, "discarded": [k for k in board.get("discarded") or [] if k in keys],
+                "members": {g["id"]: [m for m in g.get("members") or [] if m in keys]
+                            for g in board.get("groups") or [] if set(g.get("members") or []) & keys}}
+    return record
+
+
+def put_back_cut(data: dict, record: dict) -> None:
+    """A trim's cut copies put back as it is undone (see `cut_aside`), into the PETs, groups and bins still
+    there, a key held again since left as it stands."""
+    rec = data["cases"].get(record.get("case"))
+    if not isinstance(rec, dict):
+        return
+    lines = rec.setdefault("lines", {})
+    for k, line in (record.get("lines") or {}).items():
+        lines.setdefault(k, line)
+    rec["lines"] = {k: lines[k] for k in sorted(lines, key=themes._order)}
+    pets = {p["id"]: p for p in rec.get("pets") or [] if isinstance(p, dict)}
+    for pid, keys in (record.get("pets") or {}).items():
+        if pid in pets:
+            pets[pid]["statements"] = list(dict.fromkeys(list(pets[pid].get("statements") or []) + keys))
+    for board in boards_of(data):
+        kept = (record.get("boards") or {}).get(str(board.get("id")))
+        if not kept:
+            continue
+        cards = board.setdefault("cards", {})
+        for k, c in kept["cards"].items():
+            cards.setdefault(k, c)
+        groups = {g["id"]: g for g in board.get("groups") or [] if isinstance(g, dict)}
+        for gid, keys in (kept.get("members") or {}).items():
+            if gid in groups:
+                groups[gid]["members"] = list(dict.fromkeys(list(groups[gid].get("members") or []) + keys))
+        board["discarded"] = list(dict.fromkeys(list(board.get("discarded") or []) + kept.get("discarded", [])))
+    rec["hash"] = snap_hash(rec)
+
+
+def merged_into(old: list[str], new: list[str], lines: dict, i: int) -> int | None:
+    """The statement a removed one was merged into by a write, `lines` each old statement's new place (see
+    `themes.passage_lines`): a new statement that another old one became, reworded, holding MERGED or more of the
+    removed one's words, the most first. None when no statement holds them, a statement removed outright."""
+    import difflib
+    said = themes.words(old[i]).lower() if i < len(old) else ""
+    if not said:
+        return None
+    became = {j: k for k, j in lines.items() if j is not None}
+    best = None
+    for j, text in enumerate(new):
+        if j not in became:
+            continue
+        now = themes.words(text).lower()
+        if themes.words(old[became[j]]).lower() == now:
+            continue
+        found = difflib.SequenceMatcher(None, said, now, autojunk=False).get_matching_blocks()
+        share = sum(b.size for b in found) / len(said)
+        if share >= MERGED and (best is None or share > best[0]):
+            best = (share, j)
+    return best[1] if best else None
+
+
+def passage_map(sheet: str, row: int, old: list[str], new: list[str], lines: dict) -> tuple[dict, set]:
+    """A passage's statements' keys as a write leaves them (see `passage_followed`): each statement that moves to
+    its new key, a removed one to None, or to the statement it was merged into (see `merged_into`), those merged
+    named apart."""
+    cmap, merged = {}, set()
+    for i in range(len(old)):
+        key, j = themes.card_key(sheet, row, i), lines.get(i)
+        if j is None:
+            into = merged_into(old, new, lines, i)
+            cmap[key] = None if into is None else themes.card_key(sheet, row, into)
+            if into is not None:
+                merged.add(key)
+        elif j != i:
+            cmap[key] = themes.card_key(sheet, row, j)
+    return cmap, merged
+
+
+def passage_followed(root: Path, workbook: Path, sheet: str, row: int, old: list[str], new: list[str], lines: dict,
+                     books: list[dict] | None = None, dry: bool = False) -> dict:
+    """A write of one passage's statements carried to the copy the file in scope keeps of the participant
+    (lpetdrop, 13 November 2026, Adam by dialog: as the boards do): `old` and `new` the passage's statements
+    before and after, `lines` each old statement's new place or None (see `themes.passage_lines`). A statement
+    removed goes from the copy, its PETs and every board, an LPET's card of it with it; one merged into another
+    follows it, the merged statement then standing once wherever either stood, never twice under one LPET; and
+    every other statement of the passage that moves takes its new key, its quote with it. The copy keeps its
+    words, so a change of wording shows as ever. Written once with the board's History as it was, and with `dry`
+    not at all. Answers `removed`, `merged` and `moved`, the statements' keys, and `boards`, each board's cards
+    that changed by its id, nothing when the file has no copy of the participant or nothing moved."""
+    cmap, merged = passage_map(sheet, row, old, new, lines)
+    if not cmap:
+        return {}
+    data, entries = held_of(root, workbook, books)
+    if data is None or not entries:
+        return {}
+    out = {"removed": [], "merged": [], "moved": [], "boards": {}}
+    for e in entries:
+        case = e["case"]
+        statements, quotes = case_keys(data, case)
+        hit = {k: v for k, v in cmap.items() if k in statements}
+        qhit = {k: v for k, v in cmap.items() if k in quotes}
+        if not hit and not qhit:
+            continue
+        done = remap_case(data, case, hit, qhit, merged=merged & set(hit))
+        for k, v in hit.items():
+            (out["merged"] if k in merged else out["removed"] if v is None else out["moved"]).append(k)
+        for bid, keys in done["boards"].items():
+            out["boards"].setdefault(bid, []).extend(keys)
+    if not (out["removed"] or out["merged"] or out["moved"] or out["boards"]):
+        return {}
+    if not dry:
+        when = themes.now_iso()
+        for board in boards_of(data):
+            if str(board.get("id")) in out["boards"]:
+                board["updated"] = when
+        data["updated"] = when
+        write(root, data)
+    return out
+
+
+def truth_words(truth: dict) -> dict[str, list[str]]:
+    """The workbook's statements' keys by their words, `truth` as `workbook_lines` reads it."""
+    out: dict[str, list[str]] = {}
+    for k, v in truth.items():
+        out.setdefault(themes.words(v.get("text")), []).append(k)
+    return out
+
+
+def nearest(key: str, found: list[str]) -> str:
+    """Of keys on a statement's sheet, the nearest to `key`: its own row first and the nearest line, then the
+    nearest row."""
+    sheet, row, line = themes.split_card_key(key)
+    same = [x for x in found if themes.split_card_key(x)[1] == row]
+    if same:
+        return min(same, key=lambda x: (abs(themes.split_card_key(x)[2] - (line or 0)), x))
+    return min(found, key=lambda x: (abs(themes.split_card_key(x)[1] - (row or 0)), themes._order(x)))
+
+
+def lpets_of(data: dict, board: dict | None, case: str, key: str) -> list[dict]:
+    """The top groups of `board`, LPETs or GETs, that hold a statement of `case` by its key, its own card or the
+    PET's card that holds it, each by id and title."""
+    if board is None:
+        return []
+    rec = (data.get("cases") or {}).get(case) or {}
+    groups = [g for g in board.get("groups") or [] if isinstance(g, dict)]
+    by_id = {g["id"]: g for g in groups}
+    parents = themes.parents_of(groups)
+    pets = {p["id"] for p in rec.get("pets") or [] if isinstance(p, dict) and key in pet_lines(rec, p["id"])}
+
+    def holds(m: str) -> bool:
+        # the statement's own card, or a card of a PET holding it, a second card of one (`/2`) among them
+        s = split_key(m)
+        return s["case"] == case and ((s["kind"] == "es" and s["ident"] == key) or (s["kind"] == "group" and s["ident"] in pets))
+
+    out = []
+    for g in groups:
+        if g["id"] in parents:
+            continue
+        seen, todo, hit = set(), [g["id"]], False
+        while todo and not hit:
+            at = todo.pop()
+            if at in seen or at not in by_id:
+                continue
+            seen.add(at)
+            for m in by_id[at].get("members") or []:
+                if holds(m):
+                    hit = True
+                    break
+                todo.append(m)
+        if hit:
+            out.append({"id": g["id"], "title": g.get("label") or ""})
+    return out
+
+
+def copies_rekeyed(root: Path, workbook: Path, truth: dict, books: list[dict] | None = None, at: str | None = None,
+                   sheet: str | None = None, from_row: int | None = None, shift: int | None = None, dry: bool = False,
+                   changed: dict | None = None, history: str = "") -> dict:
+    """The copy the file in scope keeps of a participant re-pointed at its statements where a row op left its keys
+    behind (lpetkeys, 13 November 2026): the project's GETs, inside `lgets` its LGETs, or inside `lpets` the
+    participant's LPETs, each of their timepoints in it from `books`, or the one `at` names, `T1`. `truth` is the
+    workbook's statements by key (see `workbook_lines`).
+
+    By the statement's own words, the default: each line of the copy whose key the workbook no longer holds takes
+    the key where its words now stand on its sheet, not held by another line of the copy, its own row first, then
+    the nearest row. A line whose words stand nowhere cannot be matched and is listed, for `copies_pruned`. A key
+    the workbook still holds is never moved this way, so a statement reworded keeps its place.
+
+    By an offset, with `from_row` and `shift`, where the words cannot tell (a refresh that took the workbook's words
+    at keys already one row off): every key of the timepoint `at` on `sheet`, or its one sheet, from row
+    `from_row` down moves by `shift` rows, its words or not, refused whole when one would land on a key of the
+    copy that stays.
+
+    Every place the file names a moved key follows (see `remap_case`), the revisions too. Each board whose cards
+    move keeps itself first in its History under `history` and with `changed`, an agent's mark, is marked changed.
+    Written once, and with `dry` not at all. Answers `moves`, each statement moved, its timepoint, `from`, `to`,
+    whether the workbook's words there are the copy's, `matched`, and the LPETs that hold it on the board the
+    table reads, and `unmatched`, each line it cannot place, with its LPETs, never the words."""
+    data, entries = held_of(root, workbook, books)
+    if data is None or not entries:
+        return {}
+    if at is not None:
+        entries = [e for e in entries if e["case"] == at]
+        if not entries:
+            return {}
+    held = data["cases"]
+    words_at = {k: themes.words(v.get("text")) for k, v in truth.items()}
+    where = truth_words(truth)
+    board, _ = source_board(data)
+    moves, unmatched, maps = [], [], {}
+    for e in entries:
+        case = e["case"]
+        lines = held[case].get("lines") if isinstance(held[case].get("lines"), dict) else {}
+        statements, quotes = case_keys(data, case)
+        cmap: dict[str, str] = {}
+        turns, merged = None, set()
+        if from_row is not None:
+            sheets = sorted({themes.split_card_key(k)[0] for k in statements | quotes})
+            on = sheet if sheet is not None else (sheets[0] if len(sheets) == 1 else None)
+            if on is None:
+                raise WorkbookError(i18n.t("server.copies_rekey_which_sheet", case=case, sheets=", ".join(sheets)))
+            for k in statements | quotes:
+                s, r, n = themes.split_card_key(k)
+                if s == on and r is not None and n is not None and r >= from_row:
+                    cmap[k] = themes.card_key(s, r + shift, n)
+            stays = (statements | quotes) - set(cmap)
+            clash = sorted({v for v in cmap.values() if v in stays}, key=themes._order)
+            if clash:
+                raise WorkbookError(i18n.t("server.copies_rekey_clash", case=case, keys=", ".join(clash)))
+
+            def turns(t, on=on):
+                s, _, r = str(t).rpartition(":")
+                return themes.row_key(s, int(r) + shift) if s == on and r.isdigit() and int(r) >= from_row else t
+        else:
+            claimed = {k for k in lines if k in truth}
+            for k in sorted((k for k in lines if k not in truth), key=themes._order):
+                said = themes.words((lines[k] or {}).get("text"))
+                s = themes.split_card_key(k)[0]
+                found = [x for x in where.get(said, []) if themes.split_card_key(x)[0] == s and x not in claimed] if said else []
+                # a line of the copy at that key already reads the same, as a refresh leaves a statement removed
+                # before it in its passage: the two are one statement, and this one joins it
+                same = [x for x in where.get(said, []) if themes.split_card_key(x)[0] == s and x in lines
+                        and themes.words((lines[x] or {}).get("text")) == said] if said and not found else []
+                if not found and not same:
+                    unmatched.append({"timepoint": case, "key": k, "lpets": lpets_of(data, board, case, k)})
+                    continue
+                to = nearest(k, found or same)
+                cmap[k] = to
+                claimed.add(to)
+                if not found:
+                    merged.add(k)
+        cmap = {k: v for k, v in cmap.items() if v != k}
+        if not cmap:
+            continue
+        # a statement's own quote is its row's at its place, so a pick or a ticked quote goes where it goes
+        qmap = {k: v for k, v in cmap.items() if k in quotes}
+        maps[case] = (cmap, qmap, turns, merged)
+        for k in sorted(cmap, key=themes._order):
+            if k not in statements:
+                continue
+            line = lines.get(k)
+            moves.append({"timepoint": case, "from": k, "to": cmap[k], "joins": k in merged,
+                          "matched": line is not None and words_at.get(cmap[k]) == themes.words(line.get("text")),
+                          "lpets": lpets_of(data, board, case, k)})
+    out = {"moves": moves, "unmatched": unmatched, "boards": []}
+    if not maps:
+        return out if unmatched else {}
+    when = themes.now_iso()
+    touched: dict[str, list[str]] = {}
+    for case, (cmap, qmap, turns, merged) in maps.items():
+        before = {str(b.get("id")): json.loads(json.dumps(themes.board_state(b))) for b in boards_of(data)}
+        done = remap_case(data, case, cmap, qmap, turns=turns, merged=merged)
+        for bid, keys in done["boards"].items():
+            touched.setdefault(bid, []).extend(keys)
+            if not dry and bid in before:
+                b = next(x for x in boards_of(data) if str(x.get("id")) == bid)
+                if not any(r.get("name") == history and r.get("at") == when for r in b.get("history") or []):
+                    themes.add_revision(b, name=history, at=when, state=before[bid])
+    out["boards"] = [{"board": bid, "name": next(str(b.get("name") or FIRST_NAME) for b in boards_of(data)
+                                                 if str(b.get("id")) == bid), "cards": keys}
+                     for bid, keys in touched.items()]
+    if dry:
+        return out
+    for board in boards_of(data):
+        if str(board.get("id")) in touched:
+            board["updated"] = when
+            if changed:
+                board["changed"] = dict(changed, at=when)
+                board["changed"]["hash"] = themes.state_hash(themes.made_state(normal(board, data)))
+    data["updated"] = when
+    write(root, data)
+    return out
+
+
+def evidence(data: dict, board: dict | None, cases: list[str]) -> dict[tuple[str, str], int]:
+    """How many statements each top group of `board`, an LPET or a GET, holds of each case in `cases`, its own
+    statement cards and its PETs' statements, by (group id, case), a statement the copy no longer holds left out."""
+    if board is None:
+        return {}
+    out = {}
+    held = data.get("cases") or {}
+    for g in table(data, board, cases):
+        for row in g["rows"]:
+            lines = (held.get(row["case"]) or {}).get("lines") or {}
+            n = sum(1 for it in row["items"] if it["kind"] == "es" and it["line"] in lines)
+            n += sum(len([k for k in it.get("lines") or [] if k in lines]) for it in row["items"]
+                     if it["kind"] in ("pet", "sub") and not it["gone"])
+            out[(g["id"], row["case"])] = n
+    return out
+
+
+def copies_pruned(root: Path, workbook: Path, truth: dict, books: list[dict] | None = None, dry: bool = False,
+                  changed: dict | None = None, history: str = "") -> dict:
+    """The copies the file in scope keeps of a participant's statements that are no longer in their workbook
+    taken off (lpetkeys, 13 November 2026): the project's GETs, inside `lgets` its LGETs, or inside `lpets` the
+    participant's LPETs, each of their timepoints from `books`. `truth` is the workbook's statements by key (see
+    `workbook_lines`). A line of the copy whose key the workbook does not hold and whose words stand nowhere on its
+    sheet goes, from the copy, its PETs and every board, with its picks and a ticked quote on it; one whose words
+    stand at another key is left and listed under `elsewhere`, for `copies_rekeyed` first. Each board whose cards
+    go keeps itself first in its History under `history`, and with `changed` is marked changed. Written once, and
+    with `dry` not at all.
+
+    Answers `pruned`, each statement taken off, its timepoint, key and the LPETs that held it on the board the
+    table reads, `elsewhere`, those left, `boards`, each board's cards taken off, and `emptied`, each LPET (or GET)
+    of that board left with no statement at a timepoint that had one, by id, title and timepoint, so a statement
+    can be put in its place before the write. Never a statement's words."""
+    data, entries = held_of(root, workbook, books)
+    if data is None or not entries:
+        return {}
+    held = data["cases"]
+    where = truth_words(truth)
+    board, _ = source_board(data)
+    pruned, elsewhere, maps = [], [], {}
+    for e in entries:
+        case = e["case"]
+        lines = held[case].get("lines") if isinstance(held[case].get("lines"), dict) else {}
+        statements, quotes = case_keys(data, case, history=False)
+        gone = set()
+        for k in sorted((k for k in statements if k not in truth), key=themes._order):
+            said = themes.words((lines.get(k) or {}).get("text"))
+            s = themes.split_card_key(k)[0]
+            if said and any(themes.split_card_key(x)[0] == s for x in where.get(said, [])):
+                elsewhere.append({"timepoint": case, "key": k, "lpets": lpets_of(data, board, case, k)})
+                continue
+            gone.add(k)
+            pruned.append({"timepoint": case, "key": k, "lpets": lpets_of(data, board, case, k)})
+        if gone:
+            maps[case] = ({k: None for k in gone}, {q: None for q in quotes if q in gone})
+    out = {"pruned": pruned, "elsewhere": elsewhere, "boards": [], "emptied": []}
+    if not maps:
+        return out if elsewhere else {}
+    cases = [e["case"] for e in entries]
+    was = evidence(data, board, cases)
+    when = themes.now_iso()
+    touched: dict[str, list[str]] = {}
+    for case, (cmap, qmap) in maps.items():
+        before = {str(b.get("id")): json.loads(json.dumps(themes.board_state(b))) for b in boards_of(data)}
+        done = remap_case(data, case, cmap, qmap, history=False)
+        for bid, keys in done["boards"].items():
+            touched.setdefault(bid, []).extend(keys)
+            if not dry:
+                b = next(x for x in boards_of(data) if str(x.get("id")) == bid)
+                if not any(r.get("name") == history and r.get("at") == when for r in b.get("history") or []):
+                    themes.add_revision(b, name=history, at=when, state=before[bid])
+    now = evidence(data, board, cases)
+    titles = {g["id"]: g.get("label") or "" for g in (board or {}).get("groups") or [] if isinstance(g, dict)}
+    out["emptied"] = [{"board": str(board.get("id")), "board_name": str(board.get("name") or FIRST_NAME),
+                       "lpet": gid, "title": titles.get(gid, ""), "timepoint": case}
+                      for (gid, case), n in was.items() if n and not now.get((gid, case))]
+    out["boards"] = [{"board": bid, "name": next(str(b.get("name") or FIRST_NAME) for b in boards_of(data)
+                                                 if str(b.get("id")) == bid), "cards": keys}
+                     for bid, keys in touched.items()]
+    if dry:
+        return out
+    for b in boards_of(data):
+        if str(b.get("id")) in touched:
+            b["updated"] = when
+            if changed:
+                b["changed"] = dict(changed, at=when)
+                b["changed"]["hash"] = themes.state_hash(themes.made_state(normal(b, data)))
+    data["updated"] = when
+    write(root, data)
+    return out
+
+
 def lines_followed(case: str, cards: dict, old_lines: dict, fresh_lines: dict) -> dict[str, str]:
     """Where each statement card of a case goes when its changes are taken, by its words, as a PETs
     board's cards follow theirs (see `themes.follow`): a card whose line still holds the words it came

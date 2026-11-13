@@ -131,6 +131,7 @@ SAID = {
     "HEADING_CASE_OR_ALL": lambda **v: i18n.t("cli.said.heading_case_or_all", v),
     "HEADING_NEITHER": lambda **v: i18n.t("cli.said.heading_neither", v),
     "NO_HEADING_REQUEST": lambda **v: i18n.t("cli.said.no_heading_request", v),
+    "NO_CLEAR_REQUEST": lambda **v: i18n.t("cli.said.no_clear_request", v),
     "REPLACE_CASE_OR_ALL": lambda **v: i18n.t("cli.said.replace_case_or_all", v),
     "REPLACE_FIND_OR_PAIRS": lambda **v: i18n.t("cli.said.replace_find_or_pairs", v),
     "NO_REPLACE_REQUEST": lambda **v: i18n.t("cli.said.no_replace_request", v),
@@ -6211,14 +6212,17 @@ def turn_write(p: Project, args) -> tuple:
         except (WorkbookError, OSError):
             boards, failed = [], []
         copies = routes.follow_statements(book, reworded, {}, dry=True, quotes=requoted) if follows else {}
+        # a statement removed or merged, or one moved, on every copy of it, the LPETs' among them (lpetdrop)
+        followed = (routes.passage_follow(book, args.sheet, first, turn["statements"], after_s, moves_lines, dry=True)
+                    if moves_lines and any(j != i for i, j in moves_lines.items()) else {})
         effects = effects_of(boards)
         text = i18n.t("cli.turn_write.dry_run_nothing_was_written_it", said=said, where=where)
         lines = ([text] + span_lines(spans, args.sheet, True) + added_lines(added, turn["notes"], True)
                  + card_lines(boards, True)
                  + effect_lines(kept_lone, written_lone, effects["picks"], True, gone) + history_line(boards, True) + failed
-                 + copy_lines(copies, history, True))
+                 + copy_lines(copies, history, True) + followed_copy_lines(followed, True))
         return {"dry_run": True, "case": b["case"], "before": before, "after": {**before, **changing}, "said": text,
-                "copies": copies, "spans": spans, **effects}, lines
+                "copies": copies, "copies_followed": followed, "spans": spans, **effects}, lines
     wb_mod.guard_lock(book)
     # the root's lock first, as the app takes it, since the GETs' copies are written with the workbook
     with locks.root(p.root), wb_mod.case_held(book):
@@ -6256,6 +6260,10 @@ def turn_write(p: Project, args) -> tuple:
         # every board moves with the passage's lines, the removed statements' cards taken off, and a
         # statement reworded takes its new words on every card that held the old
         boards, failed = carry(now, themes.read_cards(book), False, mark(args, at)) if now is not None else ([], [])
+        # every copy of the participant, the LPETs' among them, drops a removed statement and follows a merged
+        # or moved one, in the same write (lpetdrop, 13 November 2026)
+        followed = (routes.passage_follow(book, args.sheet, first, turn["statements"], after_s, moves_lines)
+                    if moves_lines and any(j != i for i, j in moves_lines.items()) else {})
         # and the GETs' copies of the participant, a board with a card of it marked changed in a conversation
         copies = routes.follow_statements(book, reworded, copies_were, changed=mark(args, at),
                                           history=history, quotes=requoted) if follows else {}
@@ -6270,9 +6278,30 @@ def turn_write(p: Project, args) -> tuple:
     if boards:
         lines += history_line(boards, False)
         lines.append(i18n.t("cli.turn_write.each_is_marked_as_changed_in"))
-    lines += failed + copy_lines(copies, history, False)
+    lines += failed + copy_lines(copies, history, False) + followed_copy_lines(followed, False)
     return {"case": b["case"], "sheet": args.sheet, "row": first, "written": changing, "backup": backup.name,
-            "boards_reworded": carried, "copies": copies, "spans": spans, "said": text, **effects}, lines
+            "boards_reworded": carried, "copies": copies, "copies_followed": followed, "spans": spans, "said": text,
+            **effects}, lines
+
+
+def followed_copy_lines(followed: dict, dry: bool) -> list[str]:
+    """What a write's removed, merged and moved statements do to the copies of the participant (see
+    `routes.passage_follow`), a line for each file of copies, keys alone, and the line of a file that could not be
+    read."""
+    out = []
+    for kind in routes.COPY_NAMES:
+        done = followed.get(kind)
+        if not done:
+            continue
+        said = lambda field: dict(n=len(done[field]), keys=", ".join(done[field]))
+        parts = ([i18n.t("cli.copies_followed.removed", **said("removed"))] if done.get("removed") else []) \
+            + ([i18n.t("cli.copies_followed.merged", **said("merged"))] if done.get("merged") else []) \
+            + ([i18n.t("cli.copies_followed.moved", **said("moved"))] if done.get("moved") else [])
+        if parts:
+            name = routes.COPY_NAMES[kind]
+            out.append(i18n.t("cli.copies_followed.dry", name=name, parts=listed(parts)) if dry
+                       else i18n.t("cli.copies_followed.wrote", name=name, parts=listed(parts)))
+    return out + list(followed.get("failed") or [])
 
 
 def bold_lines(cells: list[dict], dry: bool, who: str | None = None) -> list[str]:
@@ -6430,6 +6459,129 @@ def refresh_lines(people: list[dict], dry: bool) -> list[str]:
     return out
 
 
+# ------------------------------------------------------- copies re-pointed and left-overs taken off (lpetkeys)
+# (13 November 2026, Adam by dialog, from the Ayahuasca IPA project: a split left a participant's LPETs one row off,
+# and removed statements' copies stayed on the LPETs.) `copies rekey` re-points a copy's keys at their statements,
+# by their words or by an offset, and `copies prune` takes off the copies whose statement is gone. Rekey first, so
+# a copy one row off is never taken for a left-over.
+
+def copies_people(p: Project, args, run) -> tuple[list[dict], list[dict]]:
+    """Each participant `--case` names, or every one, through `run(book, changed, history)` under the project's lock
+    and the participant's, or with no lock on a dry run: the participants with a file that answered, and every
+    file's answer with its participant, kind and name."""
+    request = themes_ai.one_line(args.note)
+    if not request and not args.dry_run:
+        raise cli.Refused(_w("NO_REQUEST"))
+    named = getattr(args, "case", None)
+    books = [p.case(named)] if named else list(p.books)
+    history = themes_ai.revision_name(request) if request else ""
+    changed = None if args.dry_run else mark(args, now_iso())
+    people, files = [], []
+    for b in books:
+        book = Path(b["workbook"])
+        try:
+            if args.dry_run:
+                done = run(book, None, "")
+            else:
+                with locks.root(p.root), wb_mod.case_held(book):
+                    done = run(book, changed, history)
+        except WorkbookError as exc:
+            if named:
+                raise cli.Refused(str(exc), i18n.t("cli.said.nothing_was_written")) from None
+            done = {"copies": {}, "failed": [str(exc)]}
+        mine = [dict(x, case=b["case"], file=kind, name=routes.COPY_NAMES[kind]) for kind, x in done["copies"].items()]
+        files += mine
+        if mine or done["failed"]:
+            people.append({"case": b["case"], "files": mine, "failed": done["failed"]})
+    return people, files
+
+
+def lpets_said(found: list[dict]) -> str:
+    """The LPETs (or GETs) holding a statement, by title, or "" for none."""
+    return ", ".join(f"'{x['title']}'" for x in found)
+
+
+def cmd_copies_rekey(p: Project, args) -> tuple:
+    """Every copy of a participant's statements re-pointed at its statement where a row op left its keys behind
+    (see `routes.rekey_copies`): by the statement's own words, each copy whose key the workbook no longer holds
+    taking the key its words now stand at, or with `--from-row` and `--shift`, for one participant and one
+    timepoint, every key from that row down shifted by that many rows. One History step on each board it changes,
+    under his request. The dry run lists each statement it would move, its timepoint, from and to keys and the LPETs
+    holding it, and each it cannot match, never the words."""
+    offset = args.from_row is not None or args.shift is not None
+    if offset and (args.from_row is None or args.shift is None):
+        raise cli.Refused(i18n.t("cli.copies_rekey.offset_both"))
+    if offset and not getattr(args, "case", None):
+        raise cli.Refused(i18n.t("cli.copies_rekey.offset_case"))
+    if offset and args.shift == 0:
+        raise cli.Refused(i18n.t("cli.copies_rekey.offset_zero"))
+    people, files = copies_people(p, args, lambda book, changed, history: routes.rekey_copies(
+        book, args.timepoint, args.sheet, args.from_row, args.shift, dry=args.dry_run, changed=changed,
+        history=history))
+    moves = sum(len(f.get("moves") or []) for f in files)
+    unmatched = sum(len(f.get("unmatched") or []) for f in files)
+    said = dict(moves=i18n.t("cli.n.statement", n=moves), unmatched=unmatched)
+    if not moves:
+        head = i18n.t("cli.copies_rekey.nothing", **said)
+    elif args.dry_run:
+        head = i18n.t("cli.copies_rekey.dry_run", **said)
+    else:
+        head = i18n.t("cli.copies_rekey.wrote", **said)
+    lines = [head]
+    for x in people:
+        for f in x["files"]:
+            for m in f.get("moves") or []:
+                lines.append(i18n.t("cli.copies_rekey.move", case=x["case"], name=f["name"], timepoint=m["timepoint"],
+                                    which=m["from"], to=m["to"], lpets=lpets_said(m["lpets"]) or "-",
+                                    matched=i18n.t("cli.copies_rekey.matched") if m["matched"]
+                                    else i18n.t("cli.copies_rekey.unread")))
+            for m in f.get("unmatched") or []:
+                lines.append(i18n.t("cli.copies_rekey.cannot", case=x["case"], name=f["name"], timepoint=m["timepoint"],
+                                    which=m["key"], lpets=lpets_said(m["lpets"]) or "-"))
+        lines += [f"{x['case']}: {line}" for line in x["failed"]]
+    if moves and not args.dry_run:
+        lines.append(i18n.t("cli.copies_rekey.history", history=themes_ai.revision_name(themes_ai.one_line(args.note))))
+    return {"dry_run": bool(args.dry_run), "participants": people, "moves": moves, "unmatched": unmatched,
+            "said": head}, lines
+
+
+def cmd_copies_prune(p: Project, args) -> tuple:
+    """Every copy of a participant's statements whose statement is no longer in their workbook taken off (see
+    `routes.prune_copies`), from the copy, its PETs and every board, a copy whose words stand at another key left
+    for `copies rekey`. One History step on each board it changes, under his request. The dry run lists each copy it
+    would take off with the LPETs holding it, each it leaves, and every LPET it would leave with no statement at a
+    timepoint, by participant, title and timepoint, never a statement's words."""
+    people, files = copies_people(p, args, lambda book, changed, history: routes.prune_copies(
+        book, dry=args.dry_run, changed=changed, history=history))
+    pruned = sum(len(f.get("pruned") or []) for f in files)
+    elsewhere = sum(len(f.get("elsewhere") or []) for f in files)
+    emptied = [dict(e, case=x["case"], name=f["name"]) for x in people for f in x["files"] for e in f.get("emptied") or []]
+    said = dict(copies=i18n.t("cli.n.statement", n=pruned), emptied=len(emptied), elsewhere=elsewhere)
+    if not pruned:
+        head = i18n.t("cli.copies_prune.nothing", **said)
+    elif args.dry_run:
+        head = i18n.t("cli.copies_prune.dry_run", **said)
+    else:
+        head = i18n.t("cli.copies_prune.wrote", **said)
+    lines = [head]
+    for x in people:
+        for f in x["files"]:
+            for m in f.get("pruned") or []:
+                lines.append(i18n.t("cli.copies_prune.copy", case=x["case"], name=f["name"], timepoint=m["timepoint"],
+                                    which=m["key"], lpets=lpets_said(m["lpets"]) or "-"))
+            for m in f.get("elsewhere") or []:
+                lines.append(i18n.t("cli.copies_prune.elsewhere", case=x["case"], name=f["name"],
+                                    timepoint=m["timepoint"], which=m["key"]))
+        lines += [f"{x['case']}: {line}" for line in x["failed"]]
+    for e in emptied:
+        lines.append(i18n.t("cli.copies_prune.emptied", case=e["case"], name=e["name"], board=e["board_name"],
+                            title=e["title"], timepoint=e["timepoint"]))
+    if pruned and not args.dry_run:
+        lines.append(i18n.t("cli.copies_rekey.history", history=themes_ai.revision_name(themes_ai.one_line(args.note))))
+    return {"dry_run": bool(args.dry_run), "participants": people, "pruned": pruned, "elsewhere": elsewhere,
+            "emptied": emptied, "said": head}, lines
+
+
 # ------------------------------------------------------- the statements screen's own writes
 # (26 October 2026, parity with the page, group 1: a route the statements screen calls had no op for an
 # agent.) A passage's words corrected (`/api/edit-turn`), the interviewer's note on his own passage
@@ -6581,6 +6733,7 @@ def cmd_turn_assign(p: Project, args) -> tuple:
              i18n.t("cli.turn_assign.a_copy_of_the_workbook_as", case=b['case'], id=done['id'])]
     if done.get("themes"):
         lines.append(done["themes"])
+    lines += done.get("copies_failed") or []
     return answer, lines
 
 
@@ -6598,6 +6751,7 @@ def cmd_turn_assign_undo(p: Project, args) -> tuple:
              + (i18n.t("cli.turn_assign_undo.written_since_went_onto_the_passage", lines=i18n.t("cli.n.line", n=done['appended'])) if done.get("appended") else "")]
     if done.get("themes"):
         lines.append(done["themes"])
+    lines += done.get("copies_failed") or []
     return answer, lines
 
 
@@ -6622,6 +6776,7 @@ def cmd_turn_trim(p: Project, args) -> tuple:
     lines = [i18n.t("cli.turn_trim.cut_after_a_copy_of_the", case=b['case'], sheet=args.sheet, span=span, times=times, rows=i18n.t("cli.n.row", n=done['removed']), id=done['id'])]
     if done.get("themes"):
         lines.append(done["themes"])
+    lines += done.get("copies_failed") or []
     return answer, lines
 
 
@@ -6638,6 +6793,7 @@ def cmd_turn_trim_undo(p: Project, args) -> tuple:
     lines = [i18n.t("cli.turn_trim_undo.back_where_they_were_cut_from", case=b['case'], sheet=done['sheet'], rows=i18n.t("cli.n.row", n=done['restored']))]
     if done.get("themes"):
         lines.append(done["themes"])
+    lines += done.get("copies_failed") or []
     return answer, lines
 
 
@@ -7192,6 +7348,59 @@ def cmd_quote_heading(p: Project, args) -> tuple:
     return answer, [head] + lines
 
 
+# ------------------------------------------------------ clear formatting
+# (clearformat, 13 November 2026, Adam's ruling: all bold and font colours out of a project, the words unchanged.)
+# The route's own code (`routes.clear_formatting`, `clear_format`), every participant or one.
+
+# each part's count in words, by `clear_format.PARTS`
+CLEAR_PARTS = {
+    "transcript": lambda n: i18n.t("cli.clear_formatting.part.transcript", n=n),
+    "quotes": lambda n: i18n.t("cli.clear_formatting.part.quotes", n=n),
+    "statements": lambda n: i18n.t("cli.clear_formatting.part.statements", n=n),
+    "notes": lambda n: i18n.t("cli.clear_formatting.part.notes", n=n),
+    "interviewer_notes": lambda n: i18n.t("cli.clear_formatting.part.interviewer_notes", n=n),
+    "lpet_table": lambda n: i18n.t("cli.clear_formatting.part.lpet_table", n=n),
+    "copies": lambda n: i18n.t("cli.clear_formatting.part.copies", n=n),
+}
+
+
+def clear_lines(answer: dict, dry: bool) -> list[str]:
+    """Each participant's counts in a line, by part, never a word."""
+    import clear_format
+    out = []
+    for person in answer["by_participant"]:
+        what = formats.list_words([CLEAR_PARTS[part](person[part]) for part in clear_format.PARTS if person[part]])
+        out.append(i18n.t("cli.clear_formatting.line_dry", case=person["case"], what=what) if dry
+                   else i18n.t("cli.clear_formatting.line", case=person["case"], what=what))
+    return out
+
+
+def cmd_clear_formatting(p: Project, args) -> tuple:
+    """All bold and font colours out of the project, or one participant's, the words unchanged (see
+    `routes.clear_formatting`). A dry run counts by participant and by part and writes nothing."""
+    request = themes_ai.one_line(args.note)
+    if not args.dry_run and not request:
+        raise cli.Refused(_w("NO_CLEAR_REQUEST"))
+    one = getattr(args, "case", None)
+    books = [p.case(one)] if one else list(p.books)
+    only = {str(b["case"]) for b in books} if one else None
+    try:
+        done = routes.clear_formatting(p.root, books, dry_run=args.dry_run, only=only)
+    except WorkbookError as exc:
+        raise cli.Refused(str(exc), i18n.t("cli.said.nothing_was_written")) from None
+    counts = dict(cells=i18n.t("cli.n.cell", n=done["cells"]), rows=i18n.t("cli.n.board_row", n=done["rows"]))
+    if not (done["cells"] or done["rows"]):
+        head = i18n.t("cli.clear_formatting.nothing")
+    elif args.dry_run:
+        head = i18n.t("cli.clear_formatting.dry", **counts)
+    else:
+        head = i18n.t("cli.clear_formatting.done", **counts, files=i18n.t("cli.n.file", n=len(done["archived"])))
+    done["said"] = head
+    if not args.dry_run:
+        done.pop("dry_run", None)
+    return done, [head] + clear_lines(done, args.dry_run)
+
+
 # ------------------------------------------------------ transcript replace
 # (24 October 2026, the PhD session's gap: no op changed a passage's words.) The app's Find and replace on
 # the command line, by the route's own code (`routes.replace_in_case`, `routes.undo_in_case`): the words
@@ -7723,13 +7932,15 @@ COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             ("turn", "assign"): cmd_turn_assign, ("turn", "assign-undo"): cmd_turn_assign_undo,
             ("turn", "trim"): cmd_turn_trim, ("turn", "trim-undo"): cmd_turn_trim_undo,
             # every copy of the statements brought in line with the workbook (cardsync, 13 November 2026)
-            ("copies", "refresh"): cmd_copies_refresh,
+            ("copies", "refresh"): cmd_copies_refresh, ("copies", "rekey"): cmd_copies_rekey,
+            ("copies", "prune"): cmd_copies_prune,
             ("project", "add-transcripts"): cmd_project_add_transcripts,
             ("names", "list"): cmd_names_list, ("names", "check"): cmd_names_check, ("names", "remove"): cmd_names_remove,
             ("names", "replace"): cmd_names_replace,
             ("import", None): cmd_import, ("qdpx", None): cmd_qdpx, ("offset", None): cmd_offset, ("audio", "attach"): cmd_audio_attach,
             ("timepoints", None): cmd_timepoints,
             ("length", None): cmd_length, ("settings", None): cmd_settings, ("quote-heading", None): cmd_quote_heading,
+            ("clear-formatting", None): cmd_clear_formatting,
             ("transcript", "replace"): cmd_transcript_replace, ("transcript", "replace-undo"): cmd_transcript_replace_undo,
             ("trajectories", "show"): cmd_trajectories_show, ("trajectories", "apply"): cmd_trajectories_apply,
             ("codes", "list"): cmd_codes_list, ("codes", "show"): cmd_codes_show, ("codes", "new"): cmd_codes_new,
@@ -8077,6 +8288,20 @@ def arguments(sub, common, writes) -> None:
                       help="every card, pick and copy of a statement whose words or quote differ from the workbook "
                            "brought in line with it, the dry run naming the keys")
     x.add_argument("--case", default=None, help="one participant alone, by pseudonym, every one when left out")
+    x = cp.add_parser("rekey", parents=[common, writes],
+                      help="each copy of a statement whose key a row op left behind re-pointed at its statement, by "
+                           "its words, or by --from-row and --shift, the dry run naming each move by its keys")
+    x.add_argument("--case", default=None, help="one participant alone, by pseudonym, every one when left out")
+    x.add_argument("--timepoint", default=None, help="in a project of two or more timepoints, the participant's LPETs "
+                                                     "at this timepoint alone, by its number, 2, or its label, T2")
+    x.add_argument("--sheet", default=None, help="the sheet an offset moves, the timepoint's when it has one alone")
+    x.add_argument("--from-row", type=int, default=None, dest="from_row",
+                   help="with --shift and --case: every key of the copy from this row down moves, its words or not")
+    x.add_argument("--shift", type=int, default=None, help="with --from-row: how many rows the keys move, -1 up, 1 down")
+    x = cp.add_parser("prune", parents=[common, writes],
+                      help="each copy of a statement no longer in the workbook taken off, the dry run naming them and "
+                           "the LPETs left with no statement at a timepoint")
+    x.add_argument("--case", default=None, help="one participant alone, by pseudonym, every one when left out")
     x = sub.add_parser("import", parents=[common, writes],
                        help="a transcript file made into its raw source, or a raw source into the participant's workbook, "
                             "as the import and create cards make them")
@@ -8243,6 +8468,12 @@ def arguments(sub, common, writes) -> None:
                             "of a participant's workbook, or with --all of every participant's")
     x.add_argument("case", nargs="?", default=None, help="the participant, by their pseudonym")
     x.add_argument("--all", action="store_true", help="every participant of the project, each workbook its own write")
+    # bold and font colours out of a whole project (clearformat, 13 November 2026)
+    x = sub.add_parser("clear-formatting", parents=[common, writes],
+                       help="all bold and font colours taken out of the project, the words unchanged: the transcript, "
+                            "statements, quotes and notes of every workbook and his bold on the LPET tables, each file "
+                            "copied to _Archive first")
+    x.add_argument("--participant", dest="case", default=None, help="this participant alone, by their pseudonym")
     tr = sub.add_parser("transcript", parents=[common], help="the app's Find and replace, the words changing in the "
                                                              "transcript, the statements, the quotes and the notes "
                                                              "alike").add_subparsers(dest="act", required=True)
