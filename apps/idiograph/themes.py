@@ -5158,12 +5158,36 @@ def placed_order(version: dict) -> list[str]:
     return out
 
 
+OPEN_MARKS = "\"\u201c"
+CLOSE_MARKS = "\"\u201d"
+
+
 def quoted(text: str) -> str:
-    """A quote in inverted commas, once: one written by `q` carries them already."""
+    """A quote in inverted commas, once: one written by `q` carries them already. A quote that opens
+    with a mark, straight or curly, is never wrapped again, closed or not (quotemarks, 13 November 2026),
+    so writing a quote twice never doubles its mark."""
     text = str(text).strip()
-    if len(text) >= 2 and text[0] in "\"\u201c" and text[-1] in "\"\u201d":
+    if text and text[0] in OPEN_MARKS:
         return text
     return f'"{text}"'
+
+
+def quote_mark_trouble(text) -> str:
+    """What is wrong with the marks round a stored key quote: "doubled" when it opens with a mark
+    twice (a straight or a curly pair, a space between them or not), "unclosed" when it opens with a
+    mark and does not close, "unopened" for the reverse, and "" for a quote with none or with both."""
+    t = str(text or "").strip()
+    if not t:
+        return ""
+    after = t[1:].lstrip()[:1]
+    if t[0] in OPEN_MARKS and after and after in OPEN_MARKS:
+        return "doubled"
+    opens, closes = t[0] in OPEN_MARKS, len(t) > 1 and t[-1] in CLOSE_MARKS
+    if opens and not closes:
+        return "unclosed"
+    if closes and not opens:
+        return "unopened"
+    return ""
 
 
 # the marks a workbook may keep round a quote, double or single, taken off before a page's own

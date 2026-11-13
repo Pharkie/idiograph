@@ -419,6 +419,7 @@ AREAS = {
     "a375_demographics": "idiograph",
     "a376_board_hover": "idiograph",
     "a377_board_grid": "idiograph",
+    "a378_board_drag": "idiograph",
 }
 
 

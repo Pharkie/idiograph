@@ -5976,11 +5976,18 @@ def turn_write(p: Project, args) -> tuple:
     final_s = statements if statements is not None else turn["statements"]
     # a quote goes in inverted commas, once, as `q` on the turn screen writes one
     own = turn["places"][:len(turn["statements"])]
-    final_q = [themes.quoted(q) if q else "" for q in (places if places is not None else own)]
+    # and a quote the turn holds with its marks already, sent back as it stands, is left byte for byte as it is
+    held_places = [h for h in turn["places"] if h and h.strip()[:1] in themes.OPEN_MARKS]
+
+    def marked(q: str) -> str:
+        said = " ".join(q.split())
+        return next((h for h in held_places if " ".join(h.split()) == said), None) or themes.quoted(q)
+
+    final_q = [marked(q) if q else "" for q in (places if places is not None else own)]
     if gone and statements is None and places is None:
         # a removal alone leaves the statements' own quotes as they stand, one a statement
         final_q = list(own) + [""] * (len(final_s) - len(own))
-    lone = lone_after(held_lone, [themes.quoted(q) for q in given_lone], named_quotes) if pairing else held_lone
+    lone = lone_after(held_lone, [marked(q) for q in given_lone], named_quotes) if pairing else held_lone
     named_words = {themes.quote_words(q) for q in named_quotes if q}
     kept_lone = [q for q in held_lone if themes.quote_words(q) not in named_words] if pairing else held_lone
     if pairing and any(final_q) and len(final_q) != len(final_s):
@@ -7271,6 +7278,36 @@ def problems_in(path: Path, name: str, label: str) -> list[str]:
     return [f"{label}: {line}" for line in out]
 
 
+def quote_mark_warnings(p: Project) -> list[str]:
+    """One warning for each key quote whose inverted commas are doubled or do not pair, naming the
+    participant, sheet, row and statement and never the quote's words (quotemarks, 13 November 2026)."""
+    out = []
+    for b in p.books:
+        book = Path(b["workbook"])
+        try:
+            wb = openpyxl.load_workbook(book, read_only=True)
+            names = list(wb.sheetnames)
+            wb.close()
+        except Exception:
+            continue
+        for sheet in names:
+            try:
+                rows, _cols = turns_of(book, sheet)
+            except Exception:
+                continue
+            for turn in rows:
+                held = len(turn["statements"])
+                for i, q in enumerate(turn["places"]):
+                    trouble = themes.quote_mark_trouble(q)
+                    if trouble:
+                        which = i18n.t("cli.validate.statement_n", n=i + 1) if i < held else i18n.t("cli.validate.lone_quote")
+                        said = {"doubled": lambda **m: i18n.t("cli.validate.quote_marks_doubled", **m),
+                                "unclosed": lambda **m: i18n.t("cli.validate.quote_marks_unclosed", **m),
+                                "unopened": lambda **m: i18n.t("cli.validate.quote_marks_unopened", **m)}[trouble]
+                        out.append(said(case=b["case"], sheet=sheet, row=turn["row"], which=which))
+    return out
+
+
 def cmd_validate(p: Project, args) -> tuple:
     problems, files = [], []
     project = p.root / srv.PROJECT_FILE
@@ -7289,10 +7326,13 @@ def cmd_validate(p: Project, args) -> tuple:
                 files.append(f"{b['case']}'s {word}")
                 problems += problems_in(path, name, i18n.t("cli.validate.the", case=b['case'], word=word))
     if problems:
-        lines = problems
+        lines = list(problems)
     else:
         lines = [i18n.t("cli.validate.every_file_of_the_project_reads", list=', '.join(files) if files else i18n.t("cli.validate.none_yet"))]
-    return {"files": files, "problems": problems, "valid": not problems}, lines
+    # key quotes whose marks are doubled or do not pair: a warning, never a problem, and never the quote's words
+    warnings = quote_mark_warnings(p)
+    lines += warnings
+    return {"files": files, "problems": problems, "warnings": warnings, "valid": not problems}, lines
 
 
 def each_project(projects: list[Project], closed: list[str], command, args) -> tuple:

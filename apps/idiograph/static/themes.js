@@ -3598,13 +3598,26 @@ function thLinksDraw(drag) {
     Object.entries(boxes).filter(([k]) => k !== p.a && k !== p.b).map(([, b]) => b)));
   const head = (p, i) => `<g class="th-pair" data-pair="${i}" data-a="${escAttr(p.a)}" data-b="${escAttr(p.b)}"><title>${esc(thPairWords(p))}</title>`;
   const clip = `<defs><clipPath id="th-more-clip" clipPathUnits="userSpaceOnUse"><path class="th-more-holes" clip-rule="evenodd" d="${TH_MORE_ALL}"/></clipPath></defs>`;
-  svg.innerHTML = `${clip}<g clip-path="url(#th-more-clip)">${pairs.map((p, i) => `${head(p, i)}<path class="th-link" d="${drawn[i].d}"/><path class="th-link-hit" d="${drawn[i].d}"/></g>`).join('')}</g>`;
+  // Each layer is written only when what it draws has changed (boardperf, 13 November 2026). A drag places the
+  // board on every frame and draws no line, and each layer written afresh, under a clip the size of the whole
+  // board, made WebKit, the Mac window's engine, paint all of the board on screen again, so the more it showed
+  // the slower the drag: on a square board of 105 cards about 21 ms a frame at its fit and 25 at 60%, where the
+  // screen gives one every 16.7
+  thLinksPut(svg, `${clip}<g clip-path="url(#th-more-clip)">${pairs.map((p, i) => `${head(p, i)}<path class="th-link" d="${drawn[i].d}"/><path class="th-link-hit" d="${drawn[i].d}"/></g>`).join('')}</g>`);
   const ends = $('th-linkends');
   if (ends) {
-    ends.innerHTML = `<g clip-path="url(#th-more-clip)">${pairs.map((p, i) => `${head(p, i)}${drawn[i].ends.map(([x, y]) => `<circle class="th-link-end" cx="${x}" cy="${y}" r="3.5"/>`
-      + `<circle class="th-link-hit" cx="${x}" cy="${y}" r="7"/>`).join('')}</g>`).join('')}</g>`;
+    thLinksPut(ends, `<g clip-path="url(#th-more-clip)">${pairs.map((p, i) => `${head(p, i)}${drawn[i].ends.map(([x, y]) => `<circle class="th-link-end" cx="${x}" cy="${y}" r="3.5"/>`
+      + `<circle class="th-link-hit" cx="${x}" cy="${y}" r="7"/>`).join('')}</g>`).join('')}</g>`);
   }
-  thLinksLit();
+  // and while a drag lasts, when no line shows, the clip's holes and the lines' light wait for the drop
+  if (!drag) thLinksLit();
+}
+
+/* a layer of the lines given its markup, written only when it is not what the layer holds already */
+function thLinksPut(svg, markup) {
+  if (svg.thDrawn === markup) return;
+  svg.innerHTML = markup;
+  svg.thDrawn = markup;
 }
 
 /* the clip's holes, a ring round the corner of each selected card, where its "⋯" shows, cut from the whole
@@ -3614,11 +3627,13 @@ function thMoreHoles() {
   const holes = document.querySelector && document.querySelector('#th-links .th-more-holes');
   if (!holes || !TH.v || !holes.setAttribute) return;
   const r = TH_MORE_CLEAR;
-  holes.setAttribute('d', TH_MORE_ALL + [...TH.sel.cards].filter((k) => TH.v.cards[k] && TH.els.cards[k]).map((k) => {
+  const d = TH_MORE_ALL + [...TH.sel.cards].filter((k) => TH.v.cards[k] && TH.els.cards[k]).map((k) => {
     const c = TH.v.cards[k];
     const [x, y] = thMoreAt({ x: c.x, y: c.y, w: thSize(k).w, h: thSize(k).h });
     return `M${x - r} ${y}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z`;
-  }).join(''));
+  }).join('');
+  // the same holes leave the clip as it is, which WebKit would take for a new clip over the whole board
+  if (!holes.getAttribute || holes.getAttribute('d') !== d) holes.setAttribute('d', d);
 }
 
 /* each line strong while either of its cards is hovered or selected, or its pair is the one stepped to */
@@ -9860,7 +9875,9 @@ function thMergeShow(hit) {
   el.style.top = `${box.y}px`;
   el.style.minWidth = `${box.w}px`;
   el.style.minHeight = `${box.h}px`;
-  el.lastElementChild.textContent = thLabelShown(thGroup(TH.v, target).label) || TH_UNTITLED;
+  // its title written only when it is another's, since every frame of a drag over the strip shows it again
+  const title = thLabelShown(thGroup(TH.v, target).label) || TH_UNTITLED;
+  if (el.lastElementChild.textContent !== title) el.lastElementChild.textContent = title;
   el.hidden = false;
 }
 
@@ -9965,7 +9982,7 @@ function thDragStart() {
     before: lifted || thSnap(v, TH.removed), lifted: !!lifted, was: thLabelBoxes(TH.layout),
     from: thSpots(v), x0: p.x0, y0: p.y0, dx: 0, dy: 0, alt: !!p.alt, lean: 0, lastX: p.x0, still: null,
     tip: thLeavers(v, moving).size > 0, tipUnit: thTipUnit(v, moving, p.item.id), tipX: p.x0, tipY: p.y0,
-    slides: new Map(), seen: null, raf: 0, hitNow: null, next: null, step: 0, home: null, layout: null,
+    slides: new Map(), seen: null, raf: 0, hitNow: null, next: null, step: 0, placedAt: 0, home: null, layout: null,
     trail: grabbed.size < moving.size ? { x: 0, y: 0, t: 0, raf: 0 } : null };
   TH.hoverAt = null;
   thSideArm(true);
@@ -10019,11 +10036,22 @@ function thWayShow(d, now = performance.now()) {
   return busy;
 }
 
-/* one animation frame of the slides, the Merge following its frame back to its own spot */
-function thWayTick() {
+/* One animation frame of the slides, the Merge following its frame back to its own spot. A move in the
+   same frame places everything itself, the slides with it, so the board is placed once a frame, and a move
+   waiting for the frame reads where things are before anything is written in it (boardperf, 13 November
+   2026), where it read them after this placing had written them, which made WebKit lay the board out twice
+   a frame. `now` is the frame's time and `drag.placedAt` when thDragMove last placed the board. */
+function thWayTick(now) {
   const d = TH.drag;
   if (!d) return;
   d.raf = 0;
+  // the move waiting for this frame asks for the next while anything still slides
+  if (d.next) return;
+  // a move already run in this frame placed it, so the slides go on from the next
+  if (now !== undefined && d.placedAt >= now) {
+    if (d.seen) d.raf = requestAnimationFrame(thWayTick);
+    return;
+  }
   thWayShow(d);
   thPlace(d);
   thMergeShow(d.hitNow);
@@ -10053,6 +10081,7 @@ function thDragMove(e) {
   thInsertShow(d);
   thLean(e);
   thTip(e);
+  d.placedAt = performance.now();
 }
 
 /* One step of a drag a frame (18 October, the Mac window's judder). Chromium hands the page one pointer

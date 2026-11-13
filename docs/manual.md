@@ -2526,7 +2526,9 @@ dragged together come as a card each, laid out as they will land, leaning as one
 leans a step each frame with the pointer and eases only as it stands up, and the trail is worked out each
 frame too, where until 18 October each was a transition WebKit, the engine of the Mac window, began again on
 every move of every card, which held a drag there to 30 frames a second on the demo's board and 8 on a
-crowded one. On the drop it lands
+crowded one. Since 13 November a drag keeps the screen's pace in the Mac window on a large board too, where
+the whole board on screen was drawn again on every frame, so on a board of about a hundred cards laid out
+square it fell well behind and the lean moved in steps. On the drop it lands
 over 220 ms with a visible overshoot, coming down to its own size and standing up from its lean as
 it lands, so a drop has settled inside 250 ms. A card or a PET pushed clear by the margin slides to
 its new spot over 240 ms rather than jumping, and so do the cards an Auto-arrange gathers, and one

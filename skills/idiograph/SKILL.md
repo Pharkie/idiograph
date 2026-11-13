@@ -296,6 +296,11 @@ idiograph gets show
 idiograph validate
 ```
 
+`validate` also warns, apart from its problems and under `warnings` in its JSON, of a key quote whose
+quotation mark opens twice, opens and never closes, or closes and never opens. The warning names the
+participant, sheet, row and statement and never the quote's words. Correct the quote with `turn write`,
+which never adds a second mark to a quote that opens with one.
+
 `statements` gives every statement with its passage's words, its own quote and the passage's
 exploratory notes, and where each board places it. `turn show` gives each statement with its key
 quote under it, and its key, `Initial:12:0`, in brackets after it and under `key` in its JSON pairs. `board show` gives a board as a tree: each PET with its id,

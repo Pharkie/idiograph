@@ -2971,7 +2971,7 @@ within `gap // ROW_SECONDS`. The settings are `close_pairs` and `close_gap` (`th
 `CLOSE_GAPS`). `cli.close_of` gives `board show` its `close`, `--close` any whole seconds to an hour, and
 `run_stacks` takes `not_same` and `show_again`. The page draws the lines in `#th-links`, an SVG between
 the frames and the cards, and their end dots in `#th-linkends` over the cards (`thLinksDraw`, `thLinkPath`,
-from `thPlace`, none during a drag, a straight drop from foot to top where one card stands over the other and none stands between, and both layers inside the clip `#th-more-clip`, holed by `thMoreHoles` round each selected card's top right corner, `TH_MORE_CLEAR` across, so no line or dot meets its ⋯), each pair a `g.th-pair` lit by `thLinksLit` (`hot` under the
+from `thPlace`, none during a drag, each layer written by `thLinksPut` only when its markup differs from `thDrawn`, what it last wrote, and while a drag lasts `thLinksLit` and the holes wait for the drop, `thMoreHoles` setting the clip's `d` only when it changes (boardperf, 13 November 2026: both layers were written afresh on every frame of a drag, and under the clip, the board's size, WebKit painted all of the board on screen again each time, so a board of 105 cards at 60% took about 25 ms a frame laid out square and 17 as one column, area 378), a straight drop from foot to top where one card stands over the other and none stands between, and both layers inside the clip `#th-more-clip`, holed by `thMoreHoles` round each selected card's top right corner, `TH_MORE_CLEAR` across, so no line or dot meets its ⋯), each pair a `g.th-pair` lit by `thLinksLit` (`hot` under the
 pointer, `on` selected, `cur` stepped to). `TH.pairs` is what the canvas last drew, `TH.pairAt` the
 stepping's pair by its keys, `TH.pmenu` the line's menu (`thPairMenuOpen`), `#th-cpmenu` the gap's,
 `TH.pairable` a server that sends `not_same`. `thPanelDraw` reads two selected cards that are a pair as
@@ -5644,7 +5644,11 @@ element as `thMapViewDraw` last wrote them, falling back to a whole draw when a 
 its tint. `thMapViewDraw` skips the canvas's size while `TH.mapViewAt`, the view it last drew for, is the
 same, and `thMapCovered` reads no box while no sidebar is open. A drag itself takes one step a frame:
 `thPointerMove` hands the move to `thDragQueue`, which keeps the latest in `drag.next` and asks for a frame,
-and `thDragStep` runs it through `thDragMove`, first on `thPointerUp` and `thDragAlt` too. What is dragged
+and `thDragStep` runs it through `thDragMove`, first on `thPointerUp` and `thDragAlt` too. The board is placed
+once a frame (boardperf, 13 November 2026): `thWayTick` places nothing while a move waits for the frame, whose
+step then reads where things are before anything in the frame is written, nor after a move placed it in the same
+frame, `drag.placedAt` at or after the frame's time, only asking for the next while the slides go on, and
+`thMergeShow` writes the Merge's title only when it changes. What is dragged
 leans with no rotate transition, `.dragging`, and eases only as it stands up, `.standing` from `thStand`,
 and what comes along with a label trails it by `thTrail` and `thTrailTick`, eased each frame, where both
 were transitions WebKit began again on every move. A row dragged from a sidebar (21 October) moves the

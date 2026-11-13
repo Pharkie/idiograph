@@ -410,5 +410,42 @@ console.log(JSON.stringify(out));
         check("88: the MCP tool turn_write takes pairs and says so",
               "pairs" in tool["inputSchema"]["properties"] and "send pairs" in tool["description"]
               and written["result"]["isError"] is False and cells(31)[0] == "An invented third", str(written)[:300])
+
+        # ── F. quotemarks (13 November 2026): a quote's marks are never doubled by a write, and validate reports them
+        mark_row = next(r for r, x in turns().items() if r > 33 and x["name"] != "Adam" and len(x["text"]) > 60)
+        open_one, plain_one, doubled_one = '"an open sibling with no end', '"a whole one kept as it is"',"““doubled and imported”"
+        wb = openpyxl.load_workbook(book, rich_text=True)
+        ws = wb[DEMO_SHEET]
+        ws.cell(mark_row, cols["es"]).value = "An invented first\n\nAn invented second\n\nAn invented third"
+        ws.cell(mark_row, cols["kq"]).value = f"{open_one}\n\n{plain_one}\n\n{doubled_one}"
+        wb.save(book)
+        wb.close()
+        before_cells = cells(mark_row)
+        for n in range(3):
+            code, text, err = run("turn", "write", "Juno", DEMO_SHEET, str(mark_row), "--from", spec(f"marks{n}", {
+                "pairs": [{"statement": f"An invented first {n}", "quote": open_one},
+                          {"statement": "An invented second", "quote": plain_one},
+                          {"statement": "An invented third", "quote": doubled_one}]}), "--note", "Marks")
+        after_cells = cells(mark_row)
+        check("88: a statement written three times beside unbalanced sibling quotes leaves every quote as it was",
+              code == 0 and after_cells[1] == before_cells[1] and after_cells[0].startswith("An invented first 2"),
+              f"{code} {err.strip()[:150]}")
+        check("88: the quote rule is idempotent, a quote already opening with a mark is never wrapped again",
+              themes_mod.quoted('"open') == '"open' and themes_mod.quoted("“open") == "“open"
+              and themes_mod.quoted('""x"') == '""x"' and themes_mod.quoted(themes_mod.quoted("words")) == '"words"')
+        code, text, _ = run("validate", "--json")
+        found = [str(w) for w in json.loads(text)["warnings"]] if code == 0 else []
+        check("88: validate warns, naming the participant, sheet, row and statement and never the words, of a doubled or unclosed mark",
+              len(found) == 2 and all(f"row {mark_row}" in w and "Juno" in w and DEMO_SHEET in w for w in found)
+              and any("statement 1" in w and "does not close" in w for w in found)
+              and any("statement 3" in w and "twice" in w for w in found)
+              and not any("open sibling" in w or "doubled and imported" in w for w in found), str(found)[:300])
+        wb = openpyxl.load_workbook(book, rich_text=True)
+        wb[DEMO_SHEET].cell(mark_row, cols["kq"]).value = '"a clean one"\n\n(no quote)\n\n“clean too”'
+        wb.save(book)
+        wb.close()
+        code, text, _ = run("validate", "--json")
+        check("88: a project with its quotes whole has no quote-mark warning",
+              code == 0 and json.loads(text)["warnings"] == [], text[:200])
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY, locks.WAIT = kept
