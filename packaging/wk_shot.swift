@@ -19,6 +19,11 @@
 //                        its value printed as `js <n>: <json>`
 //   "waitFor": "<sel>"   until an element matching it is drawn, at most 10 seconds
 //   "wait": 300          milliseconds before the shot (300 when left out)
+//   "layers": {"every": 16, "for": 400}   after the wait, the window's layers watched that long (boardhover, 13
+//                        November 2026): `layers <n>: {"least", "most", "updates"}`, the fewest and the most Core
+//                        Animation layers WebKit drew the page with and how many of its updates changed its layers,
+//                        null where this WebKit cannot say. A hover that makes a layer for a moment shows as most
+//                        above least. Watch with --no-still, since stilled transitions make no layers
 //   "shot": "<name>"     <out>/<name>.png: the whole window, or "clip": {x, y, w, h} in CSS pixels, or "plan":
 //                        [selectors] with "planOptions": {...}, which runs shot_box.js's shotPlan in the page,
 //                        shoots its crop and writes the plan beside the PNG as <name>.shot.json
@@ -205,7 +210,8 @@ final class Runner: NSObject, WKNavigationDelegate {
         self.waitFor(s["waitFor"] as? String, n, tries: 0) {
           let wait = (s["wait"] as? Double ?? 300) / 1000
           DispatchQueue.main.asyncAfter(deadline: .now() + wait) {
-            if let name = s["shot"] as? String { self.shoot(name, s) } else { self.next() }
+            let shoot = { if let name = s["shot"] as? String { self.shoot(name, s) } else { self.next() } }
+            if let watch = s["layers"] as? [String: Double] { self.watchLayers(n, watch, then: shoot) } else { shoot() }
           }
         }
       }
@@ -217,6 +223,31 @@ final class Runner: NSObject, WKNavigationDelegate {
       } else { afterJs() }
     }
     if let u = s["load"] as? String { load(u, then: afterLoad) } else { afterLoad() }
+  }
+
+  // The page's layers as WebKit hands them to Core Animation, counted from its own description of the tree, and the
+  // number of its updates that changed them, both through its testing interface, read every `every` ms for `for` ms
+  func watchLayers(_ n: Int, _ watch: [String: Double], then: @escaping () -> Void) {
+    let treeSel = NSSelectorFromString("_caLayerTreeAsText"), countSel = NSSelectorFromString("_countOfUpdatesWithLayerChanges")
+    guard web.responds(to: treeSel), web.responds(to: countSel) else { print("layers \(n): null"); then(); return }
+    typealias Count = @convention(c) (AnyObject, Selector) -> UInt
+    let count = { Int(unsafeBitCast(self.web.method(for: countSel), to: Count.self)(self.web, countSel)) }
+    let layers = { ((self.web.perform(treeSel)?.takeUnretainedValue() as? String) ?? "").components(separatedBy: "(layer bounds").count - 1 }
+    let every = (watch["every"] ?? 16) / 1000, total = (watch["for"] ?? 400) / 1000
+    let start = Date(), first = count()
+    var least = Int.max, most = 0
+    func tick() {
+      let now = layers()
+      least = min(least, now)
+      most = max(most, now)
+      if Date().timeIntervalSince(start) >= total {
+        print("layers \(n): {\"least\": \(least), \"most\": \(most), \"updates\": \(count() - first)}")
+        then()
+        return
+      }
+      DispatchQueue.main.asyncAfter(deadline: .now() + every) { tick() }
+    }
+    tick()
   }
 
   func waitFor(_ sel: String?, _ n: Int, tries: Int, then: @escaping () -> Void) {

@@ -2687,7 +2687,10 @@ sub-theme or Take out of group by what holds it, then on a label Auto-arrange, R
 label on a label. Esc puts it away, and so does a click anywhere else. The same menu opens from "⋯",
 a small round button on a selected card's top right corner, clear of its words, as a selected sticky
 note carries its cross, and on a label at its top right corner, beyond its cross, showing with the label's
-other small controls, so nothing there is reached by the right-click alone (16 October). On a label it stood in
+other small controls, so nothing there is reached by the right-click alone (16 October). Since 13 November a label's
+small controls come and go with nothing else on the board moving, where in the Mac window every outline and word
+on the board shifted a little for a moment each time the pointer went into a PET's or a sub-PET's label or out of
+it. On a label it stood in
 the title's line until 17 October, later, and took a long title's room there, so a GET's title wrapped onto a
 line more than its board leaves it. The entries that take
 something away, Delete this label and Delete note, are red with a bin, as every

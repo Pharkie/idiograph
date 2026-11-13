@@ -458,26 +458,24 @@
    grid that arranges what it holds, and the cross that deletes it */
 .th-del, .th-arr {
   flex: none; align-self: center; width: 20px; height: 20px; padding: 0; margin-left: 2px;
-  display: inline-flex; align-items: center; justify-content: center; opacity: 0;
+  display: inline-flex; align-items: center; justify-content: center;
   background: none; border: 1px solid transparent; border-radius: 3px; color: var(--ink-faint);
-  cursor: pointer; transition: opacity .14s;
+  cursor: pointer; transition: color .14s, border-color .14s, background-color .14s;
 }
 .th-arr { margin-left: 0; }
 .th-del + .th-arr, .th-arr + .th-del { margin-left: -4px; }
 .th-del svg { width: 11px; height: 11px; display: block; }
 .th-arr svg { width: 12px; height: 12px; display: block; }
-.th-label:hover .th-del, .th-label.sel .th-del, .th-label:hover .th-arr, .th-label.sel .th-arr { opacity: 1; }
 .th-del:hover, .th-arr:hover { border-color: var(--rule-firm); color: var(--ink); }
 /* The "⋯" that opens what a right-click offers (16 October): on a label after its cross, showing as
    they do, and on a selected card at its top right corner, clear of its words, as a selected note
    carries its cross. Never while it is dragged or open for editing. */
 .th-more {
   flex: none; align-self: center; width: 20px; height: 20px; padding: 0; margin-left: -4px;
-  display: inline-flex; align-items: center; justify-content: center; opacity: 0;
+  display: inline-flex; align-items: center; justify-content: center;
   background: none; border: 1px solid transparent; border-radius: 3px; color: var(--ink-faint);
-  font-size: 13px; line-height: 1; cursor: pointer; transition: opacity .14s;
+  font-size: 13px; line-height: 1; cursor: pointer;
 }
-.th-label:hover .th-more, .th-label.sel .th-more { opacity: 1; }
 /* on a label it stands at the top right corner, clear of the title and the cross, as a card's does, so the title
    keeps the room the server lays a label out by, LABEL_CHROME, where after the cross it took 23px of the title's
    line and a long GET's title wrapped onto a line more than its board left it, over the cards above (17 October,
@@ -485,10 +483,20 @@
 .th-label .th-more {
   position: absolute; top: -10px; right: -14px; margin: 0; border-radius: 50%;
   background: var(--card); border-color: var(--rule-firm); color: var(--ink-soft);
+  transition: color .14s, border-color .14s, background-color .14s;
 }
 .th-more:hover { border-color: var(--rule-firm); color: var(--ink); }
+/* A label's three controls are out of sight while it is neither under the pointer nor selected, and they come and
+   go in their colours alone, never their opacity (boardhover, 13 November 2026). WebKit, the Mac window's engine,
+   runs a fade of opacity on a layer of its own, and while the fade ran it drew the whole board as a layer too, the
+   canvas's zoom and its offset of a fraction of a pixel laid over it whole, so every outline and word on the board
+   moved a little for a tenth of a second each time the pointer went into a PET's or a sub-PET's label or out of it.
+   A fade of colour is drawn in place and makes no layer */
+.th-label:not(:hover, .sel) :is(.th-del, .th-arr, .th-more) {
+  color: transparent; border-color: transparent; background-color: transparent;
+}
 .th-card .th-more {
-  position: absolute; top: -9px; right: -9px; margin: 0; display: none; opacity: 1; border-radius: 50%;
+  position: absolute; top: -9px; right: -9px; margin: 0; display: none; border-radius: 50%;
   background: var(--card); border-color: var(--rule-firm); color: var(--ink-soft);
 }
 .th-card.sel .th-more { display: inline-flex; }

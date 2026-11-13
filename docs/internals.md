@@ -2261,7 +2261,14 @@ resize. `.row-menu-open`, the margin's three dots, lost its `opacity: 0`, so it 
 every row. On the canvas `#th-group` and `#th-undo` call `thGroupKey` and `thUndo(true)`, their
 `pointerdown` prevented so the focus stays on the canvas. `TH_MORE`, a `.th-more` button, ends every
 card's and label's markup in `thRender`: on a card it shows with `.sel` at the top right corner, and
-on a label with its other small controls. A click on it in `#th-world` opens `thMenuOpen` on that
+on a label with its other small controls. A label's three, `.th-arr`, `.th-del` and `.th-more`, come and go in
+their colours alone since boardhover (13 November 2026): `.th-label:not(:hover, .sel)` makes their colour, border
+and background transparent, faded over .14s as their opacity was. An opacity fade made WebKit lift the three into
+layers of their own for its tenth of a second, and with them `#th-world`, under its transform, so the whole board
+was drawn as a layer, the canvas's zoom and its offset of a fraction of a pixel laid over it whole, and every
+outline and word moved a little and came back each time the pointer crossed a PET's or a sub-PET's label (on
+Juno's board 27 layers became 57, a GETs board's 32). Nothing on the canvas fades by opacity under the pointer
+for that reason, and area 376 watches the layers. A click on it in `#th-world` opens `thMenuOpen` on that
 item under it, and `thPointerDown` passes it by as it passes `.th-del`. The menu's entries whose act
 is in `TH_TAKES`, `leave`, `delete` and `unstick`, and the board menu's delete carry `btn-remove`,
 their border kept quiet in a menu until the pointer is on them. `keyName(text)` in `app.js` gives a
@@ -6940,6 +6947,17 @@ the right of a page that scrolls as Home does, is the one a snapshot still leave
 true` shoots the window server's own picture instead, the window as the screen shows it, at the screen's
 scale and never more, 1 on Adam's display: the check that a snapshot's bars are the window's. Shoot Before
 and After alike, both through wk_shot at one zoom, main on PORT + 1 as before.
+
+A step's `layers` ({"every": 16, "for": 400}, boardhover, 13 November 2026) watches the window's layers after
+its wait for that many milliseconds and prints `layers <n>: {"least", "most", "updates"}`: the fewest and the
+most Core Animation layers WebKit drew the page with, counted from its own description of the tree
+(`_caLayerTreeAsText`), and how many of its updates changed them (`_countOfUpdatesWithLayerChanges`), or `null`
+where this WebKit cannot say. A hover that makes a layer for a moment shows as `most` above `least`. Watch with
+`--no-still`, since stilled transitions make no layers. The window takes no mouse moves: it is off the screens in
+a process that is never active, and WebKit drops a move sent to it however it is sent (`_simulateMouseMove:`,
+`sendEvent`, `mouseMoved`), so a step that needs the pointer emulates it in the page, every `:hover` in the
+stylesheets rewritten to a class set on the element under the point and its ancestors and the pointer events
+sent as a move sends them (`HOVER_INIT` in area 376).
 
 ### Motion recordings
 

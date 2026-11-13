@@ -417,6 +417,7 @@ AREAS = {
     "a373_participant_set": "idiograph",
     "a374_click_outside": "shared",
     "a375_demographics": "idiograph",
+    "a376_board_hover": "idiograph",
     "a377_board_grid": "idiograph",
 }
 
