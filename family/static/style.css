@@ -53,12 +53,11 @@ b { font-weight: 600; }
 
 .screen { min-height: 100vh; }
 
-/* the head (22 October 2026): the lockup, the Preview Edition's panel right under it, then the line and its
-   points, the days at the right beside the panel and the line, and on a narrow screen everything in one
-   column, the days last.
+/* the head (22 October 2026): the lockup, then the line and its points, then the Preview Edition's panel
+   (homeorder, 13 November 2026, Adam: the panel after them, where it stood under the lockup), all in one column.
    One grid since 5 November 2026 (homehead, Adam): the head's column is the content's below it, 1080px at most
    with the page's gutter, so the lockup, the panel, the line and the projects share one left edge and the tools
-   and the days one right edge. Its top row holds the lockup at the left and the tools at the right, the lockup's
+   one right edge. Its top row holds the lockup at the left and the tools at the right, the lockup's
    ink level with the icons'.
    The lockup's clear space (headroom, 6 November 2026, Adam: the lockup stood too close under the title bar): its
    mark's height at least, --mark-h, between the bottom of the window's title bar, the page's top, and the lockup's
@@ -77,8 +76,8 @@ b { font-weight: 600; }
   --head-top: calc(var(--mark-h) - 3px);
   padding: var(--head-top) var(--home-edge) 0;
   max-width: calc(1048px + 2 * var(--home-edge)); margin: 0 auto;
-  display: grid; grid-template-columns: minmax(0,1fr) auto; column-gap: 40px;
-  grid-template-areas: "top top" "note days" "lede days" "points days";
+  display: grid; grid-template-columns: minmax(0,1fr);
+  grid-template-areas: "top" "lede" "points" "note";
 }
 .lib-top { grid-area: top; display: flex; align-items: flex-start; justify-content: space-between; column-gap: 24px;
   min-width: 0; }
@@ -216,10 +215,10 @@ html[data-edition="preview"] .about-lockup.pe { --pe-size: 10px; --pe-drop: 5px;
   88%, 96% { transform: rotate(10deg) scale(1.1); }
   100% { transform: rotate(0) scale(1); }
 }
-/* what the Preview Edition means, right under Idiograph's lockup while the stamp shows (22 October), so the stamp
-   and what it says stand together: a quiet panel in the body type */
+/* what the Preview Edition means, under the line and its points while the stamp shows (22 October, moved there 13
+   November, Adam): a quiet panel in the body type */
 .pe-note { display: none; grid-area: note; }
-/* since 5 November (homehead, Adam: fewer lines) it takes the column's width beside the days, up to 58em, about 110
+/* since 5 November (homehead, Adam: fewer lines) it takes the column's width, up to 58em, about 110
    characters a line, where it stood at 40em, about 80 */
 html[data-app="idiograph"][data-edition="preview"] .pe-note { display: flex; align-items: flex-start; gap: 10px;
   max-width: 58em; margin: 22px 0 0;
@@ -330,7 +329,7 @@ html[data-app="idiograph"][data-edition="preview"] .pe-note { display: flex; ali
 /* New project and Open project folder under each section's cards */
 .home-acts { flex-wrap: wrap; align-items: center; gap: 8px; }
 .home-acts[hidden] { display: none; }
-/* Search, Send feedback and Settings in the head, at the right over the days, in the order every bar ends with (16
+/* Search, Send feedback and Settings in the head, at the right, in the order every bar ends with (16
    October), at the right of the head's top row since 5 November (homehead), their words shown as a screen's bar
    shows them */
 .lib-head { position: relative; }
@@ -357,8 +356,6 @@ html[data-app="idiograph"][data-edition="preview"] .pe-note { display: flex; ali
 }
 /* on a phone the row's halves stack under the name */
 @media (max-width: 559px) {
-  .lib-head { grid-template-columns: minmax(0,1fr); grid-template-areas: "top" "note" "lede" "points" "days"; }
-  .lib-head .days { margin-top: 26px; }
   /* on a phone Free and its Ko-fi button have a line of their own */
   .lede-points .lp-free { flex-basis: 100%; }
 }
@@ -380,31 +377,6 @@ html[data-app="idiograph"][data-edition="preview"] .pe-note { display: flex; ali
    here, and again beside the name in the top bar for as long as it is open */
 .tag.demo { border-color: var(--accent); color: var(--accent); }
 
-/* The days, top right in the head (items 159 and 195): eight columns of seven small squares, Monday at the top and
-   the newest week on the right, each tinted by the rounds closed that day in four steps of the
-   accent at rising strength, none, one, two, and three or more, today outlined in the ink, where until 17
-   October, later, it stood in the crux orange, which means a crux.
-   A day still to come keeps its place and draws nothing. The line under it is the small type. */
-.days { grid-area: days; justify-self: end; align-self: start; text-align: right; max-width: 17em; margin: 0; }
-/* the days' top level with the panel's (homehead, 5 November) */
-.lib-head .days { margin-top: 22px; }
-/* up to 960px the panel takes the head's whole width, and the days stand beside the line and its points, so the
-   panel keeps a long line where the days would leave it a narrow one (homehead, 5 November) */
-@media (max-width: 960px) {
-  .lib-head { grid-template-areas: "top top" "note note" "lede days" "points days"; }
-  .lib-head .days { margin-top: 26px; }
-}
-.day { border-radius: 2px; }
-.day.s0 { background: color-mix(in srgb, var(--accent) 12%, transparent); }
-.day.s1 { background: color-mix(in srgb, var(--accent) 38%, transparent); }
-.day.s2 { background: color-mix(in srgb, var(--accent) 66%, transparent); }
-.day.s3 { background: var(--accent); }
-.day.today { outline: 1.5px solid var(--ink); outline-offset: 1px; }
-.day.ahead { visibility: hidden; }
-/* on a narrow screen the days go under the wordmark, at its left */
-@media (max-width: 559px) {
-  .days { justify-self: start; text-align: left; margin-top: 14px; }
-}
 .demo-actions { display: flex; align-items: baseline; gap: 12px; padding: 2px 2px 0; }
 .demo-actions .fineprint { margin: 0; }
 .quiet {

@@ -1790,43 +1790,6 @@ def api_cases(_: dict) -> dict:
             "version": srv.VERSION, "build": srv.BUILD, "gets": first["gets"] if first else None}
 
 
-def day_workbooks(cfg: dict) -> list[Path]:
-    """Every annotated workbook under every project's root with a progress file beside it, found
-    from the progress files themselves, so no workbook is opened. A progress file sits in its case's
-    `Working/`, and one under `_Archive` or another folder the case list leaves out, or beside a
-    backup copy, or with no workbook of its stem beside its folder, is passed over. A workbook two
-    roots share is counted once."""
-    found: list[Path] = []
-    seen: set[str] = set()
-    for root in srv.project_roots(cfg):
-        if not root.exists():
-            continue
-        for side in sorted(root.rglob("*.progress.json")):
-            folders = side.relative_to(root).parts[:-1]
-            if not folders or folders[-1] != "Working" or set(folders[:-1]) & SKIP_DIRS:
-                continue
-            stem = side.name[: -len(".progress.json")]
-            workbook = side.parent.parent / f"{stem}.xlsx"
-            if BACKUP_STEM.search(stem) or not workbook.is_file() or str(workbook.resolve()) in seen or pristine_copy(workbook):
-                continue
-            seen.add(str(workbook.resolve()))
-            found.append(workbook)
-    return found
-
-
-def api_days(_: dict) -> dict:
-    """The rounds closed on each day across every case of every project, for the squares in the
-    home screen's head, with today's date and the daily target the line under them counts by. It only
-    reads: each progress file as it sits, and nothing is written."""
-    cfg = srv.config()
-    try:
-        target = max(1, int(cfg.get("daily_target") or 2))
-    except (TypeError, ValueError):
-        target = 2
-    return {"days": rounds_mod.days_total(day_workbooks(cfg)), "today": rounds_mod.today(),
-            "dailyTarget": target}
-
-
 def api_project(body: dict) -> dict:
     """A project, read, or saved from Settings when the body carries a name or a question.
 
@@ -10077,7 +10040,6 @@ OWN_SETTINGS = ("interviewer", "round_minutes", "daily_target", "ai_prompt", "pe
 # Idiograph's routes, each path's handler, as the server's table held them before the split
 ROUTES = {
     "/api/cases": api_cases,
-    "/api/days": api_days,
     "/api/open": api_open,
     "/api/create": api_create,
     "/api/import": api_import,

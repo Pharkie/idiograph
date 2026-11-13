@@ -70,11 +70,6 @@ def test_loose_ends(scratch):
               not any("pristine" in c["path"] for c in switcher)
               and sorted(c["case"] for c in switcher) == ["Juno", "Mabel", "Rowan"],
               json.dumps([c["path"] for c in switcher]))
-        days = idiograph_routes.day_workbooks(server_mod.config())
-        check("the home screen's days count each case's progress file and no pristine one",
-              not any(b.parent.name == "pristine" for b in days)
-              and sum(1 for b in days if b.parent.parent == root) == 3,
-              json.dumps([str(b) for b in days]))
         own = idiograph_routes.list_cases(other)
         check("a folder of his own named pristine, with no case folder of its name beside it, still holds a case",
               [r["case"] for r in own] == ["pristine"] and own[0]["kind"] == "annotated", json.dumps(own, default=str))

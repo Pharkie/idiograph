@@ -427,8 +427,6 @@ async function loadLibrary(show = true) {
   if (own && own.homeTaken) own.homeTaken(data);
   drawFeedback(data.feedback);
   drawHome();
-  // what the app's Home asks for after, Idiograph's days (distil.js)
-  if (own && own.homeAfter) own.homeAfter(ask);
   loadFamily();
 }
 

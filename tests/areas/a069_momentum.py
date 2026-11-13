@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import inspect
 import json
 import re
 import shutil
@@ -10,18 +9,13 @@ import workbook as wb_mod
 
 from . import support
 from .support import check, demo_copy, demo_sheet, skip
-import idiograph_routes
 
 
 def test_momentum(scratch):
-    print("\n69. Momentum: today's haul on a break, the days under All cases, the statements left on the PETs "
+    print("\n69. Momentum: today's haul on a break, the statements left on the PETs "
           "screen, and Celebrations with Sound (158 to 161)")
     import datetime as dt
-    import http.server
     import subprocess
-    import threading
-    import urllib.error
-    import urllib.request
     import server as server_mod
 
     js = support.text("family/static/shell.js", "apps/idiograph/static/distil.js")
@@ -56,67 +50,6 @@ def test_momentum(scratch):
     check("158: the summary carries todayTurns and todaySeconds beside todayRounds, from the round closed today",
           summary["todayRounds"] == 1 and summary["todayTurns"] == len(demo_rounds[0]["stops"]) > 0
           and summary["todaySeconds"] == 600, f"{summary['todayRounds']}, {summary['todayTurns']}, {summary['todaySeconds']}")
-
-    # ── B. /api/days: the tally summed across the cases under the root, read and never written
-    days_root = root / "days-root"
-
-    def case_with(rel, days, raw=None):
-        workbook = days_root / rel
-        workbook.parent.mkdir(parents=True, exist_ok=True)
-        workbook.write_bytes(b"")
-        side = rounds_mod.progress_path(workbook)
-        side.parent.mkdir(parents=True, exist_ok=True)
-        side.write_text(raw if raw is not None else json.dumps({"version": 1, "days": days}), encoding="utf-8")
-        return side
-
-    sides = [case_with("P1 - Ada/P1 Ada - EN & ES.xlsx", {day(0): {"rounds": 2}, day(1): {"rounds": 1}}),
-             case_with("P2 - Iris/P2 Iris - EN & ES.xlsx", {day(0): {"rounds": 1}, day(3): {"rounds": 2},
-                                                           "not a day": {"rounds": 4}, day(5): {"rounds": "2"}}),
-             case_with("_Archive/P3 - Cleo/P3 Cleo - EN & ES.xlsx", {day(0): {"rounds": 5}}),
-             case_with("P4 - Dora/P4 Dora - EN & ES (pre-trim).xlsx", {day(0): {"rounds": 5}}),
-             case_with("P5 - Edie/P5 Edie - EN & ES.xlsx", {}, raw="{ not json")]
-    lone = days_root / "P6 - Fern" / "Working" / "P6 Fern - EN & ES.progress.json"
-    lone.parent.mkdir(parents=True, exist_ok=True)
-    lone.write_text(json.dumps({"days": {day(0): {"rounds": 9}}}), encoding="utf-8")
-    sides.append(lone)
-    before = {p: p.read_bytes() for p in sides}
-    config_file = root / "config.json"
-    config_file.write_text(json.dumps({"daily_target": 3}), encoding="utf-8")
-    saved = (server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY, server_mod.CONFIG_PATH)
-    server_mod.ROOT_OVERRIDE = str(days_root)
-    server_mod.STATE_MEMORY = {"recent": []}
-    server_mod.CONFIG_PATH = config_file
-    try:
-        answer = idiograph_routes.api_days({})
-        httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), server_mod.Handler)
-        threading.Thread(target=httpd.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True).start()
-
-        def get(route):
-            try:
-                with urllib.request.urlopen(f"http://127.0.0.1:{httpd.server_address[1]}{route}", timeout=10) as r:
-                    return r.status, json.loads(r.read())
-            except urllib.error.HTTPError as exc:
-                return exc.code, json.loads(exc.read())
-
-        try:
-            over_get = get("/api/days")
-        finally:
-            httpd.shutdown()
-            httpd.server_close()
-        check("159: /api/days answers a GET with the days",
-              server_mod.ROUTES["/api/days"] is idiograph_routes.api_days
-              and over_get[0] == 200 and over_get[1] == answer, str(over_get)[:200])
-        check("159: it sums every case's tally under the root, and leaves out _Archive, a backup, a progress file "
-              "with no workbook, one that cannot be read and an entry that is not a date with a count",
-              answer["days"] == dict(sorted({day(0): 3, day(1): 1, day(3): 2}.items())), str(answer["days"]))
-        check("159: it carries today and the daily target from the settings",
-              answer["today"] == dt.date.today().isoformat() and answer["dailyTarget"] == 3)
-        check("159: it only reads: every progress file is byte for byte as it was, and no workbook is opened",
-              all(p.read_bytes() == b for p, b in before.items()) and "load_workbook" not in inspect.getsource(idiograph_routes.day_workbooks)
-              and "save_progress" not in inspect.getsource(idiograph_routes.api_days) and "write_text" not in inspect.getsource(rounds_mod.days_total)
-              and "save_progress" not in inspect.getsource(rounds_mod.days_total))
-    finally:
-        server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY, server_mod.CONFIG_PATH = saved
 
     # ── C. the two settings: their defaults, the save, and a file from before them
     check("161: celebrations is on and sound off by default, and a config.json from before them reads the same",
@@ -161,11 +94,9 @@ def test_momentum(scratch):
         skip("158 to 161: the haul, the days, the sound and the statements left in node", "no node on this machine")
     else:
         consts = "const CONFETTI_LEVELS = {" + js.split("const CONFETTI_LEVELS = {", 1)[1].split("function confetti(level", 1)[0]
-        pieces = [support.i18n_js(), line_of(js, "const DAYS_WEEKS = "), line_of(js, "const DAYS_TIP = "),
-                  line_of(js, "const DAYS_SPAN = "), line_of(js, "const isoDay = "), line_of(js, "const dayShift = "),
-                  line_of(js, "const esc = "), line_of(js, "const escAttr = "), line_of(js, "const HAUL_MS = "),
+        pieces = [support.i18n_js(), line_of(js, "const esc = "), line_of(js, "const escAttr = "), line_of(js, "const HAUL_MS = "),
                   "let haulTimer = null;", line_of(js, "function roundsOn("), line_of(js, "function roundsHere("),
-                  whole(js, "daysModel"), whole(js, "drawDays"), whole(js, "haulTime"), whole(js, "formatMinutes"),
+                  whole(js, "haulTime"), whole(js, "formatMinutes"),
                   whole(js, "haulLine"), whole(js, "haulShow"), whole(js, "haulHide"), whole(js, "stopHere"),
                   whole(js, "countWord"), whole(js, "flashCount"), consts, whole(js, "confetti")]
         script = root / "momentum.js"
@@ -225,27 +156,6 @@ def test_momentum(scratch):
             "out.caseDone = { tones: tones.length, length: Math.max(...tones.map((t) => t.end)) - Math.min(...tones.map((t) => t.at)) };\n"
             "S.data.config = { sound: false, work_in_rounds: true }; tones.length = 0; flashCount(); confetti(1); out.quiet = tones.length;\n"
             "reduce = false;\n"
-            "// the days, on Thursday 1 October 2026\n"
-            "const tally = { '2026-10-01': 3, '2026-09-30': 2, '2026-09-29': 2, '2026-09-28': 1, '2026-09-27': 5, '2026-09-26': 2,\n"
-            "  '2026-09-19': 2, '2026-09-09': 4, '2026-08-10': 1, '2026-08-09': 6, '2026-10-02': 7 };\n"
-            "const m = daysModel({ days: tally, today: '2026-10-01', dailyTarget: 2 });\n"
-            "out.days = { cols: m.columns.length, rows: m.columns.map((c) => c.length), first: m.columns[0][0].iso,\n"
-            "  todayAt: m.columns.flatMap((c, w) => c.map((d, k) => (d && d.today ? [w, k] : null))).filter(Boolean),\n"
-            "  ahead: m.columns[7].map((d) => d === null), steps: [...new Set(m.columns.flat().filter(Boolean).map((d) => d.step))].sort(),\n"
-            "  tips: [m.columns[7][3].tip, m.columns[7][0].tip, m.columns[6][4].tip, m.columns[0][0].tip],\n"
-            "  rounds: m.columns[6][6].rounds + '/' + m.columns[6][6].step, line: m.line };\n"
-            "const L = (days, today, target) => daysModel({ days, today, dailyTarget: target }).line;\n"
-            "out.daysLines = [L({ '2026-10-02': 1, '2026-10-01': 2, '2026-09-30': 2 }, '2026-10-02', 2), L({ '2026-10-02': 2 }, '2026-10-02', 2),\n"
-            "  L({ '2026-09-20': 1 }, '2026-10-02', 2), L({}, '2026-10-02', 2), L({ '2026-10-02': 2, '2026-10-01': 2 }, '2026-10-02', 3),\n"
-            "  L({ '2026-06-01': 3 }, '2026-10-02', 2), L({ '2026-10-04': 2, '2026-10-03': 2 }, '2026-10-04', undefined)];\n"
-            "out.bad = daysModel({ days: {}, today: 'soon' });\n"
-            "drawDays({ days: tally, today: '2026-10-01', dailyTarget: 2 });\n"
-            "const html = $('days').innerHTML;\n"
-            "out.drawn = { hidden: $('days').hidden, cells: (html.match(/class=\"day /g) || []).length, today: (html.match(/ today\"/g) || []).length,\n"
-            "  ahead: (html.match(/day ahead/g) || []).length, line: html.includes('<p class=\"days-line\">3 days running. Target met 6 of the last 14 days.</p>'),\n"
-            "  tip: html.includes('title=\"Thu 1 Oct: 3 rounds\"'), later: html.includes('7 rounds') };\n"
-            "drawDays(null); out.none = { hidden: $('days').hidden, html: $('days').innerHTML };\n"
-            "drawDays({ days: {}, today: '2026-10-02', dailyTarget: 2 }); out.empty = { hidden: $('days').hidden, line: $('days').innerHTML.includes('days-line') };\n"
             "console.log(JSON.stringify(out));\n", encoding="utf-8")
         run = subprocess.run([node, str(script)], capture_output=True, text=True, encoding="utf-8")
         if run.returncode != 0:
@@ -275,24 +185,6 @@ def test_momentum(scratch):
             check("161: in node, a round closing chimes two notes, a sheet or the case a longer one, and reduced motion keeps the canvas off",
                   o["round"]["tones"] == 2 and not o["round"]["canvas"] and o["sheet"] == 4 and o["caseDone"]["tones"] == 4
                   and o["caseDone"]["length"] > o["round"]["length"] and o["quiet"] == 0, str(o["round"]) + str(o["caseDone"]))
-            d = o["days"]
-            check("159: in node, eight columns of seven days, Monday at the top, the newest week on the right, today outlined",
-                  d["cols"] == 8 and d["rows"] == [7] * 8 and d["first"] == "2026-08-10" and d["todayAt"] == [[7, 3]]
-                  and d["ahead"] == [False, False, False, False, True, True, True], str(d))
-            check("159: in node, four steps, none, one, two and three or more, and the tooltip names the day and its rounds",
-                  d["steps"] == [0, 1, 2, 3] and d["rounds"] == "5/3"
-                  and d["tips"] == ["Thu 1 Oct: 3 rounds", "Mon 28 Sep: 1 round", "Fri 25 Sep: no rounds", "Mon 10 Aug: 1 round"], str(d["tips"]))
-            check("159: in node, the line gives the days running and the target met in the last fourteen",
-                  d["line"] == "3 days running. Target met 6 of the last 14 days.", d["line"])
-            check("159: in node, today counts once it is met, one day reads in the singular, none running is left out, "
-                  "and eight empty weeks have no line",
-                  o["daysLines"] == ["2 days running. Target met 2 of the last 14 days.", "1 day running. Target met 1 of the last 14 days.",
-                                     "Target met 0 of the last 14 days.", "", "Target met 0 of the last 14 days.", "",
-                                     "2 days running. Target met 2 of the last 14 days."]
-                  and o["bad"] is None, str(o["daysLines"]))
-            check("159: in node, the squares are drawn with their tooltips and the line, and a server without the route draws nothing",
-                  o["drawn"] == {"hidden": False, "cells": 56, "today": 1, "ahead": 3, "line": True, "tip": True, "later": False}
-                  and o["none"] == {"hidden": True, "html": ""} and o["empty"] == {"hidden": False, "line": False}, str(o["drawn"]))
 
         # ── F. in node: the statements left on the PETs screen
         tpieces = [line_of(tjs, "const thStickies = "), line_of(tjs, "const thIsGroup = "), line_of(tjs, "const thCalm = "), line_of(tjs, "const thStacks = "), whole(tjs, "thTopOf"),

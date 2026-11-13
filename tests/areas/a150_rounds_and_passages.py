@@ -91,7 +91,7 @@ def test_rounds_and_passages(scratch):
                  "drawRoundBar", "drawProgress", "whenOf", "drawMark", "sheetRound", "roundMarkState", "roundTarget",
                  "drawRoundMarks", "drawTranscript", "roundsToClose", "closeLeftRounds", "celebrate", "closeRounds",
                  "endsSheet", "roundDone", "drawDoneMark", "formatMinutes", "stopHere", "countWord", "closingOnMove",
-                 "flashCount", "afterCommit", "haulTime", "haulLine", "loadDays", "cheerLine"]
+                 "flashCount", "afterCommit", "haulTime", "haulLine", "cheerLine"]
         lines_src = "const LINES = [" + app.split("const LINES = [", 1)[1].split("];", 1)[0] + "];"
         source = "\n".join([support.i18n_js(), lines_src, const("dayOf"), const("share"), const("MARK_WORDS"),
                             const("current")] + [whole(n) for n in names])
@@ -113,15 +113,14 @@ const haulShow = () => {}; const focusEntry = () => {};
 const marks = []; const roundMarkHtml = (r) => { marks.push(r.number); return '<m>'; };
 const turnHtml = (row) => `<t${row.i}>`; const drawSheetLabel = () => {}; const parkNotes = () => {}; const parkCard = () => {}; const parkNote = () => {};
 const drawDoneMarks = () => {};
-const posted = []; let daysAsked = 0;
+const posted = [];
 const api = async (path, body) => {
-  if (path === '/api/days') { daysAsked += 1; return { days: {}, today: '2026-10-15', dailyTarget: 2 }; }
   posted.push(body.round);
   const p = S.data.progress;
   p.roundTurns = p.roundTurns.map((r) => (r.number === body.round ? Object.assign({}, r, { recorded: true }) : r));
   return { progress: p };
 };
-const drawn = []; let daysDrawn = 'unset'; const drawDays = (d) => { daysDrawn = d; };
+const drawn = [];
 let libraryAsk = 1;
 const S = { data: null, flat: [], stops: [], at: 0, closing: new Set(), sheetDrawn: null, libConfig: null };
 """ + source + r"""
@@ -209,10 +208,7 @@ const out = {};
   load(true, keys('3', '4')); S.at = 2; out.closingOn = closingOnMove();
   load(true, keys('3', '4'), [1]); S.at = 2; flashCount(); out.flashOn = $('count-flash').innerHTML;
   load(false, keys('3', '4', '6', '7')); S.at = 4; out.closingSheetOff = closingOnMove();
-  // the days and the haul
-  load(false, []); S.libConfig = { work_in_rounds: false }; daysAsked = 0; await loadDays(1); out.daysOff = { asked: daysAsked, drawn: daysDrawn };
-  S.libConfig = {}; daysDrawn = 'unset'; await loadDays(1); out.daysAbsent = { asked: daysAsked, drawn: daysDrawn };
-  S.libConfig = { work_in_rounds: true }; await loadDays(1); out.daysOn = { asked: daysAsked, drawn: !!daysDrawn };
+  // the haul
   load(false, []); out.haulOff = haulLine(S.data.progress);
   load(true, []); out.haulOn = haulLine(S.data.progress);
   out.cheerOff = cheerLine(false); out.cheerOn = cheerLine(true);
@@ -282,8 +278,4 @@ const out = {};
                   and out["closingOn"] is True and out["flashOn"] == '1<span class="count-of"> / 2</span>'
                   and out["closingSheetOff"] is True,
                   f"{out['closingOff']} {out['flashOff']} {out['closingOn']} {out['flashOn']} {out['closingSheetOff']}")
-            check("150: with rounds off, or no key at all, the home screen asks nothing for the days and draws none, and "
-                  "with them on it asks and draws them",
-                  out["daysOff"] == {"asked": 0, "drawn": None} and out["daysAbsent"] == {"asked": 0, "drawn": None}
-                  and out["daysOn"] == {"asked": 1, "drawn": True}, f"{out['daysOff']} {out['daysAbsent']} {out['daysOn']}")
 

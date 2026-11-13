@@ -105,8 +105,6 @@ def test_pages(scratch):
           all(shown(named[homes[a]], a) and not any(shown(named[homes[b]], a) for b in homes if b != a) for a in homes)
           and all(shown(named["family"], a) for a in homes),
           str({a: [h for h in homes.values() if shown(named[h], a)] for a in homes}))
-    check("223: the days of rounds on the Home are Idiograph's alone",
-          shown(named["days"], "idiograph") and not shown(named["days"], "sift"))
 
     # ── B. Settings per app, the page's tabs and the categories app.js walks
     tabs = [i for i in doc.items if i["pane"] and i["parent"] and i["parent"].get("id") == "settings-nav"]

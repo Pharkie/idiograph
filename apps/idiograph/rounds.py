@@ -30,7 +30,6 @@ import copy
 import datetime as dt
 import json
 import os
-import re
 import uuid
 from pathlib import Path
 
@@ -845,31 +844,6 @@ def today_work(progress: dict, rounds: list[dict]) -> tuple[int, int]:
             turns += len(rnd["stops"])
             seconds += int(entry.get("seconds") or 0)
     return turns, seconds
-
-
-DAY_KEY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-
-
-def days_total(workbooks) -> dict[str, int]:
-    """The rounds closed on each date, summed across the progress files of the workbooks given.
-
-    Each file is read as it sits, with nothing defaulted into it and nothing written. A file that
-    cannot be read adds nothing, and so does an entry that is not a date with a count of rounds.
-    """
-    total: dict[str, int] = {}
-    for workbook in workbooks:
-        try:
-            data = read_raw(workbook) or {}
-        except (ValueError, OSError):
-            continue
-        days = data.get("days")
-        if not isinstance(days, dict):
-            continue
-        for date, entry in days.items():
-            count = entry.get("rounds") if isinstance(entry, dict) else None
-            if DAY_KEY.match(str(date)) and isinstance(count, int) and not isinstance(count, bool) and count > 0:
-                total[date] = total.get(date, 0) + count
-    return dict(sorted(total.items()))
 
 
 def summary(sheets, progress, rounds, interviewer, daily_target) -> dict:

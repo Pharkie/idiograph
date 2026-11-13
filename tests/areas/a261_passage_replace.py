@@ -104,7 +104,6 @@ PAGE_ONLY = {
     "/api/audio": (("screen",), "whether the player has a recording and where it streams from, playback alone"),
     "/api/beat": (("screen",), "a tab's heartbeat, so the app knows a window is open"),
     "/api/check-key": ((4,), "the API key's check in Settings, a secret no agent ever handles"),
-    "/api/days": (("screen",), "the squares of his days on Home, a view of his own pace"),
     # a code taken from it is Add a code's own save, which `codes extract add` does for an agent (taaibuild)
     "/api/codes-suggest": (("own AI",), "the app's own AI's codes for an extract, which an agent works in place of"),
     "/api/examples": (("screen",), "the examples panel beside the fields, an aid on the screen"),

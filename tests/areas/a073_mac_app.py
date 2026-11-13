@@ -163,7 +163,7 @@ def test_mac_app(scratch):
         check("73: with no project nothing but the demo is reachable, and the app's own folder is never taken for a root",
               server_mod.within_root(server_mod.DEMO_WORKBOOK) and not server_mod.within_root(support.source("config.json"))
               and not server_mod.within_root(TOOL.parent.parent / "x.xlsx")
-              and idiograph_routes.project_root() is None and idiograph_routes.day_workbooks(server_mod.config()) == []
+              and idiograph_routes.project_root() is None
               and refused and stray.exists() == before)
         server_mod.PLATFORM = "linux"
         check("73: off a Mac the case list says there is no dialog", idiograph_routes.api_cases({})["choose"] is False)

@@ -48,7 +48,7 @@ a token block, when a `var(--name)` names nothing, and when a row below disagree
 | `--mark-dot` | `#F26B1D` | `#F26B1D` | The dot of Idiograph's mark wherever the mark is drawn, the launch film's orange, a graphic and never words, about 2.9 to 1 on the light paper and 6 to 1 on the dark (22 October) |
 | `--es-wash` | `12.5%` | `14.5%` | How much of its statement's bright tint a quote's wash takes in its passage, statements 2 to 6, the words on it reading at least as well as on the crux's wash in the same theme (18 October) |
 | `--es-lit` | `34%` | `22%` | The same wash lit, under the pointer or while its quote holds the caret, at least as readable as the crux's lit wash (18 October) |
-| `--accent` | `#786850` | `#B4A588` | The playhead, a quote being built, the demo tag, the days and a link to a page outside the app, never the crux orange |
+| `--accent` | `#786850` | `#B4A588` | The playhead, a quote being built, the demo tag and a link to a page outside the app, never the crux orange |
 | `--good` | `#4C6B45` | `#8FB183` | Supports, Include, saved, a phase complete, a passage decided in the transcript's margin and in the minimap's track, and the case's line and the round's short bar, which count decided passages (16 October) |
 | `--amber` | `#936000` | `#E3B45E` | The one warning tint: Question, Maybe, a card's failure line, a statement past its length, a run still waiting |
 | `--danger` | `#A8402F` | `#E58A78` | Doesn't support, Exclude, every Remove and Delete |
@@ -184,7 +184,7 @@ Table and the underline of its title in the audit trail (17 October).
   in the light amber, `PRINT_AMBER` in `themes_print.py`, as the GETs table on screen sets them, where the
   GETs print set them in an orange brown no token carries.
   So do, since 17 October, later, where each stood in it: a case's tag that its workbook is still to make, in
-  the soft ink on its own border, today among the days, outlined in the ink, the dot by Exploratory notes folded,
+  the soft ink on its own border, the dot by Exploratory notes folded,
   in the soft ink, the place in the round's tick, from the faint ink up to the ink, the player's play button and
   track and the canvas's play button under the pointer, in the ink as any control, the canvas's play button while
   it plays, in the accent as the playhead, and in Sift a sorted column's arrow, the bar that marks where a column

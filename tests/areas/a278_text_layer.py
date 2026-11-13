@@ -241,13 +241,13 @@ console.log(JSON.stringify(out));
         themes = support.text("apps/idiograph/static/themes.js")
         fn = lambda src, name: f"function {name}(" + src.split(f"function {name}(", 1)[1].split("\n}\n", 1)[0] + "\n}\n"
         line = lambda src, start: next(ln for ln in src.splitlines() if ln.startswith(start)) + "\n"
-        pieces = (fn(table, "tbDayWords") + fn(distil, "whenOf") + line(distil, "const DAYS_TIP = ")
+        pieces = (fn(table, "tbDayWords") + fn(distil, "whenOf")
                   + line(themes, "const TH_DAY = ") + line(themes, "const TH_DAY_YEAR = ")
                   + "const thSameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()\n"
                     "  && a.getDate() === b.getDate();\n"
                   + line(themes, "const thClockOf = ") + fn(themes, "thWhen") + fn(themes, "thDayOf"))
         dates = r"""
-const out = { long: [], short: [], weekdays: [], when: [], day: [] };
+const out = { long: [], short: [], when: [], day: [] };
 const now = new Date(2026, 9, 28, 9, 0);
 for (let m = 1; m <= 12; m++) {
   const mm = String(m).padStart(2, '0');
@@ -256,8 +256,6 @@ for (let m = 1; m <= 12; m++) {
   out.when.push(thWhen(new Date(2025, m - 1, 1, 12, 4).toISOString(), now));
   out.day.push(thDayOf(new Date(2026, m - 1, 9, 8, 0), now));
 }
-// a week of the days' squares from a Monday, as daysModel writes each square's tooltip
-for (let k = 0; k < 7; k++) out.weekdays.push(tDate(new Date(Date.UTC(2026, 8, 7 + k)), DAYS_TIP));
 out.notDate = [tbDayWords('soon'), whenOf('soon').day, tbDayWords('2026-13-01')];
 console.log(JSON.stringify(out));
 """
@@ -272,8 +270,6 @@ console.log(JSON.stringify(out));
                   d["long"] == [f"12 {m} 2026" for m in MONTHS_LONG], str(d["long"]))
             check("278: Mark complete's day (whenOf) says 3 Oct 2026 for every month as the table did, Sep never Sept",
                   d["short"] == [f"3 {m} 2026" for m in MONTHS_SHORT], str(d["short"]))
-            check("278: the days' squares say Mon 7 Sep to Sun 13 Sep as the two tables did",
-                  d["weekdays"] == [f"{w} {7 + k} Sep" for k, w in enumerate(WEEKDAYS)], str(d["weekdays"]))
             check("278: the boards' history says 1 October 2025 12:04 for another year's revision and 9 October 2026 for "
                   "a day this year, every month as the table did",
                   d["when"] == [f"1 {m} 2025 12:04" for m in MONTHS_LONG]

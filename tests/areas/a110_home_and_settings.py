@@ -108,7 +108,6 @@ let reply = null;
 async function api(path) { return JSON.parse(JSON.stringify(reply)); }
 function aiPage() {}
 function drawFeedback() {}
-function loadDays() {}
 function foldable(section, head, id) { calls.fold.push(id); }
 function shutIds() { return []; }
 function keepFold() {}

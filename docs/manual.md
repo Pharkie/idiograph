@@ -174,10 +174,10 @@ names has moved. On a Mac the entry 0.9.0 wrote still works.
 
 ## The loop
 
-**Open a participant.** Idiograph's Home opens with its wordmark and the Preview Edition stamp, the
-panel saying what the preview means right under them, then its line, "Software for Interpretative
-Phenomenological Analysis", and under it four short items in a row, Free, Open
-source, No cloud and Flexible. When the row wraps, Free and its Ko-fi button keep together, and so do Open source,
+**Open a participant.** Idiograph's Home opens with its wordmark and the Preview Edition stamp, then its
+line, "Software for Interpretative Phenomenological Analysis", and under it four short items in a row,
+Free, Open source, No cloud and Flexible, then the panel saying what the preview means (13 November,
+after the line and its items, where it stood under the wordmark before). When the row wraps, Free and its Ko-fi button keep together, and so do Open source,
 No cloud and Flexible, so no word is left alone on a line (22 October). Beside Free stands a
 small pale blue button, "Support me on Ko-fi", Ko-fi's own, its cup with a heart giving a little wiggle every few
 seconds, which opens Adam's Ko-fi page in your browser. The cup stays still when your computer is set to
@@ -185,8 +185,8 @@ reduce motion. The button is kept in the app, so nothing comes from Ko-fi until 
 their own. The head stands on the same grid as the projects under it (5 November): the lockup at the top left, with
 room above it, at least the height of its mark (32 pixels for the Preview Edition's lockup) below the
 top of the window's own title bar (6 November), and the page keeps a margin of 32 pixels at each side whatever the width of the window, level with Search, Send feedback and Settings at the top right, which show their words as they do on a project's screens and
-give them up the same way when the window is narrow, the target squares under them, and the preview's panel as wide as
-the column beside the squares allows, so it reads in four lines. Then
+give them up the same way when the window is narrow, and the preview's panel as wide as
+the column allows, so it reads in four lines. Then
 comes Projects, a card for each project, in the order the projects were added (see Projects). Its head folds
 the section to the head alone and opens it again, the fold kept in this browser, so a reload keeps it. A card carries the project's name in the serif, its
 research question under it, as Project settings has them, and in the small type where it stands: its
@@ -201,8 +201,8 @@ tagged "Thematic analysis demo", the same three invented participants coded in a
 the two methods can be compared on the same words. Demo projects starts folded to its head. Open it or fold it
 and Home keeps it that way, as Projects keeps its fold. On a Home with no project of yours yet, and before you
 have opened or folded it, it starts open, so the demos are there to find. Each demo's card opens its page, and
-its menu holds Project settings, read-only. Everything in the demos was made with AI, so each card says so on a line at its foot, "Demoing the app, not IPA" ("not thematic analysis" on the other), and that line opens a note saying what they are not for. Inside a demo the same note opens from the Demo mark beside the project's name. Settings, the cog
-and its word, at the head of Home over the days, opens Settings on General.
+its menu holds Project settings, read-only. Everything in the demos was made with AI, so each card says so on a line at its foot, "AI-generated: read details" (the same on every demo, 13 November), and that line opens a note headed "AI-generated demo" saying what they are not for. Inside a demo the same note opens from the Demo mark beside the project's name. Settings, the cog
+and its word, at the head of Home, opens Settings on General.
 
 A card opens its project's page. At its head the way back to Home, a round arrow, with
 the project's name and question beside it, then in the order of the work a row for each participant,
@@ -513,21 +513,6 @@ and cut at its end where it does not, the whole name under the pointer. The PETs
 `template/Transcript template.xlsx`, beside the app, is the three columns with three invented rows,
 for a transcript typed or pasted in by hand.
 
-**The days.** With Work in rounds ticked (see Rounds), in the head of Home, top right
-beside the wordmark, stand eight weeks of small squares, under the wordmark on a narrow screen, a column a week with Monday at the top and the
-newest week on the right, each day tinted by the rounds closed on it across every
-participant of every project, in four steps of the accent at rising strength: none, one, two, and three or
-more. Today is outlined in the ink, in the crux orange until 17 October, later, a day still to come
-this week is left blank, and each square's
-tooltip gives its figure, "Thu 1 Oct: 3 rounds". One line in the small type sits under them, "4
-days running. Target met 9 of the last 14 days.", the days in a row the daily target was met and
-how many of the last fourteen met it, today counted once its target is met, as the round card's
-streak counts it. The line is left out while the eight weeks hold no round. The tally is the one the
-target counts, kept in each participant's progress file, and `/api/days` sums it across every participant of
-every project and writes nothing. A page in front of a server that has not been restarted gets no answer
-from it and draws nothing there. With Work in rounds off, as on a new install, the head holds no squares
-and no line, and the page asks the server nothing for them (15 October).
-
 **The marks.** Idiograph's mark is an orange dot between two square brackets, the participant's
 experience held where the researcher's hand enters a quotation, and the wordmark at the head of its
 Home is that mark with the name beside it in the mark's square stroke. Its colour is a deep blue, about 7 to 1
@@ -702,7 +687,7 @@ under Experiential statements in Settings, off on a new install, and a settings 
 it reads off (15 October, `work_in_rounds` in `config.json`). With it off nothing about rounds shows
 anywhere: no round count or its short bar in the top bar, no round clock, no round markers across the
 transcript, no line to today's target or streak, no round card in mid-sheet and no confetti for a
-round, and no days on Home. The card still comes at a sheet's end and at the participant's end,
+round. The card still comes at a sheet's end and at the participant's end,
 without round figures, target or streak (see Round complete), and the quiet control that marks the
 phase complete still comes once every passage is decided (see Complete). The rounds are still cut and
 each still closes with the server as its last passage is decided, quietly, so the daily tally is true
@@ -2113,7 +2098,7 @@ the Web Audio API, quiet and with no audio file, the tick under 200ms, and reduc
 them alone. Save writes them to `config.json`, as `celebration_screens`, `celebrations` (on while any
 screen's is) and `sound`, and a page in front of
 a server that has not been restarted, which knows neither, reads Celebrations as on and Sound as
-off. The days in Home's head are a record rather than a flourish, and stay whatever the tick says.
+off.
 
 **Updates.** In Idiograph's own window, on a Mac, Windows or Linux, a small heading, Updates,
 stands under General before Closing (18 October), and a copy run from source in a browser shows nothing
@@ -2164,8 +2149,8 @@ the crux orange, tilted a little, under the end of the name, as the launch video
 stay as they are. The stamp stands on Home's head, where the lockup is a little larger than before, at the top of
 About Idiograph, which opens on the lockup in place of its name, and beside the mark on every title bar, small,
 where it and the mark are one button that goes Home. On a phone's width the bars drop the stamp and keep the mark.
-When the preview ends the stamp goes from every place at once. Right under the
-lockup on Home, so the stamp and what it means stand together (22 October), a quiet panel says what the preview means: an early proof of concept, not fully tested or reviewed, not for
+When the preview ends the stamp goes from every place at once. On Home, under the
+line and its four items (13 November, where it stood right under the lockup since 22 October), a quiet panel says what the preview means: an early proof of concept, not fully tested or reviewed, not for
 anything important, your data could be damaged or lost so keep copies, not yet a replacement for the software
 you use day to day, and tell Adam what you think with the bug button or by email, and, since the preview is
 private, "Please keep it to yourself for now: don't share it or post about it." (29 October). A small warning sign
@@ -4260,7 +4245,7 @@ wash of the paper lies over the rest of the screen under the bar, so nothing cut
 under it reads as part of it, as the guidance sheet's wash does (17 October, after the screenshot
 check). A click anywhere in the wash closes the card and goes on to do what it does. On a project's
 page the page comes up to the project's name and the card stands under it, so the name stays in sight,
-and on Home the card stands under the lockup and the head's tools, the days under the wash,
+and on Home the card stands under the lockup and the head's tools,
 so a phone's width keeps its room for the results. While more results wait below, the last one in
 sight fades at the card's foot. Every word typed is found, in any order, case and accents aside, so
 "walk dog" finds "the dog's walk" and "cafe" finds "café". Each word finds its other forms too, so
@@ -4336,7 +4321,7 @@ is written in the new shape only when Settings saves.
 **The project of a path.** Every request that reads or writes a file asks which project the path
 belongs to, the project whose root holds it, and works on that project's root, its project file,
 its GETs and its participants. A path under no project's root is refused, as a workbook outside the participant
-root always was. The recent list, the squares, the PETs screen's switcher, which lists
+root always was. The recent list, the PETs screen's switcher, which lists
 the participants of its own project, Find and every route keep their meaning across projects.
 
 **The project file.** A project has settings of its own, the research question first, because the

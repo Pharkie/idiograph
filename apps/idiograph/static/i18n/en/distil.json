@@ -87,9 +87,8 @@
   "distil.demo.reset_ask": "Put the three demo participants and the demo's GETs back the way they ship? Every statement, note, quote and board written in them goes.",
   "distil.demo.reset_ask_ta": "Put the three participants of the thematic analysis demo, its code list and its Themes board back the way they ship? Every code, extract, note and theme written in them goes.",
   "distil.demo.reset_done": "The demo is back the way it ships.",
-  "distil.demo.warn_ipa": "Demoing the app, not IPA",
-  "distil.demo.warn_ta": "Demoing the app, not thematic analysis",
-  "distil.demo.warn_lipa": "Demoing the app, not longitudinal IPA",
+  "distil.demo.warn": "AI-generated: read details",
+  "distil.demo.note_head": "AI-generated demo",
   "distil.demo.note_ipa_1": "Everything in this demo was made with AI: the interviews, the participants, their names, voices and pen portraits, and the experiential statements, PETs and GETs. Real interviews are confidential, so I can't share them. These are invented.",
   "distil.demo.note_ipa_2": "It demos the app, not IPA. I've made the analysis as good as I can, but no supervisor or peer has reviewed it. If you're learning IPA, please don't take it as what a finished study looks like, or as a benchmark for experiential statements, PETs or GETs: how they read, how they're grouped or how many there should be.",
   "distil.demo.note_ta_1": "Everything in this demo was made with AI: the interviews, the participants, their names, voices and pen portraits, and the codes and themes. Real interviews are confidential, so I can't share them. These are invented.",
@@ -146,17 +145,6 @@
   "distil.files.current_title": "The Current board, the one you are going with",
   "distil.files.current": "Current: {board}",
   "distil.files.pets_title": "Group this participant's statements into PETs",
-  "distil.days.tip": {
-    "one": "{day}: {n} round",
-    "other": "{day}: {n} rounds"
-  },
-  "distil.days.tip_none": "{day}: no rounds",
-  "distil.days.line_running": {
-    "one": "{n} day running. Target met {met} of the last {span} days.",
-    "other": "{n} days running. Target met {met} of the last {span} days."
-  },
-  "distil.days.line": "Target met {met} of the last {span} days.",
-  "distil.days.label": "Rounds closed each day, the last {weeks} weeks",
   "distil.files.es_marked": "Experiential statements marked complete, {day}",
   "distil.files.pets_marked": "PETs marked complete, {day}",
   "distil.files.pets_marked_on": "PETs marked complete, {day}, on {board}",

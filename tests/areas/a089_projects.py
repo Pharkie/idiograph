@@ -205,13 +205,6 @@ def test_projects(scratch):
         conts = [(s["project"]["name"], c["case"]) for s in listed["projects"] for c in s["participants"] if "continue" in c]
         check("89: opening a case of the other project puts it at the head, and the recent list keeps both",
               conts == [] and [r["path"] for r in listed["recent"]] == [rel(loose), rel(ada_b)], str(conts))
-        total = rounds_mod.days_total
-        each = [total(idiograph_routes.day_workbooks({"projects": [{"root": str(r)}]})) for r in (bees, cello)]
-        summed = {d: each[0].get(d, 0) + each[1].get(d, 0) for d in set(each[0]) | set(each[1])}
-        days = idiograph_routes.api_days({})["days"]
-        check("89: the squares count every project's rounds, summed day by day",
-              days == summed and sum(days.values()) > 0 and sum(each[1].values()) > 0
-              and set(idiograph_routes.day_workbooks(server_mod.config())) >= {ada, ada_b}, f"{sum(days.values())} rounds")
 
         # ── F. his order, in the project file
         cards = [{"case": c} for c in ("P1 - Ada", "P2 - Bea", "P3 - Cal", "P10 - Eve", "Loose")]

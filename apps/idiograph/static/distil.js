@@ -248,11 +248,13 @@ function demoNoteShut(back = false) {
   }
 }
 
-/* each demo's card line and note, by its method, every key named whole so the catalogue's check sees it used */
+/* each demo's card line and its note's heading, one for every demo (homeorder, 13 November 2026, Adam), then the
+   note's two paragraphs by its method, every key named whole so the catalogue's check sees it used */
 function demoWords(kind) {
-  if (kind === 'ta') return [t('distil.demo.warn_ta'), t('distil.demo.note_ta_1'), t('distil.demo.note_ta_2')];
-  if (kind === 'lipa') return [t('distil.demo.warn_lipa'), t('distil.demo.note_lipa_1'), t('distil.demo.note_lipa_2')];
-  return [t('distil.demo.warn_ipa'), t('distil.demo.note_ipa_1'), t('distil.demo.note_ipa_2')];
+  const head = [t('distil.demo.warn'), t('distil.demo.note_head')];
+  if (kind === 'ta') return [...head, t('distil.demo.note_ta_1'), t('distil.demo.note_ta_2')];
+  if (kind === 'lipa') return [...head, t('distil.demo.note_lipa_1'), t('distil.demo.note_lipa_2')];
+  return [...head, t('distil.demo.note_ipa_1'), t('distil.demo.note_ipa_2')];
 }
 
 function demoNoteOpen(by, kind) {
@@ -261,7 +263,7 @@ function demoNoteOpen(by, kind) {
   const was = demoNoteBy;
   demoNoteShut();
   if (was === by) return;
-  const [head, one, two] = demoWords(kind);
+  const [, head, one, two] = demoWords(kind);
   $('demo-note-head').textContent = head;
   $('demo-note-1').textContent = one;
   $('demo-note-2').textContent = two;
@@ -2362,82 +2364,6 @@ function renderFiles(list, items) {
     }
     list.appendChild(li);
   }
-}
-
-/* ─────────────────────────────────────────────────────── the days ── */
-
-/* In the head of the home screen, top right beside the wordmark and under it on a narrow screen
-   (item 195), eight weeks of small squares (item 159): a column a week, Monday at the top and
-   the newest week on the right, each day tinted by the rounds closed on it across every case under
-   the root, in four steps of the accent, none, one, two, and three or more, with today outlined
-   and its figure in a tooltip, "Thu 1 Oct: 3 rounds". Days still to come in this week are left
-   blank. One line under it gives the run of days the target was met and how often it was met in
-   the last fourteen days, "4 days running. Target met 9 of the last 14 days.", counting today
-   once its target is met, the way the round card's streak does, and it is left out while the
-   eight weeks hold no round at all. The tally comes from `/api/days`, which sums every case's, and
-   a server without it draws nothing. Nothing here writes. */
-const DAYS_WEEKS = 8;
-const DAYS_SPAN = 14;
-/* a square's day in its tooltip, Thu 3 Sep, through Intl in UTC (i18n.js's tDate) */
-const DAYS_TIP = { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' };
-
-const isoDay = (d) => d.toISOString().slice(0, 10);
-const dayShift = (d, k) => { const x = new Date(d.getTime()); x.setUTCDate(x.getUTCDate() + k); return x; };
-
-/* The squares and the line, from the server's answer: the columns, oldest first, each of seven
-   days from Monday, a day still to come as null, every other with its rounds, its step and its
-   tooltip. Dates are taken in UTC throughout, so a change of the clocks never moves a day. */
-function daysModel(data) {
-  const today = new Date(`${data && data.today}T00:00:00Z`);
-  if (Number.isNaN(today.getTime())) return null;
-  const tally = (data && data.days) || {};
-  const target = Math.max(1, Number(data.dailyTarget) || 2);
-  const rounds = (d) => Number(tally[isoDay(d)]) || 0;
-  const first = dayShift(today, -((today.getUTCDay() + 6) % 7) - 7 * (DAYS_WEEKS - 1));
-  const columns = [];
-  let any = false;
-  for (let w = 0; w < DAYS_WEEKS; w += 1) {
-    const column = [];
-    for (let k = 0; k < 7; k += 1) {
-      const d = dayShift(first, 7 * w + k);
-      if (d > today) { column.push(null); continue; }
-      const n = rounds(d);
-      if (n) any = true;
-      column.push({ iso: isoDay(d), rounds: n, step: Math.min(3, n), today: d.getTime() === today.getTime(),
-        tip: n ? t('distil.days.tip', { day: tDate(d, DAYS_TIP), n }) : t('distil.days.tip_none', { day: tDate(d, DAYS_TIP) }) });
-    }
-    columns.push(column);
-  }
-  const last = rounds(today) >= target ? today : dayShift(today, -1);
-  let running = 0;
-  for (let d = last; rounds(d) >= target; d = dayShift(d, -1)) running += 1;
-  let met = 0;
-  for (let k = 0; k < DAYS_SPAN; k += 1) if (rounds(dayShift(last, -k)) >= target) met += 1;
-  const line = !any ? '' : running ? t('distil.days.line_running', { n: running, met, span: DAYS_SPAN })
-    : t('distil.days.line', { met, span: DAYS_SPAN });
-  return { columns, line, running, met };
-}
-
-function drawDays(data) {
-  const box = $('days');
-  const model = data ? daysModel(data) : null;
-  box.hidden = !model;
-  if (!model) { box.innerHTML = ''; return; }
-  const cells = model.columns.flat().map((d) => (d
-    ? `<span class="day s${d.step}${d.today ? ' today' : ''}" title="${escAttr(d.tip)}"></span>`
-    : '<span class="day ahead"></span>')).join('');
-  box.innerHTML = `<div class="days-grid" role="img" aria-label="${escAttr(t('distil.days.label', { weeks: DAYS_WEEKS }))}">${cells}</div>`
-    + (model.line ? `<p class="days-line">${esc(model.line)}</p>` : '');
-}
-
-/* fetched beside the case list and drawn when it lands, unless a newer list has been asked for, and
-   with Work in rounds off never asked for, the squares and their line left out (15 October) */
-async function loadDays(ask) {
-  if (!roundsOn(S.libConfig)) { drawDays(null); return; }
-  let data = null;
-  try { data = await api('/api/days'); } catch (err) { data = null; }
-  if (ask !== libraryAsk) return;
-  drawDays(data);
 }
 
 /* A row's marks, after the case and its sheets: " · Statements complete", " · PETs complete" or,
@@ -13432,7 +13358,6 @@ FAMILY_APPS.idiograph = {
     if (S.home === null && S.oneRun && first) homeKeep(first.id);
   },
   homeDraw: (...a) => distilHomeDraw(...a),
-  homeAfter: (ask) => loadDays(ask),
   homeFirst: (...a) => distilHomeFirst(...a),
   recent: (...a) => distilRecent(...a),
   config: () => (typeof TH !== 'undefined' && TH && TH.config) || null,

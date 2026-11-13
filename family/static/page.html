@@ -30,13 +30,10 @@ try {
 
 <!-- ────────────────────────────────────────────── library ── -->
 <section id="library" class="screen">
-  <!-- the head: the wordmark and its line, top right the days, eight weeks of small squares, a
-       column a week with Monday at the top and this week on the right, each tinted by the rounds
-       closed that day across every case, and one line under them, and over the days Search, Send
-       feedback and Settings, each icon and its word as on every bar (12 October), Settings opening on
-       General. On a narrow screen the days go under the wordmark. A server with no /api/days leaves them hidden. The wordmark is the
+  <!-- the head: the wordmark and its line. The wordmark is the
        lockup (15 October), Idiograph's mark from marks.svg and its name in tracked capitals drawn
-       with the mark's square stroke, so no font is needed -->
+       with the mark's square stroke, so no font is needed. The order down the head (homeorder, 13 November 2026,
+       Adam): the lockup with its Preview Edition stamp, the line, the highlights, then the Preview note -->
   <header class="lib-head">
     <!-- the head's top row (homehead, 5 November 2026, Adam): the lockup at the left and the tools at the right, their
          tops on one line, as close under the title bar as a screen's bar keeps its tools, the words shown and given
@@ -62,10 +59,6 @@ try {
       </button>
       </div>
     </div>
-    <!-- what the Preview Edition means (Adam, 21 October 2026), in a quiet panel right under the lockup, so the
-         stamp and what it means stand together (22 October), Idiograph's alone and shown while the server's
-         PREVIEW_EDITION is on, a small warning sign at its start drawn as the bars' icons are, in the crux orange -->
-    <p class="pe-note" data-only="idiograph"><svg class="pe-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.3 4.2 2.9 17.5A2 2 0 0 0 4.6 20.5h14.8a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4.5"/><path d="M12 17.2v.1"/></svg><span>{{page.preview_note}}</span></p>
 <!--slot:lede-->
     <!-- every app's highlights under its line, short items in a row that wraps whole (Adam, 21 October).
          Idiograph's, as the launch film has them (22 October): Free, Open source, No cloud, Flexible, "Built
@@ -80,7 +73,10 @@ try {
          link, then Open source, No cloud and Flexible together, so no word is ever left alone on a line (homehead,
          5 November 2026, Adam) -->
     <ul class="lede-points" aria-label="{{page.lede.label}}"><li class="lp-free"><span>{{page.lede.free}}</span><a class="kofi" href="https://ko-fi.com/X8X01NIXRB" target="_blank" rel="noopener" title="{{page.lede.kofi_title}}"><img class="kofi-cup" src="/vendor/kofi/cup-border.png" alt="{{page.lede.kofi_alt}}" width="15" height="10">{{page.lede.kofi}}</a><button type="button" class="linklike lp-support" id="lib-support">{{page.lede.support}}</button></li><li class="lp-rest"><span>{{page.lede.open_source}}</span><span data-only="idiograph">{{page.lede.no_cloud}}</span><span>{{page.lede.flexible}}</span><span data-only="sift trace">{{page.lede.no_cloud}}</span></li></ul>
-    <div class="days" id="days" data-only="idiograph" hidden></div>
+    <!-- what the Preview Edition means (Adam, 21 October 2026), in a quiet panel under the line and its highlights (13 November, Adam: after them, where it stood
+         under the lockup since 22 October), Idiograph's alone and shown while the server's
+         PREVIEW_EDITION is on, a small warning sign at its start drawn as the bars' icons are, in the crux orange -->
+    <p class="pe-note" data-only="idiograph"><svg class="pe-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.3 4.2 2.9 17.5A2 2 0 0 0 4.6 20.5h14.8a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4.5"/><path d="M12 17.2v.1"/></svg><span>{{page.preview_note}}</span></p>
   </header>
 
   <div class="lib-body">
