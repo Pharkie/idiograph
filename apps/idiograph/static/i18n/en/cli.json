@@ -1004,6 +1004,10 @@
   "cli.copies_refresh.statements_missing": "{statements} no longer in the workbook, left in the copy ({keys})",
   "cli.copies_refresh.board_cards": "{cards} on {board} {verb} the workbook's words ({keys})",
   "cli.copies_refresh.board_missing": "{cards} on {board} whose statement is no longer in the workbook, left there ({keys})",
+  "cli.copies_refresh.bold_cell": "{case}{at}, {lpet}, key quote {quote}: {parts}.",
+  "cli.copies_refresh.bold_moved": "{n} of his bold moved to the same words in the new quote",
+  "cli.copies_refresh.bold_moved_dry": "{n} of his bold would move to the same words in the new quote",
+  "cli.copies_refresh.bold_dropped": "his bold left off where the words are gone from the new quote: {n}, look at this cell",
   "cli.copies_refresh.changed_mark": "A card the PETs screen marks Changed takes the workbook's words too: Idiograph cannot tell a change he has yet to look at from a card a write left behind, so the workbook wins.",
   "cli.copies_refresh.history": "Each board it changed keeps the board as it stood first in its History, as \"{history}\", and is marked as changed in a conversation."
 }

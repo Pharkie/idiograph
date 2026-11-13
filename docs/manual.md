@@ -3597,7 +3597,10 @@ quote it writes for a statement goes with the statement's words into the GETs, a
 timepoints into the LPETs, the LGETs and the key quotes on Trajectories (13 November). Should a card or a
 copy ever fall behind the workbook, the agent can bring every one back in line with `copies refresh`,
 after a dry run that names each by its key: the workbook's words and quotes win, a card marked Changed
-among them, and a card whose statement has gone stays on the board for him to remove. A
+among them, and a card whose statement has gone stays on the board for him to remove. When a quote is
+reworded, the PET's pick stays on its statement with the new words, and a key quote's bold on Trajectories moves
+to the same words in the new quote. Where those words are gone the bold is left off and the dry run lists the
+cell by participant, timepoint and LPET, so you can look at it. A
 statement it removes from a passage takes its card off every board, and every card after it in that
 passage moves with its statement, so no card shows its neighbour's words (20 October). On the interviewer's
 own passages it writes nothing but a removal (13 November 2026): a statement or a quote left on one of his turns

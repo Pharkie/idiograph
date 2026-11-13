@@ -55,10 +55,15 @@ def test_quotes_safe(scratch):
     gone_moves, moved_moves = {}, {}
     reworded = themes_mod.follow(board(bare), card, row('"the words he said"'), gone_moves)
     moved = themes_mod.follow(board(bare), card, row('"other words"', "“the words she said”"), moved_moves)
-    check("96: a real change of words still drops the pick, and words moved along the row still move it",
-          reworded["picks"] == {} and gone_moves == {("g1", "S:3:0"): None}
+    check("96: a quote reworded keeps its pick with the statement and takes the new words (quotefollow, 13 November), "
+          "and words moved along the row still move it",
+          reworded["picks"] == {"g1": ["S:3:0"]} and reworded["quoted"] == {"S:3:0": '"the words he said"'}
+          and gone_moves == {("g1", "S:3:0"): "S:3:0"}
           and moved["picks"] == {"g1": ["S:3:1"]} and moved_moves == {("g1", "S:3:0"): "S:3:1"},
           f"{reworded['picks']} {moved['picks']}")
+    emptied = themes_mod.follow(board(bare), card, row())
+    check("96: a pick whose quote is gone from its place altogether is dropped",
+          emptied["picks"] == {} and not emptied.get("quoted"), str(emptied["picks"]))
     check("96: only the inverted commas round the whole quote are set aside, and the spacing inside them",
           themes_mod.quote_words(" “ two  words ” ") == "two words" and themes_mod.quote_words("'\"nested\"'") == "nested"
           and themes_mod.quote_words('"one side') == '"one side' and themes_mod.quote_words("it's hers") == "it's hers"
@@ -191,10 +196,9 @@ def test_quotes_safe(scratch):
         code, data, _ = write("reword", reword, "--dry-run")
         _, text, _ = run("turn", "write", "Juno", DEMO_SHEET, "15", "--from", spec("reword", reword), "--note", "reword",
                          "--dry-run")
-        check("96: a real change of words: the dry run says the pick would be dropped, and nothing is written",
-              code == 0 and [(m["key"], m["to"], m["label"], m["name"]) for m in data.get("picks") or []]
-              == [(k15, None, walk, made["name"])]
-              and f"On {made['name']}, the pick {k15} on 'An invented walk' would be dropped" in text
+        check("96: a quote reworded: the dry run names no pick dropped, the pick following its statement, and nothing "
+              "is written",
+              code == 0 and not data.get("picks") and "would be dropped" not in text
               and cells(15)[1] == f'"{qa}"\n\n(no quote)\n\n{lone}\n\n"{qb}"', text)
         swap = {"pairs": [{"statement": second, "quote": ""}, {"statement": f"{first} reworded", "quote": qa}]}
         code, data, _ = write("swap", swap, "--dry-run")

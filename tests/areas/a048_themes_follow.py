@@ -205,7 +205,8 @@ def _follow_checks(scratch, root, server_mod, themes_mod):
           and board(work)["quoted"] == {f"{S}:3:0": Q2, f"{S}:9:0": Q9}, str(board(work).get("quoted")))
     wb_mod.save_turn(work, S, 9, None, None, '"twenty to seven"')
     shown = idiograph_routes.api_themes({"workbook": str(work)})
-    check("a quote reworded drops the pick", shown["picks"]["g1"] == [f"{S}:3:0"], str(shown["picks"]))
+    # a reworded quote keeps its pick, with its new words (quotefollow, Adam 13 November 2026: "the pick follows")
+    check("a quote reworded keeps the pick", shown["picks"]["g1"] == [f"{S}:3:0", f"{S}:9:0"], str(shown["picks"]))
     legacy = page_body(shown)
     legacy["picks"]["g1"] = [f"{S}:3:0"]
     check("a pick with no words kept, from a file before them, is judged by its key as before",

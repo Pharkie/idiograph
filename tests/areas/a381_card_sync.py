@@ -11,7 +11,9 @@ and naming the quotes, the timepoint left in. A clean project's `copies refresh 
 pick's quote and copies' lines made stale by hand are marked card stale by `board show` and named by key, never by
 their words, in the dry run, which writes nothing. The refresh brings each back, one History step on each board it
 changes, marked changed by the agent, a card whose statement is gone listed and left, and the app reads the card
-afresh, not changed.
+afresh, not changed. A requote keeps the PET's pick on its statement with the quote's new words, and a key quote's
+bold moves to the same words in the new quote, dropped and listed by key where the words are gone, in a write and in
+the refresh (quotefollow, 13 November 2026).
 
 Every word invented: an adult learning to sail over a year, Tove, asked by Ines.
 """
@@ -291,5 +293,73 @@ def test_card_sync(scratch):
               and st["picks"].get("g2") == [k2] and "stale_cards" not in shown
               and code == 0 and (again["cards"], again["statements"], again["quotes"], again["missing"]) == (0, 0, 0, 1),
               str(again)[:500])
+
+        # ── D. a requote keeps the PET's pick and moves his bold to the same words (quotefollow, 13 November 2026)
+        bf = gets_mod.bold_followed
+        check("381: bold moves to the same words, exactly first, then with case and punctuation set aside, and is "
+              "dropped where the words are gone, never put on others",
+              bf("I took the tiller", "Then I took the tiller", [[2, 6], [11, 17]]) == ([[7, 11], [16, 22]], 2, 0)
+              and bf("I took the tiller", '"Took the tiller."', [[2, 6]]) == ([[1, 5]], 1, 0)
+              and bf("I took the tiller", "I took the tiller", [[2, 6]]) == ([[2, 6]], 0, 0)
+              and bf("I took the tiller", "Then I TOOK the helm", [[2, 6], [11, 17]]) == ([[7, 11]], 1, 1)
+              and bf("I took the tiller", "Nothing alike", [[2, 6]]) == ([], 0, 1),
+              str(bf("I took the tiller", "Then I TOOK the helm", [[2, 6], [11, 17]])))
+        lpd = read(lpfile)
+        gid = lpd["boards"][0]["groups"][0]["id"]
+        lpd["boards"][0].setdefault("rows", {})[gid] = {"T1": {"quote": k2, "note": "", "bold": [[2, 6], [11, 17]]}}
+        write(lpfile, lpd)
+        code, shown, err = run("turn", "show", "Tove", s1, str(r1[1]))
+        spec2 = scratch / "a381-turn2.json"
+        spec2.write_text(json.dumps({"pairs": [{"statement": "Steering for the first time", "quote": "the tiller and the boat turned",
+                                                "key": k2}], "version": shown["turns"][0]["version"],
+                                     "request": "Reword Tove's steering quote"}), encoding="utf-8")
+        whole = tree(sail)
+        code, dry, err = run("turn", "write", "Tove", s1, str(r1[1]), "--from", str(spec2), "--dry-run")
+        code_t, dry_text, _ = run("turn", "write", "Tove", s1, str(r1[1]), "--from", str(spec2), "--dry-run",
+                                  as_json=False)
+        cells2 = (dry.get("copies") or {}).get("lpets", {}).get("bold") or []
+        check("381: the write's dry run lists the key quote's bold that would move and be dropped, by key and never "
+              "by words, and no pick dropped, writing nothing",
+              code == 0 and [(c["key"], c["moved"], c["dropped"], c["lpet"]) for c in cells2] == [(k2, 1, 1, gid)]
+              and "left off" in dry_text and k2 in dry_text
+              and not [ln for ln in dry_text.splitlines() if "key quote" in ln and ("tiller" in ln or "took" in ln)]
+              and not dry.get("picks") and tree(sail) == whole, err or str(dry)[:600])
+        code, text, err = run("turn", "write", "Tove", s1, str(r1[1]), "--from", str(spec2), "--tool", "Claude Code",
+                              as_json=False)
+        board1 = read(pets1)["boards"][0]
+        lpd = read(lpfile)
+        new_quote = lpd["cases"]["T1"]["lines"][k2]["quotes"][0]
+        at = new_quote.find("tiller")
+        st = call("/api/themes", {"workbook": str(book), "timepoint": 1})
+        check("381: the requote keeps the PET's pick on its statement as the app reads the board, and the refresh "
+              "would take the quote's new words onto it",
+              code == 0 and board1["picks"].get("g2") == [k2] and st["picks"].get("g2") == [k2]
+              and any(k2 in f.get("quotes", []) for f in (run("copies", "refresh", "--dry-run")[1].get("participants")
+                                                           or [{}])[0].get("files", []) if f.get("file") == "pets"),
+              str(board1.get("picks")) + str(st["picks"]))
+        check("381: and moves the key quote's bold to the same words in the LPETs' new quote, the span whose words "
+              "are gone left off",
+              at >= 0 and lpd["boards"][0]["rows"][gid]["T1"].get("bold") == [[at, at + 6]], str(lpd["boards"][0]["rows"]))
+        # a copy left stale by hand, bold measured against the old quote: the refresh moves it with the quote
+        lpd["cases"]["T1"]["lines"][k2]["quotes"] = ["I took the tiller"]
+        lpd["boards"][0]["rows"][gid]["T1"]["bold"] = [[2, 6], [11, 17]]
+        write(lpfile, lpd)
+        whole = tree(sail)
+        code, dry, err = run("copies", "refresh", "--case", "Tove", "--dry-run")
+        code_t, dry_text, _ = run("copies", "refresh", "--case", "Tove", "--dry-run", as_json=False)
+        cells3 = [c for p in dry.get("participants") or [] for f in p["files"] for c in f.get("bold") or []]
+        check("381: the refresh's dry run reports the bold that would move and be dropped, by key, cell and LPET, never "
+              "the words, and writes nothing",
+              code == 0 and [(c["key"], c["lpet"], c["moved"], c["dropped"]) for c in cells3] == [(k2, gid, 1, 1)]
+              and (dry["bold_moved"], dry["bold_dropped"]) == (1, 1) and "key quote" in dry_text and k2 in dry_text
+              and not [ln for ln in dry_text.splitlines() if "key quote" in ln and "tiller" in ln]
+              and tree(sail) == whole, err or str(dry)[:600])
+        code, done, err = run("copies", "refresh", "--case", "Tove", "--note", "Bring Tove's quote back in line",
+                              "--tool", "Claude Code")
+        lpd = read(lpfile)
+        at = lpd["cases"]["T1"]["lines"][k2]["quotes"][0].find("tiller")
+        check("381: the refresh writes the new quote and the bold on the same words, one History step on the LPETs board",
+              code == 0 and at >= 0 and lpd["boards"][0]["rows"][gid]["T1"].get("bold") == [[at, at + 6]]
+              and lpd["boards"][0]["history"][-1]["name"] == "Before: Bring Tove's quote back in line", err or str(done)[:400])
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept

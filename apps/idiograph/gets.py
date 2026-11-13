@@ -1688,6 +1688,120 @@ def quotes_carried(lines: dict, key: str, old: str, new: str, carried: dict | No
     return out
 
 
+def _starts(text: str, part: str) -> list[int]:
+    """Every place `part` begins in `text`, overlapping ones too."""
+    out, at = [], text.find(part) if part else -1
+    while at >= 0:
+        out.append(at)
+        at = text.find(part, at + 1)
+    return out
+
+
+def bold_followed(old: str, new: str, spans) -> tuple[list[list[int]], int, int]:
+    """A key quote's bold carried to the quote worded anew (quotefollow, 13 November 2026, Adam: "keep it where the
+    words survive"). His bold is kept as character positions against the quote as the copy holds it, so a requote
+    leaves each span on the wrong words. Each span moves to the same words in `new`: the words exactly as they were
+    first, and failing that the same letters and figures, case and punctuation set aside, the nearest place to where
+    they stood and clear of the span before. A span whose words are gone from `new` is dropped, never put on other
+    words. Answers the spans after, the number that moved to another place and the number dropped."""
+    old, new = str(old or ""), str(new or "")
+    held = spans_kept(spans)
+    if old == new:
+        return held, 0, 0
+    # the letters and figures of the new quote, lower-cased, each with its place
+    flat = [(ch.casefold(), i) for i, ch in enumerate(new) if ch.isalnum()]
+    flat_text = "".join(ch for ch, _ in flat)
+    out: list[list[int]] = []
+    moved = dropped = 0
+    for a, b in held:
+        words = old[a:b]
+        found = None
+        if words.strip():
+            marks = [m for m in _starts(new, words) if not out or m >= out[-1][1]]
+            if marks:
+                at = min(marks, key=lambda m: (abs(m - a), m))
+                found = [at, at + len(words)]
+            else:
+                bare = "".join(ch.casefold() for ch in words if ch.isalnum())
+                marks = [m for m in _starts(flat_text, bare) if not out or flat[m][1] >= out[-1][1]] if bare else []
+                if marks:
+                    before = sum(1 for ch in old[:a] if ch.isalnum())
+                    at = min(marks, key=lambda m: (abs(m - before), m))
+                    found = [flat[at][1], flat[at + len(bare) - 1][1] + 1]
+        if found is None:
+            dropped += 1
+            continue
+        if found != [a, b]:
+            moved += 1
+        out.append(found)
+    return spans_kept(out), moved, dropped
+
+
+def bold_changes(data: dict, case: str, places: dict[str, tuple[str, str]]) -> list[dict]:
+    """The key quotes whose bold a requote of a copy's quotes moves (quotefollow, 13 November 2026): `places` holds, by
+    the quote's key, `<sheet>:<row>:<place>`, the quote as the copy held it and as it will hold it. Every board of the
+    file that ticked such a quote for `case` as a row's key quote, with bold in it, is one answer: its `board` id and
+    name, the LPET (`gid`, `lpet` its title), `case`, the quote's `key`, the spans `after`, and how many `moved` and
+    were `dropped`. A passage of the transcript is never marked by a requote. Nothing is written."""
+    out = []
+    for board in boards_of(data):
+        rows = board.get("rows") if isinstance(board.get("rows"), dict) else {}
+        titles = {str(g.get("id")): str(g.get("label") or "") for g in board.get("groups") or [] if isinstance(g, dict)}
+        for gid, cases in rows.items():
+            row = cases.get(case) if isinstance(cases, dict) else None
+            if not isinstance(row, dict) or not row.get("bold"):
+                continue
+            key = " ".join(str(row.get("quote") or "").split())
+            if key not in places:
+                continue
+            after, moved, dropped = bold_followed(places[key][0], places[key][1], row["bold"])
+            if after != spans_kept(row["bold"]):
+                out.append({"board": str(board.get("id")), "name": str(board.get("name") or FIRST_NAME), "gid": str(gid),
+                            "lpet": titles.get(str(gid), ""), "case": case, "key": key, "after": after,
+                            "moved": moved, "dropped": dropped})
+    return out
+
+
+def bold_set(data: dict, changes: list[dict]) -> None:
+    """The bold `bold_changes` found, written to the boards' rows, a row left with none keeping no bold."""
+    for c in changes:
+        for board in boards_of(data):
+            if str(board.get("id")) != c["board"]:
+                continue
+            row = ((board.get("rows") or {}).get(c["gid"]) or {}).get(c["case"])
+            if not isinstance(row, dict):
+                continue
+            if c["after"]:
+                row["bold"] = c["after"]
+            else:
+                row.pop("bold", None)
+
+
+def bold_report(changes: list[dict], entries: list[dict]) -> list[dict]:
+    """What `bold_changes` found as a report: each key quote's cell by the participant's case, its timepoint's label
+    where the copy is by timepoint, the LPET, its board and the quote's key, with how many spans moved and were
+    dropped, never a word of the quote."""
+    cite = {e["case"]: e.get("cite") or "" for e in entries}
+    return [{"case": c["case"], "timepoint": cite.get(c["case"]) or None, "board": c["board"], "board_name": c["name"],
+             "lpet": c["gid"], "title": c["lpet"], "key": c["key"], "moved": c["moved"], "dropped": c["dropped"]}
+            for c in changes]
+
+
+def bold_places(lines: dict, requoted: dict[str, list[str]]) -> dict[str, tuple[str, str]]:
+    """What a copy's quotes at each place were and will be, for `requoted` (each line's key with its quotes after): by
+    the quote's key, the first line of the row to change it."""
+    out: dict[str, tuple[str, str]] = {}
+    for lkey, after in requoted.items():
+        line = lines.get(lkey) or {}
+        held = [str(q or "") for q in line.get("quotes") or []]
+        for i in range(max(len(held), len(after))):
+            was = held[i] if i < len(held) else ""
+            now = str(after[i] or "") if i < len(after) else ""
+            if was != now:
+                out.setdefault(f"{line.get('sheet')}:{line.get('row')}:{i}", (was, now))
+    return out
+
+
 def statements_followed(root: Path, workbook: Path, words: dict, before: dict, books: list[dict] | None = None,
                         dry: bool = False, changed: dict | None = None, history: str = "",
                         said: dict | None = None, quotes: dict | None = None) -> dict:
@@ -1738,16 +1852,21 @@ def statements_followed(root: Path, workbook: Path, words: dict, before: dict, b
     # the statements whose card a board keeps marked for the write: those that took words, and those that took a quote
     marks = {case: list(dict.fromkeys(took.get(case, []) + quoted.get(case, [])))
              for case in held if case in took or case in quoted}
+    # his bold in a key quote, moved to the same words in the quote worded anew (quotefollow, 13 November 2026)
+    bold = [c for case, carried in requoted.items()
+            for c in bold_changes(data, case, bold_places(held[case].get("lines") or {}, carried))]
     boards = []
     for board in boards_of(data):
         cards = board.get("cards") if isinstance(board.get("cards"), dict) else {}
         keys = [card_of(case, "es", key) for case, keys in marks.items() for key in keys
                 if isinstance(cards.get(card_of(case, "es", key)), dict)]
-        if keys:
+        if keys or any(c["board"] == str(board.get("id")) for c in bold):
             boards.append({"board": str(board.get("id")), "name": str(board.get("name") or FIRST_NAME), "keys": keys})
     out = {"cases": [c for c in held if c in marks], "boards": boards,
            "words": list(dict.fromkeys(k for keys in took.values() for k in keys)),
            "quotes": list(dict.fromkeys(k for keys in quoted.values() for k in keys))}
+    if bold:
+        out["bold"] = bold_report(bold, entries)
     if dry:
         return out if marks else {}
     when = themes.now_iso()
@@ -1771,6 +1890,7 @@ def statements_followed(root: Path, workbook: Path, words: dict, before: dict, b
         for lkey, places in carried.items():
             rec["lines"][lkey]["quotes"] = places
         rec["hash"] = snap_hash(rec)
+    bold_set(data, bold)
     # a copy with nothing else waiting keeps its files' new times (see `untouched`), read afresh to be sure
     kept = kept_in(held, entries, before)
     for board in boards_of(data):
@@ -1902,27 +2022,36 @@ def copies_refreshed(root: Path, workbook: Path, truth: dict, books: list[dict] 
         if took or gone:
             boards.append({"board": str(board.get("id")), "name": str(board.get("name") or FIRST_NAME),
                            "cards": took, "missing": gone})
+    # his bold in a key quote, moved to the same words in the quote the copy takes (quotefollow, 13 November 2026)
+    bold = []
+    for case, lines in fix.items():
+        carried = {key: took["quotes"] for key, took in lines.items() if "quotes" in took}
+        bold += bold_changes(data, case, bold_places(held[case].get("lines") or {}, carried))
     out = {"statements": statements, "quotes": quotes, "missing": missing, "boards": boards}
+    if bold:
+        out["bold"] = bold_report(bold, entries)
     if dry or not (fix or any(b["cards"] for b in boards)):
         return out
     when = themes.now_iso()
     by_id = {b["board"]: b for b in boards if b["cards"]}
+    touched = set(by_id) | {c["board"] for c in bold}
     for board in boards_of(data):
         said = by_id.get(str(board.get("id")))
-        if not said:
+        if str(board.get("id")) not in touched:
             continue
         themes.add_revision(board, name=history, at=when)
-        for ck in said["cards"]:
+        for ck in (said or {}).get("cards") or []:
             board["cards"][ck]["text"] = truth[split_key(ck)["ident"]]["text"]
     for case, lines in fix.items():
         rec = held[case]
         for key, took in lines.items():
             rec["lines"][key].update(took)
         rec["hash"] = snap_hash(rec)
+    bold_set(data, bold)
     # a copy that now reads as its files do keeps their times, never marked Changed since it came in for this
     kept_in(held, entries, {case: True for case in fix})
     for board in boards_of(data):
-        if str(board.get("id")) in by_id:
+        if str(board.get("id")) in touched:
             board["updated"] = when
             if changed:
                 board["changed"] = dict(changed, at=when)

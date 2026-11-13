@@ -2005,9 +2005,11 @@ def follow(version: dict, cards: list[dict], quotes: dict | None = None, moves: 
     Then the picks, with `quotes` the quotes as `read_cards` reads them and `quoted` the words
     each pick had when the board was last saved. Words are matched as `quote_words` gives them, the
     inverted commas round a quote set aside, so a quote a write has put in them reads the same. A
-    pick whose quote reads the same stays. One whose quote reads differently, or has gone, takes the
-    key of a quote with the same words on its own row, else on a row with a card under its label,
-    the nearest first, and is dropped when there is none. A pick with no words kept, from a file
+    pick whose quote reads the same stays. One whose quote reads differently takes the key of a quote
+    with the same words on its own row, else on a row with a card under its label, the nearest first,
+    and where there is none stays with its statement and takes the quote's new words (quotefollow,
+    13 November 2026, Adam: "the pick follows"), so a requote never drops a pick. One whose quote has
+    gone altogether is dropped. A pick with no words kept, from a file
     before `quoted`, is left to the rule as it was. A pick that stays or moves keeps the words its
     quote has now under `quoted`.
 
@@ -2104,6 +2106,15 @@ def follow(version: dict, cards: list[dict], quotes: dict | None = None, moves: 
                 found = [x for x in qby.get(quote_words(held[k]), []) if x not in claimed]
                 same = [x for x in found if split_card_key(x)[:2] == (sheet, row)]
                 near = same or [x for x in found if row_key(*split_card_key(x)[:2]) in rows]
+                if not near and k in texts and k not in claimed:
+                    # a requote (quotefollow, 13 November 2026): the quote at its place is worded anew and its
+                    # old words are nowhere on the row, so the pick follows the statement and takes the new words
+                    claimed.add(k)
+                    kept.append(k)
+                    quoted[k] = texts[k]
+                    if moves is not None:
+                        moves[(gid, k)] = k
+                    continue
                 if moves is not None:
                     moves[(gid, k)] = None
                 if not near:
@@ -4613,8 +4624,8 @@ def cards_refreshed(workbook: Path, dry: bool = False, history: str = "", change
     """Every PETs board of the participant brought in line with the workbook (cardsync, 13 November 2026), each
     timepoint's file in turn when nothing set one: a card whose key holds a statement of the workbook, once the board's
     keys have followed their words (see `follow`), and whose words read otherwise takes the workbook's, its changed
-    mark going with them, and a pick whose quote is still there at its key but reads otherwise, which a save would
-    drop, keeps its place and takes the quote's words as the workbook holds them. The board keeps no wording of his
+    mark going with them, and a pick whose quote is still there at its key but reads otherwise keeps its place and
+    takes the quote's words as the workbook holds them (it follows its statement, see `follow`). The board keeps no wording of his
     own on a card, so a card the canvas marks changed, a change he has yet to look at, cannot be told from one a write
     left behind, and the workbook wins. A card that has followed its words to another line is left to the board, and
     one whose statement is no longer in the workbook is listed under `missing`, never taken off. Each board that
@@ -4649,7 +4660,7 @@ def cards_refreshed(workbook: Path, dry: bool = False, history: str = "", change
             elif to == k and words(card.get("text")) != words(live[k]["text"]):
                 cards.append(k)
         held = board.get("quoted") if isinstance(board.get("quoted"), dict) else {}
-        quotes = sorted({k for (_gid, k), to in moves.items() if to is None and k in texts and k in held
+        quotes = sorted({k for (_gid, k), to in moves.items() if to == k and k in texts and k in held
                          and quote_words(held[k]) != quote_words(texts[k])}, key=_order)
         if not (cards or quotes or gone):
             continue

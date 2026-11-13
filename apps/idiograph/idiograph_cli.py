@@ -6275,6 +6275,24 @@ def turn_write(p: Project, args) -> tuple:
             "boards_reworded": carried, "copies": copies, "spans": spans, "said": text, **effects}, lines
 
 
+def bold_lines(cells: list[dict], dry: bool, who: str | None = None) -> list[str]:
+    """His bold in a key quote that a requote moved to the same words in the new quote, or left off where they are
+    gone (quotefollow, 13 November 2026), a line for each cell, the participant, timepoint, LPET and the quote's key,
+    never a word of it. `who` names the participant, else the copy's case."""
+    out = []
+    for c in cells:
+        bits = []
+        if c["moved"]:
+            bits.append(i18n.t("cli.copies_refresh.bold_moved_dry", n=c["moved"]) if dry
+                        else i18n.t("cli.copies_refresh.bold_moved", n=c["moved"]))
+        if c["dropped"]:
+            bits.append(i18n.t("cli.copies_refresh.bold_dropped", n=c["dropped"]))
+        at = f", {c['timepoint']}" if c.get("timepoint") else ""
+        out.append(i18n.t("cli.copies_refresh.bold_cell", case=who or c["case"], at=at, lpet=c["title"] or c["lpet"],
+                          quote=c["key"], parts=listed(bits)))
+    return out
+
+
 def copy_lines(copies: dict, history: str, dry: bool) -> list[str]:
     """What a write's reworded statements do to the GETs' copies of the participant (see
     `routes.follow_statements`), a line for each file whose copy takes the words, naming the boards with a card
@@ -6301,6 +6319,7 @@ def copy_lines(copies: dict, history: str, dry: bool) -> list[str]:
         else:
             line += "."
         out.append(line)
+        out += bold_lines(done.get("bold") or [], dry)
     return out + list(copies.get("failed") or [])
 
 
@@ -6351,6 +6370,7 @@ def cmd_copies_refresh(p: Project, args) -> tuple:
     missing = count("missing") + sum(len(c["missing"]) for f in every for c in f.get("boards") or [])
     said = dict(cards=i18n.t("cli.n.card", n=cards), statements=i18n.t("cli.n.statement", n=statements),
                 quotes=i18n.t("cli.n.quote", n=quotes))
+    cells = [c for f in every for c in f.get("bold") or []]
     if not (cards or statements or quotes):
         head = i18n.t("cli.copies_refresh.nothing")
     elif args.dry_run:
@@ -6363,7 +6383,8 @@ def cmd_copies_refresh(p: Project, args) -> tuple:
     if not args.dry_run and (cards or statements or quotes):
         lines.append(i18n.t("cli.copies_refresh.history", history=history))
     return {"dry_run": bool(args.dry_run), "participants": people, "cards": cards, "statements": statements,
-            "quotes": quotes, "missing": missing, "said": head}, lines
+            "quotes": quotes, "missing": missing, "bold_moved": sum(c["moved"] for c in cells),
+            "bold_dropped": sum(c["dropped"] for c in cells), "said": head}, lines
 
 
 def refresh_lines(people: list[dict], dry: bool) -> list[str]:
@@ -6404,6 +6425,7 @@ def refresh_lines(people: list[dict], dry: bool) -> list[str]:
                         parts.append(i18n.t("cli.copies_refresh.board_missing", board=c["name"], keys=keys(c["missing"]),
                                             cards=i18n.t("cli.n.card", n=len(c["missing"]))))
             out.append(f"{where}: {listed(parts)}.")
+            out += bold_lines(f.get("bold") or [], dry, x["case"])
         out += [f"{x['case']}: {line}" for line in x["failed"]]
     return out
 

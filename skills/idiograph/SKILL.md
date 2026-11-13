@@ -1803,8 +1803,14 @@ timepoints the participant's LPETs and the LGETs, so the participant is not mark
 in. Since 13 November a statement's new quote goes with it the same way: each copy's line on its row takes
 the quote at its place where it held the old one, so the LPET table and the key quotes Trajectories shows
 give the new quote, and the answer names the statements under each copy's `quotes`, beside `words`. A
-quote on a PETs board is a pick of particular words, so a pick whose quote you reword is still dropped and
-named, as before. Each GETs board with such a card keeps the board as it stood first in its History, as "Before: " and
+quote on a PETs board is a pick, and a pick follows its statement (13 November): reword the quote and the
+pick stays on the statement and takes the new words, never dropped by a requote, and only a quote taken away
+altogether drops it. A key quote's bold on Trajectories is kept by character positions, so it moves with
+the quote too: each span goes to the same words in the new quote, the words exactly first and then with case
+and punctuation set aside, and a span whose words are gone is left off, never put on other words. The answer
+and the dry run list those cells under each copy's `bold`, by participant, timepoint, LPET (`lpet` its id,
+`title` its title) and the quote's `key` with `moved` and `dropped`, never the words, so you can tell him which
+cells to look at. Each GETs board with such a card keeps the board as it stood first in its History, as "Before: " and
 his request, and is marked as changed in a conversation, so an open GETs screen says so. The answer and
 the dry run name them under `copies`, by `gets`, `lpets` and `lgets`. That "Before: " line is your write's one
 line in each board's History: an edit he makes himself, on any screen, leaves a line of its own on every
@@ -1845,8 +1851,10 @@ idiograph copies refresh --case Juno --note "Bring Juno's cards back in line" --
 With no `--case` it reads every participant. The dry run names, for each participant and each file, the
 keys that would change and those missing, never the words: under `participants`, each `files` entry a
 PETs board (`file` "pets", its `timepoint` in a project of timepoints, `board`, `cards`, `quotes`,
-`missing`) or a file of copies (`file` "gets", "lpets" or "lgets", its `statements`, `quotes`, `missing`
-and `boards`), and `cards`, `statements`, `quotes` and `missing` counting them all. A clean project
+`missing`) or a file of copies (`file` "gets", "lpets" or "lgets", its `statements`, `quotes`, `missing`,
+`boards` and `bold`, the key quotes whose bold moves with a new quote or is left off where its words are
+gone, each cell by key, never the words), and `cards`, `statements`, `quotes`, `missing`, `bold_moved` and
+`bold_dropped` counting them all. A clean project
 answers "Nothing to change." The write needs his request. Each board it changes keeps the board as it
 stood first in its History, once, as "Before: " and his request, and is marked as changed in a
 conversation, and each file is written once. Through MCP it is `copies_refresh`, `case` left out for every

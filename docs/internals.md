@@ -3604,16 +3604,33 @@ own quote changed, by key with its quote before and after, to `follow_statements
 keeps the row's quotes by place (`row_places`), and each whose place held the old quote by `quote_words` takes
 the new as the cell holds it, the write's statements building on one another. Its answer gains `words` and
 `quotes`, the keys that took each, and `copy_lines` says which. The statements screen's save still leaves the
-copies to Take the changes (histreplace), and a PETs pick on a reworded quote is still dropped (area 96).
+copies to Take the changes (histreplace), and a PETs pick on a reworded quote follows its statement (below).
 `copies refresh` (`cli.cmd_copies_refresh`, MCP `copies_refresh`) runs `routes.refresh_copies` on each
 participant under the root's lock and the case's: `themes.cards_refreshed`, at every timepoint by
 `each_timepoint`, sets a card's text to the workbook's where `follow` keeps its key and the words differ, and a
-pick's `quoted` where `follow` would drop it while its key still holds a quote, a card whose key is not live
+pick's `quoted` where the pick stays at its key and the quote reads otherwise, a card whose key is not live
 listed under `missing`, then `gets.copies_refreshed` on each file of `statement_copies` in order sets each line's
 `text` and `quotes` and each `es` card's text from `gets.workbook_lines`, every timepoint's statements read
 once, and keeps a copy's files' times through `kept_in` where it now reads as they do. One revision a changed
 board under the request, the agent's `changed` mark, one write a file. `board show`'s `shown_board` marks a
 statement whose followed card text differs `card_stale` with `card_text`, and `stale_cards`. Area 381.
+
+**A requote keeps the pick and the key quote's bold (quotefollow, 13 November 2026, Adam by dialog: "the pick
+follows", "keep it where the words survive").** `themes.follow` no longer drops a pick whose quote is worded anew:
+when the old words are on no other quote of the row it keeps the pick on its key (`moves[(gid, key)] = key`) and
+`quoted` takes the new words, and only a key with no quote left drops it (area 96). A key quote's bold is stored
+against the quote as a copy's line holds it, so `gets.bold_followed(old, new, spans)` moves each span to the same
+words in the new quote, the exact words nearest where they stood first, else the same letters and figures with case
+and punctuation set aside, and drops a span whose words are gone, answering the spans, how many moved and how many
+dropped. `statements_followed` (the write that carries a requote to the copies) and `copies_refreshed` (a copy
+already stale) work out `bold_changes` from the lines' quotes before and after (`bold_places`) for every board row
+that ticked the quote as its key quote, write them with `bold_set`, mark the board for the History step and the
+agent's mark as a changed card does, and answer `bold` (`bold_report`: case, timepoint, board, LPET id and title,
+key, `moved`, `dropped`, never a word). `copies refresh` adds `bold_moved` and `bold_dropped` to its answer and
+one line a cell, as `turn write` does under its copy line (`idiograph_cli.bold_lines`). A passage taken from the
+transcript is never marked by a requote. The statements screen's own save still leaves the copies to the refresh,
+which moves the bold with the new quote. Bold left on a copy a past pass already requoted, with no old quote to
+measure from, cannot be recovered. Areas 96 and 381.
 
 **A History line for every statement edit (histreplace, 30 October 2026, Adam by dialog: "Add a History
 line").** His edit of a statement, from any screen, keeps one revision on every board that holds a card of
