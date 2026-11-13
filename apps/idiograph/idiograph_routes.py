@@ -7395,7 +7395,9 @@ def api_demo_recordings(body: dict) -> dict:
             if running is None or running.view()["state"] != "downloading":
                 return dict(demo_recordings_state(items), state="done")
         else:
-            demo_rec.start(DEMO_RECORDINGS, items)
+            # the smoke run's stand-in, from its environment and never the manifest, the one address besides
+            # GitHub's the download may take (rechttps, 13 November 2026)
+            demo_rec.start(DEMO_RECORDINGS, items, ai_mod.stub_base())
     return demo_recordings_state(items)
 
 

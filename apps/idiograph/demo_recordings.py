@@ -19,6 +19,13 @@ earlier encoding of the same recording (`earlier`, its sizes) is as good as the 
 name, is counted as it comes for the page's progress, checked against its size and sha256, and only then takes its
 place, so the player never reads half of one and a file that does not match is never kept. Cancel stops it between
 two reads. A file already in place is never fetched again. The standard library alone.
+
+Where it may come from (rechttps, 13 November 2026, Adam by dialog: "Harden first, then create"): HTTPS alone, to
+GitHub's own hosts alone (`HOSTS`, fixed here and never read from the manifest), on port 443, for the first address
+and for every redirect, each checked by `allowed` before it is opened, so a manifest or a redirect that names
+anything else ends the download `failed` before a byte of it is read. A smoke run's loopback stand-in is let
+through only when the caller hands `Fetch` its address, from `IDIOGRAPH_SEARCH_STUB` and never from the manifest,
+and never in the installed app.
 """
 from __future__ import annotations
 
@@ -26,10 +33,12 @@ import hashlib
 import json
 import os
 import shutil
+import sys
 import threading
 import urllib.error
 import urllib.request
 from pathlib import Path
+from urllib.parse import urlsplit
 
 MANIFEST = "recordings.json"
 LICENCE = "LICENSE-audio.md"
@@ -40,6 +49,13 @@ URL = f"https://github.com/Pharkie/idiograph/releases/download/{RELEASE}/"
 CHUNK = 64 * 1024
 # seconds a read may wait on the network before the download counts as offline
 TIMEOUT = 20
+# the only hosts a recording comes from, over HTTPS on 443: the release's own address and where GitHub redirects its
+# downloads to (rechttps, 13 November 2026). Fixed here: no manifest, setting or answer widens it.
+HOSTS = frozenset({"github.com", "objects.githubusercontent.com", "release-assets.githubusercontent.com"})
+# redirects followed before the download gives up, GitHub's one and room to spare
+REDIRECTS = 5
+# a smoke run's stand-in is on this machine alone
+LOOPBACK = frozenset({"127.0.0.1", "localhost", "::1"})
 
 
 class Mismatch(Exception):
@@ -48,6 +64,66 @@ class Mismatch(Exception):
 
 class Cancelled(Exception):
     """Cancel pressed while a file was coming down."""
+
+
+class Refused(Exception):
+    """An address, the first or a redirect's, that is not HTTPS to one of GitHub's own hosts (`allowed`)."""
+
+
+def origin(url: str) -> tuple | None:
+    """A URL's scheme, host and port, or None when it has a user or password in it or cannot be read."""
+    try:
+        parts = urlsplit(str(url))
+        port = parts.port
+    except ValueError:
+        return None
+    if "@" in parts.netloc or not parts.hostname:
+        return None
+    scheme = parts.scheme.lower()
+    return scheme, parts.hostname.lower(), port or {"https": 443, "http": 80}.get(scheme)
+
+
+def allowed(url: str, stub: str = "") -> bool:
+    """Whether a recording may be downloaded from `url`: HTTPS to one of `HOSTS` on 443, nothing else. `stub`, a
+    smoke run's loopback stand-in handed by the caller, lets that one origin through too, never in the installed
+    (frozen) app."""
+    where = origin(url)
+    if where is None:
+        return False
+    if where[0] == "https" and where[1] in HOSTS and where[2] == 443:
+        return True
+    if stub and not getattr(sys, "frozen", False):
+        own = origin(stub)
+        return own is not None and own[0] in ("http", "https") and own[1] in LOOPBACK and where == own
+    return False
+
+
+class Guard(urllib.request.HTTPRedirectHandler):
+    """A redirect followed only to an address `allowed` takes, and at most `REDIRECTS` of them."""
+    max_redirections = REDIRECTS
+
+    def __init__(self, stub: str = ""):
+        super().__init__()
+        self.stub = stub
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not allowed(newurl, self.stub):
+            raise Refused()
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def opened(url: str, stub: str = ""):
+    """The answer for `url`, refused before anything is sent when it is not `allowed`, and before its body is read
+    when a redirect, or where it ended, is not. Certificates are checked as urllib always does, against the
+    certificates the launcher points the frozen app at (`SSL_CERT_FILE`, certifi's)."""
+    if not allowed(url, stub):
+        raise Refused()
+    opener = urllib.request.build_opener(Guard(stub))
+    answer = opener.open(urllib.request.Request(url, headers={"User-Agent": "Idiograph"}), timeout=TIMEOUT)
+    if not allowed(answer.geturl(), stub):
+        answer.close()
+        raise Refused()
+    return answer
 
 
 def file_sum(path: Path) -> str:
@@ -134,10 +210,12 @@ def part_of(target: Path) -> Path:
 class Fetch:
     """One demo's download: `items` each a dict of `url`, `size`, `sha256` and `targets`, the places the file goes,
     the first one written and the others copied from it once it is checked. `state` is downloading, done, failed
-    or cancelled, `got` the bytes come down of `size` in all, and `why` offline, failed or checksum once failed."""
+    or cancelled, `got` the bytes come down of `size` in all, and `why` offline, failed or checksum once failed.
+    `stub`, a smoke run's loopback stand-in, is the one address besides GitHub's it may download from (`allowed`)."""
 
-    def __init__(self, items: list[dict]):
+    def __init__(self, items: list[dict], stub: str = ""):
         self.items = items
+        self.stub = stub
         self.size = sum(int(i["size"]) for i in items)
         self.got = 0
         self.state = "downloading"
@@ -164,9 +242,8 @@ class Fetch:
         first.parent.mkdir(parents=True, exist_ok=True)
         part = part_of(first)
         digest, size, came = hashlib.sha256(), int(item["size"]), 0
-        request = urllib.request.Request(item["url"], headers={"User-Agent": "Idiograph"})
         try:
-            with urllib.request.urlopen(request, timeout=TIMEOUT) as answer, open(part, "wb") as fh:
+            with opened(item["url"], self.stub) as answer, open(part, "wb") as fh:
                 while True:
                     if self.stop.is_set():
                         raise Cancelled()
@@ -200,6 +277,9 @@ class Fetch:
             state = "cancelled"
         except Mismatch:
             state, why = "failed", "checksum"
+        except Refused:
+            # an address that is not GitHub's over HTTPS, the first or a redirect's
+            state, why = "failed", "failed"
         except urllib.error.HTTPError:
             # GitHub answered and had no such file, the release not made or the file taken away
             state, why = "failed", "failed"
@@ -216,13 +296,14 @@ FETCHES: dict[str, Fetch] = {}
 _fetches = threading.Lock()
 
 
-def start(key: str, items: list[dict]) -> Fetch:
-    """The demo's download, the running one when there is one, else a new one started on `items`."""
+def start(key: str, items: list[dict], stub: str = "") -> Fetch:
+    """The demo's download, the running one when there is one, else a new one started on `items`, `stub` a smoke
+    run's loopback stand-in or empty."""
     with _fetches:
         running = FETCHES.get(key)
         if running is not None and running.view()["state"] == "downloading":
             return running
-        FETCHES[key] = Fetch(items).start()
+        FETCHES[key] = Fetch(items, stub).start()
         return FETCHES[key]
 
 

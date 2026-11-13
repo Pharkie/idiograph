@@ -14,7 +14,10 @@ recordings, checks each and puts it where the player finds it, the licence besid
 left, and the player then plays it and asks for nothing again, Reset demo leaving them. D: the 48 kbps encoding of
 the same transcript plays as it is, and a recording of another size is not played and is offered again. E: a file
 that does not match its sha256 is refused and never kept, offline says so in its own line, and Cancel stops it with
-nothing left. F: only the app's window downloads, and no command line or MCP op reaches it."""
+nothing left. F: only the app's window downloads, and no command line or MCP op reaches it. G (rechttps): the
+download takes HTTPS to GitHub's own hosts alone, the first address and every redirect, a stand-in redirecting to
+http, another host, a look-alike or another port refused with nothing kept, and the stand-in let through only when
+the smoke run hands it, never in the installed app."""
 from __future__ import annotations
 
 import hashlib
@@ -253,6 +256,101 @@ def test_recordings_on_demand(scratch: Path):
             os.environ["IDIOGRAPH_SEARCH_STUB"] = kept_env
         demo_rec.FETCHES.clear()
         demo_rec.FETCHES.update(kept_fetches)
+
+    # ── G. HTTPS to GitHub's own hosts alone, first address and every redirect (rechttps, 13 November 2026)
+    import sys
+    import urllib.request
+    good_urls = ["https://github.com/Pharkie/idiograph/releases/download/demo-recordings-1/x.m4a",
+                 "https://release-assets.githubusercontent.com/github-production-release-asset/1/2?sig=a",
+                 "https://objects.githubusercontent.com/github-production-release-asset-2e65be/3",
+                 "https://GitHub.com:443/Pharkie/idiograph/releases/download/demo-recordings-1/x.m4a"]
+    bad_urls = ["http://github.com/Pharkie/idiograph/releases/download/demo-recordings-1/x.m4a",
+                "https://github.com:8443/x", "https://user@github.com/x", "https://github.com@evil.example/x",
+                "https://github.com.evil.example/x", "https://evilgithub.com/x", "https://notgithub.com/x",
+                "https://objects.githubusercontent.com.evil.example/x", "https://evil.example/x",
+                "ftp://github.com/x", "file:///etc/passwd", "https://127.0.0.1/x", "http://127.0.0.1:9/x", "",
+                "https://github.com:99999/x"]
+    req = urllib.request.Request("https://github.com/Pharkie/idiograph/releases/download/demo-recordings-1/x.m4a")
+    onward = demo_rec.Guard().redirect_request(req, None, 302, "Found", {}, good_urls[1])
+    ck("385: the download takes HTTPS to github.com and GitHub's two download hosts on 443, a redirect to one of "
+       "them followed, and refuses http, another host, a look-alike, a user in the address, another port and loopback",
+       all(demo_rec.allowed(u) for u in good_urls) and not any(demo_rec.allowed(u) for u in bad_urls)
+       and onward is not None and onward.full_url == good_urls[1],
+       [u for u in good_urls if not demo_rec.allowed(u)] + [u for u in bad_urls if demo_rec.allowed(u)])
+
+    class Bounce(http.server.BaseHTTPRequestHandler):
+        """A stand-in whose every path redirects where `to` says, the paths kept; `/file` the bytes themselves."""
+        to: dict = {}
+        asked: list = []
+
+        def do_GET(self):
+            Bounce.asked.append(self.path)
+            if self.path == "/file":
+                self.send_response(200)
+                self.send_header("Content-Length", "5")
+                self.end_headers()
+                self.wfile.write(b"bytes")
+                return
+            self.send_response(302)
+            self.send_header("Location", Bounce.to.get(self.path, "/file"))
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+
+        def log_message(self, *args):
+            pass
+
+    bounce = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Bounce)
+    other = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Bounce)
+    for srv in (bounce, other):
+        threading.Thread(target=srv.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True).start()
+    here = f"http://127.0.0.1:{bounce.server_address[1]}"
+    there = f"http://127.0.0.1:{other.server_address[1]}"
+    Bounce.to = {"/to-http": "http://github.com/x", "/to-host": "https://evil.example/x",
+                 "/to-lookalike": "https://release-assets.githubusercontent.com.evil.example/x",
+                 "/to-user": "https://github.com@evil.example/x", "/to-port": f"{there}/file", "/ok": "/file"}
+    sha5 = hashlib.sha256(b"bytes").hexdigest()
+    land = scratch / "rec-385" / "guard"
+    shutil.rmtree(land, ignore_errors=True)
+
+    def fetched(path, stub, place=""):
+        target = land / (place or path.strip("/")) / "file.m4a"
+        run = demo_rec.Fetch([{"url": f"{here}{path}", "size": 5, "sha256": sha5, "targets": [target]}], stub)
+        run.run()
+        left = sorted(p.name for p in target.parent.iterdir()) if target.parent.exists() else []
+        return run.view(), target, left
+
+    kept_frozen = getattr(sys, "frozen", None)
+    try:
+        refused = {p: fetched(p, here) for p in ("/to-http", "/to-host", "/to-lookalike", "/to-user", "/to-port")}
+        other_asked = [a for a in Bounce.asked if a == "/file"]
+        Bounce.asked = []
+        through = fetched("/ok", here)
+        Bounce.asked = []
+        no_stub = fetched("/ok", "", "no-stub")
+        unasked = not Bounce.asked
+        sys.frozen = True
+        frozen = fetched("/ok", here, "frozen")
+        frozen_unasked = not Bounce.asked
+    finally:
+        if kept_frozen is None:
+            del sys.frozen
+        else:
+            sys.frozen = kept_frozen
+        for srv in (bounce, other):
+            srv.shutdown()
+            srv.server_close()
+    ck("385: a stand-in whose redirect goes to http, to another host, to a look-alike of GitHub's, through a user in "
+       "the address or to another port on this machine is refused, the download failed with nothing kept and "
+       "nothing asked of where it pointed",
+       all(v["state"] == "failed" and v["why"] == "failed" and not t.exists() and not left
+           for v, t, left in refused.values()) and not other_asked,
+       {p: (v, left) for p, (v, t, left) in refused.items()})
+    ck("385: the stand-in handed by the smoke run still downloads through its own redirect, and with none handed, "
+       "or in the installed app, a loopback address is refused before anything is asked of it",
+       through[0]["state"] == "done" and through[1].read_bytes() == b"bytes" and through[2] == ["file.m4a"]
+       and no_stub[0]["state"] == "failed" and not no_stub[1].exists() and not no_stub[2] and unasked
+       and frozen[0]["state"] == "failed" and not frozen[1].exists() and not frozen[2] and frozen_unasked,
+       f"{through} {no_stub} {frozen}")
 
     # ── F. only the window downloads, and no agent op reaches it
     import idiograph_cli

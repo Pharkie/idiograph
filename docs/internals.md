@@ -3919,6 +3919,13 @@ and are kept after. The AI-made audio and its own licence stay out of every inst
   or answering the one running and cancel stopping it. A call with `op` is the window's alone (`window_only`), so
   no agent downloads, and no command line or MCP op reaches it (area 261 lists it as the screen's). In a smoke run
   `IDIOGRAPH_SEARCH_STUB` sends the download to its loopback stub at `<stub>/github/...` (`demo_recordings.address`).
+  Since rechttps (13 November 2026) the download takes HTTPS on 443 to `github.com`,
+  `objects.githubusercontent.com` and `release-assets.githubusercontent.com` alone (`demo_recordings.HOSTS`, fixed in
+  the code, never the manifest), the first address and every redirect checked by `demo_recordings.allowed` before it
+  is opened, at most five redirects, so http, another host or port, a look-alike or a user in the address ends it
+  `failed` with nothing kept. The smoke run's stub is let through only as `Fetch`'s `stub`, which the route hands from
+  `ai_suggest.stub_base()`, and never in the frozen app, whose certificates are certifi's (`SSL_CERT_FILE`, set by
+  the launcher).
 - *The page.* `distil.js`'s `REC_GET`, `recGetOpen`, `recGetDraw`, `recGetPoll` (every 300 ms while it runs) and
   `recGetTurn`: a demo participant with a `download` answer has the player bar as any recording has, `S.recOffer`
   held, and Play, a timecode, `Space` or the five-second jumps put `#player-get` in the bar's place, its line, the
