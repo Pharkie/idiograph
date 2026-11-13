@@ -1,0 +1,245 @@
+{
+ "schema": 2,
+ "case": "Nell",
+ "workbook": "Nell - EN & ES.xlsx",
+ "created": "2026-03-19T10:00:00+00:00",
+ "updated": "2026-03-19T12:30:00+00:00",
+ "current": "v1",
+ "chosen": "v1",
+ "complete": {
+  "at": "2026-03-19T12:30:00+00:00",
+  "board": "v1",
+  "name": "Board 1"
+ },
+ "boards": [
+  {
+   "id": "v1",
+   "name": "Board 1",
+   "note": "",
+   "created": "2026-03-19T10:00:00+00:00",
+   "updated": "2026-03-19T10:00:00+00:00",
+   "cards": {
+    "T1:3:0": {
+     "x": 541,
+     "y": -916,
+     "text": "Taking a full plot before she could think, half laughing at herself"
+    },
+    "T1:5:0": {
+     "x": 35,
+     "y": -761,
+     "text": "Unsure yet what digging means for her, unlike her mother"
+    },
+    "T1:7:0": {
+     "x": 35,
+     "y": -871,
+     "text": "Wanting the children to know food as she knew it at her buni's"
+    },
+    "T1:9:0": {
+     "x": -413,
+     "y": -743,
+     "text": "A childhood garden alive in a smell, and gone wild now"
+    },
+    "T1:11:0": {
+     "x": -413,
+     "y": -853,
+     "text": "Nearly crying at the smell of turned earth: there and here at once"
+    },
+    "T1:13:0": {
+     "x": -203,
+     "y": -853,
+     "text": "Glad and hurt when her two countries meet"
+    },
+    "T1:15:0": {
+     "x": -413,
+     "y": -406,
+     "text": "Wanting one thing of her own, when all else is for others"
+    },
+    "T1:15:1": {
+     "x": 245,
+     "y": -370,
+     "text": "A deckchair she pictures but does not believe in"
+    },
+    "T1:17:0": {
+     "x": -203,
+     "y": -406,
+     "text": "Hoping for nobody to reassure at the plot"
+    },
+    "T1:19:0": {
+     "x": 245,
+     "y": -280,
+     "text": "A good day with nothing planted"
+    },
+    "T1:21:0": {
+     "x": 245,
+     "y": -871,
+     "text": "Ambition on paper: a farm, her buni's tomatoes first"
+    },
+    "T1:23:0": {
+     "x": 751,
+     "y": -806,
+     "text": "Seen through by Chris when she promises time"
+    },
+    "T1:25:0": {
+     "x": 961,
+     "y": -916,
+     "text": "Strict rules against a jungle by June"
+    },
+    "T1:27:0": {
+     "x": 541,
+     "y": -806,
+     "text": "Strictness learned to survive here: good at hard, not slow"
+    },
+    "T1:31:0": {
+     "x": 35,
+     "y": -370,
+     "text": "Longing to sit as her buni sat"
+    },
+    "T1:33:0": {
+     "x": 1199,
+     "y": -893,
+     "text": "Judged by a look at the pushchair, a young mother with big ideas"
+    },
+    "T1:35:0": {
+     "x": 1409,
+     "y": -893,
+     "text": "The plot one more thing to prove here"
+    },
+    "T1:37:0": {
+     "x": 751,
+     "y": -916,
+     "text": "Afraid the plot will show she took too much again"
+    },
+    "T1:39:0": {
+     "x": 35,
+     "y": -280,
+     "text": "Remembering a good tired after years of grey"
+    }
+   },
+   "groups": [
+    {
+     "id": "g1",
+     "label": "Wanting her buni's garden again, for the children and for herself",
+     "description": "The village and England meeting in a smell under her fork, and a summer like hers wanted for the children",
+     "members": [
+      "g4",
+      "g5"
+     ],
+     "x": -427,
+     "y": -1073
+    },
+    {
+     "id": "g2",
+     "label": "“Slightly mad” to take a full plot she must prove she can keep",
+     "description": "Taking too much as she always does, strict to keep up, and one more thing to show the people who look at her",
+     "members": [
+      "g6",
+      "g7"
+     ],
+     "x": 527,
+     "y": -1073
+    },
+    {
+     "id": "g3",
+     "label": "“One thing that is mine”: a place to rest from being for others",
+     "description": "Wanting something not for anybody, a deckchair pictured, a rest like her buni's, and a good tired remembered",
+     "members": [
+      "g8",
+      "g9"
+     ],
+     "x": -427,
+     "y": -567
+    },
+    {
+     "id": "g4",
+     "label": "The village and England touching under her fork",
+     "description": "Nearly crying at the smell of the earth, a childhood garden gone wild, two countries meeting for a second",
+     "members": [
+      "T1:11:0",
+      "T1:13:0",
+      "T1:9:0"
+     ],
+     "x": -413,
+     "y": -971
+    },
+    {
+     "id": "g5",
+     "label": "A summer like hers for the children, whatever her mother thinks",
+     "description": "Knowing food by being there, tomatoes from the village on the list, and digging as going backwards",
+     "members": [
+      "T1:7:0",
+      "T1:21:0",
+      "T1:5:0"
+     ],
+     "x": 35,
+     "y": -971
+    },
+    {
+     "id": "g6",
+     "label": "Taking too much, as always, and strict to keep up",
+     "description": "A full plot before she could think, rules on the kitchen calendar, good at hard and not at slow",
+     "members": [
+      "T1:3:0",
+      "T1:37:0",
+      "T1:25:0",
+      "T1:27:0",
+      "T1:23:0"
+     ],
+     "x": 541,
+     "y": -993
+    },
+    {
+     "id": "g7",
+     "label": "Proving herself again, to an old man with a hat",
+     "description": "Judged a young mother with big ideas, after a life here of showing people",
+     "members": [
+      "T1:33:0",
+      "T1:35:0"
+     ],
+     "x": 1199,
+     "y": -993
+    },
+    {
+     "id": "g8",
+     "label": "Nobody to be for at the plot",
+     "description": "One thing of her own, and nobody there to reassure",
+     "members": [
+      "T1:15:0",
+      "T1:17:0"
+     ],
+     "x": -413,
+     "y": -465
+    },
+    {
+     "id": "g9",
+     "label": "A rest she has forgotten how to take",
+     "description": "A deckchair she does not believe in, sitting like her buni, a good day with nothing planted, and a warm tired",
+     "members": [
+      "T1:31:0",
+      "T1:15:1",
+      "T1:39:0",
+      "T1:19:0"
+     ],
+     "x": 35,
+     "y": -465
+    }
+   ],
+   "discarded": [],
+   "picks": {
+    "g1": [
+     "T1:11:0"
+    ],
+    "g2": [
+     "T1:3:0"
+    ],
+    "g3": [
+     "T1:15:0"
+    ]
+   },
+   "quoted": {
+    "T1:11:0": "\"the smell came up. Earth smell, wet. And I nearly cried. … Like I was there and here at the same time. In the village and in England.\"",
+    "T1:3:0": "\"Excited. And a bit mad, I think. Slightly mad. … And I said no, full. I don't know why I said this. It came out of my mouth before I think.\"",
+    "T1:15:0": "\"I wanted one thing that is mine. Everything is for somebody. … And I thought, I want one thing that is mine, even if it's mostly mud.\""
+   }
+  }
+ ]
+}

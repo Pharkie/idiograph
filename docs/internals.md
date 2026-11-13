@@ -3971,12 +3971,23 @@ and are kept after. The AI-made audio and its own licence stay out of every inst
   its delay for the band replication, well inside the half second between passages. Opus was not taken: every
   engine the player runs in already plays AAC in an `.m4a`, as participants' own recordings are, and Opus would
   have been a new kind of file for the player and the Mac's WebKit.
-- *Adding a demo's recordings* (the longitudinal demo's, lipabuild): commit them in `packaging/recording/` under
-  `audio.demo_recording_name` with its sheet, list the demo's interviews where `demo_interviews` lists the IPA
-  demo's (a demo key beside `DEMO_RECORDINGS`, its own `Fetch`), run `make_demo.py --manifest` (or its own manifest
-  writer for that demo's names), and upload the new files to the release with `gh release upload demo-recordings-1
-  <files> --repo Pharkie/idiograph`, the manifest too, before the version that names them ships. A recording made
-  again for an edited transcript has a new name, so the old asset stays for the copies that still name it.
+- *The longitudinal demo's recordings* (lipabuild, 13 November 2026): nine, one an interview, joined from
+  lipavoices' clips (kept in `.verify/keep/lipa-voices-12Nov26/`, one WAV a turn) by `make_demo_lipa.py --recordings
+  <clips>` (`build_recording`, as `make_demo.build_recording`: the CSV's timecodes written from the clips and the half
+  second between, the join encoded by `to_m4a`), each `packaging/recording/<Name>-T1-<hash>.m4a` by
+  `audio.demo_recording_name` with its sheet, 12:16 to 13:09 and 2.3 to 2.4 MB, 21.4 MB in all. They are not
+  committed (only the IPA demo's `*-Initial-*` are), and are assets of the same release, `demo-recordings-1`, in the
+  same manifest: `make_demo.write_manifest` lists them with the IPA demo's and keeps a listed one's entry on a copy
+  that does not hold the file. The routes keep each demo's download apart by its key, `DEMO_RECORDINGS` (`ipa`) and
+  `DEMO_LIPA_RECORDINGS` (`lipa`), each its own `Fetch`: `demo_interview_of(path, sheet)` names the demo and
+  participant of a sheet (the IPA demo's Initial, the longitudinal demo's T1, T2 and T3), `demo_interviews(key)`,
+  `ensure_demo_recording(case, sheet, key)`, `demo_downloads(key)` (the longitudinal demo's named `<Name> <sheet>`)
+  and `demo_recordings_state(items, key)` take it, `/api/demo-recordings` takes `demo`, and the page sends back the
+  `demo` its offer named (`REC_GET.demo`, `recGetBody`). A copy run from source that has a recording copies it in, as
+  the IPA demo's committed ones are, and one without it offers the download. To add a demo's recordings again:
+  upload the new files to the release with `gh release upload demo-recordings-1 <files> --repo Pharkie/idiograph`,
+  the manifest too, before the version that names them ships. A recording made again for an edited transcript has a
+  new name, so the old asset stays for the copies that still name it.
 
 **Re-voicing an edited turn.** A change to a demo transcript's words changes its hash, so its recording no longer
 matches and is not taken, until the turn is voiced again: `packaging/recording/voice_demo.py --clips <folder>`,
@@ -3997,7 +4008,7 @@ changes the rows after it, so their clips are renumbered by hand, or the intervi
 annotations' rounds (`work.rounds`) must match the rounds the new timecodes make, ten minutes each, or the build
 says so. Then the change is committed with the new recording, the CSV and the rebuilt demo together.
 
-**The demo warning** (demowarn, 12 November 2026, Adam: the demos "are demoing the app, they are not demoing IPA"). A demo's card on Home (`homeCardHtml`, a card with `demo` and `method`, the `demosOf` rows' `method` of `ipa` or `ta`) carries `.hc-warn` at its foot, a button beside the card's own and outside it, and every screen of a demo has its Demo mark (`.demo-mark`, the old tag now a button: `rail-demo`, `th-demo`, `tj-demo`, the new `cd-demo`, and the page head's `hp-demo` and `hp-demo-ta`). A project is known as a demo as it already was, by `data.demo` and the demo ids (`DEMO_ID`, `DEMO_TA_ID`), and no flag is written to any project. Both open `#demo-note` through `demoNoteOpen(by, kind)`, one box for every place, shut by Esc (focus back on its button), a press outside, a second press, a scroll or a resize. Its card line is `distil.demo.warn` ("AI-generated: read details") and the note's heading `distil.demo.note_head` ("AI-generated demo"), the same for every demo since 13 November (homeorder, Adam), its paragraphs `distil.demo.note_<kind>_1` and `_2`, for `ipa`, `ta` and `lipa` (the longitudinal demo's keys are in the catalogue ahead of that demo, which only has to give its card `method: 'lipa'`), with the US overlay's `note_ta_2` spelling "practicing". The website's Screenshots page and the README say one sentence of it.
+**The demo warning** (demowarn, 12 November 2026, Adam: the demos "are demoing the app, they are not demoing IPA"). A demo's card on Home (`homeCardHtml`, a card with `demo` and `method`, the `demosOf` rows' `method` of `ipa` or `ta`) carries `.hc-warn` at its foot, a button beside the card's own and outside it, and every screen of a demo has its Demo mark (`.demo-mark`, the old tag now a button: `rail-demo`, `th-demo`, `tj-demo`, the new `cd-demo`, and the page head's `hp-demo`, `hp-demo-ta` and `hp-demo-lipa`). A project is known as a demo as it already was, by `data.demo` and the demo ids (`DEMO_ID`, `DEMO_TA_ID`, `DEMO_LIPA_ID`), and no flag is written to any project. Both open `#demo-note` through `demoNoteOpen(by, kind)`, one box for every place, shut by Esc (focus back on its button), a press outside, a second press, a scroll or a resize. Its card line is `distil.demo.warn` ("AI-generated: read details") and the note's heading `distil.demo.note_head` ("AI-generated demo"), the same for every demo since 13 November (homeorder, Adam), its paragraphs `distil.demo.note_<kind>_1` and `_2`, for `ipa`, `ta` and `lipa` (the longitudinal demo's card gives `method: 'lipa'` since lipabuild), with the US overlay's `note_ta_2` spelling "practicing". The website's Screenshots page and the README say one sentence of it.
 
 **The thematic analysis demo** (demos, 3 November 2026, Adam that evening: two methods, so two demos, apart from
 his projects). `demo/ta/` is a thematic analysis project of its own inside the demo's folder, the same three
@@ -4018,6 +4029,39 @@ demo is: `srv.demo_ta_dir()`, `srv.DEMO_TA_ID` (`demo-ta`, the id the page names
 IPA demo). `list_cases` leaves out any folder under a root holding a project file of its own, so the IPA demo, and
 a copy of the demo folder added as a project, never reads its participants as cases. `packaging/build_mac.py`'s
 `stage_cases` stages it inside the staged demo the same way.
+
+**The longitudinal IPA demo** (lipabuild, 13 November 2026, Adam's word of 12 November, its analysis read and
+approved by him that day). `demo/lipa/` is a longitudinal project of the app's own model inside the demo's folder, "First
+year on an allotment", grown from the website clip's study (`make_lipa.py`, below): Hollis, Nell and Arlo, invented,
+each interviewed at T1 (Before the season), T2 (Midsummer) and T3 (After the harvest), nine interviews of 12 to 13
+minutes. Its sources are `demo/lipa/source/<Name> - T1.csv` (Name, Timestamp, Transcript, as the IPA demo's) and
+`demo/lipa/source/analysis.json` (lipawrite's approved draft: each participant turn's statements, key quotes and note
+by its opening words, each timepoint's PETs board, each participant's LPETs, each LPET's cards, a PET or sub-PET at a
+timepoint, and its row at each timepoint, its state, key quote and bold, then the LGETs and the Trajectories board),
+and its project file, `demo/lipa/idiograph-project.json`, holds its name, question, timepoints, demographics and each
+participant's label, picture (from the Sketches set), pen portrait and values. `make_demo_lipa.py` (`make_demo.py
+--lipa`, and after the other two in a plain run) builds it through the app's own functions, as `ship_ta` builds the
+thematic analysis demo: each participant's workbook from a raw source of three sheets named T1, T2 and T3 through
+`create_from_source`, T2's and T3's placed by `rounds.tag_sheets`, every turn decided through `save_turn`, the rounds
+closed and each timepoint's Statements complete, a PETs board a timepoint inside `themes.scoped` (`make_board`, as
+`make_demo.make_board`), the LPETs inside `gets.lpets` from the PETs and sub-PETs each LPET names, a card no LPET holds
+set aside, the description and domain on each LPET and each row's state, key quote and bold through `gets.row_op`, the
+LGETs inside `gets.lgets` as `build_gets` makes GETs, and the Trajectories board through `trajectories.apply`, its
+columns, places, notes and the board's note. Every board is finished with `themes.arrange_board` to a grid (`square`),
+so it comes out in reading order and about the window's shape (memory: agents' boards square). The clock is held at
+times of its own (`TP_DAYS`, `times`), so the same sources build the same files byte for byte. It ships its pristine
+copy and live workbooks as the thematic analysis demo does, a participant's every file in `Working/` with them (the
+progress file, `.themes.json`, `.themes-t2.json`, `.themes-t3.json` and `.lpets.json`) and `idiograph-lgets.json` and
+`idiograph-trajectories.json` at its root, which `make_demo.fill`, `reset` and `reset_all` (`cases_of`, `boards_of`,
+`ROOT_FILES`) and `build_mac.stage_cases` carry. Being inside `DEMO_DIR`, `srv.is_demo` covers it:
+`srv.demo_lipa_dir()`, `srv.DEMO_LIPA_ID` (`demo-lipa`), `srv.demo_dirs()` (the three, where two were listed), and
+`demo_root_of`, `is_demo_root`, `demo_dir_of` and `project_named` know it, the command line and the MCP server by
+`--demo lipa` (`--demo-lipa`, `DEMO_WORDS`). In the routes `DEMO_LIPA_CASES`, `demo_cases_of(root)` and
+`demo_workbooks(root)` give its three, `api_cases` answers `demos_lipa`, `demo_lipa_participants` and
+`demo_lipa_project`, and Reset demo takes `demo: "lipa"`. On the page `DEMO_LIPA_ID`, `demosOf` (its card with
+`method: 'lipa'`, so its line and note are the lipa ones), `distilRecent`, `pageHead` and `#hp-demo-lipa`,
+`demoNoteKind`, `resetDemo` and the Project settings kicker know it. Its recordings are below, under The demo's
+recordings on demand. Area 386 holds it.
 
 **The GETs file.** `idiograph-gets.json` at the case root, beside the project file, written by
 `gets.py` and set out in full under The file in the [manual](manual.md), GETs. Its top level is

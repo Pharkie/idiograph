@@ -1,0 +1,213 @@
+{
+ "schema": 2,
+ "case": "Arlo",
+ "workbook": "Arlo - EN & ES.xlsx",
+ "created": "2026-03-21T10:00:00+00:00",
+ "updated": "2026-03-21T12:30:00+00:00",
+ "current": "v1",
+ "chosen": "v1",
+ "complete": {
+  "at": "2026-03-21T12:30:00+00:00",
+  "board": "v1",
+  "name": "Board 1"
+ },
+ "boards": [
+  {
+   "id": "v1",
+   "name": "Board 1",
+   "note": "",
+   "created": "2026-03-21T10:00:00+00:00",
+   "updated": "2026-03-21T10:00:00+00:00",
+   "cards": {
+    "T1:3:0": {
+     "x": -189,
+     "y": -279,
+     "text": "Sceptical but unable to say no"
+    },
+    "T1:5:0": {
+     "x": 21,
+     "y": -389,
+     "text": "Hard to own being someone told to try gardening"
+    },
+    "T1:7:0": {
+     "x": -399,
+     "y": -279,
+     "text": "Undone by work he is good at"
+    },
+    "T1:11:0": {
+     "x": -189,
+     "y": -812,
+     "text": "Glad of the first place in two years without the laptop"
+    },
+    "T1:13:0": {
+     "x": -399,
+     "y": -812,
+     "text": "Hoping for a problem with no one attached"
+    },
+    "T1:15:0": {
+     "x": 469,
+     "y": -366,
+     "text": "Four books no use against the clay"
+    },
+    "T1:17:0": {
+     "x": 961,
+     "y": -318,
+     "text": "A fraud in new gloves, watched by an old man"
+    },
+    "T1:19:0": {
+     "x": 751,
+     "y": -428,
+     "text": "Unable to tell kindness from threat in an old man's words"
+    },
+    "T1:21:0": {
+     "x": 751,
+     "y": -318,
+     "text": "Lost for what to do with his face among people"
+    },
+    "T1:23:0": {
+     "x": 259,
+     "y": -835,
+     "text": "Digging terrible and amazing, after years lived from the neck up"
+    },
+    "T1:25:0": {
+     "x": 49,
+     "y": -835,
+     "text": "Hands his own again, as if back from away"
+    },
+    "T1:29:0": {
+     "x": 259,
+     "y": -366,
+     "text": "Watching himself make a project of it"
+    },
+    "T1:33:0": {
+     "x": -189,
+     "y": -389,
+     "text": "Mistakes on show for anyone passing"
+    },
+    "T1:35:0": {
+     "x": -399,
+     "y": -389,
+     "text": "Afraid the plot will prove him someone who breaks"
+    },
+    "T1:37:0": {
+     "x": 259,
+     "y": -276,
+     "text": "One target despite himself: still going in October"
+    },
+    "T1:39:0": {
+     "x": -399,
+     "y": -702,
+     "text": "Picturing a rest without guilt he cannot reach"
+    },
+    "T1:41:0": {
+     "x": 961,
+     "y": -428,
+     "text": "Hiding in the car from the gate, a low moment"
+    }
+   },
+   "groups": [
+    {
+     "id": "g1",
+     "label": "From his head into his hands",
+     "description": "A problem with no one attached, the first place without the laptop, a chair pictured, and hands his own again",
+     "members": [
+      "g4",
+      "g5"
+     ],
+     "x": -413,
+     "y": -1014
+    },
+    {
+     "id": "g2",
+     "label": "A prescribed project he is afraid to fail, in front of everyone",
+     "description": "Hard to own needing it, afraid it will prove him someone who breaks, and books and a spreadsheet against the clay",
+     "members": [
+      "g6",
+      "g7"
+     ],
+     "x": -413,
+     "y": -546
+    },
+    {
+     "id": "g3",
+     "label": "Hiding from the people at the plot, every look a verdict",
+     "description": "An old man's remark heard as a verdict, no mute in person, new gloves watched, and twenty minutes in the car",
+     "members": [
+      "T1:19:0",
+      "T1:41:0",
+      "T1:21:0",
+      "T1:17:0"
+     ],
+     "x": 751,
+     "y": -546
+    },
+    {
+     "id": "g4",
+     "label": "A problem with no one attached, away from the laptop",
+     "description": "A quiet head hoped for, the laptop left behind, and rest without guilt pictured",
+     "members": [
+      "T1:13:0",
+      "T1:11:0",
+      "T1:39:0"
+     ],
+     "x": -399,
+     "y": -912
+    },
+    {
+     "id": "g5",
+     "label": "Finding his hands, terrible and amazing",
+     "description": "Digging terrible and amazing, and sore hands turned over on the bus",
+     "members": [
+      "T1:25:0",
+      "T1:23:0"
+     ],
+     "x": 49,
+     "y": -912
+    },
+    {
+     "id": "g6",
+     "label": "Afraid it will prove him someone who breaks",
+     "description": "Signed off last autumn, sceptical and hard to own it, and mistakes on show for anyone to see",
+     "members": [
+      "T1:35:0",
+      "T1:33:0",
+      "T1:5:0",
+      "T1:7:0",
+      "T1:3:0"
+     ],
+     "x": -399,
+     "y": -466
+    },
+    {
+     "id": "g7",
+     "label": "Books, a spreadsheet and one target, against the clay",
+     "description": "Preparing by reading, the not-work made a project, and still going in October",
+     "members": [
+      "T1:29:0",
+      "T1:15:0",
+      "T1:37:0"
+     ],
+     "x": 259,
+     "y": -466
+    }
+   ],
+   "discarded": [],
+   "picks": {
+    "g1": [
+     "T1:13:0"
+    ],
+    "g2": [
+     "T1:35:0"
+    ],
+    "g3": [
+     "T1:19:0"
+    ]
+   },
+   "quoted": {
+    "T1:13:0": "\"Quiet my head, I suppose. … So I want one problem that's just soil and weather. That nobody can email me about. … A problem with no one attached to it.\"",
+    "T1:35:0": "\"But if I can't even do this … then maybe it wasn't a blip. Maybe that's just what I'm like now. Maybe I'm someone who breaks.\"",
+    "T1:19:0": "\"Which was either kind or a threat, I genuinely couldn't tell. … I read everything as an evaluation. Everyone's a performance review.\""
+   }
+  }
+ ]
+}

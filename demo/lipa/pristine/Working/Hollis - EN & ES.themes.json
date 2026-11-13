@@ -1,0 +1,213 @@
+{
+ "schema": 2,
+ "case": "Hollis",
+ "workbook": "Hollis - EN & ES.xlsx",
+ "created": "2026-03-17T10:00:00+00:00",
+ "updated": "2026-03-17T12:30:00+00:00",
+ "current": "v1",
+ "chosen": "v1",
+ "complete": {
+  "at": "2026-03-17T12:30:00+00:00",
+  "board": "v1",
+  "name": "Board 1"
+ },
+ "boards": [
+  {
+   "id": "v1",
+   "name": "Board 1",
+   "note": "",
+   "created": "2026-03-17T10:00:00+00:00",
+   "updated": "2026-03-17T10:00:00+00:00",
+   "cards": {
+    "T1:3:0": {
+     "x": -399,
+     "y": -866,
+     "text": "Nervous at the gate: a new lad again at sixty-eight"
+    },
+    "T1:5:0": {
+     "x": 21,
+     "y": -866,
+     "text": "Belonging earned by work, never by talk"
+    },
+    "T1:7:0": {
+     "x": 21,
+     "y": -438,
+     "text": "Wanting somewhere outdoors after days without sky"
+    },
+    "T1:9:0": {
+     "x": -399,
+     "y": -438,
+     "text": "Surplus at home since retiring, everything working without him"
+    },
+    "T1:11:0": {
+     "x": -189,
+     "y": -438,
+     "text": "The plot taken on to be needed again"
+    },
+    "T1:13:0": {
+     "x": 961,
+     "y": -477,
+     "text": "At a loss before two years of brambles"
+    },
+    "T1:15:0": {
+     "x": -189,
+     "y": -866,
+     "text": "Pride at stake: showing the old hands he will last"
+    },
+    "T1:17:0": {
+     "x": -399,
+     "y": -776,
+     "text": "Not yet entitled to ask the old hands"
+    },
+    "T1:19:0": {
+     "x": 259,
+     "y": -843,
+     "text": "Frightened by a body that felt ninety after two hours digging"
+    },
+    "T1:21:0": {
+     "x": 469,
+     "y": -843,
+     "text": "Digging to find out what his body has left"
+    },
+    "T1:23:0": {
+     "x": 259,
+     "y": -733,
+     "text": "A year in a chair took something from him"
+    },
+    "T1:25:0": {
+     "x": 259,
+     "y": -397,
+     "text": "Nothing asked of him at the plot"
+    },
+    "T1:27:0": {
+     "x": 469,
+     "y": -397,
+     "text": "Torn between a job and nobody wanting him"
+    },
+    "T1:29:0": {
+     "x": -189,
+     "y": -328,
+     "text": "A little hurt that Pat is glad to see him go"
+    },
+    "T1:31:0": {
+     "x": -399,
+     "y": -328,
+     "text": "Unwarned that retiring means making a life from nothing"
+    },
+    "T1:33:0": {
+     "x": -189,
+     "y": -776,
+     "text": "A modest hope: the old hands talking on as he comes in"
+    },
+    "T1:35:0": {
+     "x": 751,
+     "y": -477,
+     "text": "Proud of a cleared square like a rebuilt bus"
+    }
+   },
+   "groups": [
+    {
+     "id": "g1",
+     "label": "A new lad again at sixty-eight, with everything to prove",
+     "description": "To the old hands at the gate, by work they can see, and to a body that felt ninety after two hours",
+     "members": [
+      "g4",
+      "g5"
+     ],
+     "x": -413,
+     "y": -1023
+    },
+    {
+     "id": "g2",
+     "label": "Surplus since retiring: torn between being needed and left be",
+     "description": "Shut in, in Pat's way and needed by nothing, and glad of a plot that asks nothing of him",
+     "members": [
+      "g6",
+      "g7"
+     ],
+     "x": -413,
+     "y": -577
+    },
+    {
+     "id": "g3",
+     "label": "From at a loss before the brambles to proud of a cleared square",
+     "description": "Not knowing where to start, then a square three yards by three looked at like a rebuilt bus",
+     "members": [
+      "T1:35:0",
+      "T1:13:0"
+     ],
+     "x": 751,
+     "y": -577
+    },
+    {
+     "id": "g4",
+     "label": "Watched at the gate, and showing the old hands by work",
+     "description": "Silence at the gate, a place earned and never asked for, and a modest hope to be one of them",
+     "members": [
+      "T1:3:0",
+      "T1:15:0",
+      "T1:5:0",
+      "T1:17:0",
+      "T1:33:0"
+     ],
+     "x": -399,
+     "y": -943
+    },
+    {
+     "id": "g5",
+     "label": "Frightened to find out what his body has left",
+     "description": "Felt ninety after two hours, and a year in a chair that took something from him",
+     "members": [
+      "T1:19:0",
+      "T1:21:0",
+      "T1:23:0"
+     ],
+     "x": 259,
+     "y": -943
+    },
+    {
+     "id": "g6",
+     "label": "“The part left over”, wanting a job that needs him",
+     "description": "Days indoors, nothing that needs him, Pat relieved, and a life to make from nothing",
+     "members": [
+      "T1:9:0",
+      "T1:11:0",
+      "T1:7:0",
+      "T1:31:0",
+      "T1:29:0"
+     ],
+     "x": -399,
+     "y": -497
+    },
+    {
+     "id": "g7",
+     "label": "Glad of a plot that waits and does not mind",
+     "description": "A quiet on the bucket, and wanting the job and nobody wanting him",
+     "members": [
+      "T1:25:0",
+      "T1:27:0"
+     ],
+     "x": 259,
+     "y": -497
+    }
+   ],
+   "discarded": [],
+   "picks": {
+    "g1": [
+     "T1:3:0"
+    ],
+    "g2": [
+     "T1:9:0"
+    ],
+    "g3": [
+     "T1:35:0"
+    ]
+   },
+   "quoted": {
+    "T1:3:0": "\"And they all stopped talking. … I felt like the new lad on his first day at the depot.\"",
+    "T1:9:0": "\"I'm in the way of the hoover. … Everything works without it. That's what retiring's been. I'm the part left over.\"",
+    "T1:35:0": "\"Just looked at my square. You'd laugh. Three yards by three, and I stood there looking at it like it was a bus I'd rebuilt.\""
+   }
+  }
+ ]
+}

@@ -1,0 +1,264 @@
+{
+ "schema": 2,
+ "case": "Nell",
+ "workbook": "Nell - EN & ES.xlsx",
+ "created": "2026-11-05T10:00:00+00:00",
+ "updated": "2026-11-05T12:30:00+00:00",
+ "current": "v1",
+ "chosen": "v1",
+ "complete": {
+  "at": "2026-11-05T12:30:00+00:00",
+  "board": "v1",
+  "name": "Board 1"
+ },
+ "boards": [
+  {
+   "id": "v1",
+   "name": "Board 1",
+   "note": "",
+   "created": "2026-11-05T10:00:00+00:00",
+   "updated": "2026-11-05T10:00:00+00:00",
+   "cards": {
+    "T3:3:0": {
+     "x": 354,
+     "y": -298,
+     "text": "A harvest she got away with, much of it her mother's"
+    },
+    "T3:7:0": {
+     "x": 564,
+     "y": -408,
+     "text": "Delighted by the children's pride in their sunflower seeds and strawberries"
+    },
+    "T3:9:0": {
+     "x": 382,
+     "y": -853,
+     "text": "Giving up half: failure and relief unresolved"
+    },
+    "T3:11:0": {
+     "x": 592,
+     "y": -853,
+     "text": "Failure as proof she took too much again"
+    },
+    "T3:11:1": {
+     "x": 382,
+     "y": -763,
+     "text": "Relief: a morning when her first thought was not the plot"
+    },
+    "T3:13:0": {
+     "x": 592,
+     "y": -763,
+     "text": "A mother's laugh understood at last"
+    },
+    "T3:15:0": {
+     "x": -572,
+     "y": -853,
+     "text": "Giving away the half where she was a guest"
+    },
+    "T3:17:0": {
+     "x": -124,
+     "y": -853,
+     "text": "Wanting her buni's garden all along, not a plot"
+    },
+    "T3:17:1": {
+     "x": 86,
+     "y": -853,
+     "text": "Enough that her buni was happy she tried"
+    },
+    "T3:19:0": {
+     "x": -124,
+     "y": -763,
+     "text": "The village tomatoes never started, perhaps for her son"
+    },
+    "T3:21:0": {
+     "x": 354,
+     "y": -408,
+     "text": "No more pretending it is her hobby"
+    },
+    "T3:23:0": {
+     "x": 1040,
+     "y": -853,
+     "text": "Attacking the plot and calling it pottering"
+    },
+    "T3:25:0": {
+     "x": 830,
+     "y": -763,
+     "text": "The good tired back for a day"
+    },
+    "T3:29:0": {
+     "x": -362,
+     "y": -853,
+     "text": "A little grief at leeks where the dill was"
+    },
+    "T3:31:0": {
+     "x": -572,
+     "y": -763,
+     "text": "Leaving felt again, even here"
+    },
+    "T3:33:0": {
+     "x": -586,
+     "y": -469,
+     "text": "Surprised by the kindness of those she felt watched by"
+    },
+    "T3:35:0": {
+     "x": -376,
+     "y": -469,
+     "text": "The committee letter kept with her passports, unable to laugh"
+    },
+    "T3:37:0": {
+     "x": 116,
+     "y": -408,
+     "text": "Ten minutes in the deckchair, then unable to stay"
+    },
+    "T3:39:0": {
+     "x": -94,
+     "y": -408,
+     "text": "Ten minutes owing nothing, like the spent sunflowers"
+    },
+    "T3:41:0": {
+     "x": 830,
+     "y": -853,
+     "text": "A little less strict with herself, learning slow"
+    }
+   },
+   "groups": [
+    {
+     "id": "g1",
+     "label": "Letting go of her buni's garden, which “you cannot dig”",
+     "description": "Giving away her mother's half, where she was a guest, and finding she wanted her buni's garden itself, not a plot",
+     "members": [
+      "g5",
+      "g6"
+     ],
+     "x": -586,
+     "y": -1055
+    },
+    {
+     "id": "g2",
+     "label": "Half given away: failed, relieved, a little less strict",
+     "description": "Proof she took too much, a morning free of the plot, her mother's laugh heard anew, and slow learned a little",
+     "members": [
+      "g7",
+      "g8"
+     ],
+     "x": 368,
+     "y": -1055
+    },
+    {
+     "id": "g3",
+     "label": "The feared judgement gone, its letter kept with her passports",
+     "description": "A pumpkin and a strawberry plant from those she thought had judged her, and the committee letter in with the passports",
+     "members": [
+      "T3:33:0",
+      "T3:35:0"
+     ],
+     "x": -586,
+     "y": -587
+    },
+    {
+     "id": "g4",
+     "label": "Ten minutes of her own on the children's plot",
+     "description": "The deckchair opened once and left for weeding, on a plot no longer pretended to be her hobby, the children's place and glad of it",
+     "members": [
+      "g9",
+      "g10"
+     ],
+     "x": -108,
+     "y": -587
+    },
+    {
+     "id": "g5",
+     "label": "Giving away the guest's half, and a little grief",
+     "description": "Her mother's half let go, another's leeks where the dill was, and leaving felt even here",
+     "members": [
+      "T3:15:0",
+      "T3:29:0",
+      "T3:31:0"
+     ],
+     "x": -572,
+     "y": -953
+    },
+    {
+     "id": "g6",
+     "label": "Her buni's garden, not a plot, and nothing digging finds",
+     "description": "Back in her buni's garden the wish all along, her buni glad she tried, and the village tomatoes in a drawer",
+     "members": [
+      "T3:17:0",
+      "T3:17:1",
+      "T3:19:0"
+     ],
+     "x": -124,
+     "y": -953
+    },
+    {
+     "id": "g7",
+     "label": "Failure and relief at once, and her mother's laugh heard anew",
+     "description": "Too much again, a backpack taken off, and her mother laughing at the too much, not at her",
+     "members": [
+      "T3:9:0",
+      "T3:11:0",
+      "T3:11:1",
+      "T3:13:0"
+     ],
+     "x": 382,
+     "y": -953
+    },
+    {
+     "id": "g8",
+     "label": "Learning a little slow, after a year of attacking the plot",
+     "description": "Less strict, the pottering a lie, and the good tired back for a day",
+     "members": [
+      "T3:41:0",
+      "T3:23:0",
+      "T3:25:0"
+     ],
+     "x": 830,
+     "y": -953
+    },
+    {
+     "id": "g9",
+     "label": "Ten minutes of rest she could not keep",
+     "description": "The March picture for ten minutes, owing nothing like the spent sunflowers, then up and weeding",
+     "members": [
+      "T3:39:0",
+      "T3:37:0"
+     ],
+     "x": -94,
+     "y": -485
+    },
+    {
+     "id": "g10",
+     "label": "The children's place, and glad of it",
+     "description": "The hobby no longer pretended, their pride in seeds and strawberries, a harvest got away with",
+     "members": [
+      "T3:21:0",
+      "T3:7:0",
+      "T3:3:0"
+     ],
+     "x": 354,
+     "y": -485
+    }
+   ],
+   "discarded": [],
+   "picks": {
+    "g1": [
+     "T3:17:0"
+    ],
+    "g2": [
+     "T3:9:0"
+    ],
+    "g3": [
+     "T3:33:0"
+    ],
+    "g4": [
+     "T3:39:0"
+    ]
+   },
+   "quoted": {
+    "T3:17:0": "\"I wanted to be at my buni's again. Not to have a garden. To be in her garden. … And you cannot dig that. You can dig all day in England and you will not find it.\"",
+    "T3:9:0": "\"I felt like I had failed. When I decided, I felt like I had failed. And then I felt relieved. Both. And I still don't know which one is right.\"",
+    "T3:33:0": "\"They are kind. Really kind. … He came in October and he gave Daria a strawberry plant in a pot. … So maybe they never thought I'm crazy. Maybe only I thought this.\"",
+    "T3:39:0": "\"Ten minutes in a chair with nobody needing me, nobody behind me, no phone. … They're finished. They can stand there with their heads down and nobody shouts at them. … But for ten minutes I was like the sunflowers.\""
+   }
+  }
+ ]
+}

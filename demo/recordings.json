@@ -3,6 +3,36 @@
  "url": "https://github.com/Pharkie/idiograph/releases/download/demo-recordings-1/",
  "recordings": [
   {
+   "file": "Arlo-T1-48301f5fd57c6e18.m4a",
+   "size": 2441236,
+   "sha256": "981380f73250b67961d80f0900de71df99fa299a675832b669782e80b4c9dba7"
+  },
+  {
+   "file": "Arlo-T2-9e7f817ba78a9ca7.m4a",
+   "size": 2393495,
+   "sha256": "69c04d2194eb03bd2eb0fd24e126e783ff69b493f6ebf47d58804d85d6882e6b"
+  },
+  {
+   "file": "Arlo-T3-404e050312c03ea4.m4a",
+   "size": 2439128,
+   "sha256": "159f0dc1b98d99b8fc49905e313333d9702a89d40719d342ae32bbcd95a94284"
+  },
+  {
+   "file": "Hollis-T1-cfe0337fdb0b19af.m4a",
+   "size": 2417132,
+   "sha256": "2f70683dcccf9a7e02fc239d9825f5c24a290a5a73866ededcf229cbaa60ff7c"
+  },
+  {
+   "file": "Hollis-T2-757fb5280c7b1f18.m4a",
+   "size": 2371870,
+   "sha256": "dfe2b9bc87f876bab29a210178484f6b5511de6d34deaaad32a847286ff2c437"
+  },
+  {
+   "file": "Hollis-T3-8a15cac0d1a84c74.m4a",
+   "size": 2404504,
+   "sha256": "b18a5ee4a401d87509bd62f3bd7b5d183bb6b191b947481469e04c9266fcac2f"
+  },
+  {
    "file": "Juno-Initial-7cbfb051185389df.m4a",
    "size": 5280032,
    "sha256": "13e73af29cc5dd8da6ee46a976810fe878c92a04b1a9e61766a5286a71dd3841",
@@ -17,6 +47,21 @@
    "earlier": [
     3883552
    ]
+  },
+  {
+   "file": "Nell-T1-30276e05816ed327.m4a",
+   "size": 2290126,
+   "sha256": "d430bde923765fe5541fd4e2887b2256347096fac0e77b9eb00faa1678863abb"
+  },
+  {
+   "file": "Nell-T2-ced9076fa173fcea.m4a",
+   "size": 2320285,
+   "sha256": "867eab8cf65e01d226e30c63d0792071bba0786b9dbf60cebafc7627e78e6e7d"
+  },
+  {
+   "file": "Nell-T3-f2f8cad9bfc7695c.m4a",
+   "size": 2377669,
+   "sha256": "657d74e4e8749d3b50e2aaeb310151792eb5e940e5cfd7765c9729c0c324a08f"
   },
   {
    "file": "Rowan-Initial-82c763cbdca4df3e.m4a",

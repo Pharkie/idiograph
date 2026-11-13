@@ -1,0 +1,1607 @@
+{
+ "schema": 1,
+ "created": "2026-11-09T12:00:00+00:00",
+ "updated": "2026-11-09T13:30:00+00:00",
+ "current": "b1",
+ "chosen": "b1",
+ "complete": {
+  "at": "2026-11-09T13:30:00+00:00",
+  "board": "b1",
+  "name": "Board 1"
+ },
+ "settings": {
+  "minimum": null,
+  "one_per_pet": true
+ },
+ "study": {
+  "T1": {
+   "in": true
+  },
+  "T2": {
+   "in": true
+  },
+  "T3": {
+   "in": true
+  }
+ },
+ "cases": {
+  "T1": {
+   "workbook": "Nell - EN & ES.xlsx",
+   "board": "v1",
+   "name": "Board 1",
+   "complete": true,
+   "came": "2026-11-09T12:00:00+00:00",
+   "seen": {
+    "workbook": 1794225600000000000,
+    "themes": 1794225600000000000
+   },
+   "hash": "6cf703a2920d140539d5a16737a72ab7d237d9f0441645dc162985fa0e4376e1",
+   "state": "in",
+   "pets": [
+    {
+     "id": "g1",
+     "title": "Wanting her buni's garden again, for the children and for herself",
+     "note": "",
+     "parent": null,
+     "subs": [
+      "g4",
+      "g5"
+     ],
+     "statements": [],
+     "picks": [
+      "T1:11:0"
+     ],
+     "description": "The village and England meeting in a smell under her fork, and a summer like hers wanted for the children"
+    },
+    {
+     "id": "g4",
+     "title": "The village and England touching under her fork",
+     "note": "",
+     "parent": "g1",
+     "subs": [],
+     "statements": [
+      "T1:11:0",
+      "T1:13:0",
+      "T1:9:0"
+     ],
+     "picks": [],
+     "description": "Nearly crying at the smell of the earth, a childhood garden gone wild, two countries meeting for a second"
+    },
+    {
+     "id": "g5",
+     "title": "A summer like hers for the children, whatever her mother thinks",
+     "note": "",
+     "parent": "g1",
+     "subs": [],
+     "statements": [
+      "T1:7:0",
+      "T1:21:0",
+      "T1:5:0"
+     ],
+     "picks": [],
+     "description": "Knowing food by being there, tomatoes from the village on the list, and digging as going backwards"
+    },
+    {
+     "id": "g2",
+     "title": "“Slightly mad” to take a full plot she must prove she can keep",
+     "note": "",
+     "parent": null,
+     "subs": [
+      "g6",
+      "g7"
+     ],
+     "statements": [],
+     "picks": [
+      "T1:3:0"
+     ],
+     "description": "Taking too much as she always does, strict to keep up, and one more thing to show the people who look at her"
+    },
+    {
+     "id": "g6",
+     "title": "Taking too much, as always, and strict to keep up",
+     "note": "",
+     "parent": "g2",
+     "subs": [],
+     "statements": [
+      "T1:3:0",
+      "T1:37:0",
+      "T1:25:0",
+      "T1:27:0",
+      "T1:23:0"
+     ],
+     "picks": [],
+     "description": "A full plot before she could think, rules on the kitchen calendar, good at hard and not at slow"
+    },
+    {
+     "id": "g7",
+     "title": "Proving herself again, to an old man with a hat",
+     "note": "",
+     "parent": "g2",
+     "subs": [],
+     "statements": [
+      "T1:33:0",
+      "T1:35:0"
+     ],
+     "picks": [],
+     "description": "Judged a young mother with big ideas, after a life here of showing people"
+    },
+    {
+     "id": "g3",
+     "title": "“One thing that is mine”: a place to rest from being for others",
+     "note": "",
+     "parent": null,
+     "subs": [
+      "g8",
+      "g9"
+     ],
+     "statements": [],
+     "picks": [
+      "T1:15:0"
+     ],
+     "description": "Wanting something not for anybody, a deckchair pictured, a rest like her buni's, and a good tired remembered"
+    },
+    {
+     "id": "g8",
+     "title": "Nobody to be for at the plot",
+     "note": "",
+     "parent": "g3",
+     "subs": [],
+     "statements": [
+      "T1:15:0",
+      "T1:17:0"
+     ],
+     "picks": [],
+     "description": "One thing of her own, and nobody there to reassure"
+    },
+    {
+     "id": "g9",
+     "title": "A rest she has forgotten how to take",
+     "note": "",
+     "parent": "g3",
+     "subs": [],
+     "statements": [
+      "T1:31:0",
+      "T1:15:1",
+      "T1:39:0",
+      "T1:19:0"
+     ],
+     "picks": [],
+     "description": "A deckchair she does not believe in, sitting like her buni, a good day with nothing planted, and a warm tired"
+    }
+   ],
+   "lines": {
+    "T1:3:0": {
+     "sheet": "T1",
+     "row": 3,
+     "time": "T1, 00:17",
+     "seconds": 17,
+     "text": "Taking a full plot before she could think, half laughing at herself",
+     "quotes": [
+      "\"Excited. And a bit mad, I think. Slightly mad. … And I said no, full. I don't know why I said this. It came out of my mouth before I think.\""
+     ],
+     "notes": [
+      "Full, not half: the yes before thinking. Her mother's laugh down the phone from the village."
+     ],
+     "pet": "g6",
+     "discarded": false
+    },
+    "T1:5:0": {
+     "sheet": "T1",
+     "row": 5,
+     "time": "T1, 01:00",
+     "seconds": 60,
+     "text": "Unsure yet what digging means for her, unlike her mother",
+     "quotes": [
+      "\"But after, a little bit, it stayed with me. … For her, to dig is going backwards. … But for me it's not backwards. For me it's, I don't know yet what it is. Something.\""
+     ],
+     "notes": [
+      "Digging as going backwards for a mother who worked so she would not have to. 'Something': no word for it yet."
+     ],
+     "pet": "g5",
+     "discarded": false
+    },
+    "T1:7:0": {
+     "sheet": "T1",
+     "row": 7,
+     "time": "T1, 01:43",
+     "seconds": 103,
+     "text": "Wanting the children to know food as she knew it at her buni's",
+     "quotes": [
+      "\"I want my kids to know where food comes from. … Nobody taught me. I just knew, because I was there. I want them to have one summer like this. Even small. Even in England.\""
+     ],
+     "notes": [
+      "Carrots from a bag. Knowing by being there, not by being taught."
+     ],
+     "pet": "g5",
+     "discarded": false
+    },
+    "T1:9:0": {
+     "sheet": "T1",
+     "row": 9,
+     "time": "T1, 02:27",
+     "seconds": 147,
+     "text": "A childhood garden alive in a smell, and gone wild now",
+     "quotes": [
+      "\"And the smell of the tomato leaves on your fingers, you know this smell? Green, a bit bitter. When I smell it now I am nine years old. … but the garden is gone wild because she can't do it any more.\""
+     ],
+     "notes": [
+      "Nine years old in a smell. Buni ninety-one, the garden gone wild, three years since she went back."
+     ],
+     "pet": "g4",
+     "discarded": false
+    },
+    "T1:11:0": {
+     "sheet": "T1",
+     "row": 11,
+     "time": "T1, 03:12",
+     "seconds": 192,
+     "text": "Nearly crying at the smell of turned earth: there and here at once",
+     "quotes": [
+      "\"the smell came up. Earth smell, wet. And I nearly cried. … Like I was there and here at the same time. In the village and in England.\""
+     ],
+     "notes": [
+      "'Stupid. Is not stupid, I know.' Corrects herself. A biscuit in the mud and she is back in England."
+     ],
+     "pet": "g4",
+     "discarded": false
+    },
+    "T1:13:0": {
+     "sheet": "T1",
+     "row": 13,
+     "time": "T1, 03:53",
+     "seconds": 233,
+     "text": "Glad and hurt when her two countries meet",
+     "quotes": [
+      "\"You have two places, and most of the time they are far apart. … And for one second on the plot, with the smell, they were not far. … Good, and also it hurts a little.\""
+     ],
+     "notes": [
+      "Romanian to the children, English back. The same clock on the wall since she was a baby. Good, and it hurts."
+     ],
+     "pet": "g4",
+     "discarded": false
+    },
+    "T1:15:0": {
+     "sheet": "T1",
+     "row": 15,
+     "time": "T1, 04:34",
+     "seconds": 274,
+     "text": "Wanting one thing of her own, when all else is for others",
+     "quotes": [
+      "\"I wanted one thing that is mine. Everything is for somebody. … And I thought, I want one thing that is mine, even if it's mostly mud.\"",
+      "\"I picture it. Me in a deckchair, with a book, in the sun … I know this is not how it will be. I know. But this is the picture in my head.\""
+     ],
+     "notes": [
+      "'Even if it's mostly mud.' The deckchair is a picture she does not believe in and keeps anyway."
+     ],
+     "pet": "g8",
+     "discarded": false
+    },
+    "T1:15:1": {
+     "sheet": "T1",
+     "row": 15,
+     "time": "T1, 04:34",
+     "seconds": 274,
+     "text": "A deckchair she pictures but does not believe in",
+     "quotes": [
+      "\"I wanted one thing that is mine. Everything is for somebody. … And I thought, I want one thing that is mine, even if it's mostly mud.\"",
+      "\"I picture it. Me in a deckchair, with a book, in the sun … I know this is not how it will be. I know. But this is the picture in my head.\""
+     ],
+     "notes": [
+      "'Even if it's mostly mud.' The deckchair is a picture she does not believe in and keeps anyway."
+     ],
+     "pet": "g9",
+     "discarded": false
+    },
+    "T1:17:0": {
+     "sheet": "T1",
+     "row": 17,
+     "time": "T1, 05:18",
+     "seconds": 318,
+     "text": "Hoping for nobody to reassure at the plot",
+     "quotes": [
+      "\"But all day I make other people feel okay. … Nobody says it to me. Is not a complaint. Is just, I thought, on the plot nobody needs me to say anything.\""
+     ],
+     "notes": [
+      "Nearly finished, you're doing great: said all day, never to her. The plot as a place with no one to reassure?"
+     ],
+     "pet": "g8",
+     "discarded": false
+    },
+    "T1:19:0": {
+     "sheet": "T1",
+     "row": 19,
+     "time": "T1, 05:50",
+     "seconds": 350,
+     "text": "A good day with nothing planted",
+     "quotes": [
+      "\"So we planted nothing. Nothing at all. But they were so happy. Muddy to the eyes, both. … So it was a good day, for nothing planted.\""
+     ],
+     "notes": [
+      "Domnul Frog. Nothing planted and a good day all the same."
+     ],
+     "pet": "g9",
+     "discarded": false
+    },
+    "T1:21:0": {
+     "sheet": "T1",
+     "row": 21,
+     "time": "T1, 06:30",
+     "seconds": 390,
+     "text": "Ambition on paper: a farm, her buni's tomatoes first",
+     "quotes": [
+      "\"Tomatoes, of course. Like my buni's … I asked my mother to send seeds from the village … I wrote a list. Is a long list. Chris read it and he said, Nell, this is a farm.\""
+     ],
+     "notes": [
+      "Tomatoes like her buni's first on the list. Chris: 'this is a farm'. Taking too much again?"
+     ],
+     "pet": "g5",
+     "discarded": false
+    },
+    "T1:23:0": {
+     "sheet": "T1",
+     "row": 23,
+     "time": "T1, 07:08",
+     "seconds": 428,
+     "text": "Seen through by Chris when she promises time",
+     "quotes": [
+      "\"And I say, I'll find the time. And he makes this face. He has a face for when I say I'll find the time. He has seen this many times, I think. He knows me.\""
+     ],
+     "notes": [
+      "Chris's face for 'I'll find the time'. Known, and a little caught out."
+     ],
+     "pet": "g6",
+     "discarded": false
+    },
+    "T1:25:0": {
+     "sheet": "T1",
+     "row": 25,
+     "time": "T1, 07:42",
+     "seconds": 462,
+     "text": "Strict rules against a jungle by June",
+     "quotes": [
+      "\"I will have to be strict with myself. Very strict. I know how it is, if I let it slide in April, I will have a jungle by June. … So I have a plan. Two mornings a week, minimum\""
+     ],
+     "notes": [
+      "The calendar in the kitchen. A plan made against her own habits."
+     ],
+     "pet": "g6",
+     "discarded": false
+    },
+    "T1:27:0": {
+     "sheet": "T1",
+     "row": 27,
+     "time": "T1, 08:15",
+     "seconds": 495,
+     "text": "Strictness learned to survive here: good at hard, not slow",
+     "quotes": [
+      "\"Nobody gives you anything here, you have to be strict, or you are nothing. So I am good at strict. I'm good at hard. … What I'm not so good at is slow.\""
+     ],
+     "notes": [
+      "One suitcase, offices at night. 'Strict, or you are nothing.' Hard she can do, slow she cannot."
+     ],
+     "pet": "g6",
+     "discarded": false
+    },
+    "T1:31:0": {
+     "sheet": "T1",
+     "row": 31,
+     "time": "T1, 09:15",
+     "seconds": 555,
+     "text": "Longing to sit as her buni sat",
+     "quotes": [
+      "\"She just sits, with her hands in her lap, and looks at the garden. … Now I think she was, I don't know the word, full. … But I would like to sit like her, one time, on my plot.\""
+     ],
+     "notes": [
+      "'Full': her word for her buni at rest. She has never sat like that."
+     ],
+     "pet": "g9",
+     "discarded": false
+    },
+    "T1:33:0": {
+     "sheet": "T1",
+     "row": 33,
+     "time": "T1, 09:56",
+     "seconds": 596,
+     "text": "Judged by a look at the pushchair, a young mother with big ideas",
+     "quotes": [
+      "\"he looked at my pushchair like, what is this woman doing here with a baby. … He thinks I'm one more young mother with big ideas. … But I want to show him.\""
+     ],
+     "notes": [
+      "The man with the hat. A look, nothing said, heard as a verdict."
+     ],
+     "pet": "g7",
+     "discarded": false
+    },
+    "T1:35:0": {
+     "sheet": "T1",
+     "row": 35,
+     "time": "T1, 10:37",
+     "seconds": 637,
+     "text": "The plot one more thing to prove here",
+     "quotes": [
+      "\"But all my life here, I have to show people. Show them I speak English properly, show them I'm not here to take something … The plot will be one more thing I show them.\""
+     ],
+     "notes": [
+      "Showing people all her life here. The patient who asked for the English nurse."
+     ],
+     "pet": "g7",
+     "discarded": false
+    },
+    "T1:37:0": {
+     "sheet": "T1",
+     "row": 37,
+     "time": "T1, 11:11",
+     "seconds": 671,
+     "text": "Afraid the plot will show she took too much again",
+     "quotes": [
+      "\"That I took too much. That's always my problem. … So if the plot is a jungle in June, it means I did it again. I took too much. But I want to try.\""
+     ],
+     "notes": [
+      "'I take too much', said by Chris and her mother too. Wants to try anyway."
+     ],
+     "pet": "g6",
+     "discarded": false
+    },
+    "T1:39:0": {
+     "sheet": "T1",
+     "row": 39,
+     "time": "T1, 11:47",
+     "seconds": 707,
+     "text": "Remembering a good tired after years of grey",
+     "quotes": [
+      "\"But it was a good tired. Not the tired from work, from standing, from the commute, that tired is grey. This was a good tired, warm. … I forgot there is a good tired.\""
+     ],
+     "notes": [
+      "Grey tired and warm tired. Six years of the grey kind."
+     ],
+     "pet": "g9",
+     "discarded": false
+    }
+   },
+   "cite": "T1"
+  },
+  "T2": {
+   "workbook": "Nell - EN & ES.xlsx",
+   "board": "v1",
+   "name": "Board 1",
+   "complete": true,
+   "came": "2026-11-09T12:00:00+00:00",
+   "seen": {
+    "workbook": 1794225600000000000,
+    "themes": 1794225600000000000
+   },
+   "hash": "674050e5e3045711eddc8857550414baf13ce62de50ecbd3b349657f08fda1b3",
+   "state": "in",
+   "pets": [
+    {
+     "id": "g1",
+     "title": "A guest in her mother's half, “grateful and small”",
+     "note": "",
+     "parent": null,
+     "subs": [],
+     "statements": [
+      "T2:29:0",
+      "T2:31:0",
+      "T2:27:0",
+      "T2:33:0",
+      "T2:35:0"
+     ],
+     "picks": [
+      "T2:29:0"
+     ],
+     "description": "Her mother clearing in three weeks what she could not in three months, a garden she chose to leave, and Nell grateful and small"
+    },
+    {
+     "id": "g2",
+     "title": "Shamed by a letter, and hiding from the plot holders",
+     "note": "",
+     "parent": null,
+     "subs": [],
+     "statements": [
+      "T2:9:0",
+      "T2:11:0",
+      "T2:7:0",
+      "T2:13:0"
+     ],
+     "picks": [
+      "T2:9:0"
+     ],
+     "description": "Her name written down, a blameless record spoiled over vegetables, and early mornings at the far fence"
+    },
+    {
+     "id": "g3",
+     "title": "Awake to being behind, and not one to give it back",
+     "note": "",
+     "parent": null,
+     "subs": [],
+     "statements": [
+      "T2:41:0",
+      "T2:39:0",
+      "T2:3:0",
+      "T2:5:0",
+      "T2:37:0",
+      "T2:11:1"
+     ],
+     "picks": [
+      "T2:39:0"
+     ],
+     "description": "Seeing only what is undone, racing the weeds, the good tired gone, and still not one to give things back"
+    },
+    {
+     "id": "g4",
+     "title": "The help on her son's plot",
+     "note": "",
+     "parent": null,
+     "subs": [],
+     "statements": [
+      "T2:23:0",
+      "T2:15:0",
+      "T2:19:0",
+      "T2:21:0"
+     ],
+     "picks": [
+      "T2:23:0"
+     ],
+     "description": "Kept on for him, his sunflowers exactly what she wanted, the mess hers alone to see, and her own deckchair never opened"
+    }
+   ],
+   "lines": {
+    "T2:3:0": {
+     "sheet": "T2",
+     "row": 3,
+     "time": "T2, 00:12",
+     "seconds": 12,
+     "text": "Coming home from the plot worse than she went",
+     "quotes": [
+      "\"And every time I go to the plot I see only what I have not done. … And I come home feeling worse than before I went. Is crazy. I go there to feel better and I come home worse.\""
+     ],
+     "notes": [
+      "'I am very good at predicting myself.' The calendar looks back at her. Goes to feel better, comes home worse."
+     ],
+     "pet": "g3",
+     "discarded": false
+    },
+    "T2:5:0": {
+     "sheet": "T2",
+     "row": 5,
+     "time": "T2, 00:56",
+     "seconds": 56,
+     "text": "Too pressed by the jungle to look at the children",
+     "quotes": [
+      "\"I just pull, pull, pull, the weeds by the path, fast, like I'm racing somebody. … Matei is shouting mama look, mama look, and I say yes, beautiful, without looking.\""
+     ],
+     "notes": [
+      "Racing somebody, but who? 'Yes, beautiful, without looking.'"
+     ],
+     "pet": "g3",
+     "discarded": false
+    },
+    "T2:7:0": {
+     "sheet": "T2",
+     "row": 7,
+     "time": "T2, 01:46",
+     "seconds": 106,
+     "text": "Feeling watched and found wanting by the other plot holders",
+     "quotes": [
+      "\"Like walking into a room where everybody knows you did something wrong. … Maybe they don't look. Maybe they don't care at all. But I feel it on my back, like a hand.\""
+     ],
+     "notes": [
+      "Mine 'like the house of somebody who died'. Unsure anyone looks, sure she feels it."
+     ],
+     "pet": "g2",
+     "discarded": false
+    },
+    "T2:9:0": {
+     "sheet": "T2",
+     "row": 9,
+     "time": "T2, 02:14",
+     "seconds": 134,
+     "text": "Shamed to tears by the committee letter",
+     "quotes": [
+      "\"I read it in the car, outside the nursery, and I cried. … Like somebody walked past my plot with a clipboard and wrote my name down.\""
+     ],
+     "notes": [
+      "A letter with a logo. Daria in the back: is it the radio. Somebody wrote her name down."
+     ],
+     "pet": "g2",
+     "discarded": false
+    },
+    "T2:11:0": {
+     "sheet": "T2",
+     "row": 11,
+     "time": "T2, 02:50",
+     "seconds": 170,
+     "text": "A blameless record here spoiled by a letter about vegetables",
+     "quotes": [
+      "\"I always pay first, I always fill the forms correct, I always do everything they ask. Eleven years in this country and I never get one letter like this. And now for vegetables.\"",
+      "\"But I don't give things back. I'm not a person who gives things back. If I give back every hard thing, I would be in the village still.\""
+     ],
+     "notes": [
+      "Eleven years of forms filled correct. 'Like a schoolgirl': apologising for her children."
+     ],
+     "pet": "g2",
+     "discarded": false
+    },
+    "T2:11:1": {
+     "sheet": "T2",
+     "row": 11,
+     "time": "T2, 02:50",
+     "seconds": 170,
+     "text": "Not one to give hard things back",
+     "quotes": [
+      "\"I always pay first, I always fill the forms correct, I always do everything they ask. Eleven years in this country and I never get one letter like this. And now for vegetables.\"",
+      "\"But I don't give things back. I'm not a person who gives things back. If I give back every hard thing, I would be in the village still.\""
+     ],
+     "notes": [
+      "Eleven years of forms filled correct. 'Like a schoolgirl': apologising for her children."
+     ],
+     "pet": "g3",
+     "discarded": false
+    },
+    "T2:13:0": {
+     "sheet": "T2",
+     "row": 13,
+     "time": "T2, 03:31",
+     "seconds": 211,
+     "text": "Hiding from the other plot holders since the letter",
+     "quotes": [
+      "\"I'm hiding, I know this. I'm a grown woman hiding from pensioners with clipboards. But I can't help it.\""
+     ],
+     "notes": [
+      "Half past six, Thursday evenings, the far fence. Pretending to do something important with the onions."
+     ],
+     "pet": "g2",
+     "discarded": false
+    },
+    "T2:15:0": {
+     "sheet": "T2",
+     "row": 15,
+     "time": "T2, 04:08",
+     "seconds": 248,
+     "text": "Sunflowers taller than her son: exactly what she wanted",
+     "quotes": [
+      "\"Every Sunday he stands next to them and I take a photo, and he says mama, measure me … That part is exactly what I wanted. Exactly.\""
+     ],
+     "notes": [
+      "'Mama, measure me.' The one part exactly as pictured."
+     ],
+     "pet": "g4",
+     "discarded": false
+    },
+    "T2:19:0": {
+     "sheet": "T2",
+     "row": 19,
+     "time": "T2, 05:29",
+     "seconds": 329,
+     "text": "Lonely in seeing the mess so the children need not",
+     "quotes": [
+      "\"But lonely because I am the only one who sees it. … This is being a mother, I think, a lot of the time. Seeing the mess so they don't have to.\""
+     ],
+     "notes": [
+      "A mother at a party seeing the mess. Lonely in what she alone sees."
+     ],
+     "pet": "g4",
+     "discarded": false
+    },
+    "T2:21:0": {
+     "sheet": "T2",
+     "row": 21,
+     "time": "T2, 06:06",
+     "seconds": 366,
+     "text": "Even her free hour spent on guilt",
+     "quotes": [
+      "\"The deckchair is still in the shed. Folded. … Even the guilt is not mine. Even the guilt is for the plot. I wanted one thing that is mine and now I have one more thing that I'm failing at.\""
+     ],
+     "notes": [
+      "Striped, bought in April, never opened. Even her guilt belongs to the plot."
+     ],
+     "pet": "g4",
+     "discarded": false
+    },
+    "T2:23:0": {
+     "sheet": "T2",
+     "row": 23,
+     "time": "T2, 06:39",
+     "seconds": 399,
+     "text": "Kept on only for her son, herself the help",
+     "quotes": [
+      "\"And I cannot say to him we're not going any more. I cannot do this. So I suppose it's his now, really. The plot is his and I am the help.\""
+     ],
+     "notes": [
+      "Sunday night: give it up. Monday morning: his question. She cannot say no to him."
+     ],
+     "pet": "g4",
+     "discarded": false
+    },
+    "T2:27:0": {
+     "sheet": "T2",
+     "row": 27,
+     "time": "T2, 07:55",
+     "seconds": 475,
+     "text": "Outdone in three weeks by her mother",
+     "quotes": [
+      "\"And in three weeks she cleared half of it. Half. … In three weeks she did what I didn't do in three months. And she didn't laugh at me this time.\""
+     ],
+     "notes": [
+      "No laugh this time from her mother. 'She just worked.'"
+     ],
+     "pet": "g1",
+     "discarded": false
+    },
+    "T2:29:0": {
+     "sheet": "T2",
+     "row": 29,
+     "time": "T2, 08:31",
+     "seconds": 511,
+     "text": "A minute in her buni's garden, then a guest on her own plot",
+     "quotes": [
+      "\"it looked like my buni's garden. … And for one minute I was so happy. Like I opened a door and the village was there. And then the next minute I felt like a visitor. … I was standing on my own plot like a guest.\""
+     ],
+     "notes": [
+      "A door opening on the village, then a guest. The girl with the bucket again."
+     ],
+     "pet": "g1",
+     "discarded": false
+    },
+    "T2:31:0": {
+     "sheet": "T2",
+     "row": 31,
+     "time": "T2, 09:03",
+     "seconds": 543,
+     "text": "Praised for her mother's work: grateful and small",
+     "quotes": [
+      "\"The secretary walked past and he said, well done, Nell, what a difference. To me! … Small. Grateful and small at the same time.\""
+     ],
+     "notes": [
+      "Praised for her mother's work. No word for it in either language: grateful and small."
+     ],
+     "pet": "g1",
+     "discarded": false
+    },
+    "T2:33:0": {
+     "sheet": "T2",
+     "row": 33,
+     "time": "T2, 09:41",
+     "seconds": 581,
+     "text": "Struck that her mother remade here the garden she chose to leave",
+     "quotes": [
+      "\"And she left it. She chose to leave it. And now she comes to England and makes it again on my plot, in three weeks, like she never left.\""
+     ],
+     "notes": [
+      "Buni talked to the peppers. Her mother chose to leave the garden, and made it again here."
+     ],
+     "pet": "g1",
+     "discarded": false
+    },
+    "T2:35:0": {
+     "sheet": "T2",
+     "row": 35,
+     "time": "T2, 10:24",
+     "seconds": 624,
+     "text": "Grateful for a kitchen smelling of home",
+     "quotes": [
+      "\"But the dill, I cook with her dill now, I put it in the soup, and the whole kitchen smells like home. Like my buni's kitchen. So I am grateful. I am. Even when I'm small, I'm grateful.\""
+     ],
+     "notes": [
+      "Two halves, two women, 'hers is good'. The dill in the soup smells like buni's kitchen."
+     ],
+     "pet": "g1",
+     "discarded": false
+    },
+    "T2:37:0": {
+     "sheet": "T2",
+     "row": 37,
+     "time": "T2, 10:54",
+     "seconds": 654,
+     "text": "The good tired gone: the plot one more grey thing",
+     "quotes": [
+      "\"My body says no and I go anyway. … Now there is no good tired. Is just tired. The grey one. The plot became one more grey thing.\""
+     ],
+     "notes": [
+      "'In March I told you there is a good tired.' Holds herself to what she said."
+     ],
+     "pet": "g3",
+     "discarded": false
+    },
+    "T2:39:0": {
+     "sheet": "T2",
+     "row": 39,
+     "time": "T2, 11:22",
+     "seconds": 682,
+     "text": "Behind with everything, and most visibly at the plot",
+     "quotes": [
+      "\"Behind is my whole body. I wake up already behind. … And instead it's the place where I'm most behind of all, where you can see how behind I am, with your eyes, in weeds.\""
+     ],
+     "notes": [
+      "Behind with phoning her buni too. The plot shows it 'with your eyes, in weeds'."
+     ],
+     "pet": "g3",
+     "discarded": false
+    },
+    "T2:41:0": {
+     "sheet": "T2",
+     "row": 41,
+     "time": "T2, 11:56",
+     "seconds": 716,
+     "text": "Woken from a dream of the plot, not sure she likes it",
+     "quotes": [
+      "\"I think in March I was a bit, dreaming. … Now I'm awake. Is not bad, to be awake. … I don't know yet if I like what it is. But at least I see it.\""
+     ],
+     "notes": [
+      "Dreaming in March, awake now. Not sure she likes it, glad to see it."
+     ],
+     "pet": "g3",
+     "discarded": false
+    }
+   },
+   "cite": "T2"
+  },
+  "T3": {
+   "workbook": "Nell - EN & ES.xlsx",
+   "board": "v1",
+   "name": "Board 1",
+   "complete": true,
+   "came": "2026-11-09T12:00:00+00:00",
+   "seen": {
+    "workbook": 1794225600000000000,
+    "themes": 1794225600000000000
+   },
+   "hash": "ba5ea21a9be4f5ff6fb500b81260ce334f5e61713723587bb3ef7990df73207b",
+   "state": "in",
+   "pets": [
+    {
+     "id": "g1",
+     "title": "Letting go of her buni's garden, which “you cannot dig”",
+     "note": "",
+     "parent": null,
+     "subs": [
+      "g5",
+      "g6"
+     ],
+     "statements": [],
+     "picks": [
+      "T3:17:0"
+     ],
+     "description": "Giving away her mother's half, where she was a guest, and finding she wanted her buni's garden itself, not a plot"
+    },
+    {
+     "id": "g5",
+     "title": "Giving away the guest's half, and a little grief",
+     "note": "",
+     "parent": "g1",
+     "subs": [],
+     "statements": [
+      "T3:15:0",
+      "T3:29:0",
+      "T3:31:0"
+     ],
+     "picks": [],
+     "description": "Her mother's half let go, another's leeks where the dill was, and leaving felt even here"
+    },
+    {
+     "id": "g6",
+     "title": "Her buni's garden, not a plot, and nothing digging finds",
+     "note": "",
+     "parent": "g1",
+     "subs": [],
+     "statements": [
+      "T3:17:0",
+      "T3:17:1",
+      "T3:19:0"
+     ],
+     "picks": [],
+     "description": "Back in her buni's garden the wish all along, her buni glad she tried, and the village tomatoes in a drawer"
+    },
+    {
+     "id": "g2",
+     "title": "Half given away: failed, relieved, a little less strict",
+     "note": "",
+     "parent": null,
+     "subs": [
+      "g7",
+      "g8"
+     ],
+     "statements": [],
+     "picks": [
+      "T3:9:0"
+     ],
+     "description": "Proof she took too much, a morning free of the plot, her mother's laugh heard anew, and slow learned a little"
+    },
+    {
+     "id": "g7",
+     "title": "Failure and relief at once, and her mother's laugh heard anew",
+     "note": "",
+     "parent": "g2",
+     "subs": [],
+     "statements": [
+      "T3:9:0",
+      "T3:11:0",
+      "T3:11:1",
+      "T3:13:0"
+     ],
+     "picks": [],
+     "description": "Too much again, a backpack taken off, and her mother laughing at the too much, not at her"
+    },
+    {
+     "id": "g8",
+     "title": "Learning a little slow, after a year of attacking the plot",
+     "note": "",
+     "parent": "g2",
+     "subs": [],
+     "statements": [
+      "T3:41:0",
+      "T3:23:0",
+      "T3:25:0"
+     ],
+     "picks": [],
+     "description": "Less strict, the pottering a lie, and the good tired back for a day"
+    },
+    {
+     "id": "g3",
+     "title": "The feared judgement gone, its letter kept with her passports",
+     "note": "",
+     "parent": null,
+     "subs": [],
+     "statements": [
+      "T3:33:0",
+      "T3:35:0"
+     ],
+     "picks": [
+      "T3:33:0"
+     ],
+     "description": "A pumpkin and a strawberry plant from those she thought had judged her, and the committee letter in with the passports"
+    },
+    {
+     "id": "g4",
+     "title": "Ten minutes of her own on the children's plot",
+     "note": "",
+     "parent": null,
+     "subs": [
+      "g9",
+      "g10"
+     ],
+     "statements": [],
+     "picks": [
+      "T3:39:0"
+     ],
+     "description": "The deckchair opened once and left for weeding, on a plot no longer pretended to be her hobby, the children's place and glad of it"
+    },
+    {
+     "id": "g9",
+     "title": "Ten minutes of rest she could not keep",
+     "note": "",
+     "parent": "g4",
+     "subs": [],
+     "statements": [
+      "T3:39:0",
+      "T3:37:0"
+     ],
+     "picks": [],
+     "description": "The March picture for ten minutes, owing nothing like the spent sunflowers, then up and weeding"
+    },
+    {
+     "id": "g10",
+     "title": "The children's place, and glad of it",
+     "note": "",
+     "parent": "g4",
+     "subs": [],
+     "statements": [
+      "T3:21:0",
+      "T3:7:0",
+      "T3:3:0"
+     ],
+     "picks": [],
+     "description": "The hobby no longer pretended, their pride in seeds and strawberries, a harvest got away with"
+    }
+   ],
+   "lines": {
+    "T3:3:0": {
+     "sheet": "T3",
+     "row": 3,
+     "time": "T3, 00:10",
+     "seconds": 10,
+     "text": "A harvest she got away with, much of it her mother's",
+     "quotes": [
+      "\"And courgettes, so many courgettes, from my mother's half. … And I think, we got away with it. That's how it feels.\""
+     ],
+     "notes": [
+      "Nine strawberries, counted. 'We got away with it', said twice."
+     ],
+     "pet": "g10",
+     "discarded": false
+    },
+    "T3:7:0": {
+     "sheet": "T3",
+     "row": 7,
+     "time": "T3, 01:20",
+     "seconds": 80,
+     "text": "Delighted by the children's pride in their sunflower seeds and strawberries",
+     "quotes": [
+      "\"he picked out every seed, one by one, a whole evening, and he put them in an envelope. And he wrote on it, Matei sunflowers next year.\""
+     ],
+     "notes": [
+      "The s backwards on the envelope, on the fridge. Seven of the nine picked by Daria, four or five eaten."
+     ],
+     "pet": "g10",
+     "discarded": false
+    },
+    "T3:9:0": {
+     "sheet": "T3",
+     "row": 9,
+     "time": "T3, 01:55",
+     "seconds": 115,
+     "text": "Giving up half: failure and relief unresolved",
+     "quotes": [
+      "\"I felt like I had failed. When I decided, I felt like I had failed. And then I felt relieved. Both. And I still don't know which one is right.\""
+     ],
+     "notes": [
+      "Failed, then relieved, and 'maybe both are right'. Leaves it open."
+     ],
+     "pet": "g7",
+     "discarded": false
+    },
+    "T3:11:0": {
+     "sheet": "T3",
+     "row": 11,
+     "time": "T3, 02:34",
+     "seconds": 154,
+     "text": "Failure as proof she took too much again",
+     "quotes": [
+      "\"Three times I wrote it and deleted it. Because I know what it means. It means the man with the hat was right. It means I took too much, again, like always, and I couldn't hold it.\"",
+      "\"the next morning I woke up and the first thought in my head was not the plot. First time since March. … like when you take off a backpack you forgot you were carrying.\""
+     ],
+     "notes": [
+      "Three drafts deleted. The man with the hat proved right in her head. Then rain as the first thought."
+     ],
+     "pet": "g7",
+     "discarded": false
+    },
+    "T3:11:1": {
+     "sheet": "T3",
+     "row": 11,
+     "time": "T3, 02:34",
+     "seconds": 154,
+     "text": "Relief: a morning when her first thought was not the plot",
+     "quotes": [
+      "\"Three times I wrote it and deleted it. Because I know what it means. It means the man with the hat was right. It means I took too much, again, like always, and I couldn't hold it.\"",
+      "\"the next morning I woke up and the first thought in my head was not the plot. First time since March. … like when you take off a backpack you forgot you were carrying.\""
+     ],
+     "notes": [
+      "Three drafts deleted. The man with the hat proved right in her head. Then rain as the first thought."
+     ],
+     "pet": "g7",
+     "discarded": false
+    },
+    "T3:13:0": {
+     "sheet": "T3",
+     "row": 13,
+     "time": "T3, 03:15",
+     "seconds": 195,
+     "text": "A mother's laugh understood at last",
+     "quotes": [
+      "\"So she was not laughing at me. She was laughing at the too much. All year I thought she was laughing at me, at the village girl digging in England. … I didn't know it was different.\""
+     ],
+     "notes": [
+      "The March laugh heard again: at the too much, not at her. A year's reading of her mother undone."
+     ],
+     "pet": "g7",
+     "discarded": false
+    },
+    "T3:15:0": {
+     "sheet": "T3",
+     "row": 15,
+     "time": "T3, 04:01",
+     "seconds": 241,
+     "text": "Giving away the half where she was a guest",
+     "quotes": [
+      "\"I gave away the good half and I kept the half with the jungle and Matei's sunflowers. … Mama's half was never mine. It was beautiful, but it was never mine. I was a guest there.\""
+     ],
+     "notes": [
+      "Chris: keep the good half. She keeps the jungle and the sunflowers. A guest's half is no half."
+     ],
+     "pet": "g5",
+     "discarded": false
+    },
+    "T3:17:0": {
+     "sheet": "T3",
+     "row": 17,
+     "time": "T3, 04:35",
+     "seconds": 275,
+     "text": "Wanting her buni's garden all along, not a plot",
+     "quotes": [
+      "\"I wanted to be at my buni's again. Not to have a garden. To be in her garden. … And you cannot dig that. You can dig all day in England and you will not find it.\"",
+      "\"And I said, buni, I didn't plant tomatoes. And she laughed more. She was happy that I'm trying. That was enough. That was more than enough.\""
+     ],
+     "notes": [
+      "'Is not in the soil.' Buni, ninety-two, asks after tomatoes never planted, and laughs."
+     ],
+     "pet": "g6",
+     "discarded": false
+    },
+    "T3:17:1": {
+     "sheet": "T3",
+     "row": 17,
+     "time": "T3, 04:35",
+     "seconds": 275,
+     "text": "Enough that her buni was happy she tried",
+     "quotes": [
+      "\"I wanted to be at my buni's again. Not to have a garden. To be in her garden. … And you cannot dig that. You can dig all day in England and you will not find it.\"",
+      "\"And I said, buni, I didn't plant tomatoes. And she laughed more. She was happy that I'm trying. That was enough. That was more than enough.\""
+     ],
+     "notes": [
+      "'Is not in the soil.' Buni, ninety-two, asks after tomatoes never planted, and laughs."
+     ],
+     "pet": "g6",
+     "discarded": false
+    },
+    "T3:19:0": {
+     "sheet": "T3",
+     "row": 19,
+     "time": "T3, 05:32",
+     "seconds": 332,
+     "text": "The village tomatoes never started, perhaps for her son",
+     "quotes": [
+      "\"They're still in the envelope, in the kitchen drawer. Buni's tomatoes, from the village, in a drawer in England. … I think maybe they are his to plant, not mine.\""
+     ],
+     "notes": [
+      "Seeds wrapped in newspaper, never the right day. 'His to plant, not mine.'"
+     ],
+     "pet": "g6",
+     "discarded": false
+    },
+    "T3:21:0": {
+     "sheet": "T3",
+     "row": 21,
+     "time": "T3, 06:10",
+     "seconds": 370,
+     "text": "No more pretending it is her hobby",
+     "quotes": [
+      "\"I have stopped pretending it's my hobby. … It's their place, and I'm glad they have one. Really glad.\""
+     ],
+     "notes": [
+      "'Every child should have a place like this.' The hobby dropped as a pretence."
+     ],
+     "pet": "g10",
+     "discarded": false
+    },
+    "T3:23:0": {
+     "sheet": "T3",
+     "row": 23,
+     "time": "T3, 06:49",
+     "seconds": 409,
+     "text": "Attacking the plot and calling it pottering",
+     "quotes": [
+      "\"But I don't potter. I attack. I go to the plot like I go to a war. … Is the biggest lie of my year, the pottering.\""
+     ],
+     "notes": [
+      "Potter: a word learned this year for a way she cannot be."
+     ],
+     "pet": "g8",
+     "discarded": false
+    },
+    "T3:25:0": {
+     "sheet": "T3",
+     "row": 25,
+     "time": "T3, 07:19",
+     "seconds": 439,
+     "text": "The good tired back for a day",
+     "quotes": [
+      "\"I said no, I'm just not behind any more. And the good tired came back, one time … It came back for one day.\""
+     ],
+     "notes": [
+      "A week of sleeping like the children. The good tired back, once."
+     ],
+     "pet": "g8",
+     "discarded": false
+    },
+    "T3:29:0": {
+     "sheet": "T3",
+     "row": 29,
+     "time": "T3, 08:28",
+     "seconds": 508,
+     "text": "A little grief at leeks where the dill was",
+     "quotes": [
+      "\"Somebody else's curtains, where your life was. Like this. Malcolm's leeks where my mother's dill was, where my buni's garden was for three weeks. Is fine. It's only a little moment.\""
+     ],
+     "notes": [
+      "Another's curtains in the window of an old flat."
+     ],
+     "pet": "g5",
+     "discarded": false
+    },
+    "T3:31:0": {
+     "sheet": "T3",
+     "row": 31,
+     "time": "T3, 09:02",
+     "seconds": 542,
+     "text": "Leaving felt again, even here",
+     "quotes": [
+      "\"That's what it is to leave, I think. Everything you left keeps going without you. Is normal. But the plot, I didn't expect it there, in England.\""
+     ],
+     "notes": [
+      "Her school a supermarket now. Leaving keeps happening, even here."
+     ],
+     "pet": "g5",
+     "discarded": false
+    },
+    "T3:33:0": {
+     "sheet": "T3",
+     "row": 33,
+     "time": "T3, 09:37",
+     "seconds": 577,
+     "text": "Surprised by the kindness of those she felt watched by",
+     "quotes": [
+      "\"They are kind. Really kind. … He came in October and he gave Daria a strawberry plant in a pot. … So maybe they never thought I'm crazy. Maybe only I thought this.\""
+     ],
+     "notes": [
+      "'For the little gardener.' The man with the hat knows Daria's name."
+     ],
+     "pet": "g3",
+     "discarded": false
+    },
+    "T3:35:0": {
+     "sheet": "T3",
+     "row": 35,
+     "time": "T3, 10:23",
+     "seconds": 623,
+     "text": "The committee letter kept with her passports, unable to laugh",
+     "quotes": [
+      "\"The important papers drawer. Birth certificates, passports, my qualification, the letter that says you can stay. And this one. … A paper that says something about me. … Chris laughed when he saw it there. I didn't laugh.\""
+     ],
+     "notes": [
+      "Kept with the letter that says she can stay. Why there? 'Important, in a bad way.'"
+     ],
+     "pet": "g3",
+     "discarded": false
+    },
+    "T3:37:0": {
+     "sheet": "T3",
+     "row": 37,
+     "time": "T3, 10:57",
+     "seconds": 657,
+     "text": "Ten minutes in the deckchair, then unable to stay",
+     "quotes": [
+      "\"And I opened the deckchair. First time. … And I sat for ten minutes. Then I got up and I started weeding. I couldn't stay. I don't know how to sit.\""
+     ],
+     "notes": [
+      "Mouldy from the shed, the March picture exactly, ten minutes long."
+     ],
+     "pet": "g9",
+     "discarded": false
+    },
+    "T3:39:0": {
+     "sheet": "T3",
+     "row": 39,
+     "time": "T3, 11:36",
+     "seconds": 696,
+     "text": "Ten minutes owing nothing, like the spent sunflowers",
+     "quotes": [
+      "\"Ten minutes in a chair with nobody needing me, nobody behind me, no phone. … They're finished. They can stand there with their heads down and nobody shouts at them. … But for ten minutes I was like the sunflowers.\""
+     ],
+     "notes": [
+      "Dead sunflowers with their heads down, finished, not shouted at."
+     ],
+     "pet": "g9",
+     "discarded": false
+    },
+    "T3:41:0": {
+     "sheet": "T3",
+     "row": 41,
+     "time": "T3, 12:11",
+     "seconds": 731,
+     "text": "A little less strict with herself, learning slow",
+     "quotes": [
+      "\"Only that I think I'm less strict. With me, I mean. A little bit. … the garden doesn't care if you're strict, Nell. … I think I am learning a little bit of slow.\""
+     ],
+     "notes": [
+      "Her buni: the garden does not read your calendar."
+     ],
+     "pet": "g8",
+     "discarded": false
+    }
+   },
+   "cite": "T3"
+  }
+ },
+ "boards": [
+  {
+   "id": "b1",
+   "name": "Board 1",
+   "note": "",
+   "created": "2026-11-09T12:00:00+00:00",
+   "updated": "2026-11-09T12:00:00+00:00",
+   "cards": {
+    "T1/g1": {
+     "x": -663,
+     "y": -330
+    },
+    "T1/g4": {
+     "x": -100,
+     "y": -315
+    },
+    "T1/g5": {
+     "x": 215,
+     "y": 197
+    },
+    "T1/g2": {
+     "x": 5,
+     "y": -187
+    },
+    "T1/g6": {
+     "x": 293,
+     "y": -330
+    },
+    "T1/g7": {
+     "x": -663,
+     "y": 194
+    },
+    "T1/g3": {
+     "x": -185,
+     "y": -330
+    },
+    "T1/g8": {
+     "x": -205,
+     "y": -187
+    },
+    "T1/g9": {
+     "x": 110,
+     "y": -315
+    },
+    "T2/g1": {
+     "x": -453,
+     "y": -330
+    },
+    "T2/g2": {
+     "x": -453,
+     "y": 194
+    },
+    "T2/g3": {
+     "x": 503,
+     "y": -330
+    },
+    "T2/g4": {
+     "x": 25,
+     "y": -330
+    },
+    "T3/g1": {
+     "x": -663,
+     "y": -166
+    },
+    "T3/g5": {
+     "x": -100,
+     "y": 69
+    },
+    "T3/g6": {
+     "x": -310,
+     "y": 69
+    },
+    "T3/g2": {
+     "x": 293,
+     "y": -166
+    },
+    "T3/g7": {
+     "x": 215,
+     "y": -59
+    },
+    "T3/g8": {
+     "x": -415,
+     "y": -59
+    },
+    "T3/g3": {
+     "x": -663,
+     "y": 358
+    },
+    "T3/g4": {
+     "x": -185,
+     "y": -166
+    },
+    "T3/g9": {
+     "x": -205,
+     "y": 197
+    },
+    "T3/g10": {
+     "x": 5,
+     "y": 325
+    }
+   },
+   "groups": [
+    {
+     "id": "G1",
+     "label": "From her buni's garden wanted again to “you cannot dig that”",
+     "description": "The village and England meeting under her fork, then a guest in her mother's half, then that half given away and the wish named",
+     "domain": "Family, Home",
+     "members": [
+      "T1/g1",
+      "T2/g1",
+      "T3/g1"
+     ],
+     "x": -663,
+     "y": -472
+    },
+    {
+     "id": "G2",
+     "label": "From “one thing that is mine” to the help, and ten minutes",
+     "description": "A place of her own and a deckchair pictured, then the plot her son's and the deckchair folded, then their place and ten minutes in it",
+     "domain": "Family, Psychological",
+     "members": [
+      "T1/g3",
+      "T2/g4",
+      "T3/g4"
+     ],
+     "x": -185,
+     "y": -472
+    },
+    {
+     "id": "G3",
+     "label": "From taking too much to half given away, failed and relieved",
+     "description": "Strict to keep up with a full plot, then behind and not one to give things back, then half given away and a little less strict",
+     "domain": "Psychological",
+     "members": [
+      "T1/g6",
+      "T2/g3",
+      "T3/g2"
+     ],
+     "x": 293,
+     "y": -472
+    },
+    {
+     "id": "G4",
+     "label": "From judged by a look to kindness, the letter still kept",
+     "description": "A look at the pushchair heard as a verdict, then a committee letter and hiding, then kindness she did not expect and the letter kept with the passports",
+     "domain": "Relationships",
+     "members": [
+      "T1/g7",
+      "T2/g2",
+      "T3/g3"
+     ],
+     "x": -663,
+     "y": 52
+    }
+   ],
+   "discarded": [
+    "T1/g4",
+    "T1/g5",
+    "T1/g2",
+    "T1/g8",
+    "T1/g9",
+    "T3/g5",
+    "T3/g6",
+    "T3/g7",
+    "T3/g8",
+    "T3/g9",
+    "T3/g10"
+   ],
+   "picks": {},
+   "rows": {
+    "G1": {
+     "T1": {
+      "quote": "T1:11:0",
+      "note": "Nearly in tears at the smell of the earth, the village and England meeting",
+      "bold": [
+       [
+        60,
+        103
+       ]
+      ]
+     },
+     "T2": {
+      "quote": "T2:29:0",
+      "note": "Her buni's garden for a minute in her mother's half, then a guest",
+      "bold": [
+       [
+        169,
+        212
+       ]
+      ]
+     },
+     "T3": {
+      "quote": "T3:17:0",
+      "note": "The guest's half given away, and the wish found to be her buni's garden itself",
+      "bold": [
+       [
+        81,
+        105
+       ]
+      ]
+     }
+    },
+    "G2": {
+     "T1": {
+      "quote": "T1:15:0",
+      "note": "Wanting one thing of her own, and a rest she cannot quite picture",
+      "bold": [
+       [
+        79,
+        134
+       ]
+      ]
+     },
+     "T2": {
+      "quote": "T2:23:0",
+      "note": "Kept on for her son, herself the help, the deckchair never opened",
+      "bold": [
+       [
+        104,
+        138
+       ]
+      ]
+     },
+     "T3": {
+      "quote": "T3:37:0",
+      "note": "Their place, and glad, and ten minutes in the deckchair before weeding",
+      "bold": [
+       [
+        47,
+        69
+       ]
+      ]
+     }
+    },
+    "G3": {
+     "T1": {
+      "quote": "T1:37:0",
+      "note": "Strict with herself, and afraid the plot will show she took too much",
+      "bold": [
+       [
+        6,
+        22
+       ]
+      ]
+     },
+     "T2": {
+      "quote": "T2:39:0",
+      "note": "Most behind of all at the plot, and refusing to give it back",
+      "bold": [
+       [
+        1,
+        25
+       ]
+      ]
+     },
+     "T3": {
+      "quote": "T3:9:0",
+      "note": "Half given away, failed and relieved at once, learning a little slow",
+      "bold": [
+       [
+        95,
+        100
+       ]
+      ]
+     }
+    },
+    "G4": {
+     "T1": {
+      "quote": "T1:33:0",
+      "note": "Judged by a look at the pushchair, and set on showing them",
+      "bold": [
+       [
+        78,
+        129
+       ]
+      ]
+     },
+     "T2": {
+      "quote": "T2:9:0",
+      "note": "Her name written down by the committee, and hiding from the others",
+      "bold": [
+       [
+        114,
+        132
+       ]
+      ]
+     },
+     "T3": {
+      "quote": "T3:33:0",
+      "note": "Kindness from those she feared, and the letter kept with the passports",
+      "bold": [
+       [
+        138,
+        164
+       ]
+      ]
+     }
+    }
+   }
+  }
+ ]
+}

@@ -426,6 +426,7 @@ AREAS = {
     "a390_home_time": "idiograph",
     "a392_clear_formatting": "idiograph",
     "a393_lpet_keys": "idiograph",
+    "a394_lipa_demo": "idiograph",
 }
 
 

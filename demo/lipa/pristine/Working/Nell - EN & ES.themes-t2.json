@@ -1,0 +1,198 @@
+{
+ "schema": 2,
+ "case": "Nell",
+ "workbook": "Nell - EN & ES.xlsx",
+ "created": "2026-07-16T10:00:00+00:00",
+ "updated": "2026-07-16T12:30:00+00:00",
+ "current": "v1",
+ "chosen": "v1",
+ "complete": {
+  "at": "2026-07-16T12:30:00+00:00",
+  "board": "v1",
+  "name": "Board 1"
+ },
+ "boards": [
+  {
+   "id": "v1",
+   "name": "Board 1",
+   "note": "",
+   "created": "2026-07-16T10:00:00+00:00",
+   "updated": "2026-07-16T10:00:00+00:00",
+   "cards": {
+    "T2:3:0": {
+     "x": -173,
+     "y": -16,
+     "text": "Coming home from the plot worse than she went"
+    },
+    "T2:5:0": {
+     "x": -593,
+     "y": 94,
+     "text": "Too pressed by the jungle to look at the children"
+    },
+    "T2:7:0": {
+     "x": 95,
+     "y": -257,
+     "text": "Feeling watched and found wanting by the other plot holders"
+    },
+    "T2:9:0": {
+     "x": 95,
+     "y": -367,
+     "text": "Shamed to tears by the committee letter"
+    },
+    "T2:11:0": {
+     "x": 305,
+     "y": -367,
+     "text": "A blameless record here spoiled by a letter about vegetables"
+    },
+    "T2:11:1": {
+     "x": -173,
+     "y": 94,
+     "text": "Not one to give hard things back"
+    },
+    "T2:13:0": {
+     "x": 305,
+     "y": -257,
+     "text": "Hiding from the other plot holders since the letter"
+    },
+    "T2:15:0": {
+     "x": 305,
+     "y": 2,
+     "text": "Sunflowers taller than her son: exactly what she wanted"
+    },
+    "T2:19:0": {
+     "x": 95,
+     "y": 112,
+     "text": "Lonely in seeing the mess so the children need not"
+    },
+    "T2:21:0": {
+     "x": 305,
+     "y": 112,
+     "text": "Even her free hour spent on guilt"
+    },
+    "T2:23:0": {
+     "x": 95,
+     "y": 2,
+     "text": "Kept on only for her son, herself the help"
+    },
+    "T2:27:0": {
+     "x": -173,
+     "y": -408,
+     "text": "Outdone in three weeks by her mother"
+    },
+    "T2:29:0": {
+     "x": -593,
+     "y": -408,
+     "text": "A minute in her buni's garden, then a guest on her own plot"
+    },
+    "T2:31:0": {
+     "x": -383,
+     "y": -408,
+     "text": "Praised for her mother's work: grateful and small"
+    },
+    "T2:33:0": {
+     "x": -593,
+     "y": -298,
+     "text": "Struck that her mother remade here the garden she chose to leave"
+    },
+    "T2:35:0": {
+     "x": -383,
+     "y": -298,
+     "text": "Grateful for a kitchen smelling of home"
+    },
+    "T2:37:0": {
+     "x": -383,
+     "y": 94,
+     "text": "The good tired gone: the plot one more grey thing"
+    },
+    "T2:39:0": {
+     "x": -383,
+     "y": -16,
+     "text": "Behind with everything, and most visibly at the plot"
+    },
+    "T2:41:0": {
+     "x": -593,
+     "y": -16,
+     "text": "Woken from a dream of the plot, not sure she likes it"
+    }
+   },
+   "groups": [
+    {
+     "id": "g1",
+     "label": "A guest in her mother's half, “grateful and small”",
+     "description": "Her mother clearing in three weeks what she could not in three months, a garden she chose to leave, and Nell grateful and small",
+     "members": [
+      "T2:29:0",
+      "T2:31:0",
+      "T2:27:0",
+      "T2:33:0",
+      "T2:35:0"
+     ],
+     "x": -593,
+     "y": -485
+    },
+    {
+     "id": "g2",
+     "label": "Shamed by a letter, and hiding from the plot holders",
+     "description": "Her name written down, a blameless record spoiled over vegetables, and early mornings at the far fence",
+     "members": [
+      "T2:9:0",
+      "T2:11:0",
+      "T2:7:0",
+      "T2:13:0"
+     ],
+     "x": 95,
+     "y": -485
+    },
+    {
+     "id": "g3",
+     "label": "Awake to being behind, and not one to give it back",
+     "description": "Seeing only what is undone, racing the weeds, the good tired gone, and still not one to give things back",
+     "members": [
+      "T2:41:0",
+      "T2:39:0",
+      "T2:3:0",
+      "T2:5:0",
+      "T2:37:0",
+      "T2:11:1"
+     ],
+     "x": -593,
+     "y": -93
+    },
+    {
+     "id": "g4",
+     "label": "The help on her son's plot",
+     "description": "Kept on for him, his sunflowers exactly what she wanted, the mess hers alone to see, and her own deckchair never opened",
+     "members": [
+      "T2:23:0",
+      "T2:15:0",
+      "T2:19:0",
+      "T2:21:0"
+     ],
+     "x": 95,
+     "y": -93
+    }
+   ],
+   "discarded": [],
+   "picks": {
+    "g1": [
+     "T2:29:0"
+    ],
+    "g2": [
+     "T2:9:0"
+    ],
+    "g3": [
+     "T2:39:0"
+    ],
+    "g4": [
+     "T2:23:0"
+    ]
+   },
+   "quoted": {
+    "T2:29:0": "\"it looked like my buni's garden. … And for one minute I was so happy. Like I opened a door and the village was there. And then the next minute I felt like a visitor. … I was standing on my own plot like a guest.\"",
+    "T2:9:0": "\"I read it in the car, outside the nursery, and I cried. … Like somebody walked past my plot with a clipboard and wrote my name down.\"",
+    "T2:39:0": "\"Behind is my whole body. I wake up already behind. … And instead it's the place where I'm most behind of all, where you can see how behind I am, with your eyes, in weeds.\"",
+    "T2:23:0": "\"And I cannot say to him we're not going any more. I cannot do this. So I suppose it's his now, really. The plot is his and I am the help.\""
+   }
+  }
+ ]
+}

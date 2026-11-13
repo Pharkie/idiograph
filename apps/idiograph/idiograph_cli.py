@@ -210,7 +210,8 @@ def open_projects(args) -> tuple[list[Project], list[str]]:
     named = getattr(args, "project", None)
     if args.demo:
         routes.fill_demo()
-        # `--demo` the IPA demo, `--demo ta` the thematic analysis demo (demos, 3 November 2026)
+        # `--demo` the IPA demo, `--demo ta` the thematic analysis demo (demos, 3 November 2026), `--demo lipa` the
+        # longitudinal one (lipabuild, 13 November 2026)
         roots, demo = [srv.demo_dir_of(args.demo)], True
     elif args.root:
         root = Path(args.root).expanduser().resolve()
@@ -1511,7 +1512,7 @@ def cmd_agents_log(args) -> tuple:
             srv.CONFIG_PATH = Path(args.config).expanduser().resolve()
         srv.STATE_MEMORY = {"recent": []}
         roots = [r for r in srv.project_roots() if Path(r).is_dir()]
-        roots += [r for r in (srv.DEMO_DIR, srv.demo_ta_dir()) if r.is_dir()]
+        roots += [r for r in srv.demo_dirs() if r.is_dir()]
         allowed = {routes.read_project(r)["name"] for r in roots
                    if srv.is_demo_root(r) or routes.read_project(r)["agents"]["allowed"]}
     finally:

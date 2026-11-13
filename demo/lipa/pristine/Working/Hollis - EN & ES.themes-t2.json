@@ -1,0 +1,187 @@
+{
+ "schema": 2,
+ "case": "Hollis",
+ "workbook": "Hollis - EN & ES.xlsx",
+ "created": "2026-07-14T10:00:00+00:00",
+ "updated": "2026-07-14T12:30:00+00:00",
+ "current": "v1",
+ "chosen": "v1",
+ "complete": {
+  "at": "2026-07-14T12:30:00+00:00",
+  "board": "v1",
+  "name": "Board 1"
+ },
+ "boards": [
+  {
+   "id": "v1",
+   "name": "Board 1",
+   "note": "",
+   "created": "2026-07-14T10:00:00+00:00",
+   "updated": "2026-07-14T10:00:00+00:00",
+   "cards": {
+    "T2:3:0": {
+     "x": 79,
+     "y": -578,
+     "text": "The plot now the centre of his days, the empty morning gone"
+    },
+    "T2:5:0": {
+     "x": 947,
+     "y": -555,
+     "text": "Trying to make it up to Pat for never being there now"
+    },
+    "T2:7:0": {
+     "x": 737,
+     "y": -555,
+     "text": "Struck to learn Pat missed him"
+    },
+    "T2:9:0": {
+     "x": -203,
+     "y": -635,
+     "text": "From insult to hello: an old hand correcting him"
+    },
+    "T2:13:0": {
+     "x": -413,
+     "y": -545,
+     "text": "Two words from an old hand worth more than a long service plaque"
+    },
+    "T2:15:0": {
+     "x": -203,
+     "y": -189,
+     "text": "Failed beans hidden in shame"
+    },
+    "T2:17:0": {
+     "x": -413,
+     "y": -189,
+     "text": "Shame gone once the failure was shared: the year, not him"
+    },
+    "T2:19:0": {
+     "x": -203,
+     "y": -545,
+     "text": "Taught everything by Maureen without asking, thrown at first"
+    },
+    "T2:21:0": {
+     "x": 737,
+     "y": -445,
+     "text": "Joy at the first potatoes, carried home to Pat"
+    },
+    "T2:23:0": {
+     "x": -203,
+     "y": -79,
+     "text": "Unafraid of a body whose limits he knows"
+    },
+    "T2:25:0": {
+     "x": -413,
+     "y": -79,
+     "text": "Resting now as servicing an engine"
+    },
+    "T2:27:0": {
+     "x": 289,
+     "y": -578,
+     "text": "Days with a shape again, after a year of lumps"
+    },
+    "T2:29:0": {
+     "x": 499,
+     "y": -578,
+     "text": "Known by the place now, no longer a visitor"
+    },
+    "T2:33:0": {
+     "x": 79,
+     "y": -468,
+     "text": "Minding what he misses: part of something again"
+    },
+    "T2:37:0": {
+     "x": 289,
+     "y": -468,
+     "text": "Winter dread felt in the chest and pushed down"
+    },
+    "T2:39:0": {
+     "x": -413,
+     "y": -635,
+     "text": "Greeted at the gate: near enough what he hoped for"
+    }
+   },
+   "groups": [
+    {
+     "id": "g1",
+     "label": "“Here he is”: near enough one of them by midsummer",
+     "description": "Corrected by Frank and so noticed, taught by Maureen without asking, and greeted at the gate",
+     "members": [
+      "T2:39:0",
+      "T2:9:0",
+      "T2:13:0",
+      "T2:19:0"
+     ],
+     "x": -413,
+     "y": -735
+    },
+    {
+     "id": "g2",
+     "label": "Living at the plot for now, with Pat left missing him",
+     "description": "A day with a shape at a place that knows him, winter kept from mind, and Pat missing him at home",
+     "members": [
+      "g4",
+      "g5"
+     ],
+     "x": 65,
+     "y": -735
+    },
+    {
+     "id": "g3",
+     "label": "No longer ashamed, of dead beans or of sitting down",
+     "description": "A failure laughed off with Maureen, and a body serviced like an engine, its limits known",
+     "members": [
+      "T2:17:0",
+      "T2:15:0",
+      "T2:25:0",
+      "T2:23:0"
+     ],
+     "x": -413,
+     "y": -289
+    },
+    {
+     "id": "g4",
+     "label": "A day with a shape at a place that knows him, till November",
+     "description": "Waking to the plot, known by the place, minding what he misses, and November pushed away",
+     "members": [
+      "T2:3:0",
+      "T2:27:0",
+      "T2:29:0",
+      "T2:33:0",
+      "T2:37:0"
+     ],
+     "x": 79,
+     "y": -655
+    },
+    {
+     "id": "g5",
+     "label": "Pat missing him, and the plot brought home to her",
+     "description": "Missed after all, sweet peas to make it up, and the first potatoes in his cap",
+     "members": [
+      "T2:7:0",
+      "T2:5:0",
+      "T2:21:0"
+     ],
+     "x": 737,
+     "y": -655
+    }
+   ],
+   "discarded": [],
+   "picks": {
+    "g1": [
+     "T2:39:0"
+    ],
+    "g2": [
+     "T2:3:0"
+    ],
+    "g3": [
+     "T2:17:0"
+    ]
+   },
+   "quoted": {
+    "T2:39:0": "\"When I come in now, Frank looks up and says, here he is. … But it's near enough. It's near enough for me. I'll take here he is.\"",
+    "T2:3:0": "\"The flat's where I sleep now, and the plot's where I live. That's how it feels. I wake up and the first thing I think is, I wonder if the onions are all right. Not, what am I going to do with myself.\"",
+    "T2:17:0": "\"But you can't fix a bean. … And when Maureen laughed, it went out of me, the embarrassment. … It wasn't me. It was the year.\""
+   }
+  }
+ ]
+}

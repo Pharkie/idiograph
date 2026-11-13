@@ -1,0 +1,234 @@
+{
+ "schema": 2,
+ "case": "Hollis",
+ "workbook": "Hollis - EN & ES.xlsx",
+ "created": "2026-11-03T10:00:00+00:00",
+ "updated": "2026-11-03T12:30:00+00:00",
+ "current": "v1",
+ "chosen": "v1",
+ "complete": {
+  "at": "2026-11-03T12:30:00+00:00",
+  "board": "v1",
+  "name": "Board 1"
+ },
+ "boards": [
+  {
+   "id": "v1",
+   "name": "Board 1",
+   "note": "",
+   "created": "2026-11-03T10:00:00+00:00",
+   "updated": "2026-11-03T10:00:00+00:00",
+   "cards": {
+    "T3:3:0": {
+     "x": -544,
+     "y": -507,
+     "text": "Helpless as a beetle when his back went"
+    },
+    "T3:5:0": {
+     "x": -334,
+     "y": -617,
+     "text": "Laid up: worse for knowing what he was missing"
+    },
+    "T3:5:1": {
+     "x": -544,
+     "y": -617,
+     "text": "Sure the old hands would say he had not lasted"
+    },
+    "T3:7:0": {
+     "x": -96,
+     "y": -617,
+     "text": "Overcome to find his potatoes lifted and labelled by others"
+    },
+    "T3:9:0": {
+     "x": 114,
+     "y": -617,
+     "text": "Help heard now as belonging"
+    },
+    "T3:11:0": {
+     "x": -544,
+     "y": -316,
+     "text": "A man no longer only what he can do"
+    },
+    "T3:15:0": {
+     "x": 324,
+     "y": -617,
+     "text": "On the rake: no longer new or watched"
+    },
+    "T3:17:0": {
+     "x": -96,
+     "y": -507,
+     "text": "Trusted with an old hand's grief"
+    },
+    "T3:19:0": {
+     "x": 606,
+     "y": -674,
+     "text": "Not proud to hear himself go quiet at a newcomer, as they did to him"
+    },
+    "T3:21:0": {
+     "x": 816,
+     "y": -674,
+     "text": "Uneasy and a bit pleased to be an insider"
+    },
+    "T3:21:1": {
+     "x": 606,
+     "y": -564,
+     "text": "Hearing himself pass on what Frank did to him"
+    },
+    "T3:23:0": {
+     "x": 816,
+     "y": -564,
+     "text": "Glad to be asked, his March rule on asking gone"
+    },
+    "T3:25:0": {
+     "x": -558,
+     "y": 140,
+     "text": "Neighbours of eleven years met at last over a bag of potatoes"
+    },
+    "T3:27:0": {
+     "x": -558,
+     "y": 50,
+     "text": "Home from the plot with news of his own for Pat"
+    },
+    "T3:31:0": {
+     "x": -348,
+     "y": 50,
+     "text": "Seen by Pat in his own work at last"
+    },
+    "T3:35:0": {
+     "x": 130,
+     "y": 50,
+     "text": "Winter feared as a Sunday night at the bus station"
+    },
+    "T3:35:1": {
+     "x": 114,
+     "y": -507,
+     "text": "A winter hope: told to come Wednesdays"
+    },
+    "T3:37:0": {
+     "x": -334,
+     "y": -316,
+     "text": "Half sacks no longer shameful, two trips more time there"
+    },
+    "T3:39:0": {
+     "x": -544,
+     "y": -206,
+     "text": "Sure someone would lift his potatoes next time"
+    },
+    "T3:39:1": {
+     "x": -80,
+     "y": 50,
+     "text": "Not surplus at the plot, if still in the flat"
+    }
+   },
+   "groups": [
+    {
+     "id": "g1",
+     "label": "Laid low, then carried by the old hands as one of them",
+     "description": "A fortnight sure he had not lasted, then let in without a word, and worth found in more than what he can do",
+     "members": [
+      "g5",
+      "g6",
+      "g7"
+     ],
+     "x": -558,
+     "y": -774
+    },
+    {
+     "id": "g2",
+     "label": "Hearing himself go quiet at the gate: an old hand now",
+     "description": "Uneasy and a bit pleased at the newcomer, handing on Frank's ways, and glad to be asked",
+     "members": [
+      "T3:19:0",
+      "T3:21:0",
+      "T3:21:1",
+      "T3:23:0"
+     ],
+     "x": 606,
+     "y": -774
+    },
+    {
+     "id": "g3",
+     "label": "Seen and heard at home at last, through the plot",
+     "description": "News of his own for Pat, Pat seeing his work, and neighbours met over potatoes",
+     "members": [
+      "T3:27:0",
+      "T3:31:0",
+      "T3:25:0"
+     ],
+     "x": -558,
+     "y": -50
+    },
+    {
+     "id": "g4",
+     "label": "Surplus no more, except in the winter flat",
+     "description": "Not surplus at the plot, and winter feared as a Sunday night at the bus station",
+     "members": [
+      "T3:39:1",
+      "T3:35:0"
+     ],
+     "x": -80,
+     "y": -50
+    },
+    {
+     "id": "g5",
+     "label": "Laid up, and sure he had not lasted",
+     "description": "Felled in the shed, the part left over again, and the gate's verdict feared",
+     "members": [
+      "T3:5:1",
+      "T3:5:0",
+      "T3:3:0"
+     ],
+     "x": -544,
+     "y": -694
+    },
+    {
+     "id": "g6",
+     "label": "Let in without a word, from his potatoes to the rake",
+     "description": "His potatoes lifted and labelled while he was laid up, help heard as belonging, the rake at the bonfire, Frank's grief seen, and Wednesdays in Frank's shed",
+     "members": [
+      "T3:7:0",
+      "T3:9:0",
+      "T3:15:0",
+      "T3:17:0",
+      "T3:35:1"
+     ],
+     "x": -96,
+     "y": -694
+    },
+    {
+     "id": "g7",
+     "label": "Worth no longer only in what he can do",
+     "description": "Nothing looked for wrong in their work, half sacks without shame, and the back sure to go again",
+     "members": [
+      "T3:11:0",
+      "T3:37:0",
+      "T3:39:0"
+     ],
+     "x": -544,
+     "y": -393
+    }
+   ],
+   "discarded": [],
+   "picks": {
+    "g1": [
+     "T3:9:0"
+    ],
+    "g2": [
+     "T3:19:0"
+    ],
+    "g3": [
+     "T3:27:0"
+    ],
+    "g4": [
+     "T3:39:1"
+    ]
+   },
+   "quoted": {
+    "T3:9:0": "\"a year ago, if somebody had dug my plot, that's what I'd have heard. I'd have been ashamed. … And this time it was the other way round. … You don't dig for somebody who's not one of you.\"",
+    "T3:19:0": "\"we all stopped talking. All three of us. Me with them. And I heard us do it. I heard myself go quiet, the same as they did to me.\"",
+    "T3:27:0": "\"She says I come back from the plot with things to say. … I didn't have things to say before. … A man needs a bit of news of his own, I think.\"",
+    "T3:39:1": "\"And I'm not the part left over. Not down there. Up in the flat, some days, still, I won't lie. But not down there.\""
+   }
+  }
+ ]
+}

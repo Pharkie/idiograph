@@ -392,7 +392,9 @@ def test_mac_app(scratch):
     check("73, updated 13 November 2026 (recdemand): the shipped stage carries the demo as Reset leaves it, the "
           "manifest of its recordings and no recording, and a config with no root",
           'shutil.copyfile(src / "pristine" / f"{stem}.xlsx", into / name / f"{stem}.xlsx")' in build_src
-          and 'shutil.copyfile(src / "pristine" / kept, into / kept)' in build_src and "(DEMO_GETS, DEMO_CODES)" in build_src
+          and 'shutil.copyfile(src / "pristine" / kept, into / kept)' in build_src
+          # the longitudinal demo's LGETs and Trajectories beside the GETs file and the code list (lipabuild)
+          and "DEMO_ROOT_FILES = (DEMO_GETS, DEMO_CODES, " in build_src and "for kept in DEMO_ROOT_FILES:" in build_src
           and "shipped_config()" in build_src and 'raise SystemExit("The shipped config names a project, and it must not.")' in build_src
           and "demo_line(demo)" in build_src and "stage_recordings" not in build_src
           and '"*.themes.json", "_Archive"' in build_src)

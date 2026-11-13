@@ -481,8 +481,9 @@ class Server:
 
     def __init__(self, root: str | None = None, demo: bool = False, config: str | None = None,
                  project: str | None = None, app: str | None = None, starts: bool = False):
-        # `demo` "ta" for the thematic analysis demo, True for the IPA one (demos, 3 November 2026)
-        self.project = {"root": root, "demo": demo if demo == "ta" else bool(demo), "config": config, "project": project}
+        # `demo` "ta" for the thematic analysis demo, "lipa" for the longitudinal one, True for the IPA one (demos)
+        self.project = {"root": root, "demo": demo if demo in ("ta", "lipa") else bool(demo), "config": config,
+                        "project": project}
         # which of the family's three apps this server speaks for, its settings and files (see app_identity)
         self.app = app
         self.starts = starts
@@ -855,6 +856,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--demo", action="store_true", help="work on the demo, Living with a dog, the IPA one, or with "
                     "`--demo ta` the thematic analysis one")
     ap.add_argument("--demo-ta", action="store_true", help=argparse.SUPPRESS)
+    ap.add_argument("--demo-lipa", action="store_true", help=argparse.SUPPRESS)
     ap.add_argument("--config", help="a settings file in place of config.json")
     ap.add_argument("--app", default=None, choices=list(app_identity.APPS),
                     help="which of the three apps this server speaks for, idiograph by default")
@@ -924,7 +926,7 @@ def desktop_entry(root: Path | None, demo: bool = False, config: Path | None = N
     `--demo`, `--demo ta` for the thematic analysis demo, and `--config` when this install reads another settings
     file."""
     command = server_command(**how)
-    args = command[1:] + ((["--demo", "ta"] if demo == "ta" else ["--demo"]) if demo else ["--root", str(root)])
+    args = command[1:] + ((["--demo", demo] if demo in ("ta", "lipa") else ["--demo"]) if demo else ["--root", str(root)])
     if config:
         args += ["--config", str(config)]
     return {"command": command[0], "args": args}

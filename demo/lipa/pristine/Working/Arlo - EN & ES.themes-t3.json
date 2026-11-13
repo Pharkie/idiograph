@@ -1,0 +1,218 @@
+{
+ "schema": 2,
+ "case": "Arlo",
+ "workbook": "Arlo - EN & ES.xlsx",
+ "created": "2026-11-07T10:00:00+00:00",
+ "updated": "2026-11-07T12:30:00+00:00",
+ "current": "v1",
+ "chosen": "v1",
+ "complete": {
+  "at": "2026-11-07T12:30:00+00:00",
+  "board": "v1",
+  "name": "Board 1"
+ },
+ "boards": [
+  {
+   "id": "v1",
+   "name": "Board 1",
+   "note": "",
+   "created": "2026-11-07T10:00:00+00:00",
+   "updated": "2026-11-07T10:00:00+00:00",
+   "cards": {
+    "T3:3:0": {
+     "x": 606,
+     "y": -745,
+     "text": "Feeling he had let a plot down"
+    },
+    "T3:5:0": {
+     "x": 396,
+     "y": -745,
+     "text": "Last autumn back at the black beans, the calm called fake"
+    },
+    "T3:9:0": {
+     "x": 396,
+     "y": -635,
+     "text": "Another thing quietly stopped, as before, with nobody chasing"
+    },
+    "T3:11:0": {
+     "x": -544,
+     "y": -661,
+     "text": "Moved by a handwritten note not about work"
+    },
+    "T3:13:0": {
+     "x": -334,
+     "y": -661,
+     "text": "Noticed missing and not made to explain"
+    },
+    "T3:15:0": {
+     "x": -544,
+     "y": -571,
+     "text": "Given a job instead of a feeling"
+    },
+    "T3:17:0": {
+     "x": -96,
+     "y": -684,
+     "text": "Learning only now what Des carries, after months of waving"
+    },
+    "T3:19:0": {
+     "x": -558,
+     "y": -205,
+     "text": "Finding in the plot what the flat is not: somewhere to be"
+    },
+    "T3:21:0": {
+     "x": 114,
+     "y": -684,
+     "text": "Ashamed of clicking Des away"
+    },
+    "T3:23:0": {
+     "x": -96,
+     "y": -574,
+     "text": "At ease beside Des now, hardly listening"
+    },
+    "T3:25:0": {
+     "x": -334,
+     "y": -571,
+     "text": "Contacted after all, and glad: a ticket from Des"
+    },
+    "T3:27:0": {
+     "x": -348,
+     "y": -315,
+     "text": "The quiet no cure but findable"
+    },
+    "T3:29:0": {
+     "x": -558,
+     "y": -315,
+     "text": "Putting himself in the way of quiet, string in hand, never in the chair"
+    },
+    "T3:31:0": {
+     "x": 130,
+     "y": -207,
+     "text": "The plot kept from his therapist as his own"
+    },
+    "T3:33:0": {
+     "x": -80,
+     "y": -297,
+     "text": "Needing the plot without loving it"
+    },
+    "T3:35:0": {
+     "x": -80,
+     "y": -207,
+     "text": "Frightened to need even a rectangle of clay"
+    },
+    "T3:35:1": {
+     "x": 130,
+     "y": -297,
+     "text": "Relief in a plot that does not care about him"
+    },
+    "T3:37:0": {
+     "x": 606,
+     "y": -635,
+     "text": "A body that knew before he did that he had stopped"
+    },
+    "T3:39:0": {
+     "x": 114,
+     "y": -574,
+     "text": "Glad to be bored by onions with Des"
+    }
+   },
+   "groups": [
+    {
+     "id": "g1",
+     "label": "Fetched back by a note on the shed, to Des at last",
+     "description": "Noticed missing and given a job instead of a feeling, then headphones out and an old man's grief, and onions that bore him",
+     "members": [
+      "g5",
+      "g6"
+     ],
+     "x": -558,
+     "y": -863
+    },
+    {
+     "id": "g2",
+     "label": "Last autumn back at the black beans: another thing stopped",
+     "description": "Letting the plot go over, the old panic and the calm called fake, stopping quietly as before, and a body that knew first",
+     "members": [
+      "T3:5:0",
+      "T3:3:0",
+      "T3:9:0",
+      "T3:37:0"
+     ],
+     "x": 396,
+     "y": -863
+    },
+    {
+     "id": "g3",
+     "label": "No cure, but he knows “which room it lives in”",
+     "description": "Not to be switched on, but a room it lives in, string in hand, and the plot somewhere to be",
+     "members": [
+      "T3:29:0",
+      "T3:27:0",
+      "T3:19:0"
+     ],
+     "x": -558,
+     "y": -415
+    },
+    {
+     "id": "g4",
+     "label": "“I need it, which is different”: a plot that does not care",
+     "description": "Frightened to need anything, relieved by the one thing not judging him, and the plot his own, not homework",
+     "members": [
+      "T3:33:0",
+      "T3:35:1",
+      "T3:35:0",
+      "T3:31:0"
+     ],
+     "x": -80,
+     "y": -415
+    },
+    {
+     "id": "g5",
+     "label": "A note on the shed: noticed missing, given a job",
+     "description": "The first note in years not about work, no explaining asked, and a ticket that was the best thing all year",
+     "members": [
+      "T3:11:0",
+      "T3:13:0",
+      "T3:15:0",
+      "T3:25:0"
+     ],
+     "x": -544,
+     "y": -761
+    },
+    {
+     "id": "g6",
+     "label": "Headphones out, and Des known at last",
+     "description": "An hour with Des, ashamed of clicking him away, easy beside him now, and bored by onions",
+     "members": [
+      "T3:17:0",
+      "T3:21:0",
+      "T3:23:0",
+      "T3:39:0"
+     ],
+     "x": -96,
+     "y": -761
+    }
+   ],
+   "discarded": [],
+   "picks": {
+    "g1": [
+     "T3:11:0"
+    ],
+    "g2": [
+     "T3:5:0"
+    ],
+    "g3": [
+     "T3:29:0"
+    ],
+    "g4": [
+     "T3:33:0"
+    ]
+   },
+   "quoted": {
+    "T3:11:0": "\"And I stood there and read it about five times. And I realised it was the first note anyone had left me in years that wasn't about work. … Somebody had written something down for me, by hand, about my leeks.\"",
+    "T3:5:0": "\"It was the exact feeling from last autumn. … I had the whole thing come back, the chest, the hands going. … The calm was fake. … You can't even keep a vegetable patch alive.\"",
+    "T3:29:0": "\"I can't make it happen. But I can go where it happens. … I can't switch it on, but I know which room it lives in. … The quiet never came in the chair. It came with string in my hands.\"",
+    "T3:33:0": "\"I think I need it, which is different. … I don't love it. Some days I really don't like it at all. But I need it. When I didn't go for three weeks, something went wrong in me.\""
+   }
+  }
+ ]
+}

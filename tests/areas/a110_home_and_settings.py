@@ -45,7 +45,7 @@ def test_home_and_settings(scratch):
         lines = app.splitlines()
         const = lambda name: next(ln for ln in lines if ln.startswith(f"const {name} = "))
         pieces = [const("esc"), const("escAttr"), const("plural"), const("HOME_KEY"), const("DEMO_ID"), const("homeHover"),
-                  const("SHARE_LINE"), const("HOME_PROJECTS"), const("DEMO_TA_ID"), const("isDemoId"), const("DEMOS_OPEN"),
+                  const("SHARE_LINE"), const("HOME_PROJECTS"), const("DEMO_TA_ID"), const("DEMO_LIPA_ID"), const("isDemoId"), const("DEMOS_OPEN"),
                   const("DEMOS_SHUT")]
         pieces += [whole(app, n) for n in ("sectionsOf", "homeHeld", "homeKeep", "drawHome", "standLine", "cardGetsLine", "demoWords", "homeCardHtml",
                                            "drawPick", "openPage", "openPageNow", "closePage", "pageHead", "drawPage", "demoRows",

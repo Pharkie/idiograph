@@ -1,0 +1,3320 @@
+{
+ "schema": 1,
+ "created": "2026-11-10T11:00:00+00:00",
+ "updated": "2026-11-10T11:00:00+00:00",
+ "current": "b1",
+ "chosen": "b1",
+ "complete": {
+  "at": "2026-11-10T11:00:00+00:00",
+  "board": "b1",
+  "name": "Board 1"
+ },
+ "settings": {
+  "minimum": null,
+  "one_per_pet": true
+ },
+ "study": {
+  "Arlo": {
+   "in": true
+  },
+  "Hollis": {
+   "in": true
+  },
+  "Nell": {
+   "in": true
+  }
+ },
+ "cases": {
+  "Arlo": {
+   "workbook": "Arlo - EN & ES.xlsx",
+   "board": "b1",
+   "name": "Board 1",
+   "complete": true,
+   "came": "2026-11-10T11:00:00+00:00",
+   "seen": {
+    "workbook": 1794308400000000000,
+    "themes": 1794308400000000000
+   },
+   "hash": "a1785e18206316309623747f8269ae56329475cabe1f9453600cc6b1e8301d61",
+   "state": "in",
+   "pets": [
+    {
+     "id": "G1",
+     "title": "From a quiet head hoped for to knowing where quiet lives",
+     "note": "",
+     "parent": null,
+     "subs": [],
+     "statements": [
+      "T1:25:0",
+      "T1:23:0",
+      "T1:13:0",
+      "T1:11:0",
+      "T1:39:0",
+      "T2:15:0",
+      "T2:17:0",
+      "T2:3:0",
+      "T2:13:0",
+      "T2:11:0",
+      "T2:39:0",
+      "T3:29:0",
+      "T3:27:0",
+      "T3:19:0"
+     ],
+     "picks": [],
+     "description": "A problem with no one attached and his hands found, then an hour with every tab closed that will not come to order, then no cure but a place to go for it"
+    },
+    {
+     "id": "G2",
+     "title": "From headphones in to fetched back by a note on the shed",
+     "note": "",
+     "parent": null,
+     "subs": [],
+     "statements": [
+      "T1:19:0",
+      "T1:41:0",
+      "T1:21:0",
+      "T1:17:0",
+      "T2:33:0",
+      "T2:27:0",
+      "T2:31:0",
+      "T2:21:0",
+      "T2:19:0",
+      "T2:23:0",
+      "T2:25:0",
+      "T3:17:0",
+      "T3:21:0",
+      "T3:23:0",
+      "T3:39:0",
+      "T3:11:0",
+      "T3:13:0",
+      "T3:15:0",
+      "T3:25:0"
+     ],
+     "picks": [],
+     "description": "Every look an evaluation and hiding in the car, then headphones playing nothing and the window chosen, then noticed missing, fetched back, and Des known"
+    },
+    {
+     "id": "G3",
+     "title": "From a prescribed project he feared failing to a plot he needs",
+     "note": "",
+     "parent": null,
+     "subs": [],
+     "statements": [
+      "T1:29:0",
+      "T1:15:0",
+      "T1:37:0",
+      "T1:35:0",
+      "T1:33:0",
+      "T1:5:0",
+      "T1:7:0",
+      "T1:3:0",
+      "T2:35:0",
+      "T2:37:0",
+      "T2:41:0",
+      "T2:7:0",
+      "T2:5:0",
+      "T2:33:1",
+      "T3:5:0",
+      "T3:3:0",
+      "T3:9:0",
+      "T3:37:0",
+      "T3:33:0",
+      "T3:35:1",
+      "T3:35:0",
+      "T3:31:0"
+     ],
+     "picks": [],
+     "description": "Afraid it would prove him someone who breaks, then on call and marked like homework, then the plot let go, picked up again, and needed, not loved"
+    }
+   ],
+   "lines": {
+    "T1:3:0": {
+     "sheet": "T1",
+     "row": 3,
+     "time": "T1, 00:15",
+     "seconds": 15,
+     "text": "Sceptical but unable to say no",
+     "quotes": [
+      "\"Honestly? Sceptical. Quite sceptical. My therapist suggested it … And I didn't feel I could turn down three years of waiting just because I was sceptical.\""
+     ],
+     "notes": [
+      "'Which I'm aware is a sentence.' Laughed at the therapist, felt bad. The universe 'a bit pointed'."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:5:0": {
+     "sheet": "T1",
+     "row": 5,
+     "time": "T1, 01:09",
+     "seconds": 69,
+     "text": "Hard to own being someone told to try gardening",
+     "quotes": [
+      "\"Like I'd become the sort of person who gets told to try gardening. I was signed off work for six weeks last autumn, so I suppose I am that sort of person now. That's quite hard to say out loud, actually.\""
+     ],
+     "notes": [
+      "The leaflet: have you tried gardening? Being that sort of person 'hard to say out loud'."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:7:0": {
+     "sheet": "T1",
+     "row": 7,
+     "time": "T1, 01:46",
+     "seconds": 106,
+     "text": "Undone by work he is good at",
+     "quotes": [
+      "\"And I'm good at it, I'm actually very good at it, that's sort of the problem. … And one Tuesday in October I just couldn't open the laptop.\""
+     ],
+     "notes": [
+      "Other people's problems in a queue. Good at it, 'that's sort of the problem'. A hand on the lid for an hour."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:11:0": {
+     "sheet": "T1",
+     "row": 11,
+     "time": "T1, 03:13",
+     "seconds": 193,
+     "text": "Glad of the first place in two years without the laptop",
+     "quotes": [
+      "\"I can see the laptop from the sofa, and from the bed if the door's open. … The plot's the first place in two years that doesn't have the laptop in it somewhere.\""
+     ],
+     "notes": [
+      "Smells of other people's shirts. The bedroom door shut on the laptop. The plot free of it."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:13:0": {
+     "sheet": "T1",
+     "row": 13,
+     "time": "T1, 03:47",
+     "seconds": 227,
+     "text": "Hoping for a problem with no one attached",
+     "quotes": [
+      "\"Quiet my head, I suppose. … So I want one problem that's just soil and weather. That nobody can email me about. … A problem with no one attached to it.\""
+     ],
+     "notes": [
+      "Forty tabs and one playing music. Soil and weather, no ticket, no appraisal: a problem with no one in it."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:15:0": {
+     "sheet": "T1",
+     "row": 15,
+     "time": "T1, 04:26",
+     "seconds": 266,
+     "text": "Four books no use against the clay",
+     "quotes": [
+      "\"I read four books first, which is very me. … And then I got there, and the books were no use at all. … It stuck to the fork like it had opinions.\""
+     ],
+     "notes": [
+      "'Which is very me.' Nine hours of videos. Clay with opinions."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:17:0": {
+     "sheet": "T1",
+     "row": 17,
+     "time": "T1, 05:09",
+     "seconds": 309,
+     "text": "A fraud in new gloves, watched by an old man",
+     "quotes": [
+      "\"I stood there in brand new gloves, still with the label on … and I felt like a complete fraud. … And there's an old man on the next plot, Des … and he'd been watching me.\""
+     ],
+     "notes": [
+      "The cardboard tag still on the gloves. Cosplaying a gardener."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:19:0": {
+     "sheet": "T1",
+     "row": 19,
+     "time": "T1, 05:47",
+     "seconds": 347,
+     "text": "Unable to tell kindness from threat in an old man's words",
+     "quotes": [
+      "\"Which was either kind or a threat, I genuinely couldn't tell. … I read everything as an evaluation. Everyone's a performance review.\""
+     ],
+     "notes": [
+      "Four hours on one sentence of Des's. Kind or a threat?"
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:21:0": {
+     "sheet": "T1",
+     "row": 21,
+     "time": "T1, 06:19",
+     "seconds": 379,
+     "text": "Lost for what to do with his face among people",
+     "quotes": [
+      "\"But in person I don't really know where to put myself any more. … I don't know what to do with my face. … In real life there's no mute.\""
+     ],
+     "notes": [
+      "No mute in real life. Head down, hoping nobody comes over: the opposite of the prescription."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:23:0": {
+     "sheet": "T1",
+     "row": 23,
+     "time": "T1, 06:58",
+     "seconds": 418,
+     "text": "Digging terrible and amazing, after years lived from the neck up",
+     "quotes": [
+      "\"Oh, terrible. And kind of amazing. I've been living from the neck up for about ten years, I think. … it was the first time in months I knew where my hands were.\""
+     ],
+     "notes": [
+      "Terrible and amazing. Nine hours' sleep, the first since university."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:25:0": {
+     "sheet": "T1",
+     "row": 25,
+     "time": "T1, 07:47",
+     "seconds": 467,
+     "text": "Hands his own again, as if back from away",
+     "quotes": [
+      "\"At the plot they were cold and they were sore and there was clay under the nails that wouldn't come out, and they were mine. … Like they'd been away somewhere and come back.\""
+     ],
+     "notes": [
+      "Hands as input devices at work. Turning them over on the bus. 'Slightly embarrassing to say to someone with a recorder.'"
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:29:0": {
+     "sheet": "T1",
+     "row": 29,
+     "time": "T1, 09:00",
+     "seconds": 540,
+     "text": "Watching himself make a project of it",
+     "quotes": [
+      "\"so you've turned the thing that was meant to be not work into a project with a timeline. … I can watch myself doing it from about three feet away, and I still do it. Knowing doesn't stop it.\""
+     ],
+     "notes": [
+      "Watches himself from three feet away. Knowing does not stop it."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:33:0": {
+     "sheet": "T1",
+     "row": 33,
+     "time": "T1, 10:09",
+     "seconds": 609,
+     "text": "Mistakes on show for anyone passing",
+     "quotes": [
+      "\"At work you can hide a mistake in a log file, nobody reads the logs. Here your mistakes are just out there, in rows, for anyone who walks past. … It's a very public way to be bad at something.\""
+     ],
+     "notes": [
+      "Logs nobody reads against rows anyone can see."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:35:0": {
+     "sheet": "T1",
+     "row": 35,
+     "time": "T1, 10:44",
+     "seconds": 644,
+     "text": "Afraid the plot will prove him someone who breaks",
+     "quotes": [
+      "\"But if I can't even do this … then maybe it wasn't a blip. Maybe that's just what I'm like now. Maybe I'm someone who breaks.\""
+     ],
+     "notes": [
+      "A blip or what he is now? 'Someone who breaks.' Rather not find out in front of Des."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:37:0": {
+     "sheet": "T1",
+     "row": 37,
+     "time": "T1, 11:21",
+     "seconds": 681,
+     "text": "One target despite himself: still going in October",
+     "quotes": [
+      "\"So I haven't set targets. Except I have, obviously. … Still turning up in October. That's the key performance indicator. I'm aware that's a joke and not a joke.\""
+     ],
+     "notes": [
+      "The one target, a KPI. 'A joke and not a joke.'"
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:39:0": {
+     "sheet": "T1",
+     "row": 39,
+     "time": "T1, 11:53",
+     "seconds": 713,
+     "text": "Picturing a rest without guilt he cannot reach",
+     "quotes": [
+      "\"Me, on a fold-up chair, at the end of a row of something green, not doing anything, not thinking about anything, and not feeling guilty … I just don't know how you get from the spreadsheet to the chair.\""
+     ],
+     "notes": [
+      "The chair, not the spreadsheet. 'Maybe that's what the year is for.'"
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:41:0": {
+     "sheet": "T1",
+     "row": 41,
+     "time": "T1, 12:32",
+     "seconds": 752,
+     "text": "Hiding in the car from the gate, a low moment",
+     "quotes": [
+      "\"I sat in the car in the car park for twenty minutes before I got out. … There were two people at the gate talking, and I waited until they'd gone. … It was a bit of a low moment, if I'm honest.\""
+     ],
+     "notes": [
+      "Twenty minutes in the car, engine off, phone as cover."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T2:3:0": {
+     "sheet": "T2",
+     "row": 3,
+     "time": "T2, 00:12",
+     "seconds": 12,
+     "text": "Calm some days, the worry moved outdoors on others",
+     "quotes": [
+      "\"Some days I come back calm. Properly calm, like something's been taken out of my head and put down somewhere. … So I haven't stopped worrying. I've just moved the worry.\""
+     ],
+     "notes": [
+      "'The most honest sentence I've said all year.' The worry relocated, outdoors, about lettuces."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:5:0": {
+     "sheet": "T2",
+     "row": 5,
+     "time": "T2, 00:47",
+     "seconds": 47,
+     "text": "Lost lettuces taken personally, slugs hunted at night",
+     "quotes": [
+      "\"And I took it personally. I really did. I took it as a personal attack. That night I went back at eleven o'clock with a head torch and a bucket … Which is not, I'm aware, the behaviour of a calm person.\""
+     ],
+     "notes": [
+      "Twenty-four lettuces, done 'literally by the book'. A personal attack."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:7:0": {
+     "sheet": "T2",
+     "row": 7,
+     "time": "T2, 01:27",
+     "seconds": 87,
+     "text": "Despairing and laughing on call in a field",
+     "quotes": [
+      "\"I thought, this is my job. This is literally my job. Something's broken, it's urgent, and I'm on call. … And I laughed. … Despairing and funny at the same time.\""
+     ],
+     "notes": [
+      "A night shift built for himself in a field. Laughs out loud, alone. Sleeps after, as he never does after work."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:11:0": {
+     "sheet": "T2",
+     "row": 11,
+     "time": "T2, 02:53",
+     "seconds": 173,
+     "text": "An hour tying tomatoes in the mist without a single thought",
+     "quotes": [
+      "\"And I tied in the tomatoes. Just that. … And I didn't think about anything at all, for an hour. Nothing. I couldn't tell you the last time that happened.\""
+     ],
+     "notes": [
+      "Mist, bean poles, nobody about, not even Des. String, tomato leaves. 'That's all there was.'"
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:13:0": {
+     "sheet": "T2",
+     "row": 13,
+     "time": "T2, 03:36",
+     "seconds": 216,
+     "text": "The quiet gone at a glance at the phone",
+     "quotes": [
+      "\"It was like somebody had closed all my tabs. All forty. … I was a bit scared to move. In case they all came back. … And then I looked at my phone to check the time and they all came back.\""
+     ],
+     "notes": [
+      "All forty tabs closed. Holding the string still 'like you would with a bird'. The phone brings them back."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:15:0": {
+     "sheet": "T2",
+     "row": 15,
+     "time": "T2, 04:14",
+     "seconds": 254,
+     "text": "Quiet possible but not to order",
+     "quotes": [
+      "\"You can't schedule it. Which is very annoying for someone like me … But it happened, once, so I know it's possible. That's new.\""
+     ],
+     "notes": [
+      "Scheduling is 'basically my whole personality'. It cannot be scheduled, and it happened."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:17:0": {
+     "sheet": "T2",
+     "row": 17,
+     "time": "T2, 04:56",
+     "seconds": 296,
+     "text": "Relieved to find his head not broken",
+     "quotes": [
+      "\"So it can stop. It's not broken, it's just never been turned off. That's a different problem. … But it's a different problem, and I quite like having a different problem.\""
+     ],
+     "notes": [
+      "A server room never turned off. Not broken. Likes having a different problem."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:19:0": {
+     "sheet": "T2",
+     "row": 19,
+     "time": "T2, 05:33",
+     "seconds": 333,
+     "text": "Silent headphones to keep people off",
+     "quotes": [
+      "\"I'll be honest, half the time there's nothing playing. They're just in. They're a sign. Do not disturb. … But I'm not there for people.\""
+     ],
+     "notes": [
+      "Headphones with nothing playing. 'There to not be there for people.'"
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:21:0": {
+     "sheet": "T2",
+     "row": 21,
+     "time": "T2, 06:10",
+     "seconds": 370,
+     "text": "Nearly envious of the regulars, from a window he chose",
+     "quotes": [
+      "\"Envious isn't quite it. It's like watching a party through a window. And I've chosen the window. … But I've chosen the window, and I keep choosing it.\""
+     ],
+     "notes": [
+      "A party through a window, the window chosen, and chosen again."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:23:0": {
+     "sheet": "T2",
+     "row": 23,
+     "time": "T2, 06:49",
+     "seconds": 409,
+     "text": "Restful to be nobody in particular",
+     "quotes": [
+      "\"And then they'd know me, and then they'd notice when I'm not there, and then I'd have to explain. … That's quite restful, actually. Being nobody in particular.\""
+     ],
+     "notes": [
+      "Being somebody on calls all day. Unmissed is restful. Noticed means explaining."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:25:0": {
+     "sheet": "T2",
+     "row": 25,
+     "time": "T2, 07:25",
+     "seconds": 445,
+     "text": "Asking nothing so as to be asked nothing",
+     "quotes": [
+      "\"I haven't asked. I don't ask people things, at the moment. If you ask people things they ask you things back.\""
+     ],
+     "notes": [
+      "Assumes Des is just an old man who likes his allotment. Asks nothing, to be asked nothing."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:27:0": {
+     "sheet": "T2",
+     "row": 27,
+     "time": "T2, 07:56",
+     "seconds": 476,
+     "text": "Tomatoes to give away, and a talk at work not about a ticket",
+     "quotes": [
+      "\"And we talked for twenty minutes. About tomatoes. About her dad's greenhouse. Twenty minutes. That's the longest conversation I've had at work in a year that wasn't about a ticket.\""
+     ],
+     "notes": [
+      "A second head 'in a nice way, mostly'. Twenty minutes not about a ticket."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:31:0": {
+     "sheet": "T2",
+     "row": 31,
+     "time": "T2, 09:17",
+     "seconds": 557,
+     "text": "Something good to say at last",
+     "quotes": [
+      "\"I think the plot's the first thing in years that I've got something to say about that isn't a complaint. … It's good news. I didn't have any good news. Now I've got tomatoes.\""
+     ],
+     "notes": [
+      "Every topic a complaint, the plot the exception."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:33:0": {
+     "sheet": "T2",
+     "row": 33,
+     "time": "T2, 09:55",
+     "seconds": 595,
+     "text": "Hazel poles after a remark heard as contempt",
+     "quotes": [
+      "\"and I went straight to, he thinks I'm useless … And then the next day there were six hazel poles leaning on my shed. From him. No note. Just poles. So I've decided Des is not a performance review.\"",
+      "\"Because everyone had slugs. Everyone lost their lettuces. It wasn't me being uniquely bad, it was just May. Which is a strange thing to be comforted by. Collective slug failure.\""
+     ],
+     "notes": [
+      "Hazel poles, no note. Des 'not a performance review': a decision, still being worked on."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:33:1": {
+     "sheet": "T2",
+     "row": 33,
+     "time": "T2, 09:55",
+     "seconds": 595,
+     "text": "Comforted that everyone lost lettuces: not uniquely bad",
+     "quotes": [
+      "\"and I went straight to, he thinks I'm useless … And then the next day there were six hazel poles leaning on my shed. From him. No note. Just poles. So I've decided Des is not a performance review.\"",
+      "\"Because everyone had slugs. Everyone lost their lettuces. It wasn't me being uniquely bad, it was just May. Which is a strange thing to be comforted by. Collective slug failure.\""
+     ],
+     "notes": [
+      "Hazel poles, no note. Des 'not a performance review': a decision, still being worked on."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:35:0": {
+     "sheet": "T2",
+     "row": 35,
+     "time": "T2, 10:39",
+     "seconds": 639,
+     "text": "Some weeks going for his therapist, not for himself",
+     "quotes": [
+      "\"Because it makes it feel like homework again. Like I'm handing in my plot to be marked. … Some weeks I'm going for her, not for me.\""
+     ],
+     "notes": [
+      "Handing in the plot to be marked. Her pleasure makes it homework."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:37:0": {
+     "sheet": "T2",
+     "row": 37,
+     "time": "T2, 11:11",
+     "seconds": 671,
+     "text": "Good days the ones he forgets to report on",
+     "quotes": [
+      "\"So then I'm doing the plot and the report about the plot at the same time, and that's two jobs. The good days are the ones where I forget to tell her.\""
+     ],
+     "notes": [
+      "Narrating to her in his head: the plot and the report on it, two jobs."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:39:0": {
+     "sheet": "T2",
+     "row": 39,
+     "time": "T2, 11:49",
+     "seconds": 709,
+     "text": "A welcome tiredness that lets him sleep",
+     "quotes": [
+      "\"My hands are completely different. Calluses … I look like two different people stitched together. … The screen tired is sort of buzzy. The plot tired is heavy and it lets you go.\""
+     ],
+     "notes": [
+      "Two people stitched together, the tanned arm and the office arm."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:41:0": {
+     "sheet": "T2",
+     "row": 41,
+     "time": "T2, 12:32",
+     "seconds": 752,
+     "text": "Hearing himself say he is on track",
+     "quotes": [
+      "\"Only that I'm still going. … So I'm on track. I'm aware I've just described my own life as being on track against a target. I can hear it.\""
+     ],
+     "notes": [
+      "On track against a target. 'I can hear it.'"
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T3:3:0": {
+     "sheet": "T3",
+     "row": 3,
+     "time": "T3, 00:11",
+     "seconds": 11,
+     "text": "Feeling he had let a plot down",
+     "quotes": [
+      "\"I didn't decide to stop. I just didn't go … And I stood there and I felt I'd let it down. Which is ridiculous. It's a plot.\""
+     ],
+     "notes": [
+      "Did not decide to stop, just did not go. 'You can't let a rectangle down', and he felt he had."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:5:0": {
+     "sheet": "T3",
+     "row": 5,
+     "time": "T3, 01:09",
+     "seconds": 69,
+     "text": "Last autumn back at the black beans, the calm called fake",
+     "quotes": [
+      "\"It was the exact feeling from last autumn. … I had the whole thing come back, the chest, the hands going. … The calm was fake. … You can't even keep a vegetable patch alive.\""
+     ],
+     "notes": [
+      "The chest, the hands, by Des's shed. 'See.' The summer called a holiday."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:9:0": {
+     "sheet": "T3",
+     "row": 9,
+     "time": "T3, 02:24",
+     "seconds": 144,
+     "text": "Another thing quietly stopped, as before, with nobody chasing",
+     "quotes": [
+      "\"I'm good at starting things. … And then something gets hard and I just quietly stop, and I don't tell anyone … If you stop quietly enough, nobody chases you.\""
+     ],
+     "notes": [
+      "The climbing wall, the friends, the group chat: stopping quietly. Nobody chases."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:11:0": {
+     "sheet": "T3",
+     "row": 11,
+     "time": "T3, 02:59",
+     "seconds": 179,
+     "text": "Moved by a handwritten note not about work",
+     "quotes": [
+      "\"And I stood there and read it about five times. And I realised it was the first note anyone had left me in years that wasn't about work. … Somebody had written something down for me, by hand, about my leeks.\""
+     ],
+     "notes": [
+      "On the back of a seed packet, a drawing pin, a D. Read five times."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:13:0": {
+     "sheet": "T3",
+     "row": 13,
+     "time": "T3, 03:37",
+     "seconds": 217,
+     "text": "Noticed missing and not made to explain",
+     "quotes": [
+      "\"But he'd noticed I wasn't there. That's what got me. Somebody noticed I wasn't there and didn't make it a thing. Didn't ask why. Didn't make me explain.\""
+     ],
+     "notes": [
+      "Not 'are you all right'. Noticed, and not made to explain. 'As if I was coming back.'"
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:15:0": {
+     "sheet": "T3",
+     "row": 15,
+     "time": "T3, 04:20",
+     "seconds": 260,
+     "text": "Given a job instead of a feeling",
+     "quotes": [
+      "\"But leeks want lifting. That I could do. That was a job. He gave me a job instead of a feeling. I think he knew. I think he's been around a lot of people who stop.\""
+     ],
+     "notes": [
+      "A job instead of a feeling. Des 'has been around a lot of people who stop'."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:17:0": {
+     "sheet": "T3",
+     "row": 17,
+     "time": "T3, 04:49",
+     "seconds": 289,
+     "text": "Learning only now what Des carries, after months of waving",
+     "quotes": [
+      "\"And I took my headphones out, both of them, and we talked. For about an hour. … And it turns out his wife died two years ago. … I'd been waving at him for eight months and I had no idea.\""
+     ],
+     "notes": [
+      "Both headphones out. Eight months of waving and no idea."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:19:0": {
+     "sheet": "T3",
+     "row": 19,
+     "time": "T3, 05:37",
+     "seconds": 337,
+     "text": "Finding in the plot what the flat is not: somewhere to be",
+     "quotes": [
+      "\"The flat is somewhere I am. It's not somewhere I'm at. … The plot's the only place I go to be at.\""
+     ],
+     "notes": [
+      "Somewhere I am against somewhere I'm at. Des worked it out for him."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:21:0": {
+     "sheet": "T3",
+     "row": 21,
+     "time": "T3, 06:11",
+     "seconds": 371,
+     "text": "Ashamed of clicking Des away",
+     "quotes": [
+      "\"I'd been treating him like a pop-up. … And I'd been performing not needing anyone. Very hard. With headphones. I felt quite ashamed of that, actually\""
+     ],
+     "notes": [
+      "A pop-up clicked away unread. Ashamed, 'standing there with my leeks'."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:23:0": {
+     "sheet": "T3",
+     "row": 23,
+     "time": "T3, 06:47",
+     "seconds": 407,
+     "text": "At ease beside Des now, hardly listening",
+     "quotes": [
+      "\"But sometimes I walk over to his shed and stand there while he does something, and he tells me what he's doing, and I don't really listen, and it's fine.\""
+     ],
+     "notes": [
+      "A gooseberry he does not know what to do with."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:25:0": {
+     "sheet": "T3",
+     "row": 25,
+     "time": "T3, 07:30",
+     "seconds": 450,
+     "text": "Contacted after all, and glad: a ticket from Des",
+     "quotes": [
+      "\"Because Des basically emailed me. On paper. … It was literally a ticket. And it was the best thing that happened to me all year. … I wanted nobody to contact me about things that aren't real.\""
+     ],
+     "notes": [
+      "The ticket he fled turns up on paper, and is the best thing all year. Real against not real."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:27:0": {
+     "sheet": "T3",
+     "row": 27,
+     "time": "T3, 08:11",
+     "seconds": 491,
+     "text": "The quiet no cure but findable",
+     "quotes": [
+      "\"It comes and goes. It's not a cure. … But I know where to find it now. That's what's different.\""
+     ],
+     "notes": [
+      "Not a cure: his therapist would like it in a report."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:29:0": {
+     "sheet": "T3",
+     "row": 29,
+     "time": "T3, 08:49",
+     "seconds": 529,
+     "text": "Putting himself in the way of quiet, string in hand, never in the chair",
+     "quotes": [
+      "\"I can't make it happen. But I can go where it happens. … I can't switch it on, but I know which room it lives in. … The quiet never came in the chair. It came with string in my hands.\""
+     ],
+     "notes": [
+      "Which room it lives in. The chair in the shed with the spider, never sat in."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:31:0": {
+     "sheet": "T3",
+     "row": 31,
+     "time": "T3, 09:39",
+     "seconds": 579,
+     "text": "The plot kept from his therapist as his own",
+     "quotes": [
+      "\"I stopped telling her about it in September … It started to feel like mine. Not homework. I didn't want to hand it in any more.\""
+     ],
+     "notes": [
+      "Stopped telling her before he stopped going. 'Maybe I learned it from him.'"
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:33:0": {
+     "sheet": "T3",
+     "row": 33,
+     "time": "T3, 10:18",
+     "seconds": 618,
+     "text": "Needing the plot without loving it",
+     "quotes": [
+      "\"I think I need it, which is different. … I don't love it. Some days I really don't like it at all. But I need it. When I didn't go for three weeks, something went wrong in me.\""
+     ],
+     "notes": [
+      "Not like people in magazines. Need is not love."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:35:0": {
+     "sheet": "T3",
+     "row": 35,
+     "time": "T3, 10:54",
+     "seconds": 654,
+     "text": "Frightened to need even a rectangle of clay",
+     "quotes": [
+      "\"Wanting is nice. Needing is a bit frightening. … I don't like needing things. … And now I need a rectangle of clay.\"",
+      "\"I think what I needed most this year was something that doesn't care about me at all. The plot doesn't care. … It's the one thing in my life that isn't evaluating me.\""
+     ],
+     "notes": [
+      "Does his own tech support. Needs a rectangle of clay that does not care."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:35:1": {
+     "sheet": "T3",
+     "row": 35,
+     "time": "T3, 10:54",
+     "seconds": 654,
+     "text": "Relief in a plot that does not care about him",
+     "quotes": [
+      "\"Wanting is nice. Needing is a bit frightening. … I don't like needing things. … And now I need a rectangle of clay.\"",
+      "\"I think what I needed most this year was something that doesn't care about me at all. The plot doesn't care. … It's the one thing in my life that isn't evaluating me.\""
+     ],
+     "notes": [
+      "Does his own tech support. Needs a rectangle of clay that does not care."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:37:0": {
+     "sheet": "T3",
+     "row": 37,
+     "time": "T3, 11:43",
+     "seconds": 703,
+     "text": "A body that knew before he did that he had stopped",
+     "quotes": [
+      "\"When I stopped going in September, the sleep went first. Before I'd even noticed I'd stopped going, I was lying awake again at three. My body knew before I did.\""
+     ],
+     "notes": [
+      "The body keeping a better record than him. 'Less grey', taken as a compliment."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:39:0": {
+     "sheet": "T3",
+     "row": 39,
+     "time": "T3, 12:20",
+     "seconds": 740,
+     "text": "Glad to be bored by onions with Des",
+     "quotes": [
+      "\"But actually, I took them out last week. Without planning it. … It was quite boring, honestly. Onions are quite boring. But it was fine. … And it was one of the better ten minutes of my year.\""
+     ],
+     "notes": [
+      "Planned for spring, done last week. Bored by onions, no mute needed."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    }
+   }
+  },
+  "Hollis": {
+   "workbook": "Hollis - EN & ES.xlsx",
+   "board": "b1",
+   "name": "Board 1",
+   "complete": true,
+   "came": "2026-11-10T11:00:00+00:00",
+   "seen": {
+    "workbook": 1794308400000000000,
+    "themes": 1794308400000000000
+   },
+   "hash": "bdf9a368cedf4108f141911518ac9ed685cce785904cd79a203b9f93dccde8d0",
+   "state": "in",
+   "pets": [
+    {
+     "id": "G1",
+     "title": "From watched at the gate to the old hand who goes quiet",
+     "note": "",
+     "parent": null,
+     "subs": [],
+     "statements": [
+      "T1:3:0",
+      "T1:15:0",
+      "T1:5:0",
+      "T1:17:0",
+      "T1:33:0",
+      "T2:39:0",
+      "T2:9:0",
+      "T2:13:0",
+      "T2:19:0",
+      "T3:7:0",
+      "T3:9:0",
+      "T3:15:0",
+      "T3:17:0",
+      "T3:35:1",
+      "T3:19:0",
+      "T3:21:0",
+      "T3:21:1",
+      "T3:23:0"
+     ],
+     "picks": [],
+     "description": "Proving himself by work to men who stop talking, noticed by being corrected, then one of them, and hearing himself do the same to a newcomer"
+    },
+    {
+     "id": "G2",
+     "title": "From the part left over to news of his own",
+     "note": "",
+     "parent": null,
+     "subs": [],
+     "statements": [
+      "T1:25:0",
+      "T1:27:0",
+      "T1:9:0",
+      "T1:11:0",
+      "T1:7:0",
+      "T1:31:0",
+      "T1:29:0",
+      "T2:7:0",
+      "T2:5:0",
+      "T2:21:0",
+      "T2:3:0",
+      "T2:27:0",
+      "T2:29:0",
+      "T2:33:0",
+      "T2:37:0",
+      "T3:27:0",
+      "T3:31:0",
+      "T3:25:0",
+      "T3:39:1",
+      "T3:35:0"
+     ],
+     "picks": [],
+     "description": "Surplus in the flat since retiring, then living at the plot with Pat missing him, then home with things to say, the winter flat still feared"
+    },
+    {
+     "id": "G3",
+     "title": "From ashamed of his limits to carried without shame",
+     "note": "",
+     "parent": null,
+     "subs": [],
+     "statements": [
+      "T1:19:0",
+      "T1:21:0",
+      "T1:23:0",
+      "T1:35:0",
+      "T1:13:0",
+      "T2:17:0",
+      "T2:15:0",
+      "T2:25:0",
+      "T2:23:0",
+      "T3:5:1",
+      "T3:5:0",
+      "T3:3:0",
+      "T3:11:0",
+      "T3:37:0",
+      "T3:39:0"
+     ],
+     "picks": [],
+     "description": "A body that felt ninety, then limits learned and rest no longer skiving, then laid low and helped, and help felt as belonging"
+    }
+   ],
+   "lines": {
+    "T1:3:0": {
+     "sheet": "T1",
+     "row": 3,
+     "time": "T1, 00:16",
+     "seconds": 16,
+     "text": "Nervous at the gate: a new lad again at sixty-eight",
+     "quotes": [
+      "\"And they all stopped talking. … I felt like the new lad on his first day at the depot.\""
+     ],
+     "notes": [
+      "Stopped talking: silence as the first greeting. Back to sixteen in a moment. 'Last the week' is the test he expects to sit."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:5:0": {
+     "sheet": "T1",
+     "row": 5,
+     "time": "T1, 01:02",
+     "seconds": 62,
+     "text": "Belonging earned by work, never by talk",
+     "quotes": [
+      "\"Nobody talked to you, not properly, till you'd shown you could do a job. … You let the work do the talking.\""
+     ],
+     "notes": [
+      "Belonging earned, never given, and never said: 'You just know.' The depot's rule brought to the plot whole?"
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:7:0": {
+     "sheet": "T1",
+     "row": 7,
+     "time": "T1, 01:57",
+     "seconds": 117,
+     "text": "Wanting somewhere outdoors after days without sky",
+     "quotes": [
+      "\"I'd gone three days without seeing the sky properly. … So I wanted somewhere to be that wasn't indoors. Somewhere with a job waiting for me.\""
+     ],
+     "notes": [
+      "Three days without the sky, counted. Indoors is the loss he names first, before Pat."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:9:0": {
+     "sheet": "T1",
+     "row": 9,
+     "time": "T1, 02:57",
+     "seconds": 177,
+     "text": "Surplus at home since retiring, everything working without him",
+     "quotes": [
+      "\"I'm in the way of the hoover. … Everything works without it. That's what retiring's been. I'm the part left over.\""
+     ],
+     "notes": [
+      "Following his wife round the flat. The engine is his trade's image. Not unwanted, surplus: 'everything works without it'."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:11:0": {
+     "sheet": "T1",
+     "row": 11,
+     "time": "T1, 03:53",
+     "seconds": 233,
+     "text": "The plot taken on to be needed again",
+     "quotes": [
+      "\"You wake up and there's nothing that needs you. Nobody's going to ring if you don't turn up. … That's a job. That'll need me.\""
+     ],
+     "notes": [
+      "Rung at two in the morning was being needed. Knows the buses by their sound from the ninth floor."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:13:0": {
+     "sheet": "T1",
+     "row": 13,
+     "time": "T1, 04:55",
+     "seconds": 295,
+     "text": "At a loss before two years of brambles",
+     "quotes": [
+      "\"I stood there with a brand new fork on Saturday and I didn't know where to start. I just stood. I'm not used to that, not knowing where to start.\""
+     ],
+     "notes": [],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:15:0": {
+     "sheet": "T1",
+     "row": 15,
+     "time": "T1, 05:52",
+     "seconds": 352,
+     "text": "Pride at stake: showing the old hands he will last",
+     "quotes": [
+      "\"I'm not going to be one that gives up by June. So I want them to see it, the old boys, every time they come through the gate. … You don't tell them. You let them see.\""
+     ],
+     "notes": [
+      "'Like it was the weather.' Half gone by June heard as a dare. Show, never tell."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:17:0": {
+     "sheet": "T1",
+     "row": 17,
+     "time": "T1, 06:23",
+     "seconds": 383,
+     "text": "Not yet entitled to ask the old hands",
+     "quotes": [
+      "\"I'd like to know what they know. But you don't ask. Not yet. You've not earned asking.\""
+     ],
+     "notes": [
+      "Pat's 'only men with sheds' against his 'not how I was brought up'. Is it the old hands or the depot keeping him from asking?"
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:19:0": {
+     "sheet": "T1",
+     "row": 19,
+     "time": "T1, 07:11",
+     "seconds": 431,
+     "text": "Frightened by a body that felt ninety after two hours digging",
+     "quotes": [
+      "\"I felt about ninety. … I thought, what if I can't do it. What if that's me now.\""
+     ],
+     "notes": [
+      "Pat helping him out of the chair. 'A man who can't dig a bit of garden': smaller in his own eyes."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:21:0": {
+     "sheet": "T1",
+     "row": 21,
+     "time": "T1, 07:52",
+     "seconds": 472,
+     "text": "Digging to find out what his body has left",
+     "quotes": [
+      "\"Now it's started sending in its own bills. … I suppose that's what it is. I'm finding out what I've got left.\""
+     ],
+     "notes": [
+      "The body that once did as it was told now 'sending in its own bills'. Pacing taken from the trade."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:23:0": {
+     "sheet": "T1",
+     "row": 23,
+     "time": "T1, 08:31",
+     "seconds": 511,
+     "text": "A year in a chair took something from him",
+     "quotes": [
+      "\"I've had a year in a chair, and I think it's taken something off me that I didn't know it was taking.\""
+     ],
+     "notes": [
+      "His dad dug past eighty. The doctor's waiting room as a place to be ashamed in."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:25:0": {
+     "sheet": "T1",
+     "row": 25,
+     "time": "T1, 09:20",
+     "seconds": 560,
+     "text": "Nothing asked of him at the plot",
+     "quotes": [
+      "\"Nobody needs anything from me down there. At home I'm always about to be asked to move. … I've not done that in years, just sat. I didn't know I could.\""
+     ],
+     "notes": [
+      "The robin. Sitting is new to him: 'I didn't know I could.'"
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:27:0": {
+     "sheet": "T1",
+     "row": 27,
+     "time": "T1, 10:12",
+     "seconds": 612,
+     "text": "Torn between a job and nobody wanting him",
+     "quotes": [
+      "\"I want the job, and I want nobody wanting me. That doesn't make much sense, does it. … It doesn't mind if I sit on a bucket.\""
+     ],
+     "notes": [
+      "Needed and not wanted, both. Notices the contradiction himself. No foreman, no phone, no Pat with the hoover."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:29:0": {
+     "sheet": "T1",
+     "row": 29,
+     "time": "T1, 10:44",
+     "seconds": 644,
+     "text": "A little hurt that Pat is glad to see him go",
+     "quotes": [
+      "\"I think she's relieved, if I'm honest, and I don't blame her. … I'd not have minded her being a bit sorry, mind. Just a bit.\""
+     ],
+     "notes": [
+      "'She meant it nice', said twice. Allows himself a small hurt, then takes it back."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:31:0": {
+     "sheet": "T1",
+     "row": 31,
+     "time": "T1, 11:16",
+     "seconds": 676,
+     "text": "Unwarned that retiring means making a life from nothing",
+     "quotes": [
+      "\"At sixty-eight I've got to make myself a life, and I've never had to before, because the depot was my life and it came ready made. … Nobody tells you that, when you retire.\""
+     ],
+     "notes": [
+      "Retiring as starting again 'like a lad'. The new lad at the gate again?"
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:33:0": {
+     "sheet": "T1",
+     "row": 33,
+     "time": "T1, 11:56",
+     "seconds": 716,
+     "text": "A modest hope: the old hands talking on as he comes in",
+     "quotes": [
+      "\"I'd like to walk through that gate one morning and have them carry on talking. Not stop. Just carry on, like I've always been there. That's all. I'd settle for that.\""
+     ],
+     "notes": [
+      "His dad's potatoes. 'I'd settle for that': the hope kept small, the wish not small at all."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:35:0": {
+     "sheet": "T1",
+     "row": 35,
+     "time": "T1, 12:38",
+     "seconds": 758,
+     "text": "Proud of a cleared square like a rebuilt bus",
+     "quotes": [
+      "\"Just looked at my square. You'd laugh. Three yards by three, and I stood there looking at it like it was a bus I'd rebuilt.\""
+     ],
+     "notes": [],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T2:3:0": {
+     "sheet": "T2",
+     "row": 3,
+     "time": "T2, 00:12",
+     "seconds": 12,
+     "text": "The plot now the centre of his days, the empty morning gone",
+     "quotes": [
+      "\"The flat's where I sleep now, and the plot's where I live. That's how it feels. I wake up and the first thing I think is, I wonder if the onions are all right. Not, what am I going to do with myself.\""
+     ],
+     "notes": [
+      "A door and a chair in the shed: settling a place. The morning's first thought is the onions, not the empty day."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:5:0": {
+     "sheet": "T2",
+     "row": 5,
+     "time": "T2, 00:58",
+     "seconds": 58,
+     "text": "Trying to make it up to Pat for never being there now",
+     "quotes": [
+      "\"she said, I didn't marry you for your runner beans. … So I've been trying. I bring her things back. Sweet peas.\""
+     ],
+     "notes": [
+      "'You can't win with you' taken on the chin. Sweet peas where she can see them from her chair: an apology without words."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:7:0": {
+     "sheet": "T2",
+     "row": 7,
+     "time": "T2, 01:47",
+     "seconds": 107,
+     "text": "Struck to learn Pat missed him",
+     "quotes": [
+      "\"I never thought she might miss me. … She said, I got used to you, and now you've gone again. Like the depot all over. And that went in, that did.\""
+     ],
+     "notes": [
+      "He had never thought she might miss him. 'Like the depot all over': he has gone out to work again."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:9:0": {
+     "sheet": "T2",
+     "row": 9,
+     "time": "T2, 02:35",
+     "seconds": 155,
+     "text": "From insult to hello: an old hand correcting him",
+     "quotes": [
+      "\"I took it as an insult for a whole day. … it was the first thing he'd said to me that wasn't good morning. … That's how they say hello down there.\""
+     ],
+     "notes": [],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:13:0": {
+     "sheet": "T2",
+     "row": 13,
+     "time": "T2, 04:02",
+     "seconds": 242,
+     "text": "Two words from an old hand worth more than a long service plaque",
+     "quotes": [
+      "\"Two months of good morning, and then that's better. … that's better from Frank did more for me than the plaque. The plaque's in the cupboard with the Christmas lights.\""
+     ],
+     "notes": [
+      "The plaque in with the Christmas lights. Two words from Frank weigh more than forty-one years' award?"
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:15:0": {
+     "sheet": "T2",
+     "row": 15,
+     "time": "T2, 04:39",
+     "seconds": 279,
+     "text": "Failed beans hidden in shame",
+     "quotes": [
+      "\"And I was embarrassed. Properly embarrassed. I put a bit of netting over them so nobody would see.\""
+     ],
+     "notes": [
+      "Netting like a sheet over a body. Hiding a failure, the depot's habit."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:17:0": {
+     "sheet": "T2",
+     "row": 17,
+     "time": "T2, 05:27",
+     "seconds": 327,
+     "text": "Shame gone once the failure was shared: the year, not him",
+     "quotes": [
+      "\"But you can't fix a bean. … And when Maureen laughed, it went out of me, the embarrassment. … It wasn't me. It was the year.\""
+     ],
+     "notes": [
+      "'It wasn't me. It was the year.' The shame let out 'like the air out of a tyre'."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:19:0": {
+     "sheet": "T2",
+     "row": 19,
+     "time": "T2, 06:09",
+     "seconds": 369,
+     "text": "Taught everything by Maureen without asking, thrown at first",
+     "quotes": [
+      "\"I didn't know what to do with it, to be honest. … Everything I know, near enough, Maureen told me. I never asked her one thing. She just told me.\""
+     ],
+     "notes": [
+      "Maureen breaks his rule about asking without him having to. Is that why he can take it from her?"
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:21:0": {
+     "sheet": "T2",
+     "row": 21,
+     "time": "T2, 07:00",
+     "seconds": 420,
+     "text": "Joy at the first potatoes, carried home to Pat",
+     "quotes": [
+      "\"I stood there with them in my hand like I'd found money in the street. My own potatoes. … I took them home in my cap. … She said they were very nice. Very nice. I'll take very nice.\""
+     ],
+     "notes": [
+      "Brambles in March, potatoes in July. Pat's 'very nice' enough for him."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:23:0": {
+     "sheet": "T2",
+     "row": 23,
+     "time": "T2, 07:50",
+     "seconds": 470,
+     "text": "Unafraid of a body whose limits he knows",
+     "quotes": [
+      "\"In March I was frightened of it, the body, I told you that. I'm not frightened of it now. I know what it'll do. I know where it stops.\""
+     ],
+     "notes": [],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:25:0": {
+     "sheet": "T2",
+     "row": 25,
+     "time": "T2, 08:21",
+     "seconds": 501,
+     "text": "Resting now as servicing an engine",
+     "quotes": [
+      "\"In March I was ashamed of that. Sitting down. I felt like I was skiving … Now I think of it as part of the job. … Well I'm the engine.\""
+     ],
+     "notes": [
+      "Rest as servicing, not skiving: a new rule from the old trade."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:27:0": {
+     "sheet": "T2",
+     "row": 27,
+     "time": "T2, 08:56",
+     "seconds": 536,
+     "text": "Days with a shape again, after a year of lumps",
+     "quotes": [
+      "\"It's got a shape. That's the thing. … Last year a day was just a lump. … Now I look at the clock and think, is it three already.\""
+     ],
+     "notes": [
+      "A day in two halves with dinner between, 'like a shift'. Time back in his hands."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:29:0": {
+     "sheet": "T2",
+     "row": 29,
+     "time": "T2, 09:41",
+     "seconds": 581,
+     "text": "Known by the place now, no longer a visitor",
+     "quotes": [
+      "\"It's like the place knows I'm there. That sounds soft. But it's like that. I'm not a visitor there now.\""
+     ],
+     "notes": [
+      "The robin has a mate now. 'That sounds soft' said before he lets himself say it."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:33:0": {
+     "sheet": "T2",
+     "row": 33,
+     "time": "T2, 10:50",
+     "seconds": 650,
+     "text": "Minding what he misses: part of something again",
+     "quotes": [
+      "\"Retiring, you don't miss anything. There's nothing to miss. … I was put out I'd missed a fox. That's how I knew.\""
+     ],
+     "notes": [],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:37:0": {
+     "sheet": "T2",
+     "row": 37,
+     "time": "T2, 11:55",
+     "seconds": 715,
+     "text": "Winter dread felt in the chest and pushed down",
+     "quotes": [
+      "\"Same feeling as March. Before March. The part left over. It comes up in my chest a bit, and I push it back down. I tell myself it's July.\""
+     ],
+     "notes": [],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:39:0": {
+     "sheet": "T2",
+     "row": 39,
+     "time": "T2, 12:25",
+     "seconds": 745,
+     "text": "Greeted at the gate: near enough what he hoped for",
+     "quotes": [
+      "\"When I come in now, Frank looks up and says, here he is. … But it's near enough. It's near enough for me. I'll take here he is.\""
+     ],
+     "notes": [
+      "Measures it against March himself. 'Near enough' is his whole stance."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T3:3:0": {
+     "sheet": "T3",
+     "row": 3,
+     "time": "T3, 00:11",
+     "seconds": 11,
+     "text": "Helpless as a beetle when his back went",
+     "quotes": [
+      "\"something went at the bottom of my back, like a cable snapping. Down I went. … I couldn't get up. … there's me on the floor like a beetle.\""
+     ],
+     "notes": [
+      "Starts with 'the bad bit, because it's the bit that matters'. Like a beetle: laughs at himself even on the floor."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:5:0": {
+     "sheet": "T3",
+     "row": 5,
+     "time": "T3, 01:02",
+     "seconds": 62,
+     "text": "Laid up: worse for knowing what he was missing",
+     "quotes": [
+      "\"it was the part left over again, only worse, because now I knew what I was missing.\"",
+      "\"They'll be saying it at the gate. Told you. Another one who didn't last. Sixty-eight, and his back went, and that was him.\""
+     ],
+     "notes": [
+      "Worse than last winter because now he knows what he is missing. The gate's verdict heard in advance."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:5:1": {
+     "sheet": "T3",
+     "row": 5,
+     "time": "T3, 01:02",
+     "seconds": 62,
+     "text": "Sure the old hands would say he had not lasted",
+     "quotes": [
+      "\"it was the part left over again, only worse, because now I knew what I was missing.\"",
+      "\"They'll be saying it at the gate. Told you. Another one who didn't last. Sixty-eight, and his back went, and that was him.\""
+     ],
+     "notes": [
+      "Worse than last winter because now he knows what he is missing. The gate's verdict heard in advance."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:7:0": {
+     "sheet": "T3",
+     "row": 7,
+     "time": "T3, 01:38",
+     "seconds": 98,
+     "text": "Overcome to find his potatoes lifted and labelled by others",
+     "quotes": [
+      "\"Somebody had dug my plot. … Nobody'd said a word. I stood in my shed and I'll be honest with you, I had to sit down, and it wasn't my back.\""
+     ],
+     "notes": [
+      "Paper sacks, labels in marker pen. 'It wasn't my back': moved, and says it only sideways."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:9:0": {
+     "sheet": "T3",
+     "row": 9,
+     "time": "T3, 02:22",
+     "seconds": 142,
+     "text": "Help heard now as belonging",
+     "quotes": [
+      "\"a year ago, if somebody had dug my plot, that's what I'd have heard. I'd have been ashamed. … And this time it was the other way round. … You don't dig for somebody who's not one of you.\""
+     ],
+     "notes": [
+      "The same act, help, heard the other way round. What changed: the plot, or him?"
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:11:0": {
+     "sheet": "T3",
+     "row": 11,
+     "time": "T3, 03:07",
+     "seconds": 187,
+     "text": "A man no longer only what he can do",
+     "quotes": [
+      "\"A man's what he can do. So you lie on a settee a fortnight and you can't do anything, and what are you then. … And I didn't look for anything wrong with it. I didn't want to.\""
+     ],
+     "notes": [
+      "'What was I for.' Worth as doing, held for forty-one years, let go in a shed."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:15:0": {
+     "sheet": "T3",
+     "row": 15,
+     "time": "T3, 04:28",
+     "seconds": 268,
+     "text": "On the rake: no longer new or watched",
+     "quotes": [
+      "\"That I'm one of the furniture now. … You're not new any more. You're not being watched. You're on the rake. … Best night I've had in years.\""
+     ],
+     "notes": [
+      "Better than his leaving do, which had a buffet. One of the furniture, the word he could not use in March."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:17:0": {
+     "sheet": "T3",
+     "row": 17,
+     "time": "T3, 04:59",
+     "seconds": 299,
+     "text": "Trusted with an old hand's grief",
+     "quotes": [
+      "\"But Frank told a story. About his wife … And Ken put his hand on his shoulder, just for a second. … I'm being let see this, because I'm one of them.\""
+     ],
+     "notes": [
+      "Let see Frank's grief. Being trusted with it is what belonging means here."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:19:0": {
+     "sheet": "T3",
+     "row": 19,
+     "time": "T3, 05:50",
+     "seconds": 350,
+     "text": "Not proud to hear himself go quiet at a newcomer, as they did to him",
+     "quotes": [
+      "\"we all stopped talking. All three of us. Me with them. And I heard us do it. I heard myself go quiet, the same as they did to me.\""
+     ],
+     "notes": [
+      "Purple hair, a little dog. He hears the silence from inside it now."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:21:0": {
+     "sheet": "T3",
+     "row": 21,
+     "time": "T3, 06:31",
+     "seconds": 391,
+     "text": "Uneasy and a bit pleased to be an insider",
+     "quotes": [
+      "\"I didn't like it. And I did, a bit. Both. … it meant I was on the right side of the gate now. That's the truth.\"",
+      "\"And I told her her bed was too close to the hedge. Which is exactly what Frank did to me. … It goes round, doesn't it. It goes round.\""
+     ],
+     "notes": [
+      "'The right side of the gate', and he knows there is a wrong one. Frank's onions become his hedge."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:21:1": {
+     "sheet": "T3",
+     "row": 21,
+     "time": "T3, 06:31",
+     "seconds": 391,
+     "text": "Hearing himself pass on what Frank did to him",
+     "quotes": [
+      "\"I didn't like it. And I did, a bit. Both. … it meant I was on the right side of the gate now. That's the truth.\"",
+      "\"And I told her her bed was too close to the hedge. Which is exactly what Frank did to me. … It goes round, doesn't it. It goes round.\""
+     ],
+     "notes": [
+      "'The right side of the gate', and he knows there is a wrong one. Frank's onions become his hedge."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:23:0": {
+     "sheet": "T3",
+     "row": 23,
+     "time": "T3, 07:09",
+     "seconds": 429,
+     "text": "Glad to be asked, his March rule on asking gone",
+     "quotes": [
+      "\"And I told her, and I didn't think less of her for asking. That's changed and all. In March I said you don't ask, you've not earned asking.\""
+     ],
+     "notes": [
+      "The March rule on asking undone in his own words. Wishes he had asked Frank."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:25:0": {
+     "sheet": "T3",
+     "row": 25,
+     "time": "T3, 07:50",
+     "seconds": 470,
+     "text": "Neighbours of eleven years met at last over a bag of potatoes",
+     "quotes": [
+      "\"people I'd never spoken to in eleven years in that block knocked on my door to say thank you. … Eleven years, and it took a bag of potatoes.\""
+     ],
+     "notes": [
+      "A cake in the bag. Home as well as the plot opening out."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:27:0": {
+     "sheet": "T3",
+     "row": 27,
+     "time": "T3, 08:29",
+     "seconds": 509,
+     "text": "Home from the plot with news of his own for Pat",
+     "quotes": [
+      "\"She says I come back from the plot with things to say. … I didn't have things to say before. … A man needs a bit of news of his own, I think.\""
+     ],
+     "notes": [
+      "No news since retiring. 'Something that's happened to him': a life with events in it again."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:31:0": {
+     "sheet": "T3",
+     "row": 31,
+     "time": "T3, 09:51",
+     "seconds": 591,
+     "text": "Seen by Pat in his own work at last",
+     "quotes": [
+      "\"Forty-one years she never saw what I did. And this time she came and sat in it. … I don't think I knew I wanted it till she was sat there.\""
+     ],
+     "notes": [
+      "Forty-one years of work Pat never saw. The want found only when it was met."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:35:0": {
+     "sheet": "T3",
+     "row": 35,
+     "time": "T3, 11:01",
+     "seconds": 661,
+     "text": "Winter feared as a Sunday night at the bus station",
+     "quotes": [
+      "\"Like the bus station on a Sunday night. All the buses in, all lined up, lights off, nothing going anywhere. That's what I'm frightened of.\"",
+      "\"He said, you'll come Wednesdays. He didn't ask. He said. So maybe there's that. Maybe it won't be a Sunday night.\""
+     ],
+     "notes": [
+      "A Sunday night at the bus station: his own trade's image for empty time. Frank tells, does not ask."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:35:1": {
+     "sheet": "T3",
+     "row": 35,
+     "time": "T3, 11:01",
+     "seconds": 661,
+     "text": "A winter hope: told to come Wednesdays",
+     "quotes": [
+      "\"Like the bus station on a Sunday night. All the buses in, all lined up, lights off, nothing going anywhere. That's what I'm frightened of.\"",
+      "\"He said, you'll come Wednesdays. He didn't ask. He said. So maybe there's that. Maybe it won't be a Sunday night.\""
+     ],
+     "notes": [
+      "A Sunday night at the bus station: his own trade's image for empty time. Frank tells, does not ask."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:37:0": {
+     "sheet": "T3",
+     "row": 37,
+     "time": "T3, 11:42",
+     "seconds": 702,
+     "text": "Half sacks no longer shameful, two trips more time there",
+     "quotes": [
+      "\"In March I'd have been ashamed of half sacks. Now I think, well, there's two trips instead of one. Two trips is more time down there. I've got the time.\""
+     ],
+     "notes": [],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:39:0": {
+     "sheet": "T3",
+     "row": 39,
+     "time": "T3, 12:21",
+     "seconds": 741,
+     "text": "Sure someone would lift his potatoes next time",
+     "quotes": [
+      "\"It'll go again. I'm sixty-eight, it'll go again, I know that now. … But I know now that if it does, somebody'd lift my spuds.\"",
+      "\"And I'm not the part left over. Not down there. Up in the flat, some days, still, I won't lie. But not down there.\""
+     ],
+     "notes": [
+      "Ends where March began, on the part left over, and turns it."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:39:1": {
+     "sheet": "T3",
+     "row": 39,
+     "time": "T3, 12:21",
+     "seconds": 741,
+     "text": "Not surplus at the plot, if still in the flat",
+     "quotes": [
+      "\"It'll go again. I'm sixty-eight, it'll go again, I know that now. … But I know now that if it does, somebody'd lift my spuds.\"",
+      "\"And I'm not the part left over. Not down there. Up in the flat, some days, still, I won't lie. But not down there.\""
+     ],
+     "notes": [
+      "Ends where March began, on the part left over, and turns it."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    }
+   }
+  },
+  "Nell": {
+   "workbook": "Nell - EN & ES.xlsx",
+   "board": "b1",
+   "name": "Board 1",
+   "complete": true,
+   "came": "2026-11-10T11:00:00+00:00",
+   "seen": {
+    "workbook": 1794308400000000000,
+    "themes": 1794308400000000000
+   },
+   "hash": "e69c4bd428eea24c498b867a340a193c512d5cb2e1b3876bf22b774295a0f6ca",
+   "state": "in",
+   "pets": [
+    {
+     "id": "G1",
+     "title": "From her buni's garden wanted again to “you cannot dig that”",
+     "note": "",
+     "parent": null,
+     "subs": [],
+     "statements": [
+      "T1:7:0",
+      "T1:21:0",
+      "T1:5:0",
+      "T1:11:0",
+      "T1:13:0",
+      "T1:9:0",
+      "T2:29:0",
+      "T2:31:0",
+      "T2:27:0",
+      "T2:33:0",
+      "T2:35:0",
+      "T3:17:0",
+      "T3:17:1",
+      "T3:19:0",
+      "T3:15:0",
+      "T3:29:0",
+      "T3:31:0"
+     ],
+     "picks": [],
+     "description": "The village and England meeting under her fork, then a guest in her mother's half, then that half given away and the wish named"
+    },
+    {
+     "id": "G2",
+     "title": "From “one thing that is mine” to the help, and ten minutes",
+     "note": "",
+     "parent": null,
+     "subs": [],
+     "statements": [
+      "T1:31:0",
+      "T1:15:1",
+      "T1:39:0",
+      "T1:19:0",
+      "T1:15:0",
+      "T1:17:0",
+      "T2:23:0",
+      "T2:15:0",
+      "T2:19:0",
+      "T2:21:0",
+      "T3:21:0",
+      "T3:7:0",
+      "T3:3:0",
+      "T3:39:0",
+      "T3:37:0"
+     ],
+     "picks": [],
+     "description": "A place of her own and a deckchair pictured, then the plot her son's and the deckchair folded, then their place and ten minutes in it"
+    },
+    {
+     "id": "G3",
+     "title": "From taking too much to half given away, failed and relieved",
+     "note": "",
+     "parent": null,
+     "subs": [],
+     "statements": [
+      "T1:3:0",
+      "T1:37:0",
+      "T1:25:0",
+      "T1:27:0",
+      "T1:23:0",
+      "T2:41:0",
+      "T2:39:0",
+      "T2:3:0",
+      "T2:5:0",
+      "T2:37:0",
+      "T2:11:1",
+      "T3:41:0",
+      "T3:23:0",
+      "T3:25:0",
+      "T3:9:0",
+      "T3:11:0",
+      "T3:11:1",
+      "T3:13:0"
+     ],
+     "picks": [],
+     "description": "Strict to keep up with a full plot, then behind and not one to give things back, then half given away and a little less strict"
+    },
+    {
+     "id": "G4",
+     "title": "From judged by a look to kindness, the letter still kept",
+     "note": "",
+     "parent": null,
+     "subs": [],
+     "statements": [
+      "T1:33:0",
+      "T1:35:0",
+      "T2:9:0",
+      "T2:11:0",
+      "T2:7:0",
+      "T2:13:0",
+      "T3:33:0",
+      "T3:35:0"
+     ],
+     "picks": [],
+     "description": "A look at the pushchair heard as a verdict, then a committee letter and hiding, then kindness she did not expect and the letter kept with the passports"
+    }
+   ],
+   "lines": {
+    "T1:3:0": {
+     "sheet": "T1",
+     "row": 3,
+     "time": "T1, 00:17",
+     "seconds": 17,
+     "text": "Taking a full plot before she could think, half laughing at herself",
+     "quotes": [
+      "\"Excited. And a bit mad, I think. Slightly mad. … And I said no, full. I don't know why I said this. It came out of my mouth before I think.\""
+     ],
+     "notes": [
+      "Full, not half: the yes before thinking. Her mother's laugh down the phone from the village."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:5:0": {
+     "sheet": "T1",
+     "row": 5,
+     "time": "T1, 01:00",
+     "seconds": 60,
+     "text": "Unsure yet what digging means for her, unlike her mother",
+     "quotes": [
+      "\"But after, a little bit, it stayed with me. … For her, to dig is going backwards. … But for me it's not backwards. For me it's, I don't know yet what it is. Something.\""
+     ],
+     "notes": [
+      "Digging as going backwards for a mother who worked so she would not have to. 'Something': no word for it yet."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:7:0": {
+     "sheet": "T1",
+     "row": 7,
+     "time": "T1, 01:43",
+     "seconds": 103,
+     "text": "Wanting the children to know food as she knew it at her buni's",
+     "quotes": [
+      "\"I want my kids to know where food comes from. … Nobody taught me. I just knew, because I was there. I want them to have one summer like this. Even small. Even in England.\""
+     ],
+     "notes": [
+      "Carrots from a bag. Knowing by being there, not by being taught."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:9:0": {
+     "sheet": "T1",
+     "row": 9,
+     "time": "T1, 02:27",
+     "seconds": 147,
+     "text": "A childhood garden alive in a smell, and gone wild now",
+     "quotes": [
+      "\"And the smell of the tomato leaves on your fingers, you know this smell? Green, a bit bitter. When I smell it now I am nine years old. … but the garden is gone wild because she can't do it any more.\""
+     ],
+     "notes": [
+      "Nine years old in a smell. Buni ninety-one, the garden gone wild, three years since she went back."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:11:0": {
+     "sheet": "T1",
+     "row": 11,
+     "time": "T1, 03:12",
+     "seconds": 192,
+     "text": "Nearly crying at the smell of turned earth: there and here at once",
+     "quotes": [
+      "\"the smell came up. Earth smell, wet. And I nearly cried. … Like I was there and here at the same time. In the village and in England.\""
+     ],
+     "notes": [
+      "'Stupid. Is not stupid, I know.' Corrects herself. A biscuit in the mud and she is back in England."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:13:0": {
+     "sheet": "T1",
+     "row": 13,
+     "time": "T1, 03:53",
+     "seconds": 233,
+     "text": "Glad and hurt when her two countries meet",
+     "quotes": [
+      "\"You have two places, and most of the time they are far apart. … And for one second on the plot, with the smell, they were not far. … Good, and also it hurts a little.\""
+     ],
+     "notes": [
+      "Romanian to the children, English back. The same clock on the wall since she was a baby. Good, and it hurts."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:15:0": {
+     "sheet": "T1",
+     "row": 15,
+     "time": "T1, 04:34",
+     "seconds": 274,
+     "text": "Wanting one thing of her own, when all else is for others",
+     "quotes": [
+      "\"I wanted one thing that is mine. Everything is for somebody. … And I thought, I want one thing that is mine, even if it's mostly mud.\"",
+      "\"I picture it. Me in a deckchair, with a book, in the sun … I know this is not how it will be. I know. But this is the picture in my head.\""
+     ],
+     "notes": [
+      "'Even if it's mostly mud.' The deckchair is a picture she does not believe in and keeps anyway."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:15:1": {
+     "sheet": "T1",
+     "row": 15,
+     "time": "T1, 04:34",
+     "seconds": 274,
+     "text": "A deckchair she pictures but does not believe in",
+     "quotes": [
+      "\"I wanted one thing that is mine. Everything is for somebody. … And I thought, I want one thing that is mine, even if it's mostly mud.\"",
+      "\"I picture it. Me in a deckchair, with a book, in the sun … I know this is not how it will be. I know. But this is the picture in my head.\""
+     ],
+     "notes": [
+      "'Even if it's mostly mud.' The deckchair is a picture she does not believe in and keeps anyway."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:17:0": {
+     "sheet": "T1",
+     "row": 17,
+     "time": "T1, 05:18",
+     "seconds": 318,
+     "text": "Hoping for nobody to reassure at the plot",
+     "quotes": [
+      "\"But all day I make other people feel okay. … Nobody says it to me. Is not a complaint. Is just, I thought, on the plot nobody needs me to say anything.\""
+     ],
+     "notes": [
+      "Nearly finished, you're doing great: said all day, never to her. The plot as a place with no one to reassure?"
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:19:0": {
+     "sheet": "T1",
+     "row": 19,
+     "time": "T1, 05:50",
+     "seconds": 350,
+     "text": "A good day with nothing planted",
+     "quotes": [
+      "\"So we planted nothing. Nothing at all. But they were so happy. Muddy to the eyes, both. … So it was a good day, for nothing planted.\""
+     ],
+     "notes": [
+      "Domnul Frog. Nothing planted and a good day all the same."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:21:0": {
+     "sheet": "T1",
+     "row": 21,
+     "time": "T1, 06:30",
+     "seconds": 390,
+     "text": "Ambition on paper: a farm, her buni's tomatoes first",
+     "quotes": [
+      "\"Tomatoes, of course. Like my buni's … I asked my mother to send seeds from the village … I wrote a list. Is a long list. Chris read it and he said, Nell, this is a farm.\""
+     ],
+     "notes": [
+      "Tomatoes like her buni's first on the list. Chris: 'this is a farm'. Taking too much again?"
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:23:0": {
+     "sheet": "T1",
+     "row": 23,
+     "time": "T1, 07:08",
+     "seconds": 428,
+     "text": "Seen through by Chris when she promises time",
+     "quotes": [
+      "\"And I say, I'll find the time. And he makes this face. He has a face for when I say I'll find the time. He has seen this many times, I think. He knows me.\""
+     ],
+     "notes": [
+      "Chris's face for 'I'll find the time'. Known, and a little caught out."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:25:0": {
+     "sheet": "T1",
+     "row": 25,
+     "time": "T1, 07:42",
+     "seconds": 462,
+     "text": "Strict rules against a jungle by June",
+     "quotes": [
+      "\"I will have to be strict with myself. Very strict. I know how it is, if I let it slide in April, I will have a jungle by June. … So I have a plan. Two mornings a week, minimum\""
+     ],
+     "notes": [
+      "The calendar in the kitchen. A plan made against her own habits."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:27:0": {
+     "sheet": "T1",
+     "row": 27,
+     "time": "T1, 08:15",
+     "seconds": 495,
+     "text": "Strictness learned to survive here: good at hard, not slow",
+     "quotes": [
+      "\"Nobody gives you anything here, you have to be strict, or you are nothing. So I am good at strict. I'm good at hard. … What I'm not so good at is slow.\""
+     ],
+     "notes": [
+      "One suitcase, offices at night. 'Strict, or you are nothing.' Hard she can do, slow she cannot."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:31:0": {
+     "sheet": "T1",
+     "row": 31,
+     "time": "T1, 09:15",
+     "seconds": 555,
+     "text": "Longing to sit as her buni sat",
+     "quotes": [
+      "\"She just sits, with her hands in her lap, and looks at the garden. … Now I think she was, I don't know the word, full. … But I would like to sit like her, one time, on my plot.\""
+     ],
+     "notes": [
+      "'Full': her word for her buni at rest. She has never sat like that."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:33:0": {
+     "sheet": "T1",
+     "row": 33,
+     "time": "T1, 09:56",
+     "seconds": 596,
+     "text": "Judged by a look at the pushchair, a young mother with big ideas",
+     "quotes": [
+      "\"he looked at my pushchair like, what is this woman doing here with a baby. … He thinks I'm one more young mother with big ideas. … But I want to show him.\""
+     ],
+     "notes": [
+      "The man with the hat. A look, nothing said, heard as a verdict."
+     ],
+     "pet": "G4",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:35:0": {
+     "sheet": "T1",
+     "row": 35,
+     "time": "T1, 10:37",
+     "seconds": 637,
+     "text": "The plot one more thing to prove here",
+     "quotes": [
+      "\"But all my life here, I have to show people. Show them I speak English properly, show them I'm not here to take something … The plot will be one more thing I show them.\""
+     ],
+     "notes": [
+      "Showing people all her life here. The patient who asked for the English nurse."
+     ],
+     "pet": "G4",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:37:0": {
+     "sheet": "T1",
+     "row": 37,
+     "time": "T1, 11:11",
+     "seconds": 671,
+     "text": "Afraid the plot will show she took too much again",
+     "quotes": [
+      "\"That I took too much. That's always my problem. … So if the plot is a jungle in June, it means I did it again. I took too much. But I want to try.\""
+     ],
+     "notes": [
+      "'I take too much', said by Chris and her mother too. Wants to try anyway."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T1:39:0": {
+     "sheet": "T1",
+     "row": 39,
+     "time": "T1, 11:47",
+     "seconds": 707,
+     "text": "Remembering a good tired after years of grey",
+     "quotes": [
+      "\"But it was a good tired. Not the tired from work, from standing, from the commute, that tired is grey. This was a good tired, warm. … I forgot there is a good tired.\""
+     ],
+     "notes": [
+      "Grey tired and warm tired. Six years of the grey kind."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T1",
+     "cite": "T1"
+    },
+    "T2:3:0": {
+     "sheet": "T2",
+     "row": 3,
+     "time": "T2, 00:12",
+     "seconds": 12,
+     "text": "Coming home from the plot worse than she went",
+     "quotes": [
+      "\"And every time I go to the plot I see only what I have not done. … And I come home feeling worse than before I went. Is crazy. I go there to feel better and I come home worse.\""
+     ],
+     "notes": [
+      "'I am very good at predicting myself.' The calendar looks back at her. Goes to feel better, comes home worse."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:5:0": {
+     "sheet": "T2",
+     "row": 5,
+     "time": "T2, 00:56",
+     "seconds": 56,
+     "text": "Too pressed by the jungle to look at the children",
+     "quotes": [
+      "\"I just pull, pull, pull, the weeds by the path, fast, like I'm racing somebody. … Matei is shouting mama look, mama look, and I say yes, beautiful, without looking.\""
+     ],
+     "notes": [
+      "Racing somebody, but who? 'Yes, beautiful, without looking.'"
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:7:0": {
+     "sheet": "T2",
+     "row": 7,
+     "time": "T2, 01:46",
+     "seconds": 106,
+     "text": "Feeling watched and found wanting by the other plot holders",
+     "quotes": [
+      "\"Like walking into a room where everybody knows you did something wrong. … Maybe they don't look. Maybe they don't care at all. But I feel it on my back, like a hand.\""
+     ],
+     "notes": [
+      "Mine 'like the house of somebody who died'. Unsure anyone looks, sure she feels it."
+     ],
+     "pet": "G4",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:9:0": {
+     "sheet": "T2",
+     "row": 9,
+     "time": "T2, 02:14",
+     "seconds": 134,
+     "text": "Shamed to tears by the committee letter",
+     "quotes": [
+      "\"I read it in the car, outside the nursery, and I cried. … Like somebody walked past my plot with a clipboard and wrote my name down.\""
+     ],
+     "notes": [
+      "A letter with a logo. Daria in the back: is it the radio. Somebody wrote her name down."
+     ],
+     "pet": "G4",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:11:0": {
+     "sheet": "T2",
+     "row": 11,
+     "time": "T2, 02:50",
+     "seconds": 170,
+     "text": "A blameless record here spoiled by a letter about vegetables",
+     "quotes": [
+      "\"I always pay first, I always fill the forms correct, I always do everything they ask. Eleven years in this country and I never get one letter like this. And now for vegetables.\"",
+      "\"But I don't give things back. I'm not a person who gives things back. If I give back every hard thing, I would be in the village still.\""
+     ],
+     "notes": [
+      "Eleven years of forms filled correct. 'Like a schoolgirl': apologising for her children."
+     ],
+     "pet": "G4",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:11:1": {
+     "sheet": "T2",
+     "row": 11,
+     "time": "T2, 02:50",
+     "seconds": 170,
+     "text": "Not one to give hard things back",
+     "quotes": [
+      "\"I always pay first, I always fill the forms correct, I always do everything they ask. Eleven years in this country and I never get one letter like this. And now for vegetables.\"",
+      "\"But I don't give things back. I'm not a person who gives things back. If I give back every hard thing, I would be in the village still.\""
+     ],
+     "notes": [
+      "Eleven years of forms filled correct. 'Like a schoolgirl': apologising for her children."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:13:0": {
+     "sheet": "T2",
+     "row": 13,
+     "time": "T2, 03:31",
+     "seconds": 211,
+     "text": "Hiding from the other plot holders since the letter",
+     "quotes": [
+      "\"I'm hiding, I know this. I'm a grown woman hiding from pensioners with clipboards. But I can't help it.\""
+     ],
+     "notes": [
+      "Half past six, Thursday evenings, the far fence. Pretending to do something important with the onions."
+     ],
+     "pet": "G4",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:15:0": {
+     "sheet": "T2",
+     "row": 15,
+     "time": "T2, 04:08",
+     "seconds": 248,
+     "text": "Sunflowers taller than her son: exactly what she wanted",
+     "quotes": [
+      "\"Every Sunday he stands next to them and I take a photo, and he says mama, measure me … That part is exactly what I wanted. Exactly.\""
+     ],
+     "notes": [
+      "'Mama, measure me.' The one part exactly as pictured."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:19:0": {
+     "sheet": "T2",
+     "row": 19,
+     "time": "T2, 05:29",
+     "seconds": 329,
+     "text": "Lonely in seeing the mess so the children need not",
+     "quotes": [
+      "\"But lonely because I am the only one who sees it. … This is being a mother, I think, a lot of the time. Seeing the mess so they don't have to.\""
+     ],
+     "notes": [
+      "A mother at a party seeing the mess. Lonely in what she alone sees."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:21:0": {
+     "sheet": "T2",
+     "row": 21,
+     "time": "T2, 06:06",
+     "seconds": 366,
+     "text": "Even her free hour spent on guilt",
+     "quotes": [
+      "\"The deckchair is still in the shed. Folded. … Even the guilt is not mine. Even the guilt is for the plot. I wanted one thing that is mine and now I have one more thing that I'm failing at.\""
+     ],
+     "notes": [
+      "Striped, bought in April, never opened. Even her guilt belongs to the plot."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:23:0": {
+     "sheet": "T2",
+     "row": 23,
+     "time": "T2, 06:39",
+     "seconds": 399,
+     "text": "Kept on only for her son, herself the help",
+     "quotes": [
+      "\"And I cannot say to him we're not going any more. I cannot do this. So I suppose it's his now, really. The plot is his and I am the help.\""
+     ],
+     "notes": [
+      "Sunday night: give it up. Monday morning: his question. She cannot say no to him."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:27:0": {
+     "sheet": "T2",
+     "row": 27,
+     "time": "T2, 07:55",
+     "seconds": 475,
+     "text": "Outdone in three weeks by her mother",
+     "quotes": [
+      "\"And in three weeks she cleared half of it. Half. … In three weeks she did what I didn't do in three months. And she didn't laugh at me this time.\""
+     ],
+     "notes": [
+      "No laugh this time from her mother. 'She just worked.'"
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:29:0": {
+     "sheet": "T2",
+     "row": 29,
+     "time": "T2, 08:31",
+     "seconds": 511,
+     "text": "A minute in her buni's garden, then a guest on her own plot",
+     "quotes": [
+      "\"it looked like my buni's garden. … And for one minute I was so happy. Like I opened a door and the village was there. And then the next minute I felt like a visitor. … I was standing on my own plot like a guest.\""
+     ],
+     "notes": [
+      "A door opening on the village, then a guest. The girl with the bucket again."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:31:0": {
+     "sheet": "T2",
+     "row": 31,
+     "time": "T2, 09:03",
+     "seconds": 543,
+     "text": "Praised for her mother's work: grateful and small",
+     "quotes": [
+      "\"The secretary walked past and he said, well done, Nell, what a difference. To me! … Small. Grateful and small at the same time.\""
+     ],
+     "notes": [
+      "Praised for her mother's work. No word for it in either language: grateful and small."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:33:0": {
+     "sheet": "T2",
+     "row": 33,
+     "time": "T2, 09:41",
+     "seconds": 581,
+     "text": "Struck that her mother remade here the garden she chose to leave",
+     "quotes": [
+      "\"And she left it. She chose to leave it. And now she comes to England and makes it again on my plot, in three weeks, like she never left.\""
+     ],
+     "notes": [
+      "Buni talked to the peppers. Her mother chose to leave the garden, and made it again here."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:35:0": {
+     "sheet": "T2",
+     "row": 35,
+     "time": "T2, 10:24",
+     "seconds": 624,
+     "text": "Grateful for a kitchen smelling of home",
+     "quotes": [
+      "\"But the dill, I cook with her dill now, I put it in the soup, and the whole kitchen smells like home. Like my buni's kitchen. So I am grateful. I am. Even when I'm small, I'm grateful.\""
+     ],
+     "notes": [
+      "Two halves, two women, 'hers is good'. The dill in the soup smells like buni's kitchen."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:37:0": {
+     "sheet": "T2",
+     "row": 37,
+     "time": "T2, 10:54",
+     "seconds": 654,
+     "text": "The good tired gone: the plot one more grey thing",
+     "quotes": [
+      "\"My body says no and I go anyway. … Now there is no good tired. Is just tired. The grey one. The plot became one more grey thing.\""
+     ],
+     "notes": [
+      "'In March I told you there is a good tired.' Holds herself to what she said."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:39:0": {
+     "sheet": "T2",
+     "row": 39,
+     "time": "T2, 11:22",
+     "seconds": 682,
+     "text": "Behind with everything, and most visibly at the plot",
+     "quotes": [
+      "\"Behind is my whole body. I wake up already behind. … And instead it's the place where I'm most behind of all, where you can see how behind I am, with your eyes, in weeds.\""
+     ],
+     "notes": [
+      "Behind with phoning her buni too. The plot shows it 'with your eyes, in weeds'."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T2:41:0": {
+     "sheet": "T2",
+     "row": 41,
+     "time": "T2, 11:56",
+     "seconds": 716,
+     "text": "Woken from a dream of the plot, not sure she likes it",
+     "quotes": [
+      "\"I think in March I was a bit, dreaming. … Now I'm awake. Is not bad, to be awake. … I don't know yet if I like what it is. But at least I see it.\""
+     ],
+     "notes": [
+      "Dreaming in March, awake now. Not sure she likes it, glad to see it."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T2",
+     "cite": "T2"
+    },
+    "T3:3:0": {
+     "sheet": "T3",
+     "row": 3,
+     "time": "T3, 00:10",
+     "seconds": 10,
+     "text": "A harvest she got away with, much of it her mother's",
+     "quotes": [
+      "\"And courgettes, so many courgettes, from my mother's half. … And I think, we got away with it. That's how it feels.\""
+     ],
+     "notes": [
+      "Nine strawberries, counted. 'We got away with it', said twice."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:7:0": {
+     "sheet": "T3",
+     "row": 7,
+     "time": "T3, 01:20",
+     "seconds": 80,
+     "text": "Delighted by the children's pride in their sunflower seeds and strawberries",
+     "quotes": [
+      "\"he picked out every seed, one by one, a whole evening, and he put them in an envelope. And he wrote on it, Matei sunflowers next year.\""
+     ],
+     "notes": [
+      "The s backwards on the envelope, on the fridge. Seven of the nine picked by Daria, four or five eaten."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:9:0": {
+     "sheet": "T3",
+     "row": 9,
+     "time": "T3, 01:55",
+     "seconds": 115,
+     "text": "Giving up half: failure and relief unresolved",
+     "quotes": [
+      "\"I felt like I had failed. When I decided, I felt like I had failed. And then I felt relieved. Both. And I still don't know which one is right.\""
+     ],
+     "notes": [
+      "Failed, then relieved, and 'maybe both are right'. Leaves it open."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:11:0": {
+     "sheet": "T3",
+     "row": 11,
+     "time": "T3, 02:34",
+     "seconds": 154,
+     "text": "Failure as proof she took too much again",
+     "quotes": [
+      "\"Three times I wrote it and deleted it. Because I know what it means. It means the man with the hat was right. It means I took too much, again, like always, and I couldn't hold it.\"",
+      "\"the next morning I woke up and the first thought in my head was not the plot. First time since March. … like when you take off a backpack you forgot you were carrying.\""
+     ],
+     "notes": [
+      "Three drafts deleted. The man with the hat proved right in her head. Then rain as the first thought."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:11:1": {
+     "sheet": "T3",
+     "row": 11,
+     "time": "T3, 02:34",
+     "seconds": 154,
+     "text": "Relief: a morning when her first thought was not the plot",
+     "quotes": [
+      "\"Three times I wrote it and deleted it. Because I know what it means. It means the man with the hat was right. It means I took too much, again, like always, and I couldn't hold it.\"",
+      "\"the next morning I woke up and the first thought in my head was not the plot. First time since March. … like when you take off a backpack you forgot you were carrying.\""
+     ],
+     "notes": [
+      "Three drafts deleted. The man with the hat proved right in her head. Then rain as the first thought."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:13:0": {
+     "sheet": "T3",
+     "row": 13,
+     "time": "T3, 03:15",
+     "seconds": 195,
+     "text": "A mother's laugh understood at last",
+     "quotes": [
+      "\"So she was not laughing at me. She was laughing at the too much. All year I thought she was laughing at me, at the village girl digging in England. … I didn't know it was different.\""
+     ],
+     "notes": [
+      "The March laugh heard again: at the too much, not at her. A year's reading of her mother undone."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:15:0": {
+     "sheet": "T3",
+     "row": 15,
+     "time": "T3, 04:01",
+     "seconds": 241,
+     "text": "Giving away the half where she was a guest",
+     "quotes": [
+      "\"I gave away the good half and I kept the half with the jungle and Matei's sunflowers. … Mama's half was never mine. It was beautiful, but it was never mine. I was a guest there.\""
+     ],
+     "notes": [
+      "Chris: keep the good half. She keeps the jungle and the sunflowers. A guest's half is no half."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:17:0": {
+     "sheet": "T3",
+     "row": 17,
+     "time": "T3, 04:35",
+     "seconds": 275,
+     "text": "Wanting her buni's garden all along, not a plot",
+     "quotes": [
+      "\"I wanted to be at my buni's again. Not to have a garden. To be in her garden. … And you cannot dig that. You can dig all day in England and you will not find it.\"",
+      "\"And I said, buni, I didn't plant tomatoes. And she laughed more. She was happy that I'm trying. That was enough. That was more than enough.\""
+     ],
+     "notes": [
+      "'Is not in the soil.' Buni, ninety-two, asks after tomatoes never planted, and laughs."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:17:1": {
+     "sheet": "T3",
+     "row": 17,
+     "time": "T3, 04:35",
+     "seconds": 275,
+     "text": "Enough that her buni was happy she tried",
+     "quotes": [
+      "\"I wanted to be at my buni's again. Not to have a garden. To be in her garden. … And you cannot dig that. You can dig all day in England and you will not find it.\"",
+      "\"And I said, buni, I didn't plant tomatoes. And she laughed more. She was happy that I'm trying. That was enough. That was more than enough.\""
+     ],
+     "notes": [
+      "'Is not in the soil.' Buni, ninety-two, asks after tomatoes never planted, and laughs."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:19:0": {
+     "sheet": "T3",
+     "row": 19,
+     "time": "T3, 05:32",
+     "seconds": 332,
+     "text": "The village tomatoes never started, perhaps for her son",
+     "quotes": [
+      "\"They're still in the envelope, in the kitchen drawer. Buni's tomatoes, from the village, in a drawer in England. … I think maybe they are his to plant, not mine.\""
+     ],
+     "notes": [
+      "Seeds wrapped in newspaper, never the right day. 'His to plant, not mine.'"
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:21:0": {
+     "sheet": "T3",
+     "row": 21,
+     "time": "T3, 06:10",
+     "seconds": 370,
+     "text": "No more pretending it is her hobby",
+     "quotes": [
+      "\"I have stopped pretending it's my hobby. … It's their place, and I'm glad they have one. Really glad.\""
+     ],
+     "notes": [
+      "'Every child should have a place like this.' The hobby dropped as a pretence."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:23:0": {
+     "sheet": "T3",
+     "row": 23,
+     "time": "T3, 06:49",
+     "seconds": 409,
+     "text": "Attacking the plot and calling it pottering",
+     "quotes": [
+      "\"But I don't potter. I attack. I go to the plot like I go to a war. … Is the biggest lie of my year, the pottering.\""
+     ],
+     "notes": [
+      "Potter: a word learned this year for a way she cannot be."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:25:0": {
+     "sheet": "T3",
+     "row": 25,
+     "time": "T3, 07:19",
+     "seconds": 439,
+     "text": "The good tired back for a day",
+     "quotes": [
+      "\"I said no, I'm just not behind any more. And the good tired came back, one time … It came back for one day.\""
+     ],
+     "notes": [
+      "A week of sleeping like the children. The good tired back, once."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:29:0": {
+     "sheet": "T3",
+     "row": 29,
+     "time": "T3, 08:28",
+     "seconds": 508,
+     "text": "A little grief at leeks where the dill was",
+     "quotes": [
+      "\"Somebody else's curtains, where your life was. Like this. Malcolm's leeks where my mother's dill was, where my buni's garden was for three weeks. Is fine. It's only a little moment.\""
+     ],
+     "notes": [
+      "Another's curtains in the window of an old flat."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:31:0": {
+     "sheet": "T3",
+     "row": 31,
+     "time": "T3, 09:02",
+     "seconds": 542,
+     "text": "Leaving felt again, even here",
+     "quotes": [
+      "\"That's what it is to leave, I think. Everything you left keeps going without you. Is normal. But the plot, I didn't expect it there, in England.\""
+     ],
+     "notes": [
+      "Her school a supermarket now. Leaving keeps happening, even here."
+     ],
+     "pet": "G1",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:33:0": {
+     "sheet": "T3",
+     "row": 33,
+     "time": "T3, 09:37",
+     "seconds": 577,
+     "text": "Surprised by the kindness of those she felt watched by",
+     "quotes": [
+      "\"They are kind. Really kind. … He came in October and he gave Daria a strawberry plant in a pot. … So maybe they never thought I'm crazy. Maybe only I thought this.\""
+     ],
+     "notes": [
+      "'For the little gardener.' The man with the hat knows Daria's name."
+     ],
+     "pet": "G4",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:35:0": {
+     "sheet": "T3",
+     "row": 35,
+     "time": "T3, 10:23",
+     "seconds": 623,
+     "text": "The committee letter kept with her passports, unable to laugh",
+     "quotes": [
+      "\"The important papers drawer. Birth certificates, passports, my qualification, the letter that says you can stay. And this one. … A paper that says something about me. … Chris laughed when he saw it there. I didn't laugh.\""
+     ],
+     "notes": [
+      "Kept with the letter that says she can stay. Why there? 'Important, in a bad way.'"
+     ],
+     "pet": "G4",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:37:0": {
+     "sheet": "T3",
+     "row": 37,
+     "time": "T3, 10:57",
+     "seconds": 657,
+     "text": "Ten minutes in the deckchair, then unable to stay",
+     "quotes": [
+      "\"And I opened the deckchair. First time. … And I sat for ten minutes. Then I got up and I started weeding. I couldn't stay. I don't know how to sit.\""
+     ],
+     "notes": [
+      "Mouldy from the shed, the March picture exactly, ten minutes long."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:39:0": {
+     "sheet": "T3",
+     "row": 39,
+     "time": "T3, 11:36",
+     "seconds": 696,
+     "text": "Ten minutes owing nothing, like the spent sunflowers",
+     "quotes": [
+      "\"Ten minutes in a chair with nobody needing me, nobody behind me, no phone. … They're finished. They can stand there with their heads down and nobody shouts at them. … But for ten minutes I was like the sunflowers.\""
+     ],
+     "notes": [
+      "Dead sunflowers with their heads down, finished, not shouted at."
+     ],
+     "pet": "G2",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    },
+    "T3:41:0": {
+     "sheet": "T3",
+     "row": 41,
+     "time": "T3, 12:11",
+     "seconds": 731,
+     "text": "A little less strict with herself, learning slow",
+     "quotes": [
+      "\"Only that I think I'm less strict. With me, I mean. A little bit. … the garden doesn't care if you're strict, Nell. … I think I am learning a little bit of slow.\""
+     ],
+     "notes": [
+      "Her buni: the garden does not read your calendar."
+     ],
+     "pet": "G3",
+     "discarded": false,
+     "at": "T3",
+     "cite": "T3"
+    }
+   }
+  }
+ },
+ "boards": [
+  {
+   "id": "b1",
+   "name": "Board 1",
+   "note": "",
+   "created": "2026-11-10T11:00:00+00:00",
+   "updated": "2026-11-10T11:00:00+00:00",
+   "cards": {
+    "Arlo/G1": {
+     "x": 254,
+     "y": -248
+    },
+    "Arlo/G2": {
+     "x": -434,
+     "y": -248
+    },
+    "Arlo/G3": {
+     "x": 522,
+     "y": -230
+    },
+    "Hollis/G1": {
+     "x": -434,
+     "y": -412
+    },
+    "Hollis/G2": {
+     "x": 44,
+     "y": -412
+    },
+    "Hollis/G3": {
+     "x": 522,
+     "y": -394
+    },
+    "Nell/G1": {
+     "x": 44,
+     "y": -248
+    },
+    "Nell/G2": {
+     "x": 254,
+     "y": -412
+    },
+    "Nell/G3": {
+     "x": 732,
+     "y": -394
+    },
+    "Nell/G4": {
+     "x": -224,
+     "y": -412
+    }
+   },
+   "groups": [
+    {
+     "id": "G1",
+     "label": "From watched at the gate to taken in without fuss",
+     "description": "Hollis carried by the old hands who watched him, Nell given kindness she never expected though she keeps the letter, and Arlo fetched back by a note after months behind headphones",
+     "members": [
+      "Hollis/G1",
+      "Nell/G4",
+      "Arlo/G2"
+     ],
+     "x": -434,
+     "y": -548
+    },
+    {
+     "id": "G2",
+     "label": "“One thing that is mine”: wanted from the plot, found in part",
+     "description": "For Hollis a place and news of his own, the winter flat still waiting, for Nell ten minutes in a deckchair and her buni's garden out of reach, and for Arlo a quiet that comes and goes but has a place",
+     "members": [
+      "Hollis/G2",
+      "Nell/G2",
+      "Nell/G1",
+      "Arlo/G1"
+     ],
+     "x": 44,
+     "y": -548
+    },
+    {
+     "id": "G3",
+     "label": "From a test they must not fail to letting it be enough",
+     "description": "Hollis ashamed of his limits until help felt like belonging, Nell strict and behind until half given away left her failed and relieved, and Arlo afraid of breaking until he let the plot go, came back, and found he needs it",
+     "members": [
+      "Hollis/G3",
+      "Nell/G3",
+      "Arlo/G3"
+     ],
+     "x": 522,
+     "y": -548
+    }
+   ],
+   "discarded": [],
+   "picks": {},
+   "rows": {
+    "G1": {
+     "Hollis": {
+      "quote": "T3:9:0",
+      "note": ""
+     },
+     "Nell": {
+      "quote": "T3:33:0",
+      "note": ""
+     },
+     "Arlo": {
+      "quote": "T3:13:0",
+      "note": ""
+     }
+    },
+    "G2": {
+     "Hollis": {
+      "quote": "T3:27:0",
+      "note": ""
+     },
+     "Nell": {
+      "quote": "T1:15:0",
+      "note": ""
+     },
+     "Arlo": {
+      "quote": "T3:29:0",
+      "note": ""
+     }
+    },
+    "G3": {
+     "Hollis": {
+      "quote": "T3:39:0",
+      "note": ""
+     },
+     "Nell": {
+      "quote": "T3:9:0",
+      "note": ""
+     },
+     "Arlo": {
+      "quote": "T3:33:0",
+      "note": ""
+     }
+    }
+   }
+  }
+ ]
+}

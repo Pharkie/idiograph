@@ -1,0 +1,3560 @@
+{
+ "about": "The longitudinal demo's analysis (lipawrite, 12 November 2026, approved by Adam that day), which make_demo_lipa.py builds the demo from: per participant and timepoint the interview's file and every participant turn in order, matched by `at`, its opening words, with `es` its statements, `kq` their key quotes, quote i statement i's, and `en` its exploratory note, then that timepoint's PETs board. Per participant the LPETs board, each LPET's cards (a PET or sub-PET at a timepoint) and its row at each timepoint, `state`, the key quote and the words in bold. Then the LGETs, each LPET a member and a quote a participant, and the Trajectories board. Every participant and every word is invented.",
+ "cases": {
+  "Hollis": {
+   "timepoints": {
+    "T1": {
+     "file": "Hollis - T1.csv",
+     "turns": [
+      {
+       "at": "Nervous, if I'm honest. Which",
+       "time": "00:00:19",
+       "es": [
+        "Nervous at the gate: a new lad again at sixty-eight"
+       ],
+       "kq": [
+        "And they all stopped talking. … I felt like the new lad on his first day at the depot."
+       ],
+       "en": "Stopped talking: silence as the first greeting. Back to sixteen in a moment. 'Last the week' is the test he expects to sit."
+      },
+      {
+       "at": "Oh, they had you. First",
+       "time": "00:01:19",
+       "es": [
+        "Belonging earned by work, never by talk"
+       ],
+       "kq": [
+        "Nobody talked to you, not properly, till you'd shown you could do a job. … You let the work do the talking."
+       ],
+       "en": "Belonging earned, never given, and never said: 'You just know.' The depot's rule brought to the plot whole?"
+      },
+      {
+       "at": "Retiring, mainly. I finished at",
+       "time": "00:02:27",
+       "es": [
+        "Wanting somewhere outdoors after days without sky"
+       ],
+       "kq": [
+        "I'd gone three days without seeing the sky properly. … So I wanted somewhere to be that wasn't indoors. Somewhere with a job waiting for me."
+       ],
+       "en": "Three days without the sky, counted. Indoors is the loss he names first, before Pat."
+      },
+      {
+       "at": "Aye. Pat's got her own",
+       "time": "00:03:31",
+       "es": [
+        "Surplus at home since retiring, everything working without him"
+       ],
+       "kq": [
+        "I'm in the way of the hoover. … Everything works without it. That's what retiring's been. I'm the part left over."
+       ],
+       "en": "Following his wife round the flat. The engine is his trade's image. Not unwanted, surplus: 'everything works without it'."
+      },
+      {
+       "at": "Not good. I'll be honest.",
+       "time": "00:04:35",
+       "es": [
+        "The plot taken on to be needed again"
+       ],
+       "kq": [
+        "You wake up and there's nothing that needs you. Nobody's going to ring if you don't turn up. … That's a job. That'll need me."
+       ],
+       "en": "Rung at two in the morning was being needed. Knows the buses by their sound from the ninth floor."
+      },
+      {
+       "at": "Brambles, mostly. Brambles and that",
+       "time": "00:05:47",
+       "es": [
+        "At a loss before two years of brambles"
+       ],
+       "kq": [
+        "I stood there with a brand new fork on Saturday and I didn't know where to start. I just stood. I'm not used to that, not knowing where to start."
+       ]
+      },
+      {
+       "at": "Well, the chap from the",
+       "time": "00:06:55",
+       "es": [
+        "Pride at stake: showing the old hands he will last"
+       ],
+       "kq": [
+        "I'm not going to be one that gives up by June. So I want them to see it, the old boys, every time they come through the gate. … You don't tell them. You let them see."
+       ],
+       "en": "'Like it was the weather.' Half gone by June heard as a dare. Show, never tell."
+      },
+      {
+       "at": "They're all right, I expect.",
+       "time": "00:07:39",
+       "es": [
+        "Not yet entitled to ask the old hands"
+       ],
+       "kq": [
+        "I'd like to know what they know. But you don't ask. Not yet. You've not earned asking."
+       ],
+       "en": "Pat's 'only men with sheds' against his 'not how I was brought up'. Is it the old hands or the depot keeping him from asking?"
+      },
+      {
+       "at": "Hard. Harder than I thought.",
+       "time": "00:08:38",
+       "es": [
+        "Frightened by a body that felt ninety after two hours digging"
+       ],
+       "kq": [
+        "I felt about ninety. … I thought, what if I can't do it. What if that's me now."
+       ],
+       "en": "Pat helping him out of the chair. 'A man who can't dig a bit of garden': smaller in his own eyes."
+      },
+      {
+       "at": "Frightening, a bit. You don't",
+       "time": "00:09:30",
+       "es": [
+        "Digging to find out what his body has left"
+       ],
+       "kq": [
+        "Now it's started sending in its own bills. … I suppose that's what it is. I'm finding out what I've got left."
+       ],
+       "en": "The body that once did as it was told now 'sending in its own bills'. Pacing taken from the trade."
+      },
+      {
+       "at": "I don't know. That's the",
+       "time": "00:10:26",
+       "es": [
+        "A year in a chair took something from him"
+       ],
+       "kq": [
+        "I've had a year in a chair, and I think it's taken something off me that I didn't know it was taking."
+       ],
+       "en": "His dad dug past eighty. The doctor's waiting room as a place to be ashamed in."
+      },
+      {
+       "at": "Quiet. In a good way.",
+       "time": "00:11:28",
+       "es": [
+        "Nothing asked of him at the plot"
+       ],
+       "kq": [
+        "Nobody needs anything from me down there. At home I'm always about to be asked to move. … I've not done that in years, just sat. I didn't know I could."
+       ],
+       "en": "The robin. Sitting is new to him: 'I didn't know I could.'"
+      },
+      {
+       "at": "Aye, well. Both, I suppose.",
+       "time": "00:12:29",
+       "es": [
+        "Torn between a job and nobody wanting him"
+       ],
+       "kq": [
+        "I want the job, and I want nobody wanting me. That doesn't make much sense, does it. … It doesn't mind if I sit on a bucket."
+       ],
+       "en": "Needed and not wanted, both. Notices the contradiction himself. No foreman, no phone, no Pat with the hoover."
+      },
+      {
+       "at": "She's pleased. She bought me",
+       "time": "00:13:08",
+       "es": [
+        "A little hurt that Pat is glad to see him go"
+       ],
+       "kq": [
+        "I think she's relieved, if I'm honest, and I don't blame her. … I'd not have minded her being a bit sorry, mind. Just a bit."
+       ],
+       "en": "'She meant it nice', said twice. Allows himself a small hurt, then takes it back."
+      },
+      {
+       "at": "No. Forty-odd years married, you'd",
+       "time": "00:13:51",
+       "es": [
+        "Unwarned that retiring means making a life from nothing"
+       ],
+       "kq": [
+        "At sixty-eight I've got to make myself a life, and I've never had to before, because the depot was my life and it came ready made. … Nobody tells you that, when you retire."
+       ],
+       "en": "Retiring as starting again 'like a lad'. The new lad at the gate again?"
+      },
+      {
+       "at": "I'm not one for hoping.",
+       "time": "00:14:41",
+       "es": [
+        "A modest hope: the old hands talking on as he comes in"
+       ],
+       "kq": [
+        "I'd like to walk through that gate one morning and have them carry on talking. Not stop. Just carry on, like I've always been there. That's all. I'd settle for that."
+       ],
+       "en": "His dad's potatoes. 'I'd settle for that': the hope kept small, the wish not small at all."
+      },
+      {
+       "at": "No, I think you've had",
+       "time": "00:15:31",
+       "es": [
+        "Proud of a cleared square like a rebuilt bus"
+       ],
+       "kq": [
+        "Just looked at my square. You'd laugh. Three yards by three, and I stood there looking at it like it was a bus I'd rebuilt."
+       ]
+      }
+     ],
+     "board": {
+      "name": "Board 1",
+      "pets": [
+       {
+        "title": "A new lad again at sixty-eight, with everything to prove",
+        "description": "To the old hands at the gate, by work they can see, and to a body that felt ninety after two hours",
+        "picks": [
+         "And they all stopped talking. … I felt like the new lad on his first day at the depot."
+        ],
+        "statements": [],
+        "subs": [
+         {
+          "title": "Watched at the gate, and showing the old hands by work",
+          "description": "Silence at the gate, a place earned and never asked for, and a modest hope to be one of them",
+          "statements": [
+           "Nervous at the gate: a new lad again at sixty-eight",
+           "Pride at stake: showing the old hands he will last",
+           "Belonging earned by work, never by talk",
+           "Not yet entitled to ask the old hands",
+           "A modest hope: the old hands talking on as he comes in"
+          ]
+         },
+         {
+          "title": "Frightened to find out what his body has left",
+          "description": "Felt ninety after two hours, and a year in a chair that took something from him",
+          "statements": [
+           "Frightened by a body that felt ninety after two hours digging",
+           "Digging to find out what his body has left",
+           "A year in a chair took something from him"
+          ]
+         }
+        ]
+       },
+       {
+        "title": "Surplus since retiring: torn between being needed and left be",
+        "description": "Shut in, in Pat's way and needed by nothing, and glad of a plot that asks nothing of him",
+        "picks": [
+         "I'm in the way of the hoover. … Everything works without it. That's what retiring's been. I'm the part left over."
+        ],
+        "statements": [],
+        "subs": [
+         {
+          "title": "“The part left over”, wanting a job that needs him",
+          "description": "Days indoors, nothing that needs him, Pat relieved, and a life to make from nothing",
+          "statements": [
+           "Surplus at home since retiring, everything working without him",
+           "The plot taken on to be needed again",
+           "Wanting somewhere outdoors after days without sky",
+           "Unwarned that retiring means making a life from nothing",
+           "A little hurt that Pat is glad to see him go"
+          ]
+         },
+         {
+          "title": "Glad of a plot that waits and does not mind",
+          "description": "A quiet on the bucket, and wanting the job and nobody wanting him",
+          "statements": [
+           "Nothing asked of him at the plot",
+           "Torn between a job and nobody wanting him"
+          ]
+         }
+        ]
+       },
+       {
+        "title": "From at a loss before the brambles to proud of a cleared square",
+        "description": "Not knowing where to start, then a square three yards by three looked at like a rebuilt bus",
+        "picks": [
+         "Just looked at my square. You'd laugh. Three yards by three, and I stood there looking at it like it was a bus I'd rebuilt."
+        ],
+        "statements": [
+         "Proud of a cleared square like a rebuilt bus",
+         "At a loss before two years of brambles"
+        ],
+        "subs": []
+       }
+      ],
+      "unplaced": []
+     }
+    },
+    "T2": {
+     "file": "Hollis - T2.csv",
+     "turns": [
+      {
+       "at": "Oh, it's a different place.",
+       "time": "00:00:12",
+       "es": [
+        "The plot now the centre of his days, the empty morning gone"
+       ],
+       "kq": [
+        "The flat's where I sleep now, and the plot's where I live. That's how it feels. I wake up and the first thing I think is, I wonder if the onions are all right. Not, what am I going to do with myself."
+       ],
+       "en": "A door and a chair in the shed: settling a place. The morning's first thought is the onions, not the empty day."
+      },
+      {
+       "at": "Mostly as a joke. Mostly.",
+       "time": "00:01:15",
+       "es": [
+        "Trying to make it up to Pat for never being there now"
+       ],
+       "kq": [
+        "she said, I didn't marry you for your runner beans. … So I've been trying. I bring her things back. Sweet peas."
+       ],
+       "en": "'You can't win with you' taken on the chin. Sweet peas where she can see them from her chair: an apology without words."
+      },
+      {
+       "at": "Not very nice, if I'm",
+       "time": "00:02:21",
+       "es": [
+        "Struck to learn Pat missed him"
+       ],
+       "kq": [
+        "I never thought she might miss me. … She said, I got used to you, and now you've gone again. Like the depot all over. And that went in, that did."
+       ],
+       "en": "He had never thought she might miss him. 'Like the depot all over': he has gone out to work again."
+      },
+      {
+       "at": "Better. Much better. One of",
+       "time": "00:03:26",
+       "es": [
+        "From insult to hello: an old hand correcting him"
+       ],
+       "kq": [
+        "I took it as an insult for a whole day. … it was the first thing he'd said to me that wasn't good morning. … That's how they say hello down there."
+       ]
+      },
+      {
+       "at": "I was mad as a",
+       "time": "00:04:21",
+       "es": [],
+       "kq": [],
+       "en": "Pat reads it before he does: 'they've noticed you'. Thins the onions where Frank can see. Showing again, as in March."
+      },
+      {
+       "at": "I could. I was that",
+       "time": "00:05:17",
+       "es": [
+        "Two words from an old hand worth more than a long service plaque"
+       ],
+       "kq": [
+        "Two months of good morning, and then that's better. … that's better from Frank did more for me than the plaque. The plaque's in the cupboard with the Christmas lights."
+       ],
+       "en": "The plaque in with the Christmas lights. Two words from Frank weigh more than forty-one years' award?"
+      },
+      {
+       "at": "Up and down. The potatoes",
+       "time": "00:05:59",
+       "es": [
+        "Failed beans hidden in shame"
+       ],
+       "kq": [
+        "And I was embarrassed. Properly embarrassed. I put a bit of netting over them so nobody would see."
+       ],
+       "en": "Netting like a sheet over a body. Hiding a failure, the depot's habit."
+      },
+      {
+       "at": "Daft, isn't it. Netting over",
+       "time": "00:06:55",
+       "es": [
+        "Shame gone once the failure was shared: the year, not him"
+       ],
+       "kq": [
+        "But you can't fix a bean. … And when Maureen laughed, it went out of me, the embarrassment. … It wasn't me. It was the year."
+       ],
+       "en": "'It wasn't me. It was the year.' The shame let out 'like the air out of a tyre'."
+      },
+      {
+       "at": "Maureen. Oh, you'll have heard",
+       "time": "00:07:46",
+       "es": [
+        "Taught everything by Maureen without asking, thrown at first"
+       ],
+       "kq": [
+        "I didn't know what to do with it, to be honest. … Everything I know, near enough, Maureen told me. I never asked her one thing. She just told me."
+       ],
+       "en": "Maureen breaks his rule about asking without him having to. Is that why he can take it from her?"
+      },
+      {
+       "at": "Oh, that's been the best",
+       "time": "00:08:50",
+       "es": [
+        "Joy at the first potatoes, carried home to Pat"
+       ],
+       "kq": [
+        "I stood there with them in my hand like I'd found money in the street. My own potatoes. … I took them home in my cap. … She said they were very nice. Very nice. I'll take very nice."
+       ],
+       "en": "Brambles in March, potatoes in July. Pat's 'very nice' enough for him."
+      },
+      {
+       "at": "Better. A lot better. I've",
+       "time": "00:09:52",
+       "es": [
+        "Unafraid of a body whose limits he knows"
+       ],
+       "kq": [
+        "In March I was frightened of it, the body, I told you that. I'm not frightened of it now. I know what it'll do. I know where it stops."
+       ]
+      },
+      {
+       "at": "I've learned to stop before",
+       "time": "00:10:33",
+       "es": [
+        "Resting now as servicing an engine"
+       ],
+       "kq": [
+        "In March I was ashamed of that. Sitting down. I felt like I was skiving … Now I think of it as part of the job. … Well I'm the engine."
+       ],
+       "en": "Rest as servicing, not skiving: a new rule from the old trade."
+      },
+      {
+       "at": "It's got a shape. That's",
+       "time": "00:11:21",
+       "es": [
+        "Days with a shape again, after a year of lumps"
+       ],
+       "kq": [
+        "It's got a shape. That's the thing. … Last year a day was just a lump. … Now I look at the clock and think, is it three already."
+       ],
+       "en": "A day in two halves with dinner between, 'like a shift'. Time back in his hands."
+      },
+      {
+       "at": "Still quiet, but a different",
+       "time": "00:12:21",
+       "es": [
+        "Known by the place now, no longer a visitor"
+       ],
+       "kq": [
+        "It's like the place knows I'm there. That sounds soft. But it's like that. I'm not a visitor there now."
+       ],
+       "en": "The robin has a mate now. 'That sounds soft' said before he lets himself say it."
+      },
+      {
+       "at": "Well, in March I'd walk",
+       "time": "00:13:01",
+       "es": [],
+       "kq": [],
+       "en": "Hearing it second-hand stings. Ownership measured by missing."
+      },
+      {
+       "at": "It's a good feeling, mostly.",
+       "time": "00:13:47",
+       "es": [
+        "Minding what he misses: part of something again"
+       ],
+       "kq": [
+        "Retiring, you don't miss anything. There's nothing to miss. … I was put out I'd missed a fox. That's how I knew."
+       ]
+      },
+      {
+       "at": "The flat's all right in",
+       "time": "00:14:37",
+       "es": [],
+       "kq": [],
+       "en": "November not thought about. Summer keeps it off."
+      },
+      {
+       "at": "Same feeling as March. Before",
+       "time": "00:15:15",
+       "es": [
+        "Winter dread felt in the chest and pushed down"
+       ],
+       "kq": [
+        "Same feeling as March. Before March. The part left over. It comes up in my chest a bit, and I push it back down. I tell myself it's July."
+       ]
+      },
+      {
+       "at": "The gate. You asked me",
+       "time": "00:15:52",
+       "es": [
+        "Greeted at the gate: near enough what he hoped for"
+       ],
+       "kq": [
+        "When I come in now, Frank looks up and says, here he is. … But it's near enough. It's near enough for me. I'll take here he is."
+       ],
+       "en": "Measures it against March himself. 'Near enough' is his whole stance."
+      }
+     ],
+     "board": {
+      "name": "Board 1",
+      "pets": [
+       {
+        "title": "“Here he is”: near enough one of them by midsummer",
+        "description": "Corrected by Frank and so noticed, taught by Maureen without asking, and greeted at the gate",
+        "picks": [
+         "When I come in now, Frank looks up and says, here he is. … But it's near enough. It's near enough for me. I'll take here he is."
+        ],
+        "statements": [
+         "Greeted at the gate: near enough what he hoped for",
+         "From insult to hello: an old hand correcting him",
+         "Two words from an old hand worth more than a long service plaque",
+         "Taught everything by Maureen without asking, thrown at first"
+        ],
+        "subs": []
+       },
+       {
+        "title": "Living at the plot for now, with Pat left missing him",
+        "description": "A day with a shape at a place that knows him, winter kept from mind, and Pat missing him at home",
+        "picks": [
+         "The flat's where I sleep now, and the plot's where I live. That's how it feels. I wake up and the first thing I think is, I wonder if the onions are all right. Not, what am I going to do with myself."
+        ],
+        "statements": [],
+        "subs": [
+         {
+          "title": "A day with a shape at a place that knows him, till November",
+          "description": "Waking to the plot, known by the place, minding what he misses, and November pushed away",
+          "statements": [
+           "The plot now the centre of his days, the empty morning gone",
+           "Days with a shape again, after a year of lumps",
+           "Known by the place now, no longer a visitor",
+           "Minding what he misses: part of something again",
+           "Winter dread felt in the chest and pushed down"
+          ]
+         },
+         {
+          "title": "Pat missing him, and the plot brought home to her",
+          "description": "Missed after all, sweet peas to make it up, and the first potatoes in his cap",
+          "statements": [
+           "Struck to learn Pat missed him",
+           "Trying to make it up to Pat for never being there now",
+           "Joy at the first potatoes, carried home to Pat"
+          ]
+         }
+        ]
+       },
+       {
+        "title": "No longer ashamed, of dead beans or of sitting down",
+        "description": "A failure laughed off with Maureen, and a body serviced like an engine, its limits known",
+        "picks": [
+         "But you can't fix a bean. … And when Maureen laughed, it went out of me, the embarrassment. … It wasn't me. It was the year."
+        ],
+        "statements": [
+         "Shame gone once the failure was shared: the year, not him",
+         "Failed beans hidden in shame",
+         "Resting now as servicing an engine",
+         "Unafraid of a body whose limits he knows"
+        ],
+        "subs": []
+       }
+      ],
+      "unplaced": []
+     }
+    },
+    "T3": {
+     "file": "Hollis - T3.csv",
+     "turns": [
+      {
+       "at": "A year I didn't expect.",
+       "time": "00:00:13",
+       "es": [
+        "Helpless as a beetle when his back went"
+       ],
+       "kq": [
+        "something went at the bottom of my back, like a cable snapping. Down I went. … I couldn't get up. … there's me on the floor like a beetle."
+       ],
+       "en": "Starts with 'the bad bit, because it's the bit that matters'. Like a beetle: laughs at himself even on the floor."
+      },
+      {
+       "at": "The worst since I retired.",
+       "time": "00:01:17",
+       "es": [
+        "Laid up: worse for knowing what he was missing",
+        "Sure the old hands would say he had not lasted"
+       ],
+       "kq": [
+        "it was the part left over again, only worse, because now I knew what I was missing.",
+        "They'll be saying it at the gate. Told you. Another one who didn't last. Sixty-eight, and his back went, and that was him."
+       ],
+       "en": "Worse than last winter because now he knows what he is missing. The gate's verdict heard in advance."
+      },
+      {
+       "at": "Then I went back. Two",
+       "time": "00:02:07",
+       "es": [
+        "Overcome to find his potatoes lifted and labelled by others"
+       ],
+       "kq": [
+        "Somebody had dug my plot. … Nobody'd said a word. I stood in my shed and I'll be honest with you, I had to sit down, and it wasn't my back."
+       ],
+       "en": "Paper sacks, labels in marker pen. 'It wasn't my back': moved, and says it only sideways."
+      },
+      {
+       "at": "No. I sat on Pat's",
+       "time": "00:03:02",
+       "es": [
+        "Help heard now as belonging"
+       ],
+       "kq": [
+        "a year ago, if somebody had dug my plot, that's what I'd have heard. I'd have been ashamed. … And this time it was the other way round. … You don't dig for somebody who's not one of you."
+       ],
+       "en": "The same act, help, heard the other way round. What changed: the plot, or him?"
+      },
+      {
+       "at": "Never. Not once, that I",
+       "time": "00:03:59",
+       "es": [
+        "A man no longer only what he can do"
+       ],
+       "kq": [
+        "A man's what he can do. So you lie on a settee a fortnight and you can't do anything, and what are you then. … And I didn't look for anything wrong with it. I didn't want to."
+       ],
+       "en": "'What was I for.' Worth as doing, held for forty-one years, let go in a shed."
+      },
+      {
+       "at": "Well, you don't, do you.",
+       "time": "00:04:57",
+       "es": [],
+       "kq": [],
+       "en": "'Your spuds were getting lonely': thanks turned aside, as is their way. A rake for a welcome."
+      },
+      {
+       "at": "That I'm one of the",
+       "time": "00:05:45",
+       "es": [
+        "On the rake: no longer new or watched"
+       ],
+       "kq": [
+        "That I'm one of the furniture now. … You're not new any more. You're not being watched. You're on the rake. … Best night I've had in years."
+       ],
+       "en": "Better than his leaving do, which had a buffet. One of the furniture, the word he could not use in March."
+      },
+      {
+       "at": "It was cold, clear, you",
+       "time": "00:06:24",
+       "es": [
+        "Trusted with an old hand's grief"
+       ],
+       "kq": [
+        "But Frank told a story. About his wife … And Ken put his hand on his shoulder, just for a second. … I'm being let see this, because I'm one of them."
+       ],
+       "en": "Let see Frank's grief. Being trusted with it is what belonging means here."
+      },
+      {
+       "at": "They do. They carry on.",
+       "time": "00:07:29",
+       "es": [
+        "Not proud to hear himself go quiet at a newcomer, as they did to him"
+       ],
+       "kq": [
+        "we all stopped talking. All three of us. Me with them. And I heard us do it. I heard myself go quiet, the same as they did to me."
+       ],
+       "en": "Purple hair, a little dog. He hears the silence from inside it now."
+      },
+      {
+       "at": "I didn't like it. And",
+       "time": "00:08:20",
+       "es": [
+        "Uneasy and a bit pleased to be an insider",
+        "Hearing himself pass on what Frank did to him"
+       ],
+       "kq": [
+        "I didn't like it. And I did, a bit. Both. … it meant I was on the right side of the gate now. That's the truth.",
+        "And I told her her bed was too close to the hedge. Which is exactly what Frank did to me. … It goes round, doesn't it. It goes round."
+       ],
+       "en": "'The right side of the gate', and he knows there is a wrong one. Frank's onions become his hedge."
+      },
+      {
+       "at": "She's all right. She's keen.",
+       "time": "00:09:19",
+       "es": [
+        "Glad to be asked, his March rule on asking gone"
+       ],
+       "kq": [
+        "And I told her, and I didn't think less of her for asking. That's changed and all. In March I said you don't ask, you've not earned asking."
+       ],
+       "en": "The March rule on asking undone in his own words. Wishes he had asked Frank."
+      },
+      {
+       "at": "Better. I'll tell you a",
+       "time": "00:10:14",
+       "es": [
+        "Neighbours of eleven years met at last over a bag of potatoes"
+       ],
+       "kq": [
+        "people I'd never spoken to in eleven years in that block knocked on my door to say thank you. … Eleven years, and it took a bag of potatoes."
+       ],
+       "en": "A cake in the bag. Home as well as the plot opening out."
+      },
+      {
+       "at": "It did. And Pat's noticed.",
+       "time": "00:11:04",
+       "es": [
+        "Home from the plot with news of his own for Pat"
+       ],
+       "kq": [
+        "She says I come back from the plot with things to say. … I didn't have things to say before. … A man needs a bit of news of his own, I think."
+       ],
+       "en": "No news since retiring. 'Something that's happened to him': a life with events in it again."
+      },
+      {
+       "at": "She came in September, before",
+       "time": "00:11:56",
+       "es": [],
+       "kq": [],
+       "en": "Pat on his bucket. 'That tastes of something', said twice. Proud."
+      },
+      {
+       "at": "Aye. Because it was mine,",
+       "time": "00:12:41",
+       "es": [
+        "Seen by Pat in his own work at last"
+       ],
+       "kq": [
+        "Forty-one years she never saw what I did. And this time she came and sat in it. … I don't think I knew I wanted it till she was sat there."
+       ],
+       "en": "Forty-one years of work Pat never saw. The want found only when it was met."
+      },
+      {
+       "at": "I dread it a bit.",
+       "time": "00:13:23",
+       "es": [],
+       "kq": [],
+       "en": "Checking a shed that needs no checking: keeping hold of the place into winter."
+      },
+      {
+       "at": "Like the bus station on",
+       "time": "00:14:06",
+       "es": [
+        "Winter feared as a Sunday night at the bus station",
+        "A winter hope: told to come Wednesdays"
+       ],
+       "kq": [
+        "Like the bus station on a Sunday night. All the buses in, all lined up, lights off, nothing going anywhere. That's what I'm frightened of.",
+        "He said, you'll come Wednesdays. He didn't ask. He said. So maybe there's that. Maybe it won't be a Sunday night."
+       ],
+       "en": "A Sunday night at the bus station: his own trade's image for empty time. Frank tells, does not ask."
+      },
+      {
+       "at": "Stiff in the mornings. The",
+       "time": "00:14:55",
+       "es": [
+        "Half sacks no longer shameful, two trips more time there"
+       ],
+       "kq": [
+        "In March I'd have been ashamed of half sacks. Now I think, well, there's two trips instead of one. Two trips is more time down there. I've got the time."
+       ]
+      },
+      {
+       "at": "I talk more. That's the",
+       "time": "00:15:34",
+       "es": [
+        "Sure someone would lift his potatoes next time",
+        "Not surplus at the plot, if still in the flat"
+       ],
+       "kq": [
+        "It'll go again. I'm sixty-eight, it'll go again, I know that now. … But I know now that if it does, somebody'd lift my spuds.",
+        "And I'm not the part left over. Not down there. Up in the flat, some days, still, I won't lie. But not down there."
+       ],
+       "en": "Ends where March began, on the part left over, and turns it."
+      }
+     ],
+     "board": {
+      "name": "Board 1",
+      "pets": [
+       {
+        "title": "Laid low, then carried by the old hands as one of them",
+        "description": "A fortnight sure he had not lasted, then let in without a word, and worth found in more than what he can do",
+        "picks": [
+         "a year ago, if somebody had dug my plot, that's what I'd have heard. I'd have been ashamed. … And this time it was the other way round. … You don't dig for somebody who's not one of you."
+        ],
+        "statements": [],
+        "subs": [
+         {
+          "title": "Laid up, and sure he had not lasted",
+          "description": "Felled in the shed, the part left over again, and the gate's verdict feared",
+          "statements": [
+           "Sure the old hands would say he had not lasted",
+           "Laid up: worse for knowing what he was missing",
+           "Helpless as a beetle when his back went"
+          ]
+         },
+         {
+          "title": "Let in without a word, from his potatoes to the rake",
+          "description": "His potatoes lifted and labelled while he was laid up, help heard as belonging, the rake at the bonfire, Frank's grief seen, and Wednesdays in Frank's shed",
+          "statements": [
+           "Overcome to find his potatoes lifted and labelled by others",
+           "Help heard now as belonging",
+           "On the rake: no longer new or watched",
+           "Trusted with an old hand's grief",
+           "A winter hope: told to come Wednesdays"
+          ]
+         },
+         {
+          "title": "Worth no longer only in what he can do",
+          "description": "Nothing looked for wrong in their work, half sacks without shame, and the back sure to go again",
+          "statements": [
+           "A man no longer only what he can do",
+           "Half sacks no longer shameful, two trips more time there",
+           "Sure someone would lift his potatoes next time"
+          ]
+         }
+        ]
+       },
+       {
+        "title": "Hearing himself go quiet at the gate: an old hand now",
+        "description": "Uneasy and a bit pleased at the newcomer, handing on Frank's ways, and glad to be asked",
+        "picks": [
+         "we all stopped talking. All three of us. Me with them. And I heard us do it. I heard myself go quiet, the same as they did to me."
+        ],
+        "statements": [
+         "Not proud to hear himself go quiet at a newcomer, as they did to him",
+         "Uneasy and a bit pleased to be an insider",
+         "Hearing himself pass on what Frank did to him",
+         "Glad to be asked, his March rule on asking gone"
+        ],
+        "subs": []
+       },
+       {
+        "title": "Seen and heard at home at last, through the plot",
+        "description": "News of his own for Pat, Pat seeing his work, and neighbours met over potatoes",
+        "picks": [
+         "She says I come back from the plot with things to say. … I didn't have things to say before. … A man needs a bit of news of his own, I think."
+        ],
+        "statements": [
+         "Home from the plot with news of his own for Pat",
+         "Seen by Pat in his own work at last",
+         "Neighbours of eleven years met at last over a bag of potatoes"
+        ],
+        "subs": []
+       },
+       {
+        "title": "Surplus no more, except in the winter flat",
+        "description": "Not surplus at the plot, and winter feared as a Sunday night at the bus station",
+        "picks": [
+         "And I'm not the part left over. Not down there. Up in the flat, some days, still, I won't lie. But not down there."
+        ],
+        "statements": [
+         "Not surplus at the plot, if still in the flat",
+         "Winter feared as a Sunday night at the bus station"
+        ],
+        "subs": []
+       }
+      ],
+      "unplaced": []
+     }
+    }
+   },
+   "lpets": {
+    "name": "LPETs",
+    "lpets": [
+     {
+      "title": "From watched at the gate to the old hand who goes quiet",
+      "description": "Proving himself by work to men who stop talking, noticed by being corrected, then one of them, and hearing himself do the same to a newcomer",
+      "domain": "Relationships",
+      "cards": [
+       {
+        "timepoint": "T1",
+        "kind": "sub-PET",
+        "title": "Watched at the gate, and showing the old hands by work"
+       },
+       {
+        "timepoint": "T2",
+        "kind": "PET",
+        "title": "“Here he is”: near enough one of them by midsummer"
+       },
+       {
+        "timepoint": "T3",
+        "kind": "sub-PET",
+        "title": "Let in without a word, from his potatoes to the rake"
+       },
+       {
+        "timepoint": "T3",
+        "kind": "PET",
+        "title": "Hearing himself go quiet at the gate: an old hand now"
+       }
+      ],
+      "rows": {
+       "T1": {
+        "state": "Watched in silence, proving himself by work he lets them see",
+        "quote_of": "Nervous at the gate: a new lad again at sixty-eight",
+        "quote": "And they all stopped talking. … I felt like the new lad on his first day at the depot.",
+        "time": "00:19",
+        "own": true,
+        "bold": [
+         "And they all stopped talking."
+        ],
+        "bold_spans": [
+         [
+          0,
+          29
+         ]
+        ]
+       },
+       "T2": {
+        "state": "Corrected, and so noticed: near enough one of them",
+        "quote_of": "From insult to hello: an old hand correcting him",
+        "quote": "I took it as an insult for a whole day. … it was the first thing he'd said to me that wasn't good morning. … That's how they say hello down there.",
+        "time": "03:26",
+        "own": true,
+        "bold": [
+         "That's how they say hello down there."
+        ],
+        "bold_spans": [
+         [
+          109,
+          146
+         ]
+        ]
+       },
+       "T3": {
+        "state": "On the rake as one of them, and going quiet at a newcomer himself",
+        "quote_of": "Not proud to hear himself go quiet at a newcomer, as they did to him",
+        "quote": "we all stopped talking. All three of us. Me with them. And I heard us do it. I heard myself go quiet, the same as they did to me.",
+        "time": "07:29",
+        "own": true,
+        "bold": [
+         "I heard myself go quiet, the same as they did to me."
+        ],
+        "bold_spans": [
+         [
+          77,
+          129
+         ]
+        ]
+       }
+      }
+     },
+     {
+      "title": "From the part left over to news of his own",
+      "description": "Surplus in the flat since retiring, then living at the plot with Pat missing him, then home with things to say, the winter flat still feared",
+      "domain": "Family, Psychological",
+      "cards": [
+       {
+        "timepoint": "T1",
+        "kind": "PET",
+        "title": "Surplus since retiring: torn between being needed and left be"
+       },
+       {
+        "timepoint": "T2",
+        "kind": "PET",
+        "title": "Living at the plot for now, with Pat left missing him"
+       },
+       {
+        "timepoint": "T3",
+        "kind": "PET",
+        "title": "Seen and heard at home at last, through the plot"
+       },
+       {
+        "timepoint": "T3",
+        "kind": "PET",
+        "title": "Surplus no more, except in the winter flat"
+       }
+      ],
+      "rows": {
+       "T1": {
+        "state": "Surplus at home, in Pat's way, wanting a job that needs him",
+        "quote_of": "Surplus at home since retiring, everything working without him",
+        "quote": "I'm in the way of the hoover. … Everything works without it. That's what retiring's been. I'm the part left over.",
+        "time": "03:31",
+        "own": true,
+        "bold": [
+         "I'm the part left over."
+        ],
+        "bold_spans": [
+         [
+          90,
+          113
+         ]
+        ]
+       },
+       "T2": {
+        "state": "Living at the plot, the empty day gone, Pat left missing him",
+        "quote_of": "The plot now the centre of his days, the empty morning gone",
+        "quote": "The flat's where I sleep now, and the plot's where I live. That's how it feels. I wake up and the first thing I think is, I wonder if the onions are all right. Not, what am I going to do with myself.",
+        "time": "00:12",
+        "own": true,
+        "bold": [
+         "the plot's where I live"
+        ],
+        "bold_spans": [
+         [
+          34,
+          57
+         ]
+        ]
+       },
+       "T3": {
+        "state": "Home with news of his own, seen in his work, winter still feared",
+        "quote_of": "Home from the plot with news of his own for Pat",
+        "quote": "She says I come back from the plot with things to say. … I didn't have things to say before. … A man needs a bit of news of his own, I think.",
+        "time": "11:04",
+        "own": true,
+        "bold": [
+         "A man needs a bit of news of his own"
+        ],
+        "bold_spans": [
+         [
+          95,
+          131
+         ]
+        ]
+       }
+      }
+     },
+     {
+      "title": "From ashamed of his limits to carried without shame",
+      "description": "A body that felt ninety, then limits learned and rest no longer skiving, then laid low and helped, and help felt as belonging",
+      "domain": "Physical, Psychological",
+      "cards": [
+       {
+        "timepoint": "T1",
+        "kind": "sub-PET",
+        "title": "Frightened to find out what his body has left"
+       },
+       {
+        "timepoint": "T1",
+        "kind": "PET",
+        "title": "From at a loss before the brambles to proud of a cleared square"
+       },
+       {
+        "timepoint": "T2",
+        "kind": "PET",
+        "title": "No longer ashamed, of dead beans or of sitting down"
+       },
+       {
+        "timepoint": "T3",
+        "kind": "sub-PET",
+        "title": "Laid up, and sure he had not lasted"
+       },
+       {
+        "timepoint": "T3",
+        "kind": "sub-PET",
+        "title": "Worth no longer only in what he can do"
+       }
+      ],
+      "rows": {
+       "T1": {
+        "state": "Frightened by a body that felt ninety: what has he got left?",
+        "quote_of": "Frightened by a body that felt ninety after two hours digging",
+        "quote": "I felt about ninety. … I thought, what if I can't do it. What if that's me now.",
+        "time": "08:38",
+        "own": true,
+        "bold": [
+         "What if that's me now."
+        ],
+        "bold_spans": [
+         [
+          57,
+          79
+         ]
+        ]
+       },
+       "T2": {
+        "state": "Unashamed of resting or of failing, his limits known",
+        "quote_of": "Resting now as servicing an engine",
+        "quote": "In March I was ashamed of that. Sitting down. I felt like I was skiving … Now I think of it as part of the job. … Well I'm the engine.",
+        "time": "10:33",
+        "own": true,
+        "bold": [
+         "Now I think of it as part of the job."
+        ],
+        "bold_spans": [
+         [
+          74,
+          111
+         ]
+        ]
+       },
+       "T3": {
+        "state": "Laid low, carried by others, and not ashamed of it",
+        "quote_of": "Sure someone would lift his potatoes next time",
+        "quote": "It'll go again. I'm sixty-eight, it'll go again, I know that now. … But I know now that if it does, somebody'd lift my spuds.",
+        "time": "15:34",
+        "own": true,
+        "bold": [
+         "somebody'd lift my spuds"
+        ],
+        "bold_spans": [
+         [
+          100,
+          124
+         ]
+        ]
+       }
+      }
+     }
+    ]
+   }
+  },
+  "Nell": {
+   "timepoints": {
+    "T1": {
+     "file": "Nell - T1.csv",
+     "turns": [
+      {
+       "at": "Excited. And a bit mad,",
+       "time": "00:00:19",
+       "es": [
+        "Taking a full plot before she could think, half laughing at herself"
+       ],
+       "kq": [
+        "Excited. And a bit mad, I think. Slightly mad. … And I said no, full. I don't know why I said this. It came out of my mouth before I think."
+       ],
+       "en": "Full, not half: the yes before thinking. Her mother's laugh down the phone from the village."
+      },
+      {
+       "at": "I laughed also. On the",
+       "time": "00:01:16",
+       "es": [
+        "Unsure yet what digging means for her, unlike her mother"
+       ],
+       "kq": [
+        "But after, a little bit, it stayed with me. … For her, to dig is going backwards. … But for me it's not backwards. For me it's, I don't know yet what it is. Something."
+       ],
+       "en": "Digging as going backwards for a mother who worked so she would not have to. 'Something': no word for it yet."
+      },
+      {
+       "at": "First, for the children. I",
+       "time": "00:02:13",
+       "es": [
+        "Wanting the children to know food as she knew it at her buni's"
+       ],
+       "kq": [
+        "I want my kids to know where food comes from. … Nobody taught me. I just knew, because I was there. I want them to have one summer like this. Even small. Even in England."
+       ],
+       "en": "Carrots from a bag. Knowing by being there, not by being taught."
+      },
+      {
+       "at": "Oh. Is behind the house,",
+       "time": "00:03:12",
+       "es": [
+        "A childhood garden alive in a smell, and gone wild now"
+       ],
+       "kq": [
+        "And the smell of the tomato leaves on your fingers, you know this smell? Green, a bit bitter. When I smell it now I am nine years old. … but the garden is gone wild because she can't do it any more."
+       ],
+       "en": "Nine years old in a smell. Buni ninety-one, the garden gone wild, three years since she went back."
+      },
+      {
+       "at": "No. And when I went",
+       "time": "00:04:19",
+       "es": [
+        "Nearly crying at the smell of turned earth: there and here at once"
+       ],
+       "kq": [
+        "the smell came up. Earth smell, wet. And I nearly cried. … Like I was there and here at the same time. In the village and in England."
+       ],
+       "en": "'Stupid. Is not stupid, I know.' Corrects herself. A biscuit in the mud and she is back in England."
+      },
+      {
+       "at": "Is like this always, a",
+       "time": "00:05:12",
+       "es": [
+        "Glad and hurt when her two countries meet"
+       ],
+       "kq": [
+        "You have two places, and most of the time they are far apart. … And for one second on the plot, with the smell, they were not far. … Good, and also it hurts a little."
+       ],
+       "en": "Romanian to the children, English back. The same clock on the wall since she was a baby. Good, and it hurts."
+      },
+      {
+       "at": "Yes. This is the other",
+       "time": "00:06:11",
+       "es": [
+        "Wanting one thing of her own, when all else is for others",
+        "A deckchair she pictures but does not believe in"
+       ],
+       "kq": [
+        "I wanted one thing that is mine. Everything is for somebody. … And I thought, I want one thing that is mine, even if it's mostly mud.",
+        "I picture it. Me in a deckchair, with a book, in the sun … I know this is not how it will be. I know. But this is the picture in my head."
+       ],
+       "en": "'Even if it's mostly mud.' The deckchair is a picture she does not believe in and keeps anyway."
+      },
+      {
+       "at": "Is my job, I like",
+       "time": "00:07:09",
+       "es": [
+        "Hoping for nobody to reassure at the plot"
+       ],
+       "kq": [
+        "But all day I make other people feel okay. … Nobody says it to me. Is not a complaint. Is just, I thought, on the plot nobody needs me to say anything."
+       ],
+       "en": "Nearly finished, you're doing great: said all day, never to her. The plot as a place with no one to reassure?"
+      },
+      {
+       "at": "We went on Sunday, all",
+       "time": "00:07:55",
+       "es": [
+        "A good day with nothing planted"
+       ],
+       "kq": [
+        "So we planted nothing. Nothing at all. But they were so happy. Muddy to the eyes, both. … So it was a good day, for nothing planted."
+       ],
+       "en": "Domnul Frog. Nothing planted and a good day all the same."
+      },
+      {
+       "at": "Tomatoes, of course. Like my",
+       "time": "00:08:46",
+       "es": [
+        "Ambition on paper: a farm, her buni's tomatoes first"
+       ],
+       "kq": [
+        "Tomatoes, of course. Like my buni's … I asked my mother to send seeds from the village … I wrote a list. Is a long list. Chris read it and he said, Nell, this is a farm."
+       ],
+       "en": "Tomatoes like her buni's first on the list. Chris: 'this is a farm'. Taking too much again?"
+      },
+      {
+       "at": "Chris is English, so for",
+       "time": "00:09:37",
+       "es": [
+        "Seen through by Chris when she promises time"
+       ],
+       "kq": [
+        "And I say, I'll find the time. And he makes this face. He has a face for when I say I'll find the time. He has seen this many times, I think. He knows me."
+       ],
+       "en": "Chris's face for 'I'll find the time'. Known, and a little caught out."
+      },
+      {
+       "at": "Early mornings, I think. Six",
+       "time": "00:10:30",
+       "es": [
+        "Strict rules against a jungle by June"
+       ],
+       "kq": [
+        "I will have to be strict with myself. Very strict. I know how it is, if I let it slide in April, I will have a jungle by June. … So I have a plan. Two mornings a week, minimum"
+       ],
+       "en": "The calendar in the kitchen. A plan made against her own habits."
+      },
+      {
+       "at": "Normal. Is how I do",
+       "time": "00:11:17",
+       "es": [
+        "Strictness learned to survive here: good at hard, not slow"
+       ],
+       "kq": [
+        "Nobody gives you anything here, you have to be strict, or you are nothing. So I am good at strict. I'm good at hard. … What I'm not so good at is slow."
+       ],
+       "en": "One suitcase, offices at night. 'Strict, or you are nothing.' Hard she can do, slow she cannot."
+      },
+      {
+       "at": "No. I'm terrible at slow.",
+       "time": "00:11:59",
+       "es": [],
+       "kq": [],
+       "en": "Buni never looked at a plant 'like it owes her money'. The plot might teach slow, or bring a jungle."
+      },
+      {
+       "at": "I don't know. I really",
+       "time": "00:12:42",
+       "es": [
+        "Longing to sit as her buni sat"
+       ],
+       "kq": [
+        "She just sits, with her hands in her lap, and looks at the garden. … Now I think she was, I don't know the word, full. … But I would like to sit like her, one time, on my plot."
+       ],
+       "en": "'Full': her word for her buni at rest. She has never sat like that."
+      },
+      {
+       "at": "I didn't meet many yet.",
+       "time": "00:13:38",
+       "es": [
+        "Judged by a look at the pushchair, a young mother with big ideas"
+       ],
+       "kq": [
+        "he looked at my pushchair like, what is this woman doing here with a baby. … He thinks I'm one more young mother with big ideas. … But I want to show him."
+       ],
+       "en": "The man with the hat. A look, nothing said, heard as a verdict."
+      },
+      {
+       "at": "Good. Very good. I would",
+       "time": "00:14:26",
+       "es": [
+        "The plot one more thing to prove here"
+       ],
+       "kq": [
+        "But all my life here, I have to show people. Show them I speak English properly, show them I'm not here to take something … The plot will be one more thing I show them."
+       ],
+       "en": "Showing people all her life here. The patient who asked for the English nurse."
+      },
+      {
+       "at": "That I took too much.",
+       "time": "00:15:13",
+       "es": [
+        "Afraid the plot will show she took too much again"
+       ],
+       "kq": [
+        "That I took too much. That's always my problem. … So if the plot is a jungle in June, it means I did it again. I took too much. But I want to try."
+       ],
+       "en": "'I take too much', said by Chris and her mother too. Wants to try anyway."
+      },
+      {
+       "at": "Only one thing. After the",
+       "time": "00:16:01",
+       "es": [
+        "Remembering a good tired after years of grey"
+       ],
+       "kq": [
+        "But it was a good tired. Not the tired from work, from standing, from the commute, that tired is grey. This was a good tired, warm. … I forgot there is a good tired."
+       ],
+       "en": "Grey tired and warm tired. Six years of the grey kind."
+      }
+     ],
+     "board": {
+      "name": "Board 1",
+      "pets": [
+       {
+        "title": "Wanting her buni's garden again, for the children and for herself",
+        "description": "The village and England meeting in a smell under her fork, and a summer like hers wanted for the children",
+        "picks": [
+         "the smell came up. Earth smell, wet. And I nearly cried. … Like I was there and here at the same time. In the village and in England."
+        ],
+        "statements": [],
+        "subs": [
+         {
+          "title": "The village and England touching under her fork",
+          "description": "Nearly crying at the smell of the earth, a childhood garden gone wild, two countries meeting for a second",
+          "statements": [
+           "Nearly crying at the smell of turned earth: there and here at once",
+           "Glad and hurt when her two countries meet",
+           "A childhood garden alive in a smell, and gone wild now"
+          ]
+         },
+         {
+          "title": "A summer like hers for the children, whatever her mother thinks",
+          "description": "Knowing food by being there, tomatoes from the village on the list, and digging as going backwards",
+          "statements": [
+           "Wanting the children to know food as she knew it at her buni's",
+           "Ambition on paper: a farm, her buni's tomatoes first",
+           "Unsure yet what digging means for her, unlike her mother"
+          ]
+         }
+        ]
+       },
+       {
+        "title": "“Slightly mad” to take a full plot she must prove she can keep",
+        "description": "Taking too much as she always does, strict to keep up, and one more thing to show the people who look at her",
+        "picks": [
+         "Excited. And a bit mad, I think. Slightly mad. … And I said no, full. I don't know why I said this. It came out of my mouth before I think."
+        ],
+        "statements": [],
+        "subs": [
+         {
+          "title": "Taking too much, as always, and strict to keep up",
+          "description": "A full plot before she could think, rules on the kitchen calendar, good at hard and not at slow",
+          "statements": [
+           "Taking a full plot before she could think, half laughing at herself",
+           "Afraid the plot will show she took too much again",
+           "Strict rules against a jungle by June",
+           "Strictness learned to survive here: good at hard, not slow",
+           "Seen through by Chris when she promises time"
+          ]
+         },
+         {
+          "title": "Proving herself again, to an old man with a hat",
+          "description": "Judged a young mother with big ideas, after a life here of showing people",
+          "statements": [
+           "Judged by a look at the pushchair, a young mother with big ideas",
+           "The plot one more thing to prove here"
+          ]
+         }
+        ]
+       },
+       {
+        "title": "“One thing that is mine”: a place to rest from being for others",
+        "description": "Wanting something not for anybody, a deckchair pictured, a rest like her buni's, and a good tired remembered",
+        "picks": [
+         "I wanted one thing that is mine. Everything is for somebody. … And I thought, I want one thing that is mine, even if it's mostly mud."
+        ],
+        "statements": [],
+        "subs": [
+         {
+          "title": "Nobody to be for at the plot",
+          "description": "One thing of her own, and nobody there to reassure",
+          "statements": [
+           "Wanting one thing of her own, when all else is for others",
+           "Hoping for nobody to reassure at the plot"
+          ]
+         },
+         {
+          "title": "A rest she has forgotten how to take",
+          "description": "A deckchair she does not believe in, sitting like her buni, a good day with nothing planted, and a warm tired",
+          "statements": [
+           "Longing to sit as her buni sat",
+           "A deckchair she pictures but does not believe in",
+           "Remembering a good tired after years of grey",
+           "A good day with nothing planted"
+          ]
+         }
+        ]
+       }
+      ],
+      "unplaced": []
+     }
+    },
+    "T2": {
+     "file": "Nell - T2.csv",
+     "turns": [
+      {
+       "at": "It's a jungle. I said",
+       "time": "00:00:12",
+       "es": [
+        "Coming home from the plot worse than she went"
+       ],
+       "kq": [
+        "And every time I go to the plot I see only what I have not done. … And I come home feeling worse than before I went. Is crazy. I go there to feel better and I come home worse."
+       ],
+       "en": "'I am very good at predicting myself.' The calendar looks back at her. Goes to feel better, comes home worse."
+      },
+      {
+       "at": "Sunday. I parked, I got",
+       "time": "00:01:11",
+       "es": [
+        "Too pressed by the jungle to look at the children"
+       ],
+       "kq": [
+        "I just pull, pull, pull, the weeds by the path, fast, like I'm racing somebody. … Matei is shouting mama look, mama look, and I say yes, beautiful, without looking."
+       ],
+       "en": "Racing somebody, but who? 'Yes, beautiful, without looking.'"
+      },
+      {
+       "at": "Like walking into a room",
+       "time": "00:02:14",
+       "es": [
+        "Feeling watched and found wanting by the other plot holders"
+       ],
+       "kq": [
+        "Like walking into a room where everybody knows you did something wrong. … Maybe they don't look. Maybe they don't care at all. But I feel it on my back, like a hand."
+       ],
+       "en": "Mine 'like the house of somebody who died'. Unsure anyone looks, sure she feels it."
+      },
+      {
+       "at": "And then they did know.",
+       "time": "00:02:51",
+       "es": [
+        "Shamed to tears by the committee letter"
+       ],
+       "kq": [
+        "I read it in the car, outside the nursery, and I cried. … Like somebody walked past my plot with a clipboard and wrote my name down."
+       ],
+       "en": "A letter with a logo. Daria in the back: is it the radio. Somebody wrote her name down."
+      },
+      {
+       "at": "Shame. Big shame. I am",
+       "time": "00:03:41",
+       "es": [
+        "A blameless record here spoiled by a letter about vegetables",
+        "Not one to give hard things back"
+       ],
+       "kq": [
+        "I always pay first, I always fill the forms correct, I always do everything they ask. Eleven years in this country and I never get one letter like this. And now for vegetables.",
+        "But I don't give things back. I'm not a person who gives things back. If I give back every hard thing, I would be in the village still."
+       ],
+       "en": "Eleven years of forms filled correct. 'Like a schoolgirl': apologising for her children."
+      },
+      {
+       "at": "Worse. Now I know they",
+       "time": "00:04:36",
+       "es": [
+        "Hiding from the other plot holders since the letter"
+       ],
+       "kq": [
+        "I'm hiding, I know this. I'm a grown woman hiding from pensioners with clipboards. But I can't help it."
+       ],
+       "en": "Half past six, Thursday evenings, the far fence. Pretending to do something important with the onions."
+      },
+      {
+       "at": "Oh, the children love it.",
+       "time": "00:05:24",
+       "es": [
+        "Sunflowers taller than her son: exactly what she wanted"
+       ],
+       "kq": [
+        "Every Sunday he stands next to them and I take a photo, and he says mama, measure me … That part is exactly what I wanted. Exactly."
+       ],
+       "en": "'Mama, measure me.' The one part exactly as pictured."
+      },
+      {
+       "at": "I want to cry also,",
+       "time": "00:06:21",
+       "es": [],
+       "kq": [],
+       "en": "Proud to tears, a different crying. A forest to them, a jungle to her."
+      },
+      {
+       "at": "Good, and a bit lonely.",
+       "time": "00:07:03",
+       "es": [
+        "Lonely in seeing the mess so the children need not"
+       ],
+       "kq": [
+        "But lonely because I am the only one who sees it. … This is being a mother, I think, a lot of the time. Seeing the mess so they don't have to."
+       ],
+       "en": "A mother at a party seeing the mess. Lonely in what she alone sees."
+      },
+      {
+       "at": "There is none. The deckchair",
+       "time": "00:07:52",
+       "es": [
+        "Even her free hour spent on guilt"
+       ],
+       "kq": [
+        "The deckchair is still in the shed. Folded. … Even the guilt is not mine. Even the guilt is for the plot. I wanted one thing that is mine and now I have one more thing that I'm failing at."
+       ],
+       "en": "Striped, bought in April, never opened. Even her guilt belongs to the plot."
+      },
+      {
+       "at": "Every week. Every single week.",
+       "time": "00:08:38",
+       "es": [
+        "Kept on only for her son, herself the help"
+       ],
+       "kq": [
+        "And I cannot say to him we're not going any more. I cannot do this. So I suppose it's his now, really. The plot is his and I am the help."
+       ],
+       "en": "Sunday night: give it up. Monday morning: his question. She cannot say no to him."
+      },
+      {
+       "at": "Funny, a bit. And a",
+       "time": "00:09:21",
+       "es": [],
+       "kq": [],
+       "en": "A very strict farmer at five, 'I don't know where he gets it'. Gave it to him without deciding."
+      },
+      {
+       "at": "Yes, and this is the",
+       "time": "00:10:10",
+       "es": [
+        "Outdone in three weeks by her mother"
+       ],
+       "kq": [
+        "And in three weeks she cleared half of it. Half. … In three weeks she did what I didn't do in three months. And she didn't laugh at me this time."
+       ],
+       "en": "No laugh this time from her mother. 'She just worked.'"
+      },
+      {
+       "at": "I came after work, the",
+       "time": "00:10:57",
+       "es": [
+        "A minute in her buni's garden, then a guest on her own plot"
+       ],
+       "kq": [
+        "it looked like my buni's garden. … And for one minute I was so happy. Like I opened a door and the village was there. And then the next minute I felt like a visitor. … I was standing on my own plot like a guest."
+       ],
+       "en": "A door opening on the village, then a guest. The girl with the bucket again."
+      },
+      {
+       "at": "And how can I be",
+       "time": "00:11:46",
+       "es": [
+        "Praised for her mother's work: grateful and small"
+       ],
+       "kq": [
+        "The secretary walked past and he said, well done, Nell, what a difference. To me! … Small. Grateful and small at the same time."
+       ],
+       "en": "Praised for her mother's work. No word for it in either language: grateful and small."
+      },
+      {
+       "at": "Good. Mostly good. We were",
+       "time": "00:12:39",
+       "es": [
+        "Struck that her mother remade here the garden she chose to leave"
+       ],
+       "kq": [
+        "And she left it. She chose to leave it. And now she comes to England and makes it again on my plot, in three weeks, like she never left."
+       ],
+       "en": "Buni talked to the peppers. Her mother chose to leave the garden, and made it again here."
+      },
+      {
+       "at": "Now I have two plots.",
+       "time": "00:13:39",
+       "es": [
+        "Grateful for a kitchen smelling of home"
+       ],
+       "kq": [
+        "But the dill, I cook with her dill now, I put it in the soup, and the whole kitchen smells like home. Like my buni's kitchen. So I am grateful. I am. Even when I'm small, I'm grateful."
+       ],
+       "en": "Two halves, two women, 'hers is good'. The dill in the soup smells like buni's kitchen."
+      },
+      {
+       "at": "Tired. Just tired. I did",
+       "time": "00:14:17",
+       "es": [
+        "The good tired gone: the plot one more grey thing"
+       ],
+       "kq": [
+        "My body says no and I go anyway. … Now there is no good tired. Is just tired. The grey one. The plot became one more grey thing."
+       ],
+       "en": "'In March I told you there is a good tired.' Holds herself to what she said."
+      },
+      {
+       "at": "Like I am behind, all",
+       "time": "00:14:57",
+       "es": [
+        "Behind with everything, and most visibly at the plot"
+       ],
+       "kq": [
+        "Behind is my whole body. I wake up already behind. … And instead it's the place where I'm most behind of all, where you can see how behind I am, with your eyes, in weeds."
+       ],
+       "en": "Behind with phoning her buni too. The plot shows it 'with your eyes, in weeds'."
+      },
+      {
+       "at": "Can I say something? I",
+       "time": "00:15:38",
+       "es": [
+        "Woken from a dream of the plot, not sure she likes it"
+       ],
+       "kq": [
+        "I think in March I was a bit, dreaming. … Now I'm awake. Is not bad, to be awake. … I don't know yet if I like what it is. But at least I see it."
+       ],
+       "en": "Dreaming in March, awake now. Not sure she likes it, glad to see it."
+      }
+     ],
+     "board": {
+      "name": "Board 1",
+      "pets": [
+       {
+        "title": "A guest in her mother's half, “grateful and small”",
+        "description": "Her mother clearing in three weeks what she could not in three months, a garden she chose to leave, and Nell grateful and small",
+        "picks": [
+         "it looked like my buni's garden. … And for one minute I was so happy. Like I opened a door and the village was there. And then the next minute I felt like a visitor. … I was standing on my own plot like a guest."
+        ],
+        "statements": [
+         "A minute in her buni's garden, then a guest on her own plot",
+         "Praised for her mother's work: grateful and small",
+         "Outdone in three weeks by her mother",
+         "Struck that her mother remade here the garden she chose to leave",
+         "Grateful for a kitchen smelling of home"
+        ],
+        "subs": []
+       },
+       {
+        "title": "Shamed by a letter, and hiding from the plot holders",
+        "description": "Her name written down, a blameless record spoiled over vegetables, and early mornings at the far fence",
+        "picks": [
+         "I read it in the car, outside the nursery, and I cried. … Like somebody walked past my plot with a clipboard and wrote my name down."
+        ],
+        "statements": [
+         "Shamed to tears by the committee letter",
+         "A blameless record here spoiled by a letter about vegetables",
+         "Feeling watched and found wanting by the other plot holders",
+         "Hiding from the other plot holders since the letter"
+        ],
+        "subs": []
+       },
+       {
+        "title": "Awake to being behind, and not one to give it back",
+        "description": "Seeing only what is undone, racing the weeds, the good tired gone, and still not one to give things back",
+        "picks": [
+         "Behind is my whole body. I wake up already behind. … And instead it's the place where I'm most behind of all, where you can see how behind I am, with your eyes, in weeds."
+        ],
+        "statements": [
+         "Woken from a dream of the plot, not sure she likes it",
+         "Behind with everything, and most visibly at the plot",
+         "Coming home from the plot worse than she went",
+         "Too pressed by the jungle to look at the children",
+         "The good tired gone: the plot one more grey thing",
+         "Not one to give hard things back"
+        ],
+        "subs": []
+       },
+       {
+        "title": "The help on her son's plot",
+        "description": "Kept on for him, his sunflowers exactly what she wanted, the mess hers alone to see, and her own deckchair never opened",
+        "picks": [
+         "And I cannot say to him we're not going any more. I cannot do this. So I suppose it's his now, really. The plot is his and I am the help."
+        ],
+        "statements": [
+         "Kept on only for her son, herself the help",
+         "Sunflowers taller than her son: exactly what she wanted",
+         "Lonely in seeing the mess so the children need not",
+         "Even her free hour spent on guilt"
+        ],
+        "subs": []
+       }
+      ],
+      "unplaced": []
+     }
+    },
+    "T3": {
+     "file": "Nell - T3.csv",
+     "turns": [
+      {
+       "at": "Mixed. Very mixed. We had",
+       "time": "00:00:13",
+       "es": [
+        "A harvest she got away with, much of it her mother's"
+       ],
+       "kq": [
+        "And courgettes, so many courgettes, from my mother's half. … And I think, we got away with it. That's how it feels."
+       ],
+       "en": "Nine strawberries, counted. 'We got away with it', said twice."
+      },
+      {
+       "at": "Like I didn't deserve it.",
+       "time": "00:01:01",
+       "es": [],
+       "kq": [],
+       "en": "Half a lie with her mother's courgettes. Nine strawberries she can stand behind."
+      },
+      {
+       "at": "Oh, for them it was",
+       "time": "00:01:46",
+       "es": [
+        "Delighted by the children's pride in their sunflower seeds and strawberries"
+       ],
+       "kq": [
+        "he picked out every seed, one by one, a whole evening, and he put them in an envelope. And he wrote on it, Matei sunflowers next year."
+       ],
+       "en": "The s backwards on the envelope, on the fridge. Seven of the nine picked by Daria, four or five eaten."
+      },
+      {
+       "at": "I'm giving up half. I",
+       "time": "00:02:33",
+       "es": [
+        "Giving up half: failure and relief unresolved"
+       ],
+       "kq": [
+        "I felt like I had failed. When I decided, I felt like I had failed. And then I felt relieved. Both. And I still don't know which one is right."
+       ],
+       "en": "Failed, then relieved, and 'maybe both are right'. Leaves it open."
+      },
+      {
+       "at": "The failing. I wrote the",
+       "time": "00:03:20",
+       "es": [
+        "Failure as proof she took too much again",
+        "Relief: a morning when her first thought was not the plot"
+       ],
+       "kq": [
+        "Three times I wrote it and deleted it. Because I know what it means. It means the man with the hat was right. It means I took too much, again, like always, and I couldn't hold it.",
+        "the next morning I woke up and the first thought in my head was not the plot. First time since March. … like when you take off a backpack you forgot you were carrying."
+       ],
+       "en": "Three drafts deleted. The man with the hat proved right in her head. Then rain as the first thought."
+      },
+      {
+       "at": "I was afraid to tell",
+       "time": "00:04:17",
+       "es": [
+        "A mother's laugh understood at last"
+       ],
+       "kq": [
+        "So she was not laughing at me. She was laughing at the too much. All year I thought she was laughing at me, at the village girl digging in England. … I didn't know it was different."
+       ],
+       "en": "The March laugh heard again: at the too much, not at her. A year's reading of her mother undone."
+      },
+      {
+       "at": "Yes. And this is the",
+       "time": "00:05:14",
+       "es": [
+        "Giving away the half where she was a guest"
+       ],
+       "kq": [
+        "I gave away the good half and I kept the half with the jungle and Matei's sunflowers. … Mama's half was never mine. It was beautiful, but it was never mine. I was a guest there."
+       ],
+       "en": "Chris: keep the good half. She keeps the jungle and the sunflowers. A guest's half is no half."
+      },
+      {
+       "at": "No. And I thought about",
+       "time": "00:06:00",
+       "es": [
+        "Wanting her buni's garden all along, not a plot",
+        "Enough that her buni was happy she tried"
+       ],
+       "kq": [
+        "I wanted to be at my buni's again. Not to have a garden. To be in her garden. … And you cannot dig that. You can dig all day in England and you will not find it.",
+        "And I said, buni, I didn't plant tomatoes. And she laughed more. She was happy that I'm trying. That was enough. That was more than enough."
+       ],
+       "en": "'Is not in the soil.' Buni, ninety-two, asks after tomatoes never planted, and laughs."
+      },
+      {
+       "at": "No. The seeds came, in",
+       "time": "00:07:12",
+       "es": [
+        "The village tomatoes never started, perhaps for her son"
+       ],
+       "kq": [
+        "They're still in the envelope, in the kitchen drawer. Buni's tomatoes, from the village, in a drawer in England. … I think maybe they are his to plant, not mine."
+       ],
+       "en": "Seeds wrapped in newspaper, never the right day. 'His to plant, not mine.'"
+      },
+      {
+       "at": "Smaller. And the children's. I",
+       "time": "00:08:01",
+       "es": [
+        "No more pretending it is her hobby"
+       ],
+       "kq": [
+        "I have stopped pretending it's my hobby. … It's their place, and I'm glad they have one. Really glad."
+       ],
+       "en": "'Every child should have a place like this.' The hobby dropped as a pretence."
+      },
+      {
+       "at": "Yes. Everybody here, the English",
+       "time": "00:08:50",
+       "es": [
+        "Attacking the plot and calling it pottering"
+       ],
+       "kq": [
+        "But I don't potter. I attack. I go to the plot like I go to a war. … Is the biggest lie of my year, the pottering."
+       ],
+       "en": "Potter: a word learned this year for a way she cannot be."
+      },
+      {
+       "at": "Better. My back is better,",
+       "time": "00:09:31",
+       "es": [
+        "The good tired back for a day"
+       ],
+       "kq": [
+        "I said no, I'm just not behind any more. And the good tired came back, one time … It came back for one day."
+       ],
+       "en": "A week of sleeping like the children. The good tired back, once."
+      },
+      {
+       "at": "That I minded so much.",
+       "time": "00:10:21",
+       "es": [],
+       "kq": [],
+       "en": "Leeks in a straight row where the dill was. 'Is stupid. They're leeks.'"
+      },
+      {
+       "at": "Like when you walk past",
+       "time": "00:10:58",
+       "es": [
+        "A little grief at leeks where the dill was"
+       ],
+       "kq": [
+        "Somebody else's curtains, where your life was. Like this. Malcolm's leeks where my mother's dill was, where my buni's garden was for three weeks. Is fine. It's only a little moment."
+       ],
+       "en": "Another's curtains in the window of an old flat."
+      },
+      {
+       "at": "Sometimes. When I go back",
+       "time": "00:11:45",
+       "es": [
+        "Leaving felt again, even here"
+       ],
+       "kq": [
+        "That's what it is to leave, I think. Everything you left keeps going without you. Is normal. But the plot, I didn't expect it there, in England."
+       ],
+       "en": "Her school a supermarket now. Leaving keeps happening, even here."
+      },
+      {
+       "at": "This surprised me also. They",
+       "time": "00:12:30",
+       "es": [
+        "Surprised by the kindness of those she felt watched by"
+       ],
+       "kq": [
+        "They are kind. Really kind. … He came in October and he gave Daria a strawberry plant in a pot. … So maybe they never thought I'm crazy. Maybe only I thought this."
+       ],
+       "en": "'For the little gardener.' The man with the hat knows Daria's name."
+      },
+      {
+       "at": "Yes. Is a strange place,",
+       "time": "00:13:30",
+       "es": [
+        "The committee letter kept with her passports, unable to laugh"
+       ],
+       "kq": [
+        "The important papers drawer. Birth certificates, passports, my qualification, the letter that says you can stay. And this one. … A paper that says something about me. … Chris laughed when he saw it there. I didn't laugh."
+       ],
+       "en": "Kept with the letter that says she can stay. Why there? 'Important, in a bad way.'"
+      },
+      {
+       "at": "One Sunday in October, Chris",
+       "time": "00:14:13",
+       "es": [
+        "Ten minutes in the deckchair, then unable to stay"
+       ],
+       "kq": [
+        "And I opened the deckchair. First time. … And I sat for ten minutes. Then I got up and I started weeding. I couldn't stay. I don't know how to sit."
+       ],
+       "en": "Mouldy from the shed, the March picture exactly, ten minutes long."
+      },
+      {
+       "at": "No. For me it's big.",
+       "time": "00:15:10",
+       "es": [
+        "Ten minutes owing nothing, like the spent sunflowers"
+       ],
+       "kq": [
+        "Ten minutes in a chair with nobody needing me, nobody behind me, no phone. … They're finished. They can stand there with their heads down and nobody shouts at them. … But for ten minutes I was like the sunflowers."
+       ],
+       "en": "Dead sunflowers with their heads down, finished, not shouted at."
+      },
+      {
+       "at": "Only that I think I'm",
+       "time": "00:15:55",
+       "es": [
+        "A little less strict with herself, learning slow"
+       ],
+       "kq": [
+        "Only that I think I'm less strict. With me, I mean. A little bit. … the garden doesn't care if you're strict, Nell. … I think I am learning a little bit of slow."
+       ],
+       "en": "Her buni: the garden does not read your calendar."
+      }
+     ],
+     "board": {
+      "name": "Board 1",
+      "pets": [
+       {
+        "title": "Letting go of her buni's garden, which “you cannot dig”",
+        "description": "Giving away her mother's half, where she was a guest, and finding she wanted her buni's garden itself, not a plot",
+        "picks": [
+         "I wanted to be at my buni's again. Not to have a garden. To be in her garden. … And you cannot dig that. You can dig all day in England and you will not find it."
+        ],
+        "statements": [],
+        "subs": [
+         {
+          "title": "Giving away the guest's half, and a little grief",
+          "description": "Her mother's half let go, another's leeks where the dill was, and leaving felt even here",
+          "statements": [
+           "Giving away the half where she was a guest",
+           "A little grief at leeks where the dill was",
+           "Leaving felt again, even here"
+          ]
+         },
+         {
+          "title": "Her buni's garden, not a plot, and nothing digging finds",
+          "description": "Back in her buni's garden the wish all along, her buni glad she tried, and the village tomatoes in a drawer",
+          "statements": [
+           "Wanting her buni's garden all along, not a plot",
+           "Enough that her buni was happy she tried",
+           "The village tomatoes never started, perhaps for her son"
+          ]
+         }
+        ]
+       },
+       {
+        "title": "Half given away: failed, relieved, a little less strict",
+        "description": "Proof she took too much, a morning free of the plot, her mother's laugh heard anew, and slow learned a little",
+        "picks": [
+         "I felt like I had failed. When I decided, I felt like I had failed. And then I felt relieved. Both. And I still don't know which one is right."
+        ],
+        "statements": [],
+        "subs": [
+         {
+          "title": "Failure and relief at once, and her mother's laugh heard anew",
+          "description": "Too much again, a backpack taken off, and her mother laughing at the too much, not at her",
+          "statements": [
+           "Giving up half: failure and relief unresolved",
+           "Failure as proof she took too much again",
+           "Relief: a morning when her first thought was not the plot",
+           "A mother's laugh understood at last"
+          ]
+         },
+         {
+          "title": "Learning a little slow, after a year of attacking the plot",
+          "description": "Less strict, the pottering a lie, and the good tired back for a day",
+          "statements": [
+           "A little less strict with herself, learning slow",
+           "Attacking the plot and calling it pottering",
+           "The good tired back for a day"
+          ]
+         }
+        ]
+       },
+       {
+        "title": "The feared judgement gone, its letter kept with her passports",
+        "description": "A pumpkin and a strawberry plant from those she thought had judged her, and the committee letter in with the passports",
+        "picks": [
+         "They are kind. Really kind. … He came in October and he gave Daria a strawberry plant in a pot. … So maybe they never thought I'm crazy. Maybe only I thought this."
+        ],
+        "statements": [
+         "Surprised by the kindness of those she felt watched by",
+         "The committee letter kept with her passports, unable to laugh"
+        ],
+        "subs": []
+       },
+       {
+        "title": "Ten minutes of her own on the children's plot",
+        "description": "The deckchair opened once and left for weeding, on a plot no longer pretended to be her hobby, the children's place and glad of it",
+        "picks": [
+         "Ten minutes in a chair with nobody needing me, nobody behind me, no phone. … They're finished. They can stand there with their heads down and nobody shouts at them. … But for ten minutes I was like the sunflowers."
+        ],
+        "statements": [],
+        "subs": [
+         {
+          "title": "Ten minutes of rest she could not keep",
+          "description": "The March picture for ten minutes, owing nothing like the spent sunflowers, then up and weeding",
+          "statements": [
+           "Ten minutes owing nothing, like the spent sunflowers",
+           "Ten minutes in the deckchair, then unable to stay"
+          ]
+         },
+         {
+          "title": "The children's place, and glad of it",
+          "description": "The hobby no longer pretended, their pride in seeds and strawberries, a harvest got away with",
+          "statements": [
+           "No more pretending it is her hobby",
+           "Delighted by the children's pride in their sunflower seeds and strawberries",
+           "A harvest she got away with, much of it her mother's"
+          ]
+         }
+        ]
+       }
+      ],
+      "unplaced": []
+     }
+    }
+   },
+   "lpets": {
+    "name": "LPETs",
+    "lpets": [
+     {
+      "title": "From her buni's garden wanted again to “you cannot dig that”",
+      "description": "The village and England meeting under her fork, then a guest in her mother's half, then that half given away and the wish named",
+      "domain": "Family, Home",
+      "cards": [
+       {
+        "timepoint": "T1",
+        "kind": "PET",
+        "title": "Wanting her buni's garden again, for the children and for herself"
+       },
+       {
+        "timepoint": "T2",
+        "kind": "PET",
+        "title": "A guest in her mother's half, “grateful and small”"
+       },
+       {
+        "timepoint": "T3",
+        "kind": "PET",
+        "title": "Letting go of her buni's garden, which “you cannot dig”"
+       }
+      ],
+      "rows": {
+       "T1": {
+        "state": "Nearly in tears at the smell of the earth, the village and England meeting",
+        "quote_of": "Nearly crying at the smell of turned earth: there and here at once",
+        "quote": "the smell came up. Earth smell, wet. And I nearly cried. … Like I was there and here at the same time. In the village and in England.",
+        "time": "04:19",
+        "own": true,
+        "bold": [
+         "Like I was there and here at the same time."
+        ],
+        "bold_spans": [
+         [
+          59,
+          102
+         ]
+        ]
+       },
+       "T2": {
+        "state": "Her buni's garden for a minute in her mother's half, then a guest",
+        "quote_of": "A minute in her buni's garden, then a guest on her own plot",
+        "quote": "it looked like my buni's garden. … And for one minute I was so happy. Like I opened a door and the village was there. And then the next minute I felt like a visitor. … I was standing on my own plot like a guest.",
+        "time": "10:57",
+        "own": true,
+        "bold": [
+         "I was standing on my own plot like a guest."
+        ],
+        "bold_spans": [
+         [
+          168,
+          211
+         ]
+        ]
+       },
+       "T3": {
+        "state": "The guest's half given away, and the wish found to be her buni's garden itself",
+        "quote_of": "Wanting her buni's garden all along, not a plot",
+        "quote": "I wanted to be at my buni's again. Not to have a garden. To be in her garden. … And you cannot dig that. You can dig all day in England and you will not find it.",
+        "time": "06:00",
+        "own": true,
+        "bold": [
+         "And you cannot dig that."
+        ],
+        "bold_spans": [
+         [
+          80,
+          104
+         ]
+        ]
+       }
+      }
+     },
+     {
+      "title": "From “one thing that is mine” to the help, and ten minutes",
+      "description": "A place of her own and a deckchair pictured, then the plot her son's and the deckchair folded, then their place and ten minutes in it",
+      "domain": "Family, Psychological",
+      "cards": [
+       {
+        "timepoint": "T1",
+        "kind": "PET",
+        "title": "“One thing that is mine”: a place to rest from being for others"
+       },
+       {
+        "timepoint": "T2",
+        "kind": "PET",
+        "title": "The help on her son's plot"
+       },
+       {
+        "timepoint": "T3",
+        "kind": "PET",
+        "title": "Ten minutes of her own on the children's plot"
+       }
+      ],
+      "rows": {
+       "T1": {
+        "state": "Wanting one thing of her own, and a rest she cannot quite picture",
+        "quote_of": "Wanting one thing of her own, when all else is for others",
+        "quote": "I wanted one thing that is mine. Everything is for somebody. … And I thought, I want one thing that is mine, even if it's mostly mud.",
+        "time": "06:11",
+        "own": true,
+        "bold": [
+         "I want one thing that is mine, even if it's mostly mud."
+        ],
+        "bold_spans": [
+         [
+          78,
+          133
+         ]
+        ]
+       },
+       "T2": {
+        "state": "Kept on for her son, herself the help, the deckchair never opened",
+        "quote_of": "Kept on only for her son, herself the help",
+        "quote": "And I cannot say to him we're not going any more. I cannot do this. So I suppose it's his now, really. The plot is his and I am the help.",
+        "time": "08:38",
+        "own": true,
+        "bold": [
+         "The plot is his and I am the help."
+        ],
+        "bold_spans": [
+         [
+          103,
+          137
+         ]
+        ]
+       },
+       "T3": {
+        "state": "Their place, and glad, and ten minutes in the deckchair before weeding",
+        "quote_of": "Ten minutes in the deckchair, then unable to stay",
+        "quote": "And I opened the deckchair. First time. … And I sat for ten minutes. Then I got up and I started weeding. I couldn't stay. I don't know how to sit.",
+        "time": "14:13",
+        "own": true,
+        "bold": [
+         "I sat for ten minutes."
+        ],
+        "bold_spans": [
+         [
+          46,
+          68
+         ]
+        ]
+       }
+      }
+     },
+     {
+      "title": "From taking too much to half given away, failed and relieved",
+      "description": "Strict to keep up with a full plot, then behind and not one to give things back, then half given away and a little less strict",
+      "domain": "Psychological",
+      "cards": [
+       {
+        "timepoint": "T1",
+        "kind": "sub-PET",
+        "title": "Taking too much, as always, and strict to keep up"
+       },
+       {
+        "timepoint": "T2",
+        "kind": "PET",
+        "title": "Awake to being behind, and not one to give it back"
+       },
+       {
+        "timepoint": "T3",
+        "kind": "PET",
+        "title": "Half given away: failed, relieved, a little less strict"
+       }
+      ],
+      "rows": {
+       "T1": {
+        "state": "Strict with herself, and afraid the plot will show she took too much",
+        "quote_of": "Afraid the plot will show she took too much again",
+        "quote": "That I took too much. That's always my problem. … So if the plot is a jungle in June, it means I did it again. I took too much. But I want to try.",
+        "time": "15:13",
+        "own": true,
+        "bold": [
+         "I took too much."
+        ],
+        "bold_spans": [
+         [
+          5,
+          21
+         ]
+        ]
+       },
+       "T2": {
+        "state": "Most behind of all at the plot, and refusing to give it back",
+        "quote_of": "Behind with everything, and most visibly at the plot",
+        "quote": "Behind is my whole body. I wake up already behind. … And instead it's the place where I'm most behind of all, where you can see how behind I am, with your eyes, in weeds.",
+        "time": "14:57",
+        "own": true,
+        "bold": [
+         "Behind is my whole body."
+        ],
+        "bold_spans": [
+         [
+          0,
+          24
+         ]
+        ]
+       },
+       "T3": {
+        "state": "Half given away, failed and relieved at once, learning a little slow",
+        "quote_of": "Giving up half: failure and relief unresolved",
+        "quote": "I felt like I had failed. When I decided, I felt like I had failed. And then I felt relieved. Both. And I still don't know which one is right.",
+        "time": "02:33",
+        "own": true,
+        "bold": [
+         "Both."
+        ],
+        "bold_spans": [
+         [
+          94,
+          99
+         ]
+        ]
+       }
+      }
+     },
+     {
+      "title": "From judged by a look to kindness, the letter still kept",
+      "description": "A look at the pushchair heard as a verdict, then a committee letter and hiding, then kindness she did not expect and the letter kept with the passports",
+      "domain": "Relationships",
+      "cards": [
+       {
+        "timepoint": "T1",
+        "kind": "sub-PET",
+        "title": "Proving herself again, to an old man with a hat"
+       },
+       {
+        "timepoint": "T2",
+        "kind": "PET",
+        "title": "Shamed by a letter, and hiding from the plot holders"
+       },
+       {
+        "timepoint": "T3",
+        "kind": "PET",
+        "title": "The feared judgement gone, its letter kept with her passports"
+       }
+      ],
+      "rows": {
+       "T1": {
+        "state": "Judged by a look at the pushchair, and set on showing them",
+        "quote_of": "Judged by a look at the pushchair, a young mother with big ideas",
+        "quote": "he looked at my pushchair like, what is this woman doing here with a baby. … He thinks I'm one more young mother with big ideas. … But I want to show him.",
+        "time": "13:38",
+        "own": true,
+        "bold": [
+         "He thinks I'm one more young mother with big ideas."
+        ],
+        "bold_spans": [
+         [
+          77,
+          128
+         ]
+        ]
+       },
+       "T2": {
+        "state": "Her name written down by the committee, and hiding from the others",
+        "quote_of": "Shamed to tears by the committee letter",
+        "quote": "I read it in the car, outside the nursery, and I cried. … Like somebody walked past my plot with a clipboard and wrote my name down.",
+        "time": "02:51",
+        "own": true,
+        "bold": [
+         "wrote my name down"
+        ],
+        "bold_spans": [
+         [
+          113,
+          131
+         ]
+        ]
+       },
+       "T3": {
+        "state": "Kindness from those she feared, and the letter kept with the passports",
+        "quote_of": "Surprised by the kindness of those she felt watched by",
+        "quote": "They are kind. Really kind. … He came in October and he gave Daria a strawberry plant in a pot. … So maybe they never thought I'm crazy. Maybe only I thought this.",
+        "time": "12:30",
+        "own": true,
+        "bold": [
+         "Maybe only I thought this."
+        ],
+        "bold_spans": [
+         [
+          137,
+          163
+         ]
+        ]
+       }
+      }
+     }
+    ]
+   }
+  },
+  "Arlo": {
+   "timepoints": {
+    "T1": {
+     "file": "Arlo - T1.csv",
+     "turns": [
+      {
+       "at": "Honestly? Sceptical. Quite sceptical. My",
+       "time": "00:00:19",
+       "es": [
+        "Sceptical but unable to say no"
+       ],
+       "kq": [
+        "Honestly? Sceptical. Quite sceptical. My therapist suggested it … And I didn't feel I could turn down three years of waiting just because I was sceptical."
+       ],
+       "en": "'Which I'm aware is a sentence.' Laughed at the therapist, felt bad. The universe 'a bit pointed'."
+      },
+      {
+       "at": "It's the leaflet thing. You",
+       "time": "00:01:16",
+       "es": [
+        "Hard to own being someone told to try gardening"
+       ],
+       "kq": [
+        "Like I'd become the sort of person who gets told to try gardening. I was signed off work for six weeks last autumn, so I suppose I am that sort of person now. That's quite hard to say out loud, actually."
+       ],
+       "en": "The leaflet: have you tried gardening? Being that sort of person 'hard to say out loud'."
+      },
+      {
+       "at": "Yeah. Burnout, panic attacks, the",
+       "time": "00:02:16",
+       "es": [
+        "Undone by work he is good at"
+       ],
+       "kq": [
+        "And I'm good at it, I'm actually very good at it, that's sort of the problem. … And one Tuesday in October I just couldn't open the laptop."
+       ],
+       "en": "Other people's problems in a queue. Good at it, 'that's sort of the problem'. A hand on the lid for an hour."
+      },
+      {
+       "at": "Strange. Very quiet and very",
+       "time": "00:03:09",
+       "es": [],
+       "kq": [],
+       "en": "Checking the queue under the covers. It does not need him either, and that is no comfort."
+      },
+      {
+       "at": "Small. One bedroom, above a",
+       "time": "00:04:08",
+       "es": [
+        "Glad of the first place in two years without the laptop"
+       ],
+       "kq": [
+        "I can see the laptop from the sofa, and from the bed if the door's open. … The plot's the first place in two years that doesn't have the laptop in it somewhere."
+       ],
+       "en": "Smells of other people's shirts. The bedroom door shut on the laptop. The plot free of it."
+      },
+      {
+       "at": "Quiet my head, I suppose.",
+       "time": "00:04:57",
+       "es": [
+        "Hoping for a problem with no one attached"
+       ],
+       "kq": [
+        "Quiet my head, I suppose. … So I want one problem that's just soil and weather. That nobody can email me about. … A problem with no one attached to it."
+       ],
+       "en": "Forty tabs and one playing music. Soil and weather, no ticket, no appraisal: a problem with no one in it."
+      },
+      {
+       "at": "Twice. I read four books",
+       "time": "00:05:45",
+       "es": [
+        "Four books no use against the clay"
+       ],
+       "kq": [
+        "I read four books first, which is very me. … And then I got there, and the books were no use at all. … It stuck to the fork like it had opinions."
+       ],
+       "en": "'Which is very me.' Nine hours of videos. Clay with opinions."
+      },
+      {
+       "at": "Annoying, then funny. Mostly annoying,",
+       "time": "00:06:38",
+       "es": [
+        "A fraud in new gloves, watched by an old man"
+       ],
+       "kq": [
+        "I stood there in brand new gloves, still with the label on … and I felt like a complete fraud. … And there's an old man on the next plot, Des … and he'd been watching me."
+       ],
+       "en": "The cardboard tag still on the gloves. Cosplaying a gardener."
+      },
+      {
+       "at": "Which was either kind or",
+       "time": "00:07:30",
+       "es": [
+        "Unable to tell kindness from threat in an old man's words"
+       ],
+       "kq": [
+        "Which was either kind or a threat, I genuinely couldn't tell. … I read everything as an evaluation. Everyone's a performance review."
+       ],
+       "en": "Four hours on one sentence of Des's. Kind or a threat?"
+      },
+      {
+       "at": "Yeah. I'm fine on calls.",
+       "time": "00:08:13",
+       "es": [
+        "Lost for what to do with his face among people"
+       ],
+       "kq": [
+        "But in person I don't really know where to put myself any more. … I don't know what to do with my face. … In real life there's no mute."
+       ],
+       "en": "No mute in real life. Head down, hoping nobody comes over: the opposite of the prescription."
+      },
+      {
+       "at": "Oh, terrible. And kind of",
+       "time": "00:09:06",
+       "es": [
+        "Digging terrible and amazing, after years lived from the neck up"
+       ],
+       "kq": [
+        "Oh, terrible. And kind of amazing. I've been living from the neck up for about ten years, I think. … it was the first time in months I knew where my hands were."
+       ],
+       "en": "Terrible and amazing. Nine hours' sleep, the first since university."
+      },
+      {
+       "at": "It's hard to explain. At",
+       "time": "00:09:59",
+       "es": [
+        "Hands his own again, as if back from away"
+       ],
+       "kq": [
+        "At the plot they were cold and they were sore and there was clay under the nails that wouldn't come out, and they were mine. … Like they'd been away somewhere and come back."
+       ],
+       "en": "Hands as input devices at work. Turning them over on the bus. 'Slightly embarrassing to say to someone with a recorder.'"
+      },
+      {
+       "at": "Yeah. I mean, I went",
+       "time": "00:10:44",
+       "es": [],
+       "kq": [],
+       "en": "The gym was a spreadsheet too. Hands not data, just sore."
+      },
+      {
+       "at": "Yeah. So I showed it",
+       "time": "00:11:26",
+       "es": [
+        "Watching himself make a project of it"
+       ],
+       "kq": [
+        "so you've turned the thing that was meant to be not work into a project with a timeline. … I can watch myself doing it from about three feet away, and I still do it. Knowing doesn't stop it."
+       ],
+       "en": "Watches himself from three feet away. Knowing does not stop it."
+      },
+      {
+       "at": "Not failing, I suppose. That's",
+       "time": "00:12:17",
+       "es": [],
+       "kq": [],
+       "en": "Broken in public. Another failure, with an audience."
+      },
+      {
+       "at": "At the plot everything's visible.",
+       "time": "00:12:44",
+       "es": [
+        "Mistakes on show for anyone passing"
+       ],
+       "kq": [
+        "At work you can hide a mistake in a log file, nobody reads the logs. Here your mistakes are just out there, in rows, for anyone who walks past. … It's a very public way to be bad at something."
+       ],
+       "en": "Logs nobody reads against rows anyone can see."
+      },
+      {
+       "at": "That last autumn wasn't a",
+       "time": "00:13:31",
+       "es": [
+        "Afraid the plot will prove him someone who breaks"
+       ],
+       "kq": [
+        "But if I can't even do this … then maybe it wasn't a blip. Maybe that's just what I'm like now. Maybe I'm someone who breaks."
+       ],
+       "en": "A blip or what he is now? 'Someone who breaks.' Rather not find out in front of Des."
+      },
+      {
+       "at": "I try not to picture",
+       "time": "00:14:17",
+       "es": [
+        "One target despite himself: still going in October"
+       ],
+       "kq": [
+        "So I haven't set targets. Except I have, obviously. … Still turning up in October. That's the key performance indicator. I'm aware that's a joke and not a joke."
+       ],
+       "en": "The one target, a KPI. 'A joke and not a joke.'"
+      },
+      {
+       "at": "Honestly, nothing. That's the picture.",
+       "time": "00:14:51",
+       "es": [
+        "Picturing a rest without guilt he cannot reach"
+       ],
+       "kq": [
+        "Me, on a fold-up chair, at the end of a row of something green, not doing anything, not thinking about anything, and not feeling guilty … I just don't know how you get from the spreadsheet to the chair."
+       ],
+       "en": "The chair, not the spreadsheet. 'Maybe that's what the year is for.'"
+      },
+      {
+       "at": "Can I add one thing?",
+       "time": "00:15:36",
+       "es": [
+        "Hiding in the car from the gate, a low moment"
+       ],
+       "kq": [
+        "I sat in the car in the car park for twenty minutes before I got out. … There were two people at the gate talking, and I waited until they'd gone. … It was a bit of a low moment, if I'm honest."
+       ],
+       "en": "Twenty minutes in the car, engine off, phone as cover."
+      }
+     ],
+     "board": {
+      "name": "Board 1",
+      "pets": [
+       {
+        "title": "From his head into his hands",
+        "description": "A problem with no one attached, the first place without the laptop, a chair pictured, and hands his own again",
+        "picks": [
+         "Quiet my head, I suppose. … So I want one problem that's just soil and weather. That nobody can email me about. … A problem with no one attached to it."
+        ],
+        "statements": [],
+        "subs": [
+         {
+          "title": "A problem with no one attached, away from the laptop",
+          "description": "A quiet head hoped for, the laptop left behind, and rest without guilt pictured",
+          "statements": [
+           "Hoping for a problem with no one attached",
+           "Glad of the first place in two years without the laptop",
+           "Picturing a rest without guilt he cannot reach"
+          ]
+         },
+         {
+          "title": "Finding his hands, terrible and amazing",
+          "description": "Digging terrible and amazing, and sore hands turned over on the bus",
+          "statements": [
+           "Hands his own again, as if back from away",
+           "Digging terrible and amazing, after years lived from the neck up"
+          ]
+         }
+        ]
+       },
+       {
+        "title": "A prescribed project he is afraid to fail, in front of everyone",
+        "description": "Hard to own needing it, afraid it will prove him someone who breaks, and books and a spreadsheet against the clay",
+        "picks": [
+         "But if I can't even do this … then maybe it wasn't a blip. Maybe that's just what I'm like now. Maybe I'm someone who breaks."
+        ],
+        "statements": [],
+        "subs": [
+         {
+          "title": "Afraid it will prove him someone who breaks",
+          "description": "Signed off last autumn, sceptical and hard to own it, and mistakes on show for anyone to see",
+          "statements": [
+           "Afraid the plot will prove him someone who breaks",
+           "Mistakes on show for anyone passing",
+           "Hard to own being someone told to try gardening",
+           "Undone by work he is good at",
+           "Sceptical but unable to say no"
+          ]
+         },
+         {
+          "title": "Books, a spreadsheet and one target, against the clay",
+          "description": "Preparing by reading, the not-work made a project, and still going in October",
+          "statements": [
+           "Watching himself make a project of it",
+           "Four books no use against the clay",
+           "One target despite himself: still going in October"
+          ]
+         }
+        ]
+       },
+       {
+        "title": "Hiding from the people at the plot, every look a verdict",
+        "description": "An old man's remark heard as a verdict, no mute in person, new gloves watched, and twenty minutes in the car",
+        "picks": [
+         "Which was either kind or a threat, I genuinely couldn't tell. … I read everything as an evaluation. Everyone's a performance review."
+        ],
+        "statements": [
+         "Unable to tell kindness from threat in an old man's words",
+         "Hiding in the car from the gate, a low moment",
+         "Lost for what to do with his face among people",
+         "A fraud in new gloves, watched by an old man"
+        ],
+        "subs": []
+       }
+      ],
+      "unplaced": []
+     }
+    },
+    "T2": {
+     "file": "Arlo - T2.csv",
+     "turns": [
+      {
+       "at": "Better than I expected and",
+       "time": "00:00:12",
+       "es": [
+        "Calm some days, the worry moved outdoors on others"
+       ],
+       "kq": [
+        "Some days I come back calm. Properly calm, like something's been taken out of my head and put down somewhere. … So I haven't stopped worrying. I've just moved the worry."
+       ],
+       "en": "'The most honest sentence I've said all year.' The worry relocated, outdoors, about lettuces."
+      },
+      {
+       "at": "So in May the slugs",
+       "time": "00:00:55",
+       "es": [
+        "Lost lettuces taken personally, slugs hunted at night"
+       ],
+       "kq": [
+        "And I took it personally. I really did. I took it as a personal attack. That night I went back at eleven o'clock with a head torch and a bucket … Which is not, I'm aware, the behaviour of a calm person."
+       ],
+       "en": "Twenty-four lettuces, done 'literally by the book'. A personal attack."
+      },
+      {
+       "at": "It was very strange. I",
+       "time": "00:01:50",
+       "es": [
+        "Despairing and laughing on call in a field"
+       ],
+       "kq": [
+        "I thought, this is my job. This is literally my job. Something's broken, it's urgent, and I'm on call. … And I laughed. … Despairing and funny at the same time."
+       ],
+       "en": "A night shift built for himself in a field. Laughs out loud, alone. Sleeps after, as he never does after work."
+      },
+      {
+       "at": "Yeah. I think that's what",
+       "time": "00:02:45",
+       "es": [],
+       "kq": [],
+       "en": "The queue as a way of being, not a job. 'An inbox in a field': the weather checked like email."
+      },
+      {
+       "at": "Last Tuesday. I went at",
+       "time": "00:03:32",
+       "es": [
+        "An hour tying tomatoes in the mist without a single thought"
+       ],
+       "kq": [
+        "And I tied in the tomatoes. Just that. … And I didn't think about anything at all, for an hour. Nothing. I couldn't tell you the last time that happened."
+       ],
+       "en": "Mist, bean poles, nobody about, not even Des. String, tomato leaves. 'That's all there was.'"
+      },
+      {
+       "at": "It's hard to describe, because",
+       "time": "00:04:27",
+       "es": [
+        "The quiet gone at a glance at the phone"
+       ],
+       "kq": [
+        "It was like somebody had closed all my tabs. All forty. … I was a bit scared to move. In case they all came back. … And then I looked at my phone to check the time and they all came back."
+       ],
+       "en": "All forty tabs closed. Holding the string still 'like you would with a bird'. The phone brings them back."
+      },
+      {
+       "at": "Yeah. Because I know I",
+       "time": "00:05:24",
+       "es": [
+        "Quiet possible but not to order"
+       ],
+       "kq": [
+        "You can't schedule it. Which is very annoying for someone like me … But it happened, once, so I know it's possible. That's new."
+       ],
+       "en": "Scheduling is 'basically my whole personality'. It cannot be scheduled, and it happened."
+      },
+      {
+       "at": "No. I'd sort of accepted",
+       "time": "00:06:13",
+       "es": [
+        "Relieved to find his head not broken"
+       ],
+       "kq": [
+        "So it can stop. It's not broken, it's just never been turned off. That's a different problem. … But it's a different problem, and I quite like having a different problem."
+       ],
+       "en": "A server room never turned off. Not broken. Likes having a different problem."
+      },
+      {
+       "at": "I keep to myself. I",
+       "time": "00:06:53",
+       "es": [
+        "Silent headphones to keep people off"
+       ],
+       "kq": [
+        "I'll be honest, half the time there's nothing playing. They're just in. They're a sign. Do not disturb. … But I'm not there for people."
+       ],
+       "en": "Headphones with nothing playing. 'There to not be there for people.'"
+      },
+      {
+       "at": "Mostly. Although. There's a group",
+       "time": "00:07:39",
+       "es": [
+        "Nearly envious of the regulars, from a window he chose"
+       ],
+       "kq": [
+        "Envious isn't quite it. It's like watching a party through a window. And I've chosen the window. … But I've chosen the window, and I keep choosing it."
+       ],
+       "en": "A party through a window, the window chosen, and chosen again."
+      },
+      {
+       "at": "If I go over, I",
+       "time": "00:08:27",
+       "es": [
+        "Restful to be nobody in particular"
+       ],
+       "kq": [
+        "And then they'd know me, and then they'd notice when I'm not there, and then I'd have to explain. … That's quite restful, actually. Being nobody in particular."
+       ],
+       "en": "Being somebody on calls all day. Unmissed is restful. Noticed means explaining."
+      },
+      {
+       "at": "I don't know. I don't",
+       "time": "00:09:12",
+       "es": [
+        "Asking nothing so as to be asked nothing"
+       ],
+       "kq": [
+        "I haven't asked. I don't ask people things, at the moment. If you ask people things they ask you things back."
+       ],
+       "en": "Assumes Des is just an old man who likes his allotment. Asks nothing, to be asked nothing."
+      },
+      {
+       "at": "The tomatoes, oddly. I've got",
+       "time": "00:09:49",
+       "es": [
+        "Tomatoes to give away, and a talk at work not about a ticket"
+       ],
+       "kq": [
+        "And we talked for twenty minutes. About tomatoes. About her dad's greenhouse. Twenty minutes. That's the longest conversation I've had at work in a year that wasn't about a ticket."
+       ],
+       "en": "A second head 'in a nice way, mostly'. Twenty minutes not about a ticket."
+      },
+      {
+       "at": "Weird. Nice. Mostly nice. I",
+       "time": "00:10:48",
+       "es": [],
+       "kq": [],
+       "en": "Nothing to do with his face when the tomatoes do the talking. Two inches taller."
+      },
+      {
+       "at": "Yeah. I've been thinking about",
+       "time": "00:11:31",
+       "es": [
+        "Something good to say at last"
+       ],
+       "kq": [
+        "I think the plot's the first thing in years that I've got something to say about that isn't a complaint. … It's good news. I didn't have any good news. Now I've got tomatoes."
+       ],
+       "en": "Every topic a complaint, the plot the exception."
+      },
+      {
+       "at": "Still there. Still feels watched.",
+       "time": "00:12:24",
+       "es": [
+        "Hazel poles after a remark heard as contempt",
+        "Comforted that everyone lost lettuces: not uniquely bad"
+       ],
+       "kq": [
+        "and I went straight to, he thinks I'm useless … And then the next day there were six hazel poles leaning on my shed. From him. No note. Just poles. So I've decided Des is not a performance review.",
+        "Because everyone had slugs. Everyone lost their lettuces. It wasn't me being uniquely bad, it was just May. Which is a strange thing to be comforted by. Collective slug failure."
+       ],
+       "en": "Hazel poles, no note. Des 'not a performance review': a decision, still being worked on."
+      },
+      {
+       "at": "Every week. I report back.",
+       "time": "00:13:18",
+       "es": [
+        "Some weeks going for his therapist, not for himself"
+       ],
+       "kq": [
+        "Because it makes it feel like homework again. Like I'm handing in my plot to be marked. … Some weeks I'm going for her, not for me."
+       ],
+       "en": "Handing in the plot to be marked. Her pleasure makes it homework."
+      },
+      {
+       "at": "A bit hollow. Those are",
+       "time": "00:14:00",
+       "es": [
+        "Good days the ones he forgets to report on"
+       ],
+       "kq": [
+        "So then I'm doing the plot and the report about the plot at the same time, and that's two jobs. The good days are the ones where I forget to tell her."
+       ],
+       "en": "Narrating to her in his head: the plot and the report on it, two jobs."
+      },
+      {
+       "at": "My hands are completely different.",
+       "time": "00:14:51",
+       "es": [
+        "A welcome tiredness that lets him sleep"
+       ],
+       "kq": [
+        "My hands are completely different. Calluses … I look like two different people stitched together. … The screen tired is sort of buzzy. The plot tired is heavy and it lets you go."
+       ],
+       "en": "Two people stitched together, the tanned arm and the office arm."
+      },
+      {
+       "at": "Only that I'm still going.",
+       "time": "00:15:42",
+       "es": [
+        "Hearing himself say he is on track"
+       ],
+       "kq": [
+        "Only that I'm still going. … So I'm on track. I'm aware I've just described my own life as being on track against a target. I can hear it."
+       ],
+       "en": "On track against a target. 'I can hear it.'"
+      }
+     ],
+     "board": {
+      "name": "Board 1",
+      "pets": [
+       {
+        "title": "“All my tabs” closed for an hour: a quiet he cannot schedule",
+        "description": "An hour tying tomatoes without a thought, held very still, not to be made to happen, and a head not broken after all",
+        "picks": [
+         "It was like somebody had closed all my tabs. All forty. … I was a bit scared to move. In case they all came back. … And then I looked at my phone to check the time and they all came back."
+        ],
+        "statements": [],
+        "subs": [
+         {
+          "title": "An hour of quiet he was afraid to move in",
+          "description": "Tying tomatoes in the mist, the quiet gone at a glance at the phone, and a tiredness that lets him sleep",
+          "statements": [
+           "The quiet gone at a glance at the phone",
+           "An hour tying tomatoes in the mist without a single thought",
+           "A welcome tiredness that lets him sleep"
+          ]
+         },
+         {
+          "title": "Not to be scheduled, and a head not broken",
+          "description": "Possible but not to order, a different problem, and calm some days, the worry moved on others",
+          "statements": [
+           "Quiet possible but not to order",
+           "Relieved to find his head not broken",
+           "Calm some days, the worry moved outdoors on others"
+          ]
+         }
+        ]
+       },
+       {
+        "title": "Keeping people off with headphones, and reached anyway",
+        "description": "The window chosen over the party, nobody in particular, asking nothing, and reached by hazel poles and a bag of tomatoes",
+        "picks": [
+         "Envious isn't quite it. It's like watching a party through a window. And I've chosen the window. … But I've chosen the window, and I keep choosing it."
+        ],
+        "statements": [],
+        "subs": [
+         {
+          "title": "At the window, nobody in particular",
+          "description": "Headphones playing nothing, nearly envious of the regulars, restful to be unmissed, and asking Des nothing",
+          "statements": [
+           "Nearly envious of the regulars, from a window he chose",
+           "Silent headphones to keep people off",
+           "Restful to be nobody in particular",
+           "Asking nothing so as to be asked nothing"
+          ]
+         },
+         {
+          "title": "Reached by hazel poles and a bag of tomatoes",
+          "description": "Des's poles after a remark heard as contempt, and good news to say at work",
+          "statements": [
+           "Hazel poles after a remark heard as contempt",
+           "Tomatoes to give away, and a talk at work not about a ticket",
+           "Something good to say at last"
+          ]
+         }
+        ]
+       },
+       {
+        "title": "On call and marked, even at the plot",
+        "description": "Slugs hunted at night like a broken system, comforted by everyone's failure, and the plot reported to his therapist like homework",
+        "picks": [
+         "I thought, this is my job. This is literally my job. Something's broken, it's urgent, and I'm on call. … And I laughed. … Despairing and funny at the same time."
+        ],
+        "statements": [],
+        "subs": [
+         {
+          "title": "On call for the slugs, and laughing at himself",
+          "description": "Lettuces lost as a personal attack, a night shift in a field, and not uniquely bad",
+          "statements": [
+           "Despairing and laughing on call in a field",
+           "Lost lettuces taken personally, slugs hunted at night",
+           "Comforted that everyone lost lettuces: not uniquely bad"
+          ]
+         },
+         {
+          "title": "Going for his therapist, the plot a report to hand in",
+          "description": "Some weeks for her, the good days the ones he forgets to tell, and on track against a target",
+          "statements": [
+           "Some weeks going for his therapist, not for himself",
+           "Good days the ones he forgets to report on",
+           "Hearing himself say he is on track"
+          ]
+         }
+        ]
+       }
+      ],
+      "unplaced": []
+     }
+    },
+    "T3": {
+     "file": "Arlo - T3.csv",
+     "turns": [
+      {
+       "at": "Up and down. Very up",
+       "time": "00:00:13",
+       "es": [
+        "Feeling he had let a plot down"
+       ],
+       "kq": [
+        "I didn't decide to stop. I just didn't go … And I stood there and I felt I'd let it down. Which is ridiculous. It's a plot."
+       ],
+       "en": "Did not decide to stop, just did not go. 'You can't let a rectangle down', and he felt he had."
+      },
+      {
+       "at": "It was the exact feeling",
+       "time": "00:01:22",
+       "es": [
+        "Last autumn back at the black beans, the calm called fake"
+       ],
+       "kq": [
+        "It was the exact feeling from last autumn. … I had the whole thing come back, the chest, the hands going. … The calm was fake. … You can't even keep a vegetable patch alive."
+       ],
+       "en": "The chest, the hands, by Des's shed. 'See.' The summer called a holiday."
+      },
+      {
+       "at": "I went home. I didn't",
+       "time": "00:02:11",
+       "es": [],
+       "kq": [],
+       "en": "The email in drafts. Clearing the shed so the key goes back clean."
+      },
+      {
+       "at": "Yeah. That's the pattern, isn't",
+       "time": "00:02:57",
+       "es": [
+        "Another thing quietly stopped, as before, with nobody chasing"
+       ],
+       "kq": [
+        "I'm good at starting things. … And then something gets hard and I just quietly stop, and I don't tell anyone … If you stop quietly enough, nobody chases you."
+       ],
+       "en": "The climbing wall, the friends, the group chat: stopping quietly. Nobody chases."
+      },
+      {
+       "at": "And then there was a",
+       "time": "00:03:37",
+       "es": [
+        "Moved by a handwritten note not about work"
+       ],
+       "kq": [
+        "And I stood there and read it about five times. And I realised it was the first note anyone had left me in years that wasn't about work. … Somebody had written something down for me, by hand, about my leeks."
+       ],
+       "en": "On the back of a seed packet, a drawing pin, a D. Read five times."
+      },
+      {
+       "at": "It wasn't kind, exactly. It",
+       "time": "00:04:23",
+       "es": [
+        "Noticed missing and not made to explain"
+       ],
+       "kq": [
+        "But he'd noticed I wasn't there. That's what got me. Somebody noticed I wasn't there and didn't make it a thing. Didn't ask why. Didn't make me explain."
+       ],
+       "en": "Not 'are you all right'. Noticed, and not made to explain. 'As if I was coming back.'"
+      },
+      {
+       "at": "Sort of. I think if",
+       "time": "00:05:07",
+       "es": [
+        "Given a job instead of a feeling"
+       ],
+       "kq": [
+        "But leeks want lifting. That I could do. That was a job. He gave me a job instead of a feeling. I think he knew. I think he's been around a lot of people who stop."
+       ],
+       "en": "A job instead of a feeling. Des 'has been around a lot of people who stop'."
+      },
+      {
+       "at": "I lifted them. Right then,",
+       "time": "00:05:43",
+       "es": [
+        "Learning only now what Des carries, after months of waving"
+       ],
+       "kq": [
+        "And I took my headphones out, both of them, and we talked. For about an hour. … And it turns out his wife died two years ago. … I'd been waving at him for eight months and I had no idea."
+       ],
+       "en": "Both headphones out. Eight months of waving and no idea."
+      },
+      {
+       "at": "Yeah. He said it like",
+       "time": "00:06:42",
+       "es": [
+        "Finding in the plot what the flat is not: somewhere to be"
+       ],
+       "kq": [
+        "The flat is somewhere I am. It's not somewhere I'm at. … The plot's the only place I go to be at."
+       ],
+       "en": "Somewhere I am against somewhere I'm at. Des worked it out for him."
+      },
+      {
+       "at": "None. I'd been treating him",
+       "time": "00:07:28",
+       "es": [
+        "Ashamed of clicking Des away"
+       ],
+       "kq": [
+        "I'd been treating him like a pop-up. … And I'd been performing not needing anyone. Very hard. With headphones. I felt quite ashamed of that, actually"
+       ],
+       "en": "A pop-up clicked away unread. Ashamed, 'standing there with my leeks'."
+      },
+      {
+       "at": "Different. Easier. He still talks",
+       "time": "00:08:13",
+       "es": [
+        "At ease beside Des now, hardly listening"
+       ],
+       "kq": [
+        "But sometimes I walk over to his shed and stand there while he does something, and he tells me what he's doing, and I don't really listen, and it's fine."
+       ],
+       "en": "A gooseberry he does not know what to do with."
+      },
+      {
+       "at": "Yeah. I thought about that,",
+       "time": "00:09:07",
+       "es": [
+        "Contacted after all, and glad: a ticket from Des"
+       ],
+       "kq": [
+        "Because Des basically emailed me. On paper. … It was literally a ticket. And it was the best thing that happened to me all year. … I wanted nobody to contact me about things that aren't real."
+       ],
+       "en": "The ticket he fled turns up on paper, and is the best thing all year. Real against not real."
+      },
+      {
+       "at": "It comes and goes. It's",
+       "time": "00:09:57",
+       "es": [
+        "The quiet no cure but findable"
+       ],
+       "kq": [
+        "It comes and goes. It's not a cure. … But I know where to find it now. That's what's different."
+       ],
+       "en": "Not a cure: his therapist would like it in a report."
+      },
+      {
+       "at": "Tuesday mornings. Early. Doing something",
+       "time": "00:10:48",
+       "es": [
+        "Putting himself in the way of quiet, string in hand, never in the chair"
+       ],
+       "kq": [
+        "I can't make it happen. But I can go where it happens. … I can't switch it on, but I know which room it lives in. … The quiet never came in the chair. It came with string in my hands."
+       ],
+       "en": "Which room it lives in. The chair in the shed with the spider, never sat in."
+      },
+      {
+       "at": "No. That's the other thing.",
+       "time": "00:11:50",
+       "es": [
+        "The plot kept from his therapist as his own"
+       ],
+       "kq": [
+        "I stopped telling her about it in September … It started to feel like mine. Not homework. I didn't want to hand it in any more."
+       ],
+       "en": "Stopped telling her before he stopped going. 'Maybe I learned it from him.'"
+      },
+      {
+       "at": "Yes. But I'm not sure",
+       "time": "00:12:37",
+       "es": [
+        "Needing the plot without loving it"
+       ],
+       "kq": [
+        "I think I need it, which is different. … I don't love it. Some days I really don't like it at all. But I need it. When I didn't go for three weeks, something went wrong in me."
+       ],
+       "en": "Not like people in magazines. Need is not love."
+      },
+      {
+       "at": "Wanting is nice. Needing is",
+       "time": "00:13:18",
+       "es": [
+        "Frightened to need even a rectangle of clay",
+        "Relief in a plot that does not care about him"
+       ],
+       "kq": [
+        "Wanting is nice. Needing is a bit frightening. … I don't like needing things. … And now I need a rectangle of clay.",
+        "I think what I needed most this year was something that doesn't care about me at all. The plot doesn't care. … It's the one thing in my life that isn't evaluating me."
+       ],
+       "en": "Does his own tech support. Needs a rectangle of clay that does not care."
+      },
+      {
+       "at": "My hands, still. The calluses",
+       "time": "00:14:17",
+       "es": [
+        "A body that knew before he did that he had stopped"
+       ],
+       "kq": [
+        "When I stopped going in September, the sleep went first. Before I'd even noticed I'd stopped going, I was lying awake again at three. My body knew before I did."
+       ],
+       "en": "The body keeping a better record than him. 'Less grey', taken as a compliment."
+      },
+      {
+       "at": "The headphones. In March and",
+       "time": "00:15:04",
+       "es": [
+        "Glad to be bored by onions with Des"
+       ],
+       "kq": [
+        "But actually, I took them out last week. Without planning it. … It was quite boring, honestly. Onions are quite boring. But it was fine. … And it was one of the better ten minutes of my year."
+       ],
+       "en": "Planned for spring, done last week. Bored by onions, no mute needed."
+      }
+     ],
+     "board": {
+      "name": "Board 1",
+      "pets": [
+       {
+        "title": "Fetched back by a note on the shed, to Des at last",
+        "description": "Noticed missing and given a job instead of a feeling, then headphones out and an old man's grief, and onions that bore him",
+        "picks": [
+         "And I stood there and read it about five times. And I realised it was the first note anyone had left me in years that wasn't about work. … Somebody had written something down for me, by hand, about my leeks."
+        ],
+        "statements": [],
+        "subs": [
+         {
+          "title": "A note on the shed: noticed missing, given a job",
+          "description": "The first note in years not about work, no explaining asked, and a ticket that was the best thing all year",
+          "statements": [
+           "Moved by a handwritten note not about work",
+           "Noticed missing and not made to explain",
+           "Given a job instead of a feeling",
+           "Contacted after all, and glad: a ticket from Des"
+          ]
+         },
+         {
+          "title": "Headphones out, and Des known at last",
+          "description": "An hour with Des, ashamed of clicking him away, easy beside him now, and bored by onions",
+          "statements": [
+           "Learning only now what Des carries, after months of waving",
+           "Ashamed of clicking Des away",
+           "At ease beside Des now, hardly listening",
+           "Glad to be bored by onions with Des"
+          ]
+         }
+        ]
+       },
+       {
+        "title": "Last autumn back at the black beans: another thing stopped",
+        "description": "Letting the plot go over, the old panic and the calm called fake, stopping quietly as before, and a body that knew first",
+        "picks": [
+         "It was the exact feeling from last autumn. … I had the whole thing come back, the chest, the hands going. … The calm was fake. … You can't even keep a vegetable patch alive."
+        ],
+        "statements": [
+         "Last autumn back at the black beans, the calm called fake",
+         "Feeling he had let a plot down",
+         "Another thing quietly stopped, as before, with nobody chasing",
+         "A body that knew before he did that he had stopped"
+        ],
+        "subs": []
+       },
+       {
+        "title": "No cure, but he knows “which room it lives in”",
+        "description": "Not to be switched on, but a room it lives in, string in hand, and the plot somewhere to be",
+        "picks": [
+         "I can't make it happen. But I can go where it happens. … I can't switch it on, but I know which room it lives in. … The quiet never came in the chair. It came with string in my hands."
+        ],
+        "statements": [
+         "Putting himself in the way of quiet, string in hand, never in the chair",
+         "The quiet no cure but findable",
+         "Finding in the plot what the flat is not: somewhere to be"
+        ],
+        "subs": []
+       },
+       {
+        "title": "“I need it, which is different”: a plot that does not care",
+        "description": "Frightened to need anything, relieved by the one thing not judging him, and the plot his own, not homework",
+        "picks": [
+         "I think I need it, which is different. … I don't love it. Some days I really don't like it at all. But I need it. When I didn't go for three weeks, something went wrong in me."
+        ],
+        "statements": [
+         "Needing the plot without loving it",
+         "Relief in a plot that does not care about him",
+         "Frightened to need even a rectangle of clay",
+         "The plot kept from his therapist as his own"
+        ],
+        "subs": []
+       }
+      ],
+      "unplaced": []
+     }
+    }
+   },
+   "lpets": {
+    "name": "LPETs",
+    "lpets": [
+     {
+      "title": "From a quiet head hoped for to knowing where quiet lives",
+      "description": "A problem with no one attached and his hands found, then an hour with every tab closed that will not come to order, then no cure but a place to go for it",
+      "domain": "Psychological, Physical",
+      "cards": [
+       {
+        "timepoint": "T1",
+        "kind": "PET",
+        "title": "From his head into his hands"
+       },
+       {
+        "timepoint": "T2",
+        "kind": "PET",
+        "title": "“All my tabs” closed for an hour: a quiet he cannot schedule"
+       },
+       {
+        "timepoint": "T3",
+        "kind": "PET",
+        "title": "No cure, but he knows “which room it lives in”"
+       }
+      ],
+      "rows": {
+       "T1": {
+        "state": "Hoping for a quiet head, and finding his hands",
+        "quote_of": "Hoping for a problem with no one attached",
+        "quote": "Quiet my head, I suppose. … So I want one problem that's just soil and weather. That nobody can email me about. … A problem with no one attached to it.",
+        "time": "04:57",
+        "own": true,
+        "bold": [
+         "A problem with no one attached to it."
+        ],
+        "bold_spans": [
+         [
+          114,
+          151
+         ]
+        ]
+       },
+       "T2": {
+        "state": "One hour of quiet, held still, not to be scheduled",
+        "quote_of": "The quiet gone at a glance at the phone",
+        "quote": "It was like somebody had closed all my tabs. All forty. … I was a bit scared to move. In case they all came back. … And then I looked at my phone to check the time and they all came back.",
+        "time": "04:27",
+        "own": true,
+        "bold": [
+         "It was like somebody had closed all my tabs."
+        ],
+        "bold_spans": [
+         [
+          0,
+          44
+         ]
+        ]
+       },
+       "T3": {
+        "state": "No cure, but he knows where it comes, string in hand",
+        "quote_of": "Putting himself in the way of quiet, string in hand, never in the chair",
+        "quote": "I can't make it happen. But I can go where it happens. … I can't switch it on, but I know which room it lives in. … The quiet never came in the chair. It came with string in my hands.",
+        "time": "10:48",
+        "own": true,
+        "bold": [
+         "I know which room it lives in"
+        ],
+        "bold_spans": [
+         [
+          83,
+          112
+         ]
+        ]
+       }
+      }
+     },
+     {
+      "title": "From headphones in to fetched back by a note on the shed",
+      "description": "Every look an evaluation and hiding in the car, then headphones playing nothing and the window chosen, then noticed missing, fetched back, and Des known",
+      "domain": "Relationships",
+      "cards": [
+       {
+        "timepoint": "T1",
+        "kind": "PET",
+        "title": "Hiding from the people at the plot, every look a verdict"
+       },
+       {
+        "timepoint": "T2",
+        "kind": "PET",
+        "title": "Keeping people off with headphones, and reached anyway"
+       },
+       {
+        "timepoint": "T3",
+        "kind": "PET",
+        "title": "Fetched back by a note on the shed, to Des at last"
+       }
+      ],
+      "rows": {
+       "T1": {
+        "state": "Every remark heard as a verdict, hiding in the car from the gate",
+        "quote_of": "Unable to tell kindness from threat in an old man's words",
+        "quote": "Which was either kind or a threat, I genuinely couldn't tell. … I read everything as an evaluation. Everyone's a performance review.",
+        "time": "07:30",
+        "own": true,
+        "bold": [
+         "Everyone's a performance review."
+        ],
+        "bold_spans": [
+         [
+          100,
+          132
+         ]
+        ]
+       },
+       "T2": {
+        "state": "Headphones in, the window chosen, reached anyway by poles and tomatoes",
+        "quote_of": "Nearly envious of the regulars, from a window he chose",
+        "quote": "Envious isn't quite it. It's like watching a party through a window. And I've chosen the window. … But I've chosen the window, and I keep choosing it.",
+        "time": "07:39",
+        "own": true,
+        "bold": [
+         "And I've chosen the window."
+        ],
+        "bold_spans": [
+         [
+          69,
+          96
+         ]
+        ]
+       },
+       "T3": {
+        "state": "Noticed missing and fetched back by a note, headphones out with Des",
+        "quote_of": "Noticed missing and not made to explain",
+        "quote": "But he'd noticed I wasn't there. That's what got me. Somebody noticed I wasn't there and didn't make it a thing. Didn't ask why. Didn't make me explain.",
+        "time": "04:23",
+        "own": true,
+        "bold": [
+         "Somebody noticed I wasn't there and didn't make it a thing."
+        ],
+        "bold_spans": [
+         [
+          53,
+          112
+         ]
+        ]
+       }
+      }
+     },
+     {
+      "title": "From a prescribed project he feared failing to a plot he needs",
+      "description": "Afraid it would prove him someone who breaks, then on call and marked like homework, then the plot let go, picked up again, and needed, not loved",
+      "domain": "Psychological, Work",
+      "cards": [
+       {
+        "timepoint": "T1",
+        "kind": "PET",
+        "title": "A prescribed project he is afraid to fail, in front of everyone"
+       },
+       {
+        "timepoint": "T2",
+        "kind": "PET",
+        "title": "On call and marked, even at the plot"
+       },
+       {
+        "timepoint": "T3",
+        "kind": "PET",
+        "title": "Last autumn back at the black beans: another thing stopped"
+       },
+       {
+        "timepoint": "T3",
+        "kind": "PET",
+        "title": "“I need it, which is different”: a plot that does not care"
+       }
+      ],
+      "rows": {
+       "T1": {
+        "state": "Afraid the plot will prove him someone who breaks",
+        "quote_of": "Afraid the plot will prove him someone who breaks",
+        "quote": "But if I can't even do this … then maybe it wasn't a blip. Maybe that's just what I'm like now. Maybe I'm someone who breaks.",
+        "time": "13:31",
+        "own": true,
+        "bold": [
+         "Maybe I'm someone who breaks."
+        ],
+        "bold_spans": [
+         [
+          96,
+          125
+         ]
+        ]
+       },
+       "T2": {
+        "state": "On call for slugs, and going for his therapist, not himself",
+        "quote_of": "Some weeks going for his therapist, not for himself",
+        "quote": "Because it makes it feel like homework again. Like I'm handing in my plot to be marked. … Some weeks I'm going for her, not for me.",
+        "time": "13:18",
+        "own": true,
+        "bold": [
+         "Like I'm handing in my plot to be marked."
+        ],
+        "bold_spans": [
+         [
+          46,
+          87
+         ]
+        ]
+       },
+       "T3": {
+        "state": "Let go and taken up again: needed, not loved, his own, not homework",
+        "quote_of": "Needing the plot without loving it",
+        "quote": "I think I need it, which is different. … I don't love it. Some days I really don't like it at all. But I need it. When I didn't go for three weeks, something went wrong in me.",
+        "time": "12:37",
+        "own": true,
+        "bold": [
+         "I think I need it, which is different."
+        ],
+        "bold_spans": [
+         [
+          0,
+          38
+         ]
+        ]
+       }
+      }
+     }
+    ]
+   }
+  }
+ },
+ "lgets": {
+  "name": "LGETs",
+  "lgets": [
+   {
+    "title": "From watched at the gate to taken in without fuss",
+    "description": "Hollis carried by the old hands who watched him, Nell given kindness she never expected though she keeps the letter, and Arlo fetched back by a note after months behind headphones",
+    "members": [
+     {
+      "case": "Hollis",
+      "lpet": "From watched at the gate to the old hand who goes quiet"
+     },
+     {
+      "case": "Nell",
+      "lpet": "From judged by a look to kindness, the letter still kept"
+     },
+     {
+      "case": "Arlo",
+      "lpet": "From headphones in to fetched back by a note on the shed"
+     }
+    ],
+    "quotes": {
+     "Hollis": {
+      "timepoint": "T3",
+      "quote": "a year ago, if somebody had dug my plot, that's what I'd have heard. I'd have been ashamed. … And this time it was the other way round. … You don't dig for somebody who's not one of you.",
+      "quote_of": "Help heard now as belonging"
+     },
+     "Nell": {
+      "timepoint": "T3",
+      "quote": "They are kind. Really kind. … He came in October and he gave Daria a strawberry plant in a pot. … So maybe they never thought I'm crazy. Maybe only I thought this.",
+      "quote_of": "Surprised by the kindness of those she felt watched by"
+     },
+     "Arlo": {
+      "timepoint": "T3",
+      "quote": "But he'd noticed I wasn't there. That's what got me. Somebody noticed I wasn't there and didn't make it a thing. Didn't ask why. Didn't make me explain.",
+      "quote_of": "Noticed missing and not made to explain"
+     }
+    }
+   },
+   {
+    "title": "“One thing that is mine”: wanted from the plot, found in part",
+    "description": "For Hollis a place and news of his own, the winter flat still waiting, for Nell ten minutes in a deckchair and her buni's garden out of reach, and for Arlo a quiet that comes and goes but has a place",
+    "members": [
+     {
+      "case": "Hollis",
+      "lpet": "From the part left over to news of his own"
+     },
+     {
+      "case": "Nell",
+      "lpet": "From “one thing that is mine” to the help, and ten minutes"
+     },
+     {
+      "case": "Nell",
+      "lpet": "From her buni's garden wanted again to “you cannot dig that”"
+     },
+     {
+      "case": "Arlo",
+      "lpet": "From a quiet head hoped for to knowing where quiet lives"
+     }
+    ],
+    "quotes": {
+     "Hollis": {
+      "timepoint": "T3",
+      "quote": "She says I come back from the plot with things to say. … I didn't have things to say before. … A man needs a bit of news of his own, I think.",
+      "quote_of": "Home from the plot with news of his own for Pat"
+     },
+     "Nell": {
+      "timepoint": "T1",
+      "quote": "I wanted one thing that is mine. Everything is for somebody. … And I thought, I want one thing that is mine, even if it's mostly mud.",
+      "quote_of": "Wanting one thing of her own, when all else is for others"
+     },
+     "Arlo": {
+      "timepoint": "T3",
+      "quote": "I can't make it happen. But I can go where it happens. … I can't switch it on, but I know which room it lives in. … The quiet never came in the chair. It came with string in my hands.",
+      "quote_of": "Putting himself in the way of quiet, string in hand, never in the chair"
+     }
+    }
+   },
+   {
+    "title": "From a test they must not fail to letting it be enough",
+    "description": "Hollis ashamed of his limits until help felt like belonging, Nell strict and behind until half given away left her failed and relieved, and Arlo afraid of breaking until he let the plot go, came back, and found he needs it",
+    "members": [
+     {
+      "case": "Hollis",
+      "lpet": "From ashamed of his limits to carried without shame"
+     },
+     {
+      "case": "Nell",
+      "lpet": "From taking too much to half given away, failed and relieved"
+     },
+     {
+      "case": "Arlo",
+      "lpet": "From a prescribed project he feared failing to a plot he needs"
+     }
+    ],
+    "quotes": {
+     "Hollis": {
+      "timepoint": "T3",
+      "quote": "It'll go again. I'm sixty-eight, it'll go again, I know that now. … But I know now that if it does, somebody'd lift my spuds.",
+      "quote_of": "Sure someone would lift his potatoes next time"
+     },
+     "Nell": {
+      "timepoint": "T3",
+      "quote": "I felt like I had failed. When I decided, I felt like I had failed. And then I felt relieved. Both. And I still don't know which one is right.",
+      "quote_of": "Giving up half: failure and relief unresolved"
+     },
+     "Arlo": {
+      "timepoint": "T3",
+      "quote": "I think I need it, which is different. … I don't love it. Some days I really don't like it at all. But I need it. When I didn't go for three weeks, something went wrong in me.",
+      "quote_of": "Needing the plot without loving it"
+     }
+    }
+   }
+  ],
+  "set_aside": []
+ },
+ "trajectories": {
+  "title": "How do people experience their first year of keeping an allotment?",
+  "columns": [
+   {
+    "title": "Settling in",
+    "description": "Taken in by the plot and its people by the harvest, the winter still to face",
+    "colour": "Green",
+    "icon": "rising",
+    "order": [
+     "Hollis"
+    ]
+   },
+   {
+    "title": "Second thoughts",
+    "description": "Letting the plot go, coming back, and keeping it as a need more than a wish",
+    "colour": "Amber",
+    "icon": "mixed",
+    "order": [
+     "Arlo"
+    ]
+   },
+   {
+    "title": "Letting go",
+    "description": "Giving part of the plot, and what it stood for, over to others, and minding it",
+    "colour": "Plum",
+    "icon": "falling",
+    "order": [
+     "Nell"
+    ]
+   }
+  ],
+  "placed": {
+   "Hollis": {
+    "title": "The new lad at the gate",
+    "note": "Watched at the gate in March, carried by the old hands when his back went, home with news of his own, only the winter flat still in doubt."
+   },
+   "Nell": {
+    "title": "The village girl in England",
+    "note": "A full plot taken for herself, the children and her buni's garden, the half like her buni's given away in November, failed and relieved, the rest the children's place."
+   },
+   "Arlo": {
+    "title": "The reluctant gardener",
+    "note": "Taken on at his therapist's suggestion, let go over in the autumn, fetched back by Des's note, and kept because he needs it, not because he loves it."
+   }
+  },
+  "note": "An invented study, the demo's. Every participant and every word in it is made up."
+ }
+}

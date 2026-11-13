@@ -70,7 +70,7 @@ def test_project_settings(scratch: Path):
         return
     line_of = lambda name: next(ln for ln in js.splitlines() if ln.startswith(f"const {name} = "))
     pieces = [line_of("PROJ"), line_of("projectAt"), line_of("WORDS_DEFAULT"), line_of("WORDS_MIN"), line_of("WORDS_MAX"),
-              line_of("WORDS"), line_of("wordBand"), line_of("isDemoId"), line_of("DEMO_ID"), line_of("DEMO_TA_ID")]
+              line_of("WORDS"), line_of("wordBand"), line_of("isDemoId"), line_of("DEMO_ID"), line_of("DEMO_TA_ID"), line_of("DEMO_LIPA_ID")]
     whole = lambda name: ("async " if f"async function {name}(" in js else "") + "function " + name + "(" + fn(name) + "\n}"
     pieces += [whole(n) for n in ("projectBehind", "getsTarget", "projectBody", "wordsOf", "wordsSet", "saveWords")]
     script = base / "projset-328.js"

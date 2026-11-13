@@ -59,6 +59,25 @@ demo/ta/idiograph-codes.json
 demo/ta/Working/
 demo/ta/*/_Archive/
 demo/ta/_Archive/
+# and the longitudinal demo's (lipabuild, 13 November 2026): its pristine copy's progress files and boards ship, a PETs
+# file a timepoint and the LPETs file among them, and its live participants' own files, LGETs, Trajectories, exports,
+# recordings and backups stay out. Its nine recordings, in packaging/recording, stay out of git and download from the
+# demo's release (`*.m4a` above)
+!demo/lipa/pristine/Working/*.progress.json
+!demo/lipa/pristine/Working/*.themes.json
+/demo/lipa/Hollis/Working/
+/demo/lipa/Nell/Working/
+/demo/lipa/Arlo/Working/
+/demo/lipa/Hollis/Source/
+/demo/lipa/Nell/Source/
+/demo/lipa/Arlo/Source/
+demo/lipa/idiograph-gets.json
+demo/lipa/idiograph-lgets.json
+demo/lipa/idiograph-trajectories.json
+demo/lipa/Working/
+demo/lipa/pictures/
+demo/lipa/*/_Archive/
+demo/lipa/_Archive/
 # the lock the server and the command line take around a write, in a case's Working/ and at a root
 .idiograph.lock
 # an agent's actions that waited for his yes at a project's root before approvals were removed, and their lock, and

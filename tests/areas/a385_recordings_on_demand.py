@@ -98,7 +98,8 @@ def test_recordings_on_demand(scratch: Path):
     licence = folder / make_demo.AUDIO_LICENCE
     ck("385: the manifest names each participant's recording for the transcript as it stands, with the size and "
        "sha256 of the committed file, and the licence's, at the demo-recordings-1 release's address",
-       sorted(rows) == sorted(p.name for p in named.values())
+       # the IPA demo's three, the longitudinal demo's nine beside them (lipabuild, area 394)
+       sorted(set(rows) - set(__import__("make_demo_lipa").recording_names())) == sorted(p.name for p in named.values())
        and all(rows[p.name]["size"] == p.stat().st_size and rows[p.name]["sha256"] == sha(p) for p in named.values())
        and manifest["licence"] == {"file": "LICENSE-audio.md", "size": licence.stat().st_size, "sha256": sha(licence)}
        and manifest["url"] == "https://github.com/Pharkie/idiograph/releases/download/demo-recordings-1/"

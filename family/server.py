@@ -504,7 +504,7 @@ def inside(p: Path, root: Path) -> bool:
 
 def project_of(p: Path, cfg: dict | None = None) -> Path | None:
     """The project a path belongs to: the demo's folder for anything inside the demo, the thematic analysis
-    demo's for anything inside that, else the project whose root holds it, the deepest of two should a
+    demo's or the longitudinal demo's for anything inside those, else the project whose root holds it, the deepest of two should a
     hand-edited file nest them, and None for a path under no project's root."""
     if is_demo(p):
         return demo_root_of(p)
@@ -519,6 +519,8 @@ def project_named(value: str) -> Path:
         return DEMO_DIR
     if text == DEMO_TA_ID:
         return demo_ta_dir()
+    if text == DEMO_LIPA_ID:
+        return demo_lipa_dir()
     if text:
         asked = configured(text)
         for root in project_roots():
@@ -601,7 +603,7 @@ def rel_path(p: Path) -> str:
 
 def is_demo(p: Path) -> bool:
     """A path inside the bundled demo folder, so any of its cases, Juno's, Rowan's or Mabel's, the thematic analysis
-    demo's among them."""
+    demo's and the longitudinal demo's among them."""
     try:
         Path(p).resolve().relative_to(DEMO_DIR.resolve())
     except (ValueError, OSError):
@@ -622,21 +624,49 @@ def demo_ta_dir() -> Path:
     return DEMO_DIR / DEMO_TA_FOLDER
 
 
+# The longitudinal IPA demo (lipabuild, 13 November 2026, Adam's word of 12 November): "First year on an allotment",
+# three invented participants at three timepoints, in a folder of its own inside the demo's as the thematic analysis
+# demo is, so it ships, seeds and is guarded as the demo is. The page and the command line name it `demo-lipa`, and
+# `lipa` names it to `--demo`.
+DEMO_LIPA_ID = "demo-lipa"
+DEMO_LIPA_FOLDER = "lipa"
+
+
+def demo_lipa_dir() -> Path:
+    """The longitudinal demo's folder, inside the demo's wherever that is."""
+    return DEMO_DIR / DEMO_LIPA_FOLDER
+
+
+def demo_dirs() -> list[Path]:
+    """The three demos' folders, the IPA demo's first, then the thematic analysis demo's and the longitudinal one's."""
+    return [DEMO_DIR, demo_ta_dir(), demo_lipa_dir()]
+
+
 def demo_dir_of(which) -> Path:
-    """The demo a word names: `ta` the thematic analysis demo, anything else that names one the IPA demo."""
-    return demo_ta_dir() if str(which or "").strip().lower() in (DEMO_TA_FOLDER, DEMO_TA_ID) else DEMO_DIR
+    """The demo a word names: `ta` the thematic analysis demo, `lipa` the longitudinal one, anything else that names
+    one the IPA demo."""
+    said = str(which or "").strip().lower()
+    if said in (DEMO_TA_FOLDER, DEMO_TA_ID):
+        return demo_ta_dir()
+    if said in (DEMO_LIPA_FOLDER, DEMO_LIPA_ID):
+        return demo_lipa_dir()
+    return DEMO_DIR
 
 
 def demo_root_of(p: Path) -> Path | None:
-    """The demo a path is inside, the thematic analysis demo's folder or the IPA demo's, or None."""
+    """The demo a path is inside, the thematic analysis demo's folder, the longitudinal demo's or the IPA demo's, or
+    None."""
     if not is_demo(p):
         return None
-    return demo_ta_dir() if inside(p, demo_ta_dir()) else DEMO_DIR
+    for folder in (demo_ta_dir(), demo_lipa_dir()):
+        if inside(p, folder):
+            return folder
+    return DEMO_DIR
 
 
 def is_demo_root(root) -> bool:
-    """Whether a folder is one of the two demos' own, which are fixed."""
-    return root is not None and (same_folder(root, DEMO_DIR) or same_folder(root, demo_ta_dir()))
+    """Whether a folder is one of the three demos' own, which are fixed."""
+    return root is not None and any(same_folder(root, folder) for folder in demo_dirs())
 
 
 def within_root(p: Path) -> bool:
@@ -2162,7 +2192,7 @@ def trash_guard(folder, name: str, match, page: str = "") -> Path:
     once `trash.guard` refuses nothing and no other window is in front of the project (`open_elsewhere`, `match` its
     test of a page's place). Moves nothing."""
     import trash
-    keep = [HERE, DEMO_DIR, demo_ta_dir(), SHIPPED_DEMO, CONFIG_PATH, STATE_PATH, PATHS["data"], PATHS["logs"]]
+    keep = [HERE, *demo_dirs(), SHIPPED_DEMO, CONFIG_PATH, STATE_PATH, PATHS["data"], PATHS["logs"]]
     chosen = trash.guard(folder, name=name, keep=keep,
                          others=[(n, p) for n, p in known_projects() if not same_folder(p, folder)])
     if open_elsewhere(match, page):

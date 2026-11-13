@@ -196,9 +196,12 @@ under that its GETs, "GETs not started", the group themes on its Current board, 
 its menu (see A project card's menu). New project, Open project, its tooltip "Open a project folder
 already on this computer", and Open a shared copy, its tooltip "Open a project someone has shared with
 you, as a copy", stand under the cards (see Projects). Under Projects stands Demo projects, a section of its
-own holding the two demos, apart from your projects: Living with a dog tagged "IPA demo", and Living with a dog
+own holding the three demos, apart from your projects: Living with a dog tagged "IPA demo", Living with a dog
 tagged "Thematic analysis demo", the same three invented participants coded in a thematic analysis project, so
-the two methods can be compared on the same words. Demo projects starts folded to its head. Open it or fold it
+the two methods can be compared on the same words, and First year on an allotment tagged "Longitudinal IPA demo"
+(13 November 2026), three other invented participants, Hollis, Nell and Arlo, each interviewed before the season,
+at midsummer and after the harvest, with their PETs at each timepoint, their LPETs, the LGETs and Trajectories, and
+each interview's recording. Demo projects starts folded to its head. Open it or fold it
 and Home keeps it that way, as Projects keeps its fold. On a Home with no project of yours yet, and before you
 have opened or folded it, it starts open, so the demos are there to find. Each demo's card opens its page, and
 its menu holds Project settings, read-only. Everything in the demos was made with AI, so each card says so on a line at its foot, "AI-generated: read details" (the same on every demo, 13 November), and that line opens a note headed "AI-generated demo" saying what they are not for. Inside a demo the same note opens from the Demo mark beside the project's name. Settings, the cog
@@ -3649,7 +3652,8 @@ so they work whatever AI features says, the tick deciding which projects they re
 never opens a terminal, Idiograph's MCP server offers the command line's commands as tools, the same
 work on the same code. In Project settings, after Write a guide for AI agents, Add Idiograph
 to Claude Desktop opens a small card with the entry that runs the server on the project shown, its
-root as `--root`, or `--demo` for the demo, `--demo ta` for the thematic analysis demo: from source the venv's python running
+root as `--root`, or `--demo` for the demo, `--demo ta` for the thematic analysis demo, `--demo lipa` for the
+longitudinal demo: from source the venv's python running
 `mcp_server.py`, in the Mac app the app's own executable with `mcp` first, and in the Windows app
 `Idiograph-console.exe` in the app's `server` folder with `mcp` first. Add writes it into
 Claude Desktop's settings file, `~/Library/Application Support/Claude/claude_desktop_config.json`

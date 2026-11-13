@@ -142,6 +142,11 @@ DEMO_GETS = "idiograph-gets.json"
 # the thematic analysis demo's folder inside the demo's, and its code list (demos, 3 November 2026)
 DEMO_TA = "ta"
 DEMO_CODES = "idiograph-codes.json"
+# the longitudinal demo's folder, its three participants, and its LGETs and Trajectories files (lipabuild, 13 November
+# 2026): each participant staged with every board file of theirs, a PETs file a timepoint and the LPETs file
+DEMO_LIPA = "lipa"
+DEMO_LIPA_CASES = ("Hollis", "Nell", "Arlo")
+DEMO_ROOT_FILES = (DEMO_GETS, DEMO_CODES, "idiograph-lgets.json", "idiograph-trajectories.json")
 # the transcript template, shipped so a tester has it in Idiograph, under `template/` in the bundle
 TEMPLATE = Path("template") / "Transcript template.xlsx"
 
@@ -374,29 +379,31 @@ def demo_line(demo: Path) -> str:
 
 
 def stage_cases(stage: Path) -> Path:
-    """The demo's three cases in the stage as `stage_demo` lays them out, and the manifest of their recordings,
-    the Windows and Linux builds' as the Mac's."""
+    """The demos' cases in the stage as `stage_demo` lays them out, and the manifest of their recordings, the
+    Windows and Linux builds' as the Mac's."""
     demo, source = stage / "demo", TOOL / "demo"
     shutil.rmtree(demo, ignore_errors=True)
     demo.mkdir(parents=True)
     leave = shutil.ignore_patterns(".*", "*.themes.json", "_Archive", "~$*")
-    # the IPA demo at the stage's demo, and the thematic analysis demo in its folder inside it (demos, 3 November 2026)
-    for into, src in ((demo, source), (demo / DEMO_TA, source / DEMO_TA)):
+    # the IPA demo at the stage's demo, and the thematic analysis demo in its folder inside it (demos, 3 November 2026),
+    # and the longitudinal demo in its own (lipabuild, 13 November 2026)
+    for into, src, cases in ((demo, source, DEMO_CASES), (demo / DEMO_TA, source / DEMO_TA, DEMO_CASES),
+                             (demo / DEMO_LIPA, source / DEMO_LIPA, DEMO_LIPA_CASES)):
         if not (src / "pristine").is_dir():
             continue
         shutil.copytree(src / "pristine", into / "pristine", ignore=shutil.ignore_patterns(".*", "_Archive", "~$*"))
         shutil.copytree(src / "source", into / "source", ignore=leave)
         shutil.copyfile(src / "idiograph-project.json", into / "idiograph-project.json")
-        for name in DEMO_CASES:
+        for name in cases:
             stem = f"{name} - EN & ES"
             (into / name / "Working").mkdir(parents=True, exist_ok=True)
             shutil.copyfile(src / "pristine" / f"{stem}.xlsx", into / name / f"{stem}.xlsx")
-            for side in (f"{stem}.progress.json", f"{stem}.themes.json"):
-                if (src / "pristine" / "Working" / side).is_file():
-                    shutil.copyfile(src / "pristine" / "Working" / side, into / name / "Working" / side)
-        # the finished demo's GETs, at the demo's root as the GETs screen keeps them (26 October), and the
-        # thematic analysis demo's code list beside its own
-        for kept in (DEMO_GETS, DEMO_CODES):
+            # its progress file and its boards, in the longitudinal demo a PETs file a timepoint and the LPETs file
+            for side in sorted((src / "pristine" / "Working").glob(f"{stem}.*.json")):
+                shutil.copyfile(side, into / name / "Working" / side.name)
+        # the finished demo's GETs, at the demo's root as the GETs screen keeps them (26 October), the
+        # thematic analysis demo's code list beside its own, and the longitudinal demo's LGETs and Trajectories
+        for kept in DEMO_ROOT_FILES:
             if (src / "pristine" / kept).is_file():
                 shutil.copyfile(src / "pristine" / kept, into / kept)
     # the manifest the app downloads the demo's recordings by (recdemand, 13 November 2026), at the demo's root

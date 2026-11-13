@@ -102,6 +102,21 @@ DEMO_TITLE = "Juno, living with a dog"
 # project, Living with a dog, whose file is DEMO_PROJECT below.
 DEMO_CASES = ("Juno", "Rowan", "Mabel")
 DEMO_TOPIC = "living with a dog"
+# The longitudinal demo's three (lipabuild, 13 November 2026), in the study's order, each interviewed at T1, T2 and T3,
+# a sheet a timepoint, and its topic
+DEMO_LIPA_CASES = ("Hollis", "Nell", "Arlo")
+DEMO_LIPA_TOPIC = "a first year on an allotment"
+DEMO_LIPA_SHEETS = ("T1", "T2", "T3")
+
+
+def is_lipa_demo(root) -> bool:
+    return root is not None and srv.same_folder(root, srv.demo_lipa_dir())
+
+
+def demo_cases_of(root: Path | None = None) -> tuple:
+    """The participants of the demo at `root`: the longitudinal demo's, or the IPA demo's three, which the thematic
+    analysis demo shares."""
+    return DEMO_LIPA_CASES if is_lipa_demo(root) else DEMO_CASES
 
 # the statements screen's three columns by name, in the book's order (Smith, Flowers and Larkin 2022,
 # Box 5.4), its order on a new install
@@ -271,6 +286,8 @@ def project_id(root: Path | None) -> str:
         return ""
     if srv.same_folder(root, srv.demo_ta_dir()):
         return srv.DEMO_TA_ID
+    if is_lipa_demo(root):
+        return srv.DEMO_LIPA_ID
     return "demo" if srv.same_folder(root, srv.DEMO_DIR) else root_setting(Path(root))
 
 
@@ -366,14 +383,16 @@ def path_key(value) -> str:
 def demo_workbooks(root: Path | None = None) -> list[Path]:
     """Every demo case's workbook, built on this machine or not, Juno's first and the same path as
     DEMO_WORKBOOK, or with `root` the thematic analysis demo's folder (see `srv.demo_ta_dir`) the same three
-    there."""
+    there, or the longitudinal demo's (`srv.demo_lipa_dir`) its own three."""
     root = Path(root) if root is not None else srv.DEMO_DIR
-    return [root / name / f"{name} - EN & ES.xlsx" for name in DEMO_CASES]
+    return [root / name / f"{name} - EN & ES.xlsx" for name in demo_cases_of(root)]
 
 
 def demo_title(path: Path) -> str:
-    """A demo case's name on the screen, its case and the demo's topic: `Rowan, living with a dog`."""
-    return f"{wb_mod.case_folder(Path(path)).name}, {DEMO_TOPIC}"
+    """A demo case's name on the screen, its case and the demo's topic: `Rowan, living with a dog`, or `Nell, a first
+    year on an allotment` in the longitudinal demo."""
+    topic = DEMO_LIPA_TOPIC if is_lipa_demo(srv.demo_root_of(Path(path))) else DEMO_TOPIC
+    return f"{wb_mod.case_folder(Path(path)).name}, {topic}"
 
 
 def case_path(value: str) -> Path:
@@ -1084,7 +1103,7 @@ def request_method(body) -> str | None:
             root = srv.project_of(srv.abs_path(value))
         elif body.get("root") and isinstance(body.get("root"), str):
             asked = srv.abs_path(body["root"]).resolve()
-            root = next((Path(r) for r in [srv.DEMO_DIR, srv.demo_ta_dir()] + srv.project_roots() if Path(r).resolve() == asked), None)
+            root = next((Path(r) for r in srv.demo_dirs() + srv.project_roots() if Path(r).resolve() == asked), None)
             root = root or srv.project_named(body["root"])
         elif body.get("folder") and isinstance(body.get("folder"), str):
             root = srv.project_of(srv.abs_path(body["folder"]))
@@ -1597,7 +1616,7 @@ def demo_entry(workbook: Path | None = None) -> dict | None:
 
 def demo_entries(root: Path | None = None) -> list[dict]:
     """The Demo section's rows, Juno, Rowan and Mabel in that order, each case built on this machine, the IPA
-    demo's or with `root` the thematic analysis demo's."""
+    demo's or with `root` the thematic analysis demo's, or the longitudinal demo's Hollis, Nell and Arlo."""
     return [row for row in (demo_entry(book) for book in demo_workbooks(root)) if row]
 
 
@@ -1838,7 +1857,8 @@ def in_his_order(cards: list[dict], order: list[str]) -> list[dict]:
 
 def demo_cards(rows: list[dict], root: Path | None = None) -> list[dict]:
     """The demo's rows, Juno, Rowan and Mabel, each from its one row, as a project's are drawn, and
-    always in this order, which is fixed, the IPA demo's or with `root` the thematic analysis demo's."""
+    always in this order, which is fixed, the IPA demo's or with `root` the thematic analysis demo's, or the
+    longitudinal demo's three."""
     at = Path(root) if root is not None else srv.DEMO_DIR
     data = gets_file(at)
     held = data.get("cases") if isinstance((data or {}).get("cases"), dict) else {}
@@ -1888,6 +1908,8 @@ def api_cases(_: dict) -> dict:
     demos = demo_entries()
     ta_root = srv.demo_ta_dir()
     demos_ta = demo_entries(ta_root)
+    lipa_root = srv.demo_lipa_dir()
+    demos_lipa = demo_entries(lipa_root)
     # `root` is empty while there is no project, and `choose` says the Mac's folder dialog is there.
     # `demos` is the Demo section's rows, the three cases, and `demo` stays Juno's alone, for a page
     # from before the three. `demo_project` is the demo's own, for its head. `one` says this run is
@@ -1900,6 +1922,9 @@ def api_cases(_: dict) -> dict:
             # cards and project as the IPA demo's three keys above give its own
             "demos_ta": demos_ta, "demo_ta_participants": demo_cards(demos_ta, ta_root),
             "demo_ta_project": read_project(ta_root) if demos_ta else None,
+            # and its third, the longitudinal demo (lipabuild, 13 November 2026), the same three keys
+            "demos_lipa": demos_lipa, "demo_lipa_participants": demo_cards(demos_lipa, lipa_root),
+            "demo_lipa_project": read_project(lipa_root) if demos_lipa else None,
             "root": srv.rel_path(roots[0]) if roots else "", "project": read_project(roots[0] if roots else None),
             "feedback": bool(srv.feedback_url(cfg)), "choose": srv.PLATFORM == "darwin", "one": bool(srv.ROOT_OVERRIDE),
             "version": srv.VERSION, "build": srv.BUILD, "gets": first["gets"] if first else None}
@@ -7350,64 +7375,99 @@ def demo_case_of(path: Path) -> str | None:
     return next((name for name, book in zip(DEMO_CASES, demo_workbooks()) if here == book.resolve()), None)
 
 
-def demo_interviews() -> tuple[dict, list[dict]]:
+def demo_interview_of(path: Path, sheet: str) -> tuple[str, str] | None:
+    """The demo interview a workbook's sheet is, by the key of its demo's download and the participant, `("ipa",
+    "Juno")` for the IPA demo's Initial sheets and `("lipa", "Nell")` for a sheet of the longitudinal demo's (T1, T2,
+    T3), or None for any other."""
+    if sheet == DEMO_SHEET and demo_case_of(path):
+        return DEMO_RECORDINGS, demo_case_of(path)
+    if sheet in DEMO_LIPA_SHEETS:
+        try:
+            here = Path(path).resolve()
+        except OSError:
+            return None
+        lipa = srv.demo_lipa_dir()
+        name = next((n for n, book in zip(DEMO_LIPA_CASES, demo_workbooks(lipa)) if here == book.resolve()), None)
+        if name:
+            return DEMO_LIPA_RECORDINGS, name
+    return None
+
+
+def demo_interviews(key: str = "") -> tuple[dict, list[dict]]:
     """The demo's manifest of recordings (recdemand, 13 November 2026, `demo_recordings`), read from the demo the app
-    ships, and each IPA demo participant's interview: `name`, `target`, where the player finds the recording in the
-    demo the app works on, `entry`, the manifest's entry for the transcript the app ships, None when it names
-    none, a transcript edited since its recording was made, and `committed`, run from source, the recording
-    committed in packaging/recording for it when there is one, which is copied in and never downloaded."""
+    ships, and each of a demo's interviews, the IPA demo's three unless `key` is the longitudinal demo's nine: `name`,
+    `sheet`, `target`, where the player finds the recording in the demo the app works on, `entry`, the manifest's
+    entry for the transcript the app ships, None when it names none, a transcript edited since its recording was
+    made, and `committed`, run from source, the recording in packaging/recording for it when there is one, which is
+    copied in and never downloaded."""
     import make_demo
+    import make_demo_lipa
     manifest = demo_rec.read_manifest(srv.SHIPPED_DEMO / demo_rec.MANIFEST)
     installed = srv.DEMO_DIR != srv.SHIPPED_DEMO
     rows = []
+    if key == DEMO_LIPA_RECORDINGS:
+        for name, sheet in make_demo_lipa.interviews():
+            transcript = make_demo_lipa.interview(name, sheet, srv.SHIPPED_DEMO)
+            made = audio_mod.demo_recording_name(name, sheet, transcript) if transcript.is_file() else ""
+            committed = None if installed or not made else make_demo_lipa.committed(name, sheet, srv.DEMO_DIR)
+            rows.append({"name": name, "sheet": sheet, "target": make_demo_lipa.recording(name, sheet, srv.DEMO_DIR),
+                         "entry": demo_rec.entry(manifest, made) if made else None,
+                         "committed": committed if committed is not None and committed.is_file() else None})
+        return manifest, rows
     for name in DEMO_CASES:
         transcript = make_demo.written_sources(name, srv.SHIPPED_DEMO)[0]
         made = audio_mod.demo_recording_name(name, DEMO_SHEET, transcript) if transcript.is_file() else ""
         committed = None if installed or not made else make_demo.committed(name, srv.DEMO_DIR)
-        rows.append({"name": name, "target": make_demo.recording(name, srv.DEMO_DIR),
+        rows.append({"name": name, "sheet": DEMO_SHEET, "target": make_demo.recording(name, srv.DEMO_DIR),
                      "entry": demo_rec.entry(manifest, made) if made else None,
                      "committed": committed if committed is not None and committed.is_file() else None})
     return manifest, rows
 
 
-def ensure_demo_recording(case: str | None = None) -> Path | None:
-    """A demo participant's recording when it is on this computer, Juno's unless `case` names Rowan or Mabel, or
-    None when it is not, which the player answers with the download (recdemand, 13 November 2026).
+def ensure_demo_recording(case: str | None = None, sheet: str = DEMO_SHEET, key: str = "") -> Path | None:
+    """A demo participant's recording when it is on this computer, Juno's unless `case` names Rowan or Mabel, or with
+    `key` the longitudinal demo's a participant's at the timepoint `sheet` names, or None when it is not, which the
+    player answers with the download (recdemand, 13 November 2026).
 
-    The recordings are committed in packaging/recording (recvoices, 12 November 2026), each named by the hash of the
-    transcript it was made from, so a copy run from source copies its own in, a second's work, on the request, and
-    nothing is ever spoken. The installed app ships none since 13 November: they download the first time one is
-    played (`api_demo_recordings`) and are kept in the demo it works on. A file in place that is not the manifest's
-    recording for the transcript as it ships, nor an earlier encoding of it, the `say` recording an earlier version
-    made among them, is not played, and the download puts the right one in its place. A transcript edited since its
-    recording was made has none, its timecodes no longer matching the voices, and its player stays quiet as it does
-    for any workbook without one."""
-    name = case or DEMO_CASES[0]
-    book = demo_workbooks()[DEMO_CASES.index(name)]
-    _, rows = demo_interviews()
-    row = next(r for r in rows if r["name"] == name)
+    The IPA demo's recordings are committed in packaging/recording (recvoices, 12 November 2026), each named by the
+    hash of the transcript it was made from, so a copy run from source copies its own in, a second's work, on the
+    request, and nothing is ever spoken. The longitudinal demo's nine are made there too and kept out of git
+    (lipabuild, 13 November 2026), so a copy run from source that has them copies them in the same way, and one that
+    has not offers the download. The installed app ships none since 13 November: they download the first time one
+    is played (`api_demo_recordings`) and are kept in the demo it works on. A file in place that is not the
+    manifest's recording for the transcript as it ships, nor an earlier encoding of it, the `say` recording an
+    earlier version made among them, is not played, and the download puts the right one in its place. A transcript
+    edited since its recording was made has none, its timecodes no longer matching the voices, and its player stays
+    quiet as it does for any workbook without one."""
+    lipa = key == DEMO_LIPA_RECORDINGS
+    cases = DEMO_LIPA_CASES if lipa else DEMO_CASES
+    name = case or cases[0]
+    book = demo_workbooks(srv.demo_lipa_dir() if lipa else None)[cases.index(name)]
+    _, rows = demo_interviews(key)
+    row = next(r for r in rows if r["name"] == name and r["sheet"] == sheet)
     target = row["target"]
     with _demo_lock:
         try:
-            source = row["committed"]
-            if source is not None and not (target.is_file() and target.stat().st_size == source.stat().st_size):
+            committed = row["committed"]
+            if committed is not None and not (target.is_file() and target.stat().st_size == committed.stat().st_size):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 tmp = target.with_name(f".{target.stem}.copying{target.suffix}")
-                shutil.copyfile(source, tmp)
+                shutil.copyfile(committed, tmp)
                 os.replace(tmp, target)
             if row["entry"] and target.is_file() and not demo_rec.fits(row["entry"], target.stat().st_size):
                 return None
         except OSError:
             pass
-        return audio_mod.for_sheet(book, DEMO_SHEET)
+        return audio_mod.for_sheet(book, sheet)
 
 
-def demo_downloads() -> tuple[list[str], list[dict]]:
-    """What the IPA demo's download fetches: the participants whose recordings it brings and each file not yet on
-    this computer as `Fetch` takes it, the licence first, beside every recording that comes down, then each
-    participant's recording the manifest names for the transcript as it ships, not in place already and, run from
-    source, not committed, a committed one being copied in."""
-    manifest, rows = demo_interviews()
+def demo_downloads(key: str = "") -> tuple[list[str], list[dict]]:
+    """What a demo's download fetches, the IPA demo's unless `key` is the longitudinal demo's: the interviews whose
+    recordings it brings, each `<name>` or in the longitudinal demo `<name> <sheet>`, and each file not yet on this
+    computer as `Fetch` takes it, the licence first, beside every recording that comes down, then each recording the
+    manifest names for the transcript as it ships, not in place already and, run from source, not in
+    packaging/recording, one there being copied in."""
+    manifest, rows = demo_interviews(key)
     stub = ai_mod.stub_base()
     items = []
     wanted = [r for r in rows if r["entry"] and not r["committed"]
@@ -7419,7 +7479,8 @@ def demo_downloads() -> tuple[list[str], list[dict]]:
     for r in wanted:
         items.append({"url": demo_rec.address(manifest, r["entry"]["file"], stub), "size": r["entry"]["size"],
                       "sha256": r["entry"]["sha256"], "targets": [r["target"]]})
-    return [r["name"] for r in wanted], items
+    lipa = key == DEMO_LIPA_RECORDINGS
+    return [f"{r['name']} {r['sheet']}" if lipa else r["name"] for r in wanted], items
 
 
 # the line the player says when the download did not finish, by why (recdemand, 13 November 2026)
@@ -7428,58 +7489,65 @@ DEMO_DOWNLOAD_LINES = {"offline": lambda: i18n.t("server.demo_recordings.offline
                        "failed": lambda: i18n.t("server.demo_recordings.failed")}
 
 
-def demo_recordings_state(items: list[dict] | None = None) -> dict:
-    """The IPA demo's recordings as the player reads them: `bytes` still to come and `size`, the same in words, `state`
-    of the download, idle when none has run, downloading, done, failed or cancelled, `got` and `got_size` how far
-    it has got, and `line`, one plain line when it failed."""
+def demo_recordings_state(items: list[dict] | None = None, key: str = "") -> dict:
+    """A demo's recordings as the player reads them, the IPA demo's unless `key` is the longitudinal demo's: `demo`,
+    the key the page sends back, `bytes` still to come and `size`, the same in words, `state` of the download, idle
+    when none has run, downloading, done, failed or cancelled, `got` and `got_size` how far it has got, and `line`,
+    one plain line when it failed."""
+    key = key or DEMO_RECORDINGS
     if items is None:
-        items = demo_downloads()[1]
-    running = demo_rec.current(DEMO_RECORDINGS)
+        items = demo_downloads(key)[1]
+    running = demo_rec.current(key)
     view = running.view() if running is not None else {"state": "idle", "got": 0, "bytes": 0, "why": ""}
     left = sum(int(i["size"]) for i in items)
     total = view["bytes"] if view["state"] == "downloading" else left
-    answer = {"demo": DEMO_RECORDINGS, "state": view["state"], "bytes": total, "size": pack_mod.size_said(total),
+    answer = {"demo": key, "state": view["state"], "bytes": total, "size": pack_mod.size_said(total),
               "got": view["got"], "got_size": pack_mod.size_said(view["got"])}
     if view["state"] == "failed":
         answer["line"] = DEMO_DOWNLOAD_LINES.get(view["why"], DEMO_DOWNLOAD_LINES["failed"])()
     return answer
 
 
-# the IPA demo's key among the downloads, the one demo with recordings until the longitudinal demo's join it
+# the IPA demo's key among the downloads, and the longitudinal demo's, each demo's recordings a download of its own
+# (lipabuild, 13 November 2026)
 DEMO_RECORDINGS = "ipa"
+DEMO_LIPA_RECORDINGS = "lipa"
 
 
 def api_demo_recordings(body: dict) -> dict:
     """The demo's recordings on demand (recdemand, 13 November 2026): with no `op`, how far its download has got,
-    `op` download starting it, or answering the one running, and cancel stopping it. Only the app's own window downloads
+    `op` download starting it, or answering the one running, and cancel stopping it. `demo` is the demo's key, `lipa`
+    the longitudinal demo's nine, anything else the IPA demo's three. Only the app's own window downloads
     (`window_only`): an agent never does, and no command line or MCP op reaches it."""
     op = str((body or {}).get("op") or "")
     if op not in ("", "download", "cancel"):
         raise WorkbookError(i18n.t("server.demo_recordings.op"))
+    key = DEMO_LIPA_RECORDINGS if str((body or {}).get("demo") or "") == DEMO_LIPA_RECORDINGS else DEMO_RECORDINGS
     if op == "cancel":
-        demo_rec.cancel(DEMO_RECORDINGS)
-        return demo_recordings_state()
-    _, items = demo_downloads()
+        demo_rec.cancel(key)
+        return demo_recordings_state(key=key)
+    _, items = demo_downloads(key)
     if op == "download":
         if not items:
-            running = demo_rec.current(DEMO_RECORDINGS)
+            running = demo_rec.current(key)
             if running is None or running.view()["state"] != "downloading":
-                return dict(demo_recordings_state(items), state="done")
+                return dict(demo_recordings_state(items, key), state="done")
         else:
             # the smoke run's stand-in, from its environment and never the manifest, the one address besides
             # GitHub's the download may take (rechttps, 13 November 2026)
-            demo_rec.start(DEMO_RECORDINGS, items, ai_mod.stub_base())
-    return demo_recordings_state(items)
+            demo_rec.start(key, items, ai_mod.stub_base())
+    return demo_recordings_state(items, key)
 
 
 def fill_demo() -> list[Path]:
     """Each demo case's workbook, progress file and board copied from the shipped pristine copy where
-    the demo the app works on is missing one (see `make_demo.fill`), the IPA demo's and the thematic analysis
-    demo's. A file there is never replaced, and a fill that fails leaves the demo as it was and the server
-    starting. Answers the files copied."""
+    the demo the app works on is missing one (see `make_demo.fill`), the IPA demo's, the thematic analysis
+    demo's and the longitudinal demo's. A file there is never replaced, and a fill that fails leaves the demo as it
+    was and the server starting. Answers the files copied."""
     import make_demo
     copied = []
-    for shipped, live in ((srv.SHIPPED_DEMO, srv.DEMO_DIR), (srv.SHIPPED_DEMO / srv.DEMO_TA_FOLDER, srv.demo_ta_dir())):
+    for shipped, live in ((srv.SHIPPED_DEMO, srv.DEMO_DIR), (srv.SHIPPED_DEMO / srv.DEMO_TA_FOLDER, srv.demo_ta_dir()),
+                          (srv.SHIPPED_DEMO / srv.DEMO_LIPA_FOLDER, srv.demo_lipa_dir())):
         try:
             copied += make_demo.fill(shipped / "pristine", live)
         except OSError:
@@ -7490,15 +7558,15 @@ def fill_demo() -> list[Path]:
 def api_reset_demo(body: dict) -> dict:
     """Put the three demo cases back the way they ship, each workbook, sidecar and board, and the
     demo's GETs file with them, and remove the GETs exports' `Working/`. `demo` of `ta` (demos, 3 November
-    2026) resets the thematic analysis demo the same way, its code list with it, and with none it is the IPA
-    demo, as before.
+    2026) resets the thematic analysis demo the same way, its code list with it, `lipa` the longitudinal demo, its
+    later timepoints' boards, LPETs, LGETs and Trajectories with it, and with none it is the IPA demo, as before.
 
     The copy it restores from is the shipped one, inside the bundle in the Mac app, and a file of
     the demo gone missing comes back from there too. A workbook open in Excel refuses the reset
     before anything is written."""
     import make_demo
     live = srv.demo_dir_of((body or {}).get("demo"))
-    shipped = srv.SHIPPED_DEMO / srv.DEMO_TA_FOLDER if live != srv.DEMO_DIR else srv.SHIPPED_DEMO
+    shipped = srv.SHIPPED_DEMO / live.name if live != srv.DEMO_DIR else srv.SHIPPED_DEMO
     books = demo_workbooks(live)
     with writing(root=live, books=books):
         try:
@@ -7519,12 +7587,15 @@ def api_audio(body: dict) -> dict:
     # each of the demo's three participants has a recording (recvoices, 12 November 2026), put in place here from
     # source, and offered for download when it is not on this computer (recdemand, 13 November 2026): the size of
     # what is still to come, and the download's state when one is under way
-    if sheet == DEMO_SHEET and demo_case_of(path):
-        found = ensure_demo_recording(demo_case_of(path))
+    # and each of the longitudinal demo's nine, a sheet a timepoint (lipabuild, 13 November 2026)
+    interview = demo_interview_of(path, sheet)
+    if interview:
+        key, name = interview
+        found = ensure_demo_recording(name, sheet, key)
         if found is None:
-            names, items = demo_downloads()
-            if demo_case_of(path) in names:
-                return {"found": False, "note": "", "download": demo_recordings_state(items)}
+            names, items = demo_downloads(key)
+            if (f"{name} {sheet}" if key == DEMO_LIPA_RECORDINGS else name) in names:
+                return {"found": False, "note": "", "download": demo_recordings_state(items, key)}
     if found is None or not srv.within_root(found):
         return {"found": False, "note": i18n.t("server.recording_found", sheet=sheet)}
     # the offset playback adds to every time code, kept beside the recording (20 October)
@@ -7709,8 +7780,11 @@ def themes_cases(path: Path) -> list[dict]:
     if srv.is_demo(path):
         books = [book for book in demo_workbooks(srv.demo_root_of(path)) if book.is_file() and book.resolve() != here]
     else:
+        # a folder inside with a project file of its own is that project's, as the case list has it: the longitudinal
+        # demo inside a copy of the demo's folder, whose participants have PETs files (lipabuild, 13 November 2026)
+        nested = [f.parent for f in root.rglob(srv.PROJECT_FILE) if f.parent != root]
         for file in sorted(root.rglob("*" + suffix)):
-            if file.name.startswith("."):
+            if file.name.startswith(".") or any(srv.inside(file, folder) for folder in nested):
                 continue
             book = file.parent.parent / (file.name[:-len(suffix)] + ".xlsx")
             try:
@@ -8225,7 +8299,7 @@ def search_cases(root: Path) -> list[dict]:
     seconds as the autosave holds it, each by its label with its workbook, in his order of the cases on
     the project's page, the demo's fixed, and any case he has not placed after them in case order."""
     if srv.is_demo_root(root):
-        order = list(DEMO_CASES)
+        order = list(demo_cases_of(root))
     else:
         order = order_of(project_file(root))
     rows = [{"case": case_label(b["workbook"]), "workbook": Path(b["workbook"]), "path": srv.rel_path(Path(b["workbook"]))}
@@ -8266,7 +8340,7 @@ def gets_print_root(query: dict) -> Path:
     if not value:
         return gets_root({})
     asked = srv.abs_path(value).resolve()
-    for allowed in [srv.DEMO_DIR, srv.demo_ta_dir()] + srv.project_roots():
+    for allowed in srv.demo_dirs() + srv.project_roots():
         if asked == Path(allowed).resolve():
             return Path(allowed)
     raise srv.OutsideRoot(i18n.t("server.folder_project_folder_nothing_printed"))
@@ -9980,8 +10054,9 @@ def api_mcp(body: dict) -> dict:
     root = asked_root(body, write=True)
     if root is None or not Path(root).is_dir():
         raise WorkbookError(i18n.t("server.project_folder_chosen_yet_project"))
-    # the thematic analysis demo as `--demo ta`, the IPA demo as `--demo` (demos)
-    demo = ("ta" if srv.same_folder(root, srv.demo_ta_dir()) else True) if srv.is_demo_root(root) else False
+    # the thematic analysis demo as `--demo ta`, the longitudinal one as `--demo lipa`, the IPA demo as `--demo` (demos)
+    demo = (("ta" if srv.same_folder(root, srv.demo_ta_dir()) else "lipa" if is_lipa_demo(root) else True)
+            if srv.is_demo_root(root) else False)
     # a server reading another settings file hands the same file on, as a smoke server does
     own = srv.CONFIG_PATH if Path(srv.CONFIG_PATH).resolve() != Path(srv.PATHS["config"]).resolve() else None
     entry = mcp_server.desktop_entry(Path(root).resolve(), demo=demo, config=own)
@@ -10276,7 +10351,7 @@ def search_rows() -> list[dict]:
     """Idiograph's projects as Everything searches them (the family's `api_search`), each as This project
     searches it, every project's in the order they were added and the demo's last."""
     roots = [r for r in srv.project_roots() if r.exists()] + ([srv.DEMO_DIR] if demo_workbooks() else [])
-    roots += [srv.demo_ta_dir()] if any(book.is_file() for book in demo_workbooks(srv.demo_ta_dir())) else []
+    roots += [d for d in (srv.demo_ta_dir(), srv.demo_lipa_dir()) if any(book.is_file() for book in demo_workbooks(d))]
     return [search_distil(r) for r in roots]
 
 

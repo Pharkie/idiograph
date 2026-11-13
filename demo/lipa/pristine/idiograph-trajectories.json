@@ -1,0 +1,54 @@
+{
+ "schema": 1,
+ "created": "2026-11-11T15:00:00+00:00",
+ "updated": "2026-11-11T15:00:00+00:00",
+ "columns": [
+  {
+   "id": "c1",
+   "title": "Settling in",
+   "description": "Taken in by the plot and its people by the harvest, the winter still to face",
+   "colour": "good",
+   "icon": "rising",
+   "order": [
+    "Hollis"
+   ]
+  },
+  {
+   "id": "c2",
+   "title": "Second thoughts",
+   "description": "Letting the plot go, coming back, and keeping it as a need more than a wish",
+   "colour": "amber",
+   "icon": "mixed",
+   "order": [
+    "Arlo"
+   ]
+  },
+  {
+   "id": "c3",
+   "title": "Letting go",
+   "description": "Giving part of the plot, and what it stood for, over to others, and minding it",
+   "colour": "sift",
+   "icon": "falling",
+   "order": [
+    "Nell"
+   ]
+  }
+ ],
+ "placed": {
+  "Hollis": {
+   "column": "c1",
+   "note": "Watched at the gate in March, carried by the old hands when his back went, home with news of his own, only the winter flat still in doubt."
+  },
+  "Arlo": {
+   "column": "c2",
+   "note": "Taken on at his therapist's suggestion, let go over in the autumn, fetched back by Des's note, and kept because he needs it, not because he loves it."
+  },
+  "Nell": {
+   "column": "c3",
+   "note": "A full plot taken for herself, the children and her buni's garden, the half like her buni's given away in November, failed and relieved, the rest the children's place."
+  }
+ },
+ "tags": {},
+ "history": [],
+ "note": "An invented study, the demo's. Every participant and every word in it is made up."
+}

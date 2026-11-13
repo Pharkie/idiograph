@@ -98,11 +98,14 @@ function sectionsOf(data) {
 const DEMO_ID = 'demo';
 // the thematic analysis demo's id, as the server names it back (demos, 3 November 2026)
 const DEMO_TA_ID = 'demo-ta';
-const isDemoId = (id) => id === DEMO_ID || id === DEMO_TA_ID;
+// and the longitudinal demo's (lipabuild, 13 November 2026)
+const DEMO_LIPA_ID = 'demo-lipa';
+const isDemoId = (id) => id === DEMO_ID || id === DEMO_TA_ID || id === DEMO_LIPA_ID;
 
-/* The two demos as Home draws them (demos, Adam, 3 November 2026), each built on this machine: the IPA demo and
-   the thematic analysis demo, each with its id, its rows and cards, its project and its tag. A server from before
-   the second sends no `demos_ta`, and Home draws the IPA demo alone. */
+/* The demos as Home draws them (demos, Adam, 3 November 2026), each built on this machine: the IPA demo, the
+   thematic analysis demo and the longitudinal IPA demo (lipabuild, 13 November 2026), each with its id, its rows and
+   cards, its project and its tag. A server from before the second sends no `demos_ta`, and one from before the third
+   no `demos_lipa`, and Home draws the ones it has. */
 function demosOf(data) {
   const out = [];
   if (demoRows(data).length) {
@@ -114,6 +117,12 @@ function demosOf(data) {
     const cards = Array.isArray(data.demo_ta_participants) ? data.demo_ta_participants : cardsFrom(ta, []);
     out.push({ id: DEMO_TA_ID, rows: ta, cards: cards.map((c) => ({ ...c, demo: true })), project: data.demo_ta_project || {},
       tag: t('distil.tag.demo_ta'), method: 'ta' });
+  }
+  const lipa = data && Array.isArray(data.demos_lipa) ? data.demos_lipa.filter((d) => d && d.path) : [];
+  if (lipa.length) {
+    const cards = Array.isArray(data.demo_lipa_participants) ? data.demo_lipa_participants : cardsFrom(lipa, []);
+    out.push({ id: DEMO_LIPA_ID, rows: lipa, cards: cards.map((c) => ({ ...c, demo: true })), project: data.demo_lipa_project || {},
+      tag: t('distil.tag.demo_lipa'), method: 'lipa' });
   }
   return out;
 }
@@ -144,6 +153,10 @@ function distilRecent(data) {
   // and the thematic analysis demo after it (demos)
   if (Array.isArray(data.demos_ta) && data.demos_ta.some((d) => d && d.path)) {
     list.push({ part: 'distil', name: (data.demo_ta_project && data.demo_ta_project.name) || t('distil.tag.demo_ta'), id: DEMO_TA_ID, demo: true });
+  }
+  // and the longitudinal demo after that (lipabuild)
+  if (Array.isArray(data.demos_lipa) && data.demos_lipa.some((d) => d && d.path)) {
+    list.push({ part: 'distil', name: (data.demo_lipa_project && data.demo_lipa_project.name) || t('distil.tag.demo_lipa'), id: DEMO_LIPA_ID, demo: true });
   }
   return list;
 }
@@ -231,9 +244,10 @@ let demoNoteBy = null;
 function demoNoteKind(mark) {
   if (mark.dataset.demoNote) return mark.dataset.demoNote;
   if (mark.id === 'hp-demo-ta') return 'ta';
+  if (mark.id === 'hp-demo-lipa') return 'lipa';
   if (mark.id === 'hp-demo') return 'ipa';
   const here = typeof pathProject === 'function' ? pathProject() : null;
-  return here && here.id === DEMO_TA_ID ? 'ta' : 'ipa';
+  return here && here.id === DEMO_TA_ID ? 'ta' : here && here.id === DEMO_LIPA_ID ? 'lipa' : 'ipa';
 }
 
 function demoNoteShut(back = false) {
@@ -1487,12 +1501,13 @@ function closePage() {
   if (card) card.focus({ preventScroll: true });
 }
 
-/* the page's head: the project's name, a demo's own tag on a demo's, `demo` the IPA demo's or `ta` the thematic
-   analysis demo's, the copy tag on a shared copy's, and its question */
+/* the page's head: the project's name, a demo's own tag on a demo's, `demo` the IPA demo's, `ta` the thematic
+   analysis demo's or `lipa` the longitudinal demo's, the copy tag on a shared copy's, and its question */
 function pageHead(name, question, demo, copy = false) {
   $('hp-name').textContent = name;
-  $('hp-demo').hidden = !demo || demo === 'ta';
+  $('hp-demo').hidden = !demo || demo === 'ta' || demo === 'lipa';
   $('hp-demo-ta').hidden = demo !== 'ta';
+  $('hp-demo-lipa').hidden = demo !== 'lipa';
   $('hp-copy').hidden = !copy;
   $('hp-question').textContent = question;
   $('hp-question').hidden = !question;
@@ -1862,20 +1877,22 @@ function demoCards(data) {
    `demo` is one of `demosOf`. */
 function drawDemoPage(demo) {
   const p = demo.project || {};
-  pageHead(p.name || demo.tag, String(p.research_question || ''), demo.method === 'ta' ? 'ta' : true);
+  pageHead(p.name || demo.tag, String(p.research_question || ''), demo.method === 'ta' || demo.method === 'lipa' ? demo.method : true);
   drawCards($('hp-list'), demo.cards, { fixed: true });
   drawGetsHead($('hp-gets'), demo.rows[0].path, () => S.home === demo.id);
   $('hp-transcripts').hidden = true;
   $('demo-reset').hidden = false;
 }
 
-/* Reset demo on a demo's page: the demo in front put back, the thematic analysis demo's by its word */
+/* Reset demo on a demo's page: the demo in front put back, the thematic analysis demo's and the longitudinal demo's
+   by their words */
 async function resetDemo() {
-  const ta = S.home === DEMO_TA_ID;
-  const gone = ta ? t('distil.demo.reset_ask_ta') : t('distil.demo.reset_ask');
+  const word = S.home === DEMO_TA_ID ? 'ta' : S.home === DEMO_LIPA_ID ? 'lipa' : '';
+  const gone = word === 'ta' ? t('distil.demo.reset_ask_ta')
+    : word === 'lipa' ? t('distil.demo.reset_ask_lipa') : t('distil.demo.reset_ask');
   if (!await askSure(gone)) return;
   try {
-    await api('/api/reset-demo', ta ? { demo: 'ta' } : {});
+    await api('/api/reset-demo', word ? { demo: word } : {});
     say(t('distil.demo.reset_done'));
     loadLibrary();
   } catch (err) { say(needsRestart(err) ? RESTART_LINE : err.message, 9000); }
@@ -7731,7 +7748,9 @@ function cueAudio(seconds) {
    asked. Offline or failed, the offer's line says so in plain words, the demo working on without sound, and
    Download tries again. The server downloads (/api/demo-recordings), so the page only asks it and reads how far
    it has got. The PETs and GETs boards' player offers it the same way (themes.js). */
-const REC_GET = { box: '', offer: null, timer: 0, ready: null, back: null };
+const REC_GET = { box: '', offer: null, timer: 0, ready: null, back: null, demo: '' };
+// the demo whose download this is, as the server's offer names it, the longitudinal demo's nine apart (lipabuild)
+const recGetBody = (more = {}, demo = REC_GET.demo) => (demo ? { ...more, demo } : more);
 
 const recGetEl = (box, part) => $(`${box}-get${part ? `-${part}` : ''}`);
 
@@ -7758,6 +7777,7 @@ function recGetOpen(box, offer, ready, back) {
   if (REC_GET.box && REC_GET.box !== box) recGetClose(false);
   REC_GET.box = box;
   REC_GET.offer = offer;
+  REC_GET.demo = (offer && offer.demo) || '';
   REC_GET.ready = ready;
   REC_GET.back = back;
   recGetEl(box).hidden = false;
@@ -7780,7 +7800,7 @@ function recGetClose(called = true) {
 async function recGetStart() {
   if (!REC_GET.box) return;
   try {
-    recGetDraw(await api('/api/demo-recordings', { op: 'download' }));
+    recGetDraw(await api('/api/demo-recordings', recGetBody({ op: 'download' })));
   } catch (err) {
     recGetDraw({ state: 'failed', line: err.message });
     return;
@@ -7790,9 +7810,10 @@ async function recGetStart() {
 
 async function recGetStop() {
   const going = REC_GET.box && !recGetEl(REC_GET.box, 'track').hidden;
+  const demo = REC_GET.demo;
   recGetClose();
   if (going) {
-    try { await api('/api/demo-recordings', { op: 'cancel' }); } catch { /* it stops by itself as the server quits */ }
+    try { await api('/api/demo-recordings', recGetBody({ op: 'cancel' }, demo)); } catch { /* it stops by itself as the server quits */ }
   }
 }
 
@@ -7802,7 +7823,7 @@ async function recGetPoll() {
   const box = REC_GET.box;
   if (!box) return;
   let view;
-  try { view = await api('/api/demo-recordings'); } catch { view = null; }
+  try { view = await api('/api/demo-recordings', recGetBody()); } catch { view = null; }
   if (REC_GET.box !== box) return;
   if (view && view.state === 'done') {
     const ready = REC_GET.ready;
@@ -11822,7 +11843,8 @@ function openProjectSettings(p) {
   const shown = own || p;
   PROJ.own = own || (shown.demo ? shown : null);
   PROJ.p = shown;
-  $('projset-kicker').textContent = shown.demo ? (shown.id === DEMO_TA_ID ? t('distil.tag.demo_ta') : t('distil.home.demo'))
+  $('projset-kicker').textContent = shown.demo ? (shown.id === DEMO_TA_ID ? t('distil.tag.demo_ta')
+    : shown.id === DEMO_LIPA_ID ? t('distil.tag.demo_lipa') : t('distil.home.demo'))
     : (shown.name || t('distil.home.project'));
   projectSaid('');
   drawProjectPane(shown);

@@ -1,0 +1,245 @@
+{
+ "schema": 2,
+ "case": "Arlo",
+ "workbook": "Arlo - EN & ES.xlsx",
+ "created": "2026-07-18T10:00:00+00:00",
+ "updated": "2026-07-18T12:30:00+00:00",
+ "current": "v1",
+ "chosen": "v1",
+ "complete": {
+  "at": "2026-07-18T12:30:00+00:00",
+  "board": "v1",
+  "name": "Board 1"
+ },
+ "boards": [
+  {
+   "id": "v1",
+   "name": "Board 1",
+   "note": "",
+   "created": "2026-07-18T10:00:00+00:00",
+   "updated": "2026-07-18T10:00:00+00:00",
+   "cards": {
+    "T2:3:0": {
+     "x": 70,
+     "y": -807,
+     "text": "Calm some days, the worry moved outdoors on others"
+    },
+    "T2:5:0": {
+     "x": -168,
+     "y": -429,
+     "text": "Lost lettuces taken personally, slugs hunted at night"
+    },
+    "T2:7:0": {
+     "x": -378,
+     "y": -429,
+     "text": "Despairing and laughing on call in a field"
+    },
+    "T2:11:0": {
+     "x": -168,
+     "y": -902,
+     "text": "An hour tying tomatoes in the mist without a single thought"
+    },
+    "T2:13:0": {
+     "x": -378,
+     "y": -902,
+     "text": "The quiet gone at a glance at the phone"
+    },
+    "T2:15:0": {
+     "x": 70,
+     "y": -897,
+     "text": "Quiet possible but not to order"
+    },
+    "T2:17:0": {
+     "x": 280,
+     "y": -897,
+     "text": "Relieved to find his head not broken"
+    },
+    "T2:19:0": {
+     "x": 786,
+     "y": -902,
+     "text": "Silent headphones to keep people off"
+    },
+    "T2:21:0": {
+     "x": 576,
+     "y": -902,
+     "text": "Nearly envious of the regulars, from a window he chose"
+    },
+    "T2:23:0": {
+     "x": 576,
+     "y": -792,
+     "text": "Restful to be nobody in particular"
+    },
+    "T2:25:0": {
+     "x": 786,
+     "y": -792,
+     "text": "Asking nothing so as to be asked nothing"
+    },
+    "T2:27:0": {
+     "x": 1234,
+     "y": -897,
+     "text": "Tomatoes to give away, and a talk at work not about a ticket"
+    },
+    "T2:31:0": {
+     "x": 1024,
+     "y": -787,
+     "text": "Something good to say at last"
+    },
+    "T2:33:0": {
+     "x": 1024,
+     "y": -897,
+     "text": "Hazel poles after a remark heard as contempt"
+    },
+    "T2:33:1": {
+     "x": -378,
+     "y": -319,
+     "text": "Comforted that everyone lost lettuces: not uniquely bad"
+    },
+    "T2:35:0": {
+     "x": 70,
+     "y": -429,
+     "text": "Some weeks going for his therapist, not for himself"
+    },
+    "T2:37:0": {
+     "x": 280,
+     "y": -429,
+     "text": "Good days the ones he forgets to report on"
+    },
+    "T2:39:0": {
+     "x": -378,
+     "y": -792,
+     "text": "A welcome tiredness that lets him sleep"
+    },
+    "T2:41:0": {
+     "x": 70,
+     "y": -339,
+     "text": "Hearing himself say he is on track"
+    }
+   },
+   "groups": [
+    {
+     "id": "g1",
+     "label": "“All my tabs” closed for an hour: a quiet he cannot schedule",
+     "description": "An hour tying tomatoes without a thought, held very still, not to be made to happen, and a head not broken after all",
+     "members": [
+      "g4",
+      "g5"
+     ],
+     "x": -392,
+     "y": -1099
+    },
+    {
+     "id": "g2",
+     "label": "Keeping people off with headphones, and reached anyway",
+     "description": "The window chosen over the party, nobody in particular, asking nothing, and reached by hazel poles and a bag of tomatoes",
+     "members": [
+      "g6",
+      "g7"
+     ],
+     "x": 562,
+     "y": -1099
+    },
+    {
+     "id": "g3",
+     "label": "On call and marked, even at the plot",
+     "description": "Slugs hunted at night like a broken system, comforted by everyone's failure, and the plot reported to his therapist like homework",
+     "members": [
+      "g8",
+      "g9"
+     ],
+     "x": -392,
+     "y": -631
+    },
+    {
+     "id": "g4",
+     "label": "An hour of quiet he was afraid to move in",
+     "description": "Tying tomatoes in the mist, the quiet gone at a glance at the phone, and a tiredness that lets him sleep",
+     "members": [
+      "T2:13:0",
+      "T2:11:0",
+      "T2:39:0"
+     ],
+     "x": -378,
+     "y": -997
+    },
+    {
+     "id": "g5",
+     "label": "Not to be scheduled, and a head not broken",
+     "description": "Possible but not to order, a different problem, and calm some days, the worry moved on others",
+     "members": [
+      "T2:15:0",
+      "T2:17:0",
+      "T2:3:0"
+     ],
+     "x": 70,
+     "y": -997
+    },
+    {
+     "id": "g6",
+     "label": "At the window, nobody in particular",
+     "description": "Headphones playing nothing, nearly envious of the regulars, restful to be unmissed, and asking Des nothing",
+     "members": [
+      "T2:21:0",
+      "T2:19:0",
+      "T2:23:0",
+      "T2:25:0"
+     ],
+     "x": 576,
+     "y": -997
+    },
+    {
+     "id": "g7",
+     "label": "Reached by hazel poles and a bag of tomatoes",
+     "description": "Des's poles after a remark heard as contempt, and good news to say at work",
+     "members": [
+      "T2:33:0",
+      "T2:27:0",
+      "T2:31:0"
+     ],
+     "x": 1024,
+     "y": -997
+    },
+    {
+     "id": "g8",
+     "label": "On call for the slugs, and laughing at himself",
+     "description": "Lettuces lost as a personal attack, a night shift in a field, and not uniquely bad",
+     "members": [
+      "T2:7:0",
+      "T2:5:0",
+      "T2:33:1"
+     ],
+     "x": -378,
+     "y": -529
+    },
+    {
+     "id": "g9",
+     "label": "Going for his therapist, the plot a report to hand in",
+     "description": "Some weeks for her, the good days the ones he forgets to tell, and on track against a target",
+     "members": [
+      "T2:35:0",
+      "T2:37:0",
+      "T2:41:0"
+     ],
+     "x": 70,
+     "y": -529
+    }
+   ],
+   "discarded": [],
+   "picks": {
+    "g1": [
+     "T2:13:0"
+    ],
+    "g2": [
+     "T2:21:0"
+    ],
+    "g3": [
+     "T2:7:0"
+    ]
+   },
+   "quoted": {
+    "T2:13:0": "\"It was like somebody had closed all my tabs. All forty. … I was a bit scared to move. In case they all came back. … And then I looked at my phone to check the time and they all came back.\"",
+    "T2:21:0": "\"Envious isn't quite it. It's like watching a party through a window. And I've chosen the window. … But I've chosen the window, and I keep choosing it.\"",
+    "T2:7:0": "\"I thought, this is my job. This is literally my job. Something's broken, it's urgent, and I'm on call. … And I laughed. … Despairing and funny at the same time.\""
+   }
+  }
+ ]
+}

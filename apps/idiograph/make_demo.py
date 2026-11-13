@@ -29,6 +29,8 @@ in a thematic analysis project, `demo/ta/`, from the same interview CSVs: each p
 and notes in `demo/ta/source/<name> - coding.json`, the code list and the Themes board in `demo/ta/source/Themes.json`,
 built through the same functions (`ship_ta`) into `demo/ta/pristine/` and the live cases beside it, the code list
 and the Themes board's file at `demo/ta/`. `--written` builds both demos, `--ta` the thematic analysis one alone.
+The longitudinal demo (lipabuild, 13 November 2026), `demo/lipa/`, is built by `make_demo_lipa.py`, which says how,
+`--lipa` alone and after the other two in a plain run.
 
 `--audio-only` puts each participant's committed recording in place in the demo and builds nothing, which is
 what the server does for a participant opened with none. `--manifest` writes `demo/recordings.json` again from the
@@ -276,9 +278,25 @@ def write_manifest() -> dict:
     """`demo/recordings.json` written again from the recordings committed for the transcripts as they stand, their
     sizes and sha256s and the licence's, which the app downloads them by (recdemand, 13 November 2026). A recording
     re-encoded keeps its earlier size in the manifest, so a copy that holds that one is not asked to download it
-    again. Answers the manifest."""
+    again. Answers the manifest.
+
+    The longitudinal demo's nine (lipabuild, 13 November 2026) are in the same manifest, assets of the same release.
+    They are not committed, so a copy of the repo without them keeps the manifest's entries for the interviews as
+    they stand, and only a recording made again for an edited interview replaces its entry."""
+    import make_demo_lipa as lipa
+
     names = [committed(name).name for name in CASES if committed(name).is_file()]
-    return demo_rec.write_manifest(MANIFEST, RECORDINGS, names)
+    lipa_names = lipa.recording_names()
+    old = demo_rec.read_manifest(MANIFEST)
+    kept = [e for e in old.get("recordings") or [] if e.get("file") in lipa_names and not (RECORDINGS / e["file"]).is_file()]
+    names += [n for n in lipa_names if (RECORDINGS / n).is_file()]
+    data = demo_rec.write_manifest(MANIFEST, RECORDINGS, names)
+    if kept:
+        data["recordings"] = sorted(data["recordings"] + kept, key=lambda e: e["file"])
+        tmp = MANIFEST.with_name(f".{MANIFEST.name}.writing")
+        tmp.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+        os.replace(tmp, MANIFEST)
+    return data
 
 
 def build_recording(name: str, clips: list[Path], write_csv: bool = True, verbose: bool = True,
@@ -362,10 +380,36 @@ def reset(pristine: Path | None = None, workbook: Path | None = None) -> dict:
         sidecar.unlink()
     for held in sidecar.parent.glob("*.themes.json"):
         held.unlink()
-    board = pristine / "Working" / themes_mod.themes_path(workbook).name
-    if board.exists():
+    # and in the longitudinal demo the later timepoints' boards and the LPETs too (lipabuild, 13 November 2026)
+    for held in [*sidecar.parent.glob(f"{workbook.stem}.themes-t*.json"), sidecar.parent / f"{workbook.stem}.lpets.json"]:
+        held.unlink(missing_ok=True)
+    for board in boards_of(pristine, workbook):
         shutil.copy2(board, sidecar.parent / board.name)
     return {"reset": True, "path": str(workbook)}
+
+
+def boards_of(pristine: Path, workbook: Path) -> list[Path]:
+    """A case's boards the pristine copy holds: its PETs file, and in the longitudinal demo a PETs file for each later
+    timepoint and the LPETs file."""
+    stem = Path(workbook).stem
+    folder = Path(pristine) / "Working"
+    found = [folder / themes_mod.themes_path(workbook, 1).name, folder / f"{stem}.lpets.json"]
+    found += sorted(folder.glob(f"{stem}.themes-t*.json"))
+    return [f for f in found if f.is_file()]
+
+
+def cases_of(pristine: Path) -> list[str]:
+    """The cases a pristine copy holds a workbook for, the IPA demo's in their order, or the longitudinal demo's in
+    the order its own module gives."""
+    import make_demo_lipa as lipa
+
+    held = {f.name[:-len(EN_ES)] for f in Path(pristine).glob(f"*{EN_ES}")}
+    return [name for name in CASES + lipa.CASES if name in held]
+
+
+# the files at a demo's root its pristine copy may hold: the GETs file, the thematic analysis demo's code list, and the
+# longitudinal demo's LGETs and Trajectories files
+ROOT_FILES = (GETS_FILE, CODES_FILE, "idiograph-lgets.json", "idiograph-trajectories.json")
 
 
 def reset_all(pristine: Path | None = None, demo: Path | None = None) -> dict:
@@ -380,15 +424,15 @@ def reset_all(pristine: Path | None = None, demo: Path | None = None) -> dict:
     """
     pristine = Path(pristine) if pristine is not None else PRISTINE
     demo = Path(demo) if demo is not None else DEMO
-    books = [demo / name / f"{name}{EN_ES}" for name in CASES if (pristine / f"{name}{EN_ES}").exists()]
+    books = [demo / name / f"{name}{EN_ES}" for name in cases_of(pristine)]
     if not books:
         raise DemoError("The pristine copy of the demo is missing, so it cannot be reset.")
     for book in books:
         wb_mod.guard_lock(book)
     for book in books:
         reset(pristine, book)
-    # the GETs file and, in the thematic analysis demo, the code list
-    for name in (GETS_FILE, CODES_FILE):
+    # the GETs file and, in the thematic analysis demo, the code list, and the longitudinal demo's two
+    for name in ROOT_FILES:
         shipped = pristine / name
         if shipped.is_file():
             # a new copy, dated now, so nothing that read the file before the reset keeps that read
@@ -414,19 +458,18 @@ def fill(pristine: Path | None = None, demo: Path | None = None) -> list[Path]:
     pristine = Path(pristine) if pristine is not None else PRISTINE
     demo = Path(demo) if demo is not None else DEMO
     copied = []
-    for name in CASES:
+    for name in cases_of(pristine):
         book = demo / name / f"{name}{EN_ES}"
         side = rounds_mod.progress_path(book)
-        pairs = [(pristine / book.name, book),
-                 (pristine / "Working" / side.name, side),
-                 (pristine / "Working" / themes_mod.themes_path(book).name, themes_mod.themes_path(book))]
+        pairs = [(pristine / book.name, book), (pristine / "Working" / side.name, side)]
+        pairs += [(board, side.parent / board.name) for board in boards_of(pristine, book)]
         for source, target in pairs:
             if source.is_file() and not target.exists():
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, target)
                 copied.append(target)
-    # the GETs file and, in the thematic analysis demo, the code list
-    for name in (GETS_FILE, CODES_FILE):
+    # the GETs file and, in the thematic analysis demo, the code list, and the longitudinal demo's two
+    for name in ROOT_FILES:
         target = demo / name
         if (pristine / name).is_file() and not target.exists():
             shutil.copy2(pristine / name, target)
@@ -1156,6 +1199,7 @@ def main() -> int:
     ap.add_argument("--written", action="store_true",
                     help="build the three cases and the GETs, then the thematic analysis demo, as a plain run does")
     ap.add_argument("--ta", action="store_true", help="build the thematic analysis demo alone")
+    ap.add_argument("--lipa", action="store_true", help="build the longitudinal demo alone (make_demo_lipa.py)")
     ap.add_argument("--manifest", action="store_true",
                     help="write demo/recordings.json again from the committed recordings, and build nothing")
     args = ap.parse_args()
@@ -1169,6 +1213,16 @@ def main() -> int:
             placed = place_recording(name)
             print(f"  {name}: {placed.name} in place" if placed else
                   f"  {name}: no recording made from the transcript as it stands, so none is in place")
+        return 0
+    if args.lipa:
+        import make_demo_lipa
+        try:
+            print("Building the longitudinal demo.")
+            make_demo_lipa.ship_lipa(force=args.force)
+        except (DemoError, wb_mod.WorkbookError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
+        print("Done.")
         return 0
     if args.ta:
         try:
@@ -1185,6 +1239,9 @@ def main() -> int:
         ship_all(force=args.force)
         print("Building the thematic analysis demo.")
         ship_ta(force=args.force)
+        import make_demo_lipa
+        print("Building the longitudinal demo.")
+        make_demo_lipa.ship_lipa(force=args.force)
     except (DemoError, wb_mod.WorkbookError) as exc:
         print(str(exc), file=sys.stderr)
         return 1

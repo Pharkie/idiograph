@@ -118,8 +118,10 @@ name a participant by its pseudonym alone. A pseudonym two projects share is ref
 for `--project`, and so is `gets` while there are several. `--project "<name>"` takes the project of
 that name, as `cases` prints it, `--root <folder>` the project in that folder, and `--demo` the demo,
 Living with a dog, three invented interviews, always open to an agent and the place to try a
-command first. `--demo` alone is the IPA demo, and `--demo ta` (or `--demo=ta`) the thematic analysis
-demo, the same three interviews coded in a thematic analysis project, with its code list and Themes board. Every answer is plain text, and `--json` gives the exact data. A refusal is
+command first. `--demo` alone is the IPA demo, `--demo ta` (or `--demo=ta`) the thematic analysis
+demo, the same three interviews coded in a thematic analysis project, with its code list and Themes board, and
+`--demo lipa` the longitudinal IPA demo, First year on an allotment, three other invented participants each
+interviewed at three timepoints, with their PETs at each, their LPETs, the LGETs and Trajectories. Every answer is plain text, and `--json` gives the exact data. A refusal is
 one line a reason and writes nothing.
 
 The command line and the MCP server read and write the files themselves and need no running app. A

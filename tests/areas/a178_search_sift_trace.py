@@ -224,8 +224,11 @@ def test_search_sift_trace(scratch):
         demo_there = bool(idiograph_routes.demo_workbooks())
         # and the thematic analysis demo after it while its workbooks are there (demos, 3 November 2026)
         ta_there = any(b.is_file() for b in idiograph_routes.demo_workbooks(server_mod.demo_ta_dir()))
+        # and the longitudinal demo after that (lipabuild, 13 November 2026)
+        lipa_there = any(b.is_file() for b in idiograph_routes.demo_workbooks(server_mod.demo_lipa_dir()))
         keys = [p["key"] for p in every["projects"]]
-        demos = (["distil:demo"] if demo_there else []) + (["distil:demo-ta"] if ta_there else [])
+        demos = ((["distil:demo"] if demo_there else []) + (["distil:demo-ta"] if ta_there else [])
+                 + (["distil:demo-lipa"] if lipa_there else []))
         check("178: Everything lists every project the home screen lists, Sift's, then Distil's with the demos last while "
               "their workbooks are there, then Trace's, the parts in a study's order with their kinds",
               [p["part"] for p in every["projects"]] == ["sift", "distil"] + ["distil"] * len(demos) + ["trace", "trace"]

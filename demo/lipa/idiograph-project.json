@@ -1,0 +1,129 @@
+{
+  "name": "First year on an allotment",
+  "research_question": "How do people experience their first year of keeping an allotment?",
+  "updated": "2026-11-11T17:30:00+00:00",
+  "timepoints": [
+    {
+      "label": "T1",
+      "description": "Before the season"
+    },
+    {
+      "label": "T2",
+      "description": "Midsummer"
+    },
+    {
+      "label": "T3",
+      "description": "After the harvest"
+    }
+  ],
+  "participants": {
+    "Arlo": {
+      "label": "The reluctant gardener",
+      "portrait": "Arlo is 29 and works from home in second-line IT support for a software company, a queue of other people's problems from eight until whenever. He lives alone in a one-bedroom flat above a dry cleaner's, his desk in the living room. He was signed off work for six weeks the autumn before the study, and it was his therapist who suggested something with his hands, away from screens; his name had been down for a plot for three years and he had forgotten it. He prepares by reading. He speaks fluently and with a dry irony, often in the language of his work, and watches himself as he talks, naming his own habits before anyone else can.",
+      "picture": "set:peep22",
+      "values": {
+        "Gender": "Male",
+        "Age range": "18 to 29",
+        "Lives with": [
+          "Alone"
+        ]
+      }
+    },
+    "Hollis": {
+      "label": "The new lad at the gate",
+      "portrait": "Hollis is 68 and retired fourteen months before the study began, after forty-one years as a mechanic at a bus depot, where he started at sixteen. He lives with his wife, Pat, in a ninth-floor flat by a ring road. His name had been down for an allotment for two years, and the plot he was given had stood untended for two. He speaks plainly and briefly, with a dry, understated humour, and reaches for his trade to say what he means: engines, buses, a job done properly. He says little about feelings directly, and lets a story carry them.",
+      "picture": "set:peep14",
+      "values": {
+        "Gender": "Male",
+        "Age range": "60 to 69",
+        "Lives with": [
+          "Partner"
+        ]
+      }
+    },
+    "Nell": {
+      "label": "The mother of two",
+      "portrait": "Nell is 36 and came to England from a village in Romania at 24, with school English and one suitcase. She cleaned offices at night while she trained, and now works three days a week as a dental nurse. She lives with her husband, Chris, who works shifts, and their two children, Matei, five, and Daria, two. Every childhood summer she spent at her grandmother's, her buni's, where the garden behind the house fed the family. She took a full plot when she was offered half. English is her second language: she speaks quickly and warmly, laughs at herself, and now and then drops a word or reaches for one she does not have.",
+      "picture": "set:peep05",
+      "values": {
+        "Gender": "Female",
+        "Age range": "30 to 39",
+        "Lives with": [
+          "Partner",
+          "Children"
+        ]
+      }
+    }
+  },
+  "demographics": [
+    {
+      "name": "Gender",
+      "kind": "list",
+      "show": true,
+      "values": [
+        {
+          "word": "Female",
+          "colour": 0
+        },
+        {
+          "word": "Male",
+          "colour": 1
+        },
+        {
+          "word": "Non-binary",
+          "colour": 2
+        }
+      ]
+    },
+    {
+      "name": "Age range",
+      "kind": "list",
+      "show": true,
+      "values": [
+        {
+          "word": "18 to 29",
+          "colour": 3
+        },
+        {
+          "word": "30 to 39",
+          "colour": 4
+        },
+        {
+          "word": "40 to 49",
+          "colour": 5
+        },
+        {
+          "word": "50 to 59",
+          "colour": 6
+        },
+        {
+          "word": "60 to 69",
+          "colour": 7
+        },
+        {
+          "word": "70 and over",
+          "colour": 8
+        }
+      ]
+    },
+    {
+      "name": "Lives with",
+      "kind": "words",
+      "show": true,
+      "values": [
+        {
+          "word": "Partner",
+          "colour": 9
+        },
+        {
+          "word": "Children",
+          "colour": 10
+        },
+        {
+          "word": "Alone",
+          "colour": 11
+        }
+      ]
+    }
+  ]
+}

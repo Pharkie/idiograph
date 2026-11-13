@@ -1,0 +1,124 @@
+{
+ "timepoints": {
+  "T2": 2,
+  "T3": 3
+ },
+ "version": 1,
+ "rows": {
+  "T1:3": "has-content",
+  "T1:5": "has-content",
+  "T1:7": "has-content",
+  "T1:9": "has-content",
+  "T1:11": "has-content",
+  "T1:13": "has-content",
+  "T1:15": "has-content",
+  "T1:17": "has-content",
+  "T1:19": "has-content",
+  "T1:21": "has-content",
+  "T1:23": "has-content",
+  "T1:25": "has-content",
+  "T1:27": "has-content",
+  "T1:29": "has-content",
+  "T1:31": "has-content",
+  "T1:33": "has-content",
+  "T1:35": "has-content",
+  "T1:37": "has-content",
+  "T1:39": "has-content",
+  "T1:41": "has-content",
+  "T2:3": "has-content",
+  "T2:5": "has-content",
+  "T2:7": "has-content",
+  "T2:9": "has-content",
+  "T2:11": "has-content",
+  "T2:13": "has-content",
+  "T2:15": "has-content",
+  "T2:17": "has-content",
+  "T2:19": "has-content",
+  "T2:21": "has-content",
+  "T2:23": "has-content",
+  "T2:25": "has-content",
+  "T2:27": "has-content",
+  "T2:29": "has-content",
+  "T2:31": "has-content",
+  "T2:33": "has-content",
+  "T2:35": "has-content",
+  "T2:37": "has-content",
+  "T2:39": "has-content",
+  "T2:41": "has-content",
+  "T3:3": "has-content",
+  "T3:5": "has-content",
+  "T3:7": "has-content",
+  "T3:9": "has-content",
+  "T3:11": "has-content",
+  "T3:13": "has-content",
+  "T3:15": "has-content",
+  "T3:17": "has-content",
+  "T3:19": "has-content",
+  "T3:21": "has-content",
+  "T3:23": "has-content",
+  "T3:25": "has-content",
+  "T3:27": "has-content",
+  "T3:29": "has-content",
+  "T3:31": "has-content",
+  "T3:33": "has-content",
+  "T3:35": "has-content",
+  "T3:37": "has-content",
+  "T3:39": "has-content"
+ },
+ "rounds": {
+  "1": {
+   "seconds": 1560,
+   "completed": "2026-03-20T10:00:00+00:00"
+  },
+  "2": {
+   "seconds": 1620,
+   "completed": "2026-03-20T11:00:00+00:00"
+  },
+  "3": {
+   "seconds": 1680,
+   "completed": "2026-07-17T10:00:00+00:00"
+  },
+  "4": {
+   "seconds": 1740,
+   "completed": "2026-07-17T11:00:00+00:00"
+  },
+  "5": {
+   "seconds": 1800,
+   "completed": "2026-11-06T10:00:00+00:00"
+  },
+  "6": {
+   "seconds": 1860,
+   "completed": "2026-11-06T11:00:00+00:00"
+  }
+ },
+ "days": {
+  "2026-03-20": {
+   "rounds": 2
+  },
+  "2026-07-17": {
+   "rounds": 2
+  },
+  "2026-11-06": {
+   "rounds": 2
+  }
+ },
+ "last": {
+  "sheet": "T3",
+  "row": 39
+ },
+ "flags": [],
+ "trims": [],
+ "edits": [],
+ "assignments": [],
+ "complete": {
+  "at": "2026-03-20T17:30:00+00:00"
+ },
+ "complete_timepoints": {
+  "2": {
+   "at": "2026-07-17T17:30:00+00:00"
+  },
+  "3": {
+   "at": "2026-11-06T17:30:00+00:00"
+  }
+ }
+}
