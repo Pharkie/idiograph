@@ -38,7 +38,7 @@ OPERATIONS = {
         '{"op": "stack", "items": ["S79", "S80"], "under": "S77"} stacks S79 and S80 under S77, which then '
         "stands for them in the PETs table and the exports, one point said several ways close together in the "
         'transcript kept under the statement that says it best, {"op": "unstack", "items": ["S79"]} takes one out '
-        'again just below its stack, in its top\'s label, and {"op": "top", "item": "S79"} puts one on top of the stack it '
+        'again straight after its top, in its top\'s label, and {"op": "top", "item": "S79"} puts one on top of the stack it '
         "is in, in its top's place. A stack is one level deep. A close pair that says different things: "
         '{"op": "not_same", "items": ["S11", "S12"]} marks it Not the same, so the board no longer links the two, and '
         '{"op": "show_again", "items": ["S11", "S12"]} takes that off. The sidebar, only when he asks: '

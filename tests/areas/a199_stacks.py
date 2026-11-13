@@ -192,13 +192,51 @@ def test_stacks(scratch):
         drawn = themes.layout_boxes(b)
         lb, tb = drawn["cards"][loose], (start["cards"][top]["x"], start["cards"][top]["y"])
         others = [box for k, box in drawn["cards"].items() if k != loose]
-        check("199: a statement taken out lands just below its stack, at its top's left edge and never above it, "
-              "clear of every other card",
-              lb[0] == tb[0] and lb[1] > tb[1] + 40 and not any(themes.clash(lb, o) for o in others), str(lb))
+        check("199: a statement taken out lands clear of every other card",
+              not any(themes.clash(lb, o) for o in others), str(lb))
         code, said, err = answer("board", "apply", "Rowan", "v1", "--ops", ops({"op": "unstack", "items": [L]}),
                                  "--note", "x", "--tool", "Claude Code")
         said = str(said.get("error") or "") + err
         check("199: taking out a statement in no stack is refused", code != 0 and "in no stack" in said, said[:200])
+
+        # ── D2. a card taken out lands straight after the card it was stacked under (unstackorder, 13 November)
+        spare = list(start["cards"])[:11]
+        grid = {k: {"x": 40 + 330 * (i % 3), "y": 120 + 200 * (i // 3)} for i, k in enumerate(spare)}
+        row = spare[:5]
+        base = themes.normalise(dict(start, discarded=[], stacks={spare[1]: spare[5:8]}, notes=[], stickies=[],
+                                     groups=[dict(by_id[pet], members=row, x=0, y=0)],
+                                     cards={k: dict(c, **grid[k]) for k, c in start["cards"].items() if k in spare}))
+        topk, first, second = spare[1], spare[5], spare[6]
+
+        def reads(b):
+            return themes.order_of(b, pet)
+
+        def clear(b):
+            drawn = themes.layout_boxes(b)
+            boxes = [drawn["cards"][k] for k in b["cards"] if k in drawn["cards"] and k not in themes.off_canvas(b)]
+            return not any(themes.clash(a, c) for i, a in enumerate(boxes) for c in boxes[i + 1:])
+
+        was = reads(base)
+        one = themes.take_out(base, [second])
+        two = themes.take_out(base, [first, second])
+        want_one = [m for m in was if m != second]
+        want_one.insert(want_one.index(topk) + 1, second)
+        want_two = was[:was.index(topk) + 1] + [first, second] + was[was.index(topk) + 1:]
+        check("199: a statement taken out is read straight after the one it was stacked under, the others in their "
+              "order, two from one stack in the order they held, and nothing overlaps",
+              reads(one) == want_one and reads(two) == want_two and clear(one) and clear(two)
+              and one["stacks"] == {topk: [spare[5], spare[7]]} and two["stacks"] == {topk: [spare[7]]},
+              f"{reads(one)} {reads(two)}")
+        keep_file = themes_file.read_bytes()
+        filed = json.loads(keep_file)
+        filed["boards"] = [dict(base, id="v1", history=[]) if b["id"] == "v1" else b for b in filed["boards"]]
+        themes_file.write_text(json.dumps(filed), encoding="utf-8")
+        code, _, _ = answer("board", "apply", "Rowan", "v1", "--ops", ops(
+            {"op": "unstack", "items": [sids[first], sids[second]]}), "--note", "Take two out", "--tool", "Claude Code")
+        api = themes.normalise(board())
+        check("199: the unstack op reads the same, the cards straight after their top",
+              code == 0 and themes.order_of(api, pet) == want_two and clear(api), str(themes.order_of(api, pet)))
+        themes_file.write_bytes(keep_file)
 
         # ── E. board new takes stacked
         new = scratch / "stacks-new.json"

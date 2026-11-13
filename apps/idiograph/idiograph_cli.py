@@ -4258,7 +4258,7 @@ def run_stacks(landed: dict, ops: list, read: dict, keys: dict, sids: dict, prob
     afterwards and what each did, said plainly, a line in `problems` for each that cannot stand.
 
     `{"op": "stack", "items": ["S79", "S80"], "under": "S77"}` stacks S79 and S80 under S77, which
-    then stands for them, `{"op": "unstack", "items": ["S79"]}` takes S79 out again just below its stack,
+    then stands for them, `{"op": "unstack", "items": ["S79"]}` takes S79 out again straight after its top in the label's order,
     and `{"op": "top", "item": "S79"}` puts S79 on top of the stack it is in. `{"op": "not_same", "items":
     ["S11", "S12"]}` marks a close pair Not the same, kept with the board, and `{"op": "show_again", "items":
     ["S11", "S12"]}` takes the mark off, so the board marks the pair again while it stays close."""

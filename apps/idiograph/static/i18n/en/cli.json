@@ -418,7 +418,7 @@
   "cli.run_stacks.operation_puts_on_top_where_it": "Operation {n} puts {pair} on top, where it is already.",
   "cli.run_stacks.operation_puts_on_top_which_is": "Operation {n} puts {pair} on top, which is in no stack.",
   "cli.run_stacks.operation_names_more_than_one_statement": "Operation {n} names more than one statement to put on top.",
-  "cli.run_stacks.just_below_it": ", just below it",
+  "cli.run_stacks.just_below_it": ", straight after it",
   "cli.run_stacks.out_of_the_stack_under": "{name} out of the stack under {name2}",
   "cli.run_stacks.operation_takes_out_which_in_no": "Operation {n} takes out {list}, which {v_} in no stack.",
   "cli.run_stacks.stacked_under_which_stands_for": "stacked {listed} under {name}, which stands for {v_}",

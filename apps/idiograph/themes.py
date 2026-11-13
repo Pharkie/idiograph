@@ -1741,6 +1741,7 @@ def take_out(version: dict, items: list[str], height=None) -> dict:
     or into Not placed so when the top is in none, and into Not placed by the nearest free spot to
     the middle when the top is in the bin. Nothing is written."""
     v = json.loads(json.dumps(normalise(version)))
+    after = {}
     for key in items:
         top = top_of(v, key)
         if top is None:
@@ -1772,7 +1773,28 @@ def take_out(version: dict, items: list[str], height=None) -> dict:
                   + [b for g, b in drawn["labels"].items()]
                   + [b for g, b in drawn["frames"].items() if g not in holding])
         v["cards"][key].update(**below(t, (CARD_W, tall(key, v["cards"][key].get("text"))), others))
+        if owner is not None:
+            # and read straight after the card it was stacked under, or after the one taken out of the
+            # same stack before it, the label's order set as a reorder sets it, so the rows stay as they
+            # were and nothing overlaps (unstackorder, 13 November 2026)
+            v = settle_after(v, owner, key, after.get(top, top), height)
+            after[top] = key
     return normalise(v)
+
+
+def settle_after(version: dict, gid: str, key: str, prev: str, height=None) -> dict:
+    """A board with `key`, a member of the label `gid`, read straight after `prev` among what the label
+    holds, as `reorder` sets it. The board as it was when that cannot be done."""
+    v = normalise(version)
+    now = order_of(v, gid)
+    if key not in now or prev not in now:
+        return v
+    wanted = [m for m in now if m != key]
+    wanted.insert(wanted.index(prev) + 1, key)
+    try:
+        return reorder(v, gid, wanted, height)[0]
+    except WorkbookError:
+        return v
 
 
 def below(top, size, others) -> dict:

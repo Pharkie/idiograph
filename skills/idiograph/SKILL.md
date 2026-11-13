@@ -1542,7 +1542,7 @@ canvas does:
 
 `stack` stacks S79 and S80 under S77, each out of its label, Not placed or another stack, a top
 stacked bringing its own stack with it, so a stack is one level deep. `under` is never a statement
-stacked under another, nor one set aside. `unstack` takes one out again just below its stack, never above its top, in its top's
+stacked under another, nor one set aside. `unstack` takes one out again straight after its top in the label's reading order (several from one stack in the order they held), in its top's
 label, or in Not placed when the top is in none. `top` puts one on top of the stack it is in, in its
 top's place, the old top first under it. They run after the other operations, on the board they leave,
 and before an order. A statement stacked loses the reason it carried in Not placed. `board show` gives

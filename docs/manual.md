@@ -2823,7 +2823,7 @@ growing round them. Each card of an open stack opens its statement for editing o
 in the Inspector, and has its own menu, Make this the top and Take out of the stack. Make this the top
 puts it in the top's place, the old top first under it. Drag a card out of an open stack onto the board
 and it lands where it is let go, out of the stack, as any card does. Take out of the stack leaves it
-just below the stack, in the top's PET, never above its top, moved down past anything there. A stack
+straight after its top in the top's PET, in the order the PET reads, the others moving along to make room. A stack
 opened near the foot of the canvas glides up until its last card is clear of the zoom.
 Stack again, the count, `S`, or Esc with nothing selected, stacks it again, and what moved down moves
 back up. Opening a stack is a view: it changes nothing, has no step

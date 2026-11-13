@@ -3191,16 +3191,39 @@ function thStackDo(items, top) {
 
 /* Take out of the stack, in the menu: the card just below its stack, in its top's label, clear of what
    is there, and selected. One step of undo. */
-function thTakeOutDo(key) {
-  if (thRefuse('stack')) return;
+async function thTakeOutDo(key) {
+  if (thRefuse('stack') || TH.busy) return;
   const v = TH.v;
   const top = thTopOf(v, key);
   if (!top) return;
   const before = thSnap(v, TH.removed);
+  const from = thSpots(v);
+  const owner = v.discarded.includes(top) ? undefined : thParents(v)[top];
   thTakeOut(v, key, thBelowStack(v, key, top));
   if (!thStackOf(v, top).length) TH.opened.delete(top);
   TH.sel.cards = new Set([key]);
-  thDone(before, t('themes.step.unstacked'), { settle: new Set([key]) });
+  // and read straight after the card it was stacked under, the order set by the server's reorder, the one
+  // an agent's unstack runs (unstackorder, 13 November 2026)
+  if (owner !== undefined && TH.live && TH.meta) {
+    const rest = thTableSiblings(v, thLayout(v, thSize, null), owner).filter((m) => m !== key);
+    const items = thTableMoved(rest, key, rest.indexOf(top) + 1);
+    const heights = {};
+    for (const [k, s] of Object.entries(TH.sizes || {})) if (v.cards[k] && s && s.h > 0) heights[k] = Math.round(s.h);
+    const path = TH.path;
+    const board = TH.meta.id;
+    TH.busy = true;
+    let data = null;
+    try {
+      data = await api('/api/board-order', { workbook: path, gets: thGets(), version: thBody(v, TH.meta), under: owner, items, heights });
+    } catch (err) {
+      data = null;
+    } finally {
+      TH.busy = false;
+    }
+    if (TH.path !== path || !TH.meta || TH.meta.id !== board || TH.v !== v) return;
+    if (data) thOrderLand(v, data);
+  }
+  thDone(before, t('themes.step.unstacked'), { settle: new Set([key]), from });
 }
 
 /* Where a card taken out of its stack goes: under the stack, at its top's left edge a margin below it,
