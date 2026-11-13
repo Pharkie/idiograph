@@ -93,7 +93,8 @@ things leave, each only when you press a
 control: with the AI switch on, the prompt an AI control builds from a passage or a board, sent to your
 chosen provider, none with a local model, and a feedback note, sent with the bug in each top bar, which carries your words, the app's version, your system, the screen it came from and the
 time, and nothing from your projects. Once a day Idiograph asks GitHub for a newer version. GitHub sees
-your internet address and version number, never your work. Settings asks Anthropic which models a
+your internet address and version number, never your work. Download on the demo's player fetches its
+recordings from GitHub, once. Settings asks Anthropic which models a
 stored key can use, sending nothing of yours.
 
 ## Contributing

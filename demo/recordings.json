@@ -1,0 +1,35 @@
+{
+ "release": "demo-recordings-1",
+ "url": "https://github.com/Pharkie/idiograph/releases/download/demo-recordings-1/",
+ "recordings": [
+  {
+   "file": "Juno-Initial-7cbfb051185389df.m4a",
+   "size": 5280032,
+   "sha256": "13e73af29cc5dd8da6ee46a976810fe878c92a04b1a9e61766a5286a71dd3841",
+   "earlier": [
+    10588232
+   ]
+  },
+  {
+   "file": "Mabel-Initial-aa9168a826300673.m4a",
+   "size": 1942059,
+   "sha256": "5a64676a343cf69dda4662675ac0604059fe32521a3e4b5576b4ef91ea494979",
+   "earlier": [
+    3883552
+   ]
+  },
+  {
+   "file": "Rowan-Initial-82c763cbdca4df3e.m4a",
+   "size": 2166566,
+   "sha256": "054a44d900af0ea51fd0963ab1653fe5e021719a6955b6cd8ab7e000c9f29b8d",
+   "earlier": [
+    4344743
+   ]
+  }
+ ],
+ "licence": {
+  "file": "LICENSE-audio.md",
+  "size": 910,
+  "sha256": "2b5075f61e4ccffd78ad05895463c40ba66a5524d3465341fc73363e403a6ba5"
+ }
+}

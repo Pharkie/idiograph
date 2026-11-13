@@ -15,6 +15,13 @@ page keeps its median frame at 18 ms or less and none over 50 ms, tried once mor
 the window, adds or removes nothing in the board after the drag's first frame and reads no layout as the pointer
 moves. The lines drawn afresh every frame, as they were, put back on the same board rebuild them, which the watch
 sees.
+
+Since perfreview (13 November 2026, Adam's recording of a PET dragged by its title, uneven from frame to frame with
+holds and jumps): a PET dragged by its title across the same board, its cards and sub-PETs with it, keeps the same
+pace after the frame that picks it up, each thing it carries drawn in a layer of its own while it moves, and both
+drags move an even step a frame, each frame's step within 0.7 to 1.35 of an even hand's for eight frames in ten, the
+pointer's place taken a moment before each frame from the moves either side of then. Each frame taking the latest
+move as it is, as it did, put back on the same board steps unevenly, which the watch sees.
 """
 from __future__ import annotations
 
@@ -95,17 +102,40 @@ window.__bd = {
     }
     return best;
   },
-  async drag(ms = 2000, amp = 420) {
+  // a PET's title, a label of no parent, as near the canvas's middle as leaves room to swing `amp` either way
+  pickTitle(amp) {
+    const sb = document.getElementById('th-stage').getBoundingClientRect();
+    const parents = thParents(TH.v);
+    let best = null, bd = Infinity;
+    for (const [id, el] of Object.entries(TH.els.labels)) {
+      if (parents[id]) continue;
+      const b = el.getBoundingClientRect(), cx = b.left + Math.min(40, b.width / 2), cy = b.top + b.height / 2;
+      if (cx - amp < sb.left + 10 || cx + amp > sb.right - 10 || cy < sb.top + 20 || cy > sb.bottom - 20) continue;
+      const d = Math.hypot(cx - (sb.left + sb.width / 2), cy - (sb.top + sb.height / 2));
+      if (d < bd) { bd = d; best = { el, x: Math.round(cx), y: Math.round(cy) }; }
+    }
+    return best;
+  },
+  async drag(ms = 2000, amp = 420, kind = 'card') {
     this.wrap();
     const stage = document.getElementById('th-stage');
-    const p = this.pick(amp);
-    if (!p) return { error: 'no card' };
+    const p = kind === 'title' ? this.pickTitle(amp) : this.pick(amp);
+    if (!p) return { error: 'no ' + kind };
     const frames = [];
+    const rows = [];
     let stop = false;
-    const tick = (t) => { frames.push(t); if (!stop) requestAnimationFrame(tick); };
+    let t0 = null;
+    const z = TH.view.z;
+    // what each frame drew of what is dragged, read the next frame from its own style, so nothing is laid out
+    const tx = () => { const m = /^(-?[\d.]+)px/.exec(p.el.style.translate || ''); return m ? Number(m[1]) * z : 0; };
+    const tick = (t) => {
+      frames.push(t);
+      if (t0 !== null && TH.drag) rows.push({ t, ideal: amp * Math.sin((2 * Math.PI * (t - t0)) / 1400), at: tx() });
+      if (!stop) requestAnimationFrame(tick);
+    };
     requestAnimationFrame(tick);
     await this.sleep(50);
-    const t0 = performance.now();
+    t0 = performance.now();
     p.el.dispatchEvent(this.pe('pointerdown', p.x, p.y));
     let added = 0, first = true;
     const world = document.getElementById('th-world');
@@ -133,12 +163,30 @@ window.__bd = {
     const d = [];
     for (let i = 1; i < frames.length; i += 1) if (frames[i] > t0 + 100) d.push(frames[i] - frames[i - 1]);
     const s = d.slice().sort((a, b) => a - b);
-    return { dragging, frames: d.length, median: Math.round(s[Math.floor(s.length / 2)] * 10) / 10,
-      max: Math.round(s[s.length - 1] * 10) / 10, over50: d.filter((x) => x > 50).length, added, reads: this.reads };
+    // after the pickup, the frame that lifts what is picked up, which for a theme draws its layers
+    const late = [];
+    for (let i = 1; i < frames.length; i += 1) if (frames[i - 1] > t0 + 150) late.push(frames[i] - frames[i - 1]);
+    // each frame's step of what is dragged against an even hand's over the frame it was drawn for, where the hand
+    // moves three pixels or more, the middle eight in ten of them
+    const r = [];
+    const live = rows.filter((x) => x.t > t0 + 200);
+    for (let i = 2; i < live.length; i += 1) {
+      const hand = live[i - 1].ideal - live[i - 2].ideal;
+      if (Math.abs(hand) >= 3) r.push((live[i].at - live[i - 1].at) / hand);
+    }
+    r.sort((a, b) => a - b);
+    const q = (f) => (r.length ? Math.round(r[Math.min(r.length - 1, Math.floor(f * r.length))] * 100) / 100 : null);
+    return { kind, dragging, frames: d.length, median: Math.round(s[Math.floor(s.length / 2)] * 10) / 10,
+      max: Math.round(s[s.length - 1] * 10) / 10, over50: d.filter((x) => x > 50).length, over50late: late.filter((x) => x > 50).length,
+      added, reads: this.reads,
+      steps: r.length, even: [q(0.1), q(0.9)] };
   },
 };
 """
 
+# each frame taking the latest move as it is, as a drag did until perfreview, where the pointer's place is taken a
+# moment before the frame from the moves either side of then
+OLD_STEP = "(() => { window.thDragAt = () => null; return 1; })()"
 # the lines drawn afresh on every frame of a drag, as they were until boardperf
 OLD_LINES = ("(() => { const f = thLinksDraw; window.thLinksDraw = (d) => { for (const id of ['th-links', 'th-linkends']) "
              "{ const s = document.getElementById(id); if (s) s.thDrawn = null; } return f(d); }; return 1; })()")
@@ -239,6 +287,9 @@ def test_board_drag(scratch: Path):
     steps = [{"js": open_js, "waitFor": "#th-world .th-card", "wait": 1500},
              {"js": "__bd.drag(1000)", "wait": 500},
              {"js": "__bd.drag(2000)", "wait": 500},
+             {"js": "__bd.drag(2000, 250, 'title')", "wait": 500},
+             {"js": OLD_STEP, "wait": 100},
+             {"js": "__bd.drag(2000)", "wait": 500},
              {"js": OLD_LINES, "wait": 100},
              {"js": "__bd.drag(1000)", "wait": 100}]
     steps_file = base / "steps.json"
@@ -271,17 +322,33 @@ def test_board_drag(scratch: Path):
                     pass
         return ran, said
 
-    def smooth(m: dict) -> bool:
-        return bool(m) and m.get("dragging") is True and m.get("frames", 0) >= 80 and m.get("median", 99) <= 18 and m.get("over50", 99) == 0
+    def smooth(m: dict, stalls: str = "over50") -> bool:
+        return bool(m) and m.get("dragging") is True and m.get("frames", 0) >= 80 and m.get("median", 99) <= 18 and m.get(stalls, 99) == 0
+
+    # each frame's step of what is dragged against an even hand's, the middle eight in ten, within a band of it
+    def even(m: dict) -> bool:
+        e = (m or {}).get("even") or [None, None]
+        return (m or {}).get("steps", 0) >= 50 and e[0] is not None and e[0] >= 0.7 and e[1] <= 1.35
+
+    def held(said: dict) -> bool:
+        return smooth(said.get(2)) and smooth(said.get(3), "over50late") and even(said.get(2)) and even(said.get(3))
 
     ran, said = drive()
     # under a full gate's load the offscreen window can be starved of frames, which says nothing of the page: once more
-    if ran.returncode != 0 or not smooth(said.get(2)):
+    if ran.returncode != 0 or not held(said):
         ran, said = drive()
-    m, old = said.get(2) or {}, said.get(4) or {}
+    m, title, uneven, old = said.get(2) or {}, said.get(3) or {}, said.get(5) or {}, said.get(7) or {}
     check("378: in WebKit at 1587 by 1234, a card dragged left and right across a board of 105 cards in six PETs for two "
           "seconds keeps its median frame at 18 ms or less, a screen's frame being 16.7, and none over 50 ms",
           ran.returncode == 0 and said.get(0) == 105 and smooth(m), f"{said.get(0)} {m} {ran.stdout[-300:]} {ran.stderr[-300:]}")
+    check("378: a PET dragged by its title across the same board, fifteen cards and labels with it, keeps its median "
+          "frame at 18 ms or less and none over 50 ms after the frame that picks it up (perfreview)",
+          ran.returncode == 0 and smooth(title, "over50late"), f"{title}")
+    check("378: what is dragged moves an even step a frame, each frame's step within 0.7 to 1.35 of an even hand's for "
+          "eight frames in ten, the card and the PET alike (perfreview)", even(m) and even(title),
+          f"card {m.get('even')} over {m.get('steps')}, title {title.get('even')} over {title.get('steps')}")
+    check("378: each frame taking the latest move as it is, as a drag did until perfreview, put back on the same board "
+          "steps unevenly, which the watch sees", uneven.get("dragging") is True and not even(uneven), f"{uneven}")
     check("378: while the card is dragged nothing is added to the board or taken from it after the drag's first frame, "
           "the close pairs' lines among it, and the pointer's moves read no layout",
           m.get("added") == 0 and m.get("reads") == 0, f"{m}")

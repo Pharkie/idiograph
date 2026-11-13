@@ -126,8 +126,9 @@ has, which goes on working, and is offered no update. `build_mac.py` refuses to 
 cryptography at the versions it pins, from the newest python.org Python of 3.11 or later when one is
 installed and else the Python running it, refused unless it runs as arm64 (`runs_arm64`).
 It stages the demo as Reset demo leaves it, its three cases from `demo/pristine/` with their boards
-and the GETs file, and each case's recording copied from `packaging/recording/` with its licence beside it
-(`stage_recordings`, see The demo's recordings), and `config.json` from `server.shipped_config()`, which
+and the GETs file, and `demo/recordings.json`, the manifest the app downloads the recordings by, never a recording
+nor its licence (`demo_line` stops the build on a stage that holds one, see The demo's recordings on demand), and
+`config.json` from `server.shipped_config()`, which
 names no root. PyInstaller freezes `packaging/mac_launcher.py` and every module it reaches, with
 `template/Transcript template.xlsx` among its data, into one folder, the server, and the build runs
 its `cli --help` before it goes on. Since 17 October (the third Tauri build) Tauri's bundler makes the
@@ -618,6 +619,38 @@ parser:
   write left them. The run takes `undone`, the undo one line of the record, and `agents undo-run` on the undo's id puts
   it back. `cli.PLAIN` keeps the record's own words plain (`run`, `via`, `started`, `last`, `what_changed`, `own`,
   `batch`, `copy`, `undoes`, `undo_run`, `change`, `back_said`, `gone_said`), the agent's name and his request marked.
+- Review afterwards (agentreview2, 13 November 2026, Adam by dialog on agentreview's drawings: "C, with A's Home
+  line"). Each write now keeps its own files in the run's file as `steps`, by change id: each file it changed with
+  `before` and `after`, their sha256 in `objects/`, and `before_stat` and `after_stat` (`step_of`). A before is
+  known by its time and size from the restore point or the run's last change (`known_shas`), and a file that differs
+  from both, changed since by someone else, is read before the op (`unread`), so only that costs a read more. Each
+  after is copied as the write ends. `sweep` counts the steps' copies as named. `agents undo-change <id> [<id> ...]`
+  (MCP `agent_undo_change`, `changes`, `undo_changes`) takes the changes named newest first, each file read against
+  the change's `after` (`Files.stands`: the time and size, else the contents' sha, so a file put back by an undo
+  with its time set back reads the same), as an undo of the later ones named would leave it (`Files.undo`), and
+  refuses the whole, nothing written, naming each change and its files, when one no longer stands, and for a change
+  undone already, one whose run is undone, a `participant rename`, or one with no steps (a line from before), which
+  its run's undo reaches. Otherwise it keeps a run of its own (`undoes_changes`, its key `undo-changes:<ids>`, never
+  joined by a later write, `current_run`), writes each file back from its `before` with its time set back, keeps and
+  takes away each file the change made, and appends one line, op `agents undo-change`. `agents undo-run` on that run
+  puts the changes back. Every `append` and `take_out` writes `.idiograph-restore/tally.json` (`tally_of`: `agents`,
+  the record's lines not `via` "app", and `last`, the newest id's number), and `mark_seen` writes `seen.json` with
+  the tally as it stands. `unseen(root)`, Home's count, is the tally's `agents` less the seen `agents`: a stat of the
+  record for a project with none, then two small files, never the record (0.06 ms a project on a record of 5,000
+  changes, area 389). A record with no tally, from before, has its tally made once. `review(p, offset, limit, mark)` is
+  By an agent's read: the record's agents' lines grouped by run, newest run first, `limit` (`REVIEW_RUNS`, 20) from
+  `offset`, each run's `agent` (cleaned by `agent_log.agent_words`), `started`, `last`, `count`, `request` (its first),
+  `new` (a change above the seen `last`), `undone`, and how it is undone (`run_action`): `undo` "changes" with
+  `undo_ids`, every change that stands, newest first, as the undo of the ones before it would leave the files, and
+  `whole` when that is all of them, or "run" for a run with no steps (`undo_run`'s restore point), or none. Each
+  change (`change_view`) has its `line` (`line_of`: the op's past tense from `OPS_SAID`, else `what_changed`),
+  `where` (`where_of`: the pseudonym and the screen, `WHERE_SAID`), and its `state`. `ok`. `undone` with
+  `undone_at` (`undone_alone`: the changes of an undo-change run not itself undone). `yours`, a file changed since
+  that no later change of an agent's left as it stands, with `what` (`said_files`) and `changed_at`, the file's time.
+  `later`, a later change of another run's left it, with `by` and `by_at`. `same`, a later change of its own run
+  did. `none`, no steps or its run undone. The app's own undos (`via` "app") are no agent's and are left out.
+  With `mark`, the read marks every change seen once it is made. The en.ta catalogue words a thematic analysis
+  project's lines (Coding, Themes).
 - A project's `idiograph-holds.json` from before is dropped as the project first opens (`clear_holds`, from
   `idiograph_cli.open_projects` and Home's `/api/cases`), never applied, with its lock, and its waiting count noted
   once in the agent log, `code` `cleared`, which `agent_log.read` gives as `kind` `note`. A settings file holding
@@ -683,11 +716,10 @@ a tag `v` and a number, and a tag's installer goes on a draft release beside the
 `build_mac.py`'s pins, certifi left out since Python on Windows checks HTTPS against Windows's own
 certificates, its modules, its data files and its stage, so the two apps carry the same code and
 demo. The demo's three recordings are committed in `packaging/recording/`, the one audio in git (Adam's word, 14
-October 2026), so GitHub's build carries them, each under a name that carries the first 16 hex of the hash of
-the transcript it was made from, and the Windows build stages them through the Mac build's `stage_recordings`
-(see The demo's recordings). A build takes a case's only when that is its transcript's own, since another's
-timecodes would land on the wrong words, and else ships that case without it and says so in one line, its
-player then staying quiet. `--speak`, which spoke Juno's on a Mac with `say`, went on 12 November 2026. The icon is `Idiograph.ico`, make_app's drawing at each size Windows asks, up to 32 from the mark drawn for 16 pixels. PyInstaller makes
+October 2026), each under a name that carries the first 16 hex of the hash of the transcript it was made from,
+and since 13 November 2026 no installer carries them (see The demo's recordings on demand): the Windows build stages
+the demo's text and the manifest through the Mac build's `stage_cases`, so the AI-made audio and its own licence
+stay out of the signed installer. `--speak`, which spoke Juno's on a Mac with `say`, went on 12 November 2026. The icon is `Idiograph.ico`, make_app's drawing at each size Windows asks, up to 32 from the mark drawn for 16 pixels. PyInstaller makes
 one folder with two executables from `packaging/windows_launcher.py`: `Idiograph.exe`, windowed,
 which runs the server, and `Idiograph-console.exe`, its console twin, for `cli`, `mcp` and `stop`,
 since a windowed program cannot print to the terminal that ran it, and Add Idiograph to Claude
@@ -2570,6 +2602,27 @@ one line with nothing unseen (`line_shown`), its quotation marks kept. No record
 in the app or by an agent yet, under its filter). The route is the page's half of `project history` in area 261's
 parity. The app's menu bar has no Project history yet. Area 322.
 
+**By an agent and Home's line** (agentreview2, 13 November 2026, Adam by dialog: "C, with A's Home line"). By an
+agent no longer filters the History's records: `phFilter('agent')` and `openProjectHistory(id, name, 'agent')` read
+`/api/agent-changes` (`api_agent_changes`) through `arMore`, `op` `read` with `offset` and `mark` on the first
+read, 20 runs a page as the list's end comes near, and `arDraw` draws the runs under their days (`phDay` of each run's
+start), each `.ar-run` its head (`arHead`: `.ar-agent`, `.ar-span` "08:12 to 08:31, 9 changes", `.ar-new` and
+`.ar-undo-run`, Undo this run when `whole`, else Undo the other N, or "Undone at" for an undone run), the agent's
+account of the request, and `.ar-changes`, each `.ar-change` its line and `.ar-where`, `.ar-undo` for a change in
+state `ok`, and `.ar-why` (`arWhy`) for `yours`, `later` and `undone`. The newest run shows its first `AR_FIRST`, 2,
+lines and every `yours` and `later` one, the rest behind Show N more, and the others only Show the N changes
+(`arShown`, `PH.open`). The head's count is "9 new since you last looked, in 3 runs" from the first read's `new` and
+`new_runs`, else the total. `arUndo` posts `op` `undo` with the change's id or the run's `undo_ids`, or `undo-run`
+with the run's id for a run with no steps, the button reading Undoing… meanwhile. The route runs `agents undo-change`
+or `agents undo-run` through `idiograph_cli.run_scoped` as the app (`via` "app"), and a `cli.Refused` answers
+`refused`, its lines, shown in the change's or the run's `.ar-refused`. A done undo reads the runs again (`arMore(true)`),
+New kept as the sheet opened. Home's line: `drawPick` ends with `homeAgentLines`, which posts `/api/agent-unseen`
+(`api_agent_unseen`, every project's `agent_changes.unseen` by its id, the demos skipped) once the cards are drawn,
+and gives each card with a count `.has-agents` and `.hc-agents`, the line and `.hc-review`, beside the card's button
+at its foot as `.hc-warn` sits, Review opening Project history at By an agent. `phShut` asks again, so the line goes
+once seen. `/api/agent-changes` is the page's half of `agents changes`, `agents undo-change` and `agents undo-run`
+in area 261's parity, and `/api/agent-unseen` the page's own (a view of his own). Areas 380 and 389.
+
 **REFI-QDA projects** (21 October, the plan of that day with Adam's rulings). `qdpx.py` reads a
 `.qdpx`, a zip of `project.qde` and `Sources/`, in memory with the standard library: a zip name with
 `..`, a leading slash, a backslash or a drive is never read and is listed as left out, project.qde
@@ -3811,12 +3864,13 @@ spoken turn by turn in one of four voices made by Gemini's voice design and stor
 and Rowan's (a quiet Dublin man), none cloned from anyone. Each turn's clip is 16-bit mono WAV at 24 kHz, trimmed to
 its speech with 0.12 seconds either side and levelled to -20 dB, and `make_demo.build_recording(name, clips)`
 measures the clips (`clip_seconds`), writes each turn's `Timestamp` in `demo/source/<name> - interview.csv` from
-their lengths and the half-second gap (`GAP_SECONDS`), joins them (`join_clips`) and encodes the join at 48 kbps AAC
-(`to_m4a`) into `packaging/recording/<name>-Initial-<hash>.m4a`, the hash the first 16 hex of the CSV as then
-written, its line endings taken as committed (`audio.demo_recording_name`, the one rule make_demo, the server and
-the three builds name a recording by), and takes away that participant's older recording. Without `write_csv` it
-refuses a CSV whose timecodes the clips no longer give. The lengths: Juno's 28:27, about 10.6 MB, Rowan's 11:40,
-about 4.3 MB, Mabel's 10:28, about 3.9 MB. `packaging/recording/LICENSE-audio.md` is their own licence, the one
+their lengths and the half-second gap (`GAP_SECONDS`), joins them (`join_clips`) and encodes the join (`to_m4a`,
+see the encoding below) into `packaging/recording/<name>-Initial-<hash>.m4a`, the hash the first 16 hex of the CSV
+as then written, its line endings taken as committed (`audio.demo_recording_name`, the one rule make_demo and the
+server name a recording by), takes away that participant's older recording and writes the manifest again
+(`write_manifest`). Without `write_csv` it refuses a CSV whose timecodes the clips no longer give. The lengths:
+Juno's 28:27, about 5.3 MB, Rowan's 11:40, about 2.2 MB, Mabel's 10:28, about 1.9 MB, 9.4 MB in all (18.8 MB at
+48 kbps until 13 November). `packaging/recording/LICENSE-audio.md` is their own licence, the one
 exception to the AGPL (the README's licence line and `NOTICE.md` say so): AI-generated speech, copied and shared
 only unchanged and only as part of Idiograph or a modified version, no right to train, fine-tune or evaluate a
 model, the voices synthetic and the interviews invented, and Google not endorsing Idiograph.
@@ -3826,13 +3880,70 @@ Each case's recording sits where the player finds it, `demo/<name>/Source/Initia
 through a file of its own, and answers None, copying nothing, when none was made from the transcript as it
 stands. `/api/audio` on a demo participant (`demo_case_of`, the IPA demo's three alone) calls
 `ensure_demo_recording(name)`: from source it copies the committed recording into place, a second's work on the
-request, and in the installed app the bundle's. One already in place of another size, the `say` recording an earlier
-version made or shipped, is replaced the same way, so an update or a pull brings the new voices with the new
-timecodes. The player's "Building the demo
-recording" state, the thread that spoke Juno's with `say` and the quit it held (`demo_holding`) went with it.
-`make_demo.py --audio-only` places all three by hand. The builds stage all three through `build_mac.stage_recordings`
-(the Mac's `stage_demo`, `build_windows.py` and `build_linux.py`), `LICENSE-audio.md` beside each so it travels with
-it, and a case whose transcript has no recording made from it ships without its audio, said in one line.
+request. In the installed app nothing is copied, the installers carrying no recording, and a participant whose
+recording is not on the computer is offered the download (below). One in place of another size than the manifest
+names, the `say` recording an earlier version made or shipped, is not played and the download replaces it. The
+player's "Building the demo recording" state, the thread that spoke Juno's with `say` and the quit it held
+(`demo_holding`) went on 12 November. `make_demo.py --audio-only` places all three by hand.
+
+**The demo's recordings on demand** (recdemand, 13 November 2026, Adam by dialog: "Text in, recordings on
+demand"). The installers were 43 to 66 MB, the demos' text about 8 MB and their recordings 18 MB, about 60 MB once
+the longitudinal demo's nine join them. So the installers carry each demo's text and no recording, Home showing every
+demo and each opening offline, and a demo's recordings download the first time one is played, the size said first,
+and are kept after. The AI-made audio and its own licence stay out of every installer, the signed Windows one
+(SignPath) among them.
+
+- *Hosting.* A GitHub release of its own on Pharkie/idiograph, `demo-recordings-1`, not a version's tag, marked
+  neither latest nor a version, so the update check (`releases/latest/download/latest.json`) and the site's
+  download links never see it. Its assets are one file a recording under its committed name, `LICENSE-audio.md`
+  and `recordings.json`. The app downloads from `https://github.com/Pharkie/idiograph/releases/download/demo-recordings-1/<file>`.
+- *The manifest*, `demo/recordings.json`, committed beside the demo's text and staged with it (`build_mac.stage_cases`),
+  so the app reads it from the demo it ships (`srv.SHIPPED_DEMO`): `release`, `url`, the address the files are
+  downloaded from, `recordings`, each `file`, `size` and `sha256`, and `earlier`, the sizes of the same recording's
+  earlier encodings, and `licence`, the licence's `file`, `size` and `sha256`. The app's copy is the one trusted:
+  a file is taken only when its bytes match its sha256, never what the download says of itself. `make_demo.py
+  --manifest` writes it again from the committed recordings (`write_manifest`, `demo_recordings.write_manifest`),
+  and `build_recording` does so after every join. A re-encoded recording keeps its old size in `earlier`, so a copy
+  that holds the 48 kbps file of the same transcript plays it as it is and downloads nothing (`demo_recordings.fits`).
+- *The server.* `demo_recordings.py`, the standard library alone: `Fetch`, one demo's download on a thread of its
+  own, each file down to a hidden `.<name>.downloading` beside its place (which `audio.choose` never takes),
+  counted as it comes, refused past its size, checked against its size and sha256 and only then put in place with
+  `os.replace`, the licence first, copied beside each recording. A file that does not match is never kept
+  (`why` checksum), no connection is `offline` and any other failure `failed`, each its own line in the catalogue
+  (`server.demo_recordings.*`), and Cancel stops it between two reads, the half-written file taken away. A file in
+  place already is never fetched again. `idiograph_routes.demo_interviews` names each participant's place, the
+  manifest's entry for the transcript as it ships (none for an edited one) and, from source, the committed file.
+  `demo_downloads` lists what is still to come. `/api/audio` answers `found: false` with `download` (the bytes still
+  to come and their size in words, `pack_mod.size_said`, and the download's state) for a participant whose
+  recording it would bring. `/api/demo-recordings` answers how far the download has got, `op` download starting it
+  or answering the one running and cancel stopping it. A call with `op` is the window's alone (`window_only`), so
+  no agent downloads, and no command line or MCP op reaches it (area 261 lists it as the screen's). In a smoke run
+  `IDIOGRAPH_SEARCH_STUB` sends the download to its loopback stub at `<stub>/github/...` (`demo_recordings.address`).
+- *The page.* `distil.js`'s `REC_GET`, `recGetOpen`, `recGetDraw`, `recGetPoll` (every 300 ms while it runs) and
+  `recGetTurn`: a demo participant with a `download` answer has the player bar as any recording has, `S.recOffer`
+  held, and Play, a timecode, `Space` or the five-second jumps put `#player-get` in the bar's place, its line, the
+  track while it downloads and Download beside Not now, or Cancel. Once the state is done the player loads the
+  recording and plays from where it was asked, a refusal to play there said nowhere since the press was earlier.
+  The boards' Inspector player does the same through `thAudioFor(sheet, again)` and `#th-p-get`, the quote played
+  once they are in place.
+- *The encoding* (`make_demo.to_m4a`, `BITRATE`): HE-AAC, AAC with spectral band replication, mono at 24 kbps in
+  the same `.m4a`, from Apple's encoder (`afconvert -d aach`), else ffmpeg's AudioToolbox encoder, else ffmpeg's
+  plain AAC at the same rate. The three of 12 November were encoded again from the lossless join of their kept clips
+  (the same frames, 40971835, 15066957 and 16804080 at 24 kHz), their lengths under Apple's decoder the same to the
+  millisecond (1707.160, 627.790 and 700.170 seconds), every passage's onset where it was (median shift 0 ms), and
+  Whisper's word error rate against the transcripts the same as at 48 kbps (Juno 1.4 and 1.4 per cent, Mabel 1.8
+  and 1.6, Rowan 7.4 and 7.7, Rowan's Dublin words its own). HE-AAC keeps the voices' top octave, 6 to 12 kHz, within
+  2 dB, where plain AAC at 24 kbps loses 10 dB of it. It plays in the Mac's WebKit with the lengths above. ffmpeg's
+  decoder, Chromium's, WebView2's and GStreamer's libav, puts the sound about 0.13 seconds later than Apple's does,
+  its delay for the band replication, well inside the half second between passages. Opus was not taken: every
+  engine the player runs in already plays AAC in an `.m4a`, as participants' own recordings are, and Opus would
+  have been a new kind of file for the player and the Mac's WebKit.
+- *Adding a demo's recordings* (the longitudinal demo's, lipabuild): commit them in `packaging/recording/` under
+  `audio.demo_recording_name` with its sheet, list the demo's interviews where `demo_interviews` lists the IPA
+  demo's (a demo key beside `DEMO_RECORDINGS`, its own `Fetch`), run `make_demo.py --manifest` (or its own manifest
+  writer for that demo's names), and upload the new files to the release with `gh release upload demo-recordings-1
+  <files> --repo Pharkie/idiograph`, the manifest too, before the version that names them ships. A recording made
+  again for an edited transcript has a new name, so the old asset stays for the copies that still name it.
 
 **Re-voicing an edited turn.** A change to a demo transcript's words changes its hash, so its recording no longer
 matches and is not taken, until the turn is voiced again: `packaging/recording/voice_demo.py --clips <folder>`,
@@ -4926,7 +5037,16 @@ annotated workbook, `files`, every row of the case with its workbook first, and 
 keeps, each with its speaker and whether it holds a statement, and `turns_of` counts the decided
 ones through `rounds.row_states` with the progress file, as the case's own screen counts them. Each
 keeps what it read against the modification time and size of the files it read, and so do
-`boards_count` and `gets_file`, so a listing opens no file that has not changed since the last.
+`boards_count` and `gets_file`, so a listing opens no file that has not changed since the last. Since perfreview
+(13 November 2026, Adam: a clear two or three seconds before the projects appear) `read_book` takes every sheet's
+columns first and walks no row of a raw source, whose turns nothing counts, which was about half of a first
+listing's reading, and the row's `board` and `pets_complete` come from `themes_head`, kept in `THEMES_HEADS` against
+the themes file's time and size, where `themes.chosen_name` and `themes.pets_complete_of` each read the file whole on
+every listing. A themes file holds every board's History, each revision the board's whole state, four to seven
+megabytes on his study of a few months, about 260 ms a visit on his projects. `themes_head_once` reads the name, the
+mark and `boards_count`'s count from one parse, and leaves a participant whose member keeps an own file beside it to
+the three readers. On his two projects a listing went from about 1.1 s to 0.7 the first time after the app starts and
+from about 400 ms to 130 after (area 390).
 `demo_participants` is the demo's three, built the same way from `demos`.
 
 **The home screen.** Each app's Home is drawn from `/api/cases` (9 October). `index.html` holds the three
@@ -5679,7 +5799,21 @@ frame, `drag.placedAt` at or after the frame's time, only asking for the next wh
 `thMergeShow` writes the Merge's title only when it changes. What is dragged
 leans with no rotate transition, `.dragging`, and eases only as it stands up, `.standing` from `thStand`,
 and what comes along with a label trails it by `thTrail` and `thTrailTick`, eased each frame, where both
-were transitions WebKit began again on every move. A row dragged from a sidebar (21 October) moves the
+were transitions WebKit began again on every move. Since perfreview (13 November 2026, Adam's recording of a PET
+dragged by its title, uneven from frame to frame, with holds and jumps): a drag that carries more than one thing
+marks the world `.carrying` (`thCarrying`, from `thDragStart` to `thDragEnd` or `thDragCancel`), and each carried
+`.dragging` card, label and note is drawn in a layer of its own (`will-change: transform`), so the lean turns what
+is drawn already, where every carried element was painted afresh, turned, on every frame, 25 ms a frame for a PET of
+fifteen on a square board at its fit in WebKit and 15 in layers, the layers drawn once in the frame that picks it up.
+One card alone keeps no layer, which cost it more. `thDragQueue` keeps each move, and each WebKit gathered into it
+(`getCoalescedEvents`), with its time in `drag.pts` (`thDragPoints`), and `thDragStep`, given the frame's time,
+moves to the pointer's place `TH_RESAMPLE_MS` (8) before it, between the moves either side of then (`thDragAt`),
+asking for one frame more while that place is behind the latest move, so the steps are even where taking the latest
+move made them short and long by half and more with the mouse's 8 ms reports. A pointer still for 100 ms, a clock
+that does not match the frame's, a drop, Alt and Esc take the latest move as it is. The step eases the trail on
+before anything is placed (`thTrailTick` writes nothing in a frame whose move waits), and `thLean` takes the
+pointer's move per frame of 60 a second (`drag.leanAt`), so a late frame never doubles the lean. The tip, the
+Merge, the insertion line and the map's button are written only when they change. A row dragged from a sidebar (21 October) moves the
 same way: `thSPullMove` and `gtPullMove` hand its cards, `.th-card` with `.ts-ghost` or `.gt-ghost`, to
 `thPullLift`, which lays them by `thPullSpot` in `.th-pull`, a fixed layer that `thPullFollow` moves to the
 pointer at the canvas's zoom, adds `.dragging` two frames on so they lift, and leans them by `thLean(e, pull)`,
@@ -8086,7 +8220,7 @@ several, which is remade by hand.
 | `apps/idiograph/team_board.py` | A reviewer's board sent straight in (wtboard, 9 November 2026): Send board seals a member's own board of a participant someone else owns as a `board` message, the owner's install takes it in as that participant's next board, never current, through `idiograph_routes.board_coming`, and Accept or Decline goes back as an `answer`. Its record is `.idiograph-team/boards.json`. A reviewer's own boards of another's participant are kept apart in `.idiograph-team/own-boards/` (`own_file`, ownboards). |
 | `apps/idiograph/static/team_board.js` | Send board in the PETs board menu, and the line that says a teammate's board came in, with Show, Decline and Accept (wtboard, 9 November 2026). |
 | `apps/idiograph/static/team.js` | Working together in Project settings, the invite's card and the join's card (wtkeys, 8 November 2026). |
-| `apps/idiograph/agent_changes.py` | Every change an agent makes and each run's restore point (noholds, 13 November 2026): the ops only the app does refused (`app_only`), every write a line of `idiograph-agent-changes.jsonl`, a run's files kept by their contents in `.idiograph-restore` before its first write, `agents changes` and `agents undo-run`, and the holds of before dropped as a project opens. |
+| `apps/idiograph/agent_changes.py` | Every change an agent makes and each run's restore point (noholds, 13 November 2026): the ops only the app does refused (`app_only`), every write a line of `idiograph-agent-changes.jsonl`, a run's files kept by their contents in `.idiograph-restore` before its first write, `agents changes`, `agents undo-run` and `agents undo-change` (each change's own files kept, agentreview2), By an agent's read (`review`) and Home's count (`unseen`, from `tally.json` and `seen.json`), and the holds of before dropped as a project opens. |
 | `apps/idiograph/project_history.py` | The project's own History (projhistory, 2 November 2026): `idiograph-history.json`, one record for each change to the project's settings, timepoints, statement length or GETs settings, a participant renamed or marked complete, with who asked. |
 | `apps/idiograph/codes.py` | A thematic analysis project's code list (codes, 2 November 2026): `idiograph-codes.json`, the codes read from the rows and kept in step with them, rename, merge, describe, new and delete written whole across the workbooks, the GETs file and the list with a copy of each first and one step of undo, a code put on an extract or taken off, a project's first read making its list, and a code's row cards kept in one place on the Themes board (`gather`, `fold`, `unfold`). |
 | `apps/idiograph/gets_word.py` | A thematic analysis project's table of themes as a Word document (taword, 1 November 2026), in `themes_word`'s shape: the project under Heading 1 and "Table of themes" in the Subtitle style, each theme of the board in canvas order under Heading 2 in bold capitals with its description and note, its subthemes under Heading 3 to 5 as `themes.theme_order` reads them, and under each heading its codes, each with whose it is and where and its own extract set in under it (`code_blocks`), or with Their key extract only each participant's key extract (`board_blocks`), participant notes only when ticked and each row note after the theme. Written at the project's root, never over a file there, its author Your name (`write`). Reads the GETs file and the workbooks only. |
@@ -8201,9 +8335,12 @@ route listens, so a project made on the relay while the app is open is heard wit
 - The Windows app in its window has run on GitHub's Windows machine alone, its installer over 0.9.0's
   Inno Setup install among it, and on no tester's PC yet. Its launcher's logic is checked on a Mac with
   every Windows call stood in for. `packaging/build_windows.py --sign-sha1` has not yet run, there
-  being no certificate, nor Tauri's signing of the window and the installer with it. GitHub's build
-  takes each demo recording from `packaging/recording/` only when it was made from its transcript as it
-  stands.
+  being no certificate, nor Tauri's signing of the window and the installer with it. Since 13 November
+  2026 no build carries the demo's recordings, which download the first time one is played, and the download
+  has run against a loopback stand-in for the release alone until `demo-recordings-1` is made on GitHub.
+- The demo's recordings have played in Chrome and in the Mac's WebKit. On Linux the window's WebKitGTK plays them
+  through GStreamer, which needs its AAC decoder (`gstreamer1.0-libav`) as for any `.m4a`, and that has not been
+  tried in the Ubuntu VM.
 - The signing and notarising half of `packaging/build_mac.py` has not yet run, since the Mac it
   was written on holds no Developer ID identity. The unsigned build is the one tried. Notarising would
   also need the server's binaries under `Contents/Resources`, which Tauri seals as resources, signed

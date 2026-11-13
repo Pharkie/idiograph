@@ -353,11 +353,18 @@
 /* While it is dragged (18 October, the Mac window's judder): its lean follows the pointer frame by frame with
    no transition, which WebKit, the Mac window's engine, began afresh on every move of every card dragged, at
    30 frames a second and less where Chromium kept 120. Once he stops it stands up over 160 ms, `.standing`,
-   as it always has. It is never made a layer of its own (`will-change`), which in WebKit cost more than it
-   saved, 31 frames a second against 60 on the demo's board. */
+   as it always has. A card dragged alone is never made a layer of its own (`will-change`), which in WebKit cost
+   more than it saved, 31 frames a second against 60 on the demo's board, and what a drag carries more of is (below). */
 .th-card.dragging { transition: box-shadow .14s, border-color .14s, scale .12s ease-out; }
 .th-label.dragging { transition: scale .12s ease-out; }
 .th-sticky.dragging { transition: box-shadow .14s, scale .12s ease-out; }
+/* A drag that carries more than one thing, a theme by its title or several cards, draws each in a layer of its own
+   while it lasts (perfreview, 13 November 2026, see thCarrying), so the lean turns what is drawn already: painted
+   afresh and turned on every frame, a theme of fifteen took 25 ms a frame in WebKit on a board at its fit, and 17
+   in layers. One card dragged alone stays as above. */
+#th-world.carrying .th-card.dragging, #th-world.carrying .th-label.dragging, #th-world.carrying .th-sticky.dragging {
+  will-change: transform;
+}
 /* what came along with a label trails it by 140 ms as before, eased frame by frame by the page (thTrail) */
 .th-card.dragging.trailing, .th-label.dragging.trailing, .th-sticky.dragging.trailing {
   transition: box-shadow .14s, border-color .14s, scale .12s ease-out;
@@ -1444,6 +1451,10 @@ button.btn-out::before {
 .th-pbtn { width: 32px; height: 32px; font-size: 12px; }
 .th-pscrub { min-width: 60px; }
 .th-pnote { display: block; max-width: 100%; text-align: left; margin-top: 2px; }
+/* the demo's recordings offered in the panel's narrower foot (recdemand, 13 November 2026): the line on a row of
+   its own over the track and the buttons */
+.th-pget { flex-wrap: wrap; min-height: 36px; row-gap: 6px; }
+.th-pget .rec-get-said { flex: 1 1 100%; }
 
 /* The bar gives way in order, the way the turn screen's does, and nothing in it overlaps or scrolls
    sideways down to 400px. It reads the way back, the case switcher, PETs, GETs, the board switcher

@@ -32,10 +32,10 @@ It is built on an Apple Silicon Mac, and refused on an Intel one.
    PyInstaller, openpyxl, certifi and cryptography go into it at the versions pinned in PINS, and
    dmgbuild, which makes the disk image, at those in DMG_PINS, never into the repo's own `.venv`.
 2. The stage, `build/stage`: the demo as Reset demo leaves it, its three cases from
-   `demo/pristine/`, Rowan's and Mabel's with their boards, each case's recording copied from those
-   committed in `packaging/recording` with their licence, `LICENSE-audio.md`, beside each (recvoices, 12
-   November 2026: nothing is spoken), a case whose transcript has none made from it as it stands staged
-   without one, said in one line, and `config.json` from `server.shipped_config()`, which names no project.
+   `demo/pristine/`, Rowan's and Mabel's with their boards, and `demo/recordings.json`, the manifest the app
+   downloads the demo's recordings by the first time one is played (recdemand, 13 November 2026: text in,
+   recordings on demand), no recording and no `LICENSE-audio.md` staged, and `config.json` from
+   `server.shipped_config()`, which names no project.
 3. PyInstaller, one folder, from `packaging/mac_launcher.py`, which finds every module of the app
    from there, with the static page, the licences, the config and the app's own files of
    `app_identity.FILES` as its data, Idiograph's three guidance files, demo and transcript template among
@@ -80,7 +80,7 @@ import boot  # noqa: E402  the family's folders on the path (boot.py)
 boot.setup()
 
 import app_identity  # noqa: E402  which of the three apps a build is
-import audio as audio_mod  # noqa: E402  the one name a demo recording is committed under, the standard library alone
+import audio as audio_mod  # noqa: E402  the kinds of file a recording is, the standard library alone
 import bundle as window  # noqa: E402  Tauri's bundler run on the window, packaging/tauri/bundle.py
 import typeset_helper  # noqa: E402  the typesetter beside the frozen server, packaging/typeset_helper.py
 
@@ -105,7 +105,7 @@ MODULES_BY_OWNER = {
     "family": ("server", "boot", "agent_log", "ai_suggest", "app_folders", "app_identity", "app_search", "make_app",
                "mcp_server", "cli", "locks", "errors", "files", "textfiles", "pdftext", "screenings", "i18n", "formats",
                "trash", "relay_transport", "folder_transport", "names", "typeset"),
-    "idiograph": ("audio", "convert", "corpus", "export", "make_demo", "nudges", "rounds", "shared_strings", "themes",
+    "idiograph": ("audio", "convert", "corpus", "demo_recordings", "export", "make_demo", "nudges", "rounds", "shared_strings", "themes",
                   "themes_ai", "themes_print", "themes_word", "workbook", "gets", "gets_print", "print_pdf", "project_pack",
                   "trajectories", "codes", "qdpx", "idiograph_main", "idiograph_routes", "idiograph_cli", "idiograph_mcp",
                   "idiograph_find", "statement_prompts", "team", "transport", "table_import"),
@@ -129,13 +129,12 @@ EXCLUDES = ["tkinter", "test", "typst"]
 # PyInstaller never takes
 WINDOW_DOCS = ("manual", "whats_new")
 DEMO_WORKBOOK = "Juno - EN & ES.xlsx"
-# The demo's recordings (recvoices, 12 November 2026): each case's committed in packaging/recording, named by
-# the hash of the transcript it was made from (`audio.demo_recording_name`), staged where the player finds it,
-# `<name>/Source/Initial/Source/<name>-Initial.m4a`, with the recordings' own licence beside each, so it travels
-# with it. Nothing is spoken: `packaging/recording/voice_demo.py` makes them, once, when a transcript changes
-RECORDINGS = HERE / "recording"
+# The demo's recordings (recdemand, 13 November 2026, Adam: "Text in, recordings on demand"): no build stages
+# one. The demo ships its text and `recordings.json`, the manifest the app downloads its recordings by the first
+# time one is played, so the AI-made audio and its own licence stay out of every installer, the signed Windows
+# one among them, and a stage holding a recording or that licence stops the build
+DEMO_MANIFEST = "recordings.json"
 AUDIO_LICENCE = "LICENSE-audio.md"
-DEMO_SHEET = "Initial"
 # the demo's three cases, each staged from the pristine copy with its sidecar and its board, and the
 # GETs file across them, since the demo is a finished project (26 October)
 DEMO_CASES = ("Juno", "Rowan", "Mabel")
@@ -263,9 +262,9 @@ def bundle_inputs(stage: Path, app: str = app_identity.DEFAULT) -> tuple[list[st
 
 def listing(app: str = app_identity.DEFAULT, windows: bool = False) -> list[tuple[str, str]]:
     """What a build of `app` ships, without building: (its path in the bundle, where it comes from),
-    the modules as PYZ/<name>, the page, the data, Idiograph's demo as the stage lays it out, each case's recording
-    where one is committed for its transcript as it stands, and the config. `windows` is the Windows build's,
-    without certifi."""
+    the modules as PYZ/<name>, the page, the data, Idiograph's demo as the stage lays it out, its text and the
+    manifest of its recordings, never a recording, and the config. `windows` is the Windows build's, without
+    certifi."""
     import tempfile
     rows = [(f"PYZ/{name}", str(path.relative_to(TOOL))) for name, path in module_files(app).items()]
     rows += [] if windows else [("PYZ/certifi", "the build venv's certifi")]
@@ -281,12 +280,6 @@ def listing(app: str = app_identity.DEFAULT, windows: bool = False) -> list[tupl
             demo = stage_cases(Path(tmp))
             rows += [(f"demo/{p.relative_to(demo).as_posix()}", "the demo, staged from demo/")
                      for p in sorted(demo.rglob("*")) if p.is_file()]
-        for name in DEMO_CASES:
-            found = committed_recording(name)
-            if found:
-                inside = recording_path(name)
-                rows.append((f"demo/{inside.as_posix()}", f"packaging/recording/{found.name}"))
-                rows.append((f"demo/{(inside.parent / AUDIO_LICENCE).as_posix()}", f"packaging/recording/{AUDIO_LICENCE}"))
     rows.append(("config.json", f"server.shipped_config({app_identity.check(app)!r})"))
     rows.append((typeset_helper.NAME, "packaging/tauri/typeset, built by cargo beside the frozen server (.exe on Windows)"))
     return sorted(rows)
@@ -359,17 +352,30 @@ def build_venv(build: Path, python: Path) -> Path:
 # ── 2. the stage ──────────────────────────────────────────────────────────────────────────────
 
 def stage_demo(stage: Path) -> Path:
-    """The demo as Reset demo leaves it, its three cases with their recordings. Nothing of a demo
+    """The demo as Reset demo leaves it, its three cases and the manifest of their recordings. Nothing of a demo
     worked on here, no live themes file and no backup, ever reaches the stage: every case comes
     from the pristine copy, whose boards and GETs file are the ones the demo ships with."""
     demo = stage_cases(stage)
-    say(f"Staged the demo {stage_recordings(demo)}")
+    say(f"Staged the demo {demo_line(demo)}")
     return demo
 
 
+def demo_line(demo: Path) -> str:
+    """The words a build says of the staged demo, every build's, the Mac's, Windows's and Linux's: its text, with its
+    recordings to download the first time one is played. A stage holding a recording or the recordings' licence
+    stops the build, since the AI-made audio never ships in an installer (recdemand, 13 November 2026)."""
+    audio = sorted(p.relative_to(demo).as_posix() for p in demo.rglob("*")
+                   if p.is_file() and (p.suffix.lower() in audio_mod.CONTENT_TYPES or p.name == AUDIO_LICENCE))
+    if audio:
+        raise SystemExit(f"The staged demo holds {audio[0]}, and no installer carries the demo's recordings.")
+    if not (demo / DEMO_MANIFEST).is_file():
+        return "with its text and no recordings, demo/recordings.json being missing"
+    return "with its text, its recordings to download the first time one is played"
+
+
 def stage_cases(stage: Path) -> Path:
-    """The demo's three cases in the stage as `stage_demo` lays them out, without their recordings, which
-    `stage_recordings` adds, the Windows and Linux builds' as the Mac's."""
+    """The demo's three cases in the stage as `stage_demo` lays them out, and the manifest of their recordings,
+    the Windows and Linux builds' as the Mac's."""
     demo, source = stage / "demo", TOOL / "demo"
     shutil.rmtree(demo, ignore_errors=True)
     demo.mkdir(parents=True)
@@ -393,43 +399,10 @@ def stage_cases(stage: Path) -> Path:
         for kept in (DEMO_GETS, DEMO_CODES):
             if (src / "pristine" / kept).is_file():
                 shutil.copyfile(src / "pristine" / kept, into / kept)
+    # the manifest the app downloads the demo's recordings by (recdemand, 13 November 2026), at the demo's root
+    if (source / DEMO_MANIFEST).is_file():
+        shutil.copyfile(source / DEMO_MANIFEST, demo / DEMO_MANIFEST)
     return demo
-
-
-def recording_path(name: str) -> Path:
-    """Where a case's recording sits in the demo, as the player finds it, `<name>/Source/Initial/Source/<name>-Initial.m4a`."""
-    return Path(name) / "Source" / DEMO_SHEET / "Source" / f"{name}-{DEMO_SHEET}.m4a"
-
-
-def committed_recording(name: str = DEMO_CASES[0]) -> Path | None:
-    """A case's recording in packaging/recording when it was made from the case's transcript as it stands, or None,
-    when there is none or only one made from another, whose timecodes would land on the wrong words."""
-    transcript = TOOL / "demo" / "source" / f"{name} - interview.csv"
-    path = RECORDINGS / audio_mod.demo_recording_name(name, DEMO_SHEET, transcript)
-    return path if path.is_file() else None
-
-
-def stage_recordings(demo: Path) -> str:
-    """Each case's committed recording into the staged demo, the licence beside each, every build's, the Mac's,
-    Windows's and Linux's, and the line that says which: a case with none made from its transcript as it stands
-    ships without, its player staying quiet as for any workbook without one."""
-    staged, missing = [], []
-    for name in DEMO_CASES:
-        found = committed_recording(name)
-        if not found:
-            missing.append(name)
-            continue
-        target = demo / recording_path(name)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(found, target)
-        shutil.copyfile(RECORDINGS / AUDIO_LICENCE, target.parent / AUDIO_LICENCE)
-        staged.append(name)
-    owners = lambda names: " and ".join(f"{n}'s" for n in names)
-    if not missing:
-        return f"with the three recordings, {owners(DEMO_CASES[:1])}, {owners(DEMO_CASES[1:])}"
-    without =(f"without {owners(missing)} recording{'s' if len(missing) > 1 else ''}, none being made from "
-               f"{'that transcript' if len(missing) == 1 else 'those transcripts'} as it stands in packaging/recording")
-    return f"with {owners(staged)} recording{'s' if len(staged) > 1 else ''} and {without}" if staged else without
 
 
 def stage_config(stage: Path, py: Path, app: str = app_identity.DEFAULT) -> Path:

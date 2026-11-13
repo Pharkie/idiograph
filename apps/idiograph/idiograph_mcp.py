@@ -812,6 +812,17 @@ TOOLS = [
          "undo only on his word.",
          {"run": dict(mcp.TEXT, description="The run's id, r3, as agent_changes gives it.")}, ["run"],
          writes="changes"),
+    # one change undone alone, as Project history's Undo does it (agentreview2, 13 November 2026)
+    mcp.tool("agent_undo_change", "Undo one change of an agent", ("agents", "undo-change"),
+         "One change of an agent undone alone, or several named together: every file it changed put back as it "
+         "was just before it, from the copies its run kept, and each file it made taken away, kept first, the "
+         "newest first. Refused whole, nothing written, when anything changed one of its files since, his edit "
+         "or a later change not named with it, and for a change that keeps no copies, which its run's undo "
+         "reaches. The undo is a run of its own, undone in its turn with agent_undo_run. Run dry_run first and "
+         "undo only on his word.",
+         {"changes": {"type": "array", "minItems": 1, "items": dict(mcp.TEXT),
+                      "description": "The changes' ids, c12, as agent_changes gives them."}}, ["changes"],
+         writes="changes"),
     # the agent log (agentlog, 3 November 2026, see agent_log.py), read alone, the family's tool (siftlog)
     mcp.log_tool("idiograph"),
     mcp.tool("project_send", "Send the project as one file", ("project", "send"),

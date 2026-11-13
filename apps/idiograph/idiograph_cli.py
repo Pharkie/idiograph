@@ -324,7 +324,7 @@ def run_in_scope(command, p: Project, args) -> tuple:
     with its run's restore point (`agent_changes.through`). An undo of a run keeps its own (`agent_changes.undo_run`)."""
     agent_log.at_project(p.info["name"])
     with scope_of(p, args) as q:
-        if (args.command, getattr(args, "act", None)) == ("agents", "undo-run"):
+        if (args.command, getattr(args, "act", None)) in (("agents", "undo-run"), ("agents", "undo-change")):
             return command(q, args)
         return changes_mod.through(q, args, lambda given: command(q, given), writing_ops())
 
@@ -7765,6 +7765,8 @@ COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             # every change agents made and its run, and a run undone (noholds, 13 November 2026, agent_changes.py)
             ("agents", "changes"): lambda p, args: cmd_agents_changes(p, args),
             ("agents", "undo-run"): lambda p, args: changes_mod.undo_run(p, args),
+            # one change or several undone alone, Project history's Undo (agentreview2, 13 November 2026)
+            ("agents", "undo-change"): lambda p, args: changes_mod.undo_changes(p, args),
             # Working together's comments and review (wtreview, 8 November 2026, see review.py)
             **review_mod.COMMANDS}
 
@@ -8283,6 +8285,11 @@ def arguments(sub, common, writes) -> None:
                       help="a run of an agent undone: every file it changed put back as it was before its first "
                            "change, refused whole when that would lose a later change")
     x.add_argument("id", help="the run's id, r3, as agents changes gives it")
+    # one change undone alone, as Project history's Undo does it (agentreview2, 13 November 2026)
+    x = ag.add_parser("undo-change", parents=[common, writes],
+                      help="a change of an agent undone alone: every file it changed put back as it was just before "
+                           "it, refused when that would lose a later change, several named newest first")
+    x.add_argument("ids", nargs="+", help="the change's id, c12, as agents changes gives it, and any more")
     pj = sub.add_parser("project", parents=[common], help="the whole project sent as one file, or a sent one opened "
                                                           "as a copy, its settings saved, or a new project "
                                                           "made").add_subparsers(dest="act", required=True)

@@ -762,6 +762,22 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
   .player-offset { margin-left: auto; }
 }
 
+/* The demo's recordings on demand (recdemand, 13 November 2026): the offer stands in the bar's place at the bar's
+   height, its line in the soft ink, then Download and Not now, the buttons a step smaller than a card's. While it
+   downloads, a track drawn as the player's, the accent filling it, stands between the line and Cancel. */
+.rec-get { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; min-height: 48px; min-width: 0; }
+.rec-get[hidden] { display: none; }
+.rec-get-said { flex: 0 1 auto; min-width: 0; font-size: 13px; line-height: 1.4; color: var(--ink-soft); }
+.rec-get-track { position: relative; flex: 1 1 auto; min-width: 60px; height: 3px; border-radius: 2px;
+  background: var(--rule); overflow: hidden; }
+.rec-get-track[hidden] { display: none; }
+.rec-get-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--accent);
+  transition: width .2s linear; }
+.rec-get button.primary, .rec-get button.ghost { flex: none; padding: 5px 11px; font-size: 12.5px; }
+.rec-get button[hidden] { display: none; }
+/* with the bar's place taken by the offer, the recording's name and Offset have nothing to stand beside */
+.rec-get:not([hidden]) ~ .player-note, .rec-get:not([hidden]) ~ .player-offset { display: none; }
+
 /* Round markers (item 155): a hairline across the column before the first row of every round,
    the round's name in the margin in the speaker's small capitals and its state under it, where a
    turn carries its timecode. Done is faint with the small tick in the app's green, now carries the
@@ -1534,6 +1550,53 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .ph-sheet .ph-line { color: var(--ink); }
 .ph-sheet .ph-asked { color: var(--ink-faint); font-size: 12.5px; font-style: italic; margin-top: 1px; }
 .ph-sheet .card-actions { margin-top: 18px; }
+/* By an agent (agentreview2, 13 November 2026, as agentreview's option C drew it): each run its head, the agent in
+   bold, its times and count, New in a small outlined tag, and its Undo at the right, the request under it, then a
+   line for each change between dotted rules, what in ink and where softer, Undo at its right as a link, and why one
+   cannot be undone under it */
+.ph-sheet .ar-run { padding: 6px 0 14px; }
+.ph-sheet .ar-run + .ar-run { border-top: 1px solid var(--rule); padding-top: 14px; }
+.ph-sheet .ar-head { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; font-size: 13.5px; line-height: 1.45; }
+.ph-sheet .ar-agent { font-weight: 600; color: var(--ink); }
+.ph-sheet .ar-span { color: var(--ink-soft); font-size: 12.5px; }
+.ph-sheet .ar-new { padding: 0 6px; border: 1px solid var(--crux); border-radius: 2px; color: var(--crux); font-size: 10.5px;
+  letter-spacing: .08em; text-transform: uppercase; line-height: 1.5; }
+.ph-sheet .ar-act { margin-left: auto; display: inline-flex; align-items: center; }
+.ph-sheet .ar-undo-run { padding: 4px 10px; border: 1px solid var(--rule-firm); border-radius: 3px; background: var(--card);
+  color: var(--ink); font: inherit; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+.ph-sheet .ar-undo-run:hover:not(:disabled) { background: var(--paper-sunk); }
+.ph-sheet .ar-undo-run:disabled { color: var(--ink-faint); cursor: default; }
+.ph-sheet .ar-asked { margin-top: 6px; color: var(--ink-soft); font-size: 12.5px; line-height: 1.5; overflow-wrap: anywhere; }
+.ph-sheet .ar-changes { list-style: none; margin: 10px 0 0; padding: 0; border-top: 1px dotted var(--rule-firm); }
+.ph-sheet .ar-change { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 16px; padding: 7px 0;
+  border-bottom: 1px dotted var(--rule-firm); font-size: 13.5px; line-height: 1.45; }
+.ph-sheet .ar-what { min-width: 0; overflow-wrap: anywhere; color: var(--ink); }
+.ph-sheet .ar-where { color: var(--ink-soft); font-size: 12.5px; margin-left: 4px; }
+.ph-sheet .ar-change.is-undone .ar-what { color: var(--ink-soft); }
+.ph-sheet .ar-undo, .ph-sheet .ar-more { padding: 0; border: 0; background: none; font: inherit; font-size: 12.5px;
+  color: var(--ink-soft); cursor: pointer; text-decoration: underline; text-decoration-color: var(--rule-firm);
+  text-underline-offset: 3px; align-self: start; white-space: nowrap; }
+.ph-sheet .ar-undo:hover:not(:disabled), .ph-sheet .ar-more:hover { color: var(--ink); text-decoration-color: currentColor; }
+.ph-sheet .ar-undo:disabled { cursor: default; text-decoration: none; }
+.ph-sheet .ar-more { margin-top: 10px; }
+.ph-sheet .ar-why { grid-column: 1 / -1; margin-top: 4px; color: var(--ink-soft); font-size: 12.5px; }
+.ph-sheet .ar-act .ar-why { grid-column: auto; margin: 0; }
+.ph-sheet .ar-refused { grid-column: 1 / -1; margin-top: 6px; color: var(--crux); font-size: 12.5px; line-height: 1.5; }
+.ph-sheet .ar-refused[hidden] { display: none; }
+.ph-sheet .ar-undo:focus-visible, .ph-sheet .ar-more:focus-visible, .ph-sheet .ar-undo-run:focus-visible { outline: 0;
+  box-shadow: var(--focus-small); border-radius: 2px; }
+
+/* Home's line of agents' changes at the foot of a project's card (agentreview2, A's line), beside the card's button
+   and never in it, room kept under the card's lines for it as the demo's warning has */
+.home-card-li.has-agents { position: relative; }
+.home-card-li.has-agents .home-card { padding-bottom: 36px; }
+.hc-agents { position: absolute; left: 16px; right: 16px; bottom: 11px; display: flex; align-items: baseline; gap: 8px;
+  font-size: 12px; line-height: 1.4; color: var(--ink-soft); }
+.hc-agents-said { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hc-review { flex: none; padding: 0; border: 0; background: none; font: inherit; font-weight: 600; color: var(--ink);
+  cursor: pointer; text-decoration: underline; text-decoration-color: var(--rule-firm); text-underline-offset: 3px; }
+.hc-review:hover { text-decoration-color: currentColor; }
+.hc-review:focus-visible { outline: 0; box-shadow: var(--focus-small); border-radius: 2px; }
 
 /* a thematic analysis project in front (tadraw): Settings without the PETs category, which it has no use for */
 html[data-method="ta"] #tab-pets { display: none; }

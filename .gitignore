@@ -40,9 +40,10 @@ demo/*/_Archive/
 build/
 dist/
 # The demo's three recordings (recvoices, 12 November 2026), Gemini's voices joined by
-# packaging/recording/voice_demo.py, the one audio committed (Adam's word, 14 October 2026) so every
-# build carries it, each kept only for the transcript it was made from, with their licence and the
-# tool beside them. The interviews are invented
+# packaging/recording/voice_demo.py, the one audio committed (Adam's word, 14 October 2026), each kept
+# only for the transcript it was made from, with their licence and the tool beside them. Since recdemand
+# (13 November 2026) no build carries them: the app downloads them from their own release, the same
+# files, the first time one is played. The interviews are invented
 packaging/recording/*
 !packaging/recording/*-Initial-*.m4a
 !packaging/recording/LICENSE-audio.md

@@ -104,6 +104,11 @@ PAGE_ONLY = {
     "/api/audio": (("screen",), "whether the player has a recording and where it streams from, playback alone"),
     "/api/beat": (("screen",), "a tab's heartbeat, so the app knows a window is open"),
     "/api/check-key": ((4,), "the API key's check in Settings, a secret no agent ever handles"),
+    # Home's line of agents' changes he has not seen (agentreview2, 13 November 2026), a count from the store's tally
+    "/api/agent-unseen": (("screen",), "how many changes agents made since he last looked, Home's line, a view of his own"),
+    # the demo's recordings on demand (recdemand, 13 November 2026): agents never download, the window alone does
+    "/api/demo-recordings": (("screen",), "the demo's recordings downloaded for the player, playback alone, never the "
+                                          "project's data"),
     # a code taken from it is Add a code's own save, which `codes extract add` does for an agent (taaibuild)
     "/api/codes-suggest": (("own AI",), "the app's own AI's codes for an extract, which an agent works in place of"),
     "/api/examples": (("screen",), "the examples panel beside the fields, an aid on the screen"),
@@ -170,6 +175,8 @@ AGENT_OPS = {
     "/api/qdpx-export": [("project", "export-qdpx")],
     # the agent log, read alone (agentlog, 3 November 2026)
     "/api/agent-log": [("agents", "log")],
+    # Project history's By an agent, its Undo and Undo this run (agentreview2, 13 November 2026)
+    "/api/agent-changes": [("agents", "changes"), ("agents", "undo-change"), ("agents", "undo-run")],
     "/api/send-list": [("project", "send")],
     "/api/open-sent": [("project", "open-copy")],
     "/api/boards-in": [("project", "boards-in")],

@@ -4902,7 +4902,9 @@ function thMapDraw() {
     TH.mapMarks = [];
   }
   map.classList.toggle('shut', !shown);
-  $('th-map-btn').setAttribute('aria-pressed', String(shown));
+  // written only when it changes, since the map is drawn again on every frame of a drag
+  const btn = $('th-map-btn');
+  if (!btn.getAttribute || btn.getAttribute('aria-pressed') !== String(shown)) btn.setAttribute('aria-pressed', String(shown));
   if (shown) thMapViewDraw();
 }
 
@@ -5274,9 +5276,13 @@ function thEase(from, lifted, lean = 0) {
    full speed, a step each frame, and stands upright again once the pointer stops, over the 160 ms of
    `.standing`, which the next move takes away. A card on its way out of a sidebar, `TH.spull` or
    `TH.pull` with its cards in `els`, leans the same way (Adam, 21 October). */
-function thLean(e, d = TH.drag) {
+function thLean(e, d = TH.drag, now) {
   if (!d || thCalm()) return;
-  const vx = e.clientX - d.lastX;
+  // the pointer's move since the last frame as it would be over one frame of the screen's 60 a second, so a frame
+  // that comes late never doubles the lean and a quick one never halves it (perfreview, 13 November 2026)
+  const dt = now !== undefined && d.leanAt !== undefined ? Math.max(8, Math.min(50, now - d.leanAt)) : 1000 / 60;
+  if (now !== undefined) d.leanAt = now;
+  const vx = (e.clientX - d.lastX) * (1000 / 60 / dt);
   d.lastX = e.clientX;
   d.lean = Math.max(-TH_LEAN, Math.min(TH_LEAN, d.lean * 0.5 + vx * 0.5));
   if (d.standing) thStand(d, false);
@@ -5376,7 +5382,7 @@ function thTip(e) {
   const d = TH.drag;
   if (d && e) { d.tipX = e.clientX; d.tipY = e.clientY; }
   // over a card's middle a drop stacks, with no key, so the tip about Alt goes while it is there
-  if (!d || !d.tip || TH.stackAt) { tip.hidden = true; return; }
+  if (!d || !d.tip || TH.stackAt) { if (!tip.hidden) tip.hidden = true; return; }
   const text = thTipText(d.alt, MAC, d.tipUnit);
   if (tip.textContent !== text || tip.hidden) {
     tip.textContent = text;
@@ -7109,6 +7115,8 @@ function thAudioReset() {
   TH.audioSheet = null;
   TH.seekKey = null;
   TH.cueAt = 0;
+  // the demo's recordings' offer goes with the player, the download carrying on in the server (recdemand)
+  if (typeof REC_GET !== 'undefined' && REC_GET.box === 'th-p') recGetClose(false);
   $('th-pwrap').hidden = true;
 }
 
@@ -7133,20 +7141,29 @@ function thPlayerDraw() {
 }
 
 /* the recording of a sheet, through the same endpoint the turn screen's player asks. True once it
-   is in the player. */
-async function thAudioFor(sheet) {
+   is in the player. A demo participant's recordings not yet on this computer are offered for download in the
+   player's place, as the statements screen's player offers them (recdemand, 13 November 2026, distil.js
+   recGetOpen), and `again` is called once they are in place. */
+async function thAudioFor(sheet, again) {
   const player = $('th-player');
   if (TH.audioSheet === sheet && player.getAttribute('src')) return true;
   TH.audioSheet = sheet;
   TH.seekKey = null;
   player.pause();
   player.removeAttribute('src');
+  if (REC_GET.box === 'th-p') recGetClose(false);
   $('th-pwrap').hidden = false;
   $('th-pbar').hidden = true;
   $('th-pnote').textContent = t('themes.player.looking');
   try {
     const data = await api(`/api/audio?${new URLSearchParams({ path: TH.path, sheet })}`);
     if (TH.audioSheet !== sheet) return false;
+    if (!data.found && data.download) {
+      $('th-pnote').textContent = '';
+      TH.audioSheet = null;
+      recGetOpen('th-p', data.download, () => { if (again) again(); }, () => {});
+      return false;
+    }
     if (data.found) {
       player.src = data.url;
       // the recording's offset, which playback adds to every time code (20 October)
@@ -7178,7 +7195,7 @@ function thPlayToggle() {
 async function thPlayQuote(key, sheet, seconds) {
   const player = $('th-player');
   if (TH.seekKey === key && TH.audioSheet === sheet && player.getAttribute('src')) { thPlayToggle(); return; }
-  if (!(await thAudioFor(sheet))) return;
+  if (!(await thAudioFor(sheet, () => thPlayQuote(key, sheet, seconds)))) return;
   const at = Math.max(0, (Number(seconds) || 0) + (TH.audioOffset || 0));
   TH.seekKey = key;
   TH.cueAt = at;
@@ -9868,7 +9885,7 @@ function thMergeShow(hit) {
   const d = TH.drag;
   const target = d && hit && hit.onLabel && thMergeInto(TH.v, d.moving, hit.group) ? hit.group : null;
   const box = target && TH.layout[target] && TH.layout[target].label;
-  if (!box) { el.hidden = true; return; }
+  if (!box) { if (!el.hidden) el.hidden = true; return; }
   const label = TH.els.labels[target];
   el.className = `th-merge ${thTintClass(thTints(TH.v)[target])}${label && label.classList.contains('upper') ? ' upper' : ''}`;
   el.style.left = `${box.x}px`;
@@ -9924,7 +9941,7 @@ function thInsertShow(d) {
   if (!el) return;
   const home = d && !d.alt && !(d.hitNow && (d.hitNow.onLabel || d.hitNow.discard)) ? d.home : null;
   const at = home && d.layout && thInsertMoves(TH.v, d, home) ? thInsertAt(TH.v, d.layout, d.moving, home, 3 / TH.view.z) : null;
-  if (!at) { el.hidden = true; return; }
+  if (!at) { if (!el.hidden) el.hidden = true; return; }
   el.className = `th-insert ${thTintClass(thTints(TH.v)[home])}${at.along ? ' along' : ''}`;
   el.style.left = `${at.x}px`;
   el.style.top = `${at.y}px`;
@@ -9983,9 +10000,21 @@ function thDragStart() {
     from: thSpots(v), x0: p.x0, y0: p.y0, dx: 0, dy: 0, alt: !!p.alt, lean: 0, lastX: p.x0, still: null,
     tip: thLeavers(v, moving).size > 0, tipUnit: thTipUnit(v, moving, p.item.id), tipX: p.x0, tipY: p.y0,
     slides: new Map(), seen: null, raf: 0, hitNow: null, next: null, step: 0, placedAt: 0, home: null, layout: null,
-    trail: grabbed.size < moving.size ? { x: 0, y: 0, t: 0, raf: 0 } : null };
+    trail: grabbed.size < moving.size ? { x: 0, y: 0, t: 0, raf: 0 } : null, pts: [] };
   TH.hoverAt = null;
+  thCarrying(moving.size > 1);
   thSideArm(true);
+}
+
+/* A drag that carries more than one thing, a theme by its title or several cards, draws each of them in a layer of
+   its own while it lasts, `#th-world.carrying` (themes.css), so the lean turns them where they are drawn already
+   (perfreview, 13 November 2026). Each leaning carried card and label was painted afresh, turned, on every frame,
+   which in WebKit, the Mac window's engine, took a theme of fifteen dragged on a board at its fit to 25 ms a frame
+   where the screen gives one every 16.7, and less with fewer on screen. One card dragged alone is drawn as it was,
+   since a layer of its own cost it more than it saved (18 October, and again here). */
+function thCarrying(on) {
+  const world = $('th-world');
+  if (world && world.classList) world.classList.toggle('carrying', !!on);
 }
 
 /* The neighbours make way while anything is dragged, in the place `hit` says it lands, worked out
@@ -10057,7 +10086,7 @@ function thWayTick(now) {
   thMergeShow(d.hitNow);
 }
 
-function thDragMove(e) {
+function thDragMove(e, now) {
   const d = TH.drag;
   const v = TH.v;
   d.dx = (e.clientX - d.x0) / TH.view.z;
@@ -10079,7 +10108,7 @@ function thDragMove(e) {
   thHover(hit);
   thMergeShow(hit);
   thInsertShow(d);
-  thLean(e);
+  thLean(e, d, now);
   thTip(e);
   d.placedAt = performance.now();
 }
@@ -10091,18 +10120,65 @@ function thDragMove(e) {
 function thDragQueue(e) {
   const d = TH.drag;
   if (!d) return;
+  thDragPoints(d, e);
   d.next = e;
-  if (!d.step) d.step = requestAnimationFrame(() => thDragStep(d));
+  if (!d.step) d.step = requestAnimationFrame((now) => thDragStep(d, now));
 }
 
-/* the move waiting for its frame, run now, once */
-function thDragStep(d) {
+/* Where the pointer was a moment before each frame, so what is dragged moves an even step a frame (perfreview,
+   13 November 2026). A mouse reports its place about every 8 ms, and a frame took the latest move, from just now
+   or from up to a report ago, so at an even hand the steps went short and long by a half and more, and the lean
+   with them. Each move, and each WebKit gathered into it, is kept with its time, and a frame takes the place the
+   pointer had TH_RESAMPLE_MS before the frame, between the two moves either side of then. A pointer that has
+   stopped, a frame whose clock does not match the moves', a drop, Alt and Esc take the latest move as it is. */
+const TH_RESAMPLE_MS = 8;
+const TH_POINTS = 8;
+function thDragPoints(d, e) {
+  if (!Array.isArray(d.pts)) d.pts = [];
+  const each = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : [];
+  for (const c of each && each.length ? each : [e]) {
+    const t = Number(c.timeStamp);
+    const last = d.pts[d.pts.length - 1];
+    if (!Number.isFinite(t) || (last && t < last.t)) continue;
+    d.pts.push({ x: c.clientX, y: c.clientY, t });
+  }
+  if (d.pts.length > TH_POINTS) d.pts.splice(0, d.pts.length - TH_POINTS);
+}
+
+/* the pointer's place at `now` less TH_RESAMPLE_MS, `{x, y}`, or null for the latest move as it is */
+function thDragAt(d, now) {
+  const pts = d.pts || [];
+  const last = pts[pts.length - 1];
+  if (!last || pts.length < 2 || !Number.isFinite(now) || last.t > now + 4 || now - last.t > 100) return null;
+  const want = now - TH_RESAMPLE_MS;
+  if (want >= last.t) return null;
+  let i = pts.length - 1;
+  while (i > 0 && pts[i - 1].t > want) i -= 1;
+  if (i === 0) return { x: pts[0].x, y: pts[0].y };
+  const a = pts[i - 1];
+  const b = pts[i];
+  const k = b.t > a.t ? (want - a.t) / (b.t - a.t) : 1;
+  return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k };
+}
+
+/* The move waiting for its frame, run now, once, at the pointer's place a moment before the frame when the frame
+   gives its time, and one frame more while that place is behind the latest move, so it always comes to rest
+   where the pointer did. What came along with a label is eased on in the same frame, before anything is placed. */
+function thDragStep(d, now) {
   if (!d) return;
   if (d.step) cancelAnimationFrame(d.step);
   d.step = 0;
   const e = d.next;
   d.next = null;
-  if (e && TH.drag === d) thDragMove(e);
+  if (!e || TH.drag !== d) return;
+  const at = now === undefined ? null : thDragAt(d, now);
+  if (now !== undefined && d.trail) thTrail(d, now);
+  thDragMove(at ? { clientX: at.x, clientY: at.y, altKey: e.altKey, shiftKey: e.shiftKey, metaKey: e.metaKey,
+    ctrlKey: e.ctrlKey } : e, now);
+  if (at && TH.drag === d) {
+    d.next = e;
+    d.step = requestAnimationFrame((t) => thDragStep(d, t));
+  }
 }
 
 /* What came along with a label trails it by about TH_TRAIL_MS, eased out, as the .trailing transition did
@@ -10121,11 +10197,13 @@ function thTrail(d, now = performance.now()) {
   return !done;
 }
 
-/* one frame of the trail, on what trails alone, and the next while it has not caught up */
+/* one frame of the trail, on what trails alone, and the next while it has not caught up. A move waiting for this
+   frame eases the trail and places it itself, so nothing is written here before that move reads the board */
 function thTrailTick(now) {
   const d = TH.drag;
   if (!d || !d.trail) return;
   d.trail.raf = 0;
+  if (d.next) { d.trail.raf = requestAnimationFrame(thTrailTick); return; }
   const busy = thTrail(d, now);
   for (const it of d.moving) {
     if (d.grabbed.has(it)) continue;
@@ -10166,6 +10244,7 @@ function thDragCancel() {
   if (d.trail) cancelAnimationFrame(d.trail.raf);
   TH.drag = null;
   TH.press = null;
+  thCarrying(false);
   thTip();
   thMergeShow(null);
   thInsertShow(null);
@@ -10198,6 +10277,7 @@ function thDragEnd(e) {
   cancelAnimationFrame(d.step);
   if (d.trail) cancelAnimationFrame(d.trail.raf);
   TH.drag = null;
+  thCarrying(false);
   if (TH.dirty) thSoon();
   thTip();
   thMergeShow(null);

@@ -30,6 +30,17 @@ net, the same for everyone with no setting:
 
 Kept: restore points for KEEP_DAYS days after their run's last write, and the last KEEP_RUNS whatever their age,
 the copies no point names any more taken away as a new point is made. The change record is kept whole.
+
+Review afterwards (agentreview2, 13 November 2026, Adam by dialog: "C, with A's Home line"). Project history's By an
+agent reads the record grouped by run (`review`), each change a plain line with its own Undo and each run with Undo
+this run, and Home's project card says how many changes agents made since he last looked (`unseen`), from two small
+files in the store, `tally.json`, kept up to date as each line is written, and `seen.json`, written as By an agent is
+read, so Home never reads the record itself. Each write now keeps its files as they stood before and after it, by
+their contents, in its run's `steps`, so one change is undone alone (`undo_changes`, `agents undo-change`): every
+file it changed put back as it stood just before it, refused, nothing written, while anything has changed one of
+them since, the researcher's own edit or a later change of an agent's. The op's own undo (`undo_with`) stays in the
+record for agents: a board's revision restored takes back every later change on that board too, his among them, so
+the page never uses it.
 """
 from __future__ import annotations
 
@@ -49,6 +60,11 @@ import server as srv
 
 FILE = "idiograph-agent-changes.jsonl"
 STORE = ".idiograph-restore"
+# how many changes agents have made and the newest's number, and how many he had seen, for Home's line (agentreview2)
+TALLY = "tally.json"
+SEEN = "seen.json"
+# the runs By an agent reads at a time
+REVIEW_RUNS = 20
 # the agents' lock's ending (see `held`)
 LOCK = locks.NAME
 IDLE = 30
@@ -300,7 +316,8 @@ def current_run(root, args) -> dict | None:
     by_id = next((r for r in runs if r["id"].lower() == given.lower()), None) if given else None
     if by_id is not None and not by_id.get("undone"):
         return by_id
-    mine = [r for r in runs if r.get("key") == key and not r.get("undone") and not r.get("undoes")]
+    mine = [r for r in runs if r.get("key") == key and not r.get("undone") and not r.get("undoes")
+            and not r.get("undoes_changes")]
     if not mine:
         return None
     last = mine[-1]
@@ -361,6 +378,9 @@ def sweep(root, kept: list) -> None:
     """Every copy in the store that no kept run names taken away."""
     named = {e.get("sha") for r in kept for e in (r.get("point") or {}).values() if isinstance(e, dict)}
     named |= {sha for r in kept for sha in (r.get("kept_made") or {}).values()}
+    # and each change's own copies, before and after it (agentreview2)
+    named |= {s.get(k) for r in kept for step in (r.get("steps") or {}).values() if isinstance(step, dict)
+              for s in step.values() if isinstance(s, dict) for k in ("before", "after")}
     try:
         for f in objects(root).iterdir():
             if f.is_file() and not f.name.startswith(".") and f.name not in named:
@@ -517,15 +537,74 @@ def undo_of(args, answer: dict, rid: str) -> dict:
 def append(root, entry: dict) -> dict:
     """One change into the record, its id the next, under the store's lock the caller holds."""
     path = record_path(root)
-    n = 0
-    for e in read(root):
-        m = re.fullmatch(r"c(\d+)", str(e.get("id") or ""))
-        if m:
-            n = max(n, int(m.group(1)))
+    held_now = read(root)
+    n = max([change_number(e.get("id")) for e in held_now] + [0])
     entry = dict({"id": f"c{n + 1}"}, **entry)
     with open(path, "a", encoding="utf-8", newline="\n") as fh:
         fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    write_tally(root, held_now + [entry])
     return entry
+
+
+def change_number(cid) -> int:
+    m = re.fullmatch(r"c(\d+)", str(cid or ""))
+    return int(m.group(1)) if m else 0
+
+
+def by_agent(e: dict) -> bool:
+    """Whether a line of the record is an agent's change, not an undo pressed in the app (agentreview2)."""
+    return str(e.get("via") or "") != "app"
+
+
+def small(path: Path) -> dict | None:
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def write_small(path: Path, data: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f".{path.name}.{secrets.token_hex(4)}")
+    tmp.write_text(json.dumps(data) + "\n", encoding="utf-8", newline="\n")
+    locks.replace(tmp, path)
+
+
+def tally_of(entries: list) -> dict:
+    """How many changes agents made and the newest change's number, from the record's lines."""
+    return {"agents": sum(1 for e in entries if by_agent(e)),
+            "last": max([change_number(e.get("id")) for e in entries] + [0])}
+
+
+def write_tally(root, entries: list) -> dict:
+    tally = tally_of(entries)
+    write_small(store(root) / TALLY, tally)
+    return tally
+
+
+def unseen(root) -> int:
+    """How many changes agents made since he last looked at By an agent, for Home's line: two small files read,
+    never the record, and a project with no record nothing read at all. A record from before the tally is counted
+    once and its tally kept."""
+    if root is None or not record_path(root).is_file():
+        return 0
+    tally = small(store(root) / TALLY)
+    if tally is None:
+        tally = write_tally(root, read(root))
+    seen = small(store(root) / SEEN) or {}
+    try:
+        return max(0, int(tally.get("agents") or 0) - int(seen.get("agents") or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def mark_seen(root) -> dict:
+    """Every change in the record so far seen, as By an agent shows them: Home's line goes, and New with it."""
+    tally = small(store(root) / TALLY) or write_tally(root, read(root))
+    seen = {"agents": int(tally.get("agents") or 0), "last": int(tally.get("last") or 0), "at": stamp()}
+    write_small(store(root) / SEEN, seen)
+    return seen
 
 
 def read(root) -> list[dict]:
@@ -552,6 +631,8 @@ def take_out(root, cid: str) -> None:
     tmp = path.with_name(f".{path.name}.{secrets.token_hex(4)}")
     tmp.write_text("".join(json.dumps(e, ensure_ascii=False) + "\n" for e in kept), encoding="utf-8", newline="\n")
     locks.replace(tmp, path)
+    if store(root).is_dir():
+        write_tally(root, kept)
 
 
 def entry_for(p, args, run: dict, answer, changed: list, made: list) -> dict:
@@ -594,6 +675,16 @@ def through(p, args, run_op, writes: frozenset):
         before = tracked(root)
         # a file that differs from the run's last reading changed between its writes, by someone else
         foreign = set(moved(run.get("after") or {}, before)) & (set(run.get("changed") or []) | set(run.get("point") or {}))
+        # and each file as it stands, by its contents, so this change keeps its files as they were before it: known
+        # from the restore point or the run's last change, else read now, which only a file changed since by
+        # someone else needs (agentreview2)
+        known = known_shas(run)
+        unread = {}
+        for rel, st in before.items():
+            if (rel, tuple(st)) not in known:
+                got = read_in(root, rel)
+                if got is not None and list(got[1]) == list(st):
+                    unread[rel] = got[0]
         try:
             answer, lines = run_op(args)
         except BaseException:
@@ -613,7 +704,9 @@ def through(p, args, run_op, writes: frozenset):
             keep_run(root, run)
         settle(root, run, foreign, before, after)
         made = [f for f in changed if f not in (run.get("point") or {})]
-        append(root, entry_for(p, args, run, answer, changed, made))
+        step = step_of(root, changed, before, known, unread)
+        e = append(root, entry_for(p, args, run, answer, changed, made))
+        run.setdefault("steps", {})[e["id"]] = step
         run["changes"] = int(run.get("changes") or 0) + 1
         if key == ("participant", "rename") and getattr(args, "folder", False):
             run["folder_renamed"] = True
@@ -635,6 +728,40 @@ def settle(root, run: dict, foreign: set, before: dict, after: dict) -> list:
     return changed
 
 
+def known_shas(run: dict) -> dict:
+    """Each file's contents the run already holds, by its path and the time and size it had: the restore point's,
+    and what each of the run's changes left (agentreview2)."""
+    out = {}
+    for rel, e in (run.get("point") or {}).items():
+        if isinstance(e, dict) and e.get("sha"):
+            out[(rel, tuple(e.get("stat") or ()))] = e["sha"]
+    for step in (run.get("steps") or {}).values():
+        for rel, s in (step or {}).items():
+            if isinstance(s, dict) and s.get("after") and s.get("after_stat"):
+                out[(rel, tuple(s["after_stat"]))] = s["after"]
+    return out
+
+
+def step_of(root, changed: list, before: dict, known: dict, unread: dict) -> dict:
+    """One change's own files, each as it stood before the change and after it, by its contents in the store and
+    the time and size it had, so the change is undone alone (`undo_changes`). A file the change made has no before,
+    and one it took away no after. A before that could not be read is left out of `before`, its time and size kept,
+    so the change is undone only with its run."""
+    out = {}
+    for rel in changed:
+        st = before.get(rel)
+        sha = None
+        if st is not None:
+            sha = known.get((rel, tuple(st)))
+            if sha is None and rel in unread:
+                sha = hashlib.sha256(unread[rel]).hexdigest()
+                keep(root, sha, unread[rel])
+        got = copy_in(root, rel) if (Path(root) / rel).is_file() else None
+        out[rel] = {"before": sha, "before_stat": st, "after": got[0] if got else None,
+                    "after_stat": got[1] if got else None}
+    return out
+
+
 def trash_where() -> str:
     import trash
     return trash.where()
@@ -650,6 +777,7 @@ def removing(p, args, run_op):
     with held(root):
         run = current_run(root, args) or {"id": "", "via": via, "agent": agent_name(args)}
         first = not record_path(root).exists()
+        had_store = store(root).is_dir()
         e = dict(entry_for(p, args, run, {}, [], []),
                  what_changed=i18n.t("agentchanges.removed_trash", where=trash_where()) if getattr(args, "trash", False)
                  else i18n.t("agentchanges.removed"))
@@ -663,6 +791,11 @@ def removing(p, args, run_op):
                 take_out(root, written["id"])
                 if first and not read(root):
                     record_path(root).unlink(missing_ok=True)
+                    # and the tally its line made, with the store, when the store was made for it
+                    if not had_store:
+                        (store(root) / TALLY).unlink(missing_ok=True)
+                        with contextlib.suppress(OSError):
+                            store(root).rmdir()
         raise
 
 
@@ -678,6 +811,8 @@ def run_view(r: dict) -> dict:
         out["undone"] = r["undone"]
     if r.get("undoes"):
         out["undoes"] = r["undoes"]
+    if r.get("undoes_changes"):
+        out["undoes_changes"] = list(r["undoes_changes"])
     return out
 
 
@@ -801,6 +936,357 @@ def undo_run(p, args) -> tuple:
         answer.update(undo_run=mine["id"], change=e["id"])
         lines.append(i18n.t("agentchanges.undo.again", id=mine["id"]))
         return answer, lines
+
+
+# ------------------------------------------------------------------ one change undone alone (agentreview2)
+
+class Files:
+    """The project's files as they stand, read once, each one's contents read only when its time and size do not
+    settle whether it stands as a change left it, and a file as an undo of later changes would leave it."""
+
+    def __init__(self, root, real: dict | None = None, shas: dict | None = None):
+        self.root = root
+        self.real = tracked(root) if real is None else real
+        self.shas: dict = {} if shas is None else shas
+        self.then: dict = {}
+
+    def fresh(self) -> "Files":
+        """The files as they stand again, no undo imagined, what was read kept."""
+        return Files(self.root, self.real, self.shas)
+
+    def sha(self, rel: str):
+        if rel not in self.shas:
+            got = read_in(self.root, rel)
+            self.shas[rel] = hashlib.sha256(got[0]).hexdigest() if got else None
+        return self.shas[rel]
+
+    def state(self, rel: str):
+        """A file as it stands, or as the undo of later changes would leave it: its time and size and its
+        contents' sha when known, None when it is not there."""
+        if rel in self.then:
+            return self.then[rel]
+        st = self.real.get(rel)
+        return None if st is None else {"stat": st, "sha": None, "real": True}
+
+    def stands(self, rel: str, s: dict) -> bool:
+        """Whether a file stands as a change left it."""
+        state = self.state(rel)
+        if s.get("after_stat") is None:
+            return state is None
+        if state is None:
+            return False
+        if list(state["stat"]) == list(s["after_stat"]):
+            return True
+        sha = state["sha"] if state.get("sha") or not state.get("real") else self.sha(rel)
+        return bool(sha) and sha == s.get("after")
+
+    def undo(self, step: dict) -> None:
+        """Each file of a change as its undo leaves it: as it stood just before the change."""
+        for rel, s in step.items():
+            self.then[rel] = (None if s.get("before_stat") is None
+                              else {"stat": s["before_stat"], "sha": s.get("before"), "real": False})
+
+    def when(self, rel: str):
+        """When a file last changed, as it stands or as an undo would leave it."""
+        state = self.state(rel)
+        if state is None:
+            return None
+        return datetime.fromtimestamp(state["stat"][0] / 1e9).astimezone().isoformat(timespec="seconds")
+
+
+def undoable(step) -> bool:
+    """Whether a change keeps its files as they stood before it, so it is undone alone."""
+    return bool(step) and all(isinstance(s, dict) and (s.get("before_stat") is None or s.get("before"))
+                              for s in step.values())
+
+
+def undone_alone(runs: dict) -> dict:
+    """Each change undone alone, by the undo's run, while that run is not undone in its turn."""
+    out = {}
+    for r in runs.values():
+        if r.get("undoes_changes") and not r.get("undone"):
+            for cid in r["undoes_changes"]:
+                out[str(cid)] = {"run": r["id"], "at": r.get("last") or r.get("started"), "via": r.get("via") or ""}
+    return out
+
+
+def undo_changes(p, args) -> tuple:
+    """`agents undo-change <id> [<id> ...]`: each change named undone alone, every file it changed put back as it
+    stood just before it from the copies its run kept, a file it made taken away, kept first, newest change first, so
+    a later change named with it is undone before it. Refused whole, nothing written, when anything changed one of
+    its files since, the researcher's edit or a later change not named, when it is undone already or its run is,
+    and when it keeps no copies (a change from before 13 November's agentreview2, or a participant's folder renamed),
+    which is then undone with its run. Itself a run of its own, which `agents undo-run` undoes in its turn. With
+    --dry-run what it would put back and take away."""
+    import cli
+    root = p.root
+    ids = [one_line(x).lower() for x in (getattr(args, "ids", None) or []) if one_line(x)]
+    names = case_names(p)
+    if not kept_here(root):
+        raise cli.Refused(i18n.t("agentchanges.undo.demo"))
+    if not ids:
+        raise cli.Refused(i18n.t("agentchanges.undo_change.none_named"))
+    with held(root):
+        entries = {str(e.get("id") or "").lower(): e for e in read(root)}
+        runs = {r["id"]: r for r in all_runs(root)}
+        alone = undone_alone(runs)
+        todo = []
+        for cid in sorted(set(ids), key=change_number, reverse=True):
+            e = entries.get(cid)
+            if e is None:
+                raise cli.Refused(i18n.t("agentchanges.undo_change.no_change", id=cid))
+            run = runs.get(str(e.get("run") or ""))
+            step = ((run or {}).get("steps") or {}).get(e["id"])
+            if e["id"] in alone:
+                raise cli.Refused(i18n.t("agentchanges.undo_change.already", id=e["id"], by=alone[e["id"]]["run"]))
+            if run is not None and run.get("undone"):
+                raise cli.Refused(i18n.t("agentchanges.undo_change.run_undone", id=e["id"], run=run["id"]))
+            if not undoable(step) or e.get("op") == "participant rename":
+                raise cli.Refused(i18n.t("agentchanges.undo_change.no_copies", id=e["id"], run=e.get("run") or ""))
+            todo.append((e, run, step))
+        files = Files(root)
+        lost = []
+        for e, _run, step in todo:
+            late = [rel for rel in sorted(step) if not files.stands(rel, step[rel])]
+            if late:
+                lost.append(i18n.t("agentchanges.undo_change.later", id=e["id"], what=said_files(late, names)))
+            files.undo(step)
+        if lost:
+            raise cli.Refused(*([i18n.t("agentchanges.undo_change.refused")] + lost
+                                + [i18n.t("cli.said.nothing_was_written")]))
+        missing = sorted({rel for _e, _r, step in todo for rel, s in step.items()
+                          if s.get("before") and not (objects(root) / s["before"]).is_file()})
+        if missing:
+            raise cli.Refused(i18n.t("agentchanges.undo_change.copies_gone", what=said_files(missing, names)))
+        named = formats_list([e["id"] for e, _r, _s in reversed(todo)])
+        back = sorted({rel for _e, _r, step in todo for rel, s in step.items() if s.get("before_stat") is not None})
+        gone = sorted({rel for _e, _r, step in todo for rel, s in step.items()
+                       if s.get("before_stat") is None and (Path(root) / rel).is_file()})
+        answer = {"changes": [e["id"] for e, _r, _s in reversed(todo)], "put_back": len(back),
+                  "taken_away": len(gone), "dry_run": bool(args.dry_run), "back_said": said_files(back, names),
+                  "gone_said": said_files(gone, names)}
+        lines = [i18n.t("cli.said.dry_run_nothing_was_written")] if args.dry_run else []
+        lines.append(i18n.t("agentchanges.undo_change.would", ids=named) if args.dry_run
+                     else i18n.t("agentchanges.undo_change.done", ids=named))
+        if back:
+            lines.append("  " + i18n.t("agentchanges.undo.back", what=answer["back_said"]))
+        if gone:
+            lines.append("  " + i18n.t("agentchanges.undo.gone", what=answer["gone_said"]))
+        if args.dry_run:
+            return answer, lines
+        via = getattr(args, "via", "") or "cli"
+        mine = new_run(root, args, via, agent_name(args))
+        mine.update(key=f"undo-changes:{','.join(answer['changes'])}", undoes_changes=answer["changes"])
+        mine = keep_run(root, mine)
+        before = tracked(root)
+        kept_made = {}
+        with contextlib.ExitStack() as stack:
+            for lock in sorted({lock_of(root, rel) for _e, _r, step in todo for rel in step}, key=str):
+                stack.enter_context(locks.held(lock))
+            for _e, _r, step in todo:
+                for rel, s in sorted(step.items()):
+                    target = Path(root) / rel
+                    if s.get("before_stat") is None:
+                        if target.is_file():
+                            got = copy_in(root, rel)
+                            if got is not None:
+                                kept_made[rel] = got[0]
+                            target.unlink(missing_ok=True)
+                        continue
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    tmp = target.with_name(f".{target.name}.{secrets.token_hex(4)}.restore")
+                    tmp.write_bytes((objects(root) / s["before"]).read_bytes())
+                    # its time as it was too, so the change before it finds the file as it left it
+                    stamp_ns = s["before_stat"][0]
+                    if isinstance(stamp_ns, int):
+                        os.utime(tmp, ns=(stamp_ns, stamp_ns))
+                    locks.replace(tmp, target)
+        after = tracked(root)
+        changed = moved(before, after)
+        mine.update(changed=changed, made=[f for f in changed if f not in mine["point"]], after=after, last=stamp(),
+                    changes=1, kept_made=kept_made)
+        save_run(root, mine)
+        e = append(root, {"at": stamp(), "run": mine["id"], "via": via, "agent": mine["agent"],
+                          "request": one_line(getattr(args, "note", ""))[:WORDS_MOST], "op": "agents undo-change",
+                          "target": {"changes": answer["changes"]}, "what_changed": changed_line(changed, [], names),
+                          "files": len(changed), "undo_with": {"run": mine["id"],
+                                                          "command": f"idiograph agents undo-run {mine['id']}"}})
+        answer.update(undo_run=mine["id"], change=e["id"])
+        lines.append(i18n.t("agentchanges.undo.again", id=mine["id"]))
+        return answer, lines
+
+
+def formats_list(items) -> str:
+    import formats
+    return formats.list_words([str(x) for x in items])
+
+
+# ------------------------------------------------------------------ review afterwards (agentreview2)
+
+# each op's line in the app's own past tense, by its command and act, the record's line of what changed for the rest
+OPS_SAID = {
+    ("board", "apply"): (lambda: i18n.t("agentchanges.op.board_apply")), ("board", "new"): (lambda: i18n.t("agentchanges.op.board_new")),
+    ("board", "fresh"): (lambda: i18n.t("agentchanges.op.board_new")), ("board", "import"): (lambda: i18n.t("agentchanges.op.board_new")),
+    ("board", "duplicate"): (lambda: i18n.t("agentchanges.op.board_duplicate")), ("board", "rename"): (lambda: i18n.t("agentchanges.op.board_rename")),
+    ("board", "delete"): (lambda: i18n.t("agentchanges.op.board_delete")), ("board", "note"): (lambda: i18n.t("agentchanges.op.board_note")),
+    ("board", "restore"): (lambda: i18n.t("agentchanges.op.board_restore")), ("board", "revision"): (lambda: i18n.t("agentchanges.op.board_revision")),
+    ("board", "current"): (lambda: i18n.t("agentchanges.op.board_current")), ("board", "complete"): (lambda: i18n.t("agentchanges.op.board_complete")),
+    ("board", "copy"): (lambda: i18n.t("agentchanges.op.board_copy")), ("board", "canvas"): (lambda: i18n.t("agentchanges.op.board_canvas")),
+    ("gets", "apply"): (lambda: i18n.t("agentchanges.op.gets_apply")), ("gets", "take"): (lambda: i18n.t("agentchanges.op.gets_take")),
+    ("turn", "write"): (lambda: i18n.t("agentchanges.op.turn_write")), ("turn", "edit"): (lambda: i18n.t("agentchanges.op.turn_edit")),
+    ("turn", "interviewer-note"): (lambda: i18n.t("agentchanges.op.turn_note")), ("transcript", "replace"): (lambda: i18n.t("agentchanges.op.replace")),
+    ("participant", "set"): (lambda: i18n.t("agentchanges.op.participant_set")),
+    ("participant", "rename"): (lambda: i18n.t("agentchanges.op.participant_rename")),
+    ("participant", "complete"): (lambda: i18n.t("agentchanges.op.participant_complete")), ("length", None): (lambda: i18n.t("agentchanges.op.length")),
+    ("project", "set"): (lambda: i18n.t("agentchanges.op.project_set")), ("timepoints", None): (lambda: i18n.t("agentchanges.op.timepoints")),
+    ("codes", "new"): (lambda: i18n.t("agentchanges.op.codes_new")), ("codes", "rename"): (lambda: i18n.t("agentchanges.op.codes_rename")),
+    ("codes", "describe"): (lambda: i18n.t("agentchanges.op.codes_describe")), ("codes", "merge"): (lambda: i18n.t("agentchanges.op.codes_merge")),
+    ("codes", "delete"): (lambda: i18n.t("agentchanges.op.codes_delete")), ("codes", "add"): (lambda: i18n.t("agentchanges.op.codes_add")),
+    ("trajectories", "apply"): (lambda: i18n.t("agentchanges.op.trajectories")), ("demographics", "apply"): (lambda: i18n.t("agentchanges.op.demographics")),
+    ("agents", "undo-run"): (lambda: i18n.t("agentchanges.op.undo_run")), ("agents", "undo-change"): (lambda: i18n.t("agentchanges.op.undo_change")),
+}
+# the screen a change is on, by its command
+WHERE_SAID = {"board": (lambda: i18n.t("agentchanges.where.pets")), "turn": (lambda: i18n.t("agentchanges.where.statements")),
+              "transcript": (lambda: i18n.t("agentchanges.where.statements")), "statements": (lambda: i18n.t("agentchanges.where.statements")),
+              "codes": (lambda: i18n.t("agentchanges.where.codes")), "trajectories": (lambda: i18n.t("agentchanges.where.trajectories"))}
+
+
+def line_of(e: dict) -> str:
+    """A change in one line, what it did, in the app's own past tense: its op's, else the record's line of what
+    changed. Never a participant's words, which the record never holds."""
+    op = str(e.get("op") or "").split(" ", 1)
+    key = OPS_SAID.get((op[0], op[1] if len(op) > 1 else None))
+    return key() if key else str(e.get("what_changed") or "").rstrip(".")
+
+
+def where_of(e: dict) -> str:
+    """Where a change was: the participant and the screen, "Mabel, PETs", the GETs, or nothing for the whole
+    project."""
+    import gets as gets_mod
+    target = e.get("target") if isinstance(e.get("target"), dict) else {}
+    command = str(e.get("op") or "").split(" ", 1)[0]
+    parts = [gets_mod.who(str(target["case"]))] if target.get("case") else []
+    if command == "gets":
+        parts.append(i18n.t("agentchanges.where.lpets") if target.get("case") else i18n.t("agentchanges.where.gets"))
+    elif command in WHERE_SAID and (target.get("case") or command in ("codes", "trajectories")):
+        parts.append(WHERE_SAID[command]())
+    return ", ".join(parts)
+
+
+def review(p, offset: int = 0, limit: int = REVIEW_RUNS, mark: bool = False) -> dict:
+    """By an agent, as Project history shows it: the agents' changes grouped by run, newest run first, `limit` runs
+    from `offset`, each run with its agent, when it began and last changed, its count, the request it gave, New
+    while it holds a change he has not seen, and how it is undone, and each change with its line, where it was and
+    whether Undo can take it back now. With `mark`, every change so far is seen once the answer is made, so New and
+    Home's line go. The app's own undos are no agent's and are not listed, their changes marked undone."""
+    root = p.root
+    names = case_names(p)
+    entries = read(root)
+    runs = {r["id"]: r for r in all_runs(root)}
+    seen = small(store(root) / SEEN) or {}
+    seen_last = int(seen.get("last") or 0) if str(seen.get("last") or "0").isdigit() else 0
+    alone = undone_alone(runs)
+    groups: dict = {}
+    for e in entries:
+        if not by_agent(e):
+            continue
+        key = str(e.get("run") or "") or f"-{e.get('id')}"
+        groups.setdefault(key, []).append(e)
+    order = sorted(groups, key=lambda k: max(change_number(x.get("id")) for x in groups[k]), reverse=True)
+    total = sum(len(v) for v in groups.values())
+    new = sum(1 for v in groups.values() for x in v if change_number(x.get("id")) > seen_last)
+    files = Files(root)
+    # each change whose files can still be put back, by file, to find what stands in another's way
+    live_by_file: dict = {}
+    for e in entries:
+        run = runs.get(str(e.get("run") or ""))
+        step = ((run or {}).get("steps") or {}).get(e.get("id"))
+        if not by_agent(e) or not step or e.get("id") in alone or (run or {}).get("undone"):
+            continue
+        for rel, s in step.items():
+            live_by_file.setdefault(rel, []).append((change_number(e["id"]), e, s))
+    shown = []
+    for key in order[offset:offset + limit if limit else None]:
+        mine = groups[key]
+        run = runs.get(key) or {}
+        out_changes = []
+        for e in sorted(mine, key=lambda x: change_number(x.get("id")), reverse=True):
+            out_changes.append(dict(change_view(e, run, alone, files, live_by_file, names), new=change_number(e.get("id")) > seen_last))
+        out = {"id": key, "agent": agent_said(mine[0].get("agent")), "via": str(mine[0].get("via") or ""),
+               "started": mine[0].get("at"), "last": mine[-1].get("at"), "count": len(mine),
+               "request": next((agent_request(x) for x in mine if x.get("request")), ""),
+               "new": any(c["new"] for c in out_changes), "changes": out_changes}
+        if run.get("undone"):
+            out["undone"] = {"at": run["undone"].get("at"), "by": run["undone"].get("by") or ""}
+        out.update(run_action(run, mine, alone, files.fresh()))
+        shown.append(out)
+    answer = {"runs": shown, "total": total, "runs_total": len(order), "new": new,
+              "new_runs": sum(1 for k in order if any(change_number(x.get("id")) > seen_last for x in groups[k]))}
+    if mark and new:
+        mark_seen(root)
+    return answer
+
+
+def agent_said(name) -> str:
+    """An agent's name as the page shows it, cleaned as the agent log cleans it."""
+    from agent_log import NAME_MOST, agent_words
+    return agent_words(name, NAME_MOST)
+
+
+def agent_request(e: dict) -> str:
+    from agent_log import agent_words
+    return agent_words(e.get("request"))
+
+
+def change_view(e: dict, run: dict, alone: dict, files: Files, live_by_file: dict, names: dict) -> dict:
+    """One change as By an agent lists it: its line and where, and its state. `ok`, Undo takes it back now.
+    `undone`, undone alone, with when. `yours`, a file of it changed since by him, with which and when. `later`, a
+    later change of another run's stands in its way, with its agent and when. `same`, a later change of its own run
+    does, which Undo this run takes back first. `none`, it keeps no copies or its run is undone."""
+    import cli
+    out = {"id": e.get("id"), "at": e.get("at"), "line": line_of(e), "where": cli.scrub(where_of(e))}
+    step = (run.get("steps") or {}).get(e.get("id"))
+    if e.get("id") in alone:
+        return dict(out, state="undone", undone_at=alone[e["id"]]["at"])
+    if run.get("undone") or not undoable(step) or e.get("op") == "participant rename":
+        return dict(out, state="none")
+    late = [rel for rel in sorted(step) if not files.stands(rel, step[rel])]
+    if not late:
+        return dict(out, state="ok")
+    n = change_number(e.get("id"))
+    for rel in late:
+        later = [(m, x) for m, x, s in live_by_file.get(rel, []) if m > n and files.stands(rel, s)]
+        if later:
+            m, x = max(later, key=lambda t: t[0])
+            if str(x.get("run") or "") == str(e.get("run") or ""):
+                return dict(out, state="same")
+            return dict(out, state="later", by=agent_said(x.get("agent")), by_at=x.get("at"))
+    rel = late[0]
+    return dict(out, state="yours", what=said_files([rel], names), changed_at=files.when(rel))
+
+
+def run_action(run: dict, mine: list, alone: dict, files: Files) -> dict:
+    """How a run is undone from By an agent: `undo` "changes" with the ids Undo puts back, newest first as each
+    leaves the files for the next, every one of them for Undo this run or the others when a change cannot be, or
+    "run", the whole run from its restore point, for a run whose changes keep no copies of their own (from before
+    agentreview2) or an agent's undo, which `agents undo-run` refuses in place when a later change stands in its way.
+    None when nothing can be undone."""
+    if not run or run.get("undone"):
+        return {"undo": None}
+    steps = run.get("steps") or {}
+    if any(not undoable(steps.get(e.get("id"))) for e in mine) and not any(e.get("id") in steps for e in mine):
+        return {"undo": "run", "undo_n": len(mine), "whole": True}
+    ids = []
+    for e in sorted(mine, key=lambda x: change_number(x.get("id")), reverse=True):
+        step = steps.get(e.get("id"))
+        if e.get("id") in alone or not undoable(step) or e.get("op") == "participant rename":
+            continue
+        if all(files.stands(rel, s) for rel, s in step.items()):
+            ids.append(e["id"])
+            files.undo(step)
+    if not ids:
+        return {"undo": None}
+    return {"undo": "changes", "undo_ids": ids, "undo_n": len(ids), "whole": len(ids) == len(mine)}
 
 
 # ------------------------------------------------------------------ the holds of before

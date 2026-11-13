@@ -334,6 +334,14 @@
           </div>
           <span class="mono player-time dim" id="player-total">00:00</span>
         </div>
+        <!-- The demo's recordings on demand (recdemand, 13 November 2026): pressed to play before they are on this
+             computer, the player's place offers the download with its size, then shows how far it has got -->
+        <div class="rec-get" id="player-get" hidden>
+          <span class="rec-get-said" id="player-get-said" aria-live="polite"></span>
+          <span class="rec-get-track" id="player-get-track" hidden><span class="rec-get-fill" id="player-get-fill"></span></span>
+          <button class="primary" id="player-get-go" type="button"></button>
+          <button class="ghost" id="player-get-no" type="button"></button>
+        </div>
         <span class="player-note" id="player-note"></span>
         <button class="player-offset" id="player-offset" type="button" tabindex="-1" hidden
                 title="{{page_idiograph.work.seconds_playback_adds_every}}"></button>
@@ -1028,6 +1036,13 @@
             <span class="player-knob" id="th-pknob"></span>
           </div>
           <span class="mono player-time dim" id="th-ptotal">--:--</span>
+        </div>
+        <!-- the demo's recordings on demand, offered here as the statements screen's player offers them -->
+        <div class="rec-get th-pget" id="th-p-get" hidden>
+          <span class="rec-get-said" id="th-p-get-said" aria-live="polite"></span>
+          <span class="rec-get-track" id="th-p-get-track" hidden><span class="rec-get-fill" id="th-p-get-fill"></span></span>
+          <button class="primary" id="th-p-get-go" type="button"></button>
+          <button class="ghost" id="th-p-get-no" type="button"></button>
         </div>
         <span class="player-note th-pnote" id="th-pnote"></span>
       </div>

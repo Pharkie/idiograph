@@ -11,7 +11,10 @@ its turn, and a second undo refused. The undo refused whole, nothing written, na
 would be lost, and when the run renamed a participant's folder. A restore point copying only what changed since the
 last. The ops only the app does refused with nothing written and logged as app_only, their dry runs answering. An
 MCP connection one run and a second its own. And the actions that waited before approvals were removed dropped as
-the project opens, their count noted once in the agent log."""
+the project opens, their count noted once in the agent log. One change undone alone (agentreview2, 13 November):
+each change keeping its files before and after it,  putting them back byte for byte, the
+change before it kept, a second undo refused, a change whose file he changed since refused whole with nothing
+written, and MCP's agent_undo_change doing the same."""
 from __future__ import annotations
 
 import hashlib
@@ -232,6 +235,52 @@ def test_agent_changes(scratch: Path):
               and got[0]["via"] == "mcp" and got[0]["agent"] == "Claude Desktop"
               and [e["id"] for e in shown.get("changes") or []] == [got[3]["id"], got[2]["id"]],
               json.dumps([e["run"] for e in got]) + json.dumps(shown)[:300])
+
+        # ── 10. one change undone alone (agentreview2): its files back as they were just before it, the rest kept
+        clock["at"] += timedelta(hours=2)
+        ask("participant", "set", "Ada", "--label", "Second summer")
+        label_change = lines()[-1]["id"]
+        before_board = digest(root)
+        ask("board", "fresh", "Bryn", "--name", "Trial")
+        board_change = lines()[-1]["id"]
+        made_board = digest(root)
+        step = (runs()[lines()[-1]["run"]].get("steps") or {}).get(board_change) or {}
+        check("380: each change keeps its files as they stood before and after it, by their contents in the store",
+              step and all((store / "objects" / s["after"]).is_file() and (s["before"] is None or
+                                                                         (store / "objects" / s["before"]).is_file())
+                           for s in step.values()), json.dumps(step)[:400])
+        code, dry, err = run("agents", "undo-change", board_change, "--dry-run", "--note", "Undo the trial board")
+        check("380: undo-change's dry run says what it would put back, nothing written",
+              code == 0 and dry.get("changes") == [board_change] and digest(root) == made_board, err + json.dumps(dry))
+        code, undone, err = run("agents", "undo-change", board_change, "--note", "Undo the trial board")
+        check("380: a change undone alone puts every file it changed back byte for byte as it was just before it, the "
+              "change before it in the same run kept", code == 0 and digest(root) == before_board
+              and undone.get("undo_run") and lines()[-1]["op"] == "agents undo-change", err + json.dumps(undone)[:300])
+        again = run("agents", "undo-change", board_change, "--note", "Undo the trial board")
+        check("380: a change undone already is refused, naming the undo's run", again[0] != 0
+              and "undone already" in again[2], again[2])
+        # his own edit of the project file through the app's own call, outside the record, then the label's undo
+        cfg_kept = (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE)
+        server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE = config_file, None
+        try:
+            import idiograph_routes
+            idiograph_routes.api_project({"root": idiograph_routes.project_id(root),
+                                          "research_question": "How do people keep bees on a roof in a city?"})
+        finally:
+            server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE = cfg_kept
+        his = digest(root)
+        code, _x, err = run("agents", "undo-change", label_change, "--note", "Undo the label")
+        check("380: a change whose file he changed since is refused whole, naming the file, nothing written",
+              code != 0 and "the project's settings, changed since" in err and digest(root) == his, err)
+        # through MCP, one change undone in its turn
+        mcp = mcp_server.Server(root=str(root), config=str(config_file))
+        mcp.client = "Claude Desktop"
+        mcp.call(mcp.by_name["board_fresh"], {"case": "Ada", "name": "Draft", "request": ASKED})
+        last = lines()[-1]["id"]
+        mcp.call(mcp.by_name["agent_undo_change"], {"changes": [last], "request": "Undo the draft board"})
+        check("380: MCP's agent_undo_change undoes one change as the command line does",
+              digest(root) == his and lines()[-1]["op"] == "agents undo-change"
+              and lines()[-1]["target"] == {"changes": [last]}, json.dumps(lines()[-2:])[:500])
     finally:
         agent_changes.ALL_OPS, agent_changes.NOW = kept[0], kept[1]
         if kept[2] is None:

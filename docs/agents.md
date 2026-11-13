@@ -2326,6 +2326,15 @@ change", "changed by someone else between the run's changes"): undo the later ru
 that renamed a participant's folder is refused until the folder is renamed back. The undo is a run of its own,
 which `agents undo-run` undoes in its turn, and the run it undid answers `undone`.
 
+`idiograph agents undo-change c12` (`agent_undo_change` through MCP, with `changes`) undoes one change alone, or
+several named together, newest first: every file it changed put back as it was just before it, from the copies
+its run kept as it wrote, and each file it made taken away, kept first. It is refused whole, nothing written, when
+anything changed one of its files since, his edit or a later change you did not name with it ("c12: Juno's
+boards, changed since"), for a change undone already, and for one from before 13 November, which keeps no copies of
+its own, and which its run's undo reaches. Run it with `--dry-run` first, and undo only on his word. The undo is a
+run of its own, which `agents undo-run` undoes in its turn. He does the same in the app: Project history's By an
+agent lists the record by run, with Undo on each change and on each run.
+
 **The app's alone.** What no undo reaches is refused for an agent in one line naming where to do it in the app,
 nothing waiting, and its dry run still answers:
 
@@ -2337,7 +2346,9 @@ nothing waiting, and its dry run still answers:
 | `settings` with an option | the app's own, no project's, so no restore point holds it | 4, standing access |
 | `names remove` | the list of names to replace is copied nowhere | 3, no screen |
 
-The API key and the AI features switch have no op at all. `project remove` stays yours: its folder stays as it is,
+The API key and the AI features switch have no op at all, and nor has the demo's recordings' download (recdemand,
+13 November 2026): the demo's player fetches them from GitHub the first time one is played, from the app's own window
+alone, and an agent reads the demo's text as it always did. `project remove` stays yours: its folder stays as it is,
 or with `--trash` goes whole to the system's Trash, never deleted.
 
 An action that waited for his yes in a project before this is dropped the first time the project opens, never

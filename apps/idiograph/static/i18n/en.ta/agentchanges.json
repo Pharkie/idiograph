@@ -1,0 +1,7 @@
+{
+  "agentchanges.op.gets_apply": "Changed the themes",
+  "agentchanges.op.turn_write": "Wrote a passage's codes",
+  "agentchanges.op.participant_complete": "Marked coding complete, or reopened it",
+  "agentchanges.where.gets": "Themes",
+  "agentchanges.where.statements": "Coding"
+}

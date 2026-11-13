@@ -247,6 +247,8 @@ const LATER = [];
 const setTimeout = (f) => LATER.push(f);
 const api = async () => { if (ANSWER === 'fail') throw new Error('no'); return ANSWER; };
 const cueAudio = () => {}; const drawPlayer = () => {}; const drawOffsetButton = () => {};
+// the demo's recordings on demand (recdemand, 13 November 2026), which a plain participant never reaches
+const REC_GET = { box: '' }; const recGetClose = () => {}; const recGetTurn = () => {}; const markTurnAt = () => {};
 const said = [];
 const say = (m) => said.push(m);
 """ + "async " + whole(app, "loadAudio") + "\n" + whole(app, "playFrom") + r"""

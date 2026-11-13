@@ -2015,6 +2015,19 @@ within 30 minutes of each other. An undo is refused, with nothing changed, when 
 by you or another agent, and it names what changed. The record and its restore points never go with a copy you
 share. Restore points are kept for 30 days, and the last 10 sessions' whatever their age.
 
+**Reviewing what agents changed** (13 November 2026). When agents have changed a project since you last looked,
+its card on Home says so at its foot, "Agents made 37 changes since you last looked.", with Review, which opens
+Project history at By an agent. There each session of an agent is a group under its day: the agent, its times and
+how many changes it made, New until you have seen it, and what the agent says you asked. Under it each change is one
+line, what it did and where, "Wrote the board's note  Mabel, PETs", with Undo at its right. The newest session
+shows its first lines and Show 2 more, the others Show the 5 changes. Undo puts back what that one change touched,
+as it was just before it. Undo this run, at the session's right, undoes all of them. A change you have edited since
+says so in place of its Undo, "You changed Mabel's boards at 09:05, so this can no longer be undone.", and the
+session's button then reads Undo the other 4, which undoes the rest and keeps your edit. A change a later session
+changed again says that session comes first. An undo never writes over a later change of yours. If one came since
+the list was drawn, it is not done, and the reason shows under the change. A change undone says when. Opening By
+an agent marks every change as seen, so New and the line on Home go.
+
 A few things are yours alone, since no undo reaches them: sending a copy of the project to someone, Working
 together's invites, people, relay code and anything sent to a teammate, Settings, and the list of names to replace.
 An agent asking for one is told where to do it in the app, and nothing waits. If an agent's actions were still
@@ -2498,7 +2511,9 @@ frame too, where until 18 October each was a transition WebKit, the engine of th
 every move of every card, which held a drag there to 30 frames a second on the demo's board and 8 on a
 crowded one. Since 13 November a drag keeps the screen's pace in the Mac window on a large board too, where
 the whole board on screen was drawn again on every frame, so on a board of about a hundred cards laid out
-square it fell well behind and the lean moved in steps. On the drop it lands
+square it fell well behind and the lean moved in steps. A PET dragged by its title, or several cards at once, keeps
+that pace too, and whatever is dragged moves an even step from frame to frame, where it went short and long with
+the mouse's own timing. On the drop it lands
 over 220 ms with a visible overshoot, coming down to its own size and standing up from its lean as
 it lands, so a drop has settled inside 250 ms. A card or a PET pushed clear by the margin slides to
 its new spot over 240 ms rather than jumping, and so do the cards an Auto-arrange gathers, and one
@@ -4355,7 +4370,8 @@ statements marked complete or reopened. A save that changes nothing keeps none. 
 with `project history`. Project history, on the project's menu on Home (3 November 2026), opens them on a
 sheet: every change newest first under its day, each with its time, who made it, every line of what changed and
 what the agent says you asked. All, In the app and By an agent over the list show all of them or one side's
-alone. A long record reads on as you scroll, and Done shuts the sheet. A project with no change yet says "No
+alone, By an agent the record of every change agents made, with Undo (see Reviewing what agents changed). A long
+record reads on as you scroll, and Done shuts the sheet. A project with no change yet says "No
 change yet.", and the demo's card has no Project history.
 
 **Project settings.** Each project's own settings are on a sheet of its own, Project settings (5 November
@@ -5228,11 +5244,25 @@ hash of the transcript it was made from, with their own licence beside them, `LI
 speech, to be copied and shared only unchanged and only as part of Idiograph or a version of it, and never used
 to train or evaluate an AI model. The README's licence line says they are the one exception to the AGPL.
 
-The demo's own copy of each, in `demo/<name>/Source/Initial/Source/`, is gitignored. The first time a
-participant's player looks for it, the server copies it in from `packaging/recording/`, in a moment, and the
-installed app ships all three in its demo. Nothing is spoken on your computer. A transcript edited since its
-recording was made has none, since its timecodes no longer match the voices, and its player shows nothing, as
-for any workbook without one. By hand, each recording put in place:
+**Downloaded the first time one is played** (13 November 2026, Adam: "Text in, recordings on demand"). The
+installed app carries the demo's text, its transcripts, workbooks and boards, so Home shows the demo and it opens
+with no internet, and none of its recordings, which would more than double the download. A demo participant's player
+shows as any other's. The first press of Play, a timecode or `Space` puts the offer in the player's place: "This
+demo's recordings, 9.4 MB. Download?", with Download and Not now. Download says how far it has got, "Downloading
+the recordings, 2.8 MB of 9.4 MB", with a line filling beside Cancel, and once all three are on your computer the
+player plays from where you pressed. Not now and Cancel put the player back, and the next press offers it again.
+The PETs and GETs boards' player offers it the same way when a quote's play is pressed. With no internet the
+offer's line says "No internet connection, so the recordings did not download. The demo works without them.",
+and Download tries again. A recording that does not arrive exactly as it should is not kept. The recordings stay
+on your computer, in the demo's own folder, and Reset demo leaves them there. Each was made at about 24 kbps, half
+the bitrate it had, Juno's about 5.3 MB, Rowan's 2.2 MB and Mabel's 1.9 MB, the voices the same and every timecode
+where it was.
+
+The demo's own copy of each, in `demo/<name>/Source/Initial/Source/`, is gitignored. Run from source, the first
+time a participant's player looks for it the server copies it in from `packaging/recording/`, in a moment, with
+nothing to download. Nothing is spoken on your computer. A transcript edited since its recording was made has none,
+since its timecodes no longer match the voices, and its player shows nothing, as for any workbook without one. By
+hand, each recording put in place:
 
 ```
 .venv/bin/python apps/idiograph/make_demo.py --audio-only

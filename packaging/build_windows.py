@@ -23,11 +23,10 @@ apps carry the same code and the same demo. GitHub's Windows machine runs it fro
    the prebuilt bootloader every PyInstaller app shares, malware's included, and one built here has
    bytes of its own.
 2. The stage, `build\\stage`: for Idiograph, the demo's three cases as Reset demo leaves them, through build_mac's
-   `stage_cases`, and their recordings through its `stage_recordings`, each committed in `packaging/recording`
-   under a name that carries the hash of the transcript it was made from, the licence beside each (recvoices, 12
-   November 2026). A build takes a case's only when that hash is its transcript's, since another's timecodes would
-   land on the wrong words, and else ships that case without it and says so in one line, its player then staying
-   quiet. Sift's and Trace's builds carry no demo. `config.json`
+   `stage_cases`, with the manifest of their recordings and no recording (recdemand, 13 November 2026): the app
+   downloads them the first time one is played, so the AI-made audio and its own licence stay out of the signed
+   installer, and build_mac's `demo_line` stops the build on a stage that holds either. Sift's and Trace's builds
+   carry no demo. `config.json`
    from `server.shipped_config(app)`, which names no project, and the icon as `Idiograph.ico`, drawn by
    make_app's `draw_icon`, the Mac icon's drawing, at each size Windows asks, up to 32 from the
    mark drawn for 16 pixels.
@@ -487,7 +486,7 @@ def main(argv: list[str] | None = None) -> int:
         py = build_venv(build, choose_python(args.python))
 
     # Idiograph's demo alone, since the sixth build (23 October 2026) no other app's build carries it
-    staged = (build_mac.stage_recordings(build_mac.stage_cases(stage)) if build_mac.ships_demo(app)
+    staged = (build_mac.demo_line(build_mac.stage_cases(stage)) if build_mac.ships_demo(app)
               else "none, the demo being Idiograph's,")
     config = stage_config(stage, py, app)
     (stage / f"{named['name']}.ico").write_bytes(ico_bytes(app=app))

@@ -338,11 +338,11 @@ def test_demo_cases(scratch):
         stand_in.parent.mkdir(parents=True)
         stand_in.write_bytes(b"a stand-in for Rowan's recording")
         played = idiograph_routes.api_audio({"path": str(rowan), "sheet": "Initial"})
-        check("74: Rowan's recording, missing from the demo the app works on, comes back from the shipped copy as Juno's "
-              "does, and with none shipped his player stays quiet, nothing built",
-              heard["found"] is False and not heard.get("building") and played["found"] is True
-              and played["name"] == "Rowan-Initial.m4a"
-              and make_demo.recording("Rowan", work).read_bytes() == stand_in.read_bytes(), heard.get("note", ""))
+        check("74, updated 13 November 2026 (recdemand): Rowan's recording, missing from the demo the app works on, is "
+              "never copied from the shipped copy, which carries none, and with no manifest naming it his player "
+              "stays quiet, nothing built or fetched",
+              heard["found"] is False and not heard.get("building") and not heard.get("download")
+              and played["found"] is False and not make_demo.recording("Rowan", work).exists(), heard.get("note", ""))
         wb_mod.save_turn(rowan, "Initial", 3, "A statement written on camera", None, None)
         (work / "idiograph-gets.json").write_text("{}", encoding="utf-8")
         answer = idiograph_routes.api_reset_demo({})
@@ -395,10 +395,11 @@ def test_demo_cases(scratch):
         f"{n}/Working/{n} - EN & ES.themes.json" for n in written] + [
         f"pristine/Working/{n} - EN & ES.themes.json" for n in written] + [
         make_demo.GETS_FILE, f"pristine/{make_demo.GETS_FILE}"]
-    check("74: the build stages the three cases from pristine, their boards and the GETs with them, and their recordings",
+    check("74, updated 13 November 2026 (recdemand): the build stages the three cases from pristine, their boards and "
+          "the GETs with them, and the manifest of their recordings in place of the recordings",
           all(w in files for w in want) and files[make_demo.GETS_FILE] == files[f"pristine/{make_demo.GETS_FILE}"]
-          and all(files[build.recording_path(n).as_posix()] == hashlib.sha256(make_demo.committed(n).read_bytes()).hexdigest()
-                  for n in make_demo.CASES)
+          and files.get("recordings.json") == hashlib.sha256(make_demo.MANIFEST.read_bytes()).hexdigest()
+          and not [f for f in files if f.endswith(".m4a") or f.endswith("LICENSE-audio.md")]
           and all(files[f"{n}/{n} - EN & ES.xlsx"] == files[f"pristine/{n} - EN & ES.xlsx"] for n in make_demo.CASES)
           and build.DEMO_CASES == make_demo.CASES, f"{len(files)} files staged")
     spec_text = build.write_spec(scratch / "demo-cases-stage", stage, "0.9.0").read_text(encoding="utf-8")

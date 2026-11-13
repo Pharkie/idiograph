@@ -156,7 +156,7 @@ def test_mcp_server(scratch):
                         "trajectories_show", "trajectories_apply", "codes_list", "codes_show", "codes_new", "codes_rename",
                         "codes_describe", "codes_merge", "codes_delete", "codes_add", "codes_remove", "codes_apply_last",
                         "codes_in_vivo", "codes_undo", "codes_redo",
-                        "statement_length", "statement_length_set", "settings", "settings_set", "audio_offset", "audio_attach", "quote_heading", "transcript_replace", "transcript_replace_undo", "validate", "agent_changes", "agent_undo_run", "agent_log", "project_send", "project_export_qdpx", "project_send_list", "project_open_copy",
+                        "statement_length", "statement_length_set", "settings", "settings_set", "audio_offset", "audio_attach", "quote_heading", "transcript_replace", "transcript_replace_undo", "validate", "agent_changes", "agent_undo_run", "agent_undo_change", "agent_log", "project_send", "project_export_qdpx", "project_send_list", "project_open_copy",
                         "project_add_transcripts", "project_boards_in",
                         "project_set", "project_remove", "project_show", "project_history", "team_show", "team_on", "team_set", "team_invite",
                         "team_answers", "team_admit", "team_join", "team_joined", "team_remove", "team_lead", "team_take", "team_send",
@@ -181,7 +181,7 @@ def test_mcp_server(scratch):
               and tools[6]["inputSchema"]["properties"]["pets"]["items"]["required"] == ["title"])
         writers = {n: t for n, t in writers.items() if n not in sifts}
         check("84: the read tools are marked as only reading, and the writing ones take request and dry_run, request required",
-              sorted(writers) == ["agent_undo_run", "audio_attach", "audio_offset", "board_apply", "board_canvas", "board_complete", "board_copy",
+              sorted(writers) == ["agent_undo_change", "agent_undo_run", "audio_attach", "audio_offset", "board_apply", "board_canvas", "board_complete", "board_copy",
                                  "board_current", "board_delete", "board_duplicate", "board_export",
                                  "board_fresh", "board_import", "board_new", "board_note", "board_rename",
                                  "board_restore", "board_revision",

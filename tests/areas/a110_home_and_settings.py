@@ -53,6 +53,9 @@ def test_home_and_settings(scratch):
                                            "homeMenuItems", "homeMenuRows", "homeMenuHtml", "projectMenuHtml", "projectMenuWord",
                                            "projectDotsHtml", "distilHomeDraw", "distilRecent",
                                            "recentNames", "demosOf", "demosFold")]
+        # Home's line of agents' changes, asked of the server once the cards are drawn, which area 389 and the review
+        # shots hold, a call that does nothing here (agentreview2)
+        pieces.append("async function homeAgentLines() {}")
         # Idiograph's Home through its hooks, the family's since the fifth build
         pieces.append(support.distil_hooks(app))
         # Sift's section of Home, Sift's own script's since the family codebase's third build

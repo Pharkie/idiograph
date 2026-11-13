@@ -18,9 +18,9 @@ Python then runs on, as the plan asks). The steps:
 1. A build venv, `build/venv`, with build_mac's PINS, made with the Python running this script or the one
    `--python` names, 3.11 or later. PyInstaller's own prebuilt Linux bootloader, since the Windows build's
    reason for compiling one (Defender's guess about a shared bootloader) does not apply.
-2. The stage, `build/stage`: for Idiograph the demo's three cases through build_mac's `stage_cases`, and their
-   recordings through its `stage_recordings`, each where one is committed for its transcript as it stands, with
-   their licence beside it, and `config.json` from `server.shipped_config(app)`.
+2. The stage, `build/stage`: for Idiograph the demo's three cases through build_mac's `stage_cases`, with the
+   manifest of their recordings and no recording, which the app downloads the first time one is played
+   (recdemand, 13 November 2026), and `config.json` from `server.shipped_config(app)`.
 3. PyInstaller, one folder, from `packaging/linux_launcher.py`: a single executable named for the app
    (`Idiograph`, `Sift`, `Trace`), by whose name the frozen server knows which app it is, which is also
    what `app.rs`'s `server_exe` looks for on Linux. A run of its `cli --help` proves it finds every module.
@@ -420,7 +420,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         py = build_venv(build, choose_python(args.python))
 
-    staged = (build_mac.stage_recordings(build_mac.stage_cases(stage)) if build_mac.ships_demo(app)
+    staged = (build_mac.demo_line(build_mac.stage_cases(stage)) if build_mac.ships_demo(app)
               else "none, the demo being Idiograph's,")
     config = stage_config(stage, py, app)
     spec = write_spec(build, stage, app)

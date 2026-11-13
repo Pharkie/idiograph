@@ -452,6 +452,8 @@ def arguments(t: dict, given: dict, project: dict, client: str) -> argparse.Name
         # record of the changes agents made and a run undone (noholds, 13 November 2026)
         args.since, args.limit = given.get("since"), given.get("limit")
         args.run_id, args.id = given.get("run"), given.get("run")
+        # one change or several undone alone (agentreview2, 13 November 2026)
+        args.ids = [str(x) for x in given.get("changes") or []]
         args.note, args.dry_run = str(given.get("request") or ""), given.get("dry_run") is True
         return args
     if command == "search":

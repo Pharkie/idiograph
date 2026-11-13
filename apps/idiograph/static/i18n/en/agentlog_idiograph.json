@@ -72,6 +72,7 @@
   "agentlog_idiograph.validate": "Check the files",
   "agentlog_idiograph.agents_changes": "Read the agents' changes",
   "agentlog_idiograph.agents_undo_run": "Undo an agent's run",
+  "agentlog_idiograph.agents_undo_change": "Undo an agent's change",
   "agentlog_idiograph.project_send": "Send the project",
   "agentlog_idiograph.project_open_copy": "Open a sent copy",
   "agentlog_idiograph.project_add_transcripts": "Add transcripts",

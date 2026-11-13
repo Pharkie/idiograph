@@ -23,7 +23,9 @@ A run, in order:
    A take whose pace or tail fails the checks below is taken again, up to TAKES times, the last one kept.
 2. Each interview whose every turn is spoken as it reads is joined by `make_demo.build_recording`: the clips
    measured, each turn's Timestamp in its CSV written from their lengths and the half-second gap, and the clips
-   joined into `<Name>-Initial-<hash>.m4a` here, named by the CSV as then written, its older recording taken away.
+   joined into `<Name>-Initial-<hash>.m4a` here, named by the CSV as then written, its older recording taken away,
+   and `demo/recordings.json` written again. The new file then goes up to the `demo-recordings-1` release with the
+   manifest (`gh release upload`), since the installed app downloads it from there (recdemand, 13 November 2026).
 3. When a timecode moved, the demo is built again from its sources by its own steps, `make_demo.ship_all` and
    `ship_ta`, so the workbooks, the pristine copy, the GETs and the thematic analysis demo carry the new times.
    `--no-build` leaves that for `make_demo.py --written --force`.

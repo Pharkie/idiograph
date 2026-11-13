@@ -44,6 +44,7 @@ import case_files
 import codes as codes_mod
 import convert as convert_mod
 import corpus
+import demo_recordings as demo_rec
 import demographics as demo_mod
 import export as export_mod
 import formats
@@ -440,6 +441,64 @@ def api_project_history(body: dict) -> dict:
         return {"history": [], "total": 0}
     held, total = hist_mod.newest(root, whole("limit"), whole("offset") or 0, by)
     return {"history": [hist_mod.for_page(h) for h in held], "total": total}
+
+
+def api_agent_changes(body: dict) -> dict:
+    """Project history's By an agent (agentreview2, 13 November 2026, Adam by dialog: "C, with A's Home line"): `op`
+    `read` (the default), the project's record of agents' changes grouped by run, `limit` runs from `offset`
+    (`agent_changes.review`), and with `mark` every change seen once it is answered. `undo`, the changes `ids` undone
+    alone, newest first, as `agents undo-change` undoes them. `undo-run`, the run `run` undone whole from its restore
+    point, as `agents undo-run` does, for a run whose changes keep no copies of their own. Each undo runs the command
+    line's own op as the app's (`via` "app"), so it keeps a line in the record and a run of its own, and is refused as
+    an agent's is, nothing written, answering `refused`, its lines, which the page shows in place. `dry_run` says
+    what it would do. The demo keeps no record, so it answers none."""
+    import argparse
+    import agent_changes as changes_mod
+    import cli as family_cli
+    import idiograph_cli as icli
+    op = str(body.get("op") or "read")
+    if op not in ("read", "undo", "undo-run"):
+        raise WorkbookError(i18n.t("agentchanges.undo_change.none_named"))
+    root = asked_root(body, write=op != "read")
+    if root is None or srv.is_demo_root(root):
+        if op == "read":
+            return {"runs": [], "total": 0, "runs_total": 0, "new": 0, "new_runs": 0}
+        raise WorkbookError(i18n.t("agentchanges.undo.demo"))
+    p = icli.Project(Path(root), False)
+    with i18n.in_method(method_of(project_file(root))):
+        if op == "read":
+            def whole(key, default):
+                n = body.get(key)
+                return n if isinstance(n, int) and not isinstance(n, bool) and n >= 0 else default
+            return changes_mod.review(p, whole("offset", 0), whole("limit", changes_mod.REVIEW_RUNS),
+                                      mark=body.get("mark") is True)
+        args = argparse.Namespace(command="agents", act="undo-change" if op == "undo" else "undo-run", json=True,
+                                  project=None, root=None, demo=False, config=None, dry_run=body.get("dry_run") is True,
+                                  note="", tool="", via="app", timepoint=None, lpets=None,
+                                  ids=[str(x) for x in body.get("ids") or [] if str(x).strip()],
+                                  id=str(body.get("run") or ""))
+        try:
+            got, lines = icli.run_scoped(icli.COMMANDS[("agents", args.act)], p, args)
+        except family_cli.Refused as exc:
+            return {"refused": [str(x).strip() for x in (getattr(exc, "lines", None) or [str(exc)]) if str(x).strip()]}
+        return {"done": got, "lines": lines}
+
+
+def api_agent_unseen(body: dict) -> dict:
+    """Home's line on each project's card, "Agents made 37 changes since you last looked." (agentreview2, 13
+    November 2026): for every project, by its id, how many changes agents made since By an agent was last read,
+    from two small files in its store (`agent_changes.unseen`), never its record, a project with no record skipped
+    on one look for the file. Home asks once its cards are drawn, so they never wait for it. It writes nothing,
+    but a tally for a record from before the tally, made once."""
+    import agent_changes as changes_mod
+    out = {}
+    for root in srv.project_roots():
+        if srv.is_demo_root(root):
+            continue
+        n = changes_mod.unseen(root)
+        if n:
+            out[project_id(root)] = n
+    return {"unseen": out}
 
 
 TEAM_WRITES = ("on", "off", "set", "choose", "invite", "admit", "join", "joined", "remove", "send", "lead", "take")
@@ -1231,7 +1290,9 @@ def read_book(path: Path) -> dict | None:
     name, and `turns`, each transcript sheet's rows as (row, speaker, whether it holds a
     statement), the rows `workbook.read_case` keeps. None for a file that cannot be opened.
 
-    A sheet counts when it has a Name, a Timestamp and a Transcript column.
+    A sheet counts when it has a Name, a Timestamp and a Transcript column. A raw source's rows are never
+    walked, since only an annotated workbook's turns are counted (`turns_of`), and walking them was about
+    half of Home's first read (perfreview, 13 November 2026): its `turns` is empty.
     """
     key = str(path)
     mark = file_mark(path)
@@ -1246,12 +1307,16 @@ def read_book(path: Path) -> dict | None:
     kinds, sheets, turns = set(), [], {}
     try:
         names = list(book.sheetnames)
+        found = []
         for ws in book.worksheets:
             cols = wb_mod.detect_columns(ws)
             if not {"name", "ts", "transcript"} <= set(cols):
                 continue
             sheets.append(ws.title)
             kinds.add("raw" if wb_mod.is_raw_source(cols) else "annotated")
+            found.append((ws, cols))
+        # the kind from every sheet's columns first, and a raw source's rows left unread
+        for ws, cols in ([] if kinds == {"raw"} else found):
             width = max(cols.values())
             rows = []
             for number, values in enumerate(ws.iter_rows(min_row=2, max_col=width, values_only=True), start=2):
@@ -1272,6 +1337,56 @@ def read_book(path: Path) -> dict | None:
     if mark is not None:
         BOOKS[key] = (mark, out)
     return out
+
+
+THEMES_HEADS: dict[str, tuple] = {}
+
+
+def themes_head(path: Path) -> tuple[str | None, dict | None]:
+    """A case's Current board's name and its PETs mark, `themes.chosen_name` and `themes.pets_complete_of`,
+    kept until its themes file changes (perfreview, 13 November 2026). A themes file keeps every board's History
+    whole, several megabytes on a study of a few months, and Home read each one twice on every visit."""
+    file = themes_mod.themes_path(path)
+    mark = file_mark(file)
+    held = THEMES_HEADS.get(str(file))
+    if mark is not None and held and held[0] == mark:
+        out = held[1]
+        return out[0], (dict(out[1]) if isinstance(out[1], dict) else out[1])
+    out = themes_head_once(path, file, mark)
+    if out is None:
+        out = (themes_mod.chosen_name(path), themes_mod.pets_complete_of(path))
+    if mark is not None:
+        THEMES_HEADS[str(file)] = (mark, out)
+    # a copy of the mark each time, so a row that changes its own never changes what is kept
+    return out[0], (dict(out[1]) if isinstance(out[1], dict) else out[1])
+
+
+def themes_head_once(path: Path, file: Path, mark: tuple | None) -> tuple | None:
+    """`themes_head`'s two and the board count `boards_count` keeps, from one parse of the themes file, as each of
+    the three reads it: the name from the file as written, the mark and the count from it as `themes.load` reads
+    it. None, for the three to read it their own ways, with no file, or for a participant whose member keeps an own
+    file beside it, or one that cannot be read."""
+    if mark is None or themes_mod.own_file(path) is not None:
+        return None
+    try:
+        text = file.read_text(encoding="utf-8")
+        data = json.loads(text)
+    except (OSError, ValueError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    name = None
+    if '"chosen"' in text.split('"boards"', 1)[0]:
+        vid = themes_mod.chosen_of(data)
+        name = " ".join(str((themes_mod.find_version(data, vid) or {}).get("name") or "").split()) if vid else ""
+        name = name or None
+    try:
+        data = themes_mod.migrate(data)
+        pets = themes_mod.complete_of(data)
+        BOARDS[str(file)] = (mark, len(themes_mod.boards_of(data)))
+    except (WorkbookError, ValueError, TypeError, AttributeError):
+        return None
+    return name, pets
 
 
 def read_sheets(path: Path) -> tuple[str, list[str]] | None:
@@ -1435,13 +1550,13 @@ def list_cases(root) -> list[dict]:
             "suggested": srv.rel_path(wb_mod.suggested_output(path)) if kind == "raw" else None,
             "modified": int(path.stat().st_mtime),
             # the Current board's name, or None, read from the themes file's head (see
-            # `themes.chosen_name`), for the row's small type
-            "board": themes_mod.chosen_name(path) if kind == "annotated" else None,
+            # `themes.chosen_name`), for the row's small type, kept until the file changes (`themes_head`)
+            "board": themes_head(path)[0] if kind == "annotated" else None,
             # the time the experiential statements phase was marked complete, or None, read from
             # the progress file beside the workbook, for the row's small type
             "complete": rounds_mod.complete_of(path) if kind == "annotated" else None,
             # and the PETs phase, `{"at", "board", "name"}` or None, read from the themes file
-            "pets_complete": themes_mod.pets_complete_of(path) if kind == "annotated" else None,
+            "pets_complete": themes_head(path)[1] if kind == "annotated" else None,
         })
     return found
 
@@ -1475,9 +1590,9 @@ def demo_entry(workbook: Path | None = None) -> dict | None:
             "kind": "annotated", "sheets": sheets, "demo": True, "suggested": None,
             "locked": wb_mod.lock_file(workbook).exists(),
             "modified": int(workbook.stat().st_mtime),
-            "board": themes_mod.chosen_name(workbook),
+            "board": themes_head(workbook)[0],
             "complete": rounds_mod.complete_of(workbook),
-            "pets_complete": themes_mod.pets_complete_of(workbook)}
+            "pets_complete": themes_head(workbook)[1]}
 
 
 def demo_entries(root: Path | None = None) -> list[dict]:
@@ -7164,33 +7279,124 @@ def demo_case_of(path: Path) -> str | None:
     return next((name for name, book in zip(DEMO_CASES, demo_workbooks()) if here == book.resolve()), None)
 
 
-def ensure_demo_recording(case: str | None = None) -> Path | None:
-    """A demo participant's recording put in place when it is missing or is not the one to copy, Juno's unless
-    `case` names Rowan or Mabel, and answered, or None when there is none.
-
-    Since 12 November 2026 (recvoices) the three recordings are committed in packaging/recording, each named by
-    the hash of the transcript it was made from, so a copy run from source copies its own in, a second's work, on
-    the request, and nothing is ever spoken. The installed app ships the three in its demo and copies the bundle's.
-    One in place of another size, the `say` recording an earlier version made or shipped, is replaced, so an update
-    or a pull brings the new voices with the new timecodes. A transcript edited since its recording was made has
-    none to copy, its timecodes no longer matching the voices, and its player stays quiet as it does for any
-    workbook without one."""
+def demo_interviews() -> tuple[dict, list[dict]]:
+    """The demo's manifest of recordings (recdemand, 13 November 2026, `demo_recordings`), read from the demo the app
+    ships, and each IPA demo participant's interview: `name`, `target`, where the player finds the recording in the
+    demo the app works on, `entry`, the manifest's entry for the transcript the app ships, None when it names
+    none, a transcript edited since its recording was made, and `committed`, run from source, the recording
+    committed in packaging/recording for it when there is one, which is copied in and never downloaded."""
     import make_demo
+    manifest = demo_rec.read_manifest(srv.SHIPPED_DEMO / demo_rec.MANIFEST)
+    installed = srv.DEMO_DIR != srv.SHIPPED_DEMO
+    rows = []
+    for name in DEMO_CASES:
+        transcript = make_demo.written_sources(name, srv.SHIPPED_DEMO)[0]
+        made = audio_mod.demo_recording_name(name, DEMO_SHEET, transcript) if transcript.is_file() else ""
+        committed = None if installed or not made else make_demo.committed(name, srv.DEMO_DIR)
+        rows.append({"name": name, "target": make_demo.recording(name, srv.DEMO_DIR),
+                     "entry": demo_rec.entry(manifest, made) if made else None,
+                     "committed": committed if committed is not None and committed.is_file() else None})
+    return manifest, rows
+
+
+def ensure_demo_recording(case: str | None = None) -> Path | None:
+    """A demo participant's recording when it is on this computer, Juno's unless `case` names Rowan or Mabel, or
+    None when it is not, which the player answers with the download (recdemand, 13 November 2026).
+
+    The recordings are committed in packaging/recording (recvoices, 12 November 2026), each named by the hash of the
+    transcript it was made from, so a copy run from source copies its own in, a second's work, on the request, and
+    nothing is ever spoken. The installed app ships none since 13 November: they download the first time one is
+    played (`api_demo_recordings`) and are kept in the demo it works on. A file in place that is not the manifest's
+    recording for the transcript as it ships, nor an earlier encoding of it, the `say` recording an earlier version
+    made among them, is not played, and the download puts the right one in its place. A transcript edited since its
+    recording was made has none, its timecodes no longer matching the voices, and its player stays quiet as it does
+    for any workbook without one."""
     name = case or DEMO_CASES[0]
     book = demo_workbooks()[DEMO_CASES.index(name)]
-    installed = srv.DEMO_DIR != srv.SHIPPED_DEMO
+    _, rows = demo_interviews()
+    row = next(r for r in rows if r["name"] == name)
+    target = row["target"]
     with _demo_lock:
-        source = make_demo.recording(name, srv.SHIPPED_DEMO) if installed else make_demo.committed(name, srv.DEMO_DIR)
-        target = make_demo.recording(name, srv.DEMO_DIR)
         try:
-            if source.is_file() and not (target.is_file() and target.stat().st_size == source.stat().st_size):
+            source = row["committed"]
+            if source is not None and not (target.is_file() and target.stat().st_size == source.stat().st_size):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 tmp = target.with_name(f".{target.stem}.copying{target.suffix}")
                 shutil.copyfile(source, tmp)
                 os.replace(tmp, target)
+            if row["entry"] and target.is_file() and not demo_rec.fits(row["entry"], target.stat().st_size):
+                return None
         except OSError:
             pass
         return audio_mod.for_sheet(book, DEMO_SHEET)
+
+
+def demo_downloads() -> tuple[list[str], list[dict]]:
+    """What the IPA demo's download fetches: the participants whose recordings it brings and each file not yet on
+    this computer as `Fetch` takes it, the licence first, beside every recording that comes down, then each
+    participant's recording the manifest names for the transcript as it ships, not in place already and, run from
+    source, not committed, a committed one being copied in."""
+    manifest, rows = demo_interviews()
+    stub = ai_mod.stub_base()
+    items = []
+    wanted = [r for r in rows if r["entry"] and not r["committed"]
+              and not (r["target"].is_file() and demo_rec.fits(r["entry"], r["target"].stat().st_size))]
+    licence = manifest.get("licence") or {}
+    if wanted and licence.get("file"):
+        items.append({"url": demo_rec.address(manifest, licence["file"], stub), "size": licence["size"],
+                      "sha256": licence["sha256"], "targets": [r["target"].parent / demo_rec.LICENCE for r in wanted]})
+    for r in wanted:
+        items.append({"url": demo_rec.address(manifest, r["entry"]["file"], stub), "size": r["entry"]["size"],
+                      "sha256": r["entry"]["sha256"], "targets": [r["target"]]})
+    return [r["name"] for r in wanted], items
+
+
+# the line the player says when the download did not finish, by why (recdemand, 13 November 2026)
+DEMO_DOWNLOAD_LINES = {"offline": lambda: i18n.t("server.demo_recordings.offline"),
+                       "checksum": lambda: i18n.t("server.demo_recordings.checksum"),
+                       "failed": lambda: i18n.t("server.demo_recordings.failed")}
+
+
+def demo_recordings_state(items: list[dict] | None = None) -> dict:
+    """The IPA demo's recordings as the player reads them: `bytes` still to come and `size`, the same in words, `state`
+    of the download, idle when none has run, downloading, done, failed or cancelled, `got` and `got_size` how far
+    it has got, and `line`, one plain line when it failed."""
+    if items is None:
+        items = demo_downloads()[1]
+    running = demo_rec.current(DEMO_RECORDINGS)
+    view = running.view() if running is not None else {"state": "idle", "got": 0, "bytes": 0, "why": ""}
+    left = sum(int(i["size"]) for i in items)
+    total = view["bytes"] if view["state"] == "downloading" else left
+    answer = {"demo": DEMO_RECORDINGS, "state": view["state"], "bytes": total, "size": pack_mod.size_said(total),
+              "got": view["got"], "got_size": pack_mod.size_said(view["got"])}
+    if view["state"] == "failed":
+        answer["line"] = DEMO_DOWNLOAD_LINES.get(view["why"], DEMO_DOWNLOAD_LINES["failed"])()
+    return answer
+
+
+# the IPA demo's key among the downloads, the one demo with recordings until the longitudinal demo's join it
+DEMO_RECORDINGS = "ipa"
+
+
+def api_demo_recordings(body: dict) -> dict:
+    """The demo's recordings on demand (recdemand, 13 November 2026): with no `op`, how far its download has got,
+    `op` download starting it, or answering the one running, and cancel stopping it. Only the app's own window downloads
+    (`window_only`): an agent never does, and no command line or MCP op reaches it."""
+    op = str((body or {}).get("op") or "")
+    if op not in ("", "download", "cancel"):
+        raise WorkbookError(i18n.t("server.demo_recordings.op"))
+    if op == "cancel":
+        demo_rec.cancel(DEMO_RECORDINGS)
+        return demo_recordings_state()
+    _, items = demo_downloads()
+    if op == "download":
+        if not items:
+            running = demo_rec.current(DEMO_RECORDINGS)
+            if running is None or running.view()["state"] != "downloading":
+                return dict(demo_recordings_state(items), state="done")
+        else:
+            demo_rec.start(DEMO_RECORDINGS, items)
+    return demo_recordings_state(items)
 
 
 def fill_demo() -> list[Path]:
@@ -7237,10 +7443,15 @@ def api_audio(body: dict) -> dict:
     if not srv.within_root(path):
         return {"found": False, "note": i18n.t("server.workbook_sits_outside_project_folder")}
     found = audio_mod.for_sheet(path, sheet)
-    # each of the demo's three participants has a recording (recvoices, 12 November 2026), put in place here when
-    # it is missing or is an older one
+    # each of the demo's three participants has a recording (recvoices, 12 November 2026), put in place here from
+    # source, and offered for download when it is not on this computer (recdemand, 13 November 2026): the size of
+    # what is still to come, and the download's state when one is under way
     if sheet == DEMO_SHEET and demo_case_of(path):
         found = ensure_demo_recording(demo_case_of(path))
+        if found is None:
+            names, items = demo_downloads()
+            if demo_case_of(path) in names:
+                return {"found": False, "note": "", "download": demo_recordings_state(items)}
     if found is None or not srv.within_root(found):
         return {"found": False, "note": i18n.t("server.recording_found", sheet=sheet)}
     # the offset playback adds to every time code, kept beside the recording (20 October)
@@ -10054,6 +10265,8 @@ ROUTES = {
     "/api/audio": api_audio,
     "/api/audio-offset": api_audio_offset,
     "/api/audio-attach": api_audio_attach,
+    # the demo's recordings, downloaded the first time one is played (recdemand, 13 November 2026)
+    "/api/demo-recordings": api_demo_recordings,
     "/api/quote-heading": api_quote_heading,
     "/api/reset-demo": api_reset_demo,
     "/api/round-complete": api_round_complete,
@@ -10114,6 +10327,9 @@ ROUTES = {
     "/api/suggest-sample": api_suggest_sample,
     "/api/mcp": api_mcp,
     "/api/project-history": api_project_history,
+    # Project history's By an agent and Home's line of agents' changes (agentreview2, 13 November 2026)
+    "/api/agent-changes": api_agent_changes,
+    "/api/agent-unseen": api_agent_unseen,
     "/api/team": api_team,
     "/api/team-board": api_team_board,
     # Working together's comments and review (wtreview, 8 November 2026, see review.py)
@@ -10132,9 +10348,10 @@ srv.register("idiograph", routes=ROUTES,
              # what governs agents, from the app's own window alone, never a program on this machine (agentlock,
              # 2 November 2026): adding to Claude Desktop, writing AGENTS.md and a project's "Allow AI agents to read
              # this project", and the list of real names (namesrule, 8 November 2026), which only the window reads or
-             # sets over HTTP
+             # sets over HTTP. The demo's recordings download only from the window too (recdemand, 13 November
+             # 2026): agents never download, and how far one has got is read by anyone
              window_only={"/api/mcp": None, "/api/agents-guide": None, "/api/names": None,
-                          "/api/project": "agents"},
+                          "/api/project": "agents", "/api/demo-recordings": "op"},
              get_paths={PRINT_PATH: print_view, GETS_PRINT_PATH: gets_print_view},
              streams={"/audio": stream_audio, SEND_PATH: send_zip, QDPX_PATH: qdpx_download,
                       "/traj-picture": stream_traj_picture, "/participant-picture": stream_person_picture},

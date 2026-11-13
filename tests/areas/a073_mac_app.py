@@ -126,8 +126,12 @@ def test_mac_app(scratch):
               and copy.read_bytes() == recording.read_bytes())
         copy.unlink()
         back = idiograph_routes.ensure_demo_recording()
-        check("73: a recording gone missing comes back from the bundle, and nothing is spoken or built",
-              back == copy and copy.read_bytes() == recording.read_bytes())
+        heard = idiograph_routes.api_audio({"path": str(server_mod.DEMO_WORKBOOK), "sheet": DEMO_SHEET})
+        check("73, updated 13 November 2026 (recdemand): a recording gone missing is never copied from the bundle by "
+              "the player's request, the installers carrying none, and the player offers its download, nothing "
+              "spoken, built or fetched",
+              back is None and not copy.exists() and heard["found"] is False and heard["download"]["state"] == "idle"
+              and heard["download"]["bytes"] > 0, json.dumps(heard)[:300])
         check("73: neither touched the bundle, the repo's demo or make_demo's own paths",
               tree(bundle) == shipped and tree(support.source("demo")) == repo_demo
               and (make_demo.CASE, make_demo.WORKBOOK, make_demo.PRISTINE) == made
@@ -385,8 +389,10 @@ def test_mac_app(scratch):
     check("73: build/ and dist/ are gitignored, and the script builds there unless told otherwise",
           "build/" in ignored and "dist/" in ignored and "else TOOL" in inspect.getsource(build.main)
           and 'build, dist = out / "build", out / "dist"' in build_src)
-    check("73: the shipped stage carries the demo as Reset leaves it, its recording, and a config with no root",
+    check("73, updated 13 November 2026 (recdemand): the shipped stage carries the demo as Reset leaves it, the "
+          "manifest of its recordings and no recording, and a config with no root",
           'shutil.copyfile(src / "pristine" / f"{stem}.xlsx", into / name / f"{stem}.xlsx")' in build_src
           and 'shutil.copyfile(src / "pristine" / kept, into / kept)' in build_src and "(DEMO_GETS, DEMO_CODES)" in build_src
           and "shipped_config()" in build_src and 'raise SystemExit("The shipped config names a project, and it must not.")' in build_src
-          and "stage_recordings(demo)" in build_src and '"*.themes.json", "_Archive"' in build_src)
+          and "demo_line(demo)" in build_src and "stage_recordings" not in build_src
+          and '"*.themes.json", "_Archive"' in build_src)

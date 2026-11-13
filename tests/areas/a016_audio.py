@@ -112,8 +112,9 @@ def test_audio(scratch):
 
 def demo_recordings(scratch):
     """The demo's three recordings (recvoices, 12 November 2026): committed for the transcripts they were made from,
-    the timecodes inside them, copied into place by the builds and the server, nothing ever spoken."""
-    print("\n16. The demo's recordings, committed, staged and put in place, nothing spoken")
+    the timecodes inside them, copied into place by the server run from source, nothing ever spoken. Since recdemand
+    (13 November 2026) no build stages them, the app downloading them the first time one is played (area 385)."""
+    print("\n16. The demo's recordings, committed and put in place, nothing spoken")
     import make_demo
     import server as server_mod
     import workbook as wb_mod
@@ -127,8 +128,8 @@ def demo_recordings(scratch):
         text = make_demo.written_sources(name)[0].read_bytes().replace(b"\r\n", b"\n")
         named[name] = folder / f"{name}-Initial-{hashlib.sha256(text).hexdigest()[:16]}.m4a"
     check("16: each demo participant's recording is committed under the hash of their transcript as it stands, the "
-          "one name make_demo, the server and the builds take, and no other recording is in the folder",
-          all(p.is_file() and make_demo.committed(n) == p == build_mac.committed_recording(n) for n, p in named.items())
+          "one name make_demo and the server take, and no other recording is in the folder",
+          all(p.is_file() and make_demo.committed(n) == p for n, p in named.items())
           and sorted(folder.glob("*.m4a")) == sorted(named.values()) and (folder / make_demo.AUDIO_LICENCE).is_file(),
           ", ".join(p.name for p in named.values()))
 
@@ -153,36 +154,8 @@ def demo_recordings(scratch):
     check("16: no build and no server path calls macOS say, the demo's recordings being copied, never spoken",
           not said and not hasattr(make_demo, "say_clip") and not hasattr(build_mac, "speak_recording"), str(said))
 
-    # ── D. a build stages all three and the licence beside each, and says which when one is missing
-    stage = scratch / "recordings-16" / "stage"
-    shutil.rmtree(stage.parent, ignore_errors=True)
-    stage.mkdir(parents=True)
-    demo = build_mac.stage_cases(stage)
-    line = build_mac.stage_recordings(demo)
-    licence = (folder / make_demo.AUDIO_LICENCE).read_bytes()
-    staged = {n: demo / build_mac.recording_path(n) for n in make_demo.CASES}
-    check("16: a build stages each participant's recording where the player finds it, its licence beside it, and says so",
-          all(p.is_file() and p.read_bytes() == named[n].read_bytes()
-              and (p.parent / make_demo.AUDIO_LICENCE).read_bytes() == licence for n, p in staged.items())
-          and all(p == make_demo.recording(n, demo) for n, p in staged.items())
-          and line.startswith("with the three recordings"), line)
-    two = stage.parent / "two"
-    two.mkdir()
-    for name in ("Juno", "Mabel"):
-        shutil.copyfile(named[name], two / named[name].name)
-    shutil.copyfile(folder / make_demo.AUDIO_LICENCE, two / make_demo.AUDIO_LICENCE)
-    kept_folder = build_mac.RECORDINGS
-    try:
-        build_mac.RECORDINGS = two
-        fewer = build_mac.stage_cases(stage.parent / "stage-two")
-        fewer_line = build_mac.stage_recordings(fewer)
-    finally:
-        build_mac.RECORDINGS = kept_folder
-    check("16: a transcript with no recording made from it as it stands ships without its audio, said in one line",
-          not (fewer / build_mac.recording_path("Rowan")).exists() and (fewer / build_mac.recording_path("Mabel")).is_file()
-          and "without Rowan's recording" in fewer_line and "\n" not in fewer_line, fewer_line)
-
     # ── E. the server, run from source, copies a participant's recording in on the request, and none for an edit
+    shutil.rmtree(scratch / "recordings-16", ignore_errors=True)
     work = scratch / "recordings-16" / "demo"
     shutil.copytree(support.source("demo"), work, ignore=shutil.ignore_patterns("*.m4a", "Working", "_Archive", "ta"))
     kept = (server_mod.DEMO_DIR, server_mod.DEMO_CASE, server_mod.DEMO_WORKBOOK, server_mod.SHIPPED_DEMO,

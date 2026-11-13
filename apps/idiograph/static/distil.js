@@ -407,8 +407,9 @@ function phDraw(added, first) {
 }
 
 /* the next page, the first while the list is empty, an answer for another filter or project passed over. The
-   list stands as it is while a page is read */
+   list stands as it is while a page is read. By an agent reads the record of agents' changes by run (arMore) */
 async function phMore() {
+  if (PH.by === 'agent') { arMore(); return; }
   if (PH.busy || (PH.list.length && PH.list.length >= PH.total)) return;
   PH.busy = true;
   const ask = ++PH.ask;
@@ -438,13 +439,15 @@ function phNear() {
 function phFilter(by) {
   if (by === PH.by) return;
   // the list stands as it is until the filter's first page comes, which takes its place
-  Object.assign(PH, { by, list: [], total: 0, busy: false });
+  Object.assign(PH, { by, list: [], total: 0, busy: false, runsTotal: 0, open: new Map(), news: 0, newRuns: 0 });
   PH.ask++;
   phMore();
 }
 
-function openProjectHistory(id, name) {
-  Object.assign(PH, { id, by: '', list: [], total: 0, busy: false, back: document.activeElement });
+/* Project history at `by`, '' for All, or 'agent' for By an agent, as Home's line on the card opens it */
+function openProjectHistory(id, name, by = '') {
+  Object.assign(PH, { id, by, list: [], total: 0, busy: false, back: document.activeElement, runsTotal: 0,
+    open: new Map(), news: 0, newRuns: 0 });
   PH.ask++;
   $('ph-project').textContent = name;
   $('ph-list').innerHTML = '';
@@ -453,7 +456,12 @@ function openProjectHistory(id, name) {
   $('ph-count').hidden = true;
   $('ph-filter').onclick = (e) => { const b = e.target.closest('[data-by]'); if (b) phFilter(b.dataset.by); };
   $('ph-list').onscroll = phNear;
+  $('ph-list').onclick = (e) => { if (PH.by === 'agent') arClick(e); };
   $('ph-done').onclick = phShut;
+  for (const b of $('ph-filter').querySelectorAll('[data-by]')) {
+    b.classList.toggle('on', b.dataset.by === by);
+    b.setAttribute('aria-checked', String(b.dataset.by === by));
+  }
   show('project-history');
   $('ph-done').focus();
   phMore();
@@ -464,6 +472,226 @@ function phShut() {
   PH.ask++;
   PH.busy = false;
   if (PH.back && PH.back.isConnected) PH.back.focus();
+  // what By an agent showed is seen now, so Home's line on the card goes
+  homeAgentLines();
+}
+
+/* ─────────────────────────────────────────── Project history, By an agent ── */
+
+/* By an agent (agentreview2, Adam by dialog, 13 November 2026: "C, with A's Home line"): the project's record of
+   agents' changes from /api/agent-changes, as `agents changes` reads it, grouped by run, newest first, each run's
+   agent, its times and count, New while it holds a change not seen before, the agent's account of your request, and
+   Undo this run, or Undo the other N where a change cannot be undone, at its right. Each change one line, what and
+   where, with Undo, or why it can no longer be undone. The newest run shows its first lines and Show N more, the
+   others their heads and Show the N changes. Undo runs `agents undo-change` (or `agents undo-run` for a run whose
+   changes keep no copies of their own) as the app, and a refusal shows its lines in place. Reading the first page
+   marks every change seen. */
+const AR_FIRST = 2;
+
+function arTime(iso) {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '' : tTime(d);
+}
+
+/* a run's head: its agent, "08:12 to 08:31, 9 changes", New, and how it is undone */
+function arHead(r) {
+  const from = arTime(r.started);
+  const to = arTime(r.last);
+  const count = t('distil.project_history.count', { n: r.count });
+  const span = from && to && from !== to ? t('distil.agent_review.span', { from, to, changes: count })
+    : t('distil.agent_review.at', { at: from || to, changes: count });
+  let act = '';
+  if (r.undone) act = `<span class="ar-why">${esc(t('distil.agent_review.undone', { time: arTime(r.undone.at) }))}</span>`;
+  else if (r.undo) {
+    const word = r.whole ? t('distil.agent_review.undo_run') : t('distil.agent_review.undo_other', { n: r.undo_n });
+    act = `<button type="button" class="ar-undo-run" data-undo="run">${esc(word)}</button>`;
+  }
+  return `<div class="ar-head"><span class="ar-agent">${esc(r.agent || t('distil.project_history.an_agent'))}</span>`
+    + `<span class="ar-span">${esc(span)}</span>${r.new ? `<span class="ar-new">${esc(t('distil.agent_review.new'))}</span>` : ''}`
+    + `<span class="ar-act">${act}</span></div>`;
+}
+
+/* why a change has no Undo, where it says: changed since by you, by a later run's agent, or undone already */
+function arWhy(c) {
+  if (c.state === 'yours') {
+    return t('distil.agent_review.yours', { what: c.what || '', time: arTime(c.changed_at) });
+  }
+  if (c.state === 'later') {
+    return t('distil.agent_review.later', { agent: c.by || t('distil.project_history.an_agent'), time: arTime(c.by_at) });
+  }
+  if (c.state === 'undone') return t('distil.agent_review.undone', { time: arTime(c.undone_at) });
+  return '';
+}
+
+function arChange(c) {
+  const why = arWhy(c);
+  const undo = c.state === 'ok'
+    ? `<button type="button" class="ar-undo" data-undo="${escAttr(c.id)}">${esc(t('distil.agent_review.undo'))}</button>` : '';
+  return `<li class="ar-change${c.state === 'undone' ? ' is-undone' : ''}" data-change="${escAttr(c.id)}"><div class="ar-what">`
+    + `<span class="ar-line">${esc(c.line)}</span>${c.where ? ` <span class="ar-where">${esc(c.where)}</span>` : ''}</div>${undo}`
+    + (why ? `<div class="ar-why">${esc(why)}</div>` : '') + '<div class="ar-refused" hidden></div></li>';
+}
+
+/* the lines a run shows: all of them once opened, else the newest run's first lines and every change that says why
+   it cannot be undone, and none of the others' */
+function arShown(r, newest) {
+  if (PH.open.get(r.id) === 'all') return r.changes;
+  if (!newest) return [];
+  return r.changes.filter((c, i) => i < AR_FIRST || c.state === 'yours' || c.state === 'later');
+}
+
+function arRun(r, newest) {
+  const shown = arShown(r, newest);
+  const hidden = r.changes.length - shown.length;
+  const asked = r.request ? `<div class="ar-asked">${esc(t('distil.project_history.says', {
+    agent: r.agent || t('distil.project_history.an_agent'), request: r.request }))}</div>` : '';
+  const more = !hidden ? '' : `<button type="button" class="ar-more" data-more="${escAttr(r.id)}">${esc(shown.length
+    ? t('distil.agent_review.show_more', { n: hidden }) : t('distil.agent_review.show_all', { n: hidden }))}</button>`;
+  return `<div class="ar-run" data-run="${escAttr(r.id)}">${arHead(r)}${asked}<div class="ar-refused" hidden></div>`
+    + (shown.length ? `<ul class="ar-changes">${shown.map(arChange).join('')}</ul>` : '') + `${more}</div>`;
+}
+
+/* the runs under their days, by the day each began */
+function arDraw() {
+  const box = $('ph-list');
+  const days = [];
+  PH.list.forEach((r, i) => {
+    const d = new Date(r.started);
+    const day = Number.isNaN(d.getTime()) ? '' : phDay(d);
+    if (!days.length || days[days.length - 1].day !== day) days.push({ day, runs: [] });
+    days[days.length - 1].runs.push(arRun(r, i === 0));
+  });
+  const top = box.scrollTop;
+  box.innerHTML = days.map((g) => `<section class="ph-day ar-day" data-day="${escAttr(g.day)}"><h3 class="ph-day-head">`
+    + `${esc(g.day)}</h3>${g.runs.join('')}</section>`).join('');
+  box.scrollTop = top;
+  const none = !PH.list.length;
+  box.hidden = none;
+  $('ph-none').hidden = !none;
+  $('ph-none').textContent = t('distil.project_history.none_agent');
+  $('ph-count').hidden = !PH.total;
+  $('ph-count').textContent = PH.news
+    ? t('distil.agent_review.new_since', { n: PH.news, runs: t('distil.agent_review.runs', { n: PH.newRuns }) })
+    : t('distil.project_history.count', { n: PH.total });
+  for (const b of $('ph-filter').querySelectorAll('[data-by]')) {
+    const on = b.dataset.by === PH.by;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-checked', String(on));
+  }
+}
+
+/* the next runs, or with `again` the runs read so far read again after an undo. The first read marks every change
+   seen, and its New and count stay as they were for as long as the sheet is open */
+async function arMore(again = false) {
+  if (PH.busy || (!again && PH.list.length && PH.list.length >= PH.runsTotal)) return;
+  PH.busy = true;
+  const ask = ++PH.ask;
+  const first = !PH.list.length;
+  const body = again ? { root: PH.id, offset: 0, limit: Math.max(PH.list.length, 1) }
+    : { root: PH.id, offset: PH.list.length, mark: first };
+  let data = null;
+  try {
+    data = await api('/api/agent-changes', body);
+  } catch (err) {
+    say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
+  }
+  if (ask !== PH.ask) return;
+  PH.busy = false;
+  const runs = data && Array.isArray(data.runs) ? data.runs : [];
+  if (data) {
+    PH.total = Number(data.total) || 0;
+    PH.runsTotal = Number(data.runs_total) || 0;
+    if (first && !again) { PH.news = Number(data.new) || 0; PH.newRuns = Number(data.new_runs) || 0; }
+  }
+  if (again) {
+    // New stays on the runs it was on as the sheet opened
+    const was = new Map(PH.list.map((r) => [r.id, r.new]));
+    PH.list = runs.map((r) => Object.assign(r, { new: !!was.get(r.id) }));
+  } else PH.list = PH.list.concat(runs);
+  if (data || first) arDraw();
+  if (runs.length && !again) phNear();
+}
+
+/* Undo of one change, or of the run's changes, or of a run whose changes keep no copies, as the app runs the
+   agents' own op. Its button says it works while it does, and a refusal shows its lines in place */
+async function arUndo(button) {
+  const runBox = button.closest('.ar-run');
+  const r = PH.list.find((x) => x.id === runBox.dataset.run);
+  if (!r || PH.busy) return;
+  const changeBox = button.closest('.ar-change');
+  const body = { root: PH.id, op: 'undo' };
+  if (changeBox) body.ids = [changeBox.dataset.change];
+  else if (r.undo === 'run') Object.assign(body, { op: 'undo-run', run: r.id });
+  else body.ids = r.undo_ids || [];
+  const said = (changeBox || runBox).querySelector('.ar-refused');
+  said.hidden = true;
+  const word = button.textContent;
+  button.disabled = true;
+  button.textContent = t('distil.agent_review.undoing');
+  let data = null;
+  try {
+    data = await api('/api/agent-changes', body);
+  } catch (err) {
+    say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
+  }
+  if (data && data.refused) {
+    button.disabled = false;
+    button.textContent = word;
+    said.innerHTML = data.refused.map((x) => `<div>${esc(x)}</div>`).join('');
+    said.hidden = false;
+    return;
+  }
+  if (!data) { button.disabled = false; button.textContent = word; return; }
+  await arMore(true);
+}
+
+function arClick(e) {
+  const more = e.target.closest('[data-more]');
+  if (more) {
+    PH.open.set(more.dataset.more, 'all');
+    arDraw();
+    return;
+  }
+  const undo = e.target.closest('[data-undo]');
+  if (undo && !undo.disabled) arUndo(undo);
+}
+
+/* ─────────────────────────────────────────── Home's line of agents' changes ── */
+
+/* "Agents made 37 changes since you last looked." and Review at the foot of a project's card (agentreview2, A's
+   line), Review opening Project history at By an agent. Home asks /api/agent-unseen once its cards are drawn, so
+   they never wait for it, and the server reads two small files a project, never its record. */
+let homeAgentsAsk = 0;
+
+async function homeAgentLines() {
+  const list = $('projects');
+  if (!list || $('home-pick').hidden) return;
+  const ask = ++homeAgentsAsk;
+  let data = null;
+  try {
+    data = await api('/api/agent-unseen', {});
+  } catch (err) {
+    return;
+  }
+  if (ask !== homeAgentsAsk || !data) return;
+  const unseen = data.unseen || {};
+  for (const li of list.querySelectorAll('.home-card-li')) {
+    const card = li.querySelector('.home-card');
+    const n = Number(unseen[card.dataset.id]) || 0;
+    let line = li.querySelector('.hc-agents');
+    li.classList.toggle('has-agents', n > 0);
+    if (!n) { if (line) line.remove(); continue; }
+    if (!line) {
+      line = document.createElement('div');
+      line.className = 'hc-agents';
+      line.innerHTML = `<span class="hc-agents-said"></span><button type="button" class="hc-review">${esc(t('distil.agent_review.review'))}</button>`;
+      li.insertBefore(line, card.nextSibling);
+      line.querySelector('.hc-review').onclick = () => {
+        openProjectHistory(card.dataset.id, li.querySelector('.hc-name').textContent, 'agent');
+      };
+    }
+    line.querySelector('.hc-agents-said').textContent = t('distil.agent_review.home_line', { n });
+  }
 }
 
 /* The project open in this window, for the menu bar's File, Project History (histmenu; Adam, 4 November 2026): the
@@ -1228,6 +1456,8 @@ function drawPick(data, sections) {
   $('demo-projects').querySelectorAll('.home-card').forEach((b) => { b.onclick = () => openPage(b.dataset.id); });
   homeMenus($('demo-projects'));
   demosFold(!sections.length);
+  // each project's line of agents' changes he has not seen, filled in once the cards are drawn (agentreview2)
+  homeAgentLines();
   $('np-line').hidden = S.oneRun;
   $('add-home-typed').hidden = true;
   if (S.oneRun) $('sent-typed').hidden = true;
@@ -7491,10 +7721,124 @@ function cueAudio(seconds) {
   else player.addEventListener('loadedmetadata', go, { once: true });
 }
 
+/* ─────────────────────────────────────────── the demo's recordings on demand ── */
+
+/* The demos' recordings download the first time one is played (recdemand, 13 November 2026, Adam: "Text in,
+   recordings on demand"). A demo participant whose recording is not on this computer yet has the player as any
+   other has, and a press on Play, a timecode or Space puts the offer in the player's place, the size first, "This
+   demo's recordings, 9.4 MB. Download?", with Download and Not now. Download shows how far it has got beside
+   Cancel, and once the recordings are checked and in place the player comes back and plays from where it was
+   asked. Offline or failed, the offer's line says so in plain words, the demo working on without sound, and
+   Download tries again. The server downloads (/api/demo-recordings), so the page only asks it and reads how far
+   it has got. The PETs and GETs boards' player offers it the same way (themes.js). */
+const REC_GET = { box: '', offer: null, timer: 0, ready: null, back: null };
+
+const recGetEl = (box, part) => $(`${box}-get${part ? `-${part}` : ''}`);
+
+function recGetDraw(view) {
+  const box = REC_GET.box;
+  if (!box) return;
+  const state = (view && view.state) || 'idle';
+  const going = state === 'downloading';
+  const share = going && view.bytes ? Math.max(0, Math.min(1, view.got / view.bytes)) : 0;
+  recGetEl(box, 'said').textContent = going ? t('distil.audio.get_going', { got: view.got_size, size: view.size })
+    : state === 'failed' && view.line ? view.line
+      : t('distil.audio.get_offer', { size: (view && view.size) || (REC_GET.offer && REC_GET.offer.size) || '' });
+  recGetEl(box, 'track').hidden = !going;
+  recGetEl(box, 'fill').style.width = `${share * 100}%`;
+  recGetEl(box, 'go').hidden = going;
+  recGetEl(box, 'go').textContent = t('distil.audio.get_download');
+  recGetEl(box, 'no').textContent = going ? t('distil.audio.get_cancel') : t('distil.audio.get_not_now');
+}
+
+/* The offer in a player's place, `box` its prefix, 'player' on the statements screen and 'th-p' on the boards,
+   `offer` the server's answer of what is still to come, `ready` called once the recordings are in place and
+   `back` once the offer is put away, by Not now or Cancel. */
+function recGetOpen(box, offer, ready, back) {
+  if (REC_GET.box && REC_GET.box !== box) recGetClose(false);
+  REC_GET.box = box;
+  REC_GET.offer = offer;
+  REC_GET.ready = ready;
+  REC_GET.back = back;
+  recGetEl(box).hidden = false;
+  recGetEl(box, 'go').onclick = recGetStart;
+  recGetEl(box, 'no').onclick = recGetStop;
+  recGetDraw(offer);
+  if (offer && offer.state === 'downloading') recGetPoll();
+}
+
+function recGetClose(called = true) {
+  clearTimeout(REC_GET.timer);
+  const box = REC_GET.box;
+  const back = REC_GET.back;
+  REC_GET.box = '';
+  REC_GET.ready = REC_GET.back = null;
+  if (box) recGetEl(box).hidden = true;
+  if (called && back) back();
+}
+
+async function recGetStart() {
+  if (!REC_GET.box) return;
+  try {
+    recGetDraw(await api('/api/demo-recordings', { op: 'download' }));
+  } catch (err) {
+    recGetDraw({ state: 'failed', line: err.message });
+    return;
+  }
+  recGetPoll();
+}
+
+async function recGetStop() {
+  const going = REC_GET.box && !recGetEl(REC_GET.box, 'track').hidden;
+  recGetClose();
+  if (going) {
+    try { await api('/api/demo-recordings', { op: 'cancel' }); } catch { /* it stops by itself as the server quits */ }
+  }
+}
+
+/* How far the download has got, asked a few times a second while it runs, and the player's own once it is done */
+async function recGetPoll() {
+  clearTimeout(REC_GET.timer);
+  const box = REC_GET.box;
+  if (!box) return;
+  let view;
+  try { view = await api('/api/demo-recordings'); } catch { view = null; }
+  if (REC_GET.box !== box) return;
+  if (view && view.state === 'done') {
+    const ready = REC_GET.ready;
+    REC_GET.back = null;
+    recGetClose(false);
+    if (ready) ready();
+    return;
+  }
+  recGetDraw(view);
+  if (!view || view.state === 'downloading') REC_GET.timer = setTimeout(recGetPoll, 300);
+}
+
+/* A press on Play, a timecode or Space on a demo participant whose recordings are not here: the offer in the
+   bar's place, and once they are in place the player plays from `seconds`, or from the passage's own place */
+function recGetTurn(seconds) {
+  if (REC_GET.box === 'player') return;
+  const sheet = S.audioSheet;
+  const from = seconds !== null && seconds !== undefined ? seconds : (current() ? current().seconds : 0);
+  $('player-bar').hidden = true;
+  recGetOpen('player', S.recOffer, async () => {
+    S.audioSheet = null;
+    await loadAudio(sheet, from);
+    const player = $('player');
+    if (S.audioSheet !== sheet || !player.getAttribute('src')) return;
+    S.seekAt = Math.max(0, Number(from) || 0);
+    const go = () => { const played = player.play(); if (played && played.catch) played.catch(() => {}); };
+    if (player.readyState >= 1) go();
+    else player.addEventListener('loadedmetadata', go, { once: true });
+  }, () => { if (S.audioSheet === sheet) $('player-bar').hidden = false; });
+}
+
 /* The player shows once a recording is found, and a sheet with none shows nothing at the foot (17 October),
    where a line said "No recording found for" the sheet on every case without one. Its note still holds the
    server's words, which a press on a timecode or Space says at the foot, as a line after an act. A demo
-   participant's recording is copied in by the server as it answers, never made (recvoices, 12 November 2026). */
+   participant's recording is copied in by the server as it answers from source, never made (recvoices, 12
+   November 2026), and offered for download when it is not on this computer (recdemand, 13 November 2026). */
 async function loadAudio(sheet, cueSeconds) {
   if (S.audioSheet === sheet) { cueAudio(cueSeconds); return; }
   S.audioSheet = sheet;
@@ -7503,6 +7847,8 @@ async function loadAudio(sheet, cueSeconds) {
   player.removeAttribute('src');
   S.cueAt = 0;
   S.audioOffset = 0;
+  S.recOffer = null;
+  if (REC_GET.box === 'player') recGetClose(false);
   $('player-offset').hidden = true;
   S.listening = null;
   $('player-bar').hidden = true;
@@ -7512,6 +7858,17 @@ async function loadAudio(sheet, cueSeconds) {
   try {
     const data = await api(`/api/audio?${new URLSearchParams({ path: S.data.path, sheet })}`);
     if (S.audioSheet !== sheet) return;
+    if (!data.found && data.download) {
+      // the bar as any recording has it, its total not yet known, and the offer on the first press to play
+      S.recOffer = data.download;
+      $('player-bar').hidden = false;
+      $('player-wrap').hidden = false;
+      S.cueAt = Math.max(0, Number(cueSeconds) || 0);
+      if (cueSeconds !== null && cueSeconds !== undefined) markTurnAt(cueSeconds);
+      drawPlayer();
+      if (data.download.state === 'downloading') recGetTurn(cueSeconds);
+      return;
+    }
     if (data.found) {
       player.src = data.url;
       S.audioOffset = Number(data.offset) || 0;
@@ -7540,6 +7897,7 @@ async function loadAudio(sheet, cueSeconds) {
    playing. Any other cue, and a drag on the scrub bar, end the toggle. */
 function playFrom(seconds) {
   const player = $('player');
+  if (!player.getAttribute('src') && S.recOffer) { recGetTurn(seconds); return; }
   if (!player.getAttribute('src')) { say($('player-note').textContent || t('distil.audio.none')); return; }
   const from = Math.max(0, Number(seconds) || 0);
   if (S.seekAt !== null && S.seekAt === from) { togglePlay(); return; }
@@ -7555,6 +7913,7 @@ function playFrom(seconds) {
 
 function togglePlay() {
   const player = $('player');
+  if (!player.getAttribute('src') && S.recOffer) { recGetTurn(null); return; }
   if (!player.getAttribute('src')) { say($('player-note').textContent || t('distil.audio.none')); return; }
   if (player.paused || player.ended) {
     const played = player.play();
@@ -7582,6 +7941,7 @@ const AUDIO_STEP = 5;
 
 function nudgeAudio(delta) {
   const player = $('player');
+  if (!player.getAttribute('src') && S.recOffer) { recGetTurn(null); return; }
   if (!player.getAttribute('src')) { say($('player-note').textContent || t('distil.audio.none')); return; }
   const duration = Number.isFinite(player.duration) && player.duration > 0 ? player.duration : 0;
   const from = player.readyState >= 1 ? (player.currentTime || 0) : (S.cueAt || 0);

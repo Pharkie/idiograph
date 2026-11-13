@@ -111,6 +111,6 @@ console.log(JSON.stringify({ page: run(true), none: run(false) }));
 
     # ── J. no study's participant named in what the build ships
     new_text = "\n".join([english, hooks, rust_fn(main_rs, "not_started"), rust_fn(main_rs, "ended_js"),
-                          bm[bm.index("def recording_path("):bm.index("def stage_config(")]])
+                          bm[bm.index("def stage_demo("):bm.index("def stage_config(")]])
     check("180: what the fifth build ships names no study's participant",
           not any(re.search(rf"\b{n}\b", new_text) for n in STUDY_PSEUDONYMS))

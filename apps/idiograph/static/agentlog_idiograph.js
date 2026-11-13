@@ -74,6 +74,7 @@ Object.assign(AL_OPS, {
   'validate': 'agentlog_idiograph.validate',
   'agents changes': 'agentlog_idiograph.agents_changes',
   'agents undo-run': 'agentlog_idiograph.agents_undo_run',
+  'agents undo-change': 'agentlog_idiograph.agents_undo_change',
   'project send': 'agentlog_idiograph.project_send',
   'project export-qdpx': 'agentlog_idiograph.project_export_qdpx',
   'project open-copy': 'agentlog_idiograph.project_open_copy',

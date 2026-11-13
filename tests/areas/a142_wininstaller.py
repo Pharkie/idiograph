@@ -338,7 +338,7 @@ def test_wininstaller(scratch):
     check("142: the build takes build_mac's pins but certifi, its modules and its stage, and freezes the Windows launcher",
           build.PINS == tuple(p for p in build_mac.PINS if not p.startswith("certifi")) and len(build.PINS) == 4
           and build.MODULES == build_mac.MODULES and build.ENTRY == support.source("packaging/windows_launcher.py")
-          and "build_mac.stage_recordings(build_mac.stage_cases(stage))" in build_src and ".venv" not in build_src.split('"""', 2)[2]
+          and "build_mac.demo_line(build_mac.stage_cases(stage))" in build_src and ".venv" not in build_src.split('"""', 2)[2]
           and "demo = stage_cases(stage)" in inspect.getsource(build_mac.stage_demo))
     ico = build.ico_bytes((16, 32, 256))
     count = struct.unpack("<HHH", ico[:6])
@@ -348,11 +348,12 @@ def test_wininstaller(scratch):
           and all(ico[e[7]:e[7] + 8] == b"\x89PNG\r\n\x1a\n" and e[7] + e[6] <= len(ico) for e in entries)
           and entries[0][7] == 6 + 16 * 3, str(entries))
     # the demo's recordings (recvoices, 12 November 2026): committed in packaging/recording, each under a name that
-    # carries the hash of the transcript it was made from, staged by build_mac's own `stage_recordings`, which area 16
-    # checks, and nothing spoken here
+    # carries the hash of the transcript it was made from, and since recdemand (13 November 2026) staged by no build,
+    # the app downloading them the first time one is played (area 385), and nothing spoken here
     ignored_tool = read(support.source(".gitignore")).splitlines()
-    check("142: the Windows build stages the demo's recordings through the Mac build's own step, speaks nothing, and the "
-          "recordings and their licence are the folder's committed files",
+    check("142, updated 13 November 2026 (recdemand): the Windows build stages the demo through the Mac build's own "
+          "step, which stages no recording, speaks nothing, and the recordings and their licence are the folder's "
+          "committed files",
           "packaging/recording/*" in ignored_tool and "!packaging/recording/*-Initial-*.m4a" in ignored_tool
           and "!packaging/recording/LICENSE-audio.md" in ignored_tool
           and not hasattr(build, "speak") and "--speak" not in build_src and "make_demo" not in build_src)
@@ -515,9 +516,9 @@ def test_wininstaller(scratch):
           "says each step and runs none",
           dry == 0 and json_.loads((out / "build" / "tauri-config.json").read_text(encoding="utf-8")) == {"version": server_mod.VERSION}
           and (out / "build" / "Idiograph-windows.spec").is_file() and (staged / "Idiograph.ico").is_file()
-          and all((staged / "demo" / build_mac.recording_path(n)).is_file() == bool(build_mac.committed_recording(n))
-                  for n in build_mac.DEMO_CASES)
-          and build_mac.stage_recordings(base / "dry-again") in said
+          and (staged / "demo" / "recordings.json").is_file()
+          and not [p for p in (staged / "demo").rglob("*") if p.suffix == ".m4a" or p.name == "LICENSE-audio.md"]
+          and build_mac.demo_line(staged / "demo") in said
           and (staged / "demo" / "Rowan" / "Rowan - EN & ES.xlsx").is_file() and not (out / "build" / "venv").exists()
           and all(w_ in said for w_ in ("Would make", "Would run PyInstaller", "Would run Tauri", "NSIS installer", "Unsigned"))
           and sorted(p.name for p in TOOL.iterdir()) == before, said[-300:])

@@ -421,6 +421,9 @@ AREAS = {
     "a380_agent_changes": "idiograph",
     "a381_card_sync": "idiograph",
     "a384_workbook_guard": "idiograph",
+    "a385_recordings_on_demand": "idiograph",
+    "a389_agent_review": "idiograph",
+    "a390_home_time": "idiograph",
 }
 
 

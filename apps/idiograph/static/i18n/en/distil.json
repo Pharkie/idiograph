@@ -312,6 +312,11 @@
   "distil.audio.would_not_play": "That recording would not play.",
   "distil.audio.offset_value": "Offset {value} s",
   "distil.audio.offset": "Offset",
+  "distil.audio.get_offer": "This demo's recordings, {size}. Download?",
+  "distil.audio.get_going": "Downloading the recordings, {got} of {size}",
+  "distil.audio.get_download": "Download",
+  "distil.audio.get_not_now": "Not now",
+  "distil.audio.get_cancel": "Cancel",
   "distil.save.saved": "saved to the workbook",
   "distil.save.stale": "This passage has changed since this page was loaded, so nothing was saved. Your words are still here.",
   "distil.save.stale_reloaded": "The passage is reloaded as it now is. Your words are below.",
@@ -661,5 +666,36 @@
     "one": "{n} participant",
     "other": "{n} participants"
   },
-  "distil.names.replaced": "Replaced {replaced} in {participants}. The transcripts as they were are in each participant's _Archive folder."
+  "distil.names.replaced": "Replaced {replaced} in {participants}. The transcripts as they were are in each participant's _Archive folder.",
+  "distil.agent_review.home_line": {
+    "one": "Agents made {n} change since you last looked.",
+    "other": "Agents made {n} changes since you last looked."
+  },
+  "distil.agent_review.review": "Review",
+  "distil.agent_review.new_since": "{n} new since you last looked, in {runs}",
+  "distil.agent_review.runs": {
+    "one": "{n} run",
+    "other": "{n} runs"
+  },
+  "distil.agent_review.span": "{from} to {to}, {changes}",
+  "distil.agent_review.at": "{at}, {changes}",
+  "distil.agent_review.new": "New",
+  "distil.agent_review.undo_run": "Undo this run",
+  "distil.agent_review.undo_other": {
+    "one": "Undo the other {n}",
+    "other": "Undo the other {n}"
+  },
+  "distil.agent_review.undo": "Undo",
+  "distil.agent_review.undoing": "Undoing…",
+  "distil.agent_review.yours": "You changed {what} at {time}, so this can no longer be undone.",
+  "distil.agent_review.later": "{agent} changed this again at {time}, so undo that first.",
+  "distil.agent_review.undone": "Undone at {time}.",
+  "distil.agent_review.show_more": {
+    "one": "Show {n} more",
+    "other": "Show {n} more"
+  },
+  "distil.agent_review.show_all": {
+    "one": "Show the change",
+    "other": "Show the {n} changes"
+  }
 }

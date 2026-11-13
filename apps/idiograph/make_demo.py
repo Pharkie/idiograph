@@ -18,6 +18,7 @@ table are the app's own, made from those boards. Each of the three has a recordi
     demo/Juno/Source/Initial/Source/          the recording, copied in from packaging/recording and gitignored
     demo/idiograph-gets.json                  the GETs file, gitignored, put back from pristine
     demo/pristine/                            the copy Reset demo restores from, the GETs file with it
+    demo/recordings.json                      the recordings' manifest, their sizes and sha256s, for the download
     packaging/recording/                      the three recordings, committed, and their licence
 
     .venv/bin/python apps/idiograph/make_demo.py
@@ -30,14 +31,17 @@ built through the same functions (`ship_ta`) into `demo/ta/pristine/` and the li
 and the Themes board's file at `demo/ta/`. `--written` builds both demos, `--ta` the thematic analysis one alone.
 
 `--audio-only` puts each participant's committed recording in place in the demo and builds nothing, which is
-what the server does for a participant opened with none. A plain run, `--written` or `--workbook-only`, builds
-the three cases and the GETs, then the thematic analysis demo. `--force` replaces workbooks that are already there.
+what the server does for a participant opened with none. `--manifest` writes `demo/recordings.json` again from the
+committed recordings. A plain run, `--written` or `--workbook-only`, builds the three cases and the GETs, then the
+thematic analysis demo. `--force` replaces workbooks that are already there.
 
 The recordings are Google Gemini's voices, one clip per turn, made by `packaging/recording/voice_demo.py` into a
 folder of clips outside the repo, which then calls `build_recording` here: the clips measured, the timecodes in
 the CSV written from the cumulative lengths plus half a second of gap, so clicking a timecode in the app lands on
-the words of that turn, and the clips joined into the recording committed for the CSV as then written. Nothing
-here speaks.
+the words of that turn, the clips joined into the recording committed for the CSV as then written, at about 24 kbps
+in HE-AAC (recdemand, 13 November 2026), and the manifest written again. Nothing here speaks. The installers carry
+no recording: the app downloads a demo's the first time one is played, from the release the manifest names
+(`demo_recordings`).
 
 Everything goes through the functions the app itself calls, with the clock held at the times the
 annotations files give, every part of each workbook's zip dated the same and the files the GETs read
@@ -70,6 +74,7 @@ HERE = boot.ROOT
 import openpyxl
 
 import audio as audio_mod
+import demo_recordings as demo_rec
 import rounds as rounds_mod
 import themes as themes_mod
 import workbook as wb_mod
@@ -103,11 +108,18 @@ TA_THEMES = "Themes.json"
 PROJECT_FILE = "idiograph-project.json"
 
 # The three recordings, committed in packaging/recording, each named by `audio.demo_recording_name`, with their
-# own licence beside them, which a build stages beside each recording so it travels with it, and the half second
-# of silence between one turn's clip and the next's
+# own licence beside them, which the download puts beside each recording so it travels with it, the manifest the
+# app downloads them by (recdemand, 13 November 2026), and the half second of silence between one turn's clip and
+# the next's
 RECORDINGS = HERE / "packaging" / "recording"
-AUDIO_LICENCE = "LICENSE-audio.md"
+AUDIO_LICENCE = demo_rec.LICENCE
+MANIFEST = DEMO / demo_rec.MANIFEST
 GAP_SECONDS = 0.5
+# The encoding (recdemand, 13 November 2026, Adam: about half the 48 kbps of 12 November): HE-AAC, AAC with
+# spectral band replication, mono at 24 kbps, which keeps the voices' top octave, 6 to 12 kHz, that plain AAC at
+# that rate cuts, in the .m4a every player of the app's already plays. Apple's encoder by afconvert, else ffmpeg's
+# AudioToolbox one on a Mac, else ffmpeg's own plain AAC at the same rate, its top octave cut, where neither is
+BITRATE = 24000
 
 BRACKET = re.compile(r"\[[^\]]*\]")
 
@@ -235,18 +247,38 @@ def join_clips(clips: list[Path], gap: float, out: Path) -> None:
 
 
 def to_m4a(source: Path, out: Path) -> None:
+    """A WAV encoded as the demo's recordings are, BITRATE in HE-AAC (see BITRATE), into `out`."""
     out.parent.mkdir(parents=True, exist_ok=True)
     tmp = out.with_name(f".{out.stem}.building{out.suffix}")
     tmp.unlink(missing_ok=True)
+    rate = f"{BITRATE // 1000}k"
+    tries = []
     if have("afconvert"):
-        cmd = ["afconvert", "-f", "m4af", "-d", "aac", "-b", "48000", str(source), str(tmp)]
-    elif have("ffmpeg"):
-        cmd = ["ffmpeg", "-v", "quiet", "-y", "-i", str(source), "-c:a", "aac", "-b:a", "48k", str(tmp)]
-    else:
+        tries.append(["afconvert", "-f", "m4af", "-d", "aach", "-b", str(BITRATE), str(source), str(tmp)])
+    if have("ffmpeg"):
+        tries.append(["ffmpeg", "-v", "quiet", "-y", "-i", str(source), "-c:a", "aac_at", "-profile:a", "aac_he",
+                      "-b:a", rate, "-f", "ipod", str(tmp)])
+        tries.append(["ffmpeg", "-v", "quiet", "-y", "-i", str(source), "-c:a", "aac", "-b:a", rate, "-f", "ipod",
+                      str(tmp)])
+    if not tries:
         raise DemoError("Neither afconvert nor ffmpeg is on this machine, so the clips cannot be "
                         "joined into one recording.")
-    subprocess.run(cmd, check=True, capture_output=True)
+    for cmd in tries:
+        if subprocess.run(cmd, capture_output=True).returncode == 0 and tmp.is_file() and tmp.stat().st_size:
+            break
+    else:
+        tmp.unlink(missing_ok=True)
+        raise DemoError("The clips could not be encoded into one recording.")
     tmp.replace(out)
+
+
+def write_manifest() -> dict:
+    """`demo/recordings.json` written again from the recordings committed for the transcripts as they stand, their
+    sizes and sha256s and the licence's, which the app downloads them by (recdemand, 13 November 2026). A recording
+    re-encoded keeps its earlier size in the manifest, so a copy that holds that one is not asked to download it
+    again. Answers the manifest."""
+    names = [committed(name).name for name in CASES if committed(name).is_file()]
+    return demo_rec.write_manifest(MANIFEST, RECORDINGS, names)
 
 
 def build_recording(name: str, clips: list[Path], write_csv: bool = True, verbose: bool = True,
@@ -292,6 +324,9 @@ def build_recording(name: str, clips: list[Path], write_csv: bool = True, verbos
     for old in target.parent.glob(f"{name}-{SHEET}-*.m4a"):
         if old != target:
             old.unlink()
+    # the manifest the app downloads the recordings by follows the committed ones, never a folder a check gives
+    if folder is None and demo is None:
+        write_manifest()
     result = {"turns": len(rows), "seconds": length, "bytes": target.stat().st_size, "path": target,
               "moved": len(moved)}
     if verbose:
@@ -1121,7 +1156,14 @@ def main() -> int:
     ap.add_argument("--written", action="store_true",
                     help="build the three cases and the GETs, then the thematic analysis demo, as a plain run does")
     ap.add_argument("--ta", action="store_true", help="build the thematic analysis demo alone")
+    ap.add_argument("--manifest", action="store_true",
+                    help="write demo/recordings.json again from the committed recordings, and build nothing")
     args = ap.parse_args()
+    if args.manifest:
+        data = write_manifest()
+        for row in data["recordings"]:
+            print(f"  {row['file']}: {row['size'] / 1e6:.1f} MB")
+        return 0
     if args.audio_only:
         for name in CASES:
             placed = place_recording(name)
