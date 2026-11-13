@@ -102,9 +102,10 @@ try {
 <!--slot:home-first-->
 <!--slot:home-->
 
-      <!-- the family at the foot of every Home (the split's third build, decision 4: always shown): the other
+      <!-- the family at the foot of Sift's and Trace's Homes (the split's third build, decision 4): the other
            two apps under their names, each a card with its icon, its name, its one line, and Open when it is
-           installed here or Download when not, drawn from /api/family -->
+           installed here or Download when not, drawn from /api/family, which gives Idiograph's none since
+           nosiftrace (12 November 2026), so its Home ends with its projects -->
       <section class="family" id="family" aria-labelledby="family-h" hidden>
         <h2 class="family-h" id="family-h"></h2>
         <ul class="family-list" id="family-list"></ul>
@@ -464,7 +465,7 @@ try {
      each by its folder's name under the folder. Esc cancels -->
 <div class="overlay" id="rv-card" hidden>
   <div class="card">
-    <p class="kicker" id="rv-kicker">Sift</p>
+    <p class="kicker" id="rv-kicker"></p>
     <h2>{{shell.project.new}}</h2>
     <div class="setting np-folder"><label for="rv-folder">{{page.project.folder}}</label><span class="add-typed np-folder-pick"><input
          id="rv-folder" type="text" spellcheck="false" placeholder="{{page.project.folder}}"><button type="button" class="ghost small"

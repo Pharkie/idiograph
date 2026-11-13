@@ -1746,17 +1746,16 @@ function ppPortraitHtml(person) {
 /* The fields across the row (layout A): the picture with Change picture..., Choose from the set and Remove, the
    participant greyed, the label and the pen portrait, each kept as it is left, Done at the foot. Choose from the set
    opens the drawn faces under the fields, shut each time the fields open. */
-const PP = { editing: '', faces: false, busy: false, root: '', li: null, p: null };
+const PP = { editing: '', faces: false, faceSet: '', busy: false, root: '', li: null, p: null };
 
 function ppEditHtml(p) {
   const person = p.person || {};
   const name = caseShown(p.case);
   // a field drawn again while its save is on its way shows what was typed, never the set before it
   const typed = (key) => (PP.sent && key in PP.sent ? PP.sent[key] : String(person[key] || ''));
-  const faces = PP.faces ? `<div class="tf-faces pp-faces" role="group" aria-label="${escAttr(t('trajectories.choose_face'))}">`
-    + (PP_FACES.map((f, i) => `<button type="button" class="tf-face${ppFaceOn(person, f) ? ' on' : ''}" data-pp-face="${f}"`
-      + ` aria-pressed="${ppFaceOn(person, f)}" aria-label="${escAttr(t('trajectories.face_n', { n: i + 1 }))}"><img src="/faces/${f}.svg" alt=""></button>`).join(''))
-    + '</div>' : '';
+  // Choose from the set: a tab for each set, the set of their picture now open first, as Trajectories offers it
+  // (faceSetsHtml in trajectories.js, picsets)
+  const faces = PP.faces ? faceSetsHtml(PP.faceSet, person.picture_url, { pick: 'pp-face', tab: 'pp-faceset', cls: 'pp-faces' }) : '';
   return `<div class="pp-edit" role="group" aria-label="${escAttr(t('distil.person.edit_label', { who: name }))}">`
     + `<div class="tf-edit-pic pp-edit-pic">${personPic(person, 64)}<div class="tf-edit-picb">`
     + `<button type="button" class="ghost small" data-pp="own">${esc(t('trajectories.change_picture'))}</button>`
@@ -1800,15 +1799,6 @@ function ppBarDraw(pic, lab, person) {
     lab.title = p && p.label ? [p.label, values].filter(Boolean).join(' · ') : '';
     lab.hidden = !(p && p.label);
   }
-}
-
-// the app's drawn set, static/faces/peep01.svg to peep40.svg, as Trajectories offers it (trajectories.FACES)
-const PP_FACES = Array.from({ length: 40 }, (_, i) => `peep${String(i + 1).padStart(2, '0')}`);
-
-/* whether a participant's picture is this one of the set: by where it is read, so one from the set before,
-   `set:face16`, shows as chosen on its nearest now (trajectories.FACES_BEFORE) */
-function ppFaceOn(person, f) {
-  return !!person && person.picture_url === `/faces/${f}.svg`;
 }
 
 /* the fields opened across a row, any other row's shut first, the field he double-clicked in front */
@@ -1955,20 +1945,29 @@ async function ppOwnPicture(file) {
   }
 }
 
+/* Choose from the set turned to another set's tab, the fields drawn again and that tab in front */
+function ppFaceSet(set) {
+  PP.faceSet = set;
+  ppDraw();
+  const tab = PP.li && PP.li.querySelector(`[data-pp-faceset="${set}"]`);
+  if (tab) tab.focus();
+}
+
 /* the fields' own clicks and keys, wired once on the rows' list */
 function ppWire() {
   const list = $('hp-list');
   if (!list || list.dataset.ppWired) return;
   list.dataset.ppWired = '1';
   list.addEventListener('click', async (e) => {
-    const b = e.target.closest('[data-pp], [data-pp-face]');
+    const b = e.target.closest('[data-pp], [data-pp-face], [data-pp-faceset]');
     if (!b || !PP.li || !PP.li.contains(b)) return;
     e.stopPropagation();
     if (b.dataset.ppFace) { if (await ppSave({ picture: `set:${b.dataset.ppFace}` })) ppDraw(); return; }
+    if (b.dataset.ppFaceset) { ppFaceSet(b.dataset.ppFaceset); return; }
     const what = b.dataset.pp;
     if (what === 'done') { ppClose(true); return; }
     if (what === 'rename') { openRename(PP.root, PP.p); return; }
-    if (what === 'faces') { PP.faces = !PP.faces; ppDraw(); return; }
+    if (what === 'faces') { PP.faces = !PP.faces; PP.faceSet = ''; ppDraw(); return; }
     if (what === 'nopic') { if (await ppSave({ picture: '' })) ppDraw(); return; }
     if (what === 'own') $('pp-picture-file').click();
   });
@@ -1982,6 +1981,9 @@ function ppWire() {
   });
   list.addEventListener('keydown', (e) => {
     if (!PP.li || !PP.li.contains(e.target)) return;
+    // Choose from the set's tabs: the arrows, Home and End move along them, the set under them following (picsets)
+    const step = e.target.dataset && e.target.dataset.ppFaceset ? faceSetStep(e.key, e.target.dataset.ppFaceset) : '';
+    if (step) { e.preventDefault(); e.stopPropagation(); ppFaceSet(step); return; }
     if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); ppClose(true); return; }
     if (e.key === 'Enter' && e.target.dataset.ppField === 'label') { e.preventDefault(); ppKeepFields(); }
   });
@@ -2114,6 +2116,7 @@ function rnSaid(line) {
 function rnListShow() {
   const shown = $('rn-said').hidden && $('rn-list').children.length > 0;
   $('rn-list').hidden = !shown;
+  $('rn-details').hidden = !shown;
   $('rn-lead').hidden = !shown;
   $('rn-copy').hidden = !shown;
 }
@@ -2132,7 +2135,11 @@ async function rnPlan() {
     return;
   }
   if (ask !== RN.ask || $('rename').hidden) return;
-  const lines = [...(got.lines || []), ...($('rn-folder').checked ? got.folder_lines || [] : [])];
+  /* one line over the list, the details folded away (renamesimple, 12 November 2026): the name changes on
+     every passage, in the workbook and in Source where they have a transcript there, and the fold holds the
+     counts and what stays with them. The folder's own lines are the tick's and stay out of it. */
+  const lines = got.details || got.lines || [];
+  $('rn-lead').textContent = t(got.in_source ? 'distil.rename.lead' : 'distil.rename.lead_workbook', { name: got.old || '' });
   $('rn-list').innerHTML = lines.map((l) => `<li>${esc(l)}</li>`).join('');
   rnListShow();
 }

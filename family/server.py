@@ -1003,7 +1003,8 @@ def api_search(body: dict) -> dict:
     time and size, and nothing is written, the recent list and the lists of projects included."""
     scope = str(body.get("scope") or "")
     if scope not in app_search.SCOPES:
-        raise WorkbookError(app_search.NO_SCOPE)
+        # Idiograph's refusal names its own scopes alone (nosiftrace, 12 November 2026), Sift's and Trace's theirs
+        raise WorkbookError(app_search.NO_SCOPE_IDIOGRAPH if APP == app_identity.DEFAULT else app_search.NO_SCOPE)
     # each app searches its own kinds: another app's scope answers as its route would (see `not_here`),
     # and Everything holds only the projects of the apps this run answers for, its own since the cutover
     served = apps_served()
@@ -1896,11 +1897,13 @@ def family_line(app: str) -> str:
 
 
 def family_rows() -> list[dict]:
-    """The other two apps of the family, as each Home's foot shows them (decision 4 of the split's plan:
-    always shown): each with its id, name, one line, and whether it is installed here, which says Open
-    and otherwise Download."""
+    """The other apps of the family this app names (`app_identity.names`), as its Home's foot shows them
+    (decision 4 of the split's plan): each with its id, name, one line, and whether it is installed here, which
+    says Open and otherwise Download. Sift's and Trace's Homes list the other two, and Idiograph's none since
+    nosiftrace (12 November 2026), so its foot stays hidden."""
+    named = app_identity.names(APP)
     return [{"app": key, "name": them["name"], "line": family_line(key), "installed": installed_at(key) is not None}
-            for key, them in app_identity.APPS.items() if key != APP]
+            for key, them in app_identity.APPS.items() if key in named]
 
 
 def api_family(_body: dict) -> dict:
@@ -1955,9 +1958,10 @@ def family_go(plan: dict) -> None:
 
 def api_family_open(body: dict) -> dict:
     """Open or Download at a Home's foot: `app`, another app of the family, opened when it is installed
-    and its releases page opened when not (see `family_open_plan`)."""
+    and its releases page opened when not (see `family_open_plan`). An app this one never names is refused as
+    one that is not there, Sift and Trace from Idiograph's."""
     app = str(body.get("app") or "")
-    if app not in app_identity.APPS or app == APP:
+    if app not in app_identity.names(APP):
         raise WorkbookError(i18n.t("errors.another_app_family"))
     plan = family_open_plan(app)
     (FAMILY_OPENER or family_go)(plan)

@@ -17,7 +17,10 @@ after it from a new page under its heading. No picture goes in any of them. The 
 
 The drawn set (peeps, 12 November 2026): forty Open Peeps in the app's ink, each file holding only shapes, the
 project page offering the same forty as Trajectories, and the twenty-four before kept working, a project file's
-`set:face16` read as it is and shown as its nearest, one chosen again written as its new name.
+`set:face16` read as it is and shown as its nearest, one chosen again written as its new name. Since picsets the
+same day three sets, eighty Open Peeps, forty Notionists and twenty Fluent Emoji (MIT's notice beside them and in
+NOTICE.md), a tab each in Choose from the set, the picture's set open first and the arrows along the tabs, each
+set's names taken by the route, the command line, MCP and Trajectories, and a name past a set's end refused.
 
 The fixtures are invented: a project on learning to swim as an adult, two made-up participants, Orla and Piers,
 an interviewer called Kit, and a made-up name for the list of names to replace, and for the exports copies of the
@@ -379,15 +382,56 @@ def test_participant_set(scratch):
               by_route == "set:peep07" and done["person"]["picture_url"] == "/faces/peep07.svg"
               and code == 0 and by_cli == "set:peep03" and by_op == "set:peep36" and "face25" in no_old,
               str([by_route, by_cli, by_op, err, no_old])[:300])
+
+        # (p) the three sets (picsets, 12 November 2026): a picture of the Notionists, of Fluent Emoji and of the
+        # Open Peeps past forty taken through the route, the command line, MCP and a Trajectories op, each kept by
+        # its own name and read at its own file, and a name past a set's end refused by each, nothing written
+        held_pic = lambda: json.loads(pfile.read_text(encoding="utf-8"))["participants"]["P1 - Orla"]["picture"]
+        done = routes.api_participant({"root": rid, "case": "Orla", "picture": "set:notion12"})
+        by_route = held_pic()
+        code, _out, err = run("participant", "set", "Orla", "--picture", "set:fluent05", "--note", "x")
+        by_cli = held_pic()
+        res = tool("participant_set", case="Orla", picture="set:peep80", request="Orla's picture")
+        by_mcp = held_pic()
+        card = routes.api_trajectories_ops({"workbook": str(orla), "ops": [{"op": "picture", "participant": "Orla",
+                                                                            "set": "notion40"}]})
+        by_op = held_pic()
+        shown = routes.api_participant({"root": rid, "case": "Orla", "op": "show"})["person"]
+        check("373: a picture of each set, the Notionists, Fluent Emoji and the Open Peeps past forty, is taken "
+              "through the route, the command line, MCP and Trajectories, kept by its own name and read at its file",
+              by_route == "set:notion12" and done["person"]["picture_url"] == "/faces/notion12.svg"
+              and code == 0 and by_cli == "set:fluent05" and not res["isError"] and by_mcp == "set:peep80"
+              and by_op == "set:notion40" and shown["picture_url"] == "/faces/notion40.svg"
+              and "/faces/notion40.svg" in json.dumps(card),
+              str([by_route, by_cli, by_mcp, by_op, err])[:300])
+        before = sha(pfile)
+        wrong = [refused({"root": rid, "case": "Orla", "picture": f"set:{name}"})
+                 for name in ("peep81", "notion41", "fluent21", "notion00", "notion")]
+        code, _out, err = run("participant", "set", "Orla", "--picture", "set:fluent21", "--note", "x")
+        res = tool("participant_set", case="Orla", picture="set:notion41", request="x")
+        try:
+            routes.api_trajectories_ops({"workbook": str(orla), "ops": [{"op": "picture", "participant": "Orla",
+                                                                         "set": "peep81"}]})
+            by_op = "answered"
+        except WorkbookError as exc:
+            by_op = str(exc)
+        runs = "peep01 to peep80, notion01 to notion40, fluent01 to fluent20"
+        check("373: a name past a set's end is refused by the route, the command line, MCP and Trajectories, the "
+              "refusal naming each set's run, and nothing is written",
+              all(runs in w for w in wrong) and code != 0 and runs in (err or "") + json.dumps(_out)
+              and res["isError"] and runs in by_op and sha(pfile) == before and held_pic() == "set:notion40",
+              str([wrong[:2], code, err, by_op])[:400])
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept
-    the_set()
+    the_set(scratch)
     exports(scratch)
 
 
-def the_set() -> None:
-    """The drawn set itself (peeps): every picture offered is a file of the app's own, written in ink alone with
-    nothing in it but shapes, every name of the set before read as one of them, and the demo's three given theirs."""
+def the_set(scratch: Path) -> None:
+    """The drawn sets themselves (peeps, picsets): every picture offered is a file of the app's own, written in ink
+    alone with nothing in it but shapes, the page offering the same sets as the server in the same order, a tab
+    for each, the picture's set open first and the arrows moving along the tabs, every name of the set before read
+    as one of them, and the demo's three given theirs."""
     import xml.etree.ElementTree as ET
     import trajectories as traj_mod
 
@@ -404,15 +448,58 @@ def the_set() -> None:
                 odd.append(f"{name}: {tag} {sorted(el.attrib)}")
             if el.get("fill"):
                 colours.add(el.get("fill"))
-    check("373: Choose from the set offers forty pictures, each a file of the app's own holding only shapes, no "
-          "script, link or style, in the app's ink, white and one grey",
-          len(traj_mod.FACES) == 40 and files == list(traj_mod.FACES) and not odd
-          and colours <= {"#2B2620", "#FFFFFF", "#C9C2B8"}, str([files[:3], odd[:3], colours]))
-    js = support.source("apps/idiograph/static/distil.js").read_text(encoding="utf-8")
-    offered = re.search(r"const PP_FACES = Array\.from\(\{ length: (\d+) \}, \(_, i\) => `(\w+)\$", js)
-    check("373: the project page's Choose from the set offers the same forty as Trajectories",
-          offered is not None and int(offered.group(1)) == len(traj_mod.FACES)
-          and f"{offered.group(2)}01" == traj_mod.FACES[0], offered.group(0) if offered else "no PP_FACES")
+    sets = [(key, stem, count) for key, stem, count in traj_mod.FACE_SETS]
+    check("373: Choose from the set offers three sets, eighty Open Peeps, forty Notionists and twenty Fluent Emoji, "
+          "each picture a file of the app's own holding only shapes, no script, link or style, in the app's ink, "
+          "white and one grey, the first forty Open Peeps' names kept",
+          sets == [("peeps", "peep", 80), ("notionists", "notion", 40), ("fluent", "fluent", 20)]
+          and len(traj_mod.FACES) == 140 and files == sorted(traj_mod.FACES)
+          and all(f"peep{n:02d}" in traj_mod.FACES for n in range(1, 41)) and not odd
+          and colours <= {"#2B2620", "#FFFFFF", "#C9C2B8"}, str([sets, files[:3], odd[:3], colours]))
+    licence = (faces / "LICENSE-fluent-emoji.txt").read_text(encoding="utf-8") \
+        if (faces / "LICENSE-fluent-emoji.txt").is_file() else ""
+    notice = support.source("NOTICE.md").read_text(encoding="utf-8")
+    check("373: the Fluent Emoji go with MIT's copyright and permission notice, beside them and in NOTICE.md, and "
+          "NOTICE.md names each set, its author and its licence",
+          "Copyright (c) Microsoft Corporation." in licence and "shall be included in all" in licence
+          and all(w in notice for w in ("Open Peeps", "Pablo Stanley", "Notionists", "Zoish", "Fluent Emoji",
+                                        "Microsoft", "CC0 1.0", "MIT License", "shall be included in all copies")),
+          licence[:120])
+    js = support.source("apps/idiograph/static/trajectories.js").read_text(encoding="utf-8")
+    offered = re.findall(r"\{ set: '(\w+)', name: 'trajectories\.set_\w+', faces: tfFaceRun\('(\w+)', (\d+)\) \}", js)
+    distil = support.source("apps/idiograph/static/distil.js").read_text(encoding="utf-8")
+    check("373: the page offers the same sets as the server, in its order, on the project page and Trajectories "
+          "alike",
+          [(k, s, int(n)) for k, s, n in offered] == sets and "PP_FACES" not in distil
+          and "faceSetsHtml(PP.faceSet, person.picture_url" in distil
+          and "faceSetsHtml(TJ.faceSet, c.picture_url" in js, str(offered))
+    # the tabs as the page draws them, run in node: the picture's set open first, the first with none, one chosen
+    # kept, and the arrows, Home and End along the tabs, round at either end
+    block = js[js.index("const FACE_SETS = ["):js.index("const tjPicHtml = ")]
+    escapes = "".join(ln + "\n" for ln in support.text("family/static/shell.js").splitlines()
+                      if ln.startswith(("const esc = ", "const escAttr = ")))
+    script = support.i18n_js("idiograph") + escapes + block + r"""
+const opened = (html) => (/aria-selected="true"[^>]*data-x-set="(\w+)"/.exec(html) || [])[1];
+const pressed = (html) => (/class="tf-face on" data-x-pick="(\w+)"/.exec(html) || [])[1] || '';
+const a = faceSetsHtml('', '/faces/notion07.svg', { pick: 'x-pick', tab: 'x-set' });
+const b = faceSetsHtml('', '', { pick: 'x-pick', tab: 'x-set' });
+const c = faceSetsHtml('fluent', '/faces/peep03.svg', { pick: 'x-pick', tab: 'x-set' });
+console.log(JSON.stringify({
+  a: [opened(a), pressed(a), (a.match(/class="tf-face[ "]/g) || []).length],
+  b: [opened(b), pressed(b), (b.match(/class="tf-face[ "]/g) || []).length],
+  c: [opened(c), pressed(c), (c.match(/class="tf-face[ "]/g) || []).length, (c.match(/role="tab"/g) || []).length],
+  steps: [faceSetStep('ArrowRight', 'peeps'), faceSetStep('ArrowRight', 'fluent'), faceSetStep('ArrowLeft', 'peeps'),
+    faceSetStep('Home', 'fluent'), faceSetStep('End', 'peeps'), faceSetStep('Enter', 'peeps')],
+}));
+"""
+    ran = support.run_node(script, scratch, "picsets-373.js")
+    got = json.loads(ran.stdout.strip().splitlines()[-1]) if ran.returncode == 0 and ran.stdout.strip() else {}
+    check("373: Choose from the set opens on the set of the picture now, on the first with none, on one chosen "
+          "after, and the arrows, Home and End move along its tabs",
+          got.get("a") == ["notionists", "notion07", 40] and got.get("b") == ["peeps", "", 80]
+          and got.get("c") == ["fluent", "", 20, 3]
+          and got.get("steps") == ["notionists", "peeps", "fluent", "peeps", "fluent", ""],
+          (ran.stderr or ran.stdout)[:400])
     check("373: every picture of the set before, face01 to face24, is read as one of the set now",
           sorted(traj_mod.FACES_BEFORE) == [f"face{n:02d}" for n in range(1, 25)]
           and set(traj_mod.FACES_BEFORE.values()) <= set(traj_mod.FACES)

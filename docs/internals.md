@@ -215,7 +215,8 @@ another app's. `app.js` reads `APP` and `APP_NAME` from the root: `loadLibrary` 
 Idiograph and `/api/home` (shared: settings, feedback, version and the app's own `reviews` or `traces`) on
 the others, `drawPick` draws only the app's section, `windowRecent` hands only its projects, and
 `/api/guidance`, `/api/days`, the bench's sample and the projects' and GETs' panes are asked on Idiograph
-alone. `/api/family` lists the other two apps (`family_rows`, each `installed` by `installed_at`: a Mac's
+alone. `/api/family` lists the other apps the running one names (`family_rows` by `app_identity.NAMES`, Sift's and
+Trace's the other two and Idiograph's none since nosiftrace, 12 November 2026, each `installed` by `installed_at`: a Mac's
 Applications folders, Windows's `%LOCALAPPDATA%\<Name>`, and from source always), and `/api/family-open`
 (POST, own page) runs `family_open_plan` through `family_go`, or `FAMILY_OPENER` in a check: an installed
 build opened by its bundle id or run, from source that app's `server.py --app` started detached unless its
@@ -678,7 +679,11 @@ the MCP server's calls hold to it too, and a Search of the cases is Idiograph's 
 `cmd_search_folder` refuses a folder of an app the run does not serve before reading it. The one line
 `app_identity.SERVES_TOO` (which `server.SERVES_TOO` now is) kept `idiograph sift` and `idiograph trace`
 as aliases, and Sift's and Trace's tools on Idiograph's MCP server, until the cutover of 23 October 2026, and
-since it each is refused by name with the command to run in its place. `cli.first_start`
+since it each is refused by name with the command to run in its place. Since nosiftrace (12 November 2026, Adam:
+Sift and Trace early apps, for the maintainer alone) `app_identity.NAMES` says which other apps each app names to its user, Sift's and
+Trace's the other two and Idiograph's none, so `elsewhere` lets `idiograph sift` and `idiograph trace` fall to the
+parser as words Idiograph lacks, `add_search` gives Idiograph's Search no `--folder` and names its own kinds alone,
+as its MCP `search` tool does, and a scope it lacks is refused with `NO_SCOPE_IDIOGRAPH`. `cli.first_start`
 runs Sift's or Trace's first start from its command line or MCP server when its window never has, unless
 `--config` names a trial's settings. In `mcp_server.py`, `tools_for(app)` gives each server its tools,
 today's names: Sift's and Trace's their own and `own_search(app)`, which needs a folder, and Idiograph's
@@ -1260,9 +1265,9 @@ failed half way finishes the rest with the `--from` line, and one GitHub says is
 so once idiograph-releases is archived nothing here changes. Every release's notes end on "Which file do I
 need?" (`which_file`), the table the README has: each computer and its download in this release, the Linux rows
 only when the release has their files. The file names carry no version, so
-`releases/latest/download/<file>` always finds the newest. The `idiograph-release` helper outside the
-repository still fetches the Mac app from idiograph-releases, which holds 0.9.24 too, and moves to
-Pharkie/idiograph once that one is archived.
+`releases/latest/download/<file>` always finds the newest. Pharkie/idiograph-releases was archived on
+12 November 2026, once every tester had 0.9.24 or later, and the `idiograph-release` helper outside the
+repository fetches the Mac app from Pharkie/idiograph.
 
 **Weekly releases and the maintainer's daily Mac copy** (macdaily, 9 November 2026, Adam, 9 November about
 13:20). A release goes to GitHub once a week, on Mondays, for the Mac, Windows and Linux, since each tag run
@@ -3225,10 +3230,20 @@ Pictures: `picture_bytes` keeps a PNG cut square at its middle and scaled to 256
 it came, refusing anything else. `change` writes them to `<project>/trajectories/pictures/<Pseudonym>.png`
 through `picture_files`, the one replaced or taken off moved to `pictures/_Archive` with the time in its name, never deleted. The page
 sends a picture already squared to 256 by a canvas as a data URL (`trajOwnPicture`), an agent a path
-(`from`). `traj_picture_url` answers `/faces/peepNN.svg` for the set, `set:peepNN`, and `/traj-picture` for
+(`from`). `traj_picture_url` answers `/faces/<name>.svg` for one of the sets, `set:peepNN`, and `/traj-picture` for
 his own, `stream_traj_picture` serving it by name alone from the project's pictures folder with a CSP that
-runs nothing. The set (peeps, 12 November 2026, Adam: black and white) is forty heads and shoulders from Open
-Peeps, Pablo Stanley's CC0 library, in `apps/idiograph/static/faces/peep01.svg` to `peep40.svg`, `FACES`.
+runs nothing. The sets (picsets, 12 November 2026, Adam: "more sets, a tab each") are `FACE_SETS`, each its key,
+its files' stem and its count, in the order of Choose from the set's tabs, and `FACES` every name of them: Open
+Peeps, `peep01` to `peep80`, Notionists, `notion01` to `notion40`, and Fluent Emoji, `fluent01` to `fluent20`,
+all in `apps/idiograph/static/faces/` side by side, so a picture's address is `/faces/<name>.svg` whichever set
+it is of. A name in none is refused with `trajectory_no_such_face`, naming the three runs (`faces_said`). The
+page's `FACE_SETS` in `trajectories.js` mirrors it, with `faceSetsHtml`, the tabs and the grid both pickers draw
+(Trajectories' editor and the project page's fields, `distil.js`), `faceSetOf`, the set a picture's address is
+in, open first, and `faceSetStep`, the arrows, Home and End along the tabs (`TJ.faceSet`, `PP.faceSet`, '' for
+the set of the picture now). The first set (peeps, 12 November 2026, Adam: black and white) is heads and
+shoulders from Open Peeps, Pablo Stanley's CC0 library, `peep01` to `peep40` and since picsets forty more,
+`peep41` to `peep80`, widening the range the first forty left thin (older faces, bald heads, headscarves,
+turbans, hats, afros, locs, beards, glasses, dark tops), the first forty byte for byte as they were.
 `packaging/make_peeps.py` makes them, once, when the set changes, never at run time: each is asked of DiceBear's
 public HTTP API (`api.dicebear.com/11.x/open-peeps/svg`) by explicit parts, its `SET` row naming the head,
 expression, facial hair and glasses, so no seed chooses, every colour asked as a stand-in. The download is
@@ -3238,12 +3253,26 @@ metadata dropped, every fill mapped from its stand-in to the app's ink `#2B2620`
 `#C9C2B8` (grey hair, a grey top or headscarf), and any other colour stops the run. Skin is left white. Every
 picture shares one window on Open Peeps' 704 square, `VIEW` (45, 0, 710, 710), head and shoulders with the
 face a little right of centre as Open Peeps turns it, so the circle the app draws holds the tallest hair in the
-set (the afro, the bun) whole. The set before, `face01` to `face24` (24 line portraits by `make_faces.py`,
+set (the afro, the bun) whole (the big afro and the buns with a bow or a curl on top are left out, since it would
+cut them). `packaging/make_notionists.py` makes the Notionists the same way from DiceBear's `notionists` style,
+Zoish's CC0 line drawings, asked in the app's ink on white paper (`inkColor`, `paperColor`), every part named
+(hair, beard, glasses, clothes, mouth, eyes, eyebrows, nose), the clothes drawn with a mask or a stroke (variants
+05 to 10) left out so each file is paths alone, the window `VIEW` (322, 140, 1100, 1100) on its 1744 square.
+`packaging/make_fluent.py` makes the Fluent Emoji from Microsoft's repository at one commit (`COMMIT`), each
+person's High Contrast drawing, parsed the same way, its one dark (`#212121`, in one file `black`) to the ink,
+a group clipped to its own square let go, framed by `VIEW` (-2.5, -2.5, 37, 37) on its 32 square, and the
+repository's MIT `LICENSE` checked and written beside the pictures as `LICENSE-fluent-emoji.txt`, as MIT asks.
+In ink red hair draws as dark hair and white hair as fair, so the set takes dark, light and curly hair, two bald
+heads, older people, a headscarf, two turbans and three beards. Each file names its source and licence in a
+comment. The set before, `face01` to `face24` (24 line portraits by `make_faces.py`,
 gone), stays readable: `FACES_BEFORE` maps each to its nearest now by hair and glasses or beard, `face_of`
 reads either name, `picture_kept` keeps an old name as the file has it, `traj_picture_url` answers its nearest's
 file, and an old name chosen again through the route, the command line, MCP or a Trajectories op is written as
 its new one. The pickers mark the chosen face by its address (`picture_url`), so an old name shows its
-nearest as chosen. `.tf-faces` lays them out in four rows of ten, five of eight in a narrow window. Change picture... is an
+nearest as chosen. `.tf-settabs` draws the tabs in the sidebar's tab look at their own widths, and `.tf-faces`
+lays a set's pictures in as many columns of 36 pixels as the width holds, five rows and half a sixth at most,
+the half row saying there are more, the rest scrolled to inside it (at 1280 the eighty Open Peeps are five rows
+of sixteen and nothing scrolls, at 720 ten a row). Change picture... is an
 `<input type=file>` (`#tj-picture-file`): wry 0.57's `WryWebViewUIDelegate` answers
 `runOpenPanelWithParameters` with an `NSOpenPanel` in the Mac's window, so it opens there as in a browser
 (it passes no file types, so the panel offers any file, and one that is no picture is refused with
@@ -5747,7 +5776,10 @@ paper, `.gt-tnone` and `.tr-none` in `--ink-soft`. `.kicker` is `--ink-soft`, ne
 `.gt-find` keeps no padding under the field, and `.gt-cases` takes `padding-top: 14px`, and with
 `.scrolled`, which its `scroll` listener sets once it has scrolled, a `mask-image` that fades its top
 26 pixels, reading the ink's alpha alone. On the Rename card `#rn-lead`
-says What will change over `#rn-list`, and `rnListShow()` shows both only while the list holds a line
+holds the one line (`distil.rename.lead`, or `lead_workbook` where `in_source` is false), `#rn-copy` the line about
+the copies and `#rn-details`, a native `<details>` closed by default, the list `#rn-list`, filled from the plan's
+`details` (renamesimple: `rename_plan` builds `details` and `in_source` beside `lines` and `folder_lines`, which
+the command line and MCP keep whole), and `rnListShow()` shows them only while the list holds a line
 and `#rn-said` is hidden. The way back on GETs keeps the rule `gtScreen` and `themesOpen` already
 drew, the arrow alone to the case list and PETs beside it back to PETs, which `drawBackTo` keeps on
 Experiential statements.

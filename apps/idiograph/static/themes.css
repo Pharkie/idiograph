@@ -2413,8 +2413,15 @@ circle.th-link-hit { fill: transparent; stroke: none; pointer-events: fill; }
 .tf-edit-lpets { align-items: start; }
 .tf-edit-ticks { display: flex; flex-direction: column; gap: 4px; }
 .tf-tickrow { display: flex; align-items: baseline; gap: 7px; font-size: 13px; color: var(--ink); cursor: pointer; }
-/* the drawn set, forty, in four rows of ten, five of eight in a narrow window, so no row is left short (peeps) */
-.tf-faces { display: grid; grid-template-columns: repeat(10, 36px); gap: 6px; margin-bottom: 4px; }
+/* Choose from the set (picsets): a tab for each drawn set in the sidebar's tab look, at their own widths from the
+   left, and the set's pictures under them in as many columns as the width holds, five rows and half a sixth at
+   most, the half row saying there are more, the rest scrolled to inside, its padding room for the chosen
+   picture's ring */
+.tf-sets { margin-bottom: 4px; }
+.th-tabs.tf-settabs { padding: 0; margin-bottom: 8px; gap: 4px; }
+.th-tab.tf-settab { flex: none; padding: 4px 10px 7px; }
+.tf-faces { display: grid; grid-template-columns: repeat(auto-fill, 36px); gap: 6px; padding: 3px;
+  max-height: calc(5.5 * 36px + 5 * 6px + 3px); overflow-y: auto; overscroll-behavior: contain; }
 .tf-face { width: 36px; height: 36px; padding: 0; border: 1px solid var(--rule); border-radius: 50%; overflow: hidden; background: var(--tf-face-ground); cursor: pointer; }
 .tf-face img { width: 100%; height: 100%; display: block; }
 .tf-face.on { box-shadow: 0 0 0 2px var(--ink); }
@@ -2486,7 +2493,6 @@ input.tj-title:focus { outline: 0; border-color: var(--field-edge); background: 
   .tf-edit { grid-template-columns: minmax(0, 1fr); }
   .tf-edit-pic { flex-direction: row; }
   .tf-edit-picb { flex-direction: row; flex-wrap: wrap; }
-  .tf-faces { grid-template-columns: repeat(8, 36px); }
   .tf-edit-done { justify-self: end; }
 }
 

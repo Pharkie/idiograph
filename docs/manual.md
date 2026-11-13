@@ -21,23 +21,15 @@ its extracts and their codes go into the same workbook, and the code list into a
 root. A codebook approach, such as template or framework analysis, or coding reliability with a second
 coder, is a different method.
 
-Sift, which screens a systematic review's records, and Trace, which holds each claim a manuscript makes
-of a reference against the reference, are apps of their own on the same code, each with its own manual.
 How to install and start it is in the [README](../README.md), and how it works underneath in
 [docs/internals.md](internals.md).
 
-**Three apps from one page (20 October).** Idiograph, Sift and Trace are apps of their own on one
-codebase, and each shows only its own screens. Idiograph is the app for IPA and thematic analysis: its Home
+**Home and its screens (20 October).** Idiograph is the app for IPA and thematic analysis: its Home
 holds your projects of both and the demo under Projects, an IPA project's screens Experiential statements,
-PETs and GETs, and a thematic analysis project's Coding, Code list and Themes. Sift's Home holds
-your Sift projects and Trace's your Trace projects, each under Projects in the same shape. Each Home opens
-with its app's wordmark and one line, and ends with the other two apps, each with its icon, its name, one
-line and Open when it is installed or Download when not, which opens its releases page. Run from its
-folder, every app is there, and Open starts it. The analysis no longer carries a name of its own beside
-the app's: Idiograph's own mark, the dot between brackets, stands on its bars, and
-each app has its colour, Idiograph blue, Sift plum and Trace sea green, for its mark and its tab in
-Settings. Each app keeps its own settings, Appearance among them, and Sift's and Trace's first start
-copy what they share from Idiograph's, never its demo. Idiograph's Home says under its line "Free, open source, flexible, your files stay on
+PETs and GETs, and a thematic analysis project's Coding, Code list and Themes. Home opens with the app's
+wordmark and one line. The analysis no longer carries a name of its own beside the app's: Idiograph's own
+mark, the dot between brackets, stands on its bars, and its colour, a deep blue, is its mark's and its
+tab's in Settings. Idiograph's Home says under its line "Free, open source, flexible, your files stay on
 your computer."
 
 **Participant, and Quote (20 October).** Every screen says participant where it said case: the
@@ -53,8 +45,7 @@ Quote at his word, one participant's workbook or every one in the project, throu
 command line or MCP tool, with a dry run first. Only the heading changes, and a copy of the workbook as it
 was goes into the participant's `_Archive` folder first. A board's History says "Before Rowan's changes came in" for the
 revision kept as a participant's changes come into the GETs. The Offset card under the player says
-"Your time codes are not changed." under its seconds (21 October). When Sift or Trace runs as itself, its own lines say its name, "Sift is closed." and Quit
-Sift among them, and Help opens its own manual.
+"Your time codes are not changed." under its seconds (21 October).
 
 Every save writes the whole workbook back, and a cell the save does not change comes back as it
 was: each run of its formatting, a highlight, bold, italic, an underline, a strike, a colour, a size
@@ -70,7 +61,7 @@ until 15 October. Rounds, ten minutes of transcript at a time with a daily targe
 left, are a pace of his own and not a step of the method, so they are a setting, Work in rounds, off on
 a new install (see Rounds).
 
-Every Remove or Delete button with words, in Sift, Idiograph and Trace, a confirm card's among them, is
+Every Remove or Delete button with words, a confirm card's among them, is
 drawn alike: a red outline with a small bin before its word, so a button that takes something away
 reads the same wherever it stands (12 October, later). The Remove on each pair of statement and key
 quote was one of them from 14 to 18 October, when it became a bin alone at the pair's top right (see
@@ -81,20 +72,19 @@ Remove from PET until 20 October, moves a card and bins nothing, so it carries a
 the ink.
 
 **Every tick from its whole row.** Every checkbox and radio in Idiograph ticks from anywhere on its
-row, its words as well as its box, in Sift, Idiograph and Trace alike, with a pointer over the row and the
+row, its words as well as its box, with a pointer over the row and the
 row shaded under it (13 October). A row that holds other controls too, a name box, Remove or a
 handle, ticks from anywhere but on them. Every radio is the app's own, a ring with nothing in it until
 it is chosen and then a dot in its middle, in light and dark alike, where in dark the browser's own
 filled an unchosen one with grey so that it looked almost chosen (17 October, later). Every tick and
-radio is in the ink, Sift's filters and its Export to Zotero card among them since 17 October, later,
-where they stood in the crux orange, which is kept for a crux, a quote and the filled button. A card that keeps each change as you make it, Set columns
-among them, ends with Done at its foot right, which closes it as the X at its top right does, and a
+radio is in the ink, never the crux orange, which is kept for a crux, a quote and the filled button. A card
+that keeps each change as you make it ends with Done at its foot right, which closes it as the X at its top right does, and a
 card with its own Save or confirm never has one.
 
 **In a window of its own (17 October, not shipped yet).** Idiograph is becoming an app with a window of
 its own and its icon in the Dock or the taskbar, in place of a browser tab. In the window, Print opens
 the system's print panel, Save as PDF among it, and each print view opens in a window of its own that
-prints the same way. Saving a file, the PRISMA map's SVG or PNG, opens the system's save panel with the
+prints the same way. Saving a file opens the system's save panel with the
 file's name already in it, and a file that cannot be written there says so. A link to another site
 opens in the browser. Opening Idiograph
 while it is open brings its window forward. New Window, Cmd or Ctrl+N, opens another window on what
@@ -138,12 +128,12 @@ Ctrl+V and Ctrl+A work in a field and on a board as they always do. Every window
 screen is smaller than the window, and a new window opens a step down and right of the last, never with
 its foot under the taskbar or the Dock. Each window is named for the app first and then for what is in it, as in
 "Idiograph - Living with a dog - Juno - Experiential statements": the project, the participant where the screen is one
-participant's, and the screen. Home is just Idiograph, a project's page is Idiograph and the project, and Sift's and
-Trace's windows are the app and the project. So two participants in two windows tell apart in the Dock, the taskbar and
+participant's, and the screen. Home is just Idiograph, and a project's page is Idiograph and the project. So two
+participants in two windows tell apart in the Dock, the taskbar and
 Alt+Tab. Choose beside a folder opens the
 system's own folder dialog on either system. The window opens at the size and place it had when
 Idiograph quit, and on the screen it was on when it opens again within ten minutes, after an update for
-one, as a Restart does. Settings kept on the computer, the folds, the filters and Sift's step among them,
+one, as a Restart does. Settings kept on the computer, the folds and the filters among them,
 follow Idiograph whichever port it starts on. Closing a window saves what is typed first, and when that
 cannot be saved asks before it closes. Printing keeps the date, the title and the page's address off
 paper, and General's Closing tick, which speaks of tabs, is not shown in the window. Should Idiograph
@@ -188,13 +178,12 @@ names has moved. On a Mac the entry 0.9.0 wrote still works.
 panel saying what the preview means right under them, then its line, "Software for Interpretative
 Phenomenological Analysis", and under it four short items in a row, Free, Open
 source, No cloud and Flexible. When the row wraps, Free and its Ko-fi button keep together, and so do Open source,
-No cloud and Flexible, so no word is left alone on a line. Sift's and Trace's Homes carry four under their own
-lines, Free, Open source, Flexible and No cloud (22 October). Beside Free stands a
+No cloud and Flexible, so no word is left alone on a line (22 October). Beside Free stands a
 small pale blue button, "Support me on Ko-fi", Ko-fi's own, its cup with a heart giving a little wiggle every few
 seconds, which opens Adam's Ko-fi page in your browser. The cup stays still when your computer is set to
 reduce motion. The button is kept in the app, so nothing comes from Ko-fi until you press it. On a phone Free and the button have a line of
 their own. The head stands on the same grid as the projects under it (5 November): the lockup at the top left, with
-room above it, at least the height of its mark (32 pixels for the Preview Edition's lockup, 24 for Sift's and Trace's) below the
+room above it, at least the height of its mark (32 pixels for the Preview Edition's lockup) below the
 top of the window's own title bar (6 November), and the page keeps a margin of 32 pixels at each side whatever the width of the window, level with Search, Send feedback and Settings at the top right, which show their words as they do on a project's screens and
 give them up the same way when the window is narrow, the target squares under them, and the preview's panel as wide as
 the column beside the squares allows, so it reads in four lines. Then
@@ -212,12 +201,8 @@ tagged "Thematic analysis demo", the same three invented participants coded in a
 the two methods can be compared on the same words. Demo projects starts folded to its head. Open it or fold it
 and Home keeps it that way, as Projects keeps its fold. On a Home with no project of yours yet, and before you
 have opened or folded it, it starts open, so the demos are there to find. Each demo's card opens its page, and
-its menu holds Project settings, read-only. At the foot of Home stand the other two apps under
-the heading "Sift and Trace", each with its icon, its name, one line, and Open when it is installed or
-Download when not, which opens its releases page (see Three apps from one page, above). Settings, the cog
-and its word, at the head of Home over the days, opens Settings on General. Sift's Home and Trace's
-are the same shape, each with its own projects under Projects and the other two apps at its foot (see
-Sift's manual and Trace's manual).
+its menu holds Project settings, read-only. Settings, the cog
+and its word, at the head of Home over the days, opens Settings on General.
 
 A card opens its project's page. At its head the way back to Home, a round arrow, with
 the project's name and question beside it, then in the order of the work a row for each participant,
@@ -263,16 +248,19 @@ own border, where until 17 October, later, they stood in the crux orange.
 **A participant's picture, label and pen portrait (11 November 2026, pbiobuild, layout A).** Each participant
 of every project, IPA and thematic analysis alike, has a picture, a label of a few words and a pen portrait, a
 short paragraph to remind him who they were, beside the number and pseudonym their folder gives them. The real
-name is never kept here. A row shows the picture before the name, one of the app's 40 drawn portraits or his own
+name is never kept here. A row shows the picture before the name, one of the app's drawn portraits or his own
 file, or with none the participant's initial in their colour, the label under the name, and the pen portrait's
 first two lines across the row under them, the whole in its tooltip. A double-click on the name, the label or
 the pen portrait, or Edit participant profile, first in the dots, opens the fields across the row: the picture with Change picture...,
 Choose from the set and Remove, the participant greyed with Rename... after it (on a participant in a folder of
 its own, never the demo's, and it opens the Rename card below), Label and Pen portrait, each kept as it is left, and
-Done at the foot. Choose from the set opens the drawn portraits under the fields, four rows of ten. Since 12
-November (peeps) they are forty heads and shoulders from Open Peeps, Pablo Stanley's drawings, in black and
-white, with a range of ages, hair, headscarves and turbans, beards and glasses. A picture chosen from the 24
-before shows as the nearest of the forty until another is chosen. His own picture is cut
+Done at the foot. Choose from the set opens the drawn portraits under the fields, a tab for each set of them,
+the set of the picture now open first, the others a click or an arrow key away, as many in a row as the window
+holds and, in a narrow window, the rest scrolled to under the half row that shows there are more. Since 12 November (peeps and picsets) there are three sets, all in black and white and all in the
+app, never fetched: Open Peeps, eighty heads and shoulders from Pablo Stanley's drawings, Notionists, forty line
+drawings by Zoish, and Fluent Emoji, twenty of Microsoft's emoji faces drawn in ink, each with a range of ages,
+hair, headscarves and turbans, beards and glasses. A picture chosen from the 24 before shows as its nearest
+Open Peep until another is chosen. His own picture is cut
 square, made small and kept in the project folder's `pictures/`, the one it replaces moved to that folder's
 `_Archive`, never deleted. A label is up to 60 characters and a pen portrait up to 800, its line breaks folded
 into spaces. A label or pen portrait holding a name from the project's list of names to replace is refused in
@@ -342,23 +330,17 @@ never an age, and a value holding a name from the project's list of names to rep
 **Rename (16 October).** A pseudonym given once sometimes changes, so Rename..., in a participant's fields (Edit participant profile in the dots) after the greyed
 name, gives the participant a new one (a tester's ask, Adam's word). Its card
 holds the name now, a field for the new name, one unticked row, Rename the folder too, and under them
-the list of what will change, drawn before anything is written and drawn again as the name is typed
-and the row ticked. The list stands under the words What will change, one plain thing that changes
-on each line, and names no file the app keeps for itself (16 October, later, and 17 October after the
-screenshot check, where a line led with the workbook and did not read): the participant's name on
-the passages of each sheet it stands on, "Ada's name on 54 passages of the "Initial" sheet and 30 of
-the "2d" sheet", each sheet named as the bar names it since 17 October, later, with the workbook it is in
-after it only where two carry the name, "Ada's name on 54 passages of the "Initial" sheet, in the
-transcript in Source", then "The participant's PETs boards", "The
-project's GETs" when the GETs hold the participant, the project's own file, "The project's order of its
-participants" when his order of the rows names the participant and "The project's note of the new name,
-since the folder keeps its own name" while the folder keeps its name, and Idiograph's own list of
-recent participants. Ticked, the list adds the folder and each workbook named after the participant, "The
-folder P1 - Ada becomes P1 - Bea" and "The annotated workbook takes the new name and keeps its
-progress and PETs boards", in words and never by a file's new name (17 October), and the project's note of the
-new name leaves the list, since the folder then carries the name and the note is never written. Each
-state lists exactly what its Rename writes. The line under it says "A copy of each file is kept
-first.", as the app's backups go, the participant's `_Archive/` for its own files and the project's for the
+one line (12 November 2026, Adam: the long list was more frightening than it needed to be): "Ada's name
+changes on every passage, in the workbook and in Source.", or "in the workbook." alone where the participant
+has no transcript in Source, then "A copy of each file is kept first." and a folded Details. Details, closed
+until opened, lists the participant's name on the passages of each sheet it stands on, "Ada's name on 54
+passages of the "Initial" sheet and 30 of the "2d" sheet", with the workbook it is in after it only where two
+carry the name, then "The PETs boards and GETs show the new name", "Their place in the order, picture, label
+and pen portrait stay with them" and, while the folder keeps its name, "The folder keeps its name, P1 - Ada".
+Renaming never moves a participant in the project's order. The list is drawn before anything is written and
+again as the name is typed and the row ticked. The command line's `--dry-run` and the MCP server still give the
+full list, the folder's moves too when the folder is ticked. The copies
+go as the app's backups go, the participant's `_Archive/` for its own files and the project's for the
 GETs file and the project file, each named `(pre-rename <date-time>)`. Rename, filled, changes them
 all, and Cancel and Esc change nothing. The card's kicker, Participant, stands in the soft ink, as
 every card's kicker does since 17 October, later, where it stood in the crux orange, which design.md
@@ -540,24 +522,19 @@ and no line, and the page asks the server nothing for them (15 October).
 
 **The marks.** Idiograph's mark is an orange dot between two square brackets, the participant's
 experience held where the researcher's hand enters a quotation, and the wordmark at the head of its
-Home is that mark with the name beside it in the mark's square stroke. Sift and Trace each have a
-mark of their own in the same square line and a wordmark drawn the same way, and each app a colour of
-its own, Sift a plum, Idiograph a deep blue and Trace a sea green, the three of one weight, each about 7 to 1 against the page in both
-appearances, and each told from the others with any of the three common kinds of colour blindness
-(15 October, later). An app's mark stands on every title bar of the app between the arrow back and
+Home is that mark with the name beside it in the mark's square stroke. Its colour is a deep blue, about 7 to 1
+against the page in both appearances (15 October, later). The mark stands on every title bar of the app between the arrow back and
 the project's name, 7 pixels from the name at every width, the name after it cut short with an ellipsis
 where the bar runs out of room, Experiential statements, PETs and GETs carrying Idiograph's, and in
 Settings the category chosen takes its rule in the app's colour. In a title bar and in Settings the
 mark is drawn again for its small size, 18 or 16 pixels, every line on a whole pixel, so it reads as
-sharp as the words beside it. The three colours carry one weight, each within a tenth of 7 to 1
-against the page in both appearances, where Trace's stood lighter in one and darker in the other
-(15 October, later). An app's colour is only
+sharp as the words beside it. The app's colour is only
 ever its mark's and its Settings rule's, never a decision. The browser tab shows the mark on its paper tile,
 dark when the system is, and the Mac and Windows icons are the same mark, drawn for 16 pixels at the
 smallest sizes so it stays crisp.
 
 **The bars since 26 October 2026.** Adam chose option C of the bars' drawings, and every screen's head now reads the
-same way, in Idiograph, Sift and Trace. At the top left stands the app's lockup, its mark and its name, and a
+same way. At the top left stands the app's lockup, its mark and its name, and a
 click on it goes Home. The Preview Edition stamp stays on Home and in About. After the lockup come the stages as
 tabs, Experiential statements, PETs and GETs, or with timepoints ES, PETs, LPETs, LGETs and Trajectories, every
 tab drawn alike. At the right stand the screen's own tools, Export on PETs, View and Guidance on Experiential
@@ -582,13 +559,10 @@ buttons were, with nothing or one card selected, and Spread's two until three. S
 Auto-arrange, Undo and Redo keep their words. Where the toolbar runs short Select all loses its word first, then
 every tool shows its icon alone with its word in its tooltip. On Experiential
 statements the sheet moved to the status bar before the place, and the round, the clock and Mark complete
-after the counts. Trajectories' bar gained Search and Feedback. Sift's steps are tabs on its bar, with the
-screening's or the review's name in the path and the review's question after it. Trace's one bar holds the
-lockup, which is Home, the project's name and its tools. Keyboard shortcuts are unchanged. Since the same day the
+after the counts. Trajectories' bar gained Search and Feedback. Keyboard shortcuts are unchanged. Since the same day the
 app's window is never narrower than 720 pixels (Adam, 26 October 2026: 360 is dropped). At 720 Idiograph's bar
 keeps its one row, the tabs in their short names beside the lockup, the tools as icons, and the toolbar stands
 on two lines, the sidebars' buttons, the board, Auto-saved and Canvas and Table over the tools.
-Sift's bar, whose steps have long names, takes two rows at 760 and below, the steps on a row of their own.
 
 **The band since 6 November 2026.** Adam chose option D, after a tester found the lockup and the path's Home doing
 the same thing. On every project screen the lockup at the bar's left is the way Home, and the band under the bar
@@ -605,18 +579,9 @@ settings alone, as its card does. Remove from Idiograph asks first, in the same 
 screen as Home does, saving what is typed, takes the project off Idiograph's list, its folder and files left as
 they are unless the card's tick moved the folder to the Bin, and ends on Home without it.
 
-**Sift's and Trace's project menus.** A Sift or Trace project's card on Home has a "…" at its top right, as an
-Idiograph card has, and in its band, or on Trace's bar, its name has the same chevron and opens the same menu
-(6 November 2026). It holds what applies to these apps: Show in Finder (Show in Explorer on Windows, Show in Files on Linux, in
-the app's own window alone), Project settings, which opens Settings on Projects with this project in front, where its name,
-question and the rest are kept, and Remove from Sift… or Remove from Trace…, which asks first and, from inside,
-leaves the screen and ends on Home. A project whose folder has gone has Remove alone. Sift and Trace keep no
-History of a project and make no shared copy, so neither is there. The name no longer goes from a record back to
-the table, which Esc and Back still do.
-
 **The tabs keep their place.** The tab in front is in bold, and every tab is always as wide as its name in bold, so
 switching stage moves none of them (6 November 2026). The boards', Trajectories' and the code list's bars start
-their tabs where the statements screen's does. Sift's steps do the same.
+their tabs where the statements screen's does.
 
 **Auto-saved under the board's name.** On PETs, LPETs, GETs and LGETs the save state stands under the board's name
 in smaller words, so the pair takes no more width than the name and Canvas and Table stand closer (6 November 2026).
@@ -634,9 +599,7 @@ stands is kept on this computer. The small Replace in the transcript link in Sea
 every screen (16 October, after a tester found Appearance on some screens and not others). Each tool
 on it is its icon and its word: View, Guidance, Search, Shortcuts, Feedback and Settings on Experiential
 statements, Participants at the left end of the bar on GETs, then Sticky note, Group, Undo, Export on PETs alone,
-Search, Shortcuts, Feedback and Settings, and Inspector at the right end on PETs and GETs, Export, Second
-screener, PDF, Search, Shortcuts, Feedback and Settings in Sift, PRISMA flow on the line under it since 12
-October, Search, Feedback and Settings on Search strategy, Search, Shortcuts, Feedback and Settings in Trace, and
+Search, Shortcuts, Feedback and Settings, and Inspector at the right end on PETs and GETs, and
 Search, Feedback and Settings at the head of Home. Each tool shows its word where the bar has the
 room, from 761 pixels of window, and where the bar runs short the icons stand alone, each named on hover (since 26 October, where
 the words showed from 1280 pixels).
@@ -665,7 +628,7 @@ tabs). The
 tools keep one order on every bar: the screen's own first, what it alone does, then what
 writes or sends, then the rest, and last the tools every bar ends with, Search where the screen has
 one, Shortcuts where it has keys, Feedback and Settings. Search took Find's place on 17 October, and
-came to Sift's, Search strategy's and Trace's bars and Home on 18 October (see Search). A sidebar's button stands at its own side,
+came to Home on 18 October (see Search). A sidebar's button stands at its own side,
 over the sidebar it opens: Participants at the left end of the GETs bar and Inspector at the right end of
 the PETs and GETs bars, each the standard panel icon with its own side filled. Every button with a
 key names it in its tooltip, "Group (G)", "Search (Cmd + F)", with Ctrl in place of
@@ -673,7 +636,7 @@ Cmd on Windows and Linux, and the shortcuts card stays. Since 17 October every k
 screen is named the same way, in its hints, the quote's empty field, its lines at the foot and its
 shortcuts card, Cmd on a Mac and Ctrl elsewhere, Option or Alt, and Home and End for a line's ends
 off a Mac, so "Ctrl + Enter saves" never stands beside "Hold Cmd" and the card names one key where it
-said "Cmd / Ctrl". Sift's shortcuts card and Trace's name their keys the same way since 17 October, later.
+said "Cmd / Ctrl".
 Every key on a button stands in the faint ink and a key beside a decision's word in the word's own colour,
 where until then each stood at a little over half its button's word and
 read under 4.5 to 1 (17 October, later). The time on Back to where I was stands in the faint ink with them since the same
@@ -684,15 +647,15 @@ left every bar for Settings, General the same day (see Light, dark or the system
 words on Experiential statements, the line to today's target leaves its bar below 1440 pixels, and
 below 1280 pixels its first tab, Experiential statements, reads ES (see Idiograph's tabs). At 1280 pixels a name of 30 letters stays whole
 on every bar, except where a bar holds its most: Experiential statements marked complete with passages
-still undecided, and Sift with Second screener on, where the name ends in an ellipsis and shows whole
+still undecided, where the name ends in an ellipsis and shows whole
 on hover.
 
 **Keys in capitals (17 October, later).** Every letter key stands in its capital, as keyboards and the
 Mac's and Windows' menus print it, on every shortcuts card, in every tooltip, "Group (G)", and in every
 line, "Select the words inside the passage first, then press Q.", where until then Experiential statements
-and PETs wrote theirs in lowercase beside Sift's and Trace's capitals. The key is pressed as before,
+and PETs wrote theirs in lowercase. The key is pressed as before,
 without Shift. Since 18 October Experiential statements takes its letter keys with Caps Lock on too, as
-PETs, Sift and Trace always did, where until then `Q` and the rest did nothing with it on.
+PETs always did, where until then `Q` and the rest did nothing with it on.
 
 **Idiograph's tabs.** Each of Idiograph's three bars carries a fixed tab per stage, after Idiograph's mark
 and the project's name: Experiential statements, PETs and GETs, in the book's order, steps 2 to 5 for one
@@ -1123,7 +1086,7 @@ tooltip, so the participant name keeps its letters at 360px, "Juno …" beside "
 Guidance on the bar since 16 October, "Juno - E…" before it
 since Appearance left the bar ("Juno…" while View and Appearance both stood there), and a few
 beside the demo tag (16 October). Settings' categories become a row of tabs over the content on a phone (see Settings). A participant marked complete
-gives way in the same steps (see Complete). The bug for Send feedback, there once the build carries the collector's address (see Send feedback), sits just before the cog at every width, as it does on the PETs and GETs bars, so it stands in one place throughout. View stands first of the tools, Guidance after it (16 October), then the magnifier, Search's since 17 October (see Search), and the shortcuts, PETs having gone from among them to the tabs (see Idiograph's tabs), so Settings stands last (see One title bar), and below 480px View is the one that takes the tools to the right edge (16 October). The rest of the bar gives way before the tabs do, so they keep their words and the participant's name its letters: below 1440px "Statements complete" reads "Complete", the tab naming the screen, and the round's words take their short form, so a name of 30 letters stays whole at 1280px, below 760px the shortcuts go, as Sift's and Trace's do at that width, `?` still opening them, with the sheet's label, and below 480px View goes, its choices kept under Experiential statements in Settings, and Guidance takes the tools to the right edge. Measured on 18 October, before the tabs, on the demo's invented participants, an unfinished participant with rounds on, the fullest the bar gets, keeps all of its name or all but its last letters from 1600px down to 480px, and below that its first letters and the ellipsis, "Jun…" at 360px, the bar's sides 8px below 480px and its tools 16px wide below 400px, and a finished participant keeps more, a name of 30 letters whole at 1280px. The icons at the right of the bar
+gives way in the same steps (see Complete). The bug for Send feedback, there once the build carries the collector's address (see Send feedback), sits just before the cog at every width, as it does on the PETs and GETs bars, so it stands in one place throughout. View stands first of the tools, Guidance after it (16 October), then the magnifier, Search's since 17 October (see Search), and the shortcuts, PETs having gone from among them to the tabs (see Idiograph's tabs), so Settings stands last (see One title bar), and below 480px View is the one that takes the tools to the right edge (16 October). The rest of the bar gives way before the tabs do, so they keep their words and the participant's name its letters: below 1440px "Statements complete" reads "Complete", the tab naming the screen, and the round's words take their short form, so a name of 30 letters stays whole at 1280px, below 760px the shortcuts go, `?` still opening them, with the sheet's label, and below 480px View goes, its choices kept under Experiential statements in Settings, and Guidance takes the tools to the right edge. Measured on 18 October, before the tabs, on the demo's invented participants, an unfinished participant with rounds on, the fullest the bar gets, keeps all of its name or all but its last letters from 1600px down to 480px, and below that its first letters and the ellipsis, "Jun…" at 360px, the bar's sides 8px below 480px and its tools 16px wide below 400px, and a finished participant keeps more, a name of 30 letters whole at 1280px. The icons at the right of the bar
 stand 4px apart where the bar's other items stand 8px (12px until 13 October), 3px apart and 24px wide below 620px, and
 2px apart and 18px wide below 480px, which is what gives the magnifier its room: each icon takes
 30px of the bar, 27 below 620px and 20 below 480px, which the participant name gives up, so just above
@@ -1759,13 +1722,12 @@ when another one opens.
 
 **Light, dark or the system.** Appearance, as the Mac names it, is a setting under Settings, General,
 three radio rows, Light, Dark and Same as this computer, each ticking from its whole row and applied
-the moment it is ticked, with no Save (16 October). Until then a button on most bars cycled the three
-states with a glyph for each, and Search strategy and Trace carried it while Experiential statements,
-PETs and GETs did not, so it left every bar (see One title bar). Same as this computer is what a
+the moment it is ticked, with no Save (16 October). Until then a button on some bars cycled the three
+states with a glyph for each, and it left every bar (see One title bar). Same as this computer is what a
 fresh browser starts in: it follows the appearance set in macOS and changes with it, no reload.
 Light and Dark hold whatever the machine is doing. The choice is kept in this browser under its old
 name and values, `system`, `light` or `dark`, and a choice stored before this, of two states, is
-still honoured. Sift's PRISMA flow, which draws its own colours, draws again on a change. In both appearances the small grey type, a timecode, a count or a line of fine
+still honoured. In both appearances the small grey type, a timecode, a count or a line of fine
 print, stands out from its paper at 4.5 to 1 or more, and a card that could not do what was asked
 says why in the amber of a warning, never the orange of a crux (15 October). The orange of a crux
 and the amber of a warning read at 4.5 to 1 or more as words too, the orange a shade deeper in
@@ -1975,15 +1937,12 @@ mark, and keeps a mark of its own in the themes file. Reset demo puts it back as
 ships: each of the three pristine progress files carries its mark, since the demo is a finished project.
 
 **Settings.** One card, about 760px wide and never wider than the window less its gutters, the same from
-Home and from every screen, with its categories down the left and the chosen one on the right. Each
-app's Settings holds its own categories, and the chosen one takes its rule in the app's colour. Idiograph's
+Home and from every screen, with its categories down the left and the chosen one on the right, its rule
+in the app's colour. The categories
 are General, Language and formats, Experiential statements, PETs and AI features (since 5 November a project's own settings are in Project settings, see Project settings).
-Sift's are General, Language and formats, Databases, Projects, Zotero and AI features (see Sift's manual), and
-Trace's General, Language and formats, Projects and AI features (see Trace's manual). General and Language and
-formats are the same in all three. General: Appearance, Light, Dark and Same as this
+General: Appearance, Light, Dark and Same as this
 computer, applied as each is ticked (see Light, dark or the system), then in Idiograph's own window Text
-size (see Text size), then Celebrations, Updates and Closing. Language and formats: see Language and formats. Appearance is kept in the app's own settings as well as in the browser, so Sift's and Trace's
-first start take it from Idiograph's.
+size (see Text size), then Celebrations, Updates and Closing. Language and formats: see Language and formats. Appearance is kept in the app's own settings as well as in the browser.
 
 Experiential statements holds what the statements screen uses: the interviewer, then Work in rounds, a
 tick off on a new install, with the line "Work through the transcript in rounds of about 10 minutes of
@@ -2006,8 +1965,7 @@ Every key in `config.json` stays where it was, the nudges under `nudges`, and th
 `pets_provider` and `pets_model`. The most PETs a New AI board proposed, under `themes` as `cap`, went with
 New AI board on 11 November 2026, and a file that holds it keeps it unread. Each screen's own settings open
 the card on its own category: the Settings on Home on General, the statements screen's cog on
-Experiential statements, the PETs and GETs screens' cogs on PETs, Sift's cog on its
-Projects and the searches' Settings on Databases, and Trace's cog on its Projects. A line that names a choice made in Settings names its category, "as
+Experiential statements, and the PETs and GETs screens' cogs on PETs. A line that names a choice made in Settings names its category, "as
 chosen in Settings, General". The category chosen holds while the card is open, and the next open goes
 to the screen's own category again, so nothing about it is kept in the browser. Below about 700px the list becomes a row of tabs over the content, and
 Experiential statements says Statements with its whole name in its tooltip, the row wrapping on a phone,
@@ -2020,31 +1978,30 @@ the card, Save included, works as before. Opening the page reads the settings an
 `config.json`, and starting the app writes nothing to it either, unless a setting it needs is missing,
 and then only that setting (see `docs/internals.md`, Settings file).
 
-**AI features (experimental).** Each app's last category in Settings (21 October). It opens with a short
-paragraph on why these features are not advised, each app's own, in plain type with a rule under it: guidance
+**AI features (experimental).** The last category in Settings (21 October). It opens with a short
+paragraph on why these features are not advised, in plain type with a rule under it: guidance
 on AI in research is changing, AI makes mistakes, what you ask about goes to the provider you choose, and the
 advice is to keep them off unless you are researching AI. Then one large slide switch, AI features, Off or
 On, turns every AI feature of the app on or off. A new install starts with it off, and a settings file that
 has it keeps its value. Turning it on first shows a small card over Settings, AI features (experimental),
-with a fuller warning in each app's own terms: not recommended for most analysis, learning to do it by hand
+with a fuller warning: not recommended for most analysis, learning to do it by hand
 matters if you are new to it, AI makes mistakes and can sound surer than it is, what you ask about leaves
 your computer for the provider you choose, and you may need to acknowledge its use when you publish. Its two
 buttons are Back to safety (keep off), the default, which Enter and Esc both press, and I understand the
 risks, turn on, plainer beside it. Save keeps it, as `ai_suggest`. While it is on, in this order: Provider, a line saying where
 the passages go, the Address for a provider that has one, API key with Check key beside it, Model (Deployment for
-Azure OpenAI), then a switch for each of that app's AI features, ticked until you untick it. Check key
+Azure OpenAI), then a switch for each of its AI features, ticked until you untick it. Check key
 asks the provider which models the key can use: "This key works." and the Model list filled with them, or
-"This key was not accepted." and the list left as it was. An accepted key typed in the field is stored, each provider's its own and
-the three apps sharing it, and with the field empty Check key checks the stored one. A refused key says who
+"This key was not accepted." and the list left as it was. An accepted key typed in the field is stored, each provider's its own,
+and with the field empty Check key checks the stored one. A refused key says who
 refused it and why, in the amber, "Mistral refused the key (HTTP 401)." Idiograph's features are Suggested statements for a passage, Suggested
-titles for a PET and Suggested titles for a GET. Sift's is AI proposals in
-screening, and Trace's AI passages for each claim. A feature unticked shows none of its controls and asks
+titles for a PET and Suggested titles for a GET. A feature unticked shows none of its controls and asks
 no model, and the server refuses its calls. Off, no screen shows an AI control, tab, menu entry,
 shortcut, tooltip or line: no AI suggest or AI suggest PET titles, no
 `N` row in the shortcuts, no AI sentence at the foot of Guidance and no statement's short id, and the
 server refuses every call to a model. Settings then shows the switch, its line and Using your own AI agents (below) and nothing else about
 the AI, neither the provider, the model, the key, the prompt and the bench, nor the PETs model,
-nor Sift's AI proposals, nor in Project settings the agents' tick, their guide and Add Idiograph to Claude
+nor in Project settings the agents' tick, their guide and Add Idiograph to Claude
 Desktop, and it asks the server nothing about them. The record of what an AI made stays whatever the
 switch: "with AI" after the name of a board an agent made, the reason an agent gave under a card, and History. At the end of the
 page, whether the switch is on or off, Using your own AI agents says you can work with your projects through
@@ -2105,11 +2062,6 @@ by itself, so it never needs tidying and nothing clears it. It is kept in the ap
 settings, never in a project, so it never goes with a copy you send or a note you send us. It never keeps what
 an agent handed in, only the command's flag names. Agents read it, never change it.
 
-Sift and Trace each keep an agent log of their own, the same way, under Settings, AI features, Using your own
-AI agents: each time that app refuses an agent, the review or the project by its folder's name, never a record,
-a claim or anything the agent handed in. Each is kept beside that app's own settings, never in a review's or a
-project's folder, and one app's log never shows another's.
-
 **Restart and Quit.** A short section at the foot of Settings, at the left of Save, carries Restart
 Idiograph and Quit Idiograph, so neither waits for a double-click on the app. Each saves what is
 pending first, the passage's fields, an interviewer note and the canvas's last save, as a move does.
@@ -2137,14 +2089,13 @@ or View's items change the size, a line at the foot of the window says it for a 
 and again at each step. Picking a row in Settings does not say it, since you see it there. In a browser's tab
 the browser's own zoom does this, so the rows and the line do not show (20 October, 30 October).
 
-**Language and formats.** A page of Settings of its own, after General (28 October 2026), the same in all three
-apps: Language, then Dates, Times of day and Numbers. Each starts on Same as this computer, with what this
+**Language and formats.** A page of Settings of its own, after General (28 October 2026): Language, then Dates, Times of day and Numbers. Each starts on Same as this computer, with what this
 computer gives beside it, and each choice is written as an example of itself: Dates 28 Oct 2026, Oct 28, 2026 or
 2026-10-28, Times of day 14:05 or 2:05 pm, Numbers 1,234.5, 1.234,5, 1 234,5 or 1’234.5. The one you tick applies
 at once: the page loads again and comes back where you were, Settings still open on this page. The order of a
 date is the setting's, the month's name the language's. Every date, time of day and number the app shows follows
-them, a board's History, Mark complete's day and time, Updates' last check, Sift's
-dates, counts and kappa, Search's count, and so do a print view's date and the interviewer notes file's Exported
+them, a board's History, Mark complete's day and time, Updates' last check,
+Search's count, and so do a print view's date and the interviewer notes file's Exported
 on. The end card's time left and the break's line say a length of time one way, 45 min, 1 h or 1 h 25 min, where
 the end card said 85 min and 1 h 30 before. Under Language, "Help translate Idiograph into your
 language." opens a page on translating the app, which the app carries.
@@ -2153,7 +2104,7 @@ language." opens a page on translating the app, which the app carries.
 with the language the app reads in on this computer beside it, then English (UK) and English (US). The one you
 tick applies at once: the page loads again in that language and comes back where you were, Settings still open.
 English (US) changes only what American English writes otherwise, colour as color, centre as center, ticked
-as checked, dates as October 28, 2026 while Dates is Same as this computer on an American one, and the window's menus are the same in both (28 October 2026). In Trace it writes judgement as judgment (1 November 2026). The
+as checked, dates as October 28, 2026 while Dates is Same as this computer on an American one, and the window's menus are the same in both (28 October 2026). The
 Shortcuts card's X reads Set the selection aside in both, the words of the boards' sidebar, where until 28
 October it read Bin the selection.
 
@@ -2163,8 +2114,7 @@ by default. Each stands for its own screen's confetti and counts: on Experientia
 confetti, the count after each passage and today's haul on a break, on PETs the statements left and the
 confetti when the last is placed or the PETs are marked complete, and on GETs the PETs left and their
 confetti. Unticked, a switch turns off its own screen's and leaves the others. A settings file from
-before the three, with its one Celebrations switch, reads as all three as that switch said. Sift and
-Trace keep the one switch. The line under the switches names what is celebrated, with Work in rounds off
+before the three, with its one Celebrations switch, reads as all three as that switch said. The line under the switches names what is celebrated, with Work in rounds off
 "Confetti at the end of a sheet or a participant and when a board's last card is placed, the count after
 each passage and the cards left on a board." and with it ticked the same line starting "Confetti at the
 end of a round, a sheet or a participant", following the tick as it stands in the card.
@@ -2215,20 +2165,20 @@ the new version.
 foot, so its last line, Add transcripts on a project's page, scrolls clear above it, where until 18
 October that line stayed partly under it at 360px. What's new opens a sheet of the notes of every version
 since the one you had before, newest first (29 October 2026), so going from 0.9.10 straight to 0.9.13 shows
-0.9.13 and then 0.9.12, each under its own number and date with a plain line for each part, Sift, Idiograph
-and Trace. The versions scroll inside the sheet, with Done always at its foot. Under the last, Earlier
+0.9.13 and then 0.9.12, each under its own number and date with a plain line for each
+change. The versions scroll inside the sheet, with Done always at its foot. Under the last, Earlier
 versions adds every older version below, newest first. The sheet opens again from Settings, General, What's
 new beside the version, and from Help, What's New in Idiograph on a Mac and What's New on Windows, with the
 version you have first and Earlier versions under it. While an update is waiting to install, What's new in
 Settings shows that update's own notes first, then the version you have. The notes come with the app, so they
-open with no internet. Sift and Trace show their own.
+open with no internet.
 
 **The Preview Edition (21 October).** While Idiograph is in preview its lockup carries a stamp, PREVIEW EDITION in
 the crux orange, tilted a little, under the end of the name, as the launch video shows it. The mark and the name
 stay as they are. The stamp stands on Home's head, where the lockup is a little larger than before, at the top of
 About Idiograph, which opens on the lockup in place of its name, and beside the mark on every title bar, small,
 where it and the mark are one button that goes Home. On a phone's width the bars drop the stamp and keep the mark.
-Sift and Trace carry no stamp. When the preview ends the stamp goes from every place at once. Right under the
+When the preview ends the stamp goes from every place at once. Right under the
 lockup on Home, so the stamp and what it means stand together (22 October), a quiet panel says what the preview means: an early proof of concept, not fully tested or reviewed, not for
 anything important, your data could be damaged or lost so keep copies, not yet a replacement for the software
 you use day to day, and tell Adam what you think with the bug button or by email, and, since the preview is
@@ -2259,8 +2209,7 @@ licence and the acknowledgements. A copy built from the code between releases na
 "Version 0.9.23, build e45b1af", and a note from Send feedback carries it too. The licence's line says "© 2026. Free and open source under the GNU AGPL v3,
 with no warranty. github.com/Pharkie/idiograph", and GNU AGPL v3
 opens the licence's full text, which comes with the app, in a window of its own, and the address opens
-the code's home on GitHub in your browser (21 October). Sift's and Trace's About cards say the same with their own
-names. The acknowledgements: thanks to Curt Strangward for his article on IPA in ATLAS.ti, with its
+the code's home on GitHub in your browser (21 October). The acknowledgements: thanks to Curt Strangward for his article on IPA in ATLAS.ti, with its
 reference, and for testing early builds of Idiograph on Windows, and the line "Adam Knowles made Idiograph
 working with Claude Opus 5.5, an AI model by Anthropic, in Claude Code." It opens from About Idiograph at the foot of Settings, in a browser
 tab or the window, from the Idiograph menu on a Mac and from Help on Windows (20 October). Its links out
@@ -2273,7 +2222,7 @@ the version you have in place of x.y.z, "Knowles, A. (2026). Idiograph (Version 
 https://idiograph.app", and Copy. Translate it is the line under Language, Send feedback opens Send feedback,
 Contribute code says the code is open to change and build on, and links to it on GitHub, Fund
 it says what the app costs Adam, in pounds, with Ko-fi's button, and Thanks says who can be named in the
-Acknowledgements. Sift's and Trace's cards say the same with their own names. After your first Word export of PETs, the note it leaves says
+Acknowledgements. After your first Word export of PETs, the note it leaves says
 once, under a thin rule, "Idiograph is free. If it helps your work, there are ways to support it.", the link
 opening the card. It never shows again.
 
@@ -2281,54 +2230,13 @@ opening the card. It never shows again.
 Idiograph a few minutes after its last tab closes", on for a new install (16 October). Idiograph is
 a small server on your computer and its tab is a window onto it, so closing the tab alone used to
 leave it running until Quit. With the tick on, it quits by itself about five minutes after its last
-tab closes, the way Quit does, every write finished. Something still running holds it, a Sift search
-run, a Zotero sync, an AI request, a save or a backup, or a Restart, and the five minutes start
+tab closes, the way Quit does, every write finished. Something still running holds it,
+an AI request, a save or a backup, or a Restart, and the five minutes start
 again once it ends. A tab left open in the background keeps it running, and so does an AI agent
 working through the running app. Opening Idiograph again starts it at once. A tab that comes back to
 it after it has quit, as one the browser put to sleep can, says "Idiograph is closed." with how to
 open it again. Off, it runs until Quit. Save writes the tick to `config.json` as `quit_when_closed`,
 and it holds at once, with no restart.
-
-**Databases.** Sift's own category in its Settings, after General and whatever AI features says,
-holds your own list of the databases Sift searches (see Sift's manual, Search strategy),
-empty on a new install. Add takes one of the databases Sift knows, Scopus, Web of Science, PsycInfo,
-CINAHL, PubMed, Europe PMC, OpenAlex, Embase, ProQuest Dissertations & Theses and Google Scholar, or
-Other with its name, and each row keeps its place in the order you added it. PsycInfo and CINAHL
-carry their platform, EBSCO, Ovid or ProQuest, EBSCO unless you choose another, since each writes
-its own string. Scopus, Web of Science, PubMed, Europe PMC and OpenAlex choose By API or By export,
-and the rest go By export. A row By API shows its key fields: Scopus's API key and its optional
-institution token, Web of Science Starter's API key, OpenAlex's and PubMed's optional keys, which
-raise their limits, and none for Europe PMC. A key field never shows the key, only Saved or Not set,
-in the faint ink since 17 October, where the browser's own grey read under 4.5 to 1, as Folder did on New
-project and Name on Set columns.
-Save beside it puts the key in the macOS keychain as the Anthropic key is kept, under
-`ELSEVIER_API_KEY`, `ELSEVIER_INSTTOKEN`, `CLARIVATE_API_KEY`, `OPENALEX_API_KEY` or `NCBI_API_KEY`,
-so a key already there shows as Saved at once, and off a Mac in the `.env` file. Remove deletes it,
-and Check sends a search for one record with the key and says in one line whether the database took
-it. Remove at the end of a row takes the database out of the list. Save at the foot writes the list
-to `config.json` under `databases`, never a key. On Search strategy, each database's cog, on its row
-under Searches, opens the same platform, By API or By export and keys under its name, and Add
-database adds to the same list, each written at once.
-
-**A Sift project's own parts.** In Sift's Projects category, which Sift's cog opens, a row of the Sift
-projects' names, when there are several, each name for its project's newest screening, the screening
-open on Sift's screen first. Under it stand the project chosen's own parts: PDFs, Find open-access PDFs with your email for
-Unpaywall, whatever the AI switch says, and with the switch on its AI proposals and the bench (see
-Sift). Sift's own settings card is gone, so every setting of Sift is here.
-
-**Zotero.** Sift's category before AI features, whatever AI features says, since a sync calls no model: Library, your
-own or a group's, which asks for the group's id, and the key. Your own library is the one the key
-belongs to, so no user id is asked for. To make a key, sign in at zotero.org and open
-Settings, Security, Applications, then Create new private key, with Allow library access and
-Allow write access ticked, and for a group library read and write access to that group. The key goes in through Settings
-alone: its Save puts it in the macOS keychain under `ZOTERO_API_KEY`, as every key is kept, and off a
-Mac in the `.env` file, and the field shows only Saved or Not set. Remove deletes it. As soon as the
-key is saved, and whenever the library or the group's id changes, Sift asks Zotero for the key's own
-record and the library's name and says in one line whether the key works, "The key works with the
-library of" and your Zotero name, or what stands in the way, in the amber when Zotero refuses the key or
-a Save or Remove fails, as every line in Settings that says something failed is since 17 October, later,
-where it stood in the small print's grey. Save at the foot writes the library and
-the group's id to `config.json` under `zotero`, never the key.
 
 **The PETs model.** Under AI in the PETs category, Model offers Same as Experiential statements
 first, the default, then every Anthropic model the Experiential statements select offers, then the
@@ -2341,7 +2249,7 @@ Experiential statements model. With Local under Experiential statements and an A
 PETs, the key row stands under the PETs model instead, the same field and the same keychain item.
 
 **Send feedback.** For a tester to send Adam a quick note, a bug or an idea, with no email. A small
-bug, a quiet line icon with no sparkles since it is not the AI's, sits at the right of every top bar, just before the cog, Send feedback in its tooltip, so it stands in one place on the Experiential statements, PETs and GETs bars, and since 16 October on Sift's, Search strategy's and Trace's and at the head of Home beside Settings, where until then the statements, PETs and GETs bars alone had it (see One title bar).
+bug, a quiet line icon with no sparkles since it is not the AI's, sits at the right of every top bar, just before the cog, Send feedback in its tooltip, so it stands in one place on the Experiential statements, PETs and GETs bars, and since 16 October at the head of Home beside Settings, where until then the statements, PETs and GETs bars alone had it (see One title bar).
 A press opens one card in the trim card's style, Send feedback: a box of a few lines, "A bug, an idea,
 a shortcut you missed", a line under it, "Your name or email, if you want a reply", which can stay
 empty, one line of small type, "Sent with the app's version, your system and the name of this screen.
@@ -2357,8 +2265,7 @@ pressed, and exactly this travels with it: the words, the reply line as typed, t
 (`VERSION` in `server.py`, 0.9.1 for now), the system in plain words with Python's name for it,
 "macOS 26.5, darwin", the browser's user agent string, one short word for the screen
 it came from, and the time. The word is `home` on the first screen, `project` on a project's page,
-`statements`, `pets`, `gets`, `sift` for Sift's Screening, `searches` for its Search strategy, or
-`trace`, from a fixed list the server and the collector both keep, and any other word goes as none,
+`statements`, `pets` or `gets`, from a fixed list the server and the collector both keep, and any other word goes as none,
 never the page's own text (16 October, where until then only `statements` and `pets` were kept).
 Settings has no bug of its own, since it opens as a card over a screen. The app adds nothing else to what he types. Never a participant, a file name, a
 path, a participant's words, the key or the settings, and never a screenshot, the clipboard or
@@ -2595,7 +2502,7 @@ statements, and the mouse and trackpad under PETs and GETs. Each row is a key, a
 mouse act that is not obvious, with a phrase of two to six words in the small sans, on one line where the
 card has room and wrapping where it runs short, its key whole beside it, "g ·
 Group the selection", "Option / Alt + wheel · Pan up and down". Until 17 October, later, a phrase never
-wrapped, and Sift's longer ones ran out of its card. A feature with no key of its own has
+wrapped, and a longer one ran out of the card. A feature with no key of its own has
 no row, and neither has a plain click or drag. Since 5 October 2026 (item 190) the card carries the
 mouse acts too: the wheel and the pinch, the sideways wheel, Shift and Alt with the wheel, the middle
 button, the double-clicks on a card, a label and the canvas, and the right-click, on the statements screen
@@ -3721,8 +3628,7 @@ the window last read it, so a save over a board changed since, in another window
 screen, by an agent, is refused with nothing written. A card in the top right of the canvas says "This
 board has changed since this page was loaded, so nothing was saved. Your words are still here.", with
 Reload, which puts the board as it now stands on the canvas, and Overwrite, which saves the canvas over
-it. Until he chooses, nothing more is saved. Sift's search plan does the same for a plan saved in
-another window, the card at the head of the screen saying "plan". An agent's change that carries the
+it. Until he chooses, nothing more is saved. An agent's change that carries the
 version it read is refused the same way when the board changed after it read it. Experiential statements does the same for a passage an agent
 wrote, "A passage was written in a conversation.", with Show it, which saves the passage in front of him
 and opens the participant on that passage. One writer goes at a time: the app and the command line take the
@@ -4179,8 +4085,8 @@ its line crossing the PET column, and a participant note standing alone in its b
 from the transcript", its line dashed. The row's quote carries Quote, and a statement with
 no quote goes straight to its passage. A passage shows its sheet and timecode and the sentence round
 the quote, the quote's words in bold, read from the workbook opened read-only, or its opening words
-when the quote is not found in it. Its passages stand at the trail's own size, where a claim's larger
-type in Trace had taken them over, and a box's small print, its kind, its place and its sheet, is in
+when the quote is not found in it. Its passages stand at the trail's own size, and a box's small
+print, its kind, its place and its sheet, is in
 the soft ink, which keeps 4.5 to 1 on the box's wash in dark where the faint ink did not (17 October). On a participant with a recording a click on a passage plays it from the
 passage's timecode, and a second click pauses it. The lines are drawn from each row, so they meet at
 any width and on paper, and the card is readable down to 900px, the trail scrolling sideways below
@@ -4331,18 +4237,13 @@ this update."
 
 ## Search
 
-Search finds words across the app (17 October, and Sift, Trace and Home since 18 October).
-In Idiograph it finds a passage, an interviewer note, a statement, a quote, an exploratory note, a PET,
-a sub-theme, a PET's note, a sticky note, a board's note, a GET and its note, a note on a row of the GET
-table, a participant note, a participant by its name and the research question. In Sift it finds a record by
-its ID, its title, its abstract, its authors or its journal, a decision note, one of your fields, Notes,
-Digest, Critique and the columns you added, an answer on the form of Extract and appraise, a key excerpt,
-and the plan's search terms and exclusion reasons. In Trace it finds a claim, a reference and a claim
-note. AI suggestions, the AI's passages and the text of PDFs are left out. `Cmd + F` (`Ctrl + F` on
-Windows and Linux) opens it on every screen, Home, the statements screen, PETs, GETs, a
-project's page, Sift's screening and its Search strategy and Trace, from the fields as well, and so
-does Search on the bar, the magnifier in the place Find had on Idiograph's bars and before Shortcuts on
-Sift's and Trace's. While a card stands over the screen the browser keeps its own find.
+Search finds words across the app (17 October, and Home since 18 October). It finds a passage, an
+interviewer note, a statement, a quote, an exploratory note, a PET, a sub-theme, a PET's note, a sticky
+note, a board's note, a GET and its note, a note on a row of the GET table, a participant note, a
+participant by its name and the research question. AI suggestions are left out. `Cmd + F` (`Ctrl + F` on
+Windows and Linux) opens it on every screen, Home, the statements screen, PETs, GETs and a project's page,
+from the fields as well, and so does Search on the bar, the magnifier in the place Find had on the bars.
+While a card stands over the screen the browser keeps its own find.
 
 The card stands under the bar, the field first and Search in at its right, and while it is open a
 wash of the paper lies over the rest of the screen under the bar, so nothing cut beside the card or
@@ -4373,19 +4274,13 @@ as Find and replace's do.
 
 Search in starts at This participant on the statements screen and on PETs, so a participant is taken in depth and on
 its own before another meets it, as the book has it, and at This project on a project's page and on
-GETs, where meeting across the participants is the step. On Sift's screens it starts at This Sift project, on
-Trace's at This Trace project, and on Home at Everything, every project Home
+GETs, where meeting across the participants is the step. On Home it starts at Everything, every project Home
 lists, the demo among them. Everything is the last choice on every screen, and on Home,
 where it is the only one, Search in does not show (18 October, later). This project reaches every
-participant of the project, its GETs, its participants' names and its research question. This Sift project reaches
-the screening its Screening step opens, or on the screening the run that is open, and the newest
-version of its plan. This Trace project reaches each manuscript as Trace reads it, the references its
-claims take and your notes on the claims, or with no manuscript yet its reference list, and a reference
-two manuscripts share is found once. A scope widened goes back to the screen's own at the next opening.
+participant of the project, its GETs, its participants' names and its research question. A scope widened goes back to the screen's own at the next opening.
 
 At the card's left stand the kinds found under Kind, each with its count, and with This project the
-participants and the sheets too, under Participant and Sheet. With Everything the kinds stand under their parts'
-names, Sift, Idiograph and Trace, in the order a study does them, and the projects under Project. Ticking
+participants and the sheets too, under Participant and Sheet, and with Everything the projects under Project. Ticking
 one shows that kind, participant, sheet or project alone, ticking two shows either, and each ticks from its
 whole row. Where the column is too short for them all, the last row in sight fades at its foot and the
 column scrolls to the rest. Below 700px they stand over the results, the first heading and three whole
@@ -4394,8 +4289,7 @@ the box by Tab shows them all as More does. A heading whose rows are all behind 
 never over nothing, as Project stood at 360 (18 October, later). A row under the pointer takes a fainter ground than a ticked
 one, so it never reads as ticked. At the right each result gives its kind in small capitals, its words
 with every word typed under the find's yellow wash, a long passage cut round the first word found, and
-where it is in small type, "Juno · Initial 03:55", "Board 1 · PET B", "GETs · Board 1", "R010 ·
-Abstract", "Search strategy · Block 1 · Ponds" or "seed protocol.md · Background · Okafor, 2019", with
+where it is in small type, "Juno · Initial 03:55", "Board 1 · PET B" or "GETs · Board 1", with
 Everything the project's name first. The first 200 stand in the list, and "200 of 1,234" under them says
 when there are more. A search that finds nothing says Nothing found.
 
@@ -4410,17 +4304,7 @@ note, a row's note or a participant note opens GETs the same way, and a particip
 opens the project's page at the participant's row. Opened from PETs or GETs, the statements screen's Back
 returns to the board, as Go to the passage on a card does.
 
-A record opens on Sift's screen at its stage, Screen by title and abstract until it has Yes or Maybe
-there and Screen by full text after, an answer on the form at Extract and appraise while the record is
-one of its papers, and a decision note or a key excerpt at the stage it was made at. There the record
-opens with the words found in view, the caret in the decision note or the field, or the key excerpt
-under the find's yellow wash in the list under the note until the record is drawn again. A record the
-table's filters leave out stands among the rows in the table's order until the filters next change, so
-nothing of yours changes. A search term opens Search strategy with the caret at the start of the term's
-line in its block, and an exclusion reason with the caret in its meaning, nothing selected, so a key
-pressed after replaces no word. A claim, a reference or a claim note opens its row on Trace's screen, a
-reference at the first claim that cites it, or its own row when nothing cites it, and a note with the
-caret in it. Esc, a click outside the card or Search on the bar again closes it, and `Cmd + F` again
+Esc, a click outside the card or Search on the bar again closes it, and `Cmd + F` again
 brings back the last words and their results.
 
 Under a This participant search on the statements screen, Replace in the transcript closes the card and opens
@@ -4490,7 +4374,7 @@ choice as under Export on the PETs screen and saved at once the same way, Timeco
 Remove from Idiograph beside it, then under Experiential statements its Statement length, under GETs its GETs
 rules (see GETs), and with AI features on the privacy tick, Write a guide for AI agents and Add Idiograph to
 Claude Desktop. A thematic analysis project's sheet has no PET labels, timepoints, statement length or GETs. A
-long folder path, here and under Sift and Trace, runs onto the next line only after a slash, never inside a
+long folder path runs onto the next line only after a slash, never inside a
 folder's name, unless that one name is wider than the line. A demo's sheet is read-only. Save writes the name,
 the question, the tick and GETs' rules when they changed, each to its own file, and PET labels, timecodes,
 timepoints and the statement length save as they are changed. Open project is on Home.
@@ -4732,8 +4616,8 @@ they do to the PDF, and Participants table puts the participants table on its fi
 themes starting on the next. It is saved at the project's root, where the PDF goes, as "<project> - Board 1 - Theme
 table.docx", never over a file there, and its author is the name in Settings, General, Your name.
 
-On a desk's width the card's Folder and Name fields start at one left edge and run to its right, as
-on Sift's and Trace's New project, where the folder's started further left (17 October, later).
+On a desk's width the card's Folder and Name fields start at one left edge and run to its right, where
+the folder's started further left (17 October, later).
 
 **Add transcripts.** Under the rows on each project's page, quiet, Add transcripts opens the same
 card with the project's name over it and no folder, name or question to set. A file under a new
@@ -4847,8 +4731,8 @@ gone, the foot says so: "Removed Keeping bees. Its folder is in the Bin." The fo
 the project's own: a whole drive, your home folder or its Desktop, Documents or Downloads, the whole of iCloud
 Drive, OneDrive or another cloud drive, a folder holding the app's own files or settings, or one holding another
 project. Nor while the project is open in another window, or being saved. Each is said at the foot, and the project
-stays in the list. When the system will not move the folder, the foot says so, and the project stays too. Sift's
-and Trace's Remove ask in the same card. The app keeps a line for each removal, and whether the folder went to the
+stays in the list. When the system will not move the folder, the foot says so, and the project stays too.
+The app keeps a line for each removal, and whether the folder went to the
 Bin, in a record beside its settings, never in a project.
 In Idiograph's own window every other line the app asks you to confirm is asked in the window's own message box,
 with OK and Cancel.
@@ -4914,8 +4798,7 @@ the window in front, which comes forward, and on Windows the file goes to the Id
 never to a second one. On a participant's screen or a board, Idiograph goes to Home first as Home
 does, saving what you typed, and if that save fails you stay where you are and nothing is opened.
 With a card open, the file waits until you close it. Files opened together open one after another. A
-file that is no shared project is refused in the same words as above. Sift and Trace never open a
-shared copy. On Linux, with Idiograph installed from its .deb, the file manager shows a shared copy with
+file that is no shared project is refused in the same words as above. On Linux, with Idiograph installed from its .deb, the file manager shows a shared copy with
 Idiograph's icon, and a double-click or Open With hands it to Idiograph the same way.
 
 **A copy coming back** (26 October). When you send a copy to another analyst and they send it back,
@@ -5113,7 +4996,7 @@ timepoints:
     participant's own since 11 November (pbiobuild), so the project page, the pickers and the bars show the
     ones set here. A label and a picture this board kept before move into the participant's own the first time
     the project's page lists them or one is changed, a copy of both files kept in `_Archive/` first,
-    `(pre-participants <date-time>)`, with one line in the project's History. Choose from the set picks one of the app's 24 drawn portraits. Remove takes the picture off,
+    `(pre-participants <date-time>)`, with one line in the project's History. Choose from the set picks one of the app's drawn portraits, a tab for each set, as on the project's page. Remove takes the picture off,
     and with none the participant's initial shows in their colour. Then come their label, their tags
     (Add a tag, a tag's cross taking it off), a tag's colour, which is that word's colour on everyone who
     has it across the project, and LPETs shown, a tick for each LPET, all shown until he takes one off.
@@ -5182,7 +5065,7 @@ participant, GETs and no LPETs, LGETs or Trajectories, its files as they always 
 **One project a run.** A server or a command started with `--root` at a folder is a run of that one
 project, whatever `config.json` names. It opens on that project's page, reads and writes the
 project file in that folder and nowhere else, keeps its recent list in memory, and adds and removes
-no project. Restart in Settings keeps that list, its Sift and Trace projects among them, where until 17
+no project. Restart in Settings keeps that list, where until 17
 October, later, the run came back with none. The file at a real
 root is seeded by hand, and no test or smoke run writes it.
 

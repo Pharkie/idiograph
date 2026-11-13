@@ -125,3 +125,27 @@ its history and are never read as a judgement of a claim.
 **With Claude.** Claude reads Trace through Idiograph's MCP tools and the command line, each manuscript's
 claims with your judgements, your notes and the AI's passages, to help you check. No tool judges a claim
 or writes a note.
+
+## Settings, Search and the agent log
+
+These parts stood in Idiograph's manual until 12 November 2026, when they moved here.
+
+**Trace's Settings.** Its categories are General, Language and formats, Projects and AI features. General and
+Language and formats are as Idiograph's (see Idiograph's manual, Settings), and English (US) writes judgement
+as judgment in Trace (1 November 2026). Trace's cog opens Projects. Appearance is kept in Trace's own settings
+as well as in the browser, so its first start takes it from Idiograph's. Trace's AI feature is AI passages for
+each claim, and Celebrations has one switch.
+
+**Search.** Search finds words across Trace (18 October): a claim, a reference and a claim note. The AI's
+passages and the text of PDFs are left out. `Cmd + F` (`Ctrl + F` on Windows and Linux) opens it on Home and
+on Trace's screen, from the fields as well, and so does Search on the bar, before Shortcuts. On Trace's screen
+Search in starts at This Trace project, which reaches each manuscript as Trace reads it, the references its
+claims take and your notes on the claims, or with no manuscript yet its reference list, a reference two
+manuscripts share found once, and on Home at Everything. A claim, a reference or a claim note opens its row on
+Trace's screen, a reference at the first claim that cites it, or its own row when nothing cites it, and a note
+with the caret in it. The card itself is Idiograph's (see Idiograph's manual, Search).
+
+**The agent log.** Trace keeps an agent log of its own, the same way as Idiograph's, under Settings, AI
+features, Using your own AI agents: each time Trace refuses an agent, the project by its folder's name, never
+a claim or anything the agent handed in. It is kept beside Trace's own settings, never in a project's folder,
+and never shows another app's.

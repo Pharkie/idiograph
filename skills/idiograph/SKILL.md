@@ -1,6 +1,6 @@
 ---
 name: idiograph
-description: Work on an Idiograph project, IPA or thematic analysis, through its command line, or its MCP tools in Claude Desktop, at the researcher's request: search across participants, read a participant's experiential statements, PETs and GETs, compare boards, make a new board, change one with the board's operations, mark the Current board, set a board's order, change a label's level, take a participant's changes into the GETs, put a board on the canvas, rename, duplicate or delete one, or write a passage's statements, notes and quotes. Use when he asks for help with his Idiograph project, its statements, its PETs or its GETs, or its codes and themes. Sift and Trace have skills of their own.
+description: Work on an Idiograph project, IPA or thematic analysis, through its command line, or its MCP tools in Claude Desktop, at the researcher's request: search across participants, read a participant's experiential statements, PETs and GETs, compare boards, make a new board, change one with the board's operations, mark the Current board, set a board's order, change a label's level, take a participant's changes into the GETs, put a board on the canvas, rename, duplicate or delete one, or write a passage's statements, notes and quotes. Use when he asks for help with his Idiograph project, its statements, its PETs or its GETs, or its codes and themes.
 ---
 
 # Idiograph for AI agents
@@ -42,9 +42,7 @@ method. In an IPA project a researcher writes experiential statements for each p
 transcript, groups a participant's statements into personal experiential themes (PETs) on a canvas, and
 groups every participant's PETs into group experiential themes (GETs). A thematic analysis project's
 screens are Coding, where each extract gets its codes, Code list, and Themes, and the commands keep
-IPA's names for them, as The code list and The project and its participants say. Sift, for a
-systematic review's screening, and Trace, for a manuscript's claims, share its code and are apps of
-their own, each with its own command line, MCP server and guide.
+IPA's names for them, as The code list and The project and its participants say.
 
 The app's screens say participant. The commands, their flags and their answers say case, and keep
 that name so no agent breaks: `cases`, `--case Rowan` and `"case"` in an answer each name a
@@ -125,20 +123,6 @@ command first. `--demo` alone is the IPA demo, and `--demo ta` (or `--demo=ta`) 
 demo, the same three interviews coded in a thematic analysis project, with its code list and Themes board. Every answer is plain text, and `--json` gives the exact data. A refusal is
 one line a reason and writes nothing.
 
-Idiograph, Sift and Trace are three apps on this one codebase (20 October), each its own since the
-cutover of 23 October 2026. `--app sift` or `--app trace`, on the command line and on `mcp_server.py`,
-reads that app's own settings and recent list in place of Idiograph's. Without it everything is
-Idiograph's. Each app's server answers its own routes and the shared ones, and another app's route
-answers 404 with `app` naming the app that has it: Idiograph's, on 8765, refuses Sift's and Trace's.
-
-Sift and Trace have commands and MCP servers of their own beside the app's folder's `idiograph`:
-`sift`, `sift search strings "<review folder>"`, and `trace`, each with its `.bat` on Windows, and
-`mcp_server.py --app sift` and `--app trace`, each listing its own tools alone. For a review's screening
-and searches read Sift's guide, `docs/agents-sift.md`, and for a manuscript's claims Trace's,
-`docs/agents-trace.md`. `idiograph sift ...` and `idiograph trace ...`, which answered until the cutover,
-are refused by name with the command to run in their place, and Idiograph's MCP server lists its own
-tools alone.
-
 The command line and the MCP server read and write the files themselves and need no running app. A
 request of yours to the running app keeps it open as a tab does. With
 the tick at the end of Settings, General on, as it is on a new install, the app quits by itself a
@@ -187,11 +171,10 @@ The tools are `cases`, `search`, `statements`, `board_list`, `board_show`, `boar
 each the command of its name with the command's arguments as its inputs. A structure the command
 line reads from a file goes in as the tool's input: `pets` and `not_placed` for `board_new`,
 `operations` for `board_apply` and `gets_apply`, and `pairs`, `notes`, `statements` and `quotes` for
-`turn_write`. `search` takes `words`, `case`, `board`, `kinds` as a list, `limit`, `more`, `folder`, and `whole_word` (true when left out) and `match_case` (false when left out), each true or false. Every tool that writes takes `request`, his request in his own words, and `dry_run`,
+`turn_write`. `search` takes `words`, `case`, `board`, `kinds` as a list, `limit`, `more`, and `whole_word` (true when left out) and `match_case` (false when left out), each true or false. Every tool that writes takes `request`, his request in his own words, and `dry_run`,
 and the board and its History name the client you work in. `board_export` writes a Word document or a PDF,
 `gets_export` a GETs board's PDF and `participant_export` the statements CSV, and they change nothing he made, so they take `dry_run` alone. Each answer is the command's plain words, with its JSON beside
-them, and a refusal comes back as an error with its own line, having written nothing. Sift's and
-Trace's tools are on their own apps' MCP servers, in their own guides.
+them, and a refusal comes back as an error with its own line, having written nothing.
 
 **The project's words come back marked (26 October).** Words a participant or the interviewer said, and
 anything anyone wrote into the project, statements, quotes, notes, labels, board names and notes, the
@@ -275,10 +258,8 @@ option it searches every project you may read, each hit naming its project when 
 `--case` takes one participant, and `--board` with it one board's PETs and notes, its statements placed as
 that board places them. `--kinds` narrows the hits, with commas, to passages, statements, quotes,
 notes (exploratory and the interviewer's), pets (PETs, sub-themes and their notes), gets, boards
-(sticky and board notes) or participants. A Sift screening's or a Trace project's folder is searched by
-`sift search <words> --folder <folder>` or `trace search <words> --folder <folder>`, and Idiograph's
-`search --folder` refuses one by name. It only reads, so it takes no dry run, and with the tick off it is
-refused as every command is.
+(sticky and board notes) or participants. It only reads, so it takes no dry run, and with the tick off it
+is refused as every command is.
 
 Two options, the card's two ticks (searchmods, 6 November 2026), say how a word typed is found. Whole word is on
 when left out, as the card opens with it ticked: each word, with its other forms, is found only as a whole word,
@@ -289,8 +270,7 @@ is off when left out and finds each word in the case typed, accents still set as
 that case: `Will` never finds will, `sleep` finds slept and sleeps and never Slept, `Sleep` finds Slept, and a
 word of mixed case, `McKee`, finds only itself. The two go together, and the snippet's asterisks follow them.
 The answer says which were on, as `whole_word` and `match_case`. Through MCP they are the true or false inputs
-`whole_word`, true when left out, and `match_case`, false when left out, and Sift's and Trace's
-`search --folder` takes them too.
+`whole_word`, true when left out, and `match_case`, false when left out.
 
 Each hit gives its kind, its participant, `where`, the sheet and time or the board and the PET's mark, and
 a snippet of up to 240 characters with each word found between two asterisks, `**sleep**`. A
@@ -1313,8 +1293,10 @@ statements marked already keeps the first time. `cases` answers each participant
 `participant set` (pbiobuild, 11 November 2026) sets a participant's picture, label and pen portrait, as the
 fields across their row on the project's page do (`/api/participant`), in every project, IPA and thematic
 analysis alike. `--label` is a few words, up to 60 characters, `--portrait` one short paragraph of plain text, up
-to 800, its line breaks folded into spaces, each "" to clear it. `--picture` is one of the app's drawn set,
-`set:peep01` to `set:peep40` (one of the set before, `set:face01` to `set:face24`, is taken as its nearest),
+to 800, its line breaks folded into spaces, each "" to clear it. `--picture` is one of the app's drawn sets
+(picsets, 12 November 2026), `set:peep01` to `set:peep80` (Open Peeps), `set:notion01` to `set:notion40`
+(Notionists) or `set:fluent01` to `set:fluent20` (Fluent Emoji), any other refused (one of the set before,
+`set:face01` to `set:face24`, is taken as its nearest),
 `--picture-file` an image file of his, PNG, JPEG or SVG, kept in `pictures/` at the
 project's root, made square and small, the one it replaces moved to `pictures/_Archive/`, and `--no-picture` takes
 the picture off, the initial on their colour standing in. Each left out is kept as it is. A label or pen portrait
@@ -2331,6 +2313,3 @@ marked as data. It keeps the last 7 days, and nothing clears it.
   whoever builds the app. Work on a project never changes it.
 - The app's own checks are in `tests/`, for whoever builds the app as well, as `tests/README.md`
   says. Work on a project never runs or changes them.
-- Each app of the family has a mark and a colour of its own, on its Home, its title bars and its
-  Settings, and each Home names the other two at its foot. Point him to an app by its name, Sift,
-  Idiograph or Trace, never by its colour.

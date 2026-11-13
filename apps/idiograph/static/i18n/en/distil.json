@@ -129,6 +129,8 @@
   "distil.card.start": "Start experiential statements",
   "distil.card.no_workbooks": "No workbooks found under the root folder.",
   "distil.card.hide_files": "Hide files",
+  "distil.rename.lead": "{name}'s name changes on every passage, in the workbook and in Source.",
+  "distil.rename.lead_workbook": "{name}'s name changes on every passage, in the workbook.",
   "distil.rename.done": "{old} is now {now}.",
   "distil.files.make_workbook": "make a workbook",
   "distil.files.create_workbook": "create annotated workbook",

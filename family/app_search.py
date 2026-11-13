@@ -669,6 +669,7 @@ def __getattr__(name: str) -> str:
         "NO_CASE": lambda: i18n.t("errors.say_which_participant_nothing_searched"),
         "NO_PROJECT": lambda: i18n.t("errors.say_which_project_nothing_searched"),
         "NO_SCOPE": lambda: i18n.t("errors.search_participant_project_sift_project"),
+        "NO_SCOPE_IDIOGRAPH": lambda: i18n.t("errors.search_participant_project_everything"),
     }
     if name in said:
         return said[name]()

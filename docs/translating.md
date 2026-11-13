@@ -1,14 +1,14 @@
 # Translating Idiograph
 
-Idiograph, Sift and Trace are in English today, British with an American English overlay. A new language is
+Idiograph is in English today, British with an American English overlay. A new language is
 welcome. Every translation is read by a person who knows the field before it ships, never by AI alone, since a
 wrong word for a term of IPA (Interpretative Phenomenological Analysis) changes what a researcher is told to do.
 
 ## What you translate
 
-Every word the apps show is in a catalogue of messages, plain JSON files, one object of key and sentence each:
+Every word the app shows is in a catalogue of messages, plain JSON files, one object of key and sentence each:
 
-- `family/static/i18n/en/`: the words the three apps share (`page.json`, `shell.json`, `table.json`,
+- `family/static/i18n/en/`: the shared words (`page.json`, `shell.json`, `table.json`,
   `errors.json`, `menus.json`)
 - `apps/idiograph/static/i18n/en/`: Idiograph's own (`page_idiograph.json`, `distil.json`, `themes.json`,
   `trajectories.json`, `server.json`, `exports.json`, `page_print.json`)
@@ -34,7 +34,7 @@ You can start with the family's files alone. Anything not translated shows in En
    day, month and year, the 12- or 24-hour clock and where commas and points go in a number are not the
    translation's: each person chooses them in Settings, Language and formats.
 
-Never translated: the apps' names, what a researcher writes (participants' words, statements, notes, the names of
+Never translated: the app's name, what a researcher writes (participants' words, statements, notes, the names of
 PETs and GETs), the workbook's column headings, the command line and the agents' guides.
 
 ## The terms that need an IPA-literate reader
@@ -52,9 +52,6 @@ list your choices in the note you send with the translation:
 - the hermeneutic circle, idiography, the double hermeneutic, where the guidance names them
 - abstraction, subsumption, polarisation, contextualisation, numeration and function, the ways of clustering
 - convergence and divergence
-
-For Sift: the PRISMA 2020 and PRISMA-S terms (records, screening, title and abstract, full text, inclusion and
-exclusion criteria, reasons for exclusion) as your language's PRISMA translation has them.
 
 ## Sending it
 

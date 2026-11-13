@@ -528,7 +528,7 @@ def parser(app: str | None = None, search: bool = False) -> argparse.ArgumentPar
             ap = argparse.ArgumentParser(prog=name, parents=[options()],
                                          description=f"{own}'s Search, over one project by its folder.")
             ap.set_defaults(project=None, root=None, demo=False, config=None, json=False)
-            add_search(ap.add_subparsers(dest="command", required=True), common)
+            add_search(ap.add_subparsers(dest="command", required=True), common, name)
             return ap
         theirs = APP_COMMANDS[name]
         ap = argparse.ArgumentParser(prog=name, description=theirs["about"])
@@ -546,14 +546,18 @@ def parser(app: str | None = None, search: bool = False) -> argparse.ArgumentPar
     sub = ap.add_subparsers(dest="command", required=True)
     if own:
         own["arguments"](sub, common, writes)
-    add_search(sub, common)
+    add_search(sub, common, name)
     return ap
 
 
-def add_search(sub, common) -> None:
-    """The app's Search as a command, `search <words>`, each app's own."""
+def add_search(sub, common, app: str | None = None) -> None:
+    """The app's Search as a command, `search <words>`, each app's own. Idiograph's names its own kinds alone and
+    takes no folder (nosiftrace, 12 November 2026), and Sift's and Trace's take one, as before."""
+    own = app_identity.check(app) == app_identity.DEFAULT
     x = sub.add_parser("search", parents=[common],
-                       help="the app's Search: words in passages, statements, notes, PETs, GETs, records and claims, "
+                       help="the app's Search: words in passages, statements, notes, PETs and GETs across the "
+                            "participants, each hit with where it is and the command that opens it" if own else
+                            "the app's Search: words in passages, statements, notes, PETs, GETs, records and claims, "
                             "across the participants, each hit with where it is and the command that opens it")
     x.add_argument("words", nargs="+", help="the words, every one in any order, or a phrase in quotation marks")
     x.add_argument("--whole-word", action=argparse.BooleanOptionalAction, default=True,
@@ -567,13 +571,17 @@ def add_search(sub, common) -> None:
     x.add_argument("--board", default=None, help="with --case, this board's PETs and notes alone, and its statements "
                                                  "placed as it places them, the Current board's by default")
     x.add_argument("--kinds", default=None, help="these kinds alone, with commas: passages, statements, quotes, notes, "
+                                                 "pets, gets, boards or cases, or the search card's own, passage, "
+                                                 "enote, petnote and the rest" if own else
+                                                 "these kinds alone, with commas: passages, statements, quotes, notes, "
                                                  "pets, gets, boards, cases, records, plan or claims, or the search "
                                                  "card's own, passage, enote, petnote and the rest")
     x.add_argument("--limit", default=None, help=f"the hits a page holds, {SEARCH_LIMIT} when left out, "
                                                  f"{app_search.LIMIT} at most")
     x.add_argument("--more", default=None, help="the cursor the answer before gave, for its next page")
-    x.add_argument("--folder", default=None, help="a Sift project's screening or review folder, or a Trace project's "
-                                                  "folder, in place of a project of Idiograph's")
+    if not own:
+        x.add_argument("--folder", default=None, help="a Sift project's screening or review folder, or a Trace "
+                                                      "project's folder, in place of a project of Idiograph's")
 
 
 # Each app's own commands, the first word after the app's command, so a word that is another app's is
@@ -598,7 +606,9 @@ def elsewhere(given: list[str], app: str) -> str | None:
     if not given:
         return None
     owner = owner_of(given[0])
-    if owner is None or owner in app_identity.served(app):
+    # an app this one never names is no command of it (nosiftrace, 12 November 2026): `idiograph sift` is refused
+    # as any word Idiograph lacks, and Sift's and Trace's still name the app a word is
+    if owner is None or owner in app_identity.served(app) or owner not in app_identity.names(app):
         return None
     them, us = app_identity.APPS[owner]["name"], app_identity.APPS[app]["name"]
     rest = given if owner == app_identity.DEFAULT else given[1:]

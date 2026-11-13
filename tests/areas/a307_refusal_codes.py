@@ -720,7 +720,10 @@ def part_h(scratch: Path, real_roots: list) -> None:
             out["trace"] = lines_of(["trace", str(nowhere)])
         plan, _ = idiograph_routes.rename_plan(root, root / "Juno", "Wren", True, {"interviewer": "Adam"})
         out["rename"] = plan["lines"] + plan["folder_lines"]
-        out["family"] = [r["line"] for r in server_mod.family_rows()]
+        # the family's lines as Sift's Home shows them, Idiograph's naming no other app since nosiftrace (12 November 2026)
+        with support.as_app("sift"):
+            out["family"] = [r["line"] for r in server_mod.family_rows()]
+        out["idiograph family"] = server_mod.family_rows()
         out["card"] = [trace_claims.stands(root)]
         return out
 
@@ -753,8 +756,9 @@ def part_h(scratch: Path, real_roots: list) -> None:
           "card and a refusal of Idiograph and Trace",
           "The project's GETs" in en["rename"] and "The folder Juno becomes Wren" in en["rename"]
           and "The annotated workbook takes the new name" in en["rename"]
-          and en["family"] == ["Screening for a systematic review, by PRISMA 2020",
+          and en["family"] == ["Interpretative Phenomenological Analysis: statements, PETs and GETs",
                                "Each claim a manuscript makes, held against its reference"]
+          and en["idiograph family"] == []
           and en["card"] == ["No document yet"] and en["trace"] == ["That folder is not there."]
           and en["nobody"][0].startswith("No participant called Nobody in this project. Its participants: ")
           and not any("ZZ" in x for k in en for x in en[k]), json.dumps(en)[:900])

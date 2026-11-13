@@ -133,6 +133,18 @@ def served(app: str | None = None) -> tuple:
     name = check(app)
     return (name, *SERVES_TOO.get(name, ()))
 
+
+# The other apps each app names to the person using it, at its Home's foot, in Open and Download and in its
+# command line's refusals (nosiftrace, Adam, 12 November 2026: Sift and Trace are early apps, for the maintainer
+# alone). Idiograph names neither, so its Home ends with its own projects. Sift's and Trace's own builds name the
+# family as before.
+NAMES = {"idiograph": (), "sift": ("idiograph", "trace"), "trace": ("idiograph", "sift")}
+
+
+def names(app: str | None = None) -> tuple:
+    """The other apps `app` names to its user, in the family's order (see NAMES)."""
+    return NAMES.get(check(app), ())
+
 # The settings Sift and Trace share with Idiograph, copied on their first start: the AI settings, the
 # appearance where a file keeps it, Celebrations and its Sound, and the closing tick at the end of General
 SHARED_SETTINGS = ("ai_suggest", "ai_provider", "model", "local_url", "local_model", "ai_address",

@@ -189,9 +189,10 @@ def test_search_cases(scratch):
         sifted = support.plain(json.loads(sifted)) if sifted.strip() else {}
         not_ours = cli.run(["--config", str(config), "search", "wakeful", "--folder", str(screen), "--json"])
         check("212: with folder a Sift screening's records are searched by Sift's search, each hit opening with sift_show, "
-              "and Idiograph's refuses the folder by name since the cutover",
+              "and Idiograph's search takes no folder, its tool none and its answer naming no other app (nosiftrace)",
               code == 0 and sifted["scope"] == "sift" and [r["rec_id"] for r in sifted["results"]] == ["R001", "R001"]
-              and all(r["open"]["tool"] == "sift_show" for r in sifted["results"]) and not_ours[0] == 1
-              and support.plain(json.loads(not_ours[1]))["error"].startswith("That folder is Sift's, not Idiograph's."), err or str(sifted)[:300])
+              and all(r["open"]["tool"] == "sift_show" for r in sifted["results"]) and not_ours[0] == 2
+              and "Sift" not in not_ours[1] + not_ours[2]
+              and "folder" not in mcp_server.BY_NAME["search"]["inputSchema"]["properties"], err or str(sifted)[:300])
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY = kept

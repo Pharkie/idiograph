@@ -141,6 +141,13 @@ def test_rename_and_go_to_passage(scratch):
               "participant, the same with no name yet, and none with the folder kept",
               len(ticked["folder_lines"]) == 3 and len(ticked["lines"]) == 6 and ticked["folder"] is True
               and len(bare["folder_lines"]) == 3 and plan["folder_lines"] == [], str([ticked["folder_lines"], ticked["lines"]]))
+        # the dialog's Details (renamesimple): the passages per file, then what stays with them, no line for Idiograph's
+        # recent list, the folder's own line only while the folder keeps its name, and Source known to hold a transcript
+        check("156: the dialog's details keep the passage lines, leave the recent list out, name the folder only while it "
+              "keeps its name, and say a transcript in Source is renamed too",
+              plan["details"][:2] == plan["lines"][:2] and len(plan["details"]) == 5 and plan["in_source"] is True
+              and "P1 - Ada" in plan["details"][-1] and len(ticked["details"]) == 4 and "P1 - Ada" not in ticked["details"][-1],
+              str([plan["details"], ticked["details"]]))
 
         # ── C. the refusals, each one line, nothing changed
         said = {what: refusal({"op": "rename", "root": rid, "case": "P1 - Ada", "name": name, "folder": True})

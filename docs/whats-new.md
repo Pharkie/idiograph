@@ -187,9 +187,9 @@ AI agents you allow, such as Claude Code, can search across your participants.
 
 Idiograph opens in a window of its own, with its own menus, where it opened in your browser before. Your settings, projects and cases stay where they were.
 Idiograph can update itself. It checks once a day, and in Settings you choose whether it downloads a new version without asking.
-Search finds words anywhere in your work, a passage, a statement, a note, a theme, a record or a claim. Press Cmd + F, or Ctrl + F on Windows, on any screen.
+Search finds words anywhere in your work, a passage, a statement, a note or a theme. Press Cmd + F, or Ctrl + F on Windows, on any screen.
 The transcript, your statements and your exploratory notes stand side by side in three columns, in the order you choose, with experiential statements, PETs and GETs in a row at the top, and a small map in the corner shows where you are in a long transcript and on the PETs and GETs boards.
 Quotes in place of highlights, a new statement from words you select, the guidance in a sheet you open when you want it, a participant's name you can change, and each participant in a colour of their own on the GETs board.
-Sift and Trace say what went wrong in plain words, and every screen is easier to read in both themes.
+Every screen is easier to read in both themes.
 Bring in a Word table, a CSV or an Excel file with a chooser on every column and a preview of what will land, see each statement's quote on its card with a button on the status bar, and arrange the GETs board with a row for each participant.
 Back and Forward between the screens: from a passage back to the board you came from, and on again.

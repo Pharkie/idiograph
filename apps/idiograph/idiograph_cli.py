@@ -7312,8 +7312,8 @@ class SearchCase:
 def cmd_search(projects: list, closed: list[str], args) -> tuple:
     """`search <words>`: the app's Search (`app_search`, 17 October) for an agent (20 October), every word
     in any order, case and accents set aside, or a phrase in quotation marks, over a project, every project
-    it reads when none is named, a case with `--case`, one of its boards with `--board` too, or with
-    `--folder` a Sift project or a Trace project. `--whole-word` and `--match-case` are the card's two ticks,
+    it reads when none is named, a case with `--case`, or one of its boards with `--board` too.
+    `--whole-word` and `--match-case` are the card's two ticks,
     Whole word on unless `--no-whole-word` is given and Match case off unless given. `--kinds` narrows the kinds, `--limit` the hits a page
     holds, and `more` the cursor the answer before gave. Each hit names its case, where it is, its speaker,
     the snippet with each word between two asterisks, a statement's id and key with where the board places
@@ -8131,7 +8131,8 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("case", help="the participant, by their pseudonym")
     x.add_argument("--label", default=None, help="a few words, \"\" clearing it")
     x.add_argument("--portrait", default=None, help="the pen portrait, one short paragraph, \"\" clearing it")
-    x.add_argument("--picture", default=None, help="one of the app's drawn set, set:peep01 to set:peep40")
+    x.add_argument("--picture", default=None, help="one of the app's drawn sets, set:peep01 to set:peep80, "
+                                                    "set:notion01 to set:notion40 or set:fluent01 to set:fluent20")
     x.add_argument("--picture-file", default=None, help="an image file of his, PNG, JPEG or SVG, kept in the "
                                                          "project's pictures folder, made square and small")
     x.add_argument("--no-picture", action="store_true", help="take the picture off, the initial on their colour shown")
@@ -8216,7 +8217,7 @@ def perform(args) -> tuple[dict, list[str]]:
 # the line the command line's parser describes itself with at the top of `idiograph`
 ABOUT = ("Idiograph's command line, for an AI agent in a conversation: "
          "cases, statements, board, gets, turn, transcript, import, validate and search across the participants. "
-         "Sift and Trace have their own, sift and trace. See docs/agents.md.")
+         "See docs/agents.md.")
 
 # What only the app's own window does, which an agent may ask for by its words, each refused in one line saying so
 # and kept in the agent log as page-only (agentlog, 3 November 2026)

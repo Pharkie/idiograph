@@ -5677,7 +5677,7 @@ def rename_plan(root: Path, folder: Path, name, with_folder: bool, cfg: dict) ->
     plan = {"root": root, "folder": folder, "label": label, "old": old, "own": own, "new": new,
             "new_label": relabel(label, new) if good else "", "books": [], "themes": [], "sides": [],
             "carried": [], "recent": [], "moves": [], "target": None, "unread": None}
-    lines, folder_lines = [], []
+    lines, folder_lines, passage_lines = [], [], []
     said = books_said(folder)
     books = list(said)
     plan["all"] = books
@@ -5690,8 +5690,10 @@ def rename_plan(root: Path, folder: Path, name, with_folder: bool, cfg: dict) ->
         counts = named[book]
         if counts:
             plan["books"].append(book)
-            lines.append(i18n.t("server.rename.name_on_in", old=old, passages=passages_said(counts), book=said[book])
-                         if several else i18n.t("server.rename.name_on", old=old, passages=passages_said(counts)))
+            line = (i18n.t("server.rename.name_on_in", old=old, passages=passages_said(counts), book=said[book])
+                    if several else i18n.t("server.rename.name_on", old=old, passages=passages_said(counts)))
+            lines.append(line)
+            passage_lines.append(line)
     # the labels the case goes by in its files, its own and any other a PETs boards file of any timepoint
     # gives it, which the GETs file keys it by (see `themes_case`), and every file beside each workbook
     # that names the participant inside, read now (`case_files.side_files`)
@@ -5771,8 +5773,19 @@ def rename_plan(root: Path, folder: Path, name, with_folder: bool, cfg: dict) ->
     plan["recent"] = recent_in(folder)
     if plan["recent"]:
         lines.append(i18n.t("server.rename.recent"))
+    # what the Rename card's Details fold says (renamesimple, 12 November 2026, Adam: the list "more scary than
+    # it needs to be"): the passages per sheet per file, then what the researcher sees, with none of the
+    # bookkeeping. The API's own `lines` and `folder_lines` above stay as they were.
+    in_source = set(own_books(folder / "Source", "raw"))
+    details = list(passage_lines)
+    if plan["themes"] or any(e.file in (gets_mod.FILE, gets_mod.LGETS_FILE, traj_mod.FILE) for e, _p, _d in plan["carried"]):
+        details.append(i18n.t("server.rename.d_boards"))
+    details.append(i18n.t("server.rename.d_stays"))
+    if plan["kept_folder"]:
+        details.append(i18n.t("server.rename.d_folder_kept", folder=srv.display_case(folder.name)))
     answer = {"case": label, "old": old, "new": new if good else "", "label": plan["new_label"],
-              "lines": lines, "folder_lines": folder_lines, "folder": bool(with_folder and target is not None)}
+              "lines": lines, "folder_lines": folder_lines, "folder": bool(with_folder and target is not None),
+              "details": details, "in_source": any(b in in_source for b in plan["books"])}
     return answer, plan
 
 

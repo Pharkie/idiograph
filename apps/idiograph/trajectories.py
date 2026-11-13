@@ -73,9 +73,12 @@ ICONS = ("rising", "mixed", "falling", "level")
 TAG_NAMES = ("Blue", "Olive", "Plum", "Brown", "Indigo", "Teal", "Purple", "Slate",
              "Moss", "Spruce", "Violet", "Aubergine", "Pine", "Denim", "Khaki", "Mulberry", "Fern", "Periwinkle", "Umber",
              "Grape", "Ocean", "Amethyst", "Jade", "Navy", "Fig")
-# the app's own set of pictures (peeps, 12 November 2026): forty Open Peeps drawn in ink, static/faces/peep01.svg
-# to peep40.svg, made by packaging/make_peeps.py
-FACES = tuple(f"peep{n:02d}" for n in range(1, 41))
+# the app's own sets of pictures, each a tab in Choose from the set, in its order (peeps and picsets, 12 November
+# 2026): eighty Open Peeps, static/faces/peep01.svg to peep80.svg (packaging/make_peeps.py), forty Notionists,
+# notion01.svg to notion40.svg (make_notionists.py), and twenty Fluent Emoji, fluent01.svg to fluent20.svg
+# (make_fluent.py), each drawn in ink. The page's FACE_SETS (trajectories.js) is the same.
+FACE_SETS = (("peeps", "peep", 80), ("notionists", "notion", 40), ("fluent", "fluent", 20))
+FACES = tuple(f"{stem}{n:02d}" for _set, stem, count in FACE_SETS for n in range(1, count + 1))
 # The drawn set before it, face01 to face24 (eight heads of hair, each plain, with glasses, and with a beard or
 # earrings), which projects hold still: each is read as its nearest in the set now, the same hair and, where the
 # set has them, the same glasses or beard. Nothing a project holds is rewritten by a read, and one of them chosen
@@ -182,6 +185,12 @@ def tags_kept(given) -> list[str]:
             seen.add(word.lower())
             out.append(word)
     return out[:TAGS_MAX]
+
+
+def faces_said() -> str:
+    """The sets' names as a refusal says them, `peep01 to peep80, notion01 to notion40, fluent01 to fluent20`."""
+    return ", ".join(i18n.t("server.trajectory_face_range", first=f"{stem}01", last=f"{stem}{count:02d}")
+                     for _set, stem, count in FACE_SETS)
 
 
 def face_of(name) -> str:
@@ -587,7 +596,7 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
                     face = face_of(words(op.get("set")))
                     if not face:
                         raise WorkbookError(i18n.t("server.trajectory_no_such_face", face=words(op.get("set")),
-                                                   first=FACES[0], last=FACES[-1]))
+                                                   ranges=faces_said()))
                     now = f"set:{face}"
                 elif op.get("from") not in (None, "") or op.get("data") not in (None, ""):
                     if op.get("data") not in (None, ""):

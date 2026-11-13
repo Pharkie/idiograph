@@ -30,6 +30,8 @@
 const TJ_SIDE_KEY = 'idiograph-trajectories-side';
 const TJ = { path: '', back: null, to: 'cases', data: null, ask: 0, busy: false, drag: null, project: null, sideOpen: true,
   editing: '', picking: '', choosing: '', menu: '', faces: false, tagOpen: '',
+  // Choose from the set's tab chosen, '' for the set of the picture now (picsets)
+  faceSet: '',
   // the passage picker (trajchoose, 11 November 2026): the cell it is open for, the interview shown, the words
   // found, the turns read for each participant's interview, and the words chosen in a turn
   passage: '', passageAt: '', find: '', turns: {}, picked: null };
@@ -277,6 +279,50 @@ function trajPickerHtml(col) {
         title="${escAttr(t('trajectories.none'))}" aria-label="${escAttr(t('trajectories.none'))}" aria-pressed="${!col.colour}"></button></span>`
     + `<span class="tf-cpick-l">${esc(t('trajectories.icon'))}</span><span class="tf-ics">${ic}</span>`
     + `<button type="button" class="primary small tf-done" data-pick-done="1" data-fkey="pick-done-${escAttr(col.id)}">${esc(t('trajectories.done'))}</button></div>`;
+}
+
+/* The app's drawn sets, each a tab in Choose from the set, in the order of trajectories.FACE_SETS on the server
+   (picsets, 12 November 2026): eighty Open Peeps, forty Notionists and twenty Fluent Emoji, each a run of files in
+   static/faces. The project page's fields (distil.js) offer the same, through faceSetsHtml. */
+const FACE_SETS = [
+  { set: 'peeps', name: 'trajectories.set_peeps', faces: tfFaceRun('peep', 80) },
+  { set: 'notionists', name: 'trajectories.set_notionists', faces: tfFaceRun('notion', 40) },
+  { set: 'fluent', name: 'trajectories.set_fluent', faces: tfFaceRun('fluent', 20) },
+];
+
+function tfFaceRun(stem, count) {
+  return Array.from({ length: count }, (_, i) => `${stem}${String(i + 1).padStart(2, '0')}`);
+}
+
+/* the set a picture is of, by where it is read, so one from the set before is on its nearest's tab, or none */
+function faceSetOf(url) {
+  return FACE_SETS.find((s) => s.faces.some((f) => url === `/faces/${f}.svg`)) || null;
+}
+
+/* Choose from the set: a tab for each set, `open` the one shown or, with none chosen yet, the set of the picture
+   now, `url`, or the first, and that set's pictures under it, the picture now pressed. `pick` and `tab` are the
+   data attributes its pictures' and its tabs' buttons carry, and `fkey` keeps Trajectories' focus across a draw. */
+function faceSetsHtml(open, url, { pick, tab, fkey = false, cls = '' }) {
+  const shown = FACE_SETS.find((s) => s.set === open) || faceSetOf(url) || FACE_SETS[0];
+  const tabs = FACE_SETS.map((s) => {
+    const on = s === shown;
+    return `<button type="button" class="th-tab tf-settab${on ? ' on' : ''}" role="tab" aria-selected="${on}" tabindex="${on ? 0 : -1}"`
+      + ` data-${tab}="${s.set}"${fkey ? ` data-fkey="faceset-${s.set}"` : ''}>${esc(t(s.name))}</button>`;
+  }).join('');
+  const faces = shown.faces.map((f, i) => {
+    const on = url === `/faces/${f}.svg`;
+    return `<button type="button" class="tf-face${on ? ' on' : ''}" data-${pick}="${f}"${fkey ? ` data-fkey="face-${f}"` : ''}`
+      + ` aria-pressed="${on}" aria-label="${escAttr(t('trajectories.face_n', { n: i + 1 }))}"><img src="/faces/${f}.svg" alt=""></button>`;
+  }).join('');
+  return `<div class="tf-sets${cls ? ` ${cls}` : ''}"><div class="th-tabs tf-settabs" role="tablist" aria-label="${escAttr(t('trajectories.choose_face'))}">${tabs}</div>`
+    + `<div class="tf-faces" role="tabpanel" aria-label="${escAttr(t(shown.name))}">${faces}</div></div>`;
+}
+
+/* a set's tab moved to by the arrow keys, Home and End, as a row of tabs answers them, or '' for another key */
+function faceSetStep(key, now) {
+  const at = Math.max(0, FACE_SETS.findIndex((s) => s.set === now));
+  const to = { ArrowRight: at + 1, ArrowDown: at + 1, ArrowLeft: at - 1, ArrowUp: at - 1, Home: 0, End: FACE_SETS.length - 1 }[key];
+  return to === undefined ? '' : FACE_SETS[(to + FACE_SETS.length) % FACE_SETS.length].set;
 }
 
 const tjPicHtml = (c, big) => {
@@ -559,9 +605,8 @@ function trajMenuHtml(c) {
 /* the participant's editor, opened in place: their picture, their label, their tags and which LPETs show,
    each kept at once, Done at its foot */
 function trajEditHtml(c) {
-  const faces = TJ.faces
-    ? `<div class="tf-faces" role="group" aria-label="${escAttr(t('trajectories.choose_face'))}">${((TJ.data && TJ.data.faces) || []).map((f, i) => `<button type="button" class="tf-face${c.picture_url === `/faces/${f}.svg` ? ' on' : ''}"
-        data-face="${escAttr(f)}" data-fkey="face-${escAttr(f)}" aria-pressed="${c.picture_url === `/faces/${f}.svg`}" aria-label="${escAttr(t('trajectories.face_n', { n: i + 1 }))}"><img src="/faces/${escAttr(f)}.svg" alt=""></button>`).join('')}</div>` : '';
+  // Choose from the set: a tab for each set, the set of their picture now open first (picsets)
+  const faces = TJ.faces ? faceSetsHtml(TJ.faceSet, c.picture_url, { pick: 'face', tab: 'faceset', fkey: true }) : '';
   const tags = (c.tags || []).map((tg) => `<span class="tf-pill tf-pill-x case-${(Number(tg.colour) || 0) % 25}${TJ.tagOpen === tg.word ? ' tf-pill-open' : ''}">`
     + `<button type="button" class="tf-pill-b" data-tag="${escAttr(tg.word)}" data-fkey="tag-${escAttr(tg.word)}" aria-expanded="${TJ.tagOpen === tg.word}"
         title="${escAttr(t('trajectories.tag_colour', { tag: tg.word }))}">${esc(tg.word)}</button>`
@@ -810,7 +855,8 @@ function trajWire() {
     if ((x = el('[data-step]'))) { const case_ = x.dataset.step; TJ.menu = ''; trajMove(case_, Number(x.dataset.by)); return; }
     if (el('[data-edit-done]')) { const case_ = TJ.editing; Object.assign(TJ, { editing: '', faces: false, tagOpen: '' }); trajDraw(); trajFocus(case_); return; }
     if (el('[data-own]')) { $('tj-picture-file').click(); return; }
-    if (el('[data-faces]')) { TJ.faces = !TJ.faces; trajDraw(); return; }
+    if (el('[data-faces]')) { TJ.faces = !TJ.faces; TJ.faceSet = ''; trajDraw(); return; }
+    if ((x = el('[data-faceset]'))) { TJ.faceSet = x.dataset.faceset; trajDraw(); return; }
     if ((x = el('[data-face]'))) { trajOps([{ op: 'picture', participant: TJ.editing, set: x.dataset.face }]); return; }
     if (el('[data-nopic]')) { trajOps([{ op: 'picture', participant: TJ.editing }]); return; }
     if ((x = el('[data-untag]'))) { trajTags(TJ.editing, (tags) => tags.filter((w) => w !== x.dataset.untag)); return; }
@@ -887,6 +933,17 @@ function trajWire() {
         const word = add.value.trim().replace(/\s+/g, ' ');
         if (word) trajTags(add.dataset.addtag, (tags) => [...tags, word]);
       } else if (e.key === 'Escape') { e.preventDefault(); add.value = ''; }
+      return;
+    }
+    // Choose from the set's tabs: the arrows, Home and End move along them, the set under them following (picsets)
+    const settab = e.target.closest('[data-faceset]');
+    const step = settab ? faceSetStep(e.key, settab.dataset.faceset) : '';
+    if (step) {
+      e.preventDefault();
+      TJ.faceSet = step;
+      trajDraw();
+      const again = board.querySelector(`[data-fkey="faceset-${step}"]`);
+      if (again) again.focus();
       return;
     }
     if (e.key === 'Escape') {

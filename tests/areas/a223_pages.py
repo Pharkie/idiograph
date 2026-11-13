@@ -271,26 +271,41 @@ def test_pages(scratch):
             rows[app] = server_mod.family_rows()
         finally:
             server_mod.APP = kept
-    check("223: each Home's foot lists the other two apps, each with its name and one line, always",
-          all([r["app"] for r in rows[a]] == [b for b in app_identity.APPS if b != a]
-              and all(r["name"] and r["line"] and isinstance(r["installed"], bool) for r in rows[a]) for a in rows),
+    # Idiograph's Home names no other app since nosiftrace (12 November 2026),
+    # and Sift's and Trace's list the other two as before
+    check("223: Idiograph's Home lists no other app, and Sift's and Trace's foot the other two, each with its name and "
+          "one line",
+          rows["idiograph"] == [] and app_identity.names("idiograph") == ()
+          and all([r["app"] for r in rows[a]] == [b for b in app_identity.APPS if b != a]
+                  and all(r["name"] and r["line"] and isinstance(r["installed"], bool) for r in rows[a])
+                  for a in ("sift", "trace")),
           str({a: [r["app"] for r in rows[a]] for a in rows}))
     ran = []
-    kept = (server_mod.FAMILY_OPENER, server_mod.installed_at)
+    kept = (server_mod.FAMILY_OPENER, server_mod.installed_at, server_mod.APP)
+    refused = {}
     try:
-        server_mod.FAMILY_OPENER = ran.append
-        opened = server_mod.api_family_open({"app": "sift"})
+        server_mod.FAMILY_OPENER, server_mod.APP = ran.append, "idiograph"
+        for app in ("sift", "trace"):
+            try:
+                server_mod.api_family_open({"app": app})
+                refused[app] = False
+            except server_mod.WorkbookError:
+                refused[app] = True
+        server_mod.APP = "sift"
+        opened = server_mod.api_family_open({"app": "idiograph"})
         server_mod.installed_at = lambda app, system=None: None
         fetched = server_mod.api_family_open({"app": "trace"})
         try:
-            server_mod.api_family_open({"app": "idiograph"})
+            server_mod.api_family_open({"app": "sift"})
             own_refused = False
         except server_mod.WorkbookError:
             own_refused = True
     finally:
-        server_mod.FAMILY_OPENER, server_mod.installed_at = kept
-    check("223: Open starts the other app installed, from source its own server, and Download opens its releases page",
-          opened["did"] == "run" and ran[0]["command"][-2:] == ["--app", "sift"] and fetched["did"] == "browse"
+        server_mod.FAMILY_OPENER, server_mod.installed_at, server_mod.APP = kept
+    check("223: Idiograph's Open refuses Sift and Trace, and on Sift's Home Open starts the other app installed, from "
+          "source its own server, and Download opens its releases page",
+          refused == {"sift": True, "trace": True} and opened["did"] == "run"
+          and ran[0]["command"][-2:] == ["--app", "idiograph"] and fetched["did"] == "browse"
           and ran[1]["url"] == "https://github.com/Pharkie/trace-releases/releases/latest" and own_refused, str(ran))
 
 

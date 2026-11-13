@@ -1895,7 +1895,7 @@
 
 <!-- Rename, from the dots on a case's row on its project's page (16 October): the name now, a field
      for the new one, one unticked row that takes the folder and the files named after the
-     participant too, and the list of what will change, drawn before anything is written. Rename
+     participant too, and its one line and folded details of what will change, drawn before anything is written. Rename
      writes, Cancel and Esc change nothing, and a refusal is one line here. -->
 <div class="overlay" id="rename" hidden>
   <div class="card">
@@ -1904,9 +1904,12 @@
     <div class="setting"><span class="rn-key">{{page_idiograph.cards_more.name_now}}</span><span class="rn-now" id="rn-now"></span></div>
     <div class="setting"><label for="rn-name">{{page_idiograph.cards_more.new_name}}</label><input id="rn-name" type="text" spellcheck="false" autocomplete="off"></div>
     <div class="switches"><label><input type="checkbox" id="rn-folder"> {{page_idiograph.cards_more.rename_folder_too}}</label></div>
-    <p class="rn-lead" id="rn-lead" hidden>{{page_idiograph.cards_more.what_will_change}}</p>
-    <ul class="rn-list" id="rn-list" aria-labelledby="rn-lead" hidden></ul>
+    <p class="rn-lead" id="rn-lead" hidden></p>
     <p class="fineprint" id="rn-copy" hidden>{{page_idiograph.cards_more.copy_each_file_kept}}</p>
+    <details class="rn-details" id="rn-details" hidden>
+      <summary>{{page_idiograph.cards_more.details}}</summary>
+      <ul class="rn-list" id="rn-list"></ul>
+    </details>
     <p class="warn" id="rn-said" role="status" hidden></p>
     <div class="card-actions">
       <button class="ghost" id="rn-cancel">{{page_idiograph.cards_more.cancel}}</button>

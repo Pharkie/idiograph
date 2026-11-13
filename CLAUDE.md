@@ -1,6 +1,6 @@
 # Idiograph
 
-Idiograph is an app for Interpretative Phenomenological Analysis and reflexive thematic analysis. Sift and Trace are apps of their own built from this one codebase. The README says what each does and how to run them from source.
+Idiograph is an app for Interpretative Phenomenological Analysis and reflexive thematic analysis. The README says what it does and how to run it from source. Sift and Trace are early apps of their own in the same codebase, for the maintainer alone, each in `apps/<app>/`.
 
 ## Where things are
 

@@ -150,11 +150,12 @@ def test_app_commands(scratch):
                             "before": before}
         codes = {side: {k: v.returncode for k, v in c["steps"].items()} for side, c in copies.items()}
         check("226: every command of a live review's answers through sift, and each is refused through idiograph sift",
-              set(codes["sift"].values()) == {0} and set(codes["idiograph"].values()) == {1},
+              set(codes["sift"].values()) == {0} and 0 not in codes["idiograph"].values(),
               str(codes) + " " + " ".join(v.stderr[:160] for v in copies["sift"]["steps"].values() if v.returncode))
         aliases = copies["idiograph"]
-        check("226: idiograph sift is refused naming the command to run in its place, and writes nothing",
-              all(v.stderr.startswith("sift is Sift's, not Idiograph's. Run it as: sift search ") for v in aliases["steps"].values())
+        # Idiograph names no other app since nosiftrace (12 November 2026): `sift` is no command of it
+        check("226: idiograph sift is refused as no command of Idiograph's, naming no other app, and writes nothing",
+              all("invalid choice: 'sift'" in v.stderr and "Sift" not in v.stderr for v in aliases["steps"].values())
               and tree(aliases["folder"]) == aliases["before"],
               " | ".join(v.stderr.strip()[:120] for v in aliases["steps"].values()))
         a = copies["sift"]["files"]
@@ -170,17 +171,18 @@ def test_app_commands(scratch):
                   "alias": launch("idiograph", "sift", screening, "counts", "--json", "--config", cfg),
                   "old form": launch("sift", "sift", screening, "counts", "--json", "--config", cfg)}
         check("226: sift <screening> counts answers, sift sift as it, and idiograph sift <screening> counts is refused "
-              "naming the command",
+              "as no command of Idiograph's, naming no other app",
               counts["sift"].returncode == 0 and counts["old form"].returncode == 0
               and json.loads(counts["sift"].stdout) == json.loads(counts["old form"].stdout)
-              and counts["alias"].returncode == 1 and json.loads(counts["alias"].stdout)["error"].startswith(
-                  f"sift is Sift's, not Idiograph's. Run it as: sift {shlex.quote(str(screening))} counts"),
+              and counts["alias"].returncode != 0 and "invalid choice: 'sift'" in counts["alias"].stderr
+              and "Sift" not in counts["alias"].stdout + counts["alias"].stderr,
               " ".join((c.stderr or c.stdout)[:120] for c in counts.values()))
         traced = {"trace": launch("trace", project, "--json", "--config", cfg),
                   "alias": launch("idiograph", "trace", project, "--config", cfg)}
-        check("226: trace <project> answers, and idiograph trace <project> is refused naming the command",
-              traced["trace"].returncode == 0 and json.loads(traced["trace"].stdout) and traced["alias"].returncode == 1
-              and traced["alias"].stderr.startswith(f"trace is Trace's, not Idiograph's. Run it as: trace {shlex.quote(str(project))}"),
+        check("226: trace <project> answers, and idiograph trace <project> is refused as no command of Idiograph's, "
+              "naming no other app",
+              traced["trace"].returncode == 0 and json.loads(traced["trace"].stdout) and traced["alias"].returncode != 0
+              and "invalid choice: 'trace'" in traced["alias"].stderr and "Trace" not in traced["alias"].stderr,
               " ".join(c.stderr[:120] for c in traced.values()))
         refusals = {"sift cases": launch("sift", "cases", "--config", cfg),
                     "sift trace": launch("sift", "trace", project),
@@ -200,11 +202,11 @@ def test_app_commands(scratch):
                  "sift on trace": launch("sift", "search", "hedge", "--folder", project, "--config", cfg),
                  "trace on sift": launch("trace", "search", "hedge", "--folder", screening, "--config", cfg)}
         hits_s = json.loads(found["sift"].stdout or "{}") if found["sift"].returncode == 0 else {}
-        check("226: sift search --folder is Sift's Search, idiograph search --folder refuses Sift's folder by name, and "
-              "each app's Search refuses the other's folder by name",
+        check("226: sift search --folder is Sift's Search, idiograph search takes no --folder and names no other app, "
+              "and Sift's and Trace's Search refuse the other's folder by name",
               found["sift"].returncode == 0 and hits_s.get("scope") == "sift" and hits_s.get("total", 0) > 0
-              and found["alias"].returncode == 1 and json.loads(found["alias"].stdout)["error"].startswith(
-                  "That folder is Sift's, not Idiograph's. Search it as: sift search")
+              and found["alias"].returncode != 0 and "unrecognized arguments: --folder" in found["alias"].stderr
+              and "Sift" not in found["alias"].stdout + found["alias"].stderr
               and found["sift on trace"].returncode == 1
               and found["sift on trace"].stderr.startswith("That folder is Trace's, not Sift's.")
               and found["trace on sift"].stderr.startswith("That folder is Sift's, not Trace's."),
@@ -315,11 +317,11 @@ def test_app_commands(scratch):
     after = cli.run(["sift", str(screening), "counts", "--config", str(cfg)])
     after_t = cli.run(["trace", str(project)])
     names = [t["name"] for t in mcp_server.tools_for("idiograph")]
-    check("226: since the cutover idiograph sift and idiograph trace are refused naming the command, and Idiograph's "
-          "MCP server and routes keep their own alone",
+    check("226: since the cutover idiograph sift and idiograph trace are refused, since nosiftrace as no command of "
+          "Idiograph's, and Idiograph's MCP server and routes keep their own alone",
           app_identity.SERVES_TOO == {"idiograph": (), "sift": (), "trace": ()}
-          and after[0] == 1 and after[2].startswith(f"sift is Sift's, not Idiograph's. Run it as: sift {shlex.quote(str(screening))} counts")
-          and after_t[0] == 1 and after_t[2].startswith("trace is Trace's, not Idiograph's.")
+          and after[0] == 2 and "Sift" not in after[1] + after[2]
+          and after_t[0] == 2 and "Trace" not in after_t[1] + after_t[2]
           and not any(n.startswith(("sift_", "trace_")) for n in names) and "cases" in names and "search" in names
           and server_mod.apps_served("idiograph") == ("idiograph",), f"{after[2][:120]} {after_t[2][:80]}")
 

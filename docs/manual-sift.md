@@ -921,3 +921,76 @@ go and the truncation check's table, the counts its only requests. No tool regis
 a Claude session that carries your decision on the terms or the strings writes the draft through
 Sift's own save, with the reason you gave, and Mark as registered stays yours. It can list your databases and whether each key is saved, and no tool saves, removes or shows
 a key.
+
+## Settings, Search and the agent log
+
+These parts stood in Idiograph's manual until 12 November 2026, when they moved here.
+
+**Sift's Settings.** Its categories are General, Language and formats, Databases, Projects, Zotero and AI
+features. General and Language and formats are as Idiograph's (see Idiograph's manual, Settings), and Sift's
+dates, counts and kappa follow Language and formats. Sift's cog opens Projects and the searches' Settings opens
+Databases. Appearance is kept in Sift's own settings as well as in the browser, so its first start takes it
+from Idiograph's. Sift's AI feature is AI proposals in screening, and Celebrations has one switch.
+
+**Databases.** Sift's own category in its Settings, after General and whatever AI features says,
+holds your own list of the databases Sift searches (see Search strategy),
+empty on a new install. Add takes one of the databases Sift knows, Scopus, Web of Science, PsycInfo,
+CINAHL, PubMed, Europe PMC, OpenAlex, Embase, ProQuest Dissertations & Theses and Google Scholar, or
+Other with its name, and each row keeps its place in the order you added it. PsycInfo and CINAHL
+carry their platform, EBSCO, Ovid or ProQuest, EBSCO unless you choose another, since each writes
+its own string. Scopus, Web of Science, PubMed, Europe PMC and OpenAlex choose By API or By export,
+and the rest go By export. A row By API shows its key fields: Scopus's API key and its optional
+institution token, Web of Science Starter's API key, OpenAlex's and PubMed's optional keys, which
+raise their limits, and none for Europe PMC. A key field never shows the key, only Saved or Not set,
+in the faint ink since 17 October, where the browser's own grey read under 4.5 to 1, as Folder did on New
+project and Name on Set columns.
+Save beside it puts the key in the macOS keychain as the Anthropic key is kept, under
+`ELSEVIER_API_KEY`, `ELSEVIER_INSTTOKEN`, `CLARIVATE_API_KEY`, `OPENALEX_API_KEY` or `NCBI_API_KEY`,
+so a key already there shows as Saved at once, and off a Mac in the `.env` file. Remove deletes it,
+and Check sends a search for one record with the key and says in one line whether the database took
+it. Remove at the end of a row takes the database out of the list. Save at the foot writes the list
+to `config.json` under `databases`, never a key. On Search strategy, each database's cog, on its row
+under Searches, opens the same platform, By API or By export and keys under its name, and Add
+database adds to the same list, each written at once.
+
+**A Sift project's own parts.** In Sift's Projects category, which Sift's cog opens, a row of the Sift
+projects' names, when there are several, each name for its project's newest screening, the screening
+open on Sift's screen first. Under it stand the project chosen's own parts: PDFs, Find open-access PDFs with your email for
+Unpaywall, whatever the AI switch says, and with the switch on its AI proposals and the bench (see
+AI proposals). Sift's own settings card is gone, so every setting of Sift is here.
+
+**Zotero.** Sift's category before AI features, whatever AI features says, since a sync calls no model: Library, your
+own or a group's, which asks for the group's id, and the key. Your own library is the one the key
+belongs to, so no user id is asked for. To make a key, sign in at zotero.org and open
+Settings, Security, Applications, then Create new private key, with Allow library access and
+Allow write access ticked, and for a group library read and write access to that group. The key goes in through Settings
+alone: its Save puts it in the macOS keychain under `ZOTERO_API_KEY`, as every key is kept, and off a
+Mac in the `.env` file, and the field shows only Saved or Not set. Remove deletes it. As soon as the
+key is saved, and whenever the library or the group's id changes, Sift asks Zotero for the key's own
+record and the library's name and says in one line whether the key works, "The key works with the
+library of" and your Zotero name, or what stands in the way, in the amber when Zotero refuses the key or
+a Save or Remove fails, as every line in Settings that says something failed is since 17 October, later,
+where it stood in the small print's grey. Save at the foot writes the library and
+the group's id to `config.json` under `zotero`, never the key.
+
+**Search.** Search finds words across Sift (18 October): a record by its ID, its title, its abstract, its
+authors or its journal, a decision note, one of your fields, Notes, Digest, Critique and the columns you added,
+an answer on the form of Extract and appraise, a key excerpt, and the plan's search terms and exclusion
+reasons. AI suggestions and the text of PDFs are left out. `Cmd + F` (`Ctrl + F` on Windows and Linux) opens
+it on Home, the screening and Search strategy, from the fields as well, and so does Search on the bar, before
+Shortcuts. On Sift's screens Search in starts at This Sift project, which reaches the screening its Screening
+step opens, or on the screening the run that is open, and the newest version of its plan, and on Home at
+Everything. A record opens on Sift's screen at its stage, Screen by title and abstract until it has Yes or
+Maybe there and Screen by full text after, an answer on the form at Extract and appraise while the record is
+one of its papers, and a decision note or a key excerpt at the stage it was made at. There the record opens
+with the words found in view, the caret in the decision note or the field, or the key excerpt under the find's
+yellow wash in the list under the note until the record is drawn again. A record the table's filters leave out
+stands among the rows in the table's order until the filters next change, so nothing of yours changes. A
+search term opens Search strategy with the caret at the start of the term's line in its block, and an
+exclusion reason with the caret in its meaning, nothing selected, so a key pressed after replaces no word. The
+card itself is Idiograph's (see Idiograph's manual, Search).
+
+**The agent log.** Sift keeps an agent log of its own, the same way as Idiograph's, under Settings, AI
+features, Using your own AI agents: each time Sift refuses an agent, the review by its folder's name, never a
+record or anything the agent handed in. It is kept beside Sift's own settings, never in a review's folder,
+and never shows another app's.

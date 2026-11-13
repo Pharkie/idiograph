@@ -1470,10 +1470,10 @@ function homeMarkScene(way, box, use, name, stamp, still) {
 
 /* ── the family at the foot of each Home (the split's third build) ── */
 
-/* the other two apps, as /api/family lists them, each a card: its icon on the paper tile, its name, its one
-   line and Open when installed here or Download when not (decision 4 of the plan: always shown). The
-   heading names the two, "Sift and Trace" on Idiograph's Home. A server from before says nothing, and the
-   foot stays hidden */
+/* the other apps this one names, as /api/family lists them, each a card: its icon on the paper tile, its name,
+   its one line and Open when installed here or Download when not (decision 4 of the plan). The heading names
+   them, "Idiograph and Trace" on Sift's Home. Idiograph's names none since nosiftrace (12 November 2026), nor
+   does a server from before, and the foot stays hidden */
 /* Each app's own part of the page, registered by its own script (the family codebase's second build, 22 October
    2026), so this script names none of an app's: Sift's from sift_settings.js (the third build) and Trace's from
    trace.js. Each is `{ screen, screens, route, made, open, home, settingsReset, settingsLoad, aiLoad,

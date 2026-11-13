@@ -26,7 +26,7 @@ def test_distil_left(scratch):
     else:
         harness = r"""
 const mk = () => ({ hidden: true, textContent: '', innerHTML: '', children: [] });
-const els = { 'rn-said': mk(), 'rn-list': mk(), 'rn-lead': mk(), 'rn-copy': mk() };
+const els = { 'rn-said': mk(), 'rn-list': mk(), 'rn-lead': mk(), 'rn-copy': mk(), 'rn-details': mk() };
 const $ = (id) => els[id];
 """ + whole(app, "rnSaid") + "\n" + rn + r"""
 const state = () => ({ list: !els['rn-list'].hidden, copy: !els['rn-copy'].hidden, said: !els['rn-said'].hidden });

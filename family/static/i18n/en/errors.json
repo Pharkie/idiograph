@@ -19,6 +19,7 @@
   "errors.say_which_participant_nothing_searched": "Say which participant, so nothing was searched.",
   "errors.say_which_project_nothing_searched": "Say which project, so nothing was searched.",
   "errors.search_participant_project_sift_project": "Search in is a participant, a project, a Sift project, a Trace project or everything, so nothing was searched.",
+  "errors.search_participant_project_everything": "Search in is a participant, a project or everything, so nothing was searched.",
   "errors.another_write_these_files_under": "Another write to these files is under way, from the app or the command line, so nothing was written. Try again in a moment.",
   "errors.key_field": "There is no key in that field.",
   "errors.keychain_would_take_key": "The keychain would not take the key.",

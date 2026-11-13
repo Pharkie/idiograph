@@ -16,9 +16,6 @@ its statements, quotes and exploratory notes, PETs, one participant's statements
 experiential themes, and GETs, every participant's PETs gathered into group experiential themes. A thematic analysis project follows Braun and Clarke: Coding, a Code
 list shared by every participant, and Themes.
 
-Two more apps share its code: Sift screens a systematic review's records, by PRISMA 2020, and Trace
-checks each claim a manuscript makes against its reference.
-
 ![Experiential statements](docs/images/statements.webp)
 
 ![A PET on the canvas](docs/images/pets.webp)
@@ -84,18 +81,17 @@ file in its `Source` folder is offered with "make a workbook".
 
 ## AI
 
-The AI features are off until you turn them on in Settings. They suggest statements for a
-passage, and on the canvas a grouping, titles and review questions, and change nothing by themselves.
+The AI features are off until turned on in Settings. They suggest statements, codes and
+titles, changing nothing by themselves.
 They run on your own key, or free on your own computer with Ollama or LM Studio. An AI agent can work on a project through the command line or Claude Desktop once Settings,
 Projects allows it, sending what it reads to its provider. [docs/agents.md](docs/agents.md) is its guide.
 
 ## Privacy
 
-Idiograph's page loads nothing from the internet. Three
+Idiograph's page loads nothing from the internet. Two
 things leave, each only when you press a
-control: with the AI switch on, the prompt an AI control builds from a passage, a board, a
-screening's record or a reference's PDF, sent to your chosen provider, none with a local model, Sift's
-searches, lookups and Zotero syncs, sent to your chosen databases, OpenAlex, Unpaywall and Zotero, and a feedback note, sent with the bug in each top bar, which carries your words, the app's version, your system, the screen it came from and the
+control: with the AI switch on, the prompt an AI control builds from a passage or a board, sent to your
+chosen provider, none with a local model, and a feedback note, sent with the bug in each top bar, which carries your words, the app's version, your system, the screen it came from and the
 time, and nothing from your projects. Once a day Idiograph asks GitHub for a newer version. GitHub sees
 your internet address and version number, never your work. Settings asks Anthropic which models a
 stored key can use, sending nothing of yours.
@@ -109,9 +105,10 @@ The [manual](docs/manual.md) describes every screen, the [internals](docs/intern
 
 ## Licence and support
 
-Idiograph, Sift and Trace are under the GNU Affero General Public License version 3, in `LICENSE`,
+Idiograph is under the GNU Affero General Public License version 3, in `LICENSE`,
 with two terms of its section 7 and the third-party software in `NOTICE.md`. The demo's recordings, AI
 voices made with Google Gemini, are the one exception, under `packaging/recording/LICENSE-audio.md`.
+Portraits: Open Peeps (Pablo Stanley, CC0), Notionists (Zoish, CC0), Fluent Emoji (Microsoft, MIT).
 If it helps your work, please consider buying me a coffee, and a GitHub star helps others find it.
 
 <a href='https://ko-fi.com/X8X01NIXRB' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>

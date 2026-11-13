@@ -5,7 +5,7 @@ proposal, by dialog about 18:10).
 Every participant of every project, IPA and thematic analysis alike, has a set of their own beside the number and
 pseudonym their folder gives them:
 
-1. a **picture**, one of the app's drawn set, `set:peep07` (`trajectories.FACES`), his own file kept in `pictures/`
+1. a **picture**, one of the app's drawn sets, `set:peep07` (`trajectories.FACES`), his own file kept in `pictures/`
    at the project's root, or none, which shows the initial on the participant's colour. One of the set before,
    `set:face07`, is kept as it is and shown as its nearest now (`trajectories.FACES_BEFORE`),
 2. a **label**, a few words, "Pepper's keeper", up to LABEL_MAX characters,
@@ -249,7 +249,7 @@ def apply(people: dict[str, dict], case: str, given: dict, files: dict, names: l
                 face = traj_mod.face_of(said_pic[4:] if said_pic.lower().startswith("set:") else said_pic)
                 if not face:
                     raise WorkbookError(i18n.t("server.trajectory_no_such_face", face=said_pic,
-                                               first=traj_mod.FACES[0], last=traj_mod.FACES[-1]))
+                                               ranges=traj_mod.faces_said()))
                 now = f"set:{face}"
         if now != was or now in files:
             if was and not was.startswith("set:") and not held.get("from_traj"):

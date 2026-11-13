@@ -1174,6 +1174,8 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .rn-now { width: 190px; max-width: 100%; font-family: var(--serif); color: var(--ink); overflow-wrap: anywhere; }
 /* what will change, under its lead-in, and both away while a refusal says why nothing will (17 October) */
 .rn-lead { margin: 16px 0 0; font-size: 13px; color: var(--ink); }
+.rn-details { margin: 8px 0 0; font-size: 13px; color: var(--ink-soft); }
+.rn-details > summary { cursor: pointer; width: fit-content; }
 .rn-list { margin: 4px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--ink-soft); }
 .rn-list li { margin: 2px 0; overflow-wrap: anywhere; }
 .rn-list:empty { display: none; }
@@ -1678,7 +1680,7 @@ html[data-method="ta"] #tab-pets { display: none; }
 /* the pen portrait's box five whole lines at least, and as tall as its words (ppFit), never a line cut */
 .pp-edit textarea.pp-in { max-width: 640px; font-family: var(--serif); font-size: 14.5px; line-height: 1.45; resize: vertical;
   min-height: calc(5 * 1.45em + 12px); overflow-y: hidden; }
-.pp-faces { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 0 114px; }
+.pp-faces { margin: 2px 0 0 114px; min-width: 0; }
 .pp-foot { display: flex; justify-content: flex-end; }
 /* in a narrower window the picture and its buttons go over the fields, as Trajectories' editor does, and a row's
    picture is smaller and the statements half gives a little room to the name and to PETs, so at 720 the name and

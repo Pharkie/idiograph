@@ -174,15 +174,16 @@ def tool(name: str, title: str, command: tuple, description: str, properties: di
             "annotations": dict(hints, title=title), "command": command}
 
 
-# The shared Search's tool, every app's (see `own_search`), which Idiograph's tools hold second
+# The shared Search's tool, every app's (see `own_search`), which Idiograph's tools hold second. Idiograph's names its
+# own kinds alone and takes no folder since nosiftrace (12 November 2026), Sift's and Trace's adding theirs
 SEARCH = tool("search", "Search across the participants", ("search", None),
          "The app's Search, for any question across cases: every word in any order, case and accents set aside, "
          "or a phrase in quotation marks, in the passages, statements, quotes, exploratory notes, PETs, "
          "GETs and their notes of every participant, or of one participant, or one of its boards. Each hit names its participant, "
          "its sheet, row, time and speaker, a snippet with each word between two asterisks, a statement's id "
          "and key with where the board places it, and open, the tool and inputs that read it whole. Read the "
-         "hits, then open only those the question needs. With folder, a Sift project's records and plan or a "
-         "Trace project's claims. whole_word finds each word only as a whole word, on when left out, and "
+         "hits, then open only those the question needs. whole_word finds each word only as a whole word, on "
+         "when left out, and "
          "false finds a word inside a longer one too, as cat in catch. match_case finds each word in the case "
          "typed, off when left out. They are the card's two ticks. A page holds limit hits, and more, when the "
          "answer gives it, fetches the next.",
@@ -197,12 +198,10 @@ SEARCH = tool("search", "Search across the participants", ("search", None),
           "board": dict(TEXT, description="With case, this board's PETs and notes alone, by id or name, its statements "
                                           "placed as it places them. The Current board's placing when left out."),
           "kinds": {"type": "array", "items": {"type": "string"},
-                    "description": "These kinds alone: passages, statements, quotes, notes, pets, gets, boards, cases, "
-                                   "records, plan or claims. Leave it out for every kind."},
+                    "description": "These kinds alone: passages, statements, quotes, notes, pets, gets, boards or "
+                                   "cases. Leave it out for every kind."},
           "limit": {"type": "integer", "minimum": 1, "maximum": 200, "description": "The hits a page holds, 25 when left out."},
-          "more": {"type": "string", "description": "The cursor more an answer gave, for its next page."},
-          "folder": dict(TEXT, description="A Sift screening's or review's folder, or a Trace project's, by its full "
-                                           "path, in place of the participants.")},
+          "more": {"type": "string", "description": "The cursor more an answer gave, for its next page."}},
          ["words"])
 # Every tool in the order tools/list gives them, Idiograph's first as its module registers them (see
 # `register_own`), then Sift's and Trace's (see `register`)

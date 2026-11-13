@@ -283,10 +283,11 @@ def test_routes(scratch):
               set(ok_steps["sift"].values()) <= {0, 200},
               str(ok_steps["sift"]) + " " + " ".join(str(v.stderr)[:120] for v in sift_["steps"].values()
                                                       if hasattr(v, "stderr") and v.returncode))
-        check("222: on Idiograph's server every call is refused naming Sift, the command line's too, and nothing is "
-              "written in the review's folder",
+        # Idiograph's command line names no other app since nosiftrace (12 November 2026): `sift` is no command of it
+        check("222: on Idiograph's server every call is refused naming Sift, the command line's refused as no command "
+              "of Idiograph's, naming no other app, and nothing is written in the review's folder",
               all(v[0] == 404 and v[1].get("app") == "sift" for v in idio["steps"].values() if not hasattr(v, "returncode"))
-              and all(v.returncode == 1 and v.stderr.startswith("sift is Sift's, not Idiograph's. Run it as: sift search ")
+              and all(v.returncode != 0 and "invalid choice: 'sift'" in v.stderr and "Sift" not in v.stderr
                       for v in idio["steps"].values() if hasattr(v, "returncode"))
               and idio["files"] == {}, str(ok_steps["idiograph"]) + " " + str(sorted(idio["files"])[:6]))
         names = set(sift_["files"])
