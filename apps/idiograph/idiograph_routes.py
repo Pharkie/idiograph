@@ -21,6 +21,7 @@ import base64
 import binascii
 import contextlib
 import contextvars
+import hashlib
 import json
 import os
 import re
@@ -4262,7 +4263,8 @@ def pseudo_view(entries: list[dict], agent: bool) -> list[dict]:
     if not agent:
         return [dict(e, entry=n + 1) for n, e in enumerate(entries)]
     # Review each and the except phrases as a tick and a count (namesop), since a phrase may hold the name itself
-    return [dict({"entry": n + 1, "to": e["to"], "for": e["for"], "spellings": len(e["real"]), "case": e["case"]},
+    return [dict({"entry": n + 1, "to": e["to"], "for": e["for"], "spellings": len(e["real"])},
+                 **({"word": True} if e.get("word") else {}),
                  **({"review": True} if e.get("review") else {}),
                  **({"excepts": len(e["except"])} if e.get("except") else {}))
             for n, e in enumerate(entries)]
@@ -4304,18 +4306,123 @@ def pseudo_fixer(run: "names_mod.Run", who: str, left: dict | None = None, took:
     return fix
 
 
-def pseudo_check(root: Path, entries: list[dict], skip=(), take=()) -> tuple["names_mod.Run", dict]:
+def pseudo_check(root: Path, entries: list[dict], skip=(), take=(), seen: list | None = None) -> tuple["names_mod.Run", dict]:
     """Every transcript already in the project searched for the list's names: each passage's speaker and words,
-    its statements, quotes, exploratory notes and interviewer's notes, nothing written. Answers the run, its finds
-    by participant, sheet and passage, and each workbook a replace with `skip` would change."""
+    its statements, quotes, exploratory notes and interviewer's notes, then each participant's memos file a REFI-QDA
+    import wrote, nothing written. Answers the run, its finds by participant, sheet and passage, and each workbook
+    and memos file a replace with `skip` would change. A `seen` list gathers each memos file as this check met it
+    (`pseudo_memo_seen`), in order, for the app's Replace to send back (wordfix2 N4)."""
     run = names_mod.Run(entries, skip, take)
     changes: dict = {}
-    for who, _folder, book in pseudo_books(root):
+    for who, folder, book in pseudo_books(root):
         mark = len(run.finds)
         wb_mod.names_in_book(book, pseudo_fixer(run, who), dry=True)
         if any(not f["skipped"] for f in run.finds[mark:]):
-            changes[book] = True
+            changes[book] = folder
+    for who, folder, path, memo in pseudo_memos(root):
+        mark = len(run.finds)
+        pseudo_memo_text(run, who, memo["text"])
+        if seen is not None:
+            seen.append(pseudo_memo_seen(memo, run.finds[mark:]))
+        if any(not f["skipped"] for f in run.finds[mark:]):
+            changes[path] = folder
     return run, changes
+
+
+# a participant's memos file in Source, as a REFI-QDA import writes it (`qdpx_case`): searched and replaced as a
+# passage is, its finds on the Review card under memos, never only mirrored as a copy is (wordfix M3)
+PSEUDO_MEMOS = names_mod.MEMOS_FILE
+PSEUDO_BOM = b"\xef\xbb\xbf"
+
+
+def pseudo_memos(root: Path):
+    """Each participant's memos files, in the one order a check and a replace both take, with the pseudonym, the
+    folder and the file as read (`pseudo_memo_read`); a file that cannot be read is passed by."""
+    seen = set()
+    for who, folder, _book in pseudo_books(root):
+        if folder in seen:
+            continue
+        seen.add(folder)
+        # the folder's real name on disk must be `Source`, as the app always makes it: a disk that ignores case
+        # would let `source` open here, and `agent_changes.is_memos` (exact) would not keep or record the write
+        try:
+            source = next((p for p in folder.iterdir() if p.name == "Source" and p.is_dir()), None)
+        except OSError:
+            source = None
+        if source is None:
+            continue
+        for path in sorted(p for p in source.iterdir() if p.is_file() and PSEUDO_MEMOS.match(p.name)):
+            memo = pseudo_memo_read(path)
+            if memo is not None:
+                yield who, folder, path, memo
+
+
+def pseudo_memo_read(path: Path) -> dict | None:
+    """A memos file's text as its bytes hold it, its line endings as they are and its byte order mark noted, so a
+    replace writes back every byte but the finds (wordfix2 N2), and its digest. None when it cannot be read."""
+    try:
+        data = path.read_bytes()
+        bom = data.startswith(PSEUDO_BOM)
+        text = data[len(PSEUDO_BOM) if bom else 0:].decode("utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+    return {"text": text, "bom": bom, "sha": hashlib.sha256(data).hexdigest()[:32]}
+
+
+def pseudo_memo_text(run: "names_mod.Run", who: str, text: str) -> str:
+    # the place said by a fixed word, never the file's name, which may be his own and hold a name (wordfix2 N3)
+    return run.text(text, who, {"participant": who, "interview": names_mod.MEMOS_PLACE, "part": "memos"})
+
+
+def pseudo_memo_seen(memo: dict, finds: list) -> dict:
+    """A memos file as a check met it, for the app's Replace to send back: its digest and how many finds of each
+    entry it held, so a file changed since is left as it is and the finds after it keep the numbers his ticks name
+    (wordfix2 N4). Numbers alone, never a word."""
+    n: dict = {}
+    for f in finds:
+        n[str(f["entry"])] = n.get(str(f["entry"]), 0) + 1
+    return {"sha": memo["sha"], "n": n}
+
+
+def pseudo_seen(body: dict) -> list | None:
+    """The memos files as the app's Check met them, sent back with its Replace (`memos_seen`), or None when not
+    given. Read as digests and counts alone."""
+    given = (body or {}).get("memos_seen")
+    if not isinstance(given, list):
+        return None
+    out = []
+    for g in given:
+        g = g if isinstance(g, dict) else {}
+        n = g.get("n") if isinstance(g.get("n"), dict) else {}
+        out.append({"sha": str(g.get("sha") or ""),
+                    "n": {str(k): v for k, v in n.items()
+                          if str(k).isdigit() and isinstance(v, int) and not isinstance(v, bool) and v > 0}})
+    return out
+
+
+def pseudo_memo_held(run: "names_mod.Run", who: str, text: str, counted: dict) -> None:
+    """A memos file changed since the Check his ticks came from: nothing of it replaced, each find it holds now
+    counted as left, and the run's numbers moved on by the finds the Check counted in it (`counted`), so the finds of
+    the files after it keep the numbers his ticks name (wordfix2 N4)."""
+    other = names_mod.Run(run.entries)
+    other.text(text, who, {"participant": who, "interview": names_mod.MEMOS_PLACE, "part": "memos"})
+    for f in other.finds:
+        run.finds.append(dict(f, skipped=True))
+    for k, n in counted.items():
+        if 0 < int(k) <= len(run.entries):
+            run.tally[int(k) - 1] = run.tally.get(int(k) - 1, 0) + n
+
+
+def pseudo_archive_move(path: Path, folder: Path, stamp: str) -> None:
+    """A file as it was moved into its participant's `_Archive`, under the label a send leaves out."""
+    archive = folder / "_Archive"
+    archive.mkdir(parents=True, exist_ok=True)
+    kept = archive / f"{path.stem} ({PSEUDO_ARCHIVE} {stamp}){path.suffix}"
+    n = 2
+    while kept.exists():
+        kept = archive / f"{path.stem} ({PSEUDO_ARCHIVE} {stamp}-{n}){path.suffix}"
+        n += 1
+    shutil.move(str(path), str(kept))
 
 
 def pseudo_copies(run: "names_mod.Run", who: str, folder: Path, left: set, stamp: str, taken: set | None = None) -> int:
@@ -4326,14 +4433,14 @@ def pseudo_copies(run: "names_mod.Run", who: str, folder: Path, left: set, stamp
     source = folder / "Source"
     if not source.is_dir():
         return 0
-    archive = folder / "_Archive"
     files = [p for p in sorted(source.iterdir()) if p.is_file() and p.suffix.lower() in PSEUDO_TEXT_COPIES]
     for sub in sorted(p for p in source.iterdir() if p.is_dir()):
         files += [p for p in sorted(sub.iterdir()) if p.is_file() and p.suffix.lower() in convert_mod.FORMATS + (".md",)]
     changed = 0
     where = {"participant": who, "part": "copy"}
     for path in files:
-        if path.name.startswith(("~$", ".")):
+        if path.name.startswith(("~$", ".")) or (path.parent == source and PSEUDO_MEMOS.match(path.name)):
+            # a memos file is searched and replaced on its own (pseudo_memos), never mirrored
             continue
         try:
             if path.suffix.lower() in PSEUDO_TEXT_COPIES:
@@ -4355,19 +4462,14 @@ def pseudo_copies(run: "names_mod.Run", who: str, folder: Path, left: set, stamp
                 new, out = names_mod.render(turns, notes), path.with_suffix(".txt")
         except (OSError, UnicodeDecodeError, convert_mod.Unreadable, ValueError):
             continue
-        archive.mkdir(parents=True, exist_ok=True)
-        kept = archive / f"{path.stem} ({PSEUDO_ARCHIVE} {stamp}){path.suffix}"
-        n = 2
-        while kept.exists():
-            kept = archive / f"{path.stem} ({PSEUDO_ARCHIVE} {stamp}-{n}){path.suffix}"
-            n += 1
-        shutil.move(str(path), str(kept))
+        pseudo_archive_move(path, folder, stamp)
         out.write_text(new, encoding="utf-8", newline="\n")
         changed += 1
     return changed
 
 
-def pseudo_replace(root: Path, entries: list[dict], skip, tool: str = "", request: str = "", take=()) -> dict:
+def pseudo_replace(root: Path, entries: list[dict], skip, tool: str = "", request: str = "", take=(),
+                   seen: list | None = None) -> dict:
     """Review and replace (namesui, Adam's pick of 8 November 2026): the list's names replaced in the transcripts
     already in, the finds `skip` names left as written. For each participant whose workbook holds one, the workbook
     and its raw source are kept first in the participant's `_Archive` (`workbook.archive_copy`, labelled
@@ -4403,6 +4505,25 @@ def pseudo_replace(root: Path, entries: list[dict], skip, tool: str = "", reques
                     taken=took.get((sheet, row), ticked)))
             pseudo_copies(run, who, folder, every, stamp, ticked)
         done.append(label_for(folder))
+    # each memos file read again and written under the project's lock, so nothing changes it between the two, and
+    # one the app's Check met otherwise (`seen`) left as it is (wordfix2 N4)
+    memos_changed = 0
+    with writing(root=root):
+        for i, (who, folder, path, memo) in enumerate(pseudo_memos(root)):
+            met = seen[i] if seen is not None and i < len(seen) else None
+            if seen is not None and (met is None or met["sha"] != memo["sha"]):
+                pseudo_memo_held(run, who, memo["text"], (met or {}).get("n") or {})
+                memos_changed += 1
+                continue
+            mark = len(run.finds)
+            new = pseudo_memo_text(run, who, memo["text"])
+            if new == memo["text"] or not any(not f["skipped"] for f in run.finds[mark:]):
+                continue
+            pseudo_archive_move(path, folder, stamp)
+            # its byte order mark and its line endings as they were, every byte but the finds (wordfix2 N2)
+            path.write_bytes((PSEUDO_BOM if memo["bom"] else b"") + new.encode("utf-8"))
+            if label_for(folder) not in done:
+                done.append(label_for(folder))
     counts = run.counts()
     if done:
         with writing(root=root):
@@ -4410,7 +4531,7 @@ def pseudo_replace(root: Path, entries: list[dict], skip, tool: str = "", reques
                                                            left=counts["left"],
                                                            participants=i18n.t("cli.n.participant", n=len(done)))],
                             {"by": "agent", "tool": tool, "request": request} if tool else None)
-    return {"run": run, "participants": done, "failed": failed}
+    return {"run": run, "participants": done, "failed": failed, "memos_changed": memos_changed}
 
 
 def pseudo_names_answer(run: "names_mod.Run", agent: bool, preview: bool) -> dict:
@@ -4482,7 +4603,7 @@ def pseudo_preview(root, body: dict) -> dict:
 
 
 PSEUDO_ADD_PARTS = {"words": "transcript", "speaker": "transcript", "quotes": "quotes", "statements": "statements",
-                    "notes": "notes"}
+                    "notes": "notes", "memos": "notes"}
 
 
 PSEUDO_PART_KEYS = ("transcript", "quotes", "statements", "notes")
@@ -4536,13 +4657,13 @@ def pseudo_phrases(value) -> list[str]:
 
 
 # what `edit` may change of an entry, as a call names each in `changes`
-PSEUDO_EDIT_FIELDS = ("real", "to", "for", "case", "review", "except", "except_add", "except_remove")
+PSEUDO_EDIT_FIELDS = ("real", "to", "for", "word", "review", "except", "except_add", "except_remove")
 
 
 def pseudo_edit(root: Path, entries: list[dict], body: dict, agent: bool, dry: bool) -> dict:
     """`edit` (namesset, 16 November 2026, Adam: "if you're not able to do it via MCP or the API, you should be
-    able to"): one entry of the list changed by its number, `entry`, `changes` holding any of `review` and `case`
-    (true or false), `for` (a participant's pseudonym, or none or "everyone" for everyone), `to`, `real` (every
+    able to"): one entry of the list changed by its number, `entry`, `changes` holding any of `review` and `word`
+    (Also an ordinary word, ordinaryword; true or false), `for` (a participant's pseudonym, or none or "everyone" for everyone), `to`, `real` (every
     spelling, on his word as `add` takes them), `except` (every phrase, an empty list for none), and `except_add` and
     `except_remove` (phrases added or taken off). The entry is cleaned and the list saved by the same `clean_entry`
     and `save_at` the app's Names to replace saves with, and an agent's edit is one line in the record of agents'
@@ -4558,12 +4679,12 @@ def pseudo_edit(root: Path, entries: list[dict], body: dict, agent: bool, dry: b
     changes = body.get("changes")
     if not isinstance(changes, dict) or not any(f in changes for f in PSEUDO_EDIT_FIELDS):
         raise WorkbookError(i18n.t("names.edit_none"))
-    for key in ("case", "review"):
+    for key in ("word", "review"):
         if key in changes and not isinstance(changes[key], bool):
             raise WorkbookError(i18n.t("names.edit_tick"))
     old = entries[k - 1]
     raw = dict(old)
-    for key in ("real", "to", "case", "review"):
+    for key in ("real", "to", "word", "review"):
         if key in changes:
             raw[key] = changes[key]
     if "for" in changes:
@@ -4607,7 +4728,7 @@ def pseudo_edit(root: Path, entries: list[dict], body: dict, agent: bool, dry: b
     for key in ("to", "for"):
         if old.get(key) != new.get(key):
             changed[key] = {"before": old.get(key), "after": new.get(key)}
-    for key in ("case", "review"):
+    for key in ("word", "review"):
         if bool(old.get(key)) != bool(new.get(key)):
             changed[key] = {"before": bool(old.get(key)), "after": bool(new.get(key))}
     after = list(entries)
@@ -4649,7 +4770,7 @@ def pseudo_remove(root: Path, entries: list[dict], given, agent: bool, dry: bool
 
 def pseudo_add(root: Path, entries: list[dict], given, agent: bool, dry: bool) -> dict:
     """`add` (namesop, 16 November 2026, Adam: "Can you not do this via the MCP?"): entries added at the list's end,
-    each `{"real", "to", "for", "case", "review", "except"}` as `set` takes them, with `dry_run` first. An agent may,
+    each `{"real", "to", "for", "word", "review", "except"}` as `set` takes them, with `dry_run` first. An agent may,
     on his word: the real names it was given are his choice, and no answer says one back. The answer is each new
     entry by its number, its replacement and whom it is for, with how many finds it would flag across the transcripts
     already in, by participant and by part (transcript, quotes, statements, notes), never the words around them, counted
@@ -4674,15 +4795,30 @@ def pseudo_add(root: Path, entries: list[dict], given, agent: bool, dry: bool) -
     # a spelling held already for the same people, or for everyone, by the holding entry's number, never the name.
     # An earlier entry covers a new one only when it is for everyone or for the same participant: one for a single
     # participant never covers a new one for everyone, whose finds in the others are new (namesfix H1), and only when
-    # its Match case and Except in are the new one's too, else the new entry is written (namesfix2)
+    # its Also an ordinary word and Except in are the new one's too, else the new entry is written (namesfix2)
     seen: dict[str, list] = {}
     # an agent's spellings the list covers already, by entry, left out of the write alone (namesop re-review)
     covered: dict[int, set] = {}
     for n, e in enumerate(after, start=1):
         scope = (e["for"] or "").casefold()
-        rules = (bool(e.get("case")), tuple(sorted({x.casefold() for x in e.get("except") or ()})))
+        rules = (bool(e.get("word")), tuple(sorted({x.casefold() for x in e.get("except") or ()})))
         for s in e["real"]:
             for m, other, other_rules in seen.get(s.casefold(), []):
+                if (n > len(entries) and (not other or other == scope) and other_rules[1] == rules[1]
+                        and (other_rules[0] != rules[0] or bool(after[m - 1].get("review")) != bool(e.get("review")))):
+                    # the same spelling for the same people, only a tick apart: the earlier entry would win every
+                    # find, so the new one would never be found; refused whole, dry run alike, pointing to names set
+                    # with the tick (wordfix L1)
+                    if m > len(entries):
+                        raise WorkbookError(i18n.t("names.add_twice"))
+                    ticks = []
+                    if other_rules[0] != rules[0]:
+                        ticks.append(i18n.t("names.record_field.word_on") if rules[0]
+                                     else i18n.t("names.record_field.word_off"))
+                    if bool(after[m - 1].get("review")) != bool(e.get("review")):
+                        ticks.append(i18n.t("names.record_field.review_on") if e.get("review")
+                                     else i18n.t("names.record_field.review_off"))
+                    raise WorkbookError(i18n.t("names.add_tick_held", n=m, ticks=formats.list_words(ticks)))
                 if n > len(entries) and (not other or other == scope) and other_rules == rules:
                     if m > len(entries):
                         raise WorkbookError(i18n.t("names.add_twice"))
@@ -4707,9 +4843,10 @@ def pseudo_add(root: Path, entries: list[dict], given, agent: bool, dry: bool) -
         hits = sum(p[x] for p in places.values() for x in PSEUDO_PART_KEYS)
         at = number.get(k + len(entries))
         rows.append(dict({"entry": at, "to": e["to"], "for": e["for"],
-                          "spellings": len(written[at - 1]["real"]) if at else 0, "case": e["case"],
+                          "spellings": len(written[at - 1]["real"]) if at else 0,
                           "hits": hits, "by_participant": [places[p] for p in sorted(places)]},
                          **({"listed": True} if at is None else {}),
+                         **({"word": True} if e.get("word") else {}),
                          **({"review": True} if e.get("review") else {}),
                          **({"excepts": len(e["except"])} if e.get("except") else {})))
     if not dry and written != entries:
@@ -4736,14 +4873,14 @@ def api_names(body: dict) -> dict:
     recorded and undone as its other writes are, and since namesset the same day changes one with `edit` and takes
     entries off with `remove`, each by its number, recorded and undone alike.
 
-    `list` answers the entries. `set` takes `entries`, the whole list, each `{"real": [spellings], "to", "for", "case"}`
-    (`for` a participant's pseudonym, none for everyone, `case` Match case, and `review`, Review each, and `except`,
-    phrases a find inside is no find), and keeps it, with `dry_run` writing nothing. `add` takes `entries` to add at
+    `list` answers the entries. `set` takes `entries`, the whole list, each `{"real": [spellings], "to", "for", "word"}`
+    (`for` a participant's pseudonym, none for everyone, `word` Also an ordinary word, whose finds wait for him as
+    Review each's do, and `review`, Review each, and `except`, phrases a find inside is no find), and keeps it, with `dry_run` writing nothing. `add` takes `entries` to add at
     the end (`pseudo_add`). `edit` takes `entry`, a number, and `changes` (`pseudo_edit`). `remove` takes `entries`,
     the numbers to take off (`pseudo_remove`). `check` searches the transcripts
     already in, counts only, and with `names_preview` the app's own call every find. `replace` replaces them, the
-    finds `skip` names left as written and a Review each entry's finds left unless `take` names them (the app's
-    alone), after a copy of each workbook changed is kept in its participant's `_Archive`
+    finds `skip` names left as written and the finds of a Review each or Also an ordinary word entry left unless
+    `take` names them (the app's alone), after a copy of each workbook changed is kept in its participant's `_Archive`
     (`pseudo_replace`), `dry_run` answering what `check` answers. `preview` takes Add's `files`, or New project's with
     its `folder`, and answers each file's finds (`pseudo_preview`). `read-key` takes a CSV or Excel key's `name` and
     `data` in base64 and answers the entries it holds, writing nothing, and `key-file` answers the list as a
@@ -4770,10 +4907,13 @@ def api_names(body: dict) -> dict:
             who = sorted({w for w, _f, _b in pseudo_books(root)})
             return {"entries": pseudo_view(entries, agent), "count": len(entries), "participants": who}
         if op == "check":
-            run, changes = pseudo_check(root, entries)
+            seen: list = []
+            run, changes = pseudo_check(root, entries, seen=seen)
             shown = body.get("names_preview") is True and not agent
+            # the memos files as met, for the app's Replace to send back, its own call alone (wordfix2 N4)
             return dict({"names": pseudo_names_answer(run, agent, shown), "entries": len(entries),
-                         "participants": len(changes)}, **({"list": pseudo_view(entries, False)} if shown else {}))
+                         "participants": len(set(changes.values()))},
+                        **({"list": pseudo_view(entries, False), "memos_seen": seen} if shown else {}))
         if op == "add":
             return pseudo_add(root, entries, body.get("entries"), agent, body.get("dry_run") is True)
         if op == "replace":
@@ -4782,11 +4922,12 @@ def api_names(body: dict) -> dict:
             if body.get("dry_run") is True:
                 run, changes = pseudo_check(root, entries, skip, take)
                 return {"names": pseudo_names_answer(run, agent, False), "dry_run": True, "replaced": False,
-                        "participants": len(changes)}
+                        "participants": len(set(changes.values()))}
             tool, request = agent_marks(body)
-            done = pseudo_replace(root, entries, skip, tool, request, take)
+            done = pseudo_replace(root, entries, skip, tool, request, take, None if agent else pseudo_seen(body))
             return {"names": pseudo_names_answer(done["run"], agent, False), "dry_run": False, "replaced": True,
-                    "participants": len(done["participants"]), "failed": done["failed"]}
+                    "participants": len(done["participants"]), "failed": done["failed"],
+                    "memos_changed": done["memos_changed"]}
         if op == "remove":
             return pseudo_remove(root, entries, body.get("entries"), agent, body.get("dry_run") is True)
         if op == "edit":
@@ -5179,6 +5320,13 @@ def qdpx_import(root: Path, path: Path, body: dict, make: bool = False, made: st
             roles_of[src["n"]] = roles
         readable[src["n"]] = mapped
         views.append(qdpx_view(src, mapped, roles, as_name, wb_mod.timecodes_at(root)))
+    if asks["memos"] == "source":
+        # each source's memos through the same run, after every passage so the passages' finds keep their numbers,
+        # a find of an entry that waits for him (Review each, Also an ordinary word) left as written and counted in
+        # the answer under memos, never left unseen (wordfix M3)
+        for src in pkg["sources"]:
+            if src["n"] in readable:
+                readable[src["n"]]["memo_texts"] = qdpx_memo_texts(run, who_of.get(src["n"]), src, pkg)
     chosen = qdpx_rows(pkg, asks["sources"], tps, readable)
     said = None if chosen else i18n.t("server.name_sources_bring_each_participant")
     for row in chosen:
@@ -5241,7 +5389,6 @@ def qdpx_import(root: Path, path: Path, body: dict, make: bool = False, made: st
                 answer["lines"] = lines = lines + demo_mod.package_lines(cats, values, differ)
             except WorkbookError as exc:
                 answer["lines"] = lines = lines + [i18n.t("demographics.qdpx.left_out", why=str(exc))]
-    asks["names"] = run.entries
     if not make:
         return answer
     if said:
@@ -5250,6 +5397,21 @@ def qdpx_import(root: Path, path: Path, body: dict, make: bool = False, made: st
     if demo_plan is not None:
         qdpx_demographics(root, *demo_plan, who={"by": "agent", "tool": made, "request": ""} if made else None)
     return dict(answer, made=made_list)
+
+
+def qdpx_memo_texts(run: "names_mod.Run", who, src: dict, pkg: dict) -> list[tuple[str, str]]:
+    """A source's memos as its participant's memos file takes them, each `(name, text)` with the list's names
+    replaced through the import's own run, the part "memos" (wordfix M3)."""
+    out = []
+    for g in src["memos"]:
+        note = pkg["notes"].get(g)
+        if not note or not note["text"]:
+            continue
+        where = {"participant": who or "", "interview": src["name"], "part": "memos"}
+        name = run.text(note["name"], who, where) if run and note["name"] else note["name"]
+        text = note["text"].strip()
+        out.append((name, run.text(text, who, where) if run else text))
+    return out
 
 
 def qdpx_demographics(root: Path, cats: list[dict], values: dict, dry: bool = False, who: dict | None = None) -> list[str]:
@@ -5350,12 +5512,10 @@ def qdpx_case(path: Path, pkg: dict, asks: dict, case: dict, entries: list[dict]
             statements += [{"sheet": each["interview"], "row": i + 2, "es": es, "code": code,
                             "timepoint": each.get("timepoint", 1)} for es, code in items]
         if asks["memos"] == "source":
-            for g in src["memos"]:
-                note = pkg["notes"].get(g)
-                if note and note["text"]:
-                    kept = lambda t: names_mod.plain(t, asks.get("names") or [], case["pseudonym"])
-                    head = f"{each['interview']}, {kept(note['name'])}" if note["name"] else each["interview"]
-                    memos.append(f"{head}\n\n{kept(note['text'].strip())}\n")
+            # the memos as the import's run left them (qdpx_memo_texts), so a held find is the one its answer counted
+            for name, text in mapped.get("memo_texts") or []:
+                head = f"{each['interview']}, {name}" if name else each["interview"]
+                memos.append(f"{head}\n\n{text}\n")
         media = src.get("media") or {}
         if asks["recordings"] == "copy" and media.get("part"):
             place = folder / "Source" / each["interview"] / "Source"

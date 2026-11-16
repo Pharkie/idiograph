@@ -4696,26 +4696,31 @@ however many passages it heads. The participant's name in the file's own name an
 replaced too, and Source keeps the replaced text, not the original.
 
 Names are found as whole words, so "Ann" is never found in "Annabel" or "annual", and case is ignored
-unless Match case is ticked for a name that is also a word. "Tilda's" becomes "Wren's". Initials such as
+unless Also an ordinary word is ticked (below). "Tilda's" becomes "Wren's". Initials such as
 "T.M." are found with or without their dots and spaces, by their case. Several spellings of one name go in
 one entry with commas between, and a misspelling is not guessed.
 
 Names to replace, from the Names line or from Project settings, is the project's list: each name, what it is
 replaced with, whose transcripts it is in (Everyone, or one participant, for a "Ruth" who is a sister in one
-interview and a friend in another), Match case, Review each and Except in. Add a name adds a row, and Add from a file reads a
+interview and a friend in another), Also an ordinary word, Review each and Except in. Add a name adds a row, and Add from a file reads a
 two-column CSV or Excel key you keep already, the real name then the pseudonym, and a key the app wrote keeps
-Review each and Except in in two more columns. The list is saved as you
+Review each, Except in and Also an ordinary word in three more columns. The list is saved as you
 change it, in one file in the project's folder, `idiograph-names.json`, so it moves with the folder. It is
 never in a workbook, the project's History or a copy you share.
 
 Check transcripts already in finds the list's names in the transcripts the project holds, their passages,
-speakers, notes, statements and quotes, and says how many and where. Review and replace lists every one
+speakers, notes, statements and quotes, and the memos a REFI-QDA project brought in, and says how many and where. Review and replace lists every one
 with its tick, and Replace writes the ones ticked, the PETs and GETs following the statements. Before it
 writes, each participant's workbook and raw transcript as they were are kept in their `_Archive` folder,
 named "(pre-names" and the date, so the real names are still there: keep that folder safe, or delete those
 copies when you no longer need them. Share a copy never takes them, nor the list.
 
-Two ticks and a field on a name are for the names a list cannot replace everywhere (16 November 2026). Review
+Two ticks and a field on a name are for the names a list cannot replace everywhere (16 November 2026). Also an
+ordinary word is for a name that is also a word, such as Hope or Will: only finds whose first letter is a capital
+are found, "Hope" and "HOPE" but never "hope", and each waits for you in Review and replace, unticked, never replaced
+on its own, as Review each's finds do. The small i beside it says so. A list from before with Match case ticked on a
+name has Also an ordinary word ticked in its place, unless the name is initials, which are found by their case as
+before. Review
 each is for a name two people share where one of them keeps his own: it is never replaced on its own, not as a
 transcript comes in, not by Replace, and not by an AI agent. Review and replace lists each of its finds unticked,
 and only the ones you tick are replaced. A participant's copies in Source cannot tell one find from another of the
@@ -4725,9 +4730,10 @@ copies before you send it. Except in takes phrases, with semicolons between, tha
 inside, such as a book series' title that is also the surname: a find inside one is not counted, listed or replaced
 anywhere.
 
-An AI agent can add names to the list when you tell it the names, its dry run first saying for each how many it
+An AI agent can add names to the list when you tell it the names, and change or take off an entry when you say so, its dry run first saying for each how many it
 would find and where, never the names. The agent's addition is one change under By an agent in Project history,
-and its Undo takes the names off the list again. Taking a name off the list stays yours.
+and its Undo puts the list back as it was. No agent can replace a find of a name ticked Review each or Also an
+ordinary word: those stay yours, one by one in Review and replace.
 
 **Projects from ATLAS.ti, NVivo or MAXQDA.** Since 21 October a project exported from ATLAS.ti, NVivo
 or MAXQDA as a REFI-QDA project, a `.qdpx` file, comes into a project as participants, from New

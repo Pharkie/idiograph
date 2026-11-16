@@ -7299,7 +7299,7 @@ def cmd_names_list(p: Project, args) -> tuple:
         lines.append(i18n.t("names.line_entry_listed", entry=e["entry"], to=e["to"],
                             spellings=i18n.t("names.spelled", n=e["spellings"]),
                             where=i18n.t("names.in_participant", who=e["for"]) if e["for"] else "",
-                            case=i18n.t("names.match_case") if e["case"] else "",
+                            word=i18n.t("names.ordinary_word") if e.get("word") else "",
                             review=i18n.t("names.review_each") if e.get("review") else "",
                             excepts=i18n.t("names.excepts", n=e["excepts"]) if e.get("excepts") else ""))
     return done, lines
@@ -7318,8 +7318,9 @@ def names_given(args) -> list:
         if not isinstance(rows, list):
             raise cli.Refused(i18n.t("names.add_none"))
     if getattr(args, "real", None):
-        rows = list(rows) + [{"real": args.real, "to": args.to or "", "for": args.for_ or None, "case": bool(args.match_case),
-                              "review": bool(args.review_each), "except": list(args.except_ or [])}]
+        rows = list(rows) + [{"real": args.real, "to": args.to or "", "for": args.for_ or None,
+                              "word": bool(args.ordinary_word), "review": bool(args.review_each),
+                              "except": list(args.except_ or [])}]
     if not rows:
         raise cli.Refused(i18n.t("names.add_none"))
     words = []
@@ -7348,7 +7349,7 @@ def cmd_names_add(p: Project, args) -> tuple:
     lines = [i18n.t("names.dry_added", n=done["added"]) if done["dry_run"] else i18n.t("names.added", n=done["added"])]
     for e in done["entries"]:
         said = dict(to=e["to"], where=i18n.t("names.in_participant", who=e["for"]) if e["for"] else "",
-                    case=i18n.t("names.match_case") if e["case"] else "",
+                    word=i18n.t("names.ordinary_word") if e.get("word") else "",
                     review=i18n.t("names.review_each") if e.get("review") else "",
                     excepts=i18n.t("names.excepts", n=e["excepts"]) if e.get("excepts") else "",
                     hits=i18n.t("names.add_found", n=e["hits"]) if e["hits"] else i18n.t("names.add_found_none"))
@@ -7434,8 +7435,8 @@ def names_changes(args) -> dict:
     onoff = {"on": True, "off": False}
     if getattr(args, "review_each", None):
         changes["review"] = onoff[args.review_each]
-    if getattr(args, "match_case", None):
-        changes["case"] = onoff[args.match_case]
+    if getattr(args, "ordinary_word", None):
+        changes["word"] = onoff[args.ordinary_word]
     if getattr(args, "for_", None) is not None:
         changes["for"] = args.for_
     if getattr(args, "to", None) is not None:
@@ -7463,7 +7464,7 @@ def names_changes(args) -> dict:
 
 def cmd_names_set(p: Project, args) -> tuple:
     """One entry of the list changed by its number on his word (namesset, 16 November 2026), with --dry-run first:
-    Review each and Match case on or off, the except phrases set, added to or taken off, whom it is for, what it is
+    Review each and Also an ordinary word on or off, the except phrases set, added to or taken off, whom it is for, what it is
     written as and its spellings. The answer says each field that changes before and after, the spellings and
     phrases by their counts, and the entry's finds in the transcripts already in before and after, never a real
     name. One line in the record of agents' changes, undone by `agents undo-change` or its run's undo."""
@@ -7480,7 +7481,7 @@ def cmd_names_set(p: Project, args) -> tuple:
              head]
 
     def shown(key, v):
-        if key in ("review", "case"):
+        if key in ("review", "word"):
             return i18n.t("names.edit_on") if v else i18n.t("names.edit_off")
         if key == "for" and not v:
             return i18n.t("names.edit_everyone")
@@ -7491,9 +7492,9 @@ def cmd_names_set(p: Project, args) -> tuple:
     if "review" in said:
         lines.append(i18n.t("names.edit_field.review", before=shown("review", said["review"]["before"]),
                             after=shown("review", said["review"]["after"])))
-    if "case" in said:
-        lines.append(i18n.t("names.edit_field.case", before=shown("case", said["case"]["before"]),
-                            after=shown("case", said["case"]["after"])))
+    if "word" in said:
+        lines.append(i18n.t("names.edit_field.word", before=shown("word", said["word"]["before"]),
+                            after=shown("word", said["word"]["after"])))
     if "for" in said:
         lines.append(i18n.t("names.edit_field.for", before=shown("for", said["for"]["before"]),
                             after=shown("for", said["for"]["after"])))
@@ -9015,13 +9016,15 @@ def arguments(sub, common, writes) -> None:
                       help="entries added to the list on his word, --dry-run first: each new entry's finds counted by "
                            "participant and part, never a real name said back")
     x.add_argument("--from", dest="source", default=None,
-                   help='a JSON file, [{"real": ["spelling", ...], "to": "Wren", "for": "Wren", "case": false, '
+                   help='a JSON file, [{"real": ["spelling", ...], "to": "Wren", "for": "Wren", "word": false, '
                         '"review": false, "except": ["phrase", ...]}, ...] or {"entries": [...]}, which keeps the real '
                         'names out of the command line')
     x.add_argument("--real", default=None, help="one entry's real name, its spellings with commas between")
     x.add_argument("--to", default=None, help="what that name is written as")
     x.add_argument("--for", dest="for_", default=None, help="the participant it is for, by pseudonym, everyone's when left out")
-    x.add_argument("--case", dest="match_case", action="store_true", help="Match case")
+    x.add_argument("--ordinary-word", action="store_true",
+                   help="Also an ordinary word, for a name that is also a word (Hope, Will): only finds with its "
+                        "capital letter are flagged, each left for him to decide in the app's Review and replace")
     x.add_argument("--review-each", action="store_true",
                    help="never replaced in bulk: each find is left for him to decide in the app's Review and replace")
     x.add_argument("--except", dest="except_", action="append", default=None, metavar="PHRASE",
@@ -9035,7 +9038,8 @@ def arguments(sub, common, writes) -> None:
                         'which keeps the real names out of the command line')
     x.add_argument("--review-each", choices=("on", "off"), default=None,
                    help="Review each on or off: off lets names replace write its finds")
-    x.add_argument("--case", dest="match_case", choices=("on", "off"), default=None, help="Match case on or off")
+    x.add_argument("--ordinary-word", choices=("on", "off"), default=None,
+                   help="Also an ordinary word on or off: on finds its capital letter alone and leaves each find to him")
     x.add_argument("--for", dest="for_", default=None, help="the participant it is for, by pseudonym, or everyone")
     x.add_argument("--to", default=None, help="what the name is written as")
     x.add_argument("--real", default=None, help="every spelling of the real name, with commas between")

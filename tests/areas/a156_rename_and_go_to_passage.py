@@ -802,8 +802,8 @@ def _carried_through(base: Path, tree) -> None:
         {"op": "note", "participant": "Moss", "note": "Learnt by watching next door"},
         {"op": "hide", "participant": "Moss", "lpet": "G2"},
         {"op": "picture", "participant": "Moss", "from": str(face)}]})
-    names_mod.save_at(root, [{"real": ["Quillon"], "to": "Moss", "for": "Moss", "case": False},
-                             {"real": ["Pemberly"], "to": "Fern", "for": "Fern", "case": False}])
+    names_mod.save_at(root, [{"real": ["Quillon"], "to": "Moss", "for": "Moss"},
+                             {"real": ["Pemberly"], "to": "Fern", "for": "Fern"}])
     gfile, lgfile, tfile, nfile = (root / gets_mod.FILE, root / gets_mod.LGETS_FILE, root / traj_mod.FILE,
                                    names_mod.path_at(root))
     lg_before = board_kept(call("/api/gets", {"workbook": str(moss)}), "P1 - Moss")
@@ -890,7 +890,7 @@ def _carried_through(base: Path, tree) -> None:
     check("156: the list of names to replace has her entry for Rook, writing Rook, Fern's as it was, still its "
           "owner's alone",
           entries[0]["for"] == "Rook" and entries[0]["to"] == "Rook" and entries[0]["real"] == ["Quillon"]
-          and entries[1] == {"real": ["Pemberly"], "to": "Fern", "for": "Fern", "case": False}
+          and entries[1] == {"real": ["Pemberly"], "to": "Fern", "for": "Fern"}
           # its mode is checked where a file has one: Windows keeps no owner-only bits
           and (os.name == "nt" or nfile.stat().st_mode & 0o777 == 0o600), str(entries[0]))
     t2 = json.loads(themes_mod.themes_path(moss, 2).read_text(encoding="utf-8"))

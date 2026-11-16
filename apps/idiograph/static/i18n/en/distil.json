@@ -637,6 +637,7 @@
   "distil.names.at.speaker": "Speaker",
   "distil.names.at.file": "File name",
   "distil.names.at.interview": "Interview",
+  "distil.names.at.memos": "Memos",
   "distil.names.who.words": "{who}, passage {n}",
   "distil.names.who.notes": "{who}, note, passage {n}",
   "distil.names.who.statements": "{who}, statement, passage {n}",
@@ -644,6 +645,7 @@
   "distil.names.who.speaker": "{who}, speaker",
   "distil.names.who.file": "{who}, file name",
   "distil.names.who.interview": "{who}, interview",
+  "distil.names.who.memos": "{who}, memos",
   "distil.names.done": "Done",
   "distil.names.cancel": "Cancel",
   "distil.names.replace_go": "Replace",
@@ -651,7 +653,7 @@
   "distil.names.col_name": "Name",
   "distil.names.col_to": "Replace with",
   "distil.names.col_in": "In",
-  "distil.names.match_case": "Match case",
+  "distil.names.ordinary_word": "Also an ordinary word",
   "distil.names.review_each": "Review each",
   "distil.names.col_except": "Except in",
   "distil.names.remove": "Remove {name}",
@@ -666,11 +668,16 @@
   "distil.names.part.notes": "notes",
   "distil.names.part.statements": "statements",
   "distil.names.part.quotes": "quotes",
+  "distil.names.part.memos": "memos",
   "distil.names.participants": {
     "one": "{n} participant",
     "other": "{n} participants"
   },
   "distil.names.replaced": "Replaced {replaced} in {participants}. The transcripts as they were are in each participant's _Archive folder.",
+  "distil.names.memos_changed": {
+    "one": "A memos file had changed since Check, so it was left as it is.",
+    "other": "{n} memos files had changed since Check, so they were left as they are."
+  },
   "distil.agent_review.home_line": {
     "one": "Agents made {n} change since you last looked.",
     "other": "Agents made {n} changes since you last looked."

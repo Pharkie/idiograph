@@ -1258,7 +1258,9 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .np-names .import-sub { margin-top: 0; }
 .np-names-line { display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; font-size: 13px; color: var(--ink-soft); }
 .np-names-said { flex: 1 1 16em; }
-.nm-card { width: min(640px, 100%); }
+/* wider since the ticks' column took Also an ordinary word (wordfix): every field keeps the width it had at 640 */
+.nm-card { width: min(700px, 100%); }
+@media (max-width: 760px) { .nm-card { padding-left: 24px; padding-right: 24px; } }
 .nm-group { margin: 18px 0 0; }
 .nm-group-head { display: flex; align-items: baseline; gap: 8px; font-size: 13.5px; padding-bottom: 6px; border-bottom: 1px solid var(--rule); }
 .nm-group-head b { font-weight: 600; color: var(--ink); }
@@ -1278,7 +1280,14 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
   border-radius: 3px; padding: 6px 8px; font: inherit; color: var(--ink); }
 .nm-table input[type=text]:focus, .nm-table select:focus { outline: 0; border-color: var(--field-edge); }
 .nm-table td.nm-in { width: 8.5em; }
-.nm-table td.nm-case { width: 7.5em; white-space: nowrap; }
+.nm-table td.nm-case { width: 10.5em; white-space: nowrap; }
+/* the info mark over the ticks (ordinaryword): its text stands above the column head, its right edge the head's, so it
+   never covers the ticks it explains (wordfix); a click keeps it open */
+.nm-table th.nm-case-head { position: relative; padding-bottom: 2px; vertical-align: bottom; }
+.nm-tip-at { display: inline-flex; }
+.nm-table .nm-word-tip { left: auto; right: 8px; top: auto; bottom: calc(100% + 6px); width: 280px; font-weight: 400;
+  white-space: normal; }
+.info-mark.is-open + .info-tip { display: block; }
 .nm-table td.nm-case label { display: flex; gap: 6px; align-items: center; color: var(--ink-soft); font-size: 12.5px; cursor: pointer; }
 .nm-table td.nm-case label + label { margin-top: 4px; }
 .nm-table td.nm-case input { accent-color: var(--ink); }

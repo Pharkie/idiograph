@@ -586,15 +586,16 @@ statements and quotes, and answers counts by entry and by participant and interv
 replaces them, as Review and replace does in the app: each participant's workbook and raw source are kept first in their
 `_Archive` (as `(pre-names <date-time>)`, which keeps the real names and which a shared copy leaves out), then the
 speakers, passages, statements, quotes and notes are written, the boards and the GETs following, and the copies in
-`Source/` brought into line. `--skip ENTRY:N` leaves a find as written, numbered as `names check` counts them. Its dry
+`Source/` brought into line, a REFI-QDA import's memos file there among them (said as "memos" in the counts, kept by
+the run's restore point, so `agents undo-change` or the run's undo puts it back). `--skip ENTRY:N` leaves a find as written, numbered as `names check` counts them. Its dry
 run answers the counts, and the project's History gets one line of counts. Replace only on his word. `names remove`
 takes entries off the list by their numbers and `names set` changes one, each on his word (below).
 MCP's tools are `names_list`, `names_check`, `names_replace`, `names_remove`, `names_add` and `names_set`.
 
 `names add` (namesop, 16 November 2026, Adam's word) adds entries at the list's end, only the names he gave you, never
 a guess. `--from` names a JSON file of entries, `[{"real": ["Odette Varnham", "Odette"], "to": "Wren", "for": "Wren",
-"case": false, "review": false, "except": []}]` or `{"entries": [...]}`, which keeps the names off the command line;
-`--real`, `--to`, `--for`, `--case`, `--review-each` and `--except` give one. MCP's `names_add` takes `entries`. Run it
+"word": false, "review": false, "except": []}]` or `{"entries": [...]}`, which keeps the names off the command line;
+`--real`, `--to`, `--for`, `--ordinary-word`, `--review-each` and `--except` give one. MCP's `names_add` takes `entries`. Run it
 with `--dry-run` first: it writes nothing and answers, for each new entry, its number, what it is written as, whom it is
 for, and how many finds it would flag in the transcripts already in, by participant and by part (transcript, quotes,
 statements, notes), never a real name and never the words around a find. Tell him the counts. The add itself changes
@@ -613,11 +614,19 @@ Two exceptions an entry can carry, which the app's list has too, as a tick and a
   are never replaced in bulk, by `names replace`, an Add or an import. Each is left as written for him to decide in the
   app's Review and replace, one by one. No agent's call can replace one while the tick is on: when he rules the name
   replaced everywhere, `names set <entry> --review-each off` on his word, then `names replace`.
+- **Also an ordinary word** (`"word": true`, `--ordinary-word`), for a name that is also a word, such as Hope or
+  Will (ordinaryword, Adam's ruling of 16 November 2026, in place of Match case): only finds whose first letter is a
+  capital are found ("Hope" and "HOPE", never "hope"), however the list spells it, and each is held as Review each
+  holds its finds, never replaced by `names replace`, an Add or an import, left for him in the app's Review and
+  replace. An entry an older list held with Match case (`"case": true`) reads as this, unless its name is initials,
+  which keep their own matching by case and are replaced as before. To turn either tick on or off for a name the
+  list has, use `names set` on its entry: `names add` of the same spelling for the same people, only a tick apart, is
+  refused with the entry's number, since the entry already there would take every find.
 - **Except in** (`"except": [phrases]`, `--except` once for each phrase), phrases the name is never found inside, such
   as a book series' title that is also the surname: a find inside one is not counted, flagged or replaced anywhere. A
   phrase may hold a comma; give the phrases as a list.
 
-`names list` shows each entry's Review each tick and how many except phrases it has, never the phrases, since a phrase
+`names list` shows each entry's Review each and Also an ordinary word ticks (`review`, `word`) and how many except phrases it has, never the phrases, since a phrase
 may hold the name.
 
 `names set` and `names remove` (namesset, 16 November 2026, Adam: "if you're not able to do it via MCP or the API, you
@@ -628,29 +637,29 @@ idiograph names set 2 --review-each off --dry-run
 idiograph names set 2 --review-each off --note "Replace her neighbour's name everywhere" --tool "Claude Code"
 idiograph names set 3 --from phrase.json --note "..." --tool "Claude Code"
 idiograph names set 3 --no-except --note "..." --tool "Claude Code"
-idiograph names set 1 --for everyone --case on --note "..." --tool "Claude Code"
+idiograph names set 1 --for everyone --ordinary-word on --note "..." --tool "Claude Code"
 idiograph names remove 4 --dry-run
 idiograph names remove 4 --note "Take that name off the list" --tool "Claude Code"
 ```
 
-`names set` changes only what you give it: `--review-each on|off`, `--case on|off` (Match case), `--for` a participant
+`names set` changes only what you give it: `--review-each on|off`, `--ordinary-word on|off` (Also an ordinary word), `--for` a participant
 by pseudonym or `everyone`, `--to` what it is written as, `--real` every spelling (only those he gave you, with commas
 between), `--except` every phrase (once for each), `--no-except` for none, and `--except-add` and `--except-remove` a
 phrase added or taken off, case ignored. `--from` names a JSON file of the changes, `{"review": false, "except_add":
 ["..."], "real": ["..."]}`: use it for spellings and phrases, which keeps them off the command line. MCP's `names_set` takes `entry` and the same
-keys (`review`, `case`, `for`, `to`, `real`, `except`, `except_add`, `except_remove`), and `names_remove` takes
+keys (`review`, `word`, `for`, `to`, `real`, `except`, `except_add`, `except_remove`), and `names_remove` takes
 `entries`. Run each with `--dry-run` first: it writes nothing and answers the entry's number, each field that changes
-before and after (Review each and Match case as true or false, whom it is for and what it is written as, the spellings
+before and after (Review each and Also an ordinary word as true or false, whom it is for and what it is written as, the spellings
 and except phrases by their counts, never a word), and the entry's finds in the transcripts already in before and
 after, how many there are and how many a replace would write, by participant and part. `names remove` answers each
 entry taken off by its number, what it is written as and whom it is for, with the finds it flagged, and the entries
 after it are numbered again, so run `names list` before another op by number. Tell him the counts. Neither changes a
-transcript: turning Review each off and then `names replace` replaces the finds it held back. Spellings and except
+transcript: turning Review each (or Also an ordinary word) off and then `names replace` replaces the finds it held back. Spellings and except
 phrases given are always said changed and written, by counts alone (a phrase added or taken off by the count given,
 one the entry does not hold passed by), so the answer never says whether words match the list's. A change of the
 other fields to what they are already writes nothing. An entry the list does not have and a participant the project
 does not have are refused in one line, nothing written. Each is one line in the record of agents' changes, naming the
-entry's number and the fields changed (Review each and Match case on or off, the others by name), his request kept as
+entry's number and the fields changed (Review each and Also an ordinary word on or off, the others by name), his request kept as
 "…", undone by `agents undo-change` or the
 run's undo, which puts the list back byte for byte. Never say back a real name or an except phrase he gave you.
 
@@ -660,7 +669,7 @@ file's name, the interview's name, a speaker, the words, notes, statements, quot
 interview. The dry run says the same, so show him the counts before you add. A find can be left as written with
 `--skip ENTRY:N` (`skip` in MCP), the entry's number and the find's place among that entry's finds in this Add, given
 again for each one more: `--skip 3:1` leaves the first find of entry 3. Names are matched as whole words, case
-ignored unless the entry says Match case, an apostrophe, hyphen or full stop ending a word, so "Odette's" becomes
+ignored unless the entry says Also an ordinary word (then a capital first letter alone, each find left for him), an apostrophe, hyphen or full stop ending a word, so "Odette's" becomes
 "Wren's". A transcript with a name replaced is kept in `Source/` as its replaced text, `P<n>-<interview>.txt`, the
 original not kept.
 

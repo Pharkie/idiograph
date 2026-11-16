@@ -324,7 +324,14 @@ def names_carry(data: dict | None, plan: dict) -> dict:
 
 
 def names_write(root: Path, path: Path, data: dict) -> None:
-    names_mod.save_at(root, [e for e in data.get("entries") or []])
+    # cleaned as every save is, so an old entry's Match case is written as Also an ordinary word (ordinaryword)
+    kept = []
+    for e in data.get("entries") or []:
+        try:
+            kept.append(names_mod.clean_entry(e))
+        except names_mod.NamesError:
+            continue
+    names_mod.save_at(root, kept)
 
 
 def project_states(data: dict | None, plan: dict) -> tuple[bool, bool, bool, bool]:

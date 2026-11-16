@@ -12,6 +12,7 @@
   "agentchanges.part.transcript": "transcript",
   "agentchanges.part.boards": "boards",
   "agentchanges.part.working": "working files",
+  "agentchanges.part.memos": "memos",
   "agentchanges.whose": "{who}'s {what}",
   "agentchanges.changed": "Changed {what}.",
   "agentchanges.made": "Made {what}.",

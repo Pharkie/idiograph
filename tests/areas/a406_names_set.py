@@ -137,7 +137,7 @@ def test_names_set(scratch: Path):
         check("406: except phrases set, cleared, added and taken off (case ignored), the rest of the entry as it was",
               code == 0 and code2 == 0 and code3 == 0 and "except" not in cleared_list[2]
               and added_list[2]["except"] == [EXCEPT, "Pepper the pup"]
-              and routes.pseudo_list(root)[2] == {"real": ["Pepper"], "to": "[dog]", "for": None, "case": False,
+              and routes.pseudo_list(root)[2] == {"real": ["Pepper"], "to": "[dog]", "for": None,
                                                   "except": [EXCEPT]}, err + err2 + err3)
         before_bad = listed.read_bytes()
 
@@ -187,16 +187,16 @@ def test_names_set(scratch: Path):
         # ── 4. a set undone, then a remove undone, each byte for byte
         held = listed.read_bytes()
         code, moved, err = run("names", "set", "1", "--for", "everyone", "--real", "Dennis, Denny", "--to", "[partner]",
-                               "--case", "on", "--note", "Dennis and Denny for everyone", "--run", "who")
+                               "--ordinary-word", "on", "--note", "Dennis and Denny for everyone", "--run", "who")
         line = agent_changes.read(root)[-1]
         now = routes.pseudo_list(root)[0]
-        check("406: set changes whom it is for, the spellings, the replacement and Match case, one line in the record "
-              "with his request kept as …",
-              code == 0 and now == {"real": ["Dennis", "Denny"], "to": "[partner]", "for": None, "case": True}
-              and set(moved["changed"]) == {"for", "real", "to", "case"}
+        check("406: set changes whom it is for, the spellings, the replacement and Also an ordinary word, one line in "
+              "the record with his request kept as …",
+              code == 0 and now == {"real": ["Dennis", "Denny"], "to": "[partner]", "for": None, "word": True}
+              and set(moved["changed"]) == {"for", "real", "to", "word"}
               and moved["changed"]["real"] == {"before": 1, "after": 2}
               and line["op"] == "names set" and line["request"] == "…" and line["files"] == 1 and not leaked(line)
-              and line["what_changed"].startswith("Changed entry 1 ") and "Match case on" in line["what_changed"]
+              and line["what_changed"].startswith("Changed entry 1 ") and "Also an ordinary word on" in line["what_changed"]
               and (os.name == "nt" or stat.S_IMODE(listed.stat().st_mode) == 0o600), err + json.dumps(line)[:300])
         code, _u, err = run("agents", "undo-change", line["id"], "--note", "Put entry 1 back")
         check("406: agents undo-change puts the entry back byte for byte", code == 0 and listed.read_bytes() == held, err)

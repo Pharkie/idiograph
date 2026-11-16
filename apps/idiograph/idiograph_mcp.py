@@ -1239,7 +1239,7 @@ TOOLS = [
     mcp.tool("names_list", "The project's list of names", ("names", "list"),
          "The project's list of real names and what each is written as, which every transcript added to the project "
          "has replaced on its way in. Each entry by its number, the pseudonym it becomes, whom it is for and how many "
-         "spellings it has, and whether it is Review each and how many except phrases it has. The real names are never "
+         "spellings it has, whether it is Review each or Also an ordinary word and how many except phrases it has. The real names are never "
          "given to an agent: names_add adds one on his word."),
     mcp.tool("names_add", "Add names to the list", ("names", "add"),
          "Entries added at the end of the project's list of names to replace, on his word alone: the real names are "
@@ -1248,8 +1248,9 @@ TOOLS = [
          "never says a real name back, and neither should you. Adding changes no transcript: names_replace does that, "
          "and a transcript added later has the names replaced on its way in. The add is one change in the record of "
          "agents' changes, which agent_undo_change undoes. review: a name two people share where one keeps it, never "
-         "replaced in bulk, each find left for him in the app's Review and replace. except: phrases the name is never "
-         "found inside, such as a book series' title.",
+         "replaced in bulk, each find left for him in the app's Review and replace. word: Also an ordinary word, for a "
+         "name that is also a word, found with its capital letter alone and each find left for him alike. except: "
+         "phrases the name is never found inside, such as a book series' title.",
          {"entries": {"type": "array", "minItems": 1, "items": {
              "type": "object", "required": ["real", "to"], "properties": {
                  "real": {"type": "array", "minItems": 1, "items": {"type": "string"},
@@ -1257,7 +1258,9 @@ TOOLS = [
                  "to": dict(mcp.TEXT, description="What it is written as: the participant's pseudonym, or a word "
                                                   "in brackets such as [partner]."),
                  "for": dict(mcp.TEXT, description="The participant it is for, by pseudonym. Leave it out for everyone."),
-                 "case": {"type": "boolean", "description": "Match case, for a name that is also a word."},
+                 "word": {"type": "boolean", "description": "Also an ordinary word, for a name that is also a word "
+                                                           "(Hope, Will): only finds with its capital letter are "
+                                                           "flagged, each left for him in Review and replace."},
                  "review": {"type": "boolean", "description": "Review each: never replaced in bulk."},
                  "except": {"type": "array", "items": {"type": "string"},
                             "description": "Phrases the name is never found inside."}}},
@@ -1279,7 +1282,8 @@ TOOLS = [
          writes="changes"),
     mcp.tool("names_set", "Change a name on the list", ("names", "set"),
          "One entry of the project's list of names to replace changed by its number, as names_list gives it, on his "
-         "word alone: review (Review each on or off, off letting names_replace write its finds), case (Match case), "
+         "word alone: review (Review each on or off, off letting names_replace write its finds), word (Also an "
+         "ordinary word on or off), "
          "for (a participant by pseudonym, or everyone), to (what it is written as), real (every spelling, only those "
          "he gave you), and except (every phrase the name is never found inside, an empty list for none), except_add "
          "and except_remove. Give only what changes. Run it with dry_run first and tell him each field before and "
@@ -1289,7 +1293,7 @@ TOOLS = [
          "agent_undo_change undoes.",
          {"entry": {"type": "integer", "minimum": 1, "description": "The entry's number."},
           "review": {"type": "boolean", "description": "Review each on or off."},
-          "case": {"type": "boolean", "description": "Match case on or off."},
+          "word": {"type": "boolean", "description": "Also an ordinary word on or off."},
           "for": dict(mcp.TEXT, description="The participant it is for, by pseudonym, or everyone."),
           "to": dict(mcp.TEXT, description="What it is written as."),
           "real": {"type": "array", "minItems": 1, "items": {"type": "string"},
@@ -1795,14 +1799,14 @@ def arguments(t: dict, given: dict, args):
         # the entries handed over already read, as --from reads its file, never on a command line (namesop)
         args.source = {"entries": given.get("entries") or []}
         args.real = args.to = args.for_ = None
-        args.match_case = args.review_each = False
+        args.ordinary_word = args.review_each = False
         args.except_ = None
     elif command == "names" and act == "set":
         # the changes handed over already read, as --from reads its file, never on a command line (namesset)
         args.number = given.get("entry")
-        args.source = {k: given[k] for k in ("review", "case", "for", "to", "real", "except", "except_add",
+        args.source = {k: given[k] for k in ("review", "word", "for", "to", "real", "except", "except_add",
                                              "except_remove") if k in given}
-        args.review_each = args.match_case = args.for_ = args.to = args.real = None
+        args.review_each = args.ordinary_word = args.for_ = args.to = args.real = None
         args.except_ = args.except_add = args.except_remove = None
         args.no_except = False
     elif command == "names":

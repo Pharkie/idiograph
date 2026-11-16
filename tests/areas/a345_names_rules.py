@@ -49,14 +49,15 @@ TXT = ("Kit: [00:00:03] Who else keeps birds?\nRosalind Marlow: [00:00:08] Garet
 CSV = ("Speaker,Start,Text\nKit,0:04,When do you go down?\nOdette Varnham,0:09,Before work. Gareth lets them "
        "out first.\nKit,0:15,Every day?\nOdette Varnham,0:19,Most days in summer.\n")
 
-# the list, in the app's words: a name, its spellings, what it is written as, whom it is for, Match case
+# the list, in the app's words: a name, its spellings, what it is written as, whom it is for (Also an ordinary word,
+# which holds every find for review, is area 407's)
 LIST = [
     {"real": ["Odette Varnham", "Odette"], "to": "Wren"},
     {"real": ["Piers Lowther", "Piers"], "to": "Ash", "for": "Ash"},
     {"real": ["Rosalind Marlow", "Rosalind", "Marlow"], "to": "Rook", "for": "Rook"},
     {"real": ["Gareth"], "to": "[partner]"},
     {"real": ["Dr Okafor"], "to": "[doctor]"},
-    {"real": ["Will"], "to": "[friend]", "case": True},
+    {"real": ["Will"], "to": "[friend]"},
     {"real": ["Rose"], "to": "[sister]", "for": "Wren"},
     {"real": ["T.M."], "to": "[treasurer]"},
     {"real": ["José"], "to": "[cousin]"},
@@ -136,9 +137,12 @@ def test_names_rules(scratch):
           and put("Zoë and Zoëlle", [{"real": ["Zoë"], "to": "Z"}]) == "Z and Zoëlle"
           and put("José, Joséphine", [{"real": ["José"], "to": "J"}]) == "J, Joséphine"
           and put("Ann2 and 2Ann and Ann_x", ann) == "Ann2 and 2Ann and [A]_x", put("Ann2 and 2Ann and Ann_x", ann))
-    check("345: case is ignored and the list's spelling is written, unless the entry is ticked Match case",
+    check("345: case is ignored and the list's spelling is written, unless the entry is ticked Also an ordinary word, "
+          "whose finds are those with a capital first letter alone and never replaced in bulk (wordfix)",
           put("TILDA tilda Tilda", [{"real": ["Tilda"], "to": "Wren"}]) == "Wren Wren Wren"
-          and put("Will you? will you? WILL", [{"real": ["Will"], "to": "[W]", "case": True}]) == "[W] you? will you? WILL")
+          and put("Will you? will you? WILL", [{"real": ["Will"], "to": "[W]", "word": True}]) == "Will you? will you? WILL"
+          and [f["found"] for f in names_mod.find("Will you? will you? WILL", [names_mod.clean_entry(
+              {"real": ["Will"], "to": "[W]", "word": True})], None)] == ["Will", "WILL"])
     check("345: an apostrophe, a hyphen or a full stop ends a word, so a possessive keeps its ending",
           put("Tilda's hen, Tilda-Mae, Tilda.", [{"real": ["Tilda"], "to": "Wren"}]) == "Wren's hen, Wren-Mae, Wren."
           and put("Tilda-Mae and Tilda", [{"real": ["Tilda-Mae", "Tilda"], "to": "Wren"}]) == "Wren and Wren")
@@ -180,14 +184,14 @@ def test_names_rules(scratch):
     check("345: an entry needs a name and what to write, and spellings may be given as one line with commas",
           _refused(lambda: names_mod.clean_entry({"real": [], "to": "x"}))
           and _refused(lambda: names_mod.clean_entry({"real": ["x"], "to": ""}))
-          and names_mod.clean_entry({"real": "A, B ,a", "to": "x", "for": "everyone"}) == {"real": ["A", "B"], "to": "x", "for": None, "case": False})
+          and names_mod.clean_entry({"real": "A, B ,a", "to": "x", "for": "everyone"}) == {"real": ["A", "B"], "to": "x", "for": None})
     key_csv = "Real name,Pseudonym\n\"Odette Varnham, Odette\",Wren\nGareth,[partner]\n,orphan\n"
     key_xlsx = xlsx([["Real", "Replace with"], ["Gareth", "[partner]"], ["Piers Lowther", "Ash"]])
     read_csv, read_xlsx = names_mod.read_key("key.csv", key_csv.encode()), names_mod.read_key("key.xlsx", key_xlsx)
     check("345: Add from a file reads a two-column CSV or Excel key, a heading row passed over, and Save as a file writes one",
           [e["real"] for e in read_csv] == [["Odette Varnham", "Odette"], ["Gareth"]] and read_csv[0]["to"] == "Wren"
           and [e["to"] for e in read_xlsx] == ["[partner]", "Ash"]
-          and names_mod.write_key(read_csv).splitlines()[1] == '"Odette Varnham, Odette",Wren,,')  # Review each and Except in after it (namesfix2)
+          and names_mod.write_key(read_csv).splitlines()[1] == '"Odette Varnham, Odette",Wren,,,')  # Review each, Except in and Also an ordinary word after it
 
     # ── B. a project, its list kept outside it
     store = scratch / "names-345-store"
@@ -319,7 +323,7 @@ def test_names_rules(scratch):
               and "Wren, she says" in text_of and speakers == {"Wren", "Researcher"}, text_of[:400] + str(speakers))
         check("345: the interview's name goes through the list, and the sheet is named for what it became",
               shown["name"] == "Wren hens" if "name" in shown else "Wren hens" in json.dumps(shown)[:300])
-        check("345: in Ash's transcript Rose, whose entry is for Wren alone, stays, and José, initials and a Match case name follow the list",
+        check("345: in Ash's transcript Rose, whose entry is for Wren alone, stays, and José and initials follow the list",
               (lambda t: "Rose from the pub" in t and "[treasurer] kept" in t and "[cousin] sold" in t
                and "Ash, that is me" in t and "Gareth" not in t)(
                   " ".join(r["text"] for r in routes.api_open({"path": str(folder / "P3 - Ash" / "P3 Ash - EN & ES.xlsx")})
@@ -433,7 +437,7 @@ def test_names_rules(scratch):
         code_, listed_a, err = run("names", "list")
         check("345: names list tells an agent each entry by number, replacement and whom it is for, never a real name",
               code_ == 0 and listed_a["count"] == len(LIST) and listed_a["entries"][0] == {
-                  "entry": 1, "to": "Wren", "for": None, "spellings": 2, "case": False}
+                  "entry": 1, "to": "Wren", "for": None, "spellings": 2}
               and not any(w in json.dumps(listed_a).lower() for w in REAL[:5]), err or json.dumps(listed_a)[:300])
         code_, dry_a, err = run("project", "add-transcripts", "--from", str(spec), "--dry-run")
         every = json.dumps(dry_a).lower() + err.lower()
@@ -567,7 +571,7 @@ def namesui_checks(base, folder, rid, routes, names_mod, server_mod, cli, mcp_se
           "replaced, the Real name's entry kept in the list for that participant",
           done["added"] and "Finch flies them with [partner] on the moor, and Gareth mends" in text
           and "Mirabel" not in text and "Thorne" not in " ".join(speakers) and done["names"]["left"] == 1
-          and entry == {"real": ["Mirabel Thorne", "Mirabel"], "to": "Finch", "for": "Finch", "case": False}
+          and entry == {"real": ["Mirabel Thorne", "Mirabel"], "to": "Finch", "for": "Finch"}
           and (stat.S_IMODE((folder / names_mod.FILE).stat().st_mode) == 0o600 or os.name == "nt"), text[:300])
 
     # ── J. the transcripts already in: Check, then Review and replace

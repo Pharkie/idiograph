@@ -3409,7 +3409,6 @@ async function npMake() {
    he shares. From the list's card, Check transcripts already in finds its names in the transcripts there, and
    Review and replace replaces the ones ticked, each workbook kept as it was in its participant's _Archive first. */
 const NM = { timer: 0, ask: 0, review: null, list: null };
-const NM_INITIALS = /^(?:[A-Z]\.\s?){2,4}$|^[A-Z]{2,4}$/;
 const NM_MOST = 240;
 
 /* a run of segments, plain words and finds, drawn as the card draws them: a replacement tinted with the name it
@@ -3615,10 +3614,13 @@ function npNamesHtml() {
 /* a find's place as its row says it: the passage, a speaker, the file's name or the interview's, and on the
    list's card the participant first */
 const NM_AT = { words: 'distil.names.at.words', notes: 'distil.names.at.notes', statements: 'distil.names.at.statements',
-  quotes: 'distil.names.at.quotes', speaker: 'distil.names.at.speaker', file: 'distil.names.at.file', interview: 'distil.names.at.interview' };
+  quotes: 'distil.names.at.quotes', speaker: 'distil.names.at.speaker', file: 'distil.names.at.file', interview: 'distil.names.at.interview',
+  memos: 'distil.names.at.memos' };
 const NM_WHO = { words: 'distil.names.who.words', notes: 'distil.names.who.notes', statements: 'distil.names.who.statements',
-  quotes: 'distil.names.who.quotes', speaker: 'distil.names.who.speaker', file: 'distil.names.who.file', interview: 'distil.names.who.interview' };
-const NM_PARTS = { notes: 'distil.names.part.notes', statements: 'distil.names.part.statements', quotes: 'distil.names.part.quotes' };
+  quotes: 'distil.names.who.quotes', speaker: 'distil.names.who.speaker', file: 'distil.names.who.file', interview: 'distil.names.who.interview',
+  memos: 'distil.names.who.memos' };
+const NM_PARTS = { notes: 'distil.names.part.notes', statements: 'distil.names.part.statements', quotes: 'distil.names.part.quotes',
+  memos: 'distil.names.part.memos' };
 
 function nmWhere(f, who) {
   const w = f.where || {};
@@ -3716,10 +3718,12 @@ async function nmListOpen(id, name) {
   try {
     data = await api('/api/names', { op: 'list', root: id });
   } catch (err) { say(needsRestart(err) ? RESTART_LINE : err.message, 9000); return; }
-  NM.list = { id, name: name || '', rows: (data.entries || []).map((e) => ({ real: e.real.join(', '), to: e.to, for: e.for || '', case: !!e.case,
+  NM.list = { id, name: name || '', rows: (data.entries || []).map((e) => ({ real: e.real.join(', '), to: e.to, for: e.for || '', word: !!e.word,
       review: !!e.review, except: (e.except || []).join(NM_EXCEPT_JOIN) })),
     who: Array.isArray(data.participants) ? data.participants : [], check: null, said: '' };
   $('nm-list').querySelector('.kicker').textContent = NM.list.name;
+  if (!$('nm-word-mark').firstChild) $('nm-word-mark').innerHTML = INFO_ICON;
+  nmWordTip(false);
   nmListDraw();
   show('nm-list');
 }
@@ -3729,12 +3733,11 @@ function nmListDraw() {
   const opts = (f) => [['', t('distil.names.everyone')], ...L.who.map((p) => [p, p])]
     .map(([v, label]) => `<option value="${escAttr(v)}"${(f || '') === v ? ' selected' : ''}>${esc(label)}</option>`).join('');
   $('nm-list-rows').innerHTML = L.rows.map((r, i) => {
-    const initials = NM_INITIALS.test(r.real.split(',')[0].trim());
     return `<tr data-i="${i}"><td><input type="text" data-nm="real" spellcheck="false" autocomplete="off" aria-label="${escAttr(t('distil.names.col_name'))}" value="${escAttr(r.real)}"></td>`
       + `<td><input type="text" data-nm="to" spellcheck="false" autocomplete="off" aria-label="${escAttr(t('distil.names.col_to'))}" value="${escAttr(r.to)}"></td>`
       + `<td class="nm-in"><select data-nm="for" aria-label="${escAttr(t('distil.names.col_in'))}">${opts(r.for)}</select></td>`
       + `<td class="nm-except"><input type="text" data-nm="except" spellcheck="false" autocomplete="off" aria-label="${escAttr(t('distil.names.col_except'))}" value="${escAttr(r.except || '')}"></td>`
-      + `<td class="nm-case"><label><input type="checkbox" data-nm="case"${r.case || initials ? ' checked' : ''}${initials ? ' disabled' : ''}>${esc(t('distil.names.match_case'))}</label>`
+      + `<td class="nm-case"><label><input type="checkbox" data-nm="word"${r.word ? ' checked' : ''}>${esc(t('distil.names.ordinary_word'))}</label>`
       + `<label><input type="checkbox" data-nm="review"${r.review ? ' checked' : ''}>${esc(t('distil.names.review_each'))}</label></td>`
       + `<td class="nm-x"><button type="button" class="np-remove" data-nm="remove" aria-label="${escAttr(t('distil.names.remove', { name: r.real }))}" title="${escAttr(t('distil.np.remove'))}">${NP_CROSS}</button></td></tr>`;
   }).join('');
@@ -3752,7 +3755,7 @@ function nmExcepts(text) {
 /* the list as the server keeps it: every row with a name and its replacement */
 function nmListEntries() {
   return NM.list.rows.filter((r) => r.real.trim() && r.to.trim())
-    .map((r) => ({ real: r.real, to: r.to.trim(), for: r.for || null, case: r.case || NM_INITIALS.test(r.real.split(',')[0].trim()),
+    .map((r) => ({ real: r.real, to: r.to.trim(), for: r.for || null, ...(r.word ? { word: true } : {}),
       ...(r.review ? { review: true } : {}), ...(nmExcepts(r.except).length ? { except: nmExcepts(r.except) } : {}) }));
 }
 
@@ -3781,17 +3784,11 @@ function nmListChange(e) {
   if (!tr || !NM.list) return;
   const r = NM.list.rows[Number(tr.dataset.i)];
   if (el.dataset.nm === 'for') r.for = el.value;
-  else if (el.dataset.nm === 'case') r.case = el.checked;
+  else if (el.dataset.nm === 'word') r.word = el.checked;
   else if (el.dataset.nm === 'review') r.review = el.checked;
   else if (el.dataset.nm === 'except') r.except = el.value;
-  else if (el.dataset.nm === 'real') {
-    r.real = el.value;
-    // initials are matched by their case always, so their tick stands ticked and fixed
-    const box = tr.querySelector('[data-nm="case"]');
-    const initials = NM_INITIALS.test(r.real.split(',')[0].trim());
-    box.disabled = initials;
-    if (initials) box.checked = true;
-  } else if (el.dataset.nm === 'to') r.to = el.value;
+  else if (el.dataset.nm === 'real') r.real = el.value;
+  else if (el.dataset.nm === 'to') r.to = el.value;
   nmListSave();
 }
 
@@ -3805,7 +3802,7 @@ function nmListClick(e) {
 }
 
 function nmListAdd() {
-  NM.list.rows.push({ real: '', to: '', for: '', case: false, review: false, except: '' });
+  NM.list.rows.push({ real: '', to: '', for: '', word: false, review: false, except: '' });
   nmListDraw();
   const inputs = $('nm-list-rows').querySelectorAll('[data-nm="real"]');
   if (inputs.length) inputs[inputs.length - 1].focus();
@@ -3821,7 +3818,7 @@ async function nmListFile(file) {
   const had = new Set(NM.list.rows.map((r) => r.real.trim().toLowerCase()));
   for (const e of data.entries || []) {
     const real = e.real.join(', ');
-    if (!had.has(real.toLowerCase())) NM.list.rows.push({ real, to: e.to, for: '', case: !!e.case, review: !!e.review,
+    if (!had.has(real.toLowerCase())) NM.list.rows.push({ real, to: e.to, for: '', word: !!e.word, review: !!e.review,
       except: (e.except || []).join(NM_EXCEPT_JOIN) });
   }
   nmListDraw();
@@ -3836,6 +3833,8 @@ async function nmCheck() {
     const data = await api('/api/names', { op: 'check', root: L.id, names_preview: true });
     L.check = data.names;
     L.list = data.list || [];
+    // each memos file as Check met it, sent back so Replace leaves one changed since as it is
+    L.memosSeen = data.memos_seen || [];
     L.skips = new Set();
     L.takes = new Set();
     L.said = '';
@@ -3899,7 +3898,7 @@ async function nmReplace(finds) {
   if (S.data && typeof savePending === 'function' && !(await savePending())) return;
   let data;
   try {
-    data = await api('/api/names', { op: 'replace', root: L.id, skip, take });
+    data = await api('/api/names', { op: 'replace', root: L.id, skip, take, memos_seen: L.memosSeen || [] });
   } catch (err) {
     nmReviewClose();
     L.said = needsRestart(err) ? RESTART_LINE : err.message;
@@ -3910,8 +3909,10 @@ async function nmReplace(finds) {
   L.check = null;
   nmCheckDraw();
   L.said = '';
-  saidIn('nm-list-said', t('distil.names.replaced', { replaced: data.names.replaced,
-    participants: t('distil.names.participants', { n: data.participants }) }), false);
+  const replacedLine = t('distil.names.replaced', { replaced: data.names.replaced,
+    participants: t('distil.names.participants', { n: data.participants }) });
+  const memosLine = data.memos_changed ? ' ' + t('distil.names.memos_changed', { n: data.memos_changed }) : '';
+  saidIn('nm-list-said', replacedLine + memosLine, false);
   $('nm-list-said').hidden = false;
   // the screen behind reads the words as they are now
   NM.changed = true;
@@ -3928,10 +3929,19 @@ function nmListClose() {
   if (!$('newproject').hidden) nmSoon();
 }
 
-/* Esc on these cards: the Review first, then the list */
+/* Also an ordinary word's info mark (ordinaryword, 16 November 2026): its text shows on hover and on focus, as
+   every info mark's does, and a click keeps it open until a second click, Esc or leaving the mark */
+function nmWordTip(open) {
+  const mark = $('nm-word-mark');
+  mark.classList.toggle('is-open', open);
+  mark.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+/* Esc on these cards: the Review first, then the info mark's text, then the list */
 function nmKeys(e) {
   if (e.key !== 'Escape') return false;
   if (!$('nm-review').hidden) { e.preventDefault(); nmReviewClose(); return true; }
+  if (!$('nm-list').hidden && $('nm-word-mark').classList.contains('is-open')) { e.preventDefault(); nmWordTip(false); return true; }
   if (!$('nm-list').hidden) { e.preventDefault(); nmListClose(); return true; }
   return false;
 }
@@ -3945,6 +3955,9 @@ function nmWire() {
   $('nm-list-rows').addEventListener('input', nmListInput);
   $('nm-list-rows').addEventListener('change', nmListChange);
   $('nm-list-rows').addEventListener('click', nmListClick);
+  $('nm-word-mark').onclick = () => nmWordTip(!$('nm-word-mark').classList.contains('is-open'));
+  $('nm-word-mark').addEventListener('blur', () => nmWordTip(false));
+  $('nm-list').addEventListener('click', (e) => { if (!e.target.closest('#nm-word-mark')) nmWordTip(false); });
   $('nm-add').onclick = () => nmListAdd();
   $('nm-file-pick').onclick = () => $('nm-file').click();
   $('nm-file').onchange = () => { nmListFile($('nm-file').files[0]); $('nm-file').value = ''; };

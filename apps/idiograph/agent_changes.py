@@ -178,9 +178,19 @@ def kept_here(root) -> bool:
 
 # ------------------------------------------------------------------ the files
 
+def is_memos(folder: str, name: str) -> bool:
+    """Whether a file is a participant's memos file in their Source folder (`<folder>/Source/<x> - memos.txt`), which
+    an agent's `names replace` writes (wordfix2, 16 November 2026), so a restore point keeps it like a workbook and
+    the replace is undone byte for byte."""
+    import names as names_mod
+    parts = folder.split("/")
+    return len(parts) == 2 and parts[1] == "Source" and bool(names_mod.MEMOS_FILE.match(name))
+
+
 def tracked(root) -> dict:
     """Every file a restore point keeps, by its path from the root with forward slashes, with its time and size:
-    the workbooks and the JSON files, never NEVER's, under no hidden folder nor an _Archive."""
+    the workbooks and the JSON files, never NEVER's, and each participant's memos files in Source (`is_memos`), under
+    no hidden folder nor an _Archive."""
     root = Path(root)
     out = {}
     for here, dirs, files in os.walk(root):
@@ -188,7 +198,8 @@ def tracked(root) -> dict:
         for name in files:
             if name.startswith((".", "~$")) or name in NEVER:
                 continue
-            if not (name.lower().endswith(TRACKED) or (name.endswith(CHUNKS) and here.endswith(".history"))):
+            if not (name.lower().endswith(TRACKED) or (name.endswith(CHUNKS) and here.endswith(".history"))
+                    or is_memos(Path(here).relative_to(root).as_posix(), name)):
                 continue
             path = Path(here) / name
             try:
@@ -474,7 +485,8 @@ KIND_SAID = {"project": lambda: i18n.t("agentchanges.kind.project"), "gets": lam
              "project_files": lambda: i18n.t("agentchanges.kind.project_files")}
 PART_SAID = {"transcript": lambda: i18n.t("agentchanges.part.transcript"),
              "boards": lambda: i18n.t("agentchanges.part.boards"),
-             "working": lambda: i18n.t("agentchanges.part.working")}
+             "working": lambda: i18n.t("agentchanges.part.working"),
+             "memos": lambda: i18n.t("agentchanges.part.memos")}
 
 
 def case_names(p) -> dict:
@@ -504,6 +516,8 @@ def kind_of(rel: str, names: dict) -> tuple[str, str]:
     name = parts[-1].lower()
     if name.endswith(".xlsx"):
         return "transcript", who
+    if is_memos("/".join(parts[:-1]), parts[-1]):
+        return "memos", who
     if re.search(r"\.(themes(-t\d+)?|lpets|own)[^/]*\.json$", name) or "themes" in name \
             or (len(parts) > 2 and parts[-2].endswith(".history")):
         return "boards", who
@@ -707,9 +721,9 @@ def names_said(args, answer) -> str:
         if "review" in changed:
             fields.append(i18n.t("names.record_field.review_on") if changed["review"].get("after")
                           else i18n.t("names.record_field.review_off"))
-        if "case" in changed:
-            fields.append(i18n.t("names.record_field.case_on") if changed["case"].get("after")
-                          else i18n.t("names.record_field.case_off"))
+        if "word" in changed:
+            fields.append(i18n.t("names.record_field.word_on") if changed["word"].get("after")
+                          else i18n.t("names.record_field.word_off"))
         if "for" in changed:
             fields.append(i18n.t("names.record_field.for"))
         if "to" in changed:

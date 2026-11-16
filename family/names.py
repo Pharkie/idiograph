@@ -14,7 +14,9 @@ the first time it is read, and the key and the old file go (`load_at`).
 
 The rules (Adam's picks, 8 November 2026):
 1. Whole words by Unicode letters and digits: "Ann" is never found in "Annabel" or "annual".
-2. Case ignored, the list's spelling written. An entry can be ticked Match case, for a name that is a word.
+2. Case ignored, the list's spelling written. An entry can be ticked Also an ordinary word, for a name that is a
+   word (Hope, Will): its spellings are found in their own case alone, and each find waits for him in Review and
+   replace, never replaced in bulk (ordinaryword, Adam's option B of 16 November 2026, in place of Match case).
 3. An apostrophe, hyphen or full stop ends a word, so "Tilda's" becomes "Wren's".
 4. A run of spaces or a line break inside a name matches.
 5. Initials ("T.M.") match with or without the dots and the space between, always by case.
@@ -22,11 +24,12 @@ The rules (Adam's picks, 8 November 2026):
 7. Several spellings an entry. Misspellings are not guessed.
 
 An entry is `{"real": [spellings], "to": replacement, "for": a participant's pseudonym or None for everyone,
-"case": Match case}`, and two exceptions (namesop, 16 November 2026, for two real cases on Adam's own project):
+"word": True` when ticked Also an ordinary word}, and two exceptions (namesop, 16 November 2026, for two real cases on Adam's own project):
 `"review": True`, Review each, for a name two people share where one keeps it, whose finds are never replaced in
 bulk, each left as written until he ticks it in Review and replace (`Run`'s `take`), and `"except": [phrases]`,
-phrases a find inside is never a find at all, for a surname that is also a book series' title. Both keys are kept
-only when set, so a list from before reads as it did. Entries are numbered from 1 in the list's order, and a find by its entry's number and its
+phrases a find inside is never a find at all, for a surname that is also a book series' title. The three keys are
+kept only when set. An entry a list from before held with Match case ticked (`"case": True`) is read as Also an
+ordinary word, which was what the tick was for, and written in the new shape when the list is next saved. Entries are numbered from 1 in the list's order, and a find by its entry's number and its
 place among that entry's finds in one Add (`nth`), which is how a skip names it without a real name.
 """
 from __future__ import annotations
@@ -54,6 +57,11 @@ INITIALS = re.compile(r"^(?:[A-Z]\.\s?){2,4}$|^[A-Z]{2,4}$")
 KEY_OK = re.compile(r"^[0-9a-f]{32}$")
 # the characters either side of a find the Review card shows
 CONTEXT = 40
+# a participant's memos file in their Source folder, as a REFI-QDA import writes it (`<pseudonym> - memos.txt`, then
+# ` 2` and on): searched and replaced as a passage is (wordfix), kept by an agent's restore point (wordfix2), and
+# named in every count and line by MEMOS_PLACE alone, never by its file's name, which may be his own (wordfix2 N3)
+MEMOS_FILE = re.compile(r"^.+ - memos(?: \d+)?\.txt$")
+MEMOS_PLACE = "memos"
 # a key's Review each cell read as set (namesfix2)
 KEY_YES = ("yes", "y", "true", "1", "x")
 
@@ -190,7 +198,8 @@ def save_at(root, entries: list[dict]) -> None:
 
 def clean_entry(raw) -> dict:
     """One entry as the store keeps it, or a refusal in one line: spellings a list of words (a string with
-    commas is split), a replacement, `for` a participant's name or None, and Match case."""
+    commas is split), a replacement, `for` a participant's name or None, and Also an ordinary word (`word`, an old
+    entry's Match case, `case`, read as it)."""
     if not isinstance(raw, dict):
         raise NamesError(i18n.t("names.each_name"))
     spell = raw.get("real", raw.get("spellings"))
@@ -213,8 +222,15 @@ def clean_entry(raw) -> dict:
     who = " ".join(str(raw.get("for") or raw.get("in") or "").split())
     if who.lower() in ("everyone", "everybody", "all"):
         who = ""
-    out = {"real": kept, "to": to, "for": who or None, "case": raw.get("case") is True}
-    # the two exceptions (namesop), kept only when set
+    out = {"real": kept, "to": to, "for": who or None}
+    # Also an ordinary word (ordinaryword), Match case before it read as it, and the two exceptions (namesop), each
+    # kept only when set
+    # an old Match case reads as the tick only on an entry whose first spelling is not initials: the old app forced
+    # Match case on every initials entry, which keeps its own matching by case without the tick and stays replaced
+    # in bulk (wordfix M2)
+    if raw.get("word") is True or raw.get("ordinary_word") is True or (
+            raw.get("case") is True and not variant_pattern(kept[0])[1]):
+        out["word"] = True
     if raw.get("review") is True or raw.get("review_each") is True:
         out["review"] = True
     phrases = raw.get("except")
@@ -253,6 +269,25 @@ def variant_pattern(text: str) -> tuple[str, bool]:
     return r"\s+".join(re.escape(w) for w in t.split()), False
 
 
+def word_pattern(text: str) -> str:
+    """Also an ordinary word's pattern for a spelling that is not initials: its first letter a capital, the rest in
+    any case, so "Hope" and "HOPE" are found and "hope" never, whether the list spells it Hope or hope (wordfix M1)."""
+    words = text.split()
+    first = words[0]
+    at = next((i for i, c in enumerate(first) if c.isalpha()), None)
+    if at is None:
+        return f"(?i:{variant_pattern(text)[0]})"
+    head = re.escape(first[:at]) + re.escape(first[at].upper())
+    rest = re.escape(first[at + 1:]) + "".join(r"\s+" + re.escape(w) for w in words[1:])
+    return head + (f"(?i:{rest})" if rest else "")
+
+
+def waits(entry: dict) -> bool:
+    """Whether an entry's finds wait for him in Review and replace, each replaced only when he ticks it and never
+    in bulk: Review each (namesop) and Also an ordinary word (ordinaryword)."""
+    return bool(entry.get("review") or entry.get("word"))
+
+
 def applies(entry: dict, who) -> bool:
     mine = entry.get("for")
     return not mine or (who is not None and str(mine).strip().casefold() == str(who).strip().casefold())
@@ -273,11 +308,16 @@ def compile_list(entries: list[dict], who):
             continue
         for v in e["real"]:
             pat, initials = variant_pattern(v)
-            alts.append((len(v), n, pat, initials or e.get("case", False)))
+            if initials:
+                body = f"(?:{pat})"
+            elif e.get("word"):
+                body = f"(?:{word_pattern(v)})"
+            else:
+                body = f"(?i:{pat})"
+            alts.append((len(v), n, body))
     alts.sort(key=lambda a: -a[0])
     parts, index = [], []
-    for i, (_, n, pat, case) in enumerate(alts):
-        body = f"(?:{pat})" if case else f"(?i:{pat})"
+    for i, (_, n, body) in enumerate(alts):
         parts.append(f"(?P<g{i}>{body})")
         index.append(n)
     rx = re.compile(r"(?<![^\W_])(?:" + "|".join(parts) + r")(?![^\W_])") if parts else None
@@ -322,10 +362,11 @@ def find(text: str, entries: list[dict], who) -> list[dict]:
 
 
 def plain(text: str, entries: list[dict], who) -> str:
-    """The text with every find replaced, no skip, a Review each entry's left as written (namesop)."""
+    """The text with every find replaced, no skip, the finds of an entry that waits for him (Review each, Also an
+    ordinary word) left as written (namesop, ordinaryword)."""
     out, last = [], 0
     for h in find(text, entries, who):
-        if entries[h["entry"]].get("review"):
+        if waits(entries[h["entry"]]):
             continue
         out += [text[last:h["at"]], h["to"]]
         last = h["end"]
@@ -360,8 +401,9 @@ class Run:
     """The names applied through one Add or one import: the finds in the order they come, each entry's finds
     counted across every file (its `nth`), and the skips left as written. `text` is one piece of text, with
     `where` saying whose it is, a dict the finds carry (the participant, the interview, the part and the turn).
-    A Review each entry's finds are left as written unless `take` names them, the finds he ticked in the app, so
-    no bulk replace and no agent ever replaces one (namesop)."""
+    The finds of an entry that waits for him (Review each, Also an ordinary word) are left as written unless `take`
+    names them, the finds he ticked in the app, so no bulk replace and no agent ever replaces one (namesop,
+    ordinaryword)."""
 
     def __init__(self, entries: list[dict], skip=(), take=()):
         self.entries = entries
@@ -386,7 +428,7 @@ class Run:
             out.append(text[last:h["at"]])
             last = h["end"]
             if mirror is not None:
-                if self.entries[h["entry"]].get("review"):
+                if waits(self.entries[h["entry"]]):
                     # replaced only when he ticked those words and left none of them as written in the same place:
                     # a copy cannot tell which of two finds alike he ticked, so it keeps both (namesfix M3)
                     pair = (h["entry"], h["found"])
@@ -396,11 +438,12 @@ class Run:
                 out.append(h["found"] if skipped else h["to"])
                 continue
             n = self.tally[h["entry"]] = self.tally.get(h["entry"], 0) + 1
-            review = bool(self.entries[h["entry"]].get("review"))
+            review = waits(self.entries[h["entry"]])
             skipped = (h["entry"] + 1, n) not in self.take if review else (h["entry"] + 1, n) in self.skip
             # the words either side, for the app's own Review card alone (namesui), never an agent's answer
             self.finds.append({"entry": h["entry"] + 1, "nth": n, "found": h["found"], "to": h["to"],
-                               "skipped": skipped, "review": review, "at": h["at"], "where": dict(where),
+                               "skipped": skipped, "review": review, "word": bool(self.entries[h["entry"]].get("word")),
+                               "at": h["at"], "where": dict(where),
                                "before": text[max(0, h["at"] - CONTEXT):h["at"]], "after": text[h["end"]:h["end"] + CONTEXT]})
             out.append(h["found"] if skipped else h["to"])
         out.append(text[last:])
@@ -436,6 +479,7 @@ class Run:
             e = by[n]
             rows.append({"entry": n, "to": e["to"], "replaced": e["replaced"], "left": e["left"],
                          **({"review": True} if self.entries[n - 1].get("review") else {}),
+                         **({"word": True} if self.entries[n - 1].get("word") else {}),
                          "parts": dict(sorted(e["parts"].items())),
                          "in": [{"participant": p, "interview": i, "count": c} for (p, i), c in sorted(e["in"].items())]})
         return {"entries": len(self.entries), "replaced": self.replaced(), "left": len(self.finds) - self.replaced(),
@@ -488,8 +532,9 @@ def render(turns, notes=None) -> str:
 
 def read_key(name: str, data: bytes) -> list[dict]:
     """A key, a CSV or an Excel file the researcher keeps, the real name or names (commas between spellings) then
-    the pseudonym, and as the app writes one (namesfix2) a third column, Review each ("yes" for set), and a fourth,
-    the except phrases with semicolons between, a first row of headings passed over when its second cell is
+    the pseudonym, and as the app writes one (namesfix2) a third column, Review each ("yes" for set), a fourth,
+    the except phrases with semicolons between, and a fifth, Also an ordinary word ("yes" for set, ordinaryword), a
+    first row of headings passed over when its second cell is
     "pseudonym" or "replace"-like. Returns entries for everyone."""
     low = str(name).lower()
     rows: list[list] = []
@@ -499,20 +544,21 @@ def read_key(name: str, data: bytes) -> list[dict]:
         try:
             ws = wb.worksheets[0]
             for r in ws.iter_rows(values_only=True):
-                rows.append([c for c in r[:4]])
+                rows.append([c for c in r[:5]])
         finally:
             wb.close()
     else:
         text = data.decode("utf-8-sig", errors="replace")
-        rows = [r[:4] for r in csv.reader(io.StringIO(text))]
+        rows = [r[:5] for r in csv.reader(io.StringIO(text))]
     out = []
     for i, r in enumerate(rows):
-        r = [("" if c is None else str(c)).strip() for c in (list(r) + ["", "", "", ""])[:4]]
+        r = [("" if c is None else str(c)).strip() for c in (list(r) + ["", "", "", "", ""])[:5]]
         if not r[0] or not r[1]:
             continue
         if i == 0 and re.match(r"(?i)^(pseudonym|replace|replacement|alias|new)", r[1]):
             continue
-        out.append(clean_entry({"real": r[0], "to": r[1], "review": r[2].lower() in KEY_YES, "except": r[3]}))
+        out.append(clean_entry({"real": r[0], "to": r[1], "review": r[2].lower() in KEY_YES, "except": r[3],
+                                "word": r[4].lower() in KEY_YES}))
     if not out:
         raise NamesError(i18n.t("names.key_empty"))
     return out
@@ -520,12 +566,13 @@ def read_key(name: str, data: bytes) -> list[dict]:
 
 def write_key(entries: list[dict]) -> str:
     """The list as a CSV for another computer: the spellings joined with commas, the replacement, Review each
-    ("yes" when set) and the except phrases with semicolons between (namesfix2). Entries for one participant lose
-    that, and Match case is not kept."""
+    ("yes" when set), the except phrases with semicolons between (namesfix2) and Also an ordinary word ("yes" when
+    set, ordinaryword). Entries for one participant lose that."""
     buf = io.StringIO()
     w = csv.writer(buf, lineterminator="\n")
     w.writerow([i18n.t("names.key_head_real"), i18n.t("names.key_head_to"), i18n.t("names.key_head_review"),
-                i18n.t("names.key_head_except")])
+                i18n.t("names.key_head_except"), i18n.t("names.key_head_word")])
     for e in entries:
-        w.writerow([", ".join(e["real"]), e["to"], "yes" if e.get("review") else "", "; ".join(e.get("except") or [])])
+        w.writerow([", ".join(e["real"]), e["to"], "yes" if e.get("review") else "", "; ".join(e.get("except") or []),
+                    "yes" if e.get("word") else ""])
     return buf.getvalue()

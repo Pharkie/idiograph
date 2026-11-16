@@ -176,12 +176,12 @@ def test_names_add(scratch: Path):
         except Exception as exc:
             held_app = str(exc)
         check("399: the app's own add is told the holding entry's number", "Entry 1" in held_app, held_app)
-        # Match case on names add is its own option, never the participant a command names (review 4)
-        code, cased, err, _ = run("names", "add", "--real", "Dot", "--to", "[friend]", "--for", "Mabel", "--case",
+        # Also an ordinary word on names add is its own option, never the participant a command names (review 4)
+        code, cased, err, _ = run("names", "add", "--real", "Dot", "--to", "[friend]", "--for", "Mabel", "--ordinary-word",
                                   "--note", "Add Dot", "--run", "cased")
         cased_line = agent_changes.read(root)[-1]
-        check("399: --case is Match case on the entry, and the record names no participant 'True'",
-              code == 0 and routes.pseudo_list(root)[-1]["case"] is True and "case" not in cased_line["target"]
+        check("399: --ordinary-word is Also an ordinary word on the entry, and the record names no participant 'True'",
+              code == 0 and routes.pseudo_list(root)[-1].get("word") is True and "case" not in cased_line["target"]
               and "Dot" not in json.dumps(cased_line), err + json.dumps(cased_line)[:300])
         run("agents", "undo-change", cased_line["id"], "--note", "Take Dot off")
 
@@ -255,7 +255,7 @@ def test_names_add(scratch: Path):
               "alike are left (namesfix M3)",
               second.read_text(encoding="utf-8").count("Terry") == 2 and "[neighbour]" not in second.read_text(encoding="utf-8"),
               second.read_text(encoding="utf-8"))
-        run_ = names_mod.Run([{"real": ["Terry"], "to": "[neighbour]", "for": None, "case": False, "review": True}])
+        run_ = names_mod.Run([{"real": ["Terry"], "to": "[neighbour]", "for": None, "review": True}])
         check("399: a copy has a Review each name replaced where he ticked those words and left none of them",
               run_.text("Terry came.", "Mabel", {}, mirror=set(), taken={(0, "Terry")}) == "[neighbour] came."
               and run_.text("Terry came.", "Mabel", {}, mirror={(0, "Terry")}, taken={(0, "Terry")}) == "Terry came."
@@ -382,7 +382,7 @@ def test_names_add(scratch: Path):
         check("399: the words taken out of a request are the list's wherever it is read from, nothing moved (namesfix)",
               words == ["Ottoline"] and (old_dir / f"{key}.json").is_file() and not (elsewhere / names_mod.FILE).exists(),
               str(words))
-        # namesfix2: an earlier entry covers a new one only when Match case and Except in agree too
+        # namesfix2: an earlier entry covers a new one only when Also an ordinary word and Except in agree too
         routes.api_names({"op": "set", "root": rid, "entries": [{"real": ["Pepper"], "to": "[dog]"}]})
         code, differ, err, _ = run("names", "add", "--from", str(spec), "--note", "x", "--run", "rules")
         saved = routes.pseudo_list(root)
@@ -392,21 +392,28 @@ def test_names_add(scratch: Path):
               "listed (namesfix2)",
               code == 0 and nums.get("[dog]") == 4 and saved[3].get("except") == [EXCEPT] and len(saved) == 4
               and code2 == 0 and same["entries"][0].get("listed") is True and same["added"] == 0, err + err2)
-        app_case = routes.api_names({"op": "add", "root": rid, "dry_run": True,
-                                     "entries": [{"real": ["Pepper"], "to": "[dog]", "case": True}]})
-        check("399: the app's add of a listed name with Match case set where the list's is not is no repeat (namesfix2)",
-              app_case["added"] == 1, json.dumps(app_case)[:200])
+        # wordfix L1: only a tick apart from an entry for the same people, the new one would never be found, so the
+        # add is refused, naming that entry and names set
+        try:
+            routes.api_names({"op": "add", "root": rid, "dry_run": True,
+                              "entries": [{"real": ["Pepper"], "to": "[dog]", "word": True}]})
+            app_case = ""
+        except Exception as exc:
+            app_case = str(exc)
+        check("399: the app's add of a listed name only Also an ordinary word apart is refused, pointing to names set "
+              "on the entry that holds it (wordfix)",
+              "names set 1" in app_case and "Pepper" not in app_case and routes.pseudo_list(root) == saved, app_case)
         # namesfix2: the key file keeps Review each and Except in, a phrase with a comma among them
-        kept_list = [{"real": ["Terry", "T."], "to": "[neighbour]", "for": None, "case": False, "review": True},
-                     {"real": ["Potter"], "to": "[x]", "for": None, "case": False, "except": ["Potter, Harry", "the stone"]},
-                     {"real": ["Dot"], "to": "[friend]", "for": None, "case": False}]
+        kept_list = [{"real": ["Terry", "T."], "to": "[neighbour]", "for": None, "review": True},
+                     {"real": ["Potter"], "to": "[x]", "for": None, "except": ["Potter, Harry", "the stone"]},
+                     {"real": ["Dot"], "to": "[friend]", "for": None}]
         back = names_mod.read_key("key.csv", names_mod.write_key(kept_list).encode("utf-8"))
         old_key = names_mod.read_key("key.csv", "Real name,Pseudonym\nDot,[friend]\n".encode("utf-8"))
         check("399: the key file keeps Review each and Except in, and a two-column key reads as before (namesfix2)",
               [(e["real"], e["to"], e.get("review", False), e.get("except")) for e in back]
               == [(["Terry", "T."], "[neighbour]", True, None), (["Potter"], "[x]", False, ["Potter, Harry", "the stone"]),
                   (["Dot"], "[friend]", False, None)]
-              and old_key == [{"real": ["Dot"], "to": "[friend]", "for": None, "case": False}], json.dumps(back))
+              and old_key == [{"real": ["Dot"], "to": "[friend]", "for": None}], json.dumps(back))
     finally:
         (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY,
          agent_changes.ALL_OPS, place) = kept

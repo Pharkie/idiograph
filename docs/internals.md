@@ -592,7 +592,9 @@ parser:
   minutes. A new run (`start_run`) is given the next id from `index.json`, `r1`, `r2`, never one given before, and its
   restore point (`point`): every `.xlsx` and `.json` under the root (`tracked`, walking no hidden folder and no
   `_Archive`, leaving out `NEVER`: History, team.json, the old holds file and a copy's own record, the list of names
-  kept since namesop so an agent's `names add` is undone) copied by its sha256 into `objects/`, each copy mode 600, a file whose time and size match an earlier point's taking that copy unread,
+  kept since namesop so an agent's `names add` is undone), and each participant's memos files in Source
+  (`is_memos`, `<folder>/Source/<x> - memos.txt` and its numbered twins, since wordfix2, as `names replace` writes
+  them; a line says them as "Juno's memos") copied by its sha256 into `objects/`, each copy mode 600, a file whose time and size match an earlier point's taking that copy unread,
   so a point costs a stat of each file and a read and copy of each one changed since. `tidy` lets points go
   `KEEP_DAYS`, 30, after their run's last write, the last `KEEP_RUNS`, 10, kept whatever their age, and `sweep` takes
   away every copy no kept run names. A run whose first op wrote nothing, or was refused, is let go (`drop`).
@@ -2825,11 +2827,11 @@ line's `names replace` and MCP's `names_replace` call the same op, counts only. 
 you not do this via the MCP?"). `/api/names` op `add` (`routes.pseudo_add`) appends entries, each cleaned as `set`
 cleans them, refused whole when one names a participant the project lacks or, the app's own call, a spelling an earlier entry
 holds already for everyone or for the same participant (named by the holding entry's number; one for a single
-participant never covers a new one for everyone, namesfix, nor one whose Match case or Except in differ, namesfix2), and answers each new entry's number in the list as saved,
+participant never covers a new one for everyone, namesfix, nor one whose Also an ordinary word or Except in differ, namesfix2), and answers each new entry's number in the list as saved,
 replacement, `for`, ticks and `hits`, by participant and part (`PSEUDO_ADD_PARTS`: speaker and words as transcript,
 quotes, statements, notes) from one `pseudo_check` of the new entries alone, so the counts never depend on what the
 list holds already, never a spelling. The command line's `names add` (`--from`, or
-`--real`, `--to`, `--for`, `--case`, `--review-each`, `--except`) and MCP's `names_add` (`entries`, handed over as
+`--real`, `--to`, `--for`, `--ordinary-word`, `--review-each`, `--except`) and MCP's `names_add` (`entries`, handed over as
 `--from`'s structure) call it (`edit` and `remove` an agent's too since namesset, below). Where the list reaches since: `agent_changes.NEVER` no longer names `idiograph-names.json`, so a run's
 restore point and each change's before and after copies hold it in the project's own `.idiograph-restore/objects`,
 written mode 600 (`keep`), and an undo writes it back mode 600 (`private`). So the names file is in the restore
@@ -2861,7 +2863,7 @@ app's own call alone, an agent's refused), and `names.plain` (a REFI-QDA memo) n
 REFI-QDA import, Review and replace, `names check`, `pseudo_add`'s counts and the label and pen portrait check
 (`participants.real_name_in`, which still refuses a Review each name) all pass it by. `transcript replace` reads no
 list. The page's Names to replace has an Except in field, its phrases with semicolons between and sent as a list
-(`nmExcepts`), so a phrase may hold a comma (a string `except` is split at semicolons, `names.clean_entry`), and a Review each tick under Match case; its Review card
+(`nmExcepts`), so a phrase may hold a comma (a string `except` is split at semicolons, `names.clean_entry`), and a Review each tick under Also an ordinary word; its Review card
 starts a Review each find unticked (`nmOff`), keeps a tick of one in `takes` (`nmTick`) and sends them as `take` with
 Review and replace, Add and New project. An agent's `names list` shows `review` and `excepts`, a count, never a
 phrase. The key file keeps both (namesfix2): `names.write_key` writes Review each ("yes") and the except phrases (semicolons between) as a third and fourth column, and `read_key` reads them back when present (`KEY_YES`). Area 399.
@@ -2869,7 +2871,7 @@ phrase. The key file keeps both (namesfix2): `names.write_key` writes Review eac
 **An agent changes an entry and takes entries off** (namesset, 16 November 2026, Adam: "if you're not able to do it
 via MCP or the API, you should be able to", after an entry went in with Review each that he then ruled replaced
 everywhere). `/api/names` op `edit` (`routes.pseudo_edit`) takes `entry`, a number (`pseudo_entry_number`, refused in
-one line for one the list lacks), and `changes`, any of `PSEUDO_EDIT_FIELDS`: `review` and `case` (booleans, else
+one line for one the list lacks), and `changes`, any of `PSEUDO_EDIT_FIELDS`: `review` and `word` (booleans, else
 refused), `for` (a participant by pseudonym, checked as `add` checks it, or none or "everyone"), `to`, `real` (every
 spelling), `except` (every phrase, `pseudo_phrases`: a list, or a string split at semicolons), `except_add` and
 `except_remove` (case ignored, one the entry lacks passed by). The entry is
@@ -2880,20 +2882,58 @@ whenever given, are in `changed` and written, `real` as `before` and `after` cou
 alone, `clean_entry` deduplicating them), `except` as `before` and, for a whole set, `after`, else `added` and
 `removed`, the counts of distinct phrases given. A change of the other fields to what they are writes nothing.
 `remove` (`routes.pseudo_remove`) is the same check of numbers and the same lock.
-Both answer, dry run alike, by number and counts alone: `edit` each field changed (`changed`, `review`, `case`,
+Both answer, dry run alike, by number and counts alone: `edit` each field changed (`changed`, `review`, `word`,
 `for` and `to` as values) and `finds` `before` and `after`
 (`pseudo_finds`: one `pseudo_check` of that entry alone, `hits`, `replaced`, `left` and `by_participant` by part,
 `pseudo_places`, which `pseudo_add` now shares), `remove` each entry taken off (`gone`) with its finds. The command
-line's `names set <n>` (`--review-each on|off`, `--case on|off`, `--for`, `--to`, `--real`, `--except`, `--no-except`,
+line's `names set <n>` (`--review-each on|off`, `--ordinary-word on|off`, `--for`, `--to`, `--real`, `--except`, `--no-except`,
 `--except-add`, `--except-remove`, or `--from` a JSON object of the changes; `idiograph_cli.names_changes` puts the
 spellings and phrases in `secret_words` as `names_given` does) and `names remove`, and MCP's `names_set` (the changes
 handed over as `--from`'s structure) and `names_remove` call it. `agent_changes.app_only` no longer refuses `names
 remove` (the `agentchanges.only.names` line is gone): the list's file has been in every run's restore point since
 namesop, so each is one line of the record ("names set", "names remove", the request kept as "…", its
-`what_changed` from `agent_changes.names_said`, the entry's number and the fields by name, Review each and Match case
-on or off) undone by
+`what_changed` from `agent_changes.names_said`, the entry's number and the fields by name, Review each and Also an ordinary
+word on or off) undone by
 `agents undo-change` or the run's undo byte for byte, a remove of every entry taking the file away (`save_at`) and the
 undo writing it back mode 600. Area 406.
+
+**Also an ordinary word in place of Match case** (ordinaryword, Adam's option B of 16 November 2026: Match case still
+flagged "Hope you're well" at a sentence's start and missed a lowercase "hope" that was the name, and said nothing of
+why). An entry's `word` key, kept only when set, replaces `case`: `names.clean_entry` reads `word`, `ordinary_word` or
+an old `case: true` as it and never writes `case`, so a list from before is read in the new shape and written so on its
+next save (`save_at` is only ever given cleaned entries; `case_files.names_write`, the one place that saved a list's
+raw JSON, cleans it first). An old `case: true` reads as `word` only when the entry's first spelling is not
+initials (wordfix M2): the old page forced Match case on every initials entry, so those keep their own matching by
+case and stay replaced in bulk. `compile_list` matches a `word` entry's spellings by `names.word_pattern`, the first
+letter a capital and the rest in any case (wordfix M1), so "Hope" and "HOPE" are found and "hope" never, whether the
+list spells it Hope or hope; initials keep their own case, and `names.waits` (Review each or Also an ordinary word) is what `Run.text`, its `mirror` and `taken`, and
+`plain` read where they read `review` before, so every find of such an entry is flagged `review` (and `word`) in a
+run's finds and left as written unless `take`, the app's alone, names it: never by `names replace`, an Add, an import,
+a REFI-QDA memo or an agent. A REFI-QDA import's source memos go through the import's own run (`qdpx_memo_texts`,
+part "memos", after every passage so their numbers hold, wordfix M3), so a held find there is counted in the
+import's answer as left, where `plain` once left it uncounted; the import card has no Review card of its own, so
+Check transcripts already in and Review and replace search each participant's memos file in Source as well
+(`pseudo_memos`, `<pseudonym> - memos.txt` and its numbered twins, part "memos", after every workbook), each find on
+the Review card under memos and written by Replace with the file kept in `_Archive` first, and `pseudo_copies` passes
+those files by. Since wordfix2 a memos file is read as bytes (`pseudo_memo_read`), its byte order mark and line endings
+kept as they were and every byte but the finds written back; its place in every count and line is the fixed word
+"memos" (`names.MEMOS_PLACE`), never the file's name, which may be his own; an agent's restore point keeps it, so an
+agent's replace is a line in the record undone byte for byte; and Replace reads and writes each memos file under the
+project's lock. The app's Check answers `memos_seen`, each memos file in order by its digest and how many finds of
+each entry it held, and Replace sends it back: a file whose digest differs (changed since Check, or new) is left as
+it is, its finds counted as left and `memos_changed` saying how many such files, the run's numbers moved on by the
+finds Check counted in it so his ticks in the files after it still name the finds he ticked (`pseudo_memo_held`). `pseudo_add` refuses an entry whose spelling an earlier entry for the same people (or everyone)
+holds with the same except phrases, only Also an ordinary word or Review each apart, dry run alike, in one line
+naming that entry's number and `names set` with the tick (`names.add_tick_held`, wordfix L1), since the earlier
+entry would win every find. `Run.counts` marks such an entry `word`. The label and pen portrait check
+(`participants.real_name_in`) matches it in its case alone. `pseudo_add`'s cover rule compares `word` where it
+compared `case`, `pseudo_edit` takes `word` (`--ordinary-word on|off`, MCP `word`), `names add` takes
+`--ordinary-word` and `"word"`, and an agent's `names list` shows `word` only when set. The key file has a fifth
+column, Also an ordinary word ("yes"), which `read_key` reads when present. The page's Names to replace has the tick
+in Match case's place, labelled Also an ordinary word, and an info mark in the ticks' column head
+(`INFO_ICON`, `.info-mark`, a button in the tab order, its text the `aria-describedby` tooltip, shown on hover and
+focus and toggled by a click, Escape closing it). Initials keep their case-by-case matching without the tick. Area
+407.
 
 **A Word table of transcript and notes** (19 October, a tester's Figure 1). `convert.read_data` tries
 `read_docx_table` on a `.docx` first. It takes the body's own tables of two columns or more, those as

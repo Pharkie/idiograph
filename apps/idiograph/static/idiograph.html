@@ -2125,14 +2125,18 @@
 </div>
 
 <!-- Names to replace (namesui, 8 November 2026): the project's list, each name with its replacement, whose
-     transcripts it is for and Match case, saved as it changes into the project's folder, then a check of the
+     transcripts it is for, Except in, Also an ordinary word (ordinaryword, 16 November 2026, in Match case's place,
+     its info mark in the ticks' column head) and Review each, saved as it changes into the project's folder, then a check of the
      transcripts already in and Review and replace -->
 <div class="overlay" id="nm-list" hidden>
   <div class="card nm-card" role="dialog" aria-labelledby="nm-list-title">
     <p class="kicker"></p>
     <h2 id="nm-list-title">{{page_idiograph.names.title}}</h2>
     <table class="nm-table" id="nm-list-table">
-      <thead><tr><th>{{page_idiograph.names.name}}</th><th>{{page_idiograph.names.replace_with}}</th><th>{{page_idiograph.names.in}}</th><th>{{page_idiograph.names.except}}</th><th></th><th></th></tr></thead>
+      <thead><tr><th>{{page_idiograph.names.name}}</th><th>{{page_idiograph.names.replace_with}}</th><th>{{page_idiograph.names.in}}</th><th>{{page_idiograph.names.except}}</th><th class="nm-case-head"><span class="nm-tip-at"><button type="button"
+           class="info-mark" id="nm-word-mark" aria-label="{{page_idiograph.names.word_about_label}}"
+           aria-describedby="nm-word-about" aria-expanded="false"></button><span class="info-tip nm-word-tip"
+           role="tooltip" id="nm-word-about">{{page_idiograph.names.word_about}}</span></span></th><th></th></tr></thead>
       <tbody id="nm-list-rows"></tbody>
     </table>
     <div class="nm-acts"><button type="button" class="ghost small" id="nm-add">{{page_idiograph.names.add}}</button><button
