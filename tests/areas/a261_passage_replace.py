@@ -185,10 +185,11 @@ AGENT_OPS = {
     "/api/add-transcripts": [("project", "add-transcripts")],
     # the list of names a transcript has replaced on its way in (namesrule and namesui, 8 November 2026), which the
     # Names to replace card calls. An agent lists it, checks transcripts for it, replaces them and takes entries off
-    # it, by number, and never reads a real name: `names set` and `names preview` are the stated exception to parity
-    # (the whole list is set in the app). Since namesop (16 November 2026, Adam's word) an agent adds entries on his
-    # word, `names add`
-    "/api/names": [("names", "list"), ("names", "check"), ("names", "replace"), ("names", "remove"), ("names", "add")],
+    # it, by number, and never reads a real name: the route's whole-list `set` and `preview` are the stated exception
+    # to parity (the whole list is set in the app). Since namesop (16 November 2026, Adam's word) an agent adds entries
+    # on his word, `names add`, and since namesset the same day changes one by number, `names set` (the route's `edit`)
+    "/api/names": [("names", "list"), ("names", "check"), ("names", "replace"), ("names", "remove"), ("names", "add"),
+                   ("names", "set")],
     "/api/edit-turn": [("turn", "edit")],
     "/api/interviewer-note": [("turn", "interviewer-note")],
     "/api/rows": [("turn", "assign"), ("turn", "assign-undo")],

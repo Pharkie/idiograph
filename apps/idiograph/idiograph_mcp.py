@@ -1263,11 +1263,34 @@ TOOLS = [
                    "description": "Finds to leave as written, each an entry's number and the find's place among that "
                                   "entry's finds, 3:1, as names_check counts them. Leave it out to replace every find."}},
          writes="changes"),
+    mcp.tool("names_set", "Change a name on the list", ("names", "set"),
+         "One entry of the project's list of names to replace changed by its number, as names_list gives it, on his "
+         "word alone: review (Review each on or off, off letting names_replace write its finds), case (Match case), "
+         "for (a participant by pseudonym, or everyone), to (what it is written as), real (every spelling, only those "
+         "he gave you), and except (every phrase the name is never found inside, an empty list for none), except_add "
+         "and except_remove. Give only what changes. Run it with dry_run first and tell him each field before and "
+         "after and how many finds the entry flags in the transcripts already in before and after, by participant "
+         "and part. The answer never says a real name or an except phrase back, and neither should you. It changes "
+         "no transcript: names_replace does that. The change is one line in the record of agents' changes, which "
+         "agent_undo_change undoes.",
+         {"entry": {"type": "integer", "minimum": 1, "description": "The entry's number."},
+          "review": {"type": "boolean", "description": "Review each on or off."},
+          "case": {"type": "boolean", "description": "Match case on or off."},
+          "for": dict(mcp.TEXT, description="The participant it is for, by pseudonym, or everyone."),
+          "to": dict(mcp.TEXT, description="What it is written as."),
+          "real": {"type": "array", "minItems": 1, "items": {"type": "string"},
+                   "description": "Every spelling of the real name, as he gave them."},
+          "except": {"type": "array", "items": {"type": "string"},
+                     "description": "Every phrase the name is never found inside, an empty list for none."},
+          "except_add": {"type": "array", "items": {"type": "string"}, "description": "Phrases added."},
+          "except_remove": {"type": "array", "items": {"type": "string"}, "description": "Phrases taken off."}},
+         ["entry"], writes="changes"),
     mcp.tool("names_remove", "Take names off the list", ("names", "remove"),
-         "Entries taken off the project's list of names by their numbers, as names_list gives them. Nothing of the "
-         "list is shown, and a transcript already in is not changed. Only the app takes an entry off, since the "
-         "list is copied nowhere and no undo can put it back: an agent's call is refused, and its dry_run alone "
-         "answers. He does it in Project settings, Names to replace.",
+         "Entries taken off the project's list of names by their numbers, as names_list gives them, on his word "
+         "alone. Run it with dry_run first and tell him, for each, how many finds it flags in the transcripts already "
+         "in, by participant and part. Nothing of the list is shown, a transcript already in is not changed, and the "
+         "entries after it are numbered again. The removal is one line in the record of agents' changes, which "
+         "agent_undo_change undoes.",
          {"entries": {"type": "array", "minItems": 1, "items": {"type": "integer", "minimum": 1},
                       "description": "The entries' numbers."}},
          ["entries"], writes="changes"),
@@ -1757,6 +1780,14 @@ def arguments(t: dict, given: dict, args):
         args.real = args.to = args.for_ = None
         args.match_case = args.review_each = False
         args.except_ = None
+    elif command == "names" and act == "set":
+        # the changes handed over already read, as --from reads its file, never on a command line (namesset)
+        args.number = given.get("entry")
+        args.source = {k: given[k] for k in ("review", "case", "for", "to", "real", "except", "except_add",
+                                             "except_remove") if k in given}
+        args.review_each = args.match_case = args.for_ = args.to = args.real = None
+        args.except_ = args.except_add = args.except_remove = None
+        args.no_except = False
     elif command == "names":
         args.numbers = [int(x) for x in given.get("entries") or []]
         args.skip = [str(x) for x in given.get("skip") or []] or None

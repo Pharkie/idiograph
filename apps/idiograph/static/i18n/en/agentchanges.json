@@ -1,7 +1,6 @@
 {
   "agentchanges.only.team": "Only the app does this, since it reaches other people or changes who works on the project: open the project in Idiograph, Project settings, Working together. Nothing was done.",
   "agentchanges.only.send": "Only the app shares a copy of a project, since it goes to another person: in Idiograph, Share a copy on the project's menu on Home. Nothing was done.",
-  "agentchanges.only.names": "Only the app takes a name off the list of names to replace: in Idiograph, Project settings, Names to replace. Nothing was done.",
   "agentchanges.only.settings": "Only the app changes its settings, since they are the app's and no project's, so no undo reaches them: in Idiograph, Settings. Nothing was done.",
   "agentchanges.kind.project": "the project's settings",
   "agentchanges.kind.gets": "the GETs",

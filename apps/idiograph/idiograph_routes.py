@@ -4485,6 +4485,168 @@ PSEUDO_ADD_PARTS = {"words": "transcript", "speaker": "transcript", "quotes": "q
                     "notes": "notes"}
 
 
+PSEUDO_PART_KEYS = ("transcript", "quotes", "statements", "notes")
+
+
+def pseudo_places(run: "names_mod.Run", k: int) -> dict:
+    """The `k`th entry's finds in a run by participant, each counted by part (transcript, quotes, statements, notes),
+    never a word."""
+    places: dict = {}
+    for f in run.finds:
+        if f["entry"] != k:
+            continue
+        w = f["where"]
+        part = PSEUDO_ADD_PARTS.get(w.get("part") or "", "transcript")
+        spot = places.setdefault(w.get("participant") or "", dict({"participant": w.get("participant") or ""},
+                                                                  **{x: 0 for x in PSEUDO_PART_KEYS}))
+        spot[part] += 1
+    return places
+
+
+def pseudo_finds(root: Path, entry: dict) -> dict:
+    """One entry's finds in the transcripts already in, counted with that entry alone so the counts never depend on
+    the rest of the list, as `add` counts them: `hits`, of which a replace would write `replaced` and leave `left`
+    (a Review each entry's finds, left for him), and the finds by participant and part, never a word. A find inside
+    an except phrase is no find."""
+    run, _changes = pseudo_check(root, [entry])
+    places = pseudo_places(run, 1)
+    mine = [f for f in run.finds if f["entry"] == 1]
+    return {"hits": len(mine), "replaced": sum(1 for f in mine if not f["skipped"]),
+            "left": sum(1 for f in mine if f["skipped"]), "by_participant": [places[p] for p in sorted(places)]}
+
+
+def pseudo_entry_number(entries: list[dict], n) -> int:
+    """An entry's number as a call gives it, refused in one line when the list has no such entry."""
+    if isinstance(n, bool):
+        raise WorkbookError(i18n.t("names.no_entry", n=n))
+    try:
+        k = int(n)
+    except (TypeError, ValueError):
+        raise WorkbookError(i18n.t("names.no_entry", n=n)) from None
+    if not 1 <= k <= len(entries):
+        raise WorkbookError(i18n.t("names.no_entry", n=n))
+    return k
+
+
+def pseudo_phrases(value) -> list[str]:
+    """Except phrases as a call gives them: a list, or a string with semicolons between (a phrase may hold a comma),
+    each with its spaces folded, the empty ones left out."""
+    items = value.split(";") if isinstance(value, str) else value if isinstance(value, list) else []
+    return [x for x in (" ".join(str(i).split()) for i in items if i is not None) if x]
+
+
+# what `edit` may change of an entry, as a call names each in `changes`
+PSEUDO_EDIT_FIELDS = ("real", "to", "for", "case", "review", "except", "except_add", "except_remove")
+
+
+def pseudo_edit(root: Path, entries: list[dict], body: dict, agent: bool, dry: bool) -> dict:
+    """`edit` (namesset, 16 November 2026, Adam: "if you're not able to do it via MCP or the API, you should be
+    able to"): one entry of the list changed by its number, `entry`, `changes` holding any of `review` and `case`
+    (true or false), `for` (a participant's pseudonym, or none or "everyone" for everyone), `to`, `real` (every
+    spelling, on his word as `add` takes them), `except` (every phrase, an empty list for none), and `except_add` and
+    `except_remove` (phrases added or taken off). The entry is cleaned and the list saved by the same `clean_entry`
+    and `save_at` the app's Names to replace saves with, and an agent's edit is one line in the record of agents'
+    changes, undone as `add` is (the list's file is in each run's restore point). The answer, the dry run's alike,
+    is the entry by its number, each field that changes before and after, and its finds in the transcripts already
+    in before and after, counted as `add` counts them. The spellings and the except phrases are said changed whenever
+    they are given, by counts that never depend on whether the words match the list's, and written either way, so
+    no answer, dry run or record tells an agent whether a guess is on the list: a phrase to take off that the entry
+    does not hold is passed by. A change of the other fields to what they are already writes nothing. Refused in one
+    line, nothing written, for an entry the list does not have, a participant the project does not have, and a tick
+    that is not true or false."""
+    k = pseudo_entry_number(entries, body.get("entry"))
+    changes = body.get("changes")
+    if not isinstance(changes, dict) or not any(f in changes for f in PSEUDO_EDIT_FIELDS):
+        raise WorkbookError(i18n.t("names.edit_none"))
+    for key in ("case", "review"):
+        if key in changes and not isinstance(changes[key], bool):
+            raise WorkbookError(i18n.t("names.edit_tick"))
+    old = entries[k - 1]
+    raw = dict(old)
+    for key in ("real", "to", "case", "review"):
+        if key in changes:
+            raw[key] = changes[key]
+    if "for" in changes:
+        who = " ".join(str(changes["for"] or "").split())
+        if who.casefold() in ("", "everyone", "everybody", "all"):
+            raw["for"] = None
+        else:
+            people = sorted({w for w, _f, _b in pseudo_books(root)})
+            by_fold = {w.casefold(): w for w in people}
+            if who.casefold() not in by_fold:
+                raise WorkbookError(i18n.t("names.add_who", list=formats.list_words(people) or "-"))
+            raw["for"] = by_fold[who.casefold()]
+    # a phrase to take off that the entry does not hold is passed by as one it holds is taken off, the answer the same
+    # either way, so no call tells an agent whether words it guessed are on the list (namesset review)
+    phrases = pseudo_phrases(changes["except"]) if "except" in changes else list(old.get("except") or [])
+    phrases += pseudo_phrases(changes.get("except_add"))
+    for x in pseudo_phrases(changes.get("except_remove")):
+        phrases = [p for p in phrases if p.casefold() != x.casefold()]
+    raw["except"] = phrases
+    try:
+        new = names_mod.clean_entry(raw)
+    except names_mod.NamesError as exc:
+        raise WorkbookError(str(exc)) from None
+    changed: dict = {}
+    # the fields of words, the spellings and the except phrases, are said changed whenever they are given, by counts
+    # that never depend on whether the words given match the list's: a set of every spelling or phrase by the count
+    # kept, which comes from the words given alone, and a phrase added or taken off by the count given (namesset
+    # review)
+    if "real" in changes:
+        changed["real"] = {"before": len(old["real"]), "after": len(new["real"])}
+    if any(key in changes for key in ("except", "except_add", "except_remove")):
+        said = {"before": len(old.get("except") or [])}
+        if "except" in changes:
+            said["after"] = len(new.get("except") or [])
+        else:
+            if "except_add" in changes:
+                said["added"] = len({x.casefold() for x in pseudo_phrases(changes["except_add"])})
+            if "except_remove" in changes:
+                said["removed"] = len({x.casefold() for x in pseudo_phrases(changes["except_remove"])})
+        changed["except"] = said
+    for key in ("to", "for"):
+        if old.get(key) != new.get(key):
+            changed[key] = {"before": old.get(key), "after": new.get(key)}
+    for key in ("case", "review"):
+        if bool(old.get(key)) != bool(new.get(key)):
+            changed[key] = {"before": bool(old.get(key)), "after": bool(new.get(key))}
+    after = list(entries)
+    after[k - 1] = new
+    if not dry and changed:
+        # written whenever words are given, those the entry holds already too, so the record has a line either way
+        with writing(root=root):
+            # read again under the lock, so a change saved since is never written over
+            if pseudo_list(root) != entries:
+                raise WorkbookError(i18n.t("names.edit_changed"))
+            names_mod.save_at(root, names_mod.clean_entries(after))
+    out = {"entry": k, "dry_run": dry, "count": len(entries), "to": new["to"], "for": new["for"],
+           "changed": changed, "finds": {"before": pseudo_finds(root, old), "after": pseudo_finds(root, new)}}
+    if not agent:
+        out["list"] = pseudo_view(after if changed else entries, False)
+    return out
+
+
+def pseudo_remove(root: Path, entries: list[dict], given, agent: bool, dry: bool) -> dict:
+    """`remove`: entries taken off the list by their numbers, refused in one line, nothing written, for a number the
+    list does not have. An agent may, on his word, since namesset (16 November 2026): the list's file is in each
+    agent run's restore point, so the record's undo puts the entries back. The answer, the dry run's alike, names
+    each entry taken off by its number, replacement and whom it is for, with the finds in the transcripts already in
+    that it flagged, counted as `add` counts them, and the list as it is after, its later entries numbered again."""
+    wanted = given if isinstance(given, list) else [given]
+    nums = {pseudo_entry_number(entries, n) for n in wanted}
+    if not nums:
+        raise WorkbookError(i18n.t("names.no_entry", n="-"))
+    kept = [e for i, e in enumerate(entries) if i + 1 not in nums]
+    gone = [dict({"entry": n, "to": entries[n - 1]["to"], "for": entries[n - 1]["for"]},
+                 **pseudo_finds(root, entries[n - 1])) for n in sorted(nums)]
+    if not dry:
+        with writing(root=root):
+            if pseudo_list(root) != entries:
+                raise WorkbookError(i18n.t("names.edit_changed"))
+            names_mod.save_at(root, kept)
+    return {"removed": len(nums), "dry_run": dry, "gone": gone, "entries": pseudo_view(kept, agent), "count": len(kept)}
+
+
 def pseudo_add(root: Path, entries: list[dict], given, agent: bool, dry: bool) -> dict:
     """`add` (namesop, 16 November 2026, Adam: "Can you not do this via the MCP?"): entries added at the list's end,
     each `{"real", "to", "for", "case", "review", "except"}` as `set` takes them, with `dry_run` first. An agent may,
@@ -4541,17 +4703,8 @@ def pseudo_add(root: Path, entries: list[dict], given, agent: bool, dry: bool) -
     run, _changes = pseudo_check(root, fresh)
     rows = []
     for k, e in enumerate(fresh, start=1):
-        places: dict = {}
-        for f in run.finds:
-            if f["entry"] != k:
-                continue
-            w = f["where"]
-            part = PSEUDO_ADD_PARTS.get(w.get("part") or "", "transcript")
-            spot = places.setdefault(w.get("participant") or "", {"participant": w.get("participant") or "",
-                                                                 "transcript": 0, "quotes": 0, "statements": 0,
-                                                                 "notes": 0})
-            spot[part] += 1
-        hits = sum(p[x] for p in places.values() for x in ("transcript", "quotes", "statements", "notes"))
+        places = pseudo_places(run, k)
+        hits = sum(p[x] for p in places.values() for x in PSEUDO_PART_KEYS)
         at = number.get(k + len(entries))
         rows.append(dict({"entry": at, "to": e["to"], "for": e["for"],
                           "spellings": len(written[at - 1]["real"]) if at else 0, "case": e["case"],
@@ -4580,12 +4733,14 @@ def api_names(body: dict) -> dict:
     (namesui). The app's own calls see the list in full. A call with a `tool` (the command line and the MCP server)
     is told counts and the entries' numbers only, never a real name: `set`, `preview`, `read-key` and `key-file` are
     the app's alone, and since namesop (16 November 2026, Adam's word) an agent adds entries with `add` on his word,
-    recorded and undone as its other writes are. `remove` stays the app's (`agent_changes.app_only`).
+    recorded and undone as its other writes are, and since namesset the same day changes one with `edit` and takes
+    entries off with `remove`, each by its number, recorded and undone alike.
 
     `list` answers the entries. `set` takes `entries`, the whole list, each `{"real": [spellings], "to", "for", "case"}`
     (`for` a participant's pseudonym, none for everyone, `case` Match case, and `review`, Review each, and `except`,
     phrases a find inside is no find), and keeps it, with `dry_run` writing nothing. `add` takes `entries` to add at
-    the end (`pseudo_add`). `remove` takes `entries`, the numbers to take off. `check` searches the transcripts
+    the end (`pseudo_add`). `edit` takes `entry`, a number, and `changes` (`pseudo_edit`). `remove` takes `entries`,
+    the numbers to take off (`pseudo_remove`). `check` searches the transcripts
     already in, counts only, and with `names_preview` the app's own call every find. `replace` replaces them, the
     finds `skip` names left as written and a Review each entry's finds left unless `take` names them (the app's
     alone), after a copy of each workbook changed is kept in its participant's `_Archive`
@@ -4603,7 +4758,7 @@ def api_names(body: dict) -> dict:
             there = Path(str(body["folder"])).expanduser()
             root = there if there.is_dir() and (there / srv.PROJECT_FILE).is_file() else None
         return pseudo_preview(root, body)
-    root = asked_root(body, write=op in ("set", "remove", "replace", "add"))
+    root = asked_root(body, write=op in ("set", "remove", "replace", "add", "edit"))
     if root is None:
         raise WorkbookError(i18n.t("server.folder_nothing_added"))
     if srv.is_demo_root(root):
@@ -4633,23 +4788,9 @@ def api_names(body: dict) -> dict:
             return {"names": pseudo_names_answer(done["run"], agent, False), "dry_run": False, "replaced": True,
                     "participants": len(done["participants"]), "failed": done["failed"]}
         if op == "remove":
-            wanted = body.get("entries")
-            wanted = wanted if isinstance(wanted, list) else [wanted]
-            nums = set()
-            for n in wanted:
-                try:
-                    nums.add(int(n))
-                except (TypeError, ValueError):
-                    raise WorkbookError(i18n.t("names.no_entry", n=n)) from None
-            for n in sorted(nums):
-                if not 1 <= n <= len(entries):
-                    raise WorkbookError(i18n.t("names.no_entry", n=n))
-            kept = [e for i, e in enumerate(entries) if i + 1 not in nums]
-            dry = body.get("dry_run") is True
-            if not dry:
-                with writing(root=root):
-                    names_mod.save_at(root, kept)
-            return {"removed": len(nums), "dry_run": dry, "entries": pseudo_view(kept, agent), "count": len(kept)}
+            return pseudo_remove(root, entries, body.get("entries"), agent, body.get("dry_run") is True)
+        if op == "edit":
+            return pseudo_edit(root, entries, body, agent, body.get("dry_run") is True)
         if agent:
             raise WorkbookError(i18n.t("names.agent_adds"))
         if op == "set":

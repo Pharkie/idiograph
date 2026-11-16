@@ -206,16 +206,16 @@ def test_agent_changes(scratch: Path):
         refused = {
             "settings": ask("settings", "--your-name", "A. Keeper"),
             "send": ask("project", "send", "--to", str(base / "out")),
-            "names": ask("names", "remove", "1"),
             "invite": ask("team", "invite"),
         }
         dry_send = ask("project", "send", "--to", str(base / "out"), "--dry-run")
         agent_log.flush()
         app_only = [e for e in agent_log.load(log)["entries"] if e.get("code") == "app_only"]
-        check("380: Settings, a send, a name off the list and Working together are refused for an agent in a line "
-              "naming where in the app, nothing written, each logged as app_only",
+        # a name taken off the list is an agent's since namesset (16 November 2026), area 406
+        check("380: Settings, a send and Working together are refused for an agent in a line naming where in the app, "
+              "nothing written, each logged as app_only",
               all(c != 0 and "Only the app" in e for c, _g, e in refused.values()) and digest(root) == before
-              and config_file.read_bytes() == cfg_before and not (base / "out").exists() and len(app_only) == 4,
+              and config_file.read_bytes() == cfg_before and not (base / "out").exists() and len(app_only) == 3,
               json.dumps({k: v[2][:120] for k, v in refused.items()}))
         check("380: an op only the app does still answers its dry run", dry_send[0] == 0, dry_send[2])
 

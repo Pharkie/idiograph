@@ -470,11 +470,13 @@ def test_names_rules(scratch):
                                            "params": {"name": name, "arguments": args}}))["result"]
 
         tools = {t["name"]: t for t in srv.receive(json.dumps({"jsonrpc": "2.0", "id": 9, "method": "tools/list"}))["result"]["tools"]}
-        # since namesop (16 November 2026) names_add adds a name on his word, area 399
-        check("345: the MCP server lists names_list, names_check, names_replace, names_remove and names_add, and no other",
-              {"names_list", "names_check", "names_replace", "names_remove", "names_add"} <= set(tools)
+        # since namesop (16 November 2026) names_add adds a name on his word, area 399, and since namesset names_set
+        # changes one, area 406
+        check("345: the MCP server lists names_list, names_check, names_replace, names_remove, names_add and names_set, "
+              "and no other",
+              {"names_list", "names_check", "names_replace", "names_remove", "names_add", "names_set"} <= set(tools)
               and not any(n.startswith("names_") and n not in ("names_list", "names_check", "names_replace", "names_remove",
-                                                               "names_add")
+                                                               "names_add", "names_set")
                           for n in tools)
               and tools["names_list"]["annotations"]["readOnlyHint"] is True
               and tools["names_remove"]["annotations"]["readOnlyHint"] is False

@@ -105,9 +105,10 @@ RISKS = {1: "steering", 2: "speed and volume", 3: "no screen", 4: "standing acce
 # The ops undo cannot reach (Adam, 13 November 2026, by dialog: "app only"), refused for agents with the place in
 # the app that does each, nothing waiting. Sending to another person, Working together's outward ops, its keys and
 # relay codes, and who is on the team. Settings, which are the app's and no project's, so no restore point holds
-# them (Your name, the AI prompt, the AI's provider, address and model, the AI switch and keys having no op). And an
-# entry taken off the list of real names: since namesop (16 November 2026, Adam's word) an agent adds entries, which
-# restore points now reach, and taking one off stays the app's, as he ruled for adding alone. Removing a project from
+# them (Your name, the AI prompt, the AI's provider, address and model, the AI switch and keys having no op). The
+# list of real names is no longer among them: since namesop (16 November 2026, Adam's word) an agent adds entries, which
+# restore points reach, and since namesset the same day (Adam: "if you're not able to do it via MCP or the API, you
+# should be able to") it changes and takes them off by number, each undone the same way. Removing a project from
 # Idiograph stays an agent's, its folder moved to the Trash or left as it is, never deleted.
 TEAM_ONLY = ("on", "set", "invite", "admit", "join", "joined", "send", "remove", "lead", "board-send",
              "board-answer", "ask", "review-send", "reply", "thread", "review-done", "suggestion-answer")
@@ -123,8 +124,6 @@ def app_only(args) -> str:
         return i18n.t("agentchanges.only.team")
     if (command, act) == ("project", "send"):
         return i18n.t("agentchanges.only.send")
-    if (command, act) == ("names", "remove"):
-        return i18n.t("agentchanges.only.names")
     if command == "settings" and act is None and any(getattr(args, k, None) not in (None, False) for k in SETTINGS_KEYS):
         return i18n.t("agentchanges.only.settings")
     return ""
@@ -697,6 +696,35 @@ def take_out(root, cid: str) -> None:
         write_tally(root, kept)
 
 
+def names_said(args, answer) -> str:
+    """What a names set or names remove changed, for the record's line and By an agent: the entry's number and the
+    fields by their names alone, never a word of the list (namesset review), "" for any other op."""
+    key = (args.command, getattr(args, "act", None))
+    answer = answer if isinstance(answer, dict) else {}
+    if key == ("names", "set") and isinstance(answer.get("changed"), dict) and answer.get("entry"):
+        changed = answer["changed"]
+        fields = []
+        if "review" in changed:
+            fields.append(i18n.t("names.record_field.review_on") if changed["review"].get("after")
+                          else i18n.t("names.record_field.review_off"))
+        if "case" in changed:
+            fields.append(i18n.t("names.record_field.case_on") if changed["case"].get("after")
+                          else i18n.t("names.record_field.case_off"))
+        if "for" in changed:
+            fields.append(i18n.t("names.record_field.for"))
+        if "to" in changed:
+            fields.append(i18n.t("names.record_field.to"))
+        if "real" in changed:
+            fields.append(i18n.t("names.record_field.real"))
+        if "except" in changed:
+            fields.append(i18n.t("names.record_field.except"))
+        return i18n.t("names.record_set", entry=int(answer["entry"]), fields=", ".join(fields))
+    if key == ("names", "remove") and isinstance(answer.get("gone"), list) and answer["gone"]:
+        nums = [str(int(g["entry"])) for g in answer["gone"] if isinstance(g, dict) and g.get("entry")]
+        return i18n.t("names.record_remove", entries=", ".join(nums))
+    return ""
+
+
 def entry_for(p, args, run: dict, answer, changed: list, made: list) -> dict:
     request = agent_log.hidden_words(one_line(getattr(args, "note", "")), getattr(args, "secret_words", ()))
     if args.command == "names" and request:
@@ -708,6 +736,9 @@ def entry_for(p, args, run: dict, answer, changed: list, made: list) -> dict:
              "op": " ".join(x for x in (args.command, getattr(args, "act", None)) if x),
              "target": target_of(args, answer), "what_changed": changed_line(changed, made, case_names(p)),
              "files": len(changed), "undo_with": undo_of(args, answer, run["id"])}
+    said = names_said(args, answer)
+    if said:
+        entry["what_changed"] = said
     # turn skip's reason for passages left with no statement, which the app keeps nowhere (leaveout, 16 November
     # 2026), kept in this line alone, never in a participant's notes, and no other op's reason with it
     reason = skip_reason(args)
