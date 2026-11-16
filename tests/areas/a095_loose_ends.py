@@ -40,7 +40,7 @@ def test_loose_ends(scratch):
     # ── A. the fixture: an invented project of two cases, each a scratch copy of the demo's workbook with
     # statements and quotes of its own, the marks a workbook keeps round a quote in each spelling, "(no
     # quote)" holding a place, a statement with no quote, a sub-theme between a PET's statements in one
-    # case and after them in the other, a group, a note, picks, a statement not placed and a discard
+    # case and after them in the other, a group, a note, picks, a statement unplaced and a discard
     root = scratch / "loose-root"
     shutil.rmtree(root, ignore_errors=True)
     (root).mkdir(parents=True)
@@ -101,7 +101,7 @@ def test_loose_ends(scratch):
     before = {p: p.read_bytes() for p in (wren, hazel, themes_mod.themes_path(wren), themes_mod.themes_path(hazel))}
 
     item_re = re.compile(r'<h2 class="pet-title"><span class="number">(.*?)</span> <span class="title">(.*?)</span></h2>'
-                         r'|<h\d class="(?:sub|group)-title">(.*?)</h\d>|<h2>((?:Not placed|Experiential statements set aside) \(\d+\))</h2>'
+                         r'|<h\d class="(?:sub|group)-title">(.*?)</h\d>|<h2>((?:Unplaced|Experiential statements set aside) \(\d+\))</h2>'
                          r'|<div class="item"><p class="st">(.*?)</p>(?:<p class="kq">(.*?)</p>)?(?:<p class="why">.*?</p>)?</div>')
 
     def table_tokens(part: str) -> list:
@@ -174,7 +174,7 @@ def test_loose_ends(scratch):
           "a sub-theme in its place between its PET's statements",
           heads[:4] == ["A. Early at the plot", "A1. Waking for it", "A1.1 The tin", "B. Company of a kind"]
           and numbered[:4] == ["PET 1. Early at the plot", "PET 1a. Waking for it", "1a.1 The tin", "PET 2. Company of a kind"]
-          and heads[4].startswith("Not placed (") and heads[5] == "Experiential statements set aside (1)", str(heads))
+          and heads[4].startswith("Unplaced (") and heads[5] == "Experiential statements set aside (1)", str(heads))
     draft = themes_mod.draft_markdown(wren, "P1 - Wren")[0]
     section = draft.split("\n## A. Early at the plot\n", 1)[1].split("\n## B.", 1)[0]
     check("95: 1, the draft's lines: a statement and its reference, a break, then its quote set in, in single curly marks, "

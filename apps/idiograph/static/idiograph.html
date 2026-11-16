@@ -199,6 +199,10 @@
   <div class="th-dock es-dock" id="es-dock">
     <div class="th-ui th-palette es-palette docked" id="es-palette" role="toolbar" aria-label="{{page_idiograph.screens.tools}}">
       <span class="th-palette-grip" id="es-palette-grip" title="{{page_idiograph.work.drag_move}}" aria-hidden="true"><svg viewBox="0 0 24 12" fill="currentColor" aria-hidden="true" focusable="false"><circle cx="7" cy="3" r="1.6"/><circle cx="12" cy="3" r="1.6"/><circle cx="17" cy="3" r="1.6"/><circle cx="7" cy="9" r="1.6"/><circle cx="12" cy="9" r="1.6"/><circle cx="17" cy="9" r="1.6"/></svg></span>
+      <!-- Export first in the row (toolbar10, 16 November 2026, option C: no board's name here), hidden until the
+           statements screen's export is there to call (ES_EXPORT in distil.js) -->
+      <button type="button" class="th-pal-btn th-xbtn" id="es-export" tabindex="-1" aria-haspopup="true" aria-expanded="false" title="{{page_idiograph.screens.export}}" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 14.2V3.8M8.2 7.4 12 3.6l3.8 3.8"/><path d="M9 10.2H7.3a1.8 1.8 0 0 0-1.8 1.8v6.4a1.8 1.8 0 0 0 1.8 1.8h9.4a1.8 1.8 0 0 0 1.8-1.8V12a1.8 1.8 0 0 0-1.8-1.8H15"/></svg><span class="th-pal-word">{{page_idiograph.screens.export}}</span></button>
+      <span class="th-palette-rule" id="es-export-rule" aria-hidden="true" hidden></span>
       <button type="button" class="th-pal-btn" id="es-find" tabindex="-1" title="{{page_idiograph.work.find_replace_cmd_shift_f}}" aria-label="{{page_idiograph.work.find_replace}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="9.5" cy="9.5" r="5"/><path d="M13.2 13.2 16 16"/><path d="M14 19.5h6.5M18 17l2.5 2.5L18 22"/></svg><span class="th-pal-word">{{page_idiograph.work.find_replace}}</span></button>
       <span class="th-palette-rule" aria-hidden="true"></span>
       <button type="button" class="th-pal-btn" id="es-prev" tabindex="-1" title="{{page_idiograph.work.previous_passage_cmd_j}}" aria-label="{{page_idiograph.work.previous_passage}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6.5 14.5 5.5-5.5 5.5 5.5"/></svg><span class="th-pal-word">{{page_idiograph.work.previous_passage}}</span></button>
@@ -208,6 +212,20 @@
       <button type="button" class="th-pal-btn" id="es-undo" tabindex="-1" title="{{page_idiograph.screens.undo_cmd_z}}" aria-label="{{page_idiograph.screens.undo}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8.5 5.5 4 10l4.5 4.5"/><path d="M4 10h10.5a5 5 0 0 1 0 10H10"/></svg><span class="th-pal-word">{{page_idiograph.screens.undo}}</span></button>
       <button type="button" class="th-pal-btn" id="es-redo" tabindex="-1" title="{{page_idiograph.screens.redo_shift_cmd_z}}" aria-label="{{page_idiograph.screens.redo}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15.5 5.5 20 10l-4.5 4.5"/><path d="M20 10H9.5a5 5 0 0 0 0 10H14"/></svg><span class="th-pal-word">{{page_idiograph.screens.redo}}</span></button>
     </div>
+  </div>
+
+  <!-- the statements screen's Export menu (toolbar10): Print, Save as PDF, Microsoft Word, then Include and its four
+       ticks, kept for the window -->
+  <div class="row-menu th-xmenu" id="es-xmenu" hidden>
+    <button type="button" class="ghost" tabindex="-1" data-xop="print">{{page_idiograph.screens.print}}</button>
+    <button type="button" class="ghost" tabindex="-1" data-xop="pdf">{{page_idiograph.screens.save_pdf}}</button>
+    <button type="button" class="ghost" tabindex="-1" data-xop="word">{{page_idiograph.screens.word}}</button>
+    <div class="row-menu-rule" role="separator"></div>
+    <p class="th-xhead">{{themes.export.include}}</p>
+    <label class="view-row"><input type="checkbox" data-xinc="notes" checked> {{page_idiograph.work.exploratory_notes}}</label>
+    <label class="view-row"><input type="checkbox" data-xinc="statements" checked> {{page_idiograph.work.experiential_statements}}</label>
+    <label class="view-row"><input type="checkbox" data-xinc="interviewer_notes"> {{themes.export.interviewer_notes}}</label>
+    <label class="view-row"><input type="checkbox" data-xinc="portrait"> {{page_idiograph.screens.pen_portrait}}</label>
   </div>
 
   <!-- The book's three columns (17 October, Adam's decision on a tester's "J-way", Smith, Flowers and Larkin
@@ -609,12 +627,6 @@
          hidden><button type="button" class="ds-tab-name" id="th-step-trajectories" data-step="trajectories"
          title="{{page_idiograph.screens.trajectories_each_participant_placed}}"><span class="tab-w" data-bold="{{page_idiograph.screens.trajectories}}">{{page_idiograph.screens.trajectories}}</span></button></span></nav>
     <span class="rail-grow"></span>
-    <!-- the export control opens a small menu: Print, Save as PDF, Canvas on one page, Word, and Markdown and CSV. Its glyph is the
-         share one, a box with an arrow up out of it -->
-    <button class="rail-btn bar-tool" id="th-export" title="{{page_idiograph.screens.export_board_print}}" aria-label="{{page_idiograph.screens.export}}" aria-haspopup="true" aria-expanded="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 14.2V3.8M8.2 7.4 12 3.6l3.8 3.8"/><path d="M9 10.2H7.3a1.8 1.8 0 0 0-1.8 1.8v6.4a1.8 1.8 0 0 0 1.8 1.8h9.4a1.8 1.8 0 0 0 1.8-1.8V12a1.8 1.8 0 0 0-1.8-1.8H15"/></svg><span class="bar-word" aria-hidden="true">{{page_idiograph.screens.export}}</span>
-    </button>
-    <span class="rail-sep bar-tools-sep" aria-hidden="true"></span>
     <!-- the tools every bar ends with, in one order: Search, Send feedback and Settings (see The title
          bar in the design notes). Search came on 17 October, This case on PETs and This project on GETs
          (search.js). Shortcuts stood here from 16 October and went to the status bar's right end on 19
@@ -663,17 +675,9 @@
     <p class="band-question" id="th-band-question"></p>
   </div>
   <!-- the toolbar's dock under the research question (21 October), where #th-palette stands while docked,
-       its height taken off the canvas with the band's. Since option C of the bars (26 October 2026) it holds
-       the left sidebar's button, the board, its save state and Canvas and Table at its left and the Inspector's button at its
-       right whether the toolbar is docked or floating -->
+       its height taken off the canvas with the band's. It holds the board, its save state, Canvas and Table and Export
+       at its left, and the toolbar, Undo and Redo at its right end, docked or floating (toolbar10) -->
   <div class="th-dock" id="th-dock" hidden>
-      <!-- the left sidebar's button at the toolbar's left end, over the sidebar it opens at the left of the
-           canvas (option C of the bars, 26 October 2026, from the title bar's left end), the standard left-panel
-           icon, pressed in while it is open, as the Inspector's stands at the right end: Statements on PETs, the
-           sidebar of Not placed and Set aside with the count waiting on it, Participants on GETs, Timepoints on
-           LPETs -->
-      <button type="button" class="rail-btn bar-tool gt-door" id="th-open-cases" data-door="cases" aria-label="{{page_idiograph.screens.participants}}"
-              aria-pressed="false" title="{{page_idiograph.screens.show_participants}}" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M9.5 4.5h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h4z" fill="currentColor" stroke="none"/><path d="M9.5 4.5v15"/></svg><span class="bar-word" aria-hidden="true">{{page_idiograph.screens.participants}}</span></button>
     <span class="th-boardset">
       <!-- the board's name over its save state, one under the other, so the pair takes no more width than the name
            (Adam's idea, 6 November 2026, barsD) -->
@@ -697,19 +701,15 @@
         <button type="button" class="th-from-opt" tabindex="-1" role="radio" aria-checked="false" data-face="table" title="{{page_idiograph.screens.table_t}}">{{page_idiograph.screens.table}}</button>
       </span>
     </span>
+    <!-- Export (toolbar10, 16 November 2026, option C, Adam: "board 1, canvas table, then export", since you export
+         the canvas or the table): in the toolbar after the board's name, Auto-saved and Canvas | Table on every
+         board, its menu the view's own (thXmenu), never in the top bar, which keeps the app's own tools -->
+    <button type="button" class="th-pal-btn th-xbtn" id="th-export" title="{{page_idiograph.screens.export_board_print}}" aria-label="{{page_idiograph.screens.export}}" aria-haspopup="true" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 14.2V3.8M8.2 7.4 12 3.6l3.8 3.8"/><path d="M9 10.2H7.3a1.8 1.8 0 0 0-1.8 1.8v6.4a1.8 1.8 0 0 0 1.8 1.8h9.4a1.8 1.8 0 0 0 1.8-1.8V12a1.8 1.8 0 0 0-1.8-1.8H15"/></svg><span class="th-pal-word">{{page_idiograph.screens.export}}</span>
+    </button>
     <span class="rail-sep th-dock-rule" id="th-board-sep" hidden aria-hidden="true"></span>
     <span class="th-dock-gap" aria-hidden="true"></span>
-    <span class="rail-sep th-dock-rule th-dock-end" aria-hidden="true"></span>
-      <!-- the Inspector's button at the toolbar's right end (option C of the bars, 26 October 2026, from the title
-           bar's right end), over the sidebar it opens at the right of the canvas, the standard right-panel icon, pressed in while it is open, which opens on the
-           tab left showing. Cases' at the left end does the same for its sidebar on GETs (16 October).
-           A click on the canvas selects and never opens either. Doors, so no sparkles: only the AI
-           controls inside carry them -->
-      <button type="button" class="rail-btn bar-tool th-door" id="th-open-side" data-door="side" aria-label="{{page_idiograph.screens.inspector}}"
-              aria-pressed="false" title="{{page_idiograph.screens.show_inspector_i}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect
-              x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M14.5 4.5h4a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-4z"
-              fill="currentColor" stroke="none"/><path d="M14.5 4.5v15"/></svg><span class="bar-word" aria-hidden="true">{{page_idiograph.screens.inspector}}</span></button>
+    <span class="rail-sep th-dock-rule th-dock-end" aria-hidden="true" hidden></span>
   </div>
   <div class="row-menu th-vmenu" id="th-vmenu" hidden></div>
   <div class="row-menu th-vmenu th-casemenu" id="th-casemenu" hidden></div>
@@ -727,52 +727,69 @@
        what Go to the passage in the card's menu does. Esc or a press anywhere else puts it away -->
   <div class="th-kqpop" id="th-kqpop" role="dialog" aria-label="{{page_idiograph.screens.quote}}" hidden></div>
   <!-- Export follows the view (1 November 2026, exportA, Adam's way A: "I always switch to the table view if I
-       want to print or export the table"): in Table view the table's outputs, its ticks and PET labels under The
-       table, and on the canvas the canvas's three under The canvas, no ticks (thXmenu shows the one part) -->
+       want to print or export the table"), from the toolbar on every board since toolbar10 (16 November 2026, option C):
+       what it makes first, Print, Save as PDF, Microsoft Word where there is one, then a heading Include and its ticks,
+       each a plain name, no line under any (Adam). thXmenu shows the view's part, and in each the rows for the board
+       on the canvas (data-xfor: pets, the PETs board alone; gets, the GETs, LPETs, LGETs and Themes boards) -->
   <div class="row-menu th-xmenu" id="th-xmenu" hidden>
     <div class="th-xpart" data-xpart="canvas" hidden>
-      <p class="th-xhead">{{page_idiograph.screens.the_canvas}}</p>
       <!-- the canvas itself as it shows, every statement whole, on one landscape page in a tab of its own (210) -->
       <button type="button" class="ghost" tabindex="-1" data-xop="canvas" title="{{page_idiograph.screens.canvas_one_landscape_page}}">{{page_idiograph.screens.print}}</button>
       <!-- that page as a PDF beside the workbook, made by the window's own web view, and its picture at twice its
            scale, named as the table's PDF with "canvas" after it -->
       <button type="button" class="ghost" tabindex="-1" data-xop="cpdf" title="{{page_idiograph.screens.canvas_pdf_tip}}">{{page_idiograph.screens.save_pdf}}</button>
       <button type="button" class="ghost" tabindex="-1" data-xop="cpng" title="{{page_idiograph.screens.canvas_png_tip}}">{{page_idiograph.screens.save_image}}</button>
+      <!-- the GETs boards' canvas with each participant's note on its row, unticked each time the menu opens, since a
+           participant note goes in no export unless he ticks it -->
+      <div class="th-xfor" data-xfor="gets">
+        <div class="row-menu-rule" role="separator"></div>
+        <p class="th-xhead">{{themes.export.include}}</p>
+        <label class="view-row"><input type="checkbox" data-xnotes> {{themes.export.participant_notes}}</label>
+      </div>
     </div>
     <div class="th-xpart" data-xpart="table">
-    <p class="th-xhead">{{page_idiograph.screens.the_table}}</p>
     <!-- Print, Save as PDF, Microsoft Word and Markdown and CSV, each named for what it gives with the rest in its
          tooltip (Adam, 31 October: literal words). The table itself is the board's Table view since 19 October, so
          Print prints it, the print dialog opening at once -->
     <button type="button" class="ghost" tabindex="-1" data-xop="print" title="{{page_idiograph.screens.table_pets_print_dialog}}">{{page_idiograph.screens.print}}</button>
-    <!-- the table of PETs as a PDF beside the workbook, the print's own pages, made by the window's own web view with
-         no print dialog, and in a browser's tab the print view's dialog, where Save as PDF is (31 October) -->
+    <!-- the table as a PDF beside the workbook, the print's own pages, made by the server with no print dialog -->
     <button type="button" class="ghost" tabindex="-1" data-xop="pdf" title="{{page_idiograph.screens.table_pets_pdf}}">{{page_idiograph.screens.save_pdf}}</button>
     <button type="button" class="ghost" tabindex="-1" data-xop="word" title="{{page_idiograph.screens.table_pets_word_document}}">{{page_idiograph.screens.word}}</button>
-    <button type="button" class="ghost" tabindex="-1" data-xop="export" title="{{page_idiograph.screens.pet_draft_markdown_statements}}">{{page_idiograph.screens.markdown_csv}}</button>
-    <!-- the interviewer's notes in a markdown file of their own beside Markdown and CSV's CSV, under the item it
-         governs, on the PETs board alone (settingsplit, 5 November 2026: from Settings' Export), off until ticked and
-         remembered in this window -->
-    <label class="view-row" id="export-notes-row" title="{{page_idiograph.screens.notes_tip}}"><input type="checkbox" id="export-notes"> {{page_idiograph.settings_pane.include_interviewer_notes}}</label>
-    <!-- what the table of PETs, Table and Word, puts at its end, both off on a new install and kept as
-         he leaves them (18 October) -->
+    <button type="button" class="ghost" tabindex="-1" data-xop="export" data-xfor="pets" title="{{page_idiograph.screens.pet_draft_markdown_statements}}">{{page_idiograph.screens.markdown_csv}}</button>
+    <!-- the GETs boards' two choices, the print card's (31 October), as rows to pick: what goes in the document, and
+         under each participant every statement and quote or their key quote only -->
+    <div class="th-xfor" data-xfor="gets">
+      <div class="row-menu-rule" role="separator"></div>
+      <p class="th-xhead">{{page_idiograph.cards_last.what_print}}</p>
+      <label class="view-row" title="{{page_idiograph.cards_last.get_table_line}}"><input type="radio" name="th-xwhat" value="table" data-xwhat> <span data-xtname>{{page_idiograph.cards_last.get_table}}</span></label>
+      <label class="view-row" title="{{page_idiograph.cards_last.audit_trail_line}}"><input type="radio" name="th-xwhat" value="trail" data-xwhat> {{page_idiograph.cards_last.audit_trail}}</label>
+      <label class="view-row" title="{{page_idiograph.cards_last.all_one_document_line}}"><input type="radio" name="th-xwhat" value="all" data-xwhat> {{page_idiograph.cards_last.all_one_document}}</label>
+      <p class="th-xhead">{{page_idiograph.cards_last.under_each_participant}}</p>
+      <label class="view-row" title="{{page_idiograph.cards_last.every_statement_quote_line}}"><input type="radio" name="th-xdetail" value="full" data-xdetail> {{page_idiograph.cards_last.every_statement_quote}}</label>
+      <label class="view-row" title="{{page_idiograph.cards_last.key_quote_only_line}}"><input type="radio" name="th-xdetail" value="selected" data-xdetail> {{page_idiograph.cards_last.key_quote_only}}</label>
+    </div>
     <div class="row-menu-rule" role="separator"></div>
+    <p class="th-xhead">{{themes.export.include}}</p>
     <!-- each label's description under its title, on on a new install and kept as he leaves it (Adam, 21 October) -->
     <label class="view-row" title="{{page_idiograph.screens.each_pets_sub_pets}}"><input type="checkbox" id="th-inc-descriptions" data-include="export_descriptions"> {{page_idiograph.screens.descriptions}}</label>
-    <label class="view-row" title="{{page_idiograph.screens.statements_no_pet_end}}"><input type="checkbox" id="th-inc-unplaced" data-include="export_not_placed"> {{page_idiograph.screens.include_not_placed}}</label>
-    <label class="view-row" title="{{page_idiograph.screens.statements_set_aside_end}}"><input type="checkbox" id="th-inc-binned" data-include="export_binned"> {{page_idiograph.screens.include_statements_set_aside}}</label>
-    <!-- and the statements stacked under a top, beneath it, off on a new install (19 October) -->
-    <label class="view-row" title="{{page_idiograph.screens.stacked_under_top}}"><input type="checkbox" id="th-inc-stacked" data-include="export_stacked"> {{page_idiograph.screens.include_stacked_statements}}</label>
-    <!-- Leave out the board's name (For sending until 31 October): the PDF and the Word document named by the
-         participant alone, no board's name on the page or in its foot, off on a new install and kept as he leaves it
-         (Adam, 19 October) -->
-    <label class="view-row" title="{{page_idiograph.screens.no_boards_name_file}}"><input type="checkbox" id="th-inc-sending" data-include="export_for_sending"> {{page_idiograph.screens.leave_out_boards_name}}</label>
+    <!-- what the table of PETs, Table and Word, puts at its end, off on a new install and kept as he leaves them (18 and
+         19 October) -->
+    <label class="view-row" data-xfor="pets" title="{{page_idiograph.screens.statements_no_pet_end}}"><input type="checkbox" id="th-inc-unplaced" data-include="export_not_placed"> {{themes.export.not_placed}}</label>
+    <label class="view-row" data-xfor="pets" title="{{page_idiograph.screens.statements_set_aside_end}}"><input type="checkbox" id="th-inc-binned" data-include="export_binned"> {{themes.export.set_aside}}</label>
+    <label class="view-row" data-xfor="pets" title="{{page_idiograph.screens.stacked_under_top}}"><input type="checkbox" id="th-inc-stacked" data-include="export_stacked"> {{themes.export.stacked}}</label>
+    <!-- the interviewer's notes in a markdown file of their own beside Markdown and CSV's CSV (settingsplit, 5 November
+         2026), off until ticked and remembered in this window -->
+    <label class="view-row" data-xfor="pets" id="export-notes-row" title="{{page_idiograph.screens.notes_tip}}"><input type="checkbox" id="export-notes"> {{themes.export.interviewer_notes}}</label>
     <!-- Pen portrait: the participant's label and pen portrait under their name at the head of the print view, the PDF
-         and the Word document, never their picture, off on a new install and kept as he leaves it (pbioexport,
-         11 November 2026) -->
-    <label class="view-row" title="{{page_idiograph.screens.pen_portrait_tip}}"><input type="checkbox" id="th-inc-portrait" data-include="export_portrait"> {{page_idiograph.screens.pen_portrait}}</label>
+         and the Word document, never their picture, off on a new install and kept as he leaves it (pbioexport) -->
+    <label class="view-row" data-xfor="pets" title="{{page_idiograph.screens.pen_portrait_tip}}"><input type="checkbox" id="th-inc-portrait" data-include="export_portrait"> {{page_idiograph.screens.pen_portrait}}</label>
+    <!-- the GETs boards' participant notes, unticked each time the menu opens, and the Participants table, a first page
+         of each participant, never on a participant's LPETs, kept as he leaves it (pbioexport) -->
+    <label class="view-row" data-xfor="gets"><input type="checkbox" data-xnotes> {{themes.export.participant_notes}}</label>
+    <label class="view-row" data-xfor="gets" data-xpeople title="{{page_idiograph.cards_last.participants_table_tip}}"><input type="checkbox" data-include="export_participants"> {{page_idiograph.cards_last.participants_table}}</label>
     <!-- PET labels: the book's letters, A, A1, A1.1, or numbers, PET 1, PET 1a, 1a.1, for every case
          of the project, saved in its project file at once. Fixed on the demo -->
+    <div class="th-xfor" data-xfor="pets">
     <div class="row-menu-rule" role="separator"></div>
     <div class="th-xlabels">
       <span class="th-xlabels-name" id="th-xlabels-name">{{page_idiograph.screens.pet_labels}}</span>
@@ -782,16 +799,17 @@
       </span>
     </div>
     </div>
+    </div>
   </div>
   <div class="th-body">
   <!-- The GETs screen's Cases panel, at the left of the canvas: every case of the study in case
        order, each folding open to its PETs and sub-themes and every statement, with one search
        over all of it. Any row drags onto the canvas as a card. Its door is in the bar. -->
-  <div class="th-panel th-cpanel" id="th-cpanel" hidden role="complementary" aria-label="{{page_idiograph.screens.participants}}">
+  <div class="th-panel th-cpanel" id="th-cpanel" hidden role="complementary" aria-label="{{themes.left.name}}">
     <button class="card-close th-panel-close" id="th-cpanel-close" type="button" tabindex="-1" aria-label="{{page_idiograph.screens.close}}" title="{{page_idiograph.screens.close}}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
     </button>
-    <div class="th-phead th-phead-kind"><p class="th-pname">{{page_idiograph.screens.participants}}</p></div>
+    <div class="th-phead th-phead-kind"><p class="th-pname">{{themes.left.name}}</p></div>
     <!-- on a thematic analysis project's Themes board the head is two tabs, Codes, the project's codes each once, and
          Participants, the tree by participant (themesbuild, 2 November 2026, option A of the drawings) -->
     <div class="th-tabs gt-ptabs" id="gt-ptabs" role="tablist" aria-label="{{page_idiograph.screens.participants}}" hidden>
@@ -806,6 +824,17 @@
          Not placed, the statements waiting off the canvas in interview order -->
     <div class="th-aside" id="th-aside" role="region" aria-label="{{page_idiograph.screens.set_aside}}"></div>
   </div>
+  <!-- the sidebars' doors as slim tabs on the canvas's left and right edges (toolbar10, 16 November 2026, Adam's
+       go on drawing 10, the way of JetBrains' tool windows and Visual Studio's auto-hide panels), out of the
+       toolbar, so Undo and Redo end it on every tab: Not placed at the left, what is not on the board yet, with
+       its count, and the Inspector at the right, each hanging on the edge of its sidebar while it is open -->
+  <button type="button" class="th-edge th-edge-l gt-door" id="th-open-cases" data-door="cases" aria-label="{{themes.left.name}}"
+              aria-pressed="false" title="{{themes.left.name}}" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M9.5 4.5h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h4z" fill="currentColor" stroke="none"/><path d="M9.5 4.5v15"/></svg><span class="th-edge-word" aria-hidden="true">{{themes.left.name}}</span></button>
+  <button type="button" class="th-edge th-edge-r th-door" id="th-open-side" data-door="side" aria-label="{{page_idiograph.screens.inspector}}"
+              aria-pressed="false" title="{{page_idiograph.screens.show_inspector_i}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect
+              x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M14.5 4.5h4a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-4z"
+              fill="currentColor" stroke="none"/><path d="M14.5 4.5v15"/></svg><span class="th-edge-word" aria-hidden="true">{{page_idiograph.screens.inspector}}</span></button>
   <div class="th-stage off" id="th-stage">
     <div class="th-world" id="th-world"></div>
     <!-- the board's Table view over the canvas, which stays laid out under it so the two never
@@ -1111,14 +1140,39 @@
     <!-- the board's own note under the question, there while Notes is on (trajnote, 10 November 2026) -->
     <textarea class="tj-board-note" id="tj-board-note" rows="1" maxlength="2000" hidden></textarea>
   </div>
-  <!-- the Not placed column's button at the left end of a bar of its own, the boards' left sidebar button (the
-       standard left-panel icon, pressed in while the column shows, the count not placed on it), 10 November 2026 -->
-  <div class="tj-bar" id="tj-bar">
-    <button type="button" class="rail-btn bar-tool gt-door" id="tj-open-side" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M9.5 4.5h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h4z" fill="currentColor" stroke="none"/><path d="M9.5 4.5v15"/></svg><span class="bar-word" aria-hidden="true"></span></button>
+  <!-- the toolbar row, the boards' standard (toolbar10, 16 November 2026): the tab's own items and Export at the left,
+       and the slot of Undo and Redo at the right end, which Trajectories has none of yet. Export and its menu (Print,
+       Save as PDF, Microsoft Word, then Include) stand hidden until the Trajectories export is there to call
+       (TJ_EXPORT in trajectories.js), and the row with them -->
+  <div class="tj-bar" id="tj-bar" hidden>
+    <button type="button" class="th-pal-btn th-xbtn" id="tj-export" aria-haspopup="true" aria-expanded="false" title="{{page_idiograph.screens.export}}" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 14.2V3.8M8.2 7.4 12 3.6l3.8 3.8"/><path d="M9 10.2H7.3a1.8 1.8 0 0 0-1.8 1.8v6.4a1.8 1.8 0 0 0 1.8 1.8h9.4a1.8 1.8 0 0 0 1.8-1.8V12a1.8 1.8 0 0 0-1.8-1.8H15"/></svg><span class="th-pal-word">{{page_idiograph.screens.export}}</span></button>
   </div>
-  <div class="tj-body" id="tj-body">
-    <p class="tj-said" id="tj-said" hidden></p>
-    <div class="tj-board tf-board" id="tj-board" role="list" aria-label="{{page_idiograph.screens.trajectories}}"></div>
+  <div class="row-menu th-xmenu" id="tj-xmenu" hidden>
+    <button type="button" class="ghost" tabindex="-1" data-xop="print">{{page_idiograph.screens.print}}</button>
+    <button type="button" class="ghost" tabindex="-1" data-xop="pdf">{{page_idiograph.screens.save_pdf}}</button>
+    <button type="button" class="ghost" tabindex="-1" data-xop="word">{{page_idiograph.screens.word}}</button>
+    <div class="row-menu-rule" role="separator"></div>
+    <p class="th-xhead">{{themes.export.include}}</p>
+    <label class="view-row"><input type="checkbox" data-xinc="notes"> {{trajectories.export_notes}}</label>
+    <label class="view-row"><input type="checkbox" data-xinc="unplaced"> {{themes.export.not_placed}}</label>
+  </div>
+  <!-- Not placed, the participants on no trajectory yet, as every board's left sidebar since toolbar10 (Adam, 16
+       November 2026), where a band across the top of the board stood from 10 November: its slim tab on the board's
+       left edge with the count, the panel each participant's card, dragged onto a trajectory, a card dragged back onto
+       it taking them off theirs -->
+  <div class="tj-main" id="tj-main">
+    <aside class="th-panel th-cpanel tj-side" id="tj-side" role="complementary" aria-label="{{themes.left.name}}" hidden>
+      <button class="card-close th-panel-close" id="tj-side-close" type="button" tabindex="-1" aria-label="{{page_idiograph.screens.close}}" title="{{page_idiograph.screens.close}}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+      <div class="th-phead th-phead-kind"><p class="th-pname">{{themes.left.name}}</p></div>
+      <div class="th-panel-body tj-side-body" id="tj-side-body"></div>
+    </aside>
+    <button type="button" class="th-edge th-edge-l gt-door" id="tj-open-side" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M9.5 4.5h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h4z" fill="currentColor" stroke="none"/><path d="M9.5 4.5v15"/></svg><span class="th-edge-word" aria-hidden="true"></span></button>
+    <div class="tj-body" id="tj-body">
+      <p class="tj-said" id="tj-said" hidden></p>
+      <div class="tj-board tf-board" id="tj-board" role="list" aria-label="{{page_idiograph.screens.trajectories}}"></div>
+    </div>
   </div>
   <!-- the status bar along the foot, as the boards' (trajbuild2, 10 November 2026): the counts, then Quotes, each
        cell's key quote off, short or full, and Notes, each participant's note, both kept in the settings -->
@@ -1167,6 +1221,20 @@
     <span class="ds-path-rule" aria-hidden="true"></span>
     <span class="field-label band-label">{{page_idiograph.screens.research_question}}</span>
     <p class="band-question" id="cd-band-question"></p>
+  </div>
+  <!-- the toolbar row, the boards' standard (toolbar10 and exportwire, 16 November 2026): Export, its menu Print, Save
+       as PDF, Microsoft Word and CSV, then Include and Extracts, each code's extracts by participant -->
+  <div class="tj-bar cd-bar" id="cd-bar">
+    <button type="button" class="th-pal-btn th-xbtn" id="cd-export" aria-haspopup="true" aria-expanded="false" title="{{page_idiograph.screens.export}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 14.2V3.8M8.2 7.4 12 3.6l3.8 3.8"/><path d="M9 10.2H7.3a1.8 1.8 0 0 0-1.8 1.8v6.4a1.8 1.8 0 0 0 1.8 1.8h9.4a1.8 1.8 0 0 0 1.8-1.8V12a1.8 1.8 0 0 0-1.8-1.8H15"/></svg><span class="th-pal-word">{{page_idiograph.screens.export}}</span></button>
+  </div>
+  <div class="row-menu th-xmenu" id="cd-xmenu" hidden>
+    <button type="button" class="ghost" tabindex="-1" data-xop="print">{{page_idiograph.screens.print}}</button>
+    <button type="button" class="ghost" tabindex="-1" data-xop="pdf">{{page_idiograph.screens.save_pdf}}</button>
+    <button type="button" class="ghost" tabindex="-1" data-xop="word">{{page_idiograph.screens.word}}</button>
+    <button type="button" class="ghost" tabindex="-1" data-xop="csv">{{codes.export_csv}}</button>
+    <div class="row-menu-rule" role="separator"></div>
+    <p class="th-xhead">{{themes.export.include}}</p>
+    <label class="view-row"><input type="checkbox" data-xinc="extracts" checked> {{codes.col.extracts}}</label>
   </div>
   <div class="cd-body" id="cd-body">
     <div class="cd-list">
@@ -2153,7 +2221,6 @@
     <div class="gt-print-ticks">
       <label class="gt-print-notes" title="{{page_idiograph.cards_last.each_gets_pets_description}}"><input type="checkbox" id="gt-print-descriptions" data-include="export_descriptions"> {{page_idiograph.cards_last.descriptions}}</label>
       <label class="gt-print-notes"><input type="checkbox" id="gt-print-notes"> {{page_idiograph.cards_last.include_participant_notes}}</label>
-      <label class="gt-print-notes" title="{{page_idiograph.cards_last.no_boards_name_file}}"><input type="checkbox" id="gt-print-sending" data-include="export_for_sending"> {{page_idiograph.cards_last.leave_out_boards_name}}</label>
       <!-- Participants table: a first page listing each participant, their number, pseudonym, label and pen portrait,
            never their picture, for the GET table, the audit trail and all of it, off on a new install and kept as he
            leaves it (pbioexport, 11 November 2026). Hidden for the canvas, one GET's trail and a participant's LPETs -->

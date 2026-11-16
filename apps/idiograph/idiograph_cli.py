@@ -160,7 +160,7 @@ def __getattr__(name: str) -> str:
 HERE = boot.ROOT
 GUIDE = boot.resource("docs/agents.md")
 SID = re.compile(r"^[Ss](\d+)$")
-NOT_PLACED = "Not placed"
+NOT_PLACED = "Unplaced"
 # what the bin held is Set aside since 20 October (Adam, way A), the data key `discarded` kept
 BIN = themes.SET_ASIDE
 
@@ -2314,7 +2314,7 @@ def cmd_participant_export(p: Project, args) -> tuple:
 
 def placements(read: dict, data: dict | None) -> list[dict]:
     """For each board of the file, where it places each statement: the labels over it, top first,
-    Not placed, or Set aside, with the reason a statement left out or set aside was given."""
+    Unplaced, or Set aside, with the reason a statement left out or set aside was given."""
     out = []
     for board in themes.boards_of(data):
         v = themes.follow(board, read["cards"], read["quotes"])
@@ -2402,7 +2402,7 @@ def statements_at(b: dict, book: Path) -> tuple:
 
 def board_entry(board: dict, data: dict, read: dict | None = None) -> dict:
     """A board as `board list` gives it, its counts read with `read`, the workbook as `themes.read_cards`
-    reads it, so a statement written after the board was made counts as waiting in Not placed, as the
+    reads it, so a statement written after the board was made counts as waiting in Unplaced, as the
     canvas and `board show` have it (30 October)."""
     v = themes.normalise(board) if read is None else themes.with_new(
         themes.follow(board, read["cards"], read["quotes"]), read["cards"])
@@ -2445,7 +2445,7 @@ def cmd_board_list(p: Project, args) -> tuple:
 def shown_board(read: dict, board: dict, sids: dict, labels: str = themes.LETTERS) -> dict:
     """A board as `board show` sets it out: `themes.outline`'s tree, each statement with its short
     id, each label with `export_label`, the label the PDF, the Word document and the PET draft give
-    it, A1 or PET 1a by `labels`, and Not placed with the reason each was left out when it was given
+    it, A1 or PET 1a by `labels`, and Unplaced with the reason each was left out when it was given
     one. A top carries `stacked`, the statements stacked under it, each with its short id."""
     v = themes.follow(board, read["cards"], read["quotes"])
     tree = themes.outline(read, v)
@@ -2464,7 +2464,7 @@ def shown_board(read: dict, board: dict, sids: dict, labels: str = themes.LETTER
 
     def statement(s: dict) -> dict:
         out = dict(s, id=sids.get(s["key"]), **stale(s))
-        # one in no PET that he put on the canvas, where the rest of Not placed waits in the sidebar
+        # one in no PET that he put on the canvas, where the rest of Unplaced waits in the sidebar
         if s["key"] in loose:
             out["loose"] = True
         if s["key"] in reasons and "reason" not in out:
@@ -2621,7 +2621,7 @@ def cmd_board_export(p: Project, args) -> tuple:
     `print_pdf.py`), a PDF over its own name only with `--replace`. It changes
     nothing he made, so it needs no request. With no board named, the Current board. Its PETs are
     labelled as the project labels them, the book's letters unless its file says numbers, and
-    `--labels letters` or `--labels numbers` overrides that for this run. Not placed and the binned
+    `--labels letters` or `--labels numbers` overrides that for this run. Unplaced and the binned
     statements stay out, as the app's ticks are on a new install, unless `--not-placed` or
     `--binned` asks for them, a top stands for the statements stacked under it unless `--stacked`
     puts them under it, as Include stacked statements does, and `--for-sending` names the file by the
@@ -2812,6 +2812,9 @@ def cmd_gets_export(p: Project, args) -> tuple:
     get = " ".join(str(getattr(args, "get", None) or "").split()) or None
     what = getattr(args, "what", None) or "table"
     people = routes.people_printed(p.root, {"participants": bool(getattr(args, "participants", False))})
+    # a participant's LPETs (`--lpets`) named by them and beside their workbook, as their Word document is (exportwire)
+    book = routes.LPETS_FOR.get()
+    whose = dict(heading=themes_print.case_title(case_name(book)), folder=Path(book).parent) if book else {}
     try:
         made = print_pdf.write_gets(p.root, p.books, p.info, board, what=what,
                                     detail="selected" if getattr(args, "selected", False) else "full",
@@ -2819,7 +2822,7 @@ def cmd_gets_export(p: Project, args) -> tuple:
                                     sending=bool(getattr(args, "for_sending", False)), out=getattr(args, "out", None),
                                     replace=bool(getattr(args, "replace", False)), dry_run=args.dry_run,
                                     descriptions=not getattr(args, "no_descriptions", False), researcher=routes.researcher_name(),
-                                    people=people)
+                                    people=people, **whose)
     except WorkbookError as exc:
         raise cli.Refused(str(exc)) from None
     c = made["counts"]
@@ -2934,9 +2937,9 @@ def tops_of(v: dict) -> dict[str, str]:
 def compare(read: dict, boards: list[dict]) -> dict:
     """Two or more boards side by side. For each pair of boards, the share of statement pairs placed
     alike: two statements are together on a board when one PET holds both, and a pair is placed alike
-    when the two boards agree on whether it is together. A statement in no PET, Not placed or in the
+    when the two boards agree on whether it is together. A statement in no PET, Unplaced or in the
     bin, is together with none. Then for each board, where each PET of every other board went on it:
-    its statements counted under each of this board's PETs, Not placed and the bin."""
+    its statements counted under each of this board's PETs, Unplaced and the bin."""
     keys = [c["key"] for c in read["cards"]]
     shown = [themes.follow(b, read["cards"], read["quotes"]) for b in boards]
     tops = [tops_of(v) for v in shown]
@@ -3121,7 +3124,7 @@ def build_board(spec, read: dict, sids: dict, keys: dict) -> dict:
 
 
 def as_stacks(value, read: dict, sids: dict, keys: dict, seen: dict, reasons: dict, problems: list) -> dict[str, list[str]]:
-    """A new board's stacks, `{"S77": ["S79", "S80"]}`, each top a statement placed or not placed and
+    """A new board's stacks, `{"S77": ["S79", "S80"]}`, each top a statement placed or unplaced and
     each statement under it in no label, not under not_placed and under one top alone, as their keys,
     every problem a line."""
     if value is None:
@@ -3304,7 +3307,7 @@ def carry_layout(built: dict, read: dict, source: dict) -> dict | None:
         return gid
 
     pets = [put(pet) for pet in built["pets"]]
-    # a statement waiting in Not placed on the board it came from has no place on the canvas, so it takes the
+    # a statement waiting in Unplaced on the board it came from has no place on the canvas, so it takes the
     # next free place in its label, and a new PET of such statements the board's next free place (boardgrid)
     unseen = set(themes.waiting_keys(themes.follow(source, read["cards"], read["quotes"])))
     landed = themes.land_kept(src, {"groups": groups, "picks": picks}, off=unseen)
@@ -3508,7 +3511,7 @@ def cmd_board_import(p: Project, args) -> tuple:
     """A board of PETs made from his own table of them (`table_import`): each row matched to a statement at the
     timepoint, the statements whose wording the table changed rewritten and those it adds written by `turn write`'s
     own code, each with History, then the board made by `board new`'s, named as asked, laid out afresh, everything
-    else waiting in Not placed. The dry run lists every row's match and writes nothing."""
+    else waiting in Unplaced. The dry run lists every row's match and writes nothing."""
     if not themes_ai.one_line(args.note) and not args.dry_run:
         raise cli.Refused(_w("NO_REQUEST"))
     b = p.case(args.case)
@@ -3579,7 +3582,7 @@ def cmd_gets_import(p: Project, args) -> tuple:
     """A participant's LPETs made from his own table of them (`table_import`): a new LPETs board, named as asked,
     each row an LPET with its title, its description and a note of a paragraph for each timepoint, the PETs its
     cells' quotes and words match proposed as its members for him to confirm on the canvas, through `gets new`'s and
-    `gets apply`'s own code, every other card waiting in Not placed. The dry run lists each LPET and the PETs
+    `gets apply`'s own code, every other card waiting in Unplaced. The dry run lists each LPET and the PETs
     proposed for it with why, and writes nothing."""
     if not getattr(args, "lpets", None):
         raise cli.Refused(i18n.t("cli.gets_import.lpets_only"))
@@ -3802,7 +3805,7 @@ def cmd_board_duplicate(p: Project, args) -> tuple:
 
 def cmd_board_fresh(p: Project, args) -> tuple:
     """A new board with no PETs, as New board in the board menu does, through `version_op`'s `new`, put on
-    the canvas: with `--start empty` every statement waits in the sidebar's Not placed, and with `--start
+    the canvas: with `--start empty` every statement waits in the sidebar's Unplaced, and with `--start
     canvas` every statement lies on the canvas as a pile in the middle, in no PET yet (Adam, 20 October).
     His other boards are left as they were."""
     b, book = housekeeping(p, args)
@@ -4178,7 +4181,7 @@ def kept_line(name: str, revision: str) -> str:
 
 def reasons_after(v: dict, ops: list, before: dict) -> dict:
     """The reasons kept under `ai` after a change: a statement now in a label loses its own, and one
-    a move sent out to Not placed with a `reason` takes it."""
+    a move sent out to Unplaced with a `reason` takes it."""
     parents = themes.parents_of(v["groups"])
     stacked = themes.stacked_keys(v)
     # a statement stacked loses its reason too, since its top stands for it
@@ -4194,7 +4197,7 @@ def reasons_after(v: dict, ops: list, before: dict) -> dict:
 
 def sent_to_wait(start: dict, ops: list, applied: list, followed: dict) -> tuple[list, list[str], list[str]]:
     """What each move of a change to null does to the statements it names (30 October). One in a label, or
-    lying loose on the canvas in no PET, goes to wait in the sidebar's Not placed, as Back to Not placed does
+    lying loose on the canvas in no PET, goes to wait in the sidebar's Unplaced, as Back to Unplaced does
     on the canvas, and one waiting there already stays as it was. `ops` are the applier's operations,
     `applied` what it applied of them, one for each, from `start`, and `followed` the board they ran on.
     Answers `applied` with each such move naming only the statements and labels it took out, for the
@@ -4240,8 +4243,8 @@ def is_order(op) -> bool:
 # pair (20 October): two statements marked Not the same, which the board then stops marking as a pair, and
 # a pair so marked shown again
 STACK_OPS = ("stack", "unstack", "top", "not_same", "show_again")
-# the sidebar's (20 October, Adam's way A): statements set aside, as X does, put back to wait in Not placed,
-# and every statement waiting in Not placed put on the canvas, as the sidebar's Put all on the board does.
+# the sidebar's (20 October, Adam's way A): statements set aside, as X does, put back to wait in Unplaced,
+# and every statement waiting in Unplaced put on the canvas, as the sidebar's Put all on the board does.
 # The bin's old names answer as Set aside's, so no agent that knew them breaks
 SIDEBAR_OPS = {"set_aside": "set_aside", "discard": "set_aside", "bin": "set_aside",
                "put_back": "put_back", "unbin": "put_back", "restore": "put_back", "undiscard": "put_back",
@@ -4666,7 +4669,7 @@ def cmd_board_apply(p: Project, args) -> tuple:
         data = load_board_file(book)
         board = pick_board(data, args.board, default="canvas")
         fresh_or_refused(spec, board, i18n.t("cli.board_apply.board_show"))
-        # a statement written after the board was made is one of its statements, waiting in Not placed as the
+        # a statement written after the board was made is one of its statements, waiting in Unplaced as the
         # canvas shows it, so every operation takes it (30 October)
         followed = themes.with_new(themes.follow(board, read["cards"], read["quotes"]), read["cards"])
         # a card missing from the workbook comes off first, so the rest run on the board without it
@@ -4697,7 +4700,7 @@ def cmd_board_apply(p: Project, args) -> tuple:
             # and a statement put into a label elsewhere goes in under what it holds, its neighbours where they
             # stood (agentorder, 10 November 2026: a fresh layout of the PET it went into read its sub-PETs and
             # statements in another order)
-            # and a statement that waited in Not placed or was set aside, which has no place on the canvas, takes
+            # and a statement that waited in Unplaced or was set aside, which has no place on the canvas, takes
             # the next free place in its label, as a new PET made over such statements takes the board's next
             # free place after the last PET, so a board built here comes out side by side (boardgrid, 12 November)
             unseen = set(themes.waiting_keys(followed)) | set(followed.get("discarded") or [])
@@ -4705,7 +4708,7 @@ def cmd_board_apply(p: Project, args) -> tuple:
                       or themes.land(followed, revised))
         else:
             landed = themes.normalise(json.loads(json.dumps(followed)))
-        # a move to null sends a statement lying loose on the canvas to wait in Not placed too, as Back to Not
+        # a move to null sends a statement lying loose on the canvas to wait in Unplaced too, as Back to Not
         # placed does there, and the answer names only what each such move took out (30 October)
         words, sent, waited = sent_to_wait(start, [op for _, op in plain], applied, followed)
         parents = themes.parents_of(landed["groups"])
@@ -8252,7 +8255,7 @@ def arguments(sub, common, writes) -> None:
                          help="a new board with no PETs, as New board in the board menu, put on the canvas")
     x.add_argument("case")
     x.add_argument("--start", choices=themes.STARTS, default="empty",
-                   help="empty: every statement waiting in the sidebar's Not placed, the default; canvas: every "
+                   help="empty: every statement waiting in the sidebar's Unplaced, the default; canvas: every "
                         "statement on the canvas as a pile in the middle")
     x.add_argument("--name", default="", help="the board's name, the next Board N by default")
     x = board.add_parser("delete", parents=[common, writes], help="delete a board, a copy of it kept in _Archive")
@@ -8302,7 +8305,7 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--labels", default=None,
                    help="letters, A, A1, A1.1, as the book has them, or numbers, PET 1, PET 1a, 1a.1, for this run "
                         "in place of the project's setting")
-    x.add_argument("--not-placed", action="store_true", help="put Not placed at the end, left out without it")
+    x.add_argument("--not-placed", action="store_true", help="put Unplaced at the end, left out without it")
     # --binned, its name before 20 October, says the same
     x.add_argument("--set-aside", "--binned", dest="binned", action="store_true",
                    help="put the statements set aside at the end, left out without it")

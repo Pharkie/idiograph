@@ -235,7 +235,7 @@ def test_lgets_trajectories(scratch):
         # ── D. the Trajectories board: named on the board, a participant placed and moved, the note kept
         tfile = garden / traj_mod.FILE
         empty = call("/api/trajectories", {"workbook": str(wren)})
-        check("237: the Trajectories board opens with no trajectories, every participant not placed, each card with "
+        check("237: the Trajectories board opens with no trajectories, every participant unplaced, each card with "
               "their colour and their LPETs' titles, and writes nothing",
               empty["columns"] == [] and empty["unplaced"] == ["P1 - Wren", "P2 - Ash"] and not tfile.exists()
               and {c["case"]: c["lpets"] for c in empty["participants"]} == {
@@ -268,7 +268,7 @@ def test_lgets_trajectories(scratch):
         said = refused("/api/trajectories-ops", {"workbook": str(wren), "ops": [{"op": "add", "title": "opening OUT"}]})
         check("237: two trajectories of one title are refused", "already" in said, said)
         gone = call("/api/trajectories-ops", {"workbook": str(wren), "ops": [{"op": "remove", "column": "Opening out"}]})
-        check("237: a trajectory taken away puts its participants back among those not placed, their notes kept",
+        check("237: a trajectory taken away puts its participants back among those unplaced, their notes kept",
               [c["title"] for c in gone["columns"]] == ["Steady"] and "P1 - Wren" in gone["unplaced"]
               and next(c for c in gone["participants"] if c["case"] == "P1 - Wren")["note"], str(gone["unplaced"]))
         code, tshow, err = run("trajectories", "show")
@@ -334,7 +334,7 @@ const run = async () => {
     b.click();
     out.hidden = { open: TJ.sideOpen, cols: names(), widths: widths(), sideways: sideways(), pressed: b.getAttribute('aria-pressed'), title: b.title,
       stored: localStorage.getItem(TJ_SIDE_KEY), badge: b.querySelector('.th-door-n').textContent, badgeShown: !b.querySelector('.th-door-n').hidden };
-    // a column removed while hidden still sends its people to Not placed, and Left from the first column goes there
+    // a column removed while hidden still sends its people to Unplaced, and Left from the first column goes there
     TJ.data = Object.assign({}, data, { unplaced: [...data.unplaced, 'P3 - Moss'] });
     trajDraw();
     out.more = document.querySelector('#tj-open-side .th-door-n').textContent;
@@ -348,20 +348,20 @@ document.addEventListener('DOMContentLoaded', run);
 
 
 def _hide_not_placed(scratch):
-    """The Trajectories board with its Not placed column hidden and shown (trajside, 10 November 2026), the real page's
+    """The Trajectories board with its Unplaced column hidden and shown (trajside, 10 November 2026), the real page's
     markup and stylesheets and trajectories.js in the computer's own browser at 1280 and 720: the button hides the
     column, the others take the width it frees, the choice is kept for a reload, the hidden column's count is on the
-    button, and Left from the first column still goes to Not placed."""
+    button, and Left from the first column still goes to Unplaced."""
     exe = support.browser()
     if exe is None:
-        skip("237: the Not placed column hidden and shown in a real browser", "no Chrome, Chromium, Brave or Edge on this computer")
+        skip("237: the Unplaced column hidden and shown in a real browser", "no Chrome, Chromium, Brave or Edge on this computer")
         return
     page = support.text("apps/idiograph/static/idiograph.html")
     traj = "<section id=\"traj\"" + page.split("<section id=\"traj\"", 1)[1].split("</section>", 1)[0] + "</section>"
     css = "\n".join(support.text(p) for p in ("family/static/tokens.css", "family/static/style.css", "family/static/frame.css",
                                               "apps/idiograph/static/distil.css", "apps/idiograph/static/themes.css"))
     js = support.text("apps/idiograph/static/trajectories.js")
-    check("237: the Not placed column's button is on the Trajectories screen, kept in the browser under its own key, "
+    check("237: the Unplaced column's button is on the Trajectories screen, kept in the browser under its own key, "
           "with the boards' words Hide and Show",
           'id="tj-open-side"' in traj and "idiograph-trajectories-side" in js
           and "t('themes.side.hide', { name })" in js and "t('themes.side.show', { name })" in js)
@@ -393,17 +393,17 @@ def _hide_not_placed(scratch):
         start, hid = one.get("start") or {}, one.get("hidden") or {}
         sw, hw = start.get("widths") or [0], hid.get("widths") or [0]
         grows = not hid.get("sideways") and not start.get("sideways") and len(set(hw)) == 1 and hw[0] >= sw[0]
-        check(f"237: at {width}, the Trajectories board opens with Not placed and its three columns, the button pressed in",
+        check(f"237: at {width}, the Trajectories board opens with Unplaced and its three columns, the button pressed in",
               start.get("open") is True and start.get("cols") == ["", "c1", "c2", "c3"] and start.get("pressed") == "true"
-              and "Hide Not placed" == start.get("title"), str(one)[:500])
-        check(f"237: at {width}, the button hides the Not placed column, leaving the three, keeps it in the browser, "
+              and "Hide Unplaced" == start.get("title"), str(one)[:500])
+        check(f"237: at {width}, the button hides the Unplaced column, leaving the three, keeps it in the browser, "
               "counts what waits on the button and names Show", hid.get("open") is False and hid.get("cols") == ["c1", "c2", "c3"]
-              and hid.get("pressed") == "false" and hid.get("title") == "Show Not placed" and hid.get("stored") == "closed"
+              and hid.get("pressed") == "false" and hid.get("title") == "Show Unplaced" and hid.get("stored") == "closed"
               and hid.get("badge") == "2" and hid.get("badgeShown") is True and one.get("more") == "3", str(one)[:500])
         check(f"237: at {width}, each trajectory is a band the whole width of the board (layout F, trajbuild2), with no "
-              "sideways scroll whether Not placed shows or not", bool(grows) and len(hw) == 3 and min(hw) >= min(sw), str(one)[:500])
+              "sideways scroll whether Unplaced shows or not", bool(grows) and len(hw) == 3 and min(hw) >= min(sw), str(one)[:500])
         check(f"237: at {width}, a reload finds the column hidden as it was left", (two.get("start") or {}).get("open") is False
-              and (two.get("start") or {}).get("cols") == ["c1", "c2", "c3"] and (two.get("start") or {}).get("title") == "Show Not placed",
+              and (two.get("start") or {}).get("cols") == ["c1", "c2", "c3"] and (two.get("start") or {}).get("title") == "Show Unplaced",
               str(two)[:500])
-        check(f"237: at {width}, with the column hidden a participant can still go back to Not placed, Left from the first "
+        check(f"237: at {width}, with the column hidden a participant can still go back to Unplaced, Left from the first "
               "column and Backspace taking it there", one.get("order") == ["", "c1", "c2", "c3"], str(one)[:500])

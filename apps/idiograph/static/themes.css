@@ -1502,9 +1502,6 @@ button.btn-out::before {
   #themes .rail-btn + .rail-btn { margin-left: -5px; }
 }
 @media (max-width: 480px) {
-  /* the spacer goes at this width, so Export, the first of the tools since 19 October, when Sticky note and
-     Group went to the palette, pushes them to the edge */
-  #th-export { margin-left: auto; }
   /* and the case's name and the board's give way in full measure, each
      to its ellipsis, where their small share of the shrinking left the bar 50px past a phone 360 wide
      (16 October) */
@@ -1962,7 +1959,6 @@ button.btn-out::before {
 .tb-who-head { font-size: 26px; line-height: 1.2; }
 .tb-table-name { margin: 2px 0 0; font-family: var(--serif); font-size: 15px; color: var(--ink-soft); }
 .tb-top .rail-grow { flex: 1 1 auto; }
-.tb-acts { display: flex; gap: 6px; flex: none; }
 .tb-none { margin: 28px 0; color: var(--ink-soft); font-size: 13.5px; }
 /* a PET, its sub-themes and groups set in a little further each, a rule in its tint down its side */
 .tb-pet { margin: 0 0 18px; padding: 0 0 0 12px; border-left: 3px solid var(--hue); }
@@ -2532,7 +2528,6 @@ input.tj-title:focus { outline: 0; border-color: var(--field-edge); background: 
 .ds-tab-name:focus-visible { box-shadow: inset 0 0 0 2px var(--crux); }
 .screen > .rail.bar-fit-tabs .ds-tabs .ds-long { display: none; }
 .screen > .rail.bar-fit-tabs .ds-tabs .ds-short { display: inline; }
-#th-export[hidden] + .bar-tools-sep { display: none; }
 
 /* the participant's chooser and the timepoint's in the path, each in a light outline, a chevron after it */
 .ds-path .ds-who { flex: 0 1 auto; min-width: 0; margin: 0; padding: 3px 8px 3px 9px; border: 1px solid var(--rule);
@@ -2641,5 +2636,54 @@ input.tj-title:focus { outline: 0; border-color: var(--field-edge); background: 
 }
 @media (max-width: 480px) {
   .screen > .rail:has(> .ds-tabs) > .rail-grow { display: block; }
-  #themes #th-export { margin-left: 0; }
+}
+
+/* Export in the toolbar after the board's name, Auto-saved and Canvas | Table (toolbar10, 16 November 2026, option C),
+   an icon and its word as the toolbar's tools are, its word giving way with theirs at 760 and below */
+#th-dock > .th-xbtn { height: 32px; margin: 0 2px 0 4px; }
+#th-dock > .th-xbtn[hidden] { display: none; }
+
+/* The sidebars' doors as slim tabs on the canvas's two edges (toolbar10, drawing 10, the way of JetBrains' tool
+   windows and Visual Studio's auto-hide panels): near the top of the canvas, the icon over the panel's name written up
+   the tab, and on Not placed its count; each hangs on the edge of its sidebar while that is open, the sidebars being
+   300 and 360 wide at every width, in a column of their own or over the canvas */
+.th-edge { position: absolute; top: 14px; z-index: 40; display: flex; flex-direction: column; align-items: center; gap: 7px;
+  width: 24px; padding: 10px 0; margin: 0; box-sizing: border-box; background: var(--card); border: 1px solid var(--rule-firm);
+  color: var(--ink-soft); font-family: var(--sans); font-size: 12px; line-height: 1; cursor: pointer; }
+.th-edge[hidden] { display: none; }
+.th-edge svg { width: 14px; height: 14px; flex: none; display: block; }
+.th-edge .th-edge-word { writing-mode: vertical-rl; letter-spacing: .02em; white-space: nowrap; }
+.th-edge-l { left: 0; border-left: 0; border-radius: 0 5px 5px 0; }
+.th-edge-l .th-edge-word { transform: rotate(180deg); }
+.th-edge-r { right: 0; border-right: 0; border-radius: 5px 0 0 5px; }
+.th-edge:hover, .th-edge.on { color: var(--ink); background: var(--paper-sunk); }
+.th-edge:focus-visible { box-shadow: var(--focus); outline: 0; }
+.th-edge .th-door-n { margin: 0; }
+#th-cpanel:not([hidden]) ~ .th-edge-l { left: 300px; }
+.th-body:has(> #th-side:not([hidden])) > .th-edge-r { right: 360px; }
+/* a phone's width gives a sidebar the whole width, so its tab stays at the window's edge over it */
+@media (max-width: 520px) {
+  #th-cpanel:not([hidden]) ~ .th-edge-l { left: auto; right: 0; border-radius: 5px 0 0 5px; border-left: 1px solid var(--rule-firm); border-right: 0; }
+}
+@media (max-width: 400px) {
+  .th-body:has(> #th-side:not([hidden])) > .th-edge-r { right: 0; }
+}
+
+/* Trajectories' Not placed as every board's left sidebar (toolbar10): the board and the sidebar side by side under the
+   toolbar row, the sidebar 300 wide (over the board below 900px, as the boards' is), each participant's card a row in
+   it, and its edge tab on the board's left edge, at the sidebar's edge while it is open */
+.tj-main { position: relative; flex: 1 1 auto; min-height: 0; display: flex; }
+.tj-main > .tj-body { min-width: 0; }
+.tj-side { --th-corners-up: 0px; }
+.tj-side[hidden] { display: none; }
+.tj-side-body { padding: 4px 14px 20px; }
+.tj-sideband { min-height: 100%; margin: 0; padding: 4px 0; border: 0; background: none; box-shadow: none; border-radius: 0; }
+.tj-sideband.tj-over { background: var(--paper-sunk); }
+.tj-sideband > .tf-pcell { padding: 10px 26px 10px 6px; border-bottom: 1px solid var(--rule); }
+.tj-sideband > .tf-pcell:last-child { border-bottom: 0; }
+#tj-side:not([hidden]) ~ .th-edge-l { left: 300px; }
+.tj-main > .th-edge-l + .tj-body { padding-left: 34px; }
+.tj-bar[hidden] { display: none; }
+@media (max-width: 520px) {
+  #tj-side:not([hidden]) ~ .th-edge-l { left: auto; right: 0; border-radius: 5px 0 0 5px; border-left: 1px solid var(--rule-firm); border-right: 0; }
 }

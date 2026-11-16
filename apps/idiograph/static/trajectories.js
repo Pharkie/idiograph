@@ -35,7 +35,12 @@ const TJ = { path: '', back: null, to: 'cases', data: null, ask: 0, busy: false,
   // the passage picker (trajchoose, 11 November 2026): the cell it is open for, the interview shown, the words
   // found, the turns read for each participant's interview, and the words chosen in a turn
   passage: '', passageAt: '', find: '', turns: {}, picked: null };
-const TJ_NOT_PLACED = t('trajectories.not_placed');
+// Not placed, the one name of every board's left sidebar (toolbar10, Adam, 16 November 2026)
+const TJ_NOT_PLACED = t('themes.left.name');
+/* the Trajectories export (exportnew and exportwire, 16 November 2026): its menu's Save as PDF and Microsoft Word post
+   { workbook, format, notes, unplaced } to the route, and Print opens the print view in a tab of its own */
+const TJ_EXPORT = '/api/trajectories-export';
+const TJ_PRINT = '/trajectories/print';
 const TJ_QUOTES_WAYS = ['off', 'short', 'full'];
 // each way's words and each icon's name, every key written out so the catalogue's check finds it
 const TJ_QUOTES_SAID = { off: () => t('trajectories.quotes_off'), short: () => t('trajectories.quotes_short'), full: () => t('trajectories.quotes_full') };
@@ -130,7 +135,7 @@ const tjTimepoints = () => {
 };
 const tjTpName = (tp) => (tp.description ? `${tp.label}: ${tp.description}` : tp.label);
 
-/* whether the Not placed band shows, open unless he closed it, kept for the screen as the boards' sidebar is */
+/* whether the Not placed sidebar shows, open unless he closed it, kept for the screen as the boards' sidebar is */
 function trajSideStored() {
   try { return localStorage.getItem(TJ_SIDE_KEY) !== 'closed'; } catch { return true; }
 }
@@ -141,8 +146,8 @@ function trajSideSet(open, keep = true) {
   trajDraw();
 }
 
-/* the button: pressed in while the band shows, the tooltip naming the other way, and the count not placed on
-   it while the band is hidden, so a hidden band is never a lost one */
+/* the left edge tab: pressed in while the sidebar shows, the tooltip naming the other way, and the count not placed
+   after its name, 0 once everyone is placed (toolbar10) */
 function trajDoorDraw() {
   const b = $('tj-open-side');
   if (!b) return;
@@ -151,8 +156,8 @@ function trajDoorDraw() {
   b.classList.toggle('on', TJ.sideOpen);
   b.setAttribute('aria-pressed', String(TJ.sideOpen));
   b.title = TJ.sideOpen ? t('themes.side.hide', { name }) : t('themes.side.show', { name });
-  b.setAttribute('aria-label', !TJ.sideOpen && n ? t('themes.side.door_label', { name, n }) : name);
-  b.querySelector('.bar-word').textContent = name;
+  b.setAttribute('aria-label', t('themes.side.door_label', { name, n }));
+  b.querySelector('.th-edge-word').textContent = name;
   let badge = b.querySelector('.th-door-n');
   if (!badge) {
     badge = document.createElement('span');
@@ -161,7 +166,25 @@ function trajDoorDraw() {
     b.appendChild(badge);
   }
   badge.textContent = String(n);
-  badge.hidden = !n || TJ.sideOpen;
+  badge.hidden = !TJ.data;
+}
+
+/* the sidebar: each participant on no trajectory a card, in the board's order, the whole of it a place to drop a
+   participant back onto, which takes them off their trajectory, and Export's row, there once its route is */
+function trajSideDraw() {
+  const side = $('tj-side');
+  if (!side) return;
+  side.hidden = !TJ.sideOpen;
+  const bar = $('tj-bar');
+  if (bar) { bar.hidden = !TJ_EXPORT; $('tj-export').hidden = !TJ_EXPORT; }
+  // shut, it holds nothing, so nothing in it is a place to drop or a card to find
+  if (!TJ.sideOpen) { $('tj-side-body').innerHTML = ''; return; }
+  const people = ((TJ.data && TJ.data.unplaced) || []).map((case_) => {
+    const c = tjCard(case_);
+    return c ? (TJ.editing === c.case ? trajEditHtml(c) : '') + trajPcellHtml(c, 1) : '';
+  }).join('');
+  $('tj-side-body').innerHTML = `<section class="tf-band tf-band-none tj-sideband" data-col="">${people}</section>`;
+  for (const box of side.querySelectorAll('textarea.tf-fit')) trajFit(box);
 }
 
 /* the status bar: the counts in the boards' wording, then Quotes and Notes as they stand */
@@ -196,13 +219,14 @@ function trajStatusDraw() {
 function trajDraw() {
   const d = TJ.data;
   if (!d) return;
-  const was = document.activeElement && $('tj-board').contains(document.activeElement) ? document.activeElement : null;
+  const was = document.activeElement && $('tj-main').contains(document.activeElement) ? document.activeElement : null;
   const fkey = was && was.dataset ? was.dataset.fkey : '';
   const caret = was && typeof was.selectionStart === 'number' ? [was.selectionStart, was.selectionEnd] : null;
   trajDoorDraw();
   trajStatusDraw();
   trajNoteDraw();
-  const bands = [...(TJ.sideOpen ? [{ id: '', title: TJ_NOT_PLACED, participants: d.unplaced || [], fixed: true }] : []), ...(d.columns || [])];
+  trajSideDraw();
+  const bands = d.columns || [];
   let html = bands.map(trajBandHtml).join('');
   html += `<div class="tf-new"><button type="button" class="tj-new" id="tj-new" data-fkey="new">${TJ_PLUS}${esc(t('trajectories.new'))}</button></div>`;
   const board = $('tj-board');
@@ -212,7 +236,7 @@ function trajDraw() {
   board.innerHTML = html;
   for (const box of board.querySelectorAll('textarea.tf-fit')) trajFit(box);
   if (fkey) {
-    const again = board.querySelector(`[data-fkey="${CSS.escape(fkey)}"]`);
+    const again = $('tj-main').querySelector(`[data-fkey="${CSS.escape(fkey)}"]`);
     if (again) {
       again.focus({ preventScroll: true });
       if (caret && typeof again.setSelectionRange === 'function') { try { again.setSelectionRange(caret[0], caret[1]); } catch { /* not a text field */ } }
@@ -334,13 +358,9 @@ const tjPicHtml = (c, big) => {
 };
 const tjPill = (word, n, more = '') => `<span class="tf-pill case-${(Number(n) || 0) % 25}"${more}>${esc(word)}</span>`;
 
-function trajPersonHtml(case_, tps) {
-  const c = tjCard(case_);
-  if (!c) return '';
-  const shown = (c.rows || []).filter((r) => r.shown !== false);
-  // the passage picker open under one of their rows takes a row of the grid of its own
-  const picking = shown.find((r) => TJ.passage.startsWith(`${c.case}|${r.id}|`));
-  const span = Math.max(1, shown.length) + (picking ? 1 : 0);
+/* a participant's card, their picture, name, label and pills, their menu and, with Notes on, their note: the first
+   cell of their rows on a trajectory, and the whole of them in the Not placed sidebar */
+function trajPcellHtml(c, span) {
   // the pills of the participant's demographics shown as pills, in place of its tags (demobuild), its tags from a
   // server from before
   const pills = Array.isArray(c.pills) ? c.pills : (c.tags || []);
@@ -349,12 +369,22 @@ function trajPersonHtml(case_, tps) {
     ? `<textarea class="tj-note tf-fit" rows="2" maxlength="2000" data-case="${escAttr(c.case)}" data-fkey="note-${escAttr(c.case)}"
         aria-label="${escAttr(t('trajectories.note_label', { who: c.who }))}" placeholder="${escAttr(t('trajectories.note_placeholder'))}">${esc(c.note || '')}</textarea>` : '';
   const menu = TJ.menu === c.case ? trajMenuHtml(c) : '';
-  let html = TJ.editing === c.case ? trajEditHtml(c) : '';
-  html += `<div class="tf-pcell" style="grid-row: span ${span}" draggable="true" tabindex="0" data-case="${escAttr(c.case)}" data-fkey="p-${escAttr(c.case)}"
+  return `<div class="tf-pcell" style="grid-row: span ${span}" draggable="true" tabindex="0" data-case="${escAttr(c.case)}" data-fkey="p-${escAttr(c.case)}"
       aria-label="${escAttr(c.who + (c.title ? `, ${c.title}` : ''))}"><div class="tf-who">${tjPicHtml(c)}`
     + `<b class="tf-name">${esc(c.who)}</b>${c.title ? `<span class="tf-label">${esc(c.title)}</span>` : ''}${tags}</div>`
     + `<button type="button" class="tf-more" data-more="${escAttr(c.case)}" data-fkey="more-${escAttr(c.case)}" aria-haspopup="menu" aria-expanded="${TJ.menu === c.case}"
         title="${escAttr(t('trajectories.menu', { who: c.who }))}" aria-label="${escAttr(t('trajectories.menu', { who: c.who }))}">${TJ_MORE}</button>${menu}${note}</div>`;
+}
+
+function trajPersonHtml(case_, tps) {
+  const c = tjCard(case_);
+  if (!c) return '';
+  const shown = (c.rows || []).filter((r) => r.shown !== false);
+  // the passage picker open under one of their rows takes a row of the grid of its own
+  const picking = shown.find((r) => TJ.passage.startsWith(`${c.case}|${r.id}|`));
+  const span = Math.max(1, shown.length) + (picking ? 1 : 0);
+  let html = TJ.editing === c.case ? trajEditHtml(c) : '';
+  html += trajPcellHtml(c, span);
   if (!shown.length) {
     html += `<div class="tf-rowc tf-rowc-none" style="grid-column: 2 / -1">${esc(t((c.rows || []).length ? 'trajectories.no_lpets_shown' : 'trajectories.no_lpets'))}</div>`;
   }
@@ -818,6 +848,8 @@ function trajWire() {
   dsTabsWatch('tj-steps');
   $('tj-open-side').addEventListener('pointerdown', (e) => e.preventDefault());
   $('tj-open-side').onclick = () => trajSideSet(!TJ.sideOpen);
+  $('tj-side-close').onclick = () => trajSideSet(false);
+  trajExportWire();
   $('tj-quotes-btn').onclick = () => trajSetting('traj_quotes', TJ_QUOTES_WAYS[(TJ_QUOTES_WAYS.indexOf(tjQuotesWay()) + 1) % TJ_QUOTES_WAYS.length]);
   $('tj-notes-btn').onclick = () => trajSetting('traj_notes', !tjNotesOn());
   $('tj-picture-file').addEventListener('change', (e) => {
@@ -838,7 +870,8 @@ function trajWire() {
     if (TJ.data && now !== (TJ.data.note || '')) trajOps([{ op: 'note_board', note: now }]);
     else trajFit(note);
   });
-  const board = $('tj-board');
+  // the board and the Not placed sidebar answer as one, so a card drags between them and its menu works in both
+  const board = $('tj-main');
   board.addEventListener('click', (e) => {
     const el = (sel) => e.target.closest(sel);
     if (el('#tj-new')) { trajNew(); return; }
@@ -1118,6 +1151,53 @@ async function trajStep(step) {
   if (step === 'pets') await navGo(() => trajStep(step), () => themesOpen(path, opts));
   else if (step === 'lpets') await navGo(() => trajStep(step), () => getsOpen(path, Object.assign(opts, { lpets: true })));
   else await navGo(() => trajStep(step), () => getsOpen(path, opts));
+}
+
+/* Export in the toolbar row (toolbar10): Print, Save as PDF and Microsoft Word, then Include, Each participant's note and
+   Unplaced, unticked at each open */
+function trajXmenu(open) {
+  const menu = $('tj-xmenu');
+  const btn = $('tj-export');
+  if (!menu || !btn) return;
+  const was = !menu.hidden;
+  menu.hidden = !(open && TJ_EXPORT);
+  btn.setAttribute('aria-expanded', String(!menu.hidden));
+  if (menu.hidden) return;
+  if (!was) menu.querySelectorAll('[data-xinc]').forEach((box) => { box.checked = false; });
+  const box = btn.getBoundingClientRect();
+  menu.style.left = `${Math.max(8, Math.min(box.left, window.innerWidth - menu.offsetWidth - 8))}px`;
+  menu.style.top = `${box.bottom + 8}px`;
+}
+
+async function trajExportGo(kind) {
+  const menu = $('tj-xmenu');
+  const inc = (k) => !!menu.querySelector(`[data-xinc="${k}"]:checked`);
+  trajXmenu(false);
+  if (!TJ_EXPORT || !TJ.data) return;
+  const ticks = { notes: inc('notes'), unplaced: inc('unplaced') };
+  if (kind === 'print') {
+    const url = `${TJ_PRINT}?${new URLSearchParams({ workbook: TJ.path, notes: ticks.notes ? '1' : '0', unplaced: ticks.unplaced ? '1' : '0' })}`;
+    if (!window.open(url, '_blank')) say(t('themes.print.blocked'), 8000);
+    return;
+  }
+  const body = Object.assign({ workbook: TJ.path, format: kind }, ticks);
+  try {
+    const made = await api(TJ_EXPORT, body);
+    if (made && made.shown) say(t('themes.exported', { name: made.shown.join(', ') }), 8000);
+  } catch (err) {
+    say(err.message, 9000);
+  }
+}
+
+function trajExportWire() {
+  const btn = $('tj-export');
+  const menu = $('tj-xmenu');
+  if (!btn || !menu) return;
+  btn.onclick = () => trajXmenu(menu.hidden);
+  menu.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
+  menu.addEventListener('click', (e) => { const op = e.target.closest('[data-xop]'); if (op) trajExportGo(op.dataset.xop); });
+  document.addEventListener('pointerdown', (e) => { if (!menu.hidden && !e.target.closest('#tj-xmenu, #tj-export')) trajXmenu(false); }, true);
+  document.addEventListener('keydown', (e) => { if (!menu.hidden && e.key === 'Escape') { e.preventDefault(); trajXmenu(false); btn.focus(); } });
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', trajWire);

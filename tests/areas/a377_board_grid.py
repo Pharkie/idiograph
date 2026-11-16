@@ -146,7 +146,7 @@ def make_workbook(root: Path, folder: str, speaker: str) -> Path:
 
 
 def plan_ops(described: bool = False):
-    """The makes an agent sends, a PET then its sub-PETs, each over statements waiting in Not placed, and the same as
+    """The makes an agent sends, a PET then its sub-PETs, each over statements waiting in Unplaced, and the same as
     `board new`'s structure, with the order each label's members were named in."""
     n = iter(range(1, 81))
     ops, pets, named = [], [], {}
@@ -263,7 +263,7 @@ def test_board_grid(scratch: Path):
         board = board_of(root)
         s, o = shape(board), orders(board, sids_of(root))
         built[how] = (root, board)
-        check(f"377: a board an agent builds from Not placed in {how} comes out between 3:4 and 2:1 wide, no label's "
+        check(f"377: a board an agent builds from Unplaced in {how} comes out between 3:4 and 2:1 wide, no label's "
               "statements in one column of more than five, the PETs and every label reading in the order the makes "
               "named them",
               made[0] == 0 and all(d[0] == 0 for d in done) and wide(s) and read_as_named(o),

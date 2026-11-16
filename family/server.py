@@ -523,7 +523,9 @@ def project_named(value: str) -> Path:
         return demo_lipa_dir()
     if text:
         asked = configured(text)
-        for root in project_roots():
+        # a demo by its folder too, as the page's `root` names it ("demo/lipa"), which an LGETs or a thematic
+        # analysis demo's export sends back (exportwire, 16 November 2026)
+        for root in [*demo_dirs(), *project_roots()]:
             if same_folder(asked, root):
                 return root
     raise OutsideRoot(i18n.t("errors.folder_project_s_root"))

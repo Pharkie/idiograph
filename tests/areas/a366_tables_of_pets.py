@@ -215,7 +215,7 @@ def test_tables_of_pets(scratch):
                                                             "Counting out loud as a private scaffold"]),
                                           ("Being held by others", ["Patience of the band as welcome"])]),
                 ("Bells that are not ours", ["Borrowing the village's bells"], [])]
-        check("366: the board is as the table gives it, the duplicate placed once, the rest in Not placed",
+        check("366: the board is as the table gives it, the duplicate placed once, the rest in Unplaced",
               tree == want and sorted(c["text"] for c in shown.get("not_placed") or shown.get("unplaced") or [])
               == ["Being waited for", "Hidden tears after the first peal"], json.dumps(tree)[:900] if tree else (err or json.dumps(shown)[:600]))
         data = themes.load(book)

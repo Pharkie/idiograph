@@ -12,7 +12,7 @@ import idiograph_cli
 
 def test_groups(scratch):
     print("\n92. Groups: a label inside a sub-theme a group, groups inside groups at any depth, numbered PET 1, "
-          "PET 1a, 1a.1 and on in Word, print and the PET draft from one function, Not placed (n) and Discarded (n), "
+          "PET 1a, 1a.1 and on in Word, print and the PET draft from one function, Unplaced (n) and Discarded (n), "
           "board new with groups, board current, and groups riding inside their sub-theme's card on GETs (207)")
     import html
     import subprocess
@@ -42,7 +42,7 @@ def test_groups(scratch):
           and themes_mod.count_text(1, 1, 0) == "1 sub-theme · 1 statement")
 
     # ── B. the fixture: an invented case on the demo's words, a board five labels deep, as an agent's board
-    # apply made some, a second PET with a sub-theme, two discards and the rest not placed
+    # apply made some, a second PET with a sub-theme, two discards and the rest unplaced
     root = scratch / "groups-root"
     shutil.rmtree(root, ignore_errors=True)
     folder = root / "P{} - {}-{}".format(8, "Linden", "Testname")
@@ -99,7 +99,7 @@ def test_groups(scratch):
                     ("Heading3", "PET 1b. Evenings in", [(True, False, False)]),
                     ("Heading2", "PET 2. A walk that closes the day", [(True, False, True)]),
                     ("Heading3", "PET 2a. The long way round", [(True, False, False)]),
-                    ("Heading2", f"Not placed ({left})", [(False, False, False)]),
+                    ("Heading2", f"Unplaced ({left})", [(False, False, False)]),
                     ("Heading2", "Experiential statements set aside (2)", [(False, False, False)])], str(heads))
     styles = parts["word/styles.xml"]
     check("92: Heading 5 is in the styles, bold italic at the body's size like Heading 4, and no Heading 6",
@@ -121,7 +121,7 @@ def test_groups(scratch):
           shown == [f"{n} {t}" if not n.startswith("PET ") else f"{n}. {t}" for n, t in (
               ("PET 1", "Home before the town wakes"), ("PET 1a", "Mornings on the stair"), ("1a.1", "Early light"),
               ("1a.1.1", "The first sound"), ("1a.1.1.1", "The fifth step"), ("PET 1b", "Evenings in"),
-              ("PET 2", "A walk that closes the day"), ("PET 2a", "The long way round"))] + [f"Not placed ({left})", "Experiential statements set aside (2)"]
+              ("PET 2", "A walk that closes the day"), ("PET 2a", "The long way round"))] + [f"Unplaced ({left})", "Experiential statements set aside (2)"]
           and '<h5 class="group-title">1a.1.1 The first sound</h5>' in main and '<h5 class="group-title">1a.1.1.1 The fifth step</h5>' in main
           and "<h6" not in main and '<span class="number">PET 1.</span>' in main, str(shown))
 
@@ -132,7 +132,7 @@ def test_groups(scratch):
     check("92: the draft heads each label with its number, a level down for each layer to #####, and counts its lists",
           dheads == ["## PET 1. Home before the town wakes", "### PET 1a. Mornings on the stair", "#### 1a.1 Early light",
                      "##### 1a.1.1 The first sound", "##### 1a.1.1.1 The fifth step", "### PET 1b. Evenings in",
-                     "## PET 2. A walk that closes the day", "### PET 2a. The long way round", f"## Not placed ({left})",
+                     "## PET 2. A walk that closes the day", "### PET 2a. The long way round", f"## Unplaced ({left})",
                      "## Experiential statements set aside (2)"], " | ".join(dheads))
     check("92: the draft's list at the head names each layer's count by its depth, groups under a sub-theme",
           listed[:5] == ["- PET 1. Home before the town wakes (2 sub-themes · 6 statements)",

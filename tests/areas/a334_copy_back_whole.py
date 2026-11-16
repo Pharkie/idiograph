@@ -251,7 +251,7 @@ def test_copy_back_whole(scratch: Path):
               and drawn["Initial:7:2"].get("missing") and drawn["Initial:7:2"]["text"] == "Hearing the reel click as a clock"
               and drawn["Initial:5:0"]["text"] == "Becoming only the watching" and not drawn["Initial:5:0"].get("changed"),
               json.dumps({k: drawn[k] for k in ("Initial:5:2", "Initial:7:2", "Initial:5:0")}))
-        check("334: his own statement at the key Curt added at waits under Not placed, never taken by Curt's card",
+        check("334: his own statement at the key Curt added at waits under Unplaced, never taken by Curt's card",
               drawn["Initial:7:1"]["text"] == "Hurrying home before the light" and drawn["Initial:7:1"].get("new")
               and "Initial:7:1" not in {m for g in new["groups"] for m in g["members"]}, json.dumps(drawn["Initial:7:1"]))
         check("334: the note says whose copy and how many match, and the agent's board in the copy carried no note "

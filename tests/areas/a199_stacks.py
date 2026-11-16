@@ -83,7 +83,7 @@ def test_stacks(scratch):
             {"op": "stack", "items": [U1, U2, L], "under": T}), "--note", "Stack the ones that say it again",
             "--tool", "Claude Code")
         after = board()
-        check("199: the stack op puts the statements under the top, out of its PET and out of Not placed, the top in "
+        check("199: the stack op puts the statements under the top, out of its PET and out of Unplaced, the top in "
               "its place, in one revision of its History",
               code == 0 and after.get("stacks") == {top: under + [loose]}
               and top in next(g for g in after["groups"] if g["id"] == pet)["members"]
@@ -109,7 +109,7 @@ def test_stacks(scratch):
               board().get("stacks") == {top: under + [loose]}, str(board().get("stacks")))
         page = dict(themes.normalise(board()), stacks={})
         themes.save(book, page, "Rowan")
-        check("199: a save that sends none takes them off, every stacked statement back in Not placed",
+        check("199: a save that sends none takes them off, every stacked statement back in Unplaced",
               not board().get("stacks") and not any(k in g["members"] for g in board()["groups"] for k in under), "")
         themes.save(book, dict(themes.normalise(board()), stacks={top: under + [loose]}), "Rowan")
 
@@ -130,7 +130,7 @@ def test_stacks(scratch):
         plain_p, plain_w = printed(), worded()
         draft_off = themes.draft_markdown(book, "Rowan")[0]
         check("199: Include stacked statements is off on a new install, and the print view, the Word document and the "
-              "PET draft hold the top alone, its stacked statements nowhere, Not placed's among them",
+              "PET draft hold the top alone, its stacked statements nowhere, Unplaced's among them",
               fresh["export_stacked"] is False and texts[top] in plain_p and head not in plain_p
               and not any(texts[k] in plain_p for k in under) and head not in plain_w
               and not any(texts[k] in plain_w for k in under) and head not in draft_off
@@ -175,7 +175,7 @@ def test_stacks(scratch):
         # ── D. taking out and the top, through the API, and board show
         code, shown, _ = answer("board", "show", "Rowan", "v1")
         tree_top = next(s for t_ in shown["themes"] if t_["id"] == pet for s in t_["statements"] if s["key"] == top)
-        check("199: board show gives the top its stacked statements with their ids, and Not placed leaves them out",
+        check("199: board show gives the top its stacked statements with their ids, and Unplaced leaves them out",
               [s["id"] for s in tree_top.get("stacked") or []] == [U1, U2, L]
               and loose not in [s["key"] for s in shown["unplaced"]], str(tree_top)[:300])
         code, _, _ = answer("board", "apply", "Rowan", "v1", "--ops", ops(

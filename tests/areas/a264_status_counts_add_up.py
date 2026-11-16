@@ -1,14 +1,14 @@
 """Area 264: the boards' status bar counts add up (Adam, 26 October 2026, wording C of countskofi's drawings).
 
-Until now the bar said "3 PETs", "25 in PETs", "14 not placed", "2 set aside" and "5 stacked" with no total and no
+Until now the bar said "3 PETs", "25 in PETs", "14 unplaced", "2 set aside" and "5 stacked" with no total and no
 unit, which left him unsure whether the statements stacked were among those in PETs (they were not). Now it says
-the total first and where they are after it, "46 ES: 25 in PETs, 5 stacked, 2 set aside, 14 not placed", then the
-PETs, and on GETs, LGETs and LPETs boards the unit is cards, "11 cards: 7 in GETs, 1 set aside, 3 not placed". The
+the total first and where they are after it, "46 ES: 25 in PETs, 5 stacked, 2 set aside, 14 unplaced", then the
+PETs, and on GETs, LGETs and LPETs boards the unit is cards, "11 cards: 7 in GETs, 1 set aside, 3 unplaced". The
 parts are the statements or cards in their places, a stack's top once and the statements under it apart, so they
 add to the total, and a total shows only where every place holding one is shown.
 
 The checks run the page's own `thStatusDraw` in node on invented boards about learning to bake bread, with
-sub-PETs, stacks under a top in a PET, in Not placed and set aside, statements set aside, waiting and loose on the
+sub-PETs, stacks under a top in a PET, in Unplaced and set aside, statements set aside, waiting and loose on the
 canvas, and read the bar it draws: the total equals its parts and the statements or cards the board holds, on
 PETs, GETs and LPETs boards, and a count unticked takes the total away only while it holds something. Words,
 layout and the widths, 1280 and 720, go to Adam as review shots, and area 269 sees in a browser that the bar
@@ -44,7 +44,7 @@ TH.config = { status_bar: true };
 TH.sel = { cards: new Set(), groups: new Set(), stickies: new Set() };
 
 // a PETs board: two PETs, one with two sub-PETs, stacks under a top in a sub-PET, under one waiting and under
-// one set aside, statements waiting in Not placed, one loose on the canvas and two set aside, one card missing
+// one set aside, statements waiting in Unplaced, one loose on the canvas and two set aside, one card missing
 const pets = {
   waits: true,
   cards: {
@@ -136,7 +136,7 @@ def test_status_counts_add_up(scratch):
     o = json.loads(run.stdout)
 
     p = _parts(o["pets"]["text"])
-    check("264: on a PETs board with sub-PETs, stacks in a PET, in Not placed and set aside, statements waiting, "
+    check("264: on a PETs board with sub-PETs, stacks in a PET, in Unplaced and set aside, statements waiting, "
           "loose and set aside, the bar says the statements' total first, its parts adding to it and to every "
           "statement the board holds, a missing one not among them, then the PETs at the top level",
           p is not None and p[1] == "ES" and p[0] == sum(p[2]) == o["pets"]["real"] == 16 and p[3] == "2 PETs"

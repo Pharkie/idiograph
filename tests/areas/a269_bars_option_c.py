@@ -61,10 +61,15 @@ def test_bars_option_c(scratch):
     # the switch is not a status bar thing)
     dock = themes.split('<div class="th-dock" id="th-dock"', 1)[1].split("\n  </div>", 1)[0]
     status = themes.split('id="th-status"', 1)[1].split("\n    </div>", 1)[0]
-    check("269: the left sidebar's button and the Inspector's stand at the toolbar's two ends with the board between, "
-          "each still opening and closing its panel, and Canvas and Table stand on the toolbar directly after the board "
-          "and Auto-saved, gone from the status bar, a click still switching",
-          dock.index('id="th-open-cases"') < dock.index('id="th-board"') < dock.index('th-dock-end') < dock.index('id="th-open-side"')
+    body = themes.split('<div class="th-body">', 1)[1]
+    check("269, updated 16 November 2026 (toolbar10): the left sidebar's door and the Inspector's are slim tabs on the "
+          "canvas's two edges, out of the toolbar and the top bar, each still opening and closing its panel, Export stands "
+          "in the toolbar after Canvas and Table and nowhere in the top bar, and Canvas and Table stand on the toolbar "
+          "directly after the board and Auto-saved, gone from the status bar, a click still switching",
+          'id="th-open-cases"' not in dock and 'id="th-open-side"' not in dock
+          and 'class="th-edge th-edge-l gt-door" id="th-open-cases"' in body and 'class="th-edge th-edge-r th-door" id="th-open-side"' in body
+          and dock.index('id="th-board"') < dock.index('id="th-faces"') < dock.index('id="th-export"') < dock.index('id="th-board-sep"')
+          and 'id="th-export"' not in rail_of(themes)
           and 'id="th-open-cases"' not in rail_of(themes) and 'id="th-open-side"' not in rail_of(themes)
           and "$('th-open-cases').onclick = () => (TH.casesOpen ? gtCasesShut() : gtCasesOpen());" in tjs
           and "$('th-open-side').onclick = () => thSideDoor();" in tjs
@@ -156,7 +161,7 @@ const thPaletteFit = () => {};
 
     # ── D. the status bar gives way with the counts last (Adam, 26 October 2026): in the computer's own browser,
     # headless, the page's own status bar, stylesheets and thCorners, at the canvas's width in a 1280 window with
-    # Not placed open beside it and at the app's smallest window
+    # Unplaced open beside it and at the app's smallest window
     _bar_gives_way(scratch, node, page, tjs)
 
     # ── E. the toolbar holds Canvas and Table at 1280 and at 720, the app's smallest window, after Auto-saved
@@ -215,7 +220,7 @@ ELS.bar = Object.assign(new El('bar'), { offsetHeight: 30 });
 thCorners = () => {};
 thMapPlace = () => {};
 // an invented board about keeping bees, its numbers as long as a finished participant's: 118 in two PETs, 15
-// stacked under tops in them, 12 set aside and 14 waiting in Not placed
+// stacked under tops in them, 12 set aside and 14 waiting in Unplaced
 const cards = {};
 const groups = [{ id: 'P1', label: 'Learning the hive', members: [] }, { id: 'P2', label: 'Stings and patience', members: [] }];
 const stacks = {};
@@ -304,10 +309,10 @@ def _bar_gives_way(scratch, node, page, tjs):
     o = json.loads(html_mod.unescape(said)) if said.startswith("{") else {}
     four = ["placed", "stacked", "binned", "unplaced"]
     wide, narrow = o.get("w1280", {}), o.get("w720", {})
-    check("269: in a real browser, with the canvas as wide as a 1280 window leaves beside Not placed, the PETs status bar "
-          "says the total and all four parts, \"159 ES: 118 in PETs, 15 stacked, 12 set aside, 14 not placed\", and the "
+    check("269: in a real browser, with the canvas as wide as a 1280 window leaves beside Unplaced, the PETs status bar "
+          "says the total and all four parts, \"159 ES: 118 in PETs, 15 stacked, 12 set aside, 14 unplaced\", and the "
           "PETs, Canvas and Table gone from it to the toolbar, the tools' words giving way first and nothing overflowing",
-          drawn["text"].startswith("159 ES: 118 in PETs, 15 stacked, 12 set aside, 14 not placed")
+          drawn["text"].startswith("159 ES: 118 in PETs, 15 stacked, 12 set aside, 14 unplaced")
           and wide.get("total") is True and wide.get("parts") == four and wide.get("pets") is True and wide.get("faces") is False
           and wide.get("over") is False and not {"th-status-trim", "th-status-least", "th-status-bare"} & set(wide.get("cls", [])),
           str(o)[:700] + " " + drawn["text"][:120])

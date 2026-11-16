@@ -117,8 +117,8 @@ def test_gets_sub_cards(scratch):
               and set(held["boards"][0]["cards"]) == set(held["boards"][1]["cards"]) == every
               and not overlaps(held["boards"][1], held))
         code, text, _ = cli.run(["--root", str(root), "--config", str(config_file), "gets", "show", "b2"])
-        check("86: gets show on a new board lists the sub-themes in Not placed, each by its kind, case, words and key",
-              code == 0 and "Not placed (20)" in text and "   Sub-theme Wren: Early light in the hall  [Wren/g3]" in text
+        check("86: gets show on a new board lists the sub-themes in Unplaced, each by its kind, case, words and key",
+              code == 0 and "Unplaced (20)" in text and "   Sub-theme Wren: Early light in the hall  [Wren/g3]" in text
               and "[Wren/g4]" not in text and "   PET Wren: Mornings that start at the stair  [Wren/g1]" in text
               and all(f"[{k}]" in text for k in subs), flat(text)[:200])
         srv = mcp_server.Server(str(root), config=str(config_file))

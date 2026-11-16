@@ -11,7 +11,7 @@ import idiograph_routes
 
 
 def test_export_ticks(scratch):
-    print("\n194. The PETs table's export, the print view and Word, with two ticks, Include not placed and Include "
+    print("\n194. The PETs table's export, the print view and Word, with two ticks, Include unplaced and Include "
           "binned experiential statements, both off on a new install and his last choice kept (Adam, 18 October)")
     import mcp_server
     import server as server_mod
@@ -20,7 +20,7 @@ def test_export_ticks(scratch):
     import themes_word
 
     # the fixture: the demo's Rowan as an invented case of an invented project, its board with statements
-    # not placed and one in the bin, and a settings file of its own with neither key
+    # unplaced and one in the bin, and a settings file of its own with neither key
     pristine = support.DEMO_PRISTINE
     root = scratch / "ticks-root"
     shutil.rmtree(root, ignore_errors=True)
@@ -37,7 +37,7 @@ def test_export_ticks(scratch):
     cfg = scratch / "ticks-config.json"
     cfg.write_text(json.dumps({"projects": [{"root": str(root)}], "interviewer": "Adam"}), encoding="utf-8")
     board, _ = themes_word.board_of(book)
-    np_head = f"Not placed ({len(board['unplaced'])})"
+    np_head = f"Unplaced ({len(board['unplaced'])})"
     dc_head = f"Experiential statements set aside ({len(board['discarded'])})"
 
     def printed(page: str) -> tuple[bool, bool]:
@@ -62,7 +62,7 @@ def test_export_ticks(scratch):
         fresh = server_mod.merge_config({})
         first = shown()
         check("194: both ticks off on a new install, and the print view and the Word document hold the PETs alone, "
-              "with no Not placed or Binned experiential statements heading and no empty part at the end",
+              "with no Unplaced or Binned experiential statements heading and no empty part at the end",
               board["unplaced"] and board["discarded"] and fresh["export_not_placed"] is False
               and fresh["export_binned"] is False and first[:3] == (200, (False, False), (False, False))
               and '<section class="rest">' not in first[3], str(first[:3]))
@@ -71,12 +71,12 @@ def test_export_ticks(scratch):
         alone_np = shown({"unplaced": "1", "binned": "0"}, {"unplaced": True, "binned": False})
         alone_dc = shown({"unplaced": "0", "binned": "1"}, {"unplaced": False, "binned": True})
         both = shown({"unplaced": "1", "binned": "1"}, {"unplaced": True, "binned": True})
-        check("194: Include not placed alone puts Not placed at the end of the print view and the Word document, "
+        check("194: Include unplaced alone puts Unplaced at the end of the print view and the Word document, "
               "and the bin stays out", alone_np[1:3] == ((True, False), (True, False)), str(alone_np[1:3]))
         check("194: Include binned experiential statements alone puts the bin, under Binned experiential statements, at the end of both, "
-              "and Not placed stays out",
+              "and Unplaced stays out",
               alone_dc[1:3] == ((False, True), (False, True)), str(alone_dc[1:3]))
-        check("194: both ticks on put both parts at the end of both, Not placed then the bin",
+        check("194: both ticks on put both parts at the end of both, Unplaced then the bin",
               both[1:3] == ((True, True), (True, True))
               and both[3].index(f"<h2>{np_head}</h2>") < both[3].index(f"<h2>{dc_head}</h2>"), str(both[1:3]))
 
@@ -108,7 +108,7 @@ def test_export_ticks(scratch):
               "is drawn and unticked on a page drawn without them",
               all(boxes.values()) and all(m.group(1) for m in boxes.values())
               and 'id="include-unplaced" checked' not in plain_page and 'id="include-binned" checked' not in plain_page
-              and [m.group(2) for m in boxes.values()] == ["Include not placed", "Include statements set aside"])
+              and [m.group(2) for m in boxes.values()] == ["Include unplaced", "Include statements set aside"])
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY = kept
 
@@ -140,10 +140,10 @@ def test_export_ticks(scratch):
     page_src = support.page_text()
     js = support.text("apps/idiograph/static/themes.js")
     menu = page_src.split('id="th-xmenu"', 1)[1].split('<div class="th-body">', 1)[0]
-    rows = re.findall(r'<label class="view-row"(?: title="[^"]*")?><input type="checkbox" id="[^"]+" data-include="([^"]+)"> ([^<]+)</label>', menu)
+    rows = re.findall(r'<label class="view-row"(?: data-xfor="pets")?(?: title="[^"]*")?><input type="checkbox" id="[^"]+" data-include="([^"]+)"> ([^<]+)</label>', menu)
     check("194: Export on the PETs screen carries the two ticks, each a whole row inside its label, saving to the "
           "keys the print view and the server read",
-          [r for r in rows if r[0] in ("export_not_placed", "export_binned")] == [("export_not_placed", "Include not placed"), ("export_binned", "Include statements set aside")]
+          [r for r in rows if r[0] in ("export_not_placed", "export_binned")] == [("export_not_placed", "Unplaced"), ("export_binned", "Statements set aside")]
           and all(k in server_mod.defaults() for k, _ in rows), str(rows))
     fn = lambda name: js.split(f"function {name}(", 1)[1].split("\n}", 1)[0]
     script = ("let TH = { config: { export_not_placed: true } };\n"

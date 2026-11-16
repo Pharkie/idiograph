@@ -79,21 +79,21 @@ def test_status_bar_and_palette(scratch):
         return
     o = json.loads(run.stdout)
     check("201: in node, the PETs board's counts in words: the PETs at the top level, the statements in them, those "
-          "stacked, set aside and not placed",
-          o["start"] == ["2 PETs", "3 in PETs", "0 stacked", "0 set aside", "2 not placed"], str(o["start"]))
+          "stacked, set aside and unplaced",
+          o["start"] == ["2 PETs", "3 in PETs", "0 stacked", "0 set aside", "2 unplaced"], str(o["start"]))
     check("201: in node, right after a stack the statement stacked leaves In PETs for Stacked, its top standing for it",
-          o["stack"] == ["2 PETs", "2 in PETs", "1 stacked", "0 set aside", "2 not placed"], str(o["stack"]))
-    check("201: in node, right after a move into a PET, one fewer not placed and one more in PETs",
-          o["move"] == ["2 PETs", "3 in PETs", "1 stacked", "0 set aside", "1 not placed"], str(o["move"]))
-    check("201: in node, right after a bin, the last not placed is binned",
-          o["bin"] == ["2 PETs", "3 in PETs", "1 stacked", "1 set aside", "0 not placed"], str(o["bin"]))
+          o["stack"] == ["2 PETs", "2 in PETs", "1 stacked", "0 set aside", "2 unplaced"], str(o["stack"]))
+    check("201: in node, right after a move into a PET, one fewer unplaced and one more in PETs",
+          o["move"] == ["2 PETs", "3 in PETs", "1 stacked", "0 set aside", "1 unplaced"], str(o["move"]))
+    check("201: in node, right after a bin, the last unplaced is binned",
+          o["bin"] == ["2 PETs", "3 in PETs", "1 stacked", "1 set aside", "0 unplaced"], str(o["bin"]))
     check("201: in node, the bar draws the counts the settings pick, in its order, with no total while a stacked "
           "statement is in no count picked (area 264), and with the bar off it shows none and the canvas loses its status class",
           o["drawn"] == ["sum", "placed", "binned"] and o["drawnText"] == "ES: 3 in PETs, 1 set aside"
           and o["off"] == {"text": "", "on": False}, str({k: o[k] for k in ("drawn", "drawnText", "off")}))
     check("201: in node, the GETs board counts GETs and the cards in them, a participant note never one, and has no "
           "stacked count",
-          o["gets"] == ["1 GET", "1 in GETs", "0 set aside", "1 not placed"], str(o["gets"]))
+          o["gets"] == ["1 GET", "1 in GETs", "0 set aside", "1 unplaced"], str(o["gets"]))
     check("201: in node, a palette let go nearer the right edge settles against it, nearer the left against that, "
           "its top kept as a share of the room, held between the top and the foot",
           o["drop"] == [{"edge": "right", "y": 0.5}, {"edge": "left", "y": 0}, {"edge": "left", "y": 1}], str(o["drop"]))

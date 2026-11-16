@@ -210,7 +210,7 @@
   "server.trajectory_no_such_tag": "No participant has the tag {tag}, so nothing was changed.",
   "server.trajectory_sentence_long": "Make the sentence {most} characters or fewer, so nothing was changed.",
   "server.trajectory_icon_not_one": "{icon} is not a trajectory's icon, which is one of {listed}, so nothing was changed.",
-  "server.trajectory_order_not_placed": "{name} is not placed in a trajectory, so nothing was changed.",
+  "server.trajectory_order_not_placed": "{name} is unplaced, so nothing was changed.",
   "server.trajectory_label_long": "Make the label {most} characters or fewer, so nothing was changed.",
   "server.trajectory_tags_list": "Tags are a list of words, so nothing was changed.",
   "server.trajectory_tag_long": "Make each tag {most} characters or fewer, so nothing was changed.",

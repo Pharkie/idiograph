@@ -12,7 +12,7 @@ import idiograph_routes
 
 def test_pet_print(scratch):
     print("\n81. The PET document: the book's table in print, lettered as the Word document and the PET draft, the title, "
-          "the case, the date, Not placed and Discarded only when full, the board note by choice (185, 206)")
+          "the case, the date, Unplaced and Discarded only when full, the board note by choice (185, 206)")
     import html
     import server as server_mod
     import themes as themes_mod
@@ -133,10 +133,10 @@ def test_pet_print(scratch):
           is not None and '@bottom-right { content: "Page " counter(page) " of " counter(pages) !important;' in page
           and 'content: "a\\22 b\\3C /style\\3E ";' in themes_print.page_foot('a"b</style>'))
 
-    # ── F. the end: Not placed and Discarded only when they hold anything
+    # ── F. the end: Unplaced and Discarded only when they hold anything
     full = printed["Rowan"][1].split("</main>", 1)[0].split('<section class="rest">', 1)[-1]
-    np_head, dc_head = f"<h2>Not placed ({len(outline['unplaced'])})</h2>", f"<h2>Experiential statements set aside ({len(outline['discarded'])})</h2>"
-    check("206, 207: Not placed and Discarded at the end when they hold something, with their counts, set out as a PET's statements are",
+    np_head, dc_head = f"<h2>Unplaced ({len(outline['unplaced'])})</h2>", f"<h2>Experiential statements set aside ({len(outline['discarded'])})</h2>"
+    check("206, 207: Unplaced and Discarded at the end when they hold something, with their counts, set out as a PET's statements are",
           outline["unplaced"] and outline["discarded"] and np_head in full and dc_head in full
           and full.index(np_head) < full.index(dc_head)
           and all(f'<p class="st">{html.escape(s["text"], quote=True)} <span class="ref">(Initial, ' in full
@@ -144,14 +144,14 @@ def test_pet_print(scratch):
           and "<h2>Unplaced</h2>" not in page)
     empty = printed["Whole"][1]
     check("185: and left out when empty, no heading and no None",
-          "<h2>Not placed" not in empty and "<h2>Experiential statements set aside" not in empty and '<section class="rest">' not in empty
+          "<h2>Unplaced" not in empty and "<h2>Experiential statements set aside" not in empty and '<section class="rest">' not in empty
           and "None." not in empty and '<span class="number">A.</span>' in empty)
 
     # ── G. the PET draft, the same numbers
     draft = drafts["Rowan"]
     heads = [ln for ln in draft.splitlines() if ln.startswith("##")]
     subs = [themes_mod.numbered(nums[s["id"]], s["label"]) for t in outline["themes"] for s in t["themes"]]
-    ends = [f"## Not placed ({len(outline['unplaced'])})", f"## Experiential statements set aside ({len(outline['discarded'])})"]
+    ends = [f"## Unplaced ({len(outline['unplaced'])})", f"## Experiential statements set aside ({len(outline['discarded'])})"]
     lettered = [ln[3:] for ln in heads if ln.startswith("## ") and ln not in ends]
     check("185, 206, 207: the draft's headings carry the print's numbers and titles in its order, a sub-theme by its number",
           lettered == [f"{x}. {t}" for x, t in titles] and heads[-2:] == ends
@@ -185,7 +185,7 @@ def test_pet_print(scratch):
           "Unplaced and Discarded alike",
           listed == list(walked(outline["themes"])) + [s["text"] for s in outline["unplaced"] + outline["discarded"]])
     check("185: the draft leaves the board note out, and an empty Unplaced or Discarded too",
-          NOTE not in draft and "## Not placed" not in drafts["Whole"] and "## Discarded" not in drafts["Whole"]
+          NOTE not in draft and "## Unplaced" not in drafts["Whole"] and "## Discarded" not in drafts["Whole"]
           and "None." not in drafts["Whole"] and "continued" not in draft and "\nQuotes\n" not in draft)
     mabel = drafts["Mabel"]
     m_out = themes_mod.outline(themes_mod.read_cards(books["Mabel"]),

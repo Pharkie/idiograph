@@ -1,11 +1,11 @@
 """Area 294: two board ops that said they did what they did not (boardgaps, 30 October 2026).
 
 A statement written after a board was made, with `turn write` or in the app, has no card in the board's file
-until the next save, and the canvas shows it waiting in Not placed. `board apply` read the file's cards alone, so
+until the next save, and the canvas shows it waiting in Unplaced. `board apply` read the file's cards alone, so
 a move of it into a label said "moved" and left it out, `put_all_on` passed it over and `stack` refused it as
 "not a statement on the board". Every op now takes it as one of the board's (`themes.with_new`). And a `move` to
-null on a card lying loose on the canvas said it moved it out to Not placed while it stayed loose: now it waits
-there, as Back to Not placed does on the canvas, and the answer names only what each move took out.
+null on a card lying loose on the canvas said it moved it out to Unplaced while it stayed loose: now it waits
+there, as Back to Unplaced does on the canvas, and the answer names only what each move took out.
 
 Every word invented: Kit asks Quill, who learnt to swim late, about the water at three points, Before, Midway and
 3m, the last a sheet whose name starts with a figure, so its keys read 3m:5:1.
@@ -40,7 +40,7 @@ THREE = [{"label": "Before", "description": "Before the lessons"}, {"label": "Mi
 OWN = ["Face in the water", "Letting go of the rope", "No longer watched", "Free and a little alone"]
 
 # the page's model in node, as area 221 runs it: the state /api/themes answers loaded as thLoad loads it, a new
-# statement dragged from Not placed into a PET and a loose card sent back to Not placed, and the body a save sends
+# statement dragged from Unplaced into a PET and a loose card sent back to Unplaced, and the body a save sends
 PAGE = r"""
 const state = JSON.parse(process.env.BG_STATE);
 const want = JSON.parse(process.env.BG_WANT);
@@ -60,7 +60,7 @@ const out = { read: { waiting: thWaiting(v, want.fresh), loose: thOnCanvas(v, wa
 // the new statement let go on the PET's body
 thTargetAt = () => ({ group: want.label });
 thSideDrop([want.fresh], 400, 300);
-// and the loose card sent back to Not placed, as Backspace and a drag onto the sidebar do
+// and the loose card sent back to Unplaced, as Backspace and a drag onto the sidebar do
 thWaitDo([want.loose]);
 out.after = { inLabel: v.groups.find((g) => g.id === want.label).members.includes(want.fresh), waits: thWaiting(v, want.loose) };
 out.body = thBody(v, state.version);
@@ -71,7 +71,7 @@ console.log(JSON.stringify(out));
 def test_board_gaps(scratch: Path):
     print("\n294. Board ops on a statement written after the board was made, a move into a label, put_all_on, a stack "
           "and an order, each dry run as its apply, board list counting it, and a move to null on a card loose on the "
-          "canvas sending it to wait in Not placed, the answer naming only what moved, the page doing the same (30 October)")
+          "canvas sending it to wait in Unplaced, the answer naming only what moved, the page doing the same (30 October)")
     import cli
     import mcp_server
     import server as server_mod
@@ -193,10 +193,10 @@ def test_board_gaps(scratch: Path):
         code, shown, err = run("board", "show", "Quill", bid, *tp)
         code, listed, err = run("board", "list", "Quill", *tp)
         entry = next(b for b in listed["boards"] if b["id"] == bid)
-        check("294: board show lists a statement written after the board under Not placed, waiting, not loose",
+        check("294: board show lists a statement written after the board under Unplaced, waiting, not loose",
               any(s["key"] == n1 and not s.get("loose") for s in shown.get("unplaced") or [])
               and n1 not in board_file()["cards"], shown.get("unplaced"))
-        check("294: and board list counts it as waiting in Not placed, as the canvas does",
+        check("294: and board list counts it as waiting in Unplaced, as the canvas does",
               entry["waiting"] == 1 and entry["not_placed"] == 3, entry)
         dry, real, same = both([{"op": "move", "items": [n1], "to": label}])
         members = next(g for g in board_file()["groups"] if g["id"] == label)["members"]
@@ -230,14 +230,14 @@ def test_board_gaps(scratch: Path):
               [s["key"] for s in pet["statements"]][:4] == [n5, olds[1], olds[0], n1] and same and alike(dry, real),
               (dry, real, [s["key"] for s in pet["statements"]]))
 
-        # ── E. loose cards moved to null go to wait in Not placed
+        # ── E. loose cards moved to null go to wait in Unplaced
         loose = {k for k, c in board_file()["cards"].items() if c.get("loose")}
         dry, real, same = both([{"op": "move", "items": [olds[2], olds[3]], "to": None}])
         now = board_file()
-        check("294: a move to null on two loose cards sends them to wait in Not placed, no longer loose, as its dry run said",
+        check("294: a move to null on two loose cards sends them to wait in Unplaced, no longer loose, as its dry run said",
               {olds[2], olds[3]} <= loose and not any(now["cards"][k].get("loose") for k in (olds[2], olds[3]))
               and {olds[2], olds[3]} <= set(themes.waiting_keys(now)) and same and alike(dry, real)
-              and "moved two statements out to Not placed" in dry[1]["said"], (dry, real))
+              and "moved two statements out to Unplaced" in dry[1]["said"], (dry, real))
         code, shown, err = run("board", "show", "Quill", bid, *tp)
         check("294: and board show no longer marks them on the canvas",
               not any(s.get("loose") for s in shown["unplaced"] if s["key"] in (olds[2], olds[3])), shown["unplaced"])
@@ -249,8 +249,8 @@ def test_board_gaps(scratch: Path):
         dry, real, same = both([{"op": "move", "items": [n2, olds[3]], "to": None}])
         check("294: one naming a loose card and one waiting moves the loose card alone and says the other waited already",
               not board_file()["cards"][n2].get("loose") and same and alike(dry, real)
-              and "moved one statement out to Not placed" in dry[1]["said"]
-              and f"Left {sids[olds[3]]} waiting in Not placed, as it was already" in dry[1]["said"], (dry, real))
+              and "moved one statement out to Unplaced" in dry[1]["said"]
+              and f"Left {sids[olds[3]]} waiting in Unplaced, as it was already" in dry[1]["said"], (dry, real))
 
         # ── F. MCP's board_apply, the same command
         code, said, err = write_turn(rows[1], "The rope as a choice")
@@ -269,7 +269,7 @@ def test_board_gaps(scratch: Path):
               res["isError"] is False and res2["isError"] is False and n6 in members
               and "moved one statement into 'Letting go'" in res["content"][0]["text"], (res, res2))
 
-        # ── G. the page does the same: a new statement dragged from Not placed into the PET, a loose card sent back
+        # ── G. the page does the same: a new statement dragged from Unplaced into the PET, a loose card sent back
         code, said, err = apply([{"op": "put_all_on"}])
         code, said, err = write_turn(rows[3], "Alone in the lane")
         n7 = key(rows[3], 2)
@@ -300,8 +300,8 @@ globalThis.MOD = (e) => !!(e && e.metaKey);
             o = json.loads(ran.stdout.strip().splitlines()[-1])
         except (ValueError, IndexError):
             o = {}
-        check("294: the page reads the new statement as waiting in Not placed and the loose card as on the canvas, and "
-              "a drop of the one into the PET and Back to Not placed on the other do what the op did",
+        check("294: the page reads the new statement as waiting in Unplaced and the loose card as on the canvas, and "
+              "a drop of the one into the PET and Back to Unplaced on the other do what the op did",
               o.get("read") == {"waiting": True, "loose": True} and o.get("after") == {"inLabel": True, "waits": True},
               (ran.stdout + ran.stderr)[:600])
         with themes.scoped(3):

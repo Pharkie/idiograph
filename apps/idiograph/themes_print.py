@@ -635,32 +635,30 @@ def foot_fit(pieces: list[str], fit: int, middle: str, css: str, numbered: bool 
 
 
 # the export's ticks, each by its id on the page, its key in config.json, the query the page is drawn by
-# and its words, all off on a new install: the two that put Not placed and Discarded in the export (18
-# October), the third that puts the statements stacked under a top beneath it (19 October), and For
-# sending, which leaves the board's name off the page and out of the file's name (Adam, 19 October). Pen portrait,
-# last (pbioexport, 11 November 2026), puts the participant's label and pen portrait under the head (`who_html`)
+# and its words, all off on a new install: the two that put Unplaced and Discarded in the export (18
+# October), the third that puts the statements stacked under a top beneath it (19 October). Pen portrait,
+# last (pbioexport, 11 November 2026), puts the participant's label and pen portrait under the head (`who_html`).
+# Leave out the board's name is no longer one of them (Adam, 16 November 2026: "nobody wants it")
 INCLUDES = (("include-descriptions", "export_descriptions", "descriptions"),
             ("include-unplaced", "export_not_placed", "unplaced"),
             ("include-binned", "export_binned", "binned"),
             ("include-stacked", "export_stacked", "stacked"),
-            ("for-sending", "export_for_sending", "sending"),
             ("include-portrait", "export_portrait", "portrait"))
 
 
 def include_words() -> tuple:
     """Each tick's words in INCLUDES' order, in the run's language."""
     return (i18n.t("page_print.tick.descriptions"), i18n.t("page_print.tick.unplaced"), i18n.t("page_print.tick.binned"),
-            i18n.t("page_print.tick.stacked"), i18n.t("page_print.tick.sending"), i18n.t("page_print.tick.portrait"))
+            i18n.t("page_print.tick.stacked"), i18n.t("page_print.tick.portrait"))
 
 
-def include_ticks(unplaced: bool, binned: bool, stacked: bool = False, sending: bool = False,
-                  descriptions: bool = True, portrait: bool = False) -> str:
+def include_ticks(unplaced: bool, binned: bool, stacked: bool = False, descriptions: bool = True,
+                  portrait: bool = False) -> str:
     """The page's ticks, each toggling from its whole row inside its label, as the page is drawn."""
     return "".join(f'<label class="tick"><input type="checkbox" id="{box}"' + (" checked" if on else "")
                    + f"> {esc(words)}</label>"
                    for (box, _key, _query), words, on in zip(INCLUDES, include_words(),
-                                                              (descriptions, unplaced, binned, stacked, sending,
-                                                               portrait)))
+                                                              (descriptions, unplaced, binned, stacked, portrait)))
 
 
 def who_html(who: dict | None) -> list[str]:
@@ -862,7 +860,7 @@ def page(workbook: Path, case: str, board: str | None = None, question: str = ""
         "<!doctype html>", f'<html lang="{page_lang()}">', "<head>", '<meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
         f"<title>{esc(title)}</title>", FONTS_LINK, f"<style>{STYLE}{page_foot(pieces, middle, numbered=True, fit=fit)}</style>", "</head>", "<body>",
-        f'<div class="controls noprint">{tick}{include_ticks(unplaced, binned, stacked, sending, descriptions, who is not None)}<button type="button" id="print">{esc(i18n.t("page_print.print"))}</button></div>',
+        f'<div class="controls noprint">{tick}{include_ticks(unplaced, binned, stacked, descriptions, who is not None)}<button type="button" id="print">{esc(i18n.t("page_print.print"))}</button></div>',
         *head, "<main>", *body, *rest, "</main>",
         f"<footer>{esc(foot + ('  ' + chr(183) + '  ' + middle if middle else ''))}</footer>",
         foot_fit(pieces, fit, middle, STYLE),

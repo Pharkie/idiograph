@@ -223,7 +223,7 @@ def test_themes_versions(scratch):
         heads = [l for l in lines if l.startswith("#")]
         check("theme by theme in canvas order, lettered as the book letters them, a sub-theme a heading under its PET by its reference, the lists at the end counted (185, 206, 207, 208)",
               heads == ["# Juno: PET grouping draft (By the day)", "## A. Standing apart", "## B. Home life",
-                        "### B1. Mornings", "### B2. The unsaid", "## Not placed (11)", "## Experiential statements set aside (1)"], " | ".join(heads))
+                        "### B1. Mornings", "### B2. The unsaid", "## Unplaced (11)", "## Experiential statements set aside (1)"], " | ".join(heads))
         mornings = text.split("### B1. Mornings\n", 1)[1].split("\n### ", 1)[0]
         check("each statement on its own line with its sheet and timecode, in transcript order, its own quote under it (95)",
               mornings.strip() == "\n".join(said(key) for key in (by_row[3][0], by_row[9][0], by_row[9][1]))
@@ -239,7 +239,7 @@ def test_themes_versions(scratch):
         check("no quote line reads as a markdown list, each set in under its statement after a break, none quoted twice",
               quote_lines and all(l.endswith("\u2019") and not l.startswith("  \u2018\u2018") and '\u2018"' not in l
                                   and lines[lines.index(l) - 1].endswith("\\") for l in quote_lines))
-        unplaced = text.split("## Not placed (11)\n", 1)[1].split("\n## ", 1)[0]
+        unplaced = text.split("## Unplaced (11)\n", 1)[1].split("\n## ", 1)[0]
         placed = {by_row[3][0], by_row[9][0], by_row[9][1], by_row[last][0], by_row[last][1], by_row[7][0]}
         rest = [key for key in k if key not in placed and key != by_row[5][2]]
         check("the unplaced statements listed at the end, and the discarded under their own heading",

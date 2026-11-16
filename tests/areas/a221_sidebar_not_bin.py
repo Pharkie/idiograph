@@ -42,8 +42,8 @@ def made_book(path) -> None:
 
 def test_sidebar_not_bin(scratch):
     print("\n221. The boards' sidebar in place of the bin (Adam, 20 October, way A): an old board's binned cards open "
-          "as Set aside and save back the same, a card in no PET waits in Not placed unless it lies loose on the "
-          "canvas, Take out and Backspace send a card to Not placed and X to Set aside, both starts of a new board, "
+          "as Set aside and save back the same, a card in no PET waits in Unplaced unless it lies loose on the "
+          "canvas, Take out and Backspace send a card to Unplaced and X to Set aside, both starts of a new board, "
           "Put all on the board, Select all, and the bin's old names still answering on the command line and MCP")
     import mcp_server
     import themes
@@ -69,7 +69,7 @@ def test_sidebar_not_bin(scratch):
     themes.save(book, old, "Tamsin")
     st = themes.state(book, "Tamsin")
     check("221: an old board's binned card opens set aside, kept under `discarded`", st["discarded"] == [k[2]], st["discarded"])
-    check("221: an old board's cards in no PET carry no `loose`, so they wait in the sidebar's Not placed",
+    check("221: an old board's cards in no PET carry no `loose`, so they wait in the sidebar's Unplaced",
           not any(c.get("loose") for c in st["cards"]), [c for c in st["cards"] if c.get("loose")])
     check("221: what waits is in no PET, not set aside, in interview order", themes.waiting_keys(themes.load(book)["boards"][0]) == [k[4], k[5]],
           themes.waiting_keys(themes.load(book)["boards"][0]))
@@ -125,7 +125,7 @@ def test_sidebar_not_bin(scratch):
           k[3] in v1["discarded"] and k[1] in v1["discarded"] and k[3] not in v1["groups"][0]["members"], (out, ran.stderr[:300]))
     out, ran = apply([{"op": "put_back", "items": [k[5]]}])
     v1 = themes.find_version(themes.load(book), "v1")
-    check("221: put_back takes a statement out of Set aside to wait in Not placed",
+    check("221: put_back takes a statement out of Set aside to wait in Unplaced",
           k[5] not in v1["discarded"] and k[5] in themes.waiting_keys(v1), (out, ran.stderr[:300]))
     out, ran = apply([{"op": "put_all_on"}])
     v1 = themes.find_version(themes.load(book), "v1")
@@ -179,7 +179,7 @@ TH.v = v;
 TH.sel = { cards: new Set(), groups: new Set(), stickies: new Set() };
 out.read = { waiting: thWaitingKeys(v, TH.sheets), loose: thOnCanvas(v, 'Initial:7:0'), aside: v.discarded };
 // a stack waits as one row at its top, a statement missing from the workbook last
-// Take out of PET and Backspace: back to Not placed
+// Take out of PET and Backspace: back to Unplaced
 TH.sel.cards = new Set(['Initial:2:0']);
 thDeleteKey();
 out.backspace = { waiting: thWaiting(v, 'Initial:2:0'), onCanvas: thOnCanvas(v, 'Initial:2:0'), inPet: v.groups[0].members.includes('Initial:2:0') };
@@ -196,7 +196,7 @@ TH.sel.cards = new Set(['Initial:7:0']);
 thDiscardKey();
 out.x = { aside: v.discarded.includes('Initial:7:0'), waiting: thWaiting(v, 'Initial:7:0'), onCanvas: thOnCanvas(v, 'Initial:7:0') };
 out.order = thWaitingKeys(v, TH.sheets);
-// rows dropped on the canvas lie there loose, and X's statement put back waits in Not placed
+// rows dropped on the canvas lie there loose, and X's statement put back waits in Unplaced
 thSideDrop(['Initial:2:0', 'Initial:3:0'], 100, 100);
 out.drop = { onCanvas: thOnCanvas(v, 'Initial:2:0') && thOnCanvas(v, 'Initial:3:0'), selected: [...TH.sel.cards] };
 thSideBack('Initial:7:0');
@@ -227,17 +227,17 @@ console.log(JSON.stringify(out));
     said = (ran.stdout + ran.stderr)[:800]
     check("221: the page reads a card in no PET as waiting, a loose one as on the canvas, the bin's as set aside",
           o.get("read") == {"waiting": ["Follow-up:2:0", "Initial:9:0"], "loose": True, "aside": ["Initial:4:0"]}, said)
-    check("221: Backspace sends a card in a PET to Not placed, off the canvas and out of its PET",
+    check("221: Backspace sends a card in a PET to Unplaced, off the canvas and out of its PET",
           o.get("backspace") == {"waiting": True, "onCanvas": False, "inPet": False}, said)
-    check("221: Take out of PET sends a card to Not placed", o.get("takeOut") is True, said)
-    check("221: Backspace sends a card loose on the canvas back to Not placed", o.get("looseBack") is True, said)
-    check("221: X sets a card aside, off the canvas and out of Not placed",
+    check("221: Take out of PET sends a card to Unplaced", o.get("takeOut") is True, said)
+    check("221: Backspace sends a card loose on the canvas back to Unplaced", o.get("looseBack") is True, said)
+    check("221: X sets a card aside, off the canvas and out of Unplaced",
           o.get("x") == {"aside": True, "waiting": False, "onCanvas": False}, said)
-    check("221: Not placed reads in interview order, a stack at its top's time, one missing from the workbook last",
+    check("221: Unplaced reads in interview order, a stack at its top's time, one missing from the workbook last",
           o.get("order") == ["Initial:2:0", "Initial:3:0", "Follow-up:2:0", "Initial:9:0"], said)
     check("221: rows dropped on the canvas lie there, selected", (o.get("drop") or {}).get("onCanvas") is True
           and sorted((o.get("drop") or {}).get("selected") or []) == ["Initial:2:0", "Initial:3:0"], said)
-    check("221: Put back from Set aside waits in Not placed", o.get("putBack") is True, said)
+    check("221: Put back from Set aside waits in Unplaced", o.get("putBack") is True, said)
     check("221: Put all on the board puts every statement waiting on the canvas, the missing one left",
           o.get("all") == {"waiting": ["Initial:9:0"], "loose": True}, said)
     check("221: Select all selects every statement on the canvas", o.get("selectAll") == o.get("onCanvas") and o.get("selectAll"), said)

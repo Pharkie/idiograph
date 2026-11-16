@@ -44,7 +44,7 @@ def test_send_tick(scratch):
     book = folder / "P3 Tansy - EN & ES.xlsx"
     board, version = themes_word.board_of(book)
     name = version["name"]
-    np_head = f"Not placed ({len(board['unplaced'])})"
+    np_head = f"Unplaced ({len(board['unplaced'])})"
     dc_head = f"Experiential statements set aside ({len(board['discarded'])})"
 
     def title(page: str) -> str:
@@ -98,9 +98,8 @@ def test_send_tick(scratch):
               saved.get("export_for_sending") is True and saved.get("interviewer") == "Adam"
               and title(page_on) == "P3 - Tansy" and word_on.startswith("P3 - Tansy")
               and title(page_off) == f"P3 - Tansy - {name} - PETs", f"{title(page_on)} {word_on} {title(page_off)}")
-        check("200: the print view carries Leave out the board's name beside its other ticks, ticked as the page is drawn",
-              re.search(r"<label class=.tick.><input type=.checkbox. id=.for-sending. checked> Leave out the board(?:'|&#x27;|&#39;)s name</label>", page_on)
-              and 'id="for-sending" checked' not in page_off)
+        check("200: the print view carries no tick to leave out the board's name (Adam, 16 November 2026)",
+              'id="for-sending"' not in page_on and 'id="for-sending"' not in page_off)
 
         # the GETs print: the board named without, unnamed with
         gets_off = idiograph_routes.gets_print_page({"root": str(root), "auto": "0", "what": "all", "sending": "0"})
@@ -136,7 +135,7 @@ def test_send_tick(scratch):
         c2, with_np, _ = answer("board", "export", "P3 - Tansy", "--pdf", "--not-placed")
         c3, with_dc, _ = answer("board", "export", "P3 - Tansy", "--pdf", "--binned")
         check("200: board export --pdf writes the print view's page as a PDF beside the workbook, named as the print "
-              "view names it, Not placed and the bin out unless asked for, and a second one never over the first",
+              "view names it, Unplaced and the bin out unless asked for, and a second one never over the first",
               (c1, c2, c3) == (0, 0, 0) and plain["file"] == f"P3 - Tansy - {name} - PETs.pdf" and plain["format"] == "pdf"
               and (folder / plain["file"]).read_bytes().startswith(b"%PDF-")
               and sq(np_head) not in printed[0] and sq(dc_head) not in printed[0]

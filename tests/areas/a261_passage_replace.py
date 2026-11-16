@@ -216,6 +216,10 @@ AGENT_OPS = {
                       ("gets", "subs")],
     "/api/gets-boards": [("gets", "history"), ("gets", "revision"), ("gets", "restore")],
     "/api/gets-settings": [("gets", "settings")],
+    # the Export menus' routes (exportnew's ops, wired by exportwire, 16 November 2026)
+    "/api/trajectories-export": [("trajectories", "export")],
+    "/api/transcript-export": [("transcript", "export")],
+    "/api/codes-export": [("codes", "export")],
     # Working together (wtkeys, 8 November 2026)
     "/api/team": [("team", "show"), ("team", "on"), ("team", "set"), ("team", "invite"), ("team", "answers"),
                   ("team", "admit"), ("team", "join"), ("team", "joined"), ("team", "remove"), ("team", "lead"),

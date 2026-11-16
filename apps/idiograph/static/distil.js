@@ -12681,6 +12681,7 @@ function distilBoot() {
   // 2026), and the statements screen's own toolbar under the band (barsD)
   pathMenuBoot();
   esToolsBoot();
+  esExportWire();
   // the browser's Back and Forward on Distil's screens, and where the page starts in its history
   NAV.cur = navHeld();
   if (NAV.cur) { NAV.seen.set(NAV.cur.n, NAV.cur); NAV.seq = Math.max(NAV.seq, NAV.cur.n); }
@@ -13769,6 +13770,65 @@ FAMILY_APPS.idiograph = {
   keys: (...a) => distilKeys(...a),
   cardBusy: (...a) => distilCardBusy(...a),
 };
+
+/* Export on the statements screen (toolbar10 and exportwire, 16 November 2026): first in its toolbar, its menu Print,
+   Save as PDF and Microsoft Word, then Include, Exploratory notes, Experiential statements, Interviewer notes and Pen
+   portrait. Save as PDF and Microsoft Word post { workbook, format, notes, statements, interviewer_notes, portrait }
+   to the route, written beside the workbook, and Print opens the print view in a tab of its own */
+const ES_EXPORT = '/api/transcript-export';
+const ES_PRINT = '/transcript/print';
+
+function esXmenu(open) {
+  const menu = $('es-xmenu');
+  const btn = $('es-export');
+  if (!menu || !btn) return;
+  menu.hidden = !(open && ES_EXPORT);
+  btn.setAttribute('aria-expanded', String(!menu.hidden));
+  if (menu.hidden) return;
+  const box = btn.getBoundingClientRect();
+  menu.style.left = `${Math.max(8, Math.min(box.left, window.innerWidth - menu.offsetWidth - 8))}px`;
+  menu.style.top = `${box.bottom + 8}px`;
+}
+
+async function esExportGo(kind) {
+  const menu = $('es-xmenu');
+  const inc = (k) => !!menu.querySelector(`[data-xinc="${k}"]:checked`);
+  esXmenu(false);
+  if (!ES_EXPORT || !S.data || !S.data.path) return;
+  const ticks = { notes: inc('notes'), statements: inc('statements'), interviewer_notes: inc('interviewer_notes'), portrait: inc('portrait') };
+  if (kind === 'print') {
+    const q = { workbook: S.data.path };
+    for (const [k, v] of Object.entries(ticks)) q[k] = v ? '1' : '0';
+    const url = `${ES_PRINT}?${new URLSearchParams(q)}`;
+    // the tab opens on the press, which is what the browser allows, and the page goes in once what he typed is saved
+    const tab = window.open('about:blank', '_blank');
+    if (!tab) { say(t('themes.print.blocked'), 8000); return; }
+    if (!(await distilSavePending())) { tab.close(); return; }
+    tab.location.href = url;
+    return;
+  }
+  // what he typed is in the workbook before the document is made from it
+  if (!(await distilSavePending())) return;
+  try {
+    const made = await api(ES_EXPORT, Object.assign({ workbook: S.data.path, format: kind }, ticks));
+    if (made && made.shown) say(t('themes.exported', { name: made.shown.join(', ') }), 8000);
+  } catch (err) {
+    say(err.message, 9000);
+  }
+}
+
+function esExportWire() {
+  const btn = $('es-export');
+  const menu = $('es-xmenu');
+  if (!btn || !menu) return;
+  btn.hidden = !ES_EXPORT;
+  $('es-export-rule').hidden = !ES_EXPORT;
+  btn.onclick = () => esXmenu(menu.hidden);
+  menu.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
+  menu.addEventListener('click', (e) => { const op = e.target.closest('[data-xop]'); if (op) esExportGo(op.dataset.xop); });
+  document.addEventListener('pointerdown', (e) => { if (!menu.hidden && !e.target.closest('#es-xmenu, #es-export')) esXmenu(false); }, true);
+  document.addEventListener('keydown', (e) => { if (!menu.hidden && e.key === 'Escape') { e.preventDefault(); esXmenu(false); btn.focus(); } });
+}
 
 distilBoot();
 

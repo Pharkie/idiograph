@@ -70,11 +70,11 @@ def test_agent_pdf(scratch):
         code, plain, err = answer("board", "export", "Rowan", "--pdf", "--out", str(out))
         base = printed[-1]
         board, version = __import__("themes_word").board_of(book)
-        np_head = f"Not placed ({len(board['unplaced'])})"
+        np_head = f"Unplaced ({len(board['unplaced'])})"
         # the bin's heading says Set aside since 20 October (sidebar), the flag --binned still answering
         dc_head = f"{__import__('themes').BINNED_HEADING} ({len(board['discarded'])})"
         check("224: board export --pdf --out a folder writes the print view's page there, named as the print view "
-              "names it, every tick off: no board note, no Not placed, no bin, the board named and letters for labels",
+              "names it, every tick off: no board note, no Unplaced, no bin, the board named and letters for labels",
               code == 0 and plain["file"] == "Rowan - Board 1 - PETs.pdf" and (out / plain["file"]).read_bytes()[:5] == b"%PDF-"
               and plain["path"] == str(out.resolve() / plain["file"])
               and sq("Walks at both ends") not in base and sq(np_head) not in base and sq(dc_head) not in base

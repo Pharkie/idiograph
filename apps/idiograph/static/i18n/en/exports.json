@@ -1,6 +1,6 @@
 {
   "exports.set_aside_heading": "Experiential statements set aside",
-  "exports.not_placed": "Not placed",
+  "exports.not_placed": "Unplaced",
   "exports.stacked_under_it": "Stacked under it",
   "exports.stacked_under": "Stacked under",
   "exports.stacked_under_words": "Stacked under: {words}",

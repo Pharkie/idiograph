@@ -128,7 +128,7 @@ def test_exports_typst(scratch: Path):
             for side in sorted((src / "Working").glob(f"{name} - *")):
                 shutil.copy2(side, root / name / "Working" / side.name)
         # Juno places every statement since 12 November 2026 (esredo2), so one is taken out of its PET on this copy,
-        # for Not placed to have one to print
+        # for Unplaced to have one to print
         side = root / "Juno" / "Working" / "Juno - EN & ES.themes.json"
         held = json.loads(side.read_text(encoding="utf-8"))
         first = held["boards"][0]
@@ -152,11 +152,11 @@ def test_exports_typst(scratch: Path):
         pages = pdftext.pages_text(pdf)
         again = call("/api/themes-export", {"workbook": str(book), "version": bid, "op": "pdf"})
         check("367: Export as PDF of the table of PETs: the server writes it beside the workbook through Typst, named as "
-              "the print view names it, landscape A4, the participant, the board, Not placed as ticked and the "
+              "the print view names it, landscape A4, the participant, the board, Unplaced as ticked and the "
               "researcher in its text, a second one dated beside it",
               made["name"] == "Juno - Board 1 - PETs.pdf" and made["shown"] == [made["name"]] and pdf[:5] == b"%PDF-"
               and rendered[0] == ("pets_table_main.typ", "pdf") and a4_landscape(pdf) and len(pages) >= 2
-              and squash("Juno") in squash(pages[0]) and squash("Not placed") in squash(" ".join(pages))
+              and squash("Juno") in squash(pages[0]) and squash("Unplaced") in squash(" ".join(pages))
               and squash("A. Researcher") in squash(pages[0]) and again["dated"] is True
               and again["name"] != made["name"] and (root / "Juno" / again["name"]).is_file()
               and "margins" not in made, json.dumps([made, again])[:400])

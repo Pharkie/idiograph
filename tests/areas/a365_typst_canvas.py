@@ -148,7 +148,7 @@ def test_typst_canvas(scratch: Path):
 
     # ── A. what the data carries: on the canvas only what the canvas draws there
     keys = [c["key"] for c in data["cards"]]
-    check("the cards set aside, stacked under a top or waiting in Not placed stay off the canvas",
+    check("the cards set aside, stacked under a top or waiting in Unplaced stay off the canvas",
           "Initial:51:0" not in keys and not any(k.startswith("Initial:41:") and k != "Initial:41:0" for k in keys)
           and "Initial:47:0" in keys and len(keys) == 26, str(len(keys)))
     top = next(c for c in data["cards"] if c["key"] == "Initial:41:0")

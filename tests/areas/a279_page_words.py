@@ -51,7 +51,7 @@ def test_page_words(scratch: Path):
     shutil.rmtree(fx, ignore_errors=True)
     (fx / "static" / "i18n" / "en-ZZ").mkdir(parents=True)
     (fx / "static" / "i18n" / "en-ZZ" / "page_print.json").write_text(json.dumps(
-        {"page_print.tick.sending": "To send on", "page_print.pets.title": "{board} of {case}"}), encoding="utf-8")
+        {"page_print.tick.binned": "Put aside", "page_print.pets.title": "{board} of {case}"}), encoding="utf-8")
     roots, language = i18n.ROOTS, i18n.LANGUAGE
     try:
         real = list(roots())
@@ -63,6 +63,6 @@ def test_page_words(scratch: Path):
         i18n.ROOTS, i18n.LANGUAGE = roots, language
     check("279: a print view drawn in an overlay takes the overlay's words, its slots in the overlay's order, and "
           "English for the rest",
-          "> To send on</label>" in ticks and "> Include not placed</label>" in ticks and title == "Board 3 of P9 - Wren",
+          "> Put aside</label>" in ticks and "> Include unplaced</label>" in ticks and title == "Board 3 of P9 - Wren",
           f"{title} {ticks[:200]}")
     shutil.rmtree(fx, ignore_errors=True)

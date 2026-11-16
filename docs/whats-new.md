@@ -99,7 +99,7 @@ Send feedback has no sideways scroll bar in the note box when the window's text 
 What's new shows every version since the one you last ran, with Earlier versions for the rest, and an update waiting shows its own notes.
 The text size shows for a moment when Cmd+plus, Cmd+minus or Cmd+0 changes it.
 Settings, General shows the exact text size when it sits between Small, Medium and Large.
-For your own AI agents, a statement written after its board was made can now be moved, stacked and put on the board, and loose cards they move back to Not placed now go there.
+For your own AI agents, a statement written after its board was made can now be moved, stacked and put on the board, and loose cards they move back to Unplaced now go there.
 
 ## 0.9.13, 29 October 2026
 
@@ -146,7 +146,7 @@ The window keeps at least 720 pixels wide.
 
 The demo is now a finished worked example: every participant's PETs with descriptions, GETs across all three, and the tables.
 Replace all changes the words in your statements, quotes and notes too, not just the transcript, and one Undo takes it all back.
-The status bar says what it counts and adds up: 46 ES: 25 in PETs, 5 stacked, 2 set aside, 14 not placed.
+The status bar says what it counts and adds up: 46 ES: 25 in PETs, 5 stacked, 2 set aside, 14 unplaced.
 A sub-PET can be moved as close to the ones above it as you like.
 Share a copy can send each board's current version only, or all boards.
 The Ko-fi button on Home is smaller and quieter.
@@ -172,7 +172,7 @@ On Windows the installer and the app carry their version details, and every rele
 
 Idiograph is now free and open source, under the GNU AGPL v3.
 Each stage has a tab of its own along the top, and Home, Back and Forward are on every screen.
-On the boards a sidebar holds the statements not placed and those set aside, where the bin was.
+On the boards a sidebar holds the statements unplaced and those set aside, where the bin was.
 The tools stand in a toolbar under the research question: Align, Spread, and Auto-arrange as a grid, a column or a row.
 Select the words first if you like, then press the arrow by Quote, and each statement sits level with its quote.
 A PET, a sub-PET or a GET can carry a description under its title, in print and Word as well.

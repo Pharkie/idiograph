@@ -110,7 +110,7 @@ def test_ta_ai(scratch: Path):
         ai_mod.find_key = lambda *a, **kw: "k-test"
         ai_mod.http_call = wire
         listed = call("/api/codes", {"workbook": str(book)})
-        # a Themes board of two themes, one code left in Not placed
+        # a Themes board of two themes, one code left in Unplaced
         books = routes.gets_books(root)
         data, _cases, _d, _t = gets_mod.assemble(root, books, themes_mod.now_iso())
         gets_mod.write(root, gets_mod._file(data, themes_mod.now_iso()))

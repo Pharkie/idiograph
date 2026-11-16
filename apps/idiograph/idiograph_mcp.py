@@ -19,7 +19,7 @@ OPERATIONS = {
         "The board's operations, run in order, each on the board the ones before it left: "
         '{"op": "retitle", "label": "g2", "title": "..."}, {"op": "note", "label": "g2", "note": "..."}, '
         '{"op": "move", "items": ["S4"], "to": "g1"}, or "to": null with a "reason" to leave statements in '
-        'Not placed, {"op": "make", "ref": "new1", "title": "...", "inside": null, "members": ["S1"]}, '
+        'Unplaced, {"op": "make", "ref": "new1", "title": "...", "inside": null, "members": ["S1"]}, '
         "or with no members an empty label to fill, a new PET with inside null, or a group inside a label, "
         '{"op": "merge", "label": "g4", "into": "g2"}, {"op": "apart", "label": "g5", "to": "parent"} and '
         '{"op": "pick", "label": "g1", "quotes": ["Initial:9:0"]}. A note given empty, "note": "", takes the '
@@ -43,8 +43,8 @@ OPERATIONS = {
         '{"op": "not_same", "items": ["S11", "S12"]} marks it Not the same, so the board no longer links the two, and '
         '{"op": "show_again", "items": ["S11", "S12"]} takes that off. The sidebar, only when he asks: '
         '{"op": "set_aside", "items": ["S5"]} sets statements aside, as X does on the canvas, a top taking its stack, '
-        '{"op": "put_back", "items": ["S5"]} puts them back to wait in Not placed, and {"op": "put_all_on"} puts every '
-        "statement waiting in Not placed on the canvas as one pile, in no PET yet. The bin's old names, discard and "
+        '{"op": "put_back", "items": ["S5"]} puts them back to wait in Unplaced, and {"op": "put_all_on"} puts every '
+        "statement waiting in Unplaced on the canvas as one pile, in no PET yet. The bin's old names, discard and "
         "bin, answer as set_aside. These run after the others and before an order. "
         "A card whose statement is no longer in the workbook, which board_show marks so: "
         '{"op": "remove", "items": ["Initial:12:3"]} takes it off by its key, and {"op": "remove_missing"} takes off '
@@ -94,7 +94,7 @@ TOOLS = [
          "canvas marked.", {"case": mcp.CASE}, ["case"]),
     mcp.tool("board_show", "One board", ("board", "show"),
          "A PETs board as a tree: each PET with its id, count, note, statements and picked quotes, its "
-         "sub-themes under it, then Not placed with the reason each was left out, loose marking one he put on the "
+         "sub-themes under it, then Unplaced with the reason each was left out, loose marking one he put on the "
          "canvas in no PET yet, then Set aside. With no "
          "board named, the Current board. Its close pairs under close: two statements in one group from one "
          "sheet within the gap of each other, which usually say one thing and stack under the better one, "
@@ -122,7 +122,7 @@ TOOLS = [
                          "description": 'The statements left out on purpose, {"S9": "why it fits no PET"}.'},
           "stacked": {"type": "object",
                       "description": 'Statements stacked under a better one, each top to those under it, '
-                                     '{"S77": ["S79", "S80"]}. A top is placed or not placed, and a statement '
+                                     '{"S77": ["S79", "S80"]}. A top is placed or unplaced, and a statement '
                                      "under one is in no label and not under not_placed."},
           "note": {"type": "string", "description": "A note on the whole board, his to read."},
           "layout": {"type": "string", "description": "The board whose layout the new one keeps for every label and "
@@ -137,7 +137,7 @@ TOOLS = [
          "wording differs it replaces the nearest statement on that passage, written as an edit with History. A row "
          "with nothing close on its passage is added there as a new statement with its quote when unmatched is add, "
          "or skipped. A statement two rows name is placed once and named. The board takes the name given, From Excel "
-         "when left out, laid out afresh, every other statement waiting in Not placed and every other board as it "
+         "when left out, laid out afresh, every other statement waiting in Unplaced and every other board as it "
          "was. Run dry_run first: it lists every row's match, exact, fuzzy with its ratio, rewritten, added, skipped "
          "or duplicate, and writes nothing. Show him the list and apply only on his word.",
          {"case": mcp.CASE,
@@ -188,7 +188,7 @@ TOOLS = [
     mcp.tool("board_fresh", "A new empty board", ("board", "fresh"),
          "Make a new PETs board with no PETs, as New board in the board menu does, and put it on the canvas, his "
          "other boards left as they were. start empty, the default, leaves every statement waiting in the sidebar's "
-         "Not placed, and start canvas puts every statement on the canvas as a pile in the middle, in no PET yet. "
+         "Unplaced, and start canvas puts every statement on the canvas as a pile in the middle, in no PET yet. "
          "Make one only when he asks.",
          {"case": mcp.CASE, "start": {"type": "string", "enum": ["empty", "canvas"],
                                   "description": "empty: every statement waiting in the sidebar. canvas: every "
@@ -213,7 +213,7 @@ TOOLS = [
           "labels": {"type": "string", "enum": ["letters", "numbers"],
                      "description": "Letters, A, A1, A1.1, as the book has them, or numbers, PET 1, PET 1a, 1a.1, for "
                                     "this export in place of the project's setting. Leave it out to follow the project."},
-          "not_placed": {"type": "boolean", "description": "True puts Not placed at the end. Left out, it stays out."},
+          "not_placed": {"type": "boolean", "description": "True puts Unplaced at the end. Left out, it stays out."},
           "set_aside": {"type": "boolean", "description": "True puts the statements set aside at the end. Left out, they "
                                                           "stay out. binned, its name before, says the same."},
           "binned": {"type": "boolean", "description": "The name set_aside had before 20 October."},
@@ -313,7 +313,7 @@ TOOLS = [
          "for each timepoint, headed T1, T2 and so on. Each row becomes an LPET on a new LPETs board, named as given, "
          "From Excel when left out, its text at each timepoint in its note as a paragraph headed by the timepoint. "
          "The PETs it draws on are proposed as its members by matching each cell's quotes and words to that "
-         "timepoint's PETs' statements, for him to confirm on the canvas, and every other card waits in Not placed. "
+         "timepoint's PETs' statements, for him to confirm on the canvas, and every other card waits in Unplaced. "
          "Run dry_run first: it lists each LPET with the PETs proposed and why, and those with none, and writes "
          "nothing. Show him the list and apply only on his word.",
          {"file": dict(mcp.TEXT, description="The table, by its path from the project's folder or in full."),
@@ -590,7 +590,7 @@ TOOLS = [
     mcp.tool("trajectories_show", "The Trajectories board", ("trajectories", "show"),
          "In a project of two or more timepoints, the Trajectories board after the LGETs: his note for the whole "
          "board, `note`, then the project's own trajectories, each with its sentence, colour and icon and the participants placed in it in his order, then "
-         "those not placed, each participant with their colour, label, tags, picture, his note on why, their LPETs' "
+         "those unplaced, each participant with their colour, label, tags, picture, his note on why, their LPETs' "
          "titles, and rows: each LPET with its domain and its domains apart, each with its colour, whether it is "
          "shown, and a cell for each timepoint holding its state, its key quote (ticked, chosen, or the first standing "
          "in) without the marks the workbook keeps round it, with its source, his bold in it as [start, end] spans of "
@@ -601,7 +601,7 @@ TOOLS = [
          "Change the Trajectories board with its own operations, all or nothing, as the board itself does: "
          '{"op": "add", "title": "Positive"} (with "at", its place from 0), {"op": "rename", "column": "Positive", '
          '"title": "..."}, {"op": "move", "column": "c2", "at": 0}, {"op": "remove", "column": "Mixed"} (its '
-         'participants go back among those not placed, their notes kept), {"op": "place", "participant": "Wren", '
+         'participants go back among those unplaced, their notes kept), {"op": "place", "participant": "Wren", '
          '"column": "Positive", "at": 0} (no column takes them out, at their place in it), {"op": "order", '
          '"participant": "Wren", "at": 1}, {"op": "note", "participant": "Wren", "note": "..."}, '
          '{"op": "describe", "column": "Positive", "description": "..."}, {"op": "colour", "column": "c1", '

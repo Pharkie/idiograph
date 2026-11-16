@@ -158,20 +158,20 @@ def test_agent_cli(scratch):
               and rows[0]["turn"].startswith("Yeah. Erm.") and rows[0]["quotes"][0]["key"] == "Initial:3:0"
               and rows[0]["notes"] and "S1 Initial:3:0  Slipping between is and was" in text
               and "  Turn: Yeah. Erm." in text and "  Quote Initial:3:0:" in text)
-        check("79: and where each board places it, the labels over it, Not placed or the bin",
+        check("79: and where each board places it, the labels over it, Unplaced or the bin",
               rows[1]["boards"][0]["where"] == "Company in a lonely year, and a world closing in"
               and rows[0]["boards"][0]["where"] == idiograph_cli.NOT_PLACED and binned["key"] == "Initial:7:1"
               and "      Board 1: Set aside" in text)
         code, text, _ = run("board", "list", "Rowan")
         check("79: board list names each board with its marks and counts",
-              code == 0 and "v1  Board 1 (the Current board, on the canvas): 5 PETs, 43 placed, 2 not placed, 1 set aside" in text)
+              code == 0 and "v1  Board 1 (the Current board, on the canvas): 5 PETs, 43 placed, 2 unplaced, 1 set aside" in text)
         by_id, by_name = run("board", "show", "Rowan", "v1"), run("board", "show", "Rowan", "board 1")
         _, shown = answer("board", "show", "Rowan")
         check("79: board show is the board as a tree, by its id or its name alike, the Current board with none named",
               by_id == by_name and by_id[0] == 0 and "g1 Living on her timetable, in the dark at both ends (1 sub-theme \u00b7 7 statements)" in by_id[1]
               and "   g6 Still listening for other dogs (4 statements)" in by_id[1]
               and "   Picked Initial:9:0: \"this is all right, this is ours\"" in by_id[1]
-              and "\nNot placed (2)\n" in by_id[1] and "\nSet aside (1)\n" in by_id[1]
+              and "\nUnplaced (2)\n" in by_id[1] and "\nSet aside (1)\n" in by_id[1]
               and shown["id"] == "v1" and shown["themes"][0]["statements"][0]["id"] == "S7"
               and shown["discarded"][0]["key"] == "Initial:7:1")
 
@@ -202,7 +202,7 @@ def test_agent_cli(scratch):
         check("79: it lands as the next board, Board 2, through propose (184), made current, every other board as it was",
               code == 0 and made["name"] == "Board 2" and stored["current"] == made["id"] and stored["chosen"] == "v1"
               and stored["boards"][0] == board1
-              and text.startswith("Made Board 2 on Rowan, from Board 1: 3 PETs, 14 statements placed, 32 left in Not placed, 1 of them with a reason."))
+              and text.startswith("Made Board 2 on Rowan, from Board 1: 3 PETs, 14 statements placed, 32 left in Unplaced, 1 of them with a reason."))
         check("79: made says an agent made it, with the tool, his request and the time, and the note says nothing of it",
               made["made"]["by"] == "agent" and made["made"]["tool"] == "Claude Code"
               and made["made"]["request"] == "Make a board of three PETs" and made["made"]["at"]
@@ -214,12 +214,12 @@ def test_agent_cli(scratch):
               and "Initial:9:1" in g["Mornings and nights arranged round her fear"]["members"]
               and made["picks"] == {g["Mornings and nights arranged round her fear"]["id"]: ["Initial:9:0"]}
               and made["quoted"] == {"Initial:9:0": "\"this is all right, this is ours\""})
-        check("79: nothing goes in the bin, and a statement left out sits in Not placed with its reason under ai",
+        check("79: nothing goes in the bin, and a statement left out sits in Unplaced with its reason under ai",
               made["discarded"] == [] and "Initial:3:0" not in parents and "Initial:7:1" not in parents
               and made["ai"] == {"discarded": {"Initial:3:0": "Tense more than an experience, for him to weigh"}})
         layout = themes_mod.layout_boxes(themes_mod.normalise(made))
         tops = [x["id"] for x in made["groups"] if x["id"] not in parents]
-        # a statement waiting in Not placed is off the canvas (20 October), so its old place is in nobody's way
+        # a statement waiting in Unplaced is off the canvas (20 October), so its old place is in nobody's way
         waiting = set(themes_mod.waiting_keys(made))
         boxes = [layout["frames"][t] for t in tops] + [layout["cards"][k] for k in layout["cards"]
                                                        if k not in parents and k not in waiting]

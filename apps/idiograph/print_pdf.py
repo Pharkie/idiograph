@@ -143,7 +143,8 @@ def gets_what(what: str) -> str:
 def write_gets(root: Path, books: list[dict], project: dict, board: dict, what: str = "table",
                detail: str = "full", notes: bool = False, get: str | None = None, sending: bool = False,
                out=None, replace: bool = False, dry_run: bool = False, now: datetime | None = None,
-               descriptions: bool = True, researcher: str = "", people: dict | None = None) -> dict:
+               descriptions: bool = True, researcher: str = "", people: dict | None = None, heading: str = "",
+               folder: Path | None = None) -> dict:
     """Write a GETs board as a PDF at the project's root, beside the GETs file, or where `out` names, as
     the GETs screen's print card makes it: the GET
     table, the audit trail or the full set (`what`), Full or Selected (`detail`), Include participant
@@ -151,7 +152,9 @@ def write_gets(root: Path, books: list[dict], project: dict, board: dict, what: 
     GET table, Full and both ticks off. `people`, with Participants table ticked, is every participant's set
     (`participants.view`), and a first page lists the participants. Named as the print view names the PDF,
     "Study - Board 2 - GET table", with the GET's id after it for one GET's trail. With `dry_run` nothing is
-    printed or written. The GETs file and the workbooks are only read."""
+    printed or written. The GETs file and the workbooks are only read. A participant's LPETs are named by `heading`,
+    the participant, and go beside their workbook, `folder`, as their Word document does (exportwire, 16 November
+    2026), so two participants' never take one name."""
     import gets_print
     now = now or datetime.now().astimezone()
     what = "trail" if get else what
@@ -166,10 +169,10 @@ def write_gets(root: Path, books: list[dict], project: dict, board: dict, what: 
     template = gets_print.FULL_TEMPLATE if what == "all" else gets_print.TEMPLATE
     parts = gets_print.study_parts(root, books, bid, th.now_iso())
     table = gets_print.gets_table(parts)
-    name = project.get("name") or gets_what("all")
+    name = heading or project.get("name") or gets_what("all")
     named = "" if sending else f"{board.get('name') or th.FIRST_NAME} - "
     said = f"{name} - {named}{gets_what(what)}" + (f" - {get}" if get else "")
-    folder, stem = where_to(out, safe_stem(said), Path(root))
+    folder, stem = where_to(out, safe_stem(said), Path(folder) if folder is not None else Path(root))
     made = place(folder, stem, replace, now, dry_run, lambda: typeset_pdf(template, data))
     counts = {"gets": len(table), "participants": len(parts["inside"]),
               "trails": len([g for g in table if not get or g["id"] == get]) if what != "table" else 0}

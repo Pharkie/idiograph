@@ -177,7 +177,7 @@ def make_workbook(root: Path, folder: str, speaker: str) -> Path:
 
 def near(board: dict, gap: float) -> list:
     """Each pair of neighbours on a saved board nearer than `gap` by the server's own sizes: in the same label, or on
-    the canvas, a label by its frame, a statement waiting in Not placed off the canvas."""
+    the canvas, a label by its frame, a statement waiting in Unplaced off the canvas."""
     import themes
     v = themes.normalise(board)
     drawn = themes.layout_boxes(v)

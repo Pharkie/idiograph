@@ -6,7 +6,7 @@ copy's boards to the same participant in the project it came from: its dry run l
 name and every statement it cannot match, the import adds each one the next board, not current, named
 whose and when, with its History's revision naming the file, every card in its place, a statement edited in
 between, or the other analyst's own rewording, linked by its key (copyback, 6 November 2026, where it waited under
-Not placed before), and nothing else in the project changing. A
+Unplaced before), and nothing else in the project changing. A
 second run adds nothing, a file from another project or the project's own send is refused, and so is a
 participant the project does not have. A file from before the ids is matched by the project's name. The
 MCP tool and the route answer as the command line does, and `board compare` takes the board brought in.
@@ -234,7 +234,7 @@ def test_boards_come_back(scratch: Path):
               and data.get("chosen") in (None, board1["id"]) and new.get("name") == b.get("name")
               and new.get("id") not in (None, board1["id"]), err + json.dumps(data)[:400])
         check("260: every card stays in its PET (copyback, 6 November 2026), the two not read the same linked by their keys, "
-              "his wording now beside the copy's, none waiting under Not placed",
+              "his wording now beside the copy's, none waiting under Unplaced",
               placed == {"Initial:3:0", "Initial:5:0", "Initial:7:0"} and not new.get("ai")
               and new["cards"]["Initial:3:0"] == dict(new["cards"]["Initial:3:0"], text="Feeling the cold travel down the line",
                                                       live="Feeling the winter cold arrive through the line")

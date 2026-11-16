@@ -154,7 +154,7 @@ def test_word_export(scratch):
             headed(t["themes"], depth + 1)
 
     headed(outline["themes"], 0)
-    np_head, dc_head = f"Not placed ({len(outline['unplaced'])})", f"Experiential statements set aside ({len(outline['discarded'])})"
+    np_head, dc_head = f"Unplaced ({len(outline['unplaced'])})", f"Experiential statements set aside ({len(outline['discarded'])})"
     want_heads += [("Heading2", np_head), ("Heading2", dc_head)]
     deep_title = next((t for _s, t in heads if t.endswith(" Up at quarter past five & listening")), "")
     check("87, 205, 207, 208: each PET a heading lettered A, each sub-theme a level down, a group a level more, in the canvas's order",
@@ -182,7 +182,7 @@ def test_word_export(scratch):
     rest = texts[texts.index(np_head) + 1:texts.index(dc_head)]
     want_rest = [x for s in outline["unplaced"]
                  for x in [f"{s['text']} {at(s)}"] + ([f"\u2018{themes_word.bare(s['quote'])}\u2019"] if s["quote"] else [])]
-    check("87, 205: Not placed and Discarded after the PETs, in transcript order, each quote under its statement",
+    check("87, 205: Unplaced and Discarded after the PETs, in transcript order, each quote under its statement",
           rest == want_rest and "A statement on row 2 (Follow-up, 02:00)" in rest
           and rest[rest.index("A statement on row 2 (Follow-up, 02:00)") + 1] == "\u2018a quote on row 2\u2019"
           and texts[texts.index(dc_head) + 1] == "Nocturnal, and not really joking (Initial, 01:39)", str(rest[:3]))
@@ -193,9 +193,9 @@ def test_word_export(scratch):
           and len(lines) == len(texts))
     juno_doc = paras(unzip(juno.parent / bare_one["word"])["word/document.xml"])
     juno_texts = [p["text"] for p in juno_doc]
-    check("87, 205: a case with no number is headed by its name alone, its board the one an open offers, all Not placed",
+    check("87, 205: a case with no number is headed by its name alone, its board the one an open offers, all Unplaced",
           bare_one["word"] == "Juno - PETs (Board 1).docx" and juno_texts[:2] == ["Juno", "Table of Personal Experiential Themes"]
-          and re.fullmatch(r"Not placed \(\d+\)", juno_texts[2]) and not any(t.startswith("Experiential statements set aside") for t in juno_texts)
+          and re.fullmatch(r"Unplaced \(\d+\)", juno_texts[2]) and not any(t.startswith("Experiential statements set aside") for t in juno_texts)
           and not any(t.startswith("Key:") for t in juno_texts)
           and not any(p["num"] for p in juno_doc)
           and themes_word.heading("P12 - Alder") == "P12 Alder",

@@ -331,6 +331,7 @@ async function codesIdle() {
 
 async function codesLeave() {
   await codesIdle();
+  codesXmenu(false);
   $('codes-screen').hidden = true;
   CD.ask += 1;
   if (CD.back) await CD.back();
@@ -365,7 +366,54 @@ async function codesStep(step) {
   await navGo(() => codesStep(step), () => getsOpen(path, { back: again, label: '', to: 'codes' }));
 }
 
+/* Export in the Code list's toolbar row (exportwire, 16 November 2026): Print opens the print view in a tab of its
+   own, and Save as PDF, Microsoft Word and CSV post { workbook, format, extracts } to the route, which writes at the
+   project's root */
+const CD_EXPORT = '/api/codes-export';
+const CD_PRINT = '/codes/print';
+
+function codesXmenu(open) {
+  const menu = $('cd-xmenu');
+  const btn = $('cd-export');
+  if (!menu || !btn) return;
+  menu.hidden = !open;
+  btn.setAttribute('aria-expanded', String(open));
+  if (!open) return;
+  const box = btn.getBoundingClientRect();
+  menu.style.left = `${Math.max(8, Math.min(box.left, window.innerWidth - menu.offsetWidth - 8))}px`;
+  menu.style.top = `${box.bottom + 8}px`;
+}
+
+async function codesExportGo(kind) {
+  const extracts = !!$('cd-xmenu').querySelector('[data-xinc="extracts"]:checked');
+  codesXmenu(false);
+  if (!CD.path) return;
+  if (kind === 'print') {
+    const url = `${CD_PRINT}?${new URLSearchParams({ workbook: CD.path, extracts: extracts ? '1' : '0' })}`;
+    if (!window.open(url, '_blank')) say(t('themes.print.blocked'), 8000);
+    return;
+  }
+  try {
+    const made = await api(CD_EXPORT, { workbook: CD.path, format: kind, extracts });
+    if (made && made.shown) say(t('themes.exported', { name: made.shown.join(', ') }), 8000);
+  } catch (err) {
+    say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
+  }
+}
+
+function codesExportWire() {
+  const btn = $('cd-export');
+  const menu = $('cd-xmenu');
+  if (!btn || !menu) return;
+  btn.onclick = () => codesXmenu(menu.hidden);
+  menu.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
+  menu.addEventListener('click', (e) => { const op = e.target.closest('[data-xop]'); if (op) codesExportGo(op.dataset.xop); });
+  document.addEventListener('pointerdown', (e) => { if (!menu.hidden && !e.target.closest('#cd-xmenu, #cd-export')) codesXmenu(false); }, true);
+  document.addEventListener('keydown', (e) => { if (!menu.hidden && e.key === 'Escape') { e.preventDefault(); codesXmenu(false); btn.focus(); } });
+}
+
 function codesWire() {
+  codesExportWire();
   $('cd-home').onclick = () => codesHome();
   $('cd-feedback').onclick = () => openFeedback('gets');
   $('cd-settings').onclick = () => openSettings('pets');

@@ -52,7 +52,7 @@
   "themes_ai.change.description_wrote": "wrote the description under '{label}'",
   "themes_ai.change.description_off": "took the description off '{label}'",
   "themes_ai.change.moved_into": "moved {what} into '{to}'",
-  "themes_ai.change.moved_out": "moved {what} out to Not placed",
+  "themes_ai.change.moved_out": "moved {what} out to Unplaced",
   "themes_ai.change.lifted": "lifted {what} to the top of the board",
   "themes_ai.change.made": "made '{title}'",
   "themes_ai.change.made_inside": "made '{title}' inside '{inside}'",

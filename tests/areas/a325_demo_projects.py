@@ -115,7 +115,7 @@ def test_demo_projects(scratch):
     placed = {line[k] for k in board["cards"] if k in line}
     split = [code for code in placed if len({parents.get(k) for k in board["cards"] if line.get(k) == code}) > 1]
     check("325: its Themes board holds themes with definitions and notes, a subtheme inside a theme, each code's "
-          "every extract under one theme, two codes not placed, and it is the Current board",
+          "every extract under one theme, two codes unplaced, and it is the Current board",
           len(board["groups"]) - len(subs) >= 3 and len(subs) >= 1
           and all(g.get("description") for g in board["groups"]) and any(g.get("note") for g in board["groups"])
           and not split and len(listed["codes"]) - len(placed) == 2

@@ -1,5 +1,4 @@
 {
-  "trajectories.not_placed": "Not placed",
   "trajectories.title_label": "Trajectory title",
   "trajectories.title_tip": "The trajectory's title",
   "trajectories.remove_label": "Take away {title}",
@@ -22,8 +21,8 @@
   "trajectories.icon_level": "Level",
   "trajectories.done": "Done",
   "trajectories.counts": {
-    "one": "{all} participant: {placed} placed, {unplaced} not placed",
-    "other": "{all} participants: {placed} placed, {unplaced} not placed"
+    "one": "{all} participant: {placed} placed, {unplaced} unplaced",
+    "other": "{all} participants: {placed} placed, {unplaced} unplaced"
   },
   "trajectories.n_trajectories": {
     "one": "{count} trajectory",
@@ -72,5 +71,6 @@
   "trajectories.remove_tag": "Remove {tag}",
   "trajectories.tag_colour": "Colour of {tag}",
   "trajectories.tag_colour_n": "Colour {n} for {tag}",
-  "trajectories.shown": "LPETs shown"
+  "trajectories.shown": "LPETs shown",
+  "trajectories.export_notes": "Each participant’s note"
 }

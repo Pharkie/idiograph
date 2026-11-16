@@ -70,7 +70,7 @@ def test_pet_table(scratch):
     board["picks"] = {"g3": [K(S, 15)]}
     themes_mod.save(book, board, "P7 - Alder")
     outline = themes_word.board_of(book)[0]
-    np_head, dc_head = f"Not placed ({len(outline['unplaced'])})", f"Experiential statements set aside ({len(outline['discarded'])})"
+    np_head, dc_head = f"Unplaced ({len(outline['unplaced'])})", f"Experiential statements set aside ({len(outline['discarded'])})"
     made = themes_word.write(book, "P7 - Alder", now=datetime(2026, 10, 6, 15, 0).astimezone(), unplaced=True, binned=True)
     with zipfile.ZipFile(folder / made["name"]) as z:
         parts = {n: z.read(n).decode("utf-8") for n in z.namelist()}
@@ -156,7 +156,7 @@ def test_pet_table(scratch):
           not any(t.startswith(("Draft PETs", "Key:", "A first go")) or t == "Quotes" for t in texts)
           and sum("we went before anyone" in t for t in texts) == 1 and "(#" not in "".join(texts))
     rest = texts[texts.index(np_head) + 1:texts.index(dc_head)]
-    check("90, 207: Not placed and Discarded under plain headings with their counts at the end, their statements with references and quotes the same way",
+    check("90, 207: Unplaced and Discarded under plain headings with their counts at the end, their statements with references and quotes the same way",
           rest[:2] != [] and f"A statement on row 3 ({F}, 03:00)" in rest
           and rest[rest.index(f"A statement on row 3 ({F}, 03:00)") + 1] == "\u2018a quote on row 3\u2019"
           and texts[texts.index(dc_head) + 1:] == ["A note through the door" + said(S, 27), "\u2018a note, and a mark on the frame\u2019"])

@@ -6,7 +6,7 @@ change made in one place and not the other fails here), each page opening on a r
 heading, the foot's three parts on every page with "Page n of N", the project cut at a word with "…" when the foot is
 too long and whole when it fits, the board left out with "Leave out the board's name", numbers in place of letters and
 the empty board's line. On the demo's Juno and an invented board with every part: groups five deep, descriptions and
-notes, a stack, Not placed, the statements set aside with a reason, the board's note and a long project name. No
+notes, a stack, Unplaced, the statements set aside with a reason, the board's note and a long project name. No
 check pins a pixel, a colour or a size, the pictures being review shots'."""
 from __future__ import annotations
 
@@ -65,7 +65,7 @@ def nodes_of(page: str) -> list[tuple[str, str]]:
 
 def make_board(root: Path, th) -> Path:
     """An invented board on a scratch copy of the demo's workbook: a PET five deep with descriptions and notes, a top
-    with three stacked under it, three more PETs, two with a sub-PET, the rest not placed, three set aside, two with a
+    with three stacked under it, three more PETs, two with a sub-PET, the rest unplaced, three set aside, two with a
     reason, and the board's note."""
     shutil.rmtree(root, ignore_errors=True)
     (root / "P4 - Heron" / "Working").mkdir(parents=True)

@@ -60,7 +60,7 @@ print(json.dumps(idiograph_routes.api_board_order(json.loads(sys.stdin.read())))
 
 def test_table_parity(scratch):
     print("\n208. The Table view does what the canvas does: the selection shared, G on rows and with none, New group "
-          "inside, ungroup, merge, back to Not placed, several rows dragged, the bin, stacks, each one step of undo, "
+          "inside, ungroup, merge, back to Unplaced, several rows dragged, the bin, stacks, each one step of undo, "
           "and an empty label through the API, 20 October, with New group inside on GETs, a GET's sub-theme a row of the GET "
           "table and a Cases panel row dropped on it (tableparity2)")
     _api(scratch)
@@ -118,7 +118,7 @@ def test_table_parity(scratch):
           m["nested"] == "g3" and m["kept"] and m["steps"] == 1 and m["undone"] and m["joined"] == "g3" and m["end"],
           json.dumps(m))
     b = o["back"]
-    check("208: in node, Backspace on a statement takes it out of its PET to Not placed, one step of undo, and on a "
+    check("208: in node, Backspace on a statement takes it out of its PET to Unplaced, one step of undo, and on a "
           "statement already there leaves it",
           b["loose"] and b["steps"] == 1 and b["undone"] and b["again"] == 1, json.dumps(b))
     d = o["drag"]
@@ -128,7 +128,7 @@ def test_table_parity(scratch):
           and d["steps"] == 1 and d["undone"], json.dumps(d))
     x = o["bin"]
     check("208: in node, X bins the statements selected, the table lists them under Binned with Put back, and Put back "
-          "brings one to Not placed, each one step of undo",
+          "brings one to Unplaced, each one step of undo",
           x["binned"] and x["listed"] and x["back"] and x["steps"] == 2 and x["undone"], json.dumps(x))
     w = o["words"]
     check("208: in node, a Shift, Cmd or right click and a double-click on a row select none of its words, while a "
@@ -146,7 +146,7 @@ def test_table_parity(scratch):
     check("208: in node, a Cases panel row let go on a GET in the table brings its card in under that GET, selected, one "
           "step of undo, Brought a card in, and undo takes it away",
           q["joined"] and q["steps"] == 1 and q["what"] == "Brought a card in" and q["selected"] and q["undone"], json.dumps(q))
-    check("208: in node, a row whose card is there already moves it, into Not placed over that list, out of the bin onto a "
+    check("208: in node, a row whose card is there already moves it, into Unplaced over that list, out of the bin onto a "
           "GET, each one step, and let go where it is already changes nothing",
           q["loose"] and q["unbinned"] and q["same"], json.dumps(q))
     k = o["stack"]
@@ -435,7 +435,7 @@ SCENARIO = r"""
   out.merge.joined = parentOf('Initial:19:0') || null;
   out.merge.end = g3[g3.length - 1] === 'Initial:19:0';
 
-  // ── Backspace: back to Not placed
+  // ── Backspace: back to Unplaced
   fresh();
   was = snapOf();
   thTableSelect('Initial:5:0', 'statement');

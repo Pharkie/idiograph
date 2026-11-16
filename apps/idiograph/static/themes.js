@@ -3991,6 +3991,7 @@ function thStatusSelected(sel, gets) {
    change, and the bar on or off as the settings say. Off, the canvas keeps the floating zoom bar of before.
    Run on every change of the board and of the settings. */
 function thStatusDraw() {
+  thDoorCount();
   const stage = $('th-stage');
   const box = $('th-status-counts');
   if (!stage || !box) return;
@@ -7788,26 +7789,73 @@ async function thReveal() {
   }
 }
 
-/* The export control opens a small menu under it, in the row menu's paper, the part for the view
-   shown (1 November 2026, exportA): in Table view The table, Print, Save as PDF, Microsoft Word and
-   Markdown and CSV, the ticks and PET labels, and on the canvas The canvas, Print, the canvas on one
-   landscape page in a tab of its own, Save as PDF and Save as an image (thCanvasOut). Esc closes it,
-   and so does a click anywhere else. */
+/* The export control, in the toolbar after the board's name, Auto-saved and Canvas | Table on every board since
+   toolbar10 (16 November 2026, option C), opens a small menu under it, in the row menu's paper, the part for the view
+   shown (1 November 2026, exportA): what it makes first, Print, Save as PDF, Microsoft Word where the board has it,
+   Markdown and CSV on PETs, then Include and its ticks; on the canvas Print, the canvas on one landscape page in a
+   tab of its own, Save as PDF and Save as an image (thCanvasOut). On the GETs, LPETs, LGETs and Themes boards it
+   holds what the print card held (gtPrintOpen): what goes in, under each participant, Participant notes, unticked at
+   each open, and Participants table. Esc closes it, and so does a click anywhere else. */
 function thXmenu(open) {
+  const was = TH.xmenu;
   TH.xmenu = !!open && TH.live;
   const menu = $('th-xmenu');
   if (!menu) return;
   menu.hidden = !TH.xmenu;
   $('th-export').setAttribute('aria-expanded', String(TH.xmenu));
   if (!TH.xmenu) return;
-  // the view's own outputs alone: the table's with its ticks in Table view, the canvas's on the canvas (exportA)
+  // participant notes go in no export unless ticked, so each open starts them off, as the print card did
+  if (!was) menu.querySelectorAll('[data-xnotes]').forEach((box) => { box.checked = false; });
+  thXdraw();
+  const box = $('th-export').getBoundingClientRect();
+  menu.style.left = `${Math.max(8, Math.min(box.left, window.innerWidth - menu.offsetWidth - 8))}px`;
+  menu.style.top = `${box.bottom + 8}px`;
+}
+
+/* what the GETs boards' menu prints, kept for the window: the GET table, the audit trail or all of it, and under
+   each participant every statement and quote or their key quote only */
+const thXg = () => (TH.xg || (TH.xg = { what: 'table', detail: 'full' }));
+
+/* the menu's rows for the view and the board on the canvas */
+function thXdraw() {
+  const menu = $('th-xmenu');
+  if (!menu) return;
   const table = TH.face === 'table';
+  const gets = thGets();
   for (const part of menu.querySelectorAll('[data-xpart]')) part.hidden = (part.dataset.xpart === 'table') !== table;
+  for (const row of menu.querySelectorAll('[data-xfor]')) row.hidden = row.dataset.xfor !== (gets ? 'gets' : 'pets');
+  const g = thXg();
+  menu.querySelectorAll('[data-xwhat]').forEach((r) => { r.checked = r.value === g.what; });
+  menu.querySelectorAll('[data-xdetail]').forEach((r) => { r.checked = r.value === g.detail; });
+  const p = { what: g.what, detail: g.detail, gid: null };
+  // Microsoft Word: the PETs table's, and on the GETs boards (GETs, LPETs, LGETs, a thematic analysis project's
+  // Themes) the table's, with the table chosen (taword, exportwire)
+  const word = menu.querySelector('[data-xop="word"]');
+  if (word) word.hidden = gets && g.what !== 'table';
+  // the table's own name in the first choice: LPET table, LGET table, else the catalogue's (GET table, Theme table)
+  const tname = menu.querySelector('[data-xtname]');
+  if (tname) tname.textContent = TH.lpets ? t('page_idiograph.cards_last.lpet_table')
+    : TH.lgets ? t('page_idiograph.cards_last.lget_table') : t('page_idiograph.cards_last.get_table');
+  const people = menu.querySelector('[data-xpeople]');
+  if (people) people.hidden = !gets || !gtPeopleShown(p);
   thLabelsDraw();
   thIncludesDraw();
-  const box = $('th-export').getBoundingClientRect();
-  menu.style.left = `${Math.max(8, Math.min(box.right - menu.offsetWidth, window.innerWidth - menu.offsetWidth - 8))}px`;
-  menu.style.top = `${box.bottom + 8}px`;
+}
+
+/* Participant notes as ticked in the part showing */
+const thXnotes = () => !!document.querySelector('#th-xmenu .th-xpart:not([hidden]) [data-xnotes]:checked');
+
+/* an item of the menu on the GETs boards: the print card's outputs, from the menu's own choices */
+function thXgets(op) {
+  const notes = thXnotes();
+  const p = Object.assign({ gid: null }, thXg());
+  thXmenu(false);
+  if (op === 'canvas') { thCanvasPrint({ notes }); return; }
+  if (op === 'cpdf') { thCanvasOut('pdf', { notes }); return; }
+  if (op === 'cpng') { thCanvasOut('png', { notes }); return; }
+  if (op === 'print') { gtPrintGo(p, notes); return; }
+  if (op === 'pdf') { gtPdfGo(p, notes); return; }
+  if (op === 'word') gtWordGo(p, notes);
 }
 
 /* PET labels, at the foot of the export menu: the book's letters, A, A1, A1.1, or numbers, PET 1,
@@ -7860,7 +7908,10 @@ const TH_INCLUDES = { export_not_placed: 'unplaced', export_binned: 'binned', ex
   export_for_sending: 'sending', export_descriptions: 'descriptions', export_portrait: 'portrait' };
 // Descriptions, the one tick on on a new install (Adam, 21 October)
 const TH_INCLUDES_ON = ['export_descriptions'];
-const thIncluded = (key) => (TH_INCLUDES_ON.includes(key) ? !(TH.config && TH.config[key] === false) : !!(TH.config && TH.config[key]));
+// Leave out the board's name left every menu (toolbar10, Adam, 16 November 2026: nobody wants it), so the page sends it
+// off whatever an older settings file holds, the server reading the settings for a key not sent
+const thIncluded = (key) => (key === 'export_for_sending' ? false
+  : TH_INCLUDES_ON.includes(key) ? !(TH.config && TH.config[key] === false) : !!(TH.config && TH.config[key]));
 
 /* the two ticks as the settings hold them, and the same two as the print view's query or the Word
    export's body sends them, so an export just after a tick never waits on its save */
@@ -8281,19 +8332,13 @@ function thTableDraw() {
   box.classList.toggle('tb-locked', !v || thLocked(v));
   if (!v || !TH.meta) { box.innerHTML = ''; return; }
   const name = TH.meta.name || '';
-  // a thematic analysis project's table of themes goes to Word too, as a table of PETs does (taword)
-  const acts = thGets()
-    ? `<button type="button" class="ghost small" data-tact="gprint" title="${escAttr(t('themes.gets.export_tip'))}">${esc(t('themes.table.print'))}</button>`
-      + (thTa() && !TH.lpets ? `<button type="button" class="ghost small" data-tact="gword" title="${escAttr(t('themes.gets.word_tip'))}">${esc(t('themes.table.word'))}</button>` : '')
-    : `<button type="button" class="ghost small" data-tact="print" title="${escAttr(t('themes.table.print_tip'))}">${esc(t('themes.table.print'))}</button>`
-      + `<button type="button" class="ghost small" data-tact="word" title="${escAttr(t('themes.table.word_tip'))}">${esc(t('themes.table.word'))}</button>`;
   // on a PETs board the participant heads the table, the table's name smaller under it, as the print and Word do (Adam, 20 October)
   const who = thGets() ? '' : thCanvasTitle(thCaseLabel());
   const titles = who
     ? `<div class="tb-titles"><h2 class="tb-heading tb-who-head">${esc(who)}</h2><p class="tb-table-name">${esc(t('themes.table.name'))}</p></div>`
     : `<h2 class="tb-heading">${esc(thGets() ? t('themes.table.get_name', { unit: thGetWord() }) : t('themes.table.name'))}</h2>`;
   let html = `<div class="tb-page"><div class="tb-top">${titles}`
-    + `<span class="tb-sub">${esc(name)}</span><span class="rail-grow"></span><span class="tb-acts">${acts}</span></div>`;
+    + `<span class="tb-sub">${esc(name)}</span></div>`;
   html += thGets() ? (thTa() && !TH.lpets && !TH.lgets ? gtTableTa(v) : gtTableFace(v)) : thTablePets(v);
   box.innerHTML = `${html}<div class="tb-line" id="tb-line" hidden></div></div>`;
   box.scrollTop = top;
@@ -8877,14 +8922,6 @@ function thTableBoot() {
     if (trail && thGets()) { gtTrailOpen(trail.dataset.gtrail); return; }
     const note = e.target.closest('[data-gnote]');
     if (note && thGets()) { gtRowNoteOpen(note.dataset.gnote, note.dataset.gcase); return; }
-    const act = e.target.closest('[data-tact]');
-    if (act) {
-      if (act.dataset.tact === 'print') thPrint();
-      else if (act.dataset.tact === 'word') thExport(true);
-      else if (act.dataset.tact === 'gprint') gtPrintOpen('table');
-      else if (act.dataset.tact === 'gword') gtWordGo({ what: 'table', detail: 'full', gid: null }, false);
-      return;
-    }
     if (!TH.live || TH.busy || !TH.v) return;
     const stack = e.target.closest('[data-tstack]');
     if (stack) { thStackShow(stack.dataset.tstack); return; }
@@ -8908,7 +8945,7 @@ function thTableBoot() {
       thMenuOpen(thTableItem(row.dataset.trow, row.dataset.tkind), r.left, r.bottom);
       return;
     }
-    if (e.target.closest('input, textarea, select, .tb-binned, .tb-acts')) return;
+    if (e.target.closest('input, textarea, select, .tb-binned')) return;
     if (!row) {
       // a click on the table's empty space clears the selection, as on empty canvas
       if (!e.shiftKey && !MOD(e) && (TH.sel.cards.size || TH.sel.groups.size || TH.sel.stickies.size)) { thClearSel(); thPanelFollow(); }
@@ -11086,7 +11123,6 @@ function gtScreen(on) {
   $('themes').classList.toggle('lpets-mode', on && !!TH.lpets);
   // the left panel's button on both screens since 20 October: Cases on GETs, Statements on PETs
   $('th-open-cases').hidden = false;
-  $('th-export').hidden = on;
   // Settings on PETs over both boards, GETs' rules being the project's, in Project settings since settingsplit
   $('th-settings').onclick = () => openSettings('pets');
   TH.gets = null;
@@ -11583,19 +11619,13 @@ function gtCodesPanelDraw(list) {
       + `<span class="gt-rtext">${esc(c.name)}</span><span class="gt-rfoot gt-whos"><span class="gt-xn">${esc(n ? t('codes.n.extracts', { n }) : t('codes.no_extracts'))}</span>`
       + `${gtWhosHtml(it)}</span></li>`;
   };
-  // each section open until its chevron shuts it, kept with the panel's folds, and open while a search runs
-  const sec = (id, name, rows) => {
-    const shut = !find && TH.cfold.has(id);
-    return `<section class="gt-csec"><button type="button" class="gt-none gt-csec-head${shut ? '' : ' open'}" tabindex="-1" data-gtw="${escAttr(id)}" aria-expanded="${!shut}">`
-      + `${GT_CHEV}<span class="gt-rtext">${esc(name)}</span><span class="gt-rn">${rows.length}</span></button>`
-      + (shut || !rows.length ? '' : `<ul class="gt-crows">${rows.map(row).join('')}</ul>`) + '</section>';
-  };
   let html;
   if (!all.length) html = `<p class="th-qnone">${esc(t('codes.empty'))}</p>`;
   else if (find && !shown.length) html = `<p class="th-qnone">${esc(t('codes.none_found'))}</p>`;
   else {
-    html = sec(':codes/out', t('themes.status.name_unplaced'), shown.filter((c) => place(c.code) !== 'placed'))
-      + sec(':codes/in', t('codes.board.in_themes'), shown.filter((c) => place(c.code) === 'placed'));
+    // what is not in a theme alone, under no head of its own, the tab saying Not placed (toolbar10)
+    const out = shown.filter((c) => place(c.code) !== 'placed');
+    html = out.length ? `<ul class="gt-crows">${out.map(row).join('')}</ul>` : '';
   }
   const top = list.scrollTop;
   list.innerHTML = html;
@@ -12225,13 +12255,10 @@ function gtDrawCounts() {
    saying which cases, unless every case of the study is in from its marked board and unchanged. */
 function gtMenuFoot() {
   const at = TH.done ? whenOf(TH.done.at) : null;
-  // Export, the GETs in print, the table, the trail, the full set or the canvas, after a hairline
-  // of their own, named as the PETs screen's Export is, in a thematic analysis project in its words (tagaps)
-  const exp = '<div class="row-menu-rule"></div>'
-    + `<button type="button" class="ghost" tabindex="-1" data-gprint="table" title="${escAttr(t('themes.gets.export_tip'))}">${esc(t('themes.gets.export'))}</button>`;
+  // Export left this menu for the toolbar's Export on every board (toolbar10, 16 November 2026)
   // a thematic analysis project's themes are not marked complete in its phase one (tadraw)
-  if (thTa()) return exp;
-  return exp + '<div class="row-menu-rule"></div>' + (TH.done
+  if (thTa()) return '';
+  return '<div class="row-menu-rule"></div>' + (TH.done
     ? `<button type="button" class="ghost" tabindex="-1" data-vop="pets-reopen" title="${escAttr(t(at.time ? (TH.done.name ? 'themes.gets.done_tip_time_name' : 'themes.gets.done_tip_time') : (TH.done.name ? 'themes.gets.done_tip_name' : 'themes.gets.done_tip'), { day: at.day, time: at.time, name: TH.done.name }))}">${esc(t('themes.gets.reopen'))}</button>`
     : `<button type="button" class="ghost" tabindex="-1" data-vop="pets-done" title="${escAttr(t('themes.gets.done_mark_tip'))}">${esc(t('themes.gets.done_mark'))}</button>`);
 }
@@ -12762,8 +12789,9 @@ function thListDraw() {
     const list = $('gt-cases');
     const all = thWaitingKeys(v, TH.sheets);
     const keys = thSideKeys('wait');
-    let html = thSideHead('wait', t('themes.status.name_unplaced'), all.length, folds.wait);
-    if (folds.wait) {
+    // no head of its own: the panel is Not placed, and its tab says so with the count (toolbar10)
+    let html = '';
+    {
       if (all.length && !thLocked(v)) {
         html += `<div class="ts-acts"><button type="button" class="ghost small ts-all" tabindex="-1" data-tsall `
           + `title="${escAttr(t('themes.side.all_tip'))}">${esc(t('themes.side.all'))}</button></div>`;
@@ -12793,28 +12821,52 @@ function thAsideDraw() {
   box.scrollTop = top;
 }
 
-/* the count of statements waiting on the sidebar's button, on PETs alone, none said while none waits, and its
-   name and tooltip as the screen has it */
+/* The left edge tab (toolbar10, 16 November 2026, Adam): one name on every board, Not placed, what is not on the
+   board yet and drags onto it, with its count after the name, 0 once all of it is placed. On PETs the statements
+   waiting, on a thematic analysis project's Themes board the codes in no theme (as its status bar counts them), and
+   on the GETs, LPETs and LGETs boards each included participant's or timepoint's PETs (LPETs on LGETs) with no card
+   on the board. The panel's head and its search say the same. */
+function thLeftCount() {
+  const v = TH.v;
+  if (!v) return 0;
+  if (!thGets()) return thWaitingKeys(v).length;
+  if (thTa()) { const n = gtCodeNumbers(v); return n ? n.unplaced : 0; }
+  let n = 0;
+  for (const c of (TH.gets && TH.gets.cases) || []) {
+    if (!c.in) continue;
+    for (const top of gtTree(c).tops) if (!gtOnBoard(v, `${c.case}/${top.p.id}`, true)) n += 1;
+  }
+  return n;
+}
+
+/* whether a row of the GETs boards' panel has its card on the board: the row's own card or, in a thematic analysis
+   project, a card of the same code; with `aside`, a card set aside counts too, being out of Not placed in Set aside */
+function gtOnBoard(v, key, aside = false) {
+  return !!(v && Object.keys(v.cards).some((k) => (gtBase(k) === key || (thTa() && gtCodeOf(key) && gtCodeOf(k) === gtCodeOf(key)))
+    && (aside || !v.discarded.includes(k))));
+}
+
 function thDoorCount() {
   const b = $('th-open-cases');
   if (!b) return;
-  const pets = TH.mode !== 'gets';
-  const name = pets ? t('themes.gets.statements') : TH.lpets ? t('themes.tp.head') : t('themes.cases.head');
-  const word = b.querySelector('.bar-word');
+  const pets = !thGets();
+  const name = t('themes.left.name');
+  const word = b.querySelector('.th-edge-word');
   if (word) word.textContent = name;
-  b.setAttribute('aria-label', name);
   b.title = TH.casesOpen ? t('themes.side.hide', { name }) : t('themes.side.show', { name });
-  const n = pets && TH.v ? thWaitingKeys(TH.v).length : 0;
+  const n = TH.v ? thLeftCount() : 0;
+  b.setAttribute('aria-label', t('themes.side.door_label', { name, n }));
   let badge = b.querySelector('.th-door-n');
-  if (!badge) {
+  if (!badge && typeof document.createElement === 'function') {
     badge = document.createElement('span');
     badge.className = 'th-door-n';
     badge.setAttribute('aria-hidden', 'true');
     b.appendChild(badge);
   }
-  badge.textContent = String(n);
-  badge.hidden = !n;
-  if (n) b.setAttribute('aria-label', t('themes.side.door_label', { name, n }));
+  if (badge) {
+    badge.textContent = String(n);
+    badge.hidden = !TH.v;
+  }
   const head = $('th-cpanel') && $('th-cpanel').querySelector('.th-pname');
   if (head) head.textContent = name;
   const find = $('gt-find');
@@ -13104,7 +13156,6 @@ function gtDoorDraw() {
   if (!b) return;
   b.classList.toggle('on', !!TH.casesOpen);
   b.setAttribute('aria-pressed', String(!!TH.casesOpen));
-  b.title = TH.casesOpen ? t('themes.side.hide', { name: t('themes.cases.head') }) : t('themes.side.show', { name: t('themes.cases.head') });
   thDoorCount();
 }
 
@@ -13207,9 +13258,9 @@ function gtCasesDraw() {
   if (gtPtabsOn() && TH.ptab === 'codes') { gtCodesPanelDraw(list); return; }
   const v = TH.v;
   const find = TH.cfind.trim().toLowerCase();
-  // in a thematic analysis project a row is placed while its code's card is on the board (codes)
-  const on = (key) => !!(v && Object.keys(v.cards).some((k) => (gtBase(k) === key || (thTa() && gtCodeOf(key) && gtCodeOf(k) === gtCodeOf(key)))
-    && !v.discarded.includes(k)));
+  // in a thematic analysis project a row is placed while its code's card is on the board (codes); a row on the
+  // board leaves the panel, which holds what is not placed yet, as PETs' does (toolbar10, Adam, 16 November 2026)
+  const on = (key) => gtOnBoard(v, key, true);
   // a row folded open by his chevron, or during a search a row that holds what it finds, which a
   // chevron then turns the other way
   const open = (id, holds) => (find ? holds !== TH.cflip.has(id) : TH.cfold.has(id));
@@ -13222,10 +13273,11 @@ function gtCasesDraw() {
     // a top found by what is stacked under it, so a search reaches a stacked statement
     const foundOrStack = (k) => found(k) || (stacks[k] || []).some(found);
     const whole = !find || gtHit(find, c.who);
-    const shown = (keys, all) => (all ? keys : keys.filter(foundOrStack));
-    const tops = tree.tops.map((t) => {
+    const off = (k) => !on(`${c.case}/es/${k}`);
+    const shown = (keys, all) => (all ? keys : keys.filter(foundOrStack)).filter(off);
+    const tops = tree.tops.filter((t) => !on(`${c.case}/${t.p.id}`)).map((t) => {
       const self = whole || gtHit(find, t.p.title, t.p.note);
-      const subs = t.subs.map((s) => {
+      const subs = t.subs.filter((s) => !on(`${c.case}/${s.p.id}`)).map((s) => {
         const mine = self || gtHit(find, s.p.title, s.p.note);
         return { s, lines: shown(s.lines, mine), mine, holds: s.lines.some(foundOrStack) };
       }).filter((x) => x.mine || x.lines.length);
@@ -13235,6 +13287,9 @@ function gtCasesDraw() {
     }).filter((x) => x.self || x.subs.length || x.own.length);
     const none = shown(tree.none, whole);
     if (find && !whole && !tops.length && !none.length) return;
+    // a participant (on LPETs a timepoint) with nothing left to place has no heading, so the panel is empty once all
+    // is placed (Adam, 16 November 2026), one left out or changed since kept for what its menu does
+    if (!tops.length && !none.length && c.in && c.status !== 'changed') return;
     const caseOpen = open(c.case, true);
     const look = gtLook(c.case);
     const marks = [];
@@ -13294,13 +13349,14 @@ function gtCasesDraw() {
         const noneOpen = open(gtNoneId(c.case), none.some(foundOrStack));
         rows += `<li class="gt-node gt-nonenode"><button type="button" class="gt-none${noneOpen ? ' open' : ''}" tabindex="-1" `
           + `data-gtw="${escAttr(gtNoneId(c.case))}" aria-expanded="${noneOpen}">${GT_CHEV}<span class="gt-rtext">${esc(t('themes.gets.not_in'))}</span>`
-          + `<span class="gt-rn">${tree.none.length}</span></button>${noneOpen ? `<ul>${none.map(stmt).join('')}</ul>` : ''}</li>`;
+          + `<span class="gt-rn">${tree.none.filter(off).length}</span></button>${noneOpen ? `<ul>${none.map(stmt).join('')}</ul>` : ''}</li>`;
       }
       if (rows) html += `<ul class="gt-tree">${rows}</ul>`;
     }
     html += '</section>';
   });
-  if (!html) html = `<p class="th-qnone">${esc(find ? t('themes.side.no_match') : t('themes.gets.no_cases'))}</p>`;
+  // empty once everything is placed, and "no participant" only where there is none
+  if (!html && (find || !TH.gets.cases.length)) html = `<p class="th-qnone">${esc(find ? t('themes.side.no_match') : t('themes.gets.no_cases'))}</p>`;
   const top = list.scrollTop;
   list.innerHTML = html;
   list.scrollTop = top;
@@ -14270,9 +14326,7 @@ function gtPrintUrl(p, notes) {
 
 /* Print: the view in a tab of its own, which opens the print dialog itself, a save still to go
    written first. Nothing is written by it. */
-async function gtPrintGo() {
-  const p = TH.printing;
-  const notes = $('gt-print-notes').checked;
+async function gtPrintGo(p = TH.printing, notes = $('gt-print-notes').checked) {
   gtPrintShut();
   if (!p || !TH.live || !TH.meta) return;
   // the canvas is taken from the screen, so it needs nothing of the server's print view
@@ -14294,14 +14348,11 @@ async function gtPrintGo() {
 /* Save as PDF on the print card (31 October 2026, pdfexport): the page Print would show, as a PDF at the project's
    root where the agents' `gets export` puts it and named the same way, made by the server with Typst since 9
    November 2026 (typst5) and written there, the line after naming it or saying why it could not be made. For a
-   participant's LPETs, Print. */
-async function gtPdfGo() {
-  const p = TH.printing;
-  const notes = $('gt-print-notes').checked;
+   participant's LPETs, beside their workbook and named by them (exportwire). */
+async function gtPdfGo(p = TH.printing, notes = $('gt-print-notes').checked) {
   if (!p || !TH.live || !TH.meta) { gtPrintShut(); return; }
   // the canvas's PDF is drawn from the board, as on PETs (exportA)
   if (p.what === 'canvas' && !p.gid) { gtPrintShut(); thCanvasOut('pdf', { notes }); return; }
-  if (TH.lpets) { gtPrintGo(); return; }
   gtPrintShut();
   if (!TH.getsPrint) { say(RESTART_LINE, 6000); return; }
   thTitleDone(true);
@@ -14313,7 +14364,8 @@ async function gtPdfGo() {
   try {
     made = await api('/api/gets-boards', { root: TH.root || '', board: TH.meta.id, op: 'pdf', what: p.gid ? 'trail' : p.what,
       detail: p.detail, notes, get: p.gid || '', sending: thIncluded('export_for_sending'),
-      descriptions: thIncluded('export_descriptions'), participants: gtPeopleSent(p) });
+      descriptions: thIncluded('export_descriptions'), participants: gtPeopleSent(p),
+      ...(TH.lpets ? { workbook: TH.path, lpets: '1' } : {}) });
   } catch (err) {
     say(needsRestart(err) ? RESTART_LINE : (err.message || t('themes.pdf.failed')), 9000);
     return;
@@ -14339,7 +14391,7 @@ async function gtWordGo(p, notes) {
   try {
     made = await api('/api/gets-boards', { root: TH.root || '', board: TH.meta.id, op: 'word', detail: p.detail, notes,
       sending: thIncluded('export_for_sending'), descriptions: thIncluded('export_descriptions'),
-      participants: gtPeopleSent(p) });
+      participants: gtPeopleSent(p), ...(TH.lpets ? { workbook: TH.path, lpets: '1' } : {}) });
   } catch (err) {
     say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
     return;
@@ -14784,12 +14836,18 @@ function themesBoot() {
   $('th-xmenu').addEventListener('change', (e) => {
     const box = e.target.closest('[data-include]');
     if (box) thInclude(box.dataset.include, box.checked);
+    // the GETs boards' two choices, kept for the window, the rows they rule following
+    const what = e.target.closest('[data-xwhat]');
+    if (what && what.checked) { thXg().what = what.value; thXdraw(); }
+    const detail = e.target.closest('[data-xdetail]');
+    if (detail && detail.checked) { thXg().detail = detail.value; thXdraw(); }
   });
   $('th-xmenu').addEventListener('click', (e) => {
     const pick = e.target.closest('[data-labels]');
     if (pick) { thLabels(pick.dataset.labels); return; }
     const op = e.target.closest('[data-xop]');
     if (!op) return;
+    if (thGets()) { thXgets(op.dataset.xop); return; }
     if (op.dataset.xop === 'print') { thPrint(); return; }
     if (op.dataset.xop === 'canvas') { thCanvasPrint(); return; }
     if (op.dataset.xop === 'cpdf') { thCanvasOut('pdf'); return; }

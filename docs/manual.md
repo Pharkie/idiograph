@@ -539,15 +539,24 @@ where the bar has room, and where it runs short the words go first and then Expe
 The back arrow has gone. Under the bar, the research question's band starts with where you are: the
 project's name, and on a participant's stages the participant's chooser, and on a timepoint's PETs or statements the
 timepoint's. The name opens the project's menu and the choosers open their menus as the one in the tab did. The chooser shows the participant's name alone, Wren
-for P1 - Wren, on every stage, LPETs included. On PETs, LPETs, GETs and LGETs the toolbar under the band starts
-with the left sidebar's button, Statements, Participants or Timepoints, then the board and Auto-saved, the
-tools, and ends with Inspector, whether the tools are docked there or floating on the canvas. Canvas and
+for P1 - Wren, on every stage, LPETs included. On PETs, LPETs, GETs, LGETs and a thematic analysis project's Themes the toolbar under the band starts
+with the board and Auto-saved, Canvas and Table and Export, then the tools, and ends with Undo and Redo, whether the
+tools are docked there or floating on the canvas (16 November 2026, the toolbar standard: the tab's own items and
+Export at the left, Undo and Redo at the right end on every tab). The two sidebars open from slim tabs on the canvas's
+edges, each its icon over its name written up the tab, as JetBrains' tool windows and Visual Studio's auto-hide
+panels have them: Unplaced at the left edge, with the count of what it holds, 0 once everything is on the board, and
+Inspector at the right edge, each hanging on the edge of its sidebar while it is open. Every board's left sidebar has
+the one name, Unplaced (Adam, 16 November 2026): what is not on the board yet, which you drag onto it, grouped by
+participant or by timepoint as before, Set aside at its foot. On PETs it is the statements waiting, on GETs, LPETs and
+LGETs each participant's or timepoint's PETs (LPETs on LGETs) with no card on the board, a PET taken out of the list
+once its card is placed or set aside, and on a thematic analysis project's Themes the codes in no theme. Its keys and
+tooltips are as they were. Canvas and
 Table stand on the toolbar directly after Auto-saved (Adam, 26 October: it is not a status bar thing), there in the
 Table view too, so the way back to the canvas is always in reach, and T still switches. The status bar holds the
 counts and its tools alone. Where it runs short, as at 1280
 with the sidebar open and every count ticked, the tools' words give way first, Fit all, Minimap, Quotes and
 Shortcuts standing as icons with their words in their tooltips, so the counts always say the whole sentence there,
-"18 ES: 17 in PETs, 0 stacked, 0 set aside, 1 not placed | 3 PETs" on the demo's Mabel (Adam, 26 October).
+"18 ES: 17 in PETs, 0 stacked, 0 set aside, 1 unplaced | 3 PETs" on the demo's Mabel (Adam, 26 October).
 Since the same day (Adam's option B) Align and Spread stand under the toolbar's three dots, after Auto-arrange:
 the dots open a menu of two sections, Align with Left, Centre and Right, Top, Middle and Bottom, and Spread with
 Across and Down, each with its icon and its word, doing to the selection what its button did and faint as the
@@ -2279,10 +2288,10 @@ timestamps as HH:MM:SS, then a last column, `Quote`, each statement's own quote 
 marks the workbook keeps round it, empty when it has none (`Key quote` until 22 October). The PET column is empty for a participant with no
 themes file. A participant with one has the column filled from the board current on its PETs screen:
 each statement carries the labels over its card, top-most first and joined with ` / `, "PET" or
-"PET / Sub-theme", `Set aside` for a card set aside (`Discarded` until 19 October, `Binned` until 20 October), and nothing for a card not placed. Its rows
+"PET / Sub-theme", `Set aside` for a card set aside (`Discarded` until 19 October, `Binned` until 20 October), and nothing for a card unplaced. Its rows
 then go PET by PET in canvas order: each PET's statements in the order the canvas
 reads them, top to bottom and left to right along a row, a sub-theme's where its frame's top sits
-among the PET's cards, then those not placed and last the discarded, both in transcript order. A participant
+among the PET's cards, then those unplaced and last the discarded, both in transcript order. A participant
 with no themes file keeps transcript order throughout. The PETs board's Export menu, Markdown and CSV,
 writes that board's markdown draft and the same CSV (see PETs, Export), the canvas saved first. Settings'
 Export pane, with its Export all statements to CSV and Export the PET draft, went on 5 November 2026, and an
@@ -2328,13 +2337,13 @@ takes its height off its own through the same `--band` measure. With no question
 points at Project settings, as the statements screen's does. `/api/themes` carries `project` as
 `/api/open` does, and a server from before it sends none, so the band says there is no question yet.
 
-**Statements left.** An act that takes statements out of Not placed, into a PET or a sub-theme or
+**Statements left.** An act that takes statements out of Unplaced, into a PET or a sub-theme or
 onto the pile, raises the count of those left over the middle of the canvas, "4 left", in the ink since 17 October,
 later, where it stood in the crux orange, the passage
-screen's count (see The count) in the same face and the same 850ms. When the last statement not placed
+screen's count (see The count) in the same face and the same 850ms. When the last statement unplaced
 goes, the third level of confetti fires, the participant-complete card's, and one line stands in the
 count's place, "Every statement placed.". The counts before and after the act decide it, so an act
-that leaves Not placed as it was raises nothing, and an undo or a redo that brings a statement back
+that leaves Unplaced as it was raises nothing, and an undo or a redo that brings a statement back
 raises nothing either. On the GETs board the count is of the study's PETs and sub-themes in no GET, one with no card on the board counted as well, and one whose every card is in the bin not, so "Every PET placed." stands only when it is so, and an act that only bins raises nothing (20 October: Select all and the bin raised it, and so did going back and forward). Nothing is written, since it is the page alone. It takes no pointer and no
 focus, under reduced motion it never shows, and Celebrations in Settings silences all of it.
 
@@ -2406,7 +2415,7 @@ card opens its statement for editing on the card, as a double-click on a PET's t
 and so does a double-click on its statement in the Inspector (see Editing a statement). Go to the
 passage in its right-click menu opens its passage on Experiential statements (see From a statement to
 its passage). Since 20 October a first open puts nothing on the canvas: every statement waits in the
-sidebar's Not placed in interview order (see The sidebar). Put all on the board, or New board, all on the
+sidebar's Unplaced in interview order (see The sidebar). Put all on the board, or New board, all on the
 canvas, lays them in a compact pile in the middle of the canvas, the margin between neighbours, which
 until then was every first open.
 
@@ -2427,7 +2436,7 @@ pointer back. Two small controls at the bottom right, the pointer and the hand, 
 switch between them. Beside them is the zoom: minus, the level, which goes back to 100% when
 clicked, plus, and Fit all, which brings everything into view and never closer than 100%. Since 20 October Fit all leaves room for the palette, which floats over the canvas, so no card or frame is left under it, at 360 as at 1280. Each takes the side it costs least: the palette a strip down the left, and the bin a strip down the left or, on a phone, off the foot. Going to a theme, a card or a close pair does the same. The canvas opens fitted, and below 620px the words Fit all go. A board too big to show whole even at the least zoom, 15%, shows its top left there (30 October), where its middle could be blank canvas. The line at the foot stands just over the zoom bar and the bin wherever it would cover them, as on a phone, where until 18 October it hid the zoom bar. The shortcuts button, `?`, sat at the end of the zoom bar, where Figma and Miro keep help, from 5 to 16 October, and stands on the top bar now, as on every bar.
 
-**The status bar and the palette (19 October, Adam's choice A).** Along the canvas's foot runs a status bar, as Excel's and Photoshop's do. Its left holds the board's counts in plain words, each number in the mono face, a count of nothing said too so the counts hold their place. Since 26 October (Adam's wording C) the total comes first and where they are after it, then the PETs: "46 ES: 25 in PETs, 5 stacked, 2 set aside, 14 not placed | 3 PETs", with "3 in no PET" among them when cards lie loose on the canvas. The 25 in PETs count each card once, a stack's top among them, and the statements stacked under a top are counted apart, so the parts add up to the total. On the GETs, LGETs and LPETs boards a card is a PET or a sub-PET, so the count is of cards: "11 cards: 7 in GETs, 1 set aside, 3 not placed | 2 GETs". While anything is selected the count of it follows the PETs, "1 ES selected", "2 cards selected" on GETs, or "3 selected" when PETs or notes are among it. Until 26 October the counts stood apart with no total, "3 PETs", "25 in PETs", "14 not placed", "2 set aside" and "5 stacked". A right click on the bar opens a tick for each, PETs, In PETs, Stacked, Binned and Not placed, in the order the bar says them, and what he ticks is kept at once. A statement stacked under a top counts as stacked, and its top stands for it in the rest. With a count unticked that holds anything, the total goes, "ES: 25 in PETs, 14 not placed", since the parts shown no longer reach it. Its right holds the pointer and the hand, the zoom, Fit all, the minimap's button, Quotes on cards, Close pairs on the PETs board, Notes on cards on the GETs board, and Shortcuts. Since 20 October (from a tester's feedback) the minimap's button reads Minimap beside its icon, Quotes on cards Quotes and Notes on cards Notes, and each gives way to its icon alone where the bar runs short, as Fit all and Shortcuts do, and with the status bar off. It is on by default and turns off from Settings, Idiograph, PETs, View, Status bar, and in Idiograph's own window from View, Status Bar, kept across a restart. Off, the counts go and the tools float at the bottom right as the zoom bar did before, Shortcuts as `?` at its end. Where the bar runs short it gives way in the order Adam set on 26 October, the counts last: first the tools' words, each tool keeping its icon and its word in its tooltip, then a count beyond the total and its parts, such as how many are selected or the close pairs, then the spacing closes up, then the tools go, the pointer and the hand, the minimap's button and Shortcuts, then the zoom's minus and plus, then Quotes, Notes and Close pairs. Only then do the counts go, the PETs first, so at 1280 the bar always says the whole sentence, and at 720, the app's smallest window, the total and its parts still show. In a canvas narrower still the total goes with every part but In PETs and Not placed, "ES: 25 in PETs, 14 not placed", so it never stands over parts that do not reach it, and then In PETs, so no count or button is ever cut off. The bin and the map stand above it, and in the Table view it keeps its counts alone.
+**The status bar and the palette (19 October, Adam's choice A).** Along the canvas's foot runs a status bar, as Excel's and Photoshop's do. Its left holds the board's counts in plain words, each number in the mono face, a count of nothing said too so the counts hold their place. Since 26 October (Adam's wording C) the total comes first and where they are after it, then the PETs: "46 ES: 25 in PETs, 5 stacked, 2 set aside, 14 unplaced | 3 PETs", with "3 in no PET" among them when cards lie loose on the canvas. The 25 in PETs count each card once, a stack's top among them, and the statements stacked under a top are counted apart, so the parts add up to the total. On the GETs, LGETs and LPETs boards a card is a PET or a sub-PET, so the count is of cards: "11 cards: 7 in GETs, 1 set aside, 3 unplaced | 2 GETs". While anything is selected the count of it follows the PETs, "1 ES selected", "2 cards selected" on GETs, or "3 selected" when PETs or notes are among it. Until 26 October the counts stood apart with no total, "3 PETs", "25 in PETs", "14 unplaced", "2 set aside" and "5 stacked". A right click on the bar opens a tick for each, PETs, In PETs, Stacked, Binned and Unplaced, in the order the bar says them, and what he ticks is kept at once. A statement stacked under a top counts as stacked, and its top stands for it in the rest. With a count unticked that holds anything, the total goes, "ES: 25 in PETs, 14 unplaced", since the parts shown no longer reach it. Its right holds the pointer and the hand, the zoom, Fit all, the minimap's button, Quotes on cards, Close pairs on the PETs board, Notes on cards on the GETs board, and Shortcuts. Since 20 October (from a tester's feedback) the minimap's button reads Minimap beside its icon, Quotes on cards Quotes and Notes on cards Notes, and each gives way to its icon alone where the bar runs short, as Fit all and Shortcuts do, and with the status bar off. It is on by default and turns off from Settings, Idiograph, PETs, View, Status bar, and in Idiograph's own window from View, Status Bar, kept across a restart. Off, the counts go and the tools float at the bottom right as the zoom bar did before, Shortcuts as `?` at its end. Where the bar runs short it gives way in the order Adam set on 26 October, the counts last: first the tools' words, each tool keeping its icon and its word in its tooltip, then a count beyond the total and its parts, such as how many are selected or the close pairs, then the spacing closes up, then the tools go, the pointer and the hand, the minimap's button and Shortcuts, then the zoom's minus and plus, then Quotes, Notes and Close pairs. Only then do the counts go, the PETs first, so at 1280 the bar always says the whole sentence, and at 720, the app's smallest window, the total and its parts still show. In a canvas narrower still the total goes with every part but In PETs and Unplaced, "ES: 25 in PETs, 14 unplaced", so it never stands over parts that do not reach it, and then In PETs, so no count or button is ever cut off. The bin and the map stand above it, and in the Table view it keeps its counts alone.
 
 **Quotes on cards (19 October, from a tester's reflection on IPA in ATLAS.ti, Adam's way A).** A button of two inverted commas among the status bar's tools, after the minimap's, "Quotes on cards" in its tooltip, shows each statement card's own quote under its statement, inside the card, in italic behind a short orange rule, on the PETs and the GETs boards alike. It is pressed in while the quotes show, off on a new install, and kept across a restart, and with the status bar off it floats with the other tools. A quote runs to three lines at most and the whole of it is in its tooltip. A quote in pieces shows them in order, joined by the ellipsis it was saved with, and a card with no quote shows nothing more. A click on the quote selects the card and shows the quote whole beside it, on its right or left, or under or over it, wherever it covers least of the cards around and otherwise on the side with more room, under Quote and its timecode, with a play button on the PETs board when the sheet has a recording, and Show in passage, which opens the passage as Go to the passage in the card's menu does, Back returning to the board. A double-click on the quote shows it whole as a click does, and edits nothing. Esc, a click anywhere else or the wheel puts it away. The taller cards take their room as a stack shown open does: what stands below a quote in its column moves down as far, and turning the quotes off puts everything back where it stood. That room is a view, so the file keeps where everything stands with the quotes off, and a card let go below a quote stays where it was let go. Since 23 October (from a tester's report) a card moves with the quotes shown only when he moves it or when a move of his sends it clear, and then as far as it would with the quotes off: a card moved a little moves alone, a label that grows sends clear just what it reaches, and turning the quotes off and on again leaves every place in the file as it was. The room for the quotes and for an open stack is made again once the type has loaded, so an open stack keeps its height. Since 30 October (Adam's report: a sub-PET under two side by side kept a large gap under them, and dragging it up pushed them up the board instead) what stands below two or more that grew, a sub-PET under two sub-PETs whose cards both show their quotes, or one with a stack shown open, moves down as far as the one that needs most, never by both together, so it shows as close under them as the board has it, and a drag up brings it to rest a margin under the lower of them with nothing else moving.
 
@@ -2685,7 +2694,7 @@ the title's line until 17 October, later, and took a long title's room there, so
 line more than its board leaves it. The entries that take
 something away, Delete this label and Delete note, are red with a bin, as every
 Remove and Delete is. Take out of PET, of GET, of sub-theme or of group (Remove from PET until 20 October,
-when a tester read its bin as binning the card) is a move: since 20 October the card goes back to the sidebar's Not placed, `Backspace` at its right, beside
+when a tester read its bin as binning the card) is a move: since 20 October the card goes back to the sidebar's Unplaced, `Backspace` at its right, beside
 where it stood, and the entry carries an arrow out of a frame in the ink.
 
 **Group and Ungroup (20 October, from a tester's feedback).** A right-click on a card offers Group, which
@@ -2744,18 +2753,18 @@ and the label goes: what it held stays on the canvas, in the label above it wher
 stood, or standing free. Nothing else is lost. With cards and labels selected together, Backspace
 does both in one step.
 
-**The sidebar: Not placed and Set aside (20 October, Adam's way A).** The bin went on 20 October, after
-A tester's feedback that PETs had two places for what is off the board, the Not placed pile and the bin, where
-GETs keeps what it has not placed in its Participants panel. The PETs board now has a sidebar of its own at the
+**The sidebar: Unplaced and Set aside (20 October, Adam's way A).** The bin went on 20 October, after
+A tester's feedback that PETs had two places for what is off the board, the Unplaced pile and the bin, where
+GETs keeps what it has unplaced in its Participants panel. The PETs board now has a sidebar of its own at the
 left of the canvas, as GETs has, its button, Statements, at the left end of the bar, the panel icon with
 its left part filled, pressed in while it is open, with the count of statements waiting beside its name.
-Its cross sits at its head, then a search over its statements, then two sections. **Not placed** holds the
+Its cross sits at its head, then a search over its statements, then two sections. **Unplaced** holds the
 participant's statements not on the board, in interview order, each with its time first, a sheet after
 the first under its own name, and its count at the right of its head. A stack waits as one row at its
 top's time, with "2 stacked" under it, and a statement whose line has gone from the workbook comes last,
 under Missing from the workbook, with Remove. A statement an agent left out with a reason has it under it in
 the small type, and so does one a New AI board left out before 11 November 2026. **Set aside**, pinned to the panel's foot and folded until he opens it, holds what the bin
-held, each with Put back, which sends it to wait in Not placed, its count at the right of its head. Every
+held, each with Put back, which sends it to wait in Unplaced, its count at the right of its head. Every
 board from before opens with its binned cards under Set aside, and the file keeps them as it did.
 
 The canvas holds only what is placed. A row of either section drags onto the canvas: let go in a PET's
@@ -2763,16 +2772,16 @@ body or on its title strip it goes into it, and let go on empty canvas it lies t
 but in no PET yet, to be grouped, as slips lie on a table. Rows select as the Table view's do, a click, Shift
 for a run and Cmd for one more, and the rows selected drag together, the first under the pointer with how
 many on it, the rows left as faint outlines while they are in the air. Let go back over the sidebar, or
-press Esc, and nothing changes. Put all on the board, under Not placed's head, puts every statement waiting
+press Esc, and nothing changes. Put all on the board, under Unplaced's head, puts every statement waiting
 on the canvas as one pile in the middle of what is in view, his own way of starting ("chuck all on the
-canvas"). A card dragged from the canvas onto Not placed waits there again, and onto Set aside is set aside.
+canvas"). A card dragged from the canvas onto Unplaced waits there again, and onto Set aside is set aside.
 
-Take out of PET in a card's menu and `Backspace` send a card back to Not placed, at its own time in the
+Take out of PET in a card's menu and `Backspace` send a card back to Unplaced, at its own time in the
 order, the row lit for a moment and the list scrolled to it, and on a card loose on the canvas `Backspace`
-and Back to Not placed in its menu do the same. `X` and Set aside in a card's menu set it aside, and Set
+and Back to Unplaced in its menu do the same. `X` and Set aside in a card's menu set it aside, and Set
 aside's head lights for a moment when it is folded. A stack's top taken out takes its stack with it.
 Set aside is never emptied and nothing on this screen deletes a statement. The menu shows each entry's key at
-its right, Backspace and X. On the status bar "5 not placed" and "1 set aside" open the sidebar on their
+its right, Backspace and X. On the status bar "5 unplaced" and "1 set aside" open the sidebar on their
 section, and "3 in no PET" counts the cards loose on the canvas, said only when there are any. Below about
 900px the sidebar lies over the canvas, and at a phone's width it is a sheet over the board, its whole
 width.
@@ -2801,8 +2810,8 @@ card dropped onto is the top. A drop nearer a card's edge moves as any drop in a
 strip still merges. Or select the statements and press `S`, and they stack under the highest of them,
 since higher reads as better. The right-click menu on a card with others selected carries Stack the
 selected statement under this one (or Stack the 3 selected under this one), which makes that card the
-top. While a drag is over a card's middle, the tip about Option or Alt goes, since the drop stacks. A statement stacked leaves its PET, Not placed or
-Set aside, and goes wherever its top goes after, into a PET, Not placed or Set aside. A top stacked under
+top. While a drag is over a card's middle, the tip about Option or Alt goes, since the drop stacks. A statement stacked leaves its PET, Unplaced or
+Set aside, and goes wherever its top goes after, into a PET, Unplaced or Set aside. A top stacked under
 another brings its own stack with it, so a stack is one level deep. Copy to board brings each top's
 stack with it, and a board an agent makes keeping another's layout keeps that board's stacks.
 
@@ -3218,13 +3227,13 @@ bar carry Canvas and Table after the board's name, two views of one board, alway
 pressed in, and `T` switches between them, as their tooltips say. Each board keeps the view it was left in,
 in the browser, across a restart. Table is the table of PETs the print view sets out (see Print), live: the
 PETs in the order the canvas reads them, each lettered as the project labels them, its sub-themes and groups
-under it, and each statement with where it is and its own quote, then Not placed. It is drawn from the
+under it, and each statement with where it is and its own quote, then Unplaced. It is drawn from the
 board on the page whenever the canvas changes, so it is never out of date, and the canvas stays laid out
 under it. Every PET, sub-theme and statement row has a grip at its left: drag it to another place among what
 sits beside it, or press Alt with the arrow up or down on its grip or its title, and the letters follow, 1d
 put above 1c becoming 1c. The order is set as an agent's `order` sets it, each item moved into the place of
 the one that read there before, so the canvas moves its cards to match. A statement dragged into another PET,
-sub-theme or group goes there, at the line shown, as on the canvas, and one in Not placed goes into the PET
+sub-theme or group goes there, at the line shown, as on the canvas, and one in Unplaced goes into the PET
 it is dragged into. A double-click on a PET's or a sub-theme's title, or a second click on the title of the
 one label selected, opens it in a box in place, Enter keeps it and Esc leaves it. Each change is one step of the board's undo, `Cmd + Z` in the table as on the canvas, and is
 saved as the canvas saves. The statements' own words are read-only here: they are written on the statements
@@ -3255,7 +3264,7 @@ mean there. `G` puts a label over them with its title box open in its row, a sub
 one PET and a group when they all sit in one sub-theme, and the letters below it follow, 1a becoming 1b.
 `G` with nothing selected makes a new empty PET at the end of the table with its title box open, and the
 statements are then dragged into it. On the canvas `G` with nothing selected makes the empty PET in the
-middle of what is in view. `Backspace` takes a statement out of its PET or sub-theme to Not placed, and on a
+middle of what is in view. `Backspace` takes a statement out of its PET or sub-theme to Unplaced, and on a
 title deletes the label, keeping what it held. `X` sets aside, `S` stacks the statements selected under the one
 that reads first in the table, `I` opens or closes the Inspector, which follows the row selected as it
 follows a card, and `N` asks for names when AI features are on. A right click on a row, or the ⋯ at its
@@ -3266,7 +3275,7 @@ double-click on a statement's row opens its passage on Experiential statements, 
 the table where it was scrolled to, the row still selected. A selected statement's grip drags every
 statement selected, together, in the order they read, to the line shown. Rows dropped on a label's title
 strip go into it, "Merge into" showing over the strip as on the canvas: statements join it at its end, and a
-PET or a sub-theme goes inside it with all it holds. Rows dropped on Not placed go back there. A stack's
+PET or a sub-theme goes inside it with all it holds. Rows dropped on Unplaced go back there. A stack's
 count beside its top, "2 stacked", shows the statements under it in the rows below, and a click on it again,
 or `S` on the top, stacks them again, their menus holding Make this the top and Take out of the stack. The
 table's foot lists Set aside, each with Put back, and then any statement missing from the workbook, with Remove,
@@ -3279,7 +3288,7 @@ canvas as in the table, which makes an empty sub-theme inside the GET, or a grou
 title box open. A GET's sub-themes stand as rows of their own at the top of what the GET holds, each with
 its title, how many participants it holds and its menu, and a card dropped on a sub-theme's title strip goes
 inside it, the card's row under the GET then saying "in" and the sub-theme's title. A row of the Participants panel
-dragged onto the GET table goes under the GET or the sub-theme it is let go on, or into Not placed when let go
+dragged onto the GET table goes under the GET or the sub-theme it is let go on, or into Unplaced when let go
 over that list, as a drop on the canvas does: its card comes in, or the one there already moves, out of the
 Set aside when it was there, one step of undo.
 
@@ -3289,13 +3298,22 @@ name, or onto the canvas in none, never the rest of its PET's statements. It run
 as it stood in its History, as its other changes do. A statement on the board already, another participant's on
 their LPETs, or a GET or LPET the board has not got is refused, with nothing changed (see the guide for agents).
 
-**Export.** Export in the top bar, the share glyph, a box with an arrow up out of it, drawn in the app's
+**Export.** Export in the toolbar after the board's name, Auto-saved and Canvas | Table (16 November 2026, Adam's
+option C: "board 1, canvas table, then export", since you export the canvas or the table; until then it stood in the
+top bar, which keeps the app's own tools), the share glyph, a box with an arrow up out of it, drawn in the app's
 line style, opens a small menu under it, in the row menu's paper, and since 1 November it follows the view (Adam: "I
-always switch to the table view if I want to print or export the table"). In Table view it is headed The table:
-Print (see Print), Save as PDF, Microsoft Word (see Word document) and Markdown and CSV, then under a rule the ticks,
-Descriptions, Include not placed, Include statements set aside, Include stacked statements and Leave out the board's
-name, and under a last rule PET labels. On the canvas it is headed The canvas: Print, Save as PDF and Save as an
-image, with no ticks, since the canvas shows what it shows. Print opens the canvas on one landscape page in a tab of
+always switch to the table view if I want to print or export the table"). In Table view: Print (see Print), Save as
+PDF, Microsoft Word (see Word document) and Markdown and CSV, then under a rule the heading Include and its ticks, each
+a plain name, Descriptions, Unplaced, Statements set aside, Stacked statements, Interviewer notes (the Markdown and
+CSV's notes file) and Pen portrait, and under a last rule PET labels. Leave out the board's name went on 16 November
+("nobody wants it"), from the print view's ticks too. On the canvas: Print, Save as PDF and Save as an image, with no ticks, since the canvas shows
+what it shows. The GETs, LPETs, LGETs and Themes boards have the same Export in the same place (see Print), with
+Microsoft Word on each when the table is chosen, its first choice named for the board, GET table, LPET table or LGET
+table, and a participant's LPETs as a PDF beside their workbook, named by them. Trajectories' Export gives Print, Save
+as PDF and Microsoft Word with Each participant's note and Unplaced; the statements screen's the Annotated transcript
+(Coded transcript in thematic analysis) with Exploratory notes, Experiential statements, Interviewer notes and Pen
+portrait, beside the workbook; and the Code list's, in its own toolbar row, Print, Save as PDF, Microsoft Word and
+CSV with Extracts (16 November 2026). Print opens the canvas on one landscape page in a tab of
 its own, as Canvas on one page did (below). Save as PDF saves the canvas on one landscape page as a PDF beside the
 workbook, named as the table's PDF with "canvas" after it, "P9 - Wren - Board 3 - PETs canvas.pdf", with no print
 dialog. Save as an image saves a picture of the whole canvas, every card whole under the title, as a PNG beside
@@ -3353,8 +3371,8 @@ Word document's headings do. Under a heading come the PET's note, or the sub-the
 paragraph when it has one, then its statements and the labels inside it in the print view's order, each statement a list item,
 `- Statement (Initial, 02:10)`, and its own quote on the next line in single curly marks, ‘like this’, none for a
 statement without one. No picked quotes are listed, as in the print view. The
-board's note stays out, and the CSV carries no note at all. At the end come Not placed and Experiential statements set aside
-with their counts, "Not placed (18)" and "Experiential statements set aside (3)", as the print view and the Word document head them (until 19 October the second read Discarded, and until 20 October Binned experiential statements), in transcript order, each only when it holds
+board's note stays out, and the CSV carries no note at all. At the end come Unplaced and Experiential statements set aside
+with their counts, "Unplaced (18)" and "Experiential statements set aside (3)", as the print view and the Word document head them (until 19 October the second read Discarded, and until 20 October Binned experiential statements), in transcript order, each only when it holds
 anything, set out the same way. The second is the statements CSV with its Proposed
 PET column filled from the same board and each statement's own quote last, its rows PET by PET in canvas order, a sub-theme's where its
 frame's top sits among the PET's cards (see Export, under The loop). The workbook is only read, so a
@@ -3389,9 +3407,9 @@ followed by its sheet and timecode, "(Initial, 12:04)", and on the next line its
 single curly quotation marks, ‘like this’, set in a little, never doubled when the workbook keeps its
 own marks. A statement with no quote of its own has no quote line, and "(no quote)" never shows. There
 is no list of the PETs at the head, no list of picked quotes and no key, since each reference names its
-sheet. Not placed and Experiential statements set aside come next under plain headings with their
-counts, "Not placed (18)" and "Experiential statements set aside (3)", each only when it holds anything and only when its tick under Export is on,
-Include not placed and Include statements set aside (see Print), their statements set out
+sheet. Unplaced and Experiential statements set aside come next under plain headings with their
+counts, "Unplaced (18)" and "Experiential statements set aside (3)", each only when it holds anything and only when its tick under Export is on,
+Include unplaced and Include statements set aside (see Print), their statements set out
 the same way, and a
 statement no longer in the workbook says so in its reference, "(Initial, 12:04, no longer in the
 workbook)". The labels and the order are the print view's, taken from one place, and the PET draft
@@ -3451,11 +3469,11 @@ after the last row. Since 31 October the type is a step smaller than on screen, 
 document to read at arm's length: the participant 18pt, a PET's title 11.5pt in capitals, a sub-PET's
 10.5pt in bold, a statement 10pt, its quote 9pt and where it was said 7pt, with room between the PETs and
 the rows. The page prints at that size, the same on a Mac, on Windows
-and in the PDF an agent makes. At the end come Not placed and Experiential statements set aside with
-their counts, "Not placed (18)" and "Experiential statements set aside (3)", where until 19 October the
+and in the PDF an agent makes. At the end come Unplaced and Experiential statements set aside with
+their counts, "Unplaced (18)" and "Experiential statements set aside (3)", where until 19 October the
 second read Discarded, in transcript order, their statements in the same rows, a discard
 with the reason an AI proposal gave under its statement, each only when it holds anything and only
-when its tick is on. The two ticks, Include not placed and Include statements set aside (Include binned experiential statements until 20 October),
+when its tick is on. The two ticks, Include unplaced and Include statements set aside (Include binned experiential statements until 20 October),
 sit under Export on the PETs screen, under the four entries, and beside Board note on the page, where
 a tick draws the page again with the part or without it. Both are off on a new install, so the table
 and the Word document hold the PETs alone, and a tick changed in either place is kept in the settings
@@ -3497,7 +3515,7 @@ page's margin, so until 31 October the Mac's own print had no foot line. Since t
 the foot itself on every page, from the page's own words, so the Mac's print and its PDF carry the same
 foot as Windows's and the PDF an agent makes. Safari's own print, in a browser's tab, still has none. Since 19 October the page opens
 with the print dialog, where Save as PDF is one step, since the table is read in the Table view, and Print
-at its top right opens the dialog again. A board with no PETs prints its head, and the Not placed list with its tick on. The labels and the order come from
+at its top right opens the dialog again. A board with no PETs prints its head, and the Unplaced list with its tick on. The labels and the order come from
 the one place the Word document takes them, so the two never disagree, and the PET draft takes the same
 labels (see Export). The workbook and the themes file are only read and nothing is written anywhere. A
 workbook outside the project folder is refused, and so is a board the file does not hold, each as a page of
@@ -3615,7 +3633,7 @@ keeps, so a rebuild never resets his arrangement. A board it makes is the
 next board, "Board 5", "with AI" after its name, his own left as they were, with no note of who made it:
 the record of agents' changes keeps the tool, the time and his request (16 November 2026). A change to a
 board keeps the board as it stood in History first, "Before an agent's change" (the request stays in By an agent), so Restore takes
-it back. It never sets a statement aside: one it finds fits no PET stays in Not placed, and the
+it back. It never sets a statement aside: one it finds fits no PET stays in Unplaced, and the
 Inspector gives its reason under it, "Left out: ...", and under Set aside, should he set it aside, the
 pile gives it under its words. With AI features on, a statement's short id, `S12`, stands
 small and faint after its timecode in the Inspector, the same id the agent names it by, so either
@@ -3824,7 +3842,7 @@ text the board was made with, the line as it reads now beside it, until he moves
 on it, and then the live line becomes the stored text. A stored card with no line is marked
 missing: in a PET it stays in its place, faded, and in no PET the sidebar lists it last under Missing from
 the workbook, with Remove to take it out of the board. A line no card claims gets a new card, waiting in
-the sidebar's Not placed.
+the sidebar's Unplaced.
 A pick follows its quote's words the same way (see Picks), and so do the CSV's Proposed PET column
 and the print view.
 
@@ -3846,7 +3864,7 @@ saving anything still to save. Back goes to where the screen was opened from, th
 on the passage he was on, or that participant's PETs on the board it was on, and the tabs name each
 screen of Idiograph on the bar. The GETs bar mirrors the PETs bar, Idiograph's lockup, then the tabs with GETs in front, and on the right Search, the bug for Send feedback and Settings, and under the band the toolbar with Participants at its left end and Inspector at its right end, each over the sidebar it opens (see One title bar and The bars since 26 October 2026), with the project's name in the band and no participant picker, since GETs is the project's, then the board switcher and
 its save state and the Canvas and Table switch on the toolbar. There is no Export
-button, since Export sits in the board menu (see Print). Until 19 October the counts stood on the bar too, "7 in GETs · 3 not placed", with "· 2 discarded" after them only when a card was in the bin, and after them Sticky note, Group, Undo and the shortcuts. They went to the status bar and the palette, as on PETs, where the counts read "3 GETs", "7 in GETs", "15 not placed" and "0 binned" (see The status bar and the palette).
+button, since Export sits in the board menu (see Print). Until 19 October the counts stood on the bar too, "7 in GETs · 3 unplaced", with "· 2 discarded" after them only when a card was in the bin, and after them Sticky note, Group, Undo and the shortcuts. They went to the status bar and the palette, as on PETs, where the counts read "3 GETs", "7 in GETs", "15 unplaced" and "0 binned" (see The status bar and the palette).
 
 **The bar at narrow widths.** The GETs bar gives way at the PETs bar's widths, and at 760px and below takes the three rows of Idiograph's tabs. Its project name is
 longer than a participant's, so it truncates with the board's, until 19 October once the counts had gone. Measured again on 5 October 2026, the sidebar button in the place of the Inspector's, Board's and the shortcuts, on the demo's project as it is named now, "Living with a dog", its three participants
@@ -3861,7 +3879,7 @@ act on the screen, a move, a label, a board op or a save from Settings. A partic
 complete comes from the board the mark names. Any other comes from its Current board, else the board
 last open, and its cards carry "PETs not complete". A participant with no themes file reads "No PETs yet".
 What comes in is a copy: each PET and sub-theme with its title, note, parent, sub-themes, statements
-and picks, and every statement of the participant, placed, not placed or discarded, with its sheet, timecode,
+and picks, and every statement of the participant, placed, unplaced or discarded, with its sheet, timecode,
 words, quotes and exploratory notes, read from the workbook. Every sheet is pooled, the sheet
 named on each line. The screen writes a participant's files only when a statement is edited on its card
 (see Cards), and then through the PETs board's route.
@@ -3935,9 +3953,9 @@ left edge. Since 16 October each participant folds open to a tree, as its
 participant's board holds it (a tester's ask, Adam's word): each PET, then under it its own statements and
 its sub-themes, each sub-theme with its statements under it, a statement in one of a sub-theme's own
 groups under that sub-theme, as its card carries them, and last a row Not in a PET, holding every
-statement in none, not placed or discarded on its participant's board. Each level folds on its own with the
+statement in none, unplaced or discarded on its participant's board. Each level folds on its own with the
 chevron at its left, a PET's, a sub-theme's and Not in a PET's row counting the statements under it,
-and each statement is marked placed, not placed or set aside. The folds are kept as the panel's open
+and each statement is marked placed, unplaced or set aside. The folds are kept as the panel's open
 state is, in the browser, for each project, so the tree is as he left it after a reload and when he
 comes back from a passage. One search over all of it matches names, titles, notes, statements,
 quotes and exploratory notes, shows what it finds with the rows that hold it, and opens those rows,
@@ -3958,7 +3976,7 @@ right under the search field, and once it has scrolled its top edge fades over a
 row passing under the field fades out and never stands cut in half, as the transcript's column fades,
 while at rest its first row stands whole (17 October, later). A level folded open carries a thin guide line from under its chevron down to its last row.
 
-Since 20 October the Participants panel has **Set aside** at its foot, as the PETs board's sidebar has, in place of the bin: folded until he opens it, its count at the right of its head, each card set aside with its participant's badge and Put back, which puts it back on the board in no GET. A card dragged from the canvas onto it is set aside, `X` and Set aside in a card's menu do the same, and a row of it drags back onto the canvas. The Participants panel itself was already GETs' Not placed, so it gains nothing else.
+Since 20 October the Participants panel has **Set aside** at its foot, as the PETs board's sidebar has, in place of the bin: folded until he opens it, its count at the right of its head, each card set aside with its participant's badge and Put back, which puts it back on the board in no GET. A card dragged from the canvas onto it is set aside, `X` and Set aside in a card's menu do the same, and a row of it drags back onto the canvas. The Participants panel itself was already GETs' Unplaced, so it gains nothing else.
 
 **Colours (16 October).** Each participant keeps a colour of its own on the GETs board, so whose PET a card
 is, and which PETs, sub-themes and statements belong together, shows at a glance, the participants staying
@@ -4033,9 +4051,9 @@ hidden.
 does on the PETs screen. Off, a PET's or a sub-theme's card carries Place also under in its menu,
 which lists the other GETs and sub-themes and puts a second card of it under the one chosen, each
 card then naming the other, "Also under Deciding". A pulled statement or participant note sits under
-any GET. A PET under no GET stays in Not placed, which the counts in the bar give.
+any GET. A PET under no GET stays in Unplaced, which the counts in the bar give.
 
-A statement's card on the GETs board says under its words where it comes from, "PET: Being trusted by the hive · GET: Belonging", the PET it sits in on its participant's board and the GET that PET's card stands under, or the PET alone while that card is in no GET, "Not placed in its PETs" or "Set aside in its PETs" when it is in none. Until 20 October the line gave the PET's title alone, which read as a note of unknown source.
+A statement's card on the GETs board says under its words where it comes from, "PET: Being trusted by the hive · GET: Belonging", the PET it sits in on its participant's board and the GET that PET's card stands under, or the PET alone while that card is in no GET, "Unplaced in its PETs" or "Set aside in its PETs" when it is in none. Until 20 October the line gave the PET's title alone, which read as a note of unknown source.
 
 **Changed since it came in.** On each open, a participant whose workbook and themes file are both older
 than the time it came in is unchanged without a read, and any other is read again and compared with
@@ -4046,7 +4064,7 @@ open, with "Brought in the changes to Juno's PETs." at the foot of the canvas, a
 board's undo. A change made outside the app shows "Changes made elsewhere" with Update in the top right
 of the canvas, which brings it in the same way, and until then the participant is marked "Changed since it
 came in" in the Participants panel. Bringing them in keeps a revision of each GET board, "Before Juno's changes came in", its line in History, keeps each PET's place
-by its id, then by its title, brings a PET or a sub-theme new to the participant in, not placed, in the nearest
+by its id, then by its title, brings a PET or a sub-theme new to the participant in, unplaced, in the nearest
 free spot, as it does a top-level PET with no card, and leaves a PET gone from the participant where it is
 with "No longer in Juno's PETs" on its card, never moved or set aside by itself. A card that comes in taller,
 its PET given a description or a title a line longer, makes room below it: what it would run over, in its GET
@@ -4081,7 +4099,8 @@ filled when he ticked it and lighter when it is the one the row starts with. A t
 it the row's quote, and a tick on the one he ticked takes his tick off. Note, under a row, opens
 a box for his note, and a click on a note opens it again: Enter or a click away keeps it, Shift +
 Enter starts a new line and Esc leaves it as it was. Each tick and each note is one step of undo, and
-both are kept in the board's `rows` (see The file). Print sits at the head of the table (see Print).
+both are kept in the board's `rows` (see The file). Print, Save as PDF and Microsoft Word are under Export in the
+toolbar, the table's head keeping none of its own (16 November 2026).
 
 **The audit trail.** Audit trail, in a GET's Inspector and under its title in the Table view, opens a
 card over the screen for that GET, its title in its tint, its count and its note, after saving
@@ -4116,8 +4135,13 @@ menu in the Participants panel holds Open beside, which puts that participant's 
 same way, the board its PETs came in from. Below 900px the two stack, his canvas above. Opening a participant or leaving the screen closes it. Neither
 writes anything.
 
-**Print.** Export, in the board menu above Mark GETs complete, and Print at the head of the
-Table view, Export named as it is on PETs, opens a small card under the word Export. What to print is a list of
+**Print.** Export in the toolbar since 16 November 2026, as on PETs, its menu following the view: on the canvas
+Print, Save as PDF and Save as an image, then Include and Participant notes; in Table view Print, Save as PDF and, for a
+thematic analysis project's theme table, Microsoft Word, then What to print (GET table, Audit trail, All of it in one
+document), Under each participant (Every statement and quote, Their key quote only), and Include, Descriptions,
+Participant notes, unticked at each open, and Participants table, each choice's line in its tooltip. Until then
+Export stood in the board menu above Mark GETs complete, and opened the card below, which a GET's own audit trail
+still prints from. Print at the head of the Table view opens the card too. What to print is a list of
 four, each its name with a line under it in the soft ink saying what it gives, the whole row choosing it (31 October,
 Adam: never a choice left unexplained): GET table, "Each GET with a row for every participant, what of theirs sits
 under it, its key quote and your note", Audit trail, "Each GET traced for every participant, from the transcript
@@ -4571,11 +4595,11 @@ A new code waits under its participants in the Participants panel until it is dr
 
 The Themes board as the thematic map (2 November 2026). The panel at the board's left has two tabs, Codes and
 Participants. Codes lists every code of the project once, by name, with its extracts and each participant's count:
-Not placed first, the codes in no theme and those that have never been on the board, then In themes. A code set
+Unplaced first, the codes in no theme and those that have never been on the board, then In themes. A code set
 aside is under Set aside at the panel's foot. Search the codes finds a code by its name or its description. A row
 dragged onto the board brings the code's card, or moves it when it is there already. Participants is the panel as
 it was, each participant's codes under their name. The status bar counts codes, "11 codes: 9 in themes, 0 set
-aside, 2 not placed", from the code list, so a code that never reached the board counts as not placed, then the
+aside, 2 unplaced", from the code list, so a code that never reached the board counts as unplaced, then the
 themes and subthemes, "3 themes, 1 subtheme".
 
 The Inspector on a code's card shows "Code · 5 extracts", its name, each participant's count, its Description,
@@ -4617,7 +4641,7 @@ as before.
 
 The board's Table view lists each theme in the board's order with its definition, its note and Audit trail, then
 its codes, each with its extracts and under it each extract with its participant, time and words, then its
-subthemes the same way. Not placed at its foot lists the codes in no theme, those on the canvas first, which drag
+subthemes the same way. Unplaced at its foot lists the codes in no theme, those on the canvas first, which drag
 into a theme, then those never on the board.
 
 The theme table goes to Microsoft Word too (1 November 2026): Microsoft Word beside Print at the top of the board's
@@ -4865,7 +4889,7 @@ the file named after the project, "Keeping bees.qdpx", and a line says once it i
 Nothing in the project changes. In the file each interview is a text, its passages as the transcript has them with
 their speakers and times. In an IPA project each experiential statement is a code, applied to its quote, a statement
 with no quote to its whole passage, and each participant's PETs, from the board the GETs take, hold their
-statements in the board's order, each PET and sub-PET with its description, then Not placed and Set aside. Each
+statements in the board's order, each PET and sub-PET with its description, then Unplaced and Set aside. Each
 PET and each GET is also a set, ATLAS.ti's code group. In a thematic analysis project each code is one code, with
 its description, on each of its extracts, and the themes hold the codes. Exploratory notes are notes on their
 passage. With the recordings ticked, each interview with one is the recording with its transcript, linked by the
@@ -4998,11 +5022,11 @@ timepoints:
   - New trajectory, at the end, adds a band whose title is typed at once. A title and a sentence are
     changed by typing over them. The swatch on a band's head opens its colour (Green, Amber, Red, Blue,
     Plum, Teal, Taupe, Orange or None) and its icon (Rising, Mixed, Falling, Level or None), with Done.
-    The cross takes the trajectory away, its participants going back to Not placed with all that is
+    The cross takes the trajectory away, its participants going back to Unplaced with all that is
     kept on them.
   - A participant moves by dragging their cell onto a band, landing where they are dropped, by Move to
     in their cell's menu, or with the keys while their cell has the focus: Up and Down within their
-    trajectory, Left and Right to the trajectory before or after, Backspace to Not placed.
+    trajectory, Left and Right to the trajectory before or after, Backspace to Unplaced.
   - A double-click on a participant's cell, or Edit in its menu, opens their editor in place. Change
     picture... takes an image file, cut square, made small and kept in the project folder
     (`pictures/` since 11 November, the participant's own, `trajectories/pictures/` before), and a picture
@@ -5039,7 +5063,7 @@ timepoints:
     every change to the LPETs board, made on the canvas or by an agent: a statement brought in, an LPET
     retitled, moved or merged. The LPETs screen shows the same pills on the LPET's label and sets the
     domain from the LPET's menu or its Inspector (12 November 2026).
-  - The status bar along the foot counts the participants placed and not placed and the trajectories,
+  - The status bar along the foot counts the participants placed and unplaced and the trajectories,
     and holds Quotes, which steps through off, short (three lines) and full, and Notes, each
     participant's note on why they stand there (the old Why box), off until he turns it on. Both are
     kept in Settings.
@@ -5064,14 +5088,14 @@ timepoints:
   with nothing close there can come in as a new statement with its quote. A Location may hold two times
   ("18:15 and 05:59", two lines, or split by a comma, a slash or "&"), and the row matches at any of them.
   A statement two rows give is
-  placed once. Every other statement waits in Not placed, and his other boards are as they were. A table
+  placed once. Every other statement waits in Unplaced, and his other boards are as they were. A table
   of LPETs, a row each with its title and a line under it, then a cell for each timepoint, becomes a new
   LPETs board: each LPET with that line as its description and the cells in its note, a paragraph for
   each timepoint headed T1, T2, T3. The PETs whose statements its cells quote are put under it as a
-  proposal for him to keep or move on the canvas, and every other card waits in Not placed. The agent
+  proposal for him to keep or move on the canvas, and every other card waits in Unplaced. The agent
   shows him every match first and brings nothing in until he says.
 
-The bar under the question has a button at its left, Not placed, with the standard left-panel icon the boards' sidebar button has. It hides the Not placed band, at the head of the bands, and shows it again, Hide Not placed and Show Not placed in its tooltip. While it is hidden the button carries the number of participants not placed. The choice is kept for the screen in the browser. A participant still goes back to Not placed with Backspace (10 November 2026).
+Unplaced is the board's left sidebar since 16 November 2026, as on every board: its slim tab on the board's left edge, Unplaced with the number of participants on no trajectory, opens and closes it, Hide Unplaced and Show Unplaced in its tooltip, and the choice is kept for the screen in the browser. Each participant on no trajectory is a card in it, dragged onto a trajectory, and a card dragged back onto the sidebar, or Backspace, takes them off theirs. From 10 November it was a band at the head of the bands, with its button in a bar of its own under the question. That bar is the board's toolbar row, where Export stands once the Trajectories export is there, and Undo and Redo will stand at its right end.
 
 A project of one timepoint, and every project from before, has none of this: one PETs canvas a
 participant, GETs and no LPETs, LGETs or Trajectories, its files as they always were.
@@ -5155,7 +5179,7 @@ decided, with its experiential statements, each beside its own key quote, its ex
 highlight here and there, the rounds closed and Statements complete, and its PETs on Board 1, the
 Current board, marked complete, three PETs with sub-PETs, a description under every title and a picked
 quote on each PET. Juno's holds 36 statements in three PETs and nine sub-PETs, Rowan's 24 in three PETs
-and seven sub-PETs, and Mabel's 18 in three PETs and two sub-PETs, one of hers not placed (the analysis redone
+and seven sub-PETs, and Mabel's 18 in three PETs and two sub-PETs, one of hers unplaced (the analysis redone
 on 12 November 2026). The GETs board across the three, Board 1 of the demo's GETs, the Current board and marked
 complete, holds five GETs, each with its description, from the PETs and sub-PETs of all three, the
 sub-PETs whose PET carries them set aside, and the quote of each participant's row ticked in the GET
@@ -5224,7 +5248,7 @@ analysis demo" tag, is a thematic analysis project of the same three invented pa
 same transcripts, so the two methods can be compared on the same words. Its passages are coded with one
 shared code list of 22 codes, each with its description, several codes on some extracts, and notes on
 passages where the coding needed one. Its Themes board, done in Braun and Clarke's reflexive way, holds four
-themes, each with its definition and most with a note, two subthemes, and two codes not placed. It lives in
+themes, each with its definition and most with a note, two subthemes, and two codes unplaced. It lives in
 `demo/ta/`, a project of its own inside the demo's folder: its project file, the participants' folders, the
 code list and the Themes board's file at its root, its pristine copy in `demo/ta/pristine/`, and its
 sources in `demo/ta/source/`, each participant's coding in `<name> - coding.json` and the code list and

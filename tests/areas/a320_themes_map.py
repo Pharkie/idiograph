@@ -1,6 +1,6 @@
 """Area 320: a thematic analysis project's Themes board as its thematic map (themesbuild, 2 November 2026, Adam's
 choices of the drawings that evening): the status bar counting the codes from the code list, so a code that never
-reached the board counts as not placed, Compact on the status bar kept in the settings across a restart, the table of
+reached the board counts as unplaced, Compact on the status bar kept in the settings across a restart, the table of
 themes listing each theme with its codes and their extracts in the order the board reads them, and an IPA project's
 board counting, tabbing and tabulating as before. The page's script runs in node with the text layer in front of it,
 on an invented project about allotment gardens."""
@@ -116,12 +116,12 @@ def test_themes_map(scratch):
     why = (run.stdout + run.stderr)[-600:]
 
     ta = out.get("ta") or {}
-    check("320: the status bar counts the code list's codes, a code that never reached the board not placed and one "
-          "loose on the canvas not placed, two themes counted as one with its subtheme inside",
+    check("320: the status bar counts the code list's codes, a code that never reached the board unplaced and one "
+          "loose on the canvas unplaced, two themes counted as one with its subtheme inside",
           (ta.get("placed"), ta.get("unplaced"), ta.get("binned"), ta.get("pets")) == (2, 2, 0, 1), why)
-    check("320: the bar says it as codes, \"4 codes: 2 in themes, 2 not placed\" with the themes after it",
+    check("320: the bar says it as codes, \"4 codes: 2 in themes, 2 unplaced\" with the themes after it",
           out.get("taSaid", [""])[0].startswith("4 ") and " in themes" in out.get("taSaid", [""])[0]
-          and "2 not placed" in out.get("taSaid", [""])[0], str(out.get("taSaid")))
+          and "2 unplaced" in out.get("taSaid", [""])[0], str(out.get("taSaid")))
     check("320: the bar counts the themes and their subthemes, \"1 theme, 1 subtheme\"",
           (out.get("statusSubs") or ["", ""])[-1] == "1 theme, 1 subtheme", str(out.get("statusSubs")))
     check("320: under a theme each extract of a code carries a tick, a participant's key extract the first of theirs in "
@@ -143,10 +143,10 @@ def test_themes_map(scratch):
                    ("statement", "P1 - Wren/es/Wren:5:0"), ("statement", "P2 - Moss/es/Moss:7:0")], str(flat))
     table = out.get("table") or ""
     check("320: each code in the table once, with its extracts counted from every participant and each extract under it, "
-          "and the code that never reached the board under Not placed",
+          "and the code that never reached the board under Unplaced",
           table.count(">Soil as a slow friend <") == 1 and "2 extracts" in table
           and "It takes years to know it." in table and "You learn its moods." in table
-          and "Rain as permission to stop" in table and "Not placed (2)" in table, table[:300])
+          and "Rain as permission to stop" in table and "Unplaced (2)" in table, table[:300])
     check("320: the table says nothing of PETs or GETs, and lists no participant with nothing under a theme",
           "PET" not in table and "GET" not in table and "Nothing under" not in table and "No codes, so" not in table)
 

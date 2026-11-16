@@ -8330,12 +8330,15 @@ def gets_pdf_place(root: Path, body: dict) -> dict:
     if board is None:
         raise WorkbookError(i18n.t("page_print.gets.board_gone"))
     books = gets_books(root)
+    # a participant's LPETs named by them and beside their workbook, as their Word document is (exportwire)
+    book = LPETS_FOR.get()
+    whose = dict(heading=themes_print.case_title(case_label(book)), folder=Path(book).parent) if book else {}
     with writing(root=root):
         made = print_pdf.write_gets(root, books, read_project(root), board, what=str(body.get("what") or "table"),
                                     detail=str(body.get("detail") or "full"), notes=body.get("notes") in (True, 1, "1"),
                                     get=str(body.get("get") or "") or None, sending=export_sending(body),
                                     dry_run=body.get("dry_run") is True, descriptions=export_descriptions(body),
-                                    researcher=researcher_name(), people=people_printed(root, body))
+                                    researcher=researcher_name(), people=people_printed(root, body), **whose)
     out = {"pdf": made["name"], "shown": [made["name"]], "path": made["path"], "name": made["name"],
            "dated": made["dated"], "version": made["version"]}
     return dict(out, dry_run=True) if made.get("dry_run") else out

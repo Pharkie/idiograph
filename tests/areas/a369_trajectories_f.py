@@ -1047,7 +1047,7 @@ document.addEventListener('DOMContentLoaded', run);
 def _keys_in_browser():
     """The screen's keys in the computer's own browser, the real markup, styles and trajectories.js with the
     server answered by a stand-in that records what is sent: Up moves a participant within their trajectory, Right
-    to the next, Backspace to Not placed, Cmd+B on words of a quote standing in sends their spans, a click on a
+    to the next, Backspace to Unplaced, Cmd+B on words of a quote standing in sends their spans, a click on a
     quote opens its chooser and a tick sends its key, a tick on the ticked one takes it off, and a drop above a
     participant's middle lands before them. Since trajchoose the chooser's three parts in order, No quote opening
     it, a passage's time cited with its interview, and the passage picker's interviews, find box and two takes."""
@@ -1089,7 +1089,7 @@ def _keys_in_browser():
           and out.get("auto") is True and out.get("noQuote") == 3 and out.get("bold") == "I", str(out)[:600])
     check("369: in a browser an LPET in two domains shows two pills, each in its own colour (trajfix)",
           out.get("domains") == ["Practical case-3", "Town case-5"], str(out.get("domains")))
-    check("369: Up moves a participant within their trajectory, Right to the next, Backspace to Not placed",
+    check("369: Up moves a participant within their trajectory, Right to the next, Backspace to Unplaced",
           sent[:3] == [{"op": "order", "participant": "P2 - Ash", "at": 0}, {"op": "place", "participant": "P1 - Wren", "column": "c2"},
                        {"op": "place", "participant": "P3 - Fern", "column": None}], str(sent[:3]))
     check("369: Cmd+B on words of the quote standing in sends their spans as its bold",

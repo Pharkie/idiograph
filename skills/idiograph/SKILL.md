@@ -220,7 +220,7 @@ pseudonym, so a name you read before may no longer find it: read `cases` again. 
 for it, since a pseudonym is his to give, and never edit `names` or rename a participant's folder or a file by
 hand. A double-click on a statement card, or Go to the passage, opens its passage on Experiential
 statements in the app alone, which `turn show` gives you as words. Since 17 October the app says
-"not placed" for a statement on no PET wherever it shows one, as these commands do, where its bar
+"unplaced" for a statement on no PET wherever it shows one, as these commands do, where its bar
 said "unplaced", and the files keep their keys, so say it his way. Since 17 October, later, the GET
 table and the audit trail say a participant with no PETs in one line, "No PETs, so nothing under this
 GET", with no mark beside the name.
@@ -308,7 +308,7 @@ which never adds a second mark to a quote that opens with one.
 exploratory notes, and where each board places it. `turn show` gives each statement with its key
 quote under it, and its key, `Initial:12:0`, in brackets after it and under `key` in its JSON pairs. `board show` gives a board as a tree: each PET with its id,
 count, note, statements and picked quotes, its sub-themes under it and their groups under them, then
-Not placed with the reason each was left out, `loose` marking one he put on the canvas in no PET yet,
+Unplaced with the reason each was left out, `loose` marking one he put on the canvas in no PET yet,
 then Set aside (`set_aside`, and `discarded` as before). With no board named it shows the Current
 board. A label at the top is a PET, a label inside a PET a sub-theme, and a label inside a sub-theme a
 group, with groups inside groups at any depth. With `--json` each label carries `export_label`, the
@@ -497,7 +497,7 @@ Each interview is a text source, a passage a paragraph, `[00:01:23] Name: words`
 each experiential statement is a code named by its words, applied to each piece of its quote, a
 statement with no quote applied to its whole passage in a selection named `Whole passage`. Each
 participant is a code holding their PETs in the board's order, each PET and sub-PET a code with its
-description, then Not placed and Set aside. The board is the one the GETs take. Each PET and each
+description, then Unplaced and Set aside. The board is the one the GETs take. Each PET and each
 GET is also a set. In a thematic analysis project each code is one code for the project, with its
 description, applied to its extracts, and each theme a code holding its codes and a set. Exploratory
 and interviewer notes are notes on their passage's selection, a label's note a note on its code.
@@ -730,7 +730,7 @@ request. A row with nothing close on its passage is added there as a new stateme
 default. A row with no passage at its Location or with its quote is skipped. The interviewer's passage
 keeps its words. A statement two rows name is placed once, where the first puts it, and the second is a
 `duplicate`. The board is made as `board new` makes one, named by `--name`, From Excel when left out,
-laid out afresh, every statement no row places waiting in Not placed and every other board as it was,
+laid out afresh, every statement no row places waiting in Unplaced and every other board as it was,
 its note naming the table and the counts. The dry run writes nothing. It answers `counts` (`rows`,
 `exact`, `fuzzy`, `rewritten`, `added`, `skipped`, `duplicate`, `unmatched` and `reworded`) and `rows`,
 each with its `pet`, `sub`, `statement`, `how`, `ratio`, `key`, `was` (the words the statement had), `by`
@@ -796,7 +796,7 @@ refused when one is wrong, nothing written:
 
 - a trajectory, by its id, `c1`, or its title: `{"op": "add", "title": "Positive"}` (with `at`, its place
   from 0), `rename` (`column`, `title`), `move` (`column`, `at`), `remove` (`column`, its participants back
-  to not placed with all that is kept on them), `describe` (`column`, `description`, "" clearing it),
+  to unplaced with all that is kept on them), `describe` (`column`, `description`, "" clearing it),
   `colour` (`column`, `colour`: Green, Amber, Red, Blue, Plum, Teal, Taupe, Orange, or none) and `icon`
   (`column`, `icon`: rising, mixed, falling, level, or none)
 - a participant, by their pseudonym or label: `place` (`participant`, `column`, none to take them out, and
@@ -1219,7 +1219,7 @@ the next line the board's own note in the copy as it was, the other analyst's wo
 dry run gives each board's counts as `came` (`statements`, `as_sent`, `reworded`, `removed`, `own`). `board
 note` (MCP `board_note`) rewrites a board's note, a board brought in like any other, with a dry run and
 its History. Every card keeps its
-place on the board, in its PET, its stack, the bin or Not placed (Adam, 6 November 2026: a board arrives
+place on the board, in its PET, its stack, the bin or Unplaced (Adam, 6 November 2026: a board arrives
 whole). A card is matched by its words first: the statement at its key reads as the card, or an unclaimed
 statement with the same words on its row, then on its sheet, takes it, so a statement moved up its passage
 by a removal is found. Then by its key: a statement there that no other card took by its words is linked,
@@ -1234,7 +1234,7 @@ whose `--from-name` names it "Keeping bees, Curt's copy". Nothing else in the pr
 statement, note, setting or other board. A board brought in before, or the same as one there, is left.
 A board that is his own as he sent it is left out too, and answered under each participant's `as_sent`
 (8 November 2026): one whose cards are where they were when the copy was sent, each by its key in the same
-PET and sub-PET, under the same titles, the same stacks, bin and Not placed, its name, times, notes, words and
+PET and sub-PET, under the same titles, the same stacks, bin and Unplaced, its name, times, notes, words and
 places on the canvas aside, whatever he has done to his own board since. A send records that print of each
 board in its list (`boards`) and the copy keeps it, and for a copy sent before, his boards and every
 revision in their History stand in. A board the other analyst moved one card on is theirs and comes in.
@@ -1479,7 +1479,7 @@ idiograph board new Rowan --from board.json --note "Make one board from boards 2
 
 `stacked` puts statements under a better one, each top to the statements under it: S8 and S10 under
 S7, which stands for them in the PETs table and the exports (see Stacks, below). A top is placed or
-not placed, and a statement under one is in no label and not under `not_placed`. A board that keeps
+unplaced, and a statement under one is in no label and not under `not_placed`. A board that keeps
 another's layout keeps that board's stacks too, each with its top, for every statement the structure
 names nowhere.
 
@@ -1489,7 +1489,7 @@ which stay as they were. Since 19 October it keeps the layout of the board on th
 came from: a PET, sub-theme or group with the same title as one there, or half or more of the same
 statements, is that label kept, and every label and statement it keeps stands where it stood, each
 in the order given, a statement that changed label going in at the next free place after what its new label
-holds and everything else making room, nothing overlapping, and a PET of statements that waited in Not placed
+holds and everything else making room, nothing overlapping, and a PET of statements that waited in Unplaced
 at the board's next free place after the last PET (12 November). `--layout "Board 3"` keeps another board's layout,
 and `--layout fresh` lays it out afresh as the whole board's arrange does (12 November, round blobs before): the
 PETs side by side in rows in the order given, each one's sub-themes in rows across it. Its tooltip names your tool and the board it came from, the one on the canvas
@@ -1578,7 +1578,7 @@ evidences a title first. Each item takes the place of the one that read in that 
 with everything it holds, so his layout keeps its rows. Where one is wider or taller than the one
 whose place it took, those beside it move along and the rows below move down just far enough that
 nothing overlaps, and a label that grows so makes room among its own neighbours the same way, up to
-the PETs. A statement in Not placed or a sticky note a PET then covers moves to the nearest free
+the PETs. A statement in Unplaced or a sticky note a PET then covers moves to the nearest free
 spot. An order runs after the change's other operations, on the board they leave, and it names a
 label a `make` made by its `ref`. The dry run says the order each would set and whether the layout is
 kept or moved along, and the whole change is one step in its History. What an operation does not name
@@ -1615,12 +1615,12 @@ canvas does:
   {"op": "top", "item": "S79"}]}
 ```
 
-`stack` stacks S79 and S80 under S77, each out of its label, Not placed or another stack, a top
+`stack` stacks S79 and S80 under S77, each out of its label, Unplaced or another stack, a top
 stacked bringing its own stack with it, so a stack is one level deep. `under` is never a statement
 stacked under another, nor one set aside. `unstack` takes one out again straight after its top in the label's reading order (several from one stack in the order they held), in its top's
-label, or in Not placed when the top is in none. `top` puts one on top of the stack it is in, in its
+label, or in Unplaced when the top is in none. `top` puts one on top of the stack it is in, in its
 top's place, the old top first under it. They run after the other operations, on the board they leave,
-and before an order. A statement stacked loses the reason it carried in Not placed. `board show` gives
+and before an order. A statement stacked loses the reason it carried in Unplaced. `board show` gives
 each top `stacked`, the statements under it with their ids, and its text lists each under its top,
 "Stacked under it: S79". `board list` counts the stacked statements apart, and a stacked statement is
 in no label, so `move` cannot name one: `unstack` it first.
@@ -1668,7 +1668,7 @@ the weaker under the better (`stack`, above), or, when they say different things
 mark off. Each names exactly two statements, runs with the stacks, has a dry run and is one step in
 History. A pair marked twice, or shown again unmarked, is refused with nothing written.
 
-Before stacks the PhD session parked such statements in Not placed with the reason "Folded under
+Before stacks the PhD session parked such statements in Unplaced with the reason "Folded under
 Sxx". To lift them into stacks, read `board show --json`, take each statement in `unplaced` whose
 `reason` reads "Folded under S77", group them by the id the reason names, and run one `stack` for each
 top, `{"op": "stack", "items": [...], "under": "S77"}`, dry run first, with his request. Their reasons
@@ -1700,7 +1700,7 @@ The answer says a label moved to null "lifted to the top of the board".
 never as a column. Whatever a change puts into a label, a statement from elsewhere, one that waited in Not
 placed or was set aside, or a new sub-theme, takes the label's next free place: along its last row while the
 row stays within the width a grid of everything there would take, then a new row under it, in the order the
-label lists them, so it reads last there. A new PET made over statements that waited in Not placed, or empty,
+label lists them, so it reads last there. A new PET made over statements that waited in Unplaced, or empty,
 is laid out inside the same way and takes the board's next free place after the last PET, so the PETs come out
 side by side in rows. What already stood keeps its place: no board is rearranged by this, and a board he laid
 out stays his.
@@ -1723,8 +1723,8 @@ and `gets fresh` with the one board it names, every card in the pile, and no Boa
 the file would be made and write nothing, no lock file among it, and the answer names it under `made_file`. The file made is an agent's change like any other, in the record, and its Undo
 takes the file away again.
 
-**The sidebar: Not placed and Set aside (20 October).** The bin went on 20 October. On the PETs board a
-statement in no PET waits in the sidebar's Not placed, off the canvas, until he puts it on the board, where
+**The sidebar: Unplaced and Set aside (20 October).** The bin went on 20 October. On the PETs board a
+statement in no PET waits in the sidebar's Unplaced, off the canvas, until he puts it on the board, where
 it lies loose, in no PET yet, and what the bin held is Set aside. The file is as it was: what `discarded`
 holds is Set aside, and a card carries `loose: true` only while it lies on the canvas in no PET, so a board
 from before keeps everything it held in no PET waiting. Three operations of `board apply` do what the
@@ -1738,11 +1738,11 @@ sidebar does, only when he asks, with a dry run and one step in History:
 ```
 
 `set_aside` sets statements aside, as `X` does, each out of its PET, a top taking its stack with it.
-`put_back` puts statements set aside back to wait in Not placed. `put_all_on` puts every statement
-waiting in Not placed on the canvas as one pile, in no PET yet. `discard` and `bin`, the bin's old names,
+`put_back` puts statements set aside back to wait in Unplaced. `put_all_on` puts every statement
+waiting in Unplaced on the canvas as one pile, in no PET yet. `discard` and `bin`, the bin's old names,
 answer as `set_aside`, and `unbin`, `restore` and `undiscard` as `put_back`, so nothing that knew them
-breaks. A `move` to null sends a statement to wait in Not placed, out of its PET or, when it lies loose
-on the canvas, off the canvas, as Back to Not placed does there (30 October). The answer names only what
+breaks. A `move` to null sends a statement to wait in Unplaced, out of its PET or, when it lies loose
+on the canvas, off the canvas, as Back to Unplaced does there (30 October). The answer names only what
 each move took out, and a statement named that waits there already is said to, "Left S9 waiting in Not
 placed, as it was already". They run after the other operations and
 before an order. `board fresh <case> --start empty|canvas`, `board_fresh` through MCP, makes a new board
@@ -1751,7 +1751,7 @@ the default, or on the canvas as a pile with `canvas`, and puts it on the canvas
 board yet it comes after the Board 1 an open offers, as Board 2, and the answer names it.
 
 A statement written after a board was made, with `turn write` or in the app, has no card in the board's
-file until the board is next saved, and the canvas shows it waiting in Not placed. Every op takes it as a
+file until the board is next saved, and the canvas shows it waiting in Unplaced. Every op takes it as a
 statement of the board the same way (30 October): `board show` and `board list` give it waiting, and
 `move`, `make`, `stack`, `order`, `set_aside` and `put_all_on` take it by its short id or its key, at any
 timepoint, `3m:6:0` as well as `Initial:13:0`.
@@ -2522,8 +2522,8 @@ clears it.
 ## The conventions
 
 - Act on his request in the conversation, and on nothing else.
-- Code every statement: place each one in a PET, or leave it in Not placed with its reason.
-- Set a statement aside only when he asks. A statement that fits no PET stays in Not placed with its
+- Code every statement: place each one in a PET, or leave it in Unplaced with its reason.
+- Set a statement aside only when he asks. A statement that fits no PET stays in Unplaced with its
   reason, and Set aside is his to use. A new board's structure sets nothing aside.
 - Make a new board rather than change one of his. Change an existing board only when he asks, and
   the revision kept first lets him take it back. When he asks for a new order on a board, set it on

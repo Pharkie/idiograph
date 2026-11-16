@@ -106,7 +106,7 @@ const said = () => ({ board: TH.meta.id, inView: inView(), drawn: drawn(), view:
   // a board laid out as the one on the canvas keeps the view, as since 2 October
   await thSwitch('v3');
   out.alike = said();
-  // a board with nothing on the canvas, every statement waiting in Not placed
+  // a board with nothing on the canvas, every statement waiting in Unplaced
   await thSwitch('v4');
   out.empty = said();
   out.middle = { x: Math.round(stage.clientWidth / 2), y: Math.round(stage.clientHeight / 2), z: 1 };
@@ -183,7 +183,7 @@ def test_board_view(scratch):
           and o["back2"]["board"] == "v2" and o["back2"]["view"] == o["mine"] and o["mineShows"] > 0, (o["back1"], o["back2"], o["mine"]))
     check("305: a switch to a board laid out as the one left keeps the view, so two such boards are compared in one place",
           o["alike"]["board"] == "v3" and o["alike"]["view"] == o["mine"] and o["alike"]["inView"] > 0, o["alike"])
-    check("305: an empty board, every statement waiting in Not placed, opens at the origin in the middle at 100%",
+    check("305: an empty board, every statement waiting in Unplaced, opens at the origin in the middle at 100%",
           o["empty"]["board"] == "v4" and o["empty"]["drawn"] == 0 and o["empty"]["view"] == o["middle"], (o["empty"], o["middle"]))
     d = o["deleted"]
     check("305: Delete this board brings the next board on with its cards in view, and keeps no view for the one deleted",

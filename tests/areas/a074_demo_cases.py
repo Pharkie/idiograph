@@ -220,7 +220,7 @@ def test_demo_cases(scratch):
           len(tops) == 5 and all(themes_mod.description_of(g) for g in tops)
           and all({gets_mod.split_key(m)["case"] for m in g["members"]} == set(make_demo.CASES) for g in tops),
           str([len(g["members"]) for g in tops]))
-    check("74: every PET and sub-PET card is under a GET or set aside, none left not placed",
+    check("74: every PET and sub-PET card is under a GET or set aside, none left unplaced",
           set(board["cards"]) == placed | set(board["discarded"]) and not placed & set(board["discarded"]),
           f"{len(placed)} placed, {len(board['discarded'])} set aside")
     rows = gets_mod.rows_of(board)

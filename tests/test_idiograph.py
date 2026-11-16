@@ -431,6 +431,7 @@ AREAS = {
     "a396_home_cache": "idiograph",
     "a397_clear_made_notes": "idiograph",
     "a398_document_exports": "idiograph",
+    "a404_export_menus": "idiograph",
 }
 
 

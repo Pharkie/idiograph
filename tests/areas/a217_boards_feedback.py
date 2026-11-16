@@ -227,7 +227,10 @@ out.tree = { own: tree.tops[0].own, under: tree.under, none: tree.none };
 const list = { innerHTML: '', scrollTop: 0 };
 $ = (id) => (id === 'gt-cases' ? list : null);
 Object.assign(TH, { casesOpen: true, cfind: 'calm as a gift', cflip: new Set(), cfold: new Set() });
+// with the PET holding the top off the board, since the panel lists only what is not on it (toolbar10)
+TH.v = Object.assign({}, v, { cards: {} });
 gtCasesDraw();
+TH.v = v;
 out.found = { stack: list.innerHTML.includes('Taking the calm as a gift'), top: list.innerHTML.includes('Feeling trusted') };
 $ = () => null;
 TH.cfind = '';

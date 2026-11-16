@@ -120,7 +120,7 @@ def test_pet_labels(scratch):
     def draft_heads(text: str) -> list[str]:
         return [ln.lstrip("#").strip() for ln in text.splitlines() if ln.startswith("#")][1:]
 
-    ends = [f"Not placed ({len(k) - 8})"]
+    ends = [f"Unplaced ({len(k) - 8})"]
 
     # ── C. Word, print and the PET draft from the modules, each scheme
     outline = themes_word.board_of(book)[0]
@@ -296,7 +296,7 @@ def test_pet_labels(scratch):
     clicker = js.split("$('th-xmenu').addEventListener('click', (e) => {", 1)[1].split("});", 1)[0]
     check("93: a press on the pair saves at once and leaves the menu open, the export entries as they were, the pair drawn on open",
           "if (pick) { thLabels(pick.dataset.labels); return; }" in clicker
-          and clicker.index("[data-labels]") < clicker.index("[data-xop]") and "thLabelsDraw();" in fn(js, "thXmenu")
+          and clicker.index("[data-labels]") < clicker.index("[data-xop]") and "thXdraw();" in fn(js, "thXmenu") and "thLabelsDraw();" in fn(js, "thXdraw")
           and "api('/api/project', { path: TH.path, pet_labels: value })" in fn(js, "thLabels")
           and "b.disabled = !p || !!p.demo;" in fn(js, "thLabelsDraw"))
     node = shutil.which("node")

@@ -159,7 +159,7 @@ def test_themes_review_print(scratch):
         check("the print view is a page the server renders, by GET", code == 200 and kind.startswith("text/html"))
         main = page.split("<main>", 1)[1]
         g1, g3, g2 = (main.index(f"{label}</") for label in ("Mornings that belong to the dog", "Walks taken alone", "A house that holds two"))
-        np_head = next(iter(re.findall(r"<h2>Not placed \(\d+\)</h2>", main)), "<h2>Not placed (?)</h2>")
+        np_head = next(iter(re.findall(r"<h2>Unplaced \(\d+\)</h2>", main)), "<h2>Unplaced (?)</h2>")
         dc_head = next(iter(re.findall(r"<h2>Experiential statements set aside \(\d+\)</h2>", main)), "<h2>Experiential statements set aside (?)</h2>")
         check("206, 207, 208: theme by theme in canvas order, lettered, a sub-theme under its PET a heading level down in bold",
               g1 < g3 < g2 and '<h2 class="pet-title"><span class="number">A.</span> <span class="title">Mornings that belong to the dog</span></h2>' in main
@@ -176,9 +176,9 @@ def test_themes_review_print(scratch):
         check("206: no picked quotes under the title, the picked quote shown once, as its statement's own",
               '<ul class="picks">' not in main and main.count(f'<p class="kq">\u2018{own}\u2019</p>') == 1
               and g1 < main.index(f'<p class="kq">\u2018{own}\u2019</p>') < g3, own)
-        check("206, 207: Not placed and Discarded at the end with their counts, the discard with its reason",
+        check("206, 207: Unplaced and Discarded at the end with their counts, the discard with its reason",
               main.index(np_head) > g2 and main.index(dc_head) > main.index(np_head)
-              and np_head == "<h2>Not placed (%d)</h2>" % main.split(np_head, 1)[1].split(dc_head, 1)[0].count('<div class="item">')
+              and np_head == "<h2>Unplaced (%d)</h2>" % main.split(np_head, 1)[1].split(dc_head, 1)[0].count('<div class="item">')
               and dc_head == "<h2>Experiential statements set aside (1)</h2>"
               and all(shown[key] in main.split(np_head, 1)[1].split(dc_head, 1)[0] for key in rest[7:])
               and shown[rest[6]] in main.split(dc_head, 1)[1] and '<p class="why">It is about the weather</p>' in main)
@@ -196,9 +196,9 @@ def test_themes_review_print(scratch):
         check("a workbook outside the root is refused, and so is a board the file does not hold",
               far[0] == 403 and "outside the project folder" in far[2] and "<table" not in far[2]
               and gone[0] == 409 and themes_print.esc(i18n.t("page_print.pets.board_gone")) in gone[2])
-        check("a board with no themes prints its header and the Not placed list",
+        check("a board with no themes prints its header and the Unplaced list",
               '<h1 class="case">Empty</h1>' in bare and "Empty (Board 1)" in bare
-              and re.search(r"<h2>Not placed \(\d+\)</h2>", bare) and "<h2>Experiential statements set aside" not in bare and "<table" not in bare and '<ol class="summary">' not in bare
+              and re.search(r"<h2>Unplaced \(\d+\)</h2>", bare) and "<h2>Experiential statements set aside" not in bare and "<table" not in bare and '<ol class="summary">' not in bare
               and all(t in bare for t in shown.values()))
         check("185, 206: every statement carries its sheet in its reference, on a case of one sheet as on one of more",
               f'<span class="ref">({DEMO_SHEET}, ' in page and '<p class="st">A statement on row 2 <span class="ref">(2d, ' in sheets_page

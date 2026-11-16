@@ -107,6 +107,9 @@ LPET_WORDS = {
 def gword(key: str, **more) -> str:
     """A print catalogue's sentence, the LPET words for a participant's LPETs in place of the GETs' (LPET_WORDS),
     each key written out where it is used so the catalogue's check finds it."""
+    # the LGETs' table under its own name in a file's name, "LGET table" (exportwire, 16 November 2026)
+    if key == "page_print.gets.table" and gt.in_lgets():
+        return i18n.t("page_print.gets.lget_table", **more)
     pair = LPET_WORDS.get(key)
     if pair is None:
         return i18n.t(key, **more)

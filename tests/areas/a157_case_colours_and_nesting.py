@@ -168,7 +168,10 @@ out.cards = dressed();
 TH.gets.cases[1].colour = 3;
 gtDress(TH.v);
 out.recoloured = dressed()['Ivo/pn/1'];
-// the panel: every case shut, then each level folded open in turn
+// the panel: every case shut, then each level folded open in turn, on a board holding none of Isla's cards, since the
+// panel lists only what is not on the board (toolbar10, 16 November 2026)
+const onBoard = TH.v;
+TH.v = Object.assign({}, onBoard, { cards: { 'Ivo/pn/1': onBoard.cards['Ivo/pn/1'] } });
 const seq = () => [...ELS['gt-cases'].innerHTML.matchAll(/data-gkind="(\w+)" data-gid="([^"]+)"|class="gt-none/g)]
   .map((m) => (m[1] ? `${m[1]}:${m[2]}` : 'none'));
 TH.casesOpen = true;
@@ -186,9 +189,10 @@ gtFold('Isla/:none');
 out.allOpen = seq();
 const html = ELS['gt-cases'].innerHTML;
 out.counts = [...html.matchAll(/class="gt-rn">(\d+)</g)].map((m) => Number(m[1]));
-// a statement on no PET says "not placed", the word the bar and the manual use, its class kept (17 October)
-out.where = [['placed', 'placed'], ['unplaced', 'not placed'], ['discarded', 'set aside']]
-  .map(([k, w]) => html.includes(`gt-where ${k}">${w}`)).concat([!html.includes('">unplaced<')]);
+// a statement on no PET says "unplaced", the word the bar and the manual use, its class kept (17 October), the old
+// "not placed" gone (16 November 2026)
+out.where = [['placed', 'placed'], ['unplaced', 'unplaced'], ['discarded', 'set aside']]
+  .map(([k, w]) => html.includes(`gt-where ${k}">${w}`)).concat([!html.includes('">not placed<')]);
 out.kept = JSON.parse(STORE['idiograph-gets-folds'] || '{}');
 TH.cfold = new Set();
 TH.foldRoot = null;
@@ -221,6 +225,11 @@ TH.cfind = 'tam';
 gtCasesDraw();
 out.name = seq();
 TH.cfind = '';
+// Isla's PET g1 and her statement Initial:9:0 on the board leave the panel, the count of Not in a PET following
+TH.v = onBoard;
+TH.cfold = new Set(['Isla', 'Isla/:none']);
+gtCasesDraw();
+out.placedOut = [seq(), [...ELS['gt-cases'].innerHTML.matchAll(/class="gt-rn">(\d+)</g)].map((m) => Number(m[1]))];
 // the drag: a row at any level makes its card
 const entry = TH.gets.cases[0];
 out.made = [gtCardFrom(entry, 'pet', 'g1'), gtCardFrom(entry, 'sub', 'g3'), gtCardFrom(entry, 'es', 'Initial:5:1')]
@@ -261,8 +270,8 @@ console.log(JSON.stringify(out));
                                          ["g2", ["Initial:7:0"], []]], "none": ["Initial:9:0", "Initial:9:1"]}, str(o["tree"]))
             check("157: in node, every case starts shut with its swatch, its badge in its colour and named for a screen "
                   "reader, and each level folds open on its own, statements under their PET and sub-theme and Not in a PET last",
-                  o["shut"] == [] and o["swatches"] == [[0, "Isla's colour, Blue", "Is"], [3, "Ivo's colour, Brown", "Iv"],
-                                                         [2, "Tam's colour, Plum", "T"]]
+                  # Ivo, with nothing left to place, has no heading in Unplaced (exportwire, 16 November 2026)
+                  o["shut"] == [] and o["swatches"] == [[0, "Isla's colour, Blue", "Is"], [2, "Tam's colour, Plum", "T"]]
                   and o["caseOpen"] == ["pet:g1", "pet:g2", "none"]
                   and o["petOpen"] == ["pet:g1", "es:Initial:3:0", "es:Initial:3:1", "sub:g3", "pet:g2", "none"]
                   and o["allOpen"] == ["pet:g1", "es:Initial:3:0", "es:Initial:3:1", "sub:g3", "es:Initial:5:0",
@@ -281,6 +290,9 @@ console.log(JSON.stringify(out));
                   and o["flipped"] == [["pet:g1", "sub:g3"], ["Isla/g3"], True]
                   and o["title"] == ["pet:g2"] and o["sub"] == ["pet:g1", "sub:g3"] and o["name"] == ["none"],
                   str([o["found"], o["flipped"], o["title"], o["sub"], o["name"]]))
+            check("157: in node, a PET and a statement whose cards are on the board leave the panel, which lists only "
+                  "what is not on the board, the count of Not in a PET following",
+                  o["placedOut"] == [["pet:g2", "none", "es:Initial:9:1"], [1, 1]], str(o["placedOut"]))
             check("157: in node, a row at every level drags as its card, a PET, a sub-theme and a statement in a sub-theme's "
                   "own group",
                   o["made"] == [["Isla/g1", "pet", 4], ["Isla/g3", "sub", 2], ["Isla/es/Initial:5:1", "es", None]]

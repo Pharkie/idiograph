@@ -62,7 +62,7 @@ def test_ai_revise(scratch):
     moved = run([{"op": "move", "items": [keys[9], keys[10]], "to": "g2"}])
     lifted = run([{"op": "move", "items": ["g3"], "to": "g2"}])
     out = run([{"op": "move", "items": [keys[0], "g3"], "to": None}])
-    check("180: move takes statements into a label, a label in as a sub-theme, and either out to Not placed",
+    check("180: move takes statements into a label, a label in as a sub-theme, and either out to Unplaced",
           groups_of(moved)["g2"]["members"] == quoted[:2] + [keys[9], keys[10]]
           and "g3" in groups_of(lifted)["g2"]["members"] and "g3" not in groups_of(lifted)["g1"]["members"]
           and groups_of(out)["g1"]["members"] == [keys[1]] and "g3" in groups_of(out)
@@ -80,7 +80,7 @@ def test_ai_revise(scratch):
           and "g3" not in groups_of(merged)["g1"]["members"] and merged["revised"]["gone"] == {"g3": "g2"})
     apart = run([{"op": "apart", "label": "g3", "to": "parent"}])
     loose = run([{"op": "apart", "label": "g3", "to": "unplaced"}])
-    check("180: apart gives a sub-theme's members to its PET in its place, or with unplaced to Not placed",
+    check("180: apart gives a sub-theme's members to its PET in its place, or with unplaced to Unplaced",
           groups_of(apart)["g1"]["members"] == [keys[0], keys[1], keys[2], keys[3]] and apart["revised"]["gone"] == {"g3": "g1"}
           and groups_of(loose)["g1"]["members"] == [keys[0], keys[1]] and loose["revised"]["gone"] == {"g3": None}
           and not any(keys[2] in g["members"] for g in groups_of(loose).values()))

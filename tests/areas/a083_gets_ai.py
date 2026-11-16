@@ -283,7 +283,7 @@ console.log(JSON.stringify(out));
 """, encoding="utf-8")
         run = subprocess.run([node, str(script)], capture_output=True, text=True, encoding="utf-8")
         out = json.loads(run.stdout) if run.returncode == 0 and run.stdout.strip() else {}
-        check("83: in node, the reason under a card in Not placed, and none once placed or in the bin",
+        check("83: in node, the reason under a card in Unplaced, and none once placed or in the bin",
               out.get("why") == ['<p class="th-pile-why th-card-why">off the question</p>', "", ""], str(out.get("why")))
         check("83: in node, the GETs route on GETs and the PETs one on PETs, and with AI after an agent's board, edited or not",
               out.get("gets") == "/api/gets-ai" and out.get("pets") == "/api/themes-ai" and out.get("mark", [None])[0] == ""

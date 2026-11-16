@@ -25,7 +25,7 @@ def test_print_table(scratch):
     # ── A. the fixture: an invented case of two sheets, its statements and quotes paired in its cells,
     # the marks a workbook keeps round a quote in each spelling, "(no quote)" holding a place, and a
     # board of three PETs whose ids run against the canvas's order, a sub-theme, a cluster and a
-    # fourth level, two notes, a pick, a line since gone, a statement not placed and a discard with
+    # fourth level, two notes, a pick, a line since gone, a statement unplaced and a discard with
     # the reason an AI proposal gave
     root = scratch / "print-table-root"
     shutil.rmtree(root, ignore_errors=True)
@@ -87,7 +87,7 @@ def test_print_table(scratch):
     titles = [(html.unescape(a), html.unescape(b)) for a, b in re.findall(
         r'<h2 class="pet-title"><span class="number">(.*?)</span> <span class="title">(.*?)</span></h2>', main)]
     word_pets = [ln for ln in word if re.match(r"^[A-Z]+\. ", ln)]
-    np_head, dc_head = f"<h2>Not placed ({len(outline['unplaced'])})</h2>", f"<h2>Experiential statements set aside ({len(outline['discarded'])})</h2>"
+    np_head, dc_head = f"<h2>Unplaced ({len(outline['unplaced'])})</h2>", f"<h2>Experiential statements set aside ({len(outline['discarded'])})</h2>"
     check("91, 207, 208: the PETs lettered A to C in the order the canvas reads them, which their ids do not give, as the Word document has them",
           titles == [("A.", "Early mornings at the plot"), ("B.", "Weeds as company"), ("C.", "What the plot keeps")]
           and [t["id"] for t in outline["themes"]] == ["g3", "g1", "g2"]
@@ -98,7 +98,7 @@ def test_print_table(scratch):
 
     # ── C. the statements, each a row, its reference on the left and its own quote on the right
     rest = main.split('<section class="rest">', 1)[1]
-    check("91, 207: Not placed and Discarded at the end with their counts, each statement set out the same way, a discard with its reason",
+    check("91, 207: Unplaced and Discarded at the end with their counts, each statement set out the same way, a discard with its reason",
           rest.index(np_head) < rest.index(dc_head) and dc_head == "<h2>Experiential statements set aside (1)</h2>"
           and said("A statement on row 3", (F, K(F, 3)), "a quote on row 3") in rest.split(dc_head, 1)[0]
           and said("A letter from the committee", (S, K(S, 27)), "a letter, and a mark on the gate")[:-6]

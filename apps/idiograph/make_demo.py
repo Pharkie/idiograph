@@ -1184,7 +1184,7 @@ def ship_ta(force: bool = False, demo: Path | None = None, verbose: bool = True)
             print(f"  {name}, thematic analysis: {b['extracts']} extracts, {b['codings']} codes on them")
         t = built["themes"]
         print(f"  Themes: {len(built['codes']['codes'])} codes, {t['placed']} in {t['themes']} themes and "
-              f"{t['subthemes']} subthemes, {t['not_placed']} not placed")
+              f"{t['subthemes']} subthemes, {t['not_placed']} unplaced")
     return built
 
 
