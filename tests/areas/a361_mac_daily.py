@@ -147,3 +147,57 @@ def test_mac_daily(scratch: Path):
     (inner / "build.json").write_text('{"build": "e45b1af"}\n', encoding="utf-8")
     check("361: an installed copy's commit is read from its bundle, none for a release",
           released == "" and daily.build_in(app) == "e45b1af")
+
+    # ── D. the Actions way (macactions, 16 November 2026): refused unless main is pushed, and every ending said
+    if shutil.which("git"):
+        bare = root / "origin.git"
+        subprocess.run(["git", "init", "-q", "--bare", "-b", "main", str(bare)], check=True)
+        clone = root / "clone"
+        subprocess.run(["git", "clone", "-q", str(bare), str(clone)], check=True, capture_output=True)
+        cg = lambda *a: subprocess.run(["git", "-C", str(clone), "-c", "user.name=Beekeeper", "-c",
+                                        "user.email=bees@example.org", *a], check=True, capture_output=True, text=True,
+                                        encoding="utf-8")
+        (clone / "f.txt").write_text("1\n", encoding="utf-8")
+        cg("checkout", "-q", "-B", "main")
+        cg("add", "-A")
+        cg("commit", "-q", "-m", "one")
+        cg("push", "-q", "origin", "main")
+        full, _short = daily.pushed_commit(clone, "main")
+        (clone / "f.txt").write_text("2\n", encoding="utf-8")
+        cg("commit", "-q", "-am", "two, not pushed")
+        try:
+            daily.pushed_commit(clone, "main")
+            refused = False
+        except SystemExit as exc:
+            refused = "not origin/main" in str(exc)
+        try:
+            daily.pushed_commit(clone, "abc1234")
+            other = False
+        except SystemExit:
+            other = True
+        check("361: Actions builds main only when local main is origin/main, and no other ref",
+              refused and other and full != cg("rev-parse", "HEAD").stdout.strip())
+
+    def waited(outcomes, limit=60):
+        states = iter(outcomes)
+
+        def fake(*_a, **_k):
+            st, concl = next(states)
+            body = json.dumps({"status": st, "conclusion": concl,
+                               "jobs": [{"name": "mac-app", "status": st, "conclusion": concl}]})
+            return subprocess.CompletedProcess([], 0, body, "")
+        real = daily.gh
+        daily.gh = fake
+        try:
+            daily.wait_for("1", poll=0, limit=limit)
+            return "success"
+        except SystemExit as exc:
+            return str(exc)
+        finally:
+            daily.gh = real
+    seen = [waited([("queued", None), ("in_progress", None), ("completed", "success")]),
+            waited([("in_progress", None), ("completed", "failure")]),
+            waited([("completed", "cancelled")]),
+            waited([("in_progress", None)] * 3, limit=0)]
+    check("361: the wait sees success, failed, cancelled and a timeout, and says each",
+          seen[0] == "success" and "failure" in seen[1] and "cancelled" in seen[2] and "Timed out" in seen[3], str(seen))

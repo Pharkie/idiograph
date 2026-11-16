@@ -1263,7 +1263,7 @@ repository fetches the Mac app from Pharkie/idiograph.
 **Weekly releases and the maintainer's daily Mac copy** (macdaily, 9 November 2026, Adam, 9 November about
 13:20). A release goes to GitHub once a week, on Mondays, for the Mac, Windows and Linux, since each tag run
 costs about 120 Actions minutes. The maintainer's own Mac copy is built on his Mac each day from main by
-`packaging/mac_daily.py`, which spends none. It exports the commit (`--ref`, main by default) with `git
+`packaging/mac_daily.py`, which spent none until 16 November (see below, it now builds on Actions by default and this describes its `--local` build). It exports the commit (`--ref`, main by default) with `git
 archive` into `.verify/macdaily/src-<sha>`, never the working tree, and runs that export's own `build_mac.py
 --unsigned --build <sha> --out .verify/macdaily` through `~/.claude/bin/heavy idiograph build`: the workflow's
 mac-app job's build, the same pins, the frozen server, Tauri's bundle at the pinned CLI, arm64 alone and
@@ -1289,6 +1289,8 @@ running one, so a daily copy of 0.9.24 made before 0.9.24's release is never off
 semver crate orders build metadata, so the commit is kept out of the version. Area 361. Since typst1 the
 checks also ask for the typesetter beside the server, arm64 alone, typesetting a one-line page with the fonts
 the app carries.
+
+**The daily copy builds on Actions by default** (macactions, 16 November 2026, Adam: "switch it"). The repository is public, so Actions minutes are free, and his Mac is shared and loaded. `mac_daily.py` now refuses unless local main is origin/main (after a fetch, `DAILY: REFUSED`), dispatches `windows-installer.yml` by hand on main with `mac_app` true and `installer` false (`gh workflow run`), prints the run's URL, polls the run's `mac-app` job every 30 seconds up to 40 minutes saying each state and every ending (failed, cancelled, timed out), downloads the artifact `Idiograph-Mac` with `gh run download`, unpacks the app from its `Idiograph.app.tar.gz` into `.verify/macdaily/dist`, takes off a quarantine mark if there is one and says what `xattr` and `spctl` answer, then runs the same checks as a local build and the same swap, ending on the watch's `SWAP: DONE`. The workflow's mac-app step passes `--build <short sha>` on a run by hand only on main (a run on a tag carries none, so a release has no build.json), so the app carries its commit, which the checks require on both ways. Every gh call names the origin repository (`-R`), a failed list of earlier runs is fatal, and the run is checked (full sha, main, by hand, created after the dispatch) before its artifact is downloaded. `--local` keeps the build on his Mac (Actions down, or another `--ref`), `--dry-run` the build and checks without the swap, `--work` another folder. `DAILY: FAILED the Actions build` is any failure of the run or the download. The proof run on 16 November found no quarantine mark (a download by `gh` is no browser's), only `com.apple.provenance`, which every app on this Mac carries, the local build and the installed copy too, and `spctl` says "rejected" of the downloaded app and of /Applications' alike, both being ad hoc signed, so the two are treated the same.
 
 **The typesetter** (typst1, 9 November 2026, Adam, 9 November about 18:10: Typst for every PDF and picture, no
 fallback). Typst is the one engine for Export as PDF, Save as an image and the agents' exports, on the Mac,

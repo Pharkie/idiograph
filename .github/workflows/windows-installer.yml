@@ -150,7 +150,14 @@ jobs:
           rustup target add aarch64-apple-darwin
           npm install --no-fund --no-audit --prefix build/tauri-cli "@tauri-apps/cli@$TAURI_CLI_VERSION"
           python3 packaging/release.py --which "$BUILD_FOR" >> "$GITHUB_ENV"
-      - run: python3 packaging/build_mac.py --unsigned --app ${{ env.APP }}
+      # a run by hand names its commit in the app (--build, as packaging/mac_daily.py's own build does), so
+      # mac_daily's checks find the commit in build.json. A run on a tag, by hand or not, a release, carries none
+      - if: ${{ !(github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') }}
+        run: python3 packaging/build_mac.py --unsigned --app ${{ env.APP }}
+        env:
+          IDIOGRAPH_TAURI_CLI: ${{ github.workspace }}/build/tauri-cli/node_modules/@tauri-apps/cli/tauri.js
+      - if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}
+        run: python3 packaging/build_mac.py --unsigned --app ${{ env.APP }} --build "${GITHUB_SHA::7}"
         env:
           IDIOGRAPH_TAURI_CLI: ${{ github.workspace }}/build/tauri-cli/node_modules/@tauri-apps/cli/tauri.js
       - uses: actions/upload-artifact@v4
