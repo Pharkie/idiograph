@@ -27,7 +27,7 @@ serde_json = "=1.0.154"
 chrono = { version = "=0.4.45", default-features = false, features = ["clock"] }
 # Idiograph's updates from the releases repository, every file checked against the public key in
 # tauri.conf.json before it is kept (src/update.rs, the fourth build, 18 October)
-tauri-plugin-updater = "=2.13.1"
+tauri-plugin-updater = "=2.14.1"
 
 # the Mac's own parts: spelling as a browser has it, and Undo and Redo sent to a field
 [target.'cfg(target_os = "macos")'.dependencies]

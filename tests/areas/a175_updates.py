@@ -55,7 +55,7 @@ def test_updates(scratch):
     up = conf["plugins"]["updater"]
     check("175: the updater is Tauri's own plugin, pinned, read from the releases repository over https alone, with "
           "the version every file was signed for required and the installer run on Windows with its progress bar alone",
-          'tauri-plugin-updater = "=2.13.1"' in cargo and 'name = "tauri-plugin-updater"\nversion = "2.13.1"' in lock
+          'tauri-plugin-updater = "=2.14.1"' in cargo and 'name = "tauri-plugin-updater"\nversion = "2.14.1"' in lock
           and up["endpoints"] == ["https://github.com/Pharkie/idiograph/releases/latest/download/latest.json"]
           and up.get("requireSignedVersion") is True and up.get("windows", {}).get("installMode") == "passive"
           and "dangerousInsecureTransportProtocol" not in up and "dangerousAcceptInvalidCerts" not in up

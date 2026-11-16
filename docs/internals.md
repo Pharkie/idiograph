@@ -1423,7 +1423,7 @@ reverse lookup of 127.0.0.1 goes unanswered, it held the start for half a minute
 connection, as for every real server the suite started on GitHub's Mac (7 November 2026).
 
 **The updater and What's new (Tauri, 18 October, the fourth build).** Updates come through Tauri's own
-updater plugin, 2.13.1, and no other way (Adam, 17 October), in `packaging/tauri/src-tauri/src/update.rs`.
+updater plugin, 2.14.1, and no other way (Adam, 17 October), in `packaging/tauri/src-tauri/src/update.rs`.
 The plugin reads `latest.json` from `tauri.conf.json`'s endpoint, the releases repository's
 `releases/latest/download/latest.json`, and checks each file it downloads against `"pubkey"` there, the
 version the file was signed for among it, since `requireSignedVersion` is on, before the window keeps it.
