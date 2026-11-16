@@ -132,6 +132,10 @@ PAGE_ONLY = {
     "/api/suggest": (("own AI",), "the app's own AI's suggestions, which an agent works in place of"),
     "/api/suggest-sample": (("own AI",), "the test bench of the app's own AI in Settings"),
     "/api/themes-ai": (("own AI",), "the app's own AI on the PETs screen, which an agent works in place of"),
+    # his own steps of undo on the Trajectories screen (trajundo, 16 November 2026), kept by the window's server as the
+    # canvas keeps its own in the page; an agent's change is undone with agents undo-change
+    "/api/trajectories-undo": (("screen",), "his own Undo and Redo on the Trajectories screen, the window's steps, "
+                                            "where an agent undoes its change with agents undo-change"),
     "/api/whats-new": (("screen",), "the version notes' sheet"),
 }
 

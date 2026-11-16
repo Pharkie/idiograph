@@ -441,6 +441,7 @@ AREAS = {
     "a406_names_set": "idiograph",
     "a408_shift_times": "idiograph",
     "a409_ta_demo_recordings": "idiograph",
+    "a410_trajectories_undo": "idiograph",
 }
 
 

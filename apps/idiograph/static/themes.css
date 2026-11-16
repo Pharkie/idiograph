@@ -2687,3 +2687,7 @@ input.tj-title:focus { outline: 0; border-color: var(--field-edge); background: 
 @media (max-width: 520px) {
   #tj-side:not([hidden]) ~ .th-edge-l { left: auto; right: 0; border-radius: 5px 0 0 5px; border-left: 1px solid var(--rule-firm); border-right: 0; }
 }
+
+/* Undo and Redo at the right end of the Trajectories toolbar (trajundo, 16 November 2026), as on every board */
+.tj-bar-grow { flex: 1 1 auto; }
+.tj-bar #tj-undo { margin-left: 4px; }

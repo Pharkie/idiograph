@@ -1141,11 +1141,14 @@
     <textarea class="tj-board-note" id="tj-board-note" rows="1" maxlength="2000" hidden></textarea>
   </div>
   <!-- the toolbar row, the boards' standard (toolbar10, 16 November 2026): the tab's own items and Export at the left,
-       and the slot of Undo and Redo at the right end, which Trajectories has none of yet. Export and its menu (Print,
-       Save as PDF, Microsoft Word, then Include) stand hidden until the Trajectories export is there to call
-       (TJ_EXPORT in trajectories.js), and the row with them -->
+       and Undo and Redo at the right end (trajundo, 16 November 2026), the boards' own buttons, each greyed while
+       there is nothing to undo or redo. Export and its menu (Print, Save as PDF, Microsoft Word, then Include) stand
+       hidden until the Trajectories export is there to call (TJ_EXPORT in trajectories.js) -->
   <div class="tj-bar" id="tj-bar" hidden>
     <button type="button" class="th-pal-btn th-xbtn" id="tj-export" aria-haspopup="true" aria-expanded="false" title="{{page_idiograph.screens.export}}" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 14.2V3.8M8.2 7.4 12 3.6l3.8 3.8"/><path d="M9 10.2H7.3a1.8 1.8 0 0 0-1.8 1.8v6.4a1.8 1.8 0 0 0 1.8 1.8h9.4a1.8 1.8 0 0 0 1.8-1.8V12a1.8 1.8 0 0 0-1.8-1.8H15"/></svg><span class="th-pal-word">{{page_idiograph.screens.export}}</span></button>
+    <span class="tj-bar-grow" aria-hidden="true"></span>
+    <button type="button" class="th-pal-btn" id="tj-undo" tabindex="-1" title="{{page_idiograph.screens.undo_cmd_z}}" aria-label="{{page_idiograph.screens.undo}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8.5 5.5 4 10l4.5 4.5"/><path d="M4 10h10.5a5 5 0 0 1 0 10H10"/></svg><span class="th-pal-word">{{page_idiograph.screens.undo}}</span></button>
+    <button type="button" class="th-pal-btn" id="tj-redo" tabindex="-1" title="{{page_idiograph.screens.redo_shift_cmd_z}}" aria-label="{{page_idiograph.screens.redo}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15.5 5.5 20 10l-4.5 4.5"/><path d="M20 10H9.5a5 5 0 0 0 0 10H14"/></svg><span class="th-pal-word">{{page_idiograph.screens.redo}}</span></button>
   </div>
   <div class="row-menu th-xmenu" id="tj-xmenu" hidden>
     <button type="button" class="ghost" tabindex="-1" data-xop="print">{{page_idiograph.screens.print}}</button>

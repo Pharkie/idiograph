@@ -9179,7 +9179,11 @@ def api_trajectories(body: dict) -> dict:
     """The Trajectories board of a project of two or more timepoints (21 October): its columns, each
     participant's card and those not placed. Opening writes nothing."""
     root = traj_root(body)
-    return traj_reply(root, body, traj_mod.load(root))
+    # the steps checked under the project's lock, so a read while another window's change is between its writes and
+    # its step never clears them (trajfix, review L2)
+    with writing(root=root):
+        steps = traj_mod.steps_state(root)
+    return traj_reply(root, body, traj_mod.load(root), {"steps": steps})
 
 
 def api_trajectories_turns(body: dict) -> dict:
@@ -9212,10 +9216,27 @@ def api_trajectories_ops(body: dict) -> dict:
     with `dry_run` nothing is written. The board answers as it is, or would be, with `changes`."""
     root = traj_root(body)
     with writing(root=root):
-        return traj_apply(root, body)
+        # each change the Trajectories screen makes (`step`) is one step of its Undo (trajundo): every file it wrote,
+        # before and after; the LPETs screen's domain, which comes here too, is that screen's own
+        watch = traj_mod.Watch() if ticked(body.get("step"), False) and not ticked(body.get("dry_run"), False) else None
+        answer = traj_apply(root, body, watch=watch)
+        if watch is not None:
+            traj_mod.step_kept(root, watch, answer.get("changes"))
+        return dict(answer, steps=traj_mod.steps_state(root))
 
 
-def traj_apply(root: Path, body: dict) -> dict:
+def api_trajectories_undo(body: dict) -> dict:
+    """Undo or, with `redo`, Redo on the Trajectories screen (trajundo, 16 November 2026): his last change there put
+    back, every file it wrote as it was before it, byte for byte, or the last he undid made again (see
+    `trajectories.step_back`). Refused, nothing written, when there is nothing to undo or redo, or when a file of the
+    step changed elsewhere since. The board answers as it now is, with `changes`, the step's lines, and `steps`."""
+    root = traj_root(body)
+    with writing(root=root):
+        said = traj_mod.step_back(root, ticked(body.get("redo"), False), themes_mod.now_iso())
+        return traj_reply(root, body, traj_mod.load(root), {"changes": said, "steps": traj_mod.steps_state(root)})
+
+
+def traj_apply(root: Path, body: dict, watch=None) -> dict:
     """The change itself, for the route and the command line alike, the caller holding the project's lock. An
     operation on an LPET's row or its domain is run on that participant's LPETs board in memory, and those
     boards are written only once every operation has passed (see `trajectories.change`)."""
@@ -9260,6 +9281,8 @@ def traj_apply(root: Path, body: dict) -> dict:
             for b in changed:
                 b["updated"] = when
             with lpets_scope(by_case[case]):
+                if watch is not None:
+                    watch.add(gets_mod.gets_path(by_case[case]))
                 gets_mod.write(by_case[case], gets_mod._file(at["data"], when))
 
     # each participant's LPETs by id and title, for hide and show, read only when an operation names them
@@ -9276,6 +9299,15 @@ def traj_apply(root: Path, body: dict) -> dict:
     wants_set = isinstance(ops, list) and any(isinstance(o, dict) and o.get("op") in ("title", "picture", "tags", "tag_colour")
                                               for o in ops)
     held_set = person_change(root, dry=dry or not wants_set)
+    if watch is not None and not dry:
+        # the files the change may write, read before it: the board's file, the project file with the participants'
+        # sets, and on a picture both pictures folders (an LPETs file is read as its write comes, in `commit`)
+        watch.add(traj_mod.path_of(root))
+        if wants_set:
+            watch.add(root / srv.PROJECT_FILE)
+        if isinstance(ops, list) and any(isinstance(o, dict) and o.get("op") == "picture" for o in ops):
+            watch.add_folder(traj_mod.pictures_of(root))
+            watch.add_folder(people_mod.pictures_of(root))
 
     def commit_all() -> None:
         commit()
@@ -11442,6 +11474,7 @@ ROUTES = {
     "/api/gets-ai": api_gets_ai,
     "/api/trajectories": api_trajectories,
     "/api/trajectories-ops": api_trajectories_ops,
+    "/api/trajectories-undo": api_trajectories_undo,
     "/api/trajectories-turns": api_trajectories_turns,
     # the exports no screen had before (exportnew, 16 November 2026, see documents.py)
     "/api/trajectories-export": api_trajectories_export,

@@ -48,12 +48,13 @@ import json
 import os
 import re
 import struct
+import threading
 import zlib
 from pathlib import Path
 
 import i18n
 import themes
-from workbook import WorkbookError
+from workbook import WorkbookError, note_written
 
 FILE = "idiograph-trajectories.json"
 SCHEMA = 1
@@ -888,3 +889,212 @@ def change(root: Path, cases: list[str], ops, when: str, dry_run: bool = False, 
         data["history"] = data["history"][-HISTORY_MAX:]
         write(root, data)
     return {"changes": said, "dry_run": bool(dry_run), "data": data}
+
+
+# ------------------------------------------------------------------ his Undo and Redo on the screen (trajundo)
+
+# Undo and Redo on the Trajectories screen (trajundo, 16 November 2026, Adam's ruling that every tab's toolbar ends
+# with them). The boards' canvas keeps its undo in the page, the board before and after each act, since a save sends
+# the whole board. Trajectories never sends a board whole: each change is an operation the server runs over several
+# files at once, this file, a participant's LPETs file (a key quote, its bold, a state, a domain), the project file (a
+# label, tags, a picture) and the pictures folders, so its steps are kept where those files are written. Each change
+# the screen makes through the route is one step, every file it wrote with its bytes before and after (`Watch`). Undo
+# puts each of them back as it was before, byte for byte, and Redo as it was after, only while every one still reads
+# as the step left it; otherwise the steps are dropped and the screen's undo starts afresh, as a board's does when its
+# file changed elsewhere. They live in the server's memory, by project, while the app runs, as the canvas's live while
+# its page does. An agent's change goes through the command line, never through them, and is undone with `agents
+# undo-change`; one made over a file of his last step makes that step refused, and the steps dropped.
+
+UNDO_DEPTH = 80
+UNDO_BYTES = 20 * 1024 * 1024  # the bytes one project's steps may hold, the oldest dropped first (trajfix)
+_STEPS: dict = {}
+_STEPS_LOCK = threading.Lock()
+
+
+class _Unread:
+    """A file there but not readable now (an iCloud file being fetched): neither absent nor any bytes, so it is never
+    kept in a step and never counts as matching one (trajfix, review M1)."""
+
+    def __repr__(self):
+        return "<unreadable>"
+
+
+UNREAD = _Unread()
+
+
+def _bytes_of(path: Path):
+    """The file's bytes, None when there is no such file, UNREAD when it is there and cannot be read."""
+    try:
+        return Path(path).read_bytes()
+    except FileNotFoundError:
+        return None
+    except OSError:
+        return UNREAD
+
+
+def _folder_files(folder: Path) -> list:
+    try:
+        return sorted(f for f in Path(folder).iterdir() if f.is_file() and not f.name.startswith(".")
+                      and not f.name.endswith(".tmp"))
+    except OSError:
+        return []
+
+
+class Watch:
+    """The files a change may write, each read before it, so the change's step holds every one it changed as it was
+    before and as it is after. A folder watched counts the files made in it too (a picture), each with none before."""
+
+    def __init__(self):
+        self.before: dict = {}
+        self.folders: list = []
+        self.unreadable = False  # a file it watches could not be read, so no step is kept of the change
+
+    def add(self, path) -> None:
+        path = Path(path)
+        if path not in self.before:
+            self.before[path] = _bytes_of(path)
+            if self.before[path] is UNREAD:
+                self.unreadable = True
+
+    def add_folder(self, folder) -> None:
+        folder = Path(folder)
+        if folder not in self.folders:
+            self.folders.append(folder)
+            for f in _folder_files(folder):
+                self.add(f)
+
+    def files(self) -> list:
+        for folder in self.folders:
+            for f in _folder_files(folder):
+                self.before.setdefault(f, None)
+        out = []
+        for path, was in self.before.items():
+            now = _bytes_of(path)
+            if now is UNREAD or was is UNREAD:
+                self.unreadable = True
+            elif now != was:
+                out.append({"path": path, "before": was, "after": now})
+        return out
+
+
+def _stacks(root) -> dict:
+    return _STEPS.setdefault(str(Path(root).resolve()), {"undo": [], "redo": []})
+
+
+def step_kept(root, watch: Watch, what) -> bool:
+    """A change made from the screen kept as one step of undo, the steps to redo dropped as any new act drops them. A
+    change that wrote nothing keeps none. True when one was kept."""
+    files = watch.files()
+    if not files or watch.unreadable:
+        return False
+    with _STEPS_LOCK:
+        st = _stacks(root)
+        # a file's bytes before this step are most often its bytes after the last, held once
+        last = {f["path"]: f["after"] for f in st["undo"][-1]["files"]} if st["undo"] else {}
+        for f in files:
+            if f["path"] in last and last[f["path"]] == f["before"]:
+                f["before"] = last[f["path"]]
+        st["undo"].append({"what": list(what or []), "files": files})
+        del st["undo"][:-UNDO_DEPTH]
+        # and the bytes held, a project's steps in all, the oldest dropped first, the newest step always kept
+        while len(st["undo"]) > 1 and _held(st) > UNDO_BYTES:
+            del st["undo"][0]
+        st["redo"].clear()
+    return True
+
+
+def _held(st: dict) -> int:
+    """The bytes a project's steps hold, each distinct bytes object once (a step's `before` is often the last one's
+    `after`), the steps to redo counted too."""
+    seen, total = set(), 0
+    for step in st["undo"] + st["redo"]:
+        for f in step["files"]:
+            for side in ("before", "after"):
+                b = f[side]
+                if b is not None and id(b) not in seen:
+                    seen.add(id(b))
+                    total += len(b)
+    return total
+
+
+def _reads(step: dict, side: str):
+    """How the step's files read now, in one pass: "ok" when each reads as the step left it on `side`, "changed" when
+    one reads otherwise, and with "unread" the file that could not be read, which never counts as matching."""
+    state = "ok"
+    for f in step["files"]:
+        now = _bytes_of(f["path"])
+        if now is UNREAD:
+            return "unread", f
+        if now != f[side]:
+            state = "changed"
+    return state, None
+
+
+def steps_state(root) -> dict:
+    """Whether there is a step to undo and one to redo, for the toolbar's buttons. The steps are dropped once the files
+    no longer read as the last step left them, a change made elsewhere since, so the buttons never offer what an Undo
+    would refuse."""
+    with _STEPS_LOCK:
+        st = _STEPS.get(str(Path(root).resolve()))
+        if not st:
+            return {"undo": False, "redo": False}
+        # a file that cannot be read now (not one that changed) leaves the steps as they are
+        if ((st["undo"] and _reads(st["undo"][-1], "after")[0] == "changed")
+                or (st["redo"] and _reads(st["redo"][-1], "before")[0] == "changed")):
+            st["undo"].clear()
+            st["redo"].clear()
+        return {"undo": bool(st["undo"]), "redo": bool(st["redo"])}
+
+
+def _put(path: Path, data: bytes | None, when: str) -> None:
+    """A file put back as a step holds it: its bytes written whole through a temporary file beside it, or, where the
+    step had none, the file moved to the `_Archive` beside it with the time in its name, never deleted."""
+    if data is None:
+        if path.is_file():
+            stamp = re.sub(r"[^0-9]", "", str(when))[:14] or "0"
+            keep = path.parent / "_Archive"
+            keep.mkdir(parents=True, exist_ok=True)
+            # two in one second never overwrite each other: a counter after the time
+            to, n = keep / f"{path.stem} {stamp}{path.suffix}", 1
+            while to.exists():
+                n += 1
+                to = keep / f"{path.stem} {stamp} {n}{path.suffix}"
+            os.replace(path, to)
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_bytes(data)
+    os.replace(tmp, path)
+    note_written(path)
+
+
+def step_back(root, redo: bool, when: str) -> list[str]:
+    """His last change on the screen undone, or with `redo` the last he undid made again: every file of its step put
+    back whole. Refused with nothing written when there is none, or when any of its files changed since, which drops
+    the steps. Answers the step's lines. The caller holds the project's lock."""
+    with _STEPS_LOCK:
+        st = _stacks(root)
+        take, give = (st["redo"], st["undo"]) if redo else (st["undo"], st["redo"])
+        if not take:
+            raise WorkbookError(i18n.t("themes.undo.nothing_redo") if redo else i18n.t("themes.undo.nothing"))
+        step = take[-1]
+        how, bad = _reads(step, "before" if redo else "after")
+        if how == "unread":
+            # a file there but not readable now: refused, nothing written, the steps kept
+            raise WorkbookError(i18n.t("server.trajectory_undo_unread", name=Path(bad["path"]).name))
+        if how != "ok":
+            st["undo"].clear()
+            st["redo"].clear()
+            raise WorkbookError(i18n.t("server.trajectory_undo_changed"))
+        done = []
+        try:
+            for f in step["files"]:
+                _put(f["path"], f["after"] if redo else f["before"], when)
+                done.append(f)
+        except OSError:
+            # one that cannot be written puts back those written before it, so the step is whole or not at all
+            for f in done:
+                _put(f["path"], f["before"] if redo else f["after"], when)
+            raise WorkbookError(i18n.t("server.trajectory_undo_unwritten", name=Path(step["files"][len(done)]["path"]).name))
+        give.append(take.pop())
+        return list(step["what"])

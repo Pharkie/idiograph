@@ -34,7 +34,9 @@ const TJ = { path: '', back: null, to: 'cases', data: null, ask: 0, busy: false,
   faceSet: '',
   // the passage picker (trajchoose, 11 November 2026): the cell it is open for, the interview shown, the words
   // found, the turns read for each participant's interview, and the words chosen in a turn
-  passage: '', passageAt: '', find: '', turns: {}, picked: null };
+  passage: '', passageAt: '', find: '', turns: {}, picked: null,
+  // whether the server holds a step of his to undo and one to redo (trajundo), as each answer says
+  steps: { undo: false, redo: false } };
 // Not placed, the one name of every board's left sidebar (toolbar10, Adam, 16 November 2026)
 const TJ_NOT_PLACED = t('themes.left.name');
 /* the Trajectories export (exportnew and exportwire, 16 November 2026): its menu's Save as PDF and Microsoft Word post
@@ -89,6 +91,7 @@ async function trajOpen(path, how = {}) {
 
 function trajLoad(data) {
   TJ.data = data;
+  if (data.steps) TJ.steps = { undo: !!data.steps.undo, redo: !!data.steps.redo };
   TJ.project = data.project || null;
   pathProjectDraw('tj-project', TJ.project);
   $('tj-demo').hidden = !data.demo;
@@ -118,8 +121,8 @@ async function trajBack() {
 }
 
 /* a change in flight finished first, so a title or a note left on the way out is kept */
-async function trajIdle() {
-  for (let i = 0; TJ.busy && i < 50; i += 1) await new Promise((r) => setTimeout(r, 40));
+async function trajIdle(tries = 50) {
+  for (let i = 0; TJ.busy && i < tries; i += 1) await new Promise((r) => setTimeout(r, 40));
 }
 
 /* ── drawing ── */
@@ -176,7 +179,7 @@ function trajSideDraw() {
   if (!side) return;
   side.hidden = !TJ.sideOpen;
   const bar = $('tj-bar');
-  if (bar) { bar.hidden = !TJ_EXPORT; $('tj-export').hidden = !TJ_EXPORT; }
+  if (bar) { bar.hidden = false; $('tj-export').hidden = !TJ_EXPORT; }
   // shut, it holds nothing, so nothing in it is a place to drop or a card to find
   if (!TJ.sideOpen) { $('tj-side-body').innerHTML = ''; return; }
   const people = ((TJ.data && TJ.data.unplaced) || []).map((case_) => {
@@ -185,6 +188,42 @@ function trajSideDraw() {
   }).join('');
   $('tj-side-body').innerHTML = `<section class="tf-band tf-band-none tj-sideband" data-col="">${people}</section>`;
   for (const box of side.querySelectorAll('textarea.tf-fit')) trajFit(box);
+}
+
+/* Undo and Redo at the toolbar's right end are never greyed, as the boards' are: pressed with nothing to undo or redo
+   they say so (trajfix, 16 November 2026), so there is nothing to draw but the steps the server holds */
+function trajStepsDraw() {}
+
+/* Undo, or Redo with `backwards` false, of his last change on this screen (trajundo, 16 November 2026): every file the
+   change wrote put back by the server as it was, and the board drawn again from the answer. A step whose files changed
+   elsewhere since is refused in one line, and the board is read again as it now stands. */
+async function trajUndo(backwards) {
+  if (!TJ.data || $('traj').hidden) return;
+  // words typed in a field and not yet kept are kept first, so Undo takes them back as their own step
+  const el = document.activeElement;
+  if (el && $('traj').contains(el) && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) el.blur();
+  await trajIdle(250);
+  if (TJ.busy) return;
+  if (!(backwards ? TJ.steps.undo : TJ.steps.redo)) {
+    say(backwards ? t('themes.undo.nothing') : t('themes.undo.nothing_redo'), 2000);
+    return;
+  }
+  TJ.busy = true;
+  try {
+    const data = await api('/api/trajectories-undo', { workbook: TJ.path, redo: !backwards });
+    if (TJ.data && TJ.data.config && data.config) data.config = Object.assign({}, data.config, TJ.data.config);
+    trajCloseAll();
+    trajLoad(data);
+  } catch (err) {
+    say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
+    try {
+      const data = await api('/api/trajectories', { workbook: TJ.path });
+      if (TJ.data && TJ.data.config && data.config) data.config = Object.assign({}, data.config, TJ.data.config);
+      trajLoad(data);
+    } catch { trajDraw(); }
+  } finally {
+    TJ.busy = false;
+  }
 }
 
 /* the status bar: the counts in the boards' wording, then Quotes and Notes as they stand */
@@ -224,6 +263,7 @@ function trajDraw() {
   const caret = was && typeof was.selectionStart === 'number' ? [was.selectionStart, was.selectionEnd] : null;
   trajDoorDraw();
   trajStatusDraw();
+  trajStepsDraw();
   trajNoteDraw();
   trajSideDraw();
   const bands = d.columns || [];
@@ -671,7 +711,8 @@ async function trajOps(ops) {
   $('tj-save').hidden = false;
   $('tj-save').textContent = t('trajectories.saving');
   try {
-    const data = await api('/api/trajectories-ops', { workbook: TJ.path, ops });
+    // `step`: the change is one step of this screen's Undo (trajundo)
+    const data = await api('/api/trajectories-ops', { workbook: TJ.path, ops, step: true });
     // the settings the bar keeps stay as the page holds them
     if (TJ.data && TJ.data.config && data.config) data.config = Object.assign({}, data.config, TJ.data.config);
     trajLoad(data);
@@ -850,6 +891,18 @@ function trajWire() {
   $('tj-open-side').onclick = () => trajSideSet(!TJ.sideOpen);
   $('tj-side-close').onclick = () => trajSideSet(false);
   trajExportWire();
+  // Undo and Redo, a press leaving the focus where it was, as the boards' do, and their keys anywhere on the screen
+  // but in a field, whose own undo they stay (the Mac's Edit menu presses the same keys)
+  for (const id of ['tj-undo', 'tj-redo']) $(id).addEventListener('pointerdown', (e) => e.preventDefault());
+  $('tj-undo').onclick = () => trajUndo(true);
+  $('tj-redo').onclick = () => trajUndo(false);
+  document.addEventListener('keydown', (e) => {
+    if ($('traj').hidden || e.altKey || !((MOD(e) && (e.key === 'z' || e.key === 'Z')) || REDO_Y(e))) return;
+    const el = document.activeElement;
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+    e.preventDefault();
+    trajUndo(!e.shiftKey && !REDO_Y(e));
+  });
   $('tj-quotes-btn').onclick = () => trajSetting('traj_quotes', TJ_QUOTES_WAYS[(TJ_QUOTES_WAYS.indexOf(tjQuotesWay()) + 1) % TJ_QUOTES_WAYS.length]);
   $('tj-notes-btn').onclick = () => trajSetting('traj_notes', !tjNotesOn());
   $('tj-picture-file').addEventListener('change', (e) => {

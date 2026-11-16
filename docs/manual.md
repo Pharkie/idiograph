@@ -5097,6 +5097,15 @@ timepoints:
     every change to the LPETs board, made on the canvas or by an agent: a statement brought in, an LPET
     retitled, moved or merged. The LPETs screen shows the same pills on the LPET's label and sets the
     domain from the LPET's menu or its Inspector (12 November 2026).
+  - Undo and Redo stand at the right end of the toolbar, as on every board, with Cmd+Z and Shift+Cmd+Z
+    (Ctrl+Z, and Ctrl+Y or Shift+Ctrl+Z, on Windows and Linux) anywhere on the screen but in a box being
+    typed in, where they are the box's own (16 November 2026). Each change made on the screen is one step:
+    a key quote ticked, its bold, a state, a trajectory made, named or taken away, a participant moved,
+    their label, tags or picture, a note. Undo puts back every file the change wrote, as it was, and Redo
+    makes it again. A new change clears Redo. The steps last while the app is open. A change made
+    elsewhere since to what the last step changed, by an agent, the LPETs screen or another window, starts
+    them again from there, and Undo then says so and changes nothing. An agent's own change is undone in
+    Project history, By an agent.
   - The status bar along the foot counts the participants placed and unplaced and the trajectories,
     and holds Quotes, which steps through off, short (three lines) and full, and Notes, each
     participant's note on why they stand there (the old Why box), off until he turns it on. Both are

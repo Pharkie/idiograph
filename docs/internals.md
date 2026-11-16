@@ -3550,6 +3550,41 @@ set from either screen and on a board LGETs do not take, its pills' colours the 
 table's print view, Typst data and PDF, and in node `thPut` and `gtDomainsTake` on a domain, the pills, the menu's
 entry and `gtBoldHtml`.
 
+**Trajectories' Undo and Redo** (trajundo, 16 November 2026, Adam's ruling with toolbar10 that every tab's toolbar ends
+with them). The canvas keeps its undo in the page, the board before and after each act, since its save sends the board
+whole. Trajectories never sends a board: each change is an operation the server runs over several files at once (the
+trajectories file, a participant's LPETs file for a key quote, its bold, a state or a domain, the project file for a
+label, tags or a picture, and the pictures folders), so its steps are kept on the server, where those files are
+written. `trajectories.Watch` reads each file a change may write before it: `traj_apply`, given one, adds the
+trajectories file and, for `title`, `picture`, `tags` and `tag_colour`, the project file, both pictures folders whole
+(`add_folder`, a file made there counting as none before) for `picture`, and each LPETs file in `commit` just before
+`gets.write`. `api_trajectories_ops` makes one only when the body says `step` (the screen's `trajOps` sends it, the LPETs
+screen's domain does not, nor a dry run) and `step_kept` keeps the files that differ, their bytes before and after, as
+one step on the project's stack in the server's memory (`_STEPS`, by the root's resolved path, `UNDO_DEPTH` 80), the
+steps to redo dropped. `/api/trajectories-undo` (`api_trajectories_undo`, `redo` for Redo, under the project's lock)
+runs `step_back`: refused (`themes.undo.nothing`, `nothing_redo`) with none, and refused with
+`server.trajectory_undo_changed`, nothing written and both stacks dropped, when any file of the step no longer reads as
+the step left it (Undo: its bytes after, Redo: before), as a board's undo starts afresh when its file changed elsewhere.
+Otherwise every file is put back whole (`_put`, through a temporary file and `note_written`), one the step had none of
+moved to the `_Archive` beside it with the time in its name, never deleted (a picture his own change made), and a
+failure halfway puts back those written before it (`server.trajectory_undo_unwritten`). The project's History keeps its
+line of the change (person_change's), and the trajectories file's own History line goes with the bytes. Every answer of
+`/api/trajectories`, `-ops` and `-undo` carries `steps`, `{undo, redo}` from `steps_state`, which drops both stacks once
+the last step's files read otherwise, so an agent's change (through the command line, a process of its own that never
+touches these steps; it is undone with `agents undo-change`) leaves no button offering what would be refused. The page
+(`trajectories.js`): `#tj-undo` and `#tj-redo`, the boards' `.th-pal-btn`s with their icons, words and tooltips, at the
+right end of `#tj-bar` after `.tj-bar-grow`, never greyed out, as the boards' are (trajfix: pressed with nothing to undo or redo they say `themes.undo.nothing` or `nothing_redo`, `TJ.steps` telling them), and `trajUndo`, which keeps
+words typed in a field first (blur, `trajIdle`), sends the route, draws the answer and on a refusal says it and reads the
+board again. Cmd or Ctrl+Z and Shift+Cmd+Z or Ctrl+Y (`MOD`, `REDO_Y`) on the screen run it, but in an input or a
+textarea, whose own undo they stay, which is also how the Mac's Edit menu reaches it (window.js `edit` presses the key).
+The parity list keeps the route the page's own (`screen`, area 261). Fixes after review (trajfix): `_bytes_of` answers `None` only for a file that is not there and
+`UNREAD` for one there that cannot be read (an iCloud file being fetched), so such a file keeps no step for the change
+(`Watch.unreadable`), never reads as matching a step (Undo or Redo refused with `server.trajectory_undo_unread`, nothing
+written, the steps kept) and never drops them in `steps_state`; `/api/trajectories` checks the steps under the project's
+lock; a file moved to the `_Archive` takes a counter after the second when the name is taken; a project's steps hold at
+most `UNDO_BYTES` (20 MB, each distinct bytes once), the oldest dropped first; `trajUndo` waits up to 10 s for a save in
+flight. Area 410.
+
 **The project file.** `idiograph-project.json` at a project's root, `{"name", "research_question",
 "updated"}`, which Settings writes under Projects (see Projects in the [manual](manual.md)). With no
 file the name is the root folder's own and the question is empty, and a key the file carries
