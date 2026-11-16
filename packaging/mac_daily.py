@@ -329,7 +329,9 @@ def wait_for(run_id: str, poll: int = POLL, limit: int = TIMEOUT) -> None:
                 raise SystemExit(f"The Mac job ended {job['conclusion']}.")
             if info["status"] == "completed" and not job:
                 raise SystemExit(f"The run ended {info.get('conclusion')} with no {JOB} job.")
-        if time.monotonic() > end:
+        # at or past the end, never only past it: Windows's clock moves in steps of about 15 ms, so with `>` a
+        # limit of 0 polled until the clock stepped (winfix, 16 November 2026)
+        if time.monotonic() >= end:
             raise SystemExit(f"Timed out after {limit // 60} minutes waiting for the Mac job.")
         time.sleep(poll)
 

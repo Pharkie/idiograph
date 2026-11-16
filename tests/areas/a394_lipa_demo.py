@@ -175,9 +175,14 @@ def shipped_parts(scratch: Path, root: Path) -> None:
                 return built / who / p.name
             return built / who / "Working" / p.name if p.parent.name == "Working" else built / p.name
 
+        # each workbook as the same parts holding the same trees, as areas 74 and 325 read the other demos', since
+        # the XML writer the app ships (openpyxl without lxml, Windows's run) spells a tree differently from the
+        # Mac venv's lxml (`<x />` for `<x/>`, winfix, 16 November 2026), and every other file byte for byte
         same = [p.relative_to(root / "pristine").as_posix() for p in shipped
-                if not made(p).is_file() or made(p).read_bytes() != p.read_bytes()]
-    ck("394: make_demo_lipa builds the shipped pristine copy byte for byte from its sources", shipped and not same, same)
+                if not made(p).is_file() or not (support.same_workbook(made(p), p) if p.suffix == ".xlsx"
+                                                 else made(p).read_bytes() == p.read_bytes())]
+    ck("394: make_demo_lipa builds the shipped pristine copy from its sources, every workbook part for part and "
+       "every other file byte for byte", shipped and not same, same)
 
     work = scratch / "lipa-394-reset"
     shutil.rmtree(work, ignore_errors=True)
