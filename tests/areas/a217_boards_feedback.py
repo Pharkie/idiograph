@@ -132,7 +132,7 @@ def test_boards_feedback(scratch):
         board = gets_mod.load(root)["boards"][0]
         check("217: taking them keeps a line in each GETs board's History, as the canvas's step of undo goes with it",
               took.get("taken") == "Odile" and any("Before Odile's changes came in" in str(h.get("name"))
-                                                   for h in board.get("history") or []), str(board.get("history"))[:300])
+                                                   for h in themes.history_of(board)), str(themes.history_list(board))[:300])
         ran = agent("Wren", "Accepted by the hive")
         idiograph_routes._gets_books.clear()
         stamp = idiograph_routes.api_stamp({"workbook": str(books["Wren"]), "gets": True})
@@ -147,7 +147,7 @@ def test_boards_feedback(scratch):
         # ── C. Notes on cards: off on a new install, kept across a restart
         fresh = server_mod.merge_config({})
         server_mod.api_settings({"card_notes": True})
-        saved = json.loads(cfg.read_text(encoding="utf-8"))
+        saved = support.board_file(cfg)
         again = server_mod.merge_config(saved)
         check("217: Notes on cards is off on a new install, and turned on it is kept across a restart",
               fresh.get("card_notes") is False and saved.get("card_notes") is True and again.get("card_notes") is True,

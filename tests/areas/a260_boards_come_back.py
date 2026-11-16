@@ -130,7 +130,7 @@ def test_boards_come_back(scratch: Path):
                 and ".idiograph-restore" not in p.relative_to(at).parts}
 
     def themes_of(book: Path) -> dict:
-        return json.loads((book.parent / "Working" / f"{book.stem}.themes.json").read_text(encoding="utf-8"))
+        return support.board_file((book.parent / "Working" / f"{book.stem}.themes.json"))
 
     plan = base / "plan.json"
     plan.write_text(json.dumps({"pets": [{"title": "Cold on the line", "members": ["S1"]},
@@ -150,7 +150,7 @@ def test_boards_come_back(scratch: Path):
               code == 0 and dry.get("uid_made") is True and files(root) == before and not list(out_dir.iterdir()), err)
         code, said, err = run("--root", str(root), "project", "send", "--to", str(out_dir), "--participant", "Ysolde", "--blind")
         sent = out_dir / "Kite flying.idiograph"
-        uid = json.loads((root / server_mod.PROJECT_FILE).read_text(encoding="utf-8")).get("uid")
+        uid = support.board_file((root / server_mod.PROJECT_FILE)).get("uid")
         after = files(root)
         check("260: the send writes the id into the project file, every other key and file as it was",
               code == 0 and bool(uid) and support.plain(json.loads(after.pop(server_mod.PROJECT_FILE))) == dict(project_json, uid=uid)
@@ -170,7 +170,7 @@ def test_boards_come_back(scratch: Path):
         # 2. opened as Curt's copy: the origin kept, no id of the project's taken as its own
         code, done, err = run_json("project", "open-copy", str(sent), "--into", str(into), "--from-name", "Curt")
         copy = into / "Kite flying"
-        held = json.loads((copy / server_mod.PROJECT_FILE).read_text(encoding="utf-8")) if copy.is_dir() else {}
+        held = support.board_file((copy / server_mod.PROJECT_FILE)) if copy.is_dir() else {}
         check("260: the copy keeps the project it came from, its id, sent time and statements, and has no id of its own yet",
               code == 0 and held.get("copy_of", {}).get("uid") == uid and "uid" not in held
               and held["copy_of"].get("statements") == head["statements"] and held["copy_of"].get("sent") == head["sent"]
@@ -190,7 +190,7 @@ def test_boards_come_back(scratch: Path):
         back = out_dir / "Back from Curt.idiograph"
         with zipfile.ZipFile(back) as zf:
             back_head = json.loads(zf.read(project_pack.MANIFEST))
-        copy_uid = json.loads((copy / server_mod.PROJECT_FILE).read_text(encoding="utf-8")).get("uid")
+        copy_uid = support.board_file((copy / server_mod.PROJECT_FILE)).get("uid")
         check("260: the copy sent back takes its own id and names the project it came from",
               code == 0 and copy_uid and copy_uid != uid and back_head.get("uid") == copy_uid
               and back_head.get("copy_of", {}).get("uid") == uid, said + err)
@@ -251,7 +251,10 @@ def test_boards_come_back(scratch: Path):
         themes_rel = "P1 - Ysolde/Working/P1 - Ysolde - EN & ES.themes.json"
         after.pop(themes_rel)
         check("260: nothing else in the project changed, Ysolde's workbook and progress, Corran's files and the project file "
-              "byte for byte", after == {k: v for k, v in before.items() if k != themes_rel})
+              "byte for byte",
+              {k: v for k, v in after.items() if not k.startswith(themes_rel[:-len(".json")] + ".history/")}
+              == {k: v for k, v in before.items() if k != themes_rel
+                  and not k.startswith(themes_rel[:-len(".json")] + ".history/")})
         code, statements, err = run_json("--root", str(root), "statements", "Ysolde")
         check("260: Ysolde's statements read as before, Adam's edit kept",
               code == 0 and [s["text"] for s in statements.get("statements", [])][0]
@@ -312,7 +315,7 @@ def test_boards_come_back(scratch: Path):
               json.dumps(res)[:300])
 
         # 11. opened alongside, a copy coming back says which project of his it belongs to
-        settings = json.loads(config_file.read_text(encoding="utf-8"))
+        settings = support.board_file(config_file)
         settings["projects"].append({"root": str(root)})
         config_file.write_text(json.dumps(settings), encoding="utf-8")
         code, opened, err = run_json("project", "open-copy", str(back), "--into", str(into), "--from-name", "Curt",

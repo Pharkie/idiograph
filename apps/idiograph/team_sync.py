@@ -42,6 +42,7 @@ no connection goes when there is one. Nothing in that file can be read without t
 from __future__ import annotations
 
 import base64
+import contextlib
 import hashlib
 import io
 import json
@@ -54,6 +55,7 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Callable
 
+import board_history
 import i18n
 import locks
 import project_pack as pack_mod
@@ -287,7 +289,9 @@ def sha256(path: Path) -> str:
 
 def participant_files(case: Path, workbook: Path, recordings: bool) -> list[tuple[Path, str]]:
     """A participant's files as a version carries them, each with its path from the participant's folder: the
-    workbook, the PETs files and the progress file in Working, and the recordings when they go."""
+    workbook, the PETs files and the progress file in Working, each PETs file's History chunks its boards name, and
+    the recordings when they go. `board_history.HistoryAway` while a chunk a board names is not on this computer, so
+    a version never carries part of a History (review 4)."""
     out = []
     try:
         out.append((workbook, workbook.relative_to(case).as_posix()))
@@ -296,10 +300,13 @@ def participant_files(case: Path, workbook: Path, recordings: bool) -> list[tupl
     working = case / "Working"
     if working.is_dir():
         for p in sorted(working.iterdir()):
-            if not p.is_file() or not p.name.startswith(workbook.stem):
+            if not p.is_file() or not p.name.startswith(workbook.stem + "."):
                 continue
             if p.name.endswith(pack_mod.PROGRESS_TAIL) or pack_mod.PETS_FILE.search(p.name):
                 out.append((p, f"Working/{p.name}"))
+                # and its boards' History, the chunks their heads name in the folder beside it (historybuild)
+                if pack_mod.PETS_FILE.search(p.name):
+                    out += [(c, f"Working/{c.parent.name}/{c.name}") for c in board_history.named_files(p)]
     if recordings:
         for p in sorted(case.rglob("*")):
             rel = PurePosixPath(p.relative_to(case).as_posix())
@@ -310,7 +317,13 @@ def participant_files(case: Path, workbook: Path, recordings: bool) -> list[tupl
 
 
 def gets_files(root: Path) -> list[tuple[Path, str]]:
-    return [(Path(root) / name, name) for name in pack_mod.GETS_FILES if (Path(root) / name).is_file()]
+    out = [(Path(root) / name, name) for name in pack_mod.GETS_FILES if (Path(root) / name).is_file()]
+    # and the GETs' and LGETs' History, the chunks their boards name beside them (historybuild), away while one is not
+    # on this computer (see `participant_files`)
+    for path, _name in list(out):
+        if board_history.folder_of(path).name in pack_mod.GETS_HISTORY:
+            out += [(c, f"{c.parent.name}/{c.name}") for c in board_history.named_files(path)]
+    return out
 
 
 def allowed_in_case(rel: str) -> bool:
@@ -324,7 +337,8 @@ def allowed_in_case(rel: str) -> bool:
     if kind is None:
         return path.suffix.lower() == ".xlsx" or path.name.endswith(pack_mod.PROGRESS_TAIL)
     if kind == "pets":
-        return len(path.parts) == 2 and path.parts[0] == "Working" and bool(pack_mod.PETS_FILE.search(path.name))
+        return (len(path.parts) == 2 and path.parts[0] == "Working" and bool(pack_mod.PETS_FILE.search(path.name))) \
+            or pack_mod.history_chunk(path.parts)
     return kind == "audio"
 
 
@@ -383,11 +397,17 @@ def mine(root: Path, data: dict, every: bool = False) -> list[dict]:
         if not p["folder"] or not (own or every):
             continue
         case = Path(root).resolve() / p["folder"]
-        out.append({"what": p["folder"], "files": participant_files(case, Path(p["workbook"]).resolve(),
-                                                                       data.get("recordings") is True),
-                    "lock": case / "Working" / locks.NAME, "own": own})
+        try:
+            files = participant_files(case, Path(p["workbook"]).resolve(), data.get("recordings") is True)
+        except board_history.HistoryAway:
+            # a History not all here yet waits, never sent in part (review 4)
+            continue
+        out.append({"what": p["folder"], "files": files, "lock": case / "Working" / locks.NAME, "own": own})
     if gets_owner(roster) == me or every:
-        files = gets_files(root)
+        try:
+            files = gets_files(root)
+        except board_history.HistoryAway:
+            files = []
         if files:
             out.append({"what": GETS, "files": files, "lock": locks.root_lock(root), "own": gets_owner(roster) == me})
     return out
@@ -604,14 +624,37 @@ def version_bytes(data: dict, way, body: dict) -> bytes:
 
 def place(files: dict[str, bytes], base: Path) -> None:
     """Each file written beside its place under a new name, then renamed into place, and left out of the files the
-    app noted as its own writes, so the screens see a change made elsewhere."""
-    for rel, content in files.items():
+    app noted as its own writes, so the screens see a change made elsewhere. A board file's History chunks that the
+    file as it was here named and the file that came names no longer are put aside (`board_history.supersede`); any other chunk is left (review
+    4: a chunk the sender could not list is never a reason to delete one here)."""
+    boards = [rel for rel in files if pack_mod.PETS_FILE.search(PurePosixPath(rel).name)
+              or PurePosixPath(rel).name in pack_mod.GETS_FILES]
+    named_before = {}
+    for rel in boards:
+        target = base / Path(*PurePosixPath(rel).parts)
+        try:
+            held = json.loads(target.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        named_before[rel] = {n for b in board_history.boards_in(held)
+                             for n in board_history.names_of(board_history.head_of(b))}
+    # the History chunks first, so a board file never names one not yet in place
+    for rel, content in sorted(files.items(), key=lambda item: ".history/" not in item[0]):
         target = base / Path(*PurePosixPath(rel).parts)
         target.parent.mkdir(parents=True, exist_ok=True)
         tmp = target.with_name(f".{target.name}{INCOMING}")
         tmp.write_bytes(content)
         os.replace(tmp, target)
         wb_mod.WRITTEN.pop(str(target.resolve()), None)
+    for rel, was in named_before.items():
+        try:
+            came = json.loads(files[rel].decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            continue
+        now = {n for b in board_history.boards_in(came) for n in board_history.names_of(board_history.head_of(b))}
+        folder = board_history.folder_of(base / Path(*PurePosixPath(rel).parts))
+        # put aside as a write here puts them, never taken away at once (historyfix2)
+        board_history.supersede(folder, sorted(was - now))
 
 
 def same_files(files: dict[str, bytes], base: Path) -> bool:
@@ -656,7 +699,8 @@ def take_version(root: Path, data: dict, way, inner: dict, state: dict) -> str:
         return "older"
     listed = body.get("files") if isinstance(body.get("files"), list) else []
     names = [str((f or {}).get("name") or "") for f in listed]
-    if not names or any((n_ not in pack_mod.GETS_FILES) if gets else not allowed_in_case(n_) for n_ in names):
+    if not names or any((n_ not in pack_mod.GETS_FILES and not pack_mod.gets_chunk(PurePosixPath(n_).parts)) if gets
+                        else not allowed_in_case(n_) for n_ in names):
         return "bad_file"
     files = unzipped(version_bytes(data, way, body), listed)
     lock = locks.root_lock(root) if gets else base / "Working" / locks.NAME

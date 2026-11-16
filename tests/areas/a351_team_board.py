@@ -195,7 +195,7 @@ def test_team_board(scratch: Path):
               "Adam's PETs file in his copy untouched",
               guarded and all(c == 0 for c, _, _ in his) and own_at is not None and own_at.is_file()
               and ".idiograph-team" in own_at.parts and theirs_after == theirs_before
-              and len(themes.boards_of(json.loads(own_at.read_text(encoding="utf-8")))) == 2,
+              and len(themes.boards_of(support.board_file(own_at))) == 2,
               " ".join(e for _, _, e in his) + str(own_at))
         curt_boards = boards(curt)
         sent_board = next(b for b in curt_boards if any(g["label"] == "Waiting for spring" for g in b["groups"]))
@@ -220,7 +220,7 @@ def test_team_board(scratch: Path):
                     "Curt's rename", "--tool", "Claude Code")
         dry_note = run(curt, "board", "rename", "Hollis", "One broad PET", "Never this", "--dry-run")
         at(curt)
-        mine_now = {b["id"]: b for b in themes.boards_of(json.loads(own_at.read_text(encoding="utf-8")))}
+        mine_now = {b["id"]: b for b in themes.boards_of(support.board_file(own_at))}
         revs = [r.get("name") or "" for r in themes.history_of(mine_now[other_board["id"]])]
         check("351: Curt renames his own board from the app and from the command line, a dry run writing nothing, "
               "each kept in his own file, the agent's rename in the board's History, and Adam's PETs file in his copy "
@@ -384,8 +384,8 @@ def test_team_board(scratch: Path):
 
         # 8. History on both sides
         at(adam)
-        a_hist = [h["op"] for h in json.loads((adam_root / "idiograph-history.json").read_text(encoding="utf-8"))["history"]]
-        c_hist = json.loads((curt_root / "idiograph-history.json").read_text(encoding="utf-8"))["history"]
+        a_hist = [h["op"] for h in support.board_file((adam_root / "idiograph-history.json"))["history"]]
+        c_hist = support.board_file((curt_root / "idiograph-history.json"))["history"]
         check("351: each step is a line in the project's History, the sender's send with its tool and the answers "
               "heard",
               a_hist.count("team board-take") == 2 and a_hist.count("team board-answer") == 2

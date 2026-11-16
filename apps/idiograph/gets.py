@@ -27,7 +27,7 @@ The file is `idiograph-gets.json` at the case root, beside `idiograph-project.js
                            "P2 - Rowan/es/Initial:12:0": {"x": 0, "y": 0, "text": "..."},
                            "P2 - Rowan/pn/1": {"x": 0, "y": 0, "text": "..."}},
                  "groups": [{"id": "G1", "label": "...", "members": ["P2 - Rowan/g1"], "x": 0, "y": -40}],
-                 "discarded": [], "picks": {}, "notes": [], "rows": {}, "history": [...]}]}
+                 "discarded": [], "picks": {}, "notes": [], "rows": {}, "history_head": {...}}]}
 
 Cases go by the pseudonym in each themes file's `case`. A card's key names its case and kind: a
 PET or a sub-theme by its group id, a sub-theme's groups at any depth riding inside its card with
@@ -57,6 +57,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 
+import board_history
 import formats
 import i18n
 import themes
@@ -213,9 +214,13 @@ def gets_path(root: Path) -> Path:
     return held if held is not None else Path(root) / FILE
 
 
-def load(root: Path) -> dict | None:
+def load(root: Path, move: bool = True) -> dict | None:
     """The GETs file as it sits on disk, or None when there is none yet. One that is there and
-    cannot be read is refused, so nothing is ever written over a file that can be recovered."""
+    cannot be read is refused, so nothing is ever written over a file that can be recovered.
+
+    Each board is told where its History's chunks are, and a file whose boards still hold their History inside it
+    is moved over on this first open when its lock is free and the file is this install's to write (historybuild,
+    see `board_history`)."""
     path = gets_path(root)
     if not path.exists():
         return None
@@ -225,6 +230,18 @@ def load(root: Path) -> dict | None:
         raise WorkbookError(i18n.t("server.could_read_nothing_written", name=path.name))
     if not isinstance(data, dict):
         raise WorkbookError(i18n.t("server.gets_file_nothing_written", name=path.name))
+    board_history.place(path, data)
+    if move and board_history.embedded(data):
+        # the move asks Working together's one writer as a write does: the project's GETs owner at the root, and
+        # for a participant's LPETs in their Working folder that participant's writer (review 6)
+        guard = None
+        if FILE_AT.get() is None:
+            guard = (lambda: WRITE_GUARD(Path(root))) if WRITE_GUARD is not None else None
+        elif path.parent.name == "Working":
+            guard = lambda: themes.guard_of(path)  # noqa: E731
+        data = board_history.move_on_open(path, data, lambda d: write_at(path, d),
+                                          lambda: board_history.place(path, json.loads(path.read_text(encoding="utf-8"))),
+                                          guard=guard)
     if in_lgets() and isinstance(data.get("cases"), dict):
         # on LGETs each statement cited by its timepoint's label as it is now
         for rec in data["cases"].values():
@@ -289,11 +306,19 @@ def write(root: Path, data: dict) -> Path:
     path = gets_path(root)
     if WRITE_GUARD is not None and FILE_AT.get() is None:
         WRITE_GUARD(Path(root))
+    return write_at(path, data)
+
+
+def write_at(path: Path, data: dict) -> Path:
+    """The file at `path` written as `write` writes it, each board's History to its chunks first (`board_history`)."""
+    path = Path(path)
+    kept, finish = board_history.out_of(path, data) if isinstance(data, dict) else (data, lambda: None)
     tmp = path.with_name(path.name + ".tmp")
-    kept = retime(json.loads(json.dumps(data)), KEPT_AS) if isinstance(data, dict) else data
+    kept = retime(json.loads(json.dumps(kept)), KEPT_AS) if isinstance(kept, dict) else kept
     tmp.write_text(themes.render(kept) + "\n", encoding="utf-8", newline="\n")
     os.replace(tmp, path)
     note_written(path)
+    finish()
     return path
 
 
@@ -1260,7 +1285,7 @@ def answer(data: dict, cases: list[dict], disk: dict | None, board: str | None =
             "cards": cards_shown(kept, data), "groups": kept["groups"], "discarded": kept["discarded"],
             "picks": {}, "discard_reasons": (kept.get("ai") or {}).get("discarded") or {},
             "stickies": kept.get("notes") or [], "rows": kept["rows"], "history": themes.history_list(shown),
-            "sheets": [], "quotes": {},
+            "history_away": themes.history_away(shown), "sheets": [], "quotes": {},
             "cases": [panel(e, data, study, look.get(e["case"])) for e in cases], "study": study,
             "colours": colours_of(data),
             "settings": settings, "minimum": minimum, "band": is_band, "total": len(inside),
@@ -1345,12 +1370,10 @@ def save(root: Path, books: list[dict], version: dict, revision=None) -> dict:
     # a board an agent made is marked edited by his first save that changes it
     if kept.get("made"):
         kept["made"] = themes.edited_mark(kept["made"], kept, when, kept.get("changed"))
-    held = {"history": themes.history_of(was)}
     made = None
     if revision == "auto" and disk is not None:
-        made = themes.add_revision(held, auto=True, at=when, state=themes.board_state(was))
-    if held["history"]:
-        kept["history"] = held["history"]
+        made = themes.auto_revision(was, at=when)
+    themes.carry_history(was, kept)
     boards[at] = kept
     data["boards"] = boards
     data["current"] = bid
@@ -1479,6 +1502,44 @@ def version_op(root: Path, books: list[dict], op: str, body: dict, dry_run: bool
     return dict(answer(data, cases, data), op=op)
 
 
+def followed(state: dict, data: dict) -> dict:
+    """A copy of a revision's state with its statement cards following their words to the participant's copy as it
+    is now, as a PETs revision's do when it is shown or restored (`themes.follow`, `themes.brought_up`, historyfix2):
+    a card stays while its key still holds its words, and otherwise takes an unclaimed line of theirs with its words,
+    the nearest first, its GETs' members, the bin and the rest with it. A trim, a passage written or a rekey moves
+    the GETs revisions' keys with the board when their History is here; one made while it was not leaves them as
+    they were, and they follow here. The table's ticked quotes are no part of a revision (`themes.STATE_KEYS` holds no
+    `rows`, and Restore leaves the table as it stands): they live on the board alone, which those followers always
+    move, so none is followed here (historyfix3, review 4). Nothing is written."""
+    out = json.loads(json.dumps(state))
+    cards = out.get("cards") if isinstance(out.get("cards"), dict) else {}
+    for case, rec in ((data or {}).get("cases") or {}).items():
+        lines = rec.get("lines") if isinstance(rec, dict) and isinstance(rec.get("lines"), dict) else {}
+        if not lines:
+            continue
+        held = {split_key(k)["ident"]: c for k, c in cards.items()
+                if split_key(k)["kind"] == "es" and split_key(k)["case"] == case and isinstance(c, dict)}
+        if all(isinstance(lines.get(i), dict) and themes.words(lines[i].get("text")) == themes.words(c.get("text"))
+               for i, c in held.items()):
+            # every card's key still holds its words: nothing to follow
+            continue
+        live = []
+        for ident, line in lines.items():
+            if not isinstance(line, dict):
+                continue
+            sheet, row, n = themes.split_card_key(ident)
+            if row is None or n is None:
+                continue
+            live.append({"key": ident, "sheet": sheet, "row": row, "line": n, "text": str(line.get("text") or "")})
+        pseudo = {"cards": {i: {"x": 0, "y": 0, "text": str(c.get("text") or "")} for i, c in held.items()}}
+        keymap: dict = {}
+        themes.follow(pseudo, live, None, keys=keymap)
+        cmap = {k: v for k, v in keymap.items() if k != v and k in held}
+        if cmap:
+            board_remapped(out, case, cmap, {})
+    return out
+
+
 def view_state(board: dict, data: dict) -> dict:
     kept = normal(board, data)
     return {"cards": cards_shown(kept, data), "groups": kept["groups"], "discarded": kept["discarded"],
@@ -1531,8 +1592,9 @@ def board_op(root: Path, books: list[dict], op: str, body: dict, dry_run: bool =
     revision = next((r for r in themes.history_of(board) if str(r["id"]) == rid), None) if rid else None
     if op in ("view", "restore") and revision is None:
         raise WorkbookError(themes.LOST)
+    themes.revision_checked(revision, body.get("hash"))
     if op == "view":
-        return dict(view_state(revision["state"], data), op=op, revision=themes.revision_summary(revision),
+        return dict(view_state(followed(revision["state"], data), data), op=op, revision=themes.revision_summary(revision),
                     board=themes.summary(normal(board, data), board))
     if op == "revision":
         made = themes.add_revision(board, name=str(body.get("name") or "")[:200], at=when)
@@ -1540,7 +1602,7 @@ def board_op(root: Path, books: list[dict], op: str, body: dict, dry_run: bool =
     else:
         made = themes.add_revision(board, name=themes.revision_name("before_restoring", when_at=revision["at"]),
                                    at=when)
-        restored = json.loads(json.dumps(themes.state_of(themes.normalise(revision["state"]))))
+        restored = json.loads(json.dumps(themes.state_of(themes.normalise(followed(revision["state"], data)))))
         for key in ("notes", "ai", "quoted", "cut"):
             board.pop(key, None)
         board.update({key: restored[key] for key in themes.STATE_KEYS if key in restored}, updated=when)
@@ -1875,7 +1937,7 @@ def statements_followed(root: Path, workbook: Path, words: dict, before: dict, b
     marked = {b["board"] for b in boards} if changed else set()
     for board in boards_of(data):
         if str(board.get("id")) in marked:
-            themes.add_revision(board, name=history, at=when)
+            themes.kept_revision(board, name=history, at=when)
     for case, keys in took.items():
         rec = held[case]
         for key in keys:
@@ -1919,7 +1981,7 @@ def noted_on(data: dict, entries: list[dict], said: dict, when: str) -> list[str
         cards = board.get("cards") if isinstance(board.get("cards"), dict) else {}
         for key, line in said.items():
             if any(isinstance(cards.get(card_of(e["case"], "es", key)), dict) for e in entries):
-                themes.add_revision(board, name=line, at=when)
+                themes.kept_revision(board, name=line, at=when)
                 if str(board.get("id")) not in out:
                     out.append(str(board.get("id")))
     return out
@@ -2039,7 +2101,7 @@ def copies_refreshed(root: Path, workbook: Path, truth: dict, books: list[dict] 
         said = by_id.get(str(board.get("id")))
         if str(board.get("id")) not in touched:
             continue
-        themes.add_revision(board, name=history, at=when)
+        themes.kept_revision(board, name=history, at=when)
         for ck in (said or {}).get("cards") or []:
             board["cards"][ck]["text"] = truth[split_key(ck)["ident"]]["text"]
     for case, lines in fix.items():
@@ -2211,7 +2273,9 @@ def case_keys(data: dict, case: str, history: bool = True) -> tuple[set, set]:
         statements |= set((pet or {}).get("statements") or [])
         quotes |= set((pet or {}).get("picks") or [])
     for board in boards_of(data):
-        for state in [board] + ([r.get("state") for r in board.get("history") or [] if isinstance(r, dict)] if history else []):
+        # a History not all here gives none, so a follower still moves the copy and the boards (review 2, 5)
+        for state in [board] + ([r.get("state") for r in themes.history_known(board) if isinstance(r, dict)]
+                                if history else []):
             if not isinstance(state, dict):
                 continue
             for k in state.get("cards") or {}:
@@ -2236,7 +2300,8 @@ def remap_case(data: dict, case: str, cmap: dict, qmap: dict, turns=None, merged
         said = board_remapped(board, case, cmap, qmap, turns, merged)
         if said:
             boards[str(board.get("id"))] = said
-        for revision in board.get("history") or [] if history else []:
+        # a board whose History is not all here is remapped alone, its revisions brought up to date when restored
+        for revision in (board_history.attached(board) or []) if history else []:
             if isinstance(revision, dict) and isinstance(revision.get("state"), dict):
                 board_remapped(revision["state"], case, cmap, qmap, turns, merged)
     rec["hash"] = snap_hash(rec)
@@ -2798,8 +2863,8 @@ def copies_rekeyed(root: Path, workbook: Path, truth: dict, books: list[dict] | 
             touched.setdefault(bid, []).extend(keys)
             if not dry and bid in before:
                 b = next(x for x in boards_of(data) if str(x.get("id")) == bid)
-                if not any(r.get("name") == history and r.get("at") == when for r in b.get("history") or []):
-                    themes.add_revision(b, name=history, at=when, state=before[bid])
+                if not any(r.get("name") == history and r.get("at") == when for r in themes.history_known(b)):
+                    themes.kept_revision(b, name=history, at=when, state=before[bid])
     out["boards"] = [{"board": bid, "name": next(str(b.get("name") or FIRST_NAME) for b in boards_of(data)
                                                  if str(b.get("id")) == bid), "cards": keys}
                      for bid, keys in touched.items()]
@@ -2884,8 +2949,8 @@ def copies_pruned(root: Path, workbook: Path, truth: dict, books: list[dict] | N
             touched.setdefault(bid, []).extend(keys)
             if not dry:
                 b = next(x for x in boards_of(data) if str(x.get("id")) == bid)
-                if not any(r.get("name") == history and r.get("at") == when for r in b.get("history") or []):
-                    themes.add_revision(b, name=history, at=when, state=before[bid])
+                if not any(r.get("name") == history and r.get("at") == when for r in themes.history_known(b)):
+                    themes.kept_revision(b, name=history, at=when, state=before[bid])
     now = evidence(data, board, cases)
     titles = {g["id"]: g.get("label") or "" for g in (board or {}).get("groups") or [] if isinstance(g, dict)}
     out["emptied"] = [{"board": str(board.get("id")), "board_name": str(board.get("name") or FIRST_NAME),
@@ -3662,7 +3727,7 @@ def propose(root: Path, books: list[dict], version: dict, note: str) -> dict:
     board = dict(version, id=bid, name=themes.board_name(boards), note=str(note or "").strip(), created=when,
                  updated=when)
     board.pop("notes", None)
-    board.pop("history", None)
+    themes.drop_history(board)
     kept = normal(board, data)
     kept.update(id=bid, name=board["name"], note=board["note"], created=when, updated=when)
     kept.pop("notes", None)

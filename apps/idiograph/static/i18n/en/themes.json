@@ -389,6 +389,7 @@
   "themes.revision.saved_named": "Saved a revision of {board}: {name}.",
   "themes.revision.saved_at": "Saved a revision of {board} at {when}.",
   "themes.revision.none": "No revisions yet. One is kept every fifteen minutes as you work, and Save a revision keeps one now.",
+  "themes.revision.away": "This board's History is not on this computer yet.",
   "themes.revision.automatic": "Automatic",
   "themes.revision.show_tip": "Show this revision on the canvas",
   "themes.revision.restore_tip": "Make this the board. The board as it stands is kept as a revision first.",

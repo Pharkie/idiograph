@@ -32,11 +32,11 @@ from __future__ import annotations
 
 import copy
 import json
-import os
 import re
 from pathlib import Path
 from typing import Callable, NamedTuple
 
+import board_history
 import gets as gets_mod
 import i18n
 import names as names_mod
@@ -45,7 +45,6 @@ import rounds as rounds_mod
 import server as srv
 import themes as themes_mod
 import trajectories as traj_mod
-from workbook import note_written
 
 # a pseudonym as a whole word in a file's or a folder's name
 WORD = r"(?<![A-Za-z]){}(?![A-Za-z])"
@@ -113,11 +112,16 @@ def read_json(path: Path) -> dict | None:
 
 
 def write_board(path: Path, data: dict) -> None:
-    """A boards file (PETs, LPETs, GETs, LGETs, Trajectories) written whole as the app writes them, beside it first."""
-    tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(themes_mod.render(data) + "\n", encoding="utf-8", newline="\n")
-    os.replace(tmp, path)
-    note_written(path)
+    """A boards file (PETs, LPETs, GETs, LGETs, Trajectories) written whole as the app writes them, beside it first,
+    its boards' History to their chunks (`themes.write_path`)."""
+    themes_mod.write_path(Path(path), data)
+
+
+def read_boards(path: Path) -> dict | None:
+    """A boards file at the root as `read_json` reads it, every board's History read in beside it, so a participant's
+    label is carried through the revisions too (red-team 5). Refused while any of it is not on this computer."""
+    data = read_json(path)
+    return board_history.attach_all(board_history.place(path, data)) if data is not None else None
 
 
 def snapshot(path: Path) -> tuple:
@@ -142,7 +146,8 @@ def team_on(root: Path) -> bool:
 
 def sidecars(book: Path) -> list[Path]:
     """Every file beside a workbook in its `Working/` folder named after it, `<stem>.<anything>`, a file named after
-    another file of its folder whose name runs longer left to that one. They move with the workbook."""
+    another file of its folder whose name runs longer left to that one, and each of its boards files' History folders,
+    `<stem>.themes.history/` (`board_history`). They move with the workbook."""
     book = Path(book)
     working = book.parent / "Working"
     if not working.is_dir():
@@ -154,7 +159,8 @@ def sidecars(book: Path) -> list[Path]:
     except OSError:
         return []
     mine = book.stem + "."
-    return [p for p in held if p.is_file() and p.name.startswith(mine) and not any(p.name.startswith(x) for x in longer)]
+    return [p for p in held if (p.is_file() or (p.is_dir() and p.name.endswith(board_history.TAIL)))
+            and p.name.startswith(mine) and not any(p.name.startswith(x) for x in longer)]
 
 
 def boards_files(book: Path) -> list[Path]:

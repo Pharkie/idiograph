@@ -56,7 +56,7 @@ def test_stacks(scratch):
         return str(path)
 
     def board(vid="v1") -> dict:
-        return next(b for b in json.loads(themes_file.read_text(encoding="utf-8"))["boards"] if b["id"] == vid)
+        return next(b for b in support.board_file(themes_file)["boards"] if b["id"] == vid)
 
     start = themes.normalise(board())
     parents = themes.parents_of(start["groups"])

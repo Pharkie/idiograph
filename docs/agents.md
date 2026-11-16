@@ -1974,7 +1974,13 @@ them too. It never moves his place on the statements screen and times no round. 
 passage left with no statement, so `--reason` (MCP `reason`) goes into this change's line of the record of agents'
 changes alone, as `reason`, which Project history's By an agent shows under the change as your words, never
 into the notes column or the progress file. Never write an exploratory note to
-mark a passage decided. The answer and the dry run give the participant, the sheet, its `timepoint` (`n` and
+mark a passage decided. A passage named that is decided with no statement already, by Skip, by a save with no
+statement or by `turn write`, keeps its state, and with `--reason` the reason is recorded for it too, in the same
+line, under `reason_rows` (`marked` and `already`, by row): a call naming only such passages writes no file and is
+still that one line, the answer saying `recorded`; its undo, or its run's, is allowed, puts nothing back and marks it undone, and its dry run says so and writes nothing. Without
+`--reason` such a call is no change and no line. To move a reason once kept in an exploratory note out of the
+notes column, run `turn skip --reason` on its passages, then clear the note with `turn write`; the passage stays
+decided. The answer and the dry run give the participant, the sheet, its `timepoint` (`n` and
 `label`), and rows alone, never a word: `marked`, `already`, `kept` (passages counted as passed already, now decided
 in their own right) and `decided` (`before`, `after` and `total`, the passages decided at that timepoint).
 The progress file keeps each passage under `edits` as yours, so an open statements screen sees it, and `agents
@@ -2315,7 +2321,11 @@ A revision the app names itself, "Before restoring 12:04" and the like, carries 
 only reads. `board revision` keeps the board as it stands in its History, as Save a revision
 does, under `--name` or else his request, and changes nothing on the board. `board restore` makes a
 revision the board, as Restore does, the board as it stands kept first, "Before restoring 12:04", so
-Restore puts it back, its statements following their words. `board copy` copies a PET, sub-theme or
+Restore puts it back, its statements following their words. A revision an op makes answers its `hash`, which the
+record of agents' changes keeps in `undo_with`: give it to `board restore --hash` (or `gets restore --hash`) and the
+restore is refused, nothing changed, when that id is another revision now. If a board's History is not on this
+computer yet (iCloud has not brought it), a History op that needs it is refused with the code `history_away` and
+nothing written. A revision shown or restored takes the words its statements have now. `board copy` copies a PET, sub-theme or
 group, by its id or its title, to another board, as Copy to board on a label does, or with `--revision`
 from one of its board's revisions, onto that board or another: every statement under it leaves its
 label on the board it goes to, which keeps a revision first, "Before Mornings copied from Board 1".
@@ -2374,12 +2384,13 @@ study with his reason, needed, and `--in` puts one back, each given again for on
 is kept as it is, the answer says each change, and they are the GETs file's, no part of any board, so
 no board's History: the project's own History keeps each save, as `project history` reads it.
 
-MCP's tools are `board_note` with `note`, `board_history` and `board_restore` with `revision`,
+MCP's tools are `board_note` with `note`, `board_history` with `revision`, `board_restore` with `revision` and
+`hash`,
 `board_revision` with `name`, `board_copy` with `label`, `to` and `revision`, `board_complete` with
 `reopen`, `gets_fresh`,
 `gets_duplicate`, `gets_rename` and `gets_revision` with `name`, `gets_note` with `note`, `gets_canvas`,
-`gets_current`, `gets_delete`, `gets_complete` with `reopen`, `gets_history` and `gets_restore` with
-`revision`, `gets_subs`, the read-only `gets_settings`, and `gets_settings_set` with `minimum`,
+`gets_current`, `gets_delete`, `gets_complete` with `reopen`, `gets_history` with `revision`, `gets_restore` with
+`revision` and `hash`, `gets_subs`, the read-only `gets_settings`, and `gets_settings_set` with `minimum`,
 `one_per_pet`, `out`, an object of names to reasons, and `in`, a list. The routes take `dry_run`
 too. Change, restore or delete a board, mark PETs or GETs complete, or change the study's settings, only on his word.
 

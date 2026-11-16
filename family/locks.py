@@ -75,6 +75,14 @@ def _release(fh) -> None:
 # read does, since a dry run changes nothing another writer could meet half done. One whose file is there is taken
 # as ever, which opens the file and changes none of its bytes.
 DRY: contextvars.ContextVar = contextvars.ContextVar("idiograph_locks_dry", default=False)
+# how many locks this thread holds now, so a read that could wait on the network (an evicted History chunk) never
+# waits while a writer holds one (`holding`, historyfix2, 16 November 2026)
+HOLDING: contextvars.ContextVar = contextvars.ContextVar("idiograph_locks_holding", default=0)
+
+
+def holding() -> bool:
+    """Whether this thread holds a lock now."""
+    return HOLDING.get() > 0
 
 
 @contextlib.contextmanager
@@ -104,9 +112,11 @@ def held(path: Path, wait: float | None = None):
             if time.monotonic() >= limit:
                 raise WorkbookError(i18n.t("errors.another_write_these_files_under"), code="busy")
             time.sleep(STEP)
+        token = HOLDING.set(HOLDING.get() + 1)
         try:
             yield path
         finally:
+            HOLDING.reset(token)
             _release(fh)
     finally:
         fh.close()

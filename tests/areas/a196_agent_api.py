@@ -44,7 +44,7 @@ def test_agent_api(scratch):
         return str(path)
 
     def saved() -> dict:
-        return json.loads(themes_file.read_text(encoding="utf-8"))
+        return support.board_file(themes_file)
 
     def board(vid="v1") -> dict:
         return next(b for b in saved()["boards"] if b["id"] == vid)

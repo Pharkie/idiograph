@@ -240,7 +240,7 @@ def test_agent_order_kept(scratch: Path):
         return next((root / folder / "Working").glob("* - EN & ES.themes.json"))
 
     def board_of(root, folder="P1 - Hazel") -> dict:
-        return themes.current_version(json.loads(themes_file(root, folder).read_text(encoding="utf-8")))
+        return themes.current_version(support.board_file(themes_file(root, folder)))
 
     def apply(root, case, board, ops, note):
         spec = root.parent / "ops.json"

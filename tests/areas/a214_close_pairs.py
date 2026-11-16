@@ -89,7 +89,7 @@ def test_close_pairs(scratch):
     themes_file = themes.themes_path(book)
 
     def board() -> dict:
-        return next(b for b in json.loads(themes_file.read_text(encoding="utf-8"))["boards"] if b["id"] == "v1")
+        return next(b for b in support.board_file(themes_file)["boards"] if b["id"] == "v1")
 
     def found(gap):
         return {(tuple(p["items"]), p["gap"], p["unit"], p["same_row"], p["group"])
@@ -128,14 +128,14 @@ def test_close_pairs(scratch):
               and fresh["close_gap"] == 60, str({k: fresh.get(k) for k in ("close_pairs", "close_gap")}))
         server_mod.api_settings({"close_pairs": True})
         server_mod.api_settings({"close_gap": 120})
-        saved = json.loads(cfg.read_text(encoding="utf-8"))
+        saved = support.board_file(cfg)
         again = server_mod.merge_config(saved)
         check("214: the switch and the gap, each sent alone, are kept in the settings and read back after a restart",
               saved.get("close_pairs") is True and saved.get("close_gap") == 120 and again["close_pairs"] is True
               and again["close_gap"] == 120, str(saved)[:300])
         server_mod.api_settings({"close_gap": 45})
         check("214: a gap the menu does not offer is read as the minute",
-              json.loads(cfg.read_text(encoding="utf-8")).get("close_gap") == 60
+              support.board_file(cfg).get("close_gap") == 60
               and server_mod.merge_config({"close_gap": "x"})["close_gap"] == 60, "")
 
         # ── C. the API's pairs: board show and its JSON, and --close for one look

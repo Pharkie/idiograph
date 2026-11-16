@@ -23,6 +23,12 @@ __pycache__/
 *.progress.json
 # the Themes screen's file beside each progress file, the demo's included
 *.themes.json
+# and each boards file's History beside it, in chunks (historybuild, 16 November 2026), the demos' live boards' included
+*.themes.history/
+*.themes-t*.history/
+*.lpets.history/
+idiograph-gets.history/
+idiograph-lgets.history/
 state.json
 # Home's reads kept across a restart, beside the state file run from source (homecache)
 home-cache.json

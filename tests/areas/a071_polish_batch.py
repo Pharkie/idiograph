@@ -78,7 +78,7 @@ def test_polish_batch(scratch):
     try:
         # ── 1. the Current board passes to the last board left (169)
         work = demo_copy(root, "Juno", "Juno - EN & ES.xlsx")
-        file = lambda: json.loads(themes_mod.themes_path(work).read_text(encoding="utf-8"))
+        file = lambda: support.board_file(themes_mod.themes_path(work))
         op = lambda name, **extra: idiograph_routes.api_themes_versions(dict({"workbook": str(work), "op": name}, **extra))
         op("new")
         lone = op("delete", id="v2")
@@ -106,7 +106,7 @@ def test_polish_batch(scratch):
         work2 = demo_copy(edit_root, "Juno", "Juno - EN & ES.xlsx")
         server_mod.ROOT_OVERRIDE = str(edit_root)
         op2 = lambda name, **extra: idiograph_routes.api_themes_versions(dict({"workbook": str(work2), "op": name}, **extra))
-        file2 = lambda: json.loads(themes_mod.themes_path(work2).read_text(encoding="utf-8"))
+        file2 = lambda: support.board_file(themes_mod.themes_path(work2))
         opened = idiograph_routes.api_themes({"workbook": str(work2)})
         card = next(c for c in opened["cards"] if c["key"].endswith(":0"))
         key, was_text = card["key"], card["text"]

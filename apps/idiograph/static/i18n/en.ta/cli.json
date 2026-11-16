@@ -160,5 +160,7 @@
   "cli.turn_skip.dry": "Dry run, nothing was written. On {where} it would mark {passages} decided with no code, as Skip does: rows {rows}.",
   "cli.turn_skip.done": "Marked {passages} on {where} decided with no code, as Skip does: rows {rows}. The workbook is unchanged, and the run's undo puts them back.",
   "cli.turn_skip.already": "Already decided with no code, left as they are: {passages}, rows {rows}.",
-  "cli.turn_skip.reason_kept": "The reason is kept in this change's line of the record of agents' changes alone, which Project history's By an agent shows: the app keeps no reason for a passage left with no code."
+  "cli.turn_skip.reason_kept": "The reason is kept in this change's line of the record of agents' changes alone, which Project history's By an agent shows: the app keeps no reason for a passage left with no code.",
+  "cli.turn_skip.reason_alone": "Every passage named on {where} is decided with no code already and left as it is: the reason is recorded for {passages}, rows {rows}, in this change's line of the record of agents' changes alone, which Project history's By an agent shows.",
+  "cli.turn_skip.reason_alone_dry": "Dry run, nothing was written. Every passage named on {where} is decided with no code already: it would record the reason for {passages}, rows {rows}, in the record of agents' changes."
 }

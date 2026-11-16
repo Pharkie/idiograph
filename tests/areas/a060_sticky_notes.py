@@ -36,7 +36,7 @@ def test_sticky_notes(scratch):
     OTHER = "Think about splitting this one"
 
     def file():
-        return json.loads(path.read_text(encoding="utf-8"))
+        return support.board_file(path)
 
     def board(bid):
         return next(b for b in file()["boards"] if b["id"] == bid)

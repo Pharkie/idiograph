@@ -50,7 +50,7 @@ def make_workbook(root: Path, folder: str, speaker: str) -> Path:
 
 
 STAMPS = re.compile(r"\d{8}-\d{4}(-\d+)?")
-TIMES = ("updated", "at", "opened", "made", "saved", "last", "changed")
+TIMES = ("updated", "at", "opened", "made", "saved", "last", "changed", "history_head")
 
 
 def plain(value):
@@ -77,13 +77,16 @@ def files(at: Path) -> dict:
         # page never makes (noholds, 13 November 2026)
         if p.name == "idiograph-agent-changes.jsonl" or ".idiograph-restore" in p.relative_to(at).parts:
             continue
+        # a board's History chunks, named by a random uid, are read into their board file's JSON (historybuild)
+        if any(part.endswith(".history") for part in p.relative_to(at).parts):
+            continue
         rel = STAMPS.sub("<stamp>", p.relative_to(at).as_posix())
         if p.suffix == ".xlsx":
             wb = openpyxl.load_workbook(p)
             out[rel] = {ws.title: [[str(c.value) for c in row] for row in ws.iter_rows()] for ws in wb.worksheets}
             wb.close()
         elif p.suffix == ".json":
-            out[rel] = plain(json.loads(p.read_text(encoding="utf-8")))
+            out[rel] = plain(support.board_file(p))
         else:
             out[rel] = p.read_bytes()
     return out
@@ -167,7 +170,7 @@ def test_project_ops(scratch: Path):
               == {k: v for k, v in before.items() if k != server_mod.PROJECT_FILE}, err + json.dumps(done))
         code, done, err = run_json("--root", str(agent), "project", "set", "--question", "How is a lake lived at night?",
                                    "--note", "Only the question")
-        held = json.loads((agent / server_mod.PROJECT_FILE).read_text(encoding="utf-8"))
+        held = support.board_file((agent / server_mod.PROJECT_FILE))
         check("266: a question alone keeps the name as it is",
               code == 0 and held["name"] == "Swimming at night" and held["research_question"] == "How is a lake lived at night?"
               and len(done.get("changes", [])) == 1, err + json.dumps(done))
@@ -230,7 +233,7 @@ def test_project_ops(scratch: Path):
         as_page(routes.api_rename, {"root": str(page), "case": "P1 - Tamsin", "name": "Wenna", "folder": True,
                                     "op": "rename"}, page)
         renamed = agent / "P1 - Wenna" / "P1 - Wenna - EN & ES.xlsx"
-        boards = json.loads((renamed.parent / "Working" / f"{renamed.stem}.themes.json").read_text(encoding="utf-8"))
+        boards = support.board_file((renamed.parent / "Working" / f"{renamed.stem}.themes.json"))
         old_boards = before["P1 - Tamsin/Working/P1 - Tamsin - EN & ES.themes.json"]
         check("266: participant rename writes what the page's rename writes, its folder, files, archive copies and boards",
               code == 0 and done.get("label") == "P1 - Wenna" and renamed.is_file() and not (agent / "P1 - Tamsin").exists()
@@ -266,7 +269,7 @@ def test_project_ops(scratch: Path):
                                          "research_question": "How is a lake lived at night?",
                                          "files": [{"name": talk.name, "data": data, "pseudonym": "Kestrel",
                                                     "interview": read["interview"], "speakers": read["speaker_roles"]}]})
-        roots = [Path(e["root"]).name for e in json.loads(config_file.read_text(encoding="utf-8"))["projects"]]
+        roots = [Path(e["root"]).name for e in support.board_file(config_file)["projects"]]
         check("266: project new makes the folder a project as New project does, and adds it to Idiograph's projects",
               code == 0 and made.get("cases") == ["P1 - Kestrel"] and files(new_agent) == files(new_page)
               and (new_agent / "P1 - Kestrel" / "P1 Kestrel - EN & ES.xlsx").is_file()

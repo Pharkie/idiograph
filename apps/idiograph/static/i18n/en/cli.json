@@ -1129,5 +1129,9 @@
   "cli.turn_skip.at": " at {timepoint}",
   "cli.turn_skip.decided_dry": "Passages decided{at}: {before} of {total}, {after} after it.",
   "cli.turn_skip.decided": "Passages decided{at}: {after} of {total}, {before} before.",
-  "cli.turn_skip.reason_kept": "The reason is kept in this change's line of the record of agents' changes alone, which Project history's By an agent shows: the app keeps no reason for a passage left with no statement."
+  "cli.turn_skip.reason_kept": "The reason is kept in this change's line of the record of agents' changes alone, which Project history's By an agent shows: the app keeps no reason for a passage left with no statement.",
+  "cli.turn_skip.reason_alone": "Every passage named on {where} is decided with no statement already and left as it is: the reason is recorded for {passages}, rows {rows}, in this change's line of the record of agents' changes alone, which Project history's By an agent shows.",
+  "cli.turn_skip.reason_alone_dry": "Dry run, nothing was written. Every passage named on {where} is decided with no statement already: it would record the reason for {passages}, rows {rows}, in the record of agents' changes.",
+  "cli.turn_skip.reason_too": "The reason is recorded for those too.",
+  "cli.turn_skip.reason_too_dry": "It would record the reason for those too."
 }

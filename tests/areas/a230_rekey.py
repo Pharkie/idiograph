@@ -41,7 +41,7 @@ def test_rekey(scratch):
                                "corpus_exclude": []}), encoding="utf-8")
     themes_file = themes.themes_path(book)
     K = lambda line, row=ROW: themes.card_key(SHEET, row, line)
-    data = json.loads(themes_file.read_text(encoding="utf-8"))
+    data = support.board_file(themes_file)
     first = data["boards"][0]
     second = themes.stack_onto(themes.normalise(first), [K(0), K(2, 7)], K(1))
     second = dict(support.plain(json.loads(json.dumps(first))), **{k: second[k] for k in themes.STATE_KEYS if k in second},
@@ -65,7 +65,7 @@ def test_rekey(scratch):
         return str(path)
 
     def boards() -> dict:
-        return {b["id"]: b for b in json.loads(themes_file.read_text(encoding="utf-8"))["boards"]}
+        return {b["id"]: b for b in support.board_file(themes_file)["boards"]}
 
     # ── A. the dry run names every card that would move and every one that would go, writing nothing
     code, shown, err = answer("turn", "show", "Mabel", SHEET, str(ROW))
@@ -117,7 +117,7 @@ def test_rekey(scratch):
           err.strip()[:300])
 
     # ── D. stale cards from before, cleared through board apply
-    data = json.loads(themes_file.read_text(encoding="utf-8"))
+    data = support.board_file(themes_file)
     board = data["boards"][0]
     stale = [K(7), K(8)]
     for k, said in zip(stale, ("An old line removed in Excel", "Another line long gone")):
@@ -159,7 +159,7 @@ def test_rekey(scratch):
           err.strip()[:300])
 
     # ── E. the MCP server's board_apply takes the same, and turn_write's pairs take a key
-    data = json.loads(themes_file.read_text(encoding="utf-8"))
+    data = support.board_file(themes_file)
     data["boards"][1]["cards"][K(9)] = {"x": 0, "y": 0, "text": "A stale line for the MCP"}
     themes_file.write_text(json.dumps(data), encoding="utf-8")
     mcp = mcp_server.Server(str(root), config=str(cfg))

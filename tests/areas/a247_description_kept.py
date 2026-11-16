@@ -68,7 +68,7 @@ def test_description_kept(scratch):
         return answer("board", "apply", "Rowan", "v1", "--ops", ops(*operations), "--note", note, "--tool", "Claude Code")
 
     def board(vid="v1") -> dict:
-        return next(b for b in json.loads(themes_file.read_text(encoding="utf-8"))["boards"] if b["id"] == vid)
+        return next(b for b in support.board_file(themes_file)["boards"] if b["id"] == vid)
 
     def descs(b: dict) -> dict:
         return {g["id"]: g["description"] for g in b.get("groups") or [] if g.get("description")}
@@ -252,19 +252,19 @@ const out = {};
         "--note", "One GET")
     gid = (made_get.get("made") or [""])[0]
     answer("gets", "apply", "b1", "--ops", ops({"op": "describe", "label": gid, "description": GET_DESC}), "--note", "Describe")
-    gdesc = lambda: next((g.get("description") for g in json.loads(gfile.read_text(encoding="utf-8"))["boards"][0]["groups"]
+    gdesc = lambda: next((g.get("description") for g in support.board_file(gfile)["boards"][0]["groups"]
                           if g["id"] == gid), None)
     apply("A change to take", {"op": "retitle", "label": two, "title": "Company, and the flat closing in"})
     code_t, took, err_t = answer("gets", "take", "Rowan", "--note", "Take Rowan's change")
     check("247: a GET's description stays through gets take", gid and code_t == 0 and gdesc() == GET_DESC,
           took.get("said", "") + err_t)
-    disk = json.loads(gfile.read_text(encoding="utf-8"))["boards"][0]
+    disk = support.board_file(gfile)["boards"][0]
     old_page = dict(disk, v=themes.board_version(disk),
                     groups=[{k: x for k, x in g.items() if k != "description"} for g in disk["groups"]])
     old_page.pop("history", None)
     gets_mod.save(root, books, old_page)
     kept_old = gdesc()
-    disk = json.loads(gfile.read_text(encoding="utf-8"))["boards"][0]
+    disk = support.board_file(gfile)["boards"][0]
     new_page = dict(disk, v=themes.board_version(disk))
     new_page.pop("history", None)
     if node:
@@ -274,7 +274,7 @@ const out = {};
         new_page = dict(new_page, groups=got["body"]["groups"]) if got else new_page
     gets_mod.save(root, books, new_page)
     kept_new = gdesc()
-    disk = json.loads(gfile.read_text(encoding="utf-8"))["boards"][0]
+    disk = support.board_file(gfile)["boards"][0]
     gets_mod.save(root, books, dict(disk, v=themes.board_version(disk), groups=[
         dict(g, description="") if g["id"] == gid else g for g in disk["groups"]]))
     check("247: the GETs board's save keeps a GET's description from an old page that sends none and from a page "

@@ -103,12 +103,12 @@ def test_history_replace(scratch):
 
     def pets_lines(book: Path, tp=None) -> dict:
         """Each PETs board's History names, by its id, at a timepoint or the first."""
-        held = json.loads(themes.themes_path(book, tp).read_text(encoding="utf-8"))
+        held = support.board_file(themes.themes_path(book, tp))
         return {b["id"]: [r.get("name") for r in b.get("history") or []] for b in held["boards"]}
 
     def file_lines(path: Path) -> dict:
         """Each board's History names in a GETs, LPETs or LGETs file, by its id."""
-        held = json.loads(path.read_text(encoding="utf-8"))
+        held = support.board_file(path)
         return {b["id"]: [r.get("name") for r in b.get("history") or []] for b in held["boards"]}
 
     def added(before: dict, after: dict) -> dict:
@@ -169,8 +169,8 @@ def test_history_replace(scratch):
         check("300: and one on each GETs board that holds a card of it, none on the board without one, none on Wenna's",
               added(gets_was, gets_now) == {"b1": [line], "b2": [line], "b3": []}
               and pets_lines(wenna) == wenna_was, str(added(gets_was, gets_now)))
-        stood = json.loads(themes.themes_path(osric).read_text(encoding="utf-8"))["boards"][0]["history"][-1]["state"]
-        kept_g = json.loads(gfile.read_text(encoding="utf-8"))["boards"][0]["history"][-1]["state"]
+        stood = support.board_file(themes.themes_path(osric))["boards"][0]["history"][-1]["state"]
+        kept_g = support.board_file(gfile)["boards"][0]["history"][-1]["state"]
         check("300: each line keeps the board as it stood before the edit, the old words on its card, and the board "
               "itself takes the new",
               stood["cards"][lines_of[1]]["text"] == "Waiting to be hurt"

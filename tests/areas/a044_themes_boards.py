@@ -32,7 +32,7 @@ def test_themes_boards(scratch):
     K = lambda row, line: f"{DEMO_SHEET}:{row}:{line}"
 
     def file():
-        return json.loads(path.read_text(encoding="utf-8"))
+        return support.board_file(path)
 
     def body_of(state, groups, discarded=(), picks=None, **meta):
         return {**state["version"], **meta,
@@ -81,7 +81,7 @@ def test_themes_boards(scratch):
         check("the next AI board takes the next free number, as New board names one, after the renamed ones (184)",
               themes_mod.proposal_name(loaded["boards"]) == "Board 5")
         idiograph_routes.api_themes_save({"workbook": str(old), "version": body_of(shown, mornings)})
-        written = json.loads(old_path.read_text(encoding="utf-8"))
+        written = support.board_file(old_path)
         check("the next save writes schema 2, boards and the new names, the other boards as they were",
               written["schema"] == 2 and "versions" not in written
               and [b["name"] for b in written["boards"]] == ["Board 1", "Board 1 copy", "AI board 2", "Mornings apart"]
@@ -186,7 +186,7 @@ def test_themes_boards(scratch):
         made = boards(op="revision", id="v2", name="  Before   the walk ")
         check("a revision kept by hand keeps its name, and comes first in the history the screen gets",
               made["revision"]["name"] == "Before the walk" and made["revision"]["auto"] is False
-              and made["history"][0] == made["revision"]
+              and made["history"][0] == {k: v for k, v in made["revision"].items() if k != "hash"}
               and all(set(r) - {"kind", "slots"} == {"id", "at", "name", "auto"} for r in made["history"])
               and "kind" not in made["revision"])
         named = made["revision"]["id"]

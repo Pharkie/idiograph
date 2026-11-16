@@ -75,6 +75,7 @@ def test_turn_skip(scratch: Path):
     import agent_changes
     import agent_log
     import cli
+    import i18n
     import idiograph_routes as routes
     import mcp_server
     import os
@@ -262,6 +263,141 @@ def test_turn_skip(scratch: Path):
               t is not None and not t["annotations"]["readOnlyHint"] and t["command"] == ("turn", "skip")
               and {"case", "sheet", "rows", "reason", "dry_run", "request"} <= set(t["inputSchema"]["properties"])
               and args.rows == "71-79" and args.reason == REASON and args.case == "Juno", json.dumps(t)[:300] if t else "")
+
+        # ── 8. a reason for passages decided with no statement already (skipreason, 16 November 2026): recorded in
+        # one line with no file written, its dry run writing nothing, By an agent showing it, its undo allowed and
+        # putting nothing back, a call mixing both kinds marking one and recording the reason for all
+        def project_files() -> dict:
+            return {k: v for k, v in digest(root).items()
+                    if k != agent_changes.FILE and not k.startswith(agent_changes.STORE + "/")}
+
+        def change_shown(cid: str) -> dict:
+            shown = page(lambda _b: agent_changes.review(idiograph_cli.Project(root, False)), {}, at=root)
+            return next((c for r in shown.get("runs") or [] for c in r.get("changes") or [] if c.get("id") == cid), {})
+
+        code, first, err = run("turn", "skip", "Juno", "Initial", "71-73", "--note", ASKED)
+        check("403: 71 and 73 marked decided with no statement, no reason given",
+              code == 0 and first.get("marked") == [71, 73], err + json.dumps(first)[:300])
+        held_record, held_files, held_all = agent_changes.read(root), project_files(), digest(root)
+        code, dry, err = run("turn", "skip", "Juno", "Initial", "71-73", "--reason", REASON, "--dry-run")
+        check("403: the dry run of a reason for passages decided already names them by row and writes nothing, not "
+              "even the record's line",
+              code == 0 and dry.get("marked") == [] and dry.get("already") == [71, 73]
+              and dry.get("reason_rows") == {"marked": [], "already": [71, 73]}
+              and digest(root) == held_all and agent_changes.read(root) == held_record, err + json.dumps(dry)[:300])
+        # another agent, so the line starts a run of its own
+        code, alone, err = run("turn", "skip", "Juno", "Initial", "71-73", "--note", ASKED, "--reason", REASON,
+                               tool="Another agent")
+        record = agent_changes.read(root)
+        line = record[-1] if record else {}
+        own = agent_changes.load_run(root, line.get("run", "")) or {}
+        check("403: a reason for passages decided already is one line in the record, its reason and the rows it covers "
+              "there, the answer saying it was recorded, no file of the project written, its run keeping its restore "
+              "point, and the passages' states as they were",
+              code == 0 and len(record) == len(held_record) + 1 and line.get("op") == "turn skip"
+              and alone.get("recorded") is True and alone.get("changed") is False
+              and bool(own.get("point")) and own.get("id") not in [r.get("run") for r in held_record]
+              and line.get("reason") == REASON and line.get("reason_rows") == {"marked": [], "already": [71, 73]}
+              and line.get("files") == 0 and "71" in line.get("what_changed", "") and "73" in line.get("what_changed", "")
+              and REASON not in line.get("what_changed", "") and project_files() == held_files
+              and all(states(juno).get(f"Initial:{r}") == rounds_mod.REVIEWED_EMPTY for r in (71, 73)),
+              err + json.dumps(line)[:500])
+        code, bare, err = run("turn", "skip", "Juno", "Initial", "71-73", "--note", ASKED)
+        check("403: without a reason the same call is still no change and no line",
+              code == 0 and bare.get("marked") == [] and len(agent_changes.read(root)) == len(record), err[:300])
+        shown_alone = change_shown(line.get("id", ""))
+        check("403: By an agent gives the line its reason and its own line, and Undo can take it back",
+              shown_alone.get("reason") == REASON and shown_alone.get("state") == "ok"
+              and shown_alone.get("line") and shown_alone.get("line") != i18n.t("agentchanges.op.turn_skip"),
+              json.dumps(shown_alone)[:300])
+        code, undone, err = run("agents", "undo-change", line.get("id", ""), "--note", "Take the reason back")
+        check("403: its undo is allowed and puts nothing back, every file of the project as it was and the passages "
+              "still decided, and By an agent shows it undone",
+              code == 0 and undone.get("put_back") == 0 and undone.get("taken_away") == 0
+              and project_files() == held_files and change_shown(line.get("id", "")).get("state") == "undone"
+              and all(states(juno).get(f"Initial:{r}") == rounds_mod.REVIEWED_EMPTY for r in (71, 73)),
+              err + json.dumps(undone)[:300])
+
+        def run_shown(rid: str) -> dict:
+            shown = page(lambda _b: agent_changes.review(idiograph_cli.Project(root, False)), {}, at=root)
+            return next((r for r in shown.get("runs") or [] if r.get("id") == rid), {})
+
+        # a run that changed no file, undone: marked undone as it stands, so By an agent offers no Undo again
+        undo_rid = undone.get("undo_run", "")
+        check("403: the undo of a reason line keeps its restore point as every run does, and By an agent offers its run's Undo",
+              bool((agent_changes.load_run(root, undo_rid) or {}).get("point"))
+              and run_shown(undo_rid).get("undo") == "run", json.dumps(run_shown(undo_rid))[:300])
+        code, back_again, err = run("agents", "undo-run", undo_rid, "--note", "Have the reason back")
+        check("403: undoing that undo's run marks it undone with nothing to put back, the reason line can be undone "
+              "again, and By an agent offers no Undo for the undo's run",
+              code == 0 and back_again.get("put_back") == 0 and project_files() == held_files
+              and (agent_changes.load_run(root, undo_rid) or {}).get("undone")
+              and run_shown(undo_rid).get("undo") is None and change_shown(line.get("id", "")).get("state") == "ok",
+              err + json.dumps(run_shown(undo_rid))[:300])
+        code, back_twice, err = run("agents", "undo-run", undo_rid, "--note", "Again")
+        check("403: a run of no file undone already is refused, nothing written",
+              code != 0 and project_files() == held_files, err[:300])
+        code, whole, err = run("agents", "undo-run", line.get("run", ""), "--note", "Take the reason's run back")
+        check("403: the reason line's own run undone is marked undone, nothing put back, and By an agent offers no "
+              "Undo for it or its change",
+              code == 0 and whole.get("put_back") == 0 and project_files() == held_files
+              and (agent_changes.load_run(root, line.get("run", "")) or {}).get("undone")
+              and run_shown(line.get("run", "")).get("undo") is None
+              and change_shown(line.get("id", "")).get("state") == "none", err + json.dumps(whole)[:300])
+
+        # the third review's repro: a reason line's run, then a real write joining it by its id with --run, then the
+        # run undone: its files put back, never deleted as made
+        code, third, err = run("turn", "skip", "Juno", "Initial", "71-73", "--note", ASKED, "--reason", REASON,
+                               tool="Third agent")
+        joined = agent_changes.read(root)[-1].get("run", "")
+        code_join, marked75, err_join = run("turn", "skip", "Juno", "Initial", "75", "--note", ASKED, "--run", joined,
+                                            tool="Third agent")
+        check("403: a write joining a reason line's run by its id marks 75 in that run",
+              code == 0 and code_join == 0 and marked75.get("marked") == [75]
+              and agent_changes.read(root)[-1].get("run") == joined
+              and states(juno).get("Initial:75") == rounds_mod.REVIEWED_EMPTY, err + err_join[:300])
+        code, joined_undo, err = run("agents", "undo-run", joined, "--note", "Take the third run back")
+        check("403: that run's undo puts the progress file back as it was before the run, never deleting it, and 75 "
+              "is undecided again",
+              code == 0 and joined_undo.get("put_back") == 1 and joined_undo.get("taken_away") == 0
+              and project_files() == held_files and side.is_file()
+              and states(juno).get("Initial:75") == rounds_mod.UNVISITED, err + json.dumps(joined_undo)[:300])
+
+        held_record = agent_changes.read(root)
+        code, mixed, err = run("turn", "skip", "Juno", "Initial", "71-75", "--note", ASKED, "--reason", REASON)
+        record = agent_changes.read(root)
+        line = record[-1] if record else {}
+        check("403: a call naming an undecided passage and two decided already marks the one and records the reason "
+              "for all three in one line",
+              code == 0 and mixed.get("marked") == [75] and mixed.get("already") == [71, 73]
+              and len(record) == len(held_record) + 1 and line.get("reason") == REASON
+              and line.get("reason_rows") == {"marked": [75], "already": [71, 73]} and line.get("files") == 1
+              and states(juno).get("Initial:75") == rounds_mod.REVIEWED_EMPTY, err + json.dumps(line)[:500])
+        code, undone, err = run("agents", "undo-change", line.get("id", ""), "--note", "Put 75 back")
+        check("403: the mixed line's undo puts 75 back undecided and leaves 71 and 73 decided",
+              code == 0 and states(juno).get("Initial:75") == rounds_mod.UNVISITED
+              and all(states(juno).get(f"Initial:{r}") == rounds_mod.REVIEWED_EMPTY for r in (71, 73)),
+              err + json.dumps(undone)[:300])
+
+        # a passage saved empty through turn write with a note in place of a reason, as agents did before turn skip:
+        # the state is the one Skip writes, the reason moves to the record and the note is cleared
+        code, _w, err = run("turn", "skip", "Juno", "Initial", "75", "--note", ASKED)
+        noted = base / "noted.json"
+        noted.write_text(json.dumps({"statements": [], "notes": ["Small talk, no statement"], "request": ASKED}),
+                         encoding="utf-8")
+        code, _w, err = run("turn", "write", "Juno", "Initial", "77", "--from", str(noted))
+        check("403: a passage saved empty through turn write is in the state Skip writes",
+              code == 0 and json.loads(side.read_text(encoding="utf-8"))["rows"].get("Initial:77") == rounds_mod.REVIEWED_EMPTY,
+              err[:300])
+        code, moved_reason, err = run("turn", "skip", "Juno", "Initial", "77", "--note", ASKED, "--reason", REASON)
+        cleared = base / "cleared.json"
+        cleared.write_text(json.dumps({"notes": [], "request": ASKED}), encoding="utf-8")
+        code_clear, _w, err_clear = run("turn", "write", "Juno", "Initial", "77", "--from", str(cleared))
+        check("403: its reason is recorded with turn skip, then turn write clears the note and the passage stays decided",
+              code == 0 and moved_reason.get("already") == [77] and agent_changes.read(root)[-2].get("reason") == REASON
+              and code_clear == 0 and not notes(juno).get(77)
+              and json.loads(side.read_text(encoding="utf-8"))["rows"].get("Initial:77") == rounds_mod.REVIEWED_EMPTY,
+              err + err_clear + json.dumps(moved_reason)[:300])
     finally:
         agent_changes.ALL_OPS = kept[0]
         if kept[1] is None:

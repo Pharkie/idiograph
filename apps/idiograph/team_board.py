@@ -55,7 +55,7 @@ import workbook as wb_mod
 LEDGER = "boards.json"
 KIND = "board"
 # what a board leaves behind when it goes: its History, its review and revise thread, an agent's marks, its origin
-LEFT = ("history", "review", "revise", themes_mod.ORIGIN, themes_mod.OWN) + themes_mod.AGENT_KEYS
+LEFT = ("history", "history_head", "review", "revise", themes_mod.ORIGIN, themes_mod.OWN) + themes_mod.AGENT_KEYS
 REASON_MOST = 400
 # the key in this device's held team where the last message read by `take` is kept
 AFTER = "board_after"
@@ -305,7 +305,7 @@ def add_board(root: Path, entry: dict) -> dict:
         # the board on the canvas stays, and with no board before it the board sent is the participant's only
         # board and on the canvas, as a first board always is, with no empty Board 1 made beside it (smokefix)
         current = str(data.get("current")) if str(data.get("current")) in ids else (ids[0] if ids else v["id"])
-        v.pop("history", None)
+        themes_mod.drop_history(v)
         themes_mod.add_revision(v, name=themes_mod.revision_name("team_board", who=sender), at=when)
         versions.append(v)
         themes_mod.write(book, themes_mod._file(book, routes().case_label(book), data, versions, current, when))

@@ -615,10 +615,17 @@ def root_archive(root: Path, path: Path, label: str) -> Path:
     return backup
 
 
+def board_history_mod():
+    import board_history
+    return board_history
+
+
 def keep_copy(root: Path, path: Path, label: str = ARCHIVE_LABEL) -> Path:
     if Path(path).suffix.lower() == ".xlsx":
         return wb_mod.archive_copy(path, label)
-    return root_archive(root, Path(path), label)
+    # a boards file's copy keeps the History chunks it names beside it, which putting it back brings (historyfix)
+    import board_history
+    return board_history.keep_named(Path(path), root_archive(root, Path(path), label))
 
 
 def write_rows(book: Path, rows: list[dict]) -> None:
@@ -867,6 +874,7 @@ def land(root: Path, plan: dict, books: list[dict], codes_after: dict, before_co
         for f, copy in copies:
             if f in written:
                 shutil.copy2(copy, f)
+                board_history_mod().bring_named(copy, f)
                 wb_mod.note_written(f)
         raise
     codes_after["undo"] = {"what": what, "at": when,
@@ -1261,6 +1269,7 @@ def undo(root: Path, books: list[dict], when: str, redo: bool = False, dry_run: 
         path = absolute(root, f["path"])
         mine = keep_copy(root, path, "pre-undo" if not redo else "pre-redo")
         shutil.copy2(absolute(root, f["copy"]), path)
+        board_history_mod().bring_named(absolute(root, f["copy"]), path)
         wb_mod.note_written(path)
         back.append({"path": f["path"], "copy": rel(root, mine), "after": sha_of(path)})
     other = {"what": step.get("what") or "", "at": when, "files": back, "codes": data["codes"]}

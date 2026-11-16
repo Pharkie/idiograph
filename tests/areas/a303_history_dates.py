@@ -156,7 +156,7 @@ def test_history_dates(scratch):
         call("/api/gets-save", {"workbook": str(bryn), "version": with_cards("b2", {
             gets_mod.card_of("P2 - Ione", "es", ki): "A quiet head in the sea"})})
         gfile = shore / gets_mod.FILE
-        held = json.loads(gfile.read_text(encoding="utf-8"))
+        held = support.board_file(gfile)
         check("303: two PETs boards and two GETs boards, all last written on 28 September, none with a History yet",
               themes.load(bryn)["boards"][0]["updated"] == MADE and themes.load(ione)["boards"][0]["updated"] == MADE
               and [x["updated"] for x in held["boards"]] == [MADE, MADE]
@@ -219,7 +219,8 @@ def test_history_dates(scratch):
         # kept, the board after that edit dated by its unstamped `updated`, then another edit's line (Today, 28
         # September, Today), as the files of a board saved then hold it
         def kept_the_old_way(board: dict) -> None:
-            first, second = board["history"]
+            import board_history
+            first, second = board_history.attach(board)
             board["history"] = [first, {"id": "r2", "at": board["updated"], "name": "", "auto": True,
                                         "state": second["state"]}, dict(second, id="r3")]
 
@@ -240,8 +241,8 @@ def test_history_dates(scratch):
         pets_file = themes.themes_path(ione)
         check("303: Ione's PETs board and GETs board 2 hold the fault as the old save left it, the Automatic revision "
               "dated 28 September between two edits of 29 October",
-              raw(themes.load(ione)["boards"][0]["history"]) == faulty
-              and raw(next(x for x in json.loads(gfile.read_text(encoding="utf-8"))["boards"]
+              raw(support.board_file(themes.themes_path(ione))["boards"][0]["history"]) == faulty
+              and raw(next(x for x in support.board_file(gfile)["boards"]
                            if x["id"] == "b2")["history"]) == faulty)
         clock["now"] = "2026-10-30T10:00:00+00:00"
         pets_bytes, gets_bytes = pets_file.read_bytes(), gfile.read_bytes()
@@ -259,14 +260,15 @@ def test_history_dates(scratch):
               and said(ghist.get("history") or []) == healed, err or gerr or str([hist, ghist])[:500])
         check("303: and reading them, in the app or as an agent, writes nothing", pets_file.read_bytes() == pets_bytes
               and gfile.read_bytes() == gets_bytes)
-        call("/api/themes-save", {"workbook": str(ione), "version": pets_page(ione)})
-        call("/api/gets-save", {"workbook": str(ione), "version": gets_page(ione, "b2")})
-        mended = [("2026-10-29T18:47:00+00:00", False), ("2026-10-29T18:47:00+00:00", True),
-                  ("2026-10-29T18:57:00+00:00", False)]
-        check("303: the board's next save writes that time into the file, on PETs and on GETs",
-              raw(themes.load(ione)["boards"][0]["history"]) == mended
-              and raw(next(x for x in json.loads(gfile.read_text(encoding="utf-8"))["boards"]
-                           if x["id"] == "b2")["history"]) == mended)
+        # the History beside the file is never rewritten to mend a time since historyfix (16 November 2026): a
+        # revision kept goes on the end of the last chunk alone, and the list goes on reading each at its mended time
+        call("/api/themes-boards", {"workbook": str(ione), "op": "revision", "id": "v1", "name": "Kept"})
+        call("/api/gets-boards", {"workbook": str(ione), "op": "revision", "id": "b2", "name": "Kept"})
+        now_listed, now_glisted = listed_pets(ione), listed_gets(ione, "b2")
+        check("303: after the board's next History write each still lists at its mended time, in order, the new one "
+              "on top, on PETs and on GETs",
+              said(now_listed)[1:] == healed and said(now_glisted)[1:] == healed
+              and in_order(now_listed) and in_order(now_glisted), str([said(now_listed), said(now_glisted)]))
     finally:
         themes.now_iso, idiograph_cli.now_iso = clocks
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept

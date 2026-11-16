@@ -8,7 +8,7 @@ import export as export_mod
 import rounds as rounds_mod
 import workbook as wb_mod
 
-from .support import DEMO_SHEET, check, demo_copy
+from .support import DEMO_SHEET, board_file, check, demo_copy
 import idiograph_routes
 
 
@@ -33,7 +33,7 @@ def _follow_checks(scratch, root, server_mod, themes_mod):
     trim_api, rows_api = idiograph_routes.api_trim, idiograph_routes.api_rows
 
     def file(work):
-        return json.loads(themes_mod.themes_path(work).read_text(encoding="utf-8"))
+        return board_file(themes_mod.themes_path(work))
 
     def board(work, bid="v1"):
         return next(b for b in file(work)["boards"] if b["id"] == bid)

@@ -3044,6 +3044,99 @@ agent wrote through the command line is an entry of `edits` too, with `by` of `a
 of lines, and `backup`, the copy in `_Archive`. It sets the turn's state in `rows` and never
 `last`, his place in the case.
 
+**Board History beside the board file** (historybuild, 16 November 2026, Adam's rulings that day: chunks of about
+256 KB a board in a folder beside the board file, projects moved over on first open, no backwards compatibility; and
+historyfix the same day, after a fresh-eyes review, with his ruling for lazy word-following). `board_history.py`. A
+board's revisions were inside its board file under `history` until then, so a participant's PETs file ran to 6 to 13
+MB, parsed whole by the poll and written whole by every drop. Now each board file (PETs of every timepoint, LPETs,
+GETs, LGETs, a reviewer's own boards) has a folder beside it, `.json` swapped for `.history` (`folder_of`), and each
+board's History is chunks there, one revision a line, a chunk taking no new revision past `CHUNK` bytes. A chunk is
+never written over: it is named `<uid>.<n>.<hash>.jsonl`, `hash` the start of its bytes' SHA-256, and one whose bytes
+change is written under its new name. `uid` is random (`new_uid`), never the board's id, which `gets._next_board` and
+`themes._next_id` give again after a delete. The board keeps `history_head` (`HEAD`): `uid`, `count`, `next`, `last`
+(the last state's hash, so the timer's revision checks without a chunk), `autos` and `chunks`, each chunk's number and
+hash, so the board file names exactly the files its History is; in memory also `at`, the folder it was read from
+(`place`), and `add`, revisions made since it was read (`append`), neither written into the file. A board carried
+into another file brings its History under a new uid (`out_of`). `board_version` leaves the head out as it leaves
+`history` out. Readers: `revisions` (from memory or the chunks the head names, each checked against its name and the
+count against the head's, a fresh list), `memo` (History's list kept against the chunks named, which never change),
+`attach` and `attach_all` (the History put on the board in memory to change it), `attached` (the same, or None while
+it is away). Writers: `themes.write_path` and `gets.write_at` call `out_of` first. A board with its History attached
+has it written by `write_chunks` (a revision stays in the chunk it is in, and only a chunk whose bytes changed is
+written, under its new name); one with revisions waiting has them put on its last chunk by `append_chunks`, no other
+chunk read, every chunk whose bytes change written (the last one grown and each begun past it), which is how `add_revision` keeps a revision that prunes none (`can_append`); and one with neither keeps
+the head the file has for it, so a writer holding an older head never puts it back. The head of a board an op built
+afresh with the same id and `created` is kept. Order: the new chunks, then the file, then (`finish`) the chunks the
+file no longer names put aside in `superseded/` inside the History folder (`supersede`), those of a board deleted
+copied into `_Archive/<name> history (deleted board <date-time>)/` first. So a crash at any point leaves the board
+file and every chunk it names as they were. A chunk put aside is never taken away as it is superseded (historyfix2,
+review 2): a board file another Mac wrote before it saw the write may still win in iCloud and name it, so a read finds
+it there (`found`, `read_chunk`), the next write that names it brings it back (`restore`), and `sweep` takes it away
+without a copy `SUPERSEDED_SECONDS` (7 days) after it was put aside. Working together's arrival puts aside the same
+way. No send or copy carries a chunk put aside (`project_pack.left_out`, `superseded_chunk`) unless its board file
+still names it (a second Mac's file, or one put back by hand, before a read brought it back): then it goes at its
+place beside the file, nothing in the project moved (`named_aside`, historyfix3). Anything inside one of the app's
+History folders is History to a chosen send (`in_history`), the PETs' or the GETs', the folders known by name
+(`history_folder`: a PETs or LPETs file's in `Working/`, the GETs' or LGETs' at the root), so a folder of his own
+ending `.history` is his. Left as it is (review 3): a Mac
+offline more than 7 days whose board file then wins in iCloud names a chunk the other Mac has swept, and that board's
+History reads as not here for good; and the `_Archive` copies of board files that clear-made-notes, codes and Rename
+keep name chunks without a copy of them, so one put back by hand after the sweep reads as not here (the app's own
+undos bring the chunks back). A chunk
+no board file names (a write or a move that stopped part way, or one named by a board file another Mac has not sent
+yet) is left until `ORPHAN_SECONDS` old (7 days), then swept into `_Archive/<name> history (unnamed <date-time>)/`
+(`sweep`). **Away**: a chunk the head names that is missing, will not read, or does not match its name (an older copy
+iCloud's last write left from a second Mac among them) is `HistoryAway` (code `history_away`): `history_list` gives
+none and `history_away` says so (`/api/themes` and `/api/gets` answer `history_away`, the History tab's
+`themes.revision.away` line), a History write that needs it is refused with nothing written (a revision on the end
+needs the last chunk alone), and the timer's revision is skipped while the board still saves. A chunk Optimize Mac
+Storage evicted (`SF_DATALESS`) is read in a thread, which brings it back from iCloud, a read waiting while the fetch
+is younger than `FETCH_SECONDS` (20 s) and never under a lock (`locks.holding`), so a save never waits on the network;
+a fetch past that is away at once until it has brought the data, and one that failed is remembered `FAILED_SECONDS`
+(60 s); `history_away` (`here`) is a stat of each chunk, an evicted one not read away, and reads the chunks only when
+History has not been listed as it stands. One shown by a `.<name>.icloud` placeholder is asked for with
+`brctl download`. **Followers**:
+every History walker goes through the adapter, and area 400 greps for any other. A follower that changes a board
+after the workbook has changed never refuses for History: `rekey` (trims, assignments), `passage_written` and
+`gets.remap_case` move the revisions too when the board's History is here (`attached`) and the board alone when it is
+not, and the "kept first" revision of `statement_edited`, `statements_noted`, `cards_refreshed`, `passage_written` and
+the GETs' followers is `kept_revision`, none when away. **Lazy word-following** (Adam, 16 November 2026): a find and
+replace (`cards_reworded`) no longer rewrites the words of every revision of every board; a revision takes the words
+of today when it is restored, shown or copied from (`themes.brought_up`: its keys follow their words, then each card
+whose key holds a statement takes the statement's words and each pick its quote's, as `cards_refreshed` brings a
+board in line). A card the revision kept marked changed (the page keeps the line's words beside it as `live`) keeps
+the words it was made with, so it comes back marked changed as before (historyfix2). A GETs revision whose keys a
+follower could not move while its History was away follows by words when restored or shown (`gets.followed`, through
+`themes.follow`: a statement card stays while its key holds its words and otherwise takes an unclaimed line of the
+participant's with its words, the nearest first, its GETs' members going with it). The table's ticked quotes are no
+part of a revision (a revision holds `themes.STATE_KEYS`, never `rows`, and Restore leaves the table as it stands),
+so they live on the board alone, which a trim, a passage written or a rekey always moves whether its History is here
+or not, and a revision shown or restored never shows or writes a tick of its own (historyfix3). `clear_format` (`read_board`, its archive copy holding the History inside it with each head as the
+file holds it), Rename's GETs and LGETs (`case_files.read_boards`, the chunks in its put-back steps), `gets.case_keys`
+and `gets.copies_rekeyed`' and `copies_pruned`' idempotence checks (`themes.history_known`) read through the adapter,
+and `board list`'s count is the head's (`themes.revision_count`). **The move**: `themes.read_file` and `gets.load`
+move a file whose boards still hold `history` on its first open (`move_on_open`), under its lock
+(`<folder>/.idiograph.lock`, the case's or the root's) taken without waiting, never on a participant (or LPETs file)
+Working together's one writer refuses: `out_of` copies the file into `_Archive/<name> (pre-history-move
+<date-time>).json`, writes the chunks, reads them back and checks every revision by `census_of` (id, time, name's
+hash, automatic, kind, slots' hash, state's SHA-256), and checks each board's version unchanged on the data to be
+written (`CHECK`); only then is the file written, read back and checked again, its bytes put back if it differs.
+Anything that stops it answers the file as read, History inside, which every reader takes, so the boards always open.
+`history_census.py <project>` lists every revision of a project by keys and hashes alone. A move that keeps
+failing copies the file into the `_Archive` once, never again while it is the same. `clear_format.write_board`
+compares every string of a board file and its revisions with each board's head left out (`board_words`), as the
+chunks' names change with the bold taken off a revision. On clones of his two
+projects: 36 files, 2,557 revisions, the census the same before and after. Agents: `agent_changes.tracked` keeps the
+chunks (`CHUNKS`), `kind_of` calls them boards, `lock_of` takes the root's for the GETs' folder. A revision an op made
+answers `hash`, the start of its state's SHA-256, which `undo_with` records and Restore by id takes (`hash`,
+`--hash`), refused when that id is another revision now (`themes.revision_checked`). Shared copies: a chosen send
+carries a PETs file's chunks as PETs and the GETs' with the GETs (`project_pack.history_chunk`, `gets_chunk`), and the
+current board alone sends none, its head dropped. Working together carries in a participant's and the GETs board's
+versions the chunks their heads name and no other (`board_history.named_files`), a version waiting while one is not
+on this computer (`team_sync.mine`), the chunks placed before the board file, and on arrival puts aside only the
+chunks the file it replaces named and the new one does not. The poll reads the board file alone, kept against its
+time, size and inode (`routes.stamp_boards`).
+
 **The themes file.** `<case>/Working/<stem>.themes.json`, written by `themes.py` and set out in
 full under Autosave and the file in the [manual](manual.md). Its top level is `schema`, 2, `case`,
 the case by its pseudonym, `workbook`, its file name, `created`, `updated`, `current`, the board on
@@ -3052,8 +3145,9 @@ once the PETs are marked complete (see [docs/manual.md](manual.md), The Current 
 `boards`. A board carries `id`,
 `name`, `note`, `created`, `updated`, `cards` by key with each card's place and text, `groups`
 with each label's members, place and note, `discarded`, `picks`, `notes`, its sticky notes,
-`quoted`, and `cut`, `ai`, `review` and `revise` when it has them, then `history`, its revisions,
-each with its `state`, and one the app named with its `kind` and `slots` (the text layer, below). `review` and
+`quoted`, and `cut`, `ai`, `review` and `revise` when it has them, then `history_head`, the head of its History,
+whose revisions, each with its `state`, and one the app named with its `kind` and `slots` (the text layer, below),
+are kept beside the file in chunks (Board History beside the board file, below). `review` and
 `revise`, a board's AI review rounds and revise thread from before 11 November 2026 (aiout), are carried as the
 file holds them and never read (`themes.FROM_BEFORE`): `normalise` passes them through untouched, a save keeps
 the file's since the page sends neither, a trim or a rekey leaves them as they were, and a duplicate carries
@@ -7229,6 +7323,17 @@ call of 16 November). The dry run reads with no lock. `turn skip` (`cmd_turn_ski
 op's, and shown by Project history's By an agent under its change (`change_view`'s `reason`, cleaned by
 `agent_words` as a request is, drawn by `arChange` as "says why"), and the parity list maps
 `/api/commit` to it beside `turn write`. Area 403 checks it against the page's own Skip on a twin.
+With a reason, the rows named that `row_states` reads as `reviewed-empty` already have it recorded too
+(skipreason, 16 November): `entry_for` adds `reason_rows` (`marked`, `already`) and says the `already` rows in
+`what_changed` (`agentchanges.reason_recorded`), and `through` records a call that marked nothing and wrote no
+file when `reason_alone` holds, its step `{}`, which `undoable` takes as undoable alone with nothing to put back,
+`line_of` saying it as `agentchanges.op.turn_skip_reason`, and the answer's `recorded` true once the line is
+written (the command line says it is recorded only where `kept_here` holds). A fresh run for such a line keeps its restore
+point as every run does, so a later write that joins it by `--run` is undone by putting its files back, never by
+deleting them as made. `undo_run` marks a run that changed no file undone as it stands (`undone.run` empty, a second
+undo refused by `agentchanges.undo.already_alone`), so By an agent offers no Undo for it again. Such a passage's state is left as it is: a save with no
+statement, the page's or `turn write`'s, writes the same `reviewed-empty` Skip writes, and a row the sidecar holds
+as `has-content` with no statement in the workbook reads as `reviewed-empty` too and keeps its sidecar value.
 
 Since 26 October (parity with the page, group 1) the statements screen's own writes have ops for agents,
 each calling the route itself with the page's body and three keys more, `dry_run`, `tool` and `request`,

@@ -38,6 +38,7 @@ import openpyxl
 import ai_suggest as ai_mod
 import app_search
 import audio as audio_mod
+import board_history
 import boot
 import canvas_out
 import case_files
@@ -2942,7 +2943,7 @@ def his_places(sent: set, data: dict) -> set:
         if themes_mod.origin_of(b.get(themes_mod.ORIGIN)):
             continue
         out.add(themes_mod.places_print(b))
-        for r in themes_mod.history_of(b):
+        for r in themes_mod.history_known(b):
             if isinstance(r.get("state"), dict):
                 out.add(themes_mod.places_print(r["state"]))
     return out
@@ -3132,7 +3133,7 @@ def boards_in(root: Path, file: Path, from_name: str = "", participants=None, bo
                     v = b["board"]
                     v.update(id=themes_mod._next_id(versions), name=themes_mod._free_name(versions, b["name"]),
                              created=when, updated=when)
-                    v.pop("history", None)
+                    themes_mod.drop_history(v)
                     themes_mod.add_revision(v, name=themes_mod.revision_name("brought_in", file=file.name), at=when)
                     versions.append(v)
                     b["id"], b["name"] = v["id"], v["name"]
@@ -6044,7 +6045,9 @@ def rename_plan(root: Path, folder: Path, name, with_folder: bool, cfg: dict) ->
     for entry in case_files.PROJECT:
         path = entry.path(root)
         try:
-            roots.append((entry, path, case_files.read_json(path)))
+            # the GETs and the LGETs with their boards' History, which names the participant too (historybuild)
+            boards_file = entry.file in (gets_mod.FILE, gets_mod.LGETS_FILE)
+            roots.append((entry, path, (case_files.read_boards if boards_file else case_files.read_json)(path)))
         except case_files.Unreadable as exc:
             plan["unread"] = plan["unread"] or exc.path
     # with the folder ticked, the folder and every workbook named after the participant, each with every
@@ -6071,7 +6074,7 @@ def rename_plan(root: Path, folder: Path, name, with_folder: bool, cfg: dict) ->
             # words and never by the file's new name (17 October, after the screenshot check)
             folder_lines.append(sidecars_said(book, said[book]))
             for item in [book] + case_files.sidecars(book):
-                if item.is_file() and good and item not in dict(plan["moves"]):
+                if item.exists() and good and item not in dict(plan["moves"]):
                     plan["moves"].append((item, item.with_name(renamed(item.name, olds, new))))
         traj = next((data for entry, _path, data in roots if entry.file == traj_mod.FILE), None)
         picture = case_files.picture_move(root, traj, plan, olds, new if good else own)
@@ -6187,6 +6190,8 @@ def unrename(back: list, made: list) -> None:
                 os.replace(tmp, step[1])
             elif step[0] == "file":
                 step[1].unlink()
+            elif step[0] == "chunks":
+                board_history.put_back(step[1])
     for item in reversed(made):
         with contextlib.suppress(OSError):
             if item.is_dir():
@@ -6244,11 +6249,13 @@ def rename_case(root: Path, folder: Path, name, with_folder: bool, cfg: dict, wh
             # again in the folder it moves to
             for kind, book, path, after in sides:
                 back.append(case_files.snapshot(path))
+                back.append(("chunks", board_history.snapshot(path)))
                 case_files.write_side(kind, book, path, after)
             # each file at the root that names the participant: the GETs, the LGETs, the Trajectories board,
             # the list of names to replace and the project's own file
             for entry, path, after in roots:
                 back.append(case_files.snapshot(path))
+                back.append(("chunks", board_history.snapshot(path)))
                 entry.write(root, path, after)
             # the files named after the participant, each workbook with its sidecars
             for item, moved in plan["moves"]:
@@ -8476,6 +8483,38 @@ def api_gets_save(body: dict) -> dict:
             return {"error": str(exc), "stale": exc.view(), "status": 409}
 
 
+# The poll's read of a participant's boards file kept against the file as it stands (historybuild, 16 November 2026):
+# its time and size by `file_mark` (and the inode once `file_mark` gives it), and the reviewer's own boards file's,
+# so an unchanged file is never parsed again
+STAMPS: dict = {}
+
+
+def stamp_mark(path: Path) -> tuple | None:
+    """`file_mark`, which gives the file's inode, so a file put in its place is read again."""
+    return file_mark(path)
+
+
+def stamp_boards(path: Path, boards) -> dict:
+    """What the poll says of a participant's boards file: `updated`, `current`, `chosen` and `boards`, read once for
+    each state of the file (and of his own boards file) and kept. Never a board's History, and no move."""
+    files = [themes_mod.themes_path(path)]
+    mine = themes_mod.own_file(path)
+    if mine is not None:
+        files.append(mine)
+    key = (themes_mod.timepoint_now(),) + tuple(stamp_mark(f) for f in files)
+    held = STAMPS.get(str(files[0]))
+    if held is not None and held[0] == key:
+        return held[1]
+    data = themes_mod.load(path, move=False)
+    seen = {"updated": (data or {}).get("updated"),
+            "current": str((themes_mod.current_version(data) or {}).get("id") or "") or None,
+            "chosen": themes_mod.chosen_of(data), "boards": boards(data)}
+    if len(STAMPS) > 2000:
+        STAMPS.clear()
+    STAMPS[str(files[0])] = (key, seen)
+    return seen
+
+
 def api_stamp(body: dict) -> dict:
     """What the page needs to notice a change made outside it, read and nothing written: the file's
     `updated`, the board on its canvas and the Current board, and each board by its id, name and
@@ -8510,7 +8549,7 @@ def api_stamp(body: dict) -> dict:
         return {"file": "gets", "updated": (data or {}).get("updated"), "current": (data or {}).get("current"),
                 "chosen": themes_mod.chosen_of(data), "boards": boards(data),
                 "outside": not wb_mod.written_here(gets_mod.gets_path(root)), "cases": cases}
-    data = themes_mod.load(path)
+    seen = stamp_boards(path, boards)
     try:
         held = rounds_mod.read_raw(path) or {}
     except (ValueError, OSError):
@@ -8526,11 +8565,10 @@ def api_stamp(body: dict) -> dict:
         at = str(Path(path).stat().st_mtime_ns)
     except OSError:
         at = ""
-    return {"file": "themes", "updated": (data or {}).get("updated"),
+    return {"file": "themes", "updated": seen["updated"],
             "workbook": {"at": at, "here": wb_mod.written_here(path)},
             "outside": not wb_mod.written_here(themes_mod.themes_path(path)),
-            "current": str((themes_mod.current_version(data) or {}).get("id") or "") or None,
-            "chosen": themes_mod.chosen_of(data), "boards": boards(data),
+            "current": seen["current"], "chosen": seen["chosen"], "boards": json.loads(json.dumps(seen["boards"])),
             "turns": {"count": len(written),
                       "last": {"sheet": last.get("sheet"), "row": last.get("row"), "when": last.get("when"),
                                "tool": last.get("tool") or ""} if last else None}}

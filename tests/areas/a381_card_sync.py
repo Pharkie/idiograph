@@ -102,7 +102,7 @@ def test_card_sync(scratch):
                                                              "x": -20, "y": -60}], discarded=[], picks={}, notes=[])
 
     def read(path: Path) -> dict:
-        return json.loads(path.read_text(encoding="utf-8"))
+        return support.board_file(path)
 
     def write(path: Path, data: dict) -> None:
         # a write gone astray, made by hand: the file left as a stale copy would leave it

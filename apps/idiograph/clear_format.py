@@ -34,6 +34,7 @@ from pathlib import Path
 import openpyxl
 from openpyxl.cell.rich_text import CellRichText, TextBlock
 
+import board_history
 import i18n
 import locks
 import workbook as wb_mod
@@ -243,13 +244,21 @@ def board_part(path: Path) -> str:
     return "lpet_table" if path.name.endswith(LPETS_TAIL) else "copies"
 
 
-def board_plan(path: Path, owner: str | None, only: set | None) -> tuple[dict | None, dict]:
-    """A board file's data with the bold taken off its rows, and the rows cleared by participant, `only` the
-    participants to clear at a root file. None for a file with nothing to clear."""
+def read_board(path: Path) -> dict:
+    """A board file's data with every board's History beside it read in too (`board_history`), refused while any of
+    it is not on this computer."""
+    import board_history
     try:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
         raise WorkbookError(i18n.t("server.clear_formatting_unreadable", file=Path(path).name, exc=exc)) from None
+    return board_history.attach_all(board_history.place(path, data))
+
+
+def board_plan(path: Path, owner: str | None, only: set | None) -> tuple[dict | None, dict]:
+    """A board file's data with the bold taken off its rows, its boards' History among them, and the rows cleared by
+    participant, `only` the participants to clear at a root file. None for a file with nothing to clear."""
+    data = read_board(path)
     counts: dict = {}
     for row, key in bold_rows(data, []):
         who = owner if owner is not None else key
@@ -261,23 +270,36 @@ def board_plan(path: Path, owner: str | None, only: set | None) -> tuple[dict | 
 
 
 def write_board(path: Path, data: dict) -> None:
-    """A board file written as the app writes it (`themes.render`), through a temporary file moved over it, its every
-    string checked against the file as it was first."""
+    """A board file written as the app writes it (`themes.write_path`, its boards' History to their chunks), its every
+    string, the History's among them, checked against the file as it was first, before and again after."""
     import themes
     path = Path(path)
-    before = strings_of(json.loads(path.read_text(encoding="utf-8")), [])
-    text = themes.render(data) + "\n"
-    if strings_of(json.loads(text), []) != before:
+    before = board_words(read_board(path))
+    if board_words(data) != before:
         raise Differs(i18n.t("server.clear_formatting_words_differ", file=path.name))
-    tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(text, encoding="utf-8", newline="\n")
-    os.replace(tmp, path)
-    wb_mod.note_written(path)
+    themes.write_path(path, data)
+    if board_words(read_board(path)) != before:
+        raise Differs(i18n.t("server.clear_formatting_words_differ", file=path.name))
+
+
+def board_words(data: dict) -> list[str]:
+    """Every string of a board file's data, its boards' revisions among them, with each board's `history_head` left
+    out: the chunks' names and the last state's hash change with the bold taken off a revision, never its words
+    (review 2, 2)."""
+    import board_history
+    copy = json.loads(json.dumps(data))
+    for board in board_history.boards_in(copy):
+        board.pop(board_history.HEAD, None)
+    return sorted(strings_of(copy, []))
 
 
 def archive_json(path: Path, folder: Path) -> Path:
+    """A copy of a board file in `_Archive` as the op found it, its boards' History inside it, so the one copy holds
+    everything the op changes."""
     import codes as codes_mod
-    return codes_mod.root_archive(folder, Path(path), LABEL)
+    # a file whose boards keep History beside it: the copy holds it inside and no head, so it never names a local
+    # folder or a chunk taken away since (review 7), the file's bytes otherwise as they were
+    return board_history.inline_copy(Path(path), codes_mod.root_archive(folder, Path(path), LABEL))
 
 
 # ---------------------------------------------------------------- the op
@@ -346,8 +368,8 @@ def clear(root: Path, books: list[dict], only: set | None = None) -> dict:
             folder = root if owner is None else wb_mod.case_folder(path)
             archived.append(archive_json(path, folder))
             old = path.read_bytes()
+            written.append((path, old, board_history.snapshot(path)))
             write_board(path, data)
-            written.append((path, old, False))
             boards.append(path)
             for who, n in counts.items():
                 part = board_part(path)
@@ -356,12 +378,14 @@ def clear(root: Path, books: list[dict], only: set | None = None) -> dict:
     except BaseException:
         for path, old, is_book in reversed(written):
             try:
-                if is_book:
+                if is_book is True:
                     locks.write_over(path, old)
                 else:
                     tmp = path.with_name(path.name + ".tmp")
                     tmp.write_bytes(old)
                     os.replace(tmp, path)
+                    # and its History's chunks as they were
+                    board_history.put_back(is_book)
             except OSError:
                 pass
         # and the copies it kept, the files being as they were

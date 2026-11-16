@@ -260,7 +260,7 @@ def test_mcp_server(scratch):
               loose["isError"] is False and support.unfenced(loose["content"][0]["text"]).startswith("Dry run") and files(root) == before)
         made = call(srv, "board_new", case="Rowan", pets=plan, not_placed={"S1": "Tense more than experience"},
                     request="Make a board of two PETs")
-        stored = json.loads(themes_mod.themes_path(rowan).read_text(encoding="utf-8"))
+        stored = support.board_file(themes_mod.themes_path(rowan))
         board = stored["boards"][-1]
         check("84: the real write lands as the next board, Board N as 184 names it, made by the client initialize named, with his request",
               made["isError"] is False and support.plain(made["structuredContent"])["name"] == "Board 2" and board["name"] == "Board 2"
@@ -271,7 +271,7 @@ def test_mcp_server(scratch):
         changed = call(srv, "board_apply", case="Rowan", board="Board 2",
                        operations=[{"op": "retitle", "label": "g1", "title": "A lonely year that she filled"}],
                        request="Retitle the lonely year")
-        after = json.loads(themes_mod.themes_path(rowan).read_text(encoding="utf-8"))["boards"][-1]
+        after = support.board_file(themes_mod.themes_path(rowan))["boards"][-1]
         history = themes_mod.history_of(after)
         check("84: board_apply changes the board through revise's operations, the board as it stood kept first in its History",
               changed["isError"] is False and "kept first in its History" in support.unfenced(changed["content"][0]["text"])
@@ -297,7 +297,7 @@ def test_mcp_server(scratch):
               and held["isError"] is True and "is open in Excel" in support.unfenced(held["content"][0]["text"])
               and juno.read_bytes() == book_before and not (root / "Juno" / "_Archive").exists())
         wrote = call(srv, "turn_write", case="Juno", sheet="Initial", row="15", request="Code turn 15", **turn)
-        edit = json.loads(rounds_mod.progress_path(juno).read_text(encoding="utf-8"))["edits"][-1]
+        edit = support.board_file(rounds_mod.progress_path(juno))["edits"][-1]
         check("84: the real turn write keeps the trim-style backup first, and the progress file names the client",
               wrote["isError"] is False and len(list((root / "Juno" / "_Archive").glob("*.xlsx"))) == 1
               and edit["tool"] == "Claude Desktop" and edit["request"] == "Code turn 15")
@@ -420,13 +420,13 @@ def test_mcp_server(scratch):
         first = mcp_server.add_to_desktop(entry)
         check("84: a new file is made with the entry under mcpServers, and the line says to restart Claude Desktop",
               first["written"] is True and first["backup"] is None
-              and json.loads(desktop_file.read_text(encoding="utf-8")) == {"mcpServers": {"idiograph": entry}}
+              and support.board_file(desktop_file) == {"mcpServers": {"idiograph": entry}}
               and first["said"] == "Added Idiograph to Claude Desktop. Restart Claude Desktop to use it.")
         others = {"preferences": {"theme": "dark"}, "mcpServers": {"notes": {"command": "/usr/bin/notes", "args": []}}}
         desktop_file.write_text(json.dumps(others), encoding="utf-8")
         old_bytes = desktop_file.read_bytes()
         second = mcp_server.add_to_desktop(entry, now=datetime(2026, 10, 5, 19, 2, 33))
-        now_held = json.loads(desktop_file.read_text(encoding="utf-8"))
+        now_held = support.board_file(desktop_file)
         copy = desktop_file.with_name("claude_desktop_config.json.before-idiograph-20261005-190233")
         check("84: a file already there keeps every other entry and key, and a copy of it as it was is kept beside it first",
               second["written"] is True and now_held["preferences"] == {"theme": "dark"}
@@ -460,7 +460,7 @@ def test_mcp_server(scratch):
               and routed["entry"]["args"][0].endswith("mcp_server.py") and routed["there"] is False and not desktop_file.exists())
         added = idiograph_routes.api_mcp({"path": str(juno), "op": "add"})
         check("84: and with add writes it into the file Claude Desktop reads, here the scratch one",
-              added["written"] is True and json.loads(desktop_file.read_text(encoding="utf-8"))["mcpServers"]["idiograph"]
+              added["written"] is True and support.board_file(desktop_file)["mcpServers"]["idiograph"]
               == routed["entry"] and "/api/mcp" in server_mod.POST_ONLY and server_mod.ROUTES["/api/mcp"] is idiograph_routes.api_mcp)
 
         httpd = ThreadingHTTPServer(("127.0.0.1", 0), server_mod.Handler)

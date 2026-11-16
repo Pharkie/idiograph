@@ -4,5 +4,10 @@
   "agentchanges.op.participant_complete": "Marked coding complete, or reopened it",
   "agentchanges.where.gets": "Themes",
   "agentchanges.where.statements": "Coding",
-  "agentchanges.op.turn_skip": "Marked passages decided with no code"
+  "agentchanges.op.turn_skip": "Marked passages decided with no code",
+  "agentchanges.op.turn_skip_reason": "Recorded a reason for passages already decided with no code",
+  "agentchanges.reason_recorded": {
+    "one": "Recorded a reason for {n} passage already decided with no code: row {rows}.",
+    "other": "Recorded a reason for {n} passages already decided with no code: rows {rows}."
+  }
 }

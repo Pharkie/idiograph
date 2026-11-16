@@ -86,7 +86,7 @@ def test_agent_cli(scratch):
         code, data = answer("cases")
         check("79: with --json the refusal is JSON too", code == 1 and data.get("error") == idiograph_cli.PRIVATE)
         ticked = idiograph_routes.api_project({"path": str(juno), "agents": True})["project"]
-        held = json.loads((root / server_mod.PROJECT_FILE).read_text(encoding="utf-8"))
+        held = support.board_file((root / server_mod.PROJECT_FILE))
         check("79: Settings' tick lands in the project file as agents, allowed with the time, the name and question kept",
               held["agents"]["allowed"] is True and held["agents"]["at"] and held["name"] == "Dogs, a scratch project"
               and ticked["agents"]["allowed"] is True and ticked["agents"]["at"] == held["agents"]["at"]
@@ -193,10 +193,10 @@ def test_agent_cli(scratch):
         code, _, err = run("board", "new", "Rowan", "--from", source)
         check("79: a write with no request in his words is refused, and nothing is written",
               code == 1 and err.strip() == idiograph_cli.NO_REQUEST and files(root) == before)
-        board1 = json.loads(themes_mod.themes_path(rowan).read_text(encoding="utf-8"))["boards"][0]
+        board1 = support.board_file(themes_mod.themes_path(rowan))["boards"][0]
         code, text, _ = run("board", "new", "Rowan", "--from", source, "--note", "Make a board of three PETs",
                             "--tool", "Claude Code")
-        stored = json.loads(themes_mod.themes_path(rowan).read_text(encoding="utf-8"))
+        stored = support.board_file(themes_mod.themes_path(rowan))
         made = stored["boards"][-1]
         parents = themes_mod.parents_of(made["groups"])
         check("79: it lands as the next board, Board 2, through propose (184), made current, every other board as it was",
@@ -258,7 +258,7 @@ def test_agent_cli(scratch):
               code == 0 and text.startswith("Dry run, nothing was written. On Board 2 it would have: retitled 'A lonely year she filled'")
               and files(root) == before)
         code, text, _ = run("board", "apply", "Rowan", "Board 2", "--ops", change, "--tool", "Claude Code")
-        stored = json.loads(themes_mod.themes_path(rowan).read_text(encoding="utf-8"))
+        stored = support.board_file(themes_mod.themes_path(rowan))
         after = stored["boards"][-1]
         rev = after["history"][-1]
         ga = {x["label"]: x for x in after["groups"]}
@@ -349,7 +349,7 @@ def test_agent_cli(scratch):
         code, text, _ = run("turn", "write", "Juno", "Initial", "15", "--from", source, "--tool", "Claude Code")
         case = wb_mod.read_case(juno)
         row = next(r for s in case["sheets"] for r in s["rows"] if r["row"] == 15)
-        progress = json.loads(rounds_mod.progress_path(juno).read_text(encoding="utf-8"))
+        progress = support.board_file(rounds_mod.progress_path(juno))
         edit = progress["edits"][-1]
         backups = sorted((root / "Juno" / "_Archive").glob("Juno - EN & ES (pre-agent *).xlsx"))
         check("79: it writes the three fields, the quote in inverted commas as q writes one, after the trim-style backup",
@@ -419,7 +419,7 @@ def test_agent_cli(scratch):
             idiograph_routes.api_themes_save({"workbook": str(rowan), "version": stale})
         except WorkbookError as exc:
             refused = str(exc)
-        held = themes_mod.find_version(json.loads(themes_mod.themes_path(rowan).read_text(encoding="utf-8")), ai_board)
+        held = themes_mod.find_version(support.board_file(themes_mod.themes_path(rowan)), ai_board)
         check("79: the stale save is refused with its line, the canvas kept in History, the agent's change standing",
               refused == themes_mod.OUTSIDE and held["history"][-1]["name"] == themes_mod.CANVAS_KEPT
               and held["groups"] == after["groups"] and refused.startswith("This board changed in a conversation"))
@@ -450,7 +450,7 @@ def test_agent_cli(scratch):
         gboard = held["boards"][0]
         check("79: gets apply takes the same operations over its cards, a GET numbered as the screen numbers one, a revision first",
               code == 0 and [x["id"] for x in gboard["groups"]] == ["G1"] and gboard["groups"][0]["members"] == ["Mabel/g1", "Rowan/g1"]
-              and gboard["history"][-1]["name"] == "Before an agent's change" and gboard["changed"]["by"] == "agent"
+              and themes_mod.history_of(gboard)[-1]["name"] == "Before an agent's change" and gboard["changed"]["by"] == "agent"
               and "Made 'Days given their shape by the dog'." in text)
 
         # \u2500\u2500 K. /api/stamp, what the page asks
@@ -500,11 +500,11 @@ def test_agent_cli(scratch):
 
         # \u2500\u2500 M. validate: the files as written, then each problem one plain line
         code, text, _ = run("validate")
-        broken = json.loads(themes_mod.themes_path(rowan).read_text(encoding="utf-8"))
+        broken = support.board_file(themes_mod.themes_path(rowan))
         del broken["boards"][0]["groups"][0]["label"]
         broken["boards"][0]["cards"]["Initial:3:0"]["x"] = "left"
         themes_mod.themes_path(rowan).write_text(json.dumps(broken), encoding="utf-8")
-        side = json.loads(rounds_mod.progress_path(juno).read_text(encoding="utf-8"))
+        side = support.board_file(rounds_mod.progress_path(juno))
         side["rows"]["Initial:3"] = "done"
         rounds_mod.progress_path(juno).write_text(json.dumps(side), encoding="utf-8")
         code_bad, bad_text, _ = run("validate")

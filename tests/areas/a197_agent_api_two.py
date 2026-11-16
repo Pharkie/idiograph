@@ -50,7 +50,7 @@ def test_agent_api_two(scratch):
         return spec("ops", {"operations": list(operations)})
 
     def saved() -> dict:
-        return json.loads(themes_file.read_text(encoding="utf-8"))
+        return support.board_file(themes_file)
 
     def board(vid="v1") -> dict:
         return next(b for b in saved()["boards"] if b["id"] == vid)
@@ -229,7 +229,7 @@ def test_agent_api_two(scratch):
               code == 0 and dry_kept and code2 == 0 and [t["label"] for t in tree["themes"]] == ["Letting a dog go",
                                                                                                    "Walks at the edges of the day"]
               and [c["key"] for c in tree["themes"][1]["cards"]] == [mabel[1], rowan[0], mabel[0]]
-              and len(gets_board.get("history") or []) == 1 and overlaps(gets_board, gets_mod.card_height) == 0,
+              and len(themes.history_of(gets_board)) == 1 and overlaps(gets_board, gets_mod.card_height) == 0,
               err or json.dumps(dry)[:200])
 
         pet_id = rowan[0].split("/", 1)[1]
@@ -251,7 +251,7 @@ def test_agent_api_two(scratch):
         check("197: gets take takes the changes as Take the changes does, a revision first on every GETs board, once",
               code == 0 and dry_kept and dry["counts"]["copy"]["n_pets_renamed"] == 1 and code2 == 0
               and copy() == "Her timetable, dark at both ends"
-              and all(b["history"][-1]["name"] == "Before Rowan's changes came in" for b in boards_g)
+              and all(themes.history_of(b)[-1]["name"] == "Before Rowan's changes came in" for b in boards_g)
               and all(b["changed"]["tool"] == "Claude Code" for b in boards_g)
               and code3 == 0 and again.get("changed") is False, err)
 

@@ -3751,8 +3751,15 @@ board, and the file is written on his first move or his first board op. It is
              "notes": [{"id": "n1", "text": "merge with Mornings?", "colour": "yellow",
                         "x": 260, "y": -120, "in": "g1"}],
              "quoted": {"Initial:12:0": "the words of the quote"},
-             "history": [{"id": "r1", "at": "2026-10-01T22:15:02+01:00", "name": "", "auto": true,
-                          "state": {"cards": {...}, "groups": [...], "discarded": [...], "picks": {...}}}]}]}
+             "history_head": {"uid": "4b0f14c5a84214cc", "count": 30, "next": 31, "last": "...", "autos": 15,
+                              "chunks": [[1, "9c41d0a2e7b3"], [2, "07fe5b1c88a4"]]}}]}
+```
+
+and beside it, in `Working/<stem>.themes.history/`, each board's History in chunks, `<uid>.<n>.<hash>.jsonl`, one
+revision a line, oldest first:
+
+```
+{"id":"r1","at":"2026-10-01T22:15:02+01:00","name":"","auto":true,"state":{"cards":{...},"groups":[...],"discarded":[...],"picks":{...}}}
 ```
 
 `case` is the participant by its pseudonym, for the cross-case step, and the second part of a folder name never
@@ -3785,10 +3792,21 @@ taken off by `reopen` alone, and a file with no mark carries none. A save from
 the canvas writes that board in place and keeps the name, the note and the history the file holds, which
 change only through the board ops, so a save sent just before a rename can never put the old name back.
 A save of a board the file does not hold is refused, so a page left open on a board deleted since cannot
-bring it back, and with no file yet only the first board is taken. `history` is the board's revisions,
-oldest first, each with its id, when it was made, its name, empty for one without, whether the timer
-made it, and its `state`, the board's `cards`, `groups`, `discarded`, `picks`, `ai`, `quoted` and `cut`
-as above, written on one line of its own so a long history stays readable. A board's id is `v1`, `v2`
+bring it back, and with no file yet only the first board is taken. A board's History is kept beside the
+file since 16 November 2026, never inside it, so the file stays small however long the History runs: a
+folder named like the file with `.history` in place of `.json`, each board's revisions in chunks of about
+256 KB named by a random `uid` the board's `history_head` gives, with how many revisions it holds, the next
+one's number, the last state's hash, how many were made by the timer and the chunks themselves. A chunk is never
+written over: each is named by the start of its own hash, so the board file names exactly the chunks its History
+is, a chunk that changes is written under a new name, and the old one goes only once the board file names the new. Each revision is one line, oldest
+first, with its id, when it was made, its name, empty for one without, whether the timer made it, and its
+`state`, the board's `cards`, `groups`, `discarded`, `picks`, `ai`, `quoted` and `cut` as above. A project
+whose files held their History inside them is moved over the first time each file is opened, a copy of the
+file as it was kept in `_Archive` first and every revision checked before the file is written without it.
+When iCloud has not yet brought a chunk to this computer, the History tab says the History is not on this
+computer yet, and nothing changes the History until it is; a chunk iCloud moved off to save space is brought back
+as it is read. A revision keeps the words its statements had when it was kept, and takes the words they have now
+when it is shown, restored or copied from, so a find and replace changes the boards and leaves History as it is. A board's id is `v1`, `v2`
 and on, from when the boards were versions, and is never shown. Schema 1, until 2 October 2026, held the
 boards under `versions`, named Version 1, Version 1 copy and AI proposal 1. Such a file is read as
 schema 2 in memory, its names said the new way, Board 1, Board 1 copy and AI board 1, and the "from

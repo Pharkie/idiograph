@@ -84,15 +84,70 @@ def sent_name(name: str) -> str:
     return clean + SUFFIX
 
 
-def left_out(rel: PurePosixPath) -> bool:
+def never_sent(rel: PurePosixPath) -> bool:
     return any(part in LEFT_OUT or part.startswith("~$") or REAL_NAMES_KEPT in part for part in rel.parts)
+
+
+def left_out(rel: PurePosixPath) -> bool:
+    return never_sent(rel) or superseded_chunk(rel.parts)
+
+
+def history_folder(parts, i: int) -> bool:
+    """Whether `parts[i]` is one of the app's own History folders: a PETs or LPETs file's in a participant's
+    `Working/`, or the GETs' or LGETs' at the root, never a folder of his own that ends `.history` (historyfix3)."""
+    name = str(parts[i])
+    if i == 0:
+        return name.lower() in GETS_HISTORY
+    return str(parts[i - 1]) == "Working" and bool(PETS_HISTORY.search(name))
+
+
+def in_history(parts) -> bool:
+    """Whether a path lies inside one of the app's History folders (`history_folder`), at any depth."""
+    parts = list(parts)
+    return any(history_folder(parts, i) for i in range(len(parts) - 1))
+
+
+def superseded_chunk(parts) -> bool:
+    """Whether a path is a chunk a write put aside inside a History folder (`board_history.SUPERSEDED`): older
+    states of the boards, which no copy ever needs, so no send or copy carries one (historyfix2, review 3)."""
+    parts = list(parts)
+    return any(history_folder(parts, i) and i + 1 < len(parts) - 1 and parts[i + 1] == "superseded"
+               for i in range(len(parts)))
+
+
+def named_aside(root: Path, rel: PurePosixPath, heads: dict) -> PurePosixPath | None:
+    """The place beside its board file of a chunk put aside in `superseded/` that the board file still names (a
+    board file from a second Mac, or one put back by hand, before any read brought the chunk back), so a send carries
+    it where the copy's board file looks for it; None for any other path. Nothing is moved: a send writes nothing in
+    the project (historyfix3, review 4). `heads` keeps each board file's names once read."""
+    import board_history
+    parts = list(rel.parts)
+    at = next((i for i in range(len(parts) - 2) if history_folder(parts, i) and parts[i + 1] == "superseded"
+               and i + 3 == len(parts)), None)
+    if at is None:
+        return None
+    folder = PurePosixPath(*parts[:at + 1])
+    if folder not in heads:
+        names: set = set()
+        try:
+            data = json.loads(board_history.file_of(Path(root) / folder).read_text(encoding="utf-8"))
+            for board in board_history.boards_in(data):
+                names |= board_history.names_of(board_history.head_of(board))
+        except (OSError, ValueError, TypeError, AttributeError):
+            pass
+        heads[folder] = names
+    return folder / parts[-1] if parts[-1] in heads[folder] else None
 
 
 def project_files(root: Path, skip: Path | None = None) -> list[tuple[Path, str]]:
     """Every file of the project, each with its path from the root, in a steady order. A link is
-    never followed, and what `LEFT_OUT` names is not the project's. `skip` is the file being written."""
+    never followed, and what `LEFT_OUT` names is not the project's. `skip` is the file being written.
+    A chunk put aside that its board file still names goes at its place beside the file (`named_aside`)."""
     root = Path(root)
     out = []
+    heads: dict = {}
+    listed: set = set()
+    aside: list = []
     for folder, dirs, names in os.walk(root, followlinks=False):
         dirs.sort()
         here = Path(folder)
@@ -105,8 +160,15 @@ def project_files(root: Path, skip: Path | None = None) -> list[tuple[Path, str]
                 continue
             rel = PurePosixPath(path.relative_to(root).as_posix())
             if left_out(rel):
+                if not never_sent(rel) and superseded_chunk(rel.parts):
+                    back = named_aside(root, rel, heads)
+                    if back is not None:
+                        aside.append((path, str(back)))
                 continue
             out.append((path, str(rel)))
+            listed.add(str(rel))
+    # one beside its file already is the same bytes (its name is its hash), and goes once
+    out += [(path, rel) for path, rel in aside if rel not in listed]
     return out
 
 
@@ -235,6 +297,27 @@ AUDIO_EXT = {".m4a", ".m4b", ".mp3", ".wav", ".aac", ".aif", ".aiff", ".flac", "
              ".mp4", ".m4v", ".mov", ".webm", ".avi", ".mkv"}
 GETS_FILES = ("idiograph-gets.json", "idiograph-lgets.json", "idiograph-trajectories.json")
 PETS_FILE = re.compile(r"\.(?:themes(?:-t\d+)?|lpets)\.json$", re.IGNORECASE)
+# a PETs or LPETs file's History folder beside it, and the GETs' and LGETs' at the root, each holding its boards'
+# History in chunks (historybuild, 16 November 2026, see board_history)
+PETS_HISTORY = re.compile(r"\.(?:themes(?:-t\d+)?|lpets)\.history$", re.IGNORECASE)
+GETS_HISTORY = ("idiograph-gets.history", "idiograph-lgets.history")
+CHUNK = re.compile(r"^[0-9a-f]{16}\.\d+\.[0-9a-f]{12}\.jsonl$")
+
+
+def history_chunk(parts) -> bool:
+    """Whether a path inside a participant's folder is a chunk of a PETs or LPETs file's History."""
+    return len(parts) == 3 and parts[0] == "Working" and bool(PETS_HISTORY.search(parts[1])) and bool(CHUNK.match(parts[2]))
+
+
+def gets_chunk(parts) -> bool:
+    """Whether a path from the project's root is a chunk of the GETs' or the LGETs' History."""
+    return len(parts) == 2 and parts[0] in GETS_HISTORY and bool(CHUNK.match(parts[1]))
+
+
+def gets_part(parts) -> bool:
+    """The GETs' and LGETs' files at the root and their History's chunks, which go and stay together."""
+    return (len(parts) == 1 and parts[0] in GETS_FILES) or gets_chunk(parts) \
+        or (len(parts) >= 2 and parts[0] in GETS_HISTORY)
 PET_DRAFT = re.compile(r" - PET draft \(.*\)\.md$", re.IGNORECASE)
 PROGRESS_TAIL = ".progress.json"
 # the app's own backups beside a workbook, `(pre-trim)` or `(complete 30Sep26)` (routes.BACKUP_STEM)
@@ -271,6 +354,9 @@ def kind_in_case(rel: PurePosixPath) -> str | None:
         return "audio"
     if len(parts) > 1 and parts[0] == "Source":
         return "source"
+    if history_chunk(parts) or in_history(parts):
+        # anything inside a PETs or LPETs file's History folder is History, the PETs' own (review 3)
+        return "pets"
     if len(parts) == 2 and parts[0] == "Working":
         if name.endswith(PROGRESS_TAIL):
             return None
@@ -456,12 +542,12 @@ def choose(root: Path, project_file: str, participants: list[dict], named: bool,
             # a thematic analysis project's code list goes with them, holding the codes they use alone (codes)
             files.append((codes_for(root, sent, path), rel))
             continue
-        elif len(parts) == 1 and (parts[0] in GETS_FILES or suffix in TABLES) and "gets" in out:
+        elif (gets_part(parts) or (len(parts) == 1 and suffix in TABLES)) and "gets" in out:
             # a table at the root is the GETs' own
             reason = "gets"
         elif suffix in AUDIO_EXT and "audio" in out:
             reason = "audio"
-        elif named and not (len(parts) == 1 and (parts[0] in GETS_FILES or suffix in TABLES)):
+        elif named and not (gets_part(parts) or (len(parts) == 1 and suffix in TABLES)):
             reason = "other"
         if reason:
             left.setdefault(reason, []).append(rel)
@@ -540,7 +626,7 @@ def current_board_only(data: dict) -> tuple[dict, dict | None, int]:
         return data, None, 0
     key = "boards" if isinstance(data.get("boards"), list) else "versions"
     out = dict(data)
-    out[key] = [{k: v for k, v in board.items() if k != "history"}]
+    out[key] = [{k: v for k, v in board.items() if k not in ("history", "history_head")}]
     out["current"] = board.get("id")
     if out.get("chosen") not in (None, ""):
         out["chosen"] = board.get("id")
@@ -589,6 +675,11 @@ def current_boards(plan: dict, root: Path) -> dict:
             left.setdefault("archive", []).append(on_disk(src, rel))
             continue
         in_case = len(parts) >= 2 and parts[-2] == "Working"
+        # the boards' History stays behind with every board but the one going
+        if (len(parts) >= 3 and parts[-3] == "Working" and PETS_HISTORY.search(parts[-2]) and CHUNK.match(name)) \
+                or gets_chunk(parts) or in_history(parts):
+            left.setdefault("history", []).append(on_disk(src, rel))
+            continue
         if (in_case and PETS_FILE.search(name)) or (len(parts) == 1 and name in BOARD_FILES):
             try:
                 data = json.loads(src.decode("utf-8") if isinstance(src, bytes) else src.read_text(encoding="utf-8"))

@@ -39,6 +39,7 @@ import openpyxl
 import agent_changes as changes_mod
 import agent_log
 import ai_suggest as ai_mod
+import board_history
 import audio as audio_mod
 import boot
 import canvas_out
@@ -2418,7 +2419,7 @@ def board_entry(board: dict, data: dict, read: dict | None = None) -> dict:
            "pets": len(tops), "placed": placed, "not_placed": len(v["cards"]) - placed - len(v["discarded"]) - stacked,
            "waiting": len(themes.waiting_keys(v)),
            "discarded": len(v["discarded"]), "set_aside": len(v["discarded"]), "stacked": stacked,
-           "revisions": len(themes.history_of(board))}
+           "revisions": themes.revision_count(board)}
     for key in themes.AGENT_KEYS:
         if v.get(key):
             out[key] = v[key]
@@ -3274,7 +3275,7 @@ def carry_layout(built: dict, read: dict, source: dict) -> dict | None:
     shown = themes.merge(read["cards"], source, read["quotes"])
     live = [c for c in shown["cards"] if not c.get("missing")]
     src = dict(themes.follow(source, read["cards"], read["quotes"]))
-    for key in ("notes", "ai", "review", "revise", "history", "made", "changed", "quoted", "cut", "stacks"):
+    for key in ("notes", "ai", "review", "revise", "history", "history_head", "made", "changed", "quoted", "cut", "stacks"):
         src.pop(key, None)
     src = themes.normalise(dict(src, picks={}))
     src["cards"] = {c["key"]: {"x": c["x"], "y": c["y"], "text": c["text"]} for c in live}
@@ -3936,8 +3937,10 @@ def stamp_pets(book: Path, vid: str, rid: str | None, args, changed: bool) -> No
     board = next((x for x in boards if str(x.get("id")) == vid), None)
     if board is None:
         return
-    for r in themes.history_of(board):
-        if rid and str(r["id"]) == rid:
+    # the revision changed in place, so the whole History is put on the board for the write (board_history); the op
+    # has written already, so a History not all here leaves its revision unmarked and never says it failed
+    for r in (board_history.attached(board) or []) if rid else []:
+        if str(r.get("id")) == rid:
             r["made"] = mark(args, when)
     if changed:
         board["changed"] = mark(args, when)
@@ -4041,8 +4044,9 @@ def cmd_board_restore(p: Project, args) -> tuple:
         name, vid = str(board.get("name")), str(board.get("id"))
         revision = revision_by(board, args.revision)
         try:
-            done = themes.board_op(book, "restore", {"id": vid, "revision": revision["id"]}, case_name(book),
-                                   dry_run=bool(args.dry_run))
+            done = themes.board_op(book, "restore", {"id": vid, "revision": revision["id"],
+                                                     "hash": getattr(args, "hash", None)},
+                                   case_name(book), dry_run=bool(args.dry_run))
         except WorkbookError as exc:
             raise cli.Refused(str(exc))
         when = themes.when_said(revision["at"])
@@ -5437,8 +5441,10 @@ def stamp_gets(p: Project, vid: str, rid: str | None, args, changed: bool) -> No
     board = next((x for x in gets_mod.boards_of(data) if str(x.get("id")) == vid), None)
     if board is None:
         return
-    for r in themes.history_of(board):
-        if rid and str(r["id"]) == rid:
+    # the revision changed in place, so the whole History is put on the board for the write (board_history); the op
+    # has written already, so a History not all here leaves its revision unmarked and never says it failed
+    for r in (board_history.attached(board) or []) if rid else []:
+        if str(r.get("id")) == rid:
             r["made"] = mark(args, when)
     if changed:
         board["changed"] = mark(args, when)
@@ -5720,7 +5726,8 @@ def cmd_gets_restore(p: Project, args) -> tuple:
         _data, board = gets_named(p, args)
         name, vid = str(board.get("name")), str(board.get("id"))
         revision = revision_by(board, args.revision)
-        done = gets_board_op(p, "restore", {"id": vid, "revision": revision["id"]}, dry=bool(args.dry_run))
+        done = gets_board_op(p, "restore", {"id": vid, "revision": revision["id"], "hash": getattr(args, "hash", None)},
+                             dry=bool(args.dry_run))
         when = themes.when_said(revision["at"])
         out = {"board": vid, "name": name, "restored": done["restored"]}
         if args.dry_run:
@@ -6951,7 +6958,10 @@ def cmd_turn_skip(p: Project, args) -> tuple:
     `routes.api_skip`): each row's state in the progress file `reviewed-empty`, the workbook untouched, so every count
     reads it decided as the app's own Skip leaves it. A passage with statements is refused, nothing written. His
     reason, `--reason`, is kept in this op's line of the record of agents' changes alone, since the app keeps none
-    (`agent_changes.entry_for`), never in the notes. The dry run counts by participant and timepoint, rows alone."""
+    (`agent_changes.entry_for`), never in the notes. With a reason, the passages named that were decided with no
+    statement already have it recorded too, in the same line, and a call naming only those writes no file and is
+    still that one line (skipreason, 16 November 2026, `agent_changes.reason_alone`), so a reason once kept in a note
+    moves to the record. The dry run counts by participant and timepoint, rows alone."""
     b = p.case(args.case)
     book = Path(b["workbook"])
     marks = turn_marks(args)
@@ -6969,7 +6979,23 @@ def cmd_turn_skip(p: Project, args) -> tuple:
     rows = lambda ns: formats.list_words([str(n) for n in ns])
     passages = lambda ns: i18n.t("cli.n.passage", n=len(ns))
     lines = []
-    if not done["marked"]:
+    # a reason is recorded only where the project keeps a record of agents' changes (never the demo's), and the
+    # answer says whether it was: `through` sets `recorded` once the line is written (skipreason)
+    reason = bool(str(getattr(args, "reason", None) or "").strip()) and changes_mod.kept_here(getattr(p, "root", None))
+    if reason and not args.dry_run:
+        answer["recorded"] = False
+    if reason and done["already"]:
+        # the reason recorded for the passages decided already too, by row (skipreason, 16 November 2026)
+        answer["reason_rows"] = {"marked": list(done["marked"]), "already": list(done["already"])}
+    if not done["marked"] and reason and done["already"]:
+        # every passage decided already: no file written, the reason one line in the record of agents' changes
+        if args.dry_run:
+            lines.append(i18n.t("cli.turn_skip.reason_alone_dry", where=where, passages=passages(done["already"]),
+                                rows=rows(done["already"])))
+        else:
+            lines.append(i18n.t("cli.turn_skip.reason_alone", where=where, passages=passages(done["already"]),
+                                rows=rows(done["already"])))
+    elif not done["marked"]:
         lines.append(i18n.t("cli.turn_skip.nothing", where=where))
     elif args.dry_run:
         lines.append(i18n.t("cli.turn_skip.dry", where=where, passages=passages(done["marked"]), rows=rows(done["marked"])))
@@ -6977,6 +7003,10 @@ def cmd_turn_skip(p: Project, args) -> tuple:
         lines.append(i18n.t("cli.turn_skip.done", where=where, passages=passages(done["marked"]), rows=rows(done["marked"])))
     if done["already"] and done["marked"]:
         lines.append(i18n.t("cli.turn_skip.already", passages=passages(done["already"]), rows=rows(done["already"])))
+        if reason and args.dry_run:
+            lines.append(i18n.t("cli.turn_skip.reason_too_dry"))
+        elif reason:
+            lines.append(i18n.t("cli.turn_skip.reason_too"))
     if done["kept"]:
         lines.append(i18n.t("cli.turn_skip.kept", passages=passages(done["kept"]), rows=rows(done["kept"])))
     d = done["decided"]
@@ -6986,7 +7016,7 @@ def cmd_turn_skip(p: Project, args) -> tuple:
             lines.append(i18n.t("cli.turn_skip.decided_dry", at=at, before=d["before"], after=d["after"], total=d["total"]))
         else:
             lines.append(i18n.t("cli.turn_skip.decided", at=at, before=d["before"], after=d["after"], total=d["total"]))
-    if getattr(args, "reason", None) and done["marked"]:
+    if reason and done["marked"]:
         lines.append(answer["reason"])
     answer["said"] = lines[0]
     return answer, lines
@@ -8505,6 +8535,8 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("case")
     x.add_argument("board")
     x.add_argument("revision", help="the revision, by its id, r3, as board history lists it")
+    x.add_argument("--hash", help="the revision's hash as the answer that made it gave it: refused when that id is "
+                                  "another revision now")
     x = board.add_parser("copy", parents=[common, writes], help="a label copied to another board, as Copy to board does")
     x.add_argument("case")
     x.add_argument("board", help="the board the label is on")
@@ -8630,6 +8662,8 @@ def arguments(sub, common, writes) -> None:
     x = g.add_parser("restore", parents=[common, writes], help="a revision made the GETs board, the board kept first")
     x.add_argument("board")
     x.add_argument("revision", help="the revision, by its id, r3, as gets history lists it")
+    x.add_argument("--hash", help="the revision's hash as the answer that made it gave it: refused when that id is "
+                                  "another revision now")
     x = g.add_parser("subs", parents=[common, writes], help="Add every sub-theme: a card for each sub-theme with none")
     x.add_argument("board", nargs="?")
     x = g.add_parser("settings", parents=[common, writes],
@@ -9250,6 +9284,8 @@ def perform(args) -> tuple[dict, list[str]]:
         finally:
             srv.CONFIG_PATH, srv.STATE_MEMORY = kept
     kept = (srv.CONFIG_PATH, srv.ROOT_OVERRIDE, srv.STATE_MEMORY)
+    # a dry run writes nothing, a board file's move to History beside it on first open among it (historybuild)
+    held = board_history.HOLD.set(bool(getattr(args, "dry_run", False)))
     try:
         projects, closed = open_projects(args)
         if args.command == "search":
@@ -9273,6 +9309,7 @@ def perform(args) -> tuple[dict, list[str]]:
         raise cli.Refused(i18n.t("cli.said.this_reads_one_project", names=names, name_one=_w("NAME_ONE")))
     finally:
         srv.CONFIG_PATH, srv.ROOT_OVERRIDE, srv.STATE_MEMORY = kept
+        board_history.HOLD.reset(held)
 
 
 # the line the command line's parser describes itself with at the top of `idiograph`

@@ -76,6 +76,9 @@ WORDS_MOST = 2000
 # stand: the project's History, Working together's team file, the holds file of before, and a shared copy's own
 # record
 TRACKED = (".xlsx", ".json")
+# and in a boards file's History folder beside it, its chunks (historybuild, 16 November 2026), kept by their contents
+# like any file, so a sealed chunk costs nothing again
+CHUNKS = ".jsonl"
 NEVER = frozenset(("idiograph-history.json", "team.json", "idiograph-holds.json", "idiograph-sent.json"))
 # The list of real names (namesop, 16 November 2026, Adam: an agent adds entries on his word). Kept by restore points
 # since then, so an agent's add is undone like any write: its copies stand in this store, in the project's own hidden
@@ -184,7 +187,9 @@ def tracked(root) -> dict:
     for here, dirs, files in os.walk(root):
         dirs[:] = sorted(d for d in dirs if not d.startswith(".") and d not in SKIP_DIRS)
         for name in files:
-            if name.startswith((".", "~$")) or name in NEVER or not name.lower().endswith(TRACKED):
+            if name.startswith((".", "~$")) or name in NEVER:
+                continue
+            if not (name.lower().endswith(TRACKED) or (name.endswith(CHUNKS) and here.endswith(".history"))):
                 continue
             path = Path(here) / name
             try:
@@ -492,12 +497,16 @@ def kind_of(rel: str, names: dict) -> tuple[str, str]:
     parts = rel.split("/")
     if len(parts) == 1:
         return ROOT_KINDS.get(parts[0], "project_files"), ""
+    # a root boards file's History, `idiograph-gets.history/<chunk>`, is that file's kind
+    if len(parts) == 2 and parts[0].endswith(".history"):
+        return ROOT_KINDS.get(parts[0][:-len(".history")] + ".json", "project_files"), ""
     import gets as gets_mod
     who = names.get(parts[0]) or gets_mod.who(srv.display_case(parts[0]))
     name = parts[-1].lower()
     if name.endswith(".xlsx"):
         return "transcript", who
-    if re.search(r"\.(themes(-t\d+)?|lpets|own)[^/]*\.json$", name) or "themes" in name:
+    if re.search(r"\.(themes(-t\d+)?|lpets|own)[^/]*\.json$", name) or "themes" in name \
+            or (len(parts) > 2 and parts[-2].endswith(".history")):
         return "boards", who
     return "working", who
 
@@ -579,6 +588,9 @@ def undo_of(args, answer: dict, rid: str) -> dict:
     rev = answer.get("revision")
     if isinstance(rev, dict) and rev.get("id"):
         out["revision"] = str(rev["id"])
+        # and its hash, so its restore takes that revision and no other given its id since (historybuild)
+        if rev.get("hash"):
+            out["hash"] = str(rev["hash"])
     if args.command == "codes" and key[1] not in ("undo", "redo", "list", "show"):
         out["own"] = "idiograph codes undo"
     return out
@@ -698,11 +710,40 @@ def entry_for(p, args, run: dict, answer, changed: list, made: list) -> dict:
              "files": len(changed), "undo_with": undo_of(args, answer, run["id"])}
     # turn skip's reason for passages left with no statement, which the app keeps nowhere (leaveout, 16 November
     # 2026), kept in this line alone, never in a participant's notes, and no other op's reason with it
-    reason = (agent_log.hidden_words(one_line(getattr(args, "reason", "") or ""), getattr(args, "secret_words", ()))[:WORDS_MOST]
-              if (args.command, getattr(args, "act", None)) == ("turn", "skip") else "")
+    reason = skip_reason(args)
     if reason:
         entry["reason"] = reason
+        # the passages named that were decided with no statement already, the reason recorded for them too, by row
+        # alone (skipreason, 16 November 2026): a reason once kept in a note moves here
+        already = reason_already(answer)
+        if already:
+            entry["reason_rows"] = {"marked": [int(n) for n in (answer or {}).get("marked") or []], "already": already}
+            said = i18n.t("agentchanges.reason_recorded", n=len(already), rows=formats_list(already))
+            entry["what_changed"] = f"{entry['what_changed']} {said}" if changed else said
     return entry
+
+
+def skip_reason(args) -> str:
+    """turn skip's reason as the record keeps it, one line, the names to keep out taken out, or nothing for another
+    op."""
+    if (args.command, getattr(args, "act", None)) != ("turn", "skip"):
+        return ""
+    return agent_log.hidden_words(one_line(getattr(args, "reason", "") or ""),
+                                  getattr(args, "secret_words", ()))[:WORDS_MOST]
+
+
+def reason_already(answer) -> list[int]:
+    """The rows a turn skip named that were decided with no statement already, as its answer gives them."""
+    answer = answer if isinstance(answer, dict) else {}
+    return sorted(int(n) for n in answer.get("already") or [] if isinstance(n, int) or str(n).isdigit())
+
+
+def reason_alone(args, answer) -> bool:
+    """A turn skip with a reason whose passages were all decided with no statement already: it writes no file, and
+    its reason is still one line in the record (skipreason, 16 November 2026), so a reason an agent once kept in a
+    note can move to the record. Without a reason such a call is no change and no line, as before."""
+    return (bool(skip_reason(args)) and bool(reason_already(answer))
+            and not (answer if isinstance(answer, dict) else {}).get("marked"))
 
 
 # ------------------------------------------------------------------ an agent's write
@@ -759,10 +800,14 @@ def through(p, args, run_op, writes: frozenset):
             raise
         after = tracked(root)
         changed = moved(before, after)
-        if not changed:
-            # it wrote nothing of the project's: no line, and a new run no restore point, nothing left behind
+        if not changed and not reason_alone(args, answer):
+            # it wrote nothing of the project's: no line, and a new run no restore point, nothing left behind. A turn
+            # skip's reason for passages decided already is the one line with no file (skipreason): its step holds
+            # no file, so its undo puts nothing back
             return answer, lines
         if fresh:
+            # a run of a line with no file keeps its restore point as every run does, so a later write that joins it
+            # by its id is undone by putting files back (skipreason's third review)
             keep_run(root, run)
         settle(root, run, foreign, before, after)
         made = [f for f in changed if f not in (run.get("point") or {})]
@@ -770,6 +815,9 @@ def through(p, args, run_op, writes: frozenset):
         e = append(root, entry_for(p, args, run, answer, changed, made))
         run.setdefault("steps", {})[e["id"]] = step
         run["changes"] = int(run.get("changes") or 0) + 1
+        if e.get("reason") and isinstance(answer, dict):
+            # turn skip's answer says its reason went into the record (skipreason)
+            answer["recorded"] = True
         if key == ("participant", "rename") and getattr(args, "folder", False):
             run["folder_renamed"] = True
         save_run(root, run)
@@ -915,6 +963,8 @@ def conflicts(root, run: dict, names: dict) -> list[str]:
 def lock_of(root, rel: str) -> Path:
     """The lock a file is written under: its participant's, in their Working folder, or the project's own."""
     parts = rel.split("/")
+    if len(parts) == 2 and parts[0].endswith(".history"):
+        return locks.root_lock(Path(root))
     return (Path(root) / parts[0] / "Working" / locks.NAME) if len(parts) > 1 else locks.root_lock(Path(root))
 
 
@@ -934,6 +984,9 @@ def undo_run(p, args) -> tuple:
         if run is None:
             raise cli.Refused(i18n.t("agentchanges.undo.no_run", id=rid))
         if run.get("undone"):
+            if not run["undone"].get("run"):
+                # a run of no file, marked undone as it stood (skipreason)
+                raise cli.Refused(i18n.t("agentchanges.undo.already_alone", id=run["id"]))
             raise cli.Refused(i18n.t("agentchanges.undo.already", id=run["id"], by=run["undone"].get("run") or ""))
         if run.get("folder_renamed"):
             raise cli.Refused(i18n.t("agentchanges.undo.folder", id=run["id"]))
@@ -958,7 +1011,14 @@ def undo_run(p, args) -> tuple:
             lines.append("  " + i18n.t("agentchanges.undo.back", what=answer["back_said"]))
         if gone:
             lines.append("  " + i18n.t("agentchanges.undo.gone", what=answer["gone_said"]))
-        if args.dry_run or not (back or gone):
+        if args.dry_run:
+            return answer, lines
+        if not (back or gone):
+            # a run that changed no file, a turn skip's reason alone or the undo of one (skipreason): nothing to put
+            # back, so it is marked undone as it stands, with no run of its own, and By an agent offers no Undo
+            run["undone"] = {"at": stamp(), "run": "", "by": agent_name(args) if (getattr(args, "via", "") or "cli") != "app"
+                             else "app"}
+            save_run(root, run)
             return answer, lines
         via = getattr(args, "via", "") or "cli"
         mine = keep_run(root, new_run(root, args, via, agent_name(args), undoes=run["id"]))
@@ -1057,8 +1117,9 @@ class Files:
 
 
 def undoable(step) -> bool:
-    """Whether a change keeps its files as they stood before it, so it is undone alone."""
-    return bool(step) and all(isinstance(s, dict) and (s.get("before_stat") is None or s.get("before"))
+    """Whether a change keeps its files as they stood before it, so it is undone alone. A change of no file, a turn
+    skip's reason for passages decided already (skipreason), keeps an empty step: undone alone, nothing put back."""
+    return isinstance(step, dict) and all(isinstance(s, dict) and (s.get("before_stat") is None or s.get("before"))
                               for s in step.values())
 
 
@@ -1220,6 +1281,9 @@ def line_of(e: dict) -> str:
     """A change in one line, what it did, in the app's own past tense: its op's, else the record's line of what
     changed. Never a participant's words, which the record never holds."""
     op = str(e.get("op") or "").split(" ", 1)
+    if e.get("op") == "turn skip" and e.get("reason_rows") and not e.get("files"):
+        # a reason recorded for passages decided already, no passage marked (skipreason, 16 November 2026)
+        return i18n.t("agentchanges.op.turn_skip_reason")
     key = OPS_SAID.get((op[0], op[1] if len(op) > 1 else None))
     return key() if key else str(e.get("what_changed") or "").rstrip(".")
 
@@ -1330,7 +1394,8 @@ def change_view(e: dict, run: dict, alone: dict, files: Files, live_by_file: dic
             if str(x.get("run") or "") == str(e.get("run") or ""):
                 return dict(out, state="same")
             return dict(out, state="later", by=agent_said(x.get("agent")), by_at=x.get("at"))
-    rel = late[0]
+    # a file that is there now says when, before one taken away since (a History chunk a later write replaced)
+    rel = next((r for r in late if files.when(r)), late[0])
     return dict(out, state="yours", what=said_files([rel], names), changed_at=files.when(rel))
 
 

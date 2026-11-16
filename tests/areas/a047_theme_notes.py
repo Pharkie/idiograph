@@ -32,7 +32,7 @@ def test_theme_notes(scratch):
     SUB = "The walks she takes alone, apart from the house."
 
     def file():
-        return json.loads(path.read_text(encoding="utf-8"))
+        return support.board_file(path)
 
     def board(bid):
         return next(b for b in file()["boards"] if b["id"] == bid)

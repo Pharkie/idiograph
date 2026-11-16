@@ -166,7 +166,7 @@ def by_participant_api(scratch):
               and [c for c in order if c in rows] == sorted(rows, key=lambda c: min(rows[c]))
               and all(y >= frame[1] + frame[3] for y in ys)
               and all((after["cards"][k]["x"], after["cards"][k]["y"]) == xy for k, xy in held.items())
-              and len(after.get("history") or []) == 2 and rowan[0] not in moved,
+              and len(themes.history_of(after)) == 2 and rowan[0] not in moved,
               (err or err2 or json.dumps(done))[:300])
         # each row read left to right: PET by PET, each followed by its own sub-themes, and only after every
         # such PET the sub-themes whose PET stays in the GET (the demo's first PETs of Rowan and Mabel)
@@ -199,7 +199,7 @@ def by_participant_api(scratch):
         check("205: a second arrange changes nothing and writes nothing, and one by anything but participant is "
               "refused with nothing written",
               code == 0 and again.get("changed") is False and code2 != 0
-              and len(gets_mod.load(root)["boards"][0].get("history") or []) == 2, err[:200])
+              and len(themes.history_of(gets_mod.load(root)["boards"][0])) == 2, err[:200])
 
         srv = mcp_server.Server(str(root), config=str(config_file))
         srv.receive(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "initialize",

@@ -16,7 +16,7 @@ import shutil
 from pathlib import Path
 
 from .a260_boards_come_back import make_workbook, set_statement
-from .support import check
+from .support import board_file, check
 
 
 def test_copy_back_card(scratch: Path):
@@ -59,7 +59,7 @@ def test_copy_back_card(scratch: Path):
                 if p.is_file() and p.name != locks.NAME}
 
     def themes_of(book: Path) -> dict:
-        return json.loads((book.parent / "Working" / f"{book.stem}.themes.json").read_text(encoding="utf-8"))
+        return board_file(book.parent / "Working" / f"{book.stem}.themes.json")
 
     plan = base / "plan.json"
     plan.write_text(json.dumps({"pets": [{"title": "Cold on the line", "members": ["S1"]},
@@ -137,7 +137,10 @@ def test_copy_back_card(scratch: Path):
         after = files(root)
         themes_rel = "P1 - Ysolde/Working/P1 - Ysolde - EN & ES.themes.json"
         after.pop(themes_rel)
-        check("272: nothing else in the project changed", after == {k: v for k, v in before.items() if k != themes_rel})
+        # the board's History goes in its chunks beside the file (historybuild), the file's own
+        ours = lambda k: k == themes_rel or k.startswith(themes_rel[:-len(".json")] + ".history/")
+        check("272: nothing else in the project changed",
+              {k: v for k, v in after.items() if not ours(k)} == {k: v for k, v in before.items() if not ours(k)})
 
         # 4. Open as its own project opens the copy as today, named as Curt's, his project left as it was
         before = files(root)

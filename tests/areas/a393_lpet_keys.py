@@ -82,7 +82,7 @@ def test_lpet_keys(scratch):
             return server_mod.ROUTES[route](body)
 
     def read(path: Path) -> dict:
-        return json.loads(path.read_text(encoding="utf-8"))
+        return support.board_file(path)
 
     try:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE = cfg_file, None
@@ -208,10 +208,13 @@ def test_lpet_keys(scratch):
               and key(r1[0], 1) not in read(lpfile)["cases"]["T1"]["lines"] and "merged" in text, err or str(g1))
 
         # ── D. a split left behind, as before this build: copies rekey puts the keys back
-        held = lpfile.read_bytes()
+        import board_history
+        held, held_history = lpfile.read_bytes(), board_history.snapshot(lpfile)
         code, done, err = run("turn", "assign", "Tove", s1, str(r1[1]), "--to", "Ines", "--words", "and the boat",
                               "--note", "Split Tove's second answer", "--tool", "Claude Code")
+        # the LPETs file and its boards' History beside it put back as they were (historybuild)
         lpfile.write_bytes(held)
+        board_history.put_back(held_history)
         r_now = said_rows(book, s1, "Tove")
         shift = r_now[-1] - r1[2]
         off = aligned()

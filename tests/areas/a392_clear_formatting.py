@@ -133,7 +133,7 @@ def test_clear_formatting(scratch: Path):
         wb.save(juno)
         wb.close()
         gets_file = root / "idiograph-gets.json"
-        gd = json.loads(gets_file.read_text(encoding="utf-8"))
+        gd = support.board_file(gets_file)
         gd["boards"][0]["rows"]["G1"]["Juno"]["bold"] = [[0, 4]]
         gets_file.write_text(json.dumps(gd, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
         roles = {k: cols[k] for k in ("transcript", "es", "kq", "en")}
@@ -168,7 +168,7 @@ def test_clear_formatting(scratch: Path):
         check("392: the italics stay, the transcript's italic run and the note's, and every cell's plain text is as it was",
               any(i for _b, i, _c in after["transcript"]["runs"]) and any(i for _b, i, _c in after["en"]["runs"])
               and words(juno) == start_words, json.dumps(after))
-        gd = json.loads(gets_file.read_text(encoding="utf-8"))
+        gd = support.board_file(gets_file)
         check("392: his bold on the GETs board's key quote is gone, the row and its quote kept",
               "bold" not in gd["boards"][0]["rows"]["G1"]["Juno"] and gd["boards"][0]["rows"]["G1"]["Juno"]["quote"],
               json.dumps(gd["boards"][0]["rows"]["G1"]["Juno"]))
@@ -221,6 +221,31 @@ def test_clear_formatting(scratch: Path):
               code != 0 and "would have changed the words" in err
               and after_refusal["Juno/Juno - EN & ES.xlsx"] == before["Juno/Juno - EN & ES.xlsx"]
               and after_refusal["idiograph-gets.json"] == before["idiograph-gets.json"], err[:300])
+
+        # ── 4b. his bold inside a revision of a GETs board whose History is beside its file: cleared, the op never
+        # refused for the chunks' names changing with it, every revision's words kept (historyfix2, review 2, 2)
+        import board_history
+        import gets as gets_mod
+        import themes
+        gd = support.board_file(gets_file)
+        gboard = gd["boards"][0]
+        state = json.loads(json.dumps(themes.board_state(gboard)))
+        state.setdefault("rows", json.loads(json.dumps(gboard.get("rows") or {})))
+        state["rows"]["G1"]["Juno"]["bold"] = [[0, 4]]
+        gboard["history"] = list(gboard.get("history") or []) + [
+            {"id": "r90", "at": "2026-11-13T09:00:00+00:00", "name": "With his bold", "auto": False, "state": state}]
+        gets_mod.write_at(gets_file, gd)
+        held = json.loads(gets_file.read_text(encoding="utf-8"))
+        revs_before = len(themes.history_of(board_history.place(gets_file, held)["boards"][0]))
+        words_before = clear_format.board_words(clear_format.read_board(gets_file))
+        code, done, err = run("clear-formatting", "--note", ASKED)
+        gd = support.board_file(gets_file)
+        check("392: bold inside a revision of a board whose History is beside its file is cleared, the op not refused "
+              "for the chunks' names, every revision and its words kept",
+              code == 0 and board_history.head_of(held["boards"][0]) is not None
+              and not clear_format.bold_rows(gd, []) and len(themes.history_of(gd["boards"][0])) == revs_before
+              and clear_format.board_words(clear_format.read_board(gets_file)) == words_before,
+              err[:300] + json.dumps(done)[:300])
 
         # ── 5. MCP's clear_formatting runs the same op
         tools = {t["name"]: t for t in mcp_server.tools_for("idiograph")}

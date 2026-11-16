@@ -17,7 +17,7 @@ import openpyxl
 from .support import check
 from . import support
 
-TIMES = ("updated", "created", "at", "made", "changed", "edited")
+TIMES = ("updated", "created", "at", "made", "changed", "edited", "history_head")
 
 
 def make_workbook(root: Path, folder: str, speaker: str, lines: list[str]) -> Path:
@@ -57,7 +57,7 @@ def plain(value, drop=()):
 
 
 def read(path: Path) -> dict:
-    return json.loads(Path(path).read_text(encoding="utf-8"))
+    return support.board_file(Path(path))
 
 
 def test_board_ops(scratch: Path):

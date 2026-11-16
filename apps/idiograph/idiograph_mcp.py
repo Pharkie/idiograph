@@ -71,6 +71,8 @@ PET = dict(LABEL, properties=dict(LABEL["properties"], subs={
 BOARD = dict(mcp.TEXT, description="The board by its id, v4, or its name, Board 2.")
 GETS_BOARD = dict(mcp.TEXT, description="The GETs board by its id or its name.")
 REVISION = dict(mcp.TEXT, description="One revision of the board, by its id, r3, as its History lists it.")
+HASH = dict(mcp.TEXT, description="The revision's hash as the answer that made it gave it, or the change record's "
+                                  "undo_with: refused when that id is another revision now.")
 # what Working together's outward ops and its people say since approvals were removed (noholds, 13 November 2026):
 # undo cannot reach them, so only the app does them (agent_changes.APP_ONLY)
 APP_ONLY = ("Only the app does it, since it reaches other people or changes who works on the project: an agent's "
@@ -408,7 +410,9 @@ TOOLS = [
          "another speaker's or a row with no passage is refused, nothing written. So is a call that would make a "
          "passage before them on the sheet, still unvisited and not named, count as passed: the refusal names its "
          "rows, to name too if he decided them as well. reason, why "
-         "they need no statement, is kept in the record of agents' changes alone, never in the notes. Never write a "
+         "they need no statement, is kept in the record of agents' changes alone, never in the notes, and is recorded "
+         "for a passage named that is decided with no statement already too, one line even when nothing else "
+         "changes: so a reason once kept in a note moves here, then clear the note with turn_write. Never write a "
          "note to mark a passage decided. Run dry_run first and mark only on his word.",
          {"case": mcp.CASE, "sheet": dict(mcp.TEXT, description="The sheet, Initial."),
           "rows": {"type": ["string", "integer"], "description": "The passages' rows, 12, 12-20 or 12,15,20-22."},
@@ -1417,7 +1421,8 @@ TOOLS = [
          "Make one of a PETs board's revisions the board, as the History tab's Restore does, the board as it "
          "stands kept first in its History, \"Before restoring 12:04\", so Restore puts it back. Its statements "
          "follow their words. board_history lists the revisions. Restore one only when he asks.",
-         {"case": mcp.CASE, "board": BOARD, "revision": REVISION}, ["case", "board", "revision"], writes="changes"),
+         {"case": mcp.CASE, "board": BOARD, "revision": REVISION, "hash": HASH}, ["case", "board", "revision"],
+         writes="changes"),
     mcp.tool("board_copy", "Copy a label to another board", ("board", "copy"),
          "Copy a PET, sub-theme or group to another board of the participant, as Copy to board on a label does, or "
          "from one of its board's revisions onto that board or another. Every statement under it leaves its label "
@@ -1484,7 +1489,7 @@ TOOLS = [
     mcp.tool("gets_restore", "Restore a revision of a GETs board", ("gets", "restore"),
          "Make one of a GETs board's revisions the board, as Restore does, the board as it stands kept first in its "
          "History. gets_history lists the revisions. Restore one only when he asks.",
-         {"board": GETS_BOARD, "revision": REVISION}, ["board", "revision"], writes="changes"),
+         {"board": GETS_BOARD, "revision": REVISION, "hash": HASH}, ["board", "revision"], writes="changes"),
     mcp.tool("gets_subs", "Add every sub-theme", ("gets", "subs"),
          "Add every sub-theme, as the GETs board menu's Add every sub-theme does: a card for each sub-theme of the "
          "study the board has none of, each in the nearest free spot. The board as it stood is kept first in its "
@@ -1642,6 +1647,8 @@ def arguments(t: dict, given: dict, args):
     # a board's note and History, the GETs boards' and the study's settings (26 October)
     if act in ("note", "history", "restore", "copy") and command in ("board", "gets"):
         args.text, args.revision = given.get("note", ""), given.get("revision")
+    if act == "restore" and command in ("board", "gets"):
+        args.hash = given.get("hash")
     if (command, act) == ("board", "copy"):
         args.label, args.to = given.get("label"), given.get("to")
     if command == "gets" and act in ("fresh", "duplicate", "rename", "revision") or (command, act) == ("board", "revision"):

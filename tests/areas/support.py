@@ -467,6 +467,25 @@ def set_main_data(folder: str) -> None:
 PASSED, FAILED, SKIPPED = [], [], []
 
 
+def board_file(path) -> dict:
+    """A board file read as it stood before historybuild (16 November 2026): every board's History, kept in chunks
+    beside the file, read back in under `history`, so a check can read the revisions where they were."""
+    import json
+    import board_history
+    path = Path(path)
+    data = board_history.place(path, json.loads(path.read_text(encoding="utf-8")))
+    for board in board_history.boards_in(data):
+        if board_history.head_of(board) is not None:
+            # a copy of a board file in an _Archive holds heads whose chunks stay with the file itself
+            try:
+                board_history.attach(board)
+            except board_history.HistoryAway:
+                pass
+            # and the head as the file holds it, without the folder it was read from
+            board[board_history.HEAD].pop(board_history.AT, None)
+    return data
+
+
 def check(name, condition, detail=""):
     if condition:
         PASSED.append(name)

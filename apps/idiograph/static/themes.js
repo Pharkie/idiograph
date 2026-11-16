@@ -2192,6 +2192,8 @@ function thLoad(data, opts = {}) {
   TH.hasQuotes = data.quotes !== undefined;
   // a server from before the history sends none, and the History tab says to restart
   TH.history = Array.isArray(data.history) ? data.history.slice() : null;
+  // a History iCloud has not brought to this computer yet, or has evicted (historybuild)
+  TH.historyAway = !!data.history_away;
   TH.z = Object.keys(cards);
   TH.removed = new Set();
   TH.names = null;
@@ -7547,6 +7549,7 @@ async function thSaveRevision(name) {
   if (!data) return;
   thTakeBoards(data);
   if (Array.isArray(data.history)) TH.history = data.history;
+  if ('history_away' in data) TH.historyAway = !!data.history_away;
   const r = data.revision || {};
   say(r.name ? t('themes.revision.saved_named', { board: TH.meta.name, name: thRevisionSaid(r) }) : t('themes.revision.saved_at', { board: TH.meta.name, when: thWhen(r.at) }), 5000);
   if (TH.boardOpen && TH.tab === 'history') {
@@ -7567,6 +7570,8 @@ function thHistoryDraw() {
   let html = '';
   if (TH.history === null) {
     html += `<p class="fineprint th-restart">${esc(RESTART_LINE)}</p>`;
+  } else if (TH.historyAway) {
+    html += `<p class="th-qnone">${esc(t('themes.revision.away'))}</p>`;
   } else {
     html += `<div class="th-rev-save"><input type="text" class="th-vedit th-rev-name" id="th-rev-name" placeholder="${escAttr(t('themes.revision.name_placeholder'))}" spellcheck="true" aria-label="${escAttr(t('themes.revision.name_label'))}">`
       + `<button type="button" class="ghost small" tabindex="-1" data-rev-save="1">${esc(t('themes.revision.keep'))}</button></div>`;

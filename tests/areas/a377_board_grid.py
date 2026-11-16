@@ -233,7 +233,7 @@ def test_board_grid(scratch: Path):
 
     def board_of(root) -> dict:
         f = next((root / "P1 - Tamsin" / "Working").glob("* - EN & ES.themes.json"))
-        return themes.current_version(json.loads(f.read_text(encoding="utf-8")))
+        return themes.current_version(support.board_file(f))
 
     def apply(root, ops, note, *more):
         spec = root.parent / "ops.json"

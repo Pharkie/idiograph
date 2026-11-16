@@ -247,12 +247,12 @@ def test_gets_edit(scratch):
             g, {es_key: "Miming at the back", brin_key: "Singing among the forgiving"}, "Finding a voice")})
         call("/api/gets-ops", {"workbook": str(hale), "op": "duplicate", "id": "b1"})
         gfile = choir / gets_mod.FILE
-        held = json.loads(gfile.read_text(encoding="utf-8"))
+        held = support.board_file(gfile)
         hale_path = next(c["path"] for c in call("/api/gets", {"workbook": str(hale)})["cases"] if c["case"] == "P1 - Hale")
         progress = hale.parent / "Working" / f"{hale.stem}.progress.json"
         had_progress = progress.read_bytes() if progress.exists() else None
         histories = {b["id"]: len(b.get("history") or []) for b in held["boards"]}
-        pets_history = len((themes.load(hale)["boards"][0]).get("history") or [])
+        pets_history = len(themes.history_of(themes.load(hale)["boards"][0]))
         check("298: the GETs file holds Hale's copy and two boards with the statement's card on each",
               len(held["boards"]) == 2 and all(es_key in bd["cards"] for bd in held["boards"])
               and held["cases"]["P1 - Hale"]["lines"][line]["text"] == "Miming at the back", str(sorted(held)))
@@ -286,7 +286,7 @@ def test_gets_edit(scratch):
               pets_card(hale, line) == "Miming, then singing"
               and "Miming, then singing" in json.dumps(idiograph_routes.case_payload(hale))
               and "Miming at the back" not in json.dumps(idiograph_routes.case_payload(hale)))
-        after = json.loads(gfile.read_text(encoding="utf-8"))
+        after = support.board_file(gfile)
         # since histreplace (30 October) the edit leaves one line on each board that holds the statement
         said = 'Hale\'s statement edited: "Miming at the back" to "Miming, then singing"'
         check("298: History as the PETs board's edit leaves it: the progress file as it was, and one line on each GETs "
@@ -294,8 +294,8 @@ def test_gets_edit(scratch):
               (progress.read_bytes() if progress.exists() else None) == had_progress
               and {bd["id"]: len(bd.get("history") or []) for bd in after["boards"]} == {k: n + 1 for k, n in histories.items()}
               and all(bd["history"][-1]["name"] == said for bd in after["boards"])
-              and len((themes.load(hale)["boards"][0]).get("history") or []) == pets_history + 1
-              and themes.load(hale)["boards"][0]["history"][-1]["name"] == said,
+              and len(themes.history_of(themes.load(hale)["boards"][0])) == pets_history + 1
+              and themes.history_of(themes.load(hale)["boards"][0])[-1]["name"] == said,
               str([bd.get("history", [{}])[-1].get("name") for bd in after["boards"]]))
         check("298: Brin's copy and card are as they were",
               after["cases"]["P2 - Brin"]["lines"][brin_line]["text"] == "Singing among the forgiving"
@@ -332,7 +332,7 @@ def test_gets_edit(scratch):
               and [x["keys"] for x in dry["copies"]["gets"]["boards"]] == [[brin_key], [brin_key]]
               and tree(choir) == whole, err or str(dry)[:500])
         code, wrote, err = run("turn", "write", "Brin", sheet, str(b[0]), "--from", str(spec), "--tool", "Claude Code")
-        agent = json.loads(gfile.read_text(encoding="utf-8"))
+        agent = support.board_file(gfile)
         g3 = call("/api/gets", {"workbook": str(brin)})
         brin_progress = json.loads((brin.parent / "Working" / f"{brin.stem}.progress.json").read_text(encoding="utf-8"))
         check("298: the agent's write lands in the workbook, the GETs' copy and every GETs board's card, Brin still in",

@@ -165,8 +165,8 @@ def test_timepoint_boards(scratch):
                   discarded=[], picks={})
         call("/api/themes-save", {"workbook": str(book), "version": v1})
         call("/api/themes-versions", {"workbook": str(book), "timepoint": 2, "op": "choose", "id": t2["version"]["id"]})
-        held2 = json.loads(t2_file.read_text(encoding="utf-8"))
-        held1 = json.loads(t1_file.read_text(encoding="utf-8"))
+        held2 = support.board_file(t2_file)
+        held1 = support.board_file(t1_file)
         check("235: each timepoint keeps its own boards and Current board: T1's PETs in T1's file, T2's in T2's",
               [g["label"] for g in held1["boards"][0]["groups"]] == ["Order expected", "A shed unopened"]
               and [g["label"] for g in held2["boards"][0]["groups"]] == ["Learning from neighbours"]
@@ -196,7 +196,7 @@ def test_timepoint_boards(scratch):
                   discarded=[], picks={}, notes=[])
         call("/api/gets-save", {"workbook": str(book), "lpets": True, "version": lv})
         lfile = gets_mod.lpets_path(book)
-        saved = json.loads(lfile.read_text(encoding="utf-8"))
+        saved = support.board_file(lfile)
         board = saved["boards"][0]
         check("235: an LPET made of a T1 PET and a T2 PET is saved in the participant's LPETs file",
               lfile.name == "P1 Wren - EN & ES.lpets.json" and sorted(saved["cases"]) == ["T1", "T2", "T3"]
@@ -235,8 +235,8 @@ def test_timepoint_boards(scratch):
         check("235: a dry run at T2 writes nothing", code == 0 and t2_file.read_bytes() == before2, err)
         code, done, err = run("board", "apply", "Wren", t2["version"]["id"], "--ops", str(ops), "--timepoint", "T2",
                               "--note", "Rename the PET")
-        labels2 = [g["label"] for g in json.loads(t2_file.read_text(encoding="utf-8"))["boards"][0]["groups"]]
-        labels1 = [g["label"] for g in json.loads(t1_file.read_text(encoding="utf-8"))["boards"][0]["groups"]]
+        labels2 = [g["label"] for g in support.board_file(t2_file)["boards"][0]["groups"]]
+        labels1 = [g["label"] for g in support.board_file(t1_file)["boards"][0]["groups"]]
         check("235: board apply --timepoint T2 changes T2's board and leaves T1's",
               code == 0 and labels2 == ["Neighbours as teachers"] and labels1 == ["Order expected", "A shed unopened"],
               err or str(labels2))
@@ -269,7 +269,7 @@ def test_timepoint_boards(scratch):
                     "aside": sorted(board.get("discarded") or [])}
 
         def lboard() -> dict:
-            held = json.loads(lfile.read_text(encoding="utf-8"))
+            held = support.board_file(lfile)
             return next(b for b in held["boards"] if b["id"] == held["current"])
 
         # the page's drag: the row's card, its words from the timepoint's copy, let go in the LPET, sent with the save

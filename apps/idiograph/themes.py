@@ -26,10 +26,14 @@ What he does with the cards lives in a themes file beside the progress file,
                  "quoted": {"Initial:12:0": "the words of the quote"},
                  "cut": [{"trim": "<trim id>", "cards": {...}, "members": {"g1": [...]},
                           "discarded": [...], "picks": {"g1": [...]}}],
-                 "history": [{"id": "r1", "at": "...", "name": "", "auto": true,
-                              "kind": "before_restoring", "slots": {"when": "12:04"},
-                              "state": {"cards": {...}, "groups": [...], "discarded": [...],
-                                        "picks": {...}, "quoted": {...}}}]}]}
+                 "history_head": {"uid": "4b0f14c5a84214cc", "count": 1, "next": 2, "last": "...",
+                                  "autos": 1}}]}
+
+and each board's History beside the file, `<case>/Working/<stem>.themes.history/<uid>.<n>.<hash>.jsonl`, one revision a
+line (see `board_history`):
+
+    {"id": "r1", "at": "...", "name": "", "auto": true, "kind": "before_restoring", "slots": {"when": "12:04"},
+     "state": {"cards": {...}, "groups": [...], "discarded": [...], "picks": {...}, "quoted": {...}}}
 
 `current` is the board on the canvas. `chosen` is the Current board, the one he is going with,
 the one to send a supervisor, set and cleared only through the `choose` op, and through `delete`,
@@ -88,7 +92,8 @@ Each board carries its history, the revisions of it kept as he works: one by han
 one automatically every fifteen minutes of work when the board has changed since the last, one
 before a restore and one before a theme is copied in. Every revision but the automatic ones is
 kept, and the last 48 automatic ones. A revision holds the board's cards, groups, discards, picks
-and the AI's reasons as the file holds them, written on one line of its own.
+and the AI's reasons as the file holds them, written on one line of its own, in chunks beside the file since 16
+November 2026, read and written through `board_history`, the board keeping its head (historybuild).
 
 Every open reads column C afresh and merges it with the stored board, words before index: a stored
 card whose key no longer carries its words takes the key of a live line with the same words, on
@@ -123,6 +128,7 @@ from pathlib import Path
 
 import openpyxl
 
+import board_history
 import formats
 import i18n
 from workbook import (WorkbookError, detect_columns, guard_place, interviewer_name, note_written, quote_entries,
@@ -199,8 +205,9 @@ class StaleBoard(WorkbookError):
 
 
 def board_version(board: dict) -> str:
-    """A board's version: a hash of it as the file holds it, its history and any `v` a page sent aside."""
-    held = {k: value for k, value in board.items() if k not in ("history", "v", OWN)}
+    """A board's version: a hash of it as the file holds it, its history, its History's head and any `v` a page
+    sent aside."""
+    held = {k: value for k, value in board.items() if k not in ("history", board_history.HEAD, "v", OWN)}
     return hashlib.sha1(json.dumps(held, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
 
 
@@ -420,7 +427,7 @@ def own_file(workbook: Path) -> Path | None:
     return OWN_FILE(Path(workbook)) if OWN_FILE is not None else None
 
 
-def load(workbook: Path) -> dict | None:
+def load(workbook: Path, move: bool = True) -> dict | None:
     """The themes file as it sits on disk, in the shape this build writes, or None when there is
     none yet. A schema 1 file is read as boards in memory and left on disk as it is.
 
@@ -429,9 +436,9 @@ def load(workbook: Path) -> dict | None:
 
     For a participant someone else works on, the owner's boards and then this member's own (see `OWN_FILE`).
     """
-    data = read_file(themes_path(workbook))
+    data = read_file(themes_path(workbook), move=move)
     mine = own_file(workbook)
-    return data if mine is None else with_own(data, read_file(mine))
+    return data if mine is None else with_own(data, read_file(mine, move=move))
 
 
 def with_own(data: dict | None, mine: dict | None) -> dict | None:
@@ -451,8 +458,11 @@ def with_own(data: dict | None, mine: dict | None) -> dict | None:
     return out
 
 
-def read_file(path: Path) -> dict | None:
-    """One themes file as `load` reads it."""
+def read_file(path: Path, move: bool = True) -> dict | None:
+    """One themes file as `load` reads it, each board told where its History's chunks are (`board_history.place`).
+    A file whose boards still hold their History inside it is moved over on this first open when its lock is free
+    and the participant is this install's to write (`board_history.move_on_open`), and read as it is otherwise."""
+    path = Path(path)
     if not path.exists():
         return None
     try:
@@ -461,7 +471,18 @@ def read_file(path: Path) -> dict | None:
         raise WorkbookError(i18n.t("server.could_read_canvas_left_nothing", name=path.name))
     if not isinstance(data, dict):
         raise WorkbookError(i18n.t("server.themes_file_nothing_written", name=path.name))
-    return migrate(data)
+    data = board_history.place(path, migrate(data))
+    if move and "boards" in data and board_history.embedded(data) and path.parent.name == "Working":
+        data = board_history.move_on_open(path, data, lambda d: write_path(path, d),
+                                          lambda: read_file(path, move=False), guard=lambda: guard_of(path))
+    return data
+
+
+def guard_of(path: Path) -> None:
+    """Working together's one writer, asked for the participant a file in their `Working/` belongs to."""
+    import workbook as wb_mod
+    if wb_mod.WRITE_GUARD is not None:
+        wb_mod.WRITE_GUARD(Path(path).parent.parent / "Working.xlsx")
 
 
 # Schema 1 named its boards Version 1 and AI proposal 1, and a copy Version 1 copy. Those names
@@ -532,12 +553,20 @@ def write(workbook: Path, data: dict) -> Path:
     mine = own_file(workbook)
     if mine is not None:
         return write_own(workbook, data, mine)
-    path = themes_path(workbook)
+    return write_path(themes_path(workbook), data)
+
+
+def write_path(path: Path, data: dict) -> Path:
+    """A board file written: each board's History to its chunks first (`board_history.out_of`), then the file
+    through a temporary file moved over it, then the chunks of boards it no longer holds taken away."""
+    path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    kept, finish = board_history.out_of(path, data)
     tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(render(data) + "\n", encoding="utf-8", newline="\n")
+    tmp.write_text(render(kept) + "\n", encoding="utf-8", newline="\n")
     os.replace(tmp, path)
     note_written(path)
+    finish()
     return path
 
 
@@ -582,12 +611,7 @@ def write_own(workbook: Path, data: dict, mine: Path) -> Path:
     out = {"schema": SCHEMA, "case": data.get("case") or before.get("case") or "", "workbook": Path(workbook).name,
            "created": str(before.get("created") or data.get("updated") or now_iso()),
            "updated": str(data.get("updated") or now_iso()), "current": current, "boards": own}
-    mine.parent.mkdir(parents=True, exist_ok=True)
-    tmp = mine.with_name(mine.name + ".tmp")
-    tmp.write_text(render(out) + "\n", encoding="utf-8", newline="\n")
-    os.replace(tmp, mine)
-    note_written(mine)
-    return mine
+    return write_path(mine, out)
 
 
 # ---------------------------------------------------------------- the cards
@@ -1631,6 +1655,7 @@ def keep_canvas(board: dict, state: dict, at: str | None = None) -> dict:
     """The page's canvas kept in a board's history when an agent changed the board under it, named
     CANVAS_KEPT. A second keep in a row takes the place of the first, so a page that goes on
     working before it shows the change keeps one revision, its latest."""
+    board_history.attach(board)
     history = history_of(board)
     if history and revision_mark(history[-1])[0] == "canvas_kept":
         history.pop()
@@ -2299,7 +2324,8 @@ def state(workbook: Path, case: str, read: dict | None = None, board: str | None
             "current": version.get("id") or FIRST_VERSION, "chosen": chosen_of(data),
             "complete": complete_of(data), "versions": versions or [summary(version)],
             "version": summary(normalise(version), version), "saved": saved, "quotes": read["quotes"],
-            "history": history_list(version), "sids": short_ids(read["cards"]), **merged}
+            "history": history_list(version), "history_away": history_away(version),
+            "sids": short_ids(read["cards"]), **merged}
 
 
 def chosen_of(data: dict | None) -> str | None:
@@ -2488,11 +2514,10 @@ def save(workbook: Path, version: dict, case: str, revision=None) -> dict:
         # a board an agent made is marked edited by his first save that changes it
         if kept.get("made"):
             kept["made"] = edited_mark(kept["made"], kept, when, kept.get("changed"))
-        held = {"history": history_of(was)}
+        # its History stays the file's: its head always, and the revisions themselves only when this save adds one
         if revision == "auto":
-            made = add_revision(held, auto=True, at=when, state=board_state(was))
-        if held["history"]:
-            kept["history"] = held["history"]
+            made = auto_revision(was, at=when)
+        carry_history(was, kept)
         versions[at] = kept
     write(workbook, _file(workbook, case, data, versions, kept["id"], when))
     out = {"saved": True, "updated": when, "version": summary(kept)}
@@ -2526,8 +2551,11 @@ def board_state(board: dict) -> dict:
 
 def state_hash(state: dict) -> str:
     """A stable hash of a board's state, the same for the same state whatever order it was built in."""
-    text = json.dumps(state, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return board_history.state_hash(state)
+
+
+# how much of a revision's state hash an answer gives, and Restore by id takes
+HASH_SAID = 16
 
 
 def places_print(board: dict) -> str:
@@ -2552,7 +2580,11 @@ def history_of(board: dict) -> list[dict]:
     so it could read earlier than the revision made before it (histdate). Such a one reads at that
     revision's time, the earliest it can have been made, so History lists in order on a board saved
     with the fault, with nothing written on open, and the board's next write keeps that time."""
-    held = board.get("history") if isinstance(board, dict) else None
+    return history_from(board_history.revisions(board) if isinstance(board, dict) else None)
+
+
+def history_from(held) -> list[dict]:
+    """`history_of` on revisions already read (see `history_list`)."""
     out = [r for r in held or [] if isinstance(r, dict) and str(r.get("id") or "") and isinstance(r.get("state"), dict)]
     for before, revision in zip(out, out[1:]):
         then, at = iso_time(before.get("at")), iso_time(revision.get("at"))
@@ -2561,11 +2593,15 @@ def history_of(board: dict) -> list[dict]:
     return out
 
 
-def revision_summary(revision: dict) -> dict:
+def revision_summary(revision: dict, hashed: bool = True) -> dict:
     """A revision for the History tab and the command line: its id, time, English name and whether it was automatic,
-    and for one the app named, its kind and slots (see `revision_mark`), so the page says it in its own language."""
+    and for one the app named, its kind and slots (see `revision_mark`), so the page says it in its own language.
+    `hash`, the start of its state's hash, goes with a revision an op made, so an agent's undo of it restores that
+    revision and no other one given its id since (red-team 6); the History tab's list leaves it out."""
     out = {"id": str(revision["id"]), "at": str(revision.get("at") or ""),
            "name": str(revision.get("name") or ""), "auto": bool(revision.get("auto"))}
+    if hashed and isinstance(revision.get("state"), dict):
+        out["hash"] = state_hash(revision["state"])[:HASH_SAID]
     kind, slots = revision_mark(revision)
     if kind:
         out.update(kind=kind, slots=slots)
@@ -2670,8 +2706,105 @@ RELOAD_KEPT = revision_name("reload_kept")
 
 
 def history_list(board: dict) -> list[dict]:
-    """A board's revisions newest first, without their states, for the History tab."""
-    return [revision_summary(r) for r in reversed(history_of(board))]
+    """A board's revisions newest first, without their states, for the History tab, kept against its chunks. None
+    listed while its History is not all on this computer (`board_history.HistoryAway`), which `history_away` says."""
+    def listed(held) -> list[dict]:
+        return [revision_summary(r, hashed=False) for r in reversed(history_from(held))]
+    try:
+        return list(board_history.memo(board, "list", listed))
+    except board_history.HistoryAway:
+        return []
+
+
+def revision_checked(revision: dict | None, want) -> None:
+    """Restore by id with the hash an answer gave (`revision_summary`): refused, nothing changed, when the revision
+    by that id is another one now, a board's id taken again after a delete, or its state rekeyed since."""
+    want = str(want or "").strip().lower()
+    if revision is not None and want and not state_hash(revision["state"]).startswith(want):
+        raise WorkbookError(i18n.t("server.revision_hash_differs"))
+
+
+def history_away(board: dict) -> bool:
+    """Whether a board's History is not all on this computer yet: a chunk iCloud has not brought, or evicted."""
+    return not board_history.here(board)
+
+
+def carry_history(was: dict, kept: dict) -> dict:
+    """`kept`, a board built afresh from what a page or an op sent, given the History `was`, the board as the file
+    held it, has: its head, and its revisions when they are in memory."""
+    if isinstance(was.get("history"), list):
+        kept["history"] = was["history"]
+    if board_history.head_of(was) is not None:
+        kept[board_history.HEAD] = was[board_history.HEAD]
+    return kept
+
+
+def drop_history(board: dict) -> dict:
+    """A board with no History of its own yet: a copy made, or a board brought in from elsewhere."""
+    return board_history.drop(board)
+
+
+def auto_revision(board: dict, at: str | None = None) -> dict | None:
+    """The page's timer: the board as the file holds it kept as an automatic revision when it differs from its last
+    one. The head's hash answers that without reading a chunk, and a History not all here takes none."""
+    try:
+        return add_revision(board, auto=True, at=at, state=board_state(board))
+    except board_history.HistoryAway:
+        return None
+
+
+def history_known(board: dict) -> list[dict]:
+    """`history_of`, or none while the board's History is not all on this computer, for a reader that only looks."""
+    try:
+        return history_of(board)
+    except board_history.HistoryAway:
+        return []
+
+
+def revision_count(board: dict) -> int:
+    """How many revisions a board has, from its head without reading a chunk when its History is beside the file."""
+    held = board_history.counted(board)
+    return held if held is not None else len(history_known(board))
+
+
+def kept_revision(board: dict, **given) -> dict | None:
+    """`add_revision` for a follower that changes a board after the workbook has changed (a statement edited, a
+    passage written, the boards refreshed): the board as it stood kept first in its History when its History is
+    here, and none kept when it is not, so the follower still moves the board and is never half done."""
+    try:
+        return add_revision(board, **given)
+    except board_history.HistoryAway:
+        return None
+
+
+def brought_up(state: dict, read: dict) -> dict:
+    """A revision's state brought up to date with the workbook as it reads now, as it is restored or shown (lazy
+    word-following, Adam, 16 November 2026): its keys follow their words (`follow`), then each card whose key holds a
+    statement takes the statement's words, and each pick whose quote is there at its key takes the quote's words, as
+    `cards_refreshed` brings a board in line. So a find and replace, or any edit since, never has to rewrite every
+    revision of every board, and a revision restored shows today's words. Nothing is written."""
+    keys: dict = {}
+    moves: dict = {}
+    out = follow(state, read["cards"], read["quotes"], moves, keys)
+    live = {c["key"]: c for c in read["cards"]}
+    texts = {q["key"]: q["text"] for r in read["quotes"].values() for q in r.get("quotes") or []}
+    cards = out.get("cards") if isinstance(out.get("cards"), dict) else {}
+    for k, card in cards.items():
+        if not (isinstance(card, dict) and k in live) or words(card.get("text")) == words(live[k]["text"]):
+            continue
+        if card.get("live") is not None:
+            # a card marked changed when the revision was kept (the page keeps the line's words beside it as
+            # `live`) keeps the words it was made with, so it comes back marked changed as before (review 2, 9)
+            card["live"] = live[k]["text"]
+            continue
+        card["text"] = live[k]["text"]
+        card.pop("live", None)
+    quoted = out.get("quoted") if isinstance(out.get("quoted"), dict) else None
+    if quoted is not None:
+        for (_gid, k), to in moves.items():
+            if to == k and k in texts and k in quoted and quote_words(quoted[k]) != quote_words(texts[k]):
+                quoted[k] = texts[k]
+    return out
 
 
 def add_revision(board: dict, name: str = "", auto: bool = False, at: str | None = None,
@@ -2683,12 +2816,23 @@ def add_revision(board: dict, name: str = "", auto: bool = False, at: str | None
     by hand or before a restore or a copy, is kept. One the app names keeps its `kind` and `slots`, given here or
     carried by a `revision_name`. The revision made, or None when none was.
     """
-    history = history_of(board)
     state = board_state(board) if state is None else state
-    if auto and history and state_hash(history[-1]["state"]) == state_hash(state):
+    head = board_history.head_of(board)
+    # the head's hash of the last state answers an automatic one's check without reading a chunk
+    if auto and head is not None and not isinstance(board.get("history"), list) \
+            and board_history.last_hash(board) == state_hash(state):
         return None
-    numbers = [int(str(r["id"])[1:]) for r in history if str(r["id"])[:1] == "r" and str(r["id"])[1:].isdigit()]
-    made = {"id": f"r{max(numbers, default=0) + 1}", "at": at or now_iso(),
+    # one that prunes none goes on the end of the History alone, its last chunk read and no other (historyfix)
+    autos = int((head or {}).get("autos") or 0) + sum(1 for r in board_history.pending(board) if r.get("auto"))
+    fast = not (auto and autos >= AUTO_KEEP) and board_history.can_append(board)
+    history = [] if fast else None
+    if not fast:
+        # the whole History in memory, so the writer puts it back in its chunks: refused while any of it is not here
+        board_history.attach(board)
+        history = history_of(board)
+        if auto and history and state_hash(history[-1]["state"]) == state_hash(state):
+            return None
+    made = {"id": f"r{board_history.next_number(board, history)}", "at": at or now_iso(),
             "name": " ".join(str(name or "").split()), "auto": bool(auto),
             "state": json.loads(json.dumps(state))}
     # a revision the app names keeps its mark, given or carried by its name (see `revision_name`)
@@ -2696,6 +2840,9 @@ def add_revision(board: dict, name: str = "", auto: bool = False, at: str | None
     if kind in REVISION_SAID:
         held = slots if slots is not None else getattr(name, "slots", {})
         made.update(kind=kind, slots=slots_kept(kind, held))
+    if fast:
+        board_history.append(board, made)
+        return made
     history.append(made)
     autos = [r for r in history if r.get("auto")]
     if len(autos) > AUTO_KEEP:
@@ -4179,11 +4326,12 @@ def board_op(workbook: Path, op: str, body: dict, case: str, dry_run: bool = Fal
     revision = next((r for r in history_of(board) if str(r["id"]) == rid), None) if rid else None
     if (rid or op in ("view", "restore")) and revision is None:
         raise WorkbookError(i18n.t("server.revision_longer_board_s_history"))
+    revision_checked(revision, body.get("hash"))
     when = now_iso()
     name = str(board.get("name") or FIRST_NAME)
 
     if op == "view":
-        merged = merge(read["cards"], revision["state"], read["quotes"])
+        merged = merge(read["cards"], brought_up(revision["state"], read), read["quotes"])
         return dict(merged, op=op, revision=revision_summary(revision), board=summary(normalise(board), board))
 
     if op == "revision":
@@ -4193,7 +4341,7 @@ def board_op(workbook: Path, op: str, body: dict, case: str, dry_run: bool = Fal
         made = add_revision(board, name=revision_name("before_restoring", when_at=revision["at"]), at=when)
         # the revision's keys follow their words first, so a restore lands on the keys the workbook
         # holds now
-        restored = json.loads(json.dumps(state_of(follow(revision["state"], read["cards"], read["quotes"]))))
+        restored = json.loads(json.dumps(state_of(brought_up(revision["state"], read))))
         for key in STATE_OPTIONAL:
             board.pop(key, None)
         board.update({key: restored[key] for key in STATE_KEYS if key in restored}, updated=when)
@@ -4206,7 +4354,7 @@ def board_op(workbook: Path, op: str, body: dict, case: str, dry_run: bool = Fal
         gid = str(body.get("group") or "")
         if target is board and revision is None:
             raise WorkbookError(i18n.t("server.board_already_nothing_copied", unit=unit(board, gid)))
-        source = follow(revision["state"] if revision else board, read["cards"], read["quotes"])
+        source = brought_up(revision["state"], read) if revision else follow(board, read["cards"], read["quotes"])
         group = next((g for g in source["groups"] if g["id"] == gid), None)
         if group is None:
             raise WorkbookError(i18n.t("server.label_longer_board_nothing_copied"))
@@ -4389,6 +4537,9 @@ def rekey(workbook: Path, mapper, cut: str | None = None, back: str | None = Non
         data = load(workbook)
     except WorkbookError:
         raise WorkbookError(i18n.t("server.could_read_cards_were_moved", name=path.name))
+    # every revision moves too, the whole History in memory; a board whose History is not all here moves itself
+    # alone, its revisions brought up to date when restored (see `brought_up`), so the trim is never half done
+    revisions = {id(board): board_history.attached(board) for board in boards_of(data)}
     try:
         read = read_cards(workbook)
     except (WorkbookError, OSError):
@@ -4409,7 +4560,7 @@ def rekey(workbook: Path, mapper, cut: str | None = None, back: str | None = Non
         board.update({k: value for k, value in fields.items() if k in content})
         if history is not None:
             board["history"] = history
-        for revision in board.get("history") or []:
+        for revision in revisions.get(id(board)) or []:
             if isinstance(revision, dict) and isinstance(revision.get("state"), dict):
                 revision["state"] = state_of(moved(revision["state"]))
     if json.dumps(data, sort_keys=True, ensure_ascii=False) == before:
@@ -4449,7 +4600,7 @@ def statement_edited(workbook: Path, sheet: str, row: int, line: int, old: str, 
         if not isinstance(card, dict) or was == now:
             continue
         if said:
-            add_revision(board, name=said, at=when)
+            kept_revision(board, name=said, at=when)
             noted += 1
         if words(card.get("text")) != was:
             continue
@@ -4491,7 +4642,7 @@ def statements_noted(workbook: Path, sheet: str, row: int, edits: dict, who: str
         for i, (was, now) in sorted(edits.items()):
             key = card_key(sheet, int(row), int(i))
             if isinstance(cards.get(key), dict) and words(was) != words(now):
-                add_revision(board, name=edit_line(who, was, now), at=when)
+                kept_revision(board, name=edit_line(who, was, now), at=when)
                 keys.append(key)
         if keys:
             out.append({"board": str(board.get("id")), "name": str(board.get("name") or ""), "keys": keys})
@@ -4582,9 +4733,10 @@ def words_followed(state: dict, sheet: str, rows: dict) -> list[str]:
 
 @at_sheet_timepoint
 def cards_reworded(workbook: Path, sheet: str, rows: dict, changed: dict | None = None) -> list[dict]:
-    """A find and replace carried to every board of the case and every revision in their histories,
-    one sheet at a time (see `words_followed`), so no board keeps the words it replaced and none marks
-    a card changed for it. An undo carries the old words back the same way, its rows' lists the other
+    """A find and replace carried to every board of the case, one sheet at a time (see `words_followed`), so no
+    board keeps the words it replaced and none marks a card changed for it. The revisions in their History keep the
+    words they were kept with and take today's when restored or shown (`brought_up`, lazy word-following, Adam, 16
+    November 2026), so a replace writes no chunk. An undo carries the old words back the same way, its rows' lists the other
     way round. Each board that took words is stamped `updated`, and with `changed`, an agent's mark,
     marked changed in a conversation, so an open PETs screen says so and its next save never puts the
     old words back. A case with no themes file has none, and one that cannot be read is left as it is.
@@ -4602,9 +4754,8 @@ def cards_reworded(workbook: Path, sheet: str, rows: dict, changed: dict | None 
         if took:
             # a card that takes longer words stands taller, and what it now meets makes way (31 October)
             settle_change(was, board)
-        for revision in board.get("history") or []:
-            if isinstance(revision, dict) and isinstance(revision.get("state"), dict):
-                words_followed(revision["state"], sheet, rows)
+        # its revisions are left as they are: each takes the words of today when it is restored or shown (lazy
+        # word-following, Adam, 16 November 2026, see `brought_up`)
         if took:
             board["updated"] = when
             if changed:
@@ -4666,7 +4817,7 @@ def cards_refreshed(workbook: Path, dry: bool = False, history: str = "", change
         if dry or not (cards or quotes):
             continue
         was = json.loads(json.dumps({k: v for k, v in board.items() if k != "history"}))
-        add_revision(board, name=history, at=when)
+        kept_revision(board, name=history, at=when)
         for k in cards:
             stored[k]["text"] = live[k]["text"]
             stored[k].pop("live", None)
@@ -4893,11 +5044,13 @@ def passage_written(workbook: Path, sheet: str, row: int, old: list[str], new: l
         out.append(dict(said, board=str(board.get("id")), name=str(board.get("name") or "")))
         if dry:
             continue
-        for revision in board.get("history") or []:
+        # its revisions move with the lines, and a board whose History is not all here moves itself alone, its
+        # revisions brought up to date when restored (see `brought_up`), so the write is never half done
+        for revision in board_history.attached(board) or []:
             if isinstance(revision, dict) and isinstance(revision.get("state"), dict):
                 revision["state"] = state_of(passage_moved(revision["state"], sheet, row, old, new, lines,
                                                            quote_lines, now, then)[0])
-        add_revision(board, name=history, at=when)
+        kept_revision(board, name=history, at=when)
         state = state_of(after)
         for key in STATE_OPTIONAL:
             board.pop(key, None)

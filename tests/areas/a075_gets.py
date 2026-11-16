@@ -143,7 +143,7 @@ def test_gets(scratch):
                     groups=[{"id": "G1", "label": "Starting the day", "members": ["Wren/g1", "Ash/g1"], "x": 0, "y": -60}],
                     discarded=[], picks={}, notes=[])
         idiograph_routes.api_gets_save({"workbook": any_book, "version": body})
-        data = json.loads(gfile.read_text(encoding="utf-8"))
+        data = support.board_file(gfile)
         check("75: the first act on the screen writes the file and takes every case in",
               set(data["cases"]) == {"Wren", "Ash", "Moss", "Fern"} and set(data["study"]) == set(data["cases"])
               and all(v == {"in": True} for v in data["study"].values()))
@@ -166,7 +166,7 @@ def test_gets(scratch):
               b1["id"] == "b1" and b1["groups"][0]["members"] == ["Wren/g1", "Ash/g1"]
               and "text" not in b1["cards"]["Wren/g1"] and b1["rows"] == {} and data["current"] == "b1")
         check("75: the file is written to a temporary file and moved over the old one, and none is left",
-              "os.replace(tmp, path)" in inspect.getsource(gets_mod.write) and ".tmp" in inspect.getsource(gets_mod.write)
+              "os.replace(tmp, path)" in inspect.getsource(gets_mod.write_at) and ".tmp" in inspect.getsource(gets_mod.write_at)
               and not list(root.glob("*.tmp")))
 
         # ── C. the unchanged fast path, and the hash
@@ -211,7 +211,7 @@ def test_gets(scratch):
         moss["boards"][1]["groups"] = []
         themes_mod.write(books["Moss"], moss)
         took = idiograph_routes.api_gets_cases({"workbook": any_book, "op": "take", "case": "Ash"})
-        data = json.loads(gfile.read_text(encoding="utf-8"))
+        data = support.board_file(gfile)
         b1, b2 = data["boards"][0], data["boards"][1]
         check("75: Take keeps a revision of each GET board first",
               all(b["history"][-1]["name"] == "Before Ash's changes came in" for b in (b1, b2)))
@@ -248,7 +248,7 @@ def test_gets(scratch):
                           for k, t in comers),
               str(landed))
         idiograph_routes.api_gets_cases({"workbook": any_book, "op": "take", "case": "Moss"})
-        data = json.loads(gfile.read_text(encoding="utf-8"))
+        data = support.board_file(gfile)
         gone = {c["key"]: c for c in idiograph_routes.api_gets({"workbook": any_book, "board": "b1"})["cards"]}["Moss/g1"]
         check("75: a PET gone from its case stays where it is, its title kept, marked No longer in its PETs, never moved or binned",
               gone["gone"] and gone["text"] == "Company" and data["boards"][0]["cards"]["Moss/g1"]["text"] == "Company"
@@ -290,7 +290,7 @@ def test_gets(scratch):
                   {"workbook": any_book, "op": "save", "study": {"Fern": {"in": False}}})))
         out = idiograph_routes.api_gets_settings({"workbook": any_book, "op": "save", "study": {"Fern": {"in": False, "reason": "a pilot"}},
                                             "one_per_pet": False, "minimum": 2})
-        data = json.loads(gfile.read_text(encoding="utf-8"))
+        data = support.board_file(gfile)
         check("75: saved, the case is out with its reason, the switch off and the minimum his",
               data["study"]["Fern"] == {"in": False, "reason": "a pilot"} and data["settings"] == {"minimum": 2, "one_per_pet": False}
               and out["total"] == 3 and out["minimum"] == 2 and out["band"] is False)
@@ -302,7 +302,7 @@ def test_gets(scratch):
                                {"id": "G2", "label": "Two", "members": ["Wren/g1", "Wren/g1/2"], "x": 300, "y": -40}],
                        discarded=[], picks={}, notes=[])
         idiograph_routes.api_gets_save({"workbook": any_book, "version": doubled})
-        held = json.loads(gfile.read_text(encoding="utf-8"))["boards"][1]
+        held = support.board_file(gfile)["boards"][1]
         check("75: a card sits under one GET at most, and a second card of a PET under another keeps its place",
               [g["members"] for g in held["groups"]] == [["Wren/g1"], ["Wren/g1/2"]]
               and set(held["cards"]) >= {"Wren/g1", "Wren/g1/2"})
@@ -312,19 +312,19 @@ def test_gets(scratch):
         check("75: Mark GETs complete is refused, saying which cases, while one is not in from its marked board unchanged",
               why.startswith("GETs were not marked complete. Waiting on ") and "Ash (PETs not complete)" in why
               and "Moss (changed since it came in)" in why and "Fern" not in why
-              and json.loads(gfile.read_text(encoding="utf-8"))["complete"] is None)
+              and support.board_file(gfile)["complete"] is None)
         ash = themes_mod.load(books["Ash"])
         ash["complete"] = {"at": "2026-10-05T12:00:00+01:00", "board": "v1", "name": "Board 1"}
         themes_mod.write(books["Ash"], ash)
         idiograph_routes.api_gets_cases({"workbook": any_book, "op": "take", "case": "Ash"})
         idiograph_routes.api_gets_cases({"workbook": any_book, "op": "take", "case": "Moss"})
         done = idiograph_routes.api_gets_ops({"workbook": any_book, "op": "complete"})
-        data = json.loads(gfile.read_text(encoding="utf-8"))
+        data = support.board_file(gfile)
         check("75: with every case in from its marked board and unchanged, and nothing more, it is marked",
               done["complete"] and set(data["complete"]) == {"at", "board", "name"} and data["complete"]["board"] == data["current"])
         reopened = idiograph_routes.api_gets_ops({"workbook": any_book, "op": "reopen"})
         check("75: Reopen GETs takes the mark off", reopened["complete"] is None
-              and json.loads(gfile.read_text(encoding="utf-8"))["complete"] is None)
+              and support.board_file(gfile)["complete"] is None)
         check("75: the menu's foot reads Mark GETs complete or Reopen GETs, and the mark fires the third level of confetti",
               "${esc(t('themes.gets.done_mark'))}</button>" in fn(js, "gtMenuFoot") and "${esc(t('themes.gets.reopen'))}</button>" in fn(js, "gtMenuFoot")
               and "confetti(3);" in fn(js, "gtDone") and "if (TH.mode === 'gets') { await gtDone(mark); return; }" in fn(js, "thPetsDone")

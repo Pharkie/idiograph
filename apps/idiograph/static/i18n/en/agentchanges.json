@@ -36,6 +36,7 @@
   "agentchanges.own_undo": "    Its own undo: {command}",
   "agentchanges.undo.no_run": "No run of this project is called {id}. agents changes lists them.",
   "agentchanges.undo.already": "Run {id} is undone already, by run {by}. Undo that run to have it back.",
+  "agentchanges.undo.already_alone": "Run {id} is undone already: it changed no file, so there was nothing to put back.",
   "agentchanges.undo.folder": "Run {id} renamed a participant's folder, so it is not undone whole: rename the folder back first with participant rename and --folder, then undo the run. Nothing was written.",
   "agentchanges.undo.refused": "Run {id} is not undone, since undoing it would lose these later changes:",
   "agentchanges.undo.later": "  {what}, changed after the run's last change.",
@@ -79,6 +80,11 @@
   "agentchanges.op.turn_edit": "Edited a passage of the transcript",
   "agentchanges.op.turn_note": "Wrote a note on the interviewer's words",
   "agentchanges.op.turn_skip": "Marked passages decided with no statement",
+  "agentchanges.op.turn_skip_reason": "Recorded a reason for passages already decided with no statement",
+  "agentchanges.reason_recorded": {
+    "one": "Recorded a reason for {n} passage already decided with no statement: row {rows}.",
+    "other": "Recorded a reason for {n} passages already decided with no statement: rows {rows}."
+  },
   "agentchanges.op.replace": "Replaced words in the transcripts",
   "agentchanges.op.clear_formatting": "Took bold and font colours out",
   "agentchanges.op.participant_set": "Changed a participant's details",
