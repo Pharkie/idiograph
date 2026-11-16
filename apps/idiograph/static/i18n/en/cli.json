@@ -272,11 +272,14 @@
     "other": "{n} highlights"
   },
   "cli.turn_edit.dropped_its_words_gone": "{highlights} dropped, its words gone: ",
-  "cli.turn_edit.corrected_its_timecode_the_progress_file": "Corrected {where}, its timecode {time}. The progress file records the old words and the new under edits.",
+  "cli.turn_edit.done_both": "Corrected the words of {where}, and its timecode from {old_time} to {time}. The progress file records the old and the new under edits.",
+  "cli.turn_edit.done_words": "Corrected the words of {where}, its timecode as it was. The progress file records the old words and the new under edits.",
+  "cli.turn_edit.done_time": "Corrected the timecode of {where} from {old_time} to {time}, its words as they were. The progress file records the old timecode and the new under edits.",
   "cli.turn_edit.reads_so_already_so_nothing_was": "{where} reads so already, so nothing was written.",
   "cli.turn_edit.would_be_dropped_its_words_gone": "{highlights} would be dropped, its words gone: ",
-  "cli.turn_edit.and_the_timecode_go_from_to": ", and the timecode go from {old_time} to {time}",
-  "cli.turn_edit.dry_run_nothing_was_written_the": "Dry run, nothing was written. {where}: the words would be corrected",
+  "cli.turn_edit.dry_both": "Dry run, nothing was written. {where}: the words would be corrected, and the timecode go from {old_time} to {time}.",
+  "cli.turn_edit.dry_words": "Dry run, nothing was written. {where}: the words would be corrected, the timecode as it is.",
+  "cli.turn_edit.dry_time": "Dry run, nothing was written. {where}: the timecode would go from {old_time} to {time}, the words as they are.",
   "cli.turn_edit.dry_run_nothing_was_written_reads": "Dry run, nothing was written. {where} reads so already, so nothing would change.",
   "cli.copy_lines.the_board_as_it_stood_first": " the board as it stood first in its History, as \"{history}\", marked as changed in a conversation, so an open {name} screen says so.",
   "cli.copy_lines.and_on_with_them": ", and {cards} on {names} with them. {names} ",
@@ -1133,5 +1136,30 @@
   "cli.turn_skip.reason_alone": "Every passage named on {where} is decided with no statement already and left as it is: the reason is recorded for {passages}, rows {rows}, in this change's line of the record of agents' changes alone, which Project history's By an agent shows.",
   "cli.turn_skip.reason_alone_dry": "Dry run, nothing was written. Every passage named on {where} is decided with no statement already: it would record the reason for {passages}, rows {rows}, in the record of agents' changes.",
   "cli.turn_skip.reason_too": "The reason is recorded for those too.",
-  "cli.turn_skip.reason_too_dry": "It would record the reason for those too."
+  "cli.turn_skip.reason_too_dry": "It would record the reason for those too.",
+  "cli.turn_shift_times.where": "{case}, {sheet}",
+  "cli.turn_shift_times.nothing": "Nothing to shift on {where}: no row in range has a timecode.",
+  "cli.turn_shift_times.dry": "Dry run, nothing was written. On {where} it would shift {rows} by {by} s: row {first_row} from {first_before} to {first_after}, the last, row {last_row}, from {last_before} to {last_after}. None would go below 0:00.",
+  "cli.turn_shift_times.done": "Shifted {rows} on {where} by {by} s: row {first_row} from {first_before} to {first_after}, the last, row {last_row}, from {last_before} to {last_after}.",
+  "cli.turn_shift_times.untimed": {
+    "one": "Row {rows} has no timecode and is left as it is.",
+    "other": "Rows {rows} have no timecode and are left as they are."
+  },
+  "cli.turn_shift_times.copies_dry": {
+    "one": "The {name} would take the new time on {n} line.",
+    "other": "The {name} would take the new times on {n} lines."
+  },
+  "cli.turn_shift_times.copies": {
+    "one": "The {name} took the new time on {n} line.",
+    "other": "The {name} took the new times on {n} lines."
+  },
+  "cli.turn_shift_times.crossed": {
+    "one": "{n} timecode would cross the hour, written as the sheet's timecodes are on its new side.",
+    "other": "{n} timecodes would cross the hour, written as the sheet's timecodes are on their new side."
+  },
+  "cli.turn_shift_times.crossed_done": {
+    "one": "{n} timecode crossed the hour, written as the sheet's timecodes are on its new side.",
+    "other": "{n} timecodes crossed the hour, written as the sheet's timecodes are on their new side."
+  },
+  "cli.turn_shift_times.copy_kept": "A copy of the workbook as it was is in _Archive, {name}, and the run's undo puts it back."
 }

@@ -80,6 +80,7 @@
   "agentchanges.op.turn_note": "Wrote a note on the interviewer's words",
   "agentchanges.op.turn_skip": "Marked passages decided with no statement",
   "agentchanges.op.turn_skip_reason": "Recorded a reason for passages already decided with no statement",
+  "agentchanges.op.turn_shift_times": "Shifted a sheet's timecodes",
   "agentchanges.reason_recorded": {
     "one": "Recorded a reason for {n} passage already decided with no statement: row {rows}.",
     "other": "Recorded a reason for {n} passages already decided with no statement: rows {rows}."

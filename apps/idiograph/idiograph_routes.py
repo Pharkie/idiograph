@@ -7272,9 +7272,137 @@ def api_edit_turn(body: dict) -> dict:
                 rounds_mod.save_progress(path, progress)
     answer = {"sheet": sheet, "row": row, "changed": result["changed"], "text": result["text"],
               "runs": result["runs"], "dropped": result["dropped"],
-              "seconds": result["seconds"], "time": result["time"]}
+              "seconds": result["seconds"], "time": result["time"],
+              # what changed, the words, the timecode or both, so an answer says that alone (timeshift)
+              "text_changed": result["text_changed"], "time_changed": result["time_changed"],
+              "old_time": result["old_time"]}
     if body.get("dry_run") is True:
-        answer.update(dry_run=True, old=result["old"], old_time=result["old_time"])
+        answer.update(dry_run=True, old=result["old"])
+    return answer
+
+
+SHIFT_LABEL = "pre-shift"
+
+
+def shift_seconds(value) -> int | None:
+    """A shift as a call gives it, whole seconds, later with + or none and earlier with -, `-121`, `+5`, `30`; None
+    for anything else, a fraction or no shift at all."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value or None
+    if isinstance(value, float):
+        return int(value) if value.is_integer() and value else None
+    text = str(value or "").strip().replace("−", "-")
+    if not re.fullmatch(r"[+-]?\d+", text):
+        return None
+    return int(text) or None
+
+
+def shift_planned(path: Path, sheet: str, moved: dict, times: dict, dry: bool = False) -> tuple[dict, list]:
+    """A sheet's timecodes shifted, worked out in memory for every copy of the participant's statements (see
+    `statement_copies`): the GETs file's, and in a project of timepoints the participant's LPETs' and the LGETs',
+    each through `gets.times_followed`, before the workbook is saved (timefix, 16 November 2026), so a copy that
+    cannot be read or followed refuses the whole shift in one line with nothing written. A thematic analysis
+    project's codes read their times from the workbook, so nothing follows there. The caller holds the project's
+    lock. Answers each file's count of lines by its kind, and the files to write, each its kind and data, none with
+    `dry`."""
+    root, kinds = statement_copies(path)
+    if root is None or read_project(root).get("method") == "ta":
+        return {}, []
+    out, plans = {}, []
+    for kind in kinds:
+        books = timepoint_sheets_of(path) if kind == "lpets" else None
+        try:
+            with copy_scope(kind, path, root):
+                if dry:
+                    done, data = gets_mod.times_followed(root, path, sheet, moved, times, books, dry=True), None
+                else:
+                    done, data = gets_mod.times_followed(root, path, sheet, moved, times, books, plan=True)
+                    if data is not None and kind == "gets" and gets_mod.WRITE_GUARD is not None:
+                        # the GETs board another member writes is refused before the workbook is touched
+                        gets_mod.WRITE_GUARD(Path(root))
+        except Exception as exc:  # noqa: BLE001  any copy that cannot be followed refuses the whole shift
+            raise WorkbookError(i18n.t("server.shift_copy_refused", name=COPY_NAMES[kind], exc=exc)) from None
+        if done:
+            out[kind] = done
+            if data is not None:
+                plans.append((kind, data))
+    return out, plans
+
+
+def shift_written(path: Path, plans: list, out: dict) -> dict:
+    """The copies a shift worked out (see `shift_planned`) written, once the workbook is saved, in the order an edit
+    reaches them. Anything that stops a write is answered in one line under `failed`, the copies not yet written
+    left as they were: the workbook is shifted and the participant reads changed until the change's undo, which puts
+    the workbook and every copy back (timefix, 16 November 2026)."""
+    root = project_root(path)
+    for i, (kind, data) in enumerate(plans):
+        try:
+            with copy_scope(kind, path, root):
+                gets_mod.write(root, data)
+        except Exception as exc:  # noqa: BLE001  the workbook is saved, so the answer says so and how to undo it
+            left = [k for k, _d in plans[i:]]
+            out["failed"] = [i18n.t("server.shift_copies_unfollowed", names=formats.list_words(
+                [COPY_NAMES[k] for k in left]), exc=exc)]
+            for k in left:
+                out.pop(k, None)
+            break
+    return out
+
+
+def api_shift_times(body: dict) -> dict:
+    """Every timecode of one sheet moved by `by` seconds, later or earlier, for an agent's `turn shift-times`
+    (timeshift, 16 November 2026, Adam's ruling via the GRAVITY session: a sheet running ahead of its recording through
+    the whole sheet has its timecodes shifted rather than an offset set). `from_row` and `to_row` keep it to a range,
+    the whole sheet by default. Each timecode is written in the form its own cell holds (`workbook.shift_times`), in
+    one save after one copy of the workbook in _Archive, and every copy of the participant's statements takes the new
+    times with it (`shift_planned`, then `shift_written`), so cards and quotes show them and the participant never reads as changed for it.
+    A shift that would take a timecode below 0:00 is refused whole in one line naming the rows, nothing written. The
+    recording's offset is its own and left as it is. With `dry_run` the same checks and counts, nothing written and no
+    lock taken. Answers rows and times, never a word: `count`, the first and last row shifted with their times before
+    and after, `untimed`, the rows in range with no timecode, left, `crossed`, how many cross the hour, and `copies`,
+    each file's lines that follow."""
+    path = case_path(body["path"])
+    sheet = str(body.get("sheet") or "")
+    dry = body.get("dry_run") is True
+    by = shift_seconds(body.get("by"))
+    if by is None:
+        raise WorkbookError(i18n.t("server.shift_give_seconds"))
+    rows = []
+    for key in ("from_row", "to_row"):
+        value = body.get(key)
+        if value is None or value == "":
+            rows.append(None)
+            continue
+        try:
+            rows.append(int(value))
+        except (TypeError, ValueError):
+            raise WorkbookError(i18n.t("server.shift_row_number", value=str(value))) from None
+    if rows[0] is not None and rows[1] is not None and rows[0] > rows[1]:
+        raise WorkbookError(i18n.t("server.shift_no_rows", sheet=sheet, first=rows[0], last=rows[1]))
+    if dry and wb_mod.WRITE_GUARD is not None:
+        # a participant another member of the team works on is refused on the dry run too, as turn skip's is
+        wb_mod.WRITE_GUARD(path)
+    with (contextlib.nullcontext() if dry else writing(path, root=project_root(path))):
+        done = wb_mod.shift_times(path, sheet, by, rows[0], rows[1], dry=True)
+        moved = {r["row"]: (r["before"], r["after"]) for r in done["rows"]}
+        backup = None
+        copies = {}
+        if done["changed"]:
+            # every copy worked out before the workbook is saved, so one that cannot follow refuses the whole shift
+            # with nothing written; then the workbook, then the copies (timefix)
+            copies, plans = shift_planned(path, sheet, moved, done["times"], dry=dry)
+            if not dry:
+                backup = wb_mod.archive_copy(path, SHIFT_LABEL)
+                done = wb_mod.shift_times(path, sheet, by, rows[0], rows[1])
+                copies = shift_written(path, plans, copies)
+    answer = {"case": srv.display_case(wb_mod.case_folder(path).name), "sheet": sheet, "by": by,
+              "from_row": done["from_row"], "to_row": done["to_row"], "count": done["count"],
+              "first": done["first"], "last": done["last"], "untimed": done["untimed"], "crossed": done["crossed"],
+              "changed": done["changed"], "copies": copies, "dry_run": dry}
+    if backup is not None:
+        answer["backup"] = str(backup)
     return answer
 
 
@@ -11275,6 +11403,8 @@ ROUTES = {
     "/api/interviewer-note": api_interviewer_note,
     # passages decided with no statement, as Skip decides one, for an agent (leaveout, 16 November 2026)
     "/api/skip": api_skip,
+    # a sheet's timecodes shifted, for an agent (timeshift, 16 November 2026)
+    "/api/shift-times": api_shift_times,
     "/api/trim": api_trim,
     "/api/rows": api_rows,
     "/api/audio": api_audio,
@@ -11365,7 +11495,7 @@ srv.register("idiograph", routes=ROUTES,
              post_only=("/api/choose-root", "/api/projects", "/api/new-project", "/api/add-transcripts", "/api/names", "/api/qdpx",
                         "/api/open-sent", "/api/send-project", "/api/qdpx-export", "/api/boards-in", "/api/order", "/api/rename",
                         "/api/participant", "/api/demographics",
-                        "/api/mcp", "/api/quote-heading", "/api/clear-formatting", "/api/clear-made-notes", "/api/skip", "/api/team",
+                        "/api/mcp", "/api/quote-heading", "/api/clear-formatting", "/api/clear-made-notes", "/api/skip", "/api/shift-times", "/api/team",
                         "/api/team-board", "/api/team-review"),
              own_page=("/api/mcp",),
              # what governs agents, from the app's own window alone, never a program on this machine (agentlock,

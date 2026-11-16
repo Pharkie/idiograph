@@ -1170,6 +1170,150 @@ def edit_turn(path: Path, sheet: str, row: int, text: str, typed: str | None = N
         wb.close()
 
 
+# ------------------------------------------------------------ a sheet's timecodes shifted (timeshift)
+
+# (16 November 2026, Adam's ruling via the GRAVITY session: a sheet running ahead of its recording through the whole
+# sheet has its timecodes shifted, rather than an offset set, so the transcript says the recording's own times.)
+
+SHIFT_STRING = re.compile(r"(\s*)(\d+):(\d{2})(?::(\d{2}))?(\s*)")
+
+
+def shift_style(values) -> dict:
+    """How a sheet writes its timecodes as text on each side of the hour, from its cells as they stand (timefix, 16
+    November 2026): by side, False below the hour and True at or past it, how many cells have two parts and how many
+    three, and by side and parts the width the first part is padded to, where a cell's first part starts with 0 and
+    has more than one digit (05:12, 01:15:12), else none. A sheet's cells kept as times, datetimes or fractions of a
+    day say nothing here."""
+    sides, pads = {}, {}
+    for value in values:
+        m = SHIFT_STRING.fullmatch(value) if isinstance(value, str) else None
+        seconds = ts_seconds(value) if m else None
+        if seconds is None:
+            continue
+        first, n = m.group(2), (2 if m.group(4) is None else 3)
+        side = seconds >= 3600
+        count = sides.setdefault(side, {2: 0, 3: 0})
+        count[n] += 1
+        if len(first) > 1 and first.startswith("0"):
+            pads[(side, n)] = max(pads.get((side, n), 0), len(first))
+    return {"sides": sides, "pads": pads}
+
+
+def shifted_like(value, seconds: int, style: dict | None = None):
+    """`seconds` in the form `value` holds, so a shift and its opposite give each cell back as it was: a string
+    keeping its parts and any spaces round it (5:12, 05:12, 75:12, 1:15:12, 01:15:12), a `datetime.time`, a datetime
+    keeping its date, or a fraction of a day (see `timecode_like`). A string's first part keeps its width only where
+    that width is zero padding, its first digit 0 (05:12), so 10:02 shifted 121 earlier is 8:01, unless the sheet's
+    other cells below the hour are padded (`style`, see `shift_style`), 08:01 then. A string that crosses the hour
+    takes the form the sheet's cells use on its new side, an hours part or not and their padding, and where the
+    sheet has none there the hours folded into the minutes, MM:SS, 59:30 shifted 121 later being 61:31 (timefix,
+    16 November 2026, Adam's rule for timecodes)."""
+    seconds = int(seconds)
+    if isinstance(value, str):
+        m = SHIFT_STRING.fullmatch(value)
+        before = ts_seconds(value) if m else None
+        if m and before is not None:
+            head, first, _mid, last, tail = m.groups()
+            side = seconds >= 3600
+            sides = (style or {}).get("sides") or {}
+            pads = (style or {}).get("pads") or {}
+            n = 2 if last is None else 3
+            if (before >= 3600) != side:
+                there = sides.get(side) or {}
+                if any(there.values()):
+                    n = 3 if there.get(3, 0) > there.get(2, 0) else 2
+                    width = pads.get((side, n)) or 1
+                else:
+                    n, width = 2, 2
+            elif len(first) > 1 and first.startswith("0"):
+                width = len(first)
+            else:
+                width = pads.get((side, n)) or 1
+            if n == 2:
+                body = f"{seconds // 60:0{width}d}:{seconds % 60:02d}"
+            else:
+                body = f"{seconds // 3600:0{width}d}:{(seconds % 3600) // 60:02d}:{seconds % 60:02d}"
+            return f"{head}{body}{tail}"
+    return timecode_like(value, seconds)
+
+
+def shift_times(path: Path, sheet: str, by: int, first: int | None = None, last: int | None = None,
+                dry: bool = False, form: str | None = None) -> dict:
+    """Every timecode of `sheet` from row `first` to row `last` (the whole sheet by default) moved by `by` seconds,
+    later or earlier, each written in the form its own cell holds (see `shifted_like`), in one save (timeshift, 16
+    November 2026). A row with no timecode, or one that does not read as one, is left as it is and counted. A shift
+    that would take any timecode below 0:00 is refused whole, naming the rows, nothing written; so is one past the
+    hours a time of day can hold, for a cell kept as a time. Nothing else is touched: the words, the statements, the
+    quotes, the notes and every style stay as they were. With `dry` everything is read and checked and nothing
+    saved. The caller keeps the archive copy and holds the lock. Answers rows and times, never a word: `rows` each
+    shifted row with its seconds `before` and `after`, `untimed` the rows left, and the first and last shifted, their
+    times as `form` says, by default as the project's timecodes say. `times` holds every timed row of the sheet,
+    shifted or not, by its seconds before, for those that follow a quote's span, and `crossed` how many shifted rows
+    cross the hour, each taking the form the sheet uses on its new side (see `shifted_like`)."""
+    path = Path(path)
+    form = form or timecodes_for(path)
+    by = int(by)
+    guard_lock(path)
+    wb = openpyxl.load_workbook(path, rich_text=True)
+    try:
+        if sheet not in wb.sheetnames:
+            raise WorkbookError(i18n.t("server.sheet_called", sheet=sheet, name=path.name))
+        ws = wb[sheet]
+        cols = detect_columns(ws)
+        if "ts" not in cols:
+            raise WorkbookError(i18n.t("server.shift_no_timecodes", sheet=sheet))
+        top = ws.max_row
+        lo = 2 if first is None else max(2, int(first))
+        hi = top if last is None else min(top, int(last))
+        if lo > hi:
+            raise WorkbookError(i18n.t("server.shift_no_rows", sheet=sheet, first=lo, last=hi))
+        rows, untimed, below, past, times = [], [], [], [], {}
+        # how the sheet writes its timecodes on each side of the hour, read before any cell changes (timefix)
+        style = shift_style(ws.cell(r, cols["ts"]).value for r in range(2, top + 1))
+        crossed = 0
+        for r in range(2, top + 1):
+            cell = ws.cell(r, cols["ts"])
+            value = cell.value
+            seconds = ts_seconds(value) if value is not None and not isinstance(value, bool) else None
+            if seconds is not None:
+                times[r] = seconds
+            if not lo <= r <= hi:
+                continue
+            if seconds is None:
+                # a row with no passage at all is no row to count
+                if value is not None or any(ws.cell(r, c).value not in (None, "") for c in cols.values()):
+                    untimed.append(r)
+                continue
+            after = seconds + by
+            if after < 0:
+                below.append(r)
+                continue
+            if isinstance(value, (dt.time, dt.datetime)) and after >= 24 * 3600:
+                past.append(r)
+                continue
+            rows.append({"row": r, "before": seconds, "after": after})
+            if (seconds >= 3600) != (after >= 3600):
+                crossed += 1
+            if by:
+                cell.value = shifted_like(value, after, style)
+        import formats
+        listed = lambda ns: formats.list_words([str(n) for n in ns])
+        if below:
+            raise WorkbookError(i18n.t("server.shift_refused.below", n=len(below), sheet=sheet, rows=listed(below)))
+        if past:
+            raise WorkbookError(i18n.t("server.shift_refused.past", n=len(past), sheet=sheet, rows=listed(past)))
+        changed = bool(by) and bool(rows)
+        if changed and not dry:
+            _atomic_save(wb, path)
+        ends = lambda one: {"row": one["row"], "before": timecode(one["before"], form),
+                            "after": timecode(one["after"], form)} if one else None
+        return {"sheet": sheet, "by": by, "from_row": lo, "to_row": hi, "rows": rows, "count": len(rows),
+                "untimed": untimed, "first": ends(rows[0] if rows else None), "last": ends(rows[-1] if rows else None),
+                "changed": changed, "times": times, "crossed": crossed}
+    finally:
+        wb.close()
+
+
 # ------------------------------------------------------------ find and replace
 
 

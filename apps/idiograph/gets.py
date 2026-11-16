@@ -1692,14 +1692,16 @@ def kept_in(held: dict, entries: list[dict], before: dict) -> list[str]:
     return kept
 
 
-def held_of(root: Path, workbook: Path, books: list[dict] | None = None) -> tuple[dict | None, list[dict]]:
+def held_of(root: Path, workbook: Path, books: list[dict] | None = None,
+            move: bool = True) -> tuple[dict | None, list[dict]]:
     """The file in scope as it sits on disk, and each case of it that is the participant's at `workbook`, as a
     survey's entry: on GETs and LGETs the one case whose copy names the workbook, and on LPETs each of the
     participant's timepoints that is in, from `books`, with its timepoint and the label it is cited with. None and
-    none with no file."""
+    none with no file. With `move` False the file is read without moving its boards' History out of it (see `load`),
+    as every dry run and every read alone reads it, so they write nothing (timefix, 16 November 2026)."""
     if not gets_path(root).exists():
         return None, []
-    data = load(root)
+    data = load(root, move=move)
     held = data.get("cases") if isinstance(data.get("cases"), dict) else {}
     name = Path(workbook).name
     if books is None:
@@ -1717,7 +1719,7 @@ def copies_untouched(root: Path, workbook: Path, books: list[dict] | None = None
     is theirs, and whether its copy stands as its files do now (see `untouched`), so `statements_followed` reads
     afresh only a copy the write alone can have changed. Nothing with no file, or one that cannot be read."""
     try:
-        data, entries = held_of(root, workbook, books)
+        data, entries = held_of(root, workbook, books, move=False)
     except WorkbookError:
         return {}
     held = (data or {}).get("cases") or {}
@@ -1891,7 +1893,7 @@ def statements_followed(root: Path, workbook: Path, words: dict, before: dict, b
     either, `words` and `quotes`, the statements' keys that took each, `boards`, each board with a card of one, its
     id, name and the cards' keys, `versions`, every board as the board menu lists it after the write, for the page's
     next save, and `histories`, each board that kept a line with its revisions as the History tab lists them."""
-    data, entries = held_of(root, workbook, books)
+    data, entries = held_of(root, workbook, books, move=not dry)
     if data is None or not entries:
         return {}
     held = data["cases"]
@@ -2046,7 +2048,7 @@ def copies_refreshed(root: Path, workbook: Path, truth: dict, books: list[dict] 
     Answers nothing when the file has no copy of the participant, else `statements`, the keys whose words change,
     `quotes`, those whose quotes change, `missing`, those no longer in the workbook, and `boards`, each board with a
     card that changes or is missing, its id, name, `cards` and `missing`, card keys alone, never the words."""
-    data, entries = held_of(root, workbook, books)
+    data, entries = held_of(root, workbook, books, move=not dry)
     if data is None or not entries:
         return {}
     held = data["cases"]
@@ -2456,7 +2458,7 @@ def passage_followed(root: Path, workbook: Path, sheet: str, row: int, old: list
     cmap, merged = passage_map(sheet, row, old, new, lines)
     if not cmap:
         return {}
-    data, entries = held_of(root, workbook, books)
+    data, entries = held_of(root, workbook, books, move=not dry)
     if data is None or not entries:
         return {}
     out = {"removed": [], "merged": [], "moved": [], "boards": {}}
@@ -2480,6 +2482,78 @@ def passage_followed(root: Path, workbook: Path, sheet: str, row: int, old: list
             if str(board.get("id")) in out["boards"]:
                 board["updated"] = when
         data["updated"] = when
+        write(root, data)
+    return out
+
+
+# ------------------------------------------------------- a sheet's timecodes shifted reach the copies (timeshift)
+
+def times_followed(root: Path, workbook: Path, sheet: str, moved: dict, times: dict,
+                   books: list[dict] | None = None, dry: bool = False, plan: bool = False):
+    """A sheet's timecodes shifted (see `workbook.shift_times`) carried to the copy the file in scope keeps of the
+    participant (timeshift, 16 November 2026), so no card or quote shows the old time and the shift alone never marks
+    the participant changed since they came in. `moved` is each shifted row's seconds before and after, by its row,
+    and `times` every timed row of the sheet by its seconds before. A line of the sheet on a shifted row takes the
+    row's new seconds when it held the row's old ones; a line holding another time, a change not yet taken, keeps
+    it, so the participant still shows changed. Each end of a quote's span (quotespan) follows the row it belongs to,
+    whether or not the line's own row was shifted (timefix): a quote may take in the same speaker's passages before
+    its own row and after it, so its start is found at or before the line's row and its end at or after, each the
+    nearest timed row holding that end's seconds, and takes that row's new seconds where that row moved. So the copy
+    after a shift is what a fresh read of the workbook gives. The copy's hash follows only where it stood for the
+    copy as it was. Written once, with `dry` not at all, the file read without its History moved (see `held_of`).
+    Answers `lines`, how many lines took a new time, and `cases`, the cases of the file that did, nothing when none
+    did; with `plan` it writes nothing and answers that and the file's data as it would be written, None for none,
+    for the caller to write once the workbook is saved (timefix)."""
+    data, entries = held_of(root, workbook, books, move=not dry)
+    if data is None or not entries or not moved:
+        return ({}, None) if plan else {}
+    held = data["cases"]
+    form = KEPT_AS
+    out = {"lines": 0, "cases": []}
+    order = sorted(times)
+
+    def end_of(seconds, row: int, back: bool):
+        """A span's end as the shift leaves it: the nearest timed row holding `seconds`, at or before the line's
+        own row for its start (`back`) and at or after it for its end, that row's new seconds where it moved."""
+        if seconds is None:
+            return None
+        rows = reversed([r for r in order if r <= row]) if back else (r for r in order if r >= row)
+        at = next((r for r in rows if times[r] == seconds), None)
+        return moved[at][1] if at in moved else seconds
+
+    for e in entries:
+        rec = held.get(e["case"])
+        lines = rec.get("lines") if isinstance(rec, dict) and isinstance(rec.get("lines"), dict) else {}
+        whole = rec.get("hash") == snap_hash(rec) if isinstance(rec, dict) else False
+        n = 0
+        for line in lines.values():
+            if not isinstance(line, dict) or line.get("sheet") != sheet or not isinstance(line.get("row"), int):
+                continue
+            row = line["row"]
+            took = False
+            if row in moved and line.get("seconds") == moved[row][0]:
+                line["seconds"] = moved[row][1]
+                took = True
+            span = line.get("span")
+            if isinstance(span, list) and len(span) == 2:
+                new = [end_of(span[0], row, True), end_of(span[1], row, False)]
+                if new != span:
+                    line["span"] = new
+                    took = True
+            if took:
+                retimed(line, form, rec.get("cite") or "")
+                n += 1
+        if n:
+            if whole:
+                rec["hash"] = snap_hash(rec)
+            out["lines"] += n
+            out["cases"].append(e["case"])
+    if not out["lines"]:
+        return ({}, None) if plan else {}
+    data["updated"] = themes.now_iso()
+    if plan:
+        return out, data
+    if not dry:
         write(root, data)
     return out
 
@@ -2606,7 +2680,7 @@ def copies_added(root: Path, workbook: Path, books: list[dict] | None = None, ke
     Answers each case of the file that takes a statement, `case` (a timepoint on LPETs, else the participant) and
     `keys`, and each that takes none for that, `case` and `rekey`, its keys the workbook no longer holds, keys
     alone, never the words."""
-    data, entries = held_of(root, workbook, books)
+    data, entries = held_of(root, workbook, books, move=not dry)
     if data is None or not entries:
         return []
     held = data["cases"]
@@ -2785,7 +2859,7 @@ def copies_rekeyed(root: Path, workbook: Path, truth: dict, books: list[dict] | 
     Written once, and with `dry` not at all. Answers `moves`, each statement moved, its timepoint, `from`, `to`,
     whether the workbook's words there are the copy's, `matched`, and the LPETs that hold it on the board the
     table reads, and `unmatched`, each line it cannot place, with its LPETs, never the words."""
-    data, entries = held_of(root, workbook, books)
+    data, entries = held_of(root, workbook, books, move=not dry)
     if data is None or not entries:
         return {}
     if at is not None:
@@ -2913,7 +2987,7 @@ def copies_pruned(root: Path, workbook: Path, truth: dict, books: list[dict] | N
     table reads, `elsewhere`, those left, `boards`, each board's cards taken off, and `emptied`, each LPET (or GET)
     of that board left with no statement at a timepoint that had one, by id, title and timepoint, so a statement
     can be put in its place before the write. Never a statement's words."""
-    data, entries = held_of(root, workbook, books)
+    data, entries = held_of(root, workbook, books, move=not dry)
     if data is None or not entries:
         return {}
     held = data["cases"]

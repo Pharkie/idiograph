@@ -151,7 +151,7 @@ def test_mcp_server(scratch):
               names == ["cases", "search", "statements", "board_list", "board_show", "board_compare", "board_new", "board_import", "board_apply",
                         "board_current", "board_canvas", "board_rename", "board_duplicate", "board_fresh", "board_delete", "board_export",
                         "gets_export", "gets_show", "gets_apply", "gets_import", "gets_colour", "gets_take", "turn_show", "turn_write",
-                        "turn_edit", "turn_interviewer_note", "turn_skip", "turn_assign", "turn_assign_undo", "turn_trim", "turn_trim_undo",
+                        "turn_edit", "turn_interviewer_note", "turn_skip", "turn_shift_times", "turn_assign", "turn_assign_undo", "turn_trim", "turn_trim_undo",
                         "copies_refresh", "copies_rekey", "copies_prune", "import", "import_qdpx", "timepoints", "timepoints_set",
                         "trajectories_show", "trajectories_apply", "trajectories_export", "codes_list", "codes_show", "codes_new", "codes_rename",
                         "codes_describe", "codes_merge", "codes_delete", "codes_add", "codes_remove", "codes_apply_last",
@@ -205,7 +205,7 @@ def test_mcp_server(scratch):
                                  "team_set", "team_suggest", "team_suggestion_answer", "team_take", "team_thread",
                                  "timepoints_set",
                                  "trajectories_apply", "trajectories_export", "transcript_export", "transcript_replace", "transcript_replace_undo", "turn_assign", "turn_assign_undo", "turn_edit",
-                                 "turn_interviewer_note", "turn_skip", "turn_trim", "turn_trim_undo", "turn_write"]
+                                 "turn_interviewer_note", "turn_shift_times", "turn_skip", "turn_trim", "turn_trim_undo", "turn_write"]
               and all(t["annotations"]["readOnlyHint"] is True and t["annotations"]["openWorldHint"] is False
                       for t in tools if t["name"] not in writers and t["name"] not in sifts)
               and all({"request", "dry_run"} <= set(t["inputSchema"]["properties"]) and "request" in t["inputSchema"]["required"]

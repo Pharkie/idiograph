@@ -439,6 +439,7 @@ AREAS = {
     "a404_export_menus": "idiograph",
     "a405_site_whats_new": "shared",
     "a406_names_set": "idiograph",
+    "a408_shift_times": "idiograph",
     "a409_ta_demo_recordings": "idiograph",
 }
 

@@ -596,5 +596,19 @@
   "server.skip_refused.statements": {
     "one": "Row {rows} of {sheet} holds statements, so it is decided already. Name only passages with no statement. Nothing was written.",
     "other": "Rows {rows} of {sheet} hold statements, so they are decided already. Name only passages with no statement. Nothing was written."
-  }
+  },
+  "server.shift_give_seconds": "Give the shift in whole seconds, + or none for later and - for earlier, such as -121. Nothing was written.",
+  "server.shift_row_number": "{value} is not a row number. Nothing was written.",
+  "server.shift_no_timecodes": "{sheet} has no timecode column, so there is nothing to shift. Nothing was written.",
+  "server.shift_no_rows": "No rows of {sheet} from {first} to {last}. Nothing was written.",
+  "server.shift_refused.below": {
+    "one": "Shifting would take the timecode of row {rows} of {sheet} below 0:00. Nothing was written.",
+    "other": "Shifting would take the timecodes of rows {rows} of {sheet} below 0:00. Nothing was written."
+  },
+  "server.shift_refused.past": {
+    "one": "Row {rows} of {sheet} keeps its timecode as a time of day, which cannot pass 23:59:59. Nothing was written.",
+    "other": "Rows {rows} of {sheet} keep their timecodes as a time of day, which cannot pass 23:59:59. Nothing was written."
+  },
+  "server.shift_copy_refused": "The {name} could not take the new times, so nothing was shifted and nothing was written: {exc}",
+  "server.shift_copies_unfollowed": "The workbook is shifted, but the {names} did not take the new times ({exc}), so the participant reads as changed. The change's undo puts the workbook and the copies back."
 }

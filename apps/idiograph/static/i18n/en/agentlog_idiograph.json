@@ -42,6 +42,7 @@
   "agentlog_idiograph.turn_write": "Change a passage",
   "agentlog_idiograph.turn_edit": "Correct a passage's words",
   "agentlog_idiograph.turn_skip": "Mark passages decided with no statement",
+  "agentlog_idiograph.turn_shift_times": "Shift a sheet's timecodes",
   "agentlog_idiograph.turn_interviewer_note": "Write the interviewer's note",
   "agentlog_idiograph.turn_assign": "Assign words to another speaker",
   "agentlog_idiograph.turn_assign_undo": "Undo an assignment",

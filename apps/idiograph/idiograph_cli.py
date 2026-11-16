@@ -6900,19 +6900,31 @@ def cmd_turn_edit(p: Project, args) -> tuple:
     done = route_call(routes.api_edit_turn, body)
     where = i18n.t("cli.said.row", case=b['case'], sheet=args.sheet, row=row)
     answer = dict(done, case=b["case"])
+    # each line says what changes alone, the words, the timecode or both (timeshift, the GRAVITY session's find: a
+    # timecode alone was said as words corrected)
+    words, timed = bool(done.get("text_changed")), bool(done.get("time_changed"))
+    times = dict(old_time=done.get("old_time") or "", time=done.get("time") or "")
     if args.dry_run:
         if not done["changed"]:
             return answer, [i18n.t("cli.turn_edit.dry_run_nothing_was_written_reads", where=where)]
-        lines = [i18n.t("cli.turn_edit.dry_run_nothing_was_written_the", where=where)
-                 + (i18n.t("cli.turn_edit.and_the_timecode_go_from_to", old_time=done['old_time'], time=done['time']) if done["old_time"] != done["time"] else "")
-                 + "."]
+        if words and timed:
+            lines = [i18n.t("cli.turn_edit.dry_both", where=where, **times)]
+        elif timed:
+            lines = [i18n.t("cli.turn_edit.dry_time", where=where, **times)]
+        else:
+            lines = [i18n.t("cli.turn_edit.dry_words", where=where)]
         if done["dropped"]:
             lines.append(i18n.t("cli.turn_edit.would_be_dropped_its_words_gone", highlights=i18n.t("cli.n.highlight", n=len(done['dropped'])))
                          + ", ".join(f'"{d}"' for d in done["dropped"]) + ".")
         return answer, lines
     if not done["changed"]:
         return answer, [i18n.t("cli.turn_edit.reads_so_already_so_nothing_was", where=where)]
-    lines = [i18n.t("cli.turn_edit.corrected_its_timecode_the_progress_file", where=where, time=done['time'] or 'none')]
+    if words and timed:
+        lines = [i18n.t("cli.turn_edit.done_both", where=where, **times)]
+    elif timed:
+        lines = [i18n.t("cli.turn_edit.done_time", where=where, **times)]
+    else:
+        lines = [i18n.t("cli.turn_edit.done_words", where=where)]
     if done["dropped"]:
         lines.append(i18n.t("cli.turn_edit.dropped_its_words_gone", highlights=i18n.t("cli.n.highlight", n=len(done['dropped']))) + ", ".join(f'"{d}"' for d in done["dropped"]) + ".")
     return answer, lines
@@ -7018,6 +7030,63 @@ def cmd_turn_skip(p: Project, args) -> tuple:
             lines.append(i18n.t("cli.turn_skip.decided", at=at, before=d["before"], after=d["after"], total=d["total"]))
     if reason and done["marked"]:
         lines.append(answer["reason"])
+    answer["said"] = lines[0]
+    return answer, lines
+
+
+def cmd_turn_shift_times(p: Project, args) -> tuple:
+    """Every timecode of one sheet moved by --by seconds, later or earlier, --from-row and --to-row keeping it to a
+    range (timeshift, 16 November 2026, `routes.api_shift_times`): each written in the form its cell holds, in one
+    save after one copy of the workbook in _Archive, every copy of the participant's statements following. A shift
+    that would take a timecode below 0:00 is refused whole, naming the rows. The dry run says the rows and the first
+    and last times before and after, never a word."""
+    b = p.case(args.case)
+    book = Path(b["workbook"])
+    marks = turn_marks(args)
+    body = dict({"path": str(book), "sheet": args.sheet, "by": args.by, "from_row": args.from_row,
+                 "to_row": args.to_row}, **marks)
+    try:
+        done = routes.api_shift_times(body)
+    except (WorkbookError, srv.OutsideRoot) as exc:
+        # one line, which says nothing was written itself
+        raise cli.Refused(str(exc)) from None
+    answer = dict(done, case=b["case"])
+    if answer.get("backup"):
+        answer["backup"] = Path(answer["backup"]).name
+    where = i18n.t("cli.turn_shift_times.where", case=b["case"], sheet=args.sheet)
+    rows = i18n.t("cli.n.row", n=done["count"])
+    by = f"{'+' if done['by'] > 0 else '-'}{abs(done['by'])}"
+    lines = []
+    if not done["changed"]:
+        lines.append(i18n.t("cli.turn_shift_times.nothing", where=where))
+    else:
+        ends = dict(first_row=done["first"]["row"], first_before=done["first"]["before"],
+                    first_after=done["first"]["after"], last_row=done["last"]["row"],
+                    last_before=done["last"]["before"], last_after=done["last"]["after"])
+        if args.dry_run:
+            lines.append(i18n.t("cli.turn_shift_times.dry", where=where, rows=rows, by=by, **ends))
+        else:
+            lines.append(i18n.t("cli.turn_shift_times.done", where=where, rows=rows, by=by, **ends))
+    if done.get("crossed"):
+        # the cells that cross the hour, by count alone (timefix)
+        if args.dry_run:
+            lines.append(i18n.t("cli.turn_shift_times.crossed", n=done["crossed"]))
+        else:
+            lines.append(i18n.t("cli.turn_shift_times.crossed_done", n=done["crossed"]))
+    if done["untimed"]:
+        lines.append(i18n.t("cli.turn_shift_times.untimed", rows=formats.list_words([str(n) for n in done["untimed"]]),
+                            n=len(done["untimed"])))
+    for kind, took in (done.get("copies") or {}).items():
+        if kind == "failed":
+            lines += list(took)
+            continue
+        name = routes.COPY_NAMES.get(kind, kind)
+        if args.dry_run:
+            lines.append(i18n.t("cli.turn_shift_times.copies_dry", name=name, n=took["lines"]))
+        else:
+            lines.append(i18n.t("cli.turn_shift_times.copies", name=name, n=took["lines"]))
+    if done["changed"] and not args.dry_run and answer.get("backup"):
+        lines.append(i18n.t("cli.turn_shift_times.copy_kept", name=answer["backup"]))
     answer["said"] = lines[0]
     return answer, lines
 
@@ -8488,6 +8557,8 @@ COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             ("turn", "edit"): cmd_turn_edit, ("turn", "interviewer-note"): cmd_turn_interviewer_note,
             # passages decided with no statement, as Skip decides one (leaveout, 16 November 2026)
             ("turn", "skip"): cmd_turn_skip,
+            # a sheet's timecodes shifted (timeshift, 16 November 2026)
+            ("turn", "shift-times"): cmd_turn_shift_times,
             ("turn", "assign"): cmd_turn_assign, ("turn", "assign-undo"): cmd_turn_assign_undo,
             ("turn", "trim"): cmd_turn_trim, ("turn", "trim-undo"): cmd_turn_trim_undo,
             # every copy of the statements brought in line with the workbook (cardsync, 13 November 2026)
@@ -8834,6 +8905,13 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("rows", help="the passages' rows: 12, 12-20 or 12,15,20-22, a span taking in the participant's alone")
     x.add_argument("--reason", default=None,
                    help="why, kept in the record of agents' changes alone, never in the notes, since the app keeps none")
+    x = t.add_parser("shift-times", parents=[common, writes],
+                     help="every timecode of a sheet moved later or earlier by a number of seconds")
+    x.add_argument("case")
+    x.add_argument("sheet")
+    x.add_argument("--by", required=True, help="seconds, -121 earlier or 30 later, whole seconds")
+    x.add_argument("--from-row", dest="from_row", type=int, default=None, help="the first row to shift, the sheet's first by default")
+    x.add_argument("--to-row", dest="to_row", type=int, default=None, help="the last row to shift, the sheet's last by default")
     x = t.add_parser("assign", parents=[common, writes],
                      help="words of a passage, or the whole of it, assigned to another speaker")
     x.add_argument("case")

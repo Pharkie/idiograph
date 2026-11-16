@@ -7381,6 +7381,46 @@ undo refused by `agentchanges.undo.already_alone`), so By an agent offers no Und
 statement, the page's or `turn write`'s, writes the same `reviewed-empty` Skip writes, and a row the sidecar holds
 as `has-content` with no statement in the workbook reads as `reviewed-empty` too and keeps its sidecar value.
 
+**A sheet's timecodes shifted** (timeshift, 16 November 2026, Adam's ruling via the GRAVITY session: a sheet running
+121 s ahead of its recording through the whole sheet is shifted, not given an offset). The app has no screen of its
+own for it; the Offset card under the player (`set_audio_offset`) is the other way and stays apart. `routes.api_shift_times`
+(`/api/shift-times`, post only, an agent's route like `/api/skip`, so the parity list of the page's routes does not
+name it) takes `path`, `sheet`, `by` (whole seconds, `shift_seconds`: `-121`, `+5`, `30`; a fraction or 0 refused),
+`from_row`, `to_row`, `dry_run`, `tool` and `request`. Under the participant's and the project's locks (none for the
+dry run) it reads with `workbook.shift_times(dry=True)`, works out every copy in memory with `shift_planned`, which
+runs `gets.times_followed(plan=True)` in `copy_scope` for each of `statement_copies` (nothing for a thematic analysis
+project, whose codes read their times from the workbook) and refuses the whole shift in one line
+(`server.shift_copy_refused`) on any exception, nothing written, then keeps one `archive_copy` labelled `pre-shift`,
+writes with `shift_times`, one `_atomic_save`, and only then writes the copies with `shift_written`, which answers a
+write that fails after the save in one line under `copies.failed` (`server.shift_copies_unfollowed`: the copies did
+not follow and the change's undo puts the workbook and the copies back, since the run's restore point holds every
+workbook and JSON file) (timefix). `shift_times` writes each cell in the form its sheet uses (`shifted_like` with
+`shift_style`, read from the sheet's cells before any changes: a string keeps its parts and its spaces, its first
+part's width only where that width is zero padding, its first digit 0, else the padding the sheet's other cells on
+the same side of the hour use, so `10:02` -121 is `8:01` in a sheet of `9:58` and `100:05` -121 is `98:04`; a string
+that crosses the hour takes the parts and padding most of the sheet's text cells on its new side have, and where the
+sheet has none there the hours folded into the minutes, MM:SS, `59:30` +121 being `61:31`, Adam's rule for
+timecodes; `crossed` counts the rows that cross, and the CLI says it; a time, a datetime and a fraction of a day as
+`timecode_like`), counts a row in range with no readable timecode as
+`untimed` and leaves it, and refuses the whole in one line naming rows a shift takes below 0:00
+(`server.shift_refused.below`) or a time-of-day cell past 23:59:59 (`server.shift_refused.past`). Its answer's `times`,
+every timed row's seconds before, lets `times_followed` move a quote's span (quotespan) end by end, each end by the
+row it belongs to whether or not the line's own row was shifted (a quote may take in the same speaker's passages
+before its row, `speakers_run`, so its start is the nearest timed row at or before the line's row holding that
+start's seconds, its end the nearest at or after), so the copy after a shift is what a fresh read gives (timefix). A
+copy's line on a shifted row takes the row's new seconds only when it held the old ones, so a change not yet taken
+still shows, and
+the record's hash is recomputed only where it stood for the copy as it was, so the shift alone never marks a
+participant changed. Board files, History, Trajectories, the progress file and the codes hold no times of their own
+(they read them from the workbook), so nothing else follows. `agent_changes.entry_for` adds `shift` (`by`, `from_row`,
+`to_row`, `rows`) to the line, counts alone. `turn shift-times` (`cmd_turn_shift_times`) and MCP's `turn_shift_times`
+call it; area 408 checks it. `gets.held_of` takes `move`, and every dry run of the copies reads with `move=False`
+(`times_followed`, `statements_followed`, `copies_refreshed`, `passage_followed`, `copies_added`, `copies_rekeyed`,
+`copies_pruned`, and `copies_untouched`, a read alone), so a dry run of `turn shift-times`, `turn write`,
+`copies refresh`, `copies rekey` and `copies prune` never moves a board file's History out of it (timefix).
+`api_edit_turn` answers `text_changed`, `time_changed` and `old_time` too, so `turn edit`
+says only what changes (`cli.turn_edit.dry_*`, `done_*`).
+
 Since 26 October (parity with the page, group 1) the statements screen's own writes have ops for agents,
 each calling the route itself with the page's body and three keys more, `dry_run`, `tool` and `request`,
 which the page never sends: `turn edit` and MCP's `turn_edit` call `api_edit_turn`, `turn interviewer-note`

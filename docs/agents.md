@@ -668,6 +668,8 @@ moves, and the progress file recording each under History as yours.
 ```
 idiograph turn edit Wren Spring 4 --text "There is a smell to a dead hive, sweet and wrong." --dry-run
 idiograph turn edit Wren Spring 4 --time 01:12 --note "Fix the time of Wren's answer" --tool "Claude Code"
+idiograph turn shift-times Wren Spring --by -121 --dry-run
+idiograph turn shift-times Wren Spring --by 30 --from-row 40 --to-row 80 --note "Move the second half's times" --tool "Claude Code"
 idiograph turn interviewer-note Wren Spring 3 --text "I asked too soon" --note "Note that I asked too soon"
 idiograph turn assign Wren Spring 4 --to Sam --words "Mm, I see." --dry-run
 idiograph turn assign-undo Wren 4b1e0c9d2a77 --note "Put Sam's words back"
@@ -678,7 +680,25 @@ idiograph turn trim-undo Wren 9c3f5e1a7b20 --note "Put the opening back"
 `turn edit` corrects a passage's words in place, `/api/edit-turn` as Edit does, `--text` the words whole
 as they should read, `--time` its timecode, MM:SS or H:MM:SS, or both. The cell keeps its style, a
 highlight is found again by its words or dropped and named, and its statements, notes and quotes are left
-as they are. The progress file keeps the old words and the new under `edits`. `turn interviewer-note`
+as they are. The progress file keeps the old words and the new under `edits`. Its answer, dry or not, says
+only what changes: the words, the timecode or both. `turn shift-times` moves every timecode of one sheet by
+`--by` seconds, `-121` earlier or `30` later, for a transcript that runs ahead of or behind its recording
+through the sheet, `--from-row` and `--to-row` keeping it to a range (16 November). Each timecode is written
+in the form its cell holds, its first part padded only where the sheet pads it, and one that crosses the hour
+in the form the sheet's timecodes take on its new side, MM:SS where the sheet has none there (59:30 shifted
+121 later is 61:31). It is one save after one copy of the workbook in `_Archive`, and the GETs', the LPETs'
+and the LGETs' copies take the new times, a quote that takes in more than one passage following each end, so
+no participant reads as changed for it. Every copy is worked out before the workbook is saved, so one that
+cannot follow refuses the whole shift with nothing written; should a copy's write fail after the save, the
+answer says so in one line and the change's undo puts the workbook and the copies back. The recording's
+offset is its own and left as it is. A shift that would take any timecode below 0:00 is refused whole in one
+line naming the rows, nothing written. The dry run gives `count`, the rows it would shift, `first` and `last`,
+each a row with its time before and after, `crossed`, how many would cross the hour, `untimed`, rows in range
+with no timecode, left as they are, and `copies`, the lines each file of copies would move, and writes
+nothing, a board file whose History is not yet moved out of it included. It is one line in the record of agents' changes, its
+`shift` holding the seconds, the rows and how many moved, and `agents undo-change` or the run's undo puts the
+workbook and the copies back. Through MCP it is `turn_shift_times`, with `case`, `sheet`, `by`, `from_row` and
+`to_row`. `turn interviewer-note`
 writes his note on one of his own passages, `/api/interviewer-note`, in the Interviewer notes column, a
 line an entry, and `--text ""` clears it. His passage stays context: its row's state and the rounds are as
 they were, and only the note goes into `edits`. A participant's passage is refused.

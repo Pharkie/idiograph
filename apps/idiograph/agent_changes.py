@@ -739,6 +739,13 @@ def entry_for(p, args, run: dict, answer, changed: list, made: list) -> dict:
     said = names_said(args, answer)
     if said:
         entry["what_changed"] = said
+    # turn shift-times's shift in counts alone, the seconds, the rows and how many it moved (timeshift, 16 November 2026)
+    if (args.command, getattr(args, "act", None)) == ("turn", "shift-times") and isinstance(answer, dict):
+        try:
+            entry["shift"] = {"by": int(answer["by"]), "from_row": int(answer["from_row"]),
+                              "to_row": int(answer["to_row"]), "rows": int(answer["count"])}
+        except (KeyError, TypeError, ValueError):
+            pass
     # turn skip's reason for passages left with no statement, which the app keeps nowhere (leaveout, 16 November
     # 2026), kept in this line alone, never in a participant's notes, and no other op's reason with it
     reason = skip_reason(args)
@@ -1290,6 +1297,7 @@ OPS_SAID = {
     ("turn", "write"): (lambda: i18n.t("agentchanges.op.turn_write")), ("turn", "edit"): (lambda: i18n.t("agentchanges.op.turn_edit")),
     ("turn", "interviewer-note"): (lambda: i18n.t("agentchanges.op.turn_note")), ("transcript", "replace"): (lambda: i18n.t("agentchanges.op.replace")),
     ("turn", "skip"): (lambda: i18n.t("agentchanges.op.turn_skip")),
+    ("turn", "shift-times"): (lambda: i18n.t("agentchanges.op.turn_shift_times")),
     ("clear-formatting", None): (lambda: i18n.t("agentchanges.op.clear_formatting")),
     ("clear-made-notes", None): (lambda: i18n.t("agentchanges.op.clear_made_notes")),
     ("participant", "set"): (lambda: i18n.t("agentchanges.op.participant_set")),

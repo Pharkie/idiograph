@@ -419,6 +419,20 @@ TOOLS = [
           "reason": {"type": "string", "description": "Why they need no statement, kept in the record of agents' "
                                                       "changes alone."}},
          ["case", "sheet", "rows"], writes="changes"),
+    # a sheet's timecodes shifted (timeshift, 16 November 2026)
+    mcp.tool("turn_shift_times", "Shift a sheet's timecodes", ("turn", "shift-times"),
+         "Move every timecode of one sheet later or earlier by a number of seconds, for a transcript that runs ahead "
+         "of or behind its recording through the sheet: by is whole seconds, -121 earlier or 30 later, and from_row "
+         "and to_row keep it to a range, the whole sheet by default. Each timecode is written in the form its cell "
+         "holds, in one save after one copy of the workbook in _Archive, and the GETs', LPETs' and LGETs' copies "
+         "take the new times. The recording's offset is left as it is. A shift that would take a timecode below 0:00 "
+         "is refused whole, naming the rows, nothing written. The dry run gives the rows it would shift and the first "
+         "and last times before and after. Run dry_run first and shift only on his word.",
+         {"case": mcp.CASE, "sheet": dict(mcp.TEXT, description="The sheet, Initial."),
+          "by": {"type": ["integer", "string"], "description": "Seconds, -121 earlier or 30 later."},
+          "from_row": {"type": "integer", "description": "The first row to shift, the sheet's first by default."},
+          "to_row": {"type": "integer", "description": "The last row to shift, the sheet's last by default."}},
+         ["case", "sheet", "by"], writes="changes"),
     mcp.tool("turn_assign", "Assign words to another speaker", ("turn", "assign"),
          "Words of a passage, or the whole passage, assigned to another speaker, as Assign on the statements screen "
          "does: a passage of their own, or joined to that speaker's passage beside them, the statements, quotes and "
@@ -1736,6 +1750,9 @@ def arguments(t: dict, given: dict, args):
         # turn skip's passages and its reason (leaveout, 16 November 2026)
         args.rows = None if given.get("rows") is None else str(given["rows"])
         args.reason = given.get("reason")
+        # turn shift-times's seconds and range (timeshift, 16 November 2026)
+        args.by = None if given.get("by") is None else str(given["by"])
+        args.from_row, args.to_row = given.get("from_row"), given.get("to_row")
     if command == "team":
         # Working together (wtkeys, 8 November 2026): each tool's inputs as the command line's options
         args.name, args.route, args.folder = given.get("name"), given.get("route"), given.get("folder")
