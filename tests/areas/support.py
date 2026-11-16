@@ -5,6 +5,7 @@ is written twice (17 October)."""
 from __future__ import annotations
 
 import contextlib
+import fnmatch
 import json
 import os
 import re
@@ -45,6 +46,15 @@ APP_JS = ("family/static/shell.js", "apps/idiograph/static/distil.js")
 def source(path: str) -> Path:
     """A file of the app's folder by its path from it, `family/static/shell.js` or `server.py`."""
     return TOOL / path
+
+
+def leave(*patterns: str):
+    """`shutil.copytree`'s ignore for these name patterns, matched case and all on every system. shutil's own
+    `ignore_patterns` folds case on Windows, where "Source", a participant's folder of recordings, leaves out the
+    demo's "source", its transcripts, as well (winfix2, 16 November 2026)."""
+    def ignore(_folder, names):
+        return {n for n in names if any(fnmatch.fnmatchcase(n, p) for p in patterns)}
+    return ignore
 
 
 def same_workbook(a_path, b_path) -> bool:

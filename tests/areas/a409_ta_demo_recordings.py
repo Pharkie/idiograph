@@ -89,7 +89,7 @@ def test_ta_demo_recordings(scratch: Path):
     shutil.rmtree(base, ignore_errors=True)
     shipped, work, proj = base / "shipped", base / "work", base / "root"
     shutil.copytree(support.source("demo"), shipped,
-                    ignore=shutil.ignore_patterns("*.m4a", "LICENSE-audio.md", "Working", "Source", "_Archive",
+                    ignore=support.leave("*.m4a", "LICENSE-audio.md", "Working", "Source", "_Archive",
                                                   "lipa", "idiograph-gets.json", "idiograph-codes.json"))
     shutil.copytree(support.source("demo/pristine/Working"), shipped / "pristine" / "Working")
     shutil.copytree(support.source("demo/ta/pristine/Working"), shipped / "ta" / "pristine" / "Working")

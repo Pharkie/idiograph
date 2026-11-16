@@ -38,6 +38,52 @@ from . import support
 ASKED = "Keep a revision of the board before I change it."
 
 
+class _Stat:
+    """A file's stat as `os.stat` gives it, with `st_flags` carrying the flag given."""
+
+    def __init__(self, st, flags: int):
+        self._st, self.st_flags = st, flags
+
+    def __getattr__(self, name):
+        return getattr(self._st, name)
+
+
+class _FlaggedOs:
+    """`os` as board_history sees it, one file's stat carrying a flag: Windows' Python has no `os.chflags` and its
+    stats no `st_flags`, so there an evicted chunk is stood in for where board_history reads it (winfix2)."""
+
+    def __init__(self, path: Path, flags: int):
+        st = os.stat(path)
+        # the file by its identity, so a short name (RUNNER~1) or another spelling of its path is the same file
+        self._file, self._flags = (st.st_dev, st.st_ino), flags
+
+    def __getattr__(self, name):
+        return getattr(os, name)
+
+    def stat(self, path, *args, **kwargs):
+        st = os.stat(path, *args, **kwargs)
+        return _Stat(st, self._flags) if st.st_ino and (st.st_dev, st.st_ino) == self._file else st
+
+
+@contextlib.contextmanager
+def evicted(bh, path: Path, flags: int):
+    """A chunk marked as iCloud's Optimize Mac Storage marks one evicted, `flags` in its stat's `st_flags`, for as long
+    as the block runs: by `os.chflags` where the system has it (the Mac), else by board_history's `os` stood in for."""
+    if hasattr(os, "chflags"):
+        os.chflags(path, flags)
+        try:
+            yield
+        finally:
+            os.chflags(path, 0)
+        return
+    real = bh.os
+    bh.os = _FlaggedOs(path, flags)
+    try:
+        yield
+    finally:
+        bh.os = real
+
+
 def digest(root: Path) -> dict:
     """Every file of the project by its contents, the lock files, the agents' store and the record set aside."""
     return {p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
@@ -232,10 +278,11 @@ def test_history_chunks(scratch: Path):
             fetched.append(path)
             return flags[1](path)
         bh.SF_DATALESS, bh._fetch = stat.UF_NODUMP, fetch
+        gone_chunk = evicted(bh, first_chunk, stat.UF_NODUMP)
+        gone_chunk.__enter__()
         try:
             bh._BYTES.clear()
             bh._MEMO.clear()
-            os.chflags(first_chunk, stat.UF_NODUMP)
             listed = themes.history_list(themes.boards_of(themes.load(juno))[0])
             check("400: a chunk Optimize Mac Storage evicted is fetched as it is read, and History lists every revision",
                   len(listed) == 13 and fetched, str(len(fetched)))
@@ -252,7 +299,7 @@ def test_history_chunks(scratch: Path):
                   code == "history_away" and boards_files(root) == held, code)
         finally:
             bh.SF_DATALESS, bh._fetch = flags
-            os.chflags(first_chunk, 0)
+            gone_chunk.__exit__(None, None, None)
             bh._BYTES.clear()
             bh._MEMO.clear()
 
@@ -543,7 +590,8 @@ def test_history_chunks(scratch: Path):
                              "began": time_mod.monotonic() - bh.FETCH_SECONDS - 1, "ended": 0.0}
         flags = bh.SF_DATALESS
         bh.SF_DATALESS = stat.UF_NODUMP
-        os.chflags(probe, stat.UF_NODUMP)
+        gone_probe = evicted(bh, probe, stat.UF_NODUMP)
+        gone_probe.__enter__()
         try:
             began = time_mod.monotonic()
             try:
@@ -589,7 +637,7 @@ def test_history_chunks(scratch: Path):
                   bool(bh.read_chunk(probe)) and key not in bh._FETCHING, "")
         finally:
             bh.SF_DATALESS = flags
-            os.chflags(probe, 0)
+            gone_probe.__exit__(None, None, None)
             bh._FETCHING.pop(key, None)
             bh._BYTES.clear()
             bh._MEMO.clear()

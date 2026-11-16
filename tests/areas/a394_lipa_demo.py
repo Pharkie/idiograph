@@ -186,7 +186,7 @@ def shipped_parts(scratch: Path, root: Path) -> None:
 
     work = scratch / "lipa-394-reset"
     shutil.rmtree(work, ignore_errors=True)
-    shutil.copytree(root, work, ignore=shutil.ignore_patterns("Source", "_Archive"))
+    shutil.copytree(root, work, ignore=support.leave("Source", "_Archive"))
     lp_file = gets_mod.lpets_path(work / "Nell" / "Nell - EN & ES.xlsx")
     tj_file = traj_mod.path_of(work)
     was = (lp_file.read_bytes(), tj_file.read_bytes())
@@ -272,7 +272,7 @@ def test_lipa_demo(scratch: Path):
     shutil.rmtree(base, ignore_errors=True)
     shipped_d, work_d, proj = base / "shipped", base / "work", base / "root"
     shutil.copytree(support.source("demo"), shipped_d,
-                    ignore=shutil.ignore_patterns("*.m4a", "Working", "Source", "_Archive", "ta", "idiograph-gets.json",
+                    ignore=support.leave("*.m4a", "Working", "Source", "_Archive", "ta", "idiograph-gets.json",
                                                   "idiograph-lgets.json", "idiograph-trajectories.json"))
     shutil.copytree(support.source("demo/lipa/pristine/Working"), shipped_d / "lipa" / "pristine" / "Working")
     shutil.copytree(shipped_d, work_d)
