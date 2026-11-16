@@ -219,7 +219,7 @@ def test_ai_switch(scratch):
         "phRecord": "provenance", "phWho": "provenance", "phDraw": "provenance",
         # and By an agent's runs and Home's line of agents' changes, the record of what agents changed with its Undo,
         # shown whatever the switch, since an agent works without the app's own AI (agentreview2, 13 November 2026)
-        "arHead": "provenance", "arWhy": "provenance", "arRun": "provenance", "arDraw": "provenance",
+        "arHead": "provenance", "arWhy": "provenance", "arChange": "provenance", "arRun": "provenance", "arDraw": "provenance",
         "arMore": "provenance", "arUndo": "provenance", "homeAgentLines": "provenance",
         # a demo's card line and note say the demo was made with AI, a record of how it was made, shown
         # whatever the switch, no feature (demowarn, 12 November 2026)

@@ -2041,7 +2041,8 @@ the list was drawn, it is not done, and the reason shows under the change. A cha
 an agent marks every change as seen, so New and the line on Home go.
 
 A few things are yours alone, since no undo reaches them: sending a copy of the project to someone, Working
-together's invites, people, relay code and anything sent to a teammate, Settings, and the list of names to replace.
+together's invites, people, relay code and anything sent to a teammate, Settings, and taking a name off the list of
+names to replace (an agent can add one when you give it the name).
 An agent asking for one is told where to do it in the app, and nothing waits. If an agent's actions were still
 waiting for your yes when this changed, they are cleared the first time the project opens, never carried out, and
 the agent log says how many.
@@ -4683,8 +4684,9 @@ one entry with commas between, and a misspelling is not guessed.
 
 Names to replace, from the Names line or from Project settings, is the project's list: each name, what it is
 replaced with, whose transcripts it is in (Everyone, or one participant, for a "Ruth" who is a sister in one
-interview and a friend in another) and Match case. Add a name adds a row, and Add from a file reads a
-two-column CSV or Excel key you keep already, the real name then the pseudonym. The list is saved as you
+interview and a friend in another), Match case, Review each and Except in. Add a name adds a row, and Add from a file reads a
+two-column CSV or Excel key you keep already, the real name then the pseudonym, and a key the app wrote keeps
+Review each and Except in in two more columns. The list is saved as you
 change it, in one file in the project's folder, `idiograph-names.json`, so it moves with the folder. It is
 never in a workbook, the project's History or a copy you share.
 
@@ -4694,6 +4696,20 @@ with its tick, and Replace writes the ones ticked, the PETs and GETs following t
 writes, each participant's workbook and raw transcript as they were are kept in their `_Archive` folder,
 named "(pre-names" and the date, so the real names are still there: keep that folder safe, or delete those
 copies when you no longer need them. Share a copy never takes them, nor the list.
+
+Two ticks and a field on a name are for the names a list cannot replace everywhere (16 November 2026). Review
+each is for a name two people share where one of them keeps his own: it is never replaced on its own, not as a
+transcript comes in, not by Replace, and not by an AI agent. Review and replace lists each of its finds unticked,
+and only the ones you tick are replaced. A participant's copies in Source cannot tell one find from another of the
+same words, so when you leave one find unticked, every find of those words in that participant's Source copies stays
+as written, the ones you ticked too; a copy of the whole project you share takes Source with it, so check those
+copies before you send it. Except in takes phrases, with semicolons between, that the name is never found
+inside, such as a book series' title that is also the surname: a find inside one is not counted, listed or replaced
+anywhere.
+
+An AI agent can add names to the list when you tell it the names, its dry run first saying for each how many it
+would find and where, never the names. The agent's addition is one change under By an agent in Project history,
+and its Undo takes the names off the list again. Taking a name off the list stays yours.
 
 **Projects from ATLAS.ti, NVivo or MAXQDA.** Since 21 October a project exported from ATLAS.ti, NVivo
 or MAXQDA as a REFI-QDA project, a `.qdpx` file, comes into a project as participants, from New

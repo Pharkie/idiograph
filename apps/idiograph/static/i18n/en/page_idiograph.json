@@ -575,6 +575,7 @@
   "page_idiograph.names.name": "Name",
   "page_idiograph.names.replace_with": "Replace with",
   "page_idiograph.names.in": "In",
+  "page_idiograph.names.except": "Except in",
   "page_idiograph.names.add": "Add a name",
   "page_idiograph.names.add_file": "Add from a file…",
   "page_idiograph.names.check": "Check transcripts already in",

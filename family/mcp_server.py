@@ -614,7 +614,7 @@ class Server:
         except (ImportError, SystemExit):
             return ""
 
-    def logged(self, name: str, t: dict | None, given: dict, lines: list, code, op: str = "") -> None:
+    def logged(self, name: str, t: dict | None, given: dict, lines: list, code, op: str = "", args=None) -> None:
         """A refusal of a tool into the agent log (agent_log.py), each app's into its own beside its own settings
         (Sift's and Trace's since siftlog, 3 November 2026), on the log's own thread after this answer: the tool and
         its inputs' names, never their values, his request as the agent gave it."""
@@ -622,7 +622,24 @@ class Server:
             import agent_log
             import cli as family_cli
             values = agent_log.strings({k: v for k, v in given.items() if k not in family_cli.NAMES and k != "request"})
+            # his request as the command ran it, the project's real names already out of it, and those names and
+            # any a names tool was given out of it and the line, whole words, case ignored, any length (namesop)
+            request = str(given.get("request") or "")
+            secret = list(getattr(args, "secret_words", None) or ())
+            names_op = tuple((t or {}).get("command") or ())[:1] == ("names",)
+            if names_op:
+                secret += values
+            request = agent_log.hidden_words(request, secret)
+            if names_op and request:
+                # a names tool's whole request withheld, as the command line's is, since it may hold a name typed in
+                # it alone, an empty names_add's among them (namesfix L5)
+                request = "…"
+            lines = [agent_log.hidden_words(x, secret) for x in lines]
             values += agent_log.strings(given.get("request"))
+            if (self.name == app_identity.DEFAULT and request
+                    and (args is None or getattr(args, "secret_words", None) is None)):
+                # refused before the project opened, so before its list of names was read: never his words
+                request = agent_log.WITHHELD
             line = " ".join(str(x) for x in lines if str(x))
             if not code:
                 own = self.name == app_identity.DEFAULT
@@ -635,7 +652,7 @@ class Server:
                 else:
                     family_cli.app_project(self.name, [given.get("folder")])
             entry = agent_log.entry(
-                via="mcp", agent=self.client, request=str(given.get("request") or ""), values=values, code=code,
+                via="mcp", agent=self.client, request=request, values=values, code=code,
                 line=scrub(line), call=agent_log.agent_words(f"{name}({', '.join(sorted(map(str, given)))})",
                                                             agent_log.CALL_MOST),
                 op=op, project=agent_log.HERE["project"], closed=agent_log.HERE["closed"])
@@ -762,10 +779,10 @@ class Server:
         try:
             answer, lines = cli.perform(args)
         except cli.Refused as exc:
-            self.logged(t["name"], t, given, exc.lines, getattr(exc, "code", ""))
+            self.logged(t["name"], t, given, exc.lines, getattr(exc, "code", ""), args=args)
             return failed(exc.lines)
         except (cli.WorkbookError, FileNotFoundError, OSError) as exc:
-            self.logged(t["name"], t, given, [str(exc)], getattr(exc, "code", ""))
+            self.logged(t["name"], t, given, [str(exc)], getattr(exc, "code", ""), args=args)
             return failed([str(exc)])
         except Exception as exc:            # a bug, said in one line and logged, never a crash
             say(traceback.format_exc())

@@ -22,7 +22,11 @@ The rules (Adam's picks, 8 November 2026):
 7. Several spellings an entry. Misspellings are not guessed.
 
 An entry is `{"real": [spellings], "to": replacement, "for": a participant's pseudonym or None for everyone,
-"case": Match case}`. Entries are numbered from 1 in the list's order, and a find by its entry's number and its
+"case": Match case}`, and two exceptions (namesop, 16 November 2026, for two real cases on Adam's own project):
+`"review": True`, Review each, for a name two people share where one keeps it, whose finds are never replaced in
+bulk, each left as written until he ticks it in Review and replace (`Run`'s `take`), and `"except": [phrases]`,
+phrases a find inside is never a find at all, for a surname that is also a book series' title. Both keys are kept
+only when set, so a list from before reads as it did. Entries are numbered from 1 in the list's order, and a find by its entry's number and its
 place among that entry's finds in one Add (`nth`), which is how a skip names it without a real name.
 """
 from __future__ import annotations
@@ -45,10 +49,13 @@ ENV = "IDIOGRAPH_NAMES_DIR"
 KEY_FIELD = "names_key"
 MOST_ENTRIES = 5000
 MOST_SPELLINGS = 40
+MOST_EXCEPT = 40
 INITIALS = re.compile(r"^(?:[A-Z]\.\s?){2,4}$|^[A-Z]{2,4}$")
 KEY_OK = re.compile(r"^[0-9a-f]{32}$")
 # the characters either side of a find the Review card shows
 CONTEXT = 40
+# a key's Review each cell read as set (namesfix2)
+KEY_YES = ("yes", "y", "true", "1", "x")
 
 
 class NamesError(ValueError):
@@ -120,6 +127,24 @@ def load_at(root, project: dict | None = None, project_path: Path | None = None)
     return entries
 
 
+def entries_at(root) -> list[dict]:
+    """A project's entries wherever `load_at` would find them, nothing moved or written: the project's folder's
+    list, else one namesrule kept in the app's own folder under the project file's key. What takes the names out of
+    an agent's request reads this, so it sees every name a call through `load_at` will use (namesfix)."""
+    if root is None:
+        return []
+    here = path_at(root)
+    if here.is_file():
+        return read_file(here)
+    try:
+        import server as srv  # the family's, on the path by now
+        project = json.loads((Path(root) / srv.PROJECT_FILE).read_text(encoding="utf-8"))
+    except (OSError, ValueError, ImportError):
+        return []
+    old = old_path(project.get(KEY_FIELD) if isinstance(project, dict) else None)
+    return read_file(old) if old is not None and old.is_file() else []
+
+
 def with_real_names(entries: list[dict], files) -> list[dict]:
     """The list with an entry for each Real name typed on Add transcripts' rows (namesui), for that participant
     alone: the name as typed and, when it has more than one word, its first, written as the pseudonym. A name the
@@ -188,7 +213,25 @@ def clean_entry(raw) -> dict:
     who = " ".join(str(raw.get("for") or raw.get("in") or "").split())
     if who.lower() in ("everyone", "everybody", "all"):
         who = ""
-    return {"real": kept, "to": to, "for": who or None, "case": raw.get("case") is True}
+    out = {"real": kept, "to": to, "for": who or None, "case": raw.get("case") is True}
+    # the two exceptions (namesop), kept only when set
+    if raw.get("review") is True or raw.get("review_each") is True:
+        out["review"] = True
+    phrases = raw.get("except")
+    if isinstance(phrases, str):
+        # a list as the app, the command line and the MCP server send it; a string's phrases have semicolons
+        # between, never commas, which a phrase may hold, "Potter, Harry" one phrase (namesfix)
+        phrases = phrases.split(";")
+    held: list[str] = []
+    for x in (phrases if isinstance(phrases, list) else []):
+        x = " ".join(str(x).split())
+        if x and x.lower() not in {h.lower() for h in held}:
+            held.append(x)
+    if len(held) > MOST_EXCEPT:
+        raise NamesError(i18n.t("names.too_many_except", n=MOST_EXCEPT))
+    if held:
+        out["except"] = held
+    return out
 
 
 def clean_entries(rows) -> list[dict]:
@@ -244,8 +287,23 @@ def compile_list(entries: list[dict], who):
     return rx, index
 
 
+_excepts: dict = {}
+
+
+def except_rx(phrases: list[str]):
+    """One pattern for an entry's except phrases, whole words, case ignored, a run of spaces matching any."""
+    key = tuple(phrases)
+    if key not in _excepts:
+        if len(_excepts) > 256:
+            _excepts.clear()
+        body = "|".join(r"\s+".join(re.escape(w) for w in p.split()) for p in sorted(phrases, key=len, reverse=True))
+        _excepts[key] = re.compile(r"(?<![^\W_])(?i:" + body + r")(?![^\W_])") if body else None
+    return _excepts[key]
+
+
 def find(text: str, entries: list[dict], who) -> list[dict]:
-    """Every find in the text, in order: its entry (from 0), the words found, where and the replacement."""
+    """Every find in the text, in order: its entry (from 0), the words found, where and the replacement. A find
+    inside one of its entry's except phrases is no find at all (namesop)."""
     rx, index = compile_list(entries, who)
     if rx is None or not text:
         return []
@@ -254,13 +312,21 @@ def find(text: str, entries: list[dict], who) -> list[dict]:
         g = next(k for k, v in m.groupdict().items() if v is not None)
         n = index[int(g[1:])]
         out.append({"entry": n, "found": m.group(0), "to": entries[n]["to"], "at": m.start(), "end": m.end()})
+    spans: dict[int, list] = {}
+    for n in {h["entry"] for h in out if entries[h["entry"]].get("except")}:
+        ex = except_rx(entries[n]["except"])
+        spans[n] = [(m.start(), m.end()) for m in ex.finditer(text)] if ex is not None else []
+    if spans:
+        out = [h for h in out if not any(s <= h["at"] and h["end"] <= e for s, e in spans.get(h["entry"], ()))]
     return out
 
 
 def plain(text: str, entries: list[dict], who) -> str:
-    """The text with every find replaced, no skip."""
+    """The text with every find replaced, no skip, a Review each entry's left as written (namesop)."""
     out, last = [], 0
     for h in find(text, entries, who):
+        if entries[h["entry"]].get("review"):
+            continue
         out += [text[last:h["at"]], h["to"]]
         last = h["end"]
     out.append(text[last:])
@@ -293,20 +359,26 @@ def read_skip(value) -> set[tuple[int, int]]:
 class Run:
     """The names applied through one Add or one import: the finds in the order they come, each entry's finds
     counted across every file (its `nth`), and the skips left as written. `text` is one piece of text, with
-    `where` saying whose it is, a dict the finds carry (the participant, the interview, the part and the turn)."""
+    `where` saying whose it is, a dict the finds carry (the participant, the interview, the part and the turn).
+    A Review each entry's finds are left as written unless `take` names them, the finds he ticked in the app, so
+    no bulk replace and no agent ever replaces one (namesop)."""
 
-    def __init__(self, entries: list[dict], skip=()):
+    def __init__(self, entries: list[dict], skip=(), take=()):
         self.entries = entries
         self.skip = set(skip)
+        self.take = set(take)
         self.tally: dict[int, int] = {}
         self.finds: list[dict] = []
 
     def __bool__(self) -> bool:
         return bool(self.entries)
 
-    def text(self, text: str, who, where: dict, mirror: set | None = None) -> str:
+    def text(self, text: str, who, where: dict, mirror: set | None = None, taken: set | None = None) -> str:
         """`text` with its finds replaced, the skipped ones kept. `mirror` is a set of `(entry, found words)`
-        a passage's text left alone, which a quote of the passage leaves alone too and does not count."""
+        a passage's text left alone, which a quote of the passage leaves alone too and does not count. A Review each
+        entry's find there is left unless `taken` holds the same `(entry, found words)`, those he ticked (namesop),
+        and `mirror` does not, so a copy or a raw source never has one replaced in bulk, nor one he left unticked
+        where the same words were ticked elsewhere (namesfix)."""
         if not self.entries or not text:
             return text
         out, last = [], 0
@@ -314,14 +386,21 @@ class Run:
             out.append(text[last:h["at"]])
             last = h["end"]
             if mirror is not None:
-                skipped = (h["entry"], h["found"]) in mirror
+                if self.entries[h["entry"]].get("review"):
+                    # replaced only when he ticked those words and left none of them as written in the same place:
+                    # a copy cannot tell which of two finds alike he ticked, so it keeps both (namesfix M3)
+                    pair = (h["entry"], h["found"])
+                    skipped = pair not in (taken or set()) or pair in mirror
+                else:
+                    skipped = (h["entry"], h["found"]) in mirror
                 out.append(h["found"] if skipped else h["to"])
                 continue
             n = self.tally[h["entry"]] = self.tally.get(h["entry"], 0) + 1
-            skipped = (h["entry"] + 1, n) in self.skip
+            review = bool(self.entries[h["entry"]].get("review"))
+            skipped = (h["entry"] + 1, n) not in self.take if review else (h["entry"] + 1, n) in self.skip
             # the words either side, for the app's own Review card alone (namesui), never an agent's answer
             self.finds.append({"entry": h["entry"] + 1, "nth": n, "found": h["found"], "to": h["to"],
-                               "skipped": skipped, "at": h["at"], "where": dict(where),
+                               "skipped": skipped, "review": review, "at": h["at"], "where": dict(where),
                                "before": text[max(0, h["at"] - CONTEXT):h["at"]], "after": text[h["end"]:h["end"] + CONTEXT]})
             out.append(h["found"] if skipped else h["to"])
         out.append(text[last:])
@@ -330,6 +409,11 @@ class Run:
     def left(self, since: int) -> set:
         """What the finds since the `since`th left as written, for a quote to mirror."""
         return {(f["entry"] - 1, f["found"]) for f in self.finds[since:] if f["skipped"]}
+
+    def took(self, since: int) -> set:
+        """What the finds since the `since`th of a Review each entry replaced, the ones he ticked, for a quote, a raw
+        source or a copy to mirror (namesop)."""
+        return {(f["entry"] - 1, f["found"]) for f in self.finds[since:] if f.get("review") and not f["skipped"]}
 
     # --- what a call is told
 
@@ -351,6 +435,7 @@ class Run:
         for n in sorted(by):
             e = by[n]
             rows.append({"entry": n, "to": e["to"], "replaced": e["replaced"], "left": e["left"],
+                         **({"review": True} if self.entries[n - 1].get("review") else {}),
                          "parts": dict(sorted(e["parts"].items())),
                          "in": [{"participant": p, "interview": i, "count": c} for (p, i), c in sorted(e["in"].items())]})
         return {"entries": len(self.entries), "replaced": self.replaced(), "left": len(self.finds) - self.replaced(),
@@ -402,9 +487,10 @@ def render(turns, notes=None) -> str:
 # ------------------------------------------------------------------ a key read from, and written to, a file
 
 def read_key(name: str, data: bytes) -> list[dict]:
-    """A two-column key, a CSV or an Excel file the researcher keeps, the real name or names (commas between
-    spellings) then the pseudonym, a first row of headings passed over when its second cell is "pseudonym" or
-    "replace"-like. Returns entries for everyone."""
+    """A key, a CSV or an Excel file the researcher keeps, the real name or names (commas between spellings) then
+    the pseudonym, and as the app writes one (namesfix2) a third column, Review each ("yes" for set), and a fourth,
+    the except phrases with semicolons between, a first row of headings passed over when its second cell is
+    "pseudonym" or "replace"-like. Returns entries for everyone."""
     low = str(name).lower()
     rows: list[list] = []
     if low.endswith((".xlsx", ".xlsm")):
@@ -413,31 +499,33 @@ def read_key(name: str, data: bytes) -> list[dict]:
         try:
             ws = wb.worksheets[0]
             for r in ws.iter_rows(values_only=True):
-                rows.append([c for c in r[:2]])
+                rows.append([c for c in r[:4]])
         finally:
             wb.close()
     else:
         text = data.decode("utf-8-sig", errors="replace")
-        rows = [r[:2] for r in csv.reader(io.StringIO(text))]
+        rows = [r[:4] for r in csv.reader(io.StringIO(text))]
     out = []
     for i, r in enumerate(rows):
-        r = [("" if c is None else str(c)).strip() for c in (r + ["", ""])[:2]]
+        r = [("" if c is None else str(c)).strip() for c in (list(r) + ["", "", "", ""])[:4]]
         if not r[0] or not r[1]:
             continue
         if i == 0 and re.match(r"(?i)^(pseudonym|replace|replacement|alias|new)", r[1]):
             continue
-        out.append(clean_entry({"real": r[0], "to": r[1]}))
+        out.append(clean_entry({"real": r[0], "to": r[1], "review": r[2].lower() in KEY_YES, "except": r[3]}))
     if not out:
         raise NamesError(i18n.t("names.key_empty"))
     return out
 
 
 def write_key(entries: list[dict]) -> str:
-    """The list as a two-column CSV, the spellings joined with commas then the replacement, for another
-    computer. Entries for one participant lose that, the key is two columns."""
+    """The list as a CSV for another computer: the spellings joined with commas, the replacement, Review each
+    ("yes" when set) and the except phrases with semicolons between (namesfix2). Entries for one participant lose
+    that, and Match case is not kept."""
     buf = io.StringIO()
     w = csv.writer(buf, lineterminator="\n")
-    w.writerow([i18n.t("names.key_head_real"), i18n.t("names.key_head_to")])
+    w.writerow([i18n.t("names.key_head_real"), i18n.t("names.key_head_to"), i18n.t("names.key_head_review"),
+                i18n.t("names.key_head_except")])
     for e in entries:
-        w.writerow([", ".join(e["real"]), e["to"]])
+        w.writerow([", ".join(e["real"]), e["to"], "yes" if e.get("review") else "", "; ".join(e.get("except") or [])])
     return buf.getvalue()

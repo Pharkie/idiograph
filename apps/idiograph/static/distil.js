@@ -537,13 +537,16 @@ function arWhy(c) {
   return '';
 }
 
-function arChange(c) {
+function arChange(c, agent) {
   const why = arWhy(c);
+  // turn skip's reason (leaveout, 16 November 2026), the agent's words, framed as its request is
+  const reason = c.reason ? `<div class="ar-asked ar-reason">${esc(t('distil.agent_review.reason', {
+    agent: agent || t('distil.project_history.an_agent'), reason: c.reason }))}</div>` : '';
   const undo = c.state === 'ok'
     ? `<button type="button" class="ar-undo" data-undo="${escAttr(c.id)}">${esc(t('distil.agent_review.undo'))}</button>` : '';
   return `<li class="ar-change${c.state === 'undone' ? ' is-undone' : ''}" data-change="${escAttr(c.id)}"><div class="ar-what">`
     + `<span class="ar-line">${esc(c.line)}</span>${c.where ? ` <span class="ar-where">${esc(c.where)}</span>` : ''}</div>${undo}`
-    + (why ? `<div class="ar-why">${esc(why)}</div>` : '') + '<div class="ar-refused" hidden></div></li>';
+    + reason + (why ? `<div class="ar-why">${esc(why)}</div>` : '') + '<div class="ar-refused" hidden></div></li>';
 }
 
 /* the lines a run shows: all of them once opened, else the newest run's first lines and every change that says why
@@ -562,7 +565,7 @@ function arRun(r, newest) {
   const more = !hidden ? '' : `<button type="button" class="ar-more" data-more="${escAttr(r.id)}">${esc(shown.length
     ? t('distil.agent_review.show_more', { n: hidden }) : t('distil.agent_review.show_all', { n: hidden }))}</button>`;
   return `<div class="ar-run" data-run="${escAttr(r.id)}">${arHead(r)}${asked}<div class="ar-refused" hidden></div>`
-    + (shown.length ? `<ul class="ar-changes">${shown.map(arChange).join('')}</ul>` : '') + `${more}</div>`;
+    + (shown.length ? `<ul class="ar-changes">${shown.map((c) => arChange(c, r.agent)).join('')}</ul>` : '') + `${more}</div>`;
 }
 
 /* the runs under their days, by the day each began */
@@ -3379,10 +3382,11 @@ async function npMake() {
     // the names as the rows now stand, so each find he unticked is sent by its number as the Add will count it
     await nmPreview();
     const skip = nmSkipsSent();
-    if (add) await api('/api/add-transcripts', { op: 'add', root: add.id, files, skip });
+    const take = nmTakesSent();
+    if (add) await api('/api/add-transcripts', { op: 'add', root: add.id, files, skip, take });
     else {
       const made = await api('/api/new-project', { op: 'make', folder: typed, name: $('np-name').value.trim(),
-        research_question: $('np-question').value.trim(), method: npMethod(), files, skip });
+        research_question: $('np-question').value.trim(), method: npMethod(), files, skip, take });
       if (made && made.project && made.project.id) homeKeep(made.project.id);
     }
     closeNewProject();
@@ -3497,13 +3501,35 @@ function nmRowFinds(row) {
   const file = NP.names && NP.names.files ? NP.names.files[at] : null;
   if (!file) return [];
   row.skips = row.skips || new Set();
-  return nmKeyed(file.finds).map(({ f, key }) => ({ ...f, key, skipped: row.skips.has(key) }));
+  row.takes = row.takes || new Set();
+  return nmKeyed(file.finds).map(({ f, key }) => ({ ...f, key, skipped: nmOff(f, key, row.skips, row.takes) }));
+}
+
+/* whether a find is left as written: a Review each name's find until he ticks it (namesop, 16 November 2026), any
+   other once he unticks it */
+function nmOff(f, key, skips, takes) {
+  return f.review ? !takes.has(key) : skips.has(key);
+}
+
+/* a tick kept: a Review each name's find among those he takes, any other among those he skips */
+function nmTick(finds, keys, on, skips, takes) {
+  const review = new Set(finds.filter((f) => f.review).map((f) => f.key));
+  for (const k of keys) {
+    if (review.has(k)) { if (on) takes.add(k); else takes.delete(k); } else if (on) skips.delete(k); else skips.add(k);
+  }
 }
 
 /* the skips the Add sends, each find unticked by its entry and its place among that entry's finds */
 function nmSkipsSent() {
   const out = [];
-  for (const row of NP.rows) for (const f of nmRowFinds(row)) if (f.skipped) out.push(`${f.entry}:${f.nth}`);
+  for (const row of NP.rows) for (const f of nmRowFinds(row)) if (f.skipped && !f.review) out.push(`${f.entry}:${f.nth}`);
+  return out;
+}
+
+/* and the finds of a Review each name he ticked, which alone of its finds are replaced */
+function nmTakesSent() {
+  const out = [];
+  for (const row of NP.rows) for (const f of nmRowFinds(row)) if (f.review && !f.skipped) out.push(`${f.entry}:${f.nth}`);
   return out;
 }
 
@@ -3678,10 +3704,7 @@ async function nmReviewRow(row) {
   if (!finds.length) return;
   const list = (NP.names && NP.names.list) || [];
   nmReviewOpen({ kicker: row.file, title: t('distil.names.review_title'), finds, list, who: false,
-    onTick: (keys, on) => {
-      row.skips = row.skips || new Set();
-      for (const k of keys) { if (on) row.skips.delete(k); else row.skips.add(k); }
-    },
+    onTick: (keys, on) => nmTick(finds, keys, on, row.skips, row.takes),
     actions: [{ label: t('distil.names.done'), primary: true,
       run: () => { nmReviewClose(); nmDrawRows(); } }] });
 }
@@ -3693,7 +3716,8 @@ async function nmListOpen(id, name) {
   try {
     data = await api('/api/names', { op: 'list', root: id });
   } catch (err) { say(needsRestart(err) ? RESTART_LINE : err.message, 9000); return; }
-  NM.list = { id, name: name || '', rows: (data.entries || []).map((e) => ({ real: e.real.join(', '), to: e.to, for: e.for || '', case: !!e.case })),
+  NM.list = { id, name: name || '', rows: (data.entries || []).map((e) => ({ real: e.real.join(', '), to: e.to, for: e.for || '', case: !!e.case,
+      review: !!e.review, except: (e.except || []).join(NM_EXCEPT_JOIN) })),
     who: Array.isArray(data.participants) ? data.participants : [], check: null, said: '' };
   $('nm-list').querySelector('.kicker').textContent = NM.list.name;
   nmListDraw();
@@ -3709,17 +3733,27 @@ function nmListDraw() {
     return `<tr data-i="${i}"><td><input type="text" data-nm="real" spellcheck="false" autocomplete="off" aria-label="${escAttr(t('distil.names.col_name'))}" value="${escAttr(r.real)}"></td>`
       + `<td><input type="text" data-nm="to" spellcheck="false" autocomplete="off" aria-label="${escAttr(t('distil.names.col_to'))}" value="${escAttr(r.to)}"></td>`
       + `<td class="nm-in"><select data-nm="for" aria-label="${escAttr(t('distil.names.col_in'))}">${opts(r.for)}</select></td>`
-      + `<td class="nm-case"><label><input type="checkbox" data-nm="case"${r.case || initials ? ' checked' : ''}${initials ? ' disabled' : ''}>${esc(t('distil.names.match_case'))}</label></td>`
+      + `<td class="nm-except"><input type="text" data-nm="except" spellcheck="false" autocomplete="off" aria-label="${escAttr(t('distil.names.col_except'))}" value="${escAttr(r.except || '')}"></td>`
+      + `<td class="nm-case"><label><input type="checkbox" data-nm="case"${r.case || initials ? ' checked' : ''}${initials ? ' disabled' : ''}>${esc(t('distil.names.match_case'))}</label>`
+      + `<label><input type="checkbox" data-nm="review"${r.review ? ' checked' : ''}>${esc(t('distil.names.review_each'))}</label></td>`
       + `<td class="nm-x"><button type="button" class="np-remove" data-nm="remove" aria-label="${escAttr(t('distil.names.remove', { name: r.real }))}" title="${escAttr(t('distil.np.remove'))}">${NP_CROSS}</button></td></tr>`;
   }).join('');
   $('nm-list-table').hidden = !L.rows.length;
   nmCheckDraw();
 }
 
+/* an entry's except phrases as the field holds them, semicolons between, sent as a list so a phrase may hold a
+   comma, "Potter, Harry" one phrase (namesfix, 16 November 2026) */
+const NM_EXCEPT_JOIN = '; ';
+function nmExcepts(text) {
+  return String(text || '').split(';').map((x) => x.trim()).filter(Boolean);
+}
+
 /* the list as the server keeps it: every row with a name and its replacement */
 function nmListEntries() {
   return NM.list.rows.filter((r) => r.real.trim() && r.to.trim())
-    .map((r) => ({ real: r.real, to: r.to.trim(), for: r.for || null, case: r.case || NM_INITIALS.test(r.real.split(',')[0].trim()) }));
+    .map((r) => ({ real: r.real, to: r.to.trim(), for: r.for || null, case: r.case || NM_INITIALS.test(r.real.split(',')[0].trim()),
+      ...(r.review ? { review: true } : {}), ...(nmExcepts(r.except).length ? { except: nmExcepts(r.except) } : {}) }));
 }
 
 async function nmListSave() {
@@ -3738,7 +3772,7 @@ function nmListInput(e) {
   const tr = el.closest('tr[data-i]');
   if (!tr || !NM.list) return;
   const r = NM.list.rows[Number(tr.dataset.i)];
-  if (el.dataset.nm === 'real' || el.dataset.nm === 'to') r[el.dataset.nm] = el.value;
+  if (el.dataset.nm === 'real' || el.dataset.nm === 'to' || el.dataset.nm === 'except') r[el.dataset.nm] = el.value;
 }
 
 function nmListChange(e) {
@@ -3748,6 +3782,8 @@ function nmListChange(e) {
   const r = NM.list.rows[Number(tr.dataset.i)];
   if (el.dataset.nm === 'for') r.for = el.value;
   else if (el.dataset.nm === 'case') r.case = el.checked;
+  else if (el.dataset.nm === 'review') r.review = el.checked;
+  else if (el.dataset.nm === 'except') r.except = el.value;
   else if (el.dataset.nm === 'real') {
     r.real = el.value;
     // initials are matched by their case always, so their tick stands ticked and fixed
@@ -3769,7 +3805,7 @@ function nmListClick(e) {
 }
 
 function nmListAdd() {
-  NM.list.rows.push({ real: '', to: '', for: '', case: false });
+  NM.list.rows.push({ real: '', to: '', for: '', case: false, review: false, except: '' });
   nmListDraw();
   const inputs = $('nm-list-rows').querySelectorAll('[data-nm="real"]');
   if (inputs.length) inputs[inputs.length - 1].focus();
@@ -3785,7 +3821,8 @@ async function nmListFile(file) {
   const had = new Set(NM.list.rows.map((r) => r.real.trim().toLowerCase()));
   for (const e of data.entries || []) {
     const real = e.real.join(', ');
-    if (!had.has(real.toLowerCase())) NM.list.rows.push({ real, to: e.to, for: '', case: !!e.case });
+    if (!had.has(real.toLowerCase())) NM.list.rows.push({ real, to: e.to, for: '', case: !!e.case, review: !!e.review,
+      except: (e.except || []).join(NM_EXCEPT_JOIN) });
   }
   nmListDraw();
   await nmListSave();
@@ -3800,6 +3837,7 @@ async function nmCheck() {
     L.check = data.names;
     L.list = data.list || [];
     L.skips = new Set();
+    L.takes = new Set();
     L.said = '';
   } catch (err) { L.said = needsRestart(err) ? RESTART_LINE : err.message; }
   nmCheckDraw();
@@ -3834,9 +3872,10 @@ function nmReplaceReview() {
   const L = NM.list;
   if (!L || !L.check) return;
   L.skips = L.skips || new Set();
-  const finds = nmKeyedProject(L.check.finds || []).map(({ f, key }) => ({ ...f, key, skipped: L.skips.has(key) }));
+  L.takes = L.takes || new Set();
+  const finds = nmKeyedProject(L.check.finds || []).map(({ f, key }) => ({ ...f, key, skipped: nmOff(f, key, L.skips, L.takes) }));
   nmReviewOpen({ kicker: L.name, title: t('distil.names.review_in_title'), finds, list: L.list || [], who: true,
-    onTick: (keys, on) => { for (const k of keys) { if (on) L.skips.delete(k); else L.skips.add(k); } },
+    onTick: (keys, on) => nmTick(finds, keys, on, L.skips, L.takes),
     actions: [{ label: t('distil.names.cancel'), run: () => nmReviewClose() },
       { label: t('distil.names.replace_go'), primary: true, run: () => nmReplace(finds) }] });
 }
@@ -3854,12 +3893,13 @@ function nmKeyedProject(finds) {
 
 async function nmReplace(finds) {
   const L = NM.list;
-  const skip = finds.filter((f) => L.skips.has(f.key)).map((f) => `${f.entry}:${f.nth}`);
+  const skip = finds.filter((f) => !f.review && L.skips.has(f.key)).map((f) => `${f.entry}:${f.nth}`);
+  const take = finds.filter((f) => f.review && L.takes.has(f.key)).map((f) => `${f.entry}:${f.nth}`);
   // what is typed on a participant open behind is saved first, so the replace meets it and nothing writes over it
   if (S.data && typeof savePending === 'function' && !(await savePending())) return;
   let data;
   try {
-    data = await api('/api/names', { op: 'replace', root: L.id, skip });
+    data = await api('/api/names', { op: 'replace', root: L.id, skip, take });
   } catch (err) {
     nmReviewClose();
     L.said = needsRestart(err) ? RESTART_LINE : err.message;

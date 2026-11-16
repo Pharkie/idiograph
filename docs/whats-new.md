@@ -5,9 +5,13 @@ Newest first. Each version's notes are what the updater shows, eight lines at mo
 
 What goes here: only major new features and real changes to how something works, among them what your AI agents can do, and any change to safety, privacy or your data. One plain line each, saying what you can now do, not how the screen shows it. Never: changed wording, labels or layout, small fixes, or a feature's parts (its buttons, tabs, counts). Several changes to one feature are one line. A version with nothing major has one line, or none.
 
-## 0.9.28, 13 November 2026
+## 0.9.28, 16 November 2026
 
 A longitudinal IPA demo: three participants at three timepoints, with LPETs and trajectories.
+Export sits in the same place on every board, and Trajectories, a participant's annotated transcript and the code list now print and save as PDF and Word.
+Project history's By an agent shows each agent's changes by run, and you can undo a whole run or one change; Home says when agents have made changes since you last looked.
+A name on your list of names to replace can be marked to review each time, or left alone inside phrases you give, and your AI agent can add names to the list when you ask.
+Your AI agent can now start your GETs or LGETs, mark passages that need no statement, bring new statements into your LPETs, and show what bringing in a timepoint's changes would do before it does it.
 
 ## 0.9.27, 12 November 2026
 

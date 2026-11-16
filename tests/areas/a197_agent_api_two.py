@@ -249,7 +249,7 @@ def test_agent_api_two(scratch):
         boards_g = gets_mod.load(root)["boards"]
         code3, again, _ = answer("gets", "take", "Rowan", "--note", "Again")
         check("197: gets take takes the changes as Take the changes does, a revision first on every GETs board, once",
-              code == 0 and dry_kept and dry["changes"]["retitled"] and code2 == 0
+              code == 0 and dry_kept and dry["counts"]["copy"]["n_pets_renamed"] == 1 and code2 == 0
               and copy() == "Her timetable, dark at both ends"
               and all(b["history"][-1]["name"] == "Before Rowan's changes came in" for b in boards_g)
               and all(b["changed"]["tool"] == "Claude Code" for b in boards_g)

@@ -68,6 +68,16 @@
   "server.board_marked_current_pets_were": "No board is marked current, so the PETs were not marked complete.",
   "server.gets_file_nothing_written": "{name} is not a GETs file, so nothing was written.",
   "server.nothing_changed_s_pets_since": "Nothing has changed in {who_case}'s PETs since they came in, so nothing was taken.",
+  "server.take_would_change_board": "Taking {who_case}'s changes would change the board {board}'s own {what}, so nothing was taken.",
+  "server.take_and_more": " and {n} more",
+  "server.take_kind_labels": "labels",
+  "server.take_kind_cards": "cards",
+  "server.take_kind_bin": "set aside",
+  "server.take_kind_picks": "picks",
+  "server.take_kind_stacks": "stacks",
+  "server.take_kind_key_quotes": "key quotes",
+  "server.take_kind_notes": "sticky notes",
+  "server.take_kind_board": "name or note",
   "server.could_read_nothing_written": "{name} could not be read, so nothing was written.",
   "server.minimum_whole_number_nothing_changed": "The minimum is a whole number, so nothing was changed.",
   "server.say_line_why_out_study": "Say in a line why {who_case} is out of the study, so nothing was changed.",
@@ -558,6 +568,30 @@
   "server.refresh_copy_unread": "The {name} could not be read, so their copy was left as it was: {exc}",
   "server.rows_copy_unmoved": "The {name} could not be read, so their copy stayed on the old rows: {exc}",
   "server.passage_copy_unmoved": "The {name} could not be read, so their copy kept the statements as they were: {exc}",
+  "server.passage_copy_unadded": "The new statement could not be read for the {name}, so their copy does not hold it yet; copies refresh adds it: {exc}",
+  "server.refresh_copy_unadded": "The workbook could not be read for the {name}, so the statements their copy lacks were not added: {exc}",
   "server.copies_rekey_which_sheet": "{case} has statements on more than one sheet ({sheets}). Name the sheet with --sheet. Nothing was written.",
-  "server.copies_rekey_clash": "Shifting {case} would put a statement on {keys}, which the copy holds already. Nothing was written."
+  "server.copies_rekey_clash": "Shifting {case} would put a statement on {keys}, which the copy holds already. Nothing was written.",
+  "server.skip_no_rows": "Name the passages to mark decided by their rows, a row or a span of rows. Nothing was written.",
+  "server.skip_refused.missing": {
+    "one": "No passage at row {rows} of {sheet}. Nothing was written.",
+    "other": "No passage at rows {rows} of {sheet}. Nothing was written."
+  },
+  "server.skip_rows_shape": "Each row is a number, or a span as [first, last]. Nothing was written.",
+  "server.skip_refused.span": {
+    "one": "No passage of the participant's between rows {rows} of {sheet}. Nothing was written.",
+    "other": "No passage of the participant's in the spans {rows} of {sheet}. Nothing was written."
+  },
+  "server.skip_refused.context": {
+    "one": "Row {rows} of {sheet} is the interviewer's or another speaker's, never a passage to decide. Nothing was written.",
+    "other": "Rows {rows} of {sheet} are the interviewer's or another speaker's, never passages to decide. Nothing was written."
+  },
+  "server.skip_refused.passes": {
+    "one": "Marking these would make row {rows} of {sheet}, a passage not named, count as passed, decided without being asked. Name it too if it needs no statement either. Nothing was written.",
+    "other": "Marking these would make rows {rows} of {sheet}, passages not named, count as passed, decided without being asked. Name them too if they need no statement either. Nothing was written."
+  },
+  "server.skip_refused.statements": {
+    "one": "Row {rows} of {sheet} holds statements, so it is decided already. Name only passages with no statement. Nothing was written.",
+    "other": "Rows {rows} of {sheet} hold statements, so they are decided already. Name only passages with no statement. Nothing was written."
+  }
 }

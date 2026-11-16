@@ -330,6 +330,9 @@ def run_in_scope(command, p: Project, args) -> tuple:
     2026): an op only the app does refused in a plain line, and every write kept in the project's change record
     with its run's restore point (`agent_changes.through`). An undo of a run keeps its own (`agent_changes.undo_run`)."""
     agent_log.at_project(p.info["name"])
+    # his request with the project's real names taken out before the record, History or the agent log keeps it
+    # (namesop, 16 November 2026)
+    changes_mod.hide_request(p.root, args)
     with scope_of(p, args) as q:
         if (args.command, getattr(args, "act", None)) in (("agents", "undo-run"), ("agents", "undo-change")):
             return command(q, args)
@@ -5296,7 +5299,12 @@ def cmd_gets_take(p: Project, args) -> tuple:
     """Take the changes of a case into the GETs, as Update on the GETs screen does (see `gets.take`):
     the GETs file keeps a copy of each case's PETs from when it came in. A change made in the app comes
     in by itself (20 October), and one made here stands apart until he presses Update or this runs. Each GETs board keeps a revision first, and is marked as changed in a
-    conversation, so an open GETs screen says so."""
+    conversation, so an open GETs screen says so. On a participant's LPETs (`--lpets`) the case is a timepoint, T1.
+
+    The dry run runs the take itself in memory and writes nothing (takedry, 16 November 2026): its answer is
+    `counts`, keys and counts and never a word, what changes in the copy and on each board, and the take answers
+    the same `counts`, so it writes exactly what its dry run said. A board keeps its own structure through a take,
+    and one that would not is refused whole."""
     if not themes_ai.one_line(args.note) and not args.dry_run:
         raise cli.Refused(_w("NO_REQUEST"))
     gets_data(p)
@@ -5314,23 +5322,73 @@ def cmd_gets_take(p: Project, args) -> tuple:
         if entry["status"] == "in":
             text = i18n.t("cli.gets.take_none", name=name)
             return {"case": b["case"], "changed": False, "said": text}, [text]
-        said = gets_mod.changes(old, entry["fresh"])
-        lines = changes_lines(name, said)
-        out = {"case": b["case"], "changes": said}
-        if args.dry_run:
-            text = i18n.t("cli.gets.take_dry", name=name)
-            return dict(out, dry_run=True, said=" ".join([text] + lines)), [text] + lines
         try:
-            gets_mod.take(p.root, p.books, b["case"])
+            done = gets_mod.take(p.root, p.books, b["case"], dry_run=bool(args.dry_run))
         except WorkbookError as exc:
             raise cli.Refused(str(exc))
+        counts = done["counts"]
+        lines = take_lines(counts)
+        out = {"case": b["case"], "counts": counts}
+        if args.dry_run:
+            text = take_said("take_dry", name)
+            return dict(out, dry_run=True, said=" ".join([text] + lines)), [text] + lines
         data = gets_mod.load(p.root)
         for board in gets_mod.boards_of(data):
             board["changed"] = mark(args, when)
             board["changed"]["hash"] = themes.state_hash(themes.made_state(gets_mod.normal(board, data)))
         gets_mod.write(p.root, gets_mod._file(data, now_iso()))
-    text = i18n.t("cli.gets.take", name=name)
+    text = take_said("take", name)
     return dict(out, said=" ".join([text] + lines)), [text] + lines
+
+
+def take_said(key: str, name: str) -> str:
+    """A take's first line, on GETs as always and on LPETs or LGETs naming them."""
+    where = "LPETs" if gets_mod.in_lpets() else "LGETs" if gets_mod.in_lgets() else None
+    if where is None:
+        if key == "take_dry":
+            return i18n.t("cli.gets.take_dry", name=name)
+        return i18n.t("cli.gets.take", name=name)
+    if key == "take_dry":
+        return i18n.t("cli.gets.take_dry_on", name=name, where=where)
+    return i18n.t("cli.gets.take_on", name=name, where=where)
+
+
+def keys_said(keys, most: int = 12) -> str:
+    """Keys in a line, the first `most` of them and how many more."""
+    keys = list(keys)
+    if not keys:
+        return ""
+    said = ", ".join(keys[:most])
+    return " (" + said + (i18n.t("cli.changes_lines.and_more", v_=len(keys) - most) if len(keys) > most else "") + ")"
+
+
+def take_lines(counts: dict) -> list[str]:
+    """What a take changes, said by counts and keys and never a word (see `gets.take_into`): the copy, then each
+    board, the one Trajectories reads marked."""
+    c = counts["copy"]
+    copy_args = dict(pa=c["n_pets_added"], pr=c["n_pets_renamed"], pg=c["n_pets_removed"],
+                     sa=c["n_statements_added"], sc=c["n_statements_changed"], sm=c["n_statements_moved"],
+                     sg=c["n_statements_removed"])
+    if gets_mod.in_lgets():
+        out = [i18n.t("cli.gets.take_copy_lgets", **copy_args)]
+    else:
+        out = [i18n.t("cli.gets.take_copy", **copy_args)]
+    if c.get("marked"):
+        out.append(i18n.t("cli.gets.take_marked"))
+    if c.get("source"):
+        out.append(i18n.t("cli.gets.take_source"))
+    labels = "LPETs" if gets_mod.in_lpets() else "LGETs" if gets_mod.in_lgets() else i18n.t("cli.gets.take_labels")
+    for bd in counts["boards"]:
+        board_args = dict(board=bd["name"] or bd["board"], labels=labels,
+                          nl=bd["n_labels_changed"], keys_l=keys_said(bd["labels_changed"]), nc=bd["n_cards_changed"],
+                          nlost=bd["n_cards_lost"], keys_lost=keys_said(bd["cards_lost"]), ncells=bd["n_cells_changed"],
+                          keys_cells=keys_said(bd["cells_changed"]), nadded=bd["n_cards_added"],
+                          nmoved=bd["n_cards_moved"], nlm=bd["n_labels_moved"], nnm=bd["n_notes_moved"])
+        if bd.get("trajectories"):
+            out.append(i18n.t("cli.gets.take_board_traj", **board_args))
+        else:
+            out.append(i18n.t("cli.gets.take_board", **board_args))
+    return out
 
 
 # ------------------------------------------ the GETs boards, their History and the study (26 October)
@@ -6310,6 +6368,9 @@ def turn_write(p: Project, args) -> tuple:
         moves_lines = themes.passage_lines(turn["statements"], after_s, named)
         moves_quotes = (quote_lines(turn["places"], len(turn["statements"]), after_q, len(after_s), moves_lines)
                         if pairing else {i: i for i in range(len(turn["places"]))})
+    # the copies follow a statement removed, merged or moved (lpetdrop), and take one added (copiesadd, 16 November)
+    copies_move = moves_lines is not None and (any(j != i for i, j in moves_lines.items())
+                                               or bool(gets_mod.passage_added(args.sheet, first, after_s, moves_lines)))
     history = themes_ai.revision_name(request)
 
     def carry(now: dict, then: dict, dry: bool, changed: dict | None = None) -> tuple[list[dict], list[str]]:
@@ -6356,7 +6417,7 @@ def turn_write(p: Project, args) -> tuple:
         copies = routes.follow_statements(book, reworded, {}, dry=True, quotes=requoted) if follows else {}
         # a statement removed or merged, or one moved, on every copy of it, the LPETs' among them (lpetdrop)
         followed = (routes.passage_follow(book, args.sheet, first, turn["statements"], after_s, moves_lines, dry=True)
-                    if moves_lines and any(j != i for i, j in moves_lines.items()) else {})
+                    if copies_move else {})
         effects = effects_of(boards)
         text = i18n.t("cli.turn_write.dry_run_nothing_was_written_it", said=said, where=where)
         lines = ([text] + span_lines(spans, args.sheet, True) + added_lines(added, turn["notes"], True)
@@ -6405,7 +6466,7 @@ def turn_write(p: Project, args) -> tuple:
         # every copy of the participant, the LPETs' among them, drops a removed statement and follows a merged
         # or moved one, in the same write (lpetdrop, 13 November 2026)
         followed = (routes.passage_follow(book, args.sheet, first, turn["statements"], after_s, moves_lines)
-                    if moves_lines and any(j != i for i, j in moves_lines.items()) else {})
+                    if copies_move else {})
         # and the GETs' copies of the participant, a board with a card of it marked changed in a conversation
         copies = routes.follow_statements(book, reworded, copies_were, changed=mark(args, at),
                                           history=history, quotes=requoted) if follows else {}
@@ -6438,11 +6499,20 @@ def followed_copy_lines(followed: dict, dry: bool) -> list[str]:
         said = lambda field: dict(n=len(done[field]), keys=", ".join(done[field]))
         parts = ([i18n.t("cli.copies_followed.removed", **said("removed"))] if done.get("removed") else []) \
             + ([i18n.t("cli.copies_followed.merged", **said("merged"))] if done.get("merged") else []) \
-            + ([i18n.t("cli.copies_followed.moved", **said("moved"))] if done.get("moved") else [])
+            + ([i18n.t("cli.copies_followed.moved", **said("moved"))] if done.get("moved") else []) \
+            + ([i18n.t("cli.copies_followed.added", **said("added"))] if done.get("added") else [])
+        name = routes.COPY_NAMES[kind]
         if parts:
-            name = routes.COPY_NAMES[kind]
             out.append(i18n.t("cli.copies_followed.dry", name=name, parts=listed(parts)) if dry
                        else i18n.t("cli.copies_followed.wrote", name=name, parts=listed(parts)))
+        # a copy with keys the workbook no longer holds takes no new statement until copies rekey (copiesfix)
+        if done.get("rekey"):
+            rekey_args = dict(name=name, statements=i18n.t("cli.n.statement", n=len(done["rekey"])),
+                              keys=", ".join(done["rekey"]))
+            if dry:
+                out.append(i18n.t("cli.copies_followed.rekey_dry", **rekey_args))
+            else:
+                out.append(i18n.t("cli.copies_followed.rekey", **rekey_args))
     return out + list(followed.get("failed") or [])
 
 
@@ -6530,7 +6600,7 @@ def cmd_copies_refresh(p: Project, args) -> tuple:
                   if long else None, "board": x["board"], "board_name": x["name"], "cards": x["cards"],
                   "quotes": x["quotes"], "missing": x["missing"]} for x in done["pets"]]
         for kind, x in done["copies"].items():
-            if x["statements"] or x["quotes"] or x["missing"] or x["boards"]:
+            if x["statements"] or x["quotes"] or x["missing"] or x["boards"] or x.get("added") or x.get("rekey"):
                 files.append(dict(x, file=kind, name=routes.COPY_NAMES[kind]))
         if files or done["failed"]:
             people.append({"case": b["case"], "files": files, "failed": done["failed"]})
@@ -6542,19 +6612,34 @@ def cmd_copies_refresh(p: Project, args) -> tuple:
     said = dict(cards=i18n.t("cli.n.card", n=cards), statements=i18n.t("cli.n.statement", n=statements),
                 quotes=i18n.t("cli.n.quote", n=quotes))
     cells = [c for f in every for c in f.get("bold") or []]
-    if not (cards or statements or quotes):
+    # the statements the copies lacked, each participant's counted once however many files take it (copiesadd)
+    added = sum(len({k for f in x["files"] for a in f.get("added") or [] for k in a["keys"]}) for x in people)
+    # the copies that took no statement they lack, their keys a row op left behind (copiesfix)
+    rekey = sum(len(a["rekey"]) for f in every for a in f.get("rekey") or [])
+    if not (cards or statements or quotes or added or rekey):
         head = i18n.t("cli.copies_refresh.nothing")
+    elif not (cards or statements or quotes):
+        head = i18n.t("cli.said.dry_run_nothing_was_written") if args.dry_run else ""
     elif args.dry_run:
         head = i18n.t("cli.copies_refresh.dry_run", **said)
     else:
         head = i18n.t("cli.copies_refresh.wrote", **said)
+    if added:
+        added_said = i18n.t("cli.n.statement", n=added)
+        if args.dry_run:
+            added_head = i18n.t("cli.copies_refresh.added_head_dry", statements=added_said)
+        else:
+            added_head = i18n.t("cli.copies_refresh.added_head", statements=added_said)
+        head = " ".join(x for x in (head, added_head) if x)
     lines = [head] + refresh_lines(people, args.dry_run)
+    if rekey:
+        lines.append(i18n.t("cli.copies_refresh.rekey_first"))
     if count("cards", "pets"):
         lines.append(i18n.t("cli.copies_refresh.changed_mark"))
     if not args.dry_run and (cards or statements or quotes):
         lines.append(i18n.t("cli.copies_refresh.history", history=history))
     return {"dry_run": bool(args.dry_run), "participants": people, "cards": cards, "statements": statements,
-            "quotes": quotes, "missing": missing, "bold_moved": sum(c["moved"] for c in cells),
+            "quotes": quotes, "missing": missing, "added": added, "rekey": rekey, "bold_moved": sum(c["moved"] for c in cells),
             "bold_dropped": sum(c["dropped"] for c in cells), "said": head}, lines
 
 
@@ -6588,6 +6673,21 @@ def refresh_lines(people: list[dict], dry: bool) -> list[str]:
                 if f["missing"]:
                     parts.append(i18n.t("cli.copies_refresh.statements_missing", keys=keys(f["missing"]),
                                         statements=i18n.t("cli.n.statement", n=len(f["missing"]))))
+                # each timepoint's on the LPETs, the participant's on the GETs and the LGETs (copiesadd)
+                for a in f.get("added") or []:
+                    at = a["case"] if f["file"] == "lpets" else ""
+                    added_args = dict(statements=i18n.t("cli.n.statement", n=len(a["keys"])), keys=keys(a["keys"]),
+                                      at=i18n.t("cli.copies_refresh.at", timepoint=at) if at else "")
+                    if dry:
+                        parts.append(i18n.t("cli.copies_refresh.added_dry", **added_args))
+                    else:
+                        parts.append(i18n.t("cli.copies_refresh.added", **added_args))
+                # a copy with keys the workbook no longer holds takes nothing until copies rekey (copiesfix)
+                for a in f.get("rekey") or []:
+                    at = a["case"] if f["file"] == "lpets" else ""
+                    parts.append(i18n.t("cli.copies_refresh.rekey_part", keys=keys(a["rekey"]),
+                                        statements=i18n.t("cli.n.statement", n=len(a["rekey"])),
+                                        at=i18n.t("cli.copies_refresh.at", timepoint=at) if at else ""))
                 for c in f["boards"]:
                     if c["cards"]:
                         parts.append(i18n.t("cli.copies_refresh.board_cards", board=c["name"], verb=verb, keys=keys(c["cards"]),
@@ -6832,6 +6932,66 @@ def cmd_turn_interviewer_note(p: Project, args) -> tuple:
     return answer, [i18n.t("cli.turn_interviewer_note.the_interviewers_note_on_the_progress", where=where, verb=verb)]
 
 
+def skip_rows_given(text) -> list:
+    """The rows `turn skip` names, `12`, `12-20` or `12,15,20-22`, each a row or a `[first, last]` span, as
+    `/api/skip` takes them."""
+    out = []
+    for part in str(text or "").split(","):
+        if not part.strip():
+            continue
+        first, last = row_span(part)
+        out.append(first if first == last else [first, last])
+    if not out:
+        raise cli.Refused(i18n.t("cli.turn_skip.no_rows"))
+    return out
+
+
+def cmd_turn_skip(p: Project, args) -> tuple:
+    """Passages decided with no statement, as Skip on the statements screen decides one (leaveout, 16 November 2026,
+    `routes.api_skip`): each row's state in the progress file `reviewed-empty`, the workbook untouched, so every count
+    reads it decided as the app's own Skip leaves it. A passage with statements is refused, nothing written. His
+    reason, `--reason`, is kept in this op's line of the record of agents' changes alone, since the app keeps none
+    (`agent_changes.entry_for`), never in the notes. The dry run counts by participant and timepoint, rows alone."""
+    b = p.case(args.case)
+    book = Path(b["workbook"])
+    marks = turn_marks(args)
+    body = dict({"path": str(book), "sheet": args.sheet, "rows": skip_rows_given(args.rows)}, **marks)
+    try:
+        done = routes.api_skip(body)
+    except (WorkbookError, srv.OutsideRoot) as exc:
+        raise cli.Refused(str(exc)) from None
+    answer = dict(done, case=b["case"])
+    if getattr(args, "reason", None):
+        answer["reason"] = i18n.t("cli.turn_skip.reason_kept")
+    tp = done["timepoint"]["label"] if routes.longitudinal(p.info.get("timepoints")) else ""
+    where = (i18n.t("cli.turn_skip.where_at", case=b["case"], timepoint=tp, sheet=args.sheet) if tp
+             else i18n.t("cli.turn_skip.where", case=b["case"], sheet=args.sheet))
+    rows = lambda ns: formats.list_words([str(n) for n in ns])
+    passages = lambda ns: i18n.t("cli.n.passage", n=len(ns))
+    lines = []
+    if not done["marked"]:
+        lines.append(i18n.t("cli.turn_skip.nothing", where=where))
+    elif args.dry_run:
+        lines.append(i18n.t("cli.turn_skip.dry", where=where, passages=passages(done["marked"]), rows=rows(done["marked"])))
+    else:
+        lines.append(i18n.t("cli.turn_skip.done", where=where, passages=passages(done["marked"]), rows=rows(done["marked"])))
+    if done["already"] and done["marked"]:
+        lines.append(i18n.t("cli.turn_skip.already", passages=passages(done["already"]), rows=rows(done["already"])))
+    if done["kept"]:
+        lines.append(i18n.t("cli.turn_skip.kept", passages=passages(done["kept"]), rows=rows(done["kept"])))
+    d = done["decided"]
+    if done["marked"]:
+        at = i18n.t("cli.turn_skip.at", timepoint=tp) if tp else ""
+        if args.dry_run:
+            lines.append(i18n.t("cli.turn_skip.decided_dry", at=at, before=d["before"], after=d["after"], total=d["total"]))
+        else:
+            lines.append(i18n.t("cli.turn_skip.decided", at=at, before=d["before"], after=d["after"], total=d["total"]))
+    if getattr(args, "reason", None) and done["marked"]:
+        lines.append(answer["reason"])
+    answer["said"] = lines[0]
+    return answer, lines
+
+
 def assign_span(book: Path, args, row: int) -> tuple:
     """The words of a passage an assignment takes, by --words found once in it or by --start and --end,
     or none for the whole passage."""
@@ -7040,7 +7200,71 @@ def cmd_names_list(p: Project, args) -> tuple:
         lines.append(i18n.t("names.line_entry_listed", entry=e["entry"], to=e["to"],
                             spellings=i18n.t("names.spelled", n=e["spellings"]),
                             where=i18n.t("names.in_participant", who=e["for"]) if e["for"] else "",
-                            case=i18n.t("names.match_case") if e["case"] else ""))
+                            case=i18n.t("names.match_case") if e["case"] else "",
+                            review=i18n.t("names.review_each") if e.get("review") else "",
+                            excepts=i18n.t("names.excepts", n=e["excepts"]) if e.get("excepts") else ""))
+    return done, lines
+
+
+def names_given(args) -> list:
+    """The entries `names add` was given: `--from`, a JSON file of entries or `{"entries": [...]}` (the MCP server
+    hands its `entries` over already read), or one entry by `--real` and `--to` with its options. The real names
+    and except phrases are kept on `args` as `secret_words`, so his request as the record and the agent log keep it
+    has them taken out (namesop)."""
+    rows = []
+    source = getattr(args, "source", None)
+    if source is not None:
+        spec = cli.read_spec(source)
+        rows = spec.get("entries") if isinstance(spec, dict) else spec
+        if not isinstance(rows, list):
+            raise cli.Refused(i18n.t("names.add_none"))
+    if getattr(args, "real", None):
+        rows = list(rows) + [{"real": args.real, "to": args.to or "", "for": args.for_ or None, "case": bool(args.match_case),
+                              "review": bool(args.review_each), "except": list(args.except_ or [])}]
+    if not rows:
+        raise cli.Refused(i18n.t("names.add_none"))
+    words = []
+    for r in rows:
+        if isinstance(r, dict):
+            for key in ("real", "spellings", "except"):
+                v = r.get(key)
+                # a string's pieces at commas and semicolons both, and whole, so taking out holds whatever it splits at
+                pieces = ([v] + re.split(r"[,;]", v)) if isinstance(v, str) else v if isinstance(v, list) else []
+                words += [x.strip() for x in pieces if isinstance(x, str) and x.strip()]
+    args.secret_words = sorted(set(words) | set(getattr(args, "secret_words", None) or ()), key=len, reverse=True)
+    # and out of his request now, so nothing written from it holds them
+    if getattr(args, "note", None):
+        args.note = agent_log.hidden_words(getattr(args, "note_raw", None) or args.note, args.secret_words)
+    return rows
+
+
+def cmd_names_add(p: Project, args) -> tuple:
+    """Entries added to the project's list of names on his word (namesop, 16 November 2026), with --dry-run first:
+    each new entry by its number, its replacement and whom it is for, and how many finds it would flag across the
+    transcripts already in, by participant and by part, never a real name and never the words around a find. One
+    line in the record of agents' changes, undone by `agents undo-change` or its run's undo."""
+    rows = names_given(args)
+    done = route_call(routes.api_names, dict({"op": "add", "root": routes.project_id(p.root), "entries": rows},
+                                             **turn_marks(args)))
+    lines = [i18n.t("names.dry_added", n=done["added"]) if done["dry_run"] else i18n.t("names.added", n=done["added"])]
+    for e in done["entries"]:
+        said = dict(to=e["to"], where=i18n.t("names.in_participant", who=e["for"]) if e["for"] else "",
+                    case=i18n.t("names.match_case") if e["case"] else "",
+                    review=i18n.t("names.review_each") if e.get("review") else "",
+                    excepts=i18n.t("names.excepts", n=e["excepts"]) if e.get("excepts") else "",
+                    hits=i18n.t("names.add_found", n=e["hits"]) if e["hits"] else i18n.t("names.add_found_none"))
+        # each key written out whole, so the check of keys in use finds it (namesfix3)
+        if e.get("entry"):
+            lines.append(i18n.t("names.add_line", entry=e["entry"], **said))
+        else:
+            lines.append(i18n.t("names.add_line_listed", **said))
+        for place in e["by_participant"]:
+            parts = [said_part for said_part in (
+                i18n.t("names.add_part.transcript", n=place["transcript"]) if place["transcript"] else "",
+                i18n.t("names.add_part.quotes", n=place["quotes"]) if place["quotes"] else "",
+                i18n.t("names.add_part.statements", n=place["statements"]) if place["statements"] else "",
+                i18n.t("names.add_part.notes", n=place["notes"]) if place["notes"] else "") if said_part]
+            lines.append(i18n.t("names.add_place", participant=place["participant"], parts=", ".join(parts)))
     return done, lines
 
 
@@ -8105,6 +8329,8 @@ COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             ("gets", "subs"): cmd_gets_subs, ("gets", "settings"): cmd_gets_settings,
             ("turn", "show"): cmd_turn_show, ("turn", "write"): cmd_turn_write, ("validate", None): cmd_validate,
             ("turn", "edit"): cmd_turn_edit, ("turn", "interviewer-note"): cmd_turn_interviewer_note,
+            # passages decided with no statement, as Skip decides one (leaveout, 16 November 2026)
+            ("turn", "skip"): cmd_turn_skip,
             ("turn", "assign"): cmd_turn_assign, ("turn", "assign-undo"): cmd_turn_assign_undo,
             ("turn", "trim"): cmd_turn_trim, ("turn", "trim-undo"): cmd_turn_trim_undo,
             # every copy of the statements brought in line with the workbook (cardsync, 13 November 2026)
@@ -8112,6 +8338,7 @@ COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             ("copies", "prune"): cmd_copies_prune,
             ("project", "add-transcripts"): cmd_project_add_transcripts,
             ("names", "list"): cmd_names_list, ("names", "check"): cmd_names_check, ("names", "remove"): cmd_names_remove,
+            ("names", "add"): cmd_names_add,
             ("names", "replace"): cmd_names_replace,
             ("import", None): cmd_import, ("qdpx", None): cmd_qdpx, ("offset", None): cmd_offset, ("audio", "attach"): cmd_audio_attach,
             ("timepoints", None): cmd_timepoints,
@@ -8439,6 +8666,13 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("sheet")
     x.add_argument("row")
     x.add_argument("--text", required=True, help="the note, a line an entry, empty to clear it")
+    x = t.add_parser("skip", parents=[common, writes],
+                     help="passages decided with no statement, as Skip on the statements screen decides one")
+    x.add_argument("case")
+    x.add_argument("sheet")
+    x.add_argument("rows", help="the passages' rows: 12, 12-20 or 12,15,20-22, a span taking in the participant's alone")
+    x.add_argument("--reason", default=None,
+                   help="why, kept in the record of agents' changes alone, never in the notes, since the app keeps none")
     x = t.add_parser("assign", parents=[common, writes],
                      help="words of a passage, or the whole of it, assigned to another speaker")
     x.add_argument("case")
@@ -8538,6 +8772,21 @@ def arguments(sub, common, writes) -> None:
                              "comes in: counts and numbers only, never a real name").add_subparsers(dest="act", required=True)
     nm.add_parser("list", parents=[common], help="each entry's number, its replacement, whom it is for and its spellings counted")
     nm.add_parser("check", parents=[common], help="the transcripts already in searched for the list's names, counts only")
+    x = nm.add_parser("add", parents=[common, writes],
+                      help="entries added to the list on his word, --dry-run first: each new entry's finds counted by "
+                           "participant and part, never a real name said back")
+    x.add_argument("--from", dest="source", default=None,
+                   help='a JSON file, [{"real": ["spelling", ...], "to": "Wren", "for": "Wren", "case": false, '
+                        '"review": false, "except": ["phrase", ...]}, ...] or {"entries": [...]}, which keeps the real '
+                        'names out of the command line')
+    x.add_argument("--real", default=None, help="one entry's real name, its spellings with commas between")
+    x.add_argument("--to", default=None, help="what that name is written as")
+    x.add_argument("--for", dest="for_", default=None, help="the participant it is for, by pseudonym, everyone's when left out")
+    x.add_argument("--case", dest="match_case", action="store_true", help="Match case")
+    x.add_argument("--review-each", action="store_true",
+                   help="never replaced in bulk: each find is left for him to decide in the app's Review and replace")
+    x.add_argument("--except", dest="except_", action="append", default=None, metavar="PHRASE",
+                   help="a phrase the name is never found inside, given again for each one more")
     x = nm.add_parser("remove", parents=[common, writes], help="entries taken off the list by their numbers")
     x.add_argument("numbers", type=int, nargs="+", help="the entries' numbers, from the list")
     x = nm.add_parser("replace", parents=[common, writes],

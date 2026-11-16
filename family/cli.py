@@ -124,6 +124,11 @@ PLAIN = frozenset((
     # came from, the app's own line of what changed and of what an undo puts back, and the commands that undo
     "run", "via", "started", "last", "what_changed", "own", "batch", "copy", "undoes", "undo_run", "change",
     "back_said", "gone_said",
+    # what a take changes, by key (takedry, 16 November 2026): a copy's PETs and statements, a board's labels, cards
+    # and the rows Trajectories shows, each a key the app makes
+    "pets_added", "pets_renamed", "pets_removed", "statements_added", "statements_changed", "statements_moved",
+    "statements_removed", "labels_changed", "cards_changed", "cards_lost", "cards_added", "cards_moved",
+    "cells_changed", "cards_renamed", "labels_moved", "notes_moved",
 ))
 
 
@@ -1074,10 +1079,24 @@ def logged(app: str, words: list[str], args, lines: list[str], code: str) -> Non
             # Sift's `search` and `zotero` stand where a folder does, words of the command, never values
             values = [v for v in agent_log.strings({k: v for k, v in given.items() if k not in NAMES}) if v not in head]
             agent, request = str(given.get("tool") or ""), str(given.get("note") or "")
+            # the project's real names and those `names add` was given, out of his request and the line as the log
+            # keeps them, whole words, case ignored, any length (namesop)
+            secret = list(given.get("secret_words") or ()) + (values if head[:1] == ["names"] else [])
+            request = agent_log.hidden_words(str(given.get("note_raw") or request), secret)
+            if head[:1] == ["names"] and request:
+                # a names op's whole request withheld, the MCP server's alike (namesfix L5)
+                request = "…"
+            if own and request and "secret_words" not in given:
+                # refused before the project's list of names was read: his words are never kept (namesop)
+                request = agent_log.WITHHELD
+            lines = [agent_log.hidden_words(x, secret) for x in lines]
             folders = [given.get("folder"), given.get("rec_id")]
         else:
             head = lead_words(words, app)
             agent, request = flag_value(words, "--tool"), flag_value(words, "--note")
+            if own and request:
+                # refused before the project opened, so before its list of names was read (namesop)
+                request = agent_log.WITHHELD
             values = [w.split("=", 1)[-1] for w in words if w not in head and not (w.startswith("-") and "=" not in w)]
             folders = [w for w in words if not w.startswith("-")]
         line = " ".join(str(x) for x in lines if str(x))

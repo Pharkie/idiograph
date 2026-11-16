@@ -652,6 +652,8 @@
   "distil.names.col_to": "Replace with",
   "distil.names.col_in": "In",
   "distil.names.match_case": "Match case",
+  "distil.names.review_each": "Review each",
+  "distil.names.col_except": "Except in",
   "distil.names.remove": "Remove {name}",
   "distil.names.none_in": "None of these names is in a transcript already in.",
   "distil.names.times": {
@@ -692,6 +694,7 @@
   "distil.agent_review.yours": "You changed {what} at {time}, so this can no longer be undone.",
   "distil.agent_review.later": "{agent} changed this again at {time}, so undo that first.",
   "distil.agent_review.undone": "Undone at {time}.",
+  "distil.agent_review.reason": "{agent} says why: “{reason}”",
   "distil.agent_review.show_more": {
     "one": "Show {n} more",
     "other": "Show {n} more"

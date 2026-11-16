@@ -44,6 +44,7 @@ Object.assign(AL_OPS, {
   'turn write': 'agentlog_idiograph.turn_write',
   'turn edit': 'agentlog_idiograph.turn_edit',
   'turn interviewer-note': 'agentlog_idiograph.turn_interviewer_note',
+  'turn skip': 'agentlog_idiograph.turn_skip',
   'turn assign': 'agentlog_idiograph.turn_assign',
   'turn assign-undo': 'agentlog_idiograph.turn_assign_undo',
   'turn trim': 'agentlog_idiograph.turn_trim',

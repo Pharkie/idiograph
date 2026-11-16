@@ -238,6 +238,23 @@ def scrubbed(line: str, values) -> str:
     return out
 
 
+def hidden_words(text: str, words) -> str:
+    """Text with each of the words taken out as a whole word, case ignored, whatever its length, a run of spaces
+    inside one matching any (namesop, 16 November 2026): a real name from a project's list, or one an agent gave
+    `names add`, so "jo" and "JANE" go as "Jo" and "Jane" do. The one helper for the record of agents' changes and
+    this log both, one pattern for all the words, the longest first (namesfix)."""
+    out = str(text or "")
+    every = sorted({str(x).strip() for x in words or () if str(x).strip()}, key=len, reverse=True)
+    if not every or not out:
+        return out
+    body = "|".join(r"\s+".join(re.escape(x) for x in w.split()) for w in every)
+    return re.sub(r"(?<![^\W_])(?:" + body + r")(?![^\W_])", "…", out, flags=re.IGNORECASE)
+
+
+# a request refused before its project's list of names could be read (namesop): never its words, which may hold one
+WITHHELD = "request not kept: refused before the project opened"
+
+
 def strings(value, skip=()) -> list:
     """Every string in a value, a record's or a list's, a record's keys of `skip` left out."""
     if isinstance(value, str):

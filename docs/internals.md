@@ -591,8 +591,8 @@ parser:
   `call`), or the command line's tool (`cli:<tool>`), each continuing while its last write was within `IDLE`, 30
   minutes. A new run (`start_run`) is given the next id from `index.json`, `r1`, `r2`, never one given before, and its
   restore point (`point`): every `.xlsx` and `.json` under the root (`tracked`, walking no hidden folder and no
-  `_Archive`, leaving out `NEVER`: History, the list of names, team.json, the old holds file and a copy's own record)
-  copied by its sha256 into `objects/`, a file whose time and size match an earlier point's taking that copy unread,
+  `_Archive`, leaving out `NEVER`: History, team.json, the old holds file and a copy's own record, the list of names
+  kept since namesop so an agent's `names add` is undone) copied by its sha256 into `objects/`, each copy mode 600, a file whose time and size match an earlier point's taking that copy unread,
   so a point costs a stat of each file and a read and copy of each one changed since. `tidy` lets points go
   `KEEP_DAYS`, 30, after their run's last write, the last `KEEP_RUNS`, 10, kept whatever their age, and `sweep` takes
   away every copy no kept run names. A run whose first op wrote nothing, or was refused, is let go (`drop`).
@@ -1665,7 +1665,7 @@ board, a stack under a statement stacked under another or in the bin, or one tak
 gives each top `stacked` from `themes.outline`. A board `board new` makes keeping another's layout
 takes that board's stacks through `cli.carried_stacks`, for the statements its structure names nowhere,
 `themes.copy_into` brings each copied top's stack, and `themes.below`, with the page's `thBelowStack`,
-puts a statement taken out just below its stack, moved down past what stands there, then `themes.settle_after` reads it straight after its top by `reorder` (the page's Take out of the stack asks `/api/board-order` the same, 13 November). `gets take` is `gets.take` under the root lock, each GETs board then marked changed by the agent. `turn write` carries a passage's lines to every board through `themes.passage_written` (rekey, 20 October, where before `themes.statements_written` carried rewording by place alone, so a removal before a passage's last line left every later card on its old key, reworded with its neighbour's words, and the removed one stale). `themes.passage_lines` maps each old line to its new place or None: by the keys the pairs send (`cli.pair_keys`, the keys `turn show` gives through `cli.keyed_pairs`), else the same words, nearest first, then by place when as many lines are left on both sides, else by difflib's ratio in order, at least `SIMILAR`. `cli.quote_lines` maps the quotes the same way, a lone quote by its words. `themes.passage_moved` reads each board as it reads now (`as_read`), takes the removed lines' cards off through `drop_cards` (a removed top's stack kept whole under its next statement by `make_top`, its key gone from labels, the bin, stacks, Not the same and reasons), renames the rest through `keys_renamed`, gives a reworded line's card its new words when it held the old, and follows the board into the workbook after the write. Every revision in a board's History is moved the same way, then the board as it stood is kept as a revision named by `themes_ai.revision_name`, and the board takes `updated` and `changed` with its hash, so `save`'s `outside_since` refuses a page that saw the old keys. The dry run reads `then` through `with_row`. `board apply` takes `remove` (cards by key) and `remove_missing` (every card on the board with no line), `cli.run_removes`, through `drop_cards` before the other operations, refusing a key whose statement is live. `gets.take` follows a case's statement cards by their words through `gets.lines_followed`, the rule of `follow`. Since 22 October (getsdesc) it also makes room under a card that comes in taller: `gets.make_room_below` weighs each card's height before and after by `gets.card_height` over `gets.named`, its title and description, and hands the grown ones to `themes.push_clear`, which moves each neighbour below a grown card in the same label, or on the canvas, straight down by the overlap and the margin, then pushes on from it, and from a label whose frame so grew. Nothing moves up or sideways, and the positions are saved with the take, so the app's own take and an agent's alike leave no overlap. The page's `thMakeRoom` leaves two cards in the pile as they lie, so the room had to be made in the take. Area 249. It is built on the server's own functions, imported from `server.py` with the
+puts a statement taken out just below its stack, moved down past what stands there, then `themes.settle_after` reads it straight after its top by `reorder` (the page's Take out of the stack asks `/api/board-order` the same, 13 November). `gets take` is `gets.take` under the root lock, each GETs board then marked changed by the agent. `turn write` carries a passage's lines to every board through `themes.passage_written` (rekey, 20 October, where before `themes.statements_written` carried rewording by place alone, so a removal before a passage's last line left every later card on its old key, reworded with its neighbour's words, and the removed one stale). `themes.passage_lines` maps each old line to its new place or None: by the keys the pairs send (`cli.pair_keys`, the keys `turn show` gives through `cli.keyed_pairs`), else the same words, nearest first, then by place when as many lines are left on both sides, else by difflib's ratio in order, at least `SIMILAR`. `cli.quote_lines` maps the quotes the same way, a lone quote by its words. `themes.passage_moved` reads each board as it reads now (`as_read`), takes the removed lines' cards off through `drop_cards` (a removed top's stack kept whole under its next statement by `make_top`, its key gone from labels, the bin, stacks, Not the same and reasons), renames the rest through `keys_renamed`, gives a reworded line's card its new words when it held the old, and follows the board into the workbook after the write. Every revision in a board's History is moved the same way, then the board as it stood is kept as a revision named by `themes_ai.revision_name`, and the board takes `updated` and `changed` with its hash, so `save`'s `outside_since` refuses a page that saw the old keys. The dry run reads `then` through `with_row`. `board apply` takes `remove` (cards by key) and `remove_missing` (every card on the board with no line), `cli.run_removes`, through `drop_cards` before the other operations, refusing a key whose statement is live. `gets.take` follows a case's statement cards by their words through `gets.lines_followed`, the rule of `follow`. Since 22 October (getsdesc) it also makes room under a card that comes in taller: `gets.make_room_below` weighs each card's height before and after by `gets.card_height` over `gets.named`, its title and description, and hands the grown ones to `themes.push_clear`, which moves each neighbour below a grown card in the same label, or on the canvas, straight down by the overlap and the margin, then pushes on from it, and from a label whose frame so grew. Nothing moves up or sideways, and the positions are saved with the take, so the app's own take and an agent's alike leave no overlap. The page's `thMakeRoom` leaves two cards in the pile as they lie, so the room had to be made in the take. Area 249. Since 16 November (takedry) `gets.take` runs in `gets.take_into`, in memory, and with `dry_run` writes nothing: its answer and the take's alike carry `counts`, `copy_counts` (the copy's PETs and statements added, retitled, moved and removed, by key) and, per board, `board_effects` (labels holding a changed card, cards changed, lost, renamed, added, moved, and the table's rows, Trajectories' cells on LPETs, read through `table` before and after), so the take writes exactly what its dry run said. `structure_kept` then checks each board against itself before the take: labels whole, members and the bin in order through the take's renames, picks, rows, notes and every card's place and words as they were, but for the renames, the cards come into the pile, the ones moved down to make room and a lost PET's card given its title. Anything else refuses the take whole (`server.take_would_change_board`); a thematic analysis project, whose `codes.gather` regathers a code's extracts by design, is not checked. The count keys are in `cli.PLAIN`. Area 402. Since takefix (16 November) a card's new key is carried through the whole board by `gets.keys_followed`, as `board_remapped` carries a remap: cards, members, the bin, stacks, Not the same, the AI's reasons and picks by the card renames, and the rows' ticked quotes of the case by `gets.quotes_followed`, which follows each quote of the copy to the line its words went to by `lines_followed` and only when the quote's words there are the same, so a stack, a pick and a key quote with his bold stay on a card that moves. `make_room_below`'s `push_clear` moves labels and sticky notes in place through `named`, so `gets.carried` names them with what they hold, and the guard, now `gets.structure_changes`, sets the board as it was with `keys_followed` run on it against the board now, allowing a new place to those alone; `board_effects` counts them as `labels_moved` and `notes_moved`. The guard answers what differs by kind and key, and the refusal says the board's id and them (`gets.differs_said`, `server.take_kind_*`), never a word. `cards_renamed` is a list of pairs, so `cli.mark` keeps both keys plain. The route's dry run runs under `locks.dry_run` as the command line's does, so neither leaves a lock file. It is built on the server's own functions, imported from `server.py` with the
 recent list kept in memory, and re-implements no rule: the cards are `themes.read_cards`'s, a new
 board is laid out by `themes_ai.lay_out` and added through `themes.version_op` with `propose`, a
 change to a board goes through `themes_ai.revise_ops`, the board's applier, and lands by
@@ -2811,6 +2811,52 @@ stands, any other kept as `.txt` from its read), the old copy into `_Archive` fi
 `project_pack.left_out` leaves out anything named `(pre-names `, since those copies keep the real names. The command
 line's `names replace` and MCP's `names_replace` call the same op, counts only. Area 345.
 
+**An agent adds names, and the list's two exceptions** (namesop, 16 November 2026, Adam via the GRAVITY session: "Can
+you not do this via the MCP?"). `/api/names` op `add` (`routes.pseudo_add`) appends entries, each cleaned as `set`
+cleans them, refused whole when one names a participant the project lacks or, the app's own call, a spelling an earlier entry
+holds already for everyone or for the same participant (named by the holding entry's number; one for a single
+participant never covers a new one for everyone, namesfix, nor one whose Match case or Except in differ, namesfix2), and answers each new entry's number in the list as saved,
+replacement, `for`, ticks and `hits`, by participant and part (`PSEUDO_ADD_PARTS`: speaker and words as transcript,
+quotes, statements, notes) from one `pseudo_check` of the new entries alone, so the counts never depend on what the
+list holds already, never a spelling. The command line's `names add` (`--from`, or
+`--real`, `--to`, `--for`, `--case`, `--review-each`, `--except`) and MCP's `names_add` (`entries`, handed over as
+`--from`'s structure) call it; it is the one names write `agent_changes.app_only` lets an agent make (`remove` stays
+the app's). Where the list reaches since: `agent_changes.NEVER` no longer names `idiograph-names.json`, so a run's
+restore point and each change's before and after copies hold it in the project's own `.idiograph-restore/objects`,
+written mode 600 (`keep`), and an undo writes it back mode 600 (`private`). So the names file is in the restore
+points too: an entry taken off the list later stays in the store until the restore points' own limits (`tidy`, 30
+days or 10 runs) take the copies that hold it. That store is a hidden folder of the
+project beside the list itself, which a shared copy (`project_pack.LEFT_OUT`), Working together's sync (no hidden
+folder) and every export leave out, so the names reach nowhere the list does not; the copies go as `tidy` lets the
+run's point go, 30 days or 10 runs on, an undo writing the list's temporary file mode 600 from its first byte
+(`put_back`). Every agent's request, whatever the op, has the project's list's spellings and except phrases taken out
+before anything writes it (`agent_changes.hide_request` in `idiograph_cli.run_in_scope`: whole words, case ignored,
+any length, `agent_log.hidden_words`, the one helper for the record and the log, one pattern for all
+the words; `secret_words` reads the list through `names.entries_at`, wherever `load_at` would find it, nothing moved),
+with those `names add` was given (`idiograph_cli.names_given`, from the request as given,
+`note_raw`), so the record, History and the workbooks' descriptions never keep one, and the agent log's refusals
+take the same words and any a names tool was given out of the request and the line (`agent_log.hidden_words`), a
+request refused before the project opened, so before its list was read, kept as `agent_log.WITHHELD`, never its
+words, and a names op's whole request kept as "…" in the log, the command line's and the MCP server's alike, and in the record of agents' changes (`entry_for`, namesfix2). An
+agent's add of a spelling the list covers already writes nothing for it and answers the list as saved: that entry
+`listed` with no number, `added` and `count` the list's own (namesfix, the coordinator's call of 16 November:
+correctness first, the agent acting on his word with names he gave it, its dry run's counts the same either way); the
+app's own add is refused with the holding entry's number. Review each finds met again by a raw source, a quote or a
+Source copy (`Run.text`'s `mirror`) are left unless he ticked those words (`taken`, `Run.took`) and left none of the
+same words unticked in the same place (the row for a raw source, the participant for a copy), since a copy cannot
+tell which of two alike he ticked (namesfix). The record line says "the
+list of names to replace" (`ROOT_KINDS`). The exceptions are two keys an entry keeps only when set: `review`, Review
+each, whose finds `Run.text` leaves as written unless `take` names them (`routes.pseudo_take`, the `skip` shape, the
+app's own call alone, an agent's refused), and `names.plain` (a REFI-QDA memo) never replaces; and `except`, phrases
+(`names.except_rx`, whole words, case ignored) a find inside is dropped by `names.find`, so the import check, Add, a
+REFI-QDA import, Review and replace, `names check`, `pseudo_add`'s counts and the label and pen portrait check
+(`participants.real_name_in`, which still refuses a Review each name) all pass it by. `transcript replace` reads no
+list. The page's Names to replace has an Except in field, its phrases with semicolons between and sent as a list
+(`nmExcepts`), so a phrase may hold a comma (a string `except` is split at semicolons, `names.clean_entry`), and a Review each tick under Match case; its Review card
+starts a Review each find unticked (`nmOff`), keeps a tick of one in `takes` (`nmTick`) and sends them as `take` with
+Review and replace, Add and New project. An agent's `names list` shows `review` and `excepts`, a count, never a
+phrase. The key file keeps both (namesfix2): `names.write_key` writes Review each ("yes") and the except phrases (semicolons between) as a third and fourth column, and `read_key` reads them back when present (`KEY_YES`). Area 399.
+
 **A Word table of transcript and notes** (19 October, a tester's Figure 1). `convert.read_data` tries
 `read_docx_table` on a `.docx` first. It takes the body's own tables of two columns or more, those as
 wide as the first, and reads them only when their words outnumber the words outside them, so a
@@ -3715,6 +3761,35 @@ root's lock once the case's is let go, as the History lines are, and `turn write
 lock and the case's. `lpets_of` names the top groups of `source_board` holding a key (its card or its PET's
 card); `evidence` counts each top group's statements per case from `table`, so the prune's `emptied` is every
 (LPET, timepoint) that goes from some to none. The before state is each changed board's History step. Area 393.
+
+**A statement added joins the copies (copiesadd, 16 November 2026, from the longitudinal study's session: a statement
+added with `turn write` never reached the LPETs, so Trajectories refused its quote).** A copy holds every statement of
+its participant at its timepoint, placed or not (`snapshot`), so `gets.passage_added` names the keys of the new
+statements no old one became (`themes.passage_lines`), and `routes.passage_follow` runs `gets.copies_added` with
+them after `passage_followed` on each file of `statement_copies`, in a `try` of its own so a failed read leaves the
+moves written and said and reports the addition alone (`server.passage_copy_unadded`). Each case whose timepoint
+holds the sheet (`holds_sheet`) takes the line from its row alone (`row_lines`, one read-only row, held in
+`ROWS_HELD` for the next file while the workbook is unchanged; a quote spanning turns keeps its own time until the
+changes are taken), `pet` None, `discarded` false, no `stacked`, so it stands unplaced and no board gets a card.
+The row's other lines take the new quote in its own place alone, so a quote change the copy holds back stays. The
+copy's hash follows. The LPETs go first and the LGETs, read with `fresh_of` from the LPETs file, add only the keys
+the LPETs took (`also`). `passage_follow` finds the LPETs by the project's timepoints (`timepoint_books`), never
+reading the workbook as `lpets_books` does. `api_commit` and `turn write` call it when a statement is added as well as
+moved (`copies_move`); `copies_followed` says `added` by key, the dry run without a read, checking the keys the
+copy holds after the write's moves (`moved`, `passage_map`), so a statement put in first is named. `copies refresh`
+(`routes.refresh_copies`) runs `copies_added` with no keys after `copies_refreshed`, in its own `try`, skipped in a
+thematic analysis project: every statement a copy lacks, read with `fresh_of`; its dry run counts the LPETs' keys
+again on the LGETs (`also`). A copy holding any line at a key the workbook no longer holds takes nothing, on a save
+and on a refresh, dry or not (copiesfix, from the fresh-eyes review: after a shifted run of two statements the
+lines at keys still held carry the old words, so a statement the copy seems to lack may stand in it at another key,
+and the `copies rekey` offset that puts it right would move the added line too). `copies_added` answers such a
+case with `rekey`, its keys left behind, and adds nothing; `refresh_copies` and `passage_follow` carry it under
+`rekey`, and the command line lists it and says to run `copies rekey`, then `copies prune`, then `copies refresh` (a key left behind by a removed statement matches no words, so rekey leaves it and prune takes it off). The refresh reads the workbook's keys
+from its `truth`; a save from `workbook_keys` (`workbook_lines`'s keys, held in `KEYS_HELD` for the next file while
+the workbook is unchanged, the written row's keys put in from `row_now`, so the dry run finds the same), only when a
+copy would take a statement (about 9 ms on a demo workbook). An agent's write is undone as any other, by its
+files. A save that adds a statement on a project of timepoints took about 30 ms more (median 110 ms against 81 ms
+over ten saves on a copy of a real project). Area 401.
 
 **A requote keeps the pick and the key quote's bold (quotefollow, 13 November 2026, Adam by dialog: "the pick
 follows", "keep it where the words survive").** `themes.follow` no longer drops a pick whose quote is worded anew:
@@ -6207,7 +6282,7 @@ absolute or from the repo root, or the app's folder in a downloaded copy. The ro
 | `/api/gets-save` | `workbook`, `version`, `revision` | The board written, every case not yet in taken in on the way, and the history when the timer's revision was kept. A save whose `version.v` is not the board's now, after an agent's gets apply or take or another window's save, is refused with 409, nothing written, and `stale` as `/api/themes-save` gives it (19 October). |
 | `/api/gets-ops` | `workbook`, `op` of `new`, `duplicate`, `rename`, `note`, `switch`, `delete`, `choose`, `complete` or `reopen`, `id`, `name`, `note` | The screen's state afterwards. `complete` is refused while a case of the study is not in from its marked board unchanged. With `dry_run` (26 October, for the agents' `gets` board ops) every check is made, nothing is written, and the answer is the op, the board on the canvas after it, `complete` and each board's id and name. |
 | `/api/gets-boards` | `workbook`, `op` of `revision`, `view`, `restore` or `subs`, `id`, `revision`, `name` | The revision for `view`, `added` for `subs`, Add every sub-theme, a card for each sub-theme of the study with none on the board, placed by `gets.add_subs` through `gets.lay_in`, for the page to land as one step of undo, refused with one line when there is none, and the screen's state afterwards for the rest. `view` and `subs` write nothing, and with `dry_run` (26 October, for `gets revision` and `restore`) no op does. The agents' `gets subs` puts each card `subs` answers on the board at the place it gives, the board kept first in its History. |
-| `/api/gets-cases` | `workbook`, `op` of `take` or `colour`, `case`, and `colour` for `colour` | `take`: the changes of a case changed since it came in taken in, each board keeping a revision first (the page's `gtTakeAll`, by itself for a change of the app's own and from Update for one from outside, since 20 October, when Take the changes went), and the screen's state afterwards. `colour` (16 October): the case's colour on the GETs board, a place in the cases' palette from 0 to 24 (to 7 until 21 October) or null for Default, one another case has refused, kept in the GETs file's `colours` at once through `gets.colour_op`, a case the project does not have or a colour the palette does not hold refused with nothing written, and the screen's state afterwards. |
+| `/api/gets-cases` | `workbook`, `op` of `take` or `colour`, `case`, and `colour` for `colour`, `dry_run` for `take` | `take`: the changes of a case changed since it came in taken in, each board keeping a revision first, with `dry_run` nothing written and its `counts` answered (takedry, 16 November 2026) (the page's `gtTakeAll`, by itself for a change of the app's own and from Update for one from outside, since 20 October, when Take the changes went), and the screen's state afterwards. `colour` (16 October): the case's colour on the GETs board, a place in the cases' palette from 0 to 24 (to 7 until 21 October) or null for Default, one another case has refused, kept in the GETs file's `colours` at once through `gets.colour_op`, a case the project does not have or a colour the palette does not hold refused with nothing written, and the screen's state afterwards. |
 | `/api/gets-settings` | `workbook`, `op` of `read` or `save`, and for a save `minimum`, `one_per_pet` and `study`, any of them | For `read`, what Settings shows under GETs, reading no workbook. For `save`, the screen's state afterwards, or with `dry_run` (26 October, for `gets settings`) nothing written and the settings and each case's place in the study as they would be. |
 | `/api/gets-trail` | `workbook`, `board`, `get` | One GET's audit trail as `html`, every item and the participant notes with it, without the head the card draws, and its `label`, `note`, `tint`, `count`, `total`, `minimum` and `under`. A turn with a recording carries its `/audio` address. Writes nothing. |
 | `/api/gets-ai` | `workbook`, `op` of `names`, `version` and `group` | As `/api/themes-ai` answers, on the GETs board `version` names: three `names` for a GET or a sub-theme. Refused with the switch off, on LPETs and LGETs, in a thematic analysis project and for any other op. Writes nothing. |
@@ -7134,6 +7209,26 @@ the board's `created` when the board has none) and `plan` and `clear` run it ove
 and `/api/clear-made-notes` (`routes.clear_made_notes`) run it, through `agent_changes.through` as every write. Area 397. On a copy of a real project of three timepoints on 13
 November the workbooks held no bold or colour in those columns (only their `Source/` copies do), and 37 LPET
 table rows across 8 participants held his bold.
+
+**A passage decided with no statement, for an agent** (leaveout, 16 November 2026, the GRAVITY session's gap: an agent
+could decide a passage only by writing an exploratory note). What the app has: Skip (`skipTurn`, the button's word
+while the passage holds nothing) posts `/api/commit` with no `es`, `en`, `kq` or `pairs`, so `save_turn` touches no
+cell, and `api_commit` writes the row's state `reviewed-empty` with `last` and a round's minutes. Next with every
+field emptied writes the cells empty and the same state. A passage moved past is `passed`, derived in
+`rounds.row_states`, never written. No reason is kept anywhere. `routes.api_skip` (`/api/skip`, post only) writes
+that same state for the rows `skip_rows` takes from `rows` (a row, or a `[first, last]` span taking in the stops
+alone), refusing whole in one line a row with statements, the interviewer's or another speaker's turn and a row
+with no passage (`server.skip_refused.*`), leaves the workbook, `last` and the rounds' minutes alone, and appends
+one `edits` record a passage, `skipped: true` with its state before and after, marked by `marked` so `api_stamp`
+counts it for an open statements screen. Its answer counts, by the sheet's timepoint (`themes.placed_sheets`),
+`marked`, `already`, `kept` (passed before, now stored) and `decided` before and after of the timepoint's stops,
+rows alone. A call that would turn a stop it does not name from unvisited to passed (`row_states`' furthest
+decided rule) is refused whole, dry run too, naming those rows (`server.skip_refused.passes`, the coordinator's
+call of 16 November). The dry run reads with no lock. `turn skip` (`cmd_turn_skip`) and MCP's `turn_skip` call it,
+`--reason` kept by `agent_changes.entry_for` as the record line's `reason`, for `turn skip` alone and never another
+op's, and shown by Project history's By an agent under its change (`change_view`'s `reason`, cleaned by
+`agent_words` as a request is, drawn by `arChange` as "says why"), and the parity list maps
+`/api/commit` to it beside `turn write`. Area 403 checks it against the page's own Skip on a twin.
 
 Since 26 October (parity with the page, group 1) the statements screen's own writes have ops for agents,
 each calling the route itself with the page's body and three keys more, `dry_run`, `tool` and `request`,

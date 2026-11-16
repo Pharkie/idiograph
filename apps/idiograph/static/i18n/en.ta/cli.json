@@ -46,6 +46,10 @@
   "cli.gets.take_none": "Nothing has changed in {name}'s codes since they came in. Nothing was written.",
   "cli.gets.take_dry": "Dry run, nothing was written. It would bring {name}'s changes into every themes board:",
   "cli.gets.take": "Brought {name}'s changes into every themes board, each keeping a revision first, \"Before {name}'s changes came in\", so Restore puts it back.",
+  "cli.gets.take_copy": "The copy: codes added {pa}, renamed {pr}, removed {pg}; extracts added {sa}, changed {sc}, moved {sm}, removed {sg}.",
+  "cli.gets.take_marked": "The codes were marked complete since.",
+  "cli.gets.take_labels": "themes",
+  "cli.gets.take_board": "On {board}: {labels} changed {nl}{keys_l}, cards changed {nc}, cards no longer in the copy {nlost}{keys_lost}, key quotes changed {ncells}{keys_cells}, cards added {nadded}, cards moved down to make room {nmoved}, {labels} moved down {nlm}, sticky notes moved down {nnm}. A code's new extracts join it where it stands. The {labels} and their titles stay as they are.",
   "cli.gets.fresh_dry": "Dry run, nothing was written. It would make the themes board {name}, every card in the pile, and put it on the canvas.",
   "cli.gets.fresh": "Made the themes board {name}, every card in the pile. It is the board on the canvas, and the other boards are as before.",
   "cli.gets.duplicate_dry": "Dry run, nothing was written. It would copy the themes board {name} as {copy} and put it on the canvas.",
@@ -151,5 +155,10 @@
   "cli.bring_in.into": "brought in {whose} code '{text}' into '{label}'",
   "cli.bring_in.loose": "brought in {whose} code '{text}' onto the board in no {unit}",
   "cli.bring_in.no_statement": "Operation {n} brings in no code. Give \"statement\": its card's key as gets show gives one, or its id or its key as statements gives them, S12, with its \"participant\".",
-  "cli.bring_in.not_a_statement": "Operation {n} names {statement}, which is not one of {whose} codes."
+  "cli.bring_in.not_a_statement": "Operation {n} names {statement}, which is not one of {whose} codes.",
+  "cli.turn_skip.nothing": "Nothing to mark on {where}: every passage named is decided with no code already.",
+  "cli.turn_skip.dry": "Dry run, nothing was written. On {where} it would mark {passages} decided with no code, as Skip does: rows {rows}.",
+  "cli.turn_skip.done": "Marked {passages} on {where} decided with no code, as Skip does: rows {rows}. The workbook is unchanged, and the run's undo puts them back.",
+  "cli.turn_skip.already": "Already decided with no code, left as they are: {passages}, rows {rows}.",
+  "cli.turn_skip.reason_kept": "The reason is kept in this change's line of the record of agents' changes alone, which Project history's By an agent shows: the app keeps no reason for a passage left with no code."
 }

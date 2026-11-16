@@ -50,5 +50,13 @@
   "server.qdpx_out_left_no_words": {
     "one": "{n} code on a passage with no words is left out",
     "other": "{n} codes on passages with no words are left out"
+  },
+  "server.skip_refused.statements": {
+    "one": "Row {rows} of {sheet} holds codes, so it is decided already. Name only passages with no code. Nothing was written.",
+    "other": "Rows {rows} of {sheet} hold codes, so they are decided already. Name only passages with no code. Nothing was written."
+  },
+  "server.skip_refused.passes": {
+    "one": "Marking these would make row {rows} of {sheet}, a passage not named, count as passed, decided without being asked. Name it too if it needs no code either. Nothing was written.",
+    "other": "Marking these would make rows {rows} of {sheet}, passages not named, count as passed, decided without being asked. Name them too if they need no code either. Nothing was written."
   }
 }

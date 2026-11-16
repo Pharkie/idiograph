@@ -187,7 +187,7 @@ def test_names_rules(scratch):
     check("345: Add from a file reads a two-column CSV or Excel key, a heading row passed over, and Save as a file writes one",
           [e["real"] for e in read_csv] == [["Odette Varnham", "Odette"], ["Gareth"]] and read_csv[0]["to"] == "Wren"
           and [e["to"] for e in read_xlsx] == ["[partner]", "Ash"]
-          and names_mod.write_key(read_csv).splitlines()[1] == '"Odette Varnham, Odette",Wren')
+          and names_mod.write_key(read_csv).splitlines()[1] == '"Odette Varnham, Odette",Wren,,')  # Review each and Except in after it (namesfix2)
 
     # ── B. a project, its list kept outside it
     store = scratch / "names-345-store"
@@ -459,7 +459,7 @@ def test_names_rules(scratch):
         check("345: the command line's plain words hold no real name either",
               code_ == 0 and "entry 1, Wren" in plain_a and not any(w in plain_a.lower() for w in REAL[:5]), plain_a[:300])
         code_, no_set, err = cli.run(["--root", str(folder), "--config", str(config), "names", "set"])
-        check("345: the command line has no way to add a name", code_ != 0)
+        check("345: the command line has no way to set the whole list", code_ != 0)
 
         srv = mcp_server.Server(str(folder), config=str(config))
         srv.receive(json.dumps({"jsonrpc": "2.0", "id": 0, "method": "initialize",
@@ -470,9 +470,11 @@ def test_names_rules(scratch):
                                            "params": {"name": name, "arguments": args}}))["result"]
 
         tools = {t["name"]: t for t in srv.receive(json.dumps({"jsonrpc": "2.0", "id": 9, "method": "tools/list"}))["result"]["tools"]}
-        check("345: the MCP server lists names_list, names_check, names_replace and names_remove, and no tool that adds a name",
-              {"names_list", "names_check", "names_replace", "names_remove"} <= set(tools)
-              and not any(n.startswith("names_") and n not in ("names_list", "names_check", "names_replace", "names_remove")
+        # since namesop (16 November 2026) names_add adds a name on his word, area 399
+        check("345: the MCP server lists names_list, names_check, names_replace, names_remove and names_add, and no other",
+              {"names_list", "names_check", "names_replace", "names_remove", "names_add"} <= set(tools)
+              and not any(n.startswith("names_") and n not in ("names_list", "names_check", "names_replace", "names_remove",
+                                                               "names_add")
                           for n in tools)
               and tools["names_list"]["annotations"]["readOnlyHint"] is True
               and tools["names_remove"]["annotations"]["readOnlyHint"] is False

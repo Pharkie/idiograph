@@ -4135,6 +4135,7 @@ def pseudo_run(root, body: dict) -> "names_mod.Run":
         skip = names_mod.read_skip(body.get("skip"))
     except names_mod.NamesError as exc:
         raise WorkbookError(str(exc)) from None
+    take = pseudo_take(body)
     files = body.get("files") if isinstance(body.get("files"), list) else []
     if any(isinstance(f, dict) and str(f.get("real") or "").strip() for f in files) and agent_marks(body)[0]:
         raise WorkbookError(i18n.t("names.agent_adds"))
@@ -4142,7 +4143,22 @@ def pseudo_run(root, body: dict) -> "names_mod.Run":
         entries = names_mod.with_real_names(pseudo_list(root), files)
     except names_mod.NamesError as exc:
         raise WorkbookError(str(exc)) from None
-    return names_mod.Run(entries, skip)
+    return names_mod.Run(entries, skip, take)
+
+
+def pseudo_take(body: dict) -> set:
+    """The finds of a Review each entry he ticked to replace (namesop, 16 November 2026), `take` as a skip is
+    given, the app's own call alone: an agent's call naming one is refused, so no agent ever replaces a find of a
+    name he reviews one by one."""
+    given = (body or {}).get("take")
+    if given in (None, "", []):
+        return set()
+    if agent_marks(body)[0]:
+        raise WorkbookError(i18n.t("names.agent_take"))
+    try:
+        return names_mod.read_skip(given)
+    except names_mod.NamesError as exc:
+        raise WorkbookError(str(exc)) from None
 
 
 def pseudo_keep(root, run: "names_mod.Run") -> None:
@@ -4225,15 +4241,16 @@ def pseudo_mapped(run: "names_mod.Run", who, src: dict, mapped: dict, roles: dic
     for n, _s, _w in mapped["turns"]:
         if n not in rename:
             rename[n] = run.text(n, who, where("speaker"))
-    turns, left = [], {}
+    turns, left, took = [], {}, {}
     for i, (n, sec, w) in enumerate(mapped["turns"]):
         mark = len(run.finds)
         turns.append((rename[n], sec, run.text(w, who, where("words", turn=i + 1))))
-        left[i] = run.left(mark)
+        left[i], took[i] = run.left(mark), run.took(mark)
     notes = [{k: run.text(v, who, where("notes", turn=i + 1)) for k, v in held.items()} if held else held
              for i, held in enumerate(mapped["notes"])]
     pairs = {i: [{**pair, "es": pair["es"] if pair["es"] in coded else run.text(pair["es"], who, where("statements", turn=i + 1)),
-                  "kq": run.text(pair["kq"], who, where("quotes", turn=i + 1), mirror=left.get(i, set()))}
+                  "kq": run.text(pair["kq"], who, where("quotes", turn=i + 1), mirror=left.get(i, set()),
+                                 taken=took.get(i, set()))}
                  for pair in items] for i, items in mapped["pairs"].items()}
     return dict(mapped, turns=turns, notes=notes, pairs=pairs), {rename.get(k, k): v for k, v in roles.items()}
 
@@ -4243,7 +4260,10 @@ def pseudo_view(entries: list[dict], agent: bool) -> list[dict]:
     whom it is for, with how many spellings and never a real one."""
     if not agent:
         return [dict(e, entry=n + 1) for n, e in enumerate(entries)]
-    return [{"entry": n + 1, "to": e["to"], "for": e["for"], "spellings": len(e["real"]), "case": e["case"]}
+    # Review each and the except phrases as a tick and a count (namesop), since a phrase may hold the name itself
+    return [dict({"entry": n + 1, "to": e["to"], "for": e["for"], "spellings": len(e["real"]), "case": e["case"]},
+                 **({"review": True} if e.get("review") else {}),
+                 **({"excepts": len(e["except"])} if e.get("except") else {}))
             for n, e in enumerate(entries)]
 
 
@@ -4267,7 +4287,7 @@ def pseudo_books(root: Path):
             yield who, folder, book
 
 
-def pseudo_fixer(run: "names_mod.Run", who: str, left: dict | None = None):
+def pseudo_fixer(run: "names_mod.Run", who: str, left: dict | None = None, took: dict | None = None):
     """The `fix` a workbook's rows are run through (`workbook.names_in_book`): each piece through the run as its
     participant's, by sheet, passage and part. `left` gathers, by sheet and row, what each row's finds left as
     written, for the raw source and Source's copies to leave the same."""
@@ -4277,15 +4297,17 @@ def pseudo_fixer(run: "names_mod.Run", who: str, left: dict | None = None):
                                    "turn": row - 1, "row": row})
         if left is not None:
             left.setdefault((sheet, row), set()).update(run.left(mark))
+        if took is not None:
+            took.setdefault((sheet, row), set()).update(run.took(mark))
         return out
     return fix
 
 
-def pseudo_check(root: Path, entries: list[dict], skip=()) -> tuple["names_mod.Run", dict]:
+def pseudo_check(root: Path, entries: list[dict], skip=(), take=()) -> tuple["names_mod.Run", dict]:
     """Every transcript already in the project searched for the list's names: each passage's speaker and words,
     its statements, quotes, exploratory notes and interviewer's notes, nothing written. Answers the run, its finds
     by participant, sheet and passage, and each workbook a replace with `skip` would change."""
-    run = names_mod.Run(entries, skip)
+    run = names_mod.Run(entries, skip, take)
     changes: dict = {}
     for who, _folder, book in pseudo_books(root):
         mark = len(run.finds)
@@ -4295,7 +4317,7 @@ def pseudo_check(root: Path, entries: list[dict], skip=()) -> tuple["names_mod.R
     return run, changes
 
 
-def pseudo_copies(run: "names_mod.Run", who: str, folder: Path, left: set, stamp: str) -> int:
+def pseudo_copies(run: "names_mod.Run", who: str, folder: Path, left: set, stamp: str, taken: set | None = None) -> int:
     """A participant's copies in Source brought into line with their workbooks, with the same finds left as
     written (`left`, each entry and the words): a text copy has its names replaced where they stand, any other
     (a Word file, an Excel file) is read and kept as the replaced text, `.txt`, as an Add keeps one. The copy as it
@@ -4315,17 +4337,17 @@ def pseudo_copies(run: "names_mod.Run", who: str, folder: Path, left: set, stamp
         try:
             if path.suffix.lower() in PSEUDO_TEXT_COPIES:
                 text = path.read_text(encoding="utf-8-sig")
-                new = run.text(text, who, where, mirror=left)
+                new = run.text(text, who, where, mirror=left, taken=taken)
                 if new == text:
                     continue
                 out = path
             else:
                 read = convert_mod.read_data(path.name, path.read_bytes())
-                turns = [(run.text(n, who, where, mirror=left), s, run.text(w, who, where, mirror=left))
+                turns = [(run.text(n, who, where, mirror=left, taken=taken), s, run.text(w, who, where, mirror=left, taken=taken))
                          for n, s, w in read["turns"]]
                 notes = read.get("notes")
                 if notes:
-                    notes = [{k: run.text(v, who, where, mirror=left) if isinstance(v, str) else v for k, v in held.items()}
+                    notes = [{k: run.text(v, who, where, mirror=left, taken=taken) if isinstance(v, str) else v for k, v in held.items()}
                              if isinstance(held, dict) else held for held in notes]
                 if turns == [tuple(t) for t in read["turns"]] and notes == read.get("notes"):
                     continue
@@ -4344,7 +4366,7 @@ def pseudo_copies(run: "names_mod.Run", who: str, folder: Path, left: set, stamp
     return changed
 
 
-def pseudo_replace(root: Path, entries: list[dict], skip, tool: str = "", request: str = "") -> dict:
+def pseudo_replace(root: Path, entries: list[dict], skip, tool: str = "", request: str = "", take=()) -> dict:
     """Review and replace (namesui, Adam's pick of 8 November 2026): the list's names replaced in the transcripts
     already in, the finds `skip` names left as written. For each participant whose workbook holds one, the workbook
     and its raw source are kept first in the participant's `_Archive` (`workbook.archive_copy`, labelled
@@ -4352,8 +4374,8 @@ def pseudo_replace(root: Path, entries: list[dict], skip, tool: str = "", reques
     every board and every copy of the participant following the statements, quotes and notes as a find and replace
     makes them follow (`follow_replace`), the raw source and Source's copies brought into line with the same finds
     left. The project's History gets one record, counts only. Answers the run and the participants changed."""
-    _planned, changes = pseudo_check(root, entries, skip)
-    run = names_mod.Run(entries, skip)
+    _planned, changes = pseudo_check(root, entries, skip, take)
+    run = names_mod.Run(entries, skip, take)
     stamp = datetime.now().strftime("%Y%m%d-%H%M")
     done, failed = [], []
     for who, folder, book in pseudo_books(root):
@@ -4362,19 +4384,23 @@ def pseudo_replace(root: Path, entries: list[dict], skip, tool: str = "", reques
             wb_mod.names_in_book(book, pseudo_fixer(run, who), dry=True)
             continue
         left: dict = {}
+        took: dict = {}
         raws = [r for r in own_books(folder / "Source", "raw") if wb_mod.suggested_output(r) == book]
         with writing(book, root=root):
             before = copies_before(book)
             for each in [book] + raws:
                 wb_mod.archive_copy(each, PSEUDO_ARCHIVE)
-            rows = wb_mod.names_in_book(book, pseudo_fixer(run, who, left))["rows"]
+            rows = wb_mod.names_in_book(book, pseudo_fixer(run, who, left, took))["rows"]
             followed = follow_replace(book, rows, tool=tool, request=request, before=before)
             failed += followed["failed"]
             every = set().union(*left.values()) if left else set()
+            # a Review each name's words replaced only where he ticked those words (namesop)
+            ticked = set().union(*took.values()) if took else set()
             for raw in raws:
                 wb_mod.names_in_book(raw, lambda text, role, sheet, row: run.text(
-                    text, who, {"part": "raw"}, mirror=left.get((sheet, row), every)))
-            pseudo_copies(run, who, folder, every, stamp)
+                    text, who, {"part": "raw"}, mirror=left.get((sheet, row), every),
+                    taken=took.get((sheet, row), ticked)))
+            pseudo_copies(run, who, folder, every, stamp, ticked)
         done.append(label_for(folder))
     counts = run.counts()
     if done:
@@ -4454,18 +4480,114 @@ def pseudo_preview(root, body: dict) -> dict:
             "list": pseudo_view(run.entries, False)}
 
 
+PSEUDO_ADD_PARTS = {"words": "transcript", "speaker": "transcript", "quotes": "quotes", "statements": "statements",
+                    "notes": "notes"}
+
+
+def pseudo_add(root: Path, entries: list[dict], given, agent: bool, dry: bool) -> dict:
+    """`add` (namesop, 16 November 2026, Adam: "Can you not do this via the MCP?"): entries added at the list's end,
+    each `{"real", "to", "for", "case", "review", "except"}` as `set` takes them, with `dry_run` first. An agent may,
+    on his word: the real names it was given are his choice, and no answer says one back. The answer is each new
+    entry by its number, its replacement and whom it is for, with how many finds it would flag across the transcripts
+    already in, by participant and by part (transcript, quotes, statements, notes), never the words around them, counted
+    as if the list held the new entries alone (namesfix). Each entry's number and the list's count are the list's as
+    saved: an agent's entry whose spellings the list holds already for the same people or for everyone is left out of
+    the write, `listed` and no number. Refused whole, nothing written, when an entry is no entry, names a participant
+    the project does not have, or (the app's own call) holds a spelling the list already holds for the same people or
+    for everyone, which the refusal names by the entry's number. The write is the list's file alone, so an agent's add is one line in the
+    record of agents' changes and its undo puts the list back as it was (`agent_changes`, which keeps the list's
+    file in the project's own hidden store, mode 600)."""
+    if not isinstance(given, list) or not given:
+        raise WorkbookError(i18n.t("names.add_none"))
+    fresh = names_mod.clean_entries(given)
+    who = sorted({w for w, _f, _b in pseudo_books(root)})
+    by_fold = {w.casefold(): w for w in who}
+    for e in fresh:
+        if e["for"] is not None:
+            if e["for"].casefold() not in by_fold:
+                raise WorkbookError(i18n.t("names.add_who", list=formats.list_words(who) or "-"))
+            e["for"] = by_fold[e["for"].casefold()]
+    after = entries + fresh
+    # a spelling held already for the same people, or for everyone, by the holding entry's number, never the name.
+    # An earlier entry covers a new one only when it is for everyone or for the same participant: one for a single
+    # participant never covers a new one for everyone, whose finds in the others are new (namesfix H1), and only when
+    # its Match case and Except in are the new one's too, else the new entry is written (namesfix2)
+    seen: dict[str, list] = {}
+    # an agent's spellings the list covers already, by entry, left out of the write alone (namesop re-review)
+    covered: dict[int, set] = {}
+    for n, e in enumerate(after, start=1):
+        scope = (e["for"] or "").casefold()
+        rules = (bool(e.get("case")), tuple(sorted({x.casefold() for x in e.get("except") or ()})))
+        for s in e["real"]:
+            for m, other, other_rules in seen.get(s.casefold(), []):
+                if n > len(entries) and (not other or other == scope) and other_rules == rules:
+                    if m > len(entries):
+                        raise WorkbookError(i18n.t("names.add_twice"))
+                    if not agent:
+                        raise WorkbookError(i18n.t("names.add_held", n=m))
+                    covered.setdefault(n, set()).add(s.casefold())
+            seen.setdefault(s.casefold(), []).append((n, scope, rules))
+    written = list(entries)
+    # each new entry's number in the list as it is saved, none for one the list covers whole (namesfix M2)
+    number: dict[int, int] = {}
+    for n, e in enumerate(fresh, start=len(entries) + 1):
+        kept = [s for s in e["real"] if s.casefold() not in covered.get(n, set())]
+        if kept:
+            written.append(dict(e, real=kept))
+            number[n] = len(written)
+    # each new entry's finds counted with the new entries alone, so the counts never depend on what the list holds
+    # already (namesfix M1)
+    run, _changes = pseudo_check(root, fresh)
+    rows = []
+    for k, e in enumerate(fresh, start=1):
+        places: dict = {}
+        for f in run.finds:
+            if f["entry"] != k:
+                continue
+            w = f["where"]
+            part = PSEUDO_ADD_PARTS.get(w.get("part") or "", "transcript")
+            spot = places.setdefault(w.get("participant") or "", {"participant": w.get("participant") or "",
+                                                                 "transcript": 0, "quotes": 0, "statements": 0,
+                                                                 "notes": 0})
+            spot[part] += 1
+        hits = sum(p[x] for p in places.values() for x in ("transcript", "quotes", "statements", "notes"))
+        at = number.get(k + len(entries))
+        rows.append(dict({"entry": at, "to": e["to"], "for": e["for"],
+                          "spellings": len(written[at - 1]["real"]) if at else 0, "case": e["case"],
+                          "hits": hits, "by_participant": [places[p] for p in sorted(places)]},
+                         **({"listed": True} if at is None else {}),
+                         **({"review": True} if e.get("review") else {}),
+                         **({"excepts": len(e["except"])} if e.get("except") else {})))
+    if not dry and written != entries:
+        with writing(root=root):
+            # read again under the lock, so an entry saved since is kept and the new ones go after it
+            held_now = pseudo_list(root)
+            if held_now != entries:
+                raise WorkbookError(i18n.t("names.add_changed"))
+            names_mod.save_at(root, written)
+    # the answer's numbers and count are the list's as saved, always (namesfix M2): an agent may learn from them that
+    # a name it was given is on the list already, which his own words and its dry run's counts tell it anyway
+    out = {"added": len(written) - len(entries), "dry_run": dry, "count": len(written), "entries": rows}
+    if not agent:
+        out["list"] = pseudo_view(written, False)
+    return out
+
+
 def api_names(body: dict) -> dict:
-    """The project's list of names, `op` of `list`, `set`, `remove`, `check`, `replace`, `preview`, `read-key` or
-    `key-file`, with `root`, the project's id. The list is the file `idiograph-names.json` in the project's folder
+    """The project's list of names, `op` of `list`, `set`, `add`, `remove`, `check`, `replace`, `preview`, `read-key`
+    or `key-file`, with `root`, the project's id. The list is the file `idiograph-names.json` in the project's folder
     (namesui). The app's own calls see the list in full. A call with a `tool` (the command line and the MCP server)
-    is told counts and the entries' numbers only, never a real name, and cannot add one: `set`, `preview`,
-    `read-key` and `key-file` are the app's alone, since an agent that types a real name has sent it to a model.
+    is told counts and the entries' numbers only, never a real name: `set`, `preview`, `read-key` and `key-file` are
+    the app's alone, and since namesop (16 November 2026, Adam's word) an agent adds entries with `add` on his word,
+    recorded and undone as its other writes are. `remove` stays the app's (`agent_changes.app_only`).
 
     `list` answers the entries. `set` takes `entries`, the whole list, each `{"real": [spellings], "to", "for", "case"}`
-    (`for` a participant's pseudonym, none for everyone, `case` Match case), and keeps it, with `dry_run` writing
-    nothing. `remove` takes `entries`, the numbers to take off. `check` searches the transcripts already in, counts
-    only, and with `names_preview` the app's own call every find. `replace` replaces them, the finds `skip` names
-    left as written, after a copy of each workbook changed is kept in its participant's `_Archive`
+    (`for` a participant's pseudonym, none for everyone, `case` Match case, and `review`, Review each, and `except`,
+    phrases a find inside is no find), and keeps it, with `dry_run` writing nothing. `add` takes `entries` to add at
+    the end (`pseudo_add`). `remove` takes `entries`, the numbers to take off. `check` searches the transcripts
+    already in, counts only, and with `names_preview` the app's own call every find. `replace` replaces them, the
+    finds `skip` names left as written and a Review each entry's finds left unless `take` names them (the app's
+    alone), after a copy of each workbook changed is kept in its participant's `_Archive`
     (`pseudo_replace`), `dry_run` answering what `check` answers. `preview` takes Add's `files`, or New project's with
     its `folder`, and answers each file's finds (`pseudo_preview`). `read-key` takes a CSV or Excel key's `name` and
     `data` in base64 and answers the entries it holds, writing nothing, and `key-file` answers the list as a
@@ -4480,7 +4602,7 @@ def api_names(body: dict) -> dict:
             there = Path(str(body["folder"])).expanduser()
             root = there if there.is_dir() and (there / srv.PROJECT_FILE).is_file() else None
         return pseudo_preview(root, body)
-    root = asked_root(body, write=op in ("set", "remove", "replace"))
+    root = asked_root(body, write=op in ("set", "remove", "replace", "add"))
     if root is None:
         raise WorkbookError(i18n.t("server.folder_nothing_added"))
     if srv.is_demo_root(root):
@@ -4496,14 +4618,17 @@ def api_names(body: dict) -> dict:
             shown = body.get("names_preview") is True and not agent
             return dict({"names": pseudo_names_answer(run, agent, shown), "entries": len(entries),
                          "participants": len(changes)}, **({"list": pseudo_view(entries, False)} if shown else {}))
+        if op == "add":
+            return pseudo_add(root, entries, body.get("entries"), agent, body.get("dry_run") is True)
         if op == "replace":
             skip = names_mod.read_skip(body.get("skip"))
+            take = pseudo_take(body)
             if body.get("dry_run") is True:
-                run, changes = pseudo_check(root, entries, skip)
+                run, changes = pseudo_check(root, entries, skip, take)
                 return {"names": pseudo_names_answer(run, agent, False), "dry_run": True, "replaced": False,
                         "participants": len(changes)}
             tool, request = agent_marks(body)
-            done = pseudo_replace(root, entries, skip, tool, request)
+            done = pseudo_replace(root, entries, skip, tool, request, take)
             return {"names": pseudo_names_answer(done["run"], agent, False), "dry_run": False, "replaced": True,
                     "participants": len(done["participants"]), "failed": done["failed"]}
         if op == "remove":
@@ -6795,7 +6920,9 @@ def api_commit(body: dict) -> dict:
     # a statement removed or merged, or one moved in the passage, carried to every copy of it across the
     # participants, the LPETs' among them (lpetdrop, 13 November 2026), under the project's lock as the History is
     lines = themes_mod.passage_lines(moved["before"], moved["after"]) if moved else {}
-    follows = any(j != i for i, j in lines.items())
+    # and a statement added joins every copy, unplaced (copiesadd, 16 November 2026)
+    follows = any(j != i for i, j in lines.items()) or bool(
+        moved and gets_mod.passage_added(body["sheet"], int(body["row"]), moved["after"], lines))
     root = project_root(path) if said or follows else None
     if root is not None:
         try:
@@ -6823,6 +6950,130 @@ def api_commit(body: dict) -> dict:
     result["progress"] = refresh_summary(path, outline)
     result["state"] = progress["rows"][key]
     return result
+
+
+def skip_rows(given, rows: list[dict], interviewer: str) -> tuple[list[int], dict]:
+    """The rows a skip names, in sheet order, and its refusals by kind: `given` a list of rows, each a number, or a
+    `[first, last]` pair taking in every participant's passage between them. A row named alone must be a participant's
+    passage, and a span takes in theirs alone, the interviewer's turns and another speaker's passed over as the app
+    passes them. Answers `(rows, problems)`, problems `missing` (no passage there), `context` (the interviewer's or
+    another speaker's) and `statements` (a passage holding statements), each a list of rows."""
+    by_row = {int(r["row"]): r for r in rows}
+    out, problems = [], {"missing": [], "span": [], "context": [], "statements": []}
+    for item in given if isinstance(given, list) else []:
+        if isinstance(item, (list, tuple)) and len(item) == 2:
+            lo, hi = sorted((int(item[0]), int(item[1])))
+            span = [n for n in sorted(by_row) if lo <= n <= hi and rounds_mod.is_stop(by_row[n], interviewer)]
+            if not span:
+                problems["span"].append(f"{lo}-{hi}")
+            for n in span:
+                if n not in out:
+                    out.append(n)
+            continue
+        if isinstance(item, (list, tuple, dict)) or isinstance(item, bool):
+            raise ValueError(item)
+        n = int(item)
+        if n not in by_row:
+            problems["missing"].append(str(n))
+        elif not rounds_mod.is_stop(by_row[n], interviewer):
+            problems["context"].append(str(n))
+        elif n not in out:
+            out.append(n)
+    problems["statements"] = [str(n) for n in out if str(by_row[n]["es"]).strip()]
+    return sorted(out), problems
+
+
+def api_skip(body: dict) -> dict:
+    """Passages decided with no statement, as Skip on the statements screen decides one (leaveout, 16 November 2026),
+    for an agent's `turn skip`. The page's Skip is `/api/commit` with no field: nothing in the workbook, and the
+    passage's row in the progress file `reviewed-empty`. This writes that same state for each passage `rows` names on
+    `sheet` (see `skip_rows`), the workbook untouched, and nothing else of the page's save: never its place (`last`) and
+    never a round's minutes, since an agent works at no screen. A passage with statements is decided already, so a
+    call naming one is refused whole in one line, as is one naming the interviewer's turn, another speaker's or a row
+    with no passage, nothing written.
+
+    Every count reads the state as the app's own Skip leaves it: a round's, the case line, Statements complete's and
+    Home's. A passage decided is also the furthest decided on its sheet, so any passage before it still unvisited
+    would then count as passed (`rounds.row_states`), as when he moves past it: a call that would pass a passage it
+    does not name is refused whole, its dry run too, naming those rows, so every passage it decides is one named. The app keeps
+    no reason for a passage left with no statement, so `reason` is not read here: the agent's op keeps it in its line
+    of the record of agents' changes alone. With `dry_run` the same checks and counts, nothing written and no lock
+    taken. `tool` and `request` mark each passage's record under the progress file's `edits`, as an agent's turn write
+    is marked, so an open statements screen sees it. Answers rows and counts, never a word."""
+    path = case_path(body["path"])
+    sheet = str(body.get("sheet") or "")
+    tool, request = agent_marks(body)
+    dry = body.get("dry_run") is True
+    interviewer = str(srv.config().get("interviewer") or "")
+    if not isinstance(body.get("rows"), list) or not body["rows"]:
+        raise WorkbookError(i18n.t("server.skip_no_rows"))
+    if dry and wb_mod.WRITE_GUARD is not None:
+        # a participant another member of the team works on is refused on the dry run too, as turn write's is
+        wb_mod.WRITE_GUARD(path)
+    with (contextlib.nullcontext() if dry else writing(path)):
+        case = wb_mod.read_case(path)
+        here = next((s for s in case["sheets"] if s["name"] == sheet), None)
+        if here is None:
+            raise WorkbookError(i18n.t("server.sheet_called", sheet=sheet, name=path.name))
+        try:
+            rows, problems = skip_rows(body["rows"], here["rows"], interviewer)
+        except (TypeError, ValueError):
+            raise WorkbookError(i18n.t("server.skip_rows_shape")) from None
+        refused_args = lambda kind: dict(n=len(problems[kind]), sheet=sheet, rows=formats.list_words(problems[kind]))
+        if problems["missing"]:
+            raise WorkbookError(i18n.t("server.skip_refused.missing", **refused_args("missing")))
+        if problems["span"]:
+            raise WorkbookError(i18n.t("server.skip_refused.span", **refused_args("span")))
+        if problems["context"]:
+            raise WorkbookError(i18n.t("server.skip_refused.context", **refused_args("context")))
+        if problems["statements"]:
+            raise WorkbookError(i18n.t("server.skip_refused.statements", **refused_args("statements")))
+        if not rows:
+            raise WorkbookError(i18n.t("server.skip_no_rows"))
+        progress = rounds_mod.load_progress(path)
+        before = rounds_mod.row_states(case["sheets"], progress, interviewer)
+        keys = {n: rounds_mod.row_key(sheet, n) for n in rows}
+        already = [n for n in rows if before.get(keys[n]) == rounds_mod.REVIEWED_EMPTY]
+        marking = [n for n in rows if n not in already]
+        # the rows alone are what the states read, so they alone are copied
+        after_progress = dict(progress, rows=dict(progress["rows"]))
+        for n in marking:
+            after_progress["rows"][keys[n]] = rounds_mod.REVIEWED_EMPTY
+        after = rounds_mod.row_states(case["sheets"], after_progress, interviewer)
+        # the timepoint the sheet is at, T1 for one no progress file places later, and the passages decided there
+        placed = themes_mod.placed_sheets(path)
+        at = placed.get(sheet, 1)
+        tps = project_timepoints(path)
+        sheets_at = [s for s in case["sheets"] if placed.get(s["name"], 1) == at]
+        stops_at = [rounds_mod.row_key(s["name"], r["row"]) for s in sheets_at for r in s["rows"]
+                    if rounds_mod.is_stop(r, interviewer)]
+        decided = lambda states: sum(1 for k in stops_at if states.get(k) in rounds_mod.DECIDED)
+        stop_rows = [int(r["row"]) for r in here["rows"] if rounds_mod.is_stop(r, interviewer)]
+        passes = [n for n in stop_rows if n not in rows
+                  and before.get(rounds_mod.row_key(sheet, n)) == rounds_mod.UNVISITED
+                  and after.get(rounds_mod.row_key(sheet, n)) == rounds_mod.PASSED]
+        if passes:
+            # a passage nobody named would count as passed, decided without his word: refused whole, dry run too
+            # (the coordinator's call, 16 November 2026), naming the rows to add if he decided them as well
+            raise WorkbookError(i18n.t("server.skip_refused.passes", n=len(passes), sheet=sheet,
+                                       rows=formats.list_words([str(n) for n in passes])))
+        answer = {"case": srv.display_case(wb_mod.case_folder(path).name), "sheet": sheet,
+                  "timepoint": {"n": at, "label": tps[at - 1]["label"] if at <= len(tps) else tp_label(at)},
+                  "marked": marking, "already": already,
+                  # each passage the app counted as passed, moved past, now kept decided in its own right
+                  "kept": [n for n in marking if before.get(keys[n]) == rounds_mod.PASSED],
+                  "decided": {"before": decided(before), "after": decided(after), "total": len(stops_at)},
+                  "changed": bool(marking), "dry_run": dry}
+        if dry or not marking:
+            return answer
+        when = datetime.now().isoformat(timespec="seconds")
+        for n in marking:
+            progress["rows"][keys[n]] = rounds_mod.REVIEWED_EMPTY
+            progress.setdefault("edits", []).append(marked(
+                {"sheet": sheet, "row": n, "skipped": True, "when": when,
+                 "state": {"before": before.get(keys[n]), "after": rounds_mod.REVIEWED_EMPTY}}, tool, request))
+        rounds_mod.save_progress(path, progress)
+    return answer
 
 
 def api_crux(body: dict) -> dict:
@@ -8369,17 +8620,21 @@ def gets_word_write(root: Path, body: dict) -> dict:
 
 def api_gets_cases(body: dict) -> dict:
     """A case of the GETs, with `op` of `take` and `case`: Take the changes of a case changed since it
-    came in, each board keeping a revision first. With `op` of `colour`, the case's colour on the GETs
+    came in, each board keeping a revision first, with `dry_run` nothing written and the take's `counts` answered. With `op` of `colour`, the case's colour on the GETs
     board, `colour` a place in the cases' palette or null for Default, kept in the GETs file at once."""
     root = gets_root(body)
     op = str(body.get("op") or "")
     if op not in ("take", "colour"):
         raise WorkbookError(gets_mod.NOT_A_GETS_OP, code="unknown_op")
-    with writing(root=root):
+    # a take's dry run makes no lock file (see `locks.DRY`)
+    with locks.dry_run(op == "take" and body.get("dry_run") is True), writing(root=root):
         if op == "colour":
             answer = gets_mod.colour_op(root, gets_books(root), str(body.get("case") or ""), body.get("colour"))
         else:
-            answer = gets_mod.take(root, gets_books(root), str(body.get("case") or ""))
+            answer = gets_mod.take(root, gets_books(root), str(body.get("case") or ""), dry_run=body.get("dry_run") is True)
+            if answer.get("dry_run"):
+                # its dry run writes nothing and answers what the take would change, keys and counts (takedry)
+                return answer
     return gets_reply(root, body, answer)
 
 
@@ -9356,7 +9611,8 @@ def refresh_copies(path: Path, dry: bool = False, changed: dict | None = None, h
     """Every copy of a participant's statements brought in line with their workbook (cardsync, 13 November 2026): the
     cards of every PETs board at every timepoint (`themes.cards_refreshed`), then each file of copies across the
     participants, the GETs file's, and in a project of timepoints the participant's LPETs' and the LGETs', in the
-    order an edit reaches them (`gets.copies_refreshed`), so the LGETs read the LPETs as they now stand. With `dry`
+    order an edit reaches them (`gets.copies_refreshed`), so the LGETs read the LPETs as they now stand, each then
+    taking the statements it lacks, unplaced, under `added` (`gets.copies_added`, copiesadd). With `dry`
     nothing is written, and with `changed`, an agent's mark, each board that changes is marked changed in a
     conversation, keeping itself first in its History under `history`. The caller holds the locks. Answers `pets`,
     each PETs board to bring in line, `copies`, what each file of copies would take by its kind, and `failed`, a line
@@ -9374,14 +9630,34 @@ def refresh_copies(path: Path, dry: bool = False, changed: dict | None = None, h
     except (WorkbookError, OSError) as exc:
         out["failed"].append(i18n.t("server.refresh_workbook_unread", exc=exc))
         return out
+    # the statements a copy lacks, added to it unplaced (copiesadd, 16 November 2026), the LPETs' in a dry run
+    # counted again on the LGETs, which read the LPETs
+    would: list[str] = []
+    # a thematic analysis project's GETs gather a code's extracts by the code list, which keeps them (see `codes`)
+    adding = read_project(root).get("method") != "ta"
     for kind in kinds:
+        books = lpets_books(path) if kind == "lpets" else None
         try:
             with copy_scope(kind, path, root):
-                done = gets_mod.copies_refreshed(root, path, truth, lpets_books(path) if kind == "lpets" else None,
-                                                 dry=dry, changed=changed, history=history)
+                done = gets_mod.copies_refreshed(root, path, truth, books, dry=dry, changed=changed, history=history)
         except (WorkbookError, OSError) as exc:
             out["failed"].append(i18n.t("server.refresh_copy_unread", name=COPY_NAMES[kind], exc=exc))
             continue
+        # the addition its own step, so a read that fails leaves what was brought in line standing and said
+        took = []
+        if adding:
+            try:
+                with copy_scope(kind, path, root):
+                    took = gets_mod.copies_added(root, path, books, dry=dry, holds=truth,
+                                                 also=would if kind == "lgets" and dry else None)
+            except (WorkbookError, OSError) as exc:
+                out["failed"].append(i18n.t("server.refresh_copy_unadded", name=COPY_NAMES[kind], exc=exc))
+        if took:
+            if kind == "lpets":
+                would = [k for t in took for k in t["keys"]]
+            # a copy with keys the workbook no longer holds took nothing: `copies rekey` first (copiesfix)
+            done = dict(done or {"statements": [], "quotes": [], "missing": [], "boards": []},
+                        added=[t for t in took if t["keys"]], rekey=[t for t in took if t.get("rekey")])
         if done:
             out["copies"][kind] = done
     return out
@@ -9461,27 +9737,61 @@ def prune_copies(path: Path, dry: bool = False, changed: dict | None = None, his
     return out
 
 
+def timepoint_sheets_of(path: Path) -> list[dict]:
+    """A participant's timepoints as the LPETs' copies are found by (see `gets.held_of`), from the project's file
+    alone, never the workbook read for where each stands as `lpets_books` reads it, so a save's copies follow at
+    the cost of the copies' files (copiesadd, 16 November 2026)."""
+    return [{"case": tp_label(t["n"]), "workbook": Path(path), "timepoint": t["n"], "cite": t["label"]}
+            for t in project_timepoints(path)]
+
+
 def passage_follow(path: Path, sheet: str, row: int, old: list[str], new: list[str], lines: dict,
                    dry: bool = False) -> dict:
     """A passage's statements written, `old` and `new` before and after and `lines` each old statement's new place
     or None (see `themes.passage_lines`), carried to every copy of them across the participants (lpetdrop, 13
     November 2026, Adam by dialog: as the boards do): the GETs file's, and in a project of timepoints the
     participant's LPETs' and the LGETs', each through `gets.passage_followed`, a statement removed going from each
-    copy and its boards, one merged following the statement it joined. The caller holds the project's lock. Answers
-    what each file took by its kind, and `failed`, a line for each file that could not be read, left as it was."""
+    copy and its boards, one merged following the statement it joined, and one added joining each copy at its
+    timepoint unplaced (`gets.copies_added`, copiesadd, 16 November 2026), its keys under `added`. The caller holds
+    the project's lock. Answers what each file took by its kind, and `failed`, a line for each file that could not be
+    read, left as it was."""
     root, kinds = statement_copies(path)
     # a thematic analysis project's GETs gather a code's extracts by the code list, which keeps them (see `codes`)
     if root is None or read_project(root).get("method") == "ta":
         return {}
     out, failed = {}, []
+    # and a statement the write adds joins every copy that holds its timepoint, unplaced (copiesadd, 16 November)
+    added = gets_mod.passage_added(sheet, int(row), new, lines)
+    # the keys the copies hold once the write's statements have moved, for the dry run, and the LPETs' additions,
+    # which the LGETs read
+    moved = gets_mod.passage_map(sheet, int(row), old, new, lines)[0] if added and dry else None
+    # the passage's keys once the write stands, so a copy an old row op left behind is found before the write too
+    row_now = {(sheet, int(row)): {themes_mod.card_key(sheet, int(row), j) for j, text in enumerate(new or [])
+                                   if themes_mod.words(text)}}
+    would: list[str] = []
     for kind in kinds:
+        books = timepoint_sheets_of(path) if kind == "lpets" else None
         try:
             with copy_scope(kind, path, root):
-                done = gets_mod.passage_followed(root, path, sheet, int(row), old, new, lines,
-                                                 lpets_books(path) if kind == "lpets" else None, dry=dry)
+                done = gets_mod.passage_followed(root, path, sheet, int(row), old, new, lines, books, dry=dry)
         except (WorkbookError, OSError) as exc:
             failed.append(i18n.t("server.passage_copy_unmoved", name=COPY_NAMES[kind], exc=exc))
             continue
+        # the addition its own step, so a read that fails leaves what was moved standing and said
+        took = []
+        if added:
+            try:
+                with copy_scope(kind, path, root):
+                    took = gets_mod.copies_added(root, path, books, keys=added, dry=dry, moved=moved,
+                                                 row_now=row_now, also=would if kind == "lgets" else None)
+            except (WorkbookError, OSError) as exc:
+                failed.append(i18n.t("server.passage_copy_unadded", name=COPY_NAMES[kind], exc=exc))
+        if kind == "lpets":
+            would = [k for t in took for k in t["keys"]]
+        if took:
+            done = dict(done or {"removed": [], "merged": [], "moved": [], "boards": {}},
+                        added=list(dict.fromkeys(k for t in took for k in t["keys"])),
+                        rekey=list(dict.fromkeys(k for t in took for k in t.get("rekey") or [])))
         if done:
             out[kind] = done
     if failed:
@@ -10762,6 +11072,8 @@ ROUTES = {
     "/api/replace": api_replace,
     "/api/replace-undo": api_replace_undo,
     "/api/interviewer-note": api_interviewer_note,
+    # passages decided with no statement, as Skip decides one, for an agent (leaveout, 16 November 2026)
+    "/api/skip": api_skip,
     "/api/trim": api_trim,
     "/api/rows": api_rows,
     "/api/audio": api_audio,
@@ -10852,7 +11164,7 @@ srv.register("idiograph", routes=ROUTES,
              post_only=("/api/choose-root", "/api/projects", "/api/new-project", "/api/add-transcripts", "/api/names", "/api/qdpx",
                         "/api/open-sent", "/api/send-project", "/api/qdpx-export", "/api/boards-in", "/api/order", "/api/rename",
                         "/api/participant", "/api/demographics",
-                        "/api/mcp", "/api/quote-heading", "/api/clear-formatting", "/api/clear-made-notes", "/api/team",
+                        "/api/mcp", "/api/quote-heading", "/api/clear-formatting", "/api/clear-made-notes", "/api/skip", "/api/team",
                         "/api/team-board", "/api/team-review"),
              own_page=("/api/mcp",),
              # what governs agents, from the app's own window alone, never a program on this machine (agentlock,

@@ -1606,6 +1606,29 @@ def passage_cells(path: Path, places) -> dict[tuple[str, int], dict]:
 
 
 
+def row_cells(path: Path, sheet: str, row: int) -> tuple:
+    """One row's cells of a transcript sheet, read-only as `themes.read_cards` reads them, with the sheet's columns
+    and their width, or no columns for a sheet with no statements (copiesadd, 16 November 2026: a statement a save
+    adds joins the copies from its row alone)."""
+    path = Path(path)
+    try:
+        book = openpyxl.load_workbook(whole(path), read_only=True, data_only=True)
+    except Exception as exc:
+        raise WorkbookError(i18n.t("server.could_read", name=path.name, exc=exc))
+    try:
+        if sheet not in book.sheetnames:
+            return (), None, 0
+        ws = book[sheet]
+        cols = detect_columns(ws)
+        if not {"name", "ts", "transcript", "es"} <= set(cols):
+            return (), None, 0
+        width = max(cols.values())
+        values = next(ws.iter_rows(min_row=int(row), max_row=int(row), max_col=width, values_only=True), ())
+    finally:
+        book.close()
+    return tuple(values) + (None,) * (width - len(values)), cols, width
+
+
 def _note_column(ws) -> int:
     """Add the Interviewer notes heading to a sheet that has none, and say where it went.
 

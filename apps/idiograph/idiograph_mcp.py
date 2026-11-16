@@ -332,7 +332,9 @@ TOOLS = [
          "Take the changes of a participant into the GETs, as Update on the GETs screen does. The GETs keep a copy of "
          "each participant's PETs from when it came in. A change made in the app comes in by itself, and one made through "
          "this server or the command line stands apart until he presses Update or this runs. gets_show names each participant "
-         "changed since it came in. Every GETs board keeps a revision first. Take them only when he asks.",
+         "changed since it came in. Every GETs board keeps a revision first. With lpets, case is a timepoint, T1, taken into "
+         "that participant's LPETs. The dry run answers counts, by key, of what changes in the copy and on each board, and "
+         "the take does exactly that, keeping each board's LPETs, cards, picks and key quotes. Take them only when he asks.",
          {"case": mcp.CASE}, ["case"], writes="changes"),
     mcp.tool("turn_show", "Passages of a participant", ("turn", "show"),
          "Passages of a participant as the workbook holds them: the speaker, the timecode, the words, each "
@@ -397,6 +399,22 @@ TOOLS = [
           "row": {"type": ["string", "integer"], "description": "The interviewer's passage's row."},
           "text": {"type": "string", "description": "The note, a line an entry, empty to clear it."}},
          ["case", "sheet", "row", "text"], writes="changes"),
+    # passages decided with no statement, as Skip decides one (leaveout, 16 November 2026)
+    mcp.tool("turn_skip", "Mark passages decided with no statement", ("turn", "skip"),
+         "Mark passages decided with no statement, as Skip on the statements screen does when he reads a passage and "
+         "it needs none: the workbook is untouched and each passage counts as decided everywhere the app counts, its "
+         "round, the passages decided and Home. Name the rows as 12, 12-20 or 12,15,20-22, a span "
+         "taking in the participant's passages alone. A passage that holds statements, the interviewer's turn, "
+         "another speaker's or a row with no passage is refused, nothing written. So is a call that would make a "
+         "passage before them on the sheet, still unvisited and not named, count as passed: the refusal names its "
+         "rows, to name too if he decided them as well. reason, why "
+         "they need no statement, is kept in the record of agents' changes alone, never in the notes. Never write a "
+         "note to mark a passage decided. Run dry_run first and mark only on his word.",
+         {"case": mcp.CASE, "sheet": dict(mcp.TEXT, description="The sheet, Initial."),
+          "rows": {"type": ["string", "integer"], "description": "The passages' rows, 12, 12-20 or 12,15,20-22."},
+          "reason": {"type": "string", "description": "Why they need no statement, kept in the record of agents' "
+                                                      "changes alone."}},
+         ["case", "sheet", "rows"], writes="changes"),
     mcp.tool("turn_assign", "Assign words to another speaker", ("turn", "assign"),
          "Words of a passage, or the whole passage, assigned to another speaker, as Assign on the statements screen "
          "does: a passage of their own, or joined to that speaker's passage beside them, the statements, quotes and "
@@ -443,7 +461,8 @@ TOOLS = [
          "the statements, their quotes and their boards' cards, so the key quotes Trajectories shows follow too. A "
          "copy whose words or quote differ from the workbook's takes the workbook's, a card marked changed on the canvas "
          "among them, since the app cannot tell a change he has yet to look at from a card a write left behind. A card "
-         "or a copy whose statement is no longer in the workbook is listed and left. Each board it changes keeps a "
+         "or a copy whose statement is no longer in the workbook is listed and left. A statement the workbook holds that "
+         "a copy lacks joins it, in no PET or LPET, listed under added. Each board it changes keeps a "
          "revision first. board_show marks a stale card with card_stale. Run dry_run first: it names for each "
          "participant and file the keys that would change, never the words. Refresh only on his word.",
          {"case": dict(mcp.CASE, description="One participant by their pseudonym. Every participant when left out.")},
@@ -1202,8 +1221,30 @@ TOOLS = [
     mcp.tool("names_list", "The project's list of names", ("names", "list"),
          "The project's list of real names and what each is written as, which every transcript added to the project "
          "has replaced on its way in. Each entry by its number, the pseudonym it becomes, whom it is for and how many "
-         "spellings it has. The real names are never given to an agent, and an agent cannot add one: the list is made "
-         "in the app, where he types the names himself."),
+         "spellings it has, and whether it is Review each and how many except phrases it has. The real names are never "
+         "given to an agent: names_add adds one on his word."),
+    mcp.tool("names_add", "Add names to the list", ("names", "add"),
+         "Entries added at the end of the project's list of names to replace, on his word alone: the real names are "
+         "the ones he gave you, never a guess. Run it with dry_run first and tell him, for each new entry, how many "
+         "finds it would flag and where, by participant and part (transcript, quotes, statements, notes). The answer "
+         "never says a real name back, and neither should you. Adding changes no transcript: names_replace does that, "
+         "and a transcript added later has the names replaced on its way in. The add is one change in the record of "
+         "agents' changes, which agent_undo_change undoes. review: a name two people share where one keeps it, never "
+         "replaced in bulk, each find left for him in the app's Review and replace. except: phrases the name is never "
+         "found inside, such as a book series' title.",
+         {"entries": {"type": "array", "minItems": 1, "items": {
+             "type": "object", "required": ["real", "to"], "properties": {
+                 "real": {"type": "array", "minItems": 1, "items": {"type": "string"},
+                          "description": "The real name's spellings, as he gave them."},
+                 "to": dict(mcp.TEXT, description="What it is written as: the participant's pseudonym, or a word "
+                                                  "in brackets such as [partner]."),
+                 "for": dict(mcp.TEXT, description="The participant it is for, by pseudonym. Leave it out for everyone."),
+                 "case": {"type": "boolean", "description": "Match case, for a name that is also a word."},
+                 "review": {"type": "boolean", "description": "Review each: never replaced in bulk."},
+                 "except": {"type": "array", "items": {"type": "string"},
+                            "description": "Phrases the name is never found inside."}}},
+             "description": "The entries to add."}},
+         ["entries"], writes="changes"),
     mcp.tool("names_check", "Check the transcripts for the list's names", ("names", "check"),
          "The transcripts already in the project searched for the list's names, in the passages, exploratory notes, "
          "experiential statements and quotes. Counts only, by entry and by participant and interview, and nothing is "
@@ -1662,6 +1703,9 @@ def arguments(t: dict, given: dict, args):
         args.text, args.time, args.id = given.get("text"), given.get("time"), given.get("id")
         args.to, args.words, args.start, args.end = given.get("to"), given.get("words"), given.get("start"), given.get("end")
         args.before, args.after = given.get("direction") == "before", given.get("direction") == "after"
+        # turn skip's passages and its reason (leaveout, 16 November 2026)
+        args.rows = None if given.get("rows") is None else str(given["rows"])
+        args.reason = given.get("reason")
     if command == "team":
         # Working together (wtkeys, 8 November 2026): each tool's inputs as the command line's options
         args.name, args.route, args.folder = given.get("name"), given.get("route"), given.get("folder")
@@ -1700,7 +1744,13 @@ def arguments(t: dict, given: dict, args):
         args.frame_rate, args.audio, args.offset = given.get("frame_rate"), given.get("audio"), given.get("offset")
         args.timepoint = given.get("timepoint")
         args.sheet = given.get("sheet")
-    if command == "names":
+    if command == "names" and act == "add":
+        # the entries handed over already read, as --from reads its file, never on a command line (namesop)
+        args.source = {"entries": given.get("entries") or []}
+        args.real = args.to = args.for_ = None
+        args.match_case = args.review_each = False
+        args.except_ = None
+    elif command == "names":
         args.numbers = [int(x) for x in given.get("entries") or []]
         args.skip = [str(x) for x in given.get("skip") or []] or None
     if command == "qdpx":

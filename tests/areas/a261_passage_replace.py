@@ -142,7 +142,8 @@ AGENT_OPS = {
     "/api/participants": [("cases", None)],
     "/api/gets-head": [("cases", None)],
     "/api/open": [("statements", None), ("turn", "show")],
-    "/api/commit": [("turn", "write")],
+    # Skip, the commit with no field, is turn skip's (leaveout, 16 November 2026)
+    "/api/commit": [("turn", "write"), ("turn", "skip")],
     "/api/edit-statement": [("turn", "write")],
     "/api/replace": [("transcript", "replace")],
     "/api/replace-undo": [("transcript", "replace-undo")],
@@ -184,9 +185,10 @@ AGENT_OPS = {
     "/api/add-transcripts": [("project", "add-transcripts")],
     # the list of names a transcript has replaced on its way in (namesrule and namesui, 8 November 2026), which the
     # Names to replace card calls. An agent lists it, checks transcripts for it, replaces them and takes entries off
-    # it, by number, and never reads or adds a real name: `names set` and `names preview` are the stated exception to
-    # parity (the list is set in the app, since an agent that types a real name has sent it to a model)
-    "/api/names": [("names", "list"), ("names", "check"), ("names", "replace"), ("names", "remove")],
+    # it, by number, and never reads a real name: `names set` and `names preview` are the stated exception to parity
+    # (the whole list is set in the app). Since namesop (16 November 2026, Adam's word) an agent adds entries on his
+    # word, `names add`
+    "/api/names": [("names", "list"), ("names", "check"), ("names", "replace"), ("names", "remove"), ("names", "add")],
     "/api/edit-turn": [("turn", "edit")],
     "/api/interviewer-note": [("turn", "interviewer-note")],
     "/api/rows": [("turn", "assign"), ("turn", "assign-undo")],

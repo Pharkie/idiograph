@@ -3,5 +3,6 @@
   "agentchanges.op.turn_write": "Wrote a passage's codes",
   "agentchanges.op.participant_complete": "Marked coding complete, or reopened it",
   "agentchanges.where.gets": "Themes",
-  "agentchanges.where.statements": "Coding"
+  "agentchanges.where.statements": "Coding",
+  "agentchanges.op.turn_skip": "Marked passages decided with no code"
 }

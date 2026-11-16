@@ -18,8 +18,8 @@ net, the same for everyone with no setting:
   from the same tool within IDLE minutes of each other. A connection's writes more than IDLE minutes apart start a
   new run too, so a client left open for days is not one run of days.
 - Before a run's first write the project's working files are kept as its restore point: every workbook and every
-  JSON file of the project (`tracked`), its archive copies, its History, its list of real names, Working together's
-  files and this module's own left out. They are kept once by their contents in `.idiograph-restore/objects`, so a
+  JSON file of the project (`tracked`), its archive copies, its History, Working together's files and this module's
+  own left out, the list of real names kept since namesop (16 November 2026) so an agent's add is undone, mode 600. They are kept once by their contents in `.idiograph-restore/objects`, so a
   file unchanged since an earlier restore point costs nothing again and the next point copies only what changed
   since. Each write's files are read before and after it by their size and time alone, so the run knows which
   files it changed, which it made, and which changed between its writes by someone else.
@@ -54,6 +54,7 @@ import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
 
+import agent_log
 import i18n
 import locks
 import server as srv
@@ -72,11 +73,15 @@ KEEP_DAYS = 30
 KEEP_RUNS = 10
 WORDS_MOST = 2000
 # what a restore point keeps: the workbooks and every JSON file, and of those never these, by name, wherever they
-# stand: the project's History and the list of real names, which are copied nowhere, Working together's team file,
-# the holds file of before, and a shared copy's own record
+# stand: the project's History, Working together's team file, the holds file of before, and a shared copy's own
+# record
 TRACKED = (".xlsx", ".json")
-NEVER = frozenset(("idiograph-history.json", "idiograph-names.json", "team.json", "idiograph-holds.json",
-                   "idiograph-sent.json"))
+NEVER = frozenset(("idiograph-history.json", "team.json", "idiograph-holds.json", "idiograph-sent.json"))
+# The list of real names (namesop, 16 November 2026, Adam: an agent adds entries on his word). Kept by restore points
+# since then, so an agent's add is undone like any write: its copies stand in this store, in the project's own hidden
+# `.idiograph-restore` beside the list itself, mode 600, which a shared copy (`project_pack.LEFT_OUT`), Working
+# together's sync (hidden folders) and every export leave out, so the names reach nowhere the list does not
+NAMES = "idiograph-names.json"
 # folders never walked: archive copies, which a run only adds to, and every hidden folder, this store and Working
 # together's among them
 SKIP_DIRS = frozenset(("_Archive",))
@@ -97,8 +102,9 @@ RISKS = {1: "steering", 2: "speed and volume", 3: "no screen", 4: "standing acce
 # The ops undo cannot reach (Adam, 13 November 2026, by dialog: "app only"), refused for agents with the place in
 # the app that does each, nothing waiting. Sending to another person, Working together's outward ops, its keys and
 # relay codes, and who is on the team. Settings, which are the app's and no project's, so no restore point holds
-# them (Your name, the AI prompt, the AI's provider, address and model, the AI switch and keys having no op). And the
-# list of real names, which is copied nowhere, so an entry taken off it cannot be put back. Removing a project from
+# them (Your name, the AI prompt, the AI's provider, address and model, the AI switch and keys having no op). And an
+# entry taken off the list of real names: since namesop (16 November 2026, Adam's word) an agent adds entries, which
+# restore points now reach, and taking one off stays the app's, as he ruled for adding alone. Removing a project from
 # Idiograph stays an agent's, its folder moved to the Trash or left as it is, never deleted.
 TEAM_ONLY = ("on", "set", "invite", "admit", "join", "joined", "send", "remove", "lead", "board-send",
              "board-answer", "ask", "review-send", "reply", "thread", "review-done", "suggestion-answer")
@@ -220,8 +226,49 @@ def keep(root, sha: str, data: bytes) -> None:
     if not target.is_file():
         target.parent.mkdir(parents=True, exist_ok=True)
         tmp = target.with_name(f".{sha}.{secrets.token_hex(4)}")
-        tmp.write_bytes(data)
+        # read by its owner alone, as the list of names it may be a copy of is (namesop)
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(data)
         os.replace(tmp, target)
+
+
+def put_back(tmp: Path, data: bytes, rel: str) -> None:
+    """A file an undo puts back written to its temporary name, the list of names made mode 600 from its first byte,
+    as the list's own write makes it, so it is never readable by others on the way (namesop)."""
+    if rel.split("/")[-1] != NAMES:
+        tmp.write_bytes(data)
+        return
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "wb") as fh:
+        fh.write(data)
+    with contextlib.suppress(OSError):
+        os.chmod(tmp, 0o600)
+
+
+def secret_words(root, args=None) -> list[str]:
+    """The words no agent's request may keep as the record, History or the agent log write it (namesop): every
+    spelling and except phrase of the project's list of names, and those an op was given (`args.secret_words`,
+    `names add`'s), longest first."""
+    import names as names_mod
+    words = set(str(w) for w in (getattr(args, "secret_words", None) or ()) if str(w).strip())
+    if root is not None:
+        for e in names_mod.entries_at(root):
+            words.update(e.get("real") or [])
+            words.update(e.get("except") or [])
+    return sorted({w.strip() for w in words if w.strip()}, key=len, reverse=True)
+
+
+def hide_request(root, args) -> None:
+    """An agent's request with the project's real names taken out before anything writes it (namesop): `args.note`
+    rewritten in place, and `args.secret_words` holding the words, for the agent log's refusals to take out too."""
+    words = secret_words(root, args)
+    args.secret_words = words
+    if getattr(args, "note_raw", None) is None:
+        # his words as given, kept in memory alone, so a longer name given later is taken out whole
+        args.note_raw = getattr(args, "note", None) or ""
+    if words and getattr(args, "note", None):
+        args.note = agent_log.hidden_words(args.note_raw, words)
 
 
 def copy_in(root, rel: str) -> tuple[str, list] | None:
@@ -412,12 +459,14 @@ def tidy(root, new: dict | None = None) -> None:
 # ------------------------------------------------------------------ what a file is, as a line says it
 
 ROOT_KINDS = {"idiograph-project.json": "project", "idiograph-gets.json": "gets", "idiograph-lgets.json": "lgets",
+              NAMES: "names",
               "idiograph-trajectories.json": "trajectories", "idiograph-codes.json": "codes"}
 # each kind's words, by its key in full
 KIND_SAID = {"project": lambda: i18n.t("agentchanges.kind.project"), "gets": lambda: i18n.t("agentchanges.kind.gets"),
              "lgets": lambda: i18n.t("agentchanges.kind.lgets"),
              "trajectories": lambda: i18n.t("agentchanges.kind.trajectories"),
              "codes": lambda: i18n.t("agentchanges.kind.codes"),
+             "names": lambda: i18n.t("agentchanges.kind.names"),
              "project_files": lambda: i18n.t("agentchanges.kind.project_files")}
 PART_SAID = {"transcript": lambda: i18n.t("agentchanges.part.transcript"),
              "boards": lambda: i18n.t("agentchanges.part.boards"),
@@ -505,7 +554,8 @@ def target_of(args, answer: dict) -> dict:
             out["board"] = one_line(board)
         if args.command == "gets" and not getattr(args, "lpets", None):
             out["gets"] = True
-    for k in ("sheet", "row", "timepoint"):
+    # `rows` the passages turn skip names, 12,15,20-22 (leaveout, 16 November 2026)
+    for k in ("sheet", "row", "rows", "timepoint"):
         v = getattr(args, k, None)
         if v not in (None, ""):
             out[k] = v if isinstance(v, int) else one_line(v)
@@ -636,11 +686,23 @@ def take_out(root, cid: str) -> None:
 
 
 def entry_for(p, args, run: dict, answer, changed: list, made: list) -> dict:
-    return {"at": stamp(), "run": run["id"], "via": run.get("via") or "cli", "agent": run.get("agent") or "",
-            "request": one_line(getattr(args, "note", ""))[:WORDS_MOST],
-            "op": " ".join(x for x in (args.command, getattr(args, "act", None)) if x),
-            "target": target_of(args, answer), "what_changed": changed_line(changed, made, case_names(p)),
-            "files": len(changed), "undo_with": undo_of(args, answer, run["id"])}
+    request = agent_log.hidden_words(one_line(getattr(args, "note", "")), getattr(args, "secret_words", ()))
+    if args.command == "names" and request:
+        # a names op's whole request kept as "…", as the agent log keeps it, since it may hold a name typed in it
+        # alone (namesfix2)
+        request = "…"
+    entry = {"at": stamp(), "run": run["id"], "via": run.get("via") or "cli", "agent": run.get("agent") or "",
+             "request": request[:WORDS_MOST],
+             "op": " ".join(x for x in (args.command, getattr(args, "act", None)) if x),
+             "target": target_of(args, answer), "what_changed": changed_line(changed, made, case_names(p)),
+             "files": len(changed), "undo_with": undo_of(args, answer, run["id"])}
+    # turn skip's reason for passages left with no statement, which the app keeps nowhere (leaveout, 16 November
+    # 2026), kept in this line alone, never in a participant's notes, and no other op's reason with it
+    reason = (agent_log.hidden_words(one_line(getattr(args, "reason", "") or ""), getattr(args, "secret_words", ()))[:WORDS_MOST]
+              if (args.command, getattr(args, "act", None)) == ("turn", "skip") else "")
+    if reason:
+        entry["reason"] = reason
+    return entry
 
 
 # ------------------------------------------------------------------ an agent's write
@@ -914,7 +976,7 @@ def undo_run(p, args) -> tuple:
                 target = Path(root) / f
                 target.parent.mkdir(parents=True, exist_ok=True)
                 tmp = target.with_name(f".{target.name}.{secrets.token_hex(4)}.restore")
-                tmp.write_bytes((objects(root) / point_files[f]["sha"]).read_bytes())
+                put_back(tmp, (objects(root) / point_files[f]["sha"]).read_bytes(), f)
                 # its time as it was too, so the file reads exactly as it stood, and an earlier run undone after
                 # this one finds its files as its last write left them
                 stamp_ns = (point_files[f].get("stat") or [None])[0]
@@ -1095,7 +1157,7 @@ def undo_changes(p, args) -> tuple:
                         continue
                     target.parent.mkdir(parents=True, exist_ok=True)
                     tmp = target.with_name(f".{target.name}.{secrets.token_hex(4)}.restore")
-                    tmp.write_bytes((objects(root) / s["before"]).read_bytes())
+                    put_back(tmp, (objects(root) / s["before"]).read_bytes(), rel)
                     # its time as it was too, so the change before it finds the file as it left it
                     stamp_ns = s["before_stat"][0]
                     if isinstance(stamp_ns, int):
@@ -1135,6 +1197,7 @@ OPS_SAID = {
     ("gets", "apply"): (lambda: i18n.t("agentchanges.op.gets_apply")), ("gets", "take"): (lambda: i18n.t("agentchanges.op.gets_take")),
     ("turn", "write"): (lambda: i18n.t("agentchanges.op.turn_write")), ("turn", "edit"): (lambda: i18n.t("agentchanges.op.turn_edit")),
     ("turn", "interviewer-note"): (lambda: i18n.t("agentchanges.op.turn_note")), ("transcript", "replace"): (lambda: i18n.t("agentchanges.op.replace")),
+    ("turn", "skip"): (lambda: i18n.t("agentchanges.op.turn_skip")),
     ("clear-formatting", None): (lambda: i18n.t("agentchanges.op.clear_formatting")),
     ("clear-made-notes", None): (lambda: i18n.t("agentchanges.op.clear_made_notes")),
     ("participant", "set"): (lambda: i18n.t("agentchanges.op.participant_set")),
@@ -1247,6 +1310,10 @@ def change_view(e: dict, run: dict, alone: dict, files: Files, live_by_file: dic
     does, which Undo this run takes back first. `none`, it keeps no copies or its run is undone."""
     import cli
     out = {"id": e.get("id"), "at": e.get("at"), "line": line_of(e), "where": cli.scrub(where_of(e))}
+    # turn skip's reason, the agent's words, cleaned as its request is (leaveout, 16 November 2026)
+    if e.get("reason"):
+        from agent_log import agent_words
+        out["reason"] = agent_words(e.get("reason"))
     step = (run.get("steps") or {}).get(e.get("id"))
     if e.get("id") in alone:
         return dict(out, state="undone", undone_at=alone[e["id"]]["at"])

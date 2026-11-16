@@ -1280,6 +1280,7 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .nm-table td.nm-in { width: 8.5em; }
 .nm-table td.nm-case { width: 7.5em; white-space: nowrap; }
 .nm-table td.nm-case label { display: flex; gap: 6px; align-items: center; color: var(--ink-soft); font-size: 12.5px; cursor: pointer; }
+.nm-table td.nm-case label + label { margin-top: 4px; }
 .nm-table td.nm-case input { accent-color: var(--ink); }
 .nm-table td.nm-x { width: 32px; padding-right: 0; text-align: right; }
 .nm-acts { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
@@ -1580,6 +1581,7 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .ph-sheet .ar-undo:disabled { cursor: default; text-decoration: none; }
 .ph-sheet .ar-more { margin-top: 10px; }
 .ph-sheet .ar-why { grid-column: 1 / -1; margin-top: 4px; color: var(--ink-soft); font-size: 12.5px; }
+.ph-sheet .ar-reason { grid-column: 1 / -1; margin-top: 4px; }
 .ph-sheet .ar-act .ar-why { grid-column: auto; margin: 0; }
 .ph-sheet .ar-refused { grid-column: 1 / -1; margin-top: 6px; color: var(--crux); font-size: 12.5px; line-height: 1.5; }
 .ph-sheet .ar-refused[hidden] { display: none; }

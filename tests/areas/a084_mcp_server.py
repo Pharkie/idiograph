@@ -151,7 +151,7 @@ def test_mcp_server(scratch):
               names == ["cases", "search", "statements", "board_list", "board_show", "board_compare", "board_new", "board_import", "board_apply",
                         "board_current", "board_canvas", "board_rename", "board_duplicate", "board_fresh", "board_delete", "board_export",
                         "gets_export", "gets_show", "gets_apply", "gets_import", "gets_colour", "gets_take", "turn_show", "turn_write",
-                        "turn_edit", "turn_interviewer_note", "turn_assign", "turn_assign_undo", "turn_trim", "turn_trim_undo",
+                        "turn_edit", "turn_interviewer_note", "turn_skip", "turn_assign", "turn_assign_undo", "turn_trim", "turn_trim_undo",
                         "copies_refresh", "copies_rekey", "copies_prune", "import", "import_qdpx", "timepoints", "timepoints_set",
                         "trajectories_show", "trajectories_apply", "trajectories_export", "codes_list", "codes_show", "codes_new", "codes_rename",
                         "codes_describe", "codes_merge", "codes_delete", "codes_add", "codes_remove", "codes_apply_last",
@@ -161,7 +161,7 @@ def test_mcp_server(scratch):
                         "project_set", "project_remove", "project_show", "project_history", "team_show", "team_on", "team_set", "team_invite",
                         "team_answers", "team_admit", "team_join", "team_joined", "team_remove", "team_lead", "team_take", "team_send",
                         "team_board_send", "team_board_take", "team_board_answer", "team_boards",
-                        "names_list", "names_check", "names_replace", "names_remove",
+                        "names_list", "names_add", "names_check", "names_replace", "names_remove",
                         "project_new", "participant_rename", "participant_show", "participant_set",
                         "demographics_show", "demographics_apply", "demographics_move_tags", "participant_complete",
                         "participant_export", "board_note", "board_history", "board_revision", "board_restore", "board_copy", "board_complete", "gets_fresh",
@@ -194,7 +194,7 @@ def test_mcp_server(scratch):
                                  "gets_colour", "gets_complete", "gets_current", "gets_delete",
                                  "gets_duplicate", "gets_export", "gets_fresh", "gets_import", "gets_note",
                                  "gets_rename", "gets_restore", "gets_revision", "gets_settings_set",
-                                 "gets_subs", "gets_take", "import", "import_qdpx", "names_remove", "names_replace",
+                                 "gets_subs", "gets_take", "import", "import_qdpx", "names_add", "names_remove", "names_replace",
                                  "participant_complete", "participant_export", "participant_rename", "participant_set",
                                  "project_add_transcripts",
                                  "project_boards_in", "project_export_qdpx", "project_new", "project_open_copy", "project_remove", "project_send",
@@ -205,7 +205,7 @@ def test_mcp_server(scratch):
                                  "team_set", "team_suggest", "team_suggestion_answer", "team_take", "team_thread",
                                  "timepoints_set",
                                  "trajectories_apply", "trajectories_export", "transcript_export", "transcript_replace", "transcript_replace_undo", "turn_assign", "turn_assign_undo", "turn_edit",
-                                 "turn_interviewer_note", "turn_trim", "turn_trim_undo", "turn_write"]
+                                 "turn_interviewer_note", "turn_skip", "turn_trim", "turn_trim_undo", "turn_write"]
               and all(t["annotations"]["readOnlyHint"] is True and t["annotations"]["openWorldHint"] is False
                       for t in tools if t["name"] not in writers and t["name"] not in sifts)
               and all({"request", "dry_run"} <= set(t["inputSchema"]["properties"]) and "request" in t["inputSchema"]["required"]

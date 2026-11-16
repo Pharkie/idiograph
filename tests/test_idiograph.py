@@ -431,6 +431,10 @@ AREAS = {
     "a396_home_cache": "idiograph",
     "a397_clear_made_notes": "idiograph",
     "a398_document_exports": "idiograph",
+    "a399_names_add": "idiograph",
+    "a401_copies_added": "idiograph",
+    "a402_take_dry": "idiograph",
+    "a403_turn_skip": "idiograph",
     "a404_export_menus": "idiograph",
 }
 
