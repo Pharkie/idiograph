@@ -1,7 +1,7 @@
 # What's new in Idiograph
 
 Newest first. Each version's notes are what the updater shows, eight lines at most, and
-`packaging/release.py` reads them from here.
+`packaging/release.py` reads them from here, and `packaging/site_whats_new.py` puts them on the website.
 
 What goes here: only major new features and real changes to how something works, among them what your AI agents can do, and any change to safety, privacy or your data. One plain line each, saying what you can now do, not how the screen shows it. Never: changed wording, labels or layout, small fixes, or a feature's parts (its buttons, tabs, counts). Several changes to one feature are one line. A version with nothing major has one line, or none.
 
