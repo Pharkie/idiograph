@@ -37,13 +37,23 @@ def digest(root: Path) -> dict:
 
 
 def parts(book: Path) -> dict:
-    """A workbook's parts by name, the core properties' last-changed time, which every save sets, taken out."""
+    """A workbook's parts by name in their order, the core properties' last-changed time, which every save sets, taken
+    out, and each XML part as its tree, every element, attribute, namespace and word kept, as support.same_workbook
+    reads one: the writer the app ships on Windows, openpyxl without lxml, spells the same tree otherwise than the
+    demo's as built (`<x />` for `<x/>`, its own namespace prefixes), so a shift and its opposite give the same
+    cells, values, number formats and styles back in other bytes there (winfix3, 16 November)."""
+    from xml.etree import ElementTree as ET
+
+    def tree(el):
+        return (el.tag, tuple(sorted(el.attrib.items())), el.text or "", el.tail or "", tuple(tree(c) for c in el))
+
     with zipfile.ZipFile(io.BytesIO(book.read_bytes())) as z:
         out = {n: z.read(n) for n in z.namelist()}
     if "docProps/core.xml" in out:
         out["docProps/core.xml"] = re.sub(rb"<dcterms:modified[^>]*>[^<]*</dcterms:modified>", b"",
                                           out["docProps/core.xml"])
-    return out
+    return {"order": list(out), **{n: tree(ET.fromstring(b)) if n.endswith((".xml", ".rels")) else b
+                                   for n, b in out.items()}}
 
 
 def sheet_cells(book: Path, sheet: str) -> tuple[dict, dict]:
