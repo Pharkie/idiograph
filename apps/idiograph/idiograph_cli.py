@@ -7745,7 +7745,17 @@ def cmd_offset(p: Project, args) -> tuple:
     except WorkbookError as exc:
         raise cli.Refused(str(exc), i18n.t("cli.said.nothing_was_written")) from None
     root = p.root.resolve()
-    answer = dict(done, case=b["case"], file=srv.abs_path(done["file"]).resolve().relative_to(root).as_posix())
+    held = srv.abs_path(done["file"]).resolve()
+    try:
+        shown = held.relative_to(root).as_posix()
+    except ValueError:
+        # the thematic analysis demo keeps its recordings' offsets in the IPA demo (tademoaudio), outside its root:
+        # given from the demos' top folder, as the rest of the answer's paths are given from the root
+        try:
+            shown = held.relative_to(srv.DEMO_DIR.resolve()).as_posix()
+        except ValueError:
+            shown = srv.rel_path(held)
+    answer = dict(done, case=b["case"], file=shown)
     move = (f"{audio_mod.offset_said(done['was'])} to {audio_mod.offset_said(done['offset'])}" if done["changed"]
             else i18n.t("cli.offset.as_it_is_already", offset=audio_mod.offset_said(done['offset'])))
     if args.dry_run:

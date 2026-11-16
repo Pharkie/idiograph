@@ -4220,6 +4220,14 @@ and are kept after. The AI-made audio and its own licence stay out of every inst
   upload the new files to the release with `gh release upload demo-recordings-1 <files> --repo Pharkie/idiograph`,
   the manifest too, before the version that names them ships. A recording made again for an edited transcript has a
   new name, so the old asset stays for the copies that still name it.
+- *The thematic analysis demo* (tademoaudio, 16 November 2026, Adam's report from 0.9.28 that its Coding screen said
+  "No recording found for Initial"). It codes the IPA demo's three interviews from the same transcripts, so it has no
+  recordings of its own and plays the IPA demo's: `demo_ta_case_of(path)` names its participant and
+  `demo_interview_of` answers its Initial sheets as the IPA demo's (`ipa`), so its player offers the same download and
+  that one download, kept in the IPA demo, serves both. `heard_book(path, sheet)` is the workbook whose recording a
+  sheet plays, the IPA demo's same participant for the thematic analysis demo and the workbook itself otherwise, read
+  by `api_audio`, `/audio` (`stream_audio`), `set_audio_offset` and the GETs audit trail's links (`gets_audio`), so an
+  offset set on either demo is the recording's. Nothing goes into the thematic analysis demo's folder. Area 409.
 
 **Re-voicing an edited turn.** A change to a demo transcript's words changes its hash, so its recording no longer
 matches and is not taken, until the turn is voiced again: `packaging/recording/voice_demo.py --clips <folder>`,

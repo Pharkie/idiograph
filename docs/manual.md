@@ -5312,7 +5312,9 @@ shows as any other's. The first press of Play, a timecode or `Space` puts the of
 demo's recordings, 9.4 MB. Download?", with Download and Not now. Download says how far it has got, "Downloading
 the recordings, 2.8 MB of 9.4 MB", with a line filling beside Cancel, and once all three are on your computer the
 player plays from where you pressed. Not now and Cancel put the player back, and the next press offers it again.
-The PETs and GETs boards' player offers it the same way when a quote's play is pressed. With no internet the
+The PETs and GETs boards' player offers it the same way when a quote's play is pressed. The thematic analysis demo,
+Living with a dog coded, is the same three interviews, so its Coding screen offers the same download and plays the
+same recordings, and one download serves both demos. With no internet the
 offer's line says "No internet connection, so the recordings did not download. The demo works without them.",
 and Download tries again. A recording that does not arrive exactly as it should is not kept. The recordings stay
 on your computer, in the demo's own folder, and Reset demo leaves them there. Each was made at about 24 kbps, half

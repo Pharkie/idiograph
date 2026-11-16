@@ -6766,7 +6766,9 @@ def progress_step(book: Path) -> tuple:
 def set_audio_offset(path: Path, sheet: str, value, dry_run: bool = False) -> dict:
     """A sheet's recording given a new offset, which playback adds to every time code, kept beside the
     recording so it stays with the case. Refused for a sheet with no recording and for an offset that
-    is no number of seconds. With `dry_run` nothing is written. Answers the offset it had and the new."""
+    is no number of seconds. With `dry_run` nothing is written. Answers the offset it had and the new. A sheet of the
+    thematic analysis demo sets its recording's, kept in the IPA demo (`heard_book`)."""
+    path = heard_book(path, sheet)
     found = audio_mod.for_sheet(path, sheet)
     if found is None or not srv.within_root(found):
         raise WorkbookError(i18n.t("server.recording_found", sheet=sheet))
@@ -7883,12 +7885,32 @@ def demo_case_of(path: Path) -> str | None:
     return next((name for name, book in zip(DEMO_CASES, demo_workbooks()) if here == book.resolve()), None)
 
 
+def demo_ta_case_of(path: Path) -> str | None:
+    """The participant a workbook of the thematic analysis demo is, Juno, Rowan or Mabel, or None for any other."""
+    try:
+        here = Path(path).resolve()
+    except OSError:
+        return None
+    return next((name for name, book in zip(DEMO_CASES, demo_workbooks(srv.demo_ta_dir())) if here == book.resolve()),
+                None)
+
+
+def heard_book(path: Path, sheet: str) -> Path:
+    """The workbook whose recording a sheet plays: the IPA demo's same participant for an Initial sheet of the thematic
+    analysis demo, which codes the same three interviews from the same transcripts (tademoaudio, 16 November 2026),
+    so one download, kept in the IPA demo, plays in both and an offset set on either is the recording's own; `path`
+    itself for any other."""
+    name = demo_ta_case_of(path) if sheet == DEMO_SHEET else None
+    return demo_workbooks()[DEMO_CASES.index(name)] if name else Path(path)
+
+
 def demo_interview_of(path: Path, sheet: str) -> tuple[str, str] | None:
     """The demo interview a workbook's sheet is, by the key of its demo's download and the participant, `("ipa",
-    "Juno")` for the IPA demo's Initial sheets and `("lipa", "Nell")` for a sheet of the longitudinal demo's (T1, T2,
-    T3), or None for any other."""
-    if sheet == DEMO_SHEET and demo_case_of(path):
-        return DEMO_RECORDINGS, demo_case_of(path)
+    "Juno")` for the IPA demo's Initial sheets and the thematic analysis demo's, whose recordings are the IPA demo's
+    (`heard_book`), and `("lipa", "Nell")` for a sheet of the longitudinal demo's (T1, T2, T3), or None for any
+    other."""
+    if sheet == DEMO_SHEET and (demo_case_of(path) or demo_ta_case_of(path)):
+        return DEMO_RECORDINGS, demo_case_of(path) or demo_ta_case_of(path)
     if sheet in DEMO_LIPA_SHEETS:
         try:
             here = Path(path).resolve()
@@ -8091,7 +8113,7 @@ def api_audio(body: dict) -> dict:
     sheet = body.get("sheet") or ""
     if not srv.within_root(path):
         return {"found": False, "note": i18n.t("server.workbook_sits_outside_project_folder")}
-    found = audio_mod.for_sheet(path, sheet)
+    found = audio_mod.for_sheet(heard_book(path, sheet), sheet)
     # each of the demo's three participants has a recording (recvoices, 12 November 2026), put in place here from
     # source, and offered for download when it is not on this computer (recdemand, 13 November 2026): the size of
     # what is still to come, and the download's state when one is under way
@@ -8107,7 +8129,7 @@ def api_audio(body: dict) -> dict:
     if found is None or not srv.within_root(found):
         return {"found": False, "note": i18n.t("server.recording_found", sheet=sheet)}
     # the offset playback adds to every time code, kept beside the recording (20 October)
-    return {"found": True, "name": found.name, "offset": audio_mod.offset_for(path, sheet),
+    return {"found": True, "name": found.name, "offset": audio_mod.offset_for(heard_book(path, sheet), sheet),
             "url": "/audio?" + urlencode({"path": srv.rel_path(path), "sheet": sheet})}
 
 
@@ -8829,14 +8851,14 @@ def gets_audio(books: list[dict]):
             return None
         key = (str(book), sheet)
         if key not in found:
-            rec = audio_mod.for_sheet(book, sheet)
+            rec = audio_mod.for_sheet(heard_book(book, sheet), sheet)
             found[key] = ("/audio?" + urlencode({"path": srv.rel_path(book), "sheet": sheet})
                           if rec is not None and rec.exists() and srv.within_root(rec) else None)
         return found[key]
 
     def offset(cell: dict) -> float:
         book, sheet = by_case.get(cell.get("case")), str(cell.get("sheet") or "")
-        return audio_mod.offset_for(book, sheet) if book is not None and sheet else 0.0
+        return audio_mod.offset_for(heard_book(book, sheet), sheet) if book is not None and sheet else 0.0
 
     link.offset = offset
     return link
@@ -10999,7 +11021,7 @@ def stream_audio(handler, query: dict) -> None:
         return handler._send(400, b"Bad path", "text/plain; charset=utf-8")
     if not query.get("path") or not srv.within_root(path):
         return handler._send(403, b"That path is outside the project folder.", "text/plain; charset=utf-8")
-    found = audio_mod.for_sheet(path, query.get("sheet", ""))
+    found = audio_mod.for_sheet(heard_book(path, query.get("sheet", "")), query.get("sheet", ""))
     if found is None or not found.exists() or not srv.within_root(found):
         return handler._send(404, b"No recording for that sheet.", "text/plain; charset=utf-8")
     try:
