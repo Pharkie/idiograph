@@ -7,7 +7,7 @@ one. Now each edit of his leaves one line in the History of each board that hold
 participant's PETs boards at the sheet's timepoint and every GETs, LPETs and LGETs board, the board kept as it stood
 before, named for the participant and the statement's words before and after, "Osric's statement edited: "..." to
 "..."", a long statement shown round its change. One line a board an edit, none for a save that rewords nothing. An
-agent's write keeps its own line, "Before: " and his request, one a board it changes, and no second line.
+agent's write keeps its own line, "Before an agent's change" and his request, one a board it changes, and no second line.
 
 And "Fix it": a replace, its dry run and its undo, the agents' and the app's Replace all alike, reached the GETs' copy
 of a participant and no further, so on a project of timepoints the participant's LPETs and the project's LGETs kept
@@ -227,7 +227,7 @@ def test_history_replace(scratch):
                                     "version": version, "request": "Say braced in Osric's statement"}), encoding="utf-8")
         pets_was, gets_was = pets_lines(osric), file_lines(gfile)
         code, wrote, err = run("turn", "write", "Osric", sheet, str(o[0]), "--from", str(spec), "--tool", "Claude Code")
-        agent = "Before: Say braced in Osric's statement"
+        agent = "Before an agent's change"
         check("300: an agent's turn write leaves its own one line on each PETs board and each GETs board holding the "
               "statement, Before: and his request, and no statement-edit line beside it",
               code == 0 and all(v == [agent] for v in added(pets_was, pets_lines(osric)).values())

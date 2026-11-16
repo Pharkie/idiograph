@@ -1318,10 +1318,6 @@ textarea.th-vedit { resize: vertical; min-height: 4.4em; margin-top: 4px; }
 .th-guide-lines li::before {
   content: ""; position: absolute; left: 1px; top: .78em; width: 6px; height: 1px; background: var(--ink-faint);
 }
-.th-guide-from {
-  margin: 24px 0 0; padding-top: 12px; border-top: 1px solid var(--rule);
-  font-size: 11.5px; line-height: 1.45; color: var(--ink-faint);
-}
 
 /* The sidebar button in the bar, after Export: the panel icon in the rail toggle's style, pressed in
    while the sidebar is open */

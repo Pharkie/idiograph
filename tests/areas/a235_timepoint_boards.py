@@ -313,7 +313,7 @@ def test_timepoint_boards(scratch):
               and skey in next(g["members"] for g in after["groups"] if g["id"] == g1["id"])
               and after["cards"][skey].get("text") == "The soil is known by others"
               and len(after.get("history") or []) == revisions + 1
-              and (after.get("history") or [{}])[0].get("name", "").endswith("Bring in the soil"),
+              and (after.get("history") or [{}])[0].get("name") == "Before an agent's change",
               err or json.dumps(done)[:400])
         check("235: the board read back holds what the drag's save left: the same cards, words, LPETs and members",
               shape(after) == dragged, json.dumps({"op": shape(after), "drag": dragged})[:600])

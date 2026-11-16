@@ -160,7 +160,7 @@ does.
 
 The tools are `cases`, `search`, `statements`, `board_list`, `board_show`, `board_compare`, `board_new`,
 `board_apply`, `board_current`, `board_canvas`, `board_rename`, `board_duplicate`, `board_delete`,
-`board_export`, `gets_export`, `gets_show`, `gets_apply`, `gets_take`, `gets_colour`, `turn_show`, `turn_write`, `turn_edit`, `turn_interviewer_note`, `turn_assign`, `turn_assign_undo`, `turn_trim`, `turn_trim_undo`, `import`, `audio_offset`, `audio_attach`, `quote_heading`, `transcript_replace`, `transcript_replace_undo`, `validate`, `hold`, `hold_show`, `agent_log`, `project_send`, `project_send_list`, `project_export_qdpx`, `project_open_copy`, `project_add_transcripts`, `project_boards_in`, `project_set`, `project_show`, `project_history`, `names_list`, `names_check`, `names_replace`, `names_remove`, `project_new`, `participant_rename`, `participant_complete` `participant_export`, `participant_set`, `participant_show`, `demographics_show`, `demographics_apply`, `demographics_move_tags`,
+`board_export`, `gets_export`, `trajectories_export`, `transcript_export`, `codes_export`, `gets_show`, `gets_apply`, `gets_take`, `gets_colour`, `turn_show`, `turn_write`, `turn_edit`, `turn_interviewer_note`, `turn_assign`, `turn_assign_undo`, `turn_trim`, `turn_trim_undo`, `import`, `audio_offset`, `audio_attach`, `quote_heading`, `transcript_replace`, `transcript_replace_undo`, `validate`, `hold`, `hold_show`, `agent_log`, `project_send`, `project_send_list`, `project_export_qdpx`, `project_open_copy`, `project_add_transcripts`, `project_boards_in`, `project_set`, `project_show`, `project_history`, `names_list`, `names_check`, `names_replace`, `names_remove`, `project_new`, `participant_rename`, `participant_complete` `participant_export`, `participant_set`, `participant_show`, `demographics_show`, `demographics_apply`, `demographics_move_tags`,
 `board_note`, `board_history`, `board_revision`, `board_restore`, `board_copy`, `board_complete`, `gets_fresh`, `gets_duplicate`,
 `gets_rename`, `gets_note`, `gets_canvas`, `gets_current`, `gets_delete`, `gets_complete`, `gets_history`,
 `gets_revision`, `gets_restore`, `gets_subs`, `gets_settings` and `gets_settings_set`,
@@ -169,7 +169,9 @@ line reads from a file goes in as the tool's input: `pets` and `not_placed` for 
 `operations` for `board_apply` and `gets_apply`, and `pairs`, `notes`, `statements` and `quotes` for
 `turn_write`. `search` takes `words`, `case`, `board`, `kinds` as a list, `limit`, `more`, and `whole_word` (true when left out) and `match_case` (false when left out), each true or false. Every tool that writes takes `request`, his request in his own words, and `dry_run`,
 and the board and its History name the client you work in. `board_export` writes a Word document or a PDF,
-`gets_export` a GETs board's PDF and `participant_export` the statements CSV, and they change nothing he made, so they take `dry_run` alone. Each answer is the command's plain words, with its JSON beside
+`gets_export` a GETs board's PDF or Word document, `participant_export` the statements CSV, and `trajectories_export`,
+`transcript_export` and `codes_export` the Trajectories board, an annotated transcript and the code list, and they
+change nothing he made, so they take `dry_run` alone. Each answer is the command's plain words, with its JSON beside
 them, and a refusal comes back as an error with its own line, having written nothing.
 
 **The project's words come back marked (26 October).** Words a participant or the interviewer said, and
@@ -830,7 +832,8 @@ refused when one is wrong, nothing written:
 
 Every change is a line in the Trajectories file's History, the LPET ops too, and in the record of agents'
 changes. MCP's tools are `trajectories_show` and `trajectories_apply` with
-`operations`.
+`operations`. `trajectories export` writes the board as a PDF or a Word document (see the exports, after
+`participant export`).
 
 ## The code list (thematic analysis)
 
@@ -1010,6 +1013,30 @@ the record of agents' changes, and `agents undo-run` puts it all back. A second 
 `--participant` it reaches that participant's workbook, their LPETs and their rows on the project's boards
 alone. MCP's tool is `clear_formatting`, with `case`, and the app's route is `/api/clear-formatting`, with `root`
 or `path`, `case` and `dry_run`. Clear only on his word, after the dry run.
+
+## Taking the notes of how boards were made off
+
+A board an agent made, or a copy it made, used to carry a note saying so, "Made by Claude Code in a conversation on
+9 November 2026 at 22:21, for the request '...'", which the board's head shows under its name. Since 16 November 2026 no
+op writes one: who made a board, when and for what request is in the record of agents' changes (By an agent) and the
+board's own `made` mark, which the board menu reads for "with AI". A board's note is its own words, the agent's when it
+gave one, his when he wrote one. `clear-made-notes` takes the notes already written off every board of the project:
+
+```
+idiograph clear-made-notes --dry-run
+idiograph clear-made-notes --note "his words" --tool "Claude Code"
+```
+
+On a board made with a note like that, the making and its counts go and the agent's own note after them stays, "Its note:
+..." becoming the board's note. A board with no `made` mark gets one from the note first, so the board menu still says an
+agent made it. A copy's note goes. A note that reads as neither, one he wrote or changed, is left as it is. Every board
+file is looked at, the project's GETs, LGETs and Trajectories files and each participant's boards. The dry run counts
+the boards by participant (the project's own files as "The project") and by kind (`made`, `copies`) and names the files.
+It writes nothing and never says a word. The op takes the project's lock and every participant's, copies each file it
+changes to the `_Archive` beside it, `<name> (pre-clear-made-notes <date-time>)`, and any failure puts every file back.
+It is one line in the record of agents' changes and `agents undo-run` puts it all back. MCP's tool is
+`clear_made_notes` and the app's route is `/api/clear-made-notes`, with `root` or `path` and `dry_run`. Run it only on his
+word, after the dry run.
 
 ## Find and replace
 
@@ -1311,7 +1338,8 @@ board" too. The words are in
 `apps/idiograph/static/i18n/en/cli.json` and TA's in `en.ta/cli.json`. A TA project's table of themes goes to Word with `gets export --word` (MCP `gets_export` with
 `word`), as Microsoft Word on its Table view writes it, at the project's root as "<project> - Board 1 - Theme
 table.docx", never over a file there, its author Your name. It takes `--selected`, `--notes`, `--for-sending`,
-`--no-descriptions`, `--participants` and `--dry-run`. An IPA project's `gets export --word` is refused, and `board export --word`
+`--no-descriptions`, `--participants` and `--dry-run`. An IPA project's `gets export --word` writes its GETs, its
+LGETs or with `--lpets` a participant's LPETs the same way (16 November 2026), and `board export --word`
 or `--pdf` in a TA project is refused, pointing to `gets export --word`.
 
 `participant rename` renames a participant as Rename on their menu on the project's page does
@@ -1560,7 +1588,7 @@ your `order` give the same layout. The letters he reads in the table are the `ex
 `board show --json` gives. Since 20 October he can do in the table everything the canvas does, a label
 over rows, an empty PET or group, a merge, Set aside and stacks, by the canvas's own code, so what you read
 afterwards is the same board whichever view he used.
-The board as it stood is kept first in its History, as "Before: " and his request, so History and
+The board as it stood is kept first in its History, as "Before an agent's change" (the request stays in By an agent), so History and
 Restore undo the change.
 
 Nothing a change leaves overlaps (31 October). After the operations, what the change moved, made or made
@@ -1673,13 +1701,22 @@ side by side in rows. What already stood keeps its place: no board is rearranged
 out stays his.
 
 The GETs take the same operations over their cards, with `idiograph gets
-apply <board> --ops change.json`, once the project has a GETs file, `order` among them since 19
+apply <board> --ops change.json`, `order` among them since 19
 October: `under` a GET by its id, G2, or null for the GETs, and `items` the cards by their keys as
 `gets show` gives them, Rowan/g1, and the GETs inside it. `gets show` reads the GETs and their cards in
 the order the board reads them, top to bottom and left to right, as the GET table and the exports do.
 Each PET and each sub-theme is a
 card of its own there, so a sub-theme can go under one GET and its PET under another. A sub-theme's
 groups ride inside its card, with none of their own.
+
+A project with no GETs file yet, or in a project of timepoints no LGETs file (`idiograph-lgets.json`), is no
+refusal (getsfirst, 16 November 2026). `gets show` answers the board the screen opens on, Board 1 with every card
+in the pile, `saved` false and version `none`, and writes nothing. A `gets apply` that carries `none` back
+is refused, nothing written, as one over a board changed since, when a GETs file is there by the time it runs. `gets apply` and `gets fresh` (MCP's `gets_apply` and
+`gets_fresh`) make the file as the screen's first act does, every participant's copy in: `gets apply` on Board 1,
+and `gets fresh` with the one board it names, every card in the pile, and no Board 1 beside it. Their dry runs say
+the file would be made and write nothing, no lock file among it, and the answer names it under `made_file`. The file made is an agent's change like any other, in the record, and its Undo
+takes the file away again.
 
 **The sidebar: Not placed and Set aside (20 October).** The bin went on 20 October. On the PETs board a
 statement in no PET waits in the sidebar's Not placed, off the canvas, until he puts it on the board, where
@@ -1836,9 +1873,8 @@ the quote too: each span goes to the same words in the new quote, the words exac
 and punctuation set aside, and a span whose words are gone is left off, never put on other words. The answer
 and the dry run list those cells under each copy's `bold`, by participant, timepoint, LPET (`lpet` its id,
 `title` its title) and the quote's `key` with `moved` and `dropped`, never the words, so you can tell him which
-cells to look at. Each GETs board with such a card keeps the board as it stood first in its History, as "Before: " and
-his request, and is marked as changed in a conversation, so an open GETs screen says so. The answer and
-the dry run name them under `copies`, by `gets`, `lpets` and `lgets`. That "Before: " line is your write's one
+cells to look at. Each GETs board with such a card keeps the board as it stood first in its History, as "Before an agent's change" (the request stays in By an agent), and is marked as changed in a conversation, so an open GETs screen says so. The answer and
+the dry run name them under `copies`, by `gets`, `lpets` and `lgets`. That "Before an agent's change" line is your write's one
 line in each board's History: an edit he makes himself, on any screen, leaves a line of its own on every
 board that holds the statement, `Juno's statement edited: "..." to "..."` (30 October), and your write adds no
 second one. To change a statement he points to on
@@ -1855,7 +1891,7 @@ being a new statement. A key that is not a statement of that passage, or one sen
 Without keys the write matches by words, then by place, then by the most alike wording, which the dry
 run shows you. The dry run names every card that would move key, from and to, and every card that
 would be taken off, under `cards`, each with its board. Each board the write changes keeps the board as
-it stood first in its History, as "Before: " and his request, and is marked as changed in a
+it stood first in its History, as "Before an agent's change" (the request stays in By an agent), and is marked as changed in a
 conversation. A GETs board's card of a statement reworded in its place takes the new words with the write
 (30 October), and one moved or removed follows its statement in the same write (13 November).
 
@@ -1882,7 +1918,7 @@ PETs board (`file` "pets", its `timepoint` in a project of timepoints, `board`, 
 gone, each cell by key, never the words), and `cards`, `statements`, `quotes`, `missing`, `bold_moved` and
 `bold_dropped` counting them all. A clean project
 answers "Nothing to change." The write needs his request. Each board it changes keeps the board as it
-stood first in its History, once, as "Before: " and his request, and is marked as changed in a
+stood first in its History, once, as "Before an agent's change" (the request stays in By an agent), and is marked as changed in a
 conversation, and each file is written once. Through MCP it is `copies_refresh`, `case` left out for every
 participant.
 
@@ -2119,6 +2155,40 @@ since the next export writes them again, and the dry run names the two and says 
 over. Its PETs are labelled as the project labels them, and it takes `--stacked` alone. Through MCP it
 is `board_export` with `format` set to `draft`.
 
+The Trajectories board, a participant's annotated transcript and a thematic analysis project's code list, as each
+screen's Export makes them (16 November 2026), a PDF unless `--word` asks for a Word document, the code list a CSV
+with `--csv`:
+
+```
+idiograph trajectories export --notes --unplaced --dry-run
+idiograph trajectories export --word
+idiograph transcript export Rowan --interviewer-notes --portrait
+idiograph transcript export Rowan --word --no-notes --sheet "Interview 2"
+idiograph codes export --csv
+idiograph codes export --word --no-extracts
+```
+
+`trajectories export` sets out each trajectory with its sentence and its participants in his order, each with
+their label and their LPETs as rows across the timepoints, the key quote, his bold kept, and the state in each
+cell, an LPET hidden on Trajectories left out, at the project's root as "<project> - Trajectories.pdf". `--notes`
+puts his note on each participant in and `--unplaced` the participants in no trajectory at the end, under Unplaced. `transcript
+export` writes the participant's transcript beside their workbook as "<participant> - Annotated transcript.pdf",
+each turn a row with its exploratory notes at the left and its experiential statements and their quotes at the right,
+`--no-notes` and `--no-statements` leaving either out, `--interviewer-notes` putting the interviewer's notes under
+their turns, `--portrait` their label and pen portrait under the head, and `--sheet` one interview alone. In a
+thematic analysis project it is the Coded transcript, its codes and extracts at the right. `codes export` writes the
+code list at the project's root, each code with its description, its counts and its extracts by participant,
+`--no-extracts` keeping the codes and counts alone, and its CSV a row for each extract. Each takes `--out`, a folder
+or a file with its ending, and `--replace`, never writes over a file there otherwise, the date and time going in
+the name, and changes nothing he made, so takes no `--note`. Through MCP they are `trajectories_export`
+(`format`, `notes`, `unplaced`), `transcript_export` (`case`, `format`, `notes`, `statements`,
+`interviewer_notes`, `portrait`, `sheet`) and `codes_export` (`format`, `extracts`), each with `out`, `replace` and
+`dry_run`.
+
+An IPA project's GETs, its LGETs and a participant's LPETs go to Word too, as a thematic analysis project's table of
+themes does: `gets export --word`, with `--lpets <participant>` for their LPETs, which go beside their workbook as
+"<participant> - Board 1 - LPET table.docx", each under its table's own name.
+
 ## A board's note and History, and the GETs boards
 
 The rest of what the PETs and GETs screens do to a board (26 October), each through the screen's own
@@ -2187,7 +2257,7 @@ marks GETs complete on the Current board, as GETs complete does, refused while a
 study is not in from their marked board unchanged, the route naming each, and `--reopen` takes the
 mark off. Only the mark in the GETs file changes, so it keeps no History. `subs` is Add every
 sub-theme: a card for each sub-theme of the study the board has none of, each in the nearest free spot
-the route finds, the board kept first in its History as "Before: " and his request, and refused when
+the route finds, the board kept first in its History as "Before an agent's change" (the request stays in By an agent), and refused when
 every sub-theme has a card already. With no board named, the Current board, and for `subs` the board
 on the canvas.
 

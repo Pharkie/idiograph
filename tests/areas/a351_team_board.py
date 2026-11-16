@@ -228,7 +228,7 @@ def test_team_board(scratch: Path):
               dry_rename.get("dry_run") is True and same_after_dry == before_dry and noted[0] == 0 and dry_note[0] == 0
               and any(v["name"] == "Everything at once" for v in renamed.get("versions") or [])
               and mine_now[other_board["id"]]["name"] == "One broad PET"
-              and any("Everything at once" in r for r in revs)
+              and "Before an agent's change" in revs
               and (pets_file.read_bytes() if pets_file.exists() else b"") == theirs_before,
               noted[2] + dry_note[2] + json.dumps(revs))
         other_board = dict(other_board, name="One broad PET")
@@ -347,7 +347,7 @@ def test_team_board(scratch: Path):
         check("351: its note says whose board and when it was sent and how its statements came, the reworded one "
               "counted, then Curt's own note, and its History says who sent it",
               new.get("note", "").startswith(f"Curt's board, sent {day}: ") and "1 reworded since" in new.get("note", "")
-              and new.get("note", "").endswith("\n" + sent_board["note"])
+              and (not sent_board.get("note") or new.get("note", "").endswith("\n" + sent_board["note"]))
               and [r.get("name") for r in hist] == ["Sent by Curt"]
               and (new.get("origin") or {}).get("team") == came["came"][0]["ref"],
               json.dumps({"note": new.get("note"), "hist": [r.get("name") for r in hist]}))

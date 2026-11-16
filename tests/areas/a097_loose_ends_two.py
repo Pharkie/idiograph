@@ -79,14 +79,13 @@ def test_loose_ends_two(scratch):
               and ", from Board 1: " in dry.get("said", "") and second["said"].startswith("Made Board 2 on ") and ", from Board 1: " in second["said"]
               and len(made) == 2 and made[1].get("from") == "Board 1" and made[1].get("tool") == "Claude Code"
               and made[1].get("request") == "An invented second request" and made[1].get("by") == "agent"
-              and boards[1].get("note", "").startswith("Made by Claude Code in a conversation on "), flat(second.get("said") or err_2)[:200])
+              and not boards[1].get("note"), flat(second.get("said") or err_2)[:200])
         said = [themes_mod.made_said(b) for b in boards]
         check("97: 7, the board menu names the tool and the board it came from, 'with AI' after its name, and New AI board's mark from before nothing (aiout)",
-              [s and s["said"] for s in said] == ["Claude Code in a conversation, from all statements",
-                                                  "Claude Code in a conversation, from Board 1"]
+              [s and s["said"] for s in said] == ["Made by an agent", "Made by an agent"]
               and themes_mod.made_said({"made": {"by": "ai", "model": "An invented model", "from": "Board 1",
                                                  "at": "2026-10-07T18:00:00+01:00"}}) is None
-              and [themes_mod.summary(b).get("with_ai", {}).get("said") for b in boards][1:] == ["Claude Code in a conversation, from Board 1"],
+              and [themes_mod.summary(b).get("with_ai", {}).get("said") for b in boards][1:] == ["Made by an agent"],
               str(said))
         check("97: 7, its name follows the one rule a new board on screen follows, Board N by themes.board_name",
               [b.get("name") for b in boards] == ["Board 1", "Board 2"]
@@ -102,7 +101,7 @@ def test_loose_ends_two(scratch):
               old_changed is not None and "from" not in old_changed
               and "mark(args, when)" in inspect.getsource(idiograph_cli.cmd_board_apply)
               and themes_mod.made_said({"note": "Made by Claude Code in a conversation on 5 October 2026 at 19:02, for the request 'x'."})
-              == {"by": "agent", "said": "Claude Code in a conversation", "edited": False})
+              == {"by": "agent", "said": "Made by an agent", "edited": False})
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY = saved
 

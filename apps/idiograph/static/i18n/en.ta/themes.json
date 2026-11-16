@@ -120,7 +120,5 @@
   "themes.menu.desc_add": "Add definition",
   "themes.step.desc_written": "Wrote a definition",
   "themes.step.desc_removed": "Removed a definition",
-  "themes.step.renamed_described": "Renamed a label and its definition",
-  "themes.gets.guidance_from": "From ta_themes_guidance.md beside the app.",
-  "themes.gets.guidance_file": "From ta_themes_guidance.md beside the app."
+  "themes.step.renamed_described": "Renamed a label and its definition"
 }

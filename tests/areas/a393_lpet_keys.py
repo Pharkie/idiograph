@@ -239,7 +239,7 @@ def test_lpet_keys(scratch):
         lp_board = read(lpfile)["boards"][0]
         check("393: the rekey puts every key back on its statement, one History step on the LPETs board",
               code == 0 and aligned() == [] and members("G2") == [card(key(r_now[-1], 0))]
-              and lp_board["history"][-1]["name"] == "Before: Put Tove's LPETs back on their rows", err or str(aligned()))
+              and lp_board["history"][-1]["name"] == "Before an agent's change", err or str(aligned()))
 
         # ── E. a removal left behind: copies prune names the LPET it would empty, then takes the copy off
         code, shown, err = run("turn", "show", "Tove", s1, str(r_now[-1]))

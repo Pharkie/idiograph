@@ -254,9 +254,10 @@ def test_copy_back_whole(scratch: Path):
         check("334: his own statement at the key Curt added at waits under Not placed, never taken by Curt's card",
               drawn["Initial:7:1"]["text"] == "Hurrying home before the light" and drawn["Initial:7:1"].get("new")
               and "Initial:7:1" not in {m for g in new["groups"] for m in g["members"]}, json.dumps(drawn["Initial:7:1"]))
-        check("334: the note says whose copy and how many match, then the copy's own note",
-              new.get("note", "").startswith(f"Curt's copy, sent {day}: 3 statements as sent, "
-                                             "1 reworded since, 1 removed since, 1 of Curt's own.\n"),
+        check("334: the note says whose copy and how many match, and the agent's board in the copy carried no note "
+              "of who made it",
+              new.get("note", "") == (f"Curt's copy, sent {day}: 3 statements as sent, "
+                                      "1 reworded since, 1 removed since, 1 of Curt's own."),
               new.get("note", ""))
 
         # 3. the command line takes the file's name too and says each card's wording, and MCP answers alike

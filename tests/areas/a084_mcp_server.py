@@ -153,10 +153,10 @@ def test_mcp_server(scratch):
                         "gets_export", "gets_show", "gets_apply", "gets_import", "gets_colour", "gets_take", "turn_show", "turn_write",
                         "turn_edit", "turn_interviewer_note", "turn_assign", "turn_assign_undo", "turn_trim", "turn_trim_undo",
                         "copies_refresh", "copies_rekey", "copies_prune", "import", "import_qdpx", "timepoints", "timepoints_set",
-                        "trajectories_show", "trajectories_apply", "codes_list", "codes_show", "codes_new", "codes_rename",
+                        "trajectories_show", "trajectories_apply", "trajectories_export", "codes_list", "codes_show", "codes_new", "codes_rename",
                         "codes_describe", "codes_merge", "codes_delete", "codes_add", "codes_remove", "codes_apply_last",
-                        "codes_in_vivo", "codes_undo", "codes_redo",
-                        "statement_length", "statement_length_set", "settings", "settings_set", "audio_offset", "audio_attach", "quote_heading", "clear_formatting", "transcript_replace", "transcript_replace_undo", "validate", "agent_changes", "agent_undo_run", "agent_undo_change", "agent_log", "project_send", "project_export_qdpx", "project_send_list", "project_open_copy",
+                        "codes_in_vivo", "codes_undo", "codes_redo", "codes_export",
+                        "statement_length", "statement_length_set", "settings", "settings_set", "audio_offset", "audio_attach", "quote_heading", "clear_formatting", "clear_made_notes", "transcript_replace", "transcript_replace_undo", "transcript_export", "validate", "agent_changes", "agent_undo_run", "agent_undo_change", "agent_log", "project_send", "project_export_qdpx", "project_send_list", "project_open_copy",
                         "project_add_transcripts", "project_boards_in",
                         "project_set", "project_remove", "project_show", "project_history", "team_show", "team_on", "team_set", "team_invite",
                         "team_answers", "team_admit", "team_join", "team_joined", "team_remove", "team_lead", "team_take", "team_send",
@@ -184,8 +184,8 @@ def test_mcp_server(scratch):
               sorted(writers) == ["agent_undo_change", "agent_undo_run", "audio_attach", "audio_offset", "board_apply", "board_canvas", "board_complete", "board_copy",
                                  "board_current", "board_delete", "board_duplicate", "board_export",
                                  "board_fresh", "board_import", "board_new", "board_note", "board_rename",
-                                 "board_restore", "board_revision", "clear_formatting",
-                                 "codes_add", "codes_apply_last", "codes_delete", "codes_describe", "codes_in_vivo", "codes_merge",
+                                 "board_restore", "board_revision", "clear_formatting", "clear_made_notes",
+                                 "codes_add", "codes_apply_last", "codes_delete", "codes_describe", "codes_export", "codes_in_vivo", "codes_merge",
                                  "codes_new", "codes_redo",
                                  "codes_remove", "codes_rename", "codes_undo", "copies_prune", "copies_refresh", "copies_rekey",
                                  "demographics_apply",
@@ -204,12 +204,12 @@ def test_mcp_server(scratch):
                                  "team_remove", "team_reply", "team_review_done", "team_review_send", "team_send",
                                  "team_set", "team_suggest", "team_suggestion_answer", "team_take", "team_thread",
                                  "timepoints_set",
-                                 "trajectories_apply", "transcript_replace", "transcript_replace_undo", "turn_assign", "turn_assign_undo", "turn_edit",
+                                 "trajectories_apply", "trajectories_export", "transcript_export", "transcript_replace", "transcript_replace_undo", "turn_assign", "turn_assign_undo", "turn_edit",
                                  "turn_interviewer_note", "turn_trim", "turn_trim_undo", "turn_write"]
               and all(t["annotations"]["readOnlyHint"] is True and t["annotations"]["openWorldHint"] is False
                       for t in tools if t["name"] not in writers and t["name"] not in sifts)
               and all({"request", "dry_run"} <= set(t["inputSchema"]["properties"]) and "request" in t["inputSchema"]["required"]
-                      for n, t in writers.items() if n not in ("board_export", "gets_export", "participant_export", "project_send", "project_export_qdpx",
+                      for n, t in writers.items() if n not in ("board_export", "gets_export", "participant_export", "project_send", "project_export_qdpx", "trajectories_export", "transcript_export", "codes_export",
                                                                         "project_open_copy", "team_send"))
               # Send now writes no History, so it takes request without asking for it (smokefix, 9 November 2026)
               and {"request", "dry_run"} <= set(writers["team_send"]["inputSchema"]["properties"])
@@ -241,9 +241,9 @@ def test_mcp_server(scratch):
               and same("turn_show", ["turn", "show", "Juno", "Initial", "15"], case="Juno", sheet="Initial", row=15)[0]
               and same("validate", ["validate"])[0] and support.plain(call(srv, "validate")["structuredContent"])["valid"] is True)
         gets = call(srv, "gets_show")
-        check("84: gets_show on a project with no GETs file is the command line's refusal, as an error result",
-              gets["isError"] is True and support.unfenced(gets["content"][0]["text"]) == "This project has no GETs file yet. It comes with the first act on the GETs screen."
-              and support.plain(gets["structuredContent"])["lines"] == [support.unfenced(gets["content"][0]["text"])])
+        check("84: gets_show on a project with no GETs file answers the board the screen opens on, as the command line does",
+              gets["isError"] is False and support.plain(gets["structuredContent"])["saved"] is False
+              and "idiograph-gets.json is not there yet" in support.unfenced(gets["content"][0]["text"]))
 
         # ── D. a dry run, then a real write, a revision kept, made naming the client
         plan = [{"title": "A lonely year she filled", "note": "His reading of the year.", "members": ["S2", "S3", "S4"],
@@ -266,7 +266,7 @@ def test_mcp_server(scratch):
               made["isError"] is False and support.plain(made["structuredContent"])["name"] == "Board 2" and board["name"] == "Board 2"
               and board["made"]["by"] == "agent" and board["made"]["tool"] == "Claude Desktop"
               and board["made"]["request"] == "Make a board of two PETs"
-              and board["note"].startswith("Made by Claude Desktop in a conversation on ")
+              and not board.get("note")
               and support.unfenced(made["content"][0]["text"]).startswith("Made Board 2 on Rowan, from Board 1: 2 PETs"))
         changed = call(srv, "board_apply", case="Rowan", board="Board 2",
                        operations=[{"op": "retitle", "label": "g1", "title": "A lonely year that she filled"}],
@@ -276,7 +276,7 @@ def test_mcp_server(scratch):
         check("84: board_apply changes the board through revise's operations, the board as it stood kept first in its History",
               changed["isError"] is False and "kept first in its History" in support.unfenced(changed["content"][0]["text"])
               and any(g["label"] == "A lonely year that she filled" for g in after["groups"])
-              and history and history[-1]["name"] == "Before: Retitle the lonely year"
+              and history and history[-1]["name"] == "Before an agent's change"
               and history[-1]["made"]["tool"] == "Claude Desktop" and after["changed"]["tool"] == "Claude Desktop")
         compared = call(srv, "board_compare", case="Rowan", boards=["v1", "Board 2"])
         check("84: board_compare takes the boards as a list, as the command line takes them",

@@ -101,7 +101,7 @@ def test_agent_api(scratch):
               and [b["id"] for b in saved()["boards"]] == ["v1"], err or out[:200])
         check("196: the order is one step in the board's History, named for his request, and nothing comes to overlap",
               len(board().get("history") or []) == history + 1
-              and board()["history"][-1]["name"] == "Before: Most compelling first"
+              and board()["history"][-1]["name"] == "Before an agent's change"
               and overlaps(board()) <= start_overlaps)
         code, out, _ = run("board", "apply", "Rowan", "v1", "--ops", ops({"op": "order", "under": None, "items": wanted}),
                            "--note", "Again")
@@ -157,7 +157,7 @@ def test_agent_api(scratch):
         made = (data.get("made") or [None])[0]
         check("196: an order runs after a make, naming its label by its ref, all in one History step",
               code == 0 and made and orders(shown())[None][0] == made
-              and board()["history"][-1]["name"] == "Before: A new PET, first", err[:200])
+              and board()["history"][-1]["name"] == "Before an agent's change", err[:200])
 
         # ── F. a label's note taken off
         noted = next(g["id"] for g in board()["groups"] if g.get("note"))
@@ -171,7 +171,7 @@ def test_agent_api(scratch):
         code3, _, err3 = run("board", "apply", "Rowan", "v1", "--ops", ops({"op": "note", "label": noted}), "--note", "x")
         check("196: a note given empty takes the label's note off, its dry run writing nothing, a note left out still refused",
               code == 0 and dry_kept and code2 == 0 and "note" not in gone and "took the note off" in out.lower()
-              and board()["history"][-1]["name"] == "Before: Take the note off" and code3 == 1, err or err3)
+              and board()["history"][-1]["name"] == "Before an agent's change" and code3 == 1, err or err3)
 
         # ── G. the board menu's acts
         raw = themes_file.read_bytes()
@@ -183,9 +183,8 @@ def test_agent_api(scratch):
         code, data, err = answer("board", "duplicate", "Rowan", "Board 1", "--name", "Board 1 trial",
                                  "--note", "Try a copy", "--tool", "Claude Code")
         copy = next((b for b in saved()["boards"] if b["name"] == "Board 1 trial"), {})
-        check("196: duplicate copies the board under its name, puts it on the canvas and says who made it, the board copied as it was",
-              code == 0 and copy and saved()["current"] == copy["id"] and "Claude Code" in copy["note"]
-              and "Try a copy" in copy["note"] and not copy.get("history")
+        check("196: duplicate copies the board under its name, puts it on the canvas with no note of who made it, the board copied as it was",
+              code == 0 and copy and saved()["current"] == copy["id"] and not copy.get("note") and not copy.get("history")
               and copy["groups"] == board()["groups"], err)
         code, _, err = run("board", "canvas", "Rowan", "Board 1", "--note", "Back to the first")
         check("196: canvas puts a board on the canvas and nothing else changes",
@@ -194,7 +193,7 @@ def test_agent_api(scratch):
         named = next((b for b in saved()["boards"] if b["id"] == copy["id"]), {})
         code2, _, err2 = run("board", "rename", "Rowan", "Trial order", "Board 1", "--note", "Name it")
         check("196: rename renames it and keeps it first in its History, a name another board has refused",
-              code == 0 and named.get("name") == "Trial order" and named["history"][-1]["name"].startswith("Renamed from Board 1 trial")
+              code == 0 and named.get("name") == "Trial order" and named["history"][-1]["name"] == "Before an agent's change"
               and code2 == 1 and "Another board is called Board 1" in err2, err + err2)
         code, data, err = answer("board", "delete", "Rowan", "Trial order", "--note", "Drop the trial")
         archived = root / "Rowan" / "_Archive" / data.get("backup", "-")

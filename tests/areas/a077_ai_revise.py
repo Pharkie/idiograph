@@ -120,7 +120,7 @@ def test_ai_revise(scratch):
           themes_ai.change_line(whole["applied"], start))
     check("180: a change that applies nothing says nothing was changed", themes_ai.change_line([], start) == themes_ai.NOTHING_CHANGED)
     long = "Please take the house theme and split it into the rooms and the garden, keeping the bed in the rooms"
-    check("180: the revision kept before is named Before: and his request on one line, cut at a word",
-          themes_ai.revision_name("  Retitle\nthe  house  ") == "Before: Retitle the house"
-          and themes_ai.revision_name(long).startswith("Before: Please take the house theme")
-          and themes_ai.revision_name(long).endswith("…") and len(themes_ai.revision_name(long)) <= 8 + 81)
+    check("180: the revision kept before is named Before an agent's change, without his request",
+          themes_ai.revision_name("  Retitle\nthe  house  ") == "Before an agent's change"
+          and themes_ai.revision_name(long) == "Before an agent's change"
+          and themes_ai.request_line(long).endswith("…") and len(themes_ai.request_line(long)) <= 81)

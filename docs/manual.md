@@ -3020,7 +3020,7 @@ since, the next save keeps the board as it stood before it, under the time of th
 act waiting the timer saves at once, so a pause in the work still keeps one. An automatic revision
 is made only when the board differs from its last revision, by a stable hash of
 the state. A restore keeps one first, and so does a copy onto the board, and so does an agent's change,
-named "Before: " and his request. Every revision made by
+named "Before an agent's change" (the request stays in By an agent). Every revision made by
 hand, named or not, and every one made before a restore, a copy or an agent's change is kept, with
 the last 48 automatic ones: a 49th takes the oldest automatic one away. A board deleted takes its
 history with it.
@@ -3035,7 +3035,7 @@ each side cut at a word past sixty characters. The PETs boards are the participa
 statement's sheet is at, and a GETs, LGETs or LPETs board has the line when it holds a card of the
 statement, not for a PET's card alone. A save on the statements screen that rewords nothing leaves no line,
 and a statement moved, added or removed there is not an edit of one. An undo of an edit is an edit back,
-a line of its own. An AI agent's write keeps its own line, "Before: " and his request, on each board it
+a line of its own. An AI agent's write keeps its own line, "Before an agent's change" (the request stays in By an agent), on each board it
 changes, and no second line for the same write. A Find and replace leaves none, since it keeps no board's
 old words anywhere, its revisions included (see Find and replace).
 
@@ -3612,10 +3612,9 @@ changes keeps the board as it stood first in its History. It can also take off a
 workbook, as Remove does in the pile, one by one or every one on a board, and never a card whose
 statement is there. A board it makes keeps the layout of the board on the canvas for every PET, sub-theme and statement it
 keeps, so a rebuild never resets his arrangement. A board it makes is the
-next board, "Board 5", "with AI" after its name, his own left as they were, with a note naming the
-tool and his request, "Made by Claude Code in a conversation on 5 October 2026 at 19:02, for the
-request '...'". A change to a
-board keeps the board as it stood in History first, "Before: " and his request, so Restore takes
+next board, "Board 5", "with AI" after its name, his own left as they were, with no note of who made it:
+the record of agents' changes keeps the tool, the time and his request (16 November 2026). A change to a
+board keeps the board as it stood in History first, "Before an agent's change" (the request stays in By an agent), so Restore takes
 it back. It never sets a statement aside: one it finds fits no PET stays in Not placed, and the
 Inspector gives its reason under it, "Left out: ...", and under Set aside, should he set it aside, the
 pile gives it under its words. With AI features on, a statement's short id, `S12`, stands
@@ -3664,8 +3663,8 @@ left as it is. The line under the card then ends "Restart Claude Desktop to use 
 gives the entry to copy for any other client and the one line for Claude Code,
 `claude mcp add --scope user idiograph --` and the same command, each with Copy. User scope lets
 Claude Code find Idiograph in whatever folder it starts in, where `claude mcp add` alone keeps it to
-the folder it was run in (20 October). A board or a passage written through the tools
-names the client, "Made by Claude Desktop in a conversation", and the tick still holds: with it
+the folder it was run in (20 October). A board written through the tools
+is marked as made by the client, "with AI" after its name, and the tick still holds: with it
 off, every tool answers with the line that says where to tick it. Beside the tools the server offers a
 prompt, Start working with Idiograph, and resources (19 October), so an agent that has never seen
 Idiograph finds its way in from the server alone. The prompt is what a new agent takes first: what it

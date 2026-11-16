@@ -61,8 +61,8 @@ SAID = {
     "NOTHING_UNDER": lambda **v: i18n.t("themes_ai.nothing_under", v),
     # the family's, read where it is said rather than frozen when this module was first imported
     "NOT_JSON": lambda **v: ai_mod.NOT_JSON,
-    # the revision kept before a change, "Before: " and his request, its head alone for the command line's cut
-    "BEFORE": lambda **v: i18n.t("themes_ai.revision_before", {"request": ""}),
+    # the revision kept before an agent's change, named without the request's words (sidebarcopy, 16 November 2026)
+    "BEFORE": lambda **v: i18n.t("themes_ai.revision_before"),
 }
 
 
@@ -1082,13 +1082,18 @@ def _structure(board: dict) -> dict:
     return {"groups": board.get("groups") or [], "picks": {g: k for g, k in (board.get("picks") or {}).items() if k}}
 
 
-def revision_name(words: str) -> str:
-    """The revision kept before a change, "Before: " and his request on one line, cut at a word
-    past REVISE_LINE characters with an ellipsis."""
+def request_line(words: str) -> str:
+    """His request on one line, cut at a word past REVISE_LINE characters with an ellipsis."""
     said = one_line(words)
     if len(said) > REVISE_LINE:
         said = said[:REVISE_LINE].rsplit(" ", 1)[0].rstrip(",.:") + "…"
-    return i18n.t("themes_ai.revision_before", request=said)
+    return said
+
+
+def revision_name(words: str = "") -> str:
+    """The revision kept before an agent's change, "Before an agent's change", without the request's words, which stay in
+    Project history's By an agent (sidebarcopy, 16 November 2026). `words` is kept for the callers that hand it over."""
+    return i18n.t("themes_ai.revision_before")
 
 
 # ---------------------------------------------------------------------- GETs

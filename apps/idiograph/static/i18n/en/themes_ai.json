@@ -14,7 +14,7 @@
   "themes_ai.unreadable": "could not be read",
   "themes_ai.no_such_get": "That GET is no longer on the board, so nothing was asked.",
   "themes_ai.nothing_under": "There is nothing under that GET to name yet.",
-  "themes_ai.revision_before": "Before: {request}",
+  "themes_ai.revision_before": "Before an agent's change",
   "themes_ai.room.quotes": {
     "one": "To fit what the model can take, Idiograph left out the quotes of the statement lowest on the canvas.",
     "other": "To fit what the model can take, Idiograph left out the quotes of the {n} statements lowest on the canvas."

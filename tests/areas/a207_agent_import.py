@@ -147,10 +147,8 @@ def test_agent_import(scratch):
         check("207: the apply writes the raw source the card's Make writes for the same file, cell for cell",
               code == 0 and done["written"] == "P2 - Hazel/Source/plot table.xlsx" and raw.is_file()
               and cells(raw) == cells(made), str(done)[:300])
-        check("207: the workbook an agent wrote names the client and his request, the card's names nobody",
-              described(raw).startswith("Made by Claude Code in a conversation on ")
-              and "for the request 'Bring in Hazel's plot interview', from plot table.docx." in described(raw)
-              and described(made) == "", described(raw))
+        check("207: the workbook an agent wrote carries no description of who made it, as the card's carries none",
+              described(raw) == "" and described(made) == "", described(raw))
         held = raw.read_bytes()
         code, _, err = run("import", "P2 - Hazel/Source/plot table.docx", "--note", "Again")
         check("207: an import never writes over a file already there, the card's line",
@@ -201,9 +199,9 @@ def test_agent_import(scratch):
               and idiograph_cli.NO_COLUMNS in support.unfenced(refused["content"][0]["text"]))
         got = call(file=vtt, request="Bring in the first summer", interviewer="Sam")
         made = card("first summer.vtt", interviewer="Sam")
-        check("207: the tool's apply writes the card's raw source and names Claude Code",
+        check("207: the tool's apply writes the card's raw source",
               got["isError"] is False and cells(source / "first summer.xlsx") == cells(made)
-              and described(source / "first summer.xlsx").startswith("Made by Claude Code in a conversation"),
+              and described(source / "first summer.xlsx") == "",
               str(got)[:300])
 
         # ── D. a raw source made into the case's workbook, as the create card makes it
@@ -217,9 +215,9 @@ def test_agent_import(scratch):
         code, _, _ = run("import", "P2 - Hazel/Source/plot table.xlsx", "--note", "Make Hazel's workbook")
         book = root / "P2 - Hazel" / "P2 Hazel - EN & ES.xlsx"
         theirs = wb_mod.create_from_source(twin / "P2 - Hazel" / "Source" / "plot table.xlsx", scratch / "a207-created.xlsx")
-        check("207: the case's workbook is the one the create card makes from the same raw source, and names the agent",
+        check("207: the case's workbook is the one the create card makes from the same raw source, and says nothing of who made it",
               code == 0 and book.is_file() and cells(book) == cells(theirs)
-              and "for the request 'Make Hazel's workbook'" in described(book))
+              and described(book) == "")
         held = book.read_bytes()
         code, _, err = run("import", "P2 - Hazel/Source/plot table.xlsx", "--note", "Again")
         check("207: the case's workbook is never written over", code == 1 and "already there" in err and book.read_bytes() == held, err)

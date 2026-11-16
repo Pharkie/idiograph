@@ -122,7 +122,7 @@ def test_agent_api_two(scratch):
               code == 0 and new_pet and new_pet not in parents1
               and all(parents1.get(g) == new_pet for g in groups_made) and sub not in {g["id"] for g in v1["groups"]}
               and len(after.get("history") or []) == history + 1
-              and after["history"][-1]["name"] == "Before: Split the PET", err)
+              and after["history"][-1]["name"] == "Before an agent's change", err)
         check("197: each group keeps its arrangement, the other PETs their places, and nothing overlaps",
               offsets(after, held[:half]) == offsets(before, held[:half])
               and offsets(after, held[half:]) == offsets(before, held[half:])

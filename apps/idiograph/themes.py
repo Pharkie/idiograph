@@ -169,12 +169,12 @@ REQUEST_TEXT = 2000  # the longest his request in an agent's mark runs
 # "at"}`. The page never sends either, so a save keeps the file's. `made` keeps `hash`, the board's
 # state hash when it was made, and `edited`, the time of his first save that changed it.
 AGENT_KEYS = ("made", "changed")
+# an agent's board from before `made`, read from its note: "Made by Claude Code in a conversation on ..."
+AGENT_NOTE = re.compile(r"^Made by (?P<tool>.+?) in a conversation on \d")
 # what a change made by a teammate's suggestion, accepted by its owner, keeps beside `by: "member"` (wtsuggest)
 MEMBER_KEYS = ("member", "accepted_by", "suggestion")
 # what the board menu says after the name of a board an agent made, once he has changed it
 EDITED = "edited by you since"
-# an agent's board from before `made`, read from its note: "Made by Claude Code in a conversation on ..."
-AGENT_NOTE = re.compile(r"^Made by (?P<tool>.+?) in a conversation on \d")
 # a save from a page that last saw a board before an agent changed it keeps the page's canvas as a
 # revision of this name, and leaves the board as the agent left it
 CANVAS_KEPT = ""  # set below, from REVISION_SAID
@@ -1567,18 +1567,15 @@ def made_mark(raw) -> dict | None:
 
 def made_said(board: dict) -> dict | None:
     """What the board menu says of a board an agent made, `{"by", "said", "edited"}`: the tooltip's
-    words, "Claude Code in a conversation, from Board 2", and whether he has changed it since. A board
-    from before `made` is read from its note, and one no agent made, a duplicate among them, is None."""
+    words, "Made by an agent", and whether he has changed it since. A board no
+    agent made, a duplicate among them, is None (a board's note no longer says who made it, sidebarcopy, 16 November 2026)."""
     mark = made_mark(board.get("made")) if isinstance(board, dict) else None
     if mark:
-        who = (mark.get("tool") or "" if mark["by"] == "member"
-               else f"{mark.get('tool') or 'An agent'} in a conversation")
-        said = who + (f", from {mark['from']}" if mark.get("from") else "")
+        said = mark.get("tool") or "" if mark["by"] == "member" else "Made by an agent"
         return {"by": mark["by"], "said": said, "edited": bool(mark.get("edited"))}
-    note = str((board or {}).get("note") or "") if isinstance(board, dict) else ""
-    found = AGENT_NOTE.match(note)
-    if found:
-        return {"by": "agent", "said": f"{found['tool']} in a conversation", "edited": False}
+    # a board made before `made` (and not yet cleared) is read from its note's first words
+    if isinstance(board, dict) and AGENT_NOTE.match(str(board.get("note") or "")):
+        return {"by": "agent", "said": "Made by an agent", "edited": False}
     return None
 
 

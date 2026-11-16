@@ -303,7 +303,6 @@
   "server.gets_stay_out_since_they": "The GETs stay out, since they hold {said}, who would not be sent.",
   "server.kind_send_takes_leaves_kinds": "{part} is not a kind a send takes or leaves. The kinds are pets, gets, audio, notes and source.",
   "server.gets_hold_who_would_sent": "The GETs hold {said}, who would not be sent, so nothing was sent. Send them too, or leave the GETs out.",
-  "server.gets_word_ta_only": "Microsoft Word is for a thematic analysis project's table of themes, so nothing was written. A participant's table of PETs goes to Word from their PETs board.",
   "server.file_project_sent_from_idiograph": "That file is not a project sent from Idiograph.",
   "server.project_sent_from_newer_idiograph": "This project was sent from a newer Idiograph. Update Idiograph, then open it again.",
   "server.passage_changed_since_page_loaded": "This passage has changed since this page was loaded, so nothing was saved.",

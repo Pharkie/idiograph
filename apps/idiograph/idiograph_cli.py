@@ -47,7 +47,9 @@ import convert as convert_mod
 import demographics as demo_mod
 import export as export_mod
 import formats
+import documents
 import gets as gets_mod
+import gets_print
 import gets_word
 import i18n
 import idiograph_find
@@ -63,6 +65,7 @@ import statement_prompts as prompts
 import table_import as table_mod
 import themes
 import themes_ai
+import themes_print
 import themes_word
 import trajectories as traj_mod
 import codes as codes_mod
@@ -285,7 +288,9 @@ def scope_of(p: Project, args):
     project as the command sees it, on LPETs with the participant's timepoints for its study. Every line the
     server's code says through it reads in the words of the project's method (tagaps, 1 November 2026)."""
     root = getattr(p, "root", None)
-    with i18n.in_method(routes.method_of(routes.project_file(root)) if root is not None else None):
+    # a dry run makes no lock file, the project's or a participant's (getsfirst, 16 November 2026, see `locks.DRY`)
+    with i18n.in_method(routes.method_of(routes.project_file(root)) if root is not None else None), \
+            locks.dry_run(bool(getattr(args, "dry_run", False))):
         with place_of(p, args) as q:
             yield q
 
@@ -663,6 +668,75 @@ def cmd_trajectories_apply(p: Project, args) -> tuple:
             i18n.t("cli.trajectories_apply.saved_in_the_projects_trajectories_file") if answer["changes"] else i18n.t("cli.said.nothing_changed"))
     out = dict(traj_answer(answer), changes=answer["changes"], dry_run=bool(args.dry_run))
     return out, [head] + answer["changes"] + [""] + traj_lines(out)
+
+
+# ------------------------------------------------- the exports no screen had before (exportnew, 16 November 2026)
+
+def document_format(args, formats: tuple) -> str:
+    """The format a document export's flags ask for, a PDF unless --word or --csv, one of them alone."""
+    asked = [f for f in ("word", "csv") if getattr(args, f, False)]
+    if len(asked) > 1:
+        raise cli.Refused(i18n.t("documents.format_refused", formats=", ".join(formats)))
+    return asked[0] if asked else "pdf"
+
+
+def document_export(p: Project, args, kind: str, body: dict, where: Path, said) -> tuple:
+    """One of the three written through the route's own code (`routes.document_write`), as the app's Export makes
+    it, never over a file there unless --replace. It changes nothing he made."""
+    fmt = document_format(args, documents.FORMATS[kind])
+    body = dict(body, format=fmt, out=getattr(args, "out", None), replace=bool(getattr(args, "replace", False)),
+                dry_run=bool(args.dry_run))
+    try:
+        made = routes.document_write(kind, body, where)
+    except (WorkbookError, srv.OutsideRoot) as exc:
+        raise cli.Refused(str(exc)) from None
+    dated = i18n.t("cli.said.the_plain_name_was_taken_so") if made["dated"] else ""
+    if made.get("replaced"):
+        dated = i18n.t("cli.said.it_took_the_place_of_the")
+    head = i18n.t("cli.said.dry_run_nothing_was_written_it") if args.dry_run else "Wrote"
+    text = i18n.t("cli.documents.in", head=head, name=made["name"], folder=made["folder"], said=said(made["counts"]),
+                  dated=dated)
+    out = {"file": made["name"], "path": made["path"], "folder": made["folder"], "format": fmt, "dated": made["dated"],
+           "replaced": bool(made.get("replaced")), "counts": made["counts"], "said": text,
+           **{k: v for k, v in body.items() if k not in ("format", "out", "replace", "dry_run")}}
+    return (dict(out, dry_run=True) if args.dry_run else out), [text]
+
+
+def cmd_trajectories_export(p: Project, args) -> tuple:
+    """`trajectories export`: the Trajectories board as a PDF, or with --word a Word document, at the project's
+    root, as the Trajectories tab's Export makes it: each trajectory with its participants and each one's LPETs
+    across the timepoints, its key quote and state in each cell, his note on each participant with --notes and the
+    participants in no trajectory with --unplaced."""
+    body = {"notes": bool(getattr(args, "notes", False)), "unplaced": bool(getattr(args, "unplaced", False))}
+    return document_export(p, args, "trajectories", body, p.root, lambda c: i18n.t(
+        "cli.documents.trajectories", trajectories=i18n.t("cli.n.trajectory", n=c["trajectories"]),
+        placed=i18n.t("cli.n.participant", n=c["participants"]), unplaced=c["unplaced"],
+        lpets=cli.plural(c["lpets"], "LPET")))
+
+
+def cmd_transcript_export(p: Project, args) -> tuple:
+    """`transcript export <participant>`: their annotated transcript, as the statements screen's Export makes it, as a
+    PDF, or with --word a Word document, beside their workbook: each turn with its exploratory notes and its
+    experiential statements and quotes, each left out with --no-notes and --no-statements, the interviewer's notes
+    with --interviewer-notes, their label and pen portrait with --portrait, one interview with --sheet."""
+    b = p.case(args.case)
+    body = {"notes": not getattr(args, "no_notes", False), "statements": not getattr(args, "no_statements", False),
+            "interviewer_notes": bool(getattr(args, "interviewer_notes", False)),
+            "portrait": bool(getattr(args, "portrait", False)), "sheet": getattr(args, "sheet", None) or "",
+            "case": b["case"]}
+    return document_export(p, args, "transcript", body, Path(b["workbook"]), lambda c: i18n.t(
+        "cli.documents.transcript", passages=i18n.t("cli.n.passage", n=c["passages"]),
+        statements=i18n.t("cli.n.statement", n=c["statements"])))
+
+
+def cmd_codes_export(p: Project, args) -> tuple:
+    """`codes export`: the code list as a PDF, or with --word a Word document or with --csv a CSV, at the project's
+    root, as the Code list tab's Export makes it, each code's extracts in it unless --no-extracts."""
+    codes_check(p)
+    body = {"extracts": not getattr(args, "no_extracts", False)}
+    return document_export(p, args, "codes", body, p.root, lambda c: i18n.t(
+        "cli.documents.codes", codes=i18n.t("cli.n.code", n=c["codes"]), extracts=i18n.t("cli.n.extract", n=c["extracts"]),
+        participants=i18n.t("cli.n.participant", n=c["participants"])))
 
 
 # ----------------------------------------------------------------- the code list (codes, 2 November 2026)
@@ -2768,23 +2842,29 @@ def gets_word_export(p: Project, args, board: dict) -> tuple:
     Microsoft Word on its Table view makes it (see `gets_word`): at the project's root where its PDF goes, never over
     a file there, every code and extract or with `--selected` each participant's key extract alone, participant notes
     only with `--notes`, the board's name left out with `--for-sending`, the participants table on its first page
-    with `--participants`, its author Your name. Refused in an IPA project, whose tables of PETs go to Word through
-    board export. It changes nothing."""
+    with `--participants`, its author Your name. An IPA project's GETs, its LGETs and with `--lpets` a participant's
+    LPETs the same (exportnew, 16 November 2026), the LPETs named by the participant and beside their workbook, as
+    the app's Microsoft Word on each table. It changes nothing."""
     given = [flag for flag, attr in (("--pdf", "pdf"), ("--canvas", "canvas"), ("--out", "out"), ("--what", "what"),
                                      ("--get", "get"), ("--replace", "replace")) if getattr(args, attr, None)]
     if given:
         raise cli.Refused(i18n.t("cli.gets_word_export.word_takes_selected_notes_for_sending", list=', '.join(given)))
     people = routes.people_printed(p.root, {"participants": bool(getattr(args, "participants", False))})
+    book = routes.LPETS_FOR.get()
+    whose = dict(heading=themes_print.case_title(case_name(book)), folder=Path(book).parent) if book else {}
     try:
-        gets_word.refuse_unless_ta()
         made = gets_word.write(p.root, p.books, p.info, board, detail="selected" if getattr(args, "selected", False) else "full",
                                notes=bool(getattr(args, "notes", False)), sending=bool(getattr(args, "for_sending", False)),
                                descriptions=not getattr(args, "no_descriptions", False), author=routes.researcher_name(),
-                               dry_run=args.dry_run, people=people)
+                               dry_run=args.dry_run, people=people, **whose)
     except WorkbookError as exc:
         raise cli.Refused(str(exc)) from None
     c = made["counts"]
-    said = i18n.t("cli.gets_word_export.of", themes=i18n.t("cli.n.theme", n=c['themes']), codes=i18n.t("cli.n.code", n=c['codes']), participants=i18n.t("cli.n.participant", n=c['participants']))
+    if i18n.method_now() == "ta":
+        said = i18n.t("cli.gets_word_export.of", themes=i18n.t("cli.n.theme", n=c['themes']), codes=i18n.t("cli.n.code", n=c['codes']), participants=i18n.t("cli.n.participant", n=c['participants']))
+    else:
+        said = i18n.t("cli.gets_word_export.of_gets", gets=cli.plural(c["themes"], gets_print.gword("page_print.kind.get")),
+                      participants=i18n.t("cli.n.participant", n=c["participants"]))
     dated = i18n.t("cli.said.the_plain_name_was_taken_so") if made["dated"] else ""
     head = i18n.t("cli.said.dry_run_nothing_was_written_it") if args.dry_run else "Wrote"
     text = i18n.t("cli.gets_word_export.in", head=head, name=made['name'], folder=made['folder'], said=said, dated=dated)
@@ -3291,11 +3371,10 @@ def carried_stacks(built: dict, source: dict) -> None:
             built["stacks"][top] = built["stacks"].get(top, []) + kept
 
 
-def board_note(tool: str, request: str, counts: dict, when: str, own: str = "") -> str:
-    """A board made in a conversation, said in its note: who made it, when, for what, and its counts."""
-    said = (f"Made by {tool} in a conversation on {cli.when_said(when)}, for the request '{themes_ai.one_line(request)}'. "
-            f"{cli.plural(counts['pets'], 'PET')}, {counts['placed']} placed, {counts['left']} not placed.")
-    return said + (f" Its note: {own}" + ("" if own[-1:] in ".?!" else ".") if own else "")
+def board_note(own: str = "") -> str:
+    """A board made in a conversation, its note: the agent's own words, or none. Who made it, when and for what request is
+    in the record of agents' changes and the board's `made` mark, never in the note (sidebarcopy, 16 November 2026)."""
+    return own
 
 
 def mark(args, when: str, made_from: str = "") -> dict:
@@ -3356,7 +3435,7 @@ def make_board(p: Project, args, spec, wanted: str = "", fresh: bool = False) ->
         when = now_iso()
         made_from = source_of(data)
         version["made"] = mark(args, when, made_from)
-        note = board_note(version["made"]["tool"], args.note, counts, when, built["note"])
+        note = board_note(built["note"])
         why = sum(1 for k in left if built["reasons"].get(k))
         said = (i18n.t("cli.board_new.placed_left_in", pets=i18n.t("cli.n.pet", n=counts['pets']), statements=i18n.t("cli.n.statement", n=placed), n_left=len(left), not_placed=NOT_PLACED, v_=i18n.t("cli.board_new.of_them_with_a_reason", why=why) if left else '', stacked_said=stacked_said))
         said += (i18n.t("cli.board_new.it_keeps_the_layout_of_for", laid=laid) if laid
@@ -3586,7 +3665,6 @@ def cmd_gets_import(p: Project, args) -> tuple:
 
 # ------------------------------------------------------------ board current
 
-CURRENT = "Marked the Current board"
 
 
 def cmd_board_current(p: Project, args) -> tuple:
@@ -3614,8 +3692,7 @@ def cmd_board_current(p: Project, args) -> tuple:
             text = i18n.t("cli.board_current.dry_run_nothing_was_written_it", name=name, case=b['case'], instead=instead)
             return dict(out, dry_run=True, said=text), [text]
         when = now_iso()
-        cut = themes_ai.revision_name(args.note)[len(themes_ai.BEFORE):]
-        made = themes.add_revision(board, name=f"{CURRENT}: {cut}", at=when)
+        made = themes.add_revision(board, name=themes_ai.revision_name(), at=when)
         made["made"] = mark(args, when)
         current = str(data.get("current") or vid)
         themes.write(book, themes._file(book, case_name(book), data, boards, current, when))
@@ -3629,7 +3706,6 @@ def cmd_board_current(p: Project, args) -> tuple:
 # The board menu's own acts, each through `themes.version_op` as the app makes them: a board put on
 # the canvas, renamed, duplicated or deleted. Each takes his request and a dry run, as every write does.
 
-RENAMED = "Renamed from"
 
 
 def housekeeping(p: Project, args):
@@ -3689,8 +3765,7 @@ def cmd_board_rename(p: Project, args) -> tuple:
             text = i18n.t("cli.board_rename.dry_run_nothing_was_written_it", name=name, case=b['case'], wanted=wanted)
             return dict(out, dry_run=True, said=text), [text]
         when = now_iso()
-        cut = themes_ai.revision_name(args.note)[len(themes_ai.BEFORE):]
-        made = themes.add_revision(board, name=f"{RENAMED} {name}: {cut}", at=when)
+        made = themes.add_revision(board, name=themes_ai.revision_name(), at=when)
         made["made"] = mark(args, when)
         boards = themes.boards_of(data)
         themes.write(book, themes._file(book, case_name(book), data, boards, str(data.get("current") or vid), when))
@@ -3715,17 +3790,14 @@ def cmd_board_duplicate(p: Project, args) -> tuple:
         wanted = " ".join(str(getattr(args, "name", "") or "").split())
         copy_name = themes._free_name(boards, wanted or f"{name} copy")
         when = now_iso()
-        note = (f"Duplicated from {name} by {themes_ai.one_line(args.tool) or cli.TOOL} in a conversation on "
-                f"{cli.when_said(when)}, for the request '{themes_ai.one_line(args.note)}'.")
         out = {"case": b["case"], "from": str(board.get("id")), "from_name": name, "name": copy_name}
         if args.dry_run:
             text = i18n.t("cli.board_duplicate.dry_run_nothing_was_written_it", name=name, case=b['case'], copy_name=copy_name)
             return dict(out, dry_run=True, said=text), [text]
-        answer = themes.version_op(book, "duplicate", {"id": str(board.get("id")), "name": copy_name, "note": note},
-                                   case_name(book))
+        answer = themes.version_op(book, "duplicate", {"id": str(board.get("id")), "name": copy_name}, case_name(book))
     made = next((x for x in answer["versions"] if x["name"] == copy_name), {})
     text = i18n.t("cli.board_duplicate.copied_on_as_which_is_now", name=name, case=b['case'], copy_name=copy_name)
-    return dict(out, id=made.get("id"), note=note, said=text), [text]
+    return dict(out, id=made.get("id"), said=text), [text]
 
 
 def cmd_board_fresh(p: Project, args) -> tuple:
@@ -3829,12 +3901,11 @@ def cmd_board_complete(p: Project, args) -> tuple:
 # (`dry_run`), so every check and refusal is the route's. What a write keeps in History is the page's, and
 # the revision it keeps names the tool and his request, as every board write here does.
 
-NOTED = "Board note changed"
 
 
 def request_cut(args) -> str:
     """His request as a revision's name carries it, cut to one line."""
-    return themes_ai.revision_name(args.note)[len(themes_ai.BEFORE):]
+    return themes_ai.request_line(args.note)
 
 
 def revision_by(board: dict, rid: str) -> dict:
@@ -3892,7 +3963,7 @@ def cmd_board_note(p: Project, args) -> tuple:
             text = i18n.t("cli.board_note.dry_run_nothing_was_written_it", how=how, case=b['case'])
             return dict(out, dry_run=True, said=text), [text]
         when = now_iso()
-        made = themes.add_revision(board, name=f"{NOTED}: {request_cut(args)}", at=when)
+        made = themes.add_revision(board, name=themes_ai.revision_name(), at=when)
         made["made"] = mark(args, when)
         themes.write(book, themes._file(book, case_name(book), data, themes.boards_of(data),
                                         str(data.get("current") or vid), when))
@@ -4716,6 +4787,45 @@ def gets_data(p: Project) -> dict:
     return data
 
 
+# The version `gets show` gives a board where there is no GETs file yet (getsfix, 16 November 2026). A change that
+# carries it back is refused, as one over a board changed since, when a file is there by the time it runs under the
+# lock: the agent planned on a board no file held, and his first act on the screen may have made one meanwhile.
+NO_FILE = "none"
+
+
+def gets_or_first(p: Project) -> tuple[dict, bool]:
+    """The GETs file, or with none yet the file as the screen's first act would make it, in memory, and whether it is
+    that first one. `gets show`, `gets apply` and `gets fresh` work on a project with no GETs file (LGETs and LPETs
+    too) as the screen does, its first act writing the file (getsfirst, 16 November 2026): nothing is written here.
+    A workbook that cannot be read is refused in its own words, from the read or from the first act's survey."""
+    try:
+        disk = gets_mod.load(p.root)
+        if disk is not None:
+            return disk, False
+        return gets_mod.assemble(p.root, p.books, now_iso())[0], True
+    except WorkbookError as exc:
+        raise cli.Refused(str(exc)) from None
+
+
+def no_file_or_refused(spec, first: bool, show: str) -> bool:
+    """Whether a change carries NO_FILE, the version `gets show` gave with no GETs file, refused as stale when the
+    file is there now (`first` false), as `fresh_or_refused` refuses one over a board changed since."""
+    seen = spec.get("version") if isinstance(spec, dict) else None
+    if str(seen or "").strip() != NO_FILE:
+        return False
+    if not first:
+        raise cli.Refused(themes.STALE_WRITE.format(show=show))
+    return True
+
+
+def first_file_said(p: Project, first: bool, dry: bool) -> str:
+    """With no GETs file yet, the line saying the change makes it, or would, by its file's name; else nothing."""
+    if not first:
+        return ""
+    name = gets_mod.gets_path(p.root).name
+    return i18n.t("cli.gets.first_file_dry", file=name) if dry else i18n.t("cli.gets.first_file", file=name)
+
+
 def gets_tree(answer: dict, board: dict, data: dict) -> dict:
     """A GETs board as `gets show` sets it out: each GET with its count of participants and its
     cards, sub-GETs under it, then the cards in no GET and those in the bin."""
@@ -4778,16 +4888,21 @@ def gets_theme_lines(t: dict, total: int, depth: int = 1) -> list[str]:
 
 
 def cmd_gets_show(p: Project, args) -> tuple:
-    data = gets_data(p)
+    # with no GETs file yet, the board the screen opens on, every card in the pile (getsfirst)
+    data, first = gets_or_first(p)
     board = pick_board(data, args.board)
     answer = gets_mod.state(p.root, p.books, board=str(board.get("id")))
     tree = gets_tree(answer, board, json.loads(json.dumps(data)))
     lines = [i18n.t("cli.gets_head", name=tree["name"], id=tree["id"], minimum=tree["minimum"],
                     participants=i18n.t("cli.n.participant", n=tree["total"]))]
-    # its version, which gets apply carries back so a change over a board changed since is refused
-    tree["version"] = themes.board_version(board)
+    # its version, which gets apply carries back so a change over a board changed since is refused; a board
+    # no file holds yet has NO_FILE, refused in its turn once a file is there (getsfix)
+    tree["version"] = NO_FILE if first else themes.board_version(board)
+    tree["saved"] = not first
     if tree["version"]:
         lines.append(i18n.t("cli.said.version", version=tree['version']))
+    if first:
+        lines.append(i18n.t("cli.gets_show.no_file_yet", file=gets_mod.gets_path(p.root).name))
     # a case whose PETs changed since its copy came in, which stands until its changes are taken
     tree["changed"] = [{"case": c["case"], "changes": c["changes"]} for c in answer["cases"]
                        if c["status"] == "changed" and c.get("changes")]
@@ -4979,7 +5094,6 @@ def bring_in_said(brought: list[dict], landed: dict) -> list[str]:
 
 def cmd_gets_apply(p: Project, args) -> tuple:
     gets_guard(p)
-    gets_data(p)
     spec = cli.read_spec(args.ops)
     ops, request = read_ops(spec, args)
     if not request and not args.dry_run:
@@ -4987,9 +5101,16 @@ def cmd_gets_apply(p: Project, args) -> tuple:
     args.note = request
     with locks.root(p.root):
         when = now_iso()
-        data, cases, _disk, _taken = gets_mod.assemble(p.root, p.books, when)
+        # with no GETs file yet the change makes it, as the screen's first act does (getsfirst), decided here under
+        # the lock from the read the change works on (getsfix)
+        try:
+            data, cases, disk, _taken = gets_mod.assemble(p.root, p.books, when)
+        except WorkbookError as exc:
+            raise cli.Refused(str(exc)) from None
+        first = disk is None
         board = pick_board(data, args.board, default="canvas")
-        fresh_or_refused(spec, gets_mod.on_disk(gets_mod.load(p.root), board), i18n.t("cli.gets_apply.gets_show"))
+        if not no_file_or_refused(spec, first, i18n.t("cli.gets_apply.gets_show")):
+            fresh_or_refused(spec, gets_mod.on_disk(disk, board), i18n.t("cli.gets_apply.gets_show"))
         kept = gets_mod.normal(board, data)
         # a statement brought in from the Participants panel (lpetadd) comes onto the board first, alone, in no
         # label, where the other operations can name its card, as the page's drag puts it there
@@ -5081,10 +5202,12 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         # each statement brought in: its card's key, whose it is, its words and the label it went into, or none
         brought_out = [{"key": b["key"], "case": b["case"], "who": gets_mod.who(b["case"]), "text": b["text"],
                         "label": b.get("label"), "title": b.get("title")} for b in brought]
+        made_file = gets_mod.gets_path(p.root).name if first else None
         if args.dry_run:
             text = i18n.t("cli.gets_apply.dry_run_nothing_was_written_on", name=kept['name'], v_=said[0].lower() + said[1:])
+            text = " ".join(x for x in (text, first_file_said(p, first, True)) if x)
             return {"dry_run": True, "board": kept["id"], "applied": applied, "ordered": shown_orders, "arranged": arranged,
-                    "brought": brought_out, "said": text, "revision": revision}, [text]
+                    "brought": brought_out, "said": text, "revision": revision, "made_file": made_file}, [text]
         made = themes.add_revision(board, name=revision, at=when)
         made["made"] = mark(args, when)
         state = themes.state_of(landed)
@@ -5093,10 +5216,10 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         board.update({k: state[k] for k in themes.STATE_KEYS if k in state}, updated=when, changed=mark(args, when))
         board["changed"]["hash"] = themes.state_hash(themes.made_state(gets_mod.normal(board, data)))
         gets_mod.write(p.root, gets_mod._file(data, when))
-    text = f"{said} {kept_line(board.get('name'), revision)}"
+    text = " ".join(x for x in (f"{said} {kept_line(board.get('name'), revision)}", first_file_said(p, first, False)) if x)
     return {"board": board.get("id"), "name": board.get("name"), "applied": applied, "ordered": shown_orders,
             "arranged": arranged, "brought": brought_out, "made": info.get("made"), "gone": info.get("gone"),
-            "revision": themes.revision_summary(made), "said": text}, [text]
+            "revision": themes.revision_summary(made), "said": text, "made_file": made_file}, [text]
 
 
 def changes_lines(name: str, said: dict) -> list[str]:
@@ -5269,6 +5392,13 @@ def gets_named(p: Project, args, default: str = "chosen") -> tuple[dict, dict]:
     return data, pick_board(data, getattr(args, "board", None), default=default)
 
 
+def gets_first_board(p: Project, name: str, dry: bool = False) -> dict:
+    """The GETs file made with one board, `name`, every card in the pile, on the canvas, where there is no file yet:
+    the file as the screen's first act makes it, its first board named as asked by `gets.version_op`'s rename, the
+    path `new` takes (getsfirst, getsfix). Run under the project's lock, after a read that found no file."""
+    return gets_op(p, "rename", {"id": gets_mod.FIRST_BOARD, "name": name}, dry=dry)
+
+
 def gets_request(args) -> None:
     if not themes_ai.one_line(args.note) and not args.dry_run:
         raise cli.Refused(_w("NO_REQUEST"))
@@ -5279,18 +5409,29 @@ def cmd_gets_fresh(p: Project, args) -> tuple:
     through `version_op`'s `new`, put on the canvas. His other boards are left as they were."""
     gets_guard(p)
     gets_request(args)
-    data = gets_data(p)
-    boards = themes.boards_of(data)
-    name = themes.board_name(boards, " ".join(str(getattr(args, "name", "") or "").split()))
+    # with no GETs file yet it makes the file with the one board it names, every card in the pile, where the
+    # screen's New board keeps the first board beside it (getsfirst, 16 November 2026: an agent building LGETs
+    # from a table wants one clean board)
     with locks.root(p.root):
+        # decided under the lock, so a file made in between gives the ordinary New board (getsfix)
+        data, first = gets_or_first(p)
+        boards = [] if first else themes.boards_of(data)
+        name = themes.board_name(boards, " ".join(str(getattr(args, "name", "") or "").split()))
+        made_file = gets_mod.gets_path(p.root).name if first else None
         if args.dry_run:
-            gets_op(p, "new", {"name": name}, dry=True)
-            text = i18n.t("cli.gets.fresh_dry", name=name)
-            return {"name": name, "dry_run": True, "said": text}, [text]
-        answer = gets_op(p, "new", {"name": name})
+            if first:
+                gets_first_board(p, name, dry=True)
+            else:
+                gets_op(p, "new", {"name": name}, dry=True)
+            text = " ".join(x for x in (i18n.t("cli.gets.fresh_dry", name=name), first_file_said(p, first, True)) if x)
+            return {"name": name, "dry_run": True, "said": text, "made_file": made_file}, [text]
+        if first:
+            answer = gets_first_board(p, name)
+        else:
+            answer = gets_op(p, "new", {"name": name})
     made = next((x for x in answer["versions"] if x["name"] == name), {})
-    text = i18n.t("cli.gets.fresh", name=name)
-    return {"name": name, "id": made.get("id"), "said": text}, [text]
+    text = " ".join(x for x in (i18n.t("cli.gets.fresh", name=name), first_file_said(p, first, False)) if x)
+    return {"name": name, "id": made.get("id"), "said": text, "made_file": made_file}, [text]
 
 
 def cmd_gets_duplicate(p: Project, args) -> tuple:
@@ -5303,8 +5444,6 @@ def cmd_gets_duplicate(p: Project, args) -> tuple:
         name, vid = str(board.get("name")), str(board.get("id"))
         wanted = " ".join(str(getattr(args, "name", "") or "").split())
         copy_name = themes._free_name(themes.boards_of(data), wanted or f"{name} copy")
-        note = (f"Duplicated from {name} by {themes_ai.one_line(args.tool) or cli.TOOL} in a conversation on "
-                f"{cli.when_said(now_iso())}, for the request '{themes_ai.one_line(args.note)}'.")
         out = {"from": vid, "from_name": name, "name": copy_name}
         if args.dry_run:
             gets_op(p, "duplicate", {"id": vid, "name": copy_name}, dry=True)
@@ -5312,9 +5451,8 @@ def cmd_gets_duplicate(p: Project, args) -> tuple:
             return dict(out, dry_run=True, said=text), [text]
         answer = gets_op(p, "duplicate", {"id": vid, "name": copy_name})
         made = next((x for x in answer["versions"] if x["name"] == copy_name), {})
-        gets_op(p, "note", {"id": made.get("id"), "note": note})
     text = i18n.t("cli.gets.duplicate", name=name, copy=copy_name)
-    return dict(out, id=made.get("id"), note=note, said=text), [text]
+    return dict(out, id=made.get("id"), said=text), [text]
 
 
 def cmd_gets_rename(p: Project, args) -> tuple:
@@ -5333,7 +5471,7 @@ def cmd_gets_rename(p: Project, args) -> tuple:
         if args.dry_run:
             text = i18n.t("cli.gets.rename_dry", name=name, wanted=wanted)
             return dict(out, dry_run=True, said=text), [text]
-        made = gets_revision_first(p, vid, f"{RENAMED} {name}: {request_cut(args)}", args)
+        made = gets_revision_first(p, vid, themes_ai.revision_name(), args)
         gets_op(p, "rename", {"id": vid, "name": wanted})
     text = i18n.t("cli.gets.rename", name=name, wanted=wanted, kept=made["name"])
     return dict(out, changed=True, revision=themes.revision_summary(made), said=text), [text]
@@ -5357,7 +5495,7 @@ def cmd_gets_note(p: Project, args) -> tuple:
             text = (i18n.t("cli.gets.note_off_dry", name=name) if not words
                     else i18n.t("cli.gets.note_set_dry", name=name, words=words))
             return dict(out, dry_run=True, said=text), [text]
-        made = gets_revision_first(p, vid, f"{NOTED}: {request_cut(args)}", args)
+        made = gets_revision_first(p, vid, themes_ai.revision_name(), args)
         gets_op(p, "note", {"id": vid, "note": words})
     text = (i18n.t("cli.gets.note_off", name=name, kept=made["name"]) if not words
             else i18n.t("cli.gets.note_set", name=name, words=words, kept=made["name"]))
@@ -5404,7 +5542,7 @@ def cmd_gets_current(p: Project, args) -> tuple:
             text = (i18n.t("cli.gets.current_dry_instead", name=name, before=before) if before
                     else i18n.t("cli.gets.current_dry", name=name))
             return dict(out, dry_run=True, said=text), [text]
-        made = gets_revision_first(p, vid, f"{CURRENT}: {request_cut(args)}", args)
+        made = gets_revision_first(p, vid, themes_ai.revision_name(), args)
         gets_op(p, "choose", {"id": vid})
     text = (i18n.t("cli.gets.current_instead", name=name, before=before, kept=made["name"]) if before
             else i18n.t("cli.gets.current", name=name, kept=made["name"]))
@@ -5535,7 +5673,7 @@ def cmd_gets_restore(p: Project, args) -> tuple:
 def cmd_gets_subs(p: Project, args) -> tuple:
     """Add every sub-theme, as the GETs board menu's Add every sub-theme does, through `board_op`'s `subs`:
     a card for each sub-theme of the study the board has none of, each where the route places it, in the
-    nearest free spot. The board as it stood is kept first in its History, as "Before: " and his request."""
+    nearest free spot. The board as it stood is kept first in its History, as "Before an agent's change"."""
     gets_request(args)
     gets_data(p)
     with locks.root(p.root):
@@ -7059,12 +7197,6 @@ def import_timing(fmt, fps) -> dict | None:
     return {"format": word, "fps": fps}
 
 
-def made_by(args, source: Path) -> str:
-    """Who made a workbook in a conversation, for which request and from which file, as a board's note
-    says how it was made, kept in the workbook's own description."""
-    return (i18n.t("cli.made_by.made_by_in_a_conversation_on", one_line=themes_ai.one_line(args.tool) or cli.TOOL, when=cli.when_said(now_iso()), one_line2=themes_ai.one_line(args.note), name=source.name))
-
-
 def landed(turns: list, notes, chosen: str, setting: str, roles: dict | None = None, form: str | None = None) -> list[dict]:
     """The first passages as they will land, the interviewer's under Settings' name, with the notes
     and statements a table brings beside each, and another speaker's marked, each time as `form` says, the
@@ -7219,7 +7351,7 @@ def cmd_import(p: Project, args) -> tuple:
     if said:
         raise cli.Refused(said, i18n.t("cli.said.nothing_was_written"))
     try:
-        routes.import_make(path, read, out, plan, setting, made_by(args, path))
+        routes.import_make(path, read, out, plan, setting)
     except WorkbookError as exc:
         raise cli.Refused(str(exc), i18n.t("cli.said.nothing_was_written")) from None
     if answer.get("joins"):
@@ -7400,6 +7532,46 @@ def cmd_clear_formatting(p: Project, args) -> tuple:
     if not args.dry_run:
         done.pop("dry_run", None)
     return done, [head] + clear_lines(done, args.dry_run)
+
+
+# ------------------------------------------------------ the making notes off the boards
+# (sidebarcopy, 16 November 2026, Adam: a board's note saying who made it, when and for what request is "archaeology and
+# unhelpful".) The route's own code (`routes.clear_made_notes`, `clear_made_notes`), the whole project.
+
+
+def cmd_clear_made_notes(p: Project, args) -> tuple:
+    """The notes an agent's boards carry about their own making taken off every board of the project, the agent's
+    own note kept (see `routes.clear_made_notes`). A dry run counts and writes nothing."""
+    request = themes_ai.one_line(args.note)
+    if not args.dry_run and not request:
+        raise cli.Refused(_w("NO_CLEAR_REQUEST"))
+    try:
+        done = routes.clear_made_notes(p.root, list(p.books), dry_run=args.dry_run)
+    except WorkbookError as exc:
+        raise cli.Refused(str(exc), i18n.t("cli.said.nothing_was_written")) from None
+    totals = done["totals"]
+    counts = dict(made=i18n.t("cli.clear_made_notes.made", n=totals["made"]),
+                  copies=i18n.t("cli.clear_made_notes.copies", n=totals["copies"]))
+    if not done["boards"]:
+        head = i18n.t("cli.clear_made_notes.nothing")
+    elif args.dry_run:
+        head = i18n.t("cli.clear_made_notes.dry", **counts)
+    else:
+        head = i18n.t("cli.clear_made_notes.done", **counts, files=i18n.t("cli.n.file", n=len(done["archived"])))
+    if done["left"]:
+        head += " " + i18n.t("cli.clear_made_notes.left", n=done["left"])
+    done["said"] = head
+    if not args.dry_run:
+        done.pop("dry_run", None)
+    def line(person: dict) -> str:
+        slots = dict(case=person["case"] or i18n.t("cli.clear_made_notes.project"),
+                     made=i18n.t("cli.clear_made_notes.made", n=person["made"]),
+                     copies=i18n.t("cli.clear_made_notes.copies", n=person["copies"]))
+        if args.dry_run:
+            return i18n.t("cli.clear_made_notes.line_dry", **slots)
+        return i18n.t("cli.clear_made_notes.line", **slots)
+    lines = [line(person) for person in done["by_participant"]]
+    return done, [head] + lines
 
 
 # ------------------------------------------------------ transcript replace
@@ -7630,7 +7802,7 @@ def import_raw(p: Project, args, path: Path, sheets: list[str], case: str, shown
         raise cli.Refused(said, i18n.t("cli.said.nothing_was_written"))
     try:
         with routes.writing(out):
-            wb_mod.create_from_source(path, out, made_by(args, path))
+            wb_mod.create_from_source(path, out)
             if timepoint > 1:
                 rounds_mod.tag_sheets(out, routes.read_sheets(out)[1], timepoint)
     except WorkbookError as exc:
@@ -7722,7 +7894,7 @@ def cmd_qdpx(p: Project, args) -> tuple:
             # the package's variables as the participants' demographics unless --no-demographics (demobuild)
             "demographics": not getattr(args, "no_demographics", False)}
     try:
-        answer = routes.qdpx_import(p.root, path, body, make=not args.dry_run, made=made_by(args, path))
+        answer = routes.qdpx_import(p.root, path, body, make=not args.dry_run)
     except WorkbookError as exc:
         raise cli.Refused(str(exc), *([] if args.dry_run else [i18n.t("cli.said.nothing_was_written")])) from None
     answer = dict(answer, file=shown(path))
@@ -7941,7 +8113,7 @@ COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             ("import", None): cmd_import, ("qdpx", None): cmd_qdpx, ("offset", None): cmd_offset, ("audio", "attach"): cmd_audio_attach,
             ("timepoints", None): cmd_timepoints,
             ("length", None): cmd_length, ("settings", None): cmd_settings, ("quote-heading", None): cmd_quote_heading,
-            ("clear-formatting", None): cmd_clear_formatting,
+            ("clear-formatting", None): cmd_clear_formatting, ("clear-made-notes", None): cmd_clear_made_notes,
             ("transcript", "replace"): cmd_transcript_replace, ("transcript", "replace-undo"): cmd_transcript_replace_undo,
             ("trajectories", "show"): cmd_trajectories_show, ("trajectories", "apply"): cmd_trajectories_apply,
             ("codes", "list"): cmd_codes_list, ("codes", "show"): cmd_codes_show, ("codes", "new"): cmd_codes_new,
@@ -7950,6 +8122,9 @@ COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             ("codes", "add"): cmd_codes_extract, ("codes", "remove"): cmd_codes_extract,
             ("codes", "apply-last"): cmd_codes_quick, ("codes", "in-vivo"): cmd_codes_quick,
             ("codes", "undo"): cmd_codes_undo, ("codes", "redo"): cmd_codes_undo,
+            # the exports no screen had before (exportnew, 16 November 2026)
+            ("trajectories", "export"): cmd_trajectories_export, ("transcript", "export"): cmd_transcript_export,
+            ("codes", "export"): cmd_codes_export,
             ("project", "send"): cmd_project_send,
             ("project", "export-qdpx"): cmd_project_export_qdpx,
             ("project", "boards-in"): lambda p, args: cmd_project_boards_in([p], args),
@@ -8475,6 +8650,11 @@ def arguments(sub, common, writes) -> None:
                             "statements, quotes and notes of every workbook and his bold on the LPET tables, each file "
                             "copied to _Archive first")
     x.add_argument("--participant", dest="case", default=None, help="this participant alone, by their pseudonym")
+    # the notes saying who made a board off every board of the project (sidebarcopy, 16 November 2026)
+    x = sub.add_parser("clear-made-notes", parents=[common, writes],
+                       help="the notes an agent's boards carry about their own making, \"Made by ... in a conversation on "
+                            "...\", taken off every board of the project, the agent's own note kept, each file changed "
+                            "copied to _Archive first")
     tr = sub.add_parser("transcript", parents=[common], help="the app's Find and replace, the words changing in the "
                                                              "transcript, the statements, the quotes and the notes "
                                                              "alike").add_subparsers(dest="act", required=True)
@@ -8499,6 +8679,38 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("batch", help="the batch id the replace answered with")
     x.add_argument("--participant", dest="case", default=None, help="this participant's workbook alone")
     x.add_argument("--redo", action="store_true", help="apply the replace again after an undo")
+    # the exports no screen had before (exportnew, 16 November 2026), each as the app's Export makes it
+    x = tj.add_parser("export", parents=[common],
+                      help="the Trajectories board as a PDF, or a Word document, at the project's root, never over a "
+                           "file there: each participant's LPETs across the timepoints, a key quote and state a cell")
+    x.add_argument("--word", action="store_true", help="a Word document in place of the PDF")
+    x.add_argument("--notes", action="store_true", help="each participant's note, as Each participant's note does")
+    x.add_argument("--unplaced", action="store_true",
+                   help="the participants in no trajectory at the end, as Unplaced does")
+    x = cd.add_parser("export", parents=[common],
+                      help="the code list as a PDF, a Word document or a CSV at the project's root, never over a file there")
+    x.add_argument("--word", action="store_true", help="a Word document in place of the PDF")
+    x.add_argument("--csv", action="store_true", help="a CSV, a row for each extract, in place of the PDF")
+    x.add_argument("--no-extracts", dest="no_extracts", action="store_true",
+                   help="each code with its description and counts alone, its extracts left out")
+    x = tr.add_parser("export", parents=[common],
+                      help="a participant's annotated transcript as a PDF, or a Word document, beside their workbook, "
+                           "as the statements screen's Export makes it, never over a file there")
+    x.add_argument("case", help="the participant, by their pseudonym")
+    x.add_argument("--word", action="store_true", help="a Word document in place of the PDF")
+    x.add_argument("--no-notes", dest="no_notes", action="store_true", help="the exploratory notes left out")
+    x.add_argument("--no-statements", dest="no_statements", action="store_true",
+                   help="the experiential statements and their quotes left out")
+    x.add_argument("--interviewer-notes", dest="interviewer_notes", action="store_true",
+                   help="the interviewer's notes under their turns, left out without it")
+    x.add_argument("--portrait", action="store_true", help="their label and pen portrait under the head")
+    x.add_argument("--sheet", default=None, help="one interview alone, by its sheet's name")
+    for x in (tj.choices["export"], cd.choices["export"], tr.choices["export"]):
+        x.add_argument("--out", default=None, help="where it goes, a folder or a file name with its ending, where "
+                                                    "the screen's Export puts it without it")
+        x.add_argument("--replace", action="store_true",
+                       help="write over a file of the same name in place of putting the date in the name")
+        x.add_argument("--dry-run", action="store_true", help="say what would be written and write nothing")
     sub.add_parser("validate", parents=[common], help="every file of the project against its schema")
     ag = sub.add_parser("agents", parents=[common], help="the app's record of agents: the agent log, each refusal of "
                                                          "an agent, read alone, and each project's record of every "

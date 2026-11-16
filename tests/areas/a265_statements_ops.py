@@ -228,12 +228,12 @@ def test_statements_ops(scratch):
     theirs = page_root / "P2 - Wren" / "P2 Wren - EN & ES.xlsx"
     record = (progress(made).get("imports") or [{}])[-1]
     described = openpyxl.load_workbook(made, read_only=True).properties.description or ""
-    check("265: project add-transcripts makes what the page's Add makes, cell for cell, the workbook naming who made it "
-          "for which request, and History recording the agent's Add",
+    check("265: project add-transcripts makes what the page's Add makes, cell for cell, the workbook saying nothing of "
+          "who made it, and History recording the agent's Add",
           code == 0 and done.get("cases") == ["P2 - Wren"] and made.exists() and cells(made) == cells(theirs)
           and [f for f in files_under(root / "P2 - Wren") if not f.endswith(".progress.json")]
           == files_under(page_root / "P2 - Wren")
-          and "Claude Code" in described and ask in described and record.get("sheets") == ["Spring"]
+          and described == "" and record.get("sheets") == ["Spring"]
           and by_agent(record, ask) and not progress(theirs).get("imports"),
           err or json.dumps(done)[:300] + " " + json.dumps(files_under(root / "P2 - Wren")))
     spec.write_text(json.dumps({"files": [{"file": str(summer), "pseudonym": "Wren", "interview": "Summer"}]}), encoding="utf-8")

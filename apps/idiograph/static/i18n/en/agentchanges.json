@@ -100,5 +100,6 @@
   "agentchanges.where.gets": "GETs",
   "agentchanges.where.statements": "Experiential statements",
   "agentchanges.where.codes": "Code list",
-  "agentchanges.where.trajectories": "Trajectories"
+  "agentchanges.where.trajectories": "Trajectories",
+  "agentchanges.op.clear_made_notes": "Took the notes of how boards were made off the boards"
 }

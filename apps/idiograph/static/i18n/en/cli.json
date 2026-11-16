@@ -48,6 +48,9 @@
   "cli.gets.take": "Brought {name}'s changes into every GETs board, each keeping a revision first, \"Before {name}'s changes came in\", so Restore puts it back.",
   "cli.gets.fresh_dry": "Dry run, nothing was written. It would make the GETs board {name}, every card in the pile, and put it on the canvas.",
   "cli.gets.fresh": "Made the GETs board {name}, every card in the pile. It is the board on the canvas, and the other boards are as before.",
+  "cli.gets.first_file_dry": "{file} is not there yet: it would be made, as the first act on the screen makes it.",
+  "cli.gets.first_file": "{file} was not there yet: this made it.",
+  "cli.gets_show.no_file_yet": "{file} is not there yet. This is the board the screen opens on, and the first change makes it.",
   "cli.gets.duplicate_dry": "Dry run, nothing was written. It would copy the GETs board {name} as {copy} and put it on the canvas.",
   "cli.gets.duplicate": "Copied the GETs board {name} as {copy}, which is now on the canvas. {name} is as it was.",
   "cli.gets.rename_same": "The GETs board {name} is called that already. Nothing was written.",
@@ -92,7 +95,7 @@
   "cli.validate.quote_marks_unclosed": "Warning: {case}, sheet {sheet}, row {row}, {which}: the key quote opens with a quotation mark and does not close it. Correct it with turn write.",
   "cli.validate.quote_marks_unopened": "Warning: {case}, sheet {sheet}, row {row}, {which}: the key quote closes with a quotation mark and never opens one. Correct it with turn write.",
   "cli.problems_in.the_file_could_not_be_read": "{label}: the file could not be read as JSON ({name}).",
-  "cli.qdpx.brought_in_from_the_file_itself": "Brought in {list} from {name}, the file itself only read. Each new workbook names who made it and his request, and each keeps these lines in its History.",
+  "cli.qdpx.brought_in_from_the_file_itself": "Brought in {list} from {name}, the file itself only read. Each new workbook keeps these lines in its History.",
   "cli.qdpx.dry_run_nothing_was_written_it": "Dry run, nothing was written. It would bring in {list} from {name}, the file itself only read.{board}",
   "cli.qdpx.each_gets_a_pets_board_from": " Each gets a PETs board From {package}, a PET a code group.",
   "cli.qdpx.dry_run_nothing_was_written_cannot": "Dry run, nothing was written. {name} cannot be brought in yet: {said}",
@@ -116,7 +119,7 @@
   "cli.qdpx_source_line.coded_by": ", coded by {list}",
   "cli.qdpx_source_line.its_recording": ", its recording {recording}",
   "cli.qdpx_source_line.source": "  Source {source}, {name}: {left_out}",
-  "cli.import_raw.wrote_the_participants_workbook_from_for": "Wrote {shown}, the participant's workbook, from {name}, for {case}. It opens on Experiential statements, and names who made it and his request.",
+  "cli.import_raw.wrote_the_participants_workbook_from_for": "Wrote {shown}, the participant's workbook, from {name}, for {case}. It opens on Experiential statements.",
   "cli.import_raw.dry_run_nothing_was_written_it": "Dry run, nothing was written. It would write {shown}, the participant's workbook, from {name}, for {case}, the one Experiential statements opens.",
   "cli.import_raw.dry_run_nothing_was_written_cannot": "Dry run, nothing was written. {name} cannot be made into a workbook: {said}",
   "cli.import_raw.the_first_passages": "The first {n_first} passages:",
@@ -184,7 +187,7 @@
   "cli.audio_attach.replaces": "It would put the recording there, {old}, in _Archive.",
   "cli.audio_attach.done": "Copied the recording to {writes} as {name}. It plays on {sheet} of {case}, and the file you gave is where it was.",
   "cli.audio_attach.kept": "The recording that was there, {old}, is kept as {kept}.",
-  "cli.import.wrote_the_raw_source_from_for": "Wrote {shown}, the raw source, from {name}, for {case}. Import it next to make the participant's workbook, {name2}. The workbook names who made it and his request.",
+  "cli.import.wrote_the_raw_source_from_for": "Wrote {shown}, the raw source, from {name}, for {case}. Import it next to make the participant's workbook, {name2}.",
   "cli.import.wrote_the_raw_source_from_for_2": "Wrote {shown}, the raw source, from {name}, for {case}, and added its sheet {sheet} to {name2} at {timepoint}, a copy kept in _Archive first.",
   "cli.import.importing_that_next_makes_the_participants": "Importing that next makes the participant's workbook, {name}.",
   "cli.import.it_would_add_its_sheet_to": "It would add its sheet to {name}, a copy kept in _Archive first.",
@@ -216,10 +219,9 @@
   "cli.import.this_file_has_no_time_column": "This file has no Time column, so it takes no time format.",
   "cli.import.that_file_is_not_a_transcript": "That file is not a transcript Idiograph reads.",
   "cli.import.is_a_participants_workbook_already_so": "{name} is a participant's workbook already, so there is nothing to import.",
-  "cli.made_by.made_by_in_a_conversation_on": "Made by {one_line} in a conversation on {when}, for the request '{one_line2}', from {name}.",
   "cli.import_timing.give_the_frame_rate_as_a": "Give the frame rate as a whole number of frames a second, from 1 to 120.",
   "cli.import_speakers.no_speaker_called_the_speakers": "No speaker called {name}. The speakers: {list}.",
-  "cli.project_add_transcripts.each_workbook_made_names_who_made": "Each workbook made names who made it and his request, and each participant's progress file records the Add under imports.",
+  "cli.project_add_transcripts.each_workbook_made_names_who_made": "Each participant's progress file records the Add under imports.",
   "cli.project_add_transcripts.and_further_interviews_to": ", and further interviews to {list}",
   "cli.project_add_transcripts.no_new_participant": "no new participant",
   "cli.project_add_transcripts.added_to": "Added {list} to {name}",
@@ -588,6 +590,11 @@
     "other": "{n} codes"
   },
   "cli.gets_word_export.of": "{themes}, {codes} of {participants}",
+  "cli.gets_word_export.of_gets": "{gets} of {participants}",
+  "cli.documents.in": "{head} {name} in {folder}: {said}.{dated}",
+  "cli.documents.trajectories": "{trajectories}, {placed} placed and {unplaced} unplaced, {lpets}",
+  "cli.documents.transcript": "{passages}, {statements}",
+  "cli.documents.codes": "{codes}, {extracts} from {participants}",
   "cli.gets_word_export.word_takes_selected_notes_for_sending": "{list}: --word takes --selected, --notes, --for-sending, --no-descriptions, --participants and --dry-run alone. The Word document goes at the project's root and is never written over.",
   "cli.gets_export.in": "{head} {name} in {folder}: {gets_what}, {said}.{dated}",
   "cli.board_draft.wrote_in_s_folder_from_in": "Wrote {files} in {case}'s folder, from {name}: {statements} in the CSV.",
@@ -1073,5 +1080,23 @@
   "cli.copies_prune.wrote": "Took off {copies}, leaving {emptied} LPET cells with no statement. {elsewhere} stand at another key, for copies rekey.",
   "cli.copies_prune.copy": "{case}, {name} {timepoint}: {which} is no longer in the workbook, under {lpets}.",
   "cli.copies_prune.elsewhere": "{case}, {name} {timepoint}: {which} stands at another key, left for copies rekey.",
-  "cli.copies_prune.emptied": "{case}, {name}, {board}: '{title}' at {timepoint} has no statement left."
+  "cli.copies_prune.emptied": "{case}, {name}, {board}: '{title}' at {timepoint} has no statement left.",
+  "cli.clear_made_notes.dry": "Dry run, nothing was written. It would take the note of how it was made off {made} and {copies}.",
+  "cli.clear_made_notes.done": "Took the note of how it was made off {made} and {copies}. A copy of each of the {files} changed is in its _Archive, and the run's undo puts it all back.",
+  "cli.clear_made_notes.nothing": "Nothing to take off, no board's note says how it was made.",
+  "cli.clear_made_notes.line": "{case}: took it off {made} and {copies}.",
+  "cli.clear_made_notes.line_dry": "{case}: would take it off {made} and {copies}.",
+  "cli.clear_made_notes.project": "The project",
+  "cli.clear_made_notes.made": {
+    "one": "{n} board an agent made",
+    "other": "{n} boards an agent made"
+  },
+  "cli.clear_made_notes.copies": {
+    "one": "{n} copy an agent made",
+    "other": "{n} copies an agent made"
+  },
+  "cli.clear_made_notes.left": {
+    "one": "{n} note was left, changed by you.",
+    "other": "{n} notes were left, changed by you."
+  }
 }

@@ -200,8 +200,8 @@ def test_ai_switch(scratch):
     THEMES_MAP = {
         "thWithAi": "provenance",                 # "with AI" after a board's name, whatever the switch
         "TH_SPARK_ICON": "icon",
-        # the GETs foot asked as the tab draws since tarail, so a thematic analysis project's names its own file
-        "TH_GUIDANCE_FROM": "foot", "thGuidanceDraw": "foot",
+        # History's names of an agent's change, a record shown whatever the switch (sidebarcopy, 16 November 2026)
+        "TH_REVISION_SAID": "provenance",
         "thNamesHtml": "guard", "thSidHtml": "guard",
         "gtPanelDraw": "thNamesHtml",
     }
@@ -230,8 +230,6 @@ def test_ai_switch(scratch):
     def answers(src, name, how):
         if how == "guard":
             return guard(src, name)
-        if how == "foot":
-            return "if (!thAiOn()) body.lastElementChild.textContent" in fn(tjs, "thGuidanceDraw")
         if how == "set":
             return "agents-block" in page and "pets-ai" in page
         if how == "thNamesHtml":
@@ -244,7 +242,7 @@ def test_ai_switch(scratch):
     unanswered = [n for n, how in THEMES_MAP.items() if n in t_owners and not answers(tjs, n, how)] \
         + [n for n, how in APP_MAP.items() if n in a_owners and not answers(app, n, how)]
     check("100: every AI word and every sparkles icon in app.js and themes.js answers to the switch or is the record of AI work",
-          not stray and not unanswered and len(t_owners) >= 4, f"stray {stray}, unanswered {unanswered} {sorted(t_owners)}")
+          not stray and not unanswered and len(t_owners) >= 3, f"stray {stray}, unanswered {unanswered} {sorted(t_owners)}")
     check("100: the turn screen's button and the page's class come from aiOn, and every settings answer puts it on the page",
           "$('btn-ai').hidden = !(S.data && aiFor(S.data.config, 'statements'));" in fn(app, "resetAI")
           and "return aiOn(cfg) && !off.includes(feature);" in fn(app, "aiFor")
@@ -368,8 +366,7 @@ const screen = () => {
   o.tabs = thTabsOf('pets'); o.getsTabs = thTabsOf('gets');
   o.names = thNamesHtml({ kind: 'group', id: g });
   o.sid = thSidHtml('S:1:0');
-  thGuidanceDraw(); o.foot = $('th-bpanel-body').lastElementChild.textContent;
-  TH.mode = 'gets'; thGuidanceDraw(); o.getsFoot = $('th-bpanel-body').lastElementChild.textContent; TH.mode = 'pets';
+  thGuidanceDraw(); o.guide = $('th-bpanel-body').innerHTML;
   thVmenuDraw(); o.menu = $('th-vmenu').innerHTML;
   return o;
 };
@@ -402,18 +399,16 @@ console.log(JSON.stringify(out));
           and off["names"] == "" and off["sid"] == ""
           and "New AI board" not in off["menu"] and SPARKLES not in off["menu"] and "New board" in off["menu"],
           str({k: off[k] for k in ("tabs", "getsTabs", "names", "sid")}))
-    check("100: in node, with it off Guidance's foot names its file and says nothing of the AI",
-          off["foot"] == "From themes_guidance.md beside the app." and off["getsFoot"] == "From pet_guidance.md beside the app.",
-          off["foot"] + " | " + off["getsFoot"])
+    check("100: in node, Guidance shows its lines and no foot naming a file, with the switch off",
+          "Group by meaning." in off["guide"] and ".md" not in off["guide"], off["guide"])
     check("100: in node, with it on the titles and the short id show, the titles with the sparkles, and no AI tab or AI "
           "board since aiout",
           on["tabs"] == ["inspector", "guidance", "history"]
           and on["getsTabs"] == ["inspector", "guidance", "history"]
           and "AI suggest PET titles" in on["names"] and SPARKLES in on["names"]
           and "S1" in on["sid"] and "New AI board" not in on["menu"] and SPARKLES not in on["menu"]
-          and on["foot"] == "From themes_guidance.md beside the app. The AI reads pet_guidance.md."
-          and on["getsFoot"] == "From pet_guidance.md beside the app, the GETs sections the AI reads on this screen.",
-          on["foot"])
+          and "Group by meaning." in on["guide"] and ".md" not in on["guide"],
+          on["guide"])
     check("100: in node, the switch turned off leaves the sidebar on the tab it shows, none being the AI's",
           out["onTab"] == "guidance" and out["offTab"] == ["guidance", True], str(out["offTab"]))
 

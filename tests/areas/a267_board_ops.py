@@ -162,7 +162,7 @@ def test_board_ops(scratch: Path):
               err)
         rev = last(board_of(a, "Board 1"))
         check("267: board note keeps the board first in its History, naming the tool and his request",
-              rev.get("name") == "Board note changed: Note what supervision said"
+              rev.get("name") == "Before an agent's change"
               and (rev.get("made") or {}).get("tool") == "Claude Code", json.dumps(rev)[:200])
         twin()
 
@@ -262,21 +262,21 @@ def test_board_ops(scratch: Path):
         second = board_of(a, "Second try")["id"]
         a, _ = gets_step("rename", ["gets", "rename", "Second try", "By the sheds"],
                          {"op": "rename", "id": second, "name": "By the sheds"},
-                         lambda a, p: last(board_of(a, "By the sheds"))["name"].startswith("Renamed from Second try: "))
+                         lambda a, p: last(board_of(a, "By the sheds"))["name"] == "Before an agent's change")
         check("267: gets rename keeps the board first in its History, naming the tool",
               (last(board_of(a, "By the sheds")).get("made") or {}).get("tool") == "Claude Code")
         a, _ = gets_step("note", ["gets", "note", "By the sheds", "Grouped by where they stand"],
                          {"op": "note", "id": second, "note": "Grouped by where they stand"},
-                         lambda a, p: last(board_of(a, "By the sheds"))["name"].startswith("Board note changed: "))
+                         lambda a, p: last(board_of(a, "By the sheds"))["name"] == "Before an agent's change")
         a, done = gets_step("duplicate", ["gets", "duplicate", "By the sheds", "--name", "Sheds trial"],
                             {"op": "duplicate", "id": second, "name": "Sheds trial"},
-                            lambda a, p: "Claude Code" in board_of(a, "Sheds trial")["note"], drop=("note",))
+                            lambda a, p: not board_of(a, "Sheds trial").get("note"), drop=("note",))
         trial = board_of(a, "Sheds trial")["id"]
         gets_step("canvas", ["gets", "canvas", "Board 1"], {"op": "switch", "id": "b1"},
                   lambda a, p: a["current"] == "b1")
         gets_step("current", ["gets", "current", "By the sheds"], {"op": "choose", "id": second},
                   lambda a, p: a.get("chosen") == second
-                  and last(board_of(a, "By the sheds"))["name"].startswith("Marked the Current board: "))
+                  and last(board_of(a, "By the sheds"))["name"] == "Before an agent's change")
         gets_step("delete", ["gets", "delete", "Sheds trial"], {"op": "delete", "id": trial},
                   lambda a, p: all(b["id"] != trial for b in a["boards"])
                   and any(f.name.startswith("idiograph-gets board Sheds trial") for f in (agent / "_Archive").iterdir()))
@@ -324,7 +324,7 @@ def test_board_ops(scratch: Path):
               "the board kept first in its History",
               dry_ok and code == 0 and route["added"] and all(one["cards"].get(c["key"]) == {"x": c["x"], "y": c["y"]}
                                                                 for c in route["added"])
-              and last(one)["name"] == "Before: Every sub-theme on", err + err2 + json.dumps(dry)[:200])
+              and last(one)["name"] == "Before an agent's change", err + err2 + json.dumps(dry)[:200])
         code, _x, err = run(agent, "gets", "subs", "Board 1", "--note", "Again")
         check("267: a second Add every sub-theme is refused in the route's words",
               code != 0 and "Every sub-theme has a card on this board already" in err, err)

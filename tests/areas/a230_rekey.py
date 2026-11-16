@@ -100,7 +100,7 @@ def test_rekey(scratch):
           two.get("stacks") == {K(0): [K(2, 7)]} and themes.parents_of(two["groups"]).get(K(0)) == owner,
           str(two.get("stacks")))
     check("230: each board keeps the board as it stood first in its History and is marked changed in a conversation",
-          all((b.get("history") or [{}])[-1].get("name") == "Before: Take out the second statement"
+          all((b.get("history") or [{}])[-1].get("name") == "Before an agent's change"
               and (b.get("changed") or {}).get("tool") == "Claude Code" for b in after.values())
           and len(done.get("cards") or []) == 2, json.dumps([b.get("changed") for b in after.values()])[:300])
     code, show, _ = run("board", "show", "Mabel", "v1")
@@ -148,7 +148,7 @@ def test_rekey(scratch):
     check("230: remove takes the named stale card off, its label kept, one step in History",
           code == 0 and K(7) not in held["cards"] and K(8) in held["cards"]
           and K(7) not in next(g for g in held["groups"] if g["id"] == owner)["members"]
-          and boards()["v1"]["history"][-1]["name"] == "Before: Clear the stale cards", err.strip()[:300])
+          and boards()["v1"]["history"][-1]["name"] == "Before an agent's change", err.strip()[:300])
     code, out, err = apply("all", {"op": "remove_missing"})
     held = themes.normalise(boards()["v1"])
     check("230: remove_missing takes off every card on the board missing from the workbook",

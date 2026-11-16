@@ -1679,7 +1679,7 @@ a run of that one folder and `--demo` the demo. A project answers only with `age
 file, the demo always, and one with it unticked is never opened. A statement's short id, `S1` on in the order
 `read_cards` reads, is `themes.short_ids`, worked out on every read, and `/api/themes` sends the
 same as `sids` for the Inspector. Every write validates first, takes `--dry-run`, `--note`, his
-request, and `--tool`, keeps a revision named "Before: " and his request before it changes a board,
+request, and `--tool`, keeps a revision named "Before an agent's change" (the request stays in By an agent) before it changes a board,
 marks the board `made` or `changed`, and answers with the change in plain words. Output is plain
 text, or JSON with `--json`, and every line goes through the same scrub as the server's paths, so
 a case folder's second part never reaches it. `cli.run` runs one command in the calling process,
@@ -1730,8 +1730,8 @@ refuses on `roles_said`, and `case_sheet` writes through `convert.as_new_case`, 
 under Settings' name, participants under the pseudonym, another speaker under Other speaker, marked.
 On a phone the preview's table stacks in CSS, each notes and statements cell carrying `data-head`,
 and the Time column takes the width of its longest time. `write_source`, `write_sheets` and
-`create_from_source` take `made`, which `cli.made_by` fills with the tool, his request and the file,
-kept as the workbook's own description, and empty from the cards. The dry run answers `columns`
+`create_from_source` take `made`, the workbook's own description, empty from the cards and, since 16 November 2026, from
+an agent's import too (its tool and request are in the record of agents' changes). The dry run answers `columns`
 (heading and role), `speakers`, `interviewer`, `interviewer_guessed`, `interviewer_written_as`, the
 first `convert.PREVIEW` passages as they land (`cli.landed`), `left_out`, `brings`, `writes` and
 `said`, the line that holds the make back.
@@ -2654,7 +2654,7 @@ out, and checks the rows through `new_cases`, whose `reader` (here the mapped tu
 `.qdpx` itself as the data, which `keep_transcript` copies from its path) stands in for a dropped
 file's. `qdpx_write` writes each participant as Add does (`write_case`, `add_interviews`), then
 `qdpx_case`: the pairs through `put_pairs` in one save, written as `workbook.pairs_to_cells` writes
-a turn's, the new workbook's description naming who made it, the import's lines under `imports` in
+a turn's, the new workbook's description the app's own import line, the import's lines under `imports` in
 the progress file, the memos to `Source/<Pseudonym> - memos.txt`, never over one there, the
 recording copied out of the zip into `Source/<interview>/Source/` with an offset of 0, and with
 `pets` the board through `qdpx_board`, laid out by `themes_ai.lay_out` and added by
@@ -2859,6 +2859,29 @@ and `import_asks` take `sheet`, the command line's `import --sheet` and `add-tra
 MCP's `sheet` on both. New project's and Add transcripts' rows show a Sheet chooser (`data-np="sheet"`)
 for a file of two sheets or more, the sheets kept on the row across a read that fails, a change reading
 the file again with its columns guessed afresh, and `npFilesSent` sends it.
+
+**The exports no screen had before** (exportnew, 16 November 2026, Adam's Option C: Export on every tab).
+`documents.py` makes three documents from one walk each, the Trajectories board (`trajectories`, from
+`trajectories.board` over `routes.traj_people`, a row per shown LPET across the timepoints, its key quote with his
+bold and the state in each cell, after Adam's revD table), a participant's annotated transcript (`transcript`, from
+`workbook.read_case`, a row per turn, Exploratory notes 1 : Transcript 3 : Experiential statements 2 as the
+statements screen's columns, the interviewer's notes under their turns, the pen portrait from
+`routes.portrait_printed`) and a thematic analysis project's code list (`codes`, from `codes.listing` over the list
+read in memory, never `codes.ensure`, so neither a print view nor a dry run writes). A document is a head, a foot (the
+print views' own, `themes_print.foot_parts` and `foot_pieces`) and blocks, a heading, a paragraph (`keep` holding it
+to what follows) or a table (`split` per row, a turn over `WHOLE_MOST` characters free to run on to the next page,
+every other row whole). Three writers read it: `page` (the print view, `themes_print`'s head, page and foot CSS),
+`typst_data` with `typst/document.typ` (imports `gets-parts.typ`'s inks, `lh`, `caps` and `foot`) and `word_bytes`
+(`themes_word`'s parts with a body of its own, landscape for a table of four columns or more, tables with their head
+repeated and rows kept whole as the print). `documents.write` places the file (`place`, `free_name`, `replace`, `out`):
+the Trajectories and the code list at the project's root, the transcript beside the workbook. The routes are
+`/api/trajectories-export`, `/api/transcript-export` and `/api/codes-export` (`format` pdf, word or the code list's
+csv, `dry_run`, `out`, `replace`, and each one's ticks: `notes` and `unplaced` (Unplaced); `notes`, `statements`,
+`interviewer_notes`, `portrait` and `sheet`; `extracts`), through `routes.document_write`, and the print views
+`/trajectories/print`, `/transcript/print` and `/codes/print` (`document_page`, in the method's words, `auto=0`
+leaving the dialog shut). The command line's `trajectories export`, `transcript export` and `codes export` and MCP's
+tools of those names run `document_write` with the project's root or the workbook. A thematic analysis project's
+transcript is its Coded transcript with Codes at the right (`en.ta/documents.json`). Area 398.
 
 **Tables of PETs and LPETs** (ayabuild34, 9 November 2026, the Ayahuasca plan's builds 3 and 4).
 `table_import.py` reads and matches, and writes nothing. `read_table` reads a CSV through
@@ -3732,7 +3755,7 @@ case's lock, then on each copy's boards through `routes.statements_noted` and `g
 the root's lock alone, taken after the case's is let go so the save never waits on a long write elsewhere
 and a copy that cannot have it keeps no line, the save standing. The cards and the copies keep their words
 there, so the boards show the change and Take the changes as before. An agent's `turn write` passes no
-`said`: its `history`, "Before: " and his request, stays its one line a board. A replace keeps none, since
+`said`: its `history`, "Before an agent's change" (the request stays in By an agent), stays its one line a board. A replace keeps none, since
 it rewrites every revision's words too (`cards_reworded`), so a line would keep no old words. Area 300.
 
 **A board's History in the order it was made (histdate, 30 October 2026).** The timer's save, `themes.save` and
@@ -7052,7 +7075,17 @@ after. Any failure puts back every file written so far, byte for byte, takes the
 reading otherwise is `Differs`, `server.clear_formatting_words_differ`. The command line's `clear-formatting`
 (`--participant`), MCP's `clear_formatting` (`case`) and `/api/clear-formatting` (`root` or `path`, `case`,
 `dry_run`, post only) all run it, and an agent's write goes through `agent_changes.through` as every write does,
-its run's restore point the undo. Area 392 checks it on the demo. On a copy of a real project of three timepoints on 13
+its run's restore point the undo. Area 392 checks it on the demo.
+
+**The making notes off the boards** (sidebarcopy, 16 November 2026). `board new`, `board duplicate` and `gets duplicate`
+write no note of who made the board: `cli.board_note` answers the agent's own note and nothing else, a duplicate's note
+is empty, and `made` (`cli.mark`) alone says it, which `themes.made_said` reads, no longer from a note's words (the
+`AGENT_NOTE` pattern is gone). `clear_made_notes.py` takes the notes written before off the boards: `MADE` and `COPY`
+match the two forms, `settle` changes a board in place (the agent's `Its note:` kept, a `made` mark made from the note and
+the board's `created` when the board has none) and `plan` and `clear` run it over `clear_format.board_files` as
+`clear_format` does, `clear` copying each file by `codes.root_archive` as `pre-clear-made-notes`, writing through
+`themes.render` and putting every file back on a failure. The command line's `clear-made-notes`, MCP's `clear_made_notes`
+and `/api/clear-made-notes` (`routes.clear_made_notes`) run it, through `agent_changes.through` as every write. Area 397. On a copy of a real project of three timepoints on 13
 November the workbooks held no bold or colour in those columns (only their `Source/` copies do), and 37 LPET
 table rows across 8 participants held his bold.
 
@@ -7626,8 +7659,7 @@ edit line from the route to every board), and `add_revision` keeps them, or take
 name by each kind's sentence (most slots first), and code compares the kind (`keep_canvas` finds the canvas kept
 before by it). `revision_summary` puts both in what the History tab, `board history` and `gets history` read, and
 themes.js shows the name through `thRevisionSaid` (`TH_REVISION_SAID`), in the History, the revision on view's tip
-and the lines after Save a revision and Restore. A revision named by hand, an agent's and the AI's "Before: " and
-his request carry none and show as named. undo's steps: every name themes.js gives a step (`thDone`, `thStep`) is
+and the lines after Save a revision and Restore. A revision named by hand, an agent's and the AI's "Before an agent's change" (the request stays in By an agent) carry none and show as named. undo's steps: every name themes.js gives a step (`thDone`, `thStep`) is
 `themes.step.*`, a count by its plural, Align and Spread through `TH_ALIGN_STEP`, with en-US's center, recolored,
 checked and check mark. Trace's en-US overlay, above. A hold's own words: `said_of` and `would_lines` make each
 sentence a key of `apps/idiograph/static/i18n/en/holds.json` and its slots (`holds.t`), a slot itself such a pair
@@ -7927,8 +7959,11 @@ its answer in the method when every project answering has one. For the page, the
 carries `names` (`idiograph_find.names_now`, only in a method other than IPA), and `search.js`'s `searchKind` takes
 a kind's name from it before `SEARCH_KINDS`. The theme table in Word is `gets_word.py`: Microsoft Word in a TA
 board's Table view (`data-tact="gword"`) and on the Export card with Theme table chosen (`#gt-print-word`,
-`gtWordGo`) call `/api/gets-boards` with `op` `word` (`routes.gets_word_write`, refused outside a TA project by
-`gets_word.refuse_unless_ta`), and `gets export --word` the same. The parts and the file come from `themes_word`
+`gtWordGo`) call `/api/gets-boards` with `op` `word` (`routes.gets_word_write`), and `gets export --word` the same.
+Since exportnew (16 November 2026) an IPA project's GETs, its LGETs and a participant's LPETs take it too, each
+under its print head's table name (`gets_word.table_name`), a PET card under a GET by its title, whose it is and its
+first chosen quote, and a participant's LPETs (the route's `LPETS_FOR`) named by the participant and written beside
+their workbook (`heading`, `folder`). The parts and the file come from `themes_word`
 (`package`, `free_name`), the name from the PDF's (`print_pdf.safe_stem`, "<project> - Board 1 - Theme table").
 
 Never translated: whatever the researcher writes (participants' words, quotes, statements, notes, PET and GET names,

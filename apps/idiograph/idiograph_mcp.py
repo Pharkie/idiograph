@@ -248,7 +248,7 @@ TOOLS = [
                                     "canvas after it. Drawn by Typst from the board as its file keeps it. Takes "
                                     "out, replace and dry_run alone."}},
          ["case"], writes="file"),
-    mcp.tool("gets_export", "A GETs board as PDF, or its canvas as PDF or PNG, or a thematic analysis project's table of themes as Word", ("gets", "export"),
+    mcp.tool("gets_export", "A GETs board as PDF or Word, or its canvas as PDF or PNG", ("gets", "export"),
          "Write a GETs board as a PDF at the project's root, or where out names, as the GETs screen's print "
          "card makes it: the GET table, "
          "the audit trail or the full set, every item or the quote alone, with participant notes or without. "
@@ -275,11 +275,11 @@ TOOLS = [
                                           "label and pen portrait, never their picture, as Participants table does. "
                                           "Left out, it stays out."},
           "word": {"type": "boolean",
-                   "description": "In a thematic analysis project, true writes its table of themes as a Word document "
-                                  "at the project's root, as Microsoft Word on its Table view does, never over a file "
-                                  "there. Takes selected, notes, for_sending, descriptions, participants and dry_run "
-                                  "alone. Refused in an IPA project, whose tables of PETs go to Word through "
-                                  "board_export."},
+                   "description": "True writes the board's table as a Word document at the project's root, as "
+                                  "Microsoft Word on its Table view does, never over a file there: a thematic "
+                                  "analysis project's table of themes, an IPA project's GETs or LGETs, and with "
+                                  "lpets a participant's LPETs beside their workbook. Takes selected, notes, "
+                                  "for_sending, descriptions, participants and dry_run alone."},
           "replace": {"type": "boolean", "description": "True writes over a PDF of the same name. Left out, the "
                                                         "date goes in the name."},
           "canvas": {"type": "string", "enum": ["pdf", "png"],
@@ -631,6 +631,22 @@ TOOLS = [
          {"operations": {"type": "array", "minItems": 1, "items": {"type": "object"},
                          "description": "The operations, run in order."}},
          ["operations"], writes="changes"),
+    # the exports no screen had before (exportnew, 16 November 2026)
+    mcp.tool("trajectories_export", "The Trajectories board as PDF or Word", ("trajectories", "export"),
+         "Write the Trajectories board as a PDF, or with format word a Word document, at the project's root, as the "
+         "Trajectories tab's Export makes it: each trajectory with its sentence and its participants in his order, "
+         "each with their label and their LPETs as rows across the timepoints, the key quote and the state in each "
+         "cell. It never writes over a file there unless replace, the date and time going in the name. It changes "
+         "nothing he made.",
+         {"format": {"type": "string", "enum": ["pdf", "word"], "description": "pdf, the default, or word."},
+          "notes": {"type": "boolean", "description": "True puts his note on each participant in, as Each "
+                                                      "participant's note does. Left out, it stays out."},
+          "unplaced": {"type": "boolean", "description": "True sets out the participants in no trajectory at the "
+                                                         "end, as Unplaced does. Left out, they stay out."},
+          "out": dict(mcp.TEXT, description="Where the file goes, a full path to a folder or to a file with its "
+                                            "ending. Left out, the project's root."),
+          "replace": {"type": "boolean", "description": "True writes over a file of the same name."}},
+         writes="file"),
     # a thematic analysis project's code list (codes, 2 November 2026)
     mcp.tool("codes_list", "The code list", ("codes", "list"),
          "In a thematic analysis project, the code list as the Code list tab shows it: every code by name, its id, "
@@ -714,6 +730,18 @@ TOOLS = [
          "written when one of them changed since. Run dry_run first.", {}, (), writes="changes"),
     mcp.tool("codes_redo", "Redo the code list's change undone", ("codes", "redo"),
          "The change last undone made again, on the same terms. Run dry_run first.", {}, (), writes="changes"),
+    mcp.tool("codes_export", "The code list as PDF, Word or CSV", ("codes", "export"),
+         "In a thematic analysis project, write the code list as a PDF, a Word document or a CSV at the project's "
+         "root, as the Code list tab's Export makes it: each code with its description and counts and its extracts "
+         "by participant, the CSV a row for each extract. It never writes over a file there unless replace, the date "
+         "and time going in the name. It changes nothing he made.",
+         {"format": {"type": "string", "enum": ["pdf", "word", "csv"], "description": "pdf, the default, word or csv."},
+          "extracts": {"type": "boolean", "description": "False leaves each code's extracts out, its description "
+                                                         "and counts kept. Left out, they are in."},
+          "out": dict(mcp.TEXT, description="Where the file goes, a full path to a folder or to a file with its "
+                                            "ending. Left out, the project's root."),
+          "replace": {"type": "boolean", "description": "True writes over a file of the same name."}},
+         writes="file"),
     mcp.tool("statement_length", "The project's statement length", ("length", None),
          "The words past which the length nudge speaks on a statement, the project's own, 15 by default, the "
          "book's band."),
@@ -802,6 +830,15 @@ TOOLS = [
          "cells and key quotes by participant and by part, never a word. Run dry_run first and clear only on his word.",
          {"case": dict(mcp.CASE, description="This participant alone, by their pseudonym. Leave it out for every one.")},
          [], writes="changes"),
+    # the notes saying who made a board off every board (sidebarcopy, 16 November 2026)
+    mcp.tool("clear_made_notes", "Take off the notes of how boards were made", ("clear-made-notes", None),
+         "Take the note of how it was made off every board an agent made or copied in a conversation, such as \"Made by "
+         "Claude Code in a conversation on 9 November 2026, for the request ...\", in every participant's boards and the "
+         "project's GETs, LGETs and Trajectories. The board keeps the mark that an agent made it, and any note the agent "
+         "wrote of its own stays as the board's note. A note he wrote is left. Each file it changes is copied to its "
+         "_Archive first. The dry run counts boards by participant and names the files, never a word of a note. Run "
+         "dry_run first and take them off only on his word.",
+         {}, [], writes="changes"),
     mcp.tool("transcript_replace", "Find and replace", ("transcript", "replace"),
          "Find and replace across a participant's workbook, or with all every participant's, as the app's Find and "
          "replace does: the words change wherever a passage holds them, its transcript, its statements, its quotes, "
@@ -830,6 +867,27 @@ TOOLS = [
           "case": dict(mcp.CASE, description="This participant's workbook alone. Leave it out for every one."),
           "redo": {"type": "boolean", "description": "Apply the replace again after an undo."}},
          ["batch"], writes="changes"),
+    mcp.tool("transcript_export", "A participant's annotated transcript as PDF or Word", ("transcript", "export"),
+         "Write a participant's annotated transcript as a PDF, or with format word a Word document, beside their "
+         "workbook, as the statements screen's Export makes it: each turn with its exploratory notes at the left and "
+         "its experiential statements with their quotes at the right, by the Include ticks. It never writes over a "
+         "file there unless replace, the date and time going in the name. It changes nothing he made.",
+         {"case": dict(mcp.CASE, description="The participant, by their pseudonym."),
+          "format": {"type": "string", "enum": ["pdf", "word"], "description": "pdf, the default, or word."},
+          "notes": {"type": "boolean", "description": "False leaves the exploratory notes out. Left out, they are in."},
+          "statements": {"type": "boolean",
+                         "description": "False leaves the experiential statements and their quotes out. Left out, "
+                                        "they are in."},
+          "interviewer_notes": {"type": "boolean",
+                                "description": "True puts the interviewer's notes under their turns. Left out, they "
+                                               "stay out."},
+          "portrait": {"type": "boolean", "description": "True puts their label and pen portrait under the head, never "
+                                                         "their picture. Left out, they stay out."},
+          "sheet": dict(mcp.TEXT, description="One interview alone, by its sheet's name. Left out, every one."),
+          "out": dict(mcp.TEXT, description="Where the file goes, a full path to a folder or to a file with its "
+                                            "ending. Left out, beside their workbook."),
+          "replace": {"type": "boolean", "description": "True writes over a file of the same name."}},
+         ["case"], writes="file"),
     mcp.tool("validate", "Check the files", ("validate", None),
          "Every file of the project read against its JSON Schema, each problem one plain line."),
     # every change agents made, and a run undone (noholds, 13 November 2026, agent_changes.py): what replaced the
@@ -1521,8 +1579,8 @@ CORE = (
 DISTIL_LINE = (
     "In Idiograph, a case in a tool's name or answer is one participant, the word his screens use. "
     "cases gives each project's under its name when the server reads several. board_export, "
-    "gets_export and participant_export write a file and change nothing he made: board_export takes dry_run "
-    "and labels, gets_export and participant_export dry_run, no request. ")
+    "gets_export, participant_export, trajectories_export, transcript_export and codes_export write a file and "
+    "change nothing he made: board_export takes dry_run and labels, the others dry_run, no request. ")
 
 
 def arguments(t: dict, given: dict, args):
@@ -1574,6 +1632,16 @@ def arguments(t: dict, given: dict, args):
         args.for_sending, args.replace = given.get("for_sending") is True, given.get("replace") is True
         args.no_descriptions = given.get("descriptions") is False
         args.participants = given.get("participants") is True
+    if act == "export" and command in ("trajectories", "codes", "transcript"):
+        # the exports no screen had before (exportnew, 16 November 2026)
+        args.word, args.csv = given.get("format") == "word", given.get("format") == "csv"
+        args.out, args.replace, args.dry_run = given.get("out"), given.get("replace") is True, given.get("dry_run") is True
+        args.notes, args.unplaced = given.get("notes") is True, given.get("unplaced") is True
+        args.no_extracts = given.get("extracts") is False
+        if command == "transcript":
+            args.no_notes, args.no_statements = given.get("notes") is False, given.get("statements") is False
+            args.interviewer_notes, args.portrait = given.get("interviewer_notes") is True, given.get("portrait") is True
+            args.sheet = given.get("sheet")
     if (command, act) == ("board", "show"):
         args.labels = given.get("labels")
         args.close = given.get("close")

@@ -196,7 +196,7 @@ def test_history_dates(scratch):
                                                "key": kb[1]}],
                                     "version": version, "request": "Add of it to Bryn's statement"}), encoding="utf-8")
         code, wrote, err = run("turn", "write", "Bryn", sheet, str(b[1]), "--from", str(spec), "--tool", "Claude Code")
-        agent = "Before: Add of it to Bryn's statement"
+        agent = "Before an agent's change"
         clock["now"] = "2026-10-30T09:45:00+00:00"
         saved = call("/api/themes-save", {"workbook": str(bryn), "version": pets_page(bryn), "revision": "auto"})
         listed = listed_pets(bryn)

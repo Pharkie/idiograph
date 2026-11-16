@@ -279,7 +279,7 @@ def test_card_sync(scratch):
               str(lpd["cases"]["T1"]["lines"][k2])[:300])
         check("381: one History step on each board it changed, under his request, marked changed by the agent",
               len(after.get("history") or []) == history_was["pets"] + 1
-              and after["history"][-1]["name"] == "Before: Bring Tove's copies back in line"
+              and after["history"][-1]["name"] == "Before an agent's change"
               and after["changed"]["by"] == "agent" and after["changed"]["tool"] == "Claude Code"
               and len(lpd["boards"][0].get("history") or []) == history_was["lpets"] + 1
               and lpd["boards"][0]["changed"]["by"] == "agent", str(after.get("history", [{}])[-1].get("name")))
@@ -360,6 +360,6 @@ def test_card_sync(scratch):
         at = lpd["cases"]["T1"]["lines"][k2]["quotes"][0].find("tiller")
         check("381: the refresh writes the new quote and the bold on the same words, one History step on the LPETs board",
               code == 0 and at >= 0 and lpd["boards"][0]["rows"][gid]["T1"].get("bold") == [[at, at + 6]]
-              and lpd["boards"][0]["history"][-1]["name"] == "Before: Bring Tove's quote back in line", err or str(done)[:400])
+              and lpd["boards"][0]["history"][-1]["name"] == "Before an agent's change", err or str(done)[:400])
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept

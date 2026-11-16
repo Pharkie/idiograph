@@ -342,7 +342,7 @@ def test_gets_edit(scratch):
               and {c["case"]: c["status"] for c in g3["cases"]}["P2 - Brin"] == "in", err or str(wrote)[:500])
         check("298: History names it: each GETs board keeps itself first under his request, marked changed in a "
               "conversation by the agent, and the progress file records the write as the agent's",
-              all(bd["history"][-1]["name"] == "Before: Say forgiven in Brin's statement" for bd in agent["boards"])
+              all(bd["history"][-1]["name"] == "Before an agent's change" for bd in agent["boards"])
               and all(bd["changed"]["by"] == "agent" and bd["changed"]["tool"] == "Claude Code" for bd in agent["boards"])
               and brin_progress["edits"][-1]["by"] == "agent"
               and brin_progress["edits"][-1]["request"] == "Say forgiven in Brin's statement",

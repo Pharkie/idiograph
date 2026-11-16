@@ -38,7 +38,6 @@ import print_pdf
 import themes as th
 import themes_word as tw
 from themes_print import bare
-from workbook import WorkbookError
 
 
 def run(text: str, **marks) -> dict:
@@ -72,7 +71,10 @@ def code_blocks(who: str, item: dict, notes: bool) -> list[dict]:
         return [{"style": 0, "runs": [run(f"{who}: {item['text']}", italic=True)]}] if notes and item["text"] else []
     text = item.get("text") if item["kind"] == "es" else item.get("title")
     out = [{"style": tw.STATEMENT, "runs": [run(f"{text} ({reference(who, item)})")]}]
-    said = bare(item["quotes"][0]["text"]) if item["kind"] == "es" and item.get("quotes") else ""
+    if item["kind"] == "es":
+        said = bare(item["quotes"][0]["text"]) if item.get("quotes") else ""
+    else:
+        said = bare(item["picks"][0]["text"]) if item.get("picks") else ""
     if said:
         out[0]["keep"] = True
         out.append({"style": tw.QUOTE, "runs": [run(f"‘{said}’")]})
@@ -157,45 +159,62 @@ def people_blocks(table: dict) -> list[dict]:
     return out + [{"style": tw.BREAK, "runs": []}]
 
 
+def table_name() -> str:
+    """The table's name as its print view's head names it (exportnew, 16 November 2026): "Table of themes" in a
+    thematic analysis project, the GETs', the LGETs' or a participant's LPETs' own in an IPA one."""
+    if gt.in_lgets():
+        return i18n.t("page_print.gets.lget_table_name")
+    if gt.in_lpets():
+        return i18n.t("page_print.gets.lpet_table_name")
+    return i18n.t("page_print.gets.table_name")
+
+
 def blocks(project: dict, parts: dict, notes: bool = False, selected: bool = False,
-           descriptions: bool = True, people: dict | None = None) -> list[dict]:
-    """The document as paragraphs: the project and the table's name, with `people` (Participants table ticked) the
-    participants table on the first page, then the themes."""
-    name = " ".join(str(project.get("name") or "").split()) or i18n.t("page_print.gets.project")
+           descriptions: bool = True, people: dict | None = None, heading: str = "") -> list[dict]:
+    """The document as paragraphs: the project, or `heading`, a participant's LPETs' participant, and the table's
+    name, with `people` (Participants table ticked) the participants table on the first page, then the themes."""
+    name = heading or " ".join(str(project.get("name") or "").split()) or i18n.t("page_print.gets.project")
     first = people_blocks(people_mod.table_of(people, parts["inside"], gt.who)) if people is not None else []
-    return ([{"style": 1, "runs": [run(name)]}, {"style": tw.SUBTITLE, "runs": [run(i18n.t("page_print.gets.table_name"))]}]
+    return ([{"style": 1, "runs": [run(name)]}, {"style": tw.SUBTITLE, "runs": [run(table_name())]}]
             + first + board_blocks(parts, notes, selected, descriptions))
 
 
 def write(root: Path, books: list[dict], project: dict, board: dict, detail: str = "full", notes: bool = False,
           sending: bool = False, descriptions: bool = True, author: str = "", dry_run: bool = False,
-          now: datetime | None = None, people: dict | None = None) -> dict:
+          now: datetime | None = None, people: dict | None = None, heading: str = "",
+          folder: Path | None = None) -> dict:
     """Write a board of themes as a Word document at the project's root, never over a file there, named as its PDF
     is with .docx, every code and extract or with `detail` "selected" each participant's key extract alone,
     participant notes only with `notes`, the board's name left out with `sending`, each theme's description under
     its title with `descriptions`, `author` Your name, and with `people`, every participant's set (Participants
     table ticked), the participants table on the first page. With `dry_run` nothing is written and the answer
-    names the file it would write. A board no longer there is refused."""
+    names the file it would write. A board no longer there is refused.
+
+    An IPA project's GETs, its LGETs and a participant's LPETs go to Word the same way (exportnew, 16 November
+    2026, Adam: Microsoft Word on every table), each under its table's own name (`table_name`), a PET under a GET
+    by its title, whose it is and its first chosen quote. A participant's LPETs are named by `heading`, the
+    participant, and go beside their workbook, `folder`."""
     root = Path(root)
+    where = Path(folder) if folder is not None else root
     now = now or datetime.now().astimezone()
     parts = gets_print.study_parts(root, books, str(board.get("id") or "") or None, th.now_iso())
     shown = parts["board"]
-    name = project.get("name") or i18n.t("page_print.gets.project")
+    name = heading or project.get("name") or i18n.t("page_print.gets.project")
     named = "" if sending else f"{shown.get('name') or th.FIRST_NAME} - "
-    stem = print_pdf.safe_stem(f"{name} - {named}{i18n.t('page_print.gets.table')}")
-    path, dated = tw.free_name(root, stem, now)
+    stem = print_pdf.safe_stem(f"{name} - {named}{gets_print.gword('page_print.gets.table')}")
+    path, dated = tw.free_name(where, stem, now)
     kept = gt.normal(shown, parts["data"])
     tops = [g for g in kept["groups"] if g["id"] not in th.parents_of(kept["groups"])]
     codes = sum(1 for k in kept["cards"] if gt.split_key(k)["kind"] == "es" and any(
         k in (g.get("members") or []) for g in kept["groups"]))
-    out = {"path": str(path), "name": path.name, "folder": str(root), "dated": dated,
+    out = {"path": str(path), "name": path.name, "folder": str(where), "dated": dated,
            "counts": {"themes": len(tops), "codes": codes, "participants": len(parts["inside"])},
            "version": {"id": str(shown.get("id") or ""), "name": str(shown.get("name") or "")},
            "detail": "selected" if detail == "selected" else "full", "notes": bool(notes)}
     if dry_run:
         return dict(out, dry_run=True)
-    paras = blocks(project, parts, notes, detail == "selected", descriptions, people)
-    title = f"{' '.join(str(name).split())}, {i18n.t('page_print.gets.table_name')}"
+    paras = blocks(project, parts, notes, detail == "selected", descriptions, people, heading)
+    title = f"{' '.join(str(name).split())}, {table_name()}"
     data = tw.package(paras, title, now, author)
     while True:
         try:
@@ -209,12 +228,5 @@ def write(root: Path, books: list[dict], project: dict, board: dict, detail: str
                     raise
             break
         except FileExistsError:
-            path, dated = tw.free_name(root, stem, now)
+            path, dated = tw.free_name(where, stem, now)
     return dict(out, path=str(path), name=path.name, dated=dated)
-
-
-def refuse_unless_ta() -> None:
-    """The Word export of a board of themes is a thematic analysis project's, an IPA project's GETs going to print,
-    PDF and the canvas, its participants' tables of PETs to Word."""
-    if i18n.method_now() != "ta":
-        raise WorkbookError(i18n.t("server.gets_word_ta_only"))

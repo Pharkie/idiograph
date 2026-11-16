@@ -390,12 +390,18 @@ def ta_word(ta: Path, ipa: Path, call, config_file: Path, ipa_words):
           and sorted(p.name for p in ta.iterdir()) == sorted(before + [path.name]),
           f"{made} {sorted(set(ipa_words.findall(words)))}")
     again = call("/api/gets-boards", {"root": str(ta), "board": "b1", "op": "word", "sending": True})
-    refused = call("/api/gets-boards", {"root": str(ipa), "board": "b1", "op": "word"})
+    # an IPA project's GETs go to Word too since exportnew (16 November 2026), in the IPA's own words
+    ipa_word = call("/api/gets-boards", {"root": str(ipa), "board": "b1", "op": "word"})
+    ipa_text = ""
+    if isinstance(ipa_word, dict) and ipa_word.get("path"):
+        with zipfile.ZipFile(ipa_word["path"]) as z:
+            ipa_text = re.sub(r"<[^>]+>", " ", z.read("word/document.xml").decode("utf-8"))
     check("306: a second Word export never writes over the first, Leave out the board's name names the project alone, "
-          "and an IPA project's GETs are refused it with nothing written",
+          "and an IPA project's GETs go to Word under Table of Group Experiential Themes, never the themes' words",
           isinstance(again, dict) and again.get("name") == "Sharing a home with a dog - Theme table.docx"
-          and path is not None and path.is_file() and isinstance(refused, str) and "thematic analysis" in refused
-          and not list(ipa.glob("*.docx")), f"{again} | {refused}")
+          and path is not None and path.is_file() and isinstance(ipa_word, dict)
+          and "Table of Group Experiential Themes" in ipa_text and "Theme table" not in ipa_word.get("name", "")
+          and len(list(ipa.glob("*.docx"))) == 1, f"{again} | {ipa_word}")
 
     def said(root: Path, *args) -> str:
         code, out, err = cli.run(["--config", str(config_file), "--root", str(root), *args])

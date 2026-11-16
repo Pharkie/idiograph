@@ -229,8 +229,8 @@ def test_copy_back_as_sent(scratch: Path):
               names == ["Board 1", "Board 2", f"Curt's Board 2, {day}", f"Curt's R2 Grouping, {day}"]
               and [b["from"] for p in done["participants"] for b in p["as_sent"]] == ["Board 1"], json.dumps(names))
         new = next(b for b in themes.load(book)["boards"] if b["name"] == f"Curt's R2 Grouping, {day}")
-        check("335: its note says whose copy, when it was sent and how its statements came, then the copy's own note",
-              new.get("note", "").startswith(routes.board_in_note("Curt's", day, came) + "\nMade by Claude Code")
+        check("335: its note says whose copy, when it was sent and how its statements came, and nothing of who made it in a conversation",
+              "Made by" not in new.get("note", "")
               and new["note"].startswith(f"Curt's copy, sent {day}: 4 statements as sent, 1 reworded since."),
               new.get("note", ""))
         code, came_in, err = run_json(config_file, "--root", root, "project", "boards-in", back, "--board", "Board 1",

@@ -1136,6 +1136,7 @@ OPS_SAID = {
     ("turn", "write"): (lambda: i18n.t("agentchanges.op.turn_write")), ("turn", "edit"): (lambda: i18n.t("agentchanges.op.turn_edit")),
     ("turn", "interviewer-note"): (lambda: i18n.t("agentchanges.op.turn_note")), ("transcript", "replace"): (lambda: i18n.t("agentchanges.op.replace")),
     ("clear-formatting", None): (lambda: i18n.t("agentchanges.op.clear_formatting")),
+    ("clear-made-notes", None): (lambda: i18n.t("agentchanges.op.clear_made_notes")),
     ("participant", "set"): (lambda: i18n.t("agentchanges.op.participant_set")),
     ("participant", "rename"): (lambda: i18n.t("agentchanges.op.participant_rename")),
     ("participant", "complete"): (lambda: i18n.t("agentchanges.op.participant_complete")), ("length", None): (lambda: i18n.t("agentchanges.op.length")),

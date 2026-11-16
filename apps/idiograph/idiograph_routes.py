@@ -46,6 +46,7 @@ import convert as convert_mod
 import corpus
 import demo_recordings as demo_rec
 import demographics as demo_mod
+import documents
 import export as export_mod
 import formats
 import i18n
@@ -3995,15 +3996,6 @@ def add_plan(cases: list[dict]) -> list[dict]:
                             for i in c["interviews"]]} for c in cases]
 
 
-def add_made(case: dict, tool: str, request: str) -> str:
-    """Who made a case's workbook in a conversation, for which request and from which files, kept in the
-    workbook's own description as an agent's import keeps it."""
-    files = ", ".join(i["name"] for i in case["interviews"])
-    day = datetime.now()
-    return (f"Made by {tool} in a conversation on {day.day} {day.strftime('%B %Y')}, "
-            f"for the request '{request}', from {files}.")
-
-
 def add_record(book: Path, case: dict, tool: str, request: str) -> None:
     """An agent's Add kept in History, the participant's progress file's `imports`, as an import of a
     REFI-QDA project keeps its lines: when, the files, who for which request and the sheets it made."""
@@ -4064,7 +4056,7 @@ def add_transcripts(body: dict) -> dict:
                         add_interviews(case, as_name, back)
                         book = case["book"]
                     else:
-                        write_case(root, case, as_name, made, add_made(case, tool, request) if tool else "")
+                        write_case(root, case, as_name, made)
                         book = wb_mod.suggested_output(root / case["folder"] / "Source" /
                                                        f"P{case['number']} {case['pseudonym']} - transcript.xlsx")
                     if tool and book is not None:
@@ -6719,6 +6711,28 @@ def api_clear_formatting(body: dict) -> dict:
     return clear_formatting(root, books, body.get("dry_run") is True, only)
 
 
+def clear_made_notes(root: Path, books: list[dict], dry_run: bool = False) -> dict:
+    """The notes an agent's boards carry about their own making taken off every board of a project's participants `books`
+    and the project's root (sidebarcopy, 16 November 2026, `clear_made_notes`), the agent's own note kept, under the
+    project's lock and every participant's, each file it changes copied to its `_Archive` first. The dry run reads alone,
+    no lock taken, and answers counts and file names, never a word of a note."""
+    import clear_made_notes as notes_mod
+    if dry_run:
+        return dict(notes_mod.plan(root, books), dry_run=True)
+    with writing(root=root, books=[Path(b["workbook"]) for b in books], boards=True):
+        done = notes_mod.clear(root, books)
+    return dict(done, dry_run=False)
+
+
+def api_clear_made_notes(body: dict) -> dict:
+    """The making notes off a whole project's boards, `root` by its id or the project of the workbook `path`, with
+    `dry_run` (see `clear_made_notes`)."""
+    root = srv.project_named(body["root"]) if body.get("root") else project_root(case_path(body["path"]))
+    if root is None:
+        raise WorkbookError(i18n.t("server.clear_formatting_no_project"))
+    return clear_made_notes(root, gets_books(root), body.get("dry_run") is True)
+
+
 def commit_pairs(body: dict) -> list[dict] | None:
     """The turn's pairs as the page sends them, each a statement and its quote, or None from a
     page that sends the two fields as text."""
@@ -8330,19 +8344,21 @@ def gets_pdf_place(root: Path, body: dict) -> dict:
 def gets_word_write(root: Path, body: dict) -> dict:
     """Microsoft Word on a thematic analysis project's theme table (taword, 1 November 2026): the board of themes as
     a Word document at the project's root, where its PDF goes, with the card's choices, `detail`, `notes`, `sending`
-    and `descriptions`, its author Your name (see `gets_word`). An IPA project's is refused, its tables of PETs going
-    to Word from each participant's board. `dry_run` names the file and writes nothing."""
-    gets_word.refuse_unless_ta()
+    and `descriptions`, its author Your name (see `gets_word`). An IPA project's GETs, its LGETs and a participant's
+    LPETs the same (exportnew, 16 November 2026), the LPETs named by the participant and beside their workbook.
+    `dry_run` names the file and writes nothing."""
     data = gets_mod.load(root)
     asked = str(body.get("board") or "")
     board = next((b for b in themes_mod.boards_of(data) if str(b.get("id")) == asked), None) if asked else None
     if board is None:
         raise WorkbookError(i18n.t("page_print.gets.board_gone"))
+    book = LPETS_FOR.get()
+    whose = dict(heading=themes_print.case_title(case_label(book)), folder=Path(book).parent) if book else {}
     with writing(root=root):
         made = gets_word.write(root, gets_books(root), read_project(root), board, detail=str(body.get("detail") or "full"),
                                notes=body.get("notes") in (True, 1, "1"), sending=export_sending(body),
                                descriptions=export_descriptions(body), author=researcher_name(),
-                               dry_run=body.get("dry_run") is True, people=people_printed(root, body))
+                               dry_run=body.get("dry_run") is True, people=people_printed(root, body), **whose)
     return {"word": made["name"], "shown": [made["name"]], "path": made["path"], "name": made["name"],
             "dated": made["dated"], "counts": made["counts"], "version": made["version"],
             **({"dry_run": True} if made.get("dry_run") else {})}
@@ -10585,6 +10601,142 @@ def gets_print_view(query: dict) -> tuple[int, bytes, str]:
     return code, srv.own_margins(srv.beating(page)).encode("utf-8"), "text/html; charset=utf-8"
 
 
+# ---- the exports no screen had before (exportnew, 16 November 2026, see documents.py): the Trajectories board, the
+# statements screen's annotated transcript and the code list, each a print view at a path of its own, which the
+# window prints, and a route writing its PDF, its Word document or, the code list's, its CSV, which the command line
+# (`trajectories export`, `transcript export`, `codes export`) and the MCP tools of the same names run
+
+TRAJ_PRINT_PATH = "/trajectories/print"
+TRANSCRIPT_PRINT_PATH = "/transcript/print"
+CODES_PRINT_PATH = "/codes/print"
+
+
+def traj_document(root: Path, given: dict, now: datetime | None = None) -> dict:
+    """The Trajectories board as a document, with Each participant's note (`notes`) and Not placed (`unplaced`), both
+    off unless ticked. Only reads."""
+    board = traj_mod.board(traj_mod.load(root), traj_people(root))
+    tps = [(tp_label(t["n"]), t["label"], t["description"]) for t in root_timepoints(root)]
+    return documents.trajectories(board, tps, read_project(root), notes=ticked(given.get("notes"), False),
+                                  unplaced=ticked(given.get("unplaced"), False), researcher=researcher_name(), now=now)
+
+
+def transcript_document(path: Path, given: dict, now: datetime | None = None) -> dict:
+    """A participant's annotated transcript as a document, with the statements screen's Include ticks: Exploratory
+    notes (`notes`) and Experiential statements (`statements`), on unless unticked, Interviewer notes
+    (`interviewer_notes`), off unless ticked, and Pen portrait (`portrait`), as the table of PETs takes it. `sheet`
+    keeps it to one interview. Only reads."""
+    return documents.transcript(wb_mod.read_case(path), case_label(path), read_project(project_root(path)),
+                                who=portrait_printed(path, given), notes=ticked(given.get("notes"), True),
+                                statements=ticked(given.get("statements"), True),
+                                interviewer_notes=ticked(given.get("interviewer_notes"), False),
+                                sheet=str(given.get("sheet") or "") or None, researcher=researcher_name(), now=now)
+
+
+def codes_document(root: Path, given: dict, now: datetime | None = None) -> tuple[dict, dict]:
+    """The code list as a document, each code's extracts in it unless `extracts` is unticked, and the list itself,
+    for its CSV. Read in memory alone: a name the rows hold that the list lacks joins it here as the Code list tab's
+    read would add it, and nothing is written, a dry run's and a print view's read as any other."""
+    books = gets_books(root)
+    people = codes_mod.study_rows(books)
+    extracts = codes_mod.extracts_of(people)
+    data = codes_mod.load(root) or codes_mod.fresh(themes_mod.now_iso())
+    codes_mod.sync(data, extracts)
+    view = codes_mod.listing(data, people, extracts)
+    return documents.codes(view, read_project(root), extracts=ticked(given.get("extracts"), True),
+                           researcher=researcher_name(), now=now), view
+
+
+def document_reply(made: dict) -> dict:
+    out = {"name": made["name"], "path": made["path"], "folder": made["folder"], "shown": [made["name"]],
+           "dated": made["dated"], "replaced": made.get("replaced", False), "format": made["format"],
+           "counts": made["counts"]}
+    return dict(out, dry_run=True) if made.get("dry_run") else out
+
+
+def document_write(kind: str, body: dict, where: Path | None = None) -> dict:
+    """Write one of the three as `format`, pdf (the default), word or the code list's csv, where its screen's exports
+    go (`documents.write`), `out` another place, never over a file there unless `replace`. With `dry_run` the file it
+    would write and the counts, and nothing made or written. `where` is the project's root, or the participant's
+    workbook for a transcript, as the command line knows it, in place of the request's."""
+    fmt = str(body.get("format") or "pdf")
+    how = dict(out=body.get("out"), replace=ticked(body.get("replace"), False), dry_run=ticked(body.get("dry_run"), False),
+               author=researcher_name())
+    if kind == "codes":
+        root = Path(where) if where is not None else codes_root(body)
+        codes_mod.refuse_unless_ta(read_project(root).get("method"))
+        doc, view = codes_document(root, body)
+        with writing(root=root, export=True):
+            return document_reply(documents.write(doc, fmt, root, csv_of=lambda: documents.codes_csv(view), **how))
+    if kind == "trajectories":
+        root = traj_check(Path(where)) if where is not None else traj_root(body)
+        with writing(root=root, export=True):
+            return document_reply(documents.write(traj_document(root, body), fmt, root, **how))
+    path = case_path(str(where or body.get("workbook") or body.get("path") or ""))
+    with writing(path, export=True):
+        return document_reply(documents.write(transcript_document(path, body), fmt, path.parent, **how))
+
+
+def api_trajectories_export(body: dict) -> dict:
+    """The Trajectories board as a PDF or a Word document at the project's root (see `document_write`), with `notes`,
+    Each participant's note, and `unplaced`, Not placed."""
+    return document_write("trajectories", body)
+
+
+def api_transcript_export(body: dict) -> dict:
+    """A participant's annotated transcript, `workbook`, as a PDF or a Word document beside their workbook (see
+    `document_write`), with `notes`, `statements`, `interviewer_notes`, `portrait` and `sheet`."""
+    return document_write("transcript", body)
+
+
+def api_codes_export(body: dict) -> dict:
+    """A thematic analysis project's code list as a PDF, a Word document or a CSV at the project's root (see
+    `document_write`), with `extracts`."""
+    return document_write("codes", body)
+
+
+def document_page(kind: str, query: dict) -> tuple[int, str]:
+    """A print view of one of the three, from the same document its PDF and Word are made from, `auto=0` leaving the
+    print dialog shut, in the words of the project's method. Reads only. A refusal is a page of one line."""
+    with i18n.in_method(request_method(query)):
+        return document_page_in(kind, query)
+
+
+def document_page_in(kind: str, query: dict) -> tuple[int, str]:
+    try:
+        if kind == "codes":
+            doc = codes_document(codes_root(query), query)[0]
+        elif kind == "trajectories":
+            root = traj_root(query)
+            with srv._lock:
+                doc = traj_document(root, query)
+        else:
+            path = case_path(str(query.get("workbook") or query.get("path") or ""))
+            with srv._lock:
+                doc = transcript_document(path, query)
+        return 200, documents.page(doc, auto=str(query.get("auto") or "") != "0")
+    except srv.OutsideRoot as exc:
+        return 403, themes_print.refusal(str(exc))
+    except WorkbookError as exc:
+        return 409, themes_print.refusal(str(exc))
+    except FileNotFoundError as exc:
+        return 404, themes_print.refusal(f"File not found: {exc}")
+
+
+def traj_print_view(query: dict) -> tuple[int, bytes, str]:
+    code, page = document_page("trajectories", query)
+    return code, srv.own_margins(srv.beating(page)).encode("utf-8"), "text/html; charset=utf-8"
+
+
+def transcript_print_view(query: dict) -> tuple[int, bytes, str]:
+    code, page = document_page("transcript", query)
+    return code, srv.own_margins(srv.beating(page)).encode("utf-8"), "text/html; charset=utf-8"
+
+
+def codes_print_view(query: dict) -> tuple[int, bytes, str]:
+    code, page = document_page("codes", query)
+    return code, srv.own_margins(srv.beating(page)).encode("utf-8"), "text/html; charset=utf-8"
+
+
 # The settings Idiograph keeps of its own, which another app's /api/settings leaves as its file has them
 # (the split's second build, 20 October 2026, from the server's SETTINGS_BY_APP)
 OWN_SETTINGS = ("interviewer", "round_minutes", "daily_target", "ai_prompt", "pets_provider", "pets_model",
@@ -10617,6 +10769,8 @@ ROUTES = {
     "/api/quote-heading": api_quote_heading,
     # bold and font colours out of a whole project (clearformat, 13 November 2026)
     "/api/clear-formatting": api_clear_formatting,
+    # the notes of an agent's making off its boards (sidebarcopy, 16 November 2026)
+    "/api/clear-made-notes": api_clear_made_notes,
     "/api/reset-demo": api_reset_demo,
     "/api/round-complete": api_round_complete,
     "/api/complete": api_complete,
@@ -10643,6 +10797,10 @@ ROUTES = {
     "/api/trajectories": api_trajectories,
     "/api/trajectories-ops": api_trajectories_ops,
     "/api/trajectories-turns": api_trajectories_turns,
+    # the exports no screen had before (exportnew, 16 November 2026, see documents.py)
+    "/api/trajectories-export": api_trajectories_export,
+    "/api/transcript-export": api_transcript_export,
+    "/api/codes-export": api_codes_export,
     "/api/participant": api_participant,
     # the project's demographics (demobuild, 12 November 2026)
     "/api/demographics": api_demographics,
@@ -10691,7 +10849,7 @@ srv.register("idiograph", routes=ROUTES,
              post_only=("/api/choose-root", "/api/projects", "/api/new-project", "/api/add-transcripts", "/api/names", "/api/qdpx",
                         "/api/open-sent", "/api/send-project", "/api/qdpx-export", "/api/boards-in", "/api/order", "/api/rename",
                         "/api/participant", "/api/demographics",
-                        "/api/mcp", "/api/quote-heading", "/api/clear-formatting", "/api/team",
+                        "/api/mcp", "/api/quote-heading", "/api/clear-formatting", "/api/clear-made-notes", "/api/team",
                         "/api/team-board", "/api/team-review"),
              own_page=("/api/mcp",),
              # what governs agents, from the app's own window alone, never a program on this machine (agentlock,
@@ -10701,7 +10859,8 @@ srv.register("idiograph", routes=ROUTES,
              # 2026): agents never download, and how far one has got is read by anyone
              window_only={"/api/mcp": None, "/api/agents-guide": None, "/api/names": None,
                           "/api/project": "agents", "/api/demo-recordings": "op"},
-             get_paths={PRINT_PATH: print_view, GETS_PRINT_PATH: gets_print_view},
+             get_paths={PRINT_PATH: print_view, GETS_PRINT_PATH: gets_print_view, TRAJ_PRINT_PATH: traj_print_view,
+                        TRANSCRIPT_PRINT_PATH: transcript_print_view, CODES_PRINT_PATH: codes_print_view},
              streams={"/audio": stream_audio, SEND_PATH: send_zip, QDPX_PATH: qdpx_download,
                       "/traj-picture": stream_traj_picture, "/participant-picture": stream_person_picture},
              search_scope={"case": search_scope, "project": search_scope}, search_rows=search_rows,

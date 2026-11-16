@@ -6765,10 +6765,7 @@ function thBoardDraw() {
 
 /* The Guidance tab: each heading of themes_guidance.md in the label face, and the lines under it in
    the serif, each with a small mark, as the turn screen's rail shows guidance.md. The file is read
-   on every open of the screen, so an edit shows on the next reload. The foot says where it lives,
-   and with AI features on that the AI reads its own file. */
-const TH_GUIDANCE_FROM = t('themes.guidance.from');
-
+   on every open of the screen, so an edit shows on the next reload. */
 function thGuidanceDraw() {
   const body = $('th-bpanel-body');
   if (TH.guidance === null) {
@@ -6778,11 +6775,7 @@ function thGuidanceDraw() {
   let html = TH.guidance.map((s) => `<section class="th-guide-group"><h3 class="section-label">${esc(s.heading)}</h3>`
     + `<ul class="th-guide-lines">${s.lines.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></section>`).join('');
   if (!TH.guidance.length) html = `<p class="th-qnone">${esc(t('themes.guidance.none'))}</p>`;
-  body.innerHTML = `${html}<p class="th-guide-from">${esc(TH_GUIDANCE_FROM)}</p>`;
-  // asked as it draws, so a thematic analysis project's foot names its own file (tarail)
-  if (TH.mode === 'gets') body.lastElementChild.textContent = t('themes.gets.guidance_from');
-  // with AI features off the foot names the file and stops there
-  if (!thAiOn()) body.lastElementChild.textContent = TH.mode === 'gets' ? t('themes.gets.guidance_file') : t('themes.guidance.file');
+  body.innerHTML = html;
 }
 
 const thSheetTag = (sheet) => (sheet && sheet !== TH.sheets[0] ? `<span class="th-sheet">${esc(sheet)}</span>` : '');

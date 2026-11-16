@@ -17,6 +17,7 @@ the server apart.
 from __future__ import annotations
 
 import contextlib
+import contextvars
 import json
 import os
 import secrets
@@ -68,11 +69,33 @@ def _release(fh) -> None:
         pass
 
 
+# A dry run writes nothing, the lock's own file among them (getsfirst, 16 November 2026: a dry run of `gets fresh` on
+# a project with no lock file yet left `.idiograph.lock` at its root, and any dry run under a lock did the same in a
+# case's `Working/`). Inside `dry_run()` a lock whose file is not there is not made: the block runs without it, as a
+# read does, since a dry run changes nothing another writer could meet half done. One whose file is there is taken
+# as ever, which opens the file and changes none of its bytes.
+DRY: contextvars.ContextVar = contextvars.ContextVar("idiograph_locks_dry", default=False)
+
+
+@contextlib.contextmanager
+def dry_run(on: bool = True):
+    """What runs inside is a dry run: no lock file is made for it (see DRY)."""
+    token = DRY.set(bool(on))
+    try:
+        yield
+    finally:
+        DRY.reset(token)
+
+
 @contextlib.contextmanager
 def held(path: Path, wait: float | None = None):
     """The lock at `path` held for the block, its folder made when it is not there yet. Waits up to
-    `wait` seconds, WAIT by default, and then refuses with BUSY, its code `busy`, having written nothing."""
+    `wait` seconds, WAIT by default, and then refuses with BUSY, its code `busy`, having written nothing.
+    Inside `dry_run()` a lock whose file is not there is neither made nor taken (see DRY)."""
     path = Path(path)
+    if DRY.get() and not path.exists():
+        yield path
+        return
     path.parent.mkdir(parents=True, exist_ok=True)
     fh = open(path, "a+b")
     limit = time.monotonic() + (WAIT if wait is None else wait)

@@ -257,12 +257,15 @@ def test_qdpx(scratch):
               wb_mod.pairs_of(wren[2], wren[5]) == [{"es": "Overwhelmed by the plot", "kq": '"Brambles everywhere."'},
                                                     {"es": "", "kq": '"I could not see the shed at all."'}], str(wren))
         progress = json.loads((root / "P3 - Wren" / "Working" / "P3 Wren - EN & ES.progress.json").read_text(encoding="utf-8"))
-        check("244: the workbook names who made it and his request, and its History keeps the import's lines",
-              "Bring in Wren from ATLAS.ti" in str(openpyxl.load_workbook(book).properties.description)
+        described = str(openpyxl.load_workbook(book).properties.description or "")
+        check("244: the workbook's description is the page's own import line, never who made it or his request, and its "
+              "History keeps the import's lines",
+              described.startswith("Imported from atlas.qdpx (ATLAS.ti) on ")
+              and "Bring in Wren" not in described and "Claude Code" not in described
               and progress["imports"][0]["from"] == "atlas.qdpx"
               and progress["imports"][0]["lines"][0].startswith("From atlas.qdpx (ATLAS.ti): 1 participant, 6 passages, "
                                                                 "1 comment as an exploratory note, 3 codes as 3 experiential statements"),
-              str(progress.get("imports"))[:400])
+              described + " " + str(progress.get("imports"))[:400])
         data = themes.load(book)
         board = themes.current_version(data) if data else {}
         labels = sorted(g["label"] for g in (board or {}).get("groups", []))

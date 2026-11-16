@@ -205,7 +205,7 @@ def test_gets_ai(scratch):
         check("83: 184, an old AI board keeps its name and is an ordinary board now, an agent's carries with AI from its "
               "mark, his own nothing (aiout)",
               listed == {"Board 1": None, "AI board 3": None,
-                         "Board 3": {"by": "agent", "said": "Claude Code in a conversation", "edited": False}}, str(listed))
+                         "Board 3": {"by": "agent", "said": "Made by an agent", "edited": False}}, str(listed))
         idiograph_routes.api_themes_versions({"workbook": str(work), "op": "switch", "id": "v2"})
         shown = idiograph_routes.api_themes({"workbook": str(work)})
         body = dict({k: x for k, x in shown["version"].items() if k != "v"},
@@ -252,7 +252,7 @@ def test_gets_ai(scratch):
           code == 0 and out.startswith("Made Board 1 on Juno") and newest.get("name") == "Board 1"
           and len(stored["boards"]) == 1
           and newest["made"]["by"] == "agent" and len(newest["made"].get("hash") or "") == 64
-          and themes_mod.summary(newest)["with_ai"]["said"] == "Claude Code in a conversation, from all statements", out + err)
+          and themes_mod.summary(newest)["with_ai"]["said"] == "Made by an agent", out + err)
 
     # ── O. the page
     check("83: the titles are the one AI press on PETs and GETs, through one helper that asks the PETs route or on GETs its own",

@@ -336,7 +336,7 @@ console.log(JSON.stringify({
         last = themes_mod.history_of(marked)[-1] if marked and themes_mod.history_of(marked) else {}
         check("92: board current marks the Current board through choose, and records it in that board's History with who and why",
               code == 0 and themes_mod.chosen_of(data) == target.get("id") and answer.get("changed") is True
-              and last.get("name") == "Marked the Current board: Go with this one for now"
+              and last.get("name") == "Before an agent's change"
               and (last.get("made") or {}).get("tool") == "Claude Code" and (last.get("made") or {}).get("request") == "Go with this one for now"
               and themes_mod.current_version(data)["id"] == made_board.get("id"), out + err)
         held = side.read_bytes()

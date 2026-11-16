@@ -203,11 +203,10 @@ def test_agent_cli(scratch):
               code == 0 and made["name"] == "Board 2" and stored["current"] == made["id"] and stored["chosen"] == "v1"
               and stored["boards"][0] == board1
               and text.startswith("Made Board 2 on Rowan, from Board 1: 3 PETs, 14 statements placed, 32 left in Not placed, 1 of them with a reason."))
-        check("79: made says an agent made it, with the tool, his request and the time, and the note says it in words",
+        check("79: made says an agent made it, with the tool, his request and the time, and the note says nothing of it",
               made["made"]["by"] == "agent" and made["made"]["tool"] == "Claude Code"
               and made["made"]["request"] == "Make a board of three PETs" and made["made"]["at"]
-              and made["note"].startswith("Made by Claude Code in a conversation on ")
-              and "for the request 'Make a board of three PETs'. 3 PETs, 14 placed, 32 not placed." in made["note"])
+              and not made.get("note"))
         g = {x["label"]: x for x in made["groups"]}
         check("79: titles, notes, members by short id or key, sub-themes and picks land where the structure put them",
               g["Mornings and nights arranged round her fear"]["note"] == "The timetable as he lived it."
@@ -263,11 +262,11 @@ def test_agent_cli(scratch):
         after = stored["boards"][-1]
         rev = after["history"][-1]
         ga = {x["label"]: x for x in after["groups"]}
-        check("79: the board as it stood is kept first as a revision named Before: and his request, marked as the agent's",
+        check("79: the board as it stood is kept first as a revision named Before an agent's change, marked as the agent's",
               code == 0 and rev["name"] == themes_ai.revision_name(ops["request"]) and rev["auto"] is False
               and rev["state"]["groups"] == made["groups"] and rev["made"]["by"] == "agent"
               and after["changed"]["request"] == ops["request"] and after["changed"]["tool"] == "Claude Code"
-              and 'is kept first in its History, as "Before: Give the tense' in text)
+              and 'is kept first in its History, as "Before an agent\'s change"' in text)
         check("79: the change lands: retitled, a new PET of short ids and keys, a statement moved, one sent out with its reason",
               "A lonely year she filled, and a world that shrank" in ga
               and sorted(ga["Is and was, and the joke that was not one"]["members"]) == ["Initial:3:0", "Initial:7:1"]
@@ -432,14 +431,15 @@ def test_agent_cli(scratch):
               and kept_made == made["made"])
 
         # \u2500\u2500 J. the GETs, once the project has a file
-        code, _, err = run("gets", "show")
-        no_file = code == 1 and "no GETs file yet" in err
+        code, text, _ = run("gets", "show")
+        # with no GETs file yet, the board the screen opens on, nothing written (getsfirst, 16 November 2026)
+        no_file = code == 0 and "idiograph-gets.json is not there yet" in text and not (root / "idiograph-gets.json").exists()
         books = idiograph_routes.gets_books(root)
         when = themes_mod.now_iso()
         gdata, _c, _d, _t = gets_mod.assemble(root, books, when)
         gets_mod.write(root, gets_mod._file(gdata, when))
         code, text, _ = run("gets", "show")
-        check("79: gets show waits for the GETs file, then shows the board with the cards in no GET",
+        check("79: gets show answers the first board before the GETs file, then shows the board with the cards in no GET",
               no_file and code == 0 and "GETs, Board 1 (b1). A GET needs 3 of the 3 participants." in text
               and "   PET Mabel: " in text and "[Rowan/g1]" in text)
         gops = spec("gops", {"request": "Group the two timetables", "operations": [
@@ -450,7 +450,7 @@ def test_agent_cli(scratch):
         gboard = held["boards"][0]
         check("79: gets apply takes the same operations over its cards, a GET numbered as the screen numbers one, a revision first",
               code == 0 and [x["id"] for x in gboard["groups"]] == ["G1"] and gboard["groups"][0]["members"] == ["Mabel/g1", "Rowan/g1"]
-              and gboard["history"][-1]["name"] == "Before: Group the two timetables" and gboard["changed"]["by"] == "agent"
+              and gboard["history"][-1]["name"] == "Before an agent's change" and gboard["changed"]["by"] == "agent"
               and "Made 'Days given their shape by the dog'." in text)
 
         # \u2500\u2500 K. /api/stamp, what the page asks
