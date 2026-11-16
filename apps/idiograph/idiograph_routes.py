@@ -52,6 +52,7 @@ import i18n
 import gets as gets_mod
 import gets_print
 import gets_word
+import home_cache
 import idiograph_find
 import locks
 import names as names_mod
@@ -1286,13 +1287,14 @@ def project_changes(before: dict, after: dict) -> list[str]:
 # ---------------------------------------------------------------- cases
 
 def file_mark(path: Path) -> tuple | None:
-    """A file's modification time and size, which a cached read is kept against, or None when the
-    file is not there."""
+    """A file's modification time, size and inode, which a cached read is kept against, or None when the
+    file is not there. The inode since homecache (16 November 2026), as Home's reads are kept across a
+    restart: a file put back with its old time, by a copy that keeps it or a restore, is a new file."""
     try:
         st = Path(path).stat()
     except OSError:
         return None
-    return st.st_mtime_ns, st.st_size
+    return st.st_mtime_ns, st.st_size, st.st_ino
 
 
 # what the home screen has read, each kept against the marks of the files it came from, so a
@@ -1494,6 +1496,95 @@ def gets_file(root: Path | None) -> dict | None:
         data = None
     GETS_FILES[str(file)] = (mark, data)
     return data
+
+
+# Home's reads kept across a restart (homecache, 16 November 2026, see home_cache.py): the file beside the app's
+# state that `start` names, None for a run with --root and for the command line, which keep theirs in memory alone.
+# Read once, at the start, in the background, and every case list waits for that read before its own; written
+# again a moment after a case list that read anything new, in the background, so Home draws first
+HOME_CACHE: dict = {"path": None, "read": None, "said": None, "timer": None}
+HOME_CACHE_LOCK = threading.Lock()
+HOME_CACHE_AFTER = 1.5
+
+
+def home_cache_tables() -> dict:
+    return {"books": BOOKS, "turns": TURNS, "heads": THEMES_HEADS, "boards": BOARDS}
+
+
+def home_cache_stamp() -> dict:
+    return home_cache.stamp(srv.VERSION, srv.BUILD)
+
+
+def home_cache_open(path: Path | None) -> None:
+    """At the server's start: Home's cache file at `path` read into the tables in a thread of its own, or with
+    None nothing read or written. A file inside a project's folder or in iCloud is never used."""
+    HOME_CACHE.update(path=None, read=None, said=None)
+    if path is None or home_cache_unsafe(Path(path)):
+        return
+    HOME_CACHE["path"] = Path(path)
+    done = threading.Event()
+    HOME_CACHE["read"] = done
+
+    def read():
+        try:
+            with HOME_CACHE_LOCK:
+                home_cache.load(Path(path), home_cache_stamp(), home_cache_tables())
+                HOME_CACHE["said"] = home_cache.signature(home_cache_tables())
+        except Exception:            # an unreadable cache is no cache
+            pass
+        finally:
+            done.set()
+    threading.Thread(target=read, name="home-cache", daemon=True).start()
+
+
+def home_cache_unsafe(path: Path) -> bool:
+    """Whether a cache file there would sit inside a project's folder or in iCloud Drive."""
+    if "Mobile Documents" in Path(path).parts:
+        return True
+    try:
+        return any(srv.inside(path, root) for root in srv.project_roots())
+    except Exception:
+        return True
+
+
+def home_cache_wait() -> None:
+    """A case list's first act: the start's read of the cache finished, at most a few seconds."""
+    done = HOME_CACHE.get("read")
+    if done is not None:
+        done.wait(5)
+
+
+def home_cache_current(table: str, key: str, mark) -> bool:
+    """Whether an entry's mark is still what its file has, the workbook's for the turns, which are read again
+    on their own marks anyway."""
+    file = Path(key)
+    if table == "turns":
+        return isinstance(mark, tuple) and bool(mark) and mark[0] == file_mark(file)
+    return mark == file_mark(file)
+
+
+def home_cache_later() -> None:
+    """After a case list: the tables written to the cache file a moment later in the background, once, when they
+    hold anything the file does not."""
+    path = HOME_CACHE.get("path")
+    if path is None or HOME_CACHE.get("timer") is not None:
+        return
+
+    def write():
+        try:
+            with HOME_CACHE_LOCK:
+                said = home_cache.signature(home_cache_tables())
+                if said != HOME_CACHE.get("said") and not home_cache_unsafe(path):
+                    if home_cache.save(path, home_cache_stamp(), home_cache_tables(), home_cache_current):
+                        HOME_CACHE["said"] = said
+        except Exception:            # best effort: the tables in memory are as they were
+            pass
+        finally:
+            HOME_CACHE["timer"] = None
+    timer = threading.Timer(HOME_CACHE_AFTER, write)
+    timer.daemon = True
+    HOME_CACHE["timer"] = timer
+    timer.start()
 
 
 def pristine_copy(book: Path) -> bool:
@@ -1892,6 +1983,8 @@ def api_cases(_: dict) -> dict:
     project's, `cases` and `recent` every project's."""
     cfg = srv.config()
     roots = srv.project_roots(cfg)
+    # what a run before read, kept beside the app's state, in the tables before anything is read (homecache)
+    home_cache_wait()
     # Trajectories' old labels and pictures moved into the participants' own sets the first time (pbiobuild), and
     # the actions that waited for his yes before approvals were removed dropped, said once in the agent log (noholds,
     # 13 November 2026), one look for a file at each root as Home's count of them took
@@ -1910,6 +2003,8 @@ def api_cases(_: dict) -> dict:
     demos_ta = demo_entries(ta_root)
     lipa_root = srv.demo_lipa_dir()
     demos_lipa = demo_entries(lipa_root)
+    # and what this list read written back for the next start, in the background once Home has it
+    home_cache_later()
     # `root` is empty while there is no project, and `choose` says the Mac's folder dialog is there.
     # `demos` is the Demo section's rows, the three cases, and `demo` stays Juno's alone, for a page
     # from before the three. `demo_project` is the demo's own, for its head. `one` says this run is
@@ -10471,6 +10566,8 @@ def start(one_root: bool) -> None:
     if not one_root:
         fill_demo()
     keep_written_on()
+    # Home's reads from the run before, beside the app's state, never for a trial run with --root (homecache)
+    home_cache_open(None if one_root else srv.STATE_PATH.with_name(home_cache.NAME))
     # Working together's looks (wtowners): what came taken in and what waits sent, in each project it is on in
     team_sync.start(lambda: [Path(r) for r in srv.project_roots()])
 

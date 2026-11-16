@@ -3,7 +3,7 @@
 timepoints, as a finished longitudinal project of the app's own model (lipabuild, 13 November 2026).
 
 Adam, 12 November 2026: a third demo beside the IPA and thematic analysis demos, grown from the allotment study of
-the website's clip (`packaging/motion/clips/make_lipa.py`), its analysis to the standard of the IPA demo, which he
+the website's first clip (made by `make_lipa.py`, retired when that clip was recorded from this demo), its analysis to the standard of the IPA demo, which he
 read and approved that day (lipawrite). Hollis, Nell and Arlo are each interviewed before the season (T1), at
 midsummer (T2) and after the harvest (T3), each interview recorded in Gemini's voices (lipavoices). Nobody in it is
 real. It lives inside the demo's folder, as the thematic analysis demo does:

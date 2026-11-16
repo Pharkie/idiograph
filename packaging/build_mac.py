@@ -105,7 +105,7 @@ MODULES_BY_OWNER = {
     "family": ("server", "boot", "agent_log", "ai_suggest", "app_folders", "app_identity", "app_search", "make_app",
                "mcp_server", "cli", "locks", "errors", "files", "textfiles", "pdftext", "screenings", "i18n", "formats",
                "trash", "relay_transport", "folder_transport", "names", "typeset"),
-    "idiograph": ("audio", "convert", "corpus", "demo_recordings", "export", "make_demo", "nudges", "rounds", "shared_strings", "themes",
+    "idiograph": ("audio", "convert", "corpus", "demo_recordings", "export", "home_cache", "make_demo", "nudges", "rounds", "shared_strings", "themes",
                   "themes_ai", "themes_print", "themes_word", "workbook", "gets", "gets_print", "print_pdf", "project_pack",
                   "trajectories", "codes", "qdpx", "idiograph_main", "idiograph_routes", "idiograph_cli", "idiograph_mcp",
                   "idiograph_find", "statement_prompts", "team", "transport", "table_import"),

@@ -4032,7 +4032,7 @@ a copy of the demo folder added as a project, never reads its participants as ca
 
 **The longitudinal IPA demo** (lipabuild, 13 November 2026, Adam's word of 12 November, its analysis read and
 approved by him that day). `demo/lipa/` is a longitudinal project of the app's own model inside the demo's folder, "First
-year on an allotment", grown from the website clip's study (`make_lipa.py`, below): Hollis, Nell and Arlo, invented,
+year on an allotment", grown from the study the website's first clip showed (made by `make_lipa.py` until 15 November 2026, retired when the clip was recorded from this demo): Hollis, Nell and Arlo, invented,
 each interviewed at T1 (Before the season), T2 (Midsummer) and T3 (After the harvest), nine interviews of 12 to 13
 minutes. Its sources are `demo/lipa/source/<Name> - T1.csv` (Name, Timestamp, Transcript, as the IPA demo's) and
 `demo/lipa/source/analysis.json` (lipawrite's approved draft: each participant turn's statements, key quotes and note
@@ -5124,6 +5124,19 @@ megabytes on his study of a few months, about 260 ms a visit on his projects. `t
 mark and `boards_count`'s count from one parse, and leaves a participant whose member keeps an own file beside it to
 the three readers. On his two projects a listing went from about 1.1 s to 0.7 the first time after the app starts and
 from about 400 ms to 130 after (area 390).
+Since homecache (16 November 2026) those reads outlast a restart. `read_book`'s `BOOKS`, `turns_of`'s `TURNS`,
+`THEMES_HEADS` and `BOARDS` are written to `home-cache.json` beside the state file (`home_cache.py`): the server's
+start (`start`, `home_cache_open`) reads it into the tables in a thread of its own, a case list waits for that read
+before its own (`home_cache_wait`), and a case list that read anything new writes the tables back 1.5 s later in the
+background (`home_cache_later`), only the entries whose marks are still the files'. Nothing is trusted that the memory
+would not trust: every entry is used only while its marks are what the files have now, and `file_mark` gained the
+inode beside the time and size, so a file put back with its old time and size, by a copy or a restore that keeps them,
+is read again. The whole file is kept against `home_cache.stamp`, its format, the app's version and build and the
+marks of the modules that made the entries, and one that differs, cannot be read or parsed, or holds an entry not in
+its table's shape is ignored and replaced at the next write. A run with `--root`, the command line and the MCP server
+keep theirs in memory alone, and a state file inside a project's folder or in iCloud Drive gets no cache. `GETS_FILES`
+stays in memory, as it holds the GETs' words and costs little to read. At perfreview's scale the first list after a
+restart went from about 2 s to about 130 ms (area 396).
 `demo_participants` is the demo's three, built the same way from `demos`.
 
 **The home screen.** Each app's Home is drawn from `/api/cases` (9 October). `index.html` holds the three
@@ -7312,13 +7325,10 @@ again as they were, then opens PETs and GETs, `tables.mjs` opens the Table view 
 tab, `canvas.mjs` makes on a new board the demo's own PET "Caught" going soft from two of its sub-PETs,
 `workbook.mjs` shows Juno's files and `workbook-sheet.mjs` her workbook's first sheet as `sheet.py` draws it from
 the file (its cells, widths, fonts and frozen panes, read only, never a spreadsheet program's window), and
-`longitudinal.mjs` places an LPET in an LGET and a participant in a trajectory. That one runs on an invented study
-of three timepoints, "First year on an allotment", made by `make_lipa.py <empty folder> --config <settings>`
-through the command line alone: the project with each participant's first interview, its timepoints, the later
-interviews with their statements and quotes, a PETs board at each timepoint from a table, each participant's LPETs
-from a table, the LGETs and Trajectories. It stops twice for the app: once for Allow AI agents to read this project
-in Project settings (AI features on to show it), and once for a card moved on LGETs, whose file comes with the
-first act on the screen, and each run goes on from the step after the last one done. Every recording runs on a
+`longitudinal.mjs` opens the app's own longitudinal demo from Home's card (lipaclip, 15 November 2026: it replaced
+an invented study made by `make_lipa.py`, retired), shows its LGETs with one LPET unfolded to its statements, then
+Trajectories, Hollis's LPETs across the three timepoints and the page carried down to Nell's. It changes nothing on the
+screens. Every recording runs on a
 scratch copy, the demo's made whole from its pristine copy by `make_demo.fill`, with a settings file of its own,
 Celebrations off so no count stands over a canvas, and AI features off, as on a new install.
 
@@ -8356,6 +8366,7 @@ several, which is remade by hand.
 | `apps/idiograph/themes_guidance.md` | The lines of the PETs screen's Guidance tab, distilled from `pet_guidance.md`: how many PETs, how to group, titles, discarding, what goes first inside a PET and what to ask before finishing. Read afresh on every open of the screen, so editing it changes the tab on the next reload. |
 | `config.json` | Root folder, the examples' corpus, the sources left out of it (`corpus_exclude`) and the reference workbook, interviewer, round minutes, daily target, nudge switches, the AI switch, the prompt template, the provider (`ai_provider`), the Anthropic model (`model`), Ollama's address and model (`local_url`, `local_model`), the PETs screen's own provider and model (`pets_provider`, `pets_model`), the PETs screen's own settings under `themes`, the limit on a proposal's PETs as `cap`, and the Celebrations and Sound ticks (`celebrations`, `sound`). A `feedback_url` written by hand points Send feedback at a collector for this machine alone, and Save keeps it as it is and never adds one. Gitignored, so a downloaded copy has none until its first run writes the defaults with no project. |
 | `state.json` | The recent list, newest first, each case by its pseudonym, and Sift's list of reviews. Written by the app, gitignored. A run with `--root` keeps its own in memory and never touches it. |
+| `home-cache.json` | Home's reads of each workbook, progress file and themes file, kept across a restart against their files' time, size and inode (homecache, `home_cache.py`): speakers' labels, counts, the Current board's name and the PETs mark, never a transcript's or a statement's words. Beside `state.json`, written by the app in the background, ignored when it cannot be read or is from another version, gitignored. Deleting it costs one slower Home. |
 | `.env` | `ANTHROPIC_API_KEY=`, read before the keychain. Gitignored. Read only in the server process, only when you ask for a suggestion. |
 
 ### The relay

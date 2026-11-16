@@ -173,7 +173,25 @@ def test_project_ops(scratch: Path):
               and len(done.get("changes", [])) == 1, err + json.dumps(done))
         as_page(routes.api_project, {"root": str(page), "name": "Swimming at night",
                                      "research_question": "How is a lake lived at night?"}, page)
-        code, _, err = run("--demo", "project", "set", "--name", "Mine", "--note", "Try the demo")
+        # the demo's folder is a scratch copy as a fresh clone has it, so the run's fill never writes the repo's own
+        # demo/ (found by demoscratch, 15 November 2026)
+        fresh = base / "fresh-demo"
+        shutil.rmtree(fresh, ignore_errors=True)
+        made = {"Working", "Source", "_Archive", "pictures", "idiograph-gets.json", "idiograph-codes.json",
+                "idiograph-lgets.json", "idiograph-trajectories.json"}
+        shutil.copytree(support.source("demo"), fresh, ignore=lambda folder, names: (
+            [] if "pristine" in Path(folder).parts else [n for n in names if n in made or n.endswith(".m4a")]))
+        kept_demo = (server_mod.DEMO_DIR, server_mod.SHIPPED_DEMO, server_mod.DEMO_CASE, server_mod.DEMO_WORKBOOK,
+                     server_mod.DEMO_PROJECT)
+        try:
+            server_mod.DEMO_DIR = server_mod.SHIPPED_DEMO = fresh
+            server_mod.DEMO_CASE = fresh / "Juno"
+            server_mod.DEMO_WORKBOOK = server_mod.DEMO_CASE / "Juno - EN & ES.xlsx"
+            server_mod.DEMO_PROJECT = fresh / server_mod.PROJECT_FILE
+            code, _, err = run("--demo", "project", "set", "--name", "Mine", "--note", "Try the demo")
+        finally:
+            (server_mod.DEMO_DIR, server_mod.SHIPPED_DEMO, server_mod.DEMO_CASE, server_mod.DEMO_WORKBOOK,
+             server_mod.DEMO_PROJECT) = kept_demo
         check("266: the demo's project is refused as the route refuses it", code != 0 and "The demo's project is fixed." in err, err)
         code, _, err = run("--root", str(agent), "project", "set", "--name", "Mine")
         check("266: a write without his request is refused", code != 0 and "--note" in err, err)

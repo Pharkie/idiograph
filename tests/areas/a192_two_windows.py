@@ -467,6 +467,12 @@ def still_in_webkit(scratch, root, book):
     steps_file.write_text(json.dumps(steps), encoding="utf-8")
     # one WebKit run, and a second if the first came back short: under a full gate's load the offscreen window can
     # run out of its time before the last sizes, which says nothing about the layout (the gate of 13 November)
+    # wk_shot's --timeout is one total for the whole run, and each size's REMEASURE is 142 widths of forced layout,
+    # which takes 20 to 40 s a size on an idle Mac and several times that at a load average of 40 (the gates of
+    # 13 and 16 November ran out at step 8, the last size). So the total is a budget a size, and a run only
+    # counts as out of time if it used all of it
+    budget = 120 * len(sizes) + 120
+
     def run_still():
         kept = (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY, locks.WAIT)
         httpd = None
@@ -478,8 +484,8 @@ def still_in_webkit(scratch, root, book):
             threading.Thread(target=httpd.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True).start()
             ran = subprocess.run([str(tool), "--url", f"http://127.0.0.1:{httpd.server_address[1]}/", "--out", str(scratch / "a192-wk"),
                                   "--steps", str(steps_file), "--width", "1300", "--height", "850", "--scale", "1",
-                                  "--init", STILL_INIT, "--timeout", "150"],
-                                 capture_output=True, text=True, encoding="utf-8", timeout=200)
+                                  "--init", STILL_INIT, "--timeout", str(budget)],
+                                 capture_output=True, text=True, encoding="utf-8", timeout=budget + 60)
         finally:
             if httpd:
                 httpd.shutdown()

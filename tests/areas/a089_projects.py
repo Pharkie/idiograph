@@ -228,10 +228,19 @@ def test_projects(scratch):
               and "order" not in json.loads((cello / server_mod.PROJECT_FILE).read_text(encoding="utf-8")))
         demo_before = server_mod.DEMO_PROJECT.read_bytes()
         demo_refused, stranger = False, False
+        # the refusals take the demo folder's lock, so they run on a scratch folder standing for it and the repo's own
+        # demo/ gets no lock file (demoscratch, 15 November 2026)
+        stand_in = base / "demo-stand-in"
+        stand_in.mkdir(exist_ok=True)
+        shutil.copyfile(server_mod.DEMO_PROJECT, stand_in / server_mod.PROJECT_FILE)
+        kept_dir = server_mod.DEMO_DIR
+        server_mod.DEMO_DIR = stand_in
         try:
             idiograph_routes.api_order({"root": "demo", "order": ["Mabel", "Juno"]})
         except WorkbookError:
             demo_refused = True
+        finally:
+            server_mod.DEMO_DIR = kept_dir
         try:
             idiograph_routes.api_order({"root": str(kites), "order": ["P5 - Eve"]})
         except server_mod.OutsideRoot:
@@ -309,10 +318,13 @@ def test_projects(scratch):
               and after == before_files and kites.is_dir() and eve.is_file(),
               f"{removed.get('name')} {len(stored['projects'])} {gone} {sorted(set(after) ^ set(before_files))}")
         demo_kept = False
+        server_mod.DEMO_DIR = stand_in
         try:
             idiograph_routes.api_projects({"op": "remove", "root": "demo"})
         except WorkbookError:
             demo_kept = True
+        finally:
+            server_mod.DEMO_DIR = kept_dir
         server_mod.ROOT_OVERRIDE = str(bees)
         one_run = []
         for body in ({"op": "add", "path": str(kites)}, {"op": "remove", "root": rel(bees)}):

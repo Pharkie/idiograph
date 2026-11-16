@@ -24,6 +24,8 @@ __pycache__/
 # the Themes screen's file beside each progress file, the demo's included
 *.themes.json
 state.json
+# Home's reads kept across a restart, beside the state file run from source (homecache)
+home-cache.json
 # Working together's keys for this computer, beside the settings when run from source (team.py)
 team-device.json
 agent-log.json
