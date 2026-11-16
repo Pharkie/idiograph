@@ -214,13 +214,14 @@ def gets_path(root: Path) -> Path:
     return held if held is not None else Path(root) / FILE
 
 
-def load(root: Path, move: bool = True) -> dict | None:
+def load(root: Path, move: bool = True, cited: bool = True) -> dict | None:
     """The GETs file as it sits on disk, or None when there is none yet. One that is there and
     cannot be read is refused, so nothing is ever written over a file that can be recovered.
 
     Each board is told where its History's chunks are, and a file whose boards still hold their History inside it
     is moved over on this first open when its lock is free and the file is this install's to write (historybuild,
-    see `board_history`)."""
+    see `board_history`). With `cited` False each statement keeps its time and its timepoint's label as the file
+    keeps them, for a read of the cases' marks alone (`copies_untouched`), which never reads either (lgetsfast)."""
     path = gets_path(root)
     if not path.exists():
         return None
@@ -242,6 +243,12 @@ def load(root: Path, move: bool = True) -> dict | None:
         data = board_history.move_on_open(path, data, lambda d: write_at(path, d),
                                           lambda: board_history.place(path, json.loads(path.read_text(encoding="utf-8"))),
                                           guard=guard)
+    if not cited:
+        # a case's lines that are not a mapping refused as the reads below refuse them
+        for rec in (data.get("cases") or {}).values() if isinstance(data.get("cases"), dict) else []:
+            if isinstance(rec, dict):
+                (rec.get("lines") or {}).values()
+        return data
     if in_lgets() and isinstance(data.get("cases"), dict):
         # on LGETs each statement cited by its timepoint's label as it is now
         for rec in data["cases"].values():
@@ -314,12 +321,30 @@ def write_at(path: Path, data: dict) -> Path:
     path = Path(path)
     kept, finish = board_history.out_of(path, data) if isinstance(data, dict) else (data, lambda: None)
     tmp = path.with_name(path.name + ".tmp")
-    kept = retime(json.loads(json.dumps(kept)), KEPT_AS) if isinstance(kept, dict) else kept
-    tmp.write_text(themes.render(kept) + "\n", encoding="utf-8", newline="\n")
+    if isinstance(kept, dict) and themes.plain_json(kept):
+        # data that JSON gives back as it is (`themes.plain_json`) copied only where `retime` writes, each line,
+        # and written by `json.dumps`, the text the copy through JSON and `render` give, in a fraction of the time
+        # (lgetsfast, 16 November 2026)
+        text = json.dumps(retime(lines_copied(kept), KEPT_AS), ensure_ascii=False, indent=1)
+    else:
+        text = themes.render(retime(json.loads(json.dumps(kept)), KEPT_AS) if isinstance(kept, dict) else kept)
+    tmp.write_text(text + "\n", encoding="utf-8", newline="\n")
     os.replace(tmp, path)
     note_written(path)
     finish()
     return path
+
+
+def lines_copied(data: dict) -> dict:
+    """The file's data with each case's lines copied, line by line, and everything else shared: what `retime` may
+    write to, so it can retime the copy and leave the data given as it was."""
+    out = dict(data)
+    cases = out.get("cases")
+    if isinstance(cases, dict):
+        out["cases"] = {case: dict(rec, lines={k: dict(v) if isinstance(v, dict) else v for k, v in rec["lines"].items()})
+                        if isinstance(rec, dict) and isinstance(rec.get("lines"), dict) else rec
+                        for case, rec in cases.items()}
+    return out
 
 
 def changed_outside(entry: dict, rec: dict | None) -> bool:
@@ -1693,7 +1718,7 @@ def kept_in(held: dict, entries: list[dict], before: dict) -> list[str]:
 
 
 def held_of(root: Path, workbook: Path, books: list[dict] | None = None,
-            move: bool = True) -> tuple[dict | None, list[dict]]:
+            move: bool = True, cited: bool = True) -> tuple[dict | None, list[dict]]:
     """The file in scope as it sits on disk, and each case of it that is the participant's at `workbook`, as a
     survey's entry: on GETs and LGETs the one case whose copy names the workbook, and on LPETs each of the
     participant's timepoints that is in, from `books`, with its timepoint and the label it is cited with. None and
@@ -1701,7 +1726,7 @@ def held_of(root: Path, workbook: Path, books: list[dict] | None = None,
     as every dry run and every read alone reads it, so they write nothing (timefix, 16 November 2026)."""
     if not gets_path(root).exists():
         return None, []
-    data = load(root, move=move)
+    data = load(root, move=move, cited=cited)
     held = data.get("cases") if isinstance(data.get("cases"), dict) else {}
     name = Path(workbook).name
     if books is None:
@@ -1719,7 +1744,7 @@ def copies_untouched(root: Path, workbook: Path, books: list[dict] | None = None
     is theirs, and whether its copy stands as its files do now (see `untouched`), so `statements_followed` reads
     afresh only a copy the write alone can have changed. Nothing with no file, or one that cannot be read."""
     try:
-        data, entries = held_of(root, workbook, books, move=False)
+        data, entries = held_of(root, workbook, books, move=False, cited=False)
     except WorkbookError:
         return {}
     held = (data or {}).get("cases") or {}

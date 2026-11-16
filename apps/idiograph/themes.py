@@ -533,10 +533,42 @@ def boards_of(data: dict | None) -> list[dict]:
     return [b for b in (data or {}).get("boards") or [] if isinstance(b, dict)]
 
 
+def plain_json(value) -> bool:
+    """Whether `json.dumps` with `indent=1` writes `value` exactly as `render` does (lgetsfast, 16 November 2026):
+    every dict a plain dict keyed by strings, every list a plain list, every other value a string, a number, true,
+    false or null, and no non-empty list under a key `history`, which `render` writes a revision a line. A tuple, a
+    key of another kind or a subclass of any is left to `render`'s own walk, which writes them its own way, and so is
+    a dict or list met twice, which a cycle would be."""
+    stack, met = [value], set()
+    while stack:
+        v = stack.pop()
+        t = type(v)
+        if t is dict or t is list:
+            if id(v) in met:
+                return False
+            met.add(id(v))
+        if t is dict:
+            for k, x in v.items():
+                if type(k) is not str or (k == "history" and type(x) is list and x):
+                    return False
+                stack.append(x)
+        elif t is list:
+            stack.extend(v)
+        elif not (t is str or t is int or t is float or t is bool or v is None):
+            return False
+    return True
+
+
 def render(value, depth: int = 0, rows: bool = False) -> str:
     """The file as JSON a person can read: indented a space a level, as `json.dumps` with `indent=1`
     writes it, except that each revision in a board's history is one line of its own, which keeps
-    a long history from running to tens of thousands of lines."""
+    a long history from running to tens of thousands of lines.
+
+    A file with no such History, every board file since its History went to chunks (`board_history`), is written by
+    `json.dumps` itself, the same text, byte for byte, in a sixth of the time (lgetsfast, 16 November 2026: the LGETs
+    file's walk here was about a third of a statement edit on a longitudinal project)."""
+    if depth == 0 and not rows and plain_json(value):
+        return json.dumps(value, ensure_ascii=False, indent=1)
     inner = " " * (depth + 1)
     if isinstance(value, dict) and value:
         body = ",\n".join(f"{inner}{json.dumps(str(k), ensure_ascii=False)}: {render(v, depth + 1, k == 'history')}"

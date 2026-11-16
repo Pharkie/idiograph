@@ -1036,11 +1036,43 @@ def participant_timepoints(path: Path) -> list[dict]:
     return [dict(t, sheets=[], done=0, total=0, complete=None, state="none") for t in project_timepoints(path)]
 
 
+# each participant's timepoints as their LPETs take them in (`lpets_books`), kept against the marks of what they are
+# read from (`books_mark`), and carried over a write that rewords statements in place (`books_kept`, lgetsfast)
+LPETS_BOOKS: dict[str, tuple] = {}
+
+
+def books_mark(path: Path) -> tuple:
+    """What a participant's timepoints as their LPETs take them in are read from: the workbook's and its progress
+    file's marks (see `file_mark`), the interviewer and the project's timepoints."""
+    tps = tuple((t["n"], t["label"], t["description"]) for t in project_timepoints(path))
+    return (file_mark(path), file_mark(rounds_mod.progress_path(path)),
+            str(srv.config().get("interviewer") or "").strip().lower(), tps)
+
+
 def lpets_books(path: Path) -> list[dict]:
     """A participant's timepoints as the LPETs canvas takes them in, one "case" each, `T1`, `T2`, the
-    participant's workbook read at that timepoint, a timepoint they were not interviewed at `missing`."""
-    return [{"case": tp_label(t["n"]), "workbook": Path(path), "timepoint": t["n"], "cite": t["label"],
-             "missing": t["state"] == "none", "pets_complete": None} for t in participant_timepoints(path)]
+    participant's workbook read at that timepoint, a timepoint they were not interviewed at `missing`. Kept until
+    the workbook, its progress file, the interviewer or the project's timepoints change (see `books_read`)."""
+    return books_read(path)[0]
+
+
+def books_read(path: Path) -> tuple[list[dict], bool]:
+    """`lpets_books`, and whether they were read from the workbook, kept against `books_mark` (lgetsfast). A
+    workbook that cannot be read now (an iCloud file being fetched) gives the project's timepoints, each `missing`
+    (see `participant_timepoints`), which are never kept, so the next call reads it again."""
+    mark = books_mark(path)
+    held = LPETS_BOOKS.get(str(path))
+    if mark[0] is not None and held and held[0] == mark:
+        return [dict(b) for b in held[1]], True
+    tps = card_timepoints(path, srv.config().get("interviewer") or "")
+    read = bool(tps)
+    if not read:
+        tps = [dict(t, sheets=[], done=0, total=0, complete=None, state="none") for t in project_timepoints(path)]
+    out = [{"case": tp_label(t["n"]), "workbook": Path(path), "timepoint": t["n"], "cite": t["label"],
+            "missing": t["state"] == "none", "pets_complete": None} for t in tps]
+    if read and mark[0] is not None:
+        LPETS_BOOKS[str(path)] = (mark, [dict(b) for b in out])
+    return out, read
 
 
 @contextlib.contextmanager
@@ -10087,16 +10119,45 @@ def statement_copies(path: Path) -> tuple[Path | None, list[str]]:
 
 def copies_before(path: Path) -> dict:
     """Before a write to a participant's statements, each file of copies with each of their cases in it and
-    whether its copy stands as its files do now (see `gets.copies_untouched`)."""
+    whether its copy stands as its files do now (see `gets.copies_untouched`), and under `BOOKS_READ` the
+    participant's timepoints as their LPETs take them in (`lpets_books`), read here before the write, which
+    `follow_statements` takes rather than read the workbook again after it (lgetsfast, 16 November 2026)."""
     root, kinds = statement_copies(path)
     out = {}
     for kind in kinds:
         try:
+            books = None
+            if kind == "lpets":
+                books, read = books_read(path)
+                if read:
+                    out[BOOKS_READ] = books
             with copy_scope(kind, path, root):
-                out[kind] = gets_mod.copies_untouched(root, path, lpets_books(path) if kind == "lpets" else None)
+                out[kind] = gets_mod.copies_untouched(root, path, books)
         except (WorkbookError, OSError):
             out[kind] = {}
     return out
+
+
+# where `copies_before` keeps the participant's timepoints it read (see `lpets_books`), beside its kinds of file
+BOOKS_READ = "lpets_books"
+
+
+def books_kept(path: Path, before: dict) -> list[dict]:
+    """The participant's timepoints as their LPETs take them in, as `copies_before` read them before a write that
+    rewords statements in place, or read now. Each timepoint's label and whether the participant was interviewed
+    there go by the project's timepoints, the workbook's transcript sheets and where its progress file places
+    them, none of which such a write changes, and the project's lock is held from the one read to the write, so a
+    read now would give the same. They are kept against the files as the write left them (see `lpets_books`), so
+    the next write's read before it takes them as they are (lgetsfast, 16 November 2026: reading the workbook again
+    for them was about a seventh of a statement edit on a longitudinal project)."""
+    held = before.get(BOOKS_READ) if isinstance(before, dict) else None
+    if not isinstance(held, list):
+        # none read before the write, or none read from the workbook (see `books_read`): read now, as ever
+        return lpets_books(path)
+    mark = books_mark(path)
+    if mark[0] is not None:
+        LPETS_BOOKS[str(path)] = (mark, [dict(b) for b in held])
+    return [dict(b) for b in held]
 
 
 def follow_statements(path: Path, words: dict, before: dict, dry: bool = False, changed: dict | None = None,
@@ -10115,7 +10176,7 @@ def follow_statements(path: Path, words: dict, before: dict, dry: bool = False, 
         try:
             with copy_scope(kind, path, root):
                 done = gets_mod.statements_followed(root, path, words, before.get(kind) or {},
-                                                    lpets_books(path) if kind == "lpets" else None,
+                                                    books_kept(path, before) if kind == "lpets" else None,
                                                     dry=dry, changed=changed, history=history, said=said,
                                                     quotes=quotes)
         except (WorkbookError, OSError) as exc:

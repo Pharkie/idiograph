@@ -3908,7 +3908,17 @@ On the server `api_edit_statement` holds the case's lock and the root's (`writin
 `copies`. `statement_copies` names the files that keep a copy, the GETs file, then in a project of two or
 more timepoints the participant's LPETs and the LGETs, in that order so each copy's fresh read sees the
 file before it, `copy_scope` entering each (`lpets_scope`, `lgets_scope`), the LPETs' books from
-`lpets_books`. In `gets.py`, `held_of` finds the participant's cases in the file in scope, by the copy's
+`lpets_books`. Since lgetsfast (16 November 2026) the books are kept against `books_mark` (the workbook's and the
+progress file's marks, the interviewer and the project's timepoints, `LPETS_BOOKS`), a read that fell back to every
+timepoint missing never kept (`books_read`); `copies_before` keeps the books it read under `BOOKS_READ`, and
+`follow_statements` takes them through `books_kept`, stamped against the files as the write left them, since a write
+that rewords statements in place changes no sheet and no timepoint, so the workbook is not read again after it.
+`copies_untouched` reads the file with `load(cited=False)`, the times and labels left as the file keeps them, since
+it reads only the cases' marks. A board file JSON gives back as it is (`themes.plain_json`: plain dicts keyed by
+strings, plain lists, no History inside, no dict or list met twice) is written by `json.dumps(indent=1)`, the very
+text `render`'s own walk gives, and `gets.write_at` copies only its lines to retime them (`lines_copied`) where it
+copied the whole file through JSON; anything else keeps the old way. Area 411 runs the same writes the new way and
+the old on two copies of the longitudinal demo and finds every file the same. In `gets.py`, `held_of` finds the participant's cases in the file in scope, by the copy's
 `workbook` name on GETs and LGETs and by the books' timepoints on LPETs, `copies_untouched` says which stood
 as their files did (`untouched` at each timepoint), and `statements_followed` gives each line that held
 the old words the new, each board's card of it too where it keeps `text`, and the copy a new `snap_hash`,
