@@ -521,14 +521,27 @@ def test_lpet_draws_across(scratch: Path):
               code == 0 and not gone, err[:300] + f"{len(gone)} missing, first {gone[:3]}")
         # by the text's places on each page (pdftotext's boxes): nothing at or below the foot line but the foot
         boxes = shutil.which("pdftotext")
-        if code != 0 or not boxes:
-            support.skip("419: nothing printed past a page's foot line", "no pdftotext on this machine to read the "
-                         "words' places")
+        said_boxes, why_not = "", ""
+        if code != 0:
+            why_not = "no PDF to read"
+        elif not boxes:
+            why_not = "no pdftotext on this machine to read the words' places"
         else:
             import subprocess
-            out = base / "long-boxes.html"
-            subprocess.run([boxes, "-bbox", pdf["path"], str(out)], check=True, capture_output=True)
-            pages = re.findall(r"<page [^>]*>(.*?)</page>", out.read_text(encoding="utf-8"), flags=re.S)
+            # the boxes go to stdout ("-"), so no output file's path is involved (Windows' paths broke it, run 44023877293)
+            try:
+                got = subprocess.run([boxes, "-bbox", pdf["path"], "-"], capture_output=True)
+            except OSError as e:
+                got = None
+                why_not = f"pdftotext could not be run ({type(e).__name__})"
+            if got is not None and got.returncode != 0:
+                why_not = f"pdftotext exited with status {got.returncode} on this machine, so the words' places are not read"
+            elif got is not None:
+                said_boxes = got.stdout.decode("utf-8", "replace")
+        if why_not:
+            support.skip("419: nothing printed past a page's foot line", why_not)
+        else:
+            pages = re.findall(r"<page [^>]*>(.*?)</page>", said_boxes, flags=re.S)
             over, feet, seen = [], 0, set()
             for n, one in enumerate(pages, 1):
                 words = [(float(a), float(b), float(c), float(d), html_mod.unescape(t)) for a, b, c, d, t in re.findall(
