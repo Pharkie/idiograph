@@ -239,9 +239,9 @@ def test_word_export(scratch):
     check("87: Word document saves the canvas first and asks for op word, a server from before it the restart line",
           "thExport(op.dataset.xop === 'word');" in js and "async function thExport(word = false)" in js
           and "if (word) Object.assign(body, { op: 'word' }, thIncludesSent(false));" in exporter and "await thFlush();" in exporter
-          and exporter.index("if (word && !TH.wordable) { say(RESTART_LINE, 6000); return; }") < exporter.index("api('/api/themes-export'")
+          and exporter.index("if (word && !TH.wordable) { exportNotice({ failed: RESTART_LINE }); return; }") < exporter.index("api('/api/themes-export'")
           and "TH.wordable = !!data.word;" in fn(js, "themesOpen") and opened.get("word") is True
-          and "thExported({ shown," in exporter and "file: TH.exported.shown[0]" in fn(js, "thReveal"))
+          and "thExported({ shown," in exporter)
 
     # \u2500\u2500 G. the command line and MCP
     base = ["--root", str(root), "--config", str(cfg)]

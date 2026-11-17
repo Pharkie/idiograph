@@ -967,7 +967,7 @@ async function qxGo() {
       if (!to) return;
       const done = await api('/api/qdpx-export', { root: QX.id, to: String(to), ...card });
       qxShut();
-      say(t('distil.qdpx.saved', { name: done.file }), 6000);
+      exportNotice({ what: QX.name, shown: [done.file], path: done.path || '' });
     } catch (err) {
       qxSaid(needsRestart(err) ? RESTART_LINE : err.message);
     } finally {
@@ -999,6 +999,129 @@ function scKeys(e) {
   if (e.key === 'Escape') { e.preventDefault(); scShut(); return true; }
   if (e.key === 'Enter' && !MOD(e) && document.activeElement !== $('sc-cancel')) { e.preventDefault(); scGo(); }
   return true;
+}
+
+/* ─────────────────────────────────────────────── the export notice ── */
+
+/* Every export ends in one notice, on every screen of every kind of project (exportnotice, 17 November 2026, Adam:
+   the PETs panel everywhere, "the same function" behaves the same): the panel in the top right of the screen's canvas
+   or page, under its bars (the screen's [data-export-host], or under a host marked "below"), "Exported <what>", the
+   files written as the screen names them, Show in Finder (Show in Explorer on Windows, Show in Files on Linux, the
+   words of a project's menu) where the server can show the file, and its cross. It stays until it is closed: the
+   cross, Escape when nothing else on the screen takes it, a later export's notice, or the screen it was shown on
+   going away. A failed export shows the same panel with its reason alone.
+
+   exportNotice({ what, shown, path }): `what` the heading's name, `shown` the files' names, `path` the file Show in
+   Finder shows (the export's answer's own, absolute), none for no button. exportNotice({ failed }): the reason.
+   exportNotice(null) shuts it. */
+const XN = { info: null, host: null, seen: null, sized: null };
+
+const exportShown = (el) => !!el && el.isConnected && el.getClientRects().length > 0;
+
+/* the screen showing's host: the last marked one shown, since a screen drawn over Home comes after it in the page */
+function exportHost() {
+  return [...document.querySelectorAll('[data-export-host]')].filter(exportShown).pop() || null;
+}
+
+/* the panel in its place: the gutter in from the host's top right, or under a host marked "below", never off the
+   window's top, and as wide as the PETs canvas has it */
+function exportPlace() {
+  const box = $('export-done');
+  if (!box || box.hidden) return;
+  const gutter = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gutter')) || 16;
+  const host = XN.host;
+  const r = host ? host.getBoundingClientRect() : { top: 0, bottom: 0, right: window.innerWidth, width: window.innerWidth };
+  const top = host && host.dataset.exportHost === 'below' ? r.bottom : r.top;
+  const right = Math.min(window.innerWidth, r.right);
+  box.style.top = `${Math.max(0, top) + gutter}px`;
+  box.style.right = `${Math.max(0, window.innerWidth - right) + gutter}px`;
+  box.style.width = `${Math.max(0, Math.min(380, (host && host.dataset.exportHost !== 'below' ? r.width : window.innerWidth) - 2 * gutter))}px`;
+}
+
+function exportNotice(info) {
+  const box = $('export-done');
+  if (!box) return;
+  XN.info = info || null;
+  // the one-time line goes with the notice it came in, and never comes with a later one (supportcard)
+  if ($('export-once')) $('export-once').remove();
+  if (XN.seen) { XN.seen.disconnect(); XN.seen = null; }
+  if (XN.sized) { XN.sized.disconnect(); XN.sized = null; }
+  box.hidden = !info;
+  if (!info) { XN.host = null; return; }
+  const failed = !!info.failed;
+  const files = failed ? [] : (info.shown || []);
+  box.classList.toggle('export-failed', failed);
+  box.setAttribute('role', failed ? 'alert' : 'status');
+  $('export-done-head').textContent = failed ? info.failed : t('themes.exported', { name: info.what || '' });
+  $('export-done-files').innerHTML = files.map((f) => `<li class="mono">${esc(f)}</li>`).join('');
+  $('export-done-files').hidden = !files.length;
+  const reveal = $('export-reveal');
+  reveal.textContent = projectMenuWord('show', MAC);
+  reveal.hidden = failed || !info.path;
+  XN.host = exportHost();
+  exportPlace();
+  if (XN.host && typeof ResizeObserver === 'function') {
+    XN.sized = new ResizeObserver(() => exportPlace());
+    XN.sized.observe(XN.host);
+  }
+  // the screen it was shown on put away takes it with it, whichever way the screen goes
+  if (XN.host && typeof MutationObserver === 'function') {
+    XN.seen = new MutationObserver(() => { if (XN.info && !exportShown(XN.host)) exportNotice(null); });
+    XN.seen.observe(document.body, { attributes: true, attributeFilter: ['hidden'], subtree: true });
+  }
+}
+
+/* an export that could not be made, in the notice: the server's plain sentence, a restart's line for a server from
+   before the route, or `fallback` where the refusal said nothing */
+function exportFailed(err, fallback = '') {
+  exportNotice({ failed: needsRestart(err) ? RESTART_LINE : ((err && err.message) || fallback || RESTART_LINE) });
+}
+
+async function exportReveal() {
+  if (!XN.info || !XN.info.path) return;
+  try { await api('/api/reveal', { file: XN.info.path }); } catch (err) { say(needsRestart(err) ? RESTART_LINE : err.message, 9000); }
+}
+
+function exportNoticeWire() {
+  const box = $('export-done');
+  if (!box) return;
+  box.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
+  $('export-reveal').onclick = () => exportReveal();
+  $('export-done-close').onclick = () => exportNotice(null);
+  // the one-time line's link opens the Support card (the family's, shell.js)
+  box.addEventListener('click', (e) => {
+    if (!e.target.closest('.th-once a')) return;
+    e.preventDefault();
+    if (window.openSupport) window.openSupport();
+  });
+  window.addEventListener('resize', exportPlace);
+  // Escape shuts it when nothing on the screen took the key first, a menu, a card or a selection
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && XN.info && !e.defaultPrevented) { e.preventDefault(); exportNotice(null); }
+  });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', exportNoticeWire);
+else exportNoticeWire();
+
+/* The Export menu's own ways, one for every screen's (exportnotice, 17 November 2026): under its button, kept inside
+   the window, and wired alike, the button opening and shutting it, a row's press doing its job, a press outside it or
+   Escape shutting it, Escape giving the button the focus back. `open(bool)` shows or shuts the screen's menu, `go(op)`
+   runs a row's job, `btnId` and `menuId` the button's and the menu's ids */
+function xmenuPlace(btn, menu) {
+  const box = btn.getBoundingClientRect();
+  menu.style.left = `${Math.max(8, Math.min(box.left, window.innerWidth - menu.offsetWidth - 8))}px`;
+  menu.style.top = `${box.bottom + 8}px`;
+}
+
+function xmenuWire(btnId, menuId, open, go) {
+  const btn = $(btnId);
+  const menu = $(menuId);
+  if (!btn || !menu) return;
+  btn.onclick = () => open(menu.hidden);
+  menu.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
+  menu.addEventListener('click', (e) => { const op = e.target.closest('[data-xop]'); if (op) go(op.dataset.xop); });
+  document.addEventListener('pointerdown', (e) => { if (!menu.hidden && !e.target.closest(`#${menuId}, #${btnId}`)) open(false); }, true);
+  document.addEventListener('keydown', (e) => { if (!menu.hidden && e.key === 'Escape') { e.preventDefault(); open(false); btn.focus(); } });
 }
 
 /* Show in Finder, or Show in Explorer: the server shows the project's folder, which a browser's page
@@ -13838,9 +13961,7 @@ function esXmenu(open) {
   menu.hidden = !(open && ES_EXPORT);
   btn.setAttribute('aria-expanded', String(!menu.hidden));
   if (menu.hidden) return;
-  const box = btn.getBoundingClientRect();
-  menu.style.left = `${Math.max(8, Math.min(box.left, window.innerWidth - menu.offsetWidth - 8))}px`;
-  menu.style.top = `${box.bottom + 8}px`;
+  xmenuPlace(btn, menu);
 }
 
 async function esExportGo(kind) {
@@ -13864,9 +13985,9 @@ async function esExportGo(kind) {
   if (!(await distilSavePending())) return;
   try {
     const made = await api(ES_EXPORT, Object.assign({ workbook: S.data.path, format: kind }, ticks));
-    if (made && made.shown) say(t('themes.exported', { name: made.shown.join(', ') }), 8000);
+    if (made && made.shown) exportNotice({ what: t('documents.transcript.name'), shown: made.shown, path: made.path });
   } catch (err) {
-    say(err.message, 9000);
+    exportFailed(err);
   }
 }
 
@@ -13876,11 +13997,7 @@ function esExportWire() {
   if (!btn || !menu) return;
   btn.hidden = !ES_EXPORT;
   $('es-export-rule').hidden = !ES_EXPORT;
-  btn.onclick = () => esXmenu(menu.hidden);
-  menu.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
-  menu.addEventListener('click', (e) => { const op = e.target.closest('[data-xop]'); if (op) esExportGo(op.dataset.xop); });
-  document.addEventListener('pointerdown', (e) => { if (!menu.hidden && !e.target.closest('#es-xmenu, #es-export')) esXmenu(false); }, true);
-  document.addEventListener('keydown', (e) => { if (!menu.hidden && e.key === 'Escape') { e.preventDefault(); esXmenu(false); btn.focus(); } });
+  xmenuWire('es-export', 'es-xmenu', esXmenu, esExportGo);
 }
 
 distilBoot();

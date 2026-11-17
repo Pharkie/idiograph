@@ -524,11 +524,35 @@ The citation is written in `shell.js`, never in the catalogue, since a citation 
 text, no italics, with `navigator.clipboard.writeText` and says "Copied" in the toast, or the clipboard's
 refusal. `supportWire()` in `boot` wires the card.
 
+**The export notice** (exportnotice, 17 November 2026, Adam: the same function behaves the same on every tab,
+standardised on the PETs panel). Every export of every screen and every kind of project ends in one panel,
+`#export-done` in `idiograph.html`, drawn by `exportNotice({ what, shown, path })` in `distil.js`: "Exported <what>"
+(`themes.exported`), the files as the screen names them, Show in Finder (`projectMenuWord('show', MAC)`, so Show in
+Explorer on Windows and Show in Files on Linux) when the answer named a `path`, and its cross. `exportFailed(err,
+fallback)` and `exportNotice({ failed })` put a failed export's reason in the same panel, no file and no button. It is
+fixed in the page and placed by `exportPlace` the gutter in from the top right of the shown screen's
+`[data-export-host]` (the boards' `#th-stage`, the statements screen's `.stage`, Trajectories' `#tj-body`, the Code
+list's `#cd-body`; Home's `.lib-top`, marked `below`, puts it under Home's head), the last shown one winning, 380
+pixels wide at most, as the PETs canvas always had it, and placed again as the host resizes. It stays until the
+cross, Escape when nothing else on the screen took the key (a window listener that respects `defaultPrevented`; the
+boards' own Escape order shuts it through `thExported(null)`), a later notice, or its host going from the screen (a
+MutationObserver on `hidden` while it shows). The boards' exports go through `thExported`, which keeps `TH.exported` for
+the canvas's Escape and the one-time line; Trajectories', the statements screen's, the Code list's and Export as
+REFI-QDA in the window call `exportNotice` themselves. Show in Finder posts the file to `/api/reveal` (`api_reveal`),
+which shows it (`show_file`: `open -R` on a Mac, `explorer /select` on Windows, the folder through `xdg-open` on Linux)
+when some project's folder holds it or a save dialog put it elsewhere this run (`SAVED_ELSEWHERE`, which
+`api_qdpx_export` adds to), and refuses anything else in one line, writing nothing. The route is the page's alone (area
+261's PAGE_ONLY). The export answers carry the absolute `path`, but for the boards' Markdown and Word, whose answers name
+the files as the participant's folder holds them and never by the folder's own name, so `thExport` puts them after
+the workbook's own folder on the page. The Export menus share `xmenuPlace` and `xmenuWire` (button, rows, a press outside and Escape), and
+Trajectories' export keeps a field still being typed and waits for a change in flight first, as the boards' and the
+statements screen's save first. Area 413.
+
 **The one-time line** (moment A, Adam's pick of that day). `thExport(true)` on a PETs board (`TH.mode` `pets`, so
-never a GETs or LPETs board) hands `word: true` to `thExported`, which removes any `#th-once` first, so the line
+never a GETs or LPETs board) hands `word: true` to `thExported`, whose `exportNotice` removes any `#export-once` first, so the line
 goes with the note it came in, and calls `thSupportOnce`. That reads the settings afresh (`/api/settings`,
 `{op: "read"}`) and, while `support_asked` is unset and the same note is still up, appends
-`p.th-once#th-once` to `#th-exported`, under a thin rule, `themes.support.once_html`, its link
+`p.th-once#export-once` to `#export-done`, under a thin rule, `themes.support.once_html`, its link
 (`white-space: nowrap`) opening the card through `window.openSupport`, then sends `{support_asked: "YYYY-MM-DD"}`,
 the day, alone. `api_settings` writes that key alone (`write_config_keys`), keeps the first day it holds, and
 passes over anything that is not a day (`is_day`). So the line shows once ever, across restarts and windows, and

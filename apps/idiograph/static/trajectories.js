@@ -1217,9 +1217,7 @@ function trajXmenu(open) {
   btn.setAttribute('aria-expanded', String(!menu.hidden));
   if (menu.hidden) return;
   if (!was) menu.querySelectorAll('[data-xinc]').forEach((box) => { box.checked = false; });
-  const box = btn.getBoundingClientRect();
-  menu.style.left = `${Math.max(8, Math.min(box.left, window.innerWidth - menu.offsetWidth - 8))}px`;
-  menu.style.top = `${box.bottom + 8}px`;
+  xmenuPlace(btn, menu);
 }
 
 async function trajExportGo(kind) {
@@ -1228,6 +1226,11 @@ async function trajExportGo(kind) {
   trajXmenu(false);
   if (!TJ_EXPORT || !TJ.data) return;
   const ticks = { notes: inc('notes'), unplaced: inc('unplaced') };
+  // a title or a note still being typed is kept first, and a change in flight finished, so the file holds what the
+  // screen shows, as the boards' and the statements screen's exports save first
+  const el = document.activeElement;
+  if (el && $('traj').contains(el) && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) el.blur();
+  await trajIdle(250);
   if (kind === 'print') {
     const url = `${TJ_PRINT}?${new URLSearchParams({ workbook: TJ.path, notes: ticks.notes ? '1' : '0', unplaced: ticks.unplaced ? '1' : '0' })}`;
     if (!window.open(url, '_blank')) say(t('themes.print.blocked'), 8000);
@@ -1236,21 +1239,14 @@ async function trajExportGo(kind) {
   const body = Object.assign({ workbook: TJ.path, format: kind }, ticks);
   try {
     const made = await api(TJ_EXPORT, body);
-    if (made && made.shown) say(t('themes.exported', { name: made.shown.join(', ') }), 8000);
+    if (made && made.shown) exportNotice({ what: t('documents.trajectories.name'), shown: made.shown, path: made.path });
   } catch (err) {
-    say(err.message, 9000);
+    exportFailed(err);
   }
 }
 
 function trajExportWire() {
-  const btn = $('tj-export');
-  const menu = $('tj-xmenu');
-  if (!btn || !menu) return;
-  btn.onclick = () => trajXmenu(menu.hidden);
-  menu.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
-  menu.addEventListener('click', (e) => { const op = e.target.closest('[data-xop]'); if (op) trajExportGo(op.dataset.xop); });
-  document.addEventListener('pointerdown', (e) => { if (!menu.hidden && !e.target.closest('#tj-xmenu, #tj-export')) trajXmenu(false); }, true);
-  document.addEventListener('keydown', (e) => { if (!menu.hidden && e.key === 'Escape') { e.preventDefault(); trajXmenu(false); btn.focus(); } });
+  xmenuWire('tj-export', 'tj-xmenu', trajXmenu, trajExportGo);
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', trajWire);

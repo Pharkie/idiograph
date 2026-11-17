@@ -7725,11 +7725,11 @@ async function thCopyTo(gid, to) {
    way. */
 async function thExport(word = false) {
   if (!TH.live || TH.busy) return;
-  if (word && !TH.wordable) { say(RESTART_LINE, 6000); return; }
+  if (word && !TH.wordable) { exportNotice({ failed: RESTART_LINE }); return; }
   thTitleDone(true);
   thNoteDone(true);
   await thFlush();
-  if (TH.dirty) { say(t('themes.unsaved.exported'), 6000); return; }
+  if (TH.dirty) { exportNotice({ failed: t('themes.unsaved.exported') }); return; }
   try {
     const body = { workbook: TH.path, version: TH.meta.id };
     if (word) Object.assign(body, { op: 'word' }, thIncludesSent(false));
@@ -7743,25 +7743,24 @@ async function thExport(word = false) {
     const shown = data.shown || (data.paths || []).map((p) => `Working/${fileOf(p)}`);
     if (notes && notes.notes_path) shown.push(`Working/${fileOf(notes.notes_path)}`);
     if (notes && !notes.notes_path) say(t('themes.no_notes'), 6000);
-    thExported({ shown, name: (data.version && data.version.name) || TH.meta.name, reveal: !!data.shown,
+    // the file Show in Finder shows, from the workbook's own folder, since these answers name the files as the
+    // participant's folder holds them and never by the folder's own name (Working/<file>, or a Word document's name)
+    const dir = String(TH.path || '').replace(/[^/\\]*$/, '');
+    thExported({ shown, name: (data.version && data.version.name) || TH.meta.name, path: dir && shown.length ? dir + shown[0] : '',
       word: word && TH.mode === 'pets' });
   } catch (err) {
-    say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
+    exportFailed(err);
   }
 }
 
-/* the line an export leaves: what was written and where, and Show in Finder on a Mac */
+/* what an export wrote, in the one export notice every screen shares (exportNotice, distil.js, exportnotice): the
+   board's name, its files as the participant's folder or the project's root holds them, and Show in Finder on the file
+   the answer names. `path` none, from a server before it, gives no button. TH.exported keeps the notice's own `info`
+   while it shows, so Escape on the canvas shuts it in its turn and the one-time line knows its note */
 function thExported(info) {
   TH.exported = info || null;
-  const box = $('th-exported');
-  if (!box) return;
-  // the one-time line goes with the note it came in, and never comes with a later one
-  if ($('th-once')) $('th-once').remove();
-  box.hidden = !info;
-  if (!info) return;
-  $('th-exported-head').textContent = t('themes.exported', { name: info.name });
-  $('th-exported-files').innerHTML = info.shown.map((f) => `<li class="mono">${esc(f)}</li>`).join('');
-  $('th-reveal').hidden = !(info.reveal && TH.platform === 'darwin');
+  if (!info) { if (XN.info) exportNotice(null); return; }
+  exportNotice({ what: info.name, shown: info.shown, path: info.path || '' });
   if (info.word) thSupportOnce(info);
 }
 
@@ -7774,24 +7773,15 @@ function thExported(info) {
 async function thSupportOnce(info) {
   let held = null;
   try { held = await api('/api/settings', { op: 'read' }); } catch { return; }
-  if (!held || !held.config || held.config.support_asked || TH.exported !== info || $('th-once')) return;
+  if (!held || !held.config || held.config.support_asked || TH.exported !== info || $('export-once')) return;
   const line = document.createElement('p');
   line.className = 'th-once';
-  line.id = 'th-once';
+  line.id = 'export-once';
   line.innerHTML = t('themes.support.once_html');
-  $('th-exported').appendChild(line);
+  $('export-done').appendChild(line);
   const now = new Date();
   const day = [now.getFullYear(), now.getMonth() + 1, now.getDate()].map((n, i) => String(n).padStart(i ? 2 : 4, '0')).join('-');
   try { await api('/api/settings', { support_asked: day }); } catch { /* a server from before it keeps nothing */ }
-}
-
-async function thReveal() {
-  if (!TH.exported || !TH.exported.shown.length) return;
-  try {
-    await api('/api/themes-export', { workbook: TH.path, op: 'reveal', version: TH.meta.id, file: TH.exported.shown[0] });
-  } catch (err) {
-    say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
-  }
 }
 
 /* The export control, in the toolbar after the board's name, Auto-saved and Canvas | Table on every board since
@@ -7812,9 +7802,7 @@ function thXmenu(open) {
   // participant notes go in no export unless ticked, so each open starts them off, as the print card did
   if (!was) menu.querySelectorAll('[data-xnotes]').forEach((box) => { box.checked = false; });
   thXdraw();
-  const box = $('th-export').getBoundingClientRect();
-  menu.style.left = `${Math.max(8, Math.min(box.left, window.innerWidth - menu.offsetWidth - 8))}px`;
-  menu.style.top = `${box.bottom + 8}px`;
+  xmenuPlace($('th-export'), menu);
 }
 
 /* what the GETs boards' menu prints, kept for the window: the GET table, the audit trail or all of it, and under
@@ -7976,21 +7964,21 @@ async function thPrint() {
    catalogue's plain words, and nothing is written. A save still to go is written first. */
 async function thPdf() {
   if (!TH.live || !TH.meta || TH.busy) return;
-  if (!TH.printable) { say(RESTART_LINE, 6000); return; }
+  if (!TH.printable) { exportNotice({ failed: RESTART_LINE }); return; }
   thTitleDone(true);
   thNoteDone(true);
   await thFlush();
-  if (TH.dirty) { say(t('themes.unsaved.exported'), 6000); return; }
+  if (TH.dirty) { exportNotice({ failed: t('themes.unsaved.exported') }); return; }
   let made = null;
   try {
     made = await api('/api/themes-export', { workbook: TH.path, version: TH.meta.id, op: 'pdf', ...thIncludesSent(false), ...thWhere() });
   } catch (err) {
-    say(needsRestart(err) ? RESTART_LINE : (err.message || t('themes.pdf.failed')), 9000);
+    exportFailed(err, t('themes.pdf.failed'));
     return;
   }
   // a server from before it names no file
-  if (!made || !made.path) { say(RESTART_LINE, 6000); return; }
-  thExported({ shown: made.shown, name: (made.version && made.version.name) || TH.meta.name, reveal: true, word: false });
+  if (!made || !made.path) { exportNotice({ failed: RESTART_LINE }); return; }
+  thExported({ shown: made.shown, name: (made.version && made.version.name) || TH.meta.name, path: made.path, word: false });
 }
 
 /* ── Canvas and Table: two views of one board (19 October) ── */
@@ -9294,9 +9282,9 @@ async function thCanvasOut(kind, opts = {}) {
   thNoteDone(true);
   if (thGets()) gtRowNoteDone(true);
   const notes = !thGets() || !!opts.notes;
-  if (!thCanvasCopy(notes).box) { say(TH_CANVAS_EMPTY, 6000); return; }
+  if (!thCanvasCopy(notes).box) { exportNotice({ failed: TH_CANVAS_EMPTY }); return; }
   await thFlush();
-  if (TH.dirty) { say(t('themes.unsaved.exported'), 6000); return; }
+  if (TH.dirty) { exportNotice({ failed: t('themes.unsaved.exported') }); return; }
   const body = { op: 'canvas', kind, board: TH.meta.id, quotes: thQuotesWay() };
   let made = null;
   try {
@@ -9305,13 +9293,13 @@ async function thCanvasOut(kind, opts = {}) {
         TH.lpets ? { workbook: TH.path, lpets: '1' } : {}))
       : await api('/api/themes-export', Object.assign(body, { workbook: TH.path, version: TH.meta.id }, thWhere()));
   } catch (err) {
-    say(needsRestart(err) ? RESTART_LINE : (err.message || t(kind === 'png' ? 'themes.canvas.png_failed' : 'themes.pdf.failed')), 9000);
+    exportFailed(err, t(kind === 'png' ? 'themes.canvas.png_failed' : 'themes.pdf.failed'));
     return;
   }
   // a server from before it names no file
-  if (!made || !made.path) { say(RESTART_LINE, 6000); return; }
+  if (!made || !made.path) { exportNotice({ failed: RESTART_LINE }); return; }
   const name = (made.version && made.version.name) || TH.meta.name;
-  thExported({ shown: made.shown, name, reveal: !thGets() || !!TH.lpets, word: false });
+  thExported({ shown: made.shown, name, path: made.path, word: false });
 }
 
 /* ── the cases ── */
@@ -14359,12 +14347,12 @@ async function gtPdfGo(p = TH.printing, notes = $('gt-print-notes').checked) {
   // the canvas's PDF is drawn from the board, as on PETs (exportA)
   if (p.what === 'canvas' && !p.gid) { gtPrintShut(); thCanvasOut('pdf', { notes }); return; }
   gtPrintShut();
-  if (!TH.getsPrint) { say(RESTART_LINE, 6000); return; }
+  if (!TH.getsPrint) { exportNotice({ failed: RESTART_LINE }); return; }
   thTitleDone(true);
   thNoteDone(true);
   gtRowNoteDone(true);
   await thFlush();
-  if (TH.dirty) { say(t('themes.unsaved.exported'), 6000); return; }
+  if (TH.dirty) { exportNotice({ failed: t('themes.unsaved.exported') }); return; }
   let made = null;
   try {
     made = await api('/api/gets-boards', { root: TH.root || '', board: TH.meta.id, op: 'pdf', what: p.gid ? 'trail' : p.what,
@@ -14372,11 +14360,11 @@ async function gtPdfGo(p = TH.printing, notes = $('gt-print-notes').checked) {
       descriptions: thIncluded('export_descriptions'), participants: gtPeopleSent(p),
       ...(TH.lpets ? { workbook: TH.path, lpets: '1' } : {}) });
   } catch (err) {
-    say(needsRestart(err) ? RESTART_LINE : (err.message || t('themes.pdf.failed')), 9000);
+    exportFailed(err, t('themes.pdf.failed'));
     return;
   }
-  if (!made || !made.path) { say(RESTART_LINE, 6000); return; }
-  thExported({ shown: made.shown, name: (made.version && made.version.name) || TH.meta.name, reveal: false, word: false });
+  if (!made || !made.path) { exportNotice({ failed: RESTART_LINE }); return; }
+  thExported({ shown: made.shown, name: (made.version && made.version.name) || TH.meta.name, path: made.path, word: false });
 }
 
 /* Microsoft Word for a thematic analysis project's theme table (taword, 1 November 2026, Adam: "yes, add it"), from
@@ -14391,18 +14379,18 @@ async function gtWordGo(p, notes) {
   thNoteDone(true);
   gtRowNoteDone(true);
   await thFlush();
-  if (TH.dirty) { say(t('themes.unsaved.exported'), 6000); return; }
+  if (TH.dirty) { exportNotice({ failed: t('themes.unsaved.exported') }); return; }
   let made = null;
   try {
     made = await api('/api/gets-boards', { root: TH.root || '', board: TH.meta.id, op: 'word', detail: p.detail, notes,
       sending: thIncluded('export_for_sending'), descriptions: thIncluded('export_descriptions'),
       participants: gtPeopleSent(p), ...(TH.lpets ? { workbook: TH.path, lpets: '1' } : {}) });
   } catch (err) {
-    say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
+    exportFailed(err);
     return;
   }
-  if (!made || !made.word) { say(RESTART_LINE, 6000); return; }
-  thExported({ shown: made.shown, name: (made.version && made.version.name) || TH.meta.name, reveal: false, word: false });
+  if (!made || !made.word) { exportNotice({ failed: RESTART_LINE }); return; }
+  thExported({ shown: made.shown, name: (made.version && made.version.name) || TH.meta.name, path: made.path, word: false });
 }
 
 /* Save as an image on the print card, with Canvas on one page chosen (1 November 2026, exportA): the canvas's
@@ -15200,16 +15188,6 @@ function themesBoot() {
   // a board added or changed outside the page, and its line in the corner
   thOutsideBoot();
 
-  // the export's line: Show in Finder, and its cross
-  $('th-exported').addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
-  $('th-reveal').onclick = () => thReveal();
-  $('th-exported-close').onclick = () => thExported(null);
-  // the one-time line's link opens the Support card (the family's, shell.js)
-  $('th-exported').addEventListener('click', (e) => {
-    if (!e.target.closest('.th-once a')) return;
-    e.preventDefault();
-    if (window.openSupport) window.openSupport();
-  });
   $('th-pplay').onclick = () => thPlayToggle();
   for (const ev of ['play', 'pause', 'ended', 'timeupdate', 'loadedmetadata', 'durationchange', 'seeked']) {
     $('th-player').addEventListener(ev, thPlayerDraw);

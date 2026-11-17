@@ -379,9 +379,7 @@ function codesXmenu(open) {
   menu.hidden = !open;
   btn.setAttribute('aria-expanded', String(open));
   if (!open) return;
-  const box = btn.getBoundingClientRect();
-  menu.style.left = `${Math.max(8, Math.min(box.left, window.innerWidth - menu.offsetWidth - 8))}px`;
-  menu.style.top = `${box.bottom + 8}px`;
+  xmenuPlace(btn, menu);
 }
 
 async function codesExportGo(kind) {
@@ -395,21 +393,14 @@ async function codesExportGo(kind) {
   }
   try {
     const made = await api(CD_EXPORT, { workbook: CD.path, format: kind, extracts });
-    if (made && made.shown) say(t('themes.exported', { name: made.shown.join(', ') }), 8000);
+    if (made && made.shown) exportNotice({ what: t('documents.codes.name'), shown: made.shown, path: made.path });
   } catch (err) {
-    say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
+    exportFailed(err);
   }
 }
 
 function codesExportWire() {
-  const btn = $('cd-export');
-  const menu = $('cd-xmenu');
-  if (!btn || !menu) return;
-  btn.onclick = () => codesXmenu(menu.hidden);
-  menu.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
-  menu.addEventListener('click', (e) => { const op = e.target.closest('[data-xop]'); if (op) codesExportGo(op.dataset.xop); });
-  document.addEventListener('pointerdown', (e) => { if (!menu.hidden && !e.target.closest('#cd-xmenu, #cd-export')) codesXmenu(false); }, true);
-  document.addEventListener('keydown', (e) => { if (!menu.hidden && e.key === 'Escape') { e.preventDefault(); codesXmenu(false); btn.focus(); } });
+  xmenuWire('cd-export', 'cd-xmenu', codesXmenu, codesExportGo);
 }
 
 function codesWire() {

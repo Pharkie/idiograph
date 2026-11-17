@@ -3321,11 +3321,12 @@ dialog. Save as an image saves a picture of the whole canvas, every card whole u
 the workbook, "P9 - Wren - Board 3 - PETs canvas.png", at twice the screen's sharpness, so it stays sharp on a slide or
 as a figure in a thesis. Both show the quotes on the cards as Quotes on cards shows them, a short quote, a label's
 description or a reason cut with "…" where the canvas cuts it, and the close pairs' lines while Close pairs is on. Each
-adds the date and time to its name when a file of that name is there already, and a line names the file once it is
-written, with Show in Finder on a Mac. Since 9 November 2026 Idiograph makes every PDF and picture itself, in its own
+adds the date and time to its name when a file of that name is there already, and a panel at the top right names the
+file once it is written, with Show in Finder (Show in Explorer on Windows, Show in Files on Linux). Every export on
+every screen ends in that same panel, and one that cannot be made says why in it. Since 9 November 2026 Idiograph makes every PDF and picture itself, in its own
 two typefaces, so Save as PDF, Export as PDF and Save as an image are the same on a Mac, on Windows, on Linux and in a
-browser's tab, and nothing else needs to be installed. When one cannot be made, the line at the foot says so in plain
-words and nothing is saved. Print in the Linux window opens the print dialog on the page's own landscape A4, as on a
+browser's tab, and nothing else needs to be installed. When one cannot be made, the panel says so in plain words and
+nothing is saved. Print in the Linux window opens the print dialog on the page's own landscape A4, as on a
 Mac. Esc or a
 click anywhere else closes the menu. Since 31 October each entry is named for what it
 gives (Adam: literal words), where they read Print table, PDF, Canvas, .md and CSV and For sending, and each

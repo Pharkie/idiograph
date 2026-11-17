@@ -36,6 +36,9 @@ const thWhere = () => ({});
 const thIncludesSent = (asQuery) => (asQuery ? { sending: '0' } : { sending: false });
 const thPrint = () => { state.printed += 1; };
 const thExported = (info) => { state.exported = info; };
+// the export notice every screen shares (exportnotice): a failure's reason in it, as the server said it
+const exportNotice = (info) => { if (info && info.failed) state.said.push(info.failed); };
+const exportFailed = (err, fallback) => exportNotice({ failed: (err && err.message) || fallback });
 const console = { warn: () => {} };
 async function api(url, body) {
   state.calls.push([url, body]);
@@ -244,7 +247,7 @@ def test_print_pages(scratch: Path):
     check("311: Export as PDF asks the server to write the file, in the window and a browser's tab alike, and says what "
           "it wrote",
           window_run.get("calls") == [["/api/themes-export", {"workbook": "Juno.xlsx", "version": "b1", "op": "pdf", "sending": False}]]
-          and window_run.get("exported") == {"shown": ["Juno - Board 1 - PETs.pdf"], "name": "Board 1", "reveal": True, "word": False}
+          and window_run.get("exported") == {"shown": ["Juno - Board 1 - PETs.pdf"], "name": "Board 1", "path": "/cases/Juno/Juno - Board 1 - PETs.pdf", "word": False}
           and not window_run.get("printed"), result.stderr[-400:] or json.dumps(got)[:500])
     check("311: a PDF the server could not make says the server's plain sentence, and no line names a file",
           failed_run.get("said") == ["The PDF could not be made, so nothing was written."] and not failed_run.get("exported"),

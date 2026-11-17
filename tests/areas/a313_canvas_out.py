@@ -40,6 +40,9 @@ const thWhere = () => ({});
 const thQuotesWay = () => 'short';
 const thCanvasCopy = () => ({ box: { x: 0, y: 0, w: 900, h: 600 }, html: '' });
 const thExported = (info) => { state.exported = info; };
+// the export notice every screen shares (exportnotice): a failure's reason in it, as the server said it
+const exportNotice = (info) => { if (info && info.failed) state.said.push(info.failed); };
+const exportFailed = (err, fallback) => exportNotice({ failed: (err && err.message) || fallback });
 const console = { warn: () => {} };
 async function api(url, body) {
   state.calls.push([url, body]);
@@ -187,10 +190,10 @@ def test_canvas_out(scratch: Path):
                         "version": "b1"}
           and body(png).get("kind") == "png" and "html" not in body(png)
           and (png.get("exported") or {}).get("shown") == ["Juno - Board 1 - PETs canvas.png"]
-          and (png.get("exported") or {}).get("reveal") is True, ran.stderr[-300:] or json.dumps(got)[:600])
-    check("313: on the GETs the picture goes through the GETs boards' route with the participant notes asked, and a "
-          "file the server could not make says its plain sentence",
+          and (png.get("exported") or {}).get("path") == "/p/Juno/Juno - Board 1 - PETs canvas.png", ran.stderr[-300:] or json.dumps(got)[:600])
+    check("313: on the GETs the picture goes through the GETs boards' route with the participant notes asked, its file "
+          "shown in the Finder as PETs' is (exportnotice), and a file the server could not make says its plain sentence",
           (gets.get("calls") or [[None]])[-1][0] == "/api/gets-boards" and body(gets).get("notes") is True
-          and (gets.get("exported") or {}).get("reveal") is False
+          and (gets.get("exported") or {}).get("path") == "/p/Juno/Dogs - Board 1 - GETs canvas.png"
           and failed.get("said") == ["The PDF could not be made, so nothing was written."] and not failed.get("exported"),
           json.dumps([gets, failed])[:400])

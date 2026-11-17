@@ -6176,7 +6176,10 @@ def api_qdpx_export(body: dict) -> dict:
     dest = srv.abs_path(to)
     if dest.suffix.lower() != ".qdpx":
         dest = dest.with_name(dest.name + ".qdpx")
-    return qdpx_export(root, dest, body.get("participants") or None, body.get("recordings") is True, replace=True)
+    answer = qdpx_export(root, dest, body.get("participants") or None, body.get("recordings") is True, replace=True)
+    # the place he chose, which the export notice's Show in Finder may show though no project holds it
+    SAVED_ELSEWHERE.add(str(dest.resolve()))
+    return dict(answer, path=str(dest))
 
 
 def qdpx_download(handler, query: dict) -> None:
@@ -10594,6 +10597,36 @@ def themes_reveal(path: Path, body: dict) -> dict:
     return {"revealed": case_relative(path, target)}
 
 
+# the files a save dialog put where no project's folder is, this run alone (Export as REFI-QDA in the window), which
+# the export notice's Show in Finder may show as it shows a file in a project
+SAVED_ELSEWHERE: set[str] = set()
+
+
+def show_file(target: Path) -> None:
+    """A file selected in the Finder on a Mac or in Explorer on Windows, or its folder opened by the file manager on
+    Linux, which selects nothing."""
+    SHOW_FOLDER(target.parent if srv.PLATFORM.startswith("linux") else target)
+
+
+def api_reveal(body: dict) -> dict:
+    """Show in Finder (Show in Explorer, Show in Files) on the export notice, the one panel every export ends in
+    (exportnotice, 17 November 2026): `file`, the path an export answered with, shown where it was written. Nothing
+    is written. A file no project's folder holds, unless a save dialog put it there this run, one not there, and a
+    machine that is not a Mac, Windows or Linux are refused in one line. The page's alone: an agent has no Finder."""
+    if srv.PLATFORM not in ("darwin", "win32") and not srv.PLATFORM.startswith("linux"):
+        raise WorkbookError(i18n.t("server.show_finder_mac_windows_only"))
+    named = str(body.get("file") or "").strip()
+    if not named:
+        raise WorkbookError(i18n.t("server.file_more_export_again_write"))
+    target = srv.abs_path(named).resolve()
+    if str(target) not in SAVED_ELSEWHERE and not srv.within_root(target):
+        raise srv.OutsideRoot(i18n.t("server.file_sits_outside_project_folder"))
+    if not target.is_file():
+        raise WorkbookError(i18n.t("server.file_more_export_again_write"))
+    show_file(target)
+    return {"revealed": True}
+
+
 def api_themes_export(body: dict) -> dict:
     """A board's PET grouping draft in markdown, and the statements CSV with its Proposed PET
     column from the same board, both in the case's `Working/` folder. `version` names one, and
@@ -11759,6 +11792,8 @@ ROUTES = {
     "/api/send-project": api_send_project,
     "/api/send-list": api_send_list,
     "/api/qdpx-export": api_qdpx_export,
+    # Show in Finder on the export notice (exportnotice, 17 November 2026)
+    "/api/reveal": api_reveal,
     "/api/boards-in": api_boards_in,
     "/api/rename": api_rename,
     "/api/guidance": api_guidance,
@@ -11780,7 +11815,7 @@ srv.register("idiograph", routes=ROUTES,
              # these open a dialog, write another program's settings or make a project, so they answer a POST
              # from the page and never a GET, and /api/mcp only from the server's own page
              post_only=("/api/choose-root", "/api/projects", "/api/new-project", "/api/add-transcripts", "/api/names", "/api/qdpx",
-                        "/api/open-sent", "/api/send-project", "/api/qdpx-export", "/api/boards-in", "/api/order", "/api/rename",
+                        "/api/open-sent", "/api/send-project", "/api/qdpx-export", "/api/reveal", "/api/boards-in", "/api/order", "/api/rename",
                         "/api/participant", "/api/demographics",
                         "/api/mcp", "/api/quote-heading", "/api/clear-formatting", "/api/clear-made-notes", "/api/skip", "/api/shift-times", "/api/team",
                         "/api/team-board", "/api/team-review"),

@@ -402,7 +402,8 @@ def test_themes_versions(scratch):
           and "thDeleteGo();" in fn(js, "thKeyDown") and "hide('th-confirm');" in fn(js, "thKeyDown"))
     check("every board op saves the canvas first, and a server from before them gets the restart line",
           "await thFlush();" in fn(js, "thBoardOp") and "needsRestart(err) ? RESTART_LINE : err.message" in fn(js, "thBoardOp")
-          and "needsRestart(err) ? RESTART_LINE : err.message" in fn(js, "thExport"))
+          and "exportFailed(err);" in fn(js, "thExport")
+          and "needsRestart(err) ? RESTART_LINE" in fn(support.text("apps/idiograph/static/distil.js"), "exportFailed"))
     check("each board keeps its own undo and redo while the case is open",
           "TH.stacks[TH.undoBoard] = { undo: TH.undo, redo: TH.redo };" in fn(js, "thUseStacks")
           and "thUseStacks(TH.meta.id);" in fn(js, "thLoad"))

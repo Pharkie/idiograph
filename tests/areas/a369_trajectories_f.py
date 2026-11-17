@@ -929,6 +929,8 @@ const escAttr = (s) => esc(s).replace(/"/g, '&quot;');
 const say = () => {}; const SENT = [];
 const pathProjectDraw = () => {}; const dsTabsDraw = () => {}; const dsTabsWatch = () => {};
 const needsRestart = () => false; const RESTART_LINE = '';
+// the Export menu's wiring and the export notice are distil.js's, shared by every screen (exportnotice)
+const xmenuWire = () => {}; const xmenuPlace = () => {}; const exportNotice = () => {}; const exportFailed = () => {};
 const TURNS = { turns: [{ turn: 'Before:3', time: '03:12', text: 'I had tidy rows in my head and a shed I never opened.' },
   { turn: 'Before:5', time: '35:55', text: 'The neighbour told me the shed was mine.' }], interviews: ['T1', 'T2'] };
 const ASKED = [];

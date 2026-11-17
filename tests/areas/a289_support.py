@@ -99,9 +99,18 @@ const [PYTHON, HELPER, CONFIG] = JSON.parse(process.argv[2]);
 const fresh = () => ({ id: '', hidden: true, innerHTML: '', textContent: '', className: '', children: [], parent: null,
   appendChild(c) { c.parent = this; this.children.push(c); }, remove() { if (this.parent) this.parent.children = this.parent.children.filter((c) => c !== this); } });
 const els = {};
-for (const id of ['th-exported', 'th-exported-head', 'th-exported-files', 'th-reveal']) els[id] = Object.assign(fresh(), { id });
-const $ = (id) => els[id] || els['th-exported'].children.find((c) => c.id === id) || null;
-const document = { createElement: () => fresh() };
+// the export notice every screen shares (exportnotice, distil.js), its own pieces run as they are
+for (const id of ['export-done', 'export-done-head', 'export-done-files', 'export-reveal']) {
+  els[id] = Object.assign(fresh(), { id, classList: { toggle() {} }, setAttribute() {}, dataset: {} });
+}
+const $ = (id) => els[id] || els['export-done'].children.find((c) => c.id === id) || null;
+const document = { createElement: () => fresh(), querySelectorAll: () => [], body: {} };
+const XN = { info: null, host: null, seen: null, sized: null };
+const MAC = true;
+const projectMenuWord = () => 'Show in Finder';
+const getComputedStyle = () => ({ getPropertyValue: () => '16px' });
+const window = { innerWidth: 1280 };
+els['export-done'].style = {};
 const esc = (s) => String(s);
 const fileOf = (p) => String(p).split('/').pop();
 const say = () => {};
@@ -123,11 +132,11 @@ async function api(url, body) {
   return JSON.parse(execFileSync(PYTHON, ['-I', HELPER, CONFIG, JSON.stringify(body)], { encoding: 'utf-8' }).trim().split('\n').pop());
 }
 const settle = () => new Promise((ok) => setTimeout(ok, 20));
-const line = () => { const l = $('th-once'); return l ? l.innerHTML : null; };
+const line = () => { const l = $('export-once'); return l ? l.innerHTML : null; };
 const asked = () => { try { return JSON.parse(require('node:fs').readFileSync(CONFIG, 'utf-8')).support_asked || null; } catch { return null; } };
 const run = async () => {
   const out = {};
-  const step = async (name, f) => { try { await f(); await settle(); out[name] = [line(), asked(), !els['th-exported'].hidden]; } catch (err) { out[name] = 'threw: ' + err.message; } };
+  const step = async (name, f) => { try { await f(); await settle(); out[name] = [line(), asked(), !els['export-done'].hidden]; } catch (err) { out[name] = 'threw: ' + err.message; } };
   if (process.argv[3] === 'again') {
     await step('again', () => thExport(true));
   } else {
@@ -283,7 +292,10 @@ def test_support(scratch: Path):
     helper.write_text(HELPER % str(support.TOOL), encoding="utf-8")
     once = scratch / "a289-once.json"
     once.write_text(json.dumps({"interviewer": "Ada"}, indent=2), encoding="utf-8")
-    script = support.i18n_js() + "".join(piece(themes, n) for n in ("thExport", "thExported", "thSupportOnce")) + THEMES_RUN
+    distil = support.text("apps/idiograph/static/distil.js")
+    script = (support.i18n_js() + "".join(piece(themes, n) for n in ("thExport", "thExported", "thSupportOnce"))
+              + "".join(piece(distil, n) for n in ("exportHost", "exportPlace", "exportNotice", "exportFailed"))
+              + "const exportShown = () => false;\n" + THEMES_RUN)
     path = scratch / "a289-once.js"
     path.write_text(script, encoding="utf-8")
     args = json.dumps([sys.executable, str(helper), str(once)])

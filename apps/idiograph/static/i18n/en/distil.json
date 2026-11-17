@@ -613,7 +613,6 @@
     "other": "{n} words"
   },
   "distil.home.menu.qdpx": "Export as REFI-QDA…",
-  "distil.qdpx.saved": "Saved {name}.",
   "distil.names.real": "Real name",
   "distil.names.head": "Names",
   "distil.names.line": "{replaced} replaced from the project's list of names.",

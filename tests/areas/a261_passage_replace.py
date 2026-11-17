@@ -125,6 +125,8 @@ PAGE_ONLY = {
     "/api/nudges": (("screen",), "the length nudge drawn on the screen as he types"),
     "/api/order": (("screen",), "the order of a project's rows on Home, layout"),
     "/api/reset-demo": (("screen",), "puts the demo back as it ships, the demo alone"),
+    # Show in Finder on the export notice every export ends in (exportnotice, 17 November 2026)
+    "/api/reveal": (("screen",), "shows a file an export wrote in the Finder, the window's act, never the project's data"),
     "/api/round-complete": (("screen",), "his round of work at the screen, timed by the page"),
     "/api/server": (("screen",), "the server's own state, the window's"),
     "/api/settings": ((4,), "the app's own settings, its look and its habits, which no undo reaches"),

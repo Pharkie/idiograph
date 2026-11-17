@@ -237,7 +237,7 @@
        its card in the statements column and its notes the notes field. Below 800px the notes go under
        each passage's words, and at a phone's width each passage stacks. The guidance is a sheet over them
        that takes no column. -->
-  <div class="stage">
+  <div class="stage" data-export-host>
     <main class="reading" id="es-stage">
       <!-- where the floating toolbar docks again, the boards' dashed slot across the top of the columns while its grip
            is dragged (barsD) -->
@@ -835,7 +835,7 @@
               stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect
               x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M14.5 4.5h4a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-4z"
               fill="currentColor" stroke="none"/><path d="M14.5 4.5v15"/></svg><span class="th-edge-word" aria-hidden="true">{{page_idiograph.screens.inspector}}</span></button>
-  <div class="th-stage off" id="th-stage">
+  <div class="th-stage off" id="th-stage" data-export-host>
     <div class="th-world" id="th-world"></div>
     <!-- the board's Table view over the canvas, which stays laid out under it so the two never
          disagree: the book's table of PETs, or the GET table, live, its order and its titles edited
@@ -888,16 +888,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
       </button>
       <div id="th-pile-body"></div>
-    </div>
-
-    <!-- what an export wrote, the case's own way of naming it, with Show in Finder on a Mac -->
-    <div class="th-ui th-exported" id="th-exported" hidden role="status">
-      <button class="card-close" id="th-exported-close" type="button" tabindex="-1" aria-label="{{page_idiograph.screens.close}}" title="{{page_idiograph.screens.close}}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
-      </button>
-      <p class="th-exported-head" id="th-exported-head"></p>
-      <ul class="th-exported-files" id="th-exported-files"></ul>
-      <button type="button" class="ghost small" id="th-reveal" tabindex="-1" hidden>{{page_idiograph.screens.show_finder}}</button>
     </div>
 
     <!-- a board added or changed outside the page, in a conversation with an AI agent or another
@@ -1172,7 +1162,7 @@
       <div class="th-panel-body tj-side-body" id="tj-side-body"></div>
     </aside>
     <button type="button" class="th-edge th-edge-l gt-door" id="tj-open-side" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M9.5 4.5h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h4z" fill="currentColor" stroke="none"/><path d="M9.5 4.5v15"/></svg><span class="th-edge-word" aria-hidden="true"></span></button>
-    <div class="tj-body" id="tj-body">
+    <div class="tj-body" id="tj-body" data-export-host>
       <p class="tj-said" id="tj-said" hidden></p>
       <div class="tj-board tf-board" id="tj-board" role="list" aria-label="{{page_idiograph.screens.trajectories}}"></div>
     </div>
@@ -1239,7 +1229,7 @@
     <p class="th-xhead">{{themes.export.include}}</p>
     <label class="view-row"><input type="checkbox" data-xinc="extracts" checked> {{codes.col.extracts}}</label>
   </div>
-  <div class="cd-body" id="cd-body">
+  <div class="cd-body" id="cd-body" data-export-host>
     <div class="cd-list">
       <div class="cd-tools">
         <input type="search" class="cd-find" id="cd-find" placeholder="{{codes.search}}" aria-label="{{codes.search}}" autocomplete="off" spellcheck="false">
@@ -1259,6 +1249,17 @@
 <!-- today's haul: after Take a break, one quiet line in the card's style where the card stood,
      for about four seconds. It takes no pointer and no focus, and a click or a key takes it away -->
 <p class="haul" id="haul" role="status" aria-live="polite" hidden></p>
+<!-- what an export wrote, one panel for every export on every screen (exportnotice, 17 November 2026, Adam: the PETs
+     panel everywhere): the top right of the screen's canvas or page, under its bars (data-export-host), the files as
+     the screen names them, Show in Finder where the file can be shown, and its cross; a failed export the reason alone -->
+<div class="th-exported export-done" id="export-done" hidden role="status">
+  <button class="card-close" id="export-done-close" type="button" tabindex="-1" aria-label="{{page_idiograph.screens.close}}" title="{{page_idiograph.screens.close}}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+  </button>
+  <p class="th-exported-head" id="export-done-head"></p>
+  <ul class="th-exported-files" id="export-done-files"></ul>
+  <button type="button" class="ghost small" id="export-reveal" tabindex="-1" hidden>{{page_idiograph.screens.show_finder}}</button>
+</div>
 <div class="overlay" id="round-done" hidden>
   <div class="card celebrate">
     <p class="kicker" id="done-kicker"></p>
