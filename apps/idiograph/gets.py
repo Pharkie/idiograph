@@ -3705,6 +3705,40 @@ def summary_of(root: Path, books: list[dict]) -> dict:
             "done": themes.complete_of(data)}
 
 
+def shown_twice(board: dict, data: dict) -> list[dict]:
+    """The statement cards on a GETs, LPETs or LGETs board whose statement the board shows a second time, inside a
+    PET's or a sub-theme's card of the same case (an LPET's on LGETs), its own or a PET's over it, which carries
+    its sub-themes, a second card of that PET among them (lpetsaside, 17 November 2026, found on a participant's
+    LPETs where an agent brought in statements their PETs' cards held already). Cards set aside are passed over,
+    as the canvas shows neither. Each by its key: `card`, `case`, `also`, the cards that hold it too, and `label`,
+    the label it stands in, or None for one in none. Keys alone, never a word."""
+    held = data.get("cases") or {}
+    cards = board.get("cards") or {}
+    aside = set(board.get("discarded") or [])
+    parents = themes.parents_of(board.get("groups") or [])
+    groups = {}
+    for key in cards:
+        k = split_key(key)
+        if k["kind"] == "group" and key not in aside:
+            groups.setdefault((k["case"], k["ident"]), []).append(key)
+    out = []
+    for key in cards:
+        k = split_key(key)
+        rec = held.get(k["case"])
+        if k["kind"] != "es" or key in aside or not isinstance(rec, dict):
+            continue
+        pets = {p.get("id"): p for p in rec.get("pets") or [] if isinstance(p, dict)}
+        chain = []
+        for pid in [p for p, pet in pets.items() if k["ident"] in (pet.get("statements") or [])]:
+            while pid is not None and pid not in chain:
+                chain.append(pid)
+                pid = (pets.get(pid) or {}).get("parent")
+        also = sorted(c for pid in chain for c in groups.get((k["case"], pid), []))
+        if also:
+            out.append({"card": key, "case": k["case"], "also": also, "label": parents.get(key)})
+    return sorted(out, key=lambda x: x["card"])
+
+
 # ---------------------------------------------------------- the GET table
 
 # a participant with no PETs, so nothing under a GET, says it in this one line, with no mark beside

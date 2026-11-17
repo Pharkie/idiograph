@@ -291,7 +291,9 @@ TOOLS = [
          writes="file"),
     mcp.tool("gets_show", "The GETs", ("gets", "show"),
          "A GETs board as a tree: each GET with how many participants it holds, its cards and its sub-GETs, "
-         "then the cards in no GET and those set aside. With no board named, the Current board.",
+         "then the cards in no GET and those set aside. shown_twice names each statement card whose PET's card is "
+         "on the board too, by key: card, case, also (the cards holding it) and label. With no board named, the "
+         "Current board.",
          {"board": dict(mcp.TEXT, description="The GETs board by its id or its name.")}),
     mcp.tool("gets_apply", "Change a GETs board", ("gets", "apply"),
          "Change a GETs board with the same operations over its cards, a GET by its id, G2. "
@@ -305,6 +307,9 @@ TOOLS = [
          "onto the canvas in none. Name the statement by its card's key, T2/es/Midsummer:5:0, or by its id or key as "
          "statements gives them with its timepoint on LPETs or its participant on GETs. It runs first, so later "
          "operations can name its card, and one on the board already is refused, said where. "
+         '{"op": "set_aside", "items": ["T3/es/T3:29:0"]} sets cards aside, as X does on the board, each out of its '
+         'GET into Set aside, and {"op": "put_back", "items": [...]} puts them back on the board in no GET, each card '
+         "by its key as gets_show gives it, only when he asks. They run after the others and before an order. "
          "The board as it stood is kept first in its History.",
          {"board": dict(mcp.TEXT, description="The GETs board by its id or its name."), "operations": OPERATIONS,
           "version": BOARD_VERSION},

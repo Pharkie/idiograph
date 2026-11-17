@@ -3075,6 +3075,26 @@ by `bring_in_unit`, LPET, LGET or GET (a theme in a thematic analysis project), 
 it as a card brought in, its code's other rows following. The parity check needs nothing new, `/api/gets-save`
 being `gets apply` already. Area 235.
 
+**Set aside and put back on GETs, LPETs and LGETs** (lpetsaside, 17 November 2026, from a participant's LPETs where
+statement cards an agent brought in lay loose beside the PETs' cards holding them, seven across two participants,
+and `gets apply` refused `set_aside` through `themes_ai.revise_ops`'s NOT_DONE). `cli.cmd_gets_apply` takes the
+sidebar's two ops a GETs board has, `cli.GETS_ASIDE` (`set_aside` and `put_back` of `SIDEBAR_OPS`, with the bin's
+old names; `put_all_on` has no Unplaced to empty here and stays refused), out of the applier's list and run by
+`cli.run_gets_asides` on the board the change lands, after `bring_in` and the applier and before an order, as
+`run_stacks` runs on a PETs board. Each card is named by its key alone: one the board has not got, a label, one set
+aside already or one put back that is not is a line in the refusal, the change refused whole. `themes.set_aside`
+does what the page's `thDiscard` does, every label left and the key into `discarded`, its place kept; `themes.put_back`
+takes it out again, and the card is set by `themes.place_new` against the board without it, the nearest free spot
+to the middle, where `thRestore` takes the middle of the view. A set aside or a put back is never "Nothing to
+change". The answer and the dry run carry `set_aside` and `put_back`, keys, and their counts; the write is the one
+`gets.write` every `gets apply` makes, so the record of agents' changes, the restore point and Undo come with it. No
+op takes a card off these boards, as the page has none: its Remove (`thRemove`) is the PETs board's, for a card
+missing from the workbook. `gets.shown_twice(board, data)` is the read: a statement card not set aside whose
+statement a PET's or a sub-theme's card of its case on the board holds too, by the copy's `pets[].statements`, the
+PET's card over a sub-theme counting as it carries its sub-themes, and a second card of a PET among them. `gets show`
+gives it as `shown_twice` and `n_shown_twice`, keys alone, with a line each. The parity check needs nothing new:
+both ride `gets apply` and `gets show`. Area 415.
+
 **A label keeps what a change does not speak of** (domainkeep, 11 November 2026, from a data run whose
 `bring_in` into an LPET took every LPET's domain off four participants' boards, titles, notes, descriptions and
 the rows' states, key quotes and bold left as they were). `cli.cmd_gets_apply` and `cmd_board_apply` hand the

@@ -809,6 +809,27 @@ first in its History. Refused whole, with nothing written: a statement on the bo
 `move` changes that), another participant's on LPETs, one the copy has not got, a timepoint or a label the
 board has not got, and one brought in twice. MCP's `gets_apply` takes the same operation, with `lpets`.
 
+**Set aside and put back on GETs, LPETs and LGETs** (17 November 2026). What `X` and the Set aside list's Put back
+do on those boards, `gets apply` does with `set_aside` and `put_back`, each card by its key as `gets show` gives it,
+a statement's `T3/es/T3:29:0` or a PET's `T1/g4`, only when he asks:
+
+```
+[{"op": "set_aside", "items": ["T3/es/T3:29:0"]}, {"op": "put_back", "items": ["T1/g4"]}]
+idiograph gets apply b1 --lpets Wren --ops aside.json --dry-run
+idiograph gets apply b1 --lpets Wren --ops aside.json --note "his words" --tool "Claude Code"
+```
+
+A card set aside leaves every label for Set aside, and one put back stands on the board in no label, in the nearest
+free spot to the middle, clear of everything there. They run after the change's other operations and before an
+order, and the bin's old names answer as on a PETs board. The dry run and the answer give `set_aside` and
+`put_back`, keys alone, with `n_set_aside` and `n_put_back`, and the board as it stood is kept first in its History.
+Refused whole, with nothing written, dry run or not: a key the board has not got, a label, one set aside already and
+one put back that is not. No op takes a card off these boards altogether, as the app has none: set it aside.
+`gets show` names under `shown_twice` (with `n_shown_twice`) each statement card whose statement the board shows a
+second time, inside its PET's card (an LPET's on LGETs), its sub-theme's or a PET's over it, each by its `card`,
+`case`, `also`, the cards holding it, and `label`, the label it stands in or null, keys alone. A statement brought in
+beside its PET's card is one: set it aside when he asks to tidy them.
+
 Since 9 November 2026 a board and a participant's LPETs can come from his own tables, made in Excel
 before Idiograph. `board import` makes a PETs board from a table of PETs, a CSV or an Excel sheet with
 the columns PET, Sub-theme, Experiential statements, Location and Quote, a PET's or sub-theme's title

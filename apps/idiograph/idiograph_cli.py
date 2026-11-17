@@ -4924,6 +4924,13 @@ def cmd_gets_show(p: Project, args) -> tuple:
         lines += [""] + gets_theme_lines(t, tree["total"])
     lines += ["", f"{NOT_PLACED} ({len(tree['unplaced'])})"] + [gets_card_line(c, "   ") for c in tree["unplaced"]]
     lines += ["", f"{BIN} ({len(tree['discarded'])})"] + [gets_card_line(c, "   ") for c in tree["discarded"]]
+    # a statement's card the board shows a second time, inside its PET's card (lpetsaside, 17 November 2026), by key
+    tree["shown_twice"] = gets_mod.shown_twice(board, data)
+    tree["n_shown_twice"] = len(tree["shown_twice"])
+    if tree["shown_twice"]:
+        lines += ["", i18n.t("cli.gets_show.shown_twice", n=tree["n_shown_twice"])]
+        lines += ["   " + i18n.t("cli.gets_show.shown_twice_line", card=x["card"], also=", ".join(x["also"]))
+                  for x in tree["shown_twice"]]
     return tree, lines
 
 
@@ -4962,6 +4969,69 @@ BRING_IN = ("bring_in", "bring")
 
 def is_bring_in(op) -> bool:
     return isinstance(op, dict) and themes_ai.one_line(op.get("op") or op.get("type")).lower() in BRING_IN
+
+
+# Set aside and put back on a GETs, LPETs or LGETs board (lpetsaside, 17 November 2026, found on a participant's
+# LPETs where an agent's duplicate statement cards lay loose and no op took them off): what X and the Set aside
+# list's Put back do there, `{"op": "set_aside", "items": ["T3/es/T3:300:0"]}` and `{"op": "put_back", "items":
+# [...]}`, any card by its key as gets show gives it. The bin's old names answer as on a PETs board
+GETS_ASIDE = {k: v for k, v in SIDEBAR_OPS.items() if v in ("set_aside", "put_back")}
+
+
+def is_gets_aside(op) -> bool:
+    return isinstance(op, dict) and themes_ai.one_line(op.get("op") or op.get("type")).lower() in GETS_ASIDE
+
+
+def run_gets_asides(landed: dict, ops: list, problems: list) -> tuple[dict, list[str], list[str], list[str]]:
+    """Each set_aside and put_back of a `gets apply` change, `ops` by its number in the change, done in turn on the
+    board the rest left, through `themes.set_aside` and `themes.put_back`, as the page's `thDiscard` and
+    `thRestore` do: a card set aside leaves every label for Set aside, and one put back stands in no label in the
+    nearest free spot to the middle, clear of everything there, as the page puts it in the middle of the view. The
+    board afterwards, what each did said by key, and the keys set aside and put back, a line in `problems` for each
+    that cannot stand: a card the board has not got, a label, one set aside already, or one put back that is not."""
+    said, aside, back = [], [], []
+    for n, op in ops:
+        kind = GETS_ASIDE[themes_ai.one_line(op.get("op") or op.get("type")).lower()]
+        given = named_list(op.get("items")) or named_list(op.get("item"))
+        if not given:
+            problems.append(i18n.t("cli.gets_aside.no_cards", n=n))
+            continue
+        items, bad = [], []
+        for x in given:
+            key = themes_ai.one_line(x)
+            if key not in landed["cards"]:
+                bad.append(key)
+            elif key not in items:
+                items.append(key)
+        if bad:
+            problems.append(i18n.t("cli.gets_aside.not_a_card", n=n, list=listed(bad)))
+            continue
+        held = set(landed["discarded"])
+        if kind == "set_aside":
+            already = [k for k in items if k in held]
+            if already:
+                problems.append(i18n.t("cli.run_stacks.operation_sets_aside_set_aside_already", n=n, list=", ".join(already),
+                                       v_=i18n.t("cli.run_stacks.which_is") if len(already) == 1 else i18n.t("cli.run_stacks.which_are")))
+                continue
+            landed, done = themes.set_aside(landed, items)
+            aside += [k for k in done if k not in aside]
+            back = [k for k in back if k not in done]
+            said.append(i18n.t("cli.run_stacks.set_aside", listed=listed(done)))
+            continue
+        out = [k for k in items if k not in held]
+        if out:
+            problems.append(i18n.t("cli.run_stacks.operation_puts_back_not_set_aside", n=n, list=", ".join(out),
+                                   v_=i18n.t("cli.run_stacks.which_is") if len(out) == 1 else i18n.t("cli.run_stacks.which_are")))
+            continue
+        landed, done = themes.put_back(landed, items)
+        rest = dict(landed, cards={k: c for k, c in landed["cards"].items() if k not in done})
+        spots = themes.place_new(done, {k: landed["cards"][k].get("text") or "" for k in done}, rest, gets_mod.card_height)
+        for k in done:
+            landed["cards"][k].update(spots[k])
+        back += [k for k in done if k not in back]
+        aside = [k for k in aside if k not in done]
+        said.append(i18n.t("cli.gets_aside.put_back", listed=listed(done), unit=bring_in_unit()))
+    return landed, said, aside, back
 
 
 def bring_in_unit() -> str:
@@ -5136,8 +5206,11 @@ def cmd_gets_apply(p: Project, args) -> tuple:
                  "picks": {}, "quotes": {}}
         # an order runs after the rest, on the board they leave, as on a PETs board
         # and Arrange by participant after that, on the board the change and its orders leave (19 October)
-        listed = [(n, op) for n, op in enumerate(ops, start=1) if not is_order(op) and not is_arrange(op) and not is_layout(op)]
+        listed = [(n, op) for n, op in enumerate(ops, start=1)
+                  if not is_order(op) and not is_arrange(op) and not is_layout(op) and not is_gets_aside(op)]
         orders = [(n, op) for n, op in enumerate(ops, start=1) if is_order(op)]
+        # set aside and put back after the rest and before an order, as on a PETs board (lpetsaside)
+        asides = [(n, op) for n, op in enumerate(ops, start=1) if is_gets_aside(op)]
         arranges = [(n, op) for n, op in enumerate(ops, start=1) if is_arrange(op) and not is_layout(op)]
         # a GET's cards arranged a way, Align and Spread (21 October), last of all
         layouts = [(n, op) for n, op in enumerate(ops, start=1) if is_layout(op)]
@@ -5170,6 +5243,9 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         renamed = dict(zip(made_before, info.get("made") or []))
         refs = {ref: renamed.get(g, g) for ref, g in made_refs(start, [op for _, op in listed]).items()}
         problems = []
+        landed, aside_said, set_aside, put_back = run_gets_asides(landed, asides, problems)
+        if problems:
+            raise cli.Refused(*problems, i18n.t("cli.said.nothing_was_written"))
         landed, ordered = run_orders(landed, orders, refs, lambda name: name if name in landed["cards"] else None, {},
                                      problems, gets_mod.card_height, i18n.t("cli.gets_apply.a_get"))
         if problems:
@@ -5187,13 +5263,15 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         laid = json.dumps([landed.get("cards"), landed.get("groups"), landed.get("notes")], sort_keys=True) != laid_from
         if problems:
             raise cli.Refused(*problems, i18n.t("cli.said.nothing_was_written"))
-        if not structural and not brought and not any(o["moved"] for o in ordered) and not arranged and not laid:
+        if (not structural and not brought and not aside_said and not any(o["moved"] for o in ordered) and not arranged
+                and not laid):
             text = (i18n.t("cli.gets_apply.nothing_to_change_every_pet_and", name=kept['name'])
                     if arranges and not loose else
                     i18n.t("cli.said.nothing_to_change_already_reads_that", name=kept['name']))
             return {"board": kept["id"], "changed": False, "said": text}, [text]
         parts = bring_in_said(brought, landed)
         parts += [themes_ai.change_line(applied, start)] if applied else []
+        parts += aside_said
         parts += [order_said(o, landed, {}, i18n.t("cli.gets_apply.the_gets")) for o in ordered]
         if arranged:
             rows = list(dict.fromkeys(gets_mod.who(gets_mod.split_key(k)["case"]) for k in arranged))
@@ -5217,7 +5295,9 @@ def cmd_gets_apply(p: Project, args) -> tuple:
             text = i18n.t("cli.gets_apply.dry_run_nothing_was_written_on", name=kept['name'], v_=said[0].lower() + said[1:])
             text = " ".join(x for x in (text, first_file_said(p, first, True)) if x)
             return {"dry_run": True, "board": kept["id"], "applied": applied, "ordered": shown_orders, "arranged": arranged,
-                    "brought": brought_out, "said": text, "revision": revision, "made_file": made_file}, [text]
+                    "brought": brought_out, "set_aside": set_aside, "put_back": put_back,
+                    "n_set_aside": len(set_aside), "n_put_back": len(put_back),
+                    "said": text, "revision": revision, "made_file": made_file}, [text]
         made = themes.add_revision(board, name=revision, at=when)
         made["made"] = mark(args, when)
         state = themes.state_of(landed)
@@ -5228,7 +5308,8 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         gets_mod.write(p.root, gets_mod._file(data, when))
     text = " ".join(x for x in (f"{said} {kept_line(board.get('name'), revision)}", first_file_said(p, first, False)) if x)
     return {"board": board.get("id"), "name": board.get("name"), "applied": applied, "ordered": shown_orders,
-            "arranged": arranged, "brought": brought_out, "made": info.get("made"), "gone": info.get("gone"),
+            "arranged": arranged, "brought": brought_out, "set_aside": set_aside, "put_back": put_back,
+            "n_set_aside": len(set_aside), "n_put_back": len(put_back), "made": info.get("made"), "gone": info.get("gone"),
             "revision": themes.revision_summary(made), "said": text, "made_file": made_file}, [text]
 
 

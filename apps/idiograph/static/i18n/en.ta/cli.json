@@ -156,6 +156,7 @@
   "cli.bring_in.loose": "brought in {whose} code '{text}' onto the board in no {unit}",
   "cli.bring_in.no_statement": "Operation {n} brings in no code. Give \"statement\": its card's key as gets show gives one, or its id or its key as statements gives them, S12, with its \"participant\".",
   "cli.bring_in.not_a_statement": "Operation {n} names {statement}, which is not one of {whose} codes.",
+  "cli.gets_show.shown_twice": "Shown twice ({n}), an extract's card whose code's card is on the board too:",
   "cli.turn_skip.nothing": "Nothing to mark on {where}: every passage named is decided with no code already.",
   "cli.turn_skip.dry": "Dry run, nothing was written. On {where} it would mark {passages} decided with no code, as Skip does: rows {rows}.",
   "cli.turn_skip.done": "Marked {passages} on {where} decided with no code, as Skip does: rows {rows}. The workbook is unchanged, and the run's undo puts them back.",
