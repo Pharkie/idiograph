@@ -13,8 +13,15 @@ const CD = { path: '', back: null, to: 'statements', data: null, ask: 0, busy: f
   find: '', menu: null, merging: null,
   // the stamp's look, and the time of a change made elsewhere whose panel he closed, left for later (sameux2)
   stampAsk: 0, left: null,
-  // the changes held while a refused change's panel shows, sent in order by its Overwrite (sameux2b)
-  held: [] };
+  // the changes held while a refused change's panel shows, each one change as he made it, sent in order by its
+  // Overwrite (sameux2b), and whether that Overwrite is sending them (codesheld)
+  held: [], sending: false,
+  // the changes made while a call of the list's is on the way, first in first sent (codesheld3)
+  waiting: [] };
+
+// the Code list's own corner panels, by their owner (staleNotice and outsideNotice, codesheld2)
+const cdPanel = () => !!XS.by.codes;
+const cdHost = () => $('cd-body');
 
 const cdNorm = (s) => String(s || '').split(/\s+/).filter(Boolean).join(' ').toLowerCase();
 const cdCode = (id) => ((CD.data && CD.data.codes) || []).find((c) => c.id === id) || null;
@@ -33,9 +40,21 @@ async function codesOpen(path, how = {}) {
   }
   if (ask !== CD.ask) return false;
   if (how.leave) how.leave();
-  // the panels of the list opened before go with it
-  if (XO.info && XO.info.codes) outsideNotice(null);
-  if (XS.info && XS.info.codes) staleNotice(null);
+  // the panels of the list opened before go with it, but a refused change's panel holding his changes stands while
+  // the list opened is the same project's, raised again if it is not up, so going to another tab and back never
+  // drops them (codesheld, codesheld2); another project's list says in one line that they were not saved
+  outsideNotice(null, 'codes');
+  const same = !!(CD.project && data.project && CD.project.id && CD.project.id === data.project.id);
+  // the changes waiting on a call in flight are counted with the held ones, never dropped unsaid (codesheld3)
+  const unsaved = CD.held.length + (same ? 0 : CD.waiting.length);
+  if (!same && unsaved) {
+    say(t('codes.held_dropped', { n: unsaved, project: (CD.project && CD.project.name) || '' }), 9000);
+  }
+  if (!same) {
+    CD.held = [];
+    for (const w of CD.waiting.splice(0)) w.resolve(null);
+    staleNotice(null, 'codes');
+  }
   CD.left = null;
   CD.path = path;
   CD.back = how.back || null;
@@ -43,6 +62,7 @@ async function codesOpen(path, how = {}) {
   if (how.open) CD.open = how.open;
   $('codes-screen').hidden = false;
   codesLoad(data);
+  if (CD.held.length && !cdPanel()) codesStale();
   return true;
 }
 
@@ -142,64 +162,141 @@ function cdDescFit() {
 
 /* ── changes, each through the list's operations ── */
 
-async function codesOps(ops, over = false) {
-  if (!ops.length || CD.busy) return null;
-  // while a refused change's panel shows, a later change waits behind it, as the boards' autosave waits, so its
-  // Overwrite sends every change he made in order and Reload drops them all (sameux2b)
-  if (!over && XS.info && XS.info.codes) { CD.held.push(...ops); codesDraw(); return null; }
+async function codesOps(ops) {
+  if (!ops.length) return null;
+  // while a refused change's panel shows a change joins the held ones below; else a change made while another call
+  // of the list's is on the way, or while others wait, waits in one queue and is sent in the order he made them
+  // (codesheld2, codesheld3)
+  if (!cdPanel() && (CD.busy || CD.waiting.length)) {
+    return new Promise((resolve) => { CD.waiting.push({ ops: ops.slice(), resolve }); });
+  }
+  const done = await codesOpsNow(ops);
+  codesNextSoon();
+  return done;
+}
+
+/* the next change waiting, once the call on the way is over and its caller has taken its answer: sent, or held
+   behind a refused change's panel raised meanwhile, in the order he made them (codesheld3) */
+function codesNextSoon() {
+  setTimeout(codesNext, 0);
+}
+
+function codesNext() {
+  if (CD.busy || CD.sending || !CD.waiting.length) return;
+  const w = CD.waiting.shift();
+  if (cdPanel()) {
+    CD.held.push(w.ops);
+    codesDraw();
+    w.resolve(null);
+    codesNext();
+    return;
+  }
+  codesOpsNow(w.ops).then((done) => { w.resolve(done); codesNextSoon(); });
+}
+
+async function codesOpsNow(ops) {
+  // while a refused change's panel shows, and while its Overwrite sends what waits, a later change waits behind it,
+  // as the boards' autosave waits, so Overwrite sends every change he made in order and Reload drops them all
+  // (sameux2b); each waits as the one change he made, sent as its own step (codesheld)
+  if (cdPanel()) { CD.held.push(ops.slice()); codesDraw(); return null; }
+  try {
+    return await codesSend(ops, false);
+  } catch (err) {
+    // a list changed since this screen read it: nothing was written, and the one panel every screen shares for a
+    // save refused (staleNotice, sameux2) offers Reload, the list as it is now, and Overwrite, the change made over it
+    if (err.data && err.data.stale) {
+      codesDraw();
+      CD.held = [ops.slice()];
+      codesStale();
+      return null;
+    }
+    say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
+    codesDraw();
+    return null;
+  }
+}
+
+/* one change sent and the list drawn from the answer; `over`, for Overwrite, sends no version, so the change is made
+   over the list as it now stands. A refusal is thrown for the caller to say. An answer that comes once another
+   project's list is open is not drawn, and answers null (codesheld2) */
+async function codesSend(ops, over) {
+  const path = CD.path;
   // a delete's notice is withdrawn by any later change, so its Undo never reaches another step
   if (typeof unsayUndo === 'function') unsayUndo();
   CD.busy = true;
   $('cd-save').hidden = false;
   $('cd-save').textContent = t('codes.saving');
   try {
-    // Overwrite sends no version, so the change is made over the list as it now stands
-    const data = await api('/api/codes-ops', over ? { workbook: CD.path, ops } : { workbook: CD.path, ops, v: CD.data && CD.data.v });
-    if (XS.info && XS.info.codes) staleNotice(null);
+    const data = await api('/api/codes-ops', over ? { workbook: path, ops } : { workbook: path, ops, v: CD.data && CD.data.v });
+    if (path !== CD.path) return null;
     codesLoad(data);
-    $('cd-save').hidden = true;
     if ((data.changes || []).length) say(data.changes.join(' '), 5000);
     return data;
-  } catch (err) {
-    $('cd-save').hidden = true;
-    // a list changed since this screen read it: nothing was written, and the one panel every screen shares for a
-    // save refused (staleNotice, sameux2) offers Reload, the list as it is now, and Overwrite, the change made over it
-    if (err.data && err.data.stale) {
-      codesDraw();
-      CD.held = over ? [] : ops.slice();
-      codesStale(true);
-      return null;
-    }
-    say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
-    codesDraw();
-    return null;
   } finally {
+    $('cd-save').hidden = true;
     CD.busy = false;
   }
 }
 
 /* the panel of a change refused over a list changed since: Reload drops the changes held and reads the list as it now
-   is, Overwrite sends them all over it, in the order he made them; `overwrite` false, for an Undo refused, offers
-   Reload alone, since an Undo refused has nothing of his to write */
-function codesStale(overwrite) {
-  staleNotice({ codes: true, line: t('codes.stale_line'),
+   is, Overwrite sends them over it in the order he made them; `line` the server's sentence when one was refused on
+   the way (codesheld). The panel stays while Overwrite sends, so a change made meanwhile joins them */
+function codesStale(line) {
+  staleNotice({ owner: 'codes', codes: true, host: cdHost(), line: line || t('codes.stale_line'),
     reload: () => {
-      if (CD.busy) return;
+      if (CD.busy || CD.sending) return;
       CD.held = [];
-      staleNotice(null);
+      staleNotice(null, 'codes');
       codesReload();
     },
-    overwrite: overwrite ? () => {
-      if (CD.busy) return;
-      const ops = CD.held.slice();
-      CD.held = [];
-      staleNotice(null);
-      codesOps(ops, true);
-    } : null });
+    overwrite: () => codesOverwrite() });
+}
+
+/* Overwrite: each change held sent in turn, as its own step, each taken off only once the server has written it
+   (codesheld). The server takes a change whole or not at all, so where one is refused (a name an agent has given
+   since, a code that has gained extracts) the ones before it are written, it is not, and the panel says the server's
+   sentence with the rest still waiting for Reload or Overwrite; with none left, the sentence is the line at the foot.
+   One that never reached the server waits with the rest. */
+async function codesOverwrite() {
+  if (CD.busy || CD.sending) return;
+  CD.sending = true;
+  const path = CD.path;
+  let refused = '';
+  let reached = true;
+  try {
+    while (CD.held.length) {
+      try {
+        // another project's list opened meanwhile: what is left was said and dropped there (codesOpen)
+        if (!(await codesSend(CD.held[0], true))) return;
+        CD.held.shift();
+      } catch (err) {
+        reached = !!err.data && !needsRestart(err);
+        if (reached) CD.held.shift();
+        refused = needsRestart(err) ? RESTART_LINE : err.message;
+        break;
+      }
+    }
+  } finally {
+    CD.sending = false;
+  }
+  if (path !== CD.path) return;
+  codesDraw();
+  // the panel touched is the Code list's own alone, whichever screen is in front (codesheld2); a change that never
+  // reached the server is still waiting, and the line says so rather than a refusal's words
+  if (refused && CD.held.length) {
+    codesStale(reached ? t('codes.stale_rest', { said: refused }) : t('codes.stale_unsent', { said: refused }));
+    return;
+  }
+  staleNotice(null, 'codes');
+  if (refused) say(refused, 9000);
 }
 
 async function codesReload() {
-  try { codesLoad(await api('/api/codes', { workbook: CD.path })); } catch (err) { say(err.message, 9000); }
+  const path = CD.path;
+  try {
+    const data = await api('/api/codes', { workbook: path });
+    if (path === CD.path) codesLoad(data);
+  } catch (err) { say(err.message, 9000); }
 }
 
 /* A change made elsewhere (sameux2, 17 November 2026, the boards' form on every screen): on a focus of the window and
@@ -226,28 +323,35 @@ async function codesStampTick() {
     if (!typing) await codesReload();
     return;
   }
-  outsideNotice({ codes: true, line: t('codes.outside_changed'), word: t('themes.outside.update'),
-    show: () => { outsideNotice(null); CD.left = null; codesReload(); }, close: () => { CD.left = now; } });
+  outsideNotice({ owner: 'codes', codes: true, host: cdHost(), line: t('codes.outside_changed'), word: t('themes.outside.update'),
+    show: () => { outsideNotice(null, 'codes'); CD.left = null; codesReload(); }, close: () => { CD.left = now; } });
 }
 
 /* Undo and Redo on this screen, the list's last change put back or made again, every file it wrote */
 async function codesUndo(redo) {
-  if (CD.busy) return;
+  // while a refused change's panel shows, or its Overwrite sends, his changes wait on it, and an Undo would reach past
+  // them to a step before: nothing is undone, and the line says so (codesheld, codesheld2)
+  if (cdPanel() || CD.sending) { say(t('codes.undo_waits'), 9000); return; }
+  if (CD.busy || CD.waiting.length) return;
   if (typeof unsayUndo === 'function') unsayUndo();
   // nothing to put back or make again: the one line every screen says (sayNothingToUndo, sameux2)
   if (CD.data && !(redo ? CD.data.redo : CD.data.undo)) { sayNothingToUndo(!redo); return; }
   CD.busy = true;
   try {
     // the list's version as this screen read it, so a list changed since is refused with nothing undone (sameux2b)
-    const data = await api('/api/codes-undo', { workbook: CD.path, redo: !!redo, v: CD.data && CD.data.v });
+    const path = CD.path;
+    const data = await api('/api/codes-undo', { workbook: path, redo: !!redo, v: CD.data && CD.data.v });
     // and no line after an Undo or Redo that did something: the list shows what came back
-    codesLoad(data);
+    if (path === CD.path) codesLoad(data);
   } catch (err) {
-    // the list changed since this screen read it: nothing undone, and the refused change's panel with Reload alone
-    if (err.data && err.data.stale) codesStale(false);
+    // the list changed since this screen read it: nothing undone, and the list read again at once with the server's
+    // sentence at the foot, where a panel with Reload alone held every change made after it with no way to send it
+    // (codesheld); an Undo refused has nothing of his to keep
+    if (err.data && err.data.stale) { say(err.message, 9000); await codesReload(); }
     else say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
   } finally {
     CD.busy = false;
+    codesNextSoon();
   }
 }
 

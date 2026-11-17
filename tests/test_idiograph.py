@@ -451,6 +451,8 @@ AREAS = {
     "a416_drawn_on": "idiograph",
     "a417_screen_guidance": "idiograph",
     "a418_same_behaviour": "idiograph",
+    "a419_lpet_draws_across": "idiograph",
+    "a420_rename_by_any_name": "idiograph",
 }
 
 

@@ -81,8 +81,54 @@ def code_blocks(who: str, item: dict, notes: bool) -> list[dict]:
     return out
 
 
+# the width between an A4 page's margins of an inch, in twentieths of a point, and the LPET table's first column,
+# which names its rows, State, Key quote and Draws on
+PAGE_WIDTH, ROW_HEAD = sum((1100, 1500, 2100, 4326)), 1300
+
+
+def lpet_blocks(parts: dict, descriptions: bool = True) -> list[dict]:
+    """A participant's LPETs as the thesis appendix sets them (drawsbuild, 17 November 2026, Adam's option B, as
+    Nizza's Table 8): each LPET under Heading 2 with its description, then a table, a column a timepoint, its rows
+    State, Key quote with its cite, and Draws on, each PET, sub-theme or statement a line, then the LPET's note in
+    italics; after them the PETs no LPET draws on, with his reasons, in a table of their own."""
+    out: list[dict] = []
+    table = gets_print.gets_table(parts)
+    for g in table:
+        a = gets_print.lpet_across(g)
+        out.extend(heading(0, dict(g, note=""), descriptions))
+        n = max(1, len(a["cols"]))
+        each = (PAGE_WIDTH - ROW_HEAD) // n
+        widths = [ROW_HEAD] + [each] * (n - 1) + [PAGE_WIDTH - ROW_HEAD - each * (n - 1)]
+        quotes = []
+        for c in a["cols"]:
+            if c["quote"]:
+                quotes.append({"lines": [{"text": c["quote"]["text"], "italic": True}, {"text": c["quote"]["cite"], "small": True}]})
+            else:
+                quotes.append(i18n.t("page_print.lpets.no_key_quote"))
+        draws = [{"lines": [f"{d['kind_said']}: {d['words']}" + (f" ({d['time']})" if d["time"] else "") for d in c["draws"]]}
+                 if c["draws"] else c["nothing"] for c in a["cols"]]
+        out.append({"style": tw.TABLE, "heads": [""] + [c["head"] for c in a["cols"]], "widths": widths,
+                    "rows": [[i18n.t("page_print.lpets.state")] + [c["state"] for c in a["cols"]],
+                             [i18n.t("page_print.lpets.key_quote")] + quotes,
+                             [i18n.t("page_print.lpets.draws_on")] + draws]})
+        for line in str(a["note"] or "").splitlines():
+            if line.strip():
+                out.append({"style": 0, "runs": [run(line.strip(), italic=True)]})
+    if not table:
+        out.append({"style": 0, "runs": [run(gets_print.gword("page_print.gets.none"))]})
+    rows = gets_print.lpet_unplaced(parts)
+    if rows:
+        out.append({"style": 2, "runs": [run(i18n.t("page_print.lpets.unplaced_head"))]})
+        out.append({"style": tw.TABLE, "heads": gets_print.unplaced_heads(), "widths": [1700, 3800, PAGE_WIDTH - 5500],
+                    "rows": [[r["head"], f"{r['kind_said']}: {r['title']}", r["why"]] for r in rows]})
+    return out
+
+
 def board_blocks(parts: dict, notes: bool = False, selected: bool = False, descriptions: bool = True) -> list[dict]:
-    """The themes of the board `parts` holds (`gets_print.study_parts`), in the canvas's order, as paragraphs."""
+    """The themes of the board `parts` holds (`gets_print.study_parts`), in the canvas's order, as paragraphs, and a
+    participant's LPETs timepoints across (`lpet_blocks`)."""
+    if gt.in_lpets():
+        return lpet_blocks(parts, descriptions)
     data, board = parts["data"], parts["board"]
     kept = gt.normal(board, data)
     shown = gt.named(kept, data)
@@ -213,6 +259,7 @@ def write(root: Path, books: list[dict], project: dict, board: dict, detail: str
            "detail": "selected" if detail == "selected" else "full", "notes": bool(notes)}
     if dry_run:
         return dict(out, dry_run=True)
+    gets_print.TP_HEADS.set(gets_print.tp_heads(project))
     paras = blocks(project, parts, notes, detail == "selected", descriptions, people, heading)
     title = f"{' '.join(str(name).split())}, {table_name()}"
     data = tw.package(paras, title, now, author)

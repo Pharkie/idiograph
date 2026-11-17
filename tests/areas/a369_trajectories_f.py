@@ -547,10 +547,11 @@ def _lpets_screen_marks(call, run, scratch: Path, garden: Path, ash: Path):
     rows = {r["who"]: r for r in data["table"][0]["rows"]}
     pdf = scratch / "a369-lpets.pdf"
     pcode, made, err = run("gets", "export", b1, "--lpets", "Ash", "--out", str(pdf))
+    # the print view sets the LPETs timepoints across (drawsbuild), each quote he ticked in its timepoint's column
     check("369: his bold in a key quote reaches the LPET table's print view on its words, the quote's other words plain, "
           "and a quote with none is as it was",
-          code == 200 and "<i>‘The <b>beans</b> failed and I asked next door.’</i>" in page
-          and "<i>‘To grow what my grandmother grew.’</i>" in page, page[page.find('class="kqcell"'):][:400])
+          code == 200 and "<i>“The <b>beans</b> failed and I asked next door.”</i>" in page
+          and "<i>“To grow what my grandmother grew.”</i>" in page, page[page.find('class="lp-q"'):][:400])
     check("369: and the PDF's data and the PDF made from it, the LPET table's Typst, carry it the same",
           rows["T2"]["quote"]["words"] == [["The ", False], ["beans", True], [" failed and I asked next door.", False]]
           and rows["T1"]["quote"]["words"] is None and pcode == 0 and pdf.is_file() and pdf.read_bytes()[:4] == b"%PDF",
@@ -767,7 +768,7 @@ def _choose_from_anywhere(call, refused, run, wren: Path, ash: Path, wren_lp: Pa
     rows = {r["who"]: r for r in next(g for g in data["table"] if g["id"] == "G2")["rows"]}
     check("369: the LPET table's print view and the PDF's data show the key quote taken from the transcript with his bold "
           "in it, in place of the LPET's first quote",
-          code == 200 and "<i>‘<b>looked</b> inside it’</i>" in page
+          code == 200 and "<i>“<b>looked</b> inside it”</i>" in page
           and rows["T2"]["quote"]["words"] == [["looked", True], [" inside it", False]], page[page.find('class="kqcell"'):][:400])
     check("369: and the LPET table's print says LPET where it meant the LPET, not GET, in its column head (Draws on since "
           "drawsword, 17 November 2026), its trail's heads and the PDF's data",

@@ -188,7 +188,7 @@ def plain(paras: list[dict]) -> list[str]:
     for p in paras:
         # a table a line a row, its cells parted by " | ", and a page's end no line at all
         if p["style"] == TABLE:
-            out.extend(" | ".join(cells) for cells in [p["heads"], *p["rows"]])
+            out.extend(" | ".join(cell_text(c) for c in cells) for cells in [p["heads"], *p["rows"]])
             continue
         if p["style"] == BREAK:
             continue
@@ -205,24 +205,41 @@ def xml_text(text: str) -> str:
     return escape(UNWRITABLE.sub("", " ".join(str(text).replace("\t", " ").splitlines())))
 
 
-def cell_xml(text: str, width: int, head: bool = False, span: int = 1) -> str:
+def cell_text(c) -> str:
+    """A cell's words as one line, a cell of `lines` parted by " / " (drawsbuild)."""
+    if isinstance(c, dict):
+        return " / ".join(str(x.get("text", "") if isinstance(x, dict) else x) for x in c["lines"]) if "lines" in c \
+            else str(c.get("text", ""))
+    return str(c)
+
+
+def cell_xml(text, width: int, head: bool = False, span: int = 1) -> str:
     """A table's cell, its words in one paragraph at the table's size with no space after, a head's in bold over
-    the firmer rule, and with `span` across that many of the table's columns (demobuild, the pen portrait's line)."""
+    the firmer rule, and with `span` across that many of the table's columns (demobuild, the pen portrait's line).
+    `text` may be a list, a paragraph each, each a string or `{"text", "italic", "small"}` (drawsbuild, the LPET
+    table's columns, where a timepoint draws on more than one PET)."""
     rule = (f'<w:tcBorders><w:bottom w:val="single" w:sz="6" w:space="0" w:color="{TABLE_RULE_FIRM}"/></w:tcBorders>'
             if head else "")
-    words = (f'<w:r><w:rPr>{"<w:b/><w:bCs/>" if head else ""}<w:sz w:val="{TABLE_SIZE}"/><w:szCs w:val="{TABLE_SIZE}"/>'
-             f'</w:rPr><w:t xml:space="preserve">{xml_text(text)}</w:t></w:r>') if text else ""
+    lines = text if isinstance(text, list) else [text]
+    paras = []
+    for line in lines or [""]:
+        said = line.get("text", "") if isinstance(line, dict) else line
+        italic = "<w:i/><w:iCs/>" if isinstance(line, dict) and line.get("italic") else ""
+        size = TABLE_SIZE - 4 if isinstance(line, dict) and line.get("small") else TABLE_SIZE
+        words = (f'<w:r><w:rPr>{"<w:b/><w:bCs/>" if head else ""}{italic}<w:sz w:val="{size}"/><w:szCs w:val="{size}"/>'
+                 f'</w:rPr><w:t xml:space="preserve">{xml_text(said)}</w:t></w:r>') if said else ""
+        paras.append(f'<w:p><w:pPr><w:spacing w:before="0" w:after="0"/></w:pPr>{words}</w:p>')
     spans = f'<w:gridSpan w:val="{span}"/>' if span > 1 else ""
-    return (f'<w:tc><w:tcPr><w:tcW w:w="{width}" w:type="dxa"/>{spans}{rule}</w:tcPr>'
-            f'<w:p><w:pPr><w:spacing w:before="0" w:after="0"/></w:pPr>{words}</w:p></w:tc>')
+    return f'<w:tc><w:tcPr><w:tcW w:w="{width}" w:type="dxa"/>{spans}{rule}</w:tcPr>' + "".join(paras) + "</w:tc>"
 
 
 def row_cells(cells: list, widths: list[int]) -> str:
-    """A row's cells at their columns' widths, a cell given as `{"text", "span"}` taking that many columns."""
+    """A row's cells at their columns' widths, a cell given as `{"text", "span"}` taking that many columns, or as
+    `{"lines": [...]}` holding a paragraph a line (drawsbuild)."""
     out, at = [], 0
     for c in cells:
         span = max(1, int(c.get("span") or 1)) if isinstance(c, dict) else 1
-        text = c.get("text", "") if isinstance(c, dict) else c
+        text = (c["lines"] if "lines" in c else c.get("text", "")) if isinstance(c, dict) else c
         out.append(cell_xml(text, sum(widths[at:at + span]), span=span))
         at += span
     return "".join(out)

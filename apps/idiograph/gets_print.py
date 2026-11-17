@@ -24,6 +24,7 @@ words of a turn, and nothing is written anywhere.
 """
 from __future__ import annotations
 
+import contextvars
 import html
 import re
 from datetime import datetime
@@ -613,6 +614,181 @@ def table_section(get: dict, tint: str, total: int, minimum: int, notes: bool, s
     return "\n".join(out)
 
 
+# ------------------------------------------------------------- an LPET across its timepoints
+#
+# The LPET table of a participant, timepoints across (drawsbuild, 17 November 2026, Adam's option B, as Nizza's
+# (2022) Table 8): each LPET a block, a column for each timepoint holding his state there, the key quote cited with
+# the participant, the timepoint and the time, and what the LPET draws on there, each PET, sub-theme or statement by
+# its title or words, or "Nothing at T2"; the LPET's note under it. The appendix's Word and PDF set the same, then
+# the PETs no LPET draws on with his reasons.
+
+def lpets_participant() -> str:
+    """The participant whose LPETs are in front, by their pseudonym as every screen shows it, or "": their case
+    folder's label (`idiograph_routes.label_for`, the folder's second name never in it and Rename's name in place of
+    the folder's own), so a key quote's cite in the table and its Word and PDF never carries the folder's name."""
+    at = gt.FILE_AT.get()
+    if not gt.in_lpets() or at is None:
+        return ""
+    import idiograph_routes as routes
+    return gt.who(routes.label_for(Path(at).parent.parent))
+
+
+# each timepoint's head by its key, "T1 Before the season", from the project's timepoints, set by `walked` and the
+# Word document's `write` for the run in hand
+TP_HEADS: contextvars.ContextVar = contextvars.ContextVar("idiograph_tp_heads", default=None)
+
+
+def tp_heads(project: dict | None) -> dict:
+    """Each timepoint's column head by its key, its label then its description, "T1 Before the season"."""
+    out = {}
+    for i, tp in enumerate((project or {}).get("timepoints") or [], start=1):
+        if isinstance(tp, dict):
+            said = " ".join(x for x in (" ".join(str(tp.get("label") or f"T{i}").split()),
+                                        " ".join(str(tp.get("description") or "").split())) if x)
+            out[f"T{i}"] = said
+    return out
+
+
+def tp_head(case: str, label: str) -> str:
+    """A timepoint's column head, "T1 Before the season", or its label, or its key where it has no other."""
+    heads = TP_HEADS.get() or {}
+    if case in heads:
+        return heads[case]
+    label = " ".join(str(label or "").split())
+    return case if not label or label == case else f"{case} {label}"
+
+
+def draw_item(it: dict) -> dict:
+    """What an LPET draws on at a timepoint, as its column lists it: the kind in words, a PET's or a sub-theme's
+    title or a statement's words, and a statement's time."""
+    kind = {"pet": i18n.t("page_print.kind.pet"), "sub": i18n.t("page_print.kind.sub_theme")}.get(
+        it["kind"], i18n.t("page_print.kind.statement"))
+    # in capitals, as the screen's small labels, PET, SUB-THEME and STATEMENT alike
+    kind = kind.upper()
+    words = it.get("title") if it["kind"] in ("pet", "sub") else it.get("text")
+    return {"kind": it["kind"], "kind_said": kind, "key": it["key"], "words": str(words or ""),
+            "time": "" if it["kind"] in ("pet", "sub") or it.get("gone") else str(it.get("time") or "")}
+
+
+def lpet_across(get: dict, participant: str | None = None) -> dict:
+    """One LPET of the table, timepoints across (see above): its id, title, description and note, and a column for
+    each timepoint of the study, `case`, its head, `state`, `quote` (its words in double marks, his bold as `quote_data` gives it,
+    and `cite`, "Arlo, T1, 00:16"), the one he chose alone, else None, `draws`, each as `draw_item` gives it, a participant note left out, and
+    `nothing`, "Nothing at T2", where it draws on nothing."""
+    whose = lpets_participant() if participant is None else participant
+    cols = []
+    for row in get["rows"]:
+        draws = [draw_item(it) for it in row["items"] if it["kind"] != "pn"]
+        # only the key quote he chose, a tick or a passage taken on Trajectories, never a stand-in (Adam, 17 November
+        # 2026, 02:20: none until he chooses)
+        q = row["quote"] if row.get("chosen") or row.get("passage") else None
+        quote = None
+        if q:
+            # in double marks, as the LPET table sets its key quotes on the screen, in the print view, the PDF and Word
+            # alike (drawsbuild5), where the other tables set single ones
+            quote = dict(quote_data(q, row.get("bold")), text=f"\u201C{tp.bare(q['text'])}\u201D",
+                         cite=", ".join(x for x in (whose, q.get("time") or "") if x))
+        cols.append({"case": row["case"], "head": tp_head(row["case"], row["who"]), "state": row.get("note") or "",
+                     "quote": quote, "draws": draws,
+                     "nothing": "" if draws else i18n.t("page_print.lpets.nothing_at", timepoint=row["case"])})
+    return {"id": get["id"], "label": get["label"], "desc": get.get(th.DESCRIPTION) or "", "note": get["note"] or "",
+            "cols": cols}
+
+
+def pets_in_order(rec: dict) -> list[dict]:
+    """A copy's PETs as its table reads them, each top PET then its sub-themes at any depth."""
+    pets = {p["id"]: p for p in rec.get("pets") or [] if isinstance(p, dict) and p.get("id")}
+    out, seen = [], set()
+
+    def walk(pid):
+        if pid in seen or pid not in pets:
+            return
+        seen.add(pid)
+        out.append(pets[pid])
+        for sub in pets[pid].get("subs") or []:
+            walk(sub)
+
+    for pid, p in pets.items():
+        if p.get("parent") is None:
+            walk(pid)
+    return out
+
+
+def lpet_unplaced(parts: dict) -> list[dict]:
+    """The PETs and sub-themes no LPET of the board draws on (`gets.drawn_on`), timepoint by timepoint in the
+    copy's order, each with his reason (`gets.drawn_on_why`) or "": `case`, the timepoint's key, its `head`, `pet`,
+    its id, `kind`, `kind_said`, `title` and `why`. None elsewhere than a participant's LPETs."""
+    if not gt.in_lpets():
+        return []
+    data, board = parts["data"], parts["board"]
+    held = data.get("cases") or {}
+    out = []
+    for case in sorted(parts["inside"], key=gt.case_order):
+        rec = held.get(case) or {}
+        drawn = gt.drawn_on(data, board, case)["pets"]
+        why = gt.drawn_on_why(data, board, case)
+        for p in pets_in_order(rec):
+            if drawn.get(p["id"]):
+                continue
+            sub = p.get("parent") is not None
+            out.append({"case": case, "head": tp_head(case, gt.who(case)), "pet": p["id"], "kind": "sub" if sub else "pet",
+                        "kind_said": (i18n.t("page_print.kind.sub_theme") if sub else i18n.t("page_print.kind.pet")).upper(),
+                        "title": str(p.get("title") or ""), "why": why.get(p["id"], "")})
+    return out
+
+
+def unplaced_heads() -> list[str]:
+    return [i18n.t("page_print.lpets.col_timepoint"), i18n.t("page_print.lpets.col_pet"), i18n.t("page_print.lpets.col_why")]
+
+
+def lpet_html(get: dict, tint: str, total: int, minimum: int, participant: str | None = None) -> str:
+    """One LPET, timepoints across (`lpet_across`), as the HTML page sets it: its bar, then a column a timepoint
+    with State, Key quote and Draws on, then its note."""
+    a = lpet_across(get, participant)
+    out = [f'<section class="get lp {tint}">',
+           f'<h3 class="bar"><span class="title">{esc(get["label"])}{get_desc(get)}</span>{badge(get, total, minimum)}</h3>',
+           # a table, so a block that runs onto the next page repeats its timepoints' heads there (print rules), its
+           # rows State, Key quote and Draws on, each label kept with what follows it
+           f'<table class="lp-cols" style="--lp-n:{max(1, len(a["cols"]))}"><thead><tr>'
+           + "".join(f'<th class="lp-tp">{esc(c["head"])}</th>' for c in a["cols"]) + "</tr></thead><tbody>"]
+
+    def quote(c):
+        if not c["quote"]:
+            return f'<p class="none">{esc(i18n.t("page_print.lpets.no_key_quote"))}</p>'
+        q = c["quote"]
+        words = ("".join(f"<b>{esc(t)}</b>" if on else esc(t) for t, on in q["words"]) if q.get("words")
+                 else esc(q["text"][1:-1] if len(q["text"]) > 1 else q["text"]))
+        return f'<p class="lp-q"><i>“{words}”</i></p><p class="lp-cite">{esc(q["cite"])}</p>'
+
+    def draws(c):
+        if not c["draws"]:
+            return f'<p class="lp-nothing">{esc(c["nothing"])}</p>'
+        return "".join(f'<p class="lp-d"><span class="kind">{esc(d["kind_said"])}</span> {esc(d["words"])}'
+                       + (f' <span class="tc">{esc(d["time"])}</span>' if d["time"] else "") + "</p>" for d in c["draws"])
+    rows = ((i18n.t("page_print.lpets.state"), lambda c: f'<p class="lp-state">{esc(c["state"])}</p>'),
+            (i18n.t("page_print.lpets.key_quote"), quote), (i18n.t("page_print.lpets.draws_on"), draws))
+    for label, body in rows:
+        out.append('<tr class="lp-row">' + "".join(f'<td class="lp-col"><p class="lp-k">{esc(label)}</p>{body(c)}</td>'
+                                                  for c in a["cols"]) + "</tr>")
+    out.append("</tbody></table>")
+    if a["note"]:
+        out.append(f'<p class="tnote lp-note">{esc(a["note"])}</p>')
+    out.append("</section>")
+    return "\n".join(out)
+
+
+def unplaced_html(rows: list[dict]) -> str:
+    """The PETs no LPET draws on, with his reasons, after the LPETs, or nothing where every one is drawn on."""
+    if not rows:
+        return ""
+    body = "".join(f'<tr><td class="who">{esc(r["head"])}</td><td class="items"><div class="it"><span class="kind">'
+                   f'{esc(r["kind_said"])}</span> {esc(r["title"])}</div></td><td class="rnote">{esc(r["why"])}</td></tr>'
+                   for r in rows)
+    return (f'<section class="lp-out"><h3 class="lp-out-head">{esc(i18n.t("page_print.lpets.unplaced_head"))}</h3>'
+            '<div class="gt-wide"><table class="gt"><thead><tr>' + "".join(f"<th>{esc(h)}</th>" for h in unplaced_heads())
+            + f"</tr></thead><tbody>{body}</tbody></table></div></section>")
+
+
 # ------------------------------------------------------------- the participants table
 
 def people_section(table: dict) -> str:
@@ -835,6 +1011,32 @@ table.pt.pt-sum { margin-top: 14pt; min-width: 0; }
 .tr-gnote { margin: 2pt 0 6pt; padding: 0 8pt; font-family: var(--serif); font-size: 10pt; color: var(--ink-soft); white-space: pre-line; }
 """ + "\n"
 
+# An LPET timepoints across (drawsbuild): a column a timepoint, its head over a rule, State, Key quote and Draws on
+# under it, the block kept with its bar and never split unless it is taller than a page, the note under it.
+ACROSS = """
+.lp-cols { width: calc(100% + 12pt); table-layout: fixed; border-collapse: separate; border-spacing: 14pt 0;
+  margin: 2pt -6pt 0; }
+.lp-cols thead { display: table-header-group; }
+.lp-tp { margin: 0; padding: 0 0 2pt; border-bottom: 1px solid var(--rule-firm); font-family: var(--sans);
+  font-size: 9pt; font-weight: normal; text-align: left; color: var(--ink-soft); }
+.lp-col { vertical-align: top; padding: 0; }
+.lp-row { break-inside: avoid; page-break-inside: avoid; }
+.lp-k { margin: 6pt 0 1pt; font-family: var(--sans); font-size: 7pt; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-faint); break-after: avoid; page-break-after: avoid; }
+.lp-k + .lp-d { margin-top: 3pt; }
+.lp-state { margin: 0; font-family: var(--serif); font-size: 10.5pt; line-height: 1.35; color: var(--ink); }
+.lp-q { margin: 0; font-family: var(--serif); font-size: 10pt; line-height: 1.35; }
+.lp-cite { margin: 1pt 0 0; font-family: var(--mono); font-size: 7.5pt; color: var(--ink-soft); }
+.lp-d { margin: 0 0 3pt; font-family: var(--serif); font-size: 10pt; line-height: 1.35; break-inside: avoid; }
+.lp-d .kind { display: block; font-family: var(--sans); font-size: 7pt; font-weight: 600; letter-spacing: .04em;
+  color: var(--ink-faint); }
+.lp-nothing, .lp-col .none { margin: 0; padding: 0; font-family: var(--sans); font-size: 9pt; color: var(--ink-faint); }
+.lp-note { margin-top: 6pt; }
+.lp-out { margin: 18pt 0 0; }
+.lp-out-head { margin: 0 0 6pt; font-family: var(--serif); font-weight: normal; font-size: 13pt; break-after: avoid;
+  page-break-after: avoid; }
+"""
+
 # The cases' colours as the light theme gives them in themes.css, `--th-case0` to `--th-case24`, since
 # the page is always light, and the badge of each participant beside the name in the GET table and the
 # audit trail (16 October), the initial in the paper's white on the case's colour, at 8.5pt so it reads
@@ -1047,6 +1249,7 @@ def walked(root: Path, books: list[dict], project: dict, board: str | None, what
     participant's LPETs, whose columns are their timepoints. A board or a GET the file no longer holds is
     refused."""
     what = what if what in WHATS else "table"
+    TP_HEADS.set(tp_heads(project))
     parts = study_parts(root, books, board, th.now_iso())
     table_ = gets_table(parts)
     if not descriptions:
@@ -1126,9 +1329,15 @@ def page(root: Path, books: list[dict], project: dict, board: str | None = None,
                               for c in parts["inside"])
                     + "</section>")
     if what in ("table", "all"):
-        tables = "".join(table_section(g, tints.get(g["id"], "hue-grey"), total, minimum, notes, selected) for g in table_)
+        # a participant's LPETs timepoints across, then the PETs no LPET draws on (drawsbuild)
+        if gt.in_lpets():
+            tables = "".join(lpet_html(g, tints.get(g["id"], "hue-grey"), total, minimum) for g in table_)
+        else:
+            tables = "".join(table_section(g, tints.get(g["id"], "hue-grey"), total, minimum, notes, selected) for g in table_)
         if not table_:
             tables = f'<p class="none">{none}</p>'
+        if gt.in_lpets():
+            tables += unplaced_html(lpet_unplaced(parts))
         body.append(f'<section class="part{" first" if what == "table" and first else ""}" id="table">'
                     + (f"<h2>{get_table}</h2>" if headed else "") + tables + "</section>")
     if what in ("trail", "all"):
@@ -1141,7 +1350,7 @@ def page(root: Path, books: list[dict], project: dict, board: str | None = None,
                     + (f"<h2>{audit}</h2>" if headed else "") + sections + "</section>")
     title = w["title"]
     foot, middle, pieces, fit = foot_of(project, parts, w["kind"], sending, researcher, confidential, now)
-    style =f"{tp.HEAD}{tp.ROW}{PAGE}{tp.scoped(tp.BLOCKS, '.pets')}{STYLE}{CASES}{TRAIL}{tp.TAIL}"
+    style =f"{tp.HEAD}{tp.ROW}{PAGE}{tp.scoped(tp.BLOCKS, '.pets')}{STYLE}{ACROSS}{CASES}{TRAIL}{tp.TAIL}"
     return "\n".join([
         "<!doctype html>", f'<html lang="{tp.page_lang()}">', "<head>", '<meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
@@ -1324,6 +1533,14 @@ def typst_data(root: Path, books: list[dict], project: dict, board: str | None =
         out["people"] = w["people"]
     if what in ("table", "all"):
         out["table"] = [table_data(g, hues.get(g["id"], grey), total, minimum, notes, selected) for g in w["table"]]
+        # a participant's LPETs timepoints across, then the PETs no LPET draws on with his reasons (drawsbuild)
+        if gt.in_lpets():
+            for g, row in zip(w["table"], out["table"]):
+                row["across"] = lpet_across(g)
+            out["across"] = {"state": i18n.t("page_print.lpets.state"), "quote": i18n.t("page_print.lpets.key_quote"),
+                             "draws": i18n.t("page_print.lpets.draws_on"), "no_quote": i18n.t("page_print.lpets.no_key_quote")}
+            out["unplaced"] = {"head": i18n.t("page_print.lpets.unplaced_head"), "heads": unplaced_heads(),
+                               "rows": lpet_unplaced(parts)}
     if what in ("trail", "all"):
         out["trail"] = [trail_data(g, hues.get(g["id"], grey), w["recs"], w["words"], total, minimum, notes, selected)
                         for g in w["trails"]]

@@ -310,6 +310,9 @@ TOOLS = [
          '{"op": "set_aside", "items": ["T3/es/T3:29:0"]} sets cards aside, as X does on the board, each out of its '
          'GET into Set aside, and {"op": "put_back", "items": [...]} puts them back on the board in no GET, each card '
          "by its key as gets_show gives it, only when he asks. They run after the others and before an order. "
+         '{"op": "also", "item": "T1/g1", "to": "G2"} makes a second card of a PET, sub-theme or statement under '
+         "another LPET, as Also drawn on by… does on the LPETs board (on GETs and LGETs a PET's or sub-theme's under "
+         "another label, with One per PET off), its key the first's with /2, only when he asks. "
          "The board as it stood is kept first in its History.",
          {"board": dict(mcp.TEXT, description="The GETs board by its id or its name."), "operations": OPERATIONS,
           "version": BOARD_VERSION},

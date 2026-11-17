@@ -184,10 +184,22 @@ class Project:
         self.books = sorted(routes.gets_books(self.root), key=lambda b: gets_mod.case_order(b["case"]))
 
     def found(self, name: str) -> list[dict]:
-        """The cases of the study a pseudonym names, `Rowan`, `P4 - Alder`, `Alder` or `P4`."""
+        """The cases of the study a pseudonym names, `Rowan`, `P4 - Alder`, `Alder` or `P4`, and where none does, the
+        cases whose folder's label as the app shows it (`routes.case_label`) is the name or starts with it as `P4`:
+        a folder renamed outside the app to `P4 - Alder-<second name>` keeps its themes file naming `Alder`, and is
+        found by `P4 - Alder` and `P4` too (renamefix, 17 November 2026)."""
         said = " ".join(str(name or "").split()).lower()
-        return [b for b in self.books if said in (b["case"].lower(), gets_mod.who(b["case"]).lower())
-                or b["case"].lower().split(" - ")[0] == said]
+        hit = [b for b in self.books if said in (b["case"].lower(), gets_mod.who(b["case"]).lower())
+               or b["case"].lower().split(" - ")[0] == said]
+        if hit or not said:
+            return hit
+        # a workbook at the project's root has the root's own name for its label, never a participant's (renamefix2)
+        return [b for b in self.books if wb_mod.case_folder(b["workbook"]).resolve() != self.root.resolve()
+                and said in (self.label(b).lower(), self.label(b).lower().split(" - ")[0])]
+
+    def label(self, book: dict) -> str:
+        """A case's label as the app shows it, `P4 - Alder`, from its folder, never the folder's second name."""
+        return routes.case_label(book["workbook"])
 
     def case(self, name: str) -> dict:
         """A case of the study by its pseudonym, `Rowan`, `P4 - Alder`, `Alder` or `P4`."""
@@ -2034,13 +2046,21 @@ def cmd_participant_rename(p: Project, args) -> tuple:
     b = p.case(args.case)
     if not themes_ai.one_line(args.note) and not args.dry_run:
         raise cli.Refused(_w("NO_PROJECT_REQUEST"))
+    # the route takes the old name from the folder's label, so where that is not the name the participant's files
+    # keep (a folder renamed outside the app to another pseudonym, or to a second name the app does not strip, which
+    # the label then carries) the rename would be partial and could say the second name: refused, dry run alike,
+    # naming the participant by their case name alone (renamefix2)
+    if gets_mod.who(p.label(b)) != gets_mod.who(b["case"]):
+        raise cli.Refused(i18n.t("cli.participant_rename.folder_not_theirs", name=gets_mod.who(b["case"])))
     with_folder = bool(getattr(args, "folder", False))
-    body = dict(project_body(p), case=b["case"], name=args.name, folder=with_folder)
+    # the route finds the folder by its label as the app shows it, which a folder renamed outside the app no longer
+    # shares with the name its themes file keeps, so it is given the label of the folder `p.case` found (renamefix)
+    body = dict(project_body(p), case=p.label(b), name=args.name, folder=with_folder)
     try:
         if args.dry_run:
             # the route's plan, and the refusal its rename would give, with nothing written
             root = srv.project_named(body["root"])
-            folder = routes.rename_folder_of(root, b["case"])
+            folder = routes.rename_folder_of(root, body["case"])
             with srv._lock:
                 answer, plan = routes.rename_plan(root, folder, args.name, with_folder, srv.config())
                 said = routes.rename_refusal(root, folder, plan, srv.config())
@@ -2880,6 +2900,10 @@ def cmd_gets_export(p: Project, args) -> tuple:
         raise cli.Refused(str(exc)) from None
     c = made["counts"]
     said = f"{cli.plural(c['gets'], 'theme' if i18n.method_now() == 'ta' else 'GET')} of {i18n.t('cli.n.participant', n=c['participants'])}"
+    # one participant's LPET table counts LPETs and that participant's timepoints (drawsbuild2)
+    if book:
+        said = i18n.t("cli.gets_export.lpets_at", lpets=i18n.t("cli.n.lpet", n=c["gets"]),
+                      timepoints=i18n.t("cli.n.timepoint", n=c["participants"]))
     dated = i18n.t("cli.said.the_plain_name_was_taken_so") if made["dated"] else ""
     if made.get("replaced"):
         dated = i18n.t("cli.said.it_took_the_place_of_the")
@@ -2918,6 +2942,9 @@ def gets_word_export(p: Project, args, board: dict) -> tuple:
     c = made["counts"]
     if i18n.method_now() == "ta":
         said = i18n.t("cli.gets_word_export.of", themes=i18n.t("cli.n.theme", n=c['themes']), codes=i18n.t("cli.n.code", n=c['codes']), participants=i18n.t("cli.n.participant", n=c['participants']))
+    elif routes.LPETS_FOR.get() is not None:
+        said = i18n.t("cli.gets_export.lpets_at", lpets=i18n.t("cli.n.lpet", n=c["themes"]),
+                      timepoints=i18n.t("cli.n.timepoint", n=c["participants"]))
     else:
         said = i18n.t("cli.gets_word_export.of_gets", gets=cli.plural(c["themes"], gets_print.gword("page_print.kind.get")),
                       participants=i18n.t("cli.n.participant", n=c["participants"]))
@@ -5228,6 +5255,108 @@ def bring_ins(p: Project, ops: list, kept: dict, data: dict) -> list[dict]:
     return out
 
 
+# A second card of a PET, a sub-theme or a statement under another label, as the page's "Also drawn on by…" on an
+# LPETs board and Place also under on a GETs or an LGETs board make one (drawsbuild, 17 November 2026, Adam's point 4:
+# one moment of an interview can inform two LPETs): `{"op": "also", "item": "T1/g2", "to": "G3"}`, the card by its
+# key as gets show gives it, the label by its id or its title. On LPETs any PET's, sub-theme's or statement's card,
+# under an LPET none of its cards is in, whatever One per PET says; on GETs and LGETs a PET's or a sub-theme's,
+# with One per PET off, under a label none of its cards is directly under, as the page offers
+ALSO = ("also", "also_drawn_on", "duplicate")
+
+
+def is_also(op) -> bool:
+    return isinstance(op, dict) and themes_ai.one_line(op.get("op") or op.get("type")).lower() in ALSO
+
+
+def also_ins(ops: list, kept: dict, data: dict) -> list[dict]:
+    """Each `also` of a change read against the board as the file holds it, `kept`: the card it copies, `from`, the
+    new card's key, `key`, the first free number after the first card's key (`/2`, `/3`), and the label it goes
+    under, `to`. Refused whole, nothing written, for a card the board has not got, one set aside, one of another
+    kind than the board allows, a label not there, or one a card of it is in already, said in one line each."""
+    out, problems = [], []
+    lp = gets_mod.in_lpets()
+    groups = kept.get("groups") or []
+    parents = themes.parents_of(groups)
+    titles = {g["id"]: g["label"] for g in groups}
+    aside = set(kept.get("discarded") or [])
+    many = gets_mod.settings_of(data).get("one_per_pet") is False
+    taken = set(kept["cards"])
+    placed: list[tuple[str, str]] = []
+
+    def top(at):
+        seen = set()
+        while at is not None and parents.get(at) is not None and at not in seen:
+            seen.add(at)
+            at = parents[at]
+        return at
+
+    for n, op in enumerate(ops, start=1):
+        if not is_also(op):
+            continue
+        item = themes_ai.one_line(op.get("item") or op.get("card"))
+        if not item:
+            problems.append(i18n.t("cli.also.no_card", n=n))
+            continue
+        if item not in kept["cards"]:
+            problems.append(i18n.t("cli.also.not_a_card", n=n, card=item))
+            continue
+        if item in aside:
+            problems.append(i18n.t("cli.also.set_aside", n=n, card=item))
+            continue
+        kind = gets_mod.kind_of(item, data)
+        if lp and kind not in ("pet", "sub", "es"):
+            problems.append(i18n.t("cli.also.wrong_kind_lpets", n=n, card=item))
+            continue
+        if not lp and kind not in ("pet", "sub"):
+            problems.append(i18n.t("cli.also.wrong_kind_gets", n=n, card=item, unit=bring_in_unit()))
+            continue
+        if not lp and not many:
+            problems.append(i18n.t("cli.also.one_per_pet", n=n))
+            continue
+        to = themes_ai.one_line(op.get("to") or op.get("into"))
+        if to not in titles:
+            named = [g for g, t in titles.items() if " ".join(str(t).split()).lower() == to.lower()] if to else []
+            if len(named) != 1:
+                problems.append(i18n.t("cli.also.no_label", n=n, card=item, to=to or "nothing", unit=bring_in_unit()))
+                continue
+            to = named[0]
+        base = gets_mod.base_key(item)
+        kin = [k for k in kept["cards"] if gets_mod.base_key(k) == base and k not in aside]
+        if lp:
+            if parents.get(to) is not None:
+                problems.append(i18n.t("cli.also.not_an_lpet", n=n, to=titles[to]))
+                continue
+            held = {top(parents.get(k)) for k in kin} | {t for b, t in placed if b == base}
+        else:
+            held = {parents.get(k) for k in kin} | {t for b, t in placed if b == base}
+        if to in held:
+            problems.append(i18n.t("cli.also.there_already", n=n, card=item, to=titles[to]))
+            continue
+        number = 2
+        while f"{base}/{number}" in taken:
+            number += 1
+        fresh = f"{base}/{number}"
+        taken.add(fresh)
+        placed.append((base, to))
+        out.append({"n": n, "from": item, "key": fresh, "to": to})
+    if problems:
+        raise cli.Refused(*problems, i18n.t("cli.said.nothing_was_written"))
+    return out
+
+
+def also_said(alsos: list[dict], landed: dict) -> list[str]:
+    """What each `also` did, the new card's key and the label it stands under."""
+    titles = {g["id"]: g["label"] for g in landed.get("groups") or []}
+    out = []
+    for a in alsos:
+        label = titles.get(a["to"], a["to"])
+        if gets_mod.in_lpets():
+            out.append(i18n.t("cli.also.made_lpets", card=a["from"], made=a["key"], label=label))
+        else:
+            out.append(i18n.t("cli.also.made", card=a["from"], made=a["key"], label=label))
+    return out
+
+
 def bring_in_said(brought: list[dict], landed: dict) -> list[str]:
     """What each statement brought in did, where it stands on the board the change left."""
     parents = themes.parents_of(landed.get("groups") or [])
@@ -5265,6 +5394,12 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         # label, where the other operations can name its card, as the page's drag puts it there
         brought = bring_ins(p, ops, kept, data)
         gets_mod.bring_in(kept, data, [b["key"] for b in brought])
+        # a second card of a PET, a sub-theme or a statement (drawsbuild) comes onto the board the same way, a copy of
+        # its first beside it, which a move then takes under its label
+        alsos = also_ins(ops, kept, data)
+        for a in alsos:
+            src = kept["cards"][a["from"]]
+            kept["cards"][a["key"]] = dict(src, x=round(float(src.get("x") or 0)) + 40, y=round(float(src.get("y") or 0)) + 40)
         texts = {c["key"]: gets_mod.layout_text(c["text"], c.get(themes.DESCRIPTION)) for c in gets_mod.cards_shown(kept, data)}
         plain = dict(kept, cards={k: dict(c, text=texts.get(k) or c.get("text") or "") for k, c in kept["cards"].items()})
         start = {"items": [k for k in plain["cards"] if k not in plain["discarded"]],
@@ -5290,7 +5425,9 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         # a statement brought in goes into its label by a move where its operation stands, so a label a make made
         # before it takes it by its ref, and one brought in to no label stays where it came in
         into = {b["n"]: {"op": "move", "items": [b["key"]], "to": b["to"]} for b in brought if b["to"] is not None}
-        listed = [(n, into.get(n, op)) for n, op in listed if not is_bring_in(op) or n in into]
+        # each second card goes under its label by a move where its operation stands (drawsbuild)
+        into.update({a["n"]: {"op": "move", "items": [a["key"]], "to": a["to"]} for a in alsos})
+        listed = [(n, into.get(n, op)) for n, op in listed if (not is_bring_in(op) and not is_also(op)) or n in into]
         if listed:
             after, applied, info = apply_ops(start, [op for _, op in listed], [n for n, _ in listed])
         else:
@@ -5332,13 +5469,14 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         laid = json.dumps([landed.get("cards"), landed.get("groups"), landed.get("notes")], sort_keys=True) != laid_from
         if problems:
             raise cli.Refused(*problems, i18n.t("cli.said.nothing_was_written"))
-        if (not structural and not brought and not aside_said and not any(o["moved"] for o in ordered) and not arranged
+        if (not structural and not brought and not alsos and not aside_said and not any(o["moved"] for o in ordered) and not arranged
                 and not laid):
             text = (i18n.t("cli.gets_apply.nothing_to_change_every_pet_and", name=kept['name'])
                     if arranges and not loose else
                     i18n.t("cli.said.nothing_to_change_already_reads_that", name=kept['name']))
             return {"board": kept["id"], "changed": False, "said": text}, [text]
         parts = bring_in_said(brought, landed)
+        parts += also_said(alsos, landed)
         parts += [themes_ai.change_line(applied, start)] if applied else []
         parts += aside_said
         parts += [order_said(o, landed, {}, i18n.t("cli.gets_apply.the_gets")) for o in ordered]
@@ -5367,6 +5505,9 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         brought_out = [{"key": b["key"], "case": b["case"], "who": gets_mod.who(b["case"]), "text": b["text"],
                         "label": b.get("label"), "title": b.get("title")} for b in brought]
         made_file = gets_mod.gets_path(p.root).name if first else None
+        # each second card made: its own key, the card it copies and the label it stands under (drawsbuild)
+        also_out = [{"card": a["key"], "from": a["from"], "label": themes.parents_of(landed["groups"]).get(a["key"])}
+                    for a in alsos]
         if args.dry_run:
             if gets_mod.in_lpets():
                 text = i18n.t("cli.gets_apply.dry_run_nothing_was_written_on_lpets", name=kept['name'], v_=said[0].lower() + said[1:])
@@ -5377,7 +5518,7 @@ def cmd_gets_apply(p: Project, args) -> tuple:
             text = " ".join(x for x in (text, first_file_said(p, first, True)) if x)
             return {"dry_run": True, "board": kept["id"], "applied": applied, "ordered": shown_orders, "arranged": arranged,
                     "brought": brought_out, "set_aside": set_aside, "put_back": put_back,
-                    "n_set_aside": len(set_aside), "n_put_back": len(put_back),
+                    "n_set_aside": len(set_aside), "n_put_back": len(put_back), "also": also_out, "n_also": len(also_out),
                     "said": text, "revision": revision, "made_file": made_file}, [text]
         made = themes.add_revision(board, name=revision, at=when)
         made["made"] = mark(args, when)
@@ -5390,7 +5531,8 @@ def cmd_gets_apply(p: Project, args) -> tuple:
     text = " ".join(x for x in (f"{said} {kept_line(board.get('name'), revision)}", first_file_said(p, first, False)) if x)
     return {"board": board.get("id"), "name": board.get("name"), "applied": applied, "ordered": shown_orders,
             "arranged": arranged, "brought": brought_out, "set_aside": set_aside, "put_back": put_back,
-            "n_set_aside": len(set_aside), "n_put_back": len(put_back), "made": info.get("made"), "gone": info.get("gone"),
+            "n_set_aside": len(set_aside), "n_put_back": len(put_back), "also": also_out, "n_also": len(also_out),
+            "made": info.get("made"), "gone": info.get("gone"),
             "revision": themes.revision_summary(made), "said": text, "made_file": made_file}, [text]
 
 

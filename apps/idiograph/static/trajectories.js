@@ -115,7 +115,7 @@ const TJ_TAG_COLOURS = 8;
    screen it came from away once the board is in, `back` returns there, `to` names that screen */
 async function trajOpen(path, how = {}) {
   if (typeof unsayUndo === 'function') unsayUndo();
-  if (typeof XO !== 'undefined' && XO.info && XO.info.traj) outsideNotice(null);
+  if (typeof outsideNotice === 'function') outsideNotice(null, 'traj');
   TJ.left = null;
   const ask = ++TJ.ask;
   let data;
@@ -180,7 +180,7 @@ async function trajStampTick() {
     await trajReread(path);
     return;
   }
-  outsideNotice({ traj: true, line: t('trajectories.outside_changed'), word: t('themes.outside.update'),
+  outsideNotice({ traj: true, host: $('tj-body'), line: t('trajectories.outside_changed'), word: t('themes.outside.update'),
     show: () => trajOutsideShow(), close: () => { TJ.left = now; } });
 }
 
@@ -196,7 +196,7 @@ async function trajReread(path) {
 }
 
 async function trajOutsideShow() {
-  if (XO.info && XO.info.traj) outsideNotice(null);
+  outsideNotice(null, 'traj');
   const el = document.activeElement;
   if (el && $('traj').contains(el) && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) el.blur();
   await trajIdle(250);

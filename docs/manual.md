@@ -5075,6 +5075,16 @@ timepoints:
   the card's Inspector (the same box) and on the canvas's PDF and picture. A reason is hidden while an LPET
   draws on its PET, and shows again if none does. A PETs board other than the one the
   LPETs took the timepoint from says so in place of the list.
+
+  Rarely one moment informs two LPETs. A PET's, a sub-theme's or a statement's card on the LPETs board has
+  "Also drawn on by…" in its menu, then the LPETs it is not already in; Option-drag onto an LPET does the
+  same. A second card of it stands in that LPET, both cards read "Also drawn on by" the other LPET, and the
+  card's Inspector lists both under Drawn on by. Set one aside as any card. The LPET table sets each LPET
+  timepoints across, as Nizza's Table 8: a column a timepoint with the state, the key quote he chose cited
+  with the participant, timepoint and time (none until he chooses one), and what it draws on there, each
+  opening its place on its PETs board or its passage, or "Nothing at T2"; the LPET's note under it. Its
+  Microsoft Word and PDF are the thesis appendix, the same table, then the PETs no LPET draws on with his
+  reasons.
 - the LGETs tab, after LPETs, opens the project's LGETs (21 October), longitudinal group themes made
   from every participant's LPETs as GETs are made from their PETs, the same canvas and the same ways.
   Each card is an LPET, "LPET · Wren" over its title, in the participant's colour, and a label over cards

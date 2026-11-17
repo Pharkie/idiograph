@@ -342,5 +342,5 @@ console.log(JSON.stringify(out));
           and "if (words) box.classList.add('th-panel-edit');" in open_js and js.count("api(TH_EDIT_ROUTE,") == 2
           and "thRefuse('edit')" in open_js and ".th-panel-edit {" in css)
     check("143: the write puts the new words on the card and in the Inspector, and undo goes back through the same route",
-          "thRender();\n  if (thInFile(() => thSettle(TH.v, thSize, [key], was, []))) thPlace();\n  if (TH.panelOpen) thPanelDraw();" in fn(js, "thStatementWrite")
+          "thRender();\n  if (thInFile(() => thSettle(TH.v, thSize, kin.length ? kin : [key], was, []))) thPlace();\n  if (TH.panelOpen) thPanelDraw();" in fn(js, "thStatementWrite")
           and "if (stack[stack.length - 1].edit) { thStatementStep(stack[stack.length - 1], backwards); return; }" in fn(js, "thUndo"))

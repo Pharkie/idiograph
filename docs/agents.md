@@ -199,7 +199,9 @@ guide and the schemas, which hold nothing of a project, are read as ever.
 
 ## Names and ids
 
-A participant goes by its pseudonym, `Rowan` or `P4 - Alder`. Never write a participant's folder's second part
+A participant goes by its pseudonym, `Rowan` or `P4 - Alder`, and where a folder renamed outside the app no
+longer shares that name, by the folder's whole label as the app shows it, `P4 - Alder`, or `P4`. `participant
+rename` is refused where the folder's label no longer gives the participant's name. Never write a participant's folder's second part
 anywhere. A statement goes by its short id, `S12`, or its key, `Initial:12:0` (sheet, row, line),
 and every answer pairs the two. Short ids run S1 on, sheet by sheet down the transcript, and the
 app's Inspector shows the same id after a statement's timecode, so he can name one to you. A label
@@ -833,6 +835,24 @@ second time, inside its PET's card (an LPET's on LGETs), its sub-theme's or a PE
 beside its PET's card is one: set it aside when he asks to tidy them. A card that `shown_twice` lists in a label other
 than the one holding its PET's or sub-theme's card may be his own placing, a statement that draws on a second group
 theme: ask him before setting it aside.
+
+**One card drawn on by two LPETs** (17 November 2026). Rarely one moment of an interview informs two LPETs. What
+the LPETs board's "Also drawn on by…" in a card's menu, or Option-drag onto an LPET, does, `gets apply` does with
+`also`, the card by its key as `gets show` gives it and the LPET by its id or its title, only when he asks:
+
+```
+[{"op": "also", "item": "T1/g1", "to": "G2"}]
+idiograph gets apply b1 --lpets Wren --ops also.json --dry-run
+idiograph gets apply b1 --lpets Wren --ops also.json --note "his words" --tool "Claude Code"
+```
+
+It makes a second card of that PET, sub-theme or statement under the LPET, its key the first's with `/2` after it
+(`T1/g1/2`, `T2/es/T2:13:0/2`), the first staying where it is, and both cards then read "Also drawn on by" the other
+LPET; `board drawn-on` lists both. On GETs and LGETs it is Place also under, a PET's or a sub-theme's card under
+another label, with One per PET off. The dry run and the answer give `also`, each with its `card`, `from` and
+`label`, keys alone, with `n_also`. Refused whole, with nothing written, dry run or not: a card the board has not got,
+one set aside, a participant note, a sub-LPET, a label not there and an LPET one of its cards is in already. Set a
+second card aside as any card when he asks.
 
 Since 9 November 2026 a board and a participant's LPETs can come from his own tables, made in Excel
 before Idiograph. `board import` makes a PETs board from a table of PETs, a CSV or an Excel sheet with

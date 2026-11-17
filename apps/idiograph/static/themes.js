@@ -5479,7 +5479,7 @@ async function thSaveOnce() {
     if (TH.mode === 'gets' && TH.lpets && data.why && TH.path === path) {
       const was = JSON.stringify(TH.lpetWhy || {});
       TH.lpetWhy = Object.assign({}, data.why);
-      if (was !== JSON.stringify(TH.lpetWhy) && TH.live && TH.v && !TH.drag && !TH.editing && !TH.cardEdit && !TH.writing) thRender();
+      if (was !== JSON.stringify(TH.lpetWhy) && TH.live && TH.v && !TH.drag && !TH.editing && !TH.cardEdit && !TH.writing && !TH.stickyEdit && !TH.busy) thRender();
     }
     // and the version it wrote, which the next save carries
     if (data.version && data.version.v && TH.meta && TH.path === path && data.version.id === TH.meta.id) TH.meta.v = data.version.v;
@@ -6194,8 +6194,12 @@ async function thStatementWrite(key, from, to, step) {
   } finally {
     TH.writing = false;
   }
-  const card = TH.live && TH.v && TH.v.cards[key];
-  if (card) {
+  // every card of the statement takes the words, on GETs boards its second card too (`/2`, drawsbuild), so a save
+  // never writes the old words back into one of them
+  const kin = TH.live && TH.v ? Object.keys(TH.v.cards).filter((k) => k === key
+    || (TH.mode === 'gets' && gtBase(k) === gtBase(key))) : [];
+  for (const k of kin) {
+    const card = TH.v.cards[k];
     card.text = data.text;
     card.changed = false;
     delete card.stored;
@@ -6224,7 +6228,7 @@ async function thStatementWrite(key, from, to, step) {
   // sends its neighbours clear, as a sticky note's edit does (17 October, later)
   const was = thFileBoxes();
   thRender();
-  if (thInFile(() => thSettle(TH.v, thSize, [key], was, []))) thPlace();
+  if (thInFile(() => thSettle(TH.v, thSize, kin.length ? kin : [key], was, []))) thPlace();
   if (TH.panelOpen) thPanelDraw();
   thSoon();
   return true;
@@ -8495,6 +8499,8 @@ function thTableBin(v) {
    trail under its title. The sidebar's own Table tab, which held the rows' notes, went on 19 October. */
 function gtTableFace(v) {
   if (!TH.gets) return '';
+  // a participant's LPETs timepoints across, as Nizza's Table 8 and the appendix (drawsbuild)
+  if (TH.lpets) return gtLpetTableFace(v);
   const tints = thTints(v);
   const { minimum, total } = TH.gets;
   const model = gtTable(v);
@@ -8537,6 +8543,74 @@ function gtTableFace(v) {
       + loose.map((k) => item(gtItemOf(v, k), '')).join('') + '</ul></div>';
   }
   return html + thTableBin(v);
+}
+
+/* The LPET table timepoints across (drawsbuild, 17 November 2026, Adam's option B, as Nizza's (2022) Table 8, and
+   the same as its Word and PDF appendix): each LPET a block, its title strip and Audit trail as before, then a column
+   a timepoint, its State (his, a click opening it), its Key quote cited with the participant, the timepoint and the
+   time, and what it Draws on there, each PET, sub-theme or statement by its title or words with a link opening its
+   place on its board or its passage, or "Nothing at T2"; the LPET's note under it. The rows keep their grips, so a
+   card still drags from one LPET to another, and the cards under no LPET and Set aside follow as before. */
+function gtLpetTableFace(v) {
+  const tints = thTints(v);
+  const { minimum, total } = TH.gets;
+  const model = gtTable(v);
+  const whose = String(TH.lpetsWho || '').replace(/^P\d+\s*-\s*/, '');
+  let html = '<div class="tb-pets" data-tbody="">';
+  if (!model.length) html += `<p class="tb-none">${esc(t('themes.table.no_gets'))}</p>`;
+  const kindOf = (it) => (it.kind === 'es' ? t('themes.statement') : it.kind === 'sub' ? t('themes.kind.sub') : t('themes.unit.pet'));
+  const item = (it, parent) => `<li class="tb-item lp-item${thTableSelCls('statement', it.key)}" data-trow="${escAttr(it.key)}" data-tkind="statement" data-tparent="${escAttr(parent)}">`
+    + `${thTableGrip(t('themes.table.this_card'))}<span class="lp-said"><span class="tb-kind">${esc(kindOf(it))}</span>`
+    + `<button type="button" class="linkish lp-go" tabindex="-1" data-draws-go="${escAttr(it.key)}" `
+    + `title="${escAttr(it.kind === 'es' ? t('themes.lpets.go_passage') : t('themes.lpets.go_board'))}">`
+    + `${esc(it.kind === 'pet' || it.kind === 'sub' ? it.title : it.text)}<span class="lp-arrow" aria-hidden="true">&#8599;</span></button>`
+    + `${it.kind === 'es' && it.time ? `<span class="th-time">${esc(it.time)}</span>` : ''}</span>${thTableMore()}</li>`;
+  for (const g of model) {
+    const badge = gtBadgeOf(v, g.id, g.count, total, minimum, true);
+    const node = { id: g.id, code: '', title: thLabelShown(g.label), depth: 0 };
+    html += `<section class="tb-pet tb-get lp-block ${thTintClass(tints[g.id])}${thTableSelCls('label', g.id)}" data-trow="${escAttr(g.id)}" data-tkind="label" data-tparent="">`
+      + thTableHeadHtml(v, node, `<span class="tb-badge" title="${escAttr(badge.tip)}">${esc(badge.short)}</span>`)
+      + `<button type="button" class="ghost small tb-trail" data-gtrail="${escAttr(g.id)}">${esc(t('themes.gets.trail'))}</button>`
+      + `<div class="tb-body lp-cols" data-tbody="${escAttr(g.id)}" style="--lp-n:${Math.max(1, g.rows.length)}">`;
+    for (const row of g.rows) {
+      const items = row.items.filter((it) => it.kind !== 'pn');
+      // the timepoint's label and its description, "T1 Before the season", as the project names them
+      const tp = (TH.tps || []).find((x) => `T${x.n}` === row.kase);
+      const named = tp ? (tp.label || row.kase) : (row.who || row.kase);
+      const head = `${esc(named)}${tp && tp.description ? ` <span class="lp-tpname">${esc(tp.description)}</span>` : ''}`;
+      // the key quote he chose alone, never a stand-in, none until he chooses (Adam, 17 November 2026)
+      const q = (row.chosen || row.passage) && row.quote ? row.quote : null;
+      html += `<div class="lp-col"><p class="lp-tp" data-tcase="${escAttr(row.kase)}" data-tget="${escAttr(g.id)}">${gtBadgeHtml(row.kase)}${head}</p>`
+        + `<p class="lp-k">${esc(t('themes.lpets.state'))}</p>${gtRowNoteHtml(g.id, row)}`
+        + `<p class="lp-k">${esc(t('themes.lpets.key_quote'))}</p>`
+        + (q ? `<p class="lp-q">${gtBoldHtml(q.text, row.bold)}</p><p class="lp-cite">${esc([whose, q.time].filter(Boolean).join(', '))}</p>`
+          : `<p class="tb-nothing">${esc(t('themes.lpets.no_key_quote'))}</p>`)
+        + `<p class="lp-k">${esc(t('themes.drawn.head'))}</p>`
+        + (items.length ? `<ul class="tb-items">${items.map((it) => item(it, g.id)).join('')}</ul>`
+          : `<p class="tb-nothing">${esc(t('themes.lpets.nothing_at', { timepoint: row.kase }))}</p>`)
+        + '</div>';
+    }
+    html += '</div>' + (g.note ? `<p class="tb-note lp-note">${esc(g.note)}</p>` : '') + '</section>';
+  }
+  html += '</div>';
+  const parents = thParents(v);
+  const loose = Object.keys(v.cards).filter((k) => (thOnCanvas(v, k) || thWaiting(v, k)) && parents[k] === undefined);
+  if (loose.length) {
+    html += `<div class="tb-rest"><p class="tb-rest-head">${esc(t('themes.table.not_placed', { n: loose.length }))}</p><ul class="tb-items tb-loose" data-tbody="${TH_TABLE_LOOSE}">`
+      + loose.map((k) => item(gtItemOf(v, k), '')).join('') + '</ul></div>';
+  }
+  return html + thTableBin(v);
+}
+
+/* What an LPET draws on, opened from the LPET table: a statement's passage, or a PET's or a sub-theme's place on its
+   timepoint's PETs board, selected with its Inspector, the way back returning to this table (drawsbuild) */
+function gtDrawsGo(key) {
+  if (!TH.live || TH.busy || !TH.v) return;
+  const k = gtSplit(key);
+  if (k.kind === 'es') { thToPassage(key); return; }
+  const n = Number(String(k.kase).replace(/^T/, ''));
+  if (k.kind !== 'group' || !Number.isInteger(n)) return;
+  thStageGo(() => gtDrawsGo(key), { timepoint: n, select: k.ident });
 }
 
 /* The sub-themes directly inside a GET or a GET sub-theme, in the order its frame reads them */
@@ -9007,6 +9081,9 @@ function thTableBoot() {
     const note = e.target.closest('[data-gnote]');
     if (note && thGets()) { gtRowNoteOpen(note.dataset.gnote, note.dataset.gcase); return; }
     if (!TH.live || TH.busy || !TH.v) return;
+    // what an LPET draws on, opened on its board or at its passage (drawsbuild)
+    const go = e.target.closest('[data-draws-go]');
+    if (go && TH.lpets) { gtDrawsGo(go.dataset.drawsGo); return; }
     const stack = e.target.closest('[data-tstack]');
     if (stack) { thStackShow(stack.dataset.tstack); return; }
     // a row's link mark opens its close pair's menu, the row's statement "this one"
@@ -9650,7 +9727,7 @@ function thOutside(info) {
   if (!info) { outsideNotice(null); return; }
   thExported(null);
   // Show it opens a board added, Update loads a change in place
-  outsideNotice({ line: info.said || info.line, word: info.added ? t('themes.outside.show') : t('themes.outside.update'),
+  outsideNotice({ host: $('th-stage'), line: info.said || info.line, word: info.added ? t('themes.outside.show') : t('themes.outside.update'),
     show: () => thOutsideShow(), close: () => thOutsideClose() });
 }
 
@@ -9807,7 +9884,7 @@ function thStaleShow(info) {
 function thStaleDraw() {
   if (typeof staleNotice !== 'function') return;
   if (!TH.stale && !TH.staleKept) { staleNotice(null); return; }
-  staleNotice({ line: TH.staleKept ? TH_STALE_RELOADED : TH_STALE_LINE, kept: !!TH.staleKept,
+  staleNotice({ host: $('th-stage'), line: TH.staleKept ? TH_STALE_RELOADED : TH_STALE_LINE, kept: !!TH.staleKept,
     reload: () => thStaleReload(), overwrite: () => thStaleOverwrite(), back: () => thStaleBack() });
 }
 
@@ -10426,6 +10503,19 @@ function thDragEnd(e) {
     for (const k of done) TH.opened.delete(k);
     TH.sel.cards = new Set([hit.stack]);
     thDone(d.before, t('themes.step.stacked', { n: done.length }), { from, lifted });
+    return;
+  }
+  // On LPETs, Option held as one card is let go on an LPET draws on it there too: a second card of it in that
+  // LPET, the first staying where it was (drawsbuild, Adam's point 4), as Also drawn on by… in its menu does
+  const alsoTo = TH.lpets && alt && hit && hit.group && handled.length === 1 && d.moving.size === 1
+    ? gtLpetOf(thParents(v), hit.group) || hit.group : null;
+  if (alsoTo && gtAlsoTargets(v, handled[0]).some((g) => g.id === alsoTo)) {
+    for (const it of d.moving) {
+      const at = thIsGroup(v, it) ? thGroup(v, it) : (v.cards[it] || thSticky(v, it));
+      Object.assign(at, d.starts[it]);
+    }
+    thRender();
+    gtPlaceAlso(handled[0], alsoTo);
     return;
   }
   // A member dropped anywhere stays a member: only a title strip takes it, or the body of a theme,
@@ -11176,12 +11266,21 @@ function gtSplit(key) {
   const cut = rest.indexOf('/');
   const head = cut < 0 ? rest : rest.slice(0, cut);
   const tail = cut < 0 ? '' : rest.slice(cut + 1);
-  if (head === 'es' || head === 'pn') return { kase, kind: head, ident: tail, copy: null };
+  // a statement's second card on LPETs, `<case>/es/<line>/2` (drawsbuild), its line read without the number
+  if (head === 'es') {
+    const at2 = tail.indexOf('/');
+    return { kase, kind: head, ident: at2 < 0 ? tail : tail.slice(0, at2), copy: at2 < 0 ? null : tail.slice(at2 + 1) || null };
+  }
+  if (head === 'pn') return { kase, kind: head, ident: tail, copy: null };
   return { kase, kind: 'group', ident: head, copy: tail || null };
 }
 
-/* the key of a PET's or a sub-theme's first card, which a second one under another GET extends */
-const gtBase = (key) => { const k = gtSplit(key); return k.kind === 'group' ? `${k.kase}/${k.ident}` : key; };
+/* the key of a PET's, a sub-theme's or a statement's first card, which a second one under another GET or LPET extends */
+const gtBase = (key) => {
+  const k = gtSplit(key);
+  if (k.kind === 'group') return `${k.kase}/${k.ident}`;
+  return k.kind === 'es' ? `${k.kase}/es/${k.ident}` : key;
+};
 
 /* the GETs screen, opened from the head of All cases, from under the Demo card, or from the PETs
    bar, on the GETs of the project the workbook belongs to */
@@ -12123,11 +12222,21 @@ function gtFrom(v, key, c, parents) {
     return get ? t('themes.gets.from_get', { unit, title: pet.title, get: thGetWord(), label: thLabelShown(get.label) }) : t('themes.gets.from_pet', { unit, title: pet.title });
   }
   if (c.kind !== 'pet' && c.kind !== 'sub') return '';
+  // on LPETs a second card says which LPET also draws on it, in its own line (gtAlsoLine)
+  if (TH.lpets) return '';
   const base = gtBase(key);
   const others = Object.keys(v.cards).filter((k) => k !== key && gtBase(k) === base && !v.discarded.includes(k));
   if (!others.length) return '';
   const gets = others.map((k) => gtTopOf(v, k, parents)).filter(Boolean).map((g) => thLabelShown(g.label));
   return gets.length ? t('themes.gets.also_under', { names: [...new Set(gets)].join(', ') }) : t('themes.gets.also_here');
+}
+
+/* On LPETs, a card whose PET, sub-theme or statement another LPET draws on too: "Also drawn on by <that LPET>"
+   (drawsbuild), on both cards, gone once the other is set aside */
+function gtAlsoLine(v, key, parents) {
+  if (!TH.lpets || v.discarded.includes(key)) return '';
+  const others = gtAlsoLpets(v, key, parents);
+  return others.length ? t('themes.lpets.also_line', { names: others.map((x) => x.title).join(', ') }) : '';
 }
 
 /* the marks a card carries: its case's PETs not complete, or no longer in its case */
@@ -12142,6 +12251,7 @@ const gtCardDesc = (c) => ((c && (c.kind === 'pet' || c.kind === 'sub') && !c.go
 function gtCardHtml(v, key, c, parents) {
   if (thTa() && c.kind === 'es') return gtCodeCardHtml(v, key, c, parents);
   const from = gtFrom(v, key, c, parents);
+  const also = gtAlsoLine(v, key, parents);
   const why = thWhyHtml(v, key, parents[key]);
   const n = Number(c.statements) || 0;
   // a PET's or a sub-theme's count is its chevron too, which unfolds the card in place (21 October)
@@ -12156,6 +12266,7 @@ function gtCardHtml(v, key, c, parents) {
   return `<p class="gt-kicker">${gtBadgeHtml(c.case)}<span class="gt-ktext">${esc(gtKicker(c))}</span></p><p class="th-text${c.text ? '' : ' gt-empty'}">${esc(words)}</p>`
     + (gtCardDesc(c) ? `<p class="gt-desc">${esc(gtCardDesc(c))}</p>` : '')
     + (from ? `<p class="gt-from">${esc(from)}</p>` : '')
+    + (also ? `<p class="gt-from gt-also">${esc(also)}</p>` : '')
     + thKqHtml(v, key) + thEnHtml(v, key)
     + `<div class="th-foot">${foot}${gtMarks(c).map((m) => `<span class="gt-mark">${esc(m)}</span>`).join('')}</div>`
     + (open ? gtUnfoldHtml(key, c) : '') + why
@@ -12335,7 +12446,7 @@ function gtDress(v) {
     el.innerHTML = gtCardHtml(v, key, c, parents);
     const from = gtFrom(v, key, c, parents);
     const why = parents[key] === undefined && !v.discarded.includes(key) && thWhy(v, key) ? t('themes.card.left_out', { why: thWhy(v, key) }) : '';
-    el.title = [gtKicker(c), c.text, gtCardDesc(c), from, ...gtMarks(c), why].filter(Boolean).join('\n');
+    el.title = [gtKicker(c), c.text, gtCardDesc(c), from, gtAlsoLine(v, key, parents), ...gtMarks(c), why].filter(Boolean).join('\n');
   }
   for (const g of v.groups) {
     const n = gtCount(v, g.id);
@@ -12607,6 +12718,7 @@ function gtPanelDraw(v, item, owner) {
         + `<p class="th-panel-meta"><span class="th-time">${esc(c.time || '')}</span>${thSheetTag(c.sheet)}${marks}</p>`
         + thLeftOutHtml(v, item.id, owner)
         + thLeaveHtml(v, item.id, owner)
+        + gtDrawnByHtml(v, item.id, parents)
         + `<dl class="gt-facts"><dt>${esc(t('themes.unit.pet'))}</dt><dd>${esc(pet ? pet.title : line.discarded ? t('themes.gets.binned') : t('themes.status.name_unplaced'))}</dd>`
         + `<dt>${esc(thGetWord())}</dt><dd>${esc(get ? thLabelShown(get.label) : t('themes.status.name_unplaced'))}</dd></dl>`
         + (ticks || (`<h3 class="section-label">${esc(t('themes.quote'))}</h3>`
@@ -12622,7 +12734,8 @@ function gtPanelDraw(v, item, owner) {
       html = `<p class="th-panel-title">${esc(c.text)}</p>`
         + `<p class="th-panel-meta">${c.gone ? '' : `<span>${esc(t('themes.count.statements', { n }))}</span>`}${marks}</p>`
         + (why || thLeftOutHtml(v, item.id, owner))
-        + thLeaveHtml(v, item.id, owner);
+        + thLeaveHtml(v, item.id, owner)
+        + gtDrawnByHtml(v, item.id, parents);
       if (pet) {
         const subs = (pet.subs || []).map((id) => (entry.pets || []).find((p) => p.id === id)).filter(Boolean);
         if (pet.note) html += `<h3 class="section-label">${esc(t('themes.kind.note'))}</h3><p class="gt-read">${esc(pet.note)}</p>`;
@@ -12683,6 +12796,31 @@ function gtPanelDraw(v, item, owner) {
   const dagain = domainHeld ? $('gt-ldomain') : null;
   if (dagain) { dagain.focus(); dagain.setSelectionRange(domainHeld.start, domainHeld.end); }
   thPlayerDraw();
+}
+
+/* On LPETs, a card's Inspector on a PET, a sub-theme or a statement another LPET draws on too: Drawn on by, its
+   own LPET and each other one, each other one a link to its card there (drawsbuild). Nothing for one drawn on once. */
+function gtDrawnByHtml(v, key, parents) {
+  if (!TH.lpets || v.discarded.includes(key)) return '';
+  const others = gtAlsoLpets(v, key, parents);
+  if (!others.length) return '';
+  const mine = gtLpetOf(parents, key);
+  const own = mine ? `<li><span class="th-drawn-here">${esc(thLabelShown(thGroup(v, mine).label))}</span></li>` : '';
+  return `<div class="th-drawn-sec"><h3 class="section-label">${esc(t('themes.lpets.drawn_by_head'))}</h3><ul class="gt-list th-drawn">${own}`
+    + others.map((x) => `<li><button type="button" class="linkish th-drawn-go" tabindex="-1" data-also-card="${escAttr(x.key)}">${esc(x.title)}</button></li>`).join('')
+    + '</ul></div>';
+}
+
+/* the other card of a PET, a sub-theme or a statement, selected and in view with its Inspector */
+function gtAlsoGo(key) {
+  const v = TH.v;
+  if (!TH.live || !v || !v.cards[key]) return;
+  thSelectOnly({ kind: 'card', id: key });
+  TH.lastPick = { kind: 'card', id: key };
+  thInspectorOpen({ kind: 'card', id: key });
+  if (TH.face === 'table') return;
+  const s = thSize(key);
+  thFitTo({ x: v.cards[key].x, y: v.cards[key].y, w: s.w, h: s.h });
 }
 
 /* A statement's words written from a card of this board taken into the Participants panel's copy of its
@@ -12751,9 +12889,13 @@ function gtMenuItems(v, item, base) {
     items.splice(at + 1, 0, { label: TH.unfolded.has(item.id) ? t('themes.gets.fold') : t('themes.gets.unfold'), act: 'unfold' });
   }
   const many = TH.gets && TH.gets.settings && TH.gets.settings.one_per_pet === false;
-  if (c && many && (c.kind === 'pet' || c.kind === 'sub') && !thLocked(v) && gtAlsoTargets(v, item.id).length) {
+  // on LPETs a PET's, a sub-theme's or a statement's card can be drawn on by a second LPET, whatever One per PET
+  // says (drawsbuild, Adam's point 4: one moment can inform two LPETs)
+  const kinds = TH.lpets ? ['pet', 'sub', 'es'] : ['pet', 'sub'];
+  if (c && (many || TH.lpets) && kinds.includes(c.kind) && !v.discarded.includes(item.id) && !thLocked(v)
+      && gtAlsoTargets(v, item.id).length) {
     const at = items.findIndex((it) => it.act === 'discard');
-    items.splice(at < 0 ? items.length : at, 0, { label: t('themes.gets.also_menu'), act: 'also', rule: true });
+    items.splice(at < 0 ? items.length : at, 0, { label: TH.lpets ? t('themes.lpets.also_menu') : t('themes.gets.also_menu'), act: 'also', rule: true });
     const after = items[at < 0 ? items.length - 1 : at + 1];
     if (after && after.act === 'discard') after.rule = false;
   }
@@ -12761,31 +12903,64 @@ function gtMenuItems(v, item, base) {
   return items;
 }
 
-/* the GETs and sub-themes a PET's card can go under besides the ones a card of it is under */
+/* the GETs and sub-themes a PET's card can go under besides the ones a card of it is under, and on LPETs the
+   LPETs none of its cards is in, at any depth (drawsbuild) */
 function gtAlsoTargets(v, key) {
   const base = gtBase(key);
   const parents = thParents(v);
-  const held = new Set(Object.keys(v.cards).filter((k) => gtBase(k) === base && !v.discarded.includes(k))
-    .map((k) => parents[k]).filter(Boolean));
+  const kin = Object.keys(v.cards).filter((k) => gtBase(k) === base && !v.discarded.includes(k));
+  if (TH.lpets) {
+    const held = new Set(kin.map((k) => gtLpetOf(parents, k)).filter(Boolean));
+    return gtCanvasOrder(v.groups.filter((g) => parents[g.id] === undefined)).map((gid) => thGroup(v, gid))
+      .filter((g) => g && !held.has(g.id));
+  }
+  const held = new Set(kin.map((k) => parents[k]).filter(Boolean));
   return v.groups.filter((g) => !held.has(g.id));
+}
+
+/* the LPET a card or a label stands in, the top label above it, or null */
+function gtLpetOf(parents, key) {
+  let at = parents[key];
+  if (at === undefined || at === null) return null;
+  const seen = new Set();
+  while (parents[at] !== undefined && parents[at] !== null && !seen.has(at)) { seen.add(at); at = parents[at]; }
+  return at;
+}
+
+/* On LPETs the other LPETs a PET's, a sub-theme's or a statement's other cards stand in, each by id and title, in
+   canvas order (drawsbuild): what a card's line and its Inspector name */
+function gtAlsoLpets(v, key, parents = thParents(v)) {
+  const base = gtBase(key);
+  const mine = gtLpetOf(parents, key);
+  const out = [];
+  for (const k of Object.keys(v.cards)) {
+    if (k === key || gtBase(k) !== base || v.discarded.includes(k)) continue;
+    const top = gtLpetOf(parents, k);
+    if (top && top !== mine && !out.some((x) => x.id === top)) out.push({ id: top, key: k, title: thLabelShown(thGroup(v, top).label) });
+  }
+  const order = gtCanvasOrder(out.map((x) => thGroup(v, x.id)));
+  return order.map((id) => out.find((x) => x.id === id));
 }
 
 function gtAlsoList() {
   const open = TH.menu;
   if (!open) return;
   const targets = gtAlsoTargets(TH.v, open.item.id);
-  open.el.innerHTML = `<p class="th-cmenu-head">${esc(t('themes.gets.also_head'))}</p>`
+  open.el.innerHTML = `<p class="th-cmenu-head">${esc(TH.lpets ? t('themes.lpets.also_head') : t('themes.gets.also_head'))}</p>`
     + targets.map((g) => `<button type="button" class="ghost small" role="menuitem" tabindex="-1" data-also="${escAttr(g.id)}"><span>${esc(thLabelShown(g.label))}</span></button>`).join('');
   const box = open.el.getBoundingClientRect();
   if (box.bottom > window.innerHeight - 8) open.el.style.top = `${Math.max(8, window.innerHeight - 8 - box.height)}px`;
+  // an LPET's title is long, so the list grows wider than the menu it replaces and stays inside the window too
+  if (box.right > window.innerWidth - 8) open.el.style.left = `${Math.max(8, window.innerWidth - 8 - box.width)}px`;
 }
 
-/* A second card of a PET or a sub-theme under another GET, each card then naming the other. One
-   step of undo. */
+/* A second card of a PET or a sub-theme under another GET, each card then naming the other, and on LPETs of a
+   statement too, under another LPET, which then also draws on it (drawsbuild). One step of undo. */
 function gtPlaceAlso(key, gid) {
   const v = TH.v;
   const c = v.cards[key];
   if (!c || !thIsGroup(v, gid) || thRefuse('join')) return;
+  if (!gtAlsoTargets(v, key).some((g) => g.id === gid)) return;
   const base = gtBase(key);
   let n = 2;
   while (v.cards[`${base}/${n}`]) n += 1;
@@ -12801,7 +12976,8 @@ function gtPlaceAlso(key, gid) {
   TH.sel.stickies.clear();
   TH.sel.cards.add(fresh);
   TH.lastPick = { kind: 'card', id: fresh };
-  thDone(before, t('themes.step.placed_under_get'), { settle: [fresh] });
+  thDone(before, TH.lpets ? t('themes.step.also_drawn_on', { label: thLabelShown(thGroup(v, gid).label) })
+    : t('themes.step.placed_under_get'), { settle: [fresh] });
 }
 
 /* ── the Cases panel ── */
@@ -15450,6 +15626,8 @@ function themesBoot() {
   panel.addEventListener('click', (e) => {
     const go = e.target && e.target.closest ? e.target.closest('[data-drawn-lpet]') : null;
     if (go) { e.preventDefault(); thDrawnGo(go.dataset.drawnLpet); }
+    const card = e.target && e.target.closest ? e.target.closest('[data-also-card]') : null;
+    if (card) { e.preventDefault(); gtAlsoGo(card.dataset.alsoCard); }
   });
   // an LPET's domain in the Inspector, kept as the box loses the focus or on Enter, Esc leaving it (lpetmarks)
   panel.addEventListener('focusin', (e) => { if (e.target && e.target.id === 'gt-ldomain') gtDomainStart(e.target); });

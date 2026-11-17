@@ -330,7 +330,7 @@ def _code_card(c: dict, codes: dict, cases: dict, order: list[str], gets_print) 
     Code with how many extracts, the code's name, and under it each participant's letter on their colour with how
     many of the code's extracts are theirs. No participant's colour along its top, and no time or sheet."""
     entry = cases.get(c.get("case") or "") or {}
-    line = (entry.get("lines") or {}).get(str(c["key"]).split("/es/", 1)[-1]) or {}
+    line = (entry.get("lines") or {}).get(str(c["key"]).split("/es/", 1)[-1].split("/")[0]) or {}
     code = codes.get(_code_norm(line.get("text") or c.get("text")))
     n = code["n"] if code else 1
     whos = []
@@ -425,6 +425,10 @@ def _gets_card(c: dict, state: dict, cases: dict, order: list[str], parents: dic
     if kind != "es":
         out["time"], out["sheet"] = "", ""
     out["from"] = _gets_from(c, state, cases, parents, groups, lgets)
+    # on LPETs a card another LPET draws on too says so, as the canvas's line does (drawsbuild, gtAlsoLine)
+    also = _also_line(c, state, parents, groups)
+    if also:
+        out["from"] = "\n".join(x for x in (out["from"], also) if x)
     marks = []
     if c.get("gone"):
         marks.append(i18n.t("themes.table.gone") if kind == "es" else i18n.t("themes.gets.gone", who=who))
@@ -432,12 +436,44 @@ def _gets_card(c: dict, state: dict, cases: dict, order: list[str], parents: dic
         marks.append(i18n.t("themes.gets.not_complete_l") if lgets else i18n.t("themes.gets.not_complete"))
     out["marks"] = marks
     if way != "off" and kind == "es" and not c.get("gone"):
-        line = (entry.get("lines") or {}).get(str(c["key"]).split("/es/", 1)[-1]) or {}
-        place = str(c["key"]).rsplit(":", 1)[-1]
+        line = (entry.get("lines") or {}).get(str(c["key"]).split("/es/", 1)[-1].split("/")[0]) or {}
+        place = str(c["key"]).split("/es/", 1)[-1].split("/")[0].rsplit(":", 1)[-1]
         said = line.get("quotes") or []
         at_q = int(place) if place.isdigit() else -1
         out["quote"] = bare_quote(said[at_q]) if 0 <= at_q < len(said) else ""
     return out
+
+
+def _also_line(c: dict, state: dict, parents: dict, groups: list[dict]) -> str:
+    """On a participant's LPETs, "Also drawn on by <the other LPETs>" for a card of a PET, a sub-theme or a statement
+    another LPET's card holds too, a card set aside counting for neither (drawsbuild)."""
+    import gets
+    discarded = set(state.get("discarded") or [])
+    if not gets.in_lpets() or c.get("kind") not in ("pet", "sub", "es") or c["key"] in discarded:
+        return ""
+    by_id = {g["id"]: g for g in groups}
+
+    def top(key):
+        at, last, seen = parents.get(key), None, set()
+        while at is not None and at not in seen:
+            seen.add(at)
+            last = at
+            at = parents.get(at)
+        return last
+
+    mine = top(c["key"])
+    base = gets.base_key(c["key"])
+    names = []
+    for x in state.get("cards") or []:
+        k = x["key"]
+        if k == c["key"] or k in discarded or gets.base_key(k) != base:
+            continue
+        t = top(k)
+        if t is not None and t != mine and t in by_id:
+            label = str(by_id[t].get("label") or "").strip() or i18n.t("themes.untitled")
+            if label not in names:
+                names.append(label)
+    return i18n.t("themes.lpets.also_line", names=", ".join(names)) if names else ""
 
 
 def _gets_from(c: dict, state: dict, cases: dict, parents: dict, groups: list[dict], lgets: bool) -> str:
@@ -464,7 +500,7 @@ def _gets_from(c: dict, state: dict, cases: dict, parents: dict, groups: list[di
     if kind == "es":
         entry = cases.get(c.get("case")) or {}
         pet = next((p for p in entry.get("pets") or [] if p.get("id") == c.get("pet")), None) if c.get("pet") else None
-        ident = str(c["key"]).split("/es/", 1)[-1]
+        ident = str(c["key"]).split("/es/", 1)[-1].split("/")[0]
         line = (entry.get("lines") or {}).get(ident)
         if not pet:
             return i18n.t("themes.gets.from_aside") if line and line.get("discarded") else i18n.t("themes.gets.from_unplaced")
@@ -476,6 +512,10 @@ def _gets_from(c: dict, state: dict, cases: dict, parents: dict, groups: list[di
                           get=i18n.t("themes.unit.lget") if lgets else i18n.t("themes.unit.get"), label=get)
         return i18n.t("themes.gets.from_pet", unit=unit, title=pet.get("title") or "")
     if kind not in ("pet", "sub"):
+        return ""
+    # on LPETs a second card says which LPET also draws on it, in a line of its own (`_also_line`)
+    import gets
+    if gets.in_lpets():
         return ""
     others = [k for k in cards if k != c["key"] and base(k) == base(c["key"]) and k not in discarded]
     if not others:

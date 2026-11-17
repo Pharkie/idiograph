@@ -110,7 +110,7 @@ def test_same_behaviour(scratch: Path):
     out_close = distil.split("$('th-outside-close').onclick = () => {", 1)[1].split("\n  };", 1)[0] if "$('th-outside-close').onclick" in distil else ""
     check("418: the cross on every card and panel is a close: none is named for a delete, and the corner panels' "
           "crosses only shut and leave the change for later",
-          close_ids and not crossing_deletes and "outsideNotice(null)" in out_close
+          close_ids and not crossing_deletes and "outsideNotice(null, cornerOwner(info))" in out_close
           and not re.search(r"(delete|remove|Delete|Remove)", out_close)
           and "$('export-done-close').onclick = () => exportNotice(null);" in distil, (close_ids[:5], crossing_deletes, out_close))
 
@@ -149,13 +149,13 @@ def test_same_behaviour(scratch: Path):
           page.count('id="th-outside"') == 1 and page.count('id="th-stale"') == 1 and 'id="es-outside"' not in page
           and page.index('id="th-outside"') > page.index('id="export-done"') - 2000
           and "es-outside" not in distil and "$('th-outside')" not in themes and "$('th-stale')" not in themes)
-    stale_codes = fn(codes, "codesOps")
+    stale_codes = fn(codes, "codesOpsNow")
     check("418: a refused save goes to the one shared panel, staleNotice, on the boards and the Code list, and the "
           "Code list's refusal is no silent reload",
           "staleNotice(" in fn(themes, "thStaleDraw") and "staleNotice(null)" in fn(themes, "thStaleHide")
-          and "codesStale(true)" in stale_codes and "staleNotice({ codes: true" in fn(codes, "codesStale")
+          and "codesStale();" in stale_codes and "staleNotice({ owner: 'codes'" in fn(codes, "codesStale")
           and "if (err.data && err.data.stale) await codesReload();" not in stale_codes
-          and "codesOps(ops, true)" in fn(codes, "codesStale"))
+          and "codesOverwrite()" in fn(codes, "codesStale"))
 
     # ── E. Nothing to undo, one key; no line after an Undo
     nothing = fn(distil, "sayNothingToUndo")
@@ -191,22 +191,19 @@ def test_same_behaviour(scratch: Path):
           "thDeletedSay([], live, true);" in fn(themes, "thStickyDelete")
           and "sayUndo(t('themes.deleted_stickies'" in fn(themes, "thDeletedSay")
           and "sayUndo(t('codes.deleted_code'" in fn(codes, "codesDelete")
-          and "unsayUndo()" in fn(codes, "codesOps"))
+          and "unsayUndo()" in fn(codes, "codesSend"))
 
     # ── sameux2b: the Code list's notice, its refused changes, Trajectories' export given up, the panel's words
-    tick, ops, undo, stale = fn(codes, "codesStampTick"), fn(codes, "codesOps"), fn(codes, "codesUndo"), fn(codes, "codesStale")
+    tick, undo = fn(codes, "codesStampTick"), fn(codes, "codesUndo")
     check("418: the Code list's delete notice is withdrawn by a change from elsewhere, and its Undo sends the version "
-          "the screen read, a refusal showing the refused change's panel with Reload alone",
+          "the screen read",
           tick.index("unsayUndo()") < tick.index("outsideNotice(") and "v: CD.data && CD.data.v" in undo
-          and "codesStale(false)" in undo and "overwrite: overwrite ?" in stale
-          and "$('th-stale-over').hidden = !info.overwrite;" in fn(distil, "staleNotice"))
-    check("418: while the Code list's refused change shows, later changes wait behind it and Overwrite sends them all "
-          "in order, Reload dropping them",
-          "if (!over && XS.info && XS.info.codes) { CD.held.push(...ops);" in ops and "codesStale(true)" in ops
-          and "const ops = CD.held.slice();" in stale and "codesOps(ops, true)" in stale and "CD.held = [];" in stale)
+          and "$('th-stale-over').hidden = !info.overwrite;" in fn(distil, "cornerSync"))
+    # what the Code list does with a refused Undo and with the changes held behind a refused change is run in node (K)
+    held_checks(scratch)
     check("418: Trajectories' export given up after its wait says so in the export panel",
           "if (TJ.busy) { exportFailed(null, t('trajectories.export_still_saving')); return; }" in fn(traj, "trajExportGo"))
-    on = fn(distil, "outsideNotice")
+    on = fn(distil, "cornerSync")
     callers = [fn(themes, "thOutside"), fn(distil, "esStampTick"), fn(traj, "trajStampTick"), fn(codes, "codesStampTick")]
     check("418: the change-made-elsewhere panel has the boards' heading on every screen, each screen's line under it, "
           "Update by default and Show it only where it takes him to something new",
@@ -354,3 +351,271 @@ def stamp_checks(scratch: Path):
     names = [c["name"] for c in own.get("codes") or []]
     check("418: with the version as it now stands the Undo takes the step on top, the rename",
           not own.get("stale") and first.get("name") in names and "Renamed by an agent" not in names, names[:4])
+
+
+# ── K. the Code list's held changes, run in node with codes.js and distil.js's corner panels against the server's own
+# routes on scratch copies of the thematic analysis demo (codesheld and codesheld2, 17 November 2026)
+HELD_ROUTE = r"""
+import json, sys
+from pathlib import Path
+sys.path.insert(0, sys.argv[1])
+import boot
+boot.setup()
+import server as server_mod
+import idiograph_routes
+asked = json.loads(sys.stdin.read())
+server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY = Path(sys.argv[2]), None, {"recent": []}
+try:
+    with server_mod.scoped(asked["route"], asked["body"]):
+        out = server_mod.ROUTES[asked["route"]](asked["body"])
+except Exception as exc:  # a refusal, which the server answers with its words
+    out = {"error": str(exc)}
+print(json.dumps(out))
+"""
+
+HELD_RUN = r"""
+const { execFileSync } = require('child_process');
+const ELS = {};
+class El {
+  constructor(id) { this.id = id; this.hidden = false; this.shown = false; this.value = ''; this.textContent = ''; this.innerHTML = '';
+    this.style = {}; this.classList = { toggle() {}, add() {}, remove() {}, contains: () => false }; }
+  addEventListener() {}
+  querySelector() { return null; }
+  querySelectorAll() { return []; }
+  contains() { return false; }
+  focus() {}
+}
+const $ = (id) => (ELS[id] = ELS[id] || new El(id));
+globalThis.document = { readyState: 'loading', addEventListener() {}, activeElement: null, hidden: false,
+  documentElement: { dataset: {}, setAttribute() {}, lang: 'en' } };
+globalThis.window = { addEventListener() {} };
+const esc = (s) => String(s);
+const escAttr = (s) => String(s);
+const RESTART_LINE = 'Restart';
+const needsRestart = () => false;
+const pathProjectDraw = () => {};
+const dsTabsDraw = () => {};
+const SAID = [];
+const say = (words) => SAID.push(String(words));
+const sayUndo = (words) => SAID.push(String(words));
+const unsayUndo = () => {};
+const sayNothingToUndo = () => SAID.push('nothing');
+// the screens' hosts: the Code list's and a board's, one in front at a time
+const exportShown = (el) => !!el && !!el.shown;
+const exportHost = () => ['th-stage', 'cd-body'].map((id) => $(id)).find((el) => el.shown) || null;
+const cornerPlace = () => {};
+const XN = { info: null };
+const exportNotice = () => {};
+const front = (id) => { for (const h of ['th-stage', 'cd-body']) $(h).shown = h === id; cornerSync(); };
+// distil.js's corner panels themselves
+__CORNERS__
+// the server: the routes themselves on the scratch copies, one process a call; FAIL_NEXT a call that never reaches it
+let FAIL_NEXT = false;
+const serve = (route, body) => JSON.parse(execFileSync(process.env.HD_PY, [process.env.HD_ROUTE, process.env.HD_REPO, process.env.HD_CFG],
+  { input: JSON.stringify({ route, body }), encoding: 'utf8' }));
+async function api(route, body) {
+  await new Promise((r) => setImmediate(r));
+  if (FAIL_NEXT && route === '/api/codes-ops') { FAIL_NEXT = false; throw new TypeError('Load failed'); }
+  const data = serve(route, body);
+  if (data.error) { const err = new Error(data.error); err.data = data; err.code = data.code || ''; throw err; }
+  return data;
+}
+__CODES__
+codesDraw = () => {};
+const BOOK = process.env.HD_BOOK;
+const OTHER = process.env.HD_OTHER;
+const names = () => serve('/api/codes', { workbook: BOOK }).codes.map((c) => c.name);
+const panel = () => (XS.info ? { line: XS.info.line, overwrite: !!XS.info.overwrite, codes: !!XS.info.codes } : null);
+const shown = () => !$('th-stale').hidden;
+(async () => {
+  const out = {};
+  front('cd-body');
+  await codesOpen(BOOK);
+  const first = CD.data.codes[0];
+  out.first = first.name;
+  // L1: his change, an agent's after it, his Undo refused; then a change of his, which must be written
+  await codesOps([{ op: 'new', name: 'Waiting at the door' }]);
+  serve('/api/codes-ops', { workbook: BOOK, ops: [{ op: 'new', name: 'Made by an agent' }] });
+  SAID.length = 0;
+  await codesUndo(false);
+  const undone = { said: SAID.slice(), panel: panel(), v: CD.data.v === serve('/api/codes', { workbook: BOOK }).v };
+  await codesOps([{ op: 'new', name: 'After the refused Undo' }]);
+  out.undo = Object.assign(undone, { held: CD.held.length, names: names() });
+  // L2: an agent's change, then his, refused; a rename held behind it that the server will refuse (the agent's name),
+  // and a third held
+  serve('/api/codes-ops', { workbook: BOOK, ops: [{ op: 'new', name: 'Taken by an agent' }] });
+  await codesOps([{ op: 'new', name: 'Refused at first' }]);
+  const refused = panel();
+  await codesOps([{ op: 'rename', code: first.id, name: 'Taken by an agent' }]);
+  await codesOps([{ op: 'new', name: 'Third in line' }]);
+  const held = CD.held.length;
+  SAID.length = 0;
+  await codesUndo(false);
+  const undoWaits = { said: SAID.slice(), panel: panel(), held: CD.held.length };
+  await XS.info.overwrite();
+  out.over = { refused, held, undoWaits, panel: panel(), left: CD.held.map((ops) => ops.map((o) => o.name)), names: names() };
+  await XS.info.overwrite();
+  out.again = { panel: panel(), left: CD.held.length, names: names() };
+  // the refused one last: nothing left, the panel shut and the server's sentence at the foot
+  serve('/api/codes-ops', { workbook: BOOK, ops: [{ op: 'new', name: 'Another by an agent' }] });
+  await codesOps([{ op: 'new', name: 'Fourth' }]);
+  await codesOps([{ op: 'new', name: 'Another by an agent' }]);
+  SAID.length = 0;
+  await XS.info.overwrite();
+  out.last = { panel: panel(), left: CD.held.length, said: SAID.slice(), names: names() };
+
+  // H1 (codesheld2): a refused change and one held; the Themes board opens (its load shuts its own panel) and a
+  // board's save is refused there; back on the Code list his panel is back, Overwrite sends what waited, and the
+  // board's panel is never shut by the Code list's
+  serve('/api/codes-ops', { workbook: BOOK, ops: [{ op: 'new', name: 'An agent before the board' }] });
+  await codesOps([{ op: 'new', name: 'Held over the board' }]);
+  await codesOps([{ op: 'new', name: 'Held behind it' }]);
+  front('th-stage');
+  staleNotice(null);
+  const onBoard = { panel: panel(), shown: shown(), held: CD.held.length };
+  staleNotice({ line: 'board refused', reload() {}, overwrite() {} });
+  const boardOwn = panel();
+  front('cd-body');
+  await codesOpen(BOOK);
+  const back = panel();
+  await XS.info.overwrite();
+  const after = { panel: panel(), left: CD.held.length, names: names(), board: !!XS.by.board };
+  front('th-stage');
+  out.board = { onBoard, boardOwn, back, after, boardStill: panel() };
+  staleNotice(null);
+  front('cd-body');
+
+  // L3 and L2 of the second review: a change made while another is on the way waits and is written; an Undo while
+  // Overwrite sends says so; a change that never reached the server still waits, and the line says so
+  const a = codesOps([{ op: 'new', name: 'Made first' }]);
+  const b = codesOps([{ op: 'new', name: 'Made while busy' }]);
+  await Promise.all([a, b]);
+  out.busy = { names: names() };
+  serve('/api/codes-ops', { workbook: BOOK, ops: [{ op: 'new', name: 'An agent once more' }] });
+  await codesOps([{ op: 'new', name: 'Not sent' }]);
+  FAIL_NEXT = true;
+  SAID.length = 0;
+  const sending = XS.info.overwrite();
+  await codesUndo(false);
+  const undoSaid = SAID.slice();
+  await sending;
+  out.unsent = { undoSaid, panel: panel(), left: CD.held.length };
+
+  // M1: another project's list opened with changes waiting says so in one line and drops them
+  SAID.length = 0;
+  await codesOpen(OTHER);
+  out.other = { said: SAID.slice(), panel: panel(), left: CD.held.length, names: names() };
+
+  // codesheld3: changes made while a call is on the way are sent in the order he made them, one queue, so two renames
+  // of one code leave the later name
+  const named = () => serve('/api/codes', { workbook: OTHER }).codes.map((c) => c.name);
+  const one = CD.data.codes[0];
+  const sent = [codesOps([{ op: 'new', name: 'Busy start' }]),
+    codesOps([{ op: 'rename', code: one.id, name: 'Order one' }]),
+    codesOps([{ op: 'rename', code: one.id, name: 'Order two' }]),
+    codesOps([{ op: 'new', name: 'Order three' }])];
+  const waited = CD.waiting.length;
+  await Promise.all(sent);
+  const after3 = named();
+  out.order = { waited, names: after3, last: after3.includes('Order two') && !after3.includes('Order one') && after3.includes('Order three') };
+  // and a change waiting on a call in flight when another project's list opens is counted in its line
+  SAID.length = 0;
+  const flying = codesOps([{ op: 'new', name: 'In flight' }]);
+  const queued = codesOps([{ op: 'new', name: 'Queued behind it' }]);
+  const queuedNow = CD.waiting.length;
+  await codesOpen(BOOK);
+  await Promise.all([flying, queued]);
+  await new Promise((r) => setTimeout(r, 20));
+  out.waitDrop = { queuedNow, said: SAID.slice(), waiting: CD.waiting.length, names: named() };
+  process.stdout.write(JSON.stringify(out));
+})().catch((e) => { console.error(e.stack); process.exit(1); });
+"""
+
+
+def held_checks(scratch: Path):
+    import subprocess
+    import sys
+
+    import server as server_mod
+
+    if not shutil.which("node"):
+        support.skip("418: the Code list's held changes in node", "no node on this machine")
+        return
+    base_dir = scratch / "held-418"
+    shutil.rmtree(base_dir, ignore_errors=True)
+    root, other = base_dir / "Dogs coded", base_dir / "Dogs again"
+    for r in (root, other):
+        shutil.copytree(server_mod.demo_ta_dir(), r, ignore=shutil.ignore_patterns("pristine", "source"))
+    cfg = base_dir / "config.json"
+    cfg.write_text(json.dumps({"projects": [{"root": str(root)}, {"root": str(other)}], "interviewer": "", "corpus": "",
+                               "gravity_reference": "", "corpus_exclude": [], "skip_permissions": False}), encoding="utf-8")
+    route = base_dir / "route.py"
+    route.write_text(HELD_ROUTE, encoding="utf-8")
+    book, book2 = sorted(root.glob("*/*.xlsx"))[0], sorted(other.glob("*/*.xlsx"))[0]
+    distil = support.text("apps/idiograph/static/distil.js")
+    start, end = distil.find("\nconst XO = {"), distil.find("\nfunction cornerWire(")
+    corners = distil[start:end] if 0 < start < end else ""
+    check("418: distil.js's corner panels are found for the run", corners)
+    path = base_dir / "held-418.js"
+    path.write_text(support.i18n_js() + HELD_RUN.replace("__CORNERS__", corners)
+                    .replace("__CODES__", support.text("apps/idiograph/static/codes.js")), encoding="utf-8")
+    env = dict(os.environ, HD_PY=sys.executable, HD_ROUTE=str(route), HD_REPO=str(support.source(".")), HD_CFG=str(cfg),
+               HD_BOOK=str(book), HD_OTHER=str(book2))
+    run = subprocess.run([shutil.which("node"), str(path)], capture_output=True, text=True, encoding="utf-8",
+                         timeout=400, env=env)
+    got = json.loads(run.stdout) if run.returncode == 0 and run.stdout.strip() else {}
+    check("418: the Code list's held changes run in node against the routes", run.returncode == 0, run.stderr[-900:])
+    if not got:
+        return
+    u = got["undo"]
+    check("418: an Undo refused over an agent's change reads the list again at once with the server's sentence, no "
+          "panel left holding his changes, and his next change is written",
+          u["panel"] is None and u["v"] and len(u["said"]) == 1 and u["held"] == 0
+          and "Made by an agent" in u["names"] and "Waiting at the door" in u["names"]
+          and "After the refused Undo" in u["names"], json.dumps(u))
+    o = got["over"]
+    check("418: a refused change shows Reload and Overwrite, later changes wait behind it, and an Undo meanwhile undoes "
+          "nothing and says so, the changes still waiting",
+          o["refused"] and o["refused"]["overwrite"] and o["held"] == 3 and o["undoWaits"]["held"] == 3
+          and o["undoWaits"]["panel"] and len(o["undoWaits"]["said"]) == 1, json.dumps(o))
+    check("418: Overwrite writes the held changes in order until the server refuses one, which the panel names in the "
+          "server's sentence, the change after it still waiting with Overwrite",
+          o["panel"] and o["panel"]["overwrite"] and "Taken by an agent" in o["panel"]["line"]
+          and o["left"] == [["Third in line"]] and "Refused at first" in o["names"] and got["first"] in o["names"]
+          and "Third in line" not in o["names"], json.dumps(o))
+    a = got["again"]
+    check("418: Overwrite again writes what waited and the panel goes",
+          a["panel"] is None and a["left"] == 0 and "Third in line" in a["names"], json.dumps(a))
+    last = got["last"]
+    check("418: where the refused change was the last held, the panel goes and the server's sentence is the line at the "
+          "foot", last["panel"] is None and last["left"] == 0 and "Fourth" in last["names"]
+          and any("Another by an agent" in s for s in last["said"]), json.dumps(last))
+    bd = got["board"]
+    check("418: a board's load and its own refused save leave the Code list's panel standing behind its screen, the "
+          "board's panel the one in front there, and back on the Code list its panel is in front with Reload and "
+          "Overwrite, which sends what waited while the board's still stands (codesheld2)",
+          bd["onBoard"]["panel"] is None and not bd["onBoard"]["shown"] and bd["onBoard"]["held"] == 2
+          and bd["boardOwn"] and not bd["boardOwn"]["codes"] and bd["back"] and bd["back"]["codes"]
+          and bd["back"]["overwrite"] and bd["after"]["left"] == 0 and bd["after"]["board"]
+          and "Held over the board" in bd["after"]["names"] and "Held behind it" in bd["after"]["names"]
+          and bd["boardStill"] and bd["boardStill"]["line"] == "board refused", json.dumps(bd))
+    check("418: a change made while another of the list's is on the way waits and is written, where it was dropped",
+          {"Made first", "Made while busy"} <= set(got["busy"]["names"]), got["busy"]["names"][-6:])
+    un = got["unsent"]
+    check("418: an Undo while Overwrite sends says so, and a change that never reached the server still waits, the "
+          "panel saying it is still waiting rather than a refusal's words",
+          len(un["undoSaid"]) == 1 and un["left"] == 1 and un["panel"] and un["panel"]["overwrite"]
+          and "still waiting" in un["panel"]["line"], json.dumps(un))
+    od = got["order"]
+    check("418: changes made while a call of the Code list's is on the way are sent in the order he made them, two "
+          "renames of one code leaving the later name (codesheld3)", od["waited"] == 3 and od["last"], json.dumps(od)[:600])
+    wd = got["waitDrop"]
+    check("418: a change waiting on a call in flight when another project's list opens is counted in the line that "
+          "says they were not saved, and the one in flight is written (codesheld3)",
+          wd["queuedNow"] == 1 and sum("1 change" in w for w in wd["said"]) == 1 and wd["waiting"] == 0
+          and "In flight" in wd["names"] and "Queued behind it" not in wd["names"], json.dumps(wd)[:600])
+    ot = got["other"]
+    check("418: another project's list opened with changes waiting says in one line that they were not saved, and its "
+          "own list shows with no panel",
+          len(ot["said"]) == 1 and "1 change" in ot["said"][0] and ot["panel"] is None and ot["left"] == 0
+          and "Not sent" not in ot["names"], json.dumps(ot))

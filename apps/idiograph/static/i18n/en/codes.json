@@ -24,6 +24,13 @@
   "codes.merge_itself": "{name} cannot be merged into itself. Nothing was changed.",
   "codes.delete_has_extracts": "{name} has {n}, so it cannot be deleted. Nothing was changed.",
   "codes.stale_line": "The code list has changed since this page was loaded, so nothing was saved.",
+  "codes.stale_rest": "{said} The rest of your changes are not saved yet.",
+  "codes.stale_unsent": "{said} Your changes are still waiting to be saved.",
+  "codes.held_dropped": {
+    "one": "{n} change to the code list of {project} was not saved.",
+    "other": "{n} changes to the code list of {project} were not saved."
+  },
+  "codes.undo_waits": "Choose Reload or Overwrite first, so nothing was undone.",
   "codes.stale": "The code list changed since this screen read it, so nothing was written. It shows the list as it is now.",
   "codes.cannot_write": "{name} cannot be written, so nothing was changed.",
   "codes.no_quote_column": "{name} has no quotes column on {sheet}, so nothing was changed.",

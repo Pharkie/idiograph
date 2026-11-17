@@ -1576,6 +1576,8 @@ button.btn-out::before {
 .gt-card .th-text.gt-empty { color: var(--ink-faint); font-style: italic; }
 .gt-from { margin: 4px 0 0; font-size: 11px; line-height: 14px; color: var(--ink-soft);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* on LPETs, "Also drawn on by <the other LPET>" wraps to three lines, the other LPET named in full (drawsbuild) */
+.gt-from.gt-also { white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 .gt-n { font-size: 10.5px; color: var(--ink-faint); white-space: nowrap; }
 .gt-mark { margin-left: auto; font-size: 10px; letter-spacing: .02em; color: var(--amber); white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis; min-width: 0; }
@@ -1746,6 +1748,7 @@ button.btn-out::before {
 .gt-facts dd { margin: 0; color: var(--ink); }
 /* what draws on a PET, a sub-theme or a statement, and what an LPET draws on (drawsword, 17 November 2026) */
 .th-drawn-sec { margin: 0 0 18px; }
+.th-drawn-here { font-family: var(--serif); font-size: 14px; line-height: 1.4; color: var(--ink); }
 .th-drawn-sec .th-qnone { margin-bottom: 0; }
 .th-drawn-go { padding: 0; font-family: var(--serif); font-size: 14px; line-height: 1.4; color: var(--ink); text-align: left;
   background: none; border: 0; cursor: pointer; text-decoration: underline; text-decoration-color: var(--rule-firm);
@@ -2084,6 +2087,31 @@ button.btn-out::before {
 .tb-said-of .gt-tkey { margin-top: 6px; }
 .tb-who .gt-mark { margin-left: 0; }
 .tb-trail { margin: 4px 0 6px 2px; }
+/* the LPET table timepoints across (drawsbuild): a column a timepoint under the LPET's title strip, its head over a
+   rule, then State, Key quote and Draws on, each under a small label; at 720 the columns narrow and wrap their words */
+.lp-cols { display: grid; grid-template-columns: repeat(var(--lp-n), minmax(0, 1fr)); gap: 0 20px; padding: 4px 0 8px; }
+.lp-col { min-width: 0; }
+.lp-tp { display: flex; align-items: center; gap: 6px; margin: 4px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--rule-firm);
+  font-size: 13px; color: var(--ink); }
+.lp-tpname { color: var(--ink-faint); }
+.lp-k { margin: 10px 0 2px; font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); }
+.lp-col .gt-rnote { margin: 0; padding: 0; background: none; font-family: var(--serif); font-size: 14px; line-height: 1.4; color: var(--ink);
+  cursor: text; }
+.lp-col .gt-rnote-add, .lp-col .gt-rnote-box { margin-top: 0; }
+.lp-q { margin: 0; font-family: var(--serif); font-style: italic; font-size: 14px; line-height: 1.45; color: var(--ink); overflow-wrap: anywhere; }
+.lp-q b { font-weight: 700; }
+.lp-cite { margin: 2px 0 0; font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
+.lp-col .tb-items { margin: 0; }
+.lp-item { padding: 1px 0 4px; }
+.lp-said { display: flex; flex-direction: column; min-width: 0; }
+.lp-said .tb-kind { padding-top: 0; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); }
+.lp-go { padding: 0; margin: 0; border: 0; border-radius: 0; background: none; min-height: 0; font-weight: normal; font-family: var(--serif); font-size: 14px; line-height: 1.4; color: var(--ink); text-align: left;
+  text-decoration: underline; text-decoration-color: var(--rule-firm); text-underline-offset: 2px; overflow-wrap: anywhere; }
+.lp-go:hover, .lp-go:focus-visible { text-decoration-color: currentColor; }
+.lp-arrow { margin-left: 3px; font-size: 11px; color: var(--ink-faint); }
+.lp-said .th-time { font-size: 11px; color: var(--ink-faint); }
+.lp-col .tb-nothing { margin: 0; font-size: 13px; color: var(--ink-faint); }
+.lp-note { margin: 2px 0 4px; }
 @container tbstage (max-width: 700px) {
   .tb-cols { grid-template-columns: 1fr; }
   .tb-case { grid-template-columns: 1fr; }

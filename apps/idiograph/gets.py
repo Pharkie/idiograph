@@ -450,12 +450,36 @@ def card_of(case: str, kind: str, ident) -> str:
 
 def split_key(key: str) -> dict:
     """What a card's key names: its case, its kind, `group` for a PET or a sub-theme, `es` or `pn`,
-    the group id, line key or note number, and for a second card of a PET the number after it."""
+    the group id, line key or note number, and for a second card of a PET the number after it. A
+    statement's second card on an LPETs board (drawsbuild, 17 November 2026) is `<case>/es/<line>/2`,
+    its line read without the number, since a line's key, `<sheet>:<row>:<place>`, never holds a slash."""
     case, _, rest = str(key).partition("/")
     head, _, tail = rest.partition("/")
-    if head in ("es", "pn"):
+    if head == "es":
+        line, _, copy = tail.partition("/")
+        return {"case": case, "kind": head, "ident": line, "copy": copy or None}
+    if head == "pn":
         return {"case": case, "kind": head, "ident": tail, "copy": None}
     return {"case": case, "kind": "group", "ident": head, "copy": tail or None}
+
+
+def base_key(key: str) -> str:
+    """The key of a card's first card, which a second one, `/2`, extends: a PET's, a sub-theme's or a statement's."""
+    k = split_key(key)
+    if k["kind"] == "pn" or not k["copy"]:
+        return str(key)
+    return card_of(k["case"], k["kind"], k["ident"])
+
+
+def with_copy(key: str, to: str) -> str:
+    """`to`, a first card's new key, with the number of `key`'s copy after it, so a second card follows its first."""
+    copy = split_key(key)["copy"]
+    return f"{to}/{copy}" if copy else to
+
+
+def cards_of_key(cards, key: str) -> list[str]:
+    """A card's key and its second cards' among `cards`, the keys of one PET, sub-theme or statement on a board."""
+    return [k for k in cards if k == key or (base_key(k) == key and k != key)]
 
 
 def source_board(data: dict | None) -> tuple[dict | None, bool]:
@@ -1147,6 +1171,8 @@ def cards_shown(board: dict, data: dict) -> list[dict]:
             else:
                 item.update(text=line["text"], time=line.get("time") or "", sheet=line.get("sheet") or "",
                             seconds=line.get("seconds"), pet=line.get("pet"))
+            if k["copy"]:
+                item["copy"] = k["copy"]
         else:
             item["kind"] = "pn"
         out.append(item)
@@ -1707,9 +1733,10 @@ def words_replaced(root: Path, workbook: Path, rows: dict, before: dict, books: 
         rec = held[case]
         for board in boards_of(data):
             for key in keys:
-                card = (board.get("cards") or {}).get(card_of(case, "es", key))
-                if isinstance(card, dict) and "text" in card:
-                    card["text"] = rec["lines"][key]["text"]
+                for each in cards_of_key(board.get("cards") or {}, card_of(case, "es", key)):
+                    card = board["cards"][each]
+                    if isinstance(card, dict) and "text" in card:
+                        card["text"] = rec["lines"][key]["text"]
         rec["hash"] = snap_hash(rec)
     kept_in(held, entries, before)
     data["updated"] = themes.now_iso()
@@ -1967,8 +1994,8 @@ def statements_followed(root: Path, workbook: Path, words: dict, before: dict, b
     boards = []
     for board in boards_of(data):
         cards = board.get("cards") if isinstance(board.get("cards"), dict) else {}
-        keys = [card_of(case, "es", key) for case, keys in marks.items() for key in keys
-                if isinstance(cards.get(card_of(case, "es", key)), dict)]
+        keys = [each for case, keys in marks.items() for key in keys
+                for each in cards_of_key(cards, card_of(case, "es", key)) if isinstance(cards.get(each), dict)]
         if keys or any(c["board"] == str(board.get("id")) for c in bold):
             boards.append({"board": str(board.get("id")), "name": str(board.get("name") or FIRST_NAME), "keys": keys})
     out = {"cases": [c for c in held if c in marks], "boards": boards,
@@ -1990,9 +2017,10 @@ def statements_followed(root: Path, workbook: Path, words: dict, before: dict, b
         for key in keys:
             rec["lines"][key]["text"] = " ".join(str(words[key][1]).split())
             for board in boards_of(data):
-                card = (board.get("cards") or {}).get(card_of(case, "es", key))
-                if isinstance(card, dict) and "text" in card:
-                    card["text"] = rec["lines"][key]["text"]
+                for each in cards_of_key(board.get("cards") or {}, card_of(case, "es", key)):
+                    card = board["cards"][each]
+                    if isinstance(card, dict) and "text" in card:
+                        card["text"] = rec["lines"][key]["text"]
         rec["hash"] = snap_hash(rec)
     for case, carried in requoted.items():
         rec = held[case]
@@ -2249,7 +2277,7 @@ def board_remapped(board: dict, case: str, cmap: dict, qmap: dict, turns=None, m
         if s["kind"] != "es" or s["case"] != case or s["ident"] not in cmap:
             return k
         to = cmap[s["ident"]]
-        return None if to is None else card_of(case, "es", to)
+        return None if to is None else with_copy(k, card_of(case, "es", to))
 
     def keys(seq):
         out = []
@@ -2264,7 +2292,7 @@ def board_remapped(board: dict, case: str, cmap: dict, qmap: dict, turns=None, m
     if isinstance(cards, dict):
         out = {}
         late = {card_of(case, "es", k) for k in merged}
-        for k, c in sorted(cards.items(), key=lambda kc: kc[0] in late):
+        for k, c in sorted(cards.items(), key=lambda kc: base_key(kc[0]) in late):
             to = card(k)
             if to != k:
                 said.append(k)
@@ -2416,8 +2444,9 @@ def cut_aside(data: dict, case: str, gone: set, trim: str) -> dict:
               "pets": {p["id"]: [k for k in p.get("statements") or [] if k in gone]
                        for p in rec.get("pets") or [] if isinstance(p, dict) and set(p.get("statements") or []) & gone},
               "boards": {}}
-    keys = {card_of(case, "es", k) for k in gone}
+    firsts = {card_of(case, "es", k) for k in gone}
     for board in boards_of(data):
+        keys = {k for k in board.get("cards") or {} if base_key(k) in firsts}
         cards = {k: c for k, c in (board.get("cards") or {}).items() if k in keys}
         if cards:
             record["boards"][str(board.get("id"))] = {
@@ -3310,6 +3339,10 @@ def lines_followed(case: str, cards: dict, old_lines: dict, fresh_lines: dict) -
     card's words are the copy's it came in with, else its own. Answers each card that moves, its key
     and the key it moves to."""
     said = lambda ident, key: themes.words((old_lines.get(ident) or {}).get("text") or (cards.get(key) or {}).get("text"))
+    # a statement's second card follows its first (drawsbuild), so the words are followed once, by the first's key
+    seconds = [key for key in cards if split_key(key)["case"] == case and split_key(key)["kind"] == "es"
+               and split_key(key)["copy"]]
+    cards = {key: c for key, c in cards.items() if key not in seconds}
     mine = {key: split_key(key)["ident"] for key in cards
             if split_key(key)["case"] == case and split_key(key)["kind"] == "es"}
     live = {k: themes.words(line.get("text")) for k, line in fresh_lines.items()}
@@ -3344,7 +3377,12 @@ def lines_followed(case: str, cards: dict, old_lines: dict, fresh_lines: dict) -
         last = max((ln for s, r, ln in taken if s == sheet and r == row and ln is not None), default=-1)
         to[key] = themes.card_key(sheet, row, last + 1)
         claimed.add(to[key])
-    return {key: card_of(case, "es", ident) for key, ident in to.items() if ident != mine[key]}
+    out = {key: card_of(case, "es", ident) for key, ident in to.items() if ident != mine[key]}
+    for key in seconds:
+        first = base_key(key)
+        if first in out:
+            out[key] = with_copy(key, out[first])
+    return out
 
 
 def make_room_below(board: dict, data: dict, now: dict[str, str], was: dict[str, int]) -> list[str]:

@@ -1128,8 +1128,14 @@ else exportNoticeWire();
    outsideNotice({ line, word, show, close }): the heading is the boards' one on every screen, "Changes made
    elsewhere", and `line` under it says what changed on that screen; `word` the button's word, Update where it loads the
    change in place (the default), Show it where it takes him to something new, a board added or a passage written;
-   `show()` and `close()` the screen's own. outsideNotice(null) shuts it (sameux2b). */
-const XO = { info: null, host: null };
+   `show()` and `close()` the screen's own. outsideNotice(null, owner) shuts it (sameux2b).
+
+   Each panel has its owner, the screen that raised it (codesheld2): `info.owner`, else 'codes', 'traj' or 'es' where
+   `info` says so, else 'board', and `info.host` the screen's [data-export-host] where it may be raised while another
+   screen is in front. A screen shuts or replaces only its own, and each screen's panel stands in `by` while its state
+   does, shown whenever its host is: so opening a board never takes down the Code list's, nor the Code list a board's.
+   `info` and `host` are the panel in front, the one whose host shows. */
+const XO = { info: null, host: null, by: {}, drawn: null };
 
 /* A save refused because what it saves changed since the screen read it, one panel for every screen that saves over
    the file what may have changed under it (the boards and the Code list): nothing was saved, the screen stays as he
@@ -1138,8 +1144,29 @@ const XO = { info: null, host: null };
 
    staleNotice({ line, reload, overwrite, back }): `line` the words, `reload()` and `overwrite()` the screen's own,
    Overwrite left out where there is nothing to overwrite with (an Undo refused), and `back()` with `kept` set for the
-   panel after a Reload. staleNotice(null) shuts it. */
-const XS = { info: null, host: null };
+   panel after a Reload. staleNotice(null, owner) shuts it, the owner as outsideNotice's (codesheld2). */
+const XS = { info: null, host: null, by: {}, drawn: null };
+
+/* a panel's owner, and its slot's panels set or shut by owner, the one in front then chosen again */
+function cornerOwner(info, owner) {
+  return owner || (info && (info.owner || (info.codes && 'codes') || (info.traj && 'traj') || (info.es && 'es'))) || 'board';
+}
+
+function cornerSet(slot, info, owner) {
+  const who = cornerOwner(info, owner);
+  if (info) slot.by[who] = { info, host: info.host || exportHost() };
+  else delete slot.by[who];
+  // a panel shown now takes the export notice's place, as before
+  if (info && XN.info && exportShown(slot.by[who].host)) exportNotice(null);
+}
+
+function cornerFront(slot) {
+  const front = Object.values(slot.by).filter((p) => exportShown(p.host)).pop() || null;
+  slot.info = front ? front.info : null;
+  slot.host = front ? front.host : null;
+}
+
+const cornerAny = () => Object.keys(XO.by).length + Object.keys(XS.by).length > 0;
 
 /* The corner panels shown only while their screen is, and back with it, placed as the export notice is, one at a
    time: a save refused before all, then an export's notice, then a change made elsewhere, which waits behind them */
@@ -1148,6 +1175,26 @@ function cornerSync() {
   const out = $('th-outside');
   // each set only when it changes, since the watch on the page's `hidden` below would hear its own write
   const show = (box, on) => { if (box.hidden === on) box.hidden = !on; };
+  cornerFront(XS);
+  cornerFront(XO);
+  // each drawn again only when the panel in front is another
+  if (stale && XS.info && XS.drawn !== XS.info) {
+    const info = XS.info;
+    XS.drawn = info;
+    $('th-stale-line').textContent = info.line || '';
+    $('th-stale-acts').hidden = !!info.kept;
+    $('th-stale-over').hidden = !info.overwrite;
+    $('th-stale-back').hidden = !info.kept;
+  }
+  if (out && XO.info && XO.drawn !== XO.info) {
+    const info = XO.info;
+    XO.drawn = info;
+    $('th-outside-line').textContent = t('themes.outside.elsewhere');
+    $('th-outside-said').textContent = info.line || '';
+    $('th-outside-show').textContent = info.word || t('themes.outside.update');
+  }
+  if (!XS.info) XS.drawn = null;
+  if (!XO.info) XO.drawn = null;
   if (stale) {
     show(stale, !!XS.info && exportShown(XS.host));
     cornerPlace(stale, XS.host);
@@ -1158,28 +1205,15 @@ function cornerSync() {
   }
 }
 
-function outsideNotice(info) {
-  XO.info = info || null;
-  XO.host = info ? exportHost() : null;
-  if (info) {
-    if (XN.info) exportNotice(null);
-    $('th-outside-line').textContent = t('themes.outside.elsewhere');
-    $('th-outside-said').textContent = info.line || '';
-    $('th-outside-show').textContent = info.word || t('themes.outside.update');
-  }
+function outsideNotice(info, owner) {
+  cornerSet(XO, info || null, owner);
+  XO.drawn = null;
   cornerSync();
 }
 
-function staleNotice(info) {
-  XS.info = info || null;
-  XS.host = info ? exportHost() : null;
-  if (info) {
-    if (XN.info) exportNotice(null);
-    $('th-stale-line').textContent = info.line || '';
-    $('th-stale-acts').hidden = !!info.kept;
-    $('th-stale-over').hidden = !info.overwrite;
-    $('th-stale-back').hidden = !info.kept;
-  }
+function staleNotice(info, owner) {
+  cornerSet(XS, info || null, owner);
+  XS.drawn = null;
   cornerSync();
 }
 
@@ -1192,7 +1226,8 @@ function cornerWire() {
   // its cross closes it and never deletes: the change is left for later
   $('th-outside-close').onclick = () => {
     const info = XO.info;
-    outsideNotice(null);
+    if (!info) return;
+    outsideNotice(null, cornerOwner(info));
     if (info && info.close) info.close();
   };
   $('th-stale-reload').onclick = () => { if (XS.info && XS.info.reload) XS.info.reload(); };
@@ -1201,11 +1236,11 @@ function cornerWire() {
   window.addEventListener('resize', cornerSync);
   // a screen put away hides its panel and a screen shown again shows it, whichever way the screen went
   if (typeof MutationObserver === 'function') {
-    new MutationObserver(() => { if (XO.info || XS.info) cornerSync(); })
+    new MutationObserver(() => { if (cornerAny()) cornerSync(); })
       .observe(document.body, { attributes: true, attributeFilter: ['hidden'], subtree: true });
   }
   if (typeof ResizeObserver === 'function') {
-    const sized = new ResizeObserver(() => { if (XO.info || XS.info) cornerSync(); });
+    const sized = new ResizeObserver(() => { if (cornerAny()) cornerSync(); });
     for (const host of document.querySelectorAll('[data-export-host]')) sized.observe(host);
   }
 }
@@ -12825,6 +12860,12 @@ async function distilComeBack(spot, home) {
    him first, as any move does, then reads the case again on that turn. Nothing moves before. */
 const ES_STAMP = { path: null, count: null, ask: 0, last: null };
 
+/* the statements screen's [data-export-host], where its corner panels stand */
+function esHost() {
+  const el = $('es-stage');
+  return (el && el.closest && el.closest('[data-export-host]')) || null;
+}
+
 async function esStampTick() {
   if (!S.data || $('work').hidden || document.hidden) return;
   const path = S.data.path;
@@ -12837,11 +12878,13 @@ async function esStampTick() {
   await esStepTake(path, data.workbook);
   const n = Number(data.turns.count) || 0;
   if (ES_STAMP.path !== path || ES_STAMP.count === null) { Object.assign(ES_STAMP, { path, count: n }); return; }
-  if (n > ES_STAMP.count && data.turns.last) {
+  // the screen may have gone while the stamp and the step were read: its panel is raised on its own screen alone
+  // (codesheld3), never on the one now in front
+  if (n > ES_STAMP.count && data.turns.last && !$('work').hidden && S.data && S.data.path === path) {
     ES_STAMP.last = data.turns.last;
     // the one panel for a change made elsewhere that every screen shares (outsideNotice, sameux2)
     // Show it: the passage in front saved, then the case read again on the passage written, which it goes to
-    outsideNotice({ es: true, line: t('distil.stamp.outside', { n: n - ES_STAMP.count }), word: t('themes.outside.show'),
+    outsideNotice({ es: true, host: esHost(), line: t('distil.stamp.outside', { n: n - ES_STAMP.count }), word: t('themes.outside.show'),
       show: () => esOutsideShow(), close: () => esOutsideClose() });
   }
 }
@@ -12926,7 +12969,7 @@ function esStampStart() {
 
 /* the shared panel shut where it is the statements screen's own */
 function esOutsideShut() {
-  if (XO.info && XO.info.es) outsideNotice(null);
+  outsideNotice(null, 'es');
 }
 
 async function esOutsideShow() {

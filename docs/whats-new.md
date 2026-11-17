@@ -5,9 +5,15 @@ Newest first. Each version's notes are what the updater shows, eight lines at mo
 
 What goes here: only major new features and real changes to how something works, among them what your AI agents can do, and any change to safety, privacy or your data. One plain line each, saying what you can now do, not how the screen shows it. Never: changed wording, labels or layout, small fixes, or a feature's parts (its buttons, tabs, counts). Several changes to one feature are one line. A version with nothing major has one line, or none.
 
-## 0.9.29, 16 November 2026
+## 0.9.29, 17 November 2026
 
-Boards save and open much faster in large projects: each board's History is now kept in a folder beside its file.
+Boards and LGETs save and open much faster in large projects: each board's History is now kept in a folder beside its file.
+An LPET now draws on PETs: each PET shows which LPETs draw on it, you can note why none does, one PET can inform two LPETs, and the LPET table sets the timepoints side by side, in the app and as a Word or PDF appendix.
+In Review and replace you decide each find of a name in its sentence, adding transcripts or importing opens the same review, and your AI agent replaces only names written with a capital and leaves any you have unticked.
+Trajectories have Undo and Redo and many more icons, and LPETs, LGETs and Trajectories each have their own Guidance.
+Exporting, undoing, deleting and changes made elsewhere now work the same way on every screen.
+Your AI agent can set cards aside on GETs, LPETs and LGETs boards and put them back, and can shift a transcript's timecodes.
+A security update to the part of the app that downloads and installs updates.
 
 ## 0.9.28, 16 November 2026
 
