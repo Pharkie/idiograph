@@ -1,0 +1,243 @@
+{
+  "name": "Working from home",
+  "method": "ta",
+  "research_question": "How do people experience working from home since the pandemic?",
+  "updated": "2026-11-10T10:05:00+00:00",
+  "participants": {
+    "Kemi": {
+      "label": "Both at once",
+      "portrait": "Kemi is an HR adviser for a supermarket chain's head office, at home full time since her office closed in 2020. She lives in a semi-detached house with her husband, Lewis, who works from the spare room, and their two children, seven and four. She works at the kitchen table and does both school runs. She is warm and quick, honest about mixed feelings, and laughs at herself before anyone else can.",
+      "picture": "set:peep10",
+      "values": {
+        "Gender": "Female",
+        "Age range": "30 to 39",
+        "Sector": "Retail",
+        "Works from home": "Full time",
+        "Lives with": [
+          "Partner",
+          "Children"
+        ],
+        "Home": "House"
+      }
+    },
+    "Toby": {
+      "label": "The lad in the bedroom",
+      "portrait": "Toby is a digital marketing executive at an agency, who started his job from his bedroom in 2021 and has rarely worked anywhere else. He is twenty-seven and lives in a shared house with three others, one a nurse on nights, and works at a small desk beside his bed. He is self-deprecating and funny, a little lost, and reluctant about home working he never chose.",
+      "picture": "set:peep28",
+      "values": {
+        "Gender": "Male",
+        "Age range": "18 to 29",
+        "Sector": "Marketing",
+        "Works from home": "Mostly",
+        "Lives with": [
+          "Housemates"
+        ],
+        "Home": "Shared house"
+      }
+    },
+    "Ros": {
+      "label": "The depot",
+      "portrait": "Ros has worked in a council's revenues and benefits team for twenty-two years and now works at home three days a week. She lives in a semi-detached house with her son, seventeen, and her mother, eighty-three, lives alone ten minutes away. She is brisk, warm and plain-spoken, a keen home worker who would fight to keep it.",
+      "picture": "set:peep47",
+      "values": {
+        "Gender": "Female",
+        "Age range": "50 to 59",
+        "Sector": "Local government",
+        "Works from home": "Hybrid",
+        "Lives with": [
+          "Children"
+        ],
+        "Home": "House"
+      }
+    },
+    "Glen": {
+      "label": "The man behind the door",
+      "portrait": "Glen is sixty-three and a motor claims handler for an insurer, at home full time by his own request since the office reopened. He lives with his wife, Maureen, who retired two years before him, and works in their grown-up daughter's old box room. He is steady, orderly and gently humorous, and glad to be out of the open-plan office.",
+      "picture": "set:peep21",
+      "values": {
+        "Gender": "Male",
+        "Age range": "60 to 69",
+        "Sector": "Insurance",
+        "Works from home": "Full time",
+        "Lives with": [
+          "Partner"
+        ],
+        "Home": "House"
+      }
+    },
+    "Dev": {
+      "label": "Dev from testing",
+      "portrait": "Dev is thirty-four and a software tester for a bank that gave up most of its office after 2020. He lives with his partner, Sam, a dental nurse who goes out to work, in a one-bedroom flat where the kitchen table is his desk. He is thoughtful and candid, once keen on home working and now unsure, and finds it easier to be funny about it than to say it outright.",
+      "picture": "set:peep19",
+      "values": {
+        "Gender": "Male",
+        "Age range": "30 to 39",
+        "Sector": "Banking",
+        "Works from home": "Mostly",
+        "Lives with": [
+          "Partner"
+        ],
+        "Home": "Flat"
+      }
+    },
+    "Ffion": {
+      "label": "The box in the hall",
+      "portrait": "Ffion is a freelance Welsh and English translator who has worked from home since her daughter was born in 2012. She lives with her daughter, now fourteen, in a two-bedroom ground-floor flat, and looks in on her father, who has early dementia and lives alone. She is precise and dry, proud of a craft she had to learn, and of keeping work in its corner.",
+      "picture": "set:peep33",
+      "values": {
+        "Gender": "Female",
+        "Age range": "40 to 49",
+        "Sector": "Translation",
+        "Works from home": "Full time",
+        "Lives with": [
+          "Children"
+        ],
+        "Home": "Flat"
+      }
+    }
+  },
+  "demographics": [
+    {
+      "name": "Gender",
+      "kind": "list",
+      "show": true,
+      "values": [
+        {
+          "word": "Female",
+          "colour": 0
+        },
+        {
+          "word": "Male",
+          "colour": 1
+        },
+        {
+          "word": "Non-binary",
+          "colour": 2
+        }
+      ]
+    },
+    {
+      "name": "Age range",
+      "kind": "list",
+      "show": true,
+      "values": [
+        {
+          "word": "18 to 29",
+          "colour": 3
+        },
+        {
+          "word": "30 to 39",
+          "colour": 4
+        },
+        {
+          "word": "40 to 49",
+          "colour": 5
+        },
+        {
+          "word": "50 to 59",
+          "colour": 6
+        },
+        {
+          "word": "60 to 69",
+          "colour": 7
+        },
+        {
+          "word": "70 and over",
+          "colour": 8
+        }
+      ]
+    },
+    {
+      "name": "Sector",
+      "kind": "list",
+      "show": true,
+      "values": [
+        {
+          "word": "Retail",
+          "colour": 9
+        },
+        {
+          "word": "Marketing",
+          "colour": 10
+        },
+        {
+          "word": "Local government",
+          "colour": 11
+        },
+        {
+          "word": "Insurance",
+          "colour": 12
+        },
+        {
+          "word": "Banking",
+          "colour": 13
+        },
+        {
+          "word": "Translation",
+          "colour": 14
+        }
+      ]
+    },
+    {
+      "name": "Works from home",
+      "kind": "list",
+      "show": true,
+      "values": [
+        {
+          "word": "Full time",
+          "colour": 15
+        },
+        {
+          "word": "Mostly",
+          "colour": 16
+        },
+        {
+          "word": "Hybrid",
+          "colour": 17
+        }
+      ]
+    },
+    {
+      "name": "Lives with",
+      "kind": "words",
+      "show": true,
+      "values": [
+        {
+          "word": "Partner",
+          "colour": 18
+        },
+        {
+          "word": "Children",
+          "colour": 19
+        },
+        {
+          "word": "Housemates",
+          "colour": 20
+        },
+        {
+          "word": "Alone",
+          "colour": 21
+        }
+      ]
+    },
+    {
+      "name": "Home",
+      "kind": "list",
+      "show": true,
+      "values": [
+        {
+          "word": "House",
+          "colour": 22
+        },
+        {
+          "word": "Flat",
+          "colour": 23
+        },
+        {
+          "word": "Shared house",
+          "colour": 24
+        }
+      ]
+    }
+  ]
+}

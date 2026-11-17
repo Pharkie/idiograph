@@ -1,0 +1,266 @@
+{
+ "about": "Kemi's coding in the reflexive thematic analysis demo (working from home), invented. Every participant turn in order, found by its opening words: each extract as said with its codes, and the passage's note, or empty for a turn reviewed and left uncoded. make_demo_rta.py builds the workbook and the progress file from this and the interview CSV beside it.",
+ "built": "2026-11-03T12:00:00",
+ "turns": [
+  {
+   "at": "So I'm an HR adviser,",
+   "extracts": [
+    {
+     "text": "I'm there for the kids in a way I couldn't have been. And I'm also never not at work.",
+     "codes": [
+      "Doing both at once, badly"
+     ]
+    }
+   ],
+   "note": "Opens on both at once and keeps them both. The rest of the interview holds to that."
+  },
+  {
+   "at": "It's that the laptop is",
+   "extracts": [
+    {
+     "text": "And it's very easy to just lift the lid. Just to check.",
+     "codes": [
+      "Work seeping into evenings"
+     ]
+    },
+    {
+     "text": "I've answered six emails that could have waited till the morning, and I'm wired, and I can't sleep.",
+     "codes": [
+      "Work seeping into evenings"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Okay. So, alarm's at half",
+   "extracts": [
+    {
+     "text": "Lewis, my husband, he's up and in the spare room by quarter to eight",
+     "codes": [
+      "Whose work counts"
+     ]
+    },
+    {
+     "text": "So the kids are mine in the morning.",
+     "codes": [
+      "Care that lands on the one at home"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "No. Well. It's that I'm",
+   "extracts": [
+    {
+     "text": "So it looks like I'm with them. But I'm not with them",
+     "codes": [
+      "Doing both at once, badly"
+     ]
+    },
+    {
+     "text": "Mummy, are you at work or at home?",
+     "codes": [
+      "Doing both at once, badly"
+     ]
+    }
+   ],
+   "note": "Her daughter's question names what the adults leave unsaid."
+  },
+  {
+   "at": "The dining table. Which, we",
+   "extracts": [
+    {
+     "text": "Someone crying because they've been signed off with stress, and then the washing machine goes into its spin.",
+     "codes": [
+      "Home on show",
+      "No room that is only home"
+     ]
+    },
+    {
+     "text": "it got decided in the first week, when it was going to be a few weeks, and then it just stayed decided.",
+     "codes": [
+      "Whose work counts"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I don't think it was.",
+   "extracts": [
+    {
+     "text": "his job's the big job. He earns more, so. That's not something either of us has ever said out loud.",
+     "codes": [
+      "Whose work counts"
+     ]
+    },
+    {
+     "text": "It's in who gets the door that shuts.",
+     "codes": [
+      "Whose work counts"
+     ]
+    }
+   ],
+   "note": "The room goes by an order nobody says. Check whether others' rooms were settled the same way."
+  },
+  {
+   "at": "Started is easy, started is",
+   "extracts": [
+    {
+     "text": "That walk back is my commute, I suppose.",
+     "codes": [
+      "Small rituals to start and stop",
+      "The commute as a buffer, gone"
+     ]
+    },
+    {
+     "text": "I'd close the laptop and put it in the sideboard. Like, out of sight.",
+     "codes": [
+      "Shutting work away"
+     ]
+    },
+    {
+     "text": "It just lives on the table now.",
+     "codes": [
+      "Work seeping into evenings"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Lovely, actually. I'd forgotten that.",
+   "extracts": [
+    {
+     "text": "It felt like closing a shop. The table was a table again.",
+     "codes": [
+      "Shutting work away"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Well, with the kids, I",
+   "extracts": [
+    {
+     "text": "I do the school run both ends, which before I never did.",
+     "codes": [
+      "Time handed back"
+     ]
+    },
+    {
+     "text": "everything that happens in the house kind of comes to me. The parcels, the boiler man, the dentist ringing. Because I'm here.",
+     "codes": [
+      "Available because I'm at home"
+     ]
+    },
+    {
+     "text": "upstairs is work and downstairs is home, somehow. Even though I'm working downstairs.",
+     "codes": [
+      "Whose work counts"
+     ]
+    }
+   ],
+   "note": "Same house, two meanings of 'here'. His work is upstairs, hers is in the way of home."
+  },
+  {
+   "at": "There was a day, last",
+   "extracts": [
+    {
+     "text": "I had to say, sorry, can you give me two seconds, and go and sign for it.",
+     "codes": [
+      "Available because I'm at home",
+      "Home on show"
+     ]
+    },
+    {
+     "text": "But I'd have had to go up and ask. And he never has to come down and ask.",
+     "codes": [
+      "Whose work counts"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "It's not one day, it's",
+   "extracts": [
+    {
+     "text": "On the sofa, with a bucket. And I work.",
+     "codes": [
+      "Doing both at once, badly"
+     ]
+    },
+    {
+     "text": "nobody at work says take the day off, because why would you, you're at home.",
+     "codes": [
+      "Others doubting it is real work",
+      "Available because I'm at home"
+     ]
+    },
+    {
+     "text": "I just do both, badly.",
+     "codes": [
+      "Doing both at once, badly"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Nothing, really. Carry it round.",
+   "extracts": [
+    {
+     "text": "So you don't feel you can complain. You've got the thing everyone wanted.",
+     "codes": [
+      "A perk you can't complain about"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "The train. This is going",
+   "extracts": [
+    {
+     "text": "it was the only forty minutes in my day when nobody needed anything from me.",
+     "codes": [
+      "The journey as time of my own"
+     ]
+    },
+    {
+     "text": "I didn't know it was holding me up until it wasn't there.",
+     "codes": [
+      "Missing the chat in between"
+     ]
+    },
+    {
+     "text": "The school gate. Without a doubt.",
+     "codes": [
+      "Time handed back"
+     ]
+    }
+   ],
+   "note": "The train missed not as travel but as the one stretch she owed nobody."
+  },
+  {
+   "at": "I think just that it's",
+   "extracts": [
+    {
+     "text": "Some of it's better and some of it's worse, and it's all mixed up together on one table.",
+     "codes": [
+      "No room that is only home"
+     ]
+    }
+   ]
+  }
+ ],
+ "work": {
+  "rounds": [
+   {
+    "seconds": 2280,
+    "completed": "2026-11-02T10:20:14"
+   },
+   {
+    "seconds": 1640,
+    "completed": "2026-11-03T09:48:02"
+   }
+  ],
+  "complete": "2026-11-03T09:48:02"
+ }
+}

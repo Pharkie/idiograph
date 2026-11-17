@@ -116,7 +116,9 @@ Living with a dog, three invented interviews, always open to an agent and the pl
 command first. `--demo` alone is the IPA demo, `--demo ta` (or `--demo=ta`) the thematic analysis
 demo, the same three interviews coded in a thematic analysis project, with its code list and Themes board, and
 `--demo lipa` the longitudinal IPA demo, First year on an allotment, three other invented participants each
-interviewed at three timepoints, with their PETs at each, their LPETs, the LGETs and Trajectories. Every answer is plain text, and `--json` gives the exact data. A refusal is
+interviewed at three timepoints, with their PETs at each, their LPETs, the LGETs and Trajectories, and `--demo rta`
+the reflexive thematic analysis demo, Working from home, six invented participants interviewed for it, with its
+code list and Themes board. Every answer is plain text, and `--json` gives the exact data. A refusal is
 one line a reason and writes nothing.
 
 The command line and the MCP server read and write the files themselves and need no running app. A

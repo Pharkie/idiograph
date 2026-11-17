@@ -280,7 +280,7 @@ def test_lipa_demo(scratch: Path):
     release = "/github/Pharkie/idiograph/releases/download/demo-recordings-1/"
     licence = folder / make_demo.AUDIO_LICENCE
     Stand.files = {release + n: (folder / n).read_bytes() for n in names}
-    Stand.files[release + licence.name] = licence.read_bytes()
+    Stand.files[release + demo_rec.licence_asset(demo_rec.file_sum(licence))] = licence.read_bytes()
     Stand.asked = []
     httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Stand)
     threading.Thread(target=httpd.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True).start()

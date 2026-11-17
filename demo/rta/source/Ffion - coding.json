@@ -1,0 +1,281 @@
+{
+ "about": "Ffion's coding in the reflexive thematic analysis demo (working from home), invented. Every participant turn in order, found by its opening words: each extract as said with its codes, and the passage's note, or empty for a turn reviewed and left uncoded. make_demo_rta.py builds the workbook and the progress file from this and the interview CSV beside it.",
+ "built": "2026-11-08T12:00:00",
+ "turns": [
+  {
+   "at": "So I'm a bit different,",
+   "extracts": [
+    {
+     "text": "I left to go freelance so I could be home with her.",
+     "codes": [
+      "Time handed back"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "People understood, for the first",
+   "extracts": [
+    {
+     "text": "For eight years, people thought I didn't really work.",
+     "codes": [
+      "Others doubting it is real work"
+     ]
+    },
+    {
+     "text": "yes, yes, but you're at home.",
+     "codes": [
+      "Others doubting it is real work",
+      "Available because I'm at home"
+     ]
+    }
+   ],
+   "note": "She had 'but you're at home' years before the others. The pandemic gave her company in it."
+  },
+  {
+   "at": "Up at seven, Elin up,",
+   "extracts": [
+    {
+     "text": "I put my shoes on, proper shoes, not slippers, and I walk down to the postbox at the end of the road and back.",
+     "codes": [
+      "Small rituals to start and stop"
+     ]
+    },
+    {
+     "text": "I go round to my dad's, he's got early dementia, he's on his own",
+     "codes": [
+      "Care that lands on the one at home"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I take my phone. Always.",
+   "extracts": [
+    {
+     "text": "I answer it there and then, in his kitchen.",
+     "codes": [
+      "Staying visible online"
+     ]
+    },
+    {
+     "text": "oh, she's not really working, she's a mum at home.",
+     "codes": [
+      "Others doubting it is real work"
+     ]
+    },
+    {
+     "text": "So I answer quickly to prove it, I suppose.",
+     "codes": [
+      "Staying visible online"
+     ]
+    },
+    {
+     "text": "it sounds like there's a kettle. And there was. Dad's kettle.",
+     "codes": [
+      "Home on show"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "It was the first thing",
+   "extracts": [
+    {
+     "text": "At home, there's nothing to tell you it's started. So I made something.",
+     "codes": [
+      "Small rituals to start and stop",
+      "The commute as a buffer, gone"
+     ]
+    },
+    {
+     "text": "The postbox is my office door.",
+     "codes": [
+      "Small rituals to start and stop"
+     ]
+    },
+    {
+     "text": "In slippers I'm at home. In shoes I'm at work.",
+     "codes": [
+      "Small rituals to start and stop"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "It's a two-bed flat, ground",
+   "extracts": [
+    {
+     "text": "I have a box.",
+     "codes": [
+      "Shutting work away"
+     ]
+    },
+    {
+     "text": "the box goes in the cupboard under the stairs. Well, the cupboard in the hall, we haven't got stairs.",
+     "codes": [
+      "Shutting work away"
+     ]
+    },
+    {
+     "text": "the corner's just a corner again",
+     "codes": [
+      "Shutting work away"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Like the work's gone to",
+   "extracts": [
+    {
+     "text": "Like the work's gone to bed.",
+     "codes": [
+      "Shutting work away"
+     ]
+    },
+    {
+     "text": "if I can see it, I'll think about it.",
+     "codes": [
+      "Work seeping into evenings"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "The postbox and the box.",
+   "extracts": [
+    {
+     "text": "Nobody tells you to stop.",
+     "codes": [
+      "Work seeping into evenings"
+     ]
+    },
+    {
+     "text": "Now I get an email at nine at night that says, any chance of this by the morning.",
+     "codes": [
+      "Work seeping into evenings"
+     ]
+    },
+    {
+     "text": "So sometimes the box comes back out.",
+     "codes": [
+      "Work seeping into evenings"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "With Elin, it's been good.",
+   "extracts": [
+    {
+     "text": "I've been at every assembly, every sports day.",
+     "codes": [
+      "Time handed back"
+     ]
+    },
+    {
+     "text": "it was just understood that it would be me. Because I'm at home. Because I'm flexible.",
+     "codes": [
+      "Care that lands on the one at home",
+      "Available because I'm at home"
+     ]
+    },
+    {
+     "text": "flexible doesn't mean I'm not working.",
+     "codes": [
+      "Available because I'm at home"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "No. It happens after Elin's",
+   "extracts": [
+    {
+     "text": "It happens after Elin's in bed, at the desk, with the box out.",
+     "codes": [
+      "Whose work counts"
+     ]
+    },
+    {
+     "text": "And I want to say, you could find out. But I don't.",
+     "codes": [
+      "Whose work counts"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "There was a day in",
+   "extracts": [
+    {
+     "text": "I was sat in my dad's kitchen with the laptop on my knee",
+     "codes": [
+      "Doing both at once, badly"
+     ]
+    },
+    {
+     "text": "this is my whole life, in one room.",
+     "codes": [
+      "Doing both at once, badly"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I don't miss the agency.",
+   "extracts": [
+    {
+     "text": "You had to be at your desk when the boss walked past.",
+     "codes": [
+      "Relief from the office performance"
+     ]
+    },
+    {
+     "text": "At home I can just be good at the work, and the work speaks for itself.",
+     "codes": [
+      "Relief from the office performance"
+     ]
+    },
+    {
+     "text": "that's my staffroom.",
+     "codes": [
+      "Missing the chat in between"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Just that it's a skill.",
+   "extracts": [
+    {
+     "text": "keeping the work in its corner, and keeping the home out of the work, that's a skill I had to learn",
+     "codes": [
+      "Small rituals to start and stop"
+     ]
+    },
+    {
+     "text": "It took me ten years to get to the box.",
+     "codes": [
+      "Shutting work away"
+     ]
+    }
+   ],
+   "note": "Says outright what the others show: getting to work and back is something she made, and keeps making."
+  }
+ ],
+ "work": {
+  "rounds": [
+   {
+    "seconds": 2020,
+    "completed": "2026-11-07T15:11:43"
+   },
+   {
+    "seconds": 1500,
+    "completed": "2026-11-08T10:27:09"
+   }
+  ],
+  "complete": "2026-11-08T10:27:09"
+ }
+}

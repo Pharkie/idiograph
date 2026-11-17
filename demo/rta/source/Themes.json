@@ -1,0 +1,192 @@
+{
+ "about": "The working-from-home demo's code list and Themes board, invented: each code with its description, and each theme by its title with its central organising concept, definition, note, codes and key extracts, a subtheme inside its theme. A code in no theme is not placed. `reflexivity` is the researcher's reflexivity statement, the Themes board's note.",
+ "made": "2026-11-09T15:20:00+00:00",
+ "chosen": "2026-11-10T10:05:00+00:00",
+ "codes": [
+  {
+   "name": "Small rituals to start and stop",
+   "description": "Walks, shoes, lanyards, a shirt, words said to a room: small acts made up to mark when work starts and stops."
+  },
+  {
+   "name": "The commute as a buffer, gone",
+   "description": "The journey that once stood between work and home, missed for the gap it made rather than for itself."
+  },
+  {
+   "name": "Work seeping into evenings",
+   "description": "Checking, replying and working after hours because work is within reach and nothing says stop."
+  },
+  {
+   "name": "No room that is only home",
+   "description": "Living and sleeping beside work in rooms that used to be only home."
+  },
+  {
+   "name": "Shutting work away",
+   "description": "Laptops into baskets, boxes and drawers, a door shut or a t-shirt over the screen: work put out of sight for the night."
+  },
+  {
+   "name": "Staying visible online",
+   "description": "The green dot, the fast reply, first on in the morning: making yourself seen to be at work."
+  },
+  {
+   "name": "Guilt at home's ordinary pauses",
+   "description": "A wash, a nip to the shop, a trip to the toilet felt as being caught out, though nobody is looking."
+  },
+  {
+   "name": "Giving back the saved time",
+   "description": "Longer hours and no breaks, the commute's time paid back to the employer unasked."
+  },
+  {
+   "name": "Others doubting it is real work",
+   "description": "Family, neighbours and friends treating work at home as not quite work."
+  },
+  {
+   "name": "Home on show",
+   "description": "The home exposed to work: the room behind the camera, a family heard on a call."
+  },
+  {
+   "name": "Available because I'm at home",
+   "description": "Parcels, lifts, tradesmen and errands coming to whoever is at home, as if at home means free."
+  },
+  {
+   "name": "Care that lands on the one at home",
+   "description": "Care for a parent or child given to the one at home, decided without being discussed."
+  },
+  {
+   "name": "Housework in the gaps",
+   "description": "Housework done in the gaps of the working day, unseen and so uncounted."
+  },
+  {
+   "name": "Whose work counts",
+   "description": "Whose job gets the room with the door, and whose is the one to give way."
+  },
+  {
+   "name": "Doing both at once, badly",
+   "description": "Working and caring in the same room at the same time, and doing neither as well as wished."
+  },
+  {
+   "name": "Missing the chat in between",
+   "description": "The talk between tasks, the Friday sandwich or pint, missed once it is gone."
+  },
+  {
+   "name": "A work self left behind",
+   "description": "A self that lived at work, with its clothes, desk and humour, and is hard to find at home."
+  },
+  {
+   "name": "Learning a job without people",
+   "description": "Starting or learning a job through a screen, with nobody to overhear."
+  },
+  {
+   "name": "Relief from the office performance",
+   "description": "Relief at no longer being on show in an office: the banter, the drinks, being seen at a desk."
+  },
+  {
+   "name": "The journey as time of my own",
+   "description": "The commute as time that belonged to nobody else, missed or found again."
+  },
+  {
+   "name": "Time handed back",
+   "description": "Time the commute used to take, given back to the person and their home."
+  },
+  {
+   "name": "Money saved",
+   "description": "Fares, petrol, parking and lunches no longer paid for."
+  },
+  {
+   "name": "Noise through walls and ceilings",
+   "description": "Neighbours' and housemates' noise, and one's own, getting in the way of calls."
+  },
+  {
+   "name": "A perk you can't complain about",
+   "description": "Working from home taken as a perk, so its costs feel ungrateful to say."
+  }
+ ],
+ "themes": [
+  {
+   "title": "Going to work without leaving home",
+   "central_organising_concept": "With no journey to take them there, participants get themselves to work and back by small acts of their own making, and on the days they skip them work never quite starts or stops.",
+   "definition": "Dev walks out of his front door 'as a man in a flat' and back in as someone at work. Toby goes out for a coffee to come back a worker, Ffion walks to the postbox in proper shoes, Ros puts on a lanyard she does not need, and Glen tells the box room 'that's you done'. None was told to do this, and most found it by trial. Where the act is skipped, work spreads: into the bed, the kitchen table, the evening email.",
+   "note": "Checked hardest, since a question about the start and end of the day invites talk of routine. Most of it came in answer to the day and the room (questions 2 and 3), and all six make their own way to work and back. Named from Dev's and Toby's own image of going out and coming back.",
+   "codes": [
+    "Small rituals to start and stop",
+    "The commute as a buffer, gone",
+    "Work seeping into evenings",
+    "No room that is only home"
+   ],
+   "subs": [
+    {
+     "title": "Putting work out of sight",
+     "central_organising_concept": "Work stops only when it cannot be seen.",
+     "definition": "Hiding the things of work (in a basket, a box, a drawer, behind a door or under a t-shirt) as the one end of the day that works, kept or lost by how much room a home has.",
+     "codes": [
+      "Shutting work away"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Having to be seen to work",
+   "central_organising_concept": "Work nobody can see feels as if it must be proved, so people make themselves visible, repay home's ordinary freedoms in longer hours and guilt, and keep quiet about what it costs.",
+   "definition": "Out of sight of managers and colleagues, participants stand in for their own bodies at a desk: a green dot, a reply within the minute, a collared shirt. The time saved on the commute is felt as owed, a wash or a trip to the shop as being caught, and the doubt of family and neighbours ('working hard or hardly working?') confirms the need for proof. Home itself comes under the same gaze through the camera and the call.",
+   "note": "Toby's account leads, so I checked it was not about youth. Glen, at sixty-three and settled, does the same with his green light at eight, and Ros with the phone in her apron.",
+   "codes": [
+    "Staying visible online",
+    "Guilt at home's ordinary pauses",
+    "Giving back the saved time",
+    "Others doubting it is real work",
+    "Home on show"
+   ],
+   "subs": [
+    {
+     "title": "Lucky, so I can't complain",
+     "central_organising_concept": "Working from home is held as a privilege, so its costs feel ungrateful to say.",
+     "definition": "Kemi has 'the thing everyone wanted', Toby was told he had won something he did not enter, Glen treats it as a favour he must prove was worth it, Ros counts her blessings beside the people at bus stops, and Dev's brother would laugh. The same debt that keeps them visible keeps them quiet.",
+     "codes": [
+      "A perk you can't complain about"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "At home means available",
+   "central_organising_concept": "Being at home is heard as being free, so the household's and the family's work flows to whoever is home, and goes uncounted.",
+   "definition": "Families, neighbours, employers and participants themselves treat 'at home' as available. Parcels, lifts, tradesmen, a sick child and an ageing parent go to the one at home, decided without discussion. The work fits into the gaps of the working day and so does not look like work, and whose job gets the room with the door settles whose job gives way.",
+   "note": "First drafted as a gendered theme. Dev's account, doing the gaps' work while his partner goes out, and Glen's, where his work takes the quiet from his wife, showed the pattern follows who is at home. Gender still shapes it (Kemi, Ros, Ffion) and the write-up should say so.",
+   "codes": [
+    "Available because I'm at home",
+    "Care that lands on the one at home",
+    "Housework in the gaps",
+    "Whose work counts",
+    "Doing both at once, badly"
+   ],
+   "subs": []
+  },
+  {
+   "title": "Missing, or glad to lose, who I was at work",
+   "central_organising_concept": "Each participant was a particular person at work, with colleagues, clothes and a manner of their own, and working from home has taken that person away: some miss them, some are glad to be rid of them.",
+   "definition": "Dev misses 'Dev from testing', the ironed shirts and the people who stayed at his desk to chat, and Toby, who started in his bedroom, never got to become anyone at work. Glen, Ros and Ffion are glad to stop being that person: the banter, the drinks, being seen at a desk. Either way, who they were at work belonged to the office. The commute was part of it, time owed to nobody, which some have lost (Kemi's train) and some have found again at home (Ros's garden).",
+   "note": "Two pulls in opposite directions, kept as one theme because what is missed and what is escaped are the same thing: the person one was at work.",
+   "codes": [
+    "Missing the chat in between",
+    "A work self left behind",
+    "Learning a job without people",
+    "Relief from the office performance"
+   ],
+   "subs": [
+    {
+     "title": "Time that is nobody else's",
+     "central_organising_concept": "The commute was the one stretch of the day owed to no one.",
+     "definition": "The train, the car park, the garden in the morning: ten or forty minutes in which nobody needs anything, lost with the commute or found again at home.",
+     "codes": [
+      "The journey as time of my own",
+      "Time handed back"
+     ]
+    }
+   ]
+  }
+ ],
+ "not_placed": [
+  "Money saved",
+  "Noise through walls and ceilings"
+ ],
+ "reflexivity": "I am a white British woman in my forties and a lecturer in organisational psychology. I have worked mostly from home since March 2020, at a desk in the spare room of a terraced house I share with my partner, and I chose to stay there when my university reopened. In that I am partly an insider: I know the green dot, the email answered at nine at night and the walk round the block before starting. I am an outsider in other ways. I care for no child or parent, my job is salaried and secure, and I have never had to learn a job through a screen, as Toby did, or to keep freelance clients, as Ffion does. I came to the topic because the pandemic made an arrangement that had belonged to a few people ordinary for millions almost overnight, while public talk about it stayed with productivity and office space rather than with what it is like to live with. I expected to hear about loneliness and the lost commute, since those were my own experience. I kept a short reflexive note after each interview and through coding, and the notes showed me warming most to the accounts nearest mine and being slow to take seriously the pleasure Ros and Glen find at home, so I went back to their interviews and coded them again. My own household is a simple one, which may have made me quick to notice who gets the quiet room in other people's; I have tried to show where that pattern comes from their words and not from mine."
+}

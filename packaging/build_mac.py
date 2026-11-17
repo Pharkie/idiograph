@@ -105,7 +105,8 @@ MODULES_BY_OWNER = {
     "family": ("server", "boot", "agent_log", "ai_suggest", "app_folders", "app_identity", "app_search", "make_app",
                "mcp_server", "cli", "locks", "errors", "files", "textfiles", "pdftext", "screenings", "i18n", "formats",
                "trash", "relay_transport", "folder_transport", "names", "typeset"),
-    "idiograph": ("audio", "convert", "corpus", "demo_recordings", "export", "home_cache", "make_demo", "nudges", "rounds", "shared_strings", "themes",
+    "idiograph": ("audio", "convert", "corpus", "demo_recordings", "export", "home_cache", "make_demo", "make_demo_lipa",
+                  "make_demo_rta", "nudges", "rounds", "shared_strings", "themes",
                   "themes_ai", "themes_print", "themes_word", "workbook", "gets", "gets_print", "print_pdf", "project_pack",
                   "trajectories", "codes", "qdpx", "idiograph_main", "idiograph_routes", "idiograph_cli", "idiograph_mcp",
                   "idiograph_find", "statement_prompts", "team", "transport", "table_import"),
@@ -146,6 +147,10 @@ DEMO_CODES = "idiograph-codes.json"
 # 2026): each participant staged with every board file of theirs, a PETs file a timepoint and the LPETs file
 DEMO_LIPA = "lipa"
 DEMO_LIPA_CASES = ("Hollis", "Nell", "Arlo")
+# the reflexive thematic analysis demo's folder and its six (rtabuild, 17 November 2026), staged as the thematic
+# analysis demo is, its code list and Themes board at its root
+DEMO_RTA = "rta"
+DEMO_RTA_CASES = ("Kemi", "Toby", "Ros", "Glen", "Dev", "Ffion")
 DEMO_ROOT_FILES = (DEMO_GETS, DEMO_CODES, "idiograph-lgets.json", "idiograph-trajectories.json")
 # the transcript template, shipped so a tester has it in Idiograph, under `template/` in the bundle
 TEMPLATE = Path("template") / "Transcript template.xlsx"
@@ -388,7 +393,8 @@ def stage_cases(stage: Path) -> Path:
     # the IPA demo at the stage's demo, and the thematic analysis demo in its folder inside it (demos, 3 November 2026),
     # and the longitudinal demo in its own (lipabuild, 13 November 2026)
     for into, src, cases in ((demo, source, DEMO_CASES), (demo / DEMO_TA, source / DEMO_TA, DEMO_CASES),
-                             (demo / DEMO_LIPA, source / DEMO_LIPA, DEMO_LIPA_CASES)):
+                             (demo / DEMO_LIPA, source / DEMO_LIPA, DEMO_LIPA_CASES),
+                             (demo / DEMO_RTA, source / DEMO_RTA, DEMO_RTA_CASES)):
         if not (src / "pristine").is_dir():
             continue
         shutil.copytree(src / "pristine", into / "pristine", ignore=shutil.ignore_patterns(".*", "_Archive", "~$*"))

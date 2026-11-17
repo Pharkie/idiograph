@@ -42,6 +42,14 @@ from urllib.parse import urlsplit
 
 MANIFEST = "recordings.json"
 LICENCE = "LICENSE-audio.md"
+
+
+def licence_asset(sha256: str) -> str:
+    """The licence's name on the release, its sha256's first 8 hex in it as a recording's name carries its
+    transcript's hash, so a changed licence goes up as a new asset beside the old one, which the copies already out
+    download by their own manifests and which is never replaced (rtafix, 17 November 2026). On this computer it is
+    always `LICENCE`."""
+    return f"LICENSE-audio-{sha256[:8]}.md"
 # the release the recordings are assets of, on the app's own repository, never a version's tag, so the newest
 # version's files and the update check never see it
 RELEASE = "demo-recordings-1"
@@ -168,8 +176,9 @@ def make_manifest(folder: Path, files: list[str], earlier: dict | None = None, u
             row["earlier"] = sizes
         rows.append(row)
     licence = folder / LICENCE
+    digest = file_sum(licence)
     return {"release": release, "url": url, "recordings": rows,
-            "licence": {"file": LICENCE, "size": licence.stat().st_size, "sha256": file_sum(licence)}}
+            "licence": {"file": licence_asset(digest), "size": licence.stat().st_size, "sha256": digest}}
 
 
 def write_manifest(target: Path, folder: Path, files: list[str]) -> dict:

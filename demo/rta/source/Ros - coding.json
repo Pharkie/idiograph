@@ -1,0 +1,261 @@
+{
+ "about": "Ros's coding in the reflexive thematic analysis demo (working from home), invented. Every participant turn in order, found by its opening words: each extract as said with its codes, and the passage's note, or empty for a turn reviewed and left uncoded. make_demo_rta.py builds the workbook and the progress file from this and the interview CSV beside it.",
+ "built": "2026-11-05T12:00:00",
+ "turns": [
+  {
+   "at": "Well, I work for the",
+   "extracts": [
+    {
+     "text": "I'd fight anyone who tried to take it off me.",
+     "codes": [
+      "Time handed back"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "The time, mainly. I used",
+   "extracts": [
+    {
+     "text": "I take my tea out into the garden and I just stand there.",
+     "codes": [
+      "Time handed back"
+     ]
+    },
+    {
+     "text": "I'd never seen my own garden in the morning, in twenty years.",
+     "codes": [
+      "Time handed back"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Peaceful. That's the only word.",
+   "extracts": [
+    {
+     "text": "Nobody wants anything off me for ten minutes.",
+     "codes": [
+      "The journey as time of my own"
+     ]
+    },
+    {
+     "text": "Now I start the day as myself.",
+     "codes": [
+      "Time handed back"
+     ]
+    },
+    {
+     "text": "I'm saving a fortune on the bus, as well, and on sandwiches.",
+     "codes": [
+      "Money saved"
+     ]
+    }
+   ],
+   "note": "The garden does for her what the train did for Kemi: ten minutes owed to nobody."
+  },
+  {
+   "at": "A home day? Up at",
+   "extracts": [
+    {
+     "text": "I'll put a wash on, or nip to the Co-op. And I feel guilty about that.",
+     "codes": [
+      "Guilt at home's ordinary pauses",
+      "Housework in the gaps"
+     ]
+    },
+    {
+     "text": "Even though I've worked through my break, I feel like I've been caught out.",
+     "codes": [
+      "Guilt at home's ordinary pauses"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Yes. It's daft. It's twenty",
+   "extracts": [
+    {
+     "text": "if you weren't at your desk, someone would say, where's Ros?",
+     "codes": [
+      "Staying visible online"
+     ]
+    },
+    {
+     "text": "I'll have the work phone in my apron pocket, like a teenager.",
+     "codes": [
+      "Staying visible online",
+      "Guilt at home's ordinary pauses"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "The kitchen table, like I",
+   "extracts": [
+    {
+     "text": "the work phone sits on the worktop next to the bread bin. And it goes off.",
+     "codes": [
+      "Work seeping into evenings",
+      "No room that is only home"
+     ]
+    },
+    {
+     "text": "So I've started putting it in the drawer.",
+     "codes": [
+      "Shutting work away"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Started is when I put",
+   "extracts": [
+    {
+     "text": "Started is when I put my lanyard on.",
+     "codes": [
+      "Small rituals to start and stop"
+     ]
+    },
+    {
+     "text": "that's Ros from revenues now, not Mum.",
+     "codes": [
+      "Small rituals to start and stop",
+      "A work self left behind"
+     ]
+    },
+    {
+     "text": "If I forget to take it off, I'm still sort of at work in my head while I'm doing the tea.",
+     "codes": [
+      "Small rituals to start and stop"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Oh, everything. My mum, mainly.",
+   "extracts": [
+    {
+     "text": "I'm the one who takes her to her appointments now.",
+     "codes": [
+      "Care that lands on the one at home"
+     ]
+    },
+    {
+     "text": "Now it's, well, Ros is at home. As if home means free.",
+     "codes": [
+      "Available because I'm at home",
+      "Care that lands on the one at home"
+     ]
+    },
+    {
+     "text": "It landed because I was the one at home.",
+     "codes": [
+      "Care that lands on the one at home"
+     ]
+    }
+   ],
+   "note": "'As if home means free': the phrase for the whole of this pattern. Check it across the others."
+  },
+  {
+   "at": "Honestly? I was cross for",
+   "extracts": [
+    {
+     "text": "he's got a business, hasn't he. And I've only got a job.",
+     "codes": [
+      "Whose work counts"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Well, that's what it feels",
+   "extracts": [
+    {
+     "text": "Last Thursday I had six parcels in my hall, and only one of them was mine.",
+     "codes": [
+      "Available because I'm at home"
+     ]
+    },
+    {
+     "text": "Like being at home and being free are the same thing.",
+     "codes": [
+      "Available because I'm at home"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "There was one, it still",
+   "extracts": [
+    {
+     "text": "Like I'd let her into my kitchen without asking her.",
+     "codes": [
+      "Home on show"
+     ]
+    },
+    {
+     "text": "I put a sign on the door after that.",
+     "codes": [
+      "Home on show"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I still go in two",
+   "extracts": [
+    {
+     "text": "I don't miss being on show all day.",
+     "codes": [
+      "Relief from the office performance"
+     ]
+    },
+    {
+     "text": "At home nobody's looking, and I'm a lot more myself.",
+     "codes": [
+      "Relief from the office performance"
+     ]
+    },
+    {
+     "text": "I'd rather it was me than a taxi.",
+     "codes": [
+      "Care that lands on the one at home"
+     ]
+    }
+   ],
+   "note": "Relief from being looked at in the office, beside guilt at being caught out at home. Both are about being watched."
+  },
+  {
+   "at": "Only that people think it's",
+   "extracts": [
+    {
+     "text": "It's women like me, with a mum and a teenager and a bad knee, who'd have packed in work years ago if it wasn't for this.",
+     "codes": [
+      "Time handed back"
+     ]
+    },
+    {
+     "text": "You keep your head down and you count your blessings.",
+     "codes": [
+      "A perk you can't complain about"
+     ]
+    }
+   ],
+   "note": "Her keenness and her silence about its costs come in the same breath."
+  }
+ ],
+ "work": {
+  "rounds": [
+   {
+    "seconds": 1980,
+    "completed": "2026-11-04T15:02:31"
+   },
+   {
+    "seconds": 1390,
+    "completed": "2026-11-05T09:41:18"
+   }
+  ],
+  "complete": "2026-11-05T09:41:18"
+ }
+}

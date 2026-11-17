@@ -1,0 +1,40 @@
+{
+ "version": 1,
+ "rows": {
+  "Initial:3": "reviewed-empty",
+  "Initial:5": "has-content",
+  "Initial:7": "has-content",
+  "Initial:9": "has-content",
+  "Initial:11": "has-content",
+  "Initial:13": "has-content",
+  "Initial:15": "has-content",
+  "Initial:17": "has-content",
+  "Initial:19": "has-content",
+  "Initial:21": "has-content",
+  "Initial:23": "has-content",
+  "Initial:25": "has-content",
+  "Initial:27": "has-content"
+ },
+ "rounds": {
+  "1": {
+   "seconds": 1580,
+   "completed": "2026-11-07T09:55:36"
+  }
+ },
+ "days": {
+  "2026-11-07": {
+   "rounds": 1
+  }
+ },
+ "last": {
+  "sheet": "Initial",
+  "row": 27
+ },
+ "flags": [],
+ "trims": [],
+ "edits": [],
+ "assignments": [],
+ "complete": {
+  "at": "2026-11-07T09:55:36"
+ }
+}

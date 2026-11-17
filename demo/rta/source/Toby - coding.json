@@ -1,0 +1,262 @@
+{
+ "about": "Toby's coding in the reflexive thematic analysis demo (working from home), invented. Every participant turn in order, found by its opening words: each extract as said with its codes, and the passage's note, or empty for a turn reviewed and left uncoded. make_demo_rta.py builds the workbook and the progress file from this and the interview CSV beside it.",
+ "built": "2026-11-04T12:00:00",
+ "turns": [
+  {
+   "at": "Yeah, so, I'm a, my",
+   "extracts": [
+    {
+     "text": "my first day was me in my bedroom with a box.",
+     "codes": [
+      "Learning a job without people"
+     ]
+    },
+    {
+     "text": "I'm twenty-seven and I spend most of my life in one room.",
+     "codes": [
+      "No room that is only home"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I live in a house",
+   "extracts": [
+    {
+     "text": "That's my office and my bedroom and my living room",
+     "codes": [
+      "No room that is only home"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "So the bad version or",
+   "extracts": [
+    {
+     "text": "I open the laptop on the bed and I'm online by nine.",
+     "codes": [
+      "No room that is only home"
+     ]
+    },
+    {
+     "text": "I go out and get a coffee from the place at the end of the road, walk round the block, and come back and sit at the desk like a person.",
+     "codes": [
+      "Small rituals to start and stop"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Yeah. Because it's constant. And",
+   "extracts": [
+    {
+     "text": "If my dot goes yellow, because I've been away from the laptop for ten minutes, I feel like someone's going to notice.",
+     "codes": [
+      "Staying visible online"
+     ]
+    },
+    {
+     "text": "I'll get up to go to the toilet and I'll wiggle the mouse before I go.",
+     "codes": [
+      "Staying visible online",
+      "Guilt at home's ordinary pauses"
+     ]
+    }
+   ],
+   "note": "The dot stands in for a body at a desk. He knows nobody watches and does it anyway."
+  },
+  {
+   "at": "That I'm not working. That",
+   "extracts": [
+    {
+     "text": "At home, all they've got is the dot and how fast you answer. So I answer really fast.",
+     "codes": [
+      "Staying visible online"
+     ]
+    },
+    {
+     "text": "I'm never actually concentrating on anything, because I'm always waiting for the ping.",
+     "codes": [
+      "Staying visible online"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "The bedroom. At the little",
+   "extracts": [
+    {
+     "text": "it means I sleep at work.",
+     "codes": [
+      "No room that is only home"
+     ]
+    },
+    {
+     "text": "I started putting a t-shirt over it. Like a birdcage.",
+     "codes": [
+      "Shutting work away"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "It just means it's gone.",
+   "extracts": [
+    {
+     "text": "I can't put it anywhere else because there isn't anywhere else. So I cover it up.",
+     "codes": [
+      "Shutting work away"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Depends on the day, really.",
+   "extracts": [
+    {
+     "text": "I sort of go out as one person and come back as a worker.",
+     "codes": [
+      "Small rituals to start and stop"
+     ]
+    },
+    {
+     "text": "on a bad day it doesn't start, it just sort of seeps in.",
+     "codes": [
+      "Work seeping into evenings"
+     ]
+    },
+    {
+     "text": "I'll see a notification from a client and I'll just reply. From bed.",
+     "codes": [
+      "Work seeping into evenings"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "The worker's got his shoes",
+   "extracts": [
+    {
+     "text": "the walk is the only thing that turns one into the other.",
+     "codes": [
+      "Small rituals to start and stop",
+      "A work self left behind"
+     ]
+    }
+   ],
+   "note": "A worker made each morning by a walk, as Ros is by her lanyard."
+  },
+  {
+   "at": "The housemates are all out",
+   "extracts": [
+    {
+     "text": "I take calls whispering sometimes.",
+     "codes": [
+      "Noise through walls and ceilings"
+     ]
+    },
+    {
+     "text": "I'm like, Mum, I'm working. And she's like, yeah, but you're at home.",
+     "codes": [
+      "Others doubting it is real work"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Not that it's not a",
+   "extracts": [
+    {
+     "text": "I learnt everything off a screen share.",
+     "codes": [
+      "Learning a job without people"
+     ]
+    },
+    {
+     "text": "I don't really know what a good marketing person sounds like. I've only ever heard them on Teams.",
+     "codes": [
+      "Learning a job without people",
+      "A work self left behind"
+     ]
+    }
+   ],
+   "note": "Not missing a self he had, but never getting to make one."
+  },
+  {
+   "at": "Yeah, so, Priya, the nurse.",
+   "extracts": [
+    {
+     "text": "And I ended up doing the whole thing from my car.",
+     "codes": [
+      "Noise through walls and ceilings"
+     ]
+    },
+    {
+     "text": "this is my big moment and I'm in a Fiesta outside a chicken shop.",
+     "codes": [
+      "A work self left behind"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Funny, now. At the time",
+   "extracts": [
+    {
+     "text": "I just felt like I didn't have a proper place to be a professional. Like I was pretending.",
+     "codes": [
+      "A work self left behind"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "It's weird to miss something",
+   "extracts": [
+    {
+     "text": "I miss the in-between bits.",
+     "codes": [
+      "Missing the chat in between"
+     ]
+    },
+    {
+     "text": "Actually having colleagues, not just, like, names.",
+     "codes": [
+      "Missing the chat in between"
+     ]
+    },
+    {
+     "text": "And not having to pay for the train.",
+     "codes": [
+      "Money saved"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Just that everyone talks about",
+   "extracts": [
+    {
+     "text": "it's a bit like being told you've won something you didn't enter. And then not being allowed to say you don't want it.",
+     "codes": [
+      "A perk you can't complain about"
+     ]
+    }
+   ]
+  }
+ ],
+ "work": {
+  "rounds": [
+   {
+    "seconds": 2110,
+    "completed": "2026-11-03T14:35:40"
+   },
+   {
+    "seconds": 1520,
+    "completed": "2026-11-04T10:12:55"
+   }
+  ],
+  "complete": "2026-11-04T10:12:55"
+ }
+}

@@ -86,6 +86,23 @@ demo/lipa/Working/
 demo/lipa/pictures/
 demo/lipa/*/_Archive/
 demo/lipa/_Archive/
+# and the reflexive thematic analysis demo's (rtabuild, 17 November 2026), as the thematic analysis demo's: its pristine
+# copy's progress files ship, its live Themes board's file, code list, exports and backups stay out. Its six
+# recordings, in packaging/recording, are named as the IPA demo's committed three are, so they are kept out here by
+# name and download from the demo's release as the longitudinal demo's do
+!demo/rta/pristine/Working/*.progress.json
+demo/rta/idiograph-gets.json
+demo/rta/idiograph-codes.json
+demo/rta/Working/
+demo/rta/*/Source/
+demo/rta/*/_Archive/
+demo/rta/_Archive/
+packaging/recording/Kemi-Initial-*.m4a
+packaging/recording/Toby-Initial-*.m4a
+packaging/recording/Ros-Initial-*.m4a
+packaging/recording/Glen-Initial-*.m4a
+packaging/recording/Dev-Initial-*.m4a
+packaging/recording/Ffion-Initial-*.m4a
 # the lock the server and the command line take around a write, in a case's Working/ and at a root
 .idiograph.lock
 # an agent's actions that waited for his yes at a project's root before approvals were removed, and their lock, and

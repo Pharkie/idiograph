@@ -1,0 +1,4331 @@
+{
+ "schema": 1,
+ "created": "2026-11-09T15:20:00+00:00",
+ "updated": "2026-11-10T10:05:00+00:00",
+ "current": "b1",
+ "chosen": "b1",
+ "complete": null,
+ "settings": {
+  "minimum": null,
+  "one_per_pet": true
+ },
+ "study": {
+  "Dev": {
+   "in": true
+  },
+  "Ffion": {
+   "in": true
+  },
+  "Glen": {
+   "in": true
+  },
+  "Kemi": {
+   "in": true
+  },
+  "Ros": {
+   "in": true
+  },
+  "Toby": {
+   "in": true
+  }
+ },
+ "cases": {
+  "Dev": {
+   "workbook": "Dev - EN & ES.xlsx",
+   "board": null,
+   "name": null,
+   "complete": false,
+   "came": "2026-11-09T15:20:00+00:00",
+   "seen": {
+    "workbook": 1794237600000000000,
+    "themes": null
+   },
+   "hash": "3e340384eccc22022ea9944736f1e3028e9d28ccafbda66ab669a67ee5e837d9",
+   "state": "none",
+   "pets": [],
+   "lines": {
+    "Initial:5:0": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "01:05",
+     "seconds": 65,
+     "text": "A work self left behind",
+     "quotes": [
+      "\"I was Dev from testing. People knew me.\"",
+      "\"I think I've sort of shrunk to fit it.\"",
+      "\"I think I've sort of shrunk to fit it.\""
+     ],
+     "notes": [
+      "Loss of a self, not of a place. Compare Toby, who never had one to lose."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:1": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "01:05",
+     "seconds": 65,
+     "text": "A work self left behind",
+     "quotes": [
+      "\"I was Dev from testing. People knew me.\"",
+      "\"I think I've sort of shrunk to fit it.\"",
+      "\"I think I've sort of shrunk to fit it.\""
+     ],
+     "notes": [
+      "Loss of a self, not of a place. Compare Toby, who never had one to lose."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:2": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "01:05",
+     "seconds": 65,
+     "text": "No room that is only home",
+     "quotes": [
+      "\"I was Dev from testing. People knew me.\"",
+      "\"I think I've sort of shrunk to fit it.\"",
+      "\"I think I've sort of shrunk to fit it.\""
+     ],
+     "notes": [
+      "Loss of a self, not of a place. Compare Toby, who never had one to lose."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:0": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:36",
+     "seconds": 96,
+     "text": "No room that is only home",
+     "quotes": [
+      "\"I don't notice until Sam says, when did you last go out, properly.\"",
+      "\"I tidied the bit behind me for about a year.\"",
+      "\"Like my kitchen was going to be marked.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:1": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:36",
+     "seconds": 96,
+     "text": "Home on show",
+     "quotes": [
+      "\"I don't notice until Sam says, when did you last go out, properly.\"",
+      "\"I tidied the bit behind me for about a year.\"",
+      "\"Like my kitchen was going to be marked.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:2": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:36",
+     "seconds": 96,
+     "text": "Home on show",
+     "quotes": [
+      "\"I don't notice until Sam says, when did you last go out, properly.\"",
+      "\"I tidied the bit behind me for about a year.\"",
+      "\"Like my kitchen was going to be marked.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:0": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:16",
+     "seconds": 136,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"I walk out of my front door as a man in a flat, and I walk back in as, you know, someone at work.\"",
+      "\"I walk out of my front door as a man in a flat, and I walk back in as, you know, someone at work.\"",
+      "\"I look up and it's six, and Sam's back, and I haven't moved.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:1": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:16",
+     "seconds": 136,
+     "text": "The commute as a buffer, gone",
+     "quotes": [
+      "\"I walk out of my front door as a man in a flat, and I walk back in as, you know, someone at work.\"",
+      "\"I walk out of my front door as a man in a flat, and I walk back in as, you know, someone at work.\"",
+      "\"I look up and it's six, and Sam's back, and I haven't moved.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:2": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:16",
+     "seconds": 136,
+     "text": "Work seeping into evenings",
+     "quotes": [
+      "\"I walk out of my front door as a man in a flat, and I walk back in as, you know, someone at work.\"",
+      "\"I walk out of my front door as a man in a flat, and I walk back in as, you know, someone at work.\"",
+      "\"I look up and it's six, and Sam's back, and I haven't moved.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:0": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "03:00",
+     "seconds": 180,
+     "text": "Giving back the saved time",
+     "quotes": [
+      "\"I work longer now than I ever did in the office. Way longer.\"",
+      "\"At home, there's nobody packing up.\"",
+      "\"I've saved an hour and a half on the commute, so the bank's owed that hour and a half. Nobody's asked for it. I just give it.\""
+     ],
+     "notes": [
+      "The saved time is felt as a debt. Glen says the same in other words."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:1": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "03:00",
+     "seconds": 180,
+     "text": "Work seeping into evenings",
+     "quotes": [
+      "\"I work longer now than I ever did in the office. Way longer.\"",
+      "\"At home, there's nobody packing up.\"",
+      "\"I've saved an hour and a half on the commute, so the bank's owed that hour and a half. Nobody's asked for it. I just give it.\""
+     ],
+     "notes": [
+      "The saved time is felt as a debt. Glen says the same in other words."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:2": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "03:00",
+     "seconds": 180,
+     "text": "Giving back the saved time",
+     "quotes": [
+      "\"I work longer now than I ever did in the office. Way longer.\"",
+      "\"At home, there's nobody packing up.\"",
+      "\"I've saved an hour and a half on the commute, so the bank's owed that hour and a half. Nobody's asked for it. I just give it.\""
+     ],
+     "notes": [
+      "The saved time is felt as a debt. Glen says the same in other words."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:0": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:38",
+     "seconds": 218,
+     "text": "No room that is only home",
+     "quotes": [
+      "\"There's no room in the flat that's just home.\"",
+      "\"it's like the office is watching me.\"",
+      "\"the laptop and the keyboard and the headset go in the basket and the lid goes on\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:1": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:38",
+     "seconds": 218,
+     "text": "No room that is only home",
+     "quotes": [
+      "\"There's no room in the flat that's just home.\"",
+      "\"it's like the office is watching me.\"",
+      "\"the laptop and the keyboard and the headset go in the basket and the lid goes on\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:2": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:38",
+     "seconds": 218,
+     "text": "Shutting work away",
+     "quotes": [
+      "\"There's no room in the flat that's just home.\"",
+      "\"it's like the office is watching me.\"",
+      "\"the laptop and the keyboard and the headset go in the basket and the lid goes on\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:0": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "04:17",
+     "seconds": 257,
+     "text": "Shutting work away",
+     "quotes": [
+      "\"It's like a full stop.\"",
+      "\"And then it's out for a week.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:1": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "04:17",
+     "seconds": 257,
+     "text": "Work seeping into evenings",
+     "quotes": [
+      "\"It's like a full stop.\"",
+      "\"And then it's out for a week.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:0": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:32",
+     "seconds": 272,
+     "text": "Work seeping into evenings",
+     "quotes": [
+      "\"it's her key in the door that tells me to stop. Not me.\"",
+      "\"you're not working from home, you're living at work.\"",
+      "\"you're not working from home, you're living at work.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:1": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:32",
+     "seconds": 272,
+     "text": "Work seeping into evenings",
+     "quotes": [
+      "\"it's her key in the door that tells me to stop. Not me.\"",
+      "\"you're not working from home, you're living at work.\"",
+      "\"you're not working from home, you're living at work.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:2": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:32",
+     "seconds": 272,
+     "text": "No room that is only home",
+     "quotes": [
+      "\"it's her key in the door that tells me to stop. Not me.\"",
+      "\"you're not working from home, you're living at work.\"",
+      "\"you're not working from home, you're living at work.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:0": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "05:02",
+     "seconds": 302,
+     "text": "Housework in the gaps",
+     "quotes": [
+      "\"there's a thing that's crept in where the house stuff is mine. Because I'm here.\"",
+      "\"there's a thing that's crept in where the house stuff is mine. Because I'm here.\"",
+      "\"It happens in the gaps, so it doesn't look like anything.\"",
+      "\"my day was at home, so it can't have been that tiring.\"",
+      "\"my day was at home, so it can't have been that tiring.\""
+     ],
+     "notes": [
+      "A man doing the gaps' work: the pattern follows who is at home, not who is a woman. Worth saying in the write-up."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:1": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "05:02",
+     "seconds": 302,
+     "text": "Available because I'm at home",
+     "quotes": [
+      "\"there's a thing that's crept in where the house stuff is mine. Because I'm here.\"",
+      "\"there's a thing that's crept in where the house stuff is mine. Because I'm here.\"",
+      "\"It happens in the gaps, so it doesn't look like anything.\"",
+      "\"my day was at home, so it can't have been that tiring.\"",
+      "\"my day was at home, so it can't have been that tiring.\""
+     ],
+     "notes": [
+      "A man doing the gaps' work: the pattern follows who is at home, not who is a woman. Worth saying in the write-up."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:2": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "05:02",
+     "seconds": 302,
+     "text": "Housework in the gaps",
+     "quotes": [
+      "\"there's a thing that's crept in where the house stuff is mine. Because I'm here.\"",
+      "\"there's a thing that's crept in where the house stuff is mine. Because I'm here.\"",
+      "\"It happens in the gaps, so it doesn't look like anything.\"",
+      "\"my day was at home, so it can't have been that tiring.\"",
+      "\"my day was at home, so it can't have been that tiring.\""
+     ],
+     "notes": [
+      "A man doing the gaps' work: the pattern follows who is at home, not who is a woman. Worth saying in the write-up."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:3": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "05:02",
+     "seconds": 302,
+     "text": "Housework in the gaps",
+     "quotes": [
+      "\"there's a thing that's crept in where the house stuff is mine. Because I'm here.\"",
+      "\"there's a thing that's crept in where the house stuff is mine. Because I'm here.\"",
+      "\"It happens in the gaps, so it doesn't look like anything.\"",
+      "\"my day was at home, so it can't have been that tiring.\"",
+      "\"my day was at home, so it can't have been that tiring.\""
+     ],
+     "notes": [
+      "A man doing the gaps' work: the pattern follows who is at home, not who is a woman. Worth saying in the write-up."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:4": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "05:02",
+     "seconds": 302,
+     "text": "Whose work counts",
+     "quotes": [
+      "\"there's a thing that's crept in where the house stuff is mine. Because I'm here.\"",
+      "\"there's a thing that's crept in where the house stuff is mine. Because I'm here.\"",
+      "\"It happens in the gaps, so it doesn't look like anything.\"",
+      "\"my day was at home, so it can't have been that tiring.\"",
+      "\"my day was at home, so it can't have been that tiring.\""
+     ],
+     "notes": [
+      "A man doing the gaps' work: the pattern follows who is at home, not who is a woman. Worth saying in the write-up."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:0": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:40",
+     "seconds": 340,
+     "text": "Whose work counts",
+     "quotes": [
+      "\"Mostly I swallow it.\"",
+      "\"My day doesn't sound like much when you say it out loud.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:1": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:40",
+     "seconds": 340,
+     "text": "Whose work counts",
+     "quotes": [
+      "\"Mostly I swallow it.\"",
+      "\"My day doesn't sound like much when you say it out loud.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:0": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "06:20",
+     "seconds": 380,
+     "text": "Noise through walls and ceilings",
+     "quotes": [
+      "\"every few minutes this drill would go through the ceiling.\"",
+      "\"At home, it's somehow my problem.\"",
+      "\"Thirty-four years old. Next to my old posters.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:1": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "06:20",
+     "seconds": 380,
+     "text": "Noise through walls and ceilings",
+     "quotes": [
+      "\"every few minutes this drill would go through the ceiling.\"",
+      "\"At home, it's somehow my problem.\"",
+      "\"Thirty-four years old. Next to my old posters.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:2": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "06:20",
+     "seconds": 380,
+     "text": "A work self left behind",
+     "quotes": [
+      "\"every few minutes this drill would go through the ceiling.\"",
+      "\"At home, it's somehow my problem.\"",
+      "\"Thirty-four years old. Next to my old posters.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:0": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "06:58",
+     "seconds": 418,
+     "text": "A work self left behind",
+     "quotes": [
+      "\"I miss being someone at work.\"",
+      "\"I'd put one on and I was, I was that person\"",
+      "\"There was a little Turkish place, and three or four of us would go on a Friday. I miss that a lot.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:1": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "06:58",
+     "seconds": 418,
+     "text": "A work self left behind",
+     "quotes": [
+      "\"I miss being someone at work.\"",
+      "\"I'd put one on and I was, I was that person\"",
+      "\"There was a little Turkish place, and three or four of us would go on a Friday. I miss that a lot.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:2": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "06:58",
+     "seconds": 418,
+     "text": "Missing the chat in between",
+     "quotes": [
+      "\"I miss being someone at work.\"",
+      "\"I'd put one on and I was, I was that person\"",
+      "\"There was a little Turkish place, and three or four of us would go on a Friday. I miss that a lot.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:0": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "08:07",
+     "seconds": 487,
+     "text": "A work self left behind",
+     "quotes": [
+      "\"I think I've lost a bit of myself in the flat.\"",
+      "\"If I said I was finding it hard working from home, he'd laugh at me.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:1": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "08:07",
+     "seconds": 487,
+     "text": "A perk you can't complain about",
+     "quotes": [
+      "\"I think I've lost a bit of myself in the flat.\"",
+      "\"If I said I was finding it hard working from home, he'd laugh at me.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    }
+   }
+  },
+  "Ffion": {
+   "workbook": "Ffion - EN & ES.xlsx",
+   "board": null,
+   "name": null,
+   "complete": false,
+   "came": "2026-11-09T15:20:00+00:00",
+   "seen": {
+    "workbook": 1794237600000000000,
+    "themes": null
+   },
+   "hash": "6cd169d9bc1c4bfe2ef38c75b1241df1940ef3f7cbbd1b0a976e06f443df2d48",
+   "state": "none",
+   "pets": [],
+   "lines": {
+    "Initial:3:0": {
+     "sheet": "Initial",
+     "row": 3,
+     "time": "00:16",
+     "seconds": 16,
+     "text": "Time handed back",
+     "quotes": [
+      "\"I left to go freelance so I could be home with her.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:0": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "00:53",
+     "seconds": 53,
+     "text": "Others doubting it is real work",
+     "quotes": [
+      "\"For eight years, people thought I didn't really work.\"",
+      "\"yes, yes, but you're at home.\"",
+      "\"yes, yes, but you're at home.\""
+     ],
+     "notes": [
+      "She had 'but you're at home' years before the others. The pandemic gave her company in it."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:1": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "00:53",
+     "seconds": 53,
+     "text": "Others doubting it is real work",
+     "quotes": [
+      "\"For eight years, people thought I didn't really work.\"",
+      "\"yes, yes, but you're at home.\"",
+      "\"yes, yes, but you're at home.\""
+     ],
+     "notes": [
+      "She had 'but you're at home' years before the others. The pandemic gave her company in it."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:2": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "00:53",
+     "seconds": 53,
+     "text": "Available because I'm at home",
+     "quotes": [
+      "\"For eight years, people thought I didn't really work.\"",
+      "\"yes, yes, but you're at home.\"",
+      "\"yes, yes, but you're at home.\""
+     ],
+     "notes": [
+      "She had 'but you're at home' years before the others. The pandemic gave her company in it."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:0": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:24",
+     "seconds": 84,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"I put my shoes on, proper shoes, not slippers, and I walk down to the postbox at the end of the road and back.\"",
+      "\"I go round to my dad's, he's got early dementia, he's on his own\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:1": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:24",
+     "seconds": 84,
+     "text": "Care that lands on the one at home",
+     "quotes": [
+      "\"I put my shoes on, proper shoes, not slippers, and I walk down to the postbox at the end of the road and back.\"",
+      "\"I go round to my dad's, he's got early dementia, he's on his own\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:0": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:05",
+     "seconds": 125,
+     "text": "Staying visible online",
+     "quotes": [
+      "\"I answer it there and then, in his kitchen.\"",
+      "\"oh, she's not really working, she's a mum at home.\"",
+      "\"So I answer quickly to prove it, I suppose.\"",
+      "\"it sounds like there's a kettle. And there was. Dad's kettle.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:1": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:05",
+     "seconds": 125,
+     "text": "Others doubting it is real work",
+     "quotes": [
+      "\"I answer it there and then, in his kitchen.\"",
+      "\"oh, she's not really working, she's a mum at home.\"",
+      "\"So I answer quickly to prove it, I suppose.\"",
+      "\"it sounds like there's a kettle. And there was. Dad's kettle.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:2": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:05",
+     "seconds": 125,
+     "text": "Staying visible online",
+     "quotes": [
+      "\"I answer it there and then, in his kitchen.\"",
+      "\"oh, she's not really working, she's a mum at home.\"",
+      "\"So I answer quickly to prove it, I suppose.\"",
+      "\"it sounds like there's a kettle. And there was. Dad's kettle.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:3": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:05",
+     "seconds": 125,
+     "text": "Home on show",
+     "quotes": [
+      "\"I answer it there and then, in his kitchen.\"",
+      "\"oh, she's not really working, she's a mum at home.\"",
+      "\"So I answer quickly to prove it, I suppose.\"",
+      "\"it sounds like there's a kettle. And there was. Dad's kettle.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:0": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:41",
+     "seconds": 161,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"At home, there's nothing to tell you it's started. So I made something.\"",
+      "\"At home, there's nothing to tell you it's started. So I made something.\"",
+      "\"The postbox is my office door.\"",
+      "\"In slippers I'm at home. In shoes I'm at work.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:1": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:41",
+     "seconds": 161,
+     "text": "The commute as a buffer, gone",
+     "quotes": [
+      "\"At home, there's nothing to tell you it's started. So I made something.\"",
+      "\"At home, there's nothing to tell you it's started. So I made something.\"",
+      "\"The postbox is my office door.\"",
+      "\"In slippers I'm at home. In shoes I'm at work.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:2": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:41",
+     "seconds": 161,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"At home, there's nothing to tell you it's started. So I made something.\"",
+      "\"At home, there's nothing to tell you it's started. So I made something.\"",
+      "\"The postbox is my office door.\"",
+      "\"In slippers I'm at home. In shoes I'm at work.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:3": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:41",
+     "seconds": 161,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"At home, there's nothing to tell you it's started. So I made something.\"",
+      "\"At home, there's nothing to tell you it's started. So I made something.\"",
+      "\"The postbox is my office door.\"",
+      "\"In slippers I'm at home. In shoes I'm at work.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:0": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:09",
+     "seconds": 189,
+     "text": "Shutting work away",
+     "quotes": [
+      "\"I have a box.\"",
+      "\"the box goes in the cupboard under the stairs. Well, the cupboard in the hall, we haven't got stairs.\"",
+      "\"the corner's just a corner again\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:1": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:09",
+     "seconds": 189,
+     "text": "Shutting work away",
+     "quotes": [
+      "\"I have a box.\"",
+      "\"the box goes in the cupboard under the stairs. Well, the cupboard in the hall, we haven't got stairs.\"",
+      "\"the corner's just a corner again\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:2": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:09",
+     "seconds": 189,
+     "text": "Shutting work away",
+     "quotes": [
+      "\"I have a box.\"",
+      "\"the box goes in the cupboard under the stairs. Well, the cupboard in the hall, we haven't got stairs.\"",
+      "\"the corner's just a corner again\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:0": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "03:47",
+     "seconds": 227,
+     "text": "Shutting work away",
+     "quotes": [
+      "\"Like the work's gone to bed.\"",
+      "\"if I can see it, I'll think about it.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:1": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "03:47",
+     "seconds": 227,
+     "text": "Work seeping into evenings",
+     "quotes": [
+      "\"Like the work's gone to bed.\"",
+      "\"if I can see it, I'll think about it.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:0": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:06",
+     "seconds": 246,
+     "text": "Work seeping into evenings",
+     "quotes": [
+      "\"Nobody tells you to stop.\"",
+      "\"Now I get an email at nine at night that says, any chance of this by the morning.\"",
+      "\"So sometimes the box comes back out.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:1": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:06",
+     "seconds": 246,
+     "text": "Work seeping into evenings",
+     "quotes": [
+      "\"Nobody tells you to stop.\"",
+      "\"Now I get an email at nine at night that says, any chance of this by the morning.\"",
+      "\"So sometimes the box comes back out.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:2": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:06",
+     "seconds": 246,
+     "text": "Work seeping into evenings",
+     "quotes": [
+      "\"Nobody tells you to stop.\"",
+      "\"Now I get an email at nine at night that says, any chance of this by the morning.\"",
+      "\"So sometimes the box comes back out.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:0": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "04:46",
+     "seconds": 286,
+     "text": "Time handed back",
+     "quotes": [
+      "\"I've been at every assembly, every sports day.\"",
+      "\"it was just understood that it would be me. Because I'm at home. Because I'm flexible.\"",
+      "\"it was just understood that it would be me. Because I'm at home. Because I'm flexible.\"",
+      "\"flexible doesn't mean I'm not working.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:1": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "04:46",
+     "seconds": 286,
+     "text": "Care that lands on the one at home",
+     "quotes": [
+      "\"I've been at every assembly, every sports day.\"",
+      "\"it was just understood that it would be me. Because I'm at home. Because I'm flexible.\"",
+      "\"it was just understood that it would be me. Because I'm at home. Because I'm flexible.\"",
+      "\"flexible doesn't mean I'm not working.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:2": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "04:46",
+     "seconds": 286,
+     "text": "Available because I'm at home",
+     "quotes": [
+      "\"I've been at every assembly, every sports day.\"",
+      "\"it was just understood that it would be me. Because I'm at home. Because I'm flexible.\"",
+      "\"it was just understood that it would be me. Because I'm at home. Because I'm flexible.\"",
+      "\"flexible doesn't mean I'm not working.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:3": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "04:46",
+     "seconds": 286,
+     "text": "Available because I'm at home",
+     "quotes": [
+      "\"I've been at every assembly, every sports day.\"",
+      "\"it was just understood that it would be me. Because I'm at home. Because I'm flexible.\"",
+      "\"it was just understood that it would be me. Because I'm at home. Because I'm flexible.\"",
+      "\"flexible doesn't mean I'm not working.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:0": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:23",
+     "seconds": 323,
+     "text": "Whose work counts",
+     "quotes": [
+      "\"It happens after Elin's in bed, at the desk, with the box out.\"",
+      "\"And I want to say, you could find out. But I don't.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:1": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:23",
+     "seconds": 323,
+     "text": "Whose work counts",
+     "quotes": [
+      "\"It happens after Elin's in bed, at the desk, with the box out.\"",
+      "\"And I want to say, you could find out. But I don't.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:0": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "05:45",
+     "seconds": 345,
+     "text": "Doing both at once, badly",
+     "quotes": [
+      "\"I was sat in my dad's kitchen with the laptop on my knee\"",
+      "\"this is my whole life, in one room.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:1": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "05:45",
+     "seconds": 345,
+     "text": "Doing both at once, badly",
+     "quotes": [
+      "\"I was sat in my dad's kitchen with the laptop on my knee\"",
+      "\"this is my whole life, in one room.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:0": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "06:34",
+     "seconds": 394,
+     "text": "Relief from the office performance",
+     "quotes": [
+      "\"You had to be at your desk when the boss walked past.\"",
+      "\"At home I can just be good at the work, and the work speaks for itself.\"",
+      "\"that's my staffroom.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:1": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "06:34",
+     "seconds": 394,
+     "text": "Relief from the office performance",
+     "quotes": [
+      "\"You had to be at your desk when the boss walked past.\"",
+      "\"At home I can just be good at the work, and the work speaks for itself.\"",
+      "\"that's my staffroom.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:2": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "06:34",
+     "seconds": 394,
+     "text": "Missing the chat in between",
+     "quotes": [
+      "\"You had to be at your desk when the boss walked past.\"",
+      "\"At home I can just be good at the work, and the work speaks for itself.\"",
+      "\"that's my staffroom.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:0": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "07:34",
+     "seconds": 454,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"keeping the work in its corner, and keeping the home out of the work, that's a skill I had to learn\"",
+      "\"It took me ten years to get to the box.\""
+     ],
+     "notes": [
+      "Says outright what the others show: getting to work and back is something she made, and keeps making."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:1": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "07:34",
+     "seconds": 454,
+     "text": "Shutting work away",
+     "quotes": [
+      "\"keeping the work in its corner, and keeping the home out of the work, that's a skill I had to learn\"",
+      "\"It took me ten years to get to the box.\""
+     ],
+     "notes": [
+      "Says outright what the others show: getting to work and back is something she made, and keeps making."
+     ],
+     "pet": null,
+     "discarded": false
+    }
+   }
+  },
+  "Glen": {
+   "workbook": "Glen - EN & ES.xlsx",
+   "board": null,
+   "name": null,
+   "complete": false,
+   "came": "2026-11-09T15:20:00+00:00",
+   "seen": {
+    "workbook": 1794237600000000000,
+    "themes": null
+   },
+   "hash": "0230e78c892829aafd25c0edd3d0b7f4766ac6296e11f336d03134bdb7ac3ca7",
+   "state": "none",
+   "pets": [],
+   "lines": {
+    "Initial:5:0": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "00:54",
+     "seconds": 54,
+     "text": "Relief from the office performance",
+     "quotes": [
+      "\"there's a sort of, a performance to it, isn't there.\"",
+      "\"At home I just get on. I don't have to be anybody.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:1": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "00:54",
+     "seconds": 54,
+     "text": "Relief from the office performance",
+     "quotes": [
+      "\"there's a sort of, a performance to it, isn't there.\"",
+      "\"At home I just get on. I don't have to be anybody.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:0": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:27",
+     "seconds": 87,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"I go up, I shut the door, and I'm at work.\"",
+      "\"I go up, I shut the door, and I'm at work.\"",
+      "\"Maureen and I have a sandwich together. Which is lovely.\"",
+      "\"I say, that's you done. Out loud. To the room.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:1": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:27",
+     "seconds": 87,
+     "text": "Shutting work away",
+     "quotes": [
+      "\"I go up, I shut the door, and I'm at work.\"",
+      "\"I go up, I shut the door, and I'm at work.\"",
+      "\"Maureen and I have a sandwich together. Which is lovely.\"",
+      "\"I say, that's you done. Out loud. To the room.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:2": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:27",
+     "seconds": 87,
+     "text": "Time handed back",
+     "quotes": [
+      "\"I go up, I shut the door, and I'm at work.\"",
+      "\"I go up, I shut the door, and I'm at work.\"",
+      "\"Maureen and I have a sandwich together. Which is lovely.\"",
+      "\"I say, that's you done. Out loud. To the room.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:3": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:27",
+     "seconds": 87,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"I go up, I shut the door, and I'm at work.\"",
+      "\"I go up, I shut the door, and I'm at work.\"",
+      "\"Maureen and I have a sandwich together. Which is lovely.\"",
+      "\"I say, that's you done. Out loud. To the room.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:0": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:16",
+     "seconds": 136,
+     "text": "The commute as a buffer, gone",
+     "quotes": [
+      "\"That was my wind-down. And there isn't one now.\"",
+      "\"So I say it to the room and I shut the door and that's my car park.\"",
+      "\"So I say it to the room and I shut the door and that's my car park.\""
+     ],
+     "notes": [
+      "He has rebuilt the drive home out of a sentence and a door."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:1": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:16",
+     "seconds": 136,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"That was my wind-down. And there isn't one now.\"",
+      "\"So I say it to the room and I shut the door and that's my car park.\"",
+      "\"So I say it to the room and I shut the door and that's my car park.\""
+     ],
+     "notes": [
+      "He has rebuilt the drive home out of a sentence and a door."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:2": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:16",
+     "seconds": 136,
+     "text": "The commute as a buffer, gone",
+     "quotes": [
+      "\"That was my wind-down. And there isn't one now.\"",
+      "\"So I say it to the room and I shut the door and that's my car park.\"",
+      "\"So I say it to the room and I shut the door and that's my car park.\""
+     ],
+     "notes": [
+      "He has rebuilt the drive home out of a sentence and a door."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:0": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:46",
+     "seconds": 166,
+     "text": "Shutting work away",
+     "quotes": [
+      "\"I don't go in there at the weekend.\"",
+      "\"Because if I go in, I'll look at the laptop.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:1": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:46",
+     "seconds": 166,
+     "text": "Work seeping into evenings",
+     "quotes": [
+      "\"I don't go in there at the weekend.\"",
+      "\"Because if I go in, I'll look at the laptop.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:0": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:16",
+     "seconds": 196,
+     "text": "Shutting work away",
+     "quotes": [
+      "\"You'd never stop. I need the door.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:0": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "03:35",
+     "seconds": 215,
+     "text": "Available because I'm at home",
+     "quotes": [
+      "\"While you're here, love, can you have a look at the boiler.\"",
+      "\"And I'd say, Maureen, I'm working. And she'd say, I know, I know. But she didn't, not really.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:1": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "03:35",
+     "seconds": 215,
+     "text": "Others doubting it is real work",
+     "quotes": [
+      "\"While you're here, love, can you have a look at the boiler.\"",
+      "\"And I'd say, Maureen, I'm working. And she'd say, I know, I know. But she didn't, not really.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:0": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:17",
+     "seconds": 257,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"I put a list on the fridge. My hours. Like a shop.\"",
+      "\"they whisper now. In their own house. Her house.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:1": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:17",
+     "seconds": 257,
+     "text": "Whose work counts",
+     "quotes": [
+      "\"I put a list on the fridge. My hours. Like a shop.\"",
+      "\"they whisper now. In their own house. Her house.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:0": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "04:51",
+     "seconds": 291,
+     "text": "Whose work counts",
+     "quotes": [
+      "\"Like I'm the baby asleep upstairs.\"",
+      "\"I've come home and taken a bit of it.\""
+     ],
+     "notes": [
+      "The other side of Kemi's 'door that shuts': here the work takes the house's quiet from the one who was home first."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:1": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "04:51",
+     "seconds": 291,
+     "text": "Whose work counts",
+     "quotes": [
+      "\"Like I'm the baby asleep upstairs.\"",
+      "\"I've come home and taken a bit of it.\""
+     ],
+     "notes": [
+      "The other side of Kemi's 'door that shuts': here the work takes the house's quiet from the one who was home first."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:0": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:27",
+     "seconds": 327,
+     "text": "Others doubting it is real work",
+     "quotes": [
+      "\"working hard or hardly working?\"",
+      "\"I put a shirt on every day, collar, the lot.\"",
+      "\"I've probably done more hours at home than I ever did in that office.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:1": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:27",
+     "seconds": 327,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"working hard or hardly working?\"",
+      "\"I put a shirt on every day, collar, the lot.\"",
+      "\"I've probably done more hours at home than I ever did in that office.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:2": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:27",
+     "seconds": 327,
+     "text": "Giving back the saved time",
+     "quotes": [
+      "\"working hard or hardly working?\"",
+      "\"I put a shirt on every day, collar, the lot.\"",
+      "\"I've probably done more hours at home than I ever did in that office.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:0": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "06:17",
+     "seconds": 377,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"If I'm in a shirt, I'm at work.\"",
+      "\"My little light's green at eight on the dot. I like them to see that.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:1": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "06:17",
+     "seconds": 377,
+     "text": "Staying visible online",
+     "quotes": [
+      "\"If I'm in a shirt, I'm at work.\"",
+      "\"My little light's green at eight on the dot. I like them to see that.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:0": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "06:54",
+     "seconds": 414,
+     "text": "Giving back the saved time",
+     "quotes": [
+      "\"I suppose I feel I've got to earn it. Being at home.\"",
+      "\"Like it's a favour they've done me and I've got to prove it was worth it.\"",
+      "\"I'd rather they had no reason.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:1": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "06:54",
+     "seconds": 414,
+     "text": "A perk you can't complain about",
+     "quotes": [
+      "\"I suppose I feel I've got to earn it. Being at home.\"",
+      "\"Like it's a favour they've done me and I've got to prove it was worth it.\"",
+      "\"I'd rather they had no reason.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:2": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "06:54",
+     "seconds": 414,
+     "text": "Giving back the saved time",
+     "quotes": [
+      "\"I suppose I feel I've got to earn it. Being at home.\"",
+      "\"Like it's a favour they've done me and I've got to prove it was worth it.\"",
+      "\"I'd rather they had no reason.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:0": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "07:18",
+     "seconds": 438,
+     "text": "The journey as time of my own",
+     "quotes": [
+      "\"Radio Two and nobody wanting anything.\"",
+      "\"And the money, you know, no petrol, no parking.\"",
+      "\"I'd miss being able to just do my job, without the performance.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:1": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "07:18",
+     "seconds": 438,
+     "text": "Money saved",
+     "quotes": [
+      "\"Radio Two and nobody wanting anything.\"",
+      "\"And the money, you know, no petrol, no parking.\"",
+      "\"I'd miss being able to just do my job, without the performance.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:2": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "07:18",
+     "seconds": 438,
+     "text": "Relief from the office performance",
+     "quotes": [
+      "\"Radio Two and nobody wanting anything.\"",
+      "\"And the money, you know, no petrol, no parking.\"",
+      "\"I'd miss being able to just do my job, without the performance.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:29:0": {
+     "sheet": "Initial",
+     "row": 29,
+     "time": "07:59",
+     "seconds": 479,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"I'll probably still go up there at quarter to eight. Shut the door. Out of habit.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    }
+   }
+  },
+  "Kemi": {
+   "workbook": "Kemi - EN & ES.xlsx",
+   "board": null,
+   "name": null,
+   "complete": false,
+   "came": "2026-11-09T15:20:00+00:00",
+   "seen": {
+    "workbook": 1794237600000000000,
+    "themes": null
+   },
+   "hash": "fd0ffe07698481508079b5d32c68c1211f1e3be08c7df84ff8112dccf0525b90",
+   "state": "none",
+   "pets": [],
+   "lines": {
+    "Initial:3:0": {
+     "sheet": "Initial",
+     "row": 3,
+     "time": "00:15",
+     "seconds": 15,
+     "text": "Doing both at once, badly",
+     "quotes": [
+      "\"I'm there for the kids in a way I couldn't have been. And I'm also never not at work.\""
+     ],
+     "notes": [
+      "Opens on both at once and keeps them both. The rest of the interview holds to that."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:0": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "00:58",
+     "seconds": 58,
+     "text": "Work seeping into evenings",
+     "quotes": [
+      "\"And it's very easy to just lift the lid. Just to check.\"",
+      "\"I've answered six emails that could have waited till the morning, and I'm wired, and I can't sleep.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:1": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "00:58",
+     "seconds": 58,
+     "text": "Work seeping into evenings",
+     "quotes": [
+      "\"And it's very easy to just lift the lid. Just to check.\"",
+      "\"I've answered six emails that could have waited till the morning, and I'm wired, and I can't sleep.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:0": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:24",
+     "seconds": 84,
+     "text": "Whose work counts",
+     "quotes": [
+      "\"Lewis, my husband, he's up and in the spare room by quarter to eight\"",
+      "\"So the kids are mine in the morning.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:1": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:24",
+     "seconds": 84,
+     "text": "Care that lands on the one at home",
+     "quotes": [
+      "\"Lewis, my husband, he's up and in the spare room by quarter to eight\"",
+      "\"So the kids are mine in the morning.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:0": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:21",
+     "seconds": 141,
+     "text": "Doing both at once, badly",
+     "quotes": [
+      "\"So it looks like I'm with them. But I'm not with them\"",
+      "\"Mummy, are you at work or at home?\""
+     ],
+     "notes": [
+      "Her daughter's question names what the adults leave unsaid."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:1": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:21",
+     "seconds": 141,
+     "text": "Doing both at once, badly",
+     "quotes": [
+      "\"So it looks like I'm with them. But I'm not with them\"",
+      "\"Mummy, are you at work or at home?\""
+     ],
+     "notes": [
+      "Her daughter's question names what the adults leave unsaid."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:0": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:51",
+     "seconds": 171,
+     "text": "Home on show",
+     "quotes": [
+      "\"Someone crying because they've been signed off with stress, and then the washing machine goes into its spin.\"",
+      "\"Someone crying because they've been signed off with stress, and then the washing machine goes into its spin.\"",
+      "\"it got decided in the first week, when it was going to be a few weeks, and then it just stayed decided.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:1": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:51",
+     "seconds": 171,
+     "text": "No room that is only home",
+     "quotes": [
+      "\"Someone crying because they've been signed off with stress, and then the washing machine goes into its spin.\"",
+      "\"Someone crying because they've been signed off with stress, and then the washing machine goes into its spin.\"",
+      "\"it got decided in the first week, when it was going to be a few weeks, and then it just stayed decided.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:2": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:51",
+     "seconds": 171,
+     "text": "Whose work counts",
+     "quotes": [
+      "\"Someone crying because they've been signed off with stress, and then the washing machine goes into its spin.\"",
+      "\"Someone crying because they've been signed off with stress, and then the washing machine goes into its spin.\"",
+      "\"it got decided in the first week, when it was going to be a few weeks, and then it just stayed decided.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:0": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:31",
+     "seconds": 211,
+     "text": "Whose work counts",
+     "quotes": [
+      "\"his job's the big job. He earns more, so. That's not something either of us has ever said out loud.\"",
+      "\"It's in who gets the door that shuts.\""
+     ],
+     "notes": [
+      "The room goes by an order nobody says. Check whether others' rooms were settled the same way."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:1": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:31",
+     "seconds": 211,
+     "text": "Whose work counts",
+     "quotes": [
+      "\"his job's the big job. He earns more, so. That's not something either of us has ever said out loud.\"",
+      "\"It's in who gets the door that shuts.\""
+     ],
+     "notes": [
+      "The room goes by an order nobody says. Check whether others' rooms were settled the same way."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:0": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "03:50",
+     "seconds": 230,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"That walk back is my commute, I suppose.\"",
+      "\"That walk back is my commute, I suppose.\"",
+      "\"I'd close the laptop and put it in the sideboard. Like, out of sight.\"",
+      "\"It just lives on the table now.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:1": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "03:50",
+     "seconds": 230,
+     "text": "The commute as a buffer, gone",
+     "quotes": [
+      "\"That walk back is my commute, I suppose.\"",
+      "\"That walk back is my commute, I suppose.\"",
+      "\"I'd close the laptop and put it in the sideboard. Like, out of sight.\"",
+      "\"It just lives on the table now.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:2": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "03:50",
+     "seconds": 230,
+     "text": "Shutting work away",
+     "quotes": [
+      "\"That walk back is my commute, I suppose.\"",
+      "\"That walk back is my commute, I suppose.\"",
+      "\"I'd close the laptop and put it in the sideboard. Like, out of sight.\"",
+      "\"It just lives on the table now.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:3": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "03:50",
+     "seconds": 230,
+     "text": "Work seeping into evenings",
+     "quotes": [
+      "\"That walk back is my commute, I suppose.\"",
+      "\"That walk back is my commute, I suppose.\"",
+      "\"I'd close the laptop and put it in the sideboard. Like, out of sight.\"",
+      "\"It just lives on the table now.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:0": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:26",
+     "seconds": 266,
+     "text": "Shutting work away",
+     "quotes": [
+      "\"It felt like closing a shop. The table was a table again.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:0": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "04:44",
+     "seconds": 284,
+     "text": "Time handed back",
+     "quotes": [
+      "\"I do the school run both ends, which before I never did.\"",
+      "\"everything that happens in the house kind of comes to me. The parcels, the boiler man, the dentist ringing. Because I'm here.\"",
+      "\"upstairs is work and downstairs is home, somehow. Even though I'm working downstairs.\""
+     ],
+     "notes": [
+      "Same house, two meanings of 'here'. His work is upstairs, hers is in the way of home."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:1": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "04:44",
+     "seconds": 284,
+     "text": "Available because I'm at home",
+     "quotes": [
+      "\"I do the school run both ends, which before I never did.\"",
+      "\"everything that happens in the house kind of comes to me. The parcels, the boiler man, the dentist ringing. Because I'm here.\"",
+      "\"upstairs is work and downstairs is home, somehow. Even though I'm working downstairs.\""
+     ],
+     "notes": [
+      "Same house, two meanings of 'here'. His work is upstairs, hers is in the way of home."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:2": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "04:44",
+     "seconds": 284,
+     "text": "Whose work counts",
+     "quotes": [
+      "\"I do the school run both ends, which before I never did.\"",
+      "\"everything that happens in the house kind of comes to me. The parcels, the boiler man, the dentist ringing. Because I'm here.\"",
+      "\"upstairs is work and downstairs is home, somehow. Even though I'm working downstairs.\""
+     ],
+     "notes": [
+      "Same house, two meanings of 'here'. His work is upstairs, hers is in the way of home."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:0": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:23",
+     "seconds": 323,
+     "text": "Available because I'm at home",
+     "quotes": [
+      "\"I had to say, sorry, can you give me two seconds, and go and sign for it.\"",
+      "\"I had to say, sorry, can you give me two seconds, and go and sign for it.\"",
+      "\"But I'd have had to go up and ask. And he never has to come down and ask.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:1": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:23",
+     "seconds": 323,
+     "text": "Home on show",
+     "quotes": [
+      "\"I had to say, sorry, can you give me two seconds, and go and sign for it.\"",
+      "\"I had to say, sorry, can you give me two seconds, and go and sign for it.\"",
+      "\"But I'd have had to go up and ask. And he never has to come down and ask.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:2": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:23",
+     "seconds": 323,
+     "text": "Whose work counts",
+     "quotes": [
+      "\"I had to say, sorry, can you give me two seconds, and go and sign for it.\"",
+      "\"I had to say, sorry, can you give me two seconds, and go and sign for it.\"",
+      "\"But I'd have had to go up and ask. And he never has to come down and ask.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:0": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "06:01",
+     "seconds": 361,
+     "text": "Doing both at once, badly",
+     "quotes": [
+      "\"On the sofa, with a bucket. And I work.\"",
+      "\"nobody at work says take the day off, because why would you, you're at home.\"",
+      "\"nobody at work says take the day off, because why would you, you're at home.\"",
+      "\"I just do both, badly.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:1": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "06:01",
+     "seconds": 361,
+     "text": "Others doubting it is real work",
+     "quotes": [
+      "\"On the sofa, with a bucket. And I work.\"",
+      "\"nobody at work says take the day off, because why would you, you're at home.\"",
+      "\"nobody at work says take the day off, because why would you, you're at home.\"",
+      "\"I just do both, badly.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:2": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "06:01",
+     "seconds": 361,
+     "text": "Available because I'm at home",
+     "quotes": [
+      "\"On the sofa, with a bucket. And I work.\"",
+      "\"nobody at work says take the day off, because why would you, you're at home.\"",
+      "\"nobody at work says take the day off, because why would you, you're at home.\"",
+      "\"I just do both, badly.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:3": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "06:01",
+     "seconds": 361,
+     "text": "Doing both at once, badly",
+     "quotes": [
+      "\"On the sofa, with a bucket. And I work.\"",
+      "\"nobody at work says take the day off, because why would you, you're at home.\"",
+      "\"nobody at work says take the day off, because why would you, you're at home.\"",
+      "\"I just do both, badly.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:0": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "06:41",
+     "seconds": 401,
+     "text": "A perk you can't complain about",
+     "quotes": [
+      "\"So you don't feel you can complain. You've got the thing everyone wanted.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:0": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "07:06",
+     "seconds": 426,
+     "text": "The journey as time of my own",
+     "quotes": [
+      "\"it was the only forty minutes in my day when nobody needed anything from me.\"",
+      "\"I didn't know it was holding me up until it wasn't there.\"",
+      "\"The school gate. Without a doubt.\""
+     ],
+     "notes": [
+      "The train missed not as travel but as the one stretch she owed nobody."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:1": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "07:06",
+     "seconds": 426,
+     "text": "Missing the chat in between",
+     "quotes": [
+      "\"it was the only forty minutes in my day when nobody needed anything from me.\"",
+      "\"I didn't know it was holding me up until it wasn't there.\"",
+      "\"The school gate. Without a doubt.\""
+     ],
+     "notes": [
+      "The train missed not as travel but as the one stretch she owed nobody."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:2": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "07:06",
+     "seconds": 426,
+     "text": "Time handed back",
+     "quotes": [
+      "\"it was the only forty minutes in my day when nobody needed anything from me.\"",
+      "\"I didn't know it was holding me up until it wasn't there.\"",
+      "\"The school gate. Without a doubt.\""
+     ],
+     "notes": [
+      "The train missed not as travel but as the one stretch she owed nobody."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:29:0": {
+     "sheet": "Initial",
+     "row": 29,
+     "time": "07:55",
+     "seconds": 475,
+     "text": "No room that is only home",
+     "quotes": [
+      "\"Some of it's better and some of it's worse, and it's all mixed up together on one table.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    }
+   }
+  },
+  "Ros": {
+   "workbook": "Ros - EN & ES.xlsx",
+   "board": null,
+   "name": null,
+   "complete": false,
+   "came": "2026-11-09T15:20:00+00:00",
+   "seen": {
+    "workbook": 1794237600000000000,
+    "themes": null
+   },
+   "hash": "84de3891cd130c8a778ebd87c666c0d2bd1f7259f84229db5b0352a61a186fcb",
+   "state": "none",
+   "pets": [],
+   "lines": {
+    "Initial:3:0": {
+     "sheet": "Initial",
+     "row": 3,
+     "time": "00:16",
+     "seconds": 16,
+     "text": "Time handed back",
+     "quotes": [
+      "\"I'd fight anyone who tried to take it off me.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:0": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "00:50",
+     "seconds": 50,
+     "text": "Time handed back",
+     "quotes": [
+      "\"I take my tea out into the garden and I just stand there.\"",
+      "\"I'd never seen my own garden in the morning, in twenty years.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:1": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "00:50",
+     "seconds": 50,
+     "text": "Time handed back",
+     "quotes": [
+      "\"I take my tea out into the garden and I just stand there.\"",
+      "\"I'd never seen my own garden in the morning, in twenty years.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:0": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:20",
+     "seconds": 80,
+     "text": "The journey as time of my own",
+     "quotes": [
+      "\"Nobody wants anything off me for ten minutes.\"",
+      "\"Now I start the day as myself.\"",
+      "\"I'm saving a fortune on the bus, as well, and on sandwiches.\""
+     ],
+     "notes": [
+      "The garden does for her what the train did for Kemi: ten minutes owed to nobody."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:1": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:20",
+     "seconds": 80,
+     "text": "Time handed back",
+     "quotes": [
+      "\"Nobody wants anything off me for ten minutes.\"",
+      "\"Now I start the day as myself.\"",
+      "\"I'm saving a fortune on the bus, as well, and on sandwiches.\""
+     ],
+     "notes": [
+      "The garden does for her what the train did for Kemi: ten minutes owed to nobody."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:2": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:20",
+     "seconds": 80,
+     "text": "Money saved",
+     "quotes": [
+      "\"Nobody wants anything off me for ten minutes.\"",
+      "\"Now I start the day as myself.\"",
+      "\"I'm saving a fortune on the bus, as well, and on sandwiches.\""
+     ],
+     "notes": [
+      "The garden does for her what the train did for Kemi: ten minutes owed to nobody."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:0": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "01:53",
+     "seconds": 113,
+     "text": "Guilt at home's ordinary pauses",
+     "quotes": [
+      "\"I'll put a wash on, or nip to the Co-op. And I feel guilty about that.\"",
+      "\"I'll put a wash on, or nip to the Co-op. And I feel guilty about that.\"",
+      "\"Even though I've worked through my break, I feel like I've been caught out.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:1": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "01:53",
+     "seconds": 113,
+     "text": "Housework in the gaps",
+     "quotes": [
+      "\"I'll put a wash on, or nip to the Co-op. And I feel guilty about that.\"",
+      "\"I'll put a wash on, or nip to the Co-op. And I feel guilty about that.\"",
+      "\"Even though I've worked through my break, I feel like I've been caught out.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:2": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "01:53",
+     "seconds": 113,
+     "text": "Guilt at home's ordinary pauses",
+     "quotes": [
+      "\"I'll put a wash on, or nip to the Co-op. And I feel guilty about that.\"",
+      "\"I'll put a wash on, or nip to the Co-op. And I feel guilty about that.\"",
+      "\"Even though I've worked through my break, I feel like I've been caught out.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:0": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:39",
+     "seconds": 159,
+     "text": "Staying visible online",
+     "quotes": [
+      "\"if you weren't at your desk, someone would say, where's Ros?\"",
+      "\"I'll have the work phone in my apron pocket, like a teenager.\"",
+      "\"I'll have the work phone in my apron pocket, like a teenager.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:1": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:39",
+     "seconds": 159,
+     "text": "Staying visible online",
+     "quotes": [
+      "\"if you weren't at your desk, someone would say, where's Ros?\"",
+      "\"I'll have the work phone in my apron pocket, like a teenager.\"",
+      "\"I'll have the work phone in my apron pocket, like a teenager.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:2": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:39",
+     "seconds": 159,
+     "text": "Guilt at home's ordinary pauses",
+     "quotes": [
+      "\"if you weren't at your desk, someone would say, where's Ros?\"",
+      "\"I'll have the work phone in my apron pocket, like a teenager.\"",
+      "\"I'll have the work phone in my apron pocket, like a teenager.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:0": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:03",
+     "seconds": 183,
+     "text": "Work seeping into evenings",
+     "quotes": [
+      "\"the work phone sits on the worktop next to the bread bin. And it goes off.\"",
+      "\"the work phone sits on the worktop next to the bread bin. And it goes off.\"",
+      "\"So I've started putting it in the drawer.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:1": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:03",
+     "seconds": 183,
+     "text": "No room that is only home",
+     "quotes": [
+      "\"the work phone sits on the worktop next to the bread bin. And it goes off.\"",
+      "\"the work phone sits on the worktop next to the bread bin. And it goes off.\"",
+      "\"So I've started putting it in the drawer.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:2": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:03",
+     "seconds": 183,
+     "text": "Shutting work away",
+     "quotes": [
+      "\"the work phone sits on the worktop next to the bread bin. And it goes off.\"",
+      "\"the work phone sits on the worktop next to the bread bin. And it goes off.\"",
+      "\"So I've started putting it in the drawer.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:0": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "03:37",
+     "seconds": 217,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"Started is when I put my lanyard on.\"",
+      "\"that's Ros from revenues now, not Mum.\"",
+      "\"that's Ros from revenues now, not Mum.\"",
+      "\"If I forget to take it off, I'm still sort of at work in my head while I'm doing the tea.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:1": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "03:37",
+     "seconds": 217,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"Started is when I put my lanyard on.\"",
+      "\"that's Ros from revenues now, not Mum.\"",
+      "\"that's Ros from revenues now, not Mum.\"",
+      "\"If I forget to take it off, I'm still sort of at work in my head while I'm doing the tea.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:2": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "03:37",
+     "seconds": 217,
+     "text": "A work self left behind",
+     "quotes": [
+      "\"Started is when I put my lanyard on.\"",
+      "\"that's Ros from revenues now, not Mum.\"",
+      "\"that's Ros from revenues now, not Mum.\"",
+      "\"If I forget to take it off, I'm still sort of at work in my head while I'm doing the tea.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:3": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "03:37",
+     "seconds": 217,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"Started is when I put my lanyard on.\"",
+      "\"that's Ros from revenues now, not Mum.\"",
+      "\"that's Ros from revenues now, not Mum.\"",
+      "\"If I forget to take it off, I'm still sort of at work in my head while I'm doing the tea.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:0": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:05",
+     "seconds": 245,
+     "text": "Care that lands on the one at home",
+     "quotes": [
+      "\"I'm the one who takes her to her appointments now.\"",
+      "\"Now it's, well, Ros is at home. As if home means free.\"",
+      "\"Now it's, well, Ros is at home. As if home means free.\"",
+      "\"It landed because I was the one at home.\""
+     ],
+     "notes": [
+      "'As if home means free': the phrase for the whole of this pattern. Check it across the others."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:1": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:05",
+     "seconds": 245,
+     "text": "Available because I'm at home",
+     "quotes": [
+      "\"I'm the one who takes her to her appointments now.\"",
+      "\"Now it's, well, Ros is at home. As if home means free.\"",
+      "\"Now it's, well, Ros is at home. As if home means free.\"",
+      "\"It landed because I was the one at home.\""
+     ],
+     "notes": [
+      "'As if home means free': the phrase for the whole of this pattern. Check it across the others."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:2": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:05",
+     "seconds": 245,
+     "text": "Care that lands on the one at home",
+     "quotes": [
+      "\"I'm the one who takes her to her appointments now.\"",
+      "\"Now it's, well, Ros is at home. As if home means free.\"",
+      "\"Now it's, well, Ros is at home. As if home means free.\"",
+      "\"It landed because I was the one at home.\""
+     ],
+     "notes": [
+      "'As if home means free': the phrase for the whole of this pattern. Check it across the others."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:3": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:05",
+     "seconds": 245,
+     "text": "Care that lands on the one at home",
+     "quotes": [
+      "\"I'm the one who takes her to her appointments now.\"",
+      "\"Now it's, well, Ros is at home. As if home means free.\"",
+      "\"Now it's, well, Ros is at home. As if home means free.\"",
+      "\"It landed because I was the one at home.\""
+     ],
+     "notes": [
+      "'As if home means free': the phrase for the whole of this pattern. Check it across the others."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:0": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "04:38",
+     "seconds": 278,
+     "text": "Whose work counts",
+     "quotes": [
+      "\"he's got a business, hasn't he. And I've only got a job.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:0": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:02",
+     "seconds": 302,
+     "text": "Available because I'm at home",
+     "quotes": [
+      "\"Last Thursday I had six parcels in my hall, and only one of them was mine.\"",
+      "\"Like being at home and being free are the same thing.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:1": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:02",
+     "seconds": 302,
+     "text": "Available because I'm at home",
+     "quotes": [
+      "\"Last Thursday I had six parcels in my hall, and only one of them was mine.\"",
+      "\"Like being at home and being free are the same thing.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:0": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "05:35",
+     "seconds": 335,
+     "text": "Home on show",
+     "quotes": [
+      "\"Like I'd let her into my kitchen without asking her.\"",
+      "\"I put a sign on the door after that.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:1": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "05:35",
+     "seconds": 335,
+     "text": "Home on show",
+     "quotes": [
+      "\"Like I'd let her into my kitchen without asking her.\"",
+      "\"I put a sign on the door after that.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:0": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "06:19",
+     "seconds": 379,
+     "text": "Relief from the office performance",
+     "quotes": [
+      "\"I don't miss being on show all day.\"",
+      "\"At home nobody's looking, and I'm a lot more myself.\"",
+      "\"I'd rather it was me than a taxi.\""
+     ],
+     "notes": [
+      "Relief from being looked at in the office, beside guilt at being caught out at home. Both are about being watched."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:1": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "06:19",
+     "seconds": 379,
+     "text": "Relief from the office performance",
+     "quotes": [
+      "\"I don't miss being on show all day.\"",
+      "\"At home nobody's looking, and I'm a lot more myself.\"",
+      "\"I'd rather it was me than a taxi.\""
+     ],
+     "notes": [
+      "Relief from being looked at in the office, beside guilt at being caught out at home. Both are about being watched."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:2": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "06:19",
+     "seconds": 379,
+     "text": "Care that lands on the one at home",
+     "quotes": [
+      "\"I don't miss being on show all day.\"",
+      "\"At home nobody's looking, and I'm a lot more myself.\"",
+      "\"I'd rather it was me than a taxi.\""
+     ],
+     "notes": [
+      "Relief from being looked at in the office, beside guilt at being caught out at home. Both are about being watched."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:0": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "07:01",
+     "seconds": 421,
+     "text": "Time handed back",
+     "quotes": [
+      "\"It's women like me, with a mum and a teenager and a bad knee, who'd have packed in work years ago if it wasn't for this.\"",
+      "\"You keep your head down and you count your blessings.\""
+     ],
+     "notes": [
+      "Her keenness and her silence about its costs come in the same breath."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:1": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "07:01",
+     "seconds": 421,
+     "text": "A perk you can't complain about",
+     "quotes": [
+      "\"It's women like me, with a mum and a teenager and a bad knee, who'd have packed in work years ago if it wasn't for this.\"",
+      "\"You keep your head down and you count your blessings.\""
+     ],
+     "notes": [
+      "Her keenness and her silence about its costs come in the same breath."
+     ],
+     "pet": null,
+     "discarded": false
+    }
+   }
+  },
+  "Toby": {
+   "workbook": "Toby - EN & ES.xlsx",
+   "board": null,
+   "name": null,
+   "complete": false,
+   "came": "2026-11-09T15:20:00+00:00",
+   "seen": {
+    "workbook": 1794237600000000000,
+    "themes": null
+   },
+   "hash": "c5760fefdb0fabb31c23d693482806613aac7a64c5fd11d9ab8a93fb242b9c09",
+   "state": "none",
+   "pets": [],
+   "lines": {
+    "Initial:3:0": {
+     "sheet": "Initial",
+     "row": 3,
+     "time": "00:16",
+     "seconds": 16,
+     "text": "Learning a job without people",
+     "quotes": [
+      "\"my first day was me in my bedroom with a box.\"",
+      "\"I'm twenty-seven and I spend most of my life in one room.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:3:1": {
+     "sheet": "Initial",
+     "row": 3,
+     "time": "00:16",
+     "seconds": 16,
+     "text": "No room that is only home",
+     "quotes": [
+      "\"my first day was me in my bedroom with a box.\"",
+      "\"I'm twenty-seven and I spend most of my life in one room.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:5:0": {
+     "sheet": "Initial",
+     "row": 5,
+     "time": "01:10",
+     "seconds": 70,
+     "text": "No room that is only home",
+     "quotes": [
+      "\"That's my office and my bedroom and my living room\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:0": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:34",
+     "seconds": 94,
+     "text": "No room that is only home",
+     "quotes": [
+      "\"I open the laptop on the bed and I'm online by nine.\"",
+      "\"I go out and get a coffee from the place at the end of the road, walk round the block, and come back and sit at the desk like a person.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:7:1": {
+     "sheet": "Initial",
+     "row": 7,
+     "time": "01:34",
+     "seconds": 94,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"I open the laptop on the bed and I'm online by nine.\"",
+      "\"I go out and get a coffee from the place at the end of the road, walk round the block, and come back and sit at the desk like a person.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:0": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:26",
+     "seconds": 146,
+     "text": "Staying visible online",
+     "quotes": [
+      "\"If my dot goes yellow, because I've been away from the laptop for ten minutes, I feel like someone's going to notice.\"",
+      "\"I'll get up to go to the toilet and I'll wiggle the mouse before I go.\"",
+      "\"I'll get up to go to the toilet and I'll wiggle the mouse before I go.\""
+     ],
+     "notes": [
+      "The dot stands in for a body at a desk. He knows nobody watches and does it anyway."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:1": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:26",
+     "seconds": 146,
+     "text": "Staying visible online",
+     "quotes": [
+      "\"If my dot goes yellow, because I've been away from the laptop for ten minutes, I feel like someone's going to notice.\"",
+      "\"I'll get up to go to the toilet and I'll wiggle the mouse before I go.\"",
+      "\"I'll get up to go to the toilet and I'll wiggle the mouse before I go.\""
+     ],
+     "notes": [
+      "The dot stands in for a body at a desk. He knows nobody watches and does it anyway."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:9:2": {
+     "sheet": "Initial",
+     "row": 9,
+     "time": "02:26",
+     "seconds": 146,
+     "text": "Guilt at home's ordinary pauses",
+     "quotes": [
+      "\"If my dot goes yellow, because I've been away from the laptop for ten minutes, I feel like someone's going to notice.\"",
+      "\"I'll get up to go to the toilet and I'll wiggle the mouse before I go.\"",
+      "\"I'll get up to go to the toilet and I'll wiggle the mouse before I go.\""
+     ],
+     "notes": [
+      "The dot stands in for a body at a desk. He knows nobody watches and does it anyway."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:0": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:56",
+     "seconds": 176,
+     "text": "Staying visible online",
+     "quotes": [
+      "\"At home, all they've got is the dot and how fast you answer. So I answer really fast.\"",
+      "\"I'm never actually concentrating on anything, because I'm always waiting for the ping.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:11:1": {
+     "sheet": "Initial",
+     "row": 11,
+     "time": "02:56",
+     "seconds": 176,
+     "text": "Staying visible online",
+     "quotes": [
+      "\"At home, all they've got is the dot and how fast you answer. So I answer really fast.\"",
+      "\"I'm never actually concentrating on anything, because I'm always waiting for the ping.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:0": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:22",
+     "seconds": 202,
+     "text": "No room that is only home",
+     "quotes": [
+      "\"it means I sleep at work.\"",
+      "\"I started putting a t-shirt over it. Like a birdcage.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:13:1": {
+     "sheet": "Initial",
+     "row": 13,
+     "time": "03:22",
+     "seconds": 202,
+     "text": "Shutting work away",
+     "quotes": [
+      "\"it means I sleep at work.\"",
+      "\"I started putting a t-shirt over it. Like a birdcage.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:15:0": {
+     "sheet": "Initial",
+     "row": 15,
+     "time": "03:45",
+     "seconds": 225,
+     "text": "Shutting work away",
+     "quotes": [
+      "\"I can't put it anywhere else because there isn't anywhere else. So I cover it up.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:0": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:00",
+     "seconds": 240,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"I sort of go out as one person and come back as a worker.\"",
+      "\"on a bad day it doesn't start, it just sort of seeps in.\"",
+      "\"I'll see a notification from a client and I'll just reply. From bed.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:1": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:00",
+     "seconds": 240,
+     "text": "Work seeping into evenings",
+     "quotes": [
+      "\"I sort of go out as one person and come back as a worker.\"",
+      "\"on a bad day it doesn't start, it just sort of seeps in.\"",
+      "\"I'll see a notification from a client and I'll just reply. From bed.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:17:2": {
+     "sheet": "Initial",
+     "row": 17,
+     "time": "04:00",
+     "seconds": 240,
+     "text": "Work seeping into evenings",
+     "quotes": [
+      "\"I sort of go out as one person and come back as a worker.\"",
+      "\"on a bad day it doesn't start, it just sort of seeps in.\"",
+      "\"I'll see a notification from a client and I'll just reply. From bed.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:0": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "04:37",
+     "seconds": 277,
+     "text": "Small rituals to start and stop",
+     "quotes": [
+      "\"the walk is the only thing that turns one into the other.\"",
+      "\"the walk is the only thing that turns one into the other.\""
+     ],
+     "notes": [
+      "A worker made each morning by a walk, as Ros is by her lanyard."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:19:1": {
+     "sheet": "Initial",
+     "row": 19,
+     "time": "04:37",
+     "seconds": 277,
+     "text": "A work self left behind",
+     "quotes": [
+      "\"the walk is the only thing that turns one into the other.\"",
+      "\"the walk is the only thing that turns one into the other.\""
+     ],
+     "notes": [
+      "A worker made each morning by a walk, as Ros is by her lanyard."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:0": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:05",
+     "seconds": 305,
+     "text": "Noise through walls and ceilings",
+     "quotes": [
+      "\"I take calls whispering sometimes.\"",
+      "\"I'm like, Mum, I'm working. And she's like, yeah, but you're at home.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:21:1": {
+     "sheet": "Initial",
+     "row": 21,
+     "time": "05:05",
+     "seconds": 305,
+     "text": "Others doubting it is real work",
+     "quotes": [
+      "\"I take calls whispering sometimes.\"",
+      "\"I'm like, Mum, I'm working. And she's like, yeah, but you're at home.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:0": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "05:42",
+     "seconds": 342,
+     "text": "Learning a job without people",
+     "quotes": [
+      "\"I learnt everything off a screen share.\"",
+      "\"I don't really know what a good marketing person sounds like. I've only ever heard them on Teams.\"",
+      "\"I don't really know what a good marketing person sounds like. I've only ever heard them on Teams.\""
+     ],
+     "notes": [
+      "Not missing a self he had, but never getting to make one."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:1": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "05:42",
+     "seconds": 342,
+     "text": "Learning a job without people",
+     "quotes": [
+      "\"I learnt everything off a screen share.\"",
+      "\"I don't really know what a good marketing person sounds like. I've only ever heard them on Teams.\"",
+      "\"I don't really know what a good marketing person sounds like. I've only ever heard them on Teams.\""
+     ],
+     "notes": [
+      "Not missing a self he had, but never getting to make one."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:23:2": {
+     "sheet": "Initial",
+     "row": 23,
+     "time": "05:42",
+     "seconds": 342,
+     "text": "A work self left behind",
+     "quotes": [
+      "\"I learnt everything off a screen share.\"",
+      "\"I don't really know what a good marketing person sounds like. I've only ever heard them on Teams.\"",
+      "\"I don't really know what a good marketing person sounds like. I've only ever heard them on Teams.\""
+     ],
+     "notes": [
+      "Not missing a self he had, but never getting to make one."
+     ],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:0": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "06:10",
+     "seconds": 370,
+     "text": "Noise through walls and ceilings",
+     "quotes": [
+      "\"And I ended up doing the whole thing from my car.\"",
+      "\"this is my big moment and I'm in a Fiesta outside a chicken shop.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:25:1": {
+     "sheet": "Initial",
+     "row": 25,
+     "time": "06:10",
+     "seconds": 370,
+     "text": "A work self left behind",
+     "quotes": [
+      "\"And I ended up doing the whole thing from my car.\"",
+      "\"this is my big moment and I'm in a Fiesta outside a chicken shop.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:27:0": {
+     "sheet": "Initial",
+     "row": 27,
+     "time": "06:43",
+     "seconds": 403,
+     "text": "A work self left behind",
+     "quotes": [
+      "\"I just felt like I didn't have a proper place to be a professional. Like I was pretending.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:29:0": {
+     "sheet": "Initial",
+     "row": 29,
+     "time": "07:00",
+     "seconds": 420,
+     "text": "Missing the chat in between",
+     "quotes": [
+      "\"I miss the in-between bits.\"",
+      "\"Actually having colleagues, not just, like, names.\"",
+      "\"And not having to pay for the train.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:29:1": {
+     "sheet": "Initial",
+     "row": 29,
+     "time": "07:00",
+     "seconds": 420,
+     "text": "Missing the chat in between",
+     "quotes": [
+      "\"I miss the in-between bits.\"",
+      "\"Actually having colleagues, not just, like, names.\"",
+      "\"And not having to pay for the train.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:29:2": {
+     "sheet": "Initial",
+     "row": 29,
+     "time": "07:00",
+     "seconds": 420,
+     "text": "Money saved",
+     "quotes": [
+      "\"I miss the in-between bits.\"",
+      "\"Actually having colleagues, not just, like, names.\"",
+      "\"And not having to pay for the train.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    },
+    "Initial:31:0": {
+     "sheet": "Initial",
+     "row": 31,
+     "time": "07:40",
+     "seconds": 460,
+     "text": "A perk you can't complain about",
+     "quotes": [
+      "\"it's a bit like being told you've won something you didn't enter. And then not being allowed to say you don't want it.\""
+     ],
+     "notes": [],
+     "pet": null,
+     "discarded": false
+    }
+   }
+  }
+ },
+ "boards": [
+  {
+   "id": "b1",
+   "name": "Board 1",
+   "note": "I am a white British woman in my forties and a lecturer in organisational psychology. I have worked mostly from home since March 2020, at a desk in the spare room of a terraced house I share with my partner, and I chose to stay there when my university reopened. In that I am partly an insider: I know the green dot, the email answered at nine at night and the walk round the block before starting. I am an outsider in other ways. I care for no child or parent, my job is salaried and secure, and I have never had to learn a job through a screen, as Toby did, or to keep freelance clients, as Ffion does. I came to the topic because the pandemic made an arrangement that had belonged to a few people ordinary for millions almost overnight, while public talk about it stayed with productivity and office space rather than with what it is like to live with. I expected to hear about loneliness and the lost commute, since those were my own experience. I kept a short reflexive note after each interview and through coding, and the notes showed me warming most to the accounts nearest mine and being slow to take seriously the pleasure Ros and Glen find at home, so I went back to their interviews and coded them again. My own household is a simple one, which may have made me quick to notice who gets the quiet room in other people's; I have tried to show where that pattern comes from their words and not from mine.",
+   "created": "2026-11-09T15:20:00+00:00",
+   "updated": "2026-11-09T15:20:00+00:00",
+   "cards": {
+    "Dev/es/Initial:9:0": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Dev/es/Initial:9:1": {
+     "x": 234,
+     "y": 204,
+     "text": "The commute as a buffer, gone"
+    },
+    "Dev/es/Initial:9:2": {
+     "x": 14,
+     "y": 378,
+     "text": "Work seeping into evenings"
+    },
+    "Dev/es/Initial:5:2": {
+     "x": 234,
+     "y": 378,
+     "text": "No room that is only home"
+    },
+    "Dev/es/Initial:13:2": {
+     "x": 14,
+     "y": 678,
+     "text": "Shutting work away"
+    },
+    "Ffion/es/Initial:9:0": {
+     "x": 534,
+     "y": 177,
+     "text": "Staying visible online"
+    },
+    "Ros/es/Initial:9:0": {
+     "x": 754,
+     "y": 177,
+     "text": "Guilt at home's ordinary pauses"
+    },
+    "Dev/es/Initial:11:0": {
+     "x": 534,
+     "y": 351,
+     "text": "Giving back the saved time"
+    },
+    "Ffion/es/Initial:5:0": {
+     "x": 754,
+     "y": 351,
+     "text": "Others doubting it is real work"
+    },
+    "Dev/es/Initial:7:1": {
+     "x": 534,
+     "y": 525,
+     "text": "Home on show"
+    },
+    "Dev/es/Initial:27:1": {
+     "x": 534,
+     "y": 841,
+     "text": "A perk you can't complain about"
+    },
+    "Dev/es/Initial:19:1": {
+     "x": 1054,
+     "y": 150,
+     "text": "Available because I'm at home"
+    },
+    "Ffion/es/Initial:7:1": {
+     "x": 1274,
+     "y": 150,
+     "text": "Care that lands on the one at home"
+    },
+    "Dev/es/Initial:19:0": {
+     "x": 1054,
+     "y": 324,
+     "text": "Housework in the gaps"
+    },
+    "Dev/es/Initial:19:4": {
+     "x": 1274,
+     "y": 324,
+     "text": "Whose work counts"
+    },
+    "Ffion/es/Initial:23:0": {
+     "x": 1054,
+     "y": 478,
+     "text": "Doing both at once, badly"
+    },
+    "Dev/es/Initial:25:2": {
+     "x": 1574,
+     "y": 204,
+     "text": "Missing the chat in between"
+    },
+    "Dev/es/Initial:5:0": {
+     "x": 1794,
+     "y": 204,
+     "text": "A work self left behind"
+    },
+    "Toby/es/Initial:3:0": {
+     "x": 1574,
+     "y": 378,
+     "text": "Learning a job without people"
+    },
+    "Ffion/es/Initial:25:0": {
+     "x": 1794,
+     "y": 378,
+     "text": "Relief from the office performance"
+    },
+    "Glen/es/Initial:27:0": {
+     "x": 1574,
+     "y": 659,
+     "text": "The journey as time of my own"
+    },
+    "Ffion/es/Initial:3:0": {
+     "x": 1794,
+     "y": 659,
+     "text": "Time handed back"
+    },
+    "Glen/es/Initial:25:1": {
+     "x": 534,
+     "y": 841,
+     "text": "A perk you can't complain about"
+    },
+    "Kemi/es/Initial:25:0": {
+     "x": 534,
+     "y": 841,
+     "text": "A perk you can't complain about"
+    },
+    "Ros/es/Initial:27:1": {
+     "x": 534,
+     "y": 841,
+     "text": "A perk you can't complain about"
+    },
+    "Toby/es/Initial:31:0": {
+     "x": 534,
+     "y": 841,
+     "text": "A perk you can't complain about"
+    },
+    "Dev/es/Initial:5:1": {
+     "x": 1794,
+     "y": 204,
+     "text": "A work self left behind"
+    },
+    "Dev/es/Initial:23:2": {
+     "x": 1794,
+     "y": 204,
+     "text": "A work self left behind"
+    },
+    "Dev/es/Initial:25:0": {
+     "x": 1794,
+     "y": 204,
+     "text": "A work self left behind"
+    },
+    "Dev/es/Initial:25:1": {
+     "x": 1794,
+     "y": 204,
+     "text": "A work self left behind"
+    },
+    "Dev/es/Initial:27:0": {
+     "x": 1794,
+     "y": 204,
+     "text": "A work self left behind"
+    },
+    "Ros/es/Initial:15:2": {
+     "x": 1794,
+     "y": 204,
+     "text": "A work self left behind"
+    },
+    "Toby/es/Initial:19:1": {
+     "x": 1794,
+     "y": 204,
+     "text": "A work self left behind"
+    },
+    "Toby/es/Initial:23:2": {
+     "x": 1794,
+     "y": 204,
+     "text": "A work self left behind"
+    },
+    "Toby/es/Initial:25:1": {
+     "x": 1794,
+     "y": 204,
+     "text": "A work self left behind"
+    },
+    "Toby/es/Initial:27:0": {
+     "x": 1794,
+     "y": 204,
+     "text": "A work self left behind"
+    },
+    "Ffion/es/Initial:5:2": {
+     "x": 1054,
+     "y": 150,
+     "text": "Available because I'm at home"
+    },
+    "Ffion/es/Initial:19:2": {
+     "x": 1054,
+     "y": 150,
+     "text": "Available because I'm at home"
+    },
+    "Ffion/es/Initial:19:3": {
+     "x": 1054,
+     "y": 150,
+     "text": "Available because I'm at home"
+    },
+    "Glen/es/Initial:15:0": {
+     "x": 1054,
+     "y": 150,
+     "text": "Available because I'm at home"
+    },
+    "Kemi/es/Initial:19:1": {
+     "x": 1054,
+     "y": 150,
+     "text": "Available because I'm at home"
+    },
+    "Kemi/es/Initial:21:0": {
+     "x": 1054,
+     "y": 150,
+     "text": "Available because I'm at home"
+    },
+    "Kemi/es/Initial:23:2": {
+     "x": 1054,
+     "y": 150,
+     "text": "Available because I'm at home"
+    },
+    "Ros/es/Initial:17:1": {
+     "x": 1054,
+     "y": 150,
+     "text": "Available because I'm at home"
+    },
+    "Ros/es/Initial:21:0": {
+     "x": 1054,
+     "y": 150,
+     "text": "Available because I'm at home"
+    },
+    "Ros/es/Initial:21:1": {
+     "x": 1054,
+     "y": 150,
+     "text": "Available because I'm at home"
+    },
+    "Ffion/es/Initial:19:1": {
+     "x": 1274,
+     "y": 150,
+     "text": "Care that lands on the one at home"
+    },
+    "Kemi/es/Initial:7:1": {
+     "x": 1274,
+     "y": 150,
+     "text": "Care that lands on the one at home"
+    },
+    "Ros/es/Initial:17:0": {
+     "x": 1274,
+     "y": 150,
+     "text": "Care that lands on the one at home"
+    },
+    "Ros/es/Initial:17:2": {
+     "x": 1274,
+     "y": 150,
+     "text": "Care that lands on the one at home"
+    },
+    "Ros/es/Initial:17:3": {
+     "x": 1274,
+     "y": 150,
+     "text": "Care that lands on the one at home"
+    },
+    "Ros/es/Initial:25:2": {
+     "x": 1274,
+     "y": 150,
+     "text": "Care that lands on the one at home"
+    },
+    "Ffion/es/Initial:23:1": {
+     "x": 1054,
+     "y": 478,
+     "text": "Doing both at once, badly"
+    },
+    "Kemi/es/Initial:3:0": {
+     "x": 1054,
+     "y": 478,
+     "text": "Doing both at once, badly"
+    },
+    "Kemi/es/Initial:9:0": {
+     "x": 1054,
+     "y": 478,
+     "text": "Doing both at once, badly"
+    },
+    "Kemi/es/Initial:9:1": {
+     "x": 1054,
+     "y": 478,
+     "text": "Doing both at once, badly"
+    },
+    "Kemi/es/Initial:23:0": {
+     "x": 1054,
+     "y": 478,
+     "text": "Doing both at once, badly"
+    },
+    "Kemi/es/Initial:23:3": {
+     "x": 1054,
+     "y": 478,
+     "text": "Doing both at once, badly"
+    },
+    "Dev/es/Initial:11:2": {
+     "x": 534,
+     "y": 351,
+     "text": "Giving back the saved time"
+    },
+    "Glen/es/Initial:21:2": {
+     "x": 534,
+     "y": 351,
+     "text": "Giving back the saved time"
+    },
+    "Glen/es/Initial:25:0": {
+     "x": 534,
+     "y": 351,
+     "text": "Giving back the saved time"
+    },
+    "Glen/es/Initial:25:2": {
+     "x": 534,
+     "y": 351,
+     "text": "Giving back the saved time"
+    },
+    "Ros/es/Initial:9:2": {
+     "x": 754,
+     "y": 177,
+     "text": "Guilt at home's ordinary pauses"
+    },
+    "Ros/es/Initial:11:2": {
+     "x": 754,
+     "y": 177,
+     "text": "Guilt at home's ordinary pauses"
+    },
+    "Toby/es/Initial:9:2": {
+     "x": 754,
+     "y": 177,
+     "text": "Guilt at home's ordinary pauses"
+    },
+    "Dev/es/Initial:7:2": {
+     "x": 534,
+     "y": 525,
+     "text": "Home on show"
+    },
+    "Ffion/es/Initial:9:3": {
+     "x": 534,
+     "y": 525,
+     "text": "Home on show"
+    },
+    "Kemi/es/Initial:11:0": {
+     "x": 534,
+     "y": 525,
+     "text": "Home on show"
+    },
+    "Kemi/es/Initial:21:1": {
+     "x": 534,
+     "y": 525,
+     "text": "Home on show"
+    },
+    "Ros/es/Initial:23:0": {
+     "x": 534,
+     "y": 525,
+     "text": "Home on show"
+    },
+    "Ros/es/Initial:23:1": {
+     "x": 534,
+     "y": 525,
+     "text": "Home on show"
+    },
+    "Dev/es/Initial:19:2": {
+     "x": 1054,
+     "y": 324,
+     "text": "Housework in the gaps"
+    },
+    "Dev/es/Initial:19:3": {
+     "x": 1054,
+     "y": 324,
+     "text": "Housework in the gaps"
+    },
+    "Ros/es/Initial:9:1": {
+     "x": 1054,
+     "y": 324,
+     "text": "Housework in the gaps"
+    },
+    "Toby/es/Initial:23:0": {
+     "x": 1574,
+     "y": 378,
+     "text": "Learning a job without people"
+    },
+    "Toby/es/Initial:23:1": {
+     "x": 1574,
+     "y": 378,
+     "text": "Learning a job without people"
+    },
+    "Ffion/es/Initial:25:2": {
+     "x": 1574,
+     "y": 204,
+     "text": "Missing the chat in between"
+    },
+    "Kemi/es/Initial:27:1": {
+     "x": 1574,
+     "y": 204,
+     "text": "Missing the chat in between"
+    },
+    "Toby/es/Initial:29:0": {
+     "x": 1574,
+     "y": 204,
+     "text": "Missing the chat in between"
+    },
+    "Toby/es/Initial:29:1": {
+     "x": 1574,
+     "y": 204,
+     "text": "Missing the chat in between"
+    },
+    "Dev/es/Initial:7:0": {
+     "x": 234,
+     "y": 378,
+     "text": "No room that is only home"
+    },
+    "Dev/es/Initial:13:0": {
+     "x": 234,
+     "y": 378,
+     "text": "No room that is only home"
+    },
+    "Dev/es/Initial:13:1": {
+     "x": 234,
+     "y": 378,
+     "text": "No room that is only home"
+    },
+    "Dev/es/Initial:17:2": {
+     "x": 234,
+     "y": 378,
+     "text": "No room that is only home"
+    },
+    "Kemi/es/Initial:11:1": {
+     "x": 234,
+     "y": 378,
+     "text": "No room that is only home"
+    },
+    "Kemi/es/Initial:29:0": {
+     "x": 234,
+     "y": 378,
+     "text": "No room that is only home"
+    },
+    "Ros/es/Initial:13:1": {
+     "x": 234,
+     "y": 378,
+     "text": "No room that is only home"
+    },
+    "Toby/es/Initial:3:1": {
+     "x": 234,
+     "y": 378,
+     "text": "No room that is only home"
+    },
+    "Toby/es/Initial:5:0": {
+     "x": 234,
+     "y": 378,
+     "text": "No room that is only home"
+    },
+    "Toby/es/Initial:7:0": {
+     "x": 234,
+     "y": 378,
+     "text": "No room that is only home"
+    },
+    "Toby/es/Initial:13:0": {
+     "x": 234,
+     "y": 378,
+     "text": "No room that is only home"
+    },
+    "Ffion/es/Initial:5:1": {
+     "x": 754,
+     "y": 351,
+     "text": "Others doubting it is real work"
+    },
+    "Ffion/es/Initial:9:1": {
+     "x": 754,
+     "y": 351,
+     "text": "Others doubting it is real work"
+    },
+    "Glen/es/Initial:15:1": {
+     "x": 754,
+     "y": 351,
+     "text": "Others doubting it is real work"
+    },
+    "Glen/es/Initial:21:0": {
+     "x": 754,
+     "y": 351,
+     "text": "Others doubting it is real work"
+    },
+    "Kemi/es/Initial:23:1": {
+     "x": 754,
+     "y": 351,
+     "text": "Others doubting it is real work"
+    },
+    "Toby/es/Initial:21:1": {
+     "x": 754,
+     "y": 351,
+     "text": "Others doubting it is real work"
+    },
+    "Ffion/es/Initial:25:1": {
+     "x": 1794,
+     "y": 378,
+     "text": "Relief from the office performance"
+    },
+    "Glen/es/Initial:5:0": {
+     "x": 1794,
+     "y": 378,
+     "text": "Relief from the office performance"
+    },
+    "Glen/es/Initial:5:1": {
+     "x": 1794,
+     "y": 378,
+     "text": "Relief from the office performance"
+    },
+    "Glen/es/Initial:27:2": {
+     "x": 1794,
+     "y": 378,
+     "text": "Relief from the office performance"
+    },
+    "Ros/es/Initial:25:0": {
+     "x": 1794,
+     "y": 378,
+     "text": "Relief from the office performance"
+    },
+    "Ros/es/Initial:25:1": {
+     "x": 1794,
+     "y": 378,
+     "text": "Relief from the office performance"
+    },
+    "Dev/es/Initial:15:0": {
+     "x": 14,
+     "y": 678,
+     "text": "Shutting work away"
+    },
+    "Ffion/es/Initial:13:0": {
+     "x": 14,
+     "y": 678,
+     "text": "Shutting work away"
+    },
+    "Ffion/es/Initial:13:1": {
+     "x": 14,
+     "y": 678,
+     "text": "Shutting work away"
+    },
+    "Ffion/es/Initial:13:2": {
+     "x": 14,
+     "y": 678,
+     "text": "Shutting work away"
+    },
+    "Ffion/es/Initial:15:0": {
+     "x": 14,
+     "y": 678,
+     "text": "Shutting work away"
+    },
+    "Ffion/es/Initial:27:1": {
+     "x": 14,
+     "y": 678,
+     "text": "Shutting work away"
+    },
+    "Glen/es/Initial:7:1": {
+     "x": 14,
+     "y": 678,
+     "text": "Shutting work away"
+    },
+    "Glen/es/Initial:11:0": {
+     "x": 14,
+     "y": 678,
+     "text": "Shutting work away"
+    },
+    "Glen/es/Initial:13:0": {
+     "x": 14,
+     "y": 678,
+     "text": "Shutting work away"
+    },
+    "Kemi/es/Initial:15:2": {
+     "x": 14,
+     "y": 678,
+     "text": "Shutting work away"
+    },
+    "Kemi/es/Initial:17:0": {
+     "x": 14,
+     "y": 678,
+     "text": "Shutting work away"
+    },
+    "Ros/es/Initial:13:2": {
+     "x": 14,
+     "y": 678,
+     "text": "Shutting work away"
+    },
+    "Toby/es/Initial:13:1": {
+     "x": 14,
+     "y": 678,
+     "text": "Shutting work away"
+    },
+    "Toby/es/Initial:15:0": {
+     "x": 14,
+     "y": 678,
+     "text": "Shutting work away"
+    },
+    "Ffion/es/Initial:7:0": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Ffion/es/Initial:11:0": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Ffion/es/Initial:11:2": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Ffion/es/Initial:11:3": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Ffion/es/Initial:27:0": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Glen/es/Initial:7:0": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Glen/es/Initial:7:3": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Glen/es/Initial:9:1": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Glen/es/Initial:17:0": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Glen/es/Initial:21:1": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Glen/es/Initial:23:0": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Glen/es/Initial:29:0": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Kemi/es/Initial:15:0": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Ros/es/Initial:15:0": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Ros/es/Initial:15:1": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Ros/es/Initial:15:3": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Toby/es/Initial:7:1": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Toby/es/Initial:17:0": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Toby/es/Initial:19:0": {
+     "x": 14,
+     "y": 204,
+     "text": "Small rituals to start and stop"
+    },
+    "Ffion/es/Initial:9:2": {
+     "x": 534,
+     "y": 177,
+     "text": "Staying visible online"
+    },
+    "Glen/es/Initial:23:1": {
+     "x": 534,
+     "y": 177,
+     "text": "Staying visible online"
+    },
+    "Ros/es/Initial:11:0": {
+     "x": 534,
+     "y": 177,
+     "text": "Staying visible online"
+    },
+    "Ros/es/Initial:11:1": {
+     "x": 534,
+     "y": 177,
+     "text": "Staying visible online"
+    },
+    "Toby/es/Initial:9:0": {
+     "x": 534,
+     "y": 177,
+     "text": "Staying visible online"
+    },
+    "Toby/es/Initial:9:1": {
+     "x": 534,
+     "y": 177,
+     "text": "Staying visible online"
+    },
+    "Toby/es/Initial:11:0": {
+     "x": 534,
+     "y": 177,
+     "text": "Staying visible online"
+    },
+    "Toby/es/Initial:11:1": {
+     "x": 534,
+     "y": 177,
+     "text": "Staying visible online"
+    },
+    "Ffion/es/Initial:11:1": {
+     "x": 234,
+     "y": 204,
+     "text": "The commute as a buffer, gone"
+    },
+    "Glen/es/Initial:9:0": {
+     "x": 234,
+     "y": 204,
+     "text": "The commute as a buffer, gone"
+    },
+    "Glen/es/Initial:9:2": {
+     "x": 234,
+     "y": 204,
+     "text": "The commute as a buffer, gone"
+    },
+    "Kemi/es/Initial:15:1": {
+     "x": 234,
+     "y": 204,
+     "text": "The commute as a buffer, gone"
+    },
+    "Kemi/es/Initial:27:0": {
+     "x": 1574,
+     "y": 659,
+     "text": "The journey as time of my own"
+    },
+    "Ros/es/Initial:7:0": {
+     "x": 1574,
+     "y": 659,
+     "text": "The journey as time of my own"
+    },
+    "Ffion/es/Initial:19:0": {
+     "x": 1794,
+     "y": 659,
+     "text": "Time handed back"
+    },
+    "Glen/es/Initial:7:2": {
+     "x": 1794,
+     "y": 659,
+     "text": "Time handed back"
+    },
+    "Kemi/es/Initial:19:0": {
+     "x": 1794,
+     "y": 659,
+     "text": "Time handed back"
+    },
+    "Kemi/es/Initial:27:2": {
+     "x": 1794,
+     "y": 659,
+     "text": "Time handed back"
+    },
+    "Ros/es/Initial:3:0": {
+     "x": 1794,
+     "y": 659,
+     "text": "Time handed back"
+    },
+    "Ros/es/Initial:5:0": {
+     "x": 1794,
+     "y": 659,
+     "text": "Time handed back"
+    },
+    "Ros/es/Initial:5:1": {
+     "x": 1794,
+     "y": 659,
+     "text": "Time handed back"
+    },
+    "Ros/es/Initial:7:1": {
+     "x": 1794,
+     "y": 659,
+     "text": "Time handed back"
+    },
+    "Ros/es/Initial:27:0": {
+     "x": 1794,
+     "y": 659,
+     "text": "Time handed back"
+    },
+    "Dev/es/Initial:21:0": {
+     "x": 1274,
+     "y": 324,
+     "text": "Whose work counts"
+    },
+    "Dev/es/Initial:21:1": {
+     "x": 1274,
+     "y": 324,
+     "text": "Whose work counts"
+    },
+    "Ffion/es/Initial:21:0": {
+     "x": 1274,
+     "y": 324,
+     "text": "Whose work counts"
+    },
+    "Ffion/es/Initial:21:1": {
+     "x": 1274,
+     "y": 324,
+     "text": "Whose work counts"
+    },
+    "Glen/es/Initial:17:1": {
+     "x": 1274,
+     "y": 324,
+     "text": "Whose work counts"
+    },
+    "Glen/es/Initial:19:0": {
+     "x": 1274,
+     "y": 324,
+     "text": "Whose work counts"
+    },
+    "Glen/es/Initial:19:1": {
+     "x": 1274,
+     "y": 324,
+     "text": "Whose work counts"
+    },
+    "Kemi/es/Initial:7:0": {
+     "x": 1274,
+     "y": 324,
+     "text": "Whose work counts"
+    },
+    "Kemi/es/Initial:11:2": {
+     "x": 1274,
+     "y": 324,
+     "text": "Whose work counts"
+    },
+    "Kemi/es/Initial:13:0": {
+     "x": 1274,
+     "y": 324,
+     "text": "Whose work counts"
+    },
+    "Kemi/es/Initial:13:1": {
+     "x": 1274,
+     "y": 324,
+     "text": "Whose work counts"
+    },
+    "Kemi/es/Initial:19:2": {
+     "x": 1274,
+     "y": 324,
+     "text": "Whose work counts"
+    },
+    "Kemi/es/Initial:21:2": {
+     "x": 1274,
+     "y": 324,
+     "text": "Whose work counts"
+    },
+    "Ros/es/Initial:19:0": {
+     "x": 1274,
+     "y": 324,
+     "text": "Whose work counts"
+    },
+    "Dev/es/Initial:11:1": {
+     "x": 14,
+     "y": 378,
+     "text": "Work seeping into evenings"
+    },
+    "Dev/es/Initial:15:1": {
+     "x": 14,
+     "y": 378,
+     "text": "Work seeping into evenings"
+    },
+    "Dev/es/Initial:17:0": {
+     "x": 14,
+     "y": 378,
+     "text": "Work seeping into evenings"
+    },
+    "Dev/es/Initial:17:1": {
+     "x": 14,
+     "y": 378,
+     "text": "Work seeping into evenings"
+    },
+    "Ffion/es/Initial:15:1": {
+     "x": 14,
+     "y": 378,
+     "text": "Work seeping into evenings"
+    },
+    "Ffion/es/Initial:17:0": {
+     "x": 14,
+     "y": 378,
+     "text": "Work seeping into evenings"
+    },
+    "Ffion/es/Initial:17:1": {
+     "x": 14,
+     "y": 378,
+     "text": "Work seeping into evenings"
+    },
+    "Ffion/es/Initial:17:2": {
+     "x": 14,
+     "y": 378,
+     "text": "Work seeping into evenings"
+    },
+    "Glen/es/Initial:11:1": {
+     "x": 14,
+     "y": 378,
+     "text": "Work seeping into evenings"
+    },
+    "Kemi/es/Initial:5:0": {
+     "x": 14,
+     "y": 378,
+     "text": "Work seeping into evenings"
+    },
+    "Kemi/es/Initial:5:1": {
+     "x": 14,
+     "y": 378,
+     "text": "Work seeping into evenings"
+    },
+    "Kemi/es/Initial:15:3": {
+     "x": 14,
+     "y": 378,
+     "text": "Work seeping into evenings"
+    },
+    "Ros/es/Initial:13:0": {
+     "x": 14,
+     "y": 378,
+     "text": "Work seeping into evenings"
+    },
+    "Toby/es/Initial:17:1": {
+     "x": 14,
+     "y": 378,
+     "text": "Work seeping into evenings"
+    },
+    "Toby/es/Initial:17:2": {
+     "x": 14,
+     "y": 378,
+     "text": "Work seeping into evenings"
+    }
+   },
+   "groups": [
+    {
+     "id": "G1",
+     "label": "Going to work without leaving home",
+     "note": "Checked hardest, since a question about the start and end of the day invites talk of routine. Most of it came in answer to the day and the room (questions 2 and 3), and all six make their own way to work and back. Named from Dev's and Toby's own image of going out and coming back.",
+     "description": "Dev walks out of his front door 'as a man in a flat' and back in as someone at work. Toby goes out for a coffee to come back a worker, Ffion walks to the postbox in proper shoes, Ros puts on a lanyard she does not need, and Glen tells the box room 'that's you done'. None was told to do this, and most found it by trial. Where the act is skipped, work spreads: into the bed, the kitchen table, the evening email.",
+     "members": [
+      "Dev/es/Initial:9:0",
+      "Toby/es/Initial:19:0",
+      "Toby/es/Initial:17:0",
+      "Toby/es/Initial:7:1",
+      "Ros/es/Initial:15:3",
+      "Ros/es/Initial:15:1",
+      "Ros/es/Initial:15:0",
+      "Kemi/es/Initial:15:0",
+      "Glen/es/Initial:29:0",
+      "Glen/es/Initial:23:0",
+      "Glen/es/Initial:21:1",
+      "Glen/es/Initial:17:0",
+      "Glen/es/Initial:9:1",
+      "Glen/es/Initial:7:3",
+      "Glen/es/Initial:7:0",
+      "Ffion/es/Initial:27:0",
+      "Ffion/es/Initial:11:3",
+      "Ffion/es/Initial:11:2",
+      "Ffion/es/Initial:11:0",
+      "Ffion/es/Initial:7:0",
+      "Dev/es/Initial:9:1",
+      "Kemi/es/Initial:15:1",
+      "Glen/es/Initial:9:2",
+      "Glen/es/Initial:9:0",
+      "Ffion/es/Initial:11:1",
+      "Dev/es/Initial:9:2",
+      "Toby/es/Initial:17:2",
+      "Toby/es/Initial:17:1",
+      "Ros/es/Initial:13:0",
+      "Kemi/es/Initial:15:3",
+      "Kemi/es/Initial:5:1",
+      "Kemi/es/Initial:5:0",
+      "Glen/es/Initial:11:1",
+      "Ffion/es/Initial:17:2",
+      "Ffion/es/Initial:17:1",
+      "Ffion/es/Initial:17:0",
+      "Ffion/es/Initial:15:1",
+      "Dev/es/Initial:17:1",
+      "Dev/es/Initial:17:0",
+      "Dev/es/Initial:15:1",
+      "Dev/es/Initial:11:1",
+      "Dev/es/Initial:5:2",
+      "Toby/es/Initial:13:0",
+      "Toby/es/Initial:7:0",
+      "Toby/es/Initial:5:0",
+      "Toby/es/Initial:3:1",
+      "Ros/es/Initial:13:1",
+      "Kemi/es/Initial:29:0",
+      "Kemi/es/Initial:11:1",
+      "Dev/es/Initial:17:2",
+      "Dev/es/Initial:13:1",
+      "Dev/es/Initial:13:0",
+      "Dev/es/Initial:7:0",
+      "G5"
+     ],
+     "x": 0,
+     "y": 0
+    },
+    {
+     "id": "G5",
+     "label": "Putting work out of sight",
+     "description": "Hiding the things of work (in a basket, a box, a drawer, behind a door or under a t-shirt) as the one end of the day that works, kept or lost by how much room a home has.",
+     "members": [
+      "Dev/es/Initial:13:2",
+      "Toby/es/Initial:15:0",
+      "Toby/es/Initial:13:1",
+      "Ros/es/Initial:13:2",
+      "Kemi/es/Initial:17:0",
+      "Kemi/es/Initial:15:2",
+      "Glen/es/Initial:13:0",
+      "Glen/es/Initial:11:0",
+      "Glen/es/Initial:7:1",
+      "Ffion/es/Initial:27:1",
+      "Ffion/es/Initial:15:0",
+      "Ffion/es/Initial:13:2",
+      "Ffion/es/Initial:13:1",
+      "Ffion/es/Initial:13:0",
+      "Dev/es/Initial:15:0"
+     ],
+     "x": 0,
+     "y": 0
+    },
+    {
+     "id": "G2",
+     "label": "Having to be seen to work",
+     "note": "Toby's account leads, so I checked it was not about youth. Glen, at sixty-three and settled, does the same with his green light at eight, and Ros with the phone in her apron.",
+     "description": "Out of sight of managers and colleagues, participants stand in for their own bodies at a desk: a green dot, a reply within the minute, a collared shirt. The time saved on the commute is felt as owed, a wash or a trip to the shop as being caught, and the doubt of family and neighbours ('working hard or hardly working?') confirms the need for proof. Home itself comes under the same gaze through the camera and the call.",
+     "members": [
+      "Ffion/es/Initial:9:0",
+      "Toby/es/Initial:11:1",
+      "Toby/es/Initial:11:0",
+      "Toby/es/Initial:9:1",
+      "Toby/es/Initial:9:0",
+      "Ros/es/Initial:11:1",
+      "Ros/es/Initial:11:0",
+      "Glen/es/Initial:23:1",
+      "Ffion/es/Initial:9:2",
+      "Ros/es/Initial:9:0",
+      "Toby/es/Initial:9:2",
+      "Ros/es/Initial:11:2",
+      "Ros/es/Initial:9:2",
+      "Dev/es/Initial:11:0",
+      "Glen/es/Initial:25:2",
+      "Glen/es/Initial:25:0",
+      "Glen/es/Initial:21:2",
+      "Dev/es/Initial:11:2",
+      "Ffion/es/Initial:5:0",
+      "Toby/es/Initial:21:1",
+      "Kemi/es/Initial:23:1",
+      "Glen/es/Initial:21:0",
+      "Glen/es/Initial:15:1",
+      "Ffion/es/Initial:9:1",
+      "Ffion/es/Initial:5:1",
+      "Dev/es/Initial:7:1",
+      "Ros/es/Initial:23:1",
+      "Ros/es/Initial:23:0",
+      "Kemi/es/Initial:21:1",
+      "Kemi/es/Initial:11:0",
+      "Ffion/es/Initial:9:3",
+      "Dev/es/Initial:7:2",
+      "G6"
+     ],
+     "x": 0,
+     "y": 0
+    },
+    {
+     "id": "G6",
+     "label": "Lucky, so I can't complain",
+     "description": "Kemi has 'the thing everyone wanted', Toby was told he had won something he did not enter, Glen treats it as a favour he must prove was worth it, Ros counts her blessings beside the people at bus stops, and Dev's brother would laugh. The same debt that keeps them visible keeps them quiet.",
+     "members": [
+      "Dev/es/Initial:27:1",
+      "Toby/es/Initial:31:0",
+      "Ros/es/Initial:27:1",
+      "Kemi/es/Initial:25:0",
+      "Glen/es/Initial:25:1"
+     ],
+     "x": 0,
+     "y": 0
+    },
+    {
+     "id": "G3",
+     "label": "At home means available",
+     "note": "First drafted as a gendered theme. Dev's account, doing the gaps' work while his partner goes out, and Glen's, where his work takes the quiet from his wife, showed the pattern follows who is at home. Gender still shapes it (Kemi, Ros, Ffion) and the write-up should say so.",
+     "description": "Families, neighbours, employers and participants themselves treat 'at home' as available. Parcels, lifts, tradesmen, a sick child and an ageing parent go to the one at home, decided without discussion. The work fits into the gaps of the working day and so does not look like work, and whose job gets the room with the door settles whose job gives way.",
+     "members": [
+      "Dev/es/Initial:19:1",
+      "Ros/es/Initial:21:1",
+      "Ros/es/Initial:21:0",
+      "Ros/es/Initial:17:1",
+      "Kemi/es/Initial:23:2",
+      "Kemi/es/Initial:21:0",
+      "Kemi/es/Initial:19:1",
+      "Glen/es/Initial:15:0",
+      "Ffion/es/Initial:19:3",
+      "Ffion/es/Initial:19:2",
+      "Ffion/es/Initial:5:2",
+      "Ffion/es/Initial:7:1",
+      "Ros/es/Initial:25:2",
+      "Ros/es/Initial:17:3",
+      "Ros/es/Initial:17:2",
+      "Ros/es/Initial:17:0",
+      "Kemi/es/Initial:7:1",
+      "Ffion/es/Initial:19:1",
+      "Dev/es/Initial:19:0",
+      "Ros/es/Initial:9:1",
+      "Dev/es/Initial:19:3",
+      "Dev/es/Initial:19:2",
+      "Dev/es/Initial:19:4",
+      "Ros/es/Initial:19:0",
+      "Kemi/es/Initial:21:2",
+      "Kemi/es/Initial:19:2",
+      "Kemi/es/Initial:13:1",
+      "Kemi/es/Initial:13:0",
+      "Kemi/es/Initial:11:2",
+      "Kemi/es/Initial:7:0",
+      "Glen/es/Initial:19:1",
+      "Glen/es/Initial:19:0",
+      "Glen/es/Initial:17:1",
+      "Ffion/es/Initial:21:1",
+      "Ffion/es/Initial:21:0",
+      "Dev/es/Initial:21:1",
+      "Dev/es/Initial:21:0",
+      "Ffion/es/Initial:23:0",
+      "Kemi/es/Initial:23:3",
+      "Kemi/es/Initial:23:0",
+      "Kemi/es/Initial:9:1",
+      "Kemi/es/Initial:9:0",
+      "Kemi/es/Initial:3:0",
+      "Ffion/es/Initial:23:1"
+     ],
+     "x": 0,
+     "y": 0
+    },
+    {
+     "id": "G4",
+     "label": "Missing, or glad to lose, who I was at work",
+     "note": "Two pulls in opposite directions, kept as one theme because what is missed and what is escaped are the same thing: the person one was at work.",
+     "description": "Dev misses 'Dev from testing', the ironed shirts and the people who stayed at his desk to chat, and Toby, who started in his bedroom, never got to become anyone at work. Glen, Ros and Ffion are glad to stop being that person: the banter, the drinks, being seen at a desk. Either way, who they were at work belonged to the office. The commute was part of it, time owed to nobody, which some have lost (Kemi's train) and some have found again at home (Ros's garden).",
+     "members": [
+      "Dev/es/Initial:25:2",
+      "Toby/es/Initial:29:1",
+      "Toby/es/Initial:29:0",
+      "Kemi/es/Initial:27:1",
+      "Ffion/es/Initial:25:2",
+      "Dev/es/Initial:5:0",
+      "Toby/es/Initial:27:0",
+      "Toby/es/Initial:25:1",
+      "Toby/es/Initial:23:2",
+      "Toby/es/Initial:19:1",
+      "Ros/es/Initial:15:2",
+      "Dev/es/Initial:27:0",
+      "Dev/es/Initial:25:1",
+      "Dev/es/Initial:25:0",
+      "Dev/es/Initial:23:2",
+      "Dev/es/Initial:5:1",
+      "Toby/es/Initial:3:0",
+      "Toby/es/Initial:23:1",
+      "Toby/es/Initial:23:0",
+      "Ffion/es/Initial:25:0",
+      "Ros/es/Initial:25:1",
+      "Ros/es/Initial:25:0",
+      "Glen/es/Initial:27:2",
+      "Glen/es/Initial:5:1",
+      "Glen/es/Initial:5:0",
+      "Ffion/es/Initial:25:1",
+      "G7"
+     ],
+     "x": 0,
+     "y": 0
+    },
+    {
+     "id": "G7",
+     "label": "Time that is nobody else's",
+     "description": "The train, the car park, the garden in the morning: ten or forty minutes in which nobody needs anything, lost with the commute or found again at home.",
+     "members": [
+      "Glen/es/Initial:27:0",
+      "Ros/es/Initial:7:0",
+      "Kemi/es/Initial:27:0",
+      "Ffion/es/Initial:3:0",
+      "Ros/es/Initial:27:0",
+      "Ros/es/Initial:7:1",
+      "Ros/es/Initial:5:1",
+      "Ros/es/Initial:5:0",
+      "Ros/es/Initial:3:0",
+      "Kemi/es/Initial:27:2",
+      "Kemi/es/Initial:19:0",
+      "Glen/es/Initial:7:2",
+      "Ffion/es/Initial:19:0"
+     ],
+     "x": 0,
+     "y": 0
+    }
+   ],
+   "discarded": [],
+   "picks": {},
+   "rows": {}
+  }
+ ]
+}

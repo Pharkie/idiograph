@@ -1,0 +1,271 @@
+{
+ "about": "Dev's coding in the reflexive thematic analysis demo (working from home), invented. Every participant turn in order, found by its opening words: each extract as said with its codes, and the passage's note, or empty for a turn reviewed and left uncoded. make_demo_rta.py builds the workbook and the progress file from this and the interview CSV beside it.",
+ "built": "2026-11-07T12:00:00",
+ "turns": [
+  {
+   "at": "Sure. So I'm a software",
+   "empty": true
+  },
+  {
+   "at": "I think I've changed. Or",
+   "extracts": [
+    {
+     "text": "I was Dev from testing. People knew me.",
+     "codes": [
+      "A work self left behind"
+     ]
+    },
+    {
+     "text": "I think I've sort of shrunk to fit it.",
+     "codes": [
+      "A work self left behind",
+      "No room that is only home"
+     ]
+    }
+   ],
+   "note": "Loss of a self, not of a place. Compare Toby, who never had one to lose."
+  },
+  {
+   "at": "Small. It's like, some weeks",
+   "extracts": [
+    {
+     "text": "I don't notice until Sam says, when did you last go out, properly.",
+     "codes": [
+      "No room that is only home"
+     ]
+    },
+    {
+     "text": "I tidied the bit behind me for about a year.",
+     "codes": [
+      "Home on show"
+     ]
+    },
+    {
+     "text": "Like my kitchen was going to be marked.",
+     "codes": [
+      "Home on show"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "So Sam, my partner, she's",
+   "extracts": [
+    {
+     "text": "I walk out of my front door as a man in a flat, and I walk back in as, you know, someone at work.",
+     "codes": [
+      "Small rituals to start and stop",
+      "The commute as a buffer, gone"
+     ]
+    },
+    {
+     "text": "I look up and it's six, and Sam's back, and I haven't moved.",
+     "codes": [
+      "Work seeping into evenings"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "No. I work longer now",
+   "extracts": [
+    {
+     "text": "I work longer now than I ever did in the office. Way longer.",
+     "codes": [
+      "Giving back the saved time"
+     ]
+    },
+    {
+     "text": "At home, there's nobody packing up.",
+     "codes": [
+      "Work seeping into evenings"
+     ]
+    },
+    {
+     "text": "I've saved an hour and a half on the commute, so the bank's owed that hour and a half. Nobody's asked for it. I just give it.",
+     "codes": [
+      "Giving back the saved time"
+     ]
+    }
+   ],
+   "note": "The saved time is felt as a debt. Glen says the same in other words."
+  },
+  {
+   "at": "The kitchen table. It's a",
+   "extracts": [
+    {
+     "text": "There's no room in the flat that's just home.",
+     "codes": [
+      "No room that is only home"
+     ]
+    },
+    {
+     "text": "it's like the office is watching me.",
+     "codes": [
+      "No room that is only home"
+     ]
+    },
+    {
+     "text": "the laptop and the keyboard and the headset go in the basket and the lid goes on",
+     "codes": [
+      "Shutting work away"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "When I do it, it's",
+   "extracts": [
+    {
+     "text": "It's like a full stop.",
+     "codes": [
+      "Shutting work away"
+     ]
+    },
+    {
+     "text": "And then it's out for a week.",
+     "codes": [
+      "Work seeping into evenings"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Started is the walk round",
+   "extracts": [
+    {
+     "text": "it's her key in the door that tells me to stop. Not me.",
+     "codes": [
+      "Work seeping into evenings"
+     ]
+    },
+    {
+     "text": "you're not working from home, you're living at work.",
+     "codes": [
+      "Work seeping into evenings",
+      "No room that is only home"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Sam, obviously. So she goes",
+   "extracts": [
+    {
+     "text": "there's a thing that's crept in where the house stuff is mine. Because I'm here.",
+     "codes": [
+      "Housework in the gaps",
+      "Available because I'm at home"
+     ]
+    },
+    {
+     "text": "It happens in the gaps, so it doesn't look like anything.",
+     "codes": [
+      "Housework in the gaps"
+     ]
+    },
+    {
+     "text": "my day was at home, so it can't have been that tiring.",
+     "codes": [
+      "Housework in the gaps",
+      "Whose work counts"
+     ]
+    }
+   ],
+   "note": "A man doing the gaps' work: the pattern follows who is at home, not who is a woman. Worth saying in the write-up."
+  },
+  {
+   "at": "Mostly I swallow it. Sometimes",
+   "extracts": [
+    {
+     "text": "Mostly I swallow it.",
+     "codes": [
+      "Whose work counts"
+     ]
+    },
+    {
+     "text": "My day doesn't sound like much when you say it out loud.",
+     "codes": [
+      "Whose work counts"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "The neighbour upstairs had their",
+   "extracts": [
+    {
+     "text": "every few minutes this drill would go through the ceiling.",
+     "codes": [
+      "Noise through walls and ceilings"
+     ]
+    },
+    {
+     "text": "At home, it's somehow my problem.",
+     "codes": [
+      "Noise through walls and ceilings"
+     ]
+    },
+    {
+     "text": "Thirty-four years old. Next to my old posters.",
+     "codes": [
+      "A work self left behind"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I miss being someone at",
+   "extracts": [
+    {
+     "text": "I miss being someone at work.",
+     "codes": [
+      "A work self left behind"
+     ]
+    },
+    {
+     "text": "I'd put one on and I was, I was that person",
+     "codes": [
+      "A work self left behind"
+     ]
+    },
+    {
+     "text": "There was a little Turkish place, and three or four of us would go on a Friday. I miss that a lot.",
+     "codes": [
+      "Missing the chat in between"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Maybe just that it looked",
+   "extracts": [
+    {
+     "text": "I think I've lost a bit of myself in the flat.",
+     "codes": [
+      "A work self left behind"
+     ]
+    },
+    {
+     "text": "If I said I was finding it hard working from home, he'd laugh at me.",
+     "codes": [
+      "A perk you can't complain about"
+     ]
+    }
+   ]
+  }
+ ],
+ "work": {
+  "rounds": [
+   {
+    "seconds": 2170,
+    "completed": "2026-11-06T14:50:22"
+   },
+   {
+    "seconds": 1580,
+    "completed": "2026-11-07T09:55:36"
+   }
+  ],
+  "complete": "2026-11-07T09:55:36"
+ }
+}

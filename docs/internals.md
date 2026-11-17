@@ -1276,6 +1276,16 @@ that finishes it, `release.py <tag> --from build/release/<tag>`: a folder with `
 `notes.md` beside the files is uploaded as it is, its signatures checked again with the public key, and
 nothing is signed twice.
 
+**The demos' recordings before a release** (rtafix, 17 November 2026). A version ships `demo/recordings.json`, so
+before anything is collected, signed or published, a dry run too, `release.py` reads that manifest as the tag
+being released holds it (`git show <tag>:demo/recordings.json`, `tag_manifest`, a tag with none refused), then the
+assets of the release it names (`demo-recordings-1`) with `gh release view --json assets` and refuses in one line while any
+recording or the licence it names is missing there or held at another size or sha256 (GitHub's `digest`),
+naming the files and saying to upload them first (`recordings_released`, `release_assets`, `unreleased`). An
+asset GitHub gives no sha256 for (an older gh) is refused by its own line, saying to upgrade gh (`no_checksum`), in
+the upload script as well.
+Only an app whose files carry the demo is checked, and a check's run with `--test-key` is not. Area 421.
+
 **Releases on the app's own repository** (pubreadme, 10 November 2026, Adam's ruling about 12:50: the
 repository public, still a Preview). From 0.9.24 every copy asks
 `https://github.com/Pharkie/idiograph/releases/latest/download/latest.json` (`tauri.conf.json`,
@@ -4397,8 +4407,8 @@ as then written, its line endings taken as committed (`audio.demo_recording_name
 server name a recording by), takes away that participant's older recording and writes the manifest again
 (`write_manifest`). Without `write_csv` it refuses a CSV whose timecodes the clips no longer give. The lengths:
 Juno's 28:27, about 5.3 MB, Rowan's 11:40, about 2.2 MB, Mabel's 10:28, about 1.9 MB, 9.4 MB in all (18.8 MB at
-48 kbps until 13 November). `packaging/recording/LICENSE-audio.md` is their own licence, the one
-exception to the AGPL (the README's licence line and `NOTICE.md` say so): AI-generated speech, copied and shared
+48 kbps until 13 November). `packaging/recording/LICENSE-audio.md` is their own licence, every demo's recordings'
+(it names no demo and no count, rtafix), the one exception to the AGPL (the README's licence line and `NOTICE.md` say so): AI-generated speech, copied and shared
 only unchanged and only as part of Idiograph or a modified version, no right to train, fine-tune or evaluate a
 model, the voices synthetic and the interviews invented, and Google not endorsing Idiograph.
 
@@ -4422,8 +4432,12 @@ and are kept after. The AI-made audio and its own licence stay out of every inst
 
 - *Hosting.* A GitHub release of its own on Pharkie/idiograph, `demo-recordings-1`, not a version's tag, marked
   neither latest nor a version, so the update check (`releases/latest/download/latest.json`) and the site's
-  download links never see it. Its assets are one file a recording under its committed name, `LICENSE-audio.md`
-  and `recordings.json`. The app downloads from `https://github.com/Pharkie/idiograph/releases/download/demo-recordings-1/<file>`.
+  download links never see it. Its assets are one file a recording under its committed name, the licence and
+  `recordings.json`. The licence's asset is named by its sha256's first 8, `LICENSE-audio-<8 hex>.md`
+  (`demo_recordings.licence_asset`, rtafix, 17 November 2026), so a changed licence goes up beside the old one:
+  copies up to 0.9.29 download `LICENSE-audio.md`, which stays on the release unchanged. On the computer the
+  licence is always `LICENSE-audio.md` beside each recording. No copy of the app reads the release's
+  `recordings.json`, each reading the manifest it ships, so that one asset alone is ever replaced. The app downloads from `https://github.com/Pharkie/idiograph/releases/download/demo-recordings-1/<file>`.
 - *The manifest*, `demo/recordings.json`, committed beside the demo's text and staged with it (`build_mac.stage_cases`),
   so the app reads it from the demo it ships (`srv.SHIPPED_DEMO`): `release`, `url`, the address the files are
   downloaded from, `recordings`, each `file`, `size` and `sha256`, and `earlier`, the sizes of the same recording's
@@ -4571,6 +4585,35 @@ progress file, `.themes.json`, `.themes-t2.json`, `.themes-t3.json` and `.lpets.
 `method: 'lipa'`, so its line and note are the lipa ones), `distilRecent`, `pageHead` and `#hp-demo-lipa`,
 `demoNoteKind`, `resetDemo` and the Project settings kicker know it. Its recordings are below, under The demo's
 recordings on demand. Area 386 holds it.
+
+**The reflexive thematic analysis demo** (rtabuild, 17 November 2026, Adam's word of 14 November, its text and
+analysis approved by him on 16 November). `demo/rta/` is a thematic analysis project inside the demo's folder,
+"Working from home", whose interviews were made for reflexive thematic analysis, where the thematic analysis demo
+codes the IPA demo's: six invented participants (Kemi, Toby, Ros, Glen, Dev and Ffion) asked one guide by an invented
+researcher, Leah Marsh, interviews of 7 to 9 minutes. Its sources are `demo/rta/source/<Name> - interview.csv`,
+`<Name> - coding.json` and `Themes.json`, in the thematic analysis demo's shapes (rtawrite's approved draft; each
+theme also keeps its central organising concept, which the build passes over, and `Themes.json` keeps `reflexivity`,
+her reflexivity statement), and its project file holds its method, `ta`, and each participant's label, Sketches
+picture (six no other demo uses), pen portrait and values. `make_demo_rta.py` (`make_demo.py --rta`, and last in a
+plain run) builds it with the functions `ship_ta` uses, `make_demo.ta_books`, `build_ta_codes` and `build_ta_themes`
+taking the participants (`cases`) and the board's note (`note`, set through the GETs board's `note` op, as Note in
+the board's menu sets it); `fit_rounds` fits the coding's closed rounds to the rounds the interview makes, since its
+timecodes are the recording's. `make_demo_rta.py --audio <folder>` takes the recordings again from rtavoices' folder
+(`csv/<Name>.csv`, `join/<Name>.m4a`): each CSV's words checked against the demo's interview turn for turn, its
+timestamps written in, the recording copied into packaging/recording under the interview's hash, the manifest written
+again and the demo built again, so a recast of the voices is one command. It ships as the thematic analysis demo does
+(its pristine copy, live workbooks, progress files, `idiograph-codes.json` and `idiograph-gets.json`), which
+`make_demo.fill`, `reset_all` (`cases_of`) and `build_mac.stage_cases` (`DEMO_RTA_CASES`) carry. `srv.demo_rta_dir()`,
+`srv.DEMO_RTA_ID` (`demo-rta`) and `srv.demo_dirs()` (the four) know it, the command line and the MCP server by
+`--demo rta` (`--demo-rta`). In the routes `DEMO_RTA_CASES`, `is_rta_demo`, `demo_cases_of(root)` and `demo_title`
+(`Kemi, working from home`), `api_cases` answers `demos_rta`, `demo_rta_participants` and `demo_rta_project`, and
+Reset demo takes `demo: "rta"`. On the page a demo of `demosOf` has a `kind` beside its `method`: the reflexive
+thematic analysis demo's `method` is `ta`, so it speaks a thematic analysis project's words, and its `kind`, `rta`,
+gives its tag (`distil.tag.demo_rta`), `#hp-demo-rta`, its card line's note (`distil.demo.note_rta_1` and `_2`, the US
+overlay spelling "organizing"), `resetDemo`'s question and the Project settings kicker. Its six recordings, kept out
+of git by name in `.gitignore` (the IPA demo's committed three share their `-Initial-` pattern), are assets of
+`demo-recordings-1` like the others, `routes.DEMO_RTA_RECORDINGS` (`rta`) their download's key, and
+`packaging/upload_rta_recordings.py --yes` adds them to the release, run only on Adam's yes (without `--yes` it says what it would upload). It never replaces a recording or the licence: one already there under its name is passed over when GitHub's sha256 and size for it are the manifest's and otherwise refuses the whole run with nothing uploaded, the licence going up as a new asset under the name the manifest gives it, then the manifest replacing the release's copy, the one asset replaced, and each of the six, the licence and the manifest are read back by size and sha256 (rtafix). `release.py` refuses a version until they are there (The demos' recordings before a release). Area 421 holds it.
 
 **The GETs file.** `idiograph-gets.json` at the case root, beside the project file, written by
 `gets.py` and set out in full under The file in the [manual](manual.md), GETs. Its top level is

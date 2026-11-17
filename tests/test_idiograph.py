@@ -453,6 +453,7 @@ AREAS = {
     "a418_same_behaviour": "idiograph",
     "a419_lpet_draws_across": "idiograph",
     "a420_rename_by_any_name": "idiograph",
+    "a421_rta_demo": "idiograph",
 }
 
 

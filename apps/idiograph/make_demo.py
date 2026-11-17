@@ -30,7 +30,8 @@ and notes in `demo/ta/source/<name> - coding.json`, the code list and the Themes
 built through the same functions (`ship_ta`) into `demo/ta/pristine/` and the live cases beside it, the code list
 and the Themes board's file at `demo/ta/`. `--written` builds both demos, `--ta` the thematic analysis one alone.
 The longitudinal demo (lipabuild, 13 November 2026), `demo/lipa/`, is built by `make_demo_lipa.py`, which says how,
-`--lipa` alone and after the other two in a plain run.
+`--lipa` alone and after the other two in a plain run, and the reflexive thematic analysis demo (rtabuild, 17 November
+2026), `demo/rta/`, by `make_demo_rta.py`, `--rta` alone and last in a plain run.
 
 `--audio-only` puts each participant's committed recording in place in the demo and builds nothing, which is
 what the server does for a participant opened with none. `--manifest` writes `demo/recordings.json` again from the
@@ -282,11 +283,13 @@ def write_manifest() -> dict:
 
     The longitudinal demo's nine (lipabuild, 13 November 2026) are in the same manifest, assets of the same release.
     They are not committed, so a copy of the repo without them keeps the manifest's entries for the interviews as
-    they stand, and only a recording made again for an edited interview replaces its entry."""
+    they stand, and only a recording made again for an edited interview replaces its entry. The reflexive thematic
+    analysis demo's six (rtabuild, 17 November 2026) are kept the same way."""
     import make_demo_lipa as lipa
+    import make_demo_rta as rta
 
     names = [committed(name).name for name in CASES if committed(name).is_file()]
-    lipa_names = lipa.recording_names()
+    lipa_names = lipa.recording_names() + rta.recording_names()
     old = demo_rec.read_manifest(MANIFEST)
     kept = [e for e in old.get("recordings") or [] if e.get("file") in lipa_names and not (RECORDINGS / e["file"]).is_file()]
     names += [n for n in lipa_names if (RECORDINGS / n).is_file()]
@@ -399,16 +402,17 @@ def boards_of(pristine: Path, workbook: Path) -> list[Path]:
 
 
 def cases_of(pristine: Path) -> list[str]:
-    """The cases a pristine copy holds a workbook for, the IPA demo's in their order, or the longitudinal demo's in
-    the order its own module gives."""
+    """The cases a pristine copy holds a workbook for, the IPA demo's in their order, or the longitudinal demo's or
+    the reflexive thematic analysis demo's in the order their own modules give."""
     import make_demo_lipa as lipa
+    import make_demo_rta as rta
 
     held = {f.name[:-len(EN_ES)] for f in Path(pristine).glob(f"*{EN_ES}")}
-    return [name for name in CASES + lipa.CASES if name in held]
+    return [name for name in CASES + lipa.CASES + rta.CASES if name in held]
 
 
-# the files at a demo's root its pristine copy may hold: the GETs file, the thematic analysis demo's code list, and the
-# longitudinal demo's LGETs and Trajectories files
+# the files at a demo's root its pristine copy may hold: the GETs file, the thematic analysis demo's code list (the
+# reflexive thematic analysis demo's too), and the longitudinal demo's LGETs and Trajectories files
 ROOT_FILES = (GETS_FILE, CODES_FILE, "idiograph-lgets.json", "idiograph-trajectories.json")
 
 
@@ -992,12 +996,13 @@ def build_ta_case(name: str, into: Path, demo: Path | None = None) -> dict:
             "codings": sum(len(x["codes"]) for x in extracts)}
 
 
-def ta_books(root: Path) -> list[dict]:
-    """The study as the Themes board finds it in a folder holding the three participants."""
-    return [{"case": name, "workbook": Path(root) / name / f"{name}{EN_ES}", "pets_complete": None} for name in CASES]
+def ta_books(root: Path, cases: tuple = CASES) -> list[dict]:
+    """The study as the Themes board finds it in a folder holding the three participants, or the `cases` given (the
+    reflexive thematic analysis demo's six, rtabuild)."""
+    return [{"case": name, "workbook": Path(root) / name / f"{name}{EN_ES}", "pets_complete": None} for name in cases]
 
 
-def build_ta_codes(root: Path, plan: dict) -> dict:
+def build_ta_codes(root: Path, plan: dict, cases: tuple = CASES) -> dict:
     """The code list at `root`, each code of the plan with its description, in the plan's order, written as the
     Code list screen writes it, at the plan's time. Every code the participants' passages hold is in the plan, and
     every code in the plan is on some extract. Answers the list."""
@@ -1009,7 +1014,7 @@ def build_ta_codes(root: Path, plan: dict) -> dict:
     listed = {codes_mod.norm(c["name"]) for c in data["codes"]}
     if len(listed) != len(data["codes"]):
         raise DemoError("Two codes in the thematic analysis demo's list share a name.")
-    held = {x["code"] for x in codes_mod.extracts_of(codes_mod.study_rows(ta_books(root)))}
+    held = {x["code"] for x in codes_mod.extracts_of(codes_mod.study_rows(ta_books(root, cases)))}
     if held - listed:
         raise DemoError(f"A code on an extract is not in the list: {sorted(held - listed)[0]!r}.")
     if listed - held:
@@ -1029,7 +1034,7 @@ TA_ROOM = 28
 TA_THEME_GAP = 72
 
 
-def ta_layout(themes: list[dict], groups: list[dict], texts: dict[str, str]) -> dict:
+def ta_layout(themes: list[dict], groups: list[dict], texts: dict[str, str], room: int = TA_ROOM) -> dict:
     """A board of `groups` (each theme's label, definition and lead cards, its subthemes inside) with every card
     placed on a grid: each top theme a column of its own, left to right in the plan's order, its codes two to a
     row under its label, then each subtheme's label and codes below them. The groups' ids are G1 on, the top themes
@@ -1049,7 +1054,7 @@ def ta_layout(themes: list[dict], groups: list[dict], texts: dict[str, str]) -> 
             tall = 0
             for col, key in enumerate(line):
                 cards[key] = {"x": round(x + col * (themes_mod.CARD_W + TA_GAP)), "y": round(y), "text": texts[key]}
-                tall = max(tall, gets_mod.card_height(key, texts[key]) + TA_ROOM)
+                tall = max(tall, gets_mod.card_height(key, texts[key]) + room)
             y += tall + TA_GAP
         return y
 
@@ -1072,18 +1077,21 @@ def ta_layout(themes: list[dict], groups: list[dict], texts: dict[str, str]) -> 
     return {"cards": cards, "groups": out, "discarded": []}
 
 
-def build_ta_themes(root: Path, plan: dict) -> dict:
+def build_ta_themes(root: Path, plan: dict, cases: tuple = CASES, note: str = "", room: int = TA_ROOM) -> dict:
     """The Themes board across the three participants built into `root`: each theme and subtheme with its
     title, definition and note, each code's card under the theme the plan names, placed on a grid by `ta_layout`
     then saved through the Themes board's own save, which lays every extract of a code where its card
     stands (codes.unfold), and made the Current board, the clock at the plan's times. A code named under two
-    themes, or one not in the list, is an error. Answers the file and its counts."""
+    themes, or one not in the list, is an error. `cases` are the participants, the three unless a caller gives
+    others, and `note` the board's note, none unless a caller gives one (the reflexive thematic analysis demo's
+    reflexivity statement, rtabuild), and `room` what each row keeps under a code's card for its participants' marks,
+    more where six participants' marks take two lines (rtabuild). Answers the file and its counts."""
     import codes as codes_mod
     import gets as gets_mod
     import i18n
 
     root = Path(root)
-    books = ta_books(root)
+    books = ta_books(root, cases)
     at = int(dt.datetime.fromisoformat(plan["made"]).timestamp()) * 1_000_000_000
     for book in books:
         os.utime(book["workbook"], ns=(at, at))
@@ -1113,7 +1121,7 @@ def build_ta_themes(root: Path, plan: dict) -> dict:
         groups = [group(theme) for theme in plan["themes"]]
         with clock(plan["made"]):
             gets_mod.assemble(root, books, themes_mod.now_iso())
-        laid = ta_layout(plan["themes"], groups, {k: names[code] for k, code in leads.items()})
+        laid = ta_layout(plan["themes"], groups, {k: names[code] for k, code in leads.items()}, room)
         by_label = {g["label"]: g for g in laid["groups"]}
         if len(by_label) != len(laid["groups"]):
             raise DemoError("Two themes share a title.")
@@ -1131,6 +1139,9 @@ def build_ta_themes(root: Path, plan: dict) -> dict:
         version = dict(laid, id=gets_mod.FIRST_BOARD, name=gets_mod.FIRST_NAME, note="", picks={}, rows={})
         with clock(plan["made"]):
             gets_mod.save(root, books, version)
+            # the board's note through Note in the board's menu, which the save leaves as the file has it
+            if note:
+                gets_mod.version_op(root, books, "note", {"id": gets_mod.FIRST_BOARD, "note": note})
         with clock(plan["chosen"]):
             gets_mod.version_op(root, books, "choose", {"id": gets_mod.FIRST_BOARD})
     return {"file": gets_mod.gets_path(root), "themes": len(plan["themes"]),
@@ -1200,6 +1211,8 @@ def main() -> int:
                     help="build the three cases and the GETs, then the thematic analysis demo, as a plain run does")
     ap.add_argument("--ta", action="store_true", help="build the thematic analysis demo alone")
     ap.add_argument("--lipa", action="store_true", help="build the longitudinal demo alone (make_demo_lipa.py)")
+    ap.add_argument("--rta", action="store_true",
+                    help="build the reflexive thematic analysis demo alone (make_demo_rta.py)")
     ap.add_argument("--manifest", action="store_true",
                     help="write demo/recordings.json again from the committed recordings, and build nothing")
     args = ap.parse_args()
@@ -1224,6 +1237,16 @@ def main() -> int:
             return 1
         print("Done.")
         return 0
+    if args.rta:
+        import make_demo_rta
+        try:
+            print("Building the reflexive thematic analysis demo.")
+            make_demo_rta.ship_rta(force=args.force)
+        except (DemoError, wb_mod.WorkbookError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
+        print("Done.")
+        return 0
     if args.ta:
         try:
             print("Building the thematic analysis demo.")
@@ -1242,6 +1265,9 @@ def main() -> int:
         import make_demo_lipa
         print("Building the longitudinal demo.")
         make_demo_lipa.ship_lipa(force=args.force)
+        import make_demo_rta
+        print("Building the reflexive thematic analysis demo.")
+        make_demo_rta.ship_rta(force=args.force)
     except (DemoError, wb_mod.WorkbookError) as exc:
         print(str(exc), file=sys.stderr)
         return 1

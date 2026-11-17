@@ -116,16 +116,24 @@ DEMO_TOPIC = "living with a dog"
 DEMO_LIPA_CASES = ("Hollis", "Nell", "Arlo")
 DEMO_LIPA_TOPIC = "a first year on an allotment"
 DEMO_LIPA_SHEETS = ("T1", "T2", "T3")
+# The reflexive thematic analysis demo's six (rtabuild, 17 November 2026), in the study's order, each interviewed once,
+# on its Initial sheet, and its topic
+DEMO_RTA_CASES = ("Kemi", "Toby", "Ros", "Glen", "Dev", "Ffion")
+DEMO_RTA_TOPIC = "working from home"
 
 
 def is_lipa_demo(root) -> bool:
     return root is not None and srv.same_folder(root, srv.demo_lipa_dir())
 
 
+def is_rta_demo(root) -> bool:
+    return root is not None and srv.same_folder(root, srv.demo_rta_dir())
+
+
 def demo_cases_of(root: Path | None = None) -> tuple:
-    """The participants of the demo at `root`: the longitudinal demo's, or the IPA demo's three, which the thematic
-    analysis demo shares."""
-    return DEMO_LIPA_CASES if is_lipa_demo(root) else DEMO_CASES
+    """The participants of the demo at `root`: the longitudinal demo's, the reflexive thematic analysis demo's six,
+    or the IPA demo's three, which the thematic analysis demo shares."""
+    return DEMO_LIPA_CASES if is_lipa_demo(root) else DEMO_RTA_CASES if is_rta_demo(root) else DEMO_CASES
 
 # the statements screen's three columns by name, in the book's order (Smith, Flowers and Larkin 2022,
 # Box 5.4), its order on a new install
@@ -297,6 +305,8 @@ def project_id(root: Path | None) -> str:
         return srv.DEMO_TA_ID
     if is_lipa_demo(root):
         return srv.DEMO_LIPA_ID
+    if is_rta_demo(root):
+        return srv.DEMO_RTA_ID
     return "demo" if srv.same_folder(root, srv.DEMO_DIR) else root_setting(Path(root))
 
 
@@ -392,15 +402,18 @@ def path_key(value) -> str:
 def demo_workbooks(root: Path | None = None) -> list[Path]:
     """Every demo case's workbook, built on this machine or not, Juno's first and the same path as
     DEMO_WORKBOOK, or with `root` the thematic analysis demo's folder (see `srv.demo_ta_dir`) the same three
-    there, or the longitudinal demo's (`srv.demo_lipa_dir`) its own three."""
+    there, or the longitudinal demo's (`srv.demo_lipa_dir`) its own three, or the reflexive thematic analysis demo's
+    (`srv.demo_rta_dir`) its six."""
     root = Path(root) if root is not None else srv.DEMO_DIR
     return [root / name / f"{name} - EN & ES.xlsx" for name in demo_cases_of(root)]
 
 
 def demo_title(path: Path) -> str:
     """A demo case's name on the screen, its case and the demo's topic: `Rowan, living with a dog`, or `Nell, a first
-    year on an allotment` in the longitudinal demo."""
-    topic = DEMO_LIPA_TOPIC if is_lipa_demo(srv.demo_root_of(Path(path))) else DEMO_TOPIC
+    year on an allotment` in the longitudinal demo, or `Kemi, working from home` in the reflexive thematic analysis
+    demo."""
+    root = srv.demo_root_of(Path(path))
+    topic = DEMO_LIPA_TOPIC if is_lipa_demo(root) else DEMO_RTA_TOPIC if is_rta_demo(root) else DEMO_TOPIC
     return f"{wb_mod.case_folder(Path(path)).name}, {topic}"
 
 
@@ -1747,7 +1760,8 @@ def demo_entry(workbook: Path | None = None) -> dict | None:
 
 def demo_entries(root: Path | None = None) -> list[dict]:
     """The Demo section's rows, Juno, Rowan and Mabel in that order, each case built on this machine, the IPA
-    demo's or with `root` the thematic analysis demo's, or the longitudinal demo's Hollis, Nell and Arlo."""
+    demo's or with `root` the thematic analysis demo's, or the longitudinal demo's Hollis, Nell and Arlo, or the
+    reflexive thematic analysis demo's six."""
     return [row for row in (demo_entry(book) for book in demo_workbooks(root)) if row]
 
 
@@ -1989,7 +2003,7 @@ def in_his_order(cards: list[dict], order: list[str]) -> list[dict]:
 def demo_cards(rows: list[dict], root: Path | None = None) -> list[dict]:
     """The demo's rows, Juno, Rowan and Mabel, each from its one row, as a project's are drawn, and
     always in this order, which is fixed, the IPA demo's or with `root` the thematic analysis demo's, or the
-    longitudinal demo's three."""
+    longitudinal demo's three, or the reflexive thematic analysis demo's six."""
     at = Path(root) if root is not None else srv.DEMO_DIR
     data = gets_file(at)
     held = data.get("cases") if isinstance((data or {}).get("cases"), dict) else {}
@@ -2043,6 +2057,8 @@ def api_cases(_: dict) -> dict:
     demos_ta = demo_entries(ta_root)
     lipa_root = srv.demo_lipa_dir()
     demos_lipa = demo_entries(lipa_root)
+    rta_root = srv.demo_rta_dir()
+    demos_rta = demo_entries(rta_root)
     # and what this list read written back for the next start, in the background once Home has it
     home_cache_later()
     # `root` is empty while there is no project, and `choose` says the Mac's folder dialog is there.
@@ -2060,6 +2076,9 @@ def api_cases(_: dict) -> dict:
             # and its third, the longitudinal demo (lipabuild, 13 November 2026), the same three keys
             "demos_lipa": demos_lipa, "demo_lipa_participants": demo_cards(demos_lipa, lipa_root),
             "demo_lipa_project": read_project(lipa_root) if demos_lipa else None,
+            # and its fourth, the reflexive thematic analysis demo (rtabuild, 17 November 2026), the same three keys
+            "demos_rta": demos_rta, "demo_rta_participants": demo_cards(demos_rta, rta_root),
+            "demo_rta_project": read_project(rta_root) if demos_rta else None,
             "root": srv.rel_path(roots[0]) if roots else "", "project": read_project(roots[0] if roots else None),
             "feedback": bool(srv.feedback_url(cfg)), "choose": srv.PLATFORM == "darwin", "one": bool(srv.ROOT_OVERRIDE),
             "version": srv.VERSION, "build": srv.BUILD, "gets": first["gets"] if first else None}
@@ -8399,10 +8418,19 @@ def heard_book(path: Path, sheet: str) -> Path:
 def demo_interview_of(path: Path, sheet: str) -> tuple[str, str] | None:
     """The demo interview a workbook's sheet is, by the key of its demo's download and the participant, `("ipa",
     "Juno")` for the IPA demo's Initial sheets and the thematic analysis demo's, whose recordings are the IPA demo's
-    (`heard_book`), and `("lipa", "Nell")` for a sheet of the longitudinal demo's (T1, T2, T3), or None for any
-    other."""
+    (`heard_book`), `("lipa", "Nell")` for a sheet of the longitudinal demo's (T1, T2, T3), and `("rta", "Kemi")`
+    for the reflexive thematic analysis demo's Initial sheets, or None for any other."""
     if sheet == DEMO_SHEET and (demo_case_of(path) or demo_ta_case_of(path)):
         return DEMO_RECORDINGS, demo_case_of(path) or demo_ta_case_of(path)
+    if sheet == DEMO_SHEET:
+        try:
+            here = Path(path).resolve()
+        except OSError:
+            return None
+        name = next((n for n, book in zip(DEMO_RTA_CASES, demo_workbooks(srv.demo_rta_dir())) if here == book.resolve()),
+                    None)
+        if name:
+            return DEMO_RTA_RECORDINGS, name
     if sheet in DEMO_LIPA_SHEETS:
         try:
             here = Path(path).resolve()
@@ -8417,16 +8445,27 @@ def demo_interview_of(path: Path, sheet: str) -> tuple[str, str] | None:
 
 def demo_interviews(key: str = "") -> tuple[dict, list[dict]]:
     """The demo's manifest of recordings (recdemand, 13 November 2026, `demo_recordings`), read from the demo the app
-    ships, and each of a demo's interviews, the IPA demo's three unless `key` is the longitudinal demo's nine: `name`,
+    ships, and each of a demo's interviews, the IPA demo's three unless `key` is the longitudinal demo's nine or the
+    reflexive thematic analysis demo's six: `name`,
     `sheet`, `target`, where the player finds the recording in the demo the app works on, `entry`, the manifest's
     entry for the transcript the app ships, None when it names none, a transcript edited since its recording was
     made, and `committed`, run from source, the recording in packaging/recording for it when there is one, which is
     copied in and never downloaded."""
     import make_demo
     import make_demo_lipa
+    import make_demo_rta
     manifest = demo_rec.read_manifest(srv.SHIPPED_DEMO / demo_rec.MANIFEST)
     installed = srv.DEMO_DIR != srv.SHIPPED_DEMO
     rows = []
+    if key == DEMO_RTA_RECORDINGS:
+        for name in make_demo_rta.CASES:
+            transcript = make_demo_rta.interview(name, srv.SHIPPED_DEMO)
+            made = audio_mod.demo_recording_name(name, DEMO_SHEET, transcript) if transcript.is_file() else ""
+            committed = None if installed or not made else make_demo_rta.committed(name, srv.DEMO_DIR)
+            rows.append({"name": name, "sheet": DEMO_SHEET, "target": make_demo_rta.recording(name, srv.DEMO_DIR),
+                         "entry": demo_rec.entry(manifest, made) if made else None,
+                         "committed": committed if committed is not None and committed.is_file() else None})
+        return manifest, rows
     if key == DEMO_LIPA_RECORDINGS:
         for name, sheet in make_demo_lipa.interviews():
             transcript = make_demo_lipa.interview(name, sheet, srv.SHIPPED_DEMO)
@@ -8462,9 +8501,10 @@ def ensure_demo_recording(case: str | None = None, sheet: str = DEMO_SHEET, key:
     edited since its recording was made has none, its timecodes no longer matching the voices, and its player stays
     quiet as it does for any workbook without one."""
     lipa = key == DEMO_LIPA_RECORDINGS
-    cases = DEMO_LIPA_CASES if lipa else DEMO_CASES
+    rta = key == DEMO_RTA_RECORDINGS
+    cases = DEMO_LIPA_CASES if lipa else DEMO_RTA_CASES if rta else DEMO_CASES
     name = case or cases[0]
-    book = demo_workbooks(srv.demo_lipa_dir() if lipa else None)[cases.index(name)]
+    book = demo_workbooks(srv.demo_lipa_dir() if lipa else srv.demo_rta_dir() if rta else None)[cases.index(name)]
     _, rows = demo_interviews(key)
     row = next(r for r in rows if r["name"] == name and r["sheet"] == sheet)
     target = row["target"]
@@ -8534,17 +8574,21 @@ def demo_recordings_state(items: list[dict] | None = None, key: str = "") -> dic
 # (lipabuild, 13 November 2026)
 DEMO_RECORDINGS = "ipa"
 DEMO_LIPA_RECORDINGS = "lipa"
+# and the reflexive thematic analysis demo's six (rtabuild, 17 November 2026)
+DEMO_RTA_RECORDINGS = "rta"
 
 
 def api_demo_recordings(body: dict) -> dict:
     """The demo's recordings on demand (recdemand, 13 November 2026): with no `op`, how far its download has got,
     `op` download starting it, or answering the one running, and cancel stopping it. `demo` is the demo's key, `lipa`
-    the longitudinal demo's nine, anything else the IPA demo's three. Only the app's own window downloads
+    the longitudinal demo's nine, `rta` the reflexive thematic analysis demo's six, anything else the IPA demo's
+    three. Only the app's own window downloads
     (`window_only`): an agent never does, and no command line or MCP op reaches it."""
     op = str((body or {}).get("op") or "")
     if op not in ("", "download", "cancel"):
         raise WorkbookError(i18n.t("server.demo_recordings.op"))
-    key = DEMO_LIPA_RECORDINGS if str((body or {}).get("demo") or "") == DEMO_LIPA_RECORDINGS else DEMO_RECORDINGS
+    asked = str((body or {}).get("demo") or "")
+    key = asked if asked in (DEMO_LIPA_RECORDINGS, DEMO_RTA_RECORDINGS) else DEMO_RECORDINGS
     if op == "cancel":
         demo_rec.cancel(key)
         return demo_recordings_state(key=key)
@@ -8564,12 +8608,13 @@ def api_demo_recordings(body: dict) -> dict:
 def fill_demo() -> list[Path]:
     """Each demo case's workbook, progress file and board copied from the shipped pristine copy where
     the demo the app works on is missing one (see `make_demo.fill`), the IPA demo's, the thematic analysis
-    demo's and the longitudinal demo's. A file there is never replaced, and a fill that fails leaves the demo as it
+    demo's, the longitudinal demo's and the reflexive thematic analysis demo's. A file there is never replaced, and a fill that fails leaves the demo as it
     was and the server starting. Answers the files copied."""
     import make_demo
     copied = []
     for shipped, live in ((srv.SHIPPED_DEMO, srv.DEMO_DIR), (srv.SHIPPED_DEMO / srv.DEMO_TA_FOLDER, srv.demo_ta_dir()),
-                          (srv.SHIPPED_DEMO / srv.DEMO_LIPA_FOLDER, srv.demo_lipa_dir())):
+                          (srv.SHIPPED_DEMO / srv.DEMO_LIPA_FOLDER, srv.demo_lipa_dir()),
+                          (srv.SHIPPED_DEMO / srv.DEMO_RTA_FOLDER, srv.demo_rta_dir())):
         try:
             copied += make_demo.fill(shipped / "pristine", live)
         except OSError:
@@ -8581,7 +8626,8 @@ def api_reset_demo(body: dict) -> dict:
     """Put the three demo cases back the way they ship, each workbook, sidecar and board, and the
     demo's GETs file with them, and remove the GETs exports' `Working/`. `demo` of `ta` (demos, 3 November
     2026) resets the thematic analysis demo the same way, its code list with it, `lipa` the longitudinal demo, its
-    later timepoints' boards, LPETs, LGETs and Trajectories with it, and with none it is the IPA demo, as before.
+    later timepoints' boards, LPETs, LGETs and Trajectories with it, `rta` the reflexive thematic analysis demo, its
+    code list and Themes board with it, and with none it is the IPA demo, as before.
 
     The copy it restores from is the shipped one, inside the bundle in the Mac app, and a file of
     the demo gone missing comes back from there too. A workbook open in Excel refuses the reset
@@ -11359,9 +11405,10 @@ def api_mcp(body: dict) -> dict:
     root = asked_root(body, write=True)
     if root is None or not Path(root).is_dir():
         raise WorkbookError(i18n.t("server.project_folder_chosen_yet_project"))
-    # the thematic analysis demo as `--demo ta`, the longitudinal one as `--demo lipa`, the IPA demo as `--demo` (demos)
-    demo = (("ta" if srv.same_folder(root, srv.demo_ta_dir()) else "lipa" if is_lipa_demo(root) else True)
-            if srv.is_demo_root(root) else False)
+    # the thematic analysis demo as `--demo ta`, the longitudinal one as `--demo lipa`, the reflexive thematic analysis
+    # one as `--demo rta`, the IPA demo as `--demo` (demos)
+    demo = (("ta" if srv.same_folder(root, srv.demo_ta_dir()) else "lipa" if is_lipa_demo(root)
+             else "rta" if is_rta_demo(root) else True) if srv.is_demo_root(root) else False)
     # a server reading another settings file hands the same file on, as a smoke server does
     own = srv.CONFIG_PATH if Path(srv.CONFIG_PATH).resolve() != Path(srv.PATHS["config"]).resolve() else None
     entry = mcp_server.desktop_entry(Path(root).resolve(), demo=demo, config=own)
@@ -11656,7 +11703,8 @@ def search_rows() -> list[dict]:
     """Idiograph's projects as Everything searches them (the family's `api_search`), each as This project
     searches it, every project's in the order they were added and the demo's last."""
     roots = [r for r in srv.project_roots() if r.exists()] + ([srv.DEMO_DIR] if demo_workbooks() else [])
-    roots += [d for d in (srv.demo_ta_dir(), srv.demo_lipa_dir()) if any(book.is_file() for book in demo_workbooks(d))]
+    roots += [d for d in (srv.demo_ta_dir(), srv.demo_lipa_dir(), srv.demo_rta_dir())
+              if any(book.is_file() for book in demo_workbooks(d))]
     return [search_distil(r) for r in roots]
 
 

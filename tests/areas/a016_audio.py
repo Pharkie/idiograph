@@ -128,12 +128,14 @@ def demo_recordings(scratch):
         text = make_demo.written_sources(name)[0].read_bytes().replace(b"\r\n", b"\n")
         named[name] = folder / f"{name}-Initial-{hashlib.sha256(text).hexdigest()[:16]}.m4a"
     # the longitudinal demo's nine sit beside them, made for its interviews as they stand and kept out of git
-    # (lipabuild, 13 November 2026), area 394 holding them
+    # (lipabuild, 13 November 2026), area 394 holding them, and the reflexive thematic analysis demo's six the same
+    # way (rtabuild, 17 November 2026), area 421 holding them
     import make_demo_lipa
-    lipa = {folder / n for n in make_demo_lipa.recording_names()}
+    import make_demo_rta
+    lipa = {folder / n for n in make_demo_lipa.recording_names() + make_demo_rta.recording_names()}
     check("16: each demo participant's recording is committed under the hash of their transcript as it stands, the "
           "one name make_demo and the server take, and no other recording is in the folder but the longitudinal "
-          "demo's for its interviews as they stand",
+          "and reflexive thematic analysis demos' for their interviews as they stand",
           all(p.is_file() and make_demo.committed(n) == p for n, p in named.items())
           and sorted(set(folder.glob("*.m4a")) - lipa) == sorted(named.values())
           and (folder / make_demo.AUDIO_LICENCE).is_file(),

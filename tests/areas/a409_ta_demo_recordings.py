@@ -96,7 +96,9 @@ def test_ta_demo_recordings(scratch: Path):
     shutil.copytree(shipped, work)
     proj.mkdir()
     release = "/github/Pharkie/idiograph/releases/download/demo-recordings-1/"
-    Stand.files = {release + p.name: p.read_bytes() for p in list(named.values()) + [licence]}
+    # the licence on the release under its own name, its sha256's first 8 in it (rtafix)
+    Stand.files = {release + p.name: p.read_bytes() for p in named.values()}
+    Stand.files[release + demo_rec.licence_asset(demo_rec.file_sum(licence))] = licence.read_bytes()
     Stand.asked = []
     httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Stand)
     threading.Thread(target=httpd.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True).start()

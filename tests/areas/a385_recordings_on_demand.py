@@ -98,10 +98,13 @@ def test_recordings_on_demand(scratch: Path):
     licence = folder / make_demo.AUDIO_LICENCE
     ck("385: the manifest names each participant's recording for the transcript as it stands, with the size and "
        "sha256 of the committed file, and the licence's, at the demo-recordings-1 release's address",
-       # the IPA demo's three, the longitudinal demo's nine beside them (lipabuild, area 394)
-       sorted(set(rows) - set(__import__("make_demo_lipa").recording_names())) == sorted(p.name for p in named.values())
+       # the IPA demo's three, the longitudinal demo's nine beside them (lipabuild, area 394), and the reflexive
+       # thematic analysis demo's six (rtabuild, area 421)
+       sorted(set(rows) - set(__import__("make_demo_lipa").recording_names())
+              - set(__import__("make_demo_rta").recording_names())) == sorted(p.name for p in named.values())
        and all(rows[p.name]["size"] == p.stat().st_size and rows[p.name]["sha256"] == sha(p) for p in named.values())
-       and manifest["licence"] == {"file": "LICENSE-audio.md", "size": licence.stat().st_size, "sha256": sha(licence)}
+       and manifest["licence"] == {"file": demo_rec.licence_asset(sha(licence)), "size": licence.stat().st_size,
+                                   "sha256": sha(licence)}
        and manifest["url"] == "https://github.com/Pharkie/idiograph/releases/download/demo-recordings-1/"
        and manifest["release"] == demo_rec.RELEASE, json.dumps(manifest)[:500])
 
@@ -139,7 +142,9 @@ def test_recordings_on_demand(scratch: Path):
     shutil.copytree(shipped, work)
     root.mkdir()
     release = "/github/Pharkie/idiograph/releases/download/demo-recordings-1/"
-    Stand.files = {release + p.name: p.read_bytes() for p in list(named.values()) + [licence]}
+    # the licence on the release under its own name, its sha256's first 8 in it (rtafix)
+    Stand.files = {release + p.name: p.read_bytes() for p in named.values()}
+    Stand.files[release + demo_rec.licence_asset(sha(licence))] = licence.read_bytes()
     Stand.asked, Stand.slow = [], False
     httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Stand)
     threading.Thread(target=httpd.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True).start()

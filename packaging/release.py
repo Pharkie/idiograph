@@ -58,6 +58,12 @@ Idiograph's. The workflow builds only the tagged app, and this script takes that
 versions.json and its own releases repository (`Pharkie/sift-releases`). `--app` may name the app as
 well, and is refused when the tag names another. One update key signs all three apps. A dry run says
 what it would publish, where and under which tag, and uploads nothing.
+
+Before any of that, a run without `--test-key`, a dry run among them, is refused while the release the demos'
+recordings come from (`demo-recordings-1`) lacks a recording or the licence `demo/recordings.json` names, or holds
+one at another size or sha256, the manifest read as the tag holds it (`recordings_released`, rtafix, 17 November
+2026), or GitHub gives no sha256 to compare, from an older gh: the line names the files and says
+to upload them first, and nothing is collected, signed or published.
 """
 from __future__ import annotations
 
@@ -126,6 +132,13 @@ CPU = {0x01000007: "x86_64", 0x0100000C: "aarch64"}
 # the one Mac the updater is offered to, Apple Silicon (relfix, 9 November 2026): Intel Macs keep the copy they have
 MAC_ARCH = "aarch64"
 MAC_PLATFORM = f"darwin-{MAC_ARCH}"
+
+
+# the demos' recordings' manifest the app ships, whose files it downloads from their own release on the codebase's
+# repository, `demo-recordings-1` (rtafix, 17 November 2026): a version is not published while that release lacks one.
+# It is read as the tag being released holds it, through git in this checkout, a name the checks stand in for
+RECORDINGS = TOOL / "demo" / "recordings.json"
+GIT = ["git", "-C", str(TOOL)]
 
 
 class Refused(SystemExit):
@@ -377,6 +390,77 @@ def check_manifest(data: dict, public: str, files: dict[str, Path], version: str
     return wrong
 
 
+# ── the demos' recordings ──────────────────────────────────────────────────────────────────────
+
+def release_assets(tag: str, repo: str = APP_REPO) -> dict[str, dict]:
+    """The assets of the release `tag` on `repo` by name, each its `size` and `digest` (`sha256:<hex>`) as GitHub
+    gives them, read with gh and nothing else asked. A release gh cannot read is refused in one line."""
+    done = subprocess.run([*GH, "release", "view", tag, "--repo", repo, "--json", "assets"], capture_output=True,
+                          text=True, encoding="utf-8")
+    said = ((done.stderr or "") + (done.stdout or "")).strip()
+    if done.returncode != 0:
+        raise Refused(f"GitHub did not list the release {tag} on {repo}: "
+                      f"{said.splitlines()[-1] if said else done.returncode}.")
+    try:
+        assets = json.loads(done.stdout).get("assets") or []
+    except (ValueError, AttributeError):
+        raise Refused(f"GitHub's list of the release {tag} on {repo} could not be read.")
+    return {a["name"]: a for a in assets if isinstance(a, dict) and a.get("name")}
+
+
+def unreleased(entries: list[dict], assets: dict[str, dict]) -> list[str]:
+    """The files of the manifest's `entries` that the release's `assets` lack, or hold at another size or sha256,
+    or with no sha256 to compare."""
+    wrong = []
+    for e in entries:
+        a = assets.get(e["file"])
+        if a is None or a.get("size") != e["size"] or a.get("digest") != f"sha256:{e['sha256']}":
+            wrong.append(e["file"])
+    return wrong
+
+
+def tag_manifest(tag: str) -> dict:
+    """The demos' recordings' manifest as the version's tag holds it (`git show <tag>:demo/recordings.json`), what
+    that version's builds ship, whatever this checkout holds now. A tag with none, or none that reads, is refused."""
+    path = RECORDINGS.relative_to(TOOL).as_posix()
+    done = subprocess.run([*GIT, "show", f"{tag}:{path}"], capture_output=True, text=True, encoding="utf-8")
+    try:
+        data = json.loads(done.stdout) if done.returncode == 0 else None
+    except ValueError:
+        data = None
+    if not isinstance(data, dict):
+        raise Refused(f"The tag {tag} has no {path} here to check the demos' recordings against (fetch the tag first). "
+                      "Nothing published.")
+    return data
+
+
+def no_checksum(entries: list[dict], assets: dict[str, dict]) -> list[str]:
+    """The files of `entries` on the release for which GitHub gave no sha256 (`digest`), as an older gh answers."""
+    return [e["file"] for e in entries if e["file"] in assets and not assets[e["file"]].get("digest")]
+
+
+def recordings_released(tag: str, app: str = app_identity.DEFAULT) -> None:
+    """Refused, in one line naming the files, while the release the demo manifest of the version's `tag` downloads
+    from lacks any recording or the licence it names, or holds one at another size or sha256, so no version ships
+    naming a download that would fail (rtafix, 17 November 2026). An asset GitHub gives no sha256 for, from an older
+    gh, is refused by its own line. An app without the demo has nothing to check."""
+    if "demo" not in app_identity.FILES.get(app, ()):
+        return
+    data = tag_manifest(tag)
+    entries = list(data.get("recordings") or []) + ([data["licence"]] if data.get("licence") else [])
+    tag = str(data.get("release") or "demo-recordings-1")
+    assets = release_assets(tag)
+    unsummed = no_checksum(entries, assets)
+    if unsummed:
+        raise Refused(f"GitHub gave no checksum for {', '.join(unsummed)} on the release {tag}, so upgrade gh and run "
+                      "again. Nothing published.")
+    wrong = unreleased(entries, assets)
+    if wrong:
+        raise Refused(f"The release {tag} lacks, or holds other bytes than demo/recordings.json names for, "
+                      f"{', '.join(wrong)}. Upload them first (packaging/upload_rta_recordings.py), then release. "
+                      "Nothing published.")
+
+
 # ── the upload ──────────────────────────────────────────────────────────────────────────────────
 
 def run_gh(args: list[str], capture: bool = False) -> subprocess.CompletedProcess:
@@ -497,6 +581,11 @@ def main(argv: list[str] | None = None) -> int:
         raise Refused(f"versions.json says {server_version(app)} for {named['name']}, and the tag {args.tag}.")
     if args.whats_new and not args.test_key:
         raise Refused("--whats-new is a check's, with --test-key alone.")
+    if not args.test_key:
+        # before anything is collected, signed or published, a dry run as well: every recording the demo's
+        # manifest names on its release, at its size and sha256. A check's own release, with --test-key, never
+        # goes out and its gh is the check's own
+        recordings_released(args.tag, app)
     date, notes = notes_for(version, Path(args.whats_new).read_text(encoding="utf-8") if args.whats_new else None, app)
     source = Path(args.source).expanduser().resolve() if args.source else None
     out = Path(args.out).expanduser().resolve() if args.out else TOOL / "build" / "release" / args.tag

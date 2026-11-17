@@ -521,6 +521,8 @@ def project_named(value: str) -> Path:
         return demo_ta_dir()
     if text == DEMO_LIPA_ID:
         return demo_lipa_dir()
+    if text == DEMO_RTA_ID:
+        return demo_rta_dir()
     if text:
         asked = configured(text)
         # a demo by its folder too, as the page's `root` names it ("demo/lipa"), which an LGETs or a thematic
@@ -639,35 +641,51 @@ def demo_lipa_dir() -> Path:
     return DEMO_DIR / DEMO_LIPA_FOLDER
 
 
+# The reflexive thematic analysis demo (rtabuild, 17 November 2026, Adam's word of 14 and 16 November): "Working from
+# home", six invented participants interviewed for a reflexive thematic analysis, a thematic analysis project in a
+# folder of its own inside the demo's as the other two are. The page and the command line name it `demo-rta`, and
+# `rta` names it to `--demo`.
+DEMO_RTA_ID = "demo-rta"
+DEMO_RTA_FOLDER = "rta"
+
+
+def demo_rta_dir() -> Path:
+    """The reflexive thematic analysis demo's folder, inside the demo's wherever that is."""
+    return DEMO_DIR / DEMO_RTA_FOLDER
+
+
 def demo_dirs() -> list[Path]:
-    """The three demos' folders, the IPA demo's first, then the thematic analysis demo's and the longitudinal one's."""
-    return [DEMO_DIR, demo_ta_dir(), demo_lipa_dir()]
+    """The four demos' folders, the IPA demo's first, then the thematic analysis demo's, the longitudinal one's and
+    the reflexive thematic analysis one's."""
+    return [DEMO_DIR, demo_ta_dir(), demo_lipa_dir(), demo_rta_dir()]
 
 
 def demo_dir_of(which) -> Path:
-    """The demo a word names: `ta` the thematic analysis demo, `lipa` the longitudinal one, anything else that names
-    one the IPA demo."""
+    """The demo a word names: `ta` the thematic analysis demo, `lipa` the longitudinal one, `rta` the reflexive
+    thematic analysis one, anything else that names one the IPA demo."""
     said = str(which or "").strip().lower()
     if said in (DEMO_TA_FOLDER, DEMO_TA_ID):
         return demo_ta_dir()
     if said in (DEMO_LIPA_FOLDER, DEMO_LIPA_ID):
         return demo_lipa_dir()
+    if said in (DEMO_RTA_FOLDER, DEMO_RTA_ID):
+        return demo_rta_dir()
     return DEMO_DIR
 
 
 def demo_root_of(p: Path) -> Path | None:
-    """The demo a path is inside, the thematic analysis demo's folder, the longitudinal demo's or the IPA demo's, or
-    None."""
+    """The demo a path is inside, the thematic analysis demo's folder, the longitudinal demo's, the reflexive thematic
+    analysis demo's or the IPA demo's, or None."""
     if not is_demo(p):
         return None
-    for folder in (demo_ta_dir(), demo_lipa_dir()):
+    for folder in (demo_ta_dir(), demo_lipa_dir(), demo_rta_dir()):
         if inside(p, folder):
             return folder
     return DEMO_DIR
 
 
 def is_demo_root(root) -> bool:
-    """Whether a folder is one of the three demos' own, which are fixed."""
+    """Whether a folder is one of the four demos' own, which are fixed."""
     return root is not None and any(same_folder(root, folder) for folder in demo_dirs())
 
 

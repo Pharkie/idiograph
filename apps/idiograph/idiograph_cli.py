@@ -227,7 +227,7 @@ def open_projects(args) -> tuple[list[Project], list[str]]:
     if args.demo:
         routes.fill_demo()
         # `--demo` the IPA demo, `--demo ta` the thematic analysis demo (demos, 3 November 2026), `--demo lipa` the
-        # longitudinal one (lipabuild, 13 November 2026)
+        # longitudinal one (lipabuild, 13 November 2026), `--demo rta` the reflexive thematic analysis one (rtabuild)
         roots, demo = [srv.demo_dir_of(args.demo)], True
     elif args.root:
         root = Path(args.root).expanduser().resolve()

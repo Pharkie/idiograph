@@ -100,29 +100,40 @@ const DEMO_ID = 'demo';
 const DEMO_TA_ID = 'demo-ta';
 // and the longitudinal demo's (lipabuild, 13 November 2026)
 const DEMO_LIPA_ID = 'demo-lipa';
-const isDemoId = (id) => id === DEMO_ID || id === DEMO_TA_ID || id === DEMO_LIPA_ID;
+// and the reflexive thematic analysis demo's (rtabuild, 17 November 2026)
+const DEMO_RTA_ID = 'demo-rta';
+const isDemoId = (id) => id === DEMO_ID || id === DEMO_TA_ID || id === DEMO_LIPA_ID || id === DEMO_RTA_ID;
 
 /* The demos as Home draws them (demos, Adam, 3 November 2026), each built on this machine: the IPA demo, the
    thematic analysis demo and the longitudinal IPA demo (lipabuild, 13 November 2026), each with its id, its rows and
    cards, its project and its tag. A server from before the second sends no `demos_ta`, and one from before the third
-   no `demos_lipa`, and Home draws the ones it has. */
+   no `demos_lipa`, and Home draws the ones it has. The fourth, the reflexive thematic analysis demo (rtabuild, 17
+   November 2026), is a thematic analysis project, so its `method` is `ta`, its words a thematic analysis project's,
+   and its `kind`, `rta`, names its own tag, Demo mark and note. Each demo's `kind` is its word to Reset demo and the
+   note, the others' their method. */
 function demosOf(data) {
   const out = [];
   if (demoRows(data).length) {
     out.push({ id: DEMO_ID, rows: demoRows(data), cards: demoCards(data), project: data.demo_project || {},
-      tag: t('distil.tag.demo_ipa'), method: 'ipa' });
+      tag: t('distil.tag.demo_ipa'), method: 'ipa', kind: 'ipa' });
   }
   const ta = data && Array.isArray(data.demos_ta) ? data.demos_ta.filter((d) => d && d.path) : [];
   if (ta.length) {
     const cards = Array.isArray(data.demo_ta_participants) ? data.demo_ta_participants : cardsFrom(ta, []);
     out.push({ id: DEMO_TA_ID, rows: ta, cards: cards.map((c) => ({ ...c, demo: true })), project: data.demo_ta_project || {},
-      tag: t('distil.tag.demo_ta'), method: 'ta' });
+      tag: t('distil.tag.demo_ta'), method: 'ta', kind: 'ta' });
   }
   const lipa = data && Array.isArray(data.demos_lipa) ? data.demos_lipa.filter((d) => d && d.path) : [];
   if (lipa.length) {
     const cards = Array.isArray(data.demo_lipa_participants) ? data.demo_lipa_participants : cardsFrom(lipa, []);
     out.push({ id: DEMO_LIPA_ID, rows: lipa, cards: cards.map((c) => ({ ...c, demo: true })), project: data.demo_lipa_project || {},
-      tag: t('distil.tag.demo_lipa'), method: 'lipa' });
+      tag: t('distil.tag.demo_lipa'), method: 'lipa', kind: 'lipa' });
+  }
+  const rta = data && Array.isArray(data.demos_rta) ? data.demos_rta.filter((d) => d && d.path) : [];
+  if (rta.length) {
+    const cards = Array.isArray(data.demo_rta_participants) ? data.demo_rta_participants : cardsFrom(rta, []);
+    out.push({ id: DEMO_RTA_ID, rows: rta, cards: cards.map((c) => ({ ...c, demo: true })), project: data.demo_rta_project || {},
+      tag: t('distil.tag.demo_rta'), method: 'ta', kind: 'rta' });
   }
   return out;
 }
@@ -157,6 +168,10 @@ function distilRecent(data) {
   // and the longitudinal demo after that (lipabuild)
   if (Array.isArray(data.demos_lipa) && data.demos_lipa.some((d) => d && d.path)) {
     list.push({ part: 'distil', name: (data.demo_lipa_project && data.demo_lipa_project.name) || t('distil.tag.demo_lipa'), id: DEMO_LIPA_ID, demo: true });
+  }
+  // and the reflexive thematic analysis demo last (rtabuild)
+  if (Array.isArray(data.demos_rta) && data.demos_rta.some((d) => d && d.path)) {
+    list.push({ part: 'distil', name: (data.demo_rta_project && data.demo_rta_project.name) || t('distil.tag.demo_rta'), id: DEMO_RTA_ID, demo: true });
   }
   return list;
 }
@@ -225,8 +240,8 @@ function homeCardHtml(c) {
   // each demo's own tag, IPA demo or Thematic analysis demo (demos)
   const tags = (c.demo ? `<span class="tag demo">${esc(c.tag || t('distil.tag.demo'))}</span>` : '') + (c.copy ? `<span class="tag copy">${esc(t('distil.tag.copy'))}</span>` : '');
   // a demo's card says what the demo is for, beside the card's button and never in it (demowarn, 12 November 2026)
-  const warn = c.demo && c.method
-    ? `<button type="button" class="hc-warn" data-demo-note="${escAttr(c.method)}" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.3 4.2 2.9 17.5A2 2 0 0 0 4.6 20.5h14.8a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4.5"/><path d="M12 17.2v.1"/></svg><span>${esc(demoWords(c.method)[0])}</span></button>` : '';
+  const warn = c.demo && (c.kind || c.method)
+    ? `<button type="button" class="hc-warn" data-demo-note="${escAttr(c.kind || c.method)}" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.3 4.2 2.9 17.5A2 2 0 0 0 4.6 20.5h14.8a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4.5"/><path d="M12 17.2v.1"/></svg><span>${esc(demoWords(c.kind || c.method)[0])}</span></button>` : '';
   return `<li class="home-card-li${items.length ? ' has-menu' : ''}${warn ? ' has-warn' : ''}"><button type="button" class="home-card${c.demo ? ' is-demo' : ''}" data-id="${escAttr(c.id)}">`
     + `<span class="hc-head"><span class="hc-name">${esc(c.name)}</span>${tags}</span>`
     + (c.question ? `<span class="hc-question">${esc(c.question)}</span>` : '')
@@ -237,7 +252,7 @@ function homeCardHtml(c) {
 /* The warning a demo carries (demowarn, 12 November 2026, Adam: "they are demoing the app, they are not demoing IPA").
    Its card on Home has a line at its foot, and every screen of the demo has its Demo mark beside the project's name,
    each a button opening the same note in a small box under it: what the demo is made of and what it is not for, in
-   Adam's first person. `kind` is `ipa`, `ta` or `lipa`. The box shuts on Esc, on a press outside it, on a second
+   Adam's first person. `kind` is `ipa`, `ta`, `lipa` or `rta`. The box shuts on Esc, on a press outside it, on a second
    press on its button, on a scroll and on a resize, and Esc returns the focus to the button. */
 let demoNoteBy = null;
 
@@ -245,9 +260,11 @@ function demoNoteKind(mark) {
   if (mark.dataset.demoNote) return mark.dataset.demoNote;
   if (mark.id === 'hp-demo-ta') return 'ta';
   if (mark.id === 'hp-demo-lipa') return 'lipa';
+  if (mark.id === 'hp-demo-rta') return 'rta';
   if (mark.id === 'hp-demo') return 'ipa';
   const here = typeof pathProject === 'function' ? pathProject() : null;
-  return here && here.id === DEMO_TA_ID ? 'ta' : here && here.id === DEMO_LIPA_ID ? 'lipa' : 'ipa';
+  return here && here.id === DEMO_TA_ID ? 'ta' : here && here.id === DEMO_LIPA_ID ? 'lipa'
+    : here && here.id === DEMO_RTA_ID ? 'rta' : 'ipa';
 }
 
 function demoNoteShut(back = false) {
@@ -268,6 +285,7 @@ function demoWords(kind) {
   const head = [t('distil.demo.warn'), t('distil.demo.note_head')];
   if (kind === 'ta') return [...head, t('distil.demo.note_ta_1'), t('distil.demo.note_ta_2')];
   if (kind === 'lipa') return [...head, t('distil.demo.note_lipa_1'), t('distil.demo.note_lipa_2')];
+  if (kind === 'rta') return [...head, t('distil.demo.note_rta_1'), t('distil.demo.note_rta_2')];
   return [...head, t('distil.demo.note_ipa_1'), t('distil.demo.note_ipa_2')];
 }
 
@@ -1739,7 +1757,7 @@ function drawPick(data, sections) {
   // the demos in a section of their own, apart from his projects (demos)
   const demos = demosOf(data).map((d) => {
     if (d.project && d.project.name) HOME_PROJECTS.set(d.id, d.project);
-    return { id: d.id, demo: true, tag: d.tag, method: d.method, name: d.project.name || d.tag, question: String(d.project.research_question || ''),
+    return { id: d.id, demo: true, tag: d.tag, method: d.method, kind: d.kind, name: d.project.name || d.tag, question: String(d.project.research_question || ''),
       line: tIn(d.method, () => standLine(d.cards)) };
   });
   $('home-demos').hidden = !demos.length;
@@ -1779,12 +1797,14 @@ function closePage() {
 }
 
 /* the page's head: the project's name, a demo's own tag on a demo's, `demo` the IPA demo's, `ta` the thematic
-   analysis demo's or `lipa` the longitudinal demo's, the copy tag on a shared copy's, and its question */
+   analysis demo's, `lipa` the longitudinal demo's or `rta` the reflexive thematic analysis demo's, the copy tag on a
+   shared copy's, and its question */
 function pageHead(name, question, demo, copy = false) {
   $('hp-name').textContent = name;
-  $('hp-demo').hidden = !demo || demo === 'ta' || demo === 'lipa';
+  $('hp-demo').hidden = !demo || demo === 'ta' || demo === 'lipa' || demo === 'rta';
   $('hp-demo-ta').hidden = demo !== 'ta';
   $('hp-demo-lipa').hidden = demo !== 'lipa';
+  $('hp-demo-rta').hidden = demo !== 'rta';
   $('hp-copy').hidden = !copy;
   $('hp-question').textContent = question;
   $('hp-question').hidden = !question;
@@ -2154,19 +2174,22 @@ function demoCards(data) {
    `demo` is one of `demosOf`. */
 function drawDemoPage(demo) {
   const p = demo.project || {};
-  pageHead(p.name || demo.tag, String(p.research_question || ''), demo.method === 'ta' || demo.method === 'lipa' ? demo.method : true);
+  pageHead(p.name || demo.tag, String(p.research_question || ''), demo.kind && demo.kind !== 'ipa' ? demo.kind : true);
   drawCards($('hp-list'), demo.cards, { fixed: true });
   drawGetsHead($('hp-gets'), demo.rows[0].path, () => S.home === demo.id);
   $('hp-transcripts').hidden = true;
+  // its tooltip the demo's own participants, the reflexive thematic analysis demo's six, every other demo's three
+  $('demo-reset').title = demo.id === DEMO_RTA_ID ? t('distil.demo.reset_title_rta') : t('distil.demo.reset_title');
   $('demo-reset').hidden = false;
 }
 
-/* Reset demo on a demo's page: the demo in front put back, the thematic analysis demo's and the longitudinal demo's
-   by their words */
+/* Reset demo on a demo's page: the demo in front put back, the thematic analysis demo's, the longitudinal demo's and
+   the reflexive thematic analysis demo's by their words */
 async function resetDemo() {
-  const word = S.home === DEMO_TA_ID ? 'ta' : S.home === DEMO_LIPA_ID ? 'lipa' : '';
+  const word = S.home === DEMO_TA_ID ? 'ta' : S.home === DEMO_LIPA_ID ? 'lipa' : S.home === DEMO_RTA_ID ? 'rta' : '';
   const gone = word === 'ta' ? t('distil.demo.reset_ask_ta')
-    : word === 'lipa' ? t('distil.demo.reset_ask_lipa') : t('distil.demo.reset_ask');
+    : word === 'lipa' ? t('distil.demo.reset_ask_lipa')
+      : word === 'rta' ? t('distil.demo.reset_ask_rta') : t('distil.demo.reset_ask');
   if (!await askSure(gone)) return;
   try {
     await api('/api/reset-demo', word ? { demo: word } : {});
@@ -12308,7 +12331,8 @@ function openProjectSettings(p) {
   PROJ.own = own || (shown.demo ? shown : null);
   PROJ.p = shown;
   $('projset-kicker').textContent = shown.demo ? (shown.id === DEMO_TA_ID ? t('distil.tag.demo_ta')
-    : shown.id === DEMO_LIPA_ID ? t('distil.tag.demo_lipa') : t('distil.home.demo'))
+    : shown.id === DEMO_LIPA_ID ? t('distil.tag.demo_lipa') : shown.id === DEMO_RTA_ID ? t('distil.tag.demo_rta')
+      : t('distil.home.demo'))
     : (shown.name || t('distil.home.project'));
   projectSaid('');
   drawProjectPane(shown);

@@ -526,10 +526,11 @@ def parser(app: str | None = None, search: bool = False) -> argparse.ArgumentPar
         made.add_argument("--project", default=argparse.SUPPRESS, help="the project of this name, of those Idiograph holds")
         made.add_argument("--root", default=argparse.SUPPRESS, help="the project in this folder, for this run alone")
         made.add_argument("--demo", action="store_true", default=argparse.SUPPRESS,
-                          help="work on the demo, Living with a dog, the IPA one, or with `--demo ta` the thematic analysis one "
-                               "and `--demo lipa` the longitudinal one")
+                          help="work on the demo, Living with a dog, the IPA one, or with `--demo ta` the thematic analysis one, "
+                               "`--demo lipa` the longitudinal one or `--demo rta` the reflexive thematic analysis one")
         made.add_argument("--demo-ta", action="store_true", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
         made.add_argument("--demo-lipa", action="store_true", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
+        made.add_argument("--demo-rta", action="store_true", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
         made.add_argument("--config", default=argparse.SUPPRESS, help="a settings file in place of config.json")
         made.add_argument("--json", action="store_true", default=argparse.SUPPRESS, help="exact output, as JSON")
         return made
@@ -636,8 +637,9 @@ VALUED = ("--project", "--root", "--config")
 
 
 # the words that name a demo to `--demo` (demos, 3 November 2026): `ta` the thematic analysis demo, `ipa` the IPA one,
-# which `--demo` alone names as ever, and `lipa` the longitudinal one (lipabuild, 13 November 2026)
-DEMO_WORDS = ("ipa", "ta", "lipa")
+# which `--demo` alone names as ever, `lipa` the longitudinal one (lipabuild, 13 November 2026) and `rta` the reflexive
+# thematic analysis one (rtabuild, 17 November 2026)
+DEMO_WORDS = ("ipa", "ta", "lipa", "rta")
 
 
 def demo_words(given: list[str]) -> list[str]:
@@ -651,7 +653,7 @@ def demo_words(given: list[str]) -> list[str]:
         if said is None and word == "--demo" and i + 1 < len(given) and given[i + 1].strip().lower() in DEMO_WORDS:
             said, i = given[i + 1].strip().lower(), i + 1
         if said is not None:
-            out += ["--demo"] + ({"ta": ["--demo-ta"], "lipa": ["--demo-lipa"]}.get(said) or [])
+            out += ["--demo"] + ({"ta": ["--demo-ta"], "lipa": ["--demo-lipa"], "rta": ["--demo-rta"]}.get(said) or [])
         else:
             out.append(word)
         i += 1
@@ -661,7 +663,7 @@ def demo_words(given: list[str]) -> list[str]:
 def demo_of(args):
     """The parsed words with `demo` naming the demo asked for: "ta" for the thematic analysis demo, "lipa" for the
     longitudinal one, True for the IPA demo, False for none."""
-    for word in ("ta", "lipa"):
+    for word in ("ta", "lipa", "rta"):
         if getattr(args, f"demo_{word}", False):
             args.demo = word
         if hasattr(args, f"demo_{word}"):
@@ -1122,7 +1124,8 @@ def logged(app: str, words: list[str], args, lines: list[str], code: str) -> Non
 def demo_asked(words: list[str]):
     """The demo a command's words name, as `demo_of` reads it: "ta", "lipa", True or False."""
     said = demo_words([str(w) for w in words])
-    return "ta" if "--demo-ta" in said else "lipa" if "--demo-lipa" in said else "--demo" in said
+    return ("ta" if "--demo-ta" in said else "lipa" if "--demo-lipa" in said else "rta" if "--demo-rta" in said
+            else "--demo" in said)
 
 
 def where_asked(project, root, demo, config) -> None:

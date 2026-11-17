@@ -70,6 +70,26 @@ window.__bh = {
     }
     return 'nowhere';
   },
+  // The page at rest, before the boxes are first read: the board's map, which in Auto wakes on the board's opening
+  // and on a zoom and sleeps MINIMAP_AWAKE after, asleep, and no transition or animation running anywhere, on five
+  // frames running. The map fades out by its opacity, a layer of its own, and on a loaded Mac its fade after the
+  // opening still ran when the pointer first went into a PET's label, so the watch counted its layer as the hover's
+  // (flake376, 17 November 2026). 'moving' if the page is not at rest within eight seconds
+  settle() {
+    return new Promise((done) => {
+      const t0 = performance.now();
+      let calm = 0;
+      const look = () => {
+        const awake = typeof TH !== 'undefined' && !!TH.mapAwake;
+        const running = document.getAnimations().some((a) => a.playState === 'running');
+        calm = awake || running ? 0 : calm + 1;
+        if (calm >= 5) done('still');
+        else if (performance.now() - t0 > 8000) done('moving');
+        else requestAnimationFrame(look);
+      };
+      requestAnimationFrame(look);
+    });
+  },
   away() { const s = document.getElementById('th-stage').getBoundingClientRect(); return this.empty({ left: s.right - 60, right: s.right - 10, top: s.top + 60, bottom: s.top + 200 }); },
   inFrame() { return this.empty(document.querySelector('#th-world .th-frame').getBoundingClientRect()); },
   boxes() {
@@ -139,9 +159,11 @@ def test_board_hover(scratch):
 
     steps = [{"js": f"Promise.resolve(openThemes({json.dumps(str(book))}, 'library')).then(() => 'open')",
               "waitFor": "#th-world .th-label", "wait": 1500}]
-    rounds = []
+    rounds, rests = [], []
     for zoom in (1.0, 1.1):
-        steps += [{"size": [1587, 1234], "zoom": zoom, "js": "__bh.away()", "wait": 700},
+        # the pointer away, then the page at rest before the boxes are first read, never a fixed wait alone
+        rests.append(len(steps))
+        steps += [{"size": [1587, 1234], "zoom": zoom, "js": "(async () => `${__bh.away()} ${await __bh.settle()}`)()", "wait": 100},
                   {"js": "(__bh.s0 = __bh.boxes(), Object.keys(__bh.s0).length)", "wait": 50}]
         for where, move in (("a PET's label", f"__bh.on({json.dumps(PET)})"), ("a sub-PET's label", f"__bh.on({json.dumps(SUB)})"),
                             ("a frame's empty inside", "__bh.inFrame()")):
@@ -149,7 +171,8 @@ def test_board_hover(scratch):
                 rounds.append((zoom, way, len(steps), len(steps) + 1))
                 steps += [{"js": js, "wait": 0, "layers": WATCH}, {"js": "__bh.after()", "wait": 0}]
     control = len(steps) + 2
-    steps += [{"zoom": 1.0, "js": "__bh.away()", "wait": 600}, {"js": OLD_FADE, "wait": 300},
+    rests.append(len(steps))
+    steps += [{"zoom": 1.0, "js": "(async () => `${__bh.away()} ${await __bh.settle()}`)()", "wait": 100}, {"js": OLD_FADE, "wait": 300},
               {"js": f"__bh.on({json.dumps(PET)})", "wait": 0, "layers": WATCH}]
     steps_file = scratch / "a376-steps.json"
     steps_file.write_text(json.dumps(steps), encoding="utf-8")
@@ -189,8 +212,9 @@ def test_board_hover(scratch):
              and s[4] == ("0 shown" if on_label(s[1]) else "0 hidden")]
     check("376: in WebKit at 100% and 110%, the pointer going into a PET's label, a sub-PET's and a frame's empty inside "
           "and out of each moves no box on the board, changes no outline's width and makes no layer, so nothing is drawn "
-          "again, and a label under it shows its controls", ran.returncode == 0 and len(seen) == 12 and len(still) == 12,
-          f"{[s for s in seen if s not in still]} {ran.stdout[:400]} {ran.stderr[-300:]}")
+          "again, and a label under it shows its controls", ran.returncode == 0 and len(seen) == 12 and len(still) == 12
+          and all(said.get(i) == "stage still" for i in rests),
+          f"{[s for s in seen if s not in still]} {[said.get(i) for i in rests]} {ran.stdout[:400]} {ran.stderr[-300:]}")
     old = layers.get(control) or {}
     check("376: the label's controls faded by their opacity, as they were until boardhover, make layers for the fade on "
           "the same board, which the watch sees", old.get("most", 0) > old.get("least", 0), f"{old}")

@@ -1,0 +1,260 @@
+{
+ "about": "Glen's coding in the reflexive thematic analysis demo (working from home), invented. Every participant turn in order, found by its opening words: each extract as said with its codes, and the passage's note, or empty for a turn reviewed and left uncoded. make_demo_rta.py builds the workbook and the progress file from this and the interview CSV beside it.",
+ "built": "2026-11-06T12:00:00",
+ "turns": [
+  {
+   "at": "Right. Well, I'm a claims",
+   "empty": true
+  },
+  {
+   "at": "The quiet, mainly. I was",
+   "extracts": [
+    {
+     "text": "there's a sort of, a performance to it, isn't there.",
+     "codes": [
+      "Relief from the office performance"
+     ]
+    },
+    {
+     "text": "At home I just get on. I don't have to be anybody.",
+     "codes": [
+      "Relief from the office performance"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I'm up at six, I",
+   "extracts": [
+    {
+     "text": "I go up, I shut the door, and I'm at work.",
+     "codes": [
+      "Small rituals to start and stop",
+      "Shutting work away"
+     ]
+    },
+    {
+     "text": "Maureen and I have a sandwich together. Which is lovely.",
+     "codes": [
+      "Time handed back"
+     ]
+    },
+    {
+     "text": "I say, that's you done. Out loud. To the room.",
+     "codes": [
+      "Small rituals to start and stop"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I do. Maureen heard me",
+   "extracts": [
+    {
+     "text": "That was my wind-down. And there isn't one now.",
+     "codes": [
+      "The commute as a buffer, gone"
+     ]
+    },
+    {
+     "text": "So I say it to the room and I shut the door and that's my car park.",
+     "codes": [
+      "Small rituals to start and stop",
+      "The commute as a buffer, gone"
+     ]
+    }
+   ],
+   "note": "He has rebuilt the drive home out of a sentence and a door."
+  },
+  {
+   "at": "The box room. It's small.",
+   "extracts": [
+    {
+     "text": "I don't go in there at the weekend.",
+     "codes": [
+      "Shutting work away"
+     ]
+    },
+    {
+     "text": "Because if I go in, I'll look at the laptop.",
+     "codes": [
+      "Work seeping into evenings"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "When I shut the door,",
+   "extracts": [
+    {
+     "text": "You'd never stop. I need the door.",
+     "codes": [
+      "Shutting work away"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Well, Maureen, mostly. It's good.",
+   "extracts": [
+    {
+     "text": "While you're here, love, can you have a look at the boiler.",
+     "codes": [
+      "Available because I'm at home"
+     ]
+    },
+    {
+     "text": "And I'd say, Maureen, I'm working. And she'd say, I know, I know. But she didn't, not really.",
+     "codes": [
+      "Others doubting it is real work"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "We had a row. A",
+   "extracts": [
+    {
+     "text": "I put a list on the fridge. My hours. Like a shop.",
+     "codes": [
+      "Small rituals to start and stop"
+     ]
+    },
+    {
+     "text": "they whisper now. In their own house. Her house.",
+     "codes": [
+      "Whose work counts"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Odd. I'm up in the",
+   "extracts": [
+    {
+     "text": "Like I'm the baby asleep upstairs.",
+     "codes": [
+      "Whose work counts"
+     ]
+    },
+    {
+     "text": "I've come home and taken a bit of it.",
+     "codes": [
+      "Whose work counts"
+     ]
+    }
+   ],
+   "note": "The other side of Kemi's 'door that shuts': here the work takes the house's quiet from the one who was home first."
+  },
+  {
+   "at": "It's not one day, it's",
+   "extracts": [
+    {
+     "text": "working hard or hardly working?",
+     "codes": [
+      "Others doubting it is real work"
+     ]
+    },
+    {
+     "text": "I put a shirt on every day, collar, the lot.",
+     "codes": [
+      "Small rituals to start and stop"
+     ]
+    },
+    {
+     "text": "I've probably done more hours at home than I ever did in that office.",
+     "codes": [
+      "Giving back the saved time"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "It is. If I'm in",
+   "extracts": [
+    {
+     "text": "If I'm in a shirt, I'm at work.",
+     "codes": [
+      "Small rituals to start and stop"
+     ]
+    },
+    {
+     "text": "My little light's green at eight on the dot. I like them to see that.",
+     "codes": [
+      "Staying visible online"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I suppose I feel I've",
+   "extracts": [
+    {
+     "text": "I suppose I feel I've got to earn it. Being at home.",
+     "codes": [
+      "Giving back the saved time"
+     ]
+    },
+    {
+     "text": "Like it's a favour they've done me and I've got to prove it was worth it.",
+     "codes": [
+      "A perk you can't complain about"
+     ]
+    },
+    {
+     "text": "I'd rather they had no reason.",
+     "codes": [
+      "Giving back the saved time"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "I miss very little, I'll",
+   "extracts": [
+    {
+     "text": "Radio Two and nobody wanting anything.",
+     "codes": [
+      "The journey as time of my own"
+     ]
+    },
+    {
+     "text": "And the money, you know, no petrol, no parking.",
+     "codes": [
+      "Money saved"
+     ]
+    },
+    {
+     "text": "I'd miss being able to just do my job, without the performance.",
+     "codes": [
+      "Relief from the office performance"
+     ]
+    }
+   ]
+  },
+  {
+   "at": "Only that sometimes I wonder",
+   "extracts": [
+    {
+     "text": "I'll probably still go up there at quarter to eight. Shut the door. Out of habit.",
+     "codes": [
+      "Small rituals to start and stop"
+     ]
+    }
+   ]
+  }
+ ],
+ "work": {
+  "rounds": [
+   {
+    "seconds": 2050,
+    "completed": "2026-11-05T14:18:07"
+   },
+   {
+    "seconds": 1460,
+    "completed": "2026-11-06T10:03:49"
+   }
+  ],
+  "complete": "2026-11-06T10:03:49"
+ }
+}

@@ -1,0 +1,128 @@
+{
+ "schema": 1,
+ "created": "2026-11-09T15:20:00+00:00",
+ "updated": "2026-11-09T15:20:00+00:00",
+ "codes": [
+  {
+   "id": "k1",
+   "name": "Small rituals to start and stop",
+   "description": "Walks, shoes, lanyards, a shirt, words said to a room: small acts made up to mark when work starts and stops."
+  },
+  {
+   "id": "k2",
+   "name": "The commute as a buffer, gone",
+   "description": "The journey that once stood between work and home, missed for the gap it made rather than for itself."
+  },
+  {
+   "id": "k3",
+   "name": "Work seeping into evenings",
+   "description": "Checking, replying and working after hours because work is within reach and nothing says stop."
+  },
+  {
+   "id": "k4",
+   "name": "No room that is only home",
+   "description": "Living and sleeping beside work in rooms that used to be only home."
+  },
+  {
+   "id": "k5",
+   "name": "Shutting work away",
+   "description": "Laptops into baskets, boxes and drawers, a door shut or a t-shirt over the screen: work put out of sight for the night."
+  },
+  {
+   "id": "k6",
+   "name": "Staying visible online",
+   "description": "The green dot, the fast reply, first on in the morning: making yourself seen to be at work."
+  },
+  {
+   "id": "k7",
+   "name": "Guilt at home's ordinary pauses",
+   "description": "A wash, a nip to the shop, a trip to the toilet felt as being caught out, though nobody is looking."
+  },
+  {
+   "id": "k8",
+   "name": "Giving back the saved time",
+   "description": "Longer hours and no breaks, the commute's time paid back to the employer unasked."
+  },
+  {
+   "id": "k9",
+   "name": "Others doubting it is real work",
+   "description": "Family, neighbours and friends treating work at home as not quite work."
+  },
+  {
+   "id": "k10",
+   "name": "Home on show",
+   "description": "The home exposed to work: the room behind the camera, a family heard on a call."
+  },
+  {
+   "id": "k11",
+   "name": "Available because I'm at home",
+   "description": "Parcels, lifts, tradesmen and errands coming to whoever is at home, as if at home means free."
+  },
+  {
+   "id": "k12",
+   "name": "Care that lands on the one at home",
+   "description": "Care for a parent or child given to the one at home, decided without being discussed."
+  },
+  {
+   "id": "k13",
+   "name": "Housework in the gaps",
+   "description": "Housework done in the gaps of the working day, unseen and so uncounted."
+  },
+  {
+   "id": "k14",
+   "name": "Whose work counts",
+   "description": "Whose job gets the room with the door, and whose is the one to give way."
+  },
+  {
+   "id": "k15",
+   "name": "Doing both at once, badly",
+   "description": "Working and caring in the same room at the same time, and doing neither as well as wished."
+  },
+  {
+   "id": "k16",
+   "name": "Missing the chat in between",
+   "description": "The talk between tasks, the Friday sandwich or pint, missed once it is gone."
+  },
+  {
+   "id": "k17",
+   "name": "A work self left behind",
+   "description": "A self that lived at work, with its clothes, desk and humour, and is hard to find at home."
+  },
+  {
+   "id": "k18",
+   "name": "Learning a job without people",
+   "description": "Starting or learning a job through a screen, with nobody to overhear."
+  },
+  {
+   "id": "k19",
+   "name": "Relief from the office performance",
+   "description": "Relief at no longer being on show in an office: the banter, the drinks, being seen at a desk."
+  },
+  {
+   "id": "k20",
+   "name": "The journey as time of my own",
+   "description": "The commute as time that belonged to nobody else, missed or found again."
+  },
+  {
+   "id": "k21",
+   "name": "Time handed back",
+   "description": "Time the commute used to take, given back to the person and their home."
+  },
+  {
+   "id": "k22",
+   "name": "Money saved",
+   "description": "Fares, petrol, parking and lunches no longer paid for."
+  },
+  {
+   "id": "k23",
+   "name": "Noise through walls and ceilings",
+   "description": "Neighbours' and housemates' noise, and one's own, getting in the way of calls."
+  },
+  {
+   "id": "k24",
+   "name": "A perk you can't complain about",
+   "description": "Working from home taken as a perk, so its costs feel ungrateful to say."
+  }
+ ],
+ "history": []
+}
