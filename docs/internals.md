@@ -1276,9 +1276,9 @@ alone on an Apple Silicon runner from python.org's Python, and a tag puts `Idiog
 `Idiograph.app.tar.gz` and `Idiograph-Setup.exe` on a draft release of the app's repository.
 
 The website shows the same notes (sitenews, 16 November 2026): `packaging/site_whats_new.py` writes
-`site/holding/whats-new.html`, the newest released version's notes and the two before it, newest first (`SHOWN`, 17 November 2026, with one link under them to every release on GitHub, the nav's count still reading every release's date; the sections of
+`site/holding/whats-new.html`, the newest released version's notes and the two before it, newest first (`SHOWN`, 17 November 2026, with one link under them to every release on GitHub, the nav's count reading the dates of those shown alone, so it never passes what the page shows (sitebadge, 17 November 2026); the sections of
 `docs/whats-new.md` up to and including the version in `versions.json`, so a next version's section stays off
-the site until its bump), and puts the release dates into the small script after every page's nav, which
+the site until its bump), and puts the shown releases' dates into the small script after every page's nav, which
 counts the releases dated in the visitor's last seven days on What's new and folds the nav into a Menu button at 560 pixels or less (the script writes every page's nav and that button too). The version bump runs it,
 `.venv/bin/python packaging/site_whats_new.py`, and commits what it writes with the bump; every bump also checks the Features page (`site/holding/features.html`, Adam, 17 November 2026): no row still marked Planned or Experimental that the app now has, and a row for each feature the page lacks; area 405 goes red
 when the committed site is not what it writes. The site itself is deployed with Wrangler on Adam's yes, so a

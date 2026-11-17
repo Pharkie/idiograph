@@ -104,8 +104,10 @@ def test_site_whats_new():
               re.findall(r"Idiograph (\d+\.\d+\.\d+)<", made) == ["0.5.0", "0.4.0", "0.3.0"]
               and "Line of version 2." not in made and "Line of version 1." not in made
               and "All releases on GitHub" in made)
-    check("with five released, the nav's count still reads all five dates",
-          len(re.findall(r'"\d{4}-\d{2}-\d{2}"', sw.nav_script(made_up))) == 5)
+    check("with five released and all within seven days, the nav script holds exactly the three shown releases' dates, so the count reaches three at most",
+          re.search(r"d=(\[[^\]]*\])", sw.nav_script(made_up)).group(1)
+          == '["2026-11-05","2026-11-04","2026-11-03"]'
+          and len(re.findall(r'"\d{4}-\d{2}-\d{2}"', sw.nav_script(made_up))) == sw.SHOWN)
     check("with two released, the page shows two",
           re.findall(r"Idiograph (\d+\.\d+\.\d+)<", sw.page(sw.releases(five, "0.2.0"))) == ["0.2.0", "0.1.0"])
 
@@ -130,8 +132,8 @@ def test_site_whats_new():
     check("layout A: no details rows", "<details" not in sw.page(rels, "A"))
 
     script = sw.nav_script(rels)
-    check("the nav script holds every released version's date",
-          all(r["iso"] in script for r in rels) and len(re.findall(r'"\d{4}-\d{2}-\d{2}"', script)) == len(rels))
+    check("the nav script holds exactly the shown releases' dates, no older release's",
+          all(r["iso"] in script for r in top) and len(re.findall(r'"\d{4}-\d{2}-\d{2}"', script)) == len(top))
     check("a date not like 16 November 2026 is refused",
           raises(lambda: sw.iso_date("16 Novembre 2026")) and sw.iso_date("1 November 2026") == "2026-11-01")
     check("no served page carries a comment", all("<!--" not in t for t in files.values()))

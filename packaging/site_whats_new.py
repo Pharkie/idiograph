@@ -7,8 +7,8 @@ site/holding/, the site on idiograph.app:
 - `whats-new.html`, the newest released version's notes and the two before it, each with its version and date
   (SHOWN), the sections up to and including the version versions.json names, so a next version's section, written
   before its release, stays off the site until the bump, and under them a link to every release on GitHub;
-- in every page with the site's nav, the small script after the nav that holds each release's date and shows the
-  count of releases in the visitor's last seven days on What's new, worked out in their browser as the page loads
+- in every page with the site's nav, the small script after the nav that holds the date of each release the page shows (the newest SHOWN) and shows the
+  count of those in the visitor's last seven days on What's new, worked out in their browser as the page loads
   (the site is static). Without scripts the link works and shows no count.
 
 Same input, same bytes: nothing here reads the clock. Run it whenever docs/whats-new.md or versions.json changes,
@@ -84,7 +84,7 @@ def nav_script(rels: list[dict]) -> str:
     into the Menu button, which opens and closes it, Escape and a click outside closing it; and it shows the count of
     releases dated in the visitor's last seven days, today one of them, on What's new (its words in the link's name
     for a screen reader) and on the Menu button. Without scripts the nav stays a row of links that wraps."""
-    dates = json.dumps([r["iso"] for r in rels], separators=(",", ":"))
+    dates = json.dumps([r["iso"] for r in rels[:SHOWN]], separators=(",", ":"))
     return ('<script id="nav-new-js">(function(){var h=document.documentElement,d=' + dates + ','
             't=new Date(),n=0,i,p,x,g=function(k){return document.getElementById(k);},'
             'now=Date.UTC(t.getFullYear(),t.getMonth(),t.getDate()),b=g("nav-burger"),v=g("site-nav");'
