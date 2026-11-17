@@ -257,14 +257,17 @@ function aiTaFor(cfg, feature) {
 let toastTimer;
 /* what the line at the foot says, or is about to say */
 let toastWords = '';
+/* the Undo the line at the foot carries while it says the words it was given with (see sayUndo) */
+let toastUndo = null;
 /* A line at the foot that was put away is shown empty and given its words a frame later, so they come as a change
    inside the status that is already there, which a screen reader says. Orca on Linux said nothing of words that came
    with the line itself (linuxfix, 9 November 2026), and VoiceOver and NVDA hear the same words either way. A line
    that stands already takes the new words at once. */
-function say(message, ms = 4200) {
+function say(message, ms = 4200, undo = null) {
   const el = $('toast');
   const standing = !el.hidden;
   toastWords = message;
+  toastUndo = typeof undo === 'function' ? { message, run: undo } : null;
   // each line at the foot's own place, whatever place a renamed row gave the one before (see rnShowRow)
   el.style.bottom = '';
   clearTimeout(toastTimer);
@@ -277,19 +280,71 @@ function say(message, ms = 4200) {
   }
   if (standing) {
     el.textContent = message;
+    toastUndoPut(el);
     toastClear(el);
     return;
   }
   el.textContent = '';
   el.hidden = false;
   const words = () => {
-    if (el.hidden || toastWords !== message || el.textContent === message) return;
+    // the words standing already, an Undo after them or not, are left as they are
+    if (el.hidden || toastWords !== message || el.textContent === message
+      || (el.firstChild && el.firstChild.nodeValue === message)) return;
     el.textContent = message;
+    toastUndoPut(el);
     toastClear(el);
   };
   // a frame, or a tenth of a second where a window out of sight draws no frames
   if (typeof requestAnimationFrame === 'function') requestAnimationFrame(words);
   setTimeout(words, 100);
+}
+
+/* The notice of a delete that is one step of the screen's Undo (trajbuild, 17 November 2026, Adam's D1): the line at
+   the foot saying what was deleted, with an Undo button that runs `undo`, the screen's own Undo as its toolbar's
+   button runs it, and puts the line away. One function for every screen where a click deletes at once (a trajectory,
+   a label on any board), so the notice looks and works the same on each. A line said after it takes its place. */
+function sayUndo(message, undo, ms = 8000) {
+  say(message, ms, undo);
+}
+
+/* The notice of a delete withdrawn, its line and its Undo, where there is one standing (trajfix2, 17 November 2026):
+   its Undo undoes its own step or nothing, so any later step, an Undo or Redo, a switch of board, participant or
+   screen takes it away. A line at the foot that carries no Undo is left as it is. */
+function unsayUndo() {
+  if (!toastUndo) return;
+  const { message } = toastUndo;
+  toastUndo = null;
+  const button = $('toast').querySelector('.toast-undo');
+  if (button) button.remove();
+  unsay(message);
+}
+
+/* its button put after the words, once */
+function toastUndoPut(el) {
+  if (!toastUndo || toastUndo.message !== toastWords || el.querySelector('.toast-undo')) return;
+  const { run } = toastUndo;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'ghost small toast-undo';
+  button.textContent = t('shell.notice_undo');
+  button.onclick = () => {
+    toastUndo = null;
+    clearTimeout(toastTimer);
+    el.hidden = true;
+    run();
+  };
+  // the line stays while the pointer or the focus is on its Undo, and goes a little after they leave
+  const hold = () => { if (button.isConnected) clearTimeout(toastTimer); };
+  const leave = () => {
+    if (!button.isConnected || el.hidden) return;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.hidden = true; }, 2500);
+  };
+  button.addEventListener('pointerenter', hold);
+  button.addEventListener('focus', hold);
+  button.addEventListener('pointerleave', leave);
+  button.addEventListener('blur', leave);
+  el.append(' ', button);
 }
 
 /* The line about to show on Linux, its timer, none while no line waits */
@@ -315,6 +370,7 @@ function toastAnew(el, message) {
     toastDue = null;
     if (toastWords !== message) return;
     el.textContent = message;
+    toastUndoPut(el);
     el.hidden = false;
     toastClear(el);
   }, TOAST_ANEW_MS);

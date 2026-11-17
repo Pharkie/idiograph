@@ -2260,14 +2260,11 @@ circle.th-link-hit { fill: transparent; stroke: none; pointer-events: fill; }
   margin-bottom: 18px; box-shadow: var(--rest); }
 .tf-band.tj-over { border-color: var(--ink-soft); box-shadow: inset 0 0 0 1px var(--ink-soft); }
 .tf-band-none { background: transparent; border-style: dashed; border-color: var(--rule-firm); box-shadow: none; }
-.tf-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto auto; align-items: start; gap: 4px 12px;
+.tf-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: 4px 12px;
   padding: 12px 14px; border-radius: var(--r-card) var(--r-card) 0 0;
   background: color-mix(in srgb, var(--tc) 9%, var(--card)); border-bottom: 2px solid var(--tc); }
 .tf-head-none { display: flex; align-items: center; background: transparent; border-bottom: 1px dashed var(--rule-firm); padding: 10px 14px; }
 .tf-head-none .tj-title-fixed { flex: 1 1 auto; }
-.tf-icon { width: 46px; height: 31px; color: var(--tc); margin-top: 2px; }
-.tf-icon svg { width: 46px; height: 31px; display: block; }
-.tf-icon-none { width: 0; margin: 0; }
 .tf-headw { min-width: 0; }
 .tf-title.tj-title { display: block; width: 100%; color: var(--tc); font-size: 21px; padding: 0 4px; margin-left: -5px; }
 .tf-desc { display: block; width: 100%; max-width: 70ch; margin: 2px 0 0 -5px; padding: 1px 4px; resize: none; overflow: hidden;
@@ -2278,17 +2275,33 @@ circle.th-link-hit { fill: transparent; stroke: none; pointer-events: fill; }
 /* a field's placeholder shows only while it has the focus or the pointer, so an empty one says nothing at rest */
 .tf-board textarea::placeholder { color: transparent; }
 .tf-board textarea:is(:focus, :hover)::placeholder, .tf-tagin::placeholder { color: var(--ink-faint); }
-.tf-swatch { align-self: center; width: 26px; height: 26px; padding: 5px; border: 1px solid var(--rule-firm); border-radius: var(--r-control);
-  background: var(--card); cursor: pointer; }
-.tf-swatch span { display: block; width: 100%; height: 100%; border-radius: 50%; background: var(--tc); }
-.tf-swatch:focus-visible, .tf-sw:focus-visible, .tf-ic:focus-visible, .tf-more:focus-visible, .tf-dot:focus-visible,
+.tf-iconbtn:focus-visible, .tf-sw:focus-visible, .tf-ic:focus-visible, .tf-more:focus-visible, .tf-dot:focus-visible,
 .tf-face:focus-visible, .tf-pill-b:focus-visible, .tf-x:focus-visible { outline: 0; box-shadow: var(--focus-small); }
-.tf-head .tj-remove, .tf-head .tj-count { align-self: center; }
-/* the trajectory's colour and icon, opened from its swatch */
-.tf-cpick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 12px 16px 4px; padding: 10px 14px;
-  background: var(--paper); border: 1px solid var(--rule-firm); border-radius: var(--r-card); }
-.tf-cpick-l { font-size: 12.5px; color: var(--ink-soft); }
-.tf-sws, .tf-ics { display: flex; flex-wrap: wrap; gap: 6px; margin-right: 14px; }
+/* The trajectory's icon at the head's left is the button that opens its colour and icon (trajbuild, 17 November
+   2026, Adam's C), a chevron beside it; with no icon a dot in its colour stands in. Its count stands at the head's
+   right end, and after a rule, apart from the icon and its popover, the bin that deletes the trajectory (D1). */
+.tf-anchor { position: relative; display: inline-flex; }
+.tf-band-up { z-index: 6; }
+.tf-iconbtn { display: inline-flex; align-items: center; gap: 0; padding: 3px 2px 3px 4px; margin: -3px 0 0 -4px; border: 1px solid transparent;
+  border-radius: var(--r-control); background: none; color: var(--tc); cursor: pointer; }
+.tf-iconbtn > svg { width: 46px; height: 31px; display: block; }
+.tf-iconbtn-dot { display: block; width: 18px; height: 18px; margin: 6px 4px; border-radius: 50%; background: var(--tc); }
+.tf-iconbtn .tf-chev { display: block; width: 14px; height: 14px; }
+.tf-iconbtn .tf-chev svg { display: block; width: 14px; height: 14px; color: var(--ink-soft); }
+.tf-iconbtn:hover, .tf-iconbtn[aria-expanded="true"] { border-color: var(--rule-firm); background: var(--card); }
+.tf-tools { align-self: center; display: flex; align-items: center; gap: 10px; }
+.tf-toolrule { width: 1px; height: 22px; background: var(--rule-firm); margin: 0 4px 0 6px; }
+.tf-head .tf-bin { width: 30px; height: 30px; }
+.tf-head .tf-bin svg { width: 18px; height: 18px; }
+.tf-bin:hover { color: var(--danger); }
+/* the popover under the icon: Colour and Icon, each a labelled row, the icons eight a line, Done at its foot */
+.tf-pop { position: absolute; z-index: 7; top: calc(100% + 8px); left: 0; display: flex; flex-direction: column; align-items: stretch; gap: 10px;
+  margin: 0; padding: 12px 14px; width: max-content; max-width: calc(100vw - 48px); background: var(--card); border: 1px solid var(--rule);
+  border-radius: var(--r-card); box-shadow: var(--lift); cursor: default; }
+.tf-prow { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 8px 12px; }
+.tf-cpick-l { font-size: 12.5px; color: var(--ink-soft); padding-top: 5px; min-width: 44px; }
+.tf-sws { display: flex; flex-wrap: wrap; gap: 6px; padding: 3px 0; }
+.tf-ics { display: grid; grid-template-columns: repeat(8, 44px); gap: 6px; }
 .tf-sw { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--card); box-shadow: 0 0 0 1px var(--rule-firm); cursor: pointer; padding: 0; }
 .tf-sw.on { box-shadow: 0 0 0 2px var(--ink); }
 .tf-sw-none { background: linear-gradient(135deg, transparent 45%, var(--ink-faint) 46%, var(--ink-faint) 54%, transparent 55%), var(--card); }
@@ -2296,8 +2309,9 @@ circle.th-link-hit { fill: transparent; stroke: none; pointer-events: fill; }
   color: var(--tc); cursor: pointer; }
 .tf-ic svg { width: 100%; height: 100%; display: block; }
 .tf-ic.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
-.tf-ic-none { width: auto; font: inherit; font-size: 12px; color: var(--ink-soft); }
-.tf-cpick .tf-done { margin-left: auto; }
+.tf-ic-none { padding: 0; font: inherit; font-size: 12px; color: var(--ink-soft); }
+.tf-pfoot { display: flex; justify-content: flex-end; gap: 8px; }
+
 /* the grid: the participant's cell, the LPET's title, then a column for each timepoint */
 .tf-grid { display: grid; grid-template-columns: 150px 168px repeat(var(--tps, 3), minmax(0, 1fr)); column-gap: 20px; padding: 4px 16px 6px; }
 .tf-th { padding: 10px 0 8px; font-size: 14px; font-weight: 600; color: var(--ink); text-align: left; border-bottom: 1px solid var(--rule-firm);
@@ -2505,7 +2519,7 @@ input.tj-title:focus { outline: 0; border-color: var(--field-edge); background: 
   .tf-pass { grid-column: 1 / -1; }
   .tf-pass-find { margin-left: 0; }
   .tf-head { padding: 10px 12px; gap: 4px 10px; }
-  .tf-icon, .tf-icon svg { width: 36px; height: 24px; }
+  .tf-iconbtn > svg { width: 36px; height: 24px; }
   .tf-edit { grid-template-columns: minmax(0, 1fr); }
   .tf-edit-pic { flex-direction: row; }
   .tf-edit-picb { flex-direction: row; flex-wrap: wrap; }

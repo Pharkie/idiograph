@@ -12,8 +12,9 @@
    (trajchoose, 11 November 2026). Words chosen in a key quote go bold with Cmd+B, kept on the row, never in the
    transcript.
 
-   A trajectory's title and sentence are typed in place, its swatch opens its colour and icon, New trajectory adds
-   one, and its cross takes it away, its participants going back to Not placed with all that is kept on them. A
+   A trajectory's title and sentence are typed in place, its icon opens its colour and icon (17 November 2026), New
+   trajectory adds one, and the bin at its head's right end deletes it at once, one step of Undo, its participants
+   going back to Not placed with all that is kept on them, the line at the foot saying so with Undo. A
    participant moves by dragging their cell onto a band, at the place they are dropped, by Move to in their menu,
    and with the keys while their cell has the focus: Up and Down in their trajectory, Left and Right to the one
    before or after, Backspace to Not placed. A double-click on their cell, or Edit in its menu, opens their editor
@@ -38,7 +39,10 @@ const TJ = { path: '', back: null, to: 'cases', data: null, ask: 0, busy: false,
   // found, the turns read for each participant's interview, and the words chosen in a turn
   passage: '', passageAt: '', find: '', turns: {}, picked: null,
   // whether the server holds a step of his to undo and one to redo (trajundo), as each answer says
-  steps: { undo: false, redo: false } };
+  steps: { undo: false, redo: false },
+  // a count of the board's answers, each change and each Undo or Redo one more, so the delete's notice knows its
+  // step is still the last (trajfix2)
+  stepN: 0 };
 // Not placed, the one name of every board's left sidebar (toolbar10, Adam, 16 November 2026)
 const TJ_NOT_PLACED = t('themes.left.name');
 /* the Trajectories export (exportnew and exportwire, 16 November 2026): its menu's Save as PDF and Microsoft Word post
@@ -48,16 +52,56 @@ const TJ_PRINT = '/trajectories/print';
 const TJ_QUOTES_WAYS = ['off', 'short', 'full'];
 // each way's words and each icon's name, every key written out so the catalogue's check finds it
 const TJ_QUOTES_SAID = { off: () => t('trajectories.quotes_off'), short: () => t('trajectories.quotes_short'), full: () => t('trajectories.quotes_full') };
-const TJ_ICON_SAID = { rising: () => t('trajectories.icon_rising'), mixed: () => t('trajectories.icon_mixed'),
-  falling: () => t('trajectories.icon_falling'), level: () => t('trajectories.icon_level') };
+const TJ_ICON_SAID = {
+  rising: () => t('trajectories.icon_rising'),
+  falling: () => t('trajectories.icon_falling'),
+  level: () => t('trajectories.icon_level'),
+  mixed: () => t('trajectories.icon_mixed'),
+  up_down: () => t('trajectories.icon_up_down'),
+  down_up: () => t('trajectories.icon_down_up'),
+  up_level: () => t('trajectories.icon_up_level'),
+  down_level: () => t('trajectories.icon_down_level'),
+  steps_up: () => t('trajectories.icon_steps_up'),
+  steps_down: () => t('trajectories.icon_steps_down'),
+  spike: () => t('trajectories.icon_spike'),
+  jagged: () => t('trajectories.icon_jagged'),
+  wave: () => t('trajectories.icon_wave'),
+  turn: () => t('trajectories.icon_turn'),
+  loop: () => t('trajectories.icon_loop'),
+  cycle: () => t('trajectories.icon_cycle'),
+  parting: () => t('trajectories.icon_parting'),
+  joining: () => t('trajectories.icon_joining'),
+  break: () => t('trajectories.icon_break'),
+  growth: () => t('trajectories.icon_growth'),
+  fading: () => t('trajectories.icon_fading'),
+  unclear: () => t('trajectories.icon_unclear'),
+};
 const TJ_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const TJ_PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg>';
 const TJ_MORE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><circle cx="5.5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18.5" cy="12" r="1.7"/></svg>';
 const TJ_ICONS = {
   rising: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 28 18 15l8 7 16-16"/><path d="M31 5h12v12"/></svg>',
-  mixed: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 12l9 9 9-9 9 9 8-8"/><path d="M33 9h7v7"/></svg>',
   falling: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 4l14 13 8-7 16 16"/><path d="M31 27h12V15"/></svg>',
   level: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 16h38"/><path d="M34 9l8 7-8 7"/></svg>',
+  mixed: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 12l9 9 9-9 9 9 8-8"/><path d="M33 9h7v7"/></svg>',
+  up_down: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 27L18 7L28 7L43 26 M34.1 24.5L43 26L43.6 17"/></svg>',
+  down_up: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5L18 25L28 25L43 6 M43.6 15L43 6L34.1 7.5"/></svg>',
+  up_level: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 27L18 9L43 9 M36.3 15L43 9L36.3 3"/></svg>',
+  down_level: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5L18 23L43 23 M36.3 29L43 23L36.3 17"/></svg>',
+  steps_up: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 28h9v-8h10v-8h10V4h11"/></svg>',
+  steps_down: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 4h9v8h10v8h10v8h11"/></svg>',
+  spike: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 26h12l8-21 8 21h12"/></svg>',
+  jagged: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 20l6-13 6 20 6-16 6 13 6-15 6 11 4-5"/></svg>',
+  wave: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 16c4-11 9-11 13 0s9 11 13 0 9-11 13 0"/></svg>',
+  turn: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 8h20a9 9 0 0 1 0 18H12"/><path d="M18.7 20L12 26L18.7 32"/></svg>',
+  loop: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 25h13c11 0 12-18 3-18s-8 18 3 18h20"/><path d="M36.3 31L43 25L36.3 19"/></svg>',
+  cycle: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M37.5 10A13 13 0 1 0 38 22"/><path d="M28.5 9.6L37.5 10L36.9 1"/></svg>',
+  parting: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 16h12"/><path d="M16 16L43 5"/><path d="M16 16l27 11"/></svg>',
+  joining: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5l18 11"/><path d="M4 27l18-11"/><path d="M22 16h20"/><path d="M35.3 22L42 16L35.3 10"/></svg>',
+  break: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 16h12"/><path d="M32 16h12"/><path d="M20 27l8-22"/></svg>',
+  growth: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M24 30V13"/><path d="M24 21C23 13 17 9 9 9c0 8 6 12 15 12"/><path d="M24 15c1-6 6-10 14-10 0 7-6 10-14 10"/></svg>',
+  fading: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7l9 4"/><path d="M18 13.4l7 3.1"/><path d="M30 18.8l4 1.8"/><path d="M39 22.8l1.5.7"/><path d="M44 25h0"/></svg>',
+  unclear: '<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M17 11a7 7 0 1 1 10 6.3c-2 1-3 2-3 4.2"/><path d="M24 28.5v0"/></svg>',
 };
 // a trajectory's colour as its token, the names the file keeps
 const TJ_TOKENS = { good: '--good', amber: '--amber', danger: '--danger', excerpt: '--excerpt', sift: '--part-sift',
@@ -68,6 +112,7 @@ const TJ_TAG_COLOURS = 8;
 /* the board opened for the project a workbook belongs to, `how` as openStatements takes it: `leave` puts the
    screen it came from away once the board is in, `back` returns there, `to` names that screen */
 async function trajOpen(path, how = {}) {
+  if (typeof unsayUndo === 'function') unsayUndo();
   const ask = ++TJ.ask;
   let data;
   try {
@@ -94,6 +139,7 @@ async function trajOpen(path, how = {}) {
 
 function trajLoad(data) {
   TJ.data = data;
+  TJ.stepN += 1;
   if (data.steps) TJ.steps = { undo: !!data.steps.undo, redo: !!data.steps.redo };
   TJ.project = data.project || null;
   pathProjectDraw('tj-project', TJ.project);
@@ -111,6 +157,7 @@ function trajLoad(data) {
 async function trajLeave() {
   if (document.activeElement && $('traj').contains(document.activeElement)) document.activeElement.blur();
   await trajIdle();
+  if (typeof unsayUndo === 'function') unsayUndo();
   $('traj').hidden = true;
   TJ.ask += 1;
   if (TJ.back) await TJ.back();
@@ -232,6 +279,8 @@ function trajStepsDraw() {}
    elsewhere since is refused in one line, and the board is read again as it now stands. */
 async function trajUndo(backwards) {
   if (!TJ.data || $('traj').hidden) return;
+  // a delete's notice is withdrawn by any Undo or Redo but its own (trajfix2)
+  if (typeof unsayUndo === 'function') unsayUndo();
   // words typed in a field and not yet kept are kept first, so Undo takes them back as their own step
   const el = document.activeElement;
   if (el && $('traj').contains(el) && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) el.blur();
@@ -335,6 +384,12 @@ function trajFit(box) {
   box.style.height = `${box.scrollHeight + 2}px`;
 }
 
+/* The bin and the chevron under a trajectory's icon (trajbuild, 17 November 2026, Adam's C and D1) */
+const TJ_BIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l.9 12.2a1.8 1.8 0 0 0 1.8 1.6h5.6a1.8 1.8 0 0 0 1.8-1.6L17.5 7M10.2 11v6M13.8 11v6"/></svg>';
+const TJ_CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 10l5 5 5-5"/></svg>';
+
+/* A band: its head, the trajectory's icon at the left the button that opens its colour and icon, its title and
+   sentence, then at the right end its count and, apart after a rule, the bin; then its participants */
 function trajBandHtml(col) {
   const people = col.participants || [];
   const tc = col.fixed ? '' : (TJ_TOKENS[col.colour] ? `--tc:var(${TJ_TOKENS[col.colour]});` : '');
@@ -343,40 +398,106 @@ function trajBandHtml(col) {
   if (col.fixed) {
     head = `<header class="tf-head tf-head-none"><h2 class="tj-title tj-title-fixed">${esc(col.title)}</h2><span class="tj-count">${people.length}</span></header>`;
   } else {
-    const icon = TJ_ICONS[col.icon] ? `<span class="tf-icon">${TJ_ICONS[col.icon]}</span>` : '<span class="tf-icon tf-icon-none"></span>';
+    const id = escAttr(col.id);
+    const open = TJ.picking === col.id;
+    const said = escAttr(t('trajectories.colour_icon'));
+    const shown = TJ_ICONS[col.icon] || '';
+    const icon = `<span class="tf-anchor"><button type="button" class="tf-iconbtn${shown ? '' : ' tf-iconbtn-none'}" data-swatch="${id}" data-fkey="swatch-${id}"
+        aria-expanded="${open}" aria-haspopup="dialog" title="${said}" aria-label="${said}">${shown || '<span class="tf-iconbtn-dot"></span>'}<span class="tf-chev">${TJ_CHEV}</span></button>`
+      + `${open ? trajPickerHtml(col) : ''}</span>`;
+    const bin = `<button type="button" class="tj-remove tf-bin" data-remove="${id}" data-fkey="remove-${id}"
+        aria-label="${escAttr(t('trajectories.delete_label', { title: col.title }))}" title="${escAttr(t('trajectories.delete_tip'))}">${TJ_BIN}</button>`;
     head = `<header class="tf-head">${icon}<div class="tf-headw">`
-      + `<input class="tj-title tf-title" type="text" value="${escAttr(col.title)}" maxlength="60" data-col="${escAttr(col.id)}" data-fkey="title-${escAttr(col.id)}"
+      + `<input class="tj-title tf-title" type="text" value="${escAttr(col.title)}" maxlength="60" data-col="${id}" data-fkey="title-${id}"
           aria-label="${escAttr(t('trajectories.title_label'))}" title="${escAttr(t('trajectories.title_tip'))}">`
-      + `<textarea class="tf-desc tf-fit" rows="1" maxlength="400" data-desc="${escAttr(col.id)}" data-fkey="desc-${escAttr(col.id)}"
+      + `<textarea class="tf-desc tf-fit" rows="1" maxlength="400" data-desc="${id}" data-fkey="desc-${id}"
           aria-label="${escAttr(t('trajectories.sentence_label'))}" placeholder="${escAttr(t('trajectories.sentence_placeholder'))}">${esc(col.description || '')}</textarea></div>`
-      + `<button type="button" class="tf-swatch" data-swatch="${escAttr(col.id)}" data-fkey="swatch-${escAttr(col.id)}" aria-expanded="${TJ.picking === col.id}"
-          title="${escAttr(t('trajectories.colour_icon'))}" aria-label="${escAttr(t('trajectories.colour_icon'))}"><span></span></button>`
-      + `<button type="button" class="tj-remove" data-remove="${escAttr(col.id)}" data-fkey="remove-${escAttr(col.id)}" aria-label="${escAttr(t('trajectories.remove_label', { title: col.title }))}"
-          title="${escAttr(t('trajectories.remove_tip'))}">${TJ_X}</button><span class="tj-count">${people.length}</span></header>`;
+      + `<span class="tf-tools"><span class="tj-count">${people.length}</span><span class="tf-toolrule" aria-hidden="true"></span>${bin}</span></header>`;
   }
-  const picker = !col.fixed && TJ.picking === col.id ? trajPickerHtml(col) : '';
   let rows = `<div class="tf-th tf-th0" aria-hidden="true"></div><div class="tf-th tf-th0" aria-hidden="true"></div>`
     + tps.map((tp) => `<div class="tf-th" title="${escAttr(tjTpName(tp))}">${esc(tjTpName(tp))}</div>`).join('');
   for (const case_ of people) rows += trajPersonHtml(case_, tps);
   // a band with nobody in it is its head alone, a place to drop a participant
   const grid = people.length ? `<div class="tf-grid" style="--tps:${tps.length}">${rows}</div>` : '<div class="tf-empty"></div>';
-  return `<section class="tf-band${col.fixed ? ' tf-band-none' : ''}" role="listitem" data-col="${escAttr(col.id)}" style="${tc}">`
-    + `${head}${picker}${grid}</section>`;
+  return `<section class="tf-band${col.fixed ? ' tf-band-none' : ''}${TJ.picking === col.id ? ' tf-band-up' : ''}" role="listitem" data-col="${escAttr(col.id)}" style="${tc}">`
+    + `${head}${grid}</section>`;
 }
 
-/* a trajectory's colour and icon, opened from its swatch, each kept at once */
+/* A trajectory's colour and icon in a popover under its icon, two labelled rows, each choice kept at once, Done at
+   its foot; Escape and a click outside close it too, the focus going back to the icon, and nothing in it deletes.
+   The arrows move within a row's choices, the icons' eight a line. */
+const TJ_ICON_COLUMNS = 8;
 function trajPickerHtml(col) {
   const palette = (TJ.data && TJ.data.palette) || {};
-  const sw = Object.keys(TJ_TOKENS).map((k) => `<button type="button" class="tf-sw${col.colour === k ? ' on' : ''}" data-colour="${k}" data-col="${escAttr(col.id)}"
-      data-fkey="sw-${escAttr(col.id)}-${k}" style="background:var(${TJ_TOKENS[k]})" title="${escAttr(palette[k] || k)}" aria-label="${escAttr(palette[k] || k)}" aria-pressed="${col.colour === k}"></button>`).join('');
-  const ic = Object.keys(TJ_ICONS).map((k) => `<button type="button" class="tf-ic${col.icon === k ? ' on' : ''}" data-icon="${k}" data-col="${escAttr(col.id)}"
-      data-fkey="ic-${escAttr(col.id)}-${k}" title="${escAttr(TJ_ICON_SAID[k]())}" aria-label="${escAttr(TJ_ICON_SAID[k]())}" aria-pressed="${col.icon === k}">${TJ_ICONS[k]}</button>`).join('')
-    + `<button type="button" class="tf-ic tf-ic-none${col.icon ? '' : ' on'}" data-icon="" data-col="${escAttr(col.id)}" data-fkey="ic-${escAttr(col.id)}-none" aria-pressed="${!col.icon}">${esc(t('trajectories.none'))}</button>`;
-  return `<div class="tf-cpick" role="group" aria-label="${escAttr(t('trajectories.colour_icon'))}"><span class="tf-cpick-l">${esc(t('trajectories.colour'))}</span>`
-    + `<span class="tf-sws">${sw}<button type="button" class="tf-sw tf-sw-none${col.colour ? '' : ' on'}" data-colour="" data-col="${escAttr(col.id)}" data-fkey="sw-${escAttr(col.id)}-none"
-        title="${escAttr(t('trajectories.none'))}" aria-label="${escAttr(t('trajectories.none'))}" aria-pressed="${!col.colour}"></button></span>`
-    + `<span class="tf-cpick-l">${esc(t('trajectories.icon'))}</span><span class="tf-ics">${ic}</span>`
-    + `<button type="button" class="primary small tf-done" data-pick-done="1" data-fkey="pick-done-${escAttr(col.id)}">${esc(t('trajectories.done'))}</button></div>`;
+  const id = escAttr(col.id);
+  const sw = Object.keys(TJ_TOKENS).map((k) => `<button type="button" class="tf-sw${col.colour === k ? ' on' : ''}" data-colour="${k}" data-col="${id}"
+      data-fkey="sw-${id}-${k}" style="background:var(${TJ_TOKENS[k]})" title="${escAttr(palette[k] || k)}" aria-label="${escAttr(palette[k] || k)}" aria-pressed="${col.colour === k}"></button>`).join('')
+    + `<button type="button" class="tf-sw tf-sw-none${col.colour ? '' : ' on'}" data-colour="" data-col="${id}" data-fkey="sw-${id}-none"
+        title="${escAttr(t('trajectories.none'))}" aria-label="${escAttr(t('trajectories.none'))}" aria-pressed="${!col.colour}"></button>`;
+  const ic = Object.keys(TJ_ICONS).map((k) => `<button type="button" class="tf-ic${col.icon === k ? ' on' : ''}" data-icon="${k}" data-col="${id}"
+      data-fkey="ic-${id}-${k}" title="${escAttr(TJ_ICON_SAID[k]())}" aria-label="${escAttr(TJ_ICON_SAID[k]())}" aria-pressed="${col.icon === k}">${TJ_ICONS[k]}</button>`).join('')
+    + `<button type="button" class="tf-ic tf-ic-none${col.icon ? '' : ' on'}" data-icon="" data-col="${id}" data-fkey="ic-${id}-none" aria-pressed="${!col.icon}">${esc(t('trajectories.none'))}</button>`;
+  return `<div class="tf-pop" role="dialog" aria-label="${escAttr(t('trajectories.colour_icon'))}">`
+    + `<div class="tf-prow"><span class="tf-cpick-l" id="tf-pl-c-${id}">${esc(t('trajectories.colour'))}</span><span class="tf-sws" role="group" aria-labelledby="tf-pl-c-${id}">${sw}</span></div>`
+    + `<div class="tf-prow"><span class="tf-cpick-l" id="tf-pl-i-${id}">${esc(t('trajectories.icon'))}</span><span class="tf-ics" role="group" aria-labelledby="tf-pl-i-${id}">${ic}</span></div>`
+    + `<div class="tf-pfoot"><button type="button" class="primary small tf-done" data-pick-done="1" data-fkey="pick-done-${id}">${esc(t('trajectories.done'))}</button></div></div>`;
+}
+
+/* The popover closed, by Done or its icon pressed again, the focus back on the icon that opened it */
+function trajPickClose() {
+  const id = TJ.picking;
+  if (!id) return;
+  TJ.picking = '';
+  trajDraw();
+  const back = $('tj-board').querySelector(`[data-fkey="${CSS.escape(`swatch-${id}`)}"]`);
+  if (back) back.focus();
+}
+
+/* The arrows within a row of the popover's choices: Left and Right one along, Up and Down a line of the icons,
+   Home and End the row's first and last. True when the key was taken. */
+function trajPickArrow(e) {
+  const at = e.target.closest('.tf-pop .tf-sw, .tf-pop .tf-ic');
+  if (!at || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) return false;
+  const all = [...at.parentElement.children];
+  const i = all.indexOf(at);
+  const line = at.classList.contains('tf-ic') ? TJ_ICON_COLUMNS : all.length;
+  const to = { ArrowLeft: i - 1, ArrowRight: i + 1, ArrowUp: i - line, ArrowDown: i + line, Home: 0, End: all.length - 1 }[e.key];
+  e.preventDefault();
+  if (all[to]) all[to].focus();
+  return true;
+}
+
+/* The bin: the trajectory deleted at once, one step of the screen's Undo, and the notice at the foot saying so with
+   Undo, which does what the toolbar's Undo does. The focus goes to the next trajectory's icon, or New trajectory. */
+async function trajDeleteNow(id) {
+  if (TJ.busy) return;
+  const cols = (TJ.data && TJ.data.columns) || [];
+  const at = cols.findIndex((c) => c.id === id);
+  if (at < 0) return;
+  const { title } = cols[at];
+  const next = (cols[at + 1] || cols[at - 1] || {}).id;
+  if (!(await trajOps([{ op: 'remove', column: id }]))) return;
+  const step = TJ.stepN;
+  const { ask } = TJ;
+  sayUndo(t('trajectories.deleted', { title }), () => trajUndoDelete(step, ask, id));
+  const to = next ? $('tj-board').querySelector(`[data-fkey="${CSS.escape(`swatch-${next}`)}"]`) : $('tj-new');
+  if (to) to.focus();
+}
+
+/* The notice's Undo (trajfix2, 17 November 2026): the delete undone only while it is still the board's last step
+   and the screen has not been left since.
+   Words typed in a field and not yet kept are kept first, as the toolbar's Undo keeps them, and being a step of
+   their own they leave the delete where it is, so a title is never undone in its place. The focus goes to the
+   restored trajectory's icon. */
+async function trajUndoDelete(step, ask, id) {
+  if (!TJ.data || $('traj').hidden) return;
+  const el = document.activeElement;
+  if (el && $('traj').contains(el) && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) el.blur();
+  await trajIdle(250);
+  if (TJ.busy || TJ.stepN !== step || TJ.ask !== ask) return;
+  await trajUndo(true);
+  const back = $('tj-board').querySelector(`[data-fkey="${CSS.escape(`swatch-${id}`)}"]`);
+  if (back) back.focus();
 }
 
 /* The app's drawn sets, each a tab in Choose from the set, in the order of trajectories.FACE_SETS on the server
@@ -741,6 +862,8 @@ function trajEditHtml(c) {
 
 async function trajOps(ops) {
   if (!ops.length) return null;
+  // a delete's notice is withdrawn by any later change, so its Undo never reaches another step (trajfix2)
+  if (typeof unsayUndo === 'function') unsayUndo();
   TJ.busy = true;
   $('tj-save').hidden = false;
   $('tj-save').textContent = t('trajectories.saving');
@@ -965,9 +1088,28 @@ function trajWire() {
     const el = (sel) => e.target.closest(sel);
     if (el('#tj-new')) { trajNew(); return; }
     let x;
-    if ((x = el('[data-remove]'))) { trajOps([{ op: 'remove', column: x.dataset.remove }]); return; }
-    if ((x = el('[data-swatch]'))) { const id = x.dataset.swatch; const was = TJ.picking === id; trajCloseAll(); TJ.picking = was ? '' : id; trajDraw(); return; }
-    if (el('[data-pick-done]')) { TJ.picking = ''; trajDraw(); return; }
+    // one delete a click: a second click of a double-click, or one while the first is in flight, would land on the
+    // next trajectory's bin as it moves up into the place (trajfix2)
+    if ((x = el('[data-remove]'))) {
+      if (TJ.busy || e.detail > 1) return;
+      const id = x.dataset.remove;
+      if (trajCloseAll()) trajDraw();
+      trajDeleteNow(id);
+      return;
+    }
+    if ((x = el('[data-swatch]'))) {
+      const id = x.dataset.swatch;
+      if (TJ.picking === id) { trajPickClose(); return; }
+      trajCloseAll();
+      TJ.picking = id;
+      trajDraw();
+      // the popover takes the focus on its first choice, the colour chosen or the first, as a dialog does
+      const pop = board.querySelector('.tf-pop');
+      const first = pop && (pop.querySelector('.tf-sw.on') || pop.querySelector('.tf-sw'));
+      if (first) first.focus();
+      return;
+    }
+    if (el('[data-pick-done]')) { trajPickClose(); return; }
     if ((x = el('[data-colour]'))) { trajOps([{ op: 'colour', column: x.dataset.col, colour: x.dataset.colour || null }]); return; }
     if ((x = el('[data-icon]'))) { trajOps([{ op: 'icon', column: x.dataset.col, icon: x.dataset.icon || null }]); return; }
     if ((x = el('[data-more]'))) { const id = x.dataset.more; const was = TJ.menu === id; trajCloseAll(); TJ.menu = was ? '' : id; trajDraw(); if (TJ.menu) { const first = board.querySelector('.tf-menu .tf-mi'); if (first) first.focus(); } return; }
@@ -1013,6 +1155,8 @@ function trajWire() {
       if (TJ.choosing) { const first = board.querySelector('.tf-choose .tf-choice.on') || board.querySelector('.tf-choose .tf-choice'); if (first) first.focus(); }
       return;
     }
+    // a click inside a popover that is no choice leaves it open
+    if (el('.tf-pop')) return;
     if (trajCloseAll()) trajDraw();
   });
   board.addEventListener('change', (e) => {
@@ -1088,6 +1232,8 @@ function trajWire() {
       }
       return;
     }
+    // inside the colour and icon popover the arrows move along a row's choices
+    if (trajPickArrow(e)) return;
     // inside the chooser and a menu the arrows move between its rows
     const row = e.target.closest('.tf-choice, .tf-mi');
     if (row && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
@@ -1213,6 +1359,7 @@ function trajMove(case_, by) {
 async function trajHome() {
   if (document.activeElement && $('traj').contains(document.activeElement)) document.activeElement.blur();
   await trajIdle();
+  if (typeof unsayUndo === 'function') unsayUndo();
   $('traj').hidden = true;
   TJ.ask += 1;
   S.backTo = null;
@@ -1230,7 +1377,7 @@ async function trajStep(step) {
   const back = () => trajOpen(path, { back: TJ.back, to: TJ.to });
   const kept = { back: TJ.back, to: TJ.to };
   const again = () => trajOpen(path, kept);
-  const leave = () => { $('traj').hidden = true; TJ.ask += 1; };
+  const leave = () => { if (typeof unsayUndo === 'function') unsayUndo(); $('traj').hidden = true; TJ.ask += 1; };
   if (step === 'statements') {
     await navGo(() => trajStep(step), () => openStatements(path, { leave, back: again, to: 'trajectories' }));
     return;

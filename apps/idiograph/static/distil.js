@@ -13737,7 +13737,7 @@ async function distilSearchLeave(here) {
 /* a board left for another part's put away as the way to a statement's passage puts it away */
 function distilSearchAway(here) {
   if (here.screen === 'pets' || here.screen === 'gets') searchBoardAway();
-  if (here.screen === 'trajectories' && $('traj') && typeof TJ !== 'undefined') { $('traj').hidden = true; TJ.ask += 1; }
+  if (here.screen === 'trajectories' && $('traj') && typeof TJ !== 'undefined') { if (typeof unsayUndo === 'function') unsayUndo(); $('traj').hidden = true; TJ.ask += 1; }
   if (here.screen === 'codes' && $('codes-screen') && typeof CD !== 'undefined') { $('codes-screen').hidden = true; CD.ask += 1; }
 }
 
@@ -13751,6 +13751,7 @@ function searchBoardAway() {
   thSideShut(false);
   thExported(null);
   thMenuClose();
+  if (typeof unsayUndo === 'function') unsayUndo();
   $('themes').hidden = true;
 }
 

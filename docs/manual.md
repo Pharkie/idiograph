@@ -5068,10 +5068,22 @@ timepoints:
   A participant shows their picture, name, own label ("The late starter") and tags, and each of their
   LPETs is a row: its title and its domain, then at each timepoint its key quote over its state.
   - New trajectory, at the end, adds a band whose title is typed at once. A title and a sentence are
-    changed by typing over them. The swatch on a band's head opens its colour (Green, Amber, Red, Blue,
-    Plum, Teal, Taupe, Orange or None) and its icon (Rising, Mixed, Falling, Level or None), with Done.
-    The cross takes the trajectory away, its participants going back to Unplaced with all that is
-    kept on them.
+    changed by typing over them. The trajectory's icon at the left of its title, a chevron beside it, opens
+    its colour and icon under it, two rows (17 November 2026): Colour (Green, Amber, Red, Blue, Plum, Teal,
+    Taupe, Orange or None) and Icon, 22 of them eight a line, named in their tooltips (Rising, Falling,
+    Level, Mixed, Up then down, Down then up, Up then level, Down then level, Step by step up, Step by step
+    down, One high point, Up and down, Ebb and flow, Turning back, A loop, Round again, Parting ways, Coming
+    together, A break, Growth, Fading, Unclear) or None. A choice is kept at once. Done, Escape or a click
+    outside closes it, the focus back on the icon; Tab reaches every choice and the arrows move among a row's.
+    With no icon a dot in the trajectory's colour stands in its place.
+    The bin at the head's right end, after the count, deletes the trajectory at once, its participants
+    going back to Unplaced with all that is kept on them, as one step of Undo, and the line at the foot
+    says "Deleted the trajectory Settling in." with an Undo button that does what the toolbar's Undo does.
+    A label deleted on any board (PETs, GETs, LPETs, LGETs and Themes), by its bin, its menu or the Delete
+    key, says the same, "Deleted the label ...", with the same Undo (Ungroup frees a label's cards and says
+    nothing). The notice's Undo undoes that delete and nothing else: another change, an Undo or Redo, or
+    a move to another board, participant or screen takes the notice away, and the focus goes back to what
+    it restored.
   - A participant moves by dragging their cell onto a band, landing where they are dropped, by Move to
     in their cell's menu, or with the keys while their cell has the focus: Up and Down within their
     trajectory, Left and Right to the trajectory before or after, Backspace to Unplaced.

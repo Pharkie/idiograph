@@ -446,6 +446,7 @@ AREAS = {
     "a411_lgets_fast": "idiograph",
     "a412_span_follow": "idiograph",
     "a413_export_notice": "idiograph",
+    "a414_trajectory_icons": "idiograph",
     "a415_gets_set_aside": "idiograph",
     "a417_screen_guidance": "idiograph",
 }

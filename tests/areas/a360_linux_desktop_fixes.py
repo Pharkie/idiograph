@@ -276,8 +276,9 @@ process.stdout.write(JSON.stringify(out) + '\n');
               "const LINUX = navigator.platform.toUpperCase().includes('LINUX');" in shell)
 
         # ── 3. the line at the foot
-        pieces = "\n".join(["let toastTimer;", "let toastWords = '';", line_of(shell, "const TOAST_CLEAR = "),
-                            whole(shell, "function toastClear("), whole(shell, "function say("), whole(shell, "function unsay("),
+        pieces = "\n".join(["let toastTimer;", "let toastWords = '';", line_of(shell, "let toastUndo = "),
+                            line_of(shell, "const TOAST_CLEAR = "), whole(shell, "function toastClear("),
+                            whole(shell, "function say("), whole(shell, "function toastUndoPut("), whole(shell, "function unsay("),
                             line_of(shell, "let toastDue = "), whole(shell, "function toastAnew("),
                             line_of(shell, "const TOAST_ANEW_MS = ")])
         ran = support.run_node(TOAST_RUN.replace("__PIECES__", "const LINUX = false;\n" + pieces), scratch, "a360-toast.js")

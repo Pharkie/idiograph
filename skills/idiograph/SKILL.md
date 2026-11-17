@@ -917,11 +917,13 @@ null for none (trajchoose, 11 November 2026). A key quote taken from the transcr
 `trajectories apply` takes the board's own operations, a list or `{"operations": [...]}`, run in order, all
 refused when one is wrong, nothing written:
 
-- a trajectory, by its id, `c1`, or its title: `{"op": "add", "title": "Positive"}` (with `at`, its place
+- a trajectory, by its id, `c1`, or its title (a name in the shape of an id, `c` and digits, is read as an id alone): `{"op": "add", "title": "Positive"}` (with `at`, its place
   from 0), `rename` (`column`, `title`), `move` (`column`, `at`), `remove` (`column`, its participants back
   to unplaced with all that is kept on them), `describe` (`column`, `description`, "" clearing it),
   `colour` (`column`, `colour`: Green, Amber, Red, Blue, Plum, Teal, Taupe, Orange, or none) and `icon`
-  (`column`, `icon`: rising, mixed, falling, level, or none)
+  (`column`, `icon`: rising, falling, level, mixed, up_down, down_up, up_level, down_level, steps_up,
+  steps_down, spike, jagged, wave, turn, loop, cycle, parting, joining, break, growth, fading, unclear, or
+  none, a space or a hyphen read as the underscore)
 - a participant, by their pseudonym or label: `place` (`participant`, `column`, none to take them out, and
   `at`, their place in it), `order` (`participant`, `at`), `note` (`participant`, `note`, his note on why),
   `title` (`participant`, `title`), `tags` (`participant`, `tags`, the whole list), `picture`

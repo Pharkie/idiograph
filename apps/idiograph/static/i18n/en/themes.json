@@ -209,6 +209,8 @@
   "themes.step.took_card_out": "Took a card out of its theme",
   "themes.step.took_sub_out": "Took a sub-theme out of its theme",
   "themes.step.took_out_deleted": "Took cards out and deleted labels",
+  "themes.deleted_label": "Deleted the label {title}.",
+  "themes.deleted_labels": "Deleted {n} labels.",
   "themes.step.desc_written": "Wrote a description",
   "themes.step.desc_removed": "Removed a description",
   "themes.step.made_theme": "Made a theme",

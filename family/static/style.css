@@ -1786,6 +1786,9 @@ body.foot-on .lib-body { padding-bottom: max(72px, calc(26px + var(--foot-h, 44p
 /* the Restart the restart line carries, on the toast's dark ground */
 .toast .restart-now { color: var(--paper); border-color: color-mix(in srgb, var(--paper) 45%, transparent); }
 .toast .restart-now:hover { color: var(--ink); }
+/* and the Undo a delete's notice carries (sayUndo), the same, a little apart from the words */
+.toast .toast-undo { margin-left: 12px; color: var(--paper); border-color: color-mix(in srgb, var(--paper) 45%, transparent); }
+.toast .toast-undo:hover { color: var(--ink); }
 
 @keyframes rise { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }

@@ -283,6 +283,7 @@ const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt
 const escAttr = (s) => esc(s).replace(/"/g, '&quot;');
 const SAID = [];
 const say = (t) => SAID.push(t);
+const sayUndo = (t) => SAID.push(t);
 const MOD = (e) => !!(e.metaKey || e.ctrlKey);
 const REDO_Y = () => false;
 const RESTART_LINE = 'Restart';

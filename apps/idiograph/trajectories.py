@@ -69,7 +69,11 @@ TAGS_MAX = 12
 # the file keeps and the name the picker and an agent use
 PALETTE = {"good": "Green", "amber": "Amber", "danger": "Red", "excerpt": "Blue", "sift": "Plum", "trace": "Teal",
            "accent": "Taupe", "crux": "Orange"}
-ICONS = ("rising", "mixed", "falling", "level")
+# a trajectory's icons in the picker's order, the name the file keeps (trajbuild, 17 November 2026: 22, where there
+# were the first four), an agent's spelling with a space or a hyphen for the underscore taken as the same
+ICONS = ("rising", "falling", "level", "mixed", "up_down", "down_up", "up_level", "down_level", "steps_up",
+         "steps_down", "spike", "jagged", "wave", "turn", "loop", "cycle", "parting", "joining", "break", "growth",
+         "fading", "unclear")
 # the participants' palette, gets.COLOUR_NAMES, a tag's colour a place in it
 TAG_NAMES = ("Blue", "Olive", "Plum", "Brown", "Indigo", "Teal", "Purple", "Slate",
              "Moss", "Spruce", "Violet", "Aubergine", "Pine", "Denim", "Khaki", "Mulberry", "Fern", "Periwinkle", "Umber",
@@ -244,11 +248,15 @@ def domains_of(text) -> list[str]:
 
 
 def find_column(data: dict, name) -> dict | None:
-    """A column by its id, `c1`, or its title, any case."""
+    """A column by its id, `c1`, or its title, any case. A name in the shape of an id is an id alone (trajfix2, 17
+    November 2026): a second `remove c3` sent before the first's answer, c3 gone, finds no column rather than one
+    titled "c3"."""
     name = words(name)
     for c in data["columns"]:
         if c["id"] == name:
             return c
+    if re.match(r"^c\d+$", name):
+        return None
     for c in data["columns"]:
         if c["title"].lower() == name.lower():
             return c
@@ -466,7 +474,7 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
                 said.append(f"{c['title']} is {PALETTE[colour]} now." if colour else f"{c['title']} has no colour now.")
         elif kind == "icon":
             c = column()
-            icon = words(op.get("icon")).lower()
+            icon = re.sub(r"[\s-]+", "_", words(op.get("icon")).lower())
             icon = None if icon in ("", "none", "null") else icon
             if icon is not None and icon not in ICONS:
                 raise WorkbookError(i18n.t("server.trajectory_icon_not_one", icon=words(op.get("icon")), listed=", ".join(ICONS)))

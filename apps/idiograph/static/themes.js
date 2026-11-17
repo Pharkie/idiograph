@@ -46,6 +46,8 @@ const TH_UNTITLED = t('themes.untitled');
 const thUntitled = (label) => { const s = String(label || '').trim(); return !s || s === TH_UNTITLED_SAVED || s === TH_UNTITLED; };
 const thLabelKept = (text) => (thUntitled(text) ? TH_UNTITLED_SAVED : text);
 const thLabelShown = (label) => (label === TH_UNTITLED_SAVED ? TH_UNTITLED : label);
+/* a label's title as the line at the foot says it, an untitled one in the page's word */
+const thLabelSaid = (label) => (thUntitled(label) ? TH_UNTITLED : thLabelShown(label));
 /* A sticky note's four papers, yellow the one a new note takes, and its size before it is measured:
    the widest a note runs and one line's height. A note fits its words, 64px wide at the least and
    160px at the most, wrapping there and growing down, and every measure of the spacing takes the
@@ -1989,6 +1991,7 @@ async function themesOpen(path, opts = {}) {
   TH.tps = null;
   TH.scope = TH.lpets ? { lpets: true } : (TH.tp ? { timepoint: TH.tp } : null);
   const canvas = `${path}${TH.lpets ? '|lpets' : TH.tp ? `|t${TH.tp}` : ''}`;
+  if (typeof unsayUndo === 'function') unsayUndo();
   if (TH.undoPath !== canvas) { TH.undo = []; TH.redo = []; TH.undoPath = canvas; }
   if (TH.stacksPath !== canvas) { TH.stacks = {}; TH.views = {}; TH.undoBoard = null; TH.stacksPath = canvas; thAudioReset(); }
   const ask = ++TH.ask;
@@ -2245,6 +2248,7 @@ function thLoad(data, opts = {}) {
    them where they were. Another case starts with none. */
 function thUseStacks(id) {
   if (TH.undoBoard === id) return;
+  if (typeof unsayUndo === 'function') unsayUndo();
   if (TH.undoBoard) TH.stacks[TH.undoBoard] = { undo: TH.undo, redo: TH.redo };
   const held = TH.stacks[id] || { undo: [], redo: [] };
   TH.undo = held.undo;
@@ -2278,6 +2282,7 @@ async function themesLeave() {
   thSideShut(false);
   thExported(null);
   thMenuClose();
+  if (typeof unsayUndo === 'function') unsayUndo();
   $('themes').hidden = true;
   if (TH.back) await TH.back();
   return true;
@@ -5188,6 +5193,7 @@ function thFlash(left) {
 /* One step on the undo stack, holding the board before an act and after it, and for a theme's note
    the label it is on, whose panel shows it when the step is undone or done again. */
 function thStep(before, what, note) {
+  if (typeof unsayUndo === 'function') unsayUndo();
   TH.undo.push(Object.assign({ before, after: thSnap(TH.v, TH.removed), what }, note ? { note } : {}));
   if (TH.undo.length > TH_UNDO_DEPTH) TH.undo.shift();
   TH.redo.length = 0;
@@ -5195,6 +5201,7 @@ function thStep(before, what, note) {
 }
 
 function thUndo(backwards) {
+  if (typeof unsayUndo === 'function') unsayUndo();
   if (!TH.live || TH.editing || TH.cardEdit || TH.writing || TH.drag || TH.busy) return;
   if (thRefuse('undo')) return;
   const stack = backwards ? TH.undo : TH.redo;
@@ -5617,14 +5624,46 @@ function thDiscardKey() {
   thSideFlash(keys, 'aside');
 }
 
-function thDeleteLabels(ids) {
+function thDeleteLabels(ids, opts = {}) {
   if (thRefuse('delete')) return;
   const live = ids.filter((id) => thIsGroup(TH.v, id));
   if (!live.length) return;
   const before = thSnap(TH.v, TH.removed);
   const was = thLabelBoxes(TH.layout);
+  const titles = live.map((id) => thLabelSaid(thGroup(TH.v, id).label));
   for (const id of live) thDelete(TH.v, id);
   thDone(before, t('themes.step.deleted_labels', { n: live.length }), { settle: [], was });
+  // Ungroup takes the label away to free its cards, which is no delete, and says nothing (trajfix2)
+  if (!opts.ungroup) thDeletedSay(titles, live);
+}
+
+/* A label deleted at once, by its bin, its menu or the Delete key, says so at the foot with Undo, the board's own
+   Undo as the toolbar's runs it, through the notice every such delete shares (trajbuild, 17 November 2026: the same
+   function works the same on every screen, as a trajectory's bin does on Trajectories). The notice is tied to its
+   step (trajfix2): its Undo runs only while that step is still the top of the same board's undo, and a title or a
+   note still being typed is kept first, a step of its own, so it is never undone in the delete's place. The
+   restored labels come back selected. */
+function thDeletedSay(titles, ids) {
+  if (!titles.length) return;
+  const entry = TH.undo[TH.undo.length - 1];
+  const board = TH.undoBoard;
+  const canvas = TH.undoPath;
+  const undo = () => {
+    if (!TH.live || $('themes').hidden) return;
+    thTitleDone(true);
+    thNoteDone(true);
+    if (!entry || TH.undoPath !== canvas || TH.undoBoard !== board || TH.undo[TH.undo.length - 1] !== entry) return;
+    thUndo(true);
+    if (TH.undo[TH.undo.length - 1] === entry) return;
+    const back = ids.filter((id) => thIsGroup(TH.v, id));
+    if (!back.length) return;
+    thSelectOnly({ kind: 'group', id: back[0] });
+    for (const id of back.slice(1)) TH.sel.groups.add(id);
+    thDrawSel();
+    TH.lastPick = { kind: 'group', id: back[0] };
+  };
+  if (titles.length === 1) sayUndo(t('themes.deleted_label', { title: titles[0] }), undo);
+  else sayUndo(t('themes.deleted_labels', { n: titles.length }), undo);
 }
 
 /* Auto-arrange, from the control on a label, its menu or the panel: the theme's cards tidied under
@@ -5704,9 +5743,11 @@ function thDeleteKey() {
   thAck(cards);
   for (const key of cards) thLeave(v, key);
   if (thWaits(v)) for (const key of thSendWaiting(v, cards)) TH.sel.cards.delete(key);
+  const titles = labels.map((id) => thLabelSaid(thGroup(v, id).label));
   for (const id of labels) thDelete(v, id);
   thDone(before, cards.length ? t('themes.step.took_out_deleted')
     : t('themes.step.deleted_labels', { n: labels.length }), { settle: cards, was });
+  thDeletedSay(titles, labels);
 }
 
 /* ── a label's title ── */
@@ -5927,6 +5968,7 @@ async function thToPassage(key) {
     thSideShut(false);
     thExported(null);
     thMenuClose();
+    if (typeof unsayUndo === 'function') unsayUndo();
     $('themes').hidden = true;
   };
   // a way in with its entry in the browser's history, taken again from this card by Forward. The way back is
@@ -6136,6 +6178,7 @@ async function thStatementWrite(key, from, to, step) {
     if (TH.boardOpen && TH.tab === 'history') thBoardDraw();
   }
   if (step) {
+    if (typeof unsayUndo === 'function') unsayUndo();
     TH.undo.push({ edit: { key, from: data.old, to: data.text }, what: t('themes.step.statement_edited') });
     if (TH.undo.length > TH_UNDO_DEPTH) TH.undo.shift();
     TH.redo.length = 0;
@@ -10755,7 +10798,7 @@ function thMenuDo(choice, row) {
   else if (choice.act === 'leave') thLeaveThemes([item.id]);
   else if (choice.act === 'wait') thWaitDo(TH.sel.cards.has(item.id) ? [...TH.sel.cards] : [item.id]);
   else if (choice.act === 'groupsel') thGroupKey();
-  else if (choice.act === 'ungroup') thDeleteLabels([choice.gid]);
+  else if (choice.act === 'ungroup') thDeleteLabels([choice.gid], { ungroup: true });
   else if (choice.act === 'arrange') thArrangeGroup(item.id);
   else if (choice.act === 'inside') thNewEmpty(item.id);
   else if (choice.act === 'rename') thTitleOpen(item.id);
@@ -11258,6 +11301,7 @@ async function thToTraj() {
     thCasemenu(false);
     thSideShut(false);
     thMenuClose();
+    if (typeof unsayUndo === 'function') unsayUndo();
     $('themes').hidden = true;
   };
   await navGo(thToTraj, () => trajOpen(kept.path, { leave, back: again, to: thStageNow() }));
@@ -11285,6 +11329,7 @@ async function thToCodes(how = {}) {
     thCasemenu(false);
     thSideShut(false);
     thMenuClose();
+    if (typeof unsayUndo === 'function') unsayUndo();
     $('themes').hidden = true;
   };
   // Open in Code list, from the Inspector on a code, opens it on that code (themesbuild)
@@ -11366,6 +11411,7 @@ async function thToStatements() {
     thSideShut(false);
     thExported(null);
     thMenuClose();
+    if (typeof unsayUndo === 'function') unsayUndo();
     $('themes').hidden = true;
   };
   await navGo(thToStatements, () => openStatements(at.path, { leave, back: again, to: thStageNow(),
@@ -13566,6 +13612,7 @@ async function gtTakeAll(names) {
       // a card the take brought in goes on undo, and one it renamed comes back on redo
       before.removed = [...new Set([...before.removed, ...Object.keys(after.cards).filter((k) => !(k in before.cards))])];
       after.removed = [...new Set([...after.removed, ...Object.keys(before.cards).filter((k) => !(k in after.cards))])];
+      if (typeof unsayUndo === 'function') unsayUndo();
       TH.undo.push({ before, after, what: gtTookSaid(taken) });
       if (TH.undo.length > TH_UNDO_DEPTH) TH.undo.shift();
       TH.redo.length = 0;
