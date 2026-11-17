@@ -59,9 +59,9 @@ def check_statement(text: str, enabled=CHECKS, high: int = HIGH) -> list[dict]:
     if n > high:
         add("length", f"over {high} words. Tighten it, or split out a second idea.")
     if first_word(stripped) in PERSON_LED:
-        add("lead", "opens with She, He or They. The corpus drops the subject.")
+        add("lead", "opens with She, He or They. Try it without the person at the front.")
     if QUOTE.search(stripped):
-        add("quote", "a quoted fragment. One statement in seven, and a single crux word.")
+        add("quote", "a quoted fragment. Keep the participant's words for the quote.")
     if ";" in stripped:
         add("semicolon", "a semicolon. Use a comma or a full stop.")
     if "\u2014" in stripped:          # the em dash, kept as an escape so it stays out of the source

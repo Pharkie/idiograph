@@ -850,7 +850,22 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .minimap-tip .mono { margin-left: 4px; color: var(--ink-faint); }
 .minimap-tip[hidden] { display: none; }
 #work.minimap-on .transcript-rows { padding-bottom: 322px; }
-/* the minimap's name over its three choices in the View menu, a label as a card's kicker is */
+/* View holds a screen's own settings since viewbuild (17 November 2026): the menu scrolls where the window is short,
+   Work in rounds' two numbers sit as small inputs beside their labels under its tick, and the nudges' rows keep their
+   info marks, the tip under the row or over it as the window allows */
+.view-menu { max-height: calc(100vh - 80px); overflow-y: auto; overscroll-behavior: contain; }
+.view-nums { padding: 0 10px 4px 32px; }
+.view-num { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 3px 0;
+  font-size: 13px; color: var(--ink-soft); white-space: nowrap; }
+.view-num input { width: 4.2em; padding: 3px 6px; font: inherit; text-align: center; }
+.view-menu .nudge-row { padding-right: 6px; }
+.view-row[hidden] { display: none; }
+.view-menu .nudge-row label { display: flex; align-items: center; gap: 9px; cursor: pointer; }
+.view-menu .nudge-row input:disabled + .nudge-name { color: var(--ink-faint); }
+.view-menu .info-tip { position: fixed; left: auto; top: auto; width: 300px; white-space: normal; }
+/* Your name, first in Settings' General (viewbuild), no room above it as the first sub-heading has none */
+.setting.setting-first { margin-top: 0; }
+/* a small heading over a View menu's group of choices, a label as a card's kicker is */
 .view-head {
   padding: 6px 10px 2px; font-size: 10.5px; letter-spacing: var(--label-track); text-transform: uppercase;
   font-weight: 600; color: var(--ink-soft);
@@ -1048,7 +1063,7 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 #work.guide-whole .guide { width: var(--guide-w); }
 #work.guide-whole .guide.open { box-shadow: var(--lift); }
 /* the bar's tool pressed in while the sheet is open, as Inspector is on the boards' bars */
-#btn-guide[aria-expanded="true"] { color: var(--ink); border-color: var(--rule-firm); background: var(--paper-sunk); }
+#btn-guide[aria-expanded="true"], #th-guide[aria-expanded="true"], #tj-guide-btn[aria-expanded="true"], #btn-view[aria-expanded="true"] { color: var(--ink); border-color: var(--rule-firm); background: var(--paper-sunk); }
 /* a line with examples keeps room at its end for the small arrow that opens them, two columns under it,
    Less this and More this, the statements in the reading face (21 October) */
 .rules li:has(.rule-ex-open) { padding-right: 28px; }
@@ -1588,9 +1603,6 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
   cursor: pointer; text-decoration: underline; text-decoration-color: var(--rule-firm); text-underline-offset: 3px; }
 .hc-review:hover { text-decoration-color: currentColor; }
 .hc-review:focus-visible { outline: 0; box-shadow: var(--focus-small); border-radius: 2px; }
-
-/* a thematic analysis project in front (tadraw): Settings without the PETs category, which it has no use for */
-html[data-method="ta"] #tab-pets { display: none; }
 
 /* Working together in Project settings and its two cards (wtkeys, 8 November 2026), as wtdesign drew them */
 .wt-sec .wt-route { margin: 4px 0 0; }

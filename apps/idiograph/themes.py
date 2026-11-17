@@ -736,7 +736,7 @@ def read_cards(workbook: Path, explore: bool = False, turns: bool = False, form:
                 for i, text in enumerate(entries):
                     cards.append({"key": card_key(ws.title, r, i), "sheet": ws.title, "row": r,
                                   "line": i, "text": text, "seconds": seconds, "time": timecode(seconds, form)})
-            spread_quotes(ws.title, spoken, quotes, cards, form)
+            spread_quotes(ws.title, spoken, quotes, cards, form, workbook)
     finally:
         book.close()
     out = {"sheets": sheets, "cards": cards, "quotes": quotes, "timecodes": form}
@@ -788,11 +788,11 @@ def row_spread(workbook: Path, sheet: str, row: int, said: list, form: str) -> d
         book.close()
     held = {"sheet": sheet, "row": int(row), "quotes": [{"key": card_key(sheet, int(row), i), "text": text}
                                                         for i, text in enumerate(said) if text]}
-    spread_quotes(sheet, spoken, {row_key(sheet, int(row)): held}, [], form)
+    spread_quotes(sheet, spoken, {row_key(sheet, int(row)): held}, [], form, workbook)
     return {q["key"]: {k: q[k] for k in ("time", "span", "rows")} for q in held["quotes"] if q.get("span")}
 
 
-def spread_quotes(sheet: str, spoken: list[dict], quotes: dict, cards: list[dict], form: str) -> None:
+def spread_quotes(sheet: str, spoken: list[dict], quotes: dict, cards: list[dict], form: str, where=None) -> None:
     """Each quote of a sheet that takes in the same speaker's passages next to its own (quotespan, 30 October
     2026) carries where it stands, in place: under `time` its timecodes from the first passage it takes in to
     the last, "25:51–26:50", in the project's timecodes, under `span` those two in seconds and under `rows` the
@@ -812,7 +812,8 @@ def spread_quotes(sheet: str, spoken: list[dict], quotes: dict, cards: list[dict
             if len(pieces) < 2 or quote_reach(q["text"], [spoken[i]["text"]], 0):
                 continue
             if who is None:
-                who = interviewer_name()
+                # the interviewer of the workbook's project (`where`), its own since viewbuild
+                who = interviewer_name(where)
             took = sorted({r for r, _, _ in quote_turns(spoken, i, q["text"], who)})
             if len(took) < 2:
                 continue

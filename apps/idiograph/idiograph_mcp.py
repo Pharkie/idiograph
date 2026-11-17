@@ -1118,12 +1118,16 @@ TOOLS = [
                                     "that timepoint alone when one is given, as Open a shared copy's card ticks them. "
                                     "Leave it out for every one but his own as he sent them."}},
          ["file"], writes="adds"),
-    mcp.tool("project_set", "Save the project's name, question, PET labels, timecodes or reflexivity", ("project", "set"),
+    mcp.tool("project_set", "Save the project's name, question, PET labels, timecodes, interviewer, nudges, rounds or "
+             "reflexivity",
+         ("project", "set"),
          "Save the project's name, its research question, how the exports label its PETs, letters (A, A1, A1.1) "
-         "or numbers (PET 1, PET 1a, 1a.1), how its timecodes are written, 75:12, 1:15:12 or 01:15:12, or the "
-         "researcher's reflexivity statement, which the tables' exports print as a Reflexivity section, as "
-         "Project settings saves them, each left out kept as it is. The reflexivity statement is his own words: "
-         "set it only with the words he gives you. The "
+         "or numbers (PET 1, PET 1a, 1a.1), how its timecodes are written, 75:12, 1:15:12 or 01:15:12, its "
+         "interviewer's name, its statement nudges, Work in rounds with its minutes and rounds a day, or the "
+         "researcher's reflexivity statement, which no export prints, as Project settings and the statements screen's View save "
+         "them, each left out kept as it is, and a call refused for any one writes none. A new project starts "
+         "with every nudge off and rounds off. The reflexivity statement "
+         "is his own words: set it only with the words he gives you. The "
          "demo's project is fixed. cases reads them. Run dry_run first, which says each change, and save only on "
          "his word.",
          {"name": dict(mcp.TEXT, description="The project's name."),
@@ -1138,7 +1142,18 @@ TOOLS = [
                      "description": "The project's method, fixed when it was made: its own changes nothing, the "
                                     "other is refused."},
           "reflexivity": {"type": "string", "description": "The researcher's reflexivity statement, plain text, "
-                                                           "empty to take it away."}},
+                                                           "empty to take it away."},
+          "interviewer": dict(mcp.TEXT, description="The interviewer's name, the speaker whose turns are context "
+                                                    "in every transcript of the project."),
+          "nudges": {"type": "array", "items": {"type": "string", "enum": ["length", "lead", "quote", "semicolon",
+                                                                            "emdash", "arrow", "readsas"]},
+                     "description": "The statement nudges on, the rest off, as the statements screen's View ticks "
+                                    "them. An empty list turns every one off."},
+          "work_in_rounds": {"type": "boolean", "description": "Work in rounds on or off for the project, as the "
+                                                               "statements screen's View ticks it."},
+          "round_minutes": {"type": "integer", "minimum": 1, "maximum": 60,
+                            "description": "Transcript minutes per round."},
+          "daily_target": {"type": "integer", "minimum": 1, "maximum": 20, "description": "Rounds a day."}},
          [], writes="changes"),
     mcp.tool("project_remove", "Remove the project from Idiograph", ("project", "remove"),
          "Take the project off Idiograph's list, as Remove from Idiograph on its menu does: its folder and every "
@@ -1897,6 +1912,13 @@ def arguments(t: dict, given: dict, args):
         args.timecodes = given.get("timecodes")
         # the researcher's reflexivity statement handed over as text, never through a file (settingsbuild)
         args.reflexivity, args.reflexivity_file = given.get("reflexivity"), None
+        # the interviewer's name and the statement nudges, the project's own (viewbuild, 17 November 2026)
+        args.interviewer = given.get("interviewer")
+        args.nudges = (",".join(str(x) for x in given["nudges"]) or "none") if isinstance(given.get("nudges"), list) else None
+        # the rounds, the project's own (viewfix): Work in rounds true or false, its minutes and rounds a day
+        args.rounds = ({True: "on", False: "off"}.get(given["work_in_rounds"], given["work_in_rounds"])
+                       if "work_in_rounds" in given else None)
+        args.round_minutes, args.rounds_a_day = given.get("round_minutes"), given.get("daily_target")
         # the project's own History, its newest records alone (projhistory, 2 November 2026)
         args.limit = given.get("limit")
         args.method = given.get("method")

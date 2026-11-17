@@ -10,9 +10,9 @@ every line short enough to take in at a glance, and the whole short enough to re
 
 ## How many
 
-- Three to five PETs tell the three to five most important things this case says. Six only with a reason.
+- Three to five PETs tell the three to five most important things this participant says. Six only with a reason.
 - A PET is a pattern, so it holds more than one statement. A lone statement joins its nearest PET, widens a title to hold it, or drops.
-- A finished case placed about two thirds of its statements. Not everything connects to everything.
+- A finished participant had about two thirds of their statements placed. Not everything connects to everything.
 
 ## How to group
 

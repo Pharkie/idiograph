@@ -1423,7 +1423,7 @@ fn menu_event(app: &AppHandle, id: &str) {
         }
         // About is the page's own card, its version, licence and acknowledgements, on either system (20 October)
         // Find and Find and Replace press their keys in the window in front, as Undo and Redo do (barsD, 6 November)
-        "settings" | "shortcuts" | "feedback" | "whatsnew" | "about" | "undo" | "redo" | "reload" | "status-bar"
+        "settings" | "shortcuts" | "feedback" | "whatsnew" | "about" | "undo" | "redo" | "reload"
         | "home" | "project-history" | "project-settings" | "find" | "find-replace" => {
             let own = matches!(id, "settings" | "shortcuts" | "feedback" | "whatsnew" | "about" | "home" | "project-history"
                 | "project-settings");

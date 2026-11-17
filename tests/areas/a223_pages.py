@@ -17,7 +17,8 @@ import idiograph_routes
 import themes_ai
 
 # each app's Settings categories, in their order, as drawing 8 and Adam's calls of 20 October have them
-TABS = {"idiograph": ["General", "Language and formats", "Experiential statements", "PETs", "AI features (experimental)"],
+# Idiograph's Settings the app's own alone since viewbuild (Adam, 17 November 2026)
+TABS = {"idiograph": ["General", "Language and formats", "AI features (experimental)"],
         "sift": ["General", "Language and formats", "Databases", "Projects", "Zotero", "AI features (experimental)"],
         "trace": ["General", "Language and formats", "Projects", "AI features (experimental)"]}
 
@@ -120,9 +121,9 @@ def test_pages(scratch):
     check("223: the categories the arrow keys walk are the tabs each app shows, each with its pane",
           bool(walked) and all([by_pane[p]["pane"] for p in walked[a]] == [t["pane"] for t in tabs if shown(t, a)]
                                and all(f"pane-{p}" in named for p in walked[a]) for a in TABS), str(walked))
-    check("223: the statements prompt stands under Experiential statements, no longer under General, and GETs is in "
+    check("223: the statements prompt stands under AI features (viewbuild), not under General, and GETs is in "
           "Project settings, out of Settings (settingsplit)",
-          any(i["id"] == "set-prompt" for i in doc.items) and _inside(doc, "set-prompt", "pane-statements")
+          any(i["id"] == "set-prompt" for i in doc.items) and _inside(doc, "set-prompt", "pane-ai")
           and not _inside(doc, "set-prompt", "pane-general") and _inside(doc, "gets-fields", "projset")
           and not _inside(doc, "gets-fields", "settings") and _inside(doc, "set-ai", "pane-ai")
           and _inside(doc, "set-key", "pane-ai"))

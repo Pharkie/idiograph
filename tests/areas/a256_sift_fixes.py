@@ -199,7 +199,8 @@ def test_sift_fixes(scratch):
           {"interviewer", "corpus", "nudges"} <= idio_keys <= set(first["idiograph"])
           and not sift_keys & set(first["idiograph"]) and not idio_keys & (set(first["sift"]) | set(first["trace"]))
           and sift_keys <= set(first["sift"]) and not sift_keys & set(first["trace"])
-          and all(first[a].get("status_bar") is True for a in first), str({a: sorted(c)[:6] for a, c in first.items()}))
+          # the boards' status bar always there since viewbuild (17 November 2026), its key gone from every app's file
+          and all("status_bar" not in first[a] for a in first), str({a: sorted(c)[:6] for a, c in first.items()}))
     saves = {}
     kept_cfg = server_mod.CONFIG_PATH
     sent = {"interviewer": "Wren", "nudges": {"length": False}, "status_bar": False, "databases": [],
@@ -217,11 +218,12 @@ def test_sift_fixes(scratch):
           "none of Sift's, Idiograph's none of Sift's",
           not idio_keys & set(saves["sift"][0]) and not idio_keys & set(saves["trace"][0])
           and sift_keys <= set(saves["sift"][0]) and not sift_keys & set(saves["trace"][0])
-          and not sift_keys & set(saves["idiograph"][0]) and saves["idiograph"][0].get("interviewer") == "Wren"
+          # the interviewer and the nudges a project's own since viewbuild, which Settings' save leaves as they were
+          and not sift_keys & set(saves["idiograph"][0]) and saves["idiograph"][0].get("interviewer") != "Wren"
           and saves["idiograph"][0]["nudges"]["length"] is False and saves["idiograph"][0].get("minimap") == "on",
           str({a: sorted(set(s[0]) & (idio_keys | sift_keys)) for a, s in saves.items()}))
-    check("256: General's keys save in every app, the status bar and the AI switch among them",
-          all(s[0].get("status_bar") is False and s[0].get("ai_suggest") is True for s in saves.values()),
+    check("256: General's keys save in every app, the AI switch among them, and the status bar's old key none (viewbuild)",
+          all("status_bar" not in s[0] and s[0].get("ai_suggest") is True for s in saves.values()),
           str({a: s[0].get("status_bar") for a, s in saves.items()}))
     check("256: the AI state an app's page draws by carries no limit in any app since New AI board went (aiout)",
           not any("cap" in saves[a][1]["ai"] for a in ("idiograph", "sift", "trace")))

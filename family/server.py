@@ -159,8 +159,6 @@ DEFAULTS = {
     # The projects, in the order they were added, each `{"root": "<folder>"}`. None until one is
     # added, so the case list asks for a folder (see `add_project`). No study's folder is named here
     "projects": [],
-    # The status bar along the foot of a board (19 October), General's, which every app saves (23 October)
-    "status_bar": True,
     # AI features, the one switch for every AI feature in the app, off on a new install, and a
     # config that has the key keeps its value. The key is read only when he asks for a suggestion.
     # `ai_provider` is `anthropic` or `local`:
@@ -424,8 +422,9 @@ def merge_config(saved: dict) -> dict:
     cfg.update(saved)
     if "ai_suggest" not in saved and "haiku" in saved:
         cfg["ai_suggest"] = bool(saved["haiku"])
-    # the status bar, General's, on unless the file says otherwise
-    cfg["status_bar"] = saved.get("status_bar") is not False
+    # the status bar along a board's foot is always there since viewbuild (Adam, 17 November 2026), so a file's
+    # `status_bar` is read and passed over, and a save drops it
+    cfg.pop("status_bar", None)
     # each app's own settings as it reads them from the file, of the apps this run serves alone (see `register`):
     # Idiograph's nudges, its columns and its boards' bars
     for read in hooks(SETTINGS_READ):
@@ -1212,7 +1211,7 @@ def api_settings(body: dict) -> dict:
         cfg["ai_suggest"] = bool(body["haiku"])
     cfg.pop("haiku", None)
     # the two ticks under Celebrations, saved as they stand. A page from before sends neither
-    for name in ("celebrations", "sound", "status_bar"):
+    for name in ("celebrations", "sound"):
         if name in body:
             cfg[name] = bool(body[name])
     # Celebrations by screen, each as sent and the rest as the file has them, with `celebrations` true

@@ -122,15 +122,12 @@ def test_statement_views(scratch):
           and "if (!$('cols-menu').hidden) { e.preventDefault(); colsMenu(false); $('cols-pick').focus(); return true; }" in app
           and body("startCase").index("viewMenu(false);") < body("startCase").index("colsMenu(false);")
           < body("startCase").index("drawView();") < body("startCase").index("drawTurn("))
-    check("151: Settings opens on the view the settings hold and Save sends a key only once it has moved since the card "
-          "opened, the columns' order compared as it is written, then draws the screen and centres the passage",
-          "fillColumnsSet(columnsLayout(c));" in body("openSettings")
-          and "$('set-larger').checked = largerPassage(c);" in body("openSettings")
-          and "S.viewOpened = viewChoice();" in body("openSettings")
-          and "for (const key of Object.keys(view)) if (!S.viewOpened || said(view[key]) !== said(S.viewOpened[key])) body[key] = view[key];"
-              in body("saveSettings")
-          and body("saveSettings").index("S.data.config = data.config;") < body("saveSettings").index("drawView();")
-          and "if (!ctx.themes && current()) centreCurrent(false);" in body("saveSettings"))
+    # Settings held a copy of the view until viewbuild (17 November 2026, Adam: a screen's own settings live in its View)
+    check("151: Settings holds no copy of the view and sends none of its keys, and its Save draws the screen and centres "
+          "the passage",
+          "fillColumnsSet" not in app and "viewChoice" not in app and "S.viewOpened" not in app
+          and "drawView();" in body("distilSettingsAfter")
+          and "if (!ctx.themes && current()) centreCurrent(false);" in body("distilSettingsAfter"))
     node = shutil.which("node")
     if not node:
         skip("151: the view's functions in node", "node is not installed")
@@ -139,12 +136,11 @@ def test_statement_views(scratch):
         # reading goes in and its drawing is left to areas 154 and 169, and the columns' drawing to area 172
         # and since 18 October (186) the columns shown and the stacking, which Settings reads and writes too
         names = ["columnsOf", "largerPassage", "minimapMode", "notesHtml", "statementsHtml", "colsVars", "drawView",
-                 "viewMenu", "drawViewMenu", "setView", "turnHtml", "fillColumnsSet", "columnsHiddenOf", "stackSplitOf",
+                 "viewMenu", "drawViewMenu", "setView", "turnHtml", "columnsHiddenOf", "stackSplitOf",
                  "columnsLayout", "colsStackRows", "stackedWords"]
-        view_choice = app[app.index("const viewChoice = "):app.index("\n});", app.index("const viewChoice = ")) + 4]
         source = "\n".join([const("COLUMNS"), const("COLUMN_KEYS"), const("isColumns"), const("columnsSaid"),
                             const("HIDEABLE_COLUMNS"), const("STACK_SPLIT"), const("STACK_RANGE"), const("colsTicked"),
-                            const("MINIMAP_MODES"), const("viewConfig"), view_choice]
+                            const("MINIMAP_MODES"), const("viewConfig")]
                            + [app[app.index("const NOTES_PLACE_COLUMNS = "):app.index("};", app.index("const NOTES_PLACE_COLUMNS = ")) + 2]]
                            + [whole(n) for n in names])
         script = scratch / "views-151.js"
@@ -166,6 +162,9 @@ const api = async (path, body) => { sent.push([path, body]); return answer || { 
 const said = []; const say = (t) => said.push(t); const RESTART_LINE = 'Restart the server to finish this update.';
 const needsRestart = () => false; const current = () => null; const centreCurrent = () => {};
 const scheduleMinimap = () => {};
+// View's rounds and nudges (viewbuild), the project's nudges none here
+const roundsOn = (cfg) => !!(cfg && cfg.work_in_rounds); const project = () => null; const menuRoles = () => {};
+const document = { activeElement: null };
 let placed = 0; const drawn = [];
 const drawColumns = (lay) => { drawn.push(lay.order.join(',')); S.columns = lay.order; S.layout = lay; };
 const cellsAgain = () => {};
@@ -192,13 +191,10 @@ const out = {};
   // the notes hidden from Columns (18 October, 186), sent alone too
   await setView('columns_hidden', ['notes']);
   out.sentHidden = sent.slice(1);
-  // Settings, opened now, reads what Columns chose, its ticks and rows read back as the choice, Stacked not
-  // offered with a column hidden
-  fillColumnsSet(columnsLayout(S.data.config));
-  $('set-larger').checked = largerPassage(S.data.config);
-  for (const m of MINIMAP_MODES) $(`set-minimap-${m}`).checked = minimapMode(S.data.config) === m;
-  out.stackOffered = !$('set-stacked').disabled;
-  out.settings = viewChoice();
+  // the layout read back as Columns chose it, Stacked not offered with a column hidden
+  const lay = columnsLayout(S.data.config);
+  out.stackOffered = !lay.hidden.length;
+  out.settings = { columns_hidden: lay.hidden, larger_passage: largerPassage(S.data.config), minimap: minimapMode(S.data.config) };
   // a server from before the keys keeps neither, and the line says to restart
   answer = { config: { round_minutes: 10 } }; said.length = 0; sent.length = 0;
   await setView('larger_passage', false);
@@ -238,8 +234,7 @@ const out = {};
                   and out["afterOrder"] == {"cfg": ["notes", "transcript", "statements"],
                                             "lib": ["notes", "transcript", "statements"], "drawn": "notes,transcript,statements"}
                   and out["sentHidden"] == [["/api/settings", {"columns_hidden": ["notes"]}]]
-                  and out["settings"] == {"columns_hidden": ["notes"], "columns_stacked": False, "larger_passage": True,
-                                          "minimap": "auto", "status_bar": False}
+                  and out["settings"] == {"columns_hidden": ["notes"], "larger_passage": True, "minimap": "auto"}
                   and out["stackOffered"] is False,
                   str(out["afterOrder"]) + " " + str(out.get("settings")))
             check("151: a server from before the keys answers without them, and the page says to restart",

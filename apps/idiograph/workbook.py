@@ -380,11 +380,23 @@ def quote_reach(quote, texts, home: int = 0) -> list[tuple[int, int, int]]:
     return []
 
 
-def interviewer_name() -> str:
-    """The interviewer's name as Settings holds it, the speaker whose turns are context, or empty with no
-    settings to read."""
+def interviewer_name(where=None) -> str:
+    """The interviewer's name, the speaker whose turns are context, or empty with no settings to read: the
+    project's own since viewbuild (17 November 2026), `interviewer` in the project file of the project `where`
+    (a workbook or a folder) belongs to, and for a project whose file has none, or with no `where`, the app's
+    settings' as every project read it until then."""
     try:
         import server as srv
+        if where is not None:
+            root = srv.project_of(Path(where))
+            if root is not None:
+                try:
+                    data = json.loads((Path(root) / srv.PROJECT_FILE).read_text(encoding="utf-8"))
+                except (OSError, ValueError):
+                    data = {}
+                held = " ".join(str(data.get("interviewer") or "").split()) if isinstance(data, dict) else ""
+                if held:
+                    return held
         return str(srv.config().get("interviewer") or "").strip()
     except Exception:  # noqa: BLE001  a read with no server set up has no interviewer
         return ""

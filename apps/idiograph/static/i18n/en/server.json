@@ -379,6 +379,13 @@
     "other": "{n} words"
   },
   "server.reflexivity_refused": "Reflexivity is text of up to {most} characters, so nothing was saved.",
+  "server.nudges_unknown": "The nudges are {checks}, and {names} is not one of them, so nothing was saved.",
+  "server.interviewer_empty": "The interviewer's name is empty, so nothing was saved.",
+  "server.nudges_not_bool": "Each nudge is on or off, true or false, and {names} is neither, so nothing was saved.",
+  "server.interviewer_is_participant": "{name} is a participant in this project, so they cannot be the interviewer, and nothing was saved.",
+  "server.rounds_on_off": "Work in rounds is on or off, so nothing was saved.",
+  "server.round_minutes_range": "Transcript minutes per round is a whole number from {least} to {most}, so nothing was saved.",
+  "server.rounds_a_day_range": "Rounds a day is a whole number from {least} to {most}, so nothing was saved.",
   "server.agents_md_updated": "Updated AGENTS.md in the project folder.",
   "server.agents_md_wrote": "Wrote AGENTS.md in the project folder.",
   "server.board_in_note_head": "{whose} copy, sent {day}.",

@@ -99,6 +99,8 @@ TRAJECTORIES_GUIDANCE = boot.resource("trajectories_guidance.md")
 # both from Braun and Clarke's reflexive thematic analysis
 TA_GUIDANCE = boot.resource("ta_guidance.md")
 TA_THEMES_GUIDANCE = boot.resource("ta_themes_guidance.md")
+# the Code list's own Guidance (viewfix, 17 November 2026), its lines about the list as a whole, from Braun and Clarke
+TA_CODES_GUIDANCE = boot.resource("ta_codes_guidance.md")
 SKIP_DIRS = {"Source", "_Archive", "Working", "_Process reports", "Photos"}
 
 # The app's own backups and the coordinator's copies: a stem ending in a parenthesised note that
@@ -721,7 +723,7 @@ def read_project(root: Path) -> dict:
         return {"name": "", "research_question": "", "updated": None, "root": "", "id": "", "demo": False,
                 "agents": {"allowed": False, "at": None}, "pet_labels": themes_mod.LETTERS,
                 "timecodes": wb_mod.TIMECODES_DEFAULT, "method": i18n.BASE_METHOD,
-                "reflexivity": ""}
+                "nudges": legacy_nudges(), "interviewer": legacy_interviewer(), "reflexivity": "", **rounds_of({})}
     root = Path(root)
     data = project_file(root)
     demo = srv.is_demo_root(root)
@@ -740,6 +742,11 @@ def read_project(root: Path) -> dict:
         "statement_words": statement_words_of(data),
         # the researcher's reflexivity statement, the project's own (settingsbuild)
         "reflexivity": reflexivity_of(data),
+        # the statement nudges on and the interviewer's name, the project's own since viewbuild (17 November 2026)
+        "nudges": nudges_of(data, root),
+        "interviewer": interviewer_of(data),
+        # Work in rounds, its minutes and the rounds a day, the project's own since viewfix (17 November 2026)
+        **rounds_of(data, root),
         # opened from a shared copy (21 October): the copy's card and page carry a "copy" tag
         "copy": isinstance(data.get("copy_of"), dict),
     }
@@ -838,8 +845,7 @@ def statement_words_for(path: Path | None) -> int:
 
 # The researcher's reflexivity statement (settingsbuild, Adam, 17 November 2026: "reflexivity is a project setting...
 # it's more a write-up thing"): one text in Project settings, kept in the project file as `reflexivity` only while it
-# holds words, and printed as a Reflexivity section before Participants in the tables' print views, PDFs and Word
-# documents. Its words are his, so a line about a change counts them and never says them.
+# holds words, and printed by no export (reflexout, 17 November: a place to keep it, to paste elsewhere). Its words are his, so a line about a change counts them and never says them.
 REFLEXIVITY_MOST = 20000
 
 
@@ -893,6 +899,231 @@ def write_reflexivity(root: Path, given, dry_run: bool = False) -> dict:
             data.pop("reflexivity", None)
         srv.save_json(Path(root) / srv.PROJECT_FILE, data)
     return {"reflexivity": text}
+
+
+# ------------------------------------------------------------ the nudges and the interviewer, a project's own
+
+# The statement nudges are a project's own (viewbuild, Adam's ruling of 17 November 2026): his way of doing IPA,
+# so a project made from now on starts with every nudge off, the book's default, and every project there already
+# keeps the nudges it had. `nudges` in the project file, the checks on in their order, is written as a project is
+# made (`make_project`, an empty list) and when one is set (`write_nudges`). A file with none is a project from
+# before, which reads the nudges as the app's settings held them for every project until now, `nudges` there,
+# never written again; so opening a project writes nothing. The demos' are off. The interviewer's name likewise
+# (Adam, 17 November: which speaker is the interviewer is the project's data): `interviewer` in the project file,
+# and a file with none reads the app's settings' `interviewer` as every project did until now.
+
+def legacy_nudges() -> list[str]:
+    """The nudges on as the app's settings held them for every project before they were a project's own: config.json's
+    `nudges` as it stands on disk, each named there true on, each false or left out off, and every nudge off where the
+    file holds none, a fresh install's (whose settings hold all seven false, `OWN_DEFAULTS`), so a project brought in by Add project on a tester's new install starts with them off
+    (viewfix, 17 November 2026) while Adam's own file, which holds his, keeps his projects' nudges."""
+    held = srv.saved_config().get("nudges")
+    if not isinstance(held, dict):
+        return []
+    return [c for c in nudges_mod.CHECKS if held.get(c) is True]
+
+
+def nudges_of(data: dict, root=None) -> list[str]:
+    """The project's nudges on, in their order: none for a demo, the file's `nudges` where it holds a list, and the
+    app's settings' as they stood for a project from before, whose file has none."""
+    if root is not None and srv.is_demo_root(root):
+        return []
+    held = data.get("nudges") if isinstance(data, dict) else None
+    if isinstance(held, list):
+        return [c for c in nudges_mod.CHECKS if c in held]
+    return legacy_nudges()
+
+
+def nudges_for(path: Path | None) -> list[str]:
+    """The nudges on in the project a workbook belongs to, the app's settings' for one under none."""
+    root = project_root(Path(path)) if path else None
+    return nudges_of(project_file(root), root) if root is not None else legacy_nudges()
+
+
+def clean_nudges(given, was: list[str] | None = None) -> list[str]:
+    """The nudges as a call gives them, a list of the checks on, a comma list, or `{check: true/false}` changing
+    those named over `was`, the project's own, each a known check and each value in the dict true or false, or
+    refused in one line naming them (viewfix: a value that is neither is refused, never read as off)."""
+    checks = ", ".join(nudges_mod.CHECKS)
+    if isinstance(given, dict):
+        bad = [str(c) for c in given if c not in nudges_mod.CHECKS]
+        if bad:
+            raise WorkbookError(i18n.t("server.nudges_unknown", names=", ".join(bad), checks=checks))
+        odd = [str(c) for c, v in given.items() if not isinstance(v, bool)]
+        if odd:
+            raise WorkbookError(i18n.t("server.nudges_not_bool", names=", ".join(odd)))
+        return [c for c in nudges_mod.CHECKS if (given[c] if c in given else c in (was or []))]
+    if isinstance(given, str):
+        given = [w.strip() for w in given.split(",") if w.strip()]
+    if isinstance(given, (list, tuple)):
+        unknown = [str(c) for c in given if c not in nudges_mod.CHECKS]
+        if unknown:
+            raise WorkbookError(i18n.t("server.nudges_unknown", names=", ".join(unknown), checks=checks))
+        return [c for c in nudges_mod.CHECKS if c in given]
+    raise WorkbookError(i18n.t("server.nudges_unknown", names=str(given), checks=checks))
+
+
+def nudges_said(on: list[str]) -> str:
+    return ", ".join(on) if on else "none"
+
+
+def write_nudges(root: Path, given, dry_run: bool = False) -> dict:
+    """The project's nudges saved in the project file at this root, every other key kept as it was, `given` a list
+    of the checks on or `{check: bool}` changing those named over the project's own. With `dry_run` nothing is
+    written. Answers the project as it is or would be. The caller holds the lock and records the History."""
+    if root is None or not Path(root).is_dir():
+        raise WorkbookError(i18n.t("server.project_folder_project_could_saved"))
+    root = Path(root)
+    data = project_file(root)
+    was = nudges_of(data, root)
+    wanted = clean_nudges(given, was)
+    if not dry_run and (wanted != was or not isinstance(data.get("nudges"), list)):
+        data["nudges"] = wanted
+        srv.save_json(root / srv.PROJECT_FILE, data)
+    return dict(read_project(root), nudges=wanted) if dry_run else read_project(root)
+
+
+def legacy_interviewer() -> str:
+    """The interviewer's name the app's settings held for every project before it was a project's own, empty on a
+    new install (viewfix, 17 November 2026: never a name of Adam's on someone else's computer)."""
+    return " ".join(str(srv.config().get("interviewer") or "").split())
+
+
+def interviewer_of(data: dict) -> str:
+    """The project's interviewer, the speaker whose turns are context: the file's `interviewer`, else the app's
+    settings' as every project read it until it was a project's own."""
+    held = " ".join(str((data or {}).get("interviewer") or "").split()) if isinstance(data, dict) else ""
+    return held or legacy_interviewer()
+
+
+def interviewer_for(path: Path | None) -> str:
+    """The interviewer of the project a workbook, or a project's root, belongs to, the app's settings' for one under
+    none (see `interviewer_of`)."""
+    root = project_root(Path(path)) if path else None
+    return interviewer_of(project_file(root)) if root is not None else legacy_interviewer()
+
+
+def clean_interviewer(root, given) -> str:
+    """The interviewer's name as a call gives it, one line, or refused in one line: an empty name (viewfix, L5: a
+    project's transcripts always have an interviewer, so clearing the field is refused with its line and the field put
+    back, never passed over), and a participant's pseudonym, whose every turn would then be read as context."""
+    name = " ".join(str(given or "").split())[:120]
+    if not name:
+        raise WorkbookError(i18n.t("server.interviewer_empty"))
+    if root is not None and name.lower() in {who.lower() for who in participant_names(Path(root))}:
+        raise WorkbookError(i18n.t("server.interviewer_is_participant", name=name))
+    return name
+
+
+def participant_names(root: Path) -> set[str]:
+    """The pseudonyms of a project's participants by their folders at its root, `P<n> - Pseudonym` or the demo's
+    `Juno`, each folder's second name left out."""
+    try:
+        folders = [p.name for p in Path(root).iterdir() if p.is_dir() and not p.name.startswith((".", "_"))]
+    except OSError:
+        return set()
+    return {srv.display_case(f).split(" - ", 1)[-1].strip() for f in folders} - {""}
+
+
+def write_interviewer(root: Path, given, dry_run: bool = False) -> dict:
+    """The project's interviewer saved in the project file at this root, one line, every other key kept, as
+    `clean_interviewer` takes it. With `dry_run` nothing is written."""
+    if root is None or not Path(root).is_dir():
+        raise WorkbookError(i18n.t("server.project_folder_project_could_saved"))
+    root = Path(root)
+    name = clean_interviewer(root, given)
+    data = project_file(root)
+    if not dry_run and (name != interviewer_of(data) or not data.get("interviewer")):
+        data["interviewer"] = name
+        srv.save_json(root / srv.PROJECT_FILE, data)
+    return dict(read_project(root), interviewer=name) if dry_run else read_project(root)
+
+
+# ------------------------------------------------------------ the rounds, a project's own
+
+# Work in rounds, Transcript minutes per round and Rounds a day are a project's own (viewfix, Adam's ruling of 17
+# November 2026 about 12:10, as the nudges are): `work_in_rounds`, `round_minutes` and `daily_target` in the project
+# file, each read on its own, a file without one reading the app's settings' value as every project did until now
+# (Adam's: on, 10 minutes, his rounds a day), never written on open. A project made from now on is written with
+# `work_in_rounds` false; the demos' are off. Only `/api/project` writes them, the statements screen's View and
+# agents' `project set --rounds/--round-minutes/--rounds-a-day` alike.
+ROUNDS_KEYS = ("work_in_rounds", "round_minutes", "daily_target")
+ROUND_MINUTES = (1, 60)
+ROUNDS_A_DAY = (1, 20)
+
+
+def whole_in(value, span: tuple) -> int | None:
+    """A whole number inside `span`, or None."""
+    if isinstance(value, bool) or not isinstance(value, int) or not span[0] <= value <= span[1]:
+        return None
+    return value
+
+
+def rounds_of(data: dict, root=None) -> dict:
+    """The project's rounds, `{"work_in_rounds", "round_minutes", "daily_target"}`, each the file's where it holds
+    one, else the app's settings'; a demo's never on."""
+    cfg = srv.config()
+    data = data if isinstance(data, dict) else {}
+    on = data.get("work_in_rounds")
+    out = {"work_in_rounds": on if isinstance(on, bool) else bool(cfg.get("work_in_rounds"))}
+    for key, span in (("round_minutes", ROUND_MINUTES), ("daily_target", ROUNDS_A_DAY)):
+        out[key] = whole_in(data.get(key), span) or whole_in(cfg.get(key), span) or OWN_DEFAULTS[key]
+    if root is not None and srv.is_demo_root(root):
+        out["work_in_rounds"] = False
+    return out
+
+
+def rounds_for(path: Path | None) -> dict:
+    """The rounds of the project a workbook belongs to (see `rounds_of`), the app's settings' for one under none."""
+    root = project_root(Path(path)) if path else None
+    return rounds_of(project_file(root) if root is not None else {}, root)
+
+
+def case_config(path: Path) -> dict:
+    """The settings a participant's statements screen and its rounds read: the app's, with the project's own
+    interviewer and rounds over them."""
+    return dict(srv.config(), interviewer=interviewer_for(path), **rounds_for(path))
+
+
+def clean_rounds(body: dict) -> dict:
+    """The rounds' keys a call gives, each checked, or refused in one line: Work in rounds true or false (on or off
+    from the command line), the minutes and the rounds a day whole numbers in their ranges."""
+    out = {}
+    if "work_in_rounds" in body:
+        on = body["work_in_rounds"]
+        if isinstance(on, str) and on.strip().lower() in ("on", "off", "true", "false"):
+            on = on.strip().lower() in ("on", "true")
+        if not isinstance(on, bool):
+            raise WorkbookError(i18n.t("server.rounds_on_off"))
+        out["work_in_rounds"] = on
+    for key, span in (("round_minutes", ROUND_MINUTES), ("daily_target", ROUNDS_A_DAY)):
+        if key in body:
+            value = body[key]
+            if isinstance(value, str) and value.strip().isdigit():
+                value = int(value.strip())
+            if isinstance(value, float) and value.is_integer():
+                value = int(value)
+            if whole_in(value, span) is None:
+                if key == "round_minutes":
+                    raise WorkbookError(i18n.t("server.round_minutes_range", least=span[0], most=span[1]))
+                raise WorkbookError(i18n.t("server.rounds_a_day_range", least=span[0], most=span[1]))
+            out[key] = value
+    return out
+
+
+def write_rounds(root: Path, given: dict, dry_run: bool = False) -> dict:
+    """The project's rounds saved in the project file at this root, each key given written, every other key kept.
+    With `dry_run` nothing is written. Answers the project's rounds as they are or would be."""
+    if root is None or not Path(root).is_dir():
+        raise WorkbookError(i18n.t("server.project_folder_project_could_saved"))
+    root = Path(root)
+    wanted = clean_rounds(given)
+    data = project_file(root)
+    if not dry_run and any(data.get(k) != v for k, v in wanted.items()):
+        data.update(wanted)
+        srv.save_json(root / srv.PROJECT_FILE, data)
+        return rounds_of(project_file(root), root)
+    return dict(rounds_of(data, root), **wanted)
 
 
 # ------------------------------------------------------------ timepoints
@@ -1112,7 +1343,7 @@ def board_timepoint(path: Path, value) -> int | None:
 def participant_timepoints(path: Path) -> list[dict]:
     """A participant's timepoints with where each stands (see `by_timepoint`), the project's alone with
     no sheets for a workbook that cannot be read."""
-    tps = card_timepoints(path, srv.config().get("interviewer") or "")
+    tps = card_timepoints(path, interviewer_for(path))
     if tps:
         return tps
     return [dict(t, sheets=[], done=0, total=0, complete=None, state="none") for t in project_timepoints(path)]
@@ -1128,7 +1359,7 @@ def books_mark(path: Path) -> tuple:
     file's marks (see `file_mark`), the interviewer and the project's timepoints."""
     tps = tuple((t["n"], t["label"], t["description"]) for t in project_timepoints(path))
     return (file_mark(path), file_mark(rounds_mod.progress_path(path)),
-            str(srv.config().get("interviewer") or "").strip().lower(), tps)
+            interviewer_for(path).lower(), tps)
 
 
 def lpets_books(path: Path) -> list[dict]:
@@ -1146,7 +1377,7 @@ def books_read(path: Path) -> tuple[list[dict], bool]:
     held = LPETS_BOOKS.get(str(path))
     if mark[0] is not None and held and held[0] == mark:
         return [dict(b) for b in held[1]], True
-    tps = card_timepoints(path, srv.config().get("interviewer") or "")
+    tps = card_timepoints(path, interviewer_for(path))
     read = bool(tps)
     if not read:
         tps = [dict(t, sheets=[], done=0, total=0, complete=None, state="none") for t in project_timepoints(path)]
@@ -1400,6 +1631,17 @@ def project_changes(before: dict, after: dict) -> list[str]:
         out.append("Allow AI agents to read this project " + ("ticked." if after["agents"]["allowed"] else "unticked."))
     # the reflexivity statement (settingsbuild), by its words' count alone
     out += reflexivity_changes(before.get("reflexivity") or "", after.get("reflexivity") or "")
+    if before.get("interviewer") != after.get("interviewer"):
+        out.append(f"Interviewer's name from {said(before.get('interviewer'))} to {said(after.get('interviewer'))}.")
+    if before.get("nudges") != after.get("nudges"):
+        out.append(f"Nudges on from {nudges_said(before.get('nudges') or [])} to {nudges_said(after.get('nudges') or [])}.")
+    # the rounds, the project's own since viewfix
+    if before.get("work_in_rounds") != after.get("work_in_rounds"):
+        out.append("Work in rounds " + ("on." if after.get("work_in_rounds") else "off."))
+    if before.get("round_minutes") != after.get("round_minutes"):
+        out.append(f"Transcript minutes per round from {before.get('round_minutes')} to {after.get('round_minutes')}.")
+    if before.get("daily_target") != after.get("daily_target"):
+        out.append(f"Rounds a day from {before.get('daily_target')} to {after.get('daily_target')}.")
     return out
 
 
@@ -1874,7 +2116,8 @@ def last_opened(cases: list[dict]) -> dict | None:
 
 
 def case_payload(path: Path) -> dict:
-    cfg = srv.config()
+    # the interviewer the project's own since viewbuild (17 November 2026, see `interviewer_for`)
+    cfg = case_config(path)
     case = wb_mod.read_case(path)
     rnds = rounds_mod.build_rounds(case["sheets"], cfg["round_minutes"], cfg["interviewer"])
     progress = rounds_mod.load_progress(path)
@@ -1916,7 +2159,7 @@ def refresh_summary(path: Path, sheets: list | None = None) -> dict:
     `sheetRounds` with the rounds done, left and the minutes left on each, and `sheetsDone` and
     `sheetsLeft` for the case, so the round-done card counts the sheet it closed a round on.
     `sheets`, from a save that has just written the workbook (`workbook.outline_of`), spares reading it again."""
-    cfg = srv.config()
+    cfg = case_config(path)
     case = {"sheets": sheets} if sheets is not None else wb_mod.read_case(path)
     rnds = rounds_mod.build_rounds(case["sheets"], cfg["round_minutes"], cfg["interviewer"])
     progress = rounds_mod.load_progress(path)
@@ -1996,13 +2239,13 @@ def card_of(case: str, rows: list[dict], cfg: dict, held: dict, recent: list[dic
         return card
     path = srv.abs_path(pick["path"])
     card.update(path=pick["path"], name=pick["name"], sheets=pick.get("sheets") or [],
-                locked=bool(pick.get("locked")), turns=turns_of(path, cfg.get("interviewer") or ""),
+                locked=bool(pick.get("locked")), turns=turns_of(path, interviewer_for(path)),
                 complete=pick.get("complete"), board=pick.get("board"), boards=boards_count(path),
                 pets_complete=pick.get("pets_complete"),
                 in_gets=bool(held) and themes_case(path) in held)
     # in a project of two or more timepoints, each one with where it stands (see `by_timepoint`),
     # and nothing new in a project of one
-    tps = card_timepoints(path, cfg.get("interviewer") or "")
+    tps = card_timepoints(path, interviewer_for(path))
     if tps is not None:
         card["timepoints"] = tps
     return card
@@ -2165,15 +2408,18 @@ def api_project(body: dict) -> dict:
     `dry_run` says what would change and writes nothing (see `write_timepoints`). `statement_words`, a
     whole number of words, sets the length past which the length nudge speaks, with `dry_run` likewise
     (see `write_statement_words`). `reflexivity`, the researcher's reflexivity statement, plain text, empty to take it
-    away, is checked before anything is written (see `write_reflexivity`, settingsbuild, 17 November 2026). The name,
-    the question, the labels, the timecodes, the tick and the reflexivity statement take `dry_run` too
+    away, is checked before anything is written (see `write_reflexivity`, settingsbuild, 17 November 2026).
+    `interviewer`, the name of the speaker whose turns are context, and `nudges`, the statement nudges on, a list or
+    `{check: bool}`, are the project's own since viewbuild (17 November 2026, see `write_interviewer` and
+    `write_nudges`). The name, the question, the labels, the timecodes, the tick and the reflexivity statement take `dry_run` too
     (26 October, for the agents' `project set`), and their save answers `changes`, a line each (see
     `project_changes`). `method` is fixed once the project is made (tadraw): one sent that is not the
     project's own is refused with nothing written, its own changing nothing.
     """
     writes = ("name" in body or "research_question" in body or "agents" in body or "pet_labels" in body
               or "timecodes" in body or "timepoints" in body or "statement_words" in body
-              or "reflexivity" in body)
+              or "reflexivity" in body or "nudges" in body or "interviewer" in body
+              or any(k in body for k in ROUNDS_KEYS))
     root = asked_root(body, write=writes or "method" in body)
     if "method" in body and root is not None and method_asked(body.get("method")) != method_of(project_file(root)):
         raise WorkbookError(i18n.t("method.refused_fixed", method=method_name(method_of(project_file(root)))))
@@ -2181,40 +2427,52 @@ def api_project(body: dict) -> dict:
         return {"project": read_project(root)}
     if srv.is_demo_root(root):
         raise WorkbookError(i18n.t("server.demo_s_project_fixed"))
-    if "statement_words" in body:
-        if body.get("dry_run") is True:
-            return write_statement_words(root, body.get("statement_words"), dry_run=True)
-        with writing(root=root):
-            return write_statement_words(root, body.get("statement_words"), who=hist_mod.asker(body))
-    if "timepoints" in body:
-        if body.get("dry_run") is True:
-            return write_timepoints(root, body.get("timepoints"), dry_run=True)
-        with writing(root=root):
-            return write_timepoints(root, body.get("timepoints"), who=hist_mod.asker(body))
     dry = body.get("dry_run") is True
-    # the reflexivity statement checked before anything is written (settingsbuild)
-    if "reflexivity" in body:
-        clean_reflexivity(body.get("reflexivity"))
-    with contextlib.nullcontext() if dry else writing(root=root):
+    who = hist_mod.asker(body)
+
+    def apply(really: bool) -> tuple:
+        """Every field the call carries, written when `really`, else each as it would be: the project before, the
+        project after and the lines the statement length and the timepoints keep in History of their own."""
         before = read_project(root)
-        project = before
+        project, own = before, []
         if "name" in body or "research_question" in body:
-            made = write_project(root, body.get("name", ""), body.get("research_question", ""), dry_run=dry)
+            made = write_project(root, body.get("name", ""), body.get("research_question", ""), dry_run=not really)
             project = dict(project, name=made["name"], research_question=made["research_question"])
         if "agents" in body:
-            project = (dict(project, agents=agents_of({"agents": {"allowed": body.get("agents") is True}}))
-                       if dry else write_agents(root, body.get("agents") is True))
+            project = (write_agents(root, body.get("agents") is True) if really else
+                       dict(project, agents=agents_of({"agents": {"allowed": body.get("agents") is True}})))
         if "pet_labels" in body:
-            project = dict(project, pet_labels=write_labels(root, body.get("pet_labels"), dry_run=dry)["pet_labels"])
+            project = dict(project, pet_labels=write_labels(root, body.get("pet_labels"), dry_run=not really)["pet_labels"])
         if "timecodes" in body:
-            project = dict(project, timecodes=write_timecodes(root, body.get("timecodes"), dry_run=dry)["timecodes"])
+            project = dict(project, timecodes=write_timecodes(root, body.get("timecodes"), dry_run=not really)["timecodes"])
         if "reflexivity" in body:
-            project = dict(project, reflexivity=write_reflexivity(root, body.get("reflexivity"), dry_run=dry)["reflexivity"])
-        if not dry:
+            project = dict(project, reflexivity=write_reflexivity(root, body.get("reflexivity"), dry_run=not really)["reflexivity"])
+        # the interviewer's name and the statement nudges, the project's own (viewbuild, 17 November 2026)
+        if "interviewer" in body:
+            project = dict(project, interviewer=write_interviewer(root, body.get("interviewer"), dry_run=not really)["interviewer"])
+        if "nudges" in body:
+            project = dict(project, nudges=write_nudges(root, body.get("nudges"), dry_run=not really)["nudges"])
+        # the rounds, the project's own since viewfix
+        if any(k in body for k in ROUNDS_KEYS):
+            project = dict(project, **write_rounds(root, {k: body[k] for k in ROUNDS_KEYS if k in body}, dry_run=not really))
+        if "statement_words" in body:
+            got = write_statement_words(root, body.get("statement_words"), dry_run=not really, who=who)
+            project, own = dict(project, statement_words=got["project"]["statement_words"]), own + got["changes"]
+        if "timepoints" in body:
+            got = write_timepoints(root, body.get("timepoints"), dry_run=not really, who=who)
+            project, own = dict(project, timepoints=got["project"]["timepoints"]), own + got["changes"]
+        return before, project, own
+
+    # every field checked before anything is written (viewfix, the review's H1): the whole call is first run as its
+    # dry run, so a call refused for any one of its fields writes nothing, and every field it carries is handled
+    before, project, own = apply(False)
+    if not dry:
+        with writing(root=root):
+            before, _would, own = apply(True)
             project = read_project(root)
             # the project's History, under the same lock (projhistory, 2 November 2026)
-            hist_mod.record(root, "project set", project_changes(before, project), hist_mod.asker(body))
-    return {"project": project, "changes": project_changes(before, project), "dry_run": dry}
+            hist_mod.record(root, "project set", project_changes(before, project), who)
+    return {"project": project, "changes": project_changes(before, project) + own, "dry_run": dry}
 
 
 # Write a guide for AI agents, in Project settings: `docs/agents.md` copied to `AGENTS.md` at
@@ -3750,12 +4008,14 @@ def new_cases(root: Path, body: dict, as_name: str, standing: dict | None = None
     return list(cases.values())
 
 
-def case_sheet(each: dict, as_name: str, who: str) -> tuple:
+def case_sheet(each: dict, as_name: str, who: str, where: Path | None = None) -> tuple:
     """One interview's sheet of a case's raw source: its title, its turns as `as_case` writes them,
-    and a Word table's notes beside them, the interviewer's under the name Settings gives him when he
-    was chosen, so they land where the statements screen keeps his notes (19 October)."""
+    and a Word table's notes beside them, the interviewer's under the name the project gives him (`where`, its
+    root or a folder in it) when he was chosen, so they land where the statements screen keeps his notes (19
+    October)."""
     read = each["read"]
-    setting = str(srv.config().get("interviewer") or "").strip() if each["interviewer"] else ""
+    setting = (interviewer_for(where) if where is not None else str(srv.config().get("interviewer") or "").strip()) \
+        if each["interviewer"] else ""
     if each.get("roles"):
         turns, marks = convert_mod.as_new_case(read["turns"], each["roles"], as_name, who)
         return each["interview"], turns, read.get("notes"), setting, marks
@@ -3780,7 +4040,7 @@ def write_case(root: Path, case: dict, as_name: str, made: list[Path], described
         place.mkdir(parents=True)
         keep_transcript(place / f"P{n}-{each['interview']}{copy_suffix(each)}", each["data"])
         place_audio(folder, each.get("audio"), each.get("audio_offset", 0.0), made, each["interview"], each.get("audio_name"))
-        sheets.append(case_sheet(each, as_name, who))
+        sheets.append(case_sheet(each, as_name, who, root))
     raw = folder / "Source" / f"P{n} {who} - transcript.xlsx"
     convert_mod.write_sheets(sheets, raw)
     book = wb_mod.create_from_source(raw, wb_mod.suggested_output(raw), made=described)
@@ -3829,6 +4089,29 @@ def unmake(root: Path, made: list[Path], project_was: bytes | None, lock_was: bo
             (root / locks.NAME).unlink(missing_ok=True)
 
 
+def made_interviewer(root: Path, body: dict, there: bool) -> str:
+    """The interviewer a Make or an Add writes the interviewer's turns under and keeps in the project's file:
+    `interviewer` as the call gives it, else the project file's own where one is there, else the name the app's
+    settings held for every project until it was a project's own (Adam's, so his projects carry his name as before),
+    else on a new install, which holds none, the first speaker a file's row marks as the interviewer, else
+    "Interviewer"."""
+    asked = " ".join(str(body.get("interviewer") or "").split())[:120]
+    if asked:
+        return asked
+    if there:
+        held = " ".join(str(project_file(root).get("interviewer") or "").split())
+        if held:
+            return held
+    if legacy_interviewer():
+        return legacy_interviewer()
+    for entry in body.get("files") if isinstance(body.get("files"), list) else []:
+        roles = entry.get("speakers") if isinstance(entry, dict) and isinstance(entry.get("speakers"), dict) else {}
+        for name, role in roles.items():
+            if role == "interviewer" and " ".join(str(name).split()):
+                return " ".join(str(name).split())[:120]
+    return convert_mod.INTERVIEWER
+
+
 def make_project(body: dict) -> dict:
     """Make: every row checked first, then every case written, the project file given its name and
     its question, and the folder added as a project through `add_project`. A failure on the way takes
@@ -3853,7 +4136,10 @@ def make_project(body: dict) -> dict:
               else method_asked(body.get("method")))
     if there and method != method_of(project_file(root)):
         raise WorkbookError(i18n.t("method.refused_fixed", method=method_name(method_of(project_file(root)))))
-    as_name = str(srv.config().get("interviewer") or "").strip() or convert_mod.INTERVIEWER
+    # the new project's own interviewer (viewfix, the review's L3): the one asked, else the project file's where
+    # there is one, else the speaker the files' rows mark as the interviewer, written into the new project's file.
+    # Kept small: projectbuild takes New project's transcripts to Add transcripts, which does the same
+    as_name = made_interviewer(root, body, there)
     qdpx = body.get("qdpx") if isinstance(body.get("qdpx"), dict) else None
     q_path = qdpx_held(qdpx.get("held")) if qdpx else None
     run = pseudo_run(root, body)
@@ -3888,6 +4174,12 @@ def make_project(body: dict) -> dict:
                         updated=datetime.now().astimezone().isoformat(timespec="seconds"))
             if project_was is None:
                 data["method"] = method
+                # every nudge off in a project made from now on, the book's default (viewbuild, 17 November 2026),
+                # and Work in rounds off (viewfix)
+                data["nudges"] = []
+                data["work_in_rounds"] = False
+            if not str(data.get("interviewer") or "").strip() and as_name != convert_mod.INTERVIEWER:
+                data["interviewer"] = as_name
             srv.save_json(target, data)
         if qdpx:
             brought = qdpx_import(root, q_path, qdpx, make=True)
@@ -3938,7 +4230,12 @@ def api_new_project(body: dict) -> dict:
         name = file_name(body.get("name"))
         data = file_bytes(body, name)
         columns = body.get("columns") if isinstance(body.get("columns"), (dict, list)) else None
-        setting = str(srv.config().get("interviewer") or "").strip()
+        # the speakers guessed by the project's own interviewer where the folder chosen has a project file (viewfix,
+        # L3), else by the name the app's settings held, empty on a new install
+        folder = str(body.get("folder") or "").strip()
+        held = add_root(body) if body.get("root") else srv.abs_path(folder) if folder else None
+        setting = (interviewer_of(project_file(held)) if held is not None and (held / srv.PROJECT_FILE).is_file()
+                   else legacy_interviewer())
         try:
             read = convert_mod.read_data(name, data, columns, sheet=body.get("sheet") or None)
             said = read.get("said") or (None if read["turns"] else str(convert_mod.unreadable(name)))
@@ -4045,7 +4342,7 @@ def add_interviews(case: dict, as_name: str, back: list) -> None:
         back.append(("folder", top))
         keep_transcript(place / f"P{n}-{each['interview']}{copy_suffix(each)}", each["data"])
         place_audio(folder, each.get("audio"), each.get("audio_offset", 0.0), [], each["interview"], each.get("audio_name"))
-        sheets.append(case_sheet(each, as_name, who))
+        sheets.append(case_sheet(each, as_name, who, folder))
     raw = case["raw"]
     if raw is None:
         raw = source / f"P{n} {who} - transcript.xlsx"
@@ -4162,7 +4459,12 @@ def add_transcripts(body: dict) -> dict:
     answer's `names` says how many were replaced and left, by entry and where, never a name (see `pseudo_answer`).
     `skip` leaves finds as written, each an entry's number and its find's place, `3:1`."""
     root = add_root(body)
-    as_name = str(srv.config().get("interviewer") or "").strip() or convert_mod.INTERVIEWER
+    # the project's own interviewer, or for a project with none in its file the one the call names or the speaker the
+    # files' rows mark as the interviewer, written into its file as the transcripts are added (viewfix, L3: Adam's
+    # New project sets the project up alone and its transcripts come through Add transcripts)
+    # a project from before with none in its file keeps reading the app's settings' name, as it always has
+    own = interviewer_for(root)
+    as_name = own or made_interviewer(root, body, False)
     run = pseudo_run(root, body)
     cases = new_cases(root, body, as_name, standing=standing_cases(root), run=run)
     tool, request = agent_marks(body)
@@ -4195,6 +4497,10 @@ def add_transcripts(body: dict) -> dict:
                         add_record(book, case, tool, request)
                 # a Real name typed on a row joins the project's list, in its folder (namesui)
                 pseudo_keep(root, run, body)
+                if not own and as_name != convert_mod.INTERVIEWER:
+                    data = project_file(root)
+                    data["interviewer"] = as_name
+                    srv.save_json(root / srv.PROJECT_FILE, data)
             except Exception:
                 unadd(made, back)
                 team_sync.unadding(root, ours)
@@ -5513,7 +5819,7 @@ def qdpx_import(root: Path, path: Path, body: dict, make: bool = False, made: st
         pkg = qdpx_mod.read_package(path)
     except qdpx_mod.Unreadable as exc:
         raise WorkbookError(str(exc)) from None
-    setting = str(srv.config().get("interviewer") or "").strip()
+    setting = interviewer_for(root)
     as_name = setting or convert_mod.INTERVIEWER
     tps = timepoints_of(project_file(root))
     readable, views, roles_of = {}, [], {}
@@ -5667,7 +5973,7 @@ def qdpx_write(root: Path, path: Path, pkg: dict, asks: dict, cases: list[dict],
     History line in its progress file, the memos, the recordings and the PET draft, all under the
     project's lock and each participant's. A failure puts back what it changed and takes away what
     it made, and says one line. Answers each participant's label."""
-    as_name = str(srv.config().get("interviewer") or "").strip() or convert_mod.INTERVIEWER
+    as_name = interviewer_for(root) or convert_mod.INTERVIEWER
     books = [c["raw"] or c["path"] / "Source" / f"P{c['number']} {c['pseudonym']} - transcript.xlsx"
              for c in cases if c["joins"]]
     marks = [locks.root_lock(root)] + [wb_mod.case_lock(b) for b in books]
@@ -6532,7 +6838,7 @@ def rename_plan(root: Path, folder: Path, name, with_folder: bool, cfg: dict) ->
     old, own = gets_mod.who(label), gets_mod.who(srv.display_case(folder.name))
     new = " ".join(str(name or "").split())
     good = bool(ONE_WORD.match(new)) and new != old
-    interviewer = str(cfg.get("interviewer") or "")
+    interviewer = interviewer_for(root)
     plan = {"root": root, "folder": folder, "label": label, "old": old, "own": own, "new": new,
             "new_label": relabel(label, new) if good else "", "books": [], "themes": [], "sides": [],
             "carried": [], "recent": [], "moves": [], "target": None, "unread": None}
@@ -6664,7 +6970,7 @@ def rename_refusal(root: Path, folder: Path, plan: dict, cfg: dict) -> str | Non
         return i18n.t("server.name_now_nothing_changed")
     if not ONE_WORD.match(new):
         return i18n.t("server.make_new_name_one_capitalised")
-    if new.lower() == str(cfg.get("interviewer") or "").strip().lower():
+    if new.lower() == interviewer_for(root).lower():
         return i18n.t("server.interviewer_s_name_settings_cannot", who=new)
     names = names_at(root)
     try:
@@ -6742,7 +7048,7 @@ def rename_case(root: Path, folder: Path, name, with_folder: bool, cfg: dict, wh
     folder under the project's alone, since Windows renames no folder with a file open in it, and the
     recent list last. A write that fails puts back everything before it and says one line. The answer
     is the plan as it was said, `lines` and `folder_lines`, and the case's new label."""
-    interviewer = str(cfg.get("interviewer") or "")
+    interviewer = interviewer_for(root)
     back: list = []
     made: list = []
     books = case_books(folder)
@@ -6903,7 +7209,7 @@ def api_import(body: dict) -> dict:
             raise WorkbookError(srv.NO_FILE_DIALOG)
         picked = srv.PICK_FOLDER(i18n.t("server.choose_recording"), files=True)
         return {"chosen": picked is not None, "path": str(picked) if picked else ""}
-    setting = str(srv.config().get("interviewer") or "").strip()
+    setting = interviewer_for(path)
     asks = import_asks(body)
     read, out, said = import_read(path, asks["columns"], body.get("op") == "make", asks["times"], asks["sheet"])
     plan = import_plan(path, read, asks, setting)
@@ -7578,7 +7884,7 @@ def api_skip(body: dict) -> dict:
     sheet = str(body.get("sheet") or "")
     tool, request = agent_marks(body)
     dry = body.get("dry_run") is True
-    interviewer = str(srv.config().get("interviewer") or "")
+    interviewer = interviewer_for(path)
     if not isinstance(body.get("rows"), list) or not body["rows"]:
         raise WorkbookError(i18n.t("server.skip_no_rows"))
     if dry and wb_mod.WRITE_GUARD is not None:
@@ -8088,12 +8394,12 @@ def api_interviewer_note(body: dict) -> dict:
     # an agent's dry run (26 October, `turn interviewer-note`): the same checks, nothing written
     if body.get("dry_run") is True:
         result = wb_mod.save_interviewer_note(path, body["sheet"], int(body["row"]), body.get("text") or "",
-                                              srv.config()["interviewer"], dry=True)
+                                              interviewer_for(path), dry=True)
         return {"sheet": result["sheet"], "row": result["row"], "text": result["text"],
                 "changed": result["changed"], "old": result["old"], "dry_run": True}
     with writing(path):
         result = wb_mod.save_interviewer_note(path, body["sheet"], int(body["row"]),
-                                              body.get("text") or "", srv.config()["interviewer"])
+                                              body.get("text") or "", interviewer_for(path))
         if result["changed"] and tool:
             # an agent's note alone is kept in History, as an agent's turn write is, its row's state and
             # the rounds untouched, so his turn stays context
@@ -8325,8 +8631,9 @@ def api_round_complete(body: dict) -> dict:
     already recorded keeps its first date. `recorded` says whether this call was the one that
     recorded it.
     """
-    cfg = srv.config()
     path = case_path(body["path"])
+    # the interviewer the project's own (viewbuild, 17 November 2026)
+    cfg = case_config(path)
     number = int(body["round"])
     recorded = False
     with writing(path):
@@ -8419,8 +8726,9 @@ def api_trim(body: dict) -> dict:
     `first`, `last`, `count`, their times and `marked`, the rows among them with a statement, a note, a
     quote or a highlight, with nothing written, and `tool` and `request`, which the trim's record carries.
     """
-    cfg = srv.config()
     path = case_path(body["path"])
+    # the interviewer the project's own (viewbuild, 17 November 2026)
+    cfg = case_config(path)
     sheet, row = body["sheet"], int(body["row"])
     direction = body.get("direction")
     current = body.get("current") or {}
@@ -9777,7 +10085,7 @@ def api_trajectories_turns(body: dict) -> dict:
     tps = root_timepoints(root)
     labels = {tp_label(t["n"]): [t["label"], t["description"]] for t in tps}
     at = gets_mod.timepoint_of(body.get("timepoint"), labels) or tp_label(1)
-    who = wb_mod._norm(srv.config().get("interviewer"))
+    who = wb_mod._norm(interviewer_for(root))
     every = themes_mod.transcript_turns(book)
     held = {tp_label(t["at"]) for t in every}
     return {"participant": case, "timepoint": at, "interviews": [k for k in labels if k in held],
@@ -11210,11 +11518,9 @@ PRINT_PATH = "/themes/print"
 
 def researcher_name() -> str:
     """The researcher the print views' foot names beside Confidential and Word's author field holds (Adam, 31
-    October 2026): Settings' Your name, the name documents carry, and while it is empty the Interviewer's name,
-    which also tells the interviewer's turns apart in a transcript, so may be a first name alone. Empty when
-    the settings hold neither."""
-    cfg = srv.config()
-    return " ".join(str(cfg.get("your_name") or "").split()) or " ".join(str(cfg.get("interviewer") or "").split())
+    October 2026): Settings' Your name, the name documents carry, and nothing while it is empty (viewfix, 17 November
+    2026: the interviewer is a project's own and may be a first name alone, so it never stands in)."""
+    return " ".join(str(srv.config().get("your_name") or "").split())
 
 
 def themes_print_page(query: dict) -> tuple[int, str]:
@@ -11269,12 +11575,12 @@ def api_examples(body: dict) -> dict:
 def api_nudges(body: dict) -> dict:
     """The nudges on each statement in `text`, one a line, the length nudge at the statement length of
     the project the workbook `path` belongs to, 15 without one (see `statement_words_of`)."""
-    cfg = srv.config()
-    enabled = [k for k, v in cfg.get("nudges", {}).items() if v]
+    # the project's own nudges since viewbuild (17 November 2026), as its file holds them (see `nudges_of`)
     try:
+        enabled = nudges_for(srv.abs_path(body["path"])) if body.get("path") else legacy_nudges()
         high = statement_words_for(srv.abs_path(body["path"])) if body.get("path") else nudges_mod.HIGH
     except (srv.OutsideRoot, WorkbookError, OSError, ValueError):
-        high = nudges_mod.HIGH
+        enabled, high = legacy_nudges(), nudges_mod.HIGH
     return {"lines": nudges_mod.check_field(body.get("text", ""), enabled, high), "statement_words": high}
 
 
@@ -11287,10 +11593,12 @@ def rail_of(path: Path | None = None) -> dict:
 
 def api_guidance(_: dict) -> dict:
     """The statements screen's rail, IPA's from `guidance.md`, and `ta`, a thematic analysis project's Coding rail
-    from `ta_guidance.md` in the same shape (tarail), the page drawing the one of the project in front."""
+    from `ta_guidance.md` in the same shape (tarail), the page drawing the one of the project in front, and `codes`,
+    the Code list's, from `ta_codes_guidance.md` (viewfix)."""
     cfg = srv.config()
     return {**rail_of(),
             "ta": rail_of(i18n.long_text(TA_GUIDANCE)),
+            "codes": rail_of(i18n.long_text(TA_CODES_GUIDANCE)),
             "prompt_default": prompts.DEFAULT_PROMPT,
             "counts": corpus.counts(srv.configured(cfg.get("corpus")), srv.configured(cfg.get("gravity_reference")),
                                     cfg.get("corpus_exclude") or ())}
@@ -11504,8 +11812,12 @@ def api_mcp(body: dict) -> dict:
 # module registers), so a settings file holds every key in the order it always has, and only Idiograph's
 # (`srv.defaults`, the sixth build, 23 October 2026)
 SETTINGS_DEFAULTS = (
-    ("status_bar", {
-        "interviewer": "Adam",
+    # put before AI features' switch, where the boards' status bar stood until it was always there (viewbuild, 17
+    # November 2026), and the second block after this one, so a file keeps the order it always had
+    ("ai_suggest", {
+        # the interviewer's name every project from before reads while its file has none, empty on a new install
+        # (viewfix, 17 November 2026), where it was Adam's: a project's own since viewbuild (see `interviewer_of`)
+        "interviewer": "",
         # Work in rounds, under Distil, Experiential statements in Settings: a pace of transcript time
         # with a daily target and a streak, his habit and not a step of IPA, so off on a new install, and
         # a config without the key reads off (15 October). The rounds are cut and recorded all the same,
@@ -11569,9 +11881,8 @@ SETTINGS_DEFAULTS = (
         # label and pen portrait. Off on a new install, his last choice kept
         "export_participants": False,
     }),
-    # The PETs and GETs boards' status bar along the foot (Adam, 19 October, A of the drawings), on by default and
-    # turned off from View and from Settings, View, is General's, `status_bar`, the family's since the sixth build
-    # (23 October 2026), and Idiograph's settings after it stand after it, as a file has always held them
+    # The PETs and GETs boards' status bar along the foot (Adam, 19 October, A of the drawings), always there since
+    # viewbuild (17 November 2026), and Idiograph's settings that stood after its key stand here, as a file held them
     ("ai_suggest", {
         # `status_counts` the counts the status bar shows at its left, picked by a right click on it, in the
         # bar's own order, and `palette_place` where the palette of Sticky note, Group, Undo and Redo floats on
@@ -11624,7 +11935,7 @@ SETTINGS_DEFAULTS = (
         "corpus": "",
         "corpus_exclude": [],
         "gravity_reference": "",
-        "nudges": {c: True for c in ("length", "lead", "quote", "semicolon", "emdash", "arrow", "readsas")},
+        "nudges": {c: False for c in ("length", "lead", "quote", "semicolon", "emdash", "arrow", "readsas")},
     }),
     ("ai_provider", {
         # `ai_prompt` is the statements' whole system prompt, his to edit
@@ -11693,7 +12004,11 @@ def save_settings(cfg: dict, body: dict) -> None:
     # Your name, the name documents carry, the print views' foot and Word's author (31 October 2026), one line
     if "your_name" in body:
         cfg["your_name"] = " ".join(str(body["your_name"] or "").split())[:120]
-    for name in ("interviewer", "round_minutes", "daily_target", "ai_prompt"):
+    # the interviewer and the nudges are a project's own since viewbuild (17 November 2026), and the rounds since
+    # viewfix, Project settings' and the statements screen's View's, saved through /api/project, so a save here leaves
+    # the file's as they were, the value every project from before reads (see `interviewer_of`, `nudges_of` and
+    # `rounds_of`)
+    for name in ("ai_prompt",):
         if name in body:
             cfg[name] = body[name]
     # the PETs screen's own model goes as a pair, and anything short of a known provider with a
@@ -11702,11 +12017,9 @@ def save_settings(cfg: dict, body: dict) -> None:
         own = str(body.get("pets_model") or "").strip()
         provider = body.get("pets_provider") if body.get("pets_provider") in ai_mod.PROVIDERS and own else ""
         cfg["pets_provider"], cfg["pets_model"] = provider, own if provider else ""
-    if "nudges" in body:
-        cfg["nudges"] = {**cfg.get("nudges", {}), **body["nudges"]}
-    # Work in rounds and the larger current passage, saved as they stand, the View menu's one sent alone,
+    # the larger current passage, saved as it stands, the View menu's one sent alone,
     # the PETs table's export's ticks, each sent alone from Export or the print view, and the boards' bars
-    for name in ("work_in_rounds", "larger_passage", "export_not_placed", "export_binned", "export_stacked",
+    for name in ("larger_passage", "export_not_placed", "export_binned", "export_stacked",
                  "export_for_sending", "export_descriptions", "export_portrait", "export_participants", "card_quotes",
                  "card_quotes_full", "card_notes", "card_compact", "es_quotes", "close_pairs", "traj_notes"):
         if name in body:

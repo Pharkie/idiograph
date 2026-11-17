@@ -455,6 +455,7 @@ AREAS = {
     "a420_rename_by_any_name": "idiograph",
     "a421_rta_demo": "idiograph",
     "a422_reflexivity": "idiograph",
+    "a423_view_and_project_settings": "idiograph",
 }
 
 

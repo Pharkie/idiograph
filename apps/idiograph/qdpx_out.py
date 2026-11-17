@@ -583,7 +583,7 @@ def plan(root: Path, name: str, method: str, question: str, people: list[dict], 
            "notes": [], "sets": [], "cases": [], "counts": fresh_counts(), "origin": f"Idiograph {version}".strip(),
            "variables": variables_of(categories)}
     counts = out["counts"]
-    interviewer = wb_mod.interviewer_name()
+    interviewer = wb_mod.interviewer_name(root)
     longitudinal = len(timepoints or []) > 1
     ta = method == "ta"
     import codes as codes_mod

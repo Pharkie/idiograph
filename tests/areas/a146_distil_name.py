@@ -18,8 +18,8 @@ def test_distil_name(scratch):
     page, app = support.page_text(), support.text("family/static/shell.js", "apps/idiograph/static/distil.js")
 
     check("146, updated 15 October (149): the ids, the fold's key, the panes, the routes and the settings keep their "
-          "names, so every project and config.json open as before, the panes' names in their order, formats after general, GETs, Export and Projects out of Settings since settingsplit (5 November)",
+          "names, so every project and config.json open as before, the panes' names in their order (three since viewfix2, 17 November: general, formats, ai), formats after general, GETs, Export and Projects out of Settings since settingsplit (5 November)",
           all(f'id="{i}"' in page for i in ("home-analysis", "analysis-head", "analysis-body"))
           and "foldable($('home-analysis'), $('analysis-head'), 'analysis');" in app
-          and "idiograph: ['general', 'formats', 'statements', 'pets', 'ai']," in app
+          and "idiograph: ['general', 'formats', 'ai']," in app
           and not any("distil" in str(k).lower() for k in list(server_mod.ROUTES) + list(server_mod.defaults())))

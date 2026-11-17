@@ -46,8 +46,8 @@ def test_board_map(scratch):
           "if (e.key === 'm' || e.key === 'M') { e.preventDefault(); thMapToggle(); return; }" in keydown
           and keydown.index("thHand(!TH.hand); return; }") < keydown.index("thMapToggle();") < keydown.index("if (TH.busy) return;")
           and keydown.index("if (MOD(e) || e.altKey || e.ctrlKey) return;") < keydown.index("thMapToggle();")
-          and "$('th-map-btn').addEventListener('pointerdown', (e) => e.preventDefault());" in boot
-          and "$('th-map-btn').onclick = () => thMapToggle();" in boot)
+          # since viewfix the button takes Auto, On and Off in turn through cycleWire, whose press keeps the focus
+          and "cycleWire($('th-map-btn'), TH_MAP_CYCLE);" in boot)
     # ── D. in node: the marks, the fit, the box, the frames, Auto, On and Off, the button and M, the glide and the drag
     node = shutil.which("node")
     if not node:

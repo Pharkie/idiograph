@@ -170,12 +170,13 @@ try {
     <h2>{{page.settings.title}}</h2>
     <!-- the categories down the left and the chosen one on the right (the split's third build, drawing 8 of
          the plan, 20 October 2026): General first, the same in all three apps, Appearance, Celebrations,
-         Updates and Closing, then the app's own, Idiograph's Experiential statements, PETs, GETs, Export and
-         Projects, Sift's Databases, Projects and Zotero, Trace's Projects, and last AI features, each app's
-         own. The page shows its own app's tabs alone (data-only). Below about 700px the list becomes a row of
-         tabs above the content and Experiential statements says Statements. The home screen's Settings
-         opens on General and each screen's own settings on its own category, and the category chosen holds
-         while the card is open. The tab chosen takes its rule in the app's colour -->
+         Updates and Closing, then the app's own, Sift's Databases, Projects and Zotero, Trace's Projects, and
+         last AI features, each app's own. Idiograph's holds the app's own settings alone since viewbuild (Adam, 17
+         November 2026): General, Language and formats and AI features, a screen's own being in its View and a
+         project's in Project settings. The page shows its own app's tabs alone (data-only). Below about 700px the
+         list becomes a row of tabs above the content. The home screen's Settings opens on General and each
+         screen's own settings on its own category, and the category chosen holds while the card is open. The tab
+         chosen takes its rule in the app's colour -->
     <div class="settings-body">
       <div class="settings-nav" id="settings-nav" role="tablist" aria-label="{{page.settings.categories}}" aria-orientation="vertical">
         <button type="button" role="tab" id="tab-general" data-pane="general" aria-controls="pane-general">{{page.settings.general}}</button>
@@ -188,6 +189,7 @@ try {
         <!-- General, the same in all three apps: Appearance, Language, Celebrations, Updates and Closing -->
         <section class="settings-pane" id="pane-general" role="tabpanel" aria-labelledby="tab-general">
           <h3 class="pane-title">{{page.settings.general}}</h3>
+<!--slot:settings-general-->
           <!-- Appearance, light, dark or the computer's own, applied the moment a row is ticked, kept in the
                app's settings with Save and in this browser for the first paint (the split's third build) -->
           <h4 class="pane-sub pane-first" id="appearance-sub">{{page.appearance.title}}</h4>
@@ -363,6 +365,9 @@ try {
           <div class="switches ai-features" id="ai-features" role="group" aria-label="{{page.ai.features}}">
 <!--slot:ai-feature-->
           </div>
+          <!-- each app's own AI settings under its switches, Idiograph's statements prompt, test bench and PETs model
+               (viewbuild, 17 November 2026), shown only while the switch is on -->
+<!--slot:ai-more-->
           </div>
           <!-- Using your own AI agents (Adam, 21 and 22 October 2026): shown whether the switch is on or off, since an
                agent works without the app's own AI, and a box to paste into the agent, this install's command

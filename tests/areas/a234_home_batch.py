@@ -44,7 +44,8 @@ def test_home_batch(scratch: Path):
     book = root / "P1 - Wren" / "P1 Wren - EN & ES.xlsx"
     book.write_bytes(b"PK\x03\x04 a workbook stands in here")
     config_file = base / "config-234.json"
-    config_file.write_text(json.dumps({"projects": [], "interviewer": "Sam", "corpus": "", "gravity_reference": "",
+    # the nudges as a settings file holding them reads them, each named true on (viewfix2: a file with none, or one left out, reads them off)
+    config_file.write_text(json.dumps({"projects": [], "interviewer": "Sam", "nudges": {c: True for c in ("length", "lead", "quote", "semicolon", "emdash", "arrow", "readsas")}, "corpus": "", "gravity_reference": "",
                                        "corpus_exclude": []}), encoding="utf-8")
     live = server_mod.CONFIG_PATH.read_bytes() if server_mod.CONFIG_PATH.exists() else None
     kept = server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY

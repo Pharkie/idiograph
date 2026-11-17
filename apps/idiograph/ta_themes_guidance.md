@@ -21,7 +21,7 @@ minute.
 - Gather codes that share a core idea into candidate themes. A rich code can grow into a theme, and a theme can become a subtheme.
 - Candidate themes are provisional. Try several groupings and let go of the ones that do not hold.
 - How often a code recurs is not how much it matters. A theme earns its place by what it says about your research question.
-- A code that fits no theme waits in Not placed. Not every code ends in a theme.
+- A code that fits no theme waits in Unplaced. Not every code ends in a theme.
 
 ## Developing and reviewing
 

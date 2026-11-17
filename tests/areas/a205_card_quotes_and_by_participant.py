@@ -59,7 +59,7 @@ def test_card_quotes_and_by_participant(scratch):
     if not node:
         skip("205: the quotes and the rows in node", "node is not installed")
         return
-    js = support.text("apps/idiograph/static/themes.js")
+    js = support.cycle_js() + support.text("apps/idiograph/static/themes.js")
     script = scratch / "card-quotes-205.js"
     script.write_text(support.i18n_js() + STUBS + js + SCENARIO, encoding="utf-8")
     run = subprocess.run([node, str(script)], capture_output=True, text=True, encoding="utf-8", timeout=120)

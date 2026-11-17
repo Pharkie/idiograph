@@ -35,10 +35,11 @@ def test_project(scratch):
     shipped = json.loads(server_mod.DEMO_PROJECT.read_text(encoding="utf-8"))
     # and since pbiobuild (11 November 2026) each of its three participants' picture, label and pen portrait
     sets = shipped.get("participants") if isinstance(shipped.get("participants"), dict) else {}
-    check("the demo ships its own project file with a name, a question, a timestamp, its demographic categories and "
-          "its three participants' picture, label, pen portrait and values",
+    check("the demo ships its own project file with a name, a question, its interviewer (viewfix), a timestamp, its "
+          "demographic categories and its three participants' picture, label, pen portrait and values",
           server_mod.DEMO_PROJECT == server_mod.DEMO_DIR / "idiograph-project.json"
-          and set(shipped) == {"name", "research_question", "updated", "participants", "demographics"}
+          and set(shipped) == {"name", "research_question", "interviewer", "updated", "participants", "demographics"}
+          and shipped["interviewer"] == "Adam"
           and set(sets) == {"Juno", "Mabel", "Rowan"}
           and all(set(v) == {"label", "portrait", "picture", "values"} and str(v["picture"]).startswith("set:peep")
                   for v in sets.values())

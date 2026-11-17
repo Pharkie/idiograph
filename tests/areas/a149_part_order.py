@@ -57,9 +57,8 @@ def test_part_order(scratch):
         run = subprocess.run([node, str(script)], capture_output=True, text=True, encoding="utf-8", timeout=60)
         out = json.loads(run.stdout) if run.returncode == 0 and run.stdout.strip() else {}
         check("149, 20 October: in node, the arrow keys walk Idiograph's Settings as it stands, Down from General to "
-              "Language and formats (fmtcore), "
-              "Experiential statements, PETs, AI features and round to General, GETs, Export and Projects gone since "
-              "settingsplit, Up back the other way",
-              out.get("down") == ["formats", "statements", "pets", "ai", "general", "formats", "statements", "pets"]
-              and out.get("up") == ["statements", "formats"] and out.get("right") == ["formats", "statements"],
+              "Language and formats (fmtcore), AI features and round to General, Experiential statements and PETs gone "
+              "since viewbuild (17 November 2026), Up back the other way",
+              out.get("down") == ["formats", "ai", "general", "formats", "ai", "general", "formats", "ai"]
+              and out.get("up") == ["formats", "general"] and out.get("right") == ["formats", "ai"],
               str(out) if out else run.stderr.strip()[:300])

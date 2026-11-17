@@ -2,8 +2,8 @@
 three states: no quotes, two line quotes and then full quotes ... full quotes on each card without having to click
 anything additional").
 
-The status bar's Quotes takes the next of Off, Short and Full on each click (A), or with `TH_QUOTES_CONTROL` set to
-'menu' opens a menu of the three (B). Short is the quote as before, three lines at most, its whole in its tooltip and
+The status bar's Quotes takes the next of Off, Short and Full on each click, a right click or a press held opening a
+menu of the three, as every status bar button of more than two states does since viewfix. Short is the quote as before, three lines at most, its whole in its tooltip and
 a click away. Full is the whole quote on its card, every piece, nothing to click. Full is kept as `card_quotes_full`
 beside `card_quotes`, so an older file reads as Off or Short, and the canvas makes room for the taller cards as it
 does for short quotes, a view the file never keeps.
@@ -90,15 +90,15 @@ thQuotesButton();
 const states = [button()];
 const menus = [];
 for (let i = 0; i < 3; i += 1) { thQuotesToggle(); await Promise.resolve(); states.push(button()); menus.push(!ELS['th-qmenu'].hidden); }
-out.cycle = { saved: SAVED.slice(), states, menus, control: TH_QUOTES_CONTROL };
+out.cycle = { saved: SAVED.slice(), states, menus };
 thQuotesMenu(false);
 // the menu, from a right click in A: the three, the one in use ticked, a choice kept at once and the menu still open
 SAVED.length = 0;
 TH.config = { card_quotes: true };
 thQuotesMenu(true, 600, 760);
 const menu = ELS['th-qmenu'];
-const rows = (html) => [...html.matchAll(/data-qway="(\w+)"/g)].map((m) => m[1]);
-const ticked = (html) => [...html.matchAll(/aria-checked="true" tabindex="-1" data-qway="(\w+)"/g)].map((m) => m[1]);
+const rows = (html) => [...html.matchAll(/data-cway="(\w+)"/g)].map((m) => m[1]);
+const ticked = (html) => [...html.matchAll(/aria-checked="true" tabindex="-1" data-cway="(\w+)"/g)].map((m) => m[1]);
 const was = { open: !menu.hidden, rows: rows(menu.innerHTML), ticked: ticked(menu.innerHTML) };
 thQuotesSet('full');
 await Promise.resolve();
@@ -211,7 +211,7 @@ def test_quotes_three_ways(scratch):
         if not node:
             skip("304: the three ways in node", "node is not installed")
             return
-        js = support.text("apps/idiograph/static/themes.js")
+        js = support.cycle_js() + support.text("apps/idiograph/static/themes.js")
         o, err = run_node(node, scratch, "quotes-three-304.js", support.i18n_js() + STUBS + js + SCENARIO)
         if o is None:
             check("304: the three ways run in node", False, err)
@@ -242,7 +242,7 @@ def test_quotes_three_ways(scratch):
         c = o["cycle"]
         check("304: in node, each click on the button takes the next of Off, Short and Full and back to Off, each saved "
               "at once in one write of both settings, the button pressed in for Short and Full and its tooltip saying which",
-              c["control"] == "cycle" and c["saved"] == [{"card_quotes_full": False, "card_quotes": True},
+              c["menus"] == [False, False, False] and c["saved"] == [{"card_quotes_full": False, "card_quotes": True},
                                                          {"card_quotes_full": True, "card_quotes": True},
                                                          {"card_quotes_full": False, "card_quotes": False}]
               and c["states"] == [["off", "false", "Quotes: off"], ["short", "true", "Quotes: short"],
@@ -265,14 +265,8 @@ def test_quotes_three_ways(scratch):
         check("304: each way the button saved is read back the same after a restart, the button drawn in it",
               back == [["short", "short", "true"], ["full", "full", "true"], ["off", "off", "false"]], str(back or err))
 
-        # ── B: the button itself opens the menu
-        way_b = js.replace("const TH_QUOTES_CONTROL = 'cycle';", "const TH_QUOTES_CONTROL = 'menu';", 1)
-        ob, err = run_node(node, scratch, "quotes-three-b-304.js", support.i18n_js() + STUBS + way_b + SCENARIO)
-        check("304: in node, with the control set to B a click on the button opens the menu and saves nothing, a "
-              "second click closes it and a third opens it again, and in A a click never opens it",
-              ob is not None and ob["cycle"]["control"] == "menu" and ob["cycle"]["saved"] == []
-              and ob["cycle"]["menus"] == [True, False, True] and c["menus"] == [False, False, False],
-              str(ob["cycle"] if ob else err))
+        # way B, the button opening the menu, went with viewfix: every button of more than two states cycles, its menu
+        # on a right click or a press held (cycleWire, area 423)
 
         f = o["frames"]
         off, short, full = f["off"], f["short"], f["full"]

@@ -20,7 +20,7 @@ A personal experiential theme (PET) is a cluster of one participant's experienti
 
 ## 3. Rules for a theme
 
-1. Three to five themes for a case, six only with a reason. The table tells the three to five most important things the case says (Smith & Nizza, 2022, ch. 4). A finished case in this project placed about two thirds of its statements in five themes, one of them with sub-themes.
+1. Three to five themes for a participant, six only with a reason. The table tells the three to five most important things the participant says (Smith & Nizza, 2022, ch. 4). A finished participant in this project had about two thirds of their statements placed in five themes, one of them with sub-themes.
 2. A theme holds more than one statement, since a theme is a pattern. Fold a lone statement into its nearest theme, widen a title to hold it, or let it drop (Smith & Nizza, 2022, ch. 4).
 3. Each statement sits in one theme, so the table stays an evidence trail from title to timecode (Smith et al., 2022, pp. 95–97).
 4. Discard only what does not answer the research question. What goes depends on the question and its scope (Smith et al., 2022, p. 90), and a statement unrelated to the others and doing no analytic work drops (Smith & Nizza, 2022, ch. 4). Awkward or negative material is no reason. Record why each goes.
@@ -55,7 +55,7 @@ A group experiential theme (GET) is a pattern of shared and distinctive features
 5. This GET sits under the minimum: does its material show its weight, and is the decision to keep it made openly?
 6. Does this GET rest on how often something recurs, when the material in each case is thin?
 7. Is a sub-theme or a statement doing work that a GET of its own might hold, or does material from several cases make a GET no PET named?
-8. Are the negative, unresolved or incomplete trajectories here, or have they been left in Not placed?
+8. Are the negative, unresolved or incomplete trajectories here, or have they been left in Unplaced?
 9. These two GETs share a core: are they one GET with two facets?
 10. Does this title speak in the participants' language, or in the researcher's theory, jargon or metaphor?
 11. Does this title claim a cause or an explanation?

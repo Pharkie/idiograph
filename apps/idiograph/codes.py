@@ -1101,7 +1101,7 @@ def quick(root: Path, books: list[dict], how: str, case: str, sheet: str, row, w
     quote = themes.quoted(q)
     book = Path(p["workbook"])
     text, speaker, time = passage_text(book, sheet, int(row))
-    interviewer = wb_mod.interviewer_name()
+    interviewer = wb_mod.interviewer_name(book)
     if interviewer and speaker.casefold() == interviewer.strip().casefold():
         raise WorkbookError(i18n.t("codes.quick_interviewer"))
     if not wb_mod.quote_reach(quote, [text]):

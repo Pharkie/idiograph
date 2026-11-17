@@ -81,6 +81,8 @@
   "codes.said.undone": "Undone: {what}",
   "codes.said.redone": "Done again: {what}",
   "codes.tab": "Code list",
+  "codes.guidance_title": "Code list guidance",
+  "codes.guidance_head": "Working on your codes",
   "codes.tab_tip": "Every code of the project with its extracts",
   "codes.search": "Search the codes",
   "codes.total": "{codes}, {extracts}",

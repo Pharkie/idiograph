@@ -200,11 +200,14 @@ def test_interviewer_notes(scratch):
     saved = (server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY)
     server_mod.ROOT_OVERRIDE = str(root)
     server_mod.STATE_MEMORY = {"recent": []}
+    # the project's own interviewer in its file, as every project made since viewfix holds it (a new install's
+    # settings hold none)
+    (root / server_mod.PROJECT_FILE).write_text(json.dumps({"interviewer": him}), encoding="utf-8")
     try:
-        check("140: the route is there, and takes the interviewer named in the settings",
+        check("140: the route is there, and takes the project's interviewer (viewbuild)",
               server_mod.ROUTES.get("/api/interviewer-note") is idiograph_routes.api_interviewer_note
-              and server_mod.config()["interviewer"].strip().lower() == him.strip().lower()
-              and 'config()["interviewer"]' in inspect.getsource(idiograph_routes.api_interviewer_note)
+              and idiograph_routes.interviewer_for(routed).strip().lower() == him.strip().lower()
+              and "interviewer_for(path)" in inspect.getsource(idiograph_routes.api_interviewer_note)
               and "with writing(path):" in inspect.getsource(idiograph_routes.api_interviewer_note))
         answer = idiograph_routes.api_interviewer_note({"path": str(routed), "sheet": DEMO_SHEET, "row": first,
                                                   "text": "Moved her on\nToo soon"})

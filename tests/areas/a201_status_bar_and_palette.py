@@ -37,20 +37,21 @@ def test_status_bar_and_palette(scratch):
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE = cfg, None
         server_mod.STATE_MEMORY = {"recent": []}
         fresh = server_mod.merge_config({})
-        check("201: on a new install the status bar is on with every count, and the palette has no place kept, which "
-              "is its place at the left",
-              fresh["status_bar"] is True and fresh["status_counts"] == ["pets", "placed", "stacked", "binned", "unplaced", "loose"]
-              and fresh["palette_place"] is None, str({k: fresh[k] for k in ("status_bar", "status_counts", "palette_place")}))
+        # the status bar is always there since viewbuild (17 November 2026), its on and off setting gone
+        check("201: on a new install the status bar has every count and no on or off setting, and the palette has no "
+              "place kept, which is its place at the left",
+              "status_bar" not in fresh and fresh["status_counts"] == ["pets", "placed", "stacked", "binned", "unplaced", "loose"]
+              and fresh["palette_place"] is None, str({k: fresh.get(k) for k in ("status_bar", "status_counts", "palette_place")}))
 
         server_mod.api_settings({"status_bar": False})
         server_mod.api_settings({"status_counts": ["stacked", "unplaced", "placed", "unplaced", "nothing"]})
         server_mod.api_settings({"palette_place": {"edge": "right", "y": 0.62}})
         saved = json.loads(cfg.read_text(encoding="utf-8"))
         restarted = server_mod.merge_config(saved)
-        check("201: the bar turned off, its counts picked and the palette moved are each kept in the settings file, "
-              "the interviewer beside them, and read back so after a restart, the counts each once in the bar's order",
-              saved.get("status_bar") is False and saved.get("interviewer") == "Adam"
-              and restarted["status_bar"] is False and restarted["status_counts"] == ["placed", "stacked", "unplaced"]
+        check("201: a status_bar sent is passed over, the counts picked and the palette moved are each kept in the settings "
+              "file, the interviewer beside them, and read back so after a restart, the counts each once in the bar's order",
+              "status_bar" not in saved and saved.get("interviewer") == "Adam"
+              and "status_bar" not in restarted and restarted["status_counts"] == ["placed", "stacked", "unplaced"]
               and restarted["palette_place"] == {"edge": "right", "y": 0.62}, str(saved))
 
         server_mod.api_settings({"status_bar": True, "palette_place": None})
@@ -59,8 +60,8 @@ def test_status_bar_and_palette(scratch):
         clamped = idiograph_routes.palette_place({"edge": "left", "y": 7})
         check("201: on again, and the palette's place given up, it is back at the left, and a settings file holding "
               "anything else reads as a new install's, a place past the foot held at the foot",
-              back["status_bar"] is True and back["palette_place"] is None and back["status_counts"] == ["placed", "stacked", "unplaced"]
-              and odd["status_bar"] is True and odd["status_counts"] == ["pets", "placed", "stacked", "binned", "unplaced", "loose"]
+              back["palette_place"] is None and back["status_counts"] == ["placed", "stacked", "unplaced"]
+              and "status_bar" not in odd and odd["status_counts"] == ["pets", "placed", "stacked", "binned", "unplaced", "loose"]
               and odd["palette_place"] is None and clamped == {"edge": "left", "y": 1.0}, f"{back} {odd} {clamped}")
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY = kept
@@ -88,9 +89,10 @@ def test_status_bar_and_palette(scratch):
     check("201: in node, right after a bin, the last unplaced is binned",
           o["bin"] == ["2 PETs", "3 in PETs", "1 stacked", "1 set aside", "0 unplaced"], str(o["bin"]))
     check("201: in node, the bar draws the counts the settings pick, in its order, with no total while a stacked "
-          "statement is in no count picked (area 264), and with the bar off it shows none and the canvas loses its status class",
+          "statement is in no count picked (area 264), and a file's old `status_bar` false leaves it as it is, the bar "
+          "always there since viewbuild (17 November 2026)",
           o["drawn"] == ["sum", "placed", "binned"] and o["drawnText"] == "ES: 3 in PETs, 1 set aside"
-          and o["off"] == {"text": "", "on": False}, str({k: o[k] for k in ("drawn", "drawnText", "off")}))
+          and o["off"] == {"text": "ES: 3 in PETs, 1 set aside", "on": True}, str({k: o[k] for k in ("drawn", "drawnText", "off")}))
     check("201: in node, the GETs board counts GETs and the cards in them, a participant note never one, and has no "
           "stacked count",
           o["gets"] == ["1 GET", "1 in GETs", "0 set aside", "1 unplaced"], str(o["gets"]))
@@ -98,7 +100,7 @@ def test_status_bar_and_palette(scratch):
           "its top kept as a share of the room, held between the top and the foot",
           o["drop"] == [{"edge": "right", "y": 0.5}, {"edge": "left", "y": 0}, {"edge": "left", "y": 1}], str(o["drop"]))
     check("201: in node, a place kept in the settings is where it is drawn, and none puts it at the left",
-          o["placed"] == {"right": True, "left": "", "rightPx": "16px", "top": "220px"}
+          o["placed"] == {"right": True, "left": "", "rightPx": "16px", "top": "205px"}  # the status bar always there since viewbuild, its room kept
           and o["home"]["right"] is False and o["home"]["left"] == "16px", str({k: o[k] for k in ("placed", "home")}))
 
     # ── the bar's steps as it runs short (Adam, 26 October 2026): the tools' words first, then any count beyond the

@@ -49,10 +49,10 @@ def test_minimap_corner(scratch):
           and "if (e.key === 'm' || e.key === 'M') { e.preventDefault(); thMapToggle(); return; }" in themes_js
           and "minimapToggle" not in themes_js and "'m'" in sift_js,
           str(keys))
-    check("169: the button and m go through one show and hide, the View choice through its own, and the card's wheel is "
-          "not passive so it can scroll the column",
+    check("169: the card's button and m go through one show and hide, the status bar's Minimap through Auto, On and "
+          "Off (viewfix, cycleWire), and the card's wheel is not passive so it can scroll the column",
           "$('minimap-btn').addEventListener('click', () => minimapToggle());" in app
-          and "else if (e.target.name === 'view-minimap' && e.target.checked) minimapChoose(e.target.value);" in app
+          and "cycleWire($('es-map-btn'), MINIMAP_CYCLE);" in app and "set: (mode) => minimapChoose(mode)," in app
           and "$('minimap').addEventListener('wheel', minimapWheel, { passive: false });" in app
           and "$('minimap-area').addEventListener('pointerleave', () => minimapTip(null));" in app
           and "return setView('minimap', mode);" in whole("minimapChoose"))
@@ -66,14 +66,17 @@ def test_minimap_corner(scratch):
                  "minimapWanted", "minimapShown", "minimapYield", "minimapBand", "minimapButtonBand", "minimapWake", "minimapRest", "minimapLeave", "minimapScrolled",
                  "minimapPoint", "minimapRowAt", "minimapTo", "minimapDown", "minimapMove", "minimapUp", "minimapHover",
                  "minimapTip", "minimapWheel", "minimapToggle", "minimapChoose", "columnsOf", "largerPassage", "drawView",
-                 "drawViewMenu", "setView",
+                 "drawViewMenu", "setView", "minimapButton",
                  # the columns shown and the stacking since 18 October (186), which drawView and Settings read
                  "columnsHiddenOf", "stackSplitOf", "columnsLayout"]
         consts = ["MINIMAP_MODES", "MINIMAP_ROOM", "MINIMAP_LEAST", "MINIMAP_GAP", "MINIMAP_MARK", "MINIMAP_FINE", "MINIMAP_AT", "MINIMAP_BOX",
                   "MINIMAP_APART", "MINIMAP_AWAKE", "MINIMAP_NARROW", "MINIMAP_CLEAR", "mmPx", "minimapWords",
-                  "COLUMNS", "isColumns", "viewConfig", "HIDEABLE_COLUMNS", "STACK_SPLIT", "STACK_RANGE", "colsTicked"]
-        view_choice = app[app.index("const viewChoice = "):app.index("\n});", app.index("const viewChoice = ")) + 4]
-        source = "\n".join([const(c) for c in consts] + [view_choice, "let minimapSleep = 0;"] + [whole(n) for n in names])
+                  "COLUMNS", "isColumns", "viewConfig", "HIDEABLE_COLUMNS", "STACK_SPLIT", "STACK_RANGE", "colsTicked",
+                  "MINIMAP_TIPS"]
+        # View's rounds and nudges since viewbuild (17 November 2026), no project's nudges here
+        stubs = ("const roundsOn = (cfg) => !!(cfg && cfg.work_in_rounds); const project = () => null; "
+                 "const menuRoles = () => {}; const t = (k) => k;")
+        source = "\n".join([const(c) for c in consts] + [stubs, "let minimapSleep = 0;"] + [whole(n) for n in names])
         script = scratch / "minimap-169.js"
         script.write_text(r"""
 const els = {};
@@ -83,7 +86,7 @@ const document = { activeElement: null, body: {}, elementsFromPoint: () => [] };
 const box4 = (left, top, right, bottom) => ({ left, top, right, bottom, width: right - left, height: bottom - top });
 const cls = () => ({ on: new Set(), toggle(c, v) { if (v === undefined) v = !this.on.has(c); if (v) this.on.add(c); else this.on.delete(c); return v; },
   add(c) { this.on.add(c); }, remove(c) { this.on.delete(c); }, contains(c) { return this.on.has(c); } });
-const mk = (id) => ({ id, checked: false, hidden: false, value: '', innerHTML: '', style: {}, classList: cls(), attrs: {},
+const mk = (id) => ({ id, checked: false, hidden: false, value: '', innerHTML: '', style: {}, classList: cls(), attrs: {}, dataset: {},
   offsetHeight: 0, offsetWidth: 0, captured: [],
   setAttribute(k, v) { this.attrs[k] = String(v); }, setPointerCapture(p) { this.captured.push(p); },
   getBoundingClientRect: () => box4(933, 447, 1058, 737) });
@@ -286,7 +289,7 @@ const out = {};
   // alone, View and Settings in step, any opening or hiding of his gone with it
   S.data = { config: {} }; S.libConfig = { minimap: 'auto' }; drawView();
   const state = () => ({ on: $('work').classList.contains('minimap-on'), always: $('work').classList.contains('minimap-always'),
-    menu: MINIMAP_MODES.filter((m) => $(`view-minimap-${m}`).checked), cfg: S.data.config.minimap === undefined ? null : S.data.config.minimap });
+    menu: MINIMAP_MODES.filter((m) => ($('es-map-btn').dataset || {}).minimap === m), cfg: S.data.config.minimap === undefined ? null : S.data.config.minimap });
   out.fresh = state();
   $('work').classList.add('minimap-peek'); S.mmHush = true;
   sent.length = 0; await minimapChoose('on'); out.chosenOn = Object.assign(state(), { peek: $('work').classList.contains('minimap-peek'), hush: S.mmHush, lib: S.libConfig.minimap });
@@ -295,13 +298,7 @@ const out = {};
   minimapToggle(); out.offToggle = $('work').classList.contains('minimap-peek');
   TIMERS = []; await minimapChoose('auto'); out.chosenAuto = Object.assign(state(), { awake: S.mmAwake, timers: TIMERS.map((t) => t.ms) });
   out.sent = sent.slice();
-  for (const m of MINIMAP_MODES) $(`set-minimap-${m}`).checked = minimapMode(S.data.config) === m;
-  // the columns shown under Show since 18 October (186), where the columns' order stood
-  $('set-show-statements').checked = true; $('set-show-notes').checked = true;
-  $('set-larger').checked = largerPassage(S.data.config);
-  out.settings = viewChoice();
-  $('set-minimap-auto').checked = false; $('set-minimap-on').checked = true;
-  out.settingsMoved = viewChoice().minimap;
+
   S.data.config.minimap = true; drawView(); out.oldTrue = state();
   S.data.config.minimap = false; drawView(); out.oldFalse = state();
   console.log(JSON.stringify(out));
@@ -405,15 +402,14 @@ const out = {};
             check("169, 17 October, later: in node, Auto on a new install and for the old tick's true, Off for its false, "
                   "each choice drawn at once in View and sent alone, an opening or hiding of his gone with it, Off with "
                   "nothing in the corner and the button and m doing nothing, Auto shown at once and left to sleep, and "
-                  "Settings in step, its choice moved what Save sends",
+                  "Settings no longer holding a copy of it (viewbuild)",
                   out["fresh"] == {"on": True, "always": False, "menu": ["auto"], "cfg": None}
                   and out["chosenOn"] == {"on": True, "always": True, "menu": ["on"], "cfg": "on", "peek": False, "hush": False, "lib": "on"}
                   and out["chosenOff"] == {"on": False, "always": False, "menu": ["off"], "cfg": "off", "wanted": False}
                   and out["offCard"] == {"off": True, "room": ["--mm-room", ""]} and out["offToggle"] is False
                   and out["chosenAuto"] == {"on": True, "always": False, "menu": ["auto"], "cfg": "auto", "awake": True, "timers": [2000]}
                   and out["sent"] == [{"minimap": "on"}, {"minimap": "off"}, {"minimap": "auto"}]
-                  and out["settings"] == {"columns_hidden": [], "columns_stacked": False, "larger_passage": True, "minimap": "auto", "status_bar": False}
-                  and out["settingsMoved"] == "on"
+
                   and out["oldTrue"]["menu"] == ["auto"] and out["oldTrue"]["on"] is True
                   and out["oldFalse"] == {"on": False, "always": False, "menu": ["off"], "cfg": False},
-                  str({k: out[k] for k in ("fresh", "chosenOn", "chosenOff", "chosenAuto", "settings")}))
+                  str({k: out[k] for k in ("fresh", "chosenOn", "chosenOff", "chosenAuto")}))

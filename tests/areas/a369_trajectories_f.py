@@ -1083,7 +1083,8 @@ def _keys_in_browser():
     traj = "<section id=\"traj\"" + page.split("<section id=\"traj\"", 1)[1].split("</section>", 1)[0] + "</section>"
     css = "\n".join(support.text(p) for p in ("family/static/tokens.css", "family/static/style.css", "family/static/frame.css",
                                               "apps/idiograph/static/distil.css", "apps/idiograph/static/themes.css"))
-    js = support.text("apps/idiograph/static/trajectories.js")
+    # with distil.js's cycling buttons, which Trajectories' Quotes is wired through since viewfix
+    js = support.cycle_js() + support.text("apps/idiograph/static/trajectories.js")
     with tempfile.TemporaryDirectory(prefix="idiograph-369-") as tmp:
         doc = ("<!doctype html><html><head><meta charset=\"utf-8\"><style>" + css + "</style></head><body>" + traj
                + "<pre id=\"out\">none</pre><script>" + support.i18n_js("idiograph") + KEYS_DRIVER + js + KEYS_AFTER

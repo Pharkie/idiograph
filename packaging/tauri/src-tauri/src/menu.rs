@@ -116,9 +116,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
         &item(app, "zoom-in", &t("menus.bigger_text"), Some("CmdOrCtrl+NumpadAdd"))?,
         &item(app, "zoom-out", &t("menus.smaller_text"), Some("CmdOrCtrl+-"))?,
         &item(app, "zoom-actual", &t("menus.actual_size"), Some("CmdOrCtrl+0"))?,
-        &sep()?,
-        // the PETs and GETs boards' status bar on or off, as Settings' View turns it (19 October)
-        &item(app, "status-bar", &t("menus.status_bar"), None)?,
+        // the boards' status bar is always there since viewbuild (17 November 2026), so Status Bar went
         &sep()?,
         &item(app, "reload", &t("menus.reload"), Some("CmdOrCtrl+R"))?,
         &sep()?,
@@ -210,8 +208,6 @@ fn build_bar(app: &AppHandle, label: &str) -> tauri::Result<Menu<Wry>> {
         &keyed(app, "zoom-in", &t("menus.win_bigger_text"), "Ctrl+NumpadAdd")?,
         &keyed(app, "zoom-out", &t("menus.win_smaller_text"), "Ctrl+-")?,
         &item(app, "zoom-actual", &t("menus.win_actual_size"), Some("Ctrl+0"))?,
-        &sep()?,
-        &item(app, "status-bar", &t("menus.win_status_bar"), None)?,
         &sep()?,
         &item(app, "reload", &t("menus.win_reload"), Some("Ctrl+R"))?,
     ])?;

@@ -204,6 +204,14 @@ def node_text_layer(scratch: Path) -> None:
 _NODE_OPTIONS: dict = {}
 
 
+def cycle_js() -> str:
+    """distil.js's status bar buttons of more than two states (viewfix, `cycleWire` and its menu), which the boards'
+    and Trajectories' scripts call, for a node harness that runs one of those scripts without distil.js."""
+    js = text("apps/idiograph/static/distil.js")
+    at = js.index("const CYCLE_HOLD = 550;")
+    return js[at:js.index("// the minimap's three ways", at)] + "\n"
+
+
 def run_node(script: str, scratch: Path, name: str = "node-run.js", timeout: int = 30):
     """`script` run by node from a file of its own in the area's scratch, never on node's command line with
     -e: a script carrying the catalogue (i18n_js) runs past Windows's 32,767 characters there, WinError 206

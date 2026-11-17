@@ -264,12 +264,36 @@ function trajGuideSet(open, keep = true) {
   trajGuideDraw();
 }
 
+/* Guidance on the bar, as on every screen (viewbuild, 17 November 2026), the right sidebar's Guidance. No View
+   (viewfix, Adam's ruling of 17 November 2026 about 12:40): Quotes and Notes are on the status bar alone */
+function trajViewWire() {
+  if (!$('tj-guide-btn')) return;
+  $('tj-guide-btn').addEventListener('pointerdown', (e) => e.preventDefault());
+  $('tj-guide-btn').onclick = () => trajGuideSet(!TJ.guideOpen);
+}
+
+/* The key quotes' Off, Short and Full on the status bar's Quotes, a click the next, a right click or a press held
+   their menu, as every status bar button of more than two states (viewfix, cycleWire in distil.js) */
+const TJ_QUOTES_CYCLE = {
+  ways: TJ_QUOTES_WAYS,
+  now: () => tjQuotesWay(),
+  set: (way) => trajSetting('traj_quotes', way),
+  head: () => t('page_idiograph.screens.quotes'),
+  row: (way) => t(TH_QUOTES_ROWS[way]),
+  bar: () => $('tj-status'),
+};
+
 function trajGuideDraw() {
   const side = $('tj-guide');
   const b = $('tj-open-guide');
   if (!side || !b) return;
   const name = t('page_idiograph.screens.guidance');
   side.hidden = !TJ.guideOpen;
+  // and the bar's Guidance pressed while it shows (viewbuild)
+  if ($('tj-guide-btn')) {
+    $('tj-guide-btn').classList.toggle('on', TJ.guideOpen);
+    $('tj-guide-btn').setAttribute('aria-expanded', String(TJ.guideOpen));
+  }
   b.classList.toggle('on', TJ.guideOpen);
   b.setAttribute('aria-pressed', String(TJ.guideOpen));
   b.title = TJ.guideOpen ? t('themes.side.hide', { name }) : t('themes.side.show', { name });
@@ -1097,7 +1121,7 @@ function trajWire() {
     setInterval(() => trajStampTick(), 4 * 1000);
   }
   $('tj-feedback').onclick = () => openFeedback('gets');
-  $('tj-settings').onclick = () => openSettings('pets');
+  $('tj-settings').onclick = () => openSettings();
   for (const [id, step] of [['tj-step-es', 'statements'], ['tj-step-pets', 'pets'], ['tj-step-lpets', 'lpets'],
     ['tj-step-gets', 'gets'], ['tj-step-lgets', 'lgets']]) {
     $(id).onclick = () => trajStep(step);
@@ -1108,6 +1132,7 @@ function trajWire() {
   $('tj-side-close').onclick = () => trajSideSet(false);
   $('tj-open-guide').addEventListener('pointerdown', (e) => e.preventDefault());
   $('tj-open-guide').onclick = () => trajGuideSet(!TJ.guideOpen);
+  trajViewWire();
   trajExportWire();
   // Undo and Redo, a press leaving the focus where it was, as the boards' do, and their keys anywhere on the screen
   // but in a field, whose own undo they stay (the Mac's Edit menu presses the same keys)
@@ -1121,7 +1146,8 @@ function trajWire() {
     e.preventDefault();
     trajUndo(!e.shiftKey && !REDO_Y(e));
   });
-  $('tj-quotes-btn').onclick = () => trajSetting('traj_quotes', TJ_QUOTES_WAYS[(TJ_QUOTES_WAYS.indexOf(tjQuotesWay()) + 1) % TJ_QUOTES_WAYS.length]);
+  TJ_QUOTES_CYCLE.menu = $('tj-qmenu');
+  cycleWire($('tj-quotes-btn'), TJ_QUOTES_CYCLE);
   $('tj-notes-btn').onclick = () => trajSetting('traj_notes', !tjNotesOn());
   $('tj-picture-file').addEventListener('change', (e) => {
     const file = e.target.files && e.target.files[0];

@@ -259,7 +259,7 @@ const shown = () => ({ pick: !$('home-pick').hidden, page: !$('home-project').hi
           "on PETs (settingsplit), Sift's cog on Sift, the searches' cogs in place, the home screen's Settings, and the "
           "band's link Project settings",
           "$('btn-settings').onclick = () => openSettings();" in app
-          and "$('th-settings').onclick = () => openSettings('pets');" in fn(tjs, "gtScreen")
+          and "$('th-settings').onclick = () => openSettings();" in fn(tjs, "gtScreen")
           and "$('sf-settings').onclick = () => openSettings('sift');" in sjs and "sfSetOpen" not in sjs
           and ssjs.count("openSettings(") == 1 and "$('sfs-settings').onclick = () => openSettings('databases');" in ssjs
           and "openProjectSettings(project())" in app
@@ -296,12 +296,12 @@ const shown = () => ({ pick: !$('home-pick').hidden, page: !$('home-project').hi
                   next(ln for ln in lines if ln.startswith("const onScreen = ")),
                   next(ln for ln in lines if ln.startswith("const PANE_OF = ")), whole(app, "screenPane"), whole(app, "showPane"),
                   # Idiograph's screens' categories through its hook (the fifth build)
-                  "const FAMILY_APPS = {};", whole(app, "distilScreenPane"), support.distil_hooks(app)]
+                  "const FAMILY_APPS = {};", support.distil_hooks(app)]
         script = scratch / "panes-110.js"
         script.write_text(support.i18n_js() +
             "const els = {};\n"
             "const $ = (id) => els[id] || (els[id] = { id, hidden: true, scrollTop: 5 });\n"
-            "const tabs = ['general', 'formats', 'statements', 'pets', 'ai'].map((p) => ({ dataset: { pane: p }, cls: new Set(),\n"
+            "const tabs = ['general', 'formats', 'ai'].map((p) => ({ dataset: { pane: p }, cls: new Set(),\n"
             "  attrs: {}, tabIndex: -1, classList: { toggle(c, on) {} }, setAttribute(k, v) { this.attrs[k] = v; }, focus() {} }));\n"
             "const document = { querySelectorAll: () => tabs };\n"
             + "\n".join(pieces) + "\n"
@@ -317,9 +317,9 @@ const shown = () => ({ pick: !$('home-pick').hidden, page: !$('home-project').hi
             check("110: the categories run in node", False, run.stderr.strip()[:400])
         else:
             o = json.loads(run.stdout)
-            check("110: in node, Settings opens on General over the home screen, Experiential statements over a case, PETs "
-                  "over PETs, Projects over Sift and Databases over its searches",
-                  o["opened"] == ["general", "statements", "pets", "sift", "databases"], str(o["opened"]))
+            check("110: in node, Settings opens on General over the home screen, a case and PETs (Idiograph's Settings the "
+                  "app's own alone since viewbuild), Projects over Sift and Databases over its searches",
+                  o["opened"] == ["general", "general", "general", "sift", "databases"], str(o["opened"]))
             check("110: in node, on Idiograph's page another app's category opens General, ai AI features, a category "
                   "itself, and any other name the screen's own, GETs and Projects among them since they left Settings "
                   "(settingsplit), one pane and one tab shown each time",
@@ -351,7 +351,8 @@ const shown = () => ({ pick: !$('home-pick').hidden, page: !$('home-project').hi
         held = json.loads((pool / server_mod.PROJECT_FILE).read_text(encoding="utf-8"))
         check("110: New project makes `P<n> - Pseudonym` and writes no second part, in the folder or the project file",
               sorted(p.name for p in pool.iterdir() if p.is_dir()) == ["P1 - Fern"] and made["cases"] == ["P1 - Fern"]
-              and "second_part" not in held and set(held) == {"name", "research_question", "updated", "method"}
+              and "second_part" not in held and set(held) == {"name", "research_question", "updated", "method", "nudges",
+                                                                                    "work_in_rounds", "interviewer"}
               and not any(reed in str(p) for p in pool.rglob("*")), str(sorted(held)))
         # his own folder with a second part, as GRAVITY's carry one, built here by concatenation
         two = pool / ("P2 - Moss" + "-" + reed)

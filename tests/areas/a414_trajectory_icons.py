@@ -581,7 +581,7 @@ def notice_checks(scratch: Path):
     from . import a208_table_parity as tp
 
     pieces = TOAST + toast_pieces()
-    traj = support.text("apps/idiograph/static/trajectories.js")
+    traj = support.cycle_js() + support.text("apps/idiograph/static/trajectories.js")
     script = support.i18n_js() + TRAJ_RUN.replace("__PIECES__", pieces).replace("__TRAJ__", traj)
     run = support.run_node(script, scratch, "notice-414-traj.js", timeout=60)
     got = json.loads(run.stdout) if run.returncode == 0 and run.stdout.strip() else {}

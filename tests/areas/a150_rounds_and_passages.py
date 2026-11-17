@@ -49,38 +49,31 @@ def test_rounds_and_passages(scratch):
     saved = server_mod.CONFIG_PATH
     server_mod.CONFIG_PATH = scratch / "rounds-150-config.json"
     try:
-        server_mod.CONFIG_PATH.write_text(json.dumps({"interviewer": "Adam", "round_minutes": 15}), encoding="utf-8")
+        # since viewfix (17 November 2026) Work in rounds is a project's own, so Settings' Save leaves the file's as
+        # it was, the value a project from before reads (area 423)
+        server_mod.CONFIG_PATH.write_text(json.dumps({"work_in_rounds": True, "round_minutes": 15}), encoding="utf-8")
         before = server_mod.config()["work_in_rounds"]
-        on = server_mod.api_settings({"interviewer": "Adam", "work_in_rounds": True})["config"]
-        on_disk = json.loads(server_mod.CONFIG_PATH.read_text(encoding="utf-8"))
-        kept = server_mod.api_settings({"interviewer": "Adam"})["config"]
-        off = server_mod.api_settings({"work_in_rounds": False})["config"]
+        off = server_mod.api_settings({"work_in_rounds": False, "round_minutes": 30})["config"]
         off_disk = json.loads(server_mod.CONFIG_PATH.read_text(encoding="utf-8"))
-        read_back = server_mod.config()
     finally:
         server_mod.CONFIG_PATH = saved
-    check("150: Save writes the tick as it stands and reads it back, a save without it keeping it, the rest of the file "
-          "as it was",
-          before is False and on["work_in_rounds"] is True and on_disk["work_in_rounds"] is True
-          and kept["work_in_rounds"] is True and off["work_in_rounds"] is False and off_disk["work_in_rounds"] is False
-          and read_back["work_in_rounds"] is False and off_disk["round_minutes"] == 15,
-          f"{before} {on_disk.get('work_in_rounds')} {off_disk.get('work_in_rounds')} {off_disk.get('round_minutes')}")
+    check("150: Settings' Save no longer takes Work in rounds or its minutes, the project's own since viewfix, the file's "
+          "kept as it was", before is True and off["work_in_rounds"] is True and off_disk["work_in_rounds"] is True
+          and off_disk["round_minutes"] == 15, f"{before} {off_disk}")
 
-    # ── B. Settings, Distil: the tick above its two fields, which show only while it is ticked
-    check("150: the card ticks it from the settings, an absent key unticked, shows the two fields only while it is "
-          "ticked and sends it with every Save",
-          "$('set-rounds').checked = roundsOn(c);" in body("openSettings")
-          and "$('rounds-fields').hidden = !$('set-rounds').checked;" in body("openSettings")
-          and "$('set-rounds').onchange = () => {\n    $('rounds-fields').hidden = !$('set-rounds').checked;" in app
-          and "work_in_rounds: $('set-rounds').checked," in body("saveSettings")
+    # ── B. the statements screen's View since viewbuild (17 November 2026), where Settings held it: the tick above its
+    # two numbers, shown only while it is ticked, kept at once, and a change drawing the screen again in place
+    check("150: View ticks it from the settings, an absent key unticked, shows the two numbers only while it is ticked "
+          "and keeps a change at once",
+          "$('view-rounds').checked = rounds;" in whole("drawViewMenu") and "$('view-round-nums').hidden = !rounds;" in whole("drawViewMenu")
+          and "if (!(await viewRoundsSave({ work_in_rounds: !!on }))) return;" in whole("viewRounds")
           and whole("roundsOn") == "function roundsOn(cfg) { return !!(cfg && cfg.work_in_rounds); }")
-    check("150: a Save over the screen that turns it draws the bar, the markers and the count again in place, a "
-          "field typed into saved first, and over PETs the case reopens on the way back",
-          "const turned = paced !== roundsOn(data.config);" in body("saveSettings")
-          and "if (ctx.themes) { if (recut || turned) S.recut = true; }" in body("saveSettings")
-          and "if (S.dirty && current()) await commit(current(), false);" in body("saveSettings")
-          and "drawRoundsShown();\n      drawTurn({ keepPlayer: true });" in body("saveSettings")
-          and "say(roundsOn(data.config) ? t('distil.settings.rounds_reopening') : t('distil.settings.reopening'));" in body("saveSettings"))
+    check("150: a change in View draws the bar, the markers and the count again in place, a field typed into saved first, "
+          "and new minutes open the participant again",
+          "if (S.dirty && current()) await commit(current(), false);" in whole("viewRounds")
+          and "drawRoundsShown();\n  drawTurn({ keepPlayer: true });" in whole("viewRounds")
+          and "say(roundsOn(S.data.config) ? t('distil.settings.rounds_reopening') : t('distil.settings.reopening'));"
+          in whole("viewRoundNumber"))
 
     # ── D. in node: the bar, the markers, the count, the card, the close, the days and the haul
     node = shutil.which("node")

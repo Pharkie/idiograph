@@ -513,15 +513,25 @@
        minimap's Auto, On and Off as three radio rows under its name, each row ticking from the whole of
        it and each change drawn at once and kept in config.json. Esc closes it, and so does a click
        elsewhere. The notes' three places stood first in it until 17 October, when the three columns
-       and their order under Columns took their place -->
+       and their order under Columns took their place. Since viewbuild (Adam, 17 November 2026: a screen's own
+       settings live in its View) Work in rounds with its two numbers beside their labels, shown while it is
+       ticked, and the project's nudges, each with its info mark, an IPA project's alone, from Settings -->
+  <!-- the status bar's Minimap's Auto, On and Off, from a right click on it or a press held (viewfix, cycleWire) -->
+  <div class="row-menu th-cpmenu th-qmenu" id="es-mmenu" role="menu" aria-label="{{page_idiograph.work.minimap}}" hidden></div>
   <div class="row-menu view-menu" id="view-menu" role="group" aria-label="{{page_idiograph.work.view}}" hidden>
     <label class="view-row"><input type="checkbox" id="view-larger"> {{page_idiograph.work.larger_current_passage}}</label>
     <div class="row-menu-rule" role="separator"></div>
-    <div class="view-head" id="view-minimap-head">{{page_idiograph.work.minimap}}</div>
-    <div role="radiogroup" aria-labelledby="view-minimap-head">
-      <label class="view-row"><input type="radio" name="view-minimap" id="view-minimap-auto" value="auto"> {{page_idiograph.work.auto}}</label>
-      <label class="view-row"><input type="radio" name="view-minimap" id="view-minimap-on" value="on"> {{page_idiograph.work.on}}</label>
-      <label class="view-row"><input type="radio" name="view-minimap" id="view-minimap-off" value="off"> {{page_idiograph.work.off}}</label>
+    <label class="view-row"><input type="checkbox" id="view-rounds"> {{page_idiograph.settings_pane.work_rounds}}</label>
+    <div class="view-nums" id="view-round-nums" hidden>
+      <label class="view-num"><span>{{page_idiograph.settings_pane.transcript_minutes_per_round}}</span><input type="number"
+             id="view-minutes" min="1" max="60" step="1" inputmode="numeric"></label>
+      <label class="view-num"><span>{{page_idiograph.settings_pane.rounds_day}}</span><input type="number"
+             id="view-target" min="1" max="20" step="1" inputmode="numeric"></label>
+    </div>
+    <div id="view-nudges-block">
+      <div class="row-menu-rule" role="separator"></div>
+      <div class="view-head" id="view-nudges-head">{{page_idiograph.settings_pane.nudges}}</div>
+      <div role="group" aria-labelledby="view-nudges-head" id="view-nudges"></div>
     </div>
   </div>
 
@@ -617,6 +627,12 @@
          hidden><button type="button" class="ds-tab-name" id="th-step-trajectories" data-step="trajectories"
          title="{{page_idiograph.screens.trajectories_each_participant_placed}}"><span class="tab-w" data-bold="{{page_idiograph.screens.trajectories}}">{{page_idiograph.screens.trajectories}}</span></button></span></nav>
     <span class="rail-grow"></span>
+    <!-- Guidance, the board's own, first of the tools as on the statements screen (viewbuild, Adam, 17 November
+         2026), the sidebar opened on its Guidance tab. No View: what it held is on the status bar (viewfix) -->
+    <button class="rail-btn bar-tool" id="th-guide" type="button" title="{{page_idiograph.work.guidance}}" aria-label="{{page_idiograph.work.guidance}}" aria-controls="th-side" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 6.8C10.2 5.5 7.7 4.8 4.5 4.8v13c3.2 0 5.7.7 7.5 2 1.8-1.3 4.3-2 7.5-2v-13c-3.2 0-5.7.7-7.5 2Z"/><path d="M12 6.8v13"/></svg><span class="bar-word" aria-hidden="true">{{page_idiograph.work.guidance}}</span>
+    </button>
+    <span class="rail-sep bar-tools-sep" aria-hidden="true"></span>
     <!-- the tools every bar ends with, in one order: Search, Send feedback and Settings (see The title
          bar in the design notes). Search came on 17 October, This case on PETs and This project on GETs
          (search.js). Shortcuts stood here from 16 October and went to the status bar's right end on 19
@@ -712,6 +728,8 @@
   <!-- the quotes' three ways (30 October): Off, Short and Full, the one in use ticked, from a right click on
        Quotes among the status bar's view tools, or in way B from a click on it -->
   <div class="row-menu th-cpmenu th-qmenu" id="th-qmenu" role="menu" aria-label="{{page_idiograph.screens.quotes_cards}}" hidden></div>
+  <!-- the minimap's Auto, On and Off, from a right click on Minimap or a press held (viewfix, cycleWire) -->
+  <div class="row-menu th-cpmenu th-qmenu" id="th-mmenu" role="menu" aria-label="{{page_idiograph.screens.minimap}}" hidden></div>
   <!-- a quote shown whole (Adam, 19 October, way A of the drawings): a click on the quote on a card opens
        it beside the card, its timecode and, with a recording, its play button, and Show in passage, which does
        what Go to the passage in the card's menu does. Esc or a press anywhere else puts it away -->
@@ -1070,6 +1088,12 @@
          title="{{page_idiograph.screens.trajectories_each_participant_placed}}"><span class="tab-w" data-bold="{{page_idiograph.screens.trajectories}}">{{page_idiograph.screens.trajectories}}</span></button></span></nav>
     <span class="rail-grow"></span>
     <span class="th-save" id="tj-save" role="status" aria-live="polite" hidden></span>
+    <!-- Guidance first of the tools, as on every screen (viewbuild, 17 November 2026), the right sidebar's Guidance.
+         No View: Quotes and Notes are on the status bar (viewfix) -->
+    <button class="rail-btn bar-tool" id="tj-guide-btn" type="button" title="{{page_idiograph.work.guidance}}" aria-label="{{page_idiograph.work.guidance}}" aria-controls="tj-guide" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 6.8C10.2 5.5 7.7 4.8 4.5 4.8v13c3.2 0 5.7.7 7.5 2 1.8-1.3 4.3-2 7.5-2v-13c-3.2 0-5.7.7-7.5 2Z"/><path d="M12 6.8v13"/></svg><span class="bar-word" aria-hidden="true">{{page_idiograph.work.guidance}}</span>
+    </button>
+    <span class="rail-sep bar-tools-sep" aria-hidden="true"></span>
     <!-- Search and Send feedback, which this bar lacked until option C of the bars (26 October 2026), before
          Settings as on every bar -->
     <button class="rail-btn bar-tool" id="tj-search" type="button" title="{{page_idiograph.screens.search_cmd_f}}" aria-label="{{page_idiograph.screens.search}}"
@@ -1107,6 +1131,8 @@
     <button type="button" class="th-pal-btn" id="tj-undo" tabindex="-1" title="{{page_idiograph.screens.undo_cmd_z}}" aria-label="{{page_idiograph.screens.undo}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8.5 5.5 4 10l4.5 4.5"/><path d="M4 10h10.5a5 5 0 0 1 0 10H10"/></svg><span class="th-pal-word">{{page_idiograph.screens.undo}}</span></button>
     <button type="button" class="th-pal-btn" id="tj-redo" tabindex="-1" title="{{page_idiograph.screens.redo_shift_cmd_z}}" aria-label="{{page_idiograph.screens.redo}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15.5 5.5 20 10l-4.5 4.5"/><path d="M20 10H9.5a5 5 0 0 0 0 10H14"/></svg><span class="th-pal-word">{{page_idiograph.screens.redo}}</span></button>
   </div>
+  <!-- the key quotes' Off, Short and Full, from a right click on Quotes or a press held (viewfix, cycleWire) -->
+  <div class="row-menu th-cpmenu th-qmenu" id="tj-qmenu" role="menu" aria-label="{{page_idiograph.screens.quotes}}" hidden></div>
   <div class="row-menu th-xmenu" id="tj-xmenu" hidden>
     <button type="button" class="ghost" tabindex="-1" data-xop="print">{{page_idiograph.screens.print}}</button>
     <button type="button" class="ghost" tabindex="-1" data-xop="pdf">{{page_idiograph.screens.save_pdf}}</button>
@@ -1177,6 +1203,13 @@
          title="{{page_idiograph.screens.gets_across_every_participant}}"><span class="tab-w" data-bold="{{page_idiograph.screens.gets}}">{{page_idiograph.screens.gets}}</span></button></span></nav>
     <span class="rail-grow"></span>
     <span class="th-save" id="cd-save" role="status" aria-live="polite" hidden></span>
+    <!-- Guidance, as on every screen (viewfix, the review's M3): the Code list's own lines, ta_codes_guidance.md's,
+         in a sheet over the right of the screen as the statements screen's. No View: nothing of this screen is a
+         display option -->
+    <button class="rail-btn bar-tool" id="cd-guide" type="button" title="{{page_idiograph.work.guidance}}" aria-label="{{page_idiograph.work.guidance}}" aria-controls="cd-guide-sheet" aria-expanded="false" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 6.8C10.2 5.5 7.7 4.8 4.5 4.8v13c3.2 0 5.7.7 7.5 2 1.8-1.3 4.3-2 7.5-2v-13c-3.2 0-5.7.7-7.5 2Z"/><path d="M12 6.8v13"/></svg><span class="bar-word" aria-hidden="true">{{page_idiograph.work.guidance}}</span>
+    </button>
+    <span class="rail-sep bar-tools-sep" aria-hidden="true"></span>
     <button class="rail-btn bar-tool" id="cd-search" type="button" title="{{page_idiograph.screens.search_cmd_f}}" aria-label="{{page_idiograph.screens.search}}"
             aria-haspopup="dialog" aria-expanded="false" aria-controls="search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/></svg><span class="bar-word" aria-hidden="true">{{page_idiograph.screens.search}}</span>
@@ -1224,6 +1257,17 @@
     <div class="cd-open" id="cd-open" aria-live="polite"></div>
   </div>
   <div class="cd-status" id="cd-status"></div>
+  <aside class="guide cd-guide" id="cd-guide-sheet" aria-label="{{page_idiograph.work.guidance}}">
+    <button class="card-close guide-close" id="cd-guide-close" type="button" aria-label="{{page_idiograph.work.close}}" title="{{page_idiograph.work.close_esc}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <h2 class="rail-title">{{codes.guidance_title}}</h2>
+    <div class="guide-craft">
+      <h2 class="section-label">{{codes.guidance_head}}</h2>
+      <ol class="rules" id="cd-rules"></ol>
+      <p class="rules-framing" id="cd-rules-framing" hidden></p>
+    </div>
+  </aside>
   <div class="cd-menu" id="cd-menu" role="menu" hidden></div>
 </section>
 
@@ -1416,60 +1460,17 @@
   </div>
 </div>
 
-<!--part:settings-tab-->
-        <button type="button" role="tab" id="tab-statements" data-pane="statements" aria-controls="pane-statements" data-only="idiograph"
-                aria-label="{{page_idiograph.settings_tab.experiential_statements}}" title="{{page_idiograph.settings_tab.experiential_statements}}"><span class="tab-full">{{page_idiograph.settings_tab.experiential_statements}}</span><span
-                class="tab-short">{{page_idiograph.settings_tab.statements}}</span></button>
-        <button type="button" role="tab" id="tab-pets" data-pane="pets" aria-controls="pane-pets" data-only="idiograph">{{page_idiograph.settings_tab.pets}}</button>
-<!--part:settings-pane-->
-
-        <!-- Experiential statements: the screen's own, the interviewer, Work in rounds, off
-             on a new install, with its two fields only while it is ticked (15 October), and the
-             nudges on a statement as it is typed, each one a tick box with an info mark -->
-        <section class="settings-pane" id="pane-statements" role="tabpanel" aria-labelledby="tab-statements" hidden>
-          <h3 class="pane-title">{{page_idiograph.settings_pane.experiential_statements}}</h3>
-          <div class="setting"><label for="set-interviewer">{{page_idiograph.settings_pane.interviewer_name}}</label><input id="set-interviewer" type="text"></div>
-          <!-- the name documents carry, the print views' foot and Word's author, the interviewer's name while it is empty (31 October) -->
-          <div class="setting"><label for="set-your-name">{{page_idiograph.settings_pane.your_name}}</label><input id="set-your-name" type="text" autocomplete="name"></div>
-          <div class="switches"><label><input type="checkbox" id="set-rounds"> {{page_idiograph.settings_pane.work_rounds}}</label></div>
-          <p class="fineprint rounds-line" id="rounds-line">{{page_idiograph.settings_pane.work_through_transcript_rounds}}</p>
-          <div id="rounds-fields" hidden>
-            <div class="setting"><label for="set-minutes">{{page_idiograph.settings_pane.transcript_minutes_per_round}}</label><input id="set-minutes" type="number" min="1" max="60"></div>
-            <div class="setting"><label for="set-target">{{page_idiograph.settings_pane.rounds_day}}</label><input id="set-target" type="number" min="1" max="20"></div>
-          </div>
-          <!-- View, the same choices as Columns over the statements screen's columns and the View menu on
-               its bar, the minimap's Auto, On and Off among them since 17 October, later, read from the
-               settings as the card opens and written on Save only when one has moved (16 October). Since
-               18 October the columns shown and the statements and notes side by side or stacked, as
-               Columns has them, where the columns' six orders stood, the order a heading's grip's -->
-          <h4 class="pane-sub">{{page_idiograph.settings_pane.view}}</h4>
-          <div class="switches"><label><input type="checkbox" id="set-larger"> {{page_idiograph.settings_pane.larger_current_passage}}</label></div>
-          <h4 class="pane-sub" id="show-sub">{{page_idiograph.settings_pane.show}}</h4>
-          <div class="switches" id="view-set" role="group" aria-labelledby="show-sub">
-            <label><input type="checkbox" id="set-show-statements"> {{page_idiograph.settings_pane.experiential_statements}}</label>
-            <label><input type="checkbox" id="set-show-notes"> {{page_idiograph.settings_pane.exploratory_notes}}</label>
-          </div>
-          <h4 class="pane-sub" id="stack-sub">{{page_idiograph.settings_pane.statements_notes}}</h4>
-          <div class="switches" id="stack-set" role="radiogroup" aria-labelledby="stack-sub">
-            <label><input type="radio" name="set-stack" id="set-side" value="side"> {{page_idiograph.settings_pane.side_side}}</label>
-            <label><input type="radio" name="set-stack" id="set-stacked" value="stacked"> <span id="set-stacked-word">{{page_idiograph.settings_pane.stacked_notes_under_statements}}</span></label>
-          </div>
-          <!-- the columns' widths as their edges were dragged, put back for this screen at once, as Columns'
-               menu has it (20 October) -->
-          <h4 class="pane-sub">{{page_idiograph.settings_pane.column_widths}}</h4>
-          <div class="key-row"><button type="button" class="ghost small" id="set-widths-reset">{{page_idiograph.settings_pane.reset_widths}}</button></div>
-          <h4 class="pane-sub" id="minimap-sub">{{page_idiograph.settings_pane.minimap}}</h4>
-          <div class="switches" id="minimap-set" role="radiogroup" aria-labelledby="minimap-sub">
-            <label><input type="radio" name="set-minimap" id="set-minimap-auto" value="auto"> {{page_idiograph.settings_pane.auto}}</label>
-            <label><input type="radio" name="set-minimap" id="set-minimap-on" value="on"> {{page_idiograph.settings_pane.on}}</label>
-            <label><input type="radio" name="set-minimap" id="set-minimap-off" value="off"> {{page_idiograph.settings_pane.off}}</label>
-          </div>
-          <h4 class="pane-sub">{{page_idiograph.settings_pane.nudges}}</h4>
-          <div id="nudge-switches" class="switches"></div>
-          <!-- the AI's prompt for suggested statements and the test bench under it, moved here from General
-               (the split's third build), shown only while AI features is ticked -->
+<!--part:settings-general-->
+          <!-- Your name, the name documents carry, the print views' foot and Word's author, the project's interviewer's
+               name while it is empty (31 October), first in General since viewbuild (Adam, 17 November 2026: Settings
+               holds the app's own settings alone, General, Language and formats and AI features) -->
+          <div class="setting setting-first"><label for="set-your-name">{{page_idiograph.settings_pane.your_name}}</label><input id="set-your-name" type="text" autocomplete="name"></div>
+<!--part:ai-more-->
+          <!-- Idiograph's AI under AI features since viewbuild (17 November 2026), shown only while the switch is on: the
+               statements' prompt and the test bench under it, then the PETs screen's own model, which were the
+               Experiential statements and PETs categories' until then -->
           <div id="es-ai" data-ai-set>
-          <h4 class="pane-sub">{{page_idiograph.settings_pane.ai}}</h4>
+          <h4 class="pane-sub">{{page_idiograph.settings_pane.experiential_statements}}</h4>
             <div class="setting stacked">
               <label for="set-prompt">{{page_idiograph.settings_pane.experiential_statements_prompt}}</label>
               <textarea id="set-prompt" class="prompt-box" rows="12" spellcheck="false" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"></textarea>
@@ -1507,29 +1508,14 @@
               </div>
             </div>
           </div>
-        </section>
-
-        <!-- PETs: the PETs screen's own, where the on-screen guidance comes from, then under
-             AI its own model for the suggested titles, the Experiential statements one unless another
-             is chosen, and the key when only this screen needs it -->
-        <section class="settings-pane" id="pane-pets" role="tabpanel" aria-labelledby="tab-pets" hidden>
-          <h3 class="pane-title">{{page_idiograph.settings_pane.pets}}</h3>
-          <p class="fineprint">{{page_idiograph.settings_pane.guidance_file_html}}</p>
-          <!-- View: the PETs and GETs boards' status bar along the foot, on unless turned off, as View's Status
-               Bar turns it in Idiograph's own window, written on Save only when it has moved (19 October) -->
-          <h4 class="pane-sub">{{page_idiograph.settings_pane.view}}</h4>
-          <div class="switches"><label><input type="checkbox" id="set-status-bar"> {{page_idiograph.settings_pane.status_bar}}</label></div>
           <div id="pets-ai" data-ai-set>
-          <h4 class="pane-sub">{{page_idiograph.settings_pane.ai}}</h4>
+          <h4 class="pane-sub">{{page_idiograph.settings_pane.pets}}</h4>
           <div id="pets-choice">
             <div class="setting"><label for="set-pets-model">{{page_idiograph.settings_pane.model}}</label><select id="set-pets-model"><option value="">{{page_idiograph.settings_pane.same_experiential_statements}}</option></select></div>
             <p class="fineprint" id="pets-model-note"></p>
           </div>
           <div id="pets-key-slot"></div>
           </div>
-        </section>
-
-
 <!--part:ai-warn-->
             <p data-only="idiograph">{{page_idiograph.ai_warn.many_researchers_trying_ai}}</p>
             <p data-only="idiograph">{{page_idiograph.ai_warn.these_features_passages_ask}}</p>
@@ -1675,6 +1661,11 @@
               </span>
             </div>
             <p class="fineprint" id="tc-said" hidden></p>
+            <!-- the interviewer's name, the speaker whose turns are context in every transcript of the project, its own since
+                 viewbuild (Adam, 17 November 2026: which speaker is the interviewer is the project's data), where Settings
+                 held one for every project. Saved with Save, fixed on a demo -->
+            <div class="setting" id="interviewer-row"><label for="set-interviewer">{{page_idiograph.settings_pane.interviewer_name}}</label><input
+                 id="set-interviewer" type="text" spellcheck="false" autocomplete="off"></div>
             <!-- Timepoints, a longitudinal study's (20 October): how many times each participant was
                  interviewed, 1 the app as it always was, and with two or more a label and a description
                  each, saved at once. Lowering the number while a timepoint holds an interview is refused

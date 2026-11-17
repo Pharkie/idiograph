@@ -379,7 +379,7 @@ function idiographFieldUndo(e, field) {
     undo: function () { edit(true); },
     redo: function () { edit(false); },
     reload: function () { keepTyped().then(function () { win.location.reload(); }); },
-    'status-bar': function () { if (typeof win.thStatusToggle === 'function') win.thStatusToggle(); },
+
     // View, Home, the page's Home from any screen (20 October)
     home: function () { if (typeof win.idiographHome === 'function') win.idiographHome(); },
     // File, Project History: the open project's record, as Home's project menu opens it (4 November)

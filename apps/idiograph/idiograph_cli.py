@@ -452,7 +452,7 @@ def cmd_cases(p: Project, args) -> tuple:
                     entry[key] = mark
             boards.append(entry)
         # in a project of two or more timepoints, each one with its sheets and where it stands
-        tps = routes.card_timepoints(book, cfg.get("interviewer") or "") if routes.longitudinal(p.info["timepoints"]) else None
+        tps = routes.card_timepoints(book, routes.interviewer_for(book)) if routes.longitudinal(p.info["timepoints"]) else None
         # their picture, label and pen portrait (pbiobuild), as participant show gives them
         person = routes.person_of(p.root, people, b["case"])
         # their own workbook missing, copies or another workbook in its place, which every read and write refuses
@@ -1116,9 +1116,9 @@ def cmd_settings(p: Project, args) -> tuple:
         mine = " ".join(str(cfg.get("your_name") or "").split())
         held, pline = settings_prompt_lines(cfg)
         ai_held, ai_lines = settings_ai(cfg)
-        return ({"your_name": mine, "interviewer": str(cfg.get("interviewer") or ""), "documents_carry": carried, **held,
+        return ({"your_name": mine, "documents_carry": carried, **held,
                  **ai_held},
-                [i18n.t("cli.settings.your_name_2", mine=mine or i18n.t("cli.settings.none_so_documents_carry_the_interviewer")),
+                [i18n.t("cli.settings.your_name_2", mine=mine or i18n.t("cli.settings.none_so_no_name")),
                  i18n.t("cli.settings.documents_carry", carried=carried or i18n.t("cli.settings.no_name")), pline]
                 + ai_lines)
     if not themes_ai.one_line(args.note) and not args.dry_run:
@@ -1138,8 +1138,8 @@ def cmd_settings(p: Project, args) -> tuple:
     head = i18n.t("cli.said.dry_run_nothing_was_written") if args.dry_run else i18n.t("cli.settings.saved_in_the_settings")
     out, lines = {"dry_run": bool(args.dry_run)}, [head]
     if given is not None:
-        out.update(your_name=name, documents_carry=carried if not args.dry_run else (name or str(cfg.get("interviewer") or "")))
-        lines.append(i18n.t("cli.settings.your_name", name=name or i18n.t("cli.settings.none_so_documents_carry_the_interviewer")))
+        out.update(your_name=name, documents_carry=carried if not args.dry_run else name)
+        lines.append(i18n.t("cli.settings.your_name", name=name or i18n.t("cli.settings.none_so_no_name")))
     if prompt is not None:
         if args.dry_run:
             default = prompt == prompts.DEFAULT_PROMPT
@@ -1633,13 +1633,22 @@ def reflexivity_line(text: str) -> str:
 
 
 def cmd_project_set(p: Project, args) -> tuple:
-    """The project's name, its research question, how the exports label its PETs, how its timecodes are written and
-    (settingsbuild) the researcher's reflexivity statement, saved as Project settings saves them
-    (`routes.api_project`), each left out kept as it is, with --dry-run saying what would change and writing nothing."""
+    """The project's name, its research question, how the exports label its PETs, how its timecodes are written,
+    (settingsbuild) the researcher's reflexivity statement and since viewbuild (17 November 2026) its interviewer's
+    name and its statement nudges, and since viewfix its rounds (--rounds on|off, --round-minutes, --rounds-a-day),
+    saved as Project settings and the statements screen's View save them (`routes.api_project`), each left out kept
+    as it is, with --dry-run saying what would change and writing nothing. A call refused for any one of them writes
+    none of them."""
     name, question, labels, form = (getattr(args, k, None) for k in ("name", "question", "pet_labels", "timecodes"))
     method = getattr(args, "method", None)
     reflexivity = reflexivity_given(args)
-    if name is None and question is None and labels is None and form is None and method is None and reflexivity is None:
+    interviewer, nudges = getattr(args, "interviewer", None), getattr(args, "nudges", None)
+    rounds = {key: getattr(args, arg, None) for key, arg in (("work_in_rounds", "rounds"),
+                                                            ("round_minutes", "round_minutes"),
+                                                            ("daily_target", "rounds_a_day"))}
+    rounds = {k: v for k, v in rounds.items() if v is not None}
+    if (name is None and question is None and labels is None and form is None and method is None
+            and reflexivity is None and interviewer is None and nudges is None and not rounds):
         raise cli.Refused(_w("NO_SET"))
     if not themes_ai.one_line(args.note) and not args.dry_run:
         raise cli.Refused(_w("NO_PROJECT_REQUEST"))
@@ -1658,6 +1667,13 @@ def cmd_project_set(p: Project, args) -> tuple:
         body["timecodes"] = form
     if reflexivity is not None:
         body["reflexivity"] = reflexivity
+    if interviewer is not None:
+        body["interviewer"] = interviewer
+    if nudges is not None:
+        # a comma list of the nudges on, "none" for none, as the View's ticks leave them
+        body["nudges"] = [] if str(nudges).strip().lower() in ("", "none") else str(nudges)
+    # the rounds, the project's own since viewfix, checked by the route
+    body.update(rounds)
     try:
         done = routes.api_project(body)
     except (WorkbookError, srv.OutsideRoot) as exc:
@@ -1670,9 +1686,13 @@ def cmd_project_set(p: Project, args) -> tuple:
     lines = [head] + done["changes"] + [i18n.t("cli.project_set.name", name=got['name']),
                                         i18n.t("cli.said.research_question", research_question=got['research_question'] or i18n.t("cli.said.none_set_yet")),
                                         i18n.t("cli.said.pet_labels", pet_labels=got['pet_labels']), i18n.t("cli.said.timecodes", timecodes=got['timecodes']),
+                                        i18n.t("cli.said.interviewer", name=got['interviewer'] or i18n.t("cli.said.none_set_yet")),
+                                        i18n.t("cli.said.nudges", nudges=routes.nudges_said(got['nudges'])),
+                                        rounds_line(got),
                                         reflexivity_line(got.get("reflexivity") or "")]
     # the statement by its words' count alone: its words are his, and project show reads them
-    answer = {"project": {**{k: got[k] for k in ("name", "research_question", "pet_labels", "timecodes")},
+    answer = {"project": {**{k: got[k] for k in ("name", "research_question", "pet_labels", "timecodes", "interviewer",
+                                                 "nudges", *routes.ROUNDS_KEYS)},
                           "reflexivity_words": routes.reflexivity_words(got.get("reflexivity") or "")},
               "changes": done["changes"], "dry_run": bool(args.dry_run)}
     return answer, lines
@@ -1709,12 +1729,20 @@ def cmd_project_remove(p: Project, args) -> tuple:
     return answer, lines
 
 
+def rounds_line(got: dict) -> str:
+    """The project's rounds in one line, as the statements screen's View holds them (viewfix)."""
+    if not got.get("work_in_rounds"):
+        return i18n.t("cli.said.rounds_off", minutes=got.get("round_minutes"), a_day=got.get("daily_target"))
+    return i18n.t("cli.said.rounds_on", minutes=got.get("round_minutes"), a_day=got.get("daily_target"))
+
+
 def cmd_project_show(p: Project, _args) -> tuple:
     """The project's settings as Project settings shows them (tadraw, 31 October 2026, for the method): its name,
     its research question, its method, IPA or thematic analysis, fixed when it was made, how the exports label its
     PETs, how its timecodes are written, its timepoints and its statement length. It reads and writes nothing."""
     got = routes.api_project(project_body(p))["project"]
-    keys = ("name", "research_question", "method", "pet_labels", "timecodes", "statement_words", "demo", "reflexivity")
+    keys = ("name", "research_question", "method", "pet_labels", "timecodes", "statement_words", "interviewer",
+            "nudges", *routes.ROUNDS_KEYS, "demo", "reflexivity")
     answer = {k: got[k] for k in keys}
     answer["timepoints"] = [{"n": t["n"], "label": t["label"], "description": t["description"]} for t in got["timepoints"]]
     ta = got["method"] == "ta"
@@ -1724,6 +1752,9 @@ def cmd_project_show(p: Project, _args) -> tuple:
              *([] if ta else [i18n.t("cli.said.pet_labels", pet_labels=got['pet_labels'])]), i18n.t("cli.said.timecodes", timecodes=got['timecodes']),
              *([i18n.t("cli.said.timepoints", timepoints=timepoints_said(answer['timepoints']))] if routes.longitudinal(got["timepoints"]) else []),
              i18n.t("cli.statement_length", n=got["statement_words"]),
+             i18n.t("cli.said.interviewer", name=got['interviewer'] or i18n.t("cli.said.none_set_yet")),
+             *([] if ta else [i18n.t("cli.said.nudges", nudges=routes.nudges_said(got['nudges']))]),
+             rounds_line(got),
              # the researcher's reflexivity statement (settingsbuild), his words, marked as data for an agent
              i18n.t("cli.reflexivity.said", text=got["reflexivity"]) if got["reflexivity"] else i18n.t("cli.reflexivity.none")]
     return {"project": answer}, lines
@@ -3633,7 +3664,7 @@ def cmd_board_import(p: Project, args) -> tuple:
         raise cli.Refused(str(exc)) from None
     read = themes.read_cards(book)
     turns = [t for s in read["sheets"] for t in turns_of(book, s)[0]]
-    interviewer = str(srv.config().get("interviewer") or "")
+    interviewer = routes.interviewer_for(book)
     add = (getattr(args, "unmatched", None) or "skip") == "add"
     matched = table_mod.match_pets(trows, turns, interviewer, add)
     counted = table_mod.counts(matched)
@@ -6268,7 +6299,7 @@ def cmd_turn_show(p: Project, args) -> tuple:
     shown = [{k: v for k, v in t.items() if k != "places"} for t in rows if first <= t["row"] <= last]
     if not shown:
         raise cli.Refused(i18n.t("cli.said.no_turn_on_at_row", sheet=args.sheet, row=args.row))
-    interviewer = str(srv.config().get("interviewer") or "")
+    interviewer = routes.interviewer_for(book)
     form = wb_mod.timecodes_for(book)
     at = {t["row"]: i for i, t in enumerate(rows)}
     for t in shown:
@@ -6597,7 +6628,7 @@ def turn_write(p: Project, args) -> tuple:
     seen = spec.get("version")
     if seen is not None and str(seen).strip() != turn["version"]:
         raise cli.Refused(_w("STALE_WRITE"))
-    interviewer = str(srv.config().get("interviewer") or "")
+    interviewer = routes.interviewer_for(book)
     problems = []
     # a statement's key under `remove`, as turn show gave it, takes that statement off with its own quote, its
     # cards on every board with it, as leaving it out of the pairs does (wbguard, 13 November 2026)
@@ -8020,7 +8051,7 @@ def cmd_import(p: Project, args) -> tuple:
         raise cli.Refused(_w("NAME_FOR_RAW"))
     if path.suffix.lower() not in convert_mod.FORMATS:
         raise cli.Refused(i18n.t("cli.import.that_file_is_not_a_transcript"))
-    setting = str(srv.config().get("interviewer") or "").strip()
+    setting = routes.interviewer_for(path)
     timing = import_timing(getattr(args, "time_format", None), getattr(args, "frame_rate", None))
     try:
         read, out, said = routes.import_read(path, roles, not args.dry_run, timing, sheet)
@@ -9674,6 +9705,17 @@ def arguments(sub, common, writes) -> None:
                    help="the researcher's reflexivity statement, plain text, \"\" to take it away")
     x.add_argument("--reflexivity-file", dest="reflexivity_file", default=None,
                    help="the reflexivity statement from a text file, in place of --reflexivity")
+    x.add_argument("--interviewer", default=None,
+                   help="the interviewer's name, the speaker whose turns are context, as Project settings sets it")
+    x.add_argument("--nudges", default=None,
+                   help="the statement nudges on, a comma list of length, lead, quote, semicolon, emdash, arrow and "
+                        "readsas, or none, as the statements screen's View ticks them")
+    x.add_argument("--rounds", default=None, choices=("on", "off"),
+                   help="Work in rounds on or off for the project, as the statements screen's View ticks it")
+    x.add_argument("--round-minutes", dest="round_minutes", type=int, default=None,
+                   help="transcript minutes per round, 1 to 60")
+    x.add_argument("--rounds-a-day", dest="rounds_a_day", type=int, default=None,
+                   help="rounds a day, 1 to 20")
     pj.add_parser("show", parents=[common], help="the project's settings as Project settings shows them, its method "
                                                   "among them")
     x = pj.add_parser("remove", parents=[common, writes],

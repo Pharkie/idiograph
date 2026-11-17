@@ -637,6 +637,8 @@ def build_all(into: Path, demo: Path | None = None) -> dict:
         raise DemoError(f"{into} is there already, so nothing was built into it.")
     into.mkdir(parents=True)
     plan = read_analysis(demo)
+    for tp in TIMEPOINTS:
+        md.check_interviewer(lipa_dir(demo) / PROJECT_FILE, {name: interview(name, tp, demo) for name in CASES})
     shutil.copyfile(lipa_dir(demo) / PROJECT_FILE, into / PROJECT_FILE)
     project = json.loads((into / PROJECT_FILE).read_text(encoding="utf-8"))
     if [t["label"] for t in project.get("timepoints") or []] != list(TIMEPOINTS):

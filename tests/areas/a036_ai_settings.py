@@ -327,8 +327,8 @@ def test_ai_settings(scratch):
           and "if (onScreen('sift-search')) return 'databases';" in screen_pane
           and "if (onScreen('sift')) return 'sift';" in screen_pane
           and "if (onScreen('trace')) return 'trace';" in screen_pane
-          and "if (onScreen('themes')) return 'pets';" in screen_pane
-          and "if (onScreen('work')) return 'statements';" in screen_pane and "return appsSay('screenPane') || 'general';" in screen_pane)
+          # Idiograph's screens open on General since viewbuild (17 November 2026), its Settings the app's own alone
+          and "distilScreenPane" not in js and "return appsSay('screenPane') || 'general';" in screen_pane)
     check("the arrow keys walk the categories", "function paneKeys(" in js and "'keydown', paneKeys" in js)
     saver = js.split("async function saveSettings(", 1)[1].split("\n}", 1)[0]
     check("the provider and the model go only to a server that sent the lists",

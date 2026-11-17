@@ -2839,12 +2839,14 @@ const anyOverlayOpen = () => overlaysHere().some((id) => !$(id).hidden);
 // Idiograph's GETs, Export and Projects left Settings on 5 November 2026 (settingsplit, Adam): a project's own
 // settings are its Project settings sheet's, and the exports the boards' Export menus'
 const PANES_BY_APP = {
-  idiograph: ['general', 'formats', 'statements', 'pets', 'ai'],
+  // Idiograph's the app's own settings alone since viewbuild (Adam, 17 November 2026): a screen's own are in its
+  // View and a project's in Project settings
+  idiograph: ['general', 'formats', 'ai'],
   sift: ['general', 'formats', 'databases', 'sift', 'zotero', 'ai'],
   trace: ['general', 'formats', 'trace', 'ai'],
 };
 // every category the card holds, and the ones this app's Settings show, in their order
-const PANES_ALL = ['general', 'formats', 'statements', 'pets', 'databases', 'sift', 'zotero', 'trace', 'ai'];
+const PANES_ALL = ['general', 'formats', 'databases', 'sift', 'zotero', 'trace', 'ai'];
 const PANES = PANES_BY_APP[APP];
 let paneHeld = 'general';
 

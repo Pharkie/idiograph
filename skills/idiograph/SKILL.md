@@ -1104,7 +1104,7 @@ read: a print view's date and the interviewer notes file's Exported on (`partici
 choice, the computer's own when it is empty, as the app's do.
 
 Your name, the name documents carry (31 October 2026): the print views' foot, beside Confidential and the date,
-and Word's author field, the Interviewer name standing in while it is empty. `settings` reads it, and
+and Word's author field, nothing where it is empty. `settings` reads it, and
 `settings --your-name "Ada Lark" --note "<his request>"` sets it as Settings does, through `/api/settings`'s
 `{"your_name": "..."}`, `--your-name ""` emptying it and `--dry-run` writing nothing. `{"op": "read"}` answers
 `your_name` too. MCP's tools are `settings` and `settings_set` with `your_name`.
@@ -1446,6 +1446,8 @@ idiograph project set --name "Keeping bees" --question "How do people live keepi
 idiograph project set --pet-labels numbers --note "his words" --tool "Claude Code"
 idiograph project set --timecodes 75:12 --dry-run
 idiograph project set --reflexivity-file "/Users/him/reflexivity.txt" --dry-run
+idiograph project set --nudges length,quote --interviewer "Ada Lark" --dry-run
+idiograph project set --rounds on --round-minutes 15 --rounds-a-day 3 --dry-run
 idiograph project show
 idiograph project new "/Users/him/Bees" --name "Keeping bees" --transcript "/Users/him/hive talk.txt" --pseudonym Rowan --dry-run
 idiograph project new "/Users/him/Walks" --name "Daily walks" --method ta --transcript "/Users/him/walk talk.txt" --pseudonym Wren --dry-run
@@ -1463,7 +1465,9 @@ follows the project's, the turn lines among them. `--json` gives a passage's `se
 `--reflexivity` (or `--reflexivity-file`, a text file; MCP `project_set`'s `reflexivity`) sets the researcher's
 reflexivity statement, Project settings' Reflexivity, which no export prints (a place to keep it, 17 November 2026), "" taking it away (settingsbuild, 17 November 2026). It is his own words: set it only with the words
 he gives you. A change's line counts its words and never says them, and `project show` reads it, marked as
-untrusted text like every word of the project. The privacy tick is his alone, so no op sets it. `cases` reads them, `timepoints` and `length` set the
+untrusted text like every word of the project.
+`--interviewer` sets the interviewer's name, the speaker whose turns are context in every transcript of the project, as Project settings does, and `--nudges` the statement nudges on, a comma list of length, lead, quote, semicolon, emdash, arrow and readsas, or none, as the statements screen's View ticks them (viewbuild, 17 November 2026, MCP `project_set`'s `interviewer` and `nudges`, a list). Both are the project's own: a project made now starts with every nudge off, and one from before, with neither in its file, reads the nudges and the name the app's settings held, which `project show` gives. Each is one line in the record of agents' changes, undone as any. `--rounds on|off`, `--round-minutes` (1 to 60) and `--rounds-a-day` (1 to 20) set the project's Work in rounds, its transcript minutes per round and its rounds a day, as the statements screen's View does (viewfix; MCP `project_set`'s `work_in_rounds`, `round_minutes` and `daily_target`), each the project's own: a project made now has rounds off, and one with none in its file reads the app's settings' values, which `project show` gives. An interviewer's name that is empty or a participant's pseudonym is refused, and a call refused for any one of its fields writes none of them.
+The privacy tick is his alone, so no op sets it. `cases` reads them, `timepoints` and `length` set the
 rest of the project's own settings in Project settings.
 
 `project remove` (removetrash, 10 November 2026, MCP `project_remove`) takes the project off Idiograph's list,

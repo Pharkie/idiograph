@@ -597,7 +597,25 @@ function codesWire() {
   setInterval(() => codesStampTick(), 4 * 1000);
   $('cd-home').onclick = () => codesHome();
   $('cd-feedback').onclick = () => openFeedback('gets');
-  $('cd-settings').onclick = () => openSettings('pets');
+  $('cd-settings').onclick = () => openSettings();
+  // Guidance, its own sheet as the statements screen's: the bar's tool and the sheet's close open and shut it, and Esc
+  // or a press outside it shuts it (viewfix)
+  $('cd-guide').addEventListener('pointerdown', (e) => e.preventDefault());
+  $('cd-guide').onclick = () => cdGuide(!cdGuideOpen());
+  $('cd-guide-close').onclick = () => cdGuide(false, true);
+  $('cd-rules').addEventListener('click', (e) => {
+    const button = e.target.closest && e.target.closest('.rule-ex-open');
+    if (button) ruleExamples(button);
+  });
+  document.addEventListener('pointerdown', (e) => {
+    if (cdGuideOpen() && !e.target.closest('#cd-guide-sheet, #cd-guide')) cdGuide(false);
+  }, true);
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !cdGuideOpen() || $('codes-screen').hidden) return;
+    e.preventDefault();
+    cdGuide(false, true);
+  });
+  cdGuideDraw();
   for (const [id, step] of [['cd-step-es', 'statements'], ['cd-step-codes', 'codes'], ['cd-step-gets', 'gets']]) {
     $(id).onclick = () => codesStep(step);
   }
@@ -666,6 +684,29 @@ function codesWire() {
   });
   // the Coding screen's quick keys on the selection's toolbar (quickkeysB)
   cxQuickWire();
+}
+
+/* The Code list's Guidance (viewfix, the review's M3, as every screen's): its lines from ta_codes_guidance.md, each
+   with its Less this and More this behind its chevron, drawn by the statements screen's drawRules, and the framing
+   under them, in a sheet over the right of the screen as the statements screen's. Hidden while the server sends no
+   lines. */
+const cdGuideOpen = () => $('cd-guide-sheet').classList.contains('open');
+
+function cdGuideDraw() {
+  const rail = typeof S !== 'undefined' && S.rails ? S.rails.codes : null;
+  $('cd-guide').hidden = !rail;
+  if (!rail) return;
+  drawRules(rail.lines || [], rail.examples || [], $('cd-rules'), 'cd-rule-ex');
+  $('cd-rules-framing').textContent = rail.framing || '';
+  $('cd-rules-framing').hidden = !rail.framing;
+}
+
+function cdGuide(open, focus = false) {
+  if (open && $('cd-guide').hidden) return;
+  $('cd-guide-sheet').classList.toggle('open', !!open);
+  $('cd-guide').setAttribute('aria-expanded', String(!!open));
+  $('cd-guide').classList.toggle('on', !!open);
+  if (!open && focus) $('cd-guide').focus({ preventScroll: true });
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', codesWire);

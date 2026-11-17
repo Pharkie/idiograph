@@ -2531,10 +2531,18 @@ const thQuotesOn = () => !!(TH.config && TH.config.card_quotes === true);
 const TH_QUOTES_WAYS = ['off', 'short', 'full'];
 const thQuotesWay = () => (!thQuotesOn() ? 'off' : TH.config.card_quotes_full === true ? 'full' : 'short');
 
-/* How the button sets the way, two ways drawn for Adam (30 October): 'cycle' (A), each click the next of Off,
-   Short and Full, and 'menu' (B), a click opening a menu of the three, the one in use ticked. In both a right
-   click on it, or a press held, opens the menu, as Close pairs' does its gap. */
-const TH_QUOTES_CONTROL = 'cycle';
+/* How the button sets the way (30 October, A of the two drawn for Adam): each click the next of Off, Short and Full, a
+   right click on it or a press held opening the menu of the three, as every status bar button of more than two states
+   does since viewfix, through one code path (cycleWire in distil.js) */
+const TH_QUOTES_CYCLE = {
+  ways: TH_QUOTES_WAYS,
+  now: () => thQuotesWay(),
+  set: (way) => thQuotesSet(way),
+  head: () => t('themes.quotes_way.head'),
+  row: (way) => t(TH_QUOTES_ROWS[way]),
+  bar: () => $('th-status'),
+  open: (show, x) => thQuotesMenu(show, x),
+};
 
 /* the button's tooltip for each way, and each way's row in the menu */
 const TH_QUOTES_TIPS = { off: 'themes.quotes_way.off', short: 'themes.quotes_way.short', full: 'themes.quotes_way.full' };
@@ -2611,11 +2619,9 @@ function thKqHtml(v, key) {
   return `<p class="th-kq" data-kq="1" title="${escAttr(thQuoted(q.text))}">${esc(thQuoted(q.text))}</p>`;
 }
 
-/* The button: in A each click the next way, Off to Short to Full and back to Off, and in B the menu of the
-   three (see TH_QUOTES_CONTROL) */
+/* The button: each click the next way, Off to Short to Full and back to Off */
 function thQuotesToggle() {
   if (!TH.live || TH.drag) return;
-  if (TH_QUOTES_CONTROL === 'menu') { thQuotesMenu(!TH.qmenu); return; }
   thQuotesSet(TH_QUOTES_WAYS[(TH_QUOTES_WAYS.indexOf(thQuotesWay()) + 1) % TH_QUOTES_WAYS.length]);
 }
 
@@ -2627,7 +2633,7 @@ function thQuotesSet(way) {
 }
 
 /* The button as the way stands: pressed in for Short and Full, its mark of two lines for Short and four for
-   Full, its tooltip saying which, "Quotes: full". In B it opens its menu, so it says so to a screen reader. */
+   Full, its tooltip saying which, "Quotes: full". */
 function thQuotesButton() {
   const btn = $('th-quotes-btn');
   if (!btn) return;
@@ -2637,42 +2643,28 @@ function thQuotesButton() {
   btn.setAttribute('aria-pressed', String(way !== 'off'));
   btn.title = said;
   btn.setAttribute('aria-label', said);
-  if (TH_QUOTES_CONTROL === 'menu') {
-    btn.setAttribute('aria-haspopup', 'menu');
-    btn.setAttribute('aria-expanded', String(!!TH.qmenu));
-  }
 }
 
-/* The menu of the three, from a click on the button in B, and in both from a right click on it or a press
-   held: Quotes on cards over Off, Short and Full, the one in use ticked, a choice kept at once, the menu left
-   open as Close pairs' gap menu and the bar's counts menu stay. Esc or a click elsewhere puts it away. It
-   stands over the button, its foot TH_QMENU_GAP over the bar, and with the status bar off over the tools. */
-const TH_QMENU_GAP = 10;
+/* The menu of the three, from a right click on the button or a press held: Quotes on cards over Off, Short and Full,
+   the one in use ticked, a choice kept at once, the menu left open, as every cycling button's (cycleMenu). Esc or a
+   click elsewhere puts it away. */
 function thQuotesMenu(open, x) {
   const menu = $('th-qmenu');
   if (!menu) return;
   TH.qmenu = !!open;
-  menu.hidden = !open;
+  TH_QUOTES_CYCLE.menu = menu;
+  if (TH_QUOTES_CYCLE.btn) cycleMenu(TH_QUOTES_CYCLE, !!open, x);
+  else {
+    // before the button is wired (a harness), drawn in place
+    menu.hidden = !open;
+    if (open) cycleMenuDraw(TH_QUOTES_CYCLE);
+  }
   thQuotesButton();
-  if (!open) return;
-  thQuotesMenuDraw();
-  const btn = $('th-quotes-btn');
-  const b = btn.getBoundingClientRect();
-  const bar = $('th-status');
-  const top = bar && bar.getBoundingClientRect ? Math.min(bar.getBoundingClientRect().top, b.top) : b.top;
-  const at = thStatusMenuSpot(x === undefined ? b.left : x, top - (TH_QMENU_GAP - TH_SMENU_GAP), menu.offsetWidth, menu.offsetHeight, window.innerWidth);
-  menu.style.left = `${at.left}px`;
-  menu.style.top = `${at.top}px`;
 }
 
 function thQuotesMenuDraw() {
-  const menu = $('th-qmenu');
-  if (!menu) return;
-  const way = thQuotesWay();
-  menu.innerHTML = `<p class="th-cpmenu-head">${esc(t('themes.quotes_way.head'))}</p>`
-    + TH_QUOTES_WAYS.map((w) => `<button type="button" class="ghost small th-qway${w === way ? ' on' : ''}" role="menuitemradio" `
-      + `aria-checked="${w === way}" tabindex="-1" data-qway="${w}"><span class="th-cp-tick" aria-hidden="true">${w === way ? TH_TICK_ICON : ''}</span>`
-      + `${esc(t(TH_QUOTES_ROWS[w]))}</button>`).join('');
+  TH_QUOTES_CYCLE.menu = $('th-qmenu');
+  if (TH_QUOTES_CYCLE.menu) cycleMenuDraw(TH_QUOTES_CYCLE);
 }
 
 /* the cards drawn again with their quotes or without, short or whole, what makes room for them easing there */
@@ -3942,7 +3934,6 @@ const TH_STATUS_COUNTS = ['pets', 'placed', 'stacked', 'binned', 'unplaced', 'lo
 const TH_STATUS_NAMES = {
   pets: (u, us) => us, placed: (u, us) => (TH.mode === 'gets' && (TH.lpets || TH.lgets) ? t('themes.status.name_drawn_on') : t('themes.status.name_placed', { units: us })), unplaced: (u) => (TH.mode === 'gets' && (TH.lpets || TH.lgets) ? t('themes.status.name_loose', { unit: u }) : t('themes.status.name_unplaced')), loose: (u) => t('themes.status.name_loose', { unit: u }), binned: () => t('themes.status.name_binned'), stacked: () => t('themes.status.name_stacked'),
 };
-const thStatusOn = () => !(TH.config && TH.config.status_bar === false);
 function thStatusPicked() {
   const held = TH.config && Array.isArray(TH.config.status_counts) ? TH.config.status_counts : TH_STATUS_COUNTS;
   // a choice kept from before `loose` came keeps it shown
@@ -4026,7 +4017,8 @@ function thStatusDraw() {
   const stage = $('th-stage');
   const box = $('th-status-counts');
   if (!stage || !box) return;
-  const on = thStatusOn();
+  // the status bar is always there since viewbuild (Adam, 17 November 2026), its on or off setting gone
+  const on = true;
   const was = stage.classList.contains('th-status-on');
   stage.classList.toggle('th-status-on', on);
   const gets = TH.mode === 'gets';
@@ -4070,11 +4062,33 @@ function thStatusDraw() {
   if (was !== on) { thCorners(); thMapPlace(); } else if (on && changed) thCorners();
 }
 
-/* the bar on or off, from View's Status Bar in Idiograph's own window, kept in the settings at once, every
-   other key kept, as Settings' View keeps it on Save */
-function thStatusToggle() {
-  if (!TH.config) TH.config = {};
-  thStatusSave('status_bar', !thStatusOn());
+/* ── Guidance on the board's bar (viewbuild, Adam, 17 November 2026) ── */
+
+/* Guidance wired, the sidebar's Guidance tab. The board has no View (viewfix, Adam's ruling of 17 November 2026 about
+   12:40: a control lives in one place, and everything View held is on the status bar) */
+function thViewWire() {
+  $('th-guide').addEventListener('pointerdown', (e) => e.preventDefault());
+  $('th-guide').onclick = () => thGuideToggle();
+}
+
+/* Guidance on the bar: the sidebar opened on its Guidance tab, and shut again while it shows it, the sidebar and
+   its Inspector as they are. Hidden where the board has no Guidance, as on a thematic analysis board from a
+   server without its lines */
+function thGuideButton() {
+  const b = $('th-guide');
+  if (!b) return;
+  const has = thTabsOf(TH.mode).includes('guidance');
+  b.hidden = !has;
+  const on = !!(TH.sideOpen && TH.tab === 'guidance');
+  b.classList.toggle('on', on);
+  b.setAttribute('aria-expanded', String(on));
+}
+
+function thGuideToggle() {
+  if (!TH.live) return;
+  if (TH.sideOpen && TH.tab === 'guidance') thSideShut();
+  else thSideOpen('guidance');
+  thGuideButton();
 }
 
 async function thStatusSave(key, value, more = {}) {
@@ -4937,6 +4951,7 @@ function thMapDraw() {
   // written only when it changes, since the map is drawn again on every frame of a drag
   const btn = $('th-map-btn');
   if (!btn.getAttribute || btn.getAttribute('aria-pressed') !== String(shown)) btn.setAttribute('aria-pressed', String(shown));
+  thMapButton();
   if (shown) thMapViewDraw();
 }
 
@@ -5013,7 +5028,32 @@ function thMapLeave() {
   thMapRest();
 }
 
-/* The button and M: while the map shows, they hide it, in Auto until the next pan or zoom and with On
+/* The status bar's Minimap (viewfix, Adam's ruling of 17 November 2026): Auto, On and Off in turn, a right click or a
+   press held their menu, as every status bar button of more than two states (cycleWire), the same setting as the
+   statements screen's */
+const TH_MAP_CYCLE = {
+  ways: ['auto', 'on', 'off'],
+  now: () => thMapMode(),
+  set: (mode) => { thStatusSave('minimap', mode); thMapChosen(); thMapButton(); },
+  head: () => t('page_idiograph.work.minimap'),
+  row: (mode) => t(MINIMAP_ROWS[mode]),
+  bar: () => $('th-status'),
+};
+
+/* the button's tooltip naming the way, "Minimap: auto", written only when the way changes, since the map is drawn
+   again on every frame of a drag; it stays pressed in while the map shows (thMapDraw) */
+function thMapButton() {
+  const btn = $('th-map-btn');
+  if (!btn || !btn.dataset || typeof MINIMAP_TIPS === 'undefined') return;
+  const mode = thMapMode();
+  if (btn.dataset.minimap === mode) return;
+  const said = t(MINIMAP_TIPS[mode]);
+  btn.dataset.minimap = mode;
+  btn.title = said;
+  btn.setAttribute('aria-label', said);
+}
+
+/* M: while the map shows, it hides it, in Auto until the next pan or zoom and with On
    until pressed again, and while it does not, they show it until pressed again. With Off, at
    TH_MAP.narrow and below, and before a board is on the canvas they do nothing. */
 function thMapToggle() {
@@ -6819,6 +6859,8 @@ function thSideDraw() {
   $('th-panel').hidden = !TH.panelOpen;
   $('th-bpanel').hidden = !TH.boardOpen;
   thTabsDraw();
+  // the bar's Guidance pressed while the sidebar shows its Guidance (viewbuild)
+  thGuideButton();
 }
 
 function thTabsDraw() {
@@ -11297,8 +11339,9 @@ function gtScreen(on) {
   $('themes').classList.toggle('lpets-mode', on && !!TH.lpets);
   // the left panel's button on both screens since 20 October: Cases on GETs, Statements on PETs
   $('th-open-cases').hidden = false;
-  // Settings on PETs over both boards, GETs' rules being the project's, in Project settings since settingsplit
-  $('th-settings').onclick = () => openSettings('pets');
+  // Settings over both boards, the app's own alone since viewbuild, GETs' rules being Project settings'
+  $('th-settings').onclick = () => openSettings();
+  thGuideButton();
   TH.gets = null;
   // the step in front marked, the cases the others open named once they come (gtLoad)
   thStepsDraw();
@@ -15281,11 +15324,8 @@ function themesBoot() {
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => thPaletteFit());
   $('th-help').addEventListener('pointerdown', (e) => e.preventDefault());
   $('th-help').onclick = () => openHelp();
-  // View's Status Bar in Idiograph's own window turns the bar on or off, through the window's menu
-  window.thStatusToggle = thStatusToggle;
   // a right click on the status bar picks its counts, a tick in its menu kept at once
   $('th-status').addEventListener('contextmenu', (e) => {
-    if (!thStatusOn()) return;
     e.preventDefault();
     e.stopPropagation();
     thStatusMenu(true, e.clientX, e.clientY);
@@ -15335,8 +15375,9 @@ function themesBoot() {
   document.addEventListener('pointerdown', (e) => {
     if (TH.xmenu && !e.target.closest('#th-xmenu, #th-export')) thXmenu(false);
   }, true);
-  // Settings over this screen opens on PETs, its own category, with the model under AI
-  $('th-settings').onclick = () => openSettings('pets');
+  // Settings over this screen, the app's own settings alone since viewbuild (17 November 2026)
+  $('th-settings').onclick = () => openSettings();
+  thViewWire();
   // the band's line when there is no question yet opens Project settings for the board's project
   $('th-band').addEventListener('click', (e) => { if (e.target.closest('.band-link')) openProjectSettings(TH.project); });
   if (window.ResizeObserver) {
@@ -15356,41 +15397,14 @@ function themesBoot() {
   // a drag on the map, the pointer on it, which keeps it awake in Auto, and its width the zoom bar's as
   // the canvas changes width. The wheel over it goes on to the canvas's own (thWheel), and so does a
   // window crossing TH_MAP.narrow, through the canvas's width
-  $('th-map-btn').addEventListener('pointerdown', (e) => e.preventDefault());
-  $('th-map-btn').onclick = () => thMapToggle();
+  TH_MAP_CYCLE.menu = $('th-mmenu');
+  cycleWire($('th-map-btn'), TH_MAP_CYCLE);
   // Quotes on cards, its button beside the map's (Adam, 19 October), and a quote shown whole: its play
   // button, Show in passage, and a press anywhere else or the wheel putting it away. Since 30 October a click
   // takes the next of Off, Short and Full (A) or opens their menu (B), and a right click or a press held opens
   // the menu in both, as Close pairs' does its gap
-  const quotesBtn = $('th-quotes-btn');
-  let quotesHeld = null;
-  quotesBtn.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    if (e.button !== 0 || TH_QUOTES_CONTROL === 'menu') return;
-    clearTimeout(quotesHeld);
-    quotesHeld = setTimeout(() => { quotesHeld = 'held'; thQuotesMenu(true, e.clientX, e.clientY); }, 550);
-  });
-  const quotesLet = () => { if (quotesHeld !== 'held') clearTimeout(quotesHeld); };
-  quotesBtn.addEventListener('pointerup', quotesLet);
-  quotesBtn.addEventListener('pointerleave', quotesLet);
-  quotesBtn.onclick = () => {
-    if (quotesHeld === 'held') { quotesHeld = null; return; }
-    thQuotesToggle();
-  };
-  quotesBtn.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    thQuotesMenu(true, e.clientX, e.clientY);
-  });
-  $('th-qmenu').addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
-  $('th-qmenu').addEventListener('click', (e) => {
-    const way = e.target.closest('[data-qway]');
-    if (way) thQuotesSet(way.dataset.qway);
-  });
-  // a press anywhere else puts it away, and Esc does in thKeyDown
-  document.addEventListener('pointerdown', (e) => {
-    if (TH.qmenu && !e.target.closest('#th-qmenu, #th-quotes-btn')) thQuotesMenu(false);
-  }, true);
+  TH_QUOTES_CYCLE.menu = $('th-qmenu');
+  cycleWire($('th-quotes-btn'), TH_QUOTES_CYCLE);
   $('th-notes-btn').addEventListener('pointerdown', (e) => e.preventDefault());
   $('th-notes-btn').onclick = () => thNotesToggle();
   // Compact, on a thematic analysis project's board (themesbuild)

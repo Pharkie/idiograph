@@ -268,8 +268,8 @@ def test_print_pages(scratch: Path):
     finally:
         server_mod.CONFIG_PATH = held_config
     check("311: Your name is saved on its own line, read back by the settings' read op, named in the foot and as "
-          "Word's author, and with it empty the interviewer's name stands in",
-          before_name == "Kit" and read_back == "Ada Lark" and named_now == "Ada Lark" and emptied == "Kit",
+          "Word's author, and with it empty nothing stands in (viewfix: the interviewer is a project's own)",
+          before_name == "" and read_back == "Ada Lark" and named_now == "Ada Lark" and emptied == "",
           f"{before_name} | {read_back} | {named_now} | {emptied}")
     import io
     import zipfile

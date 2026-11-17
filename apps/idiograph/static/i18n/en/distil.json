@@ -1,4 +1,7 @@
 {
+  "distil.minimap_way.auto": "Minimap: auto",
+  "distil.minimap_way.on": "Minimap: on",
+  "distil.minimap_way.off": "Minimap: off",
   "distil.home.project": "Project",
   "distil.home.demo": "Demo",
   "distil.home.folder_gone": "Its folder is not there",

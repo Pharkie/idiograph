@@ -3441,7 +3441,11 @@ async function npAdd(files) {
 async function npRead(row, columns, speakers) {
   let data;
   try {
-    data = await api('/api/new-project', { op: 'read', name: row.file, data: row.data, columns, speakers, ...(row.sheet ? { sheet: row.sheet } : {}) });
+    // the project added to, or the folder chosen, so its project file guesses the speakers by its own interviewer
+    // (viewfix)
+    data = await api('/api/new-project', { op: 'read', name: row.file, data: row.data, columns, speakers,
+      ...(row.sheet ? { sheet: row.sheet } : {}),
+      ...(NP.add ? { root: NP.add.id } : NP.folder ? { folder: NP.folder } : {}) });
   } catch (err) {
     row.said = needsRestart(err) ? RESTART_LINE : err.message;
     drawNpRow(row);
@@ -4782,7 +4786,7 @@ async function openPassage(path, at, how) {
     data = await api('/api/open', { path, passage: { sheet: at.sheet, row: at.row } });
   } catch (err) { say(needsRestart(err) ? RESTART_LINE : err.message, 9000); return false; }
   // and looked for here too, as a server from before the check opens the case whatever it holds
-  const who = String((data.config || {}).interviewer || 'Adam').trim().toLowerCase();
+  const who = String((data.config || {}).interviewer || '').trim().toLowerCase();
   const sheet = (data.sheets || []).find((s) => s.name === at.sheet);
   const there = sheet && sheet.rows.some((r) => r.row === at.row && r.name && r.name.trim().toLowerCase() !== who);
   if (!there) { say(NO_PASSAGE_LINE, 6000); return false; }
@@ -4863,7 +4867,7 @@ function startCase(data, opts = {}) {
   const roundOf = {};
   for (const r of data.rounds) for (const k of r.rows) roundOf[`${k.sheet}:${k.row}`] = r.number;
   S.flat.forEach((row, i) => { row.i = i; row.key = `${row.sheet}:${row.row}`; row.round = roundOf[row.key]; });
-  const interviewer = (data.config.interviewer || 'Adam').trim().toLowerCase();
+  const interviewer = (data.config.interviewer || '').trim().toLowerCase();
   S.stops = [];
   for (const row of S.flat) {
     row.stop = !!(row.name && row.name.trim().toLowerCase() !== interviewer);
@@ -5270,6 +5274,8 @@ function drawView() {
   placeNotes();
   drawViewMenu();
   scheduleMinimap();
+  // the status bar's Minimap naming its way at once (viewfix), the map drawn on the next frame
+  if (typeof minimapButton === 'function') minimapButton(minimapShown());
   // Quotes on the status bar, whole or folded to a line (21 October)
   if (typeof quotesDraw === 'function') quotesDraw();
 }
@@ -5659,30 +5665,23 @@ function widthsSave(widths) {
   }, 250);
 }
 
-/* Reset widths, in Columns' menu and in Settings: every edge back where the screen opens, on this screen,
-   and since 21 October every column back alone, a stack standing side by side again, the statements above
-   for the next stack and its divider at half. Settings' Statements and notes say so at once, so its Save
-   never stacks them again. */
+/* Reset widths, in Columns' menu: every edge back where the screen opens, on this screen, and since 21 October
+   every column back alone, a stack standing side by side again, the statements above for the next stack and its
+   divider at half. Settings' copy of it went with viewbuild (17 November 2026). */
 function widthsReset() {
   const stack = stackResetChange(viewConfig());
   if (!widthsHeld() && !('columns_stacked' in stack)) return;
   colsMenu(false);
-  if (Object.keys(stack).length) {
-    setViews(stack);
-    if ($('set-side')) colsStackRows($('set-side'), $('set-stacked'), false, !$('set-side').disabled);
-    if ($('set-stacked-word')) $('set-stacked-word').textContent = stackedWords('statements');
-    if (S.viewOpened) S.viewOpened.columns_stacked = false;
-  }
+  if (Object.keys(stack).length) setViews(stack);
   if (widthsHeld()) widthsSave(null);
   if (!$('work').hidden && current()) centreCurrent(false);
 }
 
-// Reset widths faint while every edge stands where the screen opens and no column is stacked, in the menu
-// and in Settings
+// Reset widths faint while every edge stands where the screen opens and no column is stacked
 function drawWidthsReset() {
   const cfg = viewConfig();
   const none = !widthsHeld() && !(cfg && cfg.columns_stacked === true);
-  for (const id of ['cols-widths', 'set-widths-reset']) if ($(id)) $(id).disabled = none;
+  if ($('cols-widths')) $('cols-widths').disabled = none;
 }
 
 function edgeDown(e) {
@@ -6053,37 +6052,99 @@ function colsBookOrder() {
   else if (moved) setView('statements_columns', COLUMNS.slice());
 }
 
-/* the four as View under Distil in Settings holds them, the columns shown, the statements and notes side by
-   side or stacked, and the two choices, where until 18 October the columns' six orders stood first, and
-   since 19 October the PETs and GETs boards' status bar, under View in the PETs category */
-const viewChoice = () => ({
-  columns_hidden: colsTicked($('set-show-statements'), $('set-show-notes')),
-  columns_stacked: $('set-stacked').checked,
-  larger_passage: $('set-larger').checked,
-  minimap: MINIMAP_MODES.find((m) => $(`set-minimap-${m}`).checked) || 'auto',
-  status_bar: $('set-status-bar').checked,
-});
-
+/* The View menu as the settings stand (viewbuild, Adam, 17 November 2026: a screen's own settings live in its View,
+   where Settings held them): the larger passage, then the open project's Work in rounds with its two numbers shown
+   while it is ticked (viewfix: a project's own), and its nudges, an IPA project's alone, a demo's shown and fixed. The
+   minimap is the status bar's alone since viewfix (Adam: one control, one place). */
 function drawViewMenu() {
   const cfg = viewConfig();
   $('view-larger').checked = largerPassage(cfg);
-  for (const m of MINIMAP_MODES) $(`view-minimap-${m}`).checked = minimapMode(cfg) === m;
+  const rounds = roundsOn(cfg || {});
+  const p = project();
+  const fixed = !p || !!p.demo;
+  $('view-rounds').checked = rounds;
+  $('view-rounds').disabled = fixed;
+  $('view-round-nums').hidden = !rounds;
+  for (const id of ['view-minutes', 'view-target']) $(id).disabled = fixed;
+  if (document.activeElement !== $('view-minutes')) $('view-minutes').value = String((cfg && cfg.round_minutes) || 10);
+  if (document.activeElement !== $('view-target')) $('view-target').value = String((cfg && cfg.daily_target) || 2);
+  const ta = typeof tMethodNow === 'function' && tMethodNow() === 'ta';
+  $('view-nudges-block').hidden = ta || !p;
+  if (ta || !p) return;
+  const on = Array.isArray(p.nudges) ? p.nudges : [];
+  $('view-nudges').innerHTML = Object.entries(NUDGES).map(([k, [label, about]]) =>
+    nudgeRow(k, label, about, on.includes(k), !!p.demo)).join('');
+  menuRoles($('view-menu'));
 }
 
-/* The columns shown and the stacking as Settings' View holds them, the same as Columns' menu, Stacked
-   offered while both ticks stand (18 October, where the columns' six orders stood in a list here). A tick
-   changed in the card offers or takes back Stacked at once, and Save keeps them. */
-function fillColumnsSet(lay) {
-  $('set-show-statements').checked = !lay.hidden.includes('statements');
-  $('set-show-notes').checked = !lay.hidden.includes('notes');
-  colsStackRows($('set-side'), $('set-stacked'), lay.chose, !lay.hidden.length);
-  if ($('set-stacked-word')) $('set-stacked-word').textContent = stackedWords(lay.top);
-  if (typeof drawWidthsReset === 'function') drawWidthsReset();
+/* The project's rounds changed in View, saved in its project file through /api/project as Project settings and agents
+   save them (viewfix: Work in rounds, its minutes and the rounds a day are a project's own), the open participant's
+   settings following the answer. A refusal says its line and View is drawn again as it was. Answers whether it was
+   saved. */
+async function viewRoundsSave(change) {
+  const p = project();
+  if (!p || p.demo || !S.data || !S.data.config) return false;
+  try {
+    const data = await api('/api/project', Object.assign({ path: S.data.path }, change));
+    const got = data.project || {};
+    for (const key of ['work_in_rounds', 'round_minutes', 'daily_target']) {
+      if (key in got) { S.data.config[key] = got[key]; p[key] = got[key]; }
+    }
+    return true;
+  } catch (err) {
+    say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
+    return false;
+  } finally {
+    if (!$('view-menu').hidden) drawViewMenu();
+  }
 }
 
-function colsSetTicked() {
-  const offered = !colsTicked($('set-show-statements'), $('set-show-notes')).length;
-  colsStackRows($('set-side'), $('set-stacked'), $('set-stacked').checked, offered);
+/* Work in rounds ticked or not in View, the bar, the markers and the count drawn again in place, a field typed into
+   and not saved saved first, as Settings' Save did (15 October) */
+async function viewRounds(on) {
+  if (!S.data || !S.data.config) return;
+  if (S.dirty && current()) await commit(current(), false);
+  if (!(await viewRoundsSave({ work_in_rounds: !!on }))) return;
+  $('view-round-nums').hidden = !roundsOn(S.data.config);
+  S.sheetDrawn = null;
+  drawRoundsShown();
+  drawTurn({ keepPlayer: true });
+  drawProgress();
+}
+
+/* A round's minutes or the rounds a day changed in View, a whole number in its field's range, kept at once: new
+   minutes cut the rounds again, so the case opens again where it is, as Settings' Save did */
+async function viewRoundNumber(key, field) {
+  const least = Number(field.min) || 1;
+  const most = Number(field.max) || 60;
+  const n = Math.round(Number(field.value));
+  if (!S.data || !S.data.config || !Number.isFinite(n) || n < least || n > most) { drawViewMenu(); return; }
+  if (S.data.config[key] === n) return;
+  if (key === 'round_minutes' && S.dirty && current()) await commit(current(), false);
+  if (!(await viewRoundsSave({ [key]: n }))) return;
+  if (key === 'round_minutes') {
+    say(roundsOn(S.data.config) ? t('distil.settings.rounds_reopening') : t('distil.settings.reopening'));
+    openCase(S.data.path);
+  } else drawProgress();
+}
+
+/* A nudge ticked or not in View, the open project's own (viewbuild): saved in its project file through the route
+   Project settings and agents use, /api/project, and the nudges on the passage asked again. A refusal says its
+   line and the tick goes back. */
+async function viewNudge(key, on) {
+  const p = project();
+  if (!p || p.demo || !S.data) return;
+  const was = Array.isArray(p.nudges) ? p.nudges.slice() : [];
+  p.nudges = on ? [...new Set([...was, key])] : was.filter((k) => k !== key);
+  try {
+    const data = await api('/api/project', { path: S.data.path, nudges: { [key]: !!on } });
+    if (data.project && Array.isArray(data.project.nudges)) p.nudges = data.project.nudges;
+  } catch (err) {
+    p.nudges = was;
+    say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
+  }
+  if (!$('view-menu').hidden) drawViewMenu();
+  runNudges();
 }
 
 /* A column's grip moves its column, a drag by the pointer or Alt and an arrow from the keyboard, as a
@@ -6695,8 +6756,8 @@ function minimapYield() {
   card.classList.toggle('shut', !shown);
   card.classList.toggle('off', off);
   $('minimap-btn').setAttribute('aria-pressed', String(shown));
-  // and the status bar's Minimap with it (21 October), pressed in while the map shows
-  if ($('es-map-btn')) $('es-map-btn').setAttribute('aria-pressed', String(shown));
+  // and the status bar's Minimap with it (21 October), pressed in while the map shows, its tooltip the way (viewfix)
+  minimapButton(shown);
   // Back to where I was beside the card on one line where the column has the room, and where it has not,
   // as at 360px with the card open, at the column's head at the card's right edge, over a strip where
   // the column's words fade out, so it never cuts through a line, where it stood squeezed to two lines
@@ -6907,6 +6968,124 @@ function minimapToggle() {
   S.mmHeld = show;
   S.mmHush = !show;
   scheduleMinimap();
+}
+
+/* A status bar button of more than two states (viewfix, Adam's ruling of 17 November 2026, from the boards' Quotes of
+   30 October): a click takes the next state, and a right click or a press held opens a small menu over the button to
+   jump straight to one, its heading over the states, the one in use ticked, the menu staying open as a choice is made
+   until Esc or a press elsewhere puts it away. One code path for every such button, the boards' Quotes and Minimap,
+   the statements screen's Minimap and Trajectories' Quotes: `cycleWire(btn, o)` wires a button to `o`, `{ menu, ways,
+   now, set, head, row, bar, open }`, `menu` its menu's element, `ways` its states in their order, `now()` the one in
+   use, `set(way)` choosing one, `head()` and `row(way)` the menu's words, `bar()` the status bar it stands on, and
+   `open(show, x)` a screen's own opening where it keeps its own record of the menu, else `cycleMenu`. */
+const CYCLE_HOLD = 550;
+const CYCLE_GAP = 10;
+const CYCLE_TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" '
+  + 'stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12.6 9.8 17.4 19 7.2"/></svg>';
+const CYCLE = { open: null, wired: false };
+
+// the next state of a button's, after the last its first
+const cycleNextOf = (ways, now) => ways[(ways.indexOf(now) + 1) % ways.length];
+
+function cycleMenuDraw(o) {
+  const now = o.now();
+  o.menu.innerHTML = `<p class="th-cpmenu-head">${esc(o.head())}</p>`
+    + o.ways.map((w) => `<button type="button" class="ghost small th-qway${w === now ? ' on' : ''}" role="menuitemradio" `
+      + `aria-checked="${w === now}" tabindex="-1" data-cway="${w}"><span class="th-cp-tick" aria-hidden="true">${w === now ? CYCLE_TICK : ''}</span>`
+      + `${esc(o.row(w))}</button>`).join('');
+}
+
+/* the menu shown over its button, its foot CYCLE_GAP over the status bar, or put away */
+function cycleMenu(o, show, x) {
+  if (!show) {
+    o.menu.hidden = true;
+    if (CYCLE.open === o) CYCLE.open = null;
+    return;
+  }
+  if (CYCLE.open && CYCLE.open !== o) (CYCLE.open.open || ((v) => cycleMenu(CYCLE.open, v)))(false);
+  CYCLE.open = o;
+  o.menu.hidden = false;
+  cycleMenuDraw(o);
+  const b = o.btn.getBoundingClientRect();
+  const bar = o.bar && o.bar();
+  const top = bar && bar.getBoundingClientRect ? Math.min(bar.getBoundingClientRect().top, b.top) : b.top;
+  const w = o.menu.offsetWidth;
+  const left = Math.max(8, Math.min(x === undefined ? b.left : x, window.innerWidth - w - 8));
+  o.menu.style.left = `${left}px`;
+  o.menu.style.top = `${Math.max(8, top - o.menu.offsetHeight - CYCLE_GAP)}px`;
+}
+
+function cycleWire(btn, o) {
+  if (!btn || !o.menu) return;
+  o.btn = btn;
+  const open = (v, x) => (o.open ? o.open(v, x) : cycleMenu(o, v, x));
+  let held = null;
+  btn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (e.button !== 0) return;
+    clearTimeout(held);
+    held = setTimeout(() => { held = 'held'; open(true, e.clientX); }, CYCLE_HOLD);
+    // a held press let go off the button sends no click, so once the press ends anywhere the flag is cleared,
+    // after the click that follows a release on the button (a timeout runs later than it)
+    document.addEventListener('pointerup', () => setTimeout(() => { if (held === 'held') held = null; }, 0), { once: true, capture: true });
+  });
+  const letGo = () => { if (held !== 'held') clearTimeout(held); };
+  btn.addEventListener('pointerup', letGo);
+  btn.addEventListener('pointerleave', letGo);
+  btn.onclick = () => {
+    if (held === 'held') { held = null; return; }
+    o.set(cycleNextOf(o.ways, o.now()));
+    if (!o.menu.hidden) cycleMenuDraw(o);
+  };
+  btn.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    open(true, e.clientX);
+  });
+  o.menu.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
+  o.menu.addEventListener('click', async (e) => {
+    const way = e.target.closest('[data-cway]');
+    if (!way) return;
+    await o.set(way.dataset.cway);
+    if (!o.menu.hidden) cycleMenuDraw(o);
+  });
+  // a press anywhere else puts it away, and so does Esc, before the screen's own keys see it
+  document.addEventListener('pointerdown', (e) => {
+    if (!o.menu.hidden && !o.menu.contains(e.target) && !btn.contains(e.target)) open(false);
+  }, true);
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || o.menu.hidden) return;
+    e.preventDefault();
+    e.stopPropagation();
+    open(false);
+  }, true);
+}
+
+// the minimap's three ways, each key written out: the menu's rows and the button's tooltip
+const MINIMAP_ROWS = { auto: 'page_idiograph.work.auto', on: 'page_idiograph.work.on', off: 'page_idiograph.work.off' };
+const MINIMAP_TIPS = { auto: 'distil.minimap_way.auto', on: 'distil.minimap_way.on', off: 'distil.minimap_way.off' };
+
+/* The statements screen's Minimap on its status bar (viewfix): Auto, On and Off in turn, its menu the three, the
+   button showing the one in use as the boards' Quotes shows its way */
+const MINIMAP_CYCLE = {
+  ways: MINIMAP_MODES,
+  now: () => minimapMode(viewConfig()),
+  set: (mode) => minimapChoose(mode),
+  head: () => t('page_idiograph.work.minimap'),
+  row: (mode) => t(MINIMAP_ROWS[mode]),
+  bar: () => $('es-status'),
+};
+
+/* the button pressed in while the map shows, as since 21 October, its tooltip naming the way, "Minimap: auto" */
+function minimapButton(shown) {
+  const btn = $('es-map-btn');
+  if (!btn) return;
+  const mode = minimapMode(viewConfig());
+  const said = t(MINIMAP_TIPS[mode]);
+  if (btn.dataset) btn.dataset.minimap = mode;
+  btn.setAttribute('aria-pressed', String(!!shown));
+  btn.title = said;
+  btn.setAttribute('aria-label', said);
 }
 
 /* A choice of Auto, On or Off in View or Settings' View, kept as View keeps it: any opening or hiding
@@ -10933,11 +11112,11 @@ const notePrompt = () => NOTE_PROMPTS[Math.floor(Math.random() * NOTE_PROMPTS.le
 // a note as the workbook keeps it: its lines trimmed, the empty ones dropped
 const noteLines = (text) => String(text || '').split('\n').map((l) => l.trim()).filter(Boolean).join('\n');
 
-/* One of the interviewer's own turns, named as Settings names him. A server from before this sends
+/* One of the interviewer's own turns, named as the project names him (its own interviewer, else the settings'). A server from before this sends
    no `note` on any row, and then a click on his turn cues the recording and does nothing more. */
 function noteable(row) {
   if (!S.data || !row || row.stop || row.note === undefined || !row.name) return false;
-  return row.name.trim().toLowerCase() === (S.data.config.interviewer || 'Adam').trim().toLowerCase();
+  return row.name.trim().toLowerCase() === (S.data.config.interviewer || '').trim().toLowerCase();
 }
 
 // the mark in the margin of a row carrying a note, a pen in the app's one stroke style
@@ -11887,38 +12066,15 @@ function homeProject() {
   return s ? { project: s.project || null, gets: s.gets && s.gets.path ? s.gets.path : null } : null;
 }
 
-/* Idiograph's screens' categories, for screenPane */
-function distilScreenPane() {
-  // the PETs and GETs boards' own, their status bar and their AI, GETs' rules being the project's since settingsplit
-  if (onScreen('themes')) return 'pets';
-  if (onScreen('work')) return 'statements';
-  return null;
-}
-
-/* Idiograph's parts of Settings as the card opens (openSettings): the statements screen's interviewer, rounds
-   and view, the statement prompt and the nudges, the app's own alone since settingsplit (Adam, 5
-   November 2026), a project's being in Project settings */
+/* Idiograph's parts of Settings as the card opens (openSettings): Your name under General and the statements'
+   prompt under AI features, Settings holding the app's own settings alone since viewbuild (Adam, 17 November
+   2026), a screen's own in its View and a project's in Project settings */
 function distilSettingsOpen(ctx, c) {
-  $('set-interviewer').value = c.interviewer || 'Adam';
   // Your name, the name documents carry, empty unless set (31 October)
   if ($('set-your-name')) $('set-your-name').value = c.your_name || '';
-  // Work in rounds, off unless the settings say so, and its two fields only while it is ticked
-  $('set-rounds').checked = roundsOn(c);
-  $('rounds-fields').hidden = !$('set-rounds').checked;
-  $('cheer-line').textContent = cheerLine($('set-rounds').checked);
-  $('set-minutes').value = c.round_minutes || 10;
-  $('set-target').value = c.daily_target || 2;
-  // the statements screen's view, as Columns and its View menu hold it, the book's order and the
-  // current passage larger unless the settings say otherwise
-  fillColumnsSet(columnsLayout(c));
-  $('set-larger').checked = largerPassage(c);
-  for (const m of MINIMAP_MODES) $(`set-minimap-${m}`).checked = minimapMode(c) === m;
-  // the boards' status bar, on unless the settings say otherwise, as a server from before says nothing
-  $('set-status-bar').checked = c.status_bar !== false;
-  S.viewOpened = viewChoice();
+  // Celebrations' line names the round's end while Work in rounds is on, as the statements screen's View sets it
+  $('cheer-line').textContent = cheerLine(roundsOn(c));
   $('set-prompt').value = c.ai_prompt || S.promptDefault || '';
-  $('nudge-switches').innerHTML = Object.entries(NUDGES).map(([k, [label, about]]) =>
-    nudgeRow(k, label, about, !!(c.nudges || {})[k])).join('');
 }
 
 /* ──────────────────────────────────────── GETs in Project settings ── */
@@ -12022,24 +12178,28 @@ const INFO_ICON = '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"
   + 'fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M8 7.3v4" fill="none" stroke="currentColor" '
   + 'stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="5" r=".9" fill="currentColor"/></svg>';
 
-/* One tick under Nudges: the box and its label, then the info mark, a button in the tab order that
-   names the nudge, with the tooltip as its description, shown on hover and on focus. The length nudge's
-   number, the project's statement length, is in Project settings since settingsplit (Adam, 5 November 2026),
-   and its row speaks of it in words, the open project's number used. */
-function nudgeRow(key, label, about, on) {
-  return `<div class="nudge-row"><label><input type="checkbox" data-nudge="${key}" ${on ? 'checked' : ''}> <span class="nudge-name">${esc(label)}</span></label>`
+/* One tick under Nudges in the statements screen's View (in Settings until viewbuild): the box and its label, then
+   the info mark, a button in the tab order that names the nudge, with the tooltip as its description, shown on
+   hover and on focus. The length nudge's number, the project's statement length, is in Project settings since
+   settingsplit (Adam, 5 November 2026), and its row speaks of it in words, the open project's number used. A
+   demo's are shown and fixed. */
+function nudgeRow(key, label, about, on, fixed = false) {
+  return `<div class="nudge-row view-row"><label><input type="checkbox" data-nudge="${key}" ${on ? 'checked' : ''}${fixed ? ' disabled' : ''}> <span class="nudge-name">${esc(label)}</span></label>`
     + `<button type="button" class="info-mark" aria-label="${escAttr(t('distil.nudge.about', { label }))}" aria-describedby="nudge-about-${key}">${INFO_ICON}</button>`
     + `<span class="info-tip" role="tooltip" id="nudge-about-${key}">${esc(about)}</span></div>`;
 }
 
-/* The tooltip opens under its row, or over it when the column has too little room below to show
-   it whole, as for the last nudges with the column scrolled to the top. */
+/* The tooltip opens under its row, or over it when the window has too little room below to show it whole, placed
+   by the window since View's menu scrolls (viewbuild), its right edge at the mark's and kept inside the window. */
 function placeTip(e) {
   const mark = e.target.closest && e.target.closest('.info-mark');
   const tip = mark && mark.nextElementSibling;
   if (!tip) return;
-  const room = $('settings-panes').getBoundingClientRect().bottom - mark.getBoundingClientRect().bottom;
-  tip.classList.toggle('up', room < (tip.offsetHeight || 120) + 12);
+  const box = mark.getBoundingClientRect();
+  const high = tip.offsetHeight || 120;
+  const up = window.innerHeight - box.bottom < high + 12;
+  tip.style.left = `${Math.max(8, Math.min(box.right - 300, window.innerWidth - 308))}px`;
+  tip.style.top = `${up ? Math.max(8, box.top - high - 4) : box.bottom + 4}px`;
 }
 
 /* The test bench: one turn of the demo case, with the turn before it above the box, sent through the
@@ -12114,29 +12274,13 @@ async function runBench() {
   }
 }
 
-/* Idiograph's keys in Settings' Save (saveSettings): the statements screen's interviewer and rounds, the
-   nudges, the statement prompt, the view's keys once they have moved and the PETs limit once it has */
+/* Idiograph's keys in Settings' Save (saveSettings): Your name and the statements' prompt, the app's own alone
+   since viewbuild (17 November 2026), the rest a screen's View's or Project settings' to save */
 function distilSettingsBody(body) {
-  // the screen it was opened over, for what Idiograph does once the settings are saved. A project's own settings
-  // are Project settings' to save since settingsplit
+  // the screen it was opened over, for what Idiograph does once the settings are saved
   DISTIL_SAVED.sends = { ctx: settingsCase(), saved: null };
-  const nudges = {};
-  document.querySelectorAll('[data-nudge]').forEach((el) => { nudges[el.dataset.nudge] = el.checked; });
-  Object.assign(body, {
-    interviewer: $('set-interviewer').value.trim() || 'Adam',
-    your_name: $('set-your-name') ? $('set-your-name').value.trim() : undefined,
-    work_in_rounds: $('set-rounds').checked,
-    round_minutes: Number($('set-minutes').value) || 10,
-    daily_target: Number($('set-target').value) || 2,
-    nudges,
-  });
+  if ($('set-your-name')) body.your_name = $('set-your-name').value.trim();
   if (APP === 'idiograph' && $('set-prompt').value.trim()) body.ai_prompt = $('set-prompt').value;
-  // the view's keys, each only once it has moved since the card opened, so a choice the View menu or
-  // Columns made since the settings were read is never put back by a card opened over another screen.
-  // The columns' order is a list, so each is compared as it is written
-  const view = viewChoice();
-  const said = (v) => JSON.stringify(v);
-  for (const key of Object.keys(view)) if (!S.viewOpened || said(view[key]) !== said(S.viewOpened[key])) body[key] = view[key];
 }
 
 
@@ -12153,32 +12297,12 @@ function distilSettingsSaved(data) {
 async function distilSettingsAfter(data) {
   const { ctx } = DISTIL_SAVED.sends || { ctx: settingsCase() };
   if (S.data && (onScreen('work') || ctx.themes)) {
-    const before = JSON.stringify([S.data.config.round_minutes, S.data.config.interviewer]);
-    const paced = roundsOn(S.data.config);
-    S.data.config = data.config;
-    // the view as Settings left it, the notes field moved where it now stands, its words kept, and
-    // the passage in the middle of the column again
+    // the project's own interviewer kept, which the settings no longer hold (viewbuild, 17 November 2026)
+    S.data.config = Object.assign({}, data.config, { interviewer: S.data.config.interviewer });
     drawView();
     if (!ctx.themes && current()) centreCurrent(false);
     $('btn-ai').hidden = !aiFor(data.config, 'statements');
     if (!aiFor(data.config, 'statements')) $('ai').hidden = true;
-    const recut = before !== JSON.stringify([data.config.round_minutes, data.config.interviewer]);
-    // Work in rounds ticked or unticked: the bar, the markers and the count drawn again in place,
-    // a field typed into and not saved saved first, as on any move (15 October)
-    const turned = paced !== roundsOn(data.config);
-    // over the PETs screen the turn screen is out of sight, so it reopens on the way back
-    if (ctx.themes) { if (recut || turned) S.recut = true; }
-    else if (recut) {
-      // a new interviewer recuts the rounds too, which are only spoken of while he works in them
-      say(roundsOn(data.config) ? t('distil.settings.rounds_reopening') : t('distil.settings.reopening'));
-      openCase(S.data.path);
-    } else if (turned) {
-      if (S.dirty && current()) await commit(current(), false);
-      S.sheetDrawn = null;
-      drawRoundsShown();
-      drawTurn({ keepPlayer: true });
-      drawProgress();
-    } else { runNudges(); }
   }
 }
 
@@ -12363,6 +12487,12 @@ function drawProjectPane(p = project()) {
   $('set-method').textContent = ta ? t('method.name_ta') : t('method.name_ipa');
   $('set-labels-row').hidden = ta;
   $('tp-block').hidden = ta;
+  // the interviewer's name, the project's own since viewbuild (17 November 2026), as its file or else the app's
+  // settings of before give it, fixed on a demo
+  if ($('set-interviewer')) {
+    $('set-interviewer').value = p.interviewer || '';
+    $('set-interviewer').readOnly = fixed;
+  }
   tIn(p.method, () => {
     drawLabels(p);
     drawTimecodes(p);
@@ -12398,6 +12528,10 @@ function projectSaves() {
   const box = $('set-reflexivity');
   const reflexivity = box ? box.value.trim() : '';
   if (box && p.reflexivity !== undefined && reflexivity !== String(p.reflexivity || '').trim()) body.reflexivity = reflexivity;
+  // the interviewer's name once it has changed, in the same call, so an empty name or a participant's, which the
+  // server refuses in one line, saves none of them and the sheet stays open with the line (viewfix, L4 and L5)
+  const interviewer = $('set-interviewer') ? $('set-interviewer').value.trim().replace(/\s+/g, ' ') : '';
+  if ($('set-interviewer') && interviewer !== String(p.interviewer || '')) body.interviewer = interviewer;
   if (Object.keys(body).length) out.push({ ...projectBody(p), ...body });
   if (p.agents && $('set-agents').checked !== !!p.agents.allowed) out.push({ ...projectBody(p), agents: $('set-agents').checked });
   return out;
@@ -12448,7 +12582,20 @@ async function saveProjectSettings() {
 /* the project as the server now has it, in every copy the page holds and on every screen that shows it */
 function projectTake(saved) {
   const id = saved.id || '';
-  if (S.data && S.data.project && !S.data.project.demo && (S.data.project.id || '') === id) { S.data.project = saved; drawBand(); }
+  if (S.data && S.data.project && !S.data.project.demo && (S.data.project.id || '') === id) {
+    const was = S.data.config ? S.data.config.interviewer : undefined;
+    S.data.project = saved;
+    drawBand();
+    // a new interviewer recuts the rounds and the passages that stop, so the case opens again where it is, as
+    // Settings' Save did while the name was the app's (viewbuild, 17 November 2026)
+    if (S.data.config && saved.interviewer && was !== saved.interviewer) {
+      S.data.config.interviewer = saved.interviewer;
+      if (onScreen('work')) {
+        say(roundsOn(S.data.config) ? t('distil.settings.rounds_reopening') : t('distil.settings.reopening'));
+        openCase(S.data.path);
+      } else S.recut = true;
+    }
+  }
   if (typeof TH !== 'undefined' && TH.project && !TH.project.demo && (TH.project.id || '') === id && typeof thSettingsSaved === 'function') {
     thSettingsSaved(null, saved);
   }
@@ -13046,14 +13193,14 @@ const guideOpen = () => $('guide').classList.contains('open');
 const RULE_CHEVRON = '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M4.5 6.5 8 10l3.5-3.5" '
   + 'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-function drawRules(lines, examples) {
-  $('rules').innerHTML = lines.map((line, i) => {
+function drawRules(lines, examples, list = $('rules'), stem = 'rule-ex') {
+  list.innerHTML = lines.map((line, i) => {
     const ex = examples[i];
     if (!ex || !ex.less || !ex.more) return `<li><span class="rule-text">${esc(line)}</span></li>`;
     return `<li><span class="rule-text">${esc(line)}</span>`
-      + `<button type="button" class="rule-ex-open" aria-expanded="false" aria-controls="rule-ex-${i}" `
+      + `<button type="button" class="rule-ex-open" aria-expanded="false" aria-controls="${stem}-${i}" `
       + `aria-label="${escAttr(t('distil.rules.examples'))}" title="${escAttr(t('distil.rules.examples'))}">${RULE_CHEVRON}</button>`
-      + `<div class="rule-ex" id="rule-ex-${i}" hidden>`
+      + `<div class="rule-ex" id="${stem}-${i}" hidden>`
       + `<div class="rule-ex-side"><span class="rule-ex-head">${esc(t('distil.rules.less'))}</span><span class="rule-ex-text">${esc(ex.less)}</span></div>`
       + `<div class="rule-ex-side"><span class="rule-ex-head">${esc(t('distil.rules.more'))}</span><span class="rule-ex-text">${esc(ex.more)}</span></div>`
       + '</div></li>';
@@ -13062,7 +13209,7 @@ function drawRules(lines, examples) {
 
 function ruleExamples(button) {
   const open = button.getAttribute('aria-expanded') !== 'true';
-  for (const other of $('rules').querySelectorAll('.rule-ex-open')) {
+  for (const other of (button.closest('ol') || $('rules')).querySelectorAll('.rule-ex-open')) {
     const shown = open && other === button;
     other.setAttribute('aria-expanded', String(shown));
     $(other.getAttribute('aria-controls')).hidden = !shown;
@@ -13179,7 +13326,8 @@ function distilBoot() {
   if (APP === 'idiograph') api('/api/guidance').then((data) => {
     S.promptDefault = data.prompt_default || '';
     // IPA's rail and a thematic analysis project's, ta_guidance.md's, none from a server too old to send it (tarail)
-    S.rails = { ipa: data, ta: data.ta || null };
+    S.rails = { ipa: data, ta: data.ta || null, codes: data.codes || null };
+    if (typeof cdGuideDraw === 'function') cdGuideDraw();
     S.railDrawn = null;
     guideRail();
   }).catch(() => {});
@@ -13232,8 +13380,6 @@ function distilBoot() {
   $('col-edges').addEventListener('dblclick', edgeBack);
   $('col-edges').addEventListener('keydown', edgeKeys);
   $('cols-widths').onclick = () => { widthsReset(); $('cols-pick').focus(); };
-  $('set-widths-reset').onclick = () => widthsReset();
-  $('view-set').addEventListener('change', () => colsSetTicked());
   // the divider between the statements and the notes stacked, by the pointer and by the keyboard
   $('stack-divider').addEventListener('pointerdown', stackDividerDown);
   $('stack-divider').addEventListener('keydown', stackDividerKeys);
@@ -13310,13 +13456,8 @@ function distilBoot() {
   // the statement length a word fewer or more, saved for the project shown in Project settings
   $('words-n').addEventListener('input', (e) => wordsSet(e.target.value));
   $('words-n').addEventListener('change', (e) => wordsSet(e.target.value, true));
-  // the round's two fields show only while Work in rounds is ticked, and Celebrations' line follows it
-  $('set-rounds').onchange = () => {
-    $('rounds-fields').hidden = !$('set-rounds').checked;
-    $('cheer-line').textContent = cheerLine($('set-rounds').checked);
-  };
-  // a nudge's tooltip, under its row or over it, as the room in the column allows
-  for (const kind of ['mouseover', 'focusin']) $('nudge-switches').addEventListener(kind, placeTip);
+  // a nudge's tooltip in View, under its row or over it, as the room in the window allows
+  for (const kind of ['mouseover', 'focusin']) $('view-nudges').addEventListener(kind, placeTip);
   $('btn-bench').onclick = () => runBench();
   $('bench-close').onclick = () => closeBench();
   $('btn-bench-reset').onclick = () => loadSample(true);
@@ -13433,7 +13574,11 @@ function distilBoot() {
   });
   $('view-menu').addEventListener('change', (e) => {
     if (e.target.id === 'view-larger') setView('larger_passage', $('view-larger').checked);
-    else if (e.target.name === 'view-minimap' && e.target.checked) minimapChoose(e.target.value);
+    // Work in rounds, its two numbers and the project's nudges (viewbuild, 17 November 2026)
+    else if (e.target.id === 'view-rounds') viewRounds(e.target.checked);
+    else if (e.target.id === 'view-minutes') viewRoundNumber('round_minutes', e.target);
+    else if (e.target.id === 'view-target') viewRoundNumber('daily_target', e.target);
+    else if (e.target.dataset && e.target.dataset.nudge) viewNudge(e.target.dataset.nudge, e.target.checked);
   });
   // the minimap: a press moves the column there and a drag scrolls it, a passage under the pointer
   // names itself in a tip, the wheel over the card scrolls the column, its button shows or hides it,
@@ -13455,8 +13600,10 @@ function distilBoot() {
   $('minimap').addEventListener('wheel', minimapWheel, { passive: false });
   $('minimap-btn').addEventListener('click', () => minimapToggle());
   // the status bar's Minimap and Quotes (21 October), which keep the focus and a selection where they are
-  for (const id of ['es-map-btn', 'es-quotes-btn']) $(id).addEventListener('pointerdown', (e) => e.preventDefault());
-  $('es-map-btn').addEventListener('click', () => minimapToggle());
+  $('es-quotes-btn').addEventListener('pointerdown', (e) => e.preventDefault());
+  // its Minimap takes Auto, On and Off in turn, a right click or a press held their menu (viewfix)
+  MINIMAP_CYCLE.menu = $('es-mmenu');
+  cycleWire($('es-map-btn'), MINIMAP_CYCLE);
   $('es-quotes-btn').addEventListener('click', () => quotesToggle());
   $('transcript').addEventListener('scroll', drawMinimapView, { passive: true });
   $('transcript').addEventListener('scroll', minimapScrolled, { passive: true });
@@ -14256,7 +14403,6 @@ FAMILY_APPS.idiograph = {
     return null;
   },
   title: (...a) => distilTitle(...a),
-  screenPane: (...a) => distilScreenPane(...a),
   settingsCase: (...a) => distilSettingsCase(...a),
   settingsOpen: (...a) => distilSettingsOpen(...a),
   settingsBody: (...a) => distilSettingsBody(...a),

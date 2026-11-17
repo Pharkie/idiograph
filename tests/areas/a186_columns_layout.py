@@ -115,7 +115,8 @@ def test_columns_layout(scratch):
           "in the menu or Settings' ticks reaches the page's handlers",
           "COLUMN_ORDERS" not in app and 'name="view-columns"' not in app + page and 'id="cols-rows"' not in page
           and 'id="set-columns"' not in page
-          and "$('view-set').addEventListener('change', () => colsSetTicked());" in app)
+          # Settings' copy of the columns went with viewbuild (17 November 2026), Columns' menu the one place
+          and 'id="view-set"' not in page and "colsSetTicked" not in app)
 
     # ── D. the page's functions in node: the layouts read, the places, the card and the field, the menu and its keys,
     # the divider, the book's order, Settings
@@ -132,7 +133,7 @@ def test_columns_layout(scratch):
                                                 "columnsShownSaid", "colsVars", "statementsHtml", "notesHtml", "placeCard",
                                                 "cardCell", "notesCell", "parkCard", "placeNotes", "parkNotes", "cellsAgain",
                                                 "drawStack", "colsStackRows", "drawColsMenu", "colsMenuKeys", "colsBookOrder",
-                                                "stackSplitKeep", "stackDividerKeys", "fillColumnsSet", "colsSetTicked")])
+                                                "stackSplitKeep", "stackDividerKeys")])
         code = r"""
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 const escAttr = (s) => esc(s).replace(/"/g, '&quot;');
@@ -245,11 +246,6 @@ out.divider = { up: [key('ArrowUp'), S.layout.split], up2: [key('ArrowUp'), S.la
   vars: [els.stack.style.props['--stack-a'], els.stack.style.props['--stack-b'], els['stack-divider'].attrs['aria-valuenow']] };
 out.divider.sent = sent.map((s) => s[1]);
 S.data.config.stack_split = 0.2; sent.length = 0; stackSplitKeep(0.05); out.divider.same = sent.slice();
-// Settings' view: read from the layout, Stacked offered as the ticks change
-fillColumnsSet(columnsLayout({ columns_hidden: ['notes'], columns_stacked: true }));
-out.settings = { es: els['set-show-statements'].checked, en: els['set-show-notes'].checked, stacked: els['set-stacked'].checked,
-  offered: !els['set-stacked'].disabled };
-els['set-show-notes'].checked = true; colsSetTicked(); out.settings.again = { stacked: els['set-stacked'].checked, offered: !els['set-stacked'].disabled };
 console.log(JSON.stringify(out));
 """
         o, done = run_node("columns-186.js", code)
@@ -319,10 +315,7 @@ console.log(JSON.stringify(out));
                   d["up"] == [True, 0.45] and d["up2"] == [True, 0.4] and d["end"] == [True, 0.8] and d["down"] == [True, 0.8]
                   and d["home"] == [True, 0.2] and d["left"] is False and d["mod"] is False
                   and d["vars"] == ["200fr", "800fr", "20"] and d["sent"] == [0.45, 0.4, 0.8, 0.8, 0.2] and d["same"] == [], str(d))
-            check("186: in node, Settings' View reads the columns shown and the stacking, Stacked not offered while a tick is "
-                  "off and offered again as it is ticked, the choice kept",
-                  o["settings"] == {"es": True, "en": False, "stacked": True, "offered": False, "again": {"stacked": True, "offered": True}},
-                  str(o["settings"]))
+
 
     # ── E. the wiring and the keyboard
     check("186: the menu's ticks and choices are kept as they change, the menu placed again under Columns and staying "

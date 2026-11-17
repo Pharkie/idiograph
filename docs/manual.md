@@ -116,7 +116,7 @@ so a misspelt word is underlined as in a browser. View holds Home, Cmd+Shift+H (
 goes to Home from any screen, then Bigger Text, Smaller Text and Actual Size, Cmd with +, - and 0, which
 zoom every window together and are kept for the next time, the same as Text size in Settings (see Text
 size). A line at the foot of the window says the new size for a few seconds, as "Text size 110%". View also
-holds Status Bar, which turns the status bar of the PETs and GETs boards on or off, Reload, and on a Mac Enter Full Screen. In a print view or the manual they zoom that window alone, and on a Mac Cmd+S in a print view opens its print
+holds Reload (the status bar is always on since 17 November 2026, with no item here), and on a Mac Enter Full Screen. In a print view or the manual they zoom that window alone, and on a Mac Cmd+S in a print view opens its print
 panel, where Save as PDF is. Window holds
 the Mac's own items, the tab items among them, and Help holds the manual, What's New in Idiograph, the
 notes of the version you have (see Updates, under Settings), Keyboard Shortcuts and Send Feedback. On
@@ -362,7 +362,7 @@ keeps for a crux, a quote and the filled button, so Rename alone is orange and i
 window, clear of the line at the foot that says the rename, "P1 Ada is now P1 Bea.", on a phone too.
 Rename is refused in one line in the card, with nothing changed, when no name is typed, when it is
 the name the participant has, when it is not one capitalised word, as New project's pseudonyms are, when it
-is the interviewer's name in Settings or another participant's name in the project, when Excel has a
+is the project's interviewer's name (Project settings) or another participant's name in the project, when Excel has a
 workbook of the participant open, "P1 Ada - EN & ES.xlsx is open in Excel. Close it in Excel first, then
 try again.", when a folder or a file the move lands on is there already, and when a file cannot be
 written, which puts back everything written before it. While a refusal shows, the list of what will
@@ -698,8 +698,14 @@ small steps of words after the participant's name, and a tester had found the wa
 to GETs too hard to see before those came on 18 October.
 
 **Rounds.** Rounds are a pace of his own, not a step of IPA, so they are a setting, Work in rounds
-under Experiential statements in Settings, off on a new install, and a settings file without
-it reads off (15 October, `work_in_rounds` in `config.json`). With it off nothing about rounds shows
+in the statements screen's View (in Settings until 17 November 2026), its transcript minutes per round and rounds a
+day as small numbers beside their labels under it while it is ticked. Since 17 November 2026 (Adam's ruling, as the
+nudges) the three are each project's own, `work_in_rounds`, `round_minutes` and `daily_target` in its project file:
+a project made from then on starts with Work in rounds off, a project whose file has none of them reads each as the
+app's settings held it for every project until then (`config.json`'s, off on a new install), so his own keep what
+they had, nothing is written to the file until View or an agent sets one, and a demo's are off and fixed. An agent
+reads them with `project show` and sets them with `project set --rounds on|off --round-minutes N --rounds-a-day N`
+(MCP's project_set, `work_in_rounds`, `round_minutes` and `daily_target`), as View does. With it off nothing about rounds shows
 anywhere: no round count or its short bar in the top bar, no round clock, no round markers across the
 transcript, no line to today's target or streak, no round card in mid-sheet and no confetti for a
 round. The card still comes at a sheet's end and at the participant's end,
@@ -953,15 +959,30 @@ before, with no drop on a half and nothing in the heading's menu. The column abo
 **View.** Two things about the statements screen are a matter of taste, so each is his to choose
 and neither is hidden in Settings (16 October, after a tester's feedback). View, the first of the top
 bar's tools, an icon of a page in two columns and its word, opens a small menu under it: a tick,
-Larger current passage, and since the evening of 16 October the minimap, since 17 October, later a
-choice of Auto, On and Off under its name (see The minimap). Until 17 October its first three rows
+Larger current passage. From the evening of 16 October to 17 November 2026 it also held the minimap's Auto, On and
+Off, which the status bar's Minimap button now takes alone (see The minimap). Until 17 October its first three rows
 chose where the notes stood, right or left of the transcript or under the statements, and the three
 columns and their order under Columns took their place. Each row ticks from anywhere on it, each change
 shows at once and is kept, and the menu stays open on it, so the views can be tried one after
-another. `Esc` closes it, and so does a click anywhere else. The same choices stand in Settings,
-under Experiential statements, under a small heading, View, Larger current passage first, then
-since 18 October Show and Statements and notes as Columns has them, where until then the columns' order
-stood first as Columns, a list of the six, and the two always agree. They are kept in `config.json` as
+another. `Esc` closes it, and so does a click anywhere else. Since 17 November 2026 (Adam's ruling: a screen's
+own settings live in its View, Settings holding the app's own alone) View also holds Work in rounds, with its
+Transcript minutes per round and Rounds a day as small numbers beside their labels while it is ticked (a new number
+of minutes opens the participant again where it is, the rounds cut afresh), and under Nudges the open project's
+nudges, each with its circled i (see Nudges), an IPA project's alone and a demo's shown and fixed; the copy of
+these choices that stood in Settings went, the columns shown and their stacking being Columns'. A thematic
+analysis project's Coding screen has the same View without the nudges. A control lives in one place only (Adam's
+ruling of 17 November 2026 about 12:40): nothing on a screen's status bar is repeated in its View, and a screen whose
+View would be empty has no View button, so the boards (PETs, GETs, LPETs, LGETs and a thematic analysis project's
+Themes), Trajectories and the Code list have none, their minimap, quotes, notes, close pairs and compact being the
+status bar's. Every screen's top bar has Guidance: on a board it opens the right sidebar on its Guidance tab, on
+Trajectories its Guidance sidebar, and on the Code list a sheet over the right of the screen, as the statements
+screen's, of eight lines about working on the list of codes as a whole, each with its Less this and More this,
+from `ta_codes_guidance.md`, written from Braun and Clarke's reflexive thematic analysis. A status bar button of more
+than two states works as the boards' Quotes always has: a click takes the next state, and a right click or a press
+held opens a small menu over it to jump straight to one, the one in use ticked. So the Minimap on the statements
+screen and on every board takes Auto, On and Off in turn, its tooltip saying which, "Minimap: auto", and its menu the
+three, and Trajectories' Quotes, Off, Short and Full, has the same menu. M still shows or hides the map until the
+next passage or pan. A two-state button stays a plain toggle. The choices are kept in `config.json` as
 `statements_columns`, `larger_passage` and `minimap`, `auto`, `on` or `off`, and a settings file
 without them reads the defaults, the book's order, the current passage larger and the minimap on Auto.
 The columns shown and the stacking are kept beside them, every column shown side by side when absent (see
@@ -1024,8 +1045,8 @@ passage on or off, since each passage's place on the card is tied to where it st
 column keeps its own scrollbar, the card standing clear of it, and its foot keeps room under the last
 passage, so that passage scrolls clear of the card.
 
-Minimap in View is a choice of three, Auto, On and Off, and so is Minimap under View in Settings, Auto on
-a new install and for a settings file from before, where the old tick's on reads as Auto and its off as
+The Minimap is a choice of three, Auto, On and Off, the status bar's button alone (a click takes them in turn, a right
+click or a press held opens a menu of them, 17 November 2026), Auto on a new install and for a settings file from before, where the old tick's on reads as Auto and its off as
 Off. In Auto the card appears as he scrolls the transcript, by the wheel, the scrollbar or the keys, or
 moves to another passage, stays while the pointer is on it or a drag lasts, and fades out about two
 seconds after, leaving its button alone in the corner, the box over the part in view fading with the
@@ -1948,36 +1969,29 @@ ships: each of the three pristine progress files carries its mark, since the dem
 **Settings.** One card, about 760px wide and never wider than the window less its gutters, the same from
 Home and from every screen, with its categories down the left and the chosen one on the right, its rule
 in the app's colour. The categories
-are General, Language and formats, Experiential statements, PETs and AI features (since 5 November a project's own settings are in Project settings, see Project settings).
-General: Appearance, Light, Dark and Same as this
+are General, Language and formats and AI features. Since 17 November 2026 (Adam's ruling) Settings holds the app's
+own settings alone, the same on Home and inside a project: a screen's own settings are in that screen's View, on its
+top bar (see View), and a project's are in its Project settings (see Project settings).
+General: Your name (see the print views' foot), then Appearance, Light, Dark and Same as this
 computer, applied as each is ticked (see Light, dark or the system), then in Idiograph's own window Text
 size (see Text size), then Celebrations, Updates and Closing. Language and formats: see Language and formats. Appearance is kept in the app's own settings as well as in the browser.
+AI features comes last (see AI features), and with its switch on it holds, under the switches, the Experiential
+statements prompt and its test bench, then under PETs the PETs screen's own model for the suggested titles, Same as
+Experiential statements unless another is chosen, and the key when only that screen needs it.
 
-Experiential statements holds what the statements screen uses: the interviewer, then Work in rounds, a
-tick off on a new install, with the line "Work through the transcript in rounds of about 10 minutes of
-talk, with a daily target and a streak, to keep a long interview at a steady pace." under it, and the
-transcript minutes in a round and the rounds a day under it only while it is ticked, then under a small
-heading, View, Larger current passage, the columns shown and how the statements and the notes stand,
-side by side or stacked, the column widths, and Minimap, its Auto, On and Off, which rule the boards' map
-too and which Save writes only when one has moved since the card opened, so a choice made in the menu
-since is never put back (see View), then Nudges, the nudges on a statement as it is typed, each one a
-tick box with a small circled i after its label, the length nudge's "word count past the statement length"
-using the open project's number (see Statement length), and with AI features on, under AI, the Experiential
-statements prompt and its test bench. PETs holds what the PETs screen alone uses: one line of small type
-saying the on-screen guidance is `themes_guidance.md` beside the app, then under View the Status bar
-tick, and with AI features on, under AI, its own model for the suggested titles, Same as Experiential
-statements unless another is chosen, and the key when only this screen needs it. AI features comes last (see AI features). Since 5 November 2026 Settings holds the app's own settings alone, the
-same on Home and inside a project: GETs' rules, a project's name, question and the rest are in that project's
-Project settings (see Project settings), and the exports are the boards' Export menus'.
-
-Every key in `config.json` stays where it was, the nudges under `nudges`, and the PETs screen's model is
-`pets_provider` and `pets_model`. The most PETs a New AI board proposed, under `themes` as `cap`, went with
-New AI board on 11 November 2026, and a file that holds it keeps it unread. Each screen's own settings open
-the card on its own category: the Settings on Home on General, the statements screen's cog on
-Experiential statements, and the PETs and GETs screens' cogs on PETs. A line that names a choice made in Settings names its category, "as
+Until 17 November Settings also held an Experiential statements category (the interviewer, Work in rounds, the
+statements screen's view and the nudges) and a PETs one (the status bar's on or off, and the model). Work in rounds,
+its numbers and the nudges are now in the statements screen's View, the columns shown in Columns, the interviewer's
+name in Project settings, and the status bar is always there, its setting gone. Every key in `config.json` stays
+where it was: `work_in_rounds`, `round_minutes` and `daily_target`, and `nudges` and `interviewer`, which
+nothing writes now, each read by a project from before that has none of its own (see Rounds and Nudges); on a new
+install the interviewer is empty and every nudge off. The PETs
+screen's model is `pets_provider` and `pets_model`. The most PETs a New AI board proposed, under `themes` as `cap`,
+went with New AI board on 11 November 2026, and a file that holds it keeps it unread. Settings opens on General from
+every screen. A line that names a choice made in Settings names its category, "as
 chosen in Settings, General". The category chosen holds while the card is open, and the next open goes
-to the screen's own category again, so nothing about it is kept in the browser. Below about 700px the list becomes a row of tabs over the content, and
-Experiential statements says Statements with its whole name in its tooltip, the row wrapping on a phone,
+to General again, so nothing about it is kept in the browser. Below about 700px the list becomes a row of tabs over
+the content, the row wrapping on a phone,
 and each field narrows with its row and stops short of the scrollbar, so none loses its right edge. Below
 480px each label stands over its field. Save at the foot saves every category, and writes a project's
 file only when its name, its question or its tick has changed. Over a demo participant, Projects shows the demo's own values read-only, under a line saying the demo's
@@ -2440,9 +2454,9 @@ pointer back. Two small controls at the bottom right, the pointer and the hand, 
 switch between them. Beside them is the zoom: minus, the level, which goes back to 100% when
 clicked, plus, and Fit all, which brings everything into view and never closer than 100%. Since 20 October Fit all leaves room for the palette, which floats over the canvas, so no card or frame is left under it, at 360 as at 1280. Each takes the side it costs least: the palette a strip down the left, and the bin a strip down the left or, on a phone, off the foot. Going to a theme, a card or a close pair does the same. The canvas opens fitted, and below 620px the words Fit all go. A board too big to show whole even at the least zoom, 15%, shows its top left there (30 October), where its middle could be blank canvas. The line at the foot stands just over the zoom bar and the bin wherever it would cover them, as on a phone, where until 18 October it hid the zoom bar. The shortcuts button, `?`, sat at the end of the zoom bar, where Figma and Miro keep help, from 5 to 16 October, and stands on the top bar now, as on every bar.
 
-**The status bar and the palette (19 October, Adam's choice A).** Along the canvas's foot runs a status bar, as Excel's and Photoshop's do. Its left holds the board's counts in plain words, each number in the mono face, a count of nothing said too so the counts hold their place. Since 26 October (Adam's wording C) the total comes first and where they are after it, then the PETs: "46 ES: 25 in PETs, 5 stacked, 2 set aside, 14 unplaced | 3 PETs", with "3 in no PET" among them when cards lie loose on the canvas. The 25 in PETs count each card once, a stack's top among them, and the statements stacked under a top are counted apart, so the parts add up to the total. On the GETs, LGETs and LPETs boards a card is a PET or a sub-PET, so the count is of cards: "11 cards: 7 in GETs, 1 set aside, 3 unplaced | 2 GETs". While anything is selected the count of it follows the PETs, "1 ES selected", "2 cards selected" on GETs, or "3 selected" when PETs or notes are among it. Until 26 October the counts stood apart with no total, "3 PETs", "25 in PETs", "14 unplaced", "2 set aside" and "5 stacked". A right click on the bar opens a tick for each, PETs, In PETs, Stacked, Binned and Unplaced, in the order the bar says them, and what he ticks is kept at once. A statement stacked under a top counts as stacked, and its top stands for it in the rest. With a count unticked that holds anything, the total goes, "ES: 25 in PETs, 14 unplaced", since the parts shown no longer reach it. Its right holds the pointer and the hand, the zoom, Fit all, the minimap's button, Quotes on cards, Close pairs on the PETs board, Notes on cards on the GETs board, and Shortcuts. Since 20 October (from a tester's feedback) the minimap's button reads Minimap beside its icon, Quotes on cards Quotes and Notes on cards Notes, and each gives way to its icon alone where the bar runs short, as Fit all and Shortcuts do, and with the status bar off. It is on by default and turns off from Settings, Idiograph, PETs, View, Status bar, and in Idiograph's own window from View, Status Bar, kept across a restart. Off, the counts go and the tools float at the bottom right as the zoom bar did before, Shortcuts as `?` at its end. Where the bar runs short it gives way in the order Adam set on 26 October, the counts last: first the tools' words, each tool keeping its icon and its word in its tooltip, then a count beyond the total and its parts, such as how many are selected or the close pairs, then the spacing closes up, then the tools go, the pointer and the hand, the minimap's button and Shortcuts, then the zoom's minus and plus, then Quotes, Notes and Close pairs. Only then do the counts go, the PETs first, so at 1280 the bar always says the whole sentence, and at 720, the app's smallest window, the total and its parts still show. In a canvas narrower still the total goes with every part but In PETs and Unplaced, "ES: 25 in PETs, 14 unplaced", so it never stands over parts that do not reach it, and then In PETs, so no count or button is ever cut off. The bin and the map stand above it, and in the Table view it keeps its counts alone.
+**The status bar and the palette (19 October, Adam's choice A).** Along the canvas's foot runs a status bar, as Excel's and Photoshop's do. Its left holds the board's counts in plain words, each number in the mono face, a count of nothing said too so the counts hold their place. Since 26 October (Adam's wording C) the total comes first and where they are after it, then the PETs: "46 ES: 25 in PETs, 5 stacked, 2 set aside, 14 unplaced | 3 PETs", with "3 in no PET" among them when cards lie loose on the canvas. The 25 in PETs count each card once, a stack's top among them, and the statements stacked under a top are counted apart, so the parts add up to the total. On the GETs, LGETs and LPETs boards a card is a PET or a sub-PET, so the count is of cards: "11 cards: 7 in GETs, 1 set aside, 3 unplaced | 2 GETs". While anything is selected the count of it follows the PETs, "1 ES selected", "2 cards selected" on GETs, or "3 selected" when PETs or notes are among it. Until 26 October the counts stood apart with no total, "3 PETs", "25 in PETs", "14 unplaced", "2 set aside" and "5 stacked". A right click on the bar opens a tick for each, PETs, In PETs, Stacked, Binned and Unplaced, in the order the bar says them, and what he ticks is kept at once. A statement stacked under a top counts as stacked, and its top stands for it in the rest. With a count unticked that holds anything, the total goes, "ES: 25 in PETs, 14 unplaced", since the parts shown no longer reach it. Its right holds the pointer and the hand, the zoom, Fit all, the minimap's button, Quotes on cards, Close pairs on the PETs board, Notes on cards on the GETs board, and Shortcuts. Since 20 October (from a tester's feedback) the minimap's button reads Minimap beside its icon, Quotes on cards Quotes and Notes on cards Notes, and each gives way to its icon alone where the bar runs short, as Fit all and Shortcuts do. It is always there since 17 November 2026 (Adam's ruling), where until then Settings and the window's View menu turned it off. Where the bar runs short it gives way in the order Adam set on 26 October, the counts last: first the tools' words, each tool keeping its icon and its word in its tooltip, then a count beyond the total and its parts, such as how many are selected or the close pairs, then the spacing closes up, then the tools go, the pointer and the hand, the minimap's button and Shortcuts, then the zoom's minus and plus, then Quotes, Notes and Close pairs. Only then do the counts go, the PETs first, so at 1280 the bar always says the whole sentence, and at 720, the app's smallest window, the total and its parts still show. In a canvas narrower still the total goes with every part but In PETs and Unplaced, "ES: 25 in PETs, 14 unplaced", so it never stands over parts that do not reach it, and then In PETs, so no count or button is ever cut off. The bin and the map stand above it, and in the Table view it keeps its counts alone.
 
-**Quotes on cards (19 October, from a tester's reflection on IPA in ATLAS.ti, Adam's way A).** A button of two inverted commas among the status bar's tools, after the minimap's, "Quotes on cards" in its tooltip, shows each statement card's own quote under its statement, inside the card, in italic behind a short orange rule, on the PETs and the GETs boards alike. It is pressed in while the quotes show, off on a new install, and kept across a restart, and with the status bar off it floats with the other tools. A quote runs to three lines at most and the whole of it is in its tooltip. A quote in pieces shows them in order, joined by the ellipsis it was saved with, and a card with no quote shows nothing more. A click on the quote selects the card and shows the quote whole beside it, on its right or left, or under or over it, wherever it covers least of the cards around and otherwise on the side with more room, under Quote and its timecode, with a play button on the PETs board when the sheet has a recording, and Show in passage, which opens the passage as Go to the passage in the card's menu does, Back returning to the board. A double-click on the quote shows it whole as a click does, and edits nothing. Esc, a click anywhere else or the wheel puts it away. The taller cards take their room as a stack shown open does: what stands below a quote in its column moves down as far, and turning the quotes off puts everything back where it stood. That room is a view, so the file keeps where everything stands with the quotes off, and a card let go below a quote stays where it was let go. Since 23 October (from a tester's report) a card moves with the quotes shown only when he moves it or when a move of his sends it clear, and then as far as it would with the quotes off: a card moved a little moves alone, a label that grows sends clear just what it reaches, and turning the quotes off and on again leaves every place in the file as it was. The room for the quotes and for an open stack is made again once the type has loaded, so an open stack keeps its height. Since 30 October (Adam's report: a sub-PET under two side by side kept a large gap under them, and dragging it up pushed them up the board instead) what stands below two or more that grew, a sub-PET under two sub-PETs whose cards both show their quotes, or one with a stack shown open, moves down as far as the one that needs most, never by both together, so it shows as close under them as the board has it, and a drag up brings it to rest a margin under the lower of them with nothing else moving.
+**Quotes on cards (19 October, from a tester's reflection on IPA in ATLAS.ti, Adam's way A).** A button of two inverted commas among the status bar's tools, after the minimap's, "Quotes on cards" in its tooltip, shows each statement card's own quote under its statement, inside the card, in italic behind a short orange rule, on the PETs and the GETs boards alike. It is pressed in while the quotes show, off on a new install, and kept across a restart. A quote runs to three lines at most and the whole of it is in its tooltip. A quote in pieces shows them in order, joined by the ellipsis it was saved with, and a card with no quote shows nothing more. A click on the quote selects the card and shows the quote whole beside it, on its right or left, or under or over it, wherever it covers least of the cards around and otherwise on the side with more room, under Quote and its timecode, with a play button on the PETs board when the sheet has a recording, and Show in passage, which opens the passage as Go to the passage in the card's menu does, Back returning to the board. A double-click on the quote shows it whole as a click does, and edits nothing. Esc, a click anywhere else or the wheel puts it away. The taller cards take their room as a stack shown open does: what stands below a quote in its column moves down as far, and turning the quotes off puts everything back where it stood. That room is a view, so the file keeps where everything stands with the quotes off, and a card let go below a quote stays where it was let go. Since 23 October (from a tester's report) a card moves with the quotes shown only when he moves it or when a move of his sends it clear, and then as far as it would with the quotes off: a card moved a little moves alone, a label that grows sends clear just what it reaches, and turning the quotes off and on again leaves every place in the file as it was. The room for the quotes and for an open stack is made again once the type has loaded, so an open stack keeps its height. Since 30 October (Adam's report: a sub-PET under two side by side kept a large gap under them, and dragging it up pushed them up the board instead) what stands below two or more that grew, a sub-PET under two sub-PETs whose cards both show their quotes, or one with a stack shown open, moves down as far as the one that needs most, never by both together, so it shows as close under them as the board has it, and a drag up brings it to rest a margin under the lower of them with nothing else moving.
 
 **Quotes in three ways, Off, Short and Full (30 October, Adam: "full quotes on each card without having to click anything additional").** Quotes on cards has three ways. Off shows no quote. Short is the quote as above, three lines at most, its whole in its tooltip and a click away. Full shows each quote whole on its card, every piece, with no ellipsis but the ones it was saved with. Each click on Quotes takes the next way, Off, Short, Full and back to Off, its tooltip saying which, "Quotes: off", "Quotes: short" or "Quotes: full". It is pressed in for Short and Full, and after its word a small mark of two lines says Short and one of four lines Full, the room for the mark kept at Off so the tools beside it never move under the pointer. A right click on it, or a press held, opens a menu headed Quotes on cards with Off, Short and Full, the one in use ticked, a choice kept at once and the menu left open as Close pairs' menu is, Esc or a click elsewhere putting it away. The way is kept across a restart, Off on a new install, and a version from before reads Full as Short. At Full a click on a quote is a click on its card, which it selects, and a double-click edits its statement as one on its words does, since there is nothing more to show beside it. Its play button stays in the Inspector, and Go to the passage in the card's menu. The canvas makes room for the whole quotes as it does for short ones: what stands below a quote in its PET or sub-PET moves down, the frames grow, nothing overlaps, the minimap and Fit all take the taller board, and Short or Off puts everything back where it stood. On the GETs board a PET unfolded in place shows its statements' quotes whole at Full too. Quotes has no key. Since the same day Esc puts away the status bar's counts menu and Close pairs' gap menu too, which until then only a click elsewhere did.
 
@@ -2481,8 +2495,8 @@ had when the drag began and moves only the marks of what moved, what is dragged,
 frames that reach out to it, and on the drop it is drawn whole and fitted to the board again (18 October,
 where until then it wrote every mark of the board again on every frame of a drag).
 
-The transcript's one setting rules it, Minimap's Auto, On or Off, in View on the statements screen and
-under View in Settings, Idiograph, Experiential statements. In Auto the map appears as he pans or zooms, by
+The transcript's one setting rules it, Minimap's Auto, On or Off, the status bar's button on the statements screen
+(a click takes Auto, On and Off in turn, a right click or a press held opens their menu). In Auto the map appears as he pans or zooms, by
 the wheel, a drag, the zoom bar or Fit all, and as a board opens, stays while the pointer is on it or a
 drag on it lasts, and fades out about two seconds after. On keeps it there, and Off leaves no map and
 no button. In Auto and On its button at the end of the zoom bar, the map the transcript's button
@@ -3501,8 +3515,8 @@ foot of every page has three parts: at the left the participant with the board i
 and the table, "P9 Wren (Board 3) · Living with a dog · Table of Personal Experiential Themes", the board
 left out for sending, in the middle the name documents carry, Confidential and the date printed, "Ada
 Lark · Confidential · 31 October 2026", and at the right the page, "Page 2 of 4". The name is Your name,
-in Settings, Experiential statements, under the Interviewer name, and while Your name is empty the
-Interviewer name stands in. Word's document carries the same name as its author. Until 31 October the foot
+in Settings, General, and while Your name is empty the foot and the author field carry no name (17 November 2026: the
+interviewer's name is the project's own and no longer stands in). Word's document carries the same name as its author. Until 31 October the foot
 named the themes file. Since 1 November the middle part sits halfway between the end of the left part and the
 start of the right, so a long left part never runs into it, and when the three would still come closer than
 about 6 mm the project's name in the left part is shortened at a word with "…" until they fit. The participant, the board,
@@ -4438,7 +4452,11 @@ project card's menu on Home, from File, Project Settings… in Idiograph's own w
 the band's link when the project has no question. The sheet's head names the project. It holds the project's
 name, its research question, its Method, Interpretative Phenomenological Analysis or
 Thematic analysis, shown and never changed (31 October 2026), PET labels, A B C or 1 2 3, the same
-choice as under Export on the PETs screen and saved at once the same way, Timecodes, its root folder with
+choice as under Export on the PETs screen and saved at once the same way, Timecodes, Interviewer name (17 November
+2026, from Settings: which speaker is the interviewer is the project's data, the speaker whose turns are context in
+every transcript of the project, its rounds, quotes, imports and exports reading it there; a project with none of
+its own shows and reads the name the app's settings held, and Save writes it to the project's file once it is
+changed), its root folder with
 Remove from Idiograph beside it, then under Experiential statements its Statement length, under GETs its GETs
 rules (see GETs), and with AI features on the privacy tick, Write a guide for AI agents and Add Idiograph to
 Claude Desktop. A thematic analysis project's sheet has no PET labels, timepoints, statement length or GETs. A
@@ -5612,18 +5630,24 @@ provider is chosen that provider's list alone.
 
 As a statement is typed, nudges appear from the checks in `ipa_annotation_audit.py`: a statement
 past the project's statement length, 15 words by default (no minimum), a The/She/Her/A lead, a quoted fragment, a semicolon, an em dash, an arrow, the
-reads-as construction. Each can be switched off in Settings, under Experiential statements, where
-they sit under the small heading Nudges. Until 3 October 2026 the screen called them flags.
+reads-as construction. Each is switched on or off in the statements screen's View, under the small heading Nudges,
+for the open project. Until 3 October 2026 the screen called them flags. The nudges are a project's own since 17
+November 2026 (Adam's ruling: they are his way of doing IPA, not the book's): a project made from then on starts with
+every one off, kept in its project file as `nudges`, the checks on; a project made before, whose file has none, reads
+the nudges the app's settings held for every project until then, so it keeps what it had, and nothing is written to
+its file until one is ticked; on a new install, whose settings hold none, a project brought in by Add project reads
+every nudge off too; a demo's are off and fixed. A nudge set to anything but on or off is refused. An agent reads them with `project show` and sets them with
+`project set --nudges` (MCP's project_set), as View does.
 Nothing blocks a save and nothing is scored. The length nudge has no minimum.
 
-**Nudges explained.** Each tick under Nudges in Settings carries a small circled i after its label,
+**Nudges explained.** Each tick under Nudges in the statements screen's View carries a small circled i after its label,
 reached with Tab and read out with its words. On hover or on focus it says what the nudge catches and
 gives an example made up for it, nothing more (17 November 2026, Adam: never figures from his own projects):
 
 **Statement length.** In Project settings, under Experiential statements, Statement length is the words
 past which the length nudge speaks and the count under a statement turns amber (5 November 2026, where
-from 21 October it stood in the length nudge's own row in Settings). The nudge's row in Settings says "word
-count past the statement length", and its tick turns the nudge on or off for every project, each using its
+from 21 October it stood in the length nudge's own row in Settings). The nudge's row in View says "word
+count past the statement length", and its tick turns the nudge on or off for the project, using its
 own number. It is the project's own (20 October, after a tester's statements of 28 words), 15 by default,
 which the number's tooltip names. Type it or step it with the arrows, from 5 to 60, and it is saved in the project's file a moment after the last
 change, written there only when it is not 15. The demo's is fixed.

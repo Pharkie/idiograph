@@ -230,6 +230,8 @@ def build_all(into: Path, demo: Path | None = None) -> dict:
         raise DemoError(f"{into} is there already, so nothing was built into it.")
     into.mkdir(parents=True)
     plan = read_plan(demo)
+    # its interviewer, Leah, the project file's own and the one its transcripts name (viewfix)
+    md.check_interviewer(rta_dir(demo) / PROJECT_FILE, {name: interview(name, demo) for name in CASES})
     shutil.copyfile(rta_dir(demo) / PROJECT_FILE, into / PROJECT_FILE)
     project = json.loads((into / PROJECT_FILE).read_text(encoding="utf-8"))
     if project.get("method") != "ta" or sorted(project.get("participants") or {}) != sorted(CASES):

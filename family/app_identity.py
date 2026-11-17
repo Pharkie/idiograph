@@ -65,7 +65,7 @@ ENTRIES = {"idiograph": "idiograph_main", "sift": "sift_main", "trace": "trace_m
 FILES = {
     "family": ("LICENSE", "NOTICE.md", "versions.json", "docs/translating.md"),
     "idiograph": ("guidance.md", "pet_guidance.md", "themes_guidance.md", "lpets_guidance.md", "lgets_guidance.md",
-                  "trajectories_guidance.md", "ta_guidance.md", "ta_themes_guidance.md",
+                  "trajectories_guidance.md", "ta_guidance.md", "ta_themes_guidance.md", "ta_codes_guidance.md",
                   "template/Transcript template.xlsx", "demo", "docs/schemas", "team_words.txt", "typst"),
     "sift": ("static/vendor/mermaid.min.js", "static/vendor/LICENSE-mermaid.txt"),
     "trace": (),

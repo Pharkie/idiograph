@@ -83,7 +83,7 @@ def test_reflexivity(scratch: Path):
     agent_changes.ALL_OPS = None
     os.environ[agent_log.PLACE] = str(log)
 
-    def run(*args, tool="Claude Code"):
+    def run(*args, tool="Claude Code", root=root):
         given = ["--config", str(config_file), "--root", str(root), "--json", *args]
         if tool is not None:
             given += ["--tool", tool]
@@ -268,6 +268,36 @@ def test_reflexivity(scratch: Path):
         check("422: a copy coming back carries no Reflexivity and leaves his project file byte for byte",
               "reflexivity" not in sent_project(back)
               and (root / server_mod.PROJECT_FILE).read_bytes() == before_back, "")
+
+        # ── viewfix (the settingsfix recheck's N1): the same on a copy whose board is taken in, an IPA project with a
+        # participant's PETs board made in the copy, so the merge itself runs, never only its refusal
+        from .a260_boards_come_back import make_workbook
+        kites = base / "Kite flying"
+        kites.mkdir()
+        (kites / server_mod.PROJECT_FILE).write_text(json.dumps({
+            "name": "Kite flying", "research_question": "How do people live flying kites in winter?",
+            "agents": {"allowed": True, "at": "2026-11-17T09:00:00+00:00"}, "reflexivity": NEW}), encoding="utf-8")
+        make_workbook(kites, "P1 - Ysolde", "Ysolde")
+        sent_kites = base / "kites.idiograph"
+        as_page(routes.send_project, kites, sent_kites)
+        kite_copies = base / "kite-copies"
+        kite_copies.mkdir()
+        opened = as_page(routes.open_copy, sent_kites, kite_copies, from_name="Curt")
+        kite_copy = Path(opened.get("project", {}).get("root") or opened.get("folder") or "")
+        plan = base / "kite-plan.json"
+        plan.write_text(json.dumps({"pets": [{"title": "Cold on the line", "members": ["S1"]},
+                                             {"title": "Up with the kite", "members": ["S2", "S3"]}]}), encoding="utf-8")
+        code, out, err = run("board", "new", "Ysolde", "--from", str(plan), "--note", "Curt's board", root=kite_copy)
+        as_page(routes.api_project, {"root": str(kite_copy), "reflexivity": "The second analyst's own statement."})
+        kites_back = base / "kites-back.idiograph"
+        as_page(routes.send_project, kite_copy, kites_back)
+        before_kites = (kites / server_mod.PROJECT_FILE).read_bytes()
+        brought = as_page(routes.boards_in, kites, kites_back, from_name="Curt", request=ASKED)
+        boards = support.board_file(kites / "P1 - Ysolde" / "Working" / "P1 - Ysolde - EN & ES.themes.json")
+        check("422: a copy coming back whose board is taken in carries no Reflexivity and leaves his project file byte "
+              "for byte", code == 0 and "reflexivity" not in sent_project(kites_back)
+              and len((boards or {}).get("boards") or []) >= 1 and (brought or {}).get("dry_run") is not True
+              and (kites / server_mod.PROJECT_FILE).read_bytes() == before_kites, (err or "")[:300] + str(brought)[:300])
 
         # ── settingsfix: Reset demo puts the demo's project file back as it ships, its Reflexivity with it, where
         # the demo worked on is not the shipped one (the Mac app's)

@@ -132,14 +132,29 @@ class DemoError(Exception):
 
 # ------------------------------------------------------------------ the CSV
 
-def interviewer() -> str:
-    """The interviewer name from config.json, which is what the demo transcript is built with."""
+def interviewer(project: Path | None = None) -> str:
+    """The interviewer's name a demo's project file holds, the IPA demo's when none is named (viewfix, 17 November
+    2026, where it was config.json's, "Adam" for none): which speaker is the interviewer is the project's own."""
+    path = Path(project) if project is not None else DEMO / PROJECT_FILE
     try:
-        data = json.loads((HERE / "config.json").read_text(encoding="utf-8"))
-        name = str(data.get("interviewer") or "").strip()
+        name = str(json.loads(path.read_text(encoding="utf-8")).get("interviewer") or "").strip()
     except (ValueError, OSError):
         name = ""
-    return name or "Adam"
+    if not name:
+        raise DemoError(f"{path.name} names no interviewer.")
+    return name
+
+
+def check_interviewer(project: Path, csvs: dict[str, Path]) -> str:
+    """The interviewer a demo's project file names, once every one of its transcripts, by participant, holds that
+    speaker and its participant alone, so the file says what the interviews say; refused in one line otherwise."""
+    name = interviewer(project)
+    for who, csv_path in csvs.items():
+        speakers = {str(r.get("Name") or "").strip() for r in read_turns(csv_path)}
+        if speakers != {name, who}:
+            raise DemoError(f"{Path(csv_path).name} has the speakers {', '.join(sorted(speakers))}, where "
+                            f"{Path(project).name} names {name} as the interviewer.")
+    return name
 
 
 def read_turns(path: Path = SOURCE_CSV) -> list[dict]:
@@ -888,6 +903,8 @@ def build_all(into: Path, demo: Path | None = None) -> dict:
     if into.exists():
         raise DemoError(f"{into} is there already, so nothing was built into it.")
     into.mkdir(parents=True)
+    check_interviewer((demo or DEMO) / PROJECT_FILE,
+                      {name: (demo or DEMO) / "source" / f"{name} - interview.csv" for name in CASES})
     built = {name: build_written(name, into, demo) for name in CASES}
     built["gets"] = build_gets(into, demo)
     return built
@@ -1164,6 +1181,8 @@ def build_ta_all(into: Path, demo: Path | None = None) -> dict:
         raise DemoError(f"{into} is there already, so nothing was built into it.")
     into.mkdir(parents=True)
     plan = read_plan(ta_dir(demo) / "source" / TA_THEMES)
+    check_interviewer(ta_dir(demo) / PROJECT_FILE,
+                      {name: (demo or DEMO) / "source" / f"{name} - interview.csv" for name in CASES})
     shutil.copyfile(ta_dir(demo) / PROJECT_FILE, into / PROJECT_FILE)
     built = {name: build_ta_case(name, into, demo) for name in CASES}
     built["codes"] = build_ta_codes(into, plan)
