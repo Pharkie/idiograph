@@ -801,8 +801,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--scratch")
     ap.add_argument("--main-data", help="where the GRAVITY cases are, for a run with none of them")
-    ap.add_argument("--area", help="run these areas alone, by number or a word of the name: 158, 157,158, "
-                                   "150-152 or guidance")
+    ap.add_argument("--area", action="append",
+                    help="run these areas alone, by number or a word of the name: 158, 157,158, 150-152 or "
+                         "guidance; given more than once, every one it names runs")
     ap.add_argument("--changed", action="store_true",
                     help="run the areas a change touches, from the files that differ from main")
     ap.add_argument("--train", action="store_true", help="run every area, as the coordinator's train does")
@@ -811,7 +812,7 @@ def main():
     ap.add_argument("--timings", help="write each area's seconds and checks to this file, slowest first")
     args = ap.parse_args()
     try:
-        only = chosen(args.area) if args.area else None
+        only = chosen(",".join(args.area)) if args.area else None
     except ValueError as exc:
         ap.error(f"no area {exc}, the areas are 1 to {len(AREAS)} under tests/areas")
     try:

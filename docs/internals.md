@@ -6895,7 +6895,8 @@ context or a decorator, runs the suite's server and command line as Sift or Trac
 `tests/test_idiograph.py` keeps the order, `AREAS`, loads each area as its turn comes, chooses the
 areas for `--changed`, and stays the one file the gate's `unittest discover` and GitHub's run call.
 `--area 158` runs one area alone, `--area 157,158` or `--area 150-152` several, and `--area guidance`
-every area whose file name holds the word. `--changed` takes every file of the app that differs from
+every area whose file name holds the word; `--area` given more than once runs every area each names
+(`--area 411 --area 278,264` runs 264, 278 and 411), with `--changed`'s too. `--changed` takes every file of the app that differs from
 where the branch left main, committed, staged, in the working tree and new, and chooses every area
 whose source names one of those files or a top-level name the change touches: a function, class or
 constant whose lines changed in a script or a Python file, a class, id or custom property of a rule

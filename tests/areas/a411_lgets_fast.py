@@ -103,8 +103,28 @@ class Frozen:
         return False
 
 
-def digest(p: Path, times: dict) -> str:
+def run_times(value, now: dict, rel: str = ""):
+    """A restore point's run file with each time it holds read against the file it is the time of: `now` where it is
+    that file's time as it stands, `then` where it is not. Each [time, size] in a run sits under the path of its own
+    file (`point`, `after`, a step's `before_stat` and `after_stat`), so the path says whose time it is. Read as
+    the file whose time it is now, as the other files are, a time shared by two files written within one tick of a
+    coarse clock (Windows's, about 15 ms) read as whichever came last by path, so two projects whose writes fell in
+    different ticks read otherwise (Windows CI, 16 and 17 November)."""
+    if isinstance(value, dict):
+        # a key holding a dot or a slash is a file's path, though the file is gone since
+        return {k: run_times(v, now, k if k in now or "." in k or "/" in k else rel) for k, v in value.items()}
+    if isinstance(value, list):
+        return [run_times(v, now, rel) for v in value]
+    if isinstance(value, int) and not isinstance(value, bool) and value >= 10 ** 18:
+        return "<now>" if rel and now.get(rel) == value else "<then>"
+    return value
+
+
+def digest(p: Path, times: dict, now: dict | None = None) -> str:
     data = p.read_bytes()
+    if now is not None:
+        run = run_times(json.loads(data.decode("utf-8")), now)
+        return "r" + hashlib.sha256(SHA.sub("<sha>", ISO.sub("<t>", json.dumps(run, sort_keys=True))).encode()).hexdigest()
     if p.suffix == ".xlsx" or data[:4] == b"PK\x03\x04":
         # a workbook part for part, its save time apart
         h = hashlib.sha256()
@@ -127,6 +147,7 @@ def tree(root: Path) -> dict:
     files = [p for p in sorted(root.rglob("*")) if p.is_file() and not p.name.endswith(".lock")
              and p.name != ".DS_Store"]
     times = {p.stat().st_mtime_ns: STAMP.sub("<stamp>", p.relative_to(root).as_posix()) for p in files}
+    now = {p.relative_to(root).as_posix(): p.stat().st_mtime_ns for p in files}
     out, objects = {}, []
     for p in files:
         rel = STAMP.sub("<stamp>", p.relative_to(root).as_posix())
@@ -136,7 +157,7 @@ def tree(root: Path) -> dict:
         key, n = rel, 2
         while key in out:
             key, n = f"{rel}#{n}", n + 1
-        out[key] = digest(p, times)
+        out[key] = digest(p, times, now if rel.startswith(".idiograph-restore/runs/") else None)
     out[".idiograph-restore/objects/*"] = "".join(sorted(objects))
     return out
 
