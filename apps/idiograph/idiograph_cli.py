@@ -2618,6 +2618,55 @@ def cmd_board_show(p: Project, args) -> tuple:
     return dict(shown, case=b["case"]), board_text(b["case"], shown)
 
 
+def drawn_on_how(d: dict) -> str:
+    """How an LPET draws on an item, in a line: its title, then whether it draws on the item itself, through a
+    larger PET or sub-theme, or on part of it, each sentence its own key."""
+    if d["how"] == "through":
+        return i18n.t("cli.drawn_on.through", lpet=d["title"], id=d["id"], via=(d.get("via") or {}).get("title", ""))
+    if d["how"] == "part":
+        return i18n.t("cli.drawn_on.part", lpet=d["title"], id=d["id"])
+    return i18n.t("cli.drawn_on.whole", lpet=d["title"], id=d["id"])
+
+
+def cmd_board_drawn_on(p: Project, args) -> tuple:
+    """The forward trace (drawsword, 17 November 2026): which of the participant's LPETs draw on each PET, sub-theme
+    and statement of their PETs at a timepoint, as the PETs screen's Inspector shows it, and his reason a PET is
+    drawn on by none. `--pet` or `--statement` asks for one. Only reads."""
+    b = p.case(args.case)
+    book = Path(b["workbook"])
+    read = themes.read_cards(book)
+    sids, keys = ids_of(read)
+    asked_board = None
+    if getattr(args, "board", None):
+        asked_board = str(pick_board(load_board_file(book), args.board).get("id"))
+    statement = None
+    if getattr(args, "statement", None):
+        statement = statement_key(args.statement, read, keys)
+        if statement is None:
+            raise cli.Refused(i18n.t("cli.drawn_on.no_statement", statement=args.statement))
+    try:
+        answer = routes.drawn_on_read(book, getattr(args, "timepoint", None), asked_board, getattr(args, "pet", None),
+                                      statement)
+    except WorkbookError as exc:
+        raise cli.Refused(str(exc)) from None
+    answer["statements"] = {k: {"id": sids.get(k), "lpets": v} for k, v in answer["statements"].items()}
+    name, at = answer["participant"], answer["timepoint_label"]
+    if answer["lpets_board"] is None:
+        return answer, [i18n.t("cli.drawn_on.no_lpets", name=name)]
+    lines = [i18n.t("cli.drawn_on.head", name=name, timepoint=at, board=answer["lpets_board"]["name"])]
+    if not answer["same"]:
+        lines.append(i18n.t("cli.drawn_on.other_board", timepoint=at, source=answer["from_board"]["name"]))
+    for pid, pet in answer["pets"].items():
+        said = "; ".join(drawn_on_how(d) for d in pet["lpets"]) or i18n.t("cli.drawn_on.none")
+        lines.append(f"   {pid} {pet['title']}: {said}")
+        if pet.get("why"):
+            lines.append(i18n.t("cli.drawn_on.why", why=pet["why"]))
+    for key, st in answer["statements"].items():
+        said = "; ".join(drawn_on_how(d) for d in st["lpets"]) or i18n.t("cli.drawn_on.none")
+        lines.append(f"   {st['id'] or key} [{key}]: {said}")
+    return answer, lines
+
+
 def cmd_board_export(p: Project, args) -> tuple:
     """A board as a Word document or a PDF, the IPA book's table of PETs, the exports the PETs
     screen makes, written at the case's root beside the workbook, the PDF where `--out` names when it
@@ -3661,7 +3710,7 @@ def cmd_gets_import(p: Project, args) -> tuple:
             when = now_iso()
             board["updated"] = when
             if isinstance(board.get("changed"), dict):
-                board["changed"]["hash"] = themes.state_hash(themes.made_state(gets_mod.normal(board, held)))
+                board["changed"]["hash"] = themes.state_hash(themes.made_state(gets_mod.normal(board, held, hide=False)))
             gets_mod.write(p.root, gets_mod._file(held, when))
     text = i18n.t("cli.gets_import.made", **head)
     out.update(board=applied.get("board"), made=made, revision=applied.get("revision"))
@@ -4884,9 +4933,25 @@ def gets_card_line(c: dict, pad: str) -> str:
     return f"{pad}{kind} {gets_mod.who(c['case'])}: {c['text']}{where}  [{c['key']}]{gone}"
 
 
+def drawn_timepoints(t: dict) -> list[str]:
+    """The timepoints an LPET draws on, by the cards under it at any depth, in order (drawsword)."""
+    found = {c["case"] for c in t["cards"] if c.get("kind") != "pn"}
+    for sub in t["themes"]:
+        found.update(drawn_timepoints(sub))
+    return sorted(found, key=gets_mod.case_order)
+
+
 def gets_theme_lines(t: dict, total: int, depth: int = 1) -> list[str]:
     pad = "   " * depth
-    lines = [i18n.t("cli.gets_theme_lines.of", v_='   ' * (depth - 1), id=t['id'], label=t['label'], participants=t['participants'], participants2=i18n.t("cli.n.participant", n=total))]
+    # an LPET says what it draws on, its timepoints, never a count as its measure (drawsword, Adam's point 2)
+    if gets_mod.in_lpets():
+        tps = drawn_timepoints(t)
+        lines = [i18n.t("cli.gets_theme_lines.draws_on", v_='   ' * (depth - 1), id=t['id'], label=t['label'],
+                        timepoints=", ".join(gets_mod.who(x) for x in tps))
+                 if tps else i18n.t("cli.gets_theme_lines.draws_on_nothing", v_='   ' * (depth - 1), id=t['id'],
+                                    label=t['label'])]
+    else:
+        lines = [i18n.t("cli.gets_theme_lines.of", v_='   ' * (depth - 1), id=t['id'], label=t['label'], participants=t['participants'], participants2=i18n.t("cli.n.participant", n=total))]
     if t["description"]:
         lines.append(i18n.t("cli.gets_theme_lines.description", pad=pad, description=t['description']))
     if t["note"]:
@@ -4903,7 +4968,9 @@ def cmd_gets_show(p: Project, args) -> tuple:
     board = pick_board(data, args.board)
     answer = gets_mod.state(p.root, p.books, board=str(board.get("id")))
     tree = gets_tree(answer, board, json.loads(json.dumps(data)))
-    lines = [i18n.t("cli.gets_head", name=tree["name"], id=tree["id"], minimum=tree["minimum"],
+    # a participant's LPETs have no minimum of participants: each draws on what it draws on (drawsword)
+    lines = [i18n.t("cli.gets_head_lpets", name=tree["name"], id=tree["id"]) if gets_mod.in_lpets() else
+             i18n.t("cli.gets_head", name=tree["name"], id=tree["id"], minimum=tree["minimum"],
                     participants=i18n.t("cli.n.participant", n=tree["total"]))]
     # its version, which gets apply carries back so a change over a board changed since is refused; a board
     # no file holds yet has NO_FILE, refused in its turn once a file is there (getsfix)
@@ -5193,7 +5260,7 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         board = pick_board(data, args.board, default="canvas")
         if not no_file_or_refused(spec, first, i18n.t("cli.gets_apply.gets_show")):
             fresh_or_refused(spec, gets_mod.on_disk(disk, board), i18n.t("cli.gets_apply.gets_show"))
-        kept = gets_mod.normal(board, data)
+        kept = gets_mod.normal(board, data, hide=False)
         # a statement brought in from the Participants panel (lpetadd) comes onto the board first, alone, in no
         # label, where the other operations can name its card, as the page's drag puts it there
         brought = bring_ins(p, ops, kept, data)
@@ -5280,7 +5347,7 @@ def cmd_gets_apply(p: Project, args) -> tuple:
             parts.append(i18n.t("cli.gets_apply.arranged_in_no_get_by_participant", cards=i18n.t("cli.n.pet_and_sub_theme_card", n=len(arranged)), listed=listed_words(rows)))
         parts += laid_said
         said = " ".join(x[0].upper() + x[1:] + ("" if x.endswith(".") else ".") for x in parts)
-        landed = gets_mod.normal(dict(landed, rows=board.get("rows") or {}), data)
+        landed = gets_mod.normal(dict(landed, rows=board.get("rows") or {}), data, hide=False)
         # in a thematic analysis project a code's other cards follow the one moved, a code split refused (codes)
         if gets_mod.ta_now():
             try:
@@ -5318,7 +5385,7 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         for key in ("notes", "ai", "quoted", "cut"):
             board.pop(key, None)
         board.update({k: state[k] for k in themes.STATE_KEYS if k in state}, updated=when, changed=mark(args, when))
-        board["changed"]["hash"] = themes.state_hash(themes.made_state(gets_mod.normal(board, data)))
+        board["changed"]["hash"] = themes.state_hash(themes.made_state(gets_mod.normal(board, data, hide=False)))
         gets_mod.write(p.root, gets_mod._file(data, when))
     text = " ".join(x for x in (f"{said} {kept_line(board.get('name'), revision)}", first_file_said(p, first, False)) if x)
     return {"board": board.get("id"), "name": board.get("name"), "applied": applied, "ordered": shown_orders,
@@ -5434,7 +5501,7 @@ def cmd_gets_take(p: Project, args) -> tuple:
         data = gets_mod.load(p.root)
         for board in gets_mod.boards_of(data):
             board["changed"] = mark(args, when)
-            board["changed"]["hash"] = themes.state_hash(themes.made_state(gets_mod.normal(board, data)))
+            board["changed"]["hash"] = themes.state_hash(themes.made_state(gets_mod.normal(board, data, hide=False)))
         gets_mod.write(p.root, gets_mod._file(data, now_iso()))
     text = take_said("take", name)
     return dict(out, said=" ".join([text] + lines)), [text] + lines
@@ -5543,7 +5610,7 @@ def stamp_gets(p: Project, vid: str, rid: str | None, args, changed: bool) -> No
             r["made"] = mark(args, when)
     if changed:
         board["changed"] = mark(args, when)
-        board["changed"]["hash"] = themes.state_hash(themes.made_state(gets_mod.normal(board, data)))
+        board["changed"]["hash"] = themes.state_hash(themes.made_state(gets_mod.normal(board, data, hide=False)))
     gets_mod.write(p.root, gets_mod._file(data, when))
 
 
@@ -5859,7 +5926,7 @@ def cmd_gets_subs(p: Project, args) -> tuple:
         for c in added:
             board.setdefault("cards", {})[c["key"]] = {"x": c["x"], "y": c["y"]}
         board.update(updated=when, changed=mark(args, when))
-        board["changed"]["hash"] = themes.state_hash(themes.made_state(gets_mod.normal(board, data)))
+        board["changed"]["hash"] = themes.state_hash(themes.made_state(gets_mod.normal(board, data, hide=False)))
         gets_mod.write(p.root, gets_mod._file(data, when))
     text = (i18n.t("cli.gets_subs.added_to_the_gets_board_each", cards=i18n.t("cli.n.sub_theme_card", n=len(listed)), name=name, kept_line=kept_line(name, revision)))
     return dict(out, revision=themes.revision_summary(made), said=text), [text] + said
@@ -8630,6 +8697,7 @@ def cmd_search(projects: list, closed: list[str], args) -> tuple:
 
 COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             ("board", "list"): cmd_board_list, ("board", "show"): cmd_board_show,
+            ("board", "drawn-on"): cmd_board_drawn_on,
             ("board", "compare"): cmd_board_compare, ("board", "new"): cmd_board_new,
             ("board", "import"): cmd_board_import, ("gets", "import"): cmd_gets_import,
             ("board", "apply"): cmd_board_apply, ("board", "current"): cmd_board_current,
@@ -8765,6 +8833,15 @@ def arguments(sub, common, writes) -> None:
                    help="letters or numbers for each label's export_label in place of the project's setting")
     x.add_argument("--close", default=None,
                    help="the close pairs within this many seconds, for this one look, in place of the setting")
+    # the forward trace (drawsword, 17 November 2026)
+    x = board.add_parser("drawn-on", parents=[common],
+                         help="in a project of two or more timepoints, which of the participant's LPETs draw on each "
+                              "PET, sub-theme and statement of their PETs at a timepoint, and his reason a PET is "
+                              "drawn on by none")
+    x.add_argument("case")
+    x.add_argument("board", nargs="?", help="the PETs board, by its id or name, which the LPETs' copy should come from")
+    x.add_argument("--pet", default=None, help="one PET or sub-theme alone, by its id, g3, or its title")
+    x.add_argument("--statement", default=None, help="one statement alone, by its id, S12, or its key")
     x = board.add_parser("compare", parents=[common])
     x.add_argument("case")
     x.add_argument("boards", nargs="*")
@@ -9161,6 +9238,9 @@ def arguments(sub, common, writes) -> None:
                                                 '"Positive"}, order, note, title, tags, tag_colour, picture, hide, '
                                                 'show, and on an LPET state, quote (a quote\'s key, or a passage: '
                                                 'interview, turn and start and end), bold, domain, states_from_notes, '
+                                                'and on a PET of a timepoint no LPET draws on, why (his reason, '
+                                                '{"op": "why", "participant": "Wren", "timepoint": "T2", "pet": '
+                                                '"g3", "why": "..."}), '
                                                 'each on the LPETs board LGETs take or the one its "board" names')
     cd = sub.add_parser("codes", parents=[common],
                         help="in a thematic analysis project, the code list: codes many extracts share, each extract "

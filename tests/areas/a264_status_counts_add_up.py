@@ -154,7 +154,8 @@ def test_status_counts_add_up(scratch):
         g = _parts(o[name]["text"])
         check(f"264: on a{'n' if name == 'lpets' else ''} {word} board the unit is cards, a PET's card and a sub-PET's "
               f"alike, the total first and its parts adding to it and to the cards the board holds, a participant "
-              f"note never one, and no stacked count",
+              f"note never one, and no stacked count (on LPETs the placed part says drawn on, drawsword)",
               g is not None and g[1] == "cards" and g[0] == sum(g[2]) == o[name]["real"] == 7 and g[2] == [4, 1, 2]
-              and f" in {word}," in o[name]["text"] and g[3] == f"2 {word}" and "stacked" not in o[name]["text"],
+              and (" drawn on," if name == "lpets" else f" in {word},") in o[name]["text"] and g[3] == f"2 {word}"
+              and "stacked" not in o[name]["text"],
               str(o[name]))

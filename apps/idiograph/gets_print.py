@@ -484,7 +484,22 @@ def badge_of(row: dict) -> str:
     return f'<span class="gt-badge case-{int(row["colour"])}" aria-hidden="true">{esc(row.get("badge") or "")}</span>'
 
 
+def draws_on(get: dict) -> dict | None:
+    """On a participant's LPETs, what an LPET draws on in place of its count: the timepoints with anything of theirs
+    under it, by their labels, never a count as its measure and never under a minimum (drawsword, 17 November 2026,
+    Adam's point 2). None elsewhere."""
+    if not gt.in_lpets():
+        return None
+    tps = [r["who"] for r in get.get("rows") or [] if r.get("counted")]
+    said = (i18n.t("page_print.gets.draws_on", timepoints=", ".join(tps)) if tps
+            else i18n.t("page_print.gets.draws_on_nothing"))
+    return {"short": ", ".join(tps) if tps else said, "under": False, "said": "", "tip": said}
+
+
 def badge(get: dict, total: int, minimum: int) -> str:
+    drawn = draws_on(get)
+    if drawn is not None:
+        return f'<span class="tr-count" title="{esc(drawn["tip"])}">{esc(drawn["short"])}</span>'
     under = get["count"] < minimum
     said = (i18n.t("page_print.gets.under_minimum", minimum=minimum) if under
             else i18n.t("page_print.gets.count", count=get["count"], n=total))
@@ -1165,7 +1180,11 @@ def hues_of(board: dict) -> dict:
 
 
 def count_data(get: dict, total: int, minimum: int) -> dict:
-    """A GET's count as `badge` says it: "3 of 5", and under the minimum dashed with its line."""
+    """A GET's count as `badge` says it: "3 of 5", and under the minimum dashed with its line, and on LPETs what it
+    draws on (`draws_on`)."""
+    drawn = draws_on(get)
+    if drawn is not None:
+        return {k: drawn[k] for k in ("short", "under", "said")}
     under = get["count"] < minimum
     return {"short": i18n.t("page_print.gets.count_short", count=get["count"], total=total), "under": under,
             "said": i18n.t("page_print.gets.under_minimum", minimum=minimum) if under else ""}

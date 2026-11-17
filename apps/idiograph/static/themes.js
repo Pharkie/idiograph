@@ -1703,7 +1703,8 @@ function thBody(v, meta) {
 
 /* Why a card was left out, when an agent said, or a New AI board before 11 November 2026. The reasons
    keep the name they had when an AI board put such a card in the bin, `discarded`. */
-const thWhy = (v, key) => (v.ai && v.ai.discarded && v.ai.discarded[key]) || '';
+const thWhy = (v, key) => (TH.mode === 'gets' && TH.lpets && !TH.viewing && (TH.lpetWhy || {})[key])
+  || (v.ai && v.ai.discarded && v.ai.discarded[key]) || '';
 
 /* A card left out of every PET or GET with a reason stands in Not placed with it under its words,
    in the small type the bin's pile gives a reason, two lines at most, the whole of it in the card's
@@ -1936,6 +1937,12 @@ const TH = {
   lpetsWho: '',       // whose LPETs are on the canvas, by their label, which the domain's operation names
   domainEdit: null,   // an LPET's domain being typed in its Inspector, { id, value }
   domainSaving: null, // and one on its way to the file, shown in the box until it is there
+  lpetWhy: {},        // on LPETs his reason a PET is drawn on by no LPET, by its card (drawsword)
+  drawn: null,        // on a timepoint's PETs, what draws on each PET and statement, { key, data } (drawsword)
+  drawnAsk: 0,        // that read in flight, so a slow answer never lands on another board
+  whyEdit: null,      // a reason being typed, { key, value }, and one on its way to the file
+  whySaving: null,
+  lpDrawn: {},        // on LPETs the server's trace of the board on the canvas, by board, its save and timepoint
   map: null,          // the minimap's fit, its scale and its place in its area, null while it is not drawn
   mapBoard: null,     // the board's own fit, which the view's box is weighed against (see thMapAround)
   mapItems: null,     // what the map draws, as thMapItems last listed it
@@ -1989,6 +1996,10 @@ async function themesOpen(path, opts = {}) {
   TH.lgets = !!(opts.gets && !opts.lpets && opts.lgets);
   TH.tp = !opts.gets && Number(opts.timepoint) > 1 ? Number(opts.timepoint) : null;
   TH.tps = null;
+  // what draws on each PET is read afresh on every open, the LPETs perhaps changed since (drawsword)
+  TH.drawn = null;
+  TH.drawnAsk += 1;
+  TH.lpDrawn = {};
   TH.scope = TH.lpets ? { lpets: true } : (TH.tp ? { timepoint: TH.tp } : null);
   const canvas = `${path}${TH.lpets ? '|lpets' : TH.tp ? `|t${TH.tp}` : ''}`;
   if (typeof unsayUndo === 'function') unsayUndo();
@@ -2124,6 +2135,14 @@ async function themesOpen(path, opts = {}) {
   if (TH.mode === 'gets' && ((TH.gets && TH.gets.cases) || []).some((c) => c.status === 'changed')) thStampTick(true);
   // back from a statement's passage, the place on the canvas and the selection it had (16 October)
   if (opts.restore) thBackFromPassage(opts.restore);
+  // an LPET opened from what draws on a PET (drawsword): selected, in view, with its Inspector
+  if (opts.select && TH.v && thIsGroup(TH.v, opts.select)) {
+    thSelectOnly({ kind: 'group', id: opts.select });
+    TH.lastPick = { kind: 'group', id: opts.select };
+    thInspectorOpen({ kind: 'group', id: opts.select });
+    const box = TH.layout[opts.select] && (TH.layout[opts.select].frame || TH.layout[opts.select].label);
+    if (box && TH.face !== 'table') thFitTo(box);
+  }
   // the serif settles the cards' heights once it has loaded, so they are measured again then
   if (document.fonts && document.fonts.ready) {
     // and the quotes' room and each open stack's made again at the heights the type now gives, as every
@@ -2223,6 +2242,8 @@ function thLoad(data, opts = {}) {
     // each LPET's domains as their pills, and whose LPETs these are, which the domain's operation names (lpetmarks)
     TH.lpetDomains = Object.assign({}, data.lpet_domains || {});
     TH.lpetPassages = Object.assign({}, data.lpet_passages || {});
+    // his reasons a PET is drawn on by no LPET, by card, kept with it in Unplaced (drawsword)
+    TH.lpetWhy = Object.assign({}, data.why || {});
     TH.lpetsWho = data.participant || '';
     gtLoad(data);
     // a thematic analysis project's code list, which the status bar and the Codes panel count from (themesbuild)
@@ -2441,7 +2462,7 @@ function thRender() {
       + (noted ? `<span class="th-noted" role="img" aria-label="${escAttr(t('themes.label.has_note'))}">${TH_NOTE_ICON}</span>` : '')
       + (picked ? `<span class="th-picked" title="${escAttr(t('themes.label.picked', { n: picked }))}">${TH_PICK_ICON}</span>` : '')
       + `<button type="button" class="th-arr" tabindex="-1" title="${escAttr(t('themes.label.arrange_tip'))}" aria-label="${escAttr(t('themes.label.arrange_label'))}">${TH_ARR_ICON}</button>`
-      + `<button type="button" class="th-del" tabindex="-1" title="${escAttr(t('themes.label.delete_tip'))}" aria-label="${escAttr(t('themes.label.delete_label'))}">${TH_DEL_ICON}</button>`
+      + `<button type="button" class="th-del" tabindex="-1" title="${escAttr(TH.lpets || TH.lgets ? t('themes.label.delete_tip_draws') : t('themes.label.delete_tip'))}" aria-label="${escAttr(t('themes.label.delete_label'))}">${TH_DEL_ICON}</button>`
       + TH_MORE;
     labelBox.appendChild(el);
     TH.els.labels[g.id] = el;
@@ -3916,7 +3937,7 @@ function thPairPanelHtml(v, p) {
 // PETs canvas in no PET yet, said only when there are any
 const TH_STATUS_COUNTS = ['pets', 'placed', 'stacked', 'binned', 'unplaced', 'loose'];
 const TH_STATUS_NAMES = {
-  pets: (u, us) => us, placed: (u, us) => t('themes.status.name_placed', { units: us }), unplaced: () => t('themes.status.name_unplaced'), loose: (u) => t('themes.status.name_loose', { unit: u }), binned: () => t('themes.status.name_binned'), stacked: () => t('themes.status.name_stacked'),
+  pets: (u, us) => us, placed: (u, us) => (TH.mode === 'gets' && (TH.lpets || TH.lgets) ? t('themes.status.name_drawn_on') : t('themes.status.name_placed', { units: us })), unplaced: (u) => (TH.mode === 'gets' && (TH.lpets || TH.lgets) ? t('themes.status.name_loose', { unit: u }) : t('themes.status.name_unplaced')), loose: (u) => t('themes.status.name_loose', { unit: u }), binned: () => t('themes.status.name_binned'), stacked: () => t('themes.status.name_stacked'),
 };
 const thStatusOn = () => !(TH.config && TH.config.status_bar === false);
 function thStatusPicked() {
@@ -3953,7 +3974,7 @@ function thStatusWords(n, gets, picked = TH_STATUS_COUNTS) {
   const unit = gets ? thGetWord() : t('themes.unit.pet'); const units = gets ? thGetWord(true) : t('themes.unit.pets');
   const said = {
     pets: n.subs ? t('codes.board.themes_subs', { themes: t('themes.status.pets', { n: n.pets, unit, units }), subs: t('codes.board.n_subthemes', { n: n.subs }) })
-      : t('themes.status.pets', { n: n.pets, unit, units }), placed: t('themes.status.placed', { n: n.placed, units }), unplaced: t('themes.status.unplaced', { n: n.unplaced }),
+      : t('themes.status.pets', { n: n.pets, unit, units }), placed: TH.mode === 'gets' && (TH.lpets || TH.lgets) ? t('themes.status.drawn_on', { n: n.placed }) : t('themes.status.placed', { n: n.placed, units }), unplaced: TH.mode === 'gets' && (TH.lpets || TH.lgets) ? t('themes.status.loose', { n: n.unplaced, unit }) : t('themes.status.unplaced', { n: n.unplaced }),
     loose: t('themes.status.loose', { n: n.loose, unit }), binned: t('themes.status.binned', { n: n.binned }), stacked: t('themes.status.stacked', { n: n.stacked }),
   };
   return picked.filter((name) => name in said && (name !== 'stacked' || !gets) && (name !== 'loose' || (!gets && n.loose > 0)))
@@ -5450,6 +5471,13 @@ async function thSaveOnce() {
     if (TH.mode !== 'gets' && data.version && data.version.id && TH.meta && TH.path === path
       && TH.meta.id === body.version.id && data.version.id !== TH.meta.id) thTakeOwnId(TH.meta.id, data.version.id);
     if (data.updated && TH.meta && TH.path === path) TH.meta.updated = data.updated;
+    // on LPETs his reasons as a read shows them, one hidden while an LPET draws on its PET and shown again once none
+    // does, after an Undo too, the canvas drawn again when they change (drawswordfix2)
+    if (TH.mode === 'gets' && TH.lpets && data.why && TH.path === path) {
+      const was = JSON.stringify(TH.lpetWhy || {});
+      TH.lpetWhy = Object.assign({}, data.why);
+      if (was !== JSON.stringify(TH.lpetWhy) && TH.live && TH.v && !TH.drag && !TH.editing && !TH.cardEdit && !TH.writing) thRender();
+    }
     // and the version it wrote, which the next save carries
     if (data.version && data.version.v && TH.meta && TH.path === path && data.version.id === TH.meta.id) TH.meta.v = data.version.v;
     // its own save is never a change made outside
@@ -6884,6 +6912,12 @@ function thPanelDraw() {
     gtDomainDone(true);
     return;
   }
+  // and his reason no LPET draws on a PET (drawsword)
+  const whying = TH.whyEdit;
+  if (whying && !(TH.panelOpen && TH.panel && TH.panel.id === whying.item)) {
+    thWhyDone(true);
+    return;
+  }
   // a note open in the panel is kept when the panel goes off its label, the way a click away keeps it
   const noting = TH.noting;
   if (noting && !(TH.panelOpen && TH.panel && TH.panel.kind === 'group' && TH.panel.id === noting.id)) {
@@ -6933,7 +6967,8 @@ function thPanelDraw() {
     html = `<p class="th-panel-title" data-edit="${escAttr(item.id)}" title="${escAttr(t('themes.inspector.edit_tip'))}">${esc(c.text)}</p>`
       + `<p class="th-panel-meta"><span class="th-time">${esc(c.time || '')}</span>${thSheetTag(c.sheet)}${thSidHtml(item.id)}</p>`
       + thLeftOutHtml(v, item.id, owner)
-      + thLeaveHtml(v, item.id, owner);
+      + thLeaveHtml(v, item.id, owner)
+      + thDrawnHtml(item);
   } else {
     // the head carries the title, so the body starts with what kind of theme it is and its count
     const g = thGroup(v, item.id);
@@ -6944,7 +6979,8 @@ function thPanelDraw() {
       + thPickedHtml(v, item, picks)
       + thArrangeHtml(g.id)
       + thLeaveHtml(v, g.id, owner)
-      + thNoteHtml(v, g);
+      + thNoteHtml(v, g)
+      + thDrawnHtml(item);
   }
   html += thNamesHtml(item);
   html += `<h3 class="section-label">${esc(item.kind === 'card' ? t('themes.quote') : t('themes.quotes'))}</h3>`;
@@ -8459,11 +8495,12 @@ function gtTableFace(v) {
     + `<span class="tb-said">${esc(it.kind === 'pet' || it.kind === 'sub' ? it.title : it.text)}`
     + `${it.within && it.within.length ? ` <span class="tb-in">${esc(t('themes.table.within', { names: it.within.join(', ') }))}</span>` : ''}</span>${thTableMore()}</li>`;
   for (const g of model) {
-    const under = g.count < minimum;
+    const badge = gtBadgeOf(v, g.id, g.count, total, minimum, true);
+    const under = badge.under;
     const node = { id: g.id, code: '', title: thLabelShown(g.label), depth: 0 };
     const subs = gtTableSubs(v, g.id);
     html += `<section class="tb-pet tb-get ${thTintClass(tints[g.id])}${thTableSelCls('label', g.id)}" data-trow="${escAttr(g.id)}" data-tkind="label" data-tparent="">`
-      + thTableHeadHtml(v, node, `<span class="tb-badge${under ? ' under' : ''}" title="${escAttr(under ? t('themes.gets.under_min', { min: minimum }) : gtCountText(g.count, total))}">${esc(t('themes.gets.of', { count: g.count, total }))}</span>`)
+      + thTableHeadHtml(v, node, `<span class="tb-badge${under ? ' under' : ''}" title="${escAttr(badge.tip)}">${esc(badge.short)}</span>`)
       + (g.note ? `<p class="tb-note">${esc(g.note)}</p>` : '')
       + `<button type="button" class="ghost small tb-trail" data-gtrail="${escAttr(g.id)}">${esc(t('themes.gets.trail'))}</button>`
       + `<div class="tb-body" data-tbody="${escAttr(g.id)}">`
@@ -8504,8 +8541,9 @@ function gtTableSubHtml(v, sid, parent, depth, tints) {
   const n = gtCount(v, sid);
   const total = TH.gets ? TH.gets.total : 0;
   const inner = depth < 8 ? gtTableSubs(v, sid) : [];
+  const badge = gtBadgeOf(v, sid, n, total, 0, false);
   return `<section class="tb-label tb-getsub${depth > 1 ? ' deep' : ''} ${thTintClass(tints[sid])}${thTableSelCls('label', sid)}" data-trow="${escAttr(sid)}" data-tkind="label" data-tparent="${escAttr(parent)}">`
-    + thTableHeadHtml(v, { id: sid, code: '', title: thLabelShown(g.label), depth }, `<span class="tb-badge" title="${escAttr(gtCountText(n, total))}">${esc(t('themes.gets.of', { count: n, total }))}</span>`)
+    + thTableHeadHtml(v, { id: sid, code: '', title: thLabelShown(g.label), depth }, `<span class="tb-badge" title="${escAttr(badge.tip)}">${esc(badge.short)}</span>`)
     + (thNoteOf(g) ? `<p class="tb-note">${esc(thNoteOf(g))}</p>` : '')
     + (inner.length ? `<div class="tb-body" data-tbody="${escAttr(sid)}">${inner.map((i) => gtTableSubHtml(v, i, sid, depth + 1, tints)).join('')}</div>` : '')
     + '</section>';
@@ -12233,6 +12271,48 @@ function gtUnfold(key) {
 
 const gtCountText = (n, total) => t('themes.gets.count', { count: n, n: total });
 
+/* An LPET is his interpretation, and the cards under it record what it draws on at each timepoint (drawsword, 17
+   November 2026, Adam's points 1, 2 and 6): its badge, its tip and its Inspector say which timepoints it draws on,
+   by their labels, never a count as its measure, and no LPET is ever under a minimum. A GET and an LGET keep theirs. */
+function gtDrawsTps(v, gid) {
+  const inside = gtInside();
+  const found = new Set();
+  for (const key of thCardsUnder(v, gid)) {
+    const c = v.cards[key];
+    if (c && c.kind !== 'pn' && inside.has(c.case)) found.add(c.case);
+  }
+  return ((TH.gets && TH.gets.cases) || []).filter((c) => found.has(c.case)).map((c) => c.who);
+}
+const gtDrawsText = (v, gid) => {
+  const tps = gtDrawsTps(v, gid);
+  return tps.length ? t('themes.drawn.draws_on', { timepoints: tList(tps) }) : t('themes.drawn.draws_on_nothing');
+};
+/* An LPET's Draws on in its Inspector: each timepoint with what it draws on there, a PET's or a sub-theme's title or
+   a statement's words, and a timepoint it draws on nothing at with his state there, which says why (point 3). */
+function gtDrawsRows(v, gid, inside) {
+  const under = thCardsUnder(v, gid).map((k) => v.cards[k]).filter((c) => c && c.kind !== 'pn');
+  return ((TH.gets && TH.gets.cases) || []).filter((c) => inside.has(c.case)).map((c) => {
+    const mine = under.filter((x) => x.case === c.case);
+    const state = ((((v.rows || {})[gid]) || {})[c.case] || {}).note || '';
+    const what = mine.length
+      ? `<ul class="gt-list gt-draws">${mine.map((x) => `<li><span class="gt-said">${esc(x.text || '')}</span></li>`).join('')}</ul>`
+      : `<span class="gt-said">${esc(gtNothing(false))}</span>`
+        + (state ? `<p class="gt-read gt-draws-state">${esc(state)}</p>` : '');
+    return `<li class="${mine.length ? 'gt-draws-tp' : 'gt-draws-tp gt-draws-none'}"><span>${esc(c.who)}</span>${what}</li>`;
+  });
+}
+
+/* a label's badge as the canvas, the table and the tip give it: `short`, its line, `tip`, and `under` the minimum */
+function gtBadgeOf(v, gid, n, total, minimum, top) {
+  if (TH.lpets) {
+    const tps = gtDrawsTps(v, gid);
+    return { short: tps.length ? tps.join(', ') : t('themes.drawn.none_short'), tip: gtDrawsText(v, gid), under: false };
+  }
+  const under = !!top && n < minimum;
+  return { short: t('themes.gets.of', { count: n, total }), tip: under ? t('themes.gets.under_min', { min: minimum }) : gtCountText(n, total),
+    under, counted: under ? t('themes.gets.count_under', { count: gtCountText(n, total), min: minimum }) : gtCountText(n, total) };
+}
+
 /* After the canvas is drawn the PETs way, each card takes its kind and pseudonym over its words and
    its marks, its case's colour along its top edge and its badge (16 October), and each GET's badge
    its count of the cases in the study, "6 of 8", a GET under the minimum with a dashed outline and
@@ -12259,20 +12339,26 @@ function gtDress(v) {
   for (const g of v.groups) {
     const n = gtCount(v, g.id);
     const top = parents[g.id] === undefined;
-    const under = top && n < minimum;
+    const said = gtBadgeOf(v, g.id, n, total, minimum, top);
+    const under = said.under;
     const frame = TH.els.frames[g.id];
     if (frame && frame.firstElementChild) {
       const badge = frame.firstElementChild;
-      badge.textContent = t('themes.gets.of', { count: n, total });
+      badge.textContent = said.short;
       badge.classList.toggle('under', under);
-      badge.title = under ? t('themes.gets.under_min', { min: minimum }) : gtCountText(n, total);
+      badge.title = said.tip;
       if (under) badge.removeAttribute('aria-hidden');
     }
     const label = TH.els.labels[g.id];
     if (!label) continue;
     const noted = thNoteOf(g);
-    const counted = under ? t('themes.gets.count_under', { count: gtCountText(n, total), min: minimum }) : gtCountText(n, total);
-      label.title = (thDescOf(g) ? `${thLabelShown(g.label)}\n${thDescOf(g)}\n\n` : '') + (noted ? t('themes.label.tip_noted', { count: counted, note: noted, unit: thUnit(v, g.id, parents) }) : t('themes.label.tip', { count: counted, unit: thUnit(v, g.id, parents) }));
+    const counted = TH.lpets ? said.tip : said.counted;
+    const unit = thUnit(v, g.id, parents);
+    // on LPETs and LGETs a label draws on what is under it, and a move takes that with it (drawsword, point 6)
+    const tip = TH.lpets || TH.lgets
+      ? (noted ? t('themes.label.tip_noted_draws', { count: counted, note: noted, unit }) : t('themes.label.tip_draws', { count: counted, unit }))
+      : (noted ? t('themes.label.tip_noted', { count: counted, note: noted, unit }) : t('themes.label.tip', { count: counted, unit }));
+    label.title = (thDescOf(g) ? `${thLabelShown(g.label)}\n${thDescOf(g)}\n\n` : '') + tip;
   }
   // the panel's rows show which are on the canvas
   gtCasesDraw();
@@ -12529,9 +12615,12 @@ function gtPanelDraw(v, item, owner) {
     } else {
       const pet = (entry.pets || []).find((p) => p.id === gtSplit(item.id).ident) || null;
       const n = Number(c.statements) || 0;
+      // on LPETs a PET or sub-theme in no LPET shows what draws on it, and where none does his reason, in a box here
+      // (drawsword; drawswordfix: the server's trace says, as a larger card or one inside it may be drawn on)
+      const why = TH.lpets && owner === undefined && pet && !c.gone && !TH.viewing ? gtLooseDrawnHtml(c, pet) : '';
       html = `<p class="th-panel-title">${esc(c.text)}</p>`
         + `<p class="th-panel-meta">${c.gone ? '' : `<span>${esc(t('themes.count.statements', { n }))}</span>`}${marks}</p>`
-        + thLeftOutHtml(v, item.id, owner)
+        + (why || thLeftOutHtml(v, item.id, owner))
         + thLeaveHtml(v, item.id, owner);
       if (pet) {
         const subs = (pet.subs || []).map((id) => (entry.pets || []).find((p) => p.id === id)).filter(Boolean);
@@ -12558,23 +12647,23 @@ function gtPanelDraw(v, item, owner) {
     const n = gtCount(v, g.id);
     const total = TH.gets ? TH.gets.total : 0;
     const minimum = TH.gets ? TH.gets.minimum : 0;
-    const under = owner === undefined && n < minimum;
+    const under = !TH.lpets && owner === undefined && n < minimum;
     const inside = gtInside();
     const there = new Set(thCardsUnder(v, g.id).map((k) => v.cards[k]).filter((c) => c && c.kind !== 'pn').map((c) => c.case));
-    const rows = ((TH.gets && TH.gets.cases) || []).filter((c) => inside.has(c.case))
+    const rows = TH.lpets ? gtDrawsRows(v, g.id, inside) : ((TH.gets && TH.gets.cases) || []).filter((c) => inside.has(c.case))
       .map((c) => `<li class="${there.has(c.case) ? '' : 'gt-none'}"><span>${esc(c.who)}</span>${there.has(c.case) ? '' : `<span class="gt-said">${esc(gtNothing(false))}</span>`}</li>`);
     // a GET's audit trail opens from here, and from under its title in the board's Table view
     const trail = owner === undefined
       ? `<button type="button" class="ghost small gt-trail-go" tabindex="-1" data-gtrail="${escAttr(g.id)}">${esc(t('themes.gets.trail'))}</button>` : '';
     html = thDescHtml(v, g) + `<p class="kicker">${esc(owner !== undefined ? t('themes.kind.sub') : thGetWord())}</p>`
-      + `<p class="th-panel-meta"><span>${esc(gtCountText(n, total))}</span>${under ? `<span class="gt-mark">${esc(t('themes.gets.under_min', { min: minimum }))}</span>` : ''}</p>`
+      + `<p class="th-panel-meta"><span>${esc(TH.lpets ? gtDrawsText(v, g.id) : gtCountText(n, total))}</span>${under ? `<span class="gt-mark">${esc(t('themes.gets.under_min', { min: minimum }))}</span>` : ''}</p>`
       + thArrangeHtml(g.id, trail) + thLeaveHtml(v, g.id, owner)
       // an LPET's domain above its note, the pills Trajectories and its label draw (lpetmarks)
       + (TH.lpets && owner === undefined ? gtDomainHtml(v, g) : '')
       + thNoteHtml(v, g)
       // three titles from the AI for a GET or a sub-theme, with the sparkles, and Undo puts the old back
       + thNamesHtml(item, { unit: owner !== undefined ? t('themes.unit.sub') : thGetWord() })
-      + `<h3 class="section-label">${esc(t('themes.cases.head'))}</h3>` + gtList(rows, t('themes.gets.no_participant'));
+      + `<h3 class="section-label">${esc(TH.lpets ? t('themes.drawn.head') : t('themes.cases.head'))}</h3>` + gtList(rows, t('themes.gets.no_participant'));
   }
   const box = $('th-gnote');
   const held = TH.noting && box && document.activeElement === box
@@ -13843,7 +13932,9 @@ const GT_NOTHING = t('themes.gets.nothing_under');
    NOTHING_NO_PETS says it in the trail and on paper */
 const GT_NOTHING_NO_PETS = t('themes.gets.nothing_no_pets');
 // and a participant's LPETs say LPET where the others say GET (lpetgaps, 12 November 2026)
-const gtNothing = (bare) => (TH.lpets ? t(bare ? 'themes.gets.nothing_no_pets_lpet' : 'themes.gets.nothing_under_lpet') : bare ? GT_NOTHING_NO_PETS : GT_NOTHING);
+// an LGET draws on its participants' LPETs, said so where a participant has none under it (drawsword, point 6)
+const gtNothing = (bare) => (TH.lpets ? t(bare ? 'themes.gets.nothing_no_pets_lpet' : 'themes.gets.nothing_under_lpet')
+  : TH.lgets ? (bare ? t('themes.gets.nothing_no_lpets_lget') : t('themes.gets.nothing_under_lget')) : bare ? GT_NOTHING_NO_PETS : GT_NOTHING);
 const GT_NOT_FROM = t('themes.gets.not_from');
 
 /* a quote's key, `<sheet>:<row>:<place>`, read as the server's split_card_key reads it */
@@ -13980,12 +14071,13 @@ function gtRowsKept(v) {
 const gtCaseItems = (v, gid, kase, under = gtItems(v, gid)) => under.filter((it) => gtSplit(it.key).kase === kase)
   .map((it) => gtItemOf(v, it.key, it.within));
 
-/* a row's quote: the one he ticked while the copy still holds it, else the one it starts with */
+/* a row's quote: the one he ticked while the copy still holds it, else the one it starts with, and on LPETs the one
+   he ticked alone, none standing in until he ticks one (Adam's ruling of 17 November 2026, drawswordfix) */
 function gtKeyQuote(v, gid, kase, items) {
   const entry = gtCase(kase);
   const stored = ((gtRows(v)[gid] || {})[kase] || {}).quote;
   const chosen = stored ? gtQuoteAt(entry, stored) : null;
-  return { quote: chosen || gtFirstQuote(items, entry), chosen: !!chosen };
+  return { quote: chosen || (TH.lpets ? null : gtFirstQuote(items, entry)), chosen: !!chosen };
 }
 
 /* The GET table of a board: each GET in canvas order with its note and its count, then a row for
@@ -14124,6 +14216,172 @@ async function gtDomainSet(gid, text) {
   if (TH.live && TH.path === path && TH.v) thRender();
 }
 
+/* ── what draws on a PET, a sub-theme or a statement (drawsword, 17 November 2026, Adam's point 8) ──
+
+   An LPET is his interpretation, and the cards under it record what it draws on. On a timepoint's PETs board the
+   Inspector reads that the other way: on a PET, a sub-theme or a statement, the LPETs that draw on it, each opening
+   that LPET on the LPETs board, or that none does, and on a PET or sub-theme none draws on, his reason, kept with its
+   card in the LPETs board's Unplaced. The trace is the server's (`/api/drawn-on`, an agent's board drawn-on), read
+   once a board and again after a reason is kept; the reason goes through the LPETs' own operation, `why`, as an
+   LPET's domain does, so the two screens and an agent always agree. On LPETs the same box stands in the Inspector of
+   a PET's card in Unplaced. */
+const thDrawnOn = () => TH.mode === 'pets' && !!TH.tps && !TH.viewing && !!TH.meta;
+const thDrawnKey = () => `${TH.path}|${TH.tp || 1}|${TH.meta ? TH.meta.id : ''}`;
+
+async function thDrawnFetch(force = false) {
+  if (!thDrawnOn()) return;
+  const key = thDrawnKey();
+  if (!force && TH.drawn && TH.drawn.key === key) return;
+  const ask = ++TH.drawnAsk;
+  let data = null;
+  try {
+    data = await api('/api/drawn-on', { workbook: TH.path, timepoint: TH.tp || 1, board: TH.meta.id });
+  } catch (err) {
+    data = null;
+  }
+  if (ask !== TH.drawnAsk || !thDrawnOn() || thDrawnKey() !== key) return;
+  TH.drawn = { key, data };
+  if (TH.panelOpen) thPanelDraw();
+}
+
+/* one LPET that draws on the item, a link to it, and how when not by the item's own card */
+function thDrawnLi(d) {
+  const how = d.how === 'through' ? t('themes.drawn.through', { title: (d.via && d.via.title) || '' })
+    : d.how === 'part' ? t('themes.drawn.part') : '';
+  return `<li><button type="button" class="linkish th-drawn-go" tabindex="-1" data-drawn-lpet="${escAttr(d.id)}" `
+    + `title="${escAttr(t('themes.drawn.open_tip', { title: d.title }))}">${esc(d.title)}</button>`
+    + (how ? ` <span class="gt-said th-drawn-how">${esc(how)}</span>` : '') + '</li>';
+}
+
+/* The Inspector's LPETs that draw on it, on a PET's or a sub-theme's label (`kind` group) or a statement's card, on a
+   timepoint's PETs in a project of two or more. Nothing while the read is on its way, or with no LPETs board. */
+function thDrawnHtml(item) {
+  if (!thDrawnOn()) return '';
+  const held = TH.drawn && TH.drawn.key === thDrawnKey() ? TH.drawn : null;
+  if (!held) { thDrawnFetch(); return ''; }
+  const data = held.data;
+  if (!data || !data.lpets_board) return '';
+  const head = `<h3 class="section-label">${esc(t('themes.drawn.by_head'))}</h3>`;
+  const wrap = (inner) => `<div class="th-drawn-sec">${head}${inner}</div>`;
+  if (item.kind === 'group' && !data.same) {
+    return wrap(`<p class="th-qnone">${esc(t('themes.drawn.other_board', { board: (data.from_board && data.from_board.name) || '' }))}</p>`);
+  }
+  const entry = item.kind === 'group' ? (data.pets || {})[item.id] : null;
+  const lpets = item.kind === 'group' ? (entry ? entry.lpets : []) : ((data.statements || {})[item.id] || []);
+  if (lpets.length) return wrap(`<ul class="gt-list th-drawn">${lpets.map(thDrawnLi).join('')}</ul>`);
+  let html = `<p class="th-qnone">${esc(t('themes.drawn.by_none'))}</p>`;
+  // a PET or sub-theme none draws on can hold his reason, kept with its card on the LPETs board
+  if (entry && entry.card) html += thWhyBox(`${data.timepoint}/${item.id}`, entry.why || '', { pet: item.id, timepoint: data.timepoint });
+  return wrap(html);
+}
+
+/* the reason's box, by the card's key on the LPETs board; read-only on a revision on view */
+function thWhyBox(key, why, at) {
+  if (thLocked(TH.v)) return why ? `<p class="gt-read th-dwhy-read">${esc(why)}</p>` : '';
+  const typed = TH.whyEdit && TH.whyEdit.key === key ? TH.whyEdit.value
+    : TH.whySaving && TH.whySaving.key === key ? TH.whySaving.value : why;
+  return `<textarea class="th-vedit th-dwhy" id="th-dwhy" rows="3" spellcheck="true" data-why="${escAttr(key)}" `
+    + `data-why-pet="${escAttr(at.pet)}" data-why-tp="${escAttr(at.timepoint)}" `
+    + `placeholder="${escAttr(t('themes.drawn.why_placeholder'))}" aria-label="${escAttr(t('themes.drawn.why_placeholder'))}">${esc(typed)}</textarea>`;
+}
+
+function thWhyStart(box) {
+  if (TH.whyEdit && TH.whyEdit.key === box.dataset.why) return;
+  TH.whyEdit = { key: box.dataset.why, value: box.value, was: box.defaultValue, pet: box.dataset.whyPet, timepoint: box.dataset.whyTp,
+    item: TH.panel ? TH.panel.id : null };
+}
+
+function thWhyDone(keep) {
+  const ed = TH.whyEdit;
+  if (!ed) return;
+  TH.whyEdit = null;
+  const box = $('th-dwhy');
+  const text = (box && box.dataset.why === ed.key ? box.value : ed.value).trim();
+  if (!keep || text === (ed.was || '').trim()) { if (TH.panelOpen) thPanelDraw(); return; }
+  thWhySet(ed, text);
+}
+
+/* The reason kept, "" taking it off, through the LPETs' `why` operation: from a timepoint's PETs on the board LGETs
+   take, the trace read again after; from LPETs on the board on the canvas, its own work saved first and the board's
+   version and reasons taken from the file after, as an LPET's domain is, so nothing else on the canvas changes. */
+async function thWhySet(ed, text) {
+  if (!TH.live || TH.busy) { if (TH.panelOpen) thPanelDraw(); return; }
+  const path = TH.path;
+  const lpets = TH.mode === 'gets' && TH.lpets;
+  const id = TH.meta ? TH.meta.id : null;
+  TH.busy = true;
+  TH.whySaving = { key: ed.key, value: text };
+  try {
+    if (lpets) {
+      await thFlush();
+      if (TH.dirty) { say(t('themes.unsaved.why'), 6000); return; }
+    }
+    const op = { op: 'why', participant: lpets ? (TH.lpetsWho || '') : ((TH.drawn && TH.drawn.data && TH.drawn.data.participant) || ''), timepoint: ed.timepoint, pet: ed.pet, why: text };
+    if (lpets) op.board = id;
+    await api('/api/trajectories-ops', { workbook: path, ops: [op] });
+    if (lpets) {
+      const back = await api('/api/gets', { workbook: path, board: id });
+      if (TH.live && TH.path === path && TH.meta && TH.meta.id === id) gtDomainsTake(back);
+    } else {
+      await thDrawnFetch(true);
+    }
+  } catch (err) {
+    say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
+  } finally {
+    TH.busy = false;
+    TH.whySaving = null;
+  }
+  if (TH.live && TH.path === path && TH.v) thRender();
+}
+
+/* an LPET that draws on it, opened on the participant's LPETs board, selected with its Inspector, or on LPETs
+   selected there */
+function thDrawnGo(gid) {
+  if (!TH.live || TH.busy || !gid) return;
+  if (TH.mode === 'gets' && TH.lpets) {
+    if (!TH.v || !thIsGroup(TH.v, gid)) return;
+    thSelectOnly({ kind: 'group', id: gid });
+    TH.lastPick = { kind: 'group', id: gid };
+    thInspectorOpen({ kind: 'group', id: gid });
+    const box = TH.layout[gid] && (TH.layout[gid].frame || TH.layout[gid].label);
+    if (box && TH.face !== 'table') thFitTo(box);
+    return;
+  }
+  thStageGo(thToLpets, { gets: true, lpets: true, select: gid });
+}
+
+/* On LPETs, the server's trace of the board on the canvas at a timepoint (`/api/drawn-on` with `lpets`), read once
+   for each save of the board, null while it is on its way (drawswordfix) */
+function gtLpDrawn(kase) {
+  if (!TH.meta) return null;
+  const n = Number(String(kase || '').replace(/^T/i, '')) || 1;
+  const key = `${TH.path}|${TH.meta.id}|${TH.meta.updated || ''}|${n}`;
+  const held = TH.lpDrawn[key];
+  if (held !== undefined) return held || null;
+  TH.lpDrawn[key] = false;
+  const path = TH.path;
+  api('/api/drawn-on', { workbook: path, timepoint: n, lpets: TH.meta.id }).then((data) => data, () => false).then((data) => {
+    if (TH.path !== path) return;
+    TH.lpDrawn[key] = data || false;
+    if (data && TH.live && TH.panelOpen) thPanelDraw();
+  });
+  return null;
+}
+
+/* A PET's or sub-theme's card in no LPET on LPETs: the LPETs that draw on it through a larger card or in part, as on
+   a timepoint's PETs, or "No LPET draws on it." and, on the board LGETs take, the box for his reason. Nothing until
+   the server has said. */
+function gtLooseDrawnHtml(c, pet) {
+  const data = gtLpDrawn(c.case);
+  const entry = data && data.lpets_board ? (data.pets || {})[pet.id] : null;
+  if (!entry) return '';
+  const head = `<h3 class="section-label">${esc(t('themes.drawn.by_head'))}</h3>`;
+  if ((entry.lpets || []).length) return `${head}<ul class="gt-list th-drawn">${entry.lpets.map(thDrawnLi).join('')}</ul>`;
+  const key = `${c.case}/${pet.id}`;
+  return `${head}<p class="th-qnone">${esc(t('themes.drawn.by_none'))}</p>`
+    + (data.lpets_board.source ? thWhyBox(key, (TH.lpetWhy || {})[key] || entry.why || '', { pet: pet.id, timepoint: c.case }) : '');
+}
+
 /* the board as the file holds it after its domain changed: its version, which the next save carries, when it
    changed, which the stamp tells from a change made elsewhere, and its LPETs' domains */
 function gtDomainsTake(data) {
@@ -14135,6 +14393,7 @@ function gtDomainsTake(data) {
   if (listed) Object.assign(listed, { updated: now.updated }, now.v ? { v: now.v } : {});
   TH.lpetDomains = Object.assign({}, data.lpet_domains || {});
   TH.lpetPassages = Object.assign({}, data.lpet_passages || {});
+  TH.lpetWhy = Object.assign({}, data.why || {});
   // and each label's domain as the file holds it, which the page's saves send back as it holds them
   const held = new Map((data.groups || []).map((g) => [g.id, g.domain]));
   for (const g of TH.v.groups) {
@@ -15173,6 +15432,24 @@ function themesBoot() {
     if (e.target && e.target.id === 'gt-cdesc' && TH.codeDesc && TH.codeDesc.id === e.target.dataset.code) TH.codeDesc.value = e.target.value;
   });
   panel.addEventListener('focusout', (e) => { if (e.target && e.target.id === 'gt-cdesc' && !TH.noteRedraw) gtCodeDescDone(true); });
+  // his reason no LPET draws on a PET, on a timepoint's PETs and on LPETs alike, kept as the box loses the focus or on
+  // Cmd + Enter, Esc leaving it as it was, and an LPET that draws on it opened on LPETs (drawsword)
+  panel.addEventListener('focusin', (e) => { if (e.target && e.target.id === 'th-dwhy') thWhyStart(e.target); });
+  panel.addEventListener('input', (e) => {
+    if (e.target && e.target.id === 'th-dwhy' && TH.whyEdit && TH.whyEdit.key === e.target.dataset.why) TH.whyEdit.value = e.target.value;
+  });
+  panel.addEventListener('focusout', (e) => { if (e.target && e.target.id === 'th-dwhy' && !TH.noteRedraw) thWhyDone(true); });
+  panel.addEventListener('keydown', (e) => {
+    if (!e.target || e.target.id !== 'th-dwhy') return;
+    e.stopPropagation();
+    if (e.isComposing) return;
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); e.target.blur(); }
+    else if (e.key === 'Escape') { e.preventDefault(); TH.whyEdit = null; e.target.blur(); thPanelDraw(); }
+  });
+  panel.addEventListener('click', (e) => {
+    const go = e.target && e.target.closest ? e.target.closest('[data-drawn-lpet]') : null;
+    if (go) { e.preventDefault(); thDrawnGo(go.dataset.drawnLpet); }
+  });
   // an LPET's domain in the Inspector, kept as the box loses the focus or on Enter, Esc leaving it (lpetmarks)
   panel.addEventListener('focusin', (e) => { if (e.target && e.target.id === 'gt-ldomain') gtDomainStart(e.target); });
   panel.addEventListener('input', (e) => {

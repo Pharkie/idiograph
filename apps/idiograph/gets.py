@@ -991,11 +991,13 @@ def take_in(data: dict, cases: list[dict], when: str) -> list[str]:
     return taken
 
 
-def normal(board: dict, data: dict) -> dict:
+def normal(board: dict, data: dict, hide: bool = True) -> dict:
     """A GETs board as the file holds it, whatever the page sent: the PETs screen's rules, a card
     in one group at most among them, then a PET's or a sub-theme's card keeps no words while its
     case still has it, a statement and a participant note keep theirs, and `rows` holds the GET
-    table's rows (see `rows_of`)."""
+    table's rows (see `rows_of`). Read with `hide`, his reasons no LPET draws on a PET leave out each one an LPET
+    now draws on (see `why_undrawn`); a writer, or a hash of the board as the file keeps it, reads with `hide`
+    false, so the file keeps every reason (drawswordfix2)."""
     kept = themes.normalise(board)
     held = data.get("cases") or {}
     for key, card in kept["cards"].items():
@@ -1006,6 +1008,13 @@ def normal(board: dict, data: dict) -> dict:
                 card.pop("text", None)
         card.pop("live", None)
     kept["rows"] = rows_of(dict(board, groups=kept["groups"]))
+    # his reason no LPET draws on a PET is hidden while one does, and kept in the file (drawswordfix2)
+    if hide and kept.get(themes.WHY):
+        said = why_undrawn(kept, data)
+        if said:
+            kept[themes.WHY] = said
+        else:
+            kept.pop(themes.WHY, None)
     return kept
 
 
@@ -1309,6 +1318,7 @@ def answer(data: dict, cases: list[dict], disk: dict | None, board: str | None =
             "version": themes.summary(kept, on_disk(disk, shown)), "saved": disk is not None,
             "cards": cards_shown(kept, data), "groups": kept["groups"], "discarded": kept["discarded"],
             "picks": {}, "discard_reasons": (kept.get("ai") or {}).get("discarded") or {},
+            "why": kept.get(themes.WHY) or {},
             "stickies": kept.get("notes") or [], "rows": kept["rows"], "history": themes.history_list(shown),
             "history_away": themes.history_away(shown), "sheets": [], "quotes": {},
             "cases": [panel(e, data, study, look.get(e["case"])) for e in cases], "study": study,
@@ -1388,10 +1398,17 @@ def save(root: Path, books: list[dict], version: dict, revision=None) -> dict:
         kept["rows"] = rows_of(dict(was, groups=kept["groups"]))
     # a page from before the reasons sends no `ai`, and the page sends no `review` or `revise`, what the
     # app's own AI left with a board before 11 November 2026, so the file's stay as they are
-    held_was = normal(was, data)
+    held_was = normal(was, data, hide=False)
     for key in ("ai",) + themes.FROM_BEFORE:
         if key not in version and held_was.get(key):
             kept[key] = held_was[key]
+    # his reasons a PET is drawn on by no LPET are the file's, written by their own operation alone (drawsword), so a
+    # save keeps them for each card still on the board, whatever the page sent, one whose PET an LPET now draws on
+    # too, hidden on every read, so an undo of the move shows it again (drawswordfix2)
+    kept.pop(themes.WHY, None)
+    said = themes.why_kept(held_was.get(themes.WHY), kept["cards"])
+    if said:
+        kept[themes.WHY] = said
     # a board an agent made is marked edited by his first save that changes it
     if kept.get("made"):
         kept["made"] = themes.edited_mark(kept["made"], kept, when, kept.get("changed"))
@@ -1404,6 +1421,9 @@ def save(root: Path, books: list[dict], version: dict, revision=None) -> dict:
     data["current"] = bid
     write(root, _file(data, when))
     out = {"saved": True, "updated": when, "version": themes.summary(kept)}
+    # on LPETs his reasons as a read shows them, one hidden where this save has an LPET draw on its PET
+    if in_lpets():
+        out["why"] = why_undrawn(kept, data)
     if made:
         out.update(revision=themes.revision_summary(made), history=themes.history_list(kept))
     return out
@@ -1481,7 +1501,7 @@ def version_op(root: Path, books: list[dict], op: str, body: dict, dry_run: bool
         boards.append(fresh)
         current = fresh["id"]
     elif op == "duplicate":
-        copy = json.loads(json.dumps(normal(target, data)))
+        copy = json.loads(json.dumps(normal(target, data, hide=False)))
         for key in themes.FROM_BEFORE:
             copy.pop(key, None)
         for key in themes.AGENT_KEYS:
@@ -1569,7 +1589,7 @@ def view_state(board: dict, data: dict) -> dict:
     kept = normal(board, data)
     return {"cards": cards_shown(kept, data), "groups": kept["groups"], "discarded": kept["discarded"],
             "picks": {}, "discard_reasons": (kept.get("ai") or {}).get("discarded") or {},
-            "stickies": kept.get("notes") or []}
+            "why": kept.get(themes.WHY) or {}, "stickies": kept.get("notes") or []}
 
 
 def subs_missing(data: dict, board: dict) -> list[tuple[str, str]]:
@@ -1628,7 +1648,7 @@ def board_op(root: Path, books: list[dict], op: str, body: dict, dry_run: bool =
         made = themes.add_revision(board, name=themes.revision_name("before_restoring", when_at=revision["at"]),
                                    at=when)
         restored = json.loads(json.dumps(themes.state_of(themes.normalise(followed(revision["state"], data)))))
-        for key in ("notes", "ai", "quoted", "cut"):
+        for key in ("notes", "ai", "quoted", "cut", themes.WHY):
             board.pop(key, None)
         board.update({key: restored[key] for key in themes.STATE_KEYS if key in restored}, updated=when)
         extra = {"revision": themes.revision_summary(made), "restored": themes.revision_summary(revision)}
@@ -1990,7 +2010,7 @@ def statements_followed(root: Path, workbook: Path, words: dict, before: dict, b
         if str(board.get("id")) in marked:
             board["updated"] = when
             board["changed"] = dict(changed, at=when)
-            board["changed"]["hash"] = themes.state_hash(themes.made_state(normal(board, data)))
+            board["changed"]["hash"] = themes.state_hash(themes.made_state(normal(board, data, hide=False)))
     if not marks and not kept and not noted:
         return {}
     data["updated"] = when
@@ -2148,7 +2168,7 @@ def copies_refreshed(root: Path, workbook: Path, truth: dict, books: list[dict] 
             board["updated"] = when
             if changed:
                 board["changed"] = dict(changed, at=when)
-                board["changed"]["hash"] = themes.state_hash(themes.made_state(normal(board, data)))
+                board["changed"]["hash"] = themes.state_hash(themes.made_state(normal(board, data, hide=False)))
     data["updated"] = when
     write(root, data)
     return out
@@ -2269,6 +2289,9 @@ def board_remapped(board: dict, case: str, cmap: dict, qmap: dict, turns=None, m
                              if card(a) is not None and card(b) is not None and card(a) != card(b)]
     if isinstance((board.get("ai") or {}).get("discarded"), dict):
         board["ai"]["discarded"] = {card(k): why for k, why in board["ai"]["discarded"].items() if card(k) is not None}
+    # and his reason a card is drawn on by no LPET goes with its card (drawsword)
+    if isinstance(board.get(themes.WHY), dict):
+        board[themes.WHY] = {card(k): why for k, why in board[themes.WHY].items() if card(k) is not None}
     if isinstance(board.get("picks"), dict):
         board["picks"] = {g: keys(chosen) for g, chosen in board["picks"].items()}
     rows = board.get("rows") if isinstance(board.get("rows"), dict) else {}
@@ -2943,6 +2966,130 @@ def lpets_of(data: dict, board: dict | None, case: str, key: str) -> list[dict]:
     return out
 
 
+# ------------------------------------------------- what draws on a PET, a sub-theme or a statement (drawsword)
+#
+# Adam, 17 November 2026: an LPET is his interpretation, and the cards under it record what it draws on at each
+# timepoint, its audit trail. The forward trace reads it the other way: for a PET, a sub-theme or a statement of a
+# timepoint, which LPETs of the participant's board draw on it. An LPET draws on an item `whole` when the item's own
+# card is under it, `through` a larger one when the card of a PET or sub-theme holding it is (`via`), and `part` when
+# the card of something inside it is.
+
+HOW_ORDER = ("whole", "through", "part")
+
+
+def drawn_on(data: dict, board: dict | None, case: str) -> dict:
+    """For the timepoint `case`, T1, of a participant's LPETs file: each PET and sub-theme of its copy by id, and each
+    statement by its key, with the top LPETs of `board` that draw on it, in canvas order, each `{"id", "title",
+    "how", "via"}`, `via` the larger card's PET or sub-theme by id and title when `how` is `through`. Only those
+    drawn on are named. Only reads."""
+    if board is None:
+        return {"pets": {}, "statements": {}}
+    return drawn_in(data, normal(board, data), case)
+
+
+def drawn_in(data: dict, kept: dict, case: str) -> dict:
+    """`drawn_on` over a board already normalised, `kept`, which `normal` itself asks of the board it makes."""
+    out = {"pets": {}, "statements": {}}
+    rec = (data.get("cases") or {}).get(case) or {}
+    pets = {p["id"]: p for p in rec.get("pets") or [] if isinstance(p, dict) and p.get("id")}
+    lines = rec.get("lines") or {}
+    by_id = {g["id"]: g for g in kept["groups"]}
+    parents = themes.parents_of(kept["groups"])
+    # each PET's line of PETs and sub-themes above it, nearest first
+    above = {}
+    for pid, p in pets.items():
+        chain, at, seen = [], p.get("parent"), {pid}
+        while at in pets and at not in seen:
+            chain.append(at)
+            seen.add(at)
+            at = pets[at].get("parent")
+        above[pid] = chain
+    # each statement's PET, its top's where it is stacked
+    owner = {}
+    for pid, p in pets.items():
+        for k in p.get("statements") or []:
+            owner.setdefault(k, pid)
+    for k, line in lines.items():
+        top = line.get("stacked") if isinstance(line, dict) else None
+        if k not in owner and top in owner:
+            owner[k] = owner[top]
+
+    def mark(kind: str, key: str, g: dict, how: str, via: str | None = None) -> None:
+        held = out[kind].setdefault(key, [])
+        found = next((x for x in held if x["id"] == g["id"]), None)
+        entry = {"id": g["id"], "title": str(g.get("label") or ""), "how": how}
+        if via is not None:
+            entry["via"] = {"id": via, "title": str(pets[via].get("title") or "")}
+        if found is None:
+            held.append(entry)
+        elif HOW_ORDER.index(how) < HOW_ORDER.index(found["how"]):
+            held[held.index(found)] = entry
+
+    tops = themes.canvas_order([g["id"] for g in kept["groups"] if g["id"] not in parents], by_id)
+    for gid in tops:
+        g = by_id[gid]
+        for key in themes.cards_under(by_id, gid):
+            k = split_key(key)
+            if k["case"] != case:
+                continue
+            if k["kind"] == "group" and k["ident"] in pets:
+                pid = k["ident"]
+                mark("pets", pid, g, "whole")
+                for up in above[pid]:
+                    mark("pets", up, g, "part")
+                # everything inside it, its sub-themes at any depth and their statements
+                inside = [x for x, chain in above.items() if pid in chain]
+                for x in inside:
+                    mark("pets", x, g, "through", pid)
+                for s in pet_lines({"pets": list(pets.values())}, pid):
+                    mark("statements", s, g, "through", pid)
+                for s, top in ((s, line.get("stacked")) for s, line in lines.items() if isinstance(line, dict)):
+                    if top and owner.get(s) and (owner[s] == pid or pid in above.get(owner[s], [])):
+                        mark("statements", s, g, "through", pid)
+            elif k["kind"] == "es" and k["ident"] in lines:
+                s = k["ident"]
+                mark("statements", s, g, "whole")
+                for t, line in lines.items():
+                    if isinstance(line, dict) and line.get("stacked") == s:
+                        mark("statements", t, g, "whole")
+                pid = owner.get(s)
+                for up in ([pid] + above[pid]) if pid in pets else []:
+                    mark("pets", up, g, "part")
+    return out
+
+
+def why_undrawn(kept: dict, data: dict) -> dict[str, str]:
+    """His reasons kept on a normalised board, `kept`, for the PETs and sub-theme no LPET draws on: a reason for "no
+    LPET draws on it" is untrue while one does, so every read hides it while its PET is drawn on, wholly, through a
+    larger card or in part, and the file keeps it, so it shows again when none does, after any undo of the change
+    or a later move (drawswordfix2, 17 November 2026)."""
+    held = kept.get(themes.WHY) if isinstance(kept.get(themes.WHY), dict) else {}
+    if not held:
+        return {}
+    drawn: dict = {}
+    out = {}
+    for key, why in held.items():
+        k = split_key(key)
+        if k["kind"] == "group":
+            if k["case"] not in drawn:
+                drawn[k["case"]] = drawn_in(data, kept, k["case"])["pets"]
+            if drawn[k["case"]].get(k["ident"]):
+                continue
+        out[key] = why
+    return out
+
+
+def drawn_on_why(data: dict, board: dict | None, case: str) -> dict[str, str]:
+    """His reasons a PET or sub-theme of the timepoint `case` is drawn on by no LPET, by its id."""
+    held = (normal(board, data).get(themes.WHY) or {}) if board is not None else {}
+    out = {}
+    for key, why in held.items():
+        k = split_key(key)
+        if k["case"] == case and k["kind"] == "group" and not k["copy"]:
+            out[k["ident"]] = why
+    return out
+
+
 def copies_rekeyed(root: Path, workbook: Path, truth: dict, books: list[dict] | None = None, at: str | None = None,
                    sheet: str | None = None, from_row: int | None = None, shift: int | None = None, dry: bool = False,
                    changed: dict | None = None, history: str = "") -> dict:
@@ -3056,7 +3203,7 @@ def copies_rekeyed(root: Path, workbook: Path, truth: dict, books: list[dict] | 
             board["updated"] = when
             if changed:
                 board["changed"] = dict(changed, at=when)
-                board["changed"]["hash"] = themes.state_hash(themes.made_state(normal(board, data)))
+                board["changed"]["hash"] = themes.state_hash(themes.made_state(normal(board, data, hide=False)))
     data["updated"] = when
     write(root, data)
     return out
@@ -3147,7 +3294,7 @@ def copies_pruned(root: Path, workbook: Path, truth: dict, books: list[dict] | N
             b["updated"] = when
             if changed:
                 b["changed"] = dict(changed, at=when)
-                b["changed"]["hash"] = themes.state_hash(themes.made_state(normal(b, data)))
+                b["changed"]["hash"] = themes.state_hash(themes.made_state(normal(b, data, hide=False)))
     data["updated"] = when
     write(root, data)
     return out
@@ -3500,6 +3647,8 @@ def keys_followed(board: dict, case: str, rename: dict[str, str], qmap: dict[str
             board["not_same"] = [[m(a), m(b)] for a, b in board["not_same"]]
         if isinstance((board.get("ai") or {}).get("discarded"), dict):
             board["ai"]["discarded"] = {m(k): why for k, why in board["ai"]["discarded"].items()}
+        if isinstance(board.get(themes.WHY), dict):
+            board[themes.WHY] = {m(k): why for k, why in board[themes.WHY].items()}
         if isinstance(board.get("picks"), dict):
             board["picks"] = {g: [m(k) for k in chosen or []] for g, chosen in board["picks"].items()}
     for cases in (board.get("rows") or {}).values() if isinstance(board.get("rows"), dict) else ():
@@ -3900,7 +4049,8 @@ def table(data: dict, board: dict, inside: list[str]) -> list[dict]:
     """The GET table of a board: each GET in canvas order with its note and its count, then a row
     for every case in the study in case order, its PETs, sub-themes, statements and participant
     notes under the GET in the order the canvas reads them, its quote, the one he ticked or
-    else the one it starts with, and his note for the row. `counted` says whether anything of the
+    else the one it starts with, and on a participant's LPETs the one he ticked alone, none standing in until he
+    ticks one (Adam's ruling of 17 November 2026, drawswordfix), and his note for the row. `counted` says whether anything of the
     case's counts there, a participant note never. Reads the file alone, and writes nothing."""
     kept = normal(board, data)
     shown = named(kept, data)
@@ -3909,6 +4059,7 @@ def table(data: dict, board: dict, inside: list[str]) -> list[dict]:
     parents = themes.parents_of(kept["groups"])
     held = data.get("cases") or {}
     cases = sorted(inside, key=case_order)
+    lpets_now = in_lpets()
     out = []
     for gid in themes.canvas_order([g["id"] for g in kept["groups"] if g["id"] not in parents], by_id):
         under = items_under(shown, gid, drawn)
@@ -3921,7 +4072,7 @@ def table(data: dict, board: dict, inside: list[str]) -> list[dict]:
             chosen = quote_at(rec, stored.get("quote")) if stored.get("quote") else None
             rows.append({"case": case, "who": who(case), "items": items,
                          "counted": any(it["kind"] != "pn" for it in items),
-                         "quote": chosen or first_quote(items, rec), "chosen": chosen is not None,
+                         "quote": chosen or (None if lpets_now else first_quote(items, rec)), "chosen": chosen is not None,
                          "note": stored.get("note") or "", "bold": stored.get("bold") or [] if chosen else [],
                          "open": rec.get("state") == "in" and not rec.get("complete"),
                          "none": rec.get("state") == "none"})
@@ -3952,7 +4103,7 @@ def propose(root: Path, books: list[dict], version: dict, note: str) -> dict:
                  updated=when)
     board.pop("notes", None)
     themes.drop_history(board)
-    kept = normal(board, data)
+    kept = normal(board, data, hide=False)
     kept.update(id=bid, name=board["name"], note=board["note"], created=when, updated=when)
     kept.pop("notes", None)
     boards.append(kept)
@@ -4043,7 +4194,8 @@ def row_targets(data: dict, board: dict, inside: list[str]) -> list[dict]:
 #
 # Trajectories (trajbuild2, 10 November 2026, layout F) shows each LPET as a row across the timepoints, and each
 # cell is that LPET's row of the LPET table at that timepoint: his note on the row is the LPET's state there, the
-# quote he ticked is its key quote, the first standing in until he ticks one, and `bold` his bold in it. Run
+# quote he ticked is its key quote, none until he ticks one (Adam's ruling of 17 November 2026, drawswordfix: the
+# first no longer stands in), and `bold` his bold in it. Run
 # inside `lpets`, on the board the participant's LPETs come into LGETs from (`source_board`), so the LPETs
 # screen's Inspector, the LPET table and Trajectories show the same tick and the same note.
 #
@@ -4330,7 +4482,7 @@ def row_op(data: dict, board: dict, inside: list[str], labels: dict, op: dict, n
     key of a quote of the LPET's own or of another statement of that interview, or `passage`, a passage of any of
     the participant's interviews as `passage_from` reads one, or neither to take his tick off), `bold` (`lpet`,
     `timepoint`, `spans`, `[[start, end]]` of the key quote's words as `lpet_rows` gives them, without the marks
-    round them, none clearing it, the quote standing in ticked with it), `domain` (`lpet`, `domain`, several
+    round them, none clearing it, refused on a cell with no key quote), `domain` (`lpet`, `domain`, several
     separated by commas, "" taking it off) and `states_from_notes` (each LPET's note's paragraphs headed by a
     timepoint into its rows' notes where they hold none, the note left as it was). `name` is the participant's,
     for the lines, and `turns` gives a timepoint's turns of their transcript by its key. Nothing here moves a
@@ -4391,6 +4543,8 @@ def row_op(data: dict, board: dict, inside: list[str], labels: dict, op: dict, n
                 row_set(gid, key, {"note": text[:4000]})
                 said.append(f"{name}'s '{r['title']}' at {tp_names(labels, key)[0]}: state from its note.")
         return said
+    if kind == "why":
+        return why_op(data, board, tp(), labels, op, name)
     r = lpet()
     if kind == "domain":
         domain = " ".join(str(op.get("domain") or "").split())
@@ -4435,7 +4589,7 @@ def row_op(data: dict, board: dict, inside: list[str], labels: dict, op: dict, n
             return []
         row_set(r["id"], key, {"quote": given, "passage": None, "bold": []})
         return [f"{name}'s '{r['title']}' at {at}: " + ("key quote ticked." if given else "key quote's tick taken off.")]
-    # bold, on the quote he ticked or the one standing in, which his bold ticks
+    # bold, on the quote he ticked, none standing in since 17 November 2026 (drawswordfix)
     q = cell.get("quote")
     if q is None:
         raise WorkbookError(i18n.t("server.trajectory_bold_no_quote", lpet=r["title"], timepoint=at))
@@ -4456,6 +4610,54 @@ def row_op(data: dict, board: dict, inside: list[str], labels: dict, op: dict, n
         return []
     row_set(r["id"], key, {"bold": spans} if passage else {"quote": q["key"], "passage": None, "bold": spans})
     return [f"{name}'s '{r['title']}' at {at}: bold in its key quote " + ("changed." if spans else "taken off.")]
+
+
+def why_op(data: dict, board: dict, key: str, labels: dict, op: dict, name: str) -> list[str]:
+    """`why`: his reason a PET or a sub-theme of the timepoint `key` is drawn on by no LPET (drawsword, 17 November
+    2026), `pet` by its id at that timepoint, g3, or its title, `why` the words, "" taking it off, kept on the card in
+    Unplaced. Refused, nothing changed, for a PET the timepoint's copy has not got, and, but for "", which is always
+    taken (drawswordfix), one whose card is not on the board, one an LPET draws on, wholly, through a larger card or
+    in part, and a board other than the one LGETs take, the one `board drawn-on` reads. Answers its line, the PET by
+    its id and title, never his words."""
+    rec = (data.get("cases") or {}).get(key) or {}
+    pets = [p for p in rec.get("pets") or [] if isinstance(p, dict) and p.get("id")]
+    given = " ".join(str(op.get("pet") or "").split())
+    at = tp_names(labels, key)[0]
+    pet = next((p for p in pets if p["id"] == given), None) or next(
+        (p for p in pets if " ".join(str(p.get("title") or "").split()).lower() == given.lower()), None)
+    if pet is None or not given:
+        raise WorkbookError(i18n.t("server.lpets_why_no_pet", name=name, pet=given or "none", timepoint=at))
+    card = card_of(key, "group", pet["id"])
+    text = str(op.get("why") if op.get("why") is not None else "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    # "" takes a reason off wherever it is, drawn on or not (drawswordfix)
+    if text:
+        source = source_board(data)[0]
+        if source is not None and str(source.get("id")) != str(board.get("id")):
+            raise WorkbookError(i18n.t("server.lpets_why_not_source", name=name,
+                                       source=str(source.get("name") or source.get("id"))))
+        if card not in (board.get("cards") or {}):
+            raise WorkbookError(i18n.t("server.lpets_why_not_on_board", name=name, pet=pet["title"], timepoint=at))
+        drawing = drawn_on(data, board, key)["pets"].get(pet["id"]) or []
+        lpets = ", ".join(f"'{d['title']}'" for d in drawing)
+        if len(drawing) > 1:
+            raise WorkbookError(i18n.t("server.lpets_why_drawn_on_many", pet=pet["title"], timepoint=at, lpets=lpets))
+        if drawing:
+            raise WorkbookError(i18n.t("server.lpets_why_drawn_on", pet=pet["title"], timepoint=at, lpets=lpets))
+    if len(text) > themes.WHY_MOST:
+        raise WorkbookError(i18n.t("server.lpets_why_long", most=themes.WHY_MOST))
+    held = board.get(themes.WHY) if isinstance(board.get(themes.WHY), dict) else {}
+    if text == (held.get(card) or ""):
+        return []
+    if text:
+        held[card] = text
+    else:
+        held.pop(card, None)
+    if held:
+        board[themes.WHY] = held
+    else:
+        board.pop(themes.WHY, None)
+    return [f"{name}'s PET {pet['id']} '{pet['title']}' at {at}: reason no LPET draws on it "
+            + ("set." if text else "taken off.")]
 
 
 def __getattr__(name: str) -> str:

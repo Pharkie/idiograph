@@ -448,6 +448,7 @@ AREAS = {
     "a413_export_notice": "idiograph",
     "a414_trajectory_icons": "idiograph",
     "a415_gets_set_aside": "idiograph",
+    "a416_drawn_on": "idiograph",
     "a417_screen_guidance": "idiograph",
 }
 

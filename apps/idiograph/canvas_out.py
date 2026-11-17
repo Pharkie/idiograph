@@ -220,7 +220,8 @@ def typst_data(state: dict, heading: str, *, gets: bool = False, lgets: bool = F
     cards = [c for c in raw if on_canvas(c)]
     shown = {c["key"] for c in cards}
     tints = tints_of(groups)
-    reasons = state.get("discard_reasons") or {}
+    # why a card was left out, an agent's, and on LPETs his reason no LPET draws on a PET (drawsword)
+    reasons = dict(state.get("discard_reasons") or {}, **(state.get("why") or {}))
     sheets = state.get("sheets") or []
     first = sheets[0] if sheets else None
     gets_cases = {c["case"]: c for c in state.get("cases") or []} if gets else {}
@@ -264,6 +265,11 @@ def typst_data(state: dict, heading: str, *, gets: bool = False, lgets: bool = F
             n = _gets_count(g["id"], groups, ids, shown, {c["key"]: c for c in cards}, state)
             badge = i18n.t("themes.gets.of", count=n, total=state.get("total") or 0)
             short = g["id"] not in parents and n < (state.get("minimum") or 0)
+            if lpets:
+                # an LPET's badge names the timepoints it draws on, never a count, never under a minimum (drawsword)
+                held = _gets_count(g["id"], groups, ids, shown, {c["key"]: c for c in cards}, state, which=True)
+                tps = [c.get("who") or c["case"] for c in state.get("cases") or [] if c.get("case") in held]
+                badge, short = ", ".join(tps) if tps else i18n.t("themes.drawn.none_short"), False
         out_groups.append({
             "id": g["id"], "x": g.get("x", 0), "y": g.get("y", 0), "members": members,
             "label": i18n.t("themes.untitled") if not label or label == "Untitled" else label,
@@ -371,9 +377,9 @@ def _counts(groups: list[dict], shown: set, ids: set) -> dict:
     return {g["id"]: {"n": len(under(g["id"], frozenset({g["id"]})))} for g in groups}
 
 
-def _gets_count(gid: str, groups: list[dict], ids: set, shown: set, cards: dict, state: dict) -> int:
+def _gets_count(gid: str, groups: list[dict], ids: set, shown: set, cards: dict, state: dict, which: bool = False):
     """The cases with a card anywhere under a GET, of those in the study, a participant note never counting
-    (gtCount)."""
+    (gtCount), or with `which` the cases themselves."""
     inside = {c["case"] for c in state.get("cases") or [] if c.get("in")}
     by_id = {g["id"]: g for g in groups}
     found, todo, seen = set(), [gid], set()
@@ -389,7 +395,7 @@ def _gets_count(gid: str, groups: list[dict], ids: set, shown: set, cards: dict,
                 c = cards.get(m) or {}
                 if c.get("kind") != "pn" and c.get("case") in inside:
                     found.add(c["case"])
-    return len(found)
+    return found if which else len(found)
 
 
 def _gets_card(c: dict, state: dict, cases: dict, order: list[str], parents: dict, groups: list[dict], lgets: bool,

@@ -70,8 +70,8 @@ def test_boards_words(scratch: Path):
     check("281: the PETs status bar says one PET and four PETs, the stacked and the rest by their counts",
           out["pets"] == ["1 PET", "12 in PETs", "2 stacked", "0 set aside", "3 unplaced", "1 in no PET"]
           and out["many"][:2] == ["4 PETs", "1 in PETs"], str(out["pets"]) + str(out["many"]))
-    check("281: on GETs and LGETs the unit is the board's own, one GET and three LGETs",
-          out["gets"][:2] == ["1 GET", "5 in GETs"] and out["lgets"][:2] == ["3 LGETs", "5 in LGETs"],
+    check("281: on GETs and LGETs the unit is the board's own, one GET and three LGETs, an LGET's cards drawn on (drawsword)",
+          out["gets"][:2] == ["1 GET", "5 in GETs"] and out["lgets"][:2] == ["3 LGETs", "5 drawn on"],
           str(out["gets"]) + str(out["lgets"]))
     check("281: the total heads its parts and the selection is said by its count and the board's unit",
           out["sum"] == ["10 ES: 7 in PETs, 0 stacked, 1 set aside, 2 unplaced", "2 PETs"]

@@ -5056,6 +5056,25 @@ timepoints:
   A key quote taken from the transcript on Trajectories is the quote the table shows, with its bold, in the
   table and in its print view and PDF. The LPETs screen's Inspector and its print view and PDF say LPET where
   they mean one, never GET.
+  Since 17 November an LPET reads as his interpretation, and the cards under it as what it draws on at each
+  timepoint, its audit trail, never its parts (Adam's requirements of that day). Nothing in the app builds,
+  names or summarises an LPET from its cards: its title, its state at each timepoint and its note are his. The
+  LPET's Inspector says "Draws on T1, T2 and T3" where it said "3 of 3 participants", and its Draws on section
+  lists each timepoint with the PETs, sub-themes and statements it draws on there; a timepoint it draws on
+  nothing at says so, with his state there under it, which is where he says why. Its label's badge, the LPET
+  table's head and the print view name the timepoints it draws on, never a count, and no LPET is ever under a
+  minimum. The status bar says "22 cards: 9 drawn on, 12 set aside, 1 in no LPET", the last the cards on the
+  canvas under no LPET, apart from the Unplaced panel's count of PETs not on the board at all. A label's tooltip
+  and its delete button say "what it draws on" where they said "all it holds". LGETs say the same of the LPETs
+  under them: "Draws on none of their LPETs" for a participant with none under an LGET.
+  On a timepoint's PETs board in a project of two or more timepoints, the Inspector on a PET, a sub-theme or a
+  statement shows LPETs that draw on it, each opening that LPET on the LPETs board, selected with its
+  Inspector, "through" the PET or sub-theme whose card holds it, or "in part" where the LPET draws on
+  something inside it, or "No LPET draws on it." On a PET or sub-theme none draws on, a box, "Why no LPET
+  draws on it", keeps his reason with its card on the LPETs board, where it shows under the card's words, in
+  the card's Inspector (the same box) and on the canvas's PDF and picture. A reason is hidden while an LPET
+  draws on its PET, and shows again if none does. A PETs board other than the one the
+  LPETs took the timepoint from says so in place of the list.
 - the LGETs tab, after LPETs, opens the project's LGETs (21 October), longitudinal group themes made
   from every participant's LPETs as GETs are made from their PETs, the same canvas and the same ways.
   Each card is an LPET, "LPET · Wren" over its title, in the participant's colour, and a label over cards
@@ -5106,7 +5125,8 @@ timepoints:
     Done closes it.
   - Each cell is that LPET's row of the LPET table at that timepoint, so the LPETs screen's table and
     Trajectories show the same. The state is the row's note, typed in place. The key quote is the quote
-    the row ticks, and until he ticks one the first quote stands in, fainter. A click on the quote, or on
+    the row ticks, and until he ticks one there is none (17 November 2026: no quote stands in for his
+    choice, here, in the LPET table or in their exports). A click on the quote, or on
     No quote, opens the quotes it can take, in three parts. In this LPET holds the LPET's own quotes at
     that timepoint. Elsewhere in this interview holds the participant's other quotes from that interview,
     whose statements sit in another LPET or in none. From the transcript comes last. Choosing one ticks it there, and
@@ -5116,8 +5136,8 @@ timepoints:
     Select words in a turn and press Take the words selected, or press Take the whole turn, and that passage
     is the key quote (whole words, from any of the interviews, 11 November 2026). A quote from elsewhere or
     from the transcript shows as the LPET's own do, with the timepoint before its time only when it comes
-    from another interview. A ticked quote whose statement, or a passage whose words, are later gone gives
-    way to the first quote again. Words chosen in a key quote go bold with
+    from another interview. A ticked quote whose statement, or a passage whose words, are later gone leaves
+    the row with no quote until he ticks another. Words chosen in a key quote go bold with
     Cmd+B (Ctrl+B on Windows and Linux), kept with the row, never in the transcript. A timepoint with no
     quote says No quote over the state. A quote shows in the screen's own quotation marks once, the
     marks its workbook keeps round it left off there and the workbook left as it is, and its bold stays

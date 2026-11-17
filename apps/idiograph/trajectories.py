@@ -102,7 +102,8 @@ KEPT_MAX = {"jpg": 400 * 1024, "svg": 200 * 1024}
 # the operations kept in this file, then those on a participant's LPETs board, which the caller runs
 OPS = ("add", "rename", "move", "remove", "place", "note", "describe", "colour", "icon", "title", "tags",
        "tag_colour", "picture", "order", "hide", "show", "note_board")
-LPET_OPS = ("state", "quote", "bold", "domain", "states_from_notes")
+# `why` is his reason a PET of a timepoint is drawn on by no LPET, kept on its card in Unplaced (drawsword)
+LPET_OPS = ("state", "quote", "bold", "domain", "states_from_notes", "why")
 
 
 def path_of(root: Path) -> Path:

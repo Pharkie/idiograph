@@ -3506,7 +3506,7 @@ and `change` calls `commit` to write those boards only once every op has passed,
 before its own file, so a refusal anywhere writes nothing. `gets.row_op` works on the LPET table's rows
 (`board.rows[gid][T1]`, `{quote, note, bold}`): `state` is the row's `note`, `quote` its tick (a key of
 `row_choices`, the Inspector's offer), `bold` spans `[start, end]` of the key quote's characters
-(`spans_kept` merges and orders them), ticking the quote standing in, a new quote dropping the old bold,
+(`spans_kept` merges and orders them), refused on a cell with no key quote, a new quote dropping the old bold,
 and `domain` the LPET's own `domain` key, which `themes.normalise` now keeps (`themes.DOMAIN`, 40
 characters) so a save from the LPETs canvas keeps it. `states_from_notes` reads each LPET's note with
 `states_in_note`, paragraphs headed by a timepoint's key, label or description ("T1:", "**T2 (Midsummer)**
@@ -3516,6 +3516,56 @@ new quote, so the LPET table keeps what Trajectories made. `gets.lpet_rows` give
 timepoint (`state`, `quote`, `chosen`, `bold`, `choices`, `missing`), and `traj_people` adds them to each
 participant as `rows`. The LPETs screen and the LPET table kept the domain and the bold without drawing them
 until lpetmarks (below).
+
+**What an LPET draws on** (drawsword, 17 November 2026, Adam's requirements of that day, points 1 to 3, 6, 8 and
+11). The forward trace is `gets.drawn_on(data, board, case)`: for the timepoint `case` of a participant's LPETs
+file, each PET and sub-theme of its copy by id and each statement by key, with the top LPETs of `board` whose
+cards hold it (`themes.cards_under`), `how` `whole` (its own card, a second card `/2` among them), `through` a
+larger PET's card (`via`), or `part` (a card of something inside it, a statement's PET and those above it),
+`whole` before `through` before `part` (`HOW_ORDER`); a stacked statement goes with its top. `routes.drawn_on_read`
+answers it from the board LGETs take (`gets.source_board`) under `lpets_scope`, with each PET's title, `why`
+(`gets.drawn_on_why`), `card` (its card is on that board), `from_board` (the PETs board the copy came from,
+`rec["board"]`) and `same`, false for another PETs board, which answers no PET since an id may name another one;
+`/api/drawn-on` is it for the page, `cli.cmd_board_drawn_on` (`board drawn-on`, `--pet`, `--statement` by id or
+key) and MCP `board_drawn_on` for an agent, area 261's parity mapping it. His reason is `themes.WHY`, a board's
+`why` by card key, kept by `themes.normalise` (`why_kept`, `WHY_MOST` 2000 characters, a card the board holds),
+carried by `gets.board_remapped` and `keys_followed` with its card, and never sent by the page: `gets.save` keeps
+the file's for each card still there. It is written by the LPETs' own operation `why` (`trajectories.LPET_OPS`,
+`gets.row_op` handing it to `gets.why_op`), refused for a PET an LPET draws on, one the copy has not got and one
+whose card is not on the board (`server.lpets_why_*`), so it is recorded and undone as every `trajectories apply` is.
+`gets.answer` and `view_state` carry `why`; themes.js keeps it as `TH.lpetWhy`, read by `thWhy` before an agent's
+reason, so it shows under the card in Unplaced and in its tooltip, and `canvas_out` lays it over `discard_reasons`.
+The page's forward trace is `thDrawnHtml` in the PETs Inspector of a PET, a sub-theme or a statement on a
+timepoint's board (`thDrawnOn`, `TH.drawn` read once a board by `thDrawnFetch`, again after a reason), each LPET a
+`[data-drawn-lpet]` link that `thDrawnGo` opens through `thStageGo` with `select`, which `themesOpen` selects, frames
+and inspects. The reason's box `#th-dwhy` (`thWhyBox`, `thWhyStart`, `thWhyDone`, `thWhySet`) stands there and in
+the LPETs Inspector of a PET's card in no LPET; from LPETs `thWhySet` flushes the canvas first and takes the board's
+version back through `gtDomainsTake`, as a domain does. On LPETs a label's badge, its tip, the table's heads, the
+Inspector, the print view and the canvas PDF say the timepoints it draws on (`gtBadgeOf`, `gtDrawsTps`,
+`gtDrawsText`, `gtDrawsRows`, `gets_print.draws_on`, `canvas_out`), never a count, and no LPET is under a minimum;
+the Inspector's Draws on lists each timepoint's cards and, at a timepoint with none, its state. The status bar's
+placed count reads `themes.status.drawn_on` on LPETs and LGETs, and its unplaced count, cards on the canvas in no
+LPET, reads `themes.status.loose` there, apart from the Unplaced panel's count of PETs not on the board. `gets show
+--lpets` heads `cli.gets_head_lpets` and says each LPET's timepoints (`cli.drawn_timepoints`). Area 416.
+
+drawswordfix (17 November 2026) after the review, and drawswordfix2 after its recheck. A reason for "no LPET
+draws on it" is untrue while one does, so every read hides it while its PET is drawn on, wholly, through a larger
+card or in part, and the file keeps it: `gets.normal` with `hide` (the default) keeps only `gets.why_undrawn`'s
+(the trace over the board it has just normalised, `gets.drawn_in`, which `drawn_on` calls after normalising), so
+the page's data, History's view, `drawn_on_read`, the canvas's PDF and picture and every agent's read leave it
+out; a writer and a hash of the board as the file keeps it read with `hide=False` (`gets.save`'s board from the
+file, a duplicate, gets apply's board and the boards' `changed` hashes), `gets.save` keeps the file's reasons
+whatever the page sent and answers `why` on LPETs as a read shows it, which the page takes as `TH.lpetWhy`. No
+writer drops a reason, so any undo (the page's, an agent's undo-change, a History restore) or a later move that
+leaves the PET drawn on by none shows it again. `why_op` takes "" whatever the PET's state (it
+clears), and refuses a reason, not "", on a board other than the one LGETs take (`server.lpets_why_not_source`),
+the board `board drawn-on` reads. `drawn_on_read` leaves `why` out of a PET an LPET draws on, refuses `--pet` on
+another PETs board saying the board the LPETs take that timepoint from (`server.drawn_on_other_board`), and takes
+`lpets`, the LPETs board on the canvas, in place of that one, answering `lpets_board.source`: the LPETs Inspector
+of a PET's card in no label reads it (`gtLpDrawn`, once for each save of the board, `TH.lpDrawn`) and shows the
+LPETs that draw on it through a larger card or in part (`gtLooseDrawnHtml`, `thDrawnGo` selecting the LPET in
+place), or "No LPET draws on it." with the reason's box on the board LGETs take alone. `themes.STATE_KEYS` and
+`STATE_OPTIONAL` hold `why`, so a revision of an LPETs board keeps the reasons and a restore puts them back.
 
 The LPETs screen draws the domain and the bold (lpetmarks, 12 November 2026). Any of the LPET ops takes `board`,
 one of the participant's LPETs boards by its id or name, and runs on it in place of the one `gets.source_board`
@@ -3582,8 +3632,10 @@ no transcript, a turn not there, a span outside its words, and a quote and a pas
 `passage_found` reads a kept passage back at its place, or where its words stand in that turn after an edit,
 and `lpet_rows` gives it as the cell's quote with `source` `transcript`, an empty key, `at`, its time cited
 with that timepoint's label (`cite_of`) and `passage`. A passage whose turn or words are gone gives nothing,
-so the row falls back to the first quote as a lost tick does. Bold on a passage keeps the passage, and bold
-on a quote standing in still ticks it. The transcript is read by `themes.transcript_turns`, every turn with
+so the row holds no key quote, as a lost tick leaves it. Bold on a passage keeps the passage. On a participant's
+LPETs no quote stands in for one he has not ticked (Adam's ruling of 17 November 2026, drawswordfix): `gets.table`
+gives the row's `quote` as None there, and the page's `gtKeyQuote` likewise, so Trajectories, the LPET table, their
+exports and `trajectories show` show none until he ticks one; GETs and LGETs keep the first quote standing in. The transcript is read by `themes.transcript_turns`, every turn with
 words of the workbook's transcript sheets with its timepoint by `placed_sheets`, read-only and held in
 `TURNS_HELD` while the workbook's time and size stay the same, so drawing the board after each change opens it
 once. `traj_turns` in idiograph_routes.py hands `lpet_rows` and `row_op` a reader by timepoint key, and

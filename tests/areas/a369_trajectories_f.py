@@ -134,15 +134,18 @@ def test_trajectories_f(scratch):
         tfile = garden / traj_mod.FILE
         books_before = {p: p.read_bytes() for p in (wren, ash)}
 
-        # (a) each LPET a row across the timepoints, the first quote standing in
+        # (a) each LPET a row across the timepoints, no quote standing in until he ticks one (Adam's ruling of 17
+        # November 2026, drawswordfix)
         b = call("/api/trajectories", {"workbook": str(wren)})
         wc = next(c for c in b["participants"] if c["case"] == "P1 - Wren")
         r1 = wc["rows"][0]
-        check("369: each LPET of the participant is a row with a cell for each timepoint, the first quote standing in, "
-              "no state yet, and a timepoint they were not interviewed at marked missing",
+        check("369: each LPET of the participant is a row with a cell for each timepoint, no key quote until he ticks "
+              "one, the quotes it can take offered, no state yet, and a timepoint they were not interviewed at marked "
+              "missing",
               [r["title"] for r in wc["rows"]] == ["Asking next door took the place of the packet",
                                                    "The shed became a room of her own"]
-              and r1["cells"]["T1"]["quote"]["text"] == "Tidy rows, like the seed packets."
+              and r1["cells"]["T1"]["quote"] is None
+              and r1["cells"]["T1"]["choices"][0]["text"] == "Tidy rows, like the seed packets."
               and r1["cells"]["T1"]["chosen"] is False and r1["cells"]["T1"]["state"] == ""
               and r1["cells"]["T3"]["quote"] is None and r1["cells"]["T3"]["missing"] is True
               and len(r1["cells"]["T2"]["choices"]) == 2 and r1["shown"] is True and not tfile.exists(),
@@ -194,11 +197,16 @@ def test_trajectories_f(scratch):
         said = refused({"workbook": str(wren), "ops": [dict(tick[0], quote="Before:2:0")]})
         check("369: a quote that is not one of that cell's is refused, nothing written", "not a quote of" in said, said)
 
-        # (d) his bold on the quote standing in ticks it, and is kept on the row, never in the transcript
+        # (d) his bold on a cell with no key quote is refused, and on the quote he ticks is kept on the row, never in
+        # the transcript
         bold = [{"op": "bold", "participant": "Wren", "lpet": "G1", "timepoint": "T1", "spans": [[0, 10], [5, 14]]}]
-        done = call("/api/trajectories-ops", {"workbook": str(wren), "ops": bold})
+        said = refused({"workbook": str(wren), "ops": bold})
+        check("369: bold on a cell with no key quote is refused, none standing in", "no quote at" in said, said)
+        first = r1["cells"]["T1"]["choices"][0]["key"]
+        done = call("/api/trajectories-ops", {"workbook": str(wren), "ops": [
+            {"op": "quote", "participant": "Wren", "lpet": "G1", "timepoint": "T1", "quote": first}] + bold})
         cell = next(c for c in done["participants"] if c["case"] == "P1 - Wren")["rows"][0]["cells"]["T1"]
-        check("369: bold on the quote standing in ticks it, its spans kept as one, the workbooks untouched",
+        check("369: bold on the quote he ticked, its spans kept as one, the workbooks untouched",
               cell["chosen"] is True and cell["bold"] == [[0, 14]] and cell["quote"]["text"][0:14] == "Tidy rows, lik"
               and all(p.read_bytes() == v for p, v in books_before.items()), str(cell)[:300])
         said = refused({"workbook": str(wren), "ops": [dict(bold[0], spans=[[0, 999]])]})
@@ -379,6 +387,11 @@ def test_trajectories_f(scratch):
             held = json.loads(wren_lp.read_text(encoding="utf-8"))
             return held, next(bd for bd in held["boards"] if bd["id"] == held.get("current"))
 
+        # his ticks first, no quote standing in for one (drawswordfix)
+        g2 = wren_row(call("/api/trajectories", {"workbook": str(wren)}), "G2")
+        call("/api/trajectories-ops", {"workbook": str(wren), "ops": [
+            {"op": "quote", "participant": "Wren", "lpet": "G2", "timepoint": tp, "quote": g2["cells"][tp]["choices"][0]["key"]}
+            for tp in ("T1", "T2")]})
         g2 = wren_row(call("/api/trajectories", {"workbook": str(wren)}), "G2")
         c1, c2 = g2["cells"]["T1"], g2["cells"]["T2"]
         check("369: a key quote whose Quote cell keeps its own straight or curly marks is given without them, in its "
@@ -519,7 +532,12 @@ def _lpets_screen_marks(call, run, scratch: Path, garden: Path, ash: Path):
           and lp["version"]["v"] != v_before and lp["version"]["id"] == b1,
           str(lp.get("lpet_domains")) + str(f["history"][-1]))
 
-    # his bold on a key quote, then the LPET table's print view, its PDF's data and its PDF
+    # his bold on a key quote he ticked, then the LPET table's print view, its PDF's data and its PDF; no quote
+    # stands in for one he has not ticked (drawswordfix)
+    cells = ash_row(call("/api/trajectories", {"workbook": str(ash)}))["cells"]
+    call("/api/trajectories-ops", {"workbook": str(ash), "ops": [
+        {"op": "quote", "participant": "Ash", "lpet": "G1", "timepoint": tp, "quote": cells[tp]["choices"][0]["key"]}
+        for tp in ("T1", "T2")]})
     call("/api/trajectories-ops", {"workbook": str(ash), "ops": [
         {"op": "bold", "participant": "Ash", "lpet": "G1", "timepoint": "T2", "spans": [[4, 9]]}]})
     code, page = routes.gets_print_page({"workbook": str(ash), "lpets": "1", "board": b1, "what": "table", "auto": "0"})
@@ -751,10 +769,10 @@ def _choose_from_anywhere(call, refused, run, wren: Path, ash: Path, wren_lp: Pa
           "in it, in place of the LPET's first quote",
           code == 200 and "<i>‘<b>looked</b> inside it’</i>" in page
           and rows["T2"]["quote"]["words"] == [["looked", True], [" inside it", False]], page[page.find('class="kqcell"'):][:400])
-    check("369: and the LPET table's print says LPET where it meant the LPET, not GET, in its column head, its trail's "
-          "heads and the PDF's data",
-          "Under this LPET" in page and "Under this GET" not in page and "LPET table" in page
-          and data["table"][0]["heads"][1] == "Under this LPET" and data["names"]["table"] == "LPET table",
+    check("369: and the LPET table's print says LPET where it meant the LPET, not GET, in its column head (Draws on since "
+          "drawsword, 17 November 2026), its trail's heads and the PDF's data",
+          "Draws on" in page and "Under this GET" not in page and "LPET table" in page
+          and data["table"][0]["heads"][1] == "Draws on" and data["names"]["table"] == "LPET table",
           str(data["table"][0]["heads"]) + str(data["names"]))
 
     # the whole turn, the cell's own interview
@@ -824,10 +842,10 @@ def _choose_from_anywhere(call, refused, run, wren: Path, ash: Path, wren_lp: Pa
     moved = c2["quote"].get("passage") or {}
     wb_mod.edit_turn(wren, "Before", row, "I had not opened it yet.")
     c2b = wren_row(call("/api/trajectories", {"workbook": str(wren)}), "G2")["cells"]["T2"]
-    check("369: a turn edited around the passage keeps it on the same words, and one whose words are gone falls "
-          "back to the first quote standing in, as a lost quote does",
+    check("369: a turn edited around the passage keeps it on the same words, and one whose words are gone leaves "
+          "the cell with no key quote, as a lost quote does, none standing in (drawswordfix)",
           c2["chosen"] is True and c2["quote"]["text"] == "looked inside it" and moved.get("start") == len("Honestly, I had not ")
-          and c2b["chosen"] is False and c2b["quote"]["source"] == "lpet" and c2b["quote"]["key"] == own2[0]
+          and c2b["chosen"] is False and c2b["quote"] is None and c2b["choices"] and c2b["choices"][0]["key"] == own2[0]
           and c2b["bold"] == [], f"{c2} {c2b}")
 
 

@@ -153,7 +153,7 @@ def test_mcp_server(scratch):
                         "gets_export", "gets_show", "gets_apply", "gets_import", "gets_colour", "gets_take", "turn_show", "turn_write",
                         "turn_edit", "turn_interviewer_note", "turn_skip", "turn_shift_times", "turn_assign", "turn_assign_undo", "turn_trim", "turn_trim_undo",
                         "copies_refresh", "copies_rekey", "copies_prune", "import", "import_qdpx", "timepoints", "timepoints_set",
-                        "trajectories_show", "trajectories_apply", "trajectories_export", "codes_list", "codes_show", "codes_new", "codes_rename",
+                        "trajectories_show", "trajectories_apply", "trajectories_export", "board_drawn_on", "codes_list", "codes_show", "codes_new", "codes_rename",
                         "codes_describe", "codes_merge", "codes_delete", "codes_add", "codes_remove", "codes_apply_last",
                         "codes_in_vivo", "codes_undo", "codes_redo", "codes_export",
                         "statement_length", "statement_length_set", "settings", "settings_set", "audio_offset", "audio_attach", "quote_heading", "clear_formatting", "clear_made_notes", "transcript_replace", "transcript_replace_undo", "transcript_export", "validate", "agent_changes", "agent_undo_run", "agent_undo_change", "agent_log", "project_send", "project_export_qdpx", "project_send_list", "project_open_copy",

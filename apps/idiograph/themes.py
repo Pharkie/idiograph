@@ -262,6 +262,11 @@ LABEL_PX = 17.5      # a label's title in the serif, and 21px on a label over la
 # as wide as what it holds, where that is wider than LABEL_W. The page's .th-desc and thLabelsWiden are the same.
 DESCRIPTION = "description"
 DOMAIN = "domain"
+# On a participant's LPETs board, his reason a PET or a sub-theme of a timepoint is drawn on by no LPET (drawsword,
+# 17 November 2026, Adam's requirements of that day, point 8): `why`, by the card's key, kept with the card in
+# Unplaced, written through the LPETs' own operation `why` (see `gets.row_op`) and never sent by the page
+WHY = "why"
+WHY_MOST = 2000
 DESC_SCALE = 0.8
 DESC_LEADING = 1.3
 DESC_LINES = 6
@@ -1431,6 +1436,9 @@ def normalise(version: dict, live: set[str] | None = None) -> dict:
 
     `made` and `changed` say what an AI agent in a conversation did to the board, the board it made
     and the last change it made (see `agent_mark`), and a board with neither carries neither.
+
+    `why` is his reason a card on a participant's LPETs board is drawn on by no LPET, by its key (see `WHY`), kept
+    for a card the board holds, and a board with none carries none.
     """
     version = version if isinstance(version, dict) else {}
     cards: dict[str, dict] = {}
@@ -1535,6 +1543,9 @@ def normalise(version: dict, live: set[str] | None = None) -> dict:
     reasons = ai_reasons(version, cards)
     if reasons:
         out["ai"] = {"discarded": reasons}
+    said = why_kept(version.get(WHY), cards)
+    if said:
+        out[WHY] = said
     for key in FROM_BEFORE:
         if version.get(key):
             out[key] = version[key]
@@ -1752,6 +1763,18 @@ def ai_reasons(version: dict, cards: dict) -> dict[str, str]:
     out = {}
     for key, why in thrown.items():
         words = " ".join(str(why or "").split())
+        if str(key) in cards and words:
+            out[str(key)] = words
+    return out
+
+
+def why_kept(given, cards: dict) -> dict[str, str]:
+    """His reason a card is drawn on by no LPET, by card key, for the cards the board holds, each stripped with its
+    lines kept and at most WHY_MOST characters (drawsword)."""
+    held = given if isinstance(given, dict) else {}
+    out = {}
+    for key, why in held.items():
+        words = str(why or "").replace("\r\n", "\n").replace("\r", "\n").strip()[:WHY_MOST].strip()
         if str(key) in cards and words:
             out[str(key)] = words
     return out
@@ -2602,9 +2625,10 @@ def save(workbook: Path, version: dict, case: str, revision=None) -> dict:
 
 # ------------------------------------------------------------- the history
 
-STATE_KEYS = ("cards", "groups", "discarded", "picks", "stacks", "not_same", "notes", "ai", "quoted", "cut")
+# `why`, his reasons no LPET draws on a PET, is held by a revision of a participant's LPETs board (drawswordfix)
+STATE_KEYS = ("cards", "groups", "discarded", "picks", "stacks", "not_same", "notes", "ai", "quoted", "cut", WHY)
 # what a board holds only when it has some, which a revision and a change through the API carry the same way
-STATE_OPTIONAL = ("stacks", "not_same", "notes", "ai", "quoted", "cut")
+STATE_OPTIONAL = ("stacks", "not_same", "notes", "ai", "quoted", "cut", WHY)
 
 
 def state_of(kept: dict) -> dict:

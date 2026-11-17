@@ -163,7 +163,7 @@ folder it was run in (20 October). `--project "<name>"` in place of `--root`
 takes a project by its name, and with neither the server reads every project, as the command line
 does.
 
-The tools are `cases`, `search`, `statements`, `board_list`, `board_show`, `board_compare`, `board_new`,
+The tools are `cases`, `search`, `statements`, `board_list`, `board_show`, `board_drawn_on`, `board_compare`, `board_new`,
 `board_apply`, `board_current`, `board_canvas`, `board_rename`, `board_duplicate`, `board_delete`,
 `board_export`, `gets_export`, `trajectories_export`, `transcript_export`, `codes_export`, `gets_show`, `gets_apply`, `gets_take`, `gets_colour`, `turn_show`, `turn_write`, `turn_edit`, `turn_interviewer_note`, `turn_assign`, `turn_assign_undo`, `turn_trim`, `turn_trim_undo`, `import`, `audio_offset`, `audio_attach`, `quote_heading`, `transcript_replace`, `transcript_replace_undo`, `validate`, `hold`, `hold_show`, `agent_log`, `project_send`, `project_send_list`, `project_export_qdpx`, `project_open_copy`, `project_add_transcripts`, `project_boards_in`, `project_set`, `project_show`, `project_history`, `names_list`, `names_check`, `names_replace`, `names_remove`, `names_add`, `names_set`, `project_new`, `participant_rename`, `participant_complete` `participant_export`, `participant_set`, `participant_show`, `demographics_show`, `demographics_apply`, `demographics_move_tags`,
 `board_note`, `board_history`, `board_revision`, `board_restore`, `board_copy`, `board_complete`, `gets_fresh`, `gets_duplicate`,
@@ -911,7 +911,7 @@ sentence), `colour`, `icon` and `participants` in his order, then `unplaced`, an
 starter"), `tags` (each `{"word", "colour"}`), `picture` and `hidden`, and `rows`: each LPET with its `id`,
 `title`, `domain` (as kept, commas between its domains), `domains` (each `{"word", "colour"}`), `shown`, and
 `cells` by timepoint, each with its `state`, its key `quote` (`key`, `text`, the words without the marks the
-workbook keeps round them, `time`, `source`, or none), `chosen` (false while the first quote stands in), `bold`
+workbook keeps round them, `time`, `source`, or none), `chosen` (false with no quote: none stands in until he ticks one), `bold`
 (`[start, end]` spans of the characters of that `text`) and `choices`, the quotes it can take, without their
 marks too, each with its `source`: `lpet`, the LPET's own at that timepoint, first, then `interview`, the
 participant's other quotes from that interview, each with `lpet`, the id of the LPET its statement sits in, or
@@ -953,10 +953,10 @@ refused when one is wrong, nothing written:
   40}`, a passage of any of the participant's interviews as its key quote, `turn` the sheet and row `turn
   show` gives, `start` and `end` places in the turn's words, the whole turn without them, widened to whole
   words, refused when that interview has no transcript, the turn is not in it, the span is not in its words or
-  a `quote` comes with it. A `quote` of "" takes his tick off, the first quote then standing in, as it does
+  a `quote` comes with it. A `quote` of "" takes his tick off, the cell then holding no key quote, as it does
   when a ticked statement or a passage's words are gone) and `bold`
   (`spans`, his bold in the key quote, of its `text` as `trajectories show` gives it, `[]` clearing it, never
-  the transcript, ticking the quote standing in), and `domain` (`lpet`, `domain`, "" taking it off): domains
+  the transcript, refused on a cell with no key quote), and `domain` (`lpet`, `domain`, "" taking it off): domains
   are separated by commas, `"Practical, Family"` two, each its own pill with its own colour across the
   project. A domain stays on its LPET through every `gets apply` on the LPETs board and every save of the
   board in the app (domainkeep, 11 November 2026): an operation changes only what it names. The LPETs screen
@@ -966,6 +966,26 @@ refused when one is wrong, nothing written:
 - `states_from_notes`, with a `participant` or for everyone: each LPET's note's paragraphs headed by a
   timepoint ("T1: ...", "T2 (Midsummer): ...") moved into the rows whose state is empty, a state already
   there kept and said, the note left as it was. Run it with `--dry-run` first and show him the lines.
+- `why` (drawsword, 17 November 2026), `{"op": "why", "participant": "Wren", "timepoint": "T2", "pet": "g3",
+  "why": "..."}`: his reason no LPET draws on that PET or sub-theme of the timepoint, by its id or title as
+  `board drawn-on` gives it, kept with its card in the LPETs board's Unplaced, "" taking it off, drawn on or
+  not. A reason is refused, nothing written, for a PET an LPET draws on (wholly, through a larger card or in
+  part), one the timepoint's copy has not got, one whose card is not on the board, and on an LPETs board other
+  than the one LGETs take. A reason is hidden while an LPET draws on its PET, from every read, and shows again
+  when none does. Its line names the PET by id and title, never his words.
+
+**What draws on a PET** (drawsword, 17 November 2026). An LPET is his interpretation, and the cards under it
+record what it draws on at each timepoint, never its parts: never build, name or summarise an LPET from its
+cards, and never give a count of its cards as its measure. `board drawn-on <participant> --timepoint T2`
+(MCP `board_drawn_on`), a read, answers for each PET and sub-theme of that timepoint, as the LPETs' copy holds
+it, the LPETs of the board LGETs take that draw on it, each with `how`: `whole` (its own card is under the
+LPET), `through` (the card of a larger PET or sub-theme holding it, named in `via`) or `part` (the card of
+something inside it), then `why`, his reason none does, left out where an LPET does, and `card`, whether its
+card is on that board to hold one, and each statement drawn on by its key and id. `--pet` or `--statement` asks
+for one. Naming the PETs board checks the copy came from it (`same`); on another board no PET is answered, since
+an id may name another PET, and `--pet` is refused, naming the board the LPETs take that timepoint from.
+The PETs screen's Inspector shows the same. `gets show --lpets` says each LPET's timepoints, "draws on T1, T3",
+in place of a count of participants.
 
 Every change is a line in the Trajectories file's History, the LPET ops too, and in the record of agents'
 changes. MCP's tools are `trajectories_show` and `trajectories_apply` with

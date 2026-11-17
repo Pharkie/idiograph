@@ -668,7 +668,11 @@ TOOLS = [
          'as trajectories_show gives them, never the transcript, {"op": "domain", "participant": "Wren", "lpet": '
          '"G1", "domain": "Practical, Family"} (commas between domains, each its own pill and colour, shown on '
          'Trajectories and on the LPET\'s label), each of these on the LPETs board LGETs take, or with "board": '
-         '"b2" on that board of the participant\'s LPETs, by its id or name, and '
+         '"b2" on that board of the participant\'s LPETs, by its id or name, {"op": "why", "participant": "Wren", '
+         '"timepoint": "T2", "pet": "g3", "why": "..."} his reason no LPET draws on that PET or sub-theme of the '
+         "timepoint, by its id or title as board_drawn_on gives it, kept with its card in the LPETs board's "
+         'Unplaced, "" taking it off, a reason refused for a PET an LPET draws on, one whose card is not on the board '
+         'or on a board other than the one LGETs take, and '
          '{"op": "states_from_notes"} (with or without a participant) moves each LPET\'s note\'s paragraphs headed '
          "T1, T2 into its rows' states where they hold none, the note left as it was. A trajectory goes by its id, "
          "c1, or its title, a participant by their pseudonym, an LPET by its id or title. Run dry_run first.",
@@ -692,6 +696,20 @@ TOOLS = [
           "replace": {"type": "boolean", "description": "True writes over a file of the same name."}},
          writes="file"),
     # a thematic analysis project's code list (codes, 2 November 2026)
+    # the forward trace (drawsword, 17 November 2026)
+    mcp.tool("board_drawn_on", "What draws on a PET", ("board", "drawn-on"),
+         "In a project of two or more timepoints, which of the participant's LPETs draw on each PET, sub-theme and "
+         "statement of their PETs at a timepoint, as the PETs screen's Inspector shows it. An LPET is his "
+         "interpretation, and the cards under it record what it draws on, never its parts. Each PET by its id with "
+         "its title, the LPETs that draw on it (how is whole when its own card is under the LPET, through when a "
+         "larger PET's card is, named in via, or part when a card of something inside it is), why, his reason none does, left out where one does, kept with its card in "
+         "the LPETs board's Unplaced, and card, whether that card is there to keep one, then each statement drawn on by "
+         "its key and id. The LPETs board is the one LGETs take. Name the PETs board to check the LPETs' copy came "
+         "from it (same). The reason is set with trajectories_apply's why. Only reads.",
+         {"case": mcp.CASE, "board": dict(mcp.TEXT, description="The PETs board, by its id, v4, or its name. Left "
+                                                                 "out, the one the LPETs' copy came from."),
+          "pet": dict(mcp.TEXT, description="One PET or sub-theme alone, by its id, g3, or its title."),
+          "statement": dict(mcp.TEXT, description="One statement alone, by its id, S12, or its key.")}, ["case"]),
     mcp.tool("codes_list", "The code list", ("codes", "list"),
          "In a thematic analysis project, the code list as the Code list tab shows it: every code by name, its id, "
          "its description, how many extracts and participants it has, and its extracts by participant, each with its "
@@ -1681,8 +1699,10 @@ def arguments(t: dict, given: dict, args):
         args.timepoint = given.get("timepoint")
     if command == "gets":
         args.lpets = given.get("lpets")
+    if (command, act) == ("board", "drawn-on"):
+        args.pet, args.statement = given.get("pet"), given.get("statement")
     if (command == "board" and act in ("show", "apply", "current", "export", "canvas", "rename", "duplicate", "delete",
-                                       "note", "history", "revision", "restore", "copy")
+                                       "note", "history", "revision", "restore", "copy", "drawn-on")
             or command == "gets"):
         args.board = given.get("board")
     # a board's note and History, the GETs boards' and the study's settings (26 October)

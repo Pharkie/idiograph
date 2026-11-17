@@ -172,6 +172,8 @@ AGENT_OPS = {
     "/api/trajectories-ops": [("trajectories", "apply")],
     # the transcript's turns a key quote's passage is found in (trajchoose, 11 November 2026), read with turn show
     "/api/trajectories-turns": [("turn", "show")],
+    # what draws on a PET, a sub-theme or a statement, the PETs Inspector's forward trace (drawsword, 17 November 2026)
+    "/api/drawn-on": [("board", "drawn-on")],
     # a thematic analysis project's code list (codes, 2 November 2026)
     "/api/codes": [("codes", "list"), ("codes", "show")],
     "/api/codes-ops": [("codes", "new"), ("codes", "rename"), ("codes", "describe"), ("codes", "merge"),

@@ -9459,6 +9459,74 @@ def api_gets_settings(body: dict) -> dict:
     return dict(gets_mod.settings_view(root, books), project=read_project(root))
 
 
+def drawn_on_read(path: Path, timepoint=None, board=None, pet=None, statement=None, lpets=None) -> dict:
+    """What draws on a participant's PETs at a timepoint (drawsword, 17 November 2026, Adam's point 8, the forward
+    trace): from their LPETs board, the one LGETs take, each PET and sub-theme of the timepoint as their LPETs' copy
+    holds it, by id, with its title, the LPETs that draw on it (`gets.drawn_on`: `whole`, `through` a larger card,
+    `via`, or in `part`), his reason none does, `why`, and whether its card is on that board, `card`, so a reason
+    can be kept there, and each statement drawn on by its key. `board`, the PETs board in front, is `same` when it is
+    the one the copy came from, `from_board`, or none is named; on another, a PET's id may name another PET, so no
+    PET is answered. `pet`, by id or title, or `statement`, by key, answers that one alone, refused when the copy has
+    not got it, and on another PETs board `pet` is refused, saying which board the LPETs take. `why` is left out where
+    an LPET draws on it. `lpets`, the LPETs board on the canvas, reads that board in place of the one LGETs take, for
+    the LPETs Inspector (drawswordfix); `lpets_board`'s `source` says whether it is that one, the only board a reason
+    is kept on. In a project of one timepoint there are no LPETs, and it is refused. Only reads."""
+    tps = project_timepoints(path)
+    n = timepoint_asked(timepoint, tps)
+    key = tp_label(n)
+    who = case_label(path)
+    with lpets_scope(path):
+        data = gets_mod.load(path) or {}
+        lp = gets_mod.source_board(data)[0] if data else None
+        source_id = str(lp.get("id")) if lp is not None else None
+        if lpets not in (None, "") and data:
+            lp = themes_mod.find_version(data, str(lpets))
+        rec = (data.get("cases") or {}).get(key) if isinstance(data.get("cases"), dict) else None
+        rec = rec if isinstance(rec, dict) else {}
+        found = gets_mod.drawn_on(data, lp, key) if lp is not None else {"pets": {}, "statements": {}}
+        whys = gets_mod.drawn_on_why(data, lp, key) if lp is not None else {}
+        cards = set((gets_mod.normal(lp, data)["cards"] if lp is not None else {}))
+    label = next((t["label"] for t in tps if t["n"] == n), key)
+    source = {"id": str(rec.get("board")), "name": str(rec.get("name") or "")} if rec.get("board") else None
+    same = not board or source is None or str(board) == source["id"]
+    pets = {}
+    for p in (rec.get("pets") or []) if same else []:
+        if not isinstance(p, dict) or not p.get("id"):
+            continue
+        drawing = found["pets"].get(p["id"], [])
+        # a reason that none draws on it is never answered beside an LPET that does (drawswordfix)
+        pets[p["id"]] = {"title": str(p.get("title") or ""), "parent": p.get("parent"), "lpets": drawing,
+                         **({} if drawing else {"why": whys.get(p["id"], "")}),
+                         "card": gets_mod.card_of(key, "group", p["id"]) in cards}
+    statements = {k: v for k, v in found["statements"].items() if k in (rec.get("lines") or {})}
+    if pet not in (None, ""):
+        if not same:
+            raise WorkbookError(i18n.t("server.drawn_on_other_board", name=who, timepoint=label,
+                                       source=source["name"] or source["id"]))
+        given = " ".join(str(pet).split())
+        hit = given if given in pets else next((i for i, p in pets.items() if p["title"].lower() == given.lower()), None)
+        if hit is None:
+            raise WorkbookError(i18n.t("server.drawn_on_no_item", name=who, item=given, timepoint=label))
+        pets, statements = {hit: pets[hit]}, {}
+    elif statement not in (None, ""):
+        given = str(statement).strip()
+        if given not in (rec.get("lines") or {}):
+            raise WorkbookError(i18n.t("server.drawn_on_no_item", name=who, item=given, timepoint=label))
+        pets, statements = {}, {given: statements.get(given, [])}
+    return {"participant": who, "timepoint": key, "timepoint_label": label,
+            "lpets_board": {"id": str(lp.get("id")), "name": str(lp.get("name") or ""),
+                            "source": str(lp.get("id")) == source_id} if lp is not None else None,
+            "from_board": source, "same": same, "pets": pets, "statements": statements}
+
+
+def api_drawn_on(body: dict) -> dict:
+    """The forward trace for the PETs screen's Inspector and the agents' `board drawn-on` (drawsword): what draws on
+    the participant's PETs and statements at a timepoint, `board` the PETs board in front (see `drawn_on_read`)."""
+    path = case_path(body.get("workbook") or body.get("path") or body["workbook"])
+    return drawn_on_read(path, body.get("timepoint"), body.get("board"), body.get("pet"), body.get("statement"),
+                         body.get("lpets"))
+
+
 def traj_root(body: dict) -> Path:
     """The project a Trajectories request is for, as a GETs request finds it, refused in a project of one
     timepoint."""
@@ -11911,6 +11979,8 @@ ROUTES = {
     "/api/trajectories-ops": api_trajectories_ops,
     "/api/trajectories-undo": api_trajectories_undo,
     "/api/trajectories-turns": api_trajectories_turns,
+    # what draws on a PET, a sub-theme or a statement, the PETs screen's forward trace (drawsword, 17 November 2026)
+    "/api/drawn-on": api_drawn_on,
     # the exports no screen had before (exportnew, 16 November 2026, see documents.py)
     "/api/trajectories-export": api_trajectories_export,
     "/api/transcript-export": api_transcript_export,
