@@ -789,24 +789,6 @@ def unplaced_html(rows: list[dict]) -> str:
             + f"</tr></thead><tbody>{body}</tbody></table></div></section>")
 
 
-# ------------------------------------------------------------- the reflexivity statement
-
-def reflexivity_paras(project: dict) -> list[str]:
-    """The researcher's reflexivity statement as the tables' exports print it (settingsbuild, Adam, 17 November 2026:
-    "a write-up thing"), a paragraph for each line that holds words, and none while it is empty or for a
-    participant's LPETs, which print no participants table either."""
-    if gt.in_lpets():
-        return []
-    text = str((project or {}).get("reflexivity") or "")
-    return [" ".join(line.split()) for line in text.split("\n") if line.strip()]
-
-
-def reflexivity_section(paras: list[str]) -> str:
-    """The Reflexivity section, before the participants table, under its heading as a full set's parts are."""
-    return (f'<section class="part first reflexivity" id="reflexivity"><h2>{esc(i18n.t("page_print.reflexivity.heading"))}'
-            '</h2>' + "".join(f"<p>{esc(t)}</p>" for t in paras) + "</section>")
-
-
 # ------------------------------------------------------------- the participants table
 
 def people_section(table: dict) -> str:
@@ -989,9 +971,6 @@ table.gt { width: 100%; min-width: 720px; border-collapse: collapse; }
 /* the participants table (pbioexport): the GET table's heads and rules, the number in the quiet sans, the pseudonym
    and the label in the serif, the pen portrait taking the rest of the width */
 .part.people { margin-bottom: 18pt; }
-/* the reflexivity statement (settingsbuild), the reading face, before the participants table */
-.part.reflexivity { margin-bottom: 18pt; }
-.part.reflexivity p { margin: 0 0 6pt; font-family: var(--serif); font-size: 10.5pt; line-height: 1.5; }
 table.pt { width: 100%; min-width: 720px; border-collapse: collapse; }
 .pt thead { display: table-header-group; }
 .pt th { text-align: left; font-weight: 600; font-size: 7.5pt; letter-spacing: .08em; text-transform: uppercase;
@@ -1327,28 +1306,22 @@ def page(root: Path, books: list[dict], project: dict, board: str | None = None,
     pet_tables, get_table = esc(i18n.t("page_print.gets.pet_tables")), esc(gword("page_print.gets.table"))
     audit, none = esc(i18n.t("page_print.gets.trail")), esc(gword("page_print.gets.none"))
     rows = w["people"]
-    reflex = reflexivity_paras(project)
     if what == "all":
         # a thematic analysis project's full set has no PET tables, its participants having none (tagaps)
         pets = "" if ta() else (f'<li><a href="#pets">{pet_tables}</a><ol>'
                                 + "".join(f'<li><a href="#pets-{esc(gt.who(c))}">{esc(gt.who(c))}</a></li>' for c in parts["inside"])
                                 + "</ol></li>")
-        listed = ((f'<li><a href="#reflexivity">{esc(i18n.t("page_print.reflexivity.heading"))}</a></li>'
-                   if reflex else "")
-                  + (f'<li><a href="#participants">{esc(i18n.t("page_print.people.heading"))}</a></li>'
-                     if rows is not None else ""))
+        listed = (f'<li><a href="#participants">{esc(i18n.t("page_print.people.heading"))}</a></li>'
+                  if rows is not None else "")
         body.append(f'<section class="contents"><h2>{esc(i18n.t("page_print.gets.contents"))}</h2><ol>'
                     + listed + pets + f'<li><a href="#table">{get_table}</a></li><li><a href="#trail">{audit}</a><ol>'
                     + "".join(f'<li><a href="#trail-{esc(g["id"])}">{esc(g["label"])}</a></li>' for g in table_)
                     + "</ol></li></ol></section>")
     # the participants table first, after a full set's contents (pbioexport), and then the part printed after it
     # from a new page under its own heading, as a full set's parts are
-    # the reflexivity statement before them, when there is one (settingsbuild)
-    if reflex:
-        body.append(reflexivity_section(reflex))
     if rows is not None:
         body.append(people_section(rows))
-    headed, first = what == "all" or rows is not None or bool(reflex), rows is None and not reflex
+    headed, first = what == "all" or rows is not None, rows is None
     if what == "all" and not ta():
         labels = th.pet_labels_of(project.get("pet_labels"))
         body.append(f'<section class="part{" first" if first else ""} pets" id="pets"><h2>{pet_tables}</h2>'
@@ -1558,11 +1531,6 @@ def typst_data(root: Path, books: list[dict], project: dict, board: str | None =
                      "people": i18n.t("page_print.people.heading")}}
     if w["people"] is not None:
         out["people"] = w["people"]
-    # the reflexivity statement, set before the participants table (settingsbuild)
-    reflex = reflexivity_paras(project)
-    if reflex:
-        out["reflexivity"] = reflex
-        out["names"]["reflexivity"] = i18n.t("page_print.reflexivity.heading")
     if what in ("table", "all"):
         out["table"] = [table_data(g, hues.get(g["id"], grey), total, minimum, notes, selected) for g in w["table"]]
         # a participant's LPETs timepoints across, then the PETs no LPET draws on with his reasons (drawsbuild)

@@ -9225,10 +9225,6 @@ research question in Project settings, is drawn by `drawProjectPane` (read-only 
 past the limit is refused before either is written; `reflexivityTooLong` says so in one line before Save sends
 anything. The History's and the record's line counts its words with `server.n_word`'s one and other forms. A demo's
 Reset puts its project file back too (settingsfix), its Reflexivity with it, and a shared copy leaves the sender's
-Reflexivity out, as it is the researcher's own positioning, a copy coming back never touching the receiver's own. The exports take it from the project they print: `gets_print.reflexivity_paras`
-(none for a participant's LPETs) gives `reflexivity_section`, `.part.first.reflexivity` before the participants table
-in the print view, a heading and its paragraphs before `people_blocks` in `gets_word.blocks`, with the page's end
-after them when there is no participants table, and `typst_data`'s `reflexivity` with `names.reflexivity`, set by
-gets-parts.typ's `reflexivity` in gets.typ and gets-all.typ (the contents naming it in a full set). With the section
-and no participants table the table part is headed and starts a new page, as after the participants table. Area 422
-holds it.
+Reflexivity out, as it is the researcher's own positioning, a copy coming back never touching the receiver's own. No export prints it (reflexout, Adam, 17 November 2026: "It's just there if you want to paste it
+somewhere else"): the GET, LGET and Table of themes print views, Word documents and PDFs read nothing of it, and there
+is no option to. Area 422 holds that.

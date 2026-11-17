@@ -4450,11 +4450,10 @@ timepoints and the statement length save as they are changed. Open project is on
 **Reflexivity.** Under the research question in Project settings (17 November 2026, Adam: "reflexivity is a
 project setting... it's more a write-up thing"), Reflexivity holds the researcher's reflexivity statement, plain
 text on as many lines as it needs, in every project, IPA, longitudinal or thematic analysis. Save writes it to the
-project file with the name and the question, and an empty box takes it away. The tables' exports, the GET table's,
-the LGET table's and a thematic analysis project's Table of themes, in the print view, the PDF and Microsoft Word,
-set it as a section of its own headed Reflexivity before Participants, a paragraph for each line, and before the
-table itself when Participants table is unticked, the table then starting on a new page under its own heading. With
-none there is no section. A participant's LPET table, which has no participants table, leaves it out. The reflexive
+project file with the name and the question, and an empty box takes it away. It is
+a place to keep it, to copy from into a write-up: no export prints it (Adam, 17 November 2026: "It's just there if you
+want to paste it somewhere else"), not the GET table's, the LGET table's or a thematic analysis project's Table of
+themes, in the print view, the PDF or Microsoft Word, and there is no option to. The reflexive
 thematic analysis demo's statement, its researcher's, is its Reflexivity, read-only as the rest of a demo's sheet,
 where until then it was the Themes board's note, and Reset demo puts it back as it ships. A shared copy, Share a
 copy's file or a copy sent to work on together, leaves Reflexivity out, as it is your own positioning and not the

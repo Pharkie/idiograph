@@ -1456,8 +1456,7 @@ project's) or 01:15:12 (the hours always), as Project settings saves them (`/api
 kept as it is. Its answer says each change, "Timecodes from 1:15:12 to 75:12." among them. Every timecode a human line shows
 follows the project's, the turn lines among them. `--json` gives a passage's `seconds` beside its `time`. The demo's project is fixed.
 `--reflexivity` (or `--reflexivity-file`, a text file; MCP `project_set`'s `reflexivity`) sets the researcher's
-reflexivity statement, Project settings' Reflexivity, which the tables' exports print as a section of its own before
-Participants, "" taking it away (settingsbuild, 17 November 2026). It is his own words: set it only with the words
+reflexivity statement, Project settings' Reflexivity, which no export prints (a place to keep it, 17 November 2026), "" taking it away (settingsbuild, 17 November 2026). It is his own words: set it only with the words
 he gives you. A change's line counts its words and never says them, and `project show` reads it, marked as
 untrusted text like every word of the project. The privacy tick is his alone, so no op sets it. `cases` reads them, `timepoints` and `length` set the
 rest of the project's own settings in Project settings.

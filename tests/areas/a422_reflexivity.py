@@ -2,14 +2,14 @@
 setting... it's more a write-up thing").
 
 One text in Project settings, the researcher's reflexivity statement, kept in the project file as `reflexivity` while
-it holds words, printed as a Reflexivity section before Participants in the tables' print view, Word document and
-PDF, and nothing there while it is empty. Agents read it with `project show` (MCP's project_show), its words marked as
+it holds words, printed by no export (reflexout, Adam, 17 November 2026: "It's just there if you want to paste it somewhere
+else"): not the tables' print view, Word document or PDF. Agents read it with `project show` (MCP's project_show), its words marked as
 data, and set it with `project set --reflexivity` or `--reflexivity-file` (MCP's project_set), through the route the
 page uses, /api/project. The reflexive thematic analysis demo's statement is its project's Reflexivity, where it was
 the Themes board's note.
 
 What is checked, on a scratch copy of that demo made a project of its own: it reads the demo's statement; the print
-view, the Word document and the PDF hold the section before Participants, the statement whole; a dry run writes
+view, the Word document and the PDF print none of the statement and no Reflexivity section; a dry run writes
 nothing and makes no record line; a real set is one line in the record of agents' changes, saying a count of words and
 never the words, and undoing its run puts the project file back byte for byte; taken away, the key leaves the file and
 no export holds the section; MCP's dry run writes nothing and its set is read back by project_show, marked
@@ -112,28 +112,25 @@ def test_reflexivity(scratch: Path):
             out["pdf_said"] = err
         return out
 
-    def before_people(text: str, words: str, heading: str = "Reflexivity") -> bool:
-        """Whether the text holds the heading, then the words, then Participants, in that order."""
-        flat = support.squashed(text)
-        at = [flat.find(support.squashed(heading)), flat.find(support.squashed(words)),
-              flat.find(support.squashed("Participants"))]
-        return all(a >= 0 for a in at) and at[0] < at[1] < at[2]
-
     try:
         check("422: the reflexive thematic analysis demo's statement is its project's Reflexivity, read with the project",
               statement.startswith("I am ") and routes.read_project(root)["reflexivity"] == statement, statement[:80])
         start = files(root)
 
-        # ── the exports, the statement whole before Participants
+        # ── the exports print none of it (reflexout)
         first = statement.split(".")[0]
         got = exports("with")
-        check("422: the print view sets Reflexivity before Participants, the statement whole",
-              before_people(got.get("html", ""), first) and 'id="reflexivity"' in got.get("html", ""),
-              got.get("html", "")[:200])
-        check("422: the Word document sets Reflexivity before Participants", before_people(got.get("word", ""), first),
+        def prints_none(text: str) -> bool:
+            """Whether the export holds neither the statement's words nor a Reflexivity heading."""
+            flat = support.squashed(text)
+            return bool(text) and support.squashed(first) not in flat and support.squashed("Reflexivity") not in flat
+        check("422: with a statement, the print view prints none of it and no Reflexivity section (reflexout)",
+              prints_none(got.get("html", "")) and 'id="reflexivity"' not in got.get("html", "")
+              and "Participants" in got.get("html", ""), got.get("html", "")[:200])
+        check("422: with a statement, Word's document prints none of it", prints_none(got.get("word", "")),
               got.get("word", "")[:200])
         if "pdf" in got:
-            check("422: the PDF sets Reflexivity before Participants", before_people(got["pdf"], first), got["pdf"][:300])
+            check("422: with a statement, the PDF prints none of it", prints_none(got["pdf"]), got["pdf"][:300])
         else:
             print(f"  (the PDF skipped: {got.get('pdf_said', '')[:120]})")
         check("422: an export writes nothing of the project's", files(root) == start, "")
