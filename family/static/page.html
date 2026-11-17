@@ -72,7 +72,7 @@ try {
          Adam's wording 1), in Settings' About link's look. The row wraps as two groups, Free with Ko-fi and its
          link, then Open source, No cloud and Flexible together, so no word is ever left alone on a line (homehead,
          5 November 2026, Adam) -->
-    <ul class="lede-points" aria-label="{{page.lede.label}}"><li class="lp-free"><span>{{page.lede.free}}</span><a class="kofi" href="https://ko-fi.com/X8X01NIXRB" target="_blank" rel="noopener" title="{{page.lede.kofi_title}}"><img class="kofi-cup" src="/vendor/kofi/cup-border.png" alt="{{page.lede.kofi_alt}}" width="15" height="10">{{page.lede.kofi}}</a><button type="button" class="linklike lp-support" id="lib-support">{{page.lede.support}}</button></li><li class="lp-rest"><span>{{page.lede.open_source}}</span><span data-only="idiograph">{{page.lede.no_cloud}}</span><span>{{page.lede.flexible}}</span><span data-only="sift trace">{{page.lede.no_cloud}}</span></li></ul>
+    <ul class="lede-points" aria-label="{{page.lede.label}}"><li class="lp-free"><span>{{page.lede.free}}</span></li><li class="lp-rest"><span>{{page.lede.open_source}}</span><span data-only="idiograph">{{page.lede.no_cloud}}</span><span>{{page.lede.flexible}}</span><span data-only="sift trace">{{page.lede.no_cloud}}</span></li></ul>
     <!-- what the Preview Edition means (Adam, 21 October 2026), in a quiet panel under the line and its highlights (13 November, Adam: after them, where it stood
          under the lockup since 22 October), Idiograph's alone and shown while the server's
          PREVIEW_EDITION is on, a small warning sign at its start drawn as the bars' icons are, in the crux orange -->
@@ -106,6 +106,10 @@ try {
         <h2 class="family-h" id="family-h"></h2>
         <ul class="family-list" id="family-list"></ul>
       </section>
+      <!-- Ko-fi's button and the link to the Support card, together at the bottom right of Home, under all its
+           content (17 November 2026, Adam; they stood beside Free in the head): at the window's foot where Home is
+           shorter than the window, after the last section where it is longer -->
+      <div class="home-foot" id="home-foot"><a class="kofi" href="https://ko-fi.com/X8X01NIXRB" target="_blank" rel="noopener" title="{{page.lede.kofi_title}}"><img class="kofi-cup" src="/vendor/kofi/cup-border.png" alt="{{page.lede.kofi_alt}}" width="15" height="10">{{page.lede.kofi}}</a><button type="button" class="linklike lp-support" id="lib-support">{{page.lede.support}}</button></div>
     </div>
 
 <!--slot:home-page-->

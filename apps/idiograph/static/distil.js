@@ -237,11 +237,11 @@ function homeCardHtml(c) {
   const items = homeMenuItems(c, where);
   // its dots and their menu, the family's (projectDotsHtml in shell.js), as Sift's and Trace's cards have them
   const dots = projectDotsHtml(c.name, homeMenuRows(items, where));
-  // each demo's own tag, IPA demo or Thematic analysis demo (demos)
+  // each demo's own tag, IPA demo, Longitudinal IPA demo or RTA demo (demos)
   const tags = (c.demo ? `<span class="tag demo">${esc(c.tag || t('distil.tag.demo'))}</span>` : '') + (c.copy ? `<span class="tag copy">${esc(t('distil.tag.copy'))}</span>` : '');
   // a demo's card says what the demo is for, beside the card's button and never in it (demowarn, 12 November 2026)
   const warn = c.demo && (c.kind || c.method)
-    ? `<button type="button" class="hc-warn" data-demo-note="${escAttr(c.kind || c.method)}" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.3 4.2 2.9 17.5A2 2 0 0 0 4.6 20.5h14.8a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4.5"/><path d="M12 17.2v.1"/></svg><span>${esc(demoWords(c.kind || c.method)[0])}</span></button>` : '';
+    ? `<button type="button" class="hc-warn" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.3 4.2 2.9 17.5A2 2 0 0 0 4.6 20.5h14.8a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4.5"/><path d="M12 17.2v.1"/></svg><span>${esc(demoWords()[0])}</span></button>` : '';
   return `<li class="home-card-li${items.length ? ' has-menu' : ''}${warn ? ' has-warn' : ''}"><button type="button" class="home-card${c.demo ? ' is-demo' : ''}" data-id="${escAttr(c.id)}">`
     + `<span class="hc-head"><span class="hc-name">${esc(c.name)}</span>${tags}</span>`
     + (c.question ? `<span class="hc-question">${esc(c.question)}</span>` : '')
@@ -251,21 +251,9 @@ function homeCardHtml(c) {
 
 /* The warning a demo carries (demowarn, 12 November 2026, Adam: "they are demoing the app, they are not demoing IPA").
    Its card on Home has a line at its foot, and every screen of the demo has its Demo mark beside the project's name,
-   each a button opening the same note in a small box under it: what the demo is made of and what it is not for, in
-   Adam's first person. `kind` is `ipa`, `ta`, `lipa` or `rta`. The box shuts on Esc, on a press outside it, on a second
+   each a button opening the same note in a small box under it, the same two sentences for every demo. The box shuts on Esc, on a press outside it, on a second
    press on its button, on a scroll and on a resize, and Esc returns the focus to the button. */
 let demoNoteBy = null;
-
-function demoNoteKind(mark) {
-  if (mark.dataset.demoNote) return mark.dataset.demoNote;
-  if (mark.id === 'hp-demo-ta') return 'ta';
-  if (mark.id === 'hp-demo-lipa') return 'lipa';
-  if (mark.id === 'hp-demo-rta') return 'rta';
-  if (mark.id === 'hp-demo') return 'ipa';
-  const here = typeof pathProject === 'function' ? pathProject() : null;
-  return here && here.id === DEMO_TA_ID ? 'ta' : here && here.id === DEMO_LIPA_ID ? 'lipa'
-    : here && here.id === DEMO_RTA_ID ? 'rta' : 'ipa';
-}
 
 function demoNoteShut(back = false) {
   const box = $('demo-note');
@@ -279,23 +267,20 @@ function demoNoteShut(back = false) {
   }
 }
 
-/* each demo's card line and its note's heading, one for every demo (homeorder, 13 November 2026, Adam), then the
-   note's two paragraphs by its method, every key named whole so the catalogue's check sees it used */
-function demoWords(kind) {
-  const head = [t('distil.demo.warn'), t('distil.demo.note_head')];
-  if (kind === 'ta') return [...head, t('distil.demo.note_ta_1'), t('distil.demo.note_ta_2')];
-  if (kind === 'lipa') return [...head, t('distil.demo.note_lipa_1'), t('distil.demo.note_lipa_2')];
-  if (kind === 'rta') return [...head, t('distil.demo.note_rta_1'), t('distil.demo.note_rta_2')];
-  return [...head, t('distil.demo.note_ipa_1'), t('distil.demo.note_ipa_2')];
+/* each demo's card line and its note's heading are one name, "AI-generated demo", and its note is the same two
+   sentences on every demo (demowording, 17 November 2026, Adam), every key named whole so the catalogue's check sees
+   it used */
+function demoWords() {
+  return [t('distil.demo.warn'), t('distil.demo.note_1'), t('distil.demo.note_2')];
 }
 
-function demoNoteOpen(by, kind) {
+function demoNoteOpen(by) {
   const box = $('demo-note');
   if (!box) return;
   const was = demoNoteBy;
   demoNoteShut();
   if (was === by) return;
-  const [, head, one, two] = demoWords(kind);
+  const [head, one, two] = demoWords();
   $('demo-note-head').textContent = head;
   $('demo-note-1').textContent = one;
   $('demo-note-2').textContent = two;
@@ -318,7 +303,7 @@ function demoNoteOpen(by, kind) {
 
 document.addEventListener('click', (e) => {
   const mark = e.target.closest && e.target.closest('.hc-warn, .demo-mark');
-  if (mark) { demoNoteOpen(mark, demoNoteKind(mark)); return; }
+  if (mark) { demoNoteOpen(mark); return; }
   if (demoNoteBy && !e.target.closest('#demo-note')) demoNoteShut();
 });
 document.addEventListener('keydown', (e) => {

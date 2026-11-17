@@ -198,14 +198,13 @@ html[data-edition="preview"] .about-lockup.pe { --pe-size: 10px; --pe-drop: 5px;
    animation */
 @font-face { font-family: "Quicksand"; font-style: normal; font-weight: 700; font-display: swap;
   src: url("/vendor/quicksand/quicksand-latin-700-normal.woff2") format("woff2"); }
-.lp-free { display: inline-flex; align-items: center; gap: 12px; }
 .kofi { display: inline-block; padding: 0 8px; border-radius: 5px; text-align: center;
   background: var(--kofi); color: var(--kofi-ink); border: 1px solid var(--kofi-edge);
-  font: 700 11px/20px "Quicksand", Helvetica, "Century Gothic", sans-serif; letter-spacing: -0.1px;
+  font: 700 13px/24px "Quicksand", Helvetica, "Century Gothic", sans-serif; letter-spacing: -0.1px;
   text-decoration: none; white-space: nowrap; transition: opacity .15s; }
 .kofi:hover { opacity: .85; }
 .kofi:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.kofi-cup { display: inline; width: 15px; height: 10px; margin: 0 4px 2px 0; vertical-align: middle;
+.kofi-cup { display: inline; width: 18px; height: 12px; margin: 0 5px 2px 0; vertical-align: middle;
   animation: kofi-wiggle 3s infinite; }
 @keyframes kofi-wiggle {
   0%, 60% { transform: rotate(0) scale(1); }
@@ -215,6 +214,16 @@ html[data-edition="preview"] .about-lockup.pe { --pe-size: 10px; --pe-drop: 5px;
   88%, 96% { transform: rotate(10deg) scale(1.1); }
   100% { transform: rotate(0) scale(1); }
 }
+/* Ko-fi's button and Home's link to the Support card at the bottom right of Home (17 November 2026, Adam): the
+   library a column as tall as the window, its body and the picker filling it, so the pair's auto top margin
+   sets it at the window's foot where Home is short and after the last section where it is long, in the flow and
+   never over a card */
+#library:not([hidden]) { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+#library:not([hidden]) > .lib-head { width: 100%; box-sizing: border-box; }
+#library:not([hidden]) > .lib-body { flex: 1 1 auto; width: 100%; box-sizing: border-box; display: flex; flex-direction: column; }
+#library .lib-body > #home-pick:not([hidden]) { flex: 1 1 auto; display: flex; flex-direction: column; }
+.home-foot { margin-top: auto; padding-top: 40px; display: flex; align-items: center; justify-content: flex-end;
+  flex-wrap: wrap; gap: 8px 16px; }
 /* what the Preview Edition means, under the line and its points while the stamp shows (22 October, moved there 13
    November, Adam): a quiet panel in the body type */
 .pe-note { display: none; grid-area: note; }
@@ -356,8 +365,6 @@ html[data-app="idiograph"][data-edition="preview"] .pe-note { display: flex; ali
 }
 /* on a phone the row's halves stack under the name */
 @media (max-width: 559px) {
-  /* on a phone Free and its Ko-fi button have a line of their own */
-  .lede-points .lp-free { flex-basis: 100%; }
 }
 /* a line for a screen reader alone */
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
@@ -1776,7 +1783,7 @@ body.foot-on .lib-body { padding-bottom: max(72px, calc(26px + var(--foot-h, 44p
 .support-body .support-fund { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin-top: 10px; }
 /* Home's link to it after Ko-fi, a touch larger than Settings' links, never coloured, and Settings' own a little
    apart from About's, so the two links read as two */
-.lp-support { margin-left: 2px; font-size: 13px; }
+.lp-support { margin-left: 2px; font-size: 14px; }
 #settings-support { margin-left: 6px; }
 /* Settings' way in to About, at its foot beside Restart and Quit, a quiet link rather than a button */
 .linklike { background: none; border: 0; padding: 0; font: inherit; font-size: 12.5px; color: var(--ink-soft);

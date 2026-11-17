@@ -465,8 +465,7 @@ item that starts a line, so the row wraps cleanly at any width. Open source, No 
 since 5 November, `.lp-rest`, its spans each after the first with an inline dot of its own, so the row wraps as two
 groups and never leaves a word alone (homehead).
 
-**The Ko-fi button** (22 October, Ko-fi's own artwork since that evening, Adam's ask). Inside the points' first
-item, `li.lp-free`, beside Free on every app's Home: `a.kofi`, Ko-fi's button as its widget (`Widget_2.js`,
+**The Ko-fi button** (22 October, Ko-fi's own artwork since that evening, Adam's ask). Since 17 November (demotext, Adam) the head's line reads only Free, Open source, No cloud and Flexible, and the button and the link below sit together in `div.home-foot#home-foot`, the last thing in `#home-pick`, right-aligned in the column, 13px words on a 24px button and a 14px link (one step up): `#library` is a flex column at least the window tall, its body and the picker fill it, and the foot's auto top margin puts it at the window's foot where Home is short and after the last section where it is long, in the flow. It is on every app's Home: `a.kofi`, Ko-fi's button as its widget (`Widget_2.js`,
 `kofiwidget2`) draws it, copied into the app, made about half its size and quieter on 26 October (Adam: too
 dominant as the only coloured thing on the page), 22px tall in place of 40. A pale wash of Ko-fi's blue
 `#72a4f2` (`--kofi`, `#E0E6F0` light, `#23272E` dark) with a 1px edge of the blue (`--kofi-edge`) in place of
@@ -494,8 +493,8 @@ Latin). `NOTICE.md` credits both. Under 560px the item takes its own line and th
 beside `#about`, in About's look (`card about-card support-card`, its close, Done and Esc, Settings under it
 staying), in `OVERLAYS`:
 
-- Home's link, `button.linklike.lp-support#lib-support`, "Other ways to help" (`page.lede.support`), inside
-  `li.lp-free` after `a.kofi`, so it keeps with Ko-fi when the row wraps, 13px in the soft ink, never coloured,
+- Home's link, `button.linklike.lp-support#lib-support`, "Other ways to help" (`page.lede.support`), in
+  `div.home-foot` after `a.kofi` (the head's line no longer holds either since 17 November), 14px in the soft ink, never coloured,
   in all three apps.
 - Settings' link, `#settings-support`, "Support {app}" (`page.support.title`), beside About at the foot.
 - Idiograph's one-time line after the first Word export of PETs (below).
@@ -4531,7 +4530,7 @@ changes the rows after it, so their clips are renumbered by hand, or the intervi
 annotations' rounds (`work.rounds`) must match the rounds the new timecodes make, ten minutes each, or the build
 says so. Then the change is committed with the new recording, the CSV and the rebuilt demo together.
 
-**The demo warning** (demowarn, 12 November 2026, Adam: the demos "are demoing the app, they are not demoing IPA"). A demo's card on Home (`homeCardHtml`, a card with `demo` and `method`, the `demosOf` rows' `method` of `ipa` or `ta`) carries `.hc-warn` at its foot, a button beside the card's own and outside it, and every screen of a demo has its Demo mark (`.demo-mark`, the old tag now a button: `rail-demo`, `th-demo`, `tj-demo`, the new `cd-demo`, and the page head's `hp-demo`, `hp-demo-ta` and `hp-demo-lipa`). A project is known as a demo as it already was, by `data.demo` and the demo ids (`DEMO_ID`, `DEMO_TA_ID`, `DEMO_LIPA_ID`), and no flag is written to any project. Both open `#demo-note` through `demoNoteOpen(by, kind)`, one box for every place, shut by Esc (focus back on its button), a press outside, a second press, a scroll or a resize. Its card line is `distil.demo.warn` ("AI-generated: read details") and the note's heading `distil.demo.note_head` ("AI-generated demo"), the same for every demo since 13 November (homeorder, Adam), its paragraphs `distil.demo.note_<kind>_1` and `_2`, for `ipa`, `ta` and `lipa` (the longitudinal demo's card gives `method: 'lipa'` since lipabuild), with the US overlay's `note_ta_2` spelling "practicing". The website's Screenshots page and the README say one sentence of it.
+**The demo warning** (demowarn, 12 November 2026, Adam: the demos "are demoing the app, they are not demoing IPA"). A demo's card on Home (`homeCardHtml`, a card with `demo` and `method`, the `demosOf` rows' `method` of `ipa` or `ta`) carries `.hc-warn` at its foot, a button beside the card's own and outside it, and every screen of a demo has its Demo mark (`.demo-mark`, the old tag now a button: `rail-demo`, `th-demo`, `tj-demo`, the new `cd-demo`, and the page head's `hp-demo`, `hp-demo-ta` and `hp-demo-lipa`). A project is known as a demo as it already was, by `data.demo` and the demo ids (`DEMO_ID`, `DEMO_TA_ID`, `DEMO_LIPA_ID`), and no flag is written to any project. Both open `#demo-note` through `demoNoteOpen(by)`, one box for every place, shut by Esc (focus back on its button), a press outside, a second press, a scroll or a resize. Its card line and the note's heading are one key, `distil.demo.warn` ("AI-generated demo", the warning icon on the line, no sparkles), and its two paragraphs `distil.demo.note_1` and `note_2`, the same on all four demos since 17 November (demotext, Adam: "Real interviews are confidential, so these demos are generated by AI." and "Please don't take this as an example of what a finished study looks like."); nothing picks a note by a demo's kind any more (`demoNoteKind` and the card's `data-demo-note` are gone, `demoWords()` takes no kind), and the US overlay has no note. The website's Screenshots page and the README say one sentence of it.
 
 **The thematic analysis demo** (demos, 3 November 2026, Adam that evening: two methods, so two demos, apart from
 his projects). `demo/ta/` is a thematic analysis project of its own inside the demo's folder, the same three
@@ -4583,7 +4582,7 @@ progress file, `.themes.json`, `.themes-t2.json`, `.themes-t3.json` and `.lpets.
 `demo_workbooks(root)` give its three, `api_cases` answers `demos_lipa`, `demo_lipa_participants` and
 `demo_lipa_project`, and Reset demo takes `demo: "lipa"`. On the page `DEMO_LIPA_ID`, `demosOf` (its card with
 `method: 'lipa'`, so its line and note are the lipa ones), `distilRecent`, `pageHead` and `#hp-demo-lipa`,
-`demoNoteKind`, `resetDemo` and the Project settings kicker know it. Its recordings are below, under The demo's
+`resetDemo` and the Project settings kicker know it. Its recordings are below, under The demo's
 recordings on demand. Area 386 holds it.
 
 **The reflexive thematic analysis demo** (rtabuild, 17 November 2026, Adam's word of 14 November, its text and
@@ -4609,8 +4608,7 @@ again and the demo built again, so a recast of the voices is one command. It shi
 (`Kemi, working from home`), `api_cases` answers `demos_rta`, `demo_rta_participants` and `demo_rta_project`, and
 Reset demo takes `demo: "rta"`. On the page a demo of `demosOf` has a `kind` beside its `method`: the reflexive
 thematic analysis demo's `method` is `ta`, so it speaks a thematic analysis project's words, and its `kind`, `rta`,
-gives its tag (`distil.tag.demo_rta`), `#hp-demo-rta`, its card line's note (`distil.demo.note_rta_1` and `_2`, the US
-overlay spelling "organizing"), `resetDemo`'s question and the Project settings kicker. Its six recordings, kept out
+gives its tag (`distil.tag.demo_rta`), `#hp-demo-rta`, `resetDemo`'s question and the Project settings kicker. Its six recordings, kept out
 of git by name in `.gitignore` (the IPA demo's committed three share their `-Initial-` pattern), are assets of
 `demo-recordings-1` like the others, `routes.DEMO_RTA_RECORDINGS` (`rta`) their download's key, and
 `packaging/upload_rta_recordings.py --yes` adds them to the release, run only on Adam's yes (without `--yes` it says what it would upload). It never replaces a recording or the licence: one already there under its name is passed over when GitHub's sha256 and size for it are the manifest's and otherwise refuses the whole run with nothing uploaded, the licence going up as a new asset under the name the manifest gives it, then the manifest replacing the release's copy, the one asset replaced, and each of the six, the licence and the manifest are read back by size and sha256 (rtafix). `release.py` refuses a version until they are there (The demos' recordings before a release). Area 421 holds it.
@@ -5697,7 +5695,7 @@ app, so the page shows its own app's alone (see One page per app, above). `drawP
 for each project, `homeCardHtml`, its one line from `standLine`, then the Demo projects section (`#home-demos`,
 3 November 2026), the two demos from `demosOf` (the IPA demo, `demo`, and the thematic analysis demo, `demo-ta`,
 from `demos_ta`, `demo_ta_participants` and `demo_ta_project`), each card with its own tag (`distil.tag.demo_ipa`,
-`distil.tag.demo_ta`), folded by `demosFold`: shut by default, open on a Home with no project, and kept as he leaves
+`distil.tag.demo_ta`, "RTA demo" on both thematic analysis demos, `distil.tag.demo_lipa` "Longitudinal IPA demo"), folded by `demosFold`: shut by default, open on a Home with no project, and kept as he leaves
 it by the fold ids `demos:open` and `demos:shut` in Projects' own fold list, and calls
 the other two, Sift's from `reviews`, `drawSiftHome`, and Trace's from `traces`, `drawTraceHome`. Under the
 sections stands `#family`, the other two apps, which `loadFamily` asks of `/api/family` and `drawFamily`

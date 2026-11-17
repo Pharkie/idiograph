@@ -77,9 +77,9 @@
 .hp-name { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; margin: 0; font-family: var(--serif);
   font-weight: 400; font-size: 24px; line-height: 1.3; color: var(--ink); overflow-wrap: anywhere; }
 .hp-name .tag { font-family: var(--sans); }
-/* a demo's card (demos, 3 November 2026): its tag goes under the name where the two would not fit on one line,
-   so the name is never cut for "Thematic analysis demo" */
-.home-card.is-demo .hc-head { flex-wrap: wrap; row-gap: 4px; }
+/* a card's tag (a demo's, a copy's) stands on its own line under the project's name on every card, whatever its
+   length (demotext, 17 November 2026, Adam), so the cards all look the same */
+.home-card .hc-head { flex-direction: column; align-items: flex-start; gap: 4px; }
 
 /* A demo says what it is for (demowarn, 12 November 2026): on its card on Home one line at the foot, in the card's small
    type and the crux orange the Preview note's sign is, beside the card's button and never in it, with room kept under

@@ -184,9 +184,9 @@ def test_support(scratch: Path):
     for app, page in pages.items():
         card = page.split('<div class="overlay" id="support"', 1)[1].split('\n</div>\n', 1)[0] if 'id="support"' in page else ""
         heading = re.search(r'<h2 id="support-title">([^<]*)</h2>', card)
-        check(f"289: {app}'s page holds Home's link inside Free's item after Ko-fi, Settings' link after About and the "
+        check(f"289: {app}'s page holds Home's link after Ko-fi in the foot of Home, Settings' link after About and the "
               f"card, the card and the Settings link naming {app.title()}",
-              re.search(r'<li class="lp-free">.*?class="kofi"[^>]*>.*?</a><button [^>]*id="lib-support">[^<]+</button></li>', page) is not None
+              re.search(r'<div class="home-foot" id="home-foot"><a [^>]*class="kofi"[^>]*>.*?</a><button [^>]*id="lib-support">[^<]+</button></div>', page) is not None
               and re.search(r'id="settings-about">.*?</button>\s*<button [^>]*id="settings-support">[^<]*' + app.title() + "<", page) is not None
               and heading is not None and app.title() in heading.group(1), app)
         outside = re.findall(r'<(?:script|iframe)\b|\bsrc="(?!/)[^"]*"', card)
