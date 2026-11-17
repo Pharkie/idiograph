@@ -432,7 +432,7 @@ def test_projects(scratch):
           and "foldable($('home-analysis'), $('analysis-head'), 'analysis');" in draw
           and draw.index("sections.map(") < draw.index("demosOf(data).map(")
           and "b.onclick = () => openPage(b.dataset.id);" in draw
-          and "pageHead(p.name || t('distil.home.project'), p.research_question || '', false, !!p.copy);" in page_fn
+          and "pageHead(p.name || t('distil.home.project'), p.research_question || '', false, !!p.copy, projKind(p));" in page_fn
           and page_fn.index("drawCards(list, s.participants || [], { id: s.id });") < page_fn.index("drawGetsCard($('hp-gets'), s.gets);")
           and "drawHome();" in fn("loadLibrary"))
     node = shutil.which("node")

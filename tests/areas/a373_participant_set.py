@@ -274,6 +274,7 @@ def test_participant_set(scratch):
 
         # (f) a Trajectories board from before keeps its labels and pictures on placed: every read merges them in
         # and writes nothing, and the project page's listing moves them into the participants' own, losslessly
+        support.make_lipa(rid)  # only a longitudinal project takes timepoints (projectbuild)
         routes.api_project({"root": rid, "timepoints": [{"label": "T1", "description": "First lessons"},
                                                         {"label": "T2", "description": "A year on"}]})
         routes.api_add_transcripts({"op": "add", "root": rid, "files": [

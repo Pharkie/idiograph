@@ -20,7 +20,7 @@
   "distil.copy.p_removed": "{n} of these codes you have removed since you sent the copy.",
   "distil.gets.card_title": "The themes of {name}, across its participants",
   "distil.gets.card_title_this": "The themes of this project, across its participants",
-  "distil.gets.card_name": "Themes, across all participants",
+  "distil.across.gets": "Themes",
   "distil.card.statements": "Codes",
   "distil.card.start": "Start coding",
   "distil.card.statements_complete": "Coding complete",

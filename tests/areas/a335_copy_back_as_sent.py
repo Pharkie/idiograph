@@ -321,6 +321,7 @@ def tp_check(scratch: Path, base: Path, routes, server_mod, themes, wb_mod, cli)
                                    "research_question": "How do newcomers take to mending kites?",
                                    "files": [row("before.txt", T1_TEXT, "Wren", "Before")]})
     rid = made["project"]["id"]
+    support.make_lipa(rid)  # only a longitudinal project takes timepoints (projectbuild)
     routes.api_project({"root": rid, "timepoints": [{"label": "T1", "description": ""}, {"label": "T2", "description": ""}]})
     routes.api_project({"root": rid, "agents": True})
     routes.api_add_transcripts({"op": "add", "root": rid, "files": [row("later.txt", T2_TEXT, "Wren", "Later", timepoint=2)]})

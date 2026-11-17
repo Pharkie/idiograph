@@ -156,6 +156,7 @@ def test_home_time(scratch: Path):
     tps.write_text(json.dumps([{"label": "Before", "description": "Before the first season"},
                                {"label": "Six months", "description": "After the summer"},
                                {"label": "A year", "description": "A year on"}]), encoding="utf-8")
+    support.make_lipa(tides)  # only a longitudinal project takes timepoints (projectbuild)
     failed.append(run(tides, "timepoints", "--from", str(tps), "--note", "Three", "--tool", "Claude Code"))
     for i, who in enumerate(SAILORS, start=1):
         make_case(tides, f"P{i} - {who}", who, [("Before", 700), ("Six months", 700), ("A year", 700)], 38,

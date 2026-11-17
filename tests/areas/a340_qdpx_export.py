@@ -425,6 +425,7 @@ def trip_timepoints(scratch: Path, agents: dict) -> None:
                                        "files": [row("fern-1.txt", FERN_T1, "Fern", "Spring"),
                                                  row("linnet-1.txt", LINNET_T1, "Linnet", "Spring")]})
         pid = made["project"]["id"]
+        support.make_lipa(pid)  # only a longitudinal project takes timepoints (projectbuild)
         routes.api_project({"root": pid, "timepoints": TWO})
         routes.api_project({"root": pid, "agents": True})
         routes.api_add_transcripts({"op": "add", "root": pid, "files": [

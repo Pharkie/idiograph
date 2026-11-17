@@ -52,7 +52,7 @@ def test_home_and_settings(scratch):
                                            "demoCards", "drawDemoPage", "loadLibrary", "windowPicks", "windowRecent",
                                            "homeMenuItems", "homeMenuRows", "homeMenuHtml", "projectMenuHtml", "projectMenuWord",
                                            "projectDotsHtml", "distilHomeDraw", "distilRecent",
-                                           "recentNames", "demosOf", "demosFold")]
+                                           "recentNames", "demosOf", "demosFold", "projKind", "kindTag")]
         # Home's line of agents' changes, asked of the server once the cards are drawn, which area 389 and the review
         # shots hold, a call that does nothing here (agentreview2)
         pieces.append("async function homeAgentLines() {}")

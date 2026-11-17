@@ -266,6 +266,7 @@ def test_history_replace(scratch):
                                                   "research_question": "How do new beekeepers live with the risk of a sting?",
                                                   "files": [row("osric-one.txt", OSRIC, "Osric", "Summer")]})
         root2 = made2["project"]["id"]
+        support.make_lipa(root2)  # only a longitudinal project takes timepoints (projectbuild)
         idiograph_routes.api_project({"root": root2, "timepoints": TWO})
         idiograph_routes.api_project({"root": root2, "agents": True})
         idiograph_routes.api_add_transcripts({"op": "add", "root": root2, "files": [

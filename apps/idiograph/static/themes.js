@@ -2108,7 +2108,8 @@ async function themesOpen(path, opts = {}) {
   // page's method was the last screen's when they were first drawn above (tarail, taai's finding)
   aiPage(TH.config);
   // the participant's timepoints, which the bar's switch lists on PETs, and the one this canvas is at
-  TH.tps = Array.isArray(data.timepoints) && data.timepoints.length >= 2 ? data.timepoints : null;
+  // a longitudinal project's, of any number (projectbuild: the project's kind, `projKind` in distil.js)
+  TH.tps = Array.isArray(data.timepoints) && data.timepoints.length && projKind(TH.project) === 'lipa' ? data.timepoints : null;
   if (TH.tps && !thGets()) {
     TH.tp = Number(data.timepoint) || 1;
     TH.scope = { timepoint: TH.tp };

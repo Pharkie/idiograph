@@ -191,13 +191,15 @@ the section to the head alone and opens it again, the fold kept in this browser,
 research question under it, as Project settings has them, and in the small type where it stands: its
 participants and how many have PETs, a board or PETs marked complete, "3 participants, 2 with PETs", and
 under that its GETs, "GETs not started", the group themes on its Current board, "GETs: 4 group themes", or
-"GETs complete" once marked. The demo's card has no GETs line. Each card's dots, at its top right, open
+"GETs complete" once marked. The demo's card has no GETs line. Under each project's name, on a line of its own, its
+type in the plain grey tag (17 November 2026): IPA, LIPA for longitudinal IPA or RTA for reflexive thematic
+analysis, as its Method says (see New project); a demo's card carries its own coloured tag in its place. Each card's dots, at its top right, open
 its menu (see A project card's menu). New project, Open project, its tooltip "Open a project folder
 already on this computer", and Open a shared copy, its tooltip "Open a project someone has shared with
 you, as a copy", stand under the cards (see Projects). Under Projects stands Demo projects, a section of its
 own holding the four demos, apart from your projects: Living with a dog tagged "IPA demo", Living with a dog
 tagged "RTA demo", the same three invented participants coded in a thematic analysis project, so
-the two methods can be compared on the same words, and First year on an allotment tagged "Longitudinal IPA demo"
+the two methods can be compared on the same words, and First year on an allotment tagged "LIPA demo"
 (13 November 2026), three other invented participants, Hollis, Nell and Arlo, each interviewed before the season,
 at midsummer and after the harvest, with their PETs at each timepoint, their LPETs, the LGETs and Trajectories, and
 each interview's recording, and Working from home tagged "RTA demo" too (17 November 2026), a
@@ -211,9 +213,14 @@ its menu holds Project settings, read-only. Everything in the demos was made wit
 and its word, at the head of Home, opens Settings on General.
 
 A card opens its project's page. At its head the way back to Home, a round arrow, with
-the project's name and question beside it, then in the order of the work a row for each participant,
-the full width of the column, the project's GETs across all participants in a wide card after them
-(see GETs), where until 18 October the card stood over the rows, and Add transcripts under them. Back, the mouse's back button or Cmd + [ from a participant, from Experiential statements, PETs or
+the project's name, its type tag beside it (IPA, LIPA or RTA), and its question. Under them the work across all
+participants stands in a row of tiles at the top (17 November 2026, Adam's option A, where since 18 October one wide
+GETs card stood after the rows), each with its status line and opening its screen: in an IPA project GETs, "3 of 3
+participants in · Board 1 · GETs complete"; in a longitudinal project LGETs and Trajectories, "3 trajectories · 3 of
+3 participants placed"; in a thematic analysis project Code list, "24 codes", and Themes. Then a row for each
+participant, the full width of the column, everything of one participant in their box, and Add transcripts under
+them. A project with no participant yet, as New project leaves it, has Add transcripts where the participants will
+stand. Back, the mouse's back button or Cmd + [ from a participant, from Experiential statements, PETs or
 GETs, lands on its project's page, and a reload keeps the screen in front of him, Home, a
 project's page or a participant on its passage. A run with `--root` opens straight on its one project's page.
 A participant is a participant's folder under the project's root, and a workbook
@@ -4450,8 +4457,9 @@ change yet.", and the demo's card has no Project history.
 It opens for one project: from Project settings beside the project's name and question on its page, from the
 project card's menu on Home, from File, Project Settings… in Idiograph's own window (greyed on Home), and from
 the band's link when the project has no question. The sheet's head names the project. It holds the project's
-name, its research question, its Method, Interpretative Phenomenological Analysis or
-Thematic analysis, shown and never changed (31 October 2026), PET labels, A B C or 1 2 3, the same
+name, its research question, its Method, IPA, Longitudinal IPA or Reflexive thematic analysis, shown and never
+changed (31 October 2026), with a longitudinal project's Timepoints straight under it (see Timepoints), PET labels,
+A B C or 1 2 3, the same
 choice as under Export on the PETs screen and saved at once the same way, Timecodes, Interviewer name (17 November
 2026, from Settings: which speaker is the interviewer is the project's data, the speaker whose turns are context in
 every transcript of the project, its rounds, quotes, imports and exports reading it there; a project with none of
@@ -4459,7 +4467,8 @@ its own shows and reads the name the app's settings held, and Save writes it to 
 changed), its root folder with
 Remove from Idiograph beside it, then under Experiential statements its Statement length, under GETs its GETs
 rules (see GETs), and with AI features on the privacy tick, Write a guide for AI agents and Add Idiograph to
-Claude Desktop. A thematic analysis project's sheet has no PET labels, timepoints, statement length or GETs. A
+Claude Desktop. A thematic analysis project's sheet has no PET labels, timepoints, statement length or GETs, and an
+IPA project's no timepoints. A
 long folder path runs onto the next line only after a slash, never inside a
 folder's name, unless that one name is wider than the line. A demo's sheet is read-only. Save writes the name,
 the question, the tick and GETs' rules when they changed, each to its own file, and PET labels, timecodes,
@@ -4580,28 +4589,35 @@ opens on Home.
 a shared copy alone, and Demo projects under it stands open with the two demos' cards. Open project there takes a folder through the Mac's dialog,
 or off a Mac a field for the folder's path, and the project added opens on its page.
 
-**New project.** Under the project cards on Idiograph's Home, New project opens a card that makes a
-project from a folder and its transcripts. Choose takes the folder through the Mac's dialog, or its
-path is typed, and it is refused as Open project refuses one. Name and Research question take what a project file
-there already says, and either can be left. The transcripts are dropped anywhere on the card or
+**New project.** Under the project cards on Idiograph's Home, New project opens a card that sets up a project and
+nothing more (17 November 2026, Adam's two steps): Choose takes the folder through the Mac's dialog, or its path is
+typed, and it is refused as Open project refuses one. Name and Research question take what a project file there
+already says, and either can be left. Method is IPA, Longitudinal IPA or RTA, and Longitudinal IPA asks for its
+timepoints under it, T1 to start, plus for more, each a label and a description, the rows Project settings has.
+Create project makes the project and opens its page, where Add transcripts brings in its transcripts (see Add
+transcripts). The method is the project's for good.
+
+Add transcripts' card takes the transcripts, dropped anywhere on the card or
 picked with Choose files, in any shape make a workbook reads, and each is a row: its first passages,
 its speakers each with a chooser, Interviewer, Participant or Other speaker, as on the import card
 (since 20 October, in place of one Interviewer chooser), the participant's number, preset from the folder's next free
 number, the pseudonym, always typed, and the interview's name, guessed from the file's name or
 Interview. Files under one pseudonym are one participant with an interview each, as GRAVITY's Initial and
-2d. Create project checks every row and refuses in one line naming what to fix, then writes each participant as
+2d. Add checks every row and refuses in one line naming what to fix, then writes each participant as
 `P<n> - Pseudonym`: a copy of each file in `Source/<interview>/`, the original untouched, the raw
 source `Source/P<n> Pseudonym - transcript.xlsx` with a sheet an interview, the interviewer's passages
 under Settings' name, every participant's under the pseudonym, and another speaker's under Other
 speaker, Other speaker 2 for a second, marked as the import card marks them, so no name from the
-recording's labels reaches the workbook, and the annotated workbook,
-before the folder joins the projects and its page opens. A failure takes away what it wrote. A
+recording's labels reaches the workbook, and the annotated workbook. A failure takes away what it wrote. A
 folder with a second part after the pseudonym, as GRAVITY's, still opens and shows by its pseudonym
 alone, but New project and Add transcripts make none.
 
-**Method** (31 October 2026, drawn for review and not yet released). Under Research question, Method is a choice of
-two, IPA, chosen as the card opens, or Thematic analysis. It is the project's for good: Project settings shows it
-and never changes it, and a folder whose project file names one already shows that one, fixed. A thematic analysis
+**Method** (31 October 2026; three since 17 November 2026). Under Research question, Method is a choice of three,
+IPA, chosen as the card opens, Longitudinal IPA, or RTA, reflexive thematic analysis. It is the project's for good:
+no client switches it afterwards, not IPA to Longitudinal IPA and not to or from RTA ("If you want an IPA project,
+make an IPA project"). Project settings shows it as text, and a folder whose project file names one already shows
+that one, fixed. A project from before with two or more timepoints is a longitudinal one, read so without its file
+being written. A thematic analysis
 project shows its screens in Braun and Clarke's words, Codes for Experiential statements, an extract for a quote,
 Notes for exploratory notes, and Themes for GETs, its board the thematic map of every participant's codes, each
 participant's codes waiting under Codes in the Participants panel. It has no PETs, no timepoints and no
@@ -4718,9 +4734,10 @@ table.docx", never over a file there, and its author is the name in Settings, Ge
 On a desk's width the card's Folder and Name fields start at one left edge and run to its right, where
 the folder's started further left (17 October, later).
 
-**Add transcripts.** Under the rows on each project's page, quiet, Add transcripts opens the same
-card with the project's name over it and no folder, name or question to set. A file under a new
-pseudonym makes a participant at the next free number as Create project does, and one under the pseudonym
+**Add transcripts.** Under the rows on each project's page, quiet, or where the participants will stand in a
+project with none yet, Add transcripts opens the card with the project's name over it and no folder, name or
+question to set (see New project for its rows). A file under a new
+pseudonym makes a participant at the next free number, and one under the pseudonym
 of a participant already there is a further interview of it, its row reading "A further interview of P1
 Ada", its copy in `Source/<interview>/` and its sheet added at the end of the raw source and of the
 annotated workbook, a copy of the workbook kept in the participant's `_Archive/` first and every sheet
@@ -4728,12 +4745,12 @@ already there unchanged.
 
 **Names replaced as a transcript comes in** (8 November 2026). A project can keep a list of real names and
 what each is written as, and every transcript that comes into the project has them replaced on its way in,
-so no workbook holds a real name. Each row of New project and Add transcripts has a Real name beside its
+so no workbook holds a real name. Each row of Add transcripts has a Real name beside its
 Pseudonym: the name typed there, and its first word when it has two, is replaced by the pseudonym in that
 participant's transcript, and joins the list. The row's preview shows each name found in bold, and the Names
 line under the row's fields counts them, "Carlos 3, Hope 1 and hope in lower case 3 found." Nothing is replaced
 on the way in until you have seen it (17 November 2026): when a file holds a name from the list, the card's
-button reads Add… (Create project… on New project) and opens the review over the card, every find in its whole
+button reads Add… and opens the review over the card, every find in its whole
 sentence with the participant, timepoint and time (or the passage's number where the file has no times) and a
 tick. Untick one and it stays as it is written, as "Will" in "Will you tell me" should. Back keeps your ticks,
 and Replace 4 ticked and add replaces the ticked finds and adds the transcripts. A speaker's name is one row,
@@ -5032,25 +5049,27 @@ alone, the one you are going with, and the PET drafts and tables of that board o
 behind. `--boards all`, as before, sends every board.
 
 **Timepoints.** A longitudinal study (Farr and Nizza 2019) interviews each participant more than once,
-before the season, at midsummer and after the harvest, say. In Project settings, after PET labels,
-Timepoints says how many times each participant was interviewed, 1 by default, set with its minus and
-plus. With 1 nothing longitudinal shows anywhere and the app is as it always was. With two or more,
-a row each holds its label, T1, T2, T3 to start, his to rename, and its description, Before the
-season. The number saves at once, and a label or a description once it is left. Lowering the number
+before the season, at midsummer and after the harvest, say. It is a Longitudinal IPA project, chosen on New project
+with its timepoints (17 November 2026); an IPA or a thematic analysis project has none. In Project settings, straight
+under Method, Timepoints says how many times each participant was interviewed, set with its minus and plus, the
+number rising for a later round of interviews, and a row each holds its label, T1, T2, T3 to start, his to rename,
+and its description, Before the season. A longitudinal project of one timepoint is longitudinal still. The number
+saves at once, and a label or a description once it is left. Lowering the number
 while a timepoint that would go holds an interview is refused under the rows, "T3 holds interviews
 of Wren, so the timepoints stay at 3.", and nothing changes. The project file keeps them as
-`timepoints`, only with two or more.
+`timepoints`, its `method` "lipa".
 
 A participant is one workbook at every timepoint, never a workbook an interview. Each timepoint is a set of
 the participant's sheets: an interview in two parts is two sheets of one timepoint, as it always was,
-and an interview at T2 months later is new sheets at the end of the same workbook. With two or more
-timepoints:
+and an interview at T2 months later is new sheets at the end of the same workbook. In a longitudinal project:
 
 - each row on the project's page shows the participant's name over a cell a timepoint, its label in
   bold and its description, then where it stands: the passages decided of the passages there,
   Statements complete, or Not interviewed in a dashed cell that opens nothing. PETs follows them as
-  before. A cell opens Experiential statements at that timepoint. On a phone the cells stack.
-- New project's and Add transcripts' rows each have a Timepoint chooser. A row under a participant
+  before, then LPETs, opening the participant's LPETs, its line the Current board's name and "LPETs complete" once
+  marked, or "No LPETs yet" (17 November 2026). A cell opens Experiential statements at that timepoint. Below 900
+  pixels a timepoint takes a column, PETs and LPETs on the row under them.
+- Add transcripts' rows each have a Timepoint chooser. A row under a participant
   there already starts at the first timepoint they have no interview at.
 - the import card has a Timepoint chooser, starting at the first timepoint the participant has no
   interview at. With a workbook there already the line under it says where the transcript goes,

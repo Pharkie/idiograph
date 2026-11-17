@@ -355,6 +355,7 @@ def test_gets_edit(scratch):
                                                   "research_question": "How do newcomers find their voice in a choir?",
                                                   "files": [row("hale-one.txt", HALE, "Hale", "Autumn")]})
         root2 = made2["project"]["id"]
+        support.make_lipa(root2)  # only a longitudinal project takes timepoints (projectbuild)
         idiograph_routes.api_project({"root": root2, "timepoints": TWO})
         idiograph_routes.api_add_transcripts({"op": "add", "root": root2, "files": [
             row("hale-two.txt", HALE_T2, "Hale", "Spring", timepoint=2)]})

@@ -715,8 +715,9 @@ def read_project(root: Path) -> dict:
     PETs, "letters", the book's A, A1, A1.1, unless the file says "numbers" (see `pet_labels_for`).
     `timecodes` is how every timecode of the project is written, 75:12, 1:15:12 or 01:15:12, 1:15:12
     unless the file says otherwise (see `workbook.timecode`).
-    `method` (tadraw, 31 October 2026) is the project's method, "ipa" or "ta", chosen on New project and fixed
-    after, a file with none IPA's (see `method_of`).
+    `method` (tadraw, 31 October 2026) is the project's method, "ipa", "lipa" or "ta", chosen on New project and
+    fixed after, a file with none IPA's, or longitudinal IPA's where it sets two or more timepoints (see
+    `method_of`).
     A `second_part` key a file from before 9 October holds is passed over.
     """
     if root is None:
@@ -754,28 +755,41 @@ def read_project(root: Path) -> dict:
 
 # ------------------------------------------------------------ the method
 
-# A project's method (tadraw, 31 October 2026, Adam's choices of 28 October): IPA or thematic analysis, chosen on
-# New project and fixed after, since the two hold different things. The project file's `method`, "ipa" or "ta",
-# written as the project is made, a file with none an IPA project's.
+# A project's method (tadraw, 31 October 2026, Adam's choices of 28 October; projectbuild, his rulings of 17 November
+# 2026): IPA, longitudinal IPA or (reflexive) thematic analysis, chosen on New project and fixed after, since each
+# holds different things. The project file's `method`, "ipa", "lipa" or "ta", written as the project is made. A file
+# with none, or with "ipa", that sets two or more timepoints is a longitudinal project from before the method was
+# its own, and reads as "lipa" with nothing written: opening a project writes nothing, and other clients read his
+# projects. The tag on Home and the project's page, the row of work across participants and the agents' reads all
+# come from this one value. The words a screen speaks in are i18n's methods, a "lipa" project's IPA's.
+KINDS = ("ipa", "lipa", "ta")
 
 
 def method_of(data: dict) -> str:
-    """The project's method as its file holds it, "ipa" or "ta", IPA's for a file with none or with anything
-    else."""
-    return i18n.method_of((data or {}).get("method") if isinstance(data, dict) else None)
+    """The project's method as its file holds it, "ipa", "lipa" or "ta": "ta" and "lipa" as written, and a file
+    with none, with "ipa" or with anything else IPA's, or "lipa" where it sets two or more timepoints."""
+    data = data if isinstance(data, dict) else {}
+    said = str(data.get("method") or "").strip().lower()
+    if said in ("ta", "lipa"):
+        return said
+    held = data.get("timepoints")
+    return "lipa" if isinstance(held, list) and len(held) >= 2 else "ipa"
 
 
 def method_asked(given) -> str:
     """A method as New project or `project new` gives it, "ipa" for none, or refused in one line naming the
-    two."""
+    three."""
     text = str(given or "").strip().lower()
-    if text and text not in i18n.METHODS:
-        raise WorkbookError(i18n.t("method.refused_two"))
+    if text and text not in KINDS:
+        raise WorkbookError(i18n.t("method.refused_three"))
     return text or i18n.BASE_METHOD
 
 
 def method_name(method: str) -> str:
-    """A method's name as a line says it, "Interpretative phenomenological analysis" or "Thematic analysis"."""
+    """A method's name as a line says it: "Interpretative Phenomenological Analysis", "Longitudinal Interpretative
+    Phenomenological Analysis" or "Reflexive thematic analysis"."""
+    if method == "lipa":
+        return i18n.t("method.name_lipa")
     return i18n.t("method.name_ta") if i18n.method_of(method) == "ta" else i18n.t("method.name_ipa")
 
 
@@ -1131,9 +1145,11 @@ def write_rounds(root: Path, given: dict, dry_run: bool = False) -> dict:
 # A longitudinal study (Farr and Nizza 2019, Adam's ruling of 20 October): the project says how many
 # timepoints its data was collected at, each with a label, T1 large where room is short, and a
 # description, Before the season, beside it where there is room. `timepoints` in the project file, a
-# list in order, is written only with two or more, so a project of one carries nothing new and the
-# app is as it was. A timepoint is known by its place, never its label, and a participant's sheets
-# are placed at one in the progress file beside the workbook (see `rounds.sheet_timepoints`).
+# list in order, is a longitudinal IPA project's alone (projectbuild, 17 November 2026: the method is chosen on New
+# project), kept even at one timepoint, so a longitudinal project of one is longitudinal still and later rounds of
+# interviews are added by raising the count; an IPA or a thematic analysis project has none. A timepoint is known by
+# its place, never its label, and a participant's sheets are placed at one in the progress file beside the workbook
+# (see `rounds.sheet_timepoints`).
 TP_MAX = 10
 TP_LABEL_MAX = 12
 TP_DESCRIPTION_MAX = 60
@@ -1144,9 +1160,19 @@ def tp_label(n: int) -> str:
     return f"T{n}"
 
 
+class Timepoints(list):
+    """A project's timepoints, a list as every reader takes it, which knows whether its project is longitudinal
+    (`lipa`), so a longitudinal project of one timepoint is one (see `longitudinal`)."""
+
+    def __init__(self, items=(), lipa: bool = False):
+        super().__init__(items)
+        self.lipa = bool(lipa)
+
+
 def timepoints_of(data: dict) -> list[dict]:
     """The project's timepoints as the page and the API read them, each `{"n", "label",
-    "description"}`, always at least one, T1 with no description for a file with none."""
+    "description"}`, always at least one, T1 with no description for a file with none, as `Timepoints`
+    that know whether the project is a longitudinal one (see `method_of`)."""
     held = data.get("timepoints") if isinstance(data, dict) else None
     held = held if isinstance(held, list) else []
     out = []
@@ -1154,11 +1180,15 @@ def timepoints_of(data: dict) -> list[dict]:
         entry = entry if isinstance(entry, dict) else {}
         out.append({"n": i, "label": " ".join(str(entry.get("label") or "").split())[:TP_LABEL_MAX] or tp_label(i),
                     "description": " ".join(str(entry.get("description") or "").split())[:TP_DESCRIPTION_MAX]})
-    return out or [{"n": 1, "label": tp_label(1), "description": ""}]
+    return Timepoints(out or [{"n": 1, "label": tp_label(1), "description": ""}], lipa=method_of(data) == "lipa")
 
 
 def longitudinal(timepoints) -> bool:
-    """Whether a project's timepoints are two or more, the one test every longitudinal part takes."""
+    """Whether a project is a longitudinal one, the one test every longitudinal part takes: its timepoints'
+    own word as `timepoints_of` reads them (a longitudinal project of one timepoint is one), and for a list from
+    anywhere else two or more."""
+    if isinstance(timepoints, Timepoints):
+        return timepoints.lipa
     return isinstance(timepoints, list) and len(timepoints) >= 2
 
 
@@ -1222,19 +1252,29 @@ def timepoint_holders(root: Path, keep: int) -> dict[str, list[int]]:
 
 def write_timepoints(root: Path, given, dry_run: bool = False, who: dict | None = None) -> dict:
     """The project's timepoints saved in the project file at this root, every other key kept as it
-    was, the key taken away for one timepoint. Lowering the number is refused while a timepoint that
-    would go holds data, naming the participants who hold it. With `dry_run` nothing is written.
+    was, a longitudinal project's alone: an IPA or a thematic analysis project's is refused in one line with
+    nothing written (projectbuild, 17 November 2026), and the file names its method, "lipa", with them, so a
+    project from before that read as one by its count stays one at a single timepoint. Lowering the number is
+    refused while a timepoint that would go holds data, naming the participants who hold it. With `dry_run`
+    nothing is written.
     Answers the project, as it is or would be, and `changes`, a line each, kept in the project's History,
     `who` asking (see `project_history`), the caller holding the project's lock."""
     if root is None or not Path(root).is_dir():
         raise WorkbookError(i18n.t("server.project_folder_project_could_saved"))
     root = Path(root)
-    wanted = clean_timepoints(given)
     data = project_file(root)
-    # a thematic analysis project has no timepoints yet (tadraw, Adam's choice 2 of 28 October)
-    if longitudinal(wanted) and method_of(data) == "ta":
+    # a thematic analysis project has no timepoints (tadraw, Adam's choice 2 of 28 October), nor an IPA project, the
+    # method fixed at New project (projectbuild)
+    if method_of(data) == "ta":
         raise WorkbookError(i18n.t("method.refused_timepoints"))
+    if method_of(data) != "lipa":
+        raise WorkbookError(i18n.t("method.refused_timepoints_ipa"))
     was = timepoints_of(data)
+    # a number keeps the timepoints there, each with its label and description, and names the ones it adds T<n>,
+    # since a longitudinal project keeps its timepoints at one too (projectbuild)
+    if isinstance(given, int) and not isinstance(given, bool) and given >= 1:
+        given = [{"label": t["label"], "description": t["description"]} for t in was[:given]] + [{} for _ in range(given - len(was))]
+    wanted = Timepoints(clean_timepoints(given), lipa=True)
     if len(wanted) < len(was):
         holders = timepoint_holders(root, len(wanted))
         if holders:
@@ -1249,15 +1289,12 @@ def write_timepoints(root: Path, given, dry_run: bool = False, who: dict | None 
         before = was[tp["n"] - 1] if tp["n"] <= len(was) else None
         said = f"{tp['label']}{', ' + tp['description'] if tp['description'] else ''}"
         if before is None:
-            if longitudinal(wanted):
-                changes.append(f"Timepoint {tp['n']} added, {said}.")
-        elif (before["label"], before["description"]) != (tp["label"], tp["description"]) and longitudinal(wanted):
+            changes.append(f"Timepoint {tp['n']} added, {said}.")
+        elif (before["label"], before["description"]) != (tp["label"], tp["description"]):
             changes.append(f"Timepoint {tp['n']} now {said}.")
     if not dry_run and changes:
-        if longitudinal(wanted):
-            data["timepoints"] = [{"label": tp["label"], "description": tp["description"]} for tp in wanted]
-        else:
-            data.pop("timepoints", None)
+        data["timepoints"] = [{"label": tp["label"], "description": tp["description"]} for tp in wanted]
+        data["method"] = "lipa"
         srv.save_json(root / srv.PROJECT_FILE, data)
         hist_mod.record(root, "timepoints", changes, who)
     project = read_project(root)
@@ -2248,6 +2285,8 @@ def card_of(case: str, rows: list[dict], cfg: dict, held: dict, recent: list[dic
     tps = card_timepoints(path, interviewer_for(path))
     if tps is not None:
         card["timepoints"] = tps
+        # and their LPETs, a half of the row after PETs (projectbuild)
+        card["lpets"] = lpets_head(path)
     return card
 
 
@@ -2422,7 +2461,7 @@ def api_project(body: dict) -> dict:
               or any(k in body for k in ROUNDS_KEYS))
     root = asked_root(body, write=writes or "method" in body)
     if "method" in body and root is not None and method_asked(body.get("method")) != method_of(project_file(root)):
-        raise WorkbookError(i18n.t("method.refused_fixed", method=method_name(method_of(project_file(root)))))
+        raise WorkbookError(i18n.t("method.refused_fixed", {"method": method_name(method_of(project_file(root)))}))
     if not writes:
         return {"project": read_project(root)}
     if srv.is_demo_root(root):
@@ -3470,7 +3509,7 @@ def boards_in(root: Path, file: Path, from_name: str = "", participants=None, bo
                     (themes_mod.origin_of(b.get(themes_mod.ORIGIN)) for b in themes_mod.boards_of(data)) if o}
             sent = prints.get(label) or {}
             mine = his_places(sent_places_of(back, label), data)
-            row = {"case": p["label"], "timepoint": n, "timepoint_label": tps[n - 1]["label"] if len(tps) > 1 else "",
+            row = {"case": p["label"], "timepoint": n, "timepoint_label": tps[n - 1]["label"] if longitudinal(tps) else "",
                    "boards": [], "already": [], "as_sent": [], "book": book, "data": data, "read": read}
             for b in [b for e, b in held_all if e is entry]:
                 old = " ".join(str(b.get("name") or "").split()) or themes_mod.FIRST_NAME
@@ -3876,7 +3915,7 @@ def read_entry(entry: dict) -> tuple[str, bytes, dict]:
 
 
 def new_cases(root: Path, body: dict, as_name: str, standing: dict | None = None, reader=None,
-              run: "names_mod.Run | None" = None) -> list[dict]:
+              run: "names_mod.Run | None" = None, timepoints: list | None = None) -> list[dict]:
     """Every case New project's files make, in the order each pseudonym first comes, once every file
     has been read and nothing refuses them, each folder `P<n> - Pseudonym`. Each refusal is one line
     naming what to fix: a file that cannot be read, a missing pseudonym or one that is not one
@@ -3900,8 +3939,9 @@ def new_cases(root: Path, body: dict, as_name: str, standing: dict | None = None
     files = [f for f in (body.get("files") if isinstance(body.get("files"), list) else []) if isinstance(f, dict)]
     if not files:
         raise WorkbookError(i18n.t("server.drop_transcript_first"))
-    # each file's timepoint, in a project of two or more, the sheets it makes placed there
-    tps = timepoints_of(project_file(root))
+    # each file's timepoint, in a longitudinal project, the sheets it makes placed there: the project's, or those of
+    # a project being made (`timepoints`, projectbuild)
+    tps = timepoints if timepoints is not None else timepoints_of(project_file(root))
     cases: dict[str, dict] = {}
     for entry in files:
         name, data, read = (reader or read_entry)(entry)
@@ -4118,40 +4158,44 @@ def make_project(body: dict) -> dict:
     away what this Make wrote and says one line. The answer is every project afterwards, the one made
     and its cases by label.
 
-    `qdpx`, from the import card (21 October), is a project from ATLAS.ti, NVivo or MAXQDA the card
-    holds, its `held` key and the choices `qdpx_import` takes, brought in once the project file is
-    written, `files` then optional. Its refusals come before anything is written.
-
     With `dry_run` (26 October, for the agents' `project new`) every check is made and nothing is
     written: the answer is the folder, the name and question its project file would hold, and each case
     it would make, its label, its interviews and each speaker's role.
 
-    `method` (tadraw, 31 October 2026), "ipa", the default, or "ta", is written in the project file as it is
-    made and fixed after. A folder whose project file is there already keeps the method it holds, IPA's for
-    none, taken when none is asked, and a different one asked is refused before anything is written."""
+    `method` (tadraw, 31 October 2026), "ipa", the default, "lipa" or "ta" (projectbuild, 17 November 2026), is
+    written in the project file as it is made and fixed after. A folder whose project file is there already keeps
+    the method it holds, IPA's for none, taken when none is asked, and a different one asked is refused before
+    anything is written. A longitudinal project's `timepoints`, a list of `{"label", "description"}` or a number,
+    T1 alone when none are given, are written with it; timepoints for an IPA or a thematic analysis project, or for
+    a folder whose project file is there already, are refused in one line with nothing written.
+
+    New project is two steps (projectbuild): the page's card makes the project alone, with no `files`, and its page
+    then offers Add transcripts. `files` stays for the agents' `project new`, which may give transcripts too."""
     root = project_folder(body.get("folder"), srv.merge_config(srv.saved_config()))
     there = (root / srv.PROJECT_FILE).exists()
     # none asked is IPA, or the method a project file there holds
     method = (method_of(project_file(root)) if there and not str(body.get("method") or "").strip()
               else method_asked(body.get("method")))
     if there and method != method_of(project_file(root)):
-        raise WorkbookError(i18n.t("method.refused_fixed", method=method_name(method_of(project_file(root)))))
-    # the new project's own interviewer (viewfix, the review's L3): the one asked, else the project file's where
-    # there is one, else the speaker the files' rows mark as the interviewer, written into the new project's file.
-    # Kept small: projectbuild takes New project's transcripts to Add transcripts, which does the same
+        raise WorkbookError(i18n.t("method.refused_fixed", {"method": method_name(method_of(project_file(root)))}))
+    # a longitudinal project's timepoints, T1 when none are given, checked before anything is written (projectbuild)
+    asked_tps = body.get("timepoints")
+    if asked_tps not in (None, [], 0) and method != "lipa":
+        raise WorkbookError(i18n.t("method.refused_timepoints") if method == "ta" else i18n.t("method.refused_timepoints_ipa"))
+    if asked_tps not in (None, [], 0) and there:
+        raise WorkbookError(i18n.t("method.refused_timepoints_there"))
+    tps_new = (Timepoints(clean_timepoints(asked_tps if asked_tps not in (None, [], 0) else 1), lipa=True)
+               if method == "lipa" and not there else None)
+    # the new project's own interviewer (viewfix): the one asked, else the project file's, else the files' rows
     as_name = made_interviewer(root, body, there)
-    qdpx = body.get("qdpx") if isinstance(body.get("qdpx"), dict) else None
-    q_path = qdpx_held(qdpx.get("held")) if qdpx else None
     run = pseudo_run(root, body)
-    cases = new_cases(root, body, as_name, run=run) if body.get("files") or not qdpx else []
-    if qdpx:
-        held_back = qdpx_import(root, q_path, qdpx)["said"]
-        if held_back:
-            raise WorkbookError(held_back)
+    # a project made with no transcripts, New project's first step, makes no participant (projectbuild)
+    cases = new_cases(root, body, as_name, run=run, timepoints=tps_new) if body.get("files") else []
     if body.get("dry_run") is True:
         return {"dry_run": True, "folder": str(root),
                 "name": str(body.get("name") or "").strip() or srv.display_case(root.name),
                 "research_question": str(body.get("research_question") or "").strip(), "method": method,
+                **({"timepoints": tps_new} if tps_new is not None else {}),
                 "cases": [{"label": c["label"], "interviews": [{"interview": i["interview"], "file": i["name"],
                                                                 "speakers": i["roles"], "timepoint": i["timepoint"],
                                                                 "passages": len(i["read"]["turns"]),
@@ -4178,21 +4222,17 @@ def make_project(body: dict) -> dict:
                 # and Work in rounds off (viewfix)
                 data["nudges"] = []
                 data["work_in_rounds"] = False
+                if tps_new is not None:
+                    data["timepoints"] = [{"label": tp["label"], "description": tp["description"]} for tp in tps_new]
             if not str(data.get("interviewer") or "").strip() and as_name != convert_mod.INTERVIEWER:
                 data["interviewer"] = as_name
             srv.save_json(target, data)
-        if qdpx:
-            brought = qdpx_import(root, q_path, qdpx, make=True)
-            made += [root / p["label"] for p in brought["participants"] if not p["joins"]]
-            labels += brought["made"]
         added = add_project(root)
     except Exception as exc:
         unmake(root, made, project_was, lock_was)
         if isinstance(exc, WorkbookError):
             raise
         raise WorkbookError(i18n.t("server.idiograph_could_write_participants_folders")) from None
-    if qdpx:
-        qdpx_let_go(qdpx.get("held"))
     # a Real name typed on a row joins the project's list, in its folder (namesui)
     with writing(root=root):
         pseudo_keep(root, run, body)
@@ -6445,8 +6485,7 @@ def api_qdpx(body: dict) -> dict:
     `qdpx_import` takes. An agent names `root`, the project's id, and `path`, the .qdpx under the
     project's folder. The import card on New project and Add transcripts sends the file itself
     once, its `name` and its `data` in base64, and then the key its first read answered as `held`,
-    with `root` in Add, or `folder` in New project once one is chosen (see `qdpx_card_root`). The
-    card's make is Add's; New project's goes through its own make with `qdpx` (see `make_project`)."""
+    with `root` in Add (see `qdpx_card_root`). The card's make is Add's."""
     op = str(body.get("op") or "read")
     if op not in ("read", "make"):
         raise WorkbookError(i18n.t("server.op_read_make"))
@@ -6533,12 +6572,10 @@ def qdpx_let_all_go() -> None:
 
 
 def qdpx_card_root(body: dict, path: Path) -> Path:
-    """The project a card's read is for: Add's by its id, New project's folder once one is chosen,
-    else the held copy's own folder, a root of no participants and one timepoint."""
+    """The project a card's read is for: Add's by its id, else the held copy's own folder, a root of no
+    participants and one timepoint."""
     if body.get("root"):
         return add_root(body)
-    if str(body.get("folder") or "").strip():
-        return project_folder(body["folder"], srv.merge_config(srv.saved_config()))
     return path.parent
 
 
@@ -9390,16 +9427,21 @@ def gets_head(root: Path | None, rows: list[dict] | None = None) -> dict | None:
     if root is None:
         return None
     if LGETS_FOR.get() is None and longitudinal(root_timepoints(root)):
-        # a project of two or more timepoints answers its LGETs (21 October)
+        # a longitudinal project answers its LGETs (21 October), and its Trajectories board's tile beside them
+        # (projectbuild, 17 November 2026)
         with board_scope(root):
             head = gets_head(root, rows)
-        return dict(head, lgets=True) if head else head
+        return dict(head, lgets=True, method="lipa", trajectories=traj_head(root)) if head else head
     try:
         books = gets_books(root, rows)
     except OSError:
         return None
     if not books:
         return None
+    # the row of work across participants at the top of the project's page (projectbuild): the method it is drawn
+    # for, and a thematic analysis project's code list beside its Themes
+    method = method_of(project_file(root))
+    more = {"method": method, **({"codes": codes_head(root)} if method == "ta" else {})}
     first = sorted(books, key=lambda b: gets_mod.case_order(b["case"]))[0]
     # for the home screen's wide card: `held`, the cases of the study the GETs file holds, `board`,
     # the name of its Current board or None, and `boards`, how many boards it has
@@ -9417,7 +9459,52 @@ def gets_head(root: Path | None, rows: list[dict] | None = None) -> dict | None:
     return dict(gets_mod.summary_of(root, books), path=srv.rel_path(first["workbook"]),
                 name=read_project(root)["name"],
                 held=sum(1 for b in books if study[b["case"]]["in"] and b["case"] in kept),
-                board=board or None, boards=len(gets_mod.boards_of(data)), themes=len(tops))
+                board=board or None, boards=len(gets_mod.boards_of(data)), themes=len(tops), **more)
+
+
+def traj_head(root: Path) -> dict:
+    """A longitudinal project's Trajectories tile on its page (projectbuild, 17 November 2026): `trajectories`, how
+    many the board has, `placed`, the participants placed in one, and `participants`, how many there are. Only reads,
+    and a board that cannot be read counts none."""
+    try:
+        data = traj_mod.load(root) or {}
+    except WorkbookError:
+        data = {}
+    token = LGETS_FOR.set(None)
+    try:
+        cases = [b["case"] for b in gets_books(root)]
+    except OSError:
+        cases = []
+    finally:
+        LGETS_FOR.reset(token)
+    placed = data.get("placed") or {}
+    return {"trajectories": len(data.get("columns") or []), "participants": len(cases),
+            "placed": sum(1 for c in cases if (placed.get(c) or {}).get("column"))}
+
+
+def codes_head(root: Path) -> dict:
+    """A thematic analysis project's Code list tile on its page (projectbuild): `codes`, how many the list holds, none
+    for a list not made yet or one that cannot be read. Only reads."""
+    try:
+        data = codes_mod.load(root) or {}
+    except WorkbookError:
+        data = {}
+    return {"codes": len(data.get("codes") or [])}
+
+
+def lpets_head(path: Path) -> dict:
+    """A participant's LPETs on their row of a longitudinal project's page (projectbuild, 17 November 2026), as the
+    PETs half's line reads its boards: `boards`, how many their LPETs file holds, `board`, the Current board's name or
+    None, and `complete`, the LPETs marked complete or None. Only reads, and a file that cannot be read holds none."""
+    file = gets_mod.lpets_path(path)
+    try:
+        data = json.loads(file.read_text(encoding="utf-8")) if file.exists() else None
+    except (OSError, ValueError):
+        data = None
+    data = data if isinstance(data, dict) else None
+    chosen = themes_mod.chosen_of(data)
+    board = " ".join(str((themes_mod.find_version(data, chosen) or {}).get("name") or "").split()) if chosen else ""
+    return {"boards": len(gets_mod.boards_of(data)), "board": board or None, "complete": themes_mod.complete_of(data)}
 
 
 def lpet_pills(root: Path, groups: list) -> dict:

@@ -261,7 +261,6 @@ def test_new_project(scratch):
         other.mkdir()
         one = lambda *rows, **more: dict({"op": "make", "folder": str(other), "name": "Hens two", "files": files_for(*rows)}, **more)
         said = {
-            "none": refusal(other, {"op": "make", "folder": str(other), "files": []}),
             "nameless": refusal(other, one(("walk notes.txt", "", "Sam", {}))),
             "lower": refusal(other, one(("walk notes.txt", "ash", "Sam", {}))),
             "two words": refusal(other, one(("walk notes.txt", "Ash Tree", "Sam", {}))),
@@ -299,7 +298,6 @@ def test_new_project(scratch):
         said["one run"] = refusal(other, one(("walk notes.txt", "Ash", "Sam", {})))
         server_mod.ROOT_OVERRIDE = None
         want = {
-            "none": "Drop a transcript first.",
             "nameless": "Give walk notes.txt a pseudonym.",
             "lower": "Make the pseudonym for walk notes.txt one capitalised word.",
             "two words": "Make the pseudonym for walk notes.txt one capitalised word.",
@@ -326,6 +324,13 @@ def test_new_project(scratch):
         check("102, 9 October: every refusal is one line naming what to fix, and writes nothing, in the folder or the "
               "settings, and a second part asks for nothing",
               said == want and "second part" not in " ".join(said.values()), str({k: v for k, v in said.items() if want.get(k) != v}))
+        # New project is two steps (projectbuild, 17 November 2026): a make with no transcripts makes the project alone
+        bare = base / "Hens bare"
+        bare.mkdir()
+        made_bare = idiograph_routes.api_new_project({"op": "make", "folder": str(bare), "name": "Hens bare", "files": []})
+        check("102: a make with no transcripts makes the project alone, no participant, as New project's card does",
+              made_bare["cases"] == [] and (bare / server_mod.PROJECT_FILE).exists()
+              and not [p for p in bare.iterdir() if p.is_dir()], str(made_bare.get("cases")))
         check("102: the next free number skips every P<n> folder there", idiograph_routes.next_number(other) == 7
               and idiograph_routes.api_new_project({"op": "folder", "path": str(other)})["next"] == 7)
 
@@ -416,7 +421,9 @@ def test_new_project(scratch):
     check("102: the page sends each file's contents, reads them through the route, and never fills a pseudonym",
           "readAsDataURL(file)" in fn("npBase64") and "op: 'read', name: row.file, data: row.data, columns" in fn("npRead")
           and "pseudonym" not in fn("npRead") and "pseudonym" not in fn("npAdd").split("pseudonym: '',", 1)[1]
-          and "op: 'make'" in fn("npMake") and "closeNewProject();" in fn("npMake") and "loadLibrary()" in fn("npMake")
+          and "op: 'make'" in fn("npCreate") and "closeNewProject();" in fn("npCreate") and "loadLibrary()" in fn("npCreate")
+          and "needsRestart(err) ? RESTART_LINE : err.message" in fn("npCreate")
+          and "closeNewProject();" in fn("npMake") and "loadLibrary()" in fn("npMake")
           and "needsRestart(err) ? RESTART_LINE : err.message" in fn("npMake"))
     np_code = js.split("/* New project (item 204)", 1)[1].split("/* ───", 1)[0] if "/* New project (item 204)" in js else ""
     check("102: no AI anywhere in it, on the page or the server",

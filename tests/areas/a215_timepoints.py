@@ -95,6 +95,7 @@ def test_timepoints(scratch):
         garden.mkdir()
         made = idiograph_routes.api_new_project({"op": "make", "folder": str(garden), "name": "Allotment year",
                                            "research_question": "How do newcomers make sense of a first year on a plot?",
+                                           "method": "lipa",
                                            "files": [row("before.txt", T1_TEXT, "Wren", "Before"),
                                                      row("tansy.txt", TANSY_TEXT, "Tansy", "Before")]})
         root_id = made["project"]["id"]
@@ -119,9 +120,11 @@ def test_timepoints(scratch):
         check("215: two timepoints with one label are refused, nothing saved",
               "both labelled" in twice and json.loads(gfile.read_text(encoding="utf-8")) == data, twice)
         one = idiograph_routes.api_project({"root": root_id, "timepoints": 1})
-        check("215: back to one timepoint, with no interview beyond T1, takes the key away and the file is as it was",
-              json.loads(gfile.read_text(encoding="utf-8")) == {k: v for k, v in data.items() if k != "timepoints"}
-              and len(one["project"]["timepoints"]) == 1, gfile.read_text(encoding="utf-8")[:200])
+        check("215: back to one timepoint, with no interview beyond T1, keeps T1 as it was and the project a "
+              "longitudinal one (projectbuild)",
+              json.loads(gfile.read_text(encoding="utf-8")) == dict(data, timepoints=THREE[:1])
+              and len(one["project"]["timepoints"]) == 1 and one["project"]["method"] == "lipa",
+              gfile.read_text(encoding="utf-8")[:200])
         idiograph_routes.api_project({"root": root_id, "timepoints": THREE})
         idiograph_routes.api_project({"root": root_id, "agents": True})
 

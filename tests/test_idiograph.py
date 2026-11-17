@@ -456,6 +456,7 @@ AREAS = {
     "a421_rta_demo": "idiograph",
     "a422_reflexivity": "idiograph",
     "a423_view_and_project_settings": "idiograph",
+    "a424_project_kind": "idiograph",
 }
 
 

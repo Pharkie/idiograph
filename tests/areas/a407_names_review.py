@@ -382,7 +382,7 @@ def test_names_review(scratch: Path):
               "[son] came on [day] with Joy. [mother] said I [son] stay." in lark_text
               and routes.pseudo_list(root)[3].get("unticked") is True, lark_text[:300])
 
-        # ── 15. New project with a REFI-QDA file, in a folder that holds a list already: the mark his review writes
+        # ── 15. Add transcripts with a REFI-QDA file, in a project made in a folder that holds a list already: the mark his review writes
         # stays, and an agent's replace then leaves that entry's finds (namesfix2 M1)
         hives = base / "Hives"
         hives.mkdir()
@@ -398,8 +398,9 @@ def test_names_review(scratch: Path):
         h_read = routes.qdpx_import(hives, base / "wren.qdpx", dict(hasks, names_preview=True, names_reviewed=True))
         joys = [f for f in h_read["names"]["finds"] if f["where"].get("part") == "words" and f["found"] == "Joy"]
         held_key = routes.qdpx_hold({"name": "wren.qdpx", "data": base64.b64encode(hpkg).decode("ascii")})
-        routes.make_project({"folder": str(hives), "name": "Hives", "files": [],
-                             "qdpx": dict(hasks, held=held_key, names_reviewed=True, skip=[pick(joys[1])])})
+        hives_made = routes.make_project({"folder": str(hives), "name": "Hives", "files": []})
+        routes.api_qdpx(dict(hasks, op="make", held=held_key, root=hives_made["project"]["id"], names_reviewed=True,
+                             skip=[pick(joys[1])]))
         hives_list = routes.pseudo_list(hives)
         wren_book = next(next(hives.glob("P* - Wren")).glob("*EN & ES.xlsx"))
         made_text = text_of(wren_book)

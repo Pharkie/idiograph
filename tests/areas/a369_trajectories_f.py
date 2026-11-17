@@ -98,6 +98,7 @@ def test_trajectories_f(scratch):
                                                  "files": [row("wren-before.txt", WREN_T1, "Wren", "Before"),
                                                            row("ash-before.txt", ASH_T1, "Ash", "Before")]})
         root_id = made["project"]["id"]
+        support.make_lipa(root_id)  # only a longitudinal project takes timepoints (projectbuild)
         idiograph_routes.api_project({"root": root_id, "timepoints": THREE})
         idiograph_routes.api_project({"root": root_id, "agents": True})
         idiograph_routes.api_add_transcripts({"op": "add", "root": root_id, "files": [

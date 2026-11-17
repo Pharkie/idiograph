@@ -30,9 +30,9 @@ decides that, with his ethics approval, by ticking Project settings, "Allow AI a
 project" in Idiograph for each project, and the command line refuses a project where it is not ticked. Read only what
 his request needs, and never copy a participant's words anywhere outside this project.
 
-Idiograph is a writing surface for Interpretative Phenomenological Analysis (IPA) and reflexive
-thematic analysis. A project is one or the other, chosen when it is made, and `project show` gives its
-method. In an IPA project a researcher writes experiential statements for each participant passage of a
+Idiograph is a writing surface for Interpretative Phenomenological Analysis (IPA), longitudinal IPA and reflexive
+thematic analysis. A project is one of them, chosen when it is made, and `project show` gives its
+method, `ipa`, `lipa` or `ta`. In an IPA project a researcher writes experiential statements for each participant passage of a
 transcript, groups a participant's statements into personal experiential themes (PETs) on a canvas, and
 groups every participant's PETs into group experiential themes (GETs). A thematic analysis project's
 screens are Coding, where each extract gets its codes, Code list, and Themes, and the commands keep
@@ -752,8 +752,11 @@ each change only on his word.
 ## Timepoints
 
 A longitudinal study (Farr and Nizza 2019, 20 October) interviews each participant at several
-timepoints. The project says how many, each with a label, T1, and a description, Before the season.
-With one, the default, nothing longitudinal shows and every answer is as it always was. A participant
+timepoints. It is a longitudinal IPA project, `method` `lipa`, made so with `project new --method lipa` (17 November
+2026), and only it has timepoints, each with a label, T1, and a description, Before the season, one or more: a
+longitudinal project of one timepoint is longitudinal still, and a later round raises the count. An IPA or a
+thematic analysis project has none, and `timepoints --from` refuses it in one line with nothing written. A project
+from before whose file sets two or more timepoints and no method reads as `lipa`, its file unwritten. A participant
 is one participant at every timepoint, never a participant an interview: their interview at T2 is new sheets of
 the same workbook, placed at T2.
 
@@ -764,8 +767,9 @@ idiograph timepoints --from timepoints.json --note "his words" --tool "Claude Co
 idiograph import "P1 - Wren/Source/midsummer.txt" --timepoint T2 --dry-run
 ```
 
-`timepoints` reads them. With `--from`, a JSON list in order, `[{"label": "T1", "description":
-"Before the season"}, ...]`, or a number, it sets them as Project settings does. Lowering the number
+`timepoints` reads them, as `project show` does: in an IPA or a reflexive thematic analysis project it answers an empty list and a line saying the method has none. With `--from`, a JSON list in order, `[{"label": "T1", "description":
+"Before the season"}, ...]`, or a number, which keeps the labels there, it sets a longitudinal project's as Project
+settings does. Lowering the number
 is refused while a timepoint it would take away holds an interview, naming the participants, and
 nothing is written. `cases` answers the project's `timepoints` and, for each participant, theirs:
 `label`, `description`, `sheets`, `state` (`none` not interviewed, `progress` with `done` of
@@ -1446,6 +1450,7 @@ idiograph project set --rounds on --round-minutes 15 --rounds-a-day 3 --dry-run
 idiograph project show
 idiograph project new "/Users/him/Bees" --name "Keeping bees" --transcript "/Users/him/hive talk.txt" --pseudonym Rowan --dry-run
 idiograph project new "/Users/him/Walks" --name "Daily walks" --method ta --transcript "/Users/him/walk talk.txt" --pseudonym Wren --dry-run
+idiograph project new "/Users/him/Plots" --name "A first allotment" --method lipa --timepoint "T1=Before the season" --timepoint "T2=Midsummer" --dry-run
 idiograph participant rename Rowan Alder --folder --dry-run
 idiograph participant complete Alder --note "his words" --tool "Claude Code"
 idiograph participant complete Alder --reopen --dry-run
@@ -1482,8 +1487,9 @@ idiograph project remove --project "Keeping bees" --trash --note "his words" --t
 ```
 
 `project new` makes a folder of his, there already, a new project, as New project on Home does
-(`/api/new-project`): its project file with `--name` (the folder's own when left out) and `--question`,
-each `--transcript` a participant under the `--pseudonym` given in the same order, at the folder's next
+(`/api/new-project`): its project file with `--name` (the folder's own when left out), `--question` and `--method`,
+and, when transcripts are given (the app's New project takes none: its page's Add transcripts does), each
+`--transcript` a participant under the `--pseudonym` given in the same order, at T1 and the folder's next
 free number, `P1 - Rowan`, its file copied into `Source/<interview>/`, its raw source and its annotated
 workbook, then the folder added to Idiograph's projects. Two transcripts under one pseudonym are one
 participant's two interviews. `--interview` names each interview, guessed from the file's name when left
@@ -1497,13 +1503,16 @@ pseudonym that is not one capitalised word, each in the card's words. A failure 
 what it wrote. The dry run lists each participant, their interviews and each speaker's role. The new
 project is closed to agents until he ticks "Allow AI agents to read this project" for it.
 
-`--method` (31 October 2026, drawn for his review and not yet released) chooses the project's method, `ipa`,
-Interpretative Phenomenological Analysis, the default, or `ta`, thematic analysis, as the card's Method does,
-kept in the project file as `method` and fixed once the project is made: `project set --method` refuses
-another with nothing written, and a folder whose project file names one keeps it. A project file with no method
-is IPA's. `project show` reads the project's settings as Project settings shows them, its method among
-them, and `cases` answers `method` too. A thematic analysis project has no PETs and no timepoints yet
-(`timepoints` refuses two or more), its participants' statements serve as its codes, one quote each, and its
+`--method` (31 October 2026; three since 17 November 2026) chooses the project's method, `ipa`,
+Interpretative Phenomenological Analysis, the default, `lipa`, longitudinal IPA, or `ta`, reflexive thematic
+analysis, as the card's Method does, kept in the project file as `method` and fixed once the project is made: no
+client changes it, `project set --method` refusing another, IPA to `lipa` too, in one line with nothing written, and a
+folder whose project file names one keeps it. `--timepoint "T1=Before the season"`, given again for each one more,
+sets a `lipa` project's timepoints, T1 alone when left out, and is refused for `ipa` and `ta`. A project file with no
+method is IPA's, or `lipa`'s where it sets two or more timepoints. `project show` reads the project's settings as
+Project settings shows them, its method among them and a `lipa` project's `timepoints` beside it, and `cases`
+answers `method` too. A thematic analysis project has no PETs and no timepoints
+(`timepoints` refuses them), its participants' statements serve as its codes, one quote each, and its
 GETs board is its themes board, the screens saying codes, extracts, notes and themes. The command line, MCP
 and this guide keep the API's names, statements, PETs and GETs, whatever the method, but the server's own lines
 in a TA project are in TA's words (1 November 2026): its refusals, `gets export`'s PDF, "<project> - Board 1 -
@@ -1617,8 +1626,9 @@ list. Demographics can name someone in a small study: nothing leaves the project
 a write-up's counts without a row tying a pseudonym to an age.
 
 MCP's tools are `project_set` with `name`, `research_question`, `pet_labels`, `timecodes` and `method`, `project_new` with
-`folder`, `name`, `research_question`, `transcripts`, a list of `file`, `pseudonym`, `interview`, `sheet` and
-`columns`, and `speakers`, `participant_rename` with `case`, `name` and `folder`, `participant_complete` with `case`,
+`folder`, `name`, `research_question`, `method`, `timepoints`, a `lipa` project's as a list of `label` and
+`description`, `transcripts`, left out for a project with none yet, a list of `file`, `pseudonym`, `interview`, `sheet`
+and `columns`, and `speakers`, `participant_rename` with `case`, `name` and `folder`, `participant_complete` with `case`,
 `reopen` and `timepoint`, `participant_set` with `case`, `label`, `portrait`, `picture` ("" takes it off),
 `picture_file` and `values`, `participant_show` with `case`, every participant when left out, `demographics_show`,
 `demographics_apply` with `operations` and `demographics_move_tags`. The routes take `dry_run` too:

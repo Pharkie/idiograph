@@ -226,8 +226,6 @@ html.js .fp .find { display: block; }
 .tag-never { color: var(--ink-soft); border-color: var(--card-rule); background: var(--paper-sunk); }
 .tick { display: inline-block; width: 18px; height: 18px; color: var(--ink); flex: none; }
 
-.legend { margin: 36px 0 0; display: flex; flex-wrap: wrap; gap: 6px 22px; font: 400 14px/1.5 var(--sans); color: var(--ink-soft); align-items: center; }
-.legend span { display: inline-flex; align-items: center; gap: 6px; }
 
 .fp .list { margin: 28px 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 44px; align-items: start; }
 .fp .gcol { display: flex; flex-direction: column; gap: 40px; min-width: 0; }

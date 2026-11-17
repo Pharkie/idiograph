@@ -224,6 +224,23 @@ function homeMenuRows(items, where) {
     line: act === 'share' && !where.window ? SHARE_LINE : '' }));
 }
 
+/* A project's kind, from the one value its project file gives (projectbuild, Adam's rulings of 17 November 2026):
+   'ipa', 'lipa' (longitudinal IPA) or 'ta' (reflexive thematic analysis). A server from before `lipa` sends 'ipa'
+   for a longitudinal project, which its two or more timepoints say. The tag, the row of work across participants on
+   its page and its stages all come from this. */
+function projKind(p) {
+  if (!p) return 'ipa';
+  if (p.method === 'ta' || p.method === 'lipa') return p.method;
+  return Array.isArray(p.timepoints) && p.timepoints.length >= 2 ? 'lipa' : 'ipa';
+}
+
+/* the type tag's words, IPA, LIPA or RTA, each key named whole */
+function kindTag(kind) {
+  if (kind === 'lipa') return t('method.tag_lipa');
+  if (kind === 'ta') return t('method.tag_ta');
+  return t('method.tag_ipa');
+}
+
 function homeMenuHtml(items, where) {
   return projectMenuHtml(homeMenuRows(items, where));
 }
@@ -237,8 +254,11 @@ function homeCardHtml(c) {
   const items = homeMenuItems(c, where);
   // its dots and their menu, the family's (projectDotsHtml in shell.js), as Sift's and Trace's cards have them
   const dots = projectDotsHtml(c.name, homeMenuRows(items, where));
-  // each demo's own tag, IPA demo, Longitudinal IPA demo or RTA demo (demos)
-  const tags = (c.demo ? `<span class="tag demo">${esc(c.tag || t('distil.tag.demo'))}</span>` : '') + (c.copy ? `<span class="tag copy">${esc(t('distil.tag.copy'))}</span>` : '');
+  // each demo's own tag, IPA demo, LIPA demo or RTA demo (demos), and every other project its type's, IPA, LIPA or
+  // RTA, in the plain grey ink on its own line under the name (projectbuild)
+  const tags = (c.demo ? `<span class="tag demo">${esc(c.tag || t('distil.tag.demo'))}</span>`
+    : c.kind ? `<span class="tag kind">${esc(kindTag(c.kind))}</span>` : '')
+    + (c.copy ? `<span class="tag copy">${esc(t('distil.tag.copy'))}</span>` : '');
   // a demo's card says what the demo is for, beside the card's button and never in it (demowarn, 12 November 2026)
   const warn = c.demo && (c.kind || c.method)
     ? `<button type="button" class="hc-warn" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.3 4.2 2.9 17.5A2 2 0 0 0 4.6 20.5h14.8a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4.5"/><path d="M12 17.2v.1"/></svg><span>${esc(demoWords()[0])}</span></button>` : '';
@@ -1732,6 +1752,7 @@ function drawPick(data, sections) {
     if (s.project) HOME_PROJECTS.set(s.id, s.project);
     return { id: s.id, name: (s.project && s.project.name) || t('distil.home.project'), missing: s.there === false,
       copy: !!(s.project && s.project.copy), question: (s.project && s.project.research_question) || '',
+      kind: s.project ? projKind(s.project) : '',
       // each card in its own method's words (tadraw)
       ...tIn(s.project && s.project.method, () => ({ line: standLine(s.participants, s.gets, s.there !== false),
         more: s.there === false ? '' : cardGetsLine(s.gets) })) };
@@ -1784,8 +1805,11 @@ function closePage() {
 /* the page's head: the project's name, a demo's own tag on a demo's, `demo` the IPA demo's, `ta` the thematic
    analysis demo's, `lipa` the longitudinal demo's or `rta` the reflexive thematic analysis demo's, the copy tag on a
    shared copy's, and its question */
-function pageHead(name, question, demo, copy = false) {
+function pageHead(name, question, demo, copy = false, kind = '') {
   $('hp-name').textContent = name;
+  // the project's type tag, IPA, LIPA or RTA, a demo carrying its own coloured tag in its place (projectbuild)
+  $('hp-kind').textContent = kind && !demo ? kindTag(kind) : '';
+  $('hp-kind').hidden = !kind || !!demo;
   $('hp-demo').hidden = !demo || demo === 'ta' || demo === 'lipa' || demo === 'rta';
   $('hp-demo-ta').hidden = demo !== 'ta';
   $('hp-demo-lipa').hidden = demo !== 'lipa';
@@ -1798,20 +1822,26 @@ function pageHead(name, question, demo, copy = false) {
   $('hp-gets').hidden = true;
 }
 
-/* A project's page in the order of the work (18 October): its rows, its GETs card after them and a quiet Add
-   transcripts under them, which a folder that is gone does without. */
+/* A project's page (projectbuild, Adam's option A of 17 November 2026): the work across participants as a row of
+   tiles on top, its rows under them, each participant's own work in their box, and a quiet Add transcripts under
+   them, which a folder that is gone does without. A project with no participant yet, New project's second step,
+   offers Add transcripts where they will stand. */
 function drawPage(s) {
   const p = s.project || {};
-  pageHead(p.name || t('distil.home.project'), p.research_question || '', false, !!p.copy);
+  pageHead(p.name || t('distil.home.project'), p.research_question || '', false, !!p.copy, projKind(p));
   const list = $('hp-list');
+  const empty = s.there !== false && !(s.participants || []).length;
   if (s.there === false) list.innerHTML = `<li class="empty">${esc(t('distil.page.folder_gone'))}</li>`;
-  else drawCards(list, s.participants || [], { id: s.id });
+  else if (empty) {
+    list.innerHTML = `<li class="empty hp-empty"><button type="button" class="primary" id="hp-add-first">${esc(t('distil.np.add_title'))}</button></li>`;
+    $('hp-add-first').onclick = () => openAddTranscripts(s.id);
+  } else drawCards(list, s.participants || [], { id: s.id });
   // the project's demographics for the profile's fields, and the rows' pills fitted to their line (demobuild)
   if (typeof dmPage === 'function') dmPage(s);
   // Working together's tags on the rows and its lines under the question, while it is on (team.js, wtowners)
   if (typeof wtPageDraw === 'function') wtPageDraw(s.team || null);
   drawGetsCard($('hp-gets'), s.gets);
-  $('hp-transcripts').hidden = s.there === false;
+  $('hp-transcripts').hidden = s.there === false || empty;
   $('hp-transcripts').onclick = () => openAddTranscripts(s.id);
   $('demo-reset').hidden = true;
 }
@@ -2159,7 +2189,7 @@ function demoCards(data) {
    `demo` is one of `demosOf`. */
 function drawDemoPage(demo) {
   const p = demo.project || {};
-  pageHead(p.name || demo.tag, String(p.research_question || ''), demo.kind && demo.kind !== 'ipa' ? demo.kind : true);
+  pageHead(p.name || demo.tag, String(p.research_question || ''), demo.kind && demo.kind !== 'ipa' ? demo.kind : true, false, projKind(p));
   drawCards($('hp-list'), demo.cards, { fixed: true });
   drawGetsHead($('hp-gets'), demo.rows[0].path, () => S.home === demo.id);
   $('hp-transcripts').hidden = true;
@@ -2195,18 +2225,55 @@ function getsLine(gets) {
   return parts.join(' · ');
 }
 
-/* The GETs of a project, a wide card after its rows since 18 October, opening the GETs screen. One
-   function for any project, the case root's and the demo's alike. A server from before GETs sends
-   none, and nothing is drawn. */
+/* The work across a project's participants, a row of tiles above them (projectbuild, Adam's option A of 17
+   November 2026, one rule for every method): a longitudinal project's LGETs and Trajectories, an IPA project's GETs,
+   a thematic analysis project's Code list and Themes, each a wide card with its status line, opening its screen. One
+   function for any project, his own and a demo alike. A server from before GETs sends none, and nothing is drawn. */
 function drawGetsCard(box, gets) {
   if (!box || !gets || !gets.path) return;
-  const title = gets.name ? t(gets.lgets ? 'distil.gets.card_title_lgets' : 'distil.gets.card_title', { name: gets.name })
-    : t(gets.lgets ? 'distil.gets.card_title_lgets_this' : 'distil.gets.card_title_this');
-  box.innerHTML = `<button class="gets-wide" type="button" title="${escAttr(title)}">`
-    + `<span class="pc-name">${esc(t(gets.lgets ? 'distil.gets.card_name_lgets' : 'distil.gets.card_name'))}</span>`
-    + `<span class="pc-line">${esc(getsLine(gets))}</span></button>`;
-  box.querySelector('button').onclick = () => openGetsIn(gets.path);
+  const kind = gets.method === 'ta' || gets.method === 'lipa' ? gets.method : gets.lgets ? 'lipa' : 'ipa';
+  const tile = (act, name, line, title = '') => `<button class="gets-wide" type="button" data-act="${act}"`
+    + `${title ? ` title="${escAttr(title)}"` : ''}><span class="pc-name">${esc(name)}</span>`
+    + `<span class="pc-line">${esc(line)}</span></button>`;
+  const title = gets.name ? (gets.lgets ? t('distil.gets.card_title_lgets', { name: gets.name }) : t('distil.gets.card_title', { name: gets.name }))
+    : (gets.lgets ? t('distil.gets.card_title_lgets_this') : t('distil.gets.card_title_this'));
+  const tiles = [];
+  if (kind === 'ta') tiles.push(tile('codes', t('distil.across.codes'), codesTileLine(gets.codes)));
+  tiles.push(tile('gets', gets.lgets ? t('distil.across.lgets') : t('distil.across.gets'), getsLine(gets), title));
+  if (kind === 'lipa' && gets.lgets) tiles.push(tile('trajectories', t('distil.across.trajectories'), trajTileLine(gets.trajectories)));
+  box.innerHTML = tiles.join('');
+  box.style.setProperty('--n', String(tiles.length));
+  box.onclick = (e) => {
+    const b = e.target.closest('[data-act]');
+    if (!b) return;
+    if (b.dataset.act === 'gets') openGetsIn(gets.path);
+    else if (b.dataset.act === 'trajectories') openTrajIn(gets.path);
+    else if (b.dataset.act === 'codes') openCodesIn(gets.path);
+  };
   box.hidden = false;
+}
+
+/* the Trajectories tile's line, "3 trajectories · 3 of 3 participants placed" */
+function trajTileLine(tj) {
+  const n = tj ? Number(tj.trajectories) || 0 : 0;
+  const parts = [t('distil.across.trajectories_n', { n })];
+  if (tj) parts.push(t('distil.across.placed', { placed: Number(tj.placed) || 0, n: Number(tj.participants) || 0 }));
+  return parts.join(' · ');
+}
+
+/* the Code list tile's line, "24 codes" */
+function codesTileLine(cd) {
+  return t('distil.across.codes_n', { n: cd ? Number(cd.codes) || 0 : 0 });
+}
+
+/* LPETs' line in a participant's box, as PETs' reads: the Current board's name, "LPETs complete" once marked, "No
+   Current board" with boards and none Current, and "No LPETs yet" with none (projectbuild) */
+function lpetsLine(lp) {
+  const boards = lp ? Number(lp.boards) || 0 : 0;
+  if (!lp || (!lp.board && !boards)) return t('distil.card.no_lpets');
+  const parts = [lp.board || t('distil.card.no_current')];
+  if (lp.complete && lp.complete.at) parts.push(t('distil.card.lpets_complete'));
+  return parts.join(' · ');
 }
 
 /* The GETs card of the project a workbook belongs to, asked of the server: the demo's. A server
@@ -2300,10 +2367,12 @@ function cardHtml(p, fixed) {
     // the participant's own workbook missing, copies or another workbook in its place: the server's line, and
     // nothing to open (wbguard, 13 November 2026)
     html += `<div class="pc-unstarted"><p class="pc-none">${esc(p.missing)}</p></div>`;
-  } else if (p.path && Array.isArray(p.timepoints) && p.timepoints.length >= 2) {
-    // a project of two or more timepoints (20 October): a cell a timepoint, its label and description,
-    // then where it stands, and a timepoint with no interview a dashed cell, then PETs as before
-    html += `<div class="pc-tps" style="--tps:${p.timepoints.length}">` + p.timepoints.map((tp) => (tp.state === 'none'
+  } else if (p.path && Array.isArray(p.timepoints) && p.timepoints.length) {
+    // a longitudinal project (20 October; projectbuild, of any number of timepoints, which only it sends): a cell a
+    // timepoint, its label and description, then where it stands, and a timepoint with no interview a dashed cell,
+    // then PETs as before and the participant's LPETs after them
+    const n = p.timepoints.length;
+    html += `<div class="pc-tps has-lpets" style="--tps:${n};--tpw:${n >= 2 ? n : 3}">` + p.timepoints.map((tp) => (tp.state === 'none'
       ? `<div class="pc-half pc-tp none"><span class="pc-label"><b>${esc(tp.label)}</b> ${esc(tp.description || '')}</span>`
         + `<span class="pc-line">${esc(t('distil.card.not_interviewed'))}</span></div>`
       : `<button type="button" class="pc-half pc-tp" data-act="timepoint" data-tp="${tp.n}"${p.locked ? ' disabled' : ''}`
@@ -2312,7 +2381,9 @@ function cardHtml(p, fixed) {
         + `<span class="pc-line">${esc(tp.state === 'complete' ? t('distil.card.statements_complete')
           : t('distil.card.passages_done', { done: Number(tp.done) || 0, n: Number(tp.total) || 0 }))}</span></button>`)).join('')
       + '<button type="button" class="pc-half pc-pets" data-act="pets">'
-      + `<span class="pc-label">${esc(t('distil.card.pets'))}</span><span class="pc-line">${esc(petsLine(p))}</span></button></div>`;
+      + `<span class="pc-label">${esc(t('distil.card.pets'))}</span><span class="pc-line">${esc(petsLine(p))}</span></button>`
+      + '<button type="button" class="pc-half pc-lpets" data-act="lpets">'
+      + `<span class="pc-label">${esc(t('distil.card.lpets'))}</span><span class="pc-line">${esc(lpetsLine(p.lpets))}</span></button></div>`;
   } else if (p.path) {
     html += `<button type="button" class="pc-half pc-es" data-act="statements"${p.locked ? ' disabled' : ''}>`
       + `<span class="pc-label">${esc(t('distil.card.statements'))}</span><span class="pc-line">${esc(esLine(p))}</span></button>`
@@ -2629,7 +2700,7 @@ function drawCards(list, cards, where = {}) {
   const fixed = !!where.fixed || !where.id;
   for (const p of cards) {
     const li = document.createElement('li');
-    li.className = `pcard prow${p.path ? '' : ' unstarted'}${tMethodNow() === 'ta' ? ' ta' : ''}${p.path && Array.isArray(p.timepoints) && p.timepoints.length >= 2 ? ' longi' : ''}`;
+    li.className = `pcard prow${p.path ? '' : ' unstarted'}${tMethodNow() === 'ta' ? ' ta' : ''}${p.path && Array.isArray(p.timepoints) && p.timepoints.length ? ' longi' : ''}`;
     li.dataset.case = p.case;
     li.innerHTML = cardHtml(p, fixed);
     renderFiles(li.querySelector('.pc-files ul'), p.files || []);
@@ -2663,6 +2734,7 @@ function drawCards(list, cards, where = {}) {
       if (what === 'statements') openCaseIn(p.path);
       else if (what === 'timepoint') openCaseIn(p.path, { timepoint: Number(act.dataset.tp) });
       else if (what === 'pets') openThemesIn(p.path, p.case);
+      else if (what === 'lpets') openLpetsIn(p.path);
       else if (what === 'start') (p.start.kind === 'transcript' ? offerImport(p.start) : offerCreate(p.start));
     };
     // a double-click on the name, the label or the pen portrait opens the participant's fields across the row
@@ -3273,8 +3345,12 @@ const NP_PREVIEW = 3;
 // boards' glyph (sameux2b), where it was a cross, which reads as close
 const NP_BIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l.9 12.2a1.8 1.8 0 0 0 1.8 1.6h5.6a1.8 1.8 0 0 0 1.8-1.6L17.5 7M10.2 11v6M13.8 11v6"/></svg>';
 
+/* New project (projectbuild, Adam's ruling of 17 November 2026: two steps): the folder, the name, the research question
+   and the method, a longitudinal project's timepoints under it from T1, and nothing more. Its transcripts come in on
+   the project's page with Add transcripts. */
 function openNewProject() {
-  Object.assign(NP, { folder: '', next: 1, rows: [], busy: false, add: null, tps: [], held: new Map(), qdpx: null, names: null });
+  Object.assign(NP, { folder: '', next: 1, rows: [], busy: false, add: null, tps: [], held: new Map(), qdpx: null, names: null,
+    made: [{ label: 'T1', description: '' }], fixedTps: false });
   npMode(null);
   $('np-folder').value = '';
   $('np-name').value = '';
@@ -3305,8 +3381,52 @@ function npMode(add) {
   card.querySelector('.kicker').textContent = add ? add.name || t('distil.home.project') : t('distil.home.project');
   card.querySelector('h2').textContent = add ? t('distil.np.add_title') : t('distil.np.new_title');
   for (const el of card.querySelectorAll('.np-new')) el.hidden = !!add;
+  // the transcripts' part is Add transcripts' alone, New project setting up the project only (projectbuild)
+  $('np-add').hidden = !add;
+  if (!add) npTpDraw();
   $('np-go').textContent = add ? t('distil.np.add') : t('distil.np.create');
   drawQd();
+}
+
+/* New project's timepoints, a longitudinal project's, shown while Longitudinal IPA is chosen: the stepper from T1,
+   + for more, and a label and a description each, the rows Project settings has (projectbuild). A folder whose
+   project file is there already keeps its own, shown fixed. */
+function npTpDraw() {
+  const box = $('np-tp');
+  const on = !NP.add && npMethod() === 'lipa';
+  box.hidden = !on;
+  if (!on) return;
+  const tps = (NP.made || []).map((tp, i) => ({ n: i + 1, label: tp.label, description: tp.description || '' }));
+  const fixed = !!NP.fixedTps;
+  $('np-tp-count').textContent = String(tps.length);
+  $('np-tp-less').disabled = fixed || tps.length <= 1;
+  $('np-tp-more').disabled = fixed || tps.length >= TP_MAX;
+  $('np-tp-rows').innerHTML = tpRowsHtml(tps, fixed);
+}
+
+/* the timepoints as New project's rows stand */
+function npTpTyped() {
+  const rows = $('np-tp-rows');
+  return (NP.made || []).map((tp, i) => ({
+    label: ((rows.querySelector(`.tp-label[data-n="${i + 1}"]`) || {}).value || '').trim(),
+    description: ((rows.querySelector(`.tp-desc[data-n="${i + 1}"]`) || {}).value || '').trim(),
+  }));
+}
+
+function npTpWire() {
+  $('np-tp-more').onclick = () => {
+    NP.made = npTpTyped();
+    if (NP.made.length < TP_MAX) NP.made.push({ label: `T${NP.made.length + 1}`, description: '' });
+    npTpDraw();
+    const last = $('np-tp-rows').querySelector(`.tp-desc[data-n="${NP.made.length}"]`);
+    if (last) last.focus();
+  };
+  $('np-tp-less').onclick = () => {
+    NP.made = npTpTyped();
+    if (NP.made.length > 1) NP.made.pop();
+    npTpDraw();
+  };
+  $('np-tp-rows').oninput = () => { NP.made = npTpTyped(); };
 }
 
 /* Add transcripts, from a project's page: the server answers its name, its next free number and its
@@ -3350,9 +3470,9 @@ function npSaid(line) {
   $('np-said').hidden = !line;
 }
 
-/* The project's method on New project's card (tadraw, 31 October 2026): IPA, ticked as the card opens, or
-   Thematic analysis, sent with Create project and fixed once the project is made. A folder whose project file
-   names one already shows it ticked and fixed. */
+/* The project's method on New project's card (tadraw, 31 October 2026; projectbuild): IPA, ticked as the card opens,
+   Longitudinal IPA, which asks for its timepoints, or RTA, sent with Create project and fixed once the project is
+   made. A folder whose project file names one already shows it ticked and fixed. */
 function npMethod() {
   const on = $('np-method').querySelector('.th-from-opt.on');
   return on ? on.dataset.method : 'ipa';
@@ -3365,6 +3485,7 @@ function npMethodSet(method, fixed) {
     b.setAttribute('aria-checked', String(on));
     b.disabled = !!fixed;
   }
+  npTpDraw();
 }
 
 /* The folder, from the Mac's dialog with no path or typed, checked by the server as Add project
@@ -3380,21 +3501,16 @@ async function npFolder(path) {
   npSaid('');
   NP.folder = data.folder;
   NP.next = Number(data.next) || 1;
-  // a folder whose project file sets two or more timepoints gives each row a Timepoint chooser
-  const had = (NP.tps || []).length;
+  // a folder whose project file is a longitudinal project's already keeps its timepoints, shown fixed (projectbuild)
   NP.tps = Array.isArray(data.timepoints) ? data.timepoints : [];
   NP.held = new Map();
-  if (had !== NP.tps.length) drawNpRows();
+  NP.fixedTps = !!data.method;
+  if (NP.tps.length) NP.made = NP.tps.map((tp) => ({ label: tp.label, description: tp.description || '' }));
   $('np-folder').value = data.folder;
   if (!$('np-name').value.trim()) $('np-name').value = data.name || '';
   if (!$('np-question').value.trim()) $('np-question').value = data.research_question || '';
   // a folder whose project file is there already keeps its method (tadraw)
   npMethodSet(data.method || npMethod(), !!data.method);
-  npNumbersDraw();
-  // a project from ATLAS.ti, NVivo or MAXQDA read again for the folder's timepoints and participants
-  if (NP.qdpx) qdRead();
-  // a folder with a project there already brings its list of names (namesui)
-  else nmSoon();
   return true;
 }
 
@@ -3677,11 +3793,9 @@ function npClick(e) {
    and its own button comes back here `reviewed` (namesbuild, 17 November 2026). */
 async function npMake(reviewed = false) {
   if (NP.busy) return;
-  if (NP.qdpx) { await qdMake(); return; }
   const add = NP.add;
-  const typed = add ? '' : $('np-folder').value.trim();
-  // the folder he typed is resolved before the review, as qdMake does, so the review reads its list (namesfix2 L2)
-  if (typed && typed !== NP.folder && !(await npFolder(typed))) return;
+  if (!add) { await npCreate(); return; }
+  if (NP.qdpx) { await qdMake(); return; }
   if (reviewed !== true) {
     // a preview that fails stops the Add with its line: a find he has not seen is never replaced (namesfix L2)
     let shown;
@@ -3698,12 +3812,31 @@ async function npMake(reviewed = false) {
     await nmPreview({ strict: true });
     const skip = nmSkipsSent();
     const take = nmTakesSent();
-    if (add) await api('/api/add-transcripts', { op: 'add', root: add.id, files, skip, take, names_reviewed: true });
-    else {
-      const made = await api('/api/new-project', { op: 'make', folder: typed, name: $('np-name').value.trim(),
-        research_question: $('np-question').value.trim(), method: npMethod(), files, skip, take, names_reviewed: true });
-      if (made && made.project && made.project.id) homeKeep(made.project.id);
-    }
+    await api('/api/add-transcripts', { op: 'add', root: add.id, files, skip, take, names_reviewed: true });
+    closeNewProject();
+    loadLibrary().catch((err) => say(err.message, 9000));
+  } catch (err) {
+    npSaid(needsRestart(err) ? RESTART_LINE : err.message);
+  } finally {
+    NP.busy = false;
+    $('np-go').disabled = false;
+  }
+}
+
+/* Create project, New project's one step (projectbuild): the folder, the name, the question, the method and a
+   longitudinal project's timepoints sent, checked by the server before it writes anything, and the project made
+   opens on its page, where Add transcripts brings in its transcripts. */
+async function npCreate() {
+  const typed = $('np-folder').value.trim();
+  if (typed && typed !== NP.folder && !(await npFolder(typed))) return;
+  const method = npMethod();
+  NP.busy = true;
+  $('np-go').disabled = true;
+  try {
+    const made = await api('/api/new-project', { op: 'make', folder: typed, name: $('np-name').value.trim(),
+      research_question: $('np-question').value.trim(), method, files: [],
+      ...(method === 'lipa' && !NP.fixedTps ? { timepoints: npTpTyped() } : {}) });
+    if (made && made.project && made.project.id) homeKeep(made.project.id);
     closeNewProject();
     loadLibrary().catch((err) => say(err.message, 9000));
   } catch (err) {
@@ -3784,7 +3917,7 @@ async function nmPreview({ strict = false } = {}) {
   }
   let data;
   try {
-    data = await api('/api/names', { op: 'preview', ...(NP.add ? { root: NP.add.id } : { folder: NP.folder }), files: npFilesSent() });
+    data = await api('/api/names', { op: 'preview', root: NP.add ? NP.add.id : '', files: npFilesSent() });
   } catch (err) {
     if (strict) throw err;
     return null;
@@ -3859,8 +3992,8 @@ function nmDrawRows() {
   }
   if (!NP.qdpx) {
     const asks = nmAnyFinds();
-    $('np-go').textContent = NP.add ? (asks ? t('distil.names.add_go') : t('distil.np.add'))
-      : (asks ? t('distil.names.create_go') : t('distil.np.create'));
+    // New project takes no transcripts (projectbuild), so its button is Create project alone
+    $('np-go').textContent = NP.add ? (asks ? t('distil.names.add_go') : t('distil.np.add')) : t('distil.np.create');
   }
 }
 
@@ -4095,7 +4228,7 @@ function nmReviewClose() {
   NM.review = null;
 }
 
-/* Add… on Add transcripts or Create project… on New project: the review of every row's finds over the card, Back
+/* Add… on Add transcripts: the review of every row's finds over the card, Back
    keeping the ticks, the go button replacing the ticked and adding the files */
 async function nmAddReview() {
   await nmPreview({ strict: true });
@@ -4111,7 +4244,7 @@ async function nmAddReview() {
     finds, list: (NP.names && NP.names.list) || [], form: timecodesOf(add && projectAt() && projectAt().id === NP.add.id ? projectAt() : null),
     onTick: (f, _key, on) => nmTick(f, f.own, on, f.row.skips, f.row.takes),
     back: { label: t('distil.names.back'), run: () => { nmReviewClose(); nmDrawRows(); } },
-    go: { label: (n) => (add ? t('distil.names.replace_add', { n }) : t('distil.names.replace_create', { n })),
+    go: { label: (n) => t('distil.names.replace_add', { n }),
       run: () => { nmReviewClose(); npMake(true); } } });
   return true;
 }
@@ -4658,19 +4791,18 @@ function qdClick(e) {
   $('np-pick').focus();
 }
 
-/* Create project, or in Add, Add: the sources ticked brought in by the server, which checks them all
-   before it writes anything. New project makes its project first, through its own make. */
+/* Add, in Add transcripts: the sources ticked brought in by the server, which checks them all
+   before it writes anything. */
 async function qdMake(names = null) {
   const q = NP.qdpx;
   const add = NP.add;
-  const typed = add ? '' : $('np-folder').value.trim();
-  if (typed && typed !== NP.folder && !(await npFolder(typed))) return;
+  if (!add) return;
   if (!q.held) await qdRead();
   if (!q.held) return;
   if (!names) {
     // the review of the package's finds first, as Add transcripts opens it (namesfix, Adam's ruling of 17 November
     // 2026: nothing is replaced silently on the way in); a read for it that fails stops here with its line
-    const where = add ? { root: add.id } : NP.folder ? { folder: NP.folder } : {};
+    const where = { root: add.id };
     let read;
     try {
       read = await api('/api/qdpx', { op: 'read', held: q.held, ...where, ...qdAsks(), names_preview: true, names_reviewed: true });
@@ -4680,7 +4812,7 @@ async function qdMake(names = null) {
       q.names = q.names || {};
       nmFindsReview({ kicker: q.file || (add ? add.name : ''), title: t('distil.names.adding_one'), names: read.names, state: q.names,
         form: timecodesOf(add && projectAt() && projectAt().id === add.id ? projectAt() : null),
-        go: (n) => (add ? t('distil.names.replace_add', { n }) : t('distil.names.replace_create', { n })),
+        go: (n) => t('distil.names.replace_add', { n }),
         run: (picked) => qdMake(picked) });
       return;
     }
@@ -4691,12 +4823,7 @@ async function qdMake(names = null) {
   npSaid('');
   const asks = { ...qdAsks(), ...names };
   try {
-    if (add) await api('/api/qdpx', { op: 'make', root: add.id, held: q.held, ...asks });
-    else {
-      const made = await api('/api/new-project', { op: 'make', folder: typed, name: $('np-name').value.trim(),
-        research_question: $('np-question').value.trim(), method: npMethod(), files: [], qdpx: { held: q.held, ...asks } });
-      if (made && made.project && made.project.id) homeKeep(made.project.id);
-    }
+    await api('/api/qdpx', { op: 'make', root: add.id, held: q.held, ...asks });
     closeNewProject();
     loadLibrary().catch((err) => say(err.message, 9000));
   } catch (err) {
@@ -4709,7 +4836,7 @@ async function qdMake(names = null) {
 
 /* A file dragged over the window while the card is open lands on the card, wherever it is let go,
    and the drop place shows it. With the card shut a drop does what it always did. */
-const npShown = () => !$('newproject').hidden;
+const npShown = () => !$('newproject').hidden && !$('np-add').hidden;
 const npFilesIn = (e) => !!(e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files'));
 
 function npDrag(e) {
@@ -4742,6 +4869,13 @@ const OPENING_LINE = t('distil.case.opening');
 const openCaseIn = (path, opts) => navGo(() => openCaseIn(path, opts), () => openCase(path, opts));
 const openThemesIn = (path, label) => navGo(() => openThemesIn(path, label), () => openThemes(path, 'library', label));
 const openGetsIn = (path) => navGo(() => openGetsIn(path), () => openGets(path));
+// a participant's LPETs, the project's Trajectories board and a thematic analysis project's Code list, from the
+// project's page, each with Home its way back (projectbuild)
+const openLpetsIn = (path) => navGo(() => openLpetsIn(path), () => openGets(path, { lpets: true }));
+const homeBack = () => { loadLibrary().catch((err) => say(err.message, 9000)); };
+const homeLeave = () => { $('library').hidden = true; $('work').hidden = true; };
+const openTrajIn = (path) => navGo(() => openTrajIn(path), () => trajOpen(path, { back: homeBack, to: 'cases', leave: homeLeave }));
+const openCodesIn = (path) => navGo(() => openCodesIn(path), () => codesOpen(path, { back: homeBack, to: 'cases', leave: homeLeave }));
 
 async function openCase(path, opts = {}) {
   try {
@@ -7918,7 +8052,9 @@ const DS_STAGES = [
 function dsStages(project) {
   // and since codes (2 November 2026) its code list, a tab of its own between the two
   if (project && project.method === 'ta') return ['statements', 'codes', 'gets'];
-  const many = !!(project && Array.isArray(project.timepoints) && project.timepoints.length >= 2);
+  // a longitudinal project's, of any number of timepoints (projectbuild; `projKind`'s test, written here whole)
+  const many = !!project && (project.method === 'lipa'
+    || (project.method !== 'ta' && Array.isArray(project.timepoints) && project.timepoints.length >= 2));
   const lgets = DS_STAGES.find((s) => s.step === 'lgets');
   return DS_STAGES.filter((s) => s.built && (many ? s.many : s.one) && !(many && s.step === 'gets' && lgets.built))
     .map((s) => s.step);
@@ -12481,12 +12617,14 @@ function drawProjectPane(p = project()) {
   // Remove from Idiograph beside the root folder, never for the demo's own project or in a run of one
   $('project-remove').hidden = fixed || !p.id || !!S.oneRun;
   $('project-remove').onclick = () => removeProject(p);
-  // the project's method, shown and never changed (tadraw), a thematic analysis project's settings in its own
-  // words, with no PET labels and no timepoints
-  const ta = p.method === 'ta';
-  $('set-method').textContent = ta ? t('method.name_ta') : t('method.name_ipa');
+  // the project's method, shown and never changed (tadraw; projectbuild: IPA, Longitudinal IPA or Reflexive thematic
+  // analysis), a thematic analysis project's settings in its own words, with no PET labels, and timepoints a
+  // longitudinal project's alone
+  const kind = projKind(p);
+  const ta = kind === 'ta';
+  $('set-method').textContent = kind === 'ta' ? t('method.name_ta') : kind === 'lipa' ? t('method.lipa') : t('method.ipa');
   $('set-labels-row').hidden = ta;
-  $('tp-block').hidden = ta;
+  $('tp-block').hidden = kind !== 'lipa';
   // the interviewer's name, the project's own since viewbuild (17 November 2026), as its file or else the app's
   // settings of before give it, fixed on a demo
   if ($('set-interviewer')) {
@@ -12735,7 +12873,16 @@ function retimeRows(form) {
 const TP_MAX = 10;
 const timepointsOf = (p) => (p && Array.isArray(p.timepoints) && p.timepoints.length
   ? p.timepoints : [{ n: 1, label: 'T1', description: '' }]);
-const longitudinal = (p) => !!(p && Array.isArray(p.timepoints) && p.timepoints.length >= 2);
+const longitudinal = (p) => projKind(p) === 'lipa';
+
+/* a timepoint's rows, its label and its description, as Project settings and New project draw them */
+function tpRowsHtml(tps, fixed) {
+  return `<span class="tp-head" aria-hidden="true">${esc(t('distil.tp.label_head'))}</span><span class="tp-head" aria-hidden="true">${esc(t('distil.tp.desc_head'))}</span>`
+      + tps.map((tp) => `<input type="text" class="tp-label" data-n="${tp.n}" maxlength="12" spellcheck="false"`
+        + ` aria-label="${escAttr(t('distil.tp.label_of', { n: tp.n }))}" value="${escAttr(tp.label)}"${fixed ? ' readonly' : ''}>`
+        + `<input type="text" class="tp-desc" data-n="${tp.n}" maxlength="60" spellcheck="true"`
+        + ` aria-label="${escAttr(t('distil.tp.desc_of', { n: tp.n }))}" value="${escAttr(tp.description || '')}"${fixed ? ' readonly' : ''}>`).join('');
+}
 
 function drawTimepoints(p) {
   const known = !!(p && Array.isArray(p.timepoints));
@@ -12744,14 +12891,10 @@ function drawTimepoints(p) {
   $('tp-count').textContent = String(tps.length);
   $('tp-less').disabled = fixed || tps.length <= 1;
   $('tp-more').disabled = fixed || tps.length >= TP_MAX;
+  // a longitudinal project's rows at one timepoint too (projectbuild)
   const rows = $('tp-rows');
-  rows.hidden = tps.length < 2;
-  rows.innerHTML = tps.length < 2 ? ''
-    : `<span class="tp-head" aria-hidden="true">${esc(t('distil.tp.label_head'))}</span><span class="tp-head" aria-hidden="true">${esc(t('distil.tp.desc_head'))}</span>`
-      + tps.map((tp) => `<input type="text" class="tp-label" data-n="${tp.n}" maxlength="12" spellcheck="false"`
-        + ` aria-label="${escAttr(t('distil.tp.label_of', { n: tp.n }))}" value="${escAttr(tp.label)}"${fixed ? ' readonly' : ''}>`
-        + `<input type="text" class="tp-desc" data-n="${tp.n}" maxlength="60" spellcheck="true"`
-        + ` aria-label="${escAttr(t('distil.tp.desc_of', { n: tp.n }))}" value="${escAttr(tp.description || '')}"${fixed ? ' readonly' : ''}>`).join('');
+  rows.hidden = !longitudinal(p);
+  rows.innerHTML = longitudinal(p) ? tpRowsHtml(tps, fixed) : '';
   rows.onchange = () => saveTimepoints(typedTimepoints());
   $('tp-less').onclick = () => saveTimepoints(typedTimepoints().slice(0, -1));
   $('tp-more').onclick = () => {
@@ -12765,7 +12908,7 @@ function drawTimepoints(p) {
 function typedTimepoints() {
   const p = projectAt();
   const tps = timepointsOf(p);
-  if (tps.length < 2) return tps.map((t) => ({ label: t.label, description: t.description || '' }));
+  if (!longitudinal(p)) return tps.map((t) => ({ label: t.label, description: t.description || '' }));
   return tps.map((t) => ({
     label: ($(`tp-rows`).querySelector(`.tp-label[data-n="${t.n}"]`) || {}).value || '',
     description: ($(`tp-rows`).querySelector(`.tp-desc[data-n="${t.n}"]`) || {}).value || '',
@@ -12790,7 +12933,9 @@ async function saveTimepoints(list) {
   if (!answer || !Array.isArray(answer.timepoints)) { tpSaid(RESTART_LINE); return; }
   // every copy of this project the page holds takes them
   const held = [p, PROJ.own, S.data && S.data.project, typeof TH !== 'undefined' ? TH.project : null];
-  for (const one of held) if (one && (one.id || '') === p.id) one.timepoints = answer.timepoints;
+  for (const one of held) {
+    if (one && (one.id || '') === p.id) Object.assign(one, { timepoints: answer.timepoints }, answer.method ? { method: answer.method } : {});
+  }
   if (projectAt() === p) {
     const focused = document.activeElement;
     const at = focused && focused.dataset ? [focused.className, focused.dataset.n] : null;
@@ -13506,6 +13651,8 @@ function distilBoot() {
     if (b && !b.disabled) npMethodSet(b.dataset.method, false);
   };
   $('np-choose').onclick = () => npFolder();
+  // a longitudinal project's timepoints on New project (projectbuild)
+  npTpWire();
   const npTyped = () => {
     const typed = $('np-folder').value.trim();
     if (typed && typed !== NP.folder) npFolder(typed);

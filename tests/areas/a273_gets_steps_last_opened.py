@@ -91,6 +91,7 @@ def test_gets_steps_last_opened(scratch: Path):
                                        "research_question": "How do people come to swim in the sea through a winter?",
                                        "files": [row("Wren", SWIM, "Autumn"), row("Fen", SWIM, "Autumn")]})
         root_id = made["project"]["id"]
+        support.make_lipa(root_id)  # only a longitudinal project takes timepoints (projectbuild)
         routes.api_project({"root": root_id, "timepoints": [{"label": "Autumn", "description": ""},
                                                              {"label": "New year", "description": ""}]})
         routes.api_add_transcripts({"op": "add", "root": root_id, "files": [row("Wren", LATER, "Later", timepoint=2)]})

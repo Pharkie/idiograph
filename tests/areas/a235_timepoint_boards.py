@@ -125,6 +125,7 @@ def test_timepoint_boards(scratch):
                                            "research_question": "How do newcomers make sense of a first year on a plot?",
                                            "files": [row("before.txt", T1_TEXT, "Wren", "Before")]})
         root_id = made["project"]["id"]
+        support.make_lipa(root_id)  # only a longitudinal project takes timepoints (projectbuild)
         idiograph_routes.api_project({"root": root_id, "timepoints": THREE})
         idiograph_routes.api_project({"root": root_id, "agents": True})
         idiograph_routes.api_add_transcripts({"op": "add", "root": root_id, "files": [

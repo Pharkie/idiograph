@@ -1953,3 +1953,19 @@ def oldest_python_compiles() -> None:
     said = ran.stderr.decode("utf-8", errors="replace").strip()
     check(name, ran.returncode == 0 and not failed and len(files) > 30,
           f"{len(files)} files" if ran.returncode == 0 and not failed else str(failed[:5] or said[-300:]))
+
+
+def make_lipa(root_or_id) -> Path:
+    """A fixture's project made a longitudinal IPA one (projectbuild, 17 November 2026: the method is chosen on New
+    project, and only a longitudinal project takes timepoints): its project file names `method` "lipa", as New project
+    writes it for Longitudinal IPA, every other key kept, so a check can then set its timepoints as Project settings
+    does. `root_or_id` is the project's folder or its id as the page names it. Answers the folder."""
+    import idiograph_routes as routes
+    import server as server_mod
+    given = Path(str(root_or_id))
+    root = given if given.is_dir() else routes.asked_root({"root": root_or_id})
+    path = Path(root) / server_mod.PROJECT_FILE
+    data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    data["method"] = "lipa"
+    path.write_text(json.dumps(data), encoding="utf-8")
+    return Path(root)

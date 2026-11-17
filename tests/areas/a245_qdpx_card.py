@@ -88,22 +88,24 @@ def test_qdpx_card(scratch):
         check("245: a source still without its pseudonym counts as a participant of its own in the lines",
               blank["lines"][0].startswith("From Allotments.qdpx (ATLAS.ti): 1 participant, 6 passages"), str(blank["lines"]))
 
-        # -- C. New project's make refuses before it writes
-        no_name = refused(idiograph_routes.api_new_project, {"op": "make", "folder": str(folder), "name": "Allotment study",
-                                                       "files": [], "qdpx": {"held": key, "sources": [{"source": 1}]}})
-        check("245: New project's make with a source given no pseudonym is refused, nothing written and the file still held",
+        # -- C. New project makes the project alone (projectbuild), and Add's make refuses before it writes
+        made = idiograph_routes.api_new_project({"op": "make", "folder": str(folder), "name": "Allotment study",
+                                                 "research_question": "", "files": []})
+        pid = made["project"]["id"]
+        before, settings = tree(folder), cfg.read_bytes()
+        no_name = refused(idiograph_routes.api_qdpx, {"op": "make", "held": key, "root": pid, "sources": [{"source": 1}]})
+        check("245: Add's make with a source given no pseudonym is refused, nothing written and the file still held",
               "pseudonym" in no_name and tree(folder) == before and cfg.read_bytes() == settings
               and idiograph_routes.qdpx_held(key).is_file(), no_name)
 
-        # -- D. New project's make brings the project in with the card's choices
-        made = idiograph_routes.api_new_project({"op": "make", "folder": str(folder), "name": "Allotment study",
-                                           "research_question": "", "files": [],
-                                           "qdpx": {"held": key, "codes": "notes", "comments": "statements", "loose": "leave",
-                                                    "sources": [{"source": 1, "pseudonym": "Wren", "number": 2}]}})
+        # -- D. Add's make brings the project in with the card's choices
+        done_first = idiograph_routes.api_qdpx({"op": "make", "held": key, "root": pid, "codes": "notes",
+                                                "comments": "statements", "loose": "leave",
+                                                "sources": [{"source": 1, "pseudonym": "Wren", "number": 2}]})
         book = folder / "P2 - Wren" / "P2 Wren - EN & ES.xlsx"
         wren = rows_of(book, "Interview")[2] if book.is_file() else [None] * 6
-        check("245: Create project with a .qdpx makes the project and its participant, with the choices the card sent",
-              made["made"] is True and made["cases"] == ["P2 - Wren"] and made["project"]["name"] == "Allotment study"
+        check("245: Add with a .qdpx makes the participant in a project made alone, with the choices the card sent",
+              done_first["made"] == ["P2 - Wren"] and made["project"]["name"] == "Allotment study"
               and wb_mod.pairs_of(wren[2], wren[5]) == [{"es": "the neglect, all at once", "kq": '"Brambles everywhere."'}]
               and "Overwhelmed by the plot" in str(wren[4])
               and (folder / "P2 - Wren" / "Source" / "Interview" / "P2-Interview.qdpx").read_bytes() == package,
@@ -112,7 +114,6 @@ def test_qdpx_card(scratch):
               refused(idiograph_routes.api_qdpx, {"op": "read", "held": key}) == idiograph_routes.QDPX_GONE and not held.exists())
 
         # -- E. Add brings it in to the project there, at Adam's defaults, with the PET draft
-        pid = made["project"]["id"]
         key2 = idiograph_routes.api_qdpx({"op": "read", "name": "Allotments.qdpx", "data": data, "root": pid})["held"]
         check("245: the card's make with no project named is refused",
               refused(idiograph_routes.api_qdpx, {"op": "make", "held": key2, "sources": [{"source": 1, "pseudonym": "Ash"}]})

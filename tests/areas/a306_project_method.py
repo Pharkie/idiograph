@@ -116,7 +116,7 @@ def test_project_method(scratch: Path):
         code3, study, err3 = run_json("--root", str(page_ta), "cases")
         check("306: a project file with no method reads as IPA, and project show and cases name each project's",
               routes.read_project(old)["method"] == "ipa" and code == 0 and shown["project"]["method"] == "ipa"
-              and code2 == 0 and shown2["project"]["method"] == "ta" and "Method: Thematic analysis" in said
+              and code2 == 0 and shown2["project"]["method"] == "ta" and "Method: Reflexive thematic analysis" in said
               and "PET labels" not in said and code3 == 0 and study["project"]["method"] == "ta", err + err2 + err3)
 
         # 3. refused: a method that is not one, and another than the file's, nothing written
@@ -126,8 +126,8 @@ def test_project_method(scratch: Path):
         said = refused(routes.api_new_project, {"op": "make", "folder": str(bad), "name": "Plot", "method": "gt",
                                                 "files": [{"name": talk.name, "data": data, "pseudonym": "Fenn",
                                                            "interview": read["interview"], "speakers": read["speaker_roles"]}]})
-        check("306: a method that is not ipa or ta is refused in one line, nothing written",
-              "ipa or ta" in said and not list(bad.iterdir()) and config_file.read_bytes() == settings, said)
+        check("306: a method that is not ipa, lipa or ta is refused in one line, nothing written",
+              "ipa, lipa or ta" in said and not list(bad.iterdir()) and config_file.read_bytes() == settings, said)
         (bad / server_mod.PROJECT_FILE).write_text(json.dumps({"name": "Plot"}), encoding="utf-8")
         before = (bad / server_mod.PROJECT_FILE).read_bytes()
         said = refused(routes.api_new_project, {"op": "make", "folder": str(bad), "name": "Plot", "method": "ta",

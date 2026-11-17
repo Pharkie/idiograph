@@ -29,7 +29,7 @@
   "distil.tag.copy": "copy",
   "distil.tag.demo_ipa": "IPA demo",
   "distil.tag.demo_ta": "RTA demo",
-  "distil.tag.demo_lipa": "Longitudinal IPA demo",
+  "distil.tag.demo_lipa": "LIPA demo",
   "distil.tag.demo_rta": "RTA demo",
   "distil.share.whole": "Every participant",
   "distil.share.whole_pets": "Every participant and their PETs",
@@ -91,7 +91,7 @@
   "distil.page.folder_gone": "Its folder is not there.",
   "distil.demo.reset_ask": "Put the three demo participants and the demo's GETs back the way they ship? Every statement, note, quote and board written in them goes.",
   "distil.demo.reset_ask_ta": "Put the three participants of the RTA demo, its code list and its Themes board back the way they ship? Every code, extract, note and theme written in them goes.",
-  "distil.demo.reset_ask_lipa": "Put the three participants of the longitudinal IPA demo, their PETs at each timepoint, their LPETs, the LGETs and Trajectories back the way they ship? Every statement, note, quote and board written in them goes.",
+  "distil.demo.reset_ask_lipa": "Put the three participants of the LIPA demo, their PETs at each timepoint, their LPETs, the LGETs and Trajectories back the way they ship? Every statement, note, quote and board written in them goes.",
   "distil.demo.reset_title": "Put the three demo participants back the way they ship",
   "distil.demo.reset_title_rta": "Put the six demo participants back the way they ship",
   "distil.demo.reset_ask_rta": "Put the six participants of the RTA demo, its code list and its Themes board back the way they ship? Every code, extract, note and theme written in them goes.",
@@ -112,8 +112,6 @@
   "distil.gets.card_title_lgets": "The LGETs of {name}, across its participants",
   "distil.gets.card_title_this": "The GETs of this project, across its participants",
   "distil.gets.card_title_lgets_this": "The LGETs of this project, across its participants",
-  "distil.gets.card_name": "GETs, across all participants",
-  "distil.gets.card_name_lgets": "LGETs, across all participants",
   "distil.card.passages_done": {
     "one": "{done} of {n} passage",
     "other": "{done} of {n} passages"
@@ -136,6 +134,25 @@
   "distil.card.statements_at": "Experiential statements at {tp}",
   "distil.card.statements_complete": "Statements complete",
   "distil.card.pets": "PETs",
+  "distil.card.lpets": "LPETs",
+  "distil.card.no_lpets": "No LPETs yet",
+  "distil.card.lpets_complete": "LPETs complete",
+  "distil.across.gets": "GETs",
+  "distil.across.lgets": "LGETs",
+  "distil.across.trajectories": "Trajectories",
+  "distil.across.codes": "Code list",
+  "distil.across.trajectories_n": {
+    "one": "{n} trajectory",
+    "other": "{n} trajectories"
+  },
+  "distil.across.placed": {
+    "one": "{placed} of {n} participant placed",
+    "other": "{placed} of {n} participants placed"
+  },
+  "distil.across.codes_n": {
+    "one": "{n} code",
+    "other": "{n} codes"
+  },
   "distil.card.statements": "Experiential statements",
   "distil.card.not_started": "Not started",
   "distil.card.start": "Start experiential statements",
@@ -617,7 +634,6 @@
   "distil.names.none_here": "No name from the project's list in this transcript.",
   "distil.names.open": "Names to replace",
   "distil.names.add_go": "Add…",
-  "distil.names.create_go": "Create project…",
   "distil.names.adding_one": "Names in the transcript you are adding",
   "distil.names.adding_many": "Names in the transcripts you are adding",
   "distil.names.review_in_title": "Names in the transcripts already in",
@@ -639,7 +655,6 @@
   "distil.names.back": "Back",
   "distil.names.replace_n": "Replace {n} ticked",
   "distil.names.replace_add": "Replace {n} ticked and add",
-  "distil.names.replace_create": "Replace {n} ticked and create",
   "distil.names.passage": "passage {n}",
   "distil.names.kind.notes": "note",
   "distil.names.kind.statements": "statement",

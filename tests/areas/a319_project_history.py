@@ -136,6 +136,7 @@ def test_project_history(scratch: Path):
 
         # 3. timepoints and the statement length, from the app and from an agent
         n = len(records())
+        in_app(support.make_lipa, pid)  # only a longitudinal project takes timepoints (projectbuild)
         in_app(routes.api_project, {"root": pid, "timepoints": [{"label": "T1"}, {"label": "T2", "description": "A year on"}]})
         app_tp = last()
         spec = base / "tps.json"

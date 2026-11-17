@@ -620,12 +620,12 @@ TOOLS = [
                        "description": 'Each speaker\'s role by name, {"Sam": "Interviewer"}. Leave it out for the guess.'}},
          ["file"], writes="adds"),
     mcp.tool("timepoints", "The project's timepoints", ("timepoints", None),
-         "How many timepoints the project's data was collected at, a longitudinal study's, each with its label, T1, and "
-         "its description, Before the season. With one, nothing longitudinal shows. cases answers each participant's "
-         "timepoints and where each stands."),
+         "How many timepoints a longitudinal (lipa) project's data was collected at, each with its label, T1, and "
+         "its description, Before the season. An IPA or a thematic analysis project has none. cases answers each "
+         "participant's timepoints and where each stands."),
     mcp.tool("timepoints_set", "Set the project's timepoints", ("timepoints", None),
-         "Set the project's timepoints as Project settings does: a list in order, each a label and a description. "
-         "Lowering the number is refused while a timepoint that would go holds an interview, naming the participants. "
+         "Set a longitudinal (lipa) project's timepoints as Project settings does: a list in order, each a label and a "
+         "description. Refused for an IPA or a thematic analysis project, whose method is fixed. Lowering the number is refused while a timepoint that would go holds an interview, naming the participants. "
          "Run dry_run first and set them only on his word.",
          {"timepoints": {"type": "array", "minItems": 1, "maxItems": 10,
                          "items": {"type": "object", "additionalProperties": False, "required": ["label"],
@@ -1138,9 +1138,9 @@ TOOLS = [
                         "description": "How every timecode of the project is written, on screen, in print, in Word "
                                        "and in the turn lines: 75:12 folds the hours into the minutes, 1:15:12 writes "
                                        "them once past the hour, 01:15:12 always."},
-          "method": {"type": "string", "enum": ["ipa", "ta"],
-                     "description": "The project's method, fixed when it was made: its own changes nothing, the "
-                                    "other is refused."},
+          "method": {"type": "string", "enum": ["ipa", "lipa", "ta"],
+                     "description": "The project's method, fixed when it was made: its own changes nothing, "
+                                    "another is refused."},
           "reflexivity": {"type": "string", "description": "The researcher's reflexivity statement, plain text, "
                                                            "empty to take it away."},
           "interviewer": dict(mcp.TEXT, description="The interviewer's name, the speaker whose turns are context "
@@ -1168,10 +1168,11 @@ TOOLS = [
          [], writes="changes"),
     mcp.tool("project_show", "The project's settings", ("project", "show"),
          "The project's settings as Project settings shows them: its name, its research question, its method, "
-         "ipa (Interpretative Phenomenological Analysis) or ta (thematic analysis), chosen when it was made and fixed "
-         "after, how the exports label its PETs, how its timecodes are written, its timepoints, its statement "
-         "length and the researcher's reflexivity statement. A thematic analysis project has no PETs and no timepoints yet, and its screens say codes and "
-         "themes for statements and GETs."),
+         "ipa (Interpretative Phenomenological Analysis), lipa (longitudinal IPA) or ta (reflexive thematic "
+         "analysis), chosen when it was made and fixed after, how the exports label its PETs, how its timecodes are "
+         "written, a longitudinal project's timepoints, its statement length and the researcher's reflexivity "
+         "statement. Only a lipa project has timepoints. A thematic analysis project has no PETs, and its screens "
+         "say codes and themes for statements and GETs."),
     mcp.tool("project_history", "The project's own History", ("project", "history"),
          "The project's own History, newest first: each change to its name, research question, PET labels, "
          "timecodes, timepoints or statement length, to the study's GETs settings, and each participant renamed or "
@@ -1353,8 +1354,9 @@ TOOLS = [
                       "description": "The entries' numbers."}},
          ["entries"], writes="changes"),
     mcp.tool("project_new", "Make a new project", ("project", "new"),
-         "Make a folder of his a new project, as New project on Home makes one: the project file with its name "
-         "and research question, each transcript a participant at the folder's next free number, P1 - Wren, "
+         "Make a folder of his a new project, as New project on Home makes one: the project file with its name, "
+         "research question and method, a longitudinal project's timepoints with them, and, when transcripts are "
+         "given, each transcript a participant at T1 and the folder's next free number, P1 - Wren, "
          "its file copied into Source, its raw source and its annotated workbook, and the folder added to "
          "Idiograph's projects. Each speaker's role is the card's guess unless speakers gives them. A folder that "
          "is a project already, inside one or holding one is refused, and so is a pseudonym that is not one "
@@ -1364,9 +1366,15 @@ TOOLS = [
          {"folder": dict(mcp.TEXT, description="The folder, there already, in full."),
           "name": dict(mcp.TEXT, description="The project's name, the folder's own when left out."),
           "research_question": {"type": "string", "description": "The project's research question."},
-          "method": {"type": "string", "enum": ["ipa", "ta"],
+          "method": {"type": "string", "enum": ["ipa", "lipa", "ta"],
                      "description": "The project's method, ipa, Interpretative Phenomenological Analysis, the "
-                                    "default, or ta, thematic analysis, fixed once the project is made."},
+                                    "default, lipa, longitudinal IPA, or ta, reflexive thematic analysis, fixed once "
+                                    "the project is made."},
+          "timepoints": {"type": "array", "minItems": 1, "maxItems": 10,
+                         "items": {"type": "object", "additionalProperties": False, "required": ["label"],
+                                   "properties": {"label": {"type": "string"}, "description": {"type": "string"}}},
+                         "description": 'A lipa project\'s timepoints in order, [{"label": "T1", "description": '
+                                        '"Before the season"}], T1 alone when left out. Refused for ipa and ta.'},
           "transcripts": {"type": "array", "minItems": 1, "items": {
               "type": "object", "additionalProperties": False, "required": ["file", "pseudonym"],
               "properties": {"file": dict(mcp.TEXT, description="The transcript file, in full."),
@@ -1381,7 +1389,7 @@ TOOLS = [
           "speakers": {"type": "object", "additionalProperties": {"type": "string",
                                                                   "enum": ["Interviewer", "Participant", "Other speaker"]},
                        "description": 'Each speaker\'s role by name, {"Sam": "Interviewer"}. Leave it out for the guess.'}},
-         ["folder", "transcripts"], writes="adds"),
+         ["folder"], writes="adds"),
     mcp.tool("participant_rename", "Rename a participant", ("participant", "rename"),
          "Rename a participant, as Rename on their menu on the project's page does: their name on the passages of "
          "each sheet, their PETs boards at every timepoint, the project's GETs, LGETs, Trajectories board, list of "
@@ -1922,6 +1930,8 @@ def arguments(t: dict, given: dict, args):
         # the project's own History, its newest records alone (projhistory, 2 November 2026)
         args.limit = given.get("limit")
         args.method = given.get("method")
+        # a longitudinal project's timepoints on project_new (projectbuild), handed over as they are
+        args.timepoint = [x for x in given.get("timepoints") or [] if isinstance(x, dict)] or None
         # Remove from Idiograph, its folder to the Trash only when asked (removetrash, 10 November 2026)
         args.trash = given.get("trash") is True
         listed = [x for x in given.get("transcripts") or [] if isinstance(x, dict)]

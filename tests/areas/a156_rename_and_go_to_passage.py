@@ -770,6 +770,7 @@ def _carried_through(base: Path, tree) -> None:
         gshown["version"], cards={c["key"]: {"x": c["x"], "y": c["y"]} for c in gshown["cards"]},
         groups=[{"id": "G1", "label": "Inheriting a craft", "members": [pets["Order expected"], pets["A family craft"]],
                  "x": 0, "y": -60}], discarded=[], picks={}, notes=[])})
+    support.make_lipa(rid)  # only a longitudinal project takes timepoints (projectbuild)
     idiograph_routes.api_project({"root": rid, "timepoints": [{"label": "T1", "description": "Spring"},
                                                               {"label": "T2", "description": "After the honey"}]})
     idiograph_routes.api_project({"root": rid, "agents": True})

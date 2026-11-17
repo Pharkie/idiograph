@@ -119,6 +119,7 @@ def test_card_sync(scratch):
                                                  "research_question": "How do adults find their feet learning to sail?",
                                                  "files": [row("tove-one.txt", TOVE_T1, "Tove", "Spring")]})
         root = made["project"]["id"]
+        support.make_lipa(root)  # only a longitudinal project takes timepoints (projectbuild)
         idiograph_routes.api_project({"root": root, "timepoints": TWO})
         idiograph_routes.api_project({"root": root, "agents": True})
         idiograph_routes.api_add_transcripts({"op": "add", "root": root, "files": [

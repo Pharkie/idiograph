@@ -698,6 +698,7 @@
   "cli.participant_rename.renaming_as_would_change": "Renaming {old} as {new} would change:",
   "cli.project_new.its_method_fixed_now_it_is": "Its method: {method_name}, fixed now it is made.",
   "cli.project_new.made_in_with": "Made {name} in {root}, with {participants}: {list}.",
+  "cli.project_new.made_in_empty": "Made {name} in {root}, with no participants yet: add transcripts to it on its page or with project add-transcripts.",
   "cli.project_new.as_from": "  {label}: {file} as {interview}, from {roles}.",
   "cli.project_new.it_would_make_in_research_question": "It would make {name} in {folder}, research question: {research_question}, method: {method_name}, and add it to Idiograph's projects.",
   "cli.project_new.is_not_there_so_nothing_was": "{name} is not there, so nothing was made.",
@@ -825,8 +826,7 @@
   "cli.traj_lines.source_interview": "elsewhere in this interview",
   "cli.traj_lines.source_transcript": "from the transcript",
   "cli.traj_lines.choice": "            {mark} {source}: \"{text}\" {time} ({qkey})",
-  "cli.timepoints.one_timepoint_so_nothing_longitudinal_shows": "One timepoint, so nothing longitudinal shows.",
-  "cli.timepoints.so_nothing_longitudinal_shows": ", so nothing longitudinal shows.",
+  "cli.timepoints.none_for_method": "{name}: {method_name} projects have no timepoints.",
   "cli.n.timepoint": {
     "one": "{n} timepoint",
     "other": "{n} timepoints"

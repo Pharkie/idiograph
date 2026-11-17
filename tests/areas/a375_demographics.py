@@ -297,6 +297,7 @@ def test_demographics(scratch):
 
         # (h) Trajectories' tags from before move into a Tags category of free words: read merged and nothing
         # written, a dry run listing them, then moved losslessly with their colours, the colour map kept whole
+        support.make_lipa(rid)  # only a longitudinal project takes timepoints (projectbuild)
         routes.api_project({"root": rid, "timepoints": [{"label": "T1", "description": "First season"},
                                                         {"label": "T2", "description": "A year on"}]})
         routes.api_add_transcripts({"op": "add", "root": rid, "files": [

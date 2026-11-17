@@ -5,6 +5,15 @@ Newest first. Each version's notes are what the updater shows, eight lines at mo
 
 What goes here: only major new features and real changes to how something works, among them what your AI agents can do, and any change to safety, privacy or your data. One plain line each, saying what you can now do, not how the screen shows it. Never: changed wording, labels or layout, small fixes, or a feature's parts (its buttons, tabs, counts). Several changes to one feature are one line. A version with nothing major has one line, or none.
 
+## 0.9.30, 17 November 2026
+
+A new demo project, Working from home, shows reflexive thematic analysis with its own interviews and recordings.
+Project settings has a place to keep your reflexivity statement, and your AI agent can read and set it.
+Each project now keeps its own interviewer name, statement nudges and rounds settings. In a new project the nudges start off.
+The Code list now has its own Guidance. It follows Braun and Clarke's reflexive thematic analysis.
+When you make a new project, you choose IPA, Longitudinal IPA or reflexive thematic analysis. You then add transcripts on the project's page. The page puts the work across participants at the top.
+When you undo your AI agent's run, it now also removes the transcripts and recordings the agent added.
+
 ## 0.9.29, 17 November 2026
 
 Boards and LGETs save and open much faster in large projects: each board's History is now kept in a folder beside its file.

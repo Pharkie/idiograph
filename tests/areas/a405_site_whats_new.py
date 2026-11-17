@@ -67,6 +67,13 @@ def test_site_whats_new():
           all(m and 'class="get-line"' in m.group(1) and "<a" not in m.group(1) and "get-more" not in m.group(1)
               and "get-install" not in m.group(1) and "first-open" not in m.group(1) for m in foots.values()),
           [n for n, m in foots.items() if not m or "<a" in m.group(1)])
+    get_js = (site / "get.js").read_text(encoding="utf-8")
+    check("no foot's button carries #start: it opens the Download page alone (Adam, 17 November 2026)",
+          "#start" not in get_js and not [n for n in with_nav if "#start" in (site / n).read_text(encoding="utf-8")]
+          and "full ? FILES + file : 'download.html')" in get_js)
+    check("get.js starts no download on load: no click it makes, no download link, no reading the address",
+          ".click(" not in get_js and "'download'" not in get_js and "location" not in get_js
+          and "history." not in get_js)
     check("the Download page holds both first-open steps, the version and the other links, and the latest version",
           'id="fo-mac"' in dl and 'id="fo-windows"' in dl and 'id="get-other"' in dl
           and f'<p class="get-version">Version {sw.releases((support.TOOL / "docs" / "whats-new.md").read_text(encoding="utf-8"), json.loads((support.TOOL / "versions.json").read_text(encoding="utf-8"))["idiograph"])[0]["version"]}</p>' in dl)

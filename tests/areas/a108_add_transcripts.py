@@ -371,15 +371,15 @@ def test_add_transcripts(scratch):
     whole = lambda name: f"function {name}(" + fn(name) + "\n}"
     check("108, 9 October: each project's page ends in a quiet Add transcripts, none on the demo's or on a folder that is gone",
           '<button type="button" class="quiet proj-transcripts" id="hp-transcripts">Add transcripts</button>' in page
-          and "$('hp-transcripts').hidden = s.there === false;" in fn("drawPage")
+          and "$('hp-transcripts').hidden = s.there === false || empty;" in fn("drawPage")
           and "$('hp-transcripts').onclick = () => openAddTranscripts(s.id);" in fn("drawPage")
           and "$('hp-transcripts').hidden = true;" in fn("drawDemoPage") and "proj-more" not in page)
     card_html = page.split('<div class="overlay" id="newproject" hidden>', 1)[1].split("\n</div>\n", 1)[0]
     check("108, 9 October: Add sends the rows to its own route, a row that joins a case with no number, and no row a second part",
-          "if (add) await api('/api/add-transcripts', { op: 'add', root: add.id, files, skip, take, names_reviewed: true });" in fn("npMake")
+          "await api('/api/add-transcripts', { op: 'add', root: add.id, files, skip, take, names_reviewed: true });" in fn("npMake")
           and "second" not in fn("npMake") + fn("npFilesSent") and "number: joins ? null" in fn("npFilesSent")
           and "const files = npFilesSent();" in fn("npMake")
-          and "op: 'make'" in fn("npMake"))
+          and "op: 'make'" in fn("npCreate") and "files: []" in fn("npCreate"))
     np_code = js.split("/* New project (item 204)", 1)[1].split("/* ───", 1)[0]
     add_code = "\n".join(whole(n) for n in ("npMode", "openAddTranscripts", "npJoinsDraw", "npMake"))
     check("108: no AI anywhere in it, the code and the card alike",

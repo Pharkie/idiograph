@@ -101,6 +101,7 @@ def test_board_gaps(scratch: Path):
                                                  "research_question": "How do adults who learn to swim late live it?",
                                                  "files": [row("before.txt", FIRST, "Before")]})
         rid = made["project"]["id"]
+        support.make_lipa(rid)  # only a longitudinal project takes timepoints (projectbuild)
         idiograph_routes.api_project({"root": rid, "agents": True})
 
         def run(*args):

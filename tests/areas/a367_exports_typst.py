@@ -309,6 +309,7 @@ def test_exports_typst(scratch: Path):
                                           "files": [row("wren-1.txt", WREN_T1, "Wren", "Before"),
                                                     row("ash-1.txt", ASH_T1, "Ash", "Before")]})
         pid = project["project"]["id"]
+        support.make_lipa(pid)  # only a longitudinal project takes timepoints (projectbuild)
         routes.api_project({"root": pid, "timepoints": THREE})
         routes.api_project({"root": pid, "agents": True})
         routes.api_add_transcripts({"op": "add", "root": pid, "files": [

@@ -539,9 +539,13 @@ def cmd_timepoints(p: Project, args) -> tuple:
     source = getattr(args, "source", None)
     if source is None:
         tps = p.info["timepoints"]
-        lines = [f"{p.info['name']} has {i18n.t('cli.n.timepoint', n=len(tps))}"
-                 + (f": {timepoints_said(tps)}." if routes.longitudinal(tps) else i18n.t("cli.timepoints.so_nothing_longitudinal_shows"))]
-        return {"timepoints": tps, "longitudinal": routes.longitudinal(tps)}, lines
+        # an IPA or a thematic analysis project has none, as `project show` leaves them out (projectfix)
+        if p.info["method"] != "lipa":
+            return ({"timepoints": [], "longitudinal": False},
+                    [i18n.t("cli.timepoints.none_for_method", name=p.info["name"], method_name=routes.method_name(p.info["method"]))])
+        # a longitudinal project's timepoints, even one, are longitudinal (`routes.longitudinal` reads its Timepoints)
+        lines = [f"{p.info['name']} has {i18n.t('cli.n.timepoint', n=len(tps))}: {timepoints_said(tps)}."]
+        return {"timepoints": tps, "longitudinal": True}, lines
     if p.demo:
         raise cli.Refused(i18n.t("cli.said.the_demos_project_is_fixed"))
     if not themes_ai.one_line(args.note) and not args.dry_run:
@@ -559,8 +563,7 @@ def cmd_timepoints(p: Project, args) -> tuple:
     tps = done["project"]["timepoints"]
     head = (i18n.t("cli.said.dry_run_nothing_was_written") if args.dry_run else
             i18n.t("cli.said.saved_in_the_project_file") if done["changes"] else i18n.t("cli.said.nothing_changed"))
-    lines = [head] + done["changes"] + [i18n.t("cli.said.timepoints", timepoints=timepoints_said(tps)) if routes.longitudinal(tps)
-                                        else i18n.t("cli.timepoints.one_timepoint_so_nothing_longitudinal_shows")]
+    lines = [head] + done["changes"] + [i18n.t("cli.said.timepoints", timepoints=timepoints_said(tps))]
     return {"timepoints": tps, "changes": done["changes"], "dry_run": bool(args.dry_run)}, lines
 
 
@@ -1738,13 +1741,17 @@ def rounds_line(got: dict) -> str:
 
 def cmd_project_show(p: Project, _args) -> tuple:
     """The project's settings as Project settings shows them (tadraw, 31 October 2026, for the method): its name,
-    its research question, its method, IPA or thematic analysis, fixed when it was made, how the exports label its
-    PETs, how its timecodes are written, its timepoints and its statement length. It reads and writes nothing."""
+    its research question, its method, ipa, lipa (longitudinal IPA) or ta (reflexive thematic analysis), fixed when it
+    was made, how the exports label its PETs, how its timecodes are written, a longitudinal project's timepoints and
+    its statement length. It reads and writes nothing."""
     got = routes.api_project(project_body(p))["project"]
     keys = ("name", "research_question", "method", "pet_labels", "timecodes", "statement_words", "interviewer",
             "nudges", *routes.ROUNDS_KEYS, "demo", "reflexivity")
     answer = {k: got[k] for k in keys}
-    answer["timepoints"] = [{"n": t["n"], "label": t["label"], "description": t["description"]} for t in got["timepoints"]]
+    # the method, ipa, lipa or ta, beside a longitudinal project's timepoints, which IPA and thematic analysis
+    # projects have none of (projectbuild, 17 November 2026)
+    if routes.longitudinal(got["timepoints"]):
+        answer["timepoints"] = [timepoint_plain(t) for t in got["timepoints"]]
     ta = got["method"] == "ta"
     lines = [f"{got['name']}{i18n.t('cli.said.the_demo') if got['demo'] else ''}",
              i18n.t("cli.said.research_question", research_question=got['research_question'] or i18n.t("cli.said.none_set_yet")),
@@ -2039,6 +2046,27 @@ def cmd_team_boards(p: Project, args) -> tuple:
     return {"board": view}, lines or [i18n.t("team_board.cli.no_boards")]
 
 
+def timepoint_plain(t: dict) -> dict:
+    """A project's timepoint as an answer gives it, its place, label and description."""
+    return {"n": t["n"], "label": t["label"], "description": t["description"]}
+
+
+def timepoints_given(given) -> dict:
+    """`project new`'s --timepoint, each LABEL or LABEL=DESCRIPTION in order, as the route takes them, nothing when
+    none is given, which the route reads as T1 alone for a longitudinal project."""
+    if not given:
+        return {}
+    out = []
+    for one in given:
+        # MCP's project_new hands each over as {label, description} already
+        if isinstance(one, dict):
+            out.append({"label": str(one.get("label") or "").strip(), "description": str(one.get("description") or "").strip()})
+            continue
+        label, _sep, description = str(one).partition("=")
+        out.append({"label": label.strip(), "description": description.strip()})
+    return {"timepoints": out}
+
+
 def cmd_project_new(args) -> tuple:
     """A new project, as New project on Home makes one (`routes.api_new_project`): a folder of his made a
     project with its name and research question, each transcript given made a participant at the folder's
@@ -2072,6 +2100,7 @@ def cmd_project_new(args) -> tuple:
         done = routes.api_new_project({"op": "make", "folder": str(args.folder or ""), "name": args.name or "",
                                        "research_question": args.question or "", "files": entries,
                                        "method": getattr(args, "method", None) or "",
+                                       **timepoints_given(getattr(args, "timepoint", None)),
                                        "dry_run": bool(args.dry_run)})
     except (WorkbookError, srv.OutsideRoot) as exc:
         raise cli.Refused(str(exc)) from None
@@ -2085,14 +2114,22 @@ def cmd_project_new(args) -> tuple:
                 if one.get("sheet"):
                     lines.append("  " + i18n.t("cli.import.sheet_read", sheet=one["sheet"]))
                 lines += ["  " + line for line in routes.quote_lines(one.get("quotes"))]
+        if done.get("timepoints"):
+            lines.append(i18n.t("cli.said.timepoints", timepoints=timepoints_said(done["timepoints"])))
         answer = {"folder": done["folder"], "name": done["name"], "research_question": done["research_question"],
                   "method": done["method"],
+                  **({"timepoints": [timepoint_plain(t) for t in done["timepoints"]]} if done.get("timepoints") else {}),
                   "cases": [{"label": c["label"], "interviews": c["interviews"]} for c in done["cases"]], "dry_run": True}
         return answer, lines
     got = done["project"]
-    lines = [i18n.t("cli.project_new.made_in_with", name=got['name'], root=got['root'], participants=i18n.t("cli.n.participant", n=len(done['cases'])), list=', '.join(done['cases'])), i18n.t("cli.project_new.its_method_fixed_now_it_is", method_name=routes.method_name(got['method'])),
+    tps = [timepoint_plain(t) for t in got["timepoints"]] if routes.longitudinal(got["timepoints"]) else []
+    made = (i18n.t("cli.project_new.made_in_with", name=got['name'], root=got['root'], participants=i18n.t("cli.n.participant", n=len(done['cases'])), list=', '.join(done['cases']))
+            if done["cases"] else i18n.t("cli.project_new.made_in_empty", name=got['name'], root=got['root']))
+    lines = [made, i18n.t("cli.project_new.its_method_fixed_now_it_is", method_name=routes.method_name(got['method'])),
+             *([i18n.t("cli.said.timepoints", timepoints=timepoints_said(tps))] if tps else []),
              i18n.t("cli.said.it_is_one_of_idiographs_projects"), settings_said(), _w("AGENTS_OFF")]
-    return {"project": {k: got[k] for k in ("name", "research_question", "method", "root", "id")}, "cases": done["cases"],
+    return {"project": {**{k: got[k] for k in ("name", "research_question", "method", "root", "id")},
+                        **({"timepoints": tps} if tps else {})}, "cases": done["cases"],
             "settings": str(srv.CONFIG_PATH), "dry_run": False}, lines
 
 
@@ -9699,8 +9736,8 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--timecodes", dest="timecodes", choices=wb_mod.TIMECODES, default=None,
                    help="how every timecode of the project is written, at an hour and a quarter: 75:12, the hours "
                         "folded into the minutes, 1:15:12, the hours once past the hour, or 01:15:12, the hours always")
-    x.add_argument("--method", choices=i18n.METHODS, default=None,
-                   help="the project's method, fixed when it was made: its own changes nothing, the other is refused")
+    x.add_argument("--method", choices=routes.KINDS, default=None,
+                   help="the project's method, fixed when it was made: its own changes nothing, another is refused")
     x.add_argument("--reflexivity", default=None,
                    help="the researcher's reflexivity statement, plain text, \"\" to take it away")
     x.add_argument("--reflexivity-file", dest="reflexivity_file", default=None,
@@ -9729,13 +9766,17 @@ def arguments(sub, common, writes) -> None:
                            "GETs settings, and each participant renamed or marked complete, who asked and what changed")
     x.add_argument("--limit", type=int, default=None, help="the newest records alone, this many")
     x = pj.add_parser("new", parents=[common, writes],
-                      help="a folder made a new project with its first participants, as New project on Home makes one")
+                      help="a folder made a new project, with its first participants when transcripts are given, as "
+                           "New project on Home makes one")
     x.add_argument("folder", help="the folder, there already, that becomes the project")
     x.add_argument("--name", default=None, help="the project's name, the folder's own when left out")
     x.add_argument("--question", default=None, help="the project's research question")
-    x.add_argument("--method", choices=i18n.METHODS, default=None,
-                   help="the project's method, ipa, Interpretative Phenomenological Analysis, the default, or ta, "
-                        "thematic analysis, fixed once the project is made")
+    x.add_argument("--method", choices=routes.KINDS, default=None,
+                   help="the project's method, ipa, Interpretative Phenomenological Analysis, the default, lipa, "
+                        "longitudinal IPA, or ta, reflexive thematic analysis, fixed once the project is made")
+    x.add_argument("--timepoint", action="append", default=None, metavar="LABEL[=DESCRIPTION]",
+                   help="with --method lipa, a timepoint in order, its label and its description after =, "
+                        "\"T1=Before the season\", given again for each one more, T1 alone when left out")
     x.add_argument("--transcript", action="append", default=None,
                    help="a transcript file, a participant's interview, given again for each one more")
     x.add_argument("--pseudonym", action="append", default=None,

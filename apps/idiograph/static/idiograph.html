@@ -58,7 +58,7 @@
       <header class="hp-head">
         <button type="button" class="hp-back" id="hp-back" title="{{page_idiograph.home_page.back_home}}" aria-label="{{page_idiograph.home_page.back_home}}">&#8592;</button>
         <div class="hp-title">
-          <h1 class="hp-name"><span id="hp-name"></span><button type="button" class="tag demo demo-mark" id="hp-demo" aria-haspopup="true" aria-expanded="false" hidden>{{page_idiograph.home_page.demo}}</button><button type="button" class="tag demo demo-mark" id="hp-demo-ta" aria-haspopup="true" aria-expanded="false" hidden>{{page_idiograph.home_page.demo_ta}}</button><button type="button" class="tag demo demo-mark" id="hp-demo-lipa" aria-haspopup="true" aria-expanded="false" hidden>{{page_idiograph.home_page.demo_lipa}}</button><button type="button" class="tag demo demo-mark" id="hp-demo-rta" aria-haspopup="true" aria-expanded="false" hidden>{{page_idiograph.home_page.demo_rta}}</button><span class="tag copy" id="hp-copy" hidden>{{page_idiograph.home_page.copy}}</span></h1>
+          <h1 class="hp-name"><span id="hp-name"></span><button type="button" class="tag demo demo-mark" id="hp-demo" aria-haspopup="true" aria-expanded="false" hidden>{{page_idiograph.home_page.demo}}</button><button type="button" class="tag demo demo-mark" id="hp-demo-ta" aria-haspopup="true" aria-expanded="false" hidden>{{page_idiograph.home_page.demo_ta}}</button><button type="button" class="tag demo demo-mark" id="hp-demo-lipa" aria-haspopup="true" aria-expanded="false" hidden>{{page_idiograph.home_page.demo_lipa}}</button><button type="button" class="tag demo demo-mark" id="hp-demo-rta" aria-haspopup="true" aria-expanded="false" hidden>{{page_idiograph.home_page.demo_rta}}</button><span class="tag copy" id="hp-copy" hidden>{{page_idiograph.home_page.copy}}</span><span class="tag kind" id="hp-kind" hidden></span></h1>
           <p class="proj-question" id="hp-question" hidden></p>
           <!-- Working together (wtowners): what came in today and what waits to send, a line each, while it is on -->
           <p class="wt-team" id="wt-team" hidden></p>
@@ -66,10 +66,13 @@
         <!-- Project settings for this project (settingsplit, 5 November 2026) -->
         <button type="button" class="ghost small hp-set" id="hp-settings">{{page_idiograph.projset.title}}</button>
       </header>
+      <!-- the work across participants, a row of tiles above them (projectbuild, Adam's option A of 17 November 2026):
+           LGETs and Trajectories in a longitudinal project, GETs in an IPA project, Code list and Themes in a thematic
+           analysis project, each with its status line; anything for one participant is in their box -->
+      <div class="gets-place hp-across" id="hp-gets" hidden></div>
       <ul id="hp-list" class="prows"></ul>
       <!-- Change picture... on a row's fields: his own picture for the participant (pbiobuild) -->
       <input type="file" id="pp-picture-file" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif" hidden>
-      <div class="gets-place" id="hp-gets" hidden></div>
       <div class="demo-actions" id="hp-acts">
         <button type="button" class="quiet proj-transcripts" id="hp-transcripts">{{page_idiograph.home_page.add_transcripts}}</button>
         <button class="quiet" id="demo-reset" type="button" hidden>{{page_idiograph.home_page.reset_demo}}</button>
@@ -1635,10 +1638,26 @@
               <label for="set-reflexivity">{{page_idiograph.projset.reflexivity}}</label>
               <textarea id="set-reflexivity" class="question-box reflexivity-box" rows="6" maxlength="20000" spellcheck="true" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"></textarea>
             </div>
-            <!-- the project's method (tadraw), chosen on New project and shown here, never changed -->
+            <!-- the project's method (tadraw), chosen on New project and shown here, never changed (projectbuild:
+                 IPA, Longitudinal IPA or Reflexive thematic analysis) -->
             <div class="setting" id="set-method-row">
               <span class="setting-label">{{method.label}}</span>
               <span class="set-method" id="set-method"></span>
+            </div>
+            <!-- Timepoints, a longitudinal project's alone (20 October; projectbuild, 17 November 2026, straight under
+                 the method): how many times each participant was interviewed, a label and a description each, saved
+                 at once. The count rises for a later round; lowering it while a timepoint holds an interview is
+                 refused in the line under them, naming the participants -->
+            <div id="tp-block" hidden>
+            <div class="setting tp-setting">
+              <span class="setting-label" id="set-tp-label">{{page_idiograph.settings_first.timepoints}}</span>
+              <span class="cap-step" role="group" aria-labelledby="set-tp-label"><button type="button" class="cap-btn"
+                    id="tp-less" aria-label="{{page_idiograph.settings_first.one_timepoint_fewer}}">&#8722;</button><span class="cap-text"><b id="tp-count"
+                    aria-live="polite">1</b></span><button type="button" class="cap-btn" id="tp-more"
+                    aria-label="{{page_idiograph.settings_first.one_timepoint_more}}">+</button></span>
+            </div>
+            <div class="tp-rows" id="tp-rows" hidden></div>
+            <p class="fineprint" id="tp-said" hidden></p>
             </div>
             <!-- PET labels, the same choice as under Export on the PETs screen, saved at once for
                  every case of the project, and fixed on the demo -->
@@ -1666,22 +1685,6 @@
                  held one for every project. Saved with Save, fixed on a demo -->
             <div class="setting" id="interviewer-row"><label for="set-interviewer">{{page_idiograph.settings_pane.interviewer_name}}</label><input
                  id="set-interviewer" type="text" spellcheck="false" autocomplete="off"></div>
-            <!-- Timepoints, a longitudinal study's (20 October): how many times each participant was
-                 interviewed, 1 the app as it always was, and with two or more a label and a description
-                 each, saved at once. Lowering the number while a timepoint holds an interview is refused
-                 in the line under them, naming the participants -->
-            <div id="tp-block">
-            <div class="setting tp-setting">
-              <span class="setting-label" id="set-tp-label">{{page_idiograph.settings_first.timepoints}}</span>
-              <span class="cap-step" role="group" aria-labelledby="set-tp-label"><button type="button" class="cap-btn"
-                    id="tp-less" aria-label="{{page_idiograph.settings_first.one_timepoint_fewer}}">&#8722;</button><span class="cap-text"><b id="tp-count"
-                    aria-live="polite">1</b></span><button type="button" class="cap-btn" id="tp-more"
-                    aria-label="{{page_idiograph.settings_first.one_timepoint_more}}">+</button></span>
-            </div>
-            <p class="fineprint tp-line">{{page_idiograph.settings_first.each_participant_was_interviewed}}</p>
-            <div class="tp-rows" id="tp-rows" hidden></div>
-            <p class="fineprint" id="tp-said" hidden></p>
-            </div>
             <div class="setting stacked">
               <span class="setting-name">{{page_idiograph.settings_first.root_folder}}</span>
               <!-- Remove from Idiograph forgets the project after a one-line confirm, and never
@@ -2087,13 +2090,14 @@
   </div>
 </div>
 
-<!-- New project, in the create card's style and wider: the folder, chosen in the Mac's dialog or
-     typed, its name and research question, the tick for two-part folder names, then the
-     transcripts, dropped onto the card or chosen with Choose files, a row each with its turns as
-     read, the interviewer among the speakers, the participant's number and pseudonym, and the
-     interview's name. Create project writes every case and adds the folder as a project. Esc cancels.
-     Add transcripts opens the same card for a project that stands, its name in the kicker, and
-     the fields marked np-new hidden, since the project has them already. -->
+<!-- New project, in the create card's style (projectbuild, Adam's ruling of 17 November 2026: two steps): the
+     folder, chosen in the Mac's dialog or typed, its name and research question and its method, IPA, Longitudinal
+     IPA or RTA, with a longitudinal project's timepoints under it, and nothing more. Create project makes the project
+     and opens its page, where Add transcripts is step two. Esc cancels. Add transcripts opens the same card for a
+     project that stands, its name in the kicker, the fields marked np-new hidden and the transcripts' part, np-add,
+     shown: the transcripts dropped onto the card or chosen with Choose files, a row each with its turns as read, the
+     interviewer among the speakers, the participant's number and pseudonym, the interview's name and, in a
+     longitudinal project, its timepoint. -->
 <div class="overlay" id="newproject" hidden>
   <div class="card">
     <p class="kicker">{{page_idiograph.cards_more.project}}</p>
@@ -2109,8 +2113,22 @@
     <div class="setting np-new np-method"><span class="setting-label" id="np-method-label">{{method.label}}</span>
       <span class="th-from set-labels" id="np-method" role="radiogroup" aria-labelledby="np-method-label">
         <button type="button" class="th-from-opt on" role="radio" aria-checked="true" data-method="ipa">{{method.ipa}}</button>
+        <button type="button" class="th-from-opt" role="radio" aria-checked="false" data-method="lipa">{{method.lipa}}</button>
         <button type="button" class="th-from-opt" role="radio" aria-checked="false" data-method="ta">{{method.ta}}</button>
       </span></div>
+    <!-- a longitudinal project's timepoints, T1 to start, + for more, a label and a description each, the rows
+         Project settings has (projectbuild) -->
+    <div class="np-new np-tp" id="np-tp" hidden>
+      <div class="setting tp-setting">
+        <span class="setting-label" id="np-tp-label">{{page_idiograph.settings_first.timepoints}}</span>
+        <span class="cap-step" role="group" aria-labelledby="np-tp-label"><button type="button" class="cap-btn"
+              id="np-tp-less" aria-label="{{page_idiograph.settings_first.one_timepoint_fewer}}">&#8722;</button><span class="cap-text"><b id="np-tp-count"
+              aria-live="polite">1</b></span><button type="button" class="cap-btn" id="np-tp-more"
+              aria-label="{{page_idiograph.settings_first.one_timepoint_more}}">+</button></span>
+      </div>
+      <div class="tp-rows" id="np-tp-rows"></div>
+    </div>
+    <div class="np-add" id="np-add">
     <div class="np-drop" id="np-drop"><span>{{page_idiograph.cards_more.drop_transcripts_here}}</span><button type="button" class="ghost small"
          id="np-pick">{{page_idiograph.cards_more.choose_files}}</button><input type="file" id="np-files" multiple hidden
          accept=".docx,.txt,.vtt,.srt,.csv,.xlsx,.qdpx"></div>
@@ -2118,6 +2136,7 @@
     <!-- a project from ATLAS.ti, NVivo or MAXQDA, a row a source, its choosers and its lines (21 October) -->
     <div class="qd" id="np-qdpx" hidden></div>
     <datalist id="np-names"></datalist>
+    </div>
     <p class="warn" id="np-said" role="status" hidden></p>
     <div class="card-actions">
       <button class="ghost" id="np-cancel">{{page_idiograph.cards_more.cancel}}</button>

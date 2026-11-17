@@ -74,7 +74,8 @@
 .hp-title { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 /* Project settings beside the project's name and question, at the head's right (settingsplit) */
 .hp-set { flex: none; margin: 4px 0 0 auto; }
-.hp-name { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; margin: 0; font-family: var(--serif);
+/* the head's tags, the Demo mark and a project's type, stand a clear gap from the name, one rule for both (projectfix2) */
+.hp-name { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2) var(--sp-8); margin: 0; font-family: var(--serif);
   font-weight: 400; font-size: 24px; line-height: 1.3; color: var(--ink); overflow-wrap: anywhere; }
 .hp-name .tag { font-family: var(--sans); }
 /* a card's tag (a demo's, a copy's) stands on its own line under the project's name on every card, whatever its
@@ -159,6 +160,13 @@ button.demo-mark:hover { background: var(--paper-sunk); }
   padding: 14px 16px; transition: background .16s, border-color .16s;
 }
 .gets-wide:hover { background: var(--paper-sunk); border-color: var(--rule-firm); }
+/* the work across participants as a row of tiles above them (projectbuild, Adam's option A of 17 November 2026), each
+   a .gets-wide with its status line, side by side at every width the window takes */
+.hp-across:not([hidden]) { display: grid; grid-template-columns: repeat(var(--n, 1), minmax(0, 1fr)); gap: 10px; margin: 0 0 18px; }
+.hp-across .gets-wide { padding: 12px 16px; }
+.hp-across .gets-wide .pc-name { font-size: 19px; }
+/* an empty project's one way on, Add transcripts where its participants will stand (projectbuild) */
+.prows .hp-empty { padding: 18px 0; }
 .pc-half:focus-visible, .pc-dots:focus-visible { border-color: var(--crux); }
 @media (max-width: 559px) {
   .prows { grid-template-columns: 26px minmax(0,1fr); }
@@ -180,8 +188,12 @@ button.demo-mark:hover { background: var(--paper-sunk); }
 .pc-tps .pc-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pc-tps .pc-label b { font-weight: 600; }
 .pc-tp.none { border-style: dashed; background: none; cursor: default; }
+/* a longitudinal project's LPETs after PETs (projectbuild): below 900 pixels a timepoint a column, PETs and LPETs on
+   the row under them (--tpw, the timepoints or three for one) */
+.pc-tps.has-lpets { grid-template-columns: repeat(var(--tps, 2), minmax(0, 1fr)) minmax(0, 1fr) minmax(0, 1fr); }
 .pc-tp.none .pc-label { color: var(--ink-soft); }
 @media (max-width: 899px) { .pc-tps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pc-tps.has-lpets { grid-template-columns: repeat(var(--tpw, 3), minmax(0, 1fr)); }
 }
 @media (max-width: 559px) {
   .pc-tps { grid-template-columns: minmax(0, 1fr); gap: 6px; }
@@ -1341,11 +1353,10 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .cap-btn:disabled { opacity: .4; cursor: default; }
 .cap-text { padding: 0 6px; font-variant-numeric: tabular-nums; }
 .cap-text b { color: var(--ink); }
-/* Timepoints under Projects (20 October): the stepper, its line close under it, then
-   with two or more a row each, the label narrow and the description the rest */
+/* Timepoints under the method in Project settings and on New project (20 October; projectbuild): the stepper,
+   then a row each, the label narrow and the description the rest */
 #tp-block { padding: 0; }
 .tp-setting { margin-bottom: 4px; }
-.tp-line { margin: 0 0 10px; }
 .tp-rows { display: grid; grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr); gap: 6px 10px; margin: 0 0 12px;
   font-size: 13px; }
 .tp-head { font-size: 12px; color: var(--ink-soft); }
