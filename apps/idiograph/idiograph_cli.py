@@ -5016,7 +5016,9 @@ def run_gets_asides(landed: dict, ops: list, problems: list) -> tuple[dict, list
             landed, done = themes.set_aside(landed, items)
             aside += [k for k in done if k not in aside]
             back = [k for k in back if k not in done]
-            said.append(i18n.t("cli.run_stacks.set_aside", listed=listed(done)))
+            # a card stacked under another is left where it is, so a hand-made stack can leave nothing done
+            if done:
+                said.append(i18n.t("cli.run_stacks.set_aside", listed=listed(done)))
             continue
         out = [k for k in items if k not in held]
         if out:
@@ -5285,6 +5287,13 @@ def cmd_gets_apply(p: Project, args) -> tuple:
                 landed = codes_mod.follow_moved(kept, landed, data)
             except WorkbookError as exc:
                 raise cli.Refused(str(exc), i18n.t("cli.said.nothing_was_written")) from None
+            # the cards of a code that follow the ones named are set aside or put back with them, so the answer
+            # and its counts say them (asidefix, 17 November 2026)
+            if set_aside or put_back:
+                was = set(kept.get("discarded") or [])
+                now = set(landed.get("discarded") or [])
+                set_aside = set_aside + sorted(k for k in now - was if k not in set_aside)
+                put_back = put_back + sorted(k for k in was - now if k in landed["cards"] and k not in put_back)
         revision = themes_ai.revision_name(request)
         shown_orders = [{k: o[k] for k in ("under", "order", "moved", "how", "arranged")} for o in ordered]
         # each statement brought in: its card's key, whose it is, its words and the label it went into, or none
@@ -5292,7 +5301,12 @@ def cmd_gets_apply(p: Project, args) -> tuple:
                         "label": b.get("label"), "title": b.get("title")} for b in brought]
         made_file = gets_mod.gets_path(p.root).name if first else None
         if args.dry_run:
-            text = i18n.t("cli.gets_apply.dry_run_nothing_was_written_on", name=kept['name'], v_=said[0].lower() + said[1:])
+            if gets_mod.in_lpets():
+                text = i18n.t("cli.gets_apply.dry_run_nothing_was_written_on_lpets", name=kept['name'], v_=said[0].lower() + said[1:])
+            elif gets_mod.in_lgets():
+                text = i18n.t("cli.gets_apply.dry_run_nothing_was_written_on_lgets", name=kept['name'], v_=said[0].lower() + said[1:])
+            else:
+                text = i18n.t("cli.gets_apply.dry_run_nothing_was_written_on", name=kept['name'], v_=said[0].lower() + said[1:])
             text = " ".join(x for x in (text, first_file_said(p, first, True)) if x)
             return {"dry_run": True, "board": kept["id"], "applied": applied, "ordered": shown_orders, "arranged": arranged,
                     "brought": brought_out, "set_aside": set_aside, "put_back": put_back,

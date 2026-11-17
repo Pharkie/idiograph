@@ -404,6 +404,8 @@
   "cli.changes_lines.is_now": "'{old}' is now '{new}'.",
   "cli.changes_lines.pets": "PETs {word}: ",
   "cli.gets_apply.dry_run_nothing_was_written_on": "Dry run, nothing was written. On the GETs board {name} it would have: {v_}",
+  "cli.gets_apply.dry_run_nothing_was_written_on_lpets": "Dry run, nothing was written. On the LPETs board {name} it would have: {v_}",
+  "cli.gets_apply.dry_run_nothing_was_written_on_lgets": "Dry run, nothing was written. On the LGETs board {name} it would have: {v_}",
   "cli.n.pet_and_sub_theme_card": {
     "one": "{n} PET and sub-theme card",
     "other": "{n} PET and sub-theme cards"

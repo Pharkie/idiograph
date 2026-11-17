@@ -1166,6 +1166,21 @@
       <p class="tj-said" id="tj-said" hidden></p>
       <div class="tj-board tf-board" id="tj-board" role="list" aria-label="{{page_idiograph.screens.trajectories}}"></div>
     </div>
+    <!-- the right sidebar of every board with its Guidance tab (guidebuild, 17 November 2026): the same component, the
+         lines of trajectories_guidance.md, its slim tab on the board's right edge as the boards' Inspector's is -->
+    <button type="button" class="th-edge th-edge-r th-door" id="tj-open-guide" aria-pressed="false"
+            aria-label="{{page_idiograph.screens.guidance}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect
+            x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M14.5 4.5h4a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-4z"
+            fill="currentColor" stroke="none"/><path d="M14.5 4.5v15"/></svg><span class="th-edge-word" aria-hidden="true">{{page_idiograph.screens.guidance}}</span></button>
+    <aside class="th-side tj-guide" id="tj-guide" hidden aria-label="{{page_idiograph.screens.guidance}}">
+      <div class="th-tabs" id="tj-guide-tabs" role="tablist" aria-label="{{page_idiograph.screens.guidance}}">
+        <button type="button" class="th-tab on" role="tab" tabindex="-1" data-tab="guidance" aria-selected="true">{{page_idiograph.screens.guidance}}</button>
+      </div>
+      <div class="th-panel th-bpanel" role="tabpanel" aria-label="{{page_idiograph.screens.guidance}}">
+        <div class="th-panel-body" id="tj-guide-body"></div>
+      </div>
+    </aside>
   </div>
   <!-- the status bar along the foot, as the boards' (trajbuild2, 10 November 2026): the counts, then Quotes, each
        cell's key quote off, short or full, and Notes, each participant's note, both kept in the settings -->

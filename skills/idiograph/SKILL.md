@@ -828,7 +828,9 @@ one put back that is not. No op takes a card off these boards altogether, as the
 `gets show` names under `shown_twice` (with `n_shown_twice`) each statement card whose statement the board shows a
 second time, inside its PET's card (an LPET's on LGETs), its sub-theme's or a PET's over it, each by its `card`,
 `case`, `also`, the cards holding it, and `label`, the label it stands in or null, keys alone. A statement brought in
-beside its PET's card is one: set it aside when he asks to tidy them.
+beside its PET's card is one: set it aside when he asks to tidy them. A card that `shown_twice` lists in a label other
+than the one holding its PET's or sub-theme's card may be his own placing, a statement that draws on a second group
+theme: ask him before setting it aside.
 
 Since 9 November 2026 a board and a participant's LPETs can come from his own tables, made in Excel
 before Idiograph. `board import` makes a PETs board from a table of PETs, a CSV or an Excel sheet with

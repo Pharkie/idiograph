@@ -546,6 +546,8 @@ def said_files(rels, names: dict) -> str:
 def changed_line(changed: list, made: list, names: dict) -> str:
     """What a write changed, in a line by its files: "Juno's boards changed.", "Rowan's transcript made." or
     nothing changed in the project's files."""
+    # a History chunk a write began is part of the board it changed, not a file made (asidefix, 17 November 2026)
+    made = [f for f in made if not any(part.endswith(".history") for part in f.split("/")[:-1])]
     made_set = set(made)
     old = [f for f in changed if f not in made_set]
     lines = []

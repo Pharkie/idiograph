@@ -28,7 +28,9 @@
    end hides it and shows it again as the boards' left sidebar button does (10 November 2026). */
 
 const TJ_SIDE_KEY = 'idiograph-trajectories-side';
-const TJ = { path: '', back: null, to: 'cases', data: null, ask: 0, busy: false, drag: null, project: null, sideOpen: true,
+// the Guidance sidebar at the right, shut until he opens it, kept for the screen as the boards' sidebar is (guidebuild)
+const TJ_GUIDE_KEY = 'idiograph-trajectories-guide';
+const TJ = { path: '', back: null, to: 'cases', data: null, ask: 0, busy: false, drag: null, project: null, sideOpen: true, guideOpen: false,
   editing: '', picking: '', choosing: '', menu: '', faces: false, tagOpen: '',
   // Choose from the set's tab chosen, '' for the set of the picture now (picsets)
   faceSet: '',
@@ -85,6 +87,7 @@ async function trajOpen(path, how = {}) {
     find: '', turns: {}, picked: null });
   $('traj').hidden = false;
   TJ.sideOpen = trajSideStored();
+  TJ.guideOpen = trajGuideStored();
   trajLoad(data);
   return true;
 }
@@ -147,6 +150,36 @@ function trajSideSet(open, keep = true) {
   TJ.sideOpen = !!open;
   if (keep) { try { localStorage.setItem(TJ_SIDE_KEY, TJ.sideOpen ? 'open' : 'closed'); } catch { /* private window */ } }
   trajDraw();
+}
+
+/* the Guidance sidebar at the right, as the boards' sidebar shows its Guidance tab (guidebuild, 17 November 2026): each
+   heading of trajectories_guidance.md and the lines under it, read afresh on every open of the screen */
+function trajGuideStored() {
+  try { return localStorage.getItem(TJ_GUIDE_KEY) === 'open'; } catch { return false; }
+}
+
+function trajGuideSet(open, keep = true) {
+  TJ.guideOpen = !!open;
+  if (keep) { try { localStorage.setItem(TJ_GUIDE_KEY, TJ.guideOpen ? 'open' : 'closed'); } catch { /* private window */ } }
+  trajGuideDraw();
+}
+
+function trajGuideDraw() {
+  const side = $('tj-guide');
+  const b = $('tj-open-guide');
+  if (!side || !b) return;
+  const name = t('page_idiograph.screens.guidance');
+  side.hidden = !TJ.guideOpen;
+  b.classList.toggle('on', TJ.guideOpen);
+  b.setAttribute('aria-pressed', String(TJ.guideOpen));
+  b.title = TJ.guideOpen ? t('themes.side.hide', { name }) : t('themes.side.show', { name });
+  if (!TJ.guideOpen) { $('tj-guide-body').innerHTML = ''; return; }
+  const lines = TJ.data && Array.isArray(TJ.data.guidance) ? TJ.data.guidance : null;
+  if (lines === null) { $('tj-guide-body').innerHTML = `<p class="fineprint th-restart">${esc(RESTART_LINE)}</p>`; return; }
+  $('tj-guide-body').innerHTML = lines.length
+    ? lines.map((s) => `<section class="th-guide-group"><h3 class="section-label">${esc(s.heading)}</h3>`
+      + `<ul class="th-guide-lines">${s.lines.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></section>`).join('')
+    : `<p class="th-qnone">${esc(t('themes.guidance.none'))}</p>`;
 }
 
 /* the left edge tab: pressed in while the sidebar shows, the tooltip naming the other way, and the count not placed
@@ -266,6 +299,7 @@ function trajDraw() {
   trajStepsDraw();
   trajNoteDraw();
   trajSideDraw();
+  trajGuideDraw();
   const bands = d.columns || [];
   let html = bands.map(trajBandHtml).join('');
   html += `<div class="tf-new"><button type="button" class="tj-new" id="tj-new" data-fkey="new">${TJ_PLUS}${esc(t('trajectories.new'))}</button></div>`;
@@ -890,6 +924,8 @@ function trajWire() {
   $('tj-open-side').addEventListener('pointerdown', (e) => e.preventDefault());
   $('tj-open-side').onclick = () => trajSideSet(!TJ.sideOpen);
   $('tj-side-close').onclick = () => trajSideSet(false);
+  $('tj-open-guide').addEventListener('pointerdown', (e) => e.preventDefault());
+  $('tj-open-guide').onclick = () => trajGuideSet(!TJ.guideOpen);
   trajExportWire();
   // Undo and Redo, a press leaving the focus where it was, as the boards' do, and their keys anywhere on the screen
   // but in a field, whose own undo they stay (the Mac's Edit menu presses the same keys)

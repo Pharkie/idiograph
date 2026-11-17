@@ -4235,6 +4235,13 @@ note never go to a model, and nothing on the screen writes a workbook or a theme
 review and AI revise went from GETs as from PETs on 11 November 2026, and a board one made is an ordinary
 board now.
 
+**Guidance on the LPETs, LGETs and Trajectories screens** (17 November 2026). Each of the three has lines of its own in its
+Guidance tab, from the literature on following a person's themes across timepoints: `lpets_guidance.md` on a participant's
+LPETs, `lgets_guidance.md` on the LGETs and `trajectories_guidance.md` on Trajectories, beside the app in the format of
+`themes_guidance.md` and read afresh on every open, so an edit shows on the next load. The GETs screen keeps the GETs lines
+above. Trajectories has its Guidance in a sidebar at the right, shut until Guidance on its right edge is pressed, as the
+boards' sidebars open, and the screen remembers whether it was left open.
+
 AI suggest GET titles sits in the Inspector of a GET or of a GET's sub-theme, and `N` asks it as on
 PETs. It sends what sits under it across the participants, each PET and sub-theme by its title with its
 statements, each participant named and one with nothing there said so, and its count against the minimum,

@@ -2688,6 +2688,19 @@ input.tj-title:focus { outline: 0; border-color: var(--field-edge); background: 
 .tj-sideband > .tf-pcell:last-child { border-bottom: 0; }
 #tj-side:not([hidden]) ~ .th-edge-l { left: 300px; }
 .tj-main > .th-edge-l + .tj-body { padding-left: 34px; }
+.tj-guide { --th-corners-up: 0px; }
+/* its one tab as the boards' tab is, a third of the strip, at the strip's left */
+.tj-guide .th-tab { flex: 0 0 33.333%; }
+/* with Guidance open the board keeps a width the columns can read in, and its area scrolls sideways when the sidebars
+   leave it less, never crushing the timepoints to a word a line (guidebuild) */
+.tj-main:has(> #tj-guide:not([hidden])) .tj-board { min-width: 880px; }
+@media (max-width: 900px) { .tj-main:has(> #tj-guide:not([hidden])) .tj-board { min-width: 520px; } }
+.tj-guide[hidden] { display: none; }
+.tj-main:has(> #tj-guide:not([hidden])) > .th-edge-r { right: 360px; }
+.tj-main > .tj-body { padding-right: 34px; }
+@media (max-width: 400px) {
+  .tj-main:has(> #tj-guide:not([hidden])) > .th-edge-r { right: 0; }
+}
 .tj-bar[hidden] { display: none; }
 @media (max-width: 520px) {
   #tj-side:not([hidden]) ~ .th-edge-l { left: auto; right: 0; border-radius: 5px 0 0 5px; border-left: 1px solid var(--rule-firm); border-right: 0; }

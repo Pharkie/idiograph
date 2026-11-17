@@ -3728,11 +3728,20 @@ def shown_twice(board: dict, data: dict) -> list[dict]:
         if k["kind"] != "es" or key in aside or not isinstance(rec, dict):
             continue
         pets = {p.get("id"): p for p in rec.get("pets") or [] if isinstance(p, dict)}
+        # each label's owner, from its own `parent` or from the `subs` of the one that lists it, so a sub-theme's
+        # card counts whichever of the two the copy carries (asidefix, 17 November 2026)
+        owner = {s: pid for pid, pet in pets.items() for s in pet.get("subs") or [] if s in pets}
         chain = []
-        for pid in [p for p, pet in pets.items() if k["ident"] in (pet.get("statements") or [])]:
+        holders = [p for p, pet in pets.items() if k["ident"] in (pet.get("statements") or [])]
+        # a statement stacked under another on the PETs board stands in the label its top does, and no label's
+        # `statements` lists it: its line names that label (asidefix, 17 November 2026, a participant's T1 9:1)
+        line = (rec.get("lines") or {}).get(k["ident"])
+        if isinstance(line, dict) and line.get("pet") in pets and not line.get("discarded") and line["pet"] not in holders:
+            holders.append(line["pet"])
+        for pid in holders:
             while pid is not None and pid not in chain:
                 chain.append(pid)
-                pid = (pets.get(pid) or {}).get("parent")
+                pid = (pets.get(pid) or {}).get("parent") or owner.get(pid)
         also = sorted(c for pid in chain for c in groups.get((k["case"], pid), []))
         if also:
             out.append({"card": key, "case": k["case"], "also": also, "label": parents.get(key)})

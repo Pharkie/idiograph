@@ -208,6 +208,56 @@ def test_gets_set_aside(scratch: Path):
               all(c == 0 for c, _d, _e in steps) and code_u == 0 and digest(lroot) == here,
               " ".join(e[:200] for _c, _d, e in steps) + err_u[:300] + str(changed(here, digest(lroot))))
 
+        # ── 5b. a statement held by a sub-theme: its card counts, the PET's card set aside or loose, and a sibling's
+        mid = digest(lroot)
+        a_key, b_key = "T3/es/T3:11:0", "T3/es/T3:17:0"       # in T3's g5 and g6, the two sub-themes of g1
+        both = ops_file("subs", [{"op": "bring_in", "statement": a_key}, {"op": "bring_in", "statement": b_key},
+                                 {"op": "put_back", "items": ["T3/g5", "T3/g6"]},
+                                 {"op": "set_aside", "items": ["T3/g1"]}])
+        code, dry, err = run(lroot, "gets", "apply", "b1", *lp, "--ops", both, "--dry-run", tool=None)
+        check("415: a dry run on an LPETs board says it is the LPETs board, and writes nothing",
+              code == 0 and "On the LPETs board" in dry.get("said", "") and "GETs board" not in dry.get("said", "")
+              and digest(lroot) == mid, err[:300] + dry.get("said", "")[:200])
+        code, done, err = run(lroot, "gets", "apply", "b1", *lp, "--ops", both, "--note", ASKED, tool="Sub agent")
+        said = agent_changes.read(lroot)[-1].get("what_changed", "")
+        check("415: the record says what changed on the LPETs, the board's History chunk not a file made",
+              code == 0 and "Made" not in said and "Changed T3" in said, err[:300] + said)
+        shown = run(lroot, "gets", "show", *lp, tool=None)[1].get("shown_twice") or []
+        mine = {x["card"]: x for x in shown if x["card"] in (a_key, b_key)}
+        check("415: a statement whose sub-theme's card is on the board, its PET's card set aside, is shown twice, "
+              "and so is its sibling's, each by its own sub-theme's card",
+              mine.get(a_key, {}).get("also") == ["T3/g5"] and mine.get(b_key, {}).get("also") == ["T3/g6"],
+              json.dumps(shown))
+        loose = ops_file("loose", [{"op": "put_back", "items": ["T3/g1"]}])
+        code, _d, err = run(lroot, "gets", "apply", "b1", *lp, "--ops", loose, "--note", ASKED, tool="Sub agent")
+        shown = run(lroot, "gets", "show", *lp, tool=None)[1].get("shown_twice") or []
+        mine = {x["card"]: x for x in shown if x["card"] in (a_key, b_key)}
+        check("415: with the PET's card loose on the board too, each is shown twice by both of its cards",
+              code == 0 and mine.get(a_key, {}).get("also") == ["T3/g1", "T3/g5"]
+              and mine.get(b_key, {}).get("also") == ["T3/g1", "T3/g6"], err[:300] + json.dumps(shown))
+        rid = agent_changes.read(lroot)[-1]["run"]
+        code_u, _x, err_u = run(lroot, "agents", "undo-run", rid, "--note", "Put it all back")
+        check("415: the run of both is undone byte for byte",
+              code_u == 0 and digest(lroot) == mid, err_u[:300] + str(changed(mid, digest(lroot))))
+
+        # ── 5c. a statement stacked under another on the PETs board: no label lists it, its line names its label
+        import copy
+        import gets as gets_s
+        held = json.loads((lroot / "Arlo" / "Working" / "Arlo - EN & ES.lpets.json").read_text(encoding="utf-8"))
+        held_board = copy.deepcopy(next(b for b in held["boards"] if b["id"] == "b1"))
+        t3 = held["cases"]["T3"]
+        g5 = next(p for p in t3["pets"] if p["id"] == "g5")
+        g5["statements"] = [s for s in g5["statements"] if s != "T3:11:0"]
+        t3["lines"]["T3:11:0"].update(pet="g5", stacked="T3:13:0")
+        held_board["discarded"] = [k for k in held_board["discarded"] if k != "T3/g5"]
+        held_board["cards"][a_key] = {"x": 0, "y": 0}
+        got = gets_s.shown_twice(held_board, held)
+        check("415: a statement stacked under another, in no label's list, is shown twice by its top's label card",
+              [(x["card"], x["also"]) for x in got if x["card"] == a_key] == [(a_key, ["T3/g1", "T3/g5"])], json.dumps(got))
+        t3["lines"]["T3:11:0"]["discarded"] = True
+        check("415: one whose top is set aside is not",
+              not [x for x in gets_s.shown_twice(held_board, held) if x["card"] == a_key], "")
+
         # ── 6. the LGETs and the GETs alike
         for label, root, extra, case in (("LGETs", lroot, (), "Arlo"), ("GETs", groot, (), "Juno")):
             name = "idiograph-lgets.json" if label == "LGETs" else "idiograph-gets.json"

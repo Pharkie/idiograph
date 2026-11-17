@@ -89,6 +89,11 @@ team_board.install()
 
 # the lines of the Themes screen's Guidance tab, read afresh on every open of that screen
 THEMES_GUIDANCE = boot.resource("themes_guidance.md")
+# the LPETs, LGETs and Trajectories screens' own, in the same shape (guidebuild, 17 November 2026, Adam's yes to the
+# draft): each screen shows its own lines, and the GETs screen alone keeps the GETs lines of pet_guidance.md
+LPETS_GUIDANCE = boot.resource("lpets_guidance.md")
+LGETS_GUIDANCE = boot.resource("lgets_guidance.md")
+TRAJECTORIES_GUIDANCE = boot.resource("trajectories_guidance.md")
 # a thematic analysis project's own (tarail, 3 November 2026, Adam's "ta guidance reviewed and approved"): the Coding
 # screen's rail, in the shape of guidance.md, and the Themes board's Guidance tab, in the shape of themes_guidance.md,
 # both from Braun and Clarke's reflexive thematic analysis
@@ -8937,9 +8942,21 @@ def gets_reply(root: Path, body: dict, answer: dict) -> dict:
     return dict(answer, path=str(body.get("workbook") or body.get("path") or ""), demo=project["demo"],
                 case=answer.get("participant") or project["name"], project=project, config=cfg, ai=ai,
                 last_opened=last, platform=srv.PLATFORM, notes=True, feedback=bool(srv.feedback_url(cfg)),
-                guidance=(themes_guidance(i18n.long_text(TA_THEMES_GUIDANCE)) if project.get("method") == "ta"
-                          else themes_ai.gets_guidance_lines()), guidance_ta=project.get("method") == "ta",
+                guidance=gets_guidance(project), guidance_ta=project.get("method") == "ta",
                 root=srv.rel_path(root), gets_print=GETS_PRINT_PATH)
+
+
+def gets_guidance(project: dict) -> list[dict]:
+    """The Guidance tab's lines for the screen the answer is for: a thematic analysis project's own, then the LPETs
+    screen's (`lpets_guidance.md`) or the LGETs screen's (`lgets_guidance.md`), and on the GETs screen the GETs
+    lines of `pet_guidance.md` (guidebuild). Each file is read afresh on every open."""
+    if project.get("method") == "ta":
+        return themes_guidance(i18n.long_text(TA_THEMES_GUIDANCE))
+    if LPETS_FOR.get() is not None:
+        return themes_guidance(i18n.long_text(LPETS_GUIDANCE))
+    if LGETS_FOR.get() is not None:
+        return themes_guidance(i18n.long_text(LGETS_GUIDANCE))
+    return themes_ai.gets_guidance_lines()
 
 
 def api_gets_head(body: dict) -> dict:
@@ -9399,6 +9416,7 @@ def traj_reply(root: Path, body: dict, data: dict | None, more: dict | None = No
         mine = demo_mod.given_words(demo_mod.values_for(kept.get("values"), [tags]).get(tags["name"])) if tags else []
         c["tags"] = [{"word": w, "colour": (demo_mod.value_named(tags, w) or {"colour": 0})["colour"]} for w in mine]
     return dict(answer, **(more or {}), project=project, demo=project["demo"],
+                guidance=themes_guidance(i18n.long_text(TRAJECTORIES_GUIDANCE)),
                 root=srv.rel_path(root), path=str(body.get("workbook") or body.get("path") or ""), config=cfg,
                 platform=srv.PLATFORM, feedback=bool(srv.feedback_url(cfg)), timepoints=root_timepoints(root))
 

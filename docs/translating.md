@@ -12,7 +12,7 @@ Every word the app shows is in a catalogue of messages, plain JSON files, one ob
   `errors.json`, `menus.json`)
 - `apps/idiograph/static/i18n/en/`: Idiograph's own (`page_idiograph.json`, `distil.json`, `themes.json`,
   `trajectories.json`, `server.json`, `exports.json`, `page_print.json`)
-- the long texts beside their English files: `apps/idiograph/guidance.md`, `apps/idiograph/themes_guidance.md`,
+- the long texts beside their English files: `apps/idiograph/guidance.md`, `apps/idiograph/themes_guidance.md`, `lpets_guidance.md`, `lgets_guidance.md`, `trajectories_guidance.md`,
   `docs/whats-new.md`
 
 You can start with the family's files alone. Anything not translated shows in English.

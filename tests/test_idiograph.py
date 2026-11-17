@@ -447,6 +447,7 @@ AREAS = {
     "a412_span_follow": "idiograph",
     "a413_export_notice": "idiograph",
     "a415_gets_set_aside": "idiograph",
+    "a417_screen_guidance": "idiograph",
 }
 
 
