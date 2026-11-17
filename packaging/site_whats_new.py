@@ -49,7 +49,8 @@ MONTHS = ("January", "February", "March", "April", "May", "June", "July", "Augus
           "November", "December")
 NAV_BLOCK = re.compile(r'(?:<button class="nav-burger".*?</button>\s*)?<nav class="site-nav".*?</nav>\s*'
                        r'<script id="nav-new-js">.*?</script>', re.S)
-CURRENT = re.compile(r'<a href="([a-z-]+\.html)" aria-current="page">')
+CURRENT = re.compile(r'<a (?:class="nav-dl" )?href="([a-z-]+\.html)" aria-current="page">')
+VERSION_LINE = re.compile(r'<p class="get-version">Version [0-9.]+</p>')
 
 
 def as_tuple(version: str) -> tuple[int, ...]:
@@ -116,7 +117,10 @@ def nav(current: str = "") -> str:
     parts.append(f'<a href="{PAGE}"{here if current == PAGE else ""}>What&#x27;s new'
                  '<span class="nav-new" id="nav-new" hidden><span class="vh">, </span><span id="nav-new-n"></span>'
                  '<span class="vh" id="nav-new-w"></span></span></a>')
-    parts.append('<a class="nav-dl" href="#get">Download</a>')
+    if current == "download.html":
+        parts.append(f'<a href="download.html"{here}>Download</a>')
+    else:
+        parts.append('<a class="nav-dl" href="download.html">Download</a>')
     return BURGER + '\n  <nav class="site-nav" id="site-nav" aria-label="Site">' + "".join(parts) + "</nav>"
 
 
@@ -176,7 +180,7 @@ LOCKUP = ('<a class="site-home" href="index.html" aria-label="Idiograph, home"><
 
 
 def page(rels: list[dict], layout: str = LAYOUT) -> str:
-    """whats-new.html in the site's own look: the header, the nav and the download at the foot as About has them."""
+    """whats-new.html in the site's own look: the header, the nav and the download at the foot as every page has it."""
     return ('<!DOCTYPE html>\n<html lang="en-GB">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
             "<title>What&#x27;s new in Idiograph</title>\n"
@@ -195,9 +199,7 @@ def page(rels: list[dict], layout: str = LAYOUT) -> str:
             + f'  <p class="wn-all"><a href="{HISTORY}">All releases on GitHub</a></p>\n'
             + '  <div class="fp-foot">\n  <div class="get" id="get">\n'
             '    <p class="get-line" id="get-line">Idiograph is for Mac, Windows and Linux computers.</p>\n'
-            '    <p class="get-more"><a href="features.html">Features</a><a href="https://github.com/Pharkie/idiograph/'
-            'releases/latest" id="get-other">All downloads</a><a href="https://github.com/Pharkie/idiograph">Source on '
-            'GitHub</a></p>\n  </div>\n  </div>\n</main>\n<script src="get.js"></script>\n</body>\n</html>\n')
+            '  </div>\n  </div>\n</main>\n<script src="get.js"></script>\n</body>\n</html>\n')
 
 
 def outputs(site: Path = SITE, text: str | None = None, version: str | None = None,
@@ -224,7 +226,12 @@ def outputs(site: Path = SITE, text: str | None = None, version: str | None = No
             raise ValueError(f"{path.name} has the site's nav and no nav-new-js script after it")
         here = CURRENT.search(block.group(0))
         fresh = nav(here.group(1) if here else "") + "\n  " + script
-        out[path] = old[:block.start()] + fresh + old[block.end():]
+        new = old[:block.start()] + fresh + old[block.end():]
+        if path.name == "download.html":
+            if not VERSION_LINE.search(new):
+                raise ValueError("download.html has no get-version line")
+            new = VERSION_LINE.sub(f'<p class="get-version">Version {rels[0]["version"]}</p>', new)
+        out[path] = new
     return out
 
 

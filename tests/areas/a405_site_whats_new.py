@@ -55,6 +55,21 @@ def test_site_whats_new():
     check("each page marks itself in the nav, the home page none",
           all(v == ([] if n == "index.html" else [n]) for n, v in marked.items()), marked)
 
+    dl = (site / "download.html").read_text(encoding="utf-8")
+    others = [n for n in with_nav if n != "download.html"]
+    check("on the Download page the nav's Download is a plain link marked current, on every other page a button",
+          '<a href="download.html" aria-current="page">Download</a>' in dl and 'class="nav-dl"' not in dl
+          and all('<a class="nav-dl" href="download.html">Download</a>' in (site / n).read_text(encoding="utf-8")
+                  for n in others), others)
+    foots = {n: re.search(r'<div class="get" id="get">(.*?)</div>', (site / n).read_text(encoding="utf-8"), re.S)
+             for n in others}
+    check("every other page's foot holds the visitor's button alone: no link, no details, no other downloads",
+          all(m and 'class="get-line"' in m.group(1) and "<a" not in m.group(1) and "get-more" not in m.group(1)
+              and "get-install" not in m.group(1) and "first-open" not in m.group(1) for m in foots.values()),
+          [n for n, m in foots.items() if not m or "<a" in m.group(1)])
+    check("the Download page holds both first-open steps, the version and the other links, and the latest version",
+          'id="fo-mac"' in dl and 'id="fo-windows"' in dl and 'id="get-other"' in dl
+          and f'<p class="get-version">Version {sw.releases((support.TOOL / "docs" / "whats-new.md").read_text(encoding="utf-8"), json.loads((support.TOOL / "versions.json").read_text(encoding="utf-8"))["idiograph"])[0]["version"]}</p>' in dl)
     text = (support.TOOL / "docs" / "whats-new.md").read_text(encoding="utf-8")
     version = json.loads((support.TOOL / "versions.json").read_text(encoding="utf-8"))["idiograph"]
     import server as srv

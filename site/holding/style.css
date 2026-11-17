@@ -413,3 +413,13 @@ p, li, summary { text-wrap: pretty; }
 .refs a:hover { color: var(--ink); text-decoration-color: currentColor; }
 .refs a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .ap .refs { margin-left: 0; max-width: 36em; }
+
+main.dp {
+  display: block; text-align: left; max-width: calc(1040px + 2 * var(--gutter));
+  padding: 8px var(--gutter) 64px;
+}
+.dp .get { margin-top: clamp(32px, 6vh, 56px); gap: 12px; }
+.dp .dl { padding: 18px 40px; border-radius: 12px; font-size: 22px; }
+.dp .get-version { font-size: 15px; color: var(--ink-soft); }
+.dp .get-more { margin-top: 4px; }
+.dp .first-open { max-width: 32em; margin: 36px 0 0; }

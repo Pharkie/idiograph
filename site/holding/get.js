@@ -3,7 +3,8 @@
   const box = document.getElementById('get');
   const line = document.getElementById('get-line');
   const other = document.getElementById('get-other');
-  if (!box || !line || !other) return;
+  if (!box || !line) return;
+  const full = box.hasAttribute('data-full');
   const ua = navigator.userAgent || '';
   const uad = navigator.userAgentData;
   const plat = (uad && uad.platform) || navigator.platform || '';
@@ -24,20 +25,33 @@
     return e;
   };
   const plain = (text) => { line.textContent = text; };
+  let offered = '';
   const offer = (label, file, note, alt) => {
     const row = el('p', 'get-row');
-    row.appendChild(el('a', 'dl', label, FILES + file));
-    if (alt) row.appendChild(el('a', 'dl-alt', alt[0], FILES + alt[1]));
+    row.appendChild(el('a', 'dl', label, full ? FILES + file : 'download.html#start'));
+    if (full && alt) row.appendChild(el('a', 'dl-alt', alt[0], FILES + alt[1]));
     line.replaceWith(row);
-    if (note) row.after(el('p', 'get-note', note));
-    other.textContent = 'Other downloads';
+    if (full && note) row.after(el('p', 'get-note', note));
+    if (other) other.textContent = 'Other downloads';
+    return FILES + file;
   };
 
   const firstOpen = (which) => {
     const own = document.getElementById('fo-' + which);
     if (!own) return;
+    if (!full) return;
     own.parentNode.prepend(own);
     own.open = true;
+  };
+  const start = () => {
+    if (!full || !offered || location.hash !== '#start') return;
+    history.replaceState(null, '', location.pathname + location.search);
+    const a = el('a', '', '', offered);
+    a.setAttribute('download', '');
+    a.hidden = true;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   };
 
   const intelMac = async () => {
@@ -56,15 +70,16 @@
     } catch (e) { return false; }
   };
 
-  if (os === 'windows') offer('Download for Windows', 'Idiograph-Setup.exe');
-  else if (os === 'linux') offer('Download for Linux', 'Idiograph-amd64.deb', 'The .deb is for Ubuntu, Debian and Mint.', ['Other Linux: AppImage', 'Idiograph-x86_64.AppImage']);
+  if (os === 'windows') offered = offer('Download for Windows', 'Idiograph-Setup.exe');
+  else if (os === 'linux') offered = offer('Download for Linux', 'Idiograph-amd64.deb', 'The .deb is for Ubuntu, Debian and Mint.', ['Other Linux: AppImage', 'Idiograph-x86_64.AppImage']);
   else if (os === 'phone') plain('Idiograph is a desktop app for Mac, Windows and Linux. Visit this page on one of those computers to download it.');
   else if (os === 'mac') {
     intelMac().then((intel) => {
       if (intel) plain('Idiograph for Mac needs an Apple Silicon Mac (M1 or later), and this looks like an Intel Mac.');
-      else offer('Download for Mac', 'Idiograph.dmg', 'For Apple Silicon Macs (M1 or later).');
-      if (!intel) firstOpen('mac');
+      else offered = offer('Download for Mac', 'Idiograph.dmg', 'For Apple Silicon Macs (M1 or later).');
+      if (!intel) { firstOpen('mac'); start(); }
     });
   }
-  if (os === 'windows') firstOpen('windows');
+  if (os === 'windows') { firstOpen('windows'); start(); }
+  if (os === 'linux') start();
 })();
