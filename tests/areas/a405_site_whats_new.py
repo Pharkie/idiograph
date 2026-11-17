@@ -4,7 +4,7 @@ with the release to show that").
 packaging/site_whats_new.py writes site/holding/whats-new.html from docs/whats-new.md and versions.json, and the
 release dates the nav's count reads into every page's nav script. The committed site must be what it writes, so a
 version bump that forgets to run it goes red here; a version above versions.json's stays off the site; the page
-lists every released version newest first, its notes the app's own lines; and every page with the site's nav
+shows the newest three released versions newest first, its notes the app's own lines, with a link to every release on GitHub; and every page with the site's nav
 carries the What's new link and its script."""
 from __future__ import annotations
 
@@ -66,9 +66,26 @@ def test_site_whats_new():
               if sw.as_tuple(v["version"]) <= sw.as_tuple(version)])
     page = files[site / sw.PAGE]
     shown = re.findall(r"Idiograph (\d+\.\d+\.\d+)<", page)
-    check("the page lists every released version once, newest first", shown == [r["version"] for r in rels], shown)
-    check("every released line is on the page",
-          all(f"<li>{html.escape(line)}</li>" in page for r in rels for line in r["lines"]))
+    top = rels[:sw.SHOWN]
+    check("the page lists the newest three released versions once, newest first, and none older",
+          shown == [r["version"] for r in top] and len(top) == min(3, len(rels)), shown)
+    check("every line of those versions is on the page",
+          all(f"<li>{html.escape(line)}</li>" in page for r in top for line in r["lines"]))
+    check("the page links to every release on GitHub",
+          'href="https://github.com/Pharkie/idiograph/releases"' in page and "All releases on GitHub" in page)
+
+    five = "".join(f"## 0.{n}.0, {n} November 2026\n\nLine of version {n}.\n\n" for n in (5, 4, 3, 2, 1))
+    made_up = sw.releases(five, "0.5.0")
+    for layout in ("A", "B"):
+        made = sw.page(made_up, layout)
+        check(f"layout {layout}, five versions released: the newest three in order, none older, the GitHub link",
+              re.findall(r"Idiograph (\d+\.\d+\.\d+)<", made) == ["0.5.0", "0.4.0", "0.3.0"]
+              and "Line of version 2." not in made and "Line of version 1." not in made
+              and "All releases on GitHub" in made)
+    check("with five released, the nav's count still reads all five dates",
+          len(re.findall(r'"\d{4}-\d{2}-\d{2}"', sw.nav_script(made_up))) == 5)
+    check("with two released, the page shows two",
+          re.findall(r"Idiograph (\d+\.\d+\.\d+)<", sw.page(sw.releases(five, "0.2.0"))) == ["0.2.0", "0.1.0"])
 
     ahead = "## 99.0.0, 1 January 2027\n\nA line not released yet.\n\n"
     marker = text.index("\n## ") + 1
@@ -83,11 +100,11 @@ def test_site_whats_new():
 
     for layout in ("A", "B"):
         made = sw.page(rels, layout)
-        check(f"layout {layout} shows every version's notes",
-              all(f"<li>{html.escape(line)}</li>" in made for r in rels for line in r["lines"]))
+        check(f"layout {layout} shows the shown versions' notes",
+              all(f"<li>{html.escape(line)}</li>" in made for r in top for line in r["lines"]))
     b = sw.page(rels, "B")
-    check("layout B: the newest open, every older one a details row closed",
-          b.count("<details") == len(rels) - 1 and "<details open" not in b)
+    check("layout B: the newest open, every older one shown a details row closed",
+          b.count("<details") == len(top) - 1 and "<details open" not in b)
     check("layout A: no details rows", "<details" not in sw.page(rels, "A"))
 
     script = sw.nav_script(rels)

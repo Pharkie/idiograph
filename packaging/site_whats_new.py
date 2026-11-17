@@ -4,9 +4,9 @@ release to show that").
 Reads docs/whats-new.md, the notes the app's own What's new shows, and versions.json, and writes two things into
 site/holding/, the site on idiograph.app:
 
-- `whats-new.html`, every released version's notes, newest first, each with its version and date: the sections up
-  to and including the version versions.json names, so a next version's section, written before its release, stays
-  off the site until the bump;
+- `whats-new.html`, the newest released version's notes and the two before it, each with its version and date
+  (SHOWN), the sections up to and including the version versions.json names, so a next version's section, written
+  before its release, stays off the site until the bump, and under them a link to every release on GitHub;
 - in every page with the site's nav, the small script after the nav that holds each release's date and shows the
   count of releases in the visitor's last seven days on What's new, worked out in their browser as the page loads
   (the site is static). Without scripts the link works and shows no count.
@@ -39,6 +39,10 @@ PAGE = "whats-new.html"
 # The layout the site ships: "A" one long page with every release open, "B" the newest open and the older ones
 # listed by version and date, each opening on a click (native details, so it works without scripts)
 LAYOUT = "B"
+# How many versions the page shows, the newest and the ones just before it (Adam, 17 November 2026: the past three,
+# GitHub holds the full history); the nav's count still reads every release's date
+SHOWN = 3
+HISTORY = "https://github.com/Pharkie/idiograph/releases"
 
 HEAD = re.compile(r"^## (\d+\.\d+\.\d+), (.+?)\s*$")
 MONTHS = ("January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
@@ -145,6 +149,7 @@ def closed_version(r: dict) -> str:
 
 
 def body(rels: list[dict], layout: str) -> str:
+    rels = rels[:SHOWN]
     if layout == "A" or len(rels) < 2:
         return "".join(open_version(r) for r in rels)
     return (open_version(rels[0])
@@ -187,6 +192,7 @@ def page(rels: list[dict], layout: str = LAYOUT) -> str:
             + '<header class="site-head">\n  ' + LOCKUP + "\n  " + nav(PAGE) + "\n  " + nav_script(rels) + "\n</header>\n"
             + f'<main class="wn wn-{layout.lower()}">\n  <h1>What&#x27;s new</h1>\n'
             + body(rels, layout)
+            + f'  <p class="wn-all"><a href="{HISTORY}">All releases on GitHub</a></p>\n'
             + '  <div class="fp-foot">\n  <div class="get" id="get">\n'
             '    <p class="get-line" id="get-line">Idiograph is for Mac, Windows and Linux computers.</p>\n'
             '    <p class="get-more"><a href="features.html">Features</a><a href="https://github.com/Pharkie/idiograph/'

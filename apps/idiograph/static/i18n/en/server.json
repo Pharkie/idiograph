@@ -374,6 +374,11 @@
   "server.would_share_folder_nothing_sent": "{label} and {other} would share a folder, so nothing was sent.",
   "server.project_from_1_timepoints_nothing": "A project has from 1 to {most} timepoints, so nothing was saved.",
   "server.statement_length_whole_number_words": "The statement length is a whole number of words from {least} to {most}, so nothing was saved.",
+  "server.n_word": {
+    "one": "{n} word",
+    "other": "{n} words"
+  },
+  "server.reflexivity_refused": "Reflexivity is text of up to {most} characters, so nothing was saved.",
   "server.agents_md_updated": "Updated AGENTS.md in the project folder.",
   "server.agents_md_wrote": "Wrote AGENTS.md in the project folder.",
   "server.board_in_note_head": "{whose} copy, sent {day}.",

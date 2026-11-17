@@ -11,14 +11,16 @@ participants, their words and the analysis are invented (rtawrite, approved by A
 interview is recorded in Gemini's voices (rtavoices). It lives inside the demo's folder, as the thematic analysis and
 longitudinal demos do:
 
-    demo/rta/idiograph-project.json            the project: its name, question and method, the participants' own
-                                               labels, pictures, pen portraits and values, and its demographics
+    demo/rta/idiograph-project.json            the project: its name, question and method, the researcher's
+                                               reflexivity statement (Project settings' Reflexivity, settingsbuild),
+                                               the participants' own labels, pictures, pen portraits and values, and
+                                               its demographics
     demo/rta/source/<Name> - interview.csv     each interview, Name, Timestamp and Transcript, the timestamps the
                                                recording's own
     demo/rta/source/<Name> - coding.json       each passage's extracts with their codes and its note, and the times
                                                of the work, in the thematic analysis demo's shape
     demo/rta/source/Themes.json                the code list and the Themes board, each theme with its definition
-                                               and note, and the researcher's reflexivity statement, the board's note
+                                               and note, the board itself with no note
     demo/rta/<Name>/<Name> - EN & ES.xlsx      the workbook, built from those
     demo/rta/pristine/                         the copy Reset demo restores from, the code list and the Themes
                                                board's file with it
@@ -221,7 +223,8 @@ def books(root: Path) -> list[dict]:
 
 def build_all(into: Path, demo: Path | None = None) -> dict:
     """The whole demo built into `into`, a folder that must not be there yet: its project file, the six
-    participants, and the code list and the Themes board at its root, the reflexivity statement the board's note."""
+    participants, and the code list and the Themes board at its root, the board with no note: the reflexivity
+    statement is the project file's own since settingsbuild (17 November 2026)."""
     into = Path(into)
     if into.exists():
         raise DemoError(f"{into} is there already, so nothing was built into it.")
@@ -233,7 +236,7 @@ def build_all(into: Path, demo: Path | None = None) -> dict:
         raise DemoError(f"The project file is not a thematic analysis project of {', '.join(CASES)}.")
     built = {name: build_case(name, into, demo) for name in CASES}
     built["codes"] = md.build_ta_codes(into, plan, CASES)
-    built["themes"] = md.build_ta_themes(into, plan, CASES, note=str(plan.get("reflexivity") or ""), room=ROOM)
+    built["themes"] = md.build_ta_themes(into, plan, CASES, room=ROOM)
     return built
 
 

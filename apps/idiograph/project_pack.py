@@ -15,7 +15,8 @@ tables in Word or PDF), the GETs (the GETs, LGETs and Trajectories files, GETs t
 the recordings each go or stay by choice, recordings staying unless asked for. `_Archive` copies never
 go in a chosen send. Each participant's folder in the file is named by its label alone, never with a
 second part its folder on disk carries, and the project file loses `names`, Rename's kept names, which
-the renamed folders make moot. The file's format is the same, so an Idiograph from before opens it.
+the renamed folders make moot. Every send leaves out the project file's `reflexivity`, the sender's own
+reflexivity statement (`SENDER_OWN`, settingsfix, 17 November 2026). The file's format is the same, so an Idiograph from before opens it.
 Since Adam's design E of 23 October the PETs and the recordings can be chosen participant by
 participant, a whole send can leave the recordings alone out (`whole_less_audio`), and `inventory`
 answers what Share a copy's card draws: each participant's PETs and recordings, and their weight.
@@ -196,6 +197,28 @@ def plan_send(root: Path, name: str) -> dict:
     return {"name": sent_name(name), "files": len(files), "bytes": total, "size": size_said(total)}
 
 
+# the project file at a project's root, and its keys that are the sender's own and never go in a copy: the
+# researcher's reflexivity statement, his own positioning and not the participants' work (settingsfix, the
+# coordinator's ruling of 17 November 2026). A copy coming back never writes the receiver's project file, so his
+# own stays as it is
+PROJECT_FILE = "idiograph-project.json"
+SENDER_OWN = ("reflexivity",)
+
+
+def sender_own_out(src):
+    """The project file as a copy carries it, as bytes, without the sender's own keys, or `src` as it is when it
+    holds none of them or cannot be read as a project file."""
+    try:
+        data = json.loads(src.decode("utf-8") if isinstance(src, bytes) else src.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return src
+    if not isinstance(data, dict) or not any(key in data for key in SENDER_OWN):
+        return src
+    for key in SENDER_OWN:
+        data.pop(key, None)
+    return (json.dumps(data, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+
+
 def send(root: Path, name: str, dest: Path, version: str = "", chosen: dict | None = None,
          origin: dict | None = None) -> dict:
     """The project at `root` written to `dest` as one file, through a file beside it renamed into
@@ -212,6 +235,7 @@ def send(root: Path, name: str, dest: Path, version: str = "", chosen: dict | No
     else:
         skip = dest.resolve()
         files = [(src, rel) for src, rel in chosen["files"] if isinstance(src, bytes) or src.resolve() != skip]
+    files = [(sender_own_out(src) if rel == PROJECT_FILE else src, rel) for src, rel in files]
     listed = []
     for src, rel in files:
         if isinstance(src, bytes):

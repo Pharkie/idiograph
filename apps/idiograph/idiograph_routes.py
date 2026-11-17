@@ -720,7 +720,8 @@ def read_project(root: Path) -> dict:
     if root is None:
         return {"name": "", "research_question": "", "updated": None, "root": "", "id": "", "demo": False,
                 "agents": {"allowed": False, "at": None}, "pet_labels": themes_mod.LETTERS,
-                "timecodes": wb_mod.TIMECODES_DEFAULT, "method": i18n.BASE_METHOD}
+                "timecodes": wb_mod.TIMECODES_DEFAULT, "method": i18n.BASE_METHOD,
+                "reflexivity": ""}
     root = Path(root)
     data = project_file(root)
     demo = srv.is_demo_root(root)
@@ -737,6 +738,8 @@ def read_project(root: Path) -> dict:
         "timecodes": wb_mod.timecodes_of(data.get("timecodes")),
         "timepoints": timepoints_of(data),
         "statement_words": statement_words_of(data),
+        # the researcher's reflexivity statement, the project's own (settingsbuild)
+        "reflexivity": reflexivity_of(data),
         # opened from a shared copy (21 October): the copy's card and page carry a "copy" tag
         "copy": isinstance(data.get("copy_of"), dict),
     }
@@ -829,6 +832,67 @@ def statement_words_for(path: Path | None) -> int:
     """The statement length of the project a workbook belongs to, 15 for one under none."""
     root = project_root(Path(path)) if path else None
     return statement_words_of(project_file(root)) if root is not None else nudges_mod.HIGH
+
+
+# ------------------------------------------------------------ reflexivity, a project's own
+
+# The researcher's reflexivity statement (settingsbuild, Adam, 17 November 2026: "reflexivity is a project setting...
+# it's more a write-up thing"): one text in Project settings, kept in the project file as `reflexivity` only while it
+# holds words, and printed as a Reflexivity section before Participants in the tables' print views, PDFs and Word
+# documents. Its words are his, so a line about a change counts them and never says them.
+REFLEXIVITY_MOST = 20000
+
+
+def reflexivity_of(data: dict) -> str:
+    """A project's reflexivity statement as its file holds it, empty for none."""
+    held = data.get("reflexivity") if isinstance(data, dict) else None
+    return held.strip() if isinstance(held, str) else ""
+
+
+def clean_reflexivity(given) -> str:
+    """The statement as a call gives it, its line ends made one kind and its ends trimmed, or refused in one line when
+    it is not text or runs past REFLEXIVITY_MOST characters."""
+    if given is None:
+        given = ""
+    if not isinstance(given, str):
+        raise WorkbookError(i18n.t("server.reflexivity_refused", most=REFLEXIVITY_MOST))
+    text = "\n".join(line.rstrip() for line in given.replace("\r\n", "\n").replace("\r", "\n").split("\n")).strip()
+    if len(text) > REFLEXIVITY_MOST:
+        raise WorkbookError(i18n.t("server.reflexivity_refused", most=REFLEXIVITY_MOST))
+    return text
+
+
+def reflexivity_words(text: str) -> int:
+    """The statement's words, counted as a statement's are."""
+    return len(nudges_mod.WORD.findall(text or ""))
+
+
+def reflexivity_changes(before: str, after: str) -> list[str]:
+    """The line for a change of the statement, by its words' count alone."""
+    if before == after:
+        return []
+    if not before:
+        return [f"Reflexivity written, {i18n.t('server.n_word', n=reflexivity_words(after))}."]
+    if not after:
+        return ["Reflexivity taken away."]
+    return [f"Reflexivity changed, from {i18n.t('server.n_word', n=reflexivity_words(before))} "
+            f"to {i18n.t('server.n_word', n=reflexivity_words(after))}."]
+
+
+def write_reflexivity(root: Path, given, dry_run: bool = False) -> dict:
+    """The project's reflexivity statement saved in its file, the key taken away when it is empty, every other key
+    kept. Nothing is written when nothing changes, or with `dry_run`. Answers the statement as it is or would be."""
+    if root is None or not Path(root).is_dir():
+        raise WorkbookError(i18n.t("server.project_folder_project_could_saved"))
+    text = clean_reflexivity(given)
+    data = project_file(Path(root))
+    if not dry_run and text != reflexivity_of(data):
+        if text:
+            data["reflexivity"] = text
+        else:
+            data.pop("reflexivity", None)
+        srv.save_json(Path(root) / srv.PROJECT_FILE, data)
+    return {"reflexivity": text}
 
 
 # ------------------------------------------------------------ timepoints
@@ -1334,6 +1398,8 @@ def project_changes(before: dict, after: dict) -> list[str]:
         out.append(f"Timecodes from {before.get('timecodes')} to {after.get('timecodes')}.")
     if before["agents"]["allowed"] != after["agents"]["allowed"]:
         out.append("Allow AI agents to read this project " + ("ticked." if after["agents"]["allowed"] else "unticked."))
+    # the reflexivity statement (settingsbuild), by its words' count alone
+    out += reflexivity_changes(before.get("reflexivity") or "", after.get("reflexivity") or "")
     return out
 
 
@@ -2098,13 +2164,16 @@ def api_project(body: dict) -> dict:
     project's timepoints, refused while a timepoint it would take away holds an interview, and with
     `dry_run` says what would change and writes nothing (see `write_timepoints`). `statement_words`, a
     whole number of words, sets the length past which the length nudge speaks, with `dry_run` likewise
-    (see `write_statement_words`). The name, the question, the labels, the timecodes and the tick take `dry_run` too
+    (see `write_statement_words`). `reflexivity`, the researcher's reflexivity statement, plain text, empty to take it
+    away, is checked before anything is written (see `write_reflexivity`, settingsbuild, 17 November 2026). The name,
+    the question, the labels, the timecodes, the tick and the reflexivity statement take `dry_run` too
     (26 October, for the agents' `project set`), and their save answers `changes`, a line each (see
     `project_changes`). `method` is fixed once the project is made (tadraw): one sent that is not the
     project's own is refused with nothing written, its own changing nothing.
     """
     writes = ("name" in body or "research_question" in body or "agents" in body or "pet_labels" in body
-              or "timecodes" in body or "timepoints" in body or "statement_words" in body)
+              or "timecodes" in body or "timepoints" in body or "statement_words" in body
+              or "reflexivity" in body)
     root = asked_root(body, write=writes or "method" in body)
     if "method" in body and root is not None and method_asked(body.get("method")) != method_of(project_file(root)):
         raise WorkbookError(i18n.t("method.refused_fixed", method=method_name(method_of(project_file(root)))))
@@ -2123,6 +2192,9 @@ def api_project(body: dict) -> dict:
         with writing(root=root):
             return write_timepoints(root, body.get("timepoints"), who=hist_mod.asker(body))
     dry = body.get("dry_run") is True
+    # the reflexivity statement checked before anything is written (settingsbuild)
+    if "reflexivity" in body:
+        clean_reflexivity(body.get("reflexivity"))
     with contextlib.nullcontext() if dry else writing(root=root):
         before = read_project(root)
         project = before
@@ -2136,6 +2208,8 @@ def api_project(body: dict) -> dict:
             project = dict(project, pet_labels=write_labels(root, body.get("pet_labels"), dry_run=dry)["pet_labels"])
         if "timecodes" in body:
             project = dict(project, timecodes=write_timecodes(root, body.get("timecodes"), dry_run=dry)["timecodes"])
+        if "reflexivity" in body:
+            project = dict(project, reflexivity=write_reflexivity(root, body.get("reflexivity"), dry_run=dry)["reflexivity"])
         if not dry:
             project = read_project(root)
             # the project's History, under the same lock (projhistory, 2 November 2026)

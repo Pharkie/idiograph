@@ -12347,6 +12347,9 @@ function drawProjectPane(p = project()) {
   const fixed = !!p.demo;
   $('set-project-name').value = p.name || '';
   $('set-question').value = p.research_question || '';
+  // the researcher's reflexivity statement, every method's (settingsbuild), read-only on a demo
+  const reflexivityBox = $('set-reflexivity');
+  if (reflexivityBox) { reflexivityBox.value = p.reflexivity || ''; reflexivityBox.readOnly = fixed; }
   $('set-project-name').readOnly = fixed;
   $('set-question').readOnly = fixed;
   $('project-fixed').hidden = !fixed;
@@ -12378,19 +12381,33 @@ function projectBody(p = projectAt()) {
   return body;
 }
 
-/* What Save sends for the project: its name and question when either changed, and its tick, on its own with its
-   date, when that changed, the demo's never */
+/* What Save sends for the project: its name and question when either changed, with its reflexivity statement
+   in the same call when that changed, so the server refuses a statement past its limit before any of them is
+   written (settingsfix), and its tick, on its own with its date, when that changed, the demo's never */
 function projectSaves() {
   const p = projectAt();
   const out = [];
   if (!p || p.demo) return out;
   const name = $('set-project-name').value.trim();
   const question = $('set-question').value.trim();
+  const body = {};
   if (name !== String(p.name || '') || question !== String(p.research_question || '')) {
-    out.push({ ...projectBody(p), name, research_question: question });
+    Object.assign(body, { name, research_question: question });
   }
+  // the reflexivity statement, when it changed, from a server that sends one (settingsbuild)
+  const box = $('set-reflexivity');
+  const reflexivity = box ? box.value.trim() : '';
+  if (box && p.reflexivity !== undefined && reflexivity !== String(p.reflexivity || '').trim()) body.reflexivity = reflexivity;
+  if (Object.keys(body).length) out.push({ ...projectBody(p), ...body });
   if (p.agents && $('set-agents').checked !== !!p.agents.allowed) out.push({ ...projectBody(p), agents: $('set-agents').checked });
   return out;
+}
+
+/* a reflexivity statement past the box's limit, said in one line before anything of Save is sent (settingsfix) */
+function reflexivityTooLong() {
+  const box = $('set-reflexivity');
+  const most = box && box.maxLength > 0 ? box.maxLength : 0;
+  return most && box.value.trim().length > most ? t('distil.projset.reflexivity_long', { most }) : '';
 }
 
 function projectSaid(text, failed = false) {
@@ -12410,6 +12427,8 @@ async function saveProjectSettings() {
     drawGetsPane();
     return;
   }
+  const tooLong = reflexivityTooLong();
+  if (tooLong) { projectSaid(tooLong, true); return; }
   const sends = projectSaves();
   try {
     if (gets) {

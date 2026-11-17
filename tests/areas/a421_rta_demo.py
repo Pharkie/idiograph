@@ -10,7 +10,8 @@ copy it ships. B: a fresh clone's copy filled as the server's start fills it ope
 six participants in the study's order with their labels, pen portraits and pictures from the set no other demo uses,
 a thematic analysis project named back as demo-rta, `--demo rta` on the command line and MCP. C: every extract's
 words stand in its passage's transcript, the workbook's and the interview's, and every theme and subtheme of its
-Themes board holds the approved codes, the two left unplaced unplaced, the reflexivity statement the board's note.
+Themes board holds the approved codes, the two left unplaced unplaced, and the board has no note: the reflexivity
+statement is the project's own, its Project settings' Reflexivity (settingsbuild, 17 November 2026).
 D: Reset demo puts a changed copy back byte for byte, its code list and Themes board with it, and leaves the other
 demos alone. E: the recordings list names six, one an interview, each in the manifest at the demos' release, and
 where this computer holds them each recording's length, which the report says, runs past its interview's last
@@ -192,11 +193,13 @@ def test_rta_demo(scratch: Path):
         on_board = {line[k] for k in board["cards"] if k in line}
         listed = routes.api_codes({"root": "demo-rta"})
         ck("421: every theme and subtheme of its Themes board holds the approved codes, under the approved titles with "
-           "their definitions, the two codes left out unplaced, the Current board, its note the reflexivity statement",
+           "their definitions, the two codes left out unplaced, the Current board with no note, and the reflexivity "
+           "statement the project's own Reflexivity (settingsbuild)",
            under == want and on_board == placed
            and {codes_mod.norm(c) for c in plan["not_placed"]} == {codes_mod.norm(c["name"]) for c in plan["codes"]} - placed
            and all(g.get("description") for g in board["groups"])
-           and board.get("note") == plan["reflexivity"] and plan["reflexivity"].startswith("I am ")
+           and not board.get("note") and "reflexivity" not in plan
+           and routes.read_project(root)["reflexivity"].startswith("I am ")
            and len(listed["codes"]) == len(plan["codes"]) == 24 and all(c.get("description") for c in listed["codes"]),
            json.dumps({k: sorted(v) for k, v in under.items()})[:400])
 

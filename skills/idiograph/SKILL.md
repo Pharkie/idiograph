@@ -1079,7 +1079,7 @@ refused with nothing written.
 
 ## The statement length
 
-The length nudge speaks past the project's statement length, 15 words by default, the book's band
+The length nudge speaks past the project's statement length, 15 words by default
 (20 October). The project sets its own, kept in its file as `statement_words` only when it is not 15.
 
 ```
@@ -1445,6 +1445,7 @@ was.
 idiograph project set --name "Keeping bees" --question "How do people live keeping bees?" --dry-run
 idiograph project set --pet-labels numbers --note "his words" --tool "Claude Code"
 idiograph project set --timecodes 75:12 --dry-run
+idiograph project set --reflexivity-file "/Users/him/reflexivity.txt" --dry-run
 idiograph project show
 idiograph project new "/Users/him/Bees" --name "Keeping bees" --transcript "/Users/him/hive talk.txt" --pseudonym Rowan --dry-run
 idiograph project new "/Users/him/Walks" --name "Daily walks" --method ta --transcript "/Users/him/walk talk.txt" --pseudonym Wren --dry-run
@@ -1459,7 +1460,11 @@ idiograph participant complete Alder --reopen --dry-run
 project's) or 01:15:12 (the hours always), as Project settings saves them (`/api/project`), each left out
 kept as it is. Its answer says each change, "Timecodes from 1:15:12 to 75:12." among them. Every timecode a human line shows
 follows the project's, the turn lines among them. `--json` gives a passage's `seconds` beside its `time`. The demo's project is fixed.
-The privacy tick is his alone, so no op sets it. `cases` reads them, `timepoints` and `length` set the
+`--reflexivity` (or `--reflexivity-file`, a text file; MCP `project_set`'s `reflexivity`) sets the researcher's
+reflexivity statement, Project settings' Reflexivity, which the tables' exports print as a section of its own before
+Participants, "" taking it away (settingsbuild, 17 November 2026). It is his own words: set it only with the words
+he gives you. A change's line counts its words and never says them, and `project show` reads it, marked as
+untrusted text like every word of the project. The privacy tick is his alone, so no op sets it. `cases` reads them, `timepoints` and `length` set the
 rest of the project's own settings in Project settings.
 
 `project remove` (removetrash, 10 November 2026, MCP `project_remove`) takes the project off Idiograph's list,

@@ -218,9 +218,16 @@ def table_name() -> str:
 def blocks(project: dict, parts: dict, notes: bool = False, selected: bool = False,
            descriptions: bool = True, people: dict | None = None, heading: str = "") -> list[dict]:
     """The document as paragraphs: the project, or `heading`, a participant's LPETs' participant, and the table's
-    name, with `people` (Participants table ticked) the participants table on the first page, then the themes."""
+    name, the reflexivity statement when there is one, with `people` (Participants table ticked) the participants
+    table on the first page, then the themes."""
     name = heading or " ".join(str(project.get("name") or "").split()) or i18n.t("page_print.gets.project")
     first = people_blocks(people_mod.table_of(people, parts["inside"], gt.who)) if people is not None else []
+    # the reflexivity statement before the participants table, and with none the page's end after it (settingsbuild)
+    reflex = gets_print.reflexivity_paras(project)
+    if reflex:
+        first = ([{"style": 2, "runs": [run(i18n.t("page_print.reflexivity.heading"))]}]
+                 + [{"style": 0, "runs": [run(t)]} for t in reflex]
+                 + (first if first else [{"style": tw.BREAK, "runs": []}]))
     return ([{"style": 1, "runs": [run(name)]}, {"style": tw.SUBTITLE, "runs": [run(table_name())]}]
             + first + board_blocks(parts, notes, selected, descriptions))
 

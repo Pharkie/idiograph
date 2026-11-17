@@ -4,7 +4,7 @@
 // each participant's table of PETs (each from a new page, the table of PETs' own blocks from pets_table.typ), the GET
 // table and the audit trail (gets-table.typ, gets-trail.typ). A thematic analysis project's full set has no tables of
 // PETs, its participants having none. Every word comes in the data. A part's heading is gets-parts.typ's.
-#import "gets-parts.typ": gets-page, head, part-head, people-table, serif, sans, ink, soft, faint, lh, caps
+#import "gets-parts.typ": gets-page, head, part-head, people-table, reflexivity, serif, sans, ink, soft, faint, lh, caps
 #import "gets-table.typ": gets-table
 #import "gets-trail.typ": gets-trail
 #import "pets_table.typ": pets-blocks
@@ -24,6 +24,7 @@
     }
   }
   let n = 1
+  if "reflexivity" in d { entry(n, d.names.reflexivity, ()); n += 1 }
   if "people" in d { entry(n, d.names.people, ()); n += 1 }
   if d.contents.pets { entry(n, d.names.pets, d.contents.cases); n += 1 }
   entry(n, d.names.table, ())
@@ -51,8 +52,13 @@
 #show: gets-page.with(d)
 #head(d.head)
 #contents(d)
-#if "people" in d {
+#if "reflexivity" in d {
   pagebreak()
+  part-head(d.names.reflexivity)
+  reflexivity(d.reflexivity)
+}
+#if "people" in d {
+  if not ("reflexivity" in d) { pagebreak() }
   part-head(d.names.people)
   people-table(d.people)
 }

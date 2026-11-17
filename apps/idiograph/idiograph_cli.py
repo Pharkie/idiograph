@@ -1610,13 +1610,36 @@ def cmd_agents_log(args) -> tuple:
     return cli.agents_log(args, allowed)
 
 
+def reflexivity_given(args):
+    """The reflexivity statement an agent asks to set (settingsbuild, 17 November 2026): `--reflexivity`'s text (or
+    the text an MCP call hands over), or `--reflexivity-file`'s, "" taking it away, or None when it asks for neither.
+    Both given, or a file that cannot be read, is refused in one line and nothing of its words is said."""
+    text = getattr(args, "reflexivity", None)
+    path = getattr(args, "reflexivity_file", None)
+    if text is not None and path is not None:
+        raise cli.Refused(i18n.t("cli.reflexivity.one"))
+    if path is not None:
+        try:
+            text = Path(str(path)).expanduser().read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            raise cli.Refused(i18n.t("cli.reflexivity.unread")) from None
+    return None if text is None else str(text).lstrip("\ufeff")
+
+
+def reflexivity_line(text: str) -> str:
+    """The statement as a line counts it, never saying its words."""
+    n = routes.reflexivity_words(text or "")
+    return i18n.t("cli.reflexivity.words", words=i18n.t("cli.n.word", n=n)) if n else i18n.t("cli.reflexivity.none")
+
+
 def cmd_project_set(p: Project, args) -> tuple:
-    """The project's name, its research question, how the exports label its PETs and how its timecodes are
-    written, saved as Project settings saves them (`routes.api_project`), each left out kept as it is,
-    with --dry-run saying what would change and writing nothing."""
+    """The project's name, its research question, how the exports label its PETs, how its timecodes are written and
+    (settingsbuild) the researcher's reflexivity statement, saved as Project settings saves them
+    (`routes.api_project`), each left out kept as it is, with --dry-run saying what would change and writing nothing."""
     name, question, labels, form = (getattr(args, k, None) for k in ("name", "question", "pet_labels", "timecodes"))
     method = getattr(args, "method", None)
-    if name is None and question is None and labels is None and form is None and method is None:
+    reflexivity = reflexivity_given(args)
+    if name is None and question is None and labels is None and form is None and method is None and reflexivity is None:
         raise cli.Refused(_w("NO_SET"))
     if not themes_ai.one_line(args.note) and not args.dry_run:
         raise cli.Refused(_w("NO_PROJECT_REQUEST"))
@@ -1633,6 +1656,8 @@ def cmd_project_set(p: Project, args) -> tuple:
         body["pet_labels"] = labels
     if form is not None:
         body["timecodes"] = form
+    if reflexivity is not None:
+        body["reflexivity"] = reflexivity
     try:
         done = routes.api_project(body)
     except (WorkbookError, srv.OutsideRoot) as exc:
@@ -1644,8 +1669,11 @@ def cmd_project_set(p: Project, args) -> tuple:
             i18n.t("cli.said.saved_in_the_project_file") if done["changes"] else i18n.t("cli.said.nothing_changed"))
     lines = [head] + done["changes"] + [i18n.t("cli.project_set.name", name=got['name']),
                                         i18n.t("cli.said.research_question", research_question=got['research_question'] or i18n.t("cli.said.none_set_yet")),
-                                        i18n.t("cli.said.pet_labels", pet_labels=got['pet_labels']), i18n.t("cli.said.timecodes", timecodes=got['timecodes'])]
-    answer = {"project": {k: got[k] for k in ("name", "research_question", "pet_labels", "timecodes")},
+                                        i18n.t("cli.said.pet_labels", pet_labels=got['pet_labels']), i18n.t("cli.said.timecodes", timecodes=got['timecodes']),
+                                        reflexivity_line(got.get("reflexivity") or "")]
+    # the statement by its words' count alone: its words are his, and project show reads them
+    answer = {"project": {**{k: got[k] for k in ("name", "research_question", "pet_labels", "timecodes")},
+                          "reflexivity_words": routes.reflexivity_words(got.get("reflexivity") or "")},
               "changes": done["changes"], "dry_run": bool(args.dry_run)}
     return answer, lines
 
@@ -1686,7 +1714,7 @@ def cmd_project_show(p: Project, _args) -> tuple:
     its research question, its method, IPA or thematic analysis, fixed when it was made, how the exports label its
     PETs, how its timecodes are written, its timepoints and its statement length. It reads and writes nothing."""
     got = routes.api_project(project_body(p))["project"]
-    keys = ("name", "research_question", "method", "pet_labels", "timecodes", "statement_words", "demo")
+    keys = ("name", "research_question", "method", "pet_labels", "timecodes", "statement_words", "demo", "reflexivity")
     answer = {k: got[k] for k in keys}
     answer["timepoints"] = [{"n": t["n"], "label": t["label"], "description": t["description"]} for t in got["timepoints"]]
     ta = got["method"] == "ta"
@@ -1695,7 +1723,9 @@ def cmd_project_show(p: Project, _args) -> tuple:
              i18n.t("cli.project_show.method_fixed_when_the_project_was", method_name=routes.method_name(got['method'])),
              *([] if ta else [i18n.t("cli.said.pet_labels", pet_labels=got['pet_labels'])]), i18n.t("cli.said.timecodes", timecodes=got['timecodes']),
              *([i18n.t("cli.said.timepoints", timepoints=timepoints_said(answer['timepoints']))] if routes.longitudinal(got["timepoints"]) else []),
-             i18n.t("cli.statement_length", n=got["statement_words"])]
+             i18n.t("cli.statement_length", n=got["statement_words"]),
+             # the researcher's reflexivity statement (settingsbuild), his words, marked as data for an agent
+             i18n.t("cli.reflexivity.said", text=got["reflexivity"]) if got["reflexivity"] else i18n.t("cli.reflexivity.none")]
     return {"project": answer}, lines
 
 
@@ -9640,6 +9670,10 @@ def arguments(sub, common, writes) -> None:
                         "folded into the minutes, 1:15:12, the hours once past the hour, or 01:15:12, the hours always")
     x.add_argument("--method", choices=i18n.METHODS, default=None,
                    help="the project's method, fixed when it was made: its own changes nothing, the other is refused")
+    x.add_argument("--reflexivity", default=None,
+                   help="the researcher's reflexivity statement, plain text, \"\" to take it away")
+    x.add_argument("--reflexivity-file", dest="reflexivity_file", default=None,
+                   help="the reflexivity statement from a text file, in place of --reflexivity")
     pj.add_parser("show", parents=[common], help="the project's settings as Project settings shows them, its method "
                                                   "among them")
     x = pj.add_parser("remove", parents=[common, writes],

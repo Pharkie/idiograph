@@ -3,7 +3,7 @@
 // (Adam, 1 November 2026), the parts the views in gets-table.typ and gets-trail.typ, which a full set imports.
 // With Participants table ticked (pbioexport, 11 November 2026) the participants table comes first under its
 // heading, and the part after it from a new page under its own, as the HTML's `.part > h2`.
-#import "gets-parts.typ": gets-page, head, part-head, people-table
+#import "gets-parts.typ": gets-page, head, part-head, people-table, reflexivity
 #import "gets-table.typ": gets-table
 #import "gets-trail.typ": gets-trail
 
@@ -11,9 +11,16 @@
 
 #show: gets-page.with(d)
 #head(d.head)
+// the reflexivity statement before the participants table (settingsbuild, 17 November 2026)
+#if "reflexivity" in d {
+  part-head(d.names.reflexivity)
+  reflexivity(d.reflexivity)
+}
 #if "people" in d {
   part-head(d.names.people)
   people-table(d.people)
+}
+#if "people" in d or "reflexivity" in d {
   pagebreak()
   part-head(if "table" in d { d.names.table } else { d.names.trail })
 }

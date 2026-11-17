@@ -322,6 +322,10 @@ main.wn {
 .wn-name { font: 600 15.5px/1.4 var(--sans); color: var(--ink); }
 .wn-when { font: 400 14.5px/1.4 var(--sans); color: var(--ink-soft); }
 .wn-row[open] > summary .chev { transform: rotate(180deg); }
+.wn-all { max-width: 44em; margin: 28px 0 0; font-size: 15px; }
+.wn-all a { color: var(--ink); text-underline-offset: 3px; text-decoration-color: var(--rule); }
+.wn-all a:hover { text-decoration-color: currentColor; }
+.wn-all a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .wn-row .wn-notes { margin: 2px 0 14px; }
 
 main.sp {

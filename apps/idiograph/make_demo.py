@@ -443,6 +443,12 @@ def reset_all(pristine: Path | None = None, demo: Path | None = None) -> dict:
             shutil.copyfile(shipped, demo / name)
         else:
             (demo / name).unlink(missing_ok=True)
+    # and the project file as it ships beside the pristine copy, its Reflexivity with it (settingsfix, 17 November
+    # 2026), where the demo worked on is not the shipped one (the Mac app's, in Application Support); from the repo
+    # the two are one folder and it is left as it is
+    shipped_project = pristine.parent / PROJECT_FILE
+    if shipped_project.is_file() and shipped_project.resolve() != (demo / PROJECT_FILE).resolve():
+        shutil.copyfile(shipped_project, demo / PROJECT_FILE)
     exports = demo / GETS_WORKING
     if exports.is_dir() and not exports.is_symlink():
         shutil.rmtree(exports)

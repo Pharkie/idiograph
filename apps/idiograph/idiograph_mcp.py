@@ -1118,10 +1118,12 @@ TOOLS = [
                                     "that timepoint alone when one is given, as Open a shared copy's card ticks them. "
                                     "Leave it out for every one but his own as he sent them."}},
          ["file"], writes="adds"),
-    mcp.tool("project_set", "Save the project's name, question, PET labels or timecodes", ("project", "set"),
+    mcp.tool("project_set", "Save the project's name, question, PET labels, timecodes or reflexivity", ("project", "set"),
          "Save the project's name, its research question, how the exports label its PETs, letters (A, A1, A1.1) "
-         "or numbers (PET 1, PET 1a, 1a.1), or how its timecodes are written, 75:12, 1:15:12 or 01:15:12, as "
-         "Project settings saves them, each left out kept as it is. The "
+         "or numbers (PET 1, PET 1a, 1a.1), how its timecodes are written, 75:12, 1:15:12 or 01:15:12, or the "
+         "researcher's reflexivity statement, which the tables' exports print as a Reflexivity section, as "
+         "Project settings saves them, each left out kept as it is. The reflexivity statement is his own words: "
+         "set it only with the words he gives you. The "
          "demo's project is fixed. cases reads them. Run dry_run first, which says each change, and save only on "
          "his word.",
          {"name": dict(mcp.TEXT, description="The project's name."),
@@ -1134,7 +1136,9 @@ TOOLS = [
                                        "them once past the hour, 01:15:12 always."},
           "method": {"type": "string", "enum": ["ipa", "ta"],
                      "description": "The project's method, fixed when it was made: its own changes nothing, the "
-                                    "other is refused."}},
+                                    "other is refused."},
+          "reflexivity": {"type": "string", "description": "The researcher's reflexivity statement, plain text, "
+                                                           "empty to take it away."}},
          [], writes="changes"),
     mcp.tool("project_remove", "Remove the project from Idiograph", ("project", "remove"),
          "Take the project off Idiograph's list, as Remove from Idiograph on its menu does: its folder and every "
@@ -1150,8 +1154,8 @@ TOOLS = [
     mcp.tool("project_show", "The project's settings", ("project", "show"),
          "The project's settings as Project settings shows them: its name, its research question, its method, "
          "ipa (Interpretative Phenomenological Analysis) or ta (thematic analysis), chosen when it was made and fixed "
-         "after, how the exports label its PETs, how its timecodes are written, its timepoints and its statement "
-         "length. A thematic analysis project has no PETs and no timepoints yet, and its screens say codes and "
+         "after, how the exports label its PETs, how its timecodes are written, its timepoints, its statement "
+         "length and the researcher's reflexivity statement. A thematic analysis project has no PETs and no timepoints yet, and its screens say codes and "
          "themes for statements and GETs."),
     mcp.tool("project_history", "The project's own History", ("project", "history"),
          "The project's own History, newest first: each change to its name, research question, PET labels, "
@@ -1891,6 +1895,8 @@ def arguments(t: dict, given: dict, args):
         args.name, args.question = given.get("name"), given.get("research_question")
         args.pet_labels, args.folder = given.get("pet_labels"), given.get("folder")
         args.timecodes = given.get("timecodes")
+        # the researcher's reflexivity statement handed over as text, never through a file (settingsbuild)
+        args.reflexivity, args.reflexivity_file = given.get("reflexivity"), None
         # the project's own History, its newest records alone (projhistory, 2 November 2026)
         args.limit = given.get("limit")
         args.method = given.get("method")

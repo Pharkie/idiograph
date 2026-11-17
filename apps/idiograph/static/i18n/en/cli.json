@@ -29,6 +29,11 @@
   "cli.statements_complete": "Statements marked complete on {when}.",
   "cli.statements_progress": "Statements in progress.",
   "cli.statement_length": "Statement length: {n} words.",
+  "cli.reflexivity.said": "Reflexivity: {text}",
+  "cli.reflexivity.words": "Reflexivity: {words}.",
+  "cli.reflexivity.none": "Reflexivity: none.",
+  "cli.reflexivity.one": "Give the reflexivity statement with --reflexivity or --reflexivity-file, not both, so nothing was saved.",
+  "cli.reflexivity.unread": "The reflexivity file could not be read as text, so nothing was saved.",
   "cli.statements_head": {
     "one": "{case}: {n} statement, short ids S1 to S{n}",
     "other": "{case}: {n} statements, short ids S1 to S{n}"
@@ -911,7 +916,7 @@
   "cli.said.ai_model_empty": "Name the model. Nothing was written.",
   "cli.said.uid_made": "The project file took an id of its own, so a copy that comes back can be matched to it. Nothing else in the project changed.",
   "cli.said.no_whose": "The file carries no sender's name. Say whose copy it is with --from-name, so each board's name says so.",
-  "cli.said.no_set": "Say what to set with --name, --question, --pet-labels or --timecodes, so nothing was saved.",
+  "cli.said.no_set": "Say what to set with --name, --question, --pet-labels, --timecodes, --reflexivity or --reflexivity-file, so nothing was saved.",
   "cli.said.no_project_request": "Say his request in his own words with --note, so the change is his.",
   "cli.said.not_paired": "Give each --transcript its --pseudonym, in the same order, so nothing was made.",
   "cli.said.agents_off": "Agents read it once he ticks Project settings, \"Allow AI agents to read this project\" for it in Idiograph.",

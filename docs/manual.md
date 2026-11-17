@@ -4447,6 +4447,20 @@ folder's name, unless that one name is wider than the line. A demo's sheet is re
 the question, the tick and GETs' rules when they changed, each to its own file, and PET labels, timecodes,
 timepoints and the statement length save as they are changed. Open project is on Home.
 
+**Reflexivity.** Under the research question in Project settings (17 November 2026, Adam: "reflexivity is a
+project setting... it's more a write-up thing"), Reflexivity holds the researcher's reflexivity statement, plain
+text on as many lines as it needs, in every project, IPA, longitudinal or thematic analysis. Save writes it to the
+project file with the name and the question, and an empty box takes it away. The tables' exports, the GET table's,
+the LGET table's and a thematic analysis project's Table of themes, in the print view, the PDF and Microsoft Word,
+set it as a section of its own headed Reflexivity before Participants, a paragraph for each line, and before the
+table itself when Participants table is unticked, the table then starting on a new page under its own heading. With
+none there is no section. A participant's LPET table, which has no participants table, leaves it out. The reflexive
+thematic analysis demo's statement, its researcher's, is its Reflexivity, read-only as the rest of a demo's sheet,
+where until then it was the Themes board's note, and Reset demo puts it back as it ships. A shared copy, Share a
+copy's file or a copy sent to work on together, leaves Reflexivity out, as it is your own positioning and not the
+participants' work, and a copy coming back never changes yours. There is no journal and nothing of it on the
+project's page.
+
 **Working together.** At the foot of Project settings (8 November 2026), Working together has one tick, Work on
 this project with others, off in every project until it is ticked, so someone working alone sees nothing else.
 Ticked the first time, it makes this computer's keys and makes you the project's lead, under Settings' Your name,
@@ -5601,46 +5615,38 @@ As a statement is typed, nudges appear from the checks in `ipa_annotation_audit.
 past the project's statement length, 15 words by default (no minimum), a The/She/Her/A lead, a quoted fragment, a semicolon, an em dash, an arrow, the
 reads-as construction. Each can be switched off in Settings, under Experiential statements, where
 they sit under the small heading Nudges. Until 3 October 2026 the screen called them flags.
-Nothing blocks a save and nothing is scored. The length nudge has no minimum, because about a fifth of Adam's own statements run to
-six words or fewer.
+Nothing blocks a save and nothing is scored. The length nudge has no minimum.
 
 **Nudges explained.** Each tick under Nudges in Settings carries a small circled i after its label,
-reached with Tab and read out with its words. On hover or on focus it says what the nudge catches,
-gives an example made up for it, and says why it is there where the code gives a reason:
+reached with Tab and read out with its words. On hover or on focus it says what the nudge catches and
+gives an example made up for it, nothing more (17 November 2026, Adam: never figures from his own projects):
 
 **Statement length.** In Project settings, under Experiential statements, Statement length is the words
 past which the length nudge speaks and the count under a statement turns amber (5 November 2026, where
 from 21 October it stood in the length nudge's own row in Settings). The nudge's row in Settings says "word
 count past the statement length", and its tick turns the nudge on or off for every project, each using its
 own number. It is the project's own (20 October, after a tester's statements of 28 words), 15 by default,
-the band of the book's census, which the number's tooltip names. Type it or step it with the arrows, from 5 to 60, and it is saved in the project's file a moment after the last
+which the number's tooltip names. Type it or step it with the arrows, from 5 to 60, and it is saved in the project's file a moment after the last
 change, written there only when it is not 15. The demo's is fixed.
 
-*Word count past the statement length.* Catches a statement past the statement length in Project settings, 15 words unless it is changed. For example, "Walking the dog each morning
-before work becomes the one part of the day she keeps for herself", at 18 words. In a census of
-1,560 statements the median ran to 10 words, and 78% to between 7 and 15.
+*Word count past the statement length.* Catches a statement longer than the statement length in Project
+settings, 15 words unless you change it. For example, "Walking the dog each morning before work becomes the one
+part of the day she keeps for herself", at 18 words.
 
-*Opens with She, He or They.* Catches a statement that opens on the participant, She, Her, He, His,
-They or Their. For example, "She feels calmer once the dog is asleep". The corpus drops the subject,
-as in "Calmer once the dog is asleep". An opening with The or A is fine.
+*Opens with She, He or They.* Catches a statement that opens with She, Her, He, His, They or Their. For example,
+"She feels calmer once the dog is asleep".
 
-*A quoted fragment.* Catches inverted commas inside a statement. For example, "Feels 'properly at
-home' with the dog around". In the corpus one statement in seven carries a quote, and then a single
-crux word.
+*A quoted fragment.* Catches inverted commas inside a statement. For example, "Feels 'properly at home' with the
+dog around".
 
-*A semicolon.* Catches a semicolon inside a statement. For example, "Missing the dog" and "dreading
-the empty flat" joined by one.
+*A semicolon.* Catches a semicolon inside a statement. For example, "Missing the dog; dreading the empty flat".
 
-*An em dash.* Catches an em dash, the long dash. For example, "Calm at home" and "restless on the
-walk" joined by one. It is typical of AI writing, rare in speech and in most writing, and best
-avoided.
+*An em dash.* Catches an em dash, the long dash. For example, "Calm at home — restless on the walk".
 
-*An arrow.* Catches an arrow, drawn as → or typed as ->, inside a statement. For example, "Fear
-→ trust on the second walk".
+*An arrow.* Catches an arrow, → or ->, inside a statement. For example, "Fear → trust on the second walk".
 
-*The reads-as construction.* Catches a verb of interpreting, reads, casts or recasts, with as a few
-words after it. For example, "Reads the barking at the door as a warning", where "Hears a warning in
-the barking at the door" says it with a plain verb.
+*The reads-as construction.* Catches reads, casts or recasts followed by as. For example, "Reads the barking at
+the door as a warning".
 
 A nudge says what it has to say and no longer quotes the statement back: the statement is just
 above it. Each statement's nudges stand under it, so none opens with a line number, as "Line 2:" did

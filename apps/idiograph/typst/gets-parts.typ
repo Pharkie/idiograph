@@ -142,6 +142,14 @@
 #let part-head(s) = block(sticky: true, above: 0pt, below: 8pt, width: 100%, stroke: (bottom: 0.75pt + rule-firm),
   inset: (bottom: 3pt), text(font: serif, size: 16pt, fill: ink, s))
 
+// the reflexivity statement (settingsbuild, 17 November 2026), a paragraph a line in the reading face, as the HTML's
+// `.part.reflexivity`, before the participants table
+#let reflexivity(paras) = block(above: 0pt, below: 18pt, {
+  for (i, t) in paras.enumerate() {
+    block(above: if i == 0 { 0pt } else { 6pt }, below: 0pt, lh(1.5, text(font: serif, size: 10.5pt, fill: ink, t)))
+  }
+})
+
 // the participants table (pbioexport, 11 November 2026, with Participants table ticked), from the data's `people`:
 // a row for each participant in order, the number in the quiet sans, the pseudonym and the label in the serif, the
 // pen portrait taking the rest of the width, as the HTML's `table.pt`. The column heads repeat on each page and a

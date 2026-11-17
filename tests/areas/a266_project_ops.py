@@ -157,7 +157,8 @@ def test_project_ops(scratch: Path):
         check("266: project set's dry run says each change and writes nothing",
               code == 0 and files(agent) == before and dry.get("dry_run") is True and len(dry.get("changes", [])) == 3
               and dry["project"] == {"name": "Swimming at night", "research_question": "How do people live night swimming?",
-                                     "pet_labels": "numbers", "timecodes": "1:15:12"}, err + json.dumps(dry))
+                                     "pet_labels": "numbers", "timecodes": "1:15:12",
+                                     "reflexivity_words": 0}, err + json.dumps(dry))
         code, done, err = run_json("--root", str(agent), "project", "set", "--name", "Swimming at night",
                                    "--question", "How do people live night swimming?", "--pet-labels", "numbers",
                                    "--note", "Rename the project", "--tool", "Claude Code")

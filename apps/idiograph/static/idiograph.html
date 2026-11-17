@@ -1642,6 +1642,13 @@
               <label for="set-question">{{page_idiograph.settings_first.research_question}}</label>
               <textarea id="set-question" class="question-box" rows="3" spellcheck="true" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"></textarea>
             </div>
+            <!-- Reflexivity (settingsbuild, Adam, 17 November 2026: "a project setting... a write-up thing"): the
+                 researcher's reflexivity statement, plain text in the project file, saved with Save as the question is,
+                 and printed as its own section in the tables' exports. Every method's, read-only on a demo -->
+            <div class="setting stacked">
+              <label for="set-reflexivity">{{page_idiograph.projset.reflexivity}}</label>
+              <textarea id="set-reflexivity" class="question-box reflexivity-box" rows="6" maxlength="20000" spellcheck="true" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"></textarea>
+            </div>
             <!-- the project's method (tadraw), chosen on New project and shown here, never changed -->
             <div class="setting" id="set-method-row">
               <span class="setting-label">{{method.label}}</span>
