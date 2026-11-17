@@ -247,8 +247,8 @@ def _assign_checks(scratch, root, server_mod, dt):
     wside = sidecar_view(whole)
     preview = rows_api({"op": "preview", "path": str(whole), "sheet": DEMO_SHEET, "row": target, "to": him})
     check("the confirm card names the merge it will make",
-          preview["line"] == f"{him} {rows[target - 1]['time']} and {him} {rows[target + 1]['time']} "
-                             f"become one passage, with {her} {rows[target]['time']} between them assigned to {him}.",
+          preview["line"] == f"{her} {rows[target]['time']} is assigned to {him}. It joins {him} {rows[target - 1]['time']} "
+                             f"and {him} {rows[target + 1]['time']} into one passage.",
           preview["line"])
     check("and what it carries across, naming no flag though the row holds one from before",
           "flagged" not in preview and "flag" not in preview["carries"] and "statement" in preview["carries"],
@@ -410,7 +410,7 @@ def _assign_checks(scratch, root, server_mod, dt):
         rows_api({"op": "shuffle", "path": str(work), "sheet": DEMO_SHEET, "row": r0})
         check("the endpoint takes assign, preview and restore, nothing else", False)
     except WorkbookError as exc:
-        check("the endpoint takes assign, preview and restore, nothing else", "nothing else" in str(exc))
+        check("the endpoint takes assign, preview and restore, nothing else", "can only be" in str(exc))
     check("/api/rows is served", server_mod.ROUTES.get("/api/rows") is idiograph_routes.api_rows)
 
     # ── H. the timecode box, through /api/edit-turn

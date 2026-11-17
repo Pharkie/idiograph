@@ -753,8 +753,10 @@ each change only on his word.
 
 A longitudinal study (Farr and Nizza 2019, 20 October) interviews each participant at several
 timepoints. It is a longitudinal IPA project, `method` `lipa`, made so with `project new --method lipa` (17 November
-2026), and only it has timepoints, each with a label, T1, and a description, Before the season, one or more: a
-longitudinal project of one timepoint is longitudinal still, and a later round raises the count. An IPA or a
+2026), and only it has timepoints, each with a label, T1, and a description, Before the season, two or more: no client
+lowers a longitudinal project below two, `timepoints --from` and MCP's `timepoints_set` refusing it in one line with nothing
+written. A project made at one timepoint before this, with 0.9.30, is longitudinal still, reads as it did with nothing
+written, and a later round raises the count. An IPA or a
 thematic analysis project has none, and `timepoints --from` refuses it in one line with nothing written. A project
 from before whose file sets two or more timepoints and no method reads as `lipa`, its file unwritten. A participant
 is one participant at every timepoint, never a participant an interview: their interview at T2 is new sheets of
@@ -882,7 +884,7 @@ default. A row with no passage at its Location or with its quote is skipped. The
 keeps its words. A statement two rows name is placed once, where the first puts it, and the second is a
 `duplicate`. The board is made as `board new` makes one, named by `--name`, From Excel when left out,
 laid out afresh, every statement no row places waiting in Unplaced and every other board as it was,
-its note naming the table and the counts. The dry run writes nothing. It answers `counts` (`rows`,
+with no note on it, since the board's note is the researcher's own words, and the table's name and the counts are in the participant's History and the record of agents' changes. The dry run writes nothing. It answers `counts` (`rows`,
 `exact`, `fuzzy`, `rewritten`, `added`, `skipped`, `duplicate`, `unmatched` and `reworded`) and `rows`,
 each with its `pet`, `sub`, `statement`, `how`, `ratio`, `key`, `was` (the words the statement had), `by`
 (words, location or quote), `sheet`, `passage`, `time` and, for a duplicate, `of`, with a line each. MCP's
@@ -1508,7 +1510,7 @@ Interpretative Phenomenological Analysis, the default, `lipa`, longitudinal IPA,
 analysis, as the card's Method does, kept in the project file as `method` and fixed once the project is made: no
 client changes it, `project set --method` refusing another, IPA to `lipa` too, in one line with nothing written, and a
 folder whose project file names one keeps it. `--timepoint "T1=Before the season"`, given again for each one more,
-sets a `lipa` project's timepoints, T1 alone when left out, and is refused for `ipa` and `ta`. A project file with no
+sets a `lipa` project's timepoints, T1 and T2 when left out, two at least (one timepoint is refused in one line with nothing written, since a project of one is IPA), and is refused for `ipa` and `ta`. A project file with no
 method is IPA's, or `lipa`'s where it sets two or more timepoints. `project show` reads the project's settings as
 Project settings shows them, its method among them and a `lipa` project's `timepoints` beside it, and `cases`
 answers `method` too. A thematic analysis project has no PETs and no timepoints

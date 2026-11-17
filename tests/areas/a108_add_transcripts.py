@@ -260,7 +260,7 @@ def test_add_transcripts(scratch):
             "twice": "Hazel has two interviews named t3.",
             "lower": "Make the pseudonym for talk.csv one capitalised word.",
             "two words": "Make the pseudonym for talk.csv one capitalised word.",
-            "interviewer": "Bea is the interviewer's name in Settings, so it cannot be a pseudonym.",
+            "interviewer": "Bea is the interviewer's name in Project settings, so it cannot be a pseudonym.",
             "unreadable": "Idiograph could not read any passages from noise.docx.",
             "none": "Drop a transcript first.",
             "number taken": "There is a P2 folder there already.",

@@ -295,9 +295,10 @@ def passage_writes(matched: list[dict]) -> dict:
     return out
 
 
-def board_spec(matched: list[dict], note: str) -> tuple[dict, list[str]]:
+def board_spec(matched: list[dict]) -> tuple[dict, list[str]]:
     """The board the rows make, as `board new` takes one: the PETs in the table's order, each with its statements
-    and then its sub-theme's, a label with nothing placed under it left out and named."""
+    and then its sub-theme's, a label with nothing placed under it left out and named. The board carries no note of
+    where it came from: the file is in History and the record of agents' changes (importnote, 17 November 2026)."""
     pets: list[dict] = []
     by_title: dict = {}
     for m in matched:
@@ -319,7 +320,7 @@ def board_spec(matched: list[dict], note: str) -> tuple[dict, list[str]]:
         pet.pop("_subs")
     titles = list(dict.fromkeys(m["pet"] for m in matched))
     left = [t for t in titles if t not in by_title]
-    return {"pets": pets, "note": note}, left
+    return {"pets": pets, "note": ""}, left
 
 
 # ------------------------------------------------------------------ a table of LPETs

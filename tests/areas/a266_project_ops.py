@@ -283,7 +283,7 @@ def test_project_ops(scratch: Path):
         code, _, err = run("project", "new", str(new_agent), "--transcript", str(talk), "--pseudonym", "Linnet",
                            "--note", "Again")
         check("266: a folder that is a project already is refused as New project refuses it, nothing written",
-              code != 0 and "a project already" in err and config_file.read_bytes() == settings, err)
+              code != 0 and "already the project" in err and config_file.read_bytes() == settings, err)
         other = base / "new-other"
         other.mkdir()
         code, _, err = run("project", "new", str(other), "--transcript", str(talk), "--pseudonym", "kestrel", "--dry-run")

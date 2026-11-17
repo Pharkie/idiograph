@@ -307,9 +307,9 @@ def test_copy_back_whole(scratch: Path):
               and sorted(o["labels"]) == ["R1 Clusters", "R2 Initial Grouping", "R2 Second pass"]
               and o["as"].startswith("Comes in as: Curt's "), json.dumps(o))
         check("334: once under the participant's boards, how its statements came, in plain words",
-              o["lines"] == ["1 of these statements you have reworded since you sent the copy, and 1 you have removed. "
-                             "Curt added 1 in the copy. They keep their places on these boards, in your current wording, "
-                             "and the rest in Curt's."], json.dumps(o["lines"]))
+              o["lines"] == ["Since you sent the copy, you have reworded 1 of these statements and removed 1. "
+                             "Curt added 1 in the copy. They keep their places on these boards and show your current wording. "
+                             "The rest show Curt's wording."], json.dumps(o["lines"]))
         t = out["two_off"]
         check("334: two boards unticked, the button counts the one left, the tick for all of them half set, and Add "
               "sends that board alone with the name",

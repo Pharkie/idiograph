@@ -3,8 +3,8 @@
   "server.statement_longer_workbook_nothing_written": "That code is no longer in the workbook, so nothing was written.",
   "server.statement_reads_differently_workbook_now": "That code reads differently in the workbook now, so nothing was written.",
   "server.statement_s_passage_longer_transcript": "This code's passage is no longer in the transcript.",
-  "server.own_statement_edited_merged_added": "{who} own code, edited, merged or added in the copy.",
-  "server.turn_s_pairs_list_each": "A turn's pairs are a list, each a code and its extract.",
+  "server.own_statement_edited_merged_added": "{who} own code. It was edited, merged or added in the copy.",
+  "server.turn_s_pairs_list_each": "A turn's pairs are a list. Each pair is a code and its extract.",
   "server.statement_length_whole_number_words": "The code length is a whole number of words from {least} to {most}, so nothing was saved.",
   "server.board_in_note_as_sent": {
     "one": "{n} code as sent",
@@ -27,7 +27,7 @@
   "server.nothing_changed_s_pets_since": "Nothing has changed in {who_case}'s codes since they came in, so nothing was taken.",
   "server.project_folder_chosen_yet_gets": "No project folder is chosen yet, so there are no themes to open.",
   "server.say_which_project_s_gets": "Say which project's themes, so nothing was opened.",
-  "server.gets_stay_out_since_they": "The themes stay out, since they hold {said}, who would not be sent.",
+  "server.gets_stay_out_since_they": "The themes stay out because they hold {said}, who would not be sent.",
   "server.gets_hold_who_would_sent": "The themes hold {said}, who would not be sent, so nothing was sent. Send them too, or leave the themes out.",
   "server.rename.project_gets": "The project's themes",
   "server.qdpx_out_nobody": "The project has no participant with codes yet, so there is nothing to export.",
@@ -56,7 +56,7 @@
     "other": "Rows {rows} of {sheet} hold codes, so they are decided already. Name only passages with no code. Nothing was written."
   },
   "server.skip_refused.passes": {
-    "one": "Marking these would make row {rows} of {sheet}, a passage not named, count as passed, decided without being asked. Name it too if it needs no code either. Nothing was written.",
-    "other": "Marking these would make rows {rows} of {sheet}, passages not named, count as passed, decided without being asked. Name them too if they need no code either. Nothing was written."
+    "one": "Row {rows} of {sheet} is a passage you did not name. Marking these would count it as passed, so it would be decided without being asked. Name it too if it needs no code either. Nothing was written.",
+    "other": "Rows {rows} of {sheet} are passages you did not name. Marking these would count them as passed, so they would be decided without being asked. Name them too if they need no code either. Nothing was written."
   }
 }

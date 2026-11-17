@@ -268,8 +268,8 @@ def test_quotes_and_recordings(scratch):
         code_, _g, err = run("audio", "attach", "P1 - Thistle", "--file", str(thistle_rec), "--note", "Again")
         code_d, _d, err_d = run("audio", "attach", "P1 - Thistle", "--file", str(thistle_rec), "--dry-run")
         check("358: an interview that has a recording is refused, wet or dry, and nothing changes",
-              code_ != 0 and code_d != 0 and "has a recording already, Thistle T1.m4a" in err + str(_g)
-              and "has a recording already" in err_d + str(_d) and files() == before, f"{err} {err_d}"[:300])
+              code_ != 0 and code_d != 0 and "already has the recording Thistle T1.m4a" in err + str(_g)
+              and "already has the recording" in err_d + str(_d) and files() == before, f"{err} {err_d}"[:300])
         longer = inputs / f"{REAL} longer take.m4a"
         longer.write_bytes(b"\x00\x00\x00\x18ftypM4A thistle a longer second take")
         code_, got, err = run("audio", "attach", "P1 - Thistle", "--file", str(longer), "--replace", "--offset", "-1.5",

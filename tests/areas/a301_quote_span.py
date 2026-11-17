@@ -286,9 +286,9 @@ console.log(JSON.stringify({ w3: wash(3), w5: wash(5), w7: wash(7), w9: wash(9),
     check("301: a piece in the next passage is taken, one in the interviewer's turn, in Hollis's passage or past the "
           "next is refused with its line, and one past the next is taken once the next holds a piece",
           got["ok5"] == "" and got["ok7"] == "" and got["no7"] == "A quote can take in only the passage just before or "
-          "just after, with nothing but the interviewer between."
-          and got["no4"] == "A quote holds the participant's words, never the interviewer's."
-          and got["no8"] == "A quote holds one speaker's words, and these are another speaker's.",
+          "just after. Only the interviewer's passage can stand between them."
+          and got["no4"] == "A quote holds only the participant's words. These are the interviewer's."
+          and got["no8"] == "A quote holds one speaker's words. These are another speaker's.",
           json.dumps({k: got[k] for k in ("ok5", "ok7", "no7", "no4", "no8")}))
     check("301: the page's rule finds the same pieces as the workbook's",
           [(p["turn"], p["start"], p["end"]) for p in got["reach"]]

@@ -1151,6 +1151,9 @@ def write_rounds(root: Path, given: dict, dry_run: bool = False) -> dict:
 # its place, never its label, and a participant's sheets are placed at one in the progress file beside the workbook
 # (see `rounds.sheet_timepoints`).
 TP_MAX = 10
+# a longitudinal project has two timepoints at least, one being IPA (Adam, 17 November 2026): New project makes T1 and T2
+# when none are named and refuses one, and Project settings will not lower a project below two
+TP_MIN = 2
 TP_LABEL_MAX = 12
 TP_DESCRIPTION_MAX = 60
 
@@ -1192,16 +1195,16 @@ def longitudinal(timepoints) -> bool:
     return isinstance(timepoints, list) and len(timepoints) >= 2
 
 
-def clean_timepoints(given) -> list[dict]:
+def clean_timepoints(given, least: int = 1) -> list[dict]:
     """Timepoints as a call gives them, a list of `{"label", "description"}` or of labels, or a
-    number, checked: from 1 to TP_MAX, each label short and none twice, an empty label its place's,
+    number, checked: from `least` to TP_MAX, each label short and none twice, an empty label its place's,
     T2. Refused in one line naming what to fix."""
     if isinstance(given, int) and not isinstance(given, bool):
         given = [{} for _ in range(max(0, given))]
     if not isinstance(given, list):
         raise WorkbookError(i18n.t("server.timepoints_list_each_label_description"))
-    if not 1 <= len(given) <= TP_MAX:
-        raise WorkbookError(i18n.t("server.project_from_1_timepoints_nothing", most=TP_MAX))
+    if not least <= len(given) <= TP_MAX:
+        raise WorkbookError(i18n.t("server.project_timepoints_range_nothing_saved", least=least, most=TP_MAX))
     out, seen = [], {}
     for i, entry in enumerate(given, start=1):
         if isinstance(entry, str):
@@ -1274,7 +1277,13 @@ def write_timepoints(root: Path, given, dry_run: bool = False, who: dict | None 
     # since a longitudinal project keeps its timepoints at one too (projectbuild)
     if isinstance(given, int) and not isinstance(given, bool) and given >= 1:
         given = [{"label": t["label"], "description": t["description"]} for t in was[:given]] + [{} for _ in range(given - len(was))]
+    # none at all is refused as one is, with the two a longitudinal project needs named
+    if given in (0, []):
+        raise WorkbookError(i18n.t("server.project_timepoints_range_nothing_saved", least=TP_MIN, most=TP_MAX))
     wanted = Timepoints(clean_timepoints(given), lipa=True)
+    # never lowered below two, though a project made at one with 0.9.30 may keep its one or raise it
+    if len(wanted) < TP_MIN and len(wanted) < len(was):
+        raise WorkbookError(i18n.t("server.project_timepoints_range_nothing_saved", least=TP_MIN, most=TP_MAX))
     if len(wanted) < len(was):
         holders = timepoint_holders(root, len(wanted))
         if holders:
@@ -4166,7 +4175,7 @@ def make_project(body: dict) -> dict:
     written in the project file as it is made and fixed after. A folder whose project file is there already keeps
     the method it holds, IPA's for none, taken when none is asked, and a different one asked is refused before
     anything is written. A longitudinal project's `timepoints`, a list of `{"label", "description"}` or a number,
-    T1 alone when none are given, are written with it; timepoints for an IPA or a thematic analysis project, or for
+    T1 and T2 when none are given, at least two, are written with it; timepoints for an IPA or a thematic analysis project, or for
     a folder whose project file is there already, are refused in one line with nothing written.
 
     New project is two steps (projectbuild): the page's card makes the project alone, with no `files`, and its page
@@ -4178,13 +4187,13 @@ def make_project(body: dict) -> dict:
               else method_asked(body.get("method")))
     if there and method != method_of(project_file(root)):
         raise WorkbookError(i18n.t("method.refused_fixed", {"method": method_name(method_of(project_file(root)))}))
-    # a longitudinal project's timepoints, T1 when none are given, checked before anything is written (projectbuild)
+    # a longitudinal project's timepoints, T1 and T2 when none are given, checked before anything is written (projectbuild)
     asked_tps = body.get("timepoints")
     if asked_tps not in (None, [], 0) and method != "lipa":
         raise WorkbookError(i18n.t("method.refused_timepoints") if method == "ta" else i18n.t("method.refused_timepoints_ipa"))
     if asked_tps not in (None, [], 0) and there:
         raise WorkbookError(i18n.t("method.refused_timepoints_there"))
-    tps_new = (Timepoints(clean_timepoints(asked_tps if asked_tps not in (None, [], 0) else 1), lipa=True)
+    tps_new = (Timepoints(clean_timepoints(asked_tps if asked_tps not in (None, [], 0) else TP_MIN, least=TP_MIN), lipa=True)
                if method == "lipa" and not there else None)
     # the new project's own interviewer (viewfix): the one asked, else the project file's, else the files' rows
     as_name = made_interviewer(root, body, there)

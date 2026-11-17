@@ -209,7 +209,7 @@ def test_boards_come_back(scratch: Path):
               and b.get("matched") == 1 and b.get("statements") == 3 and files(root) == before, err + json.dumps(dry)[:500])
         check("260: the statement Adam edited since and Curt's own reworded one are listed as not matched, with their reasons",
               reasons == {"Initial:3:0": "Edited in this project since the copy was sent.",
-                          "Initial:7:0": "Curt's own statement, edited, merged or added in the copy."}, json.dumps(reasons))
+                          "Initial:7:0": "Curt's own statement. It was edited, merged or added in the copy."}, json.dumps(reasons))
         code, said, err = run("--root", str(root), "project", "boards-in", str(back), "--from-name", "Curt", "--dry-run")
         check("260: its lines say what it would add, each card placed as in the copy, the two not read the same linked by "
               "their keys in this project's wording, and that nothing else would change",
@@ -276,7 +276,7 @@ def test_boards_come_back(scratch: Path):
         # 8. refusals: his own send, another project's copy, a participant he does not have
         code, _, err = run("--root", str(root), "project", "boards-in", str(sent), "--from-name", "Curt", "--note", "x")
         check("260: the project's own send is refused as no copy coming back",
-              code == 1 and "as it was sent, not a copy coming back" in err and files(root) == before, err)
+              code == 1 and "as it was sent. It is not a copy coming back" in err and files(root) == before, err)
         other = out_dir / "Other.idiograph"
         rezip(back, other, project_fn=lambda d: dict(d, copy_of=dict(d["copy_of"], uid="0123456789abcdef",
                                                                          name="Kite making")))

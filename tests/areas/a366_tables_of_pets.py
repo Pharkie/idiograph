@@ -220,12 +220,11 @@ def test_tables_of_pets(scratch):
               == ["Being waited for", "Hidden tears after the first peal"], json.dumps(tree)[:900] if tree else (err or json.dumps(shown)[:600]))
         data = themes.load(book)
         board = next((b for b in themes.boards_of(data) if b.get("name") == "From Excel (Oct 2025)"), {})
-        check("366: the board's mark says who made it and for his request, its note only which table, never the "
-              "request or who made it",
+        check("366: the board's mark says who made it and for his request, and it carries no note of where it came "
+              "from (the table has no note column to keep one from)",
               (board.get("made") or {}).get("request") == "Bring in my October PETs"
-              and (board.get("made") or {}).get("tool") == "Claude Code" and "quill pets.xlsx, sheet T1 PETs" in board.get("note", "")
-              and "Bring in my October PETs" not in board.get("note", "") and "Claude Code" not in board.get("note", "")
-              and "Made by" not in board.get("note", "") and done.get("name") == "From Excel (Oct 2025)",
+              and (board.get("made") or {}).get("tool") == "Claude Code" and not board.get("note")
+              and done.get("name") == "From Excel (Oct 2025)",
               json.dumps({k: board.get(k) for k in ("made", "note")})[:600])
 
         # ── C. MCP: both tools listed, a board_import dry run at T2 through it

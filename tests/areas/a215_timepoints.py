@@ -103,7 +103,7 @@ def test_timepoints(scratch):
         held = gfile.read_bytes()
         dry = idiograph_routes.api_project({"root": root_id, "timepoints": THREE, "dry_run": True})
         check("215: a dry run says what would change and writes nothing",
-              gfile.read_bytes() == held and dry["dry_run"] is True and dry["changes"][0] == "Timepoints from 1 to 3."
+              gfile.read_bytes() == held and dry["dry_run"] is True and dry["changes"][0] == "Timepoints from 2 to 3."
               and [t["label"] for t in dry["project"]["timepoints"]] == ["T1", "T2", "T3"], str(dry["changes"]))
         saved = idiograph_routes.api_project({"root": root_id, "timepoints": THREE})
         data = json.loads(gfile.read_text(encoding="utf-8"))
@@ -119,11 +119,19 @@ def test_timepoints(scratch):
             twice = str(exc)
         check("215: two timepoints with one label are refused, nothing saved",
               "both labelled" in twice and json.loads(gfile.read_text(encoding="utf-8")) == data, twice)
-        one = idiograph_routes.api_project({"root": root_id, "timepoints": 1})
-        check("215: back to one timepoint, with no interview beyond T1, keeps T1 as it was and the project a "
-              "longitudinal one (projectbuild)",
-              json.loads(gfile.read_text(encoding="utf-8")) == dict(data, timepoints=THREE[:1])
-              and len(one["project"]["timepoints"]) == 1 and one["project"]["method"] == "lipa",
+        try:
+            idiograph_routes.api_project({"root": root_id, "timepoints": 1})
+            lower = "saved"
+        except WorkbookError as exc:
+            lower = str(exc)
+        check("215: lowering a longitudinal project below two timepoints is refused, nothing saved, the project "
+              "still a longitudinal one (lipamin)",
+              "from 2 to 10" in lower and json.loads(gfile.read_text(encoding="utf-8")) == data, lower)
+        two = idiograph_routes.api_project({"root": root_id, "timepoints": 2})
+        check("215: back to two timepoints, with no interview beyond T2, keeps T1 and T2 as they were and the project "
+              "a longitudinal one (projectbuild)",
+              json.loads(gfile.read_text(encoding="utf-8")) == dict(data, timepoints=THREE[:2])
+              and len(two["project"]["timepoints"]) == 2 and two["project"]["method"] == "lipa",
               gfile.read_text(encoding="utf-8")[:200])
         idiograph_routes.api_project({"root": root_id, "timepoints": THREE})
         idiograph_routes.api_project({"root": root_id, "agents": True})

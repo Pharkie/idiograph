@@ -408,7 +408,7 @@ console.log(JSON.stringify(out));
         else:
             out = json.loads(run.stdout)
             woke, socks, hum = '"The bees woke me"', '"I went out in my socks"', '"the hum was the whole morning"'
-            added = "Quote added, verbatim."
+            added = "The quote is added word for word."
             check("153: in node, q fills the empty key quote of the pair in hand though it has a statement, adds no pair, "
                   "puts the caret in its statement and pushes one entry",
                   out["fill"] == {"kqs": [woke], "ess": ["Woken before the alarm"], "n": 1, "caret": 0, "said": added,
@@ -421,7 +421,7 @@ console.log(JSON.stringify(out));
             check("153: in node, Cmd + Z takes q back in one step and keeps a statement typed since, and Cmd + Shift + Z "
                   "puts the quote back beside it",
                   out["addUndo"] == {"kqs": [woke, ""], "ess": ["Woken before the alarm", typed], "n": 2,
-                                     "said": "Quote added, verbatim.", "pending": 1}
+                                     "said": "The quote is added word for word.", "pending": 1}
                   and out["addRedo"] == {"kqs": [woke, socks], "ess": ["Woken before the alarm", typed], "n": 2},
                   str([out["addUndo"], out["addRedo"]]))
             check("153: in node, the fill undone leaves the key quote empty and the statement as it was",

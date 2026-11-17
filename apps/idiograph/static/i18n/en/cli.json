@@ -1039,7 +1039,6 @@
   "cli.board_import.row.kept_interviewer": "Row {row}: {statement}, close to {was} ({ratio}) on {where}, the interviewer's passage, placed with its own words kept.",
   "cli.board_import.at": " at {label}",
   "cli.board_import.counts": "{rows}, {exact} word for word, {fuzzy} fuzzy, {rewritten} rewritten, {added} added, {skipped} skipped and {duplicate} duplicate",
-  "cli.board_import.note": "From {source}: {counts}.",
   "cli.board_import.pet_left_out": "The PET {title} has no statement placed and is left out.",
   "cli.board_import.dry": "Dry run, nothing was written. From {source}: {counts}. It would write {passages} as edits, each kept in History, and make the board {name} on {case}{at}, laid out afresh: {pets}, {statements} placed and {left} in Unplaced. Every other board is as it was.",
   "cli.board_import.nothing_placed": "No row of {source} places a statement, so no board is made.",

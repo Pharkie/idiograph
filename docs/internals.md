@@ -3116,7 +3116,7 @@ more (`rewritten`), else `added` or `skipped`. A key taken by an earlier row mak
 `duplicate` with `of`. `cli.cmd_board_import` writes each passage `passage_writes` names through
 `cli.turn_write` with `pairs` keyed to their lines (so `themes.passage_written` carries every board's
 cards and the edit lands in the progress file's `edits`), a new statement's key its passage's next line,
-then hands `board_spec` to `cli.make_board`, `board new`'s body split out (`wanted` names the board
+then hands `board_spec` (importnote, 17 November 2026: it takes no note, so the board has none, the file and its counts being in History and the record of agents' changes and the table having no column for a note) to `cli.make_board`, `board new`'s body split out (`wanted` names the board
 through `themes.board_name`, given to `version_op`'s `propose` as `name`, and `fresh` lays it out
 afresh). `cli.cmd_gets_import` runs in `lpets_scope` (`scope_of`): `lpet_rows` finds each timepoint's
 column by its key or label (`lpet_columns`), `pets_at` reads each timepoint's top PETs and every
@@ -8541,8 +8541,8 @@ whether its project is longitudinal (`lipa`), and `routes.longitudinal`, the one
 reads that, so a longitudinal project of one timepoint has its LPETs, LGETs and Trajectories; a plain list (an
 answer read back as JSON) is longitudinal at two or more. `write_timepoints` refuses an IPA project
 (`method.refused_timepoints_ipa`) and a thematic analysis one (`method.refused_timepoints`) before anything is
-written, keeps the key at one timepoint, writes `method` "lipa" with them, and takes a number as the timepoints there
-with their labels. `make_project` takes `method` "lipa" and `timepoints` (T1 when none), refused for "ipa" and "ta"
+written, refuses lowering a project below `TP_MIN`, two, while a one-timepoint project from before keeps its one and may raise it, writes `method` "lipa" with them, and takes a number as the timepoints there
+with their labels. `make_project` takes `method` "lipa" and `timepoints` (T1 and T2 when none, `TP_MIN` of them at least, one refused, `clean_timepoints`' `least`), refused for "ipa" and "ta"
 and for a folder whose project file is there (`method.refused_timepoints_there`), and makes a project with no
 `files` and no participant, New project's one step. `api_project` refuses a method other than the file's, IPA to
 "lipa" too. `method.refused_fixed` takes its `{method}` through `vals`, since `method=` is `i18n.t`'s own argument

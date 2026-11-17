@@ -11,7 +11,7 @@
   "trash.gone": "Its folder is not there any more, so nothing was moved to the {where} or removed.",
   "trash.link": "Its folder is a link to another folder, so nothing was moved to the {where} or removed.",
   "trash.drive": "Its folder is a whole drive, so nothing was moved to the {where} or removed.",
-  "trash.home": "Its folder is, or holds, your home folder, or is one of the folders inside it, so nothing was moved to the {where} or removed.",
+  "trash.home": "Its folder is your home folder, holds it or is inside it, so nothing was moved to the {where} or removed.",
   "trash.cloud": "Its folder is a whole cloud drive, so nothing was moved to the {where} or removed.",
   "trash.holds_app": "Its folder holds the app's own files or settings, so nothing was moved to the {where} or removed.",
   "trash.holds_project": "Its folder holds another project, {other}, so nothing was moved to the {where} or removed.",

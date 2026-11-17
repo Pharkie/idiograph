@@ -19,7 +19,7 @@ from . import support
 from .support import check
 
 STUB = '''
-import json, os, sys, threading
+import json, os, socketserver, sys, threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 port, app, mode = int(sys.argv[1]), sys.argv[2], sys.argv[3]
 if mode == "silent":
@@ -36,7 +36,12 @@ class H(BaseHTTPRequestHandler):
         self._send()
         if mode == "obey":
             threading.Thread(target=self.server.shutdown, daemon=True).start()
-srv = HTTPServer(("127.0.0.1", port), H)
+class NoLookup(HTTPServer):
+    # without the standard library's lookup of this computer's name (socket.getfqdn), half a minute on the hosted Mac
+    def server_bind(self):
+        socketserver.TCPServer.server_bind(self)
+        self.server_name, self.server_port = self.server_address[:2]
+srv = NoLookup(("127.0.0.1", port), H)
 srv.serve_forever()
 '''
 

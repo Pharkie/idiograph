@@ -2053,7 +2053,7 @@ def timepoint_plain(t: dict) -> dict:
 
 def timepoints_given(given) -> dict:
     """`project new`'s --timepoint, each LABEL or LABEL=DESCRIPTION in order, as the route takes them, nothing when
-    none is given, which the route reads as T1 alone for a longitudinal project."""
+    none is given, which the route reads as T1 and T2 for a longitudinal project."""
     if not given:
         return {}
     out = []
@@ -3710,8 +3710,7 @@ def cmd_board_import(p: Project, args) -> tuple:
     at = i18n.t("cli.board_import.at", label=tps[n - 1]["label"]) if n else ""
     wanted = themes_ai.one_line(getattr(args, "name", None)) or IMPORTED
     said_counts = i18n.t("cli.board_import.counts", counted, rows=i18n.t("cli.n.row", n=counted["rows"]))
-    own_note = i18n.t("cli.board_import.note", source=from_said(path, sheet), counts=said_counts)
-    spec, left_out = table_mod.board_spec(matched, own_note)
+    spec, left_out = table_mod.board_spec(matched)
     row_lines = [import_row_line(m) for m in matched]
     left_lines = [i18n.t("cli.board_import.pet_left_out", title=t) for t in left_out]
     writes = table_mod.passage_writes(matched)
@@ -3747,7 +3746,7 @@ def cmd_board_import(p: Project, args) -> tuple:
                                  source={"pairs": pairs}, note=args.note, tool=args.tool, dry_run=False)
         done, _lines = turn_write(p, one)
         edited.append({"sheet": sh, "row": row, "backup": done.get("backup"), "written": done.get("written")})
-    spec, left_out = table_mod.board_spec(matched, own_note)
+    spec, left_out = table_mod.board_spec(matched)
     made, made_lines = make_board(p, args, spec, wanted, fresh=True)
     text = i18n.t("cli.board_import.made", name=made["name"], case=b["case"], at=at, source=from_said(path, sheet),
                   counts=said_counts, passages=i18n.t("cli.n.passage", n=len(edited)))
@@ -9776,7 +9775,7 @@ def arguments(sub, common, writes) -> None:
                         "longitudinal IPA, or ta, reflexive thematic analysis, fixed once the project is made")
     x.add_argument("--timepoint", action="append", default=None, metavar="LABEL[=DESCRIPTION]",
                    help="with --method lipa, a timepoint in order, its label and its description after =, "
-                        "\"T1=Before the season\", given again for each one more, T1 alone when left out")
+                        "\"T1=Before the season\", given again for each one more, T1 and T2 when left out, two at least")
     x.add_argument("--transcript", action="append", default=None,
                    help="a transcript file, a participant's interview, given again for each one more")
     x.add_argument("--pseudonym", action="append", default=None,

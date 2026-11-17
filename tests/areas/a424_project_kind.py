@@ -179,10 +179,30 @@ def test_project_kind(scratch: Path):
         one = base / "made-lipa-one"
         one.mkdir()
         routes.api_new_project({"op": "make", "folder": str(one), "name": "One round", "method": "lipa", "files": []})
-        check("424: a longitudinal project made with no timepoints given has T1 and reads lipa at one timepoint",
-              project_of(one).get("timepoints") == [{"label": "T1", "description": ""}]
+        check("424: a longitudinal project made with no timepoints given has T1 and T2 and reads lipa",
+              project_of(one).get("timepoints") == [{"label": "T1", "description": ""}, {"label": "T2", "description": ""}]
               and routes.read_project(one)["method"] == "lipa"
               and routes.longitudinal(routes.read_project(one)["timepoints"]), json.dumps(project_of(one)))
+        # one timepoint is refused for a new longitudinal project, a number of one too, with nothing written, dry run
+        # and real (lipamin, Adam's ruling of 17 November)
+        few = base / "made-few"
+        few.mkdir()
+        said_few = [refused(routes.api_new_project, {"op": "make", "folder": str(few), "name": "X", "method": "lipa",
+                                                     "files": [], "timepoints": given, **extra})
+                    for given in ([{"label": "T1"}], 1) for extra in ({}, {"dry_run": True})]
+        code_few, _, err_few = run("project", "new", str(few), "--name", "X", "--method", "lipa", "--timepoint", "T1=Before")
+        check("424: a new longitudinal project of one timepoint is refused in one line with nothing written, through the "
+              "route, dry run and real, and the command line",
+              all(said_few) and all("\n" not in x for x in said_few) and code_few != 0 and not list(few.iterdir()),
+              " | ".join(said_few) + err_few)
+        # a file from 0.9.30 made at one timepoint, written as it was then: it reads lipa, reading writes nothing
+        held_one = project_of(one)
+        held_one["timepoints"] = [{"label": "T1", "description": ""}]
+        (one / server_mod.PROJECT_FILE).write_text(json.dumps(held_one), encoding="utf-8")
+        start_one = files(one)
+        read_one = routes.read_project(one)
+        check("424: a longitudinal project from 0.9.30 with one timepoint still reads lipa and reading it writes nothing",
+              read_one["method"] == "lipa" and routes.longitudinal(read_one["timepoints"]) and files(one) == start_one, "")
         bad = base / "made-bad"
         bad.mkdir()
         said = [refused(routes.api_new_project, {"op": "make", "folder": str(bad), "name": "X", "method": m, "files": [],
@@ -211,12 +231,20 @@ def test_project_kind(scratch: Path):
         other.mkdir()
         res = mcp.call(mcp.by_name["project_new"], {"folder": str(other), "method": "lipa", "dry_run": True,
                                                     "request": "Look first",
-                                                    "timepoints": [{"label": "T1", "description": "Spring"}]})
+                                                    "timepoints": [{"label": "T1", "description": "Spring"},
+                                                                   {"label": "T2", "description": "Autumn"}]})
         sc = support.plain(res.get("structuredContent") or {})
-        check("424: MCP's project_new takes lipa and its timepoints with no transcripts, its dry run writing nothing",
+        res_one = mcp.call(mcp.by_name["project_new"], {"folder": str(other), "method": "lipa", "dry_run": True,
+                                                        "request": "Look first", "timepoints": [{"label": "T1"}]})
+        res_none = mcp.call(mcp.by_name["project_new"], {"folder": str(other), "method": "lipa", "dry_run": True,
+                                                         "request": "Look first"})
+        none_tps = support.plain(res_none.get("structuredContent") or {}).get("timepoints") or []
+        check("424: MCP's project_new takes lipa and its timepoints with no transcripts, T1 and T2 when none are given, "
+              "one refused, its dry run writing nothing",
               not res.get("isError") and sc.get("method") == "lipa"
-              and [t["label"] for t in sc.get("timepoints") or []] == ["T1"] and not list(other.iterdir()),
-              json.dumps(res)[:400])
+              and [t["label"] for t in sc.get("timepoints") or []] == ["T1", "T2"] and not list(other.iterdir())
+              and res_one.get("isError") and not res_none.get("isError") and [t["label"] for t in none_tps] == ["T1", "T2"],
+              json.dumps([res, res_one])[:400])
 
         # ── C. no client changes a method, and IPA and thematic analysis projects take no timepoints: refused whole
         config(lipa, rta, ipa_root, ta_root, lipa_root, one)
@@ -277,11 +305,41 @@ def test_project_kind(scratch: Path):
         if lines:
             code, _, err = run("agents", "undo-run", lines[0]["run"], "--note", "Put it back", root=lipa_root)
             check("424: undoing that run puts the project back byte for byte", code == 0 and files(lipa_root) == before, err)
-        low = routes.api_project({"root": routes.project_id(lipa_root), "timepoints": 1})
-        check("424: lowered to one timepoint a longitudinal project keeps T1 as it was and stays longitudinal",
-              project_of(lipa_root)["timepoints"] == [{"label": "T1", "description": "Spring"}]
-              and low["project"]["method"] == "lipa" and routes.longitudinal(low["project"]["timepoints"]),
-              json.dumps(project_of(lipa_root)))
+        # lowering below two is refused whole, by the route, the command line and MCP, dry run and real
+        held_two, lines_two = files(lipa_root), len(agent_changes.read(lipa_root))
+        one_tp = base / "tp1.json"
+        one_tp.write_text(json.dumps([{"label": "T1", "description": "Spring"}]), encoding="utf-8")
+        low_said = [refused(routes.api_project, {"root": routes.project_id(lipa_root), "timepoints": n, **extra})
+                    for n in (1, [{"label": "T1"}]) for extra in ({}, {"dry_run": True})]
+        code_low, _, err_low = run("timepoints", "--from", str(one_tp), "--note", "One", root=lipa_root)
+        code_low2, _, err_low2 = run("timepoints", "--from", str(one_tp), "--dry-run", root=lipa_root)
+        mcp_low = mcp_server.Server(root=str(lipa_root), config=str(config_file))
+        res_low = mcp_low.call(mcp_low.by_name["timepoints_set"], {"timepoints": [{"label": "T1"}], "request": "One"})
+        check("424: lowering a longitudinal project below two timepoints is refused in one line with nothing written, "
+              "through the route, the command line and MCP",
+              all(low_said) and all("\n" not in x for x in low_said) and code_low != 0 and code_low2 != 0
+              and res_low.get("isError") and files(lipa_root) == held_two and len(agent_changes.read(lipa_root)) == lines_two,
+              " | ".join(low_said) + err_low + err_low2 + json.dumps(res_low)[:200])
+        # a one-timepoint project from 0.9.30 may keep its one and raise it, never lower
+        raised = routes.api_project({"root": routes.project_id(one), "timepoints": 2})
+        check("424: a longitudinal project made at one timepoint before this can raise its count and stays longitudinal",
+              len(project_of(one)["timepoints"]) == 2 and raised["project"]["method"] == "lipa"
+              and routes.longitudinal(raised["project"]["timepoints"]), json.dumps(project_of(one)))
+        # the fixtures below are 0.9.30 projects of one timepoint, as a file from then was written
+        for root, desc in ((lipa_root, "Spring"), (one, "")):
+            held_one = project_of(root)
+            held_one["timepoints"] = [{"label": "T1", "description": desc}]
+            (root / server_mod.PROJECT_FILE).write_text(json.dumps(held_one), encoding="utf-8")
+        # such a project can save its one timepoint, a relabel of T1, but none at all is refused as one is
+        relabel = routes.api_project({"root": routes.project_id(one), "timepoints": [{"label": "Round", "description": "Once"}]})
+        none_said = [refused(routes.api_project, {"root": routes.project_id(one), "timepoints": n}) for n in (0, [])]
+        check("424: a one-timepoint longitudinal project can save its one timepoint, relabelled, and none at all is refused "
+              "with the two it needs named",
+              project_of(one)["timepoints"] == [{"label": "Round", "description": "Once"}]
+              and relabel["project"]["method"] == "lipa" and all("from 2 to 10" in x for x in none_said), " | ".join(none_said))
+        held_one = project_of(one)
+        held_one["timepoints"] = [{"label": "T1", "description": ""}]
+        (one / server_mod.PROJECT_FILE).write_text(json.dumps(held_one), encoding="utf-8")
 
         # ── D. the page's data: the row across participants and each participant's box follow the method
         talk = base / "Wren interview.txt"

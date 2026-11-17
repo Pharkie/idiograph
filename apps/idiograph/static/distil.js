@@ -3350,7 +3350,7 @@ const NP_BIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
    the project's page with Add transcripts. */
 function openNewProject() {
   Object.assign(NP, { folder: '', next: 1, rows: [], busy: false, add: null, tps: [], held: new Map(), qdpx: null, names: null,
-    made: [{ label: 'T1', description: '' }], fixedTps: false });
+    made: [{ label: 'T1', description: '' }, { label: 'T2', description: '' }], fixedTps: false });
   npMode(null);
   $('np-folder').value = '';
   $('np-name').value = '';
@@ -3399,7 +3399,7 @@ function npTpDraw() {
   const tps = (NP.made || []).map((tp, i) => ({ n: i + 1, label: tp.label, description: tp.description || '' }));
   const fixed = !!NP.fixedTps;
   $('np-tp-count').textContent = String(tps.length);
-  $('np-tp-less').disabled = fixed || tps.length <= 1;
+  $('np-tp-less').disabled = fixed || tps.length <= TP_MIN;
   $('np-tp-more').disabled = fixed || tps.length >= TP_MAX;
   $('np-tp-rows').innerHTML = tpRowsHtml(tps, fixed);
 }
@@ -3423,7 +3423,7 @@ function npTpWire() {
   };
   $('np-tp-less').onclick = () => {
     NP.made = npTpTyped();
-    if (NP.made.length > 1) NP.made.pop();
+    if (NP.made.length > TP_MIN) NP.made.pop();
     npTpDraw();
   };
   $('np-tp-rows').oninput = () => { NP.made = npTpTyped(); };
@@ -3504,8 +3504,11 @@ async function npFolder(path) {
   // a folder whose project file is a longitudinal project's already keeps its timepoints, shown fixed (projectbuild)
   NP.tps = Array.isArray(data.timepoints) ? data.timepoints : [];
   NP.held = new Map();
-  NP.fixedTps = !!data.method;
+  // a folder with none, chosen after one whose rows were fixed, shows the two rows a new longitudinal project starts
+  // with, never a row left from the other folder
   if (NP.tps.length) NP.made = NP.tps.map((tp) => ({ label: tp.label, description: tp.description || '' }));
+  else if (NP.fixedTps || !NP.made || NP.made.length < TP_MIN) NP.made = [{ label: 'T1', description: '' }, { label: 'T2', description: '' }];
+  NP.fixedTps = !!data.method;
   $('np-folder').value = data.folder;
   if (!$('np-name').value.trim()) $('np-name').value = data.name || '';
   if (!$('np-question').value.trim()) $('np-question').value = data.research_question || '';
@@ -12871,6 +12874,8 @@ function retimeRows(form) {
    participants, and the number stays. The demo's are fixed. A server from before them sends no
    `timepoints`, and the row stands disabled. */
 const TP_MAX = 10;
+/* a longitudinal project has two timepoints at least, and one is IPA (Adam, 17 November) */
+const TP_MIN = 2;
 const timepointsOf = (p) => (p && Array.isArray(p.timepoints) && p.timepoints.length
   ? p.timepoints : [{ n: 1, label: 'T1', description: '' }]);
 const longitudinal = (p) => projKind(p) === 'lipa';
@@ -12889,7 +12894,7 @@ function drawTimepoints(p) {
   const tps = timepointsOf(p);
   const fixed = !p || !!p.demo || !known;
   $('tp-count').textContent = String(tps.length);
-  $('tp-less').disabled = fixed || tps.length <= 1;
+  $('tp-less').disabled = fixed || tps.length <= (longitudinal(p) ? TP_MIN : 1);
   $('tp-more').disabled = fixed || tps.length >= TP_MAX;
   // a longitudinal project's rows at one timepoint too (projectbuild)
   const rows = $('tp-rows');

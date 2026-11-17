@@ -82,14 +82,14 @@ def test_distil_words(scratch: Path):
     check("280: a copy coming back says once under a participant's boards how its statements came, one and many, each "
           "counted once across the boards, whose wording each keeps, the other analyst's with no name",
           out["match"] == ["Its statement matches yours.", "All 6 statements match yours.",
-                           "1 of these statements you have reworded since you sent the copy. They keep their places on these "
-                           "boards, in your current wording.",
-                           "2 of these statements you have removed since you sent the copy. They keep their places on these "
-                           "boards, in the other analyst's wording.",
-                           "2 of these statements you have reworded since you sent the copy, and 1 you have removed. They keep "
-                           "their places on these boards, in your current wording, and the removed ones in Curt's.",
-                           "1 of these statements you have reworded since you sent the copy. Jess reworded 1 in the copy and "
-                           "added 2. They keep their places on these boards, in your current wording, and the rest in Jess'."],
+                           "Since you sent the copy, you have reworded 1 of these statements. They keep their places on these "
+                           "boards and show your current wording.",
+                           "Since you sent the copy, you have removed 2 of these statements. They keep their places on these "
+                           "boards and show the other analyst's wording.",
+                           "Since you sent the copy, you have reworded 2 of these statements and removed 1. They keep "
+                           "their places on these boards and show your current wording. The removed ones show Curt's wording.",
+                           "Since you sent the copy, you have reworded 1 of these statements. Jess reworded 1 in the copy and "
+                           "added 2. They keep their places on these boards and show your current wording. The rest show Jess' wording."],
           str(out["match"]))
     check("280: its button counts the boards ticked, one and many", out["add"] == ["Add 1 board", "Add 5 boards", "Add 0 boards"],
           str(out["add"]))

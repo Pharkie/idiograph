@@ -117,7 +117,7 @@ def test_stale_saves(scratch):
         res = call("gets_apply", board="b1", request="Retitle", version=seen,
                    operations=[{"op": "retitle", "label": "G1", "title": "Gone"}])
         check("198: an agent's gets apply carrying a version read before a page's save is refused, nothing written, also through MCP",
-              code == 0 and bool(seen) and code2 != 0 and "has changed since it was read" in err2
+              code == 0 and bool(seen) and code2 != 0 and "has changed in the app or by another write since it was read" in err2
               and res["isError"] and gfile.read_bytes() == held, err2)
         code, shown, _ = answer("gets", "show")
         fresh_ops = ops_file("gets-fresh", {"version": shown["version"],
@@ -151,7 +151,7 @@ def test_stale_saves(scratch):
         code2, said, _ = answer("board", "apply", "Rowan", "v1", "--ops", stale_ops, "--note", "A note")
         err2 = said.get("error") or ""
         check("198: an agent's board apply carrying a version read before a page's save is refused, nothing written",
-              code == 0 and bool(shown.get("version")) and code2 != 0 and "has changed since it was read" in err2
+              code == 0 and bool(shown.get("version")) and code2 != 0 and "has changed in the app or by another write since it was read" in err2
               and tfile.read_bytes() == held, err2)
 
         # ── E. Sift's plan and its reasons: a save from a page that read the plan before another window's save

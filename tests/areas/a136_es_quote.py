@@ -157,7 +157,7 @@ console.log(JSON.stringify(out));
             out = json.loads(run.stdout)
             bees, socks, hear, hum = ('"The bees woke me before the alarm"', '"I went out in my socks"', '"to hear them"',
                                       '"the hum was the whole morning"')
-            added = "Quote added, verbatim."
+            added = "The quote is added word for word."
             check("136, 153: in node, q again from the new pair, which now holds a quote, adds another",
                   out["again"] == {"kqs": [bees, hum, socks, hear], "n": 4, "said": added, "undos": 3},
                   str(out["again"]))

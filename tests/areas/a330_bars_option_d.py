@@ -829,7 +829,7 @@ def _remove_to_trash(scratch):
                 "link": linked}
         check("330: the Trash's guard refuses a drive's top folder, the home folder and its own folders, a cloud drive's "
               "top folder, a folder holding the app's settings, one not there and a link, each in a plain line",
-              said["drive"].startswith("Its folder is a whole drive") and said["home"].startswith("Its folder is, or holds, your home folder")
+              said["drive"].startswith("Its folder is a whole drive") and said["home"].startswith("Its folder is your home folder, holds it")
               and said["documents"] == said["home"] and said["cloud"].startswith("Its folder is a whole cloud drive")
               and said["app"].startswith("Its folder holds the app's own files") and said["gone"].startswith("Its folder is not there")
               and bool(said["link"]) and swarm.is_dir() and home.is_dir() and app.is_dir(), str(said))

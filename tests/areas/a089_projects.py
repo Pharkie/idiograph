@@ -288,9 +288,9 @@ def test_projects(scratch):
             except WorkbookError as exc:
                 refusals[label] = str(exc) if cfg_file.read_bytes() == held else "written"
         check("89: a folder added already, one inside a project's root or holding one, the app's or the demo's, refused, nothing written",
-              refusals["again"] == "That folder is Flying kites, a project already."
-              and refusals["nested"] == "That folder is inside Keeping bees, a project already."
-              and refusals["holding"].startswith("That folder holds ") and refusals["holding"].endswith(", a project already.")
+              refusals["again"] == "That folder is already the project Flying kites."
+              and refusals["nested"] == "That folder is inside the project Keeping bees."
+              and refusals["holding"].startswith("That folder holds the project ")
               and "the app or its demo" in refusals["demo"] and "the app or its demo" in refusals["app"]
               and refusals["nowhere"] == "That folder is not there, so nothing was added.", str(refusals))
         server_mod.PLATFORM = "linux"

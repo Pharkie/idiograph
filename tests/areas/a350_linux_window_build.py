@@ -25,7 +25,7 @@ from . import support
 from .support import check
 
 STUB = '''#!{python}
-import json, os, signal, sys, threading, time
+import json, os, signal, socketserver, sys, threading, time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 mode, app = {mode!r}, {app!r}
 if mode == "silent":
@@ -42,7 +42,12 @@ class H(BaseHTTPRequestHandler):
         else:
             body = b"<html><body>page</body></html>"
         self.send_response(200); self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
-HTTPServer(("127.0.0.1", int(os.environ["IDIOGRAPH_PORT"])), H).serve_forever()
+class NoLookup(HTTPServer):
+    # without the standard library's lookup of this computer's name (socket.getfqdn), half a minute on the hosted Mac
+    def server_bind(self):
+        socketserver.TCPServer.server_bind(self)
+        self.server_name, self.server_port = self.server_address[:2]
+NoLookup(("127.0.0.1", int(os.environ["IDIOGRAPH_PORT"])), H).serve_forever()
 '''
 
 

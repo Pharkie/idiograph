@@ -40,7 +40,7 @@ def test_loose_ends_two(scratch):
     tips = {w: tip_of(t) for w, t in re.findall(r'(?s)data-what="(\w+)"(.*?)</button>', what)}
     trail = re.search(r'<button[^>]*id="gt-trail-print"[^>]*>([^<]*)</button>', page)
     check("97: 1, the audit trail's own button reads Print, with its tooltip",
-          trail is not None and trail.group(1) == "Print" and "audit trail for print or PDF" in trail.group(0)
+          trail is not None and trail.group(1) == "Print" and "audit trail in a new tab, to print or save as PDF" in trail.group(0)
           and "$('gt-trail-print').onclick = () => { if (TH.trail) gtPrintOpen('trail', TH.trail.gid); };" in js)
 
     # ── 7. an agent's board names the board it came from, by the screen's own rule

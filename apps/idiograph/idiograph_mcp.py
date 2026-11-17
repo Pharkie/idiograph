@@ -1370,11 +1370,11 @@ TOOLS = [
                      "description": "The project's method, ipa, Interpretative Phenomenological Analysis, the "
                                     "default, lipa, longitudinal IPA, or ta, reflexive thematic analysis, fixed once "
                                     "the project is made."},
-          "timepoints": {"type": "array", "minItems": 1, "maxItems": 10,
+          "timepoints": {"type": "array", "minItems": 2, "maxItems": 10,
                          "items": {"type": "object", "additionalProperties": False, "required": ["label"],
                                    "properties": {"label": {"type": "string"}, "description": {"type": "string"}}},
                          "description": 'A lipa project\'s timepoints in order, [{"label": "T1", "description": '
-                                        '"Before the season"}], T1 alone when left out. Refused for ipa and ta.'},
+                                        '"Before the season"}], T1 and T2 when left out, two at least. Refused for ipa and ta.'},
           "transcripts": {"type": "array", "minItems": 1, "items": {
               "type": "object", "additionalProperties": False, "required": ["file", "pseudonym"],
               "properties": {"file": dict(mcp.TEXT, description="The transcript file, in full."),

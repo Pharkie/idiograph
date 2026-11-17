@@ -125,7 +125,7 @@ def test_share_menu(scratch: Path):
               and idiograph_routes.read_project(root)["copy"] is False and files(root) == before, json.dumps(held))
         check("240: the dialogs say Choose the shared copy, then name the new folder made inside the one chosen",
               asked == ["Choose the shared copy.",
-                        "Choose the folder to put the copy in. A new folder, Keeping bees, is made inside it."]
+                        "Choose the folder to put the copy in. Idiograph makes a new folder called Keeping bees inside it."]
               and idiograph_routes.api_open_sent({"file": str(sent), "check": True}).get("folder") == "Keeping bees", str(asked))
     finally:
         (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY, server_mod.PLATFORM,

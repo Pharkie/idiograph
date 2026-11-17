@@ -262,7 +262,7 @@ def test_trajectories_f(scratch):
               town != 5 and cards["P1 - Wren"]["tags"][0]["colour"] == 5 and cards["P2 - Ash"]["tags"][0]["colour"] == 5
               and done["changes"] == ["Tags' Town is Teal now."], str(done["changes"]))
         said = refused({"workbook": str(wren), "ops": [{"op": "colour", "column": "Positive", "colour": "Mauve"}]})
-        check("369: a colour not of the palette is refused", "not a trajectory's colour" in said, said)
+        check("369: a colour not of the palette is refused", "Mauve is not" in said, said)
 
         # (f) moves: by place, by order, and to another trajectory
         done = call("/api/trajectories-ops", {"workbook": str(wren), "ops": [{"op": "order", "participant": "Wren", "at": 0}]})
@@ -802,8 +802,8 @@ def _choose_from_anywhere(call, refused, run, wren: Path, ash: Path, wren_lp: Pa
           "not one are each refused, nothing written",
           "Wren has no transcript at T3" in said["T3"] and "not one of the project's timepoints" in said["T9"]
           and "Before:99 is not a turn of Wren's transcript at T1" in said["turn"] and "is not a turn of" in said["other"]
-          and "from 0 to" in said["span"] and "from 0 to" in said["blank"] and "not both" in said["both"]
-          and "A passage is its interview" in said["shape"] and wren_lp.read_bytes() == lp_before, str(said))
+          and "from 0 to" in said["span"] and "from 0 to" in said["blank"] and "This gives both" in said["both"]
+          and "Give a passage as its interview" in said["shape"] and wren_lp.read_bytes() == lp_before, str(said))
 
     # the command line: trajectories show lists each cell's choices with their source, and the op's passage form
     code, shown, err = run("trajectories", "show")

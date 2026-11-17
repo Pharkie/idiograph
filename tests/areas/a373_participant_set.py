@@ -144,9 +144,9 @@ def test_participant_set(scratch):
         nobody = refused({"root": rid, "case": "Quentin", "label": "Nobody"})
         check("373: a label or a pen portrait holding a name from the list of names to replace, whoever its entry is "
               "for, is refused naming the entry by its number and never the name, nothing written",
-              said_label == "The label holds a name from the project's list of names to replace, entry 1, so nothing "
+              said_label == "The label holds entry 1 from the project's list of names to replace, so nothing "
                             "was changed."
-              and said_portrait.startswith("The pen portrait holds a name") and "entry 2" in said_portrait
+              and said_portrait.startswith("The pen portrait holds entry") and "entry 2" in said_portrait
               and "Barnaby" not in said_portrait and "Gwendolyn" not in said_label and sha(pfile) == before,
               said_label + " | " + said_portrait)
         check("373: a label over 60 characters, a pen portrait over 800, a face not of the set and a participant not "
@@ -415,7 +415,7 @@ def test_participant_set(scratch):
             by_op = "answered"
         except WorkbookError as exc:
             by_op = str(exc)
-        runs = "peep01 to peep80, notion01 to notion40, so nothing was changed"
+        runs = "The pictures are peep01 to peep80, notion01 to notion40."
         check("373: a name past a set's end is refused by the route, the command line, MCP and Trajectories, the "
               "refusal naming each set's run, and nothing is written",
               all(runs in w for w in wrong) and code != 0 and runs in (err or "") + json.dumps(_out)

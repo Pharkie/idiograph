@@ -4593,7 +4593,7 @@ or off a Mac a field for the folder's path, and the project added opens on its p
 nothing more (17 November 2026, Adam's two steps): Choose takes the folder through the Mac's dialog, or its path is
 typed, and it is refused as Open project refuses one. Name and Research question take what a project file there
 already says, and either can be left. Method is IPA, Longitudinal IPA or RTA, and Longitudinal IPA asks for its
-timepoints under it, T1 to start, plus for more, each a label and a description, the rows Project settings has.
+timepoints under it, T1 and T2 to start, plus for more and minus down to two, never to one, since a project of one timepoint is an IPA project, each a label and a description, the rows Project settings has.
 Create project makes the project and opens its page, where Add transcripts brings in its transcripts (see Add
 transcripts). The method is the project's for good.
 
@@ -5053,7 +5053,7 @@ before the season, at midsummer and after the harvest, say. It is a Longitudinal
 with its timepoints (17 November 2026); an IPA or a thematic analysis project has none. In Project settings, straight
 under Method, Timepoints says how many times each participant was interviewed, set with its minus and plus, the
 number rising for a later round of interviews, and a row each holds its label, T1, T2, T3 to start, his to rename,
-and its description, Before the season. A longitudinal project of one timepoint is longitudinal still. The number
+and its description, Before the season. A longitudinal project has two timepoints at least, so the minus stops at 2. A project made at one before this is longitudinal still and can raise its number. The number
 saves at once, and a label or a description once it is left. Lowering the number
 while a timepoint that would go holds an interview is refused under the rows, "T3 holds interviews
 of Wren, so the timepoints stay at 3.", and nothing changes. The project file keeps them as

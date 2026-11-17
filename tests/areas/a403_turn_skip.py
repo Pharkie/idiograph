@@ -143,8 +143,8 @@ def test_turn_skip(scratch: Path):
             code, _x, err = run("turn", "skip", "Juno", "Initial", "75", *extra, *(() if extra else ("--note", ASKED)))
             check(f"403: marking 75 alone{' (dry run)' if extra else ''} would pass 71 and 73, not named, so it is "
                   "refused whole in one line naming them, nothing written",
-                  code != 0 and len(refusal(err)) == 1 and "rows 71 and 73 of Initial" in refusal(err)[0]
-                  and "count as passed" in refusal(err)[0] and digest(root) == start, err[:300])
+                  code != 0 and len(refusal(err)) == 1 and "Rows 71 and 73 of Initial" in refusal(err)[0]
+                  and "count them as passed" in refusal(err)[0] and digest(root) == start, err[:300])
 
         # ── 2. the dry run: the passages it would mark, the counts, nothing written
         code, dry, err = run("turn", "skip", "Juno", "Initial", "71-75", "--dry-run", tool=None)

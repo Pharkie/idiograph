@@ -370,7 +370,7 @@ def test_transcript_import(scratch):
         else:
             o = json.loads(run.stdout)
             check("72: in node, the card presets the guessed interviewer and says his turns go under Settings' name",
-                  o["first"] == {"who": "Sam Okafor", "as": "Written as Adam, the interviewer in Settings.", "asHidden": False,
+                  o["first"] == {"who": "Sam Okafor", "as": "The interviewer's passages go in under the name Adam from Project settings.", "asHidden": False,
                                  "map": True, "rows": 3, "count": True, "go": False}, str(o["first"]))
             check("72: in node, a CSV shows a chooser on each column as guessed, End time left out, its passages in the "
                   "preview, and its interviewer guessed",
