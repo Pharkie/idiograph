@@ -7447,27 +7447,46 @@ def api_edit_turn(body: dict) -> dict:
     An agent's call (26 October, `turn edit`) adds `dry_run`, which answers the same with nothing
     written and the words and timecode the turn holds now, `old` and `old_time`, and `tool` and
     `request`, which its record in the sidecar carries, as an agent's `turn write` does.
+
+    A timecode changed reaches every copy of the participant's statements as a shift of that one row does
+    (spanfollow, 16 November 2026, `shift_planned` and `shift_written`): each line on the row takes the new time,
+    and each end of a quote's span that belongs to the row moves with it, so the participant reads in as a fresh
+    read gives them. The copies are worked out before the workbook is saved and written after it, as a statement's save
+    does (spanfix, 16 November 2026): a copy that cannot follow, a malformed or not yet fetched file or Working
+    together's GETs board another member writes, never refuses the edit, the workbook is saved and each copy that
+    cannot gets one line under `copies.failed`, the participant reading changed until `copies refresh` or a take. `copies` answers each file's count of lines by its
+    kind, counted with nothing written on a dry run.
     """
     path = case_path(body["path"])
     sheet, row = body["sheet"], int(body["row"])
     tool, request = agent_marks(body)
-    if body.get("dry_run") is True:
-        result = wb_mod.edit_turn(path, sheet, row, body.get("text"), body.get("timecode"), dry=True)
+    dry = body.get("dry_run") is True
+    # a timecode changed moves every copy's line and span end that belongs to the row, as a shift does (spanfollow,
+    # 16 November 2026), worked out before the workbook is saved and written after it, under the project's lock
+    timed = str(body.get("timecode") or "").strip() != ""
+    follow = (lambda moved, times: shift_planned(path, sheet, moved, times, dry=dry, turn=True)) if timed else None
+    copies = {}
+    if dry:
+        result = wb_mod.edit_turn(path, sheet, row, body.get("text"), body.get("timecode"), dry=True, follow=follow)
+        copies = (result.get("followed") or ({}, []))[0]
     else:
-        with writing(path):
-            result = wb_mod.edit_turn(path, sheet, row, body.get("text"), body.get("timecode"))
+        with writing(path, root=project_root(path) if timed else None):
+            result = wb_mod.edit_turn(path, sheet, row, body.get("text"), body.get("timecode"), follow=follow)
             if result["changed"]:
                 progress = rounds_mod.load_progress(path)
                 record = rounds_mod.record_edit(progress, sheet, row, result["old"], result["text"],
                                                 result["old_time"], result["time"])
                 marked(record, tool, request)
                 rounds_mod.save_progress(path, progress)
+            if result.get("followed"):
+                copies, plans = result["followed"]
+                copies = shift_written(path, plans, copies, turn=True)
     answer = {"sheet": sheet, "row": row, "changed": result["changed"], "text": result["text"],
               "runs": result["runs"], "dropped": result["dropped"],
               "seconds": result["seconds"], "time": result["time"],
               # what changed, the words, the timecode or both, so an answer says that alone (timeshift)
               "text_changed": result["text_changed"], "time_changed": result["time_changed"],
-              "old_time": result["old_time"]}
+              "old_time": result["old_time"], "copies": copies}
     if body.get("dry_run") is True:
         answer.update(dry_run=True, old=result["old"])
     return answer
@@ -7491,18 +7510,21 @@ def shift_seconds(value) -> int | None:
     return int(text) or None
 
 
-def shift_planned(path: Path, sheet: str, moved: dict, times: dict, dry: bool = False) -> tuple[dict, list]:
+def shift_planned(path: Path, sheet: str, moved: dict, times: dict, dry: bool = False,
+                  turn: bool = False) -> tuple[dict, list]:
     """A sheet's timecodes shifted, worked out in memory for every copy of the participant's statements (see
     `statement_copies`): the GETs file's, and in a project of timepoints the participant's LPETs' and the LGETs',
     each through `gets.times_followed`, before the workbook is saved (timefix, 16 November 2026), so a copy that
-    cannot be read or followed refuses the whole shift in one line with nothing written. A thematic analysis
+    cannot be read or followed refuses the whole shift in one line with nothing written, the GETs board another
+    member writes included, a dry run too (spanfix, 16 November 2026), `turn` excepted: one passage's timecode saves as
+    a statement does, and each copy that cannot follow is named under `failed`. A thematic analysis
     project's codes read their times from the workbook, so nothing follows there. The caller holds the project's
     lock. Answers each file's count of lines by its kind, and the files to write, each its kind and data, none with
-    `dry`."""
+    `dry`. `turn` is one passage's timecode corrected (`api_edit_turn`, spanfollow, 16 November 2026), said so."""
     root, kinds = statement_copies(path)
     if root is None or read_project(root).get("method") == "ta":
         return {}, []
-    out, plans = {}, []
+    out, plans, failed = {}, [], []
     for kind in kinds:
         books = timepoint_sheets_of(path) if kind == "lpets" else None
         try:
@@ -7511,19 +7533,26 @@ def shift_planned(path: Path, sheet: str, moved: dict, times: dict, dry: bool = 
                     done, data = gets_mod.times_followed(root, path, sheet, moved, times, books, dry=True), None
                 else:
                     done, data = gets_mod.times_followed(root, path, sheet, moved, times, books, plan=True)
-                    if data is not None and kind == "gets" and gets_mod.WRITE_GUARD is not None:
-                        # the GETs board another member writes is refused before the workbook is touched
-                        gets_mod.WRITE_GUARD(Path(root))
-        except Exception as exc:  # noqa: BLE001  any copy that cannot be followed refuses the whole shift
+                if done and kind == "gets" and gets_mod.WRITE_GUARD is not None:
+                    # the GETs board another member writes is refused before the workbook is touched, a dry run too
+                    gets_mod.WRITE_GUARD(Path(root))
+        except Exception as exc:  # noqa: BLE001  any copy that cannot be followed
+            if turn:
+                # one passage's timecode is corrected as a statement's save is: the workbook is saved, the copies that
+                # can follow do, and each that cannot is named under `failed` (spanfix, 16 November 2026)
+                failed.append(i18n.t("server.turn_time_copies_unfollowed", names=COPY_NAMES[kind], exc=exc))
+                continue
             raise WorkbookError(i18n.t("server.shift_copy_refused", name=COPY_NAMES[kind], exc=exc)) from None
         if done:
             out[kind] = done
             if data is not None:
                 plans.append((kind, data))
+    if failed:
+        out["failed"] = failed
     return out, plans
 
 
-def shift_written(path: Path, plans: list, out: dict) -> dict:
+def shift_written(path: Path, plans: list, out: dict, turn: bool = False) -> dict:
     """The copies a shift worked out (see `shift_planned`) written, once the workbook is saved, in the order an edit
     reaches them. Anything that stops a write is answered in one line under `failed`, the copies not yet written
     left as they were: the workbook is shifted and the participant reads changed until the change's undo, which puts
@@ -7535,8 +7564,12 @@ def shift_written(path: Path, plans: list, out: dict) -> dict:
                 gets_mod.write(root, data)
         except Exception as exc:  # noqa: BLE001  the workbook is saved, so the answer says so and how to undo it
             left = [k for k, _d in plans[i:]]
-            out["failed"] = [i18n.t("server.shift_copies_unfollowed", names=formats.list_words(
-                [COPY_NAMES[k] for k in left]), exc=exc)]
+            names = formats.list_words([COPY_NAMES[k] for k in left])
+            if turn:
+                said = i18n.t("server.turn_time_copies_unfollowed", names=names, exc=exc)
+            else:
+                said = i18n.t("server.shift_copies_unfollowed", names=names, exc=exc)
+            out["failed"] = list(out.get("failed") or []) + [said]
             for k in left:
                 out.pop(k, None)
             break

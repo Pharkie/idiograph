@@ -695,7 +695,13 @@ idiograph turn trim-undo Wren 9c3f5e1a7b20 --note "Put the opening back"
 as they should read, `--time` its timecode, MM:SS or H:MM:SS, or both. The cell keeps its style, a
 highlight is found again by its words or dropped and named, and its statements, notes and quotes are left
 as they are. The progress file keeps the old words and the new under `edits`. Its answer, dry or not, says
-only what changes: the words, the timecode or both. `turn shift-times` moves every timecode of one sheet by
+only what changes: the words, the timecode or both. A timecode corrected reaches the GETs', the LPETs' and the
+LGETs' copies as a shift of that one row does, the row's lines and each end of a quote's span on it, and the answer
+counts their lines, so the participant still reads in. A copy that cannot follow (a file that is malformed or not yet
+fetched, or the GETs board another member of a Working together project writes) never refuses the correction: the
+workbook is saved, the other copies follow, and the answer names each that did not under `copies.failed`, the
+participant reading changed until `copies refresh` or a take, as after a statement's save; the dry run says the same.
+`turn shift-times` moves every timecode of one sheet by
 `--by` seconds, `-121` earlier or `30` later, for a transcript that runs ahead of or behind its recording
 through the sheet, `--from-row` and `--to-row` keeping it to a range (16 November). Each timecode is written
 in the form its cell holds, its first part padded only where the sheet pads it, and one that crosses the hour

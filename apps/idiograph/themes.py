@@ -710,10 +710,7 @@ def read_cards(workbook: Path, explore: bool = False, turns: bool = False, form:
             spoken = []
             for r, values in enumerate(ws.iter_rows(min_row=2, max_col=width, values_only=True), start=2):
                 values = tuple(values) + (None,) * (width - len(values))
-                spoken.append({"name": str(values[cols["name"] - 1] or "").strip(), "row": r,
-                               "text": str(values[cols["transcript"] - 1] or ""),
-                               "seconds": ts_seconds(values[cols["ts"] - 1]),
-                               "context": bool("ctx" in cols and str(values[cols["ctx"] - 1] or "").strip())})
+                spoken.append(spoken_turn(values, cols, r))
                 entries = split_entries(values[cols["es"] - 1])
                 # "(no quote)" is read as empty and keeps its place, so quote i stays statement i's
                 said = quote_entries(values[cols["kq"] - 1]) if "kq" in cols else []
@@ -743,6 +740,51 @@ def read_cards(workbook: Path, explore: bool = False, turns: bool = False, form:
     if turns:
         out["turns"] = words_of
     return out
+
+
+def spoken_turn(values: tuple, cols: dict, r: int) -> dict:
+    """One row of a transcript sheet as a quote that takes in the same speaker's passages reads it (see
+    `spread_quotes`): its speaker's `name`, `row`, words, `seconds` and whether the workbook marks it another
+    speaker's, `context`. `values` are the row's cells as `read_cards` reads them."""
+    return {"name": str(values[cols["name"] - 1] or "").strip(), "row": r,
+            "text": str(values[cols["transcript"] - 1] or ""),
+            "seconds": ts_seconds(values[cols["ts"] - 1]),
+            "context": bool("ctx" in cols and str(values[cols["ctx"] - 1] or "").strip())}
+
+
+def quote_spreads(quote, own: str) -> bool:
+    """Whether a quote may take in passages beside its own (see `spread_quotes`): two pieces or more and not all
+    found in its own passage's words, `own`. Read before the sheet is, so a passage whose quotes stand in it alone
+    never reads the rest of the sheet."""
+    return len(quote_pieces(quote)) >= 2 and not quote_reach(quote, [own], 0)
+
+
+def row_spread(workbook: Path, sheet: str, row: int, said: list, form: str) -> dict:
+    """The quotes of one passage, `said` by place, that take in the same speaker's passages beside it, each by its
+    key with its `time`, `span` and `rows`, read from the sheet as `read_cards` reads it and placed by the very
+    `spread_quotes` a fresh read uses (spanfollow, 16 November 2026: a statement a write adds joins the copies with
+    the span a fresh read gives). Nothing for a sheet with no statements or a quote in its own passage alone."""
+    workbook = Path(workbook)
+    try:
+        book = openpyxl.load_workbook(whole_book(workbook), read_only=True, data_only=True)
+    except Exception as exc:
+        raise WorkbookError(i18n.t("server.could_read", name=workbook.name, exc=exc))
+    try:
+        if sheet not in book.sheetnames:
+            return {}
+        ws = book[sheet]
+        cols = detect_columns(ws)
+        if not {"name", "ts", "transcript", "es"} <= set(cols):
+            return {}
+        width = max(cols.values())
+        spoken = [spoken_turn(tuple(values) + (None,) * (width - len(values)), cols, r)
+                  for r, values in enumerate(ws.iter_rows(min_row=2, max_col=width, values_only=True), start=2)]
+    finally:
+        book.close()
+    held = {"sheet": sheet, "row": int(row), "quotes": [{"key": card_key(sheet, int(row), i), "text": text}
+                                                        for i, text in enumerate(said) if text]}
+    spread_quotes(sheet, spoken, {row_key(sheet, int(row)): held}, [], form)
+    return {q["key"]: {k: q[k] for k in ("time", "span", "rows")} for q in held["quotes"] if q.get("span")}
 
 
 def spread_quotes(sheet: str, spoken: list[dict], quotes: dict, cards: list[dict], form: str) -> None:

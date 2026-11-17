@@ -1978,6 +1978,10 @@ def statements_followed(root: Path, workbook: Path, words: dict, before: dict, b
         rec = held[case]
         for lkey, places in carried.items():
             rec["lines"][lkey]["quotes"] = places
+        # a statement whose own quote it took takes the span the quote now has, as a fresh read gives it, so a
+        # quote reworded to take in the passages beside its own, or no longer, never marks it changed (spanfollow)
+        for key in quoted.get(case) or []:
+            spans_followed(rec, Path(workbook), key, (quotes or {}).get(key, ("", ""))[1])
         rec["hash"] = snap_hash(rec)
     bold_set(data, bold)
     # a copy with nothing else waiting keeps its files' new times (see `untouched`), read afresh to be sure
@@ -2536,6 +2540,24 @@ def times_followed(root: Path, workbook: Path, sheet: str, moved: dict, times: d
     form = KEPT_AS
     out = {"lines": 0, "cases": []}
     order = sorted(times)
+    # the rows of `moved` that had no timecode and take their first, by their new seconds (spanfix)
+    first = {r: after for r, (before, after) in moved.items() if before is None and after is not None}
+    spread_held: dict = {}
+
+    def spread_rows(key: str, line: dict) -> list:
+        """The rows the quote of a line takes in, from the first to the last, as a fresh read places it, the sheet
+        read as it stands, the rows with no time as yet."""
+        place = themes.split_card_key(key)[2]
+        said = [str(q or "") for q in line.get("quotes") or []]
+        if place is None or place >= len(said) or not said[place]:
+            return []
+        at = (line["row"], tuple(said))
+        if at not in spread_held:
+            try:
+                spread_held[at] = themes.row_spread(workbook, sheet, line["row"], said, form)
+            except Exception:  # noqa: BLE001  a sheet that cannot be read leaves the end as it was
+                spread_held[at] = {}
+        return list((spread_held[at].get(key) or {}).get("rows") or [])
 
     def end_of(seconds, row: int, back: bool):
         """A span's end as the shift leaves it: the nearest timed row holding `seconds`, at or before the line's
@@ -2551,7 +2573,7 @@ def times_followed(root: Path, workbook: Path, sheet: str, moved: dict, times: d
         lines = rec.get("lines") if isinstance(rec, dict) and isinstance(rec.get("lines"), dict) else {}
         whole = rec.get("hash") == snap_hash(rec) if isinstance(rec, dict) else False
         n = 0
-        for line in lines.values():
+        for key, line in lines.items():
             if not isinstance(line, dict) or line.get("sheet") != sheet or not isinstance(line.get("row"), int):
                 continue
             row = line["row"]
@@ -2562,6 +2584,13 @@ def times_followed(root: Path, workbook: Path, sheet: str, moved: dict, times: d
             span = line.get("span")
             if isinstance(span, list) and len(span) == 2:
                 new = [end_of(span[0], row, True), end_of(span[1], row, False)]
+                if None in span and first:
+                    # an end with no time belongs to a row that has none; one of those rows given its first timecode
+                    # gives it to the end that is its row's, found as a fresh read finds it (spanfix, 16 November 2026)
+                    rows = spread_rows(key, line)
+                    for i, at in ((0, rows[0] if rows else None), (1, rows[-1] if rows else None)):
+                        if span[i] is None and at in first:
+                            new[i] = first[at]
                 if new != span:
                     line["span"] = new
                     took = True
@@ -2611,8 +2640,10 @@ def row_lines(workbook: Path, sheet: str, row: int, cite: str = "") -> dict[str,
     """The statements of one passage as a copy keeps them (see `snapshot`), read from that row alone (copiesadd, 16
     November 2026), so a save that adds a statement never reads the whole workbook: each by its key with its sheet,
     row, time (cited with `cite` on the LPETs), seconds, words, the row's quotes by place and its exploratory notes,
-    in no PET and not in the bin. A quote taking in the speaker's next passages keeps its own passage's time here,
-    as it did before quotespan, until the participant's changes are taken. None for a row with no statement."""
+    in no PET and not in the bin. A quote taking in the same speaker's passages beside its own carries its `span` and
+    its time from the first passage to the last, as a fresh read gives them (spanfollow, 16 November 2026: it kept
+    its own passage's time until the participant's changes were taken, so they read changed), the rest of the sheet
+    read only for such a quote (see `themes.row_spread`). None for a row with no statement."""
     workbook = Path(workbook)
     form = timecodes_for(workbook)
     # read once for every file of copies a save reaches, while the workbook stands as it was read
@@ -2639,17 +2670,68 @@ def row_lines(workbook: Path, sheet: str, row: int, cite: str = "") -> dict[str,
         places.pop()
     notes = themes.split_entries(values[cols["en"] - 1]) if entries and "en" in cols else []
     seconds = themes.ts_seconds(values[cols["ts"] - 1])
-    time = timecode(seconds, form)
-    if cite:
-        time = f"{cite}, {time}" if time else cite
-    return {themes.card_key(sheet, int(row), i): {"sheet": sheet, "row": int(row), "time": time, "seconds": seconds,
-                                                   "text": text, "quotes": list(places), "notes": list(notes),
-                                                   "pet": None, "discarded": False}
-            for i, text in enumerate(entries)}
+    own = str(values[cols["transcript"] - 1] or "")
+    spread = {}
+    if any(themes.quote_spreads(q, own) for q in places[:len(entries)] if q):
+        spread_key = held_key + (tuple(places),) if held_key is not None else None
+        spread = SPREAD_HELD.get(spread_key) if spread_key is not None else None
+        if spread is None:
+            spread = themes.row_spread(workbook, sheet, int(row), places[:len(entries)], form)
+            if spread_key is not None:
+                SPREAD_HELD.clear()
+                SPREAD_HELD[spread_key] = spread
+    out = {}
+    for i, text in enumerate(entries):
+        key = themes.card_key(sheet, int(row), i)
+        took = spread.get(key)
+        time = took["time"] if took else timecode(seconds, form)
+        if cite:
+            time = f"{cite}, {time}" if time else cite
+        out[key] = {"sheet": sheet, "row": int(row), "time": time, "seconds": seconds,
+                    **({"span": list(took["span"])} if took else {}), "text": text, "quotes": list(places),
+                    "notes": list(notes), "pet": None, "discarded": False}
+    return out
+
+
+def spans_followed(rec: dict, workbook: Path, key: str, quote: str) -> bool:
+    """A copy's line of the statement at `key` given the span and time its quote, `quote` as the workbook now holds
+    it, has in a fresh read (see `row_lines`), once a write has carried the quote to it (spanfollow, 16 November
+    2026). A line holding another quote at its place, a change not yet taken, is left as it is. Answers whether
+    the line changed. Reads the workbook as it stands, so it is called once the write is saved."""
+    lines = rec.get("lines") if isinstance(rec.get("lines"), dict) else {}
+    line = lines.get(key)
+    sheet, row, place = themes.split_card_key(key)
+    if not isinstance(line, dict) or row is None or place is None:
+        return False
+    held = [str(q or "") for q in line.get("quotes") or []]
+    if themes.quote_words(held[place] if place < len(held) else "") != themes.quote_words(quote):
+        return False
+    fresh = row_lines(Path(workbook), sheet, row).get(key)
+    if fresh is None:
+        return False
+    had = line.get("span")
+    if fresh.get("span") == had:
+        return False
+    if fresh.get("span"):
+        # placed after the seconds, where a fresh read puts it
+        kept = dict(line)
+        line.clear()
+        for k, v in kept.items():
+            if k != "span":
+                line[k] = v
+            if k == "seconds":
+                line["span"] = list(fresh["span"])
+        line.setdefault("span", list(fresh["span"]))
+    else:
+        line.pop("span", None)
+    retimed(line, KEPT_AS, rec.get("cite") or "")
+    return True
 
 
 # the last row `row_lines` read, by the workbook's path, time and size, the sheet, the row and the timecodes
 ROWS_HELD: dict = {}
+# and the spans of the last row whose quotes take in the passages beside it, by the same and the row's quotes
+SPREAD_HELD: dict = {}
 
 
 def workbook_keys(workbook: Path, row_now: dict | None = None) -> set[str]:

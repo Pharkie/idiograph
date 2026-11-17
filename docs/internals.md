@@ -3986,8 +3986,14 @@ statements no old one became (`themes.passage_lines`), and `routes.passage_follo
 them after `passage_followed` on each file of `statement_copies`, in a `try` of its own so a failed read leaves the
 moves written and said and reports the addition alone (`server.passage_copy_unadded`). Each case whose timepoint
 holds the sheet (`holds_sheet`) takes the line from its row alone (`row_lines`, one read-only row, held in
-`ROWS_HELD` for the next file while the workbook is unchanged; a quote spanning turns keeps its own time until the
-changes are taken), `pet` None, `discarded` false, no `stacked`, so it stands unplaced and no board gets a card.
+`ROWS_HELD` for the next file while the workbook is unchanged), `pet` None, `discarded` false, no `stacked`, so it
+stands unplaced and no board gets a card. A quote that may take in the speaker's passages beside its own
+(`themes.quote_spreads`: two pieces or more, not all in its own passage) has the sheet read once more
+(`themes.row_spread`, held in `SPREAD_HELD`), its rows built by the same `spoken_turn` as `read_cards` and placed by
+the same `spread_quotes`, so the line carries the `span` and range time a fresh read gives and the participant reads
+in (spanfollow, 16 November 2026; before it the line kept its own passage's time until the changes were taken).
+A quote reworded in its place by `turn write` (`statements_followed`'s `quotes`) takes the span it now has the same
+way (`gets.spans_followed`, after the save, a line holding another quote at its place left as it is).
 The row's other lines take the new quote in its own place alone, so a quote change the copy holds back stays. The
 copy's hash follows. The LPETs go first and the LGETs, read with `fresh_of` from the LPETs file, add only the keys
 the LPETs took (`also`). `passage_follow` finds the LPETs by the project's timepoints (`timepoint_books`), never
@@ -7504,7 +7510,17 @@ call it; area 408 checks it. `gets.held_of` takes `move`, and every dry run of t
 `copies_pruned`, and `copies_untouched`, a read alone), so a dry run of `turn shift-times`, `turn write`,
 `copies refresh`, `copies rekey` and `copies prune` never moves a board file's History out of it (timefix).
 `api_edit_turn` answers `text_changed`, `time_changed` and `old_time` too, so `turn edit`
-says only what changes (`cli.turn_edit.dry_*`, `done_*`).
+says only what changes (`cli.turn_edit.dry_*`, `done_*`). A timecode given to `api_edit_turn` takes the project's
+lock as well, and `workbook.edit_turn`'s `follow`, called before the save with the row's seconds before and after and
+every timed row's seconds before (the `moved` and `times` a shift gives), runs `shift_planned(turn=True)`, so each
+copy's line on the row and each span end that belongs to it move as a shift of that one row moves them, a copy that
+cannot follow (a malformed or not yet fetched file, Working together's GETs guard, which the dry run runs too) never
+refusing the edit: the workbook is saved as a statement's save saves it and each such copy gets one line under
+`copies.failed` (`server.turn_time_copies_unfollowed`), the participant reading changed until `copies refresh` or a
+take, where `turn shift-times` keeps refusing whole, its dry run too; `shift_written(turn=True)` writes the
+copies after the save; a row given its first timecode gives it to the span end that is its row's, found by
+`themes.row_spread` (`gets.times_followed`, spanfix); `copies` answers each file's lines by kind, counted with
+nothing written on a dry run, and `turn edit` says them as a shift does (spanfollow, 16 November 2026; area 412).
 
 Since 26 October (parity with the page, group 1) the statements screen's own writes have ops for agents,
 each calling the route itself with the page's body and three keys more, `dry_run`, `tool` and `request`,

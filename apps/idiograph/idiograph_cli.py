@@ -6904,6 +6904,17 @@ def cmd_turn_edit(p: Project, args) -> tuple:
     # timecode alone was said as words corrected)
     words, timed = bool(done.get("text_changed")), bool(done.get("time_changed"))
     times = dict(old_time=done.get("old_time") or "", time=done.get("time") or "")
+    # the copies' lines that take the new timecode, counts alone, as a shift says them (spanfollow)
+    followed = []
+    for kind, took in (done.get("copies") or {}).items():
+        if kind == "failed":
+            followed += list(took)
+        elif args.dry_run:
+            followed.append(i18n.t("cli.turn_shift_times.copies_dry", name=routes.COPY_NAMES.get(kind, kind),
+                                   n=took["lines"]))
+        else:
+            followed.append(i18n.t("cli.turn_shift_times.copies", name=routes.COPY_NAMES.get(kind, kind),
+                                   n=took["lines"]))
     if args.dry_run:
         if not done["changed"]:
             return answer, [i18n.t("cli.turn_edit.dry_run_nothing_was_written_reads", where=where)]
@@ -6916,7 +6927,7 @@ def cmd_turn_edit(p: Project, args) -> tuple:
         if done["dropped"]:
             lines.append(i18n.t("cli.turn_edit.would_be_dropped_its_words_gone", highlights=i18n.t("cli.n.highlight", n=len(done['dropped'])))
                          + ", ".join(f'"{d}"' for d in done["dropped"]) + ".")
-        return answer, lines
+        return answer, lines + followed
     if not done["changed"]:
         return answer, [i18n.t("cli.turn_edit.reads_so_already_so_nothing_was", where=where)]
     if words and timed:
@@ -6927,7 +6938,7 @@ def cmd_turn_edit(p: Project, args) -> tuple:
         lines = [i18n.t("cli.turn_edit.done_words", where=where)]
     if done["dropped"]:
         lines.append(i18n.t("cli.turn_edit.dropped_its_words_gone", highlights=i18n.t("cli.n.highlight", n=len(done['dropped']))) + ", ".join(f'"{d}"' for d in done["dropped"]) + ".")
-    return answer, lines
+    return answer, lines + followed
 
 
 def cmd_turn_interviewer_note(p: Project, args) -> tuple:

@@ -444,6 +444,7 @@ AREAS = {
     "a409_ta_demo_recordings": "idiograph",
     "a410_trajectories_undo": "idiograph",
     "a411_lgets_fast": "idiograph",
+    "a412_span_follow": "idiograph",
 }
 
 
