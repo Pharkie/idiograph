@@ -324,7 +324,7 @@ def names_carry(data: dict | None, plan: dict) -> dict:
 
 
 def names_write(root: Path, path: Path, data: dict) -> None:
-    # cleaned as every save is, so an old entry's Match case is written as Also an ordinary word (ordinaryword)
+    # cleaned as every save is, so an old entry's Review each, Also an ordinary word or Match case goes (namesbuild)
     kept = []
     for e in data.get("entries") or []:
         try:

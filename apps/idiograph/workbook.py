@@ -1619,7 +1619,7 @@ def replace_words(path: Path, find: str | None = None, replace: str | None = Non
         wb.close()
 
 
-def names_in_book(path: Path, fix, dry: bool = False) -> dict:
+def names_in_book(path: Path, fix, dry: bool = False, times: dict | None = None) -> dict:
     """The project's list of names run over a workbook already in (namesui, 8 November 2026): every row of every
     sheet the turn screen reads, its speaker's name, its transcript, then each statement, quote, exploratory note
     and interviewer's note one entry at a time, in that order, so a check and a replace meet each find in the same
@@ -1627,7 +1627,9 @@ def names_in_book(path: Path, fix, dry: bool = False) -> dict:
     skips. A transcript is written through `rewrite_transcript`, its highlights kept by phrase, an annotation cell
     entry by entry, an entry the change would leave empty left as it was. With `dry` nothing is saved and an open
     workbook is not refused. Answers each row changed as `replace_words` answers one, with `cells`, the old and the
-    new text of each annotation cell, which the boards and the GETs follow (`idiograph_routes.follow_replace`)."""
+    new text of each annotation cell, which the boards and the GETs follow (`idiograph_routes.follow_replace`).
+    `times`, when given, gathers each row's timecode in seconds by sheet and row, None for a row with none, for the
+    app's review of the names to say where each find is (namesbuild)."""
     path = Path(path)
     if not dry:
         guard_lock(path)
@@ -1638,6 +1640,8 @@ def names_in_book(path: Path, fix, dry: bool = False) -> dict:
             for r in range(2, ws.max_row + 1):
                 columns: dict[str, int] = {}
                 cells: dict[str, dict] = {}
+                if times is not None:
+                    times[(ws.title, r)] = ts_seconds(ws.cell(r, cols["ts"]).value)
                 name_cell = ws.cell(r, cols["name"])
                 name_was = name_cell.value if isinstance(name_cell.value, str) else None
                 name_new = fix(name_was, "speaker", ws.title, r) if name_was and name_was.strip() else name_was

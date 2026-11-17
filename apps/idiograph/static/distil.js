@@ -2802,6 +2802,7 @@ const IMPORT = { item: null, read: null, busy: false, ask: 0, audio: '', picked:
 function offerImport(item) {
   IMPORT.item = item;
   IMPORT.read = null;
+  IMPORT.names = null;
   IMPORT.audio = '';
   IMPORT.picked = [];
   $('import-from').textContent = sourceSaid(item);
@@ -3052,13 +3053,33 @@ async function pickImportAudio() {
 const importColumns = () => (IMPORT.read && IMPORT.read.columns
   ? Array.from($('import-map').querySelectorAll('select[data-col]'), (s) => s.value) : undefined);
 
-async function makeImport() {
+/* Make on the import card. When the file holds a name of the project's list it opens the review of its finds
+   first, as Add transcripts does, and the review's button comes back here with the skips and takes he chose
+   (namesfix, Adam's ruling of 17 November 2026: nothing is replaced silently on the way in). A read for the review
+   that fails stops the Make with its line. */
+async function makeImport(names = null) {
   if (IMPORT.busy || !IMPORT.read || IMPORT.read.said || !IMPORT.read.count) return;
+  if (!names) {
+    let read;
+    try {
+      read = await api('/api/import', { path: IMPORT.item.path, op: 'read', ...importAsks(), interviewer: importInterviewer(),
+        names_preview: true });
+    } catch (err) { importSaid(needsRestart(err) ? RESTART_LINE : err.message); return; }
+    const found = read.names && (read.names.finds || []).length;
+    if (found) {
+      IMPORT.names = IMPORT.names || {};
+      nmFindsReview({ kicker: IMPORT.item.name || fileOf(IMPORT.item.path || ''), title: t('distil.names.adding_one'),
+        names: read.names, state: IMPORT.names, form: timecodesOf(projectAt()),
+        go: (n) => t('distil.names.replace_add', { n }), run: (picked) => makeImport(picked) });
+      return;
+    }
+    names = {};
+  }
   IMPORT.busy = true;
   $('import-go').disabled = true;
   try {
     const data = await api('/api/import', {
-      path: IMPORT.item.path, op: 'make', ...importAsks(), interviewer: importInterviewer(),
+      path: IMPORT.item.path, op: 'make', ...importAsks(), interviewer: importInterviewer(), ...names,
     });
     hide('import');
     // a later interview of a participant with a workbook joined it, and the case opens at its timepoint
@@ -3469,12 +3490,10 @@ function npChange(e) {
 }
 
 function npClick(e) {
-  // a row's Names line: Review its finds, or the project's list (namesui)
-  const names = e.target && e.target.closest ? e.target.closest('[data-np="names-review"], [data-np="names-list"]') : null;
+  // a row's Names line: the project's list (namesui)
+  const names = e.target && e.target.closest ? e.target.closest('[data-np="names-list"]') : null;
   if (names) {
-    const row = npRow(names);
-    if (row && names.dataset.np === 'names-review') nmReviewRow(row);
-    else if (NP.add) nmListOpen(NP.add.id, NP.add.name);
+    if (NP.add) nmListOpen(NP.add.id, NP.add.name);
     return;
   }
   const button = e.target && e.target.closest ? e.target.closest('[data-np="remove"]') : null;
@@ -3489,13 +3508,22 @@ function npClick(e) {
 }
 
 /* Create project, or in Add, Add: every row sent to the server, which checks them all before it
-   writes anything. A row that joins a case there sends no number. A project made opens on its page. */
-async function npMake() {
+   writes anything. A row that joins a case there sends no number. A project made opens on its page.
+   When a file holds a name of the project's list, Add… and Create project… open the review of its finds first,
+   and its own button comes back here `reviewed` (namesbuild, 17 November 2026). */
+async function npMake(reviewed = false) {
   if (NP.busy) return;
   if (NP.qdpx) { await qdMake(); return; }
   const add = NP.add;
   const typed = add ? '' : $('np-folder').value.trim();
+  // the folder he typed is resolved before the review, as qdMake does, so the review reads its list (namesfix2 L2)
   if (typed && typed !== NP.folder && !(await npFolder(typed))) return;
+  if (reviewed !== true) {
+    // a preview that fails stops the Add with its line: a find he has not seen is never replaced (namesfix L2)
+    let shown;
+    try { shown = await nmAddReview(); } catch (err) { npSaid(needsRestart(err) ? RESTART_LINE : err.message); return; }
+    if (shown) return;
+  }
   const held = NP.rows.find((r) => r.data === null && r.said);
   if (held) { npSaid(held.said); return; }
   const files = npFilesSent();
@@ -3503,13 +3531,13 @@ async function npMake() {
   $('np-go').disabled = true;
   try {
     // the names as the rows now stand, so each find he unticked is sent by its number as the Add will count it
-    await nmPreview();
+    await nmPreview({ strict: true });
     const skip = nmSkipsSent();
     const take = nmTakesSent();
-    if (add) await api('/api/add-transcripts', { op: 'add', root: add.id, files, skip, take });
+    if (add) await api('/api/add-transcripts', { op: 'add', root: add.id, files, skip, take, names_reviewed: true });
     else {
       const made = await api('/api/new-project', { op: 'make', folder: typed, name: $('np-name').value.trim(),
-        research_question: $('np-question').value.trim(), method: npMethod(), files, skip, take });
+        research_question: $('np-question').value.trim(), method: npMethod(), files, skip, take, names_reviewed: true });
       if (made && made.project && made.project.id) homeKeep(made.project.id);
     }
     closeNewProject();
@@ -3522,20 +3550,21 @@ async function npMake() {
   }
 }
 
-/* Names replaced as a transcript comes in (namesui, 8 November 2026, Adam's picks that evening, drawings 01 to 04
-   of pseudodraw). On Add transcripts and New project each row has a Real name beside its Pseudonym, which makes an
-   entry of the project's list for that participant, and the server runs every row through the list as the Add will
-   (`/api/names` op preview): the preview draws each replacement tinted, the name it replaced as its tooltip, and the
-   row's Names line says how many were replaced and left, with Review, a card of every find with its tick, and Names
-   to replace, the project's list. A find unticked is left as written, sent with the Add as its entry and its place
-   among that entry's finds. The list is the project's file in its folder, `idiograph-names.json`, never in a copy
-   he shares. From the list's card, Check transcripts already in finds its names in the transcripts there, and
-   Review and replace replaces the ones ticked, each workbook kept as it was in its participant's _Archive first. */
+/* Names replaced as a transcript comes in (namesui, 8 November 2026; namesbuild, Adam's design of 17 November 2026,
+   wording A). On Add transcripts and New project each row has a Real name beside its Pseudonym, which makes an entry
+   of the project's list for that participant, and the server runs every row through the list as the Add will
+   (`/api/names` op preview): the preview draws each find in bold as it was found, and the row's Names line counts
+   them by name. When a file holds a name, Add… (Create project…) opens the review first, every find in its sentence
+   with a tick, and Replace N ticked and add writes the ticked alone; nothing is replaced on the way in unseen. A find
+   with its capital starts ticked, a lower-case find ("hope" for Hope) unticked and folded under its name. The list is
+   the project's file in its folder, `idiograph-names.json`, never in a copy he shares. From the list's card, Check
+   transcripts already in finds its names in the transcripts there, and Review and replace replaces the ticked, each
+   workbook kept as it was in its participant's _Archive first. */
 const NM = { timer: 0, ask: 0, review: null, list: null };
 const NM_MOST = 240;
 
-/* a run of segments, plain words and finds, drawn as the card draws them: a replacement tinted with the name it
-   replaced as its tooltip, a find left as written underlined, cut at `most` characters at a word's end */
+/* a run of segments, plain words and finds, drawn as the card draws them: each find in bold as it was found, cut at
+   `most` characters at a word's end */
 function nmSegHtml(segs, most = NM_MOST) {
   let html = '';
   let used = 0;
@@ -3552,12 +3581,9 @@ function nmSegHtml(segs, most = NM_MOST) {
       }
       html += esc(text);
       used += text.length;
-    } else if (s.kept) {
-      html += `<span class="nm-kept" title="${escAttr(t('distil.names.left_title'))}">${esc(s.was)}</span>`;
-      used += s.was.length;
     } else {
-      html += `<span class="nm-swap" title="${escAttr(s.was)}">${esc(s.to)}</span>`;
-      used += s.to.length;
+      html += `<b class="nm-found">${esc(s.was)}</b>`;
+      used += s.was.length;
     }
   }
   return html;
@@ -3582,7 +3608,9 @@ function nmSoon() {
   NM.timer = setTimeout(() => { nmPreview().catch(() => {}); }, 350);
 }
 
-async function nmPreview() {
+/* `strict`, for the Add and Create project themselves: a preview that fails throws, and one overtaken by a later
+   change is asked again, so what is sent always comes from a preview that answered (namesfix L2) */
+async function nmPreview({ strict = false } = {}) {
   clearTimeout(NM.timer);
   const ask = ++NM.ask;
   if (NP.qdpx || !NP.rows.some((r) => r.data && r.read && r.read.count)) {
@@ -3593,8 +3621,11 @@ async function nmPreview() {
   let data;
   try {
     data = await api('/api/names', { op: 'preview', ...(NP.add ? { root: NP.add.id } : { folder: NP.folder }), files: npFilesSent() });
-  } catch { return null; }
-  if (ask !== NM.ask) return null;
+  } catch (err) {
+    if (strict) throw err;
+    return null;
+  }
+  if (ask !== NM.ask) return strict ? nmPreview({ strict }) : null;
   NP.names = data;
   nmDrawRows();
   return data;
@@ -3617,7 +3648,7 @@ function nmKeyed(finds) {
   });
 }
 
-/* a row's finds as the server numbered them, each marked left when he unticked it */
+/* a row's finds as the server numbered them, each marked left when it is unticked */
 function nmRowFinds(row) {
   const at = NP.rows.indexOf(row);
   const file = NP.names && NP.names.files ? NP.names.files[at] : null;
@@ -3627,39 +3658,45 @@ function nmRowFinds(row) {
   return nmKeyed(file.finds).map(({ f, key }) => ({ ...f, key, skipped: nmOff(f, key, row.skips, row.takes) }));
 }
 
-/* whether a find is left as written: a Review each name's find until he ticks it (namesop, 16 November 2026), any
-   other once he unticks it */
+/* whether a find is left as written: a lower-case find until he ticks it, any other once he unticks it */
 function nmOff(f, key, skips, takes) {
-  return f.review ? !takes.has(key) : skips.has(key);
+  return f.lower ? !takes.has(key) : skips.has(key);
 }
 
-/* a tick kept: a Review each name's find among those he takes, any other among those he skips */
-function nmTick(finds, keys, on, skips, takes) {
-  const review = new Set(finds.filter((f) => f.review).map((f) => f.key));
-  for (const k of keys) {
-    if (review.has(k)) { if (on) takes.add(k); else takes.delete(k); } else if (on) skips.delete(k); else skips.add(k);
-  }
+/* a tick kept: a lower-case find among those he takes, any other among those he skips */
+function nmTick(f, key, on, skips, takes) {
+  if (f.lower) { if (on) takes.add(key); else takes.delete(key); } else if (on) skips.delete(key); else skips.add(key);
 }
 
 /* the skips the Add sends, each find unticked by its entry and its place among that entry's finds */
 function nmSkipsSent() {
   const out = [];
-  for (const row of NP.rows) for (const f of nmRowFinds(row)) if (f.skipped && !f.review) out.push(`${f.entry}:${f.nth}`);
+  for (const row of NP.rows) for (const f of nmRowFinds(row)) if (f.skipped && !f.lower) out.push(`${f.entry}:${f.nth}`);
   return out;
 }
 
-/* and the finds of a Review each name he ticked, which alone of its finds are replaced */
+/* and the lower-case finds he ticked, which alone of those are replaced */
 function nmTakesSent() {
   const out = [];
-  for (const row of NP.rows) for (const f of nmRowFinds(row)) if (f.review && !f.skipped) out.push(`${f.entry}:${f.nth}`);
+  for (const row of NP.rows) for (const f of nmRowFinds(row)) if (f.lower && !f.skipped) out.push(`${f.entry}:${f.nth}`);
   return out;
 }
 
-/* each row's preview, its speakers and its Names line as the list leaves them */
+/* whether any row's file holds a name of the list, so Add opens the review first */
+function nmAnyFinds() {
+  return NP.rows.some((row) => nmRowFinds(row).length > 0);
+}
+
+/* each row's preview, its speakers and its Names line as the list finds them, and the card's button */
 function nmDrawRows() {
   for (const li of $('np-rows').querySelectorAll('.np-row')) {
     const row = npRow(li);
     if (row) nmDrawRow(row, li);
+  }
+  if (!NP.qdpx) {
+    const asks = nmAnyFinds();
+    $('np-go').textContent = NP.add ? (asks ? t('distil.names.add_go') : t('distil.np.add'))
+      : (asks ? t('distil.names.create_go') : t('distil.np.create'));
   }
 }
 
@@ -3667,28 +3704,18 @@ function nmDrawRow(row, li) {
   const at = NP.rows.indexOf(row);
   const file = NP.names && NP.names.files ? NP.names.files[at] : null;
   const finds = nmRowFinds(row);
-  const skipped = new Set(finds.filter((f) => f.skipped).map((f) => `${(f.where || {}).part}|${(f.where || {}).turn}|${f.at}`));
-  // the first passages drawn again from the server's segments, a find he unticked drawn as written
+  // the first passages drawn again from the server's segments, each find in bold as it was found
   const turns = li.querySelectorAll('.np-turns .import-turn');
   const shown = file ? file.turns || [] : [];
-  const mark = (segs, part, turn) => {
-    let pos = 0;
-    return (segs || []).map((s) => {
-      if (typeof s === 'string') { pos += s.length; return s; }
-      const kept = skipped.has(`${part}|${turn}|${pos}`);
-      pos += s.was.length;
-      return { ...s, kept };
-    });
-  };
-  // each speaker by what their name becomes, in the preview's passages and under Speakers
-  const spoken = new Map((file ? file.speakers || [] : []).map((sp) => [sp.name, nmSegHtml(mark(sp.segments, 'speaker', sp.turn), 200)]));
+  // each speaker by their name, in the preview's passages and under Speakers
+  const spoken = new Map((file ? file.speakers || [] : []).map((sp) => [sp.name, nmSegHtml(sp.segments, 200)]));
   const turnsRead = (row.read && row.read.turns) || [];
   turns.forEach((el, i) => {
     const seg = shown[i];
     const name = el.querySelector('.import-name');
     const text = el.querySelector('.import-text');
     if (name && turnsRead[i] && spoken.has(turnsRead[i].name)) name.innerHTML = spoken.get(turnsRead[i].name);
-    if (seg && text) text.innerHTML = nmSegHtml(mark(seg.text, 'words', i + 1));
+    if (seg && text) text.innerHTML = nmSegHtml(seg.text);
   });
   // a table's preview: its speaker and transcript cells
   li.querySelectorAll('.np-turns .import-table tbody tr').forEach((tr, i) => {
@@ -3696,7 +3723,7 @@ function nmDrawRow(row, li) {
     const name = tr.querySelector('.ip-name');
     const text = tr.querySelector('.ip-text');
     if (name && turnsRead[i] && spoken.has(turnsRead[i].name)) name.innerHTML = spoken.get(turnsRead[i].name);
-    if (seg && text) text.innerHTML = nmSegHtml(mark(seg.text, 'words', i + 1));
+    if (seg && text) text.innerHTML = nmSegHtml(seg.text);
   });
   for (const label of li.querySelectorAll('.import-speaker > .setting-label')) {
     const sp = label.parentElement.querySelector('select[data-speaker]');
@@ -3710,70 +3737,102 @@ function nmDrawRow(row, li) {
     const was = sp ? sp.dataset.speaker : '';
     head.innerHTML = spoken.has(was) ? spoken.get(was) : esc(was);
   }
-  // the Names line under the row's fields
+  // the Names line under the row's fields: how many of each name, and of each in lower case
   const line = li.querySelector('.np-names');
   if (!line) return;
   const any = NP.names && NP.names.entries > 0;
   line.hidden = !any || !row.read || !row.read.count;
   if (line.hidden) return;
-  const left = finds.filter((f) => f.skipped).length;
-  const replaced = finds.length - left;
-  line.querySelector('.np-names-said').textContent = !finds.length ? t('distil.names.none_here')
-    : left ? t('distil.names.line_left', { replaced, left }) : t('distil.names.line', { replaced });
-  line.querySelector('[data-np="names-review"]').hidden = !finds.length;
+  line.querySelector('.np-names-said').textContent = finds.length
+    ? nmCountLine(finds, (NP.names && NP.names.list) || []) : t('distil.names.none_here');
   line.querySelector('[data-np="names-list"]').hidden = !NP.add;
+}
+
+/* "Carlos 3, Hope 1 and hope in lower case 3 found.": each name by the list's first spelling, in the order first
+   found, its finds with their capital counted, then its lower-case finds by the words found */
+function nmCountLine(finds, list) {
+  const by = new Map();
+  for (const f of finds) {
+    if (!by.has(f.entry)) by.set(f.entry, { up: 0, low: 0, words: new Set() });
+    const g = by.get(f.entry);
+    if (f.lower) { g.low += 1; g.words.add(String(f.found).toLowerCase()); } else g.up += 1;
+  }
+  const parts = [];
+  for (const [n, g] of by) {
+    const e = list[n - 1] || { real: [] };
+    if (g.up) parts.push(t('distil.names.count', { name: (e.real || [])[0] || '', n: g.up }));
+    if (g.low) parts.push(t('distil.names.count_lower', { word: [...g.words].join(' / '), n: g.low }));
+  }
+  return t('distil.names.counts', { list: tList(parts) });
 }
 
 /* the row's part of the card: its Names line, under the fields */
 function npNamesHtml() {
   return `<div class="np-names" hidden><p class="import-sub">${esc(t('distil.names.head'))}</p><div class="np-names-line">`
     + '<span class="np-names-said"></span>'
-    + `<button type="button" class="ghost small" data-np="names-review">${esc(t('distil.names.review'))}</button>`
     + `<button type="button" class="ghost small" data-np="names-list">${esc(t('distil.names.open'))}</button></div></div>`;
 }
 
-/* ── Review: every find by its entry, a tick each ── */
+/* ── The review: finds grouped by name, each in its sentence with a tick ── */
 
-/* a find's place as its row says it: the passage, a speaker, the file's name or the interview's, and on the
-   list's card the participant first */
-const NM_AT = { words: 'distil.names.at.words', notes: 'distil.names.at.notes', statements: 'distil.names.at.statements',
-  quotes: 'distil.names.at.quotes', speaker: 'distil.names.at.speaker', file: 'distil.names.at.file', interview: 'distil.names.at.interview',
-  memos: 'distil.names.at.memos' };
-const NM_WHO = { words: 'distil.names.who.words', notes: 'distil.names.who.notes', statements: 'distil.names.who.statements',
-  quotes: 'distil.names.who.quotes', speaker: 'distil.names.who.speaker', file: 'distil.names.who.file', interview: 'distil.names.who.interview',
-  memos: 'distil.names.who.memos' };
+/* a find's place as its row says it: the participant, the timepoint (or the interview, where a participant has more
+   than one and the project no timepoints), then the passage's time, or its number where the file has no times, and
+   the part of the row when it is not the passage's own words */
+const NM_KIND = { notes: 'distil.names.kind.notes', statements: 'distil.names.kind.statements', quotes: 'distil.names.kind.quotes',
+  speaker: 'distil.names.kind.speaker', file: 'distil.names.kind.file', interview: 'distil.names.kind.interview',
+  memos: 'distil.names.kind.memos', code: 'distil.names.kind.code', 'code group': 'distil.names.kind.code_group' };
 const NM_PARTS = { notes: 'distil.names.part.notes', statements: 'distil.names.part.statements', quotes: 'distil.names.part.quotes',
   memos: 'distil.names.part.memos' };
 
-function nmWhere(f, who) {
+function nmWhere(f, several, form) {
   const w = f.where || {};
-  const part = NM_AT[w.part] ? w.part : 'words';
-  return who ? t(NM_WHO[part], { who: w.participant || '', n: w.turn || '' }) : t(NM_AT[part], { n: w.turn || '' });
-}
-
-function nmContext(f) {
-  if ((f.where || {}).part === 'speaker' && f.speaks) {
-    return `<b>${esc(f.found)}</b>${esc(t('distil.names.speaks', { n: f.speaks }))}`;
+  const out = [];
+  if (w.participant) out.push(w.participant);
+  if (w.timepoint) out.push(w.timepoint);
+  else if (w.interview && several.has(w.participant)) out.push(w.interview);
+  if (NM_KIND[w.part]) out.push(t(NM_KIND[w.part]));
+  if (w.turn && w.part !== 'speaker') {
+    out.push(w.seconds !== null && w.seconds !== undefined ? timecode(w.seconds, form) : t('distil.names.passage', { n: w.turn }));
   }
-  const before = String(f.before || '');
-  const after = String(f.after || '');
-  const b = before.length > 30 ? '…' + before.slice(-30) : before;
-  const a = after.length > 34 ? after.slice(0, 34) + '…' : after;
-  return `${esc(b)}<b>${esc(f.found)}</b>${esc(a)}`;
+  return out.join(', ');
 }
 
-/* The card: `finds`, each with its `key` and `skipped`, grouped under its entry of `list`, a speaker's name one
-   row however many passages or sheets it heads. `who` names each row's participant. `onTick(keys, on)` keeps a
-   tick. `actions` is the card's foot. */
-function nmReviewOpen({ kicker, title, finds, list, who, onTick, actions }) {
+/* the find in its whole sentence, the name marked; a speaker's name with how many passages they speak */
+function nmSaid(f) {
+  if ((f.where || {}).part === 'speaker' && f.speaks) {
+    return `<mark>${esc(f.found)}</mark>${esc(t('distil.names.speaks', { n: f.speaks }))}`;
+  }
+  return `${esc(String(f.before || ''))}<mark>${esc(f.found)}</mark>${esc(String(f.after || ''))}`;
+}
+
+function nmHitHtml(r, several, form) {
+  return `<label class="nm-hit${r.off ? ' is-off' : ''}" data-keys="${escAttr(r.keys.join('\n'))}"><input type="checkbox"${r.off ? '' : ' checked'}>`
+    + `<span class="nm-who">${esc(nmWhere(r.f, several, form))}</span><span class="nm-said">${nmSaid(r.f)}</span></label>`;
+}
+
+/* The review card: `finds`, each with its `key` and `skipped`, grouped under its entry of `list`, a speaker's name
+   one row however many passages or sheets it heads, the lower-case finds folded under their name. `onTick(f, key,
+   on)` keeps a tick. `back` is the foot's first button and `go(n)` the label of the second for the n ticked, `run`
+   what it does. */
+function nmReviewOpen({ kicker, title, finds, list, onTick, back, go, form }) {
   const card = $('nm-review');
-  NM.review = { finds, onTick };
+  const byKey = new Map(finds.map((f) => [f.key, f]));
+  NM.review = { finds, byKey, onTick, back, go };
   card.querySelector('.kicker').textContent = kicker || '';
   card.querySelector('h2').textContent = title;
+  // a participant with finds in more than one interview, whose interview each find then names
+  const seen = new Map();
+  for (const f of finds) {
+    const w = f.where || {};
+    if (!w.participant || !w.interview) continue;
+    if (!seen.has(w.participant)) seen.set(w.participant, new Set());
+    seen.get(w.participant).add(w.interview);
+  }
+  const several = new Set([...seen].filter(([, s]) => s.size > 1).map(([p]) => p));
   const groups = new Map();
   for (const f of finds) {
-    if (!groups.has(f.entry)) groups.set(f.entry, []);
-    const rows = groups.get(f.entry);
+    if (!groups.has(f.entry)) groups.set(f.entry, { up: [], low: [] });
+    const rows = f.lower ? groups.get(f.entry).low : groups.get(f.entry).up;
     const w = f.where || {};
     if (w.part === 'speaker') {
       const had = rows.find((r) => r.speaker && r.speaker === `${w.participant}|${f.found}`);
@@ -3782,39 +3841,89 @@ function nmReviewOpen({ kicker, title, finds, list, who, onTick, actions }) {
     rows.push({ keys: [f.key], off: f.skipped, f, speaker: w.part === 'speaker' ? `${w.participant}|${f.found}` : '' });
   }
   let html = '';
-  for (const [n, rows] of groups) {
-    const e = list[n - 1] || { real: [], to: rows[0].f.to };
-    html += `<div class="nm-group" data-entry="${n}"><div class="nm-group-head"><b>${esc((e.real || []).join(', '))}</b>`
-      + `<span>${esc(t('distil.names.to'))}</span><span class="nm-to">${esc(e.to)}</span><span class="nm-n"></span></div>`;
-    for (const r of rows) {
-      html += `<label class="nm-hit${r.off ? ' is-off' : ''}" data-keys="${escAttr(r.keys.join('\n'))}"><input type="checkbox"${r.off ? '' : ' checked'}>`
-        + `<span class="nm-who">${esc(nmWhere(r.f, who))}</span><span class="nm-ctx">${nmContext(r.f)}</span></label>`;
+  for (const [n, g] of groups) {
+    const e = list[n - 1] || { real: [], to: (g.up[0] || g.low[0]).f.to };
+    html += `<div class="nm-group" data-entry="${n}"><div class="nm-group-head"><span class="nm-name"><b>${esc((e.real || [])[0] || '')}</b>`
+      + `<span class="nm-arrow" aria-label="${escAttr(t('distil.names.to'))}">→</span>${esc(e.to)}</span><span class="nm-n"></span>`
+      + `<span class="nm-acts"><button type="button" class="ghost small" data-nm-all="1">${esc(t('distil.names.tick_all'))}</button>`
+      + `<button type="button" class="ghost small" data-nm-all="0">${esc(t('distil.names.untick_all'))}</button></span></div>`;
+    html += '<div class="nm-up">' + g.up.map((r) => nmHitHtml(r, several, form)).join('') + '</div>';
+    if (g.low.length) {
+      const words = [...new Set(g.low.map((r) => String(r.f.found).toLowerCase()))].join(' / ');
+      html += `<div class="nm-fold"><span><b>${esc(words)}</b> <span class="nm-fold-n"></span></span>`
+        + `<span class="nm-acts"><button type="button" class="ghost small" data-nm-fold aria-expanded="false">${esc(t('distil.names.show'))}</button></span></div>`
+        + '<div class="nm-low" hidden>' + g.low.map((r) => nmHitHtml(r, several, form)).join('') + '</div>';
     }
     html += '</div>';
   }
   $('nm-review-body').innerHTML = html;
-  $('nm-review-foot').innerHTML = actions.map((a, i) => `<button type="button" class="${a.primary ? 'primary' : 'ghost'}" data-act="${i}">${esc(a.label)}</button>`).join('');
-  NM.review.actions = actions;
+  $('nm-review-foot').innerHTML = `<button type="button" class="ghost" data-act="back">${esc(back.label)}</button>`
+    + '<button type="button" class="primary" data-act="go"></button>';
   nmReviewCounts();
   show('nm-review');
 }
 
+/* each name's count, its fold's line and the button's number, as the ticks stand */
 function nmReviewCounts() {
+  const keys = (h) => h.dataset.keys.split('\n').length;
+  let ticked = 0;
   for (const g of $('nm-review-body').querySelectorAll('.nm-group')) {
-    const hits = [...g.querySelectorAll('.nm-hit')];
-    const total = hits.reduce((a, h) => a + h.dataset.keys.split('\n').length, 0);
-    const on = hits.filter((h) => h.querySelector('input').checked).reduce((a, h) => a + h.dataset.keys.split('\n').length, 0);
-    g.querySelector('.nm-n').textContent = on === total ? String(total) : t('distil.names.of', { on, n: total });
+    const up = [...g.querySelectorAll('.nm-up .nm-hit')];
+    const total = up.reduce((a, h) => a + keys(h), 0);
+    const on = up.filter((h) => h.querySelector('input').checked).reduce((a, h) => a + keys(h), 0);
+    g.querySelector('.nm-n').textContent = !total ? ''
+      : on === total ? t('distil.names.found', { n: total }) : t('distil.names.found_left', { found: total, n: total - on });
+    ticked += on;
+    const low = [...g.querySelectorAll('.nm-low .nm-hit')];
+    if (low.length) {
+      const lowOn = low.filter((h) => h.querySelector('input').checked).reduce((a, h) => a + keys(h), 0);
+      const lowAll = low.reduce((a, h) => a + keys(h), 0);
+      g.querySelector('.nm-fold-n').textContent = lowOn ? t('distil.names.lower_ticked', { n: lowAll, on: lowOn })
+        : t('distil.names.lower_left', { n: lowAll });
+      ticked += lowOn;
+    }
+  }
+  const go = $('nm-review-foot').querySelector('[data-act="go"]');
+  if (go && NM.review) go.textContent = NM.review.go.label(ticked);
+}
+
+/* a tick of a row, every find the row stands for */
+function nmReviewTick(hit, on) {
+  const box = hit.querySelector('input');
+  box.checked = on;
+  hit.classList.toggle('is-off', !on);
+  for (const key of hit.dataset.keys.split('\n')) {
+    const f = NM.review.byKey.get(key);
+    if (f) NM.review.onTick(f, key, on);
   }
 }
 
 function nmReviewChange(e) {
   const box = e.target.closest('.nm-hit input');
   if (!box || !NM.review) return;
-  const hit = box.closest('.nm-hit');
-  hit.classList.toggle('is-off', !box.checked);
-  NM.review.onTick(hit.dataset.keys.split('\n'), box.checked);
+  nmReviewTick(box.closest('.nm-hit'), box.checked);
   nmReviewCounts();
+}
+
+/* Tick all and Untick all, for a name's rows with their capital and its lower-case rows while shown; Show and Hide */
+function nmReviewClick(e) {
+  if (!NM.review) return;
+  const all = e.target.closest('[data-nm-all]');
+  if (all) {
+    const g = all.closest('.nm-group');
+    const low = g.querySelector('.nm-low');
+    const hits = [...g.querySelectorAll('.nm-up .nm-hit'), ...(low && !low.hidden ? low.querySelectorAll('.nm-hit') : [])];
+    for (const hit of hits) nmReviewTick(hit, all.dataset.nmAll === '1');
+    nmReviewCounts();
+    return;
+  }
+  const fold = e.target.closest('[data-nm-fold]');
+  if (fold) {
+    const low = fold.closest('.nm-group').querySelector('.nm-low');
+    low.hidden = !low.hidden;
+    fold.textContent = low.hidden ? t('distil.names.show') : t('distil.names.hide');
+    fold.setAttribute('aria-expanded', low.hidden ? 'false' : 'true');
+  }
 }
 
 function nmReviewClose() {
@@ -3822,16 +3931,43 @@ function nmReviewClose() {
   NM.review = null;
 }
 
-/* Review on a row of Add transcripts: its finds, Done keeping the ticks for the Add */
-async function nmReviewRow(row) {
-  await nmPreview();
-  const finds = nmRowFinds(row);
-  if (!finds.length) return;
-  const list = (NP.names && NP.names.list) || [];
-  nmReviewOpen({ kicker: row.file, title: t('distil.names.review_title'), finds, list, who: false,
-    onTick: (keys, on) => nmTick(finds, keys, on, row.skips, row.takes),
-    actions: [{ label: t('distil.names.done'), primary: true,
-      run: () => { nmReviewClose(); nmDrawRows(); } }] });
+/* Add… on Add transcripts or Create project… on New project: the review of every row's finds over the card, Back
+   keeping the ticks, the go button replacing the ticked and adding the files */
+async function nmAddReview() {
+  await nmPreview({ strict: true });
+  const finds = [];
+  NP.rows.forEach((row, i) => {
+    for (const f of nmRowFinds(row)) finds.push({ ...f, key: `${i}#${f.key}`, own: f.key, row });
+  });
+  if (!finds.length) return false;
+  const files = [...new Set(finds.map((f) => f.row.file))];
+  const add = !!NP.add;
+  nmReviewOpen({ kicker: files.length === 1 ? files[0] : (add ? NP.add.name : ''),
+    title: files.length === 1 ? t('distil.names.adding_one') : t('distil.names.adding_many'),
+    finds, list: (NP.names && NP.names.list) || [], form: timecodesOf(add && projectAt() && projectAt().id === NP.add.id ? projectAt() : null),
+    onTick: (f, _key, on) => nmTick(f, f.own, on, f.row.skips, f.row.takes),
+    back: { label: t('distil.names.back'), run: () => { nmReviewClose(); nmDrawRows(); } },
+    go: { label: (n) => (add ? t('distil.names.replace_add', { n }) : t('distil.names.replace_create', { n })),
+      run: () => { nmReviewClose(); npMake(true); } } });
+  return true;
+}
+
+/* The review over an import's card (the REFI-QDA import and the import into a participant, namesfix): `names` the
+   read's finds, numbered as the import will number them, and the list; `state` keeps his ticks across a Back; the
+   go button closes it and runs `run` with the skips and takes he chose and `names_reviewed`. */
+function nmFindsReview({ kicker, title, names, state, form, go, run }) {
+  state.skips = state.skips || new Set();
+  state.takes = state.takes || new Set();
+  const finds = nmKeyedProject(names.finds || []).map(({ f, key }) => ({ ...f, key, skipped: nmOff(f, key, state.skips, state.takes) }));
+  nmReviewOpen({ kicker, title, finds, list: names.list || [], form,
+    onTick: (f, key, on) => nmTick(f, key, on, state.skips, state.takes),
+    back: { label: t('distil.names.back'), run: () => nmReviewClose() },
+    go: { label: go, run: () => {
+      const skip = finds.filter((f) => !f.lower && state.skips.has(f.key)).map((f) => `${f.entry}:${f.nth}`);
+      const take = finds.filter((f) => f.lower && state.takes.has(f.key)).map((f) => `${f.entry}:${f.nth}`);
+      nmReviewClose();
+      run({ skip, take, names_reviewed: true });
+    } } });
 }
 
 /* ── Names to replace: the project's list ── */
@@ -3841,12 +3977,10 @@ async function nmListOpen(id, name) {
   try {
     data = await api('/api/names', { op: 'list', root: id });
   } catch (err) { say(needsRestart(err) ? RESTART_LINE : err.message, 9000); return; }
-  NM.list = { id, name: name || '', rows: (data.entries || []).map((e) => ({ real: e.real.join(', '), to: e.to, for: e.for || '', word: !!e.word,
-      review: !!e.review, except: (e.except || []).join(NM_EXCEPT_JOIN) })),
+  NM.list = { id, name: name || '', rows: (data.entries || []).map((e) => ({ real: e.real.join(', '), to: e.to, for: e.for || '',
+      except: (e.except || []).join(NM_EXCEPT_JOIN) })),
     who: Array.isArray(data.participants) ? data.participants : [], check: null, said: '' };
   $('nm-list').querySelector('.kicker').textContent = NM.list.name;
-  if (!$('nm-word-mark').firstChild) $('nm-word-mark').innerHTML = INFO_ICON;
-  nmWordTip(false);
   nmListDraw();
   show('nm-list');
 }
@@ -3860,8 +3994,6 @@ function nmListDraw() {
       + `<td><input type="text" data-nm="to" spellcheck="false" autocomplete="off" aria-label="${escAttr(t('distil.names.col_to'))}" value="${escAttr(r.to)}"></td>`
       + `<td class="nm-in"><select data-nm="for" aria-label="${escAttr(t('distil.names.col_in'))}">${opts(r.for)}</select></td>`
       + `<td class="nm-except"><input type="text" data-nm="except" spellcheck="false" autocomplete="off" aria-label="${escAttr(t('distil.names.col_except'))}" value="${escAttr(r.except || '')}"></td>`
-      + `<td class="nm-case"><label><input type="checkbox" data-nm="word"${r.word ? ' checked' : ''}>${esc(t('distil.names.ordinary_word'))}</label>`
-      + `<label><input type="checkbox" data-nm="review"${r.review ? ' checked' : ''}>${esc(t('distil.names.review_each'))}</label></td>`
       + `<td class="nm-x"><button type="button" class="np-remove" data-nm="remove" aria-label="${escAttr(t('distil.names.remove', { name: r.real }))}" title="${escAttr(t('distil.np.remove'))}">${NP_CROSS}</button></td></tr>`;
   }).join('');
   $('nm-list-table').hidden = !L.rows.length;
@@ -3875,11 +4007,12 @@ function nmExcepts(text) {
   return String(text || '').split(';').map((x) => x.trim()).filter(Boolean);
 }
 
-/* the list as the server keeps it: every row with a name and its replacement */
+/* the list as the server keeps it: every row with a name and its replacement; the server keeps each unchanged
+   entry's mark (namesbuild) */
 function nmListEntries() {
   return NM.list.rows.filter((r) => r.real.trim() && r.to.trim())
-    .map((r) => ({ real: r.real, to: r.to.trim(), for: r.for || null, ...(r.word ? { word: true } : {}),
-      ...(r.review ? { review: true } : {}), ...(nmExcepts(r.except).length ? { except: nmExcepts(r.except) } : {}) }));
+    .map((r) => ({ real: r.real, to: r.to.trim(), for: r.for || null,
+      ...(nmExcepts(r.except).length ? { except: nmExcepts(r.except) } : {}) }));
 }
 
 async function nmListSave() {
@@ -3907,8 +4040,6 @@ function nmListChange(e) {
   if (!tr || !NM.list) return;
   const r = NM.list.rows[Number(tr.dataset.i)];
   if (el.dataset.nm === 'for') r.for = el.value;
-  else if (el.dataset.nm === 'word') r.word = el.checked;
-  else if (el.dataset.nm === 'review') r.review = el.checked;
   else if (el.dataset.nm === 'except') r.except = el.value;
   else if (el.dataset.nm === 'real') r.real = el.value;
   else if (el.dataset.nm === 'to') r.to = el.value;
@@ -3925,13 +4056,13 @@ function nmListClick(e) {
 }
 
 function nmListAdd() {
-  NM.list.rows.push({ real: '', to: '', for: '', word: false, review: false, except: '' });
+  NM.list.rows.push({ real: '', to: '', for: '', except: '' });
   nmListDraw();
   const inputs = $('nm-list-rows').querySelectorAll('[data-nm="real"]');
   if (inputs.length) inputs[inputs.length - 1].focus();
 }
 
-/* Add from a file: a two-column key he keeps, real name then pseudonym, read by the server and added to the list */
+/* Add from a file: a key he keeps, real name then pseudonym, read by the server and added to the list */
 async function nmListFile(file) {
   if (!file || !NM.list) return;
   let data;
@@ -3941,8 +4072,7 @@ async function nmListFile(file) {
   const had = new Set(NM.list.rows.map((r) => r.real.trim().toLowerCase()));
   for (const e of data.entries || []) {
     const real = e.real.join(', ');
-    if (!had.has(real.toLowerCase())) NM.list.rows.push({ real, to: e.to, for: '', word: !!e.word, review: !!e.review,
-      except: (e.except || []).join(NM_EXCEPT_JOIN) });
+    if (!had.has(real.toLowerCase())) NM.list.rows.push({ real, to: e.to, for: '', except: (e.except || []).join(NM_EXCEPT_JOIN) });
   }
   nmListDraw();
   await nmListSave();
@@ -3989,17 +4119,18 @@ function nmCheckDraw() {
   $('nm-list-said').hidden = !L.said;
 }
 
-/* Review and replace: every find in the transcripts already in, a tick each, Replace writing the ones ticked */
+/* Review and replace: every find in the transcripts already in, a tick each, Replace N ticked writing the ticked */
 function nmReplaceReview() {
   const L = NM.list;
   if (!L || !L.check) return;
   L.skips = L.skips || new Set();
   L.takes = L.takes || new Set();
   const finds = nmKeyedProject(L.check.finds || []).map(({ f, key }) => ({ ...f, key, skipped: nmOff(f, key, L.skips, L.takes) }));
-  nmReviewOpen({ kicker: L.name, title: t('distil.names.review_in_title'), finds, list: L.list || [], who: true,
-    onTick: (keys, on) => nmTick(finds, keys, on, L.skips, L.takes),
-    actions: [{ label: t('distil.names.cancel'), run: () => nmReviewClose() },
-      { label: t('distil.names.replace_go'), primary: true, run: () => nmReplace(finds) }] });
+  const p = projectAt();
+  nmReviewOpen({ kicker: L.name, title: t('distil.names.review_in_title'), finds, list: L.list || [], form: timecodesOf(p && p.id === L.id ? p : null),
+    onTick: (f, key, on) => nmTick(f, key, on, L.skips, L.takes),
+    back: { label: t('distil.names.cancel'), run: () => nmReviewClose() },
+    go: { label: (n) => t('distil.names.replace_n', { n }), run: () => nmReplace(finds) } });
 }
 
 function nmKeyedProject(finds) {
@@ -4015,13 +4146,13 @@ function nmKeyedProject(finds) {
 
 async function nmReplace(finds) {
   const L = NM.list;
-  const skip = finds.filter((f) => !f.review && L.skips.has(f.key)).map((f) => `${f.entry}:${f.nth}`);
-  const take = finds.filter((f) => f.review && L.takes.has(f.key)).map((f) => `${f.entry}:${f.nth}`);
+  const skip = finds.filter((f) => !f.lower && L.skips.has(f.key)).map((f) => `${f.entry}:${f.nth}`);
+  const take = finds.filter((f) => f.lower && L.takes.has(f.key)).map((f) => `${f.entry}:${f.nth}`);
   // what is typed on a participant open behind is saved first, so the replace meets it and nothing writes over it
   if (S.data && typeof savePending === 'function' && !(await savePending())) return;
   let data;
   try {
-    data = await api('/api/names', { op: 'replace', root: L.id, skip, take, memos_seen: L.memosSeen || [] });
+    data = await api('/api/names', { op: 'replace', root: L.id, skip, take, names_reviewed: true, memos_seen: L.memosSeen || [] });
   } catch (err) {
     nmReviewClose();
     L.said = needsRestart(err) ? RESTART_LINE : err.message;
@@ -4052,35 +4183,26 @@ function nmListClose() {
   if (!$('newproject').hidden) nmSoon();
 }
 
-/* Also an ordinary word's info mark (ordinaryword, 16 November 2026): its text shows on hover and on focus, as
-   every info mark's does, and a click keeps it open until a second click, Esc or leaving the mark */
-function nmWordTip(open) {
-  const mark = $('nm-word-mark');
-  mark.classList.toggle('is-open', open);
-  mark.setAttribute('aria-expanded', open ? 'true' : 'false');
-}
-
-/* Esc on these cards: the Review first, then the info mark's text, then the list */
+/* Esc on these cards: the review first, as its first button, then the list */
 function nmKeys(e) {
   if (e.key !== 'Escape') return false;
-  if (!$('nm-review').hidden) { e.preventDefault(); nmReviewClose(); return true; }
-  if (!$('nm-list').hidden && $('nm-word-mark').classList.contains('is-open')) { e.preventDefault(); nmWordTip(false); return true; }
+  if (!$('nm-review').hidden) { e.preventDefault(); if (NM.review) NM.review.back.run(); else nmReviewClose(); return true; }
   if (!$('nm-list').hidden) { e.preventDefault(); nmListClose(); return true; }
   return false;
 }
 
 function nmWire() {
   $('nm-review-body').addEventListener('change', nmReviewChange);
+  $('nm-review-body').addEventListener('click', nmReviewClick);
   $('nm-review-foot').addEventListener('click', (e) => {
     const b = e.target.closest('[data-act]');
-    if (b && NM.review) NM.review.actions[Number(b.dataset.act)].run();
+    if (!b || !NM.review) return;
+    if (b.dataset.act === 'back') NM.review.back.run();
+    else NM.review.go.run();
   });
   $('nm-list-rows').addEventListener('input', nmListInput);
   $('nm-list-rows').addEventListener('change', nmListChange);
   $('nm-list-rows').addEventListener('click', nmListClick);
-  $('nm-word-mark').onclick = () => nmWordTip(!$('nm-word-mark').classList.contains('is-open'));
-  $('nm-word-mark').addEventListener('blur', () => nmWordTip(false));
-  $('nm-list').addEventListener('click', (e) => { if (!e.target.closest('#nm-word-mark')) nmWordTip(false); });
   $('nm-add').onclick = () => nmListAdd();
   $('nm-file-pick').onclick = () => $('nm-file').click();
   $('nm-file').onchange = () => { nmListFile($('nm-file').files[0]); $('nm-file').value = ''; };
@@ -4374,17 +4496,36 @@ function qdClick(e) {
 
 /* Create project, or in Add, Add: the sources ticked brought in by the server, which checks them all
    before it writes anything. New project makes its project first, through its own make. */
-async function qdMake() {
+async function qdMake(names = null) {
   const q = NP.qdpx;
   const add = NP.add;
   const typed = add ? '' : $('np-folder').value.trim();
   if (typed && typed !== NP.folder && !(await npFolder(typed))) return;
   if (!q.held) await qdRead();
   if (!q.held) return;
+  if (!names) {
+    // the review of the package's finds first, as Add transcripts opens it (namesfix, Adam's ruling of 17 November
+    // 2026: nothing is replaced silently on the way in); a read for it that fails stops here with its line
+    const where = add ? { root: add.id } : NP.folder ? { folder: NP.folder } : {};
+    let read;
+    try {
+      read = await api('/api/qdpx', { op: 'read', held: q.held, ...where, ...qdAsks(), names_preview: true, names_reviewed: true });
+    } catch (err) { npSaid(needsRestart(err) ? RESTART_LINE : err.message); return; }
+    if (NP.qdpx !== q) return;
+    if (read.names && (read.names.finds || []).length) {
+      q.names = q.names || {};
+      nmFindsReview({ kicker: q.file || (add ? add.name : ''), title: t('distil.names.adding_one'), names: read.names, state: q.names,
+        form: timecodesOf(add && projectAt() && projectAt().id === add.id ? projectAt() : null),
+        go: (n) => (add ? t('distil.names.replace_add', { n }) : t('distil.names.replace_create', { n })),
+        run: (picked) => qdMake(picked) });
+      return;
+    }
+    names = {};
+  }
   NP.busy = true;
   $('np-go').disabled = true;
   npSaid('');
-  const asks = qdAsks();
+  const asks = { ...qdAsks(), ...names };
   try {
     if (add) await api('/api/qdpx', { op: 'make', root: add.id, held: q.held, ...asks });
     else {

@@ -86,13 +86,7 @@
     "one": ", the speaker of {n} extract",
     "other": ", the speaker of {n} extracts"
   },
-  "distil.names.at.words": "Extract {n}",
-  "distil.names.at.notes": "Note, extract {n}",
-  "distil.names.at.statements": "Code, extract {n}",
-  "distil.names.at.quotes": "Quote, extract {n}",
-  "distil.names.who.words": "{who}, extract {n}",
-  "distil.names.who.notes": "{who}, note, extract {n}",
-  "distil.names.who.statements": "{who}, code, extract {n}",
-  "distil.names.who.quotes": "{who}, quote, extract {n}",
+  "distil.names.passage": "extract {n}",
+  "distil.names.kind.statements": "code",
   "distil.names.part.statements": "codes"
 }

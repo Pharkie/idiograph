@@ -7397,7 +7397,8 @@ def names_lines(done: dict) -> list[str]:
 
 def cmd_names_list(p: Project, args) -> tuple:
     """The project's list of names as an agent is told it (namesrule, 8 November 2026): each entry's number, what it
-    is written as, whom it is for and how many spellings it has, never a real name. The list is made in the app."""
+    is written as, whom it is for and how many spellings it has, never a real name, and whether his review marked it,
+    so names replace leaves every find of it (namesbuild). The list is made in the app."""
     done = route_call(routes.api_names, {"op": "list", "root": routes.project_id(p.root),
                                          "tool": themes_ai.one_line(getattr(args, "tool", None)) or cli.TOOL})
     lines = [i18n.t("names.line_listed", n=done["count"])] if done["entries"] else [i18n.t("names.no_list")]
@@ -7405,8 +7406,7 @@ def cmd_names_list(p: Project, args) -> tuple:
         lines.append(i18n.t("names.line_entry_listed", entry=e["entry"], to=e["to"],
                             spellings=i18n.t("names.spelled", n=e["spellings"]),
                             where=i18n.t("names.in_participant", who=e["for"]) if e["for"] else "",
-                            word=i18n.t("names.ordinary_word") if e.get("word") else "",
-                            review=i18n.t("names.review_each") if e.get("review") else "",
+                            unticked=i18n.t("names.unticked") if e.get("unticked") else "",
                             excepts=i18n.t("names.excepts", n=e["excepts"]) if e.get("excepts") else ""))
     return done, lines
 
@@ -7425,7 +7425,6 @@ def names_given(args) -> list:
             raise cli.Refused(i18n.t("names.add_none"))
     if getattr(args, "real", None):
         rows = list(rows) + [{"real": args.real, "to": args.to or "", "for": args.for_ or None,
-                              "word": bool(args.ordinary_word), "review": bool(args.review_each),
                               "except": list(args.except_ or [])}]
     if not rows:
         raise cli.Refused(i18n.t("names.add_none"))
@@ -7455,8 +7454,6 @@ def cmd_names_add(p: Project, args) -> tuple:
     lines = [i18n.t("names.dry_added", n=done["added"]) if done["dry_run"] else i18n.t("names.added", n=done["added"])]
     for e in done["entries"]:
         said = dict(to=e["to"], where=i18n.t("names.in_participant", who=e["for"]) if e["for"] else "",
-                    word=i18n.t("names.ordinary_word") if e.get("word") else "",
-                    review=i18n.t("names.review_each") if e.get("review") else "",
                     excepts=i18n.t("names.excepts", n=e["excepts"]) if e.get("excepts") else "",
                     hits=i18n.t("names.add_found", n=e["hits"]) if e["hits"] else i18n.t("names.add_found_none"))
         # each key written out whole, so the check of keys in use finds it (namesfix3)
@@ -7485,14 +7482,18 @@ def cmd_names_check(p: Project, args) -> tuple:
 def cmd_names_replace(p: Project, args) -> tuple:
     """The list's names replaced in the transcripts already in, as Review and replace does in the app (namesui, 8
     November 2026): each workbook changed kept first in its participant's _Archive, the boards and the GETs
-    following, a find left as written by --skip. Counts only, never a name."""
+    following, a find left as written by --skip. Since namesbuild (17 November 2026) only the finds with their
+    capital letter: every lower-case find, and every find of an entry his review marked, is left for him in the app.
+    Counts only, never a name."""
     done = route_call(routes.api_names, dict({"op": "replace", "root": routes.project_id(p.root),
                                               "skip": getattr(args, "skip", None)}, **turn_marks(args)))
     held = done["names"]
     who = i18n.t("cli.n.participant", n=done["participants"])
     first = (i18n.t("names.dry_replace", replaced=held["replaced"], participants=who) if done["dry_run"]
              else i18n.t("names.replaced_said", replaced=held["replaced"], participants=who))
-    return done, [first] + names_lines(done)
+    # the entries his review marked, every find of each left for him (namesbuild)
+    marked = [i18n.t("names.held_entries", n=held["held"])] if held.get("held") else []
+    return done, [first] + marked + names_lines(done)
 
 
 def names_places(places: list) -> list[str]:
@@ -7527,7 +7528,7 @@ def cmd_names_remove(p: Project, args) -> tuple:
 
 
 def names_changes(args) -> dict:
-    """The changes `names set` was given: `--from`, a JSON object of them, `{"review": false, "except": [...]}` (the
+    """The changes `names set` was given: `--from`, a JSON object of them, `{"to": "Wren", "except": [...]}` (the
     MCP server hands its own over already read), then the options, each over the file's. The real spellings and
     the except phrases are kept on `args` as `secret_words`, so his request as the record and the agent log keep it
     has them taken out, as `names add` does."""
@@ -7538,11 +7539,6 @@ def names_changes(args) -> dict:
         if not isinstance(spec, dict):
             raise cli.Refused(i18n.t("names.edit_none"))
         changes.update({k: v for k, v in spec.items() if k in routes.PSEUDO_EDIT_FIELDS})
-    onoff = {"on": True, "off": False}
-    if getattr(args, "review_each", None):
-        changes["review"] = onoff[args.review_each]
-    if getattr(args, "ordinary_word", None):
-        changes["word"] = onoff[args.ordinary_word]
     if getattr(args, "for_", None) is not None:
         changes["for"] = args.for_
     if getattr(args, "to", None) is not None:
@@ -7570,7 +7566,7 @@ def names_changes(args) -> dict:
 
 def cmd_names_set(p: Project, args) -> tuple:
     """One entry of the list changed by its number on his word (namesset, 16 November 2026), with --dry-run first:
-    Review each and Also an ordinary word on or off, the except phrases set, added to or taken off, whom it is for, what it is
+    the except phrases set, added to or taken off, whom it is for, what it is
     written as and its spellings. The answer says each field that changes before and after, the spellings and
     phrases by their counts, and the entry's finds in the transcripts already in before and after, never a real
     name. One line in the record of agents' changes, undone by `agents undo-change` or its run's undo."""
@@ -7587,20 +7583,12 @@ def cmd_names_set(p: Project, args) -> tuple:
              head]
 
     def shown(key, v):
-        if key in ("review", "word"):
-            return i18n.t("names.edit_on") if v else i18n.t("names.edit_off")
         if key == "for" and not v:
             return i18n.t("names.edit_everyone")
         return v
 
     said = done["changed"]
     # each key written out whole, so the check of keys in use finds it
-    if "review" in said:
-        lines.append(i18n.t("names.edit_field.review", before=shown("review", said["review"]["before"]),
-                            after=shown("review", said["review"]["after"])))
-    if "word" in said:
-        lines.append(i18n.t("names.edit_field.word", before=shown("word", said["word"]["before"]),
-                            after=shown("word", said["word"]["after"])))
     if "for" in said:
         lines.append(i18n.t("names.edit_field.for", before=shown("for", said["for"]["before"]),
                             after=shown("for", said["for"]["after"])))
@@ -9122,17 +9110,12 @@ def arguments(sub, common, writes) -> None:
                       help="entries added to the list on his word, --dry-run first: each new entry's finds counted by "
                            "participant and part, never a real name said back")
     x.add_argument("--from", dest="source", default=None,
-                   help='a JSON file, [{"real": ["spelling", ...], "to": "Wren", "for": "Wren", "word": false, '
-                        '"review": false, "except": ["phrase", ...]}, ...] or {"entries": [...]}, which keeps the real '
+                   help='a JSON file, [{"real": ["spelling", ...], "to": "Wren", "for": "Wren", '
+                        '"except": ["phrase", ...]}, ...] or {"entries": [...]}, which keeps the real '
                         'names out of the command line')
     x.add_argument("--real", default=None, help="one entry's real name, its spellings with commas between")
     x.add_argument("--to", default=None, help="what that name is written as")
     x.add_argument("--for", dest="for_", default=None, help="the participant it is for, by pseudonym, everyone's when left out")
-    x.add_argument("--ordinary-word", action="store_true",
-                   help="Also an ordinary word, for a name that is also a word (Hope, Will): only finds with its "
-                        "capital letter are flagged, each left for him to decide in the app's Review and replace")
-    x.add_argument("--review-each", action="store_true",
-                   help="never replaced in bulk: each find is left for him to decide in the app's Review and replace")
     x.add_argument("--except", dest="except_", action="append", default=None, metavar="PHRASE",
                    help="a phrase the name is never found inside, given again for each one more")
     x = nm.add_parser("set", parents=[common, writes],
@@ -9140,12 +9123,8 @@ def arguments(sub, common, writes) -> None:
                            "and its finds counted, never a real name said back")
     x.add_argument("number", type=int, help="the entry's number, from names list")
     x.add_argument("--from", dest="source", default=None,
-                   help='a JSON file of the changes, {"review": false, "except": ["phrase", ...], "real": [...]}, '
+                   help='a JSON file of the changes, {"to": "Wren", "except": ["phrase", ...], "real": [...]}, '
                         'which keeps the real names out of the command line')
-    x.add_argument("--review-each", choices=("on", "off"), default=None,
-                   help="Review each on or off: off lets names replace write its finds")
-    x.add_argument("--ordinary-word", choices=("on", "off"), default=None,
-                   help="Also an ordinary word on or off: on finds its capital letter alone and leaves each find to him")
     x.add_argument("--for", dest="for_", default=None, help="the participant it is for, by pseudonym, or everyone")
     x.add_argument("--to", default=None, help="what the name is written as")
     x.add_argument("--real", default=None, help="every spelling of the real name, with commas between")
@@ -9160,8 +9139,9 @@ def arguments(sub, common, writes) -> None:
                       help="entries taken off the list by their numbers on his word, --dry-run first")
     x.add_argument("numbers", type=int, nargs="+", help="the entries' numbers, from the list")
     x = nm.add_parser("replace", parents=[common, writes],
-                      help="the list's names replaced in the transcripts already in, each workbook kept in its "
-                           "participant's _Archive first, counts only")
+                      help="the list's names with their capital letter replaced in the transcripts already in, each "
+                           "workbook kept in its participant's _Archive first, counts only: lower-case finds and every "
+                           "find of an entry his review marked are left for him in the app")
     x.add_argument("--skip", action="append", default=None, metavar="ENTRY:N",
                    help="leave this find as written, the entry's number and its place among that entry's finds as "
                         "names check counts them, 3:1, given again for each one more")

@@ -2,8 +2,9 @@
 November 2026, Adam: "if you're not able to do it via MCP or the API, you should be able to").
 
 On the demo's three participants made a project, with invented names the demo's transcripts hold. `names set`'s dry run
-writes nothing and answers each field before and after and the entry's finds before and after, counts alone. Review
-each turned off lets `names replace` write the finds it held back. Except phrases are cleared, added and taken off.
+writes nothing and answers each field before and after and the entry's finds before and after, counts alone. An entry
+his review marked keeps the mark whatever an agent sets, so `names replace` leaves it, until his own edit of it in the
+app (namesbuild, 17 November 2026, in place of Review each). Except phrases are cleared, added and taken off.
 `names remove` and its undo put the list back byte for byte, as does a set's undo. An entry the list lacks is refused in
 one line. No answer, record line or agent log line holds a real name or an except phrase, the command line's and the
 MCP server's alike."""
@@ -47,7 +48,7 @@ def leaked(blob) -> list:
 
 def test_names_set(scratch: Path):
     print("\n406. Names changed and taken off the list by an agent on his word: the dry run's fields and counts with "
-          "nothing written, Review each off letting a replace write, except phrases set and cleared, remove and undo "
+          "nothing written, a marked entry left until his own edit, except phrases set and cleared, remove and undo "
           "byte for byte, and no real name said back (namesset, 16 November)")
     import agent_changes
     import agent_log
@@ -97,9 +98,11 @@ def test_names_set(scratch: Path):
         # the list as he made it in the app
         routes.api_names({"op": "set", "root": rid, "entries": [
             {"real": ["Dennis"], "to": "[husband]", "for": "Mabel"},
-            {"real": ["Terry"], "to": "[neighbour]", "review": True},
+            {"real": ["Terry"], "to": "[neighbour]"},
             {"real": ["Pepper"], "to": "[dog]", "except": [EXCEPT]}]})
         listed = root / names_mod.FILE
+        # a find of the neighbour unticked in his review marked the entry (namesbuild)
+        names_mod.save_at(root, names_mod.with_marks(routes.pseudo_list(root), {1}))
         texts = [text_of(b) for b in books]
         terry = sum(t.count("Terry") for t in texts)
         pepper = sum(t.count("Pepper") for t in texts)
@@ -107,14 +110,14 @@ def test_names_set(scratch: Path):
         start = digest(root)
 
         # ── 1. the dry run: each field before and after, the finds before and after, nothing written
-        code, dry, err = run("names", "set", "2", "--review-each", "off", "--note", "Terry replaced everywhere",
+        code, dry, err = run("names", "set", "2", "--to", "[next door]", "--note", "Terry as next door",
                              "--dry-run")
-        check("406: set's dry run says Review each goes from on to off, and that a replace would then write the finds it "
-              "held back",
+        check("406: set's dry run says the field before and after, and that a replace leaves the marked entry's finds "
+              "before and after, since no agent clears the mark",
               code == 0 and dry["dry_run"] is True and dry["entry"] == 2
-              and dry["changed"] == {"review": {"before": True, "after": False}}
+              and dry["changed"] == {"to": {"before": "[neighbour]", "after": "[next door]"}}
               and dry["finds"]["before"]["replaced"] == 0 and dry["finds"]["before"]["left"] == terry and terry >= 3
-              and dry["finds"]["after"]["replaced"] == terry and dry["finds"]["after"]["hits"] == terry
+              and dry["finds"]["after"]["replaced"] == 0 and dry["finds"]["after"]["hits"] == terry
               and dry["finds"]["after"]["by_participant"], err + json.dumps(dry)[:500])
         check("406: the dry run writes nothing: the list, the record, the restore store all as they were",
               digest(root) == start and not (root / agent_changes.FILE).exists()
@@ -171,7 +174,7 @@ def test_names_set(scratch: Path):
               json.dumps([(a[0], d, c, s, n, e[:120]) for a, d, c, s, n, e in same if not (c and s and n)]))
 
         # ── 3. an entry the list lacks, a participant the project lacks, a change that is none
-        code, _x, err = run("names", "set", "9", "--review-each", "off", "--note", "x")
+        code, _x, err = run("names", "set", "9", "--to", "[x]", "--note", "x")
         code2, _y, err2 = run("names", "remove", "9", "--note", "x")
         code3, _z, err3 = run("names", "set", "1", "--for", "Nobody", "--note", "x")
         check("406: an entry the list does not have is refused in one line, set and remove alike, and a participant "
@@ -179,7 +182,7 @@ def test_names_set(scratch: Path):
               code != 0 and code2 != 0 and "no entry 9" in err and "no entry 9" in err2 and code3 != 0
               and "Juno" in err3 and listed.read_bytes() == before_bad, err + err2 + err3)
         n_lines = len(agent_changes.read(root))
-        code, same, err = run("names", "set", "2", "--review-each", "on", "--note", "x", "--run", "same")
+        code, same, err = run("names", "set", "2", "--to", "[neighbour]", "--note", "x", "--run", "same")
         check("406: a change to what the entry is already writes nothing and keeps no line",
               code == 0 and same["changed"] == {} and listed.read_bytes() == before_bad
               and len(agent_changes.read(root)) == n_lines, err)
@@ -187,16 +190,16 @@ def test_names_set(scratch: Path):
         # ── 4. a set undone, then a remove undone, each byte for byte
         held = listed.read_bytes()
         code, moved, err = run("names", "set", "1", "--for", "everyone", "--real", "Dennis, Denny", "--to", "[partner]",
-                               "--ordinary-word", "on", "--note", "Dennis and Denny for everyone", "--run", "who")
+                               "--note", "Dennis and Denny for everyone", "--run", "who")
         line = agent_changes.read(root)[-1]
         now = routes.pseudo_list(root)[0]
-        check("406: set changes whom it is for, the spellings, the replacement and Also an ordinary word, one line in "
-              "the record with his request kept as …",
-              code == 0 and now == {"real": ["Dennis", "Denny"], "to": "[partner]", "for": None, "word": True}
-              and set(moved["changed"]) == {"for", "real", "to", "word"}
+        check("406: set changes whom it is for, the spellings and the replacement, one line in the record with his "
+              "request kept as …",
+              code == 0 and now == {"real": ["Dennis", "Denny"], "to": "[partner]", "for": None}
+              and set(moved["changed"]) == {"for", "real", "to"}
               and moved["changed"]["real"] == {"before": 1, "after": 2}
               and line["op"] == "names set" and line["request"] == "…" and line["files"] == 1 and not leaked(line)
-              and line["what_changed"].startswith("Changed entry 1 ") and "Also an ordinary word on" in line["what_changed"]
+              and line["what_changed"].startswith("Changed entry 1 ") and "whom it is for" in line["what_changed"]
               and (os.name == "nt" or stat.S_IMODE(listed.stat().st_mode) == 0o600), err + json.dumps(line)[:300])
         code, _u, err = run("agents", "undo-change", line["id"], "--note", "Put entry 1 back")
         check("406: agents undo-change puts the entry back byte for byte", code == 0 and listed.read_bytes() == held, err)
@@ -217,23 +220,33 @@ def test_names_set(scratch: Path):
         check("406: the remove's run undone puts the list back byte for byte, mode 600",
               code == 0 and listed.read_bytes() == held
               and (os.name == "nt" or stat.S_IMODE(listed.stat().st_mode) == 0o600), err)
+        # an entry he unticked is the app's alone to take off (namesfix M1), so the mark goes first, and comes back after
+        marked_bytes = listed.read_bytes()
+        names_mod.save_at(root, [{k: v for k, v in e.items() if k != "unticked"} for e in routes.pseudo_list(root)])
+        unmarked = listed.read_bytes()
         code, _r, err = run("names", "remove", "1", "2", "3", "--note", "Clear the list", "--run", "all")
         line = agent_changes.read(root)[-1]
         gone_file = not listed.exists()
         code2, _u, err2 = run("agents", "undo-change", line["id"], "--note", "Undo")
         check("406: taking every entry off takes the file away, and the undo brings it back byte for byte",
-              code == 0 and gone_file and code2 == 0 and listed.read_bytes() == held, err + err2)
+              code == 0 and gone_file and code2 == 0 and listed.read_bytes() == unmarked, err + err2)
+        listed.write_bytes(marked_bytes)
 
-        # ── 5. Review each off, then names replace replaces the finds it held back
+        # ── 5. the mark an agent's set keeps; his own edit of the entry in the app clears it, and a replace then writes
         code, held_back, err = run("names", "replace", "--note", "x", "--dry-run")
-        code, _s, err = run("names", "set", "2", "--review-each", "off", "--note", "Replace Terry everywhere", "--run", "rv")
-        rv_line = agent_changes.read(root)[-1]["what_changed"]
+        code, _s, err = run("names", "set", "2", "--to", "[next door]", "--note", "Terry as next door", "--run", "rv")
+        kept_mark = routes.pseudo_list(root)[1].get("unticked") is True
+        his = [{k: v for k, v in e.items() if k not in ("entry", "unticked")}
+               for e in routes.api_names({"op": "list", "root": rid})["entries"]]
+        his[1]["to"] = "[neighbour]"
+        routes.api_names({"op": "set", "root": rid, "entries": his})
         code2, done, err2 = run("names", "replace", "--note", "Replace them", "--run", "rv2")
         mabel_now = "\n".join(text_of(b) for b in books)
-        check("406: with Review each off, names replace writes every find it held back",
-              held_back["names"]["left"] >= terry and code == 0 and code2 == 0 and "Terry" not in mabel_now
-              and mabel_now.count("[neighbour]") >= terry and EXCEPT in mabel_now
-              and rv_line == "Changed entry 2 of the list of names to replace: Review each off.", err + err2 + rv_line)
+        check("406: an agent's set keeps the mark, and once his own edit clears it names replace writes every find it "
+              "held back",
+              held_back["names"]["left"] >= terry and held_back["names"]["held"] == 1 and code == 0 and kept_mark
+              and code2 == 0 and "Terry" not in mabel_now and mabel_now.count("[neighbour]") >= terry
+              and EXCEPT in mabel_now, err + err2)
 
         # ── 6. MCP: names_set and names_remove, no name in any answer
         srv = mcp_server.Server(str(root), config=str(config))
@@ -252,15 +265,15 @@ def test_names_set(scratch: Path):
         count = len(agent_changes.read(root))
         m_dry = call("names_set", {"entry": 3, "except_add": ["Pepper the pup"], "request": "Add Pepper the pup",
                                    "dry_run": True}, 1)
-        m_set = call("names_set", {"entry": 3, "review": True, "request": "Review the dog's name"}, 2)
-        m_bad = call("names_set", {"entry": 7, "review": True, "request": "Review Dennis"}, 3)
+        m_set = call("names_set", {"entry": 3, "to": "[pup]", "request": "Write the dog as pup"}, 2)
+        m_bad = call("names_set", {"entry": 7, "to": "[x]", "request": "Change Dennis"}, 3)
         m_rm = call("names_remove", {"entries": [3], "request": "Drop Pepper", "dry_run": True}, 4)
         agent_log.flush()
         log_text = log.read_text(encoding="utf-8") if log.exists() else ""
         check("406: MCP's names_set dry run and write, a refusal and names_remove's dry run, one line for the write, no "
               "name in any answer or the agent log",
               not m_dry.get("isError") and m_dry["structuredContent"]["changed"] == {"except": {"before": 1, "added": 1}}
-              and not m_set.get("isError") and routes.pseudo_list(root)[2].get("review") is True
+              and not m_set.get("isError") and routes.pseudo_list(root)[2]["to"] == "[pup]"
               and m_bad.get("isError") and not m_rm.get("isError") and m_rm["structuredContent"]["gone"][0]["entry"] == 3
               and len(agent_changes.read(root)) == count + 1 and agent_changes.read(root)[-1]["op"] == "names set"
               and not leaked(log_text) and "pup" not in log_text,

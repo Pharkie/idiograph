@@ -6,9 +6,9 @@ On the demo's three participants made a project, with invented names the demo's 
 run writes nothing (no list, no record, no restore point) and answers counts by participant and part alone, no real
 name. The add is one line in the record of agents' changes, his request with the names taken out, the list kept mode
 600 and its copies in the restore store too, and `agents undo-change` and a run's undo put the list back as it was,
-refused over his own later edit. A Review each entry is never replaced in bulk, by an agent or by the app's replace,
-only the find he ticks (`take`, which an agent cannot give). A find inside an except phrase is never flagged nor
-replaced. Every read an agent makes, the command line's and the MCP server's, says no real name, and a refusal's
+refused over his own later edit. An entry his review marked (a find of it unticked in the app) is never replaced by an
+agent's replace, while the app's replaces the finds ticked; an agent cannot tick (`take`) (namesbuild, 17 November
+2026, in place of Review each). A find inside an except phrase is never flagged nor replaced. Every read an agent makes, the command line's and the MCP server's, says no real name, and a refusal's
 request in the agent log has the names taken out."""
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ from .support import check
 # invented names the demo's transcripts hold: one participant's late husband, a neighbour, and the dog
 REAL = ("Dennis", "Terry", "Pepper")
 EXCEPT = "Pepper did a perfect sit"
-ASKED = "Add Dennis as her husband, Terry to review, and Pepper the dog"
+ASKED = "Add Dennis as her husband, Terry the neighbour, and Pepper the dog"
 
 
 def digest(root: Path) -> dict:
@@ -88,7 +88,7 @@ def test_names_add(scratch: Path):
     spec = base / "names.json"
     spec.write_text(json.dumps([
         {"real": ["Dennis"], "to": "[husband]", "for": "Mabel"},
-        {"real": ["Terry"], "to": "[neighbour]", "review": True},
+        {"real": ["Terry"], "to": "[neighbour]"},
         {"real": ["Pepper"], "to": "[dog]", "except": [EXCEPT]}]), encoding="utf-8")
 
     def run(*args, tool="Claude Code"):
@@ -119,7 +119,7 @@ def test_names_add(scratch: Path):
               and list(places) == ["Mabel"] and places["Mabel"]["transcript"] >= 4 and places["Mabel"]["notes"] >= 1
               and places["Mabel"]["statements"] >= 1 and husband["hits"] == sum(
                   places["Mabel"][k] for k in ("transcript", "quotes", "statements", "notes"))
-              and rows["[neighbour]"].get("review") is True and rows["[dog]"].get("excepts") == 1,
+              and rows["[dog]"].get("excepts") == 1,
               err + json.dumps(dry)[:600])
         check("399: an except phrase's find is never flagged, so the dog's count leaves out the finds inside it",
               inside >= 1 and rows.get("[dog]", {}).get("hits") == pepper_all - inside,
@@ -138,7 +138,7 @@ def test_names_add(scratch: Path):
               code == 0 and added["added"] == 3 and added["count"] == 3 and listed.is_file()
               and (mode == 0o600 or os.name == "nt") and [e["real"] for e in routes.pseudo_list(root)] == [
                   ["Dennis"], ["Terry"], ["Pepper"]]
-              and routes.pseudo_list(root)[1].get("review") is True and routes.pseudo_list(root)[2]["except"] == [EXCEPT]
+              and "unticked" not in routes.pseudo_list(root)[1] and routes.pseudo_list(root)[2]["except"] == [EXCEPT]
               and not leaked(out), err + str(leaked(out)))
         check("399: the add is one line in the record of agents' changes, the list named, his request kept as … "
               "(namesfix2)",
@@ -176,12 +176,12 @@ def test_names_add(scratch: Path):
         except Exception as exc:
             held_app = str(exc)
         check("399: the app's own add is told the holding entry's number", "Entry 1" in held_app, held_app)
-        # Also an ordinary word on names add is its own option, never the participant a command names (review 4)
-        code, cased, err, _ = run("names", "add", "--real", "Dot", "--to", "[friend]", "--for", "Mabel", "--ordinary-word",
+        # an entry for one participant, the record naming no name (review 4); an agent's add never carries the mark
+        code, cased, err, _ = run("names", "add", "--real", "Dot", "--to", "[friend]", "--for", "Mabel",
                                   "--note", "Add Dot", "--run", "cased")
         cased_line = agent_changes.read(root)[-1]
-        check("399: --ordinary-word is Also an ordinary word on the entry, and the record names no participant 'True'",
-              code == 0 and routes.pseudo_list(root)[-1].get("word") is True and "case" not in cased_line["target"]
+        check("399: names add --for writes the entry for that participant alone, the record naming no name",
+              code == 0 and routes.pseudo_list(root)[-1] == {"real": ["Dot"], "to": "[friend]", "for": "Mabel"}
               and "Dot" not in json.dumps(cased_line), err + json.dumps(cased_line)[:300])
         run("agents", "undo-change", cased_line["id"], "--note", "Take Dot off")
 
@@ -213,59 +213,61 @@ def test_names_add(scratch: Path):
               code == 0 and code2 != 0 and listed.read_bytes() == his, err2)
         routes.api_names({"op": "set", "root": rid, "entries": [
             {"real": ["Dennis"], "to": "[husband]", "for": "Mabel"},
-            {"real": ["Terry"], "to": "[neighbour]", "review": True},
+            {"real": ["Terry"], "to": "[neighbour]"},
             {"real": ["Pepper"], "to": "[dog]", "except": EXCEPT}]})
+        # a find of the neighbour unticked in the app's review marked his entry (namesbuild)
+        names_mod.save_at(root, names_mod.with_marks(routes.pseudo_list(root), {1}))
 
-        # ── 4. Review each never bulk-replaced, the except phrase never replaced
+        # ── 4. a marked entry never replaced by an agent, the except phrase never replaced
         terry = start_text.count("Terry")
-        # a copy in Source holding the Review each name in a spelling no workbook row has (review 1)
+        # a copy in Source holding the marked name in a spelling no workbook row has (review 1)
         copy = mabel.parent / "Source" / "P2-Initial.txt"
         copy.parent.mkdir(exist_ok=True)
         copy.write_text("Interviewer: Who came?\nMabel: TERRY came by, and Dennis.\n", encoding="utf-8")
         code, replaced, err, out = run("names", "replace", "--note", "Replace Dennis everywhere", "--run", "fourth")
         now = text_of(mabel)
         copied = copy.read_text(encoding="utf-8")
-        check("399: a Source copy keeps a Review each name's find as written, the others replaced",
+        check("399: a Source copy keeps a marked name's find as written, the others replaced",
               "TERRY came by" in copied and "Dennis" not in copied and "[husband]" in copied, copied)
         history = json.loads((root / "idiograph-history.json").read_text(encoding="utf-8"))
         check("399: the replace's request keeps no listed name in History or the record (review 3)",
               "Dennis" not in json.dumps(history) and "Dennis" not in json.dumps(agent_changes.read(root)[-1]),
               json.dumps(history)[-300:])
-        check("399: an agent's replace leaves every find of a Review each name as written, and says so in counts",
+        check("399: an agent's replace leaves every find of a marked name as written, and says so in counts",
               code == 0 and now.count("Terry") == terry and terry >= 3 and "[neighbour]" not in now
+              and replaced["names"]["held"] == 1
               and "Dennis" not in now and "[husband]" in now and not leaked(out), err + str(leaked(out)))
         check("399: a find inside an except phrase is left as written, every other replaced",
               EXCEPT in now and now.replace(EXCEPT, "").count("Pepper") == 0 and "[dog]" in now, str(now.count("Pepper")))
-        code, refused, err, _ = run("names", "replace", "--note", "x", "--dry-run")
         got = routes.api_names({"op": "replace", "root": rid, "dry_run": True})
-        check("399: the app's own replace with nothing ticked leaves a Review each name's finds too",
-              got["names"]["replaced"] == 0 and got["names"]["left"] == terry, json.dumps(got["names"])[:300])
+        check("399: the app's own replace, from his review, would write the marked name's finds he leaves ticked",
+              got["names"]["replaced"] == terry and got["names"]["held"] == 0, json.dumps(got["names"])[:300])
         took = False
         try:
             routes.api_names({"op": "replace", "root": rid, "take": ["2:1"], "tool": "Claude Code", "request": "x"})
         except Exception:
             took = True
-        check("399: an agent naming a Review each find to replace is refused", took and text_of(mabel).count("Terry") == terry)
-        # a copy in Source holding the Review each name as the workbook spells it, twice (namesfix M3)
+        check("399: an agent naming a find to tick is refused", took and text_of(mabel).count("Terry") == terry)
+        # a copy in Source holding the marked name as the workbook spells it, twice (namesfix M3)
         second = mabel.parent / "Source" / "P2-Second.txt"
         second.write_text("Mabel: Terry came first.\nMabel: Then Terry left.\n", encoding="utf-8")
-        routes.api_names({"op": "replace", "root": rid, "take": ["2:1"]})
-        check("399: the app replaces the one find he ticked, the others left", text_of(mabel).count("Terry") == terry - 1)
-        check("399: one ticked find of a Review each name replaces none of those words in a Source copy while others "
-              "alike are left (namesfix M3)",
+        routes.api_names({"op": "replace", "root": rid, "skip": [f"2:{n}" for n in range(2, terry + 1)]})
+        check("399: the app replaces the one find he left ticked, the others left", text_of(mabel).count("Terry") == terry - 1)
+        check("399: one ticked find of a name replaces none of those words in a Source copy while others alike are "
+              "left (namesfix M3)",
               second.read_text(encoding="utf-8").count("Terry") == 2 and "[neighbour]" not in second.read_text(encoding="utf-8"),
               second.read_text(encoding="utf-8"))
-        run_ = names_mod.Run([{"real": ["Terry"], "to": "[neighbour]", "for": None, "review": True}])
-        check("399: a copy has a Review each name replaced where he ticked those words and left none of them",
-              run_.text("Terry came.", "Mabel", {}, mirror=set(), taken={(0, "Terry")}) == "[neighbour] came."
-              and run_.text("Terry came.", "Mabel", {}, mirror={(0, "Terry")}, taken={(0, "Terry")}) == "Terry came."
-              and run_.text("Terry came.", "Mabel", {}, mirror=set(), taken=set()) == "Terry came.")
+        run_ = names_mod.Run([{"real": ["Terry"], "to": "[neighbour]", "for": None}])
+        check("399: a copy has a lower-case find replaced where he ticked those words and left none of them",
+              run_.text("terry came.", "Mabel", {}, mirror=set(), taken={(0, "terry")}) == "[neighbour] came."
+              and run_.text("terry came.", "Mabel", {}, mirror={(0, "terry")}, taken={(0, "terry")}) == "terry came."
+              and run_.text("terry came.", "Mabel", {}, mirror=set(), taken=set()) == "terry came.")
 
         # ── 5. an agent's reads: names list and check, and MCP, never a real name
         code, listed_a, err, out_l = run("names", "list", tool=None)
         code_c, checked, err_c, out_c = run("names", "check", tool=None)
         check("399: names list and names check tell an agent numbers, ticks and counts, no real name",
-              code == 0 and code_c == 0 and listed_a["entries"][1].get("review") is True
+              code == 0 and code_c == 0 and listed_a["entries"][1].get("unticked") is True
               and listed_a["entries"][2].get("excepts") == 1 and not leaked(out_l) and not leaked(out_c),
               str(leaked(out_l) + leaked(out_c)))
         srv = mcp_server.Server(str(root), config=str(config))
@@ -313,8 +315,8 @@ def test_names_add(scratch: Path):
               "among them (review 2, namesfix L5)",
               mcp_jo.get("isError") and not re_.search(r"(?i)\b(jo|jane)\b", said_req) and "add jo" not in said_req.lower()
               and "…" in said_req, said_req)
-        mcp_add = call("names_add", {"entries": [{"real": ["Terry Hollis"], "to": "[neighbour]", "review": True}],
-                                     "request": "Add Terry Hollis to review"}, 4)
+        mcp_add = call("names_add", {"entries": [{"real": ["Terry Hollis"], "to": "[neighbour]"}],
+                                     "request": "Add Terry Hollis"}, 4)
         last = agent_changes.read(root)[-1]
         check("399: MCP's names_add writes through the same op, one line in the record, no name in it",
               not mcp_add.get("isError") and len(agent_changes.read(root)) == count + 1 and last["op"] == "names add"
@@ -382,7 +384,7 @@ def test_names_add(scratch: Path):
         check("399: the words taken out of a request are the list's wherever it is read from, nothing moved (namesfix)",
               words == ["Ottoline"] and (old_dir / f"{key}.json").is_file() and not (elsewhere / names_mod.FILE).exists(),
               str(words))
-        # namesfix2: an earlier entry covers a new one only when Also an ordinary word and Except in agree too
+        # namesfix2: an earlier entry covers a new one only when Except in agrees too
         routes.api_names({"op": "set", "root": rid, "entries": [{"real": ["Pepper"], "to": "[dog]"}]})
         code, differ, err, _ = run("names", "add", "--from", str(spec), "--note", "x", "--run", "rules")
         saved = routes.pseudo_list(root)
@@ -392,26 +394,15 @@ def test_names_add(scratch: Path):
               "listed (namesfix2)",
               code == 0 and nums.get("[dog]") == 4 and saved[3].get("except") == [EXCEPT] and len(saved) == 4
               and code2 == 0 and same["entries"][0].get("listed") is True and same["added"] == 0, err + err2)
-        # wordfix L1: only a tick apart from an entry for the same people, the new one would never be found, so the
-        # add is refused, naming that entry and names set
-        try:
-            routes.api_names({"op": "add", "root": rid, "dry_run": True,
-                              "entries": [{"real": ["Pepper"], "to": "[dog]", "word": True}]})
-            app_case = ""
-        except Exception as exc:
-            app_case = str(exc)
-        check("399: the app's add of a listed name only Also an ordinary word apart is refused, pointing to names set "
-              "on the entry that holds it (wordfix)",
-              "names set 1" in app_case and "Pepper" not in app_case and routes.pseudo_list(root) == saved, app_case)
-        # namesfix2: the key file keeps Review each and Except in, a phrase with a comma among them
-        kept_list = [{"real": ["Terry", "T."], "to": "[neighbour]", "for": None, "review": True},
+        # namesfix2: the key file keeps Except in, a phrase with a comma among them, and never the mark
+        kept_list = [{"real": ["Terry", "T."], "to": "[neighbour]", "for": None, "unticked": True},
                      {"real": ["Potter"], "to": "[x]", "for": None, "except": ["Potter, Harry", "the stone"]},
                      {"real": ["Dot"], "to": "[friend]", "for": None}]
         back = names_mod.read_key("key.csv", names_mod.write_key(kept_list).encode("utf-8"))
         old_key = names_mod.read_key("key.csv", "Real name,Pseudonym\nDot,[friend]\n".encode("utf-8"))
-        check("399: the key file keeps Review each and Except in, and a two-column key reads as before (namesfix2)",
-              [(e["real"], e["to"], e.get("review", False), e.get("except")) for e in back]
-              == [(["Terry", "T."], "[neighbour]", True, None), (["Potter"], "[x]", False, ["Potter, Harry", "the stone"]),
+        check("399: the key file keeps Except in and leaves the mark here, and a two-column key reads as before (namesfix2)",
+              [(e["real"], e["to"], e.get("unticked", False), e.get("except")) for e in back]
+              == [(["Terry", "T."], "[neighbour]", False, None), (["Potter"], "[x]", False, ["Potter, Harry", "the stone"]),
                   (["Dot"], "[friend]", False, None)]
               and old_key == [{"real": ["Dot"], "to": "[friend]", "for": None}], json.dumps(back))
     finally:

@@ -576,8 +576,6 @@
   "page_idiograph.names.replace_with": "Replace with",
   "page_idiograph.names.in": "In",
   "page_idiograph.names.except": "Except in",
-  "page_idiograph.names.word_about_label": "About Also an ordinary word",
-  "page_idiograph.names.word_about": "For a name that is also a word, like Hope or Will: only finds with a capital letter are flagged, and you decide each one.",
   "page_idiograph.names.add": "Add a name",
   "page_idiograph.names.add_file": "Add from a file…",
   "page_idiograph.names.check": "Check transcripts already in",

@@ -1246,11 +1246,10 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .qd-lines { margin-top: 12px; }
 .qd-lines .fineprint { margin: 4px 0 0; }
 .qd-said { margin-top: 12px; }
-/* Names replaced as a transcript comes in (namesui, 8 November 2026): a replacement in the preview tinted, the name it
-   replaced as its tooltip, a find left as written underlined faintly, the row's Names line under its fields, the
-   Review card's finds by entry with a tick each, and Names to replace, the project's list as a table */
-.nm-swap { background: var(--crux-wash); box-shadow: inset 0 -1px 0 var(--crux); border-radius: 2px; padding: 0 2px; }
-.nm-kept { box-shadow: inset 0 -1px 0 var(--ink-faint); }
+/* Names replaced as a transcript comes in (namesui, 8 November 2026; namesbuild, 17 November 2026): a find in the
+   preview in bold as it was found, the row's Names line under its fields, the review's finds grouped by name, each in
+   its sentence with a tick, the lower-case finds folded, and Names to replace, the project's list as a table */
+.nm-found { font-weight: 600; color: var(--ink); }
 .np-field.np-real { flex: 1 1 9em; }
 .np-sheet-row .import-col { flex: 0 1 auto; }
 .np-sheet select { min-width: 176px; }
@@ -1258,21 +1257,28 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .np-names .import-sub { margin-top: 0; }
 .np-names-line { display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; font-size: 13px; color: var(--ink-soft); }
 .np-names-said { flex: 1 1 16em; }
-/* wider since the ticks' column took Also an ordinary word (wordfix): every field keeps the width it had at 640 */
 .nm-card { width: min(700px, 100%); }
+.nm-card.nm-review-card { width: min(760px, 100%); }
 @media (max-width: 760px) { .nm-card { padding-left: 24px; padding-right: 24px; } }
-.nm-group { margin: 18px 0 0; }
-.nm-group-head { display: flex; align-items: baseline; gap: 8px; font-size: 13.5px; padding-bottom: 6px; border-bottom: 1px solid var(--rule); }
-.nm-group-head b { font-weight: 600; color: var(--ink); }
-.nm-group-head > span { color: var(--ink-soft); }
-.nm-group-head .nm-to { color: var(--ink); }
-.nm-group-head .nm-n { margin-left: auto; color: var(--ink-faint); font-size: 12.5px; }
-.nm-hit { display: flex; align-items: baseline; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--rule); font-size: 13.5px; cursor: pointer; }
-.nm-hit input { margin: 0; flex: none; transform: translateY(1px); accent-color: var(--ink); }
-.nm-hit .nm-who { flex: 0 0 8.5em; color: var(--ink-faint); font-size: 12.5px; }
-.nm-hit .nm-ctx { flex: 1 1 auto; min-width: 0; font-family: var(--serif); color: var(--ink-soft); overflow-wrap: anywhere; }
-.nm-hit .nm-ctx b { font-weight: 600; color: var(--ink); }
-.nm-hit.is-off .nm-ctx { color: var(--ink-faint); }
+.nm-group { margin: 22px 0 0; }
+.nm-group:first-child { margin-top: 10px; }
+.nm-group-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; padding-bottom: 7px; border-bottom: 1px solid var(--rule-firm, var(--rule)); }
+.nm-group-head .nm-name { font-size: 15px; color: var(--ink); }
+.nm-group-head .nm-name b { font-weight: 600; }
+.nm-group-head .nm-arrow { color: var(--ink-faint); margin: 0 6px; }
+.nm-group-head .nm-n { color: var(--ink-soft); font-size: 13px; }
+.nm-group .nm-acts { margin: 0 0 0 auto; display: flex; gap: 6px; }
+.nm-hit { display: grid; grid-template-columns: 18px minmax(7em, 9.5em) minmax(0, 1fr); align-items: baseline; gap: 10px;
+  padding: 7px 0; border-bottom: 1px solid var(--rule); font-size: 13.5px; cursor: pointer; }
+.nm-hit input { margin: 0; transform: translateY(2px); accent-color: var(--ink); }
+.nm-hit .nm-who { color: var(--ink-faint); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.nm-hit .nm-said { font-family: var(--serif); color: var(--ink); line-height: 1.45; overflow-wrap: anywhere; }
+.nm-hit .nm-said mark { background: var(--crux-wash); box-shadow: inset 0 -1px 0 var(--crux); color: inherit; font-weight: 600;
+  border-radius: 2px; padding: 0 2px; }
+.nm-hit.is-off .nm-said { color: var(--ink-faint); }
+.nm-hit.is-off .nm-said mark { background: none; padding: 0; box-shadow: inset 0 -1px 0 var(--ink-faint); color: var(--ink-soft); }
+.nm-fold { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--rule); font-size: 13px; color: var(--ink-soft); }
+.nm-fold b { font-weight: 600; color: var(--ink); }
 .nm-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 14px; }
 .nm-table th { text-align: left; font-size: 12px; font-weight: 600; color: var(--ink-soft); padding: 0 8px 6px 0; border-bottom: 1px solid var(--rule); }
 .nm-table td { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--rule); vertical-align: middle; }
@@ -1280,17 +1286,6 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
   border-radius: 3px; padding: 6px 8px; font: inherit; color: var(--ink); }
 .nm-table input[type=text]:focus, .nm-table select:focus { outline: 0; border-color: var(--field-edge); }
 .nm-table td.nm-in { width: 8.5em; }
-.nm-table td.nm-case { width: 10.5em; white-space: nowrap; }
-/* the info mark over the ticks (ordinaryword): its text stands above the column head, its right edge the head's, so it
-   never covers the ticks it explains (wordfix); a click keeps it open */
-.nm-table th.nm-case-head { position: relative; padding-bottom: 2px; vertical-align: bottom; }
-.nm-tip-at { display: inline-flex; }
-.nm-table .nm-word-tip { left: auto; right: 8px; top: auto; bottom: calc(100% + 6px); width: 280px; font-weight: 400;
-  white-space: normal; }
-.info-mark.is-open + .info-tip { display: block; }
-.nm-table td.nm-case label { display: flex; gap: 6px; align-items: center; color: var(--ink-soft); font-size: 12.5px; cursor: pointer; }
-.nm-table td.nm-case label + label { margin-top: 4px; }
-.nm-table td.nm-case input { accent-color: var(--ink); }
 .nm-table td.nm-x { width: 32px; padding-right: 0; text-align: right; }
 .nm-acts { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 .nm-check { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--rule); }

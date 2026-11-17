@@ -2140,19 +2140,15 @@
   </div>
 </div>
 
-<!-- Names to replace (namesui, 8 November 2026): the project's list, each name with its replacement, whose
-     transcripts it is for, Except in, Also an ordinary word (ordinaryword, 16 November 2026, in Match case's place,
-     its info mark in the ticks' column head) and Review each, saved as it changes into the project's folder, then a check of the
-     transcripts already in and Review and replace -->
+<!-- Names to replace (namesui, 8 November 2026): the project's list alone, each name with its replacement, whose
+     transcripts it is for and Except in (namesbuild, 17 November 2026: no ticks, each find is decided in the review),
+     saved as it changes into the project's folder, then a check of the transcripts already in and Review and replace -->
 <div class="overlay" id="nm-list" hidden>
   <div class="card nm-card" role="dialog" aria-labelledby="nm-list-title">
     <p class="kicker"></p>
     <h2 id="nm-list-title">{{page_idiograph.names.title}}</h2>
     <table class="nm-table" id="nm-list-table">
-      <thead><tr><th>{{page_idiograph.names.name}}</th><th>{{page_idiograph.names.replace_with}}</th><th>{{page_idiograph.names.in}}</th><th>{{page_idiograph.names.except}}</th><th class="nm-case-head"><span class="nm-tip-at"><button type="button"
-           class="info-mark" id="nm-word-mark" aria-label="{{page_idiograph.names.word_about_label}}"
-           aria-describedby="nm-word-about" aria-expanded="false"></button><span class="info-tip nm-word-tip"
-           role="tooltip" id="nm-word-about">{{page_idiograph.names.word_about}}</span></span></th><th></th></tr></thead>
+      <thead><tr><th>{{page_idiograph.names.name}}</th><th>{{page_idiograph.names.replace_with}}</th><th>{{page_idiograph.names.in}}</th><th>{{page_idiograph.names.except}}</th><th></th></tr></thead>
       <tbody id="nm-list-rows"></tbody>
     </table>
     <div class="nm-acts"><button type="button" class="ghost small" id="nm-add">{{page_idiograph.names.add}}</button><button
@@ -2167,10 +2163,12 @@
   </div>
 </div>
 
-<!-- Review (namesui): every name the list finds, by entry, each with its tick, a speaker's name one row. Unticked, a
-     find is left as it is written. Done on Add transcripts, Replace for the transcripts already in -->
+<!-- The review (namesui; namesbuild, 17 November 2026): every find of the list's names grouped by name, each in its
+     sentence with its tick, a speaker's name one row, the lower-case finds folded under their name and unticked.
+     Unticked, a find is left as it is written. Replace N ticked for the transcripts already in, Replace N ticked and
+     add over Add transcripts -->
 <div class="overlay" id="nm-review" hidden>
-  <div class="card nm-card" role="dialog" aria-labelledby="nm-review-title">
+  <div class="card nm-card nm-review-card" role="dialog" aria-labelledby="nm-review-title">
     <p class="kicker"></p>
     <h2 id="nm-review-title"></h2>
     <div class="nm-review-body" id="nm-review-body"></div>

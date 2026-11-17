@@ -376,7 +376,7 @@ def test_add_transcripts(scratch):
           and "$('hp-transcripts').hidden = true;" in fn("drawDemoPage") and "proj-more" not in page)
     card_html = page.split('<div class="overlay" id="newproject" hidden>', 1)[1].split("\n</div>\n", 1)[0]
     check("108, 9 October: Add sends the rows to its own route, a row that joins a case with no number, and no row a second part",
-          "if (add) await api('/api/add-transcripts', { op: 'add', root: add.id, files, skip, take });" in fn("npMake")
+          "if (add) await api('/api/add-transcripts', { op: 'add', root: add.id, files, skip, take, names_reviewed: true });" in fn("npMake")
           and "second" not in fn("npMake") + fn("npFilesSent") and "number: joins ? null" in fn("npFilesSent")
           and "const files = npFilesSent();" in fn("npMake")
           and "op: 'make'" in fn("npMake"))

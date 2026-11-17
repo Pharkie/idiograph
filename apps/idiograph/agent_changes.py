@@ -720,12 +720,6 @@ def names_said(args, answer) -> str:
     if key == ("names", "set") and isinstance(answer.get("changed"), dict) and answer.get("entry"):
         changed = answer["changed"]
         fields = []
-        if "review" in changed:
-            fields.append(i18n.t("names.record_field.review_on") if changed["review"].get("after")
-                          else i18n.t("names.record_field.review_off"))
-        if "word" in changed:
-            fields.append(i18n.t("names.record_field.word_on") if changed["word"].get("after")
-                          else i18n.t("names.record_field.word_off"))
         if "for" in changed:
             fields.append(i18n.t("names.record_field.for"))
         if "to" in changed:

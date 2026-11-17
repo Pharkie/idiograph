@@ -49,8 +49,8 @@ TXT = ("Kit: [00:00:03] Who else keeps birds?\nRosalind Marlow: [00:00:08] Garet
 CSV = ("Speaker,Start,Text\nKit,0:04,When do you go down?\nOdette Varnham,0:09,Before work. Gareth lets them "
        "out first.\nKit,0:15,Every day?\nOdette Varnham,0:19,Most days in summer.\n")
 
-# the list, in the app's words: a name, its spellings, what it is written as, whom it is for (Also an ordinary word,
-# which holds every find for review, is area 407's)
+# the list, in the app's words: a name, its spellings, what it is written as, whom it is for (the review that decides
+# each find, and the mark an unticked find leaves, are area 407's)
 LIST = [
     {"real": ["Odette Varnham", "Odette"], "to": "Wren"},
     {"real": ["Piers Lowther", "Piers"], "to": "Ash", "for": "Ash"},
@@ -133,16 +133,16 @@ def test_names_rules(scratch):
 
     ann = [{"real": ["Ann"], "to": "[A]"}]
     check("345: a name is found as a whole word by Unicode letters, never inside a longer one",
-          put("Ann, Annabel and annual, Ann's hen, ann.", ann) == "[A], Annabel and annual, [A]'s hen, [A]."
+          put("Ann, Annabel and annual, Ann's hen, ANN.", ann) == "[A], Annabel and annual, [A]'s hen, [A]."
           and put("Zoë and Zoëlle", [{"real": ["Zoë"], "to": "Z"}]) == "Z and Zoëlle"
           and put("José, Joséphine", [{"real": ["José"], "to": "J"}]) == "J, Joséphine"
           and put("Ann2 and 2Ann and Ann_x", ann) == "Ann2 and 2Ann and [A]_x", put("Ann2 and 2Ann and Ann_x", ann))
-    check("345: case is ignored and the list's spelling is written, unless the entry is ticked Also an ordinary word, "
-          "whose finds are those with a capital first letter alone and never replaced in bulk (wordfix)",
-          put("TILDA tilda Tilda", [{"real": ["Tilda"], "to": "Wren"}]) == "Wren Wren Wren"
-          and put("Will you? will you? WILL", [{"real": ["Will"], "to": "[W]", "word": True}]) == "Will you? will you? WILL"
-          and [f["found"] for f in names_mod.find("Will you? will you? WILL", [names_mod.clean_entry(
-              {"real": ["Will"], "to": "[W]", "word": True})], None)] == ["Will", "WILL"])
+    check("345: case is ignored in the finding and the list's spelling is written, a find in lower case left as written "
+          "unless he ticks it (namesbuild)",
+          put("TILDA tilda Tilda", [{"real": ["Tilda"], "to": "Wren"}]) == "Wren tilda Wren"
+          and [(f["found"], f["lower"]) for f in names_mod.find("Will you? will you? WILL", [names_mod.clean_entry(
+              {"real": ["Will"], "to": "[W]"})], None)] == [("Will", False), ("will", True), ("WILL", False)]
+          and put("de la Cruz", [{"real": ["de la Cruz"], "to": "[D]"}]) == "[D]")
     check("345: an apostrophe, a hyphen or a full stop ends a word, so a possessive keeps its ending",
           put("Tilda's hen, Tilda-Mae, Tilda.", [{"real": ["Tilda"], "to": "Wren"}]) == "Wren's hen, Wren-Mae, Wren."
           and put("Tilda-Mae and Tilda", [{"real": ["Tilda-Mae", "Tilda"], "to": "Wren"}]) == "Wren and Wren")
@@ -191,7 +191,7 @@ def test_names_rules(scratch):
     check("345: Add from a file reads a two-column CSV or Excel key, a heading row passed over, and Save as a file writes one",
           [e["real"] for e in read_csv] == [["Odette Varnham", "Odette"], ["Gareth"]] and read_csv[0]["to"] == "Wren"
           and [e["to"] for e in read_xlsx] == ["[partner]", "Ash"]
-          and names_mod.write_key(read_csv).splitlines()[1] == '"Odette Varnham, Odette",Wren,,,')  # Review each, Except in and Also an ordinary word after it
+          and names_mod.write_key(read_csv).splitlines()[1] == '"Odette Varnham, Odette",Wren,')  # Except in after it
 
     # ── B. a project, its list kept outside it
     store = scratch / "names-345-store"
@@ -634,8 +634,9 @@ def namesui_checks(base, folder, rid, routes, names_mod, server_mod, cli, mcp_se
     # ── L. the agents: replace by the command line and the MCP server, counts only
     code_, out, err = cli.run(["--root", str(folder), "--config", str(config), "--json", "names", "replace", "--dry-run"])
     dry = json.loads(out) if code_ == 0 else {}
+    # the find he unticked in the review marked its entry (namesbuild), so an agent's replace leaves it whole
     check("345: names replace's dry run tells an agent the counts, no name, and writes nothing",
-          code_ == 0 and dry.get("dry_run") is True and dry["names"]["replaced"] == 1
+          code_ == 0 and dry.get("dry_run") is True and dry["names"]["replaced"] == 0 and dry["names"]["held"] == 1
           and "gareth" not in out.lower() and "finds" not in dry["names"], err or out[:300])
     srv = mcp_server.Server(str(folder), config=str(config))
     srv.receive(json.dumps({"jsonrpc": "2.0", "id": 0, "method": "initialize",
@@ -643,5 +644,6 @@ def namesui_checks(base, folder, rid, routes, names_mod, server_mod, cli, mcp_se
     got = srv.receive(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "tools/call",
                                   "params": {"name": "names_replace", "arguments": {"dry_run": True, "request": "x"}}}))["result"]
     check("345: MCP's names_replace answers counts only",
-          not got.get("isError") and got["structuredContent"]["names"]["replaced"] == 1 and "gareth" not in json.dumps(got).lower(),
+          not got.get("isError") and got["structuredContent"]["names"]["replaced"] == 0
+          and got["structuredContent"]["names"]["held"] == 1 and "gareth" not in json.dumps(got).lower(),
           json.dumps(got)[:300])
