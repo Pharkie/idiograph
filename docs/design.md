@@ -164,7 +164,8 @@ Table and the underline of its title in the audit trail (17 October).
   and `body.ai-off [data-ai]` hides it. Scripts ask `aiOn` and `thAiOn()`.
 - **Every checkbox and radio ticks from its whole row**, inside its `<label>` or in a row marked
   `data-tick-row`. Area 127, `tick_problems`, fails on a tick outside a label.
-- **Every Remove and Delete is red with a bin**, `button.btn-remove`, `--danger` in both themes.
+- **Every Remove and Delete is red with a bin**, `button.btn-remove` in words, `--danger` in both themes, and a
+  delete by an icon alone the bin, `.del-bin`, red under the pointer and in focus, never the cross (Behaviour).
 - **A card that applies its changes as you go ends with Done at its foot right**, in
   `.card-actions.card-done`. A card with its own Save or confirm never has one.
 - **Each colour has one meaning**, the tokens' table above, and orange means crux, and in the
@@ -473,7 +474,7 @@ above the lockup at 1280, 1050, 720, the first and last again at Large (125%), a
 |---|---|---|---|---|
 | Filled button | `button.primary` | The one next step on a screen or a card | A second choice beside it | Done, Next, Save |
 | Outlined button | `button.ghost`, `button.ghost.small` | Every other action | The screen's one next step | A verb |
-| Remove and Delete | `button.btn-remove` | Anything that takes something away | Undo, which puts back, and a pair's Remove on the statement card, a bin alone in the soft ink since 18 October (see Statement card) | Remove, Delete |
+| Remove and Delete | `button.btn-remove` | Anything that takes something away in words | Undo, which puts back, and a delete by an icon alone, which is the bin, `.del-bin` (Behaviour, below) | Remove, Delete |
 | Quiet text button | `.quiet` | A small action at the edge | A main action | A verb |
 | Bar tool | `.rail-btn.bar-tool` with `.bar-word` | A title bar's tools, in the order of The title bar, a typed glyph, Shortcuts' `?`, at the drawn icons' 15px and 600 (17 October) | Inside a card | Its word on the bar, its key in its tooltip |
 | AI button | a `button.ghost.small` with the sparkles and `data-ai` | Asking the AI | Anything the AI does not do | AI and a verb |
@@ -486,7 +487,7 @@ above the lockup at 1280, 1050, 720, the first and last again at Large (125%), a
 | Menu | `.row-menu` with ghost buttons and `.row-menu-rule` | A row's or a bar's choices | One choice | Short names |
 | Status bar | `#th-status`, the `.th-zoomer` with `.th-status-counts` of `.th-stat`, each a `.th-stat-n`, and `#th-smenu` | Along the PETs and GETs canvas's foot on `--card` under `--rule-firm`, the counts at its left in `--ink-soft`, their numbers in `--mono`, the tools at its right, off leaving the floating zoom bar, at 767px and below In PETs and Unplaced with the zoom and Fit all (19 October) | Anything to act on | "3 PETs", "12 in PETs", a right click choosing which |
 | Palette | `.th-palette` of `.th-pal-btn`, its `.th-palette-grip` and `.th-palette-rule` | A column 40 wide at the canvas's side on `--card` inside `--rule-firm` with `--lift`, icons alone, settling against the nearer side edge, faint while cards are dragged (19 October) | Words, or a tool that is not the canvas's own | The tooltip, "Group (G)" |
-| Toast | `.toast` | The line at the foot after an act, 8px over the canvas's zoom bar and bin wherever it would cover them, as at 360 (18 October) | Anything he must answer | One sentence |
+| Toast | `.toast` | The line at the foot after an act that needs no answer, a short refusal, Nothing to undo, and a delete's notice with its Undo (Behaviour, below), 8px over the canvas's zoom bar and bin wherever it would cover them, as at 360 (18 October) | Anything he must answer, an export's or a save's result, a change made elsewhere and a save refused, which are the corner panels (Behaviour), and a line after an Undo | One sentence |
 | Update line | `.update-line` holding `.update-words` and `.update-acts` | Idiograph's own updates at the head of the home screen, in the window alone and in its flow so it covers no control, on a card's ground: the question asked once, a newer version, its download and an update ready (18 October) | Anything about his work, or a line that only says all is well | One sentence, two plain buttons |
 | Foot line | `.foot-line` with `.foot-close` | What's new once after an update, at the toast's place and on its ground, staying until What's new or Close, a toast standing above it (18 October) | A line that goes by itself, or anything he must answer | One sentence, a plain button and Close |
 | Tabs | `.settings-nav`, `.th-tab`, `.sf-steps`, Idiograph's `.sf-steps.ds-steps` (18 October) | Panes, sidebar tabs, a review's steps and Idiograph's three, Experiential statements, PETs and GETs, on each of its bars | Two choices | A name each, Idiograph's first ES below 1600px |
@@ -503,9 +504,61 @@ above the lockup at 1280, 1050, 720, the first and last again at Large (125%), a
 | Statement card | `.es-card` holding `#pairs` of `.pair`, each carrying `data-es-colour` by its place (18 October) and a `.pair-num` in a dot of its colour and a `.pair-body` of `.pair-es`, `.wordcount`, `.nudges`, `.pair-qhead` with `.pair-qlabel` alone, `.pair-kq` with a stripe of its colour at its left and `.pair-remove`, a bin with no word at the pair's top right beside the statement's first line in `--ink-soft`, `--danger` with its wash under the pointer and in focus (18 October, where it stood at the Quote label's right as a `btn-remove`), then `#ai-block` and `.es-foot` with Add another, AI suggest and `#btn-commit`, and beside each other passage `.turn-es` of `.es-list` with `.es-go` buttons, `.es-n` in a dot of its statement's colour and `.es-words` | The current passage's statements in its row of the statements column (17 October), on the card's paper with a card's firm edge and corners at rest, growing with its pairs and never scrolling inside, the one filled button at its foot right, and every other passage's statements read-only in the reading face and the soft ink, each numbered, a statement still to write its quote in the faint ink, a click on one going to it | A panel of fields beside the columns, which it replaced | Experiential statement 1 for a screen reader, Quote, Remove this statement, Add another, Skip or Next, Go to this statement |
 | Stacked column | `#stack` in `#cols-body`, `.stack-half` `#stack-es` and `#stack-en` with its `.stack-label`, and `#stack-divider`, a `role="separator"` holding `.stack-grip` | Stacked, notes under statements (18 October): the current passage's card above and its notes field below beside the transcript, on the statements' side, each half scrolling on its own, the card's foot kept at its half's foot, the divider a hairline with a short handle, `row-resize`, its handle in the faint ink under the pointer and the app's ring from the keyboard, its place the statements' share | 800px and below, where the notes go under the words, or with a column hidden | Exploratory notes over its half, Drag to move, Divider between statements and notes for a screen reader |
 
+## Behaviour
+
+How the app behaves, one row per function. A function that exists on more than one screen is one shared piece
+of code, its words, its place and how it goes, on every screen of every kind of project, IPA, longitudinal IPA
+and thematic analysis (Adam, 17 November 2026: "How can the UX design be inconsistent about the same function?").
+A builder who adds or changes one of these uses the shared function named here, never a copy of it, and changes
+this table and the reference page in the same change. Area 418 holds the rules it can read from the code.
+
+### Where a notice appears, and how long it stays
+
+| Kind | Where | How long | Drawn by |
+|---|---|---|---|
+| A line after an act: saved, a short refusal, Nothing to undo | The line at the foot, `#toast` | 4.2 s, a refusal or a failure 9 s, Nothing to undo 2 s | `say` (shell.js) |
+| A delete made at once | The line at the foot with its Undo | 8 s, kept while the pointer or the focus is on Undo, gone at once with any later step, Undo or Redo, a switch of board, participant or screen | `sayUndo`, `unsayUndo` (shell.js) |
+| An export or a save to a file, done or failed | The panel at the top right of the screen's canvas or page, under its bars (`[data-export-host]`) | Until its cross, Escape when nothing else takes it, a later notice or its screen put away | `exportNotice`, `exportFailed` (distil.js) |
+| A change made elsewhere | The same corner, the bright panel | Until Update (or Show it, where it goes somewhere new) or its cross; hidden while its screen is away and back with it | `outsideNotice` (distil.js) |
+| A save that would overwrite newer work | The same corner | Until Reload or Overwrite; hidden while its screen is away and back with it | `staleNotice` (distil.js) |
+| What's new once after an update | The foot line, `.foot-line` | Until What's new or Close | shell.js |
+
+One panel at a time stands in the corner: a save refused before all, then an export's notice, then a change made
+elsewhere, which waits behind the other two. A line he must answer is never a line at the foot.
+
+### The functions
+
+| Function | The one component | Where | Words | Shared function | Held by |
+|---|---|---|---|---|---|
+| Export or save done | The export panel, `#export-done`: the heading, the files, Show in Finder (Show in Explorer, Show in Files) and its cross | Every export on every screen: the boards (PETs, GETs, LPETs, LGETs, Themes), Trajectories, the statements screen and its Coding tab, the Code list, Export as REFI-QDA | "Exported <what>", the files' names | `exportNotice({ what, shown, path })` | 413, 418: no export's result reaches the line at the foot |
+| Export or save failed | The same panel, the reason alone, no button | As above | The server's one sentence | `exportFailed(err)` | 413 |
+| Delete, by an icon alone | A bin, `.del-bin`, the one bin glyph, quiet at rest, `--danger` under the pointer and in focus | A label on every board, a sticky note, a trajectory, a statement's pair, a row of an import card or the names list | Its tooltip, "Delete this label. What it holds stays on the canvas.", "Delete this note", "Delete this trajectory" | the glyph `TH_DEL_ICON` (themes.js), `TJ_BIN` (trajectories.js) and `NP_BIN` (distil.js) the same | 418: every icon-only delete is `.del-bin` with the bin, never the cross |
+| Delete, in words | `button.btn-remove`, red | A row's menu, a card, a confirm dialog | Delete, Remove, a verb and its thing | | 418 |
+| Delete that one Undo step restores | Deletes at once, then the line at the foot with Undo | A label on any board, a sticky note, a trajectory, a code with no extracts | "Deleted the label <title>.", "Deleted a sticky note.", "Deleted the trajectory <title>.", "Deleted the code <name>." | `sayUndo(message, undo)`; any later step calls `unsayUndo()` | 414, 418 |
+| Delete that cannot be undone in one step | Asks first, a dialog whose filled button is red and says the act | A whole board, a project removed from Idiograph, a participant's demographics | The act, "Delete board" | | |
+| Undo and Redo | The screen's toolbar Undo and Redo, Cmd + Z and Shift + Cmd + Z, never inside a field that keeps its own | Every screen with steps: the boards, the statements screen, Trajectories, the Code list | Its tooltip | the screen's own undo | 414 |
+| Nothing to undo or redo | The line at the foot, 2 s | Every screen | "Nothing to undo on this screen.", "Nothing to redo." | `sayNothingToUndo(backwards)` (distil.js), the catalogue's `themes.undo.nothing` and `themes.undo.nothing_redo` alone | 418 |
+| After an Undo or a Redo | No line: the screen shows what came back | Every screen | None | | 418 |
+| A change made elsewhere | The bright panel, `#th-outside`: the heading "Changes made elsewhere", the same on every screen, a line under it saying what changed on that screen, the button, and its cross | The boards, the statements screen, Trajectories, the Code list, each asking `/api/stamp` on a focus of the window and every few seconds | Heading "Changes made elsewhere"; lines "This board changed in a conversation.", "<board> added in a conversation.", "A passage was written in a conversation.", "The trajectories changed outside Idiograph.", "The code list changed outside Idiograph."; Update where it loads the change in place (a board changed, Trajectories, the Code list), Show it where it takes him to something new (a board added, a passage written, which it saves the passage in front first and goes to) | `outsideNotice({ line, word, show, close })` | 79, 418 |
+| A change from another window of this app | None: the screen takes it in by itself, never while he types | As above | None | the screen's stamp | 79 |
+| A save that would overwrite newer work | The panel `#th-stale`: the line, Reload first, then Overwrite; after a Reload that kept his canvas, Put my canvas back | The boards (a whole board saved), the Code list (a change sent over a list read before it, later changes waiting behind the panel and sent in order by Overwrite; an Undo refused shows Reload alone) | "This board has changed since this page was loaded, so nothing was saved.", "The code list has changed since this page was loaded, so nothing was saved.", Reload, Overwrite | `staleNotice({ line, reload, overwrite, back, kept })` | 418 |
+| A passage that changed under his words | The card in the passage, `#stale`, the line, Reload and Overwrite, and his words under it after a Reload with Put my words back | The statements screen alone, where the words he typed must stay in sight beside the passage | "This passage has changed since this page was loaded, so nothing was saved. Your words are still here." | `showStale` (distil.js) | |
+| Close | The cross, `.card-close`, top right | Every card, panel and sheet | Close, in its tooltip | | 418: no control with the cross deletes |
+| Done | `.card-actions.card-done` at the card's foot right, a card that applies as it goes | Settings' cards, the colour and icon popover | Done | | |
+| A dialog's buttons | One filled button, the next step or the act, at the right; Cancel an outlined button before it; red where the act takes something away | Every dialog | A verb and its thing, "Delete board", and Cancel | | |
+| Escape and a click outside | Close a popover, a menu, a card and a sheet as their cross does, never a card with typed words not yet kept or a busy one, nor a press that starts inside | Every screen | | | 12 November 2026 ruling |
+| Tick | A checkbox in its `<label>` or a `data-tick-row`, ticking from its whole row | A setting on or off, an Include on an export menu, a filter: each independent of the others | What it turns on | | 127 |
+| Radio | One of a few, each a whole row with a line under it saying what it gives where the choice needs it | A way to export, a view's order | Literal, what you get | | 127 |
+| Toggle | A status bar or toolbar button, pressed in while on, `aria-pressed` | A view flipped mid-work: the minimap, quotes, notes | Its word and its key | | |
+| Export menu's Include ticks | Kept as he left them for the session, unticked on a new start | Every Export menu | "Include", then each thing | the menu's own | 418 |
+
+The words in a cell are the English catalogue's; the catalogue holds them. The statements screen's passage card
+keeps its own place for a refused save, beside the words he typed.
+
 ## Adding something
 
 A new colour needs a meaning no token has, a line in each block of `tokens.css` and a row in the
 table above, in the same change. A new component goes on the reference page in the same change that
-makes it, written once in its template so both panels show it. A part's colour or mark arrives as a
+makes it, written once in its template so both panels show it. A new interaction, or a change to one, takes its row
+in Behaviour and on the reference page in the same change. A part's colour or mark arrives as a
 token and a component here, never as a one-off in a part's stylesheet.

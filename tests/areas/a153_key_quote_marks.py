@@ -421,7 +421,7 @@ console.log(JSON.stringify(out));
             check("153: in node, Cmd + Z takes q back in one step and keeps a statement typed since, and Cmd + Shift + Z "
                   "puts the quote back beside it",
                   out["addUndo"] == {"kqs": [woke, ""], "ess": ["Woken before the alarm", typed], "n": 2,
-                                     "said": "The quote is out, and the pieces are still selected.", "pending": 1}
+                                     "said": "Quote added, verbatim.", "pending": 1}
                   and out["addRedo"] == {"kqs": [woke, socks], "ess": ["Woken before the alarm", typed], "n": 2},
                   str([out["addUndo"], out["addRedo"]]))
             check("153: in node, the fill undone leaves the key quote empty and the statement as it was",

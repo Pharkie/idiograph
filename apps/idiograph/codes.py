@@ -1244,12 +1244,17 @@ def came_back(root: Path, sent: list[dict], when: str, dry_run: bool = False, wh
 
 # ---------------------------------------------------------------------- undo
 
-def undo(root: Path, books: list[dict], when: str, redo: bool = False, dry_run: bool = False, tool: str = "") -> dict:
+def undo(root: Path, books: list[dict], when: str, redo: bool = False, dry_run: bool = False, tool: str = "",
+         seen: str | None = None) -> dict:
     """The list's last change put back, or with `redo` made again: each file it wrote put back from the copy kept
     before, after a copy of the file as it stands, only while every file still reads as the change left it, else
-    refused whole with nothing written. The list takes its codes as they were. Answers `changes`, the line, and
-    the list after."""
+    refused whole with nothing written. The list takes its codes as they were. `seen`, the list's version the page
+    read (sameux2b), refuses the step with nothing written when the list changed since, so the page's Undo undoes the
+    step it showed or nothing, never an agent's change made meanwhile. Answers `changes`, the line, and the list
+    after."""
     data = load(root)
+    if seen and data is not None and str(seen) != version(data, extracts_of(study_rows(books))):
+        raise Stale(i18n.t("codes.stale"))
     step = (data or {}).get("redo" if redo else "undo")
     if not step:
         raise WorkbookError(i18n.t("codes.nothing_to_redo") if redo else i18n.t("codes.nothing_to_undo"))

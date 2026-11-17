@@ -6282,7 +6282,8 @@ def api_qdpx_export(body: dict) -> dict:
     answer = qdpx_export(root, dest, body.get("participants") or None, body.get("recordings") is True, replace=True)
     # the place he chose, which the export notice's Show in Finder may show though no project holds it
     SAVED_ELSEWHERE.add(str(dest.resolve()))
-    return dict(answer, path=str(dest))
+    # qdpx_export's answer carries the file's path already
+    return answer
 
 
 def qdpx_download(handler, query: dict) -> None:
@@ -9192,7 +9193,17 @@ def api_stamp(body: dict) -> dict:
     thirty seconds. `outside` says the file was last written outside the app, by an AI agent's command
     line or by hand, and not by a window of this one, whose change an open board takes by itself (20
     October), and on GETs `cases` lists each case whose PETs changed since they came in, with whether
-    that change was made outside the app."""
+    that change was made outside the app. With `of` of `trajectories` or `codes` (sameux2, 17 November 2026) it
+    reads the project's Trajectories file or code list alone, its `updated` and `outside`, for those screens' panel
+    of a change made elsewhere."""
+    of = str(body.get("of") or "")
+    if of in ("trajectories", "codes"):
+        root = traj_root(body) if of == "trajectories" else codes_root(body)
+        mod = traj_mod if of == "trajectories" else codes_mod
+        held = mod.path_of(root)
+        data = mod.load(root) if held.exists() else None
+        return {"file": of, "updated": (data or {}).get("updated"),
+                "outside": held.exists() and not wb_mod.written_here(held)}
     path = case_path(body.get("workbook") or body.get("path") or body["workbook"])
 
     def boards(data) -> list[dict]:
@@ -10292,13 +10303,19 @@ def api_codes_suggest(body: dict) -> dict:
 
 def api_codes_undo(body: dict) -> dict:
     """The code list's last change undone, or with `redo` made again (see `codes.undo`): every file it wrote put
-    back whole, refused with nothing written when one changed since."""
+    back whole, refused with nothing written when one changed since. `v`, the list's version the page read, is
+    refused with 409 and `stale` when the list changed since (sameux2b), so the page's Undo takes its own step or
+    none."""
     root = codes_root(body)
     books = gets_books(root)
     dry = ticked(body.get("dry_run"), False)
     with writing(root=root, books=[] if dry else [b["workbook"] for b in books]):
-        done = codes_mod.undo(root, books, themes_mod.now_iso(), redo=ticked(body.get("redo"), False), dry_run=dry,
-                              tool=themes_ai.one_line(body.get("tool") or ""))
+        try:
+            done = codes_mod.undo(root, books, themes_mod.now_iso(), redo=ticked(body.get("redo"), False), dry_run=dry,
+                                  tool=themes_ai.one_line(body.get("tool") or ""),
+                                  seen=str(body["v"]) if body.get("v") else None)
+        except codes_mod.Stale as exc:
+            return {"error": str(exc), "stale": True, "status": 409}
     view = done.pop("list")
     return codes_reply(root, body, view, done)
 

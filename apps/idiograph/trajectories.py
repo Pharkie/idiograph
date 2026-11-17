@@ -220,6 +220,8 @@ def write(root: Path, data: dict) -> Path:
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(themes.render(data) + "\n", encoding="utf-8", newline="\n")
     os.replace(tmp, path)
+    # kept as this process wrote it, so the stamp tells another window's change from an agent's (sameux2)
+    note_written(path)
     return path
 
 

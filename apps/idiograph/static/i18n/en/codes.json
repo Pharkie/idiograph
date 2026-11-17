@@ -23,6 +23,7 @@
   "codes.not_an_op": "Operation {n}, {op}, is not one of new, rename, describe, merge, delete, add or remove. Nothing was changed.",
   "codes.merge_itself": "{name} cannot be merged into itself. Nothing was changed.",
   "codes.delete_has_extracts": "{name} has {n}, so it cannot be deleted. Nothing was changed.",
+  "codes.stale_line": "The code list has changed since this page was loaded, so nothing was saved.",
   "codes.stale": "The code list changed since this screen read it, so nothing was written. It shows the list as it is now.",
   "codes.cannot_write": "{name} cannot be written, so nothing was changed.",
   "codes.no_quote_column": "{name} has no quotes column on {sheet}, so nothing was changed.",
@@ -59,6 +60,8 @@
   "codes.said.description_cleared": "The description of {name} cleared.",
   "codes.said.merged": "{old} merged into {new}.",
   "codes.said.deleted": "{name} deleted.",
+  "codes.deleted_code": "Deleted the code {name}.",
+  "codes.outside_changed": "The code list changed outside Idiograph.",
   "codes.said.several": {
     "one": "{n} change",
     "other": "{n} changes"

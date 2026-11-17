@@ -289,7 +289,7 @@ def test_trajectories_undo(scratch: Path):
               bar.index('id="tj-export"') < bar.index('id="tj-undo"') < bar.index('id="tj-redo"')
               and not any("disabled" in x for x in buttons) and "undo_cmd_z" in bar and "redo_shift_cmd_z" in bar, bar[:300])
         check("410: pressed with nothing to undo or redo the page says the boards' lines",
-              "say(backwards ? t('themes.undo.nothing') : t('themes.undo.nothing_redo'), 2000)" in js
+              "sayNothingToUndo(backwards)" in js
               and "disabled" not in js.split("function trajStepsDraw", 1)[1].split("}", 1)[0], "")
         check("410: the page sends each change as a step, asks the undo route, and takes Cmd + Z and Shift + Cmd + Z "
               "outside a field", "step: true" in js and "/api/trajectories-undo" in js and "REDO_Y(e)" in js

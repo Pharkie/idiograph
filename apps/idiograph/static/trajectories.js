@@ -42,7 +42,9 @@ const TJ = { path: '', back: null, to: 'cases', data: null, ask: 0, busy: false,
   steps: { undo: false, redo: false },
   // a count of the board's answers, each change and each Undo or Redo one more, so the delete's notice knows its
   // step is still the last (trajfix2)
-  stepN: 0 };
+  stepN: 0,
+  // the stamp's look, and the time of a change made elsewhere whose panel he closed, left for later (sameux2)
+  stampAsk: 0, left: null };
 // Not placed, the one name of every board's left sidebar (toolbar10, Adam, 16 November 2026)
 const TJ_NOT_PLACED = t('themes.left.name');
 /* the Trajectories export (exportnew and exportwire, 16 November 2026): its menu's Save as PDF and Microsoft Word post
@@ -113,6 +115,8 @@ const TJ_TAG_COLOURS = 8;
    screen it came from away once the board is in, `back` returns there, `to` names that screen */
 async function trajOpen(path, how = {}) {
   if (typeof unsayUndo === 'function') unsayUndo();
+  if (typeof XO !== 'undefined' && XO.info && XO.info.traj) outsideNotice(null);
+  TJ.left = null;
   const ask = ++TJ.ask;
   let data;
   try {
@@ -151,6 +155,55 @@ function trajLoad(data) {
   $('tj-band').classList.toggle('band-unasked', !question);
   $('tj-band-question').textContent = question || '';
   trajDraw();
+}
+
+/* A change made elsewhere (sameux2, 17 November 2026, the boards' form on every screen): on a focus of the window and
+   every few seconds the stamp reads the Trajectories file's time alone. A change from another window of this app is
+   taken in by itself; one from an agent or another program shows the one panel every screen shares (outsideNotice),
+   Update reading the board again once a title or a note in hand is kept, its cross leaving that change for later.
+   Never while a change of the page's own is on the way. */
+async function trajStampTick() {
+  if (!TJ.data || !TJ.path || $('traj').hidden || (typeof document !== 'undefined' && document.hidden) || TJ.busy) return;
+  const ask = ++TJ.stampAsk;
+  const path = TJ.path;
+  let data;
+  try {
+    data = await api('/api/stamp', { workbook: path, of: 'trajectories' });
+  } catch { return; }
+  if (ask !== TJ.stampAsk || path !== TJ.path || !TJ.data || $('traj').hidden || TJ.busy) return;
+  const now = data.updated || null;
+  if (now === (TJ.data.updated || null) || now === TJ.left) return;
+  if (data.outside === false) {
+    // his own from another window, unless he is typing here, when the next look takes it
+    const el = document.activeElement;
+    if (el && $('traj').contains(el) && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) return;
+    await trajReread(path);
+    return;
+  }
+  outsideNotice({ traj: true, line: t('trajectories.outside_changed'), word: t('themes.outside.update'),
+    show: () => trajOutsideShow(), close: () => { TJ.left = now; } });
+}
+
+/* the board read again as the file holds it, the bar's settings kept as the page holds them */
+async function trajReread(path) {
+  let data;
+  try {
+    data = await api('/api/trajectories', { workbook: path });
+  } catch { return; }
+  if (path !== TJ.path || !TJ.data || TJ.busy) return;
+  if (TJ.data.config && data.config) data.config = Object.assign({}, data.config, TJ.data.config);
+  trajLoad(data);
+}
+
+async function trajOutsideShow() {
+  if (XO.info && XO.info.traj) outsideNotice(null);
+  const el = document.activeElement;
+  if (el && $('traj').contains(el) && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) el.blur();
+  await trajIdle(250);
+  if (TJ.busy || !TJ.path) return;
+  if (typeof unsayUndo === 'function') unsayUndo();
+  TJ.left = null;
+  await trajReread(TJ.path);
 }
 
 /* the way back, true once the board is put away */
@@ -287,7 +340,7 @@ async function trajUndo(backwards) {
   await trajIdle(250);
   if (TJ.busy) return;
   if (!(backwards ? TJ.steps.undo : TJ.steps.redo)) {
-    say(backwards ? t('themes.undo.nothing') : t('themes.undo.nothing_redo'), 2000);
+    if (typeof sayNothingToUndo === 'function') sayNothingToUndo(backwards);
     return;
   }
   TJ.busy = true;
@@ -385,6 +438,7 @@ function trajFit(box) {
 }
 
 /* The bin and the chevron under a trajectory's icon (trajbuild, 17 November 2026, Adam's C and D1) */
+// the bin every control that deletes by an icon alone shows, the boards' TH_DEL_ICON the same glyph (sameux2)
 const TJ_BIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l.9 12.2a1.8 1.8 0 0 0 1.8 1.6h5.6a1.8 1.8 0 0 0 1.8-1.6L17.5 7M10.2 11v6M13.8 11v6"/></svg>';
 const TJ_CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 10l5 5 5-5"/></svg>';
 
@@ -405,7 +459,7 @@ function trajBandHtml(col) {
     const icon = `<span class="tf-anchor"><button type="button" class="tf-iconbtn${shown ? '' : ' tf-iconbtn-none'}" data-swatch="${id}" data-fkey="swatch-${id}"
         aria-expanded="${open}" aria-haspopup="dialog" title="${said}" aria-label="${said}">${shown || '<span class="tf-iconbtn-dot"></span>'}<span class="tf-chev">${TJ_CHEV}</span></button>`
       + `${open ? trajPickerHtml(col) : ''}</span>`;
-    const bin = `<button type="button" class="tj-remove tf-bin" data-remove="${id}" data-fkey="remove-${id}"
+    const bin = `<button type="button" class="tj-remove tf-bin del-bin" data-remove="${id}" data-fkey="remove-${id}"
         aria-label="${escAttr(t('trajectories.delete_label', { title: col.title }))}" title="${escAttr(t('trajectories.delete_tip'))}">${TJ_BIN}</button>`;
     head = `<header class="tf-head">${icon}<div class="tf-headw">`
       + `<input class="tj-title tf-title" type="text" value="${escAttr(col.title)}" maxlength="60" data-col="${id}" data-fkey="title-${id}"
@@ -1037,6 +1091,11 @@ function trajWire() {
   // the lockup, Home (option C of the bars, 26 October 2026), and Send feedback, said as from the GETs, the
   // project's other board, a word of the collector's fixed list
   $('tj-home').onclick = () => trajHome();
+  // a change made elsewhere looked for on a focus of the window and every few seconds (sameux2), in a window
+  if (typeof window.addEventListener === 'function') {
+    window.addEventListener('focus', () => trajStampTick());
+    setInterval(() => trajStampTick(), 4 * 1000);
+  }
   $('tj-feedback').onclick = () => openFeedback('gets');
   $('tj-settings').onclick = () => openSettings('pets');
   for (const [id, step] of [['tj-step-es', 'statements'], ['tj-step-pets', 'pets'], ['tj-step-lpets', 'lpets'],
@@ -1390,16 +1449,14 @@ async function trajStep(step) {
 }
 
 /* Export in the toolbar row (toolbar10): Print, Save as PDF and Microsoft Word, then Include, Each participant's note and
-   Unplaced, unticked at each open */
+   Unplaced, unticked at first and kept as he left them for the session, as every screen's Include ticks are (sameux2) */
 function trajXmenu(open) {
   const menu = $('tj-xmenu');
   const btn = $('tj-export');
   if (!menu || !btn) return;
-  const was = !menu.hidden;
   menu.hidden = !(open && TJ_EXPORT);
   btn.setAttribute('aria-expanded', String(!menu.hidden));
   if (menu.hidden) return;
-  if (!was) menu.querySelectorAll('[data-xinc]').forEach((box) => { box.checked = false; });
   xmenuPlace(btn, menu);
 }
 
@@ -1414,6 +1471,8 @@ async function trajExportGo(kind) {
   const el = document.activeElement;
   if (el && $('traj').contains(el) && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) el.blur();
   await trajIdle(250);
+  // a change still in flight after about ten seconds: nothing exported, said in the export panel (sameux2b)
+  if (TJ.busy) { exportFailed(null, t('trajectories.export_still_saving')); return; }
   if (kind === 'print') {
     const url = `${TJ_PRINT}?${new URLSearchParams({ workbook: TJ.path, notes: ticks.notes ? '1' : '0', unplaced: ticks.unplaced ? '1' : '0' })}`;
     if (!window.open(url, '_blank')) say(t('themes.print.blocked'), 8000);

@@ -435,7 +435,7 @@ def test_new_project(scratch):
         script.write_text(support.i18n_js() +
             "const second = { checked: false };\n"
             "const $ = (id) => (id === 'np-second' ? second : null);\n"
-            "const NP_CROSS = 'x';\n" + "\n".join(pieces) + "\n"
+            "const NP_BIN = 'x';\n" + "\n".join(pieces) + "\n"
             "const read = " + json.dumps(read) + ";\n"
             "const row = { key: 1, file: 'Rhea Example.vtt', read, said: '', pseudonym: '', second: '', interview: 'Interview',\n"
             "  roles: { 'Sam Okafor': 'interviewer' }, number: '' };\n"

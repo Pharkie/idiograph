@@ -211,6 +211,10 @@
   "themes.step.took_out_deleted": "Took cards out and deleted labels",
   "themes.deleted_label": "Deleted the label {title}.",
   "themes.deleted_labels": "Deleted {n} labels.",
+  "themes.deleted_stickies": {
+    "one": "Deleted a sticky note.",
+    "other": "Deleted {n} sticky notes."
+  },
   "themes.step.desc_written": "Wrote a description",
   "themes.step.desc_removed": "Removed a description",
   "themes.step.made_theme": "Made a theme",

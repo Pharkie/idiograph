@@ -294,7 +294,7 @@ def test_support(scratch: Path):
     once.write_text(json.dumps({"interviewer": "Ada"}, indent=2), encoding="utf-8")
     distil = support.text("apps/idiograph/static/distil.js")
     script = (support.i18n_js() + "".join(piece(themes, n) for n in ("thExport", "thExported", "thSupportOnce"))
-              + "".join(piece(distil, n) for n in ("exportHost", "exportPlace", "exportNotice", "exportFailed"))
+              + "".join(piece(distil, n) for n in ("exportHost", "cornerPlace", "exportPlace", "exportNotice", "exportFailed"))
               + "const exportShown = () => false;\n" + THEMES_RUN)
     path = scratch / "a289-once.js"
     path.write_text(script, encoding="utf-8")

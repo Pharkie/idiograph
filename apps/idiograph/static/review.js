@@ -167,7 +167,7 @@ function rvwTop() {
   const th = $('th-undo');
   const undo = th && th.getBoundingClientRect().width ? th : $('es-undo');
   let top = undo && undo.parentElement ? undo.parentElement.getBoundingClientRect().bottom + 16 : 54;
-  for (const id of ['es-outside', 'th-outside']) {
+  for (const id of ['th-outside', 'th-stale']) {
     const el = $(id);
     if (el && !el.hidden && el.getBoundingClientRect().height) top = Math.max(top, el.getBoundingClientRect().bottom + 8);
   }

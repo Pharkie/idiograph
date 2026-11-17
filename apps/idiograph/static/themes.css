@@ -1208,16 +1208,19 @@ textarea.th-vedit { resize: vertical; min-height: 4.4em; margin-top: 4px; }
 /* Changes made elsewhere (Adam, 20 October, from a tester's feedback): a change from outside the app, an AI
    agent's or a hand on the file, in a bright card in the top right that stays until he acts, Update a solid
    button after the words. A change from another window of the app comes in by itself and shows nothing. */
-#th-outside { background: var(--crux); border-color: var(--crux); color: var(--paper); }
-#th-outside .th-exported-head { color: var(--paper); font-weight: 600; font-size: 13px; display: flex; align-items: center;
+.th-outside { background: var(--crux); border-color: var(--crux); color: var(--paper); }
+.th-outside .th-exported-head { color: var(--paper); font-weight: 600; font-size: 13px; display: flex; align-items: center;
   flex-wrap: wrap; gap: 6px 10px; margin: 0; }
-#th-outside .card-close { color: var(--paper); top: 50%; transform: translateY(-50%); }
-#th-outside .card-close:hover { background: color-mix(in srgb, var(--paper) 18%, transparent); }
-#th-outside .th-outside-show {
+.th-outside .card-close { color: var(--paper); top: 50%; transform: translateY(-50%); }
+/* what changed, under the heading every screen's panel shares (sameux2b) */
+.th-outside-said { margin: 4px 0 0; font-size: 12.5px; line-height: 1.4; color: var(--paper); }
+.th-outside-said:empty { display: none; }
+.th-outside .card-close:hover { background: color-mix(in srgb, var(--paper) 18%, transparent); }
+.th-outside .th-outside-show {
   margin-left: auto; padding: 4px 12px; border: 0; border-radius: 4px; background: var(--paper); color: var(--crux);
   font-weight: 600; font-size: 12.5px;
 }
-#th-outside .th-outside-show:hover { background: color-mix(in srgb, var(--paper) 88%, var(--crux)); color: var(--crux); }
+.th-outside .th-outside-show:hover { background: color-mix(in srgb, var(--paper) 88%, var(--crux)); color: var(--crux); }
 /* a save refused because the board changed since the page read it: the line, then Reload and Overwrite */
 .th-stale .th-exported-head { margin: 0 0 8px; line-height: 1.45; }
 .th-stale-acts { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -2737,3 +2740,7 @@ input.tj-title:focus { outline: 0; border-color: var(--field-edge); background: 
 /* Undo and Redo at the right end of the Trajectories toolbar (trajundo, 16 November 2026), as on every board */
 .tj-bar-grow { flex: 1 1 auto; }
 .tj-bar #tj-undo { margin-left: 4px; }
+
+/* Every control that deletes at once by an icon alone shows the bin and carries .del-bin (sameux2, 17 November 2026,
+   docs/design.md, Behaviour): quiet at rest as each screen draws it, the danger red under the pointer and in focus */
+.del-bin:is(:hover, :focus-visible) { color: var(--danger); }

@@ -163,7 +163,7 @@ def test_themes_feedback_two(scratch):
           in fn(js, "thPlace"))
     check("84: arrange sits beside the cross on a label, in the panel and in the menu, one step of undo",
           '<button type="button" class="th-arr"' in fn(js, "thRender")
-          and fn(js, "thRender").index('class="th-arr"') < fn(js, "thRender").index('class="th-del"')
+          and fn(js, "thRender").index('class="th-arr"') < fn(js, "thRender").index('class="th-del del-bin"')
           and "thArrangeHtml(g.id)" in fn(js, "thPanelDraw") and "thArrangeGroup(arrange.dataset.arrange)" in js
           and "if (del.classList.contains('th-arr')) thArrangeGroup(label.dataset.group);" in js
           and fn(js, "thArrangeGroup").count("thDone(") == 1 and "const before = thSnap(v, TH.removed);" in fn(js, "thArrangeGroup"))

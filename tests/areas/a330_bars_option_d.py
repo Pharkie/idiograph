@@ -1032,7 +1032,7 @@ const escAttr = (s) => esc(s).replace(/"/g, '&quot;');
           "nothing, a folder the list does not hold refused, and a machine that is neither a Mac nor Windows refused in "
           "one line",
           sift_said == {"revealed": True} and trace_said == {"revealed": True} and shown == ["hedges", "pond"]
-          and all(strangers) and elsewhere == "Show in Finder is there on a Mac or Windows only." and before == after,
+          and all(strangers) and elsewhere == "Show in Finder is there on a Mac, Windows or Linux only." and before == after,
           str([sift_said, trace_said, shown, strangers, elsewhere]))
 
 

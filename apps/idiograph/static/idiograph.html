@@ -82,15 +82,6 @@
 <!-- ─────────────────────────────────────────────────── work ── -->
 <section id="work" class="screen" hidden>
 
-  <!-- a turn an AI agent wrote in a conversation: one line under the right end of the bar, and Show
-       it, which saves the turn in front of him first, then reads the case again on that turn -->
-  <div class="es-outside" id="es-outside" hidden role="status">
-    <span id="es-outside-line"></span> <button type="button" class="th-outside-show" id="es-outside-show">{{page_idiograph.work.show}}</button>
-    <button class="es-outside-close" id="es-outside-close" type="button" aria-label="{{page_idiograph.work.close}}" title="{{page_idiograph.work.close}}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
-    </button>
-  </div>
-
   <!-- the participants of the project, from the picker in the tab -->
   <div class="row-menu ds-whomenu" id="es-whomenu" role="menu" aria-label="{{page_idiograph.work.participants}}" hidden></div>
   <div class="rail ds-rail">
@@ -890,29 +881,6 @@
       <div id="th-pile-body"></div>
     </div>
 
-    <!-- a board added or changed outside the page, in a conversation with an AI agent or another
-         window: one line in the same corner, and Show it, which saves the canvas first, then loads -->
-    <div class="th-ui th-exported th-made th-outside" id="th-outside" hidden role="status">
-      <button class="card-close" id="th-outside-close" type="button" tabindex="-1" aria-label="{{page_idiograph.screens.close}}" title="{{page_idiograph.screens.close}}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
-      </button>
-      <p class="th-exported-head"><span id="th-outside-line"></span> <button type="button" class="th-outside-show"
-         id="th-outside-show" tabindex="-1">{{page_idiograph.screens.show}}</button></p>
-    </div>
-
-    <!-- a save refused because the board changed since the page read it, in another window or by an
-         agent (19 October): nothing was saved and the canvas is as he left it, Reload keeps the canvas
-         in History and takes the board as the file holds it, with Put my canvas back after, and
-         Overwrite saves the canvas over it -->
-    <div class="th-ui th-exported th-made th-stale" id="th-stale" hidden role="alert">
-      <p class="th-exported-head" id="th-stale-line">{{page_idiograph.screens.board_has_changed_since}}</p>
-      <div class="th-stale-acts" id="th-stale-acts">
-        <button type="button" class="ghost small" id="th-stale-reload" tabindex="-1">{{page_idiograph.screens.reload}}</button>
-        <button type="button" class="ghost small" id="th-stale-over" tabindex="-1">{{page_idiograph.screens.overwrite}}</button>
-      </div>
-      <button type="button" class="ghost small" id="th-stale-back" tabindex="-1" hidden>{{page_idiograph.screens.put_my_canvas_back}}</button>
-    </div>
-
     <!-- the toolbar (Adam, 21 October, the toolbar drawings, from a tester, who missed the floating palette and
          found many things only shortcuts): docked by default under the research question, in #th-dock, each
          tool with its icon and its word, Sticky note, Group and Select all, then Auto-arrange, its button
@@ -1274,6 +1242,27 @@
   <p class="th-exported-head" id="export-done-head"></p>
   <ul class="th-exported-files" id="export-done-files"></ul>
   <button type="button" class="ghost small" id="export-reveal" tabindex="-1" hidden>{{page_idiograph.screens.show_finder}}</button>
+</div>
+<!-- a change made elsewhere and a save refused, one panel each for every screen (sameux2, 17 November 2026, the boards'
+     form everywhere: the PETs and GETs boards, the statements screen, Trajectories and the Code list), in the export
+     notice's corner, the top right of the screen's canvas or page under its bars, drawn by outsideNotice and
+     staleNotice (distil.js). Show it saves what is in front of him first, then reads the change; Reload keeps his
+     work where it can and reads the file as it is; Overwrite saves his over it -->
+<div class="th-exported th-made th-outside export-done" id="th-outside" hidden role="status">
+  <button class="card-close" id="th-outside-close" type="button" tabindex="-1" aria-label="{{page_idiograph.screens.close}}" title="{{page_idiograph.screens.close}}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+  </button>
+  <p class="th-exported-head"><span id="th-outside-line">{{themes.outside.elsewhere}}</span> <button type="button" class="th-outside-show"
+     id="th-outside-show" tabindex="-1">{{page_idiograph.screens.show}}</button></p>
+  <p class="th-outside-said" id="th-outside-said"></p>
+</div>
+<div class="th-exported th-made th-stale export-done" id="th-stale" hidden role="alert">
+  <p class="th-exported-head" id="th-stale-line">{{page_idiograph.screens.board_has_changed_since}}</p>
+  <div class="th-stale-acts" id="th-stale-acts">
+    <button type="button" class="ghost small" id="th-stale-reload" tabindex="-1">{{page_idiograph.screens.reload}}</button>
+    <button type="button" class="ghost small" id="th-stale-over" tabindex="-1">{{page_idiograph.screens.overwrite}}</button>
+  </div>
+  <button type="button" class="ghost small" id="th-stale-back" tabindex="-1" hidden>{{page_idiograph.screens.put_my_canvas_back}}</button>
 </div>
 <div class="overlay" id="round-done" hidden>
   <div class="card celebrate">

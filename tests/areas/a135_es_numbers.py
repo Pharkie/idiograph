@@ -135,7 +135,7 @@ console.log(JSON.stringify(out));
                   and out["removed"]["focus"], str(out["removed"]))
             check("135: in node, its undo puts it back as 2 and the rest follow, and redo takes it out again",
                   out["undone"]["heads"] == n(4) and out["undone"]["names"] == named(4)
-                  and out["undone"]["statements"] == [first, second, third, ""] and bool(out["undone"]["said"])
+                  and out["undone"]["statements"] == [first, second, third, ""] and not out["undone"].get("said")
                   and out["redone"]["heads"] == n(3) and out["redone"]["statements"] == [first, third, ""], str(out["undone"]))
             check("135: in node, one pair alone is still numbered 1, after a removal and on a passage with none",
                   out["one"]["heads"] == n(1) and out["one"]["names"] == named(1) and out["oneOut"]["heads"] == n(1)

@@ -185,7 +185,7 @@ def test_quote_pairs(scratch):
     remove = fn(app, "removePair")
     check("88: Remove on a pair, the cross until 14 October (135), a bin since 18 October (186), removes it, one step "
           "of undo that puts it back where it stood, and a turn keeps one pair",
-          '''<button type="button" class="pair-remove" data-remove="${id}" title="${escAttr(t('distil.pair.remove'))}" aria-label="${escAttr(t('distil.pair.remove'))}">''' in pair_html
+          '''<button type="button" class="pair-remove del-bin" data-remove="${id}" title="${escAttr(t('distil.pair.remove'))}" aria-label="${escAttr(t('distil.pair.remove'))}">''' in pair_html
           and "const PAIR_CROSS" not in app
           and "if (remove) removePair(remove.closest('.pair'));" in app and "undoPush({" in remove
           and "if (!pairEls().length) insertPair({ es: '', kq: '' });" in remove

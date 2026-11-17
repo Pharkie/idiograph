@@ -121,7 +121,7 @@
   "server.folder_nothing_added": "That folder is not there, so nothing was added.",
   "server.folder_holds_app_demo_cannot": "That folder holds the app or its demo, so it cannot be a project.",
   "server.demo_stays_nothing_removed": "The demo stays, so nothing was removed.",
-  "server.show_finder_mac_windows_only": "Show in Finder is there on a Mac or Windows only.",
+  "server.show_finder_mac_windows_only": "Show in Finder is there on a Mac, Windows or Linux only.",
   "server.demo_ships_idiograph_folder_shown": "The demo ships with Idiograph, so its folder is not shown.",
   "server.folder_more": "Its folder is not there any more.",
   "server.demo_ships_idiograph_sent": "The demo ships with Idiograph, so it is not sent.",

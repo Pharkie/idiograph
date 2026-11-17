@@ -450,6 +450,7 @@ AREAS = {
     "a415_gets_set_aside": "idiograph",
     "a416_drawn_on": "idiograph",
     "a417_screen_guidance": "idiograph",
+    "a418_same_behaviour": "idiograph",
 }
 
 

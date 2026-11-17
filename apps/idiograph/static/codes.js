@@ -10,7 +10,11 @@
    of the list's undo, Cmd + Z on this screen and the Undo beside the list. Nothing is kept in the browser. */
 
 const CD = { path: '', back: null, to: 'statements', data: null, ask: 0, busy: false, open: null, project: null,
-  find: '', menu: null, merging: null };
+  find: '', menu: null, merging: null,
+  // the stamp's look, and the time of a change made elsewhere whose panel he closed, left for later (sameux2)
+  stampAsk: 0, left: null,
+  // the changes held while a refused change's panel shows, sent in order by its Overwrite (sameux2b)
+  held: [] };
 
 const cdNorm = (s) => String(s || '').split(/\s+/).filter(Boolean).join(' ').toLowerCase();
 const cdCode = (id) => ((CD.data && CD.data.codes) || []).find((c) => c.id === id) || null;
@@ -29,6 +33,10 @@ async function codesOpen(path, how = {}) {
   }
   if (ask !== CD.ask) return false;
   if (how.leave) how.leave();
+  // the panels of the list opened before go with it
+  if (XO.info && XO.info.codes) outsideNotice(null);
+  if (XS.info && XS.info.codes) staleNotice(null);
+  CD.left = null;
   CD.path = path;
   CD.back = how.back || null;
   CD.to = how.to || 'statements';
@@ -107,7 +115,7 @@ function codesOpenDraw() {
     + '<div class="cd-acts">'
     + `<button type="button" class="ghost small" data-act="rename">${esc(t('codes.rename'))}</button>`
     + `<button type="button" class="ghost small" data-act="merge"${(CD.data.codes || []).length < 2 ? ' disabled' : ''}>${esc(t('codes.merge'))}</button>`
-    + (c.extracts ? '' : `<button type="button" class="ghost small" data-act="delete">${esc(t('codes.delete'))}</button>`)
+    + (c.extracts ? '' : `<button type="button" class="ghost small btn-remove" data-act="delete">${esc(t('codes.delete'))}</button>`)
     + '</div>'
     + `<label class="field-label cd-desc-label" for="cd-desc">${esc(t('codes.description'))}</label>`
     + `<textarea class="cd-desc" id="cd-desc" rows="1" maxlength="2000" spellcheck="true">${esc(c.description || '')}</textarea>`;
@@ -134,43 +142,110 @@ function cdDescFit() {
 
 /* ── changes, each through the list's operations ── */
 
-async function codesOps(ops) {
+async function codesOps(ops, over = false) {
   if (!ops.length || CD.busy) return null;
+  // while a refused change's panel shows, a later change waits behind it, as the boards' autosave waits, so its
+  // Overwrite sends every change he made in order and Reload drops them all (sameux2b)
+  if (!over && XS.info && XS.info.codes) { CD.held.push(...ops); codesDraw(); return null; }
+  // a delete's notice is withdrawn by any later change, so its Undo never reaches another step
+  if (typeof unsayUndo === 'function') unsayUndo();
   CD.busy = true;
   $('cd-save').hidden = false;
   $('cd-save').textContent = t('codes.saving');
   try {
-    const data = await api('/api/codes-ops', { workbook: CD.path, ops, v: CD.data && CD.data.v });
+    // Overwrite sends no version, so the change is made over the list as it now stands
+    const data = await api('/api/codes-ops', over ? { workbook: CD.path, ops } : { workbook: CD.path, ops, v: CD.data && CD.data.v });
+    if (XS.info && XS.info.codes) staleNotice(null);
     codesLoad(data);
     $('cd-save').hidden = true;
     if ((data.changes || []).length) say(data.changes.join(' '), 5000);
     return data;
   } catch (err) {
     $('cd-save').hidden = true;
+    // a list changed since this screen read it: nothing was written, and the one panel every screen shares for a
+    // save refused (staleNotice, sameux2) offers Reload, the list as it is now, and Overwrite, the change made over it
+    if (err.data && err.data.stale) {
+      codesDraw();
+      CD.held = over ? [] : ops.slice();
+      codesStale(true);
+      return null;
+    }
     say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
-    // a list changed since this screen read it is drawn again as it is now
-    if (err.data && err.data.stale) await codesReload();
-    else codesDraw();
+    codesDraw();
     return null;
   } finally {
     CD.busy = false;
   }
 }
 
+/* the panel of a change refused over a list changed since: Reload drops the changes held and reads the list as it now
+   is, Overwrite sends them all over it, in the order he made them; `overwrite` false, for an Undo refused, offers
+   Reload alone, since an Undo refused has nothing of his to write */
+function codesStale(overwrite) {
+  staleNotice({ codes: true, line: t('codes.stale_line'),
+    reload: () => {
+      if (CD.busy) return;
+      CD.held = [];
+      staleNotice(null);
+      codesReload();
+    },
+    overwrite: overwrite ? () => {
+      if (CD.busy) return;
+      const ops = CD.held.slice();
+      CD.held = [];
+      staleNotice(null);
+      codesOps(ops, true);
+    } : null });
+}
+
 async function codesReload() {
   try { codesLoad(await api('/api/codes', { workbook: CD.path })); } catch (err) { say(err.message, 9000); }
+}
+
+/* A change made elsewhere (sameux2, 17 November 2026, the boards' form on every screen): on a focus of the window and
+   every few seconds the stamp reads the code list's time alone. A change from another window of this app is taken in
+   by itself; one from an agent or another program shows the one panel every screen shares (outsideNotice), Update
+   reading the list again, its cross leaving that change for later. Never while a change of the page's own is on the
+   way or a name or a description is being typed. */
+async function codesStampTick() {
+  if (!CD.data || !CD.path || $('codes-screen').hidden || (typeof document !== 'undefined' && document.hidden) || CD.busy) return;
+  const ask = ++CD.stampAsk;
+  const path = CD.path;
+  let data;
+  try {
+    data = await api('/api/stamp', { workbook: path, of: 'codes' });
+  } catch { return; }
+  if (ask !== CD.stampAsk || path !== CD.path || !CD.data || $('codes-screen').hidden || CD.busy) return;
+  const now = data.updated || null;
+  if (now === (CD.data.updated || null) || now === CD.left) return;
+  const el = document.activeElement;
+  const typing = !!el && $('codes-screen').contains(el) && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA');
+  // a delete's notice undoes its own step or nothing: a change from anywhere else since takes it away (sameux2b)
+  if (typeof unsayUndo === 'function') unsayUndo();
+  if (data.outside === false) {
+    if (!typing) await codesReload();
+    return;
+  }
+  outsideNotice({ codes: true, line: t('codes.outside_changed'), word: t('themes.outside.update'),
+    show: () => { outsideNotice(null); CD.left = null; codesReload(); }, close: () => { CD.left = now; } });
 }
 
 /* Undo and Redo on this screen, the list's last change put back or made again, every file it wrote */
 async function codesUndo(redo) {
   if (CD.busy) return;
+  if (typeof unsayUndo === 'function') unsayUndo();
+  // nothing to put back or make again: the one line every screen says (sayNothingToUndo, sameux2)
+  if (CD.data && !(redo ? CD.data.redo : CD.data.undo)) { sayNothingToUndo(!redo); return; }
   CD.busy = true;
   try {
-    const data = await api('/api/codes-undo', { workbook: CD.path, redo: !!redo });
+    // the list's version as this screen read it, so a list changed since is refused with nothing undone (sameux2b)
+    const data = await api('/api/codes-undo', { workbook: CD.path, redo: !!redo, v: CD.data && CD.data.v });
+    // and no line after an Undo or Redo that did something: the list shows what came back
     codesLoad(data);
-    say((data.changes || []).join(' '), 5000);
   } catch (err) {
-    say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
+    // the list changed since this screen read it: nothing undone, and the refused change's panel with Reload alone
+    if (err.data && err.data.stale) codesStale(false);
+    else say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
   } finally {
     CD.busy = false;
   }
@@ -279,6 +354,12 @@ async function codesDelete(id) {
     const left = codesShown();
     CD.open = (left[Math.min(at, left.length - 1)] || {}).id || null;
     codesDraw();
+    // the Deleted notice with its Undo, as every delete made at once says it (sayUndo, sameux2), its Undo the list's
+    // own while this delete is still the list's last step and the screen is still the list
+    const step = done.undo;
+    sayUndo(t('codes.deleted_code', { name: c.name }), () => {
+      if (!$('codes-screen').hidden && CD.data && CD.data.undo === step && !CD.busy) codesUndo(false);
+    });
   }
 }
 
@@ -316,7 +397,7 @@ async function codesGo(cs, i) {
   if (!x || !p) return;
   const open = CD.open;
   const back = () => codesOpen(x.workbook || p.path, { back: CD.back, to: CD.to, open });
-  const leave = () => { $('codes-screen').hidden = true; CD.ask += 1; };
+  const leave = () => { if (typeof unsayUndo === 'function') unsayUndo(); $('codes-screen').hidden = true; CD.ask += 1; };
   await navGo(() => codesGo(cs, i), () => openPassage(x.workbook || p.path, { sheet: x.sheet, row: x.row, line: x.line },
     { leave, back, to: 'codes' }));
 }
@@ -331,6 +412,7 @@ async function codesIdle() {
 
 async function codesLeave() {
   await codesIdle();
+  if (typeof unsayUndo === 'function') unsayUndo();
   codesXmenu(false);
   $('codes-screen').hidden = true;
   CD.ask += 1;
@@ -341,6 +423,7 @@ async function codesLeave() {
 
 async function codesHome() {
   await codesIdle();
+  if (typeof unsayUndo === 'function') unsayUndo();
   $('codes-screen').hidden = true;
   CD.ask += 1;
   S.backTo = null;
@@ -405,6 +488,9 @@ function codesExportWire() {
 
 function codesWire() {
   codesExportWire();
+  // a change made elsewhere looked for on a focus of the window and every few seconds (sameux2)
+  window.addEventListener('focus', () => codesStampTick());
+  setInterval(() => codesStampTick(), 4 * 1000);
   $('cd-home').onclick = () => codesHome();
   $('cd-feedback').onclick = () => openFeedback('gets');
   $('cd-settings').onclick = () => openSettings('pets');

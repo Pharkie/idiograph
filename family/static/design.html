@@ -74,6 +74,11 @@
     --cols: minmax(0, 3fr) minmax(0, 5fr) minmax(0, 3fr); }
   .ds-panel .ds-cols .turn:hover { background: none; }
   .ds-panel .ds-card { max-width: 22em; }
+  /* Behaviour's corner panels, which stand fixed in the app's top right, here in the flow one under another */
+  .ds-panel .ds-corner { position: relative; top: auto; right: auto; z-index: auto; width: min(380px, 100%);
+    margin: 0 0 var(--sp-6); animation: none; }
+  .ds-panel .ds-behaviour .toast { margin: 0 0 var(--sp-6); }
+  .ds-panel .ds-close { position: static; }
 </style>
 </head>
 <body>
@@ -352,6 +357,50 @@
         </div>
       </div>
       <div class="search-foot"><button type="button" class="quiet">Replace in the transcript</button></div>
+    </div>
+  </section>
+
+  <!-- Behaviour (sameux2, 17 November 2026, docs/design.md, Behaviour): each function's one component as the app
+       draws it, from the app's own classes and stylesheets, with the shared function every screen calls -->
+  <section class="ds-sec ds-behaviour">
+    <h3 class="section-label">Behaviour</h3>
+    <p class="ds-note">Export or save done, top right of the screen's canvas or page, until its cross: <code>exportNotice</code></p>
+    <div class="th-exported export-done ds-corner" role="status">
+      <button class="card-close" type="button" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+      <p class="th-exported-head">Exported Board 1</p>
+      <ul class="th-exported-files"><li class="mono">P1 - Wren PETs.pdf</li></ul>
+      <button type="button" class="ghost small">Show in Finder</button>
+    </div>
+    <p class="ds-note">A change made elsewhere, the same corner, until Update (or Show it, where it goes somewhere new) or its cross: <code>outsideNotice</code></p>
+    <div class="th-exported th-made th-outside export-done ds-corner" role="status">
+      <button class="card-close" type="button" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+      <p class="th-exported-head"><span>Changes made elsewhere</span> <button type="button" class="th-outside-show">Update</button></p>
+      <p class="th-outside-said">The trajectories changed outside Idiograph.</p>
+    </div>
+    <p class="ds-note">A save that would overwrite newer work, the same corner, Reload first: <code>staleNotice</code></p>
+    <div class="th-exported th-made th-stale export-done ds-corner" role="alert">
+      <p class="th-exported-head">This board has changed since this page was loaded, so nothing was saved. Your words are still here.</p>
+      <div class="th-stale-acts"><button type="button" class="ghost small">Reload</button><button type="button" class="ghost small">Overwrite</button></div>
+    </div>
+    <p class="ds-note">A delete made at once, the line at the foot with its Undo, 8 s: <code>sayUndo</code>, any later step <code>unsayUndo</code></p>
+    <div class="toast" role="status">Deleted the label Feeling at home. <button type="button" class="ghost small toast-undo">Undo</button></div>
+    <p class="ds-note">Nothing to undo, the line at the foot, 2 s, and no line after an Undo: <code>sayNothingToUndo</code></p>
+    <div class="toast" role="status">Nothing to undo on this screen.</div>
+    <p class="ds-note">Delete by an icon alone is the bin, <code>.del-bin</code>; in words <code>.btn-remove</code>; the cross only closes</p>
+    <div class="ds-row">
+      <button type="button" class="tj-remove del-bin" aria-label="Delete this trajectory" title="Delete this trajectory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l.9 12.2a1.8 1.8 0 0 0 1.8 1.6h5.6a1.8 1.8 0 0 0 1.8-1.6L17.5 7M10.2 11v6M13.8 11v6"/></svg></button>
+      <button type="button" class="ghost small btn-remove">Delete</button>
+      <button class="card-close ds-close" type="button" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+    </div>
+    <p class="ds-note">Delete that cannot be undone in one step asks first: the act in red, Cancel before it</p>
+    <div class="card-actions ds-row"><button type="button" class="ghost">Cancel</button><button type="button" class="primary btn-remove">Delete board</button></div>
+    <p class="ds-note">A card that applies as it goes ends in Done at its foot right</p>
+    <div class="card-actions card-done ds-row"><button type="button" class="primary">Done</button></div>
+    <p class="ds-note">A tick ticks from its whole row; a radio is one of a few</p>
+    <div class="ds-row">
+      <label><input type="checkbox" checked> Each participant's note</label>
+      <label><input type="radio" name="ds-beh" checked> Every statement and quote</label>
+      <label><input type="radio" name="ds-beh"> Their key quote only</label>
     </div>
   </section>
 </template>

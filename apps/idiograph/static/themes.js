@@ -2346,7 +2346,10 @@ function thCardTitle(c) {
 const TH_PICK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9.4 6.5H5.6v4h3.8v1.2c0 2-1.1 3.3-3.2 4M18.4 6.5h-3.8v4h3.8v1.2c0 2-1.1 3.3-3.2 4"/></svg>';
 const TH_TICK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12.6 9.8 17.4 19 7.2"/></svg>';
 const TH_SPARK_ICON = '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.2c.95 4.2 2.65 5.9 6.85 6.85-4.2.95-5.9 2.65-6.85 6.85-.95-4.2-2.65-5.9-6.85-6.85C9.35 9.1 11.05 7.4 12 3.2Z"/><path d="M18.4 14.6c.42 1.85 1.17 2.6 3.02 3.02-1.85.42-2.6 1.17-3.02 3.02-.42-1.85-1.17-2.6-3.02-3.02 1.85-.42 2.6-1.17 3.02-3.02Z"/></svg>';
-const TH_DEL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+// a label's and a sticky note's delete, the bin every control that deletes by an icon alone shows, each `del-bin` and
+// this one glyph, Trajectories' TJ_BIN the same (sameux2, docs/design.md, Behaviour), where it was a cross, which reads
+// as close (Adam, 17 November 2026: an X closes and never deletes)
+const TH_DEL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l.9 12.2a1.8 1.8 0 0 0 1.8 1.6h5.6a1.8 1.8 0 0 0 1.8-1.6L17.5 7M10.2 11v6M13.8 11v6"/></svg>';
 const TH_NOTE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 8h12M6 12h12M6 16h7"/></svg>';
 /* the Current board's mark, a small ribbon, after its name in the board menu and in the switcher */
 const TH_CHOSEN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 4.5h10v15.2l-5-3.7-5 3.7z"/></svg>';
@@ -2434,7 +2437,7 @@ function thRender() {
     el.dataset.sticky = n.id;
     el.title = t('themes.sticky.tip');
     el.innerHTML = `<p class="th-sticky-text">${esc(n.text)}</p>`
-      + `<button type="button" class="th-sticky-del" tabindex="-1" title="${escAttr(t('themes.sticky.delete_tip'))}" aria-label="${escAttr(t('themes.sticky.delete_label'))}">${TH_DEL_ICON}</button>`
+      + `<button type="button" class="th-sticky-del del-bin" tabindex="-1" title="${escAttr(t('themes.sticky.delete_tip'))}" aria-label="${escAttr(t('themes.sticky.delete_label'))}">${TH_DEL_ICON}</button>`
       + (thLocked(v) ? '' : thStripHtml(n));
     stickyBox.appendChild(el);
     TH.els.stickies[n.id] = el;
@@ -2462,7 +2465,7 @@ function thRender() {
       + (noted ? `<span class="th-noted" role="img" aria-label="${escAttr(t('themes.label.has_note'))}">${TH_NOTE_ICON}</span>` : '')
       + (picked ? `<span class="th-picked" title="${escAttr(t('themes.label.picked', { n: picked }))}">${TH_PICK_ICON}</span>` : '')
       + `<button type="button" class="th-arr" tabindex="-1" title="${escAttr(t('themes.label.arrange_tip'))}" aria-label="${escAttr(t('themes.label.arrange_label'))}">${TH_ARR_ICON}</button>`
-      + `<button type="button" class="th-del" tabindex="-1" title="${escAttr(TH.lpets || TH.lgets ? t('themes.label.delete_tip_draws') : t('themes.label.delete_tip'))}" aria-label="${escAttr(t('themes.label.delete_label'))}">${TH_DEL_ICON}</button>`
+      + `<button type="button" class="th-del del-bin" tabindex="-1" title="${escAttr(TH.lpets || TH.lgets ? t('themes.label.delete_tip_draws') : t('themes.label.delete_tip'))}" aria-label="${escAttr(t('themes.label.delete_label'))}">${TH_DEL_ICON}</button>`
       + TH_MORE;
     labelBox.appendChild(el);
     TH.els.labels[g.id] = el;
@@ -5226,7 +5229,7 @@ function thUndo(backwards) {
   if (!TH.live || TH.editing || TH.cardEdit || TH.writing || TH.drag || TH.busy) return;
   if (thRefuse('undo')) return;
   const stack = backwards ? TH.undo : TH.redo;
-  if (!stack.length) { say(backwards ? t('themes.undo.nothing') : t('themes.undo.nothing_redo'), 2000); return; }
+  if (!stack.length) { if (typeof sayNothingToUndo === 'function') sayNothingToUndo(backwards); return; }
   // a statement edited in place goes back through the workbook, not the board
   if (stack[stack.length - 1].edit) { thStatementStep(stack[stack.length - 1], backwards); return; }
   const entry = stack.pop();
@@ -5670,9 +5673,11 @@ function thDeleteLabels(ids, opts = {}) {
    function works the same on every screen, as a trajectory's bin does on Trajectories). The notice is tied to its
    step (trajfix2): its Undo runs only while that step is still the top of the same board's undo, and a title or a
    note still being typed is kept first, a step of its own, so it is never undone in the delete's place. The
-   restored labels come back selected. */
-function thDeletedSay(titles, ids) {
-  if (!titles.length) return;
+   restored labels come back selected. A sticky note deleted by its bin or its menu says so the same way, "Deleted a
+   sticky note.", with the same Undo, and comes back selected (sameux2, 17 November 2026): `stickies` set, `ids` its
+   notes' ids and `titles` none. */
+function thDeletedSay(titles, ids, stickies = false) {
+  if (!titles.length && !(stickies && ids.length)) return;
   const entry = TH.undo[TH.undo.length - 1];
   const board = TH.undoBoard;
   const canvas = TH.undoPath;
@@ -5683,14 +5688,16 @@ function thDeletedSay(titles, ids) {
     if (!entry || TH.undoPath !== canvas || TH.undoBoard !== board || TH.undo[TH.undo.length - 1] !== entry) return;
     thUndo(true);
     if (TH.undo[TH.undo.length - 1] === entry) return;
-    const back = ids.filter((id) => thIsGroup(TH.v, id));
+    const back = ids.filter((id) => (stickies ? thIsSticky(TH.v, id) : thIsGroup(TH.v, id)));
     if (!back.length) return;
-    thSelectOnly({ kind: 'group', id: back[0] });
-    for (const id of back.slice(1)) TH.sel.groups.add(id);
+    const kind = stickies ? 'sticky' : 'group';
+    thSelectOnly({ kind, id: back[0] });
+    for (const id of back.slice(1)) (stickies ? TH.sel.stickies : TH.sel.groups).add(id);
     thDrawSel();
-    TH.lastPick = { kind: 'group', id: back[0] };
+    TH.lastPick = { kind, id: back[0] };
   };
-  if (titles.length === 1) sayUndo(t('themes.deleted_label', { title: titles[0] }), undo);
+  if (stickies) sayUndo(t('themes.deleted_stickies', { n: ids.length }), undo);
+  else if (titles.length === 1) sayUndo(t('themes.deleted_label', { title: titles[0] }), undo);
   else sayUndo(t('themes.deleted_labels', { n: titles.length }), undo);
 }
 
@@ -6400,6 +6407,8 @@ function thStickyDelete(ids) {
   for (const id of live) { thStickyRemove(v, id); TH.sel.stickies.delete(id); }
   thDone(before, t('themes.step.deleted_stickies', { n: live.length }), { settle: [], was });
   thPanelFollow();
+  // the Deleted notice with its Undo, as a label's (sameux2)
+  thDeletedSay([], live, true);
 }
 
 /* A note's colour, from its menu or the Inspector's dots: one step of undo. */
@@ -7837,9 +7846,10 @@ async function thExport(word = false) {
    the answer names. `path` none, from a server before it, gives no button. TH.exported keeps the notice's own `info`
    while it shows, so Escape on the canvas shuts it in its turn and the one-time line knows its note */
 function thExported(info) {
-  TH.exported = info || null;
-  if (!info) { if (XN.info) exportNotice(null); return; }
+  if (!info) { TH.exported = null; if (XN.info) exportNotice(null); return; }
+  // the shared notice clears TH.exported whenever it shows or shuts, so it is set after
   exportNotice({ what: info.name, shown: info.shown, path: info.path || '' });
+  TH.exported = info;
   if (info.word) thSupportOnce(info);
 }
 
@@ -9631,17 +9641,17 @@ function thKnow(boards) {
   TH.stampAsk += 1;
 }
 
-/* The line in the top right of the canvas, one at a time in that corner, or none. */
+/* The line in the top right of the canvas, one at a time in that corner, or none: the one panel for a change made
+   elsewhere that every screen shares (outsideNotice, distil.js, sameux2) */
 function thOutside(info) {
   TH.outside = info || null;
-  const box = $('th-outside');
-  if (!box) return;
-  box.hidden = !info;
-  if (!info) return;
+  // the page's own code run alone, as the suite runs it in node, has no shared panel to draw
+  if (typeof outsideNotice !== 'function') return;
+  if (!info) { outsideNotice(null); return; }
   thExported(null);
-  $('th-outside-line').textContent = info.line;
-  box.title = info.said || '';
-  $('th-outside-show').textContent = info.added ? t('themes.outside.show') : t('themes.outside.update');
+  // Show it opens a board added, Update loads a change in place
+  outsideNotice({ line: info.said || info.line, word: info.added ? t('themes.outside.show') : t('themes.outside.update'),
+    show: () => thOutsideShow(), close: () => thOutsideClose() });
 }
 
 /* What the line says of a board, a conversation when an agent made or changed it and another
@@ -9793,20 +9803,18 @@ function thStaleShow(info) {
   thStaleDraw();
 }
 
+/* the one panel for a save refused that every screen shares (staleNotice, distil.js, sameux2) */
 function thStaleDraw() {
-  const box = $('th-stale');
-  if (!box) return;
-  box.hidden = !TH.stale && !TH.staleKept;
-  $('th-stale-line').textContent = TH.staleKept ? TH_STALE_RELOADED : TH_STALE_LINE;
-  $('th-stale-acts').hidden = !!TH.staleKept;
-  $('th-stale-back').hidden = !TH.staleKept;
+  if (typeof staleNotice !== 'function') return;
+  if (!TH.stale && !TH.staleKept) { staleNotice(null); return; }
+  staleNotice({ line: TH.staleKept ? TH_STALE_RELOADED : TH_STALE_LINE, kept: !!TH.staleKept,
+    reload: () => thStaleReload(), overwrite: () => thStaleOverwrite(), back: () => thStaleBack() });
 }
 
 function thStaleHide() {
   TH.stale = null;
   TH.staleKept = null;
-  const box = $('th-stale');
-  if (box) box.hidden = true;
+  if (typeof staleNotice === 'function') staleNotice(null);
 }
 
 /* Reload: the canvas kept first in the board's History, "The canvas before Reload", then the board as
@@ -9867,10 +9875,6 @@ function thStaleOverwrite() {
 }
 
 function thOutsideBoot() {
-  $('th-stale').addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
-  $('th-stale-reload').onclick = () => thStaleReload();
-  $('th-stale-over').onclick = () => thStaleOverwrite();
-  $('th-stale-back').onclick = () => thStaleBack();
   window.addEventListener('focus', () => thStampTick());
   // every few seconds on PETs, so a statement reworded in another window shows here a moment later, and on
   // GETs every thirty, whose look surveys every case (20 October)
@@ -9879,9 +9883,6 @@ function thOutsideBoot() {
     TH.stampLast = Date.now();
     thStampTick();
   }, 4 * 1000);
-  $('th-outside').addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
-  $('th-outside-show').onclick = () => thOutsideShow();
-  $('th-outside-close').onclick = () => thOutsideClose();
 }
 
 /* ── the pointer ── */

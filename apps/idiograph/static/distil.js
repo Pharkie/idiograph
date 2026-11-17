@@ -1023,13 +1023,11 @@ function exportHost() {
   return [...document.querySelectorAll('[data-export-host]')].filter(exportShown).pop() || null;
 }
 
-/* the panel in its place: the gutter in from the host's top right, or under a host marked "below", never off the
-   window's top, and as wide as the PETs canvas has it */
-function exportPlace() {
-  const box = $('export-done');
+/* A corner panel in its place, the export notice's and the two below: the gutter in from the host's top right, or
+   under a host marked "below", never off the window's top, and as wide as the PETs canvas has it */
+function cornerPlace(box, host) {
   if (!box || box.hidden) return;
   const gutter = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gutter')) || 16;
-  const host = XN.host;
   const r = host ? host.getBoundingClientRect() : { top: 0, bottom: 0, right: window.innerWidth, width: window.innerWidth };
   const top = host && host.dataset.exportHost === 'below' ? r.bottom : r.top;
   const right = Math.min(window.innerWidth, r.right);
@@ -1038,16 +1036,31 @@ function exportPlace() {
   box.style.width = `${Math.max(0, Math.min(380, (host && host.dataset.exportHost !== 'below' ? r.width : window.innerWidth) - 2 * gutter))}px`;
 }
 
+function exportPlace() {
+  cornerPlace($('export-done'), XN.host);
+}
+
 function exportNotice(info) {
   const box = $('export-done');
   if (!box) return;
   XN.info = info || null;
+  // the boards keep their notice's info as TH.exported, which their Escape reads first: any notice shown or shut
+  // here clears it, its cross, a later notice from any screen or its screen put away (exportnotice's review), and
+  // thExported sets it again after for a board's own
+  if (typeof TH !== 'undefined' && TH) TH.exported = null;
   // the one-time line goes with the notice it came in, and never comes with a later one (supportcard)
   if ($('export-once')) $('export-once').remove();
   if (XN.seen) { XN.seen.disconnect(); XN.seen = null; }
   if (XN.sized) { XN.sized.disconnect(); XN.sized = null; }
   box.hidden = !info;
-  if (!info) { XN.host = null; return; }
+  if (!info) {
+    XN.host = null;
+    // a change made elsewhere that waited behind it shows again
+    if (typeof cornerSync === 'function') cornerSync();
+    return;
+  }
+  // one panel at a time in the corner: a change made elsewhere waits behind an export's notice
+  if (typeof cornerSync === 'function') cornerSync();
   const failed = !!info.failed;
   const files = failed ? [] : (info.shown || []);
   box.classList.toggle('export-failed', failed);
@@ -1102,6 +1115,109 @@ function exportNoticeWire() {
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', exportNoticeWire);
 else exportNoticeWire();
+
+/* ─────────────────────────────────────── a change made elsewhere, a save refused ── */
+
+/* A change made elsewhere, one panel for every screen (sameux2, 17 November 2026, the boards' form everywhere): when
+   an agent, another program or a hand on the file changed what the screen shows, the bright panel in the export
+   notice's corner, its line, Show it (or Update) and its cross. Show it saves what is in front of him first and then
+   reads the change; the cross leaves the change for later. A change from another window of this app is taken in by
+   the screen itself and shows nothing. The PETs and GETs boards, the statements screen, Trajectories and the Code list
+   each call it with their own line and their own Show and cross:
+
+   outsideNotice({ line, word, show, close }): the heading is the boards' one on every screen, "Changes made
+   elsewhere", and `line` under it says what changed on that screen; `word` the button's word, Update where it loads the
+   change in place (the default), Show it where it takes him to something new, a board added or a passage written;
+   `show()` and `close()` the screen's own. outsideNotice(null) shuts it (sameux2b). */
+const XO = { info: null, host: null };
+
+/* A save refused because what it saves changed since the screen read it, one panel for every screen that saves over
+   the file what may have changed under it (the boards and the Code list): nothing was saved, the screen stays as he
+   left it, and the panel says so with Reload first and Overwrite. After a Reload that kept his work, the line says
+   where it is and Put my canvas back is offered in place of the two.
+
+   staleNotice({ line, reload, overwrite, back }): `line` the words, `reload()` and `overwrite()` the screen's own,
+   Overwrite left out where there is nothing to overwrite with (an Undo refused), and `back()` with `kept` set for the
+   panel after a Reload. staleNotice(null) shuts it. */
+const XS = { info: null, host: null };
+
+/* The corner panels shown only while their screen is, and back with it, placed as the export notice is, one at a
+   time: a save refused before all, then an export's notice, then a change made elsewhere, which waits behind them */
+function cornerSync() {
+  const stale = $('th-stale');
+  const out = $('th-outside');
+  // each set only when it changes, since the watch on the page's `hidden` below would hear its own write
+  const show = (box, on) => { if (box.hidden === on) box.hidden = !on; };
+  if (stale) {
+    show(stale, !!XS.info && exportShown(XS.host));
+    cornerPlace(stale, XS.host);
+  }
+  if (out) {
+    show(out, !!XO.info && exportShown(XO.host) && !XN.info && !(stale && !stale.hidden));
+    cornerPlace(out, XO.host);
+  }
+}
+
+function outsideNotice(info) {
+  XO.info = info || null;
+  XO.host = info ? exportHost() : null;
+  if (info) {
+    if (XN.info) exportNotice(null);
+    $('th-outside-line').textContent = t('themes.outside.elsewhere');
+    $('th-outside-said').textContent = info.line || '';
+    $('th-outside-show').textContent = info.word || t('themes.outside.update');
+  }
+  cornerSync();
+}
+
+function staleNotice(info) {
+  XS.info = info || null;
+  XS.host = info ? exportHost() : null;
+  if (info) {
+    if (XN.info) exportNotice(null);
+    $('th-stale-line').textContent = info.line || '';
+    $('th-stale-acts').hidden = !!info.kept;
+    $('th-stale-over').hidden = !info.overwrite;
+    $('th-stale-back').hidden = !info.kept;
+  }
+  cornerSync();
+}
+
+function cornerWire() {
+  if (!$('th-outside') || !$('th-stale')) return;
+  for (const id of ['th-outside', 'th-stale']) {
+    $(id).addEventListener('pointerdown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
+  }
+  $('th-outside-show').onclick = () => { if (XO.info && XO.info.show) XO.info.show(); };
+  // its cross closes it and never deletes: the change is left for later
+  $('th-outside-close').onclick = () => {
+    const info = XO.info;
+    outsideNotice(null);
+    if (info && info.close) info.close();
+  };
+  $('th-stale-reload').onclick = () => { if (XS.info && XS.info.reload) XS.info.reload(); };
+  $('th-stale-over').onclick = () => { if (XS.info && XS.info.overwrite) XS.info.overwrite(); };
+  $('th-stale-back').onclick = () => { if (XS.info && XS.info.back) XS.info.back(); };
+  window.addEventListener('resize', cornerSync);
+  // a screen put away hides its panel and a screen shown again shows it, whichever way the screen went
+  if (typeof MutationObserver === 'function') {
+    new MutationObserver(() => { if (XO.info || XS.info) cornerSync(); })
+      .observe(document.body, { attributes: true, attributeFilter: ['hidden'], subtree: true });
+  }
+  if (typeof ResizeObserver === 'function') {
+    const sized = new ResizeObserver(() => { if (XO.info || XS.info) cornerSync(); });
+    for (const host of document.querySelectorAll('[data-export-host]')) sized.observe(host);
+  }
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', cornerWire);
+else cornerWire();
+
+/* "Nothing to undo on this screen." and its Redo twin, one line for every screen's Undo and Redo pressed with nothing
+   to put back or make again (sameux2, 17 November 2026), at the foot for two seconds, and no line after an Undo or a
+   Redo that did something: the screen itself shows what came back */
+function sayNothingToUndo(backwards) {
+  say(backwards ? t('themes.undo.nothing') : t('themes.undo.nothing_redo'), 2000);
+}
 
 /* The Export menu's own ways, one for every screen's (exportnotice, 17 November 2026): under its button, kept inside
    the window, and wired alike, the button opening and shutting it, a row's press doing its job, a press outside it or
@@ -3110,8 +3226,9 @@ async function makeImport(names = null) {
 const NP = { folder: '', next: 1, rows: [], busy: false, key: 0, add: null, qdpx: null };
 const NP_MAX = 25 * 1024 * 1024;
 const NP_PREVIEW = 3;
-const NP_CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"'
-  + ' aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>';
+// a row taken out of an import card or the names list, the bin every delete by an icon alone shows, .del-bin and the
+// boards' glyph (sameux2b), where it was a cross, which reads as close
+const NP_BIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l.9 12.2a1.8 1.8 0 0 0 1.8 1.6h5.6a1.8 1.8 0 0 0 1.8-1.6L17.5 7M10.2 11v6M13.8 11v6"/></svg>';
 
 function openNewProject() {
   Object.assign(NP, { folder: '', next: 1, rows: [], busy: false, add: null, tps: [], held: new Map(), qdpx: null, names: null });
@@ -3304,7 +3421,7 @@ function npRowHtml(row) {
   const opt = (value, label, on) => `<option value="${escAttr(value)}"${on ? ' selected' : ''}>${esc(label)}</option>`;
   let html = `<div class="np-row-head"><span class="np-file">${esc(row.file)}</span>`
     + (r && r.count ? `<span class="np-count">${turnsWord(r.count)}</span>` : '')
-    + `<button type="button" class="np-remove" data-np="remove" aria-label="${escAttr(t('distil.np.remove_file', { file: row.file }))}" title="${escAttr(t('distil.np.remove'))}">${NP_CROSS}</button></div>`;
+    + `<button type="button" class="np-remove del-bin" data-np="remove" aria-label="${escAttr(t('distil.np.remove_file', { file: row.file }))}" title="${escAttr(t('distil.np.remove'))}">${NP_BIN}</button></div>`;
   if (row.said) html += `<p class="warn np-row-said">${esc(row.said)}</p>`;
   // an Excel file of two sheets or more: the sheet read, its first with anything in it until he picks another
   const sheets = row.sheets || [];
@@ -3994,7 +4111,7 @@ function nmListDraw() {
       + `<td><input type="text" data-nm="to" spellcheck="false" autocomplete="off" aria-label="${escAttr(t('distil.names.col_to'))}" value="${escAttr(r.to)}"></td>`
       + `<td class="nm-in"><select data-nm="for" aria-label="${escAttr(t('distil.names.col_in'))}">${opts(r.for)}</select></td>`
       + `<td class="nm-except"><input type="text" data-nm="except" spellcheck="false" autocomplete="off" aria-label="${escAttr(t('distil.names.col_except'))}" value="${escAttr(r.except || '')}"></td>`
-      + `<td class="nm-x"><button type="button" class="np-remove" data-nm="remove" aria-label="${escAttr(t('distil.names.remove', { name: r.real }))}" title="${escAttr(t('distil.np.remove'))}">${NP_CROSS}</button></td></tr>`;
+      + `<td class="nm-x"><button type="button" class="np-remove del-bin" data-nm="remove" aria-label="${escAttr(t('distil.names.remove', { name: r.real }))}" title="${escAttr(t('distil.np.remove'))}">${NP_BIN}</button></td></tr>`;
   }).join('');
   $('nm-list-table').hidden = !L.rows.length;
   nmCheckDraw();
@@ -4398,7 +4515,7 @@ function qdHtml() {
   const r = q.read;
   const kind = r && r.package ? t('distil.qd.from', { package: r.package }) : t('distil.qd.from_any');
   let html = `<div class="np-row-head qd-head"><span class="np-file">${esc(q.file)}</span><span class="np-count">${esc(kind)}</span>`
-    + `<button type="button" class="np-remove" data-qd="remove" aria-label="${escAttr(t('distil.np.remove_file', { file: q.file }))}" title="${escAttr(t('distil.np.remove'))}">${NP_CROSS}</button></div>`;
+    + `<button type="button" class="np-remove del-bin" data-qd="remove" aria-label="${escAttr(t('distil.np.remove_file', { file: q.file }))}" title="${escAttr(t('distil.np.remove'))}">${NP_BIN}</button></div>`;
   if (r) {
     const numbers = qdNumbers();
     html += '<ol class="np-rows qd-rows">' + (r.sources || []).filter((s) => q.rows.has(s.source)).map((s) => qdRowHtml(s, numbers)).join('') + '</ol>';
@@ -8960,7 +9077,7 @@ function pairHtml(id) {
     // A bin alone in the quiet ink, red under the pointer and in focus (18 October, Adam's drawing, where a
     // red-edged Remove with its word stood beside the quote's label, too near the fields and too loud for
     // an act this rare). It takes the pair as Remove did, one step of undo
-    + `<button type="button" class="pair-remove" data-remove="${id}" title="${escAttr(t('distil.pair.remove'))}" aria-label="${escAttr(t('distil.pair.remove'))}">`
+    + `<button type="button" class="pair-remove del-bin" data-remove="${id}" title="${escAttr(t('distil.pair.remove'))}" aria-label="${escAttr(t('distil.pair.remove'))}">`
     + '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" '
     + 'stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 6.5h16M9.5 6.5V4.2h5v2.3M6.2 6.5l.9 13.3h9.8l.9-13.3M10 10.5v6M14 10.5v6"/></svg>'
     + '</button></div></div>';
@@ -9265,7 +9382,6 @@ function pairPut(entry, back) {
     if (!pairEls().length) insertPair({ es: '', kq: '' });
   }
   pairsChanged();
-  say(back ? t('distil.undo.statement_back') : t('distil.undo.statement_out_again'), 2000);
 }
 
 /* Enter never breaks a line in a pair, since one field is one statement or one quote: it goes from
@@ -9839,8 +9955,6 @@ async function quotePut(entry, adding) {
   }
   if (adding) clearPending(true);
   else { S.pending = entry.pieces.map((p) => ({ ...p })); paintPending(); }
-  if (adding) say(t('distil.undo.quote_back'), 2400);
-  else say(t('distil.undo.quote_out'), 2400);
 }
 
 /* `q` and the Quote button beside it, one act for a quote (16 October, Adam's decision on a
@@ -9927,8 +10041,6 @@ async function statementPut(entry, adding) {
   }
   if (adding) clearPending(true);
   else { S.pending = entry.pieces.map((p) => ({ ...p })); paintPending(); }
-  if (adding) say(entry.taken ? t('distil.undo.statement_back') : t('distil.undo.quote_back'), 2400);
-  else say(entry.taken ? t('distil.undo.statement_out') : t('distil.undo.quote_out'), 2400);
 }
 
 /* ─────────────────────────────────────────── the toolbar by the selection ── */
@@ -11029,7 +11141,7 @@ async function undoStep(backwards) {
   if (S.note && !(await keepBeforeUndo())) return;
   const stack = backwards ? S.undoStack : S.redoStack;
   if (!stack.length) {
-    say(backwards ? t('distil.undo.none') : t('distil.undo.no_redo'), 2000);
+    sayNothingToUndo(backwards);
     return;
   }
   const entry = stack[stack.length - 1];
@@ -12727,8 +12839,10 @@ async function esStampTick() {
   if (ES_STAMP.path !== path || ES_STAMP.count === null) { Object.assign(ES_STAMP, { path, count: n }); return; }
   if (n > ES_STAMP.count && data.turns.last) {
     ES_STAMP.last = data.turns.last;
-    $('es-outside-line').textContent = t('distil.stamp.outside', { n: n - ES_STAMP.count });
-    $('es-outside').hidden = false;
+    // the one panel for a change made elsewhere that every screen shares (outsideNotice, sameux2)
+    // Show it: the passage in front saved, then the case read again on the passage written, which it goes to
+    outsideNotice({ es: true, line: t('distil.stamp.outside', { n: n - ES_STAMP.count }), word: t('themes.outside.show'),
+      show: () => esOutsideShow(), close: () => esOutsideClose() });
   }
 }
 
@@ -12806,13 +12920,18 @@ function esStepWash(changed) {
 function esStampStart() {
   Object.assign(ES_STEP, { path: S.data ? S.data.path : null, at: null });
   Object.assign(ES_STAMP, { path: S.data ? S.data.path : null, count: null, last: null });
-  $('es-outside').hidden = true;
+  esOutsideShut();
   esStampTick();
+}
+
+/* the shared panel shut where it is the statements screen's own */
+function esOutsideShut() {
+  if (XO.info && XO.info.es) outsideNotice(null);
 }
 
 async function esOutsideShow() {
   const last = ES_STAMP.last;
-  $('es-outside').hidden = true;
+  esOutsideShut();
   if (!S.data || !last) return;
   if (S.dirty && current()) {
     await commit(current(), false);
@@ -12826,7 +12945,7 @@ async function esOutsideShow() {
 }
 
 function esOutsideClose() {
-  $('es-outside').hidden = true;
+  esOutsideShut();
   ES_STAMP.count = null;
   esStampTick();
 }
@@ -13612,8 +13731,6 @@ function distilBoot() {
   window.addEventListener('focus', esStampTick);
   // every few seconds, so a change in another window of this app shows here a moment later (20 October)
   setInterval(esStampTick, ES_STEP_EVERY);
-  $('es-outside-show').onclick = () => esOutsideShow();
-  $('es-outside-close').onclick = () => esOutsideClose();
   // PET labels under Projects, saved at once
   $('set-labels').addEventListener('click', (e) => {
     const pick = e.target.closest('[data-labels]');

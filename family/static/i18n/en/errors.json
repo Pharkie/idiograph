@@ -1,7 +1,7 @@
 {
   "errors.name_folder_first": "Name the folder first.",
   "errors.folder": "That folder is not there.",
-  "errors.show_folder_mac_windows_only": "Show in Finder is there on a Mac or Windows only.",
+  "errors.show_folder_mac_windows_only": "Show in Finder is there on a Mac, Windows or Linux only.",
   "errors.folder_cannot_take_name_give": "A folder cannot take that name, so give the project another.",
   "errors.folder_named_already": "There is a folder named {leaf} there already.",
   "errors.write_note_first": "Write the note first.",
