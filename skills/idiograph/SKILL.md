@@ -2716,13 +2716,26 @@ name and his request come back marked as data. He reviews the same in the app.
 **A run and its restore point.** A run is your session: one MCP connection, or the command line's writes that
 share a `--run` word of yours, or those from the same `--tool` within 30 minutes of each other. A connection's
 writes more than 30 minutes apart start a new run too. Before a run's first write the project's working files are
-kept as its restore point: every workbook and JSON file, its History, its list of names to replace, its archive
-copies and Working together's files left out. Each is kept once by its contents in `.idiograph-restore` at the
-root, so a file unchanged since an earlier point costs nothing again. Points are kept 30 days after their run's last
-write, and the last 10 runs' whatever their age.
+kept as its restore point: every workbook and JSON file, its list of names to replace, and every file in a
+participant's `Source` folder (the transcripts as given to Add transcripts or an import, the raw source workbook,
+memos, recordings and their offsets), its History, its archive copies and Working together's files left out. Each
+is kept once by its contents in `.idiograph-restore` at the root, so a file unchanged since an earlier point costs
+nothing again. A recording, or any file in `Source` over 32 MB, is watched by its time and size alone and never
+copied into a point, so the store stays the size of what agents change. Points are kept 30 days after their run's
+last write, and the last 10 runs' whatever their age.
 
 `idiograph agents undo-run r3` (`agent_undo_run` through MCP, with `run`) puts back every file the run changed as it
-was before its first write, and takes away each file it made, kept first. Run it with `--dry-run` first, which says
+was before its first write, and takes away each file it made, kept first, so that undoing the undo puts them back.
+That reaches every file the restore point keeps or watches: a participant you added with `project add-transcripts`
+goes whole, their workbook, their working files, and in `Source` the transcripts as given, the raw source workbook
+and any recording, with each folder the run made that is left empty, their own folder too. A further interview you
+added to a participant takes away that interview's files alone and puts their raw source workbook back, their other
+`Source` files as they were. A recording you replaced with `audio attach --replace` is put back from the
+participant's `_Archive`, where the replace kept it, and yours kept first. Everything it takes away or writes over
+is kept before anything changes: when a file cannot be kept (unreadable, or the disk full) the undo is refused in
+one line, nothing taken away. A folder he made inside the participant's after your run stays, and the participant's
+folder with it. Nothing outside the project's folder is touched. Run it with
+`--dry-run` first, which says
 what it would put back and take away, and undo only on his word. It is refused whole, nothing written, when a file
 would lose a later change, his or another agent's, each named ("Juno's boards, changed after the run's last
 change", "changed by someone else between the run's changes"): undo the later run first, or leave it to him. A run

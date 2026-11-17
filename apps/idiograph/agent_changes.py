@@ -19,14 +19,24 @@ net, the same for everyone with no setting:
   new run too, so a client left open for days is not one run of days.
 - Before a run's first write the project's working files are kept as its restore point: every workbook and every
   JSON file of the project (`tracked`), its archive copies, its History, Working together's files and this module's
-  own left out, the list of real names kept since namesop (16 November 2026) so an agent's add is undone, mode 600. They are kept once by their contents in `.idiograph-restore/objects`, so a
+  own left out, the list of real names kept since namesop (16 November 2026) so an agent's add is undone, mode 600,
+  and since undosource (17 November 2026) every file in a participant's Source folder, the transcripts as given to
+  Add transcripts or an import among them. They are kept once by their contents in `.idiograph-restore/objects`, so a
   file unchanged since an earlier restore point costs nothing again and the next point copies only what changed
-  since. Each write's files are read before and after it by their size and time alone, so the run knows which
-  files it changed, which it made, and which changed between its writes by someone else.
+  since. A recording, or any Source file over BIG bytes, is watched by its time and size alone and never copied
+  into a point, so the store stays the size of what agents change. Each write's files are read before and after it
+  by their size and time alone, so the run knows which files it changed, which it made, and which changed between
+  its writes by someone else, and each run keeps the project's folders as it began.
 - `undo_run` puts back every file the run changed as it was before the run's first write, and takes away the files
-  it made, keeping them first, as a run of its own that can be undone in its turn. A file changed since the run's
-  last write, or by someone else between its writes, would lose that change, so the undo is refused whole, naming
-  each, nothing written. A run that renamed a participant's folder is refused too, until the folder is renamed back.
+  it made, keeping them first, as a run of its own that can be undone in its turn: workbooks, boards and every JSON
+  file, and in Source the transcripts as given, recordings and their offsets, and memos, so an agent's Add
+  transcripts undone leaves the project as it was. A folder the run made that is left empty goes too, the
+  participant's own folder when the run made it, and a folder he made inside it after the run left. A recording the
+  run moved into the participant's _Archive is put back from there. Every file an undo takes away or writes over is
+  kept first, streamed, before anything changes, and one that cannot be kept refuses the undo in one line, nothing
+  taken away; an undo failing part way keeps its run, so it is undone in its turn (undosource2). A file changed since the run's last write, or by someone else between its writes, would lose
+  that change, so the undo is refused whole, naming each, nothing written. A run that renamed a participant's
+  folder is refused too, until the folder is renamed back. Nothing outside the project's folder is touched.
 
 Kept: restore points for KEEP_DAYS days after their run's last write, and the last KEEP_RUNS whatever their age,
 the copies no point names any more taken away as a new point is made. The change record is kept whole.
@@ -50,6 +60,7 @@ import json
 import os
 import re
 import secrets
+import shutil
 import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -88,6 +99,23 @@ NAMES = "idiograph-names.json"
 # folders never walked: archive copies, which a run only adds to, and every hidden folder, this store and Working
 # together's among them
 SKIP_DIRS = frozenset(("_Archive",))
+# A participant's Source folder, every file in it whatever its kind (undosource, 17 November 2026): the transcripts
+# as given to Add transcripts or an import, the raw source workbook, memos, recordings and their offsets, so a run
+# that adds a participant is undone whole. Its files are kept by their contents like the rest, but for a recording
+# (`recording`) and any file over BIG bytes, which a restore point watches by its time and size alone and never
+# copies, so the store stays the size of what agents change: no op writes a recording in place, a recording a run
+# made is copied in as its undo takes it away, and one a run moved into the participant's _Archive (audio attach's
+# --replace) is put back from there, found by its time and size. A recording is any file Idiograph plays
+# (`audio.CONTENT_TYPES`, `recording`)
+SOURCE = "Source"
+BIG = 32 * 1024 * 1024
+# a file over STREAM bytes is copied a CHUNK at a time, through a file in the system's own folder for passing files
+# while it waits for its run, never held whole in memory (undosource2)
+STREAM = 1024 * 1024
+CHUNK = 1024 * 1024
+# what may stand in a folder a run made, once its undo has taken the run's files away, and still have it taken away:
+# a lock file Idiograph writes beside a participant's files, and the Finder's own
+DROPPINGS = frozenset((locks.NAME, ".DS_Store"))
 # the suite's own: a check of this module names the clock
 NOW = None
 # and the suite's own again: its checks of Working together and the other ops only the app does drive them through the
@@ -187,19 +215,54 @@ def is_memos(folder: str, name: str) -> bool:
     return len(parts) == 2 and parts[1] == "Source" and bool(names_mod.MEMOS_FILE.match(name))
 
 
+def in_source(rel: str) -> bool:
+    """Whether a file stands in a participant's Source folder, at any depth (`<folder>/Source/...`), the folder a
+    participant's own wherever it stands below the root."""
+    return SOURCE in rel.split("/")[1:-1]
+
+
+def watched(rel: str, st) -> bool:
+    """Whether a restore point watches a file by its time and size alone, keeping no copy: a recording or a file
+    over BIG bytes in a participant's Source folder."""
+    return in_source(rel) and (recording(rel) or (bool(st) and int(st[1]) > BIG))
+
+
+def recording(rel: str) -> bool:
+    """Whether a file is a recording Idiograph plays, by its ending."""
+    import audio
+    return Path(rel).suffix.lower() in audio.CONTENT_TYPES
+
+
+def inside(root, rel) -> bool:
+    """Whether a path a run's file names stands inside the project: relative, with no `..` and no empty part, and
+    still inside the project's folder once its links are followed (undosource2), so an undo never takes away,
+    writes or clears anything outside it, whatever a run's file says."""
+    rel = str(rel or "")
+    parts = rel.split("/")
+    if (not rel or rel.startswith(("/", "\\")) or "\\" in rel or re.match(r"^[A-Za-z]:", rel)
+            or any(x in ("", ".", "..") for x in parts)):
+        return False
+    try:
+        (Path(root) / rel).resolve().relative_to(Path(root).resolve())
+    except (ValueError, OSError):
+        return False
+    return True
+
+
 def tracked(root) -> dict:
-    """Every file a restore point keeps, by its path from the root with forward slashes, with its time and size:
-    the workbooks and the JSON files, never NEVER's, and each participant's memos files in Source (`is_memos`), under
-    no hidden folder nor an _Archive."""
+    """Every file a restore point keeps or watches, by its path from the root with forward slashes, with its time
+    and size: the workbooks and the JSON files, never NEVER's, and every file in a participant's Source folder
+    (`in_source`), memos and the transcripts as given among them, under no hidden folder nor an _Archive."""
     root = Path(root)
     out = {}
     for here, dirs, files in os.walk(root):
         dirs[:] = sorted(d for d in dirs if not d.startswith(".") and d not in SKIP_DIRS)
+        folder = Path(here).relative_to(root).as_posix()
         for name in files:
             if name.startswith((".", "~$")) or name in NEVER:
                 continue
             if not (name.lower().endswith(TRACKED) or (name.endswith(CHUNKS) and here.endswith(".history"))
-                    or is_memos(Path(here).relative_to(root).as_posix(), name)):
+                    or in_source(f"{folder}/{name}")):
                 continue
             path = Path(here) / name
             try:
@@ -213,6 +276,80 @@ def tracked(root) -> dict:
 def moved(before: dict, after: dict) -> list:
     """The files that differ between two readings, made, changed or gone, sorted."""
     return sorted(f for f in set(before) | set(after) if before.get(f) != after.get(f))
+
+
+def folders(root) -> list:
+    """Every folder of the project as it stands, by its path from the root, the hidden folders and _Archive not
+    walked, so a run's undo knows the folders it made (undosource)."""
+    root = Path(root)
+    out = []
+    for here, dirs, _files in os.walk(root):
+        dirs[:] = sorted(d for d in dirs if not d.startswith(".") and d not in SKIP_DIRS)
+        rel = Path(here).relative_to(root).as_posix()
+        if rel != ".":
+            out.append(rel)
+    return out
+
+
+def clear_folders(root, gone, then) -> list:
+    """The folders an undo left empty taken away where the run made them, those not there as it began (`then`),
+    the participant's own folder too when the run made it: only the folders a file the undo took away stood in, and
+    those above them up to the first that was there before, each holding nothing but DROPPINGS once the files are
+    gone, deepest first (undosource2). So a folder the researcher made inside one of them after the run stays,
+    holding a file or not, and with it every folder above it. Nothing outside the project is touched. A run from
+    before undosource, with no folders kept, leaves every folder. Answers the folders taken away."""
+    if then is None:
+        return []
+    then = set(then)
+    chain = set()
+    for f in gone:
+        if not inside(root, f):
+            continue
+        parts = f.split("/")[:-1]
+        for i in range(len(parts), 0, -1):
+            rel = "/".join(parts[:i])
+            if rel in then:
+                break
+            chain.add(rel)
+    out = []
+    for rel in sorted(chain, key=lambda r: (-r.count("/"), r)):
+        here = Path(root) / rel
+        if here.is_symlink() or not here.is_dir() or not inside(root, rel):
+            continue
+        try:
+            names = os.listdir(here)
+        except OSError:
+            continue
+        if not all(n in DROPPINGS and (here / n).is_file() and not (here / n).is_symlink() for n in names):
+            continue
+        try:
+            for n in names:
+                (here / n).unlink()
+            os.rmdir(here)
+        except OSError:
+            # a lock another process holds open, on Windows: the folder stays, tried again once the locks are let go
+            continue
+        out.append(rel)
+    return out
+
+
+def archived(root, rel: str, stat) -> Path | None:
+    """A watched file a run took away that its participant's _Archive holds, found there by the time and size it had
+    (a move keeps both): a recording audio attach's --replace kept there, so a run's undo puts it back."""
+    parts = rel.split("/")
+    if not stat or not in_source(rel):
+        return None
+    case = parts[:parts.index(SOURCE, 1)]
+    for here, _dirs, files in os.walk(Path(root).joinpath(*case) / "_Archive"):
+        for name in sorted(files):
+            path = Path(here) / name
+            try:
+                st = path.stat()
+            except OSError:
+                continue
+            if [st.st_mtime_ns, st.st_size] == list(stat):
+                return path
+    return None
 
 
 def objects(root) -> Path:
@@ -235,17 +372,80 @@ def read_in(root, rel: str) -> tuple[bytes, list] | None:
     return data, [again.st_mtime_ns, again.st_size]
 
 
-def keep(root, sha: str, data: bytes) -> None:
-    """A copy kept by its contents in the store, once whatever its name."""
+def keep(root, sha: str, data) -> None:
+    """A copy kept by its contents in the store, once whatever its name: its bytes, or a copy waiting in a folder
+    for passing files (`stream_out`), moved in, or let go when the store holds that copy already."""
     target = objects(root) / sha
-    if not target.is_file():
-        target.parent.mkdir(parents=True, exist_ok=True)
-        tmp = target.with_name(f".{sha}.{secrets.token_hex(4)}")
-        # read by its owner alone, as the list of names it may be a copy of is (namesop)
-        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-        with os.fdopen(fd, "wb") as fh:
-            fh.write(data)
+    if target.is_file():
+        if isinstance(data, Path):
+            data.unlink(missing_ok=True)
+        return
+    target.parent.mkdir(parents=True, exist_ok=True)
+    tmp = target.with_name(f".{sha}.{secrets.token_hex(4)}")
+    try:
+        if isinstance(data, Path):
+            shutil.move(str(data), str(tmp))
+            os.chmod(tmp, 0o600)
+        else:
+            # read by its owner alone, as the list of names it may be a copy of is (namesop)
+            fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, "wb") as fh:
+                fh.write(data)
         os.replace(tmp, target)
+    finally:
+        with contextlib.suppress(OSError):
+            tmp.unlink()
+
+
+def stream_out(path: Path, folder: Path) -> tuple[str, list, Path] | None:
+    """A file copied into `folder` a CHUNK at a time as its sha256 is read, never whole in memory (undosource2):
+    its sha, the time and size it had, and the copy, mode 600, written to the disk. None, and no copy left, when it
+    cannot be read, the disk is full, or it changed while it was read."""
+    tmp = Path(folder) / f".idiograph-copy-{secrets.token_hex(8)}"
+    try:
+        Path(folder).mkdir(parents=True, exist_ok=True)
+        st = path.stat()
+        digest = hashlib.sha256()
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, "wb") as out, open(path, "rb") as src:
+            while True:
+                piece = src.read(CHUNK)
+                if not piece:
+                    break
+                digest.update(piece)
+                out.write(piece)
+            out.flush()
+            os.fsync(out.fileno())
+        again = path.stat()
+        if (st.st_mtime_ns, st.st_size) != (again.st_mtime_ns, again.st_size):
+            raise OSError("changed while it was read")
+    except OSError:
+        with contextlib.suppress(OSError):
+            tmp.unlink()
+        return None
+    return digest.hexdigest(), [again.st_mtime_ns, again.st_size], tmp
+
+
+def keep_file(root, rel: str) -> tuple[str, list] | None:
+    """A file of the project kept by its contents in the store before an undo takes it away or writes over it,
+    streamed (undosource2): its sha and the time and size it had, or None when it could not be kept, unreadable,
+    changed while it was read, or the disk full."""
+    try:
+        got = stream_out(Path(root) / rel, objects(root))
+        if got is None:
+            return None
+        keep(root, got[0], got[2])
+    except OSError:
+        return None
+    return got[0], got[1]
+
+
+def let_go(run: dict) -> None:
+    """A run never kept: the copies it held waiting in the folder for passing files taken away."""
+    for data in (run.pop("_pending", None) or {}).values():
+        if isinstance(data, Path):
+            with contextlib.suppress(OSError):
+                data.unlink()
 
 
 def put_back(tmp: Path, data: bytes, rel: str) -> None:
@@ -400,9 +600,23 @@ def point(root) -> tuple[dict, dict]:
                 known[(rel, tuple(e.get("stat") or ()))] = e["sha"]
     out, pending = {}, {}
     for rel, st in tracked(root).items():
+        if watched(rel, st):
+            # a recording or a large file in Source, by its time and size alone (undosource)
+            out[rel] = {"sha": None, "stat": st}
+            continue
         sha = known.get((rel, tuple(st)))
         if sha and (objects(root) / sha).is_file():
             out[rel] = {"sha": sha, "stat": st}
+            continue
+        if st[1] > STREAM:
+            # a large file waits as a copy in the system's folder for passing files, never in memory (undosource2)
+            got = stream_out(Path(root) / rel, Path(tempfile.gettempdir()))
+            if got is not None:
+                out[rel] = {"sha": got[0], "stat": got[1]}
+                if got[0] in pending:
+                    got[2].unlink(missing_ok=True)
+                else:
+                    pending[got[0]] = got[2]
             continue
         got = read_in(root, rel)
         if got is not None:
@@ -419,7 +633,7 @@ def new_run(root, args, via: str, agent: str, undoes: str = "") -> dict:
     at = stamp()
     files, pending = point(root)
     run = {"id": "", "key": key, "via": via, "agent": agent, "started": at, "last": at, "point": files,
-           "changed": [], "made": [], "foreign": [], "changes": 0, "_pending": pending}
+           "folders": folders(root), "changed": [], "made": [], "foreign": [], "changes": 0, "_pending": pending}
     run["after"] = {rel: e["stat"] for rel, e in files.items()}
     if undoes:
         run["undoes"] = undoes
@@ -486,7 +700,8 @@ KIND_SAID = {"project": lambda: i18n.t("agentchanges.kind.project"), "gets": lam
 PART_SAID = {"transcript": lambda: i18n.t("agentchanges.part.transcript"),
              "boards": lambda: i18n.t("agentchanges.part.boards"),
              "working": lambda: i18n.t("agentchanges.part.working"),
-             "memos": lambda: i18n.t("agentchanges.part.memos")}
+             "memos": lambda: i18n.t("agentchanges.part.memos"),
+             "source": lambda: i18n.t("agentchanges.part.source")}
 
 
 def case_names(p) -> dict:
@@ -518,6 +733,9 @@ def kind_of(rel: str, names: dict) -> tuple[str, str]:
         return "transcript", who
     if is_memos("/".join(parts[:-1]), parts[-1]):
         return "memos", who
+    if in_source(rel):
+        # a transcript as given, a recording and its offset, in the participant's Source folder (undosource)
+        return "source", who
     if re.search(r"\.(themes(-t\d+)?|lpets|own)[^/]*\.json$", name) or "themes" in name \
             or (len(parts) > 2 and parts[-2].endswith(".history")):
         return "boards", who
@@ -826,13 +1044,27 @@ def through(p, args, run_op, writes: frozenset):
         before = tracked(root)
         # a file that differs from the run's last reading changed between its writes, by someone else
         foreign = set(moved(run.get("after") or {}, before)) & (set(run.get("changed") or []) | set(run.get("point") or {}))
+        if not fresh:
+            # a file there before this write that the run never read, one someone else made since its last write or
+            # a Source file of a run begun before undosource (17 November 2026), joins its restore point as it
+            # stands, so a write that changes it is undone by putting it back, never by taking it away
+            seen = set(run.get("after") or {}) | set(run.get("point") or {}) | set(run.get("made") or [])
+            for rel, st in before.items():
+                if rel in seen:
+                    continue
+                if watched(rel, st):
+                    run["point"][rel] = {"sha": None, "stat": st}
+                    continue
+                got = keep_file(root, rel)
+                if got is not None and list(got[1]) == list(st):
+                    run["point"][rel] = {"sha": got[0], "stat": got[1]}
         # and each file as it stands, by its contents, so this change keeps its files as they were before it: known
         # from the restore point or the run's last change, else read now, which only a file changed since by
-        # someone else needs (agentreview2)
+        # someone else needs (agentreview2). A watched file is never read (undosource)
         known = known_shas(run)
         unread = {}
         for rel, st in before.items():
-            if (rel, tuple(st)) not in known:
+            if (rel, tuple(st)) not in known and not watched(rel, st):
                 got = read_in(root, rel)
                 if got is not None and list(got[1]) == list(st):
                     unread[rel] = got[0]
@@ -845,6 +1077,8 @@ def through(p, args, run_op, writes: frozenset):
                 if fresh:
                     keep_run(root, run)
                 settle(root, run, foreign, before, after)
+            if fresh:
+                let_go(run)
             raise
         after = tracked(root)
         changed = moved(before, after)
@@ -852,6 +1086,8 @@ def through(p, args, run_op, writes: frozenset):
             # it wrote nothing of the project's: no line, and a new run no restore point, nothing left behind. A turn
             # skip's reason for passages decided already is the one line with no file (skipreason): its step holds
             # no file, so its undo puts nothing back
+            if fresh:
+                let_go(run)
             return answer, lines
         if fresh:
             # a run of a line with no file keeps its restore point as every run does, so a later write that joins it
@@ -880,10 +1116,47 @@ def settle(root, run: dict, foreign: set, before: dict, after: dict) -> list:
     run["changed"] = sorted(set(run.get("changed") or []) | set(changed))
     run["made"] = sorted(set(run.get("made") or []) | {f for f in changed if f not in (run.get("point") or {})})
     run["after"] = after
+    archives_made(root, run)
     if changed:
         run["last"] = stamp()
     save_run(root, run)
     return changed
+
+
+def archives_made(root, run: dict) -> None:
+    """The archive copies the run's writes made inside a folder the run made, kept in the run's file by their time
+    and size (`archived`), so its undo takes them away with the folder (undosource2): a further interview added to
+    a participant the same run added keeps the workbook as it stood in that participant's _Archive. A folder there
+    before the run, and every _Archive in it, is never looked in."""
+    then = run.get("folders")
+    if then is None:
+        return
+    then = set(then)
+    tops = set()
+    for f in run.get("made") or []:
+        parts = f.split("/")[:-1]
+        for i in range(1, len(parts) + 1):
+            rel = "/".join(parts[:i])
+            if rel not in then:
+                tops.add(rel)
+                break
+    out = dict(run.get("archived") or {})
+    for top in sorted(tops):
+        base = Path(root) / top
+        if not base.is_dir() or base.is_symlink():
+            continue
+        for here, dirs, files in os.walk(base):
+            dirs[:] = sorted(d for d in dirs if not d.startswith("."))
+            rel_here = Path(here).relative_to(root).as_posix()
+            if "_Archive" not in rel_here.split("/"):
+                continue
+            for name in files:
+                rel = f"{rel_here}/{name}"
+                st = read_stat(Path(here) / name)
+                if st is not None and rel not in out:
+                    out[rel] = st
+    if out:
+        run["archived"] = out
 
 
 def known_shas(run: dict) -> dict:
@@ -914,10 +1187,25 @@ def step_of(root, changed: list, before: dict, known: dict, unread: dict) -> dic
             if sha is None and rel in unread:
                 sha = hashlib.sha256(unread[rel]).hexdigest()
                 keep(root, sha, unread[rel])
-        got = copy_in(root, rel) if (Path(root) / rel).is_file() else None
+        path = Path(root) / rel
+        now_st = read_stat(path)
+        if now_st is not None and watched(rel, now_st):
+            # a recording kept by its time and size alone, copied in only as an undo takes it away (undosource)
+            out[rel] = {"before": sha, "before_stat": st, "after": None, "after_stat": now_st}
+            continue
+        got = keep_file(root, rel) if path.is_file() else None
         out[rel] = {"before": sha, "before_stat": st, "after": got[0] if got else None,
                     "after_stat": got[1] if got else None}
     return out
+
+
+def read_stat(path: Path) -> list | None:
+    """A file's time and size as `tracked` reads them, or None when it is not there."""
+    try:
+        st = Path(path).stat()
+    except OSError:
+        return None
+    return [st.st_mtime_ns, st.st_size]
 
 
 def trash_where() -> str:
@@ -1016,6 +1304,99 @@ def lock_of(root, rel: str) -> Path:
     return (Path(root) / parts[0] / "Working" / locks.NAME) if len(parts) > 1 else locks.root_lock(Path(root))
 
 
+def kept_copy(root, rel: str, entry) -> Path | None:
+    """Where a file an undo puts back is read from: its copy in the store, or for a watched file, kept by its time
+    and size alone, the participant's _Archive copy of it (`archived`). None when neither is there."""
+    entry = entry if isinstance(entry, dict) else {}
+    if entry.get("sha"):
+        path = objects(root) / entry["sha"]
+        return path if path.is_file() else None
+    return archived(root, rel, entry.get("stat")) if watched(rel, entry.get("stat")) else None
+
+
+def keep_taken(mine: dict, kept_made: dict) -> None:
+    """An undo's own restore point given the copies of the watched files it took away, kept as it took them, so the
+    undo undone in its turn puts them back (undosource)."""
+    for rel, sha in kept_made.items():
+        e = (mine.get("point") or {}).get(rel)
+        if isinstance(e, dict) and not e.get("sha"):
+            e["sha"] = sha
+
+
+def carry_out(root, draft: dict, gone: list, back: list, clear: list, names: dict, line: dict) -> tuple:
+    """An undo's files written, under each file's own lock (undosource2). First every file it takes away or writes
+    over is kept in the store, streamed, a recording too: refused in one line naming them, nothing taken away or
+    written and the undo's run never kept, when one cannot be kept, unreadable, changed while it was read, or the
+    disk full. Then the undo's run is kept, naming those copies, so the tidy never takes them, and only then is each
+    file in `gone` taken away and each of `back`, (path, its copy, its time), written from its copy with its time
+    set back, and the folders `clear` names, (files, the run's folders), cleared while the locks are held, and again
+    once they are let go for a lock Windows would not let go of. Should anything fail part way, the undo's run still
+    reads what it changed and its line is written, so what was done is undone in its turn. Answers the undo's run
+    and its line."""
+    import cli
+    every = list(gone) + [b[0] for b in back]
+    with contextlib.ExitStack() as stack:
+        for lock in sorted({lock_of(root, f) for f in every}, key=str):
+            stack.enter_context(locks.held(lock))
+        kept, failed = {}, []
+        for f in gone:
+            got = keep_file(root, f)
+            if got is None:
+                failed.append(f)
+            else:
+                kept[f] = got[0]
+        for f, _src, _ns in back:
+            e = (draft.get("point") or {}).get(f)
+            if (Path(root) / f).is_file() and not (isinstance(e, dict) and e.get("sha")):
+                # a recording there now that the undo writes over, an agent's replace of one of the same name
+                got = keep_file(root, f)
+                if got is None:
+                    failed.append(f)
+                else:
+                    kept[f] = got[0]
+        if failed:
+            let_go(draft)
+            raise cli.Refused(i18n.t("agentchanges.undo.not_kept", what=said_files(sorted(set(failed)), names)))
+        # its restore point given the copies before it is kept, so the tidy that keeping it runs counts them named
+        keep_taken(draft, kept)
+        draft["kept_made"] = {f: kept[f] for f in gone if f in kept}
+        mine = keep_run(root, draft)
+        before = tracked(root)
+        try:
+            for f in gone:
+                (Path(root) / f).unlink(missing_ok=True)
+            for f, src, stamp_ns in back:
+                target = Path(root) / f
+                target.parent.mkdir(parents=True, exist_ok=True)
+                tmp = target.with_name(f".{target.name}.{secrets.token_hex(4)}.restore")
+                if f.split("/")[-1] == NAMES:
+                    put_back(tmp, Path(src).read_bytes(), f)
+                else:
+                    # streamed, a recording from the store or the participant's _Archive, its copy there left
+                    shutil.copyfile(src, tmp)
+                # its time as it was too, so the file reads exactly as it stood, and an earlier run undone after
+                # this one finds its files as its last write left them
+                if isinstance(stamp_ns, int):
+                    os.utime(tmp, ns=(stamp_ns, stamp_ns))
+                locks.replace(tmp, target)
+            for rels, then in clear:
+                clear_folders(root, rels, then)
+        finally:
+            after = tracked(root)
+            changed = moved(before, after)
+            mine.update(changed=changed, made=[f for f in changed if f not in mine["point"]], after=after,
+                        last=stamp(), changes=1)
+            save_run(root, mine)
+            e = append(root, {"at": stamp(), "run": mine["id"], "via": mine.get("via") or "cli",
+                              "agent": mine["agent"], "request": line.get("request") or "", "op": line["op"],
+                              "target": line["target"], "what_changed": changed_line(changed, [], names),
+                              "files": len(changed), "undo_with": {"run": mine["id"],
+                                                                   "command": f"idiograph agents undo-run {mine['id']}"}})
+    for rels, then in clear:
+        clear_folders(root, rels, then)
+    return mine, e
+
+
 def undo_run(p, args) -> tuple:
     """`agents undo-run <id>`: every file the run changed put back as it was before its first write, and each file it
     made taken away, kept first, all under the files' own locks. Refused whole when a file would lose a later
@@ -1045,7 +1426,10 @@ def undo_run(p, args) -> tuple:
         point_files = run.get("point") or {}
         back = [f for f in run.get("changed") or [] if f in point_files]
         gone = [f for f in run.get("made") or [] if f not in point_files and (Path(root) / f).is_file()]
-        missing = [f for f in back if not (objects(root) / point_files[f]["sha"]).is_file()]
+        if not all(inside(root, f) for f in back + gone):
+            raise cli.Refused(i18n.t("agentchanges.undo.outside"))
+        sources = {f: kept_copy(root, f, point_files[f]) for f in back}
+        missing = [f for f in back if sources[f] is None]
         if missing:
             raise cli.Refused(i18n.t("agentchanges.undo.copies_gone", id=run["id"], what=said_files(missing, names)))
         answer = {"run": run["id"], "put_back": len(back), "taken_away": len(gone), "dry_run": bool(args.dry_run),
@@ -1069,40 +1453,16 @@ def undo_run(p, args) -> tuple:
             save_run(root, run)
             return answer, lines
         via = getattr(args, "via", "") or "cli"
-        mine = keep_run(root, new_run(root, args, via, agent_name(args), undoes=run["id"]))
-        before = tracked(root)
-        kept_made = {}
-        with contextlib.ExitStack() as stack:
-            for lock in sorted({lock_of(root, f) for f in back + gone}, key=str):
-                stack.enter_context(locks.held(lock))
-            for f in gone:
-                got = copy_in(root, f)
-                if got is not None:
-                    kept_made[f] = got[0]
-                (Path(root) / f).unlink(missing_ok=True)
-            for f in back:
-                target = Path(root) / f
-                target.parent.mkdir(parents=True, exist_ok=True)
-                tmp = target.with_name(f".{target.name}.{secrets.token_hex(4)}.restore")
-                put_back(tmp, (objects(root) / point_files[f]["sha"]).read_bytes(), f)
-                # its time as it was too, so the file reads exactly as it stood, and an earlier run undone after
-                # this one finds its files as its last write left them
-                stamp_ns = (point_files[f].get("stat") or [None])[0]
-                if isinstance(stamp_ns, int):
-                    os.utime(tmp, ns=(stamp_ns, stamp_ns))
-                locks.replace(tmp, target)
-        after = tracked(root)
-        changed = moved(before, after)
-        mine.update(changed=changed, made=[f for f in changed if f not in mine["point"]], after=after, last=stamp(),
-                    changes=1, kept_made=kept_made)
-        save_run(root, mine)
+        draft = new_run(root, args, via, agent_name(args), undoes=run["id"])
+        # its archive copies inside a folder it made, a participant's it added (undosource2)
+        copies = [rel for rel, st in sorted((run.get("archived") or {}).items())
+                  if inside(root, rel) and read_stat(Path(root) / rel) == list(st or [])]
+        put = [(f, sources[f], (point_files[f].get("stat") or [None])[0]) for f in back]
+        mine, e = carry_out(root, draft, gone + copies, put, [(gone + copies, run.get("folders"))], names,
+                            {"request": one_line(getattr(args, "note", ""))[:WORDS_MOST], "op": "agents undo-run",
+                             "target": {"run": run["id"]}})
         run["undone"] = {"at": stamp(), "run": mine["id"], "by": agent_name(args) if via != "app" else "app"}
         save_run(root, run)
-        e = append(root, {"at": stamp(), "run": mine["id"], "via": via, "agent": mine["agent"],
-                          "request": one_line(getattr(args, "note", ""))[:WORDS_MOST], "op": "agents undo-run",
-                          "target": {"run": run["id"]}, "what_changed": changed_line(changed, [], names),
-                          "files": len(changed), "undo_with": {"run": mine["id"],
-                                                          "command": f"idiograph agents undo-run {mine['id']}"}})
         answer.update(undo_run=mine["id"], change=e["id"])
         lines.append(i18n.t("agentchanges.undo.again", id=mine["id"]))
         return answer, lines
@@ -1229,6 +1589,8 @@ def undo_changes(p, args) -> tuple:
                           if s.get("before") and not (objects(root) / s["before"]).is_file()})
         if missing:
             raise cli.Refused(i18n.t("agentchanges.undo_change.copies_gone", what=said_files(missing, names)))
+        if not all(inside(root, rel) for _e, _r, step in todo for rel in step):
+            raise cli.Refused(i18n.t("agentchanges.undo.outside"))
         named = formats_list([e["id"] for e, _r, _s in reversed(todo)])
         back = sorted({rel for _e, _r, step in todo for rel, s in step.items() if s.get("before_stat") is not None})
         gone = sorted({rel for _e, _r, step in todo for rel, s in step.items()
@@ -1246,42 +1608,23 @@ def undo_changes(p, args) -> tuple:
         if args.dry_run:
             return answer, lines
         via = getattr(args, "via", "") or "cli"
-        mine = new_run(root, args, via, agent_name(args))
-        mine.update(key=f"undo-changes:{','.join(answer['changes'])}", undoes_changes=answer["changes"])
-        mine = keep_run(root, mine)
-        before = tracked(root)
-        kept_made = {}
-        with contextlib.ExitStack() as stack:
-            for lock in sorted({lock_of(root, rel) for _e, _r, step in todo for rel in step}, key=str):
-                stack.enter_context(locks.held(lock))
-            for _e, _r, step in todo:
-                for rel, s in sorted(step.items()):
-                    target = Path(root) / rel
-                    if s.get("before_stat") is None:
-                        if target.is_file():
-                            got = copy_in(root, rel)
-                            if got is not None:
-                                kept_made[rel] = got[0]
-                            target.unlink(missing_ok=True)
-                        continue
-                    target.parent.mkdir(parents=True, exist_ok=True)
-                    tmp = target.with_name(f".{target.name}.{secrets.token_hex(4)}.restore")
-                    put_back(tmp, (objects(root) / s["before"]).read_bytes(), rel)
-                    # its time as it was too, so the change before it finds the file as it left it
-                    stamp_ns = s["before_stat"][0]
-                    if isinstance(stamp_ns, int):
-                        os.utime(tmp, ns=(stamp_ns, stamp_ns))
-                    locks.replace(tmp, target)
-        after = tracked(root)
-        changed = moved(before, after)
-        mine.update(changed=changed, made=[f for f in changed if f not in mine["point"]], after=after, last=stamp(),
-                    changes=1, kept_made=kept_made)
-        save_run(root, mine)
-        e = append(root, {"at": stamp(), "run": mine["id"], "via": via, "agent": mine["agent"],
-                          "request": one_line(getattr(args, "note", ""))[:WORDS_MOST], "op": "agents undo-change",
-                          "target": {"changes": answer["changes"]}, "what_changed": changed_line(changed, [], names),
-                          "files": len(changed), "undo_with": {"run": mine["id"],
-                                                          "command": f"idiograph agents undo-run {mine['id']}"}})
+        draft = new_run(root, args, via, agent_name(args))
+        draft.update(key=f"undo-changes:{','.join(answer['changes'])}", undoes_changes=answer["changes"])
+        # each file as the oldest change named leaves it, the changes taken newest first, its time as it was too, so
+        # the change before it finds the file as it left it
+        final: dict = {}
+        for _e, _r, step in todo:
+            for rel, s in step.items():
+                final[rel] = (None if s.get("before_stat") is None
+                              else (objects(root) / s["before"], s["before_stat"][0]))
+        taken = [rel for rel, v in sorted(final.items()) if v is None and (Path(root) / rel).is_file()]
+        put = [(rel, v[0], v[1]) for rel, v in sorted(final.items()) if v is not None]
+        # the folders each change's run made that are left empty (undosource)
+        clear = [([rel for rel, s in step.items() if s.get("before_stat") is None], (run or {}).get("folders"))
+                 for _e, run, step in todo]
+        mine, e = carry_out(root, draft, taken, put, clear, names,
+                            {"request": one_line(getattr(args, "note", ""))[:WORDS_MOST], "op": "agents undo-change",
+                             "target": {"changes": answer["changes"]}})
         answer.update(undo_run=mine["id"], change=e["id"])
         lines.append(i18n.t("agentchanges.undo.again", id=mine["id"]))
         return answer, lines

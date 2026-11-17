@@ -2,19 +2,21 @@
 
 [![A few seconds of Idiograph's film](docs/images/film-preview.webp)](https://idiograph.app)
 
-Idiograph is an app for Interpretative Phenomenological Analysis (IPA),
-for researchers who analyse their interviews themselves and want a place made for the method. It runs
-on your own computer, a Mac, Windows or Linux.
+Idiograph is software for Interpretative Phenomenological Analysis (IPA) and reflexive thematic
+analysis (RTA). It is for researchers who analyse their own interviews. It runs on your own Mac, Windows or Linux computer.
 
 - Free
 - Open source
-- Flexible
 - No cloud
+- Flexible
 
-An IPA project has three screens: Experiential statements, a transcript read a passage at a time with
-its statements, quotes and exploratory notes, PETs, one participant's statements grouped into personal
-experiential themes, and GETs, every participant's PETs gathered into group experiential themes. A thematic analysis project follows Braun and Clarke: Coding, a Code
-list shared by every participant, and Themes.
+When you make a project, you choose its method:
+
+- **IPA** has three screens. Experiential statements shows the transcript a passage at a time, with
+  your statements, quotes and notes. PETs and GETs group them into themes.
+- **Longitudinal IPA** adds PETs at each timepoint, LPETs, LGETs and Trajectories.
+- **Reflexive thematic analysis** follows Braun and Clarke. Its screens are Coding, the Code list and
+  Themes.
 
 ![Experiential statements](docs/images/statements.webp)
 
@@ -22,17 +24,17 @@ list shared by every participant, and Themes.
 
 ![GETs on the canvas](docs/images/gets.webp)
 
-The pictures use the app's demo, made with AI: they show the app, not how to do IPA.
+The pictures show the demo, which was made with AI. They show the app, not how to do IPA.
 
 > ⚠️ This is an early preview, a proof of concept to explore what software for IPA can be. It has not been fully tested or reviewed, so please don't rely on it for anything important: your data could be damaged or lost, so keep copies of your work. It is not yet a replacement for the software you use day to day. Tell me what you think with the bug button or by email. Please keep it to yourself for now: don't share it or post about it.
 
 ## Three principles
 
-1. **Human first, AI assisted.** The analyst makes every decision. The AI suggests a statement or three titles, each to be weighed, taken, changed or ignored. It is always the assistant, never the author.
+1. **Human first, AI assisted.** The analyst makes every decision. The AI suggests statements, codes or titles, and you weigh each one: take it, change it or ignore it. It is always the assistant and never the author.
 
-2. **Your files, your machine.** It writes into the Excel workbook you already use, the table supervisors read, always current, beside plain files any tool opens. Privacy first and built for GDPR: participant data never leaves your machine unless you send a passage to an AI model. No account, no subscription. The AI features are the one running cost, pay as you go on your own key, or none at all with a local model.
+2. **Your files, your machine.** Idiograph writes into the Excel workbook you already use, so your supervisor can read the table. It is built for GDPR. Participant data stays on your computer unless you send a passage to an AI model. There is no account and no subscription. The AI features run on your own key or a local model.
 
-3. **IPA by the book.** Built on the method's phenomenological, hermeneutic and idiographic ground, every default set by its key literature: Smith, Flowers and Larkin's steps, vocabulary and tables, one participant in depth before the next. Personal habits are settings, never defaults.
+3. **Flexible.** The defaults follow each method's key literature. If you work differently, you can change them in a project's settings.
 
 ## Which file do I need?
 
@@ -47,13 +49,12 @@ Each link gets the newest version, which updates itself.
 
 ### Mac
 
-Open `Idiograph.dmg` and drag Idiograph to Applications. Unsigned, macOS says it cannot check the app,
-and System Settings, Privacy and Security, Open Anyway opens it, once.
+Open `Idiograph.dmg` and drag Idiograph to Applications. macOS says it cannot check the unsigned app. Open it from System Settings, Privacy and Security, Open Anyway. You only do this once.
 
 ### Windows
 
-Run `Idiograph-Setup.exe`. Unsigned, Windows says it protected your PC, and More info, Run anyway runs
-it, once.
+Run `Idiograph-Setup.exe`. Windows says it protected your PC, because the installer is unsigned. Click
+More info, then Run anyway. You only do this once.
 
 ### Linux
 
@@ -62,54 +63,53 @@ Ubuntu, Debian and Mint can install `Idiograph-amd64.deb` instead, which does no
 
 ### From source
 
-For work on the app: clone it, install Python 3.11 or later, then double-click `run.command` on a
-Mac, `run.bat` on Windows (with "Add python.exe to PATH" ticked in Python's installer), or run
-`./run.sh` on Linux.
+To work on the app, clone it and install Python 3.11 or later. Then double-click `run.command` on a
+Mac or `run.bat` on Windows, or run `./run.sh` on Linux. On Windows, tick "Add python.exe to PATH".
 
 ## First run
 
-The demo, Living with a dog, is invented, so
-try it on nobody's words, and Reset demo restores it. A project is a folder of
-participants' folders: Open project folder takes one, and New project makes one from your
-transcripts.
+Four demo projects let you try the app. Their interviews are invented and were made with AI. They are
+Living with a dog (IPA and RTA), First year on an allotment (longitudinal IPA) and Working from home
+(RTA). Reset demo puts each one back as it was.
+
+A project is a folder of participants' folders. Open project opens one you have. New project
+sets one up with its folder, name, question and method, then you add transcripts on its page.
 
 ## Your transcript
 
-A participant's folder holds an Excel workbook with three columns, Name, Timestamp and Transcript, one
-passage per row, as in `template/Transcript template.xlsx`. A VTT, SRT, text, Word, CSV or Excel
-file in its `Source` folder is offered with "make a workbook".
+A participant's folder holds an Excel workbook with three columns, Name, Timestamp and Transcript, and
+one passage per row, as in `template/Transcript template.xlsx`. If a VTT, SRT, text, Word, CSV or Excel
+file is in its `Source` folder, Idiograph offers to "make a workbook" from it.
 
 ## AI
 
-The AI features are off until turned on in Settings. They suggest statements, codes and
-titles, changing nothing by themselves.
-They run on your own key, or free on your own computer with Ollama or LM Studio. An AI agent can work on a project through the command line or Claude Desktop once Settings,
-Projects allows it, sending what it reads to its provider. [docs/agents.md](docs/agents.md) is its guide.
+The AI features are off until you turn them on in Settings. They suggest statements, codes and
+titles, and they change nothing by themselves. They run on your own key, or free with Ollama or LM Studio on your computer. An AI agent can work on a project through the command line or Claude Desktop
+once the project's settings allow it. It sends what it reads to its provider.
+[docs/agents.md](docs/agents.md) is its guide.
 
 ## Privacy
 
-Idiograph's page loads nothing from the internet. Two
-things leave, each only when you press a
-control: with the AI switch on, the prompt an AI control builds from a passage or a board, sent to your
-chosen provider, none with a local model, and a feedback note, sent with the bug in each top bar, which carries your words, the app's version, your system, the screen it came from and the
-time, and nothing from your projects. Once a day Idiograph asks GitHub for a newer version. GitHub sees
-your internet address and version number, never your work. Download on the demo's player fetches its
-recordings from GitHub, once. Settings asks Anthropic which models a
-stored key can use, sending nothing of yours.
+Idiograph's page loads nothing from the internet. Only two things leave your computer, and only when you
+press a control. With the AI switch on, an AI control sends its prompt to your chosen provider, and a
+local model sends none. The bug in each top bar sends a feedback
+note, which carries your words, the app's version, your system, the screen it came from and the time,
+and nothing from your projects. Once a day Idiograph asks GitHub for a newer version. GitHub sees your
+internet address and version number, not your work. When you press Download on a demo's player, it fetches the recordings from GitHub. Settings asks Anthropic which models a stored key can use. It sends nothing of yours.
 
 ## Contributing
 
 Pull requests are welcome under the same licence. GitHub runs the suite on each, as does
 `.venv/bin/python tests/test_idiograph.py --train`.
 
-The [manual](docs/manual.md) describes every screen, the [internals](docs/internals.md) how it runs.
+The [manual](docs/manual.md) describes every screen. The [internals](docs/internals.md) say how it runs.
 
 ## Licence and support
 
-Idiograph is under the GNU Affero General Public License version 3, in `LICENSE`,
-with two terms of its section 7 and the third-party software in `NOTICE.md`. The demo's recordings, AI
-voices made with Google Gemini, are the one exception, under `packaging/recording/LICENSE-audio.md`.
+Idiograph's licence is the GNU Affero General Public License version 3. It is in `LICENSE`. Two terms of its
+section 7 and the third-party software are in `NOTICE.md`. The demo's recordings are the one exception.
+They are AI voices made with Google Gemini. Their licence is in `packaging/recording/LICENSE-audio.md`.
 Portraits: Open Peeps (Pablo Stanley, CC0), Notionists (Zoish, CC0).
-If it helps your work, please consider buying me a coffee, and a GitHub star helps others find it.
+If it helps your work, please consider buying me a coffee. A GitHub star also helps others find it.
 
 <a href='https://ko-fi.com/X8X01NIXRB' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>

@@ -14,7 +14,11 @@ MCP connection one run and a second its own. And the actions that waited before 
 the project opens, their count noted once in the agent log. One change undone alone (agentreview2, 13 November):
 each change keeping its files before and after it,  putting them back byte for byte, the
 change before it kept, a second undo refused, a change whose file he changed since refused whole with nothing
-written, and MCP's agent_undo_change doing the same."""
+written, and MCP's agent_undo_change doing the same. A run's undo reaching Source (undosource, 17 November 2026), on
+a scratch copy of the demo made a project of its own: an agent's Add transcripts of a new participant undone leaves
+the project byte for byte as before, no Source file and no folder left, and the undo undone brings the participant
+back whole; a further interview undone leaves the participant's other Source files untouched; a recording replaced
+comes back from the participant's _Archive; and no restore point keeps a copy of a recording."""
 from __future__ import annotations
 
 import hashlib
@@ -39,6 +43,199 @@ def digest(root: Path) -> dict:
                 and "_Archive" not in rel and p.name != "idiograph-history.json":
             out[rel] = hashlib.sha256(p.read_bytes()).hexdigest()
     return out
+
+
+def tree(root: Path) -> dict:
+    """Every file and folder of the project, each file by its contents, Source's among them: the record of agents'
+    changes and its store, lock files, archive copies and the project's History set aside."""
+    import agent_changes
+    out = {}
+    for p in sorted(Path(root).rglob("*")):
+        rel = p.relative_to(root).as_posix()
+        if (rel == agent_changes.FILE or rel.startswith(agent_changes.STORE) or p.name.endswith(".lock")
+                or "_Archive" in rel.split("/") or p.name in agent_changes.NEVER):
+            continue
+        out[rel] = "folder" if p.is_dir() else hashlib.sha256(p.read_bytes()).hexdigest()
+    return out
+
+
+def source_undo(scratch: Path):
+    """An agent's Add transcripts of a new participant, then its run undone, on a scratch copy of the demo made a
+    project of its own: the project byte for byte as before, no Source file and no folder left, the undo undone
+    bringing the participant back whole. A further interview added to that participant and undone leaves their other
+    Source files as they were. A recording a run replaced is put back from the participant's _Archive, and no
+    restore point keeps a copy of a recording (undosource, 17 November 2026)."""
+    import agent_changes
+    import cli
+    import server as server_mod
+
+    base = scratch / "agent-changes-380-source"
+    shutil.rmtree(base, ignore_errors=True)
+    root = base / "Dogs"
+    root.mkdir(parents=True)
+    demo = support.source("demo")
+    held = json.loads((demo / server_mod.PROJECT_FILE).read_text(encoding="utf-8"))
+    held["agents"] = {"allowed": True, "at": "2026-11-17T09:00:00+00:00"}
+    (root / server_mod.PROJECT_FILE).write_text(json.dumps(held), encoding="utf-8")
+    for who in ("Juno", "Mabel", "Rowan"):
+        (root / who / "Working").mkdir(parents=True)
+        shutil.copy2(demo / "pristine" / f"{who} - EN & ES.xlsx", root / who / f"{who} - EN & ES.xlsx")
+        for one in sorted((demo / "pristine" / "Working").glob(f"{who} - EN & ES.*")):
+            shutil.copy2(one, root / who / "Working" / one.name)
+    shutil.copy2(demo / "pristine" / "idiograph-gets.json", root / "idiograph-gets.json")
+    config_file = base / "config.json"
+    config_file.write_text(json.dumps({"projects": [{"root": str(root)}], "interviewer": "Sam", "corpus": "",
+                                       "gravity_reference": "", "corpus_exclude": []}), encoding="utf-8")
+    given = base / "given"
+    given.mkdir()
+    for name, said in (("Initial", "Mud, mostly, and a shed with no roof."),
+                       ("Follow-up", "The shed has a roof now, and a chair in it.")):
+        (given / f"{name}.vtt").write_text(
+            "WEBVTT\n\n00:00:01.000 --> 00:00:04.000\n<v Sam>What did the plot look like?</v>\n\n"
+            f"00:00:05.000 --> 00:00:09.000\n<v Wren>{said}</v>\n", encoding="utf-8")
+    # two recordings, invented bytes, only ever copied
+    (given / "first.m4a").write_bytes(b"\x00\x00\x00\x18ftypM4A " + os.urandom(4000))
+    (given / "second.m4a").write_bytes(b"\x00\x00\x00\x18ftypM4A " + os.urandom(5000))
+    roles = {"Sam": "interviewer", "Wren": "participant"}
+    first = base / "first.json"
+    first.write_text(json.dumps([{"file": str(given / "Initial.vtt"), "pseudonym": "Wren", "interview": "Initial",
+                                  "speakers": roles, "audio": str(given / "first.m4a")}]), encoding="utf-8")
+    again = base / "again.json"
+    again.write_text(json.dumps([{"file": str(given / "Follow-up.vtt"), "pseudonym": "Wren", "interview": "Follow-up",
+                                  "speakers": roles}]), encoding="utf-8")
+
+    def run(*args):
+        words = ["--config", str(config_file), "--root", str(root), "--json", *args, "--tool", "Claude Code"]
+        code, out, err = cli.run(words)
+        return code, (support.plain(json.loads(out)) if out.strip() else {}), err + (out if code else "")
+
+    def stored() -> set:
+        return {f.read_bytes() for f in (root / agent_changes.STORE / "objects").iterdir() if f.is_file()}
+
+    start = tree(root)
+    code, _x, err = run("project", "add-transcripts", "--from", str(first), "--run", "add-wren", "--note", "Add Wren")
+    wren = next((p for p in root.iterdir() if p.is_dir() and p.name.endswith("Wren")), None)
+    added = tree(root)
+    made_source = sorted(k for k in set(added) - set(start) if "/Source/" in k and added[k] != "folder")
+    check("380: an agent's Add transcripts of a new participant makes their folder, Source's transcript as given and "
+          "its recording among its files", code == 0 and wren is not None
+          and any(k.endswith("Initial.vtt") for k in made_source) and any(k.endswith(".m4a") for k in made_source),
+          err + json.dumps(made_source))
+    recording = (given / "first.m4a").read_bytes()
+    check("380: no restore point keeps a copy of a recording, watched by its time and size alone",
+          recording not in stored())
+    rid = agent_changes.read(root)[-1]["run"]
+    code, dry, err = run("agents", "undo-run", rid, "--dry-run", "--note", "Undo Wren")
+    check("380: undo-run's dry run counts every file the run made, Source's among them, and writes nothing",
+          code == 0 and dry.get("taken_away") == len([k for k in set(added) - set(start) if added[k] != "folder"])
+          and tree(root) == added, err + json.dumps(dry))
+    code, undone, err = run("agents", "undo-run", rid, "--note", "Undo Wren")
+    after = tree(root)
+    check("380: the add undone leaves the project byte for byte as before, no Source file and no empty folder, the "
+          "participant's own folder gone", code == 0 and after == start and wren is not None and not wren.exists(),
+          err + json.dumps(sorted(set(after) ^ set(start))))
+    code, _x, err = run("agents", "undo-run", undone.get("undo_run", ""), "--note", "Put Wren back")
+    check("380: the undo undone brings the participant back whole, Source and the recording byte for byte",
+          code == 0 and tree(root) == added, err + json.dumps(sorted(set(tree(root)) ^ set(added))))
+
+    # a further interview for the participant, undone: their other Source files untouched
+    kept_files = {k: (root / k).stat().st_mtime_ns for k in added if "/Source/" in k and added[k] != "folder"
+                  and not k.endswith(".xlsx")}
+    code, _x, err = run("project", "add-transcripts", "--from", str(again), "--run", "join-wren", "--note",
+                        "Add Wren's follow-up")
+    joined = tree(root)
+    check("380: a further interview added to the participant writes its own Source folder",
+          code == 0 and any(k.endswith("Follow-up.vtt") for k in set(joined) - set(added)), err)
+    rid = agent_changes.read(root)[-1]["run"]
+    code, _x, err = run("agents", "undo-run", rid, "--note", "Undo the follow-up")
+    check("380: the further interview undone puts the participant back as they were, their other Source files "
+          "untouched and the new interview's folder gone", code == 0 and tree(root) == added
+          and all((root / k).stat().st_mtime_ns == t for k, t in kept_files.items()),
+          err + json.dumps(sorted(set(tree(root)) ^ set(added))))
+
+    # a recording replaced, kept in the participant's _Archive by audio attach, put back from there by the undo
+    code, _x, err = run("audio", "attach", "Wren", "--file", str(given / "second.m4a"), "--replace",
+                        "--run", "swap", "--note", "Swap the recording")
+    swapped = tree(root)
+    check("380: a recording replaced by an agent keeps the one there in _Archive", code == 0 and swapped != added
+          and any(p.suffix == ".m4a" for p in (wren / "_Archive").rglob("*")), err)
+    rid = agent_changes.read(root)[-1]["run"]
+    code, put, err = run("agents", "undo-run", rid, "--note", "Put the first recording back")
+    check("380: the replace undone puts the first recording back from _Archive byte for byte over the second",
+          code == 0 and tree(root) == added, err + json.dumps(sorted(k for k in set(tree(root)) | set(added)
+                                                                     if tree(root).get(k) != added.get(k))))
+    code, _x, err = run("agents", "undo-run", put.get("undo_run", ""), "--note", "The second recording again")
+    check("380: the undo kept the second recording before writing the first over it, so its undo brings the second "
+          "back byte for byte (undosource2)", code == 0 and tree(root) == swapped, err)
+
+    # a participant added and given a further interview in one run, undone: the participant goes whole, the
+    # workbook's archive copy the further interview made in their folder with it (undosource2)
+    before_ivo = tree(root)
+    for name, spec in (("Initial", "ivo-1.json"), ("Follow-up", "ivo-2.json")):
+        (base / spec).write_text(json.dumps([{"file": str(given / f"{name}.vtt"), "pseudonym": "Ivo",
+                                              "interview": name, "speakers": {"Sam": "interviewer", "Ivo": "participant"}}]),
+                                 encoding="utf-8")
+    (given / "Initial.vtt").write_text((given / "Initial.vtt").read_text(encoding="utf-8").replace("Wren", "Ivo"),
+                                       encoding="utf-8")
+    (given / "Follow-up.vtt").write_text((given / "Follow-up.vtt").read_text(encoding="utf-8").replace("Wren", "Ivo"),
+                                         encoding="utf-8")
+    c1, _x, e1 = run("project", "add-transcripts", "--from", str(base / "ivo-1.json"), "--run", "ivo", "--note", "Add Ivo")
+    c2, _x, e2 = run("project", "add-transcripts", "--from", str(base / "ivo-2.json"), "--run", "ivo", "--note", "More")
+    ivo = next((p for p in root.iterdir() if p.is_dir() and p.name.endswith("Ivo")), None)
+    code, _x, err = run("agents", "undo-run", agent_changes.read(root)[-1]["run"], "--note", "Undo Ivo")
+    check("380: a participant added and given a further interview in one run, undone, goes whole, the archive copy "
+          "in their folder too", c1 == c2 == code == 0 and ivo is not None and not ivo.exists()
+          and tree(root) == before_ivo, e1 + e2 + err)
+
+    # a copy that cannot be kept refuses the undo whole, nothing taken away (undosource2)
+    (given / "Initial.vtt").write_text((given / "Initial.vtt").read_text(encoding="utf-8").replace("Ivo", "Pip"),
+                                       encoding="utf-8")
+    (base / "pip.json").write_text(json.dumps([{"file": str(given / "Initial.vtt"), "pseudonym": "Pip",
+                                                "interview": "Initial", "speakers": {"Sam": "interviewer", "Pip": "participant"},
+                                                "audio": str(given / "first.m4a")}]), encoding="utf-8")
+    code, _x, err = run("project", "add-transcripts", "--from", str(base / "pip.json"), "--run", "pip", "--note", "Add Pip")
+    pip = next((p for p in root.iterdir() if p.is_dir() and p.name.endswith("Pip")), None)
+    pip_run = agent_changes.read(root)[-1]["run"]
+    with_pip = tree(root)
+    n_runs = len(agent_changes.all_runs(root))
+    real_keep = agent_changes.keep_file
+    agent_changes.keep_file = lambda r, rel: None if rel.endswith(".m4a") else real_keep(r, rel)
+    try:
+        code, _x, err = run("agents", "undo-run", pip_run, "--note", "Undo Pip")
+    finally:
+        agent_changes.keep_file = real_keep
+    check("380: a file the undo cannot keep first refuses it in one line, nothing taken away, no run of its own",
+          code != 0 and "could not be kept first" in err and tree(root) == with_pip
+          and len(agent_changes.all_runs(root)) == n_runs
+          and not agent_changes.load_run(root, pip_run).get("undone"), err)
+
+    # an undo that fails part way keeps its own run, which puts back what it took (undosource2)
+    real_clear = agent_changes.clear_folders
+
+    def failing(*_a, **_k):
+        raise OSError("the disk went away")
+    agent_changes.clear_folders = failing
+    try:
+        try:
+            code, _x, err = run("agents", "undo-run", pip_run, "--note", "Undo Pip")
+        except OSError as exc:
+            code, err = 1, str(exc)
+    finally:
+        agent_changes.clear_folders = real_clear
+    half = agent_changes.all_runs(root)[-1]
+    check("380: an undo failing part way keeps its run, naming what it changed, and is not marked done",
+          code != 0 and half.get("undoes") == pip_run and half.get("changed")
+          and not agent_changes.load_run(root, pip_run).get("undone"), err + json.dumps(half.get("changed")))
+    code, _x, err = run("agents", "undo-run", half["id"], "--note", "Put Pip back")
+    check("380: that half undo undone puts the participant back byte for byte", code == 0 and tree(root) == with_pip, err)
+
+    # a folder he made after the run, inside the participant's, stays with what holds it (undosource2)
+    (pip / "Photos").mkdir()
+    (pip / "Photos" / ".DS_Store").write_bytes(b"\x00Bud1")
+    code, _x, err = run("agents", "undo-run", pip_run, "--note", "Undo Pip")
+    left = sorted(p.relative_to(pip).as_posix() for p in pip.rglob("*")) if pip.exists() else []
+    check("380: the undo leaves a folder he made after the run, and the participant's folder holding it, and takes "
+          "every file the run made", code == 0 and left == ["Photos", "Photos/.DS_Store"], err + json.dumps(left))
 
 
 def test_agent_changes(scratch: Path):
@@ -281,6 +478,9 @@ def test_agent_changes(scratch: Path):
         check("380: MCP's agent_undo_change undoes one change as the command line does",
               digest(root) == his and lines()[-1]["op"] == "agents undo-change"
               and lines()[-1]["target"] == {"changes": [last]}, json.dumps(lines()[-2:])[:500])
+
+        # ── 11. a participant added by an agent undone whole, Source and folders too (undosource)
+        source_undo(scratch)
     finally:
         agent_changes.ALL_OPS, agent_changes.NOW = kept[0], kept[1]
         if kept[2] is None:

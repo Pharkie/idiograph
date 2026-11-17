@@ -617,8 +617,22 @@ parser:
   `_Archive`, leaving out `NEVER`: History, team.json, the old holds file and a copy's own record, the list of names
   kept since namesop so an agent's `names add` is undone), and each participant's memos files in Source
   (`is_memos`, `<folder>/Source/<x> - memos.txt` and its numbered twins, since wordfix2, as `names replace` writes
-  them; a line says them as "Juno's memos") copied by its sha256 into `objects/`, each copy mode 600, a file whose time and size match an earlier point's taking that copy unread,
-  so a point costs a stat of each file and a read and copy of each one changed since. `tidy` lets points go
+  them; a line says them as "Juno's memos"), and since undosource (17 November 2026) every file in a participant's
+  Source folder at any depth (`in_source`: the transcripts as given to Add transcripts or an import, recordings and
+  their `offset.json`; a line says them as "Wren's Source files", `agentchanges.part.source`) copied by its sha256
+  into `objects/`, each copy mode 600, a file whose time and size match an earlier point's taking that copy unread,
+  so a point costs a stat of each file and a read and copy of each one changed since. A file over `STREAM`, 1 MB, is
+  copied a `CHUNK` at a time as it is hashed (`stream_out`), waiting in the system's folder for passing files until
+  `keep_run` moves it into the store, or `let_go` takes it away when the run is never kept, so a project's first
+  point holds no large file in memory (undosource2). A recording (`recording`, a file `audio.CONTENT_TYPES` names)
+  or any Source file over `BIG`, 32 MB, is `watched`: its point entry holds its time and size and no
+  sha, it is never read before a write (`unread`) nor copied after one (`step_of`, `after` None), so the store holds
+  no copy of a recording until an undo takes one away. Each run keeps `folders`, the project's folders as it began
+  (`folders`), and `archived`, the archive copies its writes made inside a folder it made (`archives_made`, a further
+  interview's copy of the workbook in the `_Archive` of a participant the same run added). A run that goes on finds
+  any file it never read (one made by someone else since its last write, or a
+  Source file of a run begun before undosource) and adds it to its point as it stands, so its change is undone by
+  putting it back, never by taking it away. `tidy` lets points go
   `KEEP_DAYS`, 30, after their run's last write, the last `KEEP_RUNS`, 10, kept whatever their age, and `sweep` takes
   away every copy no kept run names. A run whose first op wrote nothing, or was refused, is let go (`drop`).
 - Each file's time and size are read before and after the op (`tracked`). `settle` keeps in the run's file
@@ -637,12 +651,34 @@ parser:
   names, `--since`, `--run`, `--limit`. `agents undo-run <id>` (MCP `agent_undo_run`, `undo_run`) checks `conflicts`
   first: a file the run changed that stands otherwise than its `after` (changed since its last write), or that is in
   its `foreign` (changed by someone else between its writes), refuses it whole, each named, nothing written, and so
-  does `folder_renamed`. Otherwise it starts a run of its own (`undoes`, its key `undo:<id>`), whose point is the
-  project as it stands, then under each file's own lock (`lock_of`: the participant's `Working/.idiograph.lock`, else
-  the root's) keeps and takes away each file the run made (`kept_made`) and writes each file it changed back from its
-  copy, its time set back to the point's (`os.utime`), so an earlier run undone after it finds its files as its last
-  write left them. The run takes `undone`, the undo one line of the record, and `agents undo-run` on the undo's id puts
-  it back. `cli.PLAIN` keeps the record's own words plain (`run`, `via`, `started`, `last`, `what_changed`, `own`,
+  does `folder_renamed`, and a path in the run's file outside the project (`inside`: relative, no `..`, inside the
+  folder once links are followed) refuses it as `outside`. Otherwise `carry_out`, shared with `undo_changes`, works
+  under each file's own lock (`lock_of`: the participant's `Working/.idiograph.lock`, else the root's). First it keeps
+  every file it will take away or write over in the store (`keep_file`, streamed, a recording too, and a watched
+  file it writes over, an agent's recording of the same name as the one put back): one that cannot be kept,
+  unreadable, changed while it was read or the disk full, refuses the undo in one line naming it
+  (`agentchanges.undo.not_kept`), nothing taken away or written and no run of its own kept. Then it keeps a run of
+  its own (`undoes`, its key `undo:<id>`), whose point is the project as it stands, given those copies first
+  (`keep_taken`, `kept_made`) so the tidy keeping it runs never takes them. Only then does it take away each file the
+  run made, its archive copies in folders it made (`archived`) with them, and write each file it changed back from
+  its copy (`shutil.copyfile`, streamed), its time set back to the point's (`os.utime`), so an earlier run undone
+  after it finds its files as its last write left them. A watched file with no copy is put back from the
+  participant's `_Archive` (`kept_copy`, `archived`: the file there with the same time and size, which audio
+  attach's `--replace` move keeps), its copy there left, and refused as `copies_gone` when none is there.
+  `clear_folders` then takes away the folders the run made (not in its `folders`) that a file taken away stood in,
+  and those above them to the first that was there before, each holding nothing but `DROPPINGS` (the lock file,
+  `.DS_Store`), deepest first, the participant's own folder when the run made it, while the locks are held and again
+  once they are let go (a lock file Windows will not let go of while it is open). A folder he made inside one after
+  the run is never on that chain, so it stays, and the folders above it. A run from before undosource keeps every
+  folder. Should anything fail part way, the undo's run is saved with what it changed and its line written, so it is
+  undone in its turn, and the run it undid is not marked. The run takes `undone`, the undo one line of the record,
+  and `agents undo-run` on the undo's id puts it back (an archive copy it took away is kept in the store but not put
+  back). Area 380 checks it on a scratch copy of the demo: an agent's Add transcripts undone leaves the project byte
+  for byte, the undo undone brings the participant back whole, a further interview undone leaves the other Source
+  files, a participant added and given a further interview in one run goes whole, a replaced recording comes back
+  from `_Archive` and the undo of that brings the agent's recording back, a copy that cannot be kept refuses the
+  undo with nothing taken away, an undo failing part way is undone in its turn, and a folder he made after the run
+  stays. `cli.PLAIN` keeps the record's own words plain (`run`, `via`, `started`, `last`, `what_changed`, `own`,
   `batch`, `copy`, `undoes`, `undo_run`, `change`, `back_said`, `gone_said`), the agent's name and his request marked.
 - Review afterwards (agentreview2, 13 November 2026, Adam by dialog on agentreview's drawings: "C, with A's Home
   line"). Each write now keeps its own files in the run's file as `steps`, by change id: each file it changed with
@@ -9100,7 +9136,7 @@ several, which is remade by hand.
 | `apps/idiograph/team_board.py` | A reviewer's board sent straight in (wtboard, 9 November 2026): Send board seals a member's own board of a participant someone else owns as a `board` message, the owner's install takes it in as that participant's next board, never current, through `idiograph_routes.board_coming`, and Accept or Decline goes back as an `answer`. Its record is `.idiograph-team/boards.json`. A reviewer's own boards of another's participant are kept apart in `.idiograph-team/own-boards/` (`own_file`, ownboards). |
 | `apps/idiograph/static/team_board.js` | Send board in the PETs board menu, and the line that says a teammate's board came in, with Show, Decline and Accept (wtboard, 9 November 2026). |
 | `apps/idiograph/static/team.js` | Working together in Project settings, the invite's card and the join's card (wtkeys, 8 November 2026). |
-| `apps/idiograph/agent_changes.py` | Every change an agent makes and each run's restore point (noholds, 13 November 2026): the ops only the app does refused (`app_only`), every write a line of `idiograph-agent-changes.jsonl`, a run's files kept by their contents in `.idiograph-restore` before its first write, `agents changes`, `agents undo-run` and `agents undo-change` (each change's own files kept, agentreview2), By an agent's read (`review`) and Home's count (`unseen`, from `tally.json` and `seen.json`), and the holds of before dropped as a project opens. |
+| `apps/idiograph/agent_changes.py` | Every change an agent makes and each run's restore point (noholds, 13 November 2026): the ops only the app does refused (`app_only`), every write a line of `idiograph-agent-changes.jsonl`, a run's files kept by their contents in `.idiograph-restore` before its first write (workbooks, JSON files and every file in a participant's Source folder, recordings watched by time and size, undosource), `agents changes`, `agents undo-run` and `agents undo-change` (each taking away every file the run made, Source's among them, and the folders it made left empty) (each change's own files kept, agentreview2), By an agent's read (`review`) and Home's count (`unseen`, from `tally.json` and `seen.json`), and the holds of before dropped as a project opens. |
 | `apps/idiograph/project_history.py` | The project's own History (projhistory, 2 November 2026): `idiograph-history.json`, one record for each change to the project's settings, timepoints, statement length or GETs settings, a participant renamed or marked complete, with who asked. |
 | `apps/idiograph/codes.py` | A thematic analysis project's code list (codes, 2 November 2026): `idiograph-codes.json`, the codes read from the rows and kept in step with them, rename, merge, describe, new and delete written whole across the workbooks, the GETs file and the list with a copy of each first and one step of undo, a code put on an extract or taken off, a project's first read making its list, and a code's row cards kept in one place on the Themes board (`gather`, `fold`, `unfold`). |
 | `apps/idiograph/gets_word.py` | A thematic analysis project's table of themes as a Word document (taword, 1 November 2026), in `themes_word`'s shape: the project under Heading 1 and "Table of themes" in the Subtitle style, each theme of the board in canvas order under Heading 2 in bold capitals with its description and note, its subthemes under Heading 3 to 5 as `themes.theme_order` reads them, and under each heading its codes, each with whose it is and where and its own extract set in under it (`code_blocks`), or with Their key extract only each participant's key extract (`board_blocks`), participant notes only when ticked and each row note after the theme. Written at the project's root, never over a file there, its author Your name (`write`). Reads the GETs file and the workbooks only. |
