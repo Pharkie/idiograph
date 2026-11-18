@@ -3,7 +3,7 @@
   "family_cli.outside.s_search_reads_one_project_by": "{us}'s Search reads one project by its folder: {app} search <words> --folder <folder>.",
   "family_cli.perform.is_not_a_command_of_this": "{command} is not a command of this copy.",
   "family_cli.elsewhere.is_s_not_s_run_it": "{given} is {them}'s, not {us}'s. Run it as: {list}",
-  "family_cli.search_said.closed_to_ai_agents_settings_projects": "{name}: closed to AI agents. Project settings, \"Allow AI agents to read this project\" opens it.",
+  "family_cli.search_said.closed_to_ai_agents_settings_projects": "{name}: closed to AI agents. To open it, tick \"Allow AI agents to read this project\" in its Project settings.",
   "family_cli.search_said.more_the_same_search_with_more": "More: the same search with --more {more}.",
   "family_cli.search_said.no_hits_after_the_first": "No hits after the first {start}.",
   "family_cli.search_said.open": "   Open: {command}",
@@ -51,7 +51,7 @@
   },
   "family_cli.agents_log.note": "{when}, {project}: {line}",
   "family_cli.agents_log.entry": "{when}, {agent}: {call}. Refused: {line}",
-  "family_cli.agents_log.asked": "The agent said he asked: {request}",
+  "family_cli.agents_log.asked": "The agent said the researcher asked: {request}",
   "family_cli.agents_log.closed": {
     "one": "And {n} entry in a project agents may not read.",
     "other": "And {n} entries in projects agents may not read."

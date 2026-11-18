@@ -311,15 +311,19 @@ and sends the dot in 0.13 s to a bumper (right, left, right, then softly to the 
 pulses, and each hit turns one run of neighbouring letters fully on at once (`K.lamps`: RA, ID, PH, IOG, Adam's order since his third notes), faint at
 0.2 till then. At the end the flippers stand up out wide and step in, so they never sweep through each other or
 the dot, and the dot glides home from the top bumper. Lengths, stamp included: spin 1.85 s, pong 2.8, pinball 3.2,
-kiss 3.1, hop 2.7, football 3.2, anagram 4.4. The anagram (GO RAPID HI, no comma since Adam's notes) is sorted in
+kiss 3.1, hop 2.7, football 3.2, anagram 4.4. The anagram (HI GO RAPID since Adam's word of 18 November 2026, GO RAPID HI before, no comma) is sorted in
 three moves, one at a time, each a bracket holding letters from the side with 2.7 units between its arms' tips
 and the letter, lifting them 15 units, clear over the line (under it on a phone, where the toolbar sits just over
-the name's end, the brackets coming up into place from under the line and G and the last I tossed up into theirs), carrying them and putting them down (G and the last I
+the name's end, the brackets coming up into place from under the line and H and G tossed up into theirs), carrying them and putting them down (H and G
 let go just clear of the letter under the bracket and dropped in), while the rest of the phrase stays on its line
-as words: the right takes ID to the front (ID GO RAP HI), the left takes G over O as RAP shuffles along (ID OGRAP
-HI), and the right drops the last I in after ID as the word closes up under it. The phrase is laid out from a word
+as words: the right, beside RAPID's end from the start, takes ID to the front (ID HI GO RAP) and hops home over it,
+the left hops in after ID, takes H from the front of HI to the end and drops it in after RAP (ID I GO RAPH), then
+hops back to G and takes it over O as RAPH shuffles along (ID I OGRAPH). As G drops the word closes up, the left
+hops home over the right and the dot glides in. The phrase is laid out from a word
 space after the name's D, so ID's place at the front is free from the start, with word spaces of 10 (room for a
-bracket with a clear gap either side), and R A P and I D at the name's own spacing so each moves as one. Every hop
+bracket with a clear gap either side), and R A P and I D at the name's own spacing so each moves as one. HI's I is
+the name's second I and RAPID's the first. The phrase is as wide as GO RAPID HI was, so `ANAGRAM_REACH` (152 units, the site's `mark.js`) and the
+recorder's crop are unchanged. Every hop
 goes straight up, across high over the letters and straight down, so no bracket sweeps through a letter beside it.
 
 **Adam's third notes** (23 October, about 12:40). The spin since: each bracket is drawn at its largest (`Z`, the
@@ -380,9 +384,9 @@ passed off its first letters (at 360 they are over them till about 0.8 s). At 12
 first roll starts at 0.3 s and goes on to `K.roll.d1`, the flipper's length less the dot's radius and 0.3, nearly
 its inner end, and the first kick goes from there (`launch0`, `hit0`), riding the flipper's snap at that distance;
 everything after is 0.16 s later and the stamp meets the page at 3.28 s. The anagram's clock stands still for
-`HM_PAUSE` (1 s) from 0.37 s, the brackets down either side of GO RAPID HI and before they shake their heads, each
+`HM_PAUSE` (1 s) from 0.37 s, the brackets down either side of HI GO RAPID and before they shake their heads, each
 leaning its top 4 degrees in towards the phrase and back meanwhile (the left from 0.47 s, the right 0.12 s after),
-the landing squash run on the real clock. On a phone its word spaces are 8, not 10, so the right bracket keeps 20px from the window's edge. Its stamp is at 5.25 s, so the page's safety in `style.css` that shows the
+the landing squash run on the real clock. On a phone its word spaces are 8, not 10, so the right bracket keeps 20px from the window's edge. Its stamp is at 5.25 s (5.4 s since HI GO RAPID, 18 November 2026, about 5.6 s in all), so the page's safety in `style.css` that shows the
 mark, name and stamp if the script never runs is now 6 s. The hop: the right goes first, H, R, O, D (lands 0.3,
 0.58, 0.86, 1.14 s) and home at 1.47 s, the left from 0.32 s, H, G, D (0.62, 0.93, 1.25 s), then over the right,
 which crouches for it (to 0.39 of its height about its foot, 1.5 to 1.95 s), home at 1.74 s. Both leaps home go
@@ -395,7 +399,8 @@ sight at 1.45 s, 0.3 s before the H, falling from its throw (its speed onto the 
 in the middle at about 3.48 s. Its last arc comes down too steeply into the mark for the right's top arm, so the
 right ducks (the same crouch, without the spread) from the D bounce and stands as the ball lands, where it is caught
 by `hmHome` from its own speed, stiff (60, damping 0.9), less than half a unit of give. Stamp at 3.62 s. Lengths
-now, stamp included: spin 1.85 s, pong 2.9, pinball 3.45, football 3.6, hop 3.8, the kiss 3.1, the anagram 5.4.
+now, stamp included: spin 1.85 s, pong 2.9, pinball 3.45, football 3.6, hop 3.8, the kiss 3.1, the anagram 5.4 (5.6 since
+HI GO RAPID).
 
 **The race** (Adam's notes of 23 October, about 18:00 and 18:05, which replace the hop and rename it: the way's
 name is now `race`, so `homeMarkPlay('race')`). Only it changed. The right bracket, the left and the dot race to

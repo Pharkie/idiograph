@@ -182,7 +182,7 @@ def test_tables_of_pets(scratch):
         code_t, text, _e = said("board", "import", "Quill", "--timepoint", "T1", "--from", table, "--sheet", "T1 PETs",
                                 "--dry-run")
         check("366: the dry run's lines say each row, and without --unmatched add the row with nothing close is skipped",
-              code_t == 0 and "1 skipped" in text and "Row 5: Counting out loud as a private scaffold, close to "
+              code_t == 0 and "1 skipped" in text and "Row 5: Counting out loud as a private scaffold is close to "
               "Counting aloud as a private scaffold" in text and "Row 8: Listening as the way into the band is row 4's" in text
               and "word for word" in text and state() == before, text[:900])
 

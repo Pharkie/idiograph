@@ -140,7 +140,7 @@ html[data-app="idiograph"][data-edition="preview"] .wordmark .pe .pe-stamp {
    it is due, the lockup's own mark, name and stamp stand hidden, the mark under the moving cover, the name until
    it fades in and the stamp until it is stamped on. Should the page's script never run, they show after 6 s all
    the same (since 23 October, when the anagram's pause over GO RAPID HI took it to about 5.4 s, 4 s and then 5 s
-   before) */
+   before; HI GO RAPID since 18 November 2026 is about 5.6 s) */
 html.home-mark-due .wordmark .pe .lockup > use { visibility: hidden; animation: home-mark-safe 0s 6s forwards; }
 html.home-mark-due .wordmark .pe .lockup > path,
 html.home-mark-due .wordmark .pe .pe-stamp { opacity: 0; animation: home-mark-safe 0s 6s forwards; }

@@ -257,7 +257,7 @@ def test_card_sync(scratch):
               "changed",
               code_t == 0 and k2 in dry_text and gone in dry_text
               and not any(w in dry_text for w in ("Steering", "tiller", "Reading the", "since removed"))
-              and "so the workbook wins" in dry_text, dry_text[:700])
+              and "so the workbook's words win" in dry_text, dry_text[:700])
         code, refused, err = run("copies", "refresh", "--case", "Tove")
         check("381: a refresh with no request is refused, nothing written", code != 0 and tree(sail) == whole,
               str(refused)[:300] + err)

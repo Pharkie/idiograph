@@ -308,8 +308,13 @@ def at_closed(n: int) -> None:
 # A refusal's line as the window says it to him (agentlog, 3 November 2026, moved here from Idiograph's routes for
 # Sift and Trace, siftlog, the same day): the agent's line speaks of him, so the window has its own words where one
 # is drawn, and elsewhere the agent's line with him as "you", Sift's "field of his" and "are his alone" as "of
-# yours" and "are yours"
-YOU = ((r"\bhe ticks\b", "you tick"), (r"\bhe does\b", "you do"), (r"\bhe says\b", "you say"),
+# yours" and "are yours". Since cliprose (18 November 2026) Idiograph's lines say "the researcher" and "their",
+# read here as "you" and "your" the same way
+YOU = ((r"\bthe researcher's request in their own words\b", "your request in your own words"),
+       (r"\bso the change is theirs\b", "so the change is yours"), (r"\bthe researcher ticks\b", "you tick"),
+       (r"\bthe researcher asks\b", "you ask"), (r"\bthe researcher types\b", "you type"),
+       (r"\bThe researcher's\b", "Your"), (r"\bthe researcher's\b", "your"), (r"\bthe researcher\b", "you"),
+       (r"\bhe ticks\b", "you tick"), (r"\bhe does\b", "you do"), (r"\bhe says\b", "you say"),
        (r"\bhe answers\b", "you answer"), (r"\bhe gives\b", "you give"), (r"\bhe asks\b", "you ask"),
        (r"\bhe made\b", "you made"), (r"\bHe\b", "You"), (r"\bhe\b", "you"), (r"\bhis own\b", "your own"),
        (r"\b(is|are) his(?=\s+alone\b|[,.;:]|$)", r"\1 yours"), (r"\bof his(?=[,.;:]|$)", "of yours"),

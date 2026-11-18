@@ -82,7 +82,7 @@ function homeMarkSpin(box, use, name, stamp, still) {
   if (!size) { still(); return; }
   const k = size / 24, P = size * 16;
   const cx = ctm.e + size / 2, cy = ctm.f + size / 2, lock = use.ownerSVGElement.getBoundingClientRect();
-  let under = box.closest('.wordmark');
+  let under = box.closest('.lib-top') || box.closest('.wordmark');
   under = under && under.nextElementSibling;
   while (under && !under.getBoundingClientRect().height) under = under.nextElementSibling;
   const floor = under ? under.getBoundingClientRect().top : innerHeight;
@@ -406,9 +406,9 @@ const HOME_MARK_SCENES = {
       Object.assign(dot, { x, y, a: onRight ? -aR : aL, sx: 1 + q, sy: 1 - q });
     } },
 
-  anagram: { letters: true, stamp: 5.25,
+  anagram: { letters: true, stamp: 5.4,
     init(K) {
-      const order = [4, 3, ' ', 5, 6, 7, 0, 1, ' ', 8, 2], at = {};
+      const order = [8, 2, ' ', 4, 3, ' ', 5, 6, 7, 0, 1], at = {};
       K.space = K.room < 10 ? 8 : 10;
       let x = K.L[1].x1 + K.space, prev = null;
       for (const c of order) {
@@ -416,11 +416,14 @@ const HOME_MARK_SCENES = {
         else { if (typeof prev === 'number') x += c === prev + 1 ? K.L[c].x0 - K.L[prev].x1 : 3; at[c] = x; x += K.L[c].x1 - K.L[c].x0; }
         prev = c;
       }
+      const w = (i) => K.L[i].x1 - K.L[i].x0, gap = (a, b) => K.L[b].x0 - K.L[a].x1;
       K.start = K.L.map((l, i) => at[i]);
-      K.mid = K.start.slice();
-      K.mid[4] = K.start[3] + (K.L[3].x1 - K.L[3].x0) + (K.L[4].x0 - K.L[3].x1);
-      const rShift = K.mid[4] + (K.L[4].x1 - K.L[4].x0) + (K.L[5].x0 - K.L[4].x1) - K.start[5];
-      for (const i of [5, 6, 7]) K.mid[i] = K.start[i] + rShift;
+      K.two = K.start.slice();
+      K.two[8] = K.start[7] + w(7) + gap(7, 8);
+      K.three = K.two.slice();
+      K.three[4] = K.start[3] + w(3) + gap(3, 4);
+      const shift = K.three[4] + w(4) + gap(4, 5) - K.two[5];
+      for (const i of [5, 6, 7, 8]) K.three[i] = K.two[i] + shift;
       K.glide = hmHome(HM.mid, -6);
     },
     frame(real, S, K) {
@@ -434,19 +437,18 @@ const HOME_MARK_SCENES = {
       const fall = (at) => (under ? LET * Math.pow(1 - Math.min(1, (t - at) / toss), 2)
         : Math.min(0, LET + 40 * (t - at) + 0.5 * g * (t - at) * (t - at)));
       for (const i of [0, 1]) {
-        along(i, [[1.0, K.start[i]], [1.5, fin(i)]]);
-        Ls[i].dy = hmKeys(t, [[0.86, 0], [1.0, LIFT], [1.5, LIFT], [1.62, 0]]);
-        Ls[i].sy = 1 - 0.06 * hmBump(t, 0.78, 0.9) - 0.1 * hmBump(t, 1.6, 1.72);
+        along(i, [[0.78, K.start[i]], [1.24, fin(i)]]);
+        Ls[i].dy = hmKeys(t, [[0.66, 0], [0.78, LIFT], [1.24, LIFT], [1.36, 0]]);
+        Ls[i].sy = 1 - 0.06 * hmBump(t, 0.58, 0.7) - 0.1 * hmBump(t, 1.34, 1.46);
       }
-      along(4, [[2.12, K.start[4]], [2.4, K.mid[4]], [2.8, K.mid[4]], [3.1, fin(4)]]);
-      Ls[4].dy = t < 2.5 ? hmKeys(t, [[2.0, 0], [2.12, LIFT], [2.4, LIFT], [2.5, LET]]) : fall(2.5);
-      Ls[4].sy = 1 - 0.06 * hmBump(t, 1.9, 2.02) - 0.06 * hmBump(t, 2.48 + dropAt, 2.6 + dropAt);
-      for (const i of [5, 6, 7]) along(i, [[2.12, K.start[i]], [2.38, K.mid[i]], [2.8, K.mid[i]], [3.1, fin(i)]]);
-      along(3, [[2.8, K.start[3]], [3.1, fin(3)]]);
-      along(8, [[2.8, K.start[8]], [3.1, fin(8)]]);
-      along(2, [[2.77, K.start[2]], [3.17, fin(2)]]);
-      Ls[2].dy = t < 3.25 ? hmKeys(t, [[2.65, 0], [2.77, LIFT], [3.17, LIFT], [3.25, LET]]) : fall(3.25);
-      Ls[2].sy = 1 - 0.06 * hmBump(t, 2.55, 2.67) - 0.08 * hmBump(t, 3.23 + dropAt, 3.35 + dropAt);
+      along(8, [[2.08, K.start[8]], [2.44, K.two[8]], [2.98, K.two[8]], [3.26, K.three[8]], [3.46, K.three[8]], [3.76, fin(8)]]);
+      Ls[8].dy = t < 2.54 ? hmKeys(t, [[1.96, 0], [2.08, LIFT], [2.44, LIFT], [2.54, LET]]) : fall(2.54);
+      Ls[8].sy = 1 - 0.06 * hmBump(t, 1.88, 2.0) - 0.08 * hmBump(t, 2.52 + dropAt, 2.64 + dropAt);
+      along(4, [[2.98, K.start[4]], [3.26, K.three[4]], [3.46, K.three[4]], [3.76, fin(4)]]);
+      Ls[4].dy = t < 3.36 ? hmKeys(t, [[2.86, 0], [2.98, LIFT], [3.26, LIFT], [3.36, LET]]) : fall(3.36);
+      Ls[4].sy = 1 - 0.06 * hmBump(t, 2.78, 2.9) - 0.06 * hmBump(t, 3.34 + dropAt, 3.46 + dropAt);
+      for (const i of [5, 6, 7]) along(i, [[2.98, K.two[i]], [3.24, K.three[i]], [3.46, K.three[i]], [3.76, fin(i)]]);
+      for (const i of [2, 3]) along(i, [[3.46, K.start[i]], [3.76, fin(i)]]);
       const grip = (i) => HM.nameX + K.L[i].x0 + Ls[i].dx - HOLD, gripR = (i) => HM.nameX + K.L[i].x1 + Ls[i].dx + HOLD;
       const at = (pos) => HM.nameX + pos, w = (i) => K.L[i].x1 - K.L[i].x0;
       const hop = (k, x0, y0, x1, y1, top) => [hmLerp(x0, x1, hmInOut(hmSpan(k, 0.2, 0.8))),
@@ -459,35 +461,31 @@ const HOME_MARK_SCENES = {
       const fallIn = under ? HM.mid + 14 * Math.pow(1 - hmSpan(t, 0.05, 0.05 + rise), 2)
         : Math.min(HM.mid, -6 + 0.5 * g * Math.pow(Math.max(0, t - 0.05), 2));
       const shake = t > 0.38 && t < 0.56 ? 6 * Math.sin(4 * Math.PI * (t - 0.38) / 0.18) * (1 - (t - 0.38) / 0.18) : 0;
-      const gStart = at(K.start[4]) - HOLD;
-      if (t < 0.6) { lb.x = gStart; lb.y = fallIn; lb.r = -Math.abs(shake); }
-      else if (t < 0.85) { const k = hmSpan(t, 0.6, 0.85); [lb.x, lb.y] = hop(k, gStart, HM.mid, HM.lb.x, HM.mid, HM.mid - 5); lb.r = -6 * hmArc(k); }
-      else if (t < 1.75) { lb.x = HM.lb.x; lb.y = HM.mid; }
-      else if (t < 1.95) { const k = hmSpan(t, 1.75, 1.95); [lb.x, lb.y] = hop(k, HM.lb.x, HM.mid, gStart, HM.mid, over); lb.r = 6 * hmArc(k); }
-      else if (t < 2.5) { lb.x = grip(4) + tight(1.94, 2.44); lb.y = HM.mid + Ls[4].dy; lb.r = 5 * hmArc(hmSpan(t, 2.12, 2.4)); }
-      else { const k = hmSpan(t, 2.5, 2.9); [lb.x, lb.y] = hop(k, at(K.mid[4]) - HOLD, HM.mid + LET, HM.lb.x, HM.mid, over); lb.r = -7 * hmArc(k); }
-      const iStart = at(K.start[2] + w(2)) + HOLD, dStart = at(K.start[1] + w(1)) + HOLD, dEnd = at(K.L[1].x1) + HOLD;
-      if (t < 0.6) { rb.x = iStart; rb.y = fallIn; rb.r = Math.abs(shake); }
-      else if (t < 0.8) { const k = hmSpan(t, 0.6, 0.8); [rb.x, rb.y] = hop(k, iStart, HM.mid, dStart, HM.mid, over); rb.r = -6 * hmArc(k); }
-      else if (t < 1.68) { rb.x = gripR(1) - tight(0.8, 1.62); rb.y = HM.mid + Ls[1].dy; rb.r = -5 * hmArc(hmSpan(t, 1.0, 1.5)); }
-      else if (t < 1.98) { const k = hmSpan(t, 1.68, 1.98); [rb.x, rb.y] = hop(k, dEnd, HM.mid, iStart, HM.mid, over); rb.r = 6 * hmArc(k); }
-      else if (t < 3.3) {
-        rb.x = gripR(2) - tight(2.58, 3.19); rb.y = HM.mid + (t < 3.25 ? Ls[2].dy : LET) - (t < 2.6 ? 0.6 * hmBump(t, 2.2, 2.5) : 0);
-        rb.r = -5 * hmArc(hmSpan(t, 2.77, 3.17));
-      } else { const k = hmSpan(t, 3.3, 3.7); [rb.x, rb.y] = hop(k, at(K.L[2].x1) + HOLD, HM.mid + LET, HM.rb.x, HM.mid, over); rb.r = -7 * hmArc(k); }
+      const hStart = at(K.start[8]) - HOLD, gStart = at(K.start[4]) - HOLD;
+      if (t < 0.6) { lb.x = hStart; lb.y = fallIn; lb.r = -Math.abs(shake); }
+      else if (t < 0.85) { const k = hmSpan(t, 0.6, 0.85); [lb.x, lb.y] = hop(k, hStart, HM.mid, HM.lb.x, HM.mid, HM.mid - 5); lb.r = -6 * hmArc(k); }
+      else if (t < 1.7) { lb.x = HM.lb.x; lb.y = HM.mid; }
+      else if (t < 1.92) { const k = hmSpan(t, 1.7, 1.92); [lb.x, lb.y] = hop(k, HM.lb.x, HM.mid, hStart, HM.mid, over); lb.r = 6 * hmArc(k); }
+      else if (t < 2.54) { lb.x = grip(8) + tight(1.9, 2.48); lb.y = HM.mid + Ls[8].dy; lb.r = 5 * hmArc(hmSpan(t, 2.08, 2.44)); }
+      else if (t < 2.82) { const k = hmSpan(t, 2.56, 2.82); [lb.x, lb.y] = hop(k, at(K.two[8]) - HOLD, HM.mid + LET, gStart, HM.mid, over); lb.r = -6 * hmArc(k); }
+      else if (t < 3.36) { lb.x = grip(4) + tight(2.8, 3.3); lb.y = HM.mid + Ls[4].dy; lb.r = 5 * hmArc(hmSpan(t, 2.98, 3.26)); }
+      else { const k = hmSpan(t, 3.36, 3.72); [lb.x, lb.y] = hop(k, at(K.three[4]) - HOLD, HM.mid + LET, HM.lb.x, HM.mid, over); lb.r = -7 * hmArc(k); }
+      const dStart = at(K.start[1] + w(1)) + HOLD, dEnd = at(K.L[1].x1) + HOLD;
+      if (t < 0.6) { rb.x = dStart; rb.y = fallIn; rb.r = Math.abs(shake); }
+      else if (t < 1.42) { rb.x = gripR(1) - tight(0.6, 1.36); rb.y = HM.mid + Ls[1].dy; rb.r = -5 * hmArc(hmSpan(t, 0.78, 1.24)); }
+      else { const k = hmSpan(t, 1.42, 1.68); [rb.x, rb.y] = hop(k, dEnd, HM.mid, HM.rb.x, HM.mid, over); rb.r = -6 * hmArc(k); }
       const drop0 = 0.16 * hmBump(real, landed, landed + 0.14);
-      const homeL = t > 2.9 ? 0.12 * hmSpring(hmSpan(t, 2.9, 3.15)) : 0, homeR = t > 3.7 ? 0.12 * hmSpring(hmSpan(t, 3.7, 3.95)) : 0;
-      lb.sy = 1 - drop0 - 0.1 * hmBump(t, 0.52, 0.62) - 0.1 * hmBump(t, 0.83, 0.93) - 0.1 * hmBump(t, 1.67, 1.77)
-        - 0.1 * hmBump(t, 1.93, 2.03) - 0.12 * hmBump(t, 2.88, 2.98) + homeL;
+      const homeL = t > 3.72 ? 0.12 * hmSpring(hmSpan(t, 3.72, 3.97)) : 0, homeR = t > 1.68 ? 0.12 * hmSpring(hmSpan(t, 1.68, 1.93)) : 0;
+      lb.sy = 1 - drop0 - 0.1 * hmBump(t, 0.52, 0.62) - 0.1 * hmBump(t, 0.83, 0.93) - 0.1 * hmBump(t, 1.62, 1.72)
+        - 0.1 * hmBump(t, 1.9, 2.0) - 0.1 * hmBump(t, 2.8, 2.9) - 0.12 * hmBump(t, 3.7, 3.8) + homeL;
       lb.sx = 1 - homeL;
-      rb.sy = 1 - drop0 - 0.12 * hmBump(t, 0.52, 0.62) - 0.1 * hmBump(t, 0.78, 0.86) - 0.1 * hmBump(t, 1.6, 1.7)
-        - 0.1 * hmBump(t, 1.96, 2.06) - 0.12 * hmBump(t, 3.68, 3.78) + homeR;
+      rb.sy = 1 - drop0 - 0.12 * hmBump(t, 0.52, 0.62) - 0.1 * hmBump(t, 1.34, 1.44) - 0.12 * hmBump(t, 1.66, 1.76) + homeR;
       rb.sx = 1 - homeR;
       const readL = hmBump(real, P0 + 0.1, P1 - 0.15), readR = hmBump(real, P0 + 0.22, P1 - 0.05);
       lb.r += 4 * readL * readL; rb.r -= 4 * readR * readR;
       lb.sy -= 0.04 * readL; rb.sy -= 0.04 * readR;
-      dot.o = hmSpan(t, 3.55, 3.63);
-      Object.assign(dot, K.glide.at(t - 3.55));
+      dot.o = hmSpan(t, 3.72, 3.8);
+      Object.assign(dot, K.glide.at(t - 3.72));
     } },
 
   football: { stamp: 3.45,

@@ -113,7 +113,7 @@ def test_mcp_server(scratch):
         check("84: its instructions are the guide's privacy line, the tools, the method and the conventions, dry_run for --dry-run",
               told.startswith("Read this first. What you read of this project goes to your model's provider.")
               and "Call cases first" in told and "## The method" in told and "Never use causal language." in told
-              and "## The conventions" in told and "Set a statement aside only when he asks." in told
+              and "## The conventions" in told and "Set a statement aside only when the researcher asks." in told
               and "Run every write with dry_run first" in told and "--dry-run" not in told and "## Reading" not in told)
         check("84: notifications/initialized and any other notification are taken in silence",
               srv.receive(json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"})) is None

@@ -49,7 +49,7 @@
   "demographics.cli.none": "No categories yet.",
   "demographics.cli.table_each": "The participants table: one row each.",
   "demographics.cli.table_sum": "The participants table: in sum.",
-  "demographics.cli.pending": "Trajectories' tags wait to move into the Tags category, at the project page's next listing or with demographics move-tags.",
+  "demographics.cli.pending": "Trajectories' tags are waiting to move into the Tags category. They move the next time the project page lists its participants, or with demographics move-tags.",
   "demographics.cli.no_tags": "Trajectories keeps no tags, so nothing moved.",
   "demographics.qdpx.list_head": "A list with one value for each participant:",
   "demographics.qdpx.words_head": "Free words, separated by commas.",

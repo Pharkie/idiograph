@@ -436,8 +436,8 @@ def ta_word(ta: Path, ipa: Path, call, config_file: Path, ipa_words):
     kept_said = {m: said(r, "gets", "revision", "--name", "Kept", "--dry-run") for m, r in (("ta", ta), ("ipa", ipa))}
     check("306: the command line's GETs board lines in a TA project name the themes board, an IPA project's the GETs "
           "board",
-          "It would make the themes board Board 9, every card" in fresh["ta"]
-          and "It would make the GETs board Board 9, every card" in fresh["ipa"]
+          "It would make the themes board Board 9 with every card" in fresh["ta"]
+          and "It would make the GETs board Board 9 with every card" in fresh["ipa"]
           and "It would keep the themes board Board 1 as it stands" in kept_said["ta"]
           and "It would keep the GETs board Board 1 as it stands" in kept_said["ipa"]
           and not ipa_words.search(fresh["ta"] + kept_said["ta"]), f"{fresh} | {kept_said}")

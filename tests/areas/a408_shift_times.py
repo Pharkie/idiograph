@@ -334,8 +334,8 @@ def test_shift_times(scratch: Path):
               "only they change, and both when both do, nothing written",
               code_t == code_w == code_b == 0
               and "timecode would go from" in time_dry and "words would be corrected" not in time_dry
-              and "words would be corrected" in words_dry and "timecode go from" not in words_dry
-              and "words would be corrected" in both_dry and "timecode go from" in both_dry
+              and "words would be corrected" in words_dry and "timecode would go from" not in words_dry
+              and "words would be corrected" in both_dry and "timecode would go from" in both_dry
               and hashlib.sha256(juno.read_bytes()).hexdigest() == held_book and said_words(juno) == words_now,
               time_dry + words_dry + both_dry)
         code_t, time_done = said("turn", "edit", "Juno", "Initial", "3", "--time", "00:25", "--note", ASKED)
