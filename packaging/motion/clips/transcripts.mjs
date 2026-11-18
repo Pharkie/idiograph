@@ -1,3 +1,4 @@
+// Screens: apps/idiograph/static/distil.js, apps/idiograph/static/distil.css, apps/idiograph/static/i18n/en/distil.json, packaging/motion/clips/files/
 // Transcripts in the shapes you have: a transcript kept as a CSV, Add transcripts on the project's page, the file
 // chosen, its Margin column set to Exploratory notes, the participant's pseudonym typed and Add, then the new
 // participant's Experiential statements, the transcript with its notes beside it. The interview is invented
@@ -58,7 +59,7 @@ export async function act(h) {
   // the new participant's transcript on Experiential statements, the notes beside their passages
   const es = await h.eval(() => {
     const row = [...document.querySelectorAll('#hp-list .pcard')].find((r) => r.innerText.includes('Ellis'));
-    const r = row.querySelector('.pc-es').getBoundingClientRect();
+    const r = row.querySelector('[data-act="statements"]').getBoundingClientRect();
     return { cx: r.x + 80, cy: r.y + r.height / 2 };
   });
   await h.click(es.cx, es.cy, { ms: 1000 });

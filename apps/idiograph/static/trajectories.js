@@ -306,6 +306,32 @@ function trajGuideDraw() {
     : `<p class="th-qnone">${esc(t('themes.guidance.none'))}</p>`;
 }
 
+/* Mark Trajectories complete, or Reopen Trajectories once marked, in the toolbar beside Export (trajmark, 18 November
+   2026): the screen has no board menu, where the other boards keep their mark. Marking is refused, naming who, while a
+   participant is in no trajectory. Its tooltip says when it was marked. */
+function trajDoneDraw() {
+  const b = $('tj-done');
+  if (!b) return;
+  const done = (TJ.data && TJ.data.complete) || null;
+  b.hidden = !TJ.data;
+  const at = done ? whenOf(done.at) : null;
+  const word = done ? t('trajectories.done_reopen') : t('trajectories.done_mark');
+  $('tj-done-word').textContent = word;
+  b.classList.toggle('on', !!done);
+  if (!done) b.title = t('trajectories.done_mark_tip');
+  else if (at.time) b.title = t('trajectories.done_tip_time', { day: at.day, time: at.time });
+  else b.title = t('trajectories.done_tip', { day: at.day });
+}
+
+async function trajDone() {
+  if (!TJ.data || TJ.busy) return;
+  const mark = !TJ.data.complete;
+  const data = await trajOps([{ op: mark ? 'complete' : 'reopen' }]);
+  if (!data) return;
+  if (mark && data.complete && (data.changes || []).length) { confetti(3); say(t('trajectories.marked_complete'), 2400); }
+  else if (!mark) say(t('trajectories.reopened'), 2400);
+}
+
 /* the left edge tab: pressed in while the sidebar shows, the tooltip naming the other way, and the count not placed
    after its name, 0 once everyone is placed (toolbar10) */
 function trajDoorDraw() {
@@ -421,6 +447,7 @@ function trajDraw() {
   const fkey = was && was.dataset ? was.dataset.fkey : '';
   const caret = was && typeof was.selectionStart === 'number' ? [was.selectionStart, was.selectionEnd] : null;
   trajDoorDraw();
+  trajDoneDraw();
   trajStatusDraw();
   trajStepsDraw();
   trajNoteDraw();
@@ -1137,6 +1164,8 @@ function trajWire() {
   // Undo and Redo, a press leaving the focus where it was, as the boards' do, and their keys anywhere on the screen
   // but in a field, whose own undo they stay (the Mac's Edit menu presses the same keys)
   for (const id of ['tj-undo', 'tj-redo']) $(id).addEventListener('pointerdown', (e) => e.preventDefault());
+  $('tj-done').addEventListener('pointerdown', (e) => e.preventDefault());
+  $('tj-done').onclick = () => trajDone();
   $('tj-undo').onclick = () => trajUndo(true);
   $('tj-redo').onclick = () => trajUndo(false);
   document.addEventListener('keydown', (e) => {

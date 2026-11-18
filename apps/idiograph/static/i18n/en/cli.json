@@ -819,6 +819,7 @@
   "cli.traj_lines.not_placed": "Unplaced ({n_unplaced})",
   "cli.traj_lines.why": "      Why: {note}",
   "cli.traj_lines.board_note": "Note: {note}",
+  "cli.traj_lines.complete": "Trajectories marked complete since {when}.",
   "cli.traj_lines.no_lpets_yet": ", no LPETs yet",
   "cli.traj_lines.no_quote": "No quote",
   "cli.traj_lines.first": "(the first, standing in)",

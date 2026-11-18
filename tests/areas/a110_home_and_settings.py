@@ -47,15 +47,23 @@ def test_home_and_settings(scratch):
         pieces = [const("esc"), const("escAttr"), const("plural"), const("HOME_KEY"), const("DEMO_ID"), const("homeHover"),
                   const("SHARE_LINE"), const("HOME_PROJECTS"), const("DEMO_TA_ID"), const("DEMO_LIPA_ID"), const("DEMO_RTA_ID"), const("isDemoId"), const("DEMOS_OPEN"),
                   const("DEMOS_SHUT"), const("ARCHIVED_OPEN")]
-        pieces += [whole(app, n) for n in ("sectionsOf", "homeHeld", "homeKeep", "drawHome", "standLine", "cardGetsLine", "demoWords", "homeCardHtml",
+        pieces += [whole(app, n) for n in ("sectionsOf", "homeHeld", "homeKeep", "drawHome", "standLine", "demoWords", "homeCardHtml",
+                                           "homeDashHtml", "homeAcrossHtml", "homeCardsWire", "acrossStages", "stageRings",
+                                           "stageBar", "stageWords", "stageCount", "stageFrac", "stageName", "personPic",
+                                           "codesTileLine",
                                            "drawPick", "openPage", "openPageNow", "closePage", "pageHead", "drawPage", "demoRows",
                                            "demoCards", "drawDemoPage", "loadLibrary", "windowPicks", "windowRecent",
                                            "homeMenuItems", "homeMenuRows", "homeMenuHtml", "projectMenuHtml", "projectMenuWord",
                                            "projectDotsHtml", "distilHomeDraw", "distilRecent",
-                                           "recentNames", "demosOf", "demosFold", "archivedFold", "projKind", "kindTag")]
+                                           "recentNames", "demosOf", "demosFold", "archivedFold", "projKind", "kindTag", "demoUpdateShown")]
         # Home's line of agents' changes, asked of the server once the cards are drawn, which area 389 and the review
         # shots hold, a call that does nothing here (agentreview2)
         pieces.append("async function homeAgentLines() {}")
+        # the bar under a demo's card that is newer (demostamp), area 425's, a call that does nothing here
+        pieces.append("function demoUpdateBars() {}")
+        # the demos' stages across participants, asked of the server the same way (homecardbuild), and the rings' pieces
+        pieces.append("async function homeDemoHeads() {}")
+        pieces += [const("stageBegun"), const("personWho"), const("demoKind")]
         # Idiograph's Home through its hooks, the family's since the fifth build
         pieces.append(support.distil_hooks(app))
         # Sift's section of Home, Sift's own script's since the family codebase's third build
@@ -148,9 +156,7 @@ const shown = () => ({ pick: !$('home-pick').hidden, page: !$('home-project').hi
   out.siftHtml = $('sift-list').innerHTML;
   out.npHidden = $('np-line').hidden;
   out.folds = calls.fold.slice();
-  out.lines = [standLine(data.projects[0].participants, data.projects[0].gets), standLine([], null), standLine([], null, false),
-    standLine([{ case: 'x', boards: 2 }]), cardGetsLine(null), cardGetsLine({ done: null }), cardGetsLine({ done: null, themes: 4 }),
-    cardGetsLine({ done: { at: 'x' }, themes: 4 }), cardGetsLine({ themes: 1 })];
+  out.lines = [standLine(data.projects[0].participants), standLine([]), standLine([], false)];
   $('projects').querySelectorAll('.home-card')[0].onclick();
   out.page = shown();
   out.kept = store['idiograph-home'];
@@ -201,17 +207,14 @@ const shown = () => ({ pick: !$('home-pick').hidden, page: !$('home-project').hi
                   and "Living with a dog" not in o["cardsHtml"] and "Living with a dog" in o["demosHtml"]
                   and o["cardsHtml"].count('class="home-card"') == 2 and o["demosHtml"].count('<span class="tag demo">IPA demo</span>') == 1
                   and o["demosShut"] is True
-                  and "How do adults experience a first length?" in o["cardsHtml"] and "2 participants, 1 with PETs" in o["cardsHtml"]
-                  and "GETs not started" in o["cardsHtml"] and o["cardsHtml"].count('class="pc-line hc-more"') == 1
-                  and "Its folder is not there" in o["cardsHtml"] and "3 participants, 2 with PETs" in o["demosHtml"]
+                  and "How do adults experience a first length?" in o["cardsHtml"]
+                  and o["cardsHtml"].count('class="hc-person"') == 2 and o["cardsHtml"].count('class="hc-across"') == 1
+                  and "Its folder is not there" in o["cardsHtml"] and o["demosHtml"].count('class="hc-person"') == 3
                   and o["siftHtml"] == "" and "Heron counts" in o["siftOwn"] and "1 of 4 records decided" in o["siftOwn"]
                   and o["npHidden"] is False and o["folds"] == ["analysis"], str(o["picker"]) + o["cardsHtml"][:300])
-            check("110, updated 21 October (223, the split's pages): in node, a project's card counts its participants and those "
-                  "with PETs, a board or PETs marked complete, then its GETs, not started, its group themes or complete, "
-                  "and says when it has no participant",
-                  o["lines"] == ["2 participants, 1 with PETs", "No participants yet", "Its folder is not there",
-                                 "1 participant, 1 with PETs", "", "GETs not started", "GETs: 4 group themes",
-                                 "GETs complete", "GETs: 1 group theme"], str(o["lines"]))
+            check("110, updated 21 October (223, the split's pages) and 18 November (homecardbuild): in node, a project's "
+                  "card has a line only where it has no participant or its folder is gone, its participants being their "
+                  "rings", o["lines"] == ["", "No participants yet", "Its folder is not there"], str(o["lines"]))
             check("110: in node, a card opens its project's page, kept in this tab, its head, GETs, rows and Add transcripts, "
                   "the way back focused",
                   o["page"] == {"pick": False, "page": True, "home": "ROOT-SWIM"} and o["kept"] == "ROOT-SWIM"

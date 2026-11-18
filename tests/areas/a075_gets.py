@@ -342,7 +342,7 @@ def test_gets(scratch):
               and "drawGetsHead($('hp-gets'), demo.rows[0].path, () => S.home === demo.id);" in fn(app, "drawDemoPage")
               and "drawGetsCard(box, data.gets);" in fn(app, "drawGetsHead")
               and "drawGetsCard($('hp-gets'), s.gets);" in fn(app, "drawPage")
-              and "'distil.across.gets'" in fn(app, "drawGetsCard") and "getsLine(gets)" in fn(app, "drawGetsCard"))
+              and "acrossStages(gets, kind)" in fn(app, "drawGetsCard") and "'distil.across.gets'" in fn(app, "acrossStages"))
         check("75: the GETs routes are in the table, beside the themes routes they mirror",
               all(server_mod.ROUTES.get(r) is f for r, f in (("/api/gets", idiograph_routes.api_gets), ("/api/gets-head", idiograph_routes.api_gets_head),
                   ("/api/gets-save", idiograph_routes.api_gets_save), ("/api/gets-ops", idiograph_routes.api_gets_ops),

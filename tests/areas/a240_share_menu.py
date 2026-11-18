@@ -198,8 +198,8 @@ console.log(JSON.stringify(out));
           o["window"] == ["share", "qdpx", "show", "settings", "history", "remove"]
           and o["browser"] == ["share", "qdpx", "settings", "history", "remove"]
           and o["oneRun"] == ["share", "qdpx", "show", "settings", "history"], json.dumps(o)[:300])
-    check("240: the demo's card holds Project settings alone and a missing folder's Remove alone, none in a run of one",
-          o["demo"] == ["settings"] and o["missing"] == ["remove"] and o["missingOne"] == [], json.dumps(o)[:300])
+    check("240: the demo's card holds Project settings and Reset demo and a missing folder's Remove alone, none in a run of one",
+          o["demo"] == ["settings", "reset"] and o["missing"] == ["remove"] and o["missingOne"] == [], json.dumps(o)[:300])
     check("240: each item carries its act, Remove after its rule, and the browser's Share a copy its line under it",
           re.findall(r'data-act="([a-z]+)"', o["macHtml"]) == ["share", "qdpx", "show", "settings", "history", "remove"]
           and o["macHtml"].index('row-menu-rule') < o["macHtml"].index('data-act="remove"')

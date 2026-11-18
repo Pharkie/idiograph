@@ -260,7 +260,8 @@ every passage is decided. PETs complete marks the PETs on the Current board as f
 it while no board is marked current. GETs complete marks the GETs,
 and Idiograph refuses it until every participant has come in from a board marked PETs complete and has not
 changed since. In a longitudinal project LPETs and LGETs are marked complete in the same way, and each
-timepoint has its own Statements complete and PETs complete. A mark locks nothing. You can still revise
+timepoint has its own Statements complete and PETs complete. Trajectories has its own mark too, and Idiograph
+refuses it while a participant is in no trajectory or the project has no participant. A mark locks nothing. You can still revise
 everything, and Reopen takes the mark off.
 
 ### Pen portrait
@@ -651,7 +652,7 @@ settings file, keeping every other entry and a copy of the file as it was. Resta
 
 An agent's change happens at once, as if you had made it, and you review it afterwards. Idiograph records
 every change an agent makes, and before an agent's first change in a session it keeps a restore point of the
-project's workbooks and boards. When agents have changed a project, its card on Home says so, with Review.
+project's workbooks and boards. When agents have changed a project, its card on Home says so, with Review, and the cross after Review marks them as seen without opening them.
 That opens Project history at By an agent, where each change has Undo and each session has Undo this run. An
 undo never writes over a change you made since. Restore points are kept for 30 days, and the last ten
 sessions' points are kept whatever their age.

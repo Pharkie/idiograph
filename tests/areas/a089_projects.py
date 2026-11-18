@@ -428,10 +428,10 @@ def test_projects(scratch):
           "after them in a section of their own (demos, 3 November 2026), and a card opens its page, its name and "
           "question at the head, its rows, then its GETs card",
           '<span class="hc-name">${esc(c.name)}</span>' in card_fn and '<span class="hc-question">${esc(c.question)}</span>' in card_fn
-          and '<span class="pc-line hc-line">${esc(c.line)}</span>' in card_fn
+          and 'class="pc-line hc-line"' in card_fn
           and "foldable($('home-analysis'), $('analysis-head'), 'analysis');" in draw
           and draw.index("sections.map(") < draw.index("demosOf(data).map(")
-          and "b.onclick = () => openPage(b.dataset.id);" in draw
+          and "homeCardsWire($('projects'));" in draw and "b.onclick = () => openPage(b.dataset.id);" in fn("homeCardsWire")
           and "pageHead(p.name || t('distil.home.project'), p.research_question || '', false, !!p.copy, projKind(p));" in page_fn
           and page_fn.index("drawCards(list, s.participants || [], { id: s.id });") < page_fn.index("drawGetsCard($('hp-gets'), s.gets);")
           and "drawHome();" in fn("loadLibrary"))
@@ -440,7 +440,10 @@ def test_projects(scratch):
         skip("89: the rows, the keys, the drag, the fold and Projects in node", "node is not installed")
         return
     pieces = [line_of_js(js, "const esc = "), line_of_js(js, "const escAttr = "), line_of_js(js, "const plural = "),
-              whole("esLine"), whole("petsLine"), whole("gripHtml"), whole("cardHtml"), line_of_js(js, "const labelsOf = "),
+              line_of_js(js, "const stageBegun = "), line_of_js(js, "const personWho = "), line_of_js(js, "const rowKind = "),
+              whole("stageCount"), whole("stageWords"), whole("stageFrac"), whole("stageName"), whole("stageRings"),
+              whole("stageBtn"), whole("personPic"), whole("ppPortraitHtml"),
+              whole("gripHtml"), whole("cardHtml"), line_of_js(js, "const labelsOf = "),
               async_whole("saveOrder"), whole("cardGrip"), whole("gripDrag"), whole("gripKeys"), line_of_js(js, "const FOLD_KEY = "),
               whole("shutIds"), whole("keepFold"), whole("foldable"), line_of_js(js, "const PROJ = "),
               line_of_js(js, "const projectAt = "), whole("projectBody"), whole("projectSaves")]

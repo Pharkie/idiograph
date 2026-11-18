@@ -61,6 +61,13 @@
   --accent:     #786850;
   /* Supports, Include, saved, a phase complete */
   --good:       #4C6B45;
+  /* a stage's progress (homecardbuild, Adam, 18 November 2026), each its one meaning, never the crux orange:
+     blue for the words (Experiential statements, a thematic analysis project's Coding), green for themes (PETs,
+     GETs, LGETs, Trajectories, Themes), pink for LPETs, and how much of its colour an empty track takes */
+  --stage-es:    #1D6FD6;
+  --stage-pets:  #0F9757;
+  --stage-lpets: #C23A93;
+  --stage-mix:   17%;
   /* the one warning tint, warm enough to sit beside the crux orange without reading as it:
      Question, Maybe, a failure line, a statement past its length, a run still waiting */
   --amber:      #936000;
@@ -117,6 +124,10 @@
   --es-lit:     22%;
   --accent:     #B4A588;
   --good:       #8FB183;
+  --stage-es:    #5BA8FF;
+  --stage-pets:  #3FD08A;
+  --stage-lpets: #F07CC4;
+  --stage-mix:   27%;
   --amber:      #E3B45E;
   --danger:     #E58A78;
   --find-wash:  #E9D65A3D;
@@ -158,6 +169,10 @@
     --es-lit:     22%;
     --accent:     #B4A588;
     --good:       #8FB183;
+    --stage-es:    #5BA8FF;
+    --stage-pets:  #3FD08A;
+    --stage-lpets: #F07CC4;
+    --stage-mix:   27%;
     --amber:      #E3B45E;
     --danger:     #E58A78;
     --find-wash:  #E9D65A3D;

@@ -41,6 +41,13 @@
   "trajectories.outside_changed": "The trajectories changed outside Idiograph.",
   "trajectories.export_still_saving": "A change is still being saved, so nothing was exported. Export again in a moment.",
   "trajectories.done": "Done",
+  "trajectories.done_mark": "Mark Trajectories complete",
+  "trajectories.done_mark_tip": "Mark the Trajectories complete. Every participant must be placed in a trajectory.",
+  "trajectories.done_reopen": "Reopen Trajectories",
+  "trajectories.done_tip": "Trajectories marked complete on {day}",
+  "trajectories.done_tip_time": "Trajectories marked complete on {day} at {time}",
+  "trajectories.marked_complete": "Trajectories marked complete.",
+  "trajectories.reopened": "Trajectories reopened.",
   "trajectories.counts": {
     "one": "{all} participant: {placed} placed, {unplaced} unplaced",
     "other": "{all} participants: {placed} placed, {unplaced} unplaced"

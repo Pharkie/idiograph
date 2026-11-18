@@ -1,6 +1,16 @@
 {
   "agentchanges.only.team": "Only the app can do this, because it reaches other people or changes who works on the project. Open the project in Idiograph and go to Project settings, Working together. Nothing was done.",
   "agentchanges.only.send": "Only the app can share a copy of a project, because the copy goes to another person. In Idiograph, choose Share a copy on the project's menu on Home. Nothing was done.",
+  "agentchanges.only.seen": "Only the researcher can mark agents' changes as seen, because the line on the project's card on Home is how they learn about them. In Idiograph, press Review or the cross on that line. Nothing was done.",
+  "agentchanges.seen.would": {
+    "one": "{n} change by agents in {project} would be marked as seen.",
+    "other": "{n} changes by agents in {project} would be marked as seen."
+  },
+  "agentchanges.seen.done": {
+    "one": "{n} change by agents in {project} is marked as seen.",
+    "other": "{n} changes by agents in {project} are marked as seen."
+  },
+  "agentchanges.seen.none": "Every change by agents in {project} is already seen.",
   "agentchanges.only.settings": "Only the app can change its settings. They belong to the app and not to a project, so no undo can reach them. Change them in Idiograph's Settings. Nothing was done.",
   "agentchanges.kind.project": "the project's settings",
   "agentchanges.kind.gets": "the GETs",

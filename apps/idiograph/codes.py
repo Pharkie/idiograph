@@ -357,6 +357,27 @@ def line_codes(data: dict) -> dict[str, str]:
     return out
 
 
+def decided_of(board: dict | None, data: dict, codes: list[dict]) -> dict:
+    """How far the codes are decided on a thematic analysis project's Themes board (dashcounts, 18 November 2026),
+    `{"decided", "total"}`, as the board's status bar counts them (`gtCodeNumbers` on the page): of all the codes in
+    the list, the ones whose card, the lead of its rows, is in a theme or set aside. A code with no card on the board
+    is not decided. `data` is the GETs file, whose copies say which card is which code. Nothing is written."""
+    total = len(codes)
+    if not isinstance(board, dict) or not total:
+        return {"decided": 0, "total": total}
+    kept = themes.normalise(board)
+    placed = themes.parents_of(kept["groups"])
+    aside = set(kept["discarded"])
+    by_code = line_codes(data)
+    on: dict[str, list[str]] = {}
+    for key in kept["cards"]:
+        if by_code.get(key):
+            on.setdefault(by_code[key], []).append(key)
+    lead = {code: lead_of(keys, kept["cards"]) for code, keys in on.items()}
+    decided = sum(1 for c in codes if lead.get(norm(c["name"])) in aside or lead.get(norm(c["name"])) in placed)
+    return {"decided": decided, "total": total}
+
+
 def reading_key(key: str, card: dict):
     """A card's place in reading order on the canvas, row by row, then its key."""
     return (round(float(card.get("y", 0)) / themes.CARD_H), float(card.get("x", 0)), key_order(key))

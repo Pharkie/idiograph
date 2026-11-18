@@ -52,6 +52,7 @@ import threading
 import zlib
 from pathlib import Path
 
+import formats
 import i18n
 import themes
 from workbook import WorkbookError, note_written
@@ -101,7 +102,7 @@ PICTURE_MAX = 12 * 1024 * 1024
 KEPT_MAX = {"jpg": 400 * 1024, "svg": 200 * 1024}
 # the operations kept in this file, then those on a participant's LPETs board, which the caller runs
 OPS = ("add", "rename", "move", "remove", "place", "note", "describe", "colour", "icon", "title", "tags",
-       "tag_colour", "picture", "order", "hide", "show", "note_board")
+       "tag_colour", "picture", "order", "hide", "show", "note_board", "complete", "reopen")
 # `why` is his reason a PET of a timepoint is drawn on by no LPET, kept on its card in Unplaced (drawsword)
 LPET_OPS = ("state", "quote", "bold", "domain", "states_from_notes", "why")
 
@@ -172,12 +173,33 @@ def normal(data: dict) -> dict:
             colours[words(word)[:TAG_MAX]] = n
     history = [h for h in data.get("history") or [] if isinstance(h, dict)] if isinstance(data.get("history"), list) else []
     out = dict(data, columns=columns, placed=placed, tags=colours, history=history)
+    done = complete_of(data)
+    if done:
+        out["complete"] = done
+    else:
+        out.pop("complete", None)
     note = data.get("note").strip()[:NOTE_MAX] if isinstance(data.get("note"), str) else ""
     if note:
         out["note"] = note
     else:
         out.pop("note", None)
     return out
+
+
+def complete_of(data: dict | None) -> dict | None:
+    """The Trajectories marked complete (trajmark, 18 November 2026), `{"at"}` as the file keeps it, or None when
+    the file has no mark or one not in that shape. The mark is the researcher's own, as the other stages' are."""
+    held = (data or {}).get("complete")
+    if not isinstance(held, dict) or not isinstance(held.get("at"), str) or not held["at"].strip():
+        return None
+    return {"at": held["at"]}
+
+
+def waiting(data: dict, cases: list[str]) -> list[str]:
+    """The participants who keep the Trajectories from being marked complete, those in no trajectory, in case order,
+    each by their pseudonym."""
+    placed = data.get("placed") or {}
+    return [who(c) for c in sorted(cases, key=case_order) if not (placed.get(c) or {}).get("column")]
 
 
 def tags_kept(given) -> list[str]:
@@ -374,7 +396,7 @@ def at_of(op: dict, n: int, limit: int) -> int:
 
 
 def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=None,
-          files: dict | None = None, read_file=None, set_person=None) -> list[str]:
+          files: dict | None = None, read_file=None, set_person=None, when: str = "") -> list[str]:
     """Each operation run on `data` in order, in place, answering a line for each change. Refused as a
     whole, with `data` to be thrown away, when one is wrong:
 
@@ -390,6 +412,9 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
     - `order`, `participant`, `at`, their place in their trajectory
     - `note`, `participant`, `note`, his words on why, an empty one clearing it
     - `note_board`, `note`, his note for the whole screen, an empty one clearing it
+    - `complete` and `reopen`, the Trajectories marked complete at `when`, or opened again (trajmark, 18 November 2026).
+      Marking is refused, with every operation, while a participant is in no trajectory, saying who, and a mark
+      already there keeps its first time
     - `title`, `participant`, `title`, their own label, an empty one clearing it
     - `tags`, `participant`, `tags`, a list of words, all of their tags, an empty list clearing them
     - `tag_colour`, `tag`, `colour`, by its name in the participants' palette, for every participant
@@ -415,6 +440,7 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
     lpets = lpets or {}
     files = {} if files is None else files
     said = []
+    marked_here = False
     for n, op in enumerate(ops, start=1):
         kind = str((op or {}).get("op") or "") if isinstance(op, dict) else ""
         if kind not in OPS and kind not in LPET_OPS:
@@ -487,6 +513,22 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
                 else:
                     c.pop("icon", None)
                 said.append(f"{c['title']}'s icon is {icon} now." if icon else f"{c['title']} has no icon now.")
+        elif kind == "complete":
+            if complete_of(data) is None:
+                if not cases:
+                    raise WorkbookError(i18n.t("server.trajectories_not_complete_no_participants"))
+                stop = waiting(data, cases)
+                if stop:
+                    raise WorkbookError(i18n.t("server.trajectories_not_complete_waiting", n=len(stop),
+                                               waiting=formats.list_words(stop)))
+                data["complete"] = {"at": when or themes.now_iso()}
+                marked_here = True
+                said.append("Trajectories marked complete.")
+        elif kind == "reopen":
+            if complete_of(data) is not None:
+                data.pop("complete", None)
+                marked_here = False
+                said.append("Trajectories reopened.")
         elif kind == "note_board":
             note = str(op.get("note") or "").strip()
             if len(note) > NOTE_MAX:
@@ -645,6 +687,12 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
                     said.append(f"{name}'s LPET '{found['title']}' shown on Trajectories.")
             if not any(held.get(k) for k in ("column", "note", "title", "tags", "picture", "hidden")):
                 data["placed"].pop(case, None)
+    if marked_here and complete_of(data) is not None:
+        # a mark set by this call is held to the same rule at the end, so a later change in the call cannot step round it
+        stop = waiting(data, cases)
+        if stop:
+            raise WorkbookError(i18n.t("server.trajectories_not_complete_waiting", n=len(stop),
+                                       waiting=formats.list_words(stop)))
     return said
 
 
@@ -873,6 +921,7 @@ def board(data: dict | None, people: list[dict]) -> dict:
     return {"columns": [dict({k: v for k, v in c.items() if k != "order"}, participants=order_of(data, c, cases))
                         for c in data["columns"]],
             "unplaced": [x["case"] for x in cards if not x["column"]], "note": data.get("note") or "",
+            "complete": data.get("complete"),
             "participants": cards, "tags": dict(data.get("tags") or {}), "updated": data.get("updated"),
             "palette": dict(PALETTE), "icons": list(ICONS), "faces": list(FACES),
             "history": list(data.get("history") or [])[-20:]}
@@ -888,7 +937,7 @@ def change(root: Path, cases: list[str], ops, when: str, dry_run: bool = False, 
     data = json.loads(json.dumps(held)) if held else fresh(when)
     data.setdefault("tags", {})
     files: dict = {}
-    said = apply(data, cases, ops, lpets=lpets, lpet_op=lpet_op, files=files, set_person=set_person)
+    said = apply(data, cases, ops, lpets=lpets, lpet_op=lpet_op, files=files, set_person=set_person, when=when)
     if said and not dry_run:
         if commit is not None:
             commit()

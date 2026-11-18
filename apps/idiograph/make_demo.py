@@ -470,6 +470,166 @@ def reset_all(pristine: Path | None = None, demo: Path | None = None) -> dict:
     return {"reset": True, "cases": [book.parent.name for book in books]}
 
 
+# the file in a demo's folder that holds the stamp of the shipped demo it was last put right from (demostamp, 18 November
+# 2026)
+STAMP_FILE = ".demo-stamp"
+
+
+def noise(path: Path) -> bool:
+    """A file the stamp and the baseline pass over: what a Finder, Explorer or an editor leaves beside the demo's own."""
+    name = path.name
+    return (name in (".DS_Store", "Thumbs.db", "desktop.ini") or name.startswith("._") or name.endswith(("~", ".swp", ".tmp", ".bak"))
+            or name.startswith((".#", "~$")))
+
+
+def file_hash(path: Path) -> str:
+    """A file's hash, a JSON file's with its line endings made one, so a checkout that turned them into Windows's reads
+    as the same file."""
+    import hashlib
+    data = Path(path).read_bytes()
+    if Path(path).suffix == ".json":
+        data = data.replace(b"\r\n", b"\n")
+    return hashlib.sha256(data).hexdigest()
+
+
+def stamp(pristine: Path | None = None) -> str:
+    """The version of a shipped demo, a hash of what Reset demo puts back: every file under its `pristine/` by its
+    path and its bytes, and the project file beside it. It is worked out from the files, so it changes whenever a
+    shipped demo's files do and no one has a number to remember to raise. Answers "" where there is no pristine
+    copy."""
+    import hashlib
+    pristine = Path(pristine) if pristine is not None else PRISTINE
+    if not pristine.is_dir():
+        return ""
+    digest = hashlib.sha256()
+    files = sorted(p for p in pristine.rglob("*") if p.is_file() and not noise(p))
+    files.append(pristine.parent / PROJECT_FILE)
+    for path in files:
+        if not path.is_file():
+            continue
+        digest.update(path.relative_to(pristine.parent).as_posix().encode("utf-8") + b"\0")
+        digest.update(file_hash(path).encode("ascii"))
+    return digest.hexdigest()
+
+
+def live_files(pristine: Path, demo: Path) -> list[Path]:
+    """The files of an installed demo that Reset demo writes or takes away: each case's workbook, progress file and
+    boards, the files at the demo's root and the project file. The GETs exports' folder is `exports_there`."""
+    pristine, demo = Path(pristine), Path(demo)
+    found = []
+    for name in cases_of(pristine):
+        book = demo / name / f"{name}{EN_ES}"
+        side = rounds_mod.progress_path(book)
+        found += [book, side, *side.parent.glob("*.themes.json"), *side.parent.glob(f"{book.stem}.themes-t*.json"),
+                  side.parent / f"{book.stem}.lpets.json"]
+    found += [demo / name for name in ROOT_FILES] + [demo / PROJECT_FILE]
+    return sorted({f for f in found if f.is_file() and not noise(f)})
+
+
+def exports_there(demo: Path) -> bool:
+    return (Path(demo) / GETS_WORKING).exists()
+
+
+def baseline(pristine: Path, demo: Path) -> dict:
+    """What an installed demo holds of what Reset demo puts back, each file's hash by its path under the demo's folder,
+    and whether the GETs exports' folder is there."""
+    demo = Path(demo)
+    return {"files": {f.relative_to(demo).as_posix(): file_hash(f) for f in live_files(pristine, demo)},
+            "exports": exports_there(demo)}
+
+
+def installed_stamp(demo: Path) -> str:
+    """The stamp an installed demo was last put right from, "" when it holds none (every install before demostamp)."""
+    try:
+        return (Path(demo) / STAMP_FILE).read_text(encoding="utf-8").splitlines()[0].strip()
+    except (OSError, IndexError):
+        return ""
+
+
+def installed_baseline(demo: Path) -> dict | None:
+    """What the installed demo held when it was last put right, the stamp file's second line, or None where there is
+    none (every install before demostamp, and a stamp file that cannot be read)."""
+    try:
+        held = json.loads((Path(demo) / STAMP_FILE).read_text(encoding="utf-8").splitlines()[1])
+    except (OSError, IndexError, ValueError):
+        return None
+    return held if isinstance(held, dict) and isinstance(held.get("files"), dict) else None
+
+
+def mark(pristine: Path, demo: Path) -> None:
+    """Write the shipped demo's stamp into an installed demo, as Reset demo ends, and after it a line of what the demo
+    holds then, the baseline `worked_on` compares with. Where the demo worked on is the shipped folder (the repo's), or
+    there is no pristine copy, nothing is written."""
+    pristine, demo = Path(pristine), Path(demo)
+    shipped = stamp(pristine)
+    if shipped and pristine.parent.resolve() != demo.resolve():
+        (demo / STAMP_FILE).write_text(shipped + "\n" + json.dumps(baseline(pristine, demo), sort_keys=True) + "\n",
+                                       encoding="utf-8", newline="\n")
+
+
+def worked_on(pristine: Path, demo: Path) -> bool:
+    """Whether anything in an installed demo was changed since it was put right: a file Reset demo puts back that
+    differs from what the stamp file recorded then, one added or gone, or the GETs exports' folder made or taken away.
+    An installed demo with no baseline (every install before demostamp) counts as worked in, so the researcher is
+    asked. It is the installed demo against its own baseline, never against the shipped one, so a newer shipped demo
+    over an untouched installed one is not worked in."""
+    held = installed_baseline(demo)
+    return held is None or baseline(pristine, demo) != held
+
+
+def differs_from_shipped(pristine: Path, demo: Path) -> bool:
+    """Whether an installed demo differs from the shipped one in anything Reset demo puts back, byte for byte. It is how
+    a first run's copy, which has no stamp yet, is told from an old install: one as it ships is stamped. True where a
+    file or the demo is not there, or a board is there that the shipped demo holds none of."""
+    pristine, demo = Path(pristine), Path(demo)
+
+    def same(shipped: Path, live: Path) -> bool:
+        if shipped.is_file():
+            return live.is_file() and file_hash(live) == file_hash(shipped)
+        return not live.exists()
+
+    for name in cases_of(pristine):
+        book = demo / name / f"{name}{EN_ES}"
+        side = rounds_mod.progress_path(book)
+        boards = boards_of(pristine, book)
+        pairs = [(pristine / book.name, book), (pristine / "Working" / side.name, side)]
+        pairs += [(board, side.parent / board.name) for board in boards]
+        if not all(same(a, b) for a, b in pairs):
+            return True
+        held = {side.parent / board.name for board in boards}
+        found = [*side.parent.glob("*.themes.json"), *side.parent.glob(f"{book.stem}.themes-t*.json"),
+                 side.parent / f"{book.stem}.lpets.json"]
+        if any(f.exists() and f not in held for f in found):
+            return True
+    if not all(same(pristine / name, demo / name) for name in ROOT_FILES):
+        return True
+    shipped_project = pristine.parent / PROJECT_FILE
+    if shipped_project.is_file() and shipped_project.resolve() != (demo / PROJECT_FILE).resolve() \
+            and not same(shipped_project, demo / PROJECT_FILE):
+        return True
+    return exports_there(demo)
+
+
+def update_state(pristine: Path, demo: Path) -> dict | None:
+    """What Home shows of a demo whose shipped copy is newer than the installed one: `{"stamp", "changed"}`, the
+    shipped stamp (the bar's hiding is kept against it, so a newer version shows it again) and whether anything in the
+    installed demo was worked on since it was put right (`worked_on`), which decides whether Get the update asks first.
+    None where the installed demo holds the shipped stamp, where it is the shipped folder, or where there is no shipped
+    copy. An installed demo with no stamp that is exactly as it ships, a first run's copy, has none to show and is
+    stamped. Reads and compares only, but for that stamp."""
+    pristine, demo = Path(pristine), Path(demo)
+    shipped = stamp(pristine)
+    if not shipped or pristine.parent.resolve() == demo.resolve() or not demo.is_dir():
+        return None
+    held = installed_stamp(demo)
+    if held == shipped:
+        return None
+    if not held and not differs_from_shipped(pristine, demo):
+        mark(pristine, demo)
+        return None
+    return {"stamp": shipped, "changed": worked_on(pristine, demo)}
+
+
 def fill(pristine: Path | None = None, demo: Path | None = None) -> list[Path]:
     """Copy into each demo case whatever of it the pristine copy holds and the case is missing: its
     workbook, its progress file and its board, and the GETs file at the demo's root. A file already

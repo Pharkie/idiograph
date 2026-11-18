@@ -1,3 +1,4 @@
+// Screens: apps/idiograph/static/distil.js, apps/idiograph/static/i18n/en/distil.json, demo/Juno/
 // Your Excel workbook, on your computer, its first part: on the project's page, Juno's row's menu, Show files, and
 // her workbook under her row, "Juno - EN & ES", its sheet and where it stands. workbook-sheet.mjs is its second
 // part, the workbook's own rows, and clip-encode.mjs joins the two with --then

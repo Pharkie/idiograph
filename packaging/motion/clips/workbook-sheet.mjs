@@ -1,3 +1,4 @@
+// Screens: packaging/motion/clips/sheet.py, demo/Juno/
 // Your Excel workbook, on your computer, its second part: Juno's workbook's first sheet drawn from the file itself by
 // sheet.py (its cells, column widths, fonts and frozen header as the file sets them), read down, then across from
 // her statements to her transcript, notes and quotes. It is never a capture of a spreadsheet program's window.

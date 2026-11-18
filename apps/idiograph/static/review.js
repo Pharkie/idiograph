@@ -65,13 +65,14 @@ function rvwRowsDraw(root) {
   const st = RVW.rows.get(root) || { on: false };
   for (const li of document.querySelectorAll('li.pcard')) {
     if (li.dataset.wtRoot !== root) continue;
-    const menu = li.querySelector('.pc-menu');
-    if (!menu) continue;
-    const old = menu.querySelector('[data-act="wtask"]');
+    // Ask for review beside Edit profile and Show files, buttons of their own since homecardbuild
+    const acts = li.querySelector('.pc-acts');
+    if (!acts) continue;
+    const old = acts.querySelector('[data-act="wtask"]');
     if (old) old.remove();
     const own = st.on && (st.owners || {})[rvwWho(li.dataset.case)];
     if (!own || !own.mine || !(st.members || []).length) continue;
-    menu.insertAdjacentHTML('beforeend', `<button type="button" class="ghost" role="menuitem" data-act="wtask">${esc(t('review.page.ask'))}</button>`);
+    acts.insertAdjacentHTML('afterbegin', `<button type="button" class="ghost small" data-act="wtask">${esc(t('review.page.ask'))}</button>`);
   }
 }
 

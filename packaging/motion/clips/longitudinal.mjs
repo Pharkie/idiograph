@@ -1,3 +1,4 @@
+// Screens: apps/idiograph/static/trajectories.js, apps/idiograph/static/themes.js, apps/idiograph/static/themes.css, apps/idiograph/static/i18n/en/trajectories.json, apps/idiograph/static/i18n/en/themes.json, demo/lipa/
 // Longitudinal IPA, on the app's own longitudinal demo (demo/lipa, "First year on an allotment": Hollis, Nell and
 // Arlo interviewed before the season, at midsummer and after the harvest), as it ships and is filled as the server
 // starts. On LGETs the three participants' LPETs stand in their LGETs; one LPET is opened to the statements it

@@ -185,7 +185,7 @@ AGENT_OPS = {
     # the agent log, read alone (agentlog, 3 November 2026)
     "/api/agent-log": [("agents", "log")],
     # Project history's By an agent, its Undo and Undo this run (agentreview2, 13 November 2026)
-    "/api/agent-changes": [("agents", "changes"), ("agents", "undo-change"), ("agents", "undo-run")],
+    "/api/agent-changes": [("agents", "changes"), ("agents", "undo-change"), ("agents", "undo-run"), ("agents", "seen")],
     "/api/send-list": [("project", "send")],
     "/api/open-sent": [("project", "open-copy")],
     "/api/boards-in": [("project", "boards-in")],

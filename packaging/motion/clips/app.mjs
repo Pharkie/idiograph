@@ -1,3 +1,4 @@
+// Screens: apps/idiograph/static/idiograph.html, family/static/shell.js, family/static/style.css, family/static/frame.css, family/static/tokens.css, apps/idiograph/static/i18n/en/page_idiograph.json
 // What the Screenshots page's clip scripts share: the app's screens opened as a person opens them, from Home's
 // rows, and the places on them a pointer goes to. Each runs on the page clip.mjs drives (`h`)
 
@@ -32,7 +33,7 @@ export async function home(h) {
 export async function openParticipant(h, who, half = 'pets') {
   const b = await h.eval(([w, part]) => {
     const row = [...document.querySelectorAll('#hp-list .pcard')].find((r) => r.innerText.split('\n')[0].trim() === w);
-    const e = row && row.querySelector(part === 'pets' ? '.pc-pets' : '.pc-es, .pc-half:not(.pc-pets)');
+    const e = row && row.querySelector(part === 'pets' ? '[data-act="pets"]' : '[data-act="statements"], [data-act="timepoint"]');
     if (!e) return null;
     const r = e.getBoundingClientRect();
     return { cx: r.x + r.width / 2, cy: r.y + r.height / 2 };

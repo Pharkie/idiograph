@@ -972,6 +972,13 @@ refused with nothing written when one is wrong:
   who has it, a name since demobuild for `demographics apply`'s `value_colour` on Tags
 - `note_board` (`note`, their note for the whole screen, up to 2,000 characters, its lines kept, "" clearing it),
   shown under the screen's title while Notes is on (trajnote, 10 November 2026)
+- `complete` and `reopen`, with no other key (trajmark, 18 November 2026): the Trajectories marked complete, as
+  Mark Trajectories complete does on the screen, or opened again. Marking is refused with nothing written while a
+  participant is in no trajectory, and the refusal says who in one line. It is also refused when the project has no
+  participant. The mark is kept at the top of the trajectories file as `complete`, `{"at": ...}`. A mark already there
+  keeps its first time, and marking again writes nothing. `trajectories show` answers it as `complete`, with a line
+  "Trajectories marked complete since ...". It is recorded in the record of agents' changes and undone like any other
+  change, and a dry run writes nothing. Set it only when the researcher asks
 - on the participant's LPETs board, the LPET table's row at a timepoint, by `lpet` (id or title) and
   `timepoint` (`T2`, `2`, its label or description): `state` (`state`, the row's note), `quote` (`quote`, a
   key from the cell's `choices`, the LPET's own or another statement's of that interview, ticked with no
@@ -1556,6 +1563,16 @@ statements screen does (`/api/complete`), or with `--reopen` reopens them, in a 
 timepoints at `--timepoint`, T1 when left out. Only the mark in the progress file changes, and marking
 statements marked already keeps the first time. `cases` answers each participant's
 `statements_complete`.
+
+`cases` also answers how far each stage is decided (dashcounts, 18 November 2026), as `progress` on each participant and on
+the project. A count is decisions, never the number of things made: `{"decided", "total", "complete"}`, `complete` being the
+researcher's own mark or null. A participant has `statements`, the passages decided of all passages (a thematic analysis
+project's coding too) and, outside a thematic analysis project, `pets`, the statements in a PET, stacked under another or
+set aside of all of them, on the board marked complete, else the Current board, else the one last open. In a longitudinal
+project they also have `timepoints`, each with its own `statements` and `pets`, and `lpets`. The project has `gets`, or in a
+longitudinal project `lgets` and `trajectories` (participants placed of all of them, with no mark of its own yet), the cards in
+a GET or set aside of all of them with a participant's PETs not yet brought in counted, and in a thematic analysis project
+`themes`, the codes in a theme or set aside of all of them. They are the numbers Home draws, counted by the board's own rules.
 
 `participant set` (pbiobuild, 11 November 2026) sets a participant's picture, label and pen portrait, as the
 fields across their row on the project's page do (`/api/participant`), in every project, IPA and thematic
@@ -2734,6 +2751,12 @@ is kept once by its contents in `.idiograph-restore` at the root, so a file unch
 nothing again. A recording, or any file in `Source` over 32 MB, is watched by its time and size alone and never
 copied into a point, so the store stays the size of what agents change. Points are kept 30 days after their run's
 last write, and the last 10 runs' whatever their age.
+
+`idiograph agents seen` (`agent_seen` through MCP, homecardbuild, 18 November 2026) marks every change agents made so
+far as seen, as the cross on the bar at the foot of the project's card on Home does. The bar goes, and the changes stay
+in the record and in Project history. Only the app does it, because the bar is how the researcher learns what agents
+changed. Your call is refused in one line, with nothing written, and the refusal is kept in the agent log. Its dry run
+says how many changes it would mark.
 
 `idiograph agents undo-run r3` (`agent_undo_run` through MCP, with `run`) puts back every file the run changed as it
 was before its first write, and takes away each file it made, kept first, so that undoing the undo puts them back.

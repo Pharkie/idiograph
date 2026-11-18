@@ -85,7 +85,10 @@ TOOLS = [
     mcp.tool("cases", "The study", ("cases", None),
          "The project's name, its research question and the participants a GET "
          "needs, then each participant by their pseudonym with its workbook, how far its statements and PETs have got "
-         "and its boards. Call it first."),
+         "and its boards. Call it first. Each participant and the project carry `progress`, how far each stage is "
+         "decided as {decided, total, complete}: passages decided, statements in a PET or set aside, and for a "
+         "project its GETs (or LGETs and Trajectories, or a thematic analysis project's themes), the researcher's "
+         "own mark in `complete`."),
     mcp.SEARCH,
     mcp.tool("statements", "A participant's statements", ("statements", None),
          "Every statement of a participant with its short id, S1 on in transcript order, and its key, sheet and "
@@ -659,7 +662,10 @@ TOOLS = [
          'colours, for everyone with it), {"op": "picture", "participant": "Wren", "set": "peep07"} or "from": an '
          'image file\'s path (kept in the project folder, scaled), or neither to take it off, {"op": "hide", '
          '"participant": "Wren", "lpet": "G2"} and "show" (an LPET on this screen alone), {"op": "note_board", "note": '
-         '"..."} (the researcher\'s note for the whole screen, shown under its title while Notes is on, "" clearing it). On the participant\'s LPETs '
+         '"..."} (the researcher\'s note for the whole screen, shown under its title while Notes is on, "" clearing it), '
+         '{"op": "complete"} marks the Trajectories complete as Mark Trajectories complete does, and {"op": "reopen"} '
+         'reopens them. Set either only when the researcher asks. Marking is refused with nothing written while a '
+         'participant is in no trajectory or the project has no participant. On the participant\'s LPETs '
          'board, the LPET table\'s row at a timepoint: {"op": "state", "participant": "Wren", "lpet": "G1", '
          '"timepoint": "T2", "state": "..."}, {"op": "quote", ..., "quote": "<quote key>"} ticks its key quote, '
          "one of the cell's choices, the LPET's own or another statement's of that interview, nothing moved, "
@@ -987,6 +993,13 @@ TOOLS = [
          {"changes": {"type": "array", "minItems": 1, "items": dict(mcp.TEXT),
                       "description": "The changes' ids, c12, as agent_changes gives them."}}, ["changes"],
          writes="changes"),
+    # the changes agents made marked as seen, the cross on Home's line (homecardbuild, 18 November 2026)
+    mcp.tool("agent_seen", "Mark agents' changes as seen", ("agents", "seen"),
+         "Every change agents made in the project so far marked as seen, as the cross on the line at the foot of "
+         "the project's card on Home marks them, so that line goes. The changes stay in the record and in Project "
+         "history. Only the app does it, since the line is how the researcher learns what agents changed: an "
+         "agent's call is refused, and its dry_run alone answers, saying how many changes it would mark. The "
+         "researcher does it with Review or the cross on that line.", {}, [], writes="marks"),
     # the agent log (agentlog, 3 November 2026, see agent_log.py), read alone, the family's tool (siftlog)
     mcp.log_tool("idiograph"),
     mcp.tool("project_send", "Send the project as one file", ("project", "send"),

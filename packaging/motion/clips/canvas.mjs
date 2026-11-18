@@ -1,3 +1,4 @@
+// Screens: apps/idiograph/static/themes.js, apps/idiograph/static/themes.css, apps/idiograph/static/i18n/en/themes.json, demo/Juno/
 // PETs on a canvas: on a new board of Juno's, three statements dragged from the sidebar onto the canvas, grouped and
 // named, a PET's label added over them, and a sub-PET made before dragged in. The words are the demo's own analysis
 // (her PET "Caught" going soft and two of its sub-PETs)

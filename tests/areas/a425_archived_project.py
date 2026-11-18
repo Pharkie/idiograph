@@ -215,7 +215,7 @@ def test_archived_project(scratch: Path):
         check("425: Home lists Projects, then Archived projects, then Demo projects at the bottom",
               all(i > 0 for i in order) and order == sorted(order), str(order))
         check("425: the page draws a card into Archived projects by the project's archived tick, folded until opened",
-              "const isArchived" in js and "archived.map(homeCardHtml)" in js and "live.map(homeCardHtml)" in js
+              "const isArchived" in js and "archived.map((c) =>" in js and "live.map((c) =>" in js
               and "function archivedFold" in js and "draw(!held.includes(ARCHIVED_OPEN))" in js, "")
         check("425: Project settings has the tick, saved with Save in the call that carries the name",
               'id="set-archived"' in html and "body.archived = archive.checked" in js, "")

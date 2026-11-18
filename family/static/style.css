@@ -968,7 +968,7 @@ button.speaker:hover, button.time:hover { color: var(--ink); }
 .minimap-views { position: absolute; left: 14px; top: 5px; width: 68px; height: 280px; overflow: hidden; pointer-events: none; }
 .minimap-map i, .minimap-map span { position: absolute; display: block; }
 .mm-track { left: -12px; top: 0; bottom: 0; width: 4px; box-sizing: border-box; border: 1px solid var(--rule-firm); }
-.mm-done { left: -12px; width: 4px; background: var(--good); }
+.mm-done { left: -12px; width: 4px; background: var(--stage-es); }
 .mm-block { left: 0; right: 0; border-radius: 1px; background: color-mix(in srgb, var(--ink-faint) 80%, transparent); }
 .mm-ask { left: 0; width: 40%; height: 1px; background: var(--rule-firm); }
 .mm-dash { left: 66px; width: 6px; height: 1px; margin-top: -0.5px; background: var(--ink-faint); }

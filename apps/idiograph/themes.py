@@ -2377,6 +2377,37 @@ def merge(cards: list[dict], version: dict, quotes=None) -> dict:
             "stacks": version.get("stacks") or {}, "not_same": version.get("not_same") or []}
 
 
+def decided_of(cards: list[dict], version: dict | None) -> dict:
+    """How far a participant's statements are decided on a PETs board, `{"decided", "total"}` (dashcounts, 18 November
+    2026), as the board's own status bar counts them (`thStatusNumbers` on the page): the statements of the workbook
+    now, `cards` as `read_cards` reads them (each with its key, sheet, row, line and words), and of those the ones in a
+    PET at any depth, stacked under another or set aside. A statement waiting in Unplaced, one loose on the canvas
+    and one the board has never seen, written since it was made, are not decided, and a card of the board whose line
+    has gone from the workbook counts in neither. With no board every statement is undecided. The board's keys follow
+    their words first, as `merge` does, so a line inserted above leaves each statement where it was. Nothing is
+    written."""
+    total = len(cards)
+    if not isinstance(version, dict) or not total:
+        return {"decided": 0, "total": total}
+    v = follow(version, cards, None)
+    placed = parents_of(v["groups"])
+    aside = set(v["discarded"])
+    under = stacked_keys(v)
+    held = v["cards"]
+    decided = sum(1 for c in cards if c["key"] in held and (c["key"] in under or c["key"] in aside or c["key"] in placed))
+    return {"decided": decided, "total": total}
+
+
+def tops_of(version: dict | None) -> int:
+    """How many cards a board's PETs and sub-themes make on a GETs board (`gets.cards_of`): the groups of the board
+    that no group holds, and those held by one of them, a group deeper riding inside its sub-theme's card."""
+    if not isinstance(version, dict):
+        return 0
+    groups = normalise(version)["groups"]
+    owners = parents_of(groups)
+    return sum(1 for g in groups if owners.get(g["id"]) is None or owners.get(owners[g["id"]]) is None)
+
+
 def summary(version: dict, raw: dict | None = None) -> dict:
     """A board as the board menu lists it, with `with_ai` when an agent made it (see `made_said`), and
     `v`, its version (see `board_version`), from `raw`, the board as the file holds it, when `version`

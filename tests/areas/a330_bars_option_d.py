@@ -205,8 +205,8 @@ const RESTART_LINE = '';
     check("330: in node, the name's menu takes the participant chooser's keys: Down and Up move through its items, round "
           "from the first to the last, and Esc shuts it with the focus back on the name",
           o.get("keys") == {"down": "qdpx", "round": "remove", "shut": True, "back": True, "expanded": "false"}, why)
-    check("330: in node, the demo's band menu holds Project settings alone, as its card, opening the demo's own sheet",
-          o.get("demo") == ["settings"] and o.get("demoSettings") == [["settings", "demo", True]], why)
+    check("330: in node, the demo's band menu holds Project settings and Reset demo, as its card, Project settings opening the demo's own sheet",
+          o.get("demo") == ["settings", "reset"] and o.get("demoSettings") == [["settings", "demo", True]], why)
     check("330: in node, each item does its card's job for the project in front: Share a copy, Project history and "
           "Project settings for that project",
           o.get("share") == [["share", "ROOT-BEES", "Keeping bees"]] and o.get("history") == [["history", "ROOT-BEES", "Keeping bees"]]

@@ -1,3 +1,4 @@
+// Screens: apps/idiograph/static/distil.js, apps/idiograph/static/distil.css, apps/idiograph/static/themes.js, apps/idiograph/static/themes.css, apps/idiograph/static/i18n/en/distil.json, apps/idiograph/static/i18n/en/themes.json, demo/Juno/
 // IPA's own steps: on Juno's passage at 13:00 the quote is selected in the passage and taken, the experiential
 // statement written beside it, then PETs, where that statement sits in its PET, then GETs across the three. The
 // statement and its quote are the demo's own, emptied before the recording and written again as they were

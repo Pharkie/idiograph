@@ -5,7 +5,9 @@ packaging/site_whats_new.py writes site/holding/whats-new.html from docs/whats-n
 release dates the nav's count reads into every page's nav script. The committed site must be what it writes, so a
 version bump that forgets to run it goes red here; a version above versions.json's stays off the site; the page
 shows the newest three released versions newest first, its notes the app's own lines, with a link to every release on GitHub; and every page with the site's nav
-carries the What's new link and its script."""
+carries the What's new link and its script. The manual's page (manual.html, sitemanual, 18 November 2026) is written
+by the same generator from docs/manual.md with the app's own renderer, so the committed page must be current and
+every heading's anchor the app's own."""
 from __future__ import annotations
 
 import html
@@ -53,7 +55,7 @@ def test_site_whats_new():
     marked = {n: re.findall(r'href="([a-z-]+\.html)" aria-current="page"', (site / n).read_text(encoding="utf-8"))
               for n in with_nav}
     check("each page marks itself in the nav, the home page none",
-          all(v == ([] if n == "index.html" else [n]) for n, v in marked.items()), marked)
+          all(v == ([] if n in ("index.html", sw.MANUAL) else [n]) for n, v in marked.items()), marked)
 
     dl = (site / "download.html").read_text(encoding="utf-8")
     others = [n for n in with_nav if n != "download.html"]
@@ -61,7 +63,7 @@ def test_site_whats_new():
           '<a href="download.html" aria-current="page">Download</a>' in dl and 'class="nav-dl"' not in dl
           and all('<a class="nav-dl" href="download.html">Download</a>' in (site / n).read_text(encoding="utf-8")
                   for n in others), others)
-    foots = {n: re.search(r'<div class="get" id="get">(.*?)</div>', (site / n).read_text(encoding="utf-8"), re.S)
+    foots = {n: re.search(r'<div class="get"[^>]*>(.*?)</div>', (site / n).read_text(encoding="utf-8"), re.S)
              for n in others}
     check("every other page's foot holds the visitor's button alone: no link, no details, no other downloads",
           all(m and 'class="get-line"' in m.group(1) and "<a" not in m.group(1) and "get-more" not in m.group(1)
@@ -69,7 +71,7 @@ def test_site_whats_new():
           [n for n, m in foots.items() if not m or "<a" in m.group(1)])
     get_js = (site / "get.js").read_text(encoding="utf-8")
     check("no foot's button carries #start: it opens the Download page alone (Adam, 17 November 2026)",
-          "#start" not in get_js and not [n for n in with_nav if "#start" in (site / n).read_text(encoding="utf-8")]
+          "#start" not in get_js and not [n for n in with_nav if "download.html#start" in (site / n).read_text(encoding="utf-8")]
           and "full ? FILES + file : 'download.html')" in get_js)
     check("get.js starts no download on load: no click it makes, no download link, no reading the address",
           ".click(" not in get_js and "'download'" not in get_js and "location" not in get_js
@@ -137,6 +139,77 @@ def test_site_whats_new():
     check("a date not like 16 November 2026 is refused",
           raises(lambda: sw.iso_date("16 Novembre 2026")) and sw.iso_date("1 November 2026") == "2026-11-01")
     check("no served page carries a comment", all("<!--" not in t for t in files.values()))
+    test_site_manual()
+    test_site_release()
+
+
+def test_site_manual():
+    print("\n405b. The website's manual: the page is the generator's from docs/manual.md, and every heading's anchor is "
+          "the app's own (sitemanual)")
+    sw = load()
+    site = support.TOOL / "site" / "holding"
+    page = (site / sw.MANUAL).read_text(encoding="utf-8")
+    check("the committed manual.html is what the generator writes from docs/manual.md",
+          page == sw.outputs()[site / sw.MANUAL])
+    import server as srv
+    code, app_page = srv.manual_page()
+    heads = lambda t: re.findall(r'<h([1-4]) id="([^"]+)"', t)
+    check("every heading has the same level and the same anchor as the app's manual page, in the same order",
+          code == 200 and heads(page) and heads(page) == heads(app_page), (len(heads(page)), len(heads(app_page))))
+    ids = re.findall(r'\sid="([^"]+)"', page)
+    check("no id on the page is used twice, so no heading's anchor is taken by the header or the foot",
+          len(ids) == len(set(ids)), [i for i in set(ids) if ids.count(i) > 1])
+    links = re.findall(r'href="#([^"]+)"', page)
+    check("every link to a heading, the contents' among them, lands on one", links and all(l in ids for l in links),
+          [l for l in links if l not in ids])
+    sections = re.findall(r"(?m)^## (.*)", (support.TOOL / "docs" / "manual.md").read_text(encoding="utf-8"))
+    contents = re.search(r'<nav class="mn-contents".*?</nav>', page, re.S).group(0)
+    check("the contents list every ## section", len(re.findall(r"<li>", contents)) == len(sections), len(sections))
+    check("a link to a file of the repo goes to it on GitHub, and no link is left pointing at a page the site lacks",
+          'href="https://github.com/Pharkie/idiograph/blob/main/docs/internals.md"' in page
+          and 'href="https://github.com/Pharkie/idiograph/blob/main/README.md"' in page
+          and not re.search(r'href="(?!https?:|#|[a-z-]+\.html|favicon|style\.css)[^"]*"', page))
+    check("the manual is no item in the nav, and the Download and Features pages link to it",
+          'href="manual.html"' not in re.search(r'<nav class="site-nav".*?</nav>', page, re.S).group(0)
+          and all('href="manual.html"' in (site / n).read_text(encoding="utf-8")
+                  for n in ("download.html", "features.html")))
+    check("the page carries no comment and asks nothing of another site",
+          "<!--" not in page and not re.search(r'(?:src|href)="https?://(?!github\.com/Pharkie/)', page))
+
+
+def test_site_release():
+    print("\n405c. The release's site step: site_release.py check passes a current site and fails a stale manual "
+          "(sitecheck)")
+    import shutil
+    import tempfile
+    from pathlib import Path
+    spec = importlib.util.spec_from_file_location("site_release", support.TOOL / "packaging" / "site_release.py")
+    sr = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(sr)
+    version = json.loads((support.TOOL / "versions.json").read_text(encoding="utf-8"))["idiograph"]
+    tag = "v" + version
+    with tempfile.TemporaryDirectory() as tmp:
+        scratch = Path(tmp) / "holding"
+        shutil.copytree(support.TOOL / "site" / "holding", scratch)
+        check("a current site is ready for its release", sr.site_problems(tag, scratch) == [],
+              sr.site_problems(tag, scratch))
+        manual = scratch / "manual.html"
+        manual.write_text(manual.read_text(encoding="utf-8").replace("</main>", "<p>stale</p></main>"), encoding="utf-8")
+        stale = sr.site_problems(tag, scratch)
+        check("a stale manual page is a problem that names it and the script to run",
+              len(stale) == 1 and "manual.html" in stale[0] and "site_whats_new.py" in stale[0], stale)
+    wrong = sr.site_problems("v99.0.0")
+    check("a tag that is not the version in versions.json is a problem", wrong and "versions.json" in wrong[0], wrong)
+
+    clips, shared = sr.clip_map()
+    scripts = sorted(f.stem for f in sr.CLIPS.glob("*.mjs") if f.name != "app.mjs")
+    check("every clip script has a map of the files it shows", sorted(clips) == scripts and all(clips.values()),
+          {k: v for k, v in clips.items() if not v})
+    missing = [p for paths in clips.values() for p in paths
+               if not (support.TOOL / p).exists()] + [p for p in shared if not (support.TOOL / p).exists()]
+    check("the shared screens are named", shared)
+    check("a prefixed tag is read like release.py reads it", sr.version_of("idiograph-v0.9.31") == "0.9.31")
+    check("every file or folder a clip's map names exists", not missing, missing)
 
 
 def raises(fn) -> bool:

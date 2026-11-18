@@ -458,6 +458,10 @@ AREAS = {
     "a423_view_and_project_settings": "idiograph",
     "a424_project_kind": "idiograph",
     "a425_archived_project": "idiograph",
+    "a426_trajectories_complete": "idiograph",
+    "a427_demo_stamp": "idiograph",
+    "a428_progress_counts": "idiograph",
+    "a429_agents_seen": "idiograph",
 }
 
 

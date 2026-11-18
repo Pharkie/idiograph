@@ -1179,6 +1179,27 @@ def cards_shown(board: dict, data: dict) -> list[dict]:
     return out
 
 
+def decided_of(board: dict | None) -> dict:
+    """How far a GETs, LPETs or LGETs board is decided (dashcounts, 18 November 2026), `{"decided", "total"}`, as the
+    board's own status bar counts it (`thStatusNumbers` on the page, in its GETs mode): every card of the board but a
+    participant's note, and of those the ones in a GET or set aside. A card in no GET, in the sidebar or loose on the
+    canvas, is not decided. The cards a board has not yet had laid in, a participant's PETs not yet brought in, are
+    the caller's to add to the total. Nothing is written."""
+    if not isinstance(board, dict):
+        return {"decided": 0, "total": 0}
+    kept = themes.normalise(board)
+    placed = themes.parents_of(kept["groups"])
+    aside = set(kept["discarded"])
+    total = decided = 0
+    for key in kept["cards"]:
+        if split_key(key)["kind"] == "pn":
+            continue
+        total += 1
+        if key in aside or key in placed:
+            decided += 1
+    return {"decided": decided, "total": total}
+
+
 def under(gid: str, pets: dict) -> list[str]:
     """Every statement under a PET of a case's copy, at any depth."""
     out, stack, seen = [], [gid], set()

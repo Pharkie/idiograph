@@ -7,6 +7,9 @@ site/holding/, the site on idiograph.app:
 - `whats-new.html`, the newest released version's notes and the two before it, each with its version and date
   (SHOWN), the sections up to and including the version versions.json names, so a next version's section, written
   before its release, stays off the site until the bump, and under them a link to every release on GitHub;
+- `manual.html`, the manual (docs/manual.md) as a page of the site (sitemanual, 18 November 2026), its markdown read
+  by the app's own renderer (family/server.py, `manual_blocks`), so every heading's anchor is the app's own, and a
+  link to a file in the repo going to that file on GitHub;
 - in every page with the site's nav, the small script after the nav that holds the date of each release the page shows (the newest SHOWN) and shows the
   count of those in the visitor's last seven days on What's new, worked out in their browser as the page loads
   (the site is static). Without scripts the link works and shows no count.
@@ -25,6 +28,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import posixpath
 import re
 import shutil
 import sys
@@ -35,6 +39,9 @@ WHATS_NEW = TOOL / "docs" / "whats-new.md"
 VERSIONS = TOOL / "versions.json"
 SITE = TOOL / "site" / "holding"
 PAGE = "whats-new.html"
+MANUAL = "manual.html"
+MANUAL_SOURCE = TOOL / "docs" / "manual.md"
+REPO_FILES = "https://github.com/Pharkie/idiograph/blob/main/"
 
 # The layout the site ships: "A" one long page with every release open, "B" the newest open and the older ones
 # listed by version and date, each opening on a click (native details, so it works without scripts)
@@ -202,6 +209,54 @@ def page(rels: list[dict], layout: str = LAYOUT) -> str:
             '  </div>\n  </div>\n</main>\n<script src="get.js"></script>\n</body>\n</html>\n')
 
 
+def manual_link(target: str) -> str | None:
+    """Where a link in docs/manual.md goes on the site: a link to a heading stays where it is, and a link to a file
+    in the repo, written from docs/, goes to that file on GitHub. Anything else keeps its words alone."""
+    if target.startswith("#"):
+        return target
+    if re.fullmatch(r"[A-Za-z0-9_./-]+", target):
+        return REPO_FILES + posixpath.normpath(posixpath.join("docs", target))
+    return None
+
+
+def manual_render(text: str) -> tuple[list, list]:
+    """The manual's blocks and the contents' links, from the app's own renderer, one implementation for both."""
+    sys.path.insert(0, str(TOOL))
+    import boot
+    boot.setup()
+    import server
+    return server.manual_blocks(text, local=manual_link)
+
+
+def manual_page(rels: list[dict], text: str | None = None) -> str:
+    """manual.html in the site's own look: the header and nav (the manual is no nav item), the manual's title, a list of
+    its sections, its body and the download at the foot as every page has it."""
+    if text is None:
+        text = MANUAL_SOURCE.read_text(encoding="utf-8")
+    blocks, contents = manual_render(text)
+    blocks = [b.replace("<pre>", '<pre tabindex="0">') for b in blocks]
+    toc = ('  <nav class="mn-contents" aria-label="Contents"><ul>'
+           + "".join(f"<li>{c}</li>" for c in contents) + "</ul></nav>\n")
+    return ('<!DOCTYPE html>\n<html lang="en-GB">\n<head>\n<meta charset="utf-8">\n'
+            '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+            "<title>Idiograph manual</title>\n"
+            '<meta name="description" content="The Idiograph manual: what to do when something goes wrong, what a term '
+            'means and where your data goes.">\n'
+            '<meta name="robots" content="noindex">\n<meta name="color-scheme" content="light dark">\n'
+            '<meta name="theme-color" content="#FBF7EF" media="(prefers-color-scheme: light)">\n'
+            '<meta name="theme-color" content="#16130E" media="(prefers-color-scheme: dark)">\n'
+            '<link rel="icon" href="favicon.svg" type="image/svg+xml">\n'
+            '<link rel="icon" href="favicon.png" type="image/png" sizes="32x32">\n'
+            '<link rel="stylesheet" href="style.css">\n</head>\n<body>\n'
+            + SYMBOL
+            + '<header class="site-head">\n  ' + LOCKUP + "\n  " + nav() + "\n  " + nav_script(rels) + "\n</header>\n"
+            + '<main class="mn">\n  ' + "\n  ".join(blocks[:1]) + "\n" + toc
+            + "  " + "\n  ".join(blocks[1:]) + "\n"
+            + '  <div class="fp-foot">\n  <div class="get" id="get-foot">\n'
+            '    <p class="get-line" id="get-line">Idiograph is for Mac, Windows and Linux computers.</p>\n'
+            '  </div>\n  </div>\n</main>\n<script src="get.js"></script>\n</body>\n</html>\n')
+
+
 def outputs(site: Path = SITE, text: str | None = None, version: str | None = None,
             layout: str = LAYOUT) -> dict[Path, str]:
     """Every file this writes and what it holds: the page, and each other page with the nav script put in fresh.
@@ -214,9 +269,9 @@ def outputs(site: Path = SITE, text: str | None = None, version: str | None = No
     if not rels:
         raise ValueError(f"docs/whats-new.md has no section for {version} or any version before it")
     script = nav_script(rels)
-    out = {site / PAGE: page(rels, layout)}
+    out = {site / PAGE: page(rels, layout), site / MANUAL: manual_page(rels)}
     for path in sorted(site.glob("*.html")):
-        if path.name == PAGE:
+        if path.name in (PAGE, MANUAL):
             continue
         old = path.read_text(encoding="utf-8")
         if 'class="site-nav"' not in old:
@@ -236,7 +291,7 @@ def outputs(site: Path = SITE, text: str | None = None, version: str | None = No
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description="Write the website's What's new from docs/whats-new.md")
+    ap = argparse.ArgumentParser(description="Write the website's What's new and manual from docs/")
     ap.add_argument("--check", action="store_true", help="write nothing; exit 1 naming each file that differs")
     ap.add_argument("--layout", choices=("A", "B"), default=LAYOUT, help="A every release open, B the newest open")
     ap.add_argument("--out", help="write a copy of the site's pages here, never the site itself")

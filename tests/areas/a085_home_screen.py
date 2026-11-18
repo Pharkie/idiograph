@@ -238,30 +238,30 @@ def test_home_screen(scratch):
           "if (what === 'statements') openCaseIn(p.path);" in draw
           and "else if (what === 'pets') openThemesIn(p.path, p.case);" in draw
           and "(p.start.kind === 'transcript' ? offerImport(p.start) : offerCreate(p.start))" in draw)
-    check("85: the dots hold Files, a short list under the card drawn by the old row's code, and Esc shuts the menu",
+    # Show files a button of its own since homecardbuild (18 November 2026), where a one-item menu held it
+    check("85: Show files opens a short list under the card drawn by the old row's code",
           "renderFiles(li.querySelector('.pc-files ul'), p.files || []);" in draw
-          and "files.hidden = !files.hidden;" in draw and "menuKeys(e, menu, () => { shut(); dots.focus(); })" in draw
+          and "files.hidden = !files.hidden;" in draw
           and "transcript ? offerImport(item) : raw ? offerCreate(item) : openCaseIn(item.path)" in fn("renderFiles")
-          and "&#8943;" in fn("cardHtml") and 'class="row-menu pc-menu" role="menu" hidden' in fn("cardHtml"))
+          and 'data-act="files"' in fn("cardHtml"))
     node = shutil.which("node")
     if not node:
         skip("85: the cards in node", "node is not installed")
     else:
+        # the rows' rings and stage buttons (homecardbuild) in place of the halves' lines
         pieces = [line_of_js(js, "const esc = "), line_of_js(js, "const escAttr = "), line_of_js(js, "const plural = "),
-                  whole("getsLine"), whole("esLine"), whole("petsLine"), whole("cardsFrom"), whole("gripHtml"), whole("cardHtml")]
+                  line_of_js(js, "const stageBegun = "), line_of_js(js, "const personWho = "), line_of_js(js, "const rowKind = "),
+                  whole("stageCount"), whole("stageWords"), whole("stageFrac"), whole("stageName"), whole("stageRings"),
+                  whole("stageBtn"), whole("personPic"), whole("ppPortraitHtml"),
+                  whole("cardsFrom"), whole("gripHtml"), whole("cardHtml")]
         script = scratch / "home-cards.js"
         script.write_text(support.i18n_js() + "\n".join(pieces) + "\n" + r"""
 const out = {};
-out.es = [esLine({ turns: { done: 64, total: 207 } }), esLine({ turns: { done: 207, total: 207 }, complete: '2026-10-03' }),
-  esLine({ turns: { done: 0, total: 1 } }), esLine({ sheets: ['Initial', '2d'] }), esLine({ sheets: ['Initial'], complete: 'x' })];
-out.pets = [petsLine({ board: 'Mornings apart', boards: 2 }),
-  petsLine({ board: 'Mornings apart', boards: 2, pets_complete: { at: 'x' }, in_gets: true }),
-  petsLine({ board: null, boards: 3 }), petsLine({ board: null, boards: 3, in_gets: true }),
-  petsLine({ board: null, boards: 0 }), petsLine({ board: null, boards: 0, in_gets: true }),
-  petsLine({ board: 'Board 1' }), petsLine({ board: null })];
-out.gets = [getsLine({ cases: 6, held: 3, board: 'Board 2', boards: 2 }), getsLine({ cases: 6, held: 6, board: 'Board 2', done: { at: 'x' } }),
-  getsLine({ cases: 1, held: 0, board: null, boards: 0 }), getsLine({ cases: 4, held: 1, board: null, boards: 2 }),
-  getsLine({ cases: 4, complete: 2 })];
+// each ring's words, as its tooltip and a screen reader have them (homecardbuild)
+const said = (html) => [...html.matchAll(/aria-label="([^"]*)"/g)].map((m) => m[1].replace(/&#39;/g, "'"));
+out.rings = said(cardHtml({ case: 'P1 - Ada', path: 'a', files: [], progress: {
+  statements: { decided: 64, total: 207, complete: null }, pets: { decided: 54, total: 54, complete: { at: 'x' } } } }))
+  .filter((w) => w.startsWith('Ada:'));
 const row = (o) => Object.assign({ kind: 'annotated', sheets: ['Initial'], modified: 1, locked: false }, o);
 const rows = [row({ path: 'a1', name: 'Ada', case: 'P1 - Ada', modified: 5 }), row({ path: 'a2', name: 'Ada 2', case: 'P1 - Ada', modified: 9 }),
   row({ path: 'b1', name: 'Bea v1', case: 'P2 - Bea', kind: 'raw' }), row({ path: 'd1', name: 'Dee.vtt', case: 'P4 - Dee', kind: 'transcript' }),
@@ -271,7 +271,8 @@ const back = cardsFrom(rows, [{ path: 'a1', screen: 'pets' }]);
 out.old = { names: fresh.map((c) => c.case), adaFresh: fresh[0].path, adaBack: back[0].path, cont: back.map((c) => 'continue' in c),
   files: back[0].files.map((f) => f.path), bea: [fresh[1].path, fresh[1].start && fresh[1].start.path], dee: fresh[2].start.kind,
   plain: cardsFrom(rows, [{ path: 'c1' }]).map((c) => 'continue' in c), none: cardsFrom([], []).length };
-const card = { case: 'P1 - Ada', path: 'a', turns: { done: 3, total: 9 }, board: 'Board 1', boards: 1, files: [] };
+const card = { case: 'P1 - Ada', path: 'a', turns: { done: 3, total: 9 }, board: 'Board 1', boards: 1, files: [],
+  progress: { statements: { decided: 3, total: 9, complete: null }, pets: { decided: 0, total: 4, complete: null } } };
 out.html = {
   plain: cardHtml(card),
   locked: cardHtml(Object.assign({}, card, { locked: true })),
@@ -287,14 +288,10 @@ console.log(JSON.stringify(out));
             check("85: the cards run in node", False, run.stderr.strip()[:400])
         else:
             o = json.loads(run.stdout)
-            check("85: the Statements half's line in each state, and the sheets from a server from before the counts",
-                  o["es"] == ["64 of 207 passages", "207 of 207 passages · complete", "0 of 1 passage", "Initial, 2d", "Initial · complete"], str(o["es"]))
-            check("85: the PETs half's line: the Current board, PETs complete, in GETs, No Current board and No PETs yet",
-                  o["pets"] == ["Mornings apart", "Mornings apart · PETs complete · in GETs", "No Current board",
-                                "No Current board · in GETs", "No PETs yet", "No PETs yet", "Board 1", ""], str(o["pets"]))
-            check("85: the GETs card's line, and the cases alone from a server from before it",
-                  o["gets"] == ["3 of 6 participants in · Board 2", "6 of 6 participants in · Board 2 · GETs complete", "0 of 1 participant in",
-                                "1 of 4 participants in · No Current board", "4 participants"], str(o["gets"]))
+            # the rings say how far each stage is, and the researcher's mark, once each (homecardbuild)
+            check("85: a row's rings say how far its statements and PETs are, the PETs marked complete",
+                  len(o["rings"]) == 2 and "64 of 207" in o["rings"][0] and "PETs" in o["rings"][1] and "Complete" in o["rings"][1]
+                  and "54 of 54" in o["rings"][1], str(o["rings"]))
             old = o["old"]
             check("85: in front of a server from before the cards, a card per case from the old rows, every case opening",
                   old["names"] == ["P1 - Ada", "P2 - Bea", "P4 - Dee", "P3 - Cal"] and old["adaFresh"] == "a2"

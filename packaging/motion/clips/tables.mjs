@@ -1,3 +1,4 @@
+// Screens: apps/idiograph/static/themes.js, apps/idiograph/static/themes.css, apps/idiograph/themes_print.py, family/static/table.js, apps/idiograph/static/i18n/en/themes.json, demo/Juno/
 // Tables for your supervisor and thesis: Juno's PETs board turned to its Table view, then its print view, the
 // table of PETs in the book's layout, read down slowly. The print view opens in a window of its own in the app and a
 // tab of its own in a browser: here it opens in the same tab, without its print dialog, so the recording follows it

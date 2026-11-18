@@ -2526,9 +2526,11 @@ def translating_page(source: Path | None = None) -> tuple[int, str]:
     return manual_page(source or translating_source(), TRANSLATING_TITLE, i18n.t("errors.translating_copy"), lists=True)
 
 
-def manual_inline(text: str) -> str:
+def manual_inline(text: str, local=None) -> str:
     """One line of the manual's Markdown in HTML: code, bold, italics, and a link, which keeps its
-    words alone unless it leads off this machine, since the docs it names beside it are not served."""
+    words alone unless it leads off this machine, since the docs it names beside it are not served. A page that
+    does serve them, the website's, passes `local`, which turns a link's target that stays on this machine into
+    the address it goes to, or None to keep the words alone."""
     parts = re.split(r"(`[^`]+`)", text)
     out = []
     for part in parts:
@@ -2538,28 +2540,24 @@ def manual_inline(text: str) -> str:
         part = html.escape(part, quote=False)
         part = re.sub(r"\[([^\]]+)\]\((https?://[^)\s]+)\)",
                       lambda m: f'<a href="{html.escape(m.group(2))}">{m.group(1)}</a>', part)
-        part = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", part)
+        part = re.sub(r"\[([^\]]+)\]\(([^)]*)\)", lambda m: _manual_local(m, local), part)
         part = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", part)
         part = re.sub(r"(?<![\w*])\*([^*\s][^*]*)\*(?![\w*])", r"<em>\1</em>", part)
         out.append(part)
     return "".join(out)
 
 
-def manual_page(source: Path | None = None, title: str | None = None, gone: str | None = None,
-                lists: bool = False) -> tuple[int, str]:
-    """The manual as one page, its sections listed at its head, or a page of one line when this copy
-    has no manual. Another of the docs the app carries reads the same way, by its `source`, its page's `title`
-    and the line `gone` it says when the copy lacks it, the page on translating among them (fmtcore), whose lines
-    starting "- " or "1. " are read as lists (`lists`)."""
-    head = ['<!doctype html>', '<html lang="en-GB">', '<head><meta charset="utf-8">',
-            '<meta name="viewport" content="width=device-width, initial-scale=1">',
-            f'<title>{html.escape(title or IDENTITY["name"] + " manual")}</title>', MANUAL_THEME,
-            '<link rel="stylesheet" href="/tokens.css">', f'<style>{MANUAL_STYLE}</style></head>', '<body>']
-    try:
-        text = (source or manual_source()).read_text(encoding="utf-8")
-    except OSError:
-        line = gone if gone is not None else i18n.t("errors.manual_copy")
-        return 404, "\n".join(head + [f'<p class="none">{html.escape(named(line))}</p>', "</body>", "</html>", ""])
+def _manual_local(m, local) -> str:
+    """A link to somewhere on this machine: its words alone, or a link where `local` gives its address."""
+    href = local(html.unescape(m.group(2))) if local else None
+    return f'<a href="{html.escape(href)}">{m.group(1)}</a>' if href else m.group(1)
+
+
+def manual_blocks(text: str, lists: bool = False, local=None) -> tuple[list, list]:
+    """The manual's Markdown as HTML blocks and the contents' links, one for each `##` heading. Every heading has
+    an `id`, its words lower-cased with each run of anything but a to z and 0 to 9 made one hyphen, so a link to a
+    term lands on the same anchor in the app's manual and on the website's (sitemanual, 18 November 2026), the one
+    implementation both call. Lines starting "- " or "1. " are lists when `lists`."""
     body, para, code, contents = [], [], None, []
     # a list's kind, ul or ol, and its items' lines, where `lists` reads them as lists
     listing: list = []
@@ -2567,12 +2565,12 @@ def manual_page(source: Path | None = None, title: str | None = None, gone: str 
     def end_list():
         if listing:
             kind, items = listing
-            body.append(f"<{kind}>" + "".join(f"<li>{manual_inline(' '.join(i))}</li>" for i in items) + f"</{kind}>")
+            body.append(f"<{kind}>" + "".join(f"<li>{manual_inline(' '.join(i), local)}</li>" for i in items) + f"</{kind}>")
             listing.clear()
 
     def end_para():
         if para:
-            body.append(f"<p>{manual_inline(' '.join(para))}</p>")
+            body.append(f"<p>{manual_inline(' '.join(para), local)}</p>")
             para.clear()
         end_list()
 
@@ -2595,7 +2593,7 @@ def manual_page(source: Path | None = None, title: str | None = None, gone: str 
             anchor = re.sub(r"[^a-z0-9]+", "-", words.lower()).strip("-") or f"part-{len(body)}"
             if level == 2:
                 contents.append(f'<a href="#{anchor}">{html.escape(words)}</a>')
-            body.append(f'<h{level} id="{anchor}">{manual_inline(words)}</h{level}>')
+            body.append(f'<h{level} id="{anchor}">{manual_inline(words, local)}</h{level}>')
             continue
         if not line.strip():
             end_para()
@@ -2619,6 +2617,25 @@ def manual_page(source: Path | None = None, title: str | None = None, gone: str 
     end_para()
     if code is not None:
         body.append(f"<pre><code>{html.escape(chr(10).join(code))}</code></pre>")
+    return body, contents
+
+
+def manual_page(source: Path | None = None, title: str | None = None, gone: str | None = None,
+                lists: bool = False) -> tuple[int, str]:
+    """The manual as one page, its sections listed at its head, or a page of one line when this copy
+    has no manual. Another of the docs the app carries reads the same way, by its `source`, its page's `title`
+    and the line `gone` it says when the copy lacks it, the page on translating among them (fmtcore), whose lines
+    starting "- " or "1. " are read as lists (`lists`)."""
+    head = ['<!doctype html>', '<html lang="en-GB">', '<head><meta charset="utf-8">',
+            '<meta name="viewport" content="width=device-width, initial-scale=1">',
+            f'<title>{html.escape(title or IDENTITY["name"] + " manual")}</title>', MANUAL_THEME,
+            '<link rel="stylesheet" href="/tokens.css">', f'<style>{MANUAL_STYLE}</style></head>', '<body>']
+    try:
+        text = (source or manual_source()).read_text(encoding="utf-8")
+    except OSError:
+        line = gone if gone is not None else i18n.t("errors.manual_copy")
+        return 404, "\n".join(head + [f'<p class="none">{html.escape(named(line))}</p>', "</body>", "</html>", ""])
+    body, contents = manual_blocks(text, lists)
     nav = [f'<nav aria-label="Contents">{"".join(contents)}</nav>'] if contents else []
     # the contents under the title, the first block
     return 200, "\n".join(head + body[:1] + nav + body[1:] + ["</body>", "</html>", ""])

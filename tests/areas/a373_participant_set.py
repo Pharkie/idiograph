@@ -252,9 +252,10 @@ def test_participant_set(scratch):
               str([rows, demo_sets])[:400])
         # Rename... in the fields opens the one Rename card the menu used to, and the menu holds no Rename
         js = support.source("apps/idiograph/static/distil.js").read_text(encoding="utf-8")
-        menu = js[js.index('class="row-menu pc-menu"'):][:600]
-        check("373: Rename... after the greyed name in a participant's fields opens the Rename card, and the dots menu "
-              "holds Edit participant profile then Show files and no Rename",
+        # Edit profile and Show files buttons of their own on the row since homecardbuild, where the dots' menu held them
+        menu = js[js.index('class="pc-acts"'):][:600]
+        check("373: Rename... after the greyed name in a participant's fields opens the Rename card, and the row's "
+              "buttons are Edit profile then Show files and no Rename",
               'data-pp="rename"' in js and "if (what === 'rename') { openRename(PP.root, PP.p); return; }" in js
               and 'data-act="rename"' not in js and menu.index('data-act="edit"') < menu.index('data-act="files"'),
               menu[:200])

@@ -75,11 +75,17 @@
         </div>
         <!-- Project settings for this project (settingsplit, 5 November 2026) -->
         <button type="button" class="ghost small hp-set" id="hp-settings">{{page_idiograph.projset.title}}</button>
+        <!-- Reset demo beside it on a demo's page (demostamp, Adam, 18 November 2026) -->
+        <button type="button" class="ghost small hp-reset" id="hp-reset" hidden>{{page_idiograph.home_page.reset_demo}}</button>
       </header>
       <!-- the work across participants, a row of tiles above them (projectbuild, Adam's option A of 17 November 2026):
            LGETs and Trajectories in a longitudinal project, GETs in an IPA project, Code list and Themes in a thematic
-           analysis project, each with its status line; anything for one participant is in their box -->
+           analysis project, each with its bar or its words; anything for one participant is in their box. Under the
+           heading Cross-participant analysis, always above the participants (homecardbuild, 18 November 2026) -->
+      <h2 class="hp-sec" id="hp-across-h" hidden>{{page_idiograph.home_page.across}}</h2>
       <div class="gets-place hp-across" id="hp-gets" hidden></div>
+      <!-- each participant's own work, their rings and a button for each stage (homecardbuild) -->
+      <h2 class="hp-sec" id="hp-ideo-h" hidden>{{page_idiograph.home_page.idiographic}}</h2>
       <ul id="hp-list" class="prows"></ul>
       <!-- Change picture... on a row's fields: his own picture for the participant (pbiobuild) -->
       <input type="file" id="pp-picture-file" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif" hidden>
@@ -1146,6 +1152,7 @@
        hidden until the Trajectories export is there to call (TJ_EXPORT in trajectories.js) -->
   <div class="tj-bar" id="tj-bar" hidden>
     <button type="button" class="th-pal-btn th-xbtn" id="tj-export" aria-haspopup="true" aria-expanded="false" title="{{page_idiograph.screens.export}}" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 14.2V3.8M8.2 7.4 12 3.6l3.8 3.8"/><path d="M9 10.2H7.3a1.8 1.8 0 0 0-1.8 1.8v6.4a1.8 1.8 0 0 0 1.8 1.8h9.4a1.8 1.8 0 0 0 1.8-1.8V12a1.8 1.8 0 0 0-1.8-1.8H15"/></svg><span class="th-pal-word">{{page_idiograph.screens.export}}</span></button>
+    <button type="button" class="th-pal-btn" id="tj-done" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.3l2.7 2.7 5-5.6"/></svg><span class="th-pal-word" id="tj-done-word"></span></button>
     <span class="tj-bar-grow" aria-hidden="true"></span>
     <button type="button" class="th-pal-btn" id="tj-undo" tabindex="-1" title="{{page_idiograph.screens.undo_cmd_z}}" aria-label="{{page_idiograph.screens.undo}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8.5 5.5 4 10l4.5 4.5"/><path d="M4 10h10.5a5 5 0 0 1 0 10H10"/></svg><span class="th-pal-word">{{page_idiograph.screens.undo}}</span></button>
     <button type="button" class="th-pal-btn" id="tj-redo" tabindex="-1" title="{{page_idiograph.screens.redo_shift_cmd_z}}" aria-label="{{page_idiograph.screens.redo}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15.5 5.5 20 10l-4.5 4.5"/><path d="M20 10H9.5a5 5 0 0 0 0 10H14"/></svg><span class="th-pal-word">{{page_idiograph.screens.redo}}</span></button>

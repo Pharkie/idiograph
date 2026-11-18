@@ -493,19 +493,23 @@ def api_agent_changes(body: dict) -> dict:
     alone, newest first, as `agents undo-change` undoes them. `undo-run`, the run `run` undone whole from its restore
     point, as `agents undo-run` does, for a run whose changes keep no copies of their own. Each undo runs the command
     line's own op as the app's (`via` "app"), so it keeps a line in the record and a run of its own, and is refused as
-    an agent's is, nothing written, answering `refused`, its lines, which the page shows in place. `dry_run` says
-    what it would do. The demo keeps no record, so it answers none."""
+    an agent's is, nothing written, answering `refused`, its lines, which the page shows in place. `seen`
+    (homecardbuild, 18 November 2026), every change so far marked as seen, the cross on Home's line, as `agents
+    seen` does, which only the app may do. `dry_run` says what it would do. The demo keeps no record, so it answers
+    none."""
     import argparse
     import agent_changes as changes_mod
     import cli as family_cli
     import idiograph_cli as icli
     op = str(body.get("op") or "read")
-    if op not in ("read", "undo", "undo-run"):
+    if op not in ("read", "undo", "undo-run", "seen"):
         raise WorkbookError(i18n.t("agentchanges.undo_change.none_named"))
     root = asked_root(body, write=op != "read")
     if root is None or srv.is_demo_root(root):
         if op == "read":
             return {"runs": [], "total": 0, "runs_total": 0, "new": 0, "new_runs": 0}
+        if op == "seen":
+            return {"done": {"unseen": 0, "marked": 0}, "lines": []}
         raise WorkbookError(i18n.t("agentchanges.undo.demo"))
     p = icli.Project(Path(root), False)
     with i18n.in_method(method_of(project_file(root))):
@@ -515,7 +519,8 @@ def api_agent_changes(body: dict) -> dict:
                 return n if isinstance(n, int) and not isinstance(n, bool) and n >= 0 else default
             return changes_mod.review(p, whole("offset", 0), whole("limit", changes_mod.REVIEW_RUNS),
                                       mark=body.get("mark") is True)
-        args = argparse.Namespace(command="agents", act="undo-change" if op == "undo" else "undo-run", json=True,
+        act = {"undo": "undo-change", "undo-run": "undo-run", "seen": "seen"}[op]
+        args = argparse.Namespace(command="agents", act=act, json=True,
                                   project=None, root=None, demo=False, config=None, dry_run=body.get("dry_run") is True,
                                   note="", tool="", via="app", timepoint=None, lpets=None,
                                   ids=[str(x) for x in body.get("ids") or [] if str(x).strip()],
@@ -1754,11 +1759,19 @@ BOARDS: dict[str, tuple] = {}
 GETS_FILES: dict[str, tuple] = {}
 
 
+# each workbook's statements' words, by sheet, kept against the workbook's mark in memory alone: never in `BOOKS`, which
+# Home's cache file holds, so no participant's words are written to the app's state folder (dashfix, 18 November 2026)
+STATEMENTS: dict[str, tuple] = {}
+
+
 def read_book(path: Path) -> dict | None:
     """A workbook as the case list and the cards read it, opened read-only once and kept until it
     changes: `kind`, `sheets`, its transcript sheets in workbook order, `names`, every sheet's
     name, and `turns`, each transcript sheet's rows as (row, speaker, whether it holds a
-    statement), the rows `workbook.read_case` keeps. None for a file that cannot be opened.
+    statement), the rows `workbook.read_case` keeps. The statements' words, each sheet's rows that hold any as
+    (row, the words), which the PETs counts read, are never in this table, since it is written to Home's cache
+    file: they are kept in memory alone (`STATEMENTS`, `book_statements`; dashcounts). None for a file that cannot
+    be opened.
 
     A sheet counts when it has a Name, a Timestamp and a Transcript column. A raw source's rows are never
     walked, since only an annotated workbook's turns are counted (`turns_of`), and walking them was about
@@ -1769,12 +1782,33 @@ def read_book(path: Path) -> dict | None:
     held = BOOKS.get(key)
     if mark is not None and held and held[0] == mark:
         return held[1]
+    got = read_book_once(path, mark)
+    return got[0] if got else None
+
+
+def book_statements(path: Path) -> dict:
+    """A workbook's statements' words by sheet, each sheet's rows that hold any as (row, the statements), kept in
+    memory against the workbook's mark and read again from the workbook when memory has none (after a restart, for
+    one, since Home's cache file never holds the words). Empty for a workbook that cannot be opened or is not annotated."""
+    key = str(path)
+    mark = file_mark(path)
+    held = STATEMENTS.get(key)
+    if mark is not None and held and held[0] == mark:
+        return held[1]
+    got = read_book_once(path, mark)
+    return got[1] if got else {}
+
+
+def read_book_once(path: Path, mark) -> tuple[dict, dict] | None:
+    """One read of a workbook for `read_book` and `book_statements`: the book without its words and the words, both
+    put in their tables while the workbook's mark is known. None for a file that cannot be opened."""
+    key = str(path)
     try:
         # read whole into memory, never met half written by a save in another process (wbguard)
         book = openpyxl.load_workbook(wb_mod.whole(path), read_only=True)
     except Exception:
         return None
-    kinds, sheets, turns = set(), [], {}
+    kinds, sheets, turns, statements = set(), [], {}, {}
     try:
         names = list(book.sheetnames)
         found = []
@@ -1797,16 +1831,20 @@ def read_book(path: Path) -> dict | None:
                 es = cell("es")
                 rows.append((number, str(name).strip() if name is not None else "",
                              bool(wb_mod.field_to_lines(es).strip()) if es is not None else False))
+                # the statements' words by row, which the PETs counts follow a board's keys by (dashcounts)
+                said = tuple(wb_mod.split_entries(es)) if es is not None else ()
+                if said:
+                    statements.setdefault(ws.title, []).append((number, said))
             turns[ws.title] = rows
     except Exception:
         return None
     finally:
         book.close()
-    out = {"kind": "raw" if kinds == {"raw"} else "annotated", "sheets": sheets, "names": names,
-           "turns": turns}
+    out = {"kind": "raw" if kinds == {"raw"} else "annotated", "sheets": sheets, "names": names, "turns": turns}
     if mark is not None:
         BOOKS[key] = (mark, out)
-    return out
+        STATEMENTS[key] = (mark, statements)
+    return out, statements
 
 
 THEMES_HEADS: dict[str, tuple] = {}
@@ -1925,6 +1963,170 @@ def boards_count(path: Path) -> int:
     return count
 
 
+# How far each stage is decided (dashcounts, 18 November 2026). Progress counts decisions, never the number of things
+# made, and a stage is complete only by the researcher's own mark: a participant's statements are the passages decided
+# of all passages (`turns_of`), their PETs the statements in a PET, stacked or set aside of all of them
+# (`themes.decided_of`), their LPETs, and the project's GETs or LGETs, the cards in a GET or set aside of all of
+# them (`gets.decided_of`, with a participant's PETs not yet brought in counted), a thematic analysis project's themes
+# the codes in a theme or set aside of all the codes (`codes.decided_of`). Each is read from the same files and by the
+# same rules as the board's own status bar, and only reads. A participant's PETs counts are kept until the themes
+# file, the workbook or the progress file changes, and across a restart with Home's other reads.
+PET_COUNTS: dict[str, tuple] = {}
+LPETS_COUNTS: dict[str, tuple] = {}
+
+
+def counted(done, total, complete=None) -> dict:
+    return {"decided": int(done), "total": int(total), "complete": complete}
+
+
+def pets_progress(path: Path, n: int | None = None) -> dict | None:
+    """A participant's PETs at timepoint `n` (the first or the only one for None): `decided` of `total` statements,
+    `tops`, how many cards the board makes on a GETs board, and `complete`, the PETs mark of that timepoint's file or
+    None. The board counted is the one marked complete, else the Current board, else the one last open, as GETs take
+    a participant in. None for a workbook that is not annotated. Only reads: the file as it is, never a board made
+    for the screen."""
+    book = read_book(path)
+    if not book or book["kind"] != "annotated":
+        return None
+    here = int(n or 1)
+    file = themes_mod.themes_path(path, here)
+    # a member's own boards of a participant someone else works on count too, as GETs' intake takes them in
+    with themes_mod.scoped(here):
+        mine = themes_mod.own_file(path)
+    mark = (file_mark(file), str(path), file_mark(path), file_mark(rounds_mod.progress_path(path)),
+            str(mine) if mine is not None else "", file_mark(mine) if mine is not None else None)
+    held = PET_COUNTS.get(str(file))
+    if mark[2] is not None and held and held[0] == mark:
+        return dict(held[1])
+    data, readable = None, True
+    try:
+        # as `themes.load` reads it, the owner's file and then the member's own, but never moving a file over (the
+        # move writes), and a file that cannot be read now is not kept as "no board" (dashfix)
+        theirs = themes_mod.read_file(file, move=False) if mark[0] is not None else None
+        own = themes_mod.read_file(mine, move=False) if mine is not None and mark[5] is not None else None
+        data = themes_mod.with_own(theirs, own) if mine is not None else theirs
+    except (WorkbookError, OSError, ValueError):
+        data, readable = None, False
+    data = data if isinstance(data, dict) else None
+    board = gets_mod.source_board(data)[0] if data else None
+    # the passages of this timepoint's sheets alone, as `read_cards` takes them
+    placed = themes_mod.placed_sheets(path)
+    said = book_statements(path)
+    cards = []
+    for sheet in book["sheets"]:
+        if (placed or here > 1) and placed.get(sheet, 1) != here:
+            continue
+        for row, lines in said.get(sheet, []):
+            for i, text in enumerate(lines):
+                cards.append({"key": themes_mod.card_key(sheet, row, i), "sheet": sheet, "row": row, "line": i,
+                              "text": text})
+    try:
+        out = dict(themes_mod.decided_of(cards, board), tops=themes_mod.tops_of(board),
+                   complete=themes_mod.complete_of(data) if data else None)
+    except (WorkbookError, ValueError, TypeError, AttributeError):
+        out = {"decided": 0, "total": len(cards), "tops": 0, "complete": None}
+    if mark[2] is not None and readable:
+        PET_COUNTS[str(file)] = (mark, out)
+    return dict(out)
+
+
+def lpets_progress(path: Path, tps: list[dict] | None = None) -> dict | None:
+    """A participant's LPETs: `decided` of `total` cards of their LPETs board, a timepoint's PETs not yet brought in
+    counted among the total, `tops`, how many cards their LPETs make on the project's LGETs board, and `complete`,
+    the LPETs mark, as `lpets_head` has it. The board counted is the one marked complete, else the Current board, else
+    the one last open. None for a participant with no interviews. Only reads. `tps` is the participant's timepoints
+    (`card_timepoints`) when the caller has them already."""
+    file = gets_mod.lpets_path(path)
+    mark = file_mark(file)
+    held = LPETS_COUNTS.get(str(file))
+    if mark is not None and held and held[0] == mark:
+        counts, brought, tops, complete = held[1]
+    else:
+        readable = True
+        try:
+            data = json.loads(file.read_text(encoding="utf-8")) if mark is not None else None
+        except (OSError, ValueError):
+            data, readable = None, False
+        data = data if isinstance(data, dict) else None
+        board = gets_mod.source_board(data)[0] if data else None
+        counts = gets_mod.decided_of(board)
+        brought = sorted(data.get("cases") or {}) if data and isinstance(data.get("cases"), dict) else []
+        tops, complete = themes_mod.tops_of(board), (themes_mod.complete_of(data) if data else None)
+        # a file that cannot be read now is not kept as "no board" (dashfix)
+        if mark is not None and readable:
+            LPETS_COUNTS[str(file)] = (mark, (counts, brought, tops, complete))
+    tps = [t for t in (tps or participant_timepoints(path)) if t["state"] != "none"]
+    if not tps:
+        return None
+    # each timepoint's PETs not yet in the board, cards of its own once it is brought in
+    waiting = sum((pets_progress(path, t["n"]) or {}).get("tops", 0) for t in tps if tp_label(t["n"]) not in brought)
+    return {"decided": counts["decided"], "total": counts["total"] + waiting, "tops": tops, "complete": complete}
+
+
+def participant_progress(path: Path, method: str = "ipa", turns: dict | None = None, tps: list[dict] | None = None,
+                         complete: str | None = None) -> dict | None:
+    """How far a participant is, for their ring on Home and their row on the project's page (dashcounts), each stage
+    `{"decided", "total", "complete"}` with the researcher's own mark beside the count: `statements`, the passages
+    decided, which are a thematic analysis project's coding too, `pets`, and in a project of two or more timepoints
+    `timepoints`, each with its `n`, `label` and `state` and its own `statements` and `pets`, and `lpets`. A thematic
+    analysis project's participants have no PETs. None for a workbook that is not annotated. Only reads. A caller
+    that has the participant's `turns` (`turns_of`), `tps` (`card_timepoints`) and Statements `complete` mark already,
+    as Home's card has, passes them, which spares reading them again."""
+    if turns is None:
+        who = interviewer_for(path)
+        turns = turns_of(path, who)
+        if turns is None:
+            return None
+        tps, complete = card_timepoints(path, who), rounds_mod.complete_of(path)
+    ta = method == "ta"
+    out = {"statements": counted(turns["done"], turns["total"], complete)}
+    if tps is None:
+        if not ta:
+            got = pets_progress(path)
+            out["pets"] = counted(got["decided"], got["total"], got["complete"]) if got else None
+        return out
+    out["timepoints"] = []
+    for t in tps:
+        entry = {"n": t["n"], "label": t["label"], "state": t["state"],
+                 "statements": counted(t["done"], t["total"], t["complete"])}
+        if not ta:
+            got = pets_progress(path, t["n"]) if t["state"] != "none" else None
+            entry["pets"] = counted(got["decided"], got["total"], got["complete"]) if got else None
+        out["timepoints"].append(entry)
+    if not ta:
+        got = lpets_progress(path, tps)
+        out["lpets"] = counted(got["decided"], got["total"], got["complete"]) if got else None
+    return out
+
+
+def project_progress(root: Path, books: list[dict], data: dict | None, method: str) -> dict:
+    """How far a project's own stages are, for its card on Home and the tiles on its page (dashcounts): `gets` (or
+    `lgets` in a project of two or more timepoints), the cards in a GET or set aside of all of them, those of a
+    participant's PETs (LPETs) not yet brought in included, and in a thematic analysis project `themes`, the codes in
+    a theme or set aside of all the codes. Each `{"decided", "total", "complete"}`, the mark being the researcher's.
+    `data` is the project's GETs (LGETs) file as `gets_file` reads it, `books` its participants. Only reads."""
+    board = gets_mod.source_board(data)[0] if data else None
+    mark = themes_mod.complete_of(data) if data else None
+    if method == "ta":
+        try:
+            listed = (codes_mod.load(root) or {}).get("codes") or []
+        except WorkbookError:
+            listed = []
+        got = codes_mod.decided_of(board, data or {}, listed)
+        return {"themes": counted(got["decided"], got["total"], mark)}
+    got = gets_mod.decided_of(board)
+    held = (data or {}).get("cases") if isinstance((data or {}).get("cases"), dict) else {}
+    study = gets_mod.study_of(data, [b["case"] for b in books])
+    lgets = gets_mod.in_lgets()
+    waiting = 0
+    for b in books:
+        if not study[b["case"]]["in"] or b["case"] in held:
+            continue
+        got_pets = lpets_progress(Path(b["workbook"])) if lgets else pets_progress(Path(b["workbook"]))
+        waiting += (got_pets or {}).get("tops", 0)
+    return {("lgets" if lgets else "gets"): counted(got["decided"], got["total"] + waiting, mark)}
+
+
 def gets_file(root: Path | None) -> dict | None:
     """A project's GETs file as it sits, None with none or one that cannot be read, kept until it
     changes. Only read."""
@@ -1957,7 +2159,7 @@ HOME_CACHE_AFTER = 1.5
 
 
 def home_cache_tables() -> dict:
-    return {"books": BOOKS, "turns": TURNS, "heads": THEMES_HEADS, "boards": BOARDS}
+    return {"books": BOOKS, "turns": TURNS, "heads": THEMES_HEADS, "boards": BOARDS, "counts": PET_COUNTS}
 
 
 def home_cache_stamp() -> dict:
@@ -2009,6 +2211,12 @@ def home_cache_current(table: str, key: str, mark) -> bool:
     file = Path(key)
     if table == "turns":
         return isinstance(mark, tuple) and bool(mark) and mark[0] == file_mark(file)
+    if table == "counts":
+        # a participant's PETs counts: the themes file, the workbook and the progress file as they were
+        book = Path(mark[1])
+        return (mark[0] == file_mark(file) and mark[2] == file_mark(book)
+                and mark[3] == file_mark(rounds_mod.progress_path(book))
+                and mark[5] == (file_mark(Path(mark[4])) if mark[4] else None))
     return mark == file_mark(file)
 
 
@@ -2296,7 +2504,8 @@ def recent_entries(cases: list[dict]) -> list[dict]:
                  else themes_mod.chosen_name(srv.abs_path(r.get("path", "")))) for r in out]
 
 
-def card_of(case: str, rows: list[dict], cfg: dict, held: dict, recent: list[dict], demo: bool = False) -> dict:
+def card_of(case: str, rows: list[dict], cfg: dict, held: dict, recent: list[dict], demo: bool = False,
+            method: str = "ipa") -> dict:
     """One participant's card on the home screen, from the case list's rows of that case.
 
     The case's workbook is its annotated one, and of two the one opened last, else the newest, the
@@ -2334,8 +2543,13 @@ def card_of(case: str, rows: list[dict], cfg: dict, held: dict, recent: list[dic
     # in a project of two or more timepoints, each one with where it stands (see `by_timepoint`),
     # and nothing new in a project of one
     tps = card_timepoints(path, interviewer_for(path))
+    # how far each stage is decided, the researcher's own marks beside the counts (dashcounts)
+    card["progress"] = (participant_progress(path, method, card["turns"], tps, card["complete"])
+                        if card["turns"] is not None else None)
     if tps is not None:
-        card["timepoints"] = tps
+        # each timepoint's own PETs mark, where the card's `pets_complete` is the first one's alone (dashcounts)
+        marks = {t["n"]: t.get("pets") for t in (card["progress"] or {}).get("timepoints") or []}
+        card["timepoints"] = [dict(t, pets_complete=(marks.get(t["n"]) or {}).get("complete")) for t in tps]
         # and their LPETs, a half of the row after PETs (projectbuild)
         card["lpets"] = lpets_head(path)
     return card
@@ -2372,7 +2586,8 @@ def participants(root: Path | None, cases: list[dict], recent: list[dict], cfg: 
         groups.setdefault(parts[0], {"case": name, "folder": folder, "rows": []})["rows"].append(row)
     data = gets_file(root)
     held = data.get("cases") if isinstance((data or {}).get("cases"), dict) else {}
-    cards = [dict(card_of(g["case"], g["rows"], cfg, held, recent), folder=g["folder"])
+    method = method_of(project_file(root))
+    cards = [dict(card_of(g["case"], g["rows"], cfg, held, recent, method=method), folder=g["folder"])
              for g in sorted(groups.values(), key=lambda g: card_order(g["case"], g["folder"]))]
     with_people(root, cards)
     return in_his_order(cards, order_of(project_file(root)))
@@ -2407,7 +2622,8 @@ def demo_cards(rows: list[dict], root: Path | None = None) -> list[dict]:
     data = gets_file(at)
     held = data.get("cases") if isinstance((data or {}).get("cases"), dict) else {}
     cfg = srv.config()
-    return with_people(at, [card_of(row["case"], [row], cfg, held, [], demo=True) for row in rows])
+    method = method_of(project_file(at))
+    return with_people(at, [card_of(row["case"], [row], cfg, held, [], demo=True, method=method) for row in rows])
 
 
 def project_section(root: Path, recent: list[dict], cfg: dict, cases: list[dict] | None = None) -> dict:
@@ -2458,6 +2674,7 @@ def api_cases(_: dict) -> dict:
     demos_lipa = demo_entries(lipa_root)
     rta_root = srv.demo_rta_dir()
     demos_rta = demo_entries(rta_root)
+    updates = demo_updates()
     # and what this list read written back for the next start, in the background once Home has it
     home_cache_later()
     # `root` is empty while there is no project, and `choose` says the Mac's folder dialog is there.
@@ -2478,6 +2695,8 @@ def api_cases(_: dict) -> dict:
             # and its fourth, the reflexive thematic analysis demo (rtabuild, 17 November 2026), the same three keys
             "demos_rta": demos_rta, "demo_rta_participants": demo_cards(demos_rta, rta_root),
             "demo_rta_project": read_project(rta_root) if demos_rta else None,
+            # each demo whose shipped copy is newer than the installed one, by its id (demostamp, 18 November 2026)
+            "demo_updates": updates,
             "root": srv.rel_path(roots[0]) if roots else "", "project": read_project(roots[0] if roots else None),
             "feedback": bool(srv.feedback_url(cfg)), "choose": srv.PLATFORM == "darwin", "one": bool(srv.ROOT_OVERRIDE),
             "version": srv.VERSION, "build": srv.BUILD, "gets": first["gets"] if first else None}
@@ -9098,6 +9317,25 @@ def fill_demo() -> list[Path]:
     return copied
 
 
+def demo_updates() -> dict:
+    """The demos whose shipped copy is newer than the installed one, by their ids, each `{"stamp", "changed"}` (see
+    `make_demo.update_state`), for Home's bar under the demo's card (demostamp, 18 November 2026, Adam: a demo is never
+    replaced without the researcher's knowledge, they are told and asked). Nothing is changed here but a first run's
+    copy getting its stamp. A demo not built on this machine has none."""
+    import make_demo
+    found = {}
+    for shipped, live in ((srv.SHIPPED_DEMO, srv.DEMO_DIR), (srv.SHIPPED_DEMO / srv.DEMO_TA_FOLDER, srv.demo_ta_dir()),
+                          (srv.SHIPPED_DEMO / srv.DEMO_LIPA_FOLDER, srv.demo_lipa_dir()),
+                          (srv.SHIPPED_DEMO / srv.DEMO_RTA_FOLDER, srv.demo_rta_dir())):
+        try:
+            state = make_demo.update_state(Path(shipped) / "pristine", live)
+        except (OSError, make_demo.DemoError):
+            state = None
+        if state:
+            found[project_id(live)] = state
+    return found
+
+
 def api_reset_demo(body: dict) -> dict:
     """Put the three demo cases back the way they ship, each workbook, sidecar and board, and the
     demo's GETs file with them, and remove the GETs exports' `Working/`. `demo` of `ta` (demos, 3 November
@@ -9113,11 +9351,22 @@ def api_reset_demo(body: dict) -> dict:
     shipped = srv.SHIPPED_DEMO / live.name if live != srv.DEMO_DIR else srv.SHIPPED_DEMO
     books = demo_workbooks(live)
     with writing(root=live, books=books):
+        # Home's bar sends `asked: false` when it did not ask because the demo looked untouched: if it has been worked
+        # in since, nothing is done and the answer says so, and the page asks and sends again (demostamp)
+        if (body or {}).get("asked") is False and shipped.resolve() != live.resolve() \
+                and make_demo.worked_on(shipped / "pristine", live):
+            return {"reset": False, "changed": True, "demo": project_id(live)}
         try:
             make_demo.reset_all(shipped / "pristine", live)
         except make_demo.DemoError as exc:
             raise WorkbookError(str(exc))
         srv.seed_demo()
+        # the demo is as the app ships it now, which its stamp says, so Home's bar for a newer demo goes (demostamp);
+        # a stamp that cannot be written leaves the bar, and the reset stands
+        try:
+            make_demo.mark(shipped / "pristine", live)
+        except OSError:
+            pass
     return {"reset": True, "path": srv.rel_path(books[0]), "demo": project_id(live)}
 
 
@@ -9488,7 +9737,12 @@ def gets_head(root: Path | None, rows: list[dict] | None = None) -> dict | None:
         # (projectbuild, 17 November 2026)
         with board_scope(root):
             head = gets_head(root, rows)
-        return dict(head, lgets=True, method="lipa", trajectories=traj_head(root)) if head else head
+        if not head:
+            return head
+        traj = traj_head(root)
+        # Trajectories: participants placed of participants. It has no mark of the researcher's own yet
+        progress = dict(head["progress"], trajectories=counted(traj["placed"], traj["participants"]))
+        return dict(head, lgets=True, method="lipa", trajectories=traj, progress=progress)
     try:
         books = gets_books(root, rows)
     except OSError:
@@ -9513,16 +9767,19 @@ def gets_head(root: Path | None, rows: list[dict] | None = None) -> dict | None:
     groups = [g for g in shown.get("groups") or [] if isinstance(g, dict)]
     inside = {m for g in groups for m in g.get("members") or []}
     tops = [g for g in groups if g.get("id") not in inside]
+    # how far its own stages are decided, the researcher's marks beside the counts (dashcounts)
     return dict(gets_mod.summary_of(root, books), path=srv.rel_path(first["workbook"]),
                 name=read_project(root)["name"],
                 held=sum(1 for b in books if study[b["case"]]["in"] and b["case"] in kept),
-                board=board or None, boards=len(gets_mod.boards_of(data)), themes=len(tops), **more)
+                board=board or None, boards=len(gets_mod.boards_of(data)), themes=len(tops),
+                progress=project_progress(root, books, data, method), **more)
 
 
 def traj_head(root: Path) -> dict:
     """A longitudinal project's Trajectories tile on its page (projectbuild, 17 November 2026): `trajectories`, how
-    many the board has, `placed`, the participants placed in one, and `participants`, how many there are. Only reads,
-    and a board that cannot be read counts none."""
+    many the board has, `placed`, the participants placed in one, `participants`, how many there are, and `complete`,
+    the Trajectories marked complete, `{"at"}`, or None (trajmark, 18 November 2026). Only reads, and a board that
+    cannot be read counts none."""
     try:
         data = traj_mod.load(root) or {}
     except WorkbookError:
@@ -9536,7 +9793,8 @@ def traj_head(root: Path) -> dict:
         LGETS_FOR.reset(token)
     placed = data.get("placed") or {}
     return {"trajectories": len(data.get("columns") or []), "participants": len(cases),
-            "placed": sum(1 for c in cases if (placed.get(c) or {}).get("column"))}
+            "placed": sum(1 for c in cases if (placed.get(c) or {}).get("column")),
+            "complete": data.get("complete")}
 
 
 def codes_head(root: Path) -> dict:
@@ -9666,7 +9924,14 @@ def api_gets_head(body: dict) -> dict:
     """The GETs row of the project the workbook belongs to, as `/api/cases` carries the case root's,
     for the row under the Demo card. Writes nothing and reads no workbook it need not."""
     root = gets_root(body)
-    return {"gets": gets_head(root)}
+    # the route runs in the project's LGETs scope already (LGETS_ROUTES), which hid a longitudinal project's own head,
+    # its `lgets` and its Trajectories, from the demo's page and Home's card (homecardbuild, 18 November 2026): its
+    # head is asked as `/api/cases` asks it, outside that scope
+    token = LGETS_FOR.set(None)
+    try:
+        return {"gets": gets_head(root)}
+    finally:
+        LGETS_FOR.reset(token)
 
 
 def api_gets(body: dict) -> dict:

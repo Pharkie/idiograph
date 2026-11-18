@@ -462,6 +462,8 @@ def cmd_cases(p: Project, args) -> tuple:
                      "label": person["label"], "portrait": person["portrait"], "picture": person["picture"],
                      "values": person.get("values") or {},
                      "statements_complete": rounds_mod.complete_of(book), "pets_complete": themes.complete_of(data),
+                     # how far each stage is decided, as Home draws it, the researcher's own marks beside (dashcounts)
+                     "progress": routes.participant_progress(book, p.info.get("method", "ipa")),
                      "current": next((x["name"] for x in boards if x["current"]), None), "boards": boards,
                      **({"timepoints": [timepoint_entry(t) for t in tps]} if tps else {}),
                      **({"unread": unread} if unread else {})})
@@ -472,6 +474,10 @@ def cmd_cases(p: Project, args) -> tuple:
     if routes.longitudinal(p.info["timepoints"]):
         project["timepoints"] = [{"n": t["n"], "label": t["label"], "description": t["description"]}
                                  for t in p.info["timepoints"]]
+    # how far the project's own stages are decided, GETs or LGETs and Trajectories, or a thematic analysis project's
+    # themes, the same counts Home's card reads (dashcounts)
+    head = routes.gets_head(p.root)
+    project["progress"] = (head or {}).get("progress") or {}
     whose = i18n.t("cli.said.smiths_band") if band else i18n.t("cli.cases.set_in_settings")
     # a thematic analysis project's lines in its words, with no minimum for its themes and no PETs (taword)
     ta = i18n.method_now() == "ta"
@@ -607,6 +613,8 @@ def traj_lines(answer: dict) -> list[str]:
         return out
 
     lines = [i18n.t("cli.traj_lines.board_note", note=answer["note"])] if answer.get("note") else []
+    if (answer.get("complete") or {}).get("at"):
+        lines += [i18n.t("cli.traj_lines.complete", when=cli.when_said(answer["complete"]["at"]))]
     for col in answer["columns"]:
         lines += [f"{col['title']} ({col['id']}, {i18n.t('cli.n.participant', n=len(col['participants']))})"
                   + (f": {col['description']}" if col.get("description") else "")]
@@ -623,7 +631,7 @@ def traj_answer(answer: dict) -> dict:
     `source` `lpet`, then the participant's other quotes of that interview, `interview`, each with `lpet`, the id
     of the LPET it sits in, None for none (trajchoose, 11 November 2026). A passage of the transcript is taken by
     the `quote` op's `passage`, its turns read with `turn show`. Called on the answer before `traj_lines`."""
-    keep = ("note", "columns", "unplaced", "participants", "tags", "updated", "timepoints", "palette", "icons", "faces")
+    keep = ("note", "complete", "columns", "unplaced", "participants", "tags", "updated", "timepoints", "palette", "icons", "faces")
     out = {k: answer[k] for k in keep if k in answer}
     people = []
     for c in out.get("participants") or []:
@@ -660,7 +668,7 @@ def cmd_trajectories_show(p: Project, args) -> tuple:
 
 def cmd_trajectories_apply(p: Project, args) -> tuple:
     """A change to the Trajectories board with the board's own operations, all or nothing, a dry run
-    first: the board's own note, add, rename, move and remove a trajectory, its sentence, colour and icon, place a
+    first: the board's own note, the Trajectories marked complete or reopened, add, rename, move and remove a trajectory, its sentence, colour and icon, place a
     participant or take
     them out, their order, note, label, tags and picture, a tag's colour, an LPET hidden or shown, and on a
     participant's LPETs board an LPET's state, key quote and bold at a timepoint, its domain, and the states
@@ -1593,6 +1601,24 @@ def cmd_agents_changes(p: Project, args) -> tuple:
         if own:
             lines.append(i18n.t("agentchanges.own_undo", command=own))
     return got, lines
+
+
+def cmd_agents_seen(p: Project, args) -> tuple:
+    """`agents seen` (homecardbuild, 18 November 2026): every change agents made in the project so far marked as seen,
+    as the cross on the line at the foot of the project's card on Home marks them without opening the review, so the
+    line goes and New with it. It calls the same `agent_changes.mark_seen` that reading By an agent does, and the
+    changes themselves stay in the record and in Project history. Only the app does it (`agent_changes.app_only`):
+    an agent's call is refused and its dry run answers how many it would mark, writing nothing. The demo keeps no
+    record, so nothing is there to mark."""
+    name = p.info["name"]
+    dry = bool(getattr(args, "dry_run", False))
+    n = changes_mod.unseen(p.root, keep=not dry)
+    if dry:
+        return {"unseen": n, "dry_run": True}, [i18n.t("agentchanges.seen.would", n=n, project=name)]
+    if not n:
+        return {"unseen": 0, "marked": 0}, [i18n.t("agentchanges.seen.none", project=name)]
+    seen = changes_mod.mark_seen(p.root)
+    return {"unseen": 0, "marked": n, "at": seen.get("at")}, [i18n.t("agentchanges.seen.done", n=n, project=name)]
 
 
 def cmd_agents_log(args) -> tuple:
@@ -9020,6 +9046,8 @@ COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             ("agents", "undo-run"): lambda p, args: changes_mod.undo_run(p, args),
             # one change or several undone alone, Project history's Undo (agentreview2, 13 November 2026)
             ("agents", "undo-change"): lambda p, args: changes_mod.undo_changes(p, args),
+            # the changes agents made marked as seen, as the cross on Home's line does (homecardbuild, 18 November 2026)
+            ("agents", "seen"): cmd_agents_seen,
             # Working together's comments and review (wtreview, 8 November 2026, see review.py)
             **review_mod.COMMANDS}
 
@@ -9663,6 +9691,11 @@ def arguments(sub, common, writes) -> None:
                       help="a change of an agent undone alone: every file it changed put back as it was just before "
                            "it, refused when that would lose a later change, several named newest first")
     x.add_argument("ids", nargs="+", help="the change's id, c12, as agents changes gives it, and any more")
+    # the changes agents made marked as seen, as the cross on Home's line does (homecardbuild, 18 November 2026)
+    ag.add_parser("seen", parents=[common, writes],
+                  help="every change agents made so far marked as seen, as the cross on the line on the project's "
+                       "card on Home does. Only the app does it: an agent's call is refused and its dry run says how "
+                       "many it would mark")
     pj = sub.add_parser("project", parents=[common], help="the whole project sent as one file, or a sent one opened "
                                                           "as a copy, its settings saved, or a new project "
                                                           "made").add_subparsers(dest="act", required=True)

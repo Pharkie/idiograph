@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Idiograph manual</title>
+<meta name="description" content="The Idiograph manual: what to do when something goes wrong, what a term means and where your data goes.">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#FBF7EF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16130E" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.png" type="image/png" sizes="32x32">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<svg class="symbols" aria-hidden="true" focusable="false"><symbol id="idiograph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
+  <path d="M8.5 3.5H4.5V20.5H8.5M15.5 3.5H19.5V20.5H15.5"/>
+  <circle cx="12" cy="12" r="2.7" stroke="none" style="fill: var(--mark-dot, currentColor)"/>
+</symbol></svg>
+<header class="site-head">
+  <a class="site-home" href="index.html" aria-label="Idiograph, home"><span class="pe"><svg class="lockup" viewBox="0 0 107.33 15" role="img" aria-label="Idiograph" fill="none"><use href="#idiograph" width="15" height="15"/><path transform="translate(19.2 12.5)" stroke="currentColor" stroke-width="1.3" stroke-linecap="square" stroke-linejoin="miter" d="M0.65 -9.35V-0.65M5.35 -0.65V-9.35H8.3A4.35 4.35 0 0 1 8.3 -0.65ZM16.95 -9.35V-0.65M21.65 -5a4.35 4.35 0 1 0 8.7 0a4.35 4.35 0 1 0 -8.7 0M41.93 -7.91A4.35 4.35 0 1 0 43.05 -5H39.5M47.35 -0.65V-9.35H50.9A2.17 2.17 0 0 1 50.9 -5H47.35M50.7 -5L54.3 -0.65M58.15 -0.65L62.1 -9.35L66.05 -0.65M59.8 -3.4H64.4M70.15 -0.65V-9.35H73.5A2.38 2.38 0 0 1 73.5 -4.6H70.15M80.18 -9.35V-0.65M87.47 -9.35V-0.65M80.18 -5H87.47"/></svg><span class="pe-stamp">Preview Edition</span></span></a>
+  <button class="nav-burger" id="nav-burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="site-nav"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="nav-new" id="nav-new-b" aria-hidden="true" hidden></span></button>
+  <nav class="site-nav" id="site-nav" aria-label="Site"><a href="about.html">About</a><a href="features.html">Features</a><a href="screenshots.html">Screenshots</a><a href="whats-new.html">What&#x27;s new<span class="nav-new" id="nav-new" hidden><span class="vh">, </span><span id="nav-new-n"></span><span class="vh" id="nav-new-w"></span></span></a><a class="nav-dl" href="download.html">Download</a></nav>
+  <script id="nav-new-js">(function(){var h=document.documentElement,d=["2026-11-18","2026-11-17","2026-11-17"],t=new Date(),n=0,i,p,x,g=function(k){return document.getElementById(k);},now=Date.UTC(t.getFullYear(),t.getMonth(),t.getDate()),b=g("nav-burger"),v=g("site-nav");h.classList.add("navjs");for(i=0;i<d.length;i++){p=d[i].split("-");x=(now-Date.UTC(+p[0],p[1]-1,+p[2]))/864e5;if(x>=0&&x<7)n++;}if(n){g("nav-new-n").textContent=n;g("nav-new-w").textContent=n===1?" new release":" new releases";g("nav-new").hidden=false;g("nav-new-b").textContent=n;g("nav-new-b").hidden=false;}if(!b||!v)return;var head=b.parentNode,set=function(o){head.classList.toggle("nav-open",o);b.setAttribute("aria-expanded",o?"true":"false");},open=function(){return b.getAttribute("aria-expanded")==="true";};b.addEventListener("click",function(){set(!open());});document.addEventListener("keydown",function(e){if(e.key==="Escape"&&open()){set(false);b.focus();}});document.addEventListener("click",function(e){if(open()&&!head.contains(e.target))set(false);});v.addEventListener("click",function(e){if(e.target.closest("a"))set(false);});})();</script>
+</header>
+<main class="mn">
+  <h1 id="idiograph-manual">Idiograph manual</h1>
+  <nav class="mn-contents" aria-label="Contents"><ul><li><a href="#start-here">Start here</a></li><li><a href="#installing-and-opening-idiograph">Installing and opening Idiograph</a></li><li><a href="#your-files-and-your-privacy">Your files and your privacy</a></li><li><a href="#the-method-s-terms-and-how-they-relate">The method&#x27;s terms and how they relate</a></li><li><a href="#working-on-a-transcript">Working on a transcript</a></li><li><a href="#boards">Boards</a></li><li><a href="#longitudinal-projects">Longitudinal projects</a></li><li><a href="#bringing-work-in-and-sending-it-out">Bringing work in and sending it out</a></li><li><a href="#sharing-and-working-together">Sharing and working together</a></li><li><a href="#ai-and-agents">AI and agents</a></li><li><a href="#undo-history-and-recovery">Undo, history and recovery</a></li><li><a href="#keys-and-the-canvas">Keys and the canvas</a></li><li><a href="#when-something-goes-wrong">When something goes wrong</a></li></ul></nav>
+  <p>This manual is a reference. Turn to it when something has gone wrong, when you are not sure what a term means, or when someone asks where your data goes. The screens, their labels and the Guidance tabs explain the rest. How to run Idiograph from its source code is in the <a href="https://github.com/Pharkie/idiograph/blob/main/README.md">README</a>, and how it works underneath is in <a href="https://github.com/Pharkie/idiograph/blob/main/docs/internals.md">docs/internals.md</a>.</p>
+  <h2 id="start-here">Start here</h2>
+  <p>Idiograph is software for Interpretative Phenomenological Analysis (IPA) and reflexive thematic analysis. It is free and open source. It runs on a Mac, Windows or Linux, and your files stay on your computer.</p>
+  <p>When you make a project, you choose its method. There are three. IPA takes each participant from transcript to experiential statements to personal experiential themes (PETs), and then all of them to group experiential themes (GETs). Longitudinal IPA does the same for participants interviewed more than once, and adds themes across time for each participant and across the group. Reflexive thematic analysis (RTA) codes extracts and builds themes from the codes. You cannot change a project's method after you have made it. The terms each method uses, and how they feed each other, are under <a href="#the-method-s-terms-and-how-they-relate">The method's terms and how they relate</a>.</p>
+  <p>Settings belongs to the app and holds what is true wherever you work: your name, the language and formats, and the AI features. Project settings belongs to one project. It holds the project's name, research question, reflexivity statement, timepoints, interviewer's name, statement length, GETs rules, whether AI agents may read it, and Working together. When you tick Archive this project, Home lists the project under Archived projects. It still opens, and you can still change it.</p>
+  <p>Home has four demo projects: an IPA study, a longitudinal IPA study and two reflexive thematic analysis studies. Their interviews are invented, and their voices and their analysis were made with AI, which is why each says "AI-generated demo". They are there to try Idiograph on. They are not an example of a finished study. You cannot change a demo's settings, and Reset demo puts its participants back as they ship.</p>
+  <h2 id="installing-and-opening-idiograph">Installing and opening Idiograph</h2>
+  <p>Each download is the newest version, from Idiograph's page on GitHub, github.com/Pharkie/idiograph.</p>
+  <p>On a Mac, download <code>Idiograph.dmg</code>, open it and drag Idiograph onto Applications. It runs on Macs with Apple Silicon (M1 or later). Idiograph is not yet signed by Apple, so the first time you open it macOS says it cannot check the app. Open System Settings, then Privacy and Security, and press Open Anyway. You do this once.</p>
+  <p>On Windows, download <code>Idiograph-Setup.exe</code> and run it. The first time, Windows says that it protected your PC. Choose More info, then Run anyway. Setup installs Idiograph for you alone, with no administrator's password. Idiograph needs Microsoft's WebView2, and Setup installs it first if Windows lacks it.</p>
+  <p>On Linux, download <code>Idiograph-x86_64.AppImage</code>, make it executable and run it. Ubuntu 24.04 needs the package <code>libfuse2t64</code> for that. On Ubuntu, Debian or Mint you can install <code>Idiograph-amd64.deb</code> instead, but that copy does not update itself.</p>
+  <p>The first time Idiograph opens, Home asks whether to check for updates. If you say yes, Idiograph asks GitHub once a day whether there is a newer version. You can change this in Settings, under General. Every update is signed by Idiograph's author. Idiograph installs an update only when its signature matches the key built into every copy, so nobody else can send you one. A new version installs over the old one, and your projects and settings stay as they were.</p>
+  <p>Uninstalling Idiograph never touches your projects, because they are in folders you chose. On Windows the uninstaller offers to clear what the window remembers, such as its size and zoom. Your participants, transcripts and projects stay either way.</p>
+  <h2 id="your-files-and-your-privacy">Your files and your privacy</h2>
+  <p>Supervisors, examiners and ethics boards ask where the data is kept and what leaves the computer. This section answers both.</p>
+  <h3 id="where-your-files-are">Where your files are</h3>
+  <p>A project is a folder you choose, and Idiograph keeps the project's work nowhere else. Each participant has a folder of their own inside it, named by their number and pseudonym, such as <code>P1 - Ada</code>.</p>
+  <p>The participant's workbook, such as <code>P1 Ada - EN &amp; ES.xlsx</code>, holds the transcript, the exploratory notes, the experiential statements and their quotes, each in its own column. It is an ordinary Excel file, and you can open it in Excel. While Excel has it open, Idiograph marks the participant "open in Excel" and does not write to the workbook. Close it in Excel to go on. A change you make to a statement in Excel shows on the boards the next time they open.</p>
+  <p>The participant's <code>Source</code> folder keeps a copy of each transcript you added, with the listed names already replaced, and their recordings. Their <code>Working</code> folder keeps the PETs boards and a small file of where you are in the transcript. Their <code>_Archive</code> folder keeps a copy of a file before Idiograph changes it in a large way, such as a rename, a trim or a new interview. At the project's root are the project's settings, its GETs, LGETs and Trajectories boards, a thematic analysis project's code list, and the project's History. Each is a file whose name starts with <code>idiograph-</code>.</p>
+  <p>Your own settings, the list of your projects and the agent log are in Idiograph's own folder: <code>~/Library/Application Support/Idiograph</code> on a Mac, <code>%APPDATA%\Idiograph</code> on Windows and <code>~/.local/share/Idiograph</code> on Linux.</p>
+  <h3 id="renaming-a-participant">Renaming a participant</h3>
+  <p>Rename, in a participant's profile, gives a participant a new pseudonym. It changes the name on every passage of their workbook, on every board, in the GETs, LGETs and Trajectories, and in the list of names to replace. The participant keeps their place in the order, their picture, label and pen portrait, and all their work. The folder keeps its old name unless you tick Rename the folder too. A copy of each file it changes goes into <code>_Archive</code> first. Rename never touches the interviewer's passages, the transcripts in <code>Source</code> or exports you have already written.</p>
+  <h3 id="names-replaced-as-a-transcript-comes-in">Names replaced as a transcript comes in</h3>
+  <p>A project can keep a list of real names and the pseudonym each becomes. When you add a transcript, type the participant's real name beside their pseudonym. Idiograph finds every name on the list in the transcript and shows each find in its sentence before it replaces anything. Untick a find that is an ordinary word, such as "Will" in "Will you tell me". The finds you leave ticked are replaced before the transcript reaches the workbook. The list stays on your computer, and a shared copy never holds it.</p>
+  <p>If you untick one find of a name, the copies in that participant's <code>Source</code> folder keep every find of that name as it was written. A shared copy of the whole project takes <code>Source</code> with it, so check those copies before you send one.</p>
+  <h3 id="what-leaves-your-computer">What leaves your computer</h3>
+  <p>Your words leave your computer only in these cases, and only when you ask for them.</p>
+  <p>The update check sends GitHub your internet address and the version of Idiograph you have. It never sends your work. Send feedback sends your note, your reply address if you give one, the app's version, your system and the name of the screen you were on to Idiograph's author. Nothing of your participants goes, and no picture of the screen is taken.</p>
+  <p>The AI features are off on a new install. When you turn them on and press AI suggest, Idiograph sends that one passage, or that one PET or GET, to the provider you chose (see <a href="#ai-and-agents">AI and agents</a>). An AI agent you use yourself sends whatever it reads to its own provider, which can be a whole participant.</p>
+  <p>Working together sends the project to your teammates through the relay at idiograph.app, or through a shared folder. Everything is sealed on your computer before it goes, so neither the relay nor anyone who can open the shared folder can read the words. The relay sees each computer's internet address, and the times, sizes and number of the messages. It never sees names, pseudonyms or file names. Someone who can open the shared folder sees sealed files with their sizes and times.</p>
+  <p>The first time you play a demo's recording, the player says how large the demo's recordings are and offers to download them from GitHub. In Settings, Check key and the list of models send your AI key to the provider it belongs to, and nothing of your work. Nothing else is sent or fetched.</p>
+  <h3 id="your-ai-key">Your AI key</h3>
+  <p>On a Mac, the key for an AI provider is kept in the macOS keychain. On Windows and Linux it is kept in a file in Idiograph's own folder that only your account can read. It is never written into a project, a log or the settings file, and it goes only to the provider it belongs to.</p>
+  <h2 id="the-method-s-terms-and-how-they-relate">The method's terms and how they relate</h2>
+  <p>Idiograph follows Smith, Flowers and Larkin (2022, <em>Interpretative Phenomenological Analysis: Theory, Method and Research</em>, 2nd edn) for IPA, Farr and Nizza (2019) for longitudinal IPA, and Braun and Clarke for reflexive thematic analysis. Each term below has a short definition and its place in the chain. Where a setting departs from the book, the last part of this section says so.</p>
+  <h3 id="the-ipa-chain">The IPA chain</h3>
+  <pre tabindex="0"><code>transcript
+  └ passage ── exploratory notes
+      └ experiential statement + its one quote
+          └ PET (one participant, on a board), holding sub-themes
+
+every participant&#x27;s PETs ── GETs (across the participants)</code></pre>
+  <p>Experiential statements covers steps 2 and 3 of the book for one participant. PETs covers steps 4 and 5, and you do both for each participant in turn (step 6). GETs is step 7, across the participants.</p>
+  <h3 id="passage">Passage</h3>
+  <p>A passage is one person's stretch of talk. It is one row of the transcript. The word comes from the book's Chapter 5. The participant's passages take statements. The interviewer's passages are context, and you pass over them as you work.</p>
+  <h3 id="exploratory-note">Exploratory note</h3>
+  <p>An exploratory note is your descriptive, linguistic or conceptual comment on a passage. Notes stand in their own column beside the transcript, as in the book's Box 5.4.</p>
+  <h3 id="experiential-statement">Experiential statement</h3>
+  <p>An experiential statement says, in a few words, what a passage shows about the participant's experience. Each passage can have any number. Statements are what PETs are made from.</p>
+  <h3 id="quote">Quote</h3>
+  <p>Each statement has exactly one quote. It is the participant's own words that ground the statement. A quote is usually a run of words in its passage. It can also join the participant's passages just before and after, when only the interviewer's words stand between them (see <a href="#a-quote-across-passages">A quote across passages</a>).</p>
+  <h3 id="interviewer-note">Interviewer note</h3>
+  <p>An interviewer note is a note on one of your own passages as interviewer, such as a question that moved the participant on, or one that closed them down. Interviewer notes are kept apart from the exploratory notes, because they are about your interviewing and not about the participant's experience.</p>
+  <h3 id="pet">PET</h3>
+  <p>A personal experiential theme groups one participant's statements that belong together. You make one by selecting statements on the board and pressing <code>G</code>, then giving it a title and, if you want, a description that says more. A statement belongs to a PET because you put it there. Where a card happens to lie on the board does not matter.</p>
+  <h3 id="sub-theme">Sub-theme</h3>
+  <p>A label inside a PET is a sub-theme, and a label inside a sub-theme is a group. They nest as deep as you need. Every table and export names each level the same way.</p>
+  <h3 id="stack">Stack</h3>
+  <p>When a participant says one point several ways close together, stack the others under the statement that says it best. That statement is the top, and it stands for the stack in the PETs table and the exports. The others stay one click away for the audit trail, and the statements CSV lists them under their top. A stack is not a PET, and it is one level deep.</p>
+  <h3 id="close-pair">Close pair</h3>
+  <p>A close pair is two statements in the same PET or sub-theme, from the same sheet and within a minute of each other, or within another gap you set. The Close pairs button draws a dashed line between them, so you can decide whether one should stack under the other. Close pairs are off on a new install.</p>
+  <h3 id="unplaced-and-set-aside">Unplaced and Set aside</h3>
+  <p>A statement in Unplaced is not yet decided. It waits in the board's sidebar until you place it. A statement in Set aside is decided against, because it does not answer the research question or is poorly evidenced. Set aside is rare, and the Guidance tab suggests you note why. Nothing on a board deletes a statement, so anything set aside can come back.</p>
+  <h3 id="sticky-note">Sticky note</h3>
+  <p>A sticky note is a note to yourself on a board. It is never a statement, and no table holds it. The canvas's print, PDF and image show it as the board does.</p>
+  <h3 id="picks">Picks</h3>
+  <p>On a PET or a sub-theme each quote has a tick. Tick the one or two quotes that carry the PET. They show first in its Inspector. In the GET table a participant's row starts with the first picked quote of their PET there, until you tick another key quote for the row.</p>
+  <h3 id="board-and-current-board">Board and Current board</h3>
+  <p>A board is one grouping of a participant's statements into PETs. You can keep several, to try one grouping beside another. The Current board is the one you are going with. There is one at most for each participant, and it is the board GETs and LPETs take (see <a href="#which-board-feeds-the-next-step">Which board feeds the next step</a>).</p>
+  <h3 id="get">GET</h3>
+  <p>A group experiential theme draws together PETs and sub-themes from several participants. On the GETs board each card is a participant's PET, sub-theme or statement in that participant's colour, and a label over cards is a GET. A participant note is your own words about a participant on the GETs board. It never counts towards a GET's badge.</p>
+  <h3 id="the-count-and-the-minimum">The count and the minimum</h3>
+  <p>A GET's badge reads "6 of 8": six participants have something under it, out of eight in the study. The minimum starts at the band in Smith (2011a): every participant for three or fewer, three for four to eight, and half, rounded up, for more than eight. You can change it in Project settings. A GET under the minimum keeps its cards, and its badge is dashed.</p>
+  <h3 id="one-get-per-pet">One GET per PET</h3>
+  <p>With One GET per PET on, which is the default, each PET or sub-theme sits under one GET at most. Turn it off in Project settings to place a PET under a second GET as well. Each of its two cards then names the other.</p>
+  <h3 id="complete">Complete</h3>
+  <p>Each phase has its own mark. Statements complete marks a participant's transcript as worked through, once every passage is decided. PETs complete marks the PETs on the Current board as final, and Idiograph refuses it while no board is marked current. GETs complete marks the GETs, and Idiograph refuses it until every participant has come in from a board marked PETs complete and has not changed since. In a longitudinal project LPETs and LGETs are marked complete in the same way, and each timepoint has its own Statements complete and PETs complete. Trajectories has its own mark too, and Idiograph refuses it while a participant is in no trajectory or the project has no participant. A mark locks nothing. You can still revise everything, and Reopen takes the mark off.</p>
+  <h3 id="pen-portrait">Pen portrait</h3>
+  <p>Each participant can have a picture, a label of a few words and a pen portrait. A pen portrait is a short paragraph to remind you who they were. The Pen portrait tick under Export puts the label and pen portrait at the head of the PETs table. No picture goes into any export.</p>
+  <h3 id="reflexivity">Reflexivity</h3>
+  <p>Reflexivity, in Project settings, holds your reflexivity statement for the project. It is there to copy into a write-up. No export prints it, and a shared copy leaves it out. AI agents can read it.</p>
+  <h3 id="the-longitudinal-chain">The longitudinal chain</h3>
+  <pre tabindex="0"><code>participant
+  ├ T1 ── passages ── statements ── PETs at T1 ─┐
+  ├ T2 ── passages ── statements ── PETs at T2 ─┼─ LPETs (one participant across time),
+  └ T3 ── passages ── statements ── PETs at T3 ─┘  each with a domain, and at each
+                                                   timepoint a state and a key quote
+
+every participant&#x27;s LPETs ─┬─ LGETs (themes across the group)
+                           └─ Trajectories (shared courses, each participant in one)</code></pre>
+  <p>You make PETs at each timepoint as in IPA. Then you read each participant's PETs across time into LPETs. LGETs draw the LPETs together across the group, and Trajectories places each participant on a course that others share.</p>
+  <h3 id="timepoint">Timepoint</h3>
+  <p>A timepoint is one round of interviews, such as before the season, midsummer and after the harvest. Each has a label and a description. The labels start as T1 and T2. See <a href="#longitudinal-projects">Longitudinal projects</a> for how they are kept.</p>
+  <h3 id="lpet">LPET</h3>
+  <p>A longitudinal personal experiential theme is your interpretation of one participant across time. Its cards are the PETs, sub-themes and statements it draws on at each timepoint. They are its audit trail, not its parts. The LPET's title, its state at each timepoint and its note are yours, and nothing in the app writes them for you. The LPET table sets each LPET out with the timepoints across, as in Nizza's Table 8, and its Word and PDF are the thesis appendix.</p>
+  <h3 id="lget">LGET</h3>
+  <p>A longitudinal group experiential theme draws together LPETs from several participants, as a GET draws together PETs. In a longitudinal project LGETs stand where GETs would. There are no GETs at a single timepoint.</p>
+  <h3 id="trajectory">Trajectory</h3>
+  <p>A trajectory is a course that several participants share, such as "Settling in" or "Up then down". You make and name trajectories yourself on the Trajectories board. Each participant is placed in one, and a participant in none waits in Unplaced. A trajectory is about the whole person over time. An LPET is one theme of one person over time. Each participant on a trajectory shows their LPETs as rows, with a key quote and a state at each timepoint.</p>
+  <h3 id="domain">Domain</h3>
+  <p>A domain is a word or two that names the area of life an LPET belongs to, such as Work or Family. It shows as a coloured pill on the LPET, and the same domain has the same colour across the project. An LPET can be in more than one domain.</p>
+  <h3 id="state">State</h3>
+  <p>A state is your sentence on where an LPET stands at one timepoint. It is the LPET table's row at that timepoint, and Trajectories shows the same words.</p>
+  <h3 id="key-quote">Key quote</h3>
+  <p>A key quote is the one quote you choose to show an LPET at one timepoint. It can be a statement's quote or words taken from the transcript. Choosing one changes nothing in the workbook.</p>
+  <h3 id="the-thematic-analysis-chain">The thematic analysis chain</h3>
+  <pre tabindex="0"><code>transcript
+  └ passage
+      └ extract ─ its codes
+          └ code list  (every code, its extracts across participants)
+              └ themes  (codes grouped on the Themes board)
+                  └ subthemes</code></pre>
+  <h3 id="extract">Extract</h3>
+  <p>An extract is a run of words in a passage that you code. A passage can hold several extracts, and each extract can carry several codes.</p>
+  <h3 id="code">Code</h3>
+  <p>A code is a label that many extracts share. You give it on the Coding screen, as an existing code or a new one. An in vivo code takes the selected words as its name.</p>
+  <h3 id="code-list">Code list</h3>
+  <p>The code list shows every code with its description and all its extracts, participant by participant. There you rename, describe or merge a code, and delete one that has no extracts. A rename or a merge changes every workbook and every board at once.</p>
+  <h3 id="theme">Theme</h3>
+  <p>On the Themes board each card is a code, and a label over codes is a theme. A theme has a definition, which is its central idea. It can hold subthemes. For each theme you can tick one key extract for each participant, which the theme table shows.</p>
+  <h3 id="where-the-app-departs-from-the-book">Where the app departs from the book</h3>
+  <p><a href="#rounds">Rounds</a> are the author's own pace and not a step of IPA. They are off in a new project. The nudges under a statement are off in a new project too. When on, the length nudge speaks past 15 words, which you can change in Project settings. Stacks and close pairs come from the author's practice of keeping one statement where a participant repeats a point. One GET per PET is on by default, and the minimum is Smith's band until you change it. An interview in two parts is pooled into one participant's PETs.</p>
+  <h2 id="working-on-a-transcript">Working on a transcript</h2>
+  <h3 id="when-a-passage-counts-as-decided">When a passage counts as decided</h3>
+  <p>A passage is decided once you have saved it, saved it empty or pressed Skip. It is also decided once you have moved past it and decided a later passage on the same sheet, because moving past a passage is a decision not to code it. Decided passages are what the counts and Statements complete go by.</p>
+  <h3 id="a-quote-across-passages">A quote across passages</h3>
+  <p>One quote can join the same participant's passages just before or after the one you are on, when only the interviewer's words stand between them. Select the first words, then hold <code>Cmd</code> (<code>Ctrl</code> on Windows and Linux) and select words in the next passage. The quote keeps the pieces in order with an ellipsis between them and never takes in the interviewer's words. Everywhere it is cited, it shows the range of times, such as "Initial, 25:51–26:50". A quote cannot skip a passage of the participant's or take in another speaker.</p>
+  <h3 id="correcting-the-transcript">Correcting the transcript</h3>
+  <p>Idiograph can correct a transcript without Excel. Each of these writes to the workbook, and <code>Cmd + Z</code> takes it back.</p>
+  <p>To correct a passage's words, press <code>E</code> on the passage you are on, or double-click any passage's text. To correct a timecode, double-click it. To give words to the other speaker, such as an interviewer's question transcribed inside the participant's answer, select the words and press <code>C</code>. They become a passage of their own, so one row can become three.</p>
+  <p>To cut the consent talk at the start and the goodbyes at the end, right-click a row. Choose to cut that passage and the ones before it, or that passage and the ones after it. Idiograph keeps a copy of the workbook in <code>_Archive</code> first, and <code>Cmd + Z</code> brings the cut rows back.</p>
+  <p>Find and replace, <code>Cmd + Shift + F</code> (<code>Ctrl + Shift + F</code> on Windows and Linux), changes the transcript's words across the whole workbook, on every sheet and in the interviewer's passages too. Replace all also changes the same words in your statements, quotes and notes, and the card counts those before you press it. Replace changes the one find in the transcript alone.</p>
+  <p>The row's menu also opens from the three dots in a row's margin.</p>
+  <h3 id="an-interview-in-two-parts">An interview in two parts</h3>
+  <p>An interview recorded in two parts is two sheets of one workbook, and one participant. Its PETs pool the statements of both sheets.</p>
+  <h3 id="rounds">Rounds</h3>
+  <p>Work in rounds, in the statements screen's View, paces the work in stretches of transcript with a daily target. A round is ten minutes of transcript until you change it.</p>
+  <h3 id="search">Search</h3>
+  <p>Search, <code>Cmd + F</code> (<code>Ctrl + F</code> on Windows and Linux), finds words in passages, notes, statements, quotes, PETs, GETs, their notes and sticky notes, participants' names and the research question. It looks in This participant, This project or Everything. It finds other forms of a word, so "sleep" also finds "slept". Words in quotation marks are found exactly as typed. It leaves out AI suggestions.</p>
+  <h2 id="boards">Boards</h2>
+  <p>A board holds one grouping of a participant's statements. The canvas shows what is placed, and the sidebar holds Unplaced and Set aside (see <a href="#unplaced-and-set-aside">Unplaced and Set aside</a>). Dragging a card near a PET does not put it in (see <a href="#pet">PET</a>).</p>
+  <h3 id="the-order-inside-a-pet">The order inside a PET</h3>
+  <p>Inside a PET, higher means a better example or better quotes. Idiograph reads a PET top to bottom, and left to right along a row, and that order is the order in every table, print, Word file and CSV. A sub-theme comes where its top edge sits among the cards. Table view shows that order.</p>
+  <h3 id="why-keep-several-boards">Why keep several boards</h3>
+  <p>Duplicate a board to try another grouping without losing the first. Each board keeps its own undo, its own History and its own note on why it exists. Delete this board cannot be undone. Idiograph keeps the deleted board's History in <code>_Archive</code>.</p>
+  <h3 id="which-board-feeds-the-next-step">Which board feeds the next step</h3>
+  <p>GETs, LPETs and LGETs each take one board from each participant. They take the board marked PETs complete (or LPETs complete) if there is one. Otherwise they take the Current board, and otherwise the board that was last open. A participant who comes in from a board that is not marked complete shows "PETs not complete" on the GETs board.</p>
+  <h3 id="when-a-participant-s-pets-change">When a participant's PETs change</h3>
+  <p>When you change a participant's PETs after they came into GETs, the GETs board brings the change in by itself and says so. A change made outside the app shows Update instead. Idiograph saves a revision of the GETs board first, so History can take you back. A PET the participant no longer has stays where it was, marked "No longer in" their PETs, and nothing moves by itself.</p>
+  <h3 id="editing-a-statement-on-a-board">Editing a statement on a board</h3>
+  <p>Double-click a statement's card to edit its words. The edit writes to the participant's workbook, and every board, the GETs and the LPETs show the new words.</p>
+  <h2 id="longitudinal-projects">Longitudinal projects</h2>
+  <p>A longitudinal project interviews each participant at two timepoints or more. You set the timepoints when you make the project, and you can add more later in Project settings. You cannot lower the number past a timepoint that holds an interview.</p>
+  <p>Each participant has one workbook. Each timepoint is a set of sheets in it, so an interview at T2 is new sheets at the end of the same workbook. A timepoint is known by its place, so renaming T1 to "Before the season" moves nothing.</p>
+  <p>Each timepoint has its own Experiential statements, its own PETs boards, its own Current board and its own marks of complete. So T1 can be complete while T2 is under way. When you add a transcript, choose its timepoint on its row. A participant not interviewed at a timepoint shows Not interviewed there.</p>
+  <p>Then the work goes on to LPETs for each participant, LGETs across the group and the Trajectories board. Their terms are under <a href="#the-longitudinal-chain">The longitudinal chain</a>.</p>
+  <p>You can start a participant's LPETs at any time from whatever PETs exist. Each timepoint comes in from the board described under <a href="#which-board-feeds-the-next-step">Which board feeds the next step</a>, and a later change to those PETs comes in by itself, as it does on GETs. On the LPETs board, a PET or sub-theme that no LPET draws on can keep your reason, in Why no LPET draws on it. The reasons go into the LPET appendix. Rarely, one moment informs two LPETs. Also drawn on by, in a card's menu, puts a second card of it under the other LPET.</p>
+  <p>On a timepoint's PETs board, the Inspector on a PET, a sub-theme or a statement shows the LPETs that draw on it. A statement's time is cited with its timepoint everywhere after PETs, as in "T1, 35:55".</p>
+  <p>The Trajectories board belongs to the project, and its title is the research question. New trajectory adds one. You drag each participant onto the trajectory they follow, choose a key quote and write a state for each of their LPETs at each timepoint, and give the participant a label of a few words. The state and the key quote are the same as the LPET table's, so a change in one place shows in the other.</p>
+  <h2 id="bringing-work-in-and-sending-it-out">Bringing work in and sending it out</h2>
+  <h3 id="add-transcripts">Add transcripts</h3>
+  <p>Add transcripts, on the project's page, takes a VTT or SRT file, plain text, a Word file, or a CSV or Excel file. It shows a preview of the passages and the speakers before it makes anything. It chooses as interviewer the speaker whose name matches the interviewer's name in Project settings, or else the speaker who asks the most questions, and you can change the choice. It also shows the format it found the times in, which you can set by hand if it guessed wrong. A file under a new pseudonym makes a new participant. A file under a pseudonym already in the project adds a further interview to that participant. One transcript is one participant, so a couple interviewed together is one participant.</p>
+  <h3 id="a-spreadsheet-with-statements-already-in-it">A spreadsheet with statements already in it</h3>
+  <p>A spreadsheet can bring work done elsewhere. A column of statements puts each statement on its passage, with several in a cell one to a line, so the participant opens ready for PETs. A column headed Quote pairs its lines with the statements on the same row, the first quote with the first statement.</p>
+  <h3 id="recordings">Recordings</h3>
+  <p>A recording goes with its transcript, as an <code>.m4a</code>, <code>.mp3</code>, <code>.wav</code> or <code>.m4b</code> file. Idiograph copies it into the participant's <code>Source</code> folder and names the copy by the participant's pseudonym. The file's own name may hold a real name, so it is not used. If the recording's times are a little off the transcript's, set an offset in seconds with Offset.</p>
+  <h3 id="projects-from-nvivo-atlas-ti-or-maxqda">Projects from NVivo, ATLAS.ti or MAXQDA</h3>
+  <p>A project exported as REFI-QDA, a <code>.qdpx</code> file, comes in through Add transcripts. Each document becomes a participant's interview. Each code on a passage becomes an experiential statement with its quotation as its quote, and a comment on a quotation becomes an exploratory note. On request, each code group becomes a PET. PDFs, pictures, variables, free memos, links and networks do not come in, and the import says so.</p>
+  <h3 id="pets-and-lpets-from-excel">PETs and LPETs from Excel</h3>
+  <p>An AI agent can bring a table of PETs or LPETs that you made in Excel onto a new board, matching each row to its statement. Ask it to use Idiograph's <code>board import</code>, with a dry run first. Where a row's wording differs from the statement it matches, the import changes the statement to the table's wording, and every board shows the new words. Your other boards keep their PETs and layout.</p>
+  <h3 id="what-each-export-holds">What each export holds</h3>
+  <p>What Export holds follows the view. On the canvas, Export gives Print, Save as PDF and Save as an image of the board as it lies. In Table view, Export gives the tables: Print, Save as PDF, Microsoft Word, and on PETs, Markdown and CSV.</p>
+  <pre tabindex="0"><code>Export                   From          Holds
+PETs table               PETs, Table   Each PET, its sub-themes and statements, each
+                                       statement with its quote and time, in the shape
+                                       of the book&#x27;s Box 5.6
+Statements CSV           PETs, Table   Every statement with its time, quote and PET
+GET table                GETs, Table   Each GET with a row for every participant and
+                                       their key quote
+Audit trail              GETs, Table   Each GET traced from passage to quote,
+                                       statement, PET and GET
+LPET table               LPETs, Table  Each LPET with the timepoints across: state,
+                                       key quote and what it draws on, then the PETs
+                                       no LPET draws on
+LGET table               LGETs, Table  Each LGET with a row for every participant
+Theme table              Themes, Table Each theme, its codes and their extracts, or
+                                       each participant&#x27;s key extract alone
+REFI-QDA (.qdpx)         Project menu  Transcripts, statements as codes, notes,
+                                       PETs, GETs and recordings if ticked</code></pre>
+  <p>A REFI-QDA file opens in NVivo, ATLAS.ti, MAXQDA and QualCoder. It holds one board for each participant, the one described under <a href="#which-board-feeds-the-next-step">Which board feeds the next step</a>. It does not keep your other boards, History, where each card lay, stacks, sticky notes, participant notes or picks.</p>
+  <h2 id="sharing-and-working-together">Sharing and working together</h2>
+  <h3 id="share-a-copy">Share a copy</h3>
+  <p>Share a copy, on a project's menu, writes the project as one file that someone else's Idiograph opens as a copy. It can hold the whole project or chosen participants. For each participant you choose, their transcript, notes and statements always go, and their PETs go unless you untick them. The GETs go only with the whole project, because they are made from every participant. Recordings go only when you tick them, because a voice can identify a participant. A copy never holds the list of names to replace, your reflexivity statement, Project history or the record of agents' changes. A copy of the whole project with all its boards takes the <code>_Archive</code> folders too, apart from the copies kept before names were replaced. A copy of chosen participants, or of the Current boards only, leaves <code>_Archive</code> out. An AI agent can also send one participant with nothing of your grouping, so another analyst can make PETs blind.</p>
+  <h3 id="a-copy-coming-back">A copy coming back</h3>
+  <p>When the other analyst sends the copy back, Open a shared copy on Home offers to add their boards to your project. An AI agent can do the same. Each comes in as a new board named with whose it is, such as "Sam's board, 30 Oct". It is never your Current board and never replaces one of yours. A statement you reworded since you sent the copy shows your wording.</p>
+  <h3 id="working-together">Working together</h3>
+  <p>Working together, in Project settings, lets a small team work on one project from their own computers. Each participant has one owner, and only the owner's computer changes that participant. The GETs board has an owner too. Your copy of a teammate's participant updates by itself about a minute after their last change. On their participant you can make boards of your own, comment and suggest, but not change their work.</p>
+  <p>The lead invites each person with a link or twelve words. An invite works once, and for seven days. When the lead removes someone, the project's key changes for everyone left, so the person removed gets nothing new. What they already have stays on their computer. The team sends through the relay or through a folder everyone already shares, such as OneDrive or Dropbox. Either way, everything is sealed on your computer first.</p>
+  <h3 id="the-relay-code">The relay code</h3>
+  <p>The first time a lead sends through the relay, Idiograph asks for a relay code. The relay at idiograph.app is run by Idiograph's author, who gives out relay codes. The code is used once and kept nowhere. Someone who joins needs no code, and neither does a shared folder.</p>
+  <h3 id="reviews-comments-and-suggestions">Reviews, comments and suggestions</h3>
+  <p>The owner of a participant can ask a teammate for a review. The teammate comments on passages, statements, PETs and GETs, and can suggest a wording or a title. Nothing changes on the owner's computer until the owner accepts a suggestion. History then says the teammate suggested it.</p>
+  <h2 id="ai-and-agents">AI and agents</h2>
+  <h3 id="ai-features">AI features</h3>
+  <p>AI features are off on a new install. Turning them on in Settings first shows a warning, and you choose a provider: Anthropic, Mistral, Google Gemini, OpenAI, Azure OpenAI, another service, or Ollama or LM Studio running on your own computer, which need no key. Then there are three features, each with its own switch. Suggested statements for a passage sends that passage, the interviewer's passage before it, the research question, the statement guidance and six of your own statements as examples. Suggested titles for a PET and Suggested titles for a GET send that one PET or GET with its statements and their quotes, the titles of the other PETs or GETs on the board, and the research question. In a thematic analysis project, AI suggest on an extract sends the passage, the interviewer's passage before it and your code list. It offers codes from the list and new ones. Nothing an AI suggests is written until you pick it. With the switch off, no AI control shows anywhere.</p>
+  <p>The prompt for statements is in Settings. You can read it, change it and reset it.</p>
+  <h3 id="agents">Agents</h3>
+  <p>An AI agent such as Claude Code, Codex or Claude Desktop can work on a project through Idiograph's command line and MCP server. It works through the same code as the app and never edits the files itself. An agent sends what it reads to its own provider. That is often a whole participant, so whether to use one is a matter for your ethics approval. An agent can read a project only after you tick "Allow AI agents to read this project" in Project settings. Project settings shows that tick, the guide and Add Idiograph to Claude Desktop only while AI features are on in Settings. The demos are always open to agents. Write a guide for AI agents puts a guide at the project's root for an agent opened there. Settings, under Using your own AI agents, gives words to paste into an agent so it can find Idiograph.</p>
+  <h3 id="adding-idiograph-to-claude-desktop">Adding Idiograph to Claude Desktop</h3>
+  <p>In Project settings, Add Idiograph to Claude Desktop writes Idiograph's MCP server into Claude Desktop's settings file, keeping every other entry and a copy of the file as it was. Restart Claude Desktop to use it.</p>
+  <h3 id="reviewing-and-undoing-an-agent-s-run">Reviewing and undoing an agent's run</h3>
+  <p>An agent's change happens at once, as if you had made it, and you review it afterwards. Idiograph records every change an agent makes, and before an agent's first change in a session it keeps a restore point of the project's workbooks and boards. When agents have changed a project, its card on Home says so, with Review, and the cross after Review marks them as seen without opening them. That opens Project history at By an agent, where each change has Undo and each session has Undo this run. An undo never writes over a change you made since. Restore points are kept for 30 days, and the last ten sessions' points are kept whatever their age.</p>
+  <h3 id="the-agent-log">The agent log</h3>
+  <p>Each time Idiograph refuses an agent, it notes what was asked and why in the agent log, in Settings. The log keeps the last seven days. It does not keep what the agent sent, and it is not kept in any project.</p>
+  <h2 id="undo-history-and-recovery">Undo, history and recovery</h2>
+  <p>On Experiential statements, <code>Cmd + Z</code> (<code>Ctrl + Z</code> on Windows and Linux) takes back a quote, a removed statement, a corrected passage or timecode, words given to another speaker, a trim and a find and replace. It takes the newest back first. On each board, <code>Cmd + Z</code> has its own steps, separate from the statements screen's. They last while that participant stays open.</p>
+  <p>Each board keeps a History of revisions. Idiograph saves one every fifteen minutes while you work, and you can save one by hand with a name. Restore brings a revision back and saves the board as it stood first, so a restore can be undone too.</p>
+  <p>Project history, on a project's menu, records changes to the project itself: its name, question, settings, timepoints, renames, marks of complete, and every change an agent made, with who made each one.</p>
+  <p>The <code>_Archive</code> folders keep a copy of a file before every large change: a rename, a trim, words given to another speaker, a new interview and a replaced picture. A deleted board leaves its History there. Idiograph never deletes from them. To get a workbook back, copy it from <code>_Archive</code> while Idiograph is closed, and take the bracketed note out of its name. The boards stay as they are, so check them afterwards. A deleted board cannot be put back this way.</p>
+  <p>Remove from Idiograph, on a project's menu, takes the project off the list and leaves its folder as it is. Tick Move its folder to the Bin too to move the folder there as well, where you can put it back. It is the Recycle Bin on Windows and the Rubbish Bin on Linux.</p>
+  <h2 id="keys-and-the-canvas">Keys and the canvas</h2>
+  <p>Every shortcut is on the shortcuts card. Press <code>?</code>, or choose Keyboard Shortcuts in the Help menu.</p>
+  <p>On a board, the wheel or a pinch zooms. A sideways swipe, or the wheel with <code>Shift</code>, pans across, and the wheel with <code>Alt</code> pans up and down. Hold <code>Space</code> and drag, or drag with the middle button, to pan. <code>H</code> turns the pointer into a hand, so any drag pans, and <code>V</code> or <code>Esc</code> gives the pointer back. A drag on empty canvas selects what it encloses.</p>
+  <p>On Linux, the Edit menu shows no keys beside Undo, Redo, Cut, Copy, Paste and Select All, but <code>Ctrl + Z</code>, <code>Ctrl + Y</code>, <code>Ctrl + X</code>, <code>Ctrl + C</code>, <code>Ctrl + V</code> and <code>Ctrl + A</code> work as usual.</p>
+  <h2 id="when-something-goes-wrong">When something goes wrong</h2>
+  <p>Each entry starts with the words Idiograph shows.</p>
+  <h3 id="idiograph-stopped-unexpectedly">Idiograph stopped unexpectedly</h3>
+  <p>What you saved is kept. Close the window and open Idiograph again. If it happens again, tell the author with Send feedback.</p>
+  <h3 id="idiograph-could-not-start">Idiograph could not start</h3>
+  <p>What you saved is kept. Open Idiograph again. If it says other programs are listening on its ports, quit them or restart the computer.</p>
+  <h3 id="this-passage-has-changed-since-this-page-was-loaded">This passage has changed since this page was loaded</h3>
+  <p>Something else saved the passage while you were typing, such as another window or an AI agent. Nothing was saved, and your words are still in the fields. Reload loads the passage as it is now and keeps your words below to copy back. Overwrite saves your words over the change. A board shows the same line, "This board has changed since this page was loaded", with the same choices.</p>
+  <h3 id="a-quote-can-take-in-only-the-passage-just-before-or-just-after">A quote can take in only the passage just before or just after</h3>
+  <p>A quote can join the participant's passages only when nothing but the interviewer's words stands between them. Take in the passages one after another, so that none of theirs is skipped. If you need words from further off, make a second statement with its own quote. See <a href="#a-quote-across-passages">A quote across passages</a>.</p>
+  <h3 id="changes-made-elsewhere">Changes made elsewhere</h3>
+  <p>A board or a participant's PETs changed outside Idiograph, by an AI agent or another program. Press Update to bring the changes in. On GETs, History keeps a revision of the board as it was before. A change you make in another window of Idiograph comes in by itself.</p>
+  <h3 id="gets-were-not-marked-complete-waiting-on">GETs were not marked complete. Waiting on</h3>
+  <p>GETs complete needs every participant to come in from a board marked PETs complete, with nothing changed since. The message names each participant with the reason. For "PETs not complete", open their PETs and mark them complete. For "changed since it came in", open GETs and bring the change in. Then mark the GETs again.</p>
+  <h3 id="comment-or-suggest-instead">Comment or suggest instead</h3>
+  <p>With Working together on, only a participant's owner can change their work. You can comment, suggest a wording or a title, or make boards of your own on their participant. To work on it yourself, ask the lead to hand the participant over in Who works on each.</p>
+  <h3 id="waiting-to-send-no-connection">Waiting to send: no connection</h3>
+  <p>Your changes are kept on your computer and go to the team when the connection is back. Nothing needs to be done. If you use a shared folder, check that its drive or sync app is connected.</p>
+  <h3 id="could-not-be-read-so-nothing-was-changed">Could not be read, so nothing was changed</h3>
+  <p>Idiograph found a file it could not read, so it changed nothing and did not write over it. Most often the file was cut short by a sync app or a full disk. The <code>_Archive</code> folder beside it may hold an earlier copy, and your sync app or backup may hold a newer one.</p>
+  <h3 id="open-in-excel-on-a-participant">"open in Excel" on a participant</h3>
+  <p>Excel has the participant's workbook open, so Idiograph will not write to it, and Experiential statements does not open. Close the workbook in Excel, and it opens again. If Excel has closed and the mark stays, look in the participant's folder for a hidden file starting <code>~$</code> that Excel left behind, and delete it.</p>
+  <h3 id="its-folder-is-not-there">Its folder is not there</h3>
+  <p>The project's folder has moved, been renamed or is on a drive that is not connected. Reconnect the drive, or choose Remove from Idiograph on the card and then Open project at the folder's new place. Nothing in the folder is lost. In Working together, a shared folder that is not there usually means its sync app is not signed in. If it says files will not open yet, set the folder in OneDrive to Always keep on this device.</p>
+  <h3 id="idiograph-could-not-confirm-the-update-is-genuine">Idiograph could not confirm the update is genuine</h3>
+  <p>The update did not match the author's signature, so Idiograph did not install it. The version you have goes on working. Try again later, or download the newest version from GitHub. If an update fails for another reason, the line under Updates in Settings says why.</p>
+  <h3 id="a-demo-s-recordings-will-not-play">A demo's recordings will not play</h3>
+  <p>A demo's recordings are not in the app. The first time you play one, the player offers to download them, so they need the internet once. Without it, the demo works with no sound, and Download tries again.</p>
+  <h3 id="sending-feedback">Sending feedback</h3>
+  <p>Send feedback sends a note to Idiograph's author. Say what you did and what happened. Leave an email address if you want a reply.</p>
+  <div class="fp-foot">
+  <div class="get" id="get-foot">
+    <p class="get-line" id="get-line">Idiograph is for Mac, Windows and Linux computers.</p>
+  </div>
+  </div>
+</main>
+<script src="get.js"></script>
+</body>
+</html>

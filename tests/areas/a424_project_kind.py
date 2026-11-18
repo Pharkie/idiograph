@@ -357,7 +357,7 @@ def test_project_kind(scratch: Path):
         check("424: a longitudinal project's row is LGETs with Trajectories beside them, an IPA project's GETs, a "
               "thematic analysis project's Themes with its code list beside them",
               (s_old.get("gets") or {}).get("method") == "lipa" and (s_old["gets"].get("lgets") is True)
-              and s_old["gets"].get("trajectories") == {"trajectories": 3, "participants": 3, "placed": 3}
+              and s_old["gets"].get("trajectories") == {"trajectories": 3, "participants": 3, "placed": 3, "complete": None}
               and (s_ipa.get("gets") or {}).get("method") == "ipa" and "trajectories" not in s_ipa["gets"]
               and not s_ipa["gets"].get("lgets") and (s_ta.get("gets") or {}).get("method") == "ta"
               and s_ta["gets"].get("codes", {}).get("codes", 0) > 0 and "trajectories" not in s_ta["gets"],
@@ -418,17 +418,18 @@ def test_project_kind(scratch: Path):
         fn = lambda name: ("function " + name + "(" + app.split(f"function {name}(", 1)[1].split("\n}", 1)[0] + "\n}")
         script = support.i18n_js("idiograph") + r"""
 const esc = (s) => String(s); const escAttr = esc;
-""" + "\n".join(fn(n) for n in ("projKind", "kindTag", "getsLine", "drawGetsCard", "trajTileLine", "codesTileLine",
-                                "lpetsLine")) + r"""
+const $ = () => ({ hidden: true });
+const stageBegun = (c) => !!c && (Number(c.decided) > 0 || !!c.complete);
+""" + "\n".join(fn(n) for n in ("projKind", "kindTag", "drawGetsCard", "acrossStages", "stageBar", "stageWords",
+                                "stageCount", "stageFrac", "codesTileLine")) + r"""
 const box = () => ({ html: '', set innerHTML(v) { this.html = v; }, get innerHTML() { return this.html; }, hidden: true,
   style: { setProperty(k, v) { this[k] = v; } } });
-const tiles = (gets, method) => { const b = box(); tIn(method, () => drawGetsCard(b, gets)); return [...b.html.matchAll(/data-act="(\w+)"[^>]*><span class="pc-name">([^<]*)<\/span><span class="pc-line">([^<]*)</g)].map((m) => [m[1], m[2], m[3]]); };
+const tiles = (gets, method) => { const b = box(); tIn(method, () => drawGetsCard(b, gets)); return [...b.html.matchAll(/data-act="(\w+)" aria-label="([^"]*)"[^>]*><span class="pc-name">([^<]*)<\/span>/g)].map((m) => [m[1], m[3], m[2]]); };
 const SL = JSON.parse(process.argv[2]);
 console.log(JSON.stringify({
   lipa: tiles(SL.lipa, 'lipa'), ipa: tiles(SL.ipa, 'ipa'), ta: tiles(SL.ta, 'ta'),
   kinds: [projKind(SL.p_old), projKind(SL.p_ipa), projKind(SL.p_ta), projKind(SL.p_one), projKind(null)],
   tags: [kindTag('ipa'), kindTag('lipa'), kindTag('ta')],
-  lpets: [lpetsLine(SL.arlo), lpetsLine({ boards: 0, board: null, complete: null }), lpetsLine(null)],
 }));
 """
         given = {"lipa": s_old["gets"], "ipa": s_ipa["gets"], "ta": s_ta["gets"], "p_old": {"timepoints": old["timepoints"]},
@@ -441,18 +442,18 @@ console.log(JSON.stringify({
             o = json.loads(ran.stdout.strip().splitlines()[-1])
         except (ValueError, IndexError):
             o = {}
+        # each tile's bar or words and its count in its name for a screen reader since homecardbuild
         check("424: in the page's scripts the row is two tiles for lipa (LGETs, Trajectories with its count), one for "
               "IPA (GETs) and two for RTA (Code list with its count, Themes)",
               [t[0] for t in o.get("lipa", [])] == ["gets", "trajectories"] and o["lipa"][0][1] == "LGETs"
-              and o["lipa"][1][2] == "3 trajectories · 3 of 3 participants placed"
+              and "3 of 3 participants placed" in o["lipa"][1][2]
               and [t[:2] for t in o.get("ipa", [])] == [["gets", "GETs"]]
               and [t[:2] for t in o.get("ta", [])] == [["codes", "Code list"], ["gets", "Themes"]]
               and o["ta"][0][2].endswith("codes"), (ran.stdout + ran.stderr)[-600:])
         check("424: and the kind and its tag come from the one value: an old project with timepoints LIPA, IPA, RTA, a "
-              "longitudinal project of one LIPA, the LPETs line as PETs' reads",
-              o.get("kinds") == ["lipa", "ipa", "ta", "lipa", "ipa"] and o.get("tags") == ["IPA", "LIPA", "RTA"]
-              and o.get("lpets", [""])[0].startswith("Board 1") and "LPETs complete" in o["lpets"][0]
-              and o["lpets"][1:] == ["No LPETs yet", "No LPETs yet"], (ran.stdout + ran.stderr)[-600:])
+              "longitudinal project of one LIPA",
+              o.get("kinds") == ["lipa", "ipa", "ta", "lipa", "ipa"] and o.get("tags") == ["IPA", "LIPA", "RTA"],
+              (ran.stdout + ran.stderr)[-600:])
     except WorkbookError as exc:
         check("424: the routes run", False, str(exc))
     finally:

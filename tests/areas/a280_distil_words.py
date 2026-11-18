@@ -16,10 +16,10 @@ from .support import check, skip
 
 SCENARIO = r"""
 const out = {};
-out.stand = [standLine([{ boards: 1 }], null), standLine([{ boards: 0 }, { boards: 2 }, { boards: 1 }], null),
-  standLine([], null), standLine([], null, false)];
-out.gets = [cardGetsLine({ themes: 1 }), cardGetsLine({ themes: 4 }), cardGetsLine({ lgets: true, themes: 2 }),
-  cardGetsLine({ lgets: true }), cardGetsLine({ done: true })];
+out.stand = [standLine([{ boards: 1 }]), standLine([]), standLine([], false)];
+// a ring's or a bar's words (homecardbuild): its count in the singular and the plural, and the researcher's mark
+out.gets = [stageWords('pets', { decided: 1, total: 1, complete: null }), stageWords('es', { decided: 3, total: 9, complete: null }),
+  stageWords('gets', { decided: 0, total: 4, complete: null }), stageWords('pets', { decided: 54, total: 54, complete: { at: 'x' } })];
 out.trim = [trimLine({ count: 1, from: '00:10', to: '' }), trimLine({ count: 2, from: '00:10', to: '00:40', direction: 'before' }),
   trimLine({ count: 4, from: '01:00', to: '03:15', direction: 'after' }), trimShort({ count: 2, direction: 'before' }),
   trimShort({ count: 5, direction: 'after' })];
@@ -56,7 +56,8 @@ def test_distil_words(scratch: Path):
             end += 1
         return "\n".join(lines[start:end + 1])
 
-    pieces = [support.i18n_js(), whole("standLine"), whole("cardGetsLine"), whole("trimLine"), whole("trimShort"),
+    pieces = [support.i18n_js(), whole("standLine"), "const stageBegun = (c) => !!c && (Number(c.decided) > 0 || !!c.complete);", whole("stageCount"),
+              whole("stageWords"), whole("trimLine"), whole("trimShort"),
               whole("kqTitle"),
               whole("cbWhose"), whole("cbLineSaid")]
     script = scratch / "distil-words-280.js"
@@ -65,13 +66,12 @@ def test_distil_words(scratch: Path):
     out = json.loads(run.stdout) if run.returncode == 0 else None
     if not out:
         return check("280: the words run in node", False, run.stderr.strip()[:300])
-    check("280: a project card's line counts its participants in the singular and the plural, and says when it has "
-          "none or its folder is gone",
-          out["stand"] == ["1 participant, 1 with PETs", "3 participants, 2 with PETs", "No participants yet",
-                           "Its folder is not there"], str(out["stand"]))
-    check("280: the GETs line names group themes or LGETs by their count, and not started and complete whole",
-          out["gets"] == ["GETs: 1 group theme", "GETs: 4 group themes", "LGETs: 2 LGETs", "LGETs not started",
-                          "GETs complete"], str(out["gets"]))
+    check("280: a project card's line says when it has no participant or its folder is gone, and nothing beside its "
+          "rings", out["stand"] == ["", "No participants yet", "Its folder is not there"], str(out["stand"]))
+    check("280: a ring's or a bar's words count in the singular and the plural, say Not started whole, and put the "
+          "researcher's mark first",
+          out["gets"] == ["1 of 1 statement placed. Not marked complete.", "3 of 9 passages decided", "Not started",
+                          "Complete. 54 of 54 statements placed."], str(out["gets"]))
     check("280: a cut says its rows, which passages and when, in the singular and the plural, either way",
           out["trim"] == ["Cut 1 row: this passage only, 00:10.", "Cut 2 rows: this passage and the one before it, 00:10 to 00:40.",
                           "Cut 4 rows: this passage and the 3 after it, 01:00 to 03:15.", "Cut this passage and one before",

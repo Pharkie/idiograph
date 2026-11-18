@@ -452,12 +452,13 @@ function wtPageDraw(team) {
   const tags = team.tags || {};
   $('hp-list').querySelectorAll(':scope > li.prow').forEach((li) => {
     const tag = tags[li.dataset.case];
-    const dots = li.querySelector('.pc-dots');
-    if (!tag || !dots) return;
+    // at the end of the row's head, after its other tags (homecardbuild took the dots away)
+    const head = li.querySelector('.pc-head');
+    if (!tag || !head) return;
     const span = document.createElement('span');
     span.className = tag.owner ? 'tag wt-own' : 'tag wt-rev';
     span.textContent = tag.owner ? t('team.page.tag_owner', { name: tag.owner }) : t('team.page.tag_review', { name: tag.review });
-    dots.before(span);
+    head.appendChild(span);
   });
   const said = [];
   for (const came of team.arrivals || []) {

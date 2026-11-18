@@ -2776,6 +2776,9 @@ input.tj-title:focus { outline: 0; border-color: var(--field-edge); background: 
 /* Undo and Redo at the right end of the Trajectories toolbar (trajundo, 16 November 2026), as on every board */
 .tj-bar-grow { flex: 1 1 auto; }
 .tj-bar #tj-undo { margin-left: 4px; }
+/* Mark Trajectories complete beside Export, its tick on once marked (trajmark) */
+.tj-bar #tj-done { margin-left: 4px; }
+.tj-bar #tj-done.on { color: var(--good); }
 
 /* Every control that deletes at once by an icon alone shows the bin and carries .del-bin (sameux2, 17 November 2026,
    docs/design.md, Behaviour): quiet at rest as each screen draws it, the danger red under the pointer and in focus */

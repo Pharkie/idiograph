@@ -1,6 +1,6 @@
 (() => {
   const FILES = 'https://github.com/Pharkie/idiograph/releases/latest/download/';
-  const box = document.getElementById('get');
+  const box = document.querySelector('.get');
   const line = document.getElementById('get-line');
   const other = document.getElementById('get-other');
   if (!box || !line) return;

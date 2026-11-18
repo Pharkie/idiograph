@@ -217,7 +217,7 @@
   "server.trajectory_not_on_board": "There is no trajectory {name} on the board, so nothing was changed.",
   "server.trajectory_not_a_participant": "{name} is not a participant of this project, so nothing was changed.",
   "server.trajectory_twice": "There is a trajectory called {name} already, so nothing was changed.",
-  "server.trajectory_not_an_op": "Operation {n} is {op}. A trajectories operation is add, rename, move, remove, describe, colour, icon, place, order, note, title, tags, tag_colour, picture, hide, show, state, quote, bold, domain or states_from_notes, so nothing was changed.",
+  "server.trajectory_not_an_op": "Operation {n} is {op}. A trajectories operation is add, rename, move, remove, describe, colour, icon, place, order, note, title, tags, tag_colour, picture, hide, show, complete, reopen, state, quote, bold, domain or states_from_notes, so nothing was changed.",
   "server.trajectory_colour_not_one": "A trajectory's colour is one of {listed}. {colour} is not, so nothing was changed.",
   "server.trajectory_tag_colour_not_one": "{colour} is not one of the participants' colours, so nothing was changed.",
   "server.trajectory_no_such_tag": "No participant has the tag {tag}, so nothing was changed.",
@@ -231,6 +231,11 @@
   "server.trajectory_no_such_face": "The pictures are {ranges}. {face} is not one of them, so nothing was changed.",
   "server.trajectory_face_range": "{first} to {last}",
   "server.trajectory_no_such_lpet": "{name} has no LPET {lpet} on the board their LPETs come into LGETs from, so nothing was changed.",
+  "server.trajectories_not_complete_waiting": {
+    "one": "Trajectories were not marked complete. {waiting} is not placed in a trajectory yet, so nothing was changed.",
+    "other": "Trajectories were not marked complete. {waiting} are not placed in a trajectory yet, so nothing was changed."
+  },
+  "server.trajectories_not_complete_no_participants": "Trajectories were not marked complete. This project has no participant yet, so nothing was changed.",
   "server.trajectory_no_lpets": "{name} has no LPETs yet, so nothing was changed.",
   "server.trajectory_undo_changed": "The board changed elsewhere since, so Undo and Redo start again from here.",
   "server.trajectory_undo_unread": "{name} could not be read just now, so nothing was changed.",

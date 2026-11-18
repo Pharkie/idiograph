@@ -15,8 +15,8 @@ const PICKER = `${UNTIL("document.getElementById('home-project')")}
   ${UNTIL("document.querySelector('#projects .home-card')")}`;
 const PAGE = `${UNTIL("document.querySelector('#projects .home-card') || !document.getElementById('home-project').hidden")}
   if (document.getElementById('home-project').hidden) document.querySelector('#projects .home-card').click();
-  ${UNTIL("document.querySelector('#hp-list .pc-dots')")}`;
-const WORK = `document.querySelector('#hp-list .pc-es, #hp-list .pc-tp').click();
+  ${UNTIL("document.querySelector('#hp-list .pcard')")}`;
+const WORK = `document.querySelector('#hp-list [data-act="statements"], #hp-list [data-act="timepoint"]').click();
   ${UNTIL("document.querySelector('#work .turn')")} ${NAP(600)}`;
 const PLAYER = `document.getElementById('player-wrap').hidden = false; document.getElementById('player-bar').hidden = false;
   document.getElementById('player-note').textContent = 'Juno - Initial.m4a'; document.getElementById('player-total').textContent = '42:10';`;
@@ -119,18 +119,13 @@ export const SCREENS = {
     } },
     { name: 'd-page', wait: '#hp-list .pcard', open: async () => {
       if (document.getElementById('home-project').hidden) document.querySelector('#projects .home-card').click();
-      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pc-dots'); i += 1) await new Promise((r) => setTimeout(r, 100));
-    } },
-    { name: 'd-page-menu', wait: '#hp-list .pc-menu:not([hidden])', open: async () => {
-      if (document.getElementById('home-project').hidden) document.querySelector('#projects .home-card').click();
-      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pc-dots'); i += 1) await new Promise((r) => setTimeout(r, 100));
-      document.querySelector('#hp-list .pc-dots').click();
+      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pcard'); i += 1) await new Promise((r) => setTimeout(r, 100));
     } },
     { name: 'd-page-files', wait: '#hp-list .pc-files:not([hidden])', open: async () => {
       if (document.getElementById('home-project').hidden) document.querySelector('#projects .home-card').click();
-      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pc-dots'); i += 1) await new Promise((r) => setTimeout(r, 100));
-      document.querySelector('#hp-list .pc-dots').click();
-      document.querySelector('#hp-list .pc-menu [data-act="files"]').click();
+      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pcard'); i += 1) await new Promise((r) => setTimeout(r, 100));
+      // Show files a button of its own on the row since homecardbuild, where the dots' menu held it
+      document.querySelector('#hp-list .pc-acts [data-act="files"]').click();
     } },
     // A row's fields hold Rename... only for a participant in a folder of its own, as in a copy of demo/, and the rows of
     // demo/pristine, the root every group shares, have none, so there the card opens as the fields would open it and
@@ -139,80 +134,79 @@ export const SCREENS = {
     // d-work opens it, so that list names the recent list whatever the server showed before
     { name: 'd-page-rename', wait: '#rename', open: async () => {
       if (document.getElementById('home-project').hidden) document.querySelector('#projects .home-card').click();
-      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pc-dots'); i += 1) await new Promise((r) => setTimeout(r, 100));
+      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pcard'); i += 1) await new Promise((r) => setTimeout(r, 100));
       const row = document.querySelector('#hp-list .pcard');
       const cases = S.lib.projects[0].cases;
       await api('/api/open', { path: (cases.find((c) => c.case === row.dataset.case) || cases[0]).path });
-      row.querySelector('.pc-dots').click();
-      const edit = row.querySelector('.pc-menu [data-act="edit"]');
+      const edit = row.querySelector('.pc-acts [data-act="edit"]');
       if (edit) edit.click();
       const item = row.querySelector('[data-pp="rename"]');
       if (item) item.click(); else openRename(S.lib.projects[0].id, { case: row.dataset.case });
     } },
     { name: 'd-add', wait: '#newproject', open: async () => {
       if (document.getElementById('home-project').hidden) document.querySelector('#projects .home-card').click();
-      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pc-dots'); i += 1) await new Promise((r) => setTimeout(r, 100));
+      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pcard'); i += 1) await new Promise((r) => setTimeout(r, 100));
       document.getElementById('hp-transcripts').click();
     } },
     { name: 'd-work', wait: '#work .turn', open: async () => {
       if (document.getElementById('home-project').hidden) document.querySelector('#projects .home-card').click();
-      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pc-dots'); i += 1) await new Promise((r) => setTimeout(r, 100));
-      document.querySelector('#hp-list .pc-es, #hp-list .pc-tp').click();
+      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pcard'); i += 1) await new Promise((r) => setTimeout(r, 100));
+      document.querySelector('#hp-list [data-act="statements"], #hp-list [data-act="timepoint"]').click();
       for (let i = 0; i < 100 && !document.querySelector('#work .turn'); i += 1) await new Promise((r) => setTimeout(r, 100));
       await new Promise((r) => setTimeout(r, 600));
     } },
     { name: 'd-work-cols', wait: '#cols-menu:not([hidden])', open: async () => {
       if (document.getElementById('home-project').hidden) document.querySelector('#projects .home-card').click();
-      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pc-dots'); i += 1) await new Promise((r) => setTimeout(r, 100));
-      document.querySelector('#hp-list .pc-es, #hp-list .pc-tp').click();
+      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pcard'); i += 1) await new Promise((r) => setTimeout(r, 100));
+      document.querySelector('#hp-list [data-act="statements"], #hp-list [data-act="timepoint"]').click();
       for (let i = 0; i < 100 && !document.querySelector('#work .turn'); i += 1) await new Promise((r) => setTimeout(r, 100));
       await new Promise((r) => setTimeout(r, 600));
       document.getElementById('cols-pick').click();
     } },
     { name: 'd-work-view', wait: '#view-menu:not([hidden])', open: async () => {
       if (document.getElementById('home-project').hidden) document.querySelector('#projects .home-card').click();
-      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pc-dots'); i += 1) await new Promise((r) => setTimeout(r, 100));
-      document.querySelector('#hp-list .pc-es, #hp-list .pc-tp').click();
+      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pcard'); i += 1) await new Promise((r) => setTimeout(r, 100));
+      document.querySelector('#hp-list [data-act="statements"], #hp-list [data-act="timepoint"]').click();
       for (let i = 0; i < 100 && !document.querySelector('#work .turn'); i += 1) await new Promise((r) => setTimeout(r, 100));
       await new Promise((r) => setTimeout(r, 600));
       document.getElementById('btn-view').click();
     } },
     { name: 'd-work-who', wait: '#es-whomenu .ds-who-row', open: async () => {
       if (document.getElementById('home-project').hidden) document.querySelector('#projects .home-card').click();
-      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pc-dots'); i += 1) await new Promise((r) => setTimeout(r, 100));
-      document.querySelector('#hp-list .pc-es, #hp-list .pc-tp').click();
+      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pcard'); i += 1) await new Promise((r) => setTimeout(r, 100));
+      document.querySelector('#hp-list [data-act="statements"], #hp-list [data-act="timepoint"]').click();
       for (let i = 0; i < 100 && !document.querySelector('#work .turn'); i += 1) await new Promise((r) => setTimeout(r, 100));
       await new Promise((r) => setTimeout(r, 600));
       document.getElementById('es-who').click();
     } },
     { name: 'd-work-row', wait: '#transcript-rows .row-menu', open: async () => {
       if (document.getElementById('home-project').hidden) document.querySelector('#projects .home-card').click();
-      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pc-dots'); i += 1) await new Promise((r) => setTimeout(r, 100));
-      document.querySelector('#hp-list .pc-es, #hp-list .pc-tp').click();
+      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pcard'); i += 1) await new Promise((r) => setTimeout(r, 100));
+      document.querySelector('#hp-list [data-act="statements"], #hp-list [data-act="timepoint"]').click();
       for (let i = 0; i < 100 && !document.querySelector('#work .turn'); i += 1) await new Promise((r) => setTimeout(r, 100));
       await new Promise((r) => setTimeout(r, 600));
       window.openRowMenu(current());
     } },
     { name: 'd-work-edit', wait: '#transcript-rows .turn-edit', open: async () => {
       if (document.getElementById('home-project').hidden) document.querySelector('#projects .home-card').click();
-      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pc-dots'); i += 1) await new Promise((r) => setTimeout(r, 100));
-      document.querySelector('#hp-list .pc-es, #hp-list .pc-tp').click();
+      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pcard'); i += 1) await new Promise((r) => setTimeout(r, 100));
+      document.querySelector('#hp-list [data-act="statements"], #hp-list [data-act="timepoint"]').click();
       for (let i = 0; i < 100 && !document.querySelector('#work .turn'); i += 1) await new Promise((r) => setTimeout(r, 100));
       await new Promise((r) => setTimeout(r, 600));
       window.openEditor(current());
     } },
     { name: 'd-work-time', wait: '#transcript-rows .time-edit', open: async () => {
       if (document.getElementById('home-project').hidden) document.querySelector('#projects .home-card').click();
-      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pc-dots'); i += 1) await new Promise((r) => setTimeout(r, 100));
-      document.querySelector('#hp-list .pc-es, #hp-list .pc-tp').click();
+      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pcard'); i += 1) await new Promise((r) => setTimeout(r, 100));
+      document.querySelector('#hp-list [data-act="statements"], #hp-list [data-act="timepoint"]').click();
       for (let i = 0; i < 100 && !document.querySelector('#work .turn'); i += 1) await new Promise((r) => setTimeout(r, 100));
       await new Promise((r) => setTimeout(r, 600));
       window.openTimeEdit(current());
     } },
     { name: 'd-work-find', wait: '#find', open: async () => {
       if (document.getElementById('home-project').hidden) document.querySelector('#projects .home-card').click();
-      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pc-dots'); i += 1) await new Promise((r) => setTimeout(r, 100));
-      document.querySelector('#hp-list .pc-es, #hp-list .pc-tp').click();
+      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pcard'); i += 1) await new Promise((r) => setTimeout(r, 100));
+      document.querySelector('#hp-list [data-act="statements"], #hp-list [data-act="timepoint"]').click();
       for (let i = 0; i < 100 && !document.querySelector('#work .turn'); i += 1) await new Promise((r) => setTimeout(r, 100));
       await new Promise((r) => setTimeout(r, 600));
       window.openFind();
@@ -226,8 +220,8 @@ export const SCREENS = {
     } },
     { name: 'd-work-settings', wait: '#settings', panes: true, open: async () => {
       if (document.getElementById('home-project').hidden) document.querySelector('#projects .home-card').click();
-      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pc-dots'); i += 1) await new Promise((r) => setTimeout(r, 100));
-      document.querySelector('#hp-list .pc-es, #hp-list .pc-tp').click();
+      for (let i = 0; i < 100 && !document.querySelector('#hp-list .pcard'); i += 1) await new Promise((r) => setTimeout(r, 100));
+      document.querySelector('#hp-list [data-act="statements"], #hp-list [data-act="timepoint"]').click();
       for (let i = 0; i < 100 && !document.querySelector('#work .turn'); i += 1) await new Promise((r) => setTimeout(r, 100));
       await new Promise((r) => setTimeout(r, 600));
       document.getElementById('btn-settings').click();

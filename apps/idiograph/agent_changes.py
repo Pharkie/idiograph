@@ -152,6 +152,10 @@ def app_only(args) -> str:
         return i18n.t("agentchanges.only.team")
     if (command, act) == ("project", "send"):
         return i18n.t("agentchanges.only.send")
+    # marking agents' changes seen is the researcher's own (homecardbuild, 18 November 2026): it hides Home's line
+    # of them, and an agent's own changes are never its to hide
+    if (command, act) == ("agents", "seen"):
+        return i18n.t("agentchanges.only.seen")
     if command == "settings" and act is None and any(getattr(args, k, None) not in (None, False) for k in SETTINGS_KEYS):
         return i18n.t("agentchanges.only.settings")
     return ""
@@ -878,15 +882,15 @@ def write_tally(root, entries: list) -> dict:
     return tally
 
 
-def unseen(root) -> int:
+def unseen(root, keep: bool = True) -> int:
     """How many changes agents made since he last looked at By an agent, for Home's line: two small files read,
     never the record, and a project with no record nothing read at all. A record from before the tally is counted
-    once and its tally kept."""
+    once and its tally kept, and with `keep` false (a dry run's count) counted and never kept."""
     if root is None or not record_path(root).is_file():
         return 0
     tally = small(store(root) / TALLY)
     if tally is None:
-        tally = write_tally(root, read(root))
+        tally = write_tally(root, read(root)) if keep else tally_of(read(root))
     seen = small(store(root) / SEEN) or {}
     try:
         return max(0, int(tally.get("agents") or 0) - int(seen.get("agents") or 0))

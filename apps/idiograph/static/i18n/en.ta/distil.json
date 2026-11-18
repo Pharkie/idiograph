@@ -1,14 +1,4 @@
 {
-  "distil.home.stand": {
-    "one": "{n} participant",
-    "other": "{n} participants"
-  },
-  "distil.home.gets_complete": "Themes complete",
-  "distil.home.gets_count": {
-    "one": "Themes: {n} theme",
-    "other": "Themes: {n} themes"
-  },
-  "distil.home.gets_not_started": "Themes not started",
   "distil.share.whole_gets": "Every participant and the themes",
   "distil.share.head.statements": "Codes and notes",
   "distil.copy.p_all": {
@@ -18,8 +8,6 @@
   "distil.copy.p_reworded_removed": "Since you sent the copy, you have reworded {r} of these codes and removed {x}.",
   "distil.copy.p_reworded": "Since you sent the copy, you have reworded {n} of these codes.",
   "distil.copy.p_removed": "Since you sent the copy, you have removed {n} of these codes.",
-  "distil.gets.card_title": "The themes across the participants of {name}",
-  "distil.gets.card_title_this": "The themes across this project's participants",
   "distil.across.gets": "Themes",
   "distil.card.statements": "Codes",
   "distil.card.start": "Start coding",

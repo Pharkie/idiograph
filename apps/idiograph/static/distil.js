@@ -135,6 +135,9 @@ function demosOf(data) {
     out.push({ id: DEMO_RTA_ID, rows: rta, cards: cards.map((c) => ({ ...c, demo: true })), project: data.demo_rta_project || {},
       tag: t('distil.tag.demo_rta'), method: 'ta', kind: 'rta' });
   }
+  // a demo whose shipped copy is newer than the installed one carries what Home's bar needs (demostamp)
+  const newer = (data && data.demo_updates) || {};
+  for (const d of out) d.update = newer[d.id] || null;
   return out;
 }
 
@@ -176,36 +179,22 @@ function distilRecent(data) {
   return list;
 }
 
-/* Where a project stands, its card's lines as drawn (the split's pages, 21 October): its participants and how
-   many of them have PETs, "3 participants, 2 with PETs", the word participant and never case, and under it its
-   GETs (see `cardGetsLine`). A participant has PETs once a PETs board is there or its PETs are marked complete. A
-   folder gone says so, and a project with no participant says that. */
-function standLine(rows, gets, there = true) {
+/* A project card's line where it has no rings to show (the split's pages, 21 October; since homecardbuild, 18
+   November 2026, its participants are their rings): a folder gone says so, and a project with no participant says
+   that, and any other has none. */
+function standLine(rows, there = true) {
   if (!there) return t('distil.home.folder_gone');
-  const cards = (rows || []).filter(Boolean);
-  if (!cards.length) return t('distil.home.no_participants');
-  const pets = cards.filter((p) => Number(p.boards) > 0 || (p.pets_complete && p.pets_complete.at)).length;
-  return t('distil.home.stand', { n: cards.length, pets });
-}
-
-/* a project card's GETs line on Home: complete once marked, the group themes on its Current board, not started with none, and
-   nothing for a project with no GETs card (no participant, or the demo's, whose GETs its page asks for) */
-function cardGetsLine(gets) {
-  if (!gets) return '';
-  // a project of two or more timepoints has LGETs in the GETs' place (21 October)
-  if (gets.done) return gets.lgets ? t('distil.home.lgets_complete') : t('distil.home.gets_complete');
-  const n = Number(gets.themes) || 0;
-  if (gets.lgets) return n ? t('distil.home.lgets_count', { n }) : t('distil.home.lgets_not_started');
-  return n ? t('distil.home.gets_count', { n }) : t('distil.home.gets_not_started');
+  return (rows || []).filter(Boolean).length ? '' : t('distil.home.no_participants');
 }
 
 /* What a project card's menu holds (Adam's Way A, 21 October): Share a copy, Show in Finder (Show in
    Explorer on Windows) in Idiograph's own window alone, since a browser's page cannot open a folder,
    Project settings, Project history under it (historyui; Adam, 3 November 2026), and Remove from Idiograph,
-   which a run of one project never offers. The demo's card has Project settings alone, since the demo keeps no History, and a
+   which a run of one project never offers. The demo's card has Project settings and Reset demo under it (demostamp), since the demo keeps no History, and a
    card whose folder is gone Remove from Idiograph alone. */
 function homeMenuItems(c, where) {
-  if (c.demo) return ['settings'];
+  // a demo's card has Reset demo under Project settings (demostamp, Adam, 18 November 2026: "I did not find it")
+  if (c.demo) return ['settings', 'reset'];
   if (c.missing) return where.oneRun ? [] : ['remove'];
   // Export as REFI-QDA under Share a copy, the other way the project leaves Idiograph (qdpxout, 8 November 2026)
   return ['share', 'qdpx', ...(where.window ? ['show'] : []), 'settings', 'history', ...(where.oneRun ? [] : ['remove'])];
@@ -219,7 +208,8 @@ const SHARE_LINE = t('distil.share.line');
    history Idiograph's own words, Show in Finder, Project settings and Remove from Idiograph the family's, and in a
    browser Share a copy's line under it */
 function homeMenuRows(items, where) {
-  const own = { share: t('distil.home.menu.share'), qdpx: t('distil.home.menu.qdpx'), history: t('distil.home.menu.history') };
+  const own = { share: t('distil.home.menu.share'), qdpx: t('distil.home.menu.qdpx'), history: t('distil.home.menu.history'),
+    reset: t('distil.home.menu.reset_demo') };
   return items.map((act) => ({ act, word: own[act] || projectMenuWord(act, where.mac), remove: act === 'remove',
     line: act === 'share' && !where.window ? SHARE_LINE : '' }));
 }
@@ -246,9 +236,12 @@ function homeMenuHtml(items, where) {
 }
 
 /* One project's card: the project's name in the serif, the demo's with its tag and a shared copy's
-   with its "copy" tag, its research question, and its lines. The whole card is the button that opens
-   its page. Its dots at the top right, beside the button and never in it, open its menu (see
-   homeMenuItems). */
+   with its "copy" tag, its research question, then how far it has got (homecardbuild, Adam's direction E of 18
+   November 2026): each participant's picture inside their rings with their name under it, about four to a row, and
+   under them the stages across participants, each a bar or its words (`homeDashHtml`). A folder that is gone, or a
+   project with no participant yet, has its line in their place. The name and question are the button that opens
+   its page, and a press anywhere else on the card opens it too. Its dots at the top right, beside the button and
+   never in it, open its menu (see homeMenuItems). */
 function homeCardHtml(c) {
   const where = { window: windowPicks(), mac: MAC, oneRun: !!S.oneRun };
   const items = homeMenuItems(c, where);
@@ -262,12 +255,255 @@ function homeCardHtml(c) {
   // a demo's card says what the demo is for, beside the card's button and never in it (demowarn, 12 November 2026)
   const warn = c.demo && (c.kind || c.method)
     ? `<button type="button" class="hc-warn" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.3 4.2 2.9 17.5A2 2 0 0 0 4.6 20.5h14.8a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4.5"/><path d="M12 17.2v.1"/></svg><span>${esc(demoWords()[0])}</span></button>` : '';
-  return `<li class="home-card-li${items.length ? ' has-menu' : ''}${warn ? ' has-warn' : ''}"><button type="button" class="home-card${c.demo ? ' is-demo' : ''}" data-id="${escAttr(c.id)}">`
+  // under a demo whose shipped copy is newer, a slim bar (demostamp), beside the card's button and never in it
+  const update = c.update ? `<div class="hc-update"><span class="hc-update-said">${esc(t('distil.demo.update_said'))}</span>`
+    + `<button type="button" class="hc-update-get">${esc(t('distil.demo.update_get'))}</button>`
+    + `<button type="button" class="hc-update-x" title="${escAttr(t('distil.demo.update_hide'))}" aria-label="${escAttr(t('distil.demo.update_hide'))}">&times;</button></div>` : '';
+  const dash = c.people && c.people.length ? homeDashHtml(c) : '';
+  return `<li class="home-card-li hc-card${items.length ? ' has-menu' : ''}${warn ? ' has-warn' : ''}${update ? ' has-update' : ''}"><button type="button" class="home-card${c.demo ? ' is-demo' : ''}" data-id="${escAttr(c.id)}">`
     + `<span class="hc-head"><span class="hc-name">${esc(c.name)}</span>${tags}</span>`
     + (c.question ? `<span class="hc-question">${esc(c.question)}</span>` : '')
-    + `<span class="pc-line hc-line">${esc(c.line)}</span>`
-    + (c.more ? `<span class="pc-line hc-more">${esc(c.more)}</span>` : '') + `</button>${warn}${dots}</li>`;
+    + (dash ? '' : `<span class="pc-line hc-line">${esc(c.line || '')}</span>`) + `</button>${dash}${warn}${dots}${update}</li>`;
 }
+
+/* A card's dashboard: each participant's rings with their name under them, then the stages across participants,
+   a demo's filled in once its page's head is asked for (`homeDemoHeads`) */
+function homeDashHtml(c) {
+  const people = c.people.map((p) => `<li class="hc-person">${stageRings(p, 100, c.kind)}`
+    + `<span class="hc-who">${esc(personWho(p))}</span></li>`).join('');
+  return `<div class="hc-dash"><ul class="hc-people">${people}</ul>`
+    + `<div class="hc-across" data-across="${escAttr(c.id)}">${homeAcrossHtml(c.gets, c.kind)}</div></div>`;
+}
+
+// the stages across participants on a card, each its name and its bar or its words
+function homeAcrossHtml(gets, kind) {
+  return acrossStages(gets, kind).map((st) => `<span class="hc-sname">${esc(st.name)}</span>`
+    + `<span class="hc-sval">${st.words !== undefined ? `<span class="sbar-none">${esc(st.words)}</span>` : stageBar(st.kind, st.c)}</span>`).join('');
+}
+
+/* Each list's cards open their project's page: the name and question, the card's button, and a press anywhere on the
+   rings or the bars, which take the focus for their tooltips alone */
+function homeCardsWire(list) {
+  list.querySelectorAll('.home-card').forEach((b) => { b.onclick = () => openPage(b.dataset.id); });
+  list.onclick = (e) => {
+    const dash = e.target.closest && e.target.closest('.hc-dash');
+    if (dash) openPage(dash.closest('.home-card-li').querySelector('.home-card').dataset.id);
+  };
+}
+
+/* The demos' stages across participants, which their pages ask the server for (`drawGetsHead`), asked once Home's
+   cards are drawn so they never wait for it */
+let homeDemoAsk = 0;
+
+async function homeDemoHeads(demos) {
+  const ask = ++homeDemoAsk;
+  await Promise.all(demos.map(async (d) => {
+    let data = null;
+    try { data = await api('/api/gets-head', { workbook: d.rows[0].path }); } catch { return; }
+    if (ask !== homeDemoAsk || !data || !data.gets) return;
+    const box = document.querySelector(`#demo-projects [data-across="${CSS.escape(d.id)}"]`);
+    if (box) box.innerHTML = tIn(d.method, () => homeAcrossHtml(data.gets, demoKind(d)));
+  }));
+}
+
+// a demo's kind for its rings: the two thematic analysis demos one ring, the longitudinal demo three
+const demoKind = (d) => (d.method === 'ta' ? 'ta' : d.kind === 'lipa' ? 'lipa' : 'ipa');
+
+/* ─────────────────────────────────────────── the stages' rings and bars ── */
+
+/* How far each stage has got, drawn the one way on Home's cards and on a project's page (homecardbuild, Adam's
+   direction E, approved 18 November 2026). Progress counts decisions, never the things made, and complete is always
+   the researcher's own mark, as the server counts them (dashcounts' `progress`). Each participant's picture sits
+   inside touching rings: their statements inside (a thematic analysis project's Coding, its one ring), their PETs
+   round that and in a longitudinal project their LPETs outermost, its statements and PETs rings in a part for each
+   timepoint. A ring fills in its stage's full colour as its decisions are made, with no tick: a full ring is all
+   decided, and its tooltip says whether the researcher has marked it complete. The stages across participants are
+   bars in the themes' green, "Not started" in words until something is decided, the Code list in words alone. Each
+   ring, each part and each bar takes the focus and says its numbers in its tooltip and to a screen reader. Nothing
+   on the card explains them. */
+
+// a stage's count, "38 of 48 statements placed", each kind's words a key of its own
+function stageCount(kind, c) {
+  const values = { done: Number(c.decided) || 0, n: Number(c.total) || 0 };
+  if (kind === 'pets') return t('distil.ring.statements', values);
+  // an LPETs board's cards and a GETs board's are a participant's PETs
+  if (kind === 'lpets' || kind === 'gets') return t('distil.ring.pets', values);
+  if (kind === 'lgets') return t('distil.ring.lpets', values);
+  if (kind === 'trajectories') return t('distil.ring.participants', values);
+  if (kind === 'themes') return t('distil.ring.codes', values);
+  return t('distil.ring.passages', values);
+}
+
+// whether a stage is under way: something decided, or the researcher's mark on it
+const stageBegun = (c) => !!c && (Number(c.decided) > 0 || !!c.complete);
+
+/* a stage's tooltip under its heading: "Complete. 54 of 54 statements placed." once he has marked it, all decided
+   with no mark said so, Not started with nothing decided, else its count */
+function stageWords(kind, c) {
+  if (!stageBegun(c) || !Number(c.total)) return c && c.complete ? t('distil.stage.complete') : t('distil.stage.not_started');
+  const count = stageCount(kind, c);
+  if (c.complete) return t('distil.ring.complete', { count });
+  if (Number(c.decided) >= Number(c.total)) return t('distil.ring.not_marked', { count });
+  return count;
+}
+
+// how much of a stage is decided, 0 to 1, a marked stage full
+function stageFrac(c) {
+  if (!c) return 0;
+  const n = Number(c.total) || 0;
+  if (!n) return c.complete ? 1 : 0;
+  return Math.max(0, Math.min(1, (Number(c.decided) || 0) / n));
+}
+
+// each stage's name for a ring's tooltip, each a key of its own
+function stageName(kind, short = false) {
+  if (kind === 'coding') return t('distil.stage.coding');
+  if (kind === 'pets') return t('distil.card.pets');
+  if (kind === 'lpets') return t('distil.card.lpets');
+  return short ? t('distil.stage.statements') : t('distil.card.statements');
+}
+
+// a participant's name under their picture, "Ada", with no P-number
+const personWho = (p) => String((p.person && p.person.who) || p.case || '').replace(/^P\d+\s*-?\s*/, '') || String(p.case || '');
+
+/* One participant's picture inside their rings, `size` pixels across, `kind` the project's ('ipa', 'lipa' or 'ta').
+   Each ring, or each timepoint's part of one, is its own focusable group with the numbers in its tooltip. */
+function stageRings(p, size, kind) {
+  const prog = p.progress || null;
+  const who = personWho(p);
+  const tps = prog && Array.isArray(prog.timepoints) && prog.timepoints.length ? prog.timepoints
+    : (Array.isArray(p.timepoints) && p.timepoints.length ? p.timepoints.map((tp) => ({ n: tp.n, label: tp.label, state: tp.state })) : null);
+  const part = (stage, c, tp, short) => {
+    const missed = tp && tp.state === 'none';
+    const head = tp ? t('distil.ring.head_at', { who, stage: stageName(stage, short), tp: tp.label })
+      : t('distil.ring.head', { who, stage: stageName(stage, short) });
+    const words = missed ? t('distil.card.not_interviewed') : stageWords(stage === 'coding' ? 'es' : stage, c);
+    return { head, words, frac: missed ? 0 : stageFrac(c), missed };
+  };
+  let rings;
+  if (kind === 'ta') rings = [{ cls: 'es', parts: [part('coding', prog && prog.statements)] }];
+  else if (kind === 'lipa' && tps) {
+    rings = [{ cls: 'es', parts: tps.map((tp) => part('es', tp.statements, tp, true)) },
+      { cls: 'pets', parts: tps.map((tp) => part('pets', tp.pets, tp)) },
+      { cls: 'lpets', parts: [part('lpets', prog && prog.lpets)] }];
+  } else if (kind === 'lipa') {
+    rings = [{ cls: 'es', parts: [part('es', null)] }, { cls: 'pets', parts: [part('pets', null)] },
+      { cls: 'lpets', parts: [part('lpets', null)] }];
+  } else rings = [{ cls: 'es', parts: [part('es', prog && prog.statements)] }, { cls: 'pets', parts: [part('pets', prog && prog.pets)] }];
+  const n = rings.length;
+  const half = size / 2;
+  const w = Math.round(size * (n === 3 ? 0.085 : n === 2 ? 0.095 : 0.09) * 2) / 2;
+  const gap = Math.max(2, Math.round(size * 0.03));
+  const pic = Math.max(16, Math.round(2 * (half - n * w) - 2 * gap));
+  const circle = (cls, r, from, len, width) => `<circle class="${cls}" cx="${half}" cy="${half}" r="${r}" pathLength="360"`
+    + ` stroke-width="${width}" stroke-dasharray="${len.toFixed(2)} ${(360 - len).toFixed(2)}" stroke-dashoffset="${(-from).toFixed(2)}"/>`;
+  let svg = '';
+  rings.forEach((ring, i) => {
+    const r = half - (n - i - 0.5) * w;
+    const k = ring.parts.length;
+    // the parts of a ring split by a small gap, about 3 pixels of the card's colour whatever its radius
+    const cut = k > 1 ? (3 / r) * (180 / Math.PI) : 0;
+    ring.parts.forEach((pt, j) => {
+      const from = (360 / k) * j + cut / 2;
+      const span = 360 / k - cut;
+      const said = `${pt.head}. ${pt.words}`;
+      svg += `<g class="rseg${pt.missed ? ' missed' : ''}" tabindex="0" role="img" aria-label="${escAttr(said)}"`
+        + ` data-th="${escAttr(pt.head)}" data-tb="${escAttr(pt.words)}">`
+        + circle('rfocus', r, from, span, w + 4)
+        + circle(`rtrack s-${ring.cls}`, r, from, span, w)
+        + (pt.frac > 0 ? circle(`rfill s-${ring.cls}`, r, from, span * pt.frac, w) : '') + '</g>';
+    });
+  });
+  return `<span class="pring" style="width:${size}px;height:${size}px" data-pic="${pic}">`
+    + `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" focusable="false">${svg}</svg>`
+    + `<span class="pring-pic">${personPic(p.person || { who, case: p.case }, pic)}</span></span>`;
+}
+
+/* A stage across participants as a bar in the themes' green, its numbers in its tooltip: "Not started" in words while
+   nothing is decided, and "Complete" after a full bar once he has marked it. `kind` is gets, lgets, trajectories or
+   themes. */
+function stageBar(kind, c) {
+  if (!stageBegun(c)) return `<span class="sbar-none">${esc(t('distil.stage.not_started'))}</span>`;
+  const words = stageWords(kind, c);
+  const pct = Math.round(stageFrac(c) * 1000) / 10;
+  return `<span class="sbar" tabindex="0" role="img" aria-label="${escAttr(words)}" data-tb="${escAttr(words)}">`
+    + `<i style="width:${pct}%"></i></span>`
+    + (c.complete ? `<span class="sbar-done">${esc(t('distil.stage.complete'))}</span>` : '');
+}
+
+/* the stages across a project's participants as its card and its page show them, each with its name, its key and its
+   count: an IPA project's GETs, a longitudinal project's LGETs and Trajectories, a thematic analysis project's Code
+   list and Themes. A server from before the counts sends no `progress`, and what it has stands in. */
+function acrossStages(gets, kind) {
+  if (!gets) return [];
+  const prog = gets.progress || {};
+  const lgets = kind === 'lipa' || !!gets.lgets || !!prog.lgets;
+  if (kind === 'ta' || gets.method === 'ta') {
+    return [{ act: 'codes', name: t('distil.across.codes'), words: codesTileLine(gets.codes) },
+      { act: 'gets', name: t('distil.across.gets'), kind: 'themes', c: prog.themes || null }];
+  }
+  if (lgets) {
+    const tj = prog.trajectories || (gets.trajectories ? { decided: Number(gets.trajectories.placed) || 0, total: Number(gets.trajectories.participants) || 0 } : null);
+    // Trajectories' own mark, once the board has one (trajmark), else none
+    const mark = (gets.trajectories && gets.trajectories.complete) || (tj && tj.complete) || null;
+    return [{ act: 'gets', name: t('distil.across.lgets'), kind: 'lgets', c: prog.lgets || null },
+      { act: 'trajectories', name: t('distil.across.trajectories'), kind: 'trajectories', c: tj ? { ...tj, complete: mark } : null }];
+  }
+  return [{ act: 'gets', name: t('distil.across.gets'), kind: 'gets', c: prog.gets || null }];
+}
+
+/* The tooltip of a ring, a part of one or a bar (`data-th` its heading, `data-tb` its line), one for the page, in
+   the ink under the pointer or the focus, gone on Esc or the pointer leaving, and on a scroll unless it is the
+   focus's */
+const RINGTIP = { el: null, on: null };
+
+function ringTipShow(on, again = false) {
+  if (RINGTIP.on === on && !again) return;
+  let el = RINGTIP.el;
+  if (!el) {
+    el = document.createElement('div');
+    el.className = 'ring-tip';
+    el.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(el);
+    RINGTIP.el = el;
+  }
+  RINGTIP.on = on;
+  const head = on.getAttribute('data-th') || '';
+  el.innerHTML = (head ? `<b>${esc(head)}</b>` : '') + `<span>${esc(on.getAttribute('data-tb') || '')}</span>`;
+  el.hidden = false;
+  const r = on.getBoundingClientRect();
+  const box = el.getBoundingClientRect();
+  let x = r.left + r.width / 2 - box.width / 2;
+  x = Math.max(8, Math.min(x, window.innerWidth - box.width - 8));
+  let y = r.bottom + 6;
+  if (y + box.height > window.innerHeight - 8) y = Math.max(8, r.top - box.height - 6);
+  el.style.left = `${Math.round(x)}px`;
+  el.style.top = `${Math.round(y)}px`;
+}
+
+function ringTipHide() {
+  RINGTIP.on = null;
+  if (RINGTIP.el) RINGTIP.el.hidden = true;
+}
+
+document.addEventListener('pointerover', (e) => {
+  const on = e.target.closest && e.target.closest('[data-tb]');
+  if (on) ringTipShow(on);
+  else if (RINGTIP.on) ringTipHide();
+});
+document.addEventListener('focusin', (e) => {
+  const on = e.target.closest && e.target.closest('[data-tb]');
+  if (on) ringTipShow(on);
+  else if (RINGTIP.on) ringTipHide();
+});
+document.addEventListener('focusout', (e) => { if (RINGTIP.on && e.target === RINGTIP.on) ringTipHide(); });
+// a scroll moves the tooltip of a ring in focus with it, the focus's own scroll among them, and hides any other
+document.addEventListener('scroll', () => {
+  if (!RINGTIP.on) return;
+  if (document.activeElement === RINGTIP.on) ringTipShow(RINGTIP.on, true);
+  else ringTipHide();
+}, true);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && RINGTIP.on) ringTipHide(); });
 
 /* The warning a demo carries (demowarn, 12 November 2026, Adam: "they are demoing the app, they are not demoing IPA").
    Its card on Home has a line at its foot, and every screen of the demo has its Demo mark beside the project's name,
@@ -350,6 +586,7 @@ function homeMenuDo(act, id, name, p, inside = false) {
   else if (act === 'show') showProjectFolder(id);
   else if (act === 'history') openProjectHistory(id, name);
   else if (act === 'settings') projectSettingsFor(p);
+  else if (act === 'reset') resetDemo(id, inside);
   else if (act === 'remove') homeRemove(id, name, inside);
 }
 
@@ -700,7 +937,9 @@ function arClick(e) {
 
 /* "Agents made 37 changes since you last looked." and Review at the foot of a project's card (agentreview2, A's
    line), Review opening Project history at By an agent. Home asks /api/agent-unseen once its cards are drawn, so
-   they never wait for it, and the server reads two small files a project, never its record. */
+   they never wait for it, and the server reads two small files a project, never its record. Since homecardbuild (18
+   November 2026) it is a slim bar across the card's foot with a cross after Review, which marks the changes seen
+   without the review (`agents seen`, the app's alone), and the bar goes. */
 let homeAgentsAsk = 0;
 
 async function homeAgentLines() {
@@ -726,14 +965,36 @@ async function homeAgentLines() {
     if (!line) {
       line = document.createElement('div');
       line.className = 'hc-agents';
-      line.innerHTML = `<span class="hc-agents-said"></span><button type="button" class="hc-review">${esc(t('distil.agent_review.review'))}</button>`;
-      li.insertBefore(line, card.nextSibling);
+      line.innerHTML = `<span class="hc-agents-said"></span><button type="button" class="hc-review">${esc(t('distil.agent_review.review'))}</button>`
+        + `<button type="button" class="hc-seen" title="${escAttr(t('distil.agent_review.seen'))}" aria-label="${escAttr(t('distil.agent_review.seen'))}">`
+        + '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>';
+      // at the card's foot, after its rings and bars and before the demo's warning and the dots
+      li.insertBefore(line, li.querySelector('.hc-warn, .hc-dots') || null);
       line.querySelector('.hc-review').onclick = () => {
         openProjectHistory(card.dataset.id, li.querySelector('.hc-name').textContent, 'agent');
       };
+      line.querySelector('.hc-seen').onclick = () => homeAgentsSeen(li, card.dataset.id);
     }
     line.querySelector('.hc-agents-said').textContent = t('distil.agent_review.home_line', { n });
   }
+}
+
+/* The cross on a card's bar of agents' changes: every change so far marked seen through the one route (`agents seen`),
+   the bar gone and the focus on the card's own button. A refusal leaves the bar and says why. */
+async function homeAgentsSeen(li, id) {
+  let got;
+  try {
+    got = await api('/api/agent-changes', { op: 'seen', root: id });
+  } catch (err) {
+    say(err.message, 9000);
+    return;
+  }
+  if (got && got.refused) { say(got.refused.join(' '), 9000); return; }
+  const line = li.querySelector('.hc-agents');
+  if (line) line.remove();
+  li.classList.remove('has-agents');
+  const card = li.querySelector('.home-card');
+  if (card) card.focus({ preventScroll: true });
 }
 
 /* The project open in this window, for the menu bar's File, Project History (histmenu; Adam, 4 November 2026): the
@@ -1782,35 +2043,41 @@ function drawPick(data, sections) {
     return { id: s.id, name: (s.project && s.project.name) || t('distil.home.project'), missing: s.there === false,
       copy: !!(s.project && s.project.copy), question: (s.project && s.project.research_question) || '',
       kind: s.project ? projKind(s.project) : '',
+      // the participants and the stages across them, drawn as rings and bars (homecardbuild), a folder that is gone
+      // or a project with no participant its line alone
+      people: s.there === false ? [] : (s.participants || []).filter(Boolean), gets: s.gets || null,
       // each card in its own method's words (tadraw)
-      ...tIn(s.project && s.project.method, () => ({ line: standLine(s.participants, s.gets, s.there !== false),
-        more: s.there === false ? '' : cardGetsLine(s.gets) })) };
+      ...tIn(s.project && s.project.method, () => ({ line: standLine(s.participants, s.there !== false) })) };
   });
   // the projects he has archived in a section of their own, between his projects and the demos (archiveset)
   const isArchived = (c) => !!(HOME_PROJECTS.get(c.id) && HOME_PROJECTS.get(c.id).archived);
   const archived = cards.filter(isArchived);
   const live = cards.filter((c) => !isArchived(c));
-  $('projects').innerHTML = live.map(homeCardHtml).join('');
-  $('projects').querySelectorAll('.home-card').forEach((b) => { b.onclick = () => openPage(b.dataset.id); });
+  $('projects').innerHTML = live.map((c) => tIn(HOME_PROJECTS.get(c.id) && HOME_PROJECTS.get(c.id).method, () => homeCardHtml(c))).join('');
+  homeCardsWire($('projects'));
   homeMenus($('projects'));
   $('home-archived').hidden = !archived.length;
-  $('archived-projects').innerHTML = archived.map(homeCardHtml).join('');
-  $('archived-projects').querySelectorAll('.home-card').forEach((b) => { b.onclick = () => openPage(b.dataset.id); });
+  $('archived-projects').innerHTML = archived.map((c) => tIn(HOME_PROJECTS.get(c.id) && HOME_PROJECTS.get(c.id).method, () => homeCardHtml(c))).join('');
+  homeCardsWire($('archived-projects'));
   homeMenus($('archived-projects'));
   archivedFold();
   // the demos in a section of their own, apart from his projects (demos)
   const demos = demosOf(data).map((d) => {
     if (d.project && d.project.name) HOME_PROJECTS.set(d.id, d.project);
     return { id: d.id, demo: true, tag: d.tag, method: d.method, kind: d.kind, name: d.project.name || d.tag, question: String(d.project.research_question || ''),
-      line: tIn(d.method, () => standLine(d.cards)) };
+      line: tIn(d.method, () => standLine(d.cards)), people: d.cards || [], gets: null, rings: demoKind(d), update: demoUpdateShown(d) };
   });
   $('home-demos').hidden = !demos.length;
-  $('demo-projects').innerHTML = demos.map(homeCardHtml).join('');
-  $('demo-projects').querySelectorAll('.home-card').forEach((b) => { b.onclick = () => openPage(b.dataset.id); });
+  // each demo's rings in its own kind, its tag the demo's own (homecardbuild)
+  $('demo-projects').innerHTML = demos.map((c) => tIn(c.method, () => homeCardHtml({ ...c, kind: c.rings }))).join('');
+  homeCardsWire($('demo-projects'));
   homeMenus($('demo-projects'));
+  demoUpdateBars($('demo-projects'), demosOf(data));
   demosFold(!live.length);
   // each project's line of agents' changes he has not seen, filled in once the cards are drawn (agentreview2)
   homeAgentLines();
+  // and each demo's stages across its participants (homecardbuild)
+  homeDemoHeads(demosOf(data));
   $('np-line').hidden = S.oneRun;
   $('add-home-typed').hidden = true;
   if (S.oneRun) $('sent-typed').hidden = true;
@@ -1865,6 +2132,9 @@ function pageHead(name, question, demo, copy = false, kind = '') {
   if (typeof wtPageDraw === 'function') wtPageDraw(null);
   $('hp-gets').innerHTML = '';
   $('hp-gets').hidden = true;
+  // the page's two headings (homecardbuild), each shown once there is something under it
+  $('hp-across-h').hidden = true;
+  $('hp-ideo-h').hidden = true;
 }
 
 /* A project's page (projectbuild, Adam's option A of 17 November 2026): the work across participants as a row of
@@ -1889,6 +2159,7 @@ function drawPage(s) {
   $('hp-transcripts').hidden = s.there === false || empty;
   $('hp-transcripts').onclick = () => openAddTranscripts(s.id);
   $('demo-reset').hidden = true;
+  $('hp-reset').hidden = true;
 }
 
 /* Open project folder on the home screen: the Mac's own folder dialog, or off a Mac a field for the
@@ -2241,52 +2512,79 @@ function drawDemoPage(demo) {
   // its tooltip the demo's own participants, the reflexive thematic analysis demo's six, every other demo's three
   $('demo-reset').title = demo.id === DEMO_RTA_ID ? t('distil.demo.reset_title_rta') : t('distil.demo.reset_title');
   $('demo-reset').hidden = false;
+  $('hp-reset').hidden = false;
 }
 
 /* Reset demo on a demo's page: the demo in front put back, the thematic analysis demo's, the longitudinal demo's and
    the reflexive thematic analysis demo's by their words */
-async function resetDemo() {
-  const word = S.home === DEMO_TA_ID ? 'ta' : S.home === DEMO_LIPA_ID ? 'lipa' : S.home === DEMO_RTA_ID ? 'rta' : '';
+async function resetDemo(id = S.home, inside = false, ask = true) {
+  const word = id === DEMO_TA_ID ? 'ta' : id === DEMO_LIPA_ID ? 'lipa' : id === DEMO_RTA_ID ? 'rta' : '';
   const gone = word === 'ta' ? t('distil.demo.reset_ask_ta')
     : word === 'lipa' ? t('distil.demo.reset_ask_lipa')
       : word === 'rta' ? t('distil.demo.reset_ask_rta') : t('distil.demo.reset_ask');
-  if (!await askSure(gone)) return;
+  if (ask && !await askSure(gone)) return;
+  // from inside one of the demo's screens it ends on Home, as Remove does
+  if (inside && !(await goHome())) return;
   try {
-    await api('/api/reset-demo', word ? { demo: word } : {});
+    // not asked because the demo looked untouched: the server says if it was worked in since, and then it is asked
+    let answer = await api('/api/reset-demo', { ...(word ? { demo: word } : {}), ...(ask ? {} : { asked: false }) });
+    if (answer && answer.changed && answer.reset === false) {
+      if (!await askSure(gone)) return;
+      answer = await api('/api/reset-demo', word ? { demo: word } : {});
+    }
     say(t('distil.demo.reset_done'));
     loadLibrary();
   } catch (err) { say(needsRestart(err) ? RESTART_LINE : err.message, 9000); }
 }
 
-/* The GETs card's line, "3 of 6 cases in · Board 2": the cases the GETs file holds of the cases of
-   the study, then the Current board's name, and "GETs complete" once marked. A server from before
-   the cards sends only the cases of the study. */
-function getsLine(gets) {
-  const n = Number(gets.cases) || 0;
-  const parts = [gets.held === undefined ? t('distil.gets.cases', { n }) : t('distil.gets.held', { held: Number(gets.held) || 0, n })];
-  if (gets.board) parts.push(gets.board);
-  else if (Number(gets.boards)) parts.push(t('distil.card.no_current'));
-  if (gets.done) parts.push(gets.lgets ? t('distil.home.lgets_complete') : t('distil.home.gets_complete'));
-  return parts.join(' · ');
+/* The bar under a demo's card when its shipped copy is newer than the installed one (demostamp, Adam, 18 November
+   2026: a demo is never replaced without the researcher knowing, "a bar underneath the card on the home screen for any
+   demo that's changed since they last downloaded it"). Get the update does what Reset demo does, asking first only when
+   the demo has been worked in (`changed`), and the cross hides the bar until the next version, kept in this browser
+   or window against the shipped stamp. */
+const DEMO_UPDATE_KEY = 'idiograph.demo-update-hidden.';
+
+function demoUpdateShown(d) {
+  if (!d.update) return null;
+  try { if (localStorage.getItem(DEMO_UPDATE_KEY + d.id) === d.update.stamp) return null; } catch (err) { /* none kept */ }
+  return d.update;
 }
 
-/* The work across a project's participants, a row of tiles above them (projectbuild, Adam's option A of 17
+function demoUpdateBars(list, demos) {
+  for (const li of list.querySelectorAll('.home-card-li.has-update')) {
+    const id = li.querySelector('.home-card').dataset.id;
+    const d = demos.find((x) => x.id === id);
+    if (!d || !d.update) continue;
+    li.querySelector('.hc-update-get').onclick = () => resetDemo(id, false, !!d.update.changed);
+    li.querySelector('.hc-update-x').onclick = () => {
+      try { localStorage.setItem(DEMO_UPDATE_KEY + id, d.update.stamp); } catch (err) { /* none kept */ }
+      li.classList.remove('has-update');
+      li.querySelector('.hc-update').remove();
+    };
+  }
+}
+
+/* The work across participants, a row of tiles above them (projectbuild, Adam's option A of 17
    November 2026, one rule for every method): a longitudinal project's LGETs and Trajectories, an IPA project's GETs,
-   a thematic analysis project's Code list and Themes, each a wide card with its status line, opening its screen. One
-   function for any project, his own and a demo alike. A server from before GETs sends none, and nothing is drawn. */
+   a thematic analysis project's Code list and Themes, each a wide card opening its screen. One function for any
+   project, his own and a demo alike. A server from before GETs sends none, and nothing is drawn. Since homecardbuild
+   (Adam, 18 November 2026) they stand under the heading Cross-participant analysis, always above the participants
+   whether started or not, each with its bar in the themes' green, "Not started" in words, or the Code list's count in
+   words, and the numbers in its tooltip. */
 function drawGetsCard(box, gets) {
   if (!box || !gets || !gets.path) return;
   const kind = gets.method === 'ta' || gets.method === 'lipa' ? gets.method : gets.lgets ? 'lipa' : 'ipa';
-  const tile = (act, name, line, title = '') => `<button class="gets-wide" type="button" data-act="${act}"`
-    + `${title ? ` title="${escAttr(title)}"` : ''}><span class="pc-name">${esc(name)}</span>`
-    + `<span class="pc-line">${esc(line)}</span></button>`;
-  const title = gets.name ? (gets.lgets ? t('distil.gets.card_title_lgets', { name: gets.name }) : t('distil.gets.card_title', { name: gets.name }))
-    : (gets.lgets ? t('distil.gets.card_title_lgets_this') : t('distil.gets.card_title_this'));
-  const tiles = [];
-  if (kind === 'ta') tiles.push(tile('codes', t('distil.across.codes'), codesTileLine(gets.codes)));
-  tiles.push(tile('gets', gets.lgets ? t('distil.across.lgets') : t('distil.across.gets'), getsLine(gets), title));
-  if (kind === 'lipa' && gets.lgets) tiles.push(tile('trajectories', t('distil.across.trajectories'), trajTileLine(gets.trajectories)));
+  const tiles = acrossStages(gets, kind).map((st) => {
+    const words = st.words !== undefined ? st.words : stageWords(st.kind, st.c);
+    const val = st.words !== undefined || !stageBegun(st.c) ? `<span class="sbar-none">${esc(words)}</span>`
+      : stageBar(st.kind, st.c).replace(' tabindex="0" role="img"', ' aria-hidden="true"');
+    return `<button class="gets-wide st-tile" type="button" data-act="${st.act}" aria-label="${escAttr(`${st.name}. ${words}`)}"`
+      + `${st.words === undefined && stageBegun(st.c) ? ` data-tb="${escAttr(words)}"` : ''}>`
+      + `<span class="pc-name">${esc(st.name)}</span><span class="st-val">${val}</span>`
+      + '<span class="st-chev" aria-hidden="true">&#8250;</span></button>';
+  });
   box.innerHTML = tiles.join('');
+  $('hp-across-h').hidden = !tiles.length;
   box.style.setProperty('--n', String(tiles.length));
   box.onclick = (e) => {
     const b = e.target.closest('[data-act]');
@@ -2298,27 +2596,9 @@ function drawGetsCard(box, gets) {
   box.hidden = false;
 }
 
-/* the Trajectories tile's line, "3 trajectories · 3 of 3 participants placed" */
-function trajTileLine(tj) {
-  const n = tj ? Number(tj.trajectories) || 0 : 0;
-  const parts = [t('distil.across.trajectories_n', { n })];
-  if (tj) parts.push(t('distil.across.placed', { placed: Number(tj.placed) || 0, n: Number(tj.participants) || 0 }));
-  return parts.join(' · ');
-}
-
 /* the Code list tile's line, "24 codes" */
 function codesTileLine(cd) {
   return t('distil.across.codes_n', { n: cd ? Number(cd.codes) || 0 : 0 });
-}
-
-/* LPETs' line in a participant's box, as PETs' reads: the Current board's name, "LPETs complete" once marked, "No
-   Current board" with boards and none Current, and "No LPETs yet" with none (projectbuild) */
-function lpetsLine(lp) {
-  const boards = lp ? Number(lp.boards) || 0 : 0;
-  if (!lp || (!lp.board && !boards)) return t('distil.card.no_lpets');
-  const parts = [lp.board || t('distil.card.no_current')];
-  if (lp.complete && lp.complete.at) parts.push(t('distil.card.lpets_complete'));
-  return parts.join(' · ');
 }
 
 /* The GETs card of the project a workbook belongs to, asked of the server: the demo's. A server
@@ -2330,28 +2610,6 @@ async function drawGetsHead(box, path, still = () => true) {
   try { data = await api('/api/gets-head', { workbook: path }); } catch { return; }
   if (!data || !data.gets || !still() || box.querySelector('.gets-wide')) return;
   drawGetsCard(box, data.gets);
-}
-
-/* Experiential statements' line on a card: "64 of 207 turns", with "complete" once the phase is
-   marked. A server from before the cards sends no counts, and the sheets stand in. */
-function esLine(p) {
-  const parts = [];
-  if (p.turns && Number.isFinite(Number(p.turns.total))) parts.push(t('distil.card.passages_done', { done: Number(p.turns.done) || 0, n: Number(p.turns.total) }));
-  else if ((p.sheets || []).length) parts.push(p.sheets.join(', '));
-  if (p.complete) parts.push(t('distil.card.complete'));
-  return parts.join(' · ');
-}
-
-/* PETs' line on a card: the Current board's name, "PETs complete" once marked and "in GETs" when
-   the GETs file holds the case. A case with boards and none of them Current says "No Current
-   board", and one with no board at all "No PETs yet". */
-function petsLine(p) {
-  const boards = p.boards === undefined ? null : Number(p.boards) || 0;
-  if (!p.board && boards === 0) return t('distil.card.no_pets');
-  const parts = [p.board || (boards ? t('distil.card.no_current') : '')];
-  if (p.pets_complete && p.pets_complete.at) parts.push(t('distil.card.pets_complete'));
-  if (p.in_gets) parts.push(t('distil.card.in_gets'));
-  return parts.filter(Boolean).join(' · ');
 }
 
 /* The cards from the rows of a server from before them: one for each case label, its workbook the
@@ -2384,57 +2642,60 @@ function cardsFrom(rows, recent) {
   return cards;
 }
 
-/* One row, the full width of the column. At its left the handle he drags it by, none on the
-   demo's, whose order is fixed. Then the case, its tags and the dots that hold Files, then the two
-   halves side by side, each a button with its line in the small type: Experiential statements,
-   disabled while Excel has the workbook open, and PETs, which opens all the same. A case with no
-   annotated workbook reads Not started and carries Start experiential statements. On a phone the
-   halves stack under the name. */
+/* A stage's button on a participant's row (homecardbuild): a dot in its stage's colour, its name and a chevron. It only
+   opens the stage, since the rings say how far it has got. */
+function stageBtn(act, cls, label, more = {}) {
+  return `<button type="button" class="stage-btn" data-act="${act}"${more.tp ? ` data-tp="${more.tp}"` : ''}`
+    + `${more.title ? ` title="${escAttr(more.title)}"` : ''}${more.disabled ? ' disabled' : ''}>`
+    + `<i class="st-dot s-${cls}" aria-hidden="true"></i><span>${esc(label)}</span>`
+    + '<span class="st-chev" aria-hidden="true">&#8250;</span></button>';
+}
+
+// the project's kind for a row's rings: a thematic analysis project's one ring, a longitudinal participant's three
+const rowKind = (p) => (tMethodNow() === 'ta' ? 'ta' : Array.isArray(p.timepoints) && p.timepoints.length ? 'lipa' : 'ipa');
+
+/* One row, the full width of the column (homecardbuild, Adam's direction E of 18 November 2026). At its left the
+   handle he drags it by, none on the demo's, whose order is fixed. Then the participant's picture inside their rings,
+   as on Home's card, their name and their label whole under it, and their tags, then a plain button for each stage:
+   Experiential statements and PETs, in a longitudinal project Statements and PETs at each timepoint and then LPETs,
+   in a thematic analysis project Coding. Experiential statements is disabled while Excel has the workbook open, and
+   PETs opens all the same. Under them the pills and the pen portrait, and Edit profile and Show files as buttons of
+   their own. A participant with no annotated workbook reads Not started and carries Start experiential statements.
+   In a narrow window the buttons go under the name. */
 function cardHtml(p, fixed) {
   const tags = (p.demo ? `<span class="tag demo">${esc(t('distil.tag.demo'))}</span>` : '')
     + (p.locked ? `<span class="tag locked">${esc(t('distil.tag.locked'))}</span>` : '');
   // the case as the row names it, "P1 Ada", its P-number and pseudonym with no dash between
   const name = String(p.case || '').replace(/^(P\d+)\s*-\s*/, '$1 ');
   let html = fixed || p.demo ? '<span class="pc-grip none" aria-hidden="true"></span>' : gripHtml(name);
-  // Edit, the participant's picture, label and pen portrait, on every row but the demo's (pbiobuild)
+  // Edit profile, the participant's picture, label and pen portrait, on every row but the demo's (pbiobuild)
   const edits = !fixed && !p.demo && !!p.person;
-  const dotsTitle = edits ? t('distil.card.files_edit') : t('distil.card.files');
-  // the participant's picture before the name and their label under it (pbiobuild, layout A), the second rank
-  // under the project's name for a screen reader, its look the h3's (a11yfix)
-  html += `<div class="pc-head${p.person ? ' pp-head' : ''}">${p.person ? personPic(p.person, 44) : ''}`
+  const kind = rowKind(p);
+  // the participant's picture inside their rings, their name and their label whole under it (pbiobuild, layout A;
+  // homecardbuild), the second rank under the project's name for a screen reader, its look the h3's (a11yfix)
+  html += `<div class="pc-head pp-head">${stageRings(p, kind === 'lipa' ? 92 : 84, kind)}`
     + `<div class="pp-who"><h3 class="pc-name" aria-level="2" title="${escAttr(name)}">${esc(name)}</h3>`
-    + `${p.person && p.person.label ? `<span class="pp-label" title="${escAttr(p.person.label)}">${esc(p.person.label)}</span>` : ''}</div>${tags}`
-    + `<button type="button" class="pc-dots" data-act="menu" aria-haspopup="true" aria-expanded="false" title="${escAttr(dotsTitle)}" aria-label="${escAttr(t('distil.card.files_of', { name }))}">&#8943;</button>`
-    + `<div class="row-menu pc-menu" role="menu" hidden>`
-    + `${edits ? `<button type="button" class="ghost" role="menuitem" data-act="edit">${esc(t('distil.card.edit'))}</button>` : ''}`
-    + `<button type="button" class="ghost" role="menuitem" data-act="files">${esc(t('distil.card.files'))}</button></div></div>`;
+    + `${p.person && p.person.label ? `<span class="pp-label">${esc(p.person.label)}</span>` : ''}</div>${tags}</div>`;
   if (p.missing) {
     // the participant's own workbook missing, copies or another workbook in its place: the server's line, and
     // nothing to open (wbguard, 13 November 2026)
     html += `<div class="pc-unstarted"><p class="pc-none">${esc(p.missing)}</p></div>`;
   } else if (p.path && Array.isArray(p.timepoints) && p.timepoints.length) {
-    // a longitudinal project (20 October; projectbuild, of any number of timepoints, which only it sends): a cell a
-    // timepoint, its label and description, then where it stands, and a timepoint with no interview a dashed cell,
-    // then PETs as before and the participant's LPETs after them
-    const n = p.timepoints.length;
-    html += `<div class="pc-tps has-lpets" style="--tps:${n};--tpw:${n >= 2 ? n : 3}">` + p.timepoints.map((tp) => (tp.state === 'none'
-      ? `<div class="pc-half pc-tp none"><span class="pc-label"><b>${esc(tp.label)}</b> ${esc(tp.description || '')}</span>`
-        + `<span class="pc-line">${esc(t('distil.card.not_interviewed'))}</span></div>`
-      : `<button type="button" class="pc-half pc-tp" data-act="timepoint" data-tp="${tp.n}"${p.locked ? ' disabled' : ''}`
-        + ` title="${escAttr(t('distil.card.statements_at', { tp: [tp.label, tp.description].filter(Boolean).join(', ') }))}">`
-        + `<span class="pc-label"><b>${esc(tp.label)}</b> ${esc(tp.description || '')}</span>`
-        + `<span class="pc-line">${esc(tp.state === 'complete' ? t('distil.card.statements_complete')
-          : t('distil.card.passages_done', { done: Number(tp.done) || 0, n: Number(tp.total) || 0 }))}</span></button>`)).join('')
-      + '<button type="button" class="pc-half pc-pets" data-act="pets">'
-      + `<span class="pc-label">${esc(t('distil.card.pets'))}</span><span class="pc-line">${esc(petsLine(p))}</span></button>`
-      + '<button type="button" class="pc-half pc-lpets" data-act="lpets">'
-      + `<span class="pc-label">${esc(t('distil.card.lpets'))}</span><span class="pc-line">${esc(lpetsLine(p.lpets))}</span></button></div>`;
+    // a longitudinal project (20 October; projectbuild): a column a timepoint, its label over Statements and PETs at
+    // that timepoint, a timepoint with no interview saying so, then the participant's LPETs after them
+    html += '<div class="pc-stages st-lipa">' + p.timepoints.map((tp) => {
+      const at = [tp.label, tp.description].filter(Boolean).join(', ');
+      return `<div class="st-tp"><span class="st-tpl" title="${escAttr(at)}">${esc(tp.label)}</span>`
+        + (tp.state === 'none' ? `<span class="st-missed">${esc(t('distil.card.not_interviewed'))}</span>`
+          : stageBtn('timepoint', 'es', t('distil.stage.statements'), { tp: tp.n, disabled: p.locked, title: t('distil.card.statements_at', { tp: at }) })
+          + stageBtn('pets', 'pets', t('distil.card.pets'), { tp: tp.n, title: t('distil.card.pets_at', { tp: at }) }))
+        + '</div>';
+    }).join('') + `<div class="st-tp st-lp">${stageBtn('lpets', 'lpets', t('distil.card.lpets'))}</div></div>`;
   } else if (p.path) {
-    html += `<button type="button" class="pc-half pc-es" data-act="statements"${p.locked ? ' disabled' : ''}>`
-      + `<span class="pc-label">${esc(t('distil.card.statements'))}</span><span class="pc-line">${esc(esLine(p))}</span></button>`
-      // a thematic analysis project has no PETs (tadraw)
-      + (tMethodNow() === 'ta' ? '' : '<button type="button" class="pc-half pc-pets" data-act="pets">'
-      + `<span class="pc-label">${esc(t('distil.card.pets'))}</span><span class="pc-line">${esc(petsLine(p))}</span></button>`);
+    // a thematic analysis project's one stage, Coding, and no PETs (tadraw)
+    html += '<div class="pc-stages">' + (kind === 'ta' ? stageBtn('statements', 'es', t('distil.stage.coding'), { disabled: p.locked })
+      : stageBtn('statements', 'es', t('distil.card.statements'), { disabled: p.locked }) + stageBtn('pets', 'pets', t('distil.card.pets')))
+      + '</div>';
   } else {
     html += `<div class="pc-unstarted"><p class="pc-none">${esc(t('distil.card.not_started'))}</p>`
       + (p.start ? `<button type="button" class="ghost pc-start" data-act="start">${esc(t('distil.card.start'))}</button>` : '')
@@ -2444,6 +2705,10 @@ function cardHtml(p, fixed) {
   // the pills of the categories shown as pills on one line under the label, the pen portrait under them (demobuild)
   if (p.person && typeof dmPillsHtml === 'function') html += dmPillsHtml(p.person.pills);
   if (p.person) html += ppPortraitHtml(p.person);
+  // Edit profile and Show files, buttons of their own where a one-item menu held them (homecardbuild)
+  html += '<div class="pc-acts">'
+    + (edits ? `<button type="button" class="ghost small" data-act="edit">${esc(t('distil.card.edit_profile'))}</button>` : '')
+    + `<button type="button" class="ghost small" data-act="files" aria-expanded="false">${esc(t('distil.card.files'))}</button></div>`;
   return `${html}<div class="pc-files" hidden><ul class="case-list"></ul></div>`;
 }
 
@@ -2580,7 +2845,7 @@ function ppClose(focusRow = false) {
   if (edit) edit.remove();
   li.classList.remove('pp-open');
   ppRowFill(li, PP.p);
-  const name = li.querySelector('.pc-dots');
+  const name = li.querySelector('.pc-acts [data-act="edit"]');
   Object.assign(PP, { editing: '', faces: false, li: null, p: null });
   if (focusRow && name) name.focus();
 }
@@ -2589,8 +2854,10 @@ function ppClose(focusRow = false) {
 function ppRowFill(li, p) {
   if (!li || !p) return;
   const person = p.person || {};
-  const pic = li.querySelector('.pc-head > .pp-pic');
-  if (pic) pic.outerHTML = personPic(person, 44);
+  // the picture inside the rings, at the size they leave it (homecardbuild)
+  const ring = li.querySelector('.pc-head .pring');
+  const pic = ring && ring.querySelector('.pring-pic');
+  if (pic) pic.innerHTML = personPic(person, Number(ring.dataset.pic) || 44);
   const who = li.querySelector('.pp-who');
   let label = who && who.querySelector('.pp-label');
   if (who && person.label) {
@@ -2743,41 +3010,33 @@ function drawCards(list, cards, where = {}) {
     return;
   }
   const fixed = !!where.fixed || !where.id;
+  // the heading over the rows, Idiographic participant analysis (homecardbuild)
+  if (list.id === 'hp-list') $('hp-ideo-h').hidden = false;
   for (const p of cards) {
     const li = document.createElement('li');
     li.className = `pcard prow${p.path ? '' : ' unstarted'}${tMethodNow() === 'ta' ? ' ta' : ''}${p.path && Array.isArray(p.timepoints) && p.timepoints.length ? ' longi' : ''}`;
     li.dataset.case = p.case;
     li.innerHTML = cardHtml(p, fixed);
     renderFiles(li.querySelector('.pc-files ul'), p.files || []);
-    const menu = li.querySelector('.pc-menu');
-    const dots = li.querySelector('.pc-dots');
     const files = li.querySelector('.pc-files');
-    const shut = () => { menu.hidden = true; dots.setAttribute('aria-expanded', 'false'); };
     li.onclick = (e) => {
       const act = e.target.closest('[data-act]');
       if (!act || act.disabled) return;
       const what = act.dataset.act;
       if (what === 'grip') return;
-      if (what === 'menu') {
-        const open = menu.hidden;
-        closeCardMenus();
-        menu.hidden = !open;
-        dots.setAttribute('aria-expanded', String(open));
-        if (open) menu.querySelector('button').focus();
-        return;
-      }
       if (what === 'files') {
-        shut();
         files.hidden = !files.hidden;
-        menu.querySelector('[data-act="files"]').textContent = files.hidden ? t('distil.card.files') : t('distil.card.hide_files');
-        dots.focus();
+        act.textContent = files.hidden ? t('distil.card.files') : t('distil.card.hide_files');
+        act.setAttribute('aria-expanded', String(!files.hidden));
         return;
       }
-      if (what === 'edit') { shut(); ppOpen(li, p, where); return; }
+      if (what === 'edit') { ppOpen(li, p, where); return; }
       // Working together: Ask for review, on a participant he owns (review.js)
-      if (what === 'wtask') { shut(); rvwAskOpen(where.id, p); return; }
+      if (what === 'wtask') { rvwAskOpen(where.id, p); return; }
       if (what === 'statements') openCaseIn(p.path);
       else if (what === 'timepoint') openCaseIn(p.path, { timepoint: Number(act.dataset.tp) });
+      // a longitudinal participant's PETs at the timepoint whose column it stands in (homecardbuild)
+      else if (what === 'pets' && act.dataset.tp) openThemesIn(p.path, p.case, { timepoint: Number(act.dataset.tp) });
       else if (what === 'pets') openThemesIn(p.path, p.case);
       else if (what === 'lpets') openLpetsIn(p.path);
       else if (what === 'start') (p.start.kind === 'transcript' ? offerImport(p.start) : offerCreate(p.start));
@@ -2793,8 +3052,6 @@ function drawCards(list, cards, where = {}) {
       if (sel) sel.removeAllRanges();
       ppOpen(li, p, where, on.classList.contains('pp-portrait') ? 'portrait' : 'label');
     };
-    // the arrows walk the menu as the band's does, and Esc gives the dots the focus back (a11yfix)
-    menu.onkeydown = (e) => menuKeys(e, menu, () => { shut(); dots.focus(); });
     const grip = li.querySelector('button.pc-grip');
     if (grip && !fixed) {
       const how = cardGrip(list, where.id);
@@ -2936,20 +3193,6 @@ function cardGrip(list, id) {
     moved: () => saveOrder(id, list),
   };
 }
-
-/* a click anywhere else shuts any card's menu, as a menu does */
-function closeCardMenus(except) {
-  for (const menu of document.querySelectorAll('#library .pc-menu')) {
-    if (menu === except || menu.hidden) continue;
-    menu.hidden = true;
-    const dots = menu.parentElement.querySelector('.pc-dots');
-    if (dots) dots.setAttribute('aria-expanded', 'false');
-  }
-}
-document.addEventListener('click', (e) => {
-  if (!e.target.closest || !e.target.closest('.pc-head')) closeCardMenus();
-  else closeCardMenus(e.target.closest('.pc-head').querySelector('.pc-menu'));
-});
 
 /* Every checkbox and radio ticks from its whole row (13 October), Distil and Sift alike. The row
    is the tick's <label> wherever it can be, and the shared rule in style.css gives it a pointer and
@@ -4915,7 +5158,7 @@ const OPENING_LINE = t('distil.case.opening');
 /* a case, its PETs or its project's GETs from the home screen, each a way in with its entry in the
    browser's history, so Back returns to the home screen and Forward opens it again */
 const openCaseIn = (path, opts) => navGo(() => openCaseIn(path, opts), () => openCase(path, opts));
-const openThemesIn = (path, label) => navGo(() => openThemesIn(path, label), () => openThemes(path, 'library', label));
+const openThemesIn = (path, label, more = {}) => navGo(() => openThemesIn(path, label, more), () => openThemes(path, 'library', label, more));
 const openGetsIn = (path) => navGo(() => openGetsIn(path), () => openGets(path));
 // a participant's LPETs, the project's Trajectories board and a thematic analysis project's Code list, from the
 // project's page, each with Home its way back (projectbuild)
@@ -13786,6 +14029,7 @@ function distilBoot() {
     goHome();
   }, true);
   $('demo-reset').onclick = () => resetDemo();
+  $('hp-reset').onclick = () => resetDemo();
   window.addEventListener('dragenter', npDrag);
   window.addEventListener('dragover', npDrag);
   window.addEventListener('dragleave', npDragEnd);

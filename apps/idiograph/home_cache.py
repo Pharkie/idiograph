@@ -12,7 +12,8 @@ while they are what the files have now, so a change to a project's files makes i
 The whole file is also kept against a stamp of the app's version, the file's own format and the code that made the
 entries (`stamp`), and one from another app version or other code is dropped whole. A file that cannot be read or
 parsed, or any entry not in the shape its table keeps, is ignored, never trusted: the table reads its files as it
-always did. Writing it is best effort, a temporary file then a rename, and a failure says nothing and changes nothing.
+always did. No participant's words are in it: a workbook's statements are kept in memory alone and read from the
+workbook again when a count must be worked out (dashfix, 18 November 2026). Writing it is best effort, a temporary file then a rename, and a failure says nothing and changes nothing.
 """
 from __future__ import annotations
 
@@ -23,9 +24,9 @@ import threading
 from pathlib import Path
 
 NAME = "home-cache.json"
-FORMAT = 1
+FORMAT = 2
 # the modules whose code made the entries: one changed, from source or by an update, and the file is dropped whole
-CODE = ("idiograph_routes", "rounds", "themes", "workbook", "home_cache")
+CODE = ("idiograph_routes", "rounds", "themes", "gets", "workbook", "home_cache")
 
 
 def code_mark() -> list:
@@ -126,7 +127,24 @@ def _count(mark, value):
     return value
 
 
-SHAPES = {"books": _book, "turns": _turns, "heads": _head, "boards": _count}
+def _decided(mark, value):
+    """A `pets_progress` entry, a participant's PETs counts at one timepoint, or None for one not in its shape. Its
+    mark is the themes file's, the workbook's path and mark, the progress file's, and the path and mark of a
+    member's own themes file ("" and None for a participant with none)."""
+    if not (isinstance(mark, tuple) and len(mark) == 6 and _mark(mark[0]) and isinstance(mark[1], str)
+            and _mark(mark[2]) and mark[2] is not None and _mark(mark[3]) and isinstance(mark[4], str)
+            and _mark(mark[5])):
+        return None
+    if not (isinstance(value, dict) and set(value) == {"decided", "total", "tops", "complete"}
+            and all(type(value[k]) is int and value[k] >= 0 for k in ("decided", "total", "tops"))):
+        return None
+    pets = value["complete"]
+    if pets is not None and not (isinstance(pets, dict) and all(isinstance(pets.get(k), str) for k in ("at", "board", "name"))):
+        return None
+    return dict(value)
+
+
+SHAPES = {"books": _book, "turns": _turns, "heads": _head, "boards": _count, "counts": _decided}
 
 
 def entries(tables: dict) -> dict:

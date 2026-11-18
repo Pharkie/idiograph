@@ -156,7 +156,7 @@ folders from `app_folders.py`, which the window and the two launchers read too: 
 `state.json`, `.env` and the demo live in `~/Library/Application Support/Idiograph`, the first run
 copies the shipped `config.json` and the demo there, and Reset demo restores from the bundle's own
 copy. Sift's and Trace's first run (`first_run`, `paths["app"]`) copies no demo into their own
-folders, which have no use for its participants (23 October). On Linux (8 November) `app_folders.folders` follows XDG: data in `$XDG_DATA_HOME/Idiograph`, logs in `$XDG_STATE_HOME/Idiograph/logs`, config and cache beside them, a relative variable ignored, and `move_legacy` moves a source user's `~/Library` folders there once, whole and never onto a folder holding files (`app_paths` calls it, the Tauri shell's `logs_dir` names the same logs folder). Show in Finder runs `xdg-open` there (area 346). Run from source, every path is the one this page gives. The window takes the server's options,
+folders, which have no use for its participants (23 October). **A newer shipped demo is told on Home and put in place only when the researcher asks** (demostamp, 18 November 2026, Adam: a demo is never replaced without their knowledge or approval, "a bar underneath the card on the home screen for any demo that's changed since they last downloaded it", and "make the reset demo button more easy to find, because I did not find it"). The first run's copy and `seed_demo` only fill what is missing, so before this no demo change reached an installed copy unless Reset demo was pressed. Each of the four demos (IPA, thematic analysis, longitudinal, Working from home) has a stamp, `make_demo.stamp`: a hash of the files Reset demo puts back, every file under the shipped `pristine/` by its path and bytes (a JSON file with its line endings made one, and Thumbs.db, `._` files, .DS_Store and editor files passed over) and the project file beside it. It is worked out from the files, so it changes whenever a shipped demo's files do and nobody raises a number (area 427 checks it changes with one byte). The installed demo keeps the stamp it was last put right from in `.demo-stamp` in its own folder, written when Reset demo ends (`make_demo.mark`, from `api_reset_demo`, after the demo is seeded, an `OSError` writing it leaving the reset standing and the bar showing). Its first line is the stamp and its second a baseline, the hash of each file Reset demo puts back as the installed demo then held it and whether the GETs exports' folder was there. Nothing is changed at start. Home's library answer carries `demo_updates` (`demo_updates`, `make_demo.update_state`): for each demo whose stamp is missing or differs, `{stamp, changed}`, where `changed` says whether the installed demo differs from its own baseline (`make_demo.worked_on`), never from the new shipped copy, so a newer shipped demo over an untouched installed one is not worked in. An installed demo with no baseline, every install before this, counts as worked in and is asked. A demo with no stamp that is exactly as it ships (`differs_from_shipped`), a first run's copy, is stamped with its baseline when Home reads it and named by none. From the repo the shipped and the installed demo are one folder and none is named. On Home (`demoUpdateBars`, `homeCardHtml`) a slim bar under that demo's card says "This demo has been updated.", with Get the update and a cross. Get the update is Reset demo (`resetDemo`), asking its question only when `changed`. When it did not ask it sends `asked: false`, and `api_reset_demo` checks `worked_on` again inside the lock, answers `{reset: false, changed: true}` with nothing replaced if the demo was worked in since Home was drawn, and the page then asks and sends again. Nothing is kept first, since Reset demo keeps no copy. The cross hides the bar until the next version, kept in the browser's or the window's local storage against the shipped stamp. Reset demo is easy to find: in the "..." menu on each demo's card and in the band's menu inside a demo, under Project settings (`homeMenuItems`, where from inside a screen it ends on Home as Remove does), as a button beside Project settings on a demo's page, and still the quiet button at the page's foot. Area 427 holds it. On Linux (8 November) `app_folders.folders` follows XDG: data in `$XDG_DATA_HOME/Idiograph`, logs in `$XDG_STATE_HOME/Idiograph/logs`, config and cache beside them, a relative variable ignored, and `move_legacy` moves a source user's `~/Library` folders there once, whole and never onto a folder holding files (`app_paths` calls it, the Tauri shell's `logs_dir` names the same logs folder). Show in Finder runs `xdg-open` there (area 346). Run from source, every path is the one this page gives. The window takes the server's options,
 so a trial runs `dist/Idiograph.app/Contents/MacOS/Idiograph --port 8789` with `HOME` at a scratch
 folder, and never through the Finder, which would take port 8765.
 
@@ -1286,7 +1286,26 @@ The website shows the same notes (sitenews, 16 November 2026): `packaging/site_w
 the site until its bump), and puts the shown releases' dates into the small script after every page's nav, which
 counts the releases dated in the visitor's last seven days on What's new and folds the nav into a Menu button at 560 pixels or less (the script writes every page's nav and that button too). The version bump runs it,
 `.venv/bin/python packaging/site_whats_new.py`, and commits what it writes with the bump; every bump also checks the Features page (`site/holding/features.html`, Adam, 17 November 2026): no row still marked Planned or Experimental that the app now has, and a row for each feature the page lacks; area 405 goes red
-when the committed site is not what it writes. The site itself is deployed with Wrangler on Adam's yes, so a
+when the committed site is not what it writes. The same script writes `site/holding/manual.html` (sitemanual, 18 November 2026): `docs/manual.md` as a page of the site,
+rendered by `manual_blocks` in `family/server.py`, which the app's own manual page (`manual_page`) calls too, so each heading's
+anchor is the app's byte for byte and a later link from a Guidance tab or an error message may use either. A link to a file of
+the repo goes to it on GitHub (`manual_link`), a link to a heading stays. It is no nav item, and the Download and Features pages
+link to it. Run the script, which the bump does with `whats-new.html`, after any change to `docs/manual.md`: area 405 goes red
+when `manual.html` is not what it writes, and checks every heading's level and anchor against the app's page.
+
+The release carries the site (sitecheck, 18 November 2026, Adam: the What's new, screenshots, features and manual are updated on
+the website at every release, and nobody should have to remember). `packaging/site_release.py check <tag>` runs before the
+release is published, from the harness's `idiograph-release`. It exits 1 with a `PROBLEM:` line for each way the committed site is
+not ready: `versions.json`, the newest section of `docs/whats-new.md` and the Download page's version are not the tag's, or a page
+is not what `packaging/site_whats_new.py` writes, which includes the manual. The release then stops, before `release.py`, with
+`RELEASE: STOPPED`, and so it does when `site/holding/idiograph-film.mp4` is missing or empty (it is git-ignored and copied in by hand), when `site/holding` has uncommitted changes or differs from the tag's, or when the check itself fails to run. When the check passes it prints two lines for a person to judge, the Features page's rows against this
+release's What's new lines, and which clips to record again: each script in `packaging/motion/clips/` names the files its screens
+come from in its first line, `// Screens:` (`app.mjs`'s line is added to every clip that imports it), and a clip whose own files
+changed between the previous release tag and the tag prints `re-record <clip>` with those files, while a changed file of `app.mjs`'s shared list prints on a `SHARED CHANGED` line of its own. As soon as the release is published the script deploys
+`site/holding/` (the checkout's HEAD, which the pre-checks showed equals the tag's) with `wrangler deploy`, on Wrangler's own login with `CLOUDFLARE_API_TOKEN` unset, checks the live
+`whats-new.html` names the version, and prints `SITE: DEPLOYED <version>` or `SITE: FAILED <why>`, then prints the checklist again
+with `site_release.py checklist <tag>`. A clip's `// Screens:` line is kept up to date when a clip shows a new file.
+The site itself is deployed with Wrangler on Adam's yes, so a
 release reaches idiograph.app at that deploy. Its `LAYOUT` is the page's layout, A every release open, B the
 newest open and the older ones listed by version and date, each opened with a click.
 
@@ -2706,10 +2725,16 @@ or `agents undo-run` through `idiograph_cli.run_scoped` as the app (`via` "app")
 `refused`, its lines, shown in the change's or the run's `.ar-refused`. A done undo reads the runs again (`arMore(true)`),
 New kept as the sheet opened. Home's line: `drawPick` ends with `homeAgentLines`, which posts `/api/agent-unseen`
 (`api_agent_unseen`, every project's `agent_changes.unseen` by its id, the demos skipped) once the cards are drawn,
-and gives each card with a count `.has-agents` and `.hc-agents`, the line and `.hc-review`, beside the card's button
-at its foot as `.hc-warn` sits, Review opening Project history at By an agent. `phShut` asks again, so the line goes
-once seen. `/api/agent-changes` is the page's half of `agents changes`, `agents undo-change` and `agents undo-run`
-in area 261's parity, and `/api/agent-unseen` the page's own (a view of his own). Areas 380 and 389.
+and gives each card with a count `.has-agents` and `.hc-agents`, the line, `.hc-review` and `.hc-seen`, Review opening
+Project history at By an agent. `phShut` asks again, so the line goes once seen. Since homecardbuild (18 November
+2026) the line is a slim bar across the card's foot, in the flow after its rings and bars, and `.hc-seen`, the cross,
+is `homeAgentsSeen`: it posts `/api/agent-changes` with `op` `seen`, which runs `agents seen` (`cmd_agents_seen`,
+calling `agent_changes.mark_seen`, its dry run counting with `unseen(root, keep=False)` so it writes no tally) through
+`run_scoped` as the app, and takes the bar away. For an agent `agents seen` and MCP's `agent_seen` are app-only
+(`agent_changes.app_only`, `agentchanges.only.seen`), since an agent's own changes are never its to hide from the
+researcher. `/api/agent-changes` is the page's half of `agents changes`, `agents undo-change`, `agents undo-run` and
+`agents seen` in area 261's parity, and `/api/agent-unseen` the page's own (a view of their own). Areas 380, 389 and
+429.
 
 **REFI-QDA projects** (21 October, the plan of that day with Adam's rulings). `qdpx.py` reads a
 `.qdpx`, a zip of `project.qde` and `Sources/`, in memory with the standard library: a zip name with
@@ -3828,7 +3853,7 @@ file, set by the op `note_board` (`NOTE_MAX`, trimmed, its lines kept, "" taking
 `board` as `note` and printed first by the command line's `traj_lines`. On the page it is `#tj-board-note`, a
 textarea in `#tj-band` after the question, a line of its own (`flex: 1 0 100%`) in the sentence's look,
 which `trajNoteDraw` hides while `traj_notes` is off and fills from the answer unless it has the focus.
-Enter or leaving it sends `note_board`, Shift+Enter a new line, Esc puts it back. There is no Trajectories
+Enter or leaving it sends `note_board`, Shift+Enter a new line, Esc puts it back. The Trajectories' own mark complete (trajmark, 18 November 2026) is `complete`, `{"at"}`, at the top of the trajectories file (`trajectories.complete_of` reads it, `normal` keeps nothing else), set and cleared by the ops `complete` and `reopen` of `apply`, which take `when` from `change`. `complete` is refused with every operation, with nothing written, through `trajectories.waiting` while a participant is in no trajectory, in the one line `server.trajectories_not_complete_waiting` naming each, and when the project has no participant (`server.trajectories_not_complete_no_participants`). The check runs only when there is no mark yet, so `complete` on a marked board writes nothing and is not refused, and it runs again after the call's last operation, so a later operation in the same call cannot unplace a participant after the mark. A change after the mark leaves the mark, as every stage's mark does. A `reopen` with no mark changes nothing. It is the route's `/api/trajectories-ops` and the command line's and MCP's `trajectories apply`, so a dry run, the record of agents' changes and `agents undo-run` are the ones every Trajectories change has, and the screen's Undo takes it back as one step. `board` answers it as `complete`, `routes.traj_head` as the tile's `complete` (the project page's line "Trajectories complete", `trajTileLine`), and the page's `#tj-done` in the toolbar beside Export (`trajDoneDraw`, `trajDone`) marks and reopens it, with no `aria-pressed` since its name changes. The screen has no board menu, where the other boards keep theirs. `trajDone` shows the confetti only when the answer's `changes` is not empty. There is no Trajectories
 PDF or picture yet, so it goes into no export. Area 369 holds the ops, their dry runs, the migration, the stand-in, the bold, the domain
 kept through an LPETs save, the shared tag colour, the moves, hide and show, the pictures, the CLI and MCP,
 and the keys, Cmd+B, the chooser and a drop's place in a headless browser, and since lpetmarks an LPET's domain
@@ -5777,14 +5802,35 @@ is read again. The whole file is kept against `home_cache.stamp`, its format, th
 marks of the modules that made the entries, and one that differs, cannot be read or parsed, or holds an entry not in
 its table's shape is ignored and replaced at the next write. A run with `--root`, the command line and the MCP server
 keep theirs in memory alone, and a state file inside a project's folder or in iCloud Drive gets no cache. `GETS_FILES`
-stays in memory, as it holds the GETs' words and costs little to read. At perfreview's scale the first list after a
+stays in memory, as it holds the GETs' words and costs little to read, and so does `STATEMENTS`, each workbook's
+statements' words, which the PETs counts follow a board's keys by (dashfix, 18 November 2026): `read_book` keeps them
+out of `BOOKS` so no participant's words are written to `home-cache.json`, and `book_statements` reads the workbook
+again when a count must be worked out and memory has none. At perfreview's scale the first list after a
 restart went from about 2 s to about 130 ms (area 396).
+Since dashcounts (18 November 2026) the same reads give how far each stage is decided, for Home's rings and the
+project's page: progress counts decisions, never the number of things made, and "complete" is the researcher's own mark.
+`participant_progress` gives a participant's `statements` (`turns_of`, and per timepoint `by_timepoint`'s counts),
+`pets` at each timepoint (`pets_progress`, the themes file of that timepoint, its board the one marked complete, else
+the Current board, else the one last open, as `gets.source_board` takes it for GETs, counted by `themes.decided_of` over
+the workbook's statements, whose words `book_statements` keeps in memory (`STATEMENTS`, never in the cache file) so a
+board's keys follow their words as `merge` does) and `lpets` (`lpets_progress`, `gets.decided_of` over the LPETs board,
+a timepoint's PETs not yet brought in counted from `tops`, the cards a board makes on the next board up).
+`project_progress` gives the project's `gets` or `lgets` the same way, and `themes` for a thematic analysis project
+(`codes.decided_of`, the codes of the list whose lead card is in a theme or set aside). Each is `{"decided", "total",
+"complete"}` and rides on Home's participant card as `progress`, on the project's head (`gets_head`) as `progress` with
+Trajectories' participants placed beside it, and in `cases` for the command line and MCP. A participant's card
+timepoints carry their own PETs mark, `pets_complete`, where the card's is the first timepoint's. The counts port the
+board's `thStatusNumbers` and `gtCodeNumbers`: a stacked statement and one set aside are decided, one waiting in
+Unplaced or loose is not, one written since the board was made is not, one whose line has gone counts in neither.
+`PET_COUNTS`, kept against the themes file, the workbook and the progress file, is the fifth table of `home-cache.json`
+(`counts`), its mark holding a Working together member's own themes file as well and a file that cannot be read not
+kept; `LPETS_COUNTS` stays in memory (area 428).
 `demo_participants` is the demo's three, built the same way from `demos`.
 
 **The home screen.** Each app's Home is drawn from `/api/cases` (9 October). `index.html` holds the three
 sections, `sift-home`, `home-analysis` and `trace-home`, each headed Projects and marked `data-only` for its
 app, so the page shows its own app's alone (see One page per app, above). `drawPick` fills Idiograph's, a card
-for each project, `homeCardHtml`, its one line from `standLine`, then the Demo projects section (`#home-demos`,
+for each project, `homeCardHtml`, then the Demo projects section (`#home-demos`,
 3 November 2026), the two demos from `demosOf` (the IPA demo, `demo`, and the thematic analysis demo, `demo-ta`,
 from `demos_ta`, `demo_ta_participants` and `demo_ta_project`), each card with its own tag (`distil.tag.demo_ipa`,
 `distil.tag.demo_ta`, "RTA demo" on both thematic analysis demos, `distil.tag.demo_lipa` "LIPA demo" since projectbuild), folded by `demosFold`: shut by default, open on a Home with no project, and kept as he leaves
@@ -5801,7 +5847,33 @@ project's page. Never kept, null, a run with `--root` takes its one project's pa
 the screen in front too, as a restart does: `spotKeep` runs on `pagehide`, and `comeBack` opens the
 case, PETs, GETs or Sift it names within ten minutes. Settings opens from the Home on
 General, and over it `settingsCase` gives no case, and a project's page gives its project and its GETs
-workbook. `PANES` is `PANES_BY_APP[APP]`, Idiograph's `general`, `formats`, `statements`, `pets` and `ai`
+workbook.
+
+The stages' rings and bars (homecardbuild, Adam's direction E, 18 November 2026). A card is a dashboard of its
+project: `homeCardHtml` keeps the name and question as `.home-card`, the button, and adds `homeDashHtml`, `.hc-dash`
+after it in the list item `.hc-card`, with `.hc-people`, each participant's `stageRings(p, 100, kind)` and their name
+(`personWho`), and `.hc-across`, `homeAcrossHtml`, each stage across participants from `acrossStages(gets, kind)` as
+its name and `stageBar` or its words. A folder gone or a project with no participant keeps `standLine`'s line in their
+place. `homeCardsWire` opens the page from the button and, by one handler on the list, from a press on `.hc-dash`. The
+counts are the server's `progress` (dashcounts) on each participant card and on the project's `gets` head. A demo's
+head is asked of `/api/gets-head` once the cards are drawn (`homeDemoHeads`), which since homecardbuild answers outside
+the route's LGETs scope, so a longitudinal demo's carries `lgets` and its Trajectories. `stageRings` draws one SVG over
+`personPic`: rings from the inside out, statements (`--stage-es`), PETs (`--stage-pets`) and in a longitudinal project
+LPETs (`--stage-lpets`), the first two split into a part a timepoint, a thematic analysis project's one ring its
+coding. Each ring or part is a `g.rseg` with `tabindex="0"`, `role="img"` and its words in `aria-label`, `data-th` its
+head ("Ada: PETs", "Hal: PETs at T1") and `data-tb` its line, from `stageWords`: Not started with nothing decided,
+"Complete. 54 of 54 statements placed." once marked, "48 of 48 statements placed. Not marked complete." all decided
+with no mark, else the count (`stageCount`, a key a kind). Each arc is a circle with `pathLength="360"` and its dash,
+the track `color-mix` of its stage at `--stage-mix`, the fill the full colour, with no tick. One `.ring-tip`, made on
+first use, shows `data-th` and `data-tb` under the pointer or the focus (`ringTipShow`), and goes on Esc, on the
+pointer leaving and on a scroll that is not the focused ring's own. `stageBar` is a `.sbar` in `--stage-pets` with
+"Complete" after it once marked, or "Not started" in words. On the project's page `drawGetsCard` draws the same stages
+as tiles under `#hp-across-h`, Cross-participant analysis, always above `#hp-ideo-h`, Idiographic participant
+analysis, and `cardHtml` gives each row the participant's rings (84 pixels, 92 longitudinal), the label whole, a
+`stageBtn` a stage (a longitudinal row's Statements and PETs at each timepoint, PETs opening `openThemesIn` with its
+`timepoint`) and `.pc-acts`, Edit profile and Show files, where the dots' one-item menu was. Review's Ask for review
+(`rvwRowsDraw`) joins `.pc-acts`, and Working together's tags (`wtPageDraw`) the row's head. Areas 85, 89, 110, 280,
+424 and 429. `PANES` is `PANES_BY_APP[APP]`, Idiograph's `general`, `formats`, `statements`, `pets` and `ai`
 since settingsplit (5 November 2026, Adam: Settings holds the app's own settings alone, the same on Home and in
 a project), its `gets`, `export` and `project` gone, Sift's `general`, `databases`,
 `sift`, `zotero` and `ai`, and Trace's `general`, `trace` and `ai`, the order of Settings' list, which the
@@ -9254,7 +9326,7 @@ several, which is remade by hand.
 | `relay/` | The relay Working together passes sealed messages through (8 November 2026), not yet deployed: `src/worker.js`, the Worker and its three Durable Objects, `wrangler.jsonc`, `test/serve.mjs`, which runs it on this computer through Miniflare, and a `README.md` for running it and for a team's own copy. See The relay below. The app never runs it. |
 | `family/relay_transport.py` | The relay route, `RelayTransport`: the transport's `send`, `fetch` and `listen`, and `make_project`, `set_devices`, `seen`, `put_blob`, `get_blob`, `invite_post` and `invite_fetch`, each call signed with the device's Ed25519 key, the live socket a WebSocket client of its own. The standard library and PyCA `cryptography`, imported only when a transport is made. |
 | `family/folder_transport.py` | The shared-folder route, `FolderTransport`: the transport's `send`, `fetch` and `listen`, and `seen`, `drop`, `put_blob` and `get_blob`, through a folder the team already shares, each device writing only in its own subfolder through a temporary name renamed into place, `listen` looking every 15 seconds and on waking. The standard library alone. |
-| `site/holding/` | idiograph.app (29 October 2026, a Preview's site since 10 November): the home page, `index.html`, and the Features page, `features.html` (11 November 2026), sharing one header and `style.css` with the tokens it reads copied from `tokens.css`, `mark.js`, Home's mark code copied from `shell.js` with its comments left out, so one of the ways in plays on each visit, `get.js` offering the visitor's download, `download.html` the download with the version and the first-open steps for a Mac and for Windows, every other page's foot being the visitor's button alone, which opens it and starts nothing (Adam, 17 November 2026: only the Download page's own button starts a download), the nav's Download a plain link on it and a button elsewhere (17 November 2026), `whats-new.html` the app's What's new for the newest three released versions and a link to the rest on GitHub, written by `packaging/site_whats_new.py` with the nav's release dates (sitenews, 16 November 2026), `features.js` the Features page's find (its Key features' icons are drawn in the page, 11 November 2026), `film-poster.jpg` a title card in the film's look, played from a round button by a few lines in the home page itself, and the tab's icons. No served file carries a comment, so `README.md` says what each is. A Cloudflare Worker with static assets serves it on idiograph.app and www.idiograph.app (`wrangler.jsonc`, `.assetsignore` keeping `README.md` and the config off the site), deployed with Wrangler on Adam's yes. Nothing kept on the visitor's machine. The app never reads it. |
+| `site/holding/` | idiograph.app (29 October 2026, a Preview's site since 10 November): the home page, `index.html`, and the Features page, `features.html` (11 November 2026), sharing one header and `style.css` with the tokens it reads copied from `tokens.css`, `mark.js`, Home's mark code copied from `shell.js` with its comments left out, so one of the ways in plays on each visit, `get.js` offering the visitor's download, `download.html` the download with the version and the first-open steps for a Mac and for Windows, every other page's foot being the visitor's button alone, which opens it and starts nothing (Adam, 17 November 2026: only the Download page's own button starts a download), the nav's Download a plain link on it and a button elsewhere (17 November 2026), `whats-new.html` the app's What's new for the newest three released versions and a link to the rest on GitHub, written by `packaging/site_whats_new.py` with the nav's release dates (sitenews, 16 November 2026), `manual.html` the manual, written by the same script from `docs/manual.md` (sitemanual, 18 November 2026), `features.js` the Features page's find (its Key features' icons are drawn in the page, 11 November 2026), `film-poster.jpg` a title card in the film's look, played from a round button by a few lines in the home page itself, and the tab's icons. No served file carries a comment, so `README.md` says what each is. A Cloudflare Worker with static assets serves it on idiograph.app and www.idiograph.app (`wrangler.jsonc`, `.assetsignore` keeping `README.md` and the config off the site), deployed with Wrangler on Adam's yes. Nothing kept on the visitor's machine. The app never reads it. |
 | `apps/idiograph/guidance.md` | The eleven lines in the rail under Holding the craft, each with its Less this and More this examples indented under it (`guidance_examples`, sent as `examples` by `/api/guidance` and opened from each line's arrow by `drawRules` and `ruleExamples` in app.js), with the plain paragraph under that heading the panel shows beneath them (`guidance_framing`), and the craft prompts under their own heading. An indented bullet is never a line of its own (`guidance_sections`). |
 | `apps/idiograph/pet_guidance.md` | The guidance on personal experiential themes the AI's titles carry: section 1, what a PET is, and section 3, the rules for a PET, and on GETs section 4, what a GET is, with section 5, the questions a reviewer asks of a GETs board, which the GETs Guidance tab shows. Edit it to change what the AI is told. |
 | `apps/idiograph/themes_guidance.md` | The lines of the PETs screen's Guidance tab, distilled from `pet_guidance.md`: how many PETs, how to group, titles, discarding, what goes first inside a PET and what to ask before finishing. Read afresh on every open of the screen, so editing it changes the tab on the next reload. |
