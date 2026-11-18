@@ -76,7 +76,7 @@ def test_ai_switch(scratch):
         guarded = [inspect.getsource(f) for f in (idiograph_routes.api_suggest, idiograph_routes.api_themes_ai, idiograph_routes.api_gets_ai)]
         check("100: every route the page asks a model through checks the switch first, and the line names AI features",
               all(re.search(r'if not srv\.ai_on\(cfg, "(statements|pets|gets)"\):\n        return \{"error": themes_ai.OFF\}', g) for g in guarded)
-              and themes_ai.OFF == "AI features are off. Turn them on in Settings, AI features.")
+              and themes_ai.OFF == "AI features are off. Turn them on in Settings under AI features.")
     finally:
         server_mod.CONFIG_PATH, server_mod.save_json, ai_mod.find_key, ai_mod.http_call = real
 

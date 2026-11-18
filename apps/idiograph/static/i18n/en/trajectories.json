@@ -65,7 +65,7 @@
   "trajectories.move_down": "Move down",
   "trajectories.key_quote": "Key quote at {tp}",
   "trajectories.choose_quote": "Choose the key quote",
-  "trajectories.choose_quote_first": "The first quote, until you choose one",
+  "trajectories.choose_quote_first": "The first quote is shown until you choose one",
   "trajectories.no_quote": "No quote",
   "trajectories.from_lpet": "In this LPET",
   "trajectories.from_interview": "Elsewhere in this interview",

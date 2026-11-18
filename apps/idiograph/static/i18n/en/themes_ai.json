@@ -1,5 +1,5 @@
 {
-  "themes_ai.off": "AI features are off. Turn them on in Settings, AI features.",
+  "themes_ai.off": "AI features are off. Turn them on in Settings under AI features.",
   "themes_ai.no_titles": "The answer carried no titles.",
   "themes_ai.nothing_to_name": "There are no statements under that PET to name.",
   "themes_ai.no_such_pet": "That PET is no longer on the board, so nothing was asked.",
@@ -20,8 +20,8 @@
     "other": "To fit what the model can take, Idiograph left out the quotes of the {n} statements lowest on the canvas."
   },
   "themes_ai.room.words": {
-    "one": "To fit what the model can take, Idiograph left out the words of {count} statement, the lowest in their PETs.",
-    "other": "To fit what the model can take, Idiograph left out the words of {count} statements, the lowest in their PETs."
+    "one": "To fit what the model can take, Idiograph left out the words of {count} statement. It was the lowest in its PET.",
+    "other": "To fit what the model can take, Idiograph left out the words of {count} statements. They were the lowest in their PETs."
   },
   "themes_ai.number.no": "no",
   "themes_ai.number.one": "one",

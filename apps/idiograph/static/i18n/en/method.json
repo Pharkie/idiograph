@@ -10,7 +10,7 @@
   "method.name_lipa": "Longitudinal Interpretative Phenomenological Analysis",
   "method.name_ta": "Reflexive thematic analysis",
   "method.refused_three": "A project's method is ipa, lipa or ta, so nothing was written.",
-  "method.refused_fixed": "This project's method is {method}, chosen when it was made, and it stays, so nothing was written.",
+  "method.refused_fixed": "This project's method is {method}. A project's method is chosen when it is made and cannot be changed, so nothing was written.",
   "method.refused_timepoints": "A thematic analysis project has no timepoints, so nothing was saved.",
   "method.refused_timepoints_ipa": "An IPA project has no timepoints, so nothing was saved.",
   "method.refused_timepoints_there": "This folder's project file has its timepoints already, so nothing was written."

@@ -304,7 +304,7 @@ def test_team_suggestions(scratch: Path):
         check("368: an agent's decline of a teammate's suggestion is refused as the app's alone, nothing answered, and "
               "his decline in the app writes nothing to the GETs file and the answer with its reason reaches Curt, "
               "whose list keeps it declined",
-              held.get("isError") and "Only the app does this" in json.dumps(held) and waits == "waiting"
+              held.get("isError") and "Only the app can do this" in json.dumps(held) and waits == "waiting"
               and (A / "idiograph-gets.json").read_bytes() == gets_before
               and mine[g["id"]]["status"] == "declined" and mine[g["id"]]["answer_reason"] == "The longer one is hers",
               json.dumps([held, curt_gets["suggestions"]])[:800])

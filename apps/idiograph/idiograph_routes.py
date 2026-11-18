@@ -3701,6 +3701,8 @@ def api_send_project(body: dict) -> dict:
     if body.get("dry_run") is True:
         return send_project(root, dest, dry_run=True, **options)
     done = send_project(root, dest, **options)
+    # the place the researcher chose, which the export notice's Show in Finder may show though no project holds it
+    SAVED_ELSEWHERE.add(str(dest.resolve()))
     answer = {"sent": True, "file": done["file"], "name": done["name"], "files": done["files"],
               "bytes": done["bytes"], "size": done["size"]}
     if done.get("chosen"):

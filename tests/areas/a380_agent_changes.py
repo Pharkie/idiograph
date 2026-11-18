@@ -205,7 +205,7 @@ def source_undo(scratch: Path):
     finally:
         agent_changes.keep_file = real_keep
     check("380: a file the undo cannot keep first refuses it in one line, nothing taken away, no run of its own",
-          code != 0 and "could not be kept first" in err and tree(root) == with_pip
+          code != 0 and "could not keep a copy of" in err and tree(root) == with_pip
           and len(agent_changes.all_runs(root)) == n_runs
           and not agent_changes.load_run(root, pip_run).get("undone"), err)
 

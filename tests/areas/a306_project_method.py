@@ -136,7 +136,7 @@ def test_project_method(scratch: Path):
         folder = as_page(routes.api_new_project, {"op": "folder", "path": str(bad)})
         check("306: New project in a folder whose project file is IPA's keeps IPA, thematic analysis refused, and the "
               "card is told the method it holds",
-              "chosen when it was made" in said and (bad / server_mod.PROJECT_FILE).read_bytes() == before
+              "chosen when it is made" in said and (bad / server_mod.PROJECT_FILE).read_bytes() == before
               and sorted(p.name for p in bad.iterdir()) == [server_mod.PROJECT_FILE] and folder.get("method") == "ipa",
               said + json.dumps(folder))
         before = (page_ta / server_mod.PROJECT_FILE).read_bytes()
@@ -146,8 +146,8 @@ def test_project_method(scratch: Path):
         code2, _, err2 = run("--root", str(agent_ta), "project", "set", "--method", "ta", "--dry-run")
         check("306: the method is fixed after creation: Settings' save and project set refuse another, nothing "
               "written, and the project's own changes nothing",
-              "chosen when it was made" in said and (page_ta / server_mod.PROJECT_FILE).read_bytes() == before
-              and same["project"]["method"] == "ta" and code != 0 and "chosen when it was made" in err
+              "chosen when it is made" in said and (page_ta / server_mod.PROJECT_FILE).read_bytes() == before
+              and same["project"]["method"] == "ta" and code != 0 and "chosen when it is made" in err
               and held(agent_ta).get("method") == "ta" and code2 == 0, said + err + err2)
         said = refused(routes.api_project, {"root": routes.project_id(page_ta), "timepoints": 2})
         check("306: a thematic analysis project takes no timepoints yet",

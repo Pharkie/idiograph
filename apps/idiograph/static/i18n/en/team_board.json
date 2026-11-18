@@ -8,7 +8,7 @@
   "team_board.refused.no_board": "{participant} has no board of that name.",
   "team_board.refused.not_own": "{board} is {name}'s and can't be changed from here.",
   "team_board.page.own": "Yours",
-  "team_board.page.own_tip": "Your own board, kept on this computer apart from {name}'s",
+  "team_board.page.own_tip": "Your own board. It is kept on this computer, apart from {name}'s.",
   "team_board.cli.own": "yours",
   "team_board.refused.no_such": "No board that came in by that name is waiting.",
   "team_board.refused.answered": "That board has been answered already.",

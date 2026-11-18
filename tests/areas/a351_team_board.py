@@ -329,7 +329,7 @@ def test_team_board(scratch: Path):
             agent_changes.ALL_OPS = kept_ops
         waiting = tb(adam, op="show")["board"].get("waiting") or []
         check("351: an agent's answer to a teammate's board is refused as the app's alone, nothing answered",
-              code != 0 and "Only the app does this" in err and len(waiting) == 1, err + json.dumps(held)[:300])
+              code != 0 and "Only the app can do this" in err and len(waiting) == 1, err + json.dumps(held)[:300])
         yes = tb(adam, op="answer", ref=came["came"][0]["ref"], accept=True)
         after = boards(adam)
         new = next((b for b in after if b["id"] == yes.get("added")), {})

@@ -262,7 +262,7 @@ the small type, "Initial, 2d · Statements complete" once the statements are mar
 once the PETs are, and "Participant complete" in their place once both are. The date sits in the tooltip,
 "Experiential statements marked complete, 3 Oct 2026" or "PETs marked complete, 4 Oct 2026, on
 Board 3", and both for Participant complete. Its Current board follows, "Current: Mornings apart", with
-"The Current board, the one you are going with" in its tooltip. A raw source's row is
+"The Current board is the one you are going with" in its tooltip. A raw source's row is
 marked "create annotated workbook" and a transcript's "make a workbook", each in the soft ink on its
 own border, where until 17 October, later, they stood in the crux orange.
 

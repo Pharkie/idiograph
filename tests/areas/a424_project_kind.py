@@ -268,7 +268,7 @@ def test_project_kind(scratch: Path):
         check("424: a method change and timepoints on an IPA or a thematic analysis project are refused in one line, dry "
               "run and real, through the route, the command line and MCP, nothing written",
               all(said) and all("\n" not in s for s in said) and code != 0 and "no timepoints" in err
-              and code2 != 0 and "chosen when it was made" in err2 and code3 != 0 and res.get("isError")
+              and code2 != 0 and "chosen when it is made" in err2 and code3 != 0 and res.get("isError")
               and all(files(r) == held[r] for r in held) and not agent_changes.read(ipa_root),
               " | ".join(said) + err + err2 + err3)
 

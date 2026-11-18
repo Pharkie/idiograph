@@ -265,7 +265,7 @@ def test_pets_phases(scratch):
                   and out["none"] == "" and out["old"] == "", str([out["both"], out["none"], out["old"]]))
             foot_of = lambda h: h.split('<div class="row-menu-rule"></div>')[-1]
             check("177: in node, with a Current board the menu ends on Mark PETs complete, and with none it is disabled",
-                  'data-vop="pets-done" title="Mark the PETs on Board 1, the Current board, complete">Mark PETs complete</button>'
+                  'data-vop="pets-done" title="Mark the PETs on Board 1 complete. It is the Current board.">Mark PETs complete</button>'
                   in foot_of(out["open"])
                   and 'data-vop="pets-done" disabled title="Mark a board as current first">Mark PETs complete</button>' in foot_of(out["none_chosen"])
                   and "th-vdone" not in out["open"], foot_of(out["open"])[:300])

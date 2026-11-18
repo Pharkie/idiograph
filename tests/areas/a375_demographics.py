@@ -173,7 +173,7 @@ def test_demographics(scratch):
               "name taken, a colour not in the palette and the demo's are each refused, nothing written",
               not_in == "Age range has no value 25 to 34. Its values are 60 to 64, 65 to 69 and 70 and over, so "
                         "nothing was changed."
-              and "one value for each participant" in two and "There is no category Height" in lacks
+              and "each participant has one value in it" in two and "There is no category Height" in lacks
               and "entry 1" in real and "Hendrika" not in real and "There is a category Gender already" in taken
               and "Mauve" in mixed and demo == "The demo's project is fixed." and sha(pfile) == before,
               " | ".join([not_in, two, lacks, real, taken, mixed, demo]))
@@ -392,7 +392,7 @@ def test_demographics(scratch):
               "description and before its sources",
               qde.index("<Variables>") > qde.index("<CodeBook>") and qde.index("<Variables>") < qde.index("<Cases>")
               and 'name="Age" typeOfVariable="Text"' in qde
-              and "A list, one value for each participant:\n70 and over\n60 to 65\n65 to 69" in qde
+              and "A list with one value for each participant:\n70 and over\n60 to 65\n65 to 69" in qde
               and bram_xml.index("<Description>") < bram_xml.index("<VariableValue>") < bram_xml.index("<SourceRef")
               and "<TextValue>British</TextValue>" in bram_xml and "<TextValue>Male</TextValue>" in bram_xml,
               bram_xml[:600])

@@ -1,7 +1,7 @@
 {
   "documents.file": "{name} - {what}",
   "documents.format_refused": "This export is written as {formats}, so nothing was written.",
-  "documents.out_refused": "out names a folder there or a file ending {ext} in one, so nothing was written.",
+  "documents.out_refused": "out must name a folder that exists, or a file ending {ext} in one, so nothing was written.",
   "documents.trajectories.name": "Trajectories",
   "documents.trajectories.lpet": "LPET",
   "documents.trajectories.timepoint": "{label}, {description}",

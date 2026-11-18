@@ -142,7 +142,7 @@ def held_code(scratch: Path) -> None:
         before = files_of(base)
         on = run("team", "on", "--route", "relay", "--relay-url", closed, "--name", "Ada", "--code-stdin")
         put = run("team", "set", "--code-stdin")
-        line = "Only the app does this, since it reaches other people or changes who works on the project"
+        line = "Only the app can do this, because it reaches other people or changes who works on the project"
         check("357: team on and team set with a relay code are the app's alone, refused for an agent in a line naming "
               "where in the app: the code left unread on the standard input and nothing written",
               on[0] != 0 and put[0] != 0 and line in on[1] and line in put[1] and on[2] == put[2] == CODE + "\n"

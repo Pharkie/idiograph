@@ -910,10 +910,14 @@ async function scGo() {
     try {
       const to = await window.idiographSavePath(sentName(SC.name), SHARE_LINE);
       if (!to) return;
-      await api('/api/send-project', { root: SC.id, to: String(to), card });
+      const done = await api('/api/send-project', { root: SC.id, to: String(to), card });
       scShut();
+      // the one notice every export ends in, headed "Shared <project>" (sharenotice, 18 November 2026)
+      exportNotice({ what: SC.name, shown: [done.name || sentName(SC.name)], path: done.file || '', shared: true });
     } catch (err) {
-      scSaid(needsRestart(err) ? RESTART_LINE : err.message);
+      // the card shuts first, since the notice sits under its overlay
+      scShut();
+      exportFailed(err);
     } finally {
       SC.busy = false;
       if (!$('share-card').hidden) scDraw();
@@ -1034,7 +1038,8 @@ function scKeys(e) {
    cross, Escape when nothing else on the screen takes it, a later export's notice, or the screen it was shown on
    going away. A failed export shows the same panel with its reason alone.
 
-   exportNotice({ what, shown, path }): `what` the heading's name, `shown` the files' names, `path` the file Show in
+   exportNotice({ what, shown, path, shared }): `shared` true for Share a copy's, headed "Shared <what>" where an
+   export's is "Exported <what>"; `what` the heading's name, `shown` the files' names, `path` the file Show in
    Finder shows (the export's answer's own, absolute), none for no button. exportNotice({ failed }): the reason.
    exportNotice(null) shuts it. */
 const XN = { info: null, host: null, seen: null, sized: null };
@@ -1088,7 +1093,9 @@ function exportNotice(info) {
   const files = failed ? [] : (info.shown || []);
   box.classList.toggle('export-failed', failed);
   box.setAttribute('role', failed ? 'alert' : 'status');
-  $('export-done-head').textContent = failed ? info.failed : t('themes.exported', { name: info.what || '' });
+  if (failed) $('export-done-head').textContent = info.failed;
+  else if (info.shared) $('export-done-head').textContent = t('themes.shared', { name: info.what || '' });
+  else $('export-done-head').textContent = t('themes.exported', { name: info.what || '' });
   $('export-done-files').innerHTML = files.map((f) => `<li class="mono">${esc(f)}</li>`).join('');
   $('export-done-files').hidden = !files.length;
   const reveal = $('export-reveal');
