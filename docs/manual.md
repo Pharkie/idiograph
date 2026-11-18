@@ -603,11 +603,25 @@ someone, the project's key changes for everyone left, so the person removed gets
 already have stays on their computer. The team sends through the relay or through a folder everyone already
 shares, such as OneDrive or Dropbox. Either way, everything is sealed on your computer first.
 
-### The relay code
+### The relay
 
-The first time a lead sends through the relay, Idiograph asks for a relay code. The relay at idiograph.app is
-run by Idiograph's author, who gives out relay codes. The code is used once and kept nowhere. Someone who
-joins needs no code, and neither does a shared folder.
+Anyone with Idiograph can work together through the relay at idiograph.app, and there is no code to type.
+Turning Working together on puts nothing on the relay. The lead's first invite starts the project there, and
+invites still decide who joins.
+
+The relay keeps its limits small so that it stays free to run. Each project can send 100 MB a day through it, and
+files such as recordings can take 80 MB of that, so the rest is always left for changes. One file can be at most
+80 MB. A project can keep 250 MB on the relay waiting for the others to fetch it, and up to 100 MB of that can be
+changes. A file is deleted from the relay
+as soon as every computer on the project has fetched it, and anything left is deleted after 90 days. A project
+with only one computer on it keeps nothing large there, because nobody is there to fetch it.
+
+When a limit is reached, the project's page says so in one line in place of "no connection", and Idiograph tries
+again when the limit can have lifted. The day's limits lift at midnight UTC. A few are tried again after a minute,
+and the rest after an hour. While recordings wait, the other changes still go.
+
+Send the recordings too sends each recording once, and again only when it changes. A file over the limit never
+goes through the relay. To share it, Send through a shared folder, which takes files up to 200 MB.
 
 ### Reviews, comments and suggestions
 
@@ -747,6 +761,76 @@ participant over in Who works on each.
 
 Your changes are kept on your computer and go to the team when the connection is back. Nothing needs to be
 done. If you use a shared folder, check that its drive or sync app is connected.
+
+### This project has sent its 100 MB through the relay today
+
+The relay takes 100 MB a day for each project. Your changes are kept on your computer and go after midnight UTC.
+Nothing needs to be done. "This project has sent as many changes through the relay today as it takes in a day"
+means the same for the number of changes.
+
+### Recordings and large files are waiting to send
+
+The relay takes 80 MB of a project's files a day, and a set number of files, and the whole relay takes only so many
+files a day. When one of these is used, recordings and versions too large for a message wait until after midnight
+UTC. Your other changes still go.
+
+### The relay is holding as much of this project as it keeps
+
+The relay keeps up to 250 MB of a project waiting until every computer on the project has fetched it, and up to
+100 MB of that can be changes. When either is reached, nothing more is taken until the oldest is fetched. The line names the
+computers that have not fetched it yet. Opening Idiograph on those computers lets them fetch it. If one of them will
+not be used again, the lead can remove it in Working together, and the relay then lets the rest go. Idiograph tries
+again in an hour.
+
+### The relay is full just now
+
+The relay as a whole has reached what it keeps. Your changes wait on your computer, and Idiograph tries again in
+an hour. To send meanwhile, the lead can Send through a shared folder.
+
+### The relay is turning away calls from this internet address just now
+
+Too many calls came from your internet address in a few seconds, which can happen when many computers share one
+address, as on a campus. Idiograph waits a minute and tries again. Nothing needs to be done.
+
+### The relay has had too many calls from this internet address in the last minute
+
+An invite or a join asks the relay a few times a minute, and the relay takes only so many such calls from one
+internet address. Several invites open at once from computers that share an address can reach it. Wait a minute
+and try again.
+
+### The relay is not taking calls just now
+
+The relay has stopped taking calls for a while. Your changes wait on your computer and go when it opens again.
+Nothing needs to be done.
+
+### Nobody else is on this project yet
+
+A project with one computer on it keeps nothing large on the relay. Recordings and large changes go once someone
+has joined.
+
+### A file waiting on the relay could not be fetched by this computer
+
+The relay gives one computer a file only so many times. When this computer has tried that often and failed, the
+relay will not give it again, and the others' changes wait behind it. The lead can remove this computer in Working
+together and invite it again.
+
+### A file is too large for the relay
+
+One file can be at most 80 MB on the relay, and at most 200 MB in a shared folder. The line names the participant.
+The file is not sent, and the line goes once the file is smaller, gone, or no longer sent. To share a recording
+larger than the relay takes, Send through a shared folder.
+
+### The relay cannot start any more new projects today
+
+The relay starts only so many new projects a day, and only a few from one internet address. Nothing changed. Try
+again tomorrow, or Send through a shared folder, which needs no relay. "This project has made all the invites the
+relay takes in a day" is the same for invites.
+
+### The relay could not be reached just now
+
+The first invite starts the project on the relay, and the relay could not be reached. Nothing changed. Check the
+connection and invite again. When the line begins "The project is now on the relay", the project was started and
+only the invite was not made, so the next Invite makes just the invite.
 
 ### Could not be read, so nothing was changed
 

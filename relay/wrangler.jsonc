@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Idiograph's relay, for Working together. README.md beside this file has the steps. No account id,
-// no code and no secret is written here: Wrangler takes the account from its own login, and
-// OPERATOR_CODES is a secret set with `wrangler secret put OPERATOR_CODES`.
+// no code and no secret is written here: Wrangler takes the account from its own login, and the operator's key
+// OPERATOR_KEY is a secret set with `wrangler secret put OPERATOR_KEY`.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "idiograph-relay",
@@ -15,27 +15,36 @@
   ],
   // the Durable Objects' jurisdiction. `wrangler dev` on one's own computer has none, so run it
   // with `--var JURISDICTION:` (empty)
+  // the relay is open: anyone with the app starts a project, within the limits in src/worker.js (relayopen,
+  // 18 November 2026)
   "vars": { "JURISDICTION": "eu" },
-  // one SQLite-backed Durable Object per project, per invite and per operator code, each made in
-  // JURISDICTION by the code (`namespace.jurisdiction("eu")`)
+  // one SQLite-backed Durable Object per project and per invite, and one counter for the whole relay (new projects
+  // and invites a day, the ceilings), each made in JURISDICTION by the code (`namespace.jurisdiction("eu")`).
+  // OPERATORS is the old relay's count for each operator code, kept bound for the first deploy step's worker and a
+  // rollback to it
   "durable_objects": {
     "bindings": [
       { "name": "PROJECTS", "class_name": "Project" },
       { "name": "INVITES", "class_name": "Invite" },
-      { "name": "OPERATORS", "class_name": "Operator" }
+      { "name": "OPERATORS", "class_name": "Operator" },
+      { "name": "COUNTER", "class_name": "Counter" }
     ]
   },
   "migrations": [
-    { "tag": "v1", "new_sqlite_classes": ["Project", "Invite", "Operator"] }
+    { "tag": "v1", "new_sqlite_classes": ["Project", "Invite", "Operator"] },
+    { "tag": "v2", "new_sqlite_classes": ["Counter"] }
   ],
   // sealed blobs over a message's size, made in the EU with
   // `wrangler r2 bucket create idiograph-relay-blobs --jurisdiction eu`
   "r2_buckets": [
     { "binding": "BLOBS", "bucket_name": "idiograph-relay-blobs", "jurisdiction": "eu" }
   ],
-  // invites are unsigned, so they are limited by IP: 30 calls a minute from one address
+  // invites are unsigned, so they are limited by IP: 30 calls a minute from one address. The invite and join cards
+  // ask about every 10 seconds, and a join or a They match adds two or three calls
   "ratelimits": [
-    { "name": "INVITE_LIMIT", "namespace_id": "4201", "simple": { "limit": 30, "period": 60 } }
+    { "name": "INVITE_LIMIT", "namespace_id": "4201", "simple": { "limit": 30, "period": 60 } },
+    // and new projects, 6 a minute from one address, before the counter is asked
+    { "name": "PROJECT_LIMIT", "namespace_id": "4202", "simple": { "limit": 6, "period": 60 } }
   ],
   "observability": { "enabled": false }
 }

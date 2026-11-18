@@ -131,8 +131,8 @@ ALL_OPS: bool | None = None
 RISKS = {1: "steering", 2: "speed and volume", 3: "no screen", 4: "standing access"}
 
 # The ops undo cannot reach (Adam, 13 November 2026, by dialog: "app only"), refused for agents with the place in
-# the app that does each, nothing waiting. Sending to another person, Working together's outward ops, its keys and
-# relay codes, and who is on the team. Settings, which are the app's and no project's, so no restore point holds
+# the app that does each, nothing waiting. Sending to another person, Working together's outward ops, its keys, its
+# project on the relay, and who is on the team. Settings, which are the app's and no project's, so no restore point holds
 # them (Your name, the AI prompt, the AI's provider, address and model, the AI switch and keys having no op). The
 # list of real names is no longer among them: since namesop (16 November 2026, Adam's word) an agent adds entries, which
 # restore points reach, and since namesset the same day (Adam: "if you're not able to do it via MCP or the API, you

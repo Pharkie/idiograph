@@ -557,8 +557,8 @@ def api_team(body: dict) -> dict:
     """Working together, Project settings' section and the agents' `team` ops (wtkeys, 8 November 2026, see team.py):
     `op` one of `show`, `on`, `off`, `set`, `choose` (the shared folder from the Mac's dialog), `invite`, `answers`, `admit`, `join`, `joined`, `remove`, `lead` and `take`. `show`
     answers the section as it stands, `{"on": false}` alone while it is off, and writes nothing. `on` takes `name`,
-    `route` (relay or folder), `folder`, and for a team's own relay `relay_url`, and `on` and `set` take `code`, the
-    lead's relay code, which makes the project on the relay and is kept nowhere (relaywire, 9 November 2026), `set` any of `route`, `folder`, `recordings`, `owners` ({participant:
+    `route` (relay or folder), `folder`, and for a team's own relay `relay_url`; through the relay the lead's `on`, or
+    `set` with `route` relay, makes the project there, no code asked (relayopen, 18 November 2026), `set` any of `route`, `folder`, `recordings`, `owners` ({participant:
     member}) and `gets_owner`, `invite` `own` for another computer of one's own, `answers` and `admit` an `invite` id,
     `admit` `match` true or false (They match, They differ), `join` `words` (the link or the twelve words),
     `name` and a team's own relay's `relay_url` when the link does not carry it, `joined` the `invite` id, `remove` a `member` by id or name or one `computer` by its id, `lead` (Make
@@ -594,7 +594,7 @@ def api_team(body: dict) -> dict:
         with contextlib.nullcontext() if dry else writing(root=root):
             if op == "on":
                 done = team_mod.turn_on(root, body.get("name") or researcher_name(), str(body.get("route") or "relay"),
-                                        str(body.get("folder") or ""), dry_run=dry, code=body.get("code"),
+                                        str(body.get("folder") or ""), dry_run=dry,
                                         relay_url=str(body.get("relay_url") or ""))
             elif op == "off":
                 done = team_mod.turn_off(root, dry_run=dry)

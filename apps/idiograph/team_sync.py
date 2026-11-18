@@ -9,9 +9,27 @@ command line's alike, so an agent is refused as the app is), and where the GETs 
 export, which reads a participant and writes a file of its own beside, is not refused. While Working together is off
 nothing is refused and nothing here reads more than team.json.
 
-**Versions.** A participant's version is its workbook, its PETs files and its progress file, its recordings too when
-Send the recordings too is ticked, each with its SHA-256, zipped, inside the message when it fits one and otherwise
-as a sealed blob (above `INLINE_MOST`), with `n`, the owner's count for it, one higher each time. The GETs board's
+**Versions.** A participant's version is its workbook, its PETs files and its progress file, each with its SHA-256,
+zipped, inside the message when it fits one and otherwise as a sealed blob (above `INLINE_MOST`), with `n`, the
+owner's count for it, one higher each time.
+
+**Recordings travel once** (relayopen, 18 November 2026, Adam's ruling that day). With Send the recordings too ticked,
+each recording goes on its own, a `recording` message naming its participant, its path, its SHA-256 and the sealed
+blob that holds it, and only when its SHA-256 is not the one last sent, never inside every version. A computer that
+already has a file with that SHA-256 takes nothing and fetches nothing. A new computer's first full copy sends them
+again, and the others, holding them already, fetch nothing.
+
+**When the relay says no** (relayopen, relayfix). A refusal of a message (the day's 100 MB or its count of messages
+used, as much of the project waiting as the relay keeps, the relay full) holds what waits until the cap can have
+lifted (`hold`: the day's at 00:00 UTC, the others an hour on), and only small messages are tried meanwhile. A
+refusal of a file (a recording, or a version too large for a message) holds files alone (`files_hold`), and the
+versions that fit a message go on. The page and `team send` say why in one line, never as no connection, naming
+the computers that have not fetched what the relay holds when it says so. One file over the route's limit (80 MB
+on the relay, 200 MB in a shared folder) is never sent and is said as such until it changes or goes. A first full
+copy that stops partway resumes where it stopped (`copying`), and what changes meanwhile still goes; the recordings
+go to new computers on their own count (`rec_copied`, `rec_copying`). A message whose blob cannot be fetched just
+now, or whose recording finds its participant's lock busy, stops the look there, so nothing after it is marked read
+and the relay keeps the blob for the next look. The GETs board's
 is the GETs, LGETs and Trajectories files, `gets_version`. A version goes a minute after the owner's last save
 (`WAIT`, by the files' times, so a save from the app, the command line or an agent counts alike), at once on Send
 now, and on quit. A new computer on the roster gets every participant this member works on, and the GETs board when
@@ -51,7 +69,7 @@ import re
 import threading
 import time
 import zipfile
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path, PurePosixPath
 from typing import Callable
 
@@ -71,6 +89,31 @@ WAIT = 60
 EVERY = 15
 # a version's zip above this goes as a sealed blob, the message's padded size (1 MB) holding its base64 below it
 INLINE_MOST = 640 * 1024
+# seconds between looks at the relay while its live socket is up and says nothing (it says "new N" when a message
+# comes, and each reconnect looks at once), so an idle computer costs the relay a call in five minutes, not fifteen
+# seconds (relayfix, the review's W2)
+LIVE_EVERY = 300
+# seconds the relay's "project full" and "relay full" hold what waits before the next try
+HOLD_FULL = 3600
+# the relay's refusals that hold what waits, by its one word, and the one that refuses a single file. The day's
+# three (its bytes, its files' share, its count of messages) hold until 00:00 UTC
+HELD = {"day": "day", "day files": "day_files", "day messages": "day_messages", "project full": "project_full",
+        "relay full": "relay_full", "project files today": "project_files_today", "files today": "files_today",
+        "nobody to send to": "nobody", "blocked": "blocked", "closed": "closed"}
+TILL_MIDNIGHT = ("day", "day_files", "day_messages", "project_files_today", "files_today")
+# seconds a hold lasts that is not the day's: Cloudflare's rate rule and nobody to send to a minute, anything else
+# an hour
+HOLD_BLOCKED = 60
+# an envelope the relay takes outside the day's bytes (relay/src/worker.js, LIMITS.small): the only messages tried
+# while what waits is held
+SMALL = 24 * 1024
+# the largest file a route that names none takes (the shared folder's and the loopback's)
+MOST_FILE = 200 * 1024 * 1024
+# days a message whose recording or file cannot be taken just now (its participant's lock busy, the shared folder
+# still bringing the file) is tried again before it is given up and dropped
+LATER_DAYS = 3
+# seconds a participant's list of recordings is kept between looks when its folders have not changed
+RECORDINGS_KEPT = 300
 # a new name beside a file's place, written then renamed into place
 INCOMING = ".incoming"
 GETS = "gets"
@@ -252,9 +295,12 @@ def load_state(root: Path, strict: bool = True) -> dict:
             raise
         data = {}
     data = data if isinstance(data, dict) else {}
-    for key in ("sent", "held", "arrivals"):
+    for key in ("sent", "held", "arrivals", "recordings", "too_large", "hold", "files_hold", "list_refused", "copying", "rec_copying"):
         data[key] = data.get(key) if isinstance(data.get(key), dict) else {}
     data["copied"] = list(data.get("copied") or [])
+    # the computers given every recording. A state from before relayopen has none, and its versions carried the
+    # recordings, so the computers it gave a full copy have them already (the review's A5)
+    data["rec_copied"] = list(data["rec_copied"]) if isinstance(data.get("rec_copied"), list) else list(data["copied"])
     data["cursors"] = data.get("cursors") if isinstance(data.get("cursors"), dict) else {}
     return data
 
@@ -287,10 +333,11 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def participant_files(case: Path, workbook: Path, recordings: bool) -> list[tuple[Path, str]]:
+def participant_files(case: Path, workbook: Path, recordings: bool = False) -> list[tuple[Path, str]]:
     """A participant's files as a version carries them, each with its path from the participant's folder: the
-    workbook, the PETs files and the progress file in Working, each PETs file's History chunks its boards name, and
-    the recordings when they go. `board_history.HistoryAway` while a chunk a board names is not on this computer, so
+    workbook, the PETs files and the progress file in Working, and each PETs file's History chunks its boards name.
+    With `recordings`, the recordings too, as `recordings_of` finds them (a version no longer carries them: they
+    travel once each, relayopen). `board_history.HistoryAway` while a chunk a board names is not on this computer, so
     a version never carries part of a History (review 4)."""
     out = []
     try:
@@ -308,11 +355,48 @@ def participant_files(case: Path, workbook: Path, recordings: bool) -> list[tupl
                 if pack_mod.PETS_FILE.search(p.name):
                     out += [(c, f"Working/{c.parent.name}/{c.name}") for c in board_history.named_files(p)]
     if recordings:
-        for p in sorted(case.rglob("*")):
-            rel = PurePosixPath(p.relative_to(case).as_posix())
-            if p.is_file() and not p.is_symlink() and pack_mod.kind_in_case(rel) == "audio" \
-                    and not any(part.startswith(".") for part in rel.parts):
-                out.append((p, str(rel)))
+        out += recordings_of(case)
+    return out
+
+
+_RECORDINGS: dict = {}
+
+
+def folder_mark(case: Path) -> tuple:
+    """The times of a participant's folder and of the folders in it, which change when a file is added or taken
+    away in either, read without walking the whole tree."""
+    marks = []
+    try:
+        marks.append(Path(case).stat().st_mtime_ns)
+        for p in os.scandir(case):
+            if p.is_dir(follow_symlinks=False) and not p.name.startswith("."):
+                marks.append((p.name, p.stat(follow_symlinks=False).st_mtime_ns))
+    except OSError:
+        return ()
+    return tuple(marks)
+
+
+def recordings_of(case: Path) -> list[tuple[Path, str]]:
+    """A participant's recordings, each with its path from the participant's folder, hidden names left out. The
+    list is kept while the folder's mark stands, and walked again at least every RECORDINGS_KEPT seconds, so a look
+    does not walk every participant's folder (the review's A13)."""
+    key = str(case)
+    mark = folder_mark(case)
+    kept = _RECORDINGS.get(key)
+    if kept and kept[0] == mark and time.monotonic() - kept[1] < RECORDINGS_KEPT:
+        return list(kept[2])
+    found = walked_recordings(case)
+    _RECORDINGS[key] = (mark, time.monotonic(), found)
+    return list(found)
+
+
+def walked_recordings(case: Path) -> list[tuple[Path, str]]:
+    out = []
+    for p in sorted(Path(case).rglob("*")):
+        rel = PurePosixPath(p.relative_to(case).as_posix())
+        if p.is_file() and not p.is_symlink() and pack_mod.kind_in_case(rel) == "audio" \
+                and not any(part.startswith(".") for part in rel.parts):
+            out.append((p, str(rel)))
     return out
 
 
@@ -398,11 +482,13 @@ def mine(root: Path, data: dict, every: bool = False) -> list[dict]:
             continue
         case = Path(root).resolve() / p["folder"]
         try:
-            files = participant_files(case, Path(p["workbook"]).resolve(), data.get("recordings") is True)
+            files = participant_files(case, Path(p["workbook"]).resolve())
         except board_history.HistoryAway:
             # a History not all here yet waits, never sent in part (review 4)
             continue
-        out.append({"what": p["folder"], "files": files, "lock": case / "Working" / locks.NAME, "own": own})
+        recs = recordings_of(case) if data.get("recordings") is True else []
+        out.append({"what": p["folder"], "files": files, "lock": case / "Working" / locks.NAME, "own": own,
+                    "recordings": recs})
     if gets_owner(roster) == me or every:
         try:
             files = gets_files(root)
@@ -413,10 +499,11 @@ def mine(root: Path, data: dict, every: bool = False) -> list[dict]:
     return out
 
 
-def waiting(root: Path, data: dict, state: dict) -> list[dict]:
-    """What of this member's has changed since it last went, each item of `mine` with its prints."""
+def waiting(root: Path, data: dict, state: dict, items: list | None = None) -> list[dict]:
+    """What of this member's has changed since it last went, each item of `mine` (or of `items`, `mine` already
+    read) with its prints."""
     out = []
-    for item in mine(root, data):
+    for item in mine(root, data) if items is None else items:
         was = (state["sent"].get(item["what"]) or {}).get("print") or {}
         now = prints(item["files"], was)
         if not same_content(now, was):
@@ -437,8 +524,34 @@ def zipped(files: list[tuple[Path, str]]) -> tuple[bytes, list[dict]]:
     return buf.getvalue(), listed
 
 
-def send_one(root: Path, data: dict, dev: dict, way, item: dict, n: int) -> None:
-    """One version, of a participant or of the GETs board, sealed and sent: its files read under their lock."""
+class FilesHeld(Exception):
+    """A version that needs a blob while the relay holds this project's files: it waits, and versions that fit a
+    message go on."""
+
+
+class TooLarge(Exception):
+    """A file over what the route takes, found before it is read (the review's A6)."""
+    code = "too_large"
+
+
+def most_file(way) -> int:
+    """The largest sealed file `way` takes: the relay's for this project, the shared folder's, else MOST_FILE."""
+    most = getattr(way, "max_blob", None)
+    return int(most) if isinstance(most, int) and most > 0 else MOST_FILE
+
+
+def on_file(exc: Exception) -> Exception:
+    """A refusal marked as the file's, not the message's, so it holds files alone."""
+    try:
+        exc.on_file = True
+    except AttributeError:
+        pass
+    return exc
+
+
+def send_one(root: Path, data: dict, dev: dict, way, item: dict, n: int, files_held: bool = False) -> None:
+    """One version, of a participant or of the GETs board, sealed and sent: its files read under their lock. One
+    that needs a blob while files are held raises FilesHeld, and a refusal of its blob is marked `on_file`."""
     team = str(data.get("team") or "")
     epoch = int((data.get("roster") or {}).get("epoch") or 1)
     key = team_mod.project_key(team, epoch)
@@ -449,20 +562,162 @@ def send_one(root: Path, data: dict, dev: dict, way, item: dict, n: int) -> None
     body = {"n": int(n), "files": listed}
     if item["what"] != GETS:
         body["participant"] = item["what"]
+    blob = None
     if len(packed) <= INLINE_MOST:
         body["zip"] = base64.b64encode(packed).decode("ascii")
     else:
+        if files_held:
+            raise FilesHeld()
         blob = os.urandom(16).hex()
-        way.put_blob(team, blob, team_mod.aead_seal(key, packed, blob.encode("ascii")))
+        try:
+            way.put_blob(team, blob, team_mod.aead_seal(key, packed, blob.encode("ascii")))
+        except Exception as exc:  # noqa: BLE001 - marked, then raised as it came
+            raise on_file(exc)
         body["blob"] = blob
     kind = "gets_version" if item["what"] == GETS else "version"
-    way.send(team, team_mod.seal_envelope(team, epoch, key, dev, str(data.get("member") or ""),
-                                          team_mod.next_seq(team), kind, body))
+    sent(way, team, team_mod.seal_envelope(team, epoch, key, dev, str(data.get("member") or ""),
+                                           team_mod.next_seq(team), kind, body), blob)
 
 
-def push(root: Path, now: bool = False, dry_run: bool = False) -> dict:
+def sent(way, team: str, sealed: bytes, blob: str | None) -> None:
+    """A message to the team, naming the blob it carries to a route that frees a blob with its message (the relay)."""
+    if blob and getattr(way, "names_blobs", False):
+        way.send(team, sealed, blob=blob)
+    else:
+        way.send(team, sealed)
+
+
+def send_recording(data: dict, dev: dict, way, what: str, rel: str, path: Path, sha: str) -> None:
+    """One recording, sealed whole as a blob and named by a `recording` message with its participant, path and
+    SHA-256, read under nothing: a recording is not written while the app works. Its size is checked against the
+    route's limit before it is read, so a file too large is never read into memory."""
+    team = str(data.get("team") or "")
+    epoch = int((data.get("roster") or {}).get("epoch") or 1)
+    key = team_mod.project_key(team, epoch)
+    if key is None:
+        raise team_mod.TeamError(i18n.t("team.refused.no_key"), "no_key")
+    # the seal adds its nonce and tag, 40 bytes at most
+    if Path(path).stat().st_size + 40 > most_file(way):
+        raise TooLarge()
+    raw = Path(path).read_bytes()
+    if hashlib.sha256(raw).hexdigest() != sha:
+        raise WorkbookError("changed while it was read")
+    blob = os.urandom(16).hex()
+    try:
+        way.put_blob(team, blob, team_mod.aead_seal(key, raw, blob.encode("ascii")))
+    except Exception as exc:  # noqa: BLE001 - marked, then raised as it came
+        raise on_file(exc)
+    body = {"participant": what, "name": rel, "sha": sha, "size": len(raw), "blob": blob}
+    sent(way, team, team_mod.seal_envelope(team, epoch, key, dev, str(data.get("member") or ""),
+                                           team_mod.next_seq(team), "recording", body), blob)
+
+
+def refused_word(exc) -> str:
+    """The relay's (or a shared folder's) refusal that is not a fault of the connection, as one word of HELD's or
+    "too_large", or "" for anything else."""
+    status, said = getattr(exc, "status", None), str(getattr(exc, "error", "") or "")
+    if (status == 413 and said == "too large") or getattr(exc, "code", "") == "too_large":
+        return "too_large"
+    if status and status >= 400 and said in HELD:
+        return HELD[said]
+    return ""
+
+
+def hold_until(word: str) -> str:
+    """When a hold the relay asked for can have lifted: the next 00:00 UTC for the day's, a minute for Cloudflare's
+    rate rule and for nobody to send to, an hour on else."""
+    t = datetime.now(timezone.utc)
+    if word in TILL_MIDNIGHT:
+        lifted = datetime(t.year, t.month, t.day, tzinfo=timezone.utc) + timedelta(days=1)
+    elif word in ("blocked", "nobody"):
+        # "nobody to send to" a minute too: a look that falls between the list's write at They match and the relay
+        # hearing of the new computer meets it just after someone joined (review2)
+        lifted = t + timedelta(seconds=HOLD_BLOCKED)
+    else:
+        lifted = t + timedelta(seconds=HOLD_FULL)
+    return lifted.isoformat(timespec="seconds")
+
+
+def hold_of(word: str, exc=None) -> dict:
+    """A hold as sync.json keeps it: its word, when it can have lifted, and with "project full" the computers the
+    relay said have not fetched what it holds."""
+    out = {"word": word, "until": hold_until(word)}
+    behind = [str(d) for d in getattr(exc, "behind", None) or [] if isinstance(d, str)]
+    if behind:
+        out["behind"] = behind
+    return out
+
+
+def held_now(state: dict, key: str = "hold") -> str:
+    """The hold in force, its word, or "" when there is none or it has lifted. `key` "files_hold" reads the hold of
+    files alone."""
+    hold = state.get(key) or {}
+    try:
+        if hold.get("word") and datetime.fromisoformat(str(hold.get("until"))) > datetime.now(timezone.utc):
+            return str(hold["word"])
+    except ValueError:
+        pass
+    return ""
+
+
+def seed_recordings(state: dict, item: dict) -> None:
+    """A participant's recordings as sent before relayopen, when its versions carried them: their SHA-256s, taken
+    from the version last sent, so the first look of this copy does not send each recording again (the review's
+    A5)."""
+    what = item["what"]
+    kept = state["recordings"].get(what)
+    if isinstance(kept, dict) and "sent" in kept:
+        return
+    was = ((state["sent"].get(what) or {}).get("print") or {})
+    sent_shas = {rel: v[2] for rel, v in was.items() if isinstance(v, list) and len(v) == 3
+                 and pack_mod.kind_in_case(PurePosixPath(rel)) == "audio"}
+    state["recordings"][what] = dict(kept or {}, sent=sent_shas)
+
+
+def recordings_due(state: dict, item: dict, again: bool) -> list[tuple[Path, str, str]]:
+    """The recordings of an item to send, each (path, its path in the folder, its SHA-256): those whose SHA-256 is
+    not the one last sent, or with `again` every one (a new computer's first copy), less any too large to send."""
+    if not item.get("recordings"):
+        return []
+    what = item["what"]
+    before = (state["recordings"].get(what) or {}).get("print") or {}
+    now = prints(item["recordings"], before)
+    sent_shas = (state["recordings"].get(what) or {}).get("sent") or {}
+    state["recordings"][what] = dict(state["recordings"].get(what) or {}, print=now)
+    out = []
+    for path, rel in item["recordings"]:
+        sha = (now.get(rel) or [0, 0, ""])[2]
+        if not sha or state["too_large"].get(f"{what}\t{rel}") == sha:
+            continue
+        if again or sent_shas.get(rel) != sha:
+            out.append((path, rel, sha))
+    return out
+
+
+def prune_too_large(root: Path, state: dict, own: list[dict], recordings_on: bool) -> None:
+    """A refusal of a file too large let go once the file is gone, or no longer sent (the tick taken off, the
+    participant no longer here), so its line goes with it (the review's A12)."""
+    listed = {f"{item['what']}\t{rel}" for item in own for _p, rel in item.get("recordings") or []} \
+        if recordings_on else set()
+    for key in list(state["too_large"]):
+        if "\t" in key:
+            keep = key in listed
+        else:
+            case = allowed_folder(root, key) if key != GETS else Path(root)
+            keep = case is not None and case.is_dir()
+        if not keep:
+            state["too_large"].pop(key, None)
+    if not state["too_large"]:
+        state.pop("too_large_most", None)
+
+
+def push(root: Path, now: bool = False, dry_run: bool = False, recordings: bool = True) -> dict:
     """What has waited a minute since its last save sent, or with `now` all that waits, and to a computer new on the
-    roster everything this member works on. Answers `{"sent", "waiting", "offline"}`."""
+    roster everything this member works on. Recordings go after the versions, each once, and only this member's
+    own participants' (the owner sends them, the lead never sends another's). While the relay holds what waits
+    (`hold`) nothing but `post`'s small messages is tried, and while it holds this project's files (`files_hold`)
+    the versions that fit a message go on. A dry run sends nothing and writes nothing. `recordings` False leaves
+    them for the next look (on quit). Answers `{"sent", "waiting", "offline", "held"}`."""
     data = team_on(root)
     if data is None:
         return {"sent": [], "waiting": 0, "offline": False}
@@ -470,26 +725,58 @@ def push(root: Path, now: bool = False, dry_run: bool = False) -> dict:
     if alone(roster):
         return {"sent": [], "waiting": 0, "offline": False}
     dev = team_mod.device() or {}
-    _gone, kept_back = flush(root, data)
     state = load_state(root)
+    held = held_now(state)
+    kept_back = False
+    if not dry_run:
+        # what other builds kept, first: only the small ones while the relay holds what waits (the review's A7)
+        _gone, kept_back, word, exc = flush(root, data, small_only=bool(held))
+        if word and not held:
+            held = word
+            state["hold"] = hold_of(word, exc)
+    me = str(data.get("member") or "")
+    lead = me == str(roster.get("lead") or "")
     others = sorted(d["id"] for m in team_mod.roster_members(roster) for d in m.get("devices") or []
                     if isinstance(d, dict) and d.get("id") and d.get("id") != dev.get("id"))
+    own = mine(root, data)
     fresh = [d for d in others if d not in state["copied"]]
+    copying = state["copying"] if state["copying"].get("for") == others else {"for": others, "done": []}
+    done = set(copying.get("done") or []) if fresh else set()
     if fresh:
-        # the first full copy: everything of his goes again, at once, for the computer that has none of it, and
-        # from the lead every participant, which a computer with none of that participant takes as its first copy
-        lead = str(data.get("member") or "") == str(roster.get("lead") or "")
-        items = [dict(item, print=prints(item["files"], {})) for item in mine(root, data, every=lead)]
-        now = True
+        # the first full copy: everything of this member's goes again, at once, for the computer that has none of
+        # it, and from the lead every participant, which a computer with none of that participant takes as its
+        # first copy. One stopped partway (the relay's day used, no connection) goes on from where it stopped, and
+        # what changed since it went, of what the copy has sent already, goes as ever (the review's A1)
+        first = [dict(item, print=prints(item["files"], {}), first=True)
+                 for item in (mine(root, data, every=True) if lead else own) if item["what"] not in done]
+        items = first + [item for item in waiting(root, data, state, own) if item["what"] in done]
     else:
-        items = waiting(root, data, state)
-    due = [item for item in items if now or newest(item["files"]) <= time.time() - WAIT]
+        first = []
+        items = waiting(root, data, state, own)
+    items = [item for item in items if state["too_large"].get(item["what"]) != print_key(item["print"])]
+    first_left = {item["what"] for item in items if item.get("first")}
+    due = [item for item in items if now or item.get("first") or newest(item["files"]) <= time.time() - WAIT]
+    # the recordings of this member's own participants, each whose SHA-256 has not gone, every one for a computer
+    # that has not had them all (the review's A5: owners send their own, the lead no one else's)
+    rec_fresh = [d for d in others if d not in state["rec_copied"]]
+    rec_copying = state["rec_copying"] if state["rec_copying"].get("for") == others else {"for": others, "done": {}}
+    recs = []
+    if recordings:
+        for item in own:
+            if not item.get("recordings"):
+                continue
+            seed_recordings(state, item)
+            done_recs = set((rec_copying.get("done") or {}).get(item["what"]) or []) if rec_fresh else set()
+            recs += [(item["what"], path, rel, sha) for path, rel, sha in recordings_due(state, item, bool(rec_fresh))
+                     if rel not in done_recs and (now or rec_fresh or newest([(path, rel)]) <= time.time() - WAIT)]
     if dry_run:
-        return {"sent": [], "due": [item["what"] for item in due], "waiting": len(items), "offline": False,
+        return {"sent": [], "due": [item["what"] for item in due], "waiting": len(items) + len(recs), "offline": False,
                 "dry_run": True}
-    sent, offline = [], False
+    prune_too_large(root, state, own, data.get("recordings") is True)
+    sent_now, offline = [], False
+    files_held = held_now(state, "files_hold")
     try:
-        way = team_mod.transport_for(data, dev)
+        way = team_mod.transport_for(data, dev) if not held else None
     except team_mod.TeamError:
         way, offline = None, True
     for item in due if way is not None else []:
@@ -500,22 +787,98 @@ def push(root: Path, now: bool = False, dry_run: bool = False) -> dict:
             # another's participant in the lead's first copy keeps the count it came with, so theirs comes after
             n = max(1, int(state["held"].get(what) or 0))
         try:
-            send_one(root, data, dev, way, item, n)
-        except WorkbookError:
+            send_one(root, data, dev, way, item, n, files_held=bool(files_held))
+        except (WorkbookError, FilesHeld):
             continue
-        except Exception:
-            offline = True
+        except Exception as exc:  # noqa: BLE001 - the route's refusal, or no connection
+            word = refused_word(exc)
+            if word == "too_large":
+                state["too_large"][what] = print_key(item["print"])
+                state["too_large_most"] = most_file(way)
+                continue
+            if word and getattr(exc, "on_file", False):
+                # its blob refused: files wait, the versions that fit a message go on
+                files_held = word
+                state["files_hold"] = hold_of(word, exc)
+                continue
+            if word:
+                held = word
+                state["hold"] = hold_of(word, exc)
+            else:
+                offline = True
             break
         if item.get("own", True):
             state["sent"][what] = {"n": n, "print": item["print"], "at": now_iso()}
-        sent.append(what)
-    if not offline and len(sent) == len(due):
-        state["copied"] = others
+        state["too_large"].pop(what, None)
+        if item.get("first"):
+            copying["done"] = sorted(set(copying.get("done") or []) | {what})
+            first_left.discard(what)
+        sent_now.append(what)
+    # a participant whose version was due and did not go sends no recording this pass, so a recording never comes
+    # before the version that makes its folder on another computer (the review's A9)
+    unsent = {item["what"] for item in due} - set(sent_now)
+    recs_left = len(recs)
+    if way is not None and not offline and not held and not files_held:
+        for what, path, rel, sha in recs:
+            if what in unsent:
+                continue
+            try:
+                send_recording(data, dev, way, what, rel, path, sha)
+            except WorkbookError:
+                continue
+            except Exception as exc:  # noqa: BLE001 - the route's refusal, or no connection
+                word = refused_word(exc)
+                if word == "too_large":
+                    state["too_large"][f"{what}\t{rel}"] = sha
+                    state["too_large_most"] = most_file(way)
+                    recs_left -= 1
+                    continue
+                if word and getattr(exc, "on_file", False):
+                    # a recording refused holds recordings and other files alone (the review's A2)
+                    files_held = word
+                    state["files_hold"] = hold_of(word, exc)
+                elif word:
+                    held = word
+                    state["hold"] = hold_of(word, exc)
+                else:
+                    offline = True
+                break
+            kept = state["recordings"].setdefault(what, {})
+            kept["sent"] = dict(kept.get("sent") or {}, **{rel: sha})
+            state["too_large"].pop(f"{what}\t{rel}", None)
+            if rec_fresh:
+                rec_copying.setdefault("done", {})
+                rec_copying["done"][what] = sorted(set(rec_copying["done"].get(what) or []) | {rel})
+            recs_left -= 1
+            # kept after each recording, so a stop during a long upload does not send it again (the review's A10)
+            state["rec_copying"] = rec_copying if rec_fresh else {}
+            save_state(root, state)
+    if not held:
+        state["hold"] = {}
+    if not files_held:
+        state["files_hold"] = {}
+    if fresh:
+        # the computers have every version once each first-copy item has gone, whatever the recordings
+        if not offline and not held and not first_left:
+            state["copied"], state["copying"] = others, {}
+        else:
+            state["copying"] = copying
+    if rec_fresh and recordings:
+        if not offline and not held and not files_held and recs_left == 0:
+            state["rec_copied"], state["rec_copying"] = others, {}
+        else:
+            state["rec_copying"] = rec_copying
     offline = offline or kept_back
     state["failed"] = now_iso() if offline else ""
     save_state(root, state)
-    left = sum(1 for item in items if item.get("own", True) and item["what"] not in sent) + len(read_out(root))
-    return {"sent": sent, "waiting": left, "offline": offline}
+    left = (sum(1 for item in items if item.get("own", True) and item["what"] not in sent_now) + len(read_out(root))
+            + recs_left)
+    return {"sent": sent_now, "waiting": left, "offline": offline, "held": held or files_held}
+
+
+def print_key(print_: dict) -> str:
+    """A version's files' SHA-256s in one line, to know a refused one again until it changes."""
+    return hashlib.sha256(json.dumps({k: v[2] for k, v in sorted((print_ or {}).items())}).encode("utf-8")).hexdigest()
 
 
 # ------------------------------------------------------------------ other builds' messages, sealed and kept until sent
@@ -539,27 +902,37 @@ def write_out(root: Path, held: list[dict]) -> None:
     os.replace(tmp, target)
 
 
-def flush(root: Path, data: dict | None = None) -> tuple[int, bool]:
-    """What `post` kept, sent in order until the transport refuses one. Answers how many went and whether the
-    transport could not be reached."""
+def flush(root: Path, data: dict | None = None, small_only: bool = False) -> tuple[int, bool, str, object]:
+    """What `post` kept, sent in order until the transport refuses one, with `small_only` (while the relay holds
+    what waits) only while the next is small enough to go outside the day's bytes. Answers how many went, whether
+    the transport could not be reached, and the relay's word when it refused one, with the refusal (the review's
+    A7: never taken for no connection, so nothing larger is tried again every look)."""
     data = data or team_on(root)
     if data is None:
-        return 0, False
+        return 0, False, "", None
     with locks.held(Path(root) / team_mod.LOG_DIR / OUT_LOCK):
         held = read_out(root)
         if not held:
-            return 0, False
+            return 0, False, "", None
         team = str(data.get("team") or "")
-        gone, offline = 0, False
+        gone, offline, word, refusal = 0, False, "", None
         try:
             way = team_mod.transport_for(data, team_mod.device() or {})
             for item in held:
-                way.send(team, base64.b64decode(item["sealed"]))
+                sealed = base64.b64decode(item["sealed"])
+                if small_only and len(sealed) > SMALL:
+                    break
+                way.send(team, sealed)
                 gone += 1
-        except Exception:
-            offline = True
-        write_out(root, held[gone:])
-    return gone, offline
+        except Exception as exc:  # noqa: BLE001 - the relay's refusal, or no connection
+            word = refused_word(exc)
+            if word in ("", "too_large"):
+                word, offline = "", True
+            else:
+                refusal = exc
+        if gone:
+            write_out(root, held[gone:])
+    return gone, offline, word, refusal
 
 
 def post(root: Path, kind: str, body: dict) -> dict:
@@ -581,8 +954,13 @@ def post(root: Path, kind: str, body: dict) -> dict:
                                     kind, body)
     with locks.held(Path(root) / team_mod.LOG_DIR / OUT_LOCK):
         write_out(root, read_out(root) + [{"kind": kind, "sealed": base64.b64encode(sealed).decode("ascii")}])
-    _gone, offline = flush(root, data)
-    return {"sent": not offline}
+    flush(root, data, small_only=bool(held_now(load_state(root, strict=False))))
+    # sent when nothing is left kept, this message with the rest
+    try:
+        left = read_out(root)
+    except WorkbookError:
+        left = [None]
+    return {"sent": not left}
 
 
 # ------------------------------------------------------------------ taking in
@@ -603,13 +981,13 @@ def unzipped(raw: bytes, listed: list) -> dict[str, bytes]:
     return out
 
 
-def version_bytes(data: dict, way, body: dict) -> bytes:
+def version_bytes(data: dict, way, body: dict, inner: dict | None = None) -> bytes:
     if body.get("blob"):
         blob = str(body["blob"])
         if not re.fullmatch(r"[0-9a-f]{32}", blob):
             raise team_mod.TeamError(i18n.t("team.refused.tampered"), "tampered")
         team = str(data.get("team") or "")
-        sealed = way.get_blob(team, blob)
+        sealed = fetched_blob(way, team, blob, inner)
         for key in team_mod.project_keys(team).values():
             try:
                 return team_mod.aead_open(key, sealed, blob.encode("ascii"))
@@ -620,6 +998,92 @@ def version_bytes(data: dict, way, body: dict) -> bytes:
         return base64.b64decode(str(body.get("zip") or ""), validate=True)
     except ValueError:
         raise team_mod.TeamError(i18n.t("team.refused.tampered"), "tampered") from None
+
+
+class Later(Exception):
+    """A blob that could not be fetched just now (no connection, the relay's fault): the look stops at its message
+    and leaves it unread, so the relay keeps the blob for the next look. `stuck` when it will not come by trying
+    again (the relay has given this computer the file as often as it gives one), which the page says."""
+
+    def __init__(self, said: str = "", stuck: bool = False):
+        super().__init__(said)
+        self.stuck = stuck
+
+
+def young(inner: dict) -> bool:
+    """A message sent less than LATER_DAYS ago, or one whose time will not read, which is tried again before it is
+    given up."""
+    try:
+        at = datetime.fromisoformat(str(inner.get("sent") or ""))
+    except ValueError:
+        return True
+    if at.tzinfo is None:
+        at = at.replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc) - at < timedelta(days=LATER_DAYS)
+
+
+def fetched_blob(way, team: str, blob: str, inner: dict | None = None) -> bytes:
+    """A sealed blob fetched. One the relay no longer has is dropped as gone. One the shared folder has not brought
+    yet (its small message came first) is tried again later, until the message is LATER_DAYS old (the review's
+    A4), and any other fault is tried again later."""
+    try:
+        return way.get_blob(team, blob)
+    except team_mod.TeamError:
+        raise
+    except Exception as exc:  # noqa: BLE001 - the relay's refusal, no connection, a folder not there
+        status = getattr(exc, "status", None)
+        if getattr(exc, "code", "") == "blob_not_here" and young(inner or {}):
+            raise Later(str(exc)) from None
+        if status == 429 and getattr(exc, "error", "") == "fetched too often":
+            # the relay gives this computer the file no more: the look waits there, and the page says why
+            raise Later("fetched too often", stuck=True) from None
+        if status == 404 or getattr(exc, "code", "") == "blob_not_here":
+            raise team_mod.TeamError(i18n.t("team.refused.tampered"), "blob_gone") from None
+        raise Later(str(exc)) from None
+
+
+def take_recording(root: Path, data: dict, way, inner: dict) -> str:
+    """A recording come on its own: from the member who works on its participant, or the lead, to a path a
+    recording may take, fetched only when this computer has no file with its SHA-256 there, checked and put in
+    place under the participant's lock. Answers "applied", "same" or why it was dropped."""
+    roster = data["roster"]
+    body = inner.get("body") if isinstance(inner.get("body"), dict) else {}
+    what, rel, sha = str(body.get("participant") or ""), str(body.get("name") or ""), str(body.get("sha") or "")
+    blob = str(body.get("blob") or "")
+    base = allowed_folder(root, what)
+    if base is None:
+        return "bad_participant"
+    if not allowed_in_case(rel) or pack_mod.kind_in_case(PurePosixPath(rel)) != "audio" \
+            or not re.fullmatch(r"[0-9a-f]{64}", sha) or not re.fullmatch(r"[0-9a-f]{32}", blob):
+        return "bad_file"
+    sender = str(inner.get("member") or "")
+    if sender not in (owner_of(data, what), str(roster.get("lead") or "")):
+        return "not_owner"
+    target = base / Path(*PurePosixPath(rel).parts)
+    # this member's own recording is never written over here, but one this computer does not have yet (a second
+    # computer of the member's, taking its first copy) is taken (the review's A3)
+    if owner_of(data, what) == str(data.get("member") or "") and target.exists():
+        return "own"
+    try:
+        if target.is_file() and sha256(target) == sha:
+            return "same"
+    except OSError:
+        pass
+    team = str(data.get("team") or "")
+    sealed = fetched_blob(way, team, blob, inner)
+    raw = None
+    for key in team_mod.project_keys(team).values():
+        try:
+            raw = team_mod.aead_open(key, sealed, blob.encode("ascii"))
+            break
+        except team_mod.TeamError:
+            continue
+    if raw is None or hashlib.sha256(raw).hexdigest() != sha:
+        return "tampered"
+    (base / "Working").mkdir(parents=True, exist_ok=True)
+    with srv._lock, locks.held(base / "Working" / locks.NAME):
+        place({rel: raw}, base)
+    return "applied"
 
 
 def place(files: dict[str, bytes], base: Path) -> None:
@@ -702,7 +1166,7 @@ def take_version(root: Path, data: dict, way, inner: dict, state: dict) -> str:
     if not names or any((n_ not in pack_mod.GETS_FILES and not pack_mod.gets_chunk(PurePosixPath(n_).parts)) if gets
                         else not allowed_in_case(n_) for n_ in names):
         return "bad_file"
-    files = unzipped(version_bytes(data, way, body), listed)
+    files = unzipped(version_bytes(data, way, body, inner), listed)
     lock = locks.root_lock(root) if gets else base / "Working" / locks.NAME
     if not gets:
         (base / "Working").mkdir(parents=True, exist_ok=True)
@@ -749,69 +1213,102 @@ def pull(root: Path) -> dict:
     dev = team_mod.device() or {}
     team = str(data.get("team") or "")
     state = load_state(root)
+    if held_now(state) in ("blocked", "closed"):
+        # Cloudflare stops calls before the relay: none is made until the hold can have lifted (the abuse plan's M6)
+        return {"applied": [], "offline": False}
     try:
         way = team_mod.transport_for(data, dev)
         key = way_key(way)
         came = way.fetch(team, int(state["cursors"].get(key) or 0))
     except Exception:
         return {"applied": [], "offline": True}
-    applied, taken = [], []
+    applied, taken, later, stuck = [], [], False, False
+    was = int(state["cursors"].get(key) or 0)
     for seq, sender, raw in came:
+        try:
+            got = take_one(root, data, dev, way, team, state, sender, raw, applied, taken)
+        except Later as exc:
+            # its blob could not be fetched just now: this message and those after it wait for the next look
+            later, stuck = True, exc.stuck
+            state["stuck"] = now_iso() if exc.stuck else ""
+            break
+        if got is not None:
+            data = got
         state["cursors"][key] = max(int(state["cursors"].get(key) or 0), int(seq))
-        if sender and sender == dev.get("id"):
-            continue
-        try:
-            inner = team_mod.open_envelope(raw, data["roster"], team_mod.project_keys(team))
-        except team_mod.TeamError as exc:
-            team_mod.note_dropped(root, exc.code, str(sender or ""))
-            continue
-        if inner.get("device") == dev.get("id"):
-            continue
-        kind = inner.get("kind")
-        if kind in EPOCH_NOW and epoch_of(raw) < int((data["roster"] or {}).get("epoch") or 1):
-            team_mod.note_dropped(root, "old_epoch", str(sender or ""))
-            continue
-        try:
-            if kind == "roster":
-                body = inner.get("body") or {}
-                if isinstance(body.get("n"), int) and body["n"] <= int((data["roster"] or {}).get("n") or 0):
-                    # one this computer had already, in the welcome or by the way it came first
-                    continue
-                team_mod.take_roster(root, body)
-                data = team_on(root) or data
-                continue
-            if kind in ("version", "gets_version"):
-                came_of = take_version(root, data, way, inner, state)
-                if came_of == "applied":
-                    applied.append(GETS if kind == "gets_version" else str(inner["body"]["participant"]))
-                elif came_of not in ("same", "older"):
-                    team_mod.note_dropped(root, came_of, str(inner.get("device") or ""))
-                data = team_on(root) or data
-                continue
-            if kind in TAKEN_HERE:
-                took = TAKEN_HERE[kind](root, data, dev, inner)
-                if took:
-                    taken.append(took)
-                data = team_on(root) or data
-                continue
-            handler = HANDLERS.get(str(kind))
-            if handler is not None:
-                handler(root, data, inner)
-        except team_mod.TeamError as exc:
-            team_mod.note_dropped(root, exc.code, str(inner.get("device") or ""))
-        except WorkbookError as exc:
-            team_mod.note_dropped(root, getattr(exc, "code", "") or "busy", str(inner.get("device") or ""))
-        except Exception:
-            team_mod.note_dropped(root, "could_not_read", str(inner.get("device") or ""))
     save_state(root, state)
     seen = getattr(way, "seen", None)
-    if came and callable(seen):
-        # the shared folder's mark of what this computer has read, so a message all have read is deleted
+    if not later:
+        state["stuck"] = ""
+    if int(state["cursors"].get(key) or 0) > was and callable(seen):
+        # the mark of what this computer has read, so a message all have read is deleted, and the blob it names
         try:
             seen(team, int(state["cursors"].get(key) or 0))
         except Exception:
             pass
-    return {"applied": applied, "taken": taken, "offline": False}
+    return {"applied": applied, "taken": taken, "offline": False, "later": later, "stuck": stuck}
+
+
+def take_one(root: Path, data: dict, dev: dict, way, team: str, state: dict, sender: str, raw: bytes,
+             applied: list, taken: list) -> dict | None:
+    """One message come, opened, checked and taken in, or dropped and noted. Answers team.json when taking it in
+    changed it, or None. Raises Later when its blob could not be fetched just now."""
+    if sender and sender == dev.get("id"):
+        return None
+    try:
+        inner = team_mod.open_envelope(raw, data["roster"], team_mod.project_keys(team))
+    except team_mod.TeamError as exc:
+        team_mod.note_dropped(root, exc.code, str(sender or ""))
+        return None
+    if inner.get("device") == dev.get("id"):
+        return None
+    kind = inner.get("kind")
+    if kind in EPOCH_NOW and epoch_of(raw) < int((data["roster"] or {}).get("epoch") or 1):
+        team_mod.note_dropped(root, "old_epoch", str(sender or ""))
+        return None
+    try:
+        if kind == "roster":
+            body = inner.get("body") or {}
+            if isinstance(body.get("n"), int) and body["n"] <= int((data["roster"] or {}).get("n") or 0):
+                # one this computer had already, in the welcome or by the way it came first
+                return None
+            team_mod.take_roster(root, body)
+            return team_on(root) or data
+        if kind in ("version", "gets_version"):
+            came_of = take_version(root, data, way, inner, state)
+            if came_of == "applied":
+                applied.append(GETS if kind == "gets_version" else str(inner["body"]["participant"]))
+            elif came_of not in ("same", "older"):
+                team_mod.note_dropped(root, came_of, str(inner.get("device") or ""))
+            return team_on(root) or data
+        if kind == "recording":
+            try:
+                came_of = take_recording(root, data, way, inner)
+            except WorkbookError:
+                # the participant's lock busy (the app or an agent writing): a recording has no next version to heal
+                # it, so it is tried again at the next look until the message is days old (the review's A4)
+                if young(inner):
+                    raise Later("busy") from None
+                raise
+            if came_of not in ("applied", "same", "own"):
+                team_mod.note_dropped(root, came_of, str(inner.get("device") or ""))
+            return None
+        if kind in TAKEN_HERE:
+            took = TAKEN_HERE[kind](root, data, dev, inner)
+            if took:
+                taken.append(took)
+            return team_on(root) or data
+        handler = HANDLERS.get(str(kind))
+        if handler is not None:
+            handler(root, data, inner)
+    except Later:
+        raise
+    except team_mod.TeamError as exc:
+        team_mod.note_dropped(root, exc.code, str(inner.get("device") or ""))
+    except WorkbookError as exc:
+        team_mod.note_dropped(root, getattr(exc, "code", "") or "busy", str(inner.get("device") or ""))
+    except Exception:
+        team_mod.note_dropped(root, "could_not_read", str(inner.get("device") or ""))
+    return None
 
 
 # ------------------------------------------------------------------ the other kinds this one loop takes in (landwt)
@@ -855,17 +1352,19 @@ def take_board(root: Path, data: dict, dev: dict, inner: dict) -> str:
 TAKEN_HERE: dict[str, Callable] = {"devices": take_devices, "board": take_board, "answer": take_board}
 
 
-def sync(root: Path, now: bool = False, dry_run: bool = False) -> dict:
-    """One look: what came taken in, then what waits sent. One run at a time for the project."""
+def sync(root: Path, now: bool = False, dry_run: bool = False, pull_too: bool = True) -> dict:
+    """One look: what came taken in, then what waits sent. One run at a time for the project. `pull_too` False
+    sends what waits and asks the route for nothing (the looks while the relay's live socket is up)."""
     if team_on(root) is None:
         return {"applied": [], "sent": [], "waiting": 0, "offline": False}
     if dry_run:
         return dict(push(root, now=now, dry_run=True), applied=[])
     with _RUN, run_lock(root):
-        took = pull(root)
+        took = pull(root) if pull_too else {"applied": [], "offline": False}
         gave = push(root, now=now)
     return {"applied": took["applied"], "taken": took.get("taken") or [], "sent": gave["sent"],
-            "waiting": gave["waiting"], "offline": took["offline"] or gave["offline"]}
+            "waiting": gave["waiting"], "offline": took["offline"] or gave["offline"], "later": took.get("later", False),
+            "stuck": took.get("stuck", False)}
 
 
 # ------------------------------------------------------------------ what the project's page and the agents read
@@ -873,8 +1372,10 @@ def sync(root: Path, now: bool = False, dry_run: bool = False) -> dict:
 def status(root: Path) -> dict | None:
     """Working together on the project's page: None while it is off. On, `tags` by participant label, each
     `{"owner": name}` for a participant another member works on and `{"review": name}` for one of this member's out
-    for review, `arrivals` today, newest first, each `{"name", "participant", "at"}`, `waiting`, how many of his
-    have changed since they went, and `offline`, whether the last try to send found no connection."""
+    for review, `arrivals` today, newest first, each `{"name", "participant", "at"}`, `waiting`, how many of theirs
+    have changed since they went (recordings not yet sent among them), `offline`, whether the last try to send found
+    no connection, `held`, the line saying why the relay holds what waits, and `too_large`, the line naming files too
+    large for the route (relayopen)."""
     data = team_on(root)
     if data is None:
         return None
@@ -912,17 +1413,123 @@ def status(root: Path) -> dict | None:
         held_out = len(read_out(root))
     except WorkbookError:
         held_out = 0
-    count = 0 if alone(roster) else len(waiting(root, data, state)) + held_out
-    return {"tags": tags, "arrivals": arrivals, "waiting": count, "offline": bool(state.get("failed")) and count > 0}
+    count = 0
+    if not alone(roster):
+        own = mine(root, data)
+        count = len(waiting(root, data, state, own)) + held_out
+        for item in own:
+            if item.get("recordings"):
+                seed_recordings(state, item)
+                count += len(recordings_due(state, item, False))
+    held = held_line(data, state) if count > 0 else ""
+    if not held and state.get("stuck"):
+        held = i18n.t("team.held.fetched_too_often")
+    if not held:
+        held = list_refused_line(state)
+    return {"tags": tags, "arrivals": arrivals, "waiting": count, "offline": bool(state.get("failed")) and count > 0,
+            "held": held, "too_large": too_large_line(root, data, state)}
+
+
+def behind_names(data: dict, state_hold: dict) -> str:
+    """The computers the relay said have not fetched what it holds, by their names on the list of people, this one
+    left out: "Kit's MacBook, Sam". "" when it named none this computer knows."""
+    dev = team_mod.device() or {}
+    names = []
+    for m in team_mod.roster_members((data or {}).get("roster") or {}):
+        for d in m.get("devices") or []:
+            if isinstance(d, dict) and d.get("id") in (state_hold.get("behind") or []) and d.get("id") != dev.get("id"):
+                computer = team_mod.one_line(d.get("name"))[:team_mod.NAME_MOST]
+                person = str(m.get("name") or "")
+                names.append(i18n.t("team.held.computer", name=person, computer=computer) if computer else person)
+    return ", ".join(n for n in names if n)
+
+
+def list_refused_line(state: dict) -> str:
+    """The line for the relay's refusal of the list of computers (`list_refused`), "" while there is none. It is
+    said whether or not changes wait, since the computer it names cannot send or read until the list is taken."""
+    refused = state.get("list_refused") or {}
+    if refused.get("word") == "too many removed":
+        return i18n.t("team.held.list_removed")
+    if refused.get("word") == "lists today" and held_now({"hold": {"word": "lists today", "until": refused.get("until")}}):
+        return i18n.t("team.held.list_today")
+    return ""
+
+
+def held_line(data: dict, state: dict) -> str:
+    """Why what waits is held, in one plain line, or "" while nothing holds it (relayopen). A hold of everything is
+    said before a hold of files alone, which it covers."""
+    word = held_now(state)
+    if word == "day":
+        return i18n.t("team.held.day")
+    if word == "day_messages":
+        return i18n.t("team.held.day_messages")
+    if word == "project_full":
+        who = behind_names(data, state.get("hold") or {})
+        return i18n.t("team.held.project_full_who", who=who) if who else i18n.t("team.held.project_full")
+    if word == "relay_full":
+        return i18n.t("team.held.relay_full")
+    if word == "blocked":
+        return i18n.t("team.held.blocked")
+    if word == "closed":
+        return i18n.t("team.held.closed")
+    if word == "nobody":
+        return i18n.t("team.held.nobody")
+    word = held_now(state, "files_hold")
+    if word in ("day", "day_files", "project_files_today"):
+        return i18n.t("team.held.files_day")
+    if word == "files_today":
+        return i18n.t("team.held.files_relay_today")
+    if word == "nobody":
+        return i18n.t("team.held.nobody")
+    if word == "blocked":
+        return i18n.t("team.held.blocked")
+    if word == "closed":
+        return i18n.t("team.held.closed")
+    if word == "project_full":
+        who = behind_names(data, state.get("files_hold") or {})
+        return i18n.t("team.held.files_project_full_who", who=who) if who else i18n.t("team.held.files_project_full")
+    if word == "relay_full":
+        return i18n.t("team.held.files_relay_full")
+    return ""
+
+
+def too_large_line(root: Path, data: dict, state: dict) -> str:
+    """A participant's files or a recording too large for the route, named in one plain line with the route's own
+    limit, or "" for none. A refusal kept for files since changed, gone or no longer sent is not said again."""
+    most = int(state.get("too_large_most") or MOST_FILE) // (1024 * 1024)
+    for what in sorted(state.get("too_large") or {}):
+        folder = what.split("\t", 1)[0]
+        participant = pseudonym(label_of(root, folder)) if folder != GETS else i18n.t("team.cli.gets_board")
+        if (data.get("route") or "relay") == "folder":
+            return i18n.t("team.held.too_large_folder", participant=participant, mb=most)
+        return i18n.t("team.held.too_large", participant=participant, mb=most)
+    return ""
 
 
 # ------------------------------------------------------------------ the server's own looks
 
+def live_now(stop) -> bool:
+    """Whether a route's live socket is up: the relay's says so, and a route with none never is."""
+    return bool(getattr(getattr(stop, "__self__", None), "connected", False))
+
+
 def looks(roots: Callable[[], list]) -> None:
-    """The server's thread: every EVERY seconds, and when a transport says something came, a look at each project
-    worked on together."""
+    """The server's thread: every EVERY seconds what waits is sent, and the route is asked what came. While the
+    relay's live socket is up it is asked only when the socket says something came, when the last look left a
+    message for later, and every LIVE_EVERY seconds besides, so a computer left open does not spend the relay's
+    daily calls (the review's W2). A shared folder is looked at every time."""
     wake = threading.Event()
     stops: dict = {}
+    woken: set = set()
+    asked: dict = {}
+    again: set = set()
+
+    def told(key: str):
+        def on_new():
+            woken.add(key)
+            wake.set()
+        return on_new
+
     while not _THREAD.get("stop"):
         for root in list(roots() or []):
             root = Path(root)
@@ -934,11 +1541,19 @@ def looks(roots: Callable[[], list]) -> None:
                 data = team_on(root)
                 try:
                     way = team_mod.transport_for(data, team_mod.device() or {})
-                    stops[key] = way.listen(str(data.get("team") or ""), wake.set)
+                    stops[key] = way.listen(str(data.get("team") or ""), told(key))
                 except Exception:
                     stops[key] = None
+            ask = (not live_now(stops.get(key)) or key in woken or key in again
+                   or time.monotonic() - asked.get(key, 0.0) >= LIVE_EVERY)
+            woken.discard(key)
             try:
-                sync(root)
+                got = sync(root, pull_too=ask)
+                if ask:
+                    asked[key] = time.monotonic()
+                    # a file the relay will give this computer no more is not asked for at every look: the
+                    # LIVE_EVERY look is enough (review2's L1)
+                    (again.add if got.get("later") and not got.get("stuck") else again.discard)(key)
             except Exception:
                 pass
         wake.wait(EVERY)
@@ -963,11 +1578,13 @@ def start(roots: Callable[[], list]) -> None:
 
 
 def on_quit(roots: Callable[[], list]) -> None:
+    """What waits sent at once, the recordings left for the next look, so quitting never sits uploading them (the
+    review's A10)."""
     _THREAD["stop"] = True
     for root in list(roots() or []):
         try:
             if Path(root).is_dir() and team_on(Path(root)) is not None:
                 with _RUN, run_lock(Path(root)):
-                    push(Path(root), now=True)
+                    push(Path(root), now=True, recordings=False)
         except Exception:
             pass

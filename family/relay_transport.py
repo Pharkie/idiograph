@@ -9,8 +9,10 @@ It has the shape every transport has (transport.py, the keys build's):
     fetch(project_id, after) -> [(n, device, sealed)]    every envelope after n, in order
     listen(project_id, on_new) -> stop                   on_new() whenever something may have come
 
-and what only the relay needs: `make_project` with an operator code, `set_devices` (the lead's list),
-`seen`, blobs and the invite mailbox. It seals nothing: what it is handed is sealed already, and it
+and what only the relay needs: `make_project` (no code since relayopen, 18 November 2026: anyone with the app
+starts one, and the relay keeps its limits), `set_devices` (the lead's list), `seen`, blobs and the invite
+mailbox. A message that carries a blob names it (`send(..., blob=)`), and the relay frees the blob once every
+computer has read that message. It seals nothing: what it is handed is sealed already, and it
 signs each call with the device's Ed25519 key, as relay/src/worker.js checks. Only the standard
 library, and PyCA `cryptography` for the signature, imported when a transport is made so that a
 module importing this one never needs it.
@@ -38,9 +40,12 @@ from typing import Callable
 from urllib.parse import urlsplit
 
 RELAY_URL = "https://idiograph.app/relay/v1"
-# the relay's own limits (relay/src/worker.js, LIMITS), checked here first so a refusal says why
+# the relay's own limits (relay/src/worker.js, LIMITS), checked here first so a refusal says why. A project made
+# before the relay was open keeps the old limit for one file (OLD_LIMITS there): its relay note in the list of
+# people has no `open`
 MAX_MESSAGE = 1536 * 1024
-MAX_BLOB = 200 * 1024 * 1024
+MAX_BLOB = 80 * 1024 * 1024
+MAX_BLOB_OLD = 200 * 1024 * 1024
 MAX_INVITE = 4096
 TIMEOUT = 30
 # how long a live socket stays quiet before it pings, and the longest wait between tries after a fault
@@ -49,14 +54,47 @@ BACKOFF_MOST = 60
 EMPTY = hashlib.sha256(b"").hexdigest()
 
 
+# at most three calls a second from this app to the relay (the abuse plan's M6), shared by every project's transport
+PACE = 1 / 3
+_PACE_LOCK = threading.Lock()
+_PACE_LAST = [0.0]
+
+
+def pace(every: float) -> None:
+    """Waits until `every` seconds have passed since this app's last call to the relay began."""
+    if every <= 0:
+        return
+    with _PACE_LOCK:
+        wait = _PACE_LAST[0] + every - time.monotonic()
+        if wait > 0:
+            time.sleep(wait)
+        _PACE_LAST[0] = time.monotonic()
+
+
+def not_json(status: int, data: bytes) -> str:
+    """The word for an answer that is not the relay's JSON, which Cloudflare sends when it stops a call before the
+    relay: "blocked" for its rate rule's 429, "closed" for a 403, error 1027 (the free plan's day used) or 1103 (a
+    spending limit), else "not the relay"."""
+    text = data[:4096].decode("utf-8", "replace").lower()
+    if "1027" in text or "1103" in text or status == 403:
+        return "closed"
+    if status == 429:
+        return "blocked"
+    return "not the relay"
+
+
 class RelayError(Exception):
     """A call the relay refused or could not take: `status` is its HTTP status (0 when it was never
-    reached) and `error` its one word, such as "removed", "day" or "too large"."""
+    reached) and `error` its one word, such as "removed", "day", "day files", "day messages", "project full",
+    "relay full", "too large", "projects today", "projects from here", "invites today", "slow down", "lists today" or
+    "too many removed". `behind`, with "project full", the devices that have not read the oldest message the relay
+    holds."""
 
-    def __init__(self, status: int, error: str):
+    def __init__(self, status: int, error: str, behind: list | None = None):
         super().__init__(f"relay {status}: {error}")
         self.status = status
         self.error = error
+        self.behind = [str(d) for d in behind or [] if isinstance(d, str)]
 
 
 def b64url(data: bytes) -> str:
@@ -126,6 +164,7 @@ class RelayTransport:
         if body is not None and method in ("POST", "PUT"):
             sent["Content-Length"] = str(length if length is not None else len(body))
             sent.setdefault("Content-Type", "application/octet-stream")
+        pace(self.pace)
         conn = self._connection()
         try:
             conn.request(method, target, body=body if method in ("POST", "PUT") else None, headers=sent)
@@ -140,9 +179,10 @@ class RelayTransport:
             try:
                 parsed = json.loads(data.decode("utf-8"))
             except (UnicodeDecodeError, ValueError):
-                parsed = {"error": "not the relay"}
+                parsed = {"error": not_json(status, data)}
             if status >= 400:
-                raise RelayError(status, str(parsed.get("error", "refused")))
+                behind = parsed.get("behind") if isinstance(parsed, dict) else None
+                raise RelayError(status, str(parsed.get("error", "refused")), behind if isinstance(behind, list) else None)
             return parsed
         return data
 
@@ -152,10 +192,14 @@ class RelayTransport:
 
     # projects and devices --------------------------------------------------------------------------
 
-    def make_project(self, operator_code: str) -> str:
-        """A new project on the relay, this device its lead, made with one of the operator's codes.
-        Answers the relay's random project id (32 hex)."""
-        return self._json("POST", "/projects", {"code": operator_code, "key": b64url(self.public_key)})["project"]
+    def make_project(self, operator_code: str = "") -> str:
+        """A new project on the relay, this device its lead. No code is asked since relayopen: `operator_code` is
+        for the old relay alone, which area 342 runs beside the new one. Answers the relay's random project id (32
+        hex)."""
+        ask = {"key": b64url(self.public_key)}
+        if operator_code:
+            ask["code"] = operator_code
+        return self._json("POST", "/projects", ask)["project"]
 
     def set_devices(self, project_id: str, public_keys: list[bytes], lead: str | None = None) -> dict:
         """The lead's list of every device let in, as raw public keys, this one among them. A device on
@@ -168,11 +212,20 @@ class RelayTransport:
 
     # the transport's shape -------------------------------------------------------------------------
 
-    def send(self, project_id: str, sealed: bytes) -> int:
-        """One sealed envelope to the project's mailbox. Answers the relay's number for it."""
+    # a message names the blob it carries, so the relay frees the blob with the message (team_sync reads this)
+    names_blobs = True
+    # the largest sealed file this relay takes, which TeamRelay narrows to the project's own
+    max_blob = MAX_BLOB_OLD
+    # seconds between this app's calls to the relay at least, the app's own (team_factory sets PACE)
+    pace = 0.0
+
+    def send(self, project_id: str, sealed: bytes, blob: str | None = None) -> int:
+        """One sealed envelope to the project's mailbox, naming `blob` when it carries one put before it. Answers
+        the relay's number for it."""
         if len(sealed) > MAX_MESSAGE:
             raise RelayError(413, "too large")
-        return int(self._call("POST", f"/p/{project_id}/messages", bytes(sealed))["n"])
+        route = f"/p/{project_id}/messages" + (f"?blob={blob}" if blob else "")
+        return int(self._call("POST", route, bytes(sealed))["n"])
 
     def fetch(self, project_id: str, after: int) -> list[tuple[int, str, bytes]]:
         """Every envelope after the relay's number `after`, oldest first, as (n, sender's device id,
@@ -202,23 +255,25 @@ class RelayTransport:
 
     # blobs ------------------------------------------------------------------------------------------
 
-    def put_blob(self, project_id: str, blob: str, sealed) -> int:
+    def put_blob(self, project_id: str, blob: str, sealed, most: int | None = None) -> int:
         """A sealed blob, bytes or the path of a file holding them, under the name `blob` (16 to 64
-        letters, digits, - and _). Answers its size."""
+        letters, digits, - and _), refused here first when over `most`, `max_blob` unless given. Answers its
+        size."""
+        most = self.max_blob if most is None else most
         if isinstance(sealed, (str, Path)):
             path = Path(sealed)
             size = path.stat().st_size
+            if size > most:
+                raise RelayError(413, "too large")
             digest = hashlib.sha256()
             with path.open("rb") as fh:
                 for chunk in iter(lambda: fh.read(1 << 20), b""):
                     digest.update(chunk)
-            if size > MAX_BLOB:
-                raise RelayError(413, "too large")
             with path.open("rb") as fh:
                 return int(self._call("PUT", f"/p/{project_id}/blobs/{blob}", fh, body_hash=digest.hexdigest(), length=size,
                                       headers={"X-Content-SHA256": digest.hexdigest()})["bytes"])
         data = bytes(sealed)
-        if len(data) > MAX_BLOB:
+        if len(data) > most:
             raise RelayError(413, "too large")
         digest = hashlib.sha256(data).hexdigest()
         return int(self._call("PUT", f"/p/{project_id}/blobs/{blob}", data, body_hash=digest,
@@ -227,7 +282,12 @@ class RelayTransport:
     def get_blob(self, project_id: str, blob: str) -> bytes:
         return self._call("GET", f"/p/{project_id}/blobs/{blob}", raw=True)
 
-    # the invite's mailbox, unsigned ----------------------------------------------------------------
+    # the invite's mailbox, opened signed by a computer on the project, then unsigned -------------
+
+    def invite_open(self, project_id: str, invite: str) -> None:
+        """An invite's mailbox opened on the relay by this computer, on the project, so the joiner's answers can be
+        taken there (at most 10 a project a day). Refused, no invite can be answered."""
+        self._call("POST", f"/p/{project_id}/invites/{invite}", b"{}", headers={"Content-Type": "application/json"})
 
     def invite_post(self, invite: str, sealed: bytes) -> int:
         """A sealed join answer to the invite's mailbox (its id, 32 hex, from the invite's secret).
@@ -252,6 +312,8 @@ class _Live(threading.Thread):
         self._sock = None
         self._lock = threading.Lock()
         self.connects = 0
+        # true while the socket is up, so the looks need not ask the relay every few seconds (team_sync.looks)
+        self.connected = False
 
     def stop(self) -> None:
         self._halt.set()
@@ -274,15 +336,21 @@ class _Live(threading.Thread):
     def run(self) -> None:
         wait = 1
         while not self._halt.is_set():
+            before = self.connects
             try:
                 self._session()
-                wait = 1
             except RelayError as exc:
                 if exc.status in (401, 403, 404, 410):
                     wait = BACKOFF_MOST  # refused, not broken: try again rarely
             except (OSError, ValueError):
                 pass
             finally:
+                if self.connects > before:
+                    # a socket that was up and then closed, by the relay (it keeps three a device and closes the
+                    # oldest) or on the way, is waited on a minute, never tried again at once (review2's N3): the
+                    # looks ask every 15 seconds meanwhile
+                    wait = BACKOFF_MOST
+                self.connected = False
                 with self._lock:
                     if self._sock is not None:
                         try:
@@ -330,6 +398,7 @@ class _Live(threading.Thread):
         if accept.encode() not in header:
             raise ValueError("handshake")
         self.connects += 1
+        self.connected = True
         self._tell()
         frames = _Frames(sock, rest)
         sock.settimeout(PING_EVERY)
@@ -403,16 +472,17 @@ class TeamRelay:
     names its sender.
 
     The team layer names a project by its team id, team.json's `team`, which the relay never sees. The relay
-    names it by the id it answered when the lead made it there with an operator code (relaywire, 9 November
-    2026), kept in the lead's signed list of people as `relay.project`, so every member has it. Here the one
+    names it by the id it answered when the lead made it there (relaywire, 9 November 2026), kept in the lead's signed list of people as `relay.project`, so every member has it. Here the one
     becomes the other: a call under the team id goes to the relay's project, refused before it leaves while
     the project has none, and any other id goes as it is."""
 
-    def __init__(self, relay: RelayTransport, team: str = "", project: str = ""):
+    def __init__(self, relay: RelayTransport, team: str = "", project: str = "", open_: bool = True):
         self.relay = relay
         self.device = relay.device
         self.team = team
         self.project = project
+        # a project the lead made since relayopen takes files up to MAX_BLOB, the pilot made before up to the old limit
+        self.max_blob = MAX_BLOB if open_ else MAX_BLOB_OLD
 
     def __getattr__(self, name):
         return getattr(self.relay, name)
@@ -429,11 +499,13 @@ class TeamRelay:
             return self.project
         return project_id
 
-    def send(self, project_id: str, sealed: bytes) -> int:
+    names_blobs = True
+
+    def send(self, project_id: str, sealed: bytes, blob: str | None = None) -> int:
         invite = self._invite(project_id)
         if invite is not None:
             return self.relay.invite_post(invite, sealed)
-        return self.relay.send(self.where(project_id), sealed)
+        return self.relay.send(self.where(project_id), sealed, blob)
 
     def fetch(self, project_id: str, after: int) -> list[tuple[int, str, bytes]]:
         invite = self._invite(project_id)
@@ -453,7 +525,10 @@ class TeamRelay:
         return self.relay.set_devices(self.where(project_id), public_keys, lead)
 
     def put_blob(self, project_id: str, blob: str, sealed) -> int:
-        return self.relay.put_blob(self.where(project_id), blob, sealed)
+        return self.relay.put_blob(self.where(project_id), blob, sealed, self.max_blob)
+
+    def open_invite(self, project_id: str, invite: str) -> None:
+        self.relay.invite_open(self.where(project_id), invite)
 
     def get_blob(self, project_id: str, blob: str) -> bytes:
         return self.relay.get_blob(self.where(project_id), blob)
@@ -475,4 +550,8 @@ def team_factory(device: dict, team: dict) -> TeamRelay:
     seed = base64.b64decode(str(device.get("sign") or ""))
     held = ((team.get("roster") or {}).get("relay") or {}) if isinstance(team.get("roster"), dict) else {}
     project = str(held.get("project") or "") if isinstance(held, dict) else ""
-    return TeamRelay(RelayTransport(seed, relay_url(team)), str(team.get("team") or ""), project)
+    # a note the lead's Idiograph made since relayopen says `open`; the pilot's, made before, does not
+    open_ = not project or bool(held.get("open")) if isinstance(held, dict) else True
+    relay = RelayTransport(seed, relay_url(team))
+    relay.pace = PACE
+    return TeamRelay(relay, str(team.get("team") or ""), project, open_)

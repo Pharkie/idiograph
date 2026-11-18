@@ -16,7 +16,7 @@ the restore point kept before its first change. The researcher reviews them afte
 a run undone).
 
 **The app's alone:** what no undo reaches. An agent's call is refused in a line naming where to do it in the app,
-and nothing waits. This covers sending to another person, Working together's people, keys and relay codes, the app's settings (Your name, the AI
+and nothing waits. This covers sending to another person, Working together's people, keys and its project on the relay, the app's settings (Your name, the AI
 prompt, the AI's provider and model), the API key, the per-project tick (risk 1 and
 4), the app's own AI, and what the app keeps to its screens by choice.
 
@@ -2599,14 +2599,20 @@ sent with a copy. You sign as their computer: never read, copy or print either f
   folder, `team show` says when the folder is not there or a file in it will not open yet (`--json`:
   `folder_state`, `none`, `missing` or `unopened`, with `unopened`, how many). Never read, write or move anything
   in the shared folder's `Idiograph ...` folder yourself: it is sealed, and Idiograph alone writes it.
-- The relay needs a relay code, which only an operator holds, to make the project there once (relaywire, 9
-  November 2026). It is theirs, never yours: `team_on` refuses the relay route, and `team show` says when the project
-  is not on the relay yet (`--json`: `needs_code` true, `on_relay` false). They type the code in Project settings,
-  Relay code, or on the command line `idiograph team on --route relay --code-stdin` (or `team set --code-stdin`),
-  which reads it from the standard input and never as an argument, in a terminal of their own: `team on` and `team
-  set` are the app's alone for an agent, refused with nothing read or changed. Never ask them for it, never pass it on, and
-  never write it anywhere. A team running its own relay gives its address with `--relay-url`, and its invite link
-  carries it. Until the project is on the relay, `team invite` and `team take` are refused.
+- The relay at idiograph.app asks no code. Turning Working together on puts nothing there. The lead's first
+  invite starts the project on the relay, and so does the lead's change of Send through to the relay once others
+  are on the team. Starting it is the researcher's, never yours: `team_on` refuses the relay route, and `team on`,
+  `team set` and `team invite` are the app's alone for an agent. `team show --json` says `on_relay` true once the
+  project is there. A team running its own relay gives its address with `--relay-url`, and its invite link carries
+  it.
+- The relay keeps small limits, and each refusal has its own plain line, which `team send` and the project's page
+  show in place of no connection. A project sends 100 MB a day, of which files take at most 80 MB, and at most a set
+  number of changes and files. One file is at most 80 MB. At most 250 MB of a project waits on the relay, up to 100 MB of it changes. A project
+  with one computer keeps nothing large there. The relay as a whole has ceilings too. A refusal of a message holds
+  what waits, and a refusal of a file holds only files, so the other changes still go. The day's holds lift at
+  midnight UTC, nobody to send to after a minute, the others after an hour, and Cloudflare's own refusals after a minute or an hour. A file over the
+  limit is never sent, with a line naming its participant. Recordings, with `--recordings on`, each travel once and
+  are sent again only when they change.
 - Send through (`--route`) is the lead's alone. From a member `team set` and `team_set` refuse it in a line and write
   nothing, and the lead's change reaches every member's install in the signed list of people.
 - `idiograph team set` (`team_set`): `--route`, `--folder`, `--recordings on|off`, and by the lead
@@ -2671,7 +2677,7 @@ list` marks them `own` ("yours"), their ids start with `o`, and `team board-send
 stay the owner's: a change to one of them, or to the Current board or the PETs mark, is refused as above.
 
 Each write takes `--dry-run` and goes into the project's History with their request. Turning it on or off, its
-settings and relay code, an invite, a join, a match, a removal, Make lead, Send now and a board sent or answered are
+settings, an invite, a join, a match, a removal, Make lead, Send now and a board sent or answered are
 the app's alone, an agent's refused with its dry run answering (risk 1, steering, and 4, standing access): they reach
 other people, and who can read the project outlives the conversation. An invite already used, or more than seven days old, is refused.
 
@@ -2791,7 +2797,7 @@ nothing waiting, and its dry run still answers:
 | Op | Why | Risk |
 |---|---|---|
 | `project send` | it goes to another person | 1, steering |
-| `team on`, `team set`, `team invite`, `team admit`, `team join`, `team joined`, `team remove`, `team lead` | who can read the project, its keys and relay code | 4, standing access |
+| `team on`, `team set`, `team invite`, `team admit`, `team join`, `team joined`, `team remove`, `team lead` | who can read the project and its keys | 4, standing access |
 | `team send`, `team board-send`, `team board-answer`, `team ask`, `team review-send`, `team reply`, `team thread`, `team review-done`, `team suggestion-answer` | it reaches a teammate | 1, steering |
 | `settings` with an option | the app's own, no project's, so no restore point holds it | 4, standing access |
 

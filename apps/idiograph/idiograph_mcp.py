@@ -1841,8 +1841,9 @@ def arguments(t: dict, given: dict, args):
         args.owner = [f"{who}={name}" for who, name in owners.items()] or None
         if act == "on" and not args.route:
             args.route = "relay"
-        # the relay needs his relay code, which no agent is given, so team_on refuses it (relaywire)
-        args.code_stdin, args.relay_url = False, None
+        # a project on the relay is the researcher's to start, so team_on refuses the relay route, and a team's own
+        # relay's address is theirs to give, in the app or the command line (relaywire, relayopen)
+        args.relay_url = None
         args.agent_relay = act == "on" and not args.off and args.route == "relay"
         # a reviewer's board (wtboard, 9 November 2026)
         args.case, args.board, args.ref = given.get("case"), given.get("board"), given.get("ref")

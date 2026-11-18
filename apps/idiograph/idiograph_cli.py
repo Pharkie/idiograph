@@ -1810,8 +1810,6 @@ def team_lines(view: dict) -> list[str]:
         lines.append("  " + i18n.t("team.page.folder_missing"))
     elif view.get("folder_state") == "unopened":
         lines.append("  " + i18n.t("team.page.folder_unopened", n=view.get("unopened") or 0))
-    if view.get("needs_code"):
-        lines.append("  " + i18n.t("team.cli.needs_code"))
     names = {p["id"]: p["name"] for p in view["people"]}
     for p in view["people"]:
         roles = [i18n.t("team.cli.lead")] if p["lead"] else []
@@ -1864,7 +1862,7 @@ def cmd_team_on(p: Project, args) -> tuple:
     """Working together turned on, or with --off turned off, as the tick in Project settings does. The first time it
     makes this computer's keys and the team, with him as its lead under --name."""
     if getattr(args, "agent_relay", False):
-        # an operator code is his, never an agent's (relaywire, 9 November 2026)
+        # a project on the relay is the researcher's to start, never an agent's (relaywire, relayopen)
         raise cli.Refused(i18n.t("team.cli.agent_relay"))
     if args.off:
         answer, lines, done = team_writes(p, args, {"op": "off"})
@@ -1872,17 +1870,8 @@ def cmd_team_on(p: Project, args) -> tuple:
         body = {"op": "on", "name": args.name or "", "route": args.route, "folder": args.folder or ""}
         if getattr(args, "relay_url", None):
             body["relay_url"] = args.relay_url
-        answer, lines, done = team_writes(p, args, dict(body, **relay_code(args)))
+        answer, lines, done = team_writes(p, args, body)
     return answer, lines + ([] if args.dry_run else team_lines(done["team"]))
-
-
-def relay_code(args) -> dict:
-    """The relay code read from the standard input with --code-stdin, its first line, never an argument, so it is
-    in no shell history and no log: `{"code": ...}`, or nothing without --code-stdin."""
-    if not getattr(args, "code_stdin", False):
-        return {}
-    import sys
-    return {"code": sys.stdin.readline().strip()}
 
 
 def cmd_team_set(p: Project, args) -> tuple:
@@ -1899,7 +1888,6 @@ def cmd_team_set(p: Project, args) -> tuple:
         body["owners"] = dict(pair.split("=", 1) for pair in args.owner if "=" in pair)
     if args.gets_owner:
         body["gets_owner"] = args.gets_owner
-    body.update(relay_code(args))
     if len(body) == 1:
         raise cli.Refused(i18n.t("team.cli.no_ask"))
     answer, lines, done = team_writes(p, args, body)
@@ -1972,8 +1960,14 @@ def cmd_team_send(p: Project, args) -> tuple:
         lines.append(i18n.t("team.cli.came_in", what=team_what(done["applied"], view)))
     lines.append(i18n.t("team.cli.sent", what=team_what(done["sent"], view)) if done.get("sent")
                  else i18n.t("team.cli.nothing_sent"))
-    if done.get("offline") and done.get("waiting"):
+    held = (done.get("sync") or {}).get("held") or ""
+    if held:
+        # the relay's own reason, never "no connection" (relayopen)
+        lines.append(held)
+    elif done.get("offline") and done.get("waiting"):
         lines.append(i18n.t("team.cli.waiting", n=done["waiting"]))
+    if (done.get("sync") or {}).get("too_large"):
+        lines.append(done["sync"]["too_large"])
     return answer, lines
 
 
@@ -9849,8 +9843,6 @@ def arguments(sub, common, writes) -> None:
                    help="what it sends through, the relay or a shared folder")
     x.add_argument("--folder", default=None, help="the shared folder, for --route folder")
     x.add_argument("--off", action="store_true", help="turn it off in place of on: nothing more sent or taken in")
-    x.add_argument("--code-stdin", dest="code_stdin", action="store_true",
-                   help="read the relay code from the standard input, its first line, to make the project on the relay")
     x.add_argument("--relay-url", dest="relay_url", default=None,
                    help="a relay the team runs itself, its address ending /relay/v1, in place of idiograph.app's")
     x = tm.add_parser("set", parents=[common, writes],
@@ -9861,8 +9853,6 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--owner", action="append", default=None, metavar="PARTICIPANT=NAME",
                    help="who works on a participant, given again for each one more")
     x.add_argument("--gets-owner", dest="gets_owner", default=None, help="who works on the GETs board")
-    x.add_argument("--code-stdin", dest="code_stdin", action="store_true",
-                   help="read the relay code from the standard input, its first line, to make the project on the relay")
     x = tm.add_parser("invite", parents=[common, writes],
                       help="an invite, a link and twelve words, for someone new, working once for seven days")
     x.add_argument("--own", action="store_true", help="for another computer of yours in place of someone new")

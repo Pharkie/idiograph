@@ -11,6 +11,7 @@ import json
 import os
 import shutil
 import threading
+import time
 from pathlib import Path
 
 from .support import check
@@ -69,7 +70,8 @@ def test_team_folder(scratch: Path):
 
     try:
         # 1. the folder route registered, and a folder that is not there refused in plain words and said on the page
-        call(lead, op="on", name="Hazel")
+        # turned on through the folder at once: on through the relay would start a project there (relayopen)
+        call(lead, op="on", name="Hazel", route="folder")
         call(lead, op="set", route="folder", folder=str(shared.parent / "Not synced yet"))
         shown = call(lead, op="show")["team"]
         try:
@@ -85,7 +87,7 @@ def test_team_folder(scratch: Path):
 
         # 2. invite, join and match, all through the folder
         call(lead, op="set", folder=str(shared))
-        call(joiner, op="on", name="Rowan")
+        call(joiner, op="on", name="Rowan", route="folder")
         call(joiner, op="set", route="folder", folder=str(shared))
         made = call(lead, op="invite")
         joined = call(joiner, op="join", words=made["words"], name="Rowan")
@@ -102,6 +104,18 @@ def test_team_folder(scratch: Path):
               and joiner_data["team"] == lead_data["team"] and joiner_data["route"] == "folder"
               and team.project_key(lead_data["team"], 1) == team.project_key(joiner_data["team"], 1)
               and len(answers_in) == 4 and all(n.endswith(".join") for n in answers_in), str(answers_in))
+
+        # an invite's file is sealed bytes, so one whose random first byte is "{" (1 in 256) is still whole: it was
+        # once held back as an envelope that would not parse, and a join or welcome never came (fix353)
+        brace_box = team_dir / "invites" / ("ab" * 8)
+        brace_box.mkdir()
+        brace = b"{" + bytes(range(60))
+        (brace_box / f"{time.time_ns()}-{'cd' * 8}.join").write_bytes(brace)
+        at(joiner)
+        got_brace = joiner_way.__class__(joiner_dev["id"], str(shared), scratch / "team-353-brace").fetch(
+            ft.INVITE_PREFIX + "ab" * 8, 0)
+        check("353: an invite's sealed file whose first byte is a brace is read whole, not held back as a broken "
+              "envelope", [d for _k, _s, d in got_brace] == [brace], str(len(got_brace)))
 
         # 3. messages both ways, the same bytes as an envelope, under the sender's own folder
         tid = lead_data["team"]
@@ -244,6 +258,32 @@ def test_team_folder(scratch: Path):
               and digest(copy) == digest(case / "P1 Sloe - EN & ES.xlsx") != "" and newest
               and mark.get(lead_dev["id"]) == newest,
               json.dumps({"went": went, "took": took, "mark": mark, "newest": newest}))
+
+        # 9. a version too large for a message goes as a blob through the folder and is taken in whole (review2's
+        # N1: every version over INLINE_MOST was dropped as could_not_read)
+        case2 = lead["root"] / "P2 - Haw"
+        (case2 / "Working").mkdir(parents=True)
+        shutil.copy2(pristine / "Juno - EN & ES.xlsx", case2 / "P2 Haw - EN & ES.xlsx")
+        shutil.copy2(pristine / "Working" / "Juno - EN & ES.progress.json",
+                     case2 / "Working" / "P2 Haw - EN & ES.progress.json")
+        blob_dir = team_dir / "devices" / lead_dev["id"] / "blobs"
+        blobs_before = len(list(blob_dir.glob("*.sealed")))
+        inline = team_sync.INLINE_MOST
+        team_sync.INLINE_MOST = 1024
+        try:
+            at(lead)
+            went_big = team_sync.sync(lead["root"], now=True)
+        finally:
+            team_sync.INLINE_MOST = inline
+        blobs_after = len(list(blob_dir.glob("*.sealed")))
+        at(joiner)
+        took_big = team_sync.sync(joiner["root"])
+        copy2 = joiner["root"] / "P2 - Haw" / "P2 Haw - EN & ES.xlsx"
+        check("353: a version too large for a message goes through the shared folder as a sealed blob, and the "
+              "joiner's look fetches the blob and takes the participant in whole",
+              "P2 - Haw" in went_big["sent"] and blobs_after > blobs_before and took_big["applied"] == ["P2 - Haw"]
+              and digest(copy2) == digest(case2 / "P2 Haw - EN & ES.xlsx") != "",
+              json.dumps({"went": went_big, "took": took_big, "blobs": [blobs_before, blobs_after]}))
     finally:
         (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, team.DEVICE_PATH, transport.OVERRIDE, env, ft.POLL,
          ft._Watch.TICK) = kept

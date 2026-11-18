@@ -123,6 +123,9 @@ class FolderTransport:
     the caller wants (FolderError by default), and `team` this install's project id, where an invite it makes has
     its mailbox."""
 
+    # the largest sealed file the folder takes, which team_sync checks before it reads a recording (relayopen)
+    max_blob = MAX_BLOB
+
     def __init__(self, device: str, folder, state, peers: list[str] | None = None,
                  refuse: Callable[[str, str], None] | None = None, team: str = ""):
         if not DEVICE.match(str(device or "")):
@@ -254,8 +257,10 @@ class FolderTransport:
             for k, path in enumerate(self._invite_files(box), 1):
                 if k <= after:
                     continue
-                data = self._read(path)
-                if data is None:
+                # an invite's files are sealed bytes with a random first byte, so one that begins with "{" (1 in 256)
+                # is not an envelope that must parse: it is whole when it is at least a nonce and a tag long
+                data = self._read(path, whole=False)
+                if data is None or len(data) < 40:
                     break
                 out.append((k, "", data))
             return out

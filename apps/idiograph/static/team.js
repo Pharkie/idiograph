@@ -9,7 +9,8 @@
    opening, what has come for the list of people taken in (`take`). */
 
 const WT = { p: null, view: null, yourName: '', poll: null, invite: null, joining: null };
-const WT_POLL_MS = 2000;
+// the invite and join cards ask about every 10 seconds, well inside the relay's 30 invite calls a minute from one address
+const WT_POLL_MS = 10000;
 
 function wtSaid(text, failed = false) {
   saidIn('wt-said', text || '', failed);
@@ -68,10 +69,6 @@ function wtDraw(view) {
     b.disabled = !view.you_lead;
   });
   $('wt-path').hidden = view.route !== 'folder';
-  // the relay code, the lead's alone, while the relay is chosen and the project is not on it yet (relaywire)
-  $('wt-code-row').hidden = !view.needs_code;
-  $('wt-code-line').hidden = !view.needs_code;
-  if (!view.needs_code) $('wt-relay-code').value = '';
   if (view.folder) $('wt-folder').innerHTML = pathHtml(view.folder);
   else $('wt-folder').textContent = t('team.page.no_folder');
   wtFolderSaid(view);
@@ -249,16 +246,6 @@ async function wtCall(body) {
 
 const wtSet = (changes) => wtCall({ op: 'set', ...changes });
 
-/* Connect: the relay code to the relay once, through the server, and the field emptied whatever the answer, so the
-   code stays nowhere on the page */
-async function wtCode() {
-  const code = $('wt-relay-code').value.trim();
-  $('wt-relay-code').value = '';
-  if (!code) { $('wt-relay-code').focus(); return; }
-  $('wt-code-go').disabled = true;
-  try { await wtSet({ code }); } finally { $('wt-code-go').disabled = false; }
-}
-
 /* the tick: on, with his name the first time when Settings holds none, or off */
 async function wtTick() {
   if (!$('wt-on').checked) {
@@ -416,8 +403,6 @@ function wtWire() {
     b.onclick = () => { if (!b.classList.contains('on')) wtSet({ route: b.dataset.route }); };
   });
   $('wt-choose').onclick = wtChoose;
-  $('wt-code-go').onclick = wtCode;
-  $('wt-relay-code').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); wtCode(); } });
   $('wt-recordings').addEventListener('change', () => wtSet({ recordings: $('wt-recordings').checked }));
   $('wt-invite').onclick = () => wtInvite(false);
   $('wt-own').onclick = () => wtInvite(true);
@@ -466,7 +451,10 @@ function wtPageDraw(team) {
     said.push(['', WT_DOWN, came.gets ? t('team.page.came_in_gets', { name: came.name, time: at })
       : t('team.page.came_in', { name: came.name, participant: came.participant, time: at })]);
   }
-  if (team.offline && team.waiting > 0) said.push(['wt-wait', WT_UP, t('team.page.waiting', { n: team.waiting })]);
+  // why what waits has not gone: the relay's own reason in its line (relayopen), else no connection
+  if (team.held) said.push(['wt-wait', WT_UP, team.held]);
+  else if (team.offline && team.waiting > 0) said.push(['wt-wait', WT_UP, t('team.page.waiting', { n: team.waiting })]);
+  if (team.too_large) said.push(['wt-wait', WT_UP, team.too_large]);
   for (const [cls, icon, text] of said) {
     const span = document.createElement('span');
     if (cls) span.className = cls;

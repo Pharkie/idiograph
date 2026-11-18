@@ -3,7 +3,8 @@ that evening about 19:10: all the spec's defaults, what came in and what waits u
 scratch installs in one process, each its own settings folder, device file and project, paired over the loopback
 transport, then once more through the relay run on this computer under Miniflare as area 342 runs it.
 
-What matters: a new member gets a first full copy, a recording over a message's size going as a sealed blob. The
+What matters: a new member gets a first full copy, a recording going as a sealed blob of its own, and a recording
+travels once, sent again only when it changes (relayopen). The
 lead's change to his participant reaches the member's copy, as a change made elsewhere, and the member's write to
 it is refused, the app's route and the GETs file alike, while an export still works. The member's change to the
 participant he works on goes a minute after his last save, or at once on Send now, and comes in at the lead's. A
@@ -239,6 +240,75 @@ def test_team_owners(scratch: Path):
               and [(a["name"], a["participant"]) for a in page["arrivals"]] == [("Ada", "Wren")]
               and not list((member["root"] / "P1 - Wren" / "Working").glob(".*.incoming")), json.dumps(page))
 
+        # 3a. a recording travels once (relayopen, Adam's ruling of 18 November 2026): Wren changed twice more, its
+        # recording not sent again, and a changed recording sent once more, to a member who then has it
+        blobs_after_copy = len(hub.blobs)
+        mark(lead, 1, "Wren")
+        call(lead, op="send")
+        call(member, op="send")
+        mark(lead, 1, "Wren", op="reopen")
+        twice = call(lead, op="send")
+        took_twice = call(member, op="send")
+        unchanged = len(hub.blobs)
+        recording.write_bytes(os.urandom(900 * 1024))
+        at(lead)
+        waits = team_sync.status(lead["root"])["waiting"]
+        changed = call(lead, op="send")
+        call(member, op="send")
+        check("349: a recording travels once: Wren changed twice more goes twice with no recording sent again, and only "
+              "when the recording itself changes is it sent, once, and the member then has it",
+              blobs_after_copy == 1 and twice["sent"] == ["P1 - Wren"] and took_twice["applied"] == ["P1 - Wren"]
+              and unchanged == 1 and waits == 1 and changed["sent"] == [] and len(hub.blobs) == 2
+              and sha(recording) == sha(member["root"] / "P1 - Wren" / "P1 Wren.m4a"),
+              json.dumps({"copy": blobs_after_copy, "twice": twice.get("sent"), "unchanged": unchanged, "waits": waits,
+                          "changed": changed.get("sent"), "blobs": len(hub.blobs), "lead": trace(lead)}))
+
+        # 3b. the relay's refusal kept and said (relayopen): the day's bytes used holds what waits until midnight UTC,
+        # the page says why in place of no connection, and the next look tries nothing more
+        class DayUsed(Exception):
+            status, error = 429, "day"
+
+        tries = []
+
+        class Full:
+            def send(self, *_a, **_k):
+                tries.append("send")
+                raise DayUsed()
+
+            def put_blob(self, *_a, **_k):
+                tries.append("blob")
+                raise DayUsed()
+
+            def fetch(self, *_a):
+                return []
+
+            def listen(self, *_a):
+                return lambda: None
+
+        transport.OVERRIDE = lambda dev, data: Full()
+        try:
+            mark(lead, 1, "Wren")
+            first = call(lead, op="send")
+            at(lead)
+            held_page = team_sync.status(lead["root"])
+            tried = len(tries)
+            again = call(lead, op="send")
+            at(lead)
+            state = team_sync.load_state(lead["root"])
+        finally:
+            transport.OVERRIDE = loop
+        check("349: the relay's refusal of the day's bytes holds what waits until midnight UTC: the page says so in its "
+              "own line, not as no connection, and the next look tries nothing more",
+              first["sent"] == [] and tried == 1 and len(tries) == 1 and again["sent"] == []
+              and held_page["held"] == i18n.t("team.held.day") and held_page["waiting"] >= 1
+              and state["hold"].get("word") == "day" and state["hold"].get("until", "").endswith("T00:00:00+00:00"),
+              json.dumps({"first": first.get("sent"), "tries": tries, "page": held_page, "hold": state.get("hold")}))
+        state["hold"] = {}
+        team_sync.save_state(lead["root"], state)
+        mark(lead, 1, "Wren", op="reopen")
+        call(lead, op="send")
+        call(member, op="send")
+
         # 4. the member's own participant goes a minute after his last save, or at once on Send now
         mark(member, 2, "Fern", op="reopen")
         team_sync.WAIT = 600
@@ -366,10 +436,267 @@ def test_team_owners(scratch: Path):
               json.dumps({"added": added.get("cases"), "own": own_said, "sent": gone.get("sent"),
                           "applied": took.get("applied"), "lead": lead_said}))
 
+        # 6c. the app's paths when the relay says no or a file cannot be had (relayfix, the review's T5)
+        app_paths(lead, member, call, mark, at, hub, loop)
+
         # 7. through the relay, run on this computer as area 342 runs it
         relay_part(scratch, lead, member, call, mark, sha, book, progress, at)
     finally:
         (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, team.DEVICE_PATH, transport.OVERRIDE, team_sync.WAIT) = kept
+
+
+class Refusal(Exception):
+    """The relay's refusal as relay_transport raises it: a status, a word, and the computers behind."""
+
+    def __init__(self, status, error, behind=None):
+        super().__init__(error)
+        self.status, self.error, self.behind = status, error, behind or []
+
+
+class Wrap:
+    """The loopback with some of its calls changed for one check."""
+
+    def __init__(self, inner, **changed):
+        self.inner, self.changed = inner, changed
+        self.tries = []
+
+    def __getattr__(self, name):
+        if name in self.changed:
+            def call(*a, **k):
+                self.tries.append(name)
+                return self.changed[name](*a, **k)
+            return call
+        return getattr(self.inner, name)
+
+
+class Loopback(Wrap):
+    """The wrapper under the loopback's own name, so the look keeps the loopback's count of what it has read
+    (team_sync.way_key names a route's count by its class)."""
+
+
+def app_paths(lead, member, call, mark, at, hub, loop):
+    import i18n
+    import team
+    import team_sync
+    import transport
+    from workbook import WorkbookError
+    recording = lead["root"] / "P1 - Wren" / "P1 Wren.m4a"
+    there = member["root"] / "P1 - Wren" / "P1 Wren.m4a"
+
+    def state_of(who):
+        at(who)
+        return team_sync.load_state(who["root"])
+
+    def files_refused(*_a, **_k):
+        raise Refusal(429, "day files")
+
+    # a. a recording refused for the day's files holds files alone: the version of the same change still goes, the
+    # line says so, and the next look tries no file while a later change still goes (A2)
+    way = Loopback(None, put_blob=files_refused)
+    transport.OVERRIDE = lambda dev, data: (setattr(way, "inner", loop(dev, data)) or way)
+    try:
+        recording.write_bytes(os.urandom(700 * 1024))
+        mark(lead, 1, "Wren", op="reopen")
+        first = call(lead, op="send")
+        at(lead)
+        page = team_sync.status(lead["root"])
+        blob_tries = way.tries.count("put_blob")
+        mark(lead, 1, "Wren")
+        second = call(lead, op="send")
+        hold = state_of(lead)["files_hold"]
+    finally:
+        transport.OVERRIDE = loop
+    check("349: a recording refused for the day's files holds files alone: the change to Wren still goes, the page "
+          "says the files wait in their own line, and the next look tries no file while a later change goes",
+          first["sent"] == ["P1 - Wren"] and second["sent"] == ["P1 - Wren"] and blob_tries == 1
+          and way.tries.count("put_blob") == 1 and page["held"] == i18n.t("team.held.files_day")
+          and hold.get("word") == "day_files" and hold.get("until", "").endswith("T00:00:00+00:00"),
+          json.dumps({"first": first, "second": second, "tries": way.tries, "page": page, "hold": hold}))
+    st = state_of(lead)
+    st["files_hold"] = {}
+    team_sync.save_state(lead["root"], st)
+    call(lead, op="send")
+    call(member, op="send")
+
+    # b. the project full holds what waits an hour, and the line names the computer that has not fetched (item 4)
+    at(member)
+    bo_device = team.device()["id"]
+
+    def project_full(*_a, **_k):
+        raise Refusal(429, "project full", [bo_device])
+    way = Loopback(None, send=project_full)
+    transport.OVERRIDE = lambda dev, data: (setattr(way, "inner", loop(dev, data)) or way)
+    try:
+        mark(lead, 1, "Wren", op="reopen")
+        call(lead, op="send")
+        at(lead)
+        page = team_sync.status(lead["root"])
+        hold = state_of(lead)["hold"]
+    finally:
+        transport.OVERRIDE = loop
+    check("349: the relay holding as much of the project as it keeps holds what waits for an hour, and the page names "
+          "the computer that has not fetched it, so the lead knows which to remove",
+          hold.get("word") == "project_full" and hold.get("behind") == [bo_device]
+          and not hold.get("until", "").endswith("T00:00:00+00:00") and "Bo" in page["held"]
+          and page["held"].startswith(i18n.t("team.held.project_full_who", who="Bo").split("Bo")[0]),
+          json.dumps({"page": page, "hold": hold}))
+    st = state_of(lead)
+    st["hold"] = {}
+    team_sync.save_state(lead["root"], st)
+    call(lead, op="send")
+    call(member, op="send")
+
+    # c. a recording over the route's limit is never read or sent, said in its line, and the line goes with the file
+    # (A6, A12)
+    small = Loopback(None)
+    small.max_blob = 1024 * 1024
+    transport.OVERRIDE = lambda dev, data: (setattr(small, "inner", loop(dev, data)) or small)
+    try:
+        recording.write_bytes(os.urandom(1300 * 1024))
+        at(lead)
+        big = team_sync.sync(lead["root"], now=True)
+        at(lead)
+        line = team_sync.status(lead["root"])["too_large"]
+        kept = dict(state_of(lead)["too_large"])
+        recording.unlink()
+        at(lead)
+        team_sync.sync(lead["root"], now=True)
+        at(lead)
+        line_after = team_sync.status(lead["root"])["too_large"]
+    finally:
+        transport.OVERRIDE = loop
+    check("349: a recording over the route's limit is not sent, its line names the participant and the limit, and "
+          "once the file is gone the line goes",
+          not big["sent"] and list(kept) == ["P1 - Wren\tP1 Wren.m4a"]
+          and line == i18n.t("team.held.too_large", participant="Wren", mb=1) and line_after == "",
+          json.dumps({"big": big, "line": line, "after": line_after, "kept": kept}))
+
+    # d. a recording whose file cannot be fetched just now, and one whose participant's lock is busy, stop the look
+    # with the cursor unmoved, and the next look takes it (the cursor's part of H3, A4)
+    recording.write_bytes(os.urandom(800 * 1024))
+    call(lead, op="send")
+    before = dict(state_of(member)["cursors"])
+
+    def no_connection(*_a, **_k):
+        raise OSError("no connection")
+    way = Loopback(None, get_blob=no_connection)
+    transport.OVERRIDE = lambda dev, data: (setattr(way, "inner", loop(dev, data)) or way)
+    try:
+        call(member, op="send")
+        unfetched = dict(state_of(member)["cursors"])
+    finally:
+        transport.OVERRIDE = loop
+    placed = team_sync.place
+    busy_once = []
+
+    def busy(files, base):
+        if not busy_once:
+            busy_once.append(1)
+            raise WorkbookError("busy", code="busy")
+        return placed(files, base)
+    team_sync.place = busy
+    try:
+        call(member, op="send")
+        busy_cursors = dict(state_of(member)["cursors"])
+        arrived_busy = there.is_file() and there.read_bytes() == recording.read_bytes()
+        call(member, op="send")
+    finally:
+        team_sync.place = placed
+    check("349: a recording that cannot be fetched just now, or whose participant is busy, leaves the look's cursor "
+          "where it was, and the next look takes it in",
+          unfetched == before and busy_cursors == before and not arrived_busy
+          and there.read_bytes() == recording.read_bytes(),
+          json.dumps({"before": before, "unfetched": unfetched, "busy": busy_cursors}))
+
+    # e. a dry run sends nothing and rewrites nothing, the outbox kept by other builds included (A15)
+    transport.OVERRIDE = lambda dev, data: Loopback(loop(dev, data), send=no_connection)
+    try:
+        at(lead)
+        team_sync.post(lead["root"], "seen", {"what": "a check's message"})
+    finally:
+        transport.OVERRIDE = loop
+    out = lead["root"] / team.LOG_DIR / team_sync.OUT_FILE
+    kept_out, boxes = out.read_bytes(), json.dumps({k: len(v) for k, v in hub.boxes.items()}, sort_keys=True)
+    at(lead)
+    dry = team_sync.sync(lead["root"], now=True, dry_run=True)
+    check("349: a dry run sends nothing, not even what other builds kept to send, and rewrites nothing",
+          dry.get("dry_run") is True and out.read_bytes() == kept_out
+          and json.dumps({k: len(v) for k, v in hub.boxes.items()}, sort_keys=True) == boxes, json.dumps(dry))
+    call(lead, op="send")
+    call(member, op="send")
+
+    # f. a first full copy stopped partway goes on, and what changes meanwhile of what it has sent goes too (A1)
+    st = state_of(lead)
+    others = list(st["copied"])
+    st["copied"], st["copying"] = [], {"for": others, "done": ["P1 - Wren"]}
+    team_sync.save_state(lead["root"], st)
+    mark(lead, 1, "Wren")
+    resumed = call(lead, op="send")
+    after = state_of(lead)
+    check("349: a first full copy stopped partway sends what it had not sent, and a change since to what it had "
+          "sent goes as well, the copy then done",
+          "P1 - Wren" in resumed["sent"] and "P2 - Fern" in resumed["sent"] and "gets" in resumed["sent"]
+          and after["copied"] == others
+          and after["copying"] == {}, json.dumps({"sent": resumed.get("sent"), "copying": after.get("copying")}))
+    call(member, op="send")
+
+    # g. Cloudflare's own refusals, HTML and not the relay's JSON, are a hold with a line of their own: its rate rule
+    # for a minute, a closed relay (its day used, error 1027) for an hour, and no call to the relay meanwhile (H8)
+    import relay_transport as rt
+    words = (rt.not_json(429, b"<html>You are being rate limited</html>"),
+             rt.not_json(503, b"<html>error code: 1027</html>"), rt.not_json(502, b"<html>bad gateway</html>"))
+    out = {}
+    for word in ("blocked", "closed"):
+        def stopped(*_a, word=word, **_k):
+            raise Refusal(429 if word == "blocked" else 503, word)
+        way = Loopback(None, send=stopped, put_blob=stopped, fetch=stopped)
+        transport.OVERRIDE = lambda dev, data, way=way: (setattr(way, "inner", loop(dev, data)) or way)
+        try:
+            mark(lead, 1, "Wren", op="reopen")
+            call(lead, op="send")
+            at(lead)
+            page = team_sync.status(lead["root"])
+            hold = state_of(lead)["hold"]
+            tried = len(way.tries)
+            call(lead, op="send")
+            out[word] = (page["held"], hold.get("word"), hold.get("until", ""), len(way.tries) - tried)
+        finally:
+            transport.OVERRIDE = loop
+        st = state_of(lead)
+        st["hold"] = {}
+        team_sync.save_state(lead["root"], st)
+    from datetime import datetime, timezone
+    left = {w: (datetime.fromisoformat(v[2]) - datetime.now(timezone.utc)).total_seconds() for w, v in out.items()}
+    check("349: a page from Cloudflare in place of the relay's answer is read as its rate rule or the relay closed, "
+          "each holds what waits with a line of its own, a minute and an hour, and no call goes meanwhile",
+          words == ("blocked", "closed", "not the relay")
+          and out["blocked"][:2] == (i18n.t("team.held.blocked"), "blocked") and 0 < left["blocked"] <= 60
+          and out["closed"][:2] == (i18n.t("team.held.closed"), "closed") and 60 < left["closed"] <= 3600
+          and out["blocked"][3] == 0 and out["closed"][3] == 0, json.dumps({"words": words, "out": out}))
+    mark(lead, 1, "Wren")
+    call(lead, op="send")
+    call(member, op="send")
+
+    # h. a version too large for a message goes as a sealed blob and the member takes it in whole (review2's N1:
+    # every version over INLINE_MOST was dropped as could_not_read, its file freed)
+    inline = team_sync.INLINE_MOST
+    team_sync.INLINE_MOST = 1024
+    blobs_before = len(hub.blobs)
+    try:
+        mark(lead, 1, "Wren", op="reopen")
+        went = call(lead, op="send")
+        took = call(member, op="send")
+    finally:
+        team_sync.INLINE_MOST = inline
+    wren_lead = progress(lead, 1, "Wren")
+    wren_member = progress(member, 1, "Wren")
+    check("349: a version too large for a message goes as a sealed blob, and the member's look fetches it and takes "
+          "the participant in whole",
+          went["sent"] == ["P1 - Wren"] and took["applied"] == ["P1 - Wren"] and len(hub.blobs) > blobs_before
+          and sha(wren_lead) == sha(wren_member), json.dumps({"went": went, "took": took}))
+    mark(lead, 1, "Wren")
+    call(lead, op="send")
+    call(member, op="send")
 
 
 def relay_part(scratch, lead, member, call, mark, sha, book, progress, at):
@@ -404,7 +731,7 @@ def relay_part(scratch, lead, member, call, mark, sha, book, progress, at):
         at(member)
         member_dev = team.device()
         relays = {d["id"]: rt.RelayTransport(base64.b64decode(d["sign"]), url) for d in (lead_dev, member_dev)}
-        project = relays[lead_dev["id"]].make_project(CODE)
+        project = relays[lead_dev["id"]].make_project()
         relays[lead_dev["id"]].set_devices(project, [relays[lead_dev["id"]].public_key,
                                                      relays[member_dev["id"]].public_key])
         transport.OVERRIDE = lambda dev, data: Mapped(rt.TeamRelay(relays[dev["id"]]), project)
@@ -433,6 +760,28 @@ def relay_part(scratch, lead, member, call, mark, sha, book, progress, at):
               and sha(recording) == sha(member["root"] / "P1 - Wren" / "P1 Wren.m4a") and "Wren is Ada's" in refused,
               json.dumps({"sent": sent.get("sent"), "tries": tries, "refused": refused, "lead": trace(lead),
                           "member": trace(member)}))
+
+        # a version too large for a message, through the relay as a named file in R2 (review2's N1)
+        import team_sync
+        inline = team_sync.INLINE_MOST
+        team_sync.INLINE_MOST = 1024
+        try:
+            mark(lead, 1, "Wren")
+            big = call(lead, op="send")
+        finally:
+            team_sync.INLINE_MOST = inline
+        big_tries, deadline = [], time.monotonic() + 10
+        while True:
+            took_big = call(member, op="send")
+            big_tries.append({k: took_big.get(k) for k in ("applied", "offline")})
+            if took_big.get("applied") or time.monotonic() > deadline:
+                break
+            time.sleep(0.25)
+        check("349: through the relay a version too large for a message goes as a file in R2, and the member's look "
+              "fetches it and takes the participant in whole",
+              big["sent"] == ["P1 - Wren"] and took_big["applied"] == ["P1 - Wren"]
+              and sha(progress(lead, 1, "Wren")) == sha(progress(member, 1, "Wren")),
+              json.dumps({"sent": big.get("sent"), "tries": big_tries, "lead": trace(lead), "member": trace(member)}))
     finally:
         try:
             child.stdin.close()

@@ -1603,9 +1603,6 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .wt-sec .wt-path { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; }
 .wt-sec .wt-path .path { flex: 1; margin: 0; }
 .wt-sec .wt-folder-said { margin: 12px 0 0; }
-/* the relay code, under Send through, while the project is not on the relay yet (relaywire) */
-.wt-sec .wt-code { gap: 10px; margin: 8px 0 0; }
-.wt-sec .wt-code-line { margin: 4px 0 0; }
 .wt-list { list-style: none; margin: 8px 0 0; padding: 0; border-top: 1px solid var(--rule); }
 .wt-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 9px 0;
   border-bottom: 1px solid var(--rule); font-size: 13px; color: var(--ink); }

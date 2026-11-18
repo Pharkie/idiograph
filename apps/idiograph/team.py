@@ -68,7 +68,7 @@ WORDS_FILE = "team_words.txt"
 NAME_MOST = 60
 # the kinds of message a member may send, the roster the lead's alone (spec, section 4)
 KINDS = ("roster", "version", "gets_version", "review_asked", "comment", "thread_state", "suggestion", "board",
-         "review", "answer", "hand_over", "take_over", "seen", "devices")
+         "review", "answer", "hand_over", "take_over", "seen", "devices", "recording")
 # where this build's own reading of the team's messages has got to, in the device file's team (wtdevices)
 TAKEN = "members_after"
 # a stand-in for the device file's place, for the suite's two installs in one process
@@ -290,7 +290,7 @@ def device(make: bool = False) -> dict | None:
 
 def new_device() -> dict:
     """A device's two key pairs, made in memory and not kept: `device(make=True)` keeps one at once, and turning on
-    with a relay code keeps it only once the relay has taken the code (relaywire)."""
+    through the relay keeps it only once the relay has made the project (relaywire, relayopen)."""
     c = lib()
     sk = c["ed25519"].Ed25519PrivateKey.generate()
     bk = c["x25519"].X25519PrivateKey.generate()
@@ -623,7 +623,7 @@ def view(root: Path, participants: list[dict] | None = None) -> dict:
             "gets_owner": roster.get("gets_owner") or lead, "alone": len(people) <= 1, "invites": pending,
             "device": dev.get("id") or "", "removed": bool(me) and member_of(roster, me) is None,
             "asked": [a for a in data.get("asked") or [] if isinstance(a, dict)],
-            "needs_code": needs_code(data) and me == lead, "on_relay": bool(relay_note(data).get("project"))}
+            "on_relay": bool(relay_note(data).get("project"))}
 
 
 def folder_state(data: dict) -> tuple[str, int]:
@@ -674,11 +674,13 @@ def next_seq(team: str) -> int:
 
 # ------------------------------------------------------------------ the project on the relay (relaywire, 9 November 2026)
 #
-# The relay makes a project only for an operator code (the spec, section 5), and answers its own random id. The lead
-# puts the code in once, in Project settings' Relay code or with `team on --code-stdin`: it goes to the relay in that
-# one call and is kept nowhere. The relay's id goes into the list of people as `relay`, `{"project"}` and, for a relay
-# the team runs itself, its `url`, so every member has it from the lead's signature, and the relay route maps the
-# team's id to it (relay_transport.TeamRelay).
+# The relay answers its own random id for a project it makes. Since relayopen (18 November 2026, Adam's ruling: anyone
+# with the app starts a project at idiograph.app, invites still decide who joins) it asks no code: the lead's
+# Idiograph makes the project when Working together is turned on through the relay, when the lead changes Send through
+# to the relay, or, for a team turned on before then with no project there, at its first invite. The relay's id goes
+# into the list of people as `relay`, `{"project"}` and, for a relay the team runs itself, its `url`, so every member
+# has it from the lead's signature, and the relay route maps the team's id to it (relay_transport.TeamRelay). A
+# refusal there (no more new projects today, the relay full, no connection) writes nothing.
 
 RELAY = "relay"
 
@@ -698,65 +700,86 @@ def loopback() -> bool:
     return transport_mod.OVERRIDE is not None or bool(os.environ.get(transport_mod.ENV, "").strip())
 
 
-def needs_code(data: dict) -> bool:
-    """Sent through the relay with no project there yet, so the lead's relay code is wanted."""
+def needs_project(data: dict) -> bool:
+    """Sent through the relay with no project there yet, so the lead's Idiograph makes one when it is needed."""
     return ((data or {}).get("route") or "relay") == "relay" and not relay_note(data).get("project") and not loopback()
 
 
-def relay_refusal(exc) -> TeamError:
-    """The relay's refusal of a code in plain words: a wrong code, one that has made all its projects, no
-    connection, or anything else it refused."""
+def by_itself(roster: dict) -> bool:
+    """One member on one computer: nothing to send anyone, so nothing is made on the relay yet (relayfix, A8)."""
+    members = roster_members(roster or {})
+    return len(members) <= 1 and sum(len([d for d in m.get("devices") or [] if isinstance(d, dict)])
+                                     for m in members) <= 1
+
+
+def relay_refusal(exc, made: bool = False) -> TeamError:
+    """The relay's refusal to make a project, open an invite or read its mailbox, in plain words: no more new
+    projects today (from anyone, or from this address), no more new invites today, too many calls from this address
+    in the minute (the relay's `slow down`, or Cloudflare's own rate rule), the relay full, no connection, or anything
+    else it refused. With `made`, the refusal of a first invite that came after its project was made on the relay,
+    whose line says so where the others say nothing changed (review2)."""
     status, said = getattr(exc, "status", None), str(getattr(exc, "error", "") or "")
-    if status == 403 and said == "operator code":
-        return TeamError(i18n.t("team.refused.wrong_code"), "wrong_code")
-    if status == 429 and said == "projects for this code":
-        return TeamError(i18n.t("team.refused.code_used"), "code_used")
+    slow = status == 429 and said in ("slow down", "blocked")
+    if made:
+        if status == 429 and said == "invites today":
+            return TeamError(i18n.t("team.refused.made_no_invites"), "relay_no_invites")
+        if slow:
+            return TeamError(i18n.t("team.refused.made_slow_down"), "relay_slow_down")
+        if not status:
+            return TeamError(i18n.t("team.refused.made_unreached"), "relay_unreached")
+        return TeamError(i18n.t("team.refused.made_refused"), "relay_refused")
+    if status == 429 and said in ("projects today", "projects from here"):
+        return TeamError(i18n.t("team.refused.relay_no_projects"), "relay_no_projects")
+    if status == 429 and said == "invites today":
+        return TeamError(i18n.t("team.refused.relay_no_invites"), "relay_no_invites")
+    if slow:
+        return TeamError(i18n.t("team.refused.relay_slow_down"), "relay_slow_down")
+    if status == 503 and said == "relay full":
+        return TeamError(i18n.t("team.refused.relay_full"), "relay_full")
     if not status:
         return TeamError(i18n.t("team.refused.relay_unreached"), "relay_unreached")
     return TeamError(i18n.t("team.refused.relay_refused"), "relay_refused")
 
 
-def made_on_relay(data: dict, dev: dict, code) -> dict:
-    """The project made on the relay with an operator code, this computer its lead there. Answers the list of
-    people's `relay` note. Refused in plain words for no code, a wrong one, a used-up one or no connection."""
-    code = str(code or "").strip()
-    if not code:
-        raise TeamError(i18n.t("team.refused.no_code"), "no_code")
+def made_on_relay(data: dict, dev: dict) -> dict:
+    """The project made on the relay, this computer its lead there. Answers the list of people's `relay` note.
+    Refused in plain words, with nothing written, as `relay_refusal` says."""
     maker = getattr(transport_for(data, dev), "make_project", None)
     if maker is None:
         raise TeamError(i18n.t("team.refused.no_route"), "no_route")
     try:
-        project = str(maker(code))
+        project = str(maker())
     except TeamError:
         raise
     except Exception as exc:  # noqa: BLE001 - the relay's refusal, or no connection
         raise relay_refusal(exc) from None
     url = own_relay(data)
-    return dict({"project": project}, **({"url": url} if url else {}))
+    # `open`: made under the open relay's limits, so this copy checks a file against them (relay_transport.MAX_BLOB)
+    return dict({"project": project, "open": True}, **({"url": url} if url else {}))
 
 
-def put_on_relay(root: Path, data: dict, code, dry_run: bool = False) -> dict:
-    """The lead's relay code taken: the project made on the relay, its id in the list of people, signed one
-    higher, sent, and the relay told which computers may send."""
+def put_on_relay(root: Path, data: dict, dry_run: bool = False) -> dict:
+    """A team with no project on the relay yet put there by its lead: the project made, its id in the list of people,
+    signed one higher, sent, and the relay told which computers may send."""
     dev = device() or {}
     must_lead(data, dev)
     changes = [i18n.t("team.history.relay_made")]
     if dry_run:
         return {"changes": changes, "dry_run": True}
     roster = deep(data.get("roster"))
-    roster[RELAY] = made_on_relay(data, dev, code)
+    roster[RELAY] = made_on_relay(data, dev)
     signed_out(root, data, dev, roster)
     return {"changes": changes, "dry_run": False}
 
 
 # ------------------------------------------------------------------ turning it on and off, and its settings
 
-def turn_on(root: Path, name: str, route: str = "relay", folder: str = "", dry_run: bool = False, code=None,
+def turn_on(root: Path, name: str, route: str = "relay", folder: str = "", dry_run: bool = False,
             relay_url: str = "") -> dict:
     """Working together on for this project. The first time, this device's keys (made once and kept), a random
     16-byte team id, epoch 1's project key and a roster with this member as its lead, signed. Once made, on again
-    keeps the team as it was. With `code`, a relay code, the project is made on the relay first (`relay_url` a
-    team's own), and a refusal there writes nothing at all."""
+    keeps the team as it was. Through the relay nothing is made there yet: the lead's first invite makes the project
+    (relayfix, 18 November 2026, the review's A8), so a tick alone spends none of the relay's new projects."""
     route = route if route in ROUTES else "relay"
     data = read_team(root)
     if data and data.get("on") is True and not data.get("roster"):
@@ -766,17 +789,12 @@ def turn_on(root: Path, name: str, route: str = "relay", folder: str = "", dry_r
         if changes and not dry_run:
             data = dict(data, on=True)
             write_team(root, data)
-        if code is not None and needs_code(data):
-            changes += put_on_relay(root, data, code, dry_run)["changes"]
         return {"changes": changes, "dry_run": dry_run}
     who = name_given(name)
     changes = [i18n.t("team.history.on_relay", name=who) if route == "relay"
                else i18n.t("team.history.on_folder", name=who)]
     url = one_line(relay_url)
     base = dict({"route": route}, **({"relay_url": url} if url else {}))
-    asked = code is not None and needs_code(base)
-    if asked:
-        changes.append(i18n.t("team.history.relay_made"))
     if dry_run:
         lib()
         return {"changes": changes, "dry_run": True}
@@ -784,7 +802,7 @@ def turn_on(root: Path, name: str, route: str = "relay", folder: str = "", dry_r
     fresh = dev is None
     if fresh:
         dev = new_device()
-    note = made_on_relay(base, dev, code) if asked else {}
+    note = {}
     if fresh:
         save_device_file({"schema": SCHEMA, "device": dev, "teams": {}})
     team = secrets.token_bytes(16).hex()
@@ -802,7 +820,7 @@ def turn_on(root: Path, name: str, route: str = "relay", folder: str = "", dry_r
                   "recordings": False, "roster": sign_roster(dev, roster)}, **base)
     write_team(root, after)
     if note:
-        tell_relay(after, transport_for(after, dev), after["roster"])
+        tell_relay(after, transport_for(after, dev), after["roster"], root=root)
     return {"changes": changes, "dry_run": False}
 
 
@@ -833,8 +851,9 @@ def set_team(root: Path, body: dict, participants: list[dict], dry_run: bool = F
             after["route"] = route
             changes.append(i18n.t("team.history.route_relay") if route == "relay"
                            else i18n.t("team.history.route_folder"))
-            # the members follow at once, unless the relay has no project yet: then with the code's project
-            if not needs_code(after) and not dry_run:
+            # the members follow at once, unless the relay has no project yet: then with the project made below. One
+            # member on one computer has no one to tell and no project yet, so the list just takes the route
+            if (not needs_project(after) or by_itself(roster)) and not dry_run:
                 listed = deep(roster)
                 listed["route"] = route
                 listed["n"] = int(listed.get("n") or 0) + 1
@@ -883,15 +902,16 @@ def set_team(root: Path, body: dict, participants: list[dict], dry_run: bool = F
             roster["n"] = int(roster.get("n") or 0) + 1
             if not dry_run:
                 after["roster"] = sign_roster(dev, roster)
-    made = body.get("code") is not None and needs_code(after)
+    made = "route" in body and needs_project(after) and str(data.get("member") or "") == str(roster.get("lead") or "") \
+        and not by_itself(roster)
     if made:
-        # the relay code (relaywire): the project made there before anything here is written
+        # the project made on the relay (relaywire, relayopen) before anything here is written
         dev = device() or {}
         must_lead(after, dev)
         changes.append(i18n.t("team.history.relay_made"))
         if not dry_run:
             listed = deep(after.get("roster"))
-            listed[RELAY] = made_on_relay(after, dev, body.get("code"))
+            listed[RELAY] = made_on_relay(after, dev)
             if after.get("roster") is data.get("roster") or listed.get("route") != after.get("route"):
                 listed["n"] = int(listed.get("n") or 0) + 1
             listed["route"] = after.get("route") or "relay"
@@ -909,7 +929,7 @@ def set_team(root: Path, body: dict, participants: list[dict], dry_run: bool = F
             else:
                 send_roster(after, device() or {})
         if made:
-            tell_relay(after, transport_for(after, device() or {}), after["roster"])
+            tell_relay(after, transport_for(after, device() or {}), after["roster"], root=root)
             if (data.get("route") or "relay") != "relay":
                 # the members still on the old route hear of the relay's project there
                 send_roster(dict(after, route=data.get("route")), device() or {})
@@ -957,21 +977,41 @@ def invite(root: Path, own: bool = False, dry_run: bool = False) -> dict:
     dev = device() or {}
     if not own:
         must_lead(data, dev)
-    if needs_code(data):
-        raise TeamError(i18n.t("team.refused.no_relay"), "no_relay")
-    changes = [i18n.t("team.history.invite_own") if own else i18n.t("team.history.invite")]
+    changes = []
+    made = needs_project(data)
+    if made:
+        # the project made on the relay at the lead's first invite (relayfix, A8), a tick alone having made none
+        if str(data.get("member") or "") != str((data.get("roster") or {}).get("lead") or ""):
+            raise TeamError(i18n.t("team.refused.no_relay"), "no_relay")
+        changes += put_on_relay(root, data, dry_run)["changes"]
+        data = held_on(root) if not dry_run else data
+    changes.append(i18n.t("team.history.invite_own") if own else i18n.t("team.history.invite"))
     if dry_run:
         return {"changes": changes, "dry_run": True}
     way = transport_for(data, dev)
     secret = secrets.token_bytes(16)
     inv = invite_id(secret)
+    # the relay counts each new invite against its day's (relayfix, W6): a refusal is said, with nothing kept here
     expires = (datetime.now(timezone.utc) + timedelta(days=INVITE_DAYS)).isoformat(timespec="seconds")
     team = str(data.get("team") or "")
     roster = data.get("roster") or {}
     me = member_of(roster, str(data.get("member") or "")) or {}
     offer = signed(dev, {"kind": "invite", "device": public(dev), "lead": roster.get("lead"),
                          "from": me.get("name") or "", "own": bool(own), "expires": expires})
-    way.send(mailbox(inv), aead_seal(invite_key(secret), canon(offer)))
+    try:
+        # the relay takes a joiner's answers only in a mailbox a computer on the project opened (the abuse plan's
+        # M4), so it is opened first, and a refusal gives no invite
+        opener = getattr(way, "open_invite", None)
+        if callable(opener):
+            opener(team, inv)
+        way.send(mailbox(inv), aead_seal(invite_key(secret), canon(offer)))
+    except TeamError:
+        raise
+    except Exception as exc:  # noqa: BLE001 - the relay's refusal, or no connection
+        if getattr(exc, "status", None) is None:
+            raise
+        # a first invite refused after its project was made says the project is there now (review2)
+        raise relay_refusal(exc, made=made) from None
     held = held_team(team)
     held.setdefault("invites", {})[inv] = {"secret": b64(secret), "made": now_iso(), "expires": expires,
                                            "own": bool(own), "used": False, "thrown": []}
@@ -985,7 +1025,18 @@ def invite(root: Path, own: bool = False, dry_run: bool = False) -> dict:
 def mailbox_items(way, inv: str, key: bytes) -> list[tuple[str, dict]]:
     """An invite mailbox's messages that open under its key, each `(sender device, message)`, in order."""
     out = []
-    for _seq, sender, sealed in way.fetch(mailbox(inv), 0):
+    try:
+        got = way.fetch(mailbox(inv), 0)
+    except TeamError:
+        raise
+    except Exception as exc:  # noqa: BLE001 - the relay's refusal (`slow down` among them), or no connection
+        if getattr(exc, "status", None) is None:
+            raise
+        if getattr(exc, "status", None) == 404:
+            # a mailbox no computer on a project opened, or one gone after its seven days
+            raise TeamError(i18n.t("team.refused.no_invite"), "no_invite") from None
+        raise relay_refusal(exc) from None
+    for _seq, sender, sealed in got:
         try:
             out.append((sender, json.loads(aead_open(key, sealed).decode("utf-8"))))
         except (TeamError, ValueError, UnicodeDecodeError):
@@ -1091,7 +1142,7 @@ def admit(root: Path, inv: str, match: bool, dry_run: bool = False) -> dict:
     after = dict(data, roster=roster)
     write_team(root, after)
     send_roster(after, dev)
-    tell_relay(after, way, roster)
+    tell_relay(after, way, roster, root=root)
     return {"changes": changes, "dry_run": False}
 
 
@@ -1235,17 +1286,44 @@ def computer_label(d: dict) -> str:
     return one_line((d or {}).get("name"))[:NAME_MOST] or i18n.t("team.page.a_computer")
 
 
-def tell_relay(data: dict, way, roster: dict, lead: str | None = None) -> None:
+def tell_relay(data: dict, way, roster: dict, lead: str | None = None, root: Path | None = None) -> None:
     """The relay told which computers may send from now on, and with `lead` which computer leads, when the route
     keeps such a list (the relay's `set_devices`). A loopback or a folder keeps none, and a relay out of reach hears
-    it with the next list: the new key is what keeps a removed computer out."""
+    it with the next list: the new key is what keeps a removed computer out. The two refusals that do not mend by
+    themselves, `lists today` and `too many removed`, are kept in sync.json under `list_refused` when `root` is
+    given, for the page to say; a list the relay takes clears it."""
     setter = getattr(way, "set_devices", None)
     if setter is None:
         return
     keys = [unb64(d["sign"]) for m in roster_members(roster) for d in m.get("devices") or [] if d.get("sign")]
     try:
         setter(str(data.get("team") or ""), keys, lead)
-    except Exception:  # noqa: BLE001 - the relay's refusal or no connection changes nothing here
+    except Exception as exc:  # noqa: BLE001 - the relay's refusal or no connection changes nothing here
+        word = str(getattr(exc, "error", "") or "")
+        if root is not None and word in ("lists today", "too many removed"):
+            note_list_refused(root, word)
+        return
+    if root is not None:
+        note_list_refused(root, "")
+
+
+def note_list_refused(root: Path, word: str) -> None:
+    """The relay's refusal of the list of computers kept in sync.json (`list_refused`), or cleared with "". Nothing
+    is written when it would change nothing, and a state that will not read is left alone."""
+    import team_sync  # noqa: PLC0415 - team_sync imports this module
+    try:
+        state = team_sync.load_state(Path(root))
+        was = (state.get("list_refused") or {}).get("word") or ""
+        if was == word:
+            return
+        if word:
+            t = datetime.now(timezone.utc)
+            until = datetime(t.year, t.month, t.day, tzinfo=timezone.utc) + timedelta(days=1) if word == "lists today" else None
+            state["list_refused"] = {"word": word, "until": until.isoformat(timespec="seconds") if until else ""}
+        else:
+            state.pop("list_refused", None)
+        team_sync.save_state(Path(root), state)
+    except Exception:  # noqa: BLE001 - a note that cannot be kept changes nothing
         pass
 
 
@@ -1259,7 +1337,7 @@ def signed_out(root: Path, data: dict, dev: dict, roster: dict, under: int | Non
     write_team(root, after)
     send_roster(after, dev, under=under)
     try:
-        tell_relay(after, transport_for(after, dev), roster, lead_device)
+        tell_relay(after, transport_for(after, dev), roster, lead_device, root=root)
     except TeamError:
         pass
     return after
@@ -1428,7 +1506,7 @@ def come(root: Path) -> list:
     """What has come since this build's reading last got to, fetched with no lock held, since a relay can be slow
     to answer: `take` reads it under the project's lock. Refused plainly when the route cannot be reached."""
     data = held_on(root)
-    if needs_code(data):
+    if needs_project(data):
         raise TeamError(i18n.t("team.refused.no_relay"), "no_relay")
     dev = device() or {}
     team = str(data.get("team") or "")
