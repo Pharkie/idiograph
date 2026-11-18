@@ -9967,12 +9967,16 @@ def gets_print_page(query: dict) -> tuple[int, str]:
         root = gets_print_root(query)
         with srv._lock, route_scope(GETS_PRINT_PATH, query):
             books = gets_books(root)
+            # a participant's LPETs are named by the participant, so Save as PDF names the file after them
+            book = LPETS_FOR.get()
+            heading = themes_print.case_title(case_label(book)) if book else ""
             return 200, gets_print.page(root, books, read_project(root), str(query.get("board") or "") or None,
                                         what=str(query.get("what") or "table"), detail=str(query.get("detail") or "full"),
                                         notes=str(query.get("notes") or "") == "1", get=str(query.get("get") or "") or None,
                                         auto=str(query.get("auto") or "") != "0", audio=gets_audio(books),
                                         sending=export_sending(query), descriptions=export_descriptions(query),
-                                        researcher=researcher_name(), people=people_printed(root, query))
+                                        researcher=researcher_name(), people=people_printed(root, query),
+                                        heading=heading)
     except srv.OutsideRoot as exc:
         return 403, themes_print.refusal(str(exc))
     except WorkbookError as exc:

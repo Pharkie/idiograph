@@ -5807,7 +5807,7 @@ function thDeleteKey() {
   const cards = top.filter((it) => !thIsGroup(v, it) && (parents[it] !== undefined || (thWaits(v) && !!v.cards[it])));
   if (!labels.length && !cards.length) {
     if (top.length && top.every((it) => thIsSticky(v, it))) say(TH_STICKY_FREE);
-    else if (top.length) say(t('themes.aside.in_no_get'));
+    else if (top.length) say(TH.lpets ? t('themes.aside.in_no_lpet') : t('themes.aside.in_no_get'));
     return;
   }
   if (!labels.length) {
@@ -7965,6 +7965,10 @@ function thXdraw() {
   const tname = menu.querySelector('[data-xtname]');
   if (tname) tname.textContent = TH.lpets ? t('page_idiograph.cards_last.lpet_table')
     : TH.lgets ? t('page_idiograph.cards_last.lget_table') : t('page_idiograph.cards_last.get_table');
+  // the table's own line as its tooltip: the LPET table's for a participant's LPETs, else the catalogue's
+  const tline = tname && tname.closest('label');
+  if (tline && TH.lpets) tline.title = t('page_idiograph.cards_last.lpet_table_line');
+  else if (tline) tline.title = t('page_idiograph.cards_last.get_table_line');
   const people = menu.querySelector('[data-xpeople]');
   if (people) people.hidden = !gets || !gtPeopleShown(p);
   thLabelsDraw();
@@ -8384,7 +8388,7 @@ const thTableSelCls = (kind, id) => ((kind === 'label' ? TH.sel.groups : TH.sel.
 /* One statement as a row: its grip, its words and where it is, and its own quote. A stack's top
    stands for it, with how many are stacked under it, a button that shows the stack under it as S does
    on the canvas, and shown, each statement under it a row of its own with no grip, `under`. */
-function thTableStatement(v, key, parent, under = false) {
+function thTableStatement(v, key, parent, under = false, num = 0) {
   const c = v.cards[key];
   const where = [c.sheet, c.time].filter(Boolean).join(', ');
   const quote = thOwnQuote(key);
@@ -8392,6 +8396,7 @@ function thTableStatement(v, key, parent, under = false) {
   const open = stacked.length && TH.opened && TH.opened.has(key);
   let html = `<div class="tb-st${under ? ' tb-under' : ''}${thTableSelCls('statement', key)}" data-trow="${escAttr(key)}" data-tkind="${under ? 'under' : 'statement'}" data-tparent="${escAttr(parent || '')}">`
     + (under ? '<span class="tb-grip tb-nogrip" aria-hidden="true"></span>' : thTableGrip(t('themes.table.this_statement')))
+    + (num ? `<span class="tb-num" title="${escAttr(t('themes.table.num_tip'))}">${num}</span>` : '')
     + `<div class="tb-cols"><p class="tb-text">${esc(c.text)}${where ? ` <span class="tb-ref">(${esc(where)})</span>` : ''}`
     + `${stacked.length ? ` <button type="button" class="tb-stacked" data-tstack="${escAttr(key)}" aria-expanded="${open ? 'true' : 'false'}" title="${escAttr(open ? t('themes.stack.again') : t('themes.stack.show'))}">${esc(t('themes.stack.count', { n: stacked.length }))}</button>` : ''}`
     + `${c.missing ? ` <span class="tb-gone">${esc(t('themes.table.gone'))}</span>` : ''}${under ? '' : thTablePairHtml(v, key)}</p>`
@@ -8435,7 +8440,9 @@ function thTableNode(v, node, tints, parent) {
     + thTableHeadHtml(v, node, `<span class="tb-count">${esc(thCountText(v, node.id))}</span>`)
     + (node.note ? `<p class="tb-note">${esc(node.note)}</p>` : '')
     + `<div class="tb-body" data-tbody="${escAttr(node.id)}">`;
-  for (const it of node.items) html += it.kind === 'label' ? thTableNode(v, it.node, tints, node.id) : thTableStatement(v, it.key, node.id);
+  // each statement numbered in its PET or sub-theme, the order every export follows
+  let n = 0;
+  for (const it of node.items) html += it.kind === 'label' ? thTableNode(v, it.node, tints, node.id) : thTableStatement(v, it.key, node.id, false, ++n);
   return `${html}</div></section>`;
 }
 
@@ -8600,7 +8607,7 @@ function gtLpetTableFace(v) {
   const model = gtTable(v);
   const whose = String(TH.lpetsWho || '').replace(/^P\d+\s*-\s*/, '');
   let html = '<div class="tb-pets" data-tbody="">';
-  if (!model.length) html += `<p class="tb-none">${esc(t('themes.table.no_gets'))}</p>`;
+  if (!model.length) html += `<p class="tb-none">${esc(t('themes.table.no_lpets'))}</p>`;
   const kindOf = (it) => (it.kind === 'es' ? t('themes.statement') : it.kind === 'sub' ? t('themes.kind.sub') : t('themes.unit.pet'));
   const item = (it, parent) => `<li class="tb-item lp-item${thTableSelCls('statement', it.key)}" data-trow="${escAttr(it.key)}" data-tkind="statement" data-tparent="${escAttr(parent)}">`
     + `${thTableGrip(t('themes.table.this_card'))}<span class="lp-said"><span class="tb-kind">${esc(kindOf(it))}</span>`
@@ -13100,7 +13107,7 @@ function thSideRow(v, key, sec) {
   const act = locked ? ''
     : c.missing ? `<button type="button" class="ghost small btn-remove ts-act" tabindex="-1" data-tsremove="${escAttr(key)}">${esc(t('themes.pile.remove'))}</button>`
       : sec === 'aside' ? `<button type="button" class="ghost small ts-act" tabindex="-1" data-tsback="${escAttr(key)}" title="${escAttr(TH.mode === 'gets'
-        ? t('themes.side.back_gets') : t('themes.menu.back_unplaced'))}">${esc(t('themes.pile.put_back'))}</button>` : '';
+        ? (TH.lpets ? t('themes.side.back_lpets') : t('themes.side.back_gets')) : t('themes.menu.back_unplaced'))}">${esc(t('themes.pile.put_back'))}</button>` : '';
   return `<li class="ts-row${TH.ssel.has(key) ? ' sel' : ''}${c.missing ? ' missing' : ''}" data-tskey="${escAttr(key)}" data-tssec="${sec}">`
     + `${lead}<span class="ts-body"><span class="ts-text">${esc(words || '')}</span>${chip}${why}</span>${act}</li>`;
 }
@@ -13108,6 +13115,7 @@ function thSideRow(v, key, sec) {
 /* a section's head: its fold, its name and its count at the right */
 function thSideHead(sec, name, n, open) {
   return `<div class="ts-head" data-tshead="${sec}"><button type="button" class="ts-fold${open ? ' open' : ''}" tabindex="-1" data-tsfold="${sec}" `
+    + `${sec === 'aside' && TH.mode !== 'gets' ? `title="${escAttr(t('themes.side.aside_tip'))}" ` : ''}`
     + `aria-expanded="${open}">${GT_CHEV}<span class="ts-name">${esc(name)}</span></button><span class="ts-n">${n}</span></div>`;
 }
 
@@ -13218,6 +13226,8 @@ function thDoorCount() {
   }
   const head = $('th-cpanel') && $('th-cpanel').querySelector('.th-pname');
   if (head) head.textContent = name;
+  // on PETs the panel's head says in its tooltip what Unplaced holds
+  if (head) head.title = pets ? t('themes.side.wait_tip') : '';
   const find = $('gt-find');
   if (find) {
     find.placeholder = pets ? t('themes.side.search_statements') : t('themes.side.search');
@@ -13642,6 +13652,8 @@ function gtCasesDraw() {
     const caseOpen = open(c.case, true);
     const look = gtLook(c.case);
     const marks = [];
+    // the board this participant (on LPETs this timepoint) comes in from, named
+    if (c.board_name && !c.none) marks.push(t('themes.gets.from_board', { board: c.board_name }));
     if (!c.in) marks.push(c.reason ? t('themes.gets.out_why', { why: c.reason }) : t('themes.gets.out'));
     if (c.status === 'unread') marks.push(t('themes.gets.unread'));
     else if (c.missing) marks.push(GT_NOT_INTERVIEWED);
@@ -13660,7 +13672,7 @@ function gtCasesDraw() {
       + `<button type="button" class="gt-swatch case-${look.colour}" tabindex="-1" data-gcolour="${i}" aria-haspopup="menu" `
       + `title="${escAttr(t('themes.gets.colour_tip', { colour: GT_COLOURS[look.colour] }))}" aria-label="${escAttr(t('themes.gets.colour_label', { who: c.who, colour: GT_COLOURS[look.colour] }))}">${esc(look.badge)}</button>`
       + `<button type="button" class="row-menu-open gt-cmenu" tabindex="-1" data-gmenu="${i}" title="${escAttr(t('themes.gets.case_menu_tip'))}">&#8943;</button></div>`
-      + (marks.length ? `<p class="gt-cmarks">${marks.map((m) => `<span>${esc(m)}</span>`).join('')}</p>` : '');
+      + (marks.length ? `<p class="gt-cmarks" title="${escAttr(t('themes.gets.from_board_tip'))}">${marks.map((m) => `<span>${esc(m)}</span>`).join('')}</p>` : '');
     if (caseOpen) {
       const row = (k, extra = '') => {
         const l = lines[k];
@@ -14656,7 +14668,7 @@ function gtRowNoteDone(keep) {
     if (now !== (row.note || '')) {
       const before = thSnap(v, TH.removed);
       gtRowSet(v, ed.gid, ed.kase, { note: now });
-      thDone(before, t('themes.step.table_note'));
+      thDone(before, TH.lpets ? t('themes.step.table_note_lpet') : t('themes.step.table_note'));
       return;
     }
   }
@@ -14686,7 +14698,8 @@ function gtTick(gid, kase, qkey) {
   const stored = ((gtRows(v)[gid] || {})[kase] || {}).quote || '';
   const before = thSnap(v, TH.removed);
   gtRowSet(v, gid, kase, { quote: stored === qkey ? '' : qkey });
-  thDone(before, stored === qkey ? t('themes.step.unticked_quote') : t('themes.step.ticked_quote'));
+  thDone(before, stored === qkey ? t('themes.step.unticked_quote')
+    : TH.lpets ? t('themes.step.ticked_quote_lpet') : t('themes.step.ticked_quote'));
 }
 
 /* The quotes a card under a GET offers for its row, each with its tick: a PET's or a

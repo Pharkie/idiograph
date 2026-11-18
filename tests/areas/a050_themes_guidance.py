@@ -18,7 +18,7 @@ def test_themes_guidance(scratch):
     js = support.text("apps/idiograph/static/themes.js")
     shipped = support.source("apps/idiograph/themes_guidance.md")
     fn = lambda src, name: src.split(f"function {name}(", 1)[1].split("\n}", 1)[0]
-    HEADS = ["How many", "How to group", "Titles", "Group, stack or bin", "Inside a PET", "Before you finish"]
+    HEADS = ["How many", "How to group", "Titles", "Where a statement can go", "Inside a PET", "Before you finish"]
 
     # ── A. the file, and the one parser that reads it and guidance.md
     shown = idiograph_routes.themes_guidance()

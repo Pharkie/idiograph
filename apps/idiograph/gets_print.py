@@ -1240,7 +1240,8 @@ def head_of(project: dict, parts: dict, what: str) -> dict:
 
 
 def walked(root: Path, books: list[dict], project: dict, board: str | None, what: str, get: str | None,
-           sending: bool, descriptions: bool, now: datetime | None, people: dict | None = None) -> dict:
+           sending: bool, descriptions: bool, now: datetime | None, people: dict | None = None,
+           heading: str = "") -> dict:
     """One walk of a board of the GETs for a print, which the HTML page (`page`) and the Typst data (`typst_data`)
     both read, so the two cannot disagree about what is on it: what is printed, the study's parts, the table, the
     GETs whose trails are printed, the cases' copies, the words of the trails' turns, the part's name, the
@@ -1260,7 +1261,8 @@ def walked(root: Path, books: list[dict], project: dict, board: str | None, what
     recs = parts["data"].get("cases") or {}
     words = read_turns(trails, recs, parts["books"]) if what in ("trail", "all") else {}
     gets_word = gword("page_print.gets.project")
-    name = project.get("name") or gets_word
+    # a participant's LPETs are named by the participant, as their PDF and Word document are
+    name = heading or project.get("name") or gets_word
     kind = {"table": gword("page_print.gets.table"), "trail": i18n.t("page_print.gets.trail"), "all": gets_word}[what]
     title = (i18n.t("page_print.gets.title_sending", name=name, what=kind) if sending
              else i18n.t("page_print.gets.title", name=name, board=parts["board"].get("name") or th.FIRST_NAME, what=kind))
@@ -1287,7 +1289,7 @@ def foot_of(project: dict, parts: dict, kind: str, sending: bool, researcher: st
 def page(root: Path, books: list[dict], project: dict, board: str | None = None, what: str = "table",
          detail: str = "full", notes: bool = False, get: str | None = None, auto: bool = True, audio=None,
          now: datetime | None = None, sending: bool = False, descriptions: bool = True, researcher: str = "",
-         confidential: bool = True, people: dict | None = None) -> str:
+         confidential: bool = True, people: dict | None = None, heading: str = "") -> str:
     """The GET table, the audit trail or the full set of a board of the GETs, the current one when
     `board` names none, as one HTML page. `get` keeps the trail to one GET. `audio` gives a turn the
     address of its recording, or None when its case has none. A board the file does not hold is
@@ -1297,7 +1299,7 @@ def page(root: Path, books: list[dict], project: dict, board: str | None = None,
     PET's description sits under its title only with `descriptions`, on by default (21 October). With
     `people`, Participants table ticked (pbioexport, 11 November 2026), the participants table comes first,
     after a full set's contents, and the part after it from a new page under its own heading."""
-    w = walked(root, books, project, board, what, get, sending, descriptions, now, people)
+    w = walked(root, books, project, board, what, get, sending, descriptions, now, people, heading)
     what, parts, table_, trails, recs = w["what"], w["parts"], w["table"], w["trails"], w["recs"]
     selected = detail == "selected"
     tints = tint_of(parts["board"])

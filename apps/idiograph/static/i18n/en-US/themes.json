@@ -16,5 +16,6 @@
   "themes.step.aligned_centre": "Aligned {n} to the center",
   "themes.step.recoloured_sticky": "Recolored a sticky note",
   "themes.step.ticked_quote": "Checked a quote for the GET table",
+  "themes.step.ticked_quote_lpet": "Checked a quote for the LPET table",
   "themes.step.unticked_quote": "Took the check mark off a quote"
 }

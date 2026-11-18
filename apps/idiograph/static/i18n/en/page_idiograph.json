@@ -523,6 +523,7 @@
   "page_idiograph.cards_last.get_table_line": "Each GET with a row for every participant. Each row shows what of theirs is under the GET, its key quote and your note.",
   "page_idiograph.cards_last.get_table": "GET table",
   "page_idiograph.cards_last.lpet_table": "LPET table",
+  "page_idiograph.cards_last.lpet_table_line": "One participant's LPETs. Each LPET has a column for every timepoint, showing its state, its key quote and what it draws on.",
   "page_idiograph.cards_last.lget_table": "LGET table",
   "page_idiograph.cards_last.audit_trail_line": "Traces each GET for every participant, from the transcript passage to the quote, the statement and the PET",
   "page_idiograph.cards_last.all_one_document_line": "A contents page, each participant's table of PETs, the GET table and the audit trail",

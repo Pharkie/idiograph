@@ -32,12 +32,14 @@ every line short enough to take in at a glance, and the whole short enough to re
 - A title packs a punch. It is vivid and memorable, carries the participant's own charged word where there is one, and lands on first reading.
 - A broad word that erases what distinguishes the statements fails the PET. The participant's own phrase can serve when it holds the whole.
 
-## Group, stack or bin
+## Where a statement can go
 
 - Most statements go into a PET. Group a statement with the ones it belongs with.
-- Stack a statement under a better one when it says the same point again, one point said several ways close together in the transcript. The top stands for the stack in the table and the exports.
-- Bin a statement only for a reason: it does not answer the research question, it is badly evidenced, or it is irrelevant in some way. Binning is rare, so record why.
-- Awkward, negative, unresolved or contradictory experience is no reason to bin. It can hold a PET of its own.
+- Stack a statement under a better one when it says the same point again close by in the transcript. The top stands for the stack in the table and the exports.
+- A close pair is two statements in one PET from within a minute of each other. Stack one under the other unless they say different things.
+- Unplaced holds the statements you have not placed yet, in interview order.
+- Set a statement aside only for a reason: it does not answer the research question, it is badly evidenced, or it is irrelevant in some way. Setting one aside is rare, so record why. Put back brings it back.
+- Awkward, negative, unresolved or contradictory experience is no reason to set a statement aside. It can hold a PET of its own.
 - Watch for your hopes for the topic shaping the grouping.
 
 ## Inside a PET

@@ -6,6 +6,12 @@ Smith and Nizza (2022). Each heading is a small group in the panel and each line
 the file afresh on every open, so edit it here and it changes in the app on the next reload. Keep every line short
 enough to take in at a glance, and the whole short enough to read in a minute.
 
+## What a trajectory is
+
+- A trajectory is a course over time that several participants share. You make and name your project's own trajectories.
+- You place each participant in one trajectory, from your reading of their whole experience across the timepoints.
+- An LPET follows one aspect of one person. A trajectory groups people by the course their experience takes as a whole.
+
 ## What it shows
 
 - One row for each LPET: its state at each timepoint, a key quote for each, and the person's overall trajectory.

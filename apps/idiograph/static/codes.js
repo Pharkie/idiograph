@@ -151,7 +151,19 @@ function codesOpenDraw() {
   }
   box.innerHTML = html;
   cdDescFit();
+  // the width settles after this: the fonts load, the pane's scrollbar appears and the window changes, and a
+  // narrower box wraps to more lines, so the Description fits again then (smallfix18)
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(cdDescFit);
+  requestAnimationFrame(cdDescFit);
+  const desc = $('cd-desc');
+  if (desc && window.ResizeObserver) {
+    if (cdDescWatch) cdDescWatch.disconnect();
+    let width = desc.clientWidth;
+    cdDescWatch = new ResizeObserver(() => { if (desc.clientWidth !== width) { width = desc.clientWidth; cdDescFit(); } });
+    cdDescWatch.observe(desc);
+  }
 }
+let cdDescWatch = null;
 
 function cdDescFit() {
   const el = $('cd-desc');
