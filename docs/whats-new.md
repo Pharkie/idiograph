@@ -5,6 +5,11 @@ Newest first. Each version's notes are what the updater shows, eight lines at mo
 
 What goes here: only major new features and real changes to how something works, among them what your AI agents can do, and any change to safety, privacy or your data. One plain line each, saying what you can now do, not how the screen shows it. Never: changed wording, labels or layout, small fixes, or a feature's parts (its buttons, tabs, counts). Several changes to one feature are one line. A version with nothing major has one line, or none.
 
+## 0.9.31, 18 November 2026
+
+A Longitudinal IPA project now has at least two timepoints.
+Share a copy now tells you when it has saved the copy, and can show you the file.
+
 ## 0.9.30, 17 November 2026
 
 A new demo project, Working from home, shows reflexive thematic analysis with its own interviews and recordings.
