@@ -3341,10 +3341,10 @@ chunks the file it replaces named and the new one does not. The poll reads the b
 time, size and inode (`routes.stamp_boards`).
 
 **The themes file.** `<case>/Working/<stem>.themes.json`, written by `themes.py` and set out in
-full under Autosave and the file in the [manual](manual.md). Its top level is `schema`, 2, `case`,
+full in the example below. Its top level is `schema`, 2, `case`,
 the case by its pseudonym, `workbook`, its file name, `created`, `updated`, `current`, the board on
 the canvas, `chosen`, the Current board when one is marked, `complete`, `{"at", "board", "name"}`
-once the PETs are marked complete (see [docs/manual.md](manual.md), The Current board), and
+once the PETs are marked complete (see [docs/manual.md](manual.md), Complete), and
 `boards`. A board carries `id`,
 `name`, `note`, `created`, `updated`, `cards` by key with each card's place and text, `groups`
 with each label's members, place and note, `discarded`, `picks`, `notes`, its sticky notes,
@@ -3406,6 +3406,40 @@ page never sends either key, so a save keeps the file's, and a duplicate carries
 `updated` is older than the board's `changed` is refused, its canvas kept in the board's history
 first as "The canvas when a conversation changed this board", so neither the change nor his work is
 lost.
+
+For example:
+
+```
+{"schema": 2, "case": "P8 - Wren", "workbook": "P8 Wren - EN & ES.xlsx",
+ "created": "2026-10-01T22:10:04+01:00", "updated": "2026-10-01T22:31:40+01:00", "current": "v1",
+ "chosen": "v1",
+ "complete": {"at": "2026-10-04T16:20:11+01:00", "board": "v1", "name": "Board 1"},
+ "boards": [{"id": "v1", "name": "Board 1", "note": "", "created": "...", "updated": "...",
+             "cards": {"Initial:12:0": {"x": 40, "y": -120, "text": "..."}},
+             "groups": [{"id": "g1", "label": "...", "members": ["Initial:12:0", "g2"],
+                         "x": 40, "y": -160}],
+             "discarded": ["Initial:30:1"],
+             "picks": {"g1": ["Initial:12:0"]},
+             "notes": [{"id": "n1", "text": "merge with Mornings?", "colour": "yellow",
+                        "x": 260, "y": -120, "in": "g1"}],
+             "quoted": {"Initial:12:0": "the words of the quote"},
+             "history_head": {"uid": "4b0f14c5a84214cc", "count": 30, "next": 31, "last": "...", "autos": 15,
+                              "chunks": [[1, "9c41d0a2e7b3"], [2, "07fe5b1c88a4"]]}}]}
+```
+
+Beside it, in `Working/<stem>.themes.history/`, is each board's History in chunks, `<uid>.<n>.<hash>.jsonl`, one
+revision to a line, oldest first:
+
+```
+{"id":"r1","at":"2026-10-01T22:15:02+01:00","name":"","auto":true,"state":{"cards":{...},"groups":[...],"discarded":[...],"picks":{...}}}
+```
+
+**Nothing overlaps.** Every card, label and frame on a board keeps a margin round it, and nothing else comes to rest
+inside it: one constant, a twentieth of a card's width, `MARGIN` in `themes.py` (10 on a 200-pixel card) and `TH_MARGIN`
+in the page. It holds between neighbours. On the canvas those are the cards in no PET and the PETs, each PET counted by
+its frame. Inside a PET they are its own cards and its sub-themes, each sub-theme counted by its frame. A frame that
+grows into a neighbour stays put and sends the neighbour clear by the least distance, and the first pile, a drop, a
+nudge, a card put back, a new card and Auto-arrange all keep the margin.
 
 **An agent's change keeps the order it does not name** (agentorder, 10 November 2026, from the Gravity
 session: across one afternoon's revisions an agent's `board apply` changed the reading order of PETs,
@@ -3838,7 +3872,7 @@ most `UNDO_BYTES` (20 MB, each distinct bytes once), the oldest dropped first; `
 flight. Area 410.
 
 **The project file.** `idiograph-project.json` at a project's root, `{"name", "research_question",
-"updated"}`, which Settings writes under Projects (see Projects in the [manual](manual.md)). With no
+"updated"}`, which Project settings writes. With no
 file the name is the root folder's own and the question is empty, and a key the file carries
 beyond the three is kept. `uid`, since 26 October, is the project's own id, written by `send_project` (`project_uid`) at its first send under the project's lock and never changed. `copy_of`, since 21 October, `{"name", "opened"}`, and since 26 October with the shared project's `uid`, `sent`, `version` and `statements`, is written by `mark_copy`
 into a project opened from a shared copy before `add_project` lists it, and `read_project` answers
@@ -4653,7 +4687,7 @@ of git by name in `.gitignore` (the IPA demo's committed three share their `-Ini
 `packaging/upload_rta_recordings.py --yes` adds them to the release, run only on Adam's yes (without `--yes` it says what it would upload). It never replaces a recording or the licence: one already there under its name is passed over when GitHub's sha256 and size for it are the manifest's and otherwise refuses the whole run with nothing uploaded, the licence going up as a new asset under the name the manifest gives it, then the manifest replacing the release's copy, the one asset replaced, and each of the six, the licence and the manifest are read back by size and sha256 (rtafix). `release.py` refuses a version until they are there (The demos' recordings before a release). Area 421 holds it.
 
 **The GETs file.** `idiograph-gets.json` at the case root, beside the project file, written by
-`gets.py` and set out in full under The file in the [manual](manual.md), GETs. Its top level is
+`gets.py` and set out in full in the example below. Its top level is
 `schema`, 1, `created`, `updated`, `current`, the GETs board on the canvas, `chosen`, the Current
 board when one is marked, `complete`, GETs marked complete or null, `settings`, `minimum`, null for
 Smith's band, and `one_per_pet`, `study`, each case in or out with its reason, `colours` (16
@@ -4676,6 +4710,25 @@ sends the rows with the board on every save, so a tick and a note are steps of u
 and a save without them keeps the rows the file holds. The study is every case folder the case list finds with
 an annotated workbook, and with two in one folder the one with a themes file, then the newest. The
 demo's own is `demo/idiograph-gets.json`, gitignored with `demo/Working/`.
+
+For example:
+
+```
+{"schema": 1, "created": "...", "updated": "...", "current": "b1", "chosen": "b1", "complete": null,
+ "settings": {"minimum": null, "one_per_pet": true},
+ "study": {"P8 - Wren": {"in": true}, "P9 - Ash": {"in": false, "reason": "a pilot"}},
+ "colours": {"P8 - Wren": 5},
+ "cases": {"P8 - Wren": {"workbook": "P8 Wren - EN & ES.xlsx", "board": "v3", "name": "Board 3",
+     "complete": true, "came": "<iso>", "hash": "<state hash>", "state": "in",
+     "pets": [{"id": "g1", "title": "...", "note": "...", "parent": null, "subs": ["g2"],
+               "statements": ["Initial:12:0"], "picks": ["Initial:12:0"]}],
+     "lines": {"Initial:12:0": {"sheet": "Initial", "row": 12, "time": "02:10", "seconds": 130,
+               "text": "...", "quotes": ["..."], "notes": ["..."], "pet": "g1", "discarded": false}}}},
+ "boards": [{"id": "b1", "name": "Board 1", "note": "", "cards": {"P8 - Wren/g1": {"x": 0, "y": 0},
+     "P8 - Wren/es/Initial:12:0": {"x": 0, "y": 0, "text": "..."}, "P8 - Wren/pn/1": {"x": 0, "y": 0, "text": "..."}},
+     "groups": [{"id": "G1", "label": "...", "members": ["P8 - Wren/g1"], "x": 0, "y": -40}],
+     "discarded": [], "picks": {}, "notes": [], "rows": {}, "history": []}]}
+```
 
 **The settings.** `config.json` beside the app. The server reads it afresh on every request,
 merged over `DEFAULTS` in `server.py`, so a key the file lacks takes its default, and writes the
@@ -6855,7 +6908,7 @@ absolute or from the repo root, or the app's folder in a downloaded copy. The ro
 | `/api/examples` | `gravity_only` | Three statements for the examples rail. |
 | `/api/nudges` | `text`, `path` | The nudges' lines on it, the length nudge at the statement length of the project `path`'s workbook belongs to, 15 without one, and `statement_words`, that length. |
 | `/api/settings` | the settings to save | The settings as saved, and `ai`. |
-| `/api/project` | `root`, the project's id, or `path`, a workbook of it, and `name` and `research_question` for a save, or `agents`, true or false, or `pet_labels`, `letters` or `numbers`, or `timecodes`, `75:12`, `1:15:12` or `01:15:12`, or `reflexivity`, the reflexivity statement, plain text | The project, with `method` (`ipa`, `lipa` or `ta`), `agents`, the privacy tick and when it was set, `pet_labels`, `timecodes` and `reflexivity`. A `method` other than the project's, and `timepoints` for an IPA or a thematic analysis project, are refused in one line with nothing written, dry run and real (projectbuild). A save naming no project is refused while there are several, and so is a save for the demo. A save answers `changes`, a line each, and with `dry_run` (26 October, for `project set`) the name, the question, the tick, the labels, the timecodes and the reflexivity statement are said and nothing is written. A reflexivity statement past 20,000 characters is refused before anything of the save is written. |
+| `/api/project` | `root`, the project's id, or `path`, a workbook of it, and `name` and `research_question` for a save, or `agents`, true or false, or `pet_labels`, `letters` or `numbers`, or `timecodes`, `75:12`, `1:15:12` or `01:15:12`, or `reflexivity`, the reflexivity statement, plain text, or `archived`, true or false, the researcher's archive tick | The project, with `method` (`ipa`, `lipa` or `ta`), `agents`, the privacy tick and when it was set, `pet_labels`, `timecodes`, `reflexivity` and `archived`. A `method` other than the project's, and `timepoints` for an IPA or a thematic analysis project, are refused in one line with nothing written, dry run and real (projectbuild). A save naming no project is refused while there are several, and so is a save for the demo. A save answers `changes`, a line each, and with `dry_run` (26 October, for `project set`) the name, the question, the tick, the labels, the timecodes, the reflexivity statement and `archived` are said and nothing is written. A reflexivity statement past 20,000 characters is refused before anything of the save is written. |
 | `/api/choose-root` | nothing | Choose folder for a page from before the projects: the Mac's folder dialog, and the folder chosen added as a project, answered with `chosen` and its `root`, or `chosen` false for Cancel with nothing written. Off a Mac it refuses. |
 | `/api/projects` | `op` of `read`, `add`, `remove` or `reveal`, and `path`, the folder typed, for an add, or `root`, the project's id, for a remove or a reveal | Every project as `read_project` reads each, with `choose` and `one`. `add` with no `path` opens the Mac's folder dialog, and adds the folder through `add_project`, answered with `added` and the `project`, refused for a folder added already, inside another project's root or holding one, or holding the app or its demo. `remove` forgets the project, its files untouched, answered with `removed`, its `name`, `folder` and `trash`, from Settings or a card's Remove from Idiograph, and with `trash` (removetrash) moves its folder to the system's Trash first through `srv.trash_guard` and `srv.trash_move`, answered with `where`, `page` the asking page and `dry_run` moving nothing. `reveal` (21 October), a card's Show in Finder, shows the project's folder through `show_project_folder` and `SHOW_FOLDER` (`open -R` on a Mac, `explorer /select,` on Windows), writes nothing, and refuses the demo, a folder not there and any other machine, answered with `revealed` and its `name`. A run with `--root` adds and removes none. |
 | `/api/new-project` | `op` of `folder`, with `path` or none for the Mac's folder dialog, `read`, with a file's `name`, its `data` in base64 and `columns` for a table, or `make`, with `folder`, `name`, `research_question`, `method` (`ipa`, `lipa` or `ta`), a `lipa` project's `timepoints`, and `files`, each `name`, `data`, `columns`, `interviewer`, `pseudonym`, `interview` and `number`, none from the page's New project (projectbuild) | New project, through `api_new_project`. `folder` answers the folder as it will be added, refused as Add project refuses one, its `next` free number, and the `name` and `research_question` a project file there gives, or `chosen` false for Cancel. `read` answers the file as the import card's read does, with `interview`, its name guessed from the file's by `convert.interview_of`. `make` checks every file first and refuses in one line, then writes each case, `P<n> - Pseudonym` with its copies in `Source/<interview>/`, its raw source of a sheet an interview and its annotated workbook, the project file, and the folder added through `add_project`, answered with every project, `made`, the `project` and its `cases` by label. A failure takes away what that Make wrote. `make` with `dry_run` (26 October, for `project new`) makes every check and writes nothing, answering the folder, the name, the question and each case it would make, its label and each interview's file, speakers' roles and timepoint. |
@@ -6895,7 +6948,7 @@ Two paths outside the table answer a GET. `/audio?path=<workbook>&sheet=<name>` 
 sheet's recording, with Range support so the player can seek. `/themes/print?workbook=<path>&board=<id>`
 is the print view of a board, the book's table of Personal Experiential Themes as HTML that `themes_print.py` renders from the themes file, the
 current board when `board` is empty, `auto=0` leaves the print dialog shut, and `note=1` puts the
-board's note under the head (see Print in the [manual](manual.md)). `/sift/pdf?folder=<folder>&rec=<rec_id>`
+board's note under the head. `/sift/pdf?folder=<folder>&rec=<rec_id>`
 is a record's PDF for Sift's pane, `pdfs/<rec_id>.pdf` beside the CSV of a screening whose review the
 list of reviews holds and of a record its CSV holds, and nothing that resolves outside that folder.
 `/trace/pdf?folder=<project>&doc=<doc>&ref=<key>` is a reference's PDF for Trace's pane, found as its table
@@ -6906,7 +6959,7 @@ every case not yet in shown as it would come in, with `detail` of `full` or `sel
 bring participant notes in, which no export carries without it, and `get` for one GET's trail.
 `root` must be the case root or the demo's folder, `workbook` stands in for it, and with neither it
 is the case root. The trail reads the words of each turn it names from the workbook opened
-read-only, and nothing is written (see Print, under GETs, in the [manual](manual.md)). Since 9 November
+read-only, and nothing is written. Since 9 November
 (typst3) the same views are Typst templates too, in `apps/idiograph/typst/`: `gets.typ` the main file, which
 reads `gets_print.typst_data(...)`'s JSON from the string input `data` and sets the page, the head and the foot
 (`gets-parts.typ`), then calls `gets-table(d)` (`gets-table.typ`) and `gets-trail(d)` (`gets-trail.typ`), each a
@@ -9376,3 +9429,16 @@ Reset puts its project file back too (settingsfix), its Reflexivity with it, and
 Reflexivity out, as it is the researcher's own positioning, a copy coming back never touching the receiver's own. No export prints it (reflexout, Adam, 17 November 2026: "It's just there if you want to paste it
 somewhere else"): the GET, LGET and Table of themes print views, Word documents and PDFs read nothing of it, and there
 is no option to. Area 422 holds that.
+
+Archived (archiveset, Adam, 18 November 2026): the project file's `archived`, `true` only while the researcher has ticked
+Archive this project, the key taken away when it is off, so an unarchived file is as it was. `archived_of` reads it,
+`read_project` sends `archived` (false for a demo and for no project), `write_archived` writes it with `clean_archived`
+refusing anything but true or false in one line (`server.archived_refused`), and `/api/project` sets it with `archived`
+and `dry_run` in the same all-fields dry run as every other field, a demo refused with the demo's own line, `project_changes`
+saying "Archive this project ticked." or "unticked." in the History and the record of agents' changes alike. The command
+line's `project set --archive on|off` and MCP's `project_set` `archived` call the route, and `project show` gives it.
+`project_pack.SENDER_OWN` holds it beside `reflexivity`, so a copy sent never arrives archived. On the page
+`#set-archived`, in its own Archive section, is drawn by `drawProjectPane` (the section hidden on a demo) and sent by
+`projectSaves` when it changed. Home's `drawPick` splits the project cards by `project.archived` into `#projects` and
+`#archived-projects`, in `#home-archived` between `#home-analysis` and `#home-demos`, folded by `archivedFold` (shut
+until opened, kept in the same fold list as the others, `archived:open`). Area 425 holds it.

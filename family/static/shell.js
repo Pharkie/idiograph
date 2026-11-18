@@ -464,6 +464,7 @@ async function loadLibrary(show = true) {
   if (show) S.backTo = null;
   const ask = ++libraryAsk;
   if ($('projects')) $('projects').innerHTML = '';
+  if ($('archived-projects')) $('archived-projects').innerHTML = '';
   if ($('hp-list')) $('hp-list').innerHTML = '';
   // Idiograph's Home is its projects' and the demo's (its `homeRoute`), and Sift's and Trace's their own
   // projects' (/api/home)

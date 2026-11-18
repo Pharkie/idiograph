@@ -152,13 +152,13 @@ def test_gets_ai(scratch):
         check("83: three titles for a GET from what sits under it across the cases, the cases named, its count against the minimum",
               named["names"] == ["Mornings that turn round the dog", "A day that starts at the stair", "Light first, then the walk"]
               and "GET: Mornings kept round the dog" in user and f"- PET {W}/g1 (Wren): Mornings that start at the stair" in user
-              and f"- PET {A}/g1 (Ash): A lead by the door" in user and "It holds material from 2 of the 3 participants, and his minimum is 3." in user
+              and f"- PET {A}/g1 (Ash): A lead by the door" in user and "It holds material from 2 of the 3 participants, and the project's minimum is 3." in user
               and "Nothing under it from: Moss." in user and "- Untitled" not in user and named["model_name"] == "Opus 5.5", user[:400])
         check("83: the other GETs' titles go so the three stay distinct, with the title rules of section 4 and no other",
               "The other GETs on the board, so the titles sit beside them:\n- Walks at the end of the day\n- Light in the hall" in user
               and all(f"{n}. {t}" in system for n, t in rules4 if n in (5, 6, 7, 8))
               and not any(f"{n}. {t}" in system for n, t in rules4 if n not in (5, 6, 7, 8))
-              and "Offer three titles for the GET he has gathered" in system and "close to the participants' own words" in system)
+              and "Offer three titles for the GET the researcher has gathered" in system and "close to the participants' own words" in system)
         check("83: participant notes, sticky notes and row notes never go to a model, and the titles write nothing",
               "private" not in json.dumps(sent) and gfile.read_bytes() == before and book_sha() == before_books)
         check("83: a GET no longer on the board, or with nothing under it, asks nothing",

@@ -252,6 +252,12 @@ Table and the underline of its title in the audit trail (17 October).
   focus back from its menu and a tick drew the blue and Rename's field showed none). Area 166 holds every
   button on a bar to it. A card's close in its corner takes `--focus-small` too, where the guidance's
   close drew the blue (18 October).
+- **Motion with weight, never bounce**, in the register of the Finder and the iOS home screen. A card or a PET
+  picked up lifts by four per cent with a deep shadow over 120 ms, leans into the way it travels, up to six degrees
+  at full speed, and stands up when the pointer stops. A PET dragged carries its cards, which trail its label by
+  140 ms. A drop lands over 220 ms with a visible overshoot and has settled inside 250 ms. A card pushed clear slides
+  over 240 ms, and one making way for a drag over about 160 ms. All of it is CSS transforms, nothing waits on layout
+  or delays a save, and reduced motion turns it all off.
 - **Keys in capitals**, as keyboards and the Mac's and Windows' menus print them (Adam, 17 October, later):
   G, Q, Cmd + Z, on every shortcuts card, in every tooltip, "Group (G)", and in every line, "press Q.", where
   the statements screen and PETs wrote theirs in lowercase beside Sift's and Trace's capitals. `keyName`

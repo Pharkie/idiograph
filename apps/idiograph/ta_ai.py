@@ -40,8 +40,8 @@ NAME_MAX = codes_mod.NAME_MAX
 # ------------------------------------------------------------------ suggested codes for an extract
 
 CODE_INTRO = ("You help a researcher doing reflexive thematic analysis (Braun and Clarke) at the coding phase: "
-              "putting codes on the extracts of one interview passage. He has chosen the extract himself. You offer "
-              "codes for it, which he takes or leaves. The coding is his.")
+              "putting codes on the extracts of one interview passage. The researcher has chosen the extract. You "
+              "offer codes for it, which they take or leave. The coding is theirs.")
 
 CODE_IS = ("A code is a short label for one meaningful idea in the data. It may be semantic, naming what is said, "
            "or latent, naming an idea or assumption the words rest on. One code can sit on many extracts across "
@@ -110,9 +110,9 @@ def codes_lines(codes: list[dict]) -> str:
 def code_system(question: str | None, rail: list[str], codes: list[dict]) -> str:
     return themes_ai._join([
         CODE_INTRO, code_question(question), CODE_IS,
-        "His guidance for coding, in his own words:\n" + "\n".join(f"- {line}" for line in rail_part(rail)),
-        "The codes already in this project, each with how many extracts it holds and his description of it where "
-        "he has written one:\n" + codes_lines(codes),
+        "The researcher's guidance for coding, in their own words:\n" + "\n".join(f"- {line}" for line in rail_part(rail)),
+        "The codes already in this project, each with how many extracts it holds and the researcher's description of it "
+        "where they have written one:\n" + codes_lines(codes),
         CODE_RULES, CODE_SHAPE])
 
 

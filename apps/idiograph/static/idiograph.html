@@ -38,6 +38,16 @@
              aria-label="{{page_idiograph.home.path_folder_put_copy}}"><button type="button" class="ghost small" id="sent-go">{{page_idiograph.home.open}}</button></p>
         </div>
       </section>
+      <!-- the projects he has archived (archiveset, Adam, 18 November 2026), between his projects and the demos: the
+           section shut until he opens it and kept as he leaves it, drawn only while a project is archived
+           (`archivedFold`). An archived project still opens and can be changed -->
+      <section class="proj home-sec" id="home-archived" data-only="idiograph" hidden>
+        <h2 class="proj-h"><button type="button" class="proj-head" id="archived-head" aria-expanded="false"
+            aria-controls="archived-body"><span class="proj-name">{{page_idiograph.home.archived_projects}}</span></button></h2>
+        <div class="proj-body" id="archived-body">
+          <ul class="home-cards" id="archived-projects"></ul>
+        </div>
+      </section>
       <!-- the two demos apart from his projects (demos, Adam, 3 November 2026): the IPA demo and the thematic
            analysis demo, each with its tag, the section shut until he opens it and kept as he leaves it, open on a
            Home with no project of his yet so a first run finds them (`demosFold`) -->
@@ -282,7 +292,9 @@
              over the words (16 October) -->
         <div class="sel-bar" id="sel-bar" role="toolbar" aria-label="{{page_idiograph.work.words_selected}}" hidden>
           <button type="button" class="ghost small" id="sel-quote" tabindex="-1" title="{{page_idiograph.work.quote_q}}"><svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9.4 6.5H5.6v4h3.8v1.2c0 2-1.1 3.3-3.2 4M18.4 6.5h-3.8v4h3.8v1.2c0 2-1.1 3.3-3.2 4"/></svg>{{page_idiograph.work.quote}}</button>
-          <button type="button" class="ghost small" id="sel-give" tabindex="-1" title="{{page_idiograph.work.give_another_speaker_c}}"><svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.5-3.3 2.7-5.2 5.5-5.2 1.3 0 2.5.4 3.5 1.1"/><path d="M14.5 16.5h6.5M18.5 14l2.5 2.5-2.5 2.5"/></svg>{{page_idiograph.work.give_another_speaker}}</button>
+          <button type="button" class="ghost small" id="sel-give" tabindex="-1" title="{{page_idiograph.work.give_another_speaker_c}}"><svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.5-3.3 2.7-5.2 5.5-5.2 1.3 0 2.5.4 3.5 1.1"/><path d="M14.5 16.5h6.5M18.5 14l2.5 2.5-2.5 2.5"/></svg><span id="sel-give-label">{{page_idiograph.work.give_another_speaker}}</span></button>
+          <!-- why the words selected cannot join the quote being built (uxgapmock2 draft) -->
+          <span class="sel-why" id="sel-why" hidden></span>
           <!-- a thematic analysis project's quick keys (quickkeysB, 9 November 2026, Adam's choice of option B with
                A's keys): In vivo code, V, and under it the five codes used last, the last one first, R or 1 to 5,
                drawn by codes.js -->
@@ -744,6 +756,8 @@
        on the canvas (data-xfor: pets, the PETs board alone; gets, the GETs, LPETs, LGETs and Themes boards) -->
   <div class="row-menu th-xmenu" id="th-xmenu" hidden>
     <div class="th-xpart" data-xpart="canvas" hidden>
+      <!-- on the canvas the menu has two parts, the canvas's and the table's, each under its head -->
+      <p class="th-xhead th-xpart-head">{{themes.export.head_canvas}}</p>
       <!-- the canvas itself as it shows, every statement whole, on one landscape page in a tab of its own (210) -->
       <button type="button" class="ghost" tabindex="-1" data-xop="canvas" title="{{page_idiograph.screens.canvas_one_landscape_page}}">{{page_idiograph.screens.print}}</button>
       <!-- that page as a PDF beside the workbook, made by the window's own web view, and its picture at twice its
@@ -759,6 +773,8 @@
       </div>
     </div>
     <div class="th-xpart" data-xpart="table">
+    <div class="row-menu-rule th-xpart-head" role="separator"></div>
+    <p class="th-xhead th-xpart-head" data-xtablehead>{{themes.export.head_table}}</p>
     <!-- Print, Save as PDF, Microsoft Word and Markdown and CSV, each named for what it gives with the rest in its
          tooltip (Adam, 31 October: literal words). The table itself is the board's Table view since 19 October, so
          Print prints it, the print dialog opening at once -->
@@ -1766,6 +1782,13 @@
               <div class="switches"><label><input type="checkbox" id="wt-recordings"> {{team.page.recordings}}</label></div>
             </div>
             <p class="fineprint" id="wt-said" hidden></p>
+            </div>
+            <!-- Archive (archiveset, Adam, 18 November 2026): one tick, the researcher's own, off until ticked. An
+                 archived project is listed on Home under Archived projects and still opens and can be changed.
+                 Saved with Save, fixed on a demo -->
+            <div id="archive-block">
+            <h4 class="pane-sub" id="archive-sub">{{page_idiograph.projset.archive}}</h4>
+            <div class="switches"><label><input type="checkbox" id="set-archived"> {{page_idiograph.projset.archive_this}}</label></div>
             </div>
             <!-- the privacy tick: an AI agent in a conversation reads the project through the command
                  line only with it ticked, off by default and always on for the demo, then the guide

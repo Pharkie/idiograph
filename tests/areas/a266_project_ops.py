@@ -159,7 +159,7 @@ def test_project_ops(scratch: Path):
               and dry["project"] == {"name": "Swimming at night", "research_question": "How do people live night swimming?",
                                      "pet_labels": "numbers", "timecodes": "1:15:12",
                                      "interviewer": dry["project"].get("interviewer"), "nudges": [],
-                                     "work_in_rounds": False, "round_minutes": 10, "daily_target": 2,
+                                     "archived": False, "work_in_rounds": False, "round_minutes": 10, "daily_target": 2,
                                      "reflexivity_words": 0}, err + json.dumps(dry))
         code, done, err = run_json("--root", str(agent), "project", "set", "--name", "Swimming at night",
                                    "--question", "How do people live night swimming?", "--pet-labels", "numbers",

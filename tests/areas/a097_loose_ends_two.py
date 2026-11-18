@@ -22,7 +22,6 @@ def test_loose_ends_two(scratch):
     js = support.text("apps/idiograph/static/themes.js")
     css = support.text("apps/idiograph/static/themes.css")
     page = support.page_text()
-    manual = support.source("docs/manual.md").read_text(encoding="utf-8")
     internals = support.source("docs/internals.md").read_text(encoding="utf-8")
     guide = support.source("docs/agents.md").read_text(encoding="utf-8")
     flat = lambda text: " ".join(str(text).split())
@@ -120,7 +119,3 @@ def test_loose_ends_two(scratch):
              block(page, "stopping\n       above the bin"),
              para(guide, "It is laid out the way the app lays out an AI board"),
              para(internals, "schema 2 on its next save. `made` and `changed`")]
-    for line in ("named as Export is on PETs", "With nothing selected it has no head", "stopping above the bin and the",
-                 "the tool and its source, the board on the canvas"):
-        at = manual.find(line)
-        prose.append(manual[manual.rfind("\n\n", 0, at):manual.find("\n\n", at)] if at >= 0 else "")

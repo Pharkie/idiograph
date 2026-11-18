@@ -61,7 +61,7 @@ const selectionTurns = () => [{ box: { closest: () => ({ dataset: { i: String(RO
 // the lines beside the selection, none here: area 182 holds the toolbar over whole lines
 const selBarLines = () => [];
 """
-        code = harness + "\n".join(whole(app, n) for n in ("selBarPick", "selBarRoom", "selBarSpeaker", "selBarCut", "selBarWhole", "selBarPlace", "selBarShow")) + "\n" + r"""
+        code = harness + "\n".join(whole(app, n) for n in ("selBarPick", "selBarRoom", "selBarSpeaker", "selBarCut", "selBarWhole", "selBarPlace", "selBarWords", "selBarShow")) + "\n" + r"""
 const r = (left, top, w, h) => ({ left, top, right: left + w, bottom: top + h, width: w, height: h });
 const place = () => ({ hidden: bar.hidden, top: parseInt(bar.style.top, 10), left: parseInt(bar.style.left, 10) });
 const covers = (p) => !p.hidden && RECTS.some((x) => p.left < x.right && p.left + 300 > x.left && p.top < x.bottom && p.top + 36 > x.top);

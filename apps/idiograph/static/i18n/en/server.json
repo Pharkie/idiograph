@@ -379,6 +379,7 @@
     "other": "{n} words"
   },
   "server.reflexivity_refused": "Reflexivity can be up to {most} characters long, so nothing was saved.",
+  "server.archived_refused": "Archive this project is on or off, so nothing was changed.",
   "server.nudges_unknown": "{names} is not one of the nudges, so nothing was saved. The nudges are {checks}.",
   "server.interviewer_empty": "The interviewer's name is empty, so nothing was saved.",
   "server.nudges_not_bool": "Each nudge is on or off, true or false. {names} is neither, so nothing was saved.",

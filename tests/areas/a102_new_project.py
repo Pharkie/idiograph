@@ -29,7 +29,6 @@ def test_new_project(scratch):
     import server as server_mod
 
     b64 = lambda data: base64.b64encode(data if isinstance(data, bytes) else data.encode("utf-8")).decode("ascii")
-    flat = lambda text: " ".join(str(text).split())
 
     # ── A. the six formats, every word invented: Sam asks, and each participant's label is a made-up
     # full name, which must never reach a workbook
@@ -474,8 +473,3 @@ def test_new_project(scratch):
             check("102: in node, the numbers go in order from the folder's next free one, a case keeps one, and a typed one holds",
                   o["auto"] == {"Wren": 4, "Ash": 5} and o["typed"] == {"Ash": 9, "Wren": 4, "Oak": 5}
                   and o["around"] == {"Ash": 4, "Wren": 5}, str(o["auto"]) + str(o["typed"]) + str(o["around"]))
-
-    # ── G. the words: the manual, the README and the internals, and the voice of all that is new
-    manual = support.source("docs/manual.md").read_text(encoding="utf-8")
-    projects = manual.split("\n## Projects\n", 1)[1].split("\n## ", 1)[0]
-    para = flat(projects.split("**New project.**", 1)[1].split("\n\n", 1)[0]) if "**New project.**" in projects else ""

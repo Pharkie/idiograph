@@ -551,7 +551,7 @@ def parser(app: str | None = None, search: bool = False) -> argparse.ArgumentPar
         return ap
     writes = argparse.ArgumentParser(add_help=False)
     writes.add_argument("--dry-run", action="store_true", help="say what would change and write nothing")
-    writes.add_argument("--note", default="", help="his request in his own words, which the board and its History name")
+    writes.add_argument("--note", default="", help="the researcher's request in their own words, which the board and its History name")
     writes.add_argument("--tool", default="", help="the tool the agent works in, such as Claude Code")
     # an agent's run, whose writes share one restore point (noholds, 13 November 2026, agent_changes.py)
     writes.add_argument("--run", default="", help="the run this write belongs to, any word the agent keeps for its "

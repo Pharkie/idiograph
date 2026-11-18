@@ -1332,7 +1332,7 @@ textarea.th-vedit { resize: vertical; min-height: 4.4em; margin-top: 4px; }
 .rail-btn.th-door.on { color: var(--ink); border-color: var(--rule-firm); background: var(--paper-sunk); }
 
 /* the export control's menu, under it at the right of the bar */
-.th-xmenu { position: fixed; z-index: 50; width: max-content; max-width: calc(100vw - 16px); }
+.th-xmenu { position: fixed; z-index: 50; width: max-content; max-width: calc(100vw - 16px); overflow-y: auto; }
 /* its two parts, the table's and the canvas's, the one for the view shown (exportA), each under a small head
    in the soft ink, its words in line with the entries' */
 .th-xpart { display: grid; gap: 2px; }

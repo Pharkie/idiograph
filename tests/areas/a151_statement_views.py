@@ -155,7 +155,7 @@ const $ = (id) => els[id] || (els[id] = mk(id));
 const window = { innerWidth: 1280 };
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 const escAttr = (s) => esc(s).replace(/"/g, '&quot;');
-const rowHtml = (row) => esc(row.text); const timeHtml = (row) => `<t>${row.time}</t>`; const noteMarkHtml = () => '';
+const rowHtml = (row) => esc(row.text); const fixOpenHtml = () => ''; const timeHtml = (row) => `<t>${row.time}</t>`; const noteMarkHtml = () => '';
 const rowPairs = (row) => (row.pairs || []).map((p) => ({ es: p.es || '', kq: p.kq || '' }));
 const sent = []; let answer = null;
 const api = async (path, body) => { sent.push([path, body]); return answer || { config: Object.assign({}, S.data.config, body) }; };

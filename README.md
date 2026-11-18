@@ -102,7 +102,7 @@ internet address and version number, not your work. When you press Download on a
 Pull requests are welcome under the same licence. GitHub runs the suite on each, as does
 `.venv/bin/python tests/test_idiograph.py --train`.
 
-The [manual](docs/manual.md) describes every screen. The [internals](docs/internals.md) say how it runs.
+The [manual](docs/manual.md) is for when you are stuck. The [internals](docs/internals.md) say how it runs.
 
 ## Licence and support
 

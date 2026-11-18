@@ -1645,13 +1645,14 @@ def cmd_project_set(p: Project, args) -> tuple:
     name, question, labels, form = (getattr(args, k, None) for k in ("name", "question", "pet_labels", "timecodes"))
     method = getattr(args, "method", None)
     reflexivity = reflexivity_given(args)
+    archive = getattr(args, "archive", None)
     interviewer, nudges = getattr(args, "interviewer", None), getattr(args, "nudges", None)
     rounds = {key: getattr(args, arg, None) for key, arg in (("work_in_rounds", "rounds"),
                                                             ("round_minutes", "round_minutes"),
                                                             ("daily_target", "rounds_a_day"))}
     rounds = {k: v for k, v in rounds.items() if v is not None}
     if (name is None and question is None and labels is None and form is None and method is None
-            and reflexivity is None and interviewer is None and nudges is None and not rounds):
+            and reflexivity is None and interviewer is None and nudges is None and not rounds and archive is None):
         raise cli.Refused(_w("NO_SET"))
     if not themes_ai.one_line(args.note) and not args.dry_run:
         raise cli.Refused(_w("NO_PROJECT_REQUEST"))
@@ -1670,6 +1671,9 @@ def cmd_project_set(p: Project, args) -> tuple:
         body["timecodes"] = form
     if reflexivity is not None:
         body["reflexivity"] = reflexivity
+    if archive is not None:
+        # the researcher's archive tick (archiveset, 18 November 2026): on or off, as the Project settings tick
+        body["archived"] = {"on": True, "off": False}.get(archive, archive)
     if interviewer is not None:
         body["interviewer"] = interviewer
     if nudges is not None:
@@ -1692,10 +1696,11 @@ def cmd_project_set(p: Project, args) -> tuple:
                                         i18n.t("cli.said.interviewer", name=got['interviewer'] or i18n.t("cli.said.none_set_yet")),
                                         i18n.t("cli.said.nudges", nudges=routes.nudges_said(got['nudges'])),
                                         rounds_line(got),
+                                        (i18n.t("cli.said.archived_on") if got.get("archived") else i18n.t("cli.said.archived_off")),
                                         reflexivity_line(got.get("reflexivity") or "")]
     # the statement by its words' count alone: its words are his, and project show reads them
     answer = {"project": {**{k: got[k] for k in ("name", "research_question", "pet_labels", "timecodes", "interviewer",
-                                                 "nudges", *routes.ROUNDS_KEYS)},
+                                                 "nudges", "archived", *routes.ROUNDS_KEYS)},
                           "reflexivity_words": routes.reflexivity_words(got.get("reflexivity") or "")},
               "changes": done["changes"], "dry_run": bool(args.dry_run)}
     return answer, lines
@@ -1746,7 +1751,7 @@ def cmd_project_show(p: Project, _args) -> tuple:
     its statement length. It reads and writes nothing."""
     got = routes.api_project(project_body(p))["project"]
     keys = ("name", "research_question", "method", "pet_labels", "timecodes", "statement_words", "interviewer",
-            "nudges", *routes.ROUNDS_KEYS, "demo", "reflexivity")
+            "nudges", *routes.ROUNDS_KEYS, "demo", "reflexivity", "archived")
     answer = {k: got[k] for k in keys}
     # the method, ipa, lipa or ta, beside a longitudinal project's timepoints, which IPA and thematic analysis
     # projects have none of (projectbuild, 17 November 2026)
@@ -1762,6 +1767,7 @@ def cmd_project_show(p: Project, _args) -> tuple:
              i18n.t("cli.said.interviewer", name=got['interviewer'] or i18n.t("cli.said.none_set_yet")),
              *([] if ta else [i18n.t("cli.said.nudges", nudges=routes.nudges_said(got['nudges']))]),
              rounds_line(got),
+             (i18n.t("cli.said.archived_on") if got.get("archived") else i18n.t("cli.said.archived_off")),
              # the researcher's reflexivity statement (settingsbuild), his words, marked as data for an agent
              i18n.t("cli.reflexivity.said", text=got["reflexivity"]) if got["reflexivity"] else i18n.t("cli.reflexivity.none")]
     return {"project": answer}, lines
@@ -9075,7 +9081,7 @@ def arguments(sub, common, writes) -> None:
     # the forward trace (drawsword, 17 November 2026)
     x = board.add_parser("drawn-on", parents=[common],
                          help="in a project of two or more timepoints, which of the participant's LPETs draw on each "
-                              "PET, sub-theme and statement of their PETs at a timepoint, and his reason a PET is "
+                              "PET, sub-theme and statement of their PETs at a timepoint, and the researcher's reason a PET is "
                               "drawn on by none")
     x.add_argument("case")
     x.add_argument("board", nargs="?", help="the PETs board, by its id or name, which the LPETs' copy should come from")
@@ -9090,7 +9096,7 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--layout", default=None,
                    help="the board whose layout it keeps, the board on the canvas by default, or fresh to lay it out afresh")
     x = board.add_parser("import", parents=[common, writes],
-                         help="a new board made from his own table of PETs, a CSV or an Excel sheet with PET, Sub-theme, "
+                         help="a new board made from the researcher's own table of PETs, a CSV or an Excel sheet with PET, Sub-theme, "
                               "Experiential statements, Location and Quote columns, each row matched to a statement")
     x.add_argument("case")
     x.add_argument("--from", dest="source", required=True, help="the table, by its path from the project's folder or in full")
@@ -9130,7 +9136,7 @@ def arguments(sub, common, writes) -> None:
     x = board.add_parser("note", parents=[common, writes], help="a board's note, as the board note on the PETs screen sets it")
     x.add_argument("case")
     x.add_argument("board")
-    x.add_argument("text", help="the board's note, his words, or empty to take it off")
+    x.add_argument("text", help="the board's note, the researcher's words, or empty to take it off")
     x = board.add_parser("history", parents=[common], help="a board's History, or one revision of it as board show sets it out")
     x.add_argument("case")
     x.add_argument("board", nargs="?")
@@ -9138,7 +9144,7 @@ def arguments(sub, common, writes) -> None:
     x = board.add_parser("revision", parents=[common, writes], help="save a revision, the board as it stands kept in its History")
     x.add_argument("case")
     x.add_argument("board", nargs="?")
-    x.add_argument("--name", default="", help="the revision's name, his request when left out")
+    x.add_argument("--name", default="", help="the revision's name, the researcher's request when left out")
     x = board.add_parser("restore", parents=[common, writes],
                          help="a revision made the board, the board as it stands kept in its History first")
     x.add_argument("case")
@@ -9163,13 +9169,13 @@ def arguments(sub, common, writes) -> None:
                    help="the PET draft in markdown and the statements CSV with its Proposed PET column, in the "
                         "participant's Working folder, as the PETs screen's Export writes them")
     x.add_argument("--pdf", action="store_true",
-                   help="a PDF, the print view's table of PETs on landscape A4, printed by Chrome, Chromium, Brave "
-                        "or Edge headless")
+                   help="a PDF, the print view's table of PETs on landscape A4, made by Typst with no window and no "
+                        "browser")
     x.add_argument("--canvas", default=None, choices=("pdf", "png"),
                    help="the canvas itself, every statement whole, as the PETs screen's Export makes it on the canvas: "
                         "pdf on one landscape page, or png, the whole canvas pictured at twice its scale, beside the "
-                        "workbook, named as the table's PDF with canvas after it. Made by the app's own page in "
-                        "Chrome, Chromium, Brave or Edge headless. Takes --out, --replace and --dry-run alone")
+                        "workbook, named as the table's PDF with canvas after it. Typst draws it from the board as "
+                        "its file keeps it. It takes only --out, --replace and --dry-run")
     x.add_argument("--labels", default=None,
                    help="letters, A, A1, A1.1, as the book has them, or numbers, PET 1, PET 1a, 1a.1, for this run "
                         "in place of the project's setting")
@@ -9233,8 +9239,9 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("board")
     x.add_argument("--ops", required=True)
     x = g.add_parser("import", parents=[common, writes],
-                     help="with --lpets, a participant's LPETs made from his own table of them, a row an LPET with a "
-                          "cell for each timepoint, the PETs its cells quote proposed as its members")
+                     help="with --lpets, a participant's LPETs made from the researcher's own table of them. Each row "
+                          "is an LPET with a cell for each timepoint, and the PETs its cells quote are proposed as "
+                          "its members")
     x.add_argument("--from", dest="source", required=True, help="the table, by its path from the project's folder or in full")
     x.add_argument("--sheet", default=None, help="an Excel file's sheet by its name, the first with anything in it without it")
     x.add_argument("--name", default="", help=f"the board's name, {IMPORTED} without it")
@@ -9253,7 +9260,7 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("name")
     x = g.add_parser("note", parents=[common, writes], help="a GETs board's note, as the board note sets it")
     x.add_argument("board")
-    x.add_argument("text", help="the board's note, his words, or empty to take it off")
+    x.add_argument("text", help="the board's note, the researcher's words, or empty to take it off")
     x = g.add_parser("canvas", parents=[common, writes], help="put a GETs board on the canvas")
     x.add_argument("board")
     x = g.add_parser("current", parents=[common, writes], help="mark a GETs board as the Current board")
@@ -9267,7 +9274,7 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--revision", default=None, help="one revision, by its id, r3, as the History lists it")
     x = g.add_parser("revision", parents=[common, writes], help="save a revision of a GETs board")
     x.add_argument("board", nargs="?")
-    x.add_argument("--name", default="", help="the revision's name, his request when left out")
+    x.add_argument("--name", default="", help="the revision's name, the researcher's request when left out")
     x = g.add_parser("restore", parents=[common, writes], help="a revision made the GETs board, the board kept first")
     x.add_argument("board")
     x.add_argument("revision", help="the revision, by its id, r3, as gets history lists it")
@@ -9280,7 +9287,7 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--minimum", default=None, help="the participants a GET needs, a whole number, or band for Smith's band")
     x.add_argument("--one-per-pet", dest="one_per_pet", default=None, help="on or off")
     x.add_argument("--out", action="append", default=None,
-                   help="a participant out of the study with his reason, Name=reason, given again for each one more")
+                   help="a participant out of the study with the researcher's reason, Name=reason, given again for each one more")
     x.add_argument("--in", dest="back_in", action="append", default=None,
                    help="a participant back in the study, given again for each one more")
     # and every GETs command a participant's LPETs in place of the project's GETs
@@ -9304,7 +9311,7 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--text", default=None, help="the passage's words as they should read, whole")
     x.add_argument("--time", default=None, help="the passage's timecode, MM:SS or H:MM:SS")
     x = t.add_parser("interviewer-note", parents=[common, writes],
-                     help="the interviewer's note on one of his own passages, an empty one clearing it")
+                     help="the interviewer's note on a passage of their own. An empty one clears it")
     x.add_argument("case")
     x.add_argument("sheet")
     x.add_argument("row")
@@ -9423,7 +9430,7 @@ def arguments(sub, common, writes) -> None:
     nm.add_parser("list", parents=[common], help="each entry's number, its replacement, whom it is for and its spellings counted")
     nm.add_parser("check", parents=[common], help="the transcripts already in searched for the list's names, counts only")
     x = nm.add_parser("add", parents=[common, writes],
-                      help="entries added to the list on his word, --dry-run first: each new entry's finds counted by "
+                      help="entries added to the list on the researcher's word, --dry-run first: each new entry's finds counted by "
                            "participant and part, never a real name said back")
     x.add_argument("--from", dest="source", default=None,
                    help='a JSON file, [{"real": ["spelling", ...], "to": "Wren", "for": "Wren", '
@@ -9435,7 +9442,7 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--except", dest="except_", action="append", default=None, metavar="PHRASE",
                    help="a phrase the name is never found inside, given again for each one more")
     x = nm.add_parser("set", parents=[common, writes],
-                      help="one entry changed by its number on his word, --dry-run first: each field before and after "
+                      help="one entry changed by its number on the researcher's word, --dry-run first: each field before and after "
                            "and its finds counted, never a real name said back")
     x.add_argument("number", type=int, help="the entry's number, from names list")
     x.add_argument("--from", dest="source", default=None,
@@ -9452,12 +9459,12 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--except-remove", action="append", default=None, metavar="PHRASE",
                    help="a phrase taken off the entry's, given again for each one more")
     x = nm.add_parser("remove", parents=[common, writes],
-                      help="entries taken off the list by their numbers on his word, --dry-run first")
+                      help="entries taken off the list by their numbers on the researcher's word, --dry-run first")
     x.add_argument("numbers", type=int, nargs="+", help="the entries' numbers, from the list")
     x = nm.add_parser("replace", parents=[common, writes],
                       help="the list's names with their capital letter replaced in the transcripts already in, each "
                            "workbook kept in its participant's _Archive first, counts only: lower-case finds and every "
-                           "find of an entry his review marked are left for him in the app")
+                           "find of an entry the researcher's review marked are left for them in the app")
     x.add_argument("--skip", action="append", default=None, metavar="ENTRY:N",
                    help="leave this find as written, the entry's number and its place among that entry's finds as "
                         "names check counts them, 3:1, given again for each one more")
@@ -9477,7 +9484,7 @@ def arguments(sub, common, writes) -> None:
                                                 '"Positive"}, order, note, title, tags, tag_colour, picture, hide, '
                                                 'show, and on an LPET state, quote (a quote\'s key, or a passage: '
                                                 'interview, turn and start and end), bold, domain, states_from_notes, '
-                                                'and on a PET of a timepoint no LPET draws on, why (his reason, '
+                                                'and on a PET of a timepoint no LPET draws on, why (the researcher\'s reason, '
                                                 '{"op": "why", "participant": "Wren", "timepoint": "T2", "pet": '
                                                 '"g3", "why": "..."}), '
                                                 'each on the LPETs board LGETs take or the one its "board" names')
@@ -9523,12 +9530,13 @@ def arguments(sub, common, writes) -> None:
     cd.add_parser("undo", parents=[common, writes], help="the list's last change put back, every file it wrote")
     cd.add_parser("redo", parents=[common, writes], help="the change undone made again")
     x = sub.add_parser("settings", parents=[common, writes],
-                       help="his own settings, read, or set as Settings sets them: --your-name, the name the print "
-                            "views' foot and Word's author carry, the Interviewer name standing in while it is empty")
+                       help="the researcher's own settings, read, or set as Settings sets them: --your-name, the name "
+                            "the print views' foot and Word's author carry. A project's Interviewer name stands in "
+                            "while it is empty")
     x.add_argument("--your-name", dest="your_name", default=None, help="Your name, or \"\" to leave it empty")
     x.add_argument("--ai-prompt-file", dest="ai_prompt_file", default=None,
                    help="set the statements' AI prompt from this UTF-8 text file, with {research_question}, "
-                        "{guidance} and {examples} where they go, an empty file refused")
+                        "{guidance} and {examples} where they go. An empty file is refused")
     x.add_argument("--ai-prompt-default", dest="ai_prompt_default", action="store_true",
                    help="put the statements' AI prompt back to the default")
     x.add_argument("--ai-provider", dest="ai_provider", default=None,
@@ -9542,7 +9550,7 @@ def arguments(sub, common, writes) -> None:
                    help="the model the provider is asked, by its id, as its Model list names it")
     x = sub.add_parser("length", parents=[common, writes],
                        help="the project's statement length, the words past which the length nudge speaks, 15 by "
-                            "default, read, or set as Settings, Experiential statements sets it")
+                            "default, read, or set as Project settings, Experiential statements sets it")
     x.add_argument("words", nargs="?", default=None, help="the new length, a whole number of words from 5 to 60")
     x = sub.add_parser("offset", parents=[common, writes], help="a sheet's recording's offset in seconds, plus or minus")
     x.add_argument("case")
@@ -9567,15 +9575,15 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--all", action="store_true", help="every participant of the project, each workbook its own write")
     # bold and font colours out of a whole project (clearformat, 13 November 2026)
     x = sub.add_parser("clear-formatting", parents=[common, writes],
-                       help="all bold and font colours taken out of the project, the words unchanged: the transcript, "
-                            "statements, quotes and notes of every workbook and his bold on the LPET tables, each file "
-                            "copied to _Archive first")
+                       help="all bold and font colours taken out of the project, with the words unchanged: the "
+                            "transcript, statements, quotes and notes of every workbook and the researcher's bold on "
+                            "the LPET tables. Each file is copied to _Archive first")
     x.add_argument("--participant", dest="case", default=None, help="this participant alone, by their pseudonym")
     # the notes saying who made a board off every board of the project (sidebarcopy, 16 November 2026)
     x = sub.add_parser("clear-made-notes", parents=[common, writes],
                        help="the notes an agent's boards carry about their own making, \"Made by ... in a conversation on "
-                            "...\", taken off every board of the project, the agent's own note kept, each file changed "
-                            "copied to _Archive first")
+                            "...\", taken off every board of the project. The agent's own note is kept, and each "
+                            "file changed is copied to _Archive first")
     tr = sub.add_parser("transcript", parents=[common], help="the app's Find and replace, the words changing in the "
                                                              "transcript, the statements, the quotes and the notes "
                                                              "alike").add_subparsers(dest="act", required=True)
@@ -9686,7 +9694,7 @@ def arguments(sub, common, writes) -> None:
                         "alone, the progress files without their History, or all, the default, every board")
     x = pj.add_parser("export-qdpx", parents=[common, writes],
                       help="the project, or the participants named, as a REFI-QDA project (.qdpx) for NVivo, ATLAS.ti, "
-                           "MAXQDA and QualCoder, nothing in the project changed")
+                           "MAXQDA and QualCoder. Nothing in the project changes")
     x.add_argument("--to", default=None, help="the file to write, or a folder to write it in under the project's name")
     x.add_argument("--participant", action="append", default=None,
                    help="this participant alone, by label or pseudonym, given again for each one more, every one "
@@ -9746,6 +9754,9 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--nudges", default=None,
                    help="the statement nudges on, a comma list of length, lead, quote, semicolon, emdash, arrow and "
                         "readsas, or none, as the statements screen's View ticks them")
+    x.add_argument("--archive", default=None, choices=("on", "off"),
+                   help="Archive this project on or off, as Project settings ticks it: Home lists an archived "
+                        "project under Archived projects, and it still opens and can be changed")
     x.add_argument("--rounds", default=None, choices=("on", "off"),
                    help="Work in rounds on or off for the project, as the statements screen's View ticks it")
     x.add_argument("--round-minutes", dest="round_minutes", type=int, default=None,
@@ -9758,8 +9769,8 @@ def arguments(sub, common, writes) -> None:
                       help="the project taken out of Idiograph's list, as Remove from Idiograph on its menu takes it, "
                            "its folder and files left as they are")
     x.add_argument("--trash", action="store_true",
-                   help="move the project's folder to the system's Trash as well, never a delete, which waits for his "
-                        "yes in the app")
+                   help="move the project's folder to the system's Trash as well, never a delete, which waits for the "
+                        "researcher's yes in the app")
     x = pj.add_parser("history", parents=[common],
                       help="the project's own History, newest first: its settings, timepoints and statement length, the "
                            "GETs settings, and each participant renamed or marked complete, who asked and what changed")
@@ -9771,8 +9782,9 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--name", default=None, help="the project's name, the folder's own when left out")
     x.add_argument("--question", default=None, help="the project's research question")
     x.add_argument("--method", choices=routes.KINDS, default=None,
-                   help="the project's method, ipa, Interpretative Phenomenological Analysis, the default, lipa, "
-                        "longitudinal IPA, or ta, reflexive thematic analysis, fixed once the project is made")
+                   help="the project's method: ipa (Interpretative Phenomenological Analysis), the default, lipa "
+                        "(longitudinal IPA) or ta (reflexive thematic analysis). It cannot be changed once the "
+                        "project is made")
     x.add_argument("--timepoint", action="append", default=None, metavar="LABEL[=DESCRIPTION]",
                    help="with --method lipa, a timepoint in order, its label and its description after =, "
                         "\"T1=Before the season\", given again for each one more, T1 and T2 when left out, two at least")
@@ -9847,12 +9859,13 @@ def arguments(sub, common, writes) -> None:
     tm.add_parser("send", parents=[common, writes], help="Send now: what came taken in, and your changes to the "
                                                          "participants you work on sent at once")
     x = tm.add_parser("board-send", parents=[common, writes],
-                      help="his own board of a participant someone else works on, sent to them for their answer")
+                      help="the researcher's own board of a participant someone else works on, sent to them for their answer")
     x.add_argument("case", help="the participant, by their pseudonym")
     x.add_argument("--board", default=None, help="the board, by its name, the one on the canvas when left out")
     x.add_argument("--timepoint", default=None, help="the timepoint, in a project of two or more")
     tm.add_parser("board-take", parents=[common, writes],
-                  help="the boards teammates sent, kept waiting for his answer, and the answers to his, taken in")
+                  help="the boards teammates sent, which wait for the researcher's answer, and the answers to the "
+                       "researcher's own, taken in")
     x = tm.add_parser("board-answer", parents=[common, writes],
                       help="Add a board a teammate sent as the next board, or --decline it, the answer going back")
     x.add_argument("--ref", default=None, help="the board's ref, as team boards lists it")
@@ -9860,7 +9873,7 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--decline", action="store_true", help="decline it: nothing is written to the participant")
     x.add_argument("--reason", default=None, help="a line saying why, which goes back with the answer")
     x = tm.add_parser("boards", parents=[common], help="the boards sent and come in, each with its answer")
-    x.add_argument("--case", default=None, help="a participant, to say whether his board of it can go")
+    x.add_argument("--case", default=None, help="a participant, to say whether the researcher's board of it can go")
     pt = sub.add_parser("participant", parents=[common], help="a participant renamed, their statements marked "
                                                               "complete, exported as the statements CSV, or their "
                                                               "picture, label and pen portrait set or "
@@ -9885,7 +9898,7 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--portrait", default=None, help="the pen portrait, one short paragraph, \"\" clearing it")
     x.add_argument("--picture", default=None, help="one of the app's drawn sets, set:peep01 to set:peep80, "
                                                     "or set:notion01 to set:notion40")
-    x.add_argument("--picture-file", default=None, help="an image file of his, PNG, JPEG or SVG, kept in the "
+    x.add_argument("--picture-file", default=None, help="an image file of the researcher's, PNG, JPEG or SVG, kept in the "
                                                          "project's pictures folder, made square and small")
     x.add_argument("--no-picture", action="store_true", help="take the picture off, the initial on their colour shown")
     x.add_argument("--value", action="append", default=None, metavar="CATEGORY=VALUE",

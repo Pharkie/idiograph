@@ -21,15 +21,15 @@ def test_row_menu():
           and "else if (item.words && open.pick) assignWords(open.pick, item.to);" in chooser,
           "Edit text is the double-click on the text, Edit timecode the double-click on the timecode")
     check("the small control in the margin opens the same menu, from the timecode's line",
-          'class="row-menu-open" data-menu="${row.i}"' in js
-          and '<span class="gutter-time"><button type="button" tabindex="-1" class="row-menu-open"' in js
+          'class="row-menu-open fix-open" data-menu="${row.i}"' in js
+          and '<span class="gutter-time">${fixOpenHtml(row)}${timeHtml(row)}' in js
           and "display: inline-flex" in css_block(css, "\n.gutter-time")
           and "if (opener) {\n      e.stopPropagation();" in click
           and "openRowMenu(row, { pick: assignSelection(), at: { x: box.left, y: box.bottom } });" in click
           and "data-trim" not in js and ".trim-open" not in css)
     check("c opens the same menu with the assignments alone",
-          "only: 'assign' });" in js and "if (only === 'assign') return groups;" in groups
-          and groups.index("if (only === 'assign') return groups;") < groups.index("t('distil.assign.edit_text')"))
+          "only: 'assign' });" in js and "if (only === 'assign') { groups.push(assign); return groups; }" in groups
+          and groups.index("if (only === 'assign')") < groups.index("t('distil.fix.edit_words')"))
     check("Esc and a click anywhere else close the menu",
           "if (S.rowMenu) { e.preventDefault(); closeRowMenu(); return true; }" in js
           and "if (S.rowMenu && !S.rowMenu.el.contains(e.target)) closeRowMenu();" in js

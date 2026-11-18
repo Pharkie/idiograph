@@ -109,8 +109,8 @@ FORMAT = "No em dashes and no semicolons in a title."
 
 INTRO = ("You help a researcher doing Interpretative Phenomenological Analysis (IPA, Smith, Flowers "
          "and Larkin) at the step after the experiential statements, where one participant's "
-         "statements are clustered into personal experiential themes. He does that work himself. "
-         "You offer a first try, which he keeps, changes or throws away.")
+         "statements are clustered into personal experiential themes. The researcher does that work. "
+         "You offer a first try, which they keep, change or throw away.")
 
 THEME = ("A personal experiential theme gathers statements that share an experiential meaning for "
          "this participant. Group by what the experience is like and what it comes to mean, never by "
@@ -130,7 +130,7 @@ NAMES_SHAPE = "\n".join([
 ])
 
 
-NOTE_NAMES = "His note on this theme, his own reasoning for it:"
+NOTE_NAMES = "The researcher's note on this theme, their own reasoning for it:"
 
 
 # ------------------------------------------------------------------ guidance
@@ -216,11 +216,11 @@ def names_system(question: str | None, rules=None, theme: str | None = None) -> 
     theme = guidance_prose(WHAT_A_THEME) if theme is None else theme
     title = [(n, text) for n, text in rules if n in TITLE_RULES]
     task = " ".join([
-        "Offer three titles for the theme he has gathered, each a different angle on what its",
+        "Offer three titles for the theme the researcher has gathered, each a different angle on what its",
         "statements share, each grounded in the statements and in the key quotes under them, and none",
         "repeating a label already on the canvas.",
     ])
-    said = "Every title follows these rules from the IPA guidance he works by:\n" + numbered(title) if title else None
+    said = "Every title follows these rules from the IPA guidance the researcher works by:\n" + numbered(title) if title else None
     return _join([INTRO, question_block(question), one_line(theme) and theme.strip() or THEME, STATEMENT, task,
                   said, FORMAT, NAMES_SHAPE])
 
@@ -232,7 +232,7 @@ def one_line(text) -> str:
 def names_user(statements: list[str], label: str = "", others: list[str] | None = None, note: str = "") -> str:
     """The titles' user prompt as a page from before the theme went whole sends it: the statements
     as bare text, the title, the note and the other labels."""
-    parts = ["The statements he has gathered:\n" + ai_mod.bullets(statements)]
+    parts = ["The statements the researcher has gathered:\n" + ai_mod.bullets(statements)]
     label = " ".join(str(label or "").split())
     parts.append(f"Its title now: {label}" if label and label != UNTITLED else "It has no title yet.")
     if one_line(note):
@@ -284,11 +284,11 @@ def pet_user(target: dict, bare=frozenset()) -> str:
     the theme as `pet_lines` sets it out, a line when the quotes of some statements are left out for
     room, the other labels on the canvas, and the closing line."""
     many = bool(target.get("many"))
-    intro = ("The theme he asks titles for, as the canvas reads it, top to bottom and left to right, "
+    intro = ("The theme the researcher asks titles for, as the canvas reads it, top to bottom and left to right, "
              "higher meaning a better example. Each statement has its "
              + ("sheet and its timecode" if many else "timecode")
              + ", and under it its own key quote, in inverted commas with its timecode, "
-               "one he picked to carry the theme marked (picked).")
+               "one the researcher picked to carry the theme marked (picked).")
     parts = [intro + "\n" + "\n".join(pet_lines(target, many, bare, inside=target.get("inside") or ""))]
     if bare:
         parts.append(quotes_left(len(bare)))
@@ -1113,8 +1113,8 @@ ANTHROPIC_CONTEXT = 200000
 GETS_INTRO = ("You help a researcher doing Interpretative Phenomenological Analysis (IPA, Smith, Flowers "
               "and Larkin) at the step after the personal experiential themes, where every participant's "
               "PETs are looked across for what they share and where they part, and grouped into group "
-              "experiential themes, GETs. He does that work himself. You offer a first try, which he "
-              "keeps, changes or throws away.")
+              "experiential themes, GETs. The researcher does that work. You offer a first try, which "
+              "they keep, change or throw away.")
 
 
 GET = ("A group experiential theme gathers the PETs, sub-themes and statements of several participants "
@@ -1229,7 +1229,7 @@ def gets_get_lines(g: dict, total: int, minimum: int, depth: int = 0, bare=froze
     minimum, his note on it, its cards in the order the canvas reads them, each row's key quote, the
     participants with nothing under it, and its sub-themes under it."""
     pad = "  " * depth
-    under = ", under his minimum" if not depth and g.get("count", 0) < minimum else ""
+    under = ", under the project's minimum" if not depth and g.get("count", 0) < minimum else ""
     out = [f"{pad}{'Sub-theme' if depth else 'GET'} {g['id']}: {titled(g.get('label'))} "
            f"({g.get('count', 0)} of {total} {'participant' if total == 1 else 'participants'}{under})"]
     if one_line(g.get("note")):
@@ -1308,11 +1308,11 @@ def gets_names_system(question: str | None, rules=None, prose: str | None = None
     what = "\n\n".join(p for p in (prose or "").split("\n\n") if not re.match(r"^\d+\.\s", p)).strip() or GET
     title = [(n, text) for n, text in rules if n in GETS_TITLE_RULES]
     task = " ".join([
-        "Offer three titles for the GET he has gathered, each a different angle on what its participants",
+        "Offer three titles for the GET the researcher has gathered, each a different angle on what its participants",
         "share and where they part, each grounded in the PETs, sub-themes and statements under it and",
         "close to the participants' own words, and none repeating the title of another GET on the board.",
     ])
-    said = "Every title follows these rules from the IPA guidance he works by:\n" + numbered(title) if title else None
+    said = "Every title follows these rules from the IPA guidance the researcher works by:\n" + numbered(title) if title else None
     return _join([GETS_INTRO, gets_question_block(question), what, task, said, FORMAT, NAMES_SHAPE])
 
 
@@ -1328,14 +1328,14 @@ def gets_names_user(target: dict, bare=frozenset()) -> str:
         lines.append(f"{NOTE_NAMES} {one_line(target.get('note'))}")
     total, minimum = target.get("total", 0), target.get("minimum", 0)
     lines.append(f"It holds material from {target.get('count', 0)} of the {total} "
-                 f"{'participant' if total == 1 else 'participants'}, and his minimum is {minimum}.")
+                 f"{'participant' if total == 1 else 'participants'}, and the project's minimum is {minimum}.")
     for c in target.get("cards") or []:
         lines += gets_card_lines(c, "", bare)
     if target.get("missing"):
         lines.append(f"Nothing under it from: {', '.join(target['missing'])}.")
     for sub in target.get("themes") or []:
         lines += gets_get_lines(sub, total, minimum, 1, bare)
-    parts = ["The GET he asks titles for, with what each participant has under it, in the order the canvas reads "
+    parts = ["The GET the researcher asks titles for, with what each participant has under it, in the order the canvas reads "
              "it, higher meaning a better example.\n" + "\n".join(lines)]
     if bare:
         parts.append(f"The words of {_count(len(bare))} {'statement' if len(bare) == 1 else 'statements'} are left "

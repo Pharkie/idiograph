@@ -715,7 +715,9 @@ async function homeAgentLines() {
   }
   if (ask !== homeAgentsAsk || !data) return;
   const unseen = data.unseen || {};
-  for (const li of list.querySelectorAll('.home-card-li')) {
+  // an archived project's card too (archiveset)
+  const archivedList = $('archived-projects');
+  for (const li of [...list.querySelectorAll('.home-card-li'), ...(archivedList ? archivedList.querySelectorAll('.home-card-li') : [])]) {
     const card = li.querySelector('.home-card');
     const n = Number(unseen[card.dataset.id]) || 0;
     let line = li.querySelector('.hc-agents');
@@ -1749,6 +1751,26 @@ function demosFold(none) {
   };
 }
 
+/* The Archived projects section's fold (archiveset, Adam, 18 November 2026): shut until he opens it, and kept as he
+   leaves it, opened or shut, as Projects' and Demo projects' folds are. It is drawn only while a project is archived. */
+const ARCHIVED_OPEN = 'archived:open';
+
+function archivedFold() {
+  const section = $('home-archived');
+  const head = $('archived-head');
+  const held = shutIds();
+  const draw = (shut) => {
+    section.classList.toggle('shut', shut);
+    head.setAttribute('aria-expanded', String(!shut));
+  };
+  draw(!held.includes(ARCHIVED_OPEN));
+  head.onclick = () => {
+    const shut = !section.classList.contains('shut');
+    draw(shut);
+    keepFold(ARCHIVED_OPEN, !shut);
+  };
+}
+
 /* The picker: Distil's cards, then New project, Open project and Open a shared copy, which a run of one project
    hides, then the Demo projects section, the IPA demo and the thematic analysis demo each with its tag, then Sift's
    section and Trace's, each drawn into its own place on the page, Sift's above Distil's. */
@@ -1764,9 +1786,18 @@ function drawPick(data, sections) {
       ...tIn(s.project && s.project.method, () => ({ line: standLine(s.participants, s.gets, s.there !== false),
         more: s.there === false ? '' : cardGetsLine(s.gets) })) };
   });
-  $('projects').innerHTML = cards.map(homeCardHtml).join('');
+  // the projects he has archived in a section of their own, between his projects and the demos (archiveset)
+  const isArchived = (c) => !!(HOME_PROJECTS.get(c.id) && HOME_PROJECTS.get(c.id).archived);
+  const archived = cards.filter(isArchived);
+  const live = cards.filter((c) => !isArchived(c));
+  $('projects').innerHTML = live.map(homeCardHtml).join('');
   $('projects').querySelectorAll('.home-card').forEach((b) => { b.onclick = () => openPage(b.dataset.id); });
   homeMenus($('projects'));
+  $('home-archived').hidden = !archived.length;
+  $('archived-projects').innerHTML = archived.map(homeCardHtml).join('');
+  $('archived-projects').querySelectorAll('.home-card').forEach((b) => { b.onclick = () => openPage(b.dataset.id); });
+  homeMenus($('archived-projects'));
+  archivedFold();
   // the demos in a section of their own, apart from his projects (demos)
   const demos = demosOf(data).map((d) => {
     if (d.project && d.project.name) HOME_PROJECTS.set(d.id, d.project);
@@ -1777,7 +1808,7 @@ function drawPick(data, sections) {
   $('demo-projects').innerHTML = demos.map(homeCardHtml).join('');
   $('demo-projects').querySelectorAll('.home-card').forEach((b) => { b.onclick = () => openPage(b.dataset.id); });
   homeMenus($('demo-projects'));
-  demosFold(!sections.length);
+  demosFold(!live.length);
   // each project's line of agents' changes he has not seen, filled in once the cards are drawn (agentreview2)
   homeAgentLines();
   $('np-line').hidden = S.oneRun;
@@ -1804,8 +1835,15 @@ function closePage() {
   homeKeep('');
   drawHome();
   window.scrollTo(0, 0);
-  const card = [...$('projects').querySelectorAll('.home-card'), ...$('demo-projects').querySelectorAll('.home-card')]
+  const card = [...$('projects').querySelectorAll('.home-card'), ...$('archived-projects').querySelectorAll('.home-card'),
+    ...$('demo-projects').querySelectorAll('.home-card')]
     .find((b) => b.dataset.id === was);
+  // a card in the folded Archived projects section: open it first, so the focus has somewhere to land (archiveset)
+  if (card && [...$('archived-projects').querySelectorAll('.home-card')].includes(card) && $('home-archived').classList.contains('shut')) {
+    $('home-archived').classList.remove('shut');
+    $('archived-head').setAttribute('aria-expanded', 'true');
+    keepFold(ARCHIVED_OPEN, true);
+  }
   if (card) card.focus({ preventScroll: true });
 }
 
@@ -5163,6 +5201,12 @@ function timeHtml(row) {
     : `<button type="button" tabindex="-1" class="mono time seek" data-seek="${row.seconds}" title="${escAttr(t('distil.turn.seek_title'))}">${esc(row.time)}</button>`;
 }
 
+/* The margin's Edit button opens the row's menu, whose entries each say what they fix */
+function fixOpenHtml(row) {
+  return `<button type="button" tabindex="-1" class="row-menu-open fix-open" data-menu="${row.i}"
+                title="${escAttr(t('distil.fix.open_tip'))}">${esc(t('distil.fix.open'))}</button>`;
+}
+
 function turnHtml(row) {
   const speaker = row.stop
     ? `<button type="button" tabindex="-1" class="speaker go-turn" data-go="${row.pos}" title="${escAttr(t('distil.turn.go_title'))}">${esc(row.name)}</button>`
@@ -5174,8 +5218,7 @@ function turnHtml(row) {
   return `<article class="turn${row.stop ? '' : ' aside'}" data-i="${row.i}">
       <div class="turn-gutter${row.stop ? ' stop' : ''}">
         ${speaker}
-        <span class="gutter-time"><button type="button" tabindex="-1" class="row-menu-open" data-menu="${row.i}"
-                title="${escAttr(t('distil.turn.menu_title'))}">&#8943;</button>${timeHtml(row)}${noteMarkHtml(row)}</span>
+        <span class="gutter-time">${fixOpenHtml(row)}${timeHtml(row)}${noteMarkHtml(row)}</span>
       </div>
       <div class="turn-text">${rowHtml(row)}</div>${cells}<span class="turn-done" aria-hidden="true"></span>
     </article>`;
@@ -10559,9 +10602,29 @@ function selBarPlace() {
   return true;
 }
 
+/* The toolbar's words for this selection: Give names the other speaker where the sheet has two,
+   and words too far from the quote being built to join it say so in place of Quote, the rule in the tooltip */
+function selBarWords() {
+  if (!$('sel-give-label') || !$('sel-why')) return;
+  const pick = selBarPick();
+  if (!pick) return;
+  const others = othersFor(pick.row);
+  const two = others.length === 1;
+  $('sel-give-label').textContent = two ? t('distil.sel.give_to', { name: others[0] }) : t('page_idiograph.work.give_another_speaker');
+  $('sel-give').title = two ? t('distil.sel.give_to_tip', { name: others[0] }) : t('page_idiograph.work.give_another_speaker_c');
+  const now = current();
+  const why = S.pending.length && now && pick.row.i !== now.i ? besideRefusal(now, pick.row) : '';
+  const far = why === t('distil.pair.span_next');
+  $('sel-why').hidden = !why;
+  $('sel-why').textContent = far ? t('distil.pair.too_far') : why;
+  $('sel-why').title = far ? t('distil.pair.too_far_tip') : '';
+  $('sel-quote').disabled = !!why;
+}
+
 function selBarShow() {
   // a thematic analysis project's In vivo code and the codes used last, before it is measured (quickkeysB)
   if (typeof cxQuickBar === 'function') cxQuickBar();
+  selBarWords();
   selBarPlace();
   if (!selBarPick()) return;
   // the keyboard follows the selection, so q and c are the transcript's and never type into a field
@@ -11691,17 +11754,20 @@ function rowMenuGroups(row, pick, only) {
   const others = othersFor(row);
   const assign = [];
   if (pick) for (const name of others) assign.push({ label: t('distil.assign.words_to', { name }), to: name, words: true });
-  for (const name of others) assign.push({ label: t('distil.assign.passage_to', { name }), to: name, words: false });
+  for (const name of others) assign.push({ label: t('distil.fix.give_passage_to', { name }), to: name, words: false });
   assign.push(pick
     ? { label: t('distil.assign.words_to_else'), ask: true, words: true }
-    : { label: t('distil.assign.passage_to_else'), ask: true, words: false });
+    : { label: t('distil.fix.give_passage_else'), ask: true, words: false });
+  if (only === 'assign') { groups.push(assign); return groups; }
+  // each entry says what it fixes, the words and the timecode first with their double-click,
+  // then the speaker, then the trim under its own head
+  groups.push([{ label: t('distil.fix.edit_words'), act: 'edit', key: t('distil.fix.double_click') },
+    { label: t('distil.fix.correct_time'), act: 'time', key: t('distil.fix.double_click') }]);
   groups.push(assign);
-  if (only === 'assign') return groups;
-  groups.push([{ label: t('distil.assign.edit_text'), act: 'edit' }, { label: t('distil.assign.edit_time'), act: 'time' }]);
-  groups.push(['before', 'after'].map((direction) => ({
+  groups.push([{ head: t('distil.fix.trim_head') }, ...['before', 'after'].map((direction) => ({
     label: trimShort(trimSpan(row, direction)), note: spanNote(trimSpan(row, direction)),
     act: 'cut', direction,
-  })));
+  }))]);
   return groups;
 }
 
@@ -12641,6 +12707,12 @@ function drawProjectPane(p = project()) {
     $('set-interviewer').value = p.interviewer || '';
     $('set-interviewer').readOnly = fixed;
   }
+  // Archive this project, the researcher's own tick (archiveset), fixed on a demo
+  if ($('set-archived')) {
+    $('set-archived').checked = !!p.archived;
+    $('set-archived').disabled = fixed || p.archived === undefined;
+  }
+  $('archive-block').hidden = fixed;
   tIn(p.method, () => {
     drawLabels(p);
     drawTimecodes(p);
@@ -12680,6 +12752,9 @@ function projectSaves() {
   // server refuses in one line, saves none of them and the sheet stays open with the line (viewfix, L4 and L5)
   const interviewer = $('set-interviewer') ? $('set-interviewer').value.trim().replace(/\s+/g, ' ') : '';
   if ($('set-interviewer') && interviewer !== String(p.interviewer || '')) body.interviewer = interviewer;
+  // the archive tick once it has changed, in the same call, from a server that sends one (archiveset)
+  const archive = $('set-archived');
+  if (archive && p.archived !== undefined && archive.checked !== !!p.archived) body.archived = archive.checked;
   if (Object.keys(body).length) out.push({ ...projectBody(p), ...body });
   if (p.agents && $('set-agents').checked !== !!p.agents.allowed) out.push({ ...projectBody(p), agents: $('set-agents').checked });
   return out;

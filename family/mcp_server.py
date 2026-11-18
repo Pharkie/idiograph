@@ -144,7 +144,7 @@ def client_name(info) -> str:
 TEXT = {"type": "string", "minLength": 1}
 IDS = {"type": "array", "items": {"type": "string"}}
 CASE = dict(TEXT, description="The participant by their pseudonym, Rowan or P4 - Alder, as cases names it.")
-REQUEST = dict(TEXT, description="His request in his own words, which the board and its History name.")
+REQUEST = dict(TEXT, description="The researcher's request in their own words, which the board and its History name.")
 DRY_RUN = {"type": "boolean", "description": "Say what would change and write nothing. Run it first."}
 def schema(properties: dict | None = None, required=()) -> dict:
     out = {"type": "object", "properties": properties or {}, "additionalProperties": False}
@@ -237,7 +237,7 @@ def log_tool(app: str) -> dict:
     t = tool("agent_log", "The agent log", ("agents", "log"),
              f"The app's agent log, newest first: each time {name} refused an agent, through the command line or a "
              "tool, with when, the agent, the project, the command with its inputs' names, why, and the request the "
-             "agent said he made"
+             "agent said the researcher made"
              + (". A refusal in a project agents may not read comes back in the count closed alone, never by name."
                 if own else ".")
              + " It never holds what was handed in. Nothing clears it: it keeps the last 7 days.",
@@ -344,33 +344,36 @@ def listing(t: dict) -> dict:
 START = "start"
 PROMPTS = [{
     "name": START, "title": "Start working with Idiograph",
-    "description": "What a new agent needs first: privacy, his decisions, the project, dry runs and where the rest is.",
-    "arguments": [{"name": "request", "description": "His first request, in his own words.", "required": False}]}]
+    "description": "What a new agent needs first: privacy, who decides, the project, dry runs and where the rest is.",
+    "arguments": [{"name": "request", "description": "The researcher's first request, in their own words.", "required": False}]}]
 START_TEXT = """\
-You are working with a researcher in Idiograph, his app for Interpretative Phenomenological Analysis (IPA) and \
-reflexive thematic analysis, through its MCP tools. Read this before anything else.
+You are working with a researcher in Idiograph, through its MCP tools. Idiograph is an app for Interpretative \
+Phenomenological Analysis (IPA) and reflexive thematic analysis. Read this before anything else.
 
-What you read of this project goes to your model's provider. Read only what his request needs, and never \
+What you read of this project goes to your model's provider. Read only what the researcher's request needs, and never \
 copy a participant's words anywhere outside this project.
 
-He makes every analytic decision. Act on his request alone. What you make lands as a new board or a revision \
-he can weigh, keep or throw away. Never change one of his boards, mark the Current board, put a board on the \
-canvas, reword a statement or set one aside unless he asks. A statement that fits no PET stays in Not placed \
-with its reason.
+The researcher makes every analytic decision. Act on their request alone. What you make lands as a new board \
+or a revision, which they can weigh, keep or throw away. Never change one of their boards, mark the Current \
+board, put a board on the canvas, reword a statement or set one aside unless they ask. A statement that fits no \
+PET stays in Unplaced with its reason.
 
 The project, as cases gives it now:
 
 {project}
 
-Call cases again when a pseudonym no longer finds a participant. Then read only what the request needs: \
-search first for any question across participants, its hits naming the tool that opens each, statements for a participant's statements, where its passages are and where each board places them, board_show for \
-a board, turn_show for a passage.
+Call cases again when a pseudonym no longer finds a participant. Then read only what the request needs. Use \
+search first for any question across participants. Each of its hits names the tool that opens it. Use statements \
+for a participant's statements, where its passages are and where each board places them, board_show for a \
+board and turn_show for a passage.
 
-Every tool that writes takes dry_run and request, his request in his own words. Run it with dry_run true \
-first, tell him what it would change, then run it. Afterwards tell him what changed in plain words.
+Every tool that writes takes dry_run and request, which is the researcher's request in their own words. Run it \
+with dry_run true first, tell the researcher what it would change, then run it. Afterwards tell them what changed \
+in plain words.
 
 The tools are the one way in. Never read or edit Idiograph's files by any other means. When a tool cannot do \
-what he asks, tell him so in one line and stop: that is a gap in Idiograph, never something to work round.
+what the researcher asks, tell them so in one line and stop. That is a gap in Idiograph, not something to work \
+round.
 
 The rest is in this server's resources: the guide whole at {guide}, each section at {guide}/<section>, \
 {writing} for every operation on a board, the file schemas at {schemas}/<file>, and the project's own \

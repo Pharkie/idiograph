@@ -7939,6 +7939,8 @@ function thXmenu(open) {
   if (!was) menu.querySelectorAll('[data-xnotes]').forEach((box) => { box.checked = false; });
   thXdraw();
   xmenuPlace($('th-export'), menu);
+  // taller than the window, as the canvas's menu is at a narrow window, it scrolls inside it
+  menu.style.maxHeight = `${Math.max(120, window.innerHeight - (parseFloat(menu.style.top) || 0) - 8)}px`;
 }
 
 /* what the GETs boards' menu prints, kept for the window: the GET table, the audit trail or all of it, and under
@@ -7951,8 +7953,15 @@ function thXdraw() {
   if (!menu) return;
   const table = TH.face === 'table';
   const gets = thGets();
-  for (const part of menu.querySelectorAll('[data-xpart]')) part.hidden = (part.dataset.xpart === 'table') !== table;
+  // the canvas's menu holds the table's exports too, under their own head; Table view's holds the table's alone.
+  // Participant notes is asked once, in the canvas's part, and rules both
+  for (const part of menu.querySelectorAll('[data-xpart]')) part.hidden = table && part.dataset.xpart === 'canvas';
+  for (const head of menu.querySelectorAll('.th-xpart-head')) head.hidden = table;
+  const th = menu.querySelector('[data-xtablehead]');
+  if (th) th.textContent = gets ? t('themes.export.head_table_gets') : t('themes.export.head_table');
   for (const row of menu.querySelectorAll('[data-xfor]')) row.hidden = row.dataset.xfor !== (gets ? 'gets' : 'pets');
+  const tableNotes = menu.querySelector('[data-xpart="table"] label:has([data-xnotes])');
+  if (tableNotes) tableNotes.hidden = !(table && gets);
   const g = thXg();
   menu.querySelectorAll('[data-xwhat]').forEach((r) => { r.checked = r.value === g.what; });
   menu.querySelectorAll('[data-xdetail]').forEach((r) => { r.checked = r.value === g.detail; });

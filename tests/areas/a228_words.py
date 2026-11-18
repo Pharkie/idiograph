@@ -74,8 +74,8 @@ def test_words(scratch):
           all(pages[a][0] == 200 for a in pages)
           and "<title>Idiograph manual</title>" in idio and "<title>Sift manual</title>" in sift
           and "<title>Trace manual</title>" in trace
-          and ">PETs</h2>" in idio and ">GETs</h2>" in idio and ">Sift</h2>" not in idio and ">Trace</h2>" not in idio
-          and ">Search strategy</h2>" in sift and ">PETs</h2>" not in sift and ">PETs</h2>" not in trace,
+          and 'id="pet">PET</h3>' in idio and 'id="get">GET</h3>' in idio and ">Sift</h2>" not in idio and ">Trace</h2>" not in idio
+          and ">Search strategy</h2>" in sift and 'id="pet">' not in sift and 'id="pet">' not in trace,
           {a: pages[a][0] for a in pages})
 
     # ── B. the server's own lines in the app's name, and the window reading any app's

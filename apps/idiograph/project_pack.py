@@ -16,7 +16,8 @@ the recordings each go or stay by choice, recordings staying unless asked for. `
 go in a chosen send. Each participant's folder in the file is named by its label alone, never with a
 second part its folder on disk carries, and the project file loses `names`, Rename's kept names, which
 the renamed folders make moot. Every send leaves out the project file's `reflexivity`, the sender's own
-reflexivity statement (`SENDER_OWN`, settingsfix, 17 November 2026). The file's format is the same, so an Idiograph from before opens it.
+reflexivity statement, and `archived`, the sender's archive tick (`SENDER_OWN`, settingsfix, 17 November 2026,
+archiveset, 18 November 2026). The file's format is the same, so an Idiograph from before opens it.
 Since Adam's design E of 23 October the PETs and the recordings can be chosen participant by
 participant, a whole send can leave the recordings alone out (`whole_less_audio`), and `inventory`
 answers what Share a copy's card draws: each participant's PETs and recordings, and their weight.
@@ -202,7 +203,7 @@ def plan_send(root: Path, name: str) -> dict:
 # coordinator's ruling of 17 November 2026). A copy coming back never writes the receiver's project file, so his
 # own stays as it is
 PROJECT_FILE = "idiograph-project.json"
-SENDER_OWN = ("reflexivity",)
+SENDER_OWN = ("reflexivity", "archived")
 
 
 def sender_own_out(src):

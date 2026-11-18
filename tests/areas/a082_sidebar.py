@@ -16,9 +16,7 @@ def test_sidebar(scratch):
     page = support.page_text()
     js = support.text("apps/idiograph/static/themes.js")
     app = support.text("family/static/shell.js", "apps/idiograph/static/distil.js")
-    manual = support.source("docs/manual.md").read_text(encoding="utf-8")
     fn = lambda src, name: src.split(f"function {name}(", 1)[1].split("\n}", 1)[0] if f"function {name}(" in src else ""
-    flat = lambda text: " ".join(text.split())
     screen = page.split('<section id="themes"', 1)[1].split("</section>", 1)[0]
     th_bar = screen.split('<div class="rail ds-rail">', 1)[1].split('<div class="band" id="th-band"', 1)[0]
     work_bar = page.split('<section id="work"', 1)[1].split('<div class="rail ds-rail">', 1)[1].split('<div class="progress-strip"', 1)[0]
@@ -51,14 +49,6 @@ def test_sidebar(scratch):
           work_bar.count('id="btn-feedback"') == 1 and th_bar.count('id="th-feedback"') == 1
           and "$('th-feedback').onclick = () => openFeedback(TH.mode === 'gets' ? 'gets' : 'pets');" in js
           and "$('btn-feedback').onclick = () => openFeedback('statements');" in app)
-
-    # ── F. the steps, and the figures measured again
-    pets = manual.split("\n## PETs\n", 1)[1].split("\n## ", 1)[0]
-    gets = manual.split("\n## GETs\n", 1)[1].split("\n## ", 1)[0]
-
-    # ── G. the words
-    was = re.sub(r"Until 5 October 2026 the (bar also carried|Inspector and a Board panel)[^.]*\.", "", flat(pets + gets))
-    was = was.replace("the sidebar button in the place of the Inspector's, Board's and the shortcuts", "")
 
     # ── H. the sidebar's model, in node
     node = shutil.which("node")

@@ -46,13 +46,13 @@ def test_home_and_settings(scratch):
         const = lambda name: next(ln for ln in lines if ln.startswith(f"const {name} = "))
         pieces = [const("esc"), const("escAttr"), const("plural"), const("HOME_KEY"), const("DEMO_ID"), const("homeHover"),
                   const("SHARE_LINE"), const("HOME_PROJECTS"), const("DEMO_TA_ID"), const("DEMO_LIPA_ID"), const("DEMO_RTA_ID"), const("isDemoId"), const("DEMOS_OPEN"),
-                  const("DEMOS_SHUT")]
+                  const("DEMOS_SHUT"), const("ARCHIVED_OPEN")]
         pieces += [whole(app, n) for n in ("sectionsOf", "homeHeld", "homeKeep", "drawHome", "standLine", "cardGetsLine", "demoWords", "homeCardHtml",
                                            "drawPick", "openPage", "openPageNow", "closePage", "pageHead", "drawPage", "demoRows",
                                            "demoCards", "drawDemoPage", "loadLibrary", "windowPicks", "windowRecent",
                                            "homeMenuItems", "homeMenuRows", "homeMenuHtml", "projectMenuHtml", "projectMenuWord",
                                            "projectDotsHtml", "distilHomeDraw", "distilRecent",
-                                           "recentNames", "demosOf", "demosFold", "projKind", "kindTag")]
+                                           "recentNames", "demosOf", "demosFold", "archivedFold", "projKind", "kindTag")]
         # Home's line of agents' changes, asked of the server once the cards are drawn, which area 389 and the review
         # shots hold, a call that does nothing here (agentreview2)
         pieces.append("async function homeAgentLines() {}")

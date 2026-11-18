@@ -122,9 +122,9 @@ def test_mcp_prompts(scratch):
         told = mcp_server.instructions()
         first = told[:mcp_server.CORE_LIMIT]
         check("206: the instructions stay no longer than 8,288 characters, the privacy line, cases first, dry runs, "
-              "setting aside only when he asks, add_notes and the resources within their first 2,000",
+              "setting aside only when they ask, add_notes and the resources within their first 2,000",
               len(told) <= 8288 and first.startswith("Read this first.") and "Call cases first" in first
-              and "dry_run" in first and "set one aside only when he asks" in first and "add_notes" in first
+              and "dry_run" in first and "set one aside only when they ask" in first and "add_notes" in first
               and "idiograph://guide" in first and "## The conventions" in told, str(len(told)))
 
         # add_notes: one note added through the API, every note the passage holds kept, the CLI and MCP alike

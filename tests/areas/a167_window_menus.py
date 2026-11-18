@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import http.client
 import io
 import json
@@ -80,7 +81,7 @@ def test_window_menus(scratch):
     code, page = server_mod.manual_page()
     names = re.findall(r"^## (.+)$", manual, re.M)
     check("167: /manual is the manual as one page, its sections listed at its head and each a heading the list leads to",
-          code == 200 and all(f">{n}</a>" in page for n in names) and len(names) >= 5, f"{code} {len(names)} sections")
+          code == 200 and all(f">{html.escape(n)}</a>" in page for n in names) and len(names) >= 5, f"{code} {len(names)} sections")
     check("167: the manual's lines keep code, bold and italics, a link off the machine as a link, and a link to a "
           "file beside it as its words alone",
           server_mod.manual_inline("See `x < y`, **bold**, *slant*, [the README](../README.md) and [a site](https://example.org/a).")

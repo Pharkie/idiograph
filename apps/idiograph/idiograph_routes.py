@@ -724,7 +724,8 @@ def read_project(root: Path) -> dict:
         return {"name": "", "research_question": "", "updated": None, "root": "", "id": "", "demo": False,
                 "agents": {"allowed": False, "at": None}, "pet_labels": themes_mod.LETTERS,
                 "timecodes": wb_mod.TIMECODES_DEFAULT, "method": i18n.BASE_METHOD,
-                "nudges": legacy_nudges(), "interviewer": legacy_interviewer(), "reflexivity": "", **rounds_of({})}
+                "nudges": legacy_nudges(), "interviewer": legacy_interviewer(), "reflexivity": "", "archived": False,
+                **rounds_of({})}
     root = Path(root)
     data = project_file(root)
     demo = srv.is_demo_root(root)
@@ -743,6 +744,8 @@ def read_project(root: Path) -> dict:
         "statement_words": statement_words_of(data),
         # the researcher's reflexivity statement, the project's own (settingsbuild)
         "reflexivity": reflexivity_of(data),
+        # archived by the researcher, never by the app (archiveset, 18 November 2026), never a demo
+        "archived": archived_of(data) and not demo,
         # the statement nudges on and the interviewer's name, the project's own since viewbuild (17 November 2026)
         "nudges": nudges_of(data, root),
         "interviewer": interviewer_of(data),
@@ -913,6 +916,43 @@ def write_reflexivity(root: Path, given, dry_run: bool = False) -> dict:
             data.pop("reflexivity", None)
         srv.save_json(Path(root) / srv.PROJECT_FILE, data)
     return {"reflexivity": text}
+
+
+# ------------------------------------------------------------ archived, a project's own
+
+# A project is archived by the researcher and never by the app (archiveset, Adam, 18 November 2026: finishing the GETs
+# is not the end of a project while he writes up): one tick in Project settings, kept in the project file as
+# `archived: true` only while it is ticked, so an unarchived file is as it always was. Home lists an archived project in
+# its own folded section. It still opens and can be changed. A demo cannot be archived.
+
+def archived_of(data: dict) -> bool:
+    """Whether a project file says the project is archived."""
+    return isinstance(data, dict) and data.get("archived") is True
+
+
+def clean_archived(given) -> bool:
+    """The tick as a call gives it, true or false alone, refused in one line when it is anything else."""
+    if given is True or given is False:
+        return given
+    raise WorkbookError(i18n.t("server.archived_refused"))
+
+
+def write_archived(root: Path, given, dry_run: bool = False) -> dict:
+    """The project's archive tick saved in its file, the key taken away when it is off, every other key kept. Nothing
+    is written when nothing changes, or with `dry_run`. Answers the tick as it is or would be."""
+    if root is None or not Path(root).is_dir():
+        raise WorkbookError(i18n.t("server.project_folder_project_could_saved"))
+    if srv.is_demo_root(root):
+        raise WorkbookError(i18n.t("server.demo_s_project_fixed"))
+    on = clean_archived(given)
+    data = project_file(Path(root))
+    if not dry_run and on != archived_of(data):
+        if on:
+            data["archived"] = True
+        else:
+            data.pop("archived", None)
+        srv.save_json(Path(root) / srv.PROJECT_FILE, data)
+    return {"archived": on}
 
 
 # ------------------------------------------------------------ the nudges and the interviewer, a project's own
@@ -1677,6 +1717,8 @@ def project_changes(before: dict, after: dict) -> list[str]:
         out.append("Allow AI agents to read this project " + ("ticked." if after["agents"]["allowed"] else "unticked."))
     # the reflexivity statement (settingsbuild), by its words' count alone
     out += reflexivity_changes(before.get("reflexivity") or "", after.get("reflexivity") or "")
+    if bool(before.get("archived")) != bool(after.get("archived")):
+        out.append("Archive this project " + ("ticked." if after.get("archived") else "unticked."))
     if before.get("interviewer") != after.get("interviewer"):
         out.append(f"Interviewer's name from {said(before.get('interviewer'))} to {said(after.get('interviewer'))}.")
     if before.get("nudges") != after.get("nudges"):
@@ -2460,13 +2502,14 @@ def api_project(body: dict) -> dict:
     `interviewer`, the name of the speaker whose turns are context, and `nudges`, the statement nudges on, a list or
     `{check: bool}`, are the project's own since viewbuild (17 November 2026, see `write_interviewer` and
     `write_nudges`). The name, the question, the labels, the timecodes, the tick and the reflexivity statement take `dry_run` too
-    (26 October, for the agents' `project set`), and their save answers `changes`, a line each (see
+    (26 October, for the agents' `project set`), and so does `archived`, true or false, the researcher's archive tick
+    (see `write_archived`, archiveset, 18 November 2026), and their save answers `changes`, a line each (see
     `project_changes`). `method` is fixed once the project is made (tadraw): one sent that is not the
     project's own is refused with nothing written, its own changing nothing.
     """
     writes = ("name" in body or "research_question" in body or "agents" in body or "pet_labels" in body
               or "timecodes" in body or "timepoints" in body or "statement_words" in body
-              or "reflexivity" in body or "nudges" in body or "interviewer" in body
+              or "reflexivity" in body or "nudges" in body or "interviewer" in body or "archived" in body
               or any(k in body for k in ROUNDS_KEYS))
     root = asked_root(body, write=writes or "method" in body)
     if "method" in body and root is not None and method_asked(body.get("method")) != method_of(project_file(root)):
@@ -2495,6 +2538,9 @@ def api_project(body: dict) -> dict:
             project = dict(project, timecodes=write_timecodes(root, body.get("timecodes"), dry_run=not really)["timecodes"])
         if "reflexivity" in body:
             project = dict(project, reflexivity=write_reflexivity(root, body.get("reflexivity"), dry_run=not really)["reflexivity"])
+        # archived by the researcher (archiveset, 18 November 2026)
+        if "archived" in body:
+            project = dict(project, archived=write_archived(root, body.get("archived"), dry_run=not really)["archived"])
         # the interviewer's name and the statement nudges, the project's own (viewbuild, 17 November 2026)
         if "interviewer" in body:
             project = dict(project, interviewer=write_interviewer(root, body.get("interviewer"), dry_run=not really)["interviewer"])

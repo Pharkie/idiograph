@@ -32,8 +32,6 @@ def test_themes_feedback_two(scratch):
     app = support.text("family/static/shell.js", "apps/idiograph/static/distil.js")
     css = support.text("apps/idiograph/static/themes.css")
     style = support.text("family/static/style.css", "apps/idiograph/static/distil.css")
-    manual = support.source("docs/manual.md").read_text(encoding="utf-8")
-    section = manual.split("## PETs", 1)[1].split("\n## ", 1)[0]
     fn = lambda src, name: src.split(f"function {name}(", 1)[1].split("\n}", 1)[0]
     screen = page.split('<section id="themes"', 1)[1].split("</section>", 1)[0]
 
@@ -126,8 +124,7 @@ def test_themes_feedback_two(scratch):
     # ── 82. the bin is never emptied
     check("82: nothing on the Themes screen empties the bin, and Remove is for a missing card alone",
           not re.search(r"[Ee]mpty the", screen + js) and "Empty bin" not in screen + js
-          and fn(js, "thPileList").count("'remove', t('themes.pile.remove')") == 1 and "gone.map((key) => row(key, v.cards[key], 'remove'" in fn(js, "thPileList")
-          and "Set aside is never emptied" in section)
+          and fn(js, "thPileList").count("'remove', t('themes.pile.remove')") == 1 and "gone.map((key) => row(key, v.cards[key], 'remove'" in fn(js, "thPileList"))
 
     # ── 81, 83, 91 and 92: the pointer
     down = fn(js, "thPointerDown")
