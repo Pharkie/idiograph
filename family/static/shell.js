@@ -3596,6 +3596,21 @@ function openInWindow(spot) {
   if (!made) say(t('shell.window_blocked'), 8000);
 }
 
+/* A link to an entry or a heading of the app's manual, in the app's own manual page, the way Settings links its page on
+   translating: an anchor opening /manual#<anchor> in a window or tab of its own, so the screen the person is on stays
+   as it is (guidelinks, 19 November 2026). `anchor` is the heading's words lower-cased with each run of anything
+   but a to z and 0 to 9 made one hyphen, as the manual's page makes it. */
+function manualLink(anchor, text, cls = 'manual-link') {
+  return `<a class="${cls}" href="/manual#${anchor}" target="_blank" rel="noopener">${esc(text)}</a>`;
+}
+
+/* "What this means", the link a message with a way back carries to its entry under When something goes wrong */
+function meansLink(anchor) {
+  return manualLink(anchor, t('shell.manual_means'), 'manual-link means-link');
+}
+window.manualLink = manualLink;
+window.meansLink = meansLink;
+
 /* the place a new window was opened on, read once from its address and taken off it, and kept as a restart
    keeps its place, so the page's start comes back to it the same way */
 function spotFromAddress() {

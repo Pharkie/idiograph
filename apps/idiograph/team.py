@@ -41,6 +41,7 @@ from __future__ import annotations
 import base64
 import contextlib
 import hashlib
+import hmac
 import json
 import os
 import secrets
@@ -66,6 +67,10 @@ ROUTES = ("relay", "folder")
 PADS = (4096, 16384, 65536, 262144, 1048576)
 WORDS_FILE = "team_words.txt"
 NAME_MOST = 60
+# an invite's offer, its canonical bytes before sealing, always this long (teambuild2, 19 November 2026), so its
+# size says nothing of how many participants the project has: sealed it is 40 bytes more, under the relay's
+# 4,096-byte invite post (relay/src/worker.js, LIMITS.invite)
+OFFER_BYTES = 3840
 # the kinds of message a member may send, the roster the lead's alone (spec, section 4)
 KINDS = ("roster", "version", "gets_version", "review_asked", "comment", "thread_state", "suggestion", "board",
          "review", "answer", "hand_over", "take_over", "seen", "devices", "recording")
@@ -970,9 +975,12 @@ def take_roster(root: Path, roster: dict) -> dict:
 
 # ------------------------------------------------------------------ invite, answer, match
 
-def invite(root: Path, own: bool = False, dry_run: bool = False) -> dict:
+def invite(root: Path, own: bool = False, dry_run: bool = False, participants: list[dict] | None = None) -> dict:
     """An invite: a one-time secret, its words and link, posted to its mailbox with this device's keys, kept on this
-    device for seven days. With `own`, for another computer of this member's."""
+    device for seven days. With `own`, for another computer of this member's. The offer, sealed under the invite's
+    key, lists a keyed digest of each of the project's participant folders, of any kind, so a join from a project
+    holding participants that are not the team's is refused (teambuild, 19 November 2026), and is padded to one
+    size whatever their number (`offer_body`)."""
     data = held_on(root)
     dev = device() or {}
     if not own:
@@ -996,8 +1004,9 @@ def invite(root: Path, own: bool = False, dry_run: bool = False) -> dict:
     team = str(data.get("team") or "")
     roster = data.get("roster") or {}
     me = member_of(roster, str(data.get("member") or "")) or {}
-    offer = signed(dev, {"kind": "invite", "device": public(dev), "lead": roster.get("lead"),
-                         "from": me.get("name") or "", "own": bool(own), "expires": expires})
+    offer = offer_body(dev, {"kind": "invite", "device": public(dev), "lead": roster.get("lead"),
+                             "from": me.get("name") or "", "own": bool(own), "expires": expires},
+                       secret, [str(p["folder"]) for p in participants or []])
     try:
         # the relay takes a joiner's answers only in a mailbox a computer on the project opened (the abuse plan's
         # M4), so it is opened first, and a refusal gives no invite
@@ -1146,16 +1155,63 @@ def admit(root: Path, inv: str, match: bool, dry_run: bool = False) -> dict:
     return {"changes": changes, "dry_run": False}
 
 
-def join(root: Path, words: str, name: str, dry_run: bool = False, relay_url: str = "") -> dict:
-    """The joiner's side: the invite read from its mailbox, refused when it is closed, expired or not there, this
-    device's name and keys posted as the answer, and the six digits to read on the call. Joined once the lead's
-    They match comes back (`joined`)."""
-    secret = words_secret(words)
-    inv = invite_id(secret)
-    data = read_team(root) or {}
+def participant_digest(secret: bytes, folder: str) -> str:
+    """A participant folder as an invite's offer names it: the first 8 bytes of an HMAC-SHA256 under a key of the
+    invite's own secret, so neither the relay nor a shared folder, nor anyone without the invite, can test a name
+    against it, and the same folder gives another digest in each invite (teambuild2)."""
+    key = hkdf(secret, b"", b"idiograph v1 participant digest")
+    return b64(hmac.new(key, str(folder).encode("utf-8"), hashlib.sha256).digest()[:8])
+
+
+def offer_body(dev: dict, body: dict, secret: bytes, folders: list[str]) -> dict:
+    """The invite's offer, signed, with each participant folder as its digest and padded with `pad` to OFFER_BYTES
+    exactly. When the list will not fit, it is left out, and a joiner then joins with no check, as with an offer
+    made before the list (teambuild2). An older app ignores both fields."""
+    listed = dict(body, participants=sorted(participant_digest(secret, f) for f in folders), pad="")
+    plain = signed(dev, listed)
+    if len(canon(plain)) > OFFER_BYTES:
+        listed = dict(body, pad="")
+        plain = signed(dev, listed)
+    room = OFFER_BYTES - len(canon(plain))
+    return signed(dev, dict(listed, pad="0" * room)) if room > 0 else plain
+
+
+def may_join(data: dict) -> None:
+    """A project in a team with others, or keeping one from before with others on it, joins no other: its own
+    team's people would keep a lead who has left (teambuild2). Refused with nothing written."""
     roster = data.get("roster") or {}
     if data.get("on") is True and len(roster_members(roster)) > 1:
         raise TeamError(i18n.t("team.refused.already_team"), "already_team")
+    if data.get("on") is not True and roster and not by_itself(roster):
+        raise TeamError(i18n.t("team.refused.kept_team"), "kept_team")
+
+
+def kept_with_others(root: Path) -> bool:
+    """Working together off with a team kept from before that has someone else on it, or another computer, so
+    starting again picks that team up (teambuild, 19 November 2026). Reads team.json alone."""
+    data = read_team(root) or {}
+    return data.get("on") is not True and bool(data.get("roster")) and not by_itself(data.get("roster") or {})
+
+
+def join(root: Path, words: str, name: str, dry_run: bool = False, relay_url: str = "", route: str = "",
+         folder: str = "", participants: list[dict] | None = None) -> dict:
+    """The joiner's side: the invite read from its mailbox, refused when it is closed, expired or not there, this
+    device's name and keys posted as the answer, and the six digits to read on the call. Joined once the lead's
+    They match comes back (`joined`). Nothing is written to the project until then, so a project that joins from
+    Working together off never becomes the lead of a team of one first (teambuild, 19 November 2026). `route` and
+    `folder` say how the invite came, a shared folder or the relay, when the project has no route of its own yet,
+    kept with the asking for `joined`. A project that holds a participant the invite does not list (its folder from
+    the root) is refused, with nothing sent: it would become the lead's, refused to this computer, and never reach
+    the lead. A copy of the lead's own project joins as before. The dry run reads no invite, so it cannot say this."""
+    secret = words_secret(words)
+    inv = invite_id(secret)
+    data = read_team(root) or {}
+    may_join(data)
+    route = str(route or "")
+    if route and route not in ROUTES:
+        raise TeamError(i18n.t("team.refused.bad_route"), "bad_route")
+    route = route or data.get("route") or "relay"
+    folder = one_line(folder) or (data.get("folder") or "")
     who = name_given(name)
     if dry_run:
         lib()
@@ -1163,14 +1219,21 @@ def join(root: Path, words: str, name: str, dry_run: bool = False, relay_url: st
     dev = device(make=True)
     # a team's own relay, as its link or the joiner names it (relaywire)
     relay = one_line(relay_url) or link_relay(words)
-    way = transport_mod.for_team((data.get("route") or "relay"), dev, dict(data, relay_url=relay) if relay else data)
+    base = dict(data, folder=folder)
+    way = transport_mod.for_team(route, dev, dict(base, relay_url=relay) if relay else base)
     offer = read_offer(way, inv, secret)
+    # an offer with no list, made before it or too long to fit, joins with no check (teambuild2)
+    if isinstance(offer.get("participants"), list):
+        theirs = {str(f) for f in offer["participants"]}
+        if any(participant_digest(secret, str(p["folder"])) not in theirs for p in participants or []):
+            raise TeamError(i18n.t("team.refused.has_participants"), "has_participants")
     answer = signed(dev, {"kind": "answer", "name": who, "device": public(dev)})
     way.send(mailbox(inv), aead_seal(invite_key(secret), canon(answer)))
     data_dev = load_device_file() or {}
     data_dev.setdefault("joining", {})[inv] = dict({"secret": b64(secret), "lead": offer["device"], "name": who,
-                                                    "asked": now_iso(), "root": str(Path(root))},
-                                                   **({"relay_url": relay} if relay else {}))
+                                                    "asked": now_iso(), "root": str(Path(root)), "route": route},
+                                                   **({"relay_url": relay} if relay else {}),
+                                                   **({"folder": folder} if folder else {}))
     save_device_file(data_dev)
     return {"changes": [], "dry_run": False, "invite": inv, "from": offer.get("from") or "",
             "code": check_code(secret, offer["device"], public(dev))}
@@ -1192,7 +1255,8 @@ def read_offer(way, inv: str, secret: bytes) -> dict:
 def joined(root: Path, inv: str, dry_run: bool = False) -> dict:
     """The joiner's side once more: the lead's welcome read, its roster checked against the lead's device the invite
     named, the project key opened and kept, and team.json written. Answers `joined` false while it has not come, and
-    with `dry_run` whether it has come, writing nothing."""
+    with `dry_run` whether it has come, writing nothing. A project now in a team with others, or keeping one, is
+    refused as `join` refuses it, with nothing written (teambuild2)."""
     data_dev = load_device_file() or {}
     asked = (data_dev.get("joining") or {}).get(inv)
     if not asked:
@@ -1201,8 +1265,14 @@ def joined(root: Path, inv: str, dry_run: bool = False) -> dict:
     secret = unb64(asked["secret"])
     lead = asked["lead"]
     data = read_team(root) or {}
+    # a project that has since come into a team with others, or kept one, is refused as `join` is (teambuild2)
+    may_join(data)
     relay = str(asked.get("relay_url") or "")
-    way = transport_mod.for_team(data.get("route") or "relay", dev, dict(data, relay_url=relay) if relay else data)
+    # the way the invite came, as the join said it, where the project has no route of its own (teambuild)
+    folder = str(asked.get("folder") or data.get("folder") or "")
+    base = dict(data, folder=folder)
+    way = transport_mod.for_team(str(asked.get("route") or data.get("route") or "relay"), dev,
+                                 dict(base, relay_url=relay) if relay else base)
     welcome = None
     for _s, m in mailbox_items(way, inv, invite_key(secret)):
         if m.get("kind") == "welcome" and m.get("to") == dev["id"] and signed_by(lead["sign"], m):
@@ -1233,7 +1303,7 @@ def joined(root: Path, inv: str, dry_run: bool = False) -> dict:
                 "dry_run": True}
     keep_key(team, int(roster.get("epoch") or 1), key)
     write_team(root, {"on": True, "team": team, "member": str(welcome.get("member") or ""),
-                      "route": welcome.get("route") or "relay", "folder": data.get("folder") or "",
+                      "route": welcome.get("route") or "relay", "folder": folder,
                       "recordings": data.get("recordings") is True, "roster": roster})
     data_dev = load_device_file() or {}
     (data_dev.get("joining") or {}).pop(inv, None)

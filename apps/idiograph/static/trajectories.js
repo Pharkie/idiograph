@@ -303,6 +303,7 @@ function trajGuideDraw() {
   $('tj-guide-body').innerHTML = lines.length
     ? lines.map((s) => `<section class="th-guide-group"><h3 class="section-label">${esc(s.heading)}</h3>`
       + `<ul class="th-guide-lines">${s.lines.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></section>`).join('')
+      + `<p class="guide-manual">${guideManualHtml('trajectories')}</p>`
     : `<p class="th-qnone">${esc(t('themes.guidance.none'))}</p>`;
 }
 

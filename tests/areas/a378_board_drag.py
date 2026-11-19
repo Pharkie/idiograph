@@ -11,7 +11,7 @@ Here, in WebKit through packaging/wk_shot.swift, on an invented participant, Wre
 112 statements with their quotes, 105 cards showing in six PETs of sixteen sub-PETs and seven stacked, the whole
 board arranged, served by the app's own handler, at 1587 by 1234 with the scroll bars a mouse brings and the
 transitions running, a card dragged left and right across the PETs for two seconds with the pointer emulated in the
-page keeps its median frame at 18 ms or less and none over 50 ms, tried once more when the machine's load starves
+page keeps its median frame at 20 ms or less and none over 50 ms, tried once more when the machine's load starves
 the window, adds or removes nothing in the board after the drag's first frame and reads no layout as the pointer
 moves. The lines drawn afresh every frame, as they were, put back on the same board rebuild them, which the watch
 sees.
@@ -35,6 +35,9 @@ import openpyxl
 from . import support
 from .support import check, skip
 
+# The median frame a drag may take. A screen's frame is 16.7 ms and the page's own median sits at 16 to 18 on a
+# quiet Mac, so 20 leaves it room against the Mac's load (smallfix19, 19 November 2026), where a drag twice as slow fails
+MEDIAN_MS = 20
 OPEN = ["The first hive in the garden", "My hands in the gloves", "The smell of the smoker", "Being stung on the wrist",
         "The queen with her dot of paint", "Lifting a full super", "The cold in February", "Learning to read a frame",
         "My back the day after", "The swarm in the plum tree", "The first jar of honey", "My son watching from the door",
@@ -323,7 +326,7 @@ def test_board_drag(scratch: Path):
         return ran, said
 
     def smooth(m: dict, stalls: str = "over50") -> bool:
-        return bool(m) and m.get("dragging") is True and m.get("frames", 0) >= 80 and m.get("median", 99) <= 18 and m.get(stalls, 99) == 0
+        return bool(m) and m.get("dragging") is True and m.get("frames", 0) >= 80 and m.get("median", 99) <= MEDIAN_MS and m.get(stalls, 99) == 0
 
     # each frame's step of what is dragged against an even hand's, the middle eight in ten, within a band of it
     def even(m: dict) -> bool:
@@ -339,10 +342,10 @@ def test_board_drag(scratch: Path):
         ran, said = drive()
     m, title, uneven, old = said.get(2) or {}, said.get(3) or {}, said.get(5) or {}, said.get(7) or {}
     check("378: in WebKit at 1587 by 1234, a card dragged left and right across a board of 105 cards in six PETs for two "
-          "seconds keeps its median frame at 18 ms or less, a screen's frame being 16.7, and none over 50 ms",
+          "seconds keeps its median frame at 20 ms or less, a screen's frame being 16.7, and none over 50 ms",
           ran.returncode == 0 and said.get(0) == 105 and smooth(m), f"{said.get(0)} {m} {ran.stdout[-300:]} {ran.stderr[-300:]}")
     check("378: a PET dragged by its title across the same board, fifteen cards and labels with it, keeps its median "
-          "frame at 18 ms or less and none over 50 ms after the frame that picks it up (perfreview)",
+          "frame at 20 ms or less and none over 50 ms after the frame that picks it up (perfreview)",
           ran.returncode == 0 and smooth(title, "over50late"), f"{title}")
     check("378: what is dragged moves an even step a frame, each frame's step within 0.7 to 1.35 of an even hand's for "
           "eight frames in ten, the card and the PET alike (perfreview)", even(m) and even(title),

@@ -393,8 +393,9 @@ function stageRings(p, size, kind) {
   const n = rings.length;
   const half = size / 2;
   const w = Math.round(size * (n === 3 ? 0.085 : n === 2 ? 0.095 : 0.09) * 2) / 2;
-  const gap = Math.max(2, Math.round(size * 0.03));
-  const pic = Math.max(16, Math.round(2 * (half - n * w) - 2 * gap));
+  // the picture fills to the inner ring's inner edge with no margin (ringmock, Adam 19 November 2026), a pixel over so
+  // no line of the card shows between them, the rings drawn over that pixel
+  const pic = Math.max(16, Math.round(2 * (half - n * w)) + 1);
   const circle = (cls, r, from, len, width) => `<circle class="${cls}" cx="${half}" cy="${half}" r="${r}" pathLength="360"`
     + ` stroke-width="${width}" stroke-dasharray="${len.toFixed(2)} ${(360 - len).toFixed(2)}" stroke-dashoffset="${(-from).toFixed(2)}"/>`;
   let svg = '';
@@ -415,8 +416,8 @@ function stageRings(p, size, kind) {
     });
   });
   return `<span class="pring" style="width:${size}px;height:${size}px" data-pic="${pic}">`
-    + `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" focusable="false">${svg}</svg>`
-    + `<span class="pring-pic">${personPic(p.person || { who, case: p.case }, pic)}</span></span>`;
+    + `<span class="pring-pic">${personPic(p.person || { who, case: p.case }, pic)}</span>`
+    + `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" focusable="false">${svg}</svg></span>`;
 }
 
 /* A stage across participants as a bar in the themes' green, its numbers in its tooltip: "Not started" in words while
@@ -2146,7 +2147,7 @@ function drawPage(s) {
   pageHead(p.name || t('distil.home.project'), p.research_question || '', false, !!p.copy, projKind(p));
   const list = $('hp-list');
   const empty = s.there !== false && !(s.participants || []).length;
-  if (s.there === false) list.innerHTML = `<li class="empty">${esc(t('distil.page.folder_gone'))}</li>`;
+  if (s.there === false) list.innerHTML = `<li class="empty">${esc(t('distil.page.folder_gone'))}${typeof meansLink === 'function' ? ` ${meansLink('its-folder-is-not-there')}` : ''}</li>`;
   else if (empty) {
     list.innerHTML = `<li class="empty hp-empty"><button type="button" class="primary" id="hp-add-first">${esc(t('distil.np.add_title'))}</button></li>`;
     $('hp-add-first').onclick = () => openAddTranscripts(s.id);
@@ -2664,7 +2665,7 @@ const rowKind = (p) => (tMethodNow() === 'ta' ? 'ta' : Array.isArray(p.timepoint
    In a narrow window the buttons go under the name. */
 function cardHtml(p, fixed) {
   const tags = (p.demo ? `<span class="tag demo">${esc(t('distil.tag.demo'))}</span>` : '')
-    + (p.locked ? `<span class="tag locked">${esc(t('distil.tag.locked'))}</span>` : '');
+    + (p.locked ? `<span class="tag locked">${esc(t('distil.tag.locked'))}</span>${typeof meansLink === 'function' ? ` ${meansLink('open-in-excel-on-a-participant')}` : ''}` : '');
   // the case as the row names it, "P1 Ada", its P-number and pseudonym with no dash between
   const name = String(p.case || '').replace(/^(P\d+)\s*-\s*/, '$1 ');
   let html = fixed || p.demo ? '<span class="pc-grip none" aria-hidden="true"></span>' : gripHtml(name);
@@ -13665,6 +13666,64 @@ const guideOpen = () => $('guide').classList.contains('open');
 /* `how.keep` keeps the choice, as every press does and the page's start does not, and `how.focus`
    takes the keyboard into the sheet as it opens and back to the bar's tool as it closes. A sheet
    closed with the focus inside it always hands the focus back to the tool, so it is never lost. */
+/* The manual's terms the Guidance tabs name (guidelinks, 19 November 2026, Adam's yes of 18 November): at the foot of each
+   tab one small line, "In the manual:" and each term the tab uses as a link to its heading in the app's manual page, and
+   no other link in Guidance. A term's key is the heading's anchor in docs/manual.md under The method's terms and how
+   they relate (area 432 checks each is there), its words a catalogue key written out in its own t() call. */
+const GUIDE_TERMS = {
+  'passage': () => t('distil.manual.term_passage'),
+  'experiential-statement': () => t('distil.manual.term_experiential_statement'),
+  'quote': () => t('distil.manual.term_quote'),
+  'pet': () => t('distil.manual.term_pet'),
+  'sub-theme': () => t('distil.manual.term_sub_theme'),
+  'stack': () => t('distil.manual.term_stack'),
+  'close-pair': () => t('distil.manual.term_close_pair'),
+  'unplaced-and-set-aside': () => t('distil.manual.term_unplaced'),
+  'picks': () => t('distil.manual.term_picks'),
+  'get': () => t('distil.manual.term_get'),
+  'the-count-and-the-minimum': () => t('distil.manual.term_count_minimum'),
+  'timepoint': () => t('distil.manual.term_timepoint'),
+  'lpet': () => t('distil.manual.term_lpet'),
+  'lget': () => t('distil.manual.term_lget'),
+  'trajectory': () => t('distil.manual.term_trajectory'),
+  'state': () => t('distil.manual.term_state'),
+  'key-quote': () => t('distil.manual.term_key_quote'),
+  'extract': () => t('distil.manual.term_extract'),
+  'code': () => t('distil.manual.term_code'),
+  'code-list': () => t('distil.manual.term_code_list'),
+  'theme': () => t('distil.manual.term_theme'),
+};
+
+const GUIDE_SCREENS = {
+  statements_ipa: ['passage', 'experiential-statement', 'quote'],
+  statements_ta: ['passage', 'extract', 'code'],
+  pets: ['experiential-statement', 'quote', 'pet', 'sub-theme', 'stack', 'close-pair', 'unplaced-and-set-aside', 'picks'],
+  gets: ['get', 'pet', 'sub-theme', 'the-count-and-the-minimum'],
+  lpets: ['lpet', 'pet', 'sub-theme', 'timepoint', 'state', 'unplaced-and-set-aside'],
+  lgets: ['lget', 'lpet', 'trajectory'],
+  trajectories: ['trajectory', 'lpet', 'timepoint', 'state', 'key-quote'],
+  ta_themes: ['theme', 'code', 'extract', 'unplaced-and-set-aside'],
+  codes: ['code', 'code-list', 'extract', 'theme'],
+};
+
+/* the foot's markup for a screen's Guidance: the lead, then its terms joined as the computer's language joins a short
+   list, each term its own link; nothing for a screen with no terms */
+function guideManualHtml(screen) {
+  const terms = GUIDE_SCREENS[screen] || [];
+  if (!terms.length) return '';
+  const marks = terms.map((_, i) => `\u0001${i}\u0001`);
+  const joined = esc(tList(marks, 'unit')).replace(/\u0001(\d+)\u0001/g, (_, i) => manualLink(terms[Number(i)], GUIDE_TERMS[terms[Number(i)]]()));
+  return `${esc(t('distil.manual.lead'))} ${joined}`;
+}
+
+/* a Guidance foot drawn into the element `id` (hidden while the screen has no terms) */
+function guideManualDraw(id, screen) {
+  const el = $(id);
+  if (!el) return;
+  el.innerHTML = guideManualHtml(screen);
+  el.hidden = !el.innerHTML;
+}
+
 /* The guidance's lines, each with its two examples behind a small arrow at its end, opened in place
    in two columns, Less this and More this (Adam, 21 October). One stands open at a time, and a line
    with no examples in guidance.md has no arrow. The arrow is a button, so Enter and Space open it. */
@@ -13713,6 +13772,7 @@ function guideRail() {
   // Adam's framing under the list, from the guidance file, none from a server too old to send it
   $('rules-framing').textContent = rail.framing || '';
   $('rules-framing').hidden = !rail.framing;
+  guideManualDraw('guide-manual', method === 'ta' ? 'statements_ta' : 'statements_ipa');
   if ($('work').hidden) return;
   S.prompt = placeholderLine();
   const first = pairEls()[0];

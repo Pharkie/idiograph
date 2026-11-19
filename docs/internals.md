@@ -2506,8 +2506,8 @@ join reads them, refuses a closed or expired invite, posts its own name and keys
 seals the epoch's key to his device, numbers and signs it, posts a `welcome` and a `closed`, and marks the invite
 used. `joined` checks the welcome's roster against the lead's device the invite named and keeps the key. `remove`
 makes the next epoch's key, sealed to the devices left, the roster sent under the epoch before. The route is
-`/api/team` (`api_team`, ops `show`, `on`, `off`, `set`, `choose`, `invite`, `answers`, `admit`, `join`, `joined`,
-`remove`, each write under the project's lock with a `team <op>` History record), the command line's `team` and
+`/api/team` (`api_team`, ops `show`, `on`, `off`, `set`, `choose`, `pick`, `invite`, `answers`, `admit`, `join`,
+`joined`, `remove`, each write under the project's lock with a `team <op>` History record), the command line's `team` and
 MCP's `team_*`, area 261's parity mapping them. `team on`, `invite`, `admit` (a match), `join` and `remove` are
 `holds.HELD`, risk 4, and since noholds (13 November 2026) the app's alone for an agent (`agent_changes.TEAM_ONLY`). Transport: `send`, `fetch` and `listen` as wt-common names them, a route's factory
 `factory(device, team)` registered by its module (`transport.register`), and `Loopback`, in memory (`Hub`) or in a
@@ -2515,6 +2515,32 @@ folder two servers share (`IDIOGRAPH_TEAM_LOOPBACK`), for the suite and a smoke 
 that sends is refused (`team.refused.no_route`). The page: `#wt-block` in Project settings before the agents'
 block, `#wt-invite-card` and `#wt-join-card`, `team.js` (`wtOpen` from `openProjectSettings`, polling `answers`
 and `joined` every 10 seconds while a card is open, `WT_POLL_MS`, inside the relay's 30 invite calls a minute). Area 341.
+
+**How Working together starts** (teambuild, 19 November 2026, teammock's option B, Adam's yes that night). Off,
+`#wt-start` holds Invite others to work on this project (`op: on` with this computer as lead, the name row first
+when Settings holds no name) and Join a project you were invited to (the Join card at once, `wtJoinOpen`). A team
+kept from before with someone else on it or another computer (`team.kept_with_others`, `show`'s `start.kept`)
+shows Start working together again in their place, which is `op: on` too. On, `.wt-leads` says who leads, with
+Stop working together (`op: off`, then the section opened again). `join` writes nothing to the project: the asking
+is kept in the device file's `joining`, with the `route` and `folder` the Join card's tick The invite came through
+a shared folder and its Choose give (`op: pick`, the Mac's dialog answering the folder and writing nothing, or the
+window's own), and `joined` writes team.json with that folder once the lead's welcome has come. So a joiner never
+leads a team of one first. The invite's offer, sealed under the invite's key with the rest, carries
+`participants`, a keyed digest of each of the inviting project's participant folders (`team.participant_digest`,
+the first 8 bytes of an HMAC-SHA256 under a key from the invite's own secret, so neither the relay nor a shared
+folder can test a name, and the same folder differs from invite to invite), and `pad`, zeros that bring the
+offer's canonical bytes to `team.OFFER_BYTES`, 3,840, whatever the number of participants (3,880 sealed, under the
+relay's 4,096-byte invite post). The folders are every one `list_cases` gives, of any kind, an annotated workbook,
+a raw source or a transcript alone (`routes.team_folders`). When the list will not fit, past about 225 participants,
+the offer leaves it out, and the join is not checked. `join` refuses a project holding a folder whose digest the
+offer does not list (`has_participants`) before it sends the answer, since that participant would become the
+lead's, refused to this computer and never sent to the lead (tried on scratch copies on 19 November). A copy of
+the lead's project, or an empty one, joins, and so does any project when the offer has no `participants` (made by
+0.9.31, which ignores `participants` and `pad`, or too long to list). `join` and `joined` both refuse a project
+in a team with others (`already_team`) or keeping a stopped one with others on it (`kept_team`), with nothing
+written (`team.may_join`). The dry run reads no invite, so it cannot say has_participants. The Join card sends
+`route` relay when its shared-folder tick is off. The command line's `team join` takes `--route` and
+`--folder`, and MCP's `team_join` `route` and `folder`. Area 431.
 
 **Working together's owners and versions** (wtowners, 8 November 2026, the spec's build 2). `team_sync.py`.
 The one writer: `team_sync.guard` is `workbook.WRITE_GUARD`, run by `workbook.case_held` before the case's lock,
@@ -5951,7 +5977,7 @@ place. `homeCardsWire` opens the page from the button and, by one handler on the
 counts are the server's `progress` (dashcounts) on each participant card and on the project's `gets` head. A demo's
 head is asked of `/api/gets-head` once the cards are drawn (`homeDemoHeads`), which since homecardbuild answers outside
 the route's LGETs scope, so a longitudinal demo's carries `lgets` and its Trajectories. `stageRings` draws one SVG over
-`personPic`: rings from the inside out, statements (`--stage-es`), PETs (`--stage-pets`) and in a longitudinal project
+`personPic`, the picture filling to the inside ring's inner edge with no gap and drawn under the rings: rings from the inside out, statements (`--stage-es`), PETs (`--stage-pets`) and in a longitudinal project
 LPETs (`--stage-lpets`), the first two split into a part a timepoint, a thematic analysis project's one ring its
 coding. Each ring or part is a `g.rseg` with `tabindex="0"`, `role="img"` and its words in `aria-label`, `data-th` its
 head ("Ada: PETs", "Hal: PETs at T1") and `data-tb` its line, from `stageWords`: Not started with nothing decided,
@@ -9593,3 +9619,16 @@ line's `project set --archive on|off` and MCP's `project_set` `archived` call th
 `projectSaves` when it changed. Home's `drawPick` splits the project cards by `project.archived` into `#projects` and
 `#archived-projects`, in `#home-archived` between `#home-analysis` and `#home-demos`, folded by `archivedFold` (shut
 until opened, kept in the same fold list as the others, `archived:open`). Area 425 holds it.
+
+Links into the manual (guidelinks, 19 November 2026, Adam's yes of 18 November). `manualLink(anchor, text)` and `meansLink(anchor)`
+in `family/static/shell.js` make an anchor to `/manual#<anchor>` with `target="_blank"`, the way Settings links `/translating`, so
+the app's own window or a tab opens it and the screen stays as it is. Each Guidance tab ends with one line, "In the manual:" and
+the terms it uses, from distil.js's `GUIDE_SCREENS` (the statements screen's IPA and thematic analysis rails, the PETs, GETs,
+LPETs, LGETs and Themes boards, Trajectories and the Code list) and `GUIDE_TERMS`, whose keys are the anchors of the manual's
+headings under The method's terms and how they relate, each term's words a catalogue key `distil.manual.term_*`. A message with a
+way back carries "What this means", `shell.manual_means`, to its entry under When something goes wrong: the passage's
+and the boards' stale lines (static markup in idiograph.html), a project's page when its folder is not there, the "open in Excel"
+tag on a participant's row, and the line under the board menu when Mark GETs complete is refused. Only a persistent line
+carries one, never a toast, and a Home card's line stays plain since the card is one button. The relay's lines
+(`team.held.*`, `team.refused.*`) carry none yet: the server sends the words alone. Area 432 reads every anchor the page links
+and fails when the manual has no heading for it.

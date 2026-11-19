@@ -6,9 +6,14 @@
    six digits once someone has answered, read on a call before They match. Members and computers (wtdevices,
    9 November 2026): Make lead and Remove on each other person's row for the lead, each computer of a person with
    more than one listed under them with Remove this computer, Add a computer of mine for every member, and on
-   opening, what has come for the list of people taken in (`take`). */
+   opening, what has come for the list of people taken in (`take`). How it starts (teambuild, 19 November 2026,
+   teammock's option B, Adam's yes that night): off, Invite others to work on this project, which turns it on with
+   this computer as lead as the tick did, and Join a project you were invited to, which opens the Join card at once
+   and turns nothing on until the lead's They match comes in, so a joiner never leads a team of one first. A team
+   kept from before with others on it shows Start working together again in their place, and on, the section
+   starts with who leads and Stop working together. */
 
-const WT = { p: null, view: null, yourName: '', poll: null, invite: null, joining: null };
+const WT = { p: null, view: null, yourName: '', poll: null, invite: null, joining: null, start: null, joinFolder: '' };
 // the invite and join cards ask about every 10 seconds, well inside the relay's 30 invite calls a minute from one address
 const WT_POLL_MS = 10000;
 
@@ -31,7 +36,7 @@ async function wtOpen(p) {
   block.hidden = !p || !!p.demo || !p.id;
   if (block.hidden) return;
   wtSaid('');
-  $('wt-on').checked = false;
+  $('wt-start').hidden = true;
   $('wt-fields').hidden = true;
   $('wt-name-row').hidden = true;
   let got;
@@ -43,6 +48,7 @@ async function wtOpen(p) {
   }
   if (WT.p !== p) return;
   WT.yourName = got.your_name || '';
+  WT.start = got.start || null;
   wtDraw(got.team || { on: false });
   if (!got.team || !got.team.on) return;
   // what has come for the list of people since it was last open: a newer list, a computer added or removed
@@ -56,10 +62,12 @@ async function wtOpen(p) {
 function wtDraw(view) {
   WT.view = view;
   const on = !!view.on;
-  $('wt-on').checked = on;
   $('wt-fields').hidden = !on;
+  wtStartDraw(on);
   if (on) $('wt-name-row').hidden = true;
   if (!on) return;
+  const lead = (view.people.find((p) => p.lead) || {}).name || '';
+  $('wt-leads').textContent = view.you_lead ? t('team.page.you_lead') : t('team.page.they_lead', { name: lead });
   document.querySelectorAll('#wt-route .th-from-opt').forEach((b) => {
     const here = b.dataset.route === view.route;
     b.classList.toggle('on', here);
@@ -77,9 +85,17 @@ function wtDraw(view) {
   $('wt-recordings').checked = !!view.recordings;
   $('wt-invite').hidden = !view.you_lead;
   $('wt-own').hidden = !!view.removed;
-  $('wt-join').hidden = !view.alone;
   wtAsked(view);
   if (view.removed) wtSaid(t('team.page.removed'));
+}
+
+/* off: Invite others and Join a project, or Start working together again for a team kept with others on it */
+function wtStartDraw(on) {
+  $('wt-start').hidden = on;
+  const kept = !!(WT.start && WT.start.kept);
+  $('wt-start-new').hidden = kept;
+  $('wt-start-join-row').hidden = kept;
+  $('wt-again-row').hidden = !kept;
 }
 
 /* a change to his own computers waiting for the lead's Idiograph, a line each */
@@ -246,12 +262,12 @@ async function wtCall(body) {
 
 const wtSet = (changes) => wtCall({ op: 'set', ...changes });
 
-/* the tick: on, with his name the first time when Settings holds none, or off */
-async function wtTick() {
-  if (!$('wt-on').checked) {
-    $('wt-name-row').hidden = true;
-    if (WT.view && WT.view.on) await wtCall({ op: 'off' });
-    else wtDraw({ on: false });
+/* Invite others to work on this project: on with this computer as lead, as the tick did, with the researcher's name
+   the first time when Settings holds none. Start working together again picks the kept team up as it was, its
+   names its own, so it asks for none. */
+async function wtStartInvite() {
+  if (WT.start && WT.start.kept) {
+    await wtCall({ op: 'on' });
     return;
   }
   const typed = $('wt-name').value.trim();
@@ -260,8 +276,13 @@ async function wtTick() {
     $('wt-name').focus();
     return;
   }
-  const got = await wtCall({ op: 'on', name: typed || WT.yourName, route: 'relay' });
-  if (!got) $('wt-on').checked = false;
+  await wtCall({ op: 'on', name: typed || WT.yourName, route: 'relay' });
+}
+
+/* Stop working together: nothing more sent or taken in, the team kept for starting again */
+async function wtStopTogether() {
+  const got = await wtCall({ op: 'off' });
+  if (got && WT.p) await wtOpen(WT.p);
 }
 
 async function wtRemove(person) {
@@ -348,30 +369,65 @@ async function wtCopy(from) {
   } catch (err) { wtInviteSaid(err.message, true); }
 }
 
-/* ── joining another's project, from this one while it is shared with nobody ── */
+/* ── joining another's project, from this one while Working together is off ── */
 
 function wtJoinSaid(text, failed = false) {
   saidIn('wt-join-said', text || '', failed);
   $('wt-join-said').hidden = !text;
 }
 
+/* Join a project you were invited to: the card at once, nothing turned on until They match. A project holding a
+   participant the invite does not list is refused in the card's line, since it would become the lead's. */
 function wtJoinOpen() {
+  wtSaid('');
   $('wt-join-kicker').textContent = WT.p.name || '';
   $('wt-join-words').value = '';
   $('wt-join-words').disabled = false;
+  $('wt-join-name').value = '';
+  $('wt-join-name').disabled = false;
+  $('wt-join-name-row').hidden = !!WT.yourName;
+  $('wt-join-folder-on').checked = false;
+  $('wt-join-folder-on').disabled = false;
+  WT.joinFolder = '';
+  wtJoinFolderDraw();
   $('wt-join-answered').hidden = true;
   $('wt-join-acts').hidden = false;
   wtJoinSaid('');
   show('wt-join-card');
 }
 
+/* the shared folder the invite came through, ticked in the Join card, with its own Choose */
+function wtJoinFolderDraw() {
+  const by = $('wt-join-folder-on').checked;
+  $('wt-join-path').hidden = !by;
+  if (WT.joinFolder) $('wt-join-folder').innerHTML = pathHtml(WT.joinFolder);
+  else $('wt-join-folder').textContent = t('team.page.no_folder');
+}
+
+/* Choose in the Join card: the system's dialog on the app's own window, or the Mac's from the server, its folder
+   kept in the card and nothing written until the join */
+async function wtJoinChoose() {
+  const keep = (folder) => { if (folder) WT.joinFolder = folder; wtJoinFolderDraw(); return { chosen: !!folder }; };
+  try {
+    await picking(async (path) => keep(path || (await api('/api/team', wtBody({ op: 'pick' }))).folder),
+      $('wt-join-choose'), t('team.page.folder'));
+  } catch (err) { wtJoinSaid(needsRestart(err) ? RESTART_LINE : err.message, !needsRestart(err)); }
+}
+
 async function wtJoin() {
+  const asked = { op: 'join', words: $('wt-join-words').value };
+  const typed = $('wt-join-name').value.trim();
+  if (typed) asked.name = typed;
+  Object.assign(asked, $('wt-join-folder-on').checked ? { route: 'folder', folder: WT.joinFolder } : { route: 'relay' });
   let got;
   try {
-    got = await api('/api/team', wtBody({ op: 'join', words: $('wt-join-words').value }));
+    got = await api('/api/team', wtBody(asked));
   } catch (err) { wtJoinSaid(err.message, true); return; }
+  if (typed) WT.yourName = typed;
   WT.joining = { invite: got.invite, from: got.from || '' };
   $('wt-join-words').disabled = true;
+  $('wt-join-name').disabled = true;
+  $('wt-join-folder-on').disabled = true;
   $('wt-join-acts').hidden = true;
   $('wt-join-code').textContent = got.code;
   $('wt-join-line').textContent = t('team.join.read_code', { name: got.from || '' });
@@ -396,9 +452,14 @@ async function wtJoined() {
 
 function wtWire() {
   if (!$('wt-block')) return;
-  $('wt-on').addEventListener('change', wtTick);
-  $('wt-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); wtTick(); } });
-  $('wt-name').addEventListener('change', () => { if ($('wt-name').value.trim()) wtTick(); });
+  $('wt-start-invite').onclick = wtStartInvite;
+  $('wt-again').onclick = wtStartInvite;
+  $('wt-start-join').onclick = wtJoinOpen;
+  $('wt-stop').onclick = wtStopTogether;
+  $('wt-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); wtStartInvite(); } });
+  $('wt-name').addEventListener('change', () => { if ($('wt-name').value.trim()) wtStartInvite(); });
+  $('wt-join-folder-on').addEventListener('change', wtJoinFolderDraw);
+  $('wt-join-choose').onclick = wtJoinChoose;
   document.querySelectorAll('#wt-route .th-from-opt').forEach((b) => {
     b.onclick = () => { if (!b.classList.contains('on')) wtSet({ route: b.dataset.route }); };
   });
@@ -406,7 +467,6 @@ function wtWire() {
   $('wt-recordings').addEventListener('change', () => wtSet({ recordings: $('wt-recordings').checked }));
   $('wt-invite').onclick = () => wtInvite(false);
   $('wt-own').onclick = () => wtInvite(true);
-  $('wt-join').onclick = wtJoinOpen;
   $('wt-copy-link').onclick = () => wtCopy('wt-link');
   $('wt-copy-words').onclick = () => wtCopy('wt-words');
   $('wt-match').onclick = () => wtAnswer(true);

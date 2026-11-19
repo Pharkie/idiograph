@@ -6969,7 +6969,18 @@ function thGuidanceDraw() {
   let html = TH.guidance.map((s) => `<section class="th-guide-group"><h3 class="section-label">${esc(s.heading)}</h3>`
     + `<ul class="th-guide-lines">${s.lines.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></section>`).join('');
   if (!TH.guidance.length) html = `<p class="th-qnone">${esc(t('themes.guidance.none'))}</p>`;
+  // and the foot, the manual's terms this board's lines use (guidelinks)
+  else if (typeof guideManualHtml === 'function') html += `<p class="guide-manual">${guideManualHtml(thGuideScreen())}</p>`;
   body.innerHTML = html;
+}
+
+/* which screen's terms the Guidance tab names: the PETs board's, a thematic analysis project's Themes board, or on
+   the GETs screen the participant's LPETs, the project's LGETs or its GETs */
+function thGuideScreen() {
+  if (TH.mode !== 'gets') return 'pets';
+  if (thTa()) return 'ta_themes';
+  if (TH.lpets) return 'lpets';
+  return TH.lgets ? 'lgets' : 'gets';
 }
 
 const thSheetTag = (sheet) => (sheet && sheet !== TH.sheets[0] ? `<span class="th-sheet">${esc(sheet)}</span>` : '');
@@ -7457,6 +7468,9 @@ function thVmenuPlace() {
    Rename and the note open a box in the place of the name or the
    note, and Save a revision a box for its name in its place. */
 function thVmenuDraw(said = '') {
+  // the manual entry the line under the menu links, set by the refusal that made it and gone with the line
+  const means = said ? TH.vmeans || '' : '';
+  if (!said) TH.vmeans = '';
   const cur = TH.meta ? TH.meta.id : null;
   const one = TH.boards.length < 2;
   let html = `<p class="section-label th-vhead">${esc(t('themes.board.boards'))}</p>`;
@@ -7525,7 +7539,7 @@ function thVmenuDraw(said = '') {
     ? `<button type="button" class="ghost" tabindex="-1" data-vop="pets-reopen"${offAll || ` title="${escAttr(t(at.time ? (TH.done.name ? 'themes.board.done_tip_time_name' : 'themes.board.done_tip_time') : (TH.done.name ? 'themes.board.done_tip_name' : 'themes.board.done_tip'), { day: at.day, time: at.time, name: TH.done.name }))}"`}>${esc(t('themes.board.reopen'))}</button>`
     : `<button type="button" class="ghost" tabindex="-1" data-vop="pets-done"${offAll || (chosenBoard
       ? ` title="${escAttr(t('themes.board.done_mark_tip', { name: chosenBoard.name }))}"` : ` disabled title="${escAttr(t('themes.board.done_first'))}"`)}>${esc(t('themes.board.done_mark'))}</button>`);
-  if (said) html += `<p class="th-vsaid">${esc(said)}</p>`;
+  if (said) html += `<p class="th-vsaid">${esc(said)}${means ? ` ${meansLink(means)}` : ''}</p>`;
   // on GETs the mark of a board marked complete names the GETs, where it is drawn above
   $('th-vmenu').innerHTML = html;
   if (typeof menuRoles === 'function') menuRoles($('th-vmenu'));
@@ -7596,6 +7610,8 @@ async function thBoardOp(op, extra = {}, route = TH_OPS_ROUTE) {
     if (TH.dirty) { thVsaid(t('themes.unsaved.boards')); return null; }
     return await api(TH.mode === 'gets' ? gtRoute(route) : route, Object.assign({ workbook: TH.path, op }, extra));
   } catch (err) {
+    // GETs not marked complete, naming who they wait on: the line under the menu then links its entry in the manual (guidelinks)
+    TH.vmeans = op === 'complete' && TH.mode === 'gets' && !needsRestart(err) ? 'gets-were-not-marked-complete-waiting-on' : '';
     thVsaid(needsRestart(err) ? RESTART_LINE : err.message);
     return null;
   } finally {

@@ -578,6 +578,21 @@ def thematic(base: Path, cfg_file: Path, call, b64, said_rows):
           and "awe" not in places(held, p["case"]) and "Fear" in named and "taken off" in named and "Awe" not in named,
           str([places(held, p["case"]), named]))
 
+    # [Dread] typed over as [Awe, Dread], Awe a code new to the study that takes no place on the board: the History
+    # line names Awe added, as a one-code add does, never Dread changed (smallfix19)
+    p = made("Kites TA new code first")
+    call("/api/commit", {"path": str(p["book"]), "sheet": p["sheet"], "row": p["o"][0], "en": "",
+                         "pairs": [{"es": "Dread", "kq": "thought it would lift me"}]})
+    turned = call("/api/commit", {"path": str(p["book"]), "sheet": p["sheet"], "row": p["o"][0], "en": "",
+                                  "pairs": [{"es": "Awe", "kq": "thought it would lift me"},
+                                            {"es": "Dread", "kq": "The line pulled so hard"}]})
+    held = support.board_file(p["gfile"])
+    named = str(((held["boards"][0].get("history") or [{}])[-1]).get("name") or "")
+    check("430: a turn typing [Dread] over as [Awe, Dread], Awe new to the study, has a History line naming Awe as "
+          "added, never Dread as changed",
+          "error" not in turned and "Awe" in named and "added" in named and "Dread" not in named
+          and "changed" not in named, named)
+
     # a turn in one passage, [Fear, Ease] typed over as [Ease, Hold], Hold a code of the study waiting in the
     # Unplaced panel: the extract that leaves the board joins Hold there, and the History line still names Hold
     # (cardsync7, recheck5 B8)

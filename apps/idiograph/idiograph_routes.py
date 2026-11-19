@@ -551,18 +551,23 @@ def api_agent_unseen(body: dict) -> dict:
 
 
 TEAM_WRITES = ("on", "off", "set", "choose", "invite", "admit", "join", "joined", "remove", "send", "lead", "take")
-TEAM_READS = ("show", "answers")
+TEAM_READS = ("show", "answers", "pick")
 
 
 def api_team(body: dict) -> dict:
     """Working together, Project settings' section and the agents' `team` ops (wtkeys, 8 November 2026, see team.py):
-    `op` one of `show`, `on`, `off`, `set`, `choose` (the shared folder from the Mac's dialog), `invite`, `answers`, `admit`, `join`, `joined`, `remove`, `lead` and `take`. `show`
-    answers the section as it stands, `{"on": false}` alone while it is off, and writes nothing. `on` takes `name`,
+    `op` one of `show`, `on`, `off`, `set`, `choose` (the shared folder from the Mac's dialog), `pick` (the same
+    dialog for the Join card, answering the folder and writing nothing), `invite`, `answers`, `admit`, `join`, `joined`, `remove`, `lead` and `take`. `show`
+    answers the section as it stands, `{"on": false}` alone while it is off, and writes nothing. Its `start` says how
+    the section starts while it is off (teambuild, 19 November 2026): `kept`, a team kept from before with someone
+    else on it, which starting again picks up. A `join` from a project holding a participant folder of any kind the invite does not
+    list is refused, and `join` and `joined` from a project in a team with others or keeping one. `on` takes `name`,
     `route` (relay or folder), `folder`, and for a team's own relay `relay_url`; through the relay the lead's `on`, or
     `set` with `route` relay, makes the project there, no code asked (relayopen, 18 November 2026), `set` any of `route`, `folder`, `recordings`, `owners` ({participant:
     member}) and `gets_owner`, `invite` `own` for another computer of one's own, `answers` and `admit` an `invite` id,
     `admit` `match` true or false (They match, They differ), `join` `words` (the link or the twelve words),
-    `name` and a team's own relay's `relay_url` when the link does not carry it, `joined` the `invite` id, `remove` a `member` by id or name or one `computer` by its id, `lead` (Make
+    `name`, a team's own relay's `relay_url` when the link does not carry it, and `route` and `folder` when the
+    invite came through a shared folder (the join writes nothing to the project until `joined`), `joined` the `invite` id, `remove` a `member` by id or name or one `computer` by its id, `lead` (Make
     lead) a `member`, and `take` what has come for the list of people (wtdevices, 9 November 2026). Each write takes `dry_run`, which writes
     nothing and says what would change, and runs under the project's lock with a line in the project's History for
     each change. The demo's project takes none. `send` (wtowners), Send now: what came for the project taken in and
@@ -580,8 +585,17 @@ def api_team(body: dict) -> dict:
     dry = body.get("dry_run") is True
     try:
         if op == "show":
-            return {"team": team_mod.view(root, team_participants(root)), "your_name": researcher_name(),
-                    "sync": team_sync.status(root)}
+            shown = team_mod.view(root, team_participants(root))
+            out = {"team": shown, "your_name": researcher_name(), "sync": team_sync.status(root)}
+            if not shown.get("on"):
+                out["start"] = {"kept": team_mod.kept_with_others(root)}
+            return out
+        if op == "pick":
+            # Choose in the Join card: the Mac's folder dialog, its folder answered and nothing written
+            if srv.PLATFORM != "darwin":
+                raise WorkbookError(srv.NO_DIALOG)
+            picked = srv.PICK_FOLDER(i18n.t("team.page.folder"))
+            return {"folder": str(picked) if picked is not None else ""}
         if op == "answers":
             return team_mod.answers(root, str(body.get("invite") or ""))
         if op == "send":
@@ -610,12 +624,15 @@ def api_team(body: dict) -> dict:
                     body = {"folder": str(picked)}
                 done = team_mod.set_team(root, body, team_participants(root), dry_run=dry)
             elif op == "invite":
-                done = team_mod.invite(root, own=body.get("own") is True, dry_run=dry)
+                done = team_mod.invite(root, own=body.get("own") is True, dry_run=dry,
+                                       participants=team_folders(root))
             elif op == "admit":
                 done = team_mod.admit(root, str(body.get("invite") or ""), body.get("match") is True, dry_run=dry)
             elif op == "join":
                 done = team_mod.join(root, str(body.get("words") or ""), body.get("name") or researcher_name(),
-                                     dry_run=dry, relay_url=str(body.get("relay_url") or ""))
+                                     dry_run=dry, relay_url=str(body.get("relay_url") or ""),
+                                     route=str(body.get("route") or ""), folder=str(body.get("folder") or ""),
+                                     participants=team_folders(root))
             elif op == "joined":
                 done = team_mod.joined(root, str(body.get("invite") or ""), dry_run=dry)
             elif op == "lead":
@@ -698,6 +715,24 @@ def api_team_board(body: dict) -> dict:
 def team_participants(root: Path) -> list[dict]:
     """The participants Who works on each lists, each `{"folder", "label"}`, by their folder from the root."""
     return [{"folder": p["folder"], "label": p["label"]} for p in participant_books(root)]
+
+
+def team_folders(root: Path) -> list[dict]:
+    """Every participant folder of the project, each `{"folder"}` from the root, of any kind `list_cases` gives: an
+    annotated workbook, a raw source or a transcript alone, for an invite's offer and a join's check (teambuild2,
+    19 November 2026), since a participant with a transcript and no workbook yet is still one the team's guard keeps."""
+    root = Path(root).resolve()
+    seen, out = set(), []
+    for row in list_cases(root):
+        try:
+            rel = wb_mod.case_folder(srv.abs_path(row["path"])).resolve().relative_to(root).as_posix()
+        except ValueError:
+            continue
+        rel = "" if rel == "." else rel
+        if rel not in seen:
+            seen.add(rel)
+            out.append({"folder": rel})
+    return out
 
 
 def project_file(root: Path) -> dict:
@@ -11635,7 +11670,12 @@ def codes_shown(path: Path, added: list[str], taken: list[str], moved: list[str]
     place there is not named. A function of those codes (`gets.shown_codes`), or of None for every code."""
     def line(shown: set[str] | None) -> str:
         keep = (lambda xs: list(xs)) if shown is None else (lambda xs: [x for x in xs if codes_mod.norm(x) in shown])
-        return codes_said(path, keep(added), keep(taken), keep(moved))
+        a, t, m = keep(added), keep(taken), keep(moved)
+        if shown is not None and not a and not t and m:
+            # the codes put on or taken off took no place on the board, so the line would fall to the codes moved
+            # and read the old code as changed: it names the codes put on and taken off, as a one-code change does
+            return codes_said(path, added, taken, m)
+        return codes_said(path, a, t, m)
     return line
 
 

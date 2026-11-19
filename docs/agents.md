@@ -2608,9 +2608,11 @@ sent with a copy. You sign as their computer: never read, copy or print either f
   `lead`, `you`, `computers`, `devices` each `id`, `name`, `added`, `this`), `participants` (`folder`, `label`,
   `owner`), `gets_owner`, `you_lead`, `alone`, `removed` (this member no longer on the list) and `asked` (a change
   to their own computers waiting for the lead's Idiograph).
-- `idiograph team on --name "Ada"` (`team_on`): on, as the tick does. The first time it makes this computer's keys
+- `idiograph team on --name "Ada"` (`team_on`): on, as Invite others to work on this project does in Project
+  settings, or Start working together again for a team kept from before. The first time it makes this computer's keys
   and the team, with them as its lead, under their name, Settings' Your name when `--name` is left out. `--route
-  folder --folder PATH` for a shared folder. `--off` turns it off: nothing more sent or taken in. Through a shared
+  folder --folder PATH` for a shared folder. `--off` turns it off, as Stop working together does: nothing more sent or taken in, and the team kept for
+  starting again. Through a shared
   folder, `team show` says when the folder is not there or a file in it will not open yet (`--json`:
   `folder_state`, `none`, `missing` or `unopened`, with `unopened`, how many). Never read, write or move anything
   in the shared folder's `Idiograph ...` folder yourself: it is sealed, and Idiograph alone writes it.
@@ -2640,8 +2642,12 @@ sent with a copy. You sign as their computer: never read, copy or print either f
   sealed to their computer. `--differ`, They differ, throws the answer away. Only they know whether the digits
   matched on their call.
 - `idiograph team join "LINK OR WORDS" --name "Bo"` (`team_join`): this project joins another's team from its
-  invite, and answers the six digits to read to the lead. `idiograph team joined --invite ID` (`team_joined`)
-  takes the lead's yes in once it has come.
+  invite, and answers the six digits to read to the lead. Working together stays off and nothing is written to the
+  project until the lead says they match. `--route folder --folder PATH` when the invite came through a shared
+  folder. A project holding a participant the lead's project does not have, a transcript alone included, is
+  refused, with nothing sent, and so is a project in a team with others or keeping one from before (`team joined`
+  alike).
+  `idiograph team joined --invite ID` (`team_joined`) takes the lead's yes in once it has come.
 - `idiograph team remove Bo` (`team_remove`): the lead removes someone. Their computers come off the list and the
   project's key changes for everyone left, so they get nothing new. What they have stays on their computer.
   `idiograph team remove --computer ID` (`team_remove` with `computer`) removes one computer, a lost one, by its id

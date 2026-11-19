@@ -463,6 +463,8 @@ AREAS = {
     "a428_progress_counts": "idiograph",
     "a429_agents_seen": "idiograph",
     "a430_cards_follow_edits": "idiograph",
+    "a431_team_start": "idiograph",
+    "a432_manual_links": "idiograph",
 }
 
 

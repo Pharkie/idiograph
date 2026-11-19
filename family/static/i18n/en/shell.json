@@ -3,6 +3,7 @@
   "shell.request_failed": "Request failed ({status}).",
   "shell.restart_line": "Restart the server to finish this update.",
   "shell.notice_undo": "Undo",
+  "shell.manual_means": "What this means",
   "shell.grip.label": "Move {name}, Alt and an arrow",
   "shell.grip.title": "Drag to move",
   "shell.cheer.line": "Confetti at the end of a sheet or a participant and when a board's last card is placed, the count after each passage and the cards left on a board.",

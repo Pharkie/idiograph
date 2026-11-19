@@ -1885,8 +1885,9 @@ def cmd_team_show(p: Project, _args) -> tuple:
 
 
 def cmd_team_on(p: Project, args) -> tuple:
-    """Working together turned on, or with --off turned off, as the tick in Project settings does. The first time it
-    makes this computer's keys and the team, with him as its lead under --name."""
+    """Working together turned on, or with --off turned off, as Invite others to work on this project and Stop working
+    together do in Project settings. The first time it makes this computer's keys and the team, with the researcher
+    as its lead under --name."""
     if getattr(args, "agent_relay", False):
         # a project on the relay is the researcher's to start, never an agent's (relaywire, relayopen)
         raise cli.Refused(i18n.t("team.cli.agent_relay"))
@@ -1946,11 +1947,18 @@ def cmd_team_admit(p: Project, args) -> tuple:
 
 
 def cmd_team_join(p: Project, args) -> tuple:
-    """This project joins another's team from its invite, the link or the twelve words, under --name: the six digits
-    to read to the lead on a call, then `team joined` once the lead says they match."""
+    """This project joins another's team from its invite, the link or the twelve words, under --name, with --route
+    folder and --folder when it came through a shared folder: the six digits to read to the lead on a call, then
+    `team joined` once the lead says they match. Nothing is written to the project before then, and a project that
+    holds a participant the invite does not list is refused, and so is one in a team with others or keeping one."""
     asked = {"op": "join", "words": args.words, "name": args.name or ""}
     if getattr(args, "relay_url", None):
         asked["relay_url"] = args.relay_url
+    # how the invite came, a shared folder, written to the project only once the lead says they match (teambuild)
+    if getattr(args, "route", None):
+        asked["route"] = args.route
+    if getattr(args, "folder", None):
+        asked["folder"] = args.folder
     answer, lines, done = team_writes(p, args, asked)
     if not args.dry_run:
         lines.append(i18n.t("team.cli.join_code", code=done["code"], name=done.get("from") or "",
@@ -9880,8 +9888,9 @@ def arguments(sub, common, writes) -> None:
                                                        "participant").add_subparsers(dest="act", required=True)
     tm.add_parser("show", parents=[common], help="Working together as Project settings shows it, off or its route, "
                                                  "people and who works on each participant")
-    x = tm.add_parser("on", parents=[common, writes], help="Working together turned on, as its tick in Project settings "
-                                                           "does, this computer's keys and the team made the first time")
+    x = tm.add_parser("on", parents=[common, writes], help="Working together turned on, as Invite others to work on this "
+                                                           "project does in Project settings, this computer's keys "
+                                                           "and the team made the first time")
     x.add_argument("--name", default=None, help="your name, as the others will see it, the first time")
     x.add_argument("--route", choices=("relay", "folder"), default="relay",
                    help="what it sends through, the relay or a shared folder")
@@ -9911,6 +9920,9 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--name", default=None, help="your name, as the others will see it")
     x.add_argument("--relay-url", dest="relay_url", default=None,
                    help="the team's own relay's address, when its link does not carry it")
+    x.add_argument("--route", choices=("relay", "folder"), default=None,
+                   help="how the invite came: folder for a shared folder, given with --folder")
+    x.add_argument("--folder", default=None, help="the shared folder the invite came through")
     x = tm.add_parser("joined", parents=[common, writes], help="the lead's They match taken in, once it has come")
     x.add_argument("--invite", required=True, help="the invite's id, as team join gave it")
     x = tm.add_parser("remove", parents=[common, writes],

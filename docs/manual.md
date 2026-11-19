@@ -27,7 +27,10 @@ project under Archived projects. It still opens, and you can still change it.
 Home has four demo projects: an IPA study, a longitudinal IPA study and two reflexive thematic analysis
 studies. Their interviews are invented, and their voices and their analysis were made with AI, which is why
 each says "AI-generated demo". They are there to try Idiograph on. They are not an example of a finished
-study. You cannot change a demo's settings, and Reset demo puts its participants back as they ship.
+study. You cannot change a demo's settings, and Reset demo puts its participants back as they ship. Reset demo is in
+the "..." menu on a demo's card, in the menu on the band inside a demo, and beside Project settings on a demo's page.
+When a newer version of a demo comes with an update of Idiograph, its card says "This demo has been updated." The demo
+changes only when you press Get the update, and the cross hides the line until the next version.
 
 ## Installing and opening Idiograph
 
@@ -360,7 +363,7 @@ one. An in vivo code takes the selected words as its name.
 Every change to an extract's codes reaches the Themes board as you save it. When you give an extract another
 code, or add a second code, on the Coding screen or on its card on the Themes board, the extract moves at once
 beside that code's other extracts, wherever that code stands: in its theme, loose on the canvas or in the Unplaced
-panel. A new code stays in the theme the extract stood in, so a code you retype or retitle keeps its theme. When
+panel. A new code stays in the theme the extract stood in, so a code you retype or retitle keeps its theme. An extract you set aside that is given a new code comes in loose on the board, unless it was its old code's last card, when it stays in Set aside. When
 you take a code off an extract, the extract leaves that code's card. An agent's change of codes
 does the same. Idiograph saves a revision of each board it changes first, so History can take you back.
 
@@ -604,6 +607,14 @@ computers. Each participant has one owner, and only the owner's computer changes
 board has an owner too. Your copy of a teammate's participant updates by itself about a minute after their
 last change. On their participant you can make boards of your own, comment and suggest, but not change their
 work.
+
+To start, the lead opens Project settings and presses Invite others to work on this project, which makes them
+the lead. Each person invited makes a new project, presses Join a project you were invited to there, and pastes
+the link or the twelve words. They tick The invite came through a shared folder and choose the folder when the
+team sends that way. The joiner's project is not shared until the lead says the six digits match. A project that
+holds participants that are not in the lead's project, even a transcript alone, cannot join it, and nor can a project
+that has a team of its own. Stop working together sends and takes in nothing more, and
+Start working together again picks the team up as it was.
 
 The lead invites each person with a link or twelve words. An invite works once, and for seven days. When the
 lead removes

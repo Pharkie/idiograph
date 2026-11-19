@@ -1080,6 +1080,13 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
   margin: 6px 0 0; padding-top: 12px; border-top: 1px solid var(--rule-firm);
   font-size: 12.5px; line-height: 1.5; color: var(--ink-soft);
 }
+/* the manual's terms a Guidance tab names at its foot, and "What this means" on a message with a way back
+   (guidelinks): quiet links in the small type, never a button */
+.guide-manual { margin: 12px 0 0; font-size: 12.5px; line-height: 1.6; color: var(--ink-soft); }
+.guide-manual[hidden] { display: none; }
+.manual-link { color: var(--ink-soft); text-decoration: underline; text-underline-offset: 2px; }
+.manual-link:hover, .manual-link:focus-visible { color: var(--ink); }
+.means-link { font-size: 12.5px; align-self: center; }
 .examples { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .examples li { animation: fade .3s ease both; }
 .examples q {
@@ -1599,9 +1606,16 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .hc-review:focus-visible { outline: 0; box-shadow: var(--focus-small); border-radius: 2px; }
 
 /* Working together in Project settings and its two cards (wtkeys, 8 November 2026), as wtdesign drew them */
+/* off, Invite others and Join a project, each with its line under it, and on, who leads with Stop working together
+   (teambuild, 19 November 2026, teammock's option B) */
+.wt-sec .wt-start { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin: 10px 0 0; }
+.wt-sec .wt-leads { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0 0;
+  font-size: 13px; color: var(--ink); }
 .wt-sec .wt-route { margin: 4px 0 0; }
-.wt-sec .wt-path { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; }
-.wt-sec .wt-path .path { flex: 1; margin: 0; }
+.wt-sec .wt-path, .wt-card .wt-path { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; }
+.wt-sec .wt-path .path, .wt-card .wt-path .path { flex: 1; margin: 0; }
+.wt-card .wt-join-by { margin: 12px 0 0; }
+.wt-card .wt-join-name input { width: 100%; box-sizing: border-box; margin: 6px 0 0; }
 .wt-sec .wt-folder-said { margin: 12px 0 0; }
 .wt-list { list-style: none; margin: 8px 0 0; padding: 0; border-top: 1px solid var(--rule); }
 .wt-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 9px 0;
@@ -1745,6 +1759,8 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .pring svg { position: absolute; inset: 0; transform: rotate(-90deg); overflow: visible; }
 .pring-pic { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
 .pring circle { fill: none; }
+/* the picture meets the inner ring with no outline of its own and no band of the card between them (ringmock) */
+.pring-pic > .tf-pic { border: 0; }
 .rseg { outline: 0; }
 .rfocus { stroke: transparent; }
 .rseg:focus-visible .rfocus { stroke: var(--crux); }

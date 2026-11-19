@@ -455,6 +455,7 @@
           <div class="stale-acts" id="stale-acts">
             <button type="button" class="ghost small" id="stale-reload">{{page_idiograph.work.reload}}</button>
             <button type="button" class="ghost small" id="stale-overwrite">{{page_idiograph.work.overwrite}}</button>
+            <a class="manual-link means-link" href="/manual#this-passage-has-changed-since-this-page-was-loaded" target="_blank" rel="noopener">{{shell.manual_means}}</a>
           </div>
           <div class="stale-mine" id="stale-mine" hidden>
             <ol class="stale-pairs" id="stale-pairs"></ol>
@@ -518,6 +519,8 @@
         <ol class="rules" id="rules"></ol>
         <!-- Adam's framing of the list (20 October), the plain paragraph under its heading in guidance.md -->
         <p class="rules-framing" id="rules-framing" hidden></p>
+        <!-- the manual's terms this rail names, one link each (guidelinks) -->
+        <p class="guide-manual" id="guide-manual" hidden></p>
       </div>
 
       <!-- his own experiential statements, IPA's, so a thematic analysis project's rail has none (tarail) -->
@@ -1292,6 +1295,7 @@
       <h2 class="section-label">{{codes.guidance_head}}</h2>
       <ol class="rules" id="cd-rules"></ol>
       <p class="rules-framing" id="cd-rules-framing" hidden></p>
+      <p class="guide-manual" id="cd-guide-manual" hidden></p>
     </div>
   </aside>
   <div class="cd-menu" id="cd-menu" role="menu" hidden></div>
@@ -1330,6 +1334,7 @@
   <div class="th-stale-acts" id="th-stale-acts">
     <button type="button" class="ghost small" id="th-stale-reload" tabindex="-1">{{page_idiograph.screens.reload}}</button>
     <button type="button" class="ghost small" id="th-stale-over" tabindex="-1">{{page_idiograph.screens.overwrite}}</button>
+    <a class="manual-link means-link" href="/manual#this-passage-has-changed-since-this-page-was-loaded" target="_blank" rel="noopener" tabindex="-1">{{shell.manual_means}}</a>
   </div>
   <button type="button" class="ghost small" id="th-stale-back" tabindex="-1" hidden>{{page_idiograph.screens.put_my_canvas_back}}</button>
 </div>
@@ -1751,17 +1756,30 @@
               <ul class="gets-study" id="gets-study"></ul>
             </div>
             </div>
-            <!-- Working together (wtkeys, 8 November 2026, drawn by wtdesign and chosen by Adam): one tick, off in
-                 every project until turned on, and someone working alone sees nothing else. On: Send through,
-                 Relay or Shared folder with its folder, People with Remove on everyone but the lead, Invite and
-                 Add a computer of mine, Who works on each with the GETs board's owner and Hand over, and Send the
-                 recordings too. Each change saves at once (team.js) -->
+            <!-- Working together (wtkeys, 8 November 2026, drawn by wtdesign and chosen by Adam). Off, it starts with
+                 Invite others and Join a project, each with its line (teambuild, 19 November 2026, teammock's
+                 option B), or Start working together again for a team kept from before with others on it. On: who
+                 leads with Stop working together, Send through, Relay or Shared folder with its folder, People with
+                 Remove on everyone but the lead, Invite and Add a computer of mine, Who works on each with the GETs
+                 board's owner and Hand over, and Send the recordings too. Each change saves at once (team.js) -->
             <div class="wt-sec" id="wt-block" hidden>
             <h4 class="pane-sub" id="wt-sub">{{team.page.heading}}</h4>
-            <div class="switches"><label><input type="checkbox" id="wt-on"> {{team.page.on}}</label></div>
+            <div id="wt-start" hidden>
+              <div class="wt-start" id="wt-start-new"><button type="button" class="ghost small" id="wt-start-invite"
+                   aria-describedby="wt-start-invite-line">{{team.page.start}}</button><span class="sc-sub"
+                   id="wt-start-invite-line">{{team.page.start_line}}</span></div>
+              <div class="wt-start" id="wt-start-join-row"><button type="button" class="ghost small" id="wt-start-join"
+                   aria-describedby="wt-start-join-line">{{team.page.join_start}}</button><span class="sc-sub"
+                   id="wt-start-join-line">{{team.page.join_start_line}}</span></div>
+              <div class="wt-start" id="wt-again-row" hidden><button type="button" class="ghost small" id="wt-again"
+                   aria-describedby="wt-again-line">{{team.page.again}}</button><span class="sc-sub"
+                   id="wt-again-line">{{team.page.again_line}}</span></div>
+            </div>
             <div class="setting" id="wt-name-row" hidden><label for="wt-name">{{team.page.your_name}}</label><input id="wt-name"
                  type="text" spellcheck="false" autocomplete="off" placeholder="{{team.page.your_name_ask}}"></div>
             <div id="wt-fields" hidden>
+              <div class="wt-leads"><span id="wt-leads"></span><button type="button" class="ghost small"
+                   id="wt-stop">{{team.page.stop}}</button></div>
               <div class="setting wt-route">
                 <span class="setting-label" id="wt-route-label">{{team.page.send_through}}</span>
                 <span class="th-from set-labels" id="wt-route" role="radiogroup" aria-labelledby="wt-route-label">
@@ -1776,8 +1794,7 @@
               <ul class="wt-list" id="wt-people" aria-labelledby="wt-people-h"></ul>
               <div class="wt-asked" id="wt-asked" hidden></div>
               <div class="wt-acts"><button type="button" class="ghost small" id="wt-invite">{{team.page.invite}}</button><button
-                   type="button" class="ghost small" id="wt-own">{{team.page.add_computer}}</button><button
-                   type="button" class="ghost small" id="wt-join" hidden>{{team.page.join}}</button></div>
+                   type="button" class="ghost small" id="wt-own">{{team.page.add_computer}}</button></div>
               <p class="wt-h" id="wt-who-h">{{team.page.who_works}}</p>
               <ul class="wt-list" id="wt-who" aria-labelledby="wt-who-h"></ul>
               <div class="switches"><label><input type="checkbox" id="wt-recordings"> {{team.page.recordings}}</label></div>
@@ -1916,6 +1933,11 @@
     <h2 id="wt-join-title">{{team.join.heading}}</h2>
     <label class="wt-h" for="wt-join-words">{{team.join.paste}}</label>
     <textarea id="wt-join-words" rows="3" spellcheck="false" autocomplete="off"></textarea>
+    <div class="wt-join-name" id="wt-join-name-row" hidden><label class="wt-h" for="wt-join-name">{{team.page.your_name}}</label>
+      <input id="wt-join-name" type="text" spellcheck="false" autocomplete="off" placeholder="{{team.page.your_name_ask}}"></div>
+    <div class="switches wt-join-by"><label><input type="checkbox" id="wt-join-folder-on"> {{team.join.by_folder}}</label></div>
+    <div class="wt-path" id="wt-join-path" hidden><p class="path" id="wt-join-folder"></p><button type="button"
+         class="ghost small" id="wt-join-choose">{{team.page.choose}}</button></div>
     <div class="wt-answered" id="wt-join-answered" hidden>
       <p class="wt-h wt-first" id="wt-join-code-h">{{team.invite.check_code}}</p>
       <p class="wt-code" id="wt-join-code" aria-labelledby="wt-join-code-h"></p>

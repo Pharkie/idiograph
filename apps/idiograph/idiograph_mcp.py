@@ -1203,7 +1203,8 @@ TOOLS = [
          "folder), the people with the lead and how many computers each has, who works on each participant and on "
          "the GETs board, and whether the recordings go. Off, it reads nothing but the project's team file."),
     mcp.tool("team_on", "Turn Working together on or off", ("team", "on"),
-         "Turn Working together on for this project, as its tick in Project settings does, or off with off. The "
+         "Turn Working together on for this project, as Invite others to work on this project does in Project "
+         "settings, or off with off, as Stop working together does. The "
          "first time it makes this computer's keys and the team, with the researcher as its lead under name. " + APP_ONLY,
          {"name": dict(mcp.TEXT, description="The researcher's name, as the others will see it, given the first time."),
           "route": {"type": "string", "enum": ["relay", "folder"], "description": "What it sends through: folder "
@@ -1242,9 +1243,14 @@ TOOLS = [
          ["invite"], writes="changes"),
     mcp.tool("team_join", "Join another's project from an invite", ("team", "join"),
          "This project joins another's team from the invite's link or twelve words, under name: the answer is sent "
-         "and the six digits come back, to read to the lead on a call. " + APP_ONLY,
+         "and the six digits come back, to read to the lead on a call. Nothing is written to the project until the "
+         "lead says they match. A project that holds a participant the lead's project does not have is refused, and so "
+         "is one in a team with others or keeping one. " + APP_ONLY,
          {"words": dict(mcp.TEXT, description="The invite's link, or its twelve words."),
-          "name": dict(mcp.TEXT, description="The researcher's name, as the others will see it.")},
+          "name": dict(mcp.TEXT, description="The researcher's name, as the others will see it."),
+          "route": {"type": "string", "enum": ["relay", "folder"], "description": "How the invite came: folder "
+                                                                                  "for a shared folder."},
+          "folder": dict(mcp.TEXT, description="The shared folder the invite came through, for route folder.")},
          ["words"], writes="changes"),
     mcp.tool("team_joined", "Take in the lead's yes to a join", ("team", "joined"),
          "Once the lead has said the six digits match, the team, its people and the project's key come onto this "

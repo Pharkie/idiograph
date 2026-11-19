@@ -711,6 +711,7 @@ function cdGuideDraw() {
   drawRules(rail.lines || [], rail.examples || [], $('cd-rules'), 'cd-rule-ex');
   $('cd-rules-framing').textContent = rail.framing || '';
   $('cd-rules-framing').hidden = !rail.framing;
+  guideManualDraw('cd-guide-manual', 'codes');
 }
 
 function cdGuide(open, focus = false) {
