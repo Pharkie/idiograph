@@ -8147,7 +8147,7 @@ def api_commit(body: dict) -> dict:
                     # card and in its theme (cardsync3, cardsync4), the take carrying whatever else the save moved
                     # the edit's own line when it names one code, else the codes put on, taken off or moved, so
                     # two codes typed over in one save are named too (cardsync6)
-                    result["copies"] = recode_take(path, history=(recode_line(said) if recode else "") or codes_said(
+                    result["copies"] = recode_take(path, history=(recode_line(said) if recode else "") or codes_shown(
                         path, codes_mod.put_on(moved["before"], moved["after"]),
                         codes_mod.put_on(moved["after"], moved["before"]), swapped(moved["before"], moved["after"])))
                 elif follows:
@@ -11626,6 +11626,17 @@ def codes_said(path: Path, added: list[str], taken: list[str], moved: list[str] 
     between the passage's extracts (see `themes.codes_line`, cardsync5), or none when it names no code."""
     with i18n.in_method("ta"):
         return themes_mod.codes_line(gets_mod.who(case_label(path)), added, taken, moved)
+
+
+def codes_shown(path: Path, added: list[str], taken: list[str], moved: list[str] | tuple = ()):
+    """The History line of `codes_said` for each board, naming only the codes the change moved there (cardsync7): a
+    code a card of the participant carried on that board before the take or carries after it, or one waiting in its
+    Unplaced panel before the take, which an extract leaving the board joins. So a code new to the study that took no
+    place there is not named. A function of those codes (`gets.shown_codes`), or of None for every code."""
+    def line(shown: set[str] | None) -> str:
+        keep = (lambda xs: list(xs)) if shown is None else (lambda xs: [x for x in xs if codes_mod.norm(x) in shown])
+        return codes_said(path, keep(added), keep(taken), keep(moved))
+    return line
 
 
 def swapped(before, after) -> list[str]:

@@ -1047,7 +1047,8 @@ over with `turn write`, a code added or taken off with `turn write`, `codes add`
 or `codes in-vivo`. The extract stands beside its new code's other extracts, in that code's theme, and never leads
 that code anywhere else, also when that code is loose on the canvas, and a code with no card on the board, in the
 Unplaced panel, takes the extract there. A code new to the study stays in the theme or Set aside the extract stood
-in: on its own spot when nothing of the old code is left on the board, else on a free spot beside it. An extract
+in: on its own spot when nothing of the old code is left on the board, else on a free spot beside it, and
+loose in no theme when it stood in Set aside beside the old code's other extracts. An extract
 whose code is taken off leaves the board. `codes undo` and `codes redo` reach the boards the same way. The participant reads in, with nothing left for `gets take`. Each board that holds a card
 the change moves keeps a revision first, "Before an agent's change", and is marked changed in a conversation. A board
 with no such card is left as it was. When the boards cannot take the change, the write still stands, the answer

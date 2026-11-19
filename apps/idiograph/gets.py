@@ -3480,12 +3480,28 @@ def take(root: Path, books: list[dict], case: str, dry_run: bool = False) -> dic
     return dict(answer(data, survey(books, data), data, board=current), op="take", taken=case, counts=counts)
 
 
-def take_into(data: dict, case: str, old: dict, fresh: dict, workbook: Path, when: str, history: str = "",
+def shown_codes(case: str, was_board: dict, board: dict, before: dict, seen: dict) -> set[str]:
+    """The codes, as compared, a change to `case`'s codes moved on a board, so its History line names only those
+    (cardsync7): each code a card of the case carried before the take (`was_board`, its words from `before`) or
+    carries after it (`board`, from `seen`), and each code waiting in the board's Unplaced panel before the take, a
+    code of the study with no card on the board, which an extract that leaves the board joins. A code new to the
+    study that took no card on the board is none of these. A thematic analysis project's alone."""
+    cm = codes_mod()
+    was, now = cm.line_codes(before), cm.line_codes(seen)
+    mine = lambda b: [k for k in b.get("cards") or {} if split_key(k)["case"] == case]  # noqa: E731
+    carded = {was[k] for k in was_board.get("cards") or {} if k in was}
+    panel = set(was.values()) - carded
+    return {was[k] for k in mine(was_board) if k in was} | {now[k] for k in mine(board) if k in now} | panel
+
+
+def take_into(data: dict, case: str, old: dict, fresh: dict, workbook: Path, when: str, history="",
               touched: list | None = None) -> dict:
     """A case's changes taken into `data` in memory (see `take`), and what the take changed, keys and counts and
     never a word: `copy`, what changed in the case's copy (`copy_counts`), and `boards`, for each board what it does
     there (`board_effects`). Refused whole when a board would not keep its own structure. Each board keeps itself
-    first in its History under `history`, or as before the participant's changes when none is given. With `touched`,
+    first in its History under `history`, or as before the participant's changes when none is given. `history` may
+    be a function of the codes the board's cards of the case carried before or after (`shown_codes`), so the line
+    names only what moved there, or of None with no `touched` (cardsync7). With `touched`,
     a list, only a board the take changes keeps that line, its id put in the list (cardsync4, a change to a
     participant's codes taken at its save)."""
     pairs = matched(old.get("pets") or [], fresh["pets"])
@@ -3504,7 +3520,8 @@ def take_into(data: dict, case: str, old: dict, fresh: dict, workbook: Path, whe
     for board in boards_of(data):
         was_board = json.loads(json.dumps(board))
         if touched is None:
-            themes.add_revision(board, name=history or themes.revision_name("before_changes", who=name), at=when)
+            line = history(None) if callable(history) else history
+            themes.add_revision(board, name=line or themes.revision_name("before_changes", who=name), at=when)
         # each card's height as it stood, for the room a card that grows makes below it (see `make_room_below`)
         was = {k: card_height(k, c.get("text")) for k, c in named(board, data)["cards"].items()}
         # a statement's card follows its words, whatever a write moved or removed in its passage
@@ -3537,7 +3554,8 @@ def take_into(data: dict, case: str, old: dict, fresh: dict, workbook: Path, whe
             if themes.state_hash(themes.board_state(board)) == themes.state_hash(themes.board_state(was_board)):
                 done.append((was_board, board, rename, titled, pushed))
                 continue
-            themes.add_revision(board, name=history or themes.revision_name("before_changes", who=name), at=when,
+            line = history(shown_codes(case, was_board, board, before, seen)) if callable(history) else history
+            themes.add_revision(board, name=line or themes.revision_name("before_changes", who=name), at=when,
                                 state=themes.board_state(was_board))
             touched.append(str(board.get("id")))
         board["updated"] = when
@@ -3569,7 +3587,8 @@ def recoded_in(board: dict, case: str, old: dict, seen: dict, back: dict[str, st
     on its own spot when the code it left keeps no card on the board, nothing being left there to lie on, and
     otherwise on the nearest free spot beside it (`lay_beside`), in the same theme, never on another card. Only the
     first such mover of a code it left keeps the spot, so two extracts of one code typed over as two new codes in one
-    save never stand on one spot.
+    save never stand on one spot. A mover set aside that does not keep the spot comes in loose in no theme
+    (`lay_in`), so a new code split off a code set aside is seen and never counted decided unseen (cardsync7).
 
     The card of an extract whose code was taken off goes from the board. The board is changed in place, and the
     answer is the movers' keys."""
@@ -3620,8 +3639,21 @@ def recoded_in(board: dict, case: str, old: dict, seen: dict, back: dict[str, st
         # spot of the code it left, else beside it in the same theme or Set aside
         lead = mine[0]
         leads[code] = lead
-        board["cards"][lead]["text"] = cm.line_words(seen, lead)
-        if keeper.get(left(lead)) != lead:
+        said = cm.line_words(seen, lead)
+        board["cards"][lead]["text"] = said
+        if keeper.get(left(lead)) == lead:
+            continue
+        if lead in (board.get("discarded") or []):
+            # a new code split off a code set aside comes in loose, in no theme, so it is seen and never counted
+            # decided unseen: only the keeper of the code it left stays set aside (cardsync7)
+            board["discarded"] = [k for k in board["discarded"] if k != lead]
+            for g in board.get("groups") or []:
+                if isinstance(g, dict):
+                    g["members"] = [m for m in g.get("members") or [] if m != lead]
+            board["cards"].pop(lead, None)
+            lay_in(board, [(lead, said)], seen)
+            board["cards"][lead]["text"] = said
+        else:
             lay_beside(board, lead, seen)
     cm.gather(board, seen, leads, stale=movers)
     return sorted(movers)
@@ -3652,7 +3684,7 @@ def lay_beside(board: dict, key: str, data: dict) -> None:
     card["x"], card["y"] = round(block[0][0] + dx), round(block[0][1] + dy)
 
 
-def recode_taken(root: Path, books: list[dict], case: str, history: str = "", changed: dict | None = None,
+def recode_taken(root: Path, books: list[dict], case: str, history="", changed: dict | None = None,
                  dry_run: bool = False, written=None) -> dict:
     """A thematic analysis project's recode taken in at the moment of its save (cardsync3, Adam, 18 November 2026,
     "yes": every recode lands on the Themes board at once, under its code's card and in that code's theme, never

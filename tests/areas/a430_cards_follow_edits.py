@@ -526,6 +526,75 @@ def thematic(base: Path, cfg_file: Path, call, b64, said_rows):
           and len(members(held["boards"][0], "Theme of ease")) == 2 and status_of(call, p) == "in",
           str([first, places(held, p["case"])]))
 
+    # a code of two extracts set aside, one extract retyped as a code new to the study: the new code comes in loose,
+    # seen and not counted decided, and the old code stays set aside; the second retyped too joins it loose
+    # (cardsync7, recheck6 A1)
+    p = made("Kites TA aside two")
+    g = call("/api/gets", {"workbook": str(p["book"])})
+    cards = {c["key"]: {"x": c["x"], "y": c["y"], "text": c.get("text", "")} for c in g["cards"]}
+    eases = [k for k in cards if k in p["k"][1:3]]
+    for n, k in enumerate(eases):
+        cards[k] = {"x": 1800 + 400 * n, "y": 900, "text": "Ease"}
+    call("/api/gets-save", {"workbook": str(p["book"]), "version": dict(
+        g["version"], cards=cards, groups=[dict(x, members=[m for m in x["members"] if m not in eases])
+                                           for x in g["groups"]],
+        discarded=eases, picks={}, notes=[])})
+    was = places(support.board_file(p["gfile"]), p["case"])
+    p["commit"](p["o"][1], "Calm", "let the kite have the wind")
+    first = places(support.board_file(p["gfile"]), p["case"])
+    p["commit"](p["o"][2], "Calm", "hold on too hard")
+    held = support.board_file(p["gfile"])
+    check("430: a code split off a code set aside comes in loose, never set aside unseen, and the old code stays set "
+          "aside",
+          was.get("ease") == {(None, True)} and first.get("calm") == {(None, False)}
+          and first.get("ease") == {(None, True)} and status_of(call, p) == "in", str([was, first]))
+    check("430: a code of two extracts set aside, retyped one extract after the other, ends loose and seen",
+          places(held, p["case"]) == {"fear": {("Theme of fear", False)}, "calm": {(None, False)}}
+          and status_of(call, p) == "in", str(places(held, p["case"])))
+
+    # a turn in one passage, [Fear, Dread] typed over as [Dread, Awe], Dread in a theme of its own: Dread's card
+    # follows its words and Awe takes no place, so the History line names Fear taken off alone (cardsync7, recheck6
+    # Low 2)
+    p = made("Kites TA turn")
+    call("/api/commit", {"path": str(p["book"]), "sheet": p["sheet"], "row": p["o"][0], "en": "",
+                         "pairs": [{"es": "Fear", "kq": "thought it would lift me"},
+                                   {"es": "Dread", "kq": "The line pulled so hard"}]})
+    g = call("/api/gets", {"workbook": str(p["book"])})
+    cards = {c["key"]: {"x": c["x"], "y": c["y"], "text": c.get("text", "")} for c in g["cards"]}
+    k1 = gets_mod.card_of(p["case"], "es", themes.card_key(p["sheet"], p["o"][0], 1))
+    cards[k1] = {"x": 1200, "y": 0, "text": "Dread"}
+    call("/api/gets-save", {"workbook": str(p["book"]), "version": dict(
+        g["version"], cards=cards, groups=[dict(x, members=[m for m in x["members"] if m != k1]) for x in g["groups"]]
+        + [{"id": "G9", "label": "Theme of dread", "members": [k1], "x": 1180, "y": -60}],
+        discarded=[], picks={}, notes=[])})
+    turned = call("/api/commit", {"path": str(p["book"]), "sheet": p["sheet"], "row": p["o"][0], "en": "",
+                                  "pairs": [{"es": "Dread", "kq": "thought it would lift me"},
+                                            {"es": "Awe", "kq": "The line pulled so hard"}]})
+    held = support.board_file(p["gfile"])
+    named = str(((held["boards"][0].get("history") or [{}])[-1]).get("name") or "")
+    check("430: a turn typing [Fear, Dread] over as [Dread, Awe] keeps Dread in its theme, and its History line names "
+          "only Fear taken off, never Awe, which took no place",
+          "error" not in turned and places(held, p["case"]).get("dread") == {("Theme of dread", False)}
+          and "awe" not in places(held, p["case"]) and "Fear" in named and "taken off" in named and "Awe" not in named,
+          str([places(held, p["case"]), named]))
+
+    # a turn in one passage, [Fear, Ease] typed over as [Ease, Hold], Hold a code of the study waiting in the
+    # Unplaced panel: the extract that leaves the board joins Hold there, and the History line still names Hold
+    # (cardsync7, recheck5 B8)
+    p = made("Kites TA turn panel", ease=1)
+    call("/api/commit", {"path": str(p["book"]), "sheet": p["sheet"], "row": p["o"][0], "en": "",
+                         "pairs": [{"es": "Fear", "kq": "thought it would lift me"},
+                                   {"es": "Ease", "kq": "The line pulled so hard"}]})
+    turned = call("/api/commit", {"path": str(p["book"]), "sheet": p["sheet"], "row": p["o"][0], "en": "",
+                                  "pairs": [{"es": "Ease", "kq": "thought it would lift me"},
+                                            {"es": "Hold", "kq": "The line pulled so hard"}]})
+    held = support.board_file(p["gfile"])
+    named = str(((held["boards"][0].get("history") or [{}])[-1]).get("name") or "")
+    check("430: a turn whose extract leaves the board to join a code waiting in the Unplaced panel names that code in "
+          "its History line",
+          "error" not in turned and "hold" not in places(held, p["case"]) and "Hold" in named and "Fear" in named,
+          str([places(held, p["case"]), named]))
+
     # two one-extract codes swapped by two recodes, then an Overwrite from a page open since before both: each code
     # stands where that page drew it (cardsync5)
     p = made("Kites TA swap", ease=1)

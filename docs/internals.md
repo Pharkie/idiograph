@@ -4396,7 +4396,9 @@ card on the board (`keeper`, the first such mover of that code, so two extracts 
 codes in one save never share a spot), else on the nearest free spot beside it (`gets.lay_beside`, `free_offset`
 against every other card, label, note and every frame but its own theme's). So a code of one extract retyped or
 retitled keeps its theme, and a code of two extracts retyped one extract after the other stays in its theme at each
-step. `gather` gives a card
+step. Since cardsync7 a mover set aside that is not its old code's `keeper` comes in loose in no theme (`lay_in`), so
+a new code split off a code set aside is seen and never counted decided unseen, and only a `keeper` stays set aside.
+`gather` gives a card
 with no words of its own its line's words, as it does a stale one, and `unfold` reads each stale card's words as the
 page sent them (`drawn_as`, before `words_kept`), so an Overwrite from a page open since before two recodes that
 swapped two codes keeps each code where that page drew it. `codes undo` and `codes redo` of a step made while the
@@ -4406,6 +4408,9 @@ a board the take changes keeps a History line (`take_into` with `touched`), unde
 (`recode_line`, the edit's `edit_line`, in a thematic analysis project "Corin's code edited"), a code added, taken off
 or moved between extracts on the Coding screen or by `codes add` and `codes remove` with no request naming the code
 (`routes.codes_said`, `themes.codes_line`, "Corin's code added", "Corin's code taken off", "Corin's codes changed"),
+each board's line naming only the codes a card of the participant carried there before the take or carries after it,
+or a code waiting in its Unplaced panel before the take (`routes.codes_shown`, `gets.shown_codes`, cardsync7), so a
+code new to the study that took no place on the board is not named,
 or the request's for an agent ("Before an agent's change"), and only those are marked changed in a conversation by an agent's take, whose run
 is undone with the rest of it (the restore point holds the GETs file). An agent's dry run reads the passage as it
 would be written from a scratch copy of the workbook (`routes.written_fresh`) and says which boards would take it, with
