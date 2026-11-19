@@ -395,6 +395,7 @@ def test_relay(scratch: Path):
     finally:
         back.stop()
         shutil.rmtree(store, ignore_errors=True)
+    fetch_counted_once_given(rt, Ed25519PrivateKey, scratch, node, folder)
     alarms = Relay(scratch, node, folder, "--operator-key", KEY, "--test-limits", json.dumps(ALARM_LIMITS))
     try:
         if not alarms.up():
@@ -414,6 +415,66 @@ TEST_LIMITS = {"blob": 300_000, "dayBytes": 1_000_000, "dayFiles": 800_000, "wai
 # ceiling for messages a few kilobytes high
 ALARM_LIMITS = {"keepDays": 0, "orphanDays": 0, "idleDays": 0, "alarmEvery": 6, "report": 0, "ceilingMessages": 5_000,
                 "projectsPerIp": 20, "projectsPerDay": 20, "removedMost": 2}
+
+
+def fetch_counted_once_given(rt, Ed25519PrivateKey, scratch: Path, node: str, folder: Path) -> None:
+    """A fetch counts against a computer's ten (here three) only once the file has been given (review2's L2, relayfix3).
+    A file the bucket no longer has is asked for more than the limit and answers "no blob" every time, never "fetched
+    too often". A file there is still counted by the fetches that gave it, as the checks of `limits` show."""
+    store = scratch / "relay-342-fetch"
+    shutil.rmtree(store, ignore_errors=True)
+    store.mkdir(parents=True)
+
+    def start():
+        return Relay(scratch, node, folder, "--persist", str(store), "--operator-key", KEY,
+                     "--test-limits", json.dumps(TEST_LIMITS))
+    relay = start()
+    try:
+        if not relay.up():
+            return check("342: the relay starts for the fetch count", False, " | ".join(relay.said[-10:]))
+        a = rt.RelayTransport(Ed25519PrivateKey.generate(), relay.url)
+        b = rt.RelayTransport(Ed25519PrivateKey.generate(), relay.url)
+        p = made_from(rt, a, "203.0.113.31")
+        a.set_devices(p, [a.public_key, b.public_key])
+        lost = "n" + os.urandom(12).hex()
+        a.put_blob(p, lost, os.urandom(1_000), 10 ** 9)
+        a._call("POST", f"/p/{p}/messages?blob={lost}", os.urandom(300))
+        # many fetches of one file at once by one computer: the count and the check are one step, so no more than
+        # the limit is given (the review's H1)
+        kept = "n" + os.urandom(12).hex()
+        a.put_blob(p, kept, os.urandom(1_000), 10 ** 9)
+        a._call("POST", f"/p/{p}/messages?blob={kept}", os.urandom(300))
+        results = []
+
+        def pull():
+            mine = rt.RelayTransport(b._key, relay.url)
+            results.append(refused(lambda: mine.get_blob(p, kept)))
+        threads = [threading.Thread(target=pull) for _ in range(30)]
+        for each in threads:
+            each.start()
+        for each in threads:
+            each.join()
+        given = sum(1 for r in results if r == (0, "taken"))
+        key = b._key
+    finally:
+        relay.stop()
+    # the bucket loses the file, the project's own rows stay
+    blobs = store / "r2" / "BLOBS" / "blobs"
+    for each in blobs.iterdir() if blobs.is_dir() else []:
+        each.unlink()
+    relay = start()
+    try:
+        if not relay.up():
+            return check("342: the relay starts again for the fetch count", False, " | ".join(relay.said[-10:]))
+        b = rt.RelayTransport(key, relay.url)
+        asked = [refused(lambda: b.get_blob(p, lost)) for _ in range(5)]
+    finally:
+        relay.stop()
+    check("342: thirty fetches of one file at once by one computer give it no more than the limit, three here",
+          given == 3 and len(results) == 30, f"{given} of {len(results)}")
+    check("342: a file the bucket cannot give is never counted as a fetch, so asking for it again and again answers "
+          "that it is not there and never that the computer fetched it too often",
+          asked == [(404, "no blob")] * 5, str(asked))
 
 
 def invite_pace(rt, Ed25519PrivateKey, url: str, limit: int, poll_ms: int) -> None:

@@ -2056,6 +2056,7 @@ async function themesOpen(path, opts = {}) {
   TH.sids = {};
   TH.known = {};
   $('th-world').innerHTML = '';
+  thCarryDrop();
   thNote('');
   thStage().classList.add('off');
   let data;
@@ -2375,6 +2376,8 @@ function thRender() {
   if (!TH.v) return;
   const v = TH.v;
   const world = $('th-world');
+  // what a drag carried, were it still out, is drawn afresh in the world with the rest
+  thCarryDrop();
   world.innerHTML = '<div class="th-frames"></div><div class="th-cards"></div><div class="th-labels"></div>';
   const [frames, cardBox, labelBox] = world.children;
   TH.els = { cards: {}, labels: {}, frames: {}, stickies: {} };
@@ -4582,12 +4585,15 @@ function thCountFit() {
 
 function thView() {
   const { x, y, z } = TH.view;
-  const world = $('th-world');
-  world.style.transform = `translate(${x}px, ${y}px) scale(${z})`;
   // a case's badge on a GETs card keeps its letter legible as the canvas zooms out (see gtBadgeUp)
   const badge = gtBadgeUp(z);
-  world.style.setProperty('--gt-up', badge.up.toFixed(3));
-  world.classList.toggle('gt-far', badge.far);
+  // and what a drag carries is drawn at the same place and zoom (see thCarry)
+  for (const world of [$('th-world'), $('th-carry')]) {
+    if (!world) continue;
+    world.style.transform = `translate(${x}px, ${y}px) scale(${z})`;
+    world.style.setProperty('--gt-up', badge.up.toFixed(3));
+    world.classList.toggle('gt-far', badge.far);
+  }
   const stage = thStage();
   stage.style.backgroundSize = `${22 * z}px ${22 * z}px`;
   stage.style.backgroundPosition = `${x}px ${y}px`;
@@ -10335,6 +10341,8 @@ function thDragStart() {
     slides: new Map(), seen: null, raf: 0, hitNow: null, next: null, step: 0, placedAt: 0, home: null, layout: null,
     trail: grabbed.size < moving.size ? { x: 0, y: 0, t: 0, raf: 0 } : null, pts: [] };
   TH.hoverAt = null;
+  // one card alone takes no layer, so it stays in the world, where it picks up a frame sooner (see thCarry)
+  if (moving.size > 1) thCarry(TH.drag);
   thCarrying(moving.size > 1);
   thSideArm(true);
 }
@@ -10346,8 +10354,67 @@ function thDragStart() {
    where the screen gives one every 16.7, and less with fewer on screen. One card dragged alone is drawn as it was,
    since a layer of its own cost it more than it saved (18 October, and again here). */
 function thCarrying(on) {
+  const at = thCarryEl() || $('th-world');
+  if (at && at.classList) at.classList.toggle('carrying', !!on);
+}
+
+/* What a drag carries is drawn out of the world while it moves, in `#th-carry`, a sibling over the world that takes
+   the world's place and zoom (see thView), and put back where it came from as the drag ends, before the drop draws
+   the board (dragfix, 19 November 2026, Adam's yes of that day). In WebKit, the Mac window's engine, anything that
+   takes a layer of its own inside the world, as a carried theme's cards and labels do (see thCarrying), made it lift
+   the whole transformed world, 3,396 by 3,544 pixels on a board of 105 cards, into a tiled layer of its own, and the
+   frame that picked a PET up by its title took 90 to 160 ms. Out here only what is carried is lifted. Each element
+   keeps its place in the world's units, its classes and its styles, so it is drawn where and as it was, and the
+   drop, the stack, the merge, the sidebar and Esc all end on the world as before. A stack shown open goes with its
+   top: the cards laid out under it, its rail and its button. Only a drag that carries more than one thing comes out
+   here: one card dragged alone takes no layer and lifts nothing, and moved out it picked up 5 to 10 ms slower. */
+function thCarryEl() {
+  const c = $('th-carry');
+  return c && typeof c.appendChild === 'function' && c.classList ? c : null;
+}
+
+function thCarry(d) {
+  const carry = thCarryEl();
   const world = $('th-world');
-  if (world && world.classList) world.classList.toggle('carrying', !!on);
+  if (!carry || !d || !world || typeof world.contains !== 'function') return;
+  thCarryBack();
+  const els = [];
+  const add = (el) => { if (el && el.parentNode && world.contains(el) && !els.includes(el)) els.push(el); };
+  for (const it of d.moving) {
+    add(TH.els.cards[it] || TH.els.labels[it] || (TH.els.stickies || {})[it]);
+    const r = (TH.els.rails || {})[it];
+    if (r) {
+      add(r.rail);
+      add(r.btn);
+      for (const key of thStackOf(TH.v, it)) add((TH.els.under || {})[key]);
+    }
+  }
+  // in the world's order, so they overlap one another as they did there
+  els.sort((a, b) => (a.compareDocumentPosition(b) & 4 ? -1 : 1));
+  TH.carried = els.map((el) => ({ el, parent: el.parentNode, next: el.nextSibling }));
+  for (const el of els) carry.appendChild(el);
+}
+
+/* what was carried back in the world where it came from, the last first so each finds the one it stood before, and
+   anything left over from a world drawn afresh meanwhile let go */
+function thCarryBack() {
+  const kept = TH.carried;
+  TH.carried = null;
+  const carry = thCarryEl();
+  if (!kept || !carry) return;
+  for (let i = kept.length - 1; i >= 0; i -= 1) {
+    const { el, parent, next } = kept[i];
+    if (!parent.isConnected) continue;
+    parent.insertBefore(el, next && next.parentNode === parent ? next : null);
+  }
+  while (carry.firstChild) carry.removeChild(carry.firstChild);
+}
+
+/* the carry emptied with nothing put back, as the world is drawn afresh or put away */
+function thCarryDrop() {
+  TH.carried = null;
+  const carry = thCarryEl();
+  if (carry) while (carry.firstChild) carry.removeChild(carry.firstChild);
 }
 
 /* The neighbours make way while anything is dragged, in the place `hit` says it lands, worked out
@@ -10578,6 +10645,7 @@ function thDragCancel() {
   TH.drag = null;
   TH.press = null;
   thCarrying(false);
+  thCarryBack();
   thTip();
   thMergeShow(null);
   thInsertShow(null);
@@ -10611,6 +10679,7 @@ function thDragEnd(e) {
   if (d.trail) cancelAnimationFrame(d.trail.raf);
   TH.drag = null;
   thCarrying(false);
+  thCarryBack();
   if (TH.dirty) thSoon();
   thTip();
   thMergeShow(null);

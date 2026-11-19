@@ -159,7 +159,7 @@ def test_mcp_server(scratch):
                         "statement_length", "statement_length_set", "settings", "settings_set", "audio_offset", "audio_attach", "quote_heading", "clear_formatting", "clear_made_notes", "transcript_replace", "transcript_replace_undo", "transcript_export", "validate", "agent_changes", "agent_undo_run", "agent_undo_change", "agent_seen", "agent_log", "project_send", "project_export_qdpx", "project_send_list", "project_open_copy",
                         "project_add_transcripts", "project_boards_in",
                         "project_set", "project_remove", "project_show", "project_history", "team_show", "team_on", "team_set", "team_invite",
-                        "team_answers", "team_admit", "team_join", "team_joined", "team_remove", "team_lead", "team_take", "team_send",
+                        "team_answers", "team_admit", "team_join", "team_joined", "team_unjoin", "team_remove", "team_lead", "team_take", "team_send",
                         "team_board_send", "team_board_take", "team_board_answer", "team_boards",
                         "names_list", "names_add", "names_check", "names_replace", "names_set", "names_remove",
                         "project_new", "participant_rename", "participant_show", "participant_set",
@@ -202,7 +202,7 @@ def test_mcp_server(scratch):
                                  "team_admit", "team_ask", "team_board_answer", "team_board_send", "team_board_take",
                                  "team_comment", "team_invite", "team_join", "team_joined", "team_lead", "team_on",
                                  "team_remove", "team_reply", "team_review_done", "team_review_send", "team_send",
-                                 "team_set", "team_suggest", "team_suggestion_answer", "team_take", "team_thread",
+                                 "team_set", "team_suggest", "team_suggestion_answer", "team_take", "team_thread", "team_unjoin",
                                  "timepoints_set",
                                  "trajectories_apply", "trajectories_export", "transcript_export", "transcript_replace", "transcript_replace_undo", "turn_assign", "turn_assign_undo", "turn_edit",
                                  "turn_interviewer_note", "turn_shift_times", "turn_skip", "turn_trim", "turn_trim_undo", "turn_write"]

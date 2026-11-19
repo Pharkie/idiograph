@@ -361,8 +361,9 @@
 /* A drag that carries more than one thing, a theme by its title or several cards, draws each in a layer of its own
    while it lasts (perfreview, 13 November 2026, see thCarrying), so the lean turns what is drawn already: painted
    afresh and turned on every frame, a theme of fifteen took 25 ms a frame in WebKit on a board at its fit, and 17
-   in layers. One card dragged alone stays as above. */
-#th-world.carrying .th-card.dragging, #th-world.carrying .th-label.dragging, #th-world.carrying .th-sticky.dragging {
+   in layers. One card dragged alone stays as above. Since dragfix (19 November 2026) what is carried is drawn out of
+   the world, in `#th-carry` over it (see thCarry), so these layers lift only the carry and never the whole world. */
+.th-world.carrying .th-card.dragging, .th-world.carrying .th-label.dragging, .th-world.carrying .th-sticky.dragging {
   will-change: transform;
 }
 /* what came along with a label trails it by 140 ms as before, eased frame by frame by the page (thTrail) */

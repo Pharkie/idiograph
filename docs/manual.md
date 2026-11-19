@@ -612,9 +612,13 @@ To start, the lead opens Project settings and presses Invite others to work on t
 the lead. Each person invited makes a new project, presses Join a project you were invited to there, and pastes
 the link or the twelve words. They tick The invite came through a shared folder and choose the folder when the
 team sends that way. The joiner's project is not shared until the lead says the six digits match. A project that
-holds participants that are not in the lead's project, even a transcript alone, cannot join it, and nor can a project
-that has a team of its own. Stop working together sends and takes in nothing more, and
-Start working together again picks the team up as it was.
+holds a participant the lead's project does not have cannot join it, and nor can a project that has a team of its
+own with someone else on it. A copy of the lead's project can join. A project whose team does not list this
+computer says so under Working together, with Join beside it, which makes the project a copy of the team whose
+invite you paste. If you close the Join card before the lead says the six digits match, Working together offers
+to finish joining or to stop. If you stop after the lead has said they match, the lead removes you from the list.
+Stop working together sends and takes in nothing more, and Start working together again picks the team up as it
+was.
 
 The lead invites each person with a link or twelve words. An invite works once, and for seven days. When the
 lead removes
@@ -632,12 +636,14 @@ The relay keeps its limits small so that it stays free to run. Each project can 
 files such as recordings can take 80 MB of that, so the rest is always left for changes. One file can be at most
 80 MB. A project can keep 250 MB on the relay waiting for the others to fetch it, and up to 100 MB of that can be
 changes. A file is deleted from the relay
-as soon as every computer on the project has fetched it, and anything left is deleted after 90 days. A project
+as soon as every computer on the project has fetched it, and anything left is deleted after 90 days (the bucket that holds the files deletes any file older than 91 days besides). A project
 with only one computer on it keeps nothing large there, because nobody is there to fetch it.
 
 When a limit is reached, the project's page says so in one line in place of "no connection", and Idiograph tries
 again when the limit can have lifted. The day's limits lift at midnight UTC. A few are tried again after a minute,
 and the rest after an hour. While recordings wait, the other changes still go.
+
+If the relay no longer has the project, because it was deleted from the relay, the project's page says so and Idiograph asks again only once an hour. Your copy of the project is as it was.
 
 Send the recordings too sends each recording once, and again only when it changes. A file over the limit never
 goes through the relay. To share it, Send through a shared folder, which takes files up to 200 MB.

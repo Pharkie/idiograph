@@ -351,7 +351,14 @@ async function blob(request, env, box, id, name) {
     const allowed = await box.allowBlob(serial(request), name, -1, await sha256(new Uint8Array(0)));
     if (allowed.status !== 200) return answer(allowed);
     const object = await env.BLOBS.get(key);
-    if (!object) return refuse(404, 'no blob');
+    if (!object) {
+      try {
+        await box.uncountFetch(name, allowed.device);
+      } catch (err) {
+        // a fetch left counted costs the computer one of its ten and nothing else
+      }
+      return refuse(404, 'no blob');
+    }
     return new Response(object.body, { headers: { 'content-type': 'application/octet-stream', 'content-length': String(object.size) } });
   }
   return refuse(405, 'method');
@@ -563,7 +570,8 @@ export class Project extends DurableObject {
 
   /* A file's PUT (`size` its bytes) or GET (`size` -1) let through, or refused with nothing written. A PUT is
      counted in the day's bytes, files and number of files, and asks the counter for room in the relay's files and
-     its files of the day. A GET is counted against `fetchesPerFile` for its device. */
+     its files of the day. A GET is counted against `fetchesPerFile` for its device in the same step as the check,
+     and handed back by `uncountFetch` when R2 has no file to give (relayfix3, review2's L2). */
   async allowBlob(s, name, size, hash) {
     const { device, nonce, refusal } = await this.signed(s, hash);
     if (refusal) return refusal;
@@ -602,6 +610,14 @@ export class Project extends DurableObject {
     }
     await this.rearm(wake);
     return { status: 200, device };
+  }
+
+  /* A fetch's count handed back, when R2 had no file to give. */
+  async uncountFetch(name, device) {
+    if (!this.ready || !this.open) return;
+    const row = this.sql.exec('SELECT n FROM fetched WHERE blob = ? AND device = ?', name, device).toArray()[0];
+    if (!row) return;
+    this.sql.exec('UPDATE fetched SET n = ? WHERE blob = ? AND device = ?', Math.max(0, row.n - 1), name, device);
   }
 
   // a blob R2 did not take, its hash not the one signed or its upload broken off: its bytes handed back, its number not

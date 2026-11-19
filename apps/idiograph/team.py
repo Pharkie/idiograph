@@ -45,8 +45,11 @@ import hmac
 import json
 import os
 import secrets
+import re
 import threading
+import unicodedata
 import uuid
+import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -71,6 +74,9 @@ NAME_MOST = 60
 # size says nothing of how many participants the project has: sealed it is 40 bytes more, under the relay's
 # 4,096-byte invite post (relay/src/worker.js, LIMITS.invite)
 OFFER_BYTES = 3840
+# the digests an offer lists, always this many when it lists any, the participants' own and random ones among them,
+# so the list says nothing of how many participants there are (teamfix, R4); past this many it is left out
+LIST_N = 200
 # the kinds of message a member may send, the roster the lead's alone (spec, section 4)
 KINDS = ("roster", "version", "gets_version", "review_asked", "comment", "thread_state", "suggestion", "board",
          "review", "answer", "hand_over", "take_over", "seen", "devices", "recording")
@@ -604,6 +610,10 @@ def view(root: Path, participants: list[dict] | None = None) -> dict:
     roster = data.get("roster") or {}
     me = str(data.get("member") or "")
     lead = str(roster.get("lead") or "")
+    # the roster names the person but not this computer: a second Mac on the same synced folder, a computer whose
+    # device file was lost or a Finder copy of the folder. The team is still the project's, so it is shown as it
+    # stands, with `unlisted` for the page to offer Join alone (teamfix2, finding 1)
+    unlisted = unlisted_here(data)
     people = []
     for m in roster_members(roster):
         devices = [d for d in m.get("devices") or [] if isinstance(d, dict)]
@@ -626,9 +636,17 @@ def view(root: Path, participants: list[dict] | None = None) -> dict:
             "recordings": data.get("recordings") is True, "member": me, "lead": lead, "you_lead": me == lead,
             "epoch": roster.get("epoch") or 1, "n": roster.get("n") or 0, "people": people, "participants": rows,
             "gets_owner": roster.get("gets_owner") or lead, "alone": len(people) <= 1, "invites": pending,
-            "device": dev.get("id") or "", "removed": bool(me) and member_of(roster, me) is None,
+            "device": dev.get("id") or "", "unlisted": unlisted,
+            "removed": bool(me) and member_of(roster, me) is None,
             "asked": [a for a in data.get("asked") or [] if isinstance(a, dict)],
             "on_relay": bool(relay_note(data).get("project"))}
+
+
+def unlisted_here(data: dict) -> bool:
+    """The roster names the person this project's team.json says it is, but not this computer."""
+    roster = (data or {}).get("roster") or {}
+    return (bool(roster) and member_of(roster, str((data or {}).get("member") or "")) is not None
+            and device_on(roster, str((device() or {}).get("id") or ""))[0] is None)
 
 
 def folder_state(data: dict) -> tuple[str, int]:
@@ -789,7 +807,12 @@ def turn_on(root: Path, name: str, route: str = "relay", folder: str = "", dry_r
     data = read_team(root)
     if data and data.get("on") is True and not data.get("roster"):
         return {"changes": [], "dry_run": dry_run}
-    if data and data.get("roster"):
+    # a roster that lists this person or this computer is the project's team, whichever computer opens it, and is
+    # never replaced from here: a second Mac, or one whose device file was lost, writes nothing. Only a roster that
+    # lists neither, a removed member's project, makes a new team (teamfix2, finding 1)
+    if data and data.get("roster") and (
+            member_of(data["roster"], str(data.get("member") or "")) is not None
+            or device_on(data["roster"], (device() or {}).get("id") or "")[0] is not None):
         changes = [] if data.get("on") is True else [i18n.t("team.history.on_again")]
         if changes and not dry_run:
             data = dict(data, on=True)
@@ -926,7 +949,10 @@ def set_team(root: Path, body: dict, participants: list[dict], dry_run: bool = F
         if after.get("roster") is not data.get("roster"):
             if (data.get("route") or "relay") != (after.get("route") or "relay") and not made:
                 # the members still on the old route hear of the new one there
-                send_roster(dict(after, route=data.get("route")), device() or {})
+                try:
+                    send_roster(dict(after, route=data.get("route")), device() or {})
+                except Exception:  # noqa: BLE001 - the old route has no project any more, or cannot be reached
+                    pass
                 try:
                     send_roster(after, device() or {})
                 except Exception:  # noqa: BLE001 - the new route not reached yet: the next list carries it
@@ -1004,9 +1030,11 @@ def invite(root: Path, own: bool = False, dry_run: bool = False, participants: l
     team = str(data.get("team") or "")
     roster = data.get("roster") or {}
     me = member_of(roster, str(data.get("member") or "")) or {}
+    # an invite for a member's own computer lists none: the computer inviting may hold fewer participants than the
+    # team's, and a copy of the team's project must join it (teamfix, review 5)
+    entries = None if own else [dict(p, folder=str(p["folder"])) for p in participants or []]
     offer = offer_body(dev, {"kind": "invite", "device": public(dev), "lead": roster.get("lead"),
-                             "from": me.get("name") or "", "own": bool(own), "expires": expires},
-                       secret, [str(p["folder"]) for p in participants or []])
+                             "from": me.get("name") or "", "own": bool(own), "expires": expires}, secret, entries)
     try:
         # the relay takes a joiner's answers only in a mailbox a computer on the project opened (the abuse plan's
         # M4), so it is opened first, and a refusal gives no invite
@@ -1155,46 +1183,183 @@ def admit(root: Path, inv: str, match: bool, dry_run: bool = False) -> dict:
     return {"changes": changes, "dry_run": False}
 
 
-def participant_digest(secret: bytes, folder: str) -> str:
-    """A participant folder as an invite's offer names it: the first 8 bytes of an HMAC-SHA256 under a key of the
-    invite's own secret, so neither the relay nor a shared folder, nor anyone without the invite, can test a name
-    against it, and the same folder gives another digest in each invite (teambuild2)."""
+def digest_of(secret: bytes, text: str) -> str:
     key = hkdf(secret, b"", b"idiograph v1 participant digest")
-    return b64(hmac.new(key, str(folder).encode("utf-8"), hashlib.sha256).digest()[:8])
+    return b64(hmac.new(key, str(text).encode("utf-8"), hashlib.sha256).digest()[:8])
 
 
-def offer_body(dev: dict, body: dict, secret: bytes, folders: list[str]) -> dict:
-    """The invite's offer, signed, with each participant folder as its digest and padded with `pad` to OFFER_BYTES
-    exactly. When the list will not fit, it is left out, and a joiner then joins with no check, as with an offer
-    made before the list (teambuild2). An older app ignores both fields."""
-    listed = dict(body, participants=sorted(participant_digest(secret, f) for f in folders), pad="")
-    plain = signed(dev, listed)
-    if len(canon(plain)) > OFFER_BYTES:
+def workbook_made(book) -> str:
+    """When a participant's workbook was made, as its own properties say (`dcterms:created` in docProps/core.xml),
+    which a copy keeps and a namesake made elsewhere does not. Empty when it has none or will not read."""
+    try:
+        with zipfile.ZipFile(book) as z:
+            text = z.read("docProps/core.xml").decode("utf-8", "replace")
+    except (OSError, KeyError, zipfile.BadZipFile):
+        return ""
+    found = re.search(r"<dcterms:created[^>]*>([^<]+)</dcterms:created>", text)
+    return found.group(1).strip() if found else ""
+
+
+def participant_digest(secret: bytes, folder: str, made: str = "") -> str:
+    """A participant as an invite's offer names it: the first 8 bytes of an HMAC-SHA256 under a key of the invite's
+    own secret, so neither the relay nor a shared folder, nor anyone without the invite, can test a name against
+    it, and the same folder gives another digest in each invite. The folder's name is taken as NFC, so a name
+    composed another way, by a zip or a sync between a Mac and Windows, is the same one (teamfix, R3), and the
+    workbook's made time is part of it, so a namesake that is not a copy of the lead's participant is another
+    (review 8): folders alone were all an offer named before."""
+    name = unicodedata.normalize("NFC", str(folder))
+    return digest_of(secret, name + ("\0" + str(made) if made else ""))
+
+
+def folder_digests(secret: bytes, folder: str) -> set:
+    """The forms of a bare folder name an offer made before the made time may hold: its own bytes, which a lead of
+    0.9.32 digested, and its NFC and NFD forms (teamfix, R3)."""
+    return {digest_of(secret, unicodedata.normalize(form, str(folder))) for form in ("NFC", "NFD")} | {
+        digest_of(secret, str(folder))}
+
+
+def offer_body(dev: dict, body: dict, secret: bytes, entries: list[dict] | None) -> dict:
+    """The invite's offer, signed, with each participant (`{"folder", "made"}`) as its digest, the list made up with
+    random digests to LIST_N so its length says nothing, and padded with `pad` to OFFER_BYTES exactly. When the
+    participants will not fit, the list is left out, and a joiner then joins with no check, as with an offer made
+    before the list; `entries` None leaves it out on purpose. `v` 2 says the digests carry the made time. An older
+    app ignores the fields it does not know."""
+    digests = {participant_digest(secret, e["folder"], e.get("made") or "") for e in entries or []}
+    plain = None
+    if entries is not None and len(digests) <= LIST_N:
+        while len(digests) < LIST_N:
+            digests.add(b64(secrets.token_bytes(8)))
+        listed = dict(body, v=2, participants=sorted(digests), pad="")
+        plain = signed(dev, listed)
+        if len(canon(plain)) > OFFER_BYTES:
+            plain = None
+    if plain is None:
         listed = dict(body, pad="")
         plain = signed(dev, listed)
     room = OFFER_BYTES - len(canon(plain))
     return signed(dev, dict(listed, pad="0" * room)) if room > 0 else plain
 
 
-def may_join(data: dict) -> None:
+def not_in_offer(secret: bytes, offer: dict, participants: list[dict] | None) -> bool:
+    """Whether the project holds a participant the offer does not list. An offer with no list lists nothing to check
+    against. A version 2 offer lists each participant by folder and made time; an earlier one, by folder alone, in
+    whichever composition its lead's computer had (teamfix)."""
+    if not isinstance(offer.get("participants"), list):
+        return False
+    theirs = {str(f) for f in offer["participants"]}
+    for p in participants or []:
+        folder = str(p["folder"])
+        if offer.get("v") == 2:
+            mine = {participant_digest(secret, folder, p.get("made") or "")}
+        else:
+            mine = folder_digests(secret, folder)
+        if not mine & theirs:
+            return True
+    return False
+
+
+def holds_others(data: dict, copy: bool = False) -> bool:
+    """A project whose roster lists this computer, or the person but not this computer, and someone else, another
+    member or another computer of the member's. One rule, on or off. A project whose roster lists neither, a removed
+    member's, holds no team of this computer's, and one that lists the person but not this computer holds the team
+    as ever unless the join says it is a copy of the project, a Finder copy of the lead's folder (teamfix2,
+    finding 1)."""
+    roster = (data or {}).get("roster") or {}
+    if not roster or by_itself(roster):
+        return False
+    if device_on(roster, (device() or {}).get("id") or "")[0] is not None:
+        return True
+    return not copy and member_of(roster, str((data or {}).get("member") or "")) is not None
+
+
+def may_join(data: dict, copy: bool = False) -> None:
     """A project in a team with others, or keeping one from before with others on it, joins no other: its own
-    team's people would keep a lead who has left (teambuild2). Refused with nothing written."""
-    roster = data.get("roster") or {}
-    if data.get("on") is True and len(roster_members(roster)) > 1:
+    team's people would keep a lead who has left (teambuild2). Refused with nothing written. `copy`, from the
+    Join beside the line "This computer is not on this project's list", lets a project whose roster does not list
+    this computer join."""
+    if not holds_others(data, copy):
+        return
+    if data.get("on") is True:
         raise TeamError(i18n.t("team.refused.already_team"), "already_team")
-    if data.get("on") is not True and roster and not by_itself(roster):
-        raise TeamError(i18n.t("team.refused.kept_team"), "kept_team")
+    raise TeamError(i18n.t("team.refused.kept_team"), "kept_team")
 
 
 def kept_with_others(root: Path) -> bool:
     """Working together off with a team kept from before that has someone else on it, or another computer, so
     starting again picks that team up (teambuild, 19 November 2026). Reads team.json alone."""
     data = read_team(root) or {}
-    return data.get("on") is not True and bool(data.get("roster")) and not by_itself(data.get("roster") or {})
+    return data.get("on") is not True and holds_others(data)
+
+
+def forget_joining(inv: str, keep_device: bool = False) -> None:
+    """A join given up or failed: its entry on this computer dropped, and the device file with it when the join made
+    it and nothing else is in it, no team's keys and no other join, so a refused join leaves no keys behind
+    (teamfix, review 7). `keep_device` leaves the file whole in any case, for a join the lead has already let in:
+    the lead's list names this computer, and its keys are what the lead counts on (teamfix2, finding 6). Held under
+    the device file's lock, as every other write to it is (finding 5)."""
+    with device_held():
+        data = load_device_file()
+        if data is None:
+            return
+        (data.get("joining") or {}).pop(inv, None)
+        if not data.get("joining"):
+            data.pop("joining", None)
+        if not keep_device and not data.get("teams") and not data.get("joining"):
+            with contextlib.suppress(OSError):
+                device_path().unlink()
+            return
+        save_device_file(data)
+
+
+def asking_here(root: Path, inv: str) -> dict | None:
+    """This project's own unfinished asking for an invite, as the device file holds it, whether or not it has
+    lapsed. Reads and writes nothing else."""
+    ask = ((load_device_file() or {}).get("joining") or {}).get(inv)
+    if isinstance(ask, dict) and str(ask.get("root") or "") == str(Path(root)):
+        return ask
+    return None
+
+
+def joining_here(root: Path) -> list[dict]:
+    """The joins begun from this project and not finished, each `{"invite", "from", "code"}`, as Working together
+    offers to finish them. One whose invite has lapsed is left out, never deleted by reading: Stop joining and
+    `joined` forget it (teamfix2, finding 4). An asking kept by 0.9.32 has no name for the lead, so `from` is empty
+    and the page says it without one (finding 5)."""
+    data = load_device_file() or {}
+    dev = data.get("device") or {}
+    out = []
+    for inv, ask in list((data.get("joining") or {}).items()):
+        if str(ask.get("root") or "") != str(Path(root)):
+            continue
+        if ask.get("expires") and expired({"expires": ask["expires"]}):
+            continue
+        try:
+            code = check_code(unb64(ask["secret"]), ask["lead"], public(dev))
+        except (TeamError, KeyError, TypeError):
+            continue
+        out.append({"invite": inv, "from": ask.get("from") or "", "code": code})
+    return out
+
+
+def unjoin(root: Path, inv: str, dry_run: bool = False) -> dict:
+    """Stop a join begun from this project: its entry, and the keys it made, dropped. Writes nothing to the project.
+    Once the lead has sent They match, the lead's list names this computer, so its keys stay and only the asking
+    goes: the lead removes such a member (teamfix2, finding 6). A welcome that cannot be looked for just now counts
+    as come."""
+    ask = asking_here(root, inv)
+    if ask is None:
+        raise TeamError(i18n.t("team.refused.no_invite"), "no_invite")
+    if not dry_run:
+        try:
+            came = find_welcome(root, ask) is not None
+        except Exception:
+            came = True
+        forget_joining(inv, keep_device=came)
+    return {"changes": [], "dry_run": dry_run}
 
 
 def join(root: Path, words: str, name: str, dry_run: bool = False, relay_url: str = "", route: str = "",
-         folder: str = "", participants: list[dict] | None = None) -> dict:
+         folder: str = "", participants: list[dict] | None = None, copy: bool = False) -> dict:
     """The joiner's side: the invite read from its mailbox, refused when it is closed, expired or not there, this
     device's name and keys posted as the answer, and the six digits to read on the call. Joined once the lead's
     They match comes back (`joined`). Nothing is written to the project until then, so a project that joins from
@@ -1206,7 +1371,7 @@ def join(root: Path, words: str, name: str, dry_run: bool = False, relay_url: st
     secret = words_secret(words)
     inv = invite_id(secret)
     data = read_team(root) or {}
-    may_join(data)
+    may_join(data, copy)
     route = str(route or "")
     if route and route not in ROUTES:
         raise TeamError(i18n.t("team.refused.bad_route"), "bad_route")
@@ -1216,25 +1381,34 @@ def join(root: Path, words: str, name: str, dry_run: bool = False, relay_url: st
     if dry_run:
         lib()
         return {"changes": [i18n.t("team.history.join_asked", name=who)], "dry_run": True}
+    had = load_device_file()
     dev = device(make=True)
-    # a team's own relay, as its link or the joiner names it (relaywire)
-    relay = one_line(relay_url) or link_relay(words)
-    base = dict(data, folder=folder)
-    way = transport_mod.for_team(route, dev, dict(base, relay_url=relay) if relay else base)
-    offer = read_offer(way, inv, secret)
-    # an offer with no list, made before it or too long to fit, joins with no check (teambuild2)
-    if isinstance(offer.get("participants"), list):
-        theirs = {str(f) for f in offer["participants"]}
-        if any(participant_digest(secret, str(p["folder"])) not in theirs for p in participants or []):
+    try:
+        # a team's own relay, as its link or the joiner names it (relaywire)
+        relay = one_line(relay_url) or link_relay(words)
+        base = dict(data, folder=folder)
+        way = transport_mod.for_team(route, dev, dict(base, relay_url=relay) if relay else base)
+        offer = read_offer(way, inv, secret)
+        # an offer with no list, made before it or too long to fit, joins with no check (teambuild2)
+        if not_in_offer(secret, offer, participants):
             raise TeamError(i18n.t("team.refused.has_participants"), "has_participants")
-    answer = signed(dev, {"kind": "answer", "name": who, "device": public(dev)})
-    way.send(mailbox(inv), aead_seal(invite_key(secret), canon(answer)))
-    data_dev = load_device_file() or {}
-    data_dev.setdefault("joining", {})[inv] = dict({"secret": b64(secret), "lead": offer["device"], "name": who,
-                                                    "asked": now_iso(), "root": str(Path(root)), "route": route},
-                                                   **({"relay_url": relay} if relay else {}),
-                                                   **({"folder": folder} if folder else {}))
-    save_device_file(data_dev)
+        answer = signed(dev, {"kind": "answer", "name": who, "device": public(dev)})
+        way.send(mailbox(inv), aead_seal(invite_key(secret), canon(answer)))
+    except Exception:
+        # a refused or failed join leaves no keys it made behind (teamfix, review 7)
+        if had is None:
+            forget_joining(inv)
+        raise
+    with device_held():
+        data_dev = load_device_file() or {}
+        data_dev.setdefault("joining", {})[inv] = dict({"secret": b64(secret), "lead": offer["device"], "name": who,
+                                                        "asked": now_iso(), "root": str(Path(root)), "route": route,
+                                                        "from": offer.get("from") or "",
+                                                        "expires": offer.get("expires") or ""},
+                                                       **({"relay_url": relay} if relay else {}),
+                                                       **({"folder": folder} if folder else {}),
+                                                       **({"copy": True} if copy else {}))
+        save_device_file(data_dev)
     return {"changes": [], "dry_run": False, "invite": inv, "from": offer.get("from") or "",
             "code": check_code(secret, offer["device"], public(dev))}
 
@@ -1252,6 +1426,26 @@ def read_offer(way, inv: str, secret: bytes) -> dict:
     return offer
 
 
+def find_welcome(root: Path, asked: dict, data: dict | None = None) -> dict | None:
+    """The lead's welcome for an asking, signed by the lead's device the invite named, or None while it has not
+    come. Reads the invite's mailbox and writes nothing."""
+    data = read_team(root) or {} if data is None else data
+    dev = device() or {}
+    secret = unb64(asked["secret"])
+    lead = asked["lead"]
+    relay = str(asked.get("relay_url") or "")
+    # the way the invite came, as the join said it, where the project has no route of its own (teambuild)
+    folder = str(asked.get("folder") or data.get("folder") or "")
+    base = dict(data, folder=folder)
+    way = transport_mod.for_team(str(asked.get("route") or data.get("route") or "relay"), dev,
+                                 dict(base, relay_url=relay) if relay else base)
+    welcome = None
+    for _s, m in mailbox_items(way, invite_id(secret), invite_key(secret)):
+        if m.get("kind") == "welcome" and m.get("to") == dev.get("id") and signed_by(lead["sign"], m):
+            welcome = m
+    return welcome
+
+
 def joined(root: Path, inv: str, dry_run: bool = False) -> dict:
     """The joiner's side once more: the lead's welcome read, its roster checked against the lead's device the invite
     named, the project key opened and kept, and team.json written. Answers `joined` false while it has not come, and
@@ -1265,49 +1459,77 @@ def joined(root: Path, inv: str, dry_run: bool = False) -> dict:
     secret = unb64(asked["secret"])
     lead = asked["lead"]
     data = read_team(root) or {}
-    # a project that has since come into a team with others, or kept one, is refused as `join` is (teambuild2)
-    may_join(data)
-    relay = str(asked.get("relay_url") or "")
-    # the way the invite came, as the join said it, where the project has no route of its own (teambuild)
+    roster_now = data.get("roster") or {}
+    listed = (data.get("on") is True and device_on(roster_now, str(dev.get("id") or ""))[0] is not None
+              and device_on(roster_now, str(lead.get("id") or ""))[0] is not None)
+    if listed and (held_team(str(roster_now.get("team") or "")).get("keys") or {}):
+        # a second asking after team.json was written, by the card's poll or the command line: this invite's team
+        # is the project's and its key is kept here, so it has joined (teamfix, R5)
+        if not dry_run:
+            forget_joining(inv)
+        return {"joined": True, "changes": []}
+    # a project that has since come into a team with others, or kept one, is refused as `join` is (teambuild2).
+    # A project whose list already names this computer and the invite's lead, but whose key this computer does not
+    # hold, is a second computer of the member's on the same synced folder: the lead's admit reached team.json
+    # before this asking, and the welcome below brings the key (teamfix3, recheck A)
+    if not listed:
+        try:
+            may_join(data, asked.get("copy") is True)
+        except TeamError:
+            if not dry_run:
+                forget_joining(inv)
+            raise
     folder = str(asked.get("folder") or data.get("folder") or "")
-    base = dict(data, folder=folder)
-    way = transport_mod.for_team(str(asked.get("route") or data.get("route") or "relay"), dev,
-                                 dict(base, relay_url=relay) if relay else base)
-    welcome = None
-    for _s, m in mailbox_items(way, inv, invite_key(secret)):
-        if m.get("kind") == "welcome" and m.get("to") == dev["id"] and signed_by(lead["sign"], m):
-            welcome = m
+    # the welcome is looked for before the date: an invite that lapsed after the lead said They match still joins
+    # (teamfix2, finding 6)
+    welcome = find_welcome(root, asked, data)
     if welcome is None:
+        if asked.get("expires") and expired({"expires": asked["expires"]}) and not dry_run:
+            forget_joining(inv)
+            raise TeamError(i18n.t("team.refused.invite_expired"), "invite_expired")
         return {"joined": False, "changes": []}
-    given = welcome.get("roster") if isinstance(welcome.get("roster"), dict) else {}
-    if welcome.get("own") is True and lead["id"] not in lead_devices(given):
-        # another computer of the member's let it in (wtdevices): the list as the lead signed it, the inviting
-        # computer on it as this member's, the key sealed to this computer in the welcome itself. The lead's
-        # computer puts this one on the list when it takes the asking in.
-        roster = check_roster(given)
-        who = device_on(roster, lead["id"])[0]
-        if who is None or who.get("id") != welcome.get("member"):
+    try:
+        given = welcome.get("roster") if isinstance(welcome.get("roster"), dict) else {}
+        if welcome.get("own") is True and lead["id"] not in lead_devices(given):
+            # another computer of the member's let it in (wtdevices): the list as the lead signed it, the inviting
+            # computer on it as this member's, the key sealed to this computer in the welcome itself. The lead's
+            # computer puts this one on the list when it takes the asking in.
+            roster = check_roster(given)
+            who = device_on(roster, lead["id"])[0]
+            if who is None or who.get("id") != welcome.get("member"):
+                raise TeamError(i18n.t("team.refused.tampered"), "tampered")
+            key = open_sealed(dev, unb64(welcome.get("key")))
+        else:
+            roster = check_roster(given, {lead["id"]: lead})
+            key = open_key(dev, roster)
+        if key is None:
+            raise TeamError(i18n.t("team.refused.no_key"), "no_key")
+        team = str(welcome.get("team") or "")
+        if roster.get("team") != team:
             raise TeamError(i18n.t("team.refused.tampered"), "tampered")
-        key = open_sealed(dev, unb64(welcome.get("key")))
-    else:
-        roster = check_roster(given, {lead["id"]: lead})
-        key = open_key(dev, roster)
-    if key is None:
-        raise TeamError(i18n.t("team.refused.no_key"), "no_key")
-    team = str(welcome.get("team") or "")
-    if roster.get("team") != team:
-        raise TeamError(i18n.t("team.refused.tampered"), "tampered")
+        if listed and str(roster_now.get("team") or "") != team:
+            # the list names this computer in another team than the invite's: refused as `join` refuses it
+            raise TeamError(i18n.t("team.refused.already_team"), "already_team")
+    except TeamError:
+        # a welcome that cannot be taken in ends the join: its entry and keys dropped (teamfix, review 7)
+        if not dry_run:
+            forget_joining(inv)
+        raise
     lead_name = (member_of(roster, str(roster.get("lead") or "")) or {}).get("name") or ""
     if dry_run:
         return {"joined": False, "come": True, "changes": [i18n.t("team.history.joined_team", name=lead_name)],
                 "dry_run": True}
     keep_key(team, int(roster.get("epoch") or 1), key)
-    write_team(root, {"on": True, "team": team, "member": str(welcome.get("member") or ""),
-                      "route": welcome.get("route") or "relay", "folder": folder,
-                      "recordings": data.get("recordings") is True, "roster": roster})
-    data_dev = load_device_file() or {}
-    (data_dev.get("joining") or {}).pop(inv, None)
-    save_device_file(data_dev)
+    if not listed:
+        # a synced folder's team.json, which already names this computer, is left as the lead wrote it: the
+        # welcome's list may be older than it (teamfix3)
+        write_team(root, {"on": True, "team": team, "member": str(welcome.get("member") or ""),
+                          "route": welcome.get("route") or "relay", "folder": folder,
+                          "recordings": data.get("recordings") is True, "roster": roster})
+    with device_held():
+        data_dev = load_device_file() or {}
+        (data_dev.get("joining") or {}).pop(inv, None)
+        save_device_file(data_dev)
     return {"joined": True, "changes": [i18n.t("team.history.joined_team", name=lead_name)]}
 
 

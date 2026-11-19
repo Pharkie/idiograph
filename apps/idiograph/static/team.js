@@ -13,7 +13,7 @@
    kept from before with others on it shows Start working together again in their place, and on, the section
    starts with who leads and Stop working together. */
 
-const WT = { p: null, view: null, yourName: '', poll: null, invite: null, joining: null, start: null, joinFolder: '' };
+const WT = { p: null, view: null, yourName: '', poll: null, invite: null, joining: null, start: null, joinFolder: '', pending: null };
 // the invite and join cards ask about every 10 seconds, well inside the relay's 30 invite calls a minute from one address
 const WT_POLL_MS = 10000;
 
@@ -50,7 +50,7 @@ async function wtOpen(p) {
   WT.yourName = got.your_name || '';
   WT.start = got.start || null;
   wtDraw(got.team || { on: false });
-  if (!got.team || !got.team.on) return;
+  if (!got.team || !got.team.on || got.team.unlisted) return;
   // what has come for the list of people since it was last open: a newer list, a computer added or removed
   try {
     const took = await api('/api/team', wtBody({ op: 'take' }));
@@ -61,10 +61,13 @@ async function wtOpen(p) {
 /* the section drawn from the server's view of it */
 function wtDraw(view) {
   WT.view = view;
-  const on = !!view.on;
+  // a roster that names the person but not this computer shows the start rows with Join alone, and the line why
+  const unlisted = !!view.unlisted || !!(WT.start && WT.start.unlisted);
+  const on = !!view.on && !view.unlisted;
   $('wt-fields').hidden = !on;
-  wtStartDraw(on);
+  wtStartDraw(on, unlisted);
   if (on) $('wt-name-row').hidden = true;
+  if (unlisted) wtSaid(t('team.page.unlisted'));
   if (!on) return;
   const lead = (view.people.find((p) => p.lead) || {}).name || '';
   $('wt-leads').textContent = view.you_lead ? t('team.page.you_lead') : t('team.page.they_lead', { name: lead });
@@ -90,12 +93,23 @@ function wtDraw(view) {
 }
 
 /* off: Invite others and Join a project, or Start working together again for a team kept with others on it */
-function wtStartDraw(on) {
+function wtStartDraw(on, unlisted = false) {
   $('wt-start').hidden = on;
   const kept = !!(WT.start && WT.start.kept);
-  $('wt-start-new').hidden = kept;
-  $('wt-start-join-row').hidden = kept;
-  $('wt-again-row').hidden = !kept;
+  // a join begun here and not finished, its card closed or the app quit since: Finish it or Stop joining
+  const pending = ((WT.start && WT.start.joining) || [])[0] || null;
+  WT.pending = pending;
+  $('wt-start-new').hidden = kept || unlisted || !!pending;
+  $('wt-start-join-row').hidden = (kept && !unlisted) || !!pending;
+  $('wt-again-row').hidden = !kept || !!pending;
+  $('wt-finish-row').hidden = !pending;
+  if (pending) {
+    // an asking kept by 0.9.32 has no name for the lead: the plain words without one
+    $('wt-finish').textContent = pending.from ? t('team.page.finish', { name: pending.from })
+      : t('team.page.finish_unnamed');
+    $('wt-finish-line').textContent = pending.from ? t('team.join.waiting', { name: pending.from })
+      : t('team.join.waiting_unnamed');
+  }
 }
 
 /* a change to his own computers waiting for the lead's Idiograph, a line each */
@@ -390,6 +404,7 @@ function wtJoinOpen() {
   $('wt-join-folder-on').disabled = false;
   WT.joinFolder = '';
   wtJoinFolderDraw();
+  wtJoinAsking(true);
   $('wt-join-answered').hidden = true;
   $('wt-join-acts').hidden = false;
   wtJoinSaid('');
@@ -418,12 +433,19 @@ async function wtJoin() {
   const asked = { op: 'join', words: $('wt-join-words').value };
   const typed = $('wt-join-name').value.trim();
   if (typed) asked.name = typed;
+  // Join beside "This computer is not on this project's list" says the project is a copy
+  if ((WT.view && WT.view.unlisted) || (WT.start && WT.start.unlisted)) asked.copy = true;
   Object.assign(asked, $('wt-join-folder-on').checked ? { route: 'folder', folder: WT.joinFolder } : { route: 'relay' });
   let got;
   try {
     got = await api('/api/team', wtBody(asked));
   } catch (err) { wtJoinSaid(err.message, true); return; }
   if (typed) WT.yourName = typed;
+  wtJoinWaiting(got);
+}
+
+/* the card as it stands once the answer is sent: the six digits to read out, then waiting for They match */
+function wtJoinWaiting(got) {
   WT.joining = { invite: got.invite, from: got.from || '' };
   $('wt-join-words').disabled = true;
   $('wt-join-name').disabled = true;
@@ -432,9 +454,37 @@ async function wtJoin() {
   $('wt-join-code').textContent = got.code;
   $('wt-join-line').textContent = t('team.join.read_code', { name: got.from || '' });
   $('wt-join-answered').hidden = false;
-  wtJoinSaid(t('team.join.waiting', { name: got.from || '' }));
+  wtJoinSaid(got.from ? t('team.join.waiting', { name: got.from }) : t('team.join.waiting_unnamed'));
   wtStop();
   WT.poll = setInterval(wtJoined, WT_POLL_MS);
+}
+
+/* Finish joining: the card again for a join begun here and left, at the six digits, waiting */
+function wtFinish() {
+  const pending = WT.pending;
+  if (!pending) return;
+  wtJoinOpen();
+  wtJoinWaiting({ invite: pending.invite, from: pending.from, code: pending.code });
+  // what was typed is not asked for again: the card holds the six digits and the waiting alone
+  wtJoinAsking(false);
+}
+
+/* the card's asking part, the words, the name and the shared folder, shown or put away */
+function wtJoinAsking(shown) {
+  document.querySelectorAll('#wt-join-card label[for="wt-join-words"], #wt-join-words, #wt-join-card .wt-join-by,'
+    + ' #wt-join-path').forEach((el) => { el.hidden = !shown; });
+  $('wt-join-name-row').hidden = true;
+  if (shown) { $('wt-join-name-row').hidden = !!WT.yourName; wtJoinFolderDraw(); }
+}
+
+/* Stop joining: the asking and its keys dropped on this computer, the section as it was before the join */
+async function wtFinishStop() {
+  const pending = WT.pending;
+  if (!pending) return;
+  try {
+    await api('/api/team', wtBody({ op: 'unjoin', invite: pending.invite }));
+  } catch (err) { wtSaid(needsRestart(err) ? RESTART_LINE : err.message, !needsRestart(err)); return; }
+  wtOpen(WT.p);
 }
 
 async function wtJoined() {
@@ -455,6 +505,8 @@ function wtWire() {
   $('wt-start-invite').onclick = wtStartInvite;
   $('wt-again').onclick = wtStartInvite;
   $('wt-start-join').onclick = wtJoinOpen;
+  $('wt-finish').onclick = wtFinish;
+  $('wt-finish-stop').onclick = wtFinishStop;
   $('wt-stop').onclick = wtStopTogether;
   $('wt-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); wtStartInvite(); } });
   $('wt-name').addEventListener('change', () => { if ($('wt-name').value.trim()) wtStartInvite(); });
@@ -472,7 +524,12 @@ function wtWire() {
   $('wt-match').onclick = () => wtAnswer(true);
   $('wt-differ').onclick = () => wtAnswer(false);
   $('wt-invite-close').onclick = () => { wtStop(); hide('wt-invite-card'); };
-  $('wt-join-close').onclick = () => { wtStop(); hide('wt-join-card'); };
+  $('wt-join-close').onclick = () => {
+    wtStop();
+    hide('wt-join-card');
+    // a join left waiting is offered again in the section, to finish or to stop
+    if (WT.joining) { WT.joining = null; wtOpen(WT.p); }
+  };
   $('wt-join-go').onclick = wtJoin;
 }
 

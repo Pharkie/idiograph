@@ -873,6 +873,9 @@
               fill="currentColor" stroke="none"/><path d="M14.5 4.5v15"/></svg><span class="th-edge-word" aria-hidden="true">{{page_idiograph.screens.inspector}}</span></button>
   <div class="th-stage off" id="th-stage" data-export-host>
     <div class="th-world" id="th-world"></div>
+    <!-- what a drag carries, drawn here at the world's place and zoom while it moves and put back at the drop
+         (dragfix, 19 November 2026, see thCarry), so the world is never lifted into a layer of its own -->
+    <div class="th-world th-carry" id="th-carry"></div>
     <!-- the board's Table view over the canvas, which stays laid out under it so the two never
          disagree: the book's table of PETs, or the GET table, live, its order and its titles edited
          in place (19 October) -->
@@ -1774,6 +1777,9 @@
               <div class="wt-start" id="wt-again-row" hidden><button type="button" class="ghost small" id="wt-again"
                    aria-describedby="wt-again-line">{{team.page.again}}</button><span class="sc-sub"
                    id="wt-again-line">{{team.page.again_line}}</span></div>
+              <div class="wt-start" id="wt-finish-row" hidden><button type="button" class="ghost small" id="wt-finish"
+                   aria-describedby="wt-finish-line"></button><span class="sc-sub" id="wt-finish-line"></span><button
+                   type="button" class="ghost small" id="wt-finish-stop">{{team.page.finish_stop}}</button></div>
             </div>
             <div class="setting" id="wt-name-row" hidden><label for="wt-name">{{team.page.your_name}}</label><input id="wt-name"
                  type="text" spellcheck="false" autocomplete="off" placeholder="{{team.page.your_name_ask}}"></div>

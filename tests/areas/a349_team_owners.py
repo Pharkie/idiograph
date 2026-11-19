@@ -677,6 +677,109 @@ def app_paths(lead, member, call, mark, at, hub, loop):
     call(lead, op="send")
     call(member, op="send")
 
+    # g2. a project the relay no longer holds (the operator deleted it): its 404 "no project"
+    # is kept as a hold of its own, said on the page and to an agent whether or not anything waits, and no call goes
+    # meanwhile, in either direction (relayfix3). It lifts once the team no longer sends through the relay
+    def project_gone(*_a, **_k):
+        raise Refusal(404, "no project")
+    way = Loopback(None, send=project_gone, put_blob=project_gone, fetch=project_gone)
+    transport.OVERRIDE = lambda dev, data, way=way: (setattr(way, "inner", loop(dev, data)) or way)
+    try:
+        mark(lead, 1, "Wren", op="reopen")
+        first = call(lead, op="send")
+        at(lead)
+        page = team_sync.status(lead["root"])
+        hold = state_of(lead)["hold"]
+        tried = len(way.tries)
+        call(lead, op="send")
+        call(lead, op="send", dry_run=True)
+        quiet = len(way.tries) - tried
+        # a member's own look reads the same refusal and keeps it
+        member_first = call(member, op="send")
+        member_page = team_sync.status(member["root"])
+        # nothing small waits in the outbox is sent either (the review's L1)
+        # the lead's switch to a shared folder while the project is gone is no error (the review's M2)
+        shared = lead["root"].parent / "shared-gone"
+        shared.mkdir(exist_ok=True)
+        switch = ""
+        try:
+            call(lead, op="set", route="folder", folder=str(shared))
+        except Exception as exc:  # noqa: BLE001
+            switch = str(exc)
+        at(lead)
+        routed = team_sync.team_on(lead["root"]).get("route")
+        call(lead, op="set", route="relay")
+    finally:
+        transport.OVERRIDE = loop
+    import relay_transport as rt_mod
+    from datetime import datetime, timedelta, timezone
+    left = (datetime.fromisoformat(hold.get("until", "2000-01-01T00:00:00+00:00")) - datetime.now(timezone.utc)).total_seconds()
+    data = team_sync.team_on(lead["root"])
+    elsewhere = {"hold": dict(hold)}
+    team_sync.lift_gone(dict(data, route="folder"), elsewhere)
+    renamed = {"hold": dict(hold)}
+    team_sync.lift_gone(dict(data, roster=dict(data["roster"], relay={"project": "another", "open": True})), renamed)
+    same = {"hold": dict(hold)}
+    team_sync.lift_gone(data, same)
+    check("349: a project the relay no longer holds is a hold of its own, said on the page in its own line and not as no "
+          "connection, with no call after it in either direction, kept an hour, and let go once the team sends "
+          "through another route or names another project",
+          first["sent"] == [] and not first["offline"] and page["held"] == i18n.t("team.held.gone")
+          and not page["offline"] and hold.get("word") == "gone" and hold.get("project") == "" and quiet == 0
+          and 3000 < left <= 3600 and member_page["held"] == i18n.t("team.held.gone")
+          and team_sync.refused_word(rt_mod.RelayError(404, "no project")) == "gone"
+          and team_sync.refused_word(rt_mod.RelayError(404, "not started")) == ""
+          and switch == "" and routed == "folder"
+          and elsewhere["hold"] == {} and renamed["hold"] == {} and same["hold"] == hold and not member_first["offline"],
+          json.dumps({"first": first.get("sent"), "page": page, "hold": hold, "quiet": quiet, "left": left,
+                      "member": member_page}))
+    st = state_of(lead)
+    st["hold"] = {}
+    team_sync.save_state(lead["root"], st)
+    st = state_of(member)
+    st["hold"] = {}
+    team_sync.save_state(member["root"], st)
+    # the refusals of the list of computers say what comes next, the day's one after midnight too
+    refused = {"list_refused": {"word": "lists today", "until": "2000-01-01T00:00:00+00:00"}}
+    removed = {"list_refused": {"word": "too many removed", "until": ""}}
+    check("349: the line for a list of computers refused for the day says what comes next and stays until a list is "
+          "taken, and the one for too many removed computers says it does not lift by itself",
+          team_sync.list_refused_line(refused) == i18n.t("team.held.list_today")
+          and "midnight UTC" in i18n.t("team.held.list_today") and "sends the list again" in i18n.t("team.held.list_today")
+          and team_sync.list_refused_line(removed) == i18n.t("team.held.list_removed")
+          and "does not lift by itself" in i18n.t("team.held.list_removed"),
+          json.dumps({"today": team_sync.list_refused_line(refused), "removed": team_sync.list_refused_line(removed)}))
+    mark(lead, 1, "Wren")
+    # the lead's own look sends the list again once the day it was refused for has ended (the review's L3)
+    sent_lists = []
+    state = state_of(lead)
+    state["list_refused"] = {"word": "lists today", "until": "2000-01-01T00:00:00+00:00"}
+    team_sync.save_state(lead["root"], state)
+    # a dry run with that refusal due calls no relay and leaves sync.json as it was, byte for byte
+    kept_file = team_sync.state_path(lead["root"])
+    before_bytes = kept_file.read_bytes()
+    dry_tries = []
+    way = Loopback(None, set_devices=lambda *a, **k: dry_tries.append(a) or {})
+    transport.OVERRIDE = lambda dev, data, way=way: (setattr(way, "inner", loop(dev, data)) or way)
+    try:
+        call(lead, op="send", dry_run=True)
+    finally:
+        transport.OVERRIDE = loop
+    check("349: a dry run send with the day's refusal due calls no relay and leaves sync.json byte for byte",
+          not dry_tries and not way.tries and kept_file.read_bytes() == before_bytes, str(dry_tries))
+    way = Loopback(None, set_devices=lambda *a, **k: sent_lists.append(a) or {})
+    transport.OVERRIDE = lambda dev, data, way=way: (setattr(way, "inner", loop(dev, data)) or way)
+    try:
+        team_sync.resend_list(lead["root"], team_sync.team_on(lead["root"]))
+    finally:
+        transport.OVERRIDE = loop
+    check("349: the lead's look sends the list of computers again once the day it was refused for has ended, and the "
+          "refusal is cleared when the relay takes it",
+          len(sent_lists) == 1 and not state_of(lead).get("list_refused"), str(sent_lists))
+    mark(lead, 1, "Wren")
+    call(lead, op="send")
+    call(member, op="send")
+
     # h. a version too large for a message goes as a sealed blob and the member takes it in whole (review2's N1:
     # every version over INLINE_MOST was dropped as could_not_read, its file freed)
     inline = team_sync.INLINE_MOST
@@ -694,6 +797,30 @@ def app_paths(lead, member, call, mark, at, hub, loop):
           "the participant in whole",
           went["sent"] == ["P1 - Wren"] and took["applied"] == ["P1 - Wren"] and len(hub.blobs) > blobs_before
           and sha(wren_lead) == sha(wren_member), json.dumps({"went": went, "took": took}))
+    mark(lead, 1, "Wren")
+    call(lead, op="send")
+    call(member, op="send")
+
+    # h2. the same at the real size (relayfix3, review's R3): a version of over 640 KB zipped, INLINE_MOST left as it
+    # ships, goes as a sealed blob and comes in whole. A LPETs file of random text in Working makes it so
+    assert team_sync.INLINE_MOST == 640 * 1024
+    bulk = lead["root"] / "P1 - Wren" / "Working" / (book(lead, 1, "Wren").stem + ".lpets.json")
+    bulk.parent.mkdir(exist_ok=True)
+    bulk.write_text(base64.b64encode(os.urandom(1000 * 1024)).decode("ascii") + "\n", encoding="utf-8")
+    blobs_before = len(hub.blobs)
+    mark(lead, 1, "Wren", op="reopen")
+    went = call(lead, op="send")
+    took = call(member, op="send")
+    big_member = member["root"] / "P1 - Wren" / "Working" / (book(lead, 1, "Wren").stem + ".lpets.json")
+    check("349: a version over 640 KB, as it ships and not with the limit lowered, goes as a sealed blob through the "
+          "loopback and the member's look takes the participant in whole, the large file too",
+          went["sent"] == ["P1 - Wren"] and took["applied"] == ["P1 - Wren"] and len(hub.blobs) > blobs_before
+          and max(len(v) for v in hub.blobs.values()) > team_sync.INLINE_MOST
+          and big_member.is_file() and sha(bulk) == sha(big_member)
+          and sha(progress(lead, 1, "Wren")) == sha(progress(member, 1, "Wren")),
+          json.dumps({"went": went, "took": took, "blobs": [len(v) for v in hub.blobs.values()]}))
+    bulk.unlink()
+    big_member.unlink(missing_ok=True)
     mark(lead, 1, "Wren")
     call(lead, op="send")
     call(member, op="send")
@@ -782,6 +909,28 @@ def relay_part(scratch, lead, member, call, mark, sha, book, progress, at):
               big["sent"] == ["P1 - Wren"] and took_big["applied"] == ["P1 - Wren"]
               and sha(progress(lead, 1, "Wren")) == sha(progress(member, 1, "Wren")),
               json.dumps({"sent": big.get("sent"), "tries": big_tries, "lead": trace(lead), "member": trace(member)}))
+
+        # the same at the real size, INLINE_MOST as it ships: a LPETs file of random text makes the version over 640 KB
+        bulk = lead["root"] / "P1 - Wren" / "Working" / (book(lead, 1, "Wren").stem + ".lpets.json")
+        bulk.parent.mkdir(exist_ok=True)
+        bulk.write_text(base64.b64encode(os.urandom(1000 * 1024)).decode("ascii") + "\n", encoding="utf-8")
+        mark(lead, 1, "Wren", op="reopen")
+        real = call(lead, op="send")
+        real_tries, deadline = [], time.monotonic() + 15
+        while True:
+            took_real = call(member, op="send")
+            real_tries.append({k: took_real.get(k) for k in ("applied", "offline")})
+            if took_real.get("applied") or time.monotonic() > deadline:
+                break
+            time.sleep(0.25)
+        there = member["root"] / "P1 - Wren" / "Working" / (book(lead, 1, "Wren").stem + ".lpets.json")
+        check("349: through the relay a version over 640 KB, with the limit as it ships, goes as a file in R2 and "
+              "the member's look takes the participant in whole, the large file too",
+              real["sent"] == ["P1 - Wren"] and took_real["applied"] == ["P1 - Wren"]
+              and there.is_file() and sha(bulk) == sha(there)
+              and sha(progress(lead, 1, "Wren")) == sha(progress(member, 1, "Wren")),
+              json.dumps({"sent": real.get("sent"), "tries": real_tries, "there": there.is_file(), "size": bulk.stat().st_size,
+                          "same": there.is_file() and sha(bulk) == sha(there)}))
     finally:
         try:
             child.stdin.close()

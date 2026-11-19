@@ -138,7 +138,7 @@ RISKS = {1: "steering", 2: "speed and volume", 3: "no screen", 4: "standing acce
 # restore points reach, and since namesset the same day (Adam: "if you're not able to do it via MCP or the API, you
 # should be able to") it changes and takes them off by number, each undone the same way. Removing a project from
 # Idiograph stays an agent's, its folder moved to the Trash or left as it is, never deleted.
-TEAM_ONLY = ("on", "set", "invite", "admit", "join", "joined", "send", "remove", "lead", "board-send",
+TEAM_ONLY = ("on", "set", "invite", "admit", "join", "joined", "unjoin", "send", "remove", "lead", "board-send",
              "board-answer", "ask", "review-send", "reply", "thread", "review-done", "suggestion-answer")
 SETTINGS_KEYS = ("your_name", "ai_prompt_file", "ai_prompt_default", "ai_provider", "ai_address", "ai_deployment",
                  "ai_model")

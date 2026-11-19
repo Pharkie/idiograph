@@ -1832,6 +1832,8 @@ def team_lines(view: dict) -> list[str]:
     route = (i18n.t("team.cli.route_relay") if view["route"] == "relay"
              else i18n.t("team.cli.route_folder", folder=view["folder"] or i18n.t("team.page.no_folder")))
     lines = [i18n.t("team.cli.on", route=route)]
+    if view.get("unlisted"):
+        lines.append("  " + i18n.t("team.cli.unlisted"))
     if view.get("folder_state") == "missing":
         lines.append("  " + i18n.t("team.page.folder_missing"))
     elif view.get("folder_state") == "unopened":
@@ -1880,8 +1882,14 @@ def team_writes(p: Project, args, body: dict, needs_note: bool = True) -> tuple:
 def cmd_team_show(p: Project, _args) -> tuple:
     """Working together as Project settings shows it: off, or the route, the people, who works on each participant
     and on the GETs board, and whether recordings go. It reads and writes nothing, and off it reads team.json alone."""
-    view = team_call(p, _args, {"op": "show"})["team"]
-    return {"team": view}, team_lines(view)
+    shown = team_call(p, _args, {"op": "show"})
+    view = shown["team"]
+    answer = {"team": view}
+    # how the section starts while it is off or its list does not name this computer: a team kept from before, and
+    # the joins begun here and not finished, as the route answers it (teamfix2, finding 9)
+    if shown.get("start") is not None:
+        answer["start"] = shown["start"]
+    return answer, team_lines(view)
 
 
 def cmd_team_on(p: Project, args) -> tuple:
@@ -1959,6 +1967,8 @@ def cmd_team_join(p: Project, args) -> tuple:
         asked["route"] = args.route
     if getattr(args, "folder", None):
         asked["folder"] = args.folder
+    if getattr(args, "copy", False):
+        asked["copy"] = True
     answer, lines, done = team_writes(p, args, asked)
     if not args.dry_run:
         lines.append(i18n.t("team.cli.join_code", code=done["code"], name=done.get("from") or "",
@@ -1970,6 +1980,13 @@ def cmd_team_joined(p: Project, args) -> tuple:
     """The lead's They match taken in, once it has come: the team, its people and the project key on this computer."""
     answer, lines, done = team_writes(p, args, {"op": "joined", "invite": args.invite})
     lines.append(i18n.t("team.cli.joined") if done.get("joined") else i18n.t("team.cli.not_joined"))
+    return answer, lines
+
+
+def cmd_team_unjoin(p: Project, args) -> tuple:
+    """A join begun from this project and not finished, given up: its asking and the keys it made dropped on this
+    computer. Writes nothing to the project."""
+    answer, lines, _done = team_writes(p, args, {"op": "unjoin", "invite": args.invite})
     return answer, lines
 
 
@@ -9072,7 +9089,7 @@ COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             ("project", "history"): cmd_project_history,
             ("team", "show"): cmd_team_show, ("team", "on"): cmd_team_on, ("team", "set"): cmd_team_set,
             ("team", "invite"): cmd_team_invite, ("team", "answers"): cmd_team_answers, ("team", "admit"): cmd_team_admit,
-            ("team", "join"): cmd_team_join, ("team", "joined"): cmd_team_joined, ("team", "remove"): cmd_team_remove,
+            ("team", "join"): cmd_team_join, ("team", "joined"): cmd_team_joined, ("team", "unjoin"): cmd_team_unjoin, ("team", "remove"): cmd_team_remove,
             ("team", "send"): cmd_team_send,
             ("team", "lead"): cmd_team_lead, ("team", "take"): cmd_team_take,
             # a reviewer's board sent straight in (wtboard, 9 November 2026)
@@ -9923,7 +9940,11 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--route", choices=("relay", "folder"), default=None,
                    help="how the invite came: folder for a shared folder, given with --folder")
     x.add_argument("--folder", default=None, help="the shared folder the invite came through")
+    x.add_argument("--copy", action="store_true",
+                   help="this project is a copy of another computer's, its list not naming this computer")
     x = tm.add_parser("joined", parents=[common, writes], help="the lead's They match taken in, once it has come")
+    x.add_argument("--invite", required=True, help="the invite's id, as team join gave it")
+    x = tm.add_parser("unjoin", parents=[common, writes], help="give up a join that was begun and not finished")
     x.add_argument("--invite", required=True, help="the invite's id, as team join gave it")
     x = tm.add_parser("remove", parents=[common, writes],
                       help="the lead removes someone, or one computer, and the project's key changes for everyone left")

@@ -2627,7 +2627,7 @@ sent with a copy. You sign as their computer: never read, copy or print either f
   number of changes and files. One file is at most 80 MB. At most 250 MB of a project waits on the relay, up to 100 MB of it changes. A project
   with one computer keeps nothing large there. The relay as a whole has ceilings too. A refusal of a message holds
   what waits, and a refusal of a file holds only files, so the other changes still go. The day's holds lift at
-  midnight UTC, nobody to send to after a minute, the others after an hour, and Cloudflare's own refusals after a minute or an hour. A file over the
+  midnight UTC, nobody to send to after a minute, the others after an hour, and Cloudflare's own refusals after a minute or an hour. If the relay no longer has the project, `team send` and the page say so in one line and no call goes to the relay. The relay deletes anything unread after 90 days, and the bucket that holds the files deletes any file older than 91 days besides. A file over the
   limit is never sent, with a line naming its participant. Recordings, with `--recordings on`, each travel once and
   are sent again only when they change.
 - Send through (`--route`) is the lead's alone. From a member `team set` and `team_set` refuse it in a line and write
@@ -2645,9 +2645,19 @@ sent with a copy. You sign as their computer: never read, copy or print either f
   invite, and answers the six digits to read to the lead. Working together stays off and nothing is written to the
   project until the lead says they match. `--route folder --folder PATH` when the invite came through a shared
   folder. A project holding a participant the lead's project does not have, a transcript alone included, is
-  refused, with nothing sent, and so is a project in a team with others or keeping one from before (`team joined`
-  alike).
-  `idiograph team joined --invite ID` (`team_joined`) takes the lead's yes in once it has come.
+  refused, with nothing sent. A participant counts as the lead's when its folder name and the time its workbook was
+  made are the lead's, so a copy of the lead's project joins and a project whose participant only shares a name
+  does not. A project whose team lists this person or this computer with someone else on it, or keeps one from
+  before, is refused (`team joined` alike), and a removed member's project is not. A project whose list names the
+  person but not this computer, a Finder copy of a lead's folder or a second computer on a synced folder, shows
+  `unlisted` in `team show` and joins only with `--copy` (`copy` for `team_join`, kept with the asking for
+  `team joined`), which makes it a copy of the team whose invite is given. `team show` carries `start` (`kept`, `joining`, `unlisted`) as
+  the app reads it. A refused or failed join leaves no keys behind. An invite for a member's own computer lists no participants.
+  `idiograph team joined --invite ID` (`team_joined`) takes the lead's yes in once it has come, and says joined
+  again if asked again after it has.
+  `idiograph team unjoin --invite ID` (`team_unjoin`) gives up a join begun and not finished, dropping its asking
+  and the keys it made on this computer. It writes nothing to the project, and is the app's alone. Once the lead
+  has said they match, the keys stay, since the lead's list names this computer, and the lead removes the member.
 - `idiograph team remove Bo` (`team_remove`): the lead removes someone. Their computers come off the list and the
   project's key changes for everyone left, so they get nothing new. What they have stays on their computer.
   `idiograph team remove --computer ID` (`team_remove` with `computer`) removes one computer, a lost one, by its id
@@ -2818,7 +2828,7 @@ nothing waiting, and its dry run still answers:
 | Op | Why | Risk |
 |---|---|---|
 | `project send` | it goes to another person | 1, steering |
-| `team on`, `team set`, `team invite`, `team admit`, `team join`, `team joined`, `team remove`, `team lead` | who can read the project and its keys | 4, standing access |
+| `team on`, `team set`, `team invite`, `team admit`, `team join`, `team joined`, `team unjoin`, `team remove`, `team lead` | who can read the project and its keys | 4, standing access |
 | `team send`, `team board-send`, `team board-answer`, `team ask`, `team review-send`, `team reply`, `team thread`, `team review-done`, `team suggestion-answer` | it reaches a teammate | 1, steering |
 | `settings` with an option | the app's own, no project's, so no restore point holds it | 4, standing access |
 

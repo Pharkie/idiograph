@@ -99,7 +99,7 @@ HOLD_FULL = 3600
 # three (its bytes, its files' share, its count of messages) hold until 00:00 UTC
 HELD = {"day": "day", "day files": "day_files", "day messages": "day_messages", "project full": "project_full",
         "relay full": "relay_full", "project files today": "project_files_today", "files today": "files_today",
-        "nobody to send to": "nobody", "blocked": "blocked", "closed": "closed"}
+        "nobody to send to": "nobody", "blocked": "blocked", "closed": "closed", "no project": "gone"}
 TILL_MIDNIGHT = ("day", "day_files", "day_messages", "project_files_today", "files_today")
 # seconds a hold lasts that is not the day's: Cloudflare's rate rule and nobody to send to a minute, anything else
 # an hour
@@ -638,10 +638,12 @@ def hold_until(word: str) -> str:
     return lifted.isoformat(timespec="seconds")
 
 
-def hold_of(word: str, exc=None) -> dict:
+def hold_of(word: str, exc=None, data: dict | None = None) -> dict:
     """A hold as sync.json keeps it: its word, when it can have lifted, and with "project full" the computers the
     relay said have not fetched what it holds."""
     out = {"word": word, "until": hold_until(word)}
+    if word == "gone":
+        out["project"] = str(team_mod.relay_note(data or {}).get("project") or "")
     behind = [str(d) for d in getattr(exc, "behind", None) or [] if isinstance(d, str)]
     if behind:
         out["behind"] = behind
@@ -658,6 +660,35 @@ def held_now(state: dict, key: str = "hold") -> str:
     except ValueError:
         pass
     return ""
+
+
+def lift_gone(data: dict, state: dict) -> None:
+    """The hold for a project the relay no longer has, let go once the team no longer sends through the relay or its
+    list of people names another project there. It is kept in the state given and written by the look that goes on."""
+    hold = state.get("hold") or {}
+    if hold.get("word") != "gone":
+        return
+    here = str(team_mod.relay_note(data).get("project") or "")
+    if hold.get("project") != here or str(data.get("route") or "relay") != "relay":
+        state["hold"] = {}
+
+
+def resend_list(root: Path, data: dict) -> None:
+    """The lead's list of computers sent to the relay once more after the day it was refused for (`lists today`) has
+    ended, so the computer it names is let in without another change to the list (the review's L3)."""
+    refused = (load_state(root, strict=False).get("list_refused") or {})
+    try:
+        due = refused.get("word") == "lists today" and datetime.fromisoformat(str(refused.get("until"))) <= datetime.now(timezone.utc)
+    except ValueError:
+        due = False
+    roster = data.get("roster") or {}
+    if not due or str(data.get("member") or "") != str(roster.get("lead") or ""):
+        return
+    try:
+        way = team_mod.transport_for(data, team_mod.device() or {})
+        team_mod.tell_relay(data, way, roster, root=root)
+    except Exception:  # noqa: BLE001 - tried again at the next look
+        pass
 
 
 def seed_recordings(state: dict, item: dict) -> None:
@@ -725,15 +756,19 @@ def push(root: Path, now: bool = False, dry_run: bool = False, recordings: bool 
     if alone(roster):
         return {"sent": [], "waiting": 0, "offline": False}
     dev = team_mod.device() or {}
+    if not dry_run:
+        resend_list(root, data)
     state = load_state(root)
+    lift_gone(data, state)
     held = held_now(state)
     kept_back = False
     if not dry_run:
         # what other builds kept, first: only the small ones while the relay holds what waits (the review's A7)
-        _gone, kept_back, word, exc = flush(root, data, small_only=bool(held))
+        # nothing is sent to a relay that has no project: the outbox waits (the review's L1)
+        _gone, kept_back, word, exc = flush(root, data, small_only=bool(held)) if held != "gone" else (0, False, "", None)
         if word and not held:
             held = word
-            state["hold"] = hold_of(word, exc)
+            state["hold"] = hold_of(word, exc, data)
     me = str(data.get("member") or "")
     lead = me == str(roster.get("lead") or "")
     others = sorted(d["id"] for m in team_mod.roster_members(roster) for d in m.get("devices") or []
@@ -796,14 +831,14 @@ def push(root: Path, now: bool = False, dry_run: bool = False, recordings: bool 
                 state["too_large"][what] = print_key(item["print"])
                 state["too_large_most"] = most_file(way)
                 continue
-            if word and getattr(exc, "on_file", False):
+            if word and word != "gone" and getattr(exc, "on_file", False):
                 # its blob refused: files wait, the versions that fit a message go on
                 files_held = word
-                state["files_hold"] = hold_of(word, exc)
+                state["files_hold"] = hold_of(word, exc, data)
                 continue
             if word:
                 held = word
-                state["hold"] = hold_of(word, exc)
+                state["hold"] = hold_of(word, exc, data)
             else:
                 offline = True
             break
@@ -833,13 +868,13 @@ def push(root: Path, now: bool = False, dry_run: bool = False, recordings: bool 
                     state["too_large_most"] = most_file(way)
                     recs_left -= 1
                     continue
-                if word and getattr(exc, "on_file", False):
+                if word and word != "gone" and getattr(exc, "on_file", False):
                     # a recording refused holds recordings and other files alone (the review's A2)
                     files_held = word
-                    state["files_hold"] = hold_of(word, exc)
+                    state["files_hold"] = hold_of(word, exc, data)
                 elif word:
                     held = word
-                    state["hold"] = hold_of(word, exc)
+                    state["hold"] = hold_of(word, exc, data)
                 else:
                     offline = True
                 break
@@ -1213,14 +1248,20 @@ def pull(root: Path) -> dict:
     dev = team_mod.device() or {}
     team = str(data.get("team") or "")
     state = load_state(root)
-    if held_now(state) in ("blocked", "closed"):
-        # Cloudflare stops calls before the relay: none is made until the hold can have lifted (the abuse plan's M6)
+    lift_gone(data, state)
+    if held_now(state) in ("blocked", "closed", "gone"):
+        # Cloudflare stops calls before the relay: none is made until the hold can have lifted (the abuse plan's M6).
+        # A project the relay no longer has is not asked for again either
         return {"applied": [], "offline": False}
     try:
         way = team_mod.transport_for(data, dev)
         key = way_key(way)
         came = way.fetch(team, int(state["cursors"].get(key) or 0))
-    except Exception:
+    except Exception as exc:  # noqa: BLE001 - the relay's refusal, or no connection
+        if refused_word(exc) == "gone":
+            state["hold"] = hold_of("gone", exc, data)
+            save_state(root, state)
+            return {"applied": [], "offline": False}
         return {"applied": [], "offline": True}
     applied, taken, later, stuck = [], [], False, False
     was = int(state["cursors"].get(key) or 0)
@@ -1421,7 +1462,10 @@ def status(root: Path) -> dict | None:
             if item.get("recordings"):
                 seed_recordings(state, item)
                 count += len(recordings_due(state, item, False))
-    held = held_line(data, state) if count > 0 else ""
+    lift_gone(data, state)
+    held = i18n.t("team.held.gone") if held_now(state) == "gone" else ""
+    if not held and count > 0:
+        held = held_line(data, state)
     if not held and state.get("stuck"):
         held = i18n.t("team.held.fetched_too_often")
     if not held:
@@ -1450,7 +1494,7 @@ def list_refused_line(state: dict) -> str:
     refused = state.get("list_refused") or {}
     if refused.get("word") == "too many removed":
         return i18n.t("team.held.list_removed")
-    if refused.get("word") == "lists today" and held_now({"hold": {"word": "lists today", "until": refused.get("until")}}):
+    if refused.get("word") == "lists today":
         return i18n.t("team.held.list_today")
     return ""
 
@@ -1537,7 +1581,15 @@ def looks(roots: Callable[[], list]) -> None:
                 continue
             key = str(root)
             # tried again each look until a route listens, a relay project made since among the reasons (relaywire)
-            if stops.get(key) is None:
+            if held_now(load_state(root, strict=False)) == "gone":
+                # a socket already listening is closed too, or it tries again every minute (the review's L2)
+                if stops.get(key):
+                    try:
+                        stops[key]()
+                    except Exception:
+                        pass
+                    stops[key] = None
+            elif stops.get(key) is None:
                 data = team_on(root)
                 try:
                     way = team_mod.transport_for(data, team_mod.device() or {})

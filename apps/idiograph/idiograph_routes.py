@@ -550,7 +550,8 @@ def api_agent_unseen(body: dict) -> dict:
     return {"unseen": out}
 
 
-TEAM_WRITES = ("on", "off", "set", "choose", "invite", "admit", "join", "joined", "remove", "send", "lead", "take")
+TEAM_WRITES = ("on", "off", "set", "choose", "invite", "admit", "join", "joined", "unjoin", "remove", "send", "lead",
+               "take")
 TEAM_READS = ("show", "answers", "pick")
 
 
@@ -567,7 +568,9 @@ def api_team(body: dict) -> dict:
     member}) and `gets_owner`, `invite` `own` for another computer of one's own, `answers` and `admit` an `invite` id,
     `admit` `match` true or false (They match, They differ), `join` `words` (the link or the twelve words),
     `name`, a team's own relay's `relay_url` when the link does not carry it, and `route` and `folder` when the
-    invite came through a shared folder (the join writes nothing to the project until `joined`), `joined` the `invite` id, `remove` a `member` by id or name or one `computer` by its id, `lead` (Make
+    invite came through a shared folder (the join writes nothing to the project until `joined`) and `copy` true for a
+    project whose list names the person but not this computer, a Finder copy of the lead's folder (`show` says it
+    with `unlisted`; without `copy` such a project is refused as one in a team), `joined` the `invite` id, `remove` a `member` by id or name or one `computer` by its id, `lead` (Make
     lead) a `member`, and `take` what has come for the list of people (wtdevices, 9 November 2026). Each write takes `dry_run`, which writes
     nothing and says what would change, and runs under the project's lock with a line in the project's History for
     each change. The demo's project takes none. `send` (wtowners), Send now: what came for the project taken in and
@@ -587,8 +590,10 @@ def api_team(body: dict) -> dict:
         if op == "show":
             shown = team_mod.view(root, team_participants(root))
             out = {"team": shown, "your_name": researcher_name(), "sync": team_sync.status(root)}
-            if not shown.get("on"):
-                out["start"] = {"kept": team_mod.kept_with_others(root)}
+            if not shown.get("on") or shown.get("unlisted"):
+                out["start"] = dict({"kept": team_mod.kept_with_others(root), "joining": team_mod.joining_here(root)},
+                                    **({"unlisted": True} if team_mod.unlisted_here(team_mod.read_team(root) or {})
+                                       else {}))
             return out
         if op == "pick":
             # Choose in the Join card: the Mac's folder dialog, its folder answered and nothing written
@@ -632,9 +637,11 @@ def api_team(body: dict) -> dict:
                 done = team_mod.join(root, str(body.get("words") or ""), body.get("name") or researcher_name(),
                                      dry_run=dry, relay_url=str(body.get("relay_url") or ""),
                                      route=str(body.get("route") or ""), folder=str(body.get("folder") or ""),
-                                     participants=team_folders(root))
+                                     participants=team_folders(root), copy=body.get("copy") is True)
             elif op == "joined":
                 done = team_mod.joined(root, str(body.get("invite") or ""), dry_run=dry)
+            elif op == "unjoin":
+                done = team_mod.unjoin(root, str(body.get("invite") or ""), dry_run=dry)
             elif op == "lead":
                 done = team_mod.make_lead(root, str(body.get("member") or ""), team_participants(root), dry_run=dry)
             elif op == "take":
@@ -721,8 +728,9 @@ def team_folders(root: Path) -> list[dict]:
     """Every participant folder of the project, each `{"folder"}` from the root, of any kind `list_cases` gives: an
     annotated workbook, a raw source or a transcript alone, for an invite's offer and a join's check (teambuild2,
     19 November 2026), since a participant with a transcript and no workbook yet is still one the team's guard keeps."""
+    import team as team_mod
     root = Path(root).resolve()
-    seen, out = set(), []
+    seen, out = {}, []
     for row in list_cases(root):
         try:
             rel = wb_mod.case_folder(srv.abs_path(row["path"])).resolve().relative_to(root).as_posix()
@@ -730,8 +738,14 @@ def team_folders(root: Path) -> list[dict]:
             continue
         rel = "" if rel == "." else rel
         if rel not in seen:
-            seen.add(rel)
-            out.append({"folder": rel})
+            seen[rel] = {"folder": rel, "made": ""}
+            out.append(seen[rel])
+        if row.get("kind") == "annotated":
+            # when its workbook was made, which a copy keeps: the earliest of a participant's workbooks, so a copy
+            # missing a later timepoint is the same participant (teamfix, review 8)
+            made = team_mod.workbook_made(srv.abs_path(row["path"]))
+            if made and (not seen[rel]["made"] or made < seen[rel]["made"]):
+                seen[rel]["made"] = made
     return out
 
 

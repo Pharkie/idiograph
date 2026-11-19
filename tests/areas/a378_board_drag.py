@@ -22,6 +22,10 @@ pace after the frame that picks it up, each thing it carries drawn in a layer of
 drags move an even step a frame, each frame's step within 0.7 to 1.35 of an even hand's for eight frames in ten, the
 pointer's place taken a moment before each frame from the moves either side of then. Each frame taking the latest
 move as it is, as it did, put back on the same board steps unevenly, which the watch sees.
+
+Since dragfix (19 November 2026): a PET dragged by its title is drawn out of the board's world while it moves, in
+the carry over it, so WebKit no longer lifts the whole board into a layer of its own as it is picked up, a frame of
+75 to 115 ms there, and nothing is left in the carry after Esc, while one card dragged alone stays in the world.
 """
 from __future__ import annotations
 
@@ -159,10 +163,15 @@ window.__bd = {
     }
     stop = true;
     const dragging = !!TH.drag;
+    // what the drag carries, drawn out of the world while it moves (dragfix), and what is left there after Esc
+    const carry = document.getElementById('th-carry');
+    const carried = carry ? carry.querySelectorAll('.dragging').length : -1;
+    const inWorld = world.querySelectorAll('.dragging').length;
     count(mo.takeRecords());
     mo.disconnect();
     thDragCancel();
     TH.press = null;
+    const carryLeft = carry ? carry.childElementCount : -1;
     const d = [];
     for (let i = 1; i < frames.length; i += 1) if (frames[i] > t0 + 100) d.push(frames[i] - frames[i - 1]);
     const s = d.slice().sort((a, b) => a - b);
@@ -181,7 +190,7 @@ window.__bd = {
     const q = (f) => (r.length ? Math.round(r[Math.min(r.length - 1, Math.floor(f * r.length))] * 100) / 100 : null);
     return { kind, dragging, frames: d.length, median: Math.round(s[Math.floor(s.length / 2)] * 10) / 10,
       max: Math.round(s[s.length - 1] * 10) / 10, over50: d.filter((x) => x > 50).length, over50late: late.filter((x) => x > 50).length,
-      added, reads: this.reads,
+      added, reads: this.reads, carried, inWorld, carryLeft,
       steps: r.length, even: [q(0.1), q(0.9)] };
   },
 };
@@ -347,6 +356,13 @@ def test_board_drag(scratch: Path):
     check("378: a PET dragged by its title across the same board, fifteen cards and labels with it, keeps its median "
           "frame at 20 ms or less and none over 50 ms after the frame that picks it up (perfreview)",
           ran.returncode == 0 and smooth(title, "over50late"), f"{title}")
+    check("378: a PET dragged by its title is drawn out of the board's world while it moves, its cards and labels in "
+          "a layer of their own over it, so WebKit never lifts the whole board into a layer as it is picked up, and "
+          "after Esc nothing is left there, while one card dragged alone stays in the world (dragfix)",
+          title.get("carried", 0) >= 10 and title.get("inWorld") == 0 and title.get("carryLeft") == 0
+          and m.get("carried") == 0 and m.get("inWorld") == 1,
+          f"title {title.get('carried')} carried, {title.get('inWorld')} in the world, {title.get('carryLeft')} left; "
+          f"card {m.get('carried')} carried, {m.get('inWorld')} in the world")
     check("378: what is dragged moves an even step a frame, each frame's step within 0.7 to 1.35 of an even hand's for "
           "eight frames in ten, the card and the PET alike (perfreview)", even(m) and even(title),
           f"card {m.get('even')} over {m.get('steps')}, title {title.get('even')} over {title.get('steps')}")

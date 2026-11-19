@@ -1250,11 +1250,18 @@ TOOLS = [
           "name": dict(mcp.TEXT, description="The researcher's name, as the others will see it."),
           "route": {"type": "string", "enum": ["relay", "folder"], "description": "How the invite came: folder "
                                                                                   "for a shared folder."},
-          "folder": dict(mcp.TEXT, description="The shared folder the invite came through, for route folder.")},
+          "folder": dict(mcp.TEXT, description="The shared folder the invite came through, for route folder."),
+          "copy": {"type": "boolean", "description": "True when this project is a copy of another computer's, its "
+                                                     "list naming the person but not this computer."}},
          ["words"], writes="changes"),
     mcp.tool("team_joined", "Take in the lead's yes to a join", ("team", "joined"),
          "Once the lead has said the six digits match, the team, its people and the project's key come onto this "
          "computer. Before that it says it has not come. " + APP_ONLY,
+         {"invite": dict(mcp.TEXT, description="The invite's id, as team_join gave it.")}, ["invite"],
+         writes="changes"),
+    mcp.tool("team_unjoin", "Give up a join that was begun and not finished", ("team", "unjoin"),
+         "A join begun from this project and not finished is given up: its asking and the keys it made are dropped "
+         "on this computer. Nothing is written to the project. " + APP_ONLY,
          {"invite": dict(mcp.TEXT, description="The invite's id, as team_join gave it.")}, ["invite"],
          writes="changes"),
     mcp.tool("team_remove", "Remove someone, or one computer, from the project", ("team", "remove"),

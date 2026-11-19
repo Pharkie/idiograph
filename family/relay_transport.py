@@ -495,7 +495,7 @@ class TeamRelay:
         """The relay's id for a project the team layer names."""
         if self.team and project_id == self.team:
             if not self.project:
-                raise RelayError(404, "no project")
+                raise RelayError(404, "not started")
             return self.project
         return project_id
 
