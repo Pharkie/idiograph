@@ -47,7 +47,7 @@ All the Durable Objects (`Project`, `Invite`, `Operator`, kept from the relay be
 
 ## Abuse
 
-To report something hosted on the relay, write to the operator. The operator deletes a project reported as abuse with its files, using `DELETE /relay/v1/operator/p/:id`, and can close the day's new projects with `POST /relay/v1/operator/allow`.
+To report something hosted on the relay at idiograph.app, write to hello@idiograph.app. The operator deletes a project reported as abuse with its files, using `DELETE /relay/v1/operator/p/:id`, and can close the day's new projects with `POST /relay/v1/operator/allow`.
 
 ## A relay of your own
 

@@ -462,6 +462,7 @@ AREAS = {
     "a427_demo_stamp": "idiograph",
     "a428_progress_counts": "idiograph",
     "a429_agents_seen": "idiograph",
+    "a430_cards_follow_edits": "idiograph",
 }
 
 

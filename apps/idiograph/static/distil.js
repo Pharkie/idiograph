@@ -9202,6 +9202,9 @@ async function commit(row, advance) {
     $('saved').textContent = t('distil.save.saved');
     $('saved').classList.add('on');
     setTimeout(() => $('saved').classList.remove('on'), 1600);
+    // the save stands, and a board that could not take the change says so in its own line (cardsync6)
+    const failed = data.copies && Array.isArray(data.copies.failed) ? data.copies.failed : [];
+    if (failed.length) say(failed.join(' '), 9000);
     drawProgress();
     drawAct();
     drawToPair();

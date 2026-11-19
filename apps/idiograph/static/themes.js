@@ -5524,6 +5524,8 @@ async function thSaveOnce() {
     }
     // and the version it wrote, which the next save carries
     if (data.version && data.version.v && TH.meta && TH.path === path && data.version.id === TH.meta.id) TH.meta.v = data.version.v;
+    // a card whose old words the page still held, from before an edit in another window, kept its new ones (cardsync2)
+    if (data.followed && TH.path === path && TH.meta && data.version && data.version.id === TH.meta.id) thFollowedTake(data.followed);
     // its own save is never a change made outside
     if (data.updated && TH.meta && TH.path === path) TH.known[TH.meta.id] = data.updated;
     // an agent's board he has now changed says so in the board menu at once
@@ -5562,6 +5564,30 @@ function thTakeOwnId(was, now) {
   for (const b of TH.boards || []) if (b.id === was) Object.assign(b, { id: now, own: true });
   if (was in TH.known) { TH.known[now] = TH.known[was]; delete TH.known[was]; }
   if (TH.done && TH.done.board === was) TH.done.board = now;
+}
+
+/* The cards a save kept in step with the workbook, by key with their words (cardsync2, 18 November 2026): the page
+   had the old words from before a statement's edit in another window, and now shows the new, unmarked. */
+function thFollowedTake(said) {
+  const v = TH.v;
+  if (!v || TH.viewing) return;
+  const took = [];
+  for (const [key, text] of Object.entries(said || {})) {
+    const c = v.cards[key];
+    if (!c || typeof text !== 'string') continue;
+    c.text = text;
+    c.changed = false;
+    delete c.stored;
+    took.push(key);
+    // on GETs, LPETs and LGETs the Participants panel's line of it too, as an edit on the card does
+    if (TH.mode === 'gets') gtLineTook(key, text);
+  }
+  if (!took.length || !TH.live || TH.drag || TH.editing || TH.cardEdit || TH.writing || TH.stickyEdit || TH.busy) return;
+  // a card whose new words take a line more settles clear of what it rests on, as thStatementWrite settles it
+  const was = thFileBoxes();
+  thRender();
+  if (thInFile(() => thSettle(TH.v, thSize, took, was, []))) { thPlace(); thSoon(); }
+  if (TH.panelOpen) thPanelDraw();
 }
 
 /* one save at a time: an act made while one is on its way is written by the next */
@@ -6225,6 +6251,14 @@ async function thStatementWrite(key, from, to, step) {
   const c = TH.v && TH.v.cards[key];
   const at = c ? thLineAt(key, c) : null;
   if (!c || !at || TH.writing) return false;
+  // in a thematic analysis project a code edited from its card is a recode, which the server takes onto every
+  // Themes board at once (cardsync3): the board's own changes are saved first, so the board read back after it
+  // holds them, and nothing this page held from before is written over it
+  const recode = TH.live && TH.mode === 'gets' && thTa();
+  if (recode) await thFlush();
+  // a save refused since the board changed under the page shows its Reload or Overwrite card, and one that failed
+  // keeps its line: either way the recode waits, since reading the board back would drop what is unsaved (cardsync4)
+  if (recode && (TH.stale || TH.dirty)) return false;
   TH.writing = true;
   let data;
   try {
@@ -6234,6 +6268,20 @@ async function thStatementWrite(key, from, to, step) {
     return false;
   } finally {
     TH.writing = false;
+  }
+  // a take that failed says its line first, and the board is read back as it stands (cardsync6)
+  const failed = data.copies && Array.isArray(data.copies.failed) ? data.copies.failed : [];
+  if (failed.length) say(failed.join(' '), 9000);
+  if (recode && failed.length && data.changed) {
+    TH.worked = true;
+    await thRecodeLoad();
+    return true;
+  }
+  if (data.recoded && recode) {
+    // the extract now stands under its code's card, in that code's theme: the board is read back as the take left it
+    TH.worked = true;
+    await thRecodeLoad();
+    return true;
   }
   // every card of the statement takes the words, on GETs boards its second card too (`/2`, drawsbuild), so a save
   // never writes the old words back into one of them
@@ -6273,6 +6321,22 @@ async function thStatementWrite(key, from, to, step) {
   if (TH.panelOpen) thPanelDraw();
   thSoon();
   return true;
+}
+
+/* The board read back after a recode from one of its cards (cardsync3), as the server's take left it, the page's
+   own changes saved before the edit. The board's undo steps go with the board they were made on, as a change from
+   another window takes them (thOwnLoad): the take's line in the board's History puts the board back. */
+async function thRecodeLoad() {
+  const id = TH.meta ? TH.meta.id : null;
+  if (!TH.live || !id) return;
+  let data;
+  try {
+    data = await api('/api/gets', { workbook: TH.path, board: id });
+  } catch { return; }
+  if (!TH.live || !TH.meta || TH.meta.id !== id) return;
+  delete TH.stacks[id];
+  if (TH.undoBoard === id) { TH.undoBoard = null; TH.undo = []; TH.redo = []; }
+  thLoad(data, { fit: false });
 }
 
 /* Undo and redo of a statement edited in place: the old words written back through the same route,
@@ -7661,6 +7725,9 @@ const TH_REVISION_SAID = {
   before_changes: (s) => t('themes.revision.named.before_changes', s),
   statement_edited: (s) => t('themes.revision.named.statement_edited', s),
   statement_edited_bare: (s) => t('themes.revision.named.statement_edited_bare', s),
+  code_added: (s) => t('themes.revision.named.code_added', s),
+  code_taken_off: (s) => t('themes.revision.named.code_taken_off', s),
+  codes_edited: (s) => t('themes.revision.named.codes_edited', s),
   brought_in: (s) => t('themes.revision.named.brought_in', s),
   team_board: (s) => t('themes.revision.named.team_board', s),
 };
@@ -9829,10 +9896,19 @@ async function thStampTick(now) {
   const wb = data.workbook && data.workbook.at ? data.workbook : null;
   const wbSeen = !!wb && TH.wbAt !== undefined && TH.wbAt !== null && TH.wbPath === path && wb.at !== TH.wbAt;
   if (wb && (TH.wbPath !== path || TH.wbAt === undefined || TH.wbAt === null || !wb.here)) { TH.wbPath = path; TH.wbAt = wb.at; }
+  // and on GETs, LPETs and LGETs a statement reworded in another window of this app, which the copy and the board's
+  // cards took, comes in by itself too: the version the edit left the board in, when this page has not read it
+  // (cardsync2, 18 November 2026)
+  const shown = mode === 'gets' && TH.meta && Array.isArray(data.boards) ? data.boards.find((b) => b && b.id === TH.meta.id) : null;
+  // (a version it reloaded for once is never reloaded for again, whatever the board does since)
+  const followSeen = !!shown && !!shown.followed && shown.followed !== TH.meta.v && shown.followed !== TH.followLoaded;
   if (seen && !outside) {
     await thOwnLoad(seen);
   } else if (wbSeen && wb.here && !(seen && outside)) {
     TH.wbAt = wb.at;
+    await thOwnLoad({ changed: false });
+  } else if (followSeen && !(seen && outside)) {
+    TH.followLoaded = shown.followed;
     await thOwnLoad({ changed: false });
   }
   if (own.length && TH.live && TH.path === path && TH.mode === mode) await gtTakeAll(own);

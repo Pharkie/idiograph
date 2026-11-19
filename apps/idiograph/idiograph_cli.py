@@ -907,12 +907,37 @@ def cmd_codes_extract(p: Project, args) -> tuple:
                 done = codes_mod.extract_change(p.root, p.books, args.act, b["case"], args.sheet, args.row, args.extract,
                                                 args.code, themes.now_iso(), dry_run=bool(args.dry_run),
                                                 note=themes_ai.one_line(args.note), tool=args.tool or cli.TOOL)
+                # and the Themes boards take it in the same write (cardsync4)
+                routes.codes_taken(done, {"note": args.note, "tool": args.tool or cli.TOOL})
     except WorkbookError as exc:
         raise cli.Refused(str(exc), i18n.t("cli.said.nothing_was_written")) from None
     head = i18n.t("cli.said.dry_run_nothing_was_written") if args.dry_run else i18n.t("cli.said.saved")
     lines = [head] + done["changes"] + [i18n.t("cli.codes_extract.the_passages_codes")] + [
         f"   {x['es'] or i18n.t('cli.codes_extract.no_code')}: {x['kq']}" for x in done["pairs"]]
-    return done, lines
+    return done, lines + themes_taken_lines(done, b["case"], themes_ai.revision_name(args.note) if args.note else "")
+
+
+def themes_taken_lines(done: dict, case: str, history: str = "") -> list[str]:
+    """What a change to a participant's codes did to the Themes boards at its write (cardsync4), or with a dry run
+    would do: the boards that hold a card it changes, by name, the History line each keeps first, then what changed
+    on each, keys and counts and never a word (see `routes.codes_taken`)."""
+    taken = (done.get("themes") or {}).get("gets")
+    out = []
+    if taken:
+        name, dry = gets_mod.who(case), bool(done.get("dry_run"))
+        ids = set(taken.get("boards") or [])
+        boards = [b for b in taken["counts"]["boards"] if b["board"] in ids]
+        if boards:
+            said = listed([b["name"] or b["board"] for b in boards])
+            line = history or i18n.t("themes.revision.named.before_changes", who=name, lang="en")
+            out.append(i18n.t("cli.themes_taken.would", name=name, boards=said, history=line) if dry
+                       else i18n.t("cli.themes_taken.took", name=name, boards=said, history=line))
+            out += take_lines(dict(taken["counts"], boards=boards))
+        else:
+            out.append(i18n.t("cli.themes_taken.none_dry", name=name) if dry else i18n.t("cli.themes_taken.none", name=name))
+    failed = list((done.get("themes") or {}).get("failed") or [])
+    # an agent need not wait for the Themes screen: gets take brings the change in now (cardsync6)
+    return out + failed + ([i18n.t("cli.themes_taken.or_take", name=gets_mod.who(case))] if failed else [])
 
 
 def cmd_codes_quick(p: Project, args) -> tuple:
@@ -932,6 +957,7 @@ def cmd_codes_quick(p: Project, args) -> tuple:
                 done = codes_mod.quick(p.root, p.books, how, b["case"], args.sheet, args.row, args.words,
                                        themes.now_iso(), n=getattr(args, "recent", 1) or 1, dry_run=bool(args.dry_run),
                                        note=themes_ai.one_line(args.note), tool=args.tool or cli.TOOL)
+                routes.codes_taken(done, {"note": args.note, "tool": args.tool or cli.TOOL})
     except WorkbookError as exc:
         raise cli.Refused(str(exc), i18n.t("cli.said.nothing_was_written")) from None
     head = i18n.t("cli.said.dry_run_nothing_was_written") if args.dry_run else i18n.t("cli.said.saved")
@@ -939,7 +965,7 @@ def cmd_codes_quick(p: Project, args) -> tuple:
         f"   {x['es'] or i18n.t('cli.codes_extract.no_code')}: {x['kq']}" for x in done["pairs"]]
     if done.get("recent"):
         lines.append(i18n.t("cli.codes_list.used_last", names=", ".join(done["recent"])))
-    return done, lines
+    return done, lines + themes_taken_lines(done, b["case"], themes_ai.revision_name(args.note) if args.note else "")
 
 
 def cmd_codes_undo(p: Project, args) -> tuple:
@@ -6840,7 +6866,14 @@ def turn_write(p: Project, args) -> tuple:
                 for i, j in (moves_lines or {}).items()
                 if j == i and i < len(after_s) and (moves_quotes or {}).get(i) == i
                 and was_q(turn["places"], i) != was_q(after_q, i)}
-    follows = bool(reworded or requoted)
+    # in a thematic analysis project a code typed over is a recode, never written into the copy where its card
+    # stands (cardsync2): the participant's changes are taken onto the Themes boards in the same write, the take's
+    # gather putting the extract beside its code's other extracts (cardsync3)
+    # and since cardsync4 every change to the passage's codes, one added or taken off as much as one typed over
+    recode = (moves_lines is not None and [themes.words(x) for x in turn["statements"]] != [themes.words(x) for x in after_s]
+              and routes.recoding(book))
+    follows = bool(reworded or requoted) and not recode
+    copies_move = copies_move and not recode
 
     if args.dry_run:
         try:
@@ -6852,14 +6885,20 @@ def turn_write(p: Project, args) -> tuple:
         # a statement removed or merged, or one moved, on every copy of it, the LPETs' among them (lpetdrop)
         followed = (routes.passage_follow(book, args.sheet, first, turn["statements"], after_s, moves_lines, dry=True)
                     if copies_move else {})
+        # and what the Themes boards would take of a change to the passage's codes, read from a scratch copy (cardsync4)
+        recoded = routes.recode_take(book, history=history, dry=True, passage=(args.sheet, first, pairs)) if recode else {}
         effects = effects_of(boards)
         text = i18n.t("cli.turn_write.dry_run_nothing_was_written_it", said=said, where=where)
         lines = ([text] + span_lines(spans, args.sheet, True) + added_lines(added, turn["notes"], True)
                  + card_lines(boards, True)
                  + effect_lines(kept_lone, written_lone, effects["picks"], True, gone) + history_line(boards, True) + failed
-                 + copy_lines(copies, history, True) + followed_copy_lines(followed, True))
+                 + copy_lines(copies, history, True) + followed_copy_lines(followed, True)
+                 + themes_taken_lines({"dry_run": True, "themes": recoded}, b["case"], history))
+        taken = (recoded or {}).get("gets")
         return {"dry_run": True, "case": b["case"], "before": before, "after": {**before, **changing}, "said": text,
-                "copies": copies, "copies_followed": followed, "spans": spans, **effects}, lines
+                "copies": copies, "copies_followed": followed, "spans": spans,
+                **({"recoded": {"case": taken["taken"], "counts": taken["counts"], "boards": taken["boards"]}}
+                   if taken else {}), **effects}, lines
     wb_mod.guard_lock(book)
     # the root's lock first, as the app takes it, since the GETs' copies are written with the workbook
     with locks.root(p.root), wb_mod.case_held(book):
@@ -6904,6 +6943,8 @@ def turn_write(p: Project, args) -> tuple:
         # and the GETs' copies of the participant, a board with a card of it marked changed in a conversation
         copies = routes.follow_statements(book, reworded, copies_were, changed=mark(args, at),
                                           history=history, quotes=requoted) if follows else {}
+        # and in a thematic analysis project the recode taken onto the Themes boards, each marked changed (cardsync3)
+        recoded = routes.recode_take(book, history=history, changed=mark(args, at)) if recode else {}
     effects = effects_of(boards)
     carried = [{"board": x["board"], "name": x["name"], "keys": x["reworded"]} for x in boards if x["reworded"]]
     text = (i18n.t("cli.turn_write.wrote_the_on_after_a_copy", said=said, where=where, name=backup.name))
@@ -6916,9 +6957,12 @@ def turn_write(p: Project, args) -> tuple:
         lines += history_line(boards, False)
         lines.append(i18n.t("cli.turn_write.each_is_marked_as_changed_in"))
     lines += failed + copy_lines(copies, history, False) + followed_copy_lines(followed, False)
+    taken = (recoded or {}).get("gets")
+    lines += themes_taken_lines({"themes": recoded}, b["case"], history)
     return {"case": b["case"], "sheet": args.sheet, "row": first, "written": changing, "backup": backup.name,
             "boards_reworded": carried, "copies": copies, "copies_followed": followed, "spans": spans, "said": text,
-            **effects}, lines
+            **({"recoded": {"case": taken["taken"], "counts": taken["counts"], "boards": taken["boards"]}}
+               if taken else {}), **effects}, lines
 
 
 def followed_copy_lines(followed: dict, dry: bool) -> list[str]:

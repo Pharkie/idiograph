@@ -204,19 +204,46 @@ class StaleBoard(WorkbookError):
         return {"board": self.board, "v": self.now}
 
 
+# The versions a board stood in before the researcher's own edit of a statement carried its new words to the
+# board's cards, and the version that left it in (cardsync2, 18 November 2026). A page open on the board since
+# before the edit saves over it as if it were its own version, since the save keeps those cards' new words (see
+# `words_kept`), and any other change to the board leaves `to` behind, so a real conflict is refused as ever.
+FOLLOWED = "followed"
+FOLLOWED_KEEP = 20
+
+
 def board_version(board: dict) -> str:
-    """A board's version: a hash of it as the file holds it, its history, its History's head and any `v` a page
-    sent aside."""
-    held = {k: value for k, value in board.items() if k not in ("history", board_history.HEAD, "v", OWN)}
+    """A board's version: a hash of it as the file holds it, its history, its History's head, the versions its
+    cards' words followed from and any `v` a page sent aside."""
+    held = {k: value for k, value in board.items() if k not in ("history", board_history.HEAD, "v", OWN, FOLLOWED)}
     return hashlib.sha1(json.dumps(held, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
+
+
+def followed_from(board: dict, was: str) -> None:
+    """Mark `board`, whose cards have just taken a statement's new words from the researcher's own edit, as
+    standing in for `was`, its version before (see `FOLLOWED`). Edits one after another chain, the last
+    FOLLOWED_KEEP versions kept."""
+    now = board_version(board)
+    if now == was:
+        return
+    held = board.get(FOLLOWED)
+    chain = list(held.get("from") or []) if isinstance(held, dict) and held.get("to") == was else []
+    board[FOLLOWED] = {"from": (chain + [was])[-FOLLOWED_KEEP:], "to": now}
 
 
 def stale_since(board: dict | None, seen) -> bool:
     """Whether `seen`, a board's version as a page or an agent read it, is not the board's version
     now, `board` as the file holds it. A save or a write that carries none, a page from before
-    versions among them, is never held up."""
+    versions among them, is never held up, and nor is one that read the board before a statement's
+    edit carried its words to it, with nothing changed on the board since (see `FOLLOWED`)."""
     said = str(seen or "").strip()
-    return bool(said) and isinstance(board, dict) and said != board_version(board)
+    if not said or not isinstance(board, dict):
+        return False
+    now = board_version(board)
+    if said == now:
+        return False
+    held = board.get(FOLLOWED)
+    return not (isinstance(held, dict) and held.get("to") == now and said in (held.get("from") or []))
 
 
 # Reload on the refused save's card keeps the page's canvas in the board's History under this name
@@ -2594,6 +2621,7 @@ def save(workbook: Path, version: dict, case: str, revision=None) -> dict:
     if old.get("cut"):
         kept["cut"] = old["cut"]
     made = None
+    followed: dict = {}
     if at is None:
         if versions or kept["id"] != FIRST_VERSION:
             raise WorkbookError(i18n.t("server.board_longer_themes_file_nothing"))
@@ -2614,6 +2642,8 @@ def save(workbook: Path, version: dict, case: str, revision=None) -> dict:
         refuse_stale(was, sent.get("v"), i18n.t("server.board_changed_since_page_loaded"))
         # a label sent with no key for a field keeps the file's, its description or its domain (see `fields_kept`)
         kept = fields_kept(kept, sent.get("groups"), was.get("groups"))
+        # a card the file keeps in step with the workbook keeps its words, whatever old ones the page held (cardsync2)
+        followed = words_kept(kept, was, workbook, read)
         kept.update(created=str(was.get("created") or kept["created"]),
                     name=str(was.get("name") or kept["name"]), note=str(was.get("note") or ""))
         # what an agent did to the board is the file's, and the page never sends it
@@ -2652,6 +2682,43 @@ def save(workbook: Path, version: dict, case: str, revision=None) -> dict:
     out = {"saved": True, "updated": when, "version": summary(kept)}
     if made:
         out.update(revision=revision_summary(made), history=history_list(kept))
+    # the cards whose words the save kept, for the page to show them
+    if followed:
+        out["followed"] = followed
+    return out
+
+
+def words_kept(kept: dict, was: dict, workbook: Path, read: dict | None = None) -> dict[str, str]:
+    """A save never writes a statement's card back to words the workbook has left (cardsync2, 18 November 2026,
+    Adam: "they're meant to be a live link"). `kept` is the board as the page sent it, `was` as the file holds it:
+    each card the page sent with other words than the file's, where the file's card reads as the workbook's
+    statement at its key now, keeps the file's words, the page having held the old ones since before an edit.
+    A card the page took the workbook's words onto, or one marked changed whose words the file still keeps, is
+    as the page sent it. The workbook is read only when a card differs, `read` the save's own read when it
+    made one, and when it cannot be read every card that differs keeps the file's words. Answers each card kept
+    by its key with its words."""
+    held = was.get("cards") if isinstance(was.get("cards"), dict) else {}
+    differ = [k for k, card in kept["cards"].items()
+              if isinstance(held.get(k), dict) and words(card.get("text")) != words(held[k].get("text"))]
+    if not differ:
+        return {}
+    live = None
+    if read is None:
+        try:
+            read = read_cards(workbook)
+        except (WorkbookError, OSError):
+            # a workbook that cannot be read now tells nothing, so every card that differs keeps the file's words,
+            # and a Take the changes once it reads again brings in any it should not have kept
+            read = None
+    if read is not None:
+        live = {c["key"]: c["text"] for c in read["cards"]}
+    out = {}
+    for k in differ:
+        text = str(held[k].get("text") or "")
+        if live is None or (k in live and words(live[k]) == words(text)):
+            kept["cards"][k]["text"] = text
+            kept["cards"][k].pop("live", None)
+            out[k] = text
     return out
 
 
@@ -2751,9 +2818,13 @@ REVISION_SAID = {
     "before_copy_revision": lambda **v: i18n.t("themes.revision.named.before_copy_revision", v, lang="en",
                                                method="ipa"),
     "before_changes": lambda **v: i18n.t("themes.revision.named.before_changes", v, lang="en", method="ipa"),
-    "statement_edited": lambda **v: i18n.t("themes.revision.named.statement_edited", v, lang="en", method="ipa"),
-    "statement_edited_bare": lambda **v: i18n.t("themes.revision.named.statement_edited_bare", v, lang="en",
-                                                method="ipa"),
+    # in the method's words, a thematic analysis project's "code edited" (cardsync4, see `routes.edit_lines`)
+    "statement_edited": lambda **v: i18n.t("themes.revision.named.statement_edited", v, lang="en"),
+    "statement_edited_bare": lambda **v: i18n.t("themes.revision.named.statement_edited_bare", v, lang="en"),
+    # a thematic analysis project's code added to an extract, taken off it, or several at once (cardsync5)
+    "code_added": lambda **v: i18n.t("themes.revision.named.code_added", v, lang="en"),
+    "code_taken_off": lambda **v: i18n.t("themes.revision.named.code_taken_off", v, lang="en"),
+    "codes_edited": lambda **v: i18n.t("themes.revision.named.codes_edited", v, lang="en"),
     "brought_in": lambda **v: i18n.t("themes.revision.named.brought_in", v, lang="en", method="ipa"),
     # a board a teammate sent through Working together (wtboard, 9 November 2026)
     "team_board": lambda **v: i18n.t("themes.revision.named.team_board", v, lang="en", method="ipa"),
@@ -2766,7 +2837,8 @@ REVISION_SAID = {
 REVISION_SLOTS = {"canvas_kept": (), "reload_kept": (), "before_restoring": ("when",),
                   "before_copy": ("label", "board"), "before_copy_revision": ("label", "board", "when"),
                   "before_changes": ("who",), "statement_edited": ("who", "old", "new"),
-                  "statement_edited_bare": ("old", "new"), "brought_in": ("file",), "team_board": ("who",), "codes_changed": ("what",),
+                  "statement_edited_bare": ("old", "new"), "code_added": ("who", "name"),
+                  "code_taken_off": ("who", "name"), "codes_edited": ("who", "names"), "brought_in": ("file",), "team_board": ("who",), "codes_changed": ("what",),
                   "codes_listed": ("codes",), "codes_listed_moved": ("codes", "names")}
 # the time a `when` names, as ISO, kept beside the slots (i18nleft3, 2 November 2026), so the page says it in the
 # reader's language and formats (thWhen) where the English name keeps it as the History said it then
@@ -3023,6 +3095,27 @@ def edit_line(who: str, old: str, new: str) -> str:
     who = words(who)
     return (revision_name("statement_edited", who=who, old=was, new=now) if who
             else revision_name("statement_edited_bare", old=was, new=now))
+
+
+def codes_line(who: str, added: list[str], taken: list[str], swapped: list[str] | tuple = ()) -> str:
+    """The History line a change to an extract's codes leaves on a thematic analysis project's Themes board when no
+    code was typed over in place (cardsync5): `Corin's code added: "Ease"`, `Corin's code taken off: "Fear"`, one
+    taken off and another put on as a code edited (`edit_line`), and several at once, or codes `swapped` between
+    the passage's extracts, naming each. None for no change."""
+    added = [words(x) for x in added if words(x)]
+    taken = [words(x) for x in taken if words(x)]
+    who = words(who)
+    if len(added) == 1 and len(taken) == 1:
+        return edit_line(who, taken[0], added[0])
+    if len(added) == 1 and not taken:
+        return revision_name("code_added", who=who, name=added[0])
+    if len(taken) == 1 and not added:
+        return revision_name("code_taken_off", who=who, name=taken[0])
+    named = taken + added if added or taken else [words(x) for x in swapped if words(x)]
+    named = [x for i, x in enumerate(named) if x.casefold() not in {y.casefold() for y in named[:i]}]
+    if named:
+        return revision_name("codes_edited", who=who, names=", ".join(f'"{x}"' for x in named))
+    return ""
 
 
 def when_said(at: str, now: datetime | None = None, lang: str | None = None) -> str:
@@ -4702,8 +4795,9 @@ def rekey(workbook: Path, mapper, cut: str | None = None, back: str | None = Non
 
 @at_sheet_timepoint
 def statement_edited(workbook: Path, sheet: str, row: int, line: int, old: str, new: str, said: str = "") -> int:
-    """A statement edited in place on the PETs screen, carried to the other boards of the case, the boards of
-    the timepoint its sheet is at when nothing set one, as an edit from a GETs, LGETs or LPETs board sets none.
+    """A statement edited in place on the PETs screen, or reworded on the statements screen (cardsync2, 18 November
+    2026), carried to the other boards of the case, the boards of the timepoint its sheet is at when nothing set
+    one, as an edit from a GETs, LGETs or LPETs board sets none.
 
     The board on the canvas takes the new words from the page. Every board whose card for that
     line held the words it read before, `old`, takes `new` as well, so no board marks the card
@@ -4735,10 +4829,13 @@ def statement_edited(workbook: Path, sheet: str, row: int, line: int, old: str, 
         if words(card.get("text")) != was:
             continue
         before = json.loads(json.dumps({k: v for k, v in board.items() if k != "history"}))
+        was_v = board_version(board)
         card["text"] = now
         card.pop("live", None)
         # a card that takes longer words stands taller, and what it now meets makes way (31 October)
         settle_change(before, board)
+        # and a page open on the board since before the edit saves over it as ever (cardsync2)
+        followed_from(board, was_v)
         took += 1
     if took or noted:
         data["updated"] = when
@@ -4751,11 +4848,13 @@ def statement_edited(workbook: Path, sheet: str, row: int, line: int, old: str, 
 
 @at_sheet_timepoint
 def statements_noted(workbook: Path, sheet: str, row: int, edits: dict, who: str) -> list[dict]:
-    """A passage's statements reworded on the statements screen, each kept in the History of every board of the
-    case that holds a card of it, the boards of the timepoint its sheet is at (histreplace, Adam, 30 October 2026,
-    "Add a History line"): `edits` holds each line reworded in place by its place, with its words before and
-    after (see `reworded`), and each board keeps itself as it stood, one revision a statement named for it (see
-    `edit_line`). The cards keep their words, so a board shows the change as ever, the card marked changed. A case
+    """A passage's codes typed over on the Coding screen of a thematic analysis project, each kept in the History
+    of every board of the case that holds a card of it, the boards of the timepoint its sheet is at (histreplace,
+    Adam, 30 October 2026, "Add a History line"; since cardsync2, 18 November 2026, an IPA project's reworded
+    statement goes through `statement_edited` instead, its cards taking the words): `edits` holds each line
+    reworded in place by its place, with its words before and after (see `reworded`), and each board keeps itself
+    as it stood, one revision a line named for it (see `edit_line`). The cards keep their words, so a board shows
+    the change, the card marked changed. A case
     with no themes file, or one that cannot be read or written, is left alone. Answers each board that kept a
     line, its id, name and the keys, and writes only when one did."""
     if not edits or not themes_path(workbook).exists():

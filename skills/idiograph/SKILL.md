@@ -714,7 +714,7 @@ LGETs' copies as a shift of that one row does, the row's lines and each end of a
 counts their lines, so the participant still reads in. A copy that cannot follow (a file that is malformed or not yet
 fetched, or the GETs board another member of a Working together project writes) never refuses the correction: the
 workbook is saved, the other copies follow, and the answer names each that did not under `copies.failed`, the
-participant reading changed until `copies refresh` or a take, as after a statement's save; the dry run says the same.
+participant reading changed until `copies refresh` or a take. The dry run says the same.
 `turn shift-times` moves every timecode of one sheet by
 `--by` seconds, `-121` earlier or `30` later, for a transcript that runs ahead of or behind its recording
 through the sheet, `--from-row` and `--to-row` keeping it to a range (16 November). Each timecode is written
@@ -1041,6 +1041,20 @@ statement spelled "the walk as a fixed route " is the code The walk as a fixed r
 the list lacks, from `turn write` or from their typing, joins the list on its next read. A project made before the
 list has it made on its first read, each GETs board keeping a revision first. An IPA project has no code list and
 refuses every one of these commands with a plain line.
+
+Every change to an extract's codes lands on the Themes boards in the same write (18 November 2026): a code typed
+over with `turn write`, a code added or taken off with `turn write`, `codes add`, `codes remove`, `codes apply-last`
+or `codes in-vivo`. The extract stands beside its new code's other extracts, in that code's theme, and never leads
+that code anywhere else, also when that code is loose on the canvas, and a code with no card on the board, in the
+Unplaced panel, takes the extract there. A code new to the study stays in the theme or Set aside the extract stood
+in: on its own spot when nothing of the old code is left on the board, else on a free spot beside it. An extract
+whose code is taken off leaves the board. `codes undo` and `codes redo` reach the boards the same way. The participant reads in, with nothing left for `gets take`. Each board that holds a card
+the change moves keeps a revision first, "Before an agent's change", and is marked changed in a conversation. A board
+with no such card is left as it was. When the boards cannot take the change, the write still stands, the answer
+says so in a line, and `gets take` brings it in. The answer gives the participant, the take's counts and the boards that took it,
+under `recoded` for `turn write` and under `themes` for the `codes` commands. Undoing the run puts the boards back with
+the rest. The dry run writes nothing and says which boards would take the change, with counts and keys and never a
+word.
 
 With AI features on, the app's own AI suggests codes for an extract on the Coding screen (3 November 2026). That is
 the app's own AI, which you work in place of, so no command calls it. A code they take from a suggestion is an

@@ -27,6 +27,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -8071,10 +8072,13 @@ def api_commit(body: dict) -> dict:
     A statement the save rewords in its own place (see `themes.reworded`) leaves one line in the
     History of every board that holds a card of it, the case's boards at its sheet's timepoint and
     the boards of each copy across the participants, named for the participant and its words before
-    and after (histreplace, 30 October 2026, see `themes.edit_line`). The cards and the copies keep
-    their words, so a board shows the change as ever. The copies' lines are written under the
-    project's lock once the case's is let go, and a copy that cannot have it keeps no line, the save
-    standing."""
+    and after (histreplace, 30 October 2026, see `themes.edit_line`). Every card that held its old
+    words takes the new, on the case's boards (`themes.statement_edited`) and in each copy, the GETs',
+    the LPETs' and the LGETs' (`follow_statements`), as an edit on a board's card does (cardsync2, 18
+    November 2026, Adam: "they're meant to be a live link". Until then the cards kept their words and
+    showed the card changed, so the GETs, `board show` and the exports read the old wording). The
+    copies are written under the project's lock once the case's is let go, and a copy that cannot have
+    it keeps its words, the save standing."""
     path = case_path(body["path"])
     pairs = commit_pairs(body)
     was = body.get("v")
@@ -8090,14 +8094,32 @@ def api_commit(body: dict) -> dict:
         outline = result.pop("outline")
         moved = result.pop("statements", None)
         edits = themes_mod.reworded(moved["before"], moved["after"]) if moved else {}
+        # in a thematic analysis project a code typed over on the Coding screen is a recode, never a card's rewording:
+        # it is taken onto the Themes boards below, under the project's lock, its extract gathered to its code
+        # and since cardsync4 (Adam, 18 November 2026, "yes") every change to a passage's codes is taken there at the
+        # save, a code added, one of two taken off, or one taken off and another put on in two saves
+        coded = bool(moved) and list(moved["before"]) != list(moved["after"]) and recoding(path)
+        recode = bool(edits) and coded
         if edits:
             said = edit_lines(path, {themes_mod.card_key(result["sheet"], int(result["row"]), i): pair
                                      for i, pair in edits.items()})
+        if edits and recode:
             try:
                 themes_mod.statements_noted(path, result["sheet"], int(result["row"]), edits,
                                             gets_mod.who(case_label(path)))
             except (WorkbookError, OSError):
                 pass
+        elif edits:
+            # every board of the case whose card held the old words takes the new, each board with a card of it
+            # keeping the line first (cardsync2). The workbook is saved already, so whatever goes wrong here leaves
+            # the save standing and the card shown changed, as before
+            for i, (old_words, new_words) in sorted(edits.items()):
+                try:
+                    themes_mod.statement_edited(path, result["sheet"], int(result["row"]), i, old_words, new_words,
+                                                said=said[themes_mod.card_key(result["sheet"], int(result["row"]), i)])
+                except Exception as exc:  # noqa: BLE001
+                    print(f"A board could not take a reworded statement ({type(exc).__name__}), so its card shows "
+                          "changed.", file=sys.stderr, flush=True)
         progress = rounds_mod.load_progress(path)
         key = rounds_mod.row_key(body["sheet"], int(body["row"]))
         has = (any(p["es"].strip() for p in pairs) if pairs is not None
@@ -8116,15 +8138,27 @@ def api_commit(body: dict) -> dict:
     # and a statement added joins every copy, unplaced (copiesadd, 16 November 2026)
     follows = any(j != i for i, j in lines.items()) or bool(
         moved and gets_mod.passage_added(body["sheet"], int(body["row"]), moved["after"], lines))
-    root = project_root(path) if said or follows else None
+    root = project_root(path) if said or follows or coded else None
     if root is not None:
         try:
             with writing(root=root):
-                if follows:
+                if coded:
+                    # a change to the passage's codes lands on the Themes boards now, each extract under its code's
+                    # card and in its theme (cardsync3, cardsync4), the take carrying whatever else the save moved
+                    # the edit's own line when it names one code, else the codes put on, taken off or moved, so
+                    # two codes typed over in one save are named too (cardsync6)
+                    result["copies"] = recode_take(path, history=(recode_line(said) if recode else "") or codes_said(
+                        path, codes_mod.put_on(moved["before"], moved["after"]),
+                        codes_mod.put_on(moved["after"], moved["before"]), swapped(moved["before"], moved["after"])))
+                elif follows:
                     result["copies"] = passage_follow(path, body["sheet"], int(body["row"]), moved["before"],
                                                       moved["after"], lines)
-                if said:
-                    statements_noted(path, said)
+                if said and not coded:
+                    # and every copy across the participants takes the words, each board with a card of it keeping
+                    # the line first. The copies were not read before the write, since the save never waits on the
+                    # project's lock, so a copy is read again when next opened, its words already the new
+                    follow_statements(path, {themes_mod.card_key(result["sheet"], int(result["row"]), i): pair
+                                             for i, pair in edits.items()}, {}, said=said)
         except (WorkbookError, OSError):
             pass
     # in a thematic analysis project a name typed as New code joins the code list (codes, 2 November 2026)
@@ -10051,6 +10085,13 @@ def api_stamp(body: dict) -> dict:
                 mark = themes_mod.agent_mark(b.get(key))
                 if mark:
                     entry[key] = mark
+            # the version a statement's edit left the board in, which a GETs, LPETs or LGETs page in another window
+            # takes in by itself when it is not its own (cardsync2), only while the board still stands there: once
+            # anything changed the board in place (Take the changes, an agent's op, copies refresh) the mark is
+            # spent, and a page that kept reloading for it would lose its selection every tick
+            held = b.get(themes_mod.FOLLOWED)
+            if isinstance(held, dict) and held.get("to") and held.get("to") == themes_mod.board_version(b):
+                entry["followed"] = str(held["to"])
             out.append(entry)
         return out
 
@@ -11099,6 +11140,29 @@ def api_codes_extract(body: dict) -> dict:
                                         body.get("code"), themes_mod.now_iso(), dry_run=dry,
                                         note=themes_ai.one_line(body.get("note") or ""),
                                         tool=themes_ai.one_line(body.get("tool") or ""))
+        codes_taken(done, body)
+    return done
+
+
+def codes_taken(done: dict, body: dict) -> dict:
+    """A code put on an extract or taken off it, by `codes add`, `codes remove` or a quick key, taken onto the Themes
+    boards in the same write (cardsync4, Adam, 18 November 2026, "yes": every change to an extract's codes lands at
+    the save), under the root's lock the caller holds: `themes` in `done`, what the take did (see `recode_take`), and
+    with `dry_run` what it would do, keys and counts alone. A write with a tool, an agent's, marks each board it
+    changes as changed in a conversation, and its History line names the request."""
+    note = themes_ai.one_line(body.get("note") or "")
+    tool = themes_ai.one_line(body.get("tool") or "")
+    when = themes_mod.now_iso()
+    changed = {"by": "agent", "tool": tool, "request": note, "at": when} if tool else None
+    dry = bool(done.get("dry_run"))
+    # with no request to name, the line names the code put on or taken off (cardsync5)
+    code = [str(done.get("code") or "")] if done.get("code") else []
+    history = themes_ai.revision_name(note) if note else codes_said(
+        Path(done["workbook"]), [] if done.get("op") == "remove" else code, code if done.get("op") == "remove" else [])
+    taken = recode_take(Path(done["workbook"]), history=history, changed=changed,
+                        dry=dry, passage=(done["sheet"], done["row"], done["pairs"]) if dry else None)
+    if taken:
+        done["themes"] = taken
     return done
 
 
@@ -11111,10 +11175,11 @@ def api_codes_quick(body: dict) -> dict:
     books = gets_books(root)
     dry = ticked(body.get("dry_run"), False)
     with writing(root=root, books=[] if dry else [b["workbook"] for b in books]):
-        return codes_mod.quick(root, books, body.get("op"), str(body.get("case") or ""), str(body.get("sheet") or ""),
+        done = codes_mod.quick(root, books, body.get("op"), str(body.get("case") or ""), str(body.get("sheet") or ""),
                                body.get("row") or 0, body.get("words"), themes_mod.now_iso(), n=body.get("n") or 1,
                                dry_run=dry, note=themes_ai.one_line(body.get("note") or ""),
                                tool=themes_ai.one_line(body.get("tool") or ""))
+        return codes_taken(done, body)
 
 
 def api_codes_suggest(body: dict) -> dict:
@@ -11491,25 +11556,86 @@ def passage_follow(path: Path, sheet: str, row: int, old: list[str], new: list[s
     return out
 
 
-def statements_noted(path: Path, said: dict) -> dict:
-    """His statements reworded on the statements screen, `said` each one's History line by its key (see
-    `themes.edit_line`), kept in the History of every board with a card of it across the participants, the GETs
-    file's, and in a project of timepoints the participant's LPETs' and the LGETs', each through
-    `gets.statements_noted`, the copies keeping their words (histreplace, 30 October 2026). Answers what each
-    file's boards kept by its kind, and `failed`, a line for a file that could not be read."""
-    root, kinds = statement_copies(path)
-    out, failed = {}, []
-    for kind in kinds:
-        try:
-            with copy_scope(kind, path, root):
-                done = gets_mod.statements_noted(root, path, said, lpets_books(path) if kind == "lpets" else None)
-        except (WorkbookError, OSError) as exc:
-            failed.append(f"The {COPY_NAMES[kind]} could not be read, so their History has no line for it: {exc}")
-            continue
-        if done:
-            out[kind] = done
-    if failed:
-        out["failed"] = failed
+def recoding(path: Path) -> bool:
+    """Whether a statement reworded at `path` is a code typed over, in a thematic analysis project, rather than a
+    card's words (cardsync2, 18 November 2026). A card's code there is read from its copy's line and a code stands in
+    one place on a board, so a recode is never written into the copy where the card stands: it is taken in at once,
+    the take's gather putting the extract beside its code's other extracts (see `recode_take`)."""
+    root = project_root(path)
+    return root is not None and read_project(root).get("method") == "ta"
+
+
+def recode_take(path: Path, history: str = "", changed: dict | None = None, dry: bool = False,
+                passage: tuple | None = None) -> dict:
+    """A thematic analysis project's recode at `path` taken onto the Themes boards in the same save (cardsync3, Adam,
+    18 November 2026, "yes"): the participant's changes go in through the take itself, `gets.recode_taken`, so the
+    extract lands under its code's card and in that code's theme, each board keeping itself first in its History
+    under `history`, and with `changed`, an agent's mark, each board marked changed in a conversation. The caller
+    holds the project's lock. A file that cannot be read leaves the participant changed, taken when Themes is next
+    open, the save standing. Since cardsync4 every change to a passage's codes comes here, a code added or taken off as much
+    as one typed over, and with `dry` and `passage`, the sheet, row and pairs a write would leave, it says what the
+    take would do and writes nothing. Answers `gets`, what the take did, or `failed`, the line of a file that could
+    not be read."""
+    root = project_root(path)
+    if root is None:
+        return {}
+    try:
+        with i18n.in_method("ta"):
+            done = gets_mod.recode_taken(root, gets_books(root), case_label(path), history=history, changed=changed,
+                                         dry_run=dry, written=(lambda entry: written_fresh(entry, *passage))
+                                         if passage is not None else None)
+    except Exception as exc:  # noqa: BLE001
+        # the workbook is saved already, so whatever goes wrong here leaves the save standing and the participant
+        # changed, as the IPA branch's statement_edited does (cardsync4)
+        if not isinstance(exc, (WorkbookError, OSError)):
+            print(f"The Themes boards could not take a change to a participant's codes ({type(exc).__name__}). They "
+                  "take it when Themes is next open.", file=sys.stderr, flush=True)
+        return {"failed": [i18n.t("server.codes_take_failed", exc=exc)]}
+    return {"gets": done} if done else {}
+
+
+def written_fresh(entry: dict, sheet: str, row: int, pairs: list[dict]) -> dict:
+    """A participant's copy as it would read once a passage of their workbook holds `pairs`, for a dry run
+    (cardsync4): the workbook and its themes files copied to a scratch folder, the passage written there, and the
+    copy read from it (`gets.fresh_of`). The workbook itself is never written, and the scratch folder goes after."""
+    book = Path(entry["workbook"])
+    with tempfile.TemporaryDirectory(prefix="idiograph-dry-") as tmp:
+        there = Path(tmp) / book.name
+        shutil.copy2(book, there)
+        working = book.parent / "Working"
+        if working.is_dir():
+            (Path(tmp) / "Working").mkdir()
+            for f in working.glob(f"{book.stem}.themes*.json"):
+                shutil.copy2(f, Path(tmp) / "Working" / f.name)
+        wb_mod.save_turn(there, sheet, int(row), None, None, None, pairs=pairs)
+        snap = gets_mod.fresh_of(dict(entry, workbook=there))
+    snap.pop("seen", None)
+    return snap
+
+
+def recode_line(said: dict) -> str:
+    """The History line a recode's take keeps on each board: the recode's own line when it is one, else the take's
+    own name for the participant's changes (none)."""
+    lines = [str(v) for v in (said or {}).values() if v]
+    return lines[0] if len(lines) == 1 else ""
+
+
+def codes_said(path: Path, added: list[str], taken: list[str], moved: list[str] | tuple = ()) -> str:
+    """The History line a change to an extract's codes leaves on the Themes boards when no code was typed over in
+    place, naming the codes put on and taken off for the participant at `path`, or with neither the codes `moved`
+    between the passage's extracts (see `themes.codes_line`, cardsync5), or none when it names no code."""
+    with i18n.in_method("ta"):
+        return themes_mod.codes_line(gets_mod.who(case_label(path)), added, taken, moved)
+
+
+def swapped(before, after) -> list[str]:
+    """The codes a passage's save moved between its extracts, each once in the order they stand after: a code
+    whose place in the passage's list of codes changed."""
+    out = []
+    for i, name in enumerate(after or []):
+        was = (before or [])[i] if i < len(before or []) else None
+        if codes_mod.words(name) and codes_mod.norm(name) != codes_mod.norm(was or "") and name not in out:
+            out.append(name)
     return out
 
 
@@ -11517,7 +11643,9 @@ def edit_lines(path: Path, words: dict) -> dict:
     """Each statement's History line by its key, `words` holding its words before and after (see
     `themes.edit_line`), named for the participant at `path` by their pseudonym."""
     who = gets_mod.who(case_label(path))
-    return {key: themes_mod.edit_line(who, old, new) for key, (old, new) in words.items()}
+    # a thematic analysis project's line names the code, "Corin's code edited" (cardsync4)
+    with i18n.in_method("ta" if recoding(path) else "ipa"):
+        return {key: themes_mod.edit_line(who, old, new) for key, (old, new) in words.items()}
 
 
 def api_edit_statement(body: dict) -> dict:
@@ -11555,7 +11683,14 @@ def api_edit_statement(body: dict) -> dict:
                                     if isinstance((b.get("cards") or {}).get(key), dict)}
             except WorkbookError:
                 pass
-            out["copies"] = follow_statements(path, {key: (out["old"], out["text"])}, before, said=said)
+            if recoding(path):
+                # a code edited from its card in a thematic analysis project is a recode, taken onto the Themes boards
+                # at once, its extract gathered to its code's card and theme (cardsync3)
+                out["copies"] = recode_take(path, history=said[key])
+                # the page reads the board back only when the take landed, and says the line when it did not
+                out["recoded"] = not (out["copies"] or {}).get("failed")
+            else:
+                out["copies"] = follow_statements(path, {key: (out["old"], out["text"])}, before, said=said)
         return out
 
 

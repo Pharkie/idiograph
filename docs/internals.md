@@ -4225,8 +4225,8 @@ own quote changed, by key with its quote before and after, to `follow_statements
 `gets.statements_followed` carries it through `quotes_carried`: every line of the copy on the statement's row
 keeps the row's quotes by place (`row_places`), and each whose place held the old quote by `quote_words` takes
 the new as the cell holds it, the write's statements building on one another. Its answer gains `words` and
-`quotes`, the keys that took each, and `copy_lines` says which. The statements screen's save still leaves the
-copies to Take the changes (histreplace), and a PETs pick on a reworded quote follows its statement (below).
+`quotes`, the keys that took each, and `copy_lines` says which. The statements screen's save carries a statement's
+words to the copies (cardsync2, below) and leaves a requote to `copies refresh`, and a PETs pick on a reworded quote follows its statement (below).
 `copies refresh` (`cli.cmd_copies_refresh`, MCP `copies_refresh`) runs `routes.refresh_copies` on each
 participant under the root's lock and the case's: `themes.cards_refreshed`, at every timepoint by
 `each_timepoint`, sets a card's text to the workbook's where `follow` keeps its key and the words differ, and a
@@ -4332,11 +4332,99 @@ such PETs board's `history_list` by id, and each copy's answer its own, which `t
 `TH.history` for the board on the canvas and draws when the History tab shows. `api_commit`, the statements
 screen's save, takes `statements` from `workbook.save_turn`'s answer, the cell's entries before and after,
 set only when the save changes the statements and popped before the page sees it, and for each line
-`themes.reworded` names keeps the line on the case's boards through `themes.statements_noted` under the
-case's lock, then on each copy's boards through `routes.statements_noted` and `gets.statements_noted` under
-the root's lock alone, taken after the case's is let go so the save never waits on a long write elsewhere
-and a copy that cannot have it keeps no line, the save standing. The cards and the copies keep their words
-there, so the boards show the change and Take the changes as before. An agent's `turn write` passes no
+`themes.reworded` names runs `themes.statement_edited` with the line under the case's lock, then
+`follow_statements` with the line under the root's lock alone, taken after the case's is let go so the save
+never waits on a long write elsewhere, and a copy that cannot have it keeps its words, the save standing.
+
+**The statements screen's save carries the words, and an open page never puts the old ones back (cardsync2, 18
+November 2026, from the GRAVITY session: Adam's edits on the statements screen reached the workbook while every
+board's card and the GETs' copy kept the old words; Adam: "they're meant to be a live link").** Until then the save
+kept only the History line (`themes.statements_noted`, `gets.statements_noted`), the cards and the copies keeping
+their words, so the PETs board showed the card Changed and the GETs, `board show` (`stale_cards`) and the exports
+read the old wording until `copies refresh`. No page had saved over anything: the save had never written the cards.
+Now every card that held the old words takes the new, as an edit on a board's card does. `follow_statements` is
+passed no `before`, since the copies are not read before the write, so a copy is read again on its next open and
+reads in, its words and hash already the new. A page open since before the edit holds the old words and the old
+version. `themes.followed_from` marks each board whose cards took words with `followed` (`FOLLOWED`): the versions it
+stood in before, by `board_version`, which leaves the key out, and the version the edit left (`to`). `stale_since`
+lets a save or an agent's write through whose `v` is one of those while the board still stands at `to`, so any other
+change since is refused as ever. A follow by an agent's write (`changed`) is not marked. And `themes.save` and
+`gets.save` keep the file's words on every card the page sent with other words where the file's card reads as the
+workbook's statement now, or on GETs, LPETs and LGETs as the copy's line (`themes.words_kept`, `gets.words_kept`),
+reading the workbook only when a card differs, and keeping the file's words on every card that differs when the
+workbook cannot be read. So neither the old page's save, its Overwrite nor a page that sends no version can put old
+words back. A card the page took the workbook's words onto, or one marked Changed whose words the file still keeps,
+saves as sent. The answer's `followed` names each card kept with its words, and the page's `thFollowedTake` puts them
+on the canvas, on GETs, LPETs and LGETs on the Participants panel's line too (`gtLineTook`), and settles the cards
+that grew as `thStatementWrite` does. A PETs card marked Changed takes the line's words when he acts on it
+(`thAck`), and an Undo of that act puts back the places but no longer the old words, since the file's card and the
+workbook then agree: the words follow the workbook, and the step undoes the rest of the act, so there is no step that
+does nothing. A GETs, LPETs or LGETs page in another window learns of the edit by its stamp, the board's `updated`
+left as it was (histdate): `/api/stamp` gives each board's `followed` `to`, the version the edit left it in, and
+`thStampTick` runs `thOwnLoad` when the board on its canvas names one that is not the page's own `v`. The read that
+follows gives the page that version, so it takes the change once, and a page's own edit on a card takes the same
+version from its answer, so it never reloads for its own edit. The stamp gives `followed` only while
+the board still stands at `to`: once anything changes the board in place (Take the changes, an agent's op, `copies
+refresh`) the mark is spent, and a page reloading for it would lose its selection on every tick. The page also
+remembers the last `followed` it reloaded for (`TH.followLoaded`) and never reloads for it twice.
+
+In a thematic analysis project a code typed over is a recode and not a card's rewording (`routes.recoding`): written
+into the copy where its card stood, one code would stand in two themes and the page's next save (`codes.unfold`)
+would move the whole code. Since cardsync3 (Adam, 18 November 2026, "yes") every recode lands on the Themes board in
+the same save, under its code's card and in that code's theme, and since cardsync4 (Adam, about 22:00 that day, "yes")
+so does every change to an extract's codes: a code added, one of two taken off, one taken off and another put on in
+two saves. Nothing waits. `api_commit` (the Coding screen, whenever the passage's codes before and
+after differ), `api_edit_statement` (a code edited from its card on a Themes board), `codes_taken` after
+`codes.extract_change` and `codes.quick` (the routes and the command line's `codes add`, `codes remove`,
+`codes apply-last` and `codes in-vivo`) and an agent's `turn write` (whenever its codes differ) each run
+`routes.recode_take` under the project's lock once the workbook is written, catching every error, so the workbook's
+save stands and the participant stays changed when the take fails. It runs the take for that participant
+(`gets.recode_taken`, through `take_into`), and on each board `gets.recoded_in` names the movers: a card of the
+participant whose code the take changes, its old code read from the copy before and its new from the copy after.
+`codes.gather` never elects a mover as its new code's lead while that code has another card on the board, so a
+recode to a code with one extract joins that extract's theme whatever reads first. The same rule covers a card whose
+own stored words are not its line's code (`codes.stale_of`), which `gather` refreshes to its line's words once it has
+gathered it: Restore of a revision from before a recode (`board_op` restore gathers the restored board in a thematic
+analysis project) and a page open since before it, whose Overwrite `gets.save` reads for stale cards before
+`words_kept` puts the file's words on them (`unfold` with `stale`), so neither leaves a code in two themes or moves
+it. Two rules place a mover since cardsync6 (19 November 2026). A mover whose new code the study held before the take
+always joins that code where it stands and never leads it: beside its card on the board, whatever theme reads first,
+or in the Unplaced panel when the code has no card there, the mover's card going from the board, so folding a code
+into one still loose or in the panel never themes it or sets it aside. A mover whose new code is new to the study
+stays in the theme or Set aside it stood in, or loose where it lay: on its own spot when the code it left keeps no
+card on the board (`keeper`, the first such mover of that code, so two extracts of one code typed over as two new
+codes in one save never share a spot), else on the nearest free spot beside it (`gets.lay_beside`, `free_offset`
+against every other card, label, note and every frame but its own theme's). So a code of one extract retyped or
+retitled keeps its theme, and a code of two extracts retyped one extract after the other stays in its theme at each
+step. `gather` gives a card
+with no words of its own its line's words, as it does a stale one, and `unfold` reads each stale card's words as the
+page sent them (`drawn_as`, before `words_kept`), so an Overwrite from a page open since before two recodes that
+swapped two codes keeps each code where that page drew it. `codes undo` and `codes redo` of a step made while the
+project had no Themes file put back the workbooks alone, so `codes.taken_after_undo` then takes each participant whose
+workbook they put back. The card of an extract whose code was taken off goes from the board. Only
+a board the take changes keeps a History line (`take_into` with `touched`), under the recode's own line from the app
+(`recode_line`, the edit's `edit_line`, in a thematic analysis project "Corin's code edited"), a code added, taken off
+or moved between extracts on the Coding screen or by `codes add` and `codes remove` with no request naming the code
+(`routes.codes_said`, `themes.codes_line`, "Corin's code added", "Corin's code taken off", "Corin's codes changed"),
+or the request's for an agent ("Before an agent's change"), and only those are marked changed in a conversation by an agent's take, whose run
+is undone with the rest of it (the restore point holds the GETs file). An agent's dry run reads the passage as it
+would be written from a scratch copy of the workbook (`routes.written_fresh`) and says which boards would take it, with
+the take's counts and keys, writing nothing (`cli.themes_taken_lines`). A Themes page open since before the change holds
+the old board and the old version: the take moves the board on and sets no `followed`, so its save is refused as stale
+(409, Reload), and its stamp sees the board's `updated` move, written by this app, and it reloads by itself. A card
+edit on the page itself saves the page first (`thFlush`) and stops while that save is refused as stale or failed, the
+Reload and Overwrite card showing, and when the answer says `recoded` the page reads the board back (`thRecodeLoad`)
+and drops its undo steps, as a change from another window does. A file that cannot be read, or any error in the take,
+leaves the participant changed, the save standing, and the answer's `failed` says "The Themes boards could not take
+the change to the codes (...). They take it when Themes is next open." (`server.codes_take_failed`): an open Themes
+page takes the participant by itself at its next look (`thStampTick`). `edit-statement` then answers `recoded` false,
+`thStatementWrite` says the line and reads the board back, the Coding screen's save says it beside Saved, and the
+command line adds "Or run gets take" for an agent (`cli.themes_taken.or_take`). The edit's line names two codes typed
+over in one save as the codes changed (`recode_line(said) or codes_said(...)`). A statement's quote reworded on the statements screen still reaches
+the copies through `copies refresh`. Renaming a code is unchanged (`codes.land`, `follow_gets`). `gets.statements_noted`
+and `routes.statements_noted`, which kept only a History line, are gone. Area 430.
+
+An agent's `turn write` passes no
 `said`: its `history`, "Before an agent's change" (the request stays in By an agent), stays its one line a board. A replace keeps none, since
 it rewrites every revision's words too (`cards_reworded`), so a line would keep no old words. Area 300.
 
@@ -8256,7 +8344,10 @@ an invented study made by `make_lipa.py`, retired), shows its LGETs with one LPE
 Trajectories, Hollis's LPETs across the three timepoints and the page carried down to Nell's. It changes nothing on the
 screens. Every recording runs on a
 scratch copy, the demo's made whole from its pristine copy by `make_demo.fill`, with a settings file of its own,
-Celebrations off so no count stands over a canvas, and AI features off, as on a new install.
+Celebrations off so no count stands over a canvas, and AI features off, as on a new install. A clip that opens a
+project's page runs on a copy of the demo folder at another path, started with `--root`, since a demo's own page hides
+Add transcripts and the participants' menus. `workbook-sheet.mjs` runs `sheet.py`, which needs openpyxl, so set
+`IDIOGRAPH_PYTHON` to the venv's python for it: the bare `python3` has none and fails with "Command failed".
 
 ## Files
 

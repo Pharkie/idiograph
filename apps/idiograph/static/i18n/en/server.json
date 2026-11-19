@@ -639,6 +639,7 @@
     "other": "Rows {rows} of {sheet} keep their timecodes as a time of day, which cannot pass 23:59:59. Nothing was written."
   },
   "server.shift_copy_refused": "The {name} could not take the new times, so nothing was shifted and nothing was written: {exc}",
+  "server.codes_take_failed": "The Themes boards could not take the change to the codes ({exc}). They take it when Themes is next open.",
   "server.turn_time_copies_unfollowed": "The timecode is corrected, but the {names} did not take it ({exc}), so the participant reads as changed. The change's undo puts the workbook and the copies back.",
   "server.shift_copies_unfollowed": "The workbook is shifted, but the {names} did not take the new times ({exc}), so the participant reads as changed. The change's undo puts the workbook and the copies back."
 }

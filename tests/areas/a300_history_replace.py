@@ -253,10 +253,10 @@ def test_history_replace(scratch):
               str([added(pets_was, pets_lines(osric)), added(gets_was, file_lines(gfile)), sorted(saved)]))
         st = call("/api/themes", {"workbook": str(osric)})
         g5 = call("/api/gets", {"workbook": str(osric)})
-        check("300: the boards' cards keep their words, so the PETs board shows the card changed and the GETs say Osric "
-              "changed since he came in, as ever",
-              [c.get("stored") for c in st["cards"] if c.get("changed")] == ["Expecting a sting"]
-              and {c["case"]: c["status"] for c in g5["cases"]}["P1 - Osric"] == "changed",
+        # since cardsync2 (18 November 2026) the cards take the words, as an edit on a board's card does
+        check("300: the boards' cards take the new words, so no PETs card shows changed and Osric stays in on the GETs",
+              not [c for c in st["cards"] if c.get("changed")]
+              and {c["case"]: c["status"] for c in g5["cases"]}["P1 - Osric"] == "in",
               str([(c["key"], c.get("stored")) for c in st["cards"] if c.get("changed")]))
 
         # ── B. a project of two timepoints: Osric at both, his LPETs and the project's LGETs

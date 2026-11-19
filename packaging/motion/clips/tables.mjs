@@ -23,7 +23,10 @@ export async function act(h) {
   await h.sleep(1300);
   await h.move(700, 470, 900);
   await h.sleep(1200);
-  await clickText(h, 'Print', { ms: 1000, within: 'button' });
+  // Export holds the table's own Print under "The table of PETs", the last Print in its menu
+  await clickText(h, 'Export', { ms: 1000, within: 'button' });
+  await h.sleep(700);
+  await clickText(h, 'Print', { ms: 900, within: 'button, [role=menuitem]' });
   await h.visible('h1, .pp-head, table, main');
   await h.sleep(1600);
   await h.move(110, 560, 700);

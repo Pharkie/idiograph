@@ -14,8 +14,10 @@ export async function setup(h) {
   await h.sleep(800);
   const card = await h.eval(() => {
     const e = [...document.querySelectorAll('#demo-projects button.home-card.is-demo')].find((x) => x.innerText.includes('First year on an allotment'));
+    // the card is taller than the window now (its pictures and rings), so its title is pressed
+    e.scrollIntoView({ block: 'start' });
     const r = e.getBoundingClientRect();
-    return { cx: r.x + 100, cy: r.y + r.height / 2 };
+    return { cx: r.x + 100, cy: r.y + 30 };
   });
   await h.click(card.cx, card.cy, { ms: 10 });
   await h.visible('#hp-list .pcard');

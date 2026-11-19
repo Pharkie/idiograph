@@ -357,6 +357,13 @@ can carry several codes.
 A code is a label that many extracts share. You give it on the Coding screen, as an existing code or a new
 one. An in vivo code takes the selected words as its name.
 
+Every change to an extract's codes reaches the Themes board as you save it. When you give an extract another
+code, or add a second code, on the Coding screen or on its card on the Themes board, the extract moves at once
+beside that code's other extracts, wherever that code stands: in its theme, loose on the canvas or in the Unplaced
+panel. A new code stays in the theme the extract stood in, so a code you retype or retitle keeps its theme. When
+you take a code off an extract, the extract leaves that code's card. An agent's change of codes
+does the same. Idiograph saves a revision of each board it changes first, so History can take you back.
+
 ### Code list
 
 The code list shows every code with its description and all its extracts, participant by participant. There
@@ -466,7 +473,8 @@ where it was, marked "No longer in" their PETs, and nothing moves by itself.
 ### Editing a statement on a board
 
 Double-click a statement's card to edit its words. The edit writes to the participant's workbook, and every
-board, the GETs and the LPETs show the new words.
+board, the GETs and the LPETs show the new words. The same happens when you reword a statement on
+Experiential statements.
 
 ## Longitudinal projects
 

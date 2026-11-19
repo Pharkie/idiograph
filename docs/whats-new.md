@@ -5,6 +5,17 @@ Newest first. Each version's notes are what the updater shows, eight lines at mo
 
 What goes here: only major new features and real changes to how something works, among them what your AI agents can do, and any change to safety, privacy or your data. One plain line each, saying what you can now do, not how the screen shows it. Never: changed wording, labels or layout, small fixes, or a feature's parts (its buttons, tabs, counts). Several changes to one feature are one line. A version with nothing major has one line, or none.
 
+## 0.9.32, 19 November 2026
+
+Home and each project's page now show how far each participant has got, as rings round their picture.
+You can archive a project you have finished with, and it moves to its own section on Home.
+When Idiograph brings a newer version of a demo, Home tells you, and puts it in place only when you ask.
+Working together no longer needs a relay code: anyone with Idiograph can invite others through the relay. Everyone on a team needs this version.
+Trajectories can be marked complete, as PETs and GETs can.
+The manual is new: a short guide for when you are stuck, also on the website.
+A reworded experiential statement now changes on every board at once.
+In reflexive thematic analysis, a change to an extract's codes now moves it on the Themes board at once.
+
 ## 0.9.31, 18 November 2026
 
 A Longitudinal IPA project now has at least two timepoints.

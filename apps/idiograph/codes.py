@@ -46,6 +46,7 @@ import json
 import os
 import re
 import shutil
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -394,14 +395,32 @@ def where_of(board: dict, key: str, parents: dict) -> tuple:
     return (parents.get(key), key in set(board.get("discarded") or []))
 
 
-def gather(board: dict, data: dict, leads: dict[str, str] | None = None, keep_out: set | None = None) -> list[str]:
+def stale_of(board: dict, data: dict) -> set[str]:
+    """The cards of a board whose own words are not their line's code (cardsync4, 18 November 2026): a card that
+    came in, or was last gathered, under a code its extract no longer has, as a recode leaves it until its take, a
+    board's History puts it back, or a page open since before the recode sends it. A card with no words of its own
+    is never stale."""
+    codes = line_codes(data)
+    out = set()
+    for key, card in (board.get("cards") or {}).items():
+        text = card.get("text") if isinstance(card, dict) else None
+        if codes.get(key) and words(text) and norm(text) != codes[key]:
+            out.add(key)
+    return out
+
+
+def gather(board: dict, data: dict, leads: dict[str, str] | None = None, keep_out: set | None = None,
+           stale: set | None = None) -> list[str]:
     """Each code on a board one card's worth: every row of a code with a card on the board stands where its lead
     stands, in its label, set aside with it, at its place, and a row of a placed code with no card yet comes in
     there too, so a code's extracts follow it. `leads` names a code's lead by its code, the card the page moved;
-    without one the lead is where most of the code's cards stood, a tie the first in reading order. A code in
-    `keep_out` has every card taken off. The board is changed in place, and the answer is the names of the codes
-    whose cards stood in more than one place."""
+    without one the lead is where most of the code's cards stood, a tie the first in reading order, never a card
+    in `stale` or one whose own words are another code (`stale_of`) while the code has another card, so a recoded
+    extract joins its new code where that code stands (cardsync4). A code in `keep_out` has every card taken off.
+    Each card of a code keeps its line's words after. The board is changed in place, and the answer is the names
+    of the codes whose cards stood in more than one place."""
     codes = line_codes(data)
+    stale = set(stale or ()) | stale_of(board, data)
     cards = board.setdefault("cards", {})
     groups = [g for g in board.get("groups") or [] if isinstance(g, dict)]
     parents = themes.parents_of(groups)
@@ -429,7 +448,7 @@ def gather(board: dict, data: dict, leads: dict[str, str] | None = None, keep_ou
         lead = (leads or {}).get(code)
         if lead not in keys:
             places: dict[tuple, list[str]] = {}
-            for key in keys:
+            for key in [k for k in keys if k not in stale] or keys:
                 places.setdefault(where_of(board, key, parents), []).append(key)
             first = lambda ks: min(ks, key=lambda k: reading_key(k, cards[k]))  # noqa: E731
             best = max(places.values(), key=lambda ks: (len(ks), [-x for x in reading_key(first(ks), cards[first(ks)])[:2]]))
@@ -464,7 +483,19 @@ def gather(board: dict, data: dict, leads: dict[str, str] | None = None, keep_ou
     board["discarded"] = [k for k in discarded if k in cards]
     for g in groups:
         g["members"] = [m for m in g.get("members") or [] if m in cards or any(x.get("id") == m for x in groups)]
+    # a card's own words follow its line's code, so a card gathered under its new code is never read as stale again
+    # and a card with no words of its own takes its line's too, so staleness never rests on an empty card (cardsync5)
+    wordless = {k for k, c in cards.items() if codes.get(k) and isinstance(c, dict) and not words(c.get("text"))}
+    for key in stale_of(board, data) | wordless:
+        cards[key]["text"] = line_words(data, key)
     return gathered
+
+
+def line_words(data: dict, key: str) -> str:
+    """The words of the line a statement card's key names, `<case>/es/<line>`, in the GETs file's copy."""
+    case, _, ident = str(key).partition("/es/")
+    line = (((data.get("cases") or {}).get(case) or {}).get("lines") or {}).get(ident)
+    return words(line.get("text")) if isinstance(line, dict) else ""
 
 
 def place_of(board: dict, key: str, parents: dict) -> tuple:
@@ -553,25 +584,72 @@ def fold(board: dict, data: dict, extracts: dict | None = None) -> tuple[dict, d
     return out, shown
 
 
-def unfold(kept: dict, data: dict, was: dict | None) -> dict:
+def unfold(kept: dict, data: dict, was: dict | None, stale: set | None = None,
+           drawn_as: dict | None = None) -> dict:
     """A board the page saved, which holds each code's lead alone, with each code's rows laid back beside its
     lead (see `gather`). A code with two cards sent, one the page just brought in from the Participants panel, takes
-    that one's place. A code the page sent no card of has every card taken off the board."""
+    that one's place. A code the page sent no card of has every card taken off the board.
+
+    A card the page sent with words that are not its line's code, `stale` (see `stale_of`, taken before the save
+    keeps the file's words on it), was drawn by a page open since before a recode, so it is never its code's lead
+    while the page sent another card of that code (cardsync4, 18 November 2026): an Overwrite from such a page
+    never moves a code. And the code the page drew it as, when the page sent no other card of that code, stands
+    where the page drew it, its first row on the board taking the card's place, so that code is not taken off.
+    `drawn_as` holds each stale card's words as the page sent them, before the file's words go on it. Two codes
+    swapped by two recodes leave both cards stale, each drawn as the other, so each code stands where the page
+    drew it (cardsync5)."""
     codes = line_codes(data)
     held = set((was or {}).get("cards") or {})
+    stale = set(stale or ())
+    cards = kept.setdefault("cards", {})
     sent: dict[str, list[str]] = {}
-    for key in kept.get("cards") or {}:
+    for key in cards:
         if codes.get(key):
             sent.setdefault(codes[key], []).append(key)
     leads = {}
+    # the code a stale card was drawn as, which the page sent no card of, keeps the place the page drew it in
+    drawn = {}
+    # a card the page drew under its own words counts as the page's card of that code, a stale one of it never
+    # (cardsync5: two one-extract codes swapped by two recodes leave both cards stale, each drawn as the other)
+    drew = {codes[k] for k in cards if codes.get(k) and k not in stale}
+    for key in sorted(stale & set(cards), key=key_order):
+        code = norm((drawn_as or {}).get(key) or cards[key].get("text"))
+        rows = sorted((k for k in held if codes.get(k) == code), key=key_order)
+        if code and code not in drew and code not in drawn and rows:
+            drawn[code] = (key, rows[0])
+    if drawn:
+        # each row takes its stale card's place as the page sent it, read before any row is written, so two codes
+        # swapped each stand where the page drew them; a row leaves wherever else it stood, a card that is no row
+        # keeps its own place
+        groups = [g for g in kept.get("groups") or [] if isinstance(g, dict)]
+        was_cards = {k: dict(c) for k, c in cards.items()}
+        was_members = [list(g.get("members") or []) for g in groups]
+        was_aside = set(kept.get("discarded") or [])
+        rows_drawn = {row for _, row in drawn.values()}
+        for g in groups:
+            g["members"] = [m for m in g.get("members") or [] if m not in rows_drawn]
+        kept["discarded"] = [k for k in kept.get("discarded") or [] if k not in rows_drawn]
+        for code, (key, row) in drawn.items():
+            cards[row] = dict(was_cards[key], text=line_words(data, row))
+            for g, before in zip(groups, was_members):
+                if key in before:
+                    members = g["members"]
+                    at = members.index(key) + 1 if key in members else min(before.index(key), len(members))
+                    members.insert(at, row)
+            if key in was_aside and row not in kept["discarded"]:
+                kept["discarded"].append(row)
+            for other in list(sent):
+                sent[other] = [k for k in sent[other] if k != row]
+            sent[code] = [row]
+        sent = {c: ks for c, ks in sent.items() if ks}
     for code, keys in sent.items():
         new = [k for k in keys if k not in held]
-        leads[code] = lead_of(new or keys, kept["cards"])
+        leads[code] = lead_of(new or [k for k in keys if k not in stale] or keys, cards)
         for k in keys:
             if k != leads[code]:
-                kept["cards"].pop(k, None)
+                cards.pop(k, None)
     gone = {codes[k] for k in held if codes.get(k)} - set(sent)
-    gather(kept, data, leads, keep_out=gone)
+    gather(kept, data, leads, keep_out=gone, stale=stale)
     return kept
 
 
@@ -994,11 +1072,11 @@ def extract_change(root: Path, books: list[dict], op: str, case: str, sheet: str
             pairs.pop(at)
         else:
             pairs[at]["es"] = ""
-        said = i18n.t("codes.said.taken_off", name=(known or {}).get("name") or name, who=p["who"],
-                      time=r.get("time") or "")
+        name = (known or {}).get("name") or name
+        said = i18n.t("codes.said.taken_off", name=name, who=p["who"], time=r.get("time") or "")
     book = Path(p["workbook"])
     out = {"changes": [said], "dry_run": bool(dry_run), "case": p["case"], "sheet": sheet, "row": int(row),
-           "pairs": pairs, "workbook": str(book)}
+           "op": op, "code": name, "pairs": pairs, "workbook": str(book)}
     if dry_run:
         wb_mod.guard_lock(book)
         return out
@@ -1305,4 +1383,32 @@ def undo(root: Path, books: list[dict], when: str, redo: bool = False, dry_run: 
     data["undo" if redo else "redo"] = other
     record(data, [line], when, tool=tool)
     write(root, data)
+    taken_after_undo(root, books, step, line)
     return {"changes": [line], "dry_run": False, "list": listing(data, study_rows(books))}
+
+
+def taken_after_undo(root: Path, books: list[dict], step: dict, line: str) -> list[str]:
+    """A step made while the project had no Themes file holds none, so its undo or redo puts back the workbooks
+    alone. When the project has a Themes file now, each participant whose workbook it put back is taken in at once
+    (`gets.recode_taken`, cardsync5), each board keeping itself first in its History under `line`, so nothing waits.
+    Whatever goes wrong leaves the undo standing and the participant changed, taken when Themes is next open. The
+    cases taken."""
+    gets = gets_mod()
+    gets_file = gets.gets_path(root)
+    held = {absolute(root, f["path"]) for f in step.get("files") or []}
+    if gets_file in held or not gets_file.exists():
+        return []
+    by_book = {absolute(root, Path(b["workbook"])): b["case"] for b in books}
+    taken = []
+    for path in sorted(held, key=str):
+        case = by_book.get(path)
+        if path.suffix.lower() != ".xlsx" or case is None:
+            continue
+        try:
+            with i18n.in_method("ta"):
+                if gets.recode_taken(root, books, case, history=line):
+                    taken.append(case)
+        except Exception as exc:  # noqa: BLE001
+            print(f"The Themes boards could not take a participant's codes put back ({type(exc).__name__}). They "
+                  "take them when Themes is next open.", file=sys.stderr, flush=True)
+    return taken
