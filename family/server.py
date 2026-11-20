@@ -2058,6 +2058,7 @@ def finish(op: str, port: int) -> None:
     """After Restart or Quit has stopped the serving and closed the socket: the writes in hand
     waited for, then the same program run again in this process, or the pid file cleared and the
     server ended, as `main` returns."""
+    presence_look(stopping=True)
     held = _lock.acquire(timeout=60)
     try:
         for stream in (sys.stdout, sys.stderr):
@@ -2168,11 +2169,30 @@ def api_beat(body: dict) -> dict:
                 PAGES.pop(page, None)
             else:
                 PAGES[page] = {"at": str(body.get("at") or "")[:2000], "seen": time.monotonic()}
+    presence_look()
     return {"heard": True}
 
 
 # each page by its id, the project it is in front of and when it last beat (see `api_beat`)
 PAGES: dict = {}
+# the app's own keeping of a presence file in each project folder a page is in front of (`apps/idiograph/presence.py`,
+# sharedopen, 20 November 2026): called with the places the pages in front name, or None as the server stops; an app
+# that sets none keeps none, and a failure in it never reaches a beat
+PRESENCE = None
+
+
+def presence_look(stopping: bool = False) -> None:
+    """The presence hook told which places the pages in front now name, or that the server is stopping."""
+    hook = PRESENCE
+    if hook is None:
+        return
+    try:
+        now = time.monotonic()
+        with _life:
+            shown = None if stopping else [v["at"] for v in PAGES.values() if now - v["seen"] < PAGE_GONE_AFTER and v["at"]]
+        hook(shown)
+    except Exception:
+        pass
 # a page that has not beaten for this long, a beat's thirty seconds and room, is taken as closed
 PAGE_GONE_AFTER = 75
 
@@ -2339,6 +2359,7 @@ def idle_quit(server, wait: float | None = None, look: float | None = None,
             on = False
         woke = time.time() - wall > look + WOKE_AFTER
         wall = time.time()
+        presence_look()
         with _life:
             now = time.monotonic()
             if woke or not on or holding():

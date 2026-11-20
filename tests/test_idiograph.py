@@ -467,6 +467,8 @@ AREAS = {
     "a432_manual_links": "idiograph",
     "a433_team_join_home": "idiograph",
     "a434_team_study": "idiograph",
+    "a435_open_elsewhere": "idiograph",
+    "a436_disk_hygiene": "idiograph",
 }
 
 
@@ -803,7 +805,7 @@ class ESHelperChecks(unittest.TestCase):
         if train_reason() is None:
             self.skipTest(REFUSAL)
         transcript = io.StringIO()
-        with tempfile.TemporaryDirectory(prefix="idiograph-tests-") as tmp:
+        with support.run_scratch() as tmp:
             with contextlib.redirect_stdout(transcript):
                 passed, failed, skipped = run_all(Path(tmp))
         print(f"{len(passed)} passed, {len(failed)} failed, {len(skipped)} skipped")
@@ -857,7 +859,12 @@ def main():
         return 2
     if args.main_data:
         set_main_data(args.main_data)
-    scratch = Path(args.scratch) if args.scratch else Path(tempfile.mkdtemp(prefix="idiograph-tests-"))
+    # a run of its own removes its scratch folder at the end, however it ends; --scratch keeps the folder named
+    with (contextlib.nullcontext(Path(args.scratch)) if args.scratch else support.run_scratch()) as scratch:
+        return run_main(args, scratch, only)
+
+
+def run_main(args, scratch, only):
     print(f"Idiograph tests. Fixtures copied into {scratch}")
     print(f"Real data folder: {REPO}{'' if REPO.exists() else ' (not on this machine)'}")
     print(f"Demo fixture: Juno's head start, built from demo/source into {DEMO_WORKBOOK.parent.parent}")

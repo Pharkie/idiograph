@@ -708,6 +708,8 @@
   "cli.project_new.it_would_make_in_research_question": "It would make {name} in {folder}, research question: {research_question}, method: {method_name}, and add it to Idiograph's projects.",
   "cli.project_new.is_not_there_so_nothing_was": "{name} is not there, so nothing was made.",
   "cli.project_show.method_fixed_when_the_project_was": "Method: {method_name}. It was fixed when the project was made.",
+  "cli.project_show.open_elsewhere": "This project is open on {names} too. If you both change it, whoever saves last overwrites the other's work.",
+  "cli.project_show.another_computer": "another computer",
   "cli.project_set.name": "Name: {name}",
   "cli.project_remove.would_keep": "It would take {name} off Idiograph's list. Its folder and files would stay as they are in {folder}.",
   "cli.project_remove.would_trash": "It would take {name} off Idiograph's list and move its folder {folder} to the {where}.",

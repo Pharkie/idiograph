@@ -302,7 +302,7 @@ def _bar_gives_way(scratch, node, page, tjs):
                "--password-store=basic", "--use-mock-keychain", f"--user-data-dir={Path(tmp) / 'profile'}",
                "--window-size=1280,800", "--virtual-time-budget=3000", "--dump-dom", page_file.as_uri()]
         try:
-            dumped = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=120).stdout
+            dumped = support.run_browser(cmd).stdout
         except (OSError, subprocess.TimeoutExpired) as err:
             dumped = str(err)
     said = dumped.split('<pre id="out">', 1)[1].split("</pre>", 1)[0] if '<pre id="out">' in dumped else "{}"
@@ -442,7 +442,7 @@ def _toolbar_holds_switch(page, tjs):
                    "--password-store=basic", "--use-mock-keychain", f"--user-data-dir={Path(tmp) / ('profile%d' % w)}",
                    f"--window-size={w},800", "--virtual-time-budget=3000", "--dump-dom", page_file.as_uri()]
             try:
-                dumped = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=120).stdout
+                dumped = support.run_browser(cmd).stdout
             except (OSError, subprocess.TimeoutExpired) as err:
                 dumped = str(err)
             said = dumped.split('<pre id="out">', 1)[1].split("</pre>", 1)[0] if '<pre id="out">' in dumped else "{}"

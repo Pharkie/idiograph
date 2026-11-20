@@ -1,7 +1,7 @@
 // What the motion tools share: headless Chrome driven over the DevTools protocol with node's own WebSocket (node 22
 // or later), nothing installed, and Home's mark made ready to play on a virtual clock. From the markplay rounds of
 // 23 October 2026, moved into the repo on 26 October (motiontools).
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -32,37 +32,144 @@ export function serverUrl(o) {
   return url;
 }
 
+// Every Chrome this process started and has not closed, with its profile folder. A run that fails, ends early or is
+// stopped (Ctrl-C, kill) must leave no Chrome and no profile behind (diskhygiene, 20 November 2026): the signal
+// handlers quit each one cleanly over DevTools, which also removes macOS's code-sign clone, and the exit handler
+// ends whatever is left, Chrome and the processes listed below it (watchBelow), and deletes the profile, synchronously
+const LIVE = new Set();
+const DIRS = new Set();
+// every process from one `ps` listing, by pid: its parent and its start time (none where there is no `ps`)
+export function processes() {
+  let listing = '';
+  try {
+    listing = execFileSync('ps', ['-A', '-o', 'pid=,ppid=,lstart='], { encoding: 'utf8', timeout: 10000, env: { ...process.env, LC_ALL: 'C' } });
+  } catch { return new Map(); }
+  const table = new Map();
+  for (const line of listing.split('\n')) {
+    const m = line.trim().match(/^(\d+)\s+(\d+)\s+(.+)$/);
+    if (m) table.set(Number(m[1]), { ppid: Number(m[2]), start: m[3].split(/\s+/).join(' ') });
+  }
+  return table;
+}
+// the processes below a pid, each with its parent and start time, into `into`. Only while the pid is this process's
+// child not yet reaped (exitCode and signalCode null): node reaps it in its own event loop, which a synchronous `ps`
+// holds still, so its number cannot be another process's while it is listed
+function below(pid, into, table = processes()) {
+  const kids = new Map();
+  for (const [p, { ppid }] of table) kids.set(ppid, [...(kids.get(ppid) || []), p]);
+  const todo = [pid];
+  while (todo.length) {
+    for (const k of kids.get(todo.pop()) || []) {
+      if (into.has(k)) continue;
+      into.set(k, table.get(k));
+      todo.push(k);
+    }
+  }
+  return into;
+}
+// SIGKILL each listed process that is still the one listed: the same start time, and the same parent or pid 1 when its
+// parent has ended. A number another process has taken since is left alone. Returns the pids killed
+export function endListed(listed) {
+  if (!listed.size) return [];
+  const table = processes(), killed = [];
+  for (const [pid, { ppid, start }] of listed) {
+    const now = table.get(pid);
+    if (!now || now.start !== start || (now.ppid !== ppid && now.ppid !== 1)) continue;
+    try { process.kill(pid, 'SIGKILL'); killed.push(pid); } catch { /* gone */ }
+  }
+  return killed;
+}
+// The processes below a started browser, listed while it lives (at 100 ms, then every half second, and once more
+// before it is killed), because a helper whose parent has ended is handed to pid 1 and no longer shows below it, and
+// once the browser is reaped its number may be another process's. `end()` kills the browser and then only those
+// listed, each while it is still the same process, so a browser that had ended before it was listed has nothing
+// killed for it (diskfix, 20 November 2026). The browser stays in this process's own process group, so a kill of that
+// group takes it too
+export function watchBelow(proc) {
+  const listed = new Map();
+  const alive = () => proc.pid && proc.exitCode === null && proc.signalCode === null;
+  const look = () => { if (alive()) below(proc.pid, listed); return listed; };
+  const first = setTimeout(look, 100), every = setInterval(look, 500);
+  first.unref(); every.unref();
+  const end = () => {
+    clearTimeout(first); clearInterval(every);
+    if (alive()) { look(); try { proc.kill('SIGKILL'); } catch { /* already gone */ } }
+    return endListed(listed);
+  };
+  return { look, end, listed };
+}
+function reapAll() {
+  for (const h of LIVE) { h.below.end(); try { rmSync(h.profile, { recursive: true, force: true }); } catch { /* gone */ } }
+  LIVE.clear();
+  for (const d of DIRS) { try { rmSync(d, { recursive: true, force: true }); } catch { /* gone */ } }
+  DIRS.clear();
+}
+let handlers = false;
+function installHandlers() {
+  if (handlers) return;
+  handlers = true;
+  process.on('exit', reapAll);
+  for (const [sig, code] of [['SIGINT', 130], ['SIGTERM', 143], ['SIGHUP', 129]]) {
+    process.on(sig, async () => {
+      try { await Promise.race([Promise.all([...LIVE].map((h) => h.close())), new Promise((ok) => setTimeout(ok, 8000))]); } catch { /* the exit handler reaps */ }
+      process.exit(code);
+    });
+  }
+}
+
+// a scratch folder this process removes when it ends, whatever stops it (`rmSync` it earlier when its work is done)
+export function tempDir(prefix) {
+  installHandlers();
+  const d = mkdtempSync(join(tmpdir(), prefix));
+  DIRS.add(d);
+  return d;
+}
+
 export async function launch() {
   if (!existsSync(CHROME)) throw new Error(`no Chrome at ${CHROME} (set IDIOGRAPH_CHROME)`);
+  installHandlers();
   const profile = mkdtempSync(join(tmpdir(), 'idiograph-motion-'));
   const proc = spawn(CHROME, ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run',
-    '--no-default-browser-check', '--hide-scrollbars', '--mute-audio', '--disable-extensions', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
-  const wsUrl = await new Promise((ok, fail) => {
-    let err = '';
-    const t = setTimeout(() => fail(new Error('Chrome did not open its DevTools port in 20 s')), 20000);
-    proc.stderr.on('data', (d) => { err += d; const m = err.match(/DevTools listening on (ws:\/\/\S+)/); if (m) { clearTimeout(t); ok(m[1]); } });
-    proc.on('exit', (c) => { clearTimeout(t); fail(new Error(`Chrome quit (${c}): ${err.slice(-400)}`)); });
-  });
-  const ws = new WebSocket(wsUrl);
-  await new Promise((ok, fail) => { ws.onopen = ok; ws.onerror = () => fail(new Error('no DevTools connection')); });
-  let id = 0;
+    '--no-default-browser-check', '--hide-scrollbars', '--mute-audio', '--disable-extensions', 'about:blank'],
+    { stdio: ['ignore', 'ignore', 'pipe'] });
+  const handle = { proc, profile, close: null, below: watchBelow(proc) };
+  LIVE.add(handle);
+  let ws = null, id = 0;
   const waiting = new Map(), listeners = [];
+  const send = (method, params = {}, sessionId) => new Promise((ok, fail) => {
+    const n = ++id; waiting.set(n, { ok, fail });
+    ws.send(JSON.stringify({ id: n, method, params, ...(sessionId ? { sessionId } : {}) }));
+  });
+  const close = async () => {
+    handle.below.look(); // its helpers as they stand before it is asked to quit
+    if (ws) { try { await Promise.race([send('Browser.close'), new Promise((ok) => setTimeout(ok, 3000))]); } catch { /* already gone */ } try { ws.close(); } catch { /* closed */ } }
+    await new Promise((ok) => {
+      if (proc.exitCode !== null) return ok();
+      proc.on('exit', ok);
+      if (!ws) proc.kill('SIGTERM');
+      setTimeout(ok, 5000);
+    });
+    handle.below.end();
+    rmSync(profile, { recursive: true, force: true });
+    LIVE.delete(handle);
+  };
+  handle.close = close;
+  try {
+    const wsUrl = await new Promise((ok, fail) => {
+      let err = '';
+      const t = setTimeout(() => fail(new Error('Chrome did not open its DevTools port in 20 s')), 20000);
+      proc.stderr.on('data', (d) => { err += d; const m = err.match(/DevTools listening on (ws:\/\/\S+)/); if (m) { clearTimeout(t); ok(m[1]); } });
+      proc.on('exit', (c) => { clearTimeout(t); fail(new Error(`Chrome quit (${c}): ${err.slice(-400)}`)); });
+    });
+    ws = new WebSocket(wsUrl);
+    await new Promise((ok, fail) => { ws.onopen = ok; ws.onerror = () => fail(new Error('no DevTools connection')); });
+  } catch (err) { await close(); throw err; }
   ws.onmessage = (ev) => {
     const msg = JSON.parse(ev.data);
     if (msg.id && waiting.has(msg.id)) {
       const { ok, fail } = waiting.get(msg.id); waiting.delete(msg.id);
       msg.error ? fail(new Error(`${msg.error.message} ${msg.error.data || ''}`)) : ok(msg.result);
     } else if (msg.method) for (const l of listeners) l(msg);
-  };
-  const send = (method, params = {}, sessionId) => new Promise((ok, fail) => {
-    const n = ++id; waiting.set(n, { ok, fail });
-    ws.send(JSON.stringify({ id: n, method, params, ...(sessionId ? { sessionId } : {}) }));
-  });
-  const close = async () => {
-    try { await send('Browser.close'); } catch { /* already gone */ }
-    try { ws.close(); } catch { /* closed */ }
-    await new Promise((ok) => { if (proc.exitCode !== null) ok(); else { proc.on('exit', ok); setTimeout(() => { proc.kill('SIGKILL'); ok(); }, 5000); } });
-    rmSync(profile, { recursive: true, force: true });
   };
   // a page of its own size, device scale and colour scheme, motion never reduced
   const newPage = async ({ width, height = 800, scale = 1, scheme = 'light' }) => {

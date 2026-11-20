@@ -610,7 +610,8 @@ work.
 
 Each of you keeps the project's files on your own computer. Only the updates between you go through the relay or a
 folder you all share, sealed on your computer first. Never keep one project folder on a shared drive for two people to
-open: whoever saves last overwrites the other's work.
+open: whoever saves last overwrites the other's work. If it happens anyway, the project's page says when another
+computer has the same project folder open.
 
 To start, the lead presses Invite others on the project's page, beside Project settings, or opens Project settings
 and presses Invite others to work on this project. Either makes them the lead and opens the invite, and asks for

@@ -551,6 +551,202 @@ def browser() -> Path | None:
     return None
 
 
+SWEEP_AGE = 6 * 3600  # seconds a leftover must be older than before the sweep takes it: a younger one may be a live run's
+
+
+def _run_alive(folder: Path) -> bool:
+    """A run's scratch folder names its process in `.pid`; that process still running means the folder is in use."""
+    try:
+        pid = int((folder / ".pid").read_text(encoding="utf-8").strip())
+        os.kill(pid, 0)
+        return True
+    except PermissionError:
+        return True
+    except (OSError, ValueError):
+        return False
+
+
+def sweep_stale(tmp: Path | str | None = None, age: float = SWEEP_AGE, now: float | None = None) -> list[str]:
+    """Take away this user's leftover `idiograph-tests-*` and `idiograph-motion-*` folders in the system's temp
+    folder that nothing has touched for `age` seconds (6 hours), never a younger one, since another run may own it,
+    nor one whose run (the pid in its `.pid` file) is still alive, a paused run's included. A symbolic link or a
+    thing of another owner is left. The agents' locks (`idiograph-agents-*.lock`) are never touched: they are the
+    running app's own, and holding one does not change its modification time. Returns the names removed
+    (diskhygiene, 20 November 2026)."""
+    import tempfile
+    folder = Path(tmp or tempfile.gettempdir())
+    cutoff = (time.time() if now is None else now) - age
+    me = os.getuid() if hasattr(os, "getuid") else None
+    gone = []
+    try:
+        names = sorted(os.listdir(folder))
+    except OSError:
+        return gone
+    for name in names:
+        if not name.startswith(("idiograph-tests-", "idiograph-motion-")):
+            continue
+        path = folder / name
+        try:
+            info = path.lstat()
+            if (me is not None and info.st_uid != me) or info.st_mtime > cutoff or path.is_symlink():
+                continue
+            if path.is_dir():
+                if _run_alive(path):
+                    continue
+                shutil.rmtree(path, ignore_errors=True)
+            else:
+                continue
+            gone.append(name)
+        except OSError:
+            continue
+    return gone
+
+
+@contextlib.contextmanager
+def run_scratch(prefix: str = "idiograph-tests-"):
+    """A folder for one suite run, removed at the end however the run ends: a failure, `KeyboardInterrupt` or the
+    SIGTERM an `kill` sends (turned into an exit so the clean-up runs), and by `atexit` for anything else. The
+    system's temp folder is pointed inside it for the run (`tempfile.tempdir` and `TMPDIR`, which child servers
+    inherit), so every temporary folder and agents' lock a check makes goes with it. Leftovers of other, older
+    runs are swept first (`sweep_stale`)."""
+    import atexit
+    import tempfile
+    sweep_stale()
+    root = Path(tempfile.mkdtemp(prefix=prefix))
+    inner = root / "tmp"
+    inner.mkdir()
+    (root / ".pid").write_text(str(os.getpid()), encoding="utf-8")
+    was = (tempfile.tempdir, os.environ.get("TMPDIR"))
+    tempfile.tempdir = str(inner)
+    os.environ["TMPDIR"] = str(inner)
+    old_term = None
+
+    def remove():
+        shutil.rmtree(root, ignore_errors=True)
+    atexit.register(remove)
+    if hasattr(signal, "SIGTERM"):
+        try:
+            old_term = signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
+        except ValueError:  # not the main thread
+            old_term = None
+    try:
+        yield root
+    finally:
+        tempfile.tempdir = was[0]
+        if was[1] is None:
+            os.environ.pop("TMPDIR", None)
+        else:
+            os.environ["TMPDIR"] = was[1]
+        if old_term is not None:
+            signal.signal(signal.SIGTERM, old_term)
+        remove()
+        atexit.unregister(remove)
+
+
+def processes() -> dict[int, tuple[int, str, str]]:
+    """Every process from one `ps` listing, by pid: its parent, its state and its start time (empty where there is no
+    `ps`, as on Windows)."""
+    try:
+        listing = subprocess.run(["ps", "-A", "-o", "pid=,ppid=,stat=,lstart="], capture_output=True, text=True, encoding="utf-8",
+                                 timeout=10, env={**os.environ, "LC_ALL": "C"}).stdout
+    except (OSError, subprocess.SubprocessError):
+        return {}
+    table = {}
+    for line in listing.splitlines():
+        parts = line.split(None, 3)
+        if len(parts) == 4 and parts[0].isdigit() and parts[1].isdigit():
+            table[int(parts[0])] = (int(parts[1]), parts[2], " ".join(parts[3].split()))
+    return table
+
+
+def descendants(pid: int, table: dict | None = None) -> dict[int, tuple[int, str]]:
+    """The processes below `pid`, each with its parent and start time, from one listing. Call it only while `pid` is
+    this process's child not yet reaped (running or a zombie), so its number cannot be another process's."""
+    table = processes() if table is None else table
+    kids: dict[int, list[int]] = {}
+    for p, (pp, _, _) in table.items():
+        kids.setdefault(pp, []).append(p)
+    found: dict[int, tuple[int, str]] = {}
+    todo = [pid]
+    while todo:
+        for kid in kids.get(todo.pop(), []):
+            if kid not in found:
+                found[kid] = (table[kid][0], table[kid][2])
+                todo.append(kid)
+    return found
+
+
+def end_listed(listed: dict[int, tuple[int, str]]) -> list[int]:
+    """SIGKILL each process in `listed` (its pid, with the parent and start time it had when it was listed) that is
+    still that same process: started at the same time, and under the same parent or handed to pid 1 when its parent
+    ended. A number another process has taken since is left alone. Returns the pids killed."""
+    if not listed:
+        return []
+    table = processes()
+    killed = []
+    for pid, (ppid, start) in listed.items():
+        now = table.get(pid)
+        if now is None or now[2] != start or now[0] not in (ppid, 1):
+            continue
+        with contextlib.suppress(OSError):
+            os.kill(pid, signal.SIGKILL)
+            killed.append(pid)
+    return killed
+
+
+BROWSER_LOOKS = (0.1, 0.2, 0.4)  # seconds between the first looks at a browser's helpers; every 0.5 after them
+
+
+def run_browser(cmd: list, timeout: float = 120) -> subprocess.CompletedProcess:
+    """`subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)` for a headless browser, which starts
+    helper processes of its own: when the run finishes, times out or is interrupted, the browser and its helpers are
+    killed, so no helper outlives the check (diskhygiene, 20 November 2026). The helpers are listed while the browser
+    lives, every half second and once more before it is killed, because a helper whose parent has ended is handed to
+    pid 1 and no longer shows below it, and once the browser is reaped its number may be another process's. Only the
+    processes listed are killed, each only while it is still the same process (`end_listed`), so a browser that had
+    ended before it was listed has nothing killed for it (diskfix, 20 November 2026). When the browser has ended and a
+    helper of its still holds its output open, the helpers are ended at once rather than waiting out `timeout`. The
+    browser stays in this process's group, so a kill of the group takes it too. A run that outlasts `timeout` raises
+    `subprocess.TimeoutExpired`, as `subprocess.run` does."""
+    kid = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8")
+    listed: dict[int, tuple[int, str]] = {}
+
+    def look() -> bool:
+        """Note the helpers below the browser, only while it is not reaped (`returncode` None), so its number is
+        still its own; True when it has ended and waits to be reaped."""
+        if kid.returncode is not None:
+            return False
+        table = processes()
+        listed.update(descendants(kid.pid, table))
+        state = table.get(kid.pid)
+        return bool(state and state[1].startswith("Z"))
+
+    ends = time.monotonic() + timeout
+    looks = 0
+    try:
+        while True:
+            step = BROWSER_LOOKS[looks] if looks < len(BROWSER_LOOKS) else 0.5
+            looks += 1
+            try:
+                out, err = kid.communicate(timeout=max(0.01, min(step, ends - time.monotonic())))
+                return subprocess.CompletedProcess(cmd, kid.returncode, out, err)
+            except subprocess.TimeoutExpired:
+                pass
+            if look() and listed:
+                end_listed(listed)  # the browser has ended and a helper of its holds the output open
+                listed.clear()
+            if time.monotonic() >= ends:
+                raise subprocess.TimeoutExpired(cmd, timeout)
+    finally:
+        if kid.returncode is None:
+            look()
+            with contextlib.suppress(OSError):
+                kid.kill()
+        end_listed(listed)
+        with contextlib.suppress(OSError, subprocess.SubprocessError, ValueError):
+            kid.communicate(timeout=5)
+
+
 def typeset_words(kept: list):
     """A stand-in for `print_pdf.typeset_pdf` that typesets for real and keeps each PDF's words in `kept`, squashed of
     their spaces and folded, so a check can find what the page printed (typst5, 9 November 2026, where the checks

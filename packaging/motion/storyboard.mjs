@@ -2,11 +2,10 @@
 // rendered to a PNG for review_shot.js to put its heading and "Check: ..." on.
 // --times are seconds into the recording. --top, --left and --tall cut each frame (in the recording's CSS pixels,
 // from the clip's top left), --zoom enlarges it, --cols sets the grid (two columns by default, the whole 1176 wide)
-import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { args, launch } from './chrome.mjs';
+import { args, launch, tempDir } from './chrome.mjs';
 
 const USAGE = `node packaging/motion/storyboard.mjs --raw <recording folder> --out <storyboard.png> --times 0.5,1,1.5,...
   [--top 40] [--left 50] [--tall 115] [--zoom 1.7] [--cols 2]`;
@@ -28,7 +27,7 @@ const html = `<!doctype html><meta charset="utf-8"><style>
   .cut img { display: block; width: ${meta.clip.width * Z}px; margin: -${top * Z}px 0 0 -${left * Z}px; }
   figure { margin: 0; } figcaption { padding: 5px 2px 0; }
 </style><main>${cells}</main>`;
-const dir = mkdtempSync(join(tmpdir(), 'idiograph-board-'));
+const dir = tempDir('idiograph-board-');
 const browser = await launch();
 try {
   writeFileSync(join(dir, 'board.html'), html);

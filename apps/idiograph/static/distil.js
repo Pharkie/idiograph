@@ -2133,11 +2133,49 @@ function pageHead(name, question, demo, copy = false, kind = '') {
   // Invite others, beside Project settings, for a project of one's own (teamsmall)
   $('hp-invite').hidden = !!demo || !!copy;
   if (typeof wtPageDraw === 'function') wtPageDraw(null);
+  if (typeof openElseDraw === 'function') openElseDraw([]);
   $('hp-gets').innerHTML = '';
   $('hp-gets').hidden = true;
   // the page's two headings (homecardbuild), each shown once there is something under it
   $('hp-across-h').hidden = true;
   $('hp-ideo-h').hidden = true;
+}
+
+/* Another computer with this project's folder open (sharedopen, 20 November 2026): the one line under the question while
+   one has a file there newer than five minutes (`presence.py`), asked for again every thirty seconds while the page
+   stays in front of the project. A failed look leaves the line as it was. */
+const OPEN_ELSE = { timer: null, id: '' };
+
+function openElseDraw(names) {
+  const line = $('hp-open-else');
+  if (!line) return;
+  const list = (names || []).map((n) => n || t('distil.page.another_computer'));
+  const head = list.slice(0, -1).join(', ');
+  const said = list.length > 1 ? t('distil.page.and', { a: head, b: list[list.length - 1] }) : list[0] || '';
+  line.textContent = list.length ? t('distil.page.open_elsewhere', { names: said }) : '';
+  line.hidden = !list.length;
+}
+
+async function openElseLook(id) {
+  if (OPEN_ELSE.id !== id || $('home-project').hidden || S.home !== id) { openElseStop(); return; }
+  try {
+    const got = await api('/api/project', { root: id });
+    if (OPEN_ELSE.id === id && S.home === id) openElseDraw(got.open_elsewhere || []);
+  } catch { /* the line stays as it was */ }
+}
+
+function openElseStop() {
+  clearInterval(OPEN_ELSE.timer);
+  OPEN_ELSE.timer = null;
+  OPEN_ELSE.id = '';
+}
+
+function openElseWatch(id) {
+  openElseStop();
+  if (!id || isDemoId(id)) return;
+  OPEN_ELSE.id = id;
+  OPEN_ELSE.timer = setInterval(() => openElseLook(id), 30 * 1000);
+  openElseLook(id);
 }
 
 /* A project's page (projectbuild, Adam's option A of 17 November 2026): the work across participants as a row of
@@ -2158,6 +2196,7 @@ function drawPage(s) {
   if (typeof dmPage === 'function') dmPage(s);
   // Working together's tags on the rows and its lines under the question, while it is on (team.js, wtowners)
   if (typeof wtPageDraw === 'function') wtPageDraw(s.team || null);
+  if (typeof openElseWatch === 'function') openElseWatch(s.id);
   drawGetsCard($('hp-gets'), s.gets);
   $('hp-transcripts').hidden = s.there === false || empty;
   $('hp-transcripts').onclick = () => openAddTranscripts(s.id);

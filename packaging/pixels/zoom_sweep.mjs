@@ -15,7 +15,7 @@
 // scrolls to it, a card taller than the window, two controls or two lines of words over each other, and how tall
 // each bar is, a bar that grows having wrapped. Pictures are for the eye, the list for where to look.
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir, homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -118,6 +118,9 @@ function compile(o) {
   const bin = join(dir, 'wk_shot');
   const r = spawnSync('swiftc', ['-O', join(HERE, '..', 'wk_shot.swift'), '-o', bin], { encoding: 'utf8' });
   if (r.status !== 0) { console.error(r.stderr); process.exit(1); }
+  // the compiled helper's folder goes when this run ends, whatever ends it (diskhygiene, 20 November 2026)
+  process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); } catch { /* gone */ } });
+  for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => process.exit(sig === 'SIGINT' ? 130 : 143));
   return bin;
 }
 

@@ -66,6 +66,8 @@ KIND = "idiograph-project"
 LEFT_OUT = (LOCK_NAME, ".DS_Store", "idiograph-holds.json", ".idiograph-holds.lock", "idiograph-history.json",
             "idiograph-agent-changes.jsonl", ".idiograph-restore",
             "team.json", ".idiograph-team",
+            # which computers have the folder open now (sharedopen, 20 November 2026, `presence.DIR`)
+            ".idiograph-open",
             # the project's list of real names (namesui, 8 November 2026, `names.FILE`), never in a copy he shares
             "idiograph-names.json")
 # the copies kept in a participant's _Archive before Review and replace put the pseudonyms in, which hold the real

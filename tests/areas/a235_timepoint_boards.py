@@ -471,7 +471,7 @@ def _fields_kept(scratch, call, run, book, lfile, lboard, lpid, keys, t2_id):
                    "--allow-file-access-from-files", "--window-size=1280,800", "--virtual-time-budget=3000", "--dump-dom",
                    (folder / "page.html").as_uri()]
             try:
-                dumped = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=120).stdout
+                dumped = support.run_browser(cmd).stdout
             except (OSError, subprocess.TimeoutExpired) as exc:
                 dumped = str(exc)
         got = dumped.split('<pre id="out">', 1)[1].split("</pre>", 1)[0] if '<pre id="out">' in dumped else ""

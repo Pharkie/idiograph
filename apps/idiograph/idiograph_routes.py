@@ -64,6 +64,7 @@ import nudges as nudges_mod
 import print_pdf
 import project_history as hist_mod
 import participants as people_mod
+import presence
 import project_pack as pack_mod
 import qdpx as qdpx_mod
 import rounds as rounds_mod
@@ -2948,7 +2949,8 @@ def api_project(body: dict) -> dict:
     if "method" in body and root is not None and method_asked(body.get("method")) != method_of(project_file(root)):
         raise WorkbookError(i18n.t("method.refused_fixed", {"method": method_name(method_of(project_file(root)))}))
     if not writes:
-        return {"project": read_project(root)}
+        # `open_elsewhere`: the names of the other computers with this project's folder open now (sharedopen)
+        return {"project": read_project(root), "open_elsewhere": [] if srv.is_demo_root(root) else presence.others(root)}
     if srv.is_demo_root(root):
         raise WorkbookError(i18n.t("server.demo_s_project_fixed"))
     dry = body.get("dry_run") is True
@@ -13257,6 +13259,9 @@ ROUTES = {
     # Working together's comments and review (wtreview, 8 November 2026, see review.py)
     "/api/team-review": api_team_review,
 }
+
+# a presence file in the folder of each project a page is in front of (sharedopen, `presence.py`)
+srv.PRESENCE = presence.sync
 
 srv.register("idiograph", routes=ROUTES,
              # these open a dialog, write another program's settings or make a project, so they answer a POST

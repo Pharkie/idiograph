@@ -1801,10 +1801,14 @@ def cmd_project_show(p: Project, _args) -> tuple:
     its research question, its method, ipa, lipa (longitudinal IPA) or ta (reflexive thematic analysis), fixed when it
     was made, how the exports label its PETs, how its timecodes are written, a longitudinal project's timepoints and
     its statement length. It reads and writes nothing."""
-    got = routes.api_project(project_body(p))["project"]
+    shown = routes.api_project(project_body(p))
+    got = shown["project"]
     keys = ("name", "research_question", "method", "pet_labels", "timecodes", "statement_words", "interviewer",
             "nudges", *routes.ROUNDS_KEYS, "demo", "reflexivity", "archived")
     answer = {k: got[k] for k in keys}
+    # the other computers with this project's folder open now, by name, [] when none (sharedopen, 20 November 2026)
+    elsewhere = shown.get("open_elsewhere") or []
+    answer["open_elsewhere"] = elsewhere
     # the method, ipa, lipa or ta, beside a longitudinal project's timepoints, which IPA and thematic analysis
     # projects have none of (projectbuild, 17 November 2026)
     if routes.longitudinal(got["timepoints"]):
@@ -1822,6 +1826,9 @@ def cmd_project_show(p: Project, _args) -> tuple:
              (i18n.t("cli.said.archived_on") if got.get("archived") else i18n.t("cli.said.archived_off")),
              # the researcher's reflexivity statement (settingsbuild), his words, marked as data for an agent
              i18n.t("cli.reflexivity.said", text=got["reflexivity"]) if got["reflexivity"] else i18n.t("cli.reflexivity.none")]
+    if elsewhere:
+        lines.append(i18n.t("cli.project_show.open_elsewhere",
+                            names=", ".join(n or i18n.t("cli.project_show.another_computer") for n in elsewhere)))
     return {"project": answer}, lines
 
 

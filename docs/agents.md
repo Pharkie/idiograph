@@ -1537,7 +1537,7 @@ analysis, as the card's Method does, kept in the project file as `method` and fi
 client changes it, `project set --method` refusing another, IPA to `lipa` too, in one line with nothing written, and a
 folder whose project file names one keeps it. `--timepoint "T1=Before the season"`, given again for each one more,
 sets a `lipa` project's timepoints, T1 and T2 when left out, two at least (one timepoint is refused in one line with nothing written, since a project of one is IPA), and is refused for `ipa` and `ta`. A project file with no
-method is IPA's, or `lipa`'s where it sets two or more timepoints. `project show` reads the project's settings as
+method is IPA's, or `lipa`'s where it sets two or more timepoints. `project show` also answers `open_elsewhere`, the names of other computers with this project's folder open now, found from a small file each keeps in the folder, so say so to the researcher when it is not empty: if they both change the project, whoever saves last overwrites the other's work. It reads the project's settings as
 Project settings shows them, its method among them and a `lipa` project's `timepoints` beside it, and `cases`
 answers `method` too. A thematic analysis project has no PETs and no timepoints
 (`timepoints` refuses them), its participants' statements serve as its codes, one quote each, and its

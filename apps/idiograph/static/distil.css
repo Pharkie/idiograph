@@ -1664,6 +1664,7 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .wt-team span { display: inline-flex; align-items: center; gap: 7px; }
 .wt-team svg { width: 14px; height: 14px; flex: none; }
 .wt-team .wt-wait { color: var(--amber); }
+.hp-open-else { color: var(--amber); max-width: 60ch; }
 
 /* Each participant's picture, label and pen portrait (pbiobuild, 11 November 2026, Adam's layout A of pbiodraw's
    proposal): on the project page's rows the picture before the name, the label under it and the pen portrait's
