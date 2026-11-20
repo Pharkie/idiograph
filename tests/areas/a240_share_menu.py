@@ -123,8 +123,8 @@ def test_share_menu(scratch: Path):
               and held.get("copy_of", {}).get("name") == "Keeping bees" and held.get("research_question")
               == "How do beekeepers live through a cold spring?"
               and idiograph_routes.read_project(root)["copy"] is False and files(root) == before, json.dumps(held))
-        check("240: the dialogs say Choose the shared copy, then name the new folder made inside the one chosen",
-              asked == ["Choose the shared copy.",
+        check("240: the dialogs say Choose a copy someone sent you, then name the new folder made inside the one chosen",
+              asked == ["Choose a copy someone sent you.",
                         "Choose the folder to put the copy in. Idiograph makes a new folder called Keeping bees inside it."]
               and idiograph_routes.api_open_sent({"file": str(sent), "check": True}).get("folder") == "Keeping bees", str(asked))
     finally:

@@ -5757,12 +5757,12 @@ def where_said(item: dict) -> str:
 def said_line(s: dict) -> list[str]:
     """A statement as the PET draft lists it, the lines of one list item: its words and where it is,
     "- Statement (Initial, 12:04)", and when it has a quote of its own, the quote on the next line in
-    single curly quotation marks, set in under the item and joined to it by a line break, never
+    double curly quotation marks, set in under the item and joined to it by a line break, never
     doubled when the workbook keeps marks round it, as the print view and the Word document set it."""
     out = [f"- {s['text']} ({where_said(s)})"]
     said = bare(s.get("quote"))
     if said:
-        out = [out[0] + "\\", f"  \u2018{said}\u2019"]
+        out = [out[0] + "\\", f"  \u201c{said}\u201d"]
     # the statements stacked under it, when the export asks for them, a list a step in under a line
     # of their own, "Stacked under it (3)", each with its reference and no quote
     if s.get("stacked"):
@@ -5788,7 +5788,7 @@ def draft_markdown(workbook: Path, case: str, vid=None, labels: str = LETTERS,
     come its note as a plain paragraph when it has one, then its statements and the labels inside it
     as `in_order` reads them, the order the print view and the Word document take, a label taking its
     place among the cards where its frame's top sits. Each statement is a list item, its words and
-    its reference, "(Initial, 12:04)", and its own quote on the next line in single curly
+    its reference, "(Initial, 12:04)", and its own quote on the next line in double curly
     quotation marks (see `said_line`), a statement with no quote of its own having no quote line.
     No picked quotes are listed, since every statement carries its own. Not placed and Discarded
     come at the end with their counts, "Not placed (18)", only when they hold anything, in

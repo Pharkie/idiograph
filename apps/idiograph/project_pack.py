@@ -2,8 +2,8 @@
 20 October 2026, topic 10, from a tester's wish for a student and a supervisor).
 
 Send writes `<Project name>.idiograph`, a zip of the whole project folder as it is, every workbook,
-the project file, the boards, the GETs, Source, the recordings and History, with a list of what it
-holds, and changes nothing in the project. Open a sent project unpacks it into a new folder beside
+the project file, the boards, the GETs, Source and the recordings, with a list of what it
+holds (the project's History stays behind, as `LEFT_OUT` says), and changes nothing in the project. Open a sent project unpacks it into a new folder beside
 the others in the folder he chooses, never over one: a folder already there gives the copy the name
 with "copy" after it. A returned board taken back in, turn-taking and live co-editing are for later
 or left out. The server, the command line and the MCP server all call here.

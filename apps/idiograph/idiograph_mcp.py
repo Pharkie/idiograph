@@ -630,7 +630,7 @@ TOOLS = [
          "Set a longitudinal (lipa) project's timepoints as Project settings does: a list in order, each a label and a "
          "description. Refused for an IPA or a thematic analysis project, whose method is fixed. Lowering the number is refused while a timepoint that would go holds an interview, and the refusal names the participants. "
          "Run dry_run first and set them only on the researcher's word.",
-         {"timepoints": {"type": "array", "minItems": 1, "maxItems": 10,
+         {"timepoints": {"type": "array", "minItems": 2, "maxItems": 10,
                          "items": {"type": "object", "additionalProperties": False, "required": ["label"],
                                    "properties": {"label": {"type": "string"}, "description": {"type": "string"}}},
                          "description": 'The timepoints in order, [{"label": "T1", "description": "Before the season"}].'}},

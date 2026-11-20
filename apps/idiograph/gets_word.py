@@ -10,7 +10,7 @@ Heading 2, its title in bold capitals by the run's All caps, its description, wh
 in, a plain grey second line of its heading, and its note in italics. A subtheme sits under its theme under Heading
 3, a group inside it under Heading 4 and deeper under Heading 5, each with its description and note the same way.
 Under each heading come its codes as the canvas reads them, each followed by whose it is and where, "(Juno, Initial,
-00:14)", and on the next line its own extract in single curly quotation marks, set in a little. A code no longer in
+00:14)", and on the next line its own extract in double curly quotation marks, set in a little. A code no longer in
 the workbook says so in its reference. A participant note comes only with Include participant notes, in italics
 after whose it is. Each participant's note for a theme, the row note the theme table keeps, follows the theme's codes
 in italics. With Their key extract only, each theme holds every participant's key extract alone, as the printed
@@ -77,7 +77,7 @@ def code_blocks(who: str, item: dict, notes: bool) -> list[dict]:
         said = bare(item["picks"][0]["text"]) if item.get("picks") else ""
     if said:
         out[0]["keep"] = True
-        out.append({"style": tw.QUOTE, "runs": [run(f"‘{said}’")]})
+        out.append({"style": tw.QUOTE, "runs": [run(f"“{said}”")]})
     return out
 
 
@@ -163,7 +163,7 @@ def board_blocks(parts: dict, notes: bool = False, selected: bool = False, descr
                 q = row.get("quote") if row["counted"] else None
                 if q:
                     out.append({"style": tw.STATEMENT, "keep": True, "runs": [run(reference(row["who"], q), bold=True)]})
-                    out.append({"style": tw.QUOTE, "runs": [run(f"‘{bare(q['text'])}’")]})
+                    out.append({"style": tw.QUOTE, "runs": [run(f"“{bare(q['text'])}”")]})
         else:
             walk(gid, 0, frozenset({gid}))
         for row in rows:

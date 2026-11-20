@@ -121,7 +121,7 @@ def test_pet_print(scratch):
           len(items) == len(every) == page.count('<div class="item">')
           and all(re.fullmatch(r"Initial, \d\d:\d\d", w) for _, w, _ in items), f"{len(items)} of {len(every)}")
     said = {html.unescape(st): html.unescape(q) for st, _, q in items}
-    want = {s["text"]: (f"\u2018{themes_print.bare(s['quote'])}\u2019" if s["quote"] else "") for s in every}
+    want = {s["text"]: (f"\u201c{themes_print.bare(s['quote'])}\u201d" if s["quote"] else "") for s in every}
     check("206, 212: each statement's own quote beside it in single curly marks, none where it has none",
           said == want and any(said.values()) and not all(said.values()))
     check("206: no picked quotes under any title, no table and no counts, every statement carrying its own quote",
@@ -169,7 +169,7 @@ def test_pet_print(scratch):
           "under it, and no picked quote listed",
           body.index(outline["themes"][0]["note"]) < body.index("\n- ")
           and all(f"- {s['text']} ({s['sheet']}, {s['time']})" in body for s in outline["themes"][0]["statements"])
-          and all(f"\n  \u2018{themes_mod.bare(s['quote'])}\u2019" in body for s in outline["themes"][0]["statements"] if s["quote"])
+          and all(f"\n  \u201c{themes_mod.bare(s['quote'])}\u201d" in body for s in outline["themes"][0]["statements"] if s["quote"])
           and f"{themes_mod.quoted(pick['text'])} (" not in draft)
 
     def walked(items):

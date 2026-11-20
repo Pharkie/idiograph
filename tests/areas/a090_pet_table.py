@@ -136,10 +136,10 @@ def test_pet_table(scratch):
           and len(refs) == len(read["cards"]) + 1, f"{len(refs)} statements")
     quote_lines = {t: nxt(t).get("text") for t in (walking, scared, bowl, nobody, listening, row2)}
     check("90: each statement's own quote on the next line in single curly marks, never doubled whatever marks the workbook kept",
-          quote_lines == {walking: "\u2018we went before anyone\u2019", scared: "\u2018she was frightened, that is all\u2019",
-                          bowl: "\u2018I could not throw it out\u2019", nobody: "\u2018they stopped asking\u2019",
-                          listening: "\u2018still listening\u2019", row2: "\u2018a quote on row 2\u2019"}
-          and not any(c in t for t in texts for c in ('"', "\u201c", "\u201d", "\u2018\u2018", "\u2019\u2019")), str(quote_lines))
+          quote_lines == {walking: "\u201cwe went before anyone\u201d", scared: "\u201cshe was frightened, that is all\u201d",
+                          bowl: "\u201cI could not throw it out\u201d", nobody: "\u201cthey stopped asking\u201d",
+                          listening: "\u201cstill listening\u201d", row2: "\u201ca quote on row 2\u201d"}
+          and not any(c in t for t in texts for c in ('"', "\u2018", "\u2019", "\u201c\u201c", "\u201d\u201d")), str(quote_lines))
     check("90: a statement with no quote of its own has no quote line, whether its place holds \"(no quote)\" or nothing",
           nxt(lead).get("text") == "A1.1 Listening" and nxt(waking).get("text") == "A1.1.1 Quarter past five"
           and nxt(better).get("text") == "B. A dog who was frightened"
@@ -158,8 +158,8 @@ def test_pet_table(scratch):
     rest = texts[texts.index(np_head) + 1:texts.index(dc_head)]
     check("90, 207: Unplaced and Discarded under plain headings with their counts at the end, their statements with references and quotes the same way",
           rest[:2] != [] and f"A statement on row 3 ({F}, 03:00)" in rest
-          and rest[rest.index(f"A statement on row 3 ({F}, 03:00)") + 1] == "\u2018a quote on row 3\u2019"
-          and texts[texts.index(dc_head) + 1:] == ["A note through the door" + said(S, 27), "\u2018a note, and a mark on the frame\u2019"])
+          and rest[rest.index(f"A statement on row 3 ({F}, 03:00)") + 1] == "\u201ca quote on row 3\u201d"
+          and texts[texts.index(dc_head) + 1:] == ["A note through the door" + said(S, 27), "\u201ca note, and a mark on the frame\u201d"])
     check("90: a statement no longer in the workbook keeps its reference with no longer in the workbook, and no quote",
           missing in texts and nxt(missing).get("text") == np_head
           and [s["quote"] for s in outline["themes"][2]["statements"] if s["missing"]] == [""], missing)
@@ -184,7 +184,7 @@ def test_pet_table(scratch):
     # ── E. the print view: each statement's own quote under it, and in the lists at the end
     page = themes_print.page(book, "P7 - Alder", auto=False, unplaced=True, binned=True)
     item = lambda text, key, quote: (f'<div class="item"><p class="st">{text} <span class="ref">({S}, {time[key]})</span></p>'
-                                     f'<p class="kq">‘{quote}’</p></div>')
+                                     f'<p class="kq">“{quote}”</p></div>')
     quoted_all = [s for t in themes_word.walk(outline["themes"]) for s in t["statements"]] + outline["unplaced"] + outline["discarded"]
     check("90, 206, 212: the print view sets each statement's own quote beside it in single curly marks, once",
           all(item(t, key, q) in page for t, key, q in (("Walking out before light", K(S, 15), "we went before anyone"),
@@ -194,8 +194,8 @@ def test_pet_table(scratch):
           and page.count('<p class="kq">') == sum(1 for s in quoted_all if s["quote"])
           and f'The lead by the door <span class="ref">({S}, {time[K(S, 15, 1)]})</span></p></div>' in page
           and "no quote" not in page.lower() and "&quot;" not in page.split("<main>", 1)[1]
-          and "‘‘" not in page and "’’" not in page)
+          and "““" not in page and "””" not in page)
     check("90, 206: no picks under any title, and the lists at the end carry each statement's quote the same way",
           '<ul class="picks">' not in page and page.count("we went before anyone") == 1
-          and '<p class="kq">‘a quote on row 3’</p>' in page.split(f"<h2>{np_head}</h2>", 1)[1].split(f"<h2>{dc_head}</h2>", 1)[0]
-          and '<p class="kq">‘a note, and a mark on the frame’</p>' in page.split(f"<h2>{dc_head}</h2>", 1)[1])
+          and '<p class="kq">“a quote on row 3”</p>' in page.split(f"<h2>{np_head}</h2>", 1)[1].split(f"<h2>{dc_head}</h2>", 1)[0]
+          and '<p class="kq">“a note, and a mark on the frame”</p>' in page.split(f"<h2>{dc_head}</h2>", 1)[1])

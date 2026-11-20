@@ -97,7 +97,7 @@ def table(heads: list[str], widths: list[int], rows: list[list[list[dict]]], bre
 
 
 def quoted_runs(text: str, bold=None) -> list[dict]:
-    """A quote in single curly marks, in italics, with his bold kept on its words: `bold` as `[start, end]` spans of
+    """A quote in double curly marks, in italics, with his bold kept on its words: `bold` as `[start, end]` spans of
     `text` (the LPET table's row as Trajectories reads it)."""
     text = str(text or "")
     marked = [False] * len(text)
@@ -114,7 +114,7 @@ def quoted_runs(text: str, bold=None) -> list[dict]:
             out[-1]["text"] += ch
         else:
             out.append(run(ch, b=on, i=True))
-    return [run("‘", i=True), *out, run("’", i=True)]
+    return [run("“", i=True), *out, run("”", i=True)]
 
 
 def document(kind: str, name: str, title: str, head: dict, word: list[str], foot: tuple, blocks: list[dict],

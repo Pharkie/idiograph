@@ -1295,7 +1295,7 @@ and `match_case`, and `transcript_replace_undo`, with `batch`, `case` and `redo`
 ## Sending a project
 
 A project goes to someone else's Idiograph as one file, `<Project name>.idiograph`, and opens there as
-a copy, as Share a copy on its card on Home and Open a shared copy under the cards do (21 October).
+a copy, as Share a copy on its card on Home and Open… and then A copy someone sent you under the cards do (21 October).
 
 ```
 idiograph project send --to ~/Desktop --dry-run
@@ -1453,7 +1453,7 @@ board brought in is a board like any other, `board compare` takes it by its name
 `{"participant", "board", "timepoint"}` for one participant's board alone, at that timepoint when it is
 given, and `dry_run`, and from a browser's file chooser `data` and `name` in place of
 `file`. `project_open_copy` takes `from_name`, and its answer's `returning` names the researcher's project that a
-copy coming back belongs to. Home's Open a shared copy calls the same route, its dry run for the card
+copy coming back belongs to. Home's Open…, A copy someone sent you, calls the same route, its dry run for the card
 and then for real, so the app and an agent bring a board in alike. Bring boards in only on their word.
 
 ## The project and its participants
@@ -2664,7 +2664,7 @@ sent with a copy. You sign as their computer: never read, copy or print either f
   `replace_team`) until it also says `--replace` (`replace` for `team_join`), and an invite from a computer the
   project's list names, an "Add a computer of mine" invite among them, asks nothing. `team show` carries `start` (`kept`, `joining`, `unlisted`) as
   the app reads it. A refused or failed join leaves no keys behind. An invite for a member's own computer lists no participants.
-  `idiograph team join "LINK OR WORDS" --into FOLDER --name "Bo"` is Join a project on Home: it needs no project
+  `idiograph team join "LINK OR WORDS" --into FOLDER --name "Bo"` is Join a shared project on Home: it needs no project
   of yours. The folder, new or empty, is made, the project is made in it under the lead's name and method and added
   to Idiograph's projects, and it joins as above. A folder that holds anything is refused, and so are words that
   are not an invite, with nothing written. `--name` may be left out when Settings has your name, or for an invite

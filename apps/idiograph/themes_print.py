@@ -29,7 +29,7 @@ The headings and the notes run across the full width of the page. Under each hea
 statements in the order the canvas reads them, a label inside it taking its place among the cards
 where its frame's top sits, each a row of two columns about equal, as a long line across a landscape
 page is hard to read. On the left the statement in the serif, followed by where it is, "(Initial,
-12:04)", in a smaller, quieter face, and on the right its own quote in italics in single curly
+12:04)", in a smaller, quieter face, and on the right its own quote in italics in double curly
 quotation marks, never doubled when the workbook keeps marks round it, the quotes' column the same
 width all down the page. A statement with no quote of its own leaves the right empty, and no picked
 quotes are listed, since every statement carries its own. The labels and the order come from
@@ -132,16 +132,16 @@ def reference(s: dict) -> str:
 
 
 def quoted(quote) -> str:
-    """A quote as every print view sets it, the table of PETs, the GETs table and the trail alike, in single curly
-    quotation marks as the book's tables and the Word document set it, once, whatever marks the workbook keeps round
-    it, where the GETs table and the trail set straight double ones (17 October, later)."""
-    return f"\u2018{bare(quote)}\u2019"
+    """A quote as every print view sets it, the table of PETs, the GETs table, the LPET table and the trail alike, in
+    double curly quotation marks as the screens and the LPET table set it, once, whatever marks the workbook keeps
+    round it (smallfix21, 20 November 2026, where the PETs and GETs prints had set single ones)."""
+    return f"\u201c{bare(quote)}\u201d"
 
 
 def statement_html(s: dict, reasons: bool = False) -> str:
     """A statement as a row of the table, two columns side by side: on the left its words in the
     serif followed by its reference in a smaller, quieter face, and on the right its own quote in
-    italics in single curly quotation marks, the right left empty when it has none. A page never
+    italics in double curly quotation marks, the right left empty when it has none. A page never
     splits the row. With `reasons` the reason an AI proposal gave for a discard follows under the
     statement, on the left."""
     ref = reference(s)
@@ -732,7 +732,7 @@ def hue_of(shades: dict, gid: str) -> dict:
 
 
 def statement_data(s: dict, reasons: bool = False) -> dict:
-    """A statement as `statement_html` sets it: its words, where it was said, its quote in single curly marks or
+    """A statement as `statement_html` sets it: its words, where it was said, its quote in double curly marks or
     "", the reason a discard gave with `reasons`, and the statements stacked under it with their line."""
     said = bare(s.get("quote"))
     stacked = s.get("stacked") or []

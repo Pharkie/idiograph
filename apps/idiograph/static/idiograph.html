@@ -20,15 +20,19 @@
             aria-controls="analysis-body"><span class="proj-name">{{page_idiograph.home.projects}}</span></button></h2>
         <div class="proj-body" id="analysis-body">
           <ul class="home-cards" id="projects"></ul>
-          <!-- New project makes one from a folder and the transcripts dropped onto its card, Open
-               project adds a folder of case folders, the Mac's own dialog, or off a Mac the folder's
-               path typed, and Open a shared copy opens a .idiograph file as a copy (Adam's Way A, 21
-               October, each said in its tooltip), and Join a project joins a project he was invited to into a
-               new folder (teamjoin, 20 November 2026, team.js). A run of one project leaves the row hidden -->
-          <div class="demo-actions home-acts" id="np-line"><button type="button" class="ghost small" id="np-open">{{page_idiograph.home.new_project}}</button><button
-               type="button" class="ghost small" id="hj-open">{{team.home.button}}</button><button
-               type="button" class="ghost small" id="add-project-home" title="{{page_idiograph.home.open_project_folder_already}}">{{page_idiograph.home.open_project}}</button><button
-               type="button" class="ghost small" id="sent-open" title="{{page_idiograph.home.open_project_someone_has}}">{{page_idiograph.home.open_shared_copy}}</button></div>
+          <!-- New project makes one from a folder and the transcripts dropped onto its card. Open... holds the two
+               rare ways in, a project folder already on this computer (the Mac's own dialog, or off a Mac the
+               folder's path typed) and a .idiograph file someone sent, opened as a copy (Adam's Way A, 21 October),
+               each named in its menu item. Join a shared project joins a project he was invited to into a new
+               folder (teamjoin, 20 November 2026, team.js). The order is how likely each is (homerow, 20 November
+               2026, Adam's option A). A run of one project leaves the row hidden -->
+          <div class="demo-actions home-acts" id="np-line"><button type="button" class="ghost small" id="np-open">{{page_idiograph.home.new_project}}</button><span
+               class="np-openmenu"><button type="button" class="ghost small" id="np-openmenu-btn" aria-haspopup="true"
+               aria-expanded="false" aria-controls="np-openmenu">{{page_idiograph.home.open_menu}}</button><div class="row-menu"
+               id="np-openmenu" role="menu" aria-label="{{page_idiograph.home.open_menu}}" hidden><button type="button" class="ghost small"
+               role="menuitem" id="add-project-home">{{page_idiograph.home.open_project_folder}}</button><button type="button"
+               class="ghost small" role="menuitem" id="sent-open">{{page_idiograph.home.open_sent_copy}}</button></div></span><button
+               type="button" class="ghost small" id="hj-open">{{team.home.button}}</button></div>
           <p class="no-root add-typed" id="add-home-typed" hidden><input id="add-home-path" type="text" spellcheck="false"
              placeholder="{{page_idiograph.home.folder}}" aria-label="{{page_idiograph.home.folders_path}}"><button type="button" class="ghost small" id="add-home-go">{{page_idiograph.home.add}}</button></p>
           <!-- Open a shared copy: a .idiograph file someone shared, opened as a copy in a new folder in the
@@ -1973,7 +1977,7 @@
     <button class="card-close" id="hj-close" type="button" tabindex="-1" aria-label="{{page_idiograph.screens.close}}" title="{{page_idiograph.screens.close}}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
     </button>
-    <h2 id="hj-title">{{team.join.heading}}</h2>
+    <h2 id="hj-title">{{team.home.title}}</h2>
     <p class="fineprint" id="hj-offer" hidden></p>
     <label class="wt-h" for="hj-words">{{team.join.paste}}</label>
     <textarea id="hj-words" rows="3" spellcheck="false" autocomplete="off"></textarea>

@@ -669,7 +669,7 @@ def api_team(body: dict) -> dict:
 # ------------------------------------------------------------------ Join a project on Home (teamjoin, 20 November 2026)
 
 # where a joined project is kept unless he says otherwise, under the home folder, as the Join card offers it
-JOIN_BASE = ("Documents", "Idiograph")
+JOIN_BASE = ("Idiograph",)
 # the characters no folder name on a Mac or Windows may hold
 NOT_IN_FOLDER = re.compile(r'[\x00-\x1f/\\:*?"<>|]')
 
@@ -682,10 +682,41 @@ def join_folder_name(text) -> str:
     return name or i18n.t("team.home.default_project")
 
 
+def on_windows() -> bool:
+    return sys.platform == "win32"
+
+
+def system_documents() -> Path | None:
+    """The Documents folder as Windows says it, `SHGetKnownFolderPath(FOLDERID_Documents)`, which follows a Documents
+    that OneDrive has moved, or None where the call is not there or does not answer (smallfix21, 20 November 2026)."""
+    try:
+        import ctypes
+        guid = ctypes.c_byte * 16
+        # FOLDERID_Documents, {FDD39AD0-238F-46AF-ADB4-6C85480369C7}
+        folder = guid(*bytes.fromhex("D09AD3FD8F23AF46ADB46C85480369C7"))
+        out = ctypes.c_wchar_p()
+        got = ctypes.windll.shell32.SHGetKnownFolderPath(ctypes.byref(folder), 0, None, ctypes.byref(out))
+        text = out.value if got == 0 else None
+        ctypes.windll.ole32.CoTaskMemFree(out)
+        return Path(text) if text else None
+    except Exception:
+        return None
+
+
+def documents_folder() -> Path:
+    """Where Documents is, the one place that decides it: on Windows what the system says (it may be in OneDrive),
+    falling back to `~/Documents`, and on the Mac and Linux `~/Documents`."""
+    if on_windows():
+        found = system_documents()
+        if found is not None:
+            return found
+    return Path.home() / "Documents"
+
+
 def join_free_folder(name: str) -> Path:
-    """The folder the Join card offers: `~/Documents/Idiograph/<name>`, or `<name> 2` and on while that one holds
+    """The folder the Join card offers: `Idiograph/<name>` in the Documents folder (`documents_folder`), or `<name> 2` and on while that one holds
     anything."""
-    base = Path.home().joinpath(*JOIN_BASE)
+    base = documents_folder().joinpath(*JOIN_BASE)
     for n in range(1, 1000):
         place = base / (name if n == 1 else f"{name} {n}")
         if not place.exists() or (place.is_dir() and join_folder_empty(place)):
@@ -2084,6 +2115,20 @@ def themes_head(path: Path) -> tuple[str | None, dict | None]:
     return out[0], (dict(out[1]) if isinstance(out[1], dict) else out[1])
 
 
+def pets_mark_of(path: Path) -> dict | None:
+    """A participant's PETs mark for Home's card and the case list's row. With PETs files of later timepoints it is
+    the mark of all of them: the latest of the marks when every timepoint's file is marked complete, else None, where
+    `themes_head` reads T1's file alone. A participant of one timepoint has T1's own mark."""
+    first = themes_head(path)[1]
+    later = themes_mod.timepoint_files(path)
+    if not later:
+        return first
+    marks = [first] + [(pets_progress(path, n) or {}).get("complete") for n in later]
+    if not all(marks):
+        return None
+    return dict(max(marks, key=lambda m: str(m.get("at") or "")))
+
+
 def themes_head_once(path: Path, file: Path, mark: tuple | None) -> tuple | None:
     """`themes_head`'s two and the board count `boards_count` keeps, from one parse of the themes file, as each of
     the three reads it: the name from the file as written, the mark and the count from it as `themes.load` reads
@@ -2538,7 +2583,7 @@ def list_cases(root) -> list[dict]:
             # the progress file beside the workbook, for the row's small type
             "complete": rounds_mod.complete_of(path) if kind == "annotated" else None,
             # and the PETs phase, `{"at", "board", "name"}` or None, read from the themes file
-            "pets_complete": themes_head(path)[1] if kind == "annotated" else None,
+            "pets_complete": pets_mark_of(path) if kind == "annotated" else None,
         })
     return found
 
@@ -2574,7 +2619,7 @@ def demo_entry(workbook: Path | None = None) -> dict | None:
             "modified": int(workbook.stat().st_mtime),
             "board": themes_head(workbook)[0],
             "complete": rounds_mod.complete_of(workbook),
-            "pets_complete": themes_head(workbook)[1]}
+            "pets_complete": pets_mark_of(workbook)}
 
 
 def demo_entries(root: Path | None = None) -> list[dict]:

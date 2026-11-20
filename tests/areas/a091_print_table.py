@@ -78,7 +78,7 @@ def test_print_table(scratch):
     word = themes_word.plain(themes_word.blocks("P6 - Hazel", outline, unplaced=True, binned=True))
     draft = themes_mod.draft_markdown(book, "P6 - Hazel")[0]
     item = lambda text, key: f'<div class="item"><p class="st">{text} <span class="ref">({key[0]}, {time[key[1]]})</span></p>'
-    said = lambda text, key, quote: item(text, key) + f'<p class="kq">\u2018{quote}\u2019</p></div>'
+    said = lambda text, key, quote: item(text, key) + f'<p class="kq">\u201c{quote}\u201d</p></div>'
 
     # ── B. the head and the PETs, lettered as the Word document letters them
     check("91: the participant heads the page, the book's Table of Personal Experiential Themes smaller under it",

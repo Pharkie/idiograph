@@ -6,6 +6,8 @@
   "exports.stacked_under_words": "Stacked under: {words}",
   "exports.pets_not_complete": "PETs not complete",
   "exports.no_pets_yet": "No PETs yet",
+  "exports.lpets_not_complete": "LPETs not complete",
+  "exports.no_lpets_yet": "No LPETs yet",
   "exports.changed_since": "Changed since it came in",
   "exports.not_interviewed": "Not interviewed",
   "exports.nothing_under_get": "Nothing under this GET",

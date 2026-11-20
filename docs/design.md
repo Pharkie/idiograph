@@ -304,9 +304,10 @@ Table and the underline of its title in the audit trail (17 October).
   whose five columns are one grid, `.tr-wide`, with every row a subgrid of it (17 October, later).
   Paper, A4 landscape, never scrolls. The trail on a narrow screen keeps its five columns about 720px together, as
   the GETs table does, and scrolls in its box, where they squeezed to a word or two a line (17 October, later).
-- **On paper a quote stands in single curly quotation marks**, once, whatever marks the workbook keeps, in
-  every print view, the table of PETs, the GETs table and the trail, as the book's tables and the Word document
-  set it (17 October, later). The app's own words on screen keep the straight marks.
+- **On paper a quote stands in double curly quotation marks**, once, whatever marks the workbook keeps, in
+  every print view, the table of PETs, the GETs table, the LPET table and the trail, and in the Word documents
+  (smallfix21, 20 November 2026: the PETs and GETs prints had set single ones, 17 October, later, where the LPET
+  table and its appendix set double). The app's own words on screen keep the straight marks.
 - **No strip of cut words beside a card or a sheet.** One that stands over a panel takes the whole
   width where the strip beside it would be narrow, the guidance sheet below 520px and Find and replace,
   at the window's foot, below 700px (17 October, later), and Search, under the bar, below 700px too. A

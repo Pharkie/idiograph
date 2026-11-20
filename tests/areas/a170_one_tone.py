@@ -205,10 +205,10 @@ console.log(JSON.stringify(out));
     item = gp.item_html({"kind": "es", "text": "Walks in the rain", "time": "01:02", "sheet": "Initial", "gone": False,
                          "quotes": [{"text": "“a lead that went slack”"}], "notes": []}, False)
     row = gp.quote_html({"text": "a lead that went slack", "time": "01:02", "sheet": "Initial"})
-    want = "‘a lead that went slack’"
-    check("170: on paper a key quote stands in single curly quotation marks in every print view, the table of PETs, the "
-          "GETs table's key quote and its items, and the trail, once whatever marks the workbook keeps, as the book's tables "
-          "and the Word document set it, where the GETs table and the trail set straight double ones",
+    want = "“a lead that went slack”"
+    check("170: on paper a key quote stands in double curly quotation marks in every print view, the table of PETs, the "
+          "GETs table's key quote and its items, and the trail, once whatever marks the workbook keeps, as the LPET table "
+          "and the Word document set it",
           set(marks) == {want} and f'<p class="kq">{want}</p>' in st and f'<span class="tr-q">{want}</span>' in cell
           and f'<p class="kq">{want}</p>' in item and row.startswith(f"<i>{want}</i>")
           and "th.quoted(" not in read(support.source("apps/idiograph/gets_print.py")), str((st, cell, item, row))[:500])

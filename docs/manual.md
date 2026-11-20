@@ -595,7 +595,7 @@ of your grouping, so another analyst can make PETs blind.
 
 ### A copy coming back
 
-When the other analyst sends the copy back, Open a shared copy on Home offers to add their boards to your
+When the other analyst sends the copy back, A copy someone sent you, under Open… on Home, offers to add their boards to your
 project. An AI agent can do the same. Each comes in as
 a new board named with whose it is, such as "Sam's board, 30 Oct". It is never your Current board and never
 replaces one of yours. A statement you reworded since you sent the copy shows your wording.
@@ -615,7 +615,7 @@ computer has the same project folder open.
 
 To start, the lead presses Invite others on the project's page, beside Project settings, or opens Project settings
 and presses Invite others to work on this project. Either makes them the lead and opens the invite, and asks for
-your name only when Settings has none. Each person invited presses Join a project on Home and pastes the link or the
+your name only when Settings has none. Each person invited presses Join a shared project on Home and pastes the link or the
 twelve words. Idiograph keeps the project in a new folder, `Documents/Idiograph` and the project's name unless you
 type another, and makes it there, named as the lead named it. A link says whether the team sends through a shared
 folder, and then you choose the folder. With the twelve words alone, tick The invite came through a shared folder when
@@ -898,7 +898,7 @@ participant's folder for a hidden file starting `~$` that Excel left behind, and
 ### Its folder is not there
 
 The project's folder has moved, been renamed or is on a drive that is not connected. Reconnect the drive, or
-choose Remove from Idiograph on the card and then Open project at the folder's new place. Nothing in the
+choose Remove from Idiograph on the card and then Open… on Home and A project folder on this computer at the folder's new place. Nothing in the
 folder is lost. In Working together, a shared folder that is not there usually means its sync app is not
 signed in. If it says files will not open yet, set the folder in OneDrive to Always keep on this device.
 

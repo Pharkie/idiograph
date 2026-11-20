@@ -121,7 +121,7 @@ def test_loose_ends(scratch):
                 ref = re.search(r' <span class="ref">\((.*?)\)</span>$', st)
                 said = un(m.group(6) or "")
                 out.append(("s", un(st[:ref.start()] if ref else st), un(ref.group(1)) if ref else "",
-                            said[1:-1] if said.startswith("‘") and said.endswith("’") else said))
+                            said[1:-1] if said.startswith("“") and said.endswith("”") else said))
         return out
 
     def md_tokens(draft: str) -> tuple[list, list]:
@@ -141,7 +141,7 @@ def test_loose_ends(scratch):
                 said = ""
                 if m.group(3):
                     nxt = lines[i + 1] if i + 1 < len(lines) else ""
-                    if nxt.startswith("  ‘") and nxt.endswith("’"):
+                    if nxt.startswith("  “") and nxt.endswith("”"):
                         said = nxt[3:-1]
                     else:
                         odd.append(nxt)
@@ -177,11 +177,11 @@ def test_loose_ends(scratch):
           and heads[4].startswith("Unplaced (") and heads[5] == "Experiential statements set aside (1)", str(heads))
     draft = themes_mod.draft_markdown(wren, "P1 - Wren")[0]
     section = draft.split("\n## A. Early at the plot\n", 1)[1].split("\n## B.", 1)[0]
-    check("95: 1, the draft's lines: a statement and its reference, a break, then its quote set in, in single curly marks, "
+    check("95: 1, the draft's lines: a statement and its reference, a break, then its quote set in, in double curly marks, "
           "the workbook's own marks never doubled",
-          "- Out before the gates open (Initial, " in section and "\\\n  ‘we beat the wardens to it’\n" in draft
-          and "\n  ‘it kept me company, that is all’\n" in draft and "\n  ‘I never threw it out’\n" in draft
-          and "‘‘" not in draft and '‘"' not in draft and "‘“" not in draft)
+          "- Out before the gates open (Initial, " in section and "\\\n  “we beat the wardens to it”\n" in draft
+          and "\n  “it kept me company, that is all”\n" in draft and "\n  “I never threw it out”\n" in draft
+          and "““" not in draft and '“"' not in draft and "“‘" not in draft)
     check("95: 1, a statement with no quote of its own, and one whose place holds (no quote), has no quote line and no break",
           re.search(r"\n- Waking before the alarm \(Initial, [0-9:]+\)\n", draft) is not None
           and re.search(r"\n- The fork left by the water butt \(Initial, [0-9:]+\)\n", draft) is not None
@@ -233,7 +233,7 @@ def test_loose_ends(scratch):
     part = pets_part(full)
     check("95: 2, the PET tables hold the new rows, a statement and its reference left and its quote right, and no old bars",
           part.count('<div class="item">') == 10 and '<h2 class="pet-title"><span class="number">A.</span>' in part
-          and '<p class="kq">‘like gravel on a tin’</p>' in part and 'class="theme' not in part
+          and '<p class="kq">“like gravel on a tin”</p>' in part and 'class="theme' not in part
           and 'class="bar"' not in part and '<table class="statements">' not in part and 'class="picks"' not in part
           and "Nothing in it yet." not in part)
     numbers = pets_part(pages[(themes_mod.NUMBERS, "full")])

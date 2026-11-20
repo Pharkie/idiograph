@@ -174,17 +174,17 @@ def test_word_export(scratch):
           str(doc[start + 1:start + 3]))
     quoted = [t for t in texts if "this is all right, this is ours" in t]
     check("87, 205: no Quotes heading, the picked quote once, as its statement's own, in single curly marks under it",
-          quoted == ["\u2018this is all right, this is ours\u2019"]
+          quoted == ["\u201cthis is all right, this is ours\u201d"]
           and texts[texts.index(quoted[0]) - 1] == "Frost, an empty field and her loops (Initial, 02:19)"
-          and not any('"' in t or "\u201c" in t or "\u2018\u2018" in t for t in texts)
+          and not any('"' in t or "\u2018" in t or "\u201c\u201c" in t for t in texts)
           and themes_word.bare('"\u201csaid\u201d"') == "said" and themes_word.bare("\u2018said\u2019") == "said",
           str(quoted))
     rest = texts[texts.index(np_head) + 1:texts.index(dc_head)]
     want_rest = [x for s in outline["unplaced"]
-                 for x in [f"{s['text']} {at(s)}"] + ([f"\u2018{themes_word.bare(s['quote'])}\u2019"] if s["quote"] else [])]
+                 for x in [f"{s['text']} {at(s)}"] + ([f"\u201c{themes_word.bare(s['quote'])}\u201d"] if s["quote"] else [])]
     check("87, 205: Unplaced and Discarded after the PETs, in transcript order, each quote under its statement",
           rest == want_rest and "A statement on row 2 (Follow-up, 02:00)" in rest
-          and rest[rest.index("A statement on row 2 (Follow-up, 02:00)") + 1] == "\u2018a quote on row 2\u2019"
+          and rest[rest.index("A statement on row 2 (Follow-up, 02:00)") + 1] == "\u201ca quote on row 2\u201d"
           and texts[texts.index(dc_head) + 1] == "Nocturnal, and not really joking (Initial, 01:39)", str(rest[:3]))
     check("87, 205: no key at the end, each reference naming its sheet",
           not any(t.startswith("Key:") or "(#" in t for t in texts) and doc[-1]["style"] != "Heading2")

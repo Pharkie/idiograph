@@ -20,7 +20,7 @@ is a second line of its heading, plain, smaller and grey, never bold or in capit
 note, when a label has one, follows its heading in italics. Under each heading come its
 statements as the canvas reads them, a label inside it taking its place among the cards where its
 frame's top sits. Each statement is a paragraph followed by where it is, its sheet and timecode,
-"(Initial, 12:04)", and on the next line its own quote in single curly quotation marks, set in
+"(Initial, 12:04)", and on the next line its own quote in double curly quotation marks, set in
 a little, never doubled when the workbook keeps marks round it. A statement with no quote of its own
 has no quote line. Not placed and Experiential statements set aside come after under plain headings
 with their counts, "Not placed (18)", each only when it holds anything and only when its tick asks for it, Include not
@@ -112,13 +112,13 @@ def run(text: str, bold: bool = False, italic: bool = False, caps: bool = False)
 
 def statement_blocks(s: dict) -> list[dict]:
     """A statement as the book's table sets it out: its words followed by where it is, "(Initial,
-    12:04)", and on the next line its own quote in single curly quotation marks, set in a
+    12:04)", and on the next line its own quote in double curly quotation marks, set in a
     little, when it has one."""
     where = th.where_said(s)
     said = bare(s.get("quote"))
     out = [{"style": STATEMENT, "keep": bool(said), "runs": [run(f"{s['text']} ({where})" if where else s["text"])]}]
     if said:
-        out.append({"style": QUOTE, "runs": [run(f"‘{said}’")]})
+        out.append({"style": QUOTE, "runs": [run(f"“{said}”")]})
     # the statements stacked under it, when the export asks for them, set in as a quote is, under a
     # line of their own, "Stacked under it (3)", each with where it is and no quote
     if s.get("stacked"):

@@ -174,8 +174,8 @@ def test_themes_review_print(scratch):
               and f'<p class="st">{shown[in_row[0]]} <span class="ref">({DEMO_SHEET}, {first_at})</span></p>' in main)
         own = html.escape(themes_print.bare(quote["text"]), quote=True)
         check("206: no picked quotes under the title, the picked quote shown once, as its statement's own",
-              '<ul class="picks">' not in main and main.count(f'<p class="kq">\u2018{own}\u2019</p>') == 1
-              and g1 < main.index(f'<p class="kq">\u2018{own}\u2019</p>') < g3, own)
+              '<ul class="picks">' not in main and main.count(f'<p class="kq">\u201c{own}\u201d</p>') == 1
+              and g1 < main.index(f'<p class="kq">\u201c{own}\u201d</p>') < g3, own)
         check("206, 207: Unplaced and Discarded at the end with their counts, the discard with its reason",
               main.index(np_head) > g2 and main.index(dc_head) > main.index(np_head)
               and np_head == "<h2>Unplaced (%d)</h2>" % main.split(np_head, 1)[1].split(dc_head, 1)[0].count('<div class="item">')

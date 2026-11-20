@@ -121,6 +121,24 @@ def test_team_join_home(scratch: Path):
         bo = install(scratch, "bo")
         config_before = bo["config"].read_bytes()
 
+        # 0. where Documents is: on Windows what the system says, a OneDrive one included, else ~/Documents, and on
+        # the Mac and Linux ~/Documents whatever such a call would say (this Mac has no such call, so a stand-in)
+        moved = places / "OneDrive" / "Documentos"
+        was_calls = (routes.on_windows, routes.system_documents)
+        try:
+            routes.on_windows, routes.system_documents = (lambda: True), (lambda: moved)
+            win = routes.join_free_folder("Dogs at home")
+            routes.system_documents = lambda: None
+            win_none = routes.join_free_folder("Dogs at home")
+            routes.on_windows, routes.system_documents = (lambda: False), (lambda: moved)
+            other = routes.join_free_folder("Dogs at home")
+        finally:
+            routes.on_windows, routes.system_documents = was_calls
+        check("433: Join a project on Home offers its folder in the Documents folder the system names on Windows, "
+              "falling back to ~/Documents where the call does not answer, and always ~/Documents on the Mac and Linux",
+              win == moved / "Idiograph" / "Dogs at home" and win_none == base / "Dogs at home"
+              and other == base / "Dogs at home", f"{win} {win_none} {other}")
+
         # 1. the invite read first: who sent it, the project as the lead named it, the folder offered after it
         empty = call(bo, op="offer")
         offer = call(bo, op="offer", words=made["link"])

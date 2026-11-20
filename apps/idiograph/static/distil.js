@@ -2206,6 +2206,42 @@ function drawPage(s) {
 
 /* Open project folder on the home screen: the Mac's own folder dialog, or off a Mac a field for the
    folder's path. The project added opens on its page. */
+/* Home's Open... button and its menu (homerow, 20 November 2026, Adam's option A): the two rare ways in under one
+   button, each item doing just what its own button did, Open project folder (`openFolderPress`) and Open a shared
+   copy (`openSentPress`), which keep their ids. The arrows move through it, Escape shuts it and gives the button the
+   focus back, and a press anywhere else shuts it. */
+function homeOpenMenu(open) {
+  const menu = $('np-openmenu');
+  const btn = $('np-openmenu-btn');
+  menu.hidden = !open;
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (open) {
+    menu.style.left = '0';
+    menu.style.top = `${btn.offsetHeight + 4}px`;
+    const first = menu.querySelector('button');
+    if (first) first.focus({ preventScroll: true });
+  }
+}
+
+function homeOpenMenuWire() {
+  const menu = $('np-openmenu');
+  const btn = $('np-openmenu-btn');
+  btn.onclick = (e) => { e.stopPropagation(); homeOpenMenu(menu.hidden); };
+  menu.addEventListener('click', () => homeOpenMenu(false));
+  menu.addEventListener('keydown', (e) => {
+    const items = [...menu.querySelectorAll('button')];
+    const at = items.indexOf(document.activeElement);
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); homeOpenMenu(false); btn.focus(); }
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      items[(at + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length].focus();
+    } else if (e.key === 'Tab') homeOpenMenu(false);
+  });
+  document.addEventListener('pointerdown', (e) => {
+    if (!menu.hidden && !e.target.closest('.np-openmenu')) homeOpenMenu(false);
+  }, true);
+}
+
 function openFolderPress() {
   if (S.chooseRoot) { addFromHome(); return; }
   $('add-home-typed').hidden = false;
@@ -14106,6 +14142,7 @@ function distilBoot() {
   nmWire();
   // the home screen: Open project folder, its typed field off a Mac, Settings at its head on
   // General, a project page's way back and the demo's Reset demo
+  homeOpenMenuWire();
   $('add-project-home').onclick = () => openFolderPress();
   $('add-home-go').onclick = () => addFromHome($('add-home-path').value.trim());
   $('add-home-path').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addFromHome($('add-home-path').value.trim()); } };

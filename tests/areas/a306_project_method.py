@@ -384,7 +384,7 @@ def ta_word(ta: Path, ipa: Path, call, config_file: Path, ipa_words):
           "no IPA word, its author Your name",
           path is not None and path.parent == ta and path.name == "Sharing a home with a dog - Board 1 - Theme table.docx"
           and "Table of themes" in words and "The dog sets the shape of the day" in words
-          and "Walks as the frame of the morning" in words and "(Juno, Initial, " in words and "‘" in words
+          and "Walks as the frame of the morning" in words and "(Juno, Initial, " in words and "“" in words and "”" in words
           and '<w:pStyle w:val="Heading3"/>' in body and not ipa_words.findall(words)
           and "<dc:creator>Ada Lark</dc:creator>" in author
           and sorted(p.name for p in ta.iterdir()) == sorted(before + [path.name]),

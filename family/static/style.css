@@ -338,6 +338,10 @@ html[data-app="idiograph"][data-edition="preview"] .pe-note { display: flex; ali
 /* New project and Open project folder under each section's cards */
 .home-acts { flex-wrap: wrap; align-items: center; gap: 8px; }
 .home-acts[hidden] { display: none; }
+/* Home's Open... button and its menu, the menu under it in the row menus' paper (homerow) */
+.np-openmenu { position: relative; display: inline-block; }
+.np-openmenu .row-menu { width: max-content; max-width: none; }
+.np-openmenu .row-menu[hidden] { display: none; }
 /* Search, Send feedback and Settings in the head, at the right, in the order every bar ends with (16
    October), at the right of the head's top row since 5 November (homehead), their words shown as a screen's bar
    shows them */

@@ -557,7 +557,7 @@ def quote_html(q: dict | None, bold=None) -> str:
     if not q:
         return f'<span class="none">{esc(i18n.t("page_print.gets.no_quote"))}</span>'
     words = "".join(f"<b>{esc(t)}</b>" if on else esc(t) for t, on in gt.quote_bold(q["text"], bold))
-    return (f'<i>‘{words}’</i> <span class="tc">{esc(q["time"])}</span>'
+    return (f'<i>“{words}”</i> <span class="tc">{esc(q["time"])}</span>'
             f' <span class="sheet">{esc(q["sheet"])}</span>')
 
 
@@ -1233,8 +1233,13 @@ def head_of(project: dict, parts: dict, what: str) -> dict:
     # a thematic analysis project's participants have no PETs, complete or not (tagaps)
     if ta():
         late, none = [], []
+    # the LGETs' participants are waiting on their LPETs, so the LGETs print says LPETs where the GETs print says PETs
+    if gt.in_lgets():
+        not_complete, no_pets = i18n.t("exports.lpets_not_complete"), i18n.t("exports.no_lpets_yet")
+    else:
+        not_complete, no_pets = gt.NOT_COMPLETE, gt.NO_PETS
     waiting = [i18n.t("page_print.gets.waiting", state=said, names=gt.said_list([gt.who(c) for c in names]))
-               for said, names in ((gt.NOT_COMPLETE, late), (gt.NO_PETS, none), (gt.CHANGED, changed)) if names]
+               for said, names in ((not_complete, late), (no_pets, none), (gt.CHANGED, changed)) if names]
     return {"title": title, "project": " ".join(str(project.get("name") or "").split()), "question": asked,
             "note": str(board.get("note") or "").strip(), "waiting": waiting}
 

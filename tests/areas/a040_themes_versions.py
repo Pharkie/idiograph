@@ -217,7 +217,7 @@ def test_themes_versions(scratch):
         line = lambda key: f"- {cards[key]['text']} ({DEMO_SHEET}, {cards[key]['time']})"
         fresh = themes_mod.read_cards(work)
         own = lambda key: (themes_mod.own_quote(fresh["quotes"], key) or {}).get("text") or ""
-        said = lambda key: line(key) + (f"\\\n  \u2018{themes_mod.bare(own(key))}\u2019" if own(key) else "")
+        said = lambda key: line(key) + (f"\\\n  \u201c{themes_mod.bare(own(key))}\u201d" if own(key) else "")
         check("the draft opens with the case by its pseudonym and the board's name, and leaves the board's note out (185)",
               lines[0] == "# Juno: PET grouping draft (By the day)" and "Mornings first" not in text, lines[0])
         heads = [l for l in lines if l.startswith("#")]
@@ -235,9 +235,9 @@ def test_themes_versions(scratch):
         home = text.split("## B. Home life\n", 1)[1].split("\n### ", 1)[0]
         check("a label over labels with no statement of its own goes straight to its sub-themes, its picks not listed (95)",
               home.strip() == "")
-        quote_lines = [l for l in lines if l.startswith("  \u2018")]
+        quote_lines = [l for l in lines if l.startswith("  \u201c")]
         check("no quote line reads as a markdown list, each set in under its statement after a break, none quoted twice",
-              quote_lines and all(l.endswith("\u2019") and not l.startswith("  \u2018\u2018") and '\u2018"' not in l
+              quote_lines and all(l.endswith("\u201d") and not l.startswith("  \u201c\u201c") and '\u201c"' not in l
                                   and lines[lines.index(l) - 1].endswith("\\") for l in quote_lines))
         unplaced = text.split("## Unplaced (11)\n", 1)[1].split("\n## ", 1)[0]
         placed = {by_row[3][0], by_row[9][0], by_row[9][1], by_row[last][0], by_row[last][1], by_row[7][0]}

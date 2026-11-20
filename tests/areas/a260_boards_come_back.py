@@ -282,7 +282,7 @@ def test_boards_come_back(scratch: Path):
                                                                          name="Kite making")))
         code, _, err = run("--root", str(root), "project", "boards-in", str(other), "--from-name", "Curt", "--note", "x")
         check("260: a copy of another project is refused, naming it", code == 1 and "a copy of Kite making, not of Kite flying"
-              in err and "Open a shared copy" in err and files(root) == before, err)
+              in err and "Opening a copy someone sent you" in err and files(root) == before, err)
         stranger = out_dir / "Stranger.idiograph"
         rezip(back, stranger, rename=("P1 - Ysolde", "P3 - Brannoch"))
         code, _, err = run("--root", str(root), "project", "boards-in", str(stranger), "--from-name", "Curt", "--note", "x")

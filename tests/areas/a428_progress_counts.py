@@ -267,9 +267,21 @@ def test_progress_counts(scratch: Path):
         marks = [t.get("pets_complete") for t in card["timepoints"]]
         want = [(themes_mod.complete_of(hold(themes_mod.themes_path(arlo, n))) or {}).get("at") for n in (1, 2, 3)]
         check("428: each timepoint of a longitudinal participant's card carries that timepoint's own PETs mark, where "
-              "the card's own mark is the first timepoint's alone",
+              "the card's own mark is the latest of them once all are marked",
               [(m or {}).get("at") for m in marks] == want and all(want)
-              and card["pets_complete"]["at"] == want[0], f"{marks} {want}")
+              and card["pets_complete"]["at"] == max(want), f"{marks} {want}")
+
+        # a later timepoint's mark taken off, the card's own mark is not marked either, where T1's alone said it was
+        t2 = themes_mod.themes_path(arlo, 2)
+        kept_t2 = t2.read_text(encoding="utf-8")
+        t2.write_text(json.dumps({k: v for k, v in hold(t2).items() if k != "complete"}), encoding="utf-8")
+        try:
+            card = next(c for c in section(roots["lipa"])["participants"] if c["case"] == "Arlo")
+            check("428: a longitudinal participant whose second timepoint's PETs are not marked complete shows no PETs "
+                  "mark on Home's card, though the first timepoint's is marked", card["pets_complete"] is None
+                  and card["timepoints"][0]["pets_complete"], str(card["pets_complete"]))
+        finally:
+            t2.write_text(kept_t2, encoding="utf-8")
 
         # ── D. Home, the command line and MCP answer the same numbers, and a thematic analysis project has no PETs
         cards = {s["id"]: {c["case"]: c.get("progress") for c in s["participants"]} for s in routes.api_cases({})["projects"]}
