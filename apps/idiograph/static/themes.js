@@ -55,9 +55,44 @@ const thLabelSaid = (label) => (thUntitled(label) ? TH_UNTITLED : thLabelShown(l
 const TH_STICKY_COLOURS = ['yellow', 'pink', 'green', 'blue'];
 const TH_STICKY = { w: 160, h: 47 };
 
-function thGroup(v, id) { return v.groups.find((g) => g.id === id) || null; }
-const thIsGroup = (v, item) => v.groups.some((g) => g.id === item);
-const thOnCanvas = (v, key) => !!v.cards[key] && !v.discarded.includes(key) && !thTopOf(v, key) && !thWaiting(v, key);
+function thGroup(v, id) { const m = globalThis.thMemo; return m && m.v === v ? m.groups.get(id) || null : v.groups.find((g) => g.id === id) || null; }
+const thIsGroup = (v, item) => { const m = globalThis.thMemo; return m && m.v === v ? m.groups.has(item) : v.groups.some((g) => g.id === item); };
+const thOnCanvas = (v, key) => { const m = globalThis.thMemo; return m && m.v === v ? thOnCanvasKept(m, v, key) : !!v.cards[key] && !v.discarded.includes(key) && !thTopOf(v, key) && !thWaiting(v, key); };
+
+/* While the room is made (see thStacksRoom) only places and sizes change, never what holds what, so who is
+   a group, who stands on the canvas and who stands beside whom are read once for it and kept here, `v` the
+   board they were read from (dropfix2, 20 November: the room laid every card's membership out again for
+   every row of quoted cards, half of a drop's frame). Null at any other time. */
+globalThis.thMemo = null;
+function thMemoRun(v, fn) {
+  if (globalThis.thMemo) return fn();
+  const groups = new Map();
+  for (const g of v.groups) if (!groups.has(g.id)) groups.set(g.id, g);
+  globalThis.thMemo = { v, groups, canvas: new Map(), parents: null, neighbours: null };
+  try { return fn(); } finally { globalThis.thMemo = null; }
+}
+/* whether a card stands on the canvas, read once while the room is made */
+function thOnCanvasKept(m, v, key) {
+  let on = m.canvas.get(key);
+  if (on === undefined) {
+    on = !!v.cards[key] && !v.discarded.includes(key) && !thTopOf(v, key) && !thWaiting(v, key);
+    m.canvas.set(key, on);
+  }
+  return on;
+}
+/* who holds whom, and who stands beside whom, read once while the room is made and afresh at any other time */
+function thParentsKept(v) {
+  const m = globalThis.thMemo;
+  if (!m || m.v !== v) return thParents(v);
+  if (!m.parents) m.parents = thParents(v);
+  return m.parents;
+}
+function thNeighboursKept(v) {
+  const m = globalThis.thMemo;
+  if (!m || m.v !== v) return thNeighbours(v, thParents(v));
+  if (!m.neighbours) m.neighbours = thNeighbours(v, thParentsKept(v));
+  return m.neighbours;
+}
 
 /* ── the board's sidebar (Adam, 20 October, way A of the drawings): no bin ──
    On the PETs board a statement in no PET waits in the sidebar's Not placed, off the canvas, marked
@@ -674,7 +709,7 @@ const thCentreIn = (box, rect) => {
    body at all. Each group's answer is its label, its body (the members, a sub-theme by its frame),
    the two together, and its frame round them. `pins`, while a drag lasts, holds a label by its id where
    it stood as the drag began, its frame still running round what it holds (see thDragLayout). */
-function thLayout(v, size, apart, strict = false, pins = null) {
+function thLayout(v, size, apart, strict = false, pins = null, only = null) {
   const out = {};
   const busy = new Set();
   const visit = (id) => {
@@ -708,6 +743,8 @@ function thLayout(v, size, apart, strict = false, pins = null) {
     busy.delete(id);
     return out[id];
   };
+  // `only`, one label and all it holds, the rest left as they stand
+  if (only !== null) { if (thIsGroup(v, only)) visit(only); return out; }
   for (const g of v.groups) visit(g.id);
   return out;
 }
@@ -2852,6 +2889,9 @@ function thShiftBack(v, shifts) {
 function thStacksRoom() {
   const v = TH.v;
   if (!v) return;
+  thMemoRun(v, () => thStacksRoomMake(v));
+}
+function thStacksRoomMake(v) {
   // what an act moved since the room was last made stands where it showed, so it takes its share of the
   // room back off where the file keeps it, or the room would push it down again past where it was let go
   const moved = thRoomMoved(v);
@@ -2865,7 +2905,7 @@ function thStacksRoom() {
     for (const [top, h] of Object.entries(TH.baseH)) if (TH.sizes[top]) TH.sizes[top] = { w: TH.sizes[top].w, h };
     TH.shifts = [];
     TH.baseH = {};
-    thRoomMake(v);
+    thRoomMakeKept(v);
     // each that the room took off where it was let go stands that much higher in the file, and the room is made again
     const fix = [];
     for (const [id, at] of moved) {
@@ -2968,6 +3008,37 @@ function thRoomMoved(v) {
   return out;
 }
 
+/* The room made, or the room last made put back as it was when nothing it is made from has changed since:
+   every place, every size, what holds what, the quotes and the stacks shown open (dropfix2, 20 November: a drop
+   made the room, took it off to settle where the file keeps the board and made it again, the same room when the
+   settle moved nothing). The room is made from these alone, so what is put back is what it would make. */
+function thRoomMakeKept(v) {
+  const quoted = Object.keys(TH.qextra || {}).filter((k) => TH.sizes[k] && TH.qfull[k] && v.cards[k] && thOnCanvas(v, k));
+  for (const k of quoted) TH.sizes[k] = { w: TH.sizes[k].w, h: TH.qfull[k] - TH.qextra[k] };
+  // each label above what it holds, as the room's first layout puts it (see thRoomTrack), so a label that a drop
+  // has not yet laid out again weighs as it will
+  thLayout(v, thSize, null);
+  const key = JSON.stringify([thSpots(v), TH.sizes, v.groups.map((g) => [g.id, g.members]), v.discarded, thStacks(v),
+    thStickies(v).map((n) => [n.id, n.in]), Object.keys(v.cards).filter((k) => thOnCanvas(v, k)), [...(TH.opened || [])],
+    Object.keys((TH.els && TH.els.rails) || {}), TH.qextra, TH.qfull, TH.usizes, TH.lifting || null]);
+  const kept = TH.roomKept;
+  if (kept && kept.v === v && kept.cards === v.cards && kept.key === key) {
+    for (const [kind, all] of Object.entries(kept.spots)) {
+      for (const [id, at] of Object.entries(all)) {
+        const o = kind === 'cards' ? v.cards[id] : thShiftObject(v, { kind: kind === 'groups' ? 'group' : 'sticky', id });
+        if (o) { o.x = at.x; o.y = at.y; }
+      }
+    }
+    TH.shifts = kept.shifts.slice();
+    for (const [k, sz] of Object.entries(kept.sizes)) TH.sizes[k] = { w: sz.w, h: sz.h };
+    TH.baseH = Object.assign({}, kept.baseH);
+    return;
+  }
+  thRoomMake(v);
+  TH.roomKept = { v, cards: v.cards, key, spots: thSpots(v), shifts: TH.shifts.slice(), sizes: thSizesCopy(TH.sizes), baseH: Object.assign({}, TH.baseH) };
+}
+const thSizesCopy = (sizes) => Object.fromEntries(Object.entries(sizes).map(([k, s]) => [k, { w: s.w, h: s.h }]));
+
 /* The room the view makes: first for each card showing its quote, row by row down the board, then
    for each stack shown open. Each card stands at its height without its quote, and then a row at a time
    grows to its whole height, what stands below each card in its column moving down by as much as the
@@ -2981,7 +3052,7 @@ function thRoomMake(v) {
   const track = thRoomTrack(v);
   const left = quoted.sort((a, b) => v.cards[a].y - v.cards[b].y || v.cards[a].x - v.cards[b].x);
   while (left.length) {
-    const parents = thParents(v);
+    const parents = thParentsKept(v);
     const home = (k) => (parents[k] === undefined ? '' : parents[k]);
     const first = left[0];
     const y0 = v.cards[first].y;
@@ -3066,9 +3137,9 @@ function thStackRoom(v, size, unit, region, d, before, track = null) {
   let at = unit;
   let rooms = (Array.isArray(region) ? region : [Object.assign({ d }, region)]).filter((r) => r.d > 0).map(need);
   for (let level = 0; level < 12 && rooms.length; level += 1) {
-    const parents = thParents(v);
+    const parents = thParentsKept(v);
     const place = parents[at] === undefined || !thIsGroup(v, parents[at]) ? '' : parents[at];
-    const kids = (thNeighbours(v, parents).get(place) || []).filter((id) => id !== at);
+    const kids = (thNeighboursKept(v).get(place) || []).filter((id) => id !== at);
     for (const id of kids) {
       const b = thSolid(v, size, before, id);
       if (!b) continue;
@@ -3079,7 +3150,8 @@ function thStackRoom(v, size, unit, region, d, before, track = null) {
     }
     if (place === '') break;
     const was = before[place] && before[place].frame;
-    const now = thLayout(v, size, null)[place];
+    // the label that grew laid out again with all it holds, the rest of the board as it stands
+    const now = thLayout(v, size, null, false, null, place)[place];
     if (!was || !now || !now.frame) break;
     const by = now.frame.y + now.frame.h - (was.y + was.h);
     rooms = by > 0 ? [need({ x: was.x, y: was.y + was.h, w: was.w, d: by, id: `group:${place}` })] : [];
