@@ -786,6 +786,12 @@ function hjDraw() {
   $('hj-folder-row').hidden = hjRoute() !== 'folder';
   const own = !!(HJ.offer && HJ.offer.own);
   $('hj-own').hidden = !own;
+  // who invites you, once the invite is read: not for another computer of his own, which has its own line
+  const offer = HJ.offer && !own ? HJ.offer : null;
+  $('hj-offer').textContent = !offer ? '' : offer.project
+    ? t('team.home.offer', { name: offer.from || '', project: offer.project })
+    : t('team.home.offer_unnamed', { name: offer.from || '' });
+  $('hj-offer').hidden = !offer || !offer.from;
   $('hj-name-row').hidden = !!HJ.yourName || own;
 }
 
@@ -908,6 +914,7 @@ async function hjJoined() {
   else if (HJ.joining.from) hjSaid(t('team.home.joined', { project, name: HJ.joining.from }));
   else hjSaid(t('team.home.joined_unnamed', { project }));
   HJ.joining = null;
+  $('hj-answered').hidden = true;
   $('hj-project').textContent = t('team.home.open', { project });
   $('hj-done').hidden = false;
 }

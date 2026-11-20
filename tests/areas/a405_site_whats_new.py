@@ -54,8 +54,8 @@ def test_site_whats_new():
           no_menu)
     marked = {n: re.findall(r'href="([a-z-]+\.html)" aria-current="page"', (site / n).read_text(encoding="utf-8"))
               for n in with_nav}
-    check("each page marks itself in the nav, the home page none",
-          all(v == ([] if n in ("index.html", sw.MANUAL) else [n]) for n, v in marked.items()), marked)
+    check("each page marks itself in the nav, the home page, the manual and the join page none",
+          all(v == ([] if n in ("index.html", sw.MANUAL, "join.html") else [n]) for n, v in marked.items()), marked)
 
     dl = (site / "download.html").read_text(encoding="utf-8")
     others = [n for n in with_nav if n != "download.html"]
@@ -138,9 +138,34 @@ def test_site_whats_new():
           all(r["iso"] in script for r in top) and len(re.findall(r'"\d{4}-\d{2}-\d{2}"', script)) == len(top))
     check("a date not like 16 November 2026 is refused",
           raises(lambda: sw.iso_date("16 Novembre 2026")) and sw.iso_date("1 November 2026") == "2026-11-01")
-    check("no served page carries a comment", all("<!--" not in t for t in files.values()))
+    check("no served page carries a comment, but the join page's, which says why it must never read the address",
+          all("<!--" not in t for p, t in files.items() if p.name != "join.html"))
+    test_site_join(files, site)
     test_site_manual()
     test_site_release()
+
+
+def test_site_join(files, site):
+    """The page an invite link opens (joinpage, 20 November 2026): idiograph.app/join#<words>. The words after the #
+    are the invite's secret, so the page must exist, offer the Download page, and carry no script that could read
+    the address or send it anywhere."""
+    page = (site / "join.html").read_text(encoding="utf-8") if (site / "join.html").is_file() else ""
+    check("the join page exists, is written like the other pages and links Download and the manual's Working "
+          "together", page and (site / "join.html") in files and 'href="download.html"' in page
+          and 'href="manual.html#working-together"' in page and 'class="site-nav"' in page)
+    bare = re.sub(r"<!--.*?-->", "", page, flags=re.S)
+    scripts = re.findall(r"<script\b([^>]*)>(.*?)</script>", bare, re.S)
+    srcs = [re.search(r'src="([^"]*)"', a).group(1) for a, _ in scripts if "src=" in a]
+    inline = " ".join(body for _, body in scripts)
+    mod = site / "get.js"
+    code = inline + (mod.read_text(encoding="utf-8") if "get.js" in srcs else "")
+    check("the join page's scripts are the site's own, none from another site", srcs == ["get.js"], srcs)
+    check("no script on the join page reads the address: no location, hash, search, history, fetch or beacon",
+          not re.search(r"location|\.hash|\.search|history\.|fetch\(|sendBeacon|XMLHttpRequest|document\.URL|"
+                        r"documentURI|referrer", code), code[:200])
+    check("the join page has no form, no iframe, no image or link to another site's script or tracker, and turns "
+          "the referrer off", not re.search(r"<form|<iframe|<img|<link[^>]+href=\"https?:", bare)
+          and 'name="referrer" content="no-referrer"' in page)
 
 
 def test_site_manual():

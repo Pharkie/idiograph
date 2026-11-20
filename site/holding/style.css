@@ -274,6 +274,17 @@ html.js .fp .find { display: block; }
 .fp-foot { margin: 64px auto 0; display: flex; flex-direction: column; align-items: center; text-align: center; }
 .fp-foot .get { margin-top: 0; }
 
+main.jn {
+  display: block; text-align: left; max-width: calc(40em + 2 * var(--gutter));
+  padding: 8px var(--gutter) 64px;
+}
+.jn h1 { font: 400 clamp(30px, 3vw + 16px, 42px)/1.15 var(--serif); margin: 28px 0 18px; letter-spacing: -0.01em; }
+.jn p { margin: 0 0 1em; font: 400 clamp(17px, 0.4vw + 14px, 19px)/1.6 var(--serif); color: var(--ink); }
+.jn a { color: var(--ink); text-underline-offset: 3px; text-decoration-color: var(--ink-soft); }
+.jn a:hover { text-decoration-color: currentColor; }
+.jn a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.jn .fp-foot { margin-top: 48px; }
+
 main.ap {
   display: block; text-align: left; max-width: calc(1040px + 2 * var(--gutter));
   padding: 8px var(--gutter) 64px;

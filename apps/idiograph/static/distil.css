@@ -1626,7 +1626,10 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .wt-card .hj-pick { display: flex; align-items: center; gap: 10px; margin: 6px 0 0; }
 .wt-card .hj-pick input { flex: 1; min-width: 0; box-sizing: border-box; font-family: var(--mono); font-size: 13px; }
 #hj-own { margin: 12px 0 0; }
+#hj-offer { margin: 0 0 4px; font-size: 14px; color: var(--ink); }
+#wt-name-row input { flex: 1 1 auto; min-width: 0; width: auto; }
 .wt-sec .wt-folder-said { margin: 12px 0 0; }
+.wt-sec .wt-route-line { margin: 8px 0 0; }
 .wt-list { list-style: none; margin: 8px 0 0; padding: 0; border-top: 1px solid var(--rule); }
 .wt-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 9px 0;
   border-bottom: 1px solid var(--rule); font-size: 13px; color: var(--ink); }

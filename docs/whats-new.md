@@ -5,6 +5,13 @@ Newest first. Each version's notes are what the updater shows, eight lines at mo
 
 What goes here: only major new features and real changes to how something works, among them what your AI agents can do, and any change to safety, privacy or your data. One plain line each, saying what you can now do, not how the screen shows it. Never: changed wording, labels or layout, small fixes, or a feature's parts (its buttons, tabs, counts). Several changes to one feature are one line. A version with nothing major has one line, or none.
 
+## 0.9.33, 20 November 2026
+
+You can join a project you were invited to straight from Home, and Idiograph makes its folder for you.
+Working together now starts with Invite others or Join a project, and the invites you have sent wait under People until someone answers. You can cancel one.
+When you work together, the project's name, research question and each participant's profile now reach everyone on the team. Your reflexivity statement and interviewer name stay your own. Everyone on a team needs this version.
+Dragging cards and PETs on the boards is smoother, most of all with the quotes shown.
+
 ## 0.9.32, 19 November 2026
 
 Home and each project's page now show how far each participant has got, as rings round their picture.

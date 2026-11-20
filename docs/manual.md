@@ -121,7 +121,7 @@ The AI features are off on a new install. When you turn them on and press AI sug
 passage, or that one PET or GET, to the provider you chose (see [AI and agents](#ai-and-agents)). An AI agent
 you use yourself sends whatever it reads to its own provider, which can be a whole participant.
 
-Working together sends the project to your teammates through the relay at idiograph.app, or through a shared
+Working together sends the updates between your teammates through the relay at idiograph.app, or through a shared
 folder. Everything is sealed on your computer before it goes, so neither the relay nor anyone who can open the
 shared folder can read the words. The relay sees each computer's internet address, and the times, sizes and
 number of the messages. It never sees names, pseudonyms or file names. Someone who can open the shared folder
@@ -608,6 +608,10 @@ board has an owner too. Your copy of a teammate's participant updates by itself 
 last change. On their participant you can make boards of your own, comment and suggest, but not change their
 work.
 
+Each of you keeps the project's files on your own computer. Only the updates between you go through the relay or a
+folder you all share, sealed on your computer first. Never keep one project folder on a shared drive for two people to
+open: whoever saves last overwrites the other's work.
+
 To start, the lead presses Invite others on the project's page, beside Project settings, or opens Project settings
 and presses Invite others to work on this project. Either makes them the lead and opens the invite, and asks for
 your name only when Settings has none. Each person invited presses Join a project on Home and pastes the link or the
@@ -644,8 +648,8 @@ at once, the lead's change is kept. A picture is sent once, and again only when 
 The lead invites each person with a link or twelve words. An invite works once, and for seven days. When the
 lead removes
 someone, the project's key changes for everyone left, so the person removed gets nothing new. What they
-already have stays on their computer. The team sends through the relay or through a folder everyone already
-shares, such as OneDrive or Dropbox. Either way, everything is sealed on your computer first.
+already have stays on their computer. The team sends its updates through the relay or through a folder everyone
+already shares, such as OneDrive or Dropbox. Either way, everything is sealed on your computer first.
 
 ### The relay
 

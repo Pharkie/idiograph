@@ -1795,9 +1795,10 @@
                 <span class="setting-label" id="wt-route-label">{{team.page.send_through}}</span>
                 <span class="th-from set-labels" id="wt-route" role="radiogroup" aria-labelledby="wt-route-label">
                   <button type="button" class="th-from-opt" role="radio" aria-checked="false" data-route="relay">{{team.page.relay}}</button>
-                  <button type="button" class="th-from-opt" role="radio" aria-checked="false" data-route="folder">{{team.page.folder}}</button>
+                  <button type="button" class="th-from-opt" role="radio" aria-checked="false" data-route="folder">{{team.page.route_folder}}</button>
                 </span>
               </div>
+              <p class="fineprint wt-route-line">{{team.page.route_line}}</p>
               <div class="wt-path" id="wt-path" hidden><p class="path" id="wt-folder"></p><button type="button"
                    class="ghost small" id="wt-choose">{{team.page.choose}}</button></div>
               <p class="fineprint wt-folder-said" id="wt-folder-said" role="status" hidden></p>
@@ -1971,6 +1972,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
     </button>
     <h2 id="hj-title">{{team.join.heading}}</h2>
+    <p class="fineprint" id="hj-offer" hidden></p>
     <label class="wt-h" for="hj-words">{{team.join.paste}}</label>
     <textarea id="hj-words" rows="3" spellcheck="false" autocomplete="off"></textarea>
     <div class="switches wt-join-by" id="hj-by-row" hidden><label><input type="checkbox" id="hj-folder-on"> {{team.join.by_folder}}</label></div>
