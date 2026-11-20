@@ -81,9 +81,11 @@ def test_team_join_home(scratch: Path):
     shutil.rmtree(places, ignore_errors=True)
     places.mkdir(parents=True)
     kept = (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, team.DEVICE_PATH, transport.OVERRIDE,
-            os.environ.pop(transport.ENV, None), ft.POLL, os.environ.get("HOME"))
+            os.environ.pop(transport.ENV, None), ft.POLL, os.environ.get("HOME"), os.environ.get("USERPROFILE"))
     # the home folder a scratch one, so the folder offered, ~/Documents/Idiograph, is the suite's
+    # (Windows reads USERPROFILE for "~", the Mac and Linux read HOME, so both point at the scratch one)
     os.environ["HOME"] = str(places)
+    os.environ["USERPROFILE"] = str(places)
     hub = transport.Hub()
     transport.OVERRIDE = lambda dev, data: transport.Loopback(dev.get("id") or "", hub=hub)
     base = places / "Documents" / "Idiograph"
@@ -306,8 +308,12 @@ def test_team_join_home(scratch: Path):
               and roots(eve) == [] and call(lead, op="answers", invite=made4["invite"])["answered"] is False, text[:300])
     finally:
         (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, team.DEVICE_PATH, transport.OVERRIDE, env, ft.POLL,
-         home) = kept
+         home, profile) = kept
         if env is not None:
             os.environ[transport.ENV] = env
         if home is not None:
             os.environ["HOME"] = home
+        if profile is None:
+            os.environ.pop("USERPROFILE", None)
+        else:
+            os.environ["USERPROFILE"] = profile
