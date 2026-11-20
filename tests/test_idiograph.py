@@ -465,6 +465,8 @@ AREAS = {
     "a430_cards_follow_edits": "idiograph",
     "a431_team_start": "idiograph",
     "a432_manual_links": "idiograph",
+    "a433_team_join_home": "idiograph",
+    "a434_team_study": "idiograph",
 }
 
 

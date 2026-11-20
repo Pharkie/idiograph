@@ -74,6 +74,11 @@
 .hp-title { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 /* Project settings beside the project's name and question, at the head's right (settingsplit) */
 .hp-set { flex: none; margin: 4px 0 0 auto; }
+#wt-name-page { display: block; width: 100%; box-sizing: border-box; margin: 14px 0 0; }
+.wt-invite-row .wt-who b { font-weight: 500; }
+.hp-invite { flex: none; margin: 4px 0 0 auto; }
+.hp-invite[hidden] { display: none; }
+.hp-invite:not([hidden]) + .hp-set { margin-left: 8px; }
 .hp-reset { flex: none; margin: 4px 0 0 8px; }
 .hp-reset[hidden] { display: none; }
 /* the head's tags, the Demo mark and a project's type, stand a clear gap from the name, one rule for both (projectfix2) */
@@ -1616,6 +1621,11 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .wt-sec .wt-path .path, .wt-card .wt-path .path { flex: 1; margin: 0; }
 .wt-card .wt-join-by { margin: 12px 0 0; }
 .wt-card .wt-join-name input { width: 100%; box-sizing: border-box; margin: 6px 0 0; }
+/* Join a project on Home (teamjoin): a label over a typed path and its Choose */
+.wt-card .hj-path { display: block; }
+.wt-card .hj-pick { display: flex; align-items: center; gap: 10px; margin: 6px 0 0; }
+.wt-card .hj-pick input { flex: 1; min-width: 0; box-sizing: border-box; font-family: var(--mono); font-size: 13px; }
+#hj-own { margin: 12px 0 0; }
 .wt-sec .wt-folder-said { margin: 12px 0 0; }
 .wt-list { list-style: none; margin: 8px 0 0; padding: 0; border-top: 1px solid var(--rule); }
 .wt-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 9px 0;

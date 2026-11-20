@@ -2574,6 +2574,43 @@ finished, each with its six digits, and Working together offers Finish joining a
 `route` relay when its shared-folder tick is off. The command line's `team join` takes `--route` and
 `--folder`, and MCP's `team_join` `route` and `folder`. Area 431.
 
+**Join a project on Home** (teamjoin, 20 November 2026, Adam's rulings after teamflow's drawings p1, p2 and p5).
+Home's Join a project, beside New project, opens its own card (`hj-card`, team.js `hj*`), which needs no project of
+his. `/api/team` takes three ops with no root (`routes.team_home`, reached before `asked_root`): `offer` reads an
+invite (`team.peek`, with this computer's keys or keys made for the call and never kept, so it writes nothing) and
+answers `from`, `own`, `project` and `method` as the offer carries them, `via`, and `into`, the folder offered,
+`~/Documents/Idiograph/<project>` or `<project> 2` and on while one holds anything (`join_free_folder`), with
+`your_name`; `join` with `into` checks the words and the folder (`join_into_refused`: a folder that holds anything,
+the app or its demo, inside or holding a project, a run of one project), reads the offer, makes the folder and the
+project in it by `make_project` under the offer's name and method, and joins it by `team.join` under the project's
+lock; any failure takes away the project's entry in config.json and the folders it made, or what it put in an empty
+folder (`join_unmake`); and `pick` with `home` is the card's Choose. The offer carries `project` (80 characters at
+most) and `method` from the lead's project file (`team.project_said`), inside its one size; an offer from before
+carries neither, and the folder takes the plain default. The link carries `via` (`team.invite_link`), relay or
+folder, read by `team.link_via`: `join` takes it when no `route` is asked, and both cards show the shared-folder
+tick only for words with no `via`, a folder field for a folder invite. The name is the offer's `from` for an own
+invite, else the one typed, else Settings'. The command line's `team join --into` and `team offer`, and MCP's
+`team_join` `into` and `team_offer`, run with no project (`idiograph_cli.perform`, as `project new` does), the join
+the app's alone for an agent and its dry run writing nothing, not even the folder. Area 433.
+
+**Working together's journey, the small fixes** (teamsmall, 20 November 2026, Adam's rulings of that night). Each open invite
+this device made is a row under People (`view().invites`, from the device file's `invites`), asked about every 30
+seconds while Project settings is open, and once answered it offers Check the six digits (`wtReopen`: the invite's card
+again with its link and words put away) and Cancel the invite. The project's page asks the same of the lead's open
+invites (`wtPageWatch`, `wtPageLook`) and says "{name} has answered your invite" with the same button. `team.cancel`
+(`op: cancel`, `team cancel`, `team_cancel`, the app's alone) drops the invite from the device file and sends the
+signed `closed` line the joiner's `read_offer` already refuses on. Invite others on the project's page (`hp-invite`,
+`wtPageInvite`) turns Working together on as lead when it is off, asks for the name in its own small card only when
+Settings has none, with OK beside the field here and in Project settings, and opens the invite's card; a project with
+a join begun and not finished, or whose list does not name this computer, opens Project settings instead. `join`
+answers `own` and `project` from the offer (the one `project` field teamjoin's paragraph above names, 80 characters, set by `team.project_said`), kept in the asking and in `joining_here`, so the second computer's lines say to check
+the six digits against the other computer and end on the project's name, and Finish joining for an asking of that kind says Finish adding this computer. A member who stops (`turn_off`) sends the lead
+one `stopped` message (`tell_stopped`, best effort, never retried, none from the lead or a dry run), `note_stopped`
+on the lead's install marks the member in team.json's `stopped` (taken by the sync loop and by `take`, a line in
+History once), and `turn_on` again sends `on` true to clear it. `team_sync.gave_over` notes in sync.json's `gave` a
+participant or the GETs board a new list of people hands to this member, and `status()` answers `gave` for today as
+`arrivals` are, with `lead`. A member's page already shows arrivals as the lead's does (area 349). Area 431.
+
 **Working together's owners and versions** (wtowners, 8 November 2026, the spec's build 2). `team_sync.py`.
 The one writer: `team_sync.guard` is `workbook.WRITE_GUARD`, run by `workbook.case_held` before the case's lock,
 which every write to a participant's files takes (`routes.writing` for the app and the routes the command line
@@ -2606,7 +2643,35 @@ files are those here, and otherwise writes each beside its place (`.<name>.incom
 under `server._lock` and the case's lock (the root's for the GETs), dropping it from `workbook.WRITTEN`, so a
 board or the statements screen says "changes made elsewhere". The lead's first full copy carries every
 participant, and another's keeps the count it came with: a computer that has nothing of a participant or of the
-GETs board yet takes the lead's copy of it as its first. `.idiograph-team/sync.json`: `cursors` (one count a
+GETs board yet takes the lead's copy of it as its first. **The study's settings** (teamsettings, 20 November
+2026, `team_study.py`, Adam's ruling that day) travel beside the versions: the project file's `name`,
+`research_question`, `method`, `timepoints`, `demographics`, `names` and each participant's profile fields in
+`participants`, kept as units (one a key, one a field of a participant's profile). Every other key is the person's
+own and is never sent nor written over (`reflexivity`, `interviewer`, `archived`, `agents`, `order`, `pet_labels`,
+`timecodes`, `nudges`, `statement_words`, `work_in_rounds`, `participants_table`, `uid`, `copy_of`, `updated`).
+`push` calls `team_study.push` after the versions and before the recordings: the lead's computers send the whole
+study, kind `study` with its count `n`, a minute after the project file last changed, at once to a computer new on
+the list and at once after a member's change came in, and a member's computer sends `study_change`, each unit it
+changed since the lead's study it last took with its value before and after. The lead's computer takes a member's
+unit only where its own value is still the one the member changed from, writes the project file under the
+project's lock with one History line, and sends the whole study again, so the lead's word wins on a conflict. A
+computer taking a `study` passes over one numbered no higher than it has sent or taken (`max(sent, held)`), and takes the
+lead's units keeping a change of its own not sent yet where the lead left that unit as it was: the first as a merge
+with an empty base, so a unit of its own the lead holds none of (a team from 0.9.33, a join from a project with work
+in it) is kept and goes to the lead as a change, with the project file copied to `_Archive/idiograph-project (pre-study
+<date-time>).json` first (teamfix4). A computer of the lead's other than her oldest on the list, with no study sent
+or taken (one joined from Home holds the name and method alone), sends `study_ask` at once and takes the study before
+it ever sends one, so its empty study never goes out as the lead's. A member's `study_change` places only the
+pictures of the units it set. A route's refusal of the study as too large, or files held, keeps `owed` (counted in
+the status line's waiting) and `too_large` (its own line in the status line). The pictures the study names that are the project's own files go inside the message
+(zipped, as a sealed blob above `INLINE_MOST`) only when their SHA-256 differs from the one last sent, every one to
+a new computer; one taken in that replaces another moves the old to `pictures/_Archive/` (`trajectories.picture_files`),
+and one whose bytes are not its kind's (a PNG read whole by `png_read`, no larger than `PICTURE_SIZE`), too large, or an SVG with a script is left out. A member that has taken a
+version of the lead's but never the study sends `study_ask`, at most once a day, and the lead's computer answers
+with the whole study and every picture: a computer on 0.9.32 or 0.9.33 drops all three kinds as kinds it does not
+know, so the settings start travelling once both ends have this build. A project file that will not read sends
+nothing and is not written over. sync.json keeps it under `study` (`base`, `sent`, `held`, `pics`, `copied`,
+`force`, `asked`, `owed`, `too_large`). Area 434. `.idiograph-team/sync.json`: `cursors` (one count a
 transport, by its kind, so a change of route starts its own), `sent` (by
 folder or `gets`: `n`, `print`, `at`), `held`, `arrivals` (`member`, `at`, `n`), `copied`, `failed`. `sync` runs
 `pull` then `push` under a thread lock and `.idiograph-team/sync.lock`. Working together's own files (team.json, the
@@ -9461,6 +9526,7 @@ several, which is remade by hand.
 | `apps/idiograph/typst/canvas.typ`, `canvas-main.typ`, `marks/` | The canvas as a Typst page (typst4, 9 November 2026): the view `canvas(d)` measuring every card, label and note and laying the board out by the app's own rule carried from themes.js, and its main file setting the PDF's landscape A4 or the picture's page sized to the board; the note and quote marks as SVG. |
 | `apps/idiograph/print_pdf.py` | The table of PETs and a GETs board as PDFs, for the window, a browser's tab, the command line and MCP alike (19 October, `board export --pdf`, `gets export`), made by Typst since 9 November 2026 (typst5, `typeset_pdf`): `themes_print.typst_data` into `typst/pets_table_main.typ`, `gets_print.typst_data` into `typst/gets.typ`, or for `all` `typst/gets-all.typ`, named as the print view names it (`stem_of`, `where_to`), written never over a file there unless `replace`, then as a `.part` put in its place (`place`). A failure is the catalogue's plain sentence and nothing is written. |
 | `apps/idiograph/team.py` | Working together's keys (wtkeys, 8 November 2026): this computer's Ed25519 and X25519 keys in `team-device.json`, the project key by epoch, sealing and opening an envelope, the roster signed by the lead, invite, answer, match and join with the twelve words and the six digits, remove with a new key, a member's computers added and removed and Make lead (wtdevices, 9 November 2026), and `team.json` at the project's root. PyCA `cryptography`, imported when used. |
+| `apps/idiograph/team_study.py` | Working together's study settings (teamsettings, 20 November 2026): the project's name, question, method, timepoints, demographics, names and participants' profiles with their pictures sent by the lead and kept in step, a member's change taken by the lead's computer unless the lead changed it too, each person's own settings never sent. |
 | `apps/idiograph/team_sync.py` | Working together's owners and versions (wtowners, 8 November 2026): the one writer per participant and per GETs board, a participant's files sent as a version a minute after the owner's last save, applied only when newer, the first full copy for a new computer, and what came in and waits for the project's page. |
 | `apps/idiograph/transport.py` | How Working together's sealed messages travel: the shape every route follows (`send`, `fetch`, `listen`), routes registered by name, and a loopback in memory or in a shared folder for the suite and a smoke run. |
 | `apps/idiograph/team_words.txt` | The 2,048 plain words an invite's twelve words come from. |

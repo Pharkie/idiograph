@@ -1254,8 +1254,19 @@ TOOLS = [
           "copy": {"type": "boolean", "description": "True when this project is a copy of another computer's, its "
                                                      "list naming the person but not this computer."},
           "replace": {"type": "boolean", "description": "True for yes to the question a join as a copy asks when it "
-                                                        "would take the project out of its team into the invite's."}},
+                                                        "would take the project out of its team into the invite's."},
+          "into": dict(mcp.TEXT, description="A new or empty folder: the project is made there under the lead's name "
+                                             "and joins, as Join a project on Home does, with no project needed.")},
          ["words"], writes="changes"),
+    mcp.tool("team_offer", "Read an invite before joining", ("team", "offer"),
+         "An invite read before joining, as the Join card on Home reads it: who sent it, whether it is for another of "
+         "the researcher's own computers, the project's name as its lead named it, and the folder a join from Home "
+         "would make. It needs no project and writes nothing.",
+         {"words": dict(mcp.TEXT, description="The invite's link, or its twelve words."),
+          "route": {"type": "string", "enum": ["relay", "folder"], "description": "How the invite came: folder "
+                                                                                  "for a shared folder."},
+          "folder": dict(mcp.TEXT, description="The shared folder the invite came through, for route folder.")},
+         ["words"]),
     mcp.tool("team_joined", "Take in the lead's yes to a join", ("team", "joined"),
          "Once the lead has said the six digits match, the team, its people and the project's key come onto this "
          "computer. Before that it says it has not come. " + APP_ONLY,
@@ -1265,6 +1276,11 @@ TOOLS = [
          "A join begun from this project and not finished is given up: its asking and the keys it made are dropped "
          "on this computer. Nothing is written to the project. " + APP_ONLY,
          {"invite": dict(mcp.TEXT, description="The invite's id, as team_join gave it.")}, ["invite"],
+         writes="changes"),
+    mcp.tool("team_cancel", "Give up an open invite", ("team", "cancel"),
+         "An invite the researcher made and nobody has been let in by is given up: an answer to it is never taken in, "
+         "and the project's list of people is not changed. " + APP_ONLY,
+         {"invite": dict(mcp.TEXT, description="The invite's id, as team_invite gave it.")}, ["invite"],
          writes="changes"),
     mcp.tool("team_remove", "Remove someone, or one computer, from the project", ("team", "remove"),
          "The lead removes someone: their computers come off the list and the project's key changes for everyone "
@@ -1849,6 +1865,8 @@ def arguments(t: dict, given: dict, args):
         args.off, args.own, args.differ = given.get("off") is True, given.get("own") is True, given.get("differ") is True
         args.invite, args.words, args.member = given.get("invite"), given.get("words"), given.get("member")
         args.computer = given.get("computer")
+        # Join a project on Home's new folder, for team_join (teamjoin, 20 November 2026)
+        args.into = given.get("into") if act == "join" else None
         args.gets_owner = given.get("gets_owner")
         rec = given.get("recordings")
         args.recordings = None if rec is None else ("on" if rec is True else "off")

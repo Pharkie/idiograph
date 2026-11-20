@@ -79,6 +79,7 @@ import locks
 import project_pack as pack_mod
 import server as srv
 import team as team_mod
+import team_study as study_mod
 import workbook as wb_mod
 from workbook import WorkbookError
 
@@ -295,7 +296,7 @@ def load_state(root: Path, strict: bool = True) -> dict:
             raise
         data = {}
     data = data if isinstance(data, dict) else {}
-    for key in ("sent", "held", "arrivals", "recordings", "too_large", "hold", "files_hold", "list_refused", "copying", "rec_copying"):
+    for key in ("sent", "held", "arrivals", "gave", "recordings", "too_large", "hold", "files_hold", "list_refused", "copying", "rec_copying"):
         data[key] = data.get(key) if isinstance(data.get(key), dict) else {}
     data["copied"] = list(data.get("copied") or [])
     # the computers given every recording. A state from before relayopen has none, and its versions carried the
@@ -849,6 +850,13 @@ def push(root: Path, now: bool = False, dry_run: bool = False, recordings: bool 
             copying["done"] = sorted(set(copying.get("done") or []) | {what})
             first_left.discard(what)
         sent_now.append(what)
+    # the study's settings, the project's name, question, method, demographics and profiles (teamsettings): the
+    # lead's whole study, or a member's change to it, after the versions and before the recordings
+    if way is not None and not offline and not held:
+        went = study_mod.push(root, data, dev, way, state, others, now=now, files_held=bool(files_held))
+        held = went.get("held") or held
+        files_held = went.get("files_held") or files_held
+        offline = offline or bool(went.get("offline"))
     # a participant whose version was due and did not go sends no recording this pass, so a recording never comes
     # before the version that makes its folder on another computer (the review's A9)
     unsent = {item["what"] for item in due} - set(sent_now)
@@ -1312,7 +1320,9 @@ def take_one(root: Path, data: dict, dev: dict, way, team: str, state: dict, sen
             if isinstance(body.get("n"), int) and body["n"] <= int((data["roster"] or {}).get("n") or 0):
                 # one this computer had already, in the welcome or by the way it came first
                 return None
+            was = dict(data)
             team_mod.take_roster(root, body)
+            gave_over(was, body, inner, state)
             return team_on(root) or data
         if kind in ("version", "gets_version"):
             came_of = take_version(root, data, way, inner, state)
@@ -1332,6 +1342,11 @@ def take_one(root: Path, data: dict, dev: dict, way, team: str, state: dict, sen
                 raise
             if came_of not in ("applied", "same", "own"):
                 team_mod.note_dropped(root, came_of, str(inner.get("device") or ""))
+            return None
+        if kind in study_mod.KINDS:
+            why = study_mod.take(root, data, dev, way, inner, state)
+            if why:
+                team_mod.note_dropped(root, why, str(inner.get("device") or ""))
             return None
         if kind in TAKEN_HERE:
             took = TAKEN_HERE[kind](root, data, dev, inner)
@@ -1368,6 +1383,36 @@ def take_devices(root: Path, data: dict, dev: dict, inner: dict) -> str:
     return "devices" if changes else ""
 
 
+def take_stopped(root: Path, data: dict, dev: dict, inner: dict) -> str:
+    """A member's line that he stopped working together, or started again, on the lead's computer: the person marked
+    in People as having stopped (`team.note_stopped`), with its line in the project's History."""
+    import project_history as hist_mod
+    with _routes().writing(root=root):
+        changes = team_mod.note_stopped(root, team_on(root) or data, dev, inner)
+        if changes:
+            hist_mod.record(root, "team take", changes, {"by": "app"})
+    return "stopped" if changes else ""
+
+
+def gave_over(was: dict, body: dict, inner: dict, state: dict) -> None:
+    """What a new list of people hands to this member, noted for the project's page: a participant, or the GETs board,
+    that was another's and is his now, with who gave it and when (teamsmall, friction 9). A participant the list names
+    no owner for, or one he had already, notes nothing."""
+    me = str(was.get("member") or "")
+    old = was.get("roster") or {}
+    if not me or not isinstance(body, dict):
+        return
+    new_owners = body.get("owners") if isinstance(body.get("owners"), dict) else {}
+    handed = {str(f): "" for f, who in new_owners.items() if who == me and team_mod.owner_here(was, str(f)) != me}
+    if body.get("gets_owner") == me and gets_owner(old) != me:
+        handed[GETS] = ""
+    for what in handed:
+        state["gave"][what] = {"member": str(inner.get("member") or ""), "at": now_iso()}
+    for what in [w for w in state["gave"] if w not in handed and (
+            (w == GETS and body.get("gets_owner") != me) or (w != GETS and new_owners.get(w) != me))]:
+        state["gave"].pop(what, None)
+
+
 def take_board(root: Path, data: dict, dev: dict, inner: dict) -> str:
     """A board a teammate sent to this member, or an answer to one this member sent, as `team board-take` takes it:
     `team_board.came_in` or `answered` under the project's lock, the record and the project's History written."""
@@ -1390,7 +1435,8 @@ def take_board(root: Path, data: dict, dev: dict, inner: dict) -> str:
 
 
 # the kinds other builds read with their own ops, taken in here too so one loop reads every kind
-TAKEN_HERE: dict[str, Callable] = {"devices": take_devices, "board": take_board, "answer": take_board}
+TAKEN_HERE: dict[str, Callable] = {"devices": take_devices, "board": take_board, "answer": take_board,
+                                   "stopped": take_stopped}
 
 
 def sync(root: Path, now: bool = False, dry_run: bool = False, pull_too: bool = True) -> dict:
@@ -1450,6 +1496,20 @@ def status(root: Path) -> dict | None:
                          "participant": "" if what == GETS else pseudonym(label_of(root, what)),
                          "gets": what == GETS, "at": at.isoformat()})
     arrivals.sort(key=lambda a: a["at"], reverse=True)
+    # what the lead handed this member today, still his (teamsmall)
+    gave = []
+    for what, over in state["gave"].items():
+        try:
+            at = datetime.fromisoformat(str(over.get("at")))
+        except (ValueError, TypeError):
+            continue
+        his = gets_owner(roster) == me if what == GETS else owner_of(data, what) == me
+        if at.astimezone().date() != today or not his:
+            continue
+        gave.append({"name": member_name(roster, str(over.get("member") or "")),
+                     "participant": "" if what == GETS else pseudonym(label_of(root, what)),
+                     "gets": what == GETS, "at": at.isoformat()})
+    gave.sort(key=lambda a: a["at"], reverse=True)
     try:
         held_out = len(read_out(root))
     except WorkbookError:
@@ -1457,7 +1517,7 @@ def status(root: Path) -> dict | None:
     count = 0
     if not alone(roster):
         own = mine(root, data)
-        count = len(waiting(root, data, state, own)) + held_out
+        count = len(waiting(root, data, state, own)) + held_out + (1 if study_mod.owed(state) else 0)
         for item in own:
             if item.get("recordings"):
                 seed_recordings(state, item)
@@ -1470,7 +1530,8 @@ def status(root: Path) -> dict | None:
         held = i18n.t("team.held.fetched_too_often")
     if not held:
         held = list_refused_line(state)
-    return {"tags": tags, "arrivals": arrivals, "waiting": count, "offline": bool(state.get("failed")) and count > 0,
+    return {"tags": tags, "arrivals": arrivals, "gave": gave, "lead": me == str(roster.get("lead") or ""),
+            "waiting": count, "offline": bool(state.get("failed")) and count > 0,
             "held": held, "too_large": too_large_line(root, data, state)}
 
 
@@ -1547,6 +1608,10 @@ def too_large_line(root: Path, data: dict, state: dict) -> str:
         if (data.get("route") or "relay") == "folder":
             return i18n.t("team.held.too_large_folder", participant=participant, mb=most)
         return i18n.t("team.held.too_large", participant=participant, mb=most)
+    if study_mod.too_large(state):
+        if (data.get("route") or "relay") == "folder":
+            return i18n.t("team.held.study_too_large_folder", mb=most)
+        return i18n.t("team.held.study_too_large", mb=most)
     return ""
 
 

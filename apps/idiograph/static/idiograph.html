@@ -23,8 +23,10 @@
           <!-- New project makes one from a folder and the transcripts dropped onto its card, Open
                project adds a folder of case folders, the Mac's own dialog, or off a Mac the folder's
                path typed, and Open a shared copy opens a .idiograph file as a copy (Adam's Way A, 21
-               October, each said in its tooltip). A run of one project leaves the row hidden -->
+               October, each said in its tooltip), and Join a project joins a project he was invited to into a
+               new folder (teamjoin, 20 November 2026, team.js). A run of one project leaves the row hidden -->
           <div class="demo-actions home-acts" id="np-line"><button type="button" class="ghost small" id="np-open">{{page_idiograph.home.new_project}}</button><button
+               type="button" class="ghost small" id="hj-open">{{team.home.button}}</button><button
                type="button" class="ghost small" id="add-project-home" title="{{page_idiograph.home.open_project_folder_already}}">{{page_idiograph.home.open_project}}</button><button
                type="button" class="ghost small" id="sent-open" title="{{page_idiograph.home.open_project_someone_has}}">{{page_idiograph.home.open_shared_copy}}</button></div>
           <p class="no-root add-typed" id="add-home-typed" hidden><input id="add-home-path" type="text" spellcheck="false"
@@ -74,6 +76,8 @@
           <p class="wt-team" id="wt-team" hidden></p>
         </div>
         <!-- Project settings for this project (settingsplit, 5 November 2026) -->
+        <!-- Invite others (teamsmall): one press turns Working together on as lead if it is off and opens the invite -->
+        <button type="button" class="ghost small hp-invite" id="hp-invite" hidden>{{team.page.invite_here}}</button>
         <button type="button" class="ghost small hp-set" id="hp-settings">{{page_idiograph.projset.title}}</button>
         <!-- Reset demo beside it on a demo's page (demostamp, Adam, 18 November 2026) -->
         <button type="button" class="ghost small hp-reset" id="hp-reset" hidden>{{page_idiograph.home_page.reset_demo}}</button>
@@ -1782,7 +1786,8 @@
                    type="button" class="ghost small" id="wt-finish-stop">{{team.page.finish_stop}}</button></div>
             </div>
             <div class="setting" id="wt-name-row" hidden><label for="wt-name">{{team.page.your_name}}</label><input id="wt-name"
-                 type="text" spellcheck="false" autocomplete="off" placeholder="{{team.page.your_name_ask}}"></div>
+                 type="text" spellcheck="false" autocomplete="off" placeholder="{{team.page.your_name_ask}}"><button
+                 type="button" class="ghost small" id="wt-name-ok">{{team.page.name_ok}}</button></div>
             <div id="wt-fields" hidden>
               <div class="wt-leads"><span id="wt-leads"></span><button type="button" class="ghost small"
                    id="wt-stop">{{team.page.stop}}</button></div>
@@ -1952,6 +1957,58 @@
     <p class="fineprint" id="wt-join-said" role="status" hidden></p>
     <div class="card-actions" id="wt-join-acts">
       <button class="primary" type="button" id="wt-join-go">{{team.join.go}}</button>
+    </div>
+  </div>
+</div>
+
+<!-- Join a project on Home (teamjoin, 20 November 2026, Adam's rulings after teamflow's drawings p2 and p5): the
+     link or the words, a shared folder only for a folder invite (the tick only for words with no link), the name only
+     when Settings has none and the invite is not for another computer of his, and where to keep the project, the
+     folder made by the app. Then the six digits, and at the end Open <the project> (team.js, hj*) -->
+<div class="overlay" id="hj-card" hidden>
+  <div class="card wt-card" role="dialog" aria-labelledby="hj-title">
+    <button class="card-close" id="hj-close" type="button" tabindex="-1" aria-label="{{page_idiograph.screens.close}}" title="{{page_idiograph.screens.close}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <h2 id="hj-title">{{team.join.heading}}</h2>
+    <label class="wt-h" for="hj-words">{{team.join.paste}}</label>
+    <textarea id="hj-words" rows="3" spellcheck="false" autocomplete="off"></textarea>
+    <div class="switches wt-join-by" id="hj-by-row" hidden><label><input type="checkbox" id="hj-folder-on"> {{team.join.by_folder}}</label></div>
+    <div class="wt-path hj-path" id="hj-folder-row" hidden><label class="wt-h" for="hj-folder">{{team.page.folder}}</label>
+      <div class="hj-pick"><input id="hj-folder" type="text" spellcheck="false" autocomplete="off"><button type="button"
+         class="ghost small" id="hj-folder-choose">{{team.page.choose}}</button></div></div>
+    <p class="fineprint" id="hj-own" hidden>{{team.home.own}}</p>
+    <div class="wt-join-name" id="hj-name-row" hidden><label class="wt-h" for="hj-name">{{team.page.your_name}}</label>
+      <input id="hj-name" type="text" spellcheck="false" autocomplete="off" placeholder="{{team.page.your_name_ask}}"></div>
+    <div class="wt-path hj-path" id="hj-into-row"><label class="wt-h" for="hj-into">{{team.home.keep_in}}</label>
+      <div class="hj-pick"><input id="hj-into" type="text" spellcheck="false" autocomplete="off"><button type="button"
+         class="ghost small" id="hj-into-choose">{{team.page.choose}}</button></div></div>
+    <div class="wt-answered" id="hj-answered" hidden>
+      <p class="wt-h wt-first" id="hj-code-h">{{team.invite.check_code}}</p>
+      <p class="wt-code" id="hj-code" aria-labelledby="hj-code-h"></p>
+      <p class="fineprint" id="hj-line"></p>
+    </div>
+    <p class="fineprint" id="hj-said" role="status" hidden></p>
+    <div class="card-actions" id="hj-acts">
+      <button class="primary" type="button" id="hj-go">{{team.join.go}}</button>
+    </div>
+    <div class="card-actions" id="hj-done" hidden>
+      <button class="primary" type="button" id="hj-project"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Your name, asked once from Invite others on the project's page when Settings holds none (teamsmall) -->
+<div class="overlay" id="wt-name-card" hidden>
+  <div class="card wt-card" role="dialog" aria-labelledby="wt-name-title">
+    <p class="kicker" id="wt-name-kicker"></p>
+    <h2 id="wt-name-title">{{team.page.your_name}}</h2>
+    <input id="wt-name-page" type="text" spellcheck="false" autocomplete="off" aria-labelledby="wt-name-title"
+           placeholder="{{team.page.your_name_ask}}">
+    <p class="fineprint" id="wt-name-said" role="status" hidden></p>
+    <div class="card-actions">
+      <button class="ghost" type="button" id="wt-name-cancel">{{page_idiograph.cards_more.cancel}}</button>
+      <button class="primary" type="button" id="wt-name-go">{{team.page.name_ok}}</button>
     </div>
   </div>
 </div>

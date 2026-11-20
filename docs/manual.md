@@ -608,18 +608,38 @@ board has an owner too. Your copy of a teammate's participant updates by itself 
 last change. On their participant you can make boards of your own, comment and suggest, but not change their
 work.
 
-To start, the lead opens Project settings and presses Invite others to work on this project, which makes them
-the lead. Each person invited makes a new project, presses Join a project you were invited to there, and pastes
-the link or the twelve words. They tick The invite came through a shared folder and choose the folder when the
-team sends that way. The joiner's project is not shared until the lead says the six digits match. A project that
+To start, the lead presses Invite others on the project's page, beside Project settings, or opens Project settings
+and presses Invite others to work on this project. Either makes them the lead and opens the invite, and asks for
+your name only when Settings has none. Each person invited presses Join a project on Home and pastes the link or the
+twelve words. Idiograph keeps the project in a new folder, `Documents/Idiograph` and the project's name unless you
+type another, and makes it there, named as the lead named it. A link says whether the team sends through a shared
+folder, and then you choose the folder. With the twelve words alone, tick The invite came through a shared folder when
+the team sends that way. Your name is asked only when Settings has none. Another computer of your own joins the same
+way, with no name asked, and you check its six digits against your first computer. Once the lead says the six digits
+match, Open opens the project. In a project you already have, Join a project you were invited to in Project
+settings does the same for that project. The joiner's project is not shared until the lead says the six digits match. A project that
 holds a participant the lead's project does not have cannot join it, and nor can a project that has a team of its
 own with someone else on it. A copy of the lead's project can join. A project whose team does not list this
 computer says so under Working together, with Join beside it, which makes the project a copy of the team whose
 invite you paste. If that invite is from another team than the one the project lists, Join asks first, since the
 project leaves its team, and goes ahead only on OK. If you close the Join card before the lead says the six digits match, Working together offers
 to finish joining or to stop. If you stop after the lead has said they match, the lead removes you from the list.
-Stop working together sends and takes in nothing more, and Start working together again picks the team up as it
-was.
+Stop working together asks first, then sends and takes in nothing more, and Start working together again picks the
+team up as it was. A member who stops tells the lead, and the lead's People marks that person as having stopped, so the
+lead knows to remove them. The lead keeps listing them until then.
+
+Each invite you made that nobody has been let in by has a row under People, so closing the invite's card loses
+nothing. When someone has answered, the row and the project's page say so, and the row's Check the six digits opens the
+invite again at the digits and They match. Cancel the invite closes it, so nobody can join with it. For Add a computer
+of mine the six digits are checked against your other computer, not read to someone on a call, and its last line names
+the project. When the lead gives you a participant, your page says who gave it, and changes that come in from the others
+are said there too.
+
+The study's settings travel with the copy and keep in step: the project's name, research question, method,
+timepoints, demographics, the participants' names and each participant's picture, label and pen portrait. Each
+person's own settings stay their own and are never sent: your reflexivity statement, the interviewer's name, the
+PET labels and timecodes of your exports and how your screens look. When you and the lead change the same setting
+at once, the lead's change is kept. A picture is sent once, and again only when it changes. When the lead's settings first come in, a setting of yours the lead's project does not have, such as a pen portrait, is kept and sent to the lead, and the project's file as it was is kept in its _Archive folder.
 
 The lead invites each person with a link or twelve words. An invite works once, and for seven days. When the
 lead removes

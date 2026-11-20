@@ -2130,6 +2130,8 @@ function pageHead(name, question, demo, copy = false, kind = '') {
   $('hp-copy').hidden = !copy;
   $('hp-question').textContent = question;
   $('hp-question').hidden = !question;
+  // Invite others, beside Project settings, for a project of one's own (teamsmall)
+  $('hp-invite').hidden = !!demo || !!copy;
   if (typeof wtPageDraw === 'function') wtPageDraw(null);
   $('hp-gets').innerHTML = '';
   $('hp-gets').hidden = true;
@@ -14505,6 +14507,8 @@ function distilBoot() {
   $('mcp-show').onclick = () => mcpShow();
   // Project settings: beside the project's name on its page, Save, its close
   $('hp-settings').onclick = () => openProjectSettings(HOME_PROJECTS.get(S.home) || (homeProject() || {}).project);
+  // Invite others beside it (teamsmall, team.js)
+  $('hp-invite').onclick = () => { if (typeof wtPageInvite === 'function') wtPageInvite(HOME_PROJECTS.get(S.home) || (homeProject() || {}).project); };
   $('projset-save').onclick = () => saveProjectSettings();
   $('projset-close').onclick = () => hide('projset');
   $('mcp-add').onclick = () => mcpAdd();

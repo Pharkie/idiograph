@@ -1942,8 +1942,12 @@ def cmd_team_invite(p: Project, args) -> tuple:
 def cmd_team_answers(p: Project, args) -> tuple:
     """Whether an invite has been answered, and when it has the joiner's name and the six digits. It writes nothing."""
     done = team_call(p, args, {"op": "answers", "invite": args.invite})
-    line = (i18n.t("team.cli.answered", name=done["name"], code=done["code"]) if done.get("answered")
-            else i18n.t("team.cli.not_answered"))
+    if not done.get("answered"):
+        line = i18n.t("team.cli.not_answered")
+    elif done.get("own"):
+        line = i18n.t("team.cli.answered_own", code=done["code"])
+    else:
+        line = i18n.t("team.cli.answered", name=done["name"], code=done["code"])
     return done, [line]
 
 
@@ -1973,9 +1977,59 @@ def cmd_team_join(p: Project, args) -> tuple:
         asked["replace"] = True
     answer, lines, done = team_writes(p, args, asked)
     if not args.dry_run:
-        lines.append(i18n.t("team.cli.join_code", code=done["code"], name=done.get("from") or "",
-                            invite=done["invite"]))
+        if done.get("own"):
+            lines.append(i18n.t("team.cli.join_code_own", code=done["code"], invite=done["invite"]))
+        else:
+            lines.append(i18n.t("team.cli.join_code", code=done["code"], name=done.get("from") or "",
+                                invite=done["invite"]))
     return answer, lines
+
+
+def join_into_body(args, op: str) -> dict:
+    """A Home join's asking as the command line gives it, for `team offer` and `team join --into`."""
+    asked = {"op": op, "words": args.words}
+    for key in ("route", "folder", "relay_url"):
+        if getattr(args, key, None):
+            asked[key] = getattr(args, key)
+    return asked
+
+
+def cmd_team_offer(args) -> tuple:
+    """An invite read before joining, as the Join card on Home reads it (teamjoin, 20 November 2026): who sent it,
+    whether it is for another computer of his, the project's name, and the folder a join from Home would make. It
+    needs no project of his, and writes nothing."""
+    try:
+        done = routes.api_team(join_into_body(args, "offer"))
+    except (WorkbookError, srv.OutsideRoot) as exc:
+        raise cli.Refused(str(exc)) from None
+    project = done.get("project") or i18n.t("team.home.default_project")
+    line = (i18n.t("team.cli.offer_own", project=project) if done.get("own")
+            else i18n.t("team.cli.offer", name=done.get("from") or "", project=project))
+    return done, [line, i18n.t("team.cli.offer_folder", folder=done.get("into") or "")]
+
+
+def cmd_team_join_into(args) -> tuple:
+    """`team join --into <folder>`, Join a project on Home (teamjoin, 20 November 2026): the folder made, the
+    project made in it under the lead's name and added to Idiograph's projects, and joined as `team join` joins,
+    with the six digits to read on a call. It needs no project of his. The folder must be new or empty. The app's
+    alone for an agent, as every join is; a dry run checks the words and the folder and writes nothing, not even the
+    folder."""
+    refusal = changes_mod.app_only(args)
+    if refusal and not args.dry_run and not changes_mod.ALL_OPS:
+        raise cli.Refused(refusal, code="app_only")
+    if not themes_ai.one_line(args.note) and not args.dry_run:
+        raise cli.Refused(_w("NO_PROJECT_REQUEST"))
+    asked = dict(join_into_body(args, "join"), into=args.into, name=args.name or "", dry_run=bool(args.dry_run))
+    try:
+        done = routes.api_team(asked)
+    except (WorkbookError, srv.OutsideRoot) as exc:
+        raise cli.Refused(str(exc)) from None
+    if args.dry_run:
+        return done, [i18n.t("cli.said.dry_run_nothing_was_written")] + (done.get("changes") or [])
+    answer = {k: v for k, v in done.items() if k != "team"}
+    return answer, [i18n.t("team.cli.home_made", project=done["project"]["name"], folder=done["into"]),
+                    i18n.t("team.cli.join_code", code=done["code"], name=done.get("from") or "",
+                           invite=done["invite"])]
 
 
 def cmd_team_joined(p: Project, args) -> tuple:
@@ -1989,6 +2043,13 @@ def cmd_team_unjoin(p: Project, args) -> tuple:
     """A join begun from this project and not finished, given up: its asking and the keys it made dropped on this
     computer. Writes nothing to the project."""
     answer, lines, _done = team_writes(p, args, {"op": "unjoin", "invite": args.invite})
+    return answer, lines
+
+
+def cmd_team_cancel(p: Project, args) -> tuple:
+    """An open invite given up by the computer that made it: an answer to it is never taken in. The team's list of
+    people is not changed."""
+    answer, lines, _done = team_writes(p, args, {"op": "cancel", "invite": args.invite})
     return answer, lines
 
 
@@ -9091,7 +9152,8 @@ COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             ("project", "history"): cmd_project_history,
             ("team", "show"): cmd_team_show, ("team", "on"): cmd_team_on, ("team", "set"): cmd_team_set,
             ("team", "invite"): cmd_team_invite, ("team", "answers"): cmd_team_answers, ("team", "admit"): cmd_team_admit,
-            ("team", "join"): cmd_team_join, ("team", "joined"): cmd_team_joined, ("team", "unjoin"): cmd_team_unjoin, ("team", "remove"): cmd_team_remove,
+            ("team", "join"): cmd_team_join, ("team", "offer"): lambda p, args: cmd_team_offer(args),
+            ("team", "joined"): cmd_team_joined, ("team", "unjoin"): cmd_team_unjoin, ("team", "cancel"): cmd_team_cancel, ("team", "remove"): cmd_team_remove,
             ("team", "send"): cmd_team_send,
             ("team", "lead"): cmd_team_lead, ("team", "take"): cmd_team_take,
             # a reviewer's board sent straight in (wtboard, 9 November 2026)
@@ -9947,10 +10009,23 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--replace", action="store_true",
                    help="yes to the question a join as a copy asks when it would take the project out of its team "
                         "into the invite's")
+    x.add_argument("--into", default=None,
+                   help="a new or empty folder: the project is made there and joins, as Join a project on Home does, "
+                        "with no project of yours needed")
+    x = tm.add_parser("offer", parents=[common],
+                      help="an invite read before joining: who sent it, the project, and the folder a join would make")
+    x.add_argument("words", help="the invite's link, or its twelve words in quotation marks")
+    x.add_argument("--relay-url", dest="relay_url", default=None,
+                   help="the team's own relay's address, when its link does not carry it")
+    x.add_argument("--route", choices=("relay", "folder"), default=None,
+                   help="how the invite came: folder for a shared folder, given with --folder")
+    x.add_argument("--folder", default=None, help="the shared folder the invite came through")
     x = tm.add_parser("joined", parents=[common, writes], help="the lead's They match taken in, once it has come")
     x.add_argument("--invite", required=True, help="the invite's id, as team join gave it")
     x = tm.add_parser("unjoin", parents=[common, writes], help="give up a join that was begun and not finished")
     x.add_argument("--invite", required=True, help="the invite's id, as team join gave it")
+    x = tm.add_parser("cancel", parents=[common, writes], help="give up an open invite, so no answer to it is taken in")
+    x.add_argument("--invite", required=True, help="the invite's id, as team invite gave it")
     x = tm.add_parser("remove", parents=[common, writes],
                       help="the lead removes someone, or one computer, and the project's key changes for everyone left")
     x.add_argument("member", nargs="?", default=None, help="the one to remove, by name")
@@ -10053,6 +10128,17 @@ def perform(args) -> tuple[dict, list[str]]:
                 srv.CONFIG_PATH = Path(args.config).expanduser().resolve()
             srv.STATE_MEMORY = {"recent": []}
             return cmd_project_open_copy(args) if args.act == "open-copy" else cmd_project_new(args)
+        finally:
+            srv.CONFIG_PATH, srv.STATE_MEMORY = kept
+    if args.command == "team" and (getattr(args, "act", None) == "offer"
+                                   or (getattr(args, "act", None) == "join" and getattr(args, "into", None))):
+        # Join a project on Home, and the invite read before it, need no project of his (teamjoin)
+        kept = (srv.CONFIG_PATH, srv.STATE_MEMORY)
+        try:
+            if getattr(args, "config", None):
+                srv.CONFIG_PATH = Path(args.config).expanduser().resolve()
+            srv.STATE_MEMORY = {"recent": []}
+            return cmd_team_offer(args) if args.act == "offer" else cmd_team_join_into(args)
         finally:
             srv.CONFIG_PATH, srv.STATE_MEMORY = kept
     kept = (srv.CONFIG_PATH, srv.ROOT_OVERRIDE, srv.STATE_MEMORY)

@@ -2635,6 +2635,14 @@ sent with a copy. You sign as their computer: never read, copy or print either f
   midnight UTC, nobody to send to after a minute, the others after an hour, and Cloudflare's own refusals after a minute or an hour. If the relay no longer has the project, `team send` and the page say so in one line and no call goes to the relay. The relay deletes anything unread after 90 days, and the bucket that holds the files deletes any file older than 91 days besides. A file over the
   limit is never sent, with a line naming its participant. Recordings, with `--recordings on`, each travel once and
   are sent again only when they change.
+- The study's settings travel with the copy and keep in step: the project's name, research question, method,
+  timepoints, demographics, Rename's names and each participant's profile (picture, label, pen portrait, values).
+  A `project set` or `participant set` change of one of them goes to the others a minute after the save, and
+  when the lead and a member change the same one, the lead's is kept. The researcher's own settings never go and
+  are never written over by a teammate's: reflexivity, the interviewer's name, the PET labels, the timecodes, the
+  privacy tick, the order of the rows and the guidance settings. When the lead's settings first come in, a setting
+  the researcher had that the lead's project does not have is kept and goes to the lead, and the project file is
+  kept in `_Archive/` first. A dry run of `team send` sends nothing.
 - Send through (`--route`) is the lead's alone. From a member `team set` and `team_set` refuse it in a line and write
   nothing, and the lead's change reaches every member's install in the signed list of people.
 - `idiograph team set` (`team_set`): `--route`, `--folder`, `--recordings on|off`, and by the lead
@@ -2661,11 +2669,30 @@ sent with a copy. You sign as their computer: never read, copy or print either f
   `replace_team`) until it also says `--replace` (`replace` for `team_join`), and an invite from a computer the
   project's list names, an "Add a computer of mine" invite among them, asks nothing. `team show` carries `start` (`kept`, `joining`, `unlisted`) as
   the app reads it. A refused or failed join leaves no keys behind. An invite for a member's own computer lists no participants.
+  `idiograph team join "LINK OR WORDS" --into FOLDER --name "Bo"` is Join a project on Home: it needs no project
+  of yours. The folder, new or empty, is made, the project is made in it under the lead's name and method and added
+  to Idiograph's projects, and it joins as above. A folder that holds anything is refused, and so are words that
+  are not an invite, with nothing written. `--name` may be left out when Settings has your name, or for an invite
+  for another computer of yours, which carries it. `team_join` takes `into`. A dry run checks the words and the
+  folder and writes nothing, not even the folder. `idiograph team offer "LINK OR WORDS"` (`team_offer`) reads an
+  invite first and writes nothing: who sent it, `own` for another computer of yours, the project's name, `via`,
+  the route its link says, and `into`, the folder a join from Home offers, `~/Documents/Idiograph/<project>`. An
+  invite's link says the route it went by (`?via=relay` or `?via=folder`), so a join with no `--route` takes the
+  link's, and a link from before links said it joins by the relay.
   `idiograph team joined --invite ID` (`team_joined`) takes the lead's yes in once it has come, and says joined
   again if asked again after it has.
   `idiograph team unjoin --invite ID` (`team_unjoin`) gives up a join begun and not finished, dropping its asking
   and the keys it made on this computer. It writes nothing to the project, and is the app's alone. Once the lead
   has said they match, the keys stay, since the lead's list names this computer, and the lead removes the member.
+- `idiograph team cancel --invite ID` (`team_cancel`) gives up an open invite this computer made: it is dropped
+  here, a closing line goes into its mailbox, and an answer to it is never taken in, so a joiner who has not answered
+  cannot, and `team admit` for it says there is no such invite. The team's list of people does not change. It is the
+  app's alone, and its dry run writes nothing. `team show` lists each open invite in `invites` (`invite`, `own`,
+  `expires`), and `team answers` carries `own` for an invite for the member's own computer, whose six digits are
+  checked against the member's other computer, not read on a call. A member who turns Working together off with
+  `team on --off` sends the lead one line, which marks the member `stopped` in the lead's `team show` people until they
+  turn it on again, and a participant or the GETs board the lead hands to a member is in the member's page status as
+  `gave`.
 - `idiograph team remove Bo` (`team_remove`): the lead removes someone. Their computers come off the list and the
   project's key changes for everyone left, so they get nothing new. What they have stays on their computer.
   `idiograph team remove --computer ID` (`team_remove` with `computer`) removes one computer, a lost one, by its id
@@ -2836,7 +2863,7 @@ nothing waiting, and its dry run still answers:
 | Op | Why | Risk |
 |---|---|---|
 | `project send` | it goes to another person | 1, steering |
-| `team on`, `team set`, `team invite`, `team admit`, `team join`, `team joined`, `team unjoin`, `team remove`, `team lead` | who can read the project and its keys | 4, standing access |
+| `team on`, `team set`, `team invite`, `team admit`, `team join`, `team joined`, `team unjoin`, `team cancel`, `team remove`, `team lead` | who can read the project and its keys | 4, standing access |
 | `team send`, `team board-send`, `team board-answer`, `team ask`, `team review-send`, `team reply`, `team thread`, `team review-done`, `team suggestion-answer` | it reaches a teammate | 1, steering |
 | `settings` with an option | the app's own, no project's, so no restore point holds it | 4, standing access |
 

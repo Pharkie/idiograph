@@ -21,6 +21,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import time
 import unicodedata
 import zipfile
 from pathlib import Path
@@ -687,6 +688,153 @@ def test_team_start(scratch: Path):
         cli_show = cli_mod.cmd_team_show(cli_mod.Project(stale["root"], False), type("A", (), {"agent_relay": False})())
         check("431: the command line's team show carries start, as the route does",
               cli_show[0].get("start", {}).get("unlisted") is True and "team" in cli_show[0])
+
+        # 3b. teamsmall (20 November 2026): the journey's small fixes. Open invites are rows in People that stay
+        # whatever the card did, once answered the row's digits are those the joiner has, Cancel the invite drops one
+        # and closes it; the second computer's join says it is the member's own; a participant handed over is said on
+        # the member's page; a member who stops tells the lead
+        import team_sync
+        sm_lead = install(scratch, "sm-lead", "Canal towpath walkers, teamsmall", ("Wren", "Fern"))
+        sm_bo = install(scratch, "sm-bo", "Canal towpath walkers, teamsmall, Bo's")
+        call(sm_lead, op="on", name="Ada")
+        first = call(sm_lead, op="invite")
+        second = call(sm_lead, op="invite")
+        rows = call(sm_lead, op="show")["team"]["invites"]
+        quiet = call(sm_lead, op="answers", invite=first["invite"])
+        asked_bo = call(sm_bo, op="join", words=first["words"], name="Bo")
+        answered_row = call(sm_lead, op="answers", invite=first["invite"])
+        check("431: each open invite this computer made is listed in the team's view, answered or not, whatever the "
+              "invite's card did, and an answer carries the six digits the joiner has",
+              sorted(i["invite"] for i in rows) == sorted([first["invite"], second["invite"]]) and not any(i["own"] for i in rows)
+              and quiet["answered"] is False and answered_row["answered"] is True and answered_row["name"] == "Bo"
+              and answered_row["code"] == asked_bo["code"] and asked_bo["own"] is False, json.dumps(rows))
+        dry_cancel = call(sm_lead, op="cancel", invite=second["invite"], dry_run=True)
+        after_dry = call(sm_lead, op="show")["team"]["invites"]
+        cancelled = call(sm_lead, op="cancel", invite=second["invite"])
+        after_cancel = call(sm_lead, op="show")["team"]
+        late_join = refused(lambda: call(install(scratch, "sm-late", "Canal towpath walkers, teamsmall, Late"),
+                                         op="join", words=second["words"], name="Lia"))
+        admit_gone = refused(lambda: call(sm_lead, op="admit", invite=second["invite"], match=True))
+        again = refused(lambda: call(sm_lead, op="cancel", invite=second["invite"]))
+        check("431: Cancel the invite drops that invite alone, its dry run changing nothing, the other open invite and "
+              "its answer staying, the cancelled one closed so nobody can join with it or be let in, and a second "
+              "cancel refused as no invite",
+              dry_cancel["dry_run"] is True and len(after_dry) == 2 and cancelled["changes"] == [i18n.t("team.history.invite_cancelled")]
+              and [i["invite"] for i in after_cancel["invites"]] == [first["invite"]]
+              and call(sm_lead, op="answers", invite=first["invite"])["answered"] is True
+              and late_join == i18n.t("team.refused.invite_used") and admit_gone == i18n.t("team.refused.no_invite")
+              and again == i18n.t("team.refused.no_invite") and after_cancel["people"][0]["name"] == "Ada"
+              and len(after_cancel["people"]) == 1, f"{late_join} | {admit_gone} | {again}")
+        agent_all, agent_changes.ALL_OPS = agent_changes.ALL_OPS, None
+        sm_text = ""
+        try:
+            at(sm_lead)
+            (sm_lead["root"] / "idiograph-project.json").write_text(json.dumps({
+                "name": "Canal towpath walkers, teamsmall", "agents": {"allowed": True, "at": "2026-11-20T09:00:00+00:00"}}),
+                encoding="utf-8")
+            sm_mcp = mcp_server.Server(root=str(sm_lead["root"]), config=str(sm_lead["config"]))
+            sm_agent = sm_mcp.call(sm_mcp.by_name["team_cancel"], {"invite": first["invite"], "request": "Cancel it"})
+            sm_dry = sm_mcp.call(sm_mcp.by_name["team_cancel"], {"invite": first["invite"], "request": "Cancel it", "dry_run": True})
+            sm_text = " ".join(c.get("text", "") for c in sm_agent.get("content") or [])
+        finally:
+            agent_changes.ALL_OPS = agent_all
+        check("431: MCP's team_cancel is the app's alone for an agent and the invite is still open after it, while "
+              "its dry run is answered",
+              sm_agent.get("isError") is True and "Only the app" in sm_text and sm_dry.get("isError") is not True
+              and len(call(sm_lead, op="show")["team"]["invites"]) == 1, sm_text)
+        call(sm_lead, op="admit", invite=first["invite"], match=True)
+        call(sm_bo, op="joined", invite=first["invite"])
+        # an invite for the member's own other computer says so on both computers
+        own_made = call(sm_bo, op="invite", own=True)
+        bo_two = install(scratch, "sm-bo-two", "Canal towpath walkers, teamsmall, Bo's laptop")
+        own_asked = call(bo_two, op="join", words=own_made["words"], name="Bo")
+        own_row = call(sm_bo, op="answers", invite=own_made["invite"])
+        own_view = call(sm_bo, op="show")["team"]["invites"]
+        check("431: an invite for the member's own other computer says it is his own at the answer and at the join, "
+              "so neither side is told to read the number to someone on a call, the join names the project, and its row says so",
+              own_asked["own"] is True and own_row["own"] is True and own_row["code"] == own_asked["code"]
+              and own_asked["project"] == "Canal towpath walkers, teamsmall, Bo's"
+              and [(i["invite"], i["own"]) for i in own_view] == [(own_made["invite"], True)])
+        pending_own = call(bo_two, op="show")["start"]["joining"]
+        check("431: a second computer's join begun and left is offered again as the member's own",
+              len(pending_own) == 1 and pending_own[0]["own"] is True
+              and pending_own[0]["project"] == "Canal towpath walkers, teamsmall, Bo's")
+
+        # a member who stops tells the lead, whose People marks the person until they start again
+        before_stop = call(sm_lead, op="show")["team"]["people"]
+        call(sm_bo, op="off", dry_run=True)
+        sent_before = sum(len(v) for v in hub.boxes.values())
+        call(sm_bo, op="off")
+        sent_after = sum(len(v) for v in hub.boxes.values())
+        call(sm_lead, op="send")
+        marked = call(sm_lead, op="show")["team"]["people"]
+        call(sm_lead, op="take")
+        marked_again = call(sm_lead, op="show")["team"]["people"]
+        check("431: a member who stops working together sends the lead one line, a dry run sends none, the lead's "
+              "People marks that person as having stopped once and the lead's own look and take leave it so, and the "
+              "lead who stops sends none",
+              [p["stopped"] for p in before_stop] == [False, False] and sent_after == sent_before + 1
+              and [p["stopped"] for p in marked] == [False, True] and marked_again == marked,
+              json.dumps(marked))
+        call(sm_bo, op="on")
+        call(sm_lead, op="send")
+        call(sm_lead, op="take")
+        back = call(sm_lead, op="show")["team"]["people"]
+        sent_lead = sum(len(v) for v in hub.boxes.values())
+        call(sm_lead, op="off")
+        check("431: a member who starts again is no longer marked, and the lead who stops tells no one",
+              [p["stopped"] for p in back] == [False, False] and sum(len(v) for v in hub.boxes.values()) == sent_lead)
+        call(sm_lead, op="on")
+
+        # offline, a member's Stop and Start again each wait on the route a few seconds at most, and both are
+        # written (teamfix4)
+        class Stalled:
+            def __init__(self, dev):
+                self.dev = dev
+
+            def send(self, project_id, sealed):
+                time.sleep(6)
+                raise OSError("offline")
+
+        loop_way = transport.OVERRIDE
+        transport.OVERRIDE = lambda dev, data: Stalled(dev)
+        try:
+            t0 = time.monotonic()
+            call(sm_bo, op="off")
+            off_s = time.monotonic() - t0
+            off_kept = json.loads((sm_bo["root"] / team.FILE).read_text(encoding="utf-8")).get("on")
+            t0 = time.monotonic()
+            call(sm_bo, op="on")
+            on_s = time.monotonic() - t0
+            on_kept = json.loads((sm_bo["root"] / team.FILE).read_text(encoding="utf-8")).get("on")
+        finally:
+            transport.OVERRIDE = loop_way
+        check("431: offline, a member's Stop working together and Start working together again each wait a few "
+              "seconds at most on the route, and each is written",
+              off_s < 5 and on_s < 5 and off_kept is False and on_kept is True,
+              json.dumps({"off": round(off_s, 2), "on": round(on_s, 2)}))
+
+        # what the lead hands over is said on the member's page, once, for what is his now
+        call(sm_bo, op="send")
+        call(sm_lead, op="set", owners={"P2 - Fern": "Bo"}, gets_owner="Bo")
+        call(sm_lead, op="send")
+        call(sm_bo, op="send")
+        at(sm_bo)
+        bo_page = team_sync.status(sm_bo["root"])
+        at(sm_lead)
+        lead_page = team_sync.status(sm_lead["root"])
+        check("431: a participant and the GETs board the lead hands to a member are said on the member's page with who "
+              "gave them, newest first, and the lead's page says nothing of them, and the page says who leads",
+              sorted((g["name"], g["participant"], g["gets"]) for g in bo_page["gave"]) == [("Ada", "", True), ("Ada", "Fern", False)]
+              and bo_page["lead"] is False and lead_page["gave"] == [] and lead_page["lead"] is True,
+              json.dumps(bo_page))
+        call(sm_lead, op="set", owners={"P2 - Fern": "Ada"})
+        call(sm_lead, op="send")
+        call(sm_bo, op="send")
+        at(sm_bo)
+        bo_back = team_sync.status(sm_bo["root"])
+        check("431: a participant handed back is no longer said as given to the member",
+              [(g["participant"], g["gets"]) for g in bo_back["gave"]] == [("", True)], json.dumps(bo_back["gave"]))
 
         # 4. a join through a shared folder, with Working together off: the folder said with the join, written at
         #    They match

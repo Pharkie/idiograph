@@ -13,9 +13,12 @@
    kept from before with others on it shows Start working together again in their place, and on, the section
    starts with who leads and Stop working together. */
 
-const WT = { p: null, view: null, yourName: '', poll: null, invite: null, joining: null, start: null, joinFolder: '', pending: null };
+const WT = { p: null, view: null, yourName: '', poll: null, invite: null, joining: null, start: null, joinFolder: '', pending: null,
+  answered: {}, rowPoll: null, pageTimer: null, pageTeam: null, pageAnswered: {}, starting: false };
 // the invite and join cards ask about every 10 seconds, well inside the relay's 30 invite calls a minute from one address
 const WT_POLL_MS = 10000;
+// open invites in People and on the project's page ask about their answers every 30 seconds, a call for each invite
+const WT_ROWS_MS = 30000;
 
 function wtSaid(text, failed = false) {
   saidIn('wt-said', text || '', failed);
@@ -30,7 +33,9 @@ function wtBody(extra) {
 async function wtOpen(p) {
   WT.p = p;
   WT.view = null;
+  WT.answered = {};
   wtStop();
+  wtRowsStop();
   const block = $('wt-block');
   if (!block) return;
   block.hidden = !p || !!p.demo || !p.id;
@@ -51,6 +56,7 @@ async function wtOpen(p) {
   WT.start = got.start || null;
   wtDraw(got.team || { on: false });
   if (!got.team || !got.team.on || got.team.unlisted) return;
+  wtRowsWatch();
   // what has come for the list of people since it was last open: a newer list, a computer added or removed
   try {
     const took = await api('/api/team', wtBody({ op: 'take' }));
@@ -105,10 +111,16 @@ function wtStartDraw(on, unlisted = false) {
   $('wt-finish-row').hidden = !pending;
   if (pending) {
     // an asking kept by 0.9.32 has no name for the lead: the plain words without one
-    $('wt-finish').textContent = pending.from ? t('team.page.finish', { name: pending.from })
-      : t('team.page.finish_unnamed');
-    $('wt-finish-line').textContent = pending.from ? t('team.join.waiting', { name: pending.from })
-      : t('team.join.waiting_unnamed');
+    // an invite for the researcher's own other computer is finished as adding this computer, not as joining a project
+    if (pending.own) {
+      $('wt-finish').textContent = t('team.page.finish_own');
+      $('wt-finish-line').textContent = t('team.join.waiting_own');
+    } else {
+      $('wt-finish').textContent = pending.from ? t('team.page.finish', { name: pending.from })
+        : t('team.page.finish_unnamed');
+      $('wt-finish-line').textContent = pending.from ? t('team.join.waiting', { name: pending.from })
+        : t('team.join.waiting_unnamed');
+    }
   }
 }
 
@@ -178,6 +190,8 @@ function wtPeople(view) {
     const parts = [];
     if (person.lead) parts.push(t('team.page.lead'));
     parts.push(person.this_computer && person.computers === 1 ? t('team.page.this_computer') : t('team.page.computers', { n: person.computers }));
+    // a member who stopped working together, told to the lead, who then removes them (teamsmall)
+    if (person.stopped && view.you_lead) parts.push(t('team.page.stopped'));
     sub.textContent = parts.join(' · ');
     who.append(name, sub);
     li.appendChild(who);
@@ -194,6 +208,103 @@ function wtPeople(view) {
     if (devices.length > 1 && (person.you || view.you_lead) && !view.removed) li.appendChild(wtComputers(view, person));
     list.appendChild(li);
   }
+  // each open invite this computer made, a row of its own: once answered, Check the six digits, and Cancel the invite
+  if (!view.removed) for (const inv of view.invites || []) list.appendChild(wtInviteRow(inv));
+}
+
+function wtInviteRow(inv) {
+  const got = WT.answered[inv.invite];
+  const li = document.createElement('li');
+  li.className = 'wt-invite-row';
+  const who = document.createElement('span');
+  who.className = 'wt-who';
+  const name = document.createElement('b');
+  if (got) name.textContent = inv.own ? t('team.page.invite_answered_own') : t('team.page.invite_answered', { name: got.name });
+  else name.textContent = inv.own ? t('team.page.invite_row_own') : t('team.page.invite_row');
+  who.appendChild(name);
+  const acts = document.createElement('span');
+  acts.className = 'wt-btns';
+  if (got) acts.appendChild(wtButton(t('team.page.check_digits'), () => wtReopen(inv, got)));
+  acts.appendChild(wtButton(t('team.page.cancel_invite'), () => wtCancelInvite(inv)));
+  li.append(who, acts);
+  return li;
+}
+
+/* Cancel the invite: asked first, then given up, so an answer to it is never taken in */
+async function wtCancelInvite(inv) {
+  if (!await askSure(t('team.page.cancel_invite_ask'))) return;
+  const got = await wtCall({ op: 'cancel', invite: inv.invite });
+  if (!got) return;
+  delete WT.answered[inv.invite];
+  if (WT.invite === inv.invite) { wtStop(); WT.invite = null; hide('wt-invite-card'); }
+  if (WT.view) wtPeople(WT.view);
+  wtPageLook();
+}
+
+/* Check the six digits: the invite's card again at the digits and They match, for an invite whose card was closed */
+function wtReopen(inv, got) {
+  WT.invite = inv.invite;
+  $('wt-invite-kicker').textContent = (WT.p && WT.p.name) || '';
+  $('wt-invite-title').textContent = inv.own ? t('team.invite.heading_own') : t('team.invite.heading');
+  wtInviteParts(false);
+  wtInviteSaid('');
+  wtStop();
+  wtInviteDigits(got);
+  show('wt-invite-card');
+}
+
+/* the invite's link and words, shown on a new invite and put away on one come back to for its digits */
+function wtInviteParts(shown) {
+  ['wt-link-h', 'wt-link', 'wt-words-h', 'wt-words'].forEach((id) => { $(id).hidden = !shown; });
+  ['wt-copy-link', 'wt-copy-words'].forEach((id) => { $(id).parentNode.hidden = !shown; });
+}
+
+/* the six digits, and who answered, with They differ and They match */
+function wtInviteDigits(got) {
+  $('wt-code').textContent = got.code;
+  const own = !!got.own || !!((WT.view && WT.view.invites) || []).find((i) => i.invite === WT.invite && i.own);
+  $('wt-answer-line').textContent = own ? t('team.invite.answered_own') : t('team.invite.answered', { name: got.name });
+  $('wt-answered').hidden = false;
+  $('wt-invite-acts').hidden = false;
+}
+
+/* open invites asked about for their answers while Project settings is open, a row each */
+function wtRowsStop() {
+  clearInterval(WT.rowPoll);
+  WT.rowPoll = null;
+}
+
+function wtRowsWatch() {
+  wtRowsStop();
+  const look = async () => {
+    if ($('projset').hidden || !WT.view || !WT.view.on || !(WT.view.invites || []).length) return;
+    const p = WT.p;
+    const got = await wtLookAnswers(p, WT.view);
+    if (!got || WT.p !== p) return;
+    WT.answered = got;
+    if (WT.view) wtPeople(WT.view);
+  };
+  look();
+  WT.rowPoll = setInterval(look, WT_ROWS_MS);
+}
+
+/* which of a project's open invites have been answered: {invite id: {name, code, own}}. One that cannot be asked about
+   just now, or has lapsed, is left out. Null when the project cannot be reached. */
+async function wtLookAnswers(p, view) {
+  let shown = view;
+  if (!shown) {
+    try {
+      shown = (await api('/api/team', { ...projectBody(p), op: 'show' })).team || {};
+    } catch (err) { return null; }
+  }
+  const out = {};
+  for (const inv of (shown.invites || [])) {
+    try {
+      const a = await api('/api/team', { ...projectBody(p), op: 'answers', invite: inv.invite });
+      if (a.answered) out[inv.invite] = { name: a.name, code: a.code, own: !!a.own };
+    } catch (err) { /* lapsed, or no connection just now: no answer shown */ }
+  }
+  return out;
 }
 
 /* Who works on each: a participant's owner picked from the people, the lead's to change, and the GETs board's with
@@ -290,11 +401,22 @@ async function wtStartInvite() {
     $('wt-name').focus();
     return;
   }
-  await wtCall({ op: 'on', name: typed || WT.yourName, route: 'relay' });
+  // the name field's change and its OK button can both fire for one press: once is enough
+  if (WT.starting) return;
+  WT.starting = true;
+  try {
+    await wtCall({ op: 'on', name: typed || WT.yourName, route: 'relay' });
+  } finally { WT.starting = false; }
 }
 
-/* Stop working together: nothing more sent or taken in, the team kept for starting again */
+/* Stop working together: asked first in one plain question, then nothing more sent or taken in, the team kept for
+   starting again. A member who stops tells the lead, whose People then marks them as having stopped (teamsmall). */
 async function wtStopTogether() {
+  const view = WT.view || {};
+  const lead = (((view.people || []).find((p) => p.lead)) || {}).name || '';
+  let ask = t('team.page.stop_ask_alone');
+  if (!view.alone) ask = view.you_lead ? t('team.page.stop_ask_lead') : t('team.page.stop_ask_member', { lead });
+  if (!await askSure(ask)) return;
   const got = await wtCall({ op: 'off' });
   if (got && WT.p) await wtOpen(WT.p);
 }
@@ -343,6 +465,7 @@ async function wtInvite(own) {
   $('wt-words').textContent = got.words;
   $('wt-answered').hidden = true;
   $('wt-invite-acts').hidden = true;
+  wtInviteParts(true);
   wtInviteSaid('');
   show('wt-invite-card');
   wtStop();
@@ -358,10 +481,7 @@ async function wtAnswers() {
   } catch (err) { wtStop(); wtInviteSaid(err.message, true); return; }
   if (!got.answered) return;
   wtStop();
-  $('wt-code').textContent = got.code;
-  $('wt-answer-line').textContent = t('team.invite.answered', { name: got.name });
-  $('wt-answered').hidden = false;
-  $('wt-invite-acts').hidden = false;
+  wtInviteDigits(got);
 }
 
 async function wtAnswer(match) {
@@ -369,8 +489,10 @@ async function wtAnswer(match) {
     const got = await api('/api/team', wtBody({ op: 'admit', invite: WT.invite, match }));
     if (got.team) wtDraw(got.team);
   } catch (err) { wtInviteSaid(err.message, true); return; }
-  if (match) { WT.invite = null; hide('wt-invite-card'); return; }
+  if (match) { delete WT.answered[WT.invite]; WT.invite = null; hide('wt-invite-card'); wtPageLook(); return; }
   // They differ: the answer thrown away, the invite still open for the right answer
+  delete WT.answered[WT.invite];
+  wtPageLook();
   $('wt-answered').hidden = true;
   $('wt-invite-acts').hidden = true;
   WT.poll = setInterval(wtAnswers, WT_POLL_MS);
@@ -413,7 +535,10 @@ function wtJoinOpen() {
 
 /* the shared folder the invite came through, ticked in the Join card, with its own Choose */
 function wtJoinFolderDraw() {
-  const by = $('wt-join-folder-on').checked;
+  // a link that says its route asks no tick: the shared folder only for a folder invite (teamjoin)
+  const via = hjVia($('wt-join-words').value);
+  document.querySelector('#wt-join-card .wt-join-by').hidden = !!via || $('wt-join-words').hidden;
+  const by = via ? via === 'folder' : $('wt-join-folder-on').checked;
   $('wt-join-path').hidden = !by;
   if (WT.joinFolder) $('wt-join-folder').innerHTML = pathHtml(WT.joinFolder);
   else $('wt-join-folder').textContent = t('team.page.no_folder');
@@ -435,7 +560,9 @@ async function wtJoin() {
   if (typed) asked.name = typed;
   // Join beside "This computer is not on this project's list" says the project is a copy
   if ((WT.view && WT.view.unlisted) || (WT.start && WT.start.unlisted)) asked.copy = true;
-  Object.assign(asked, $('wt-join-folder-on').checked ? { route: 'folder', folder: WT.joinFolder } : { route: 'relay' });
+  const via = hjVia(asked.words);
+  Object.assign(asked, (via ? via === 'folder' : $('wt-join-folder-on').checked)
+    ? { route: 'folder', folder: WT.joinFolder } : { route: 'relay' });
   let got;
   try {
     try {
@@ -453,15 +580,19 @@ async function wtJoin() {
 
 /* the card as it stands once the answer is sent: the six digits to read out, then waiting for They match */
 function wtJoinWaiting(got) {
-  WT.joining = { invite: got.invite, from: got.from || '' };
+  WT.joining = { invite: got.invite, from: got.from || '', own: !!got.own, project: got.project || '' };
   $('wt-join-words').disabled = true;
   $('wt-join-name').disabled = true;
   $('wt-join-folder-on').disabled = true;
   $('wt-join-acts').hidden = true;
   $('wt-join-code').textContent = got.code;
-  $('wt-join-line').textContent = t('team.join.read_code', { name: got.from || '' });
+  // an invite for the researcher's own other computer: the digits are checked against that computer, not read out
+  // to someone on a call (teamsmall, friction 8)
+  if (got.own) $('wt-join-line').textContent = t('team.join.read_code_own');
+  else $('wt-join-line').textContent = t('team.join.read_code', { name: got.from || '' });
   $('wt-join-answered').hidden = false;
-  wtJoinSaid(got.from ? t('team.join.waiting', { name: got.from }) : t('team.join.waiting_unnamed'));
+  if (got.own) wtJoinSaid(t('team.join.waiting_own'));
+  else wtJoinSaid(got.from ? t('team.join.waiting', { name: got.from }) : t('team.join.waiting_unnamed'));
   wtStop();
   WT.poll = setInterval(wtJoined, WT_POLL_MS);
 }
@@ -471,7 +602,7 @@ function wtFinish() {
   const pending = WT.pending;
   if (!pending) return;
   wtJoinOpen();
-  wtJoinWaiting({ invite: pending.invite, from: pending.from, code: pending.code });
+  wtJoinWaiting({ invite: pending.invite, from: pending.from, own: pending.own, project: pending.project, code: pending.code });
   // what was typed is not asked for again: the card holds the six digits and the waiting alone
   wtJoinAsking(false);
 }
@@ -502,7 +633,9 @@ async function wtJoined() {
   } catch (err) { wtStop(); wtJoinSaid(err.message, true); return; }
   if (!got.joined) return;
   wtStop();
-  wtJoinSaid(t('team.join.joined', { name: WT.joining.from }));
+  // on a second computer's join the line names the project, not the one whose invite it was (teamsmall, friction 8)
+  if (WT.joining.own) wtJoinSaid(t('team.join.joined_own', { project: WT.joining.project || (WT.p && WT.p.name) || '' }));
+  else wtJoinSaid(t('team.join.joined', { name: WT.joining.from }));
   WT.joining = null;
   if (got.team) wtDraw(got.team);
 }
@@ -515,9 +648,11 @@ function wtWire() {
   $('wt-finish').onclick = wtFinish;
   $('wt-finish-stop').onclick = wtFinishStop;
   $('wt-stop').onclick = wtStopTogether;
+  $('wt-name-ok').onclick = wtStartInvite;
   $('wt-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); wtStartInvite(); } });
   $('wt-name').addEventListener('change', () => { if ($('wt-name').value.trim()) wtStartInvite(); });
   $('wt-join-folder-on').addEventListener('change', wtJoinFolderDraw);
+  $('wt-join-words').addEventListener('input', wtJoinFolderDraw);
   $('wt-join-choose').onclick = wtJoinChoose;
   document.querySelectorAll('#wt-route .th-from-opt').forEach((b) => {
     b.onclick = () => { if (!b.classList.contains('on')) wtSet({ route: b.dataset.route }); };
@@ -557,7 +692,13 @@ function wtPageDraw(team) {
   lines.textContent = '';
   lines.hidden = true;
   $('hp-list').querySelectorAll('.tag.wt-own, .tag.wt-rev').forEach((e) => e.remove());
+  WT.pageTeam = team;
+  // the lead's page asks about the answers to its open invites; Invite others is the lead's, or anyone's before a team
+  // is on, never a member's
+  if (!team || !team.lead) { clearInterval(WT.pageTimer); WT.pageTimer = null; WT.pageAnswered = {}; }
+  if (team && !team.lead && $('hp-invite')) $('hp-invite').hidden = true;
   if (!team) return;
+  if (team.lead && !WT.pageTimer) wtPageWatch();
   const tags = team.tags || {};
   $('hp-list').querySelectorAll(':scope > li.prow').forEach((li) => {
     const tag = tags[li.dataset.case];
@@ -575,16 +716,321 @@ function wtPageDraw(team) {
     said.push(['', WT_DOWN, came.gets ? t('team.page.came_in_gets', { name: came.name, time: at })
       : t('team.page.came_in', { name: came.name, participant: came.participant, time: at })]);
   }
+  // what was handed to this member today, and the invites that have been answered (teamsmall)
+  for (const gave of team.gave || []) {
+    said.push(['', WT_DOWN, gave.gets ? t('team.page.gave_gets', { name: gave.name })
+      : t('team.page.gave', { name: gave.name, participant: gave.participant })]);
+  }
+  for (const [inv, got] of Object.entries(WT.pageAnswered || {})) {
+    said.push(['wt-answered-line', WT_DOWN, got.own ? t('team.page.answered_line_own') : t('team.page.answered_line', { name: got.name }),
+      { label: t('team.page.check_digits'), run: () => wtPageReopen(inv, got) }]);
+  }
   // why what waits has not gone: the relay's own reason in its line (relayopen), else no connection
   if (team.held) said.push(['wt-wait', WT_UP, team.held]);
   else if (team.offline && team.waiting > 0) said.push(['wt-wait', WT_UP, t('team.page.waiting', { n: team.waiting })]);
   if (team.too_large) said.push(['wt-wait', WT_UP, team.too_large]);
-  for (const [cls, icon, text] of said) {
+  for (const [cls, icon, text, action] of said) {
     const span = document.createElement('span');
     if (cls) span.className = cls;
     span.innerHTML = icon;
     span.append(text);
+    if (action) {
+      span.append(' ');
+      span.appendChild(wtButton(action.label, action.run));
+    }
     lines.appendChild(span);
   }
   lines.hidden = !said.length;
+}
+
+/* ── Join a project on Home (teamjoin, 20 November 2026, Adam's rulings after teamflow's drawings p1, p2 and p5) ──
+   Beside New project, with no project of his made first: the link or the words, read as soon as they are twelve
+   (`offer`) for who sent it and the project's name, which names the folder offered, ~/Documents/Idiograph/<project>.
+   A link says the route its invite went by, so the shared folder is asked only for a folder invite, and the tick
+   "The invite came through a shared folder" shows only for words with no link saying it. His name only when
+   Settings has none and the invite is not for another computer of his. Join makes the folder and the project and
+   joins into it (`join` with `into`), then the six digits and the wait, and at the end Open <the project>. */
+const HJ = { offer: null, read: '', timer: null, poll: null, joining: null, root: '', project: '', yourName: '',
+  intoTyped: false };
+
+function hjSaid(text, failed = false) {
+  saidIn('hj-said', text || '', failed);
+  $('hj-said').hidden = !text;
+}
+
+/* the route a link says its invite went by, '' for typed words or a link made before links said it */
+function hjVia(text) {
+  const head = String(text || '').trim().split('#')[0];
+  const at = head.indexOf('?');
+  if (at < 0) return '';
+  const via = new URLSearchParams(head.slice(at + 1)).get('via') || '';
+  return via === 'relay' || via === 'folder' ? via : '';
+}
+
+/* twelve words, after a link's # or typed */
+function hjWhole(text) {
+  const words = String(text || '').split('#').pop().split(/[\s,-]+/).filter(Boolean);
+  return words.length === 12;
+}
+
+function hjRoute() {
+  const via = hjVia($('hj-words').value);
+  return via || ($('hj-folder-on').checked ? 'folder' : 'relay');
+}
+
+/* the rows the words ask for: the tick only with no route said, the shared folder only for a folder invite, the
+   name only when Settings has none and the invite is not for another computer of his */
+function hjDraw() {
+  const via = hjVia($('hj-words').value);
+  $('hj-by-row').hidden = !!via;
+  $('hj-folder-row').hidden = hjRoute() !== 'folder';
+  const own = !!(HJ.offer && HJ.offer.own);
+  $('hj-own').hidden = !own;
+  $('hj-name-row').hidden = !!HJ.yourName || own;
+}
+
+async function hjOpen() {
+  hjStop();
+  Object.assign(HJ, { offer: null, read: '', joining: null, root: '', project: '', intoTyped: false });
+  for (const id of ['hj-words', 'hj-folder', 'hj-name', 'hj-into']) { $(id).value = ''; $(id).disabled = false; }
+  for (const id of ['hj-folder-on', 'hj-folder-choose', 'hj-into-choose']) $(id).disabled = false;
+  $('hj-folder-on').checked = false;
+  $('hj-answered').hidden = true;
+  $('hj-acts').hidden = false;
+  $('hj-done').hidden = true;
+  hjSaid('');
+  hjDraw();
+  show('hj-card');
+  try {
+    const got = await api('/api/team', { op: 'offer' });
+    HJ.yourName = got.your_name || '';
+    if (!HJ.intoTyped && !$('hj-into').value) $('hj-into').value = got.into || '';
+  } catch (err) { hjSaid(needsRestart(err) ? RESTART_LINE : err.message, !needsRestart(err)); }
+  hjDraw();
+}
+
+/* the invite read once its words are whole, for the project's name and whether it is for a computer of his */
+function hjChanged() {
+  hjDraw();
+  clearTimeout(HJ.timer);
+  HJ.timer = setTimeout(hjRead, 400);
+}
+
+async function hjRead() {
+  const words = $('hj-words').value.trim();
+  const route = hjRoute();
+  const folder = $('hj-folder').value.trim();
+  const key = `${words}\n${route}\n${folder}`;
+  if (!hjWhole(words) || (route === 'folder' && !folder) || key === HJ.read || HJ.joining) return;
+  HJ.read = key;
+  let got;
+  try {
+    got = await api('/api/team', { op: 'offer', words, route, ...(folder ? { folder } : {}) });
+  } catch (err) {
+    // a read overtaken by other words or by Join says nothing
+    if (HJ.read === key) { HJ.offer = null; hjDraw(); hjSaid(err.message, true); }
+    return;
+  }
+  if (HJ.read !== key) return;
+  HJ.offer = got;
+  HJ.yourName = got.your_name || HJ.yourName;
+  if (!HJ.intoTyped) $('hj-into').value = got.into || $('hj-into').value;
+  hjSaid('');
+  hjDraw();
+}
+
+/* Choose beside a path: the system's dialog on the app's own window, or the Mac's from the server, its folder put in
+   the field and nothing written. For where to keep the project, the project's own folder goes inside the one chosen */
+async function hjChoose(field, btn, inside) {
+  const keep = (folder) => {
+    if (folder) {
+      const leaf = inside ? $(field).value.trim().replace(/[\\/]+$/, '').split(/[\\/]/).pop() : '';
+      $(field).value = leaf ? `${folder.replace(/[\\/]+$/, '')}/${leaf}` : folder;
+      if (inside) HJ.intoTyped = true;
+      else hjChanged();
+    }
+    return { chosen: !!folder };
+  };
+  try {
+    await picking(async (path) => keep(path || (await api('/api/team', { op: 'pick', home: true })).folder),
+      $(btn), t('team.home.keep_in'));
+  } catch (err) { hjSaid(needsRestart(err) ? RESTART_LINE : err.message, !needsRestart(err)); }
+}
+
+async function hjGo() {
+  clearTimeout(HJ.timer);
+  HJ.read = '';
+  const route = hjRoute();
+  const asked = { op: 'join', words: $('hj-words').value, into: $('hj-into').value.trim(), route };
+  const typed = $('hj-name').value.trim();
+  if (typed && !$('hj-name-row').hidden) asked.name = typed;
+  if (route === 'folder') asked.folder = $('hj-folder').value.trim();
+  $('hj-go').disabled = true;
+  let got;
+  try {
+    got = await api('/api/team', asked);
+  } catch (err) { hjSaid(needsRestart(err) ? RESTART_LINE : err.message, !needsRestart(err)); return; } finally {
+    $('hj-go').disabled = false;
+  }
+  HJ.root = (got.project && got.project.id) || '';
+  HJ.project = (got.project && got.project.name) || '';
+  HJ.joining = { invite: got.invite, from: got.from || '', own: !!got.own };
+  for (const id of ['hj-words', 'hj-folder', 'hj-name', 'hj-into', 'hj-folder-on', 'hj-folder-choose', 'hj-into-choose']) {
+    $(id).disabled = true;
+  }
+  $('hj-acts').hidden = true;
+  $('hj-code').textContent = got.code;
+  $('hj-line').textContent = got.own ? t('team.join.read_code_own') : t('team.join.read_code', { name: got.from || '' });
+  $('hj-answered').hidden = false;
+  if (got.own) hjSaid(t('team.join.waiting_own'));
+  else hjSaid(got.from ? t('team.join.waiting', { name: got.from }) : t('team.join.waiting_unnamed'));
+  // the project is on Home now, behind the card
+  loadLibrary(false).catch(() => {});
+  hjStop();
+  HJ.poll = setInterval(hjJoined, WT_POLL_MS);
+}
+
+function hjStop() {
+  if (HJ.poll) clearInterval(HJ.poll);
+  HJ.poll = null;
+}
+
+async function hjJoined() {
+  if (!HJ.joining || $('hj-card').hidden) { hjStop(); return; }
+  let got;
+  try {
+    got = await api('/api/team', { root: HJ.root, op: 'joined', invite: HJ.joining.invite });
+  } catch (err) { hjStop(); hjSaid(err.message, true); return; }
+  if (!got.joined) return;
+  hjStop();
+  const project = HJ.project || t('team.home.default_project');
+  if (HJ.joining.own) hjSaid(t('team.home.joined_own', { project }));
+  else if (HJ.joining.from) hjSaid(t('team.home.joined', { project, name: HJ.joining.from }));
+  else hjSaid(t('team.home.joined_unnamed', { project }));
+  HJ.joining = null;
+  $('hj-project').textContent = t('team.home.open', { project });
+  $('hj-done').hidden = false;
+}
+
+/* Open <the project>: its page, as New project opens the one it made */
+function hjOpenProject() {
+  hjStop();
+  hide('hj-card');
+  if (HJ.root) homeKeep(HJ.root);
+  loadLibrary().catch((err) => say(err.message, 9000));
+}
+
+function hjWire() {
+  if (!$('hj-open') || !$('hj-card')) return;
+  $('hj-open').onclick = hjOpen;
+  $('hj-words').addEventListener('input', hjChanged);
+  $('hj-folder').addEventListener('input', hjChanged);
+  $('hj-folder-on').addEventListener('change', hjChanged);
+  $('hj-into').addEventListener('input', () => { HJ.intoTyped = true; });
+  $('hj-folder-choose').onclick = () => hjChoose('hj-folder', 'hj-folder-choose', false);
+  $('hj-into-choose').onclick = () => hjChoose('hj-into', 'hj-into-choose', true);
+  $('hj-go').onclick = hjGo;
+  $('hj-project').onclick = hjOpenProject;
+  $('hj-close').onclick = () => {
+    hjStop();
+    hide('hj-card');
+    // a join left waiting is offered again in its project's settings, to finish or to stop
+    if (HJ.root) loadLibrary(false).catch(() => {});
+  };
+}
+
+hjWire();
+
+/* ── Invite others on the project's page (teamsmall, friction 5, p3) ── */
+
+/* The project the page shows: its id and name as Project settings takes it */
+function wtPageProject() {
+  return (typeof HOME_PROJECTS !== 'undefined' && typeof S !== 'undefined' && HOME_PROJECTS.get(S.home))
+    || ((typeof homeProject === 'function' ? homeProject() : null) || {}).project || null;
+}
+
+/* the page asks about the answers to its open invites now and every 30 seconds while it is open: "Bo has answered
+   your invite", with Check the six digits */
+function wtPageWatch() {
+  clearInterval(WT.pageTimer);
+  WT.pageTimer = setInterval(wtPageLook, WT_ROWS_MS);
+  wtPageLook();
+}
+
+async function wtPageLook() {
+  const team = WT.pageTeam;
+  const box = $('home-project');
+  if (!team || !team.lead || !box || box.hidden) { clearInterval(WT.pageTimer); WT.pageTimer = null; return; }
+  const p = wtPageProject();
+  if (!p || !p.id) return;
+  const got = await wtLookAnswers(p);
+  if (!got || WT.pageTeam !== team) return;
+  const was = Object.keys(WT.pageAnswered || {}).sort().join();
+  WT.pageAnswered = got;
+  if (Object.keys(got).sort().join() !== was) wtPageDraw(team);
+}
+
+/* Check the six digits from the page's line: the invite's card at the digits, for this project */
+function wtPageReopen(inv, got) {
+  const p = wtPageProject();
+  if (!p) return;
+  WT.p = p;
+  wtReopen({ invite: inv, own: !!got.own }, got);
+}
+
+/* Invite others: one press turns Working together on with this computer as lead if it is off, asks for a name only
+   when Settings holds none, and opens the invite's card. A project that cannot start that way here (a join begun
+   and not finished, a computer the list does not name) opens Project settings, where the section says why. */
+async function wtPageInvite(p) {
+  if (!p || p.demo || !p.id) return;
+  WT.p = p;
+  let got;
+  try {
+    got = await api('/api/team', wtBody({ op: 'show' }));
+  } catch (err) { openProjectSettings(p); return; }
+  WT.yourName = got.your_name || '';
+  WT.start = got.start || null;
+  const team = got.team || { on: false };
+  if (team.on && !team.unlisted) {
+    if (!team.you_lead) { openProjectSettings(p); return; }
+    WT.view = team;
+    await wtInvite(false);
+    return;
+  }
+  if (team.unlisted || ((WT.start && WT.start.joining) || []).length) { openProjectSettings(p); return; }
+  const kept = !!(WT.start && WT.start.kept);
+  let name = WT.yourName;
+  if (!kept && !name) {
+    name = await wtAskName(p.name || '');
+    if (!name) return;
+  }
+  const on = await wtCall(kept ? { op: 'on' } : { op: 'on', name, route: 'relay' });
+  if (!on) {
+    // the refusal is in the section's line: shown where it can be read
+    openProjectSettings(p);
+    return;
+  }
+  if (name) WT.yourName = name;
+  // the page's own lines and tags as they now stand, with Working together on
+  try {
+    wtPageDraw((await api('/api/team', wtBody({ op: 'show' }))).sync || null);
+  } catch (err) { /* the page keeps its lines until it is opened again */ }
+  await wtInvite(false);
+}
+
+/* Your name, once, in a small card with OK: Return does the same */
+function wtAskName(kicker) {
+  return new Promise((resolve) => {
+    $('wt-name-kicker').textContent = kicker || '';
+    $('wt-name-page').value = '';
+    const done = (name) => { hide('wt-name-card'); resolve(name); };
+    $('wt-name-go').onclick = () => { const name = $('wt-name-page').value.trim(); if (name) done(name); };
+    $('wt-name-cancel').onclick = () => done('');
+    $('wt-name-page').onkeydown = (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); $('wt-name-go').click(); }
+      if (e.key === 'Escape') { e.preventDefault(); done(''); }
+    };
+    show('wt-name-card');
+    $('wt-name-page').focus();
+  });
 }

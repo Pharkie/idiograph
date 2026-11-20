@@ -776,7 +776,13 @@ def png_read(raw: bytes) -> tuple[int, int, bytearray]:
         raise ValueError("unread")
     channels = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}[kind]
     stride = w * channels
-    data = zlib.decompress(bytes(idat))
+    # inflated no further than the rows its header says, so a small file that inflates to far more is refused
+    # without ever being held whole (teamfix4)
+    most = h * (stride + 1)
+    inflate = zlib.decompressobj()
+    data = inflate.decompress(bytes(idat), most)
+    if inflate.unconsumed_tail or len(data) < most:
+        raise ValueError("unread")
     out = bytearray(stride * h)
     prev = bytearray(stride)
     pos = 0

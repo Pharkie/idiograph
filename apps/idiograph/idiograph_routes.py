@@ -550,15 +550,15 @@ def api_agent_unseen(body: dict) -> dict:
     return {"unseen": out}
 
 
-TEAM_WRITES = ("on", "off", "set", "choose", "invite", "admit", "join", "joined", "unjoin", "remove", "send", "lead",
-               "take")
-TEAM_READS = ("show", "answers", "pick")
+TEAM_WRITES = ("on", "off", "set", "choose", "invite", "admit", "join", "joined", "unjoin", "cancel", "remove", "send",
+               "lead", "take")
+TEAM_READS = ("show", "answers", "pick", "offer")
 
 
 def api_team(body: dict) -> dict:
     """Working together, Project settings' section and the agents' `team` ops (wtkeys, 8 November 2026, see team.py):
     `op` one of `show`, `on`, `off`, `set`, `choose` (the shared folder from the Mac's dialog), `pick` (the same
-    dialog for the Join card, answering the folder and writing nothing), `invite`, `answers`, `admit`, `join`, `joined`, `remove`, `lead` and `take`. `show`
+    dialog for the Join card, answering the folder and writing nothing), `invite`, `answers`, `admit`, `join`, `joined`, `cancel` (an open invite given up), `remove`, `lead` and `take`. `show`
     answers the section as it stands, `{"on": false}` alone while it is off, and writes nothing. Its `start` says how
     the section starts while it is off (teambuild, 19 November 2026): `kept`, a team kept from before with someone
     else on it, which starting again picks up. A `join` from a project holding a participant folder of any kind the invite does not
@@ -575,11 +575,16 @@ def api_team(body: dict) -> dict:
     nothing and says what would change, and runs under the project's lock with a line in the project's History for
     each change. The demo's project takes none. `send` (wtowners), Send now: what came for the project taken in and
     what of his waits sent at once (`team_sync.sync`), answering `applied`, `sent`, `waiting` and `offline`, with no
-    line in History, since what it sends is his work as it stands and what it takes in carries its own History."""
+    line in History, since what it sends is his work as it stands and what it takes in carries its own History.
+    `offer`, `join` with `into` and `pick` with `home` are Join a project on Home's and need no project
+    (`team_home`, teamjoin, 20 November 2026)."""
     import team as team_mod
     op = str(body.get("op") or "show")
     if op not in TEAM_WRITES + TEAM_READS:
         raise WorkbookError(i18n.t("team.refused.no_op"))
+    # the Join card on Home, which needs no project of his: an invite read, its Choose, and a join into a new folder
+    if op == "offer" or (op == "join" and str(body.get("into") or "").strip()) or (op == "pick" and body.get("home")):
+        return team_home(op, body)
     root = asked_root(body, write=op in TEAM_WRITES)
     if root is None or srv.is_demo_root(root):
         if op == "show":
@@ -643,6 +648,8 @@ def api_team(body: dict) -> dict:
                 done = team_mod.joined(root, str(body.get("invite") or ""), dry_run=dry)
             elif op == "unjoin":
                 done = team_mod.unjoin(root, str(body.get("invite") or ""), dry_run=dry)
+            elif op == "cancel":
+                done = team_mod.cancel(root, str(body.get("invite") or ""), dry_run=dry)
             elif op == "lead":
                 done = team_mod.make_lead(root, str(body.get("member") or ""), team_participants(root), dry_run=dry)
             elif op == "take":
@@ -656,6 +663,162 @@ def api_team(body: dict) -> dict:
     except team_mod.TeamError as exc:
         raise WorkbookError(str(exc), code="replace_team" if exc.code == "replace_team" else "") from None
     return dict(done, team=team_mod.view(root, team_participants(root)))
+
+
+# ------------------------------------------------------------------ Join a project on Home (teamjoin, 20 November 2026)
+
+# where a joined project is kept unless he says otherwise, under the home folder, as the Join card offers it
+JOIN_BASE = ("Documents", "Idiograph")
+# the characters no folder name on a Mac or Windows may hold
+NOT_IN_FOLDER = re.compile(r'[\x00-\x1f/\\:*?"<>|]')
+
+
+def join_folder_name(text) -> str:
+    """A project's name made a folder's: the characters no system takes left out, no dot or space at either end,
+    80 characters at most, and the plain default for none."""
+    name = NOT_IN_FOLDER.sub(" ", str(text or ""))
+    name = " ".join(name.split()).strip(" .")[:80].strip(" .")
+    return name or i18n.t("team.home.default_project")
+
+
+def join_free_folder(name: str) -> Path:
+    """The folder the Join card offers: `~/Documents/Idiograph/<name>`, or `<name> 2` and on while that one holds
+    anything."""
+    base = Path.home().joinpath(*JOIN_BASE)
+    for n in range(1, 1000):
+        place = base / (name if n == 1 else f"{name} {n}")
+        if not place.exists() or (place.is_dir() and join_folder_empty(place)):
+            return place
+    return base / name
+
+
+# what a Mac leaves in a folder it has only shown, which a folder counted as empty may hold
+JOIN_IGNORED = (".DS_Store",)
+
+
+def join_folder_empty(place: Path) -> bool:
+    """Whether a folder holds nothing but what Finder leaves in one it has shown."""
+    try:
+        return all(item.name in JOIN_IGNORED for item in place.iterdir())
+    except OSError:
+        return False
+
+
+def join_shown(place: Path) -> str:
+    """A folder as the card shows it, under the home folder written from ~."""
+    try:
+        return "~/" + Path(place).relative_to(Path.home()).as_posix()
+    except ValueError:
+        return str(place)
+
+
+def join_into_refused(into: Path) -> None:
+    """A folder a join from Home may not make its project in, refused in one line with nothing written: one that
+    holds anything, a file, the app or its demo, inside a project of his or holding one, and any in a run of one
+    project. The checks `project_folder` makes, for a folder that may not be there yet."""
+    if srv.ROOT_OVERRIDE:
+        raise WorkbookError(i18n.t("server.run_one_project_named_root"))
+    if into.exists() and (not into.is_dir() or not join_folder_empty(into)):
+        raise WorkbookError(i18n.t("team.home.not_empty"))
+    chosen = into.resolve()
+    if srv.inside(chosen, srv.DEMO_DIR) or srv.inside(srv.DEMO_DIR, chosen) or srv.inside(srv.HERE, chosen):
+        raise WorkbookError(i18n.t("server.folder_holds_app_demo_cannot"))
+    for root in srv.project_roots(srv.merge_config(srv.saved_config())):
+        name = read_project(root)["name"]
+        if srv.same_folder(chosen, root):
+            raise WorkbookError(i18n.t("server.folder_project_already", name=name))
+        if srv.inside(chosen, root):
+            raise WorkbookError(i18n.t("server.folder_inside_project_already", name=name))
+        if srv.inside(root, chosen):
+            raise WorkbookError(i18n.t("server.folder_holds_project_already", name=name))
+
+
+def join_unmake(into: Path, top: Path | None, existed: bool) -> None:
+    """What a join from Home that failed wrote taken away: the project out of Idiograph's list, and the folders it
+    made, or what it put in the empty folder he named. Nothing else is touched."""
+    with srv._lock:
+        cfg = srv.merge_config(srv.saved_config())
+        kept = [p for p in cfg["projects"]
+                if not srv.same_folder(srv.abs_path(str(p.get("root") or "")).resolve(), into.resolve())]
+        if len(kept) != len(cfg["projects"]):
+            srv.write_config_keys({"projects": kept})
+    if top is not None:
+        shutil.rmtree(top, ignore_errors=True)
+    elif existed:
+        for item in list(into.iterdir()) if into.is_dir() else []:
+            if item.is_dir():
+                shutil.rmtree(item, ignore_errors=True)
+            else:
+                with contextlib.suppress(OSError):
+                    item.unlink()
+
+
+def team_home(op: str, body: dict) -> dict:
+    """Join a project on Home, beside New project (teamjoin, 20 November 2026, Adam's rulings of that night after
+    teamflow's drawings p1, p2 and p5), which needs no project of his. `offer` reads the invite (`words`, with
+    `route` and `folder` for a shared folder, `relay_url` for a team's own relay) and answers who sent it, `own`
+    when it is for another computer of his, the project's name and method as its lead named them, `via`, the route
+    the link says, and `into`, the folder offered, `~/Documents/Idiograph/<project>`; with no `words` it answers the
+    folder offered alone. It writes nothing. `join` with `into` makes that folder, refused when it holds anything,
+    makes the project in it under the lead's name and method as New project makes one, adds it to Idiograph's
+    projects, and joins into it as `join` does, answering the project and the six digits; a failure on the way takes
+    away all it wrote. The name is the one the invite carries for another computer of his, else `name`, else
+    Settings' Your name. A dry run checks the words and the folder, reads no invite and writes nothing, not even the folder.
+    `pick` with `home` is the card's Choose, the Mac's folder dialog, writing nothing."""
+    import team as team_mod
+    try:
+        if op == "pick":
+            if srv.PLATFORM != "darwin":
+                raise WorkbookError(srv.NO_DIALOG)
+            picked = srv.PICK_FOLDER(i18n.t("team.home.keep_in"))
+            return {"folder": str(picked) if picked is not None else ""}
+        words = str(body.get("words") or "").strip()
+        route, folder = str(body.get("route") or ""), str(body.get("folder") or "")
+        relay_url = str(body.get("relay_url") or "")
+        if op == "offer":
+            if not words:
+                return {"into": join_shown(join_free_folder(join_folder_name(""))), "your_name": researcher_name()}
+            got = team_mod.peek(words, route, folder, relay_url)
+            return dict(got, into=join_shown(join_free_folder(join_folder_name(got["project"]))),
+                        your_name=researcher_name())
+        team_mod.words_secret(words)
+        into = srv.abs_path(str(body.get("into") or "").strip())
+        join_into_refused(into)
+        typed = team_mod.one_line(body.get("name"))
+        if body.get("dry_run") is True:
+            return {"changes": [i18n.t("team.home.would_make", folder=str(into))]
+                    + ([i18n.t("team.history.join_asked", name=team_mod.name_given(typed))] if typed else []),
+                    "dry_run": True, "into": str(into)}
+        offer = team_mod.peek(words, route, folder, relay_url)
+        # another computer of his answers under the name his team knows him by, which the invite carries
+        who = (offer["from"] if offer["own"] else "") or typed or researcher_name()
+        team_mod.name_given(who)
+        existed = into.exists()
+        top = None
+        if not existed:
+            top = into
+            while not top.parent.exists():
+                top = top.parent
+        try:
+            into.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            # a name too long for the disk, or a folder Idiograph may not write in: one line, nothing left behind
+            if top is not None:
+                shutil.rmtree(top, ignore_errors=True)
+            raise WorkbookError(i18n.t("team.home.not_made")) from None
+        root = into.resolve()
+        try:
+            make_project({"folder": str(root), "name": offer["project"] or srv.display_case(root.name),
+                          "research_question": "", "method": offer["method"] or "", "files": []})
+            with writing(root=root):
+                done = team_mod.join(root, words, who, relay_url=relay_url, route=route, folder=folder,
+                                     participants=team_folders(root))
+        except BaseException:
+            join_unmake(root, top, existed)
+            raise
+    except team_mod.TeamError as exc:
+        raise WorkbookError(str(exc)) from None
+    return dict(done, into=str(root), project=read_project(root), team=team_mod.view(root, team_participants(root)))
 
 
 TEAM_BOARD_WRITES = ("send", "take", "answer")

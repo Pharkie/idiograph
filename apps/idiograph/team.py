@@ -79,7 +79,9 @@ OFFER_BYTES = 3840
 LIST_N = 200
 # the kinds of message a member may send, the roster the lead's alone (spec, section 4)
 KINDS = ("roster", "version", "gets_version", "review_asked", "comment", "thread_state", "suggestion", "board",
-         "review", "answer", "hand_over", "take_over", "seen", "devices", "recording")
+         "review", "answer", "hand_over", "take_over", "seen", "devices", "recording", "stopped")
+# and the study's settings, the lead's whole study, a member's change to it and a member's ask (teamsettings)
+KINDS += ("study", "study_change", "study_ask")
 # where this build's own reading of the team's messages has got to, in the device file's team (wtdevices)
 TAKEN = "members_after"
 # a stand-in for the device file's place, for the suite's two installs in one process
@@ -498,11 +500,24 @@ def words_secret(text: str) -> bytes:
     return secret
 
 
-def invite_link(words: list[str], relay: str = "") -> str:
+def invite_link(words: list[str], relay: str = "", via: str = "") -> str:
     """The invite's link, its words after #, and before them, for a team running its own relay, that relay's address,
-    so the one joining reaches the invite there (relaywire)."""
+    so the one joining reaches the invite there (relaywire), and `via`, the route the invite went by, relay or
+    folder, so the joiner's app asks for a shared folder only for a folder invite (teamjoin, 20 November 2026)."""
     from urllib.parse import quote
-    return f"{LINK_BASE}{'?relay=' + quote(relay, safe='') if relay else ''}#{'-'.join(words)}"
+    query = ([f"relay={quote(relay, safe='')}"] if relay else []) + ([f"via={via}"] if via in ROUTES else [])
+    return f"{LINK_BASE}{'?' + '&'.join(query) if query else ''}#{'-'.join(words)}"
+
+
+def link_via(text: str) -> str:
+    """The route a link says its invite went by, relay or folder, "" for twelve typed words or a link made before
+    links said it (teamjoin)."""
+    from urllib.parse import parse_qs, urlsplit
+    head = str(text or "").strip().split("#", 1)[0]
+    if "?" not in head:
+        return ""
+    got = (parse_qs(urlsplit(head).query).get("via") or [""])[0].strip()
+    return got if got in ROUTES else ""
 
 
 def link_relay(text: str) -> str:
@@ -621,6 +636,7 @@ def view(root: Path, participants: list[dict] | None = None) -> dict:
                        "you": m.get("id") == me, "computers": len(devices),
                        "this_computer": any(d.get("id") == dev.get("id") for d in devices),
                        "heard": m.get("heard") or "",
+                       "stopped": bool(((data.get("stopped") or {}) if isinstance(data.get("stopped"), dict) else {}).get(m.get("id"))),
                        "devices": [{"id": d.get("id") or "", "name": one_line(d.get("name"))[:NAME_MOST],
                                     "added": d.get("added") or "", "this": d.get("id") == dev.get("id")}
                                    for d in devices]})
@@ -817,6 +833,7 @@ def turn_on(root: Path, name: str, route: str = "relay", folder: str = "", dry_r
         if changes and not dry_run:
             data = dict(data, on=True)
             write_team(root, data)
+            tell_stopped_soon(data, True)
         return {"changes": changes, "dry_run": dry_run}
     who = name_given(name)
     changes = [i18n.t("team.history.on_relay", name=who) if route == "relay"
@@ -852,14 +869,76 @@ def turn_on(root: Path, name: str, route: str = "relay", folder: str = "", dry_r
     return {"changes": changes, "dry_run": False}
 
 
+STOP_WAIT = 3
+
+
 def turn_off(root: Path, dry_run: bool = False) -> dict:
     """Off: nothing more sent or taken in. team.json keeps the team, so on again picks it up."""
     data = read_team(root)
     if not data or data.get("on") is not True:
         return {"changes": [], "dry_run": dry_run}
     if not dry_run:
+        # a member who stops tells the lead, who then knows to remove them (teamsmall, friction 10). Written first,
+        # and the line waited on for STOP_WAIT seconds at most, so Stop never waits on the route when offline
         write_team(root, dict(data, on=False))
+        tell_stopped_soon(data, False)
     return {"changes": [i18n.t("team.history.off")], "dry_run": dry_run}
+
+
+def tell_stopped_soon(data: dict, on: bool) -> None:
+    """`tell_stopped` on a thread of its own, waited on for STOP_WAIT seconds at most, so Stop working together and
+    Start working together again never wait on the route's timeout when this computer is offline."""
+    telling = threading.Thread(target=tell_stopped, args=(data, on), daemon=True)
+    telling.start()
+    telling.join(STOP_WAIT)
+
+
+def tell_stopped(data: dict, on: bool) -> None:
+    """A member's line to the lead that this computer has stopped working together, or has started again. The
+    lead's install marks the person in People, and a person who started again is no longer marked. Sent once and
+    not tried again: with no connection the lead is not told. Nothing is sent by the lead, by a team of one or by
+    a computer the list does not name."""
+    roster = (data or {}).get("roster") or {}
+    me = str((data or {}).get("member") or "")
+    dev = device() or {}
+    if not roster or not me or me == str(roster.get("lead") or "") or device_on(roster, str(dev.get("id") or ""))[0] is None:
+        return
+    team = str(data.get("team") or "")
+    epoch = int(roster.get("epoch") or 1)
+    key = project_key(team, epoch)
+    if key is None:
+        return
+    try:
+        way = transport_for(data, dev)
+        way.send(team, seal_envelope(team, epoch, key, dev, me, next_seq(team), "stopped", {"on": bool(on)}))
+    except Exception:  # noqa: BLE001 - no connection or a refusal: the lead is not told, and nothing else changes
+        pass
+
+
+def note_stopped(root: Path, data: dict, dev: dict, inner: dict) -> list[str]:
+    """A member's line that he stopped, or started again, taken in by the lead's computer: the person marked in
+    People as having stopped, or not marked any more. Answers its History line, empty when nothing changed. Anyone
+    else's install, and a line from someone not on the list, change nothing."""
+    roster = data.get("roster") or {}
+    if str(data.get("member") or "") != str(roster.get("lead") or "") or dev.get("id") not in lead_devices(roster):
+        return []
+    who = member_of(roster, str(inner.get("member") or ""))
+    body = inner.get("body") if isinstance(inner.get("body"), dict) else {}
+    if who is None or who.get("id") == roster.get("lead"):
+        return []
+    marks = dict(data.get("stopped") or {}) if isinstance(data.get("stopped"), dict) else {}
+    if body.get("on") is True:
+        if who["id"] not in marks:
+            return []
+        marks.pop(who["id"])
+        line = ""
+    else:
+        if who["id"] in marks:
+            return []
+        marks[who["id"]] = now_iso()
+        line = i18n.t("team.history.stopped", name=who.get("name") or "")
+    write_team(root, dict(data, stopped=marks))
+    return [line] if line else []
 
 
 def set_team(root: Path, body: dict, participants: list[dict], dry_run: bool = False) -> dict:
@@ -1033,9 +1112,10 @@ def invite(root: Path, own: bool = False, dry_run: bool = False, participants: l
     # an invite for a member's own computer lists none: the computer inviting may hold fewer participants than the
     # team's, and a copy of the team's project must join it (teamfix, review 5)
     entries = None if own else [dict(p, folder=str(p["folder"])) for p in participants or []]
-    offer = offer_body(dev, {"kind": "invite", "device": public(dev), "lead": roster.get("lead"),
-                             "from": me.get("name") or "", "own": bool(own), "expires": expires,
-                             "team_digest": team_digest(secret, team)}, secret, entries)
+    # the project as the lead named it, so a join from Home makes its folder under that name (teamjoin)
+    offer = offer_body(dev, dict({"kind": "invite", "device": public(dev), "lead": roster.get("lead"),
+                                  "from": me.get("name") or "", "own": bool(own), "expires": expires,
+                                  "team_digest": team_digest(secret, team)}, **project_said(root)), secret, entries)
     try:
         # the relay takes a joiner's answers only in a mailbox a computer on the project opened (the abuse plan's
         # M4), so it is opened first, and a refusal gives no invite
@@ -1057,7 +1137,36 @@ def invite(root: Path, own: bool = False, dry_run: bool = False, participants: l
     words = secret_words(secret)
     relay = own_relay(data) if (data.get("route") or "relay") == "relay" else ""
     return {"changes": changes, "dry_run": False, "invite": inv, "words": " ".join(words),
-            "link": invite_link(words, relay), "expires": expires}
+            "link": invite_link(words, relay, data.get("route") or "relay"), "expires": expires}
+
+
+def cancel(root: Path, inv: str, dry_run: bool = False) -> dict:
+    """An open invite cancelled by the computer that made it: it is dropped from this device's invites, so an answer
+    to it is never taken in, and a closing line goes into its mailbox, so someone who has not answered yet is told
+    it is closed. The lead cancels a lead's invite and any member an invite for one of his own computers. Nothing
+    changes on the team's list (teamsmall, friction 3)."""
+    data = held_on(root)
+    team = str(data.get("team") or "")
+    tm = held_team(team)
+    held = (tm.get("invites") or {}).get(inv)
+    if not held:
+        raise TeamError(i18n.t("team.refused.no_invite"), "no_invite")
+    dev = device() or {}
+    if not held.get("own"):
+        must_lead(data, dev)
+    changes = [i18n.t("team.history.invite_cancelled")]
+    if dry_run:
+        return {"changes": changes, "dry_run": True}
+    try:
+        way = transport_for(data, dev)
+        way.send(mailbox(inv), aead_seal(invite_key(unb64(held["secret"])), canon(signed(dev, {"kind": "closed"}))))
+    except Exception:  # noqa: BLE001 - no connection: the invite is dropped here all the same
+        pass
+    with device_held():
+        tm = held_team(team)
+        (tm.get("invites") or {}).pop(inv, None)
+        keep_team(team, tm)
+    return {"changes": changes, "dry_run": False}
 
 
 def mailbox_items(way, inv: str, key: bytes) -> list[tuple[str, dict]]:
@@ -1338,7 +1447,8 @@ def joining_here(root: Path) -> list[dict]:
             code = check_code(unb64(ask["secret"]), ask["lead"], public(dev))
         except (TeamError, KeyError, TypeError):
             continue
-        out.append({"invite": inv, "from": ask.get("from") or "", "code": code})
+        out.append({"invite": inv, "from": ask.get("from") or "", "own": bool(ask.get("own")),
+                    "project": ask.get("project") or "", "code": code})
     return out
 
 
@@ -1381,7 +1491,8 @@ def join(root: Path, words: str, name: str, dry_run: bool = False, relay_url: st
     route = str(route or "")
     if route and route not in ROUTES:
         raise TeamError(i18n.t("team.refused.bad_route"), "bad_route")
-    route = route or data.get("route") or "relay"
+    # a link says the route its invite went by (teamjoin), taken when the join asks none
+    route = route or link_via(words) or data.get("route") or "relay"
     folder = one_line(folder) or (data.get("folder") or "")
     who = name_given(name)
     if dry_run:
@@ -1412,6 +1523,8 @@ def join(root: Path, words: str, name: str, dry_run: bool = False, relay_url: st
         data_dev.setdefault("joining", {})[inv] = dict({"secret": b64(secret), "lead": offer["device"], "name": who,
                                                         "asked": now_iso(), "root": str(Path(root)), "route": route,
                                                         "from": offer.get("from") or "",
+                                                        "project": offer_project(offer),
+                                                        "own": bool(offer.get("own")),
                                                         "expires": offer.get("expires") or ""},
                                                        **({"relay_url": relay} if relay else {}),
                                                        **({"folder": folder} if folder else {}),
@@ -1419,6 +1532,7 @@ def join(root: Path, words: str, name: str, dry_run: bool = False, relay_url: st
                                                        **({"replace": True} if replace else {}))
         save_device_file(data_dev)
     return {"changes": [], "dry_run": False, "invite": inv, "from": offer.get("from") or "",
+            "own": offer.get("own") is True, "project": offer_project(offer),
             "code": check_code(secret, offer["device"], public(dev))}
 
 
@@ -1466,6 +1580,59 @@ def read_offer(way, inv: str, secret: bytes) -> dict:
     if expired(offer):
         raise TeamError(i18n.t("team.refused.invite_expired"), "invite_expired")
     return offer
+
+
+# ------------------------------------------------------------------ joining from Home (teamjoin, 20 November 2026)
+
+# the longest project name an invite's offer carries, well inside the offer's one size with its 200 digests
+PROJECT_MOST = 80
+METHODS = ("ipa", "lipa", "ta")
+
+
+def project_said(root: Path) -> dict:
+    """The project as an invite's offer names it: `project`, its name as its project file holds it, and `method`, so
+    a join from Home makes its folder under that name and of that method. Reads the project file alone."""
+    try:
+        held = json.loads((Path(root) / srv.PROJECT_FILE).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        held = {}
+    held = held if isinstance(held, dict) else {}
+    name = one_line(held.get("name"))[:PROJECT_MOST]
+    # the method as the project reads it, as the study's settings read it (team_study.units_of), so a project with
+    # no method key and two timepoints is offered as longitudinal
+    import idiograph_routes as routes
+    method = routes.method_of(held)
+    return dict({"project": name} if name else {}, method=method if method in METHODS else "ipa")
+
+
+def offer_project(offer: dict) -> str:
+    """The project's name an offer carries, "" for an offer made before offers carried it."""
+    return one_line(offer.get("project"))[:PROJECT_MOST]
+
+
+def offer_method(offer: dict) -> str:
+    method = str(offer.get("method") or "")
+    return method if method in METHODS else ""
+
+
+def peek(words: str, route: str = "", folder: str = "", relay_url: str = "") -> dict:
+    """An invite read before joining, as the Join card on Home asks it: who sent it, whether it is for another
+    computer of one's own, and the project's name and method as its lead named them. The route is the one asked,
+    else the link's own, else the relay. Refused as a join is refused when the invite is not there, used or out of
+    date. Writes nothing, not even this computer's keys: a computer with none reads with keys made for the call."""
+    secret = words_secret(words)
+    route = str(route or "")
+    if route and route not in ROUTES:
+        raise TeamError(i18n.t("team.refused.bad_route"), "bad_route")
+    route = route or link_via(words) or "relay"
+    dev = device() or new_device()
+    relay = one_line(relay_url) or link_relay(words)
+    base = {"folder": one_line(folder)}
+    way = transport_mod.for_team(route, dev, dict(base, relay_url=relay) if relay else base)
+    offer = read_offer(way, invite_id(secret), secret)
+    return {"from": offer.get("from") or "", "own": offer.get("own") is True, "project": offer_project(offer),
+            "method": offer_method(offer), "via": link_via(words), "route": route,
+            "expires": offer.get("expires") or ""}
 
 
 def find_welcome(root: Path, asked: dict, data: dict | None = None) -> dict | None:
@@ -1897,6 +2064,8 @@ def take(root: Path, dry_run: bool = False, items: list | None = None) -> dict:
         elif kind == "devices" and str(data.get("member") or "") == str(roster.get("lead") or "") \
                 and dev.get("id") in lead_devices(roster):
             changes += [i18n.t("team.history.list_taken")] if dry_run else apply_devices(root, data, dev, inner)
+        elif kind == "stopped" and not dry_run:
+            changes += note_stopped(root, data, dev, inner)
         if not dry_run:
             held = held_team(team)
             held[TAKEN] = max(int(held.get(TAKEN) or 0), int(seq))
