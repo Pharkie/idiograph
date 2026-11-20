@@ -61,6 +61,10 @@ def test_home_and_settings(scratch):
         pieces.append("async function homeAgentLines() {}")
         # the bar under a demo's card that is newer (demostamp), area 425's, a call that does nothing here
         pieces.append("function demoUpdateBars() {}")
+        # Home's loading cards and the names its last draw kept, which a node page has no half second to show (homeload)
+        pieces.append("function homeNamesKeep() {}")
+        pieces.append("function distilHomeLoading() {}")
+        pieces.append("function distilHomeLoadingClear() {}")
         # the demos' stages across participants, asked of the server the same way (homecardbuild), and the rings' pieces
         pieces.append("async function homeDemoHeads() {}")
         pieces += [const("stageBegun"), const("personWho"), const("demoKind")]

@@ -469,7 +469,17 @@ async function loadLibrary(show = true) {
   // Idiograph's Home is its projects' and the demo's (its `homeRoute`), and Sift's and Trace's their own
   // projects' (/api/home)
   const own = FAMILY_APPS[APP];
-  const data = await api((own && own.homeRoute) || '/api/home');
+  // a list that takes more than half a second to come says so, in the app's own words (homeload, 20 November 2026)
+  let waiting = true;
+  const holding = own && own.homeLoading ? setTimeout(() => { if (waiting && ask === libraryAsk) own.homeLoading(() => waiting && ask === libraryAsk); }, 500) : null;
+  let data;
+  try {
+    data = await api((own && own.homeRoute) || '/api/home');
+  } finally {
+    waiting = false;
+    clearTimeout(holding);
+    if (ask === libraryAsk && own && own.homeLoadingClear) own.homeLoadingClear();
+  }
   if (ask !== libraryAsk) return;
   // the settings as the library has them, which the PETs screen reads the AI switch from when the
   // server behind it is older than its help

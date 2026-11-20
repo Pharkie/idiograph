@@ -317,11 +317,28 @@ html[data-app="idiograph"][data-edition="preview"] .pe-note { display: flex; ali
    window, under the item in the card's small type, wrapping in the menu's width (21 October) */
 .hc-menu button.ghost.with-note { white-space: normal; text-align: left; }
 .hc-menu-line { font-size: 12px; line-height: 1.35; color: var(--ink-faint); }
-.home-card {
+.home-card, .hc-sk {
   display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; min-width: 0;
   background: var(--card); border: 1px solid var(--rule); border-radius: 4px; text-align: left; cursor: pointer;
   padding: 14px 16px 13px; color: inherit; font: inherit; transition: background .16s, border-color .16s;
 }
+/* a project's place on Home while its card is being read: its name and a quiet line, never pressed (homeload) */
+.hc-sk { cursor: default; }
+.hc-loading .hc-dash { cursor: default; }
+/* the placeholders' soft sheen, a light band crossing each in turn; still with reduced motion */
+.sk { position: relative; display: block; overflow: hidden; background: var(--paper-sunk); border-radius: 4px; }
+.sk::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--card) 70%, transparent), transparent);
+  animation: sk-sheen 1.4s ease-in-out infinite; }
+@keyframes sk-sheen { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .sk::after { animation: none; display: none; } }
+.sk-line { width: 55%; height: 10px; margin-top: 2px; }
+.sk-ring { width: 44px; height: 44px; border-radius: 50%; }
+.sk-who { width: 36px; height: 8px; }
+.sk-bars { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; }
+.sk-bar { height: 8px; width: 100%; }
+.sk-bar.short { width: 62%; }
+.home-loading-line { grid-column: 1 / -1; font-size: 13px; color: var(--ink-faint); font-style: italic; padding: 6px 2px; }
 .home-card:hover:not(:disabled) { background: var(--paper-sunk); border-color: var(--rule-firm); }
 .home-card:disabled { cursor: not-allowed; opacity: .55; }
 .home-card:focus-visible { outline: 0; box-shadow: var(--focus); border-color: var(--crux); }

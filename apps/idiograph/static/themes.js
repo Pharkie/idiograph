@@ -9731,8 +9731,7 @@ function thCasemenuDraw(cases, said = '') {
     const p = c.person || {};
     const pic = people ? personPic(c.person, 32) : '';
     const text = `<span class="th-vtext"><span class="th-vline"><span class="th-vlabel">${esc(people ? caseShown(c.case) : c.case)}</span></span>`
-      + (p.label ? `<span class="pp-label">${esc(p.label)}</span>` : '')
-      // the pills of their demographics after the label (demobuild)
+      // the pills of their demographics after the name (demobuild); no label in the switcher (barlabel)
       + (typeof dmPillsInline === 'function' ? dmPillsInline(p.pills) : '')
       + `<span class="th-vnote">${esc(c.board_name)}${thWithAi(c.with_ai)}${c.chosen ? mark : ''}</span>`
       + (p.portrait ? `<span class="pp-bio">${esc(p.portrait)}</span>` : '') + '</span>';

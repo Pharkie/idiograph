@@ -110,6 +110,13 @@ def test_project(scratch):
               again.get("note") == "kept" and again["research_question"] == "" and again["name"] == "")
         check("an empty name reads as the root folder's name again",
               idiograph_routes.read_project(root)["name"] == "project-root")
+        # the research question changed in place in a screen's bar (barlabel): the call is Project settings' own, by the
+        # project's id with its name and the new question
+        bar = idiograph_routes.api_project({"root": str(root), "name": "Living with gravity", "research_question": " In the bar? "})
+        check("a double-click edit of the question in the bar saves through /api/project as Project settings does",
+              bar["project"]["research_question"] == "In the bar?"
+              and json.loads(target.read_text(encoding="utf-8"))["research_question"] == "In the bar?"
+              and "api('/api/project', { root: p.id, name: p.name || '', research_question: text })" in js)
         check("every write landed in the scratch root, in the project file",
               writes and all(w.resolve() == target.resolve() for w in writes),
               f"{len(writes)} writes")

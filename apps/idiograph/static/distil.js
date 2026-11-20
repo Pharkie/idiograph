@@ -2039,6 +2039,7 @@ function archivedFold() {
 function drawPick(data, sections) {
   foldable($('home-analysis'), $('analysis-head'), 'analysis');
   HOME_PROJECTS.clear();
+  homeNamesKeep(sections);
   const cards = sections.map((s) => {
     if (s.project) HOME_PROJECTS.set(s.id, s.project);
     return { id: s.id, name: (s.project && s.project.name) || t('distil.home.project'), missing: s.there === false,
@@ -2082,6 +2083,55 @@ function drawPick(data, sections) {
   $('np-line').hidden = S.oneRun;
   $('add-home-typed').hidden = true;
   if (S.oneRun) $('sent-typed').hidden = true;
+}
+
+/* While Home's projects are being read (after a new version the first read starts afresh from each project's files,
+   which can take ten seconds on a busy Mac), each project the settings name stands in its place with its name and a
+   quiet "Loading…", and the card itself replaces it as it arrives (homeload, 20 November 2026). The name is the one the
+   last draw kept, else the folder's. It shows only once the wait passes half a second, so a warm open draws nothing
+   first. With the settings not answering, one line says the projects are loading. */
+const HOME_NAMES_KEY = 'idiograph.homeNames';
+
+function homeNamesKeep(sections) {
+  try {
+    const held = {};
+    for (const s of sections) if (s && s.id && s.project && s.project.name) held[s.id] = String(s.project.name);
+    localStorage.setItem(HOME_NAMES_KEY, JSON.stringify(held));
+  } catch { /* storage may be shut */ }
+}
+
+function homeNamesKept() {
+  try { return JSON.parse(localStorage.getItem(HOME_NAMES_KEY) || '{}') || {}; } catch { return {}; }
+}
+
+async function distilHomeLoading(still) {
+  const list = $('projects');
+  if (!list) return;
+  let roots = null;
+  try {
+    const data = await api('/api/settings', { op: 'read' });
+    roots = ((data && data.config && data.config.projects) || []).map((p) => String((p && p.root) || '')).filter(Boolean);
+  } catch { roots = null; }
+  if (!still() || list.children.length) return;
+  if (roots === null) {
+    list.innerHTML = `<li class="home-loading-line">${esc(t('distil.home.loading_all'))}</li>`;
+    return;
+  }
+  const kept = homeNamesKept();
+  list.innerHTML = roots.map((r) => {
+    const folder = r.replace(/[\\/]+$/, '').split(/[\\/]/).pop().replace(/\*$/, '');
+    const name = kept[r] || folder || t('distil.home.project');
+    // a rough drawing of the card: its name, three rings and two bars, with the sheen across (homeload)
+    const ring = '<li class="hc-person"><span class="sk sk-ring"></span><span class="sk sk-who"></span></li>';
+    return `<li class="home-card-li hc-card hc-loading" role="status" aria-label="${escAttr(t('distil.home.loading'))}"><div class="hc-sk" aria-busy="true"><span class="hc-head"><span class="hc-name">${esc(name)}</span></span>`
+      + `<span class="sk sk-line"></span></div><div class="hc-dash"><ul class="hc-people">${ring}${ring}${ring}</ul>`
+      + '<div class="sk-bars"><span class="sk sk-bar"></span><span class="sk sk-bar short"></span></div></div></li>';
+  }).join('');
+}
+
+function distilHomeLoadingClear() {
+  const list = $('projects');
+  if (list && list.querySelector('.hc-loading, .home-loading-line')) list.innerHTML = '';
 }
 
 /* A card opens its project's page at the top, the way back focused, and the way back opens the
@@ -2849,8 +2899,7 @@ function ppEditHtml(p) {
 function ppMenuText(label, person) {
   const p = person || {};
   return `<span class="pp-mi"><span class="pp-mname">${esc(caseShown(label))}</span>`
-    + (p.label ? `<span class="pp-label">${esc(p.label)}</span>` : '')
-    // the pills of the categories shown, after the label (demobuild)
+    // the pills of the categories shown, after the name (demobuild); the label is not in the picker (barlabel, Adam, 20 November 2026)
     + (typeof dmPillsInline === 'function' ? dmPillsInline(p.pills) : '')
     + (p.portrait ? `<span class="pp-bio">${esc(p.portrait)}</span>` : '') + '</span>';
 }
@@ -2864,12 +2913,13 @@ function ppBarDraw(pic, lab, person) {
   if (pic) {
     pic.innerHTML = p ? personPic(p, 24) : '';
     pic.hidden = !p;
-    pic.title = values;
+    // the label is on hover only, never in the bar (barlabel, Adam, 20 November 2026)
+    pic.title = p ? [p.label, values].filter(Boolean).join(' · ') : '';
   }
   if (lab) {
-    lab.textContent = p && p.label ? p.label : '';
-    lab.title = p && p.label ? [p.label, values].filter(Boolean).join(' · ') : '';
-    lab.hidden = !(p && p.label);
+    lab.textContent = '';
+    lab.title = '';
+    lab.hidden = true;
   }
 }
 
@@ -12861,6 +12911,86 @@ function drawBand() {
   measureBand();
 }
 
+/* The research question in a screen's bar, changed in place (barlabel, Adam, 20 November 2026): a double-click turns it
+   into a field in the question's own type, Enter saves, Escape puts it back and a click outside saves, as the app's other
+   in-place edits do. It saves through /api/project, the call Project settings makes with the same name, so History,
+   Working together's study settings and the agents' record follow as they do from there. An empty field saves no
+   question, as Project settings does. A bar with no question, a demo's and a project with no id are left as they are. */
+const BAND_Q = { open: null };
+
+function bandQuestionEdit(el, project, redraw) {
+  const p = project();
+  if (BAND_Q.open || !p || p.demo || !p.id || !String(p.research_question || '').trim()) return;
+  const box = document.createElement('textarea');
+  box.className = 'tf-edit-in band-edit';
+  box.rows = 1;
+  box.maxLength = 1000;
+  box.value = String(p.research_question || '');
+  box.setAttribute('aria-label', t('distil.band.edit_label'));
+  el.textContent = '';
+  el.appendChild(box);
+  const grow = () => { box.style.height = 'auto'; box.style.height = `${box.scrollHeight + 2}px`; if (typeof measureBand === 'function' && !$('work').hidden) measureBand(); };
+  let done = false;
+  const finish = async (save) => {
+    if (done) return;
+    done = true;
+    BAND_Q.open = null;
+    const text = box.value.trim();
+    box.remove();
+    if (!save || text === String(p.research_question || '').trim()) { redraw(); return; }
+    try {
+      const saved = (await api('/api/project', { root: p.id, name: p.name || '', research_question: text })).project;
+      if (saved) projectTake(saved);
+      bandQuestionTake(saved);
+    } catch (err) { say(needsRestart(err) ? RESTART_LINE : err.message, 9000); }
+    redraw();
+  };
+  BAND_Q.open = box;
+  box.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); finish(true); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(false); }
+  });
+  box.addEventListener('blur', () => finish(true));
+  box.addEventListener('input', grow);
+  grow();
+  box.focus();
+  box.setSelectionRange(box.value.length, box.value.length);
+}
+
+/* the saved project into the copies the trajectories and coding screens hold, which projectTake does not reach */
+function bandQuestionTake(saved) {
+  if (!saved) return;
+  for (const [scr, id] of [['TJ', 'tj-band'], ['CD', 'cd-band']]) {
+    const o = scr === 'TJ' ? (typeof TJ !== 'undefined' ? TJ : null) : (typeof CD !== 'undefined' ? CD : null);
+    if (o && o.project && (o.project.id || '') === (saved.id || '')) {
+      o.project = saved;
+      $(`${id}-question`).textContent = saved.research_question || '';
+      $(id).classList.toggle('band-unasked', !saved.research_question);
+    }
+  }
+}
+
+function bandQuestionBoot() {
+  const screens = [
+    ['band-question', () => S.data && S.data.project, () => drawBand()],
+    ['th-band-question', () => typeof TH !== 'undefined' ? TH.project : null, () => thBandDraw()],
+    ['tj-band-question', () => typeof TJ !== 'undefined' ? TJ.project : null,
+      () => { const q = TJ.project && TJ.project.research_question; $('tj-band-question').textContent = q || ''; }],
+    ['cd-band-question', () => typeof CD !== 'undefined' ? CD.project : null,
+      () => { const q = CD.project && CD.project.research_question; $('cd-band-question').textContent = q || ''; }],
+  ];
+  for (const [id, project, redraw] of screens) {
+    const el = $(id);
+    if (!el) continue;
+    el.addEventListener('dblclick', (e) => {
+      if (e.target.closest('textarea, button, a')) return;
+      const sel = window.getSelection && window.getSelection();
+      if (sel) sel.removeAllRanges();
+      bandQuestionEdit(el, project, redraw);
+    });
+  }
+}
+
 /* The columns under the band keep the rest of the screen: its height goes into --band, which
    theirs take off, whenever it changes, rewrapped or redrawn, with the toolbar's row under it while the toolbar is
    docked there (barsD, 6 November 2026). */
@@ -13951,6 +14081,7 @@ function distilBoot() {
   // 2026), and the statements screen's own toolbar under the band (barsD)
   pathMenuBoot();
   esToolsBoot();
+  bandQuestionBoot();
   esExportWire();
   // the browser's Back and Forward on Distil's screens, and where the page starts in its history
   NAV.cur = navHeld();
@@ -15009,6 +15140,8 @@ FAMILY_APPS.idiograph = {
   searchAway: (...a) => distilSearchAway(...a),
   scope: (path, body) => (typeof thScopeFor === 'function' ? thScopeFor(path, body) : body),
   homeRoute: '/api/cases',
+  homeLoading: (...a) => distilHomeLoading(...a),
+  homeLoadingClear: () => distilHomeLoadingClear(),
   homeTaken: (data) => {
     // a run of one project, named by --root, opens on its page, until he goes back to the home screen
     const first = sectionsOf(data)[0];

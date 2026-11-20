@@ -2912,6 +2912,13 @@ def api_cases(_: dict) -> dict:
     project's, `cases` and `recent` every project's."""
     cfg = srv.config()
     roots = srv.project_roots(cfg)
+    # a slow first open made on purpose, for the suite and the shots only (homeload): seconds, never set in a real run
+    held_up = os.environ.get("IDIOGRAPH_HOME_DELAY", "")
+    if held_up:
+        try:
+            time.sleep(min(30.0, max(0.0, float(held_up))))
+        except ValueError:
+            pass
     # what a run before read, kept beside the app's state, in the tables before anything is read (homecache)
     home_cache_wait()
     # Trajectories' old labels and pictures moved into the participants' own sets the first time (pbiobuild), and

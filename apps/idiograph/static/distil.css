@@ -353,6 +353,9 @@ button.demo-mark:hover { background: var(--paper-sunk); }
 }
 /* no question yet: the line that says where to set one, in the chrome's own face */
 .band-question.band-none { font-family: var(--sans); font-size: 13px; color: var(--ink-faint); }
+.band-question:has(.band-edit) { flex: 1 1 0; }
+.tf-edit-in.band-edit { display: block; width: 100%; max-width: none; box-sizing: border-box; resize: none; overflow: hidden;
+  font-family: var(--serif); font-size: 16.5px; line-height: 1.45; padding: 2px 6px; }
 .band-link {
   background: none; border: 0; padding: 0; cursor: pointer; font: inherit;
   color: var(--ink-soft); border-bottom: 1px solid var(--rule-firm);
