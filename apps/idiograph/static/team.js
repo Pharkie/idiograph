@@ -89,6 +89,7 @@ function wtDraw(view) {
   if (view.folder) $('wt-folder').innerHTML = pathHtml(view.folder);
   else $('wt-folder').textContent = t('team.page.no_folder');
   wtFolderSaid(view);
+  if (WT.scrollTo) { const go = WT.scrollTo; WT.scrollTo = null; go(); }
   wtPeople(view);
   wtWho(view);
   $('wt-recordings').checked = !!view.recordings;
@@ -248,6 +249,8 @@ function wtReopen(inv, got) {
   $('wt-invite-title').textContent = inv.own ? t('team.invite.heading_own') : t('team.invite.heading');
   wtInviteParts(false);
   wtInviteSaid('');
+  $('wt-rs').hidden = true;
+  $('wt-route-now').hidden = true;
   wtStop();
   wtInviteDigits(got);
   show('wt-invite-card');
@@ -455,21 +458,149 @@ function wtInviteSaid(text, failed = false) {
   $('wt-invite-said').hidden = !text;
 }
 
-async function wtInvite(own) {
-  const got = await wtCall({ op: 'invite', own });
-  if (!got) return;
+/* The project's first invite asks how its updates travel before it makes the link: the same two choices as Project
+   settings' Send through, opened at the project's own route and folder, and for the folder its path, typed or Choose.
+   What is chosen is the project's Send through, written as Project settings writes it (the set op), and only when it
+   differs from what the project has. Nothing is turned on, written or sent to the relay before Make the invite. While
+   `go` runs the card is locked: no second press, no Cancel, no close, no Escape. A refusal shows its line in the card,
+   which stays open. `go(pick, changed)` answers true when the invite is made. (inviteroute, 20 November 2026) */
+const wtRouteBody = (pick) => (pick.route === 'folder'
+  ? { route: 'folder', folder: pick.folder, folder_must_exist: true } : { route: 'relay' });
+
+/* a call made from the invite's card: its refusal said in the card's own line, never thrown */
+async function wtCardCall(body) {
+  try {
+    const got = await api('/api/team', wtBody(body));
+    if (got.team) wtDraw(got.team);
+    return got;
+  } catch (err) {
+    wtInviteSaid(needsRestart(err) ? RESTART_LINE : err.message, !needsRestart(err));
+    return null;
+  }
+}
+
+function wtStep(own, initial, go) {
+  WT.invite = null;
+  wtStop();
+  WT.busy = false;
+  $('wt-invite-kicker').textContent = (WT.p && WT.p.name) || '';
+  $('wt-invite-title').textContent = own ? t('team.invite.heading_own') : t('team.invite.heading');
+  wtInviteParts(false);
+  wtInviteSaid('');
+  $('wt-answered').hidden = true;
+  $('wt-invite-acts').hidden = true;
+  $('wt-route-now').hidden = true;
+  const opts = document.querySelectorAll('#wt-rs-route .th-from-opt');
+  const choose = (route) => {
+    opts.forEach((b) => {
+      const here = b.dataset.route === route;
+      b.classList.toggle('on', here);
+      b.setAttribute('aria-checked', here ? 'true' : 'false');
+    });
+    $('wt-rs-path').hidden = route !== 'folder';
+  };
+  const current = () => document.querySelector('#wt-rs-route .th-from-opt.on').dataset.route;
+  const lock = (on) => {
+    WT.busy = on;
+    ['wt-rs-go', 'wt-rs-cancel', 'wt-rs-choose', 'wt-invite-close', 'wt-rs-folder'].forEach((id) => { $(id).disabled = on; });
+    opts.forEach((b) => { b.disabled = on; });
+  };
+  opts.forEach((b) => { b.onclick = () => { if (!WT.busy) choose(b.dataset.route); }; });
+  const first = initial.route === 'folder' ? 'folder' : 'relay';
+  $('wt-rs-folder').value = initial.folder || '';
+  lock(false);
+  choose(first);
+  $('wt-rs-cancel').onclick = () => { if (!WT.busy) hide('wt-invite-card'); };
+  $('wt-rs-choose').onclick = async () => {
+    if (WT.busy) return;
+    try {
+      await picking(async (path) => {
+        const folder = path || (await api('/api/team', wtBody({ op: 'pick' }))).folder;
+        if (folder) $('wt-rs-folder').value = folder;
+        return { chosen: !!folder };
+      }, $('wt-rs-choose'), t('team.page.folder'));
+    } catch (err) { wtInviteSaid(needsRestart(err) ? RESTART_LINE : err.message, !needsRestart(err)); }
+  };
+  $('wt-rs-go').onclick = async () => {
+    if (WT.busy) return;
+    const route = current();
+    const folder = $('wt-rs-folder').value.trim();
+    if (route === 'folder' && !folder) { wtInviteSaid(t('team.refused.no_folder'), true); return; }
+    wtInviteSaid('');
+    const pick = { route, folder: route === 'folder' ? folder : '' };
+    const changed = route !== first || (route === 'folder' && folder !== (initial.folder || ''));
+    lock(true);
+    let ok = false;
+    try { ok = await go(pick, changed); } finally { lock(false); }
+  };
+  $('wt-rs').hidden = false;
+  show('wt-invite-card');
+}
+
+/* the link and words shown on the card once an invite is made */
+function wtInviteShow(got, own) {
   WT.invite = got.invite;
-  $('wt-invite-kicker').textContent = WT.p.name || '';
+  $('wt-invite-kicker').textContent = (WT.p && WT.p.name) || '';
   $('wt-invite-title').textContent = own ? t('team.invite.heading_own') : t('team.invite.heading');
   $('wt-link').textContent = got.link;
   $('wt-words').textContent = got.words;
   $('wt-answered').hidden = true;
   $('wt-invite-acts').hidden = true;
+  $('wt-rs').hidden = true;
   wtInviteParts(true);
   wtInviteSaid('');
+  wtRouteNow(got.team || WT.view);
   show('wt-invite-card');
   wtStop();
   WT.poll = setInterval(wtAnswers, WT_POLL_MS);
+}
+
+async function wtMakeInvite(own) {
+  const got = await wtCardCall({ op: 'invite', own });
+  if (!got) return false;
+  wtInviteShow(got, own);
+  return true;
+}
+
+/* the one line a later invite carries: the project's route, and for the lead the way to change it */
+function wtRouteNow(view) {
+  const v = view || WT.view || {};
+  const lead = ((v.people || []).find((x) => x.lead) || {}).name || '';
+  const folder = v.folder || '';
+  const text = v.you_lead
+    ? (v.route === 'folder' ? t('team.invite.route_folder', { folder }) : t('team.invite.route_relay'))
+    : (v.route === 'folder' ? t('team.invite.route_folder_lead', { folder, name: lead })
+      : t('team.invite.route_relay_lead', { name: lead }));
+  $('wt-route-now-text').textContent = text;
+  $('wt-route-change').hidden = !v.you_lead;
+  $('wt-route-now').hidden = false;
+}
+
+/* Change in Project settings: the card put away and Project settings opened at Send through, scrolled there once the
+   section is drawn */
+function wtRouteChange() {
+  const p = WT.p;
+  if (WT.busy) return;
+  wtStop();
+  hide('wt-invite-card');
+  if (!p) return;
+  WT.scrollTo = () => { const at = $('wt-route'); if (at && at.scrollIntoView) at.scrollIntoView({ block: 'center' }); };
+  openProjectSettings(p);
+}
+
+/* an invite from Project settings, Working together on: the first one asks the route first */
+async function wtInvite(own) {
+  const v = WT.view || {};
+  if (v.first_invite) {
+    wtStep(own, { route: v.route, folder: v.folder }, async (pick, changed) => {
+      if (changed && !await wtCardCall({ op: 'set', ...wtRouteBody(pick) })) return false;
+      return wtMakeInvite(own);
+    });
+    return;
+  }
+  const got = await wtCall({ op: 'invite', own });
+  if (!got) return;
+  wtInviteShow(got, own);
 }
 
 /* whether someone has answered: the six digits, and They differ and They match */
@@ -665,7 +796,12 @@ function wtWire() {
   $('wt-copy-words').onclick = () => wtCopy('wt-words');
   $('wt-match').onclick = () => wtAnswer(true);
   $('wt-differ').onclick = () => wtAnswer(false);
-  $('wt-invite-close').onclick = () => { wtStop(); hide('wt-invite-card'); };
+  $('wt-invite-close').onclick = () => { if (WT.busy) return; wtStop(); hide('wt-invite-card'); };
+  // while the first invite's step is at work the card cannot be put away
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && WT.busy) { e.preventDefault(); e.stopImmediatePropagation(); }
+  }, true);
+  $('wt-route-change').onclick = wtRouteChange;
   $('wt-join-close').onclick = () => {
     wtStop();
     hide('wt-join-card');
@@ -1011,18 +1147,41 @@ async function wtPageInvite(p) {
     name = await wtAskName(p.name || '');
     if (!name) return;
   }
-  const on = await wtCall(kept ? { op: 'on' } : { op: 'on', name, route: 'relay' });
-  if (!on) {
-    // the refusal is in the section's line: shown where it can be read
-    openProjectSettings(p);
+  const refresh = async () => {
+    // the page's own lines and tags as they now stand
+    try {
+      wtPageDraw((await api('/api/team', wtBody({ op: 'show' }))).sync || null);
+    } catch (err) { /* the page keeps its lines until it is opened again */ }
+  };
+  if (kept) {
+    // a team kept with others is picked up as it was: its route is its own, nothing asked
+    const on = await wtCall({ op: 'on' });
+    if (!on) { openProjectSettings(p); return; }
+    await refresh();
+    await wtInvite(false);
     return;
   }
-  if (name) WT.yourName = name;
-  // the page's own lines and tags as they now stand, with Working together on
-  try {
-    wtPageDraw((await api('/api/team', wtBody({ op: 'show' }))).sync || null);
-  } catch (err) { /* the page keeps its lines until it is opened again */ }
-  await wtInvite(false);
+  // the first invite is where the project's way of sending updates is chosen: before anything is turned on or
+  // written, and turned back off if the press cannot finish (inviteroute)
+  const start = WT.start || {};
+  wtStep(false, { route: start.route, folder: start.folder }, async (pick) => {
+    const on = await wtCardCall({ op: 'on', name, ...wtRouteBody(pick) });
+    if (!on) return false;
+    if (name) WT.yourName = name;
+    // a team kept alone keeps its own route, which `on` leaves as it was: the choice is then set as Project settings sets it
+    const view = on.team || {};
+    const differs = pick.route !== (view.route || 'relay') || (pick.route === 'folder' && pick.folder !== view.folder);
+    let ok = !differs || !!await wtCardCall({ op: 'set', ...wtRouteBody(pick) });
+    if (ok) ok = await wtMakeInvite(false);
+    if (!ok) {
+      const said = $('wt-invite-said').textContent;
+      const failed = !$('wt-invite-said').hidden;
+      await wtCardCall({ op: 'off' });
+      if (failed) wtInviteSaid(said, true);
+    }
+    await refresh();
+    return ok;
+  });
 }
 
 /* Your name, once, in a small card with OK: Return does the same */

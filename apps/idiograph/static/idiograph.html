@@ -1922,6 +1922,24 @@
     </button>
     <p class="kicker" id="wt-invite-kicker"></p>
     <h2 id="wt-invite-title">{{team.invite.heading}}</h2>
+    <!-- the first invite of a project asks how the project's updates travel before it makes the link (inviteroute, 20 November 2026) -->
+    <div id="wt-rs" hidden>
+      <p class="wt-h wt-first" id="wt-rs-label">{{team.invite.send_updates}}</p>
+      <span class="th-from set-labels" id="wt-rs-route" role="radiogroup" aria-labelledby="wt-rs-label">
+        <button type="button" class="th-from-opt on" role="radio" aria-checked="true" data-route="relay">{{team.page.relay}}</button>
+        <button type="button" class="th-from-opt" role="radio" aria-checked="false" data-route="folder">{{team.page.route_folder}}</button>
+      </span>
+      <div class="wt-path hj-path" id="wt-rs-path" hidden><div class="hj-pick"><input id="wt-rs-folder" type="text"
+         spellcheck="false" autocomplete="off" aria-label="{{team.page.folder}}"><button type="button"
+         class="ghost small" id="wt-rs-choose">{{team.page.choose}}</button></div></div>
+      <p class="fineprint">{{team.page.route_line}}</p>
+      <div class="card-actions">
+        <button class="ghost" type="button" id="wt-rs-cancel">{{page_idiograph.cards_last.cancel}}</button>
+        <button class="primary" type="button" id="wt-rs-go">{{team.invite.make}}</button>
+      </div>
+    </div>
+    <p class="fineprint wt-first" id="wt-route-now" hidden><span id="wt-route-now-text"></span> <button type="button"
+       class="ghost small" id="wt-route-change" hidden>{{team.invite.route_change}}</button></p>
     <p class="wt-h" id="wt-link-h">{{team.invite.link}}</p>
     <div class="wt-box" id="wt-link" aria-labelledby="wt-link-h"></div>
     <div class="wt-copy"><button type="button" class="ghost small" id="wt-copy-link">{{team.invite.copy_link}}</button></div>

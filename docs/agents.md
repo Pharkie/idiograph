@@ -2643,7 +2643,9 @@ sent with a copy. You sign as their computer: never read, copy or print either f
 - `idiograph team set` (`team_set`): `--route`, `--folder`, `--recordings on|off`, and by the lead
   `--owner Juno=Bo`, given again for each participant, and `--gets-owner Bo`.
 - `idiograph team invite` (`team_invite`): an invite for someone new, or with `--own` for another computer of
-  theirs, as a link and as twelve words, working once for seven days. Give them to them alone: they send the link by
+  theirs, made by whatever route the project already has (the page asks the lead how updates travel before its
+  first invite and writes it with `team set`; the command line asks nothing and `team show --json` says
+  `first_invite` true until the lead has made one), as a link and as twelve words, working once for seven days. Give them to them alone: they send the link by
   email or reads the words out. `idiograph team answers --invite ID` (`team_answers`) says when someone has
   answered, with the six digits both read on a call.
 - `idiograph team admit --invite ID` (`team_admit`): They match, the one who answered joins, the project's key

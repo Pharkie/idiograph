@@ -597,7 +597,11 @@ def api_team(body: dict) -> dict:
             shown = team_mod.view(root, team_participants(root))
             out = {"team": shown, "your_name": researcher_name(), "sync": team_sync.status(root)}
             if not shown.get("on") or shown.get("unlisted"):
-                out["start"] = dict({"kept": team_mod.kept_with_others(root), "joining": team_mod.joining_here(root)},
+                kept_data = team_mod.read_team(root) or {}
+                out["start"] = dict({"kept": team_mod.kept_with_others(root), "joining": team_mod.joining_here(root),
+                                     # a team kept alone keeps its Send through, for the first invite's card
+                                     **({"route": kept_data.get("route") or "relay", "folder": kept_data.get("folder") or ""}
+                                        if kept_data.get("roster") else {})},
                                     **({"unlisted": True} if team_mod.unlisted_here(team_mod.read_team(root) or {})
                                        else {}))
             return out
@@ -621,7 +625,8 @@ def api_team(body: dict) -> dict:
             if op == "on":
                 done = team_mod.turn_on(root, body.get("name") or researcher_name(), str(body.get("route") or "relay"),
                                         str(body.get("folder") or ""), dry_run=dry,
-                                        relay_url=str(body.get("relay_url") or ""))
+                                        relay_url=str(body.get("relay_url") or ""),
+                                        must_exist=body.get("folder_must_exist") is True)
             elif op == "off":
                 done = team_mod.turn_off(root, dry_run=dry)
             elif op in ("set", "choose"):

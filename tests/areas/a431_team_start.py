@@ -167,7 +167,7 @@ def test_team_start(scratch: Path):
         call(alone, op="on", name="Cy")
         call(alone, op="off")
         check("431: a team kept with nobody else on it is not kept for starting again, so Invite and Join show",
-              call(alone, op="show")["start"] == {"kept": False, "joining": []})
+              {k: call(alone, op="show")["start"][k] for k in ("kept", "joining")} == {"kept": False, "joining": []})
 
         # 3. a project holding a participant the invite does not list refused a join, through the route and the
         #    command line, and a copy of the lead's own project joins as before

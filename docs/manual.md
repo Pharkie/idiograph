@@ -615,7 +615,10 @@ computer has the same project folder open.
 
 To start, the lead presses Invite others on the project's page, beside Project settings, or opens Project settings
 and presses Invite others to work on this project. Either makes them the lead and opens the invite, and asks for
-your name only when Settings has none. Each person invited presses Join a shared project on Home and pastes the link or the
+your name only when Settings has none. The first invite of a project begins by asking how the project's updates
+travel, the relay or a folder for exchanging updates with its path, the relay already chosen, and that answer is the
+project's Send through, the one Project settings shows afterwards. Only the lead changes it there. Later invites say
+in one line which way the updates go, with a button for the lead that opens Project settings at Send through. Each person invited presses Join a shared project on Home and pastes the link or the
 twelve words. Idiograph keeps the project in a new folder, `Documents/Idiograph` and the project's name unless you
 type another, and makes it there, named as the lead named it. A link says whether the team sends through a shared
 folder, and then you choose the folder. With the twelve words alone, tick The invite came through a shared folder when

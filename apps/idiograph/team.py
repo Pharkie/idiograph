@@ -615,6 +615,43 @@ def owner_here(data: dict, folder: str) -> str:
 
 # ------------------------------------------------------------------ what the page and the agents read
 
+def first_invite_of(data: dict, held: dict) -> bool:
+    """The lead's first invite of a team, when the page asks how its updates travel (inviteroute). Only a team that has
+    never been anything but one member on one computer: no invite ever made or tried (team.json's `invited`, and the
+    device's own record, which a Finder copy of the folder does not carry), no later epoch (a member or computer
+    removed), no change asked of the lead, no one stopped, and no project on the relay yet. A team whose route is
+    already in use, from before this was asked, is never asked."""
+    roster = (data or {}).get("roster") or {}
+    if not roster or str(data.get("member") or "") != str(roster.get("lead") or ""):
+        return False
+    return (by_itself(roster) and not data.get("invited") and not (held or {}).get("invited")
+            and not (held or {}).get("invites") and int(roster.get("epoch") or 1) <= 1
+            and not data.get("asked") and not data.get("stopped") and not relay_note(data).get("project"))
+
+
+def mark_invited(root: Path, data: dict) -> dict:
+    """The first invite attempted: recorded in team.json and on this device before anything is sent or made on the
+    relay, so a refusal at the relay never brings the question back to choose the folder over a relay project made
+    for it (inviteroute, review M6). Answers team.json's data with the mark."""
+    if data.get("invited"):
+        return data
+    data = dict(data, invited=True)
+    write_team(root, data)
+    team = str(data.get("team") or "")
+    with device_held():
+        held = held_team(team)
+        held["invited"] = True
+        keep_team(team, held)
+    return data
+
+
+def folder_there(folder: str) -> None:
+    """A shared folder that is not there is refused before anything is written. Asked by the first invite's card
+    (`folder_must_exist`); Project settings keeps taking a folder that has not synced here yet."""
+    if folder and not Path(folder).expanduser().is_dir():
+        raise TeamError(i18n.t("team.page.folder_missing"), "folder_missing")
+
+
 def view(root: Path, participants: list[dict] | None = None) -> dict:
     """Working together as Project settings and `team show` read it. Off, `{"on": false}` and nothing more, with
     nothing read but team.json and nothing written."""
@@ -643,7 +680,9 @@ def view(root: Path, participants: list[dict] | None = None) -> dict:
     rows = [{"folder": p["folder"], "label": p["label"], "owner": owner_here(data, p["folder"])}
             for p in participants or []]
     pending = []
-    for inv, held in (held_team(str(data.get("team") or "")).get("invites") or {}).items():
+    held_all = held_team(str(data.get("team") or ""))
+    kept_invites = held_all.get("invites") or {}
+    for inv, held in kept_invites.items():
         if not held.get("used") and not expired(held):
             pending.append({"invite": inv, "own": bool(held.get("own")), "expires": held.get("expires") or ""})
     state, unopened = folder_state(data)
@@ -653,6 +692,8 @@ def view(root: Path, participants: list[dict] | None = None) -> dict:
             "epoch": roster.get("epoch") or 1, "n": roster.get("n") or 0, "people": people, "participants": rows,
             "gets_owner": roster.get("gets_owner") or lead, "alone": len(people) <= 1, "invites": pending,
             "device": dev.get("id") or "", "unlisted": unlisted,
+            # the lead's first invite ever: the page asks how the project's updates travel before it makes the link
+            "first_invite": first_invite_of(data, held_all),
             "removed": bool(me) and member_of(roster, me) is None,
             "asked": [a for a in data.get("asked") or [] if isinstance(a, dict)],
             "on_relay": bool(relay_note(data).get("project"))}
@@ -814,7 +855,7 @@ def put_on_relay(root: Path, data: dict, dry_run: bool = False) -> dict:
 # ------------------------------------------------------------------ turning it on and off, and its settings
 
 def turn_on(root: Path, name: str, route: str = "relay", folder: str = "", dry_run: bool = False,
-            relay_url: str = "") -> dict:
+            relay_url: str = "", must_exist: bool = False) -> dict:
     """Working together on for this project. The first time, this device's keys (made once and kept), a random
     16-byte team id, epoch 1's project key and a roster with this member as its lead, signed. Once made, on again
     keeps the team as it was. Through the relay nothing is made there yet: the lead's first invite makes the project
@@ -835,6 +876,8 @@ def turn_on(root: Path, name: str, route: str = "relay", folder: str = "", dry_r
             write_team(root, data)
             tell_stopped_soon(data, True)
         return {"changes": changes, "dry_run": dry_run}
+    if route == "folder" and must_exist:
+        folder_there(one_line(folder))
     who = name_given(name)
     changes = [i18n.t("team.history.on_relay", name=who) if route == "relay"
                else i18n.t("team.history.on_folder", name=who)]
@@ -969,6 +1012,8 @@ def set_team(root: Path, body: dict, participants: list[dict], dry_run: bool = F
     if "folder" in body:
         folder = one_line(body.get("folder"))
         if folder != (data.get("folder") or ""):
+            if body.get("folder_must_exist") is True:
+                folder_there(folder)
             after["folder"] = folder
             changes.append(i18n.t("team.history.folder", folder=folder) if folder else i18n.t("team.history.no_folder"))
     if "recordings" in body:
@@ -1101,6 +1146,10 @@ def invite(root: Path, own: bool = False, dry_run: bool = False, participants: l
     changes.append(i18n.t("team.history.invite_own") if own else i18n.t("team.history.invite"))
     if dry_run:
         return {"changes": changes, "dry_run": True}
+    if not own and not data.get("invited"):
+        # recorded once the relay has made the project (or none is needed) and before the invite is posted: a relay out
+        # of reach writes nothing, and a refused post never brings the question back over a project made for it
+        data = mark_invited(root, data)
     way = transport_for(data, dev)
     secret = secrets.token_bytes(16)
     inv = invite_id(secret)

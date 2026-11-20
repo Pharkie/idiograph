@@ -1807,10 +1807,11 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .home-card-li.hc-card { position: relative; flex-direction: column; min-width: 0; background: var(--card);
   border: 1px solid var(--rule); border-radius: 4px; transition: background .16s, border-color .16s; }
 .home-card-li.hc-card:hover { background: var(--paper-sunk); border-color: var(--rule-firm); }
-.hc-card > .home-card { border: 0; background: none; border-radius: 4px; }
+.hc-card > :is(.home-card, .hc-sk) { border: 0; background: none; border-radius: 4px; }
+.home-card-li.hc-loading:hover { background: var(--card); border-color: var(--rule); }
 .hc-card > .home-card:hover:not(:disabled) { background: none; }
 .home-card-li.hc-card.has-warn .home-card, .home-card-li.hc-card.has-agents .home-card { padding-bottom: 13px; }
-.hc-card:has(> .hc-dash) > .home-card { padding-bottom: 10px; }
+.hc-card:has(> .hc-dash) > :is(.home-card, .hc-sk) { padding-bottom: 10px; }
 .hc-dash { display: flex; flex-direction: column; gap: 12px; padding: 0 16px 14px; cursor: pointer; min-width: 0; }
 .hc-people { list-style: none; margin: 0; padding: 12px 0 0; border-top: 1px solid var(--rule); display: grid;
   grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: 10px 6px; justify-items: center; }
