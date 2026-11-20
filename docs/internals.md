@@ -2551,7 +2551,16 @@ computer of this member's (`team.holds_others`). A roster that lists this person
 copy of a lead's folder, a second Mac on a synced folder or a computer whose device file was lost, is still the
 project's team: `view` shows it with `unlisted` (and `start.unlisted` while off), `turn_on` writes nothing, and a
 join is refused unless it says `copy`, which the page's Join beside "This computer is not on this project's list"
-sends and the asking keeps for `joined` (the command line's `--copy`, MCP's `copy`). Only a roster that lists
+sends and the asking keeps for `joined` (the command line's `--copy`, MCP's `copy`). Such a join, from a roster that
+names others, to an invite that is not its own team's (`replaces_team`, read after the offer and before the answer
+is sent: the offer carries `team_digest`, a keyed digest of the lead's team id, inside the same fixed size, and the
+join is exempt only when it equals the digest of this project's own team, an offer without it asking), would take
+the project out of its team into the invite's, so it is refused with code
+`replace_team` and nothing sent until it says `replace` (the command line's `--replace`, MCP's `replace`, the app's
+alone for an agent). The asking keeps `replace`, and `joined` refuses `replace_team` before `write_team` when the
+asking said `copy` without `replace`, the list now names others and the welcome's team is not the project's. The
+question names both leads, "Leave Ivy's team and join Ada's team? This project becomes a copy of Ada's project."; the Join card asks the one question and sends `replace` on yes (smallfix20, 19 November 2026).
+An invite from a listed computer, "Add a computer of mine" among them, asks nothing. Only a roster that lists
 neither the person nor the computer, a removed member's project, holds no team and `on` makes a new one
 (teamfix2, the review's finding 1). A second `joined` after team.json holds this invite's team answers joined. A refused or failed
 join, a welcome that cannot be taken in and an invite that has lapsed forget the asking, and the device file when

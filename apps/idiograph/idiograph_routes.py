@@ -570,7 +570,7 @@ def api_team(body: dict) -> dict:
     `name`, a team's own relay's `relay_url` when the link does not carry it, and `route` and `folder` when the
     invite came through a shared folder (the join writes nothing to the project until `joined`) and `copy` true for a
     project whose list names the person but not this computer, a Finder copy of the lead's folder (`show` says it
-    with `unlisted`; without `copy` such a project is refused as one in a team), `joined` the `invite` id, `remove` a `member` by id or name or one `computer` by its id, `lead` (Make
+    with `unlisted`; without `copy` such a project is refused as one in a team; a copy joining an invite that is not its own team's would leave its team, so it is refused with code `replace_team` and nothing sent until the join says `replace` true), `joined` the `invite` id, `remove` a `member` by id or name or one `computer` by its id, `lead` (Make
     lead) a `member`, and `take` what has come for the list of people (wtdevices, 9 November 2026). Each write takes `dry_run`, which writes
     nothing and says what would change, and runs under the project's lock with a line in the project's History for
     each change. The demo's project takes none. `send` (wtowners), Send now: what came for the project taken in and
@@ -637,7 +637,8 @@ def api_team(body: dict) -> dict:
                 done = team_mod.join(root, str(body.get("words") or ""), body.get("name") or researcher_name(),
                                      dry_run=dry, relay_url=str(body.get("relay_url") or ""),
                                      route=str(body.get("route") or ""), folder=str(body.get("folder") or ""),
-                                     participants=team_folders(root), copy=body.get("copy") is True)
+                                     participants=team_folders(root), copy=body.get("copy") is True,
+                                     replace=body.get("replace") is True)
             elif op == "joined":
                 done = team_mod.joined(root, str(body.get("invite") or ""), dry_run=dry)
             elif op == "unjoin":
@@ -653,7 +654,7 @@ def api_team(body: dict) -> dict:
             if not dry:
                 hist_mod.record(root, f"team {op}", done.get("changes") or [], hist_mod.asker(body))
     except team_mod.TeamError as exc:
-        raise WorkbookError(str(exc)) from None
+        raise WorkbookError(str(exc), code="replace_team" if exc.code == "replace_team" else "") from None
     return dict(done, team=team_mod.view(root, team_participants(root)))
 
 
@@ -2861,7 +2862,7 @@ def agents_project(root: Path) -> str:
     study = gets_mod.study_of(held, [b["case"] for b in books])
     inside = sum(1 for b in books if study[b["case"]]["in"])
     minimum, band = gets_mod.minimum_of(gets_mod.settings_of(held), inside)
-    question = project["research_question"] or "none is set yet, so ask him for it before any analysis"
+    question = project["research_question"] or "none is set yet, so ask the researcher for it before any analysis"
     said = "Smith's band for a study of that size" if band else "set in Settings"
     return (f"This project is {project['name']}. Its research question: {question}\n\n"
             f"A GET needs {minimum} of the "

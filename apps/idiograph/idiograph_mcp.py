@@ -1252,7 +1252,9 @@ TOOLS = [
                                                                                   "for a shared folder."},
           "folder": dict(mcp.TEXT, description="The shared folder the invite came through, for route folder."),
           "copy": {"type": "boolean", "description": "True when this project is a copy of another computer's, its "
-                                                     "list naming the person but not this computer."}},
+                                                     "list naming the person but not this computer."},
+          "replace": {"type": "boolean", "description": "True for yes to the question a join as a copy asks when it "
+                                                        "would take the project out of its team into the invite's."}},
          ["words"], writes="changes"),
     mcp.tool("team_joined", "Take in the lead's yes to a join", ("team", "joined"),
          "Once the lead has said the six digits match, the team, its people and the project's key come onto this "

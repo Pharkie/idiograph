@@ -329,13 +329,80 @@ def test_team_start(scratch: Path):
         shutil.copytree(two["root"], stale3["root"])
         shown = call(stale3, op="show")
         no_copy = refused(lambda: call(stale3, op="join", words=made12["words"], name="Sam"))
+        # the invite is another team's (the lead's, where this project is a copy of a team of two's): asked first
+        before_ask = project_files(stale3["root"])
+        asked_said = refused(lambda: call(stale3, op="join", words=made12["words"], name="Sam", copy=True))
+        at(stale3)
+        try:
+            call(stale3, op="join", words=made12["words"], name="Sam", copy=True)
+            asked_code = ""
+        except WorkbookError as exc:
+            asked_code = getattr(exc, "code", "")
+        at(stale3)
+        import argparse
+        cli_args = argparse.Namespace(words=made12["words"], name="Sam", relay_url=None, route=None, folder=None,
+                                      copy=True, replace=False, dry_run=False, note="join", tool="")
+        cli_said = refused(lambda: cli_mod.cmd_team_join(cli_mod.Project(stale3["root"], False), cli_args))
+        at(stale3)
+        check("431: a join as a copy from a project whose list names others, to an invite of another team, is "
+              "refused with its own code and one plain line, the command line alike, and writes and sends nothing "
+              "until the join says replace",
+              asked_said == cli_said and asked_said.startswith("Leave ") and "--replace" in asked_said
+              and asked_code == "replace_team"
+              and project_files(stale3["root"]) == before_ask
+              and not ((team.load_device_file() or {}).get("joining") or {}), f"{asked_said} | {cli_said}")
         check("431: a Finder copy of a lead's project folder, team.json in it, joins when the lead is alone, and a "
-              "copy of a stopped team with others on it joins only when the join says it is a copy, the page's Join "
-              "beside the line that this computer is not on the list",
+              "copy of a stopped team with others on it joins only when the join says it is a copy and, to another "
+              "team's invite, that it replaces the team, the page's Join beside the line that this computer is not on "
+              "the list",
               bool(copied_team.get("code")) and shown["start"]["kept"] is True and shown["start"]["unlisted"] is True
               and no_copy == i18n.t("team.refused.kept_team")
-              and bool(call(stale3, op="join", words=made12["words"], name="Sam", copy=True).get("code")),
+              and bool(call(stale3, op="join", words=made12["words"], name="Sam", copy=True,
+                            replace=True).get("code")),
               json.dumps(shown.get("start")))
+        # the invite of the project's own team, a computer its list names, asks nothing
+        stale4 = install(scratch, "stale4", "Canal towpath walkers, Stale 4", ())
+        shutil.rmtree(stale4["root"])
+        shutil.copytree(two["root"], stale4["root"])
+        call(two, op="on", name="Ivy")
+        own_made = call(two, op="invite", own=True)
+        same = call(stale4, op="join", words=own_made["words"], name="Ivy", copy=True)
+        check("431: a copy of a team's project joining an invite from a computer its list names, as Add a computer "
+              "of mine makes, asks nothing",
+              bool(same.get("code")) and call(two, op="answers", invite=own_made["invite"])["answered"] is True,
+              json.dumps(same.get("code")))
+        # the exemption holds for the project's own team alone: an invite from a computer its list names, leading
+        # another team of its own, is another team's and asks (review of smallfix20, finding 1)
+        other_root = two_b["root"].parent / "Team B"
+        other_root.mkdir(parents=True)
+        (other_root / "idiograph-project.json").write_text(json.dumps({"name": "Team B"}), encoding="utf-8")
+        cfg_b = json.loads(two_b["config"].read_text(encoding="utf-8"))
+        cfg_b["projects"].append({"root": str(other_root)})
+        two_b["config"].write_text(json.dumps(cfg_b), encoding="utf-8")
+        team_b = dict(two_b, root=other_root)
+        call(team_b, op="on", name="Ivy")
+        made_b = call(team_b, op="invite")
+        stale5 = install(scratch, "stale5", "Canal towpath walkers, Stale 5", ())
+        shutil.rmtree(stale5["root"])
+        shutil.copytree(two["root"], stale5["root"])
+        before_b = project_files(stale5["root"])
+        said_b = refused(lambda: call(stale5, op="join", words=made_b["words"], name="Ivy", copy=True))
+        check("431: a copy of a team's project joining another team's invite, from a computer its own list names that "
+              "leads a team of its own, is asked about like any other, and nothing is sent",
+              said_b.startswith("Make this project a copy of Ivy's project?") and project_files(stale5["root"]) == before_b
+              and call(team_b, op="answers", invite=made_b["invite"])["answered"] is False, said_b)
+        # a join begun as a copy whose project then gains others before They match is refused at joined, with the
+        # project's team.json as it was (review finding 2)
+        late = install(scratch, "late", "Canal towpath walkers, Late", ())
+        made_late = call(lead, op="invite")
+        call(late, op="join", words=made_late["words"], name="Lia", copy=True)
+        shutil.copy(two["root"] / "team.json", late["root"] / "team.json")
+        before_late = (late["root"] / "team.json").read_bytes()
+        call(lead, op="admit", invite=made_late["invite"], match=True)
+        late_said = refused(lambda: call(late, op="joined", invite=made_late["invite"]))
+        check("431: joined refuses the replace the join never said yes to, when the project's list gained others "
+              "after the join began, before team.json is written",
+              late_said == i18n.t("team.refused.replace_late") and (late["root"] / "team.json").read_bytes() == before_late, late_said)
         stale_show = call(stale, op="show")
         check("431: a Finder copy of a lead's project with Working together on, its roster not listing this computer, "
               "shows the team as it stands with unlisted, and its start naming it, for Join alone",
@@ -537,13 +604,15 @@ def test_team_start(scratch: Path):
         finder_show = call(finder, op="show")
         no_flag = refused(lambda: call(finder, op="join", words=made20["words"], name="Mo"))
         finder_files = project_files(finder["root"])
-        flagged = call(finder, op="join", words=made20["words"], name="Mo", copy=True)
+        asked_first = refused(lambda: call(finder, op="join", words=made20["words"], name="Mo", copy=True))
+        flagged = call(finder, op="join", words=made20["words"], name="Mo", copy=True, replace=True)
         call(rival, op="admit", invite=made20["invite"], match=True)
         finder_done = call(finder, op="joined", invite=made20["invite"])
         check("431: a Finder copy of a member's project, its list not naming this computer, shows Join with the "
               "line, is refused without the copy flag and joins another team with it, written once the lead says "
               "they match",
               finder_show["start"]["unlisted"] is True and no_flag == i18n.t("team.refused.already_team")
+              and asked_first.startswith("Leave ") and "--replace" in asked_first
               and flagged["code"] and finder_done["joined"] is True and finder_done["team"]["you_lead"] is False
               and team.read_team(finder["root"])["team"] == team.read_team(rival["root"])["team"]
               and project_files(member_a["root"]) == live_before and finder_files != project_files(finder["root"]))

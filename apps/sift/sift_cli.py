@@ -40,7 +40,7 @@ def __getattr__(name: str) -> str:
 
 SIFT_ABOUT = ("Sift's command line, for an AI agent in a conversation: a screening for a systematic review by its "
               "folder, sift <folder> list, with search first a review's search plan, strings and runs, sift search "
-              "strings <folder>, and with zotero first a sync to his Zotero library. sift search <words> --folder "
+              "strings <folder>, and with zotero first a sync to the researcher's Zotero library. sift search <words> --folder "
               "<folder> is Sift's Search. See docs/agents-sift.md.")
 
 

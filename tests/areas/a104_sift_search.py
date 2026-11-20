@@ -451,7 +451,7 @@ def test_sift_search(scratch):
                           for t in sift_mcp.SEARCH_TOOLS)
               and "No tool registers or writes a plan." in mcp_server.instructions("sift")
               and "written through Sift's own save" in mcp_server.instructions("sift")
-              and "never register a version, which is his" in mcp_server.instructions("sift"))
+              and "never register a version, which is the researcher's" in mcp_server.instructions("sift"))
         srv = mcp_server.Server(app="sift")
         m_strings = srv.call(by_name["sift_search_strings"], {"folder": str(review), "version": 2})
         m_runs = srv.call(by_name["sift_search_runs"], {"folder": str(review)})

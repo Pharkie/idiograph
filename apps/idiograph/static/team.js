@@ -438,7 +438,14 @@ async function wtJoin() {
   Object.assign(asked, $('wt-join-folder-on').checked ? { route: 'folder', folder: WT.joinFolder } : { route: 'relay' });
   let got;
   try {
-    got = await api('/api/team', wtBody(asked));
+    try {
+      got = await api('/api/team', wtBody(asked));
+    } catch (err) {
+      // the invite is another team's and this project's list names others: asked once, and the join goes ahead only on yes
+      if (!refusedAs(err, 'replace_team')) throw err;
+      if (!await askSure(err.message.split('\n')[0])) { wtJoinSaid(''); return; }
+      got = await api('/api/team', wtBody(Object.assign(asked, { replace: true })));
+    }
   } catch (err) { wtJoinSaid(err.message, true); return; }
   if (typed) WT.yourName = typed;
   wtJoinWaiting(got);

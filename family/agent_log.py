@@ -54,8 +54,8 @@ KINDS = {
     "page_only": "only the app's own window does it, never an agent",
     "app_only": "only the app does it, since undo cannot reach it: sending to another person, Working together's "
                 "keys and people, the app's settings, the list of names to replace",
-    "declined": "it waited for his yes in the app and he declined it, before approvals were removed",
-    "cleared": "a note, not a refusal: the actions that waited for his yes, dropped when approvals were removed",
+    "declined": "it waited for the researcher's yes in the app and they declined it, before approvals were removed",
+    "cleared": "not a refusal but a note that the actions which waited for the researcher's yes were dropped when approvals were removed",
     "invalid": "the command was given in a shape it does not take",
     "refused": "any other refusal, its line saying why",
 }

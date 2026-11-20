@@ -69,6 +69,7 @@ ZZ = {
                     "themes.revision.named.statement_edited": "Zz {who} rewrote <{old}> as <{new}>",
                     "themes.step.aligned_centre": "Zz {n} to the middle line",
                     "themes.step.stacked": {"one": "Zz one stacked", "other": "Zz {n} stacked"}},
+    "team.json": {"team.refused.replace_team": "Zz: this would leave its team, join anyway?"},
     "shell.json": {"shell.keys.cmd": "Zcmd", "shell.keys.ctrl": "Zctl"},
     "themes_ai.json": {"themes_ai.change.retitled": "zz renamed <{label}> to <{title}>",
                        "themes_ai.change.apart": "zz split <{label}>", "themes_ai.change.line": "{changes}!"},
@@ -241,6 +242,10 @@ def test_refusal_codes(scratch: Path):
         finally:
             httpd.shutdown()
             httpd.server_close()
+        # a join that would take a project out of its team, refused for the page to ask about (smallfix20): the words
+        # team.py raises it with, in the made-up language, answered as the server answers a refusal
+        answers["replace_team"] = [409, errors.refusal(WorkbookError(i18n.t("team.refused.replace_team"),
+                                                                      code="replace_team"))]
         zz_list = [formats.list_words(["Ash"]), formats.list_words(["Ash", "Bryn"]),
                    formats.list_words(["Ash", "Bryn", "Cole", "Dara"]), formats.list_words(["Ash", "Bryn", "Cole"], "or")]
         i18n.CHOSEN_FORMATS = lambda: {"dates": "dmy"}
@@ -274,6 +279,7 @@ def test_refusal_codes(scratch: Path):
         "ai": [200, {"error": zz["server.something_ai_help_does_nothing"], "code": "unknown_op"}],
         "qdpx": [409, {"error": zz["server.project_s_file_longer_held"], "code": "file_not_held"}],
         "outside": [409, {"error": zz["server.board_changed_conversation_canvas_saved"], "code": "board_changed_outside"}],
+        "replace_team": [409, {"error": zz["team.refused.replace_team"], "code": "replace_team"}],
     }
     check("307: over HTTP in the made-up language the server answers each with its words and its code beside them: no "
           "such route, no such op of the rows, the boards and the AI help, the file no longer held, the board changed "

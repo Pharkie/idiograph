@@ -436,7 +436,7 @@ KEPT = {
                             "its undo naming files by their place and refused whole once one of them has changed",
     "idiograph-agent-changes.jsonl": "the record of every change agents made, each kept as it was written, naming "
                                      "the participant as they were called then",
-    "idiograph-holds.json": "the actions that waited for his yes before approvals were removed, dropped unread as "
+    "idiograph-holds.json": "the actions that waited for the researcher's yes before approvals were removed, dropped unread as "
                             "the project first opens",
     "idiograph-sent.json": "the record inside a shared copy's own file, never at a project's root",
     "team.json": "Working together knows a participant by their folder, in its signed list and its folder "

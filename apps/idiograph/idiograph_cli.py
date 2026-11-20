@@ -6,7 +6,7 @@ command line by `cli.register_own`, which the command line's import of this modu
 
     ./idiograph cases                  # from the app's folder, idiograph.bat on Windows
     ./idiograph statements Rowan --json
-    ./idiograph board new Rowan --from board.json --note "his request" --dry-run
+    ./idiograph board new Rowan --from board.json --note "the researcher's request" --dry-run
 
 Every rule is the app's: the cards are read by `themes.read_cards`, a board is laid out by
 `themes_ai.lay_out` and added through `themes.version_op`, a change to one goes through the
@@ -1969,6 +1969,8 @@ def cmd_team_join(p: Project, args) -> tuple:
         asked["folder"] = args.folder
     if getattr(args, "copy", False):
         asked["copy"] = True
+    if getattr(args, "replace", False):
+        asked["replace"] = True
     answer, lines, done = team_writes(p, args, asked)
     if not args.dry_run:
         lines.append(i18n.t("team.cli.join_code", code=done["code"], name=done.get("from") or "",
@@ -9942,6 +9944,9 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--folder", default=None, help="the shared folder the invite came through")
     x.add_argument("--copy", action="store_true",
                    help="this project is a copy of another computer's, its list not naming this computer")
+    x.add_argument("--replace", action="store_true",
+                   help="yes to the question a join as a copy asks when it would take the project out of its team "
+                        "into the invite's")
     x = tm.add_parser("joined", parents=[common, writes], help="the lead's They match taken in, once it has come")
     x.add_argument("--invite", required=True, help="the invite's id, as team join gave it")
     x = tm.add_parser("unjoin", parents=[common, writes], help="give up a join that was begun and not finished")

@@ -1034,7 +1034,8 @@ def invite(root: Path, own: bool = False, dry_run: bool = False, participants: l
     # team's, and a copy of the team's project must join it (teamfix, review 5)
     entries = None if own else [dict(p, folder=str(p["folder"])) for p in participants or []]
     offer = offer_body(dev, {"kind": "invite", "device": public(dev), "lead": roster.get("lead"),
-                             "from": me.get("name") or "", "own": bool(own), "expires": expires}, secret, entries)
+                             "from": me.get("name") or "", "own": bool(own), "expires": expires,
+                             "team_digest": team_digest(secret, team)}, secret, entries)
     try:
         # the relay takes a joiner's answers only in a mailbox a computer on the project opened (the abuse plan's
         # M4), so it is opened first, and a refusal gives no invite
@@ -1359,7 +1360,8 @@ def unjoin(root: Path, inv: str, dry_run: bool = False) -> dict:
 
 
 def join(root: Path, words: str, name: str, dry_run: bool = False, relay_url: str = "", route: str = "",
-         folder: str = "", participants: list[dict] | None = None, copy: bool = False) -> dict:
+         folder: str = "", participants: list[dict] | None = None, copy: bool = False,
+         replace: bool = False) -> dict:
     """The joiner's side: the invite read from its mailbox, refused when it is closed, expired or not there, this
     device's name and keys posted as the answer, and the six digits to read on the call. Joined once the lead's
     They match comes back (`joined`). Nothing is written to the project until then, so a project that joins from
@@ -1367,7 +1369,11 @@ def join(root: Path, words: str, name: str, dry_run: bool = False, relay_url: st
     `folder` say how the invite came, a shared folder or the relay, when the project has no route of its own yet,
     kept with the asking for `joined`. A project that holds a participant the invite does not list (its folder from
     the root) is refused, with nothing sent: it would become the lead's, refused to this computer, and never reach
-    the lead. A copy of the lead's own project joins as before. The dry run reads no invite, so it cannot say this."""
+    the lead. A copy of the lead's own project joins as before. The dry run reads no invite, so it cannot say this.
+    A project whose list names others but not this computer, joined as a copy to an invite that is not its own team's,
+    would leave its team and take the other's, so it is refused with nothing sent until `replace` says yes
+    (smallfix20, 19 November 2026). An invite from a computer the project's list names, an "Add a computer of mine"
+    invite among them, is the same team and asks nothing."""
     secret = words_secret(words)
     inv = invite_id(secret)
     data = read_team(root) or {}
@@ -1392,6 +1398,8 @@ def join(root: Path, words: str, name: str, dry_run: bool = False, relay_url: st
         # an offer with no list, made before it or too long to fit, joins with no check (teambuild2)
         if not_in_offer(secret, offer, participants):
             raise TeamError(i18n.t("team.refused.has_participants"), "has_participants")
+        if copy and not replace and replaces_team(data, offer, secret):
+            raise TeamError(replace_words(data, offer), "replace_team")
         answer = signed(dev, {"kind": "answer", "name": who, "device": public(dev)})
         way.send(mailbox(inv), aead_seal(invite_key(secret), canon(answer)))
     except Exception:
@@ -1407,10 +1415,44 @@ def join(root: Path, words: str, name: str, dry_run: bool = False, relay_url: st
                                                         "expires": offer.get("expires") or ""},
                                                        **({"relay_url": relay} if relay else {}),
                                                        **({"folder": folder} if folder else {}),
-                                                       **({"copy": True} if copy else {}))
+                                                       **({"copy": True} if copy else {}),
+                                                       **({"replace": True} if replace else {}))
         save_device_file(data_dev)
     return {"changes": [], "dry_run": False, "invite": inv, "from": offer.get("from") or "",
             "code": check_code(secret, offer["device"], public(dev))}
+
+
+def team_digest(secret: bytes, team: str) -> str:
+    """A team as an invite's offer names it: a keyed digest under the invite's own secret, as a participant's is, so
+    no one without the invite can test a team id against it. An offer made before it carries none (smallfix20, round 2)."""
+    return digest_of(secret, "team\0" + str(team))
+
+
+def replaces_team(data: dict, offer: dict, secret: bytes) -> bool:
+    """Whether a join as a copy would take this project out of the team it lists and into another's: its list names
+    others, and the offer does not carry this project's own team's digest. An offer with none asks."""
+    roster = (data or {}).get("roster") or {}
+    if not roster or by_itself(roster):
+        return False
+    mine = str((data or {}).get("team") or "")
+    return not (mine and offer.get("team_digest") == team_digest(secret, mine))
+
+
+def replace_words(data: dict, offer: dict) -> str:
+    """The question a join that would replace the project's team asks, naming both leads and the other's project as
+    the code can, then the line for a script: nothing was sent, and what to say to go ahead."""
+    roster = (data or {}).get("roster") or {}
+    mine = str((member_of(roster, str(roster.get("lead") or "")) or {}).get("name") or "")
+    theirs = str(offer.get("from") or "")
+    mine_team = i18n.t("team.replace.team_of", name=mine) if mine else i18n.t("team.replace.this_team")
+    their_team = i18n.t("team.replace.team_of", name=theirs) if theirs else i18n.t("team.replace.other_team")
+    their_project = i18n.t("team.replace.project_of", name=theirs) if theirs else i18n.t("team.replace.other_project")
+    if mine and mine == theirs:
+        # the same person leads both, a copy of the lead's own project made by a lead of 0.9.32 (no team digest)
+        ask = i18n.t("team.refused.replace_same", project=their_project)
+    else:
+        ask = i18n.t("team.refused.replace_ask", mine=mine_team, theirs=their_team, project=their_project)
+    return i18n.t("team.refused.replace_team", ask=ask)
 
 
 def read_offer(way, inv: str, secret: bytes) -> dict:
@@ -1507,6 +1549,12 @@ def joined(root: Path, inv: str, dry_run: bool = False) -> dict:
         team = str(welcome.get("team") or "")
         if roster.get("team") != team:
             raise TeamError(i18n.t("team.refused.tampered"), "tampered")
+        if (asked.get("copy") is True and asked.get("replace") is not True and not listed
+                and not by_itself(data.get("roster") or {}) and data.get("roster")
+                and str(data.get("team") or "") != team):
+            # the list names others, the welcome is another team's and the join never said yes to leaving: refused
+            # before anything is written (smallfix20, round 2)
+            raise TeamError(i18n.t("team.refused.replace_late"), "replace_late")
         if listed and str(roster_now.get("team") or "") != team:
             # the list names this computer in another team than the invite's: refused as `join` refuses it
             raise TeamError(i18n.t("team.refused.already_team"), "already_team")

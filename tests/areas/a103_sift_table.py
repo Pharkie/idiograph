@@ -537,7 +537,7 @@ console.log(JSON.stringify({
           and "rating 5" in shown["content"][0]["text"], shown["content"][0]["text"][:300])
     for_add = tool_call("sift_add", folder=str(folder), records=[{"title": "A rated record", "rating": "5", "col_design": "IPA"}])
     check("103: no tool writes a field or column of his: sift_add refuses them, and no tool takes a field or a value",
-          for_add["isError"] and "col_design, rating are his own in Sift, never a new record's." in for_add["content"][0]["text"]
+          for_add["isError"] and "col_design, rating are the researcher's own in Sift, never a new record's." in for_add["content"][0]["text"]
           and snapshot(folder) == held_files
           and not any({"field", "value", "rating", "notes", "digest", "critique", "participants"} & set(t["inputSchema"]["properties"])
                       for t in sift_mcp.SIFT_TOOLS)

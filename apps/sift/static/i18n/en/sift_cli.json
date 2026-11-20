@@ -55,7 +55,7 @@
     "one": "{n} note",
     "other": "{n} notes"
   },
-  "sift_cli.sift.and_with_his_fields": "{decisions} and {notes}, with his fields",
+  "sift_cli.sift.and_with_his_fields": "{decisions} and {notes}, with the researcher's fields",
   "sift_cli.sift.the_abstract_does_not_hold_the": "The abstract does not hold the grounds word for word for {list}.",
   "sift_cli.sift.the_proposals_at_of_into": "{verb} the proposals at {stage} of {records} into {list}: {list2}.",
   "sift_cli.sift.it_would_write": "It would write",
@@ -124,5 +124,5 @@
   "sift_cli.said.that_folder_holds_no": "That folder holds no {csv_name}.",
   "sift_cli.said.no_proposal": "no proposal",
   "sift_cli.said.not_done": "not done",
-  "sift_cli.said.no_yes": "Starting a screening again clears every decision, note and field of his, so it takes --yes."
+  "sift_cli.said.no_yes": "Starting a screening again clears every decision, note and field of the researcher's, so it takes --yes."
 }

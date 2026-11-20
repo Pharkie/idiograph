@@ -158,7 +158,7 @@ def test_sift_excerpts(scratch):
           "Sift's own, a column of his that Start again clears and a new record may never carry",
           proposals() == before_props and sift.is_own("excerpts") and "excerpts" in sift.OWN_COLUMNS
           and "excerpts" not in sift.PROPOSAL_COLUMNS + sift.AI_PROPOSAL_COLUMNS
-          and "his own in Sift" in refusal_of(lambda: sift.add_records(review, [{"title": "x", "excerpts": "[]"}], dry_run=True))
+          and "the researcher's own in Sift" in refusal_of(lambda: sift.add_records(review, [{"title": "x", "excerpts": "[]"}], dry_run=True))
           and "proposed_decision" not in inspect.getsource(sift.excerpt), str(proposals()))
     rec_read = next(r for r in read["records"] if r["rec_id"] == "O1")
     check("139: the screening read again gives each record its excerpts with their offsets, so the marks come back",
@@ -188,7 +188,7 @@ def test_sift_excerpts(scratch):
           and shown[0]["record"]["excerpts"] == rec_read["excerpts"], "\n".join(said))
     tool_show = next(t for t in mcp_server.TOOLS if t["name"] == "sift_show")
     check("139: MCP's record view gives the excerpts to read, and no command and no tool writes one",
-          "key excerpts" in tool_show["description"] and "sift_show his key excerpts too, and no tool writes any of them" in mcp_server.instructions("sift")
+          "key excerpts" in tool_show["description"] and "sift_show the researcher's key excerpts too, and no tool writes any of them" in mcp_server.instructions("sift")
           and "excerpt" not in sift_cli.SIFT_ACTS and not any("excerpt" in t["name"] for t in mcp_server.TOOLS)
           and all("sift_mod.excerpt(" not in support.source(p).read_text(encoding="utf-8")
                   for p in ("cli.py", "mcp_server.py", "apps/sift/sift_cli.py", "apps/sift/sift_mcp.py"))

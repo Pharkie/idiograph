@@ -110,8 +110,8 @@
     "other": "Record {i}: {names} are Sift's to write, never a new record's."
   },
   "sift_server.record_his": {
-    "one": "Record {i}: {names} is his own in Sift, never a new record's.",
-    "other": "Record {i}: {names} are his own in Sift, never a new record's."
+    "one": "Record {i}: {names} is the researcher's own in Sift, never a new record's.",
+    "other": "Record {i}: {names} are the researcher's own in Sift, never a new record's."
   },
   "sift_server.study.shares": {
     "one": "Shares {shared} of {n} author with {other} ({names})",

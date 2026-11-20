@@ -2267,7 +2267,7 @@ passage has changed since, in the app or by another write (18 October): read it 
 what it holds now. The app's own saves carry the same version, so a write of yours is never lost
 under a window that read the passage before it. The statements screen stands in the IPA book's three columns since 17
 October, experiential statements, the transcript and exploratory notes side by side, so the
-statements and the notes you write show beside each of her passages, the statements numbered, in
+statements and the notes you write show beside each of the participant's passages, the statements numbered, in
 the order of the columns they choose with a column's grip. Since 18 October Columns over them hides the
 statements, the notes or both, the transcript always shown, or stacks the notes under the statements in
 one column beside the transcript. A hidden column is never deleted: what you write still goes to the
@@ -2651,7 +2651,10 @@ sent with a copy. You sign as their computer: never read, copy or print either f
   before, is refused (`team joined` alike), and a removed member's project is not. A project whose list names the
   person but not this computer, a Finder copy of a lead's folder or a second computer on a synced folder, shows
   `unlisted` in `team show` and joins only with `--copy` (`copy` for `team_join`, kept with the asking for
-  `team joined`), which makes it a copy of the team whose invite is given. `team show` carries `start` (`kept`, `joining`, `unlisted`) as
+  `team joined`), which makes it a copy of the team whose invite is given. When its list names others and the invite is
+  not its own team's (the offer carries a keyed digest of the team), which would take the project out of its team, the join is refused with nothing sent (code
+  `replace_team`) until it also says `--replace` (`replace` for `team_join`), and an invite from a computer the
+  project's list names, an "Add a computer of mine" invite among them, asks nothing. `team show` carries `start` (`kept`, `joining`, `unlisted`) as
   the app reads it. A refused or failed join leaves no keys behind. An invite for a member's own computer lists no participants.
   `idiograph team joined --invite ID` (`team_joined`) takes the lead's yes in once it has come, and says joined
   again if asked again after it has.

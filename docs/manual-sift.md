@@ -8,7 +8,7 @@ underneath in [docs/internals.md](internals.md).
 
 Sift is screening for a systematic review, one record at a time, in rounds: the records clearly in,
 those clearly out and the borderline cases. It reads and writes the review's own CSV, keeps a log of
-every decision beside it, and works whole by hand. AI proposals are an experiment, off until he
+every decision beside it, and works whole by hand. AI proposals are an experiment, off until the researcher
 turns them on.
 
 **A review.** A review is one thing, its searches and then its screening, in one folder, and on
@@ -583,7 +583,7 @@ language, and a column of Set columns, hidden at first, and the record shows it 
 the filters is the one filter of where a record stands, To screen and the stage's three decisions with
 each reason, and Differs from the proposal and Where we differ, each with its count. A round this
 browser kept from before is read once into it. The rows are set when a tick is chosen, so a decision
-never moves the records under him. Full text holds the records with Yes or Maybe at title and
+never moves the records under the researcher. Full text holds the records with Yes or Maybe at title and
 abstract.
 
 **A second screener.** PRISMA 2020 asks how many people screened each record and whether they worked

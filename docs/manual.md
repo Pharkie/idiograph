@@ -615,7 +615,8 @@ team sends that way. The joiner's project is not shared until the lead says the 
 holds a participant the lead's project does not have cannot join it, and nor can a project that has a team of its
 own with someone else on it. A copy of the lead's project can join. A project whose team does not list this
 computer says so under Working together, with Join beside it, which makes the project a copy of the team whose
-invite you paste. If you close the Join card before the lead says the six digits match, Working together offers
+invite you paste. If that invite is from another team than the one the project lists, Join asks first, since the
+project leaves its team, and goes ahead only on OK. If you close the Join card before the lead says the six digits match, Working together offers
 to finish joining or to stop. If you stop after the lead has said they match, the lead removes you from the list.
 Stop working together sends and takes in nothing more, and Start working together again picks the team up as it
 was.

@@ -514,7 +514,7 @@ def test_sift_two(scratch):
     check("99: no tool and no act decides, notes or undoes a record, and the guide and the server's instructions say so",
           not ({"decide", "note", "undo"} & set(sift_cli.SIFT_ACTS))
           and not any({"decision", "reason", "note"} & set(t["inputSchema"]["properties"]) for t in sift_mcp.SIFT_TOOLS)
-          and "No tool decides, notes or undoes a record, which are his alone in Sift." in mcp_server.instructions("sift")
+          and "No tool decides, notes or undoes a record, which are the researcher's alone in Sift." in mcp_server.instructions("sift")
           and "Never decide, note or undo a record." in flat(guide)
           and "In a screening, never decide, note or undo a record." in mcp_server.instructions("sift"))
 

@@ -20,20 +20,20 @@ SIFT_LINE = (
     "A screening for a systematic review, in Sift, is named by its folder, the one holding screening.csv: "
     "sift_list, sift_show, sift_counts, sift_export, sift_prisma and sift_form only read it, and for the "
     "review's side sift_add adds records and sift_propose writes proposals, each taking dry_run. No tool "
-    "decides, notes or undoes a record, which are his alone in Sift. No tool resets a screening. "
-    "sift_list and sift_show give his own fields, the rating, participants, notes, digest, critique and "
-    "his columns, sift_show his key excerpts too, and no tool writes any of them. No tool links reports "
-    "as one study, which is his too. sift_show says what OpenAlex and Crossref say of the record, "
+    "decides, notes or undoes a record, which are the researcher's alone in Sift. No tool resets a screening. "
+    "sift_list and sift_show give the researcher's own fields, the rating, participants, notes, digest, critique and "
+    "the researcher's columns, sift_show the researcher's key excerpts too, and no tool writes any of them. No tool links reports "
+    "as one study, which is the researcher's too. sift_show says what OpenAlex and Crossref say of the record, "
     "retracted or corrected, open access, country and the review's key works it cites, its study and the "
     "reports Sift suggests are of the same study, and the terms of each block of the plan it holds with "
     "where they were found, or how a database found it without them. sift_form reads Extract and "
     "appraise's form, its fields and each included record's values, and no tool writes a field of the "
-    "form or a value, which are his. A review's searches are named by the review folder, the one holding "
+    "form or a value, which are the researcher's. A review's searches are named by the review folder, the one holding "
     "runs/: sift_search_plan, sift_search_strings and sift_search_runs only read, and sift_search_run "
     "runs the newest registered version by API, taking dry_run and follows, the earlier run whose "
     "screening it carries. No tool registers or writes a plan. Mark as registered and the decision behind "
-    "every change are his, and a draft that carries his decision on terms or strings is written through "
-    "Sift's own save, with the reason he gave. sift_search_databases lists his own databases and whether "
+    "every change are the researcher's, and a draft that carries the researcher's decision on terms or strings is written through "
+    "Sift's own save, with the reason the researcher gave. sift_search_databases lists the researcher's own databases and whether "
     "each key is saved, and no tool saves, removes or shows a key. ")
 
 # What Sift's own server's clients show their models first, within the 2,000 characters a client keeps
@@ -41,14 +41,14 @@ SIFT_LINE = (
 SIFT_CORE = (
     "Read this first. Sift is the researcher's app for a systematic review's searches and screening, by "
     "PRISMA 2020 and PRISMA-S. What you read goes to your model's provider: the records are published work, "
-    "and his decisions, notes and fields are his. Read only what his request needs.\n\n"
-    "He makes every decision, and you act on his request alone. Every tool names a folder by its full path, a "
+    "and the researcher's decisions, notes and fields are the researcher's. Read only what the researcher's request needs.\n\n"
+    "The researcher makes every decision, and you act on the researcher's request alone. Every tool names a folder by its full path, a "
     "screening's, the one holding screening.csv, or a review's, the one holding runs/ and search_plan.json. "
     "Call sift_counts or sift_search_runs first, then read only what the request needs, and for a question "
     "across the records call search with the folder.\n\n"
-    "sift_add, sift_propose and sift_search_run take dry_run. Run the dry run first and tell him what it would "
+    "sift_add, sift_propose and sift_search_run take dry_run. Run the dry run first and tell the researcher what it would "
     "write. The tools are the one way in. Never read or edit Sift's files any other way, and when no tool does "
-    "what he asks, tell him so.\n\n"
+    "what the researcher asks, tell the researcher so.\n\n"
     "The rest is in the guide at sift://guide, whole and by section.")
 # The line on the marking, after the core (Adam, 2 November 2026, by dialog: mark Sift's text too, see
 # `cli.mark` and SIFT_PLAIN)
@@ -60,7 +60,7 @@ SEARCH_LINE ="search is Sift's Search over a screening's records or a review's p
 
 # Sift's Search as its own server lists it, its words, its kinds and its folder
 SIFT_SEARCH = ("Sift's Search: every word in any order, case and accents set aside, or a phrase in quotation marks, "
-               "in a screening's records, his notes, fields, excerpts and reasons, and its review's plan, by the "
+               "in a screening's records, the researcher's notes, fields, excerpts and reasons, and its review's plan, by the "
                "screening's folder or the review's. Each hit names its record or its place in the plan, with a "
                "snippet, each word between two asterisks, and open, the tool and inputs that read it whole.",
                "records, plan or the search card's own, record, dnote and the rest", "A Sift screening's or review's")
@@ -74,9 +74,9 @@ SIFT_TOOLS = [
     mcp.tool("sift_list", "A screening's records", ("sift", "list"),
          "The records of one round of a screening, in the CSV's order: each with its rec_id, title, year, the "
          "searches that found it, where it stands at the stage, the proposal shown first with its source, whether it "
-         "has a PDF, whether it was retracted, corrected or given an expression of concern, the study he linked it to, "
-         "and his own fields, the rating, participants, notes, digest, critique and his columns, to read "
-         "only. A participant count he has not confirmed is a guess from the abstract. A decision is stored as "
+         "has a PDF, whether it was retracted, corrected or given an expression of concern, the study the researcher linked it to, "
+         "and the researcher's own fields, the rating, participants, notes, digest, critique and the researcher's columns, to read "
+         "only. A participant count the researcher has not confirmed is a guess from the abstract. A decision is stored as "
          "include, maybe or exclude and shown in the stage's words, Yes, Maybe or No at title and abstract, Include, "
          "Maybe or Exclude at full text, and To screen for none.",
          {"folder": FOLDER, "stage": STAGE,
@@ -84,17 +84,17 @@ SIFT_TOOLS = [
                                                 "apart", "undecided", "accepted", "rejected"],
                     "description": "to-screen, the default, the records not yet decided, maybe, yes or include, those "
                                    "taken forward, no or exclude, those left out, all, differs, those whose decision "
-                                   "differs from the proposal, or apart, Where we differ, those where he and the second "
-                                   "screener went different ways once he can see theirs. The older undecided, accepted "
+                                   "differs from the proposal, or apart, Where we differ, those where the researcher and the second "
+                                   "screener went different ways once the researcher can see theirs. The older undecided, accepted "
                                    "and rejected still work."}}, ["folder"]),
     mcp.tool("sift_show", "One record", ("sift", "show"),
          "One record of a screening as the screen draws it, its head, abstract, proposals and decision at each stage, "
-         "his own fields and his key excerpts, each its words, the stage it was made at and its pieces' places in "
+         "the researcher's own fields and the researcher's key excerpts, each its words, the stage it was made at and its pieces' places in "
          "the title or abstract, to read only, then Retracted or corrected with each notice, Open access, Country and "
          "Cites key works, from OpenAlex and Crossref, unknown where never asked, and for key works Sift cannot check "
-         "the reason, its Study with the other reports he linked and those Sift suggests with their reasons, the "
+         "the reason, its Study with the other reports the researcher linked and those Sift suggests with their reasons, the "
          "terms of each block of the plan it holds or the sentence that says how a database found it, with every line "
-         "of the log on it, oldest first, the changes to his fields and his links among them, each decision saying "
+         "of the log on it, oldest first, the changes to the researcher's fields and the researcher's links among them, each decision saying "
          "whether the screener's decision matched the suggestion shown, its source and what made it, keyword rules "
          "or a model, never which control made the decision.",
          {"folder": FOLDER, "rec_id": dict(mcp.TEXT, description="The record, R012.")}, ["folder", "rec_id"]),
@@ -110,16 +110,16 @@ SIFT_TOOLS = [
          "CSV, from the same counts: identification, screening, retrieval, eligibility and included.",
          {"folder": FOLDER}, ["folder"]),
     mcp.tool("sift_form", "The form of Extract and appraise", ("sift", "form"),
-         "The form of Extract and appraise, the stage after full text, where he extracts each included paper's data "
+         "The form of Extract and appraise, the stage after full text, where the researcher extracts each included paper's data "
          "and appraises its quality: its sections and fields in order, each its key, name, type, choices, where it "
          "shows, whether it offers Not reported, the field and the values it is shown for and the Sift column it starts "
          "from, then each record included at full text, done or not, with its row as Export the form writes it, and "
-         "the benchmark papers. To read only: no tool writes a field or a value, which are his.",
+         "the benchmark papers. To read only: no tool writes a field or a value, which are the researcher's.",
          {"folder": FOLDER}, ["folder"]),
     mcp.tool("sift_add", "Add records", ("sift", "add"),
          "Add records at the foot of a screening's CSV under its lock, every row before them kept. Each record holds "
          "the CSV's own columns, title required. One with no rec_id takes the next of the CSV's sequence, and a rec_id "
-         "the CSV holds already refuses the whole write. Never decision, reason, Sift's own proposal columns or his "
+         "the CSV holds already refuses the whole write. Never decision, reason, Sift's own proposal columns or the researcher's "
          "own fields and columns.",
          {"folder": FOLDER, "records": {"type": "array", "items": {"type": "object"},
                                         "description": 'The records, each {"title": "...", "authors": "...", "year": "...", '
@@ -129,7 +129,7 @@ SIFT_TOOLS = [
          "Write the review's own proposals for named records at a stage into proposed_decision, proposed_reason and "
          "grounds, or the ft_ three at full text, under the screening's lock. An exclude's reason must be a code of the "
          "stage from reasons.csv, and grounds a stretch of the abstract word for word. It never decides a record: "
-         "he decides every one in Sift.",
+         "the researcher decides every one in Sift.",
          {"folder": FOLDER, "stage": STAGE,
           "proposals": {"type": "array", "items": {"type": "object"},
                         "description": 'The proposals, each {"rec_id": "R012", "decision": "include, maybe or exclude", '
@@ -161,7 +161,7 @@ SEARCH_TOOLS = [
          "for a later run that day: each database by its API where Sift has one "
          "and its key is set, an export already dropped in that folder taken in for the rest, the records merged into "
          "screening.csv for Sift. No run written before is written again. Its screening carries every record "
-         "of the earlier run it follows, with their decisions, and adds the new ones to screen. Run it only when he "
+         "of the earlier run it follows, with their decisions, and adds the new ones to screen. Run it only when the researcher "
          "asks, dry_run first, which says how each database would go and the run it would follow, and checks "
          "truncation: each truncated term counted alone with and without its asterisk in each database searched by "
          "API that takes truncation, those counts the only requests it sends, with a flag where a database reads the "
@@ -174,8 +174,8 @@ SEARCH_TOOLS = [
 ]
 # his own list of databases, from the settings, which only reads. No tool saves, removes or shows a key
 DATABASES_TOOL = mcp.tool(
-    "sift_search_databases", "His databases", ("sift", "databases"),
-    "His own list of the databases he searches, from Idiograph's settings, in his order: each database, the "
+    "sift_search_databases", "The researcher's databases", ("sift", "databases"),
+    "The researcher's own list of the databases the researcher searches, from Idiograph's settings, in the researcher's order: each database, the "
     "platform PsycInfo or CINAHL is searched on, whether it goes by API or by export, and whether each of its keys "
     "is saved. Never a key itself.", {})
 
