@@ -2663,6 +2663,24 @@ def times_followed(root: Path, workbook: Path, sheet: str, moved: dict, times: d
         at = next((r for r in rows if times[r] == seconds), None)
         return moved[at][1] if at in moved else seconds
 
+    def end_at(seconds, at: int):
+        """A span's end as the shift leaves it where the row it belongs to is known: that row's new seconds where it
+        moved, else the seconds as they were."""
+        return moved[at][1] if at in moved else seconds
+
+    # the quotes that take in the passages beside their own as a fresh read of the sheet places them, read once for
+    # every line with a span, so an end belongs to the very row the read gives it and never to another row that holds
+    # the same time (datalows, Shift-times low C)
+    spans_at = sorted({line["row"] for rec in held.values() if isinstance(rec, dict) and isinstance(rec.get("lines"), dict)
+                       for line in rec["lines"].values() if isinstance(line, dict) and line.get("sheet") == sheet
+                       and isinstance(line.get("row"), int) and isinstance(line.get("span"), list)})
+    fresh_spreads: dict = {}
+    if spans_at:
+        try:
+            fresh_spreads = themes.sheet_spreads(workbook, sheet, spans_at, form)
+        except Exception:  # noqa: BLE001  a sheet that cannot be read leaves each end to the nearest row
+            fresh_spreads = {}
+
     for e in entries:
         rec = held.get(e["case"])
         lines = rec.get("lines") if isinstance(rec, dict) and isinstance(rec.get("lines"), dict) else {}
@@ -2679,6 +2697,11 @@ def times_followed(root: Path, workbook: Path, sheet: str, moved: dict, times: d
             span = line.get("span")
             if isinstance(span, list) and len(span) == 2:
                 new = [end_of(span[0], row, True), end_of(span[1], row, False)]
+                read = ((fresh_spreads.get(row) or {}).get("spread") or {}).get(key)
+                if (isinstance(read, dict) and read.get("rows") and list(read.get("span") or []) == span
+                        and None not in span):
+                    # the copy's span is the one the sheet gives: each end is the first and last row the quote takes in
+                    new = [end_at(span[0], read["rows"][0]), end_at(span[1], read["rows"][-1])]
                 if None in span and first:
                     # an end with no time belongs to a row that has none; one of those rows given its first timecode
                     # gives it to the end that is its row's, found as a fresh read finds it (spanfix, 16 November 2026)

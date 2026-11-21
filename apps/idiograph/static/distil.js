@@ -4517,9 +4517,11 @@ function nmWhere(f, several, form) {
   const w = f.where || {};
   const out = [];
   if (w.participant) out.push(w.participant);
+  const memos = w.part === 'memos';
   if (w.timepoint) out.push(w.timepoint);
-  else if (w.interview && several.has(w.participant)) out.push(w.interview);
-  if (NM_KIND[w.part]) out.push(t(NM_KIND[w.part]));
+  else if (w.interview && several.has(w.participant) && !memos) out.push(w.interview);
+  // a participant's second memos file reads "memos 2", the number alone, never the file's name
+  if (NM_KIND[w.part]) out.push(t(NM_KIND[w.part]) + (memos && /^memos \d+$/.test(w.interview || '') ? ' ' + w.interview.slice(6) : ''));
   if (w.turn && w.part !== 'speaker') {
     out.push(w.seconds !== null && w.seconds !== undefined ? timecode(w.seconds, form) : t('distil.names.passage', { n: w.turn }));
   }

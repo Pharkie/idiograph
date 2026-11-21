@@ -500,6 +500,110 @@ def fresh_store(base):
     shutil.rmtree(base, ignore_errors=True)
 
 
+def coarse_times(scratch: Path):
+    """A file rewritten to the same size inside one tick of the file system's clock keeps the time and size it had
+    (Windows's tick is about 15 ms), so time and size alone call it unchanged: a write's changed files, a restore
+    point's copy named by time and size, a change's file standing and a run's undo's conflicts all miss it. Where the
+    times are coarse (`COARSE`) a file read within a tick of its own time is read for its contents too, and time and
+    size that match are settled by them. Made here on any system by giving the rewritten file the time it had; on the
+    Mac and Linux, `COARSE` off, a rewrite is told by its time as before (datalows, Windows coarse file times)."""
+    import hashlib
+    import time
+    import types
+
+    import agent_changes as ac
+
+    base = scratch / "agent-changes-380-coarse"
+    shutil.rmtree(base, ignore_errors=True)
+    root = base / "Bees"
+    root.mkdir(parents=True)
+    held_flag = ac.COARSE
+    one = root / "idiograph-names.json"
+    sha = lambda b: hashlib.sha256(b).hexdigest()
+
+    def rewrite(data: bytes, ns: int) -> None:
+        one.write_bytes(data)
+        os.utime(one, ns=(ns, ns))
+
+    try:
+        for coarse in (False, True):
+            ac.COARSE = coarse
+            tag = "coarse" if coarse else "fine"
+            rewrite(b'{"a": "AAAA"}', time.time_ns())
+            st = one.stat()
+            was = ac.tracked(root)
+            rewrite(b'{"a": "BBBB"}', st.st_mtime_ns)
+            now = ac.tracked(root, since=was)
+            check(f"380: file times {tag}: a rewrite of the same size given the time it had is "
+                  f"{'told by its contents' if coarse else 'not told by time and size alone'}",
+                  ac.moved(was, now) == (["idiograph-names.json"] if coarse else []), json.dumps([was, now]))
+            # a file written long ago is never read for its contents, so the Mac's speed is the Mac's
+            rewrite(b'{"a": "AAAA"}', time.time_ns() - 3600 * 10 ** 9 * 2)
+            old = ac.tracked(root)
+            check(f"380: file times {tag}: a file last written hours ago is not read for its contents",
+                  not old.hashes, json.dumps(old.hashes))
+            # a restore point names a copy by the time and size, now a stale one
+            rewrite(b'{"a": "AAAA"}', time.time_ns())
+            start = types.SimpleNamespace(run="coarse", session="", tool="")
+            first = ac.new_run(root, start, "cli", "tester")
+            ac.keep_run(root, first)
+            rewrite(b'{"a": "BBBB"}', first["point"]["idiograph-names.json"]["stat"][0])
+            files, _pending = ac.point(root)
+            picked = files["idiograph-names.json"]["sha"]
+            check(f"380: file times {tag}: a restore point of a file rewritten to the same size and time takes "
+                  f"{'the contents it holds now' if coarse else 'the copy its time and size name'}",
+                  picked == sha(b'{"a": "BBBB"}' if coarse else b'{"a": "AAAA"}'), picked)
+            # a change's file stands by its time and size, and now by its contents
+            files_now = ac.Files(root)
+            stands = files_now.stands("idiograph-names.json",
+                                      {"after": sha(b'{"a": "AAAA"}'),
+                                       "after_stat": first["point"]["idiograph-names.json"]["stat"]})
+            check(f"380: file times {tag}: a change's file {'no longer stands' if coarse else 'stands'} once rewritten "
+                  "to the same size and time", stands is (not coarse), str(stands))
+            # a run's undo would lose that rewrite
+            run = {"id": "r1", "after": {"idiograph-names.json": first["point"]["idiograph-names.json"]["stat"]},
+                   "changed": ["idiograph-names.json"],
+                   "steps": {"c1": {"idiograph-names.json": {"after": sha(b'{"a": "AAAA"}'),
+                                                              "after_stat": first["point"]["idiograph-names.json"]["stat"]}}}}
+            lost = ac.conflicts(root, run, {})
+            check(f"380: file times {tag}: a run's undo {'is refused for' if coarse else 'does not see'} a rewrite of the "
+                  "same size and time", bool(lost) is coarse, json.dumps(lost))
+            shutil.rmtree(root / ac.STORE, ignore_errors=True)
+    finally:
+        ac.COARSE = held_flag
+
+
+def coarse_part_failed(root: Path, run):
+    """Where file times are coarse a write that failed part way settles its run's reading of a file with no change of its
+    own, so an earlier change's sha is not the file's: the run is still undone (datalows, review)."""
+    import agent_changes as ac
+    import names as names_mod
+
+    held = ac.COARSE
+    real = names_mod.save_at
+    ac.COARSE = True
+    try:
+        code, _o, err = run("names", "add", "--real", "Zebra", "--to", "[zeb]", "--note", "Add Zebra", "--run", "pf")
+
+        def failing(at, entries):
+            real(at, entries)
+            raise OSError("disk full")
+
+        names_mod.save_at = failing
+        try:
+            run("names", "add", "--real", "Yak", "--to", "[yak]", "--note", "Add Yak", "--run", "pf")
+        finally:
+            names_mod.save_at = real
+        mine = next((r for r in ac.all_runs(root) if r.get("key") == "run:pf"), {})
+        code3, dry, err3 = run("agents", "undo-run", mine.get("id", "r0"), "--dry-run")
+        check("380: file times coarse: a run whose last write failed part way, rewriting a file an earlier change of the run "
+              "wrote, is still undone", code == 0 and code3 == 0 and mine and dry.get("put_back", 0) + dry.get("taken_away", 0) >= 1,
+              err + err3 + json.dumps([mine.get("id"), dry]))
+    finally:
+        ac.COARSE = held
+        names_mod.save_at = real
+
+
 def test_agent_changes(scratch: Path):
     print("\n380. The record of agents' changes and each run's restore point: a write kept once with its run, a dry "
           "run and a read none, runs by tool, --run and 30 minutes, a run undone whole and refused over a later "
@@ -760,6 +864,10 @@ def test_agent_changes(scratch: Path):
 
         # ── 13. the whole copies a store holds deflated in place (compact, 21 November 2026)
         compacted_store(root, ask, run, lines, runs, clock, store)
+
+        # ── 14. file times too coarse to tell a rewrite of the same size from none (datalows, 21 November 2026)
+        coarse_times(scratch)
+        coarse_part_failed(root, run)
     finally:
         agent_changes.ALL_OPS, agent_changes.NOW = kept[0], kept[1]
         if kept[2] is None:

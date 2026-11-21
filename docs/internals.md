@@ -620,7 +620,12 @@ parser:
   minutes. A new run (`start_run`) is given the next id from `index.json`, `r1`, `r2`, never one given before, and its
   restore point (`point`): every `.xlsx` and `.json` under the root (`tracked`, walking no hidden folder and no
   `_Archive`, leaving out `NEVER`: History, team.json, the old holds file and a copy's own record, the list of names
-  kept since namesop so an agent's `names add` is undone), and each participant's memos files in Source
+  kept since namesop so an agent's `names add` is undone; where file times are coarse, `COARSE` (Windows, about 15 ms,
+  a same-size rewrite inside one tick keeping the time and size it had), `tracked` also reads the sha of a file whose time
+  is within `TICK_NS` of the reading and of one the earlier reading named, `moved` and `Files.stands` tell a rewrite of the
+  same size by it, `conflicts` reads a changed file against the sha of the run's last change that left the file as the run's last reading has it (`rewritten_since`, so a write that failed part way, settling the reading with no change, is never read against an earlier change) and
+  `point` takes a copy by time and size only when the file's sha is its name, datalows, 21 November 2026; the Mac and
+  Linux keep time and size alone and cost no more), and each participant's memos files in Source
   (`is_memos`, `<folder>/Source/<x> - memos.txt` and its numbered twins, since wordfix2, as `names replace` writes
   them; a line says them as "Juno's memos"), and since undosource (17 November 2026) every file in a participant's
   Source folder at any depth (`in_source`: the transcripts as given to Add transcripts or an import, recordings and
@@ -3223,7 +3228,17 @@ counted in it so his ticks in the files after it still name the finds he ticked 
 and one plain line in `failed`, its finds counted as left, the original archived by a copy first; the page's line for `books_changed` is `distil.names.books_changed`. An agent's Replace sends no `memos_seen` and so has no guard. `case_files.names_write`
 keeps an entry the store cannot take as it is, and `pseudo_keep` adds the entries a Real name made to the list on
 disk as it stands, the app's `set` working its marks out under the lock, so a Names edit made meanwhile is never
-written over. `books_kept` takes the timepoints read before a write only for a caller that says `reword`. `sentence`
+written over. Since datalows (21 November 2026) Replace writes each memos file under the project's lock and its
+participant's own case lock (`writing(path, root=root)`, the lock an undo takes for the same file, so Working together's
+`WRITE_GUARD` is asked and refuses a participant that is not his), the file read again under it; a numbered twin's finds
+carry the place `memos 2` (`pseudo_memo_place`, the number alone taken from the name, and `nmWhere` in distil.js writes
+it after "memos"), and no find in a memos file carries a timepoint; and the numbers his ticks name hold when a workbook
+the Check met is gone by Replace (`pseudo_counted_after` adds the finds the Check counted in the files beyond those
+the Replace came to). A memos file is read first and locked only when a find is to be written (a file with none asks no guard
+and no lock; one gone since the listing still adds the Check's counts), and a refusal at its lock, Working together's guard
+or a busy case, is a line in `failed` with its finds left, never an error mid-run. A memos file he makes between an agent's writes joins its run's restore point as it stands
+(undosource), so the run's undo puts it back and never takes it away. `books_kept` takes the timepoints read before a
+write only for a caller that says `reword`. `sentence`
 ends a shown sentence after a quoted `!` or `?` only when the next word is capitalised (`sentence_ends`). The
 label and pen portrait check (`participants.real_name_in`) finds a name in any case. Area 407.
 
@@ -8293,8 +8308,17 @@ row it belongs to whether or not the line's own row was shifted (a quote may tak
 before its row, `speakers_run`, so its start is the nearest timed row at or before the line's row holding that
 start's seconds, its end the nearest at or after), so the copy after a shift is what a fresh read gives (timefix). A
 copy's line on a shifted row takes the row's new seconds only when it held the old ones, so a change not yet taken
-still shows, and
-the record's hash is recomputed only where it stood for the copy as it was, so the shift alone never marks a
+still shows. Since datalows (21 November 2026) a span's ends are the first and last rows the quote takes in as a fresh
+read of the sheet gives them (`themes.sheet_spreads`, read once, used where the copy's span is the one the sheet gives),
+so two timed rows holding the same seconds cannot send an end to the wrong row, the nearest row holding the seconds
+staying the way where the sheet cannot be read or the copy's span is not the sheet's; `shift_style` gives a sheet whose
+every minute below the hour has two digits the width two, so `09:58` shifted past ten minutes and back is `09:58`;
+the width a sheet's minutes below the hour had when a shift last saw one explicitly is kept as `shift_pads` in the
+participant's progress file (`shift_hint`) and used where no cell says, so a shift past ten minutes and its opposite give
+them back padded or not as they were; `shifted_like` keeps the fraction of a second of a time or datetime (`microsecond`) and of a fraction of a day that is
+not a whole number of seconds. A `0:58:29` sheet shifted across the hour and back is still not given back as it was:
+the hour rule above takes the hours folded where the sheet has no cell on that side, and the undo restores the bytes.
+The record's hash is recomputed only where it stood for the copy as it was, so the shift alone never marks a
 participant changed. Board files, History, Trajectories, the progress file and the codes hold no times of their own
 (they read them from the workbook), so nothing else follows. `agent_changes.entry_for` adds `shift` (`by`, `from_row`,
 `to_row`, `rows`) to the line, counts alone. `turn shift-times` (`cmd_turn_shift_times`) and MCP's `turn_shift_times`

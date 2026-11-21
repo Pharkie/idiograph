@@ -66,6 +66,133 @@ def refused(fn) -> str:
     return ""
 
 
+def folder_of(n: int, who: str) -> str:
+    """A participant's folder name, made at run time, never written out where area 74 reads the tests for a demo's names."""
+    return f"P{n} - {who}"
+
+
+def memos_writes(base: Path):
+    """A participant's memos files in Source, written by Replace (datalows, 21 November 2026): a file the researcher makes
+    between an agent's writes is in the run's restore point and so is never taken away by its undo; each is written under
+    its participant's own lock, so Working together's guard is asked and refuses one that is not his; a numbered file's
+    finds read apart on the Review card under "memos 2"; and a tick lands on the find the Check showed whatever happens
+    to the workbooks before it (a participant's folder gone between Check and Replace)."""
+    import agent_changes
+    import agent_log
+    import cli
+    import idiograph_routes as routes
+    import names as names_mod
+    import server as server_mod
+    import workbook as wb_mod
+
+    root = base / "Bees with memos"
+    shutil.rmtree(root, ignore_errors=True)
+    root.mkdir(parents=True)
+    (root / server_mod.PROJECT_FILE).write_text(json.dumps({
+        "name": "Bees with memos", "research_question": support.DEMO_QUESTION,
+        "agents": {"allowed": True, "at": "2026-11-17T09:00:00+00:00"}}), encoding="utf-8")
+    for n, who in enumerate(("Juno", "Mabel", "Rowan"), start=1):
+        folder = root / f"P{n} - {who}"
+        (folder / "Working").mkdir(parents=True)
+        shutil.copy2(support.DEMO_SHIPPED / f"{who} - EN & ES.xlsx", folder / f"{who} - EN & ES.xlsx")
+        for side in sorted((support.DEMO_SHIPPED / "Working").glob(f"{who} - EN & ES.*")):
+            shutil.copy2(side, folder / "Working" / side.name)
+    config = base / "agent-config-memos.json"
+    config.write_text(json.dumps({"root": str(root), "interviewer": "Interviewer"}), encoding="utf-8")
+    routes.add_project(root)
+    rid = routes.project_id(root)
+    rowan = root / folder_of(3, "Rowan") / "Source"
+    rowan.mkdir()
+    juno = root / folder_of(1, "Juno") / "Source"
+    juno.mkdir()
+    names_mod.save_at(root, [{"real": ["Zed"], "to": "[z]", "for": None}])
+
+    def run(*args):
+        code, out, err = cli.run(["--config", str(config), "--root", str(root), "--json", *args, "--tool", "Claude Code"])
+        return code, (support.plain(json.loads(out)) if out.strip() and code == 0 else {}), err + (out if code else "")
+
+    def restore(*files: tuple):
+        for path, text in files:
+            path.write_text(text, encoding="utf-8")
+
+    def zed_in(book: Path):
+        wb = openpyxl.load_workbook(book)
+        done = False
+        for ws in wb.worksheets:
+            for row in ws.iter_rows(min_row=2):
+                for c in row:
+                    if isinstance(c.value, str) and len(c.value) > 20 and not done:
+                        c.value = c.value + " Zed."
+                        done = True
+        wb.save(book)
+        wb.close()
+
+    # ── 1. the Review card tells a participant's two memos files apart, by the number and never a file's name
+    for p in (rowan / "Rowan - memos.txt", rowan / "Rowan - memos 2.txt"):
+        p.write_text("Zed said hello.\n", encoding="utf-8")
+    shown = routes.api_names({"op": "check", "root": rid, "names_preview": True})
+    places = sorted({f["where"]["interview"] for f in shown["names"]["finds"] if f["where"]["part"] == "memos"})
+    check("407: a participant's two memos files read apart on the Review card, as memos and memos 2, and a find in a memos "
+          "file carries no timepoint", places == ["memos", "memos 2"]
+          and all("timepoint" not in f["where"] for f in shown["names"]["finds"] if f["where"]["part"] == "memos"),
+          json.dumps(places))
+
+    # ── 2. a memos file is written under its participant's lock: Working together's guard is asked, and one that is not
+    # his is refused with the files as they were
+    asked = []
+
+    def guard(path):
+        asked.append(Path(path).name)
+        if folder_of(3, "Rowan") in str(path) or folder_of(1, "Juno") in str(path):
+            raise wb_mod.WorkbookError("This participant is not yours.")
+
+    (juno / "Juno - memos.txt").write_text("Nothing to change here.\n", encoding="utf-8")
+    wb_mod.WRITE_GUARD = guard
+    try:
+        code, _o, err = run("names", "replace", "--note", "Replace the names", "--run", "g1")
+    finally:
+        wb_mod.WRITE_GUARD = None
+    kept = [(rowan / "Rowan - memos.txt").read_text(encoding="utf-8"), (rowan / "Rowan - memos 2.txt").read_text(encoding="utf-8")]
+    check("407: a memos file of a participant who is not his is refused by Working together's guard as a line, not an error "
+          "in the middle of the run, the files as they were, and a memos file with no find asks no guard",
+          code == 0 and kept == ["Zed said hello.\n", "Zed said hello.\n"] and any(n.startswith("Rowan - memos") for n in asked)
+          and not any(n.startswith("Juno - memos") for n in asked),
+          err[:200] + json.dumps([asked, kept]))
+
+    # ── 3. a memos file he makes between an agent's writes is in the run's restore point, so the run's undo never takes
+    # it away
+    (juno / "Juno - memos.txt").write_text("Zed told Juno. Mum was there.\n", encoding="utf-8")
+    code, _o, err = run("names", "add", "--real", "Hope", "--to", "[h]", "--note", "Add Hope", "--run", "mid")
+    (juno / "Juno - memos 2.txt").write_text("Made by him mid-run, with Zed in it.\n", encoding="utf-8")
+    code2, _o2, err2 = run("names", "replace", "--note", "Replace the names", "--run", "mid")
+    mid =next((r for r in agent_changes.all_runs(root) if r.get("key") == "run:mid"), {})
+    code3, dry, err3 = run("agents", "undo-run", mid.get("id", "r0"), "--dry-run")
+    check("407: a memos file made by him between an agent's writes is no file the run made, and the run's undo puts it back "
+          "as it stood and takes none away",
+          code == 0 and code2 == 0 and f"{folder_of(1, 'Juno')}/Source/Juno - memos 2.txt" not in (mid.get("made") or [])
+          and f"{folder_of(1, 'Juno')}/Source/Juno - memos 2.txt" in (mid.get("changed") or []) and code3 == 0 and dry.get("taken_away") == 0,
+          err + err2 + err3 + json.dumps([mid.get("made"), mid.get("changed"), dry]))
+    # the memos back as they were for what follows
+    restore((juno / "Juno - memos.txt", "Zed told Juno.\n"), (juno / "Juno - memos 2.txt", "Zed again.\n"))
+
+    # ── 4. a tick lands on the find the Check showed, a participant's folder gone between Check and Replace or not
+    for who in ("Juno", "Mabel", "Rowan"):
+        zed_in(next(root.glob(f"P* - {who}")) / f"{who} - EN & ES.xlsx")
+    restore((rowan / "Rowan - memos.txt", "Zed said hello.\n"), (rowan / "Rowan - memos 2.txt", "Zed again.\n"),
+            (juno / "Juno - memos.txt", "Nothing here.\n"), (juno / "Juno - memos 2.txt", "Nothing here either.\n"))
+    seen = routes.api_names({"op": "check", "root": rid, "names_preview": True})
+    memo_finds = [f for f in seen["names"]["finds"] if f["where"]["part"] == "memos"]
+    target = memo_finds[0]
+    shutil.rmtree(next(root.glob(folder_of(2, "*"))))
+    done = routes.api_names({"op": "replace", "root": rid, "names_reviewed": True, "skip": [f"{target['entry']}:{target['nth']}"],
+                             "memos_seen": seen.get("memos_seen") or []})
+    check("407: a tick on a memos file's find lands on that find though a participant's folder is gone between Check and "
+          "Replace, the file ticked left and the other replaced",
+          (rowan / "Rowan - memos 2.txt").read_text(encoding="utf-8") == "Zed again.\n"
+          and (rowan / "Rowan - memos.txt").read_text(encoding="utf-8") == "[z] said hello.\n" and done["books_changed"] >= 1,
+          json.dumps([[f["nth"], f["where"]["interview"]] for f in memo_finds]) + json.dumps(done)[:200])
+
+
 def test_names_review(scratch: Path):
     print("\n407. Names decided find by find in the review: Replace writes the ticked alone, lower case unticked, an "
           "entry he unticked marked and left whole by an agent's replace, Add with names reviewed first, and no real "
@@ -429,6 +556,9 @@ def test_names_review(scratch: Path):
               and "[son] came on Sunday with [friend]. Then Joy said I will stay." in made_text
               and code == 0 and "Then Joy said" in after_text and routes.pseudo_list(hives)[1].get("unticked") is True,
               json.dumps(hives_list) + made_text[:300] + err_h)
+
+        # ── 16. a participant's memos files in Source: lock, restore point, place on the card and numbering (datalows)
+        memos_writes(base)
 
         # ── 14. a find after a title shows its whole sentence, and one find left says so in the singular (namesfix)
         check("407: a find's sentence cut inside a quotation shows its quotation marks balanced, or none (namesfix2)",

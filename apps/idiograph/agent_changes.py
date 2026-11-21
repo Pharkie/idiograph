@@ -62,6 +62,7 @@ import re
 import secrets
 import shutil
 import tempfile
+import time
 import zlib
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -263,12 +264,32 @@ def inside(root, rel) -> bool:
     return True
 
 
-def tracked(root) -> dict:
+# A file system with coarse file times (Windows, a tick of about 15 ms, FAT's two seconds): a file rewritten to the
+# same size inside the tick it was last read in keeps the time and size it had, so time and size alone call it
+# unchanged. Where that may be (`COARSE`) a file read within TICK_NS of its own time is read for its contents too
+# (`Marks.hashes`), and time and size that match are settled by those contents (datalows, Windows coarse file times). The
+# suite sets `COARSE` to check it on any system; the Mac and Linux, whose times are fine, keep time and size alone
+COARSE = os.name == "nt"
+TICK_NS = 2_000_000_000
+
+
+class Marks(dict):
+    """What `tracked` answers: each file's time and size by its path, and under `COARSE` the sha of each file whose
+    time was within TICK_NS of the reading, and of each a reading before named (`since`), in `hashes`."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hashes: dict = {}
+
+
+def tracked(root, since: "Marks | None" = None) -> Marks:
     """Every file a restore point keeps or watches, by its path from the root with forward slashes, with its time
     and size: the workbooks and the JSON files, never NEVER's, and every file in a participant's Source folder
-    (`in_source`), memos and the transcripts as given among them, under no hidden folder nor an _Archive."""
+    (`in_source`), memos and the transcripts as given among them, under no hidden folder nor an _Archive. Where file
+    times are coarse (`COARSE`) the contents' sha too of a file changed within a tick of the reading and of one
+    `since`, an earlier reading, took the sha of, so a rewrite of the same size inside one tick is told from none."""
     root = Path(root)
-    out = {}
+    out = Marks()
     for here, dirs, files in os.walk(root):
         dirs[:] = sorted(d for d in dirs if not d.startswith(".") and d not in SKIP_DIRS)
         folder = Path(here).relative_to(root).as_posix()
@@ -283,13 +304,37 @@ def tracked(root) -> dict:
                 st = path.stat()
             except OSError:
                 continue
-            out[path.relative_to(root).as_posix()] = [st.st_mtime_ns, st.st_size]
+            rel = path.relative_to(root).as_posix()
+            out[rel] = [st.st_mtime_ns, st.st_size]
+            if COARSE and not watched(rel, out[rel]) and (
+                    abs(time.time_ns() - st.st_mtime_ns) <= TICK_NS or (since is not None and rel in since.hashes)):
+                got = sha_of(path)
+                if got is not None:
+                    out.hashes[rel] = got
     return out
 
 
+def sha_of(path) -> str | None:
+    """A file's sha256, read a CHUNK at a time, or None when it cannot be read."""
+    digest = hashlib.sha256()
+    try:
+        with open(path, "rb") as fh:
+            for piece in iter(lambda: fh.read(CHUNK), b""):
+                digest.update(piece)
+    except OSError:
+        return None
+    return digest.hexdigest()
+
+
 def moved(before: dict, after: dict) -> list:
-    """The files that differ between two readings, made, changed or gone, sorted."""
-    return sorted(f for f in set(before) | set(after) if before.get(f) != after.get(f))
+    """The files that differ between two readings, made, changed or gone, sorted. Where file times are coarse
+    (`COARSE`) a file whose time and size match in both readings is told apart by the contents' sha both took, when
+    both did (see `tracked`)."""
+    out = {f for f in set(before) | set(after) if before.get(f) != after.get(f)}
+    then, now = getattr(before, "hashes", None), getattr(after, "hashes", None)
+    if COARSE and then and now:
+        out |= {f for f in set(then) & set(now) if then[f] != now[f]}
+    return sorted(out)
 
 
 def folders(root) -> list:
@@ -709,7 +754,8 @@ def point(root) -> tuple[dict, dict]:
             out[rel] = {"sha": None, "stat": st}
             continue
         sha = known.get((rel, tuple(st)))
-        if sha and object_path(root, sha) is not None:
+        if sha and object_path(root, sha) is not None and not (COARSE and sha_of(Path(root) / rel) != sha):
+            # where file times are coarse a copy the time and size name is the file's only when its contents say so
             out[rel] = {"sha": sha, "stat": st}
             continue
         if st[1] > STREAM:
@@ -1349,6 +1395,11 @@ def through(p, args, run_op, writes: frozenset):
         # from the restore point or the run's last change, else read now, which only a file changed since by
         # someone else needs (agentreview2). A watched file is never read (undosource)
         known = known_shas(run)
+        for rel, then in before.hashes.items():
+            # where file times are coarse a copy the run holds for the time and size is the file's only when the contents
+            # just read say so; else the file is read now, as one changed by someone else is
+            if known.get((rel, tuple(before[rel]))) not in (None, then):
+                del known[(rel, tuple(before[rel]))]
         unread = {}
         for rel, st in before.items():
             if (rel, tuple(st)) not in known and not watched(rel, st):
@@ -1358,7 +1409,7 @@ def through(p, args, run_op, writes: frozenset):
         try:
             answer, lines = run_op(args)
         except BaseException:
-            after = tracked(root)
+            after = tracked(root, since=before)
             if moved(before, after):
                 # a write that failed part way: the run kept, so what it wrote can be undone
                 if fresh:
@@ -1367,7 +1418,7 @@ def through(p, args, run_op, writes: frozenset):
             if fresh:
                 let_go(run)
             raise
-        after = tracked(root)
+        after = tracked(root, since=before)
         changed = moved(before, after)
         if not changed and not reason_alone(args, answer):
             # it wrote nothing of the project's: no line, and a new run no restore point, nothing left behind. A turn
@@ -1586,13 +1637,33 @@ def listing(root, since: str = "", run: str = "", limit: int | None = None) -> d
 
 # ------------------------------------------------------------------ a run undone
 
+def rewritten_since(root, run: dict, rel: str) -> bool:
+    """Where file times are coarse (`COARSE`), whether a file whose time and size are those the run's last write left
+    holds other contents now: a rewrite of the same size inside one tick of that write, read against the sha its last
+    change kept. False where the times are fine, or the run kept no sha for the file."""
+    if not COARSE:
+        return False
+    sha = None
+    stood = list((run.get("after") or {}).get(rel) or [])
+    for step in (run.get("steps") or {}).values():
+        s = (step or {}).get(rel)
+        # only a change that left the file as the run's last reading has it: a write that failed part way settles the
+        # run's reading with no change of its own, and a change before it says nothing of the file now
+        if isinstance(s, dict) and s.get("after") and list(s.get("after_stat") or []) == stood:
+            sha = s["after"]
+    if not sha:
+        return False
+    now = sha_of(Path(root) / rel)
+    return now is not None and now != sha
+
+
 def conflicts(root, run: dict, names: dict) -> list[str]:
     """Each file a run's undo would lose a later change of, in a line: changed since the run's last write, or by
     someone else between its writes."""
     now_files = tracked(root)
     after = run.get("after") or {}
-    late = [f for f in run.get("changed") or [] if now_files.get(f) != after.get(f)]
-    between = [f for f in run.get("foreign") or [] if f in set(run.get("changed") or []) and f not in late]
+    late = [f for f in run.get("changed") or [] if now_files.get(f) != after.get(f) or rewritten_since(root, run, f)]
+    between =[f for f in run.get("foreign") or [] if f in set(run.get("changed") or []) and f not in late]
     out = []
     if late:
         out.append(i18n.t("agentchanges.undo.later", what=said_files(late, names)))
@@ -1690,7 +1761,7 @@ def carry_out(root, draft: dict, gone: list, back: list, clear: list, names: dic
             for rels, then in clear:
                 clear_folders(root, rels, then)
         finally:
-            after = tracked(root)
+            after = tracked(root, since=before)
             changed = moved(before, after)
             # an _Archive copy taken away is no tracked file, so the undo's run is told of it here, its copy in its
             # restore point, and the undo undone in its turn puts it back (lowsfix)
@@ -1827,7 +1898,10 @@ class Files:
         if state is None:
             return False
         if list(state["stat"]) == list(s["after_stat"]):
-            return True
+            if not (COARSE and state.get("real") and s.get("after")):
+                return True
+            # where file times are coarse, a file that stands by its time and size must hold the change's contents too
+            return self.sha(rel) == s["after"]
         sha = state["sha"] if state.get("sha") or not state.get("real") else self.sha(rel)
         return bool(sha) and sha == s.get("after")
 

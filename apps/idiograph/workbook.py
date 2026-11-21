@@ -1214,6 +1214,7 @@ def shift_style(values) -> dict:
     has more than one digit (05:12, 01:15:12), else none. A sheet's cells kept as times, datetimes or fractions of a
     day say nothing here."""
     sides, pads = {}, {}
+    single = set()
     for value in values:
         m = SHIFT_STRING.fullmatch(value) if isinstance(value, str) else None
         seconds = ts_seconds(value) if m else None
@@ -1225,7 +1226,44 @@ def shift_style(values) -> dict:
         count[n] += 1
         if len(first) > 1 and first.startswith("0"):
             pads[(side, n)] = max(pads.get((side, n), 0), len(first))
-    return {"sides": sides, "pads": pads}
+        if len(first) == 1:
+            single.add((side, n))
+    # minutes below the hour in a sheet with none of one digit (every cell at 10:00 or later) are given the width two
+    # the app writes them in, so a shift that took every padded cell past 10:00 and its opposite give them back as they
+    # were, 09:58 coming back 09:58 and not 9:58 (datalows, Shift-times low B)
+    explicit = 2 if (False, 2) in pads else (1 if (False, 2) in single else None)
+    implied = bool(sides.get(False, {}).get(2)) and explicit is None
+    if implied:
+        pads[(False, 2)] = 2
+    return {"sides": sides, "pads": pads, "implied": implied, "explicit": explicit}
+
+
+def shift_hint(path: Path, sheet: str, write: int | None = None) -> int | None:
+    """What a sheet's minutes below the hour were written as when a shift last had evidence of it, 2 for padded (09:58)
+    or 1 for not (9:58), kept as `shift_pads` in the participant's progress file, so a shift that took every such cell
+    past ten minutes is given back as it was by its opposite, padded or not (datalows). With `write` it is kept, in a
+    progress file that is there. None when nothing is kept."""
+    file = Path(path).parent / "Working" / f"{Path(path).stem}.progress.json"
+    try:
+        data = json.loads(file.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            return None
+    except (OSError, ValueError):
+        return None
+    held = data.get("shift_pads") if isinstance(data.get("shift_pads"), dict) else {}
+    if write is None:
+        got = held.get(sheet)
+        return got if got in (1, 2) else None
+    if held.get(sheet) == write:
+        return write
+    data["shift_pads"] = dict(held, **{sheet: write})
+    tmp = file.with_name(f".{file.name}.shift.tmp")
+    try:
+        tmp.write_text(json.dumps(data, ensure_ascii=False, indent=1) + "\n", encoding="utf-8", newline="\n")
+        os.replace(tmp, file)
+    except OSError:
+        tmp.unlink(missing_ok=True)
+    return write
 
 
 def shifted_like(value, seconds: int, style: dict | None = None):
@@ -1263,6 +1301,17 @@ def shifted_like(value, seconds: int, style: dict | None = None):
             else:
                 body = f"{seconds // 3600:0{width}d}:{(seconds % 3600) // 60:02d}:{seconds % 60:02d}"
             return f"{head}{body}{tail}"
+    if isinstance(value, (dt.time, dt.datetime)) and value.microsecond:
+        # a time kept to the millisecond keeps its fraction of a second, a shift moving the whole seconds alone and its
+        # opposite giving the cell back as it was (datalows, Shift-times low on fractions of a day)
+        return timecode_like(value, seconds).replace(microsecond=value.microsecond)
+    if isinstance(value, float) and not isinstance(value, bool):
+        # a fraction of a day: one a whole number of seconds is written again as seconds/86400, so a shift and its
+        # opposite give it back exactly, and one with a fraction of a second keeps that fraction
+        exact = value * 86400
+        part = exact - round(exact)
+        if abs(part) > 1e-6:
+            return (seconds + part) / 86400
     return timecode_like(value, seconds)
 
 
@@ -1299,6 +1348,10 @@ def shift_times(path: Path, sheet: str, by: int, first: int | None = None, last:
         rows, untimed, below, past, times = [], [], [], [], {}
         # how the sheet writes its timecodes on each side of the hour, read before any cell changes (timefix)
         style = shift_style(ws.cell(r, cols["ts"]).value for r in range(2, top + 1))
+        kept_pad = shift_hint(path, sheet)
+        if style["implied"] and kept_pad is not None:
+            # no cell says how the sheet pads its minutes now: what the last shift saw says (datalows)
+            style["pads"][(False, 2)] = kept_pad
         crossed = 0
         for r in range(2, top + 1):
             cell = ws.cell(r, cols["ts"])
@@ -1334,6 +1387,8 @@ def shift_times(path: Path, sheet: str, by: int, first: int | None = None, last:
         changed = bool(by) and bool(rows)
         if changed and not dry:
             _atomic_save(wb, path)
+            if style["explicit"] is not None:
+                shift_hint(path, sheet, style["explicit"])
         ends = lambda one: {"row": one["row"], "before": timecode(one["before"], form),
                             "after": timecode(one["after"], form)} if one else None
         return {"sheet": sheet, "by": by, "from_row": lo, "to_row": hi, "rows": rows, "count": len(rows),

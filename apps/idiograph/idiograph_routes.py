@@ -5467,7 +5467,7 @@ def pseudo_check(root: Path, entries: list[dict], skip=(), take=(), seen: list |
             changes[book] = folder
     for who, folder, path, memo in pseudo_memos(root):
         mark = len(run.finds)
-        pseudo_memo_text(run, who, memo["text"])
+        pseudo_memo_text(run, who, memo["text"], memo["place"])
         if seen is not None:
             seen.append(pseudo_memo_seen(memo, run.finds[mark:]))
         if any(not f["skipped"] for f in run.finds[mark:]):
@@ -5486,7 +5486,7 @@ def pseudo_placed(finds: list[dict], book: Path, times: dict, labels: dict) -> N
         w = f["where"]
         if w.get("row") is not None:
             w["seconds"] = times.get((w.get("interview"), w["row"]))
-        if len(labels) >= 2 and w.get("interview"):
+        if len(labels) >= 2 and w.get("interview") and w.get("part") != "memos":
             w["timepoint"] = labels.get(placed.get(w["interview"], 1))
 
 
@@ -5527,12 +5527,20 @@ def pseudo_memo_read(path: Path) -> dict | None:
         text = data[len(PSEUDO_BOM) if bom else 0:].decode("utf-8")
     except (OSError, UnicodeDecodeError):
         return None
-    return {"text": text, "bom": bom, "sha": hashlib.sha256(data).hexdigest()[:32]}
+    return {"text": text, "bom": bom, "sha": hashlib.sha256(data).hexdigest()[:32], "place": pseudo_memo_place(path)}
 
 
-def pseudo_memo_text(run: "names_mod.Run", who: str, text: str) -> str:
+def pseudo_memo_place(path: Path) -> str:
+    """The place a memos file's finds are said to be in: the fixed word `memos`, and for a numbered twin (`<x> - memos
+    2.txt`) the word and its number, so a participant's two files read apart on the Review card. Never the file's
+    name, which may be his own and hold a name (wordfix2 N3): the number alone is taken from it (datalows)."""
+    n = re.search(r" - memos (\d+)\.txt$", Path(path).name)
+    return f"{names_mod.MEMOS_PLACE} {int(n.group(1))}" if n else names_mod.MEMOS_PLACE
+
+
+def pseudo_memo_text(run: "names_mod.Run", who: str, text: str, place: str = names_mod.MEMOS_PLACE) -> str:
     # the place said by a fixed word, never the file's name, which may be his own and hold a name (wordfix2 N3)
-    return run.text(text, who, {"participant": who, "interview": names_mod.MEMOS_PLACE, "part": "memos"})
+    return run.text(text, who, {"participant": who, "interview": place, "part": "memos"})
 
 
 def pseudo_memo_seen(memo: dict, finds: list) -> dict:
@@ -5579,22 +5587,34 @@ def pseudo_book_held(run: "names_mod.Run", who: str, book: Path, counted: dict) 
     wb_mod.names_in_book(book, pseudo_fixer(other, who), dry=True)
     for f in other.finds:
         run.finds.append(dict(f, skipped=True))
+    pseudo_counted(run, counted)
+
+
+def pseudo_counted(run: "names_mod.Run", counted: dict) -> None:
+    """The run's numbers moved on by the finds the Check counted in a file (`counted`, by entry), so the finds of the
+    files after it keep the numbers his ticks name."""
     for k, n in counted.items():
         if 0 < int(k) <= len(run.entries):
             run.tally[int(k) - 1] = run.tally.get(int(k) - 1, 0) + n
 
 
-def pseudo_memo_held(run: "names_mod.Run", who: str, text: str, counted: dict) -> None:
+def pseudo_counted_after(run: "names_mod.Run", met: list | None, taken: int) -> None:
+    """The files the Check met beyond the `taken` the Replace came to (one gone since, so every later one met
+    another's digest): the finds the Check counted in them added to the run's numbers all the same, so the files
+    after, a memos file after the workbooks, keep the numbers his ticks name (datalows)."""
+    for m in (met or [])[taken:]:
+        pseudo_counted(run, m.get("n") or {})
+
+
+def pseudo_memo_held(run: "names_mod.Run", who: str, text: str, counted: dict, place: str = names_mod.MEMOS_PLACE) -> None:
     """A memos file changed since the Check his ticks came from: nothing of it replaced, each find it holds now
     counted as left, and the run's numbers moved on by the finds the Check counted in it (`counted`), so the finds of
     the files after it keep the numbers his ticks name (wordfix2 N4)."""
     other = names_mod.Run(run.entries)
-    other.text(text, who, {"participant": who, "interview": names_mod.MEMOS_PLACE, "part": "memos"})
+    other.text(text, who, {"participant": who, "interview": place, "part": "memos"})
     for f in other.finds:
         run.finds.append(dict(f, skipped=True))
-    for k, n in counted.items():
-        if 0 < int(k) <= len(run.entries):
-            run.tally[int(k) - 1] = run.tally.get(int(k) - 1, 0) + n
+    pseudo_counted(run, counted)
 
 
 def pseudo_archive_move(path: Path, folder: Path, stamp: str, copy: bool = False) -> None:
@@ -5672,7 +5692,8 @@ def pseudo_replace(root: Path, entries: list[dict], skip, tool: str = "", reques
     met_books = [m for m in seen if m.get("kind") == "book"] if seen is not None else None
     met_memos = [m for m in seen if m.get("kind") != "book"] if seen is not None else None
     books_changed = 0
-    for i, (who, folder, book) in enumerate(pseudo_books(root)):
+    every_book = list(pseudo_books(root))
+    for i, (who, folder, book) in enumerate(every_book):
         met = met_books[i] if met_books is not None and i < len(met_books) else None
         if met_books is not None and (met is None or met["sha"] != pseudo_book_sha(book)):
             # changed since the Check (or one the Check never met): left as it is, counted as left
@@ -5707,42 +5728,88 @@ def pseudo_replace(root: Path, entries: list[dict], skip, tool: str = "", reques
                     taken=took.get((sheet, row), ticked)))
             pseudo_copies(run, who, folder, every, stamp, ticked)
         done.append(label_for(folder))
+    # a workbook the Check met that is gone now: its finds still held the numbers the memos files' finds follow
+    pseudo_counted_after(run, met_books, len(every_book))
     # each memos file read again and written under the project's lock, so nothing changes it between the two, and
     # one the app's Check met otherwise (`seen`) left as it is (wordfix2 N4)
     memos_changed = 0
-    with writing(root=root):
-        for i, (who, folder, path, memo) in enumerate(pseudo_memos(root)):
-            met = met_memos[i] if seen is not None and i < len(met_memos) else None
-            if seen is not None and (met is None or met["sha"] != memo["sha"]):
-                pseudo_memo_held(run, who, memo["text"], (met or {}).get("n") or {})
-                memos_changed += 1
-                continue
-            mark = len(run.finds)
-            new = pseudo_memo_text(run, who, memo["text"])
-            if new == memo["text"] or not any(not f["skipped"] for f in run.finds[mark:]):
-                continue
-            # its byte order mark and its line endings as they were, every byte but the finds (wordfix2 N2), written
-            # to a file beside it first and put in its place, so a failure leaves it as it was and no path reaches
-            # an agent (lowsfix)
-            data = (PSEUDO_BOM if memo["bom"] else b"") + new.encode("utf-8")
-            tmp = path.with_name(f".{path.name}.tmp")
+    # each memos file read again and written under the project's lock and its participant's own case lock (the
+    # lock an undo takes for the same file, and the one Working together's guard asks, datalows), the order the
+    # Check took
+    every_memos = list(pseudo_memos(root))
+
+    def memo_met(i):
+        return met_memos[i] if seen is not None and i < len(met_memos) else None
+
+    def memo_write(who, folder, path, memo, i):
+        """One memos file, read as it is, its finds run and the file written when any is to be: the caller holds the
+        locks it needs."""
+        nonlocal memos_changed
+        met = memo_met(i)
+        if seen is not None and (met is None or met["sha"] != memo["sha"]):
+            pseudo_memo_held(run, who, memo["text"], (met or {}).get("n") or {}, memo["place"])
+            memos_changed += 1
+            return
+        mark = len(run.finds)
+        new = pseudo_memo_text(run, who, memo["text"], memo["place"])
+        if new == memo["text"] or not any(not f["skipped"] for f in run.finds[mark:]):
+            return
+        # its byte order mark and its line endings as they were, every byte but the finds (wordfix2 N2), written
+        # to a file beside it first and put in its place, so a failure leaves it as it was and no path reaches
+        # an agent (lowsfix)
+        data = (PSEUDO_BOM if memo["bom"] else b"") + new.encode("utf-8")
+        tmp = path.with_name(f".{path.name}.tmp")
+        try:
+            tmp.write_bytes(data)
+            # archived by a copy, so the file is in Source until the new one takes its place
+            pseudo_archive_move(path, folder, stamp, copy=True)
+            os.replace(tmp, path)
+        except OSError:
             try:
-                tmp.write_bytes(data)
-                # archived by a copy, so the file is in Source until the new one takes its place
-                pseudo_archive_move(path, folder, stamp, copy=True)
-                os.replace(tmp, path)
+                tmp.unlink(missing_ok=True)
             except OSError:
-                try:
-                    tmp.unlink(missing_ok=True)
-                except OSError:
-                    pass
-                failed.append(i18n.t("names.memos_not_written"))
-                # its finds were not written, so they count as left
-                for f in run.finds[mark:]:
-                    f["skipped"] = True
-                continue
-            if label_for(folder) not in done:
-                done.append(label_for(folder))
+                pass
+            failed.append(i18n.t("names.memos_not_written"))
+            # its finds were not written, so they count as left
+            for f in run.finds[mark:]:
+                f["skipped"] = True
+            return
+        if label_for(folder) not in done:
+            done.append(label_for(folder))
+
+    for i, (who, folder, path, first) in enumerate(every_memos):
+        # read first, locked only when a find is to be written: a file with none asks no guard and no lock, so a
+        # participant that is not his is refused only where a write would reach them, and a refusal is a line in
+        # `failed` with the file's finds left, never an error in the middle of the run
+        memo = pseudo_memo_read(path)
+        if memo is None:
+            # gone or unreadable since the listing: the finds the Check counted in it still hold the numbers
+            pseudo_counted(run, (memo_met(i) or {}).get("n") or {})
+            continue
+        met = memo_met(i)
+        writable = False
+        if not (seen is not None and (met is None or met["sha"] != memo["sha"])):
+            # the finds as the real run would meet them, its numbers copied, to see whether any is to be written
+            probe = names_mod.Run(run.entries, run.skip, run.take, run.hold)
+            probe.tally = dict(run.tally)
+            pseudo_memo_text(probe, who, memo["text"], memo["place"])
+            writable = any(not f["skipped"] for f in probe.finds)
+        if not writable:
+            memo_write(who, folder, path, memo, i)
+            continue
+        try:
+            with writing(path, root=root):
+                again = pseudo_memo_read(path)
+                if again is None:
+                    pseudo_counted(run, (met or {}).get("n") or {})
+                    continue
+                memo_write(who, folder, path, again, i)
+        except WorkbookError as exc:
+            mark = len(run.finds)
+            pseudo_memo_text(run, who, memo["text"], memo["place"])
+            for f in run.finds[mark:]:
+                f["skipped"] = True
+            failed.append(str(exc))
     if not tool:
         pseudo_mark(root, entries, run.unticked())
     counts = run.counts()
@@ -8706,7 +8773,8 @@ def api_skip(body: dict) -> dict:
             after_progress["rows"][keys[n]] = rounds_mod.REVIEWED_EMPTY
         after = rounds_mod.row_states(case["sheets"], after_progress, interviewer)
         # the timepoint the sheet is at, T1 for one no progress file places later, and the passages decided there
-        placed = themes_mod.placed_sheets(path)
+        # read from the progress file as it was just read, never the file read and parsed again (datalows, leaveout)
+        placed = rounds_mod.sheet_timepoints(progress)
         at = placed.get(sheet, 1)
         tps = project_timepoints(path)
         sheets_at = [s for s in case["sheets"] if placed.get(s["name"], 1) == at]

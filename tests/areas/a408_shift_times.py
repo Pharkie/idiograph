@@ -408,6 +408,29 @@ def test_shift_times(scratch: Path):
         check("408: and -3 on row 13 gives the workbook and the GETs file back",
               code == 0 and parts(juno) == book_span0 and gets_json() == gets_span0, err[:300])
 
+        # ── 10b. two timed rows with the same seconds (datalows, Shift-times low C): the span's first row is the one the
+        # fresh read gives, never the nearer row that holds the same time, so a range shift of that row alone moves the span
+        # start as a fresh read gives it. Row 14 is made to hold row 13's time first.
+        gap = times0[13] - times0[14]
+        code, _x, err = run("turn", "shift-times", "Juno", "Initial", "--by", str(gap), "--from-row", "14", "--to-row", "14",
+                            "--note", ASKED)
+        book_same0, gets_same0 = parts(juno), gets_json()
+        code2, _x, err2 = run("turn", "shift-times", "Juno", "Initial", "--by", "3", "--from-row", "13", "--to-row", "13",
+                              "--note", ASKED)
+        check("408: with row 14 holding row 13's time, a range shift of row 13 alone moves the span's start, the row the "
+              "quote begins in, as a fresh read gives it, and the participant still reads in",
+              code == 0 and code2 == 0 and times0[13] > 0 and gap != 0
+              and copy_span() == fresh_span().get(key15) == [s0[0] + 3, s0[1]]
+              and set(statuses(juno, root, "gets").values()) == {"in"}, err[:300] + err2[:300] + json.dumps([copy_span(), fresh_span()]))
+        code, _x, err = run("turn", "shift-times", "Juno", "Initial", "--by", "-3", "--from-row", "13", "--to-row", "13",
+                            "--note", ASKED)
+        check("408: and -3 on row 13 gives the workbook and the GETs file back",
+              code == 0 and parts(juno) == book_same0 and gets_json() == gets_same0, err[:300])
+        code, _x, err = run("turn", "shift-times", "Juno", "Initial", "--by", str(-gap), "--from-row", "14", "--to-row", "14",
+                            "--note", ASKED)
+        check("408: and row 14 given its own time again leaves the workbook and the GETs file as they were before the "
+              "span's shifts", code == 0 and parts(juno) == book_span0 and gets_json() == gets_span0, err[:300])
+
         # ── 11. the hour (timefix): a text timecode crossing it takes the sheet's form on its new side, hours folded
         # into the minutes where the sheet has none there, and the dry run counts those that cross
         import workbook as wb_mod
@@ -429,6 +452,62 @@ def test_shift_times(scratch: Path):
                         "05:12 +30": "05:42", "59:30 +121, no cell past the hour": "61:31",
                         "59:30 +121 among 1:02:00": "1:01:31", "1:00:30 -121 among 58:29": "58:29",
                         "1:00:30 -121, no cell below the hour": "58:29"}, json.dumps(forms))
+        # a sheet whose every cell is at 10:00 or later is given back its minutes padded to two digits (datalows, Shift-times
+        # low B): 09:58 shifted past ten minutes and back is 09:58 again, where a sheet with a one-digit minute keeps its own
+        pushed = [shifted(["09:58", "11:30", "12:10"], c, 121) for c in ("09:58", "11:30", "12:10")]
+        unpushed = [shifted(pushed, c, -121) for c in pushed]
+        check("408: a sheet's two-digit minutes are written back padded when no cell has one digit, 09:58 and its opposite "
+              "giving 09:58, and a sheet with a one-digit minute keeps its own",
+              pushed == ["11:59", "13:31", "14:11"] and unpushed == ["09:58", "11:30", "12:10"]
+              and shifted(["9:58", "11:30"], "11:30", -121) == "9:29", json.dumps([pushed, unpushed]))
+        # a time kept to the millisecond, or a fraction of a day with a fraction of a second, keeps it (datalows)
+        import datetime as dt
+        kept_time = wb_mod.shifted_like(dt.time(0, 0, 5, 320000), 126)
+        grid = wb_mod.shifted_like(30 / 86400, 151)
+        part = wb_mod.shifted_like(31.5 / 86400, 28)
+        sub = base / "subsecond-408.xlsx"
+        shutil.copy2(juno, sub)
+        wb = openpyxl.load_workbook(sub)
+        ws = wb["Initial"]
+        tcol = wb_mod.detect_columns(ws)["ts"]
+        for r, v in ((2, dt.time(0, 0, 5, 320000)), (3, dt.time(0, 0, 31, 500000)), (4, dt.time(0, 1, 2))):
+            ws.cell(r, tcol).value = v
+        wb.save(sub)
+        wb.close()
+        cells0 = [openpyxl.load_workbook(sub)["Initial"].cell(r, tcol).value for r in (2, 3, 4)]
+        wb_mod.shift_times(sub, "Initial", 121, 2, 4)
+        cells1 = [openpyxl.load_workbook(sub)["Initial"].cell(r, tcol).value for r in (2, 3, 4)]
+        wb_mod.shift_times(sub, "Initial", -121, 2, 4)
+        cells2 = [openpyxl.load_workbook(sub)["Initial"].cell(r, tcol).value for r in (2, 3, 4)]
+        check("408: a time kept to the millisecond keeps its fraction of a second through a shift and its opposite, a fraction "
+              "of a day that is a whole number of seconds is written as it was, and one with a fraction of a second keeps it",
+              kept_time == dt.time(0, 2, 6, 320000) and grid == 151 / 86400 and abs(part * 86400 - 27.5) < 1e-6
+              and cells1 == [dt.time(0, 2, 6, 320000), dt.time(0, 2, 32, 500000), dt.time(0, 3, 3)] and cells2 == cells0,
+              json.dumps([str(c) for c in cells0 + cells1 + cells2]))
+        # a sheet's minutes below the hour padded or not, every one past ten minutes after a shift: the opposite shift gives
+        # them back as they were either way, from what the first shift saw kept in the progress file (datalows, review)
+        (base / "Working").mkdir(exist_ok=True)
+        pad_book = base / "padded-408.xlsx"
+        both = {}
+        for label, cells in (("unpadded", ["9:58", "11:30", "12:10"]), ("padded", ["09:58", "11:30", "12:10"])):
+            shutil.copy2(juno, pad_book)
+            (base / "Working" / "padded-408.progress.json").write_text("{}", encoding="utf-8")
+            wbp = openpyxl.load_workbook(pad_book)
+            wsp = wbp["Initial"]
+            for r, v in zip((2, 3, 4), cells):
+                wsp.cell(r, wb_mod.detect_columns(wsp)["ts"]).value = v
+            wbp.save(pad_book)
+            wbp.close()
+            read = lambda: [openpyxl.load_workbook(pad_book)["Initial"].cell(r, wb_mod.detect_columns(
+                openpyxl.load_workbook(pad_book)["Initial"])["ts"]).value for r in (2, 3, 4)]
+            wb_mod.shift_times(pad_book, "Initial", 121, 2, 4)
+            moved_up = read()
+            wb_mod.shift_times(pad_book, "Initial", -121, 2, 4)
+            both[label] = (moved_up, read())
+        check("408: a sheet's minutes below the hour come back padded or unpadded as they were after a shift past ten minutes "
+              "and its opposite, whichever the sheet wrote",
+              both["unpadded"][1] == ["9:58", "11:30", "12:10"] and both["padded"][1] == ["09:58", "11:30", "12:10"]
+              and both["unpadded"][0] == both["padded"][0] == ["11:59", "13:31", "14:11"], json.dumps(both))
         mid = timed[len(timed) // 2]
         by_hour = 3600 - times0[mid]
         code, hdry, err = run("turn", "shift-times", "Juno", "Initial", "--by", str(by_hour), "--dry-run", tool=None)
@@ -498,6 +577,36 @@ def test_shift_times(scratch: Path):
               code == 0 and (edry.get("copies") or {}).get("gets", {}).get("lines", 0) > 0 and digest(eroot) == estart
               and bh.embedded(json.loads(gf.read_text(encoding="utf-8"))) and not (eroot / "idiograph-gets.history").exists(),
               err[:300] + json.dumps(edry)[:300] + str(sorted(set(digest(eroot)) ^ set(estart))))
+
+        # ── 14. a shift refused while its copies are worked out writes nothing, a History moved out of a board file
+        # included (datalows, Shift-times low D, which no run reproduced: the move needs the lock the shift itself holds, so
+        # it is never made while one runs): the LPETs hold their History inside the file, the LGETs cannot follow
+        lpf = lroot / "Arlo" / "Working" / "Arlo - EN & ES.lpets.json"
+        ld = json.loads(lpf.read_text(encoding="utf-8"))
+        ld["boards"][0].pop("history_head", None)
+        ld["boards"][0]["history"] = [{"id": f"r{r + 1}", "at": f"2026-11-0{1 + r}T09:00:00+00:00", "name": "",
+                                       "auto": True, "state": themes.board_state(ld["boards"][0])} for r in range(3)]
+        lpf.write_text(themes.render(ld) + "\n", encoding="utf-8")
+        l_before = digest(lroot)
+
+        def lgets_broken(*a, **k):
+            if gets_mod.in_lgets():
+                raise KeyError("lines")
+            return held_follow(*a, **k)
+
+        gets_mod.times_followed = lgets_broken
+        try:
+            code, _x, err = run("turn", "shift-times", "Arlo", "T2", "--by", "7", "--note", ASKED, at=lroot)
+        finally:
+            gets_mod.times_followed = held_follow
+        after_l = digest(lroot)
+        check("408: a shift refused because a later copy cannot follow leaves every file as it was, the LPETs' History "
+              "still inside their file and no chunk written",
+              code != 0 and len(refusal(err)) == 1
+              and {k: v for k, v in after_l.items() if not k.startswith(agent_changes.STORE) and k != agent_changes.FILE}
+              == {k: v for k, v in l_before.items() if not k.startswith(agent_changes.STORE) and k != agent_changes.FILE}
+              and bh.embedded(json.loads(lpf.read_text(encoding="utf-8"))),
+              err[:300] + json.dumps(sorted(set(after_l.items()) ^ set(l_before.items())))[:400])
 
         # ── 9. MCP's turn_shift_times runs the same op
         tools = {t["name"]: t for t in mcp_server.tools_for("idiograph")}
