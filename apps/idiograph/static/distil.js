@@ -2865,23 +2865,23 @@ function ppPortraitHtml(person) {
   return text ? `<p class="pp-portrait" title="${escAttr(text)}">${esc(text)}</p>` : '';
 }
 
-/* The fields across the row (layout A): the picture with Change picture..., Choose from the set and Remove, the
-   participant greyed, the label and the pen portrait, each kept as it is left, Done at the foot. Choose from the set
-   opens the drawn faces under the fields, shut each time the fields open. */
-const PP = { editing: '', faces: false, faceSet: '', busy: false, root: '', li: null, p: null };
+/* The fields across the row (layout A): the picture with Change picture..., Choose a picture and Remove, the
+   participant greyed, the label and the pen portrait, each kept as it is left, Done at the foot. Choose a picture
+   opens the app's pictures under the fields, shut each time the fields open. */
+const PP = { editing: '', faces: false, faceTab: '', busy: false, root: '', li: null, p: null };
 
 function ppEditHtml(p) {
   const person = p.person || {};
   const name = caseShown(p.case);
   // a field drawn again while its save is on its way shows what was typed, never the set before it
   const typed = (key) => (PP.sent && key in PP.sent ? PP.sent[key] : String(person[key] || ''));
-  // Choose from the set: a tab for each set, the set of their picture now open first, as Trajectories offers it
-  // (faceSetsHtml in trajectories.js, picsets)
-  const faces = PP.faces ? faceSetsHtml(PP.faceSet, person.picture_url, { pick: 'pp-face', tab: 'pp-faceset', cls: 'pp-faces' }) : '';
+  // Choose a picture: a tab for Faces and one for Patterns, the tab of their picture open first, as Trajectories
+  // offers it (facesHtml in trajectories.js, picsets2)
+  const faces = PP.faces ? facesHtml(PP.faceTab, person.picture_url, { pick: 'pp-face', tab: 'pp-facetab', cls: 'pp-faces' }) : '';
   return `<div class="pp-edit" role="group" aria-label="${escAttr(t('distil.person.edit_label', { who: name }))}">`
     + `<div class="tf-edit-pic pp-edit-pic">${personPic(person, 64)}<div class="tf-edit-picb">`
     + `<button type="button" class="ghost small" data-pp="own">${esc(t('trajectories.change_picture'))}</button>`
-    + `<button type="button" class="ghost small" data-pp="faces" aria-expanded="${PP.faces}">${esc(t('trajectories.choose_from_set'))}</button>`
+    + `<button type="button" class="ghost small" data-pp="faces" aria-expanded="${PP.faces}">${esc(t('trajectories.choose_picture'))}</button>`
     + (person.picture ? `<button type="button" class="ghost small" data-pp="nopic">${esc(t('trajectories.remove_picture'))}</button>` : '')
     + '</div></div><div class="pp-edit-fields">'
     + `<label class="pp-l"><span>${esc(t('distil.person.participant'))}</span><span class="pp-namerow"><input class="tf-edit-in pp-in" value="${escAttr(name)}" disabled>`
@@ -2944,7 +2944,12 @@ function ppDraw() {
   const box = document.createElement('div');
   box.innerHTML = ppEditHtml(PP.p);
   const edit = box.firstElementChild;
+  // Choose a picture's grid kept where it was scrolled to, so a picture chosen low in it stays in sight (picsets2)
+  const grid = old && old.querySelector('.tf-faces');
+  const gridAt = grid ? [grid.scrollTop, grid.getAttribute('aria-label')] : null;
   if (old) old.replaceWith(edit);
+  const again = edit.querySelector('.tf-faces');
+  if (gridAt && again && again.getAttribute('aria-label') === gridAt[1]) again.scrollTop = gridAt[0];
   else li.insertBefore(edit, li.querySelector('.pc-files'));
   if (was) was.hidden = true;
   // and its demographics' pills, as its pen portrait (demobuild)
@@ -3069,12 +3074,13 @@ async function ppOwnPicture(file) {
   }
 }
 
-/* Choose from the set turned to another set's tab, the fields drawn again and that tab in front */
-function ppFaceSet(set) {
-  PP.faceSet = set;
+/* Choose a picture turned to another tab, the fields drawn again, that tab in front and its grid at the picture now */
+function ppFaceTab(tab) {
+  PP.faceTab = tab;
   ppDraw();
-  const tab = PP.li && PP.li.querySelector(`[data-pp-faceset="${set}"]`);
-  if (tab) tab.focus();
+  facesToChosen(PP.li);
+  const button = PP.li && PP.li.querySelector(`[data-pp-facetab="${tab}"]`);
+  if (button) button.focus();
 }
 
 /* the fields' own clicks and keys, wired once on the rows' list */
@@ -3083,15 +3089,15 @@ function ppWire() {
   if (!list || list.dataset.ppWired) return;
   list.dataset.ppWired = '1';
   list.addEventListener('click', async (e) => {
-    const b = e.target.closest('[data-pp], [data-pp-face], [data-pp-faceset]');
+    const b = e.target.closest('[data-pp], [data-pp-face], [data-pp-facetab]');
     if (!b || !PP.li || !PP.li.contains(b)) return;
     e.stopPropagation();
     if (b.dataset.ppFace) { if (await ppSave({ picture: `set:${b.dataset.ppFace}` })) ppDraw(); return; }
-    if (b.dataset.ppFaceset) { ppFaceSet(b.dataset.ppFaceset); return; }
+    if (b.dataset.ppFacetab) { ppFaceTab(b.dataset.ppFacetab); return; }
     const what = b.dataset.pp;
     if (what === 'done') { ppClose(true); return; }
     if (what === 'rename') { openRename(PP.root, PP.p); return; }
-    if (what === 'faces') { PP.faces = !PP.faces; PP.faceSet = ''; ppDraw(); return; }
+    if (what === 'faces') { PP.faces = !PP.faces; PP.faceTab = ''; ppDraw(); if (PP.faces) facesToChosen(PP.li); return; }
     if (what === 'nopic') { if (await ppSave({ picture: '' })) ppDraw(); return; }
     if (what === 'own') $('pp-picture-file').click();
   });
@@ -3105,9 +3111,9 @@ function ppWire() {
   });
   list.addEventListener('keydown', (e) => {
     if (!PP.li || !PP.li.contains(e.target)) return;
-    // Choose from the set's tabs: the arrows, Home and End move along them, the set under them following (picsets)
-    const step = e.target.dataset && e.target.dataset.ppFaceset ? faceSetStep(e.key, e.target.dataset.ppFaceset) : '';
-    if (step) { e.preventDefault(); e.stopPropagation(); ppFaceSet(step); return; }
+    // Choose a picture's tabs: the arrows, Home and End move along them, the grid under them following (picsets2)
+    const step = e.target.dataset && e.target.dataset.ppFacetab ? faceTabStep(e.key, e.target.dataset.ppFacetab) : '';
+    if (step) { e.preventDefault(); e.stopPropagation(); ppFaceTab(step); return; }
     if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); ppClose(true); return; }
     if (e.key === 'Enter' && e.target.dataset.ppField === 'label') { e.preventDefault(); ppKeepFields(); }
   });

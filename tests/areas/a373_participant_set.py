@@ -18,8 +18,11 @@ after it from a new page under its heading. No picture goes in any of them. The 
 The drawn set (peeps, 12 November 2026): forty Open Peeps in the app's ink, each file holding only shapes, the
 project page offering the same forty as Trajectories, and the twenty-four before kept working, a project file's
 `set:face16` read as it is and shown as its nearest, one chosen again written as its new name. Since picsets the
-same day two sets, eighty Open Peeps (tab Sketches) and forty Notionists (tab Line drawings), a tab each in Choose from the set, the picture's set open first and the arrows along the tabs, each
-set's names taken by the route, the command line, MCP and Trajectories, and a name past a set's end refused.
+same day two sets, eighty Open Peeps and forty Notionists, each set's names taken by the route, the command line, MCP
+and Trajectories, and a name past a set's end refused. Since picsets2 (20 November 2026) Choose a picture shows all
+hundred and twenty faces in one grid, with thirty-three Shapes and twenty Contours, patterns with no face, in a second
+grid beside it, Faces and Patterns a tab each, each tab's sets woven together, the picture's tab open first with
+the picture now pressed, a pattern given as a face is, and no Shape an X or a play button.
 
 The fixtures are invented: a project on learning to swim as an adult, two made-up participants, Orla and Piers,
 an interviewer called Kit, and a made-up name for the list of names to replace, and for the exports copies of the
@@ -416,12 +419,32 @@ def test_participant_set(scratch):
             by_op = "answered"
         except WorkbookError as exc:
             by_op = str(exc)
-        runs = "The pictures are peep01 to peep80, notion01 to notion40."
+        runs = "The pictures are peep01 to peep80, notion01 to notion40, shape01 to shape33, contour01 to contour20."
         check("373: a name past a set's end is refused by the route, the command line, MCP and Trajectories, the "
               "refusal naming each set's run, and nothing is written",
               all(runs in w for w in wrong) and code != 0 and runs in (err or "") + json.dumps(_out)
               and res["isError"] and runs in by_op and sha(pfile) == before and held_pic() == "set:notion40",
               str([wrong[:2], code, err, by_op])[:400])
+        # (q) the patterns (picsets2, 20 November 2026): a Shape and a Contour given through the route, the command
+        # line, MCP and a Trajectories op as a face is, kept by its own name and read at its own file
+        done = routes.api_participant({"root": rid, "case": "Orla", "picture": "set:shape07"})
+        by_route = held_pic()
+        code, _out, err = run("participant", "set", "Orla", "--picture", "set:contour12", "--note", "x")
+        by_cli = held_pic()
+        res = tool("participant_set", case="Orla", picture="set:contour20", request="Orla's picture")
+        by_mcp = held_pic()
+        card = routes.api_trajectories_ops({"workbook": str(orla), "ops": [{"op": "picture", "participant": "Orla",
+                                                                            "set": "shape33"}]})
+        by_op = held_pic()
+        shown = routes.api_participant({"root": rid, "case": "Orla", "op": "show"})["person"]
+        wrong = [refused({"root": rid, "case": "Orla", "picture": f"set:{name}"}) for name in ("shape34", "contour21", "contour41")]
+        check("373: a pattern, a Shape or a Contour, is taken through the route, the command line, MCP and "
+              "Trajectories as a face is, kept by its own name and read at its file, and one past a set's end refused",
+              by_route == "set:shape07" and done["person"]["picture_url"] == "/faces/shape07.svg"
+              and code == 0 and by_cli == "set:contour12" and not res["isError"] and by_mcp == "set:contour20"
+              and by_op == "set:shape33" and shown["picture_url"] == "/faces/shape33.svg"
+              and "/faces/shape33.svg" in json.dumps(card) and all(runs in w for w in wrong),
+              str([by_route, by_cli, by_mcp, by_op, err])[:300])
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept
     the_set(scratch)
@@ -450,52 +473,100 @@ def the_set(scratch: Path) -> None:
             if el.get("fill"):
                 colours.add(el.get("fill"))
     sets = [(key, stem, count) for key, stem, count in traj_mod.FACE_SETS]
-    check("373: Choose from the set offers two sets, eighty Open Peeps and forty Notionists, "
-          "each picture a file of the app's own holding only shapes, no script, link or style, in the app's ink, "
-          "white and one grey, the first forty Open Peeps' names kept",
-          sets == [("peeps", "peep", 80), ("notionists", "notion", 40)]
-          and len(traj_mod.FACES) == 120 and files == sorted(traj_mod.FACES)
+    # the soft ink only in the Shapes, which draw their smallest shape in it
+    soft = {f for f in files if f.startswith("shape") and "#7A7166" in (faces / f"{f}.svg").read_text(encoding="utf-8")}
+    check("373: the app's pictures are four sets, eighty Open Peeps, forty Notionists, thirty-three Shapes and twenty "
+          "Contours, each picture a file of the app's own holding only shapes, no script, link or style, in the app's "
+          "ink, white, one grey and, in the Shapes alone, a soft ink, the first forty Open Peeps' names kept",
+          sets == [("peeps", "peep", 80), ("notionists", "notion", 40), ("shapes", "shape", 33), ("contours", "contour", 20)]
+          and len(traj_mod.FACES) == 173 and files == sorted(traj_mod.FACES)
           and all(f"peep{n:02d}" in traj_mod.FACES for n in range(1, 41)) and not odd
-          and colours <= {"#2B2620", "#FFFFFF", "#C9C2B8"}, str([sets, files[:3], odd[:3], colours]))
+          and colours <= {"#2B2620", "#FFFFFF", "#C9C2B8", "#7A7166"} and soft
+          and all(f.startswith("shape") for f in soft), str([sets, files[:3], odd[:3], colours]))
+    # no Shape or Contour carries a script, foreignObject, link, style, event attribute or external reference, read
+    # as text as well as by element and attribute (picsetsdrop, 21 November 2026)
+    risky = [f for f in files if f.startswith(("shape", "contour")) and re.search(
+        r"<script|foreignObject|href|<style|\bstyle=|\bon[a-z]+=|url\(|https?:(?!//www\.w3\.org/2000/svg)|javascript:",
+        (faces / f"{f}.svg").read_text(encoding="utf-8").replace("https://creativecommons.org/", "").replace(
+            "(https://www.dicebear.com)", ""))]
+    check("373: every Shapes and Contours file holds only a rect, groups and filled paths, no script, foreignObject, "
+          "link, style, event attribute or external reference", not risky and sum(f.startswith("shape") for f in files) == 33,
+          str(risky[:3]))
+    # woven, not a block of one then the other, each set in its own order, the faces' tab first
+    faces_tab, patterns_tab = traj_mod.tab_faces("faces"), traj_mod.tab_faces("patterns")
+    styles = "".join("p" if f.startswith("peep") else "n" for f in faces_tab)
+    kinds = "".join("s" if f.startswith("shape") else "c" for f in patterns_tab)
+    check("373: Choose a picture has two tabs, Faces weaving two Open Peeps to a Notionist and Patterns a Shape to a "
+          "Contour as evenly as thirty-three and twenty go, each set in its order, FACES the faces' then the patterns'",
+          [t for t, _k in traj_mod.FACE_TABS] == ["faces", "patterns"] and list(traj_mod.FACES) == faces_tab + patterns_tab
+          and "ppp" not in styles and "nn" not in styles and styles.count("n") == 40
+          and "sss" not in kinds and "cc" not in kinds and kinds.count("s") == 33 and kinds.count("c") == 20
+          and [f for f in faces_tab if f.startswith("peep")] == [f"peep{n:02d}" for n in range(1, 81)]
+          and [f for f in faces_tab if f.startswith("notion")] == [f"notion{n:02d}" for n in range(1, 41)]
+          and [f for f in patterns_tab if f.startswith("shape")] == [f"shape{n:02d}" for n in range(1, 34)]
+          and [f for f in patterns_tab if f.startswith("contour")] == [f"contour{n:02d}" for n in range(1, 21)],
+          styles[:24] + " " + kinds[:24])
+    # no Shape is an X or a play button: the make script's own rule, run on the parts each file was drawn from
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("make_shapes", support.source("packaging/make_shapes.py"))
+    make_shapes = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(make_shapes)
+    crossing = make_shapes.left_out([("shape01", "line", 10.0), ("shape02", "line", 100.0), ("shape03", "ellipse", 0.0)])
+    playing = make_shapes.left_out([("shape01", "rectangle", 0.0), ("shape02", "line", 5.0), ("shape03", "polygonFilled", 0.0)])
+    outline = make_shapes.left_out([("shape01", "rectangle", 0.0), ("shape02", "polygon", 5.0), ("shape03", "ellipse", 0.0)])
+    plain = make_shapes.left_out([("shape01", "polygonFilled", 0.0), ("shape02", "line", 5.0), ("shape03", "line", 170.0)])
+    check("373: the Shapes' maker leaves out two lines crossing and a small triangle, filled or in outline, as the "
+          "second or third shape, "
+          "keeps two lines near parallel, and names thirty-three seeds once each",
+          crossing == "two lines crossing" and playing == outline == "a small triangle" and plain == ""
+          and len(make_shapes.SET) == 33 and len(set(make_shapes.SET)) == 33 and not {11, 15, 23, 24, 44, 48, 59} & set(make_shapes.SET), str([crossing, playing, plain]))
+    # the Contours' maker draws the twenty kept of its forty, the look-alikes left out, byte for byte the files shipped
+    spec = importlib.util.spec_from_file_location("make_contours", support.source("packaging/make_contours.py"))
+    make_contours = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(make_contours)
+    drawn = make_contours.pictures()
+    check("373: the Contours' maker draws twenty pictures, contour01 to contour20, the same as the files shipped, with "
+          "twenty of the forty first drawn left out",
+          sorted(drawn) == [f"contour{n:02d}" for n in range(1, 21)] and len(make_contours.LEFT_OUT) == 20
+          and all(drawn[k] == (faces / f"{k}.svg").read_text(encoding="utf-8") for k in drawn), "")
     notice = support.source("NOTICE.md").read_text(encoding="utf-8")
     check("373: NOTICE.md names each set, its author and its licence, and no Fluent Emoji file or notice is left",
-          all(w in notice for w in ("Open Peeps", "Pablo Stanley", "Notionists", "Zoish", "CC0 1.0"))
+          all(w in notice for w in ("Open Peeps", "Pablo Stanley", "Notionists", "Zoish", "CC0 1.0", "Shapes",
+                                    "DiceBear", "Contours", "make_contours.py"))
           and "Fluent" not in notice and not list(faces.glob("*fluent*")) and not list(faces.glob("LICENSE*")),
           notice[:80])
     js = support.source("apps/idiograph/static/trajectories.js").read_text(encoding="utf-8")
-    offered = re.findall(r"\{ set: '(\w+)', name: 'trajectories\.set_\w+', faces: tfFaceRun\('(\w+)', (\d+)\) \}", js)
     distil = support.source("apps/idiograph/static/distil.js").read_text(encoding="utf-8")
-    check("373: the page offers the same sets as the server, in its order, on the project page and Trajectories "
-          "alike",
-          [(k, s, int(n)) for k, s, n in offered] == sets and "PP_FACES" not in distil
-          and "faceSetsHtml(PP.faceSet, person.picture_url" in distil
-          and "faceSetsHtml(TJ.faceSet, c.picture_url" in js, str(offered))
-    # the tabs as the page draws them, run in node: the picture's set open first, the first with none, one chosen
-    # kept, and the arrows, Home and End along the tabs, round at either end
-    block = js[js.index("const FACE_SETS = ["):js.index("const tjPicHtml = ")]
+    block = js[js.index("const TF_TABS = "):js.index("const tjPicHtml = ")]
+    check("373: the project page and Trajectories draw the same tabs and grid",
+          "PP_FACES" not in distil and "facesHtml(PP.faceTab, person.picture_url" in distil
+          and "facesHtml(TJ.faceTab, c.picture_url" in js, "")
+    # the tabs as the page draws them, run in node: each tab's pictures in the server's order, the picture's tab open
+    # first with it pressed, Faces with none, one chosen kept, and the arrows, Home and End along the tabs
     escapes = "".join(ln + "\n" for ln in support.text("family/static/shell.js").splitlines()
                       if ln.startswith(("const esc = ", "const escAttr = ")))
     script = support.i18n_js("idiograph") + escapes + block + r"""
-const opened = (html) => (/aria-selected="true"[^>]*data-x-set="(\w+)"/.exec(html) || [])[1];
-const pressed = (html) => (/class="tf-face on" data-x-pick="(\w+)"/.exec(html) || [])[1] || '';
-const a = faceSetsHtml('', '/faces/notion07.svg', { pick: 'x-pick', tab: 'x-set' });
-const b = faceSetsHtml('', '', { pick: 'x-pick', tab: 'x-set' });
-const c = faceSetsHtml('notionists', '/faces/peep03.svg', { pick: 'x-pick', tab: 'x-set' });
-console.log(JSON.stringify({
-  a: [opened(a), pressed(a), (a.match(/class="tf-face[ "]/g) || []).length],
-  b: [opened(b), pressed(b), (b.match(/class="tf-face[ "]/g) || []).length],
-  c: [opened(c), pressed(c), (c.match(/class="tf-face[ "]/g) || []).length, (c.match(/role="tab"/g) || []).length],
-  steps: [faceSetStep('ArrowRight', 'peeps'), faceSetStep('ArrowRight', 'notionists'), faceSetStep('ArrowLeft', 'peeps'),
-    faceSetStep('Home', 'notionists'), faceSetStep('End', 'peeps'), faceSetStep('Enter', 'peeps')],
-}));
+const order = (html) => [...html.matchAll(/data-x-pick="(\w+)"/g)].map((m) => m[1]);
+const pressed = (html) => [...html.matchAll(/class="tf-face on" data-x-pick="(\w+)"/g)].map((m) => m[1]);
+const opened = (html) => (/aria-selected="true"[^>]*data-x-tab="(\w+)"/.exec(html) || [])[1];
+const a = facesHtml('', '/faces/notion07.svg', { pick: 'x-pick', tab: 'x-tab' });
+const b = facesHtml('', '', { pick: 'x-pick', tab: 'x-tab' });
+const c = facesHtml('', '/faces/contour05.svg', { pick: 'x-pick', tab: 'x-tab' });
+const d = facesHtml('faces', '/faces/shape03.svg', { pick: 'x-pick', tab: 'x-tab' });
+console.log(JSON.stringify({ faces: order(a), patterns: order(c), a: [opened(a), pressed(a)], b: [opened(b), pressed(b)],
+  c: [opened(c), pressed(c)], d: [opened(d), pressed(d), (d.match(/role="tab"/g) || []).length],
+  steps: [faceTabStep('ArrowRight', 'faces'), faceTabStep('ArrowRight', 'patterns'), faceTabStep('ArrowLeft', 'faces'),
+    faceTabStep('Home', 'patterns'), faceTabStep('End', 'faces'), faceTabStep('Enter', 'faces')] }));
 """
     ran = support.run_node(script, scratch, "picsets-373.js")
     got = json.loads(ran.stdout.strip().splitlines()[-1]) if ran.returncode == 0 and ran.stdout.strip() else {}
-    check("373: Choose from the set opens on the set of the picture now, on the first with none, on one chosen "
-          "after, and the arrows, Home and End move along its tabs",
-          got.get("a") == ["notionists", "notion07", 40] and got.get("b") == ["peeps", "", 80]
-          and got.get("c") == ["notionists", "", 40, 2]
-          and got.get("steps") == ["notionists", "peeps", "notionists", "peeps", "notionists", ""],
+    check("373: Choose a picture shows each tab's pictures in the server's order, opens on the tab of the picture "
+          "now with it pressed, on Faces with none, on one chosen after, and the arrows, Home and End move along "
+          "its tabs",
+          got.get("faces") == faces_tab and got.get("patterns") == patterns_tab
+          and got.get("a") == ["faces", ["notion07"]] and got.get("b") == ["faces", []]
+          and got.get("c") == ["patterns", ["contour05"]] and got.get("d") == ["faces", [], 2]
+          and got.get("steps") == ["patterns", "faces", "patterns", "faces", "patterns", ""],
           (ran.stderr or ran.stdout)[:400])
     check("373: every picture of the set before, face01 to face24, is read as one of the set now",
           sorted(traj_mod.FACES_BEFORE) == [f"face{n:02d}" for n in range(1, 25)]

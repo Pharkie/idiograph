@@ -3926,15 +3926,31 @@ through `picture_files`, the one replaced or taken off moved to `pictures/_Archi
 sends a picture already squared to 256 by a canvas as a data URL (`trajOwnPicture`), an agent a path
 (`from`). `traj_picture_url` answers `/faces/<name>.svg` for one of the sets, `set:peepNN`, and `/traj-picture` for
 his own, `stream_traj_picture` serving it by name alone from the project's pictures folder with a CSP that
-runs nothing. The sets (picsets, 12 November 2026, Adam: "more sets, a tab each") are `FACE_SETS`, each its key,
-its files' stem and its count, in the order of Choose from the set's tabs, and `FACES` every name of them: Open
-Peeps, `peep01` to `peep80`, tab "Sketches", and Notionists, `notion01` to `notion40`, tab "Line drawings",
+runs nothing. The sets (picsets, 12 November 2026) are `FACE_SETS`, each its key, its files' stem and its
+count: Open Peeps, `peep01` to `peep80`, Notionists, `notion01` to `notion40`, and since picsets2 (20 November
+2026) Shapes, `shape01` to `shape33` (forty were made, seven left out at Adam's word on 21 November 2026 because they might read as a sign or a symbol: `make_shapes.py`'s SET names the seeds kept), and Contours, `contour01` to `contour20` (forty were drawn and twenty left out at Adam's word on 21 November 2026 because each looked like another picture of the set: `make_contours.py`'s LEFT_OUT names them and says how the groups were found, every pair compared in greyscale at the chooser's size and Home's ring size, turned and mirrored to the closest, and each group of pictures a person would call the same pattern keeping the one most unlike the rest). `FACE_TABS` groups them into
+Choose a picture's two tabs, Faces (Open Peeps and Notionists, Adam: the two look the same, so one grid) and
+Patterns (Shapes and Contours, abstract, so a picture says nothing of a participant's gender, age or ethnicity,
+Adam: "maybe A and D together?"). `tab_faces` gives a tab's pictures, `faces_mixed` weaving its runs so each
+place goes to the run furthest behind its share, in whole numbers, two Open Peeps to a Notionist and a Shape to
+a Contour, neither a block, and `FACES` is every name, the Faces tab's then the Patterns tab's,
 (picsets2, 13 November 2026, Adam: Fluent Emoji "not suitable for this purpose", so dropped) all in `apps/idiograph/static/faces/` side by side, so a picture's address is `/faces/<name>.svg` whichever set
 it is of. A name in none is refused with `trajectory_no_such_face`, naming the two runs (`faces_said`). The
-page's `FACE_SETS` in `trajectories.js` mirrors it, with `faceSetsHtml`, the tabs and the grid both pickers draw
-(Trajectories' editor and the project page's fields, `distil.js`), `faceSetOf`, the set a picture's address is
-in, open first, and `faceSetStep`, the arrows, Home and End along the tabs (`TJ.faceSet`, `PP.faceSet`, '' for
-the set of the picture now). The first set (peeps, 12 November 2026, Adam: black and white) is heads and
+page's `TF_TABS` in `trajectories.js` is the same tabs in the same order, woven by `tfFacesMixed` as the server
+weaves them, with `facesHtml`, the tabs and the grid both pickers draw (Trajectories' editor and the project
+page's fields, `distil.js`), the picture now pressed by its address whichever set it is of, `faceTabOf`, the tab
+a picture's address is on, open first, and `faceTabStep`, the arrows, Home and End along the tabs (`TJ.faceTab`,
+`PP.faceTab`, '' for the tab of the picture now). `facesToChosen` scrolls the grid as it opens, or as a tab is
+turned to, so the picture now stands in its middle, and `trajDraw` and `ppDraw` keep the grid's scroll across a
+draw on the same tab, so a picture chosen low in it stays in sight. `packaging/make_shapes.py` asks DiceBear's
+`shapes` style ("Shapes" by DiceBear, CC0 1.0) for each of its `SET` by its seed, every colour a stand-in mapped to
+the ink, a soft ink `#7A7166` or the grey, parses the download as untrusted data as the other make scripts do,
+inlines each `<use>` as a group with its transform checked, writes a circle as a path of two arcs and drops the
+clip, the animation and the metadata, and refuses a picture with two lines crossing (an X) or a small triangle,
+filled or in outline, as its second or third shape (a play button): twenty-one of the forty first shown were left
+out so, and twenty-one later seeds the rule passes stand in. `packaging/make_contours.py` draws the Contours, the app's own, in four kinds
+woven in turn (contour lines, currents, strata and grain), every line a filled outline (`ribbon`) and every dot a
+path, seeded by kind and number so each run writes the same forty. The first set (peeps, 12 November 2026, Adam: black and white) is heads and
 shoulders from Open Peeps, Pablo Stanley's CC0 library, `peep01` to `peep40` and since picsets forty more,
 `peep41` to `peep80`, widening the range the first forty left thin (older faces, bald heads, headscarves,
 turbans, hats, afros, locs, beards, glasses, dark tops), the first forty byte for byte as they were.
@@ -3958,10 +3974,9 @@ gone), stays readable: `FACES_BEFORE` maps each to its nearest now by hair and g
 reads either name, `picture_kept` keeps an old name as the file has it, `traj_picture_url` answers its nearest's
 file, and an old name chosen again through the route, the command line, MCP or a Trajectories op is written as
 its new one. The pickers mark the chosen face by its address (`picture_url`), so an old name shows its
-nearest as chosen. `.tf-settabs` draws the tabs in the sidebar's tab look at their own widths, and `.tf-faces`
-lays a set's pictures in as many columns of 36 pixels as the width holds, five rows and half a sixth at most,
-the half row saying there are more, the rest scrolled to inside it (at 1280 the eighty Open Peeps are five rows
-of sixteen and nothing scrolls, at 720 ten a row). Change picture... is an
+nearest as chosen. `.tf-faces` lays the pictures in as many columns of 36 pixels as the width holds, five rows and half a sixth at most,
+the half row saying there are more, the rest scrolled to inside it (at 1280 the hundred and twenty faces are seven and a half
+rows of sixteen and the fifty-three patterns three and a bit, the rest scrolled to, at 720 ten a row). Change picture... is an
 `<input type=file>` (`#tj-picture-file`): wry 0.57's `WryWebViewUIDelegate` answers
 `runOpenPanelWithParameters` with an `NSOpenPanel` in the Mac's window, so it opens there as in a browser
 (it passes no file types, so the panel offers any file, and one that is no picture is refused with

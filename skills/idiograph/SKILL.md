@@ -1597,9 +1597,10 @@ a GET or set aside of all of them with a participant's PETs not yet brought in c
 `participant set` (pbiobuild, 11 November 2026) sets a participant's picture, label and pen portrait, as the
 fields across their row on the project's page do (`/api/participant`), in every project, IPA and thematic
 analysis alike. `--label` is a few words, up to 60 characters, `--portrait` one short paragraph of plain text, up
-to 800, its line breaks folded into spaces, each "" to clear it. `--picture` is one of the app's drawn sets
-(picsets, 12 November 2026), `set:peep01` to `set:peep80` (Open Peeps), or `set:notion01` to `set:notion40`
-(Notionists), any other refused (the Fluent Emoji of 12 November are gone, so `set:fluent01` is refused too) refused (one of the set before,
+to 800, its line breaks folded into spaces, each "" to clear it. `--picture` is one of the app's own pictures,
+the ones Choose a picture shows (picsets2, 20 November 2026): a face, `set:peep01` to `set:peep80` (Open Peeps) or
+`set:notion01` to `set:notion40` (Notionists), or a pattern with no face, `set:shape01` to `set:shape33` (Shapes) or
+`set:contour01` to `set:contour20` (Contours), any other refused (the Fluent Emoji of 12 November are gone, so `set:fluent01` is refused too) refused (one of the set before,
 `set:face01` to `set:face24`, is taken as its nearest),
 `--picture-file` an image file of theirs, PNG, JPEG or SVG, kept in `pictures/` at the
 project's root, made square and small, the one it replaces moved to `pictures/_Archive/`, and `--no-picture` takes

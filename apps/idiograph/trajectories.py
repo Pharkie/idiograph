@@ -79,11 +79,37 @@ ICONS = ("rising", "falling", "level", "mixed", "up_down", "down_up", "up_level"
 TAG_NAMES = ("Blue", "Olive", "Plum", "Brown", "Indigo", "Teal", "Purple", "Slate",
              "Moss", "Spruce", "Violet", "Aubergine", "Pine", "Denim", "Khaki", "Mulberry", "Fern", "Periwinkle", "Umber",
              "Grape", "Ocean", "Amethyst", "Jade", "Navy", "Fig")
-# the app's own sets of pictures, each a tab in Choose from the set, in its order (peeps and picsets, 12 November
-# 2026): eighty Open Peeps, static/faces/peep01.svg to peep80.svg (packaging/make_peeps.py), and forty Notionists,
-# notion01.svg to notion40.svg (make_notionists.py), each drawn in ink. The page's FACE_SETS (trajectories.js) is the same.
-FACE_SETS = (("peeps", "peep", 80), ("notionists", "notion", 40))
-FACES = tuple(f"{stem}{n:02d}" for _set, stem, count in FACE_SETS for n in range(1, count + 1))
+# the app's own pictures (peeps and picsets, 12 November 2026; picsets2, 20 November 2026), each a run of files in
+# static/faces drawn in ink by its make script in packaging/: eighty Open Peeps, peep01.svg to peep80.svg
+# (make_peeps.py), forty Notionists, notion01 to notion40 (make_notionists.py), thirty-three Shapes, shape01 to shape33
+# (make_shapes.py, seven more left out at Adam's word on 21 November), and twenty Contours, contour01 to contour20 (make_contours.py, the app's own, twenty of forty drawn, the look-alikes left out at Adam's word on 21 November).
+FACE_SETS = (("peeps", "peep", 80), ("notionists", "notion", 40), ("shapes", "shape", 33), ("contours", "contour", 20))
+# Choose a picture's tabs in their order, each the sets it shows in one grid, woven together so neither comes as a
+# block (picsets2, Adam: the two face styles look the same, so one grid of faces, and patterns with no face beside
+# them, "maybe A and D together?"). The page's TF_TABS (trajectories.js) is the same.
+FACE_TABS = (("faces", ("peeps", "notionists")), ("patterns", ("shapes", "contours")))
+
+
+def faces_mixed(runs: list[list[str]]) -> list[str]:
+    """The runs woven into one list, each place going to the run furthest behind its share of the whole, the earlier
+    run on a tie, so eighty and forty come two of the first to one of the second. Whole numbers, as the page's
+    tfFacesMixed counts them, so both give the same order."""
+    total, taken, out = sum(len(r) for r in runs), [0] * len(runs), []
+    for k in range(1, total + 1):
+        at = max(range(len(runs)), key=lambda j: (k * len(runs[j]) - taken[j] * total, -j))
+        out.append(runs[at][taken[at]])
+        taken[at] += 1
+    return out
+
+
+def tab_faces(tab: str) -> list[str]:
+    """A tab's pictures in its order, its sets woven together."""
+    runs = {key: [f"{stem}{n:02d}" for n in range(1, count + 1)] for key, stem, count in FACE_SETS}
+    return faces_mixed([runs[key] for name, keys in FACE_TABS if name == tab for key in keys])
+
+
+# every picture of the app's, each tab's in its order, the faces first
+FACES = tuple(name for tab, _keys in FACE_TABS for name in tab_faces(tab))
 # The drawn set before it, face01 to face24 (eight heads of hair, each plain, with glasses, and with a beard or
 # earrings), which projects hold still: each is read as its nearest in the set now, the same hair and, where the
 # set has them, the same glasses or beard. Nothing a project holds is rewritten by a read, and one of them chosen

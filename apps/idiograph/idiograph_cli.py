@@ -10083,8 +10083,9 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("case", help="the participant, by their pseudonym")
     x.add_argument("--label", default=None, help="a few words, \"\" clearing it")
     x.add_argument("--portrait", default=None, help="the pen portrait, one short paragraph, \"\" clearing it")
-    x.add_argument("--picture", default=None, help="one of the app's drawn sets, set:peep01 to set:peep80, "
-                                                    "or set:notion01 to set:notion40")
+    x.add_argument("--picture", default=None, help="one of the app's own pictures, set:peep01 to set:peep80, "
+                                                    "set:notion01 to set:notion40, set:shape01 to set:shape33 "
+                                                    "or set:contour01 to set:contour20")
     x.add_argument("--picture-file", default=None, help="an image file of the researcher's, PNG, JPEG or SVG, kept in the "
                                                          "project's pictures folder, made square and small")
     x.add_argument("--no-picture", action="store_true", help="take the picture off, the initial on their colour shown")

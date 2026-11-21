@@ -109,7 +109,7 @@ The [manual](docs/manual.md) is for when you are stuck. The [internals](docs/int
 Idiograph's licence is the GNU Affero General Public License version 3. It is in `LICENSE`. Two terms of its
 section 7 and the third-party software are in `NOTICE.md`. The demo's recordings are the one exception.
 They are AI voices made with Google Gemini. Their licence is in `packaging/recording/LICENSE-audio.md`.
-Portraits: Open Peeps (Pablo Stanley, CC0), Notionists (Zoish, CC0).
+Pictures: Open Peeps (Pablo Stanley), Notionists (Zoish), Shapes (DiceBear).
 If it helps your work, please consider buying me a coffee. A GitHub star also helps others find it.
 
 <a href='https://ko-fi.com/X8X01NIXRB' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>

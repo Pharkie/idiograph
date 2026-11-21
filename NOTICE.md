@@ -23,6 +23,9 @@ The pictures a participant can be given, in `static/faces/`, are two sets, each 
 - Open Peeps, `peep01.svg` to `peep80.svg`, by Pablo Stanley (https://www.openpeeps.com), dedicated to the public domain under CC0 1.0 Universal. Each was put together from Open Peeps' parts through DiceBear's `open-peeps` style (https://www.dicebear.com) by `make_peeps.py`.
 - Notionists, `notion01.svg` to `notion40.svg`, by Zoish (https://heyzoish.gumroad.com/l/notionists), dedicated to the public domain under CC0 1.0 Universal. Each was put together from Notionists' parts through DiceBear's `notionists` style by `make_notionists.py`.
 
+- Shapes, `shape01.svg` to `shape33.svg`, "Shapes" by DiceBear (https://www.dicebear.com), dedicated to the public domain under CC0 1.0 Universal (the style's licence: https://github.com/dicebear/styles/blob/main/LICENSE.md). Each was asked of DiceBear's `shapes` style by its seed and drawn in ink by `make_shapes.py`.
+- Contours, `contour01.svg` to `contour20.svg`, are Idiograph's own, drawn by `make_contours.py`, and under Idiograph's licence.
+
 CC0 asks for no credit, which is given here all the same. Neither DiceBear, Zoish nor Pablo Stanley endorses Idiograph.
 
 The demos' interviews are invented. Nobody real is in them. Their recordings are AI-generated speech made with Google's Gemini in synthetic voices designed for the demos. No installer carries them: the app downloads a demo's recordings the first time one is played, from the `demo-recordings-1` release of Idiograph on GitHub, with their licence beside them. They are not under the GNU Affero General Public License but under their own licence, `LICENSE-audio.md` in `packaging/recording/`, which allows copying and sharing them only unchanged and only as part of Idiograph or a modified version of it, and grants no right to use them to train, fine-tune or evaluate any AI or machine-learning model. Google does not endorse Idiograph.

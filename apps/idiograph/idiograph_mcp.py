@@ -1456,8 +1456,8 @@ TOOLS = [
          ["case", "name"], writes="changes"),
     mcp.tool("participant_show", "A participant's picture, label and pen portrait", ("participant", "show"),
          "A participant's picture, label and pen portrait, as the project page's row shows them: label, a few words, "
-         "portrait, one short paragraph, and picture, one of the app's drawn sets (set:peep01 to set:peep80, "
-         "set:notion01 to set:notion40), a file's "
+         "portrait, one short paragraph, and picture, one of the app's own pictures (set:peep01 to set:peep80, "
+         "set:notion01 to set:notion40, set:shape01 to set:shape33, set:contour01 to set:contour20), a file's "
          "name in the project's pictures folder, or empty for none, and values, their demographics by category, a "
          "list's one value as a string and free words as a list. With no case, every participant's of the project. "
          "cases answers each participant's too. The real name is never kept here.",
@@ -1471,8 +1471,11 @@ TOOLS = [
          "wording the researcher approved, and run dry_run first.",
          {"case": mcp.CASE, "label": dict({"type": "string"}, description="A few words, \"Pepper's keeper\". Empty clears it."),
           "portrait": dict({"type": "string"}, description="The pen portrait, one short paragraph of plain text. Empty clears it."),
-          "picture": dict({"type": "string"}, description="One of the app's drawn sets, set:peep01 to set:peep80 (Open "
-                                                "Peeps) or set:notion01 to set:notion40 (Notionists), "
+          "picture": dict({"type": "string"}, description="One of the app's own pictures, the ones Choose a "
+                                                "picture shows: a face, set:peep01 to set:peep80 (Open Peeps) or "
+                                                "set:notion01 to set:notion40 (Notionists), or a pattern with no "
+                                                "face, set:shape01 to set:shape33 (Shapes) or set:contour01 to "
+                                                "set:contour20 (Contours), "
                                                 "or empty to take the picture off."),
           "picture_file": dict(mcp.TEXT, description="An image file's path, PNG, JPEG or SVG, kept in the project's "
                                                      "pictures folder, made square and small, in place of picture."),

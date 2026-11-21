@@ -5,6 +5,12 @@ Newest first. Each version's notes are what the updater shows, eight lines at mo
 
 What goes here: only major new features and real changes to how something works, among them what your AI agents can do, and any change to safety, privacy or your data. One plain line each, saying what you can now do, not how the screen shows it. Never: changed wording, labels or layout, small fixes, or a feature's parts (its buttons, tabs, counts). Several changes to one feature are one line. A version with nothing major has one line, or none.
 
+## 0.9.34, 21 November 2026
+
+The first time you invite someone to a project, you choose how its updates travel: through the relay or through a folder you can both reach. You can change it later in Project settings.
+A project's page now tells you when the same project folder is open on another computer, since whoever saves last would overwrite the other's work.
+Choose a picture now has Patterns beside the Faces: abstract pictures with no face, for a participant you would rather not show as a person.
+
 ## 0.9.33, 20 November 2026
 
 You can join a project you were invited to straight from Home, and Idiograph makes its folder for you.
