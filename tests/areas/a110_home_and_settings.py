@@ -361,6 +361,41 @@ const shown = () => ({ pick: !$('home-pick').hidden, page: !$('home-project').hi
               and "second_part" not in held and set(held) == {"name", "research_question", "updated", "method", "nudges",
                                                                                     "work_in_rounds", "interviewer"}
               and not any(reed in str(p) for p in pool.rglob("*")), str(sorted(held)))
+        # the project's name kept beside its root in the settings (homenames): by New project, by a rename, and by
+        # Home's list for an entry from before (no name), the project files never read for the list
+        from pathlib import Path
+        names = lambda: {Path(e["root"]).name: e.get("name") for e in json.loads(cfg_file.read_text(encoding="utf-8"))["projects"]}
+        by_new = names() == {"Learning to swim": "Learning to swim"}
+        idiograph_routes.api_project({"root": made["project"]["id"], "name": "Swimming as adults"})
+        by_rename = names() == {"Learning to swim": "Swimming as adults"}
+        whole_cfg = cfg_file.read_bytes()
+        cfg_file.write_text(json.dumps({"projects": [{"root": str(pool)}], "interviewer": "Kit", "ai_suggest": False}), encoding="utf-8")
+        older = server_mod.config()["projects"] == [{"root": str(pool)}]
+        idiograph_routes.api_cases({})
+        by_home = names() == {"Learning to swim": "Swimming as adults"}
+        before_write = cfg_file.read_bytes()
+        idiograph_routes.api_cases({})
+        check("110: a project's name is kept beside its root in the settings by New project, by a rename and by Home's "
+              "list for an older entry, and written again only where it changed",
+              by_new and by_rename and older and by_home and cfg_file.read_bytes() == before_write
+              and server_mod.note_project_name(pool, "Swimming as adults") is False
+              and server_mod.note_project_name(pool, "") is False
+              and server_mod.note_project_name(base / "elsewhere", "Nope") is False)
+        cfg_file.write_bytes(whole_cfg)
+        # a settings file that cannot be written never fails Home's list or an add: the name is a nicety
+        cfg_file.write_text(json.dumps({"projects": [{"root": str(pool)}], "ai_suggest": False}), encoding="utf-8")
+        real_write = server_mod.write_config_keys
+        def refuse(*a, **k):
+            raise PermissionError("read-only")
+        server_mod.write_config_keys = refuse
+        try:
+            kept_false = server_mod.note_project_name(pool, "Anything") is False
+            listed_ok = bool(idiograph_routes.api_cases({})["projects"])
+        finally:
+            server_mod.write_config_keys = real_write
+        check("110: a settings file that cannot be written leaves Home's list and the name's write whole, answering False",
+              kept_false and listed_ok)
+        cfg_file.write_bytes(whole_cfg)
         # his own folder with a second part, as GRAVITY's carry one, built here by concatenation
         two = pool / ("P2 - Moss" + "-" + reed)
         demo_copy(two, "P2 Moss - EN & ES.xlsx")
@@ -429,7 +464,7 @@ const localStorage = { getItem: (k) => (k in store ? store[k] : null), setItem: 
 const els = { projects: { children: [], innerHTML: '', querySelector() { return null; } } };
 const $ = (id) => els[id];
 const esc = (x) => String(x), escAttr = (x) => String(x);
-const api = async () => ({ config: { projects: [{ root: '/a/Mabel' }, { root: '/a/Bo' }, { root: '/a/New' }] } });
+const api = async () => ({ config: { projects: [{ root: '/a/Mabel', name: 'Mabel at the pond' }, { root: '/a/Bo' }, { root: '/a/New', name: 'Newcomers' }, { root: '/a/Old' }] } });
 """ + "\n".join(whole(app, n) for n in ("homeNamesKeep", "homeNamesKept", "distilHomeLoading")) + "\n" + r"""
 const HOME_NAMES_KEY = 'idiograph.homeNames';
 (async () => {
@@ -437,6 +472,7 @@ const HOME_NAMES_KEY = 'idiograph.homeNames';
   await distilHomeLoading(() => true);
   const cards = els.projects.innerHTML.split('hc-loading').slice(1);
   console.log(JSON.stringify(cards.map((c) => (c.match(/sk-ring/g) || []).length)));
+  console.log(JSON.stringify(cards.map((c) => (c.match(/hc-name">([^<]*)</) || [])[1])));
 })();
 """, encoding="utf-8")
         run = subprocess.run([node, str(loading_js)], capture_output=True, text=True, encoding="utf-8", timeout=60)
@@ -444,7 +480,8 @@ const HOME_NAMES_KEY = 'idiograph.homeNames';
         css = support.text("family/static/style.css")
         check("110: in node, a loading card draws the rings its project showed last time and three for one never seen, "
               "and the sheen is switched off for reduced motion",
-              run.returncode == 0 and json.loads(run.stdout) == [5, 1, 3]
+              run.returncode == 0 and json.loads(run.stdout.splitlines()[0]) == [5, 1, 3, 3]
+              and json.loads(run.stdout.splitlines()[1]) == ["Mabel at the pond", "Bo", "Newcomers", "Old"]
               and re.search(r"prefers-reduced-motion: reduce\)\s*\{[^}]*\.sk::after\s*\{[^}]*animation: none", css) is not None,
               (run.stdout + run.stderr)[:300])
     check("110: the live config.json is exactly as it was",

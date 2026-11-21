@@ -194,7 +194,7 @@ def test_mac_app(scratch):
         stored = json.loads(cfg_file.read_text(encoding="utf-8"))
         check("73: a folder chosen is added as a project, every other setting as it was, and the case list reads it",
               picked == {"chosen": True, "root": str(chosen.resolve())}
-              and stored["projects"] == [{"root": str(chosen.resolve())}] and "root" not in stored
+              and stored["projects"] == [{"root": str(chosen.resolve()), "name": chosen.name}] and "root" not in stored
               and stored["interviewer"] == "Quill" and idiograph_routes.api_cases({})["root"] == str(chosen.resolve()),
               str(picked))
         other = scratch / "mac-other"

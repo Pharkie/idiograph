@@ -275,7 +275,7 @@ def test_projects(scratch):
         check("89: Add project with the Mac's folder dialog makes a project after the others, every setting kept",
               added["added"] is True and added["project"]["name"] == "Flying kites"
               and [p["name"] for p in added["projects"]] == ["Keeping bees", "Learning the cello", "Flying kites"]
-              and stored["projects"][-1] == {"root": str(kites.resolve())} and stored["interviewer"] == "Quill"
+              and stored["projects"][-1] == {"root": str(kites.resolve()), "name": "Flying kites"} and stored["interviewer"] == "Quill"
               and [s["project"]["name"] for s in idiograph_routes.api_cases({})["projects"]][-1] == "Flying kites",
               f"{stored['projects'][-1]} {[p['name'] for p in added['projects']]}")
         refusals = {}

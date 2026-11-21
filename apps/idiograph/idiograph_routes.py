@@ -3007,6 +3007,10 @@ def api_cases(_: dict) -> dict:
     cases = [row for _root, rows in listed for row in rows]
     recent = recent_entries(cases)
     sections = [project_section(root, recent, cfg, rows) for root, rows in listed]
+    # each project's name kept beside its root in the settings, written only where it changed (homenames)
+    for (root, _rows), section in zip(listed, sections):
+        if root.is_dir():
+            srv.note_project_name(root, section["project"]["name"])
     first = sections[0] if sections else None
     demos = demo_entries()
     ta_root = srv.demo_ta_dir()
@@ -3127,6 +3131,10 @@ def api_project(body: dict) -> dict:
             project = read_project(root)
             # the project's History, under the same lock (projhistory, 2 November 2026)
             hist_mod.record(root, "project set", project_changes(before, project), who)
+        # kept beside the project's root in the settings once the write's lock is let go, for Home's loading cards on
+        # a first open (homenames), where the settings' lock is taken by itself
+        if "name" in body:
+            srv.note_project_name(root, project["name"])
     return {"project": project, "changes": project_changes(before, project) + own, "dry_run": dry}
 
 
@@ -3250,7 +3258,9 @@ def add_project(folder) -> dict:
         chosen = project_folder(folder, cfg)
         # only the list written, every other setting left in the file as it stands
         srv.write_config_keys({"projects": list(cfg["projects"]) + [{"root": root_setting(chosen)}]})
-    return {"added": True, "project": read_project(chosen)}
+    shown = read_project(chosen)
+    srv.note_project_name(chosen, shown["name"])        # New project, a join and a copy brought in come through here
+    return {"added": True, "project": shown}
 
 
 def remove_project(value, trash: bool = False, page: str = "", dry_run: bool = False, by: str = "") -> dict:

@@ -463,7 +463,10 @@ def projects_in(saved: dict) -> list[dict]:
         for entry in held:
             root = str((entry or {}).get("root") or "").strip() if isinstance(entry, dict) else ""
             if root:
-                out.append({"root": root})
+                # the project's name beside its root, which Home's loading cards read on a first open (homenames,
+                # 21 November 2026): an entry from before it has none, and the folder's name stands
+                name = str(entry.get("name") or "").strip()
+                out.append({"root": root, "name": name} if name else {"root": root})
         return out
     root = str(saved.get("root") or "").strip()
     return [{"root": root}] if root else []
@@ -486,6 +489,33 @@ def project_roots(cfg: dict | None = None) -> list[Path]:
         if root is not None and all(same_folder(root, r) is False for r in out):
             out.append(root)
     return out
+
+
+def note_project_name(root, name: str) -> bool:
+    """Keep a project's name beside its root in the settings' `projects` (homenames, 21 November 2026), so Home's
+    loading cards on a first open can name it without reading its file. Written only when the entry's name is not
+    the one given, and never in a run of one project, for a root the settings do not name, for an empty name or in
+    a file from before the projects (`root` alone), which keeps its shape until Settings saves. A settings file
+    that cannot be written answers False and never raises.
+    Answers whether the settings were written. The project files are not read here."""
+    name = str(name or "").strip()
+    if ROOT_OVERRIDE or not name or root is None:
+        return False
+    with _lock:
+        saved = saved_config()
+        if not isinstance(saved.get("projects"), list):
+            return False                     # a file from before the projects keeps its shape until Settings saves
+        cfg = merge_config(saved)
+        entries, changed = [], False
+        for entry in cfg.get("projects") or []:
+            at = configured(entry.get("root"))
+            if at is not None and same_folder(at, Path(root)) and entry.get("name") != name:
+                entry, changed = {"root": entry["root"], "name": name}, True
+            entries.append(entry)
+        try:
+            return write_config_keys({"projects": entries}) if changed else False
+        except OSError:
+            return False                     # a read-only or locked settings file: the name is a nicety, never a failure
 
 
 def same_folder(a: Path, b: Path) -> bool:

@@ -2088,7 +2088,7 @@ function drawPick(data, sections) {
 /* While Home's projects are being read (after a new version the first read starts afresh from each project's files,
    which can take ten seconds on a busy Mac), each project the settings name stands in its place with its name and a
    quiet "Loading…", and the card itself replaces it as it arrives (homeload, 20 November 2026). The name is the one the
-   last draw kept, else the folder's. It shows only once the wait passes half a second, so a warm open draws nothing
+   settings keep beside the project (homenames), else the last draw's, else the folder's. It shows only once the wait passes half a second, so a warm open draws nothing
    first. With the settings not answering, one line says the projects are loading. */
 const HOME_NAMES_KEY = 'idiograph.homeNames';
 
@@ -2114,7 +2114,8 @@ async function distilHomeLoading(still) {
   let roots = null;
   try {
     const data = await api('/api/settings', { op: 'read' });
-    roots = ((data && data.config && data.config.projects) || []).map((p) => String((p && p.root) || '')).filter(Boolean);
+    // each with the name the settings keep beside it (homenames), the folder's where an older entry has none
+    roots = ((data && data.config && data.config.projects) || []).map((p) => ({ root: String((p && p.root) || ''), name: String((p && p.name) || '') })).filter((p) => p.root);
   } catch { roots = null; }
   if (!still() || list.children.length) return;
   if (roots === null) {
@@ -2122,10 +2123,10 @@ async function distilHomeLoading(still) {
     return;
   }
   const kept = homeNamesKept();
-  list.innerHTML = roots.map((r) => {
+  list.innerHTML = roots.map(({ root: r, name: named }) => {
     const folder = r.replace(/[\\/]+$/, '').split(/[\\/]/).pop().replace(/\*$/, '');
     const keep = kept[r];
-    const name = (keep && (typeof keep === 'string' ? keep : keep.name)) || folder || t('distil.home.project');
+    const name = named || (keep && (typeof keep === 'string' ? keep : keep.name)) || folder || t('distil.home.project');
     // as many rings as the project showed last time, at most eight, three where it has not been seen before
     const count = keep && typeof keep === 'object' && Number.isFinite(keep.n) ? Math.max(0, Math.min(8, keep.n)) : 3;
     // a rough drawing of the card: its name, its rings and two bars, with the sheen across (homeload)
