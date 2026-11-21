@@ -13446,7 +13446,10 @@ function thLeftCount() {
   let n = 0;
   for (const c of (TH.gets && TH.gets.cases) || []) {
     if (!c.in) continue;
-    for (const top of gtTree(c).tops) if (!gtOnBoard(v, `${c.case}/${top.p.id}`, true)) n += 1;
+    const tree = gtTree(c);
+    for (const top of tree.tops) if (!gtOnBoard(v, `${c.case}/${top.p.id}`, true)) n += 1;
+    // a statement in no PET is listed in the panel under Not in a PET, so the count has it too (lowsF, 21 November 2026)
+    for (const k of tree.none) if (!gtOnBoard(v, `${c.case}/es/${k}`, true)) n += 1;
   }
   return n;
 }

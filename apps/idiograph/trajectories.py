@@ -298,16 +298,24 @@ def domains_of(text) -> list[str]:
     return out
 
 
+def id_shaped(name) -> bool:
+    """Whether a name has the shape of a trajectory's id, `c3`, in any case."""
+    return re.fullmatch(r"c\d+", words(name), re.IGNORECASE) is not None
+
+
 def find_column(data: dict, name) -> dict | None:
     """A column by its id, `c1`, or its title, any case. A name in the shape of an id is an id alone (trajfix2, 17
-    November 2026): a second `remove c3` sent before the first's answer, c3 gone, finds no column rather than one
-    titled "c3"."""
+    November 2026), in any case (trajfix3: `C3` is the id c3, never a title): a second `remove c3` sent before the
+    first's answer, c3 gone, finds no column rather than one titled "c3"."""
     name = words(name)
+    if id_shaped(name):
+        for c in data["columns"]:
+            if c["id"] == name.lower():
+                return c
+        return None
     for c in data["columns"]:
         if c["id"] == name:
             return c
-    if re.match(r"^c\d+$", name):
-        return None
     for c in data["columns"]:
         if c["title"].lower() == name.lower():
             return c
@@ -476,7 +484,7 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
             found = find_column(data, op.get(key))
             if found is None:
                 # a name in the shape of an id is only ever an id, so a title "c3" is not found by it (trajfix2)
-                if re.match(r"^c\d+$", words(op.get(key))):
+                if id_shaped(op.get(key)):
                     raise WorkbookError(i18n.t("server.trajectory_no_such_id", name=words(op.get(key))))
                 raise WorkbookError(i18n.t("server.trajectory_not_on_board", name=words(op.get(key)) or "with no name"))
             return found

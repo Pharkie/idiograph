@@ -192,6 +192,8 @@ async function trajReread(path) {
   } catch { return; }
   if (path !== TJ.path || !TJ.data || TJ.busy) return;
   if (TJ.data.config && data.config) data.config = Object.assign({}, data.config, TJ.data.config);
+  // a change from another window may be to the very step a delete's notice offers its Undo for (trajfix3)
+  if (typeof unsayUndo === 'function') unsayUndo();
   trajLoad(data);
 }
 
@@ -380,26 +382,29 @@ function trajStepsDraw() {}
 
 /* Undo, or Redo with `backwards` false, of his last change on this screen (trajundo, 16 November 2026): every file the
    change wrote put back by the server as it was, and the board drawn again from the answer. A step whose files changed
-   elsewhere since is refused in one line, and the board is read again as it now stands. */
+   elsewhere since is refused in one line, and the board is read again as it now stands. It answers whether the step
+   was undone or redone, and a delete's notice is withdrawn only then (trajfix3), so an Undo or Redo that did nothing
+   leaves it standing. */
 async function trajUndo(backwards) {
-  if (!TJ.data || $('traj').hidden) return;
-  // a delete's notice is withdrawn by any Undo or Redo but its own (trajfix2)
-  if (typeof unsayUndo === 'function') unsayUndo();
+  if (!TJ.data || $('traj').hidden) return false;
   // words typed in a field and not yet kept are kept first, so Undo takes them back as their own step
   const el = document.activeElement;
   if (el && $('traj').contains(el) && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) el.blur();
   await trajIdle(250);
-  if (TJ.busy) return;
+  if (TJ.busy) return false;
   if (!(backwards ? TJ.steps.undo : TJ.steps.redo)) {
     if (typeof sayNothingToUndo === 'function') sayNothingToUndo(backwards);
-    return;
+    return false;
   }
   TJ.busy = true;
   try {
     const data = await api('/api/trajectories-undo', { workbook: TJ.path, redo: !backwards });
     if (TJ.data && TJ.data.config && data.config) data.config = Object.assign({}, data.config, TJ.data.config);
+    // a delete's notice is withdrawn by any Undo or Redo but its own (trajfix2), once it has done something
+    if (typeof unsayUndo === 'function') unsayUndo();
     trajCloseAll();
     trajLoad(data);
+    return true;
   } catch (err) {
     say(needsRestart(err) ? RESTART_LINE : err.message, 9000);
     try {
@@ -407,6 +412,7 @@ async function trajUndo(backwards) {
       if (TJ.data && TJ.data.config && data.config) data.config = Object.assign({}, data.config, TJ.data.config);
       trajLoad(data);
     } catch { trajDraw(); }
+    return false;
   } finally {
     TJ.busy = false;
   }
@@ -605,8 +611,11 @@ async function trajUndoDelete(step, ask, id) {
   const el = document.activeElement;
   if (el && $('traj').contains(el) && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) el.blur();
   await trajIdle(250);
-  if (TJ.busy || TJ.stepN !== step || TJ.ask !== ask) return;
-  await trajUndo(true);
+  // a change made in the meantime, a title kept as the focus left it among them, is a step after the delete and the
+  // notice's Undo never reaches past it, so it says so where it would have said nothing (trajfix3)
+  if (TJ.ask !== ask) return;
+  if (TJ.busy || TJ.stepN !== step) { say(t('trajectories.delete_not_undone'), 6000); return; }
+  if (!(await trajUndo(true))) return;
   const back = $('tj-board').querySelector(`[data-fkey="${CSS.escape(`swatch-${id}`)}"]`);
   if (back) back.focus();
 }

@@ -38,6 +38,7 @@
   "trajectories.delete_label": "Delete {title}",
   "trajectories.delete_tip": "Delete this trajectory",
   "trajectories.deleted": "Deleted the trajectory {title}.",
+  "trajectories.delete_not_undone": "The trajectory was not brought back, because something was changed after it was deleted.",
   "trajectories.outside_changed": "The trajectories changed outside Idiograph.",
   "trajectories.export_still_saving": "A change is still being saved, so nothing was exported. Export again in a moment.",
   "trajectories.done": "Done",

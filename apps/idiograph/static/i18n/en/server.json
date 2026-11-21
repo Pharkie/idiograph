@@ -214,7 +214,7 @@
   "server.board_gone_themes_exported": "That board is no longer in the themes file, so nothing was exported.",
   "server.board_gone_themes_asked": "That board is no longer in the themes file, so nothing was asked.",
   "server.board_gone_gets_asked": "That board is no longer in the GETs file, so nothing was asked.",
-  "server.trajectory_no_such_id": "The board has no trajectory with the id {name}. A name like c3 is read as an id and matched exactly, never as a title, so nothing was changed.",
+  "server.trajectory_no_such_id": "The board has no trajectory with the id {name}. A name like c3, in any case, is read as an id and never as a title, so nothing was changed.",
   "server.trajectory_not_on_board": "There is no trajectory {name} on the board, so nothing was changed.",
   "server.trajectory_not_a_participant": "{name} is not a participant of this project, so nothing was changed.",
   "server.trajectory_twice": "There is a trajectory called {name} already, so nothing was changed.",

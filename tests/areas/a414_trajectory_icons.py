@@ -205,6 +205,10 @@ def test_trajectory_icons(scratch: Path):
         check("414: a second remove of a trajectory gone, by its id, is refused with nothing written, the trajectory "
               "titled with that id kept", said != "answered" and tree() == before and len(titled) == 1,
               [said, differs(tree(), before), titled])
+        shouted = refused("/api/trajectories-ops", {"workbook": str(book), "step": True,
+                                                    "ops": [{"op": "remove", "column": target["id"].upper()}]})
+        check("414: the same id in capitals is an id too, refused with the trajectory titled with it kept (trajfix3)",
+              shouted != "answered" and tree() == before, [shouted, differs(tree(), before)])
         call("/api/trajectories-undo", {"workbook": str(book), "redo": False})
         call("/api/trajectories-undo", {"workbook": str(book), "redo": False})
 
@@ -447,7 +451,24 @@ const titles = () => cols.map((c) => c.title);
     blur() { document.activeElement = null; trajTitleDone(this); } };
   press();
   await settle();
-  out.typing = { undone: undone.length, titles: titles(), renamed: calls.filter((c) => c.ops && c.ops[0].op === 'rename').length };
+  await new Promise((r) => setTimeout(r, 150));
+  out.typing = { undone: undone.length, titles: titles(), renamed: calls.filter((c) => c.ops && c.ops[0].op === 'rename').length,
+    said: TOAST_EL.hidden ? '' : TOAST_EL.textContent };
+  // a change from another window read in: the notice is withdrawn, and a press of its Undo undoes nothing (trajfix3)
+  reset();
+  await trajDeleteNow('c1');
+  press = undoButton().onclick;
+  await trajReread(TJ.path);
+  const withdrawnOther = !standing();
+  press();
+  await settle();
+  out.other = { withdrawn: withdrawnOther, undone: undone.length };
+  // an Undo with nothing to undo leaves the notice standing (trajfix3)
+  reset();
+  await trajDeleteNow('c1');
+  TJ.steps.undo = false;
+  const did = await trajUndo(true);
+  out.idle = { did, standing: standing() };
   // two deletes at once, and the board's click handler: a double-click's second click and the popover
   reset();
   await Promise.all([trajDeleteNow('c1'), trajDeleteNow('c2')]);
@@ -604,6 +625,14 @@ def notice_checks(scratch: Path):
         check("414: a title being typed when the notice's Undo is pressed is kept as its own step, never undone in the "
               "delete's place, and the delete stays", ty["undone"] == 0 and ty["renamed"] == 1
               and ty["titles"] == ["Typed", "Level"], json.dumps(ty))
+        check("414: when its Undo is pressed after a change, the notice says the trajectory was not brought back",
+              ty["said"].startswith("The trajectory was not brought back"), json.dumps(ty))
+        ot = got["other"]
+        check("414: a change read in from another window withdraws the notice, and a press of its Undo undoes nothing",
+              ot["withdrawn"] and ot["undone"] == 0, json.dumps(ot))
+        ide = got["idle"]
+        check("414: an Undo that undoes nothing leaves the delete's notice standing", ide["did"] is False and ide["standing"],
+              json.dumps(ide))
         check("414: two deletes at once send one", got["twice"] == 1, got["twice"])
         cl = got["click"]
         check("414: on the board, a double-click's second click on the bin deletes nothing, a single click one",

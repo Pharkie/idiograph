@@ -230,6 +230,12 @@ TH.v = onBoard;
 TH.cfold = new Set(['Isla', 'Isla/:none']);
 gtCasesDraw();
 out.placedOut = [seq(), [...ELS['gt-cases'].innerHTML.matchAll(/class="gt-rn">(\d+)</g)].map((m) => Number(m[1]))];
+// Isla's PETs all on the board, her two statements in no PET and Tam's one left: each keeps its heading and the edge
+// tab counts the three, so the count and the headings agree (lowsF)
+TH.v = Object.assign({}, onBoard, { cards: { 'Isla/g1': onBoard.cards['Isla/g1'], 'Isla/g2': Object.assign({}, onBoard.cards['Isla/g1'], { key: 'Isla/g2' }), 'Ivo/pn/1': onBoard.cards['Ivo/pn/1'] } });
+gtCasesDraw();
+out.allPlaced = [[...ELS['gt-cases'].innerHTML.matchAll(/gt-cname">([^<]*)</g)].map((m) => m[1]), thLeftCount()];
+TH.v = onBoard;
 // the drag: a row at any level makes its card
 const entry = TH.gets.cases[0];
 out.made = [gtCardFrom(entry, 'pet', 'g1'), gtCardFrom(entry, 'sub', 'g3'), gtCardFrom(entry, 'es', 'Initial:5:1')]
@@ -278,6 +284,8 @@ console.log(JSON.stringify(out));
                                        "es:Initial:5:1", "pet:g2", "none", "es:Initial:9:0", "es:Initial:9:1"]
                   and o["counts"] == [4, 2, 1, 2] and o["where"] == [True, True, True, True],
                   str([o["caseOpen"], o["petOpen"], o["allOpen"], o["where"]]))
+            check("157: in node, the edge tab counts the statements in no PET that the panel lists, so its count and the "
+                  "participants' headings agree", o["allPlaced"] == [["Isla", "Tam"], 3], str(o["allPlaced"]))
             check("157: in node, the folds are kept in the browser by project, read back after a reload, another project's "
                   "its own, and a PET folded shut hides its rows and keeps its sub-theme's fold",
                   sorted(o["kept"].get("Allotment study", [])) == ["Isla", "Isla/:none", "Isla/g1", "Isla/g3"]

@@ -648,7 +648,7 @@ TOOLS = [
     mcp.tool("trajectories_apply", "Change the Trajectories board", ("trajectories", "apply"),
          "Change the Trajectories board with its own operations, all or nothing, as the board itself does: "
          '{"op": "add", "title": "Positive"} (with "at", its place from 0), {"op": "rename", "column": "Positive", '
-         '"title": "..."}, {"op": "move", "column": "c2", "at": 0} (a trajectory is named by its id, c2, matched exactly, or by its title in any case, and a name shaped like an id is only ever an id), {"op": "remove", "column": "Mixed"} (its '
+         '"title": "..."}, {"op": "move", "column": "c2", "at": 0} (a trajectory is named by its id, c2, or by its title in any case, and a name shaped like an id, in any case, is only ever an id), {"op": "remove", "column": "Mixed"} (its '
          'participants go back among those unplaced, their notes kept), {"op": "place", "participant": "Wren", '
          '"column": "Positive", "at": 0} (no column takes them out, at their place in it), {"op": "order", '
          '"participant": "Wren", "at": 1}, {"op": "note", "participant": "Wren", "note": "..."}, '

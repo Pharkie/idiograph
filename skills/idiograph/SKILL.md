@@ -960,7 +960,9 @@ null for none (trajchoose, 11 November 2026). A key quote taken from the transcr
 `trajectories apply` takes the board's own operations, a list or `{"operations": [...]}`, run in order, all
 refused with nothing written when one is wrong:
 
-- a trajectory, by its id, `c1`, or its title (a name in the shape of an id, `c` and digits, is read as an id alone, and the refusal for one the board has not got says so, matched exactly and never against a title): `{"op": "add", "title": "Positive"}` (with `at`, its place
+- a trajectory, by its id, `c1`, or its title. A name in the shape of an id, `c` and digits in any case, is read
+  as an id alone and never against a title, so one the board has not got is refused with a line saying so:
+  `{"op": "add", "title": "Positive"}` (with `at`, its place
   from 0), `rename` (`column`, `title`), `move` (`column`, `at`), `remove` (`column`, its participants back
   to unplaced with all that is kept on them), `describe` (`column`, `description`, "" clearing it),
   `colour` (`column`, `colour`: Green, Amber, Red, Blue, Plum, Teal, Taupe, Orange, or none) and `icon`
