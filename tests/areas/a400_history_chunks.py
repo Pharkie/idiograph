@@ -788,6 +788,19 @@ def test_history_chunks(scratch: Path):
         check("400: a card whose line went follows its words to another row",
               list(up3["cards"]) == [kz], json.dumps(up3["cards"]))
 
+        # the notes for older revisions are replayed only into a revision numbered at or below the write, and a copy
+        # sent to someone leaves them behind with the History (histfollow, 21 November 2026)
+        import project_pack
+        held_log = {themes.REWORDS: [{"n": 3, "key": ka, "was": "Alpha one", "now": "x"}]}
+        replayed = themes.rewords_replayed(fstate(**{ka: "Alpha one", kb: "Beta two"}), held_log, 2)
+        later = themes.rewords_replayed(fstate(**{ka: "Alpha one", kb: "Beta two"}), held_log, 4)
+        check("400: the notes of a reword change a card's words only in a revision older than the write",
+              replayed["cards"][ka]["text"] == "x" and later["cards"][ka]["text"] == "Alpha one",
+              json.dumps(replayed["cards"]))
+        sent, _board, _n = project_pack.current_board_only({"boards": [dict(id="v1", name="B", cards={}, **held_log)]})
+        check("400: Share a copy leaves a board's notes for its revisions behind with its History",
+              themes.REWORDS not in sent["boards"][0], json.dumps(sent)[:200])
+
         # ── 4. Restore by id checks the hash
         made = themes.board_op(juno, "revision", {"id": "v1", "name": "by hand"}, "Juno")["revision"]
         held = boards_files(root)
@@ -920,6 +933,81 @@ def test_history_chunks(scratch: Path):
             check("400: a turn write that moves a key still moves the revisions: chunks that held the card change",
                   code == 0 and any(chunk_files_after.get(k) != v for k, v in chunk_files_before.items()),
                   err + json.dumps(wrote)[:200])
+
+        # ── 6c. a keyed reword that hands a line another's old words, and a write that appends lines at a passage's end
+        # (histfollow, 21 November 2026): every key stays, so no revision is moved and no chunk but each board's last
+        # is written, and a revision shown or restored follows the keys first
+        code, shown, err = run("turn", "show", "Juno", psheet, str(prow), tool=None)
+        base_pairs = [{"statement": t, "quote": "", "key": themes.card_key(psheet, prow, i)}
+                      for i, t in enumerate(shown["turns"][0]["statements"])]
+        if len(base_pairs) >= 2:
+            k0, k1 = themes.card_key(psheet, prow, 0), themes.card_key(psheet, prow, 1)
+            board_b = themes.boards_of(themes.load(juno))[0]
+            anchor = themes.board_op(juno, "revision", {"id": board_b["id"], "name": "before shape two"},
+                                     "Juno")["revision"]
+            texts_then = {k: c["text"] for k, c in next(r for r in themes.history_of(
+                next(b for b in themes.boards_of(themes.load(juno)) if b["id"] == board_b["id"]))
+                if r["id"] == anchor["id"])["state"]["cards"].items()}
+            first_words = base_pairs[0]["statement"]
+            two = [dict(base_pairs[0], statement="A brand new opening line"),
+                   dict(base_pairs[1], statement=first_words)] + base_pairs[2:]
+            spec_file.write_text(json.dumps({"pairs": two, "version": shown["turns"][0]["version"],
+                                             "request": "Reword two lines"}), encoding="utf-8")
+            chunk_files_before = {k: v for k, v in boards_files(root).items() if ".history/" in k}
+            code, wrote, err = run("turn", "write", "Juno", psheet, str(prow), "--from", str(spec_file))
+            chunk_files_after = {k: v for k, v in boards_files(root).items() if ".history/" in k}
+            last_of = {}
+            for k in chunk_files_before:
+                last_of[part(k)[0]] = max(last_of.get(part(k)[0], 0), int(part(k)[1]))
+            changed_chunks = [k for k, v in chunk_files_before.items()
+                              if chunk_files_after.get(k) != v and int(part(k)[1]) != last_of[part(k)[0]]]
+            check("400: a keyed reword that gives a line another's old words writes no chunk but each board's last",
+                  code == 0 and not changed_chunks, err + str(changed_chunks[:3]))
+            now_board = next(b for b in themes.boards_of(themes.load(juno)) if b["id"] == board_b["id"])
+            check("400: and the board notes what changed for its older revisions, no revision of its own moved",
+                  any(e.get("key") == k0 for e in now_board.get(themes.REWORDS) or []), str(now_board.get("rewords")))
+            seen_rev = themes.board_op(juno, "view", {"id": board_b["id"], "revision": anchor["id"]}, "Juno")
+            seen_cards = {c.get("key"): c for c in seen_rev.get("cards") or []}
+            check("400: the revision shown follows the keys: the first line reads its new words, the second the first's "
+                  "old words, and no card is missing",
+                  themes.words(seen_cards[k0]["text"]) == themes.words("A brand new opening line")
+                  and themes.words(seen_cards[k1]["text"]) == themes.words(first_words)
+                  and not seen_cards[k0].get("missing") and not seen_cards[k1].get("missing"),
+                  json.dumps({k: (c.get("text"), c.get("missing")) for k, c in seen_cards.items() if k in (k0, k1)}))
+            themes.board_op(juno, "restore", {"id": board_b["id"], "revision": anchor["id"]}, "Juno")
+            back = next(b for b in themes.boards_of(themes.load(juno)) if b["id"] == board_b["id"])
+            check("400: the revision restored has both cards at their keys with today's words, none moved away",
+                  themes.words(back["cards"][k0]["text"]) == themes.words("A brand new opening line")
+                  and themes.words(back["cards"][k1]["text"]) == themes.words(first_words)
+                  and set(texts_then) <= set(back["cards"]), str(sorted(back["cards"])[:4]))
+
+            # an append: every old line keeps its key and place, a line follows them
+            code, shown, err = run("turn", "show", "Juno", psheet, str(prow), tool=None)
+            cur = [{"statement": t, "quote": "", "key": themes.card_key(psheet, prow, i)}
+                   for i, t in enumerate(shown["turns"][0]["statements"])]
+            board_c = themes.boards_of(themes.load(juno))[0]
+            anchor2 = themes.board_op(juno, "revision", {"id": board_c["id"], "name": "before an append"},
+                                      "Juno")["revision"]
+            spec_file.write_text(json.dumps({"pairs": cur + [{"statement": "A line added at the very end", "quote": ""}],
+                                             "version": shown["turns"][0]["version"], "request": "Add a line"}),
+                                 encoding="utf-8")
+            chunk_files_before = {k: v for k, v in boards_files(root).items() if ".history/" in k}
+            code, wrote, err = run("turn", "write", "Juno", psheet, str(prow), "--from", str(spec_file))
+            chunk_files_after = {k: v for k, v in boards_files(root).items() if ".history/" in k}
+            last_of = {}
+            for k in chunk_files_before:
+                last_of[part(k)[0]] = max(last_of.get(part(k)[0], 0), int(part(k)[1]))
+            changed_chunks = [k for k, v in chunk_files_before.items()
+                              if chunk_files_after.get(k) != v and int(part(k)[1]) != last_of[part(k)[0]]]
+            check("400: a turn write that appends lines at a passage's end changes no chunk but each board's last",
+                  code == 0 and not changed_chunks, err + str(changed_chunks[:3]) + json.dumps(wrote)[:200])
+            after_board = next(b for b in themes.boards_of(themes.load(juno)) if b["id"] == board_c["id"])
+            restored_before = {k: c["text"] for k, c in after_board["cards"].items()}
+            themes.board_op(juno, "restore", {"id": board_c["id"], "revision": anchor2["id"]}, "Juno")
+            back2 = next(b for b in themes.boards_of(themes.load(juno)) if b["id"] == board_c["id"])
+            check("400: the revision from before the append restores with every card where it was",
+                  {k: c["text"] for k, c in back2["cards"].items() if k in restored_before} == restored_before,
+                  str(len(back2["cards"])))
 
         # ── 7. the poll never opens a chunk
         real = bh.read_chunk

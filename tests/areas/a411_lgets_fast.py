@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import datetime as dt_mod
 import hashlib
+import io
 import json
 import os
 import random
@@ -121,14 +122,16 @@ def run_times(value, now: dict, rel: str = ""):
 
 
 def digest(p: Path, times: dict, now: dict | None = None) -> str:
-    data = p.read_bytes()
+    import agent_changes
+    # a copy in a restore point is read inflated (restoresize, 21 November 2026), as the bytes it keeps
+    data = agent_changes.read_object(p)
     if now is not None:
         run = run_times(json.loads(data.decode("utf-8")), now)
         return "r" + hashlib.sha256(SHA.sub("<sha>", ISO.sub("<t>", json.dumps(run, sort_keys=True))).encode()).hexdigest()
     if p.suffix == ".xlsx" or data[:4] == b"PK\x03\x04":
         # a workbook part for part, its save time apart
         h = hashlib.sha256()
-        with zipfile.ZipFile(p) as z:
+        with zipfile.ZipFile(io.BytesIO(data)) as z:
             for n in sorted(z.namelist()):
                 if n != "docProps/core.xml":
                     h.update(n.encode() + b"\0" + z.read(n) + b"\0")

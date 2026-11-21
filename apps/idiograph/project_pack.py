@@ -644,7 +644,7 @@ def board_going(data) -> dict | None:
 
 def current_board_only(data: dict) -> tuple[dict, dict | None, int]:
     """A board file with the board it is going with alone, its own id and name kept, marked current, and
-    the Current board too when the file marked one. The board's restore points (`history`) stay behind,
+    the Current board too when the file marked one. The board's restore points (`history`) and the notes for them (`rewords`) stay behind,
     and a complete mark goes only when it names that board. Answers the file, the board and how many
     boards the file held."""
     boards = boards_held(data)
@@ -653,7 +653,7 @@ def current_board_only(data: dict) -> tuple[dict, dict | None, int]:
         return data, None, 0
     key = "boards" if isinstance(data.get("boards"), list) else "versions"
     out = dict(data)
-    out[key] = [{k: v for k, v in board.items() if k not in ("history", "history_head")}]
+    out[key] = [{k: v for k, v in board.items() if k not in ("history", "history_head", "rewords")}]
     out["current"] = board.get("id")
     if out.get("chosen") not in (None, ""):
         out["chosen"] = board.get("id")

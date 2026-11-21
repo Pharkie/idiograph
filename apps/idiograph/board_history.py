@@ -527,6 +527,13 @@ def next_number(board: dict, history: list[dict]) -> int:
     return max(max(numbers, default=0) + 1, kept)
 
 
+def last_number(board: dict) -> int:
+    """The number of a board's last revision, those in memory or waiting and the head's own counted, 0 for none; no
+    chunk is read (histfollow, 21 November 2026)."""
+    held = board.get("history") if isinstance(board.get("history"), list) else []
+    return next_number(board, held) - 1
+
+
 def last_hash(board: dict) -> str | None:
     """The hash of the board's last revision's state, from the revisions waiting or else the head, no chunk read."""
     adds = pending(board)

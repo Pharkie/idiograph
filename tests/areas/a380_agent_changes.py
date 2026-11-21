@@ -110,7 +110,7 @@ def source_undo(scratch: Path):
         return code, (support.plain(json.loads(out)) if out.strip() else {}), err + (out if code else "")
 
     def stored() -> set:
-        return {f.read_bytes() for f in (root / agent_changes.STORE / "objects").iterdir() if f.is_file()}
+        return {agent_changes.read_object(f) for f in (root / agent_changes.STORE / "objects").iterdir() if f.is_file()}
 
     start = tree(root)
     code, _x, err = run("project", "add-transcripts", "--from", str(first), "--run", "add-wren", "--note", "Add Wren")
@@ -287,6 +287,82 @@ def source_undo(scratch: Path):
     left = sorted(p.relative_to(pip).as_posix() for p in pip.rglob("*")) if pip.exists() else []
     check("380: the undo leaves a folder he made after the run, and the participant's folder holding it, and takes "
           "every file the run made", code == 0 and left == ["Photos", "Photos/.DS_Store"], err + json.dumps(left))
+
+
+def packed_undo(root, ask, run, lines, clock, store):
+    """Restore points keep each copy deflated, `<sha>.z`, the sha that of its bytes as they were (restoresize, 21
+    November 2026), and a store of before, copies named by their sha alone, still serves a run's undo. A run that
+    writes, then has a file of the project taken away inside a later write while a file is made by hand beside, is
+    undone byte for byte, the hand-made file left as it stands."""
+    import agent_changes
+    import idiograph_cli
+
+    objects = store / "objects"
+    names = [f.name for f in objects.iterdir() if f.is_file() and not f.name.startswith(".")]
+    sound = all(hashlib.sha256(agent_changes.read_object(objects / n)).hexdigest() == n[:-2]
+                for n in names if n.endswith(".z"))
+    check("380: every copy the restore points keep is deflated and holds, inflated, the bytes its name is the sha of",
+          names and all(n.endswith(".z") for n in names) and sound, str(len(names)))
+    # the store as it was before restoresize: every copy whole, named by its sha alone
+    for n in names:
+        (objects / n[:-2]).write_bytes(agent_changes.read_object(objects / n))
+        (objects / n).unlink()
+    clock["at"] += timedelta(minutes=40)
+    start = tree(root)
+    ask("length", "31", "--run", "packed")
+    after_one = tree(root)
+    victim = sorted(f for f in agent_changes.tracked(root) if f.endswith(".json") and "/" in f)[0]
+    kept_victim = (root / victim).read_bytes()
+    clock["at"] += timedelta(minutes=1)
+    (root / "made-by-hand.json").write_text('{"by": "hand"}', encoding="utf-8")
+    real_scope = idiograph_cli.run_in_scope
+
+    def taking(command, p, args):
+        def op(q, given):
+            answer = command(q, given)
+            (root / victim).unlink()
+            return answer
+        return real_scope(op, p, args)
+
+    idiograph_cli.run_in_scope = taking
+    try:
+        ask("length", "32", "--run", "packed")
+    finally:
+        idiograph_cli.run_in_scope = real_scope
+    gone = not (root / victim).exists()
+    packed_run = lines()[-1]["run"]
+    made =sorted(f.name for f in objects.iterdir() if f.is_file() and not f.name.startswith("."))
+    check("380: copies made after the store of before are deflated beside its whole ones",
+          any(n.endswith(".z") for n in made) and any(not n.endswith(".z") for n in made), str(len(made)))
+    code, _x, err = run("agents", "undo-run", packed_run, "--note", "Undo the packed run")
+    back = tree(root)
+    hand = back.pop("made-by-hand.json", None)
+    check("380: a run's undo over a store of whole and deflated copies puts every file back byte for byte, one the "
+          "run took away among them, a file made by hand beside it left as it stands",
+          code == 0 and gone and back == start and (root / victim).read_bytes() == kept_victim
+          and hand == hashlib.sha256(b'{"by": "hand"}').hexdigest() and after_one != start, err)
+    code, _x, err = run("agents", "undo-run", lines()[-1]["run"], "--note", "Put the packed run back")
+    check("380: and that undo undone brings the run's files back as it left them, the taken file gone again",
+          code == 0 and not (root / victim).exists(), err)
+    (root / "made-by-hand.json").unlink(missing_ok=True)
+    # a copy cut short or empty (a power loss before it reached the disk) refuses the undo whole, nothing taken away
+    ask("length", "33", "--run", "cut")
+    cut_run = lines()[-1]["run"]
+    changed = tree(root)
+    step = next(iter((agent_changes.load_run(root, cut_run).get("steps") or {}).values()))
+    rel, mine = next((r, s) for r, s in step.items() if s.get("before"))
+    copy = agent_changes.object_path(root, mine["before"])
+    whole = copy.read_bytes()
+    if not copy.name.endswith(".z"):
+        copy.write_bytes(whole)
+    for label, bad in (("cut short", whole[:len(whole) // 2]), ("empty", b"")):
+        copy.write_bytes(bad)
+        code, _x, err = run("agents", "undo-run", cut_run, "--note", "Undo the cut run")
+        check(f"380: an undo whose kept copy is {label} is refused whole in one line with nothing written",
+              code != 0 and tree(root) == changed and not agent_changes.load_run(root, cut_run).get("undone"), err)
+    copy.write_bytes(whole)
+    code, _x, err = run("agents", "undo-run", cut_run, "--note", "Undo the cut run")
+    check("380: and the same undo goes through once the copy is whole again", code == 0 and tree(root) != changed, err)
 
 
 def test_agent_changes(scratch: Path):
@@ -494,9 +570,9 @@ def test_agent_changes(scratch: Path):
         made_board = digest(root)
         step = (runs()[lines()[-1]["run"]].get("steps") or {}).get(board_change) or {}
         check("380: each change keeps its files as they stood before and after it, by their contents in the store",
-              step and all((store / "objects" / s["after"]).is_file() and (s["before"] is None or
-                                                                         (store / "objects" / s["before"]).is_file())
-                           for s in step.values()), json.dumps(step)[:400])
+              step and all(agent_changes.object_path(root, s["after"]) and (
+                  s["before"] is None or agent_changes.object_path(root, s["before"])) for s in step.values()),
+              json.dumps(step)[:400])
         code, dry, err = run("agents", "undo-change", board_change, "--dry-run", "--note", "Undo the trial board")
         check("380: undo-change's dry run says what it would put back, nothing written",
               code == 0 and dry.get("changes") == [board_change] and digest(root) == made_board, err + json.dumps(dry))
@@ -543,6 +619,9 @@ def test_agent_changes(scratch: Path):
 
         # ── 11. a participant added by an agent undone whole, Source and folders too (undosource)
         source_undo(scratch)
+
+        # ── 12. copies kept deflated (restoresize, 21 November 2026), older whole ones still read
+        packed_undo(root, ask, run, lines, clock, store)
     finally:
         agent_changes.ALL_OPS, agent_changes.NOW = kept[0], kept[1]
         if kept[2] is None:

@@ -62,6 +62,7 @@ import re
 import secrets
 import shutil
 import tempfile
+import zlib
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -113,6 +114,10 @@ BIG = 32 * 1024 * 1024
 # while it waits for its run, never held whole in memory (undosource2)
 STREAM = 1024 * 1024
 CHUNK = 1024 * 1024
+# a copy kept in the store is deflated (restoresize, 21 November 2026), its file named `<sha>.z` with the sha of its
+# bytes as they were, since the JSON files a point holds shrink to a tenth; a copy made before stands as its sha alone
+PACKED = ".z"
+LEVEL = 4
 # what may stand in a folder a run made, once its undo has taken the run's files away, and still have it taken away:
 # a lock file Idiograph writes beside a participant's files, and the Finder's own
 DROPPINGS = frozenset((locks.NAME, ".DS_Store"))
@@ -360,6 +365,86 @@ def objects(root) -> Path:
     return store(root) / "objects"
 
 
+def object_path(root, sha) -> Path | None:
+    """Where a copy kept by its contents stands in the store, or None when the store lacks it: a copy made before
+    restoresize (21 November 2026) stands as its sha, whole, and one made since as `<sha>.z`, deflated (`PACKED`)."""
+    if not sha:
+        return None
+    for name in (sha, sha + PACKED):
+        path = objects(root) / name
+        if path.is_file():
+            return path
+    return None
+
+
+def deflated(path: Path) -> bool:
+    """Whether a path is a deflated copy in a store, never an _Archive file that happens to end `.z`."""
+    path = Path(path)
+    return path.name.endswith(PACKED) and path.parent.name == "objects" and path.parent.parent.name == STORE
+
+
+def read_object(path: Path) -> bytes:
+    """A kept copy's bytes, inflated when it is a `.z` one: OSError when it does not inflate to the sha it is named
+    for (cut short, empty or corrupt)."""
+    data = Path(path).read_bytes()
+    if not deflated(path):
+        return data
+    try:
+        out = zlib.decompress(data)
+    except zlib.error as exc:
+        raise OSError(str(exc)) from exc
+    if hashlib.sha256(out).hexdigest() != Path(path).name[:-len(PACKED)]:
+        raise OSError("a kept copy does not hold the bytes it is named for")
+    return out
+
+
+def sound(path) -> bool:
+    """Whether a kept copy can be put back: a whole copy, or a `.z` one that inflates to its end and to the sha it is
+    named for, read a CHUNK at a time."""
+    if path is None:
+        return False
+    try:
+        if not deflated(path):
+            return Path(path).is_file()
+        copy_object(path, None)
+    except (OSError, zlib.error):
+        return False
+    return True
+
+
+def copy_object(src: Path, tmp: Path | None) -> None:
+    """A kept copy (or an _Archive file) written to `tmp`, a `.z` copy inflated a CHUNK at a time, never whole in
+    memory, its inflated bytes hashed as they go: OSError, with the temporary file taken away, when the copy stops
+    short of the end of its stream or does not hold the sha it is named for, so a cut copy is never put back as a
+    file. With no `tmp` it only checks."""
+    if not deflated(src):
+        shutil.copyfile(src, tmp)
+        return
+    inflate = zlib.decompressobj()
+    digest = hashlib.sha256()
+    try:
+        with open(src, "rb") as given, (open(tmp, "wb") if tmp is not None else contextlib.nullcontext()) as out:
+            while True:
+                piece = given.read(CHUNK)
+                if not piece:
+                    break
+                got = inflate.decompress(piece)
+                digest.update(got)
+                if out is not None:
+                    out.write(got)
+            got = inflate.flush()
+            digest.update(got)
+            if out is not None:
+                out.write(got)
+        if not inflate.eof or digest.hexdigest() != Path(src).name[:-len(PACKED)]:
+            raise OSError("a kept copy is cut short or does not hold the bytes it is named for")
+    except (OSError, zlib.error) as exc:
+        if tmp is not None:
+            with contextlib.suppress(OSError):
+                Path(tmp).unlink()
+        raise OSError(str(exc)) from exc
+
+
 def read_in(root, rel: str) -> tuple[bytes, list] | None:
     """A file's bytes and the time and size it had as it was read, read again when it changed under the read. None
     when it cannot be read."""
@@ -377,13 +462,19 @@ def read_in(root, rel: str) -> tuple[bytes, list] | None:
 
 
 def keep(root, sha: str, data) -> None:
-    """A copy kept by its contents in the store, once whatever its name: its bytes, or a copy waiting in a folder
-    for passing files (`stream_out`), moved in, or let go when the store holds that copy already."""
-    target = objects(root) / sha
-    if target.is_file():
+    """A copy kept by its contents in the store, once whatever its name (raw or deflated): its bytes, or a copy
+    waiting in a folder for passing files (`stream_out`, already deflated), moved in, or let go when the store holds
+    that copy already. Written as `<sha>.z`."""
+    target = objects(root) / (sha + PACKED)
+    held = object_path(root, sha)
+    if held is not None and sound(held):
         if isinstance(data, Path):
             data.unlink(missing_ok=True)
         return
+    if held is not None:
+        # a copy cut short, by a power loss before it reached the disk, is written again
+        with contextlib.suppress(OSError):
+            held.unlink()
     target.parent.mkdir(parents=True, exist_ok=True)
     tmp = target.with_name(f".{sha}.{secrets.token_hex(4)}")
     try:
@@ -394,7 +485,9 @@ def keep(root, sha: str, data) -> None:
             # read by its owner alone, as the list of names it may be a copy of is (namesop)
             fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
             with os.fdopen(fd, "wb") as fh:
-                fh.write(data)
+                fh.write(zlib.compress(data, LEVEL))
+                fh.flush()
+                os.fsync(fh.fileno())
         os.replace(tmp, target)
     finally:
         with contextlib.suppress(OSError):
@@ -410,6 +503,7 @@ def stream_out(path: Path, folder: Path) -> tuple[str, list, Path] | None:
         Path(folder).mkdir(parents=True, exist_ok=True)
         st = path.stat()
         digest = hashlib.sha256()
+        deflate = zlib.compressobj(LEVEL)
         fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, "wb") as out, open(path, "rb") as src:
             while True:
@@ -417,7 +511,8 @@ def stream_out(path: Path, folder: Path) -> tuple[str, list, Path] | None:
                 if not piece:
                     break
                 digest.update(piece)
-                out.write(piece)
+                out.write(deflate.compress(piece))
+            out.write(deflate.flush())
             out.flush()
             os.fsync(out.fileno())
         again = path.stat()
@@ -609,7 +704,7 @@ def point(root) -> tuple[dict, dict]:
             out[rel] = {"sha": None, "stat": st}
             continue
         sha = known.get((rel, tuple(st)))
-        if sha and (objects(root) / sha).is_file():
+        if sha and object_path(root, sha) is not None:
             out[rel] = {"sha": sha, "stat": st}
             continue
         if st[1] > STREAM:
@@ -663,7 +758,8 @@ def sweep(root, kept: list) -> None:
               for s in step.values() if isinstance(s, dict) for k in ("before", "after")}
     try:
         for f in objects(root).iterdir():
-            if f.is_file() and not f.name.startswith(".") and f.name not in named:
+            held = f.name[:-len(PACKED)] if f.name.endswith(PACKED) else f.name
+            if f.is_file() and not f.name.startswith(".") and held not in named:
                 f.unlink()
     except OSError:
         pass
@@ -1333,8 +1429,7 @@ def kept_copy(root, rel: str, entry) -> Path | None:
     and size alone, the participant's _Archive copy of it (`archived`). None when neither is there."""
     entry = entry if isinstance(entry, dict) else {}
     if entry.get("sha"):
-        path = objects(root) / entry["sha"]
-        return path if path.is_file() else None
+        return object_path(root, entry["sha"])
     return archived(root, rel, entry.get("stat")) if watched(rel, entry.get("stat")) else None
 
 
@@ -1398,10 +1493,10 @@ def carry_out(root, draft: dict, gone: list, back: list, clear: list, names: dic
                 target.parent.mkdir(parents=True, exist_ok=True)
                 tmp = target.with_name(f".{target.name}.{secrets.token_hex(4)}.restore")
                 if f.split("/")[-1] == NAMES:
-                    put_back(tmp, Path(src).read_bytes(), f)
+                    put_back(tmp, read_object(src), f)
                 else:
                     # streamed, a recording from the store or the participant's _Archive, its copy there left
-                    shutil.copyfile(src, tmp)
+                    copy_object(src, tmp)
                 # its time as it was too, so the file reads exactly as it stood, and an earlier run undone after
                 # this one finds its files as its last write left them
                 if isinstance(stamp_ns, int):
@@ -1470,7 +1565,7 @@ def undo_run(p, args) -> tuple:
         if not all(inside(root, f) for f in back + gone):
             raise cli.Refused(i18n.t("agentchanges.undo.outside"))
         sources = {f: kept_copy(root, f, point_files[f]) for f in back}
-        missing = [f for f in back if sources[f] is None]
+        missing = [f for f in back if sources[f] is None or not sound(sources[f])]
         if missing:
             raise cli.Refused(i18n.t("agentchanges.undo.copies_gone", id=run["id"], what=said_files(missing, names)))
         answer = {"run": run["id"], "put_back": len(back), "taken_away": len(gone), "dry_run": bool(args.dry_run),
@@ -1627,7 +1722,7 @@ def undo_changes(p, args) -> tuple:
             raise cli.Refused(*([i18n.t("agentchanges.undo_change.refused")] + lost
                                 + [i18n.t("cli.said.nothing_was_written")]))
         missing = sorted({rel for _e, _r, step in todo for rel, s in step.items()
-                          if s.get("before") and not (objects(root) / s["before"]).is_file()})
+                          if s.get("before") and not sound(object_path(root, s["before"]))})
         if missing:
             raise cli.Refused(i18n.t("agentchanges.undo_change.copies_gone", what=said_files(missing, names)))
         if not all(inside(root, rel) for _e, _r, step in todo for rel in step):
@@ -1657,7 +1752,7 @@ def undo_changes(p, args) -> tuple:
         for _e, _r, step in todo:
             for rel, s in step.items():
                 final[rel] = (None if s.get("before_stat") is None
-                              else (objects(root) / s["before"], s["before_stat"][0]))
+                              else (object_path(root, s["before"]) or objects(root) / s["before"], s["before_stat"][0]))
         taken = [rel for rel, v in sorted(final.items()) if v is None and (Path(root) / rel).is_file()]
         put = [(rel, v[0], v[1]) for rel, v in sorted(final.items()) if v is not None]
         # the folders each change's run made that are left empty (undosource)

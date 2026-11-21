@@ -211,11 +211,21 @@ class StaleBoard(WorkbookError):
 FOLLOWED = "followed"
 FOLLOWED_KEEP = 20
 
+# What a write that left every key where it was did to the words of a board's lines, so the revisions older than it
+# follow the lines by key as well as by words (histfollow, 21 November 2026). A list in the board file, oldest first, of
+# `{"n", "key", "was", "now"}` (the card at `key` that held `was` holds `now`), `n` being the number
+# of the last revision when it was written: only a revision numbered `n` or less is older than it. It is never part of
+# a board's version, is carried by a save (`carry_history`), is dropped by a copy (`drop_history`) and by anything that
+# moves the revisions' keys, and keeps the last REWORDS_KEEP.
+REWORDS = "rewords"
+REWORDS_KEEP = 200
+
 
 def board_version(board: dict) -> str:
     """A board's version: a hash of it as the file holds it, its history, its History's head, the versions its
     cards' words followed from and any `v` a page sent aside."""
-    held = {k: value for k, value in board.items() if k not in ("history", board_history.HEAD, "v", OWN, FOLLOWED)}
+    held = {k: value for k, value in board.items()
+            if k not in ("history", board_history.HEAD, "v", OWN, FOLLOWED, REWORDS)}
     return hashlib.sha1(json.dumps(held, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
 
 
@@ -3024,11 +3034,14 @@ def carry_history(was: dict, kept: dict) -> dict:
         kept["history"] = was["history"]
     if board_history.head_of(was) is not None:
         kept[board_history.HEAD] = was[board_history.HEAD]
+    if isinstance(was.get(REWORDS), list) and was[REWORDS]:
+        kept[REWORDS] = was[REWORDS]
     return kept
 
 
 def drop_history(board: dict) -> dict:
     """A board with no History of its own yet: a copy made, or a board brought in from elsewhere."""
+    board.pop(REWORDS, None)
     return board_history.drop(board)
 
 
@@ -3065,14 +3078,50 @@ def kept_revision(board: dict, **given) -> dict | None:
         return None
 
 
-def brought_up(state: dict, read: dict) -> dict:
+def rewords_kept(board: dict, sheet: str, row: int, old: list[str], new: list[str], at: int = 0) -> None:
+    """A write of one passage that kept every key, `old` its lines before and `new` after, noted on the board for the
+    revisions older than it (see `REWORDS`): each line whose words changed, lines added at the end needing none;
+    `at` is the line the first of them is. Call it once the board's revision of itself first has been kept. Nothing
+    is written."""
+    entries = [{"key": card_key(sheet, row, i + at), "was": words(old[i]), "now": words(new[i])}
+               for i in range(min(len(old), len(new))) if words(old[i]) != words(new[i])]
+    if not entries:
+        return
+    n = board_history.last_number(board)
+    held = [e for e in board.get(REWORDS) or [] if isinstance(e, dict)]
+    board[REWORDS] = (held + [dict(e, n=n) for e in entries])[-REWORDS_KEEP:]
+
+
+def rewords_replayed(state: dict, board: dict, number: int) -> dict:
+    """A revision's state, numbered `number`, with the words and places of the lines that writes older than it
+    changed while every key stayed (see `REWORDS`): a card that held a line's old words at its key holds the new, so
+    the revision follows the keys it was made with before it follows words (`brought_up`). A state with nothing to replay is returned as it
+    was. Nothing is written."""
+    held = [e for e in board.get(REWORDS) or [] if isinstance(e, dict) and int(e.get("n") or 0) >= number]
+    if not held or not isinstance(state.get("cards"), dict):
+        return state
+    out = json.loads(json.dumps(state))
+    for e in held:
+        key = str(e.get("key") or "")
+        card = out["cards"].get(key)
+        if isinstance(card, dict) and words(card.get("text")) == str(e.get("was") or ""):
+            card["text"] = str(e.get("now") or "")
+            card.pop("live", None)
+    return out
+
+
+def brought_up(state: dict, read: dict, board: dict | None = None, number: int = 0) -> dict:
     """A revision's state brought up to date with the workbook as it reads now, as it is restored or shown (lazy
     word-following, Adam, 16 November 2026): its keys follow their words (`follow`), then each card whose key holds a
     statement takes the statement's words, and each pick whose quote is there at its key takes the quote's words, as
     `cards_refreshed` brings a board in line. So a find and replace, or any edit since, never has to rewrite every
-    revision of every board, and a revision restored shows today's words. Nothing is written."""
+    revision of every board, and a revision restored shows today's words. `board` and the revision's `number`, when
+    given, first replay what writes since that kept every key and changed words did (`rewords_replayed`), so a line
+    reworded to another's old words never reads as a card moved. Nothing is written."""
     keys: dict = {}
     moves: dict = {}
+    if board is not None and number:
+        state = rewords_replayed(state, board, number)
     out = follow(state, read["cards"], read["quotes"], moves, keys)
     live = {c["key"]: c for c in read["cards"]}
     texts = {q["key"]: q["text"] for r in read["quotes"].values() for q in r.get("quotes") or []}
@@ -4640,7 +4689,7 @@ def board_op(workbook: Path, op: str, body: dict, case: str, dry_run: bool = Fal
     name = str(board.get("name") or FIRST_NAME)
 
     if op == "view":
-        merged = merge(read["cards"], brought_up(revision["state"], read), read["quotes"])
+        merged = merge(read["cards"], brought_up(revision["state"], read, board, board_history.number_of(revision)), read["quotes"])
         return dict(merged, op=op, revision=revision_summary(revision), board=summary(normalise(board), board))
 
     if op == "revision":
@@ -4650,7 +4699,7 @@ def board_op(workbook: Path, op: str, body: dict, case: str, dry_run: bool = Fal
         made = add_revision(board, name=revision_name("before_restoring", when_at=revision["at"]), at=when)
         # the revision's keys follow their words first, so a restore lands on the keys the workbook
         # holds now
-        restored = json.loads(json.dumps(state_of(brought_up(revision["state"], read))))
+        restored = json.loads(json.dumps(state_of(brought_up(revision["state"], read, board, board_history.number_of(revision)))))
         for key in STATE_OPTIONAL:
             board.pop(key, None)
         board.update({key: restored[key] for key in STATE_KEYS if key in restored}, updated=when)
@@ -4663,7 +4712,7 @@ def board_op(workbook: Path, op: str, body: dict, case: str, dry_run: bool = Fal
         gid = str(body.get("group") or "")
         if target is board and revision is None:
             raise WorkbookError(i18n.t("server.board_already_nothing_copied", unit=unit(board, gid)))
-        source = brought_up(revision["state"], read) if revision else follow(board, read["cards"], read["quotes"])
+        source = brought_up(revision["state"], read, board, board_history.number_of(revision)) if revision else follow(board, read["cards"], read["quotes"])
         group = next((g for g in source["groups"] if g["id"] == gid), None)
         if group is None:
             raise WorkbookError(i18n.t("server.label_longer_board_nothing_copied"))
@@ -4862,8 +4911,12 @@ def rekey(workbook: Path, mapper, cut: str | None = None, back: str | None = Non
     content = STATE_KEYS
     for board in boards_of(data):
         fields = moved(board)
+        old_log = dict(board)
         rest = {k: value for k, value in board.items() if k not in content}
         history = rest.pop("history", None)
+        if revisions.get(id(board)) is not None:
+            # the revisions are moved below, so the notes for them go; a History not here keeps them
+            rest.pop(REWORDS, None)
         board.clear()
         board.update(rest)
         board.update({k: value for k, value in fields.items() if k in content})
@@ -4871,7 +4924,8 @@ def rekey(workbook: Path, mapper, cut: str | None = None, back: str | None = Non
             board["history"] = history
         for revision in revisions.get(id(board)) or []:
             if isinstance(revision, dict) and isinstance(revision.get("state"), dict):
-                revision["state"] = state_of(moved(revision["state"]))
+                revision["state"] = state_of(moved(rewords_replayed(revision["state"], old_log,
+                                                                    board_history.number_of(revision))))
     if json.dumps(data, sort_keys=True, ensure_ascii=False) == before:
         return False
     data["updated"] = now_iso()
@@ -4912,6 +4966,8 @@ def statement_edited(workbook: Path, sheet: str, row: int, line: int, old: str, 
         if said:
             kept_revision(board, name=said, at=when)
             noted += 1
+        # revisions are left as they were and each follows the line by its key (see `REWORDS`)
+        rewords_kept(board, sheet, int(row), [old], [new], int(line))
         if words(card.get("text")) != was:
             continue
         before = json.loads(json.dumps({k: v for k, v in board.items() if k != "history"}))
@@ -5330,10 +5386,11 @@ def passage_moved(version: dict, sheet: str, row: int, old: list[str], new: list
 
 
 def keys_stay(old: list[str], new: list[str], lines: dict, quote_lines: dict) -> bool:
-    """Whether a passage's write keeps every line at its own key, only its words changing: as many lines after as
-    before, each old line at its own place, each old quote at its own place. Then no key of any revision moves, and
-    `passage_written` leaves the revisions as they are (see `brought_up`)."""
-    return (len(new) == len(old) and all(lines.get(i) == i for i in range(len(old)))
+    """Whether a passage's write keeps every line at its own key, only its words changing and lines following them:
+    at least as many lines after as before, each old line at its own place, each old quote at its own place. Then no
+    key of any revision moves, and `passage_written` leaves the revisions as they are, noting the rewords and the
+    lines added on the board for them (`rewords_kept`, `brought_up`; histfollow, 21 November 2026)."""
+    return (len(new) >= len(old) and all(lines.get(i) == i for i in range(len(old)))
             and all(to == at for at, to in (quote_lines or {}).items()))
 
 
@@ -5376,11 +5433,19 @@ def passage_written(workbook: Path, sheet: str, row: int, old: list[str], new: l
         # every line keeps its key and only its words change they are left as they are, as `statement_edited`
         # leaves them, each taking today's words when shown or restored (turnwrite, 21 November 2026), so a
         # reword writes no chunk
-        for revision in ([] if reworded_only else board_history.attached(board) or []):
+        old_log = dict(board)
+        held_revisions = None if reworded_only else board_history.attached(board)
+        for revision in held_revisions or []:
             if isinstance(revision, dict) and isinstance(revision.get("state"), dict):
-                revision["state"] = state_of(passage_moved(revision["state"], sheet, row, old, new, lines,
+                # what earlier writes did to its words while the keys stayed first, then the move
+                held = rewords_replayed(revision["state"], old_log, board_history.number_of(revision))
+                revision["state"] = state_of(passage_moved(held, sheet, row, old, new, lines,
                                                            quote_lines, now, then)[0])
+        if held_revisions is not None:
+            board.pop(REWORDS, None)
         kept_revision(board, name=history, at=when)
+        if reworded_only:
+            rewords_kept(board, sheet, row, old, new)
         state = state_of(after)
         for key in STATE_OPTIONAL:
             board.pop(key, None)
