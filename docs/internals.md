@@ -6942,8 +6942,16 @@ button, keeping `TH.carried` (each element, its parent and the sibling it stood 
 the sidebar, Esc and Undo run on the world as before. `thRender` and putting a board away call `thCarryDrop`, which
 empties it with nothing put back. Inside the world the carried layers made WebKit lift the whole transformed world,
 3,396 by 3,544 pixels on area 378's board, into a tiled layer of its own, a frame of 75 to 115 ms as a PET was
-picked up by its title or several cards together, and about 30 to 50 with the carry. One card alone stays in the
-world, where it picks up sooner. `thDragQueue` keeps each move, and each WebKit gathered into it
+picked up by its title or several cards together, and about 30 to 50 with the carry. Since pickup (21 November 2026)
+one card dragged alone goes into the carry too, still with no layer of its own: dragged in the world, the frame after
+its drop took 70 to 110 ms, and from the carry about 40, while it picks up within a few ms of what it did. Since pickup (21 November 2026) what an act eases afterwards, a drop landing, the
+neighbours it sent clear, a step undone, an Auto-arrange, is drawn in the carry too while it eases: `thEase` hands its
+moves' ids to `thCarryOut`, the part of `thCarry` that moves them, unless a drag is under way or something is carried
+already, and puts them back with `thCarryBack` when its 300 ms are up, only while `TH.carried` is still its own (a
+render or a drag in between has let them go or put them back). The ease's transitions take layers as a drag does,
+and in the world they lifted it whole in the third frame after a drop, 65 to 140 ms in WebKit on area 378's board,
+about 20 in the carry. The world's click handler (the "⋯", a label's cross and grid, a stack's count) listens on the
+carry as well. `thDragQueue` keeps each move, and each WebKit gathered into it
 (`getCoalescedEvents`), with its time in `drag.pts` (`thDragPoints`), and `thDragStep`, given the frame's time,
 moves to the pointer's place `TH_RESAMPLE_MS` (8) before it, between the moves either side of then (`thDragAt`),
 asking for one frame more while that place is behind the latest move, so the steps are even where taking the latest

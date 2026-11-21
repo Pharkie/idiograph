@@ -751,6 +751,43 @@ def test_history_chunks(scratch: Path):
               and up["cards"][k2]["text"] == "today two", json.dumps(up["cards"]))
         census_before = hc.census(root)
 
+        # ── 3n. a card whose own key still names a line stays on that line with today's words, and only a card whose
+        # key holds no line follows its words to another row (followfix, 21 November 2026)
+        def fline(key, text):
+            s, r, n = themes.split_card_key(key)
+            return {"key": key, "sheet": s, "row": r, "line": n, "text": text}
+
+        def fstate(**held):
+            return {"cards": {kk: {"x": 0, "y": 0, "text": tt} for kk, tt in held.items()}, "groups": [],
+                    "discarded": []}
+
+        ka, kb, kz = (themes.card_key("S", 5, 0), themes.card_key("S", 5, 1), themes.card_key("S", 9, 0))
+        up1 = themes.brought_up(fstate(**{ka: "Feeling alone"}),
+                                {"cards": [fline(ka, "Feeling lonely"), fline(kz, "Feeling alone")], "quotes": {}})
+        check("400: a revision's card whose line was reworded stays on it with the new words when another row reads "
+              "its old words and holds no card",
+              list(up1["cards"]) == [ka] and up1["cards"][ka]["text"] == "Feeling lonely", json.dumps(up1["cards"]))
+        kc = themes.card_key("S", 5, 2)
+        up2 = themes.brought_up(fstate(**{ka: "Alpha one", kb: "Beta two", kc: "Gamma three"}),
+                                {"cards": [fline(ka, "Beta two"), fline(kb, "Gamma three")], "quotes": {}})
+        check("400: a line deleted from a cell leaves the cards after it following their words and the deleted "
+              "line's card is the one missing, none left showing another card's words",
+              up2["cards"][ka]["text"] == "Beta two" and up2["cards"][kb]["text"] == "Gamma three"
+              and "Alpha one" in [c["text"] for c in up2["cards"].values()] and len(up2["cards"]) == 3,
+              json.dumps(up2["cards"]))
+        r5, r6, r7 = (themes.card_key("S", n, 0) for n in (5, 6, 7))
+        up2b = themes.brought_up(fstate(**{r5: "Alpha one", r6: "Beta two", r7: "Gamma three"}),
+                                 {"cards": [fline(r5, "Beta two"), fline(r6, "Gamma three")], "quotes": {}})
+        check("400: a row trimmed away leaves the cards of the rows after it following their words to the rows "
+              "that moved up",
+              up2b["cards"][r5]["text"] == "Beta two" and up2b["cards"][r6]["text"] == "Gamma three"
+              and "Alpha one" in [c["text"] for c in up2b["cards"].values()] and len(up2b["cards"]) == 3,
+              json.dumps(up2b["cards"]))
+        up3 = themes.brought_up(fstate(**{themes.card_key("S", 5, 3): "Feeling alone"}),
+                                {"cards": [fline(ka, "Something new"), fline(kz, "Feeling alone")], "quotes": {}})
+        check("400: a card whose line went follows its words to another row",
+              list(up3["cards"]) == [kz], json.dumps(up3["cards"]))
+
         # ── 4. Restore by id checks the hash
         made = themes.board_op(juno, "revision", {"id": "v1", "name": "by hand"}, "Juno")["revision"]
         held = boards_files(root)

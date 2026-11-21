@@ -234,16 +234,16 @@ def test_disk_hygiene():
             check("436: nothing touched in the last 3 days is planned, an old mtime on a fresh copy not hiding it",
                   verify_prune.plan(verify) == [], str(verify_prune.plan(verify))[:200])
             items = verify_prune.plan(verify, days=-1)
-            names = sorted(str(p.relative_to(verify)) for _, p, _ in items)
+            names = sorted(p.relative_to(verify).as_posix() for _, p, _ in items)
             check("436: the prune plans the old build tree, the big file that is no patch and the two oldest app copies, "
                   "and a folder only called build or profile is no build tree, nothing else", names == ["app-before-v0.9.0", "app-before-v0.9.1", "wip-01Nov26/b1/app/build",
                                                 "wip-01Nov26/b1/big.bin", "wip-01Nov26/b1/profile-run",
                                                 "wip-01Nov26/b1/target"], str(names))
-            before = sorted(str(p.relative_to(verify)) for p in verify.rglob("*"))
+            before = sorted(p.relative_to(verify).as_posix() for p in verify.rglob("*"))
             verify_prune.main(["--verify-dir", str(verify), "--days=-1"])
-            check("436: a dry run deletes nothing", before == sorted(str(p.relative_to(verify)) for p in verify.rglob("*")), "")
+            check("436: a dry run deletes nothing", before == sorted(p.relative_to(verify).as_posix() for p in verify.rglob("*")), "")
             verify_prune.main(["--verify-dir", str(verify), "--days=-1", "--commit"])
-            after = sorted(str(p.relative_to(verify)) for p in verify.rglob("*"))
+            after = sorted(p.relative_to(verify).as_posix() for p in verify.rglob("*"))
             check("436: --commit deletes what was planned, and the patch, note, picture, keep folder "
                   "and gate's log stay",
                   not any(n in after for n in ("wip-01Nov26/b1/target", "wip-01Nov26/b1/big.bin", "app-before-v0.9.0"))

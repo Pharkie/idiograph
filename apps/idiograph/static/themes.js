@@ -5393,12 +5393,14 @@ function thEase(from, lifted, lean = 0) {
     const lift = !!(lifted && lifted.has(id));
     const still = Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5;
     if (still && !lift) return;
-    moves.push({ el, dx, dy, lift, sent: lift && !still });
+    moves.push({ el, id, dx, dy, lift, sent: lift && !still });
   };
   for (const [key, el] of Object.entries(TH.els.cards)) add(el, from.cards[key], TH.v.cards[key], key);
   for (const g of TH.v.groups) add(TH.els.labels[g.id], from.groups[g.id], g, g.id);
   for (const n of thStickies(TH.v)) add((TH.els.stickies || {})[n.id], (from.stickies || {})[n.id], n, n.id);
   if (!moves.length) return;
+  // what eases is drawn in the carry while it does, as a drag's carried items are, and put back once it has settled
+  const carried = TH.drag || TH.carried ? null : thCarryOut(moves.map((m) => m.id));
   const tilt = Math.abs(lean) > 0.05 ? `${lean.toFixed(2)}deg` : '';
   for (const m of moves) {
     m.el.classList.add('ease-from');
@@ -5421,7 +5423,10 @@ function thEase(from, lifted, lean = 0) {
       m.el.style.translate = '';
       m.el.style.rotate = '';
     }
-    setTimeout(() => { for (const m of moves) m.el.classList.remove('easing', 'nudging', 'sent'); }, 300);
+    setTimeout(() => {
+      for (const m of moves) m.el.classList.remove('easing', 'nudging', 'sent');
+      if (carried && TH.carried === carried) thCarryBack();
+    }, 300);
   }));
 }
 
@@ -10412,8 +10417,8 @@ function thDragStart() {
     slides: new Map(), seen: null, raf: 0, hitNow: null, next: null, step: 0, placedAt: 0, home: null, layout: null,
     trail: grabbed.size < moving.size ? { x: 0, y: 0, t: 0, raf: 0 } : null, pts: [] };
   TH.hoverAt = null;
-  // one card alone takes no layer, so it stays in the world, where it picks up a frame sooner (see thCarry)
-  if (moving.size > 1) thCarry(TH.drag);
+  // what it carries is drawn out of the world while it moves, one card alone too, which takes no layer (see thCarry)
+  thCarry(TH.drag);
   thCarrying(moving.size > 1);
   thSideArm(true);
 }
@@ -10437,21 +10442,29 @@ function thCarrying(on) {
    frame that picked a PET up by its title took 90 to 160 ms. Out here only what is carried is lifted. Each element
    keeps its place in the world's units, its classes and its styles, so it is drawn where and as it was, and the
    drop, the stack, the merge, the sidebar and Esc all end on the world as before. A stack shown open goes with its
-   top: the cards laid out under it, its rail and its button. Only a drag that carries more than one thing comes out
-   here: one card dragged alone takes no layer and lifts nothing, and moved out it picked up 5 to 10 ms slower. */
+   top: the cards laid out under it, its rail and its button. Until pickup (21 November 2026) one card dragged alone
+   stayed in the world, since moved out it picked up 5 to 10 ms slower then, but the world it was dragged in took the
+   frame after its drop to 70 to 110 ms, and out here about 40, while it picks up within a few ms of the world's. What
+   an act eases afterwards is drawn here too while it eases (see thEase). */
 function thCarryEl() {
   const c = $('th-carry');
   return c && typeof c.appendChild === 'function' && c.classList ? c : null;
 }
 
 function thCarry(d) {
+  if (d) thCarryOut(d.moving);
+}
+
+/* the cards, labels and notes of `ids` moved out into the carry, each open stack's with its top, and what was
+   carried kept in TH.carried, which is returned (null when there is no carry to draw in) */
+function thCarryOut(ids) {
   const carry = thCarryEl();
   const world = $('th-world');
-  if (!carry || !d || !world || typeof world.contains !== 'function') return;
+  if (!carry || !world || typeof world.contains !== 'function') return null;
   thCarryBack();
   const els = [];
   const add = (el) => { if (el && el.parentNode && world.contains(el) && !els.includes(el)) els.push(el); };
-  for (const it of d.moving) {
+  for (const it of ids) {
     add(TH.els.cards[it] || TH.els.labels[it] || (TH.els.stickies || {})[it]);
     const r = (TH.els.rails || {})[it];
     if (r) {
@@ -10464,6 +10477,7 @@ function thCarry(d) {
   els.sort((a, b) => (a.compareDocumentPosition(b) & 4 ? -1 : 1));
   TH.carried = els.map((el) => ({ el, parent: el.parentNode, next: el.nextSibling }));
   for (const el of els) carry.appendChild(el);
+  return TH.carried;
 }
 
 /* what was carried back in the world where it came from, the last first so each finds the one it stood before, and
@@ -15995,7 +16009,8 @@ function themesBoot() {
   });
   // the small controls on a label: the cross deletes it, the way Backspace does on a label
   // selected, and the grid beside it, Auto-arrange, tidies what it holds
-  $('th-world').addEventListener('click', (e) => {
+  // and on the carry, where what a drag carries or an ease moves is drawn for a moment (see thCarry)
+  const worldClick = (e) => {
     // the "⋯" on a selected card or a label opens its right-click menu under it
     const more = e.target.closest('.th-more');
     if (more) {
@@ -16022,7 +16037,10 @@ function themesBoot() {
     if (!label) return;
     if (del.classList.contains('th-arr')) thArrangeGroup(label.dataset.group);
     else thDeleteLabels([label.dataset.group]);
-  });
+  };
+  $('th-world').addEventListener('click', worldClick);
+  const carry = thCarryEl();
+  if (carry && typeof carry.addEventListener === 'function') carry.addEventListener('click', worldClick);
   // a page closed with a save still to go sends it on the way out
   window.addEventListener('pagehide', () => {
     if (!TH.live || !TH.dirty || !TH.v) return;

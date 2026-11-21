@@ -116,7 +116,7 @@ console.log(JSON.stringify(out));
           and "if ((MOD(e) && (e.key === 'z' || e.key === 'Z')) || REDO_Y(e)) { e.preventDefault(); thUndo(!e.shiftKey && !REDO_Y(e)); return; }" in thkeys
           and "if (TH.busy) return;" in thkeys
           and "for (const id of ['th-group', 'th-undo']) $(id).addEventListener('pointerdown', (e) => e.preventDefault());" in tjs)
-    world = tjs.split("$('th-world').addEventListener('click', (e) => {", 1)[1].split("\n  });", 1)[0]
+    world = tjs.split("const worldClick = (e) => {", 1)[1].split("\n  };", 1)[0]
     check("155: a ⋯ on a selected card's corner and on a label opens what its right-click menu offers, the same menu "
           "for the same item, and a press on it never starts a drag or a lasso",
           "const TH_MORE = `<button type=\"button\" class=\"th-more\" tabindex=\"-1\" title=\"${TH_MORE_WORD}\" aria-label=\"${TH_MORE_WORD}\">&#8943;</button>`;" in tjs

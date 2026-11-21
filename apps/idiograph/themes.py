@@ -2138,7 +2138,8 @@ def follow(version: dict, cards: list[dict], quotes: dict | None = None, moves: 
     A stored card whose key still carries its stored text stays. One whose key no longer does takes
     the key of an unclaimed live line with the same words, `words` of each, on its own row first,
     the nearest line, and then anywhere on its sheet, the nearest row. One that finds none keeps its
-    key while no other card has taken it, which marks it changed where a line reads differently there
+    key while no other card has taken it (a card whose key holds a line now worded as no other card was made
+    with stays on that line and never goes to another row), which marks it changed where a line reads differently there
     and missing where none does, and otherwise moves past every line of its row, which marks it
     missing. A key that moves moves everywhere the board names it: its cards, its groups' members,
     its discards and the AI's reasons. So a line inserted at the top of a cell
@@ -2177,20 +2178,38 @@ def follow(version: dict, cards: list[dict], quotes: dict | None = None, moves: 
             keymap[k] = k
     claimed = set(keymap.values())
     movers = sorted((k for k in stored if k not in keymap), key=_order)
+    strangers = set(own or ())
+    # a card whose words are on no line of its sheet and whose own key holds a line stays on that line with today's
+    # words, so a line that reads its old words after a reword never takes it (followfix, 21 November 2026)
     for k in movers:
+        sheet = split_card_key(k)[0]
+        if k in live and k not in strangers and k not in claimed \
+                and not (words(stored[k]["text"]) and any(live[x]["sheet"] == sheet
+                                                          for x in by_words.get(words(stored[k]["text"]), []))) \
+                and not any(x != k and x not in keymap and words(c["text"]) == said[k] for x, c in stored.items()):
+            keymap[k] = k
+            claimed.add(k)
+    for k in movers:
+        if k in keymap:
+            continue
         sheet, row, line = split_card_key(k)
         found = [x for x in by_words.get(words(stored[k]["text"]), [])
                  if x not in claimed and live[x]["sheet"] == sheet] if words(stored[k]["text"]) else []
         if not found:
             continue
         same = [x for x in found if live[x]["row"] == row]
+        if k in live and k not in strangers and not same \
+                and not any(x != k and words(c["text"]) == said[k] for x, c in stored.items()):
+            # its own key still names a line, which now reads words no other card of the revision was made with, so
+            # the line was reworded and the card stays on it. Only a card whose key holds no line, or holds another
+            # card's words (rows moved), follows its words to another row (followfix, 21 November 2026)
+            continue
         if same:
             to = min(same, key=lambda x: (abs(live[x]["line"] - (line or 0)), live[x]["line"]))
         else:
             to = min(found, key=lambda x: (abs(live[x]["row"] - (row or 0)), live[x]["row"], live[x]["line"]))
         keymap[k] = to
         claimed.add(to)
-    strangers = set(own or ())
     for k in movers:
         if k not in keymap and k not in claimed and (k not in strangers or k not in live):
             keymap[k] = k

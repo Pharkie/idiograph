@@ -171,6 +171,8 @@ window.__bd = {
     mo.disconnect();
     thDragCancel();
     TH.press = null;
+    // what Esc eases back is drawn in the carry while it eases (pickup), so the carry is read once that is done
+    await this.sleep(400);
     const carryLeft = carry ? carry.childElementCount : -1;
     const d = [];
     for (let i = 1; i < frames.length; i += 1) if (frames[i] > t0 + 100) d.push(frames[i] - frames[i - 1]);
@@ -192,6 +194,31 @@ window.__bd = {
       max: Math.round(s[s.length - 1] * 10) / 10, over50: d.filter((x) => x > 50).length, over50late: late.filter((x) => x > 50).length,
       added, reads: this.reads, carried, inWorld, carryLeft,
       steps: r.length, even: [q(0.1), q(0.9)] };
+  },
+  // a PET picked up by its title, moved a little and let go (pickup): what lands is in the carry while it eases,
+  // and once it has settled everything is back in the world, the drop one step of undo that puts the board back
+  async drop() {
+    const stage = document.getElementById('th-stage');
+    const p = this.pickTitle(250);
+    if (!p) return { error: 'no title' };
+    const was = JSON.stringify(TH.v);
+    const undo = TH.undo.length;
+    p.el.dispatchEvent(this.pe('pointerdown', p.x, p.y));
+    for (let i = 1; i <= 12; i += 1) { stage.dispatchEvent(this.pe('pointermove', p.x + 3 * i, p.y + i)); await this.sleep(16); }
+    await this.sleep(60);
+    stage.dispatchEvent(this.pe('pointerup', p.x + 36, p.y + 12));
+    TH.press = null;
+    const carry = document.getElementById('th-carry');
+    await this.sleep(60);
+    const easing = carry ? carry.querySelectorAll('.th-card, .th-label').length : -1;
+    await this.sleep(500);
+    const world = document.getElementById('th-world');
+    const after = { easing, carryLeft: carry ? carry.childElementCount : -1, cards: world.querySelectorAll('.th-card').length,
+      steps: TH.undo.length - undo, moved: JSON.stringify(TH.v) !== was, left: document.querySelectorAll('.dragging, .easing, .landing').length };
+    thUndo(true);
+    await this.sleep(500);
+    return Object.assign(after, { back: JSON.stringify(TH.v) === was, carryAfterUndo: carry ? carry.childElementCount : -1,
+      cardsAfterUndo: world.querySelectorAll('.th-card').length });
   },
 };
 """
@@ -303,7 +330,8 @@ def test_board_drag(scratch: Path):
              {"js": OLD_STEP, "wait": 100},
              {"js": "__bd.drag(2000)", "wait": 500},
              {"js": OLD_LINES, "wait": 100},
-             {"js": "__bd.drag(1000)", "wait": 100}]
+             {"js": "__bd.drag(1000)", "wait": 100},
+             {"js": "__bd.drop()", "wait": 100}]
     steps_file = base / "steps.json"
     steps_file.write_text(json.dumps(steps), encoding="utf-8")
 
@@ -358,9 +386,9 @@ def test_board_drag(scratch: Path):
           ran.returncode == 0 and smooth(title, "over50late"), f"{title}")
     check("378: a PET dragged by its title is drawn out of the board's world while it moves, its cards and labels in "
           "a layer of their own over it, so WebKit never lifts the whole board into a layer as it is picked up, and "
-          "after Esc nothing is left there, while one card dragged alone stays in the world (dragfix)",
+          "after Esc nothing is left there, and since pickup one card dragged alone goes there too (dragfix, pickup)",
           title.get("carried", 0) >= 10 and title.get("inWorld") == 0 and title.get("carryLeft") == 0
-          and m.get("carried") == 0 and m.get("inWorld") == 1,
+          and m.get("carried") == 1 and m.get("inWorld") == 0 and m.get("carryLeft") == 0,
           f"title {title.get('carried')} carried, {title.get('inWorld')} in the world, {title.get('carryLeft')} left; "
           f"card {m.get('carried')} carried, {m.get('inWorld')} in the world")
     check("378: what is dragged moves an even step a frame, each frame's step within 0.7 to 1.35 of an even hand's for "
@@ -373,3 +401,11 @@ def test_board_drag(scratch: Path):
           m.get("added") == 0 and m.get("reads") == 0, f"{m}")
     check("378: the lines drawn afresh on every frame of a drag, as they were until boardperf, rebuild them on the same "
           "board, which the watch sees", old.get("dragging") is True and old.get("added", 0) > 0, f"{old}")
+    dropped = said.get(8) or {}
+    check("378: a PET let go by its title lands drawn in the carry while it eases, so WebKit never lifts the whole board "
+          "into a layer in the frames after a drop, and once it has settled every card is back in the world and the carry "
+          "is empty; the drop is one step of undo, and Undo puts the board back as it was (pickup)",
+          dropped.get("easing", 0) >= 10 and dropped.get("carryLeft") == 0 and dropped.get("cards") == said.get(0)
+          and dropped.get("steps") == 1 and dropped.get("moved") is True and dropped.get("left") == 0
+          and dropped.get("back") is True and dropped.get("carryAfterUndo") == 0 and dropped.get("cardsAfterUndo") == said.get(0),
+          f"{dropped}")
