@@ -200,6 +200,37 @@ def merged(base: dict, cur: dict, new: dict) -> dict:
     return out
 
 
+def holds_work(root: Path) -> bool:
+    """Whether the project holds a participant, anything of any kind `list_cases` gives. A project that will not be
+    read counts as one that does, so nothing is changed in it."""
+    try:
+        return bool(_routes().list_cases(Path(root)))
+    except Exception:  # noqa: BLE001 - not read just now: kept as it is
+        return True
+
+
+def kept_as_is(root: Path, cur: dict, result: dict) -> dict:
+    """The result of a member's change to the lead's study, with the method and the timepoints of a project with
+    work in it put back as the project holds them: the method is fixed when a project is made, a thematic analysis
+    or IPA project has no timepoints, and a longitudinal one keeps a list not shorter than its own (lowsW). A
+    project with no participant takes the change whole. The lead's own study, taken by a member, is not held to
+    this: the team's method is the lead's word."""
+    if not holds_work(root):
+        return result
+    out = dict(result)
+    if out.get("method") != cur.get("method"):
+        out["method"] = cur.get("method")
+    held = cur.get("timepoints")
+    wanted = out.get("timepoints")
+    if cur.get("method") != "lipa" or not isinstance(wanted, list) or not isinstance(held, list) \
+            or len(wanted) < len(held):
+        if held is None:
+            out.pop("timepoints", None)
+        else:
+            out["timepoints"] = held
+    return {u: v for u, v in out.items() if v is not None}
+
+
 def written_over(root: Path, project: dict, cur: dict, result: dict) -> dict:
     """The project file with the units that changed set or taken off, every other key as it was."""
     data = dict(project)
@@ -575,6 +606,7 @@ def take(root: Path, data: dict, dev: dict, way, inner: dict, state: dict) -> st
                         result[unit] = new
             if not result.get("name"):
                 result["name"] = cur.get("name")
+            result = kept_as_is(root, cur, result)
             said = changed_said(cur, result)
             if said:
                 # only the pictures of the units this change set, so a member's change never replaces another

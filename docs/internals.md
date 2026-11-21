@@ -2574,7 +2574,18 @@ Stop joining once the welcome has come, or cannot be looked for, drops the askin
 the lead's list names the computer and the lead removes the member. An asking from 0.9.32 has no `from`, and the
 page words it without a name. `show`'s `start.joining` lists the joins begun here and not
 finished, each with its six digits, and Working together offers Finish joining and Stop joining (`op: unjoin`,
-`team unjoin`, `team_unjoin`, the app's alone). The dry run reads no invite, so it cannot say has_participants. The Join card sends
+`team unjoin`, `team_unjoin`, the app's alone). `joined` also looks for the lead's `closed` line (`mailbox_welcome`):
+with no welcome and the line there, the lead cancelled the invite or let someone else in by it, so the asking is
+forgotten and the join ends with `invite_closed`: at once by the relay, and on a shared folder, where the welcome and
+the line are two files a sync may bring in either order, once the line was first seen (`closed_seen` in the asking) a
+minute before (`CLOSED_GRACE`). A mailbox gone after the invite lapsed ends the join as `invite_expired`. A join begun from Home keeps `home` in its asking (`new` for a
+folder the join made, `empty` for an empty one he named), and the route's `joined` that ends the join this way, the
+asking gone, takes the project away again (`join_empty_away`: its entry in Idiograph's projects and the folder, or
+an empty folder's contents) unless it holds a participant, a team or anything of its own beyond the project file, or its project file is no longer the one the join made (`home_sha`), the check and the removal under the project's file lock;
+Stop joining leaves the project. A relay's 404 `no project` is its own refusal, `relay_gone`, in Invite and They
+match, where any other keeps `relay_refused`. An invite's offer cuts the project's name, then leaves it out, until
+the list of digests fits OFFER_BYTES (a name in a script of four bytes a character no longer costs the list). The
+dry run reads no invite, so it cannot say has_participants. The Join card sends
 `route` relay when its shared-folder tick is off. The command line's `team join` takes `--route` and
 `--folder`, and MCP's `team_join` `route` and `folder`. Area 431.
 
@@ -2668,7 +2679,10 @@ in it) is kept and goes to the lead as a change, with the project file copied to
 <date-time>).json` first (teamfix4). A computer of the lead's other than her oldest on the list, with no study sent
 or taken (one joined from Home holds the name and method alone), sends `study_ask` at once and takes the study before
 it ever sends one, so its empty study never goes out as the lead's. A member's `study_change` places only the
-pictures of the units it set. A route's refusal of the study as too large, or files held, keeps `owed` (counted in
+pictures of the units it set, and leaves the `method` and the `timepoints` of a lead's project that holds a
+participant as they are (`team_study.kept_as_is`: a longitudinal project may lengthen its timepoints). A
+`study_change` and a `stopped` have no number of their own, so the sync loop keeps the `id` of each it has taken,
+the last 400 in sync.json's `once`, and passes over one handed again (`team_sync.ONCE`). A route's refusal of the study as too large, or files held, keeps `owed` (counted in
 the status line's waiting) and `too_large` (its own line in the status line). The pictures the study names that are the project's own files go inside the message
 (zipped, as a sealed blob above `INLINE_MOST`) only when their SHA-256 differs from the one last sent, every one to
 a new computer; one taken in that replaces another moves the old to `pictures/_Archive/` (`trajectories.picture_files`),

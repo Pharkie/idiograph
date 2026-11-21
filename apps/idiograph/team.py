@@ -808,6 +808,9 @@ def relay_refusal(exc, made: bool = False) -> TeamError:
         if not status:
             return TeamError(i18n.t("team.refused.made_unreached"), "relay_unreached")
         return TeamError(i18n.t("team.refused.made_refused"), "relay_refused")
+    if status == 404 and said == "no project":
+        # the project is gone from the relay (only the operator's delete does it): say so, as the page's hold does
+        return TeamError(i18n.t("team.refused.relay_gone"), "relay_gone")
     if status == 429 and said in ("projects today", "projects from here"):
         return TeamError(i18n.t("team.refused.relay_no_projects"), "relay_no_projects")
     if status == 429 and said == "invites today":
@@ -1228,7 +1231,7 @@ def mailbox_items(way, inv: str, key: bytes) -> list[tuple[str, dict]]:
     except Exception as exc:  # noqa: BLE001 - the relay's refusal (`slow down` among them), or no connection
         if getattr(exc, "status", None) is None:
             raise
-        if getattr(exc, "status", None) == 404:
+        if getattr(exc, "status", None) == 404 and str(getattr(exc, "error", "") or "") != "no project":
             # a mailbox no computer on a project opened, or one gone after its seven days
             raise TeamError(i18n.t("team.refused.no_invite"), "no_invite") from None
         raise relay_refusal(exc) from None
@@ -1390,6 +1393,15 @@ def offer_body(dev: dict, body: dict, secret: bytes, entries: list[dict] | None)
             digests.add(b64(secrets.token_bytes(8)))
         listed = dict(body, v=2, participants=sorted(digests), pad="")
         plain = signed(dev, listed)
+        # a long name in a script of four bytes a character leaves the list no room: the project's name is cut
+        # until it fits, or left out, before the list is (lowsW)
+        while len(canon(plain)) > OFFER_BYTES and listed.get("project"):
+            cut = max(1, (len(canon(plain)) - OFFER_BYTES) // 4)
+            shorter = listed["project"][:-cut].rstrip()
+            listed = {k: v for k, v in listed.items() if k != "project"}
+            if shorter:
+                listed["project"] = shorter
+            plain = signed(dev, listed)
         if len(canon(plain)) > OFFER_BYTES:
             plain = None
     if plain is None:
@@ -1520,7 +1532,7 @@ def unjoin(root: Path, inv: str, dry_run: bool = False) -> dict:
 
 def join(root: Path, words: str, name: str, dry_run: bool = False, relay_url: str = "", route: str = "",
          folder: str = "", participants: list[dict] | None = None, copy: bool = False,
-         replace: bool = False) -> dict:
+         replace: bool = False, home: str = "", home_sha: str = "") -> dict:
     """The joiner's side: the invite read from its mailbox, refused when it is closed, expired or not there, this
     device's name and keys posted as the answer, and the six digits to read on the call. Joined once the lead's
     They match comes back (`joined`). Nothing is written to the project until then, so a project that joins from
@@ -1578,7 +1590,9 @@ def join(root: Path, words: str, name: str, dry_run: bool = False, relay_url: st
                                                        **({"relay_url": relay} if relay else {}),
                                                        **({"folder": folder} if folder else {}),
                                                        **({"copy": True} if copy else {}),
-                                                       **({"replace": True} if replace else {}))
+                                                       **({"replace": True} if replace else {}),
+                                                       **({"home": home, "home_sha": str(home_sha)}
+                                                          if home in ("new", "empty") else {}))
         save_device_file(data_dev)
     return {"changes": [], "dry_run": False, "invite": inv, "from": offer.get("from") or "",
             "own": offer.get("own") is True, "project": offer_project(offer),
@@ -1687,6 +1701,12 @@ def peek(words: str, route: str = "", folder: str = "", relay_url: str = "") -> 
 def find_welcome(root: Path, asked: dict, data: dict | None = None) -> dict | None:
     """The lead's welcome for an asking, signed by the lead's device the invite named, or None while it has not
     come. Reads the invite's mailbox and writes nothing."""
+    return mailbox_welcome(root, asked, data)[0]
+
+
+def mailbox_welcome(root: Path, asked: dict, data: dict | None = None) -> tuple[dict | None, bool]:
+    """The welcome for an asking as `find_welcome` says it, and whether the lead's device the invite named has
+    closed the invite, as it does after a welcome and when the lead cancels it (lowsW)."""
     data = read_team(root) or {} if data is None else data
     dev = device() or {}
     secret = unb64(asked["secret"])
@@ -1697,11 +1717,39 @@ def find_welcome(root: Path, asked: dict, data: dict | None = None) -> dict | No
     base = dict(data, folder=folder)
     way = transport_mod.for_team(str(asked.get("route") or data.get("route") or "relay"), dev,
                                  dict(base, relay_url=relay) if relay else base)
-    welcome = None
+    welcome, closed = None, False
     for _s, m in mailbox_items(way, invite_id(secret), invite_key(secret)):
         if m.get("kind") == "welcome" and m.get("to") == dev.get("id") and signed_by(lead["sign"], m):
             welcome = m
-    return welcome
+        elif m.get("kind") == "closed" and signed_by(lead["sign"], m):
+            closed = True
+    return welcome, closed
+
+
+# seconds a closing line seen alone on a shared folder waits for the welcome that was sent before it
+CLOSED_GRACE = 60
+
+
+def closed_for_good(asked: dict, inv: str, dry_run: bool) -> bool:
+    """Whether a closing line with no welcome ends a join now: at once by the relay, whose mailbox is in order, and
+    on a shared folder once the line was first seen at least CLOSED_GRACE seconds ago, the first sight kept in the
+    asking (lowsW)."""
+    if str(asked.get("route") or "relay") == "relay":
+        return True
+    try:
+        seen = datetime.fromisoformat(str(asked.get("closed_seen") or ""))
+    except ValueError:
+        seen = None
+    if seen is not None:
+        return (datetime.now(timezone.utc) - seen).total_seconds() >= CLOSED_GRACE
+    if not dry_run:
+        with device_held():
+            data_dev = load_device_file() or {}
+            held = (data_dev.get("joining") or {}).get(inv)
+            if isinstance(held, dict):
+                held["closed_seen"] = now_iso()
+                save_device_file(data_dev)
+    return False
 
 
 def joined(root: Path, inv: str, dry_run: bool = False) -> dict:
@@ -1740,8 +1788,26 @@ def joined(root: Path, inv: str, dry_run: bool = False) -> dict:
     folder = str(asked.get("folder") or data.get("folder") or "")
     # the welcome is looked for before the date: an invite that lapsed after the lead said They match still joins
     # (teamfix2, finding 6)
-    welcome = find_welcome(root, asked, data)
+    try:
+        welcome, closed = mailbox_welcome(root, asked, data)
+    except TeamError as exc:
+        # the mailbox itself gone (the relay's seven days, a folder cleared) after the invite lapsed ends the join
+        # as a lapse does
+        if exc.code == "no_invite" and asked.get("expires") and expired({"expires": asked["expires"]}):
+            if not dry_run:
+                forget_joining(inv)
+            raise TeamError(i18n.t("team.refused.invite_expired"), "invite_expired") from None
+        raise
     if welcome is None:
+        if closed:
+            # the lead cancelled the invite, or let someone else in by it. On a shared folder the welcome and the
+            # closing line are two files that a sync service may bring in either order, so a closing line seen
+            # alone ends the join only when it has been seen a minute before; the relay's mailbox is in order
+            if closed_for_good(asked, inv, dry_run):
+                if not dry_run:
+                    forget_joining(inv)
+                raise TeamError(i18n.t("team.refused.invite_closed"), "invite_closed")
+            return {"joined": False, "changes": []}
         if asked.get("expires") and expired({"expires": asked["expires"]}) and not dry_run:
             forget_joining(inv)
             raise TeamError(i18n.t("team.refused.invite_expired"), "invite_expired")

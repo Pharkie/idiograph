@@ -303,6 +303,7 @@ def load_state(root: Path, strict: bool = True) -> dict:
     # recordings, so the computers it gave a full copy have them already (the review's A5)
     data["rec_copied"] = list(data["rec_copied"]) if isinstance(data.get("rec_copied"), list) else list(data["copied"])
     data["cursors"] = data.get("cursors") if isinstance(data.get("cursors"), dict) else {}
+    data["once"] = [str(x) for x in data["once"]] if isinstance(data.get("once"), list) else []
     return data
 
 
@@ -1297,6 +1298,17 @@ def pull(root: Path) -> dict:
     return {"applied": applied, "taken": taken, "offline": False, "later": later, "stuck": stuck}
 
 
+# the kinds taken once however often they come, and how many of their ids this computer keeps
+ONCE = ("study_change", "stopped")
+ONCE_KEPT = 400
+
+
+def note_once(state: dict, mid: str) -> None:
+    """A message of ONCE's kinds taken in, its id kept so one handed again is passed over."""
+    if mid:
+        state["once"] = ((state.get("once") or []) + [mid])[-ONCE_KEPT:]
+
+
 def take_one(root: Path, data: dict, dev: dict, way, team: str, state: dict, sender: str, raw: bytes,
              applied: list, taken: list) -> dict | None:
     """One message come, opened, checked and taken in, or dropped and noted. Answers team.json when taking it in
@@ -1313,6 +1325,11 @@ def take_one(root: Path, data: dict, dev: dict, way, team: str, state: dict, sen
     kind = inner.get("kind")
     if kind in EPOCH_NOW and epoch_of(raw) < int((data["roster"] or {}).get("epoch") or 1):
         team_mod.note_dropped(root, "old_epoch", str(sender or ""))
+        return None
+    # a change of the study and a member's "stopped" carry no number of their own, so a message the relay or a shared
+    # folder hands again is taken once: each one's id is kept here, the last ONCE_KEPT of them (lowsW)
+    once = str(inner.get("id") or "") if kind in ONCE else ""
+    if once and once in (state.get("once") or []):
         return None
     try:
         if kind == "roster":
@@ -1347,11 +1364,13 @@ def take_one(root: Path, data: dict, dev: dict, way, team: str, state: dict, sen
             why = study_mod.take(root, data, dev, way, inner, state)
             if why:
                 team_mod.note_dropped(root, why, str(inner.get("device") or ""))
+            note_once(state, once)
             return None
         if kind in TAKEN_HERE:
             took = TAKEN_HERE[kind](root, data, dev, inner)
             if took:
                 taken.append(took)
+            note_once(state, once)
             return team_on(root) or data
         handler = HANDLERS.get(str(kind))
         if handler is not None:

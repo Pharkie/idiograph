@@ -324,6 +324,122 @@ def test_team_join_home(scratch: Path):
               agent.get("isError") is True and "Only the app" in text and mdry.get("isError") is not True
               and mread.get("isError") is not True and not eve_into.exists() and not device_there(eve)
               and roots(eve) == [] and call(lead, op="answers", invite=made4["invite"])["answered"] is False, text[:300])
+
+        # 10. a join from Home that does not complete takes the empty project away, and tells a joiner of a cancel
+        # (lowsW): the lead cancels the invite before saying They match, and the joiner's next look says so
+        fay = install(scratch, "fay")
+        made5 = call(lead, op="invite")
+        fay_into = base / "Fay's copy"
+        fay_asked = call(fay, op="join", words=made5["link"], into=str(fay_into), name="Fay")
+        fay_there = fay_into.is_dir() and roots(fay) == [str(fay_into.resolve())]
+        call(lead, op="cancel", invite=made5["invite"])
+        fay_said = refused(lambda: call(dict(fay, root=fay_into), op="joined", invite=fay_asked["invite"]))
+        check("433: the lead cancelling an invite is said to a joiner who had answered it, and the project the Join "
+              "on Home made for it is taken away again, folder and entry, with no keys left on that computer",
+              fay_there and fay_said == i18n.t("team.refused.invite_closed") and not fay_into.exists()
+              and roots(fay) == [] and not device_there(fay), f"{fay_said} | {fay_into.exists()}")
+        # a project that holds a participant by then, or a folder he named that was empty, is not taken away whole
+        gus = install(scratch, "gus")
+        made6 = call(lead, op="invite")
+        gus_into = base / "Gus's copy"
+        gus_asked = call(gus, op="join", words=made6["link"], into=str(gus_into), name="Gus")
+        shutil.copytree(lead["root"] / "P1 - Wren", gus_into / "P1 - Wren")
+        call(lead, op="cancel", invite=made6["invite"])
+        gus_said = refused(lambda: call(dict(gus, root=gus_into), op="joined", invite=gus_asked["invite"]))
+        check("433: a project made by a join from Home that holds a participant when the join ends is left as it is",
+              gus_said == i18n.t("team.refused.invite_closed") and (gus_into / "P1 - Wren").is_dir()
+              and roots(gus) == [str(gus_into.resolve())], gus_said)
+        # an invite that lapsed after They differ ends the same way, and an empty folder he named stays, emptied
+        hal = install(scratch, "hal")
+        made7 = call(lead, op="invite")
+        hal_into = places / "Hal's folder"
+        hal_into.mkdir()
+        hal_asked = call(hal, op="join", words=made7["link"], into=str(hal_into), name="Hal")
+        call(lead, op="admit", invite=made7["invite"], match=False)
+        at(hal)
+        held = team.load_device_file()
+        held["joining"][hal_asked["invite"]]["expires"] = "2020-01-01T00:00:00+00:00"
+        team.save_device_file(held)
+        hal_said = refused(lambda: call(dict(hal, root=hal_into), op="joined", invite=hal_asked["invite"]))
+        check("433: an invite that lapsed after They differ ends the join the same way: said, the project taken away "
+              "and the empty folder he named left there with nothing in it",
+              hal_said == i18n.t("team.refused.invite_expired") and hal_into.is_dir() and not list(hal_into.iterdir())
+              and roots(hal) == [], hal_said)
+
+        # 11. a lead and a project with long names in a script of four bytes a character: the offer keeps its list
+        # of participants (the project's name cut to fit), and one size, as for short names
+        dev = team.new_device()
+        secret = b"0123456789abcdef"
+        body = {"kind": "invite", "device": team.public(dev), "lead": "L" * 16, "from": "\U0001d4d0" * 60, "own": False,
+                "expires": "2026-12-01T00:00:00+00:00", "team_digest": team.team_digest(secret, "t"),
+                "project": "\U0001d4d1" * 80, "method": "ipa"}
+        long_offer = team.offer_body(dev, body, secret, [{"folder": f"P{n}", "made": ""} for n in range(30)])
+        short_offer = team.offer_body(dev, dict(body, project="Dogs", **{"from": "Ada"}), secret,
+                                      [{"folder": f"P{n}", "made": ""} for n in range(30)])
+        check("433: an invite's offer from a lead and a project with long names in a script of four bytes a character "
+              "still lists its participants and is one size, the project's name cut to fit",
+              len(long_offer.get("participants") or []) == team.LIST_N and len(short_offer.get("participants") or []) == team.LIST_N
+              and len(team.canon(long_offer)) == len(team.canon(short_offer)) == team.OFFER_BYTES
+              and 0 < len(long_offer.get("project") or "") < 80 and short_offer.get("project") == "Dogs",
+              str(len(team.canon(long_offer))))
+
+        # 12. a project gone from the relay says so in Invite and They match, not the general refusal (review of
+        # relayfix3, L5)
+        class Gone(Exception):
+            status, error = 404, "no project"
+
+        class Other(Exception):
+            status, error = 404, "no blob"
+
+        gone = team.relay_refusal(Gone())
+        check("433: the relay's answer that it has no project is said as the project no longer being on the relay, "
+              "where any other refusal keeps the general line",
+              gone.code == "relay_gone" and str(gone) == i18n.t("team.refused.relay_gone")
+              and team.relay_refusal(Other()).code == "relay_refused", str(gone))
+
+        # 13. on a shared folder the welcome and the closing line are two files that a sync may bring in either
+        # order: the closing line seen alone ends nothing, the welcome then lands and the join completes with
+        # nothing deleted; seen alone a minute on, it ends the join and the project goes (lowsW, review)
+        transport.OVERRIDE = None
+        ft.POLL = 0.05
+        shared2 = scratch / "team-433-shared2" / "Dogs"
+        shutil.rmtree(scratch / "team-433-shared2", ignore_errors=True)
+        shared2.mkdir(parents=True)
+        glead = install(scratch, "glead", "Dogs by sync")
+        call(glead, op="on", name="Gil", route="folder", folder=str(shared2))
+        gmade = call(glead, op="invite")
+        gem = install(scratch, "gem")
+        gem_into = base / "Gem's copy"
+        gasked = call(gem, op="join", words=gmade["link"], into=str(gem_into), name="Gem", folder=str(shared2))
+        call(glead, op="admit", invite=gmade["invite"], match=True)
+        files = sorted(p for p in shared2.rglob("*.join"))
+        welcome_file = files[-2]
+        held_back = welcome_file.with_name(welcome_file.name + ".away")
+        welcome_file.rename(held_back)
+        early = call(dict(gem, root=gem_into), op="joined", invite=gasked["invite"])
+        still_there = gem_into.is_dir() and roots(gem) == [str(gem_into.resolve())] and device_there(gem)
+        held_back.rename(welcome_file)
+        late = call(dict(gem, root=gem_into), op="joined", invite=gasked["invite"])
+        check("433: on a shared folder a closing line that comes before the lead's welcome ends nothing: the join "
+              "waits, the project and keys stay, and when the welcome lands the join completes",
+              early["joined"] is False and still_there and late["joined"] is True and gem_into.is_dir()
+              and (team.read_team(gem_into) or {}).get("on") is True, json.dumps([early, late.get("joined")]))
+        gwen = install(scratch, "gwen")
+        gwen_into = base / "Gwen's copy"
+        gmade2 = call(glead, op="invite")
+        gwen_asked = call(gwen, op="join", words=gmade2["link"], into=str(gwen_into), name="Gwen", folder=str(shared2))
+        call(glead, op="cancel", invite=gmade2["invite"])
+        first = call(dict(gwen, root=gwen_into), op="joined", invite=gwen_asked["invite"])
+        at(gwen)
+        held = team.load_device_file()
+        held["joining"][gwen_asked["invite"]]["closed_seen"] = "2020-01-01T00:00:00+00:00"
+        team.save_device_file(held)
+        final = refused(lambda: call(dict(gwen, root=gwen_into), op="joined", invite=gwen_asked["invite"]))
+        check("433: a closing line seen alone on a shared folder a minute apart ends the join as the relay's does, "
+              "and the project it made is taken away", first["joined"] is False
+              and final == i18n.t("team.refused.invite_closed") and not gwen_into.exists(), final)
+        transport.OVERRIDE = lambda dev, data: transport.Loopback(dev.get("id") or "", hub=hub)
+        ft.POLL = kept[5]
     finally:
         (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, team.DEVICE_PATH, transport.OVERRIDE, env, ft.POLL,
          home, profile) = kept

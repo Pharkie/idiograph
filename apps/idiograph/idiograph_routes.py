@@ -592,6 +592,8 @@ def api_team(body: dict) -> dict:
             return {"team": {"on": False, "demo": True}}
         raise WorkbookError(i18n.t("server.demo_s_project_fixed"))
     dry = body.get("dry_run") is True
+    # the asking of a join begun on Home, kept to take the empty project away if the join does not complete
+    ask = team_mod.asking_here(root, str(body.get("invite") or "")) if op == "joined" and not dry else None
     try:
         if op == "show":
             shown = team_mod.view(root, team_participants(root))
@@ -667,6 +669,10 @@ def api_team(body: dict) -> dict:
             if not dry:
                 hist_mod.record(root, f"team {op}", done.get("changes") or [], hist_mod.asker(body))
     except team_mod.TeamError as exc:
+        if ask and ask.get("home") and team_mod.asking_here(root, str(body.get("invite") or "")) is None:
+            # the join ended (the invite closed, lapsed or a welcome that could not be taken in): the project
+            # Join on Home made for it is taken away again while it holds nothing
+            join_empty_away(root, ask)
         raise WorkbookError(str(exc), code="replace_team" if exc.code == "replace_team" else "") from None
     return dict(done, team=team_mod.view(root, team_participants(root)))
 
@@ -790,6 +796,33 @@ def join_unmake(into: Path, top: Path | None, existed: bool) -> None:
                     item.unlink()
 
 
+def join_empty_away(root: Path, ask: dict) -> None:
+    """The project a join from Home made, taken away when the join did not complete and nothing is in it: no
+    participant, no team and nothing of the project's but the file the join made, as its asking kept it (`home_sha`),
+    so what he typed while waiting keeps it. `ask["home"]` says whether its folder was made by the join ("new", the
+    folder taken away whole) or was an empty folder he named ("empty", its contents taken away and the folder left).
+    The check and the removal are made under the project's lock, so a participant added at that moment is kept."""
+    import team as team_mod
+    root = Path(root)
+    home = str(ask.get("home") or "")
+    try:
+        # the project's file lock alone: join_unmake takes the server's own lock itself
+        with locks.root(root):
+            if list_cases(root) or (team_mod.read_team(root) or {}).get("roster"):
+                return
+            if [p.name for p in root.iterdir() if p.name != srv.PROJECT_FILE and not p.name.startswith(".")]:
+                return
+            made = hashlib.sha256((root / srv.PROJECT_FILE).read_bytes()).hexdigest()
+            if made != str(ask.get("home_sha") or ""):
+                return
+            join_unmake(root.resolve(), root.resolve() if home == "new" else None, home != "new")
+        if home == "new" and root.is_dir() and all(p.name.startswith(".") for p in root.iterdir()):
+            # the lock's own file, which a lock held could not take with it everywhere
+            shutil.rmtree(root, ignore_errors=True)
+    except Exception:  # noqa: BLE001 - not read just now: left as it is
+        return
+
+
 def team_home(op: str, body: dict) -> dict:
     """Join a project on Home, beside New project (teamjoin, 20 November 2026, Adam's rulings of that night after
     teamflow's drawings p1, p2 and p5), which needs no project of his. `offer` reads the invite (`words`, with
@@ -849,7 +882,8 @@ def team_home(op: str, body: dict) -> dict:
                           "research_question": "", "method": offer["method"] or "", "files": []})
             with writing(root=root):
                 done = team_mod.join(root, words, who, relay_url=relay_url, route=route, folder=folder,
-                                     participants=team_folders(root))
+                                     participants=team_folders(root), home="empty" if existed else "new",
+                                     home_sha=hashlib.sha256((root / srv.PROJECT_FILE).read_bytes()).hexdigest())
         except BaseException:
             join_unmake(root, top, existed)
             raise

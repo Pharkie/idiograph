@@ -408,6 +408,57 @@ def test_team_study(scratch: Path):
               and cy_got.get("research_question") == whole.get("research_question")
               and cy_got.get("participants") == whole.get("participants"),
               json.dumps({"two": got, "cy": cy_got}))
+
+        # 13. a member's change of the method or the timepoints never reaches a lead's project with work in it, and
+        # one with no participant takes it (lowsW)
+        method_was = routes.method_of(read(lead))
+        write(cy, method="ta")
+        for _ in range(2):
+            call(cy, op="send")
+            call(lead, op="send")
+        kept_method = routes.method_of(read(lead))
+        empty = scratch / "team-434-empty"
+        shutil.rmtree(empty, ignore_errors=True)
+        empty.mkdir(parents=True)
+        at(lead)
+        with_work = team_study.kept_as_is(lead["root"], {"method": "ipa"}, {"method": "ta", "timepoints": [
+            {"label": "T1", "description": ""}, {"label": "T2", "description": ""}]})
+        without = team_study.kept_as_is(empty, {"method": "ipa"}, {"method": "ta"})
+        check("434: a member's change of the method or the timepoints is not taken by a lead's project that holds "
+              "participants, and a project with none takes it",
+              method_was == "ipa" and kept_method == "ipa" and with_work == {"method": "ipa"}
+              and without == {"method": "ta"}, json.dumps([method_was, kept_method, with_work, without]))
+        write(cy, method="ipa")
+
+        # 14. a change of the study or a "stopped" handed again, by a relay or a shared folder that keeps it, is
+        # taken once: the lead's computer keeps the id of each it has taken (lowsW)
+        people = read(cy)["participants"]
+        old_label = read(lead)["participants"]["P1 - Wren"]["label"]
+        people["P1 - Wren"]["label"] = "The replayed label"
+        write(cy, participants=people)
+        call(cy, op="send")
+        call(lead, op="send")
+        taken_once = read(lead)["participants"]["P1 - Wren"]["label"]
+        write(lead, participants=dict(read(lead)["participants"], **{
+            "P1 - Wren": dict(read(lead)["participants"]["P1 - Wren"], label=old_label)}))
+
+        def look_again(forget=False):
+            at(lead)
+            held = team_sync.load_state(lead["root"])
+            held["cursors"] = {}
+            if forget:
+                held["once"] = []
+            team_sync.save_state(lead["root"], held)
+            call(lead, op="send")
+
+        look_again()
+        after_replay = read(lead)["participants"]["P1 - Wren"]["label"]
+        look_again(forget=True)
+        forgotten = read(lead)["participants"]["P1 - Wren"]["label"]
+        check("434: a change of the study handed to the lead's computer again is not taken a second time, while the "
+              "same message taken with no id kept would be",
+              taken_once == "The replayed label" and after_replay == old_label and forgotten == "The replayed label",
+              json.dumps([taken_once, after_replay, forgotten]))
     finally:
         (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, team.DEVICE_PATH, transport.OVERRIDE, team_sync.WAIT,
          team_study.packed) = kept

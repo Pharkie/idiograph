@@ -1042,7 +1042,12 @@ async function hjJoined() {
   let got;
   try {
     got = await api('/api/team', { root: HJ.root, op: 'joined', invite: HJ.joining.invite });
-  } catch (err) { hjStop(); hjSaid(err.message, true); return; }
+  } catch (err) {
+    hjStop(); hjSaid(err.message, true);
+    // a join that has ended takes the empty project it made away again: Home lists what is left
+    loadLibrary(false).catch(() => {});
+    return;
+  }
   if (!got.joined) return;
   hjStop();
   const project = HJ.project || t('team.home.default_project');
