@@ -273,7 +273,7 @@ def test_progress_counts(scratch: Path):
 
         # a later timepoint's mark taken off, the card's own mark is not marked either, where T1's alone said it was
         t2 = themes_mod.themes_path(arlo, 2)
-        kept_t2 = t2.read_text(encoding="utf-8")
+        kept_t2 = t2.read_bytes()
         t2.write_text(json.dumps({k: v for k, v in hold(t2).items() if k != "complete"}), encoding="utf-8")
         try:
             card = next(c for c in section(roots["lipa"])["participants"] if c["case"] == "Arlo")
@@ -281,7 +281,7 @@ def test_progress_counts(scratch: Path):
                   "mark on Home's card, though the first timepoint's is marked", card["pets_complete"] is None
                   and card["timepoints"][0]["pets_complete"], str(card["pets_complete"]))
         finally:
-            t2.write_text(kept_t2, encoding="utf-8")
+            t2.write_bytes(kept_t2)
 
         # ── D. Home, the command line and MCP answer the same numbers, and a thematic analysis project has no PETs
         cards = {s["id"]: {c["case"]: c.get("progress") for c in s["participants"]} for s in routes.api_cases({})["projects"]}
