@@ -29,11 +29,7 @@ def _old(path: Path, days: float):
 
 
 def _alive(pid: int) -> bool:
-    try:
-        os.kill(pid, 0)
-        return True
-    except OSError:
-        return False
+    return support.pid_alive(pid)
 
 
 # The node half: chrome.mjs's watchBelow and endListed on made-up children, never a real browser. It prints one line
@@ -184,15 +180,11 @@ def test_disk_hygiene():
         time.sleep(0.5)
         alive = False
         if helper:
-            try:
-                os.kill(helper, 0)
-                alive = True
-            except OSError:
-                alive = False
+            alive = support.pid_alive(helper)
         check("436: a browser that outlasts its time raises the timeout and its helper process is ended with it",
               timed_out and helper and not alive and time.monotonic() - began < 30, f"{timed_out} {helper} {alive}")
         if helper and alive:
-            os.kill(helper, 9)
+            support.kill_pid(helper)
 
         if os.name != "nt" and support.processes():
             _helpers_listed_while_alive(root)

@@ -554,14 +554,58 @@ def browser() -> Path | None:
 SWEEP_AGE = 6 * 3600  # seconds a leftover must be older than before the sweep takes it: a younger one may be a live run's
 
 
-def _run_alive(folder: Path) -> bool:
-    """A run's scratch folder names its process in `.pid`; that process still running means the folder is in use."""
+def pid_alive(pid: int) -> bool:
+    """Whether a process with this number is running. `os.kill(pid, 0)` is the test on a Mac and Linux, but on Windows
+    signal 0 is `CTRL_C_EVENT`, so it sends Ctrl+C to a console process group and interrupts the suite itself (the
+    KeyboardInterrupt in area 436 on GitHub's Windows machine, 21 November 2026); there the process is opened and its exit
+    code read instead, which signals nothing."""
+    if pid <= 0:
+        return False
+    if os.name == "nt":
+        import ctypes
+        kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel.OpenProcess.restype = ctypes.c_void_p
+        kernel.OpenProcess.argtypes = [ctypes.c_ulong, ctypes.c_int, ctypes.c_ulong]
+        kernel.GetExitCodeProcess.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_ulong)]
+        kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+        handle = kernel.OpenProcess(0x1000, 0, pid)  # PROCESS_QUERY_LIMITED_INFORMATION
+        if not handle:
+            return ctypes.get_last_error() == 5  # access denied: it exists, and is not ours
+        try:
+            code = ctypes.c_ulong()
+            return bool(kernel.GetExitCodeProcess(handle, ctypes.byref(code))) and code.value == 259  # STILL_ACTIVE
+        finally:
+            kernel.CloseHandle(handle)
     try:
-        pid = int((folder / ".pid").read_text(encoding="utf-8").strip())
         os.kill(pid, 0)
         return True
     except PermissionError:
         return True
+    except OSError:
+        return False
+
+
+def kill_pid(pid: int) -> None:
+    """End one process at once: signal 9, which on Windows `os.kill` turns into `TerminateProcess` (never a console
+    event, as signals 0 and 1 are there)."""
+    with contextlib.suppress(OSError):
+        os.kill(pid, 9)
+
+
+def kill_tree(pid: int) -> None:
+    """End a process and every process below it: on Windows `taskkill /T /F`, which follows the parent links while they
+    last, since there is no `ps` listing of helpers there; elsewhere the process alone, its helpers being found by
+    `descendants`."""
+    if os.name == "nt":
+        with contextlib.suppress(OSError, subprocess.SubprocessError):
+            subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True, timeout=15)
+    kill_pid(pid)
+
+
+def _run_alive(folder: Path) -> bool:
+    """A run's scratch folder names its process in `.pid`; that process still running means the folder is in use."""
+    try:
+        return pid_alive(int((folder / ".pid").read_text(encoding="utf-8").strip()))
     except (OSError, ValueError):
         return False
 
@@ -688,9 +732,8 @@ def end_listed(listed: dict[int, tuple[int, str]]) -> list[int]:
         now = table.get(pid)
         if now is None or now[2] != start or now[0] not in (ppid, 1):
             continue
-        with contextlib.suppress(OSError):
-            os.kill(pid, signal.SIGKILL)
-            killed.append(pid)
+        kill_pid(pid)
+        killed.append(pid)
     return killed
 
 
@@ -740,6 +783,7 @@ def run_browser(cmd: list, timeout: float = 120) -> subprocess.CompletedProcess:
     finally:
         if kid.returncode is None:
             look()
+            kill_tree(kid.pid)  # on Windows the whole tree, as there is no listing of helpers
             with contextlib.suppress(OSError):
                 kid.kill()
         end_listed(listed)
