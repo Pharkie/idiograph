@@ -366,6 +366,44 @@ def test_team_join_home(scratch: Path):
               hal_said == i18n.t("team.refused.invite_expired") and hal_into.is_dir() and not list(hal_into.iterdir())
               and roots(hal) == [], hal_said)
 
+        # smallleft: a join that did not complete takes away what it made and nothing else: a hidden folder of the
+        # person's (a .git) and what else was put there stay, and the folder stays while anything is left in it
+        at(bo)
+        for kind in ("empty", "new"):
+            mine = places / f"Kept-{kind}"
+            mine.mkdir()
+            (mine / server_mod.PROJECT_FILE).write_text("{}", encoding="utf-8")
+            (mine / ".idiograph.lock").write_text("", encoding="utf-8")
+            (mine / ".git").mkdir()
+            (mine / ".git" / "HEAD").write_text("ref: refs/heads/main", encoding="utf-8")
+            (mine / ".hidden-note").write_text("mine", encoding="utf-8")
+            routes.join_unmake(mine, mine if kind == "new" else None, kind == "empty")
+            check(f"433: a failed join into a folder {'he named' if kind == 'empty' else 'it made'} takes away the "
+                  "project file and its lock and leaves a hidden folder and file of the person's, and the folder",
+                  sorted(tree(mine)) == [".git/HEAD", ".hidden-note"], str(sorted(tree(mine))))
+        clean = places / "Clean-new"
+        clean.mkdir()
+        (clean / server_mod.PROJECT_FILE).write_text("{}", encoding="utf-8")
+        (clean / ".DS_Store").write_bytes(b"\x00\x00\x00\x01Bud1")
+        routes.join_unmake(clean, clean, False)
+        check("433: a failed join takes away a folder it made when only what it made and Finder's .DS_Store were in it",
+              not clean.exists(), str(sorted(tree(clean))))
+
+        # the folders above the one the join made are never taken, whatever way its path was typed
+        for how in ("symlink", "dots"):
+            mine = places / f"Up-{how}"
+            (mine / "made").mkdir(parents=True)
+            (mine / "made" / server_mod.PROJECT_FILE).write_text("{}", encoding="utf-8")
+            if how == "symlink":
+                (places / "Up-link").symlink_to(mine, target_is_directory=True)
+                typed = places / "Up-link" / "made"
+            else:
+                typed = mine / "x" / ".." / "made"
+                (mine / "x").mkdir()
+            routes.join_unmake((mine / "made").resolve(), typed, False)
+            check(f"433: a failed join takes away the folder it made and never the person's folders above it "
+                  f"({how} path)", not (mine / "made").exists() and mine.is_dir(), str(sorted(p.name for p in mine.iterdir())))
+
         # 11. a lead and a project with long names in a script of four bytes a character: the offer keeps its list
         # of participants (the project's name cut to fit), and one size, as for short names
         dev = team.new_device()

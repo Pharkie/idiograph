@@ -2601,7 +2601,9 @@ answers `from`, `own`, `project` and `method` as the offer carries them, `via`, 
 the app or its demo, inside or holding a project, a run of one project), reads the offer, makes the folder and the
 project in it by `make_project` under the offer's name and method, and joins it by `team.join` under the project's
 lock; any failure takes away the project's entry in config.json and the folders it made, or what it put in an empty
-folder (`join_unmake`); and `pick` with `home` is the card's Choose. The offer carries `project` (80 characters at
+folder (`join_unmake`, which takes away only what the join made, `join_made`: the project file, the lock and other
+`.idiograph...`, `idiograph-...` and `.incoming` names, so a hidden `.git` of his stays, and a folder the join made stays while
+anything of his is in it); and `pick` with `home` is the card's Choose. The offer carries `project` (80 characters at
 most) and `method` from the lead's project file (`team.project_said`), inside its one size; an offer from before
 carries neither, and the folder takes the plain default. The link carries `via` (`team.invite_link`), relay or
 folder, read by `team.link_via`: `join` takes it when no `route` is asked, and both cards show the shared-folder
@@ -4167,7 +4169,13 @@ label, the dry run and the write alike, so the route the app calls is unchanged.
 the label, so (renamefix2) where the label's pseudonym is not the case name (`gets.who` of each), a folder renamed
 outside the app to another pseudonym or with a second name `CASE_FOLDER` does not strip, which the label then
 carries, the rename is refused in one line naming the case name alone, dry run alike, since it would be partial
-and could say the second name. Area 420 checks it on a scratch copy of the longitudinal demo.
+and could say the second name. Since smallleft (21 November 2026) the app's Rename refuses the same case the same way:
+`rename_refusal` first compares the name the folder's case keeps in its themes file and boards (`themes_name_of`, through
+`gets_books`) with the old name its label gives, and where they differ refuses with `server.rename.folder_not_theirs`, one
+line, nothing written, the plan alike for the command line's dry run. `CASE_FOLDER` strips whatever follows the hyphen after
+the pseudonym when it starts with a capital (`McDonald`, `O'Neill`, `Smith Jones`; a lower-case one is left alone), a copy's ` 2` or ` copy` and a file's ` - name.xlsx` after it kept, so such a second name no
+longer reaches a label or History; a hyphen followed by a digit is not stripped. Area 420 checks it on a scratch copy of the
+longitudinal demo.
 
 **Every file that names a participant (renamefix, 11 November 2026).** pbiodraw found that a rename left the
 Trajectories board and the LGETs behind, both keyed by the participant's label, and with the folder ticked left

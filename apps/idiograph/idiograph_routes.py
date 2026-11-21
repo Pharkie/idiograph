@@ -785,15 +785,47 @@ def join_unmake(into: Path, top: Path | None, existed: bool) -> None:
                 if not srv.same_folder(srv.abs_path(str(p.get("root") or "")).resolve(), into.resolve())]
         if len(kept) != len(cfg["projects"]):
             srv.write_config_keys({"projects": kept})
-    if top is not None:
-        shutil.rmtree(top, ignore_errors=True)
-    elif existed:
-        for item in list(into.iterdir()) if into.is_dir() else []:
-            if item.is_dir():
-                shutil.rmtree(item, ignore_errors=True)
-            else:
-                with contextlib.suppress(OSError):
-                    item.unlink()
+    join_folder_away(into, top)
+
+
+def join_made(item: Path) -> bool:
+    """Whether a file or folder in a joined project's folder is one the join itself made: the project's file, the
+    lock and the other files the app keeps hidden (`.idiograph...`, `.incoming`) and its own `idiograph-...` files.
+    A hidden folder or file of anything else, a .git among them, is the person's."""
+    name = item.name
+    return name == srv.PROJECT_FILE or name == ".incoming" or name.startswith((".idiograph", "idiograph-"))
+
+
+def join_folder_away(into: Path, top: Path | None) -> None:
+    """What a join from Home made in its folder taken away and nothing else, `join_made` by name. A folder the join
+    made (`top`, the first of the folders it made) goes too when nothing but what Finder leaves (`JOIN_IGNORED`) is
+    left in it, and is kept where anything else remains, as is a folder he named."""
+    if not into.is_dir():
+        return
+    for item in list(into.iterdir()):
+        if not join_made(item):
+            continue
+        if item.is_dir():
+            shutil.rmtree(item, ignore_errors=True)
+        else:
+            with contextlib.suppress(OSError):
+                item.unlink()
+    if top is None or not join_folder_empty(into):
+        return
+    for item in list(into.iterdir()):
+        with contextlib.suppress(OSError):
+            item.unlink()
+    # never above the first folder the join made, whatever way its path was typed (a symlink, `..`)
+    stop = top.resolve()
+    here = into.resolve()
+    while srv.inside(here, stop):
+        try:
+            here.rmdir()
+        except OSError:
+            return
+        if here == stop or here.parent == here:
+            return
+        here = here.parent
 
 
 def join_empty_away(root: Path, ask: dict) -> None:
@@ -816,9 +848,9 @@ def join_empty_away(root: Path, ask: dict) -> None:
             if made != str(ask.get("home_sha") or ""):
                 return
             join_unmake(root.resolve(), root.resolve() if home == "new" else None, home != "new")
-        if home == "new" and root.is_dir() and all(p.name.startswith(".") for p in root.iterdir()):
+        if home == "new":
             # the lock's own file, which a lock held could not take with it everywhere
-            shutil.rmtree(root, ignore_errors=True)
+            join_folder_away(root.resolve(), root.resolve())
     except Exception:  # noqa: BLE001 - not read just now: left as it is
         return
 
@@ -7660,6 +7692,16 @@ def rename_plan(root: Path, folder: Path, name, with_folder: bool, cfg: dict) ->
     return answer, plan
 
 
+def themes_name_of(root: Path, folder: Path) -> str | None:
+    """The name the case in `folder` keeps in its themes file and its boards, or None where the folder holds no
+    annotated workbook the study lists."""
+    here = Path(folder).resolve()
+    for book in gets_books(root):
+        if wb_mod.case_folder(book["workbook"]).resolve() == here:
+            return book["case"]
+    return None
+
+
 def rename_refusal(root: Path, folder: Path, plan: dict, cfg: dict) -> str | None:
     """The one line a rename is refused with, or None: a name not typed, the one it has, not one
     capitalised word, the interviewer's, or another case's in the project, a file it would carry the
@@ -7668,6 +7710,12 @@ def rename_refusal(root: Path, folder: Path, plan: dict, cfg: dict) -> str | Non
     workbook of the case Excel has open, its `~$` file beside it, and a folder or a file the move would land
     on that is there."""
     new, old = plan["new"], plan["old"]
+    # a folder renamed outside the app no longer shares its name with the transcript's and the boards': the old name
+    # is taken from the folder's label, so the rename would be partial (smallleft, 21 November 2026; the agents'
+    # `participant rename` has refused it since renamefix2)
+    held = themes_name_of(root, folder)
+    if held is not None and gets_mod.who(held) != old:
+        return i18n.t("server.rename.folder_not_theirs")
     if not new:
         return i18n.t("server.type_new_name_nothing_changed")
     if new == old:

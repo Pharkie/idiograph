@@ -133,7 +133,10 @@ STATE_PATH = PATHS["state"]
 # A GRAVITY case folder is `P<n> - Pseudonym-Secondname`, and the second name never reaches the
 # screen. Every case label the server hands the page goes through display_case, which keeps the
 # pseudonym part. The paths keep the folder as it is, because the server needs them to find it.
-CASE_FOLDER = re.compile(r"^(P\d+ - [A-Z][a-z]+)-[A-Z][a-z]+$")
+# The second name is whatever follows the hyphen after the pseudonym, starting with a capital: `McDonald`, `O'Neill`,
+# and `Smith Jones` go as `Smithson` does.
+# A copy's ` 2` or ` copy` and a file's ` - EN & ES.xlsx` after it are kept, so two folders keep two labels.
+CASE_FOLDER = re.compile(r"^(P\d+ - [A-Z][a-z]+)-[A-Z](?:(?! - )[^/\\])*?(?P<tail>(?: \d+| copy)?)(?P<rest> - .*)?$")
 
 # The bundled demo: invented interviews that ship with the app, so the whole interface can be
 # recorded without a participant's words on the screen. It sits beside the app rather than under
@@ -558,7 +561,7 @@ def display_case(name: str) -> str:
     capitalised word, comes back as it is.
     """
     m = CASE_FOLDER.match(str(name or ""))
-    return m.group(1) if m else str(name or "")
+    return m.group(1) + m.group("tail") + (m.group("rest") or "") if m else str(name or "")
 
 
 def display_path(value: str) -> str:

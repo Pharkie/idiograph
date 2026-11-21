@@ -202,6 +202,7 @@
   "server.project_s_file_longer_held": "That project's file is no longer held here. Drop it on the card again.",
   "server.demo_s_names_fixed": "The demo's names are fixed.",
   "server.only_participant_folder_their_own": "Only a participant with a folder of their own can be renamed.",
+  "server.rename.folder_not_theirs": "This folder's name no longer matches the name in its transcript, so nothing was changed.",
   "server.participant_project_now_nothing_changed": "That participant is not in this project now, so nothing was changed.",
   "server.statement_s_passage_longer_transcript": "This statement's passage is no longer in the transcript.",
   "server.give_offset_seconds_plus_minus": "Give the offset in seconds, plus or minus, such as 1.5 or -2.",

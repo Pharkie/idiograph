@@ -28,7 +28,7 @@ from . import support
 # the folder's second name, which no answer may carry
 SECOND = "Smithson"
 # a second name the folder pattern does not strip, so the label would carry it (renamefix2)
-ODD = "McDonald"
+ODD = "9Hale"
 ASKED = "He chose a new pseudonym"
 
 
@@ -176,6 +176,42 @@ def test_rename_by_any_name(scratch: Path):
                   and digest(root) == now and len(agent_changes.read(root)) == records
                   and (history.read_bytes() if history.is_file() else b"") == told,
                   str([(c, o[:200], e[:100]) for c, o, e in outs]))
+
+        # smallleft: the app's own Rename refuses the same folders the same way, one line, nothing written, and a
+        # second name the pattern strips (McDonald, O'Neill, Smith Jones) is in no label
+        import idiograph_routes as routes
+        for odd in ("McDonald", "O'Neill", "Smith Jones"):
+            check(f"420: a folder second name {odd!r} is stripped from the label",
+                  server_mod.display_case(f"P1 - Arlo-{odd}") == "P1 - Arlo", "")
+        check("420: a copy's number or word and a file's name after the second name are kept, so copies keep their own labels",
+              server_mod.display_case("P3 - Mary" + "-" + "Smith 2") == "P3 - Mary 2"
+              and server_mod.display_case("P3 - Mary" + "-" + "Smith copy") == "P3 - Mary copy"
+              and server_mod.display_case("P3 - Mary" + "-" + "Smith - EN & ES.xlsx") == "P3 - Mary - EN & ES.xlsx"
+              and server_mod.display_case("P3 - Mary" + "-" + "Smith Jones 2") == "P3 - Mary 2", "")
+        check("420: a folder with no second name, or a digit after the hyphen, keeps what it has",
+              server_mod.display_case("P1 - Arlo") == "P1 - Arlo"
+              and server_mod.display_case(f"P1 - Arlo-{ODD}") == f"P1 - Arlo-{ODD}", "")
+        held_config = server_mod.CONFIG_PATH
+        server_mod.CONFIG_PATH = config_file
+        try:
+            for folder, was in (("P2 - Zed", "Hollis"), (f"P1 - Arlo-{ODD}", folders["Arlo"])):
+                (root / was).rename(root / folder)
+                before = digest(root)
+                lines = []
+                for op in ("plan", "rename"):
+                    try:
+                        routes.api_rename({"root": str(root), "case": server_mod.display_case(folder), "name": "Ansel",
+                                           "folder": False, "op": op})
+                        lines.append(None)
+                    except Exception as exc:  # noqa: BLE001
+                        lines.append(str(exc))
+                after = digest(root)
+                (root / folder).rename(root / was)
+                check(f"420: the app's Rename of a folder renamed outside the app ({folder.replace(ODD, 'x')}) is "
+                      "refused in one line, nothing written", lines[1] is not None and "no longer matches" in lines[1]
+                      and after == before and SECOND not in lines[1], str(lines))
+        finally:
+            server_mod.CONFIG_PATH = held_config
 
         # a workbook at the project's root is never found by the project folder's name
         loose = root / "Nell - EN & ES.xlsx"
