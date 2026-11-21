@@ -421,7 +421,7 @@
     "other": "{n} PET and sub-theme cards"
   },
   "cli.gets_apply.arranged_in_no_get_by_participant": "arranged {cards} in no GET by participant, a row each for {listed}, below the GETs, which stay where they are",
-  "cli.gets_apply.the_gets": "the GETs",
+  "cli.gets_apply.the_units": "the {unit}s",
   "cli.gets_apply.nothing_to_change_every_pet_and": "Nothing to change. Every PET and sub-theme on {name} is in a GET or set aside, so nothing was written.",
   "cli.gets_apply.a_get": "a GET",
   "cli.gets_apply.operation_arranges_by_give_by_participant": "Operation {n} arranges by {one_line}. Give \"by\": \"participant\". A GETs board arranges only by participant.",

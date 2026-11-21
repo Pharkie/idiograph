@@ -254,7 +254,7 @@ def open_projects(args) -> tuple[list[Project], list[str]]:
         if not routes.read_project(root)["agents"]["allowed"] and not demo:
             closed.append(routes.read_project(root)["name"])
             continue
-        # an action that waited for his yes before approvals were removed (noholds, 13 November 2026) is dropped as
+        # an action that waited for their yes before approvals were removed (noholds, 13 November 2026) is dropped as
         # the project first opens, and said once in the agent log
         if not demo:
             changes_mod.clear_holds(root)
@@ -343,7 +343,7 @@ def run_in_scope(command, p: Project, args) -> tuple:
     2026): an op only the app does refused in a plain line, and every write kept in the project's change record
     with its run's restore point (`agent_changes.through`). An undo of a run keeps its own (`agent_changes.undo_run`)."""
     agent_log.at_project(p.info["name"])
-    # his request with the project's real names taken out before the record, History or the agent log keeps it
+    # the researcher's request with the project's real names taken out before the record, History or the agent log keeps it
     # (namesop, 16 November 2026)
     changes_mod.hide_request(p.root, args)
     with scope_of(p, args) as q:
@@ -709,7 +709,7 @@ def document_format(args, formats: tuple) -> str:
 
 def document_export(p: Project, args, kind: str, body: dict, where: Path, said) -> tuple:
     """One of the three written through the route's own code (`routes.document_write`), as the app's Export makes
-    it, never over a file there unless --replace. It changes nothing he made."""
+    it, never over a file there unless --replace. It changes nothing they made."""
     fmt = document_format(args, documents.FORMATS[kind])
     body = dict(body, format=fmt, out=getattr(args, "out", None), replace=bool(getattr(args, "replace", False)),
                 dry_run=bool(args.dry_run))
@@ -732,7 +732,7 @@ def document_export(p: Project, args, kind: str, body: dict, where: Path, said) 
 def cmd_trajectories_export(p: Project, args) -> tuple:
     """`trajectories export`: the Trajectories board as a PDF, or with --word a Word document, at the project's
     root, as the Trajectories tab's Export makes it: each trajectory with its participants and each one's LPETs
-    across the timepoints, its key quote and state in each cell, his note on each participant with --notes and the
+    across the timepoints, its key quote and state in each cell, their note on each participant with --notes and the
     participants in no trajectory with --unplaced."""
     body = {"notes": bool(getattr(args, "notes", False)), "unplaced": bool(getattr(args, "unplaced", False))}
     return document_export(p, args, "trajectories", body, p.root, lambda c: i18n.t(
@@ -1126,7 +1126,7 @@ def settings_ai_given(args, cfg: dict) -> dict | None:
 
 
 def settings_prompt_lines(cfg: dict) -> tuple:
-    """The statements' AI prompt as it stands, whether it is the default or his own, and its text."""
+    """The statements' AI prompt as it stands, whether it is the default or their own, and its text."""
     now = str(cfg.get("ai_prompt") or "")
     default = not now.strip() or now == prompts.DEFAULT_PROMPT
     line = i18n.t("cli.settings.ai_prompt_default") if default else i18n.t("cli.settings.ai_prompt_own", n=len(now.split()))
@@ -1134,11 +1134,11 @@ def settings_prompt_lines(cfg: dict) -> tuple:
 
 
 def cmd_settings(p: Project, args) -> tuple:
-    """His own settings an agent reads, or sets as Settings does (31 October 2026): `--your-name`, Your name, the
+    """Their own settings an agent reads, or sets as Settings does (31 October 2026): `--your-name`, Your name, the
     name documents carry, the print views' foot and Word's author, the Interviewer's name standing in while it
     is empty, and (4 November 2026) the statements' AI prompt, `--ai-prompt-file` from a text file or
     `--ai-prompt-default` for the default, saved through the app's own `/api/settings`, with --dry-run
-    saying what would change. With no option it reads them. The prompt is his, so it is set only with his
+    saying what would change. With no option it reads them. The prompt is the researcher's, so it is set only with their
     request in --note. And (aipage, 8 November 2026) the AI's provider, its address, Azure's deployment and the
     model, `--ai-provider`, `--ai-address`, `--ai-deployment` and `--ai-model`, as AI features in Settings sets
     them, read with the rest. Never a key."""
@@ -1415,7 +1415,7 @@ def cmd_project_open_copy(args) -> tuple:
         lines = [i18n.t("cli.project_open_copy.opened_as_a_copy_in", name=done['name'], folder=done['folder'], said=said), i18n.t("cli.said.it_is_one_of_idiographs_projects"),
                  settings_said()]
     if done.get("returning"):
-        # a copy coming back to one of his projects, whose boards can be added to it instead (26 October)
+        # a copy coming back to one of their projects, whose boards can be added to it instead (26 October)
         lines.append(i18n.t("cli.project_open_copy.it_is_a_copy_of_coming", returning=done['returning']))
     answer = {"folder": done["folder"], "name": done["name"], "files": done["files"], "bytes": done["bytes"],
               "dry_run": bool(args.dry_run)}
@@ -1481,7 +1481,7 @@ def cmd_project_boards_in(projects: list[Project], args) -> tuple:
     """A shared copy coming back: its boards added to the same participants' boards in the project it was
     sent from, each the next board, not current, named whose and when, as `routes.boards_in` adds them.
     With --dry-run what it would add, and each statement it could not match, with nothing written. A board
-    that is the sender's own as he sent it is said and left out unless --board names it (copyback2)."""
+    that is the sender's own as they sent it is said and left out unless --board names it (copyback2)."""
     file = Path(str(args.file or "")).expanduser().resolve()
     if not file.is_file():
         raise cli.Refused(i18n.t("cli.project_boards_in.that_file_is_not_there"))
@@ -1532,7 +1532,7 @@ def cmd_project_boards_in(projects: list[Project], args) -> tuple:
         if row["already"]:
             lines.append(i18n.t("cli.project_boards_in.in_the_project_already_so_left", case=row['case'], at=at, list=', '.join(row['already'])))
         if row.get("as_sent"):
-            # his own boards as he sent them, untouched in the copy (copyback2, 8 November 2026)
+            # their own boards as they sent them, untouched in the copy (copyback2, 8 November 2026)
             lines.append(i18n.t("cli.project_boards_in.as_sent_left", case=row['case'], at=at,
                                 list=', '.join(b["from"] for b in row["as_sent"])))
     if dry:
@@ -1547,7 +1547,7 @@ def cmd_project_boards_in(projects: list[Project], args) -> tuple:
 # The page's own routes for the project, each called here as the page calls it, so the checks, the lock,
 # the files written and the refusals are the route's: Settings' save (`routes.api_project`), New project
 # (`routes.api_new_project`), Rename on a participant's menu (`routes.api_rename`) and Mark complete on the
-# statements screen (`routes.api_complete`). Each write takes his request and a dry run.
+# statements screen (`routes.api_complete`). Each write takes the researcher's request and a dry run.
 
 
 
@@ -1558,13 +1558,13 @@ def project_body(p: Project) -> dict:
 
 def asked_by(args) -> dict:
     """Who asks, as the project's History keeps it (projhistory, 2 November 2026): the agent's tool, "approved in
-    the app" or "without asking" with it where a hold applies, and his request."""
+    the app" or "without asking" with it where a hold applies, and the researcher's request."""
     return {"tool": themes_ai.one_line(getattr(args, "tool", "")) or cli.TOOL,
             "request": themes_ai.one_line(getattr(args, "note", ""))}
 
 
 def history_line(h: dict) -> str:
-    """One record of the project's History as a line: when, who, and his request when an agent asked."""
+    """One record of the project's History as a line: when, who, and the researcher's request when an agent asked."""
     when = cli.when_said(h.get("when"))
     if h.get("by") == "agent":
         who = i18n.t("cli.project_history.by_agent", tool=h.get("tool") or cli.TOOL)
@@ -1580,7 +1580,7 @@ def history_line(h: dict) -> str:
 def cmd_project_history(p: Project, args) -> tuple:
     """The project's own History (projhistory, 2 November 2026), newest first: each change to the project's
     settings, its timepoints, its statement length, the study's GETs settings, or a participant renamed or
-    their statements marked complete or reopened, with when, who asked, his request and what changed from what
+    their statements marked complete or reopened, with when, who asked, the researcher's request and what changed from what
     to what (see `project_history`). It reads and writes nothing else."""
     shown, total = hist_mod.newest(p.root, getattr(args, "limit", None))
     if not total:
@@ -1750,7 +1750,7 @@ def cmd_project_set(p: Project, args) -> tuple:
                                         rounds_line(got),
                                         (i18n.t("cli.said.archived_on") if got.get("archived") else i18n.t("cli.said.archived_off")),
                                         reflexivity_line(got.get("reflexivity") or "")]
-    # the statement by its words' count alone: its words are his, and project show reads them
+    # the statement by its words' count alone: its words are the researcher's, and project show reads them
     answer = {"project": {**{k: got[k] for k in ("name", "research_question", "pet_labels", "timecodes", "interviewer",
                                                  "nudges", "archived", *routes.ROUNDS_KEYS)},
                           "reflexivity_words": routes.reflexivity_words(got.get("reflexivity") or "")},
@@ -1824,7 +1824,7 @@ def cmd_project_show(p: Project, _args) -> tuple:
              *([] if ta else [i18n.t("cli.said.nudges", nudges=routes.nudges_said(got['nudges']))]),
              rounds_line(got),
              (i18n.t("cli.said.archived_on") if got.get("archived") else i18n.t("cli.said.archived_off")),
-             # the researcher's reflexivity statement (settingsbuild), his words, marked as data for an agent
+             # the researcher's reflexivity statement (settingsbuild), their words, marked as data for an agent
              i18n.t("cli.reflexivity.said", text=got["reflexivity"]) if got["reflexivity"] else i18n.t("cli.reflexivity.none")]
     if elsewhere:
         lines.append(i18n.t("cli.project_show.open_elsewhere",
@@ -1873,7 +1873,7 @@ def team_call(p: Project, args, body: dict) -> dict:
 
 
 def team_writes(p: Project, args, body: dict, needs_note: bool = True) -> tuple:
-    """A team op that writes: his request asked for unless a dry run, or `needs_note` false for Send now, which
+    """A team op that writes: the researcher's request asked for unless a dry run, or `needs_note` false for Send now, which
     writes no History line to name it in, the answer's changes said, then the section."""
     if needs_note and not themes_ai.one_line(args.note) and not args.dry_run:
         raise cli.Refused(_w("NO_PROJECT_REQUEST"))
@@ -1937,7 +1937,7 @@ def cmd_team_set(p: Project, args) -> tuple:
 
 
 def cmd_team_invite(p: Project, args) -> tuple:
-    """An invite, its link and its twelve words, for someone new, or with --own for another computer of his. It works
+    """An invite, its link and its twelve words, for someone new, or with --own for another computer of theirs. It works
     once, for seven days. `team answers` says when someone has answered, with the six digits to read on a call."""
     answer, lines, done = team_writes(p, args, {"op": "invite", "own": bool(args.own)})
     if not args.dry_run:
@@ -1959,7 +1959,7 @@ def cmd_team_answers(p: Project, args) -> tuple:
 
 
 def cmd_team_admit(p: Project, args) -> tuple:
-    """They match: the one who answered the invite joins, the project key sealed to his computer. --differ throws his
+    """They match: the one who answered the invite joins, the project key sealed to their computer. --differ throws their
     answer away."""
     answer, lines, _done = team_writes(p, args, {"op": "admit", "invite": args.invite, "match": not args.differ})
     return answer, lines
@@ -2003,8 +2003,8 @@ def join_into_body(args, op: str) -> dict:
 
 def cmd_team_offer(args) -> tuple:
     """An invite read before joining, as the Join card on Home reads it (teamjoin, 20 November 2026): who sent it,
-    whether it is for another computer of his, the project's name, and the folder a join from Home would make. It
-    needs no project of his, and writes nothing."""
+    whether it is for another computer of theirs, the project's name, and the folder a join from Home would make. It
+    needs no project of theirs, and writes nothing."""
     try:
         done = routes.api_team(join_into_body(args, "offer"))
     except (WorkbookError, srv.OutsideRoot) as exc:
@@ -2018,7 +2018,7 @@ def cmd_team_offer(args) -> tuple:
 def cmd_team_join_into(args) -> tuple:
     """`team join --into <folder>`, Join a project on Home (teamjoin, 20 November 2026): the folder made, the
     project made in it under the lead's name and added to Idiograph's projects, and joined as `team join` joins,
-    with the six digits to read on a call. It needs no project of his. The folder must be new or empty. The app's
+    with the six digits to read on a call. It needs no project of theirs. The folder must be new or empty. The app's
     alone for an agent, as every join is; a dry run checks the words and the folder and writes nothing, not even the
     folder."""
     refusal = changes_mod.app_only(args)
@@ -2067,8 +2067,8 @@ def team_what(done: list, view: dict) -> str:
 
 
 def cmd_team_send(p: Project, args) -> tuple:
-    """Send now: what came for the project taken in, and every change of his to a participant he works on, or to the
-    GETs board when it is his, sent at once, not a minute after his last save. With --dry-run what would go. --note
+    """Send now: what came for the project taken in, and every change of theirs to a participant they work on, or to the
+    GETs board when it is the researcher's, sent at once, not a minute after their last save. With --dry-run what would go. --note
     is not asked for, since Send now writes no line in History (smokefix, 9 November 2026), and is kept when given."""
     answer, lines, done = team_writes(p, args, {"op": "send"}, needs_note=False)
     view = done.get("team") or {}
@@ -2095,7 +2095,7 @@ def cmd_team_send(p: Project, args) -> tuple:
 def cmd_team_remove(p: Project, args) -> tuple:
     """The lead removes someone: their computers off the list and a new project key for everyone left. What they
     already have stays on their computer. With --computer, one computer, a lost one, by its id: the lead's any
-    member's, a member's another of his own, asked of the lead's Idiograph (wtdevices, 9 November 2026)."""
+    member's, a member's another of their own, asked of the lead's Idiograph (wtdevices, 9 November 2026)."""
     if not args.member and not args.computer:
         raise cli.Refused(i18n.t("team.cli.no_remove"))
     body = {"op": "remove", "computer": args.computer} if args.computer else {"op": "remove", "member": args.member}
@@ -2125,7 +2125,7 @@ def board_call(p: Project, body: dict) -> dict:
 
 
 def board_writes(p: Project, args, body: dict) -> tuple:
-    """A board op that writes: his request asked for unless a dry run, then the answer's changes said."""
+    """A board op that writes: the researcher's request asked for unless a dry run, then the answer's changes said."""
     if not themes_ai.one_line(args.note) and not args.dry_run:
         raise cli.Refused(_w("NO_PROJECT_REQUEST"))
     done = board_call(p, dict(body, dry_run=bool(args.dry_run), **asked_by(args)))
@@ -2137,7 +2137,7 @@ def board_writes(p: Project, args, body: dict) -> tuple:
 
 
 def cmd_team_board_send(p: Project, args) -> tuple:
-    """His own board of a participant someone else works on, sent to them sealed, as Send board in the board's menu
+    """Their own board of a participant someone else works on, sent to them sealed, as Send board in the board's menu
     sends it (wtboard, 9 November 2026). It waits on their computer until they add it as the participant's next board,
     never current, or decline it. The board on the canvas unless --board names another."""
     body = {"op": "send", "case": args.case, "board": args.board or None, "timepoint": getattr(args, "timepoint", None)}
@@ -2148,8 +2148,8 @@ def cmd_team_board_send(p: Project, args) -> tuple:
 
 
 def cmd_team_board_take(p: Project, args) -> tuple:
-    """What has come since the last time: each board a teammate sent of a participant of his, kept waiting for his
-    answer with nothing written to the participant, and each answer to a board he sent (wtreview2, 9 November 2026)."""
+    """What has come since the last time: each board a teammate sent of a participant of theirs, kept waiting for their
+    answer with nothing written to the participant, and each answer to a board they sent (wtreview2, 9 November 2026)."""
     answer, lines, done = board_writes(p, args, {"op": "take"})
     if done.get("board", {}).get("on") is False:
         return answer, [i18n.t("team.cli.off")]
@@ -2174,7 +2174,7 @@ def cmd_team_board_answer(p: Project, args) -> tuple:
 
 
 def cmd_team_boards(p: Project, args) -> tuple:
-    """The boards he has sent and the boards come in, each with its answer, and with a participant whether his board of
+    """The boards they have sent and the boards come in, each with its answer, and with a participant whether their board of
     it can go and to whom. It reads and writes nothing."""
     body = {"op": "show"}
     if getattr(args, "case", None):
@@ -2215,7 +2215,7 @@ def timepoints_given(given) -> dict:
 
 
 def cmd_project_new(args) -> tuple:
-    """A new project, as New project on Home makes one (`routes.api_new_project`): a folder of his made a
+    """A new project, as New project on Home makes one (`routes.api_new_project`): a folder of theirs made a
     project with its name and research question, each transcript given made a participant at the folder's
     next free number, `P<n> - Pseudonym`, its raw source and its workbook, and the folder added to
     Idiograph's projects. Each speaker's role is the card's guess, or as --speakers gives them. Every
@@ -2392,7 +2392,7 @@ def cmd_participant_show(p: Project, args) -> tuple:
 def cmd_participant_set(p: Project, args) -> tuple:
     """`participant set`: a participant's picture, label and pen portrait (pbiobuild, 11 November 2026), as the
     project page's row sets them (`routes.api_participant`): --label and --portrait, "" clearing either, --picture
-    one of the set, `set:peep07`, --picture-file an image file of his, kept in the project's pictures folder, made
+    one of the set, `set:peep07`, --picture-file an image file of theirs, kept in the project's pictures folder, made
     square and small, or --no-picture, each left out kept as it is. A label or a pen portrait holding a name from the
     project's list of names to replace is refused, nothing written. The demo's are fixed. With --dry-run what would
     change, and nothing written. One record in the project's History."""
@@ -2548,7 +2548,7 @@ def cmd_participant_export(p: Project, args) -> tuple:
     (`routes.api_export`), `<stem> - All Experiential Statements.csv` in their `Working/` folder, in its
     place when there is one, its PET column from the Current board when they have a board, every
     timepoint's in a project of two or more. With --notes the interviewer notes go to a markdown file of
-    their own beside it, as the Include interviewer notes tick sends them. It changes nothing he made, so
+    their own beside it, as the Include interviewer notes tick sends them. It changes nothing they made, so
     it needs no request and keeps no History, as the page's export keeps none. With --dry-run what it
     would write, and nothing written."""
     b = p.case(args.case)
@@ -2688,7 +2688,7 @@ def board_entry(board: dict, data: dict, read: dict | None = None) -> dict:
     for key in themes.AGENT_KEYS:
         if v.get(key):
             out[key] = v[key]
-    # a reviewer's own board of a participant someone else works on, kept apart in his copy (ownboards)
+    # a reviewer's own board of a participant someone else works on, kept apart in their copy (ownboards)
     if board.get(themes.OWN):
         out["own"] = True
     return out
@@ -2733,7 +2733,7 @@ def shown_board(read: dict, board: dict, sids: dict, labels: str = themes.LETTER
 
     def statement(s: dict) -> dict:
         out = dict(s, id=sids.get(s["key"]), **stale(s))
-        # one in no PET that he put on the canvas, where the rest of Unplaced waits in the sidebar
+        # one in no PET that they put on the canvas, where the rest of Unplaced waits in the sidebar
         if s["key"] in loose:
             out["loose"] = True
         if s["key"] in reasons and "reason" not in out:
@@ -2895,7 +2895,7 @@ def drawn_on_how(d: dict) -> str:
 
 def cmd_board_drawn_on(p: Project, args) -> tuple:
     """The forward trace (drawsword, 17 November 2026): which of the participant's LPETs draw on each PET, sub-theme
-    and statement of their PETs at a timepoint, as the PETs screen's Inspector shows it, and his reason a PET is
+    and statement of their PETs at a timepoint, as the PETs screen's Inspector shows it, and their reason a PET is
     drawn on by none. `--pet` or `--statement` asks for one. Only reads."""
     b = p.case(args.case)
     book = Path(b["workbook"])
@@ -2937,7 +2937,7 @@ def cmd_board_export(p: Project, args) -> tuple:
     screen makes, written at the case's root beside the workbook, the PDF where `--out` names when it
     names a folder or a file, and never over a file there (see `themes_word.py` and
     `print_pdf.py`), a PDF over its own name only with `--replace`. It changes
-    nothing he made, so it needs no request. With no board named, the Current board. Its PETs are
+    nothing they made, so it needs no request. With no board named, the Current board. Its PETs are
     labelled as the project labels them, the book's letters unless its file says numbers, and
     `--labels letters` or `--labels numbers` overrides that for this run. Unplaced and the binned
     statements stay out, as the app's ticks are on a new install, unless `--not-placed` or
@@ -3040,7 +3040,7 @@ def board_canvas(p: Project, args) -> tuple:
     pictured whole at twice its scale, beside the workbook where the table's PDF goes, named as the table's with
     " canvas" after it, or where `--out` names. Typst draws it from the board as its file keeps it, laid out by the
     canvas's own rule, as the app's Export makes it (see `canvas_out`), with no window and no browser. Never over a
-    file there unless `--replace`. It changes nothing he made."""
+    file there unless `--replace`. It changes nothing they made."""
     canvas_refused(args, (("--labels", "labels"), ("--not-placed", "not_placed"), ("--set-aside", "binned"),
                           ("--stacked", "stacked"), ("--for-sending", "for_sending"),
                           ("--no-descriptions", "no_descriptions"), ("--board-note", "board_note"),
@@ -3079,7 +3079,7 @@ def board_draft(p: Project, args) -> tuple:
     same board, both in the participant's `Working/` folder, as the PETs screen's Export writes them (26
     October), through the route's own function, `routes.api_themes_export`, its dry run the route's. Each
     writes over the file of its name, as the screen's Export does, since the next export writes them again.
-    It changes nothing he made."""
+    It changes nothing they made."""
     given = [flag for flag, on in (("--labels", getattr(args, "labels", None)), ("--not-placed", getattr(args, "not_placed", False)),
                                    ("--set-aside", getattr(args, "binned", False)),
                                    ("--for-sending", getattr(args, "for_sending", False)),
@@ -3706,7 +3706,7 @@ def board_note(own: str = "") -> str:
 
 
 def mark(args, when: str, made_from: str = "") -> dict:
-    """Who made a board in a conversation, the tool and his request, and `from`, the board it came
+    """Who made a board in a conversation, the tool and the researcher's request, and `from`, the board it came
     from."""
     out = {"by": "agent", "tool": themes_ai.one_line(args.tool) or cli.TOOL, "request": themes_ai.one_line(args.note), "at": when}
     # a teammate's suggestion accepted (wtsuggest, 10 November 2026): by the member who suggested it, and who accepted
@@ -3833,7 +3833,7 @@ def import_row_line(m: dict) -> str:
 
 
 def cmd_board_import(p: Project, args) -> tuple:
-    """A board of PETs made from his own table of them (`table_import`): each row matched to a statement at the
+    """A board of PETs made from their own table of them (`table_import`): each row matched to a statement at the
     timepoint, the statements whose wording the table changed rewritten and those it adds written by `turn write`'s
     own code, each with History, then the board made by `board new`'s, named as asked, laid out afresh, everything
     else waiting in Unplaced. The dry run lists every row's match and writes nothing."""
@@ -3903,9 +3903,9 @@ def cmd_board_import(p: Project, args) -> tuple:
 
 
 def cmd_gets_import(p: Project, args) -> tuple:
-    """A participant's LPETs made from his own table of them (`table_import`): a new LPETs board, named as asked,
+    """A participant's LPETs made from their own table of them (`table_import`): a new LPETs board, named as asked,
     each row an LPET with its title, its description and a note of a paragraph for each timepoint, the PETs its
-    cells' quotes and words match proposed as its members for him to confirm on the canvas, through `gets new`'s and
+    cells' quotes and words match proposed as its members for them to confirm on the canvas, through `gets new`'s and
     `gets apply`'s own code, every other card waiting in Unplaced. The dry run lists each LPET and the PETs
     proposed for it with why, and writes nothing."""
     if not getattr(args, "lpets", None):
@@ -3995,9 +3995,9 @@ def cmd_gets_import(p: Project, args) -> tuple:
 
 
 def cmd_board_current(p: Project, args) -> tuple:
-    """Mark a board as the Current board, the one he is going with, through `themes.version_op`'s
+    """Mark a board as the Current board, the one they are going with, through `themes.version_op`'s
     `choose`, as the board menu's Mark as current does. The board as it stands is kept first in its
-    History, named for the mark and his request, which records the change there. A board marked
+    History, named for the mark and the researcher's request, which records the change there. A board marked
     already writes nothing."""
     if not themes_ai.one_line(args.note) and not args.dry_run:
         raise cli.Refused(_w("NO_REQUEST"))
@@ -4031,12 +4031,12 @@ def cmd_board_current(p: Project, args) -> tuple:
 # ------------------------------------------------------- board housekeeping
 #
 # The board menu's own acts, each through `themes.version_op` as the app makes them: a board put on
-# the canvas, renamed, duplicated or deleted. Each takes his request and a dry run, as every write does.
+# the canvas, renamed, duplicated or deleted. Each takes the researcher's request and a dry run, as every write does.
 
 
 
 def housekeeping(p: Project, args):
-    """The case, its workbook, its themes file and the board a housekeeping command names, his
+    """The case, its workbook, its themes file and the board a housekeeping command names, their
     request asked for first unless it is a dry run."""
     if not themes_ai.one_line(args.note) and not args.dry_run:
         raise cli.Refused(_w("NO_REQUEST"))
@@ -4072,7 +4072,7 @@ def cmd_board_canvas(p: Project, args) -> tuple:
 
 def cmd_board_rename(p: Project, args) -> tuple:
     """Rename a board, as Rename in the board menu does, through `version_op`'s `rename`. The board as
-    it stands is kept first in its History, named for the old name and his request."""
+    it stands is kept first in its History, named for the old name and the researcher's request."""
     b, book = housekeeping(p, args)
     wanted = " ".join(str(args.name or "").split())
     if not wanted:
@@ -4131,7 +4131,7 @@ def cmd_board_fresh(p: Project, args) -> tuple:
     """A new board with no PETs, as New board in the board menu does, through `version_op`'s `new`, put on
     the canvas: with `--start empty` every statement waits in the sidebar's Unplaced, and with `--start
     canvas` every statement lies on the canvas as a pile in the middle, in no PET yet (Adam, 20 October).
-    His other boards are left as they were."""
+    Their other boards are left as they were."""
     b, book = housekeeping(p, args)
     start = args.start if args.start in themes.STARTS else "empty"
     with wb_mod.case_held(book, boards=True):
@@ -4226,12 +4226,12 @@ def cmd_board_complete(p: Project, args) -> tuple:
 # Save a revision, a revision on view, Restore, Copy to board), each through the route's own function,
 # `themes.version_op` and `themes.board_op`, under the lock the route takes, its dry run the function's own
 # (`dry_run`), so every check and refusal is the route's. What a write keeps in History is the page's, and
-# the revision it keeps names the tool and his request, as every board write here does.
+# the revision it keeps names the tool and the researcher's request, as every board write here does.
 
 
 
 def request_cut(args) -> str:
-    """His request as a revision's name carries it, cut to one line."""
+    """The researcher's request as a revision's name carries it, cut to one line."""
     return themes_ai.request_line(args.note)
 
 
@@ -4249,7 +4249,7 @@ def revision_line(r: dict) -> str:
 
 
 def stamp_pets(book: Path, vid: str, rid: str | None, args, changed: bool) -> None:
-    """The tool and his request on the revision a board op kept, and with `changed` the board marked as
+    """The tool and the researcher's request on the revision a board op kept, and with `changed` the board marked as
     changed in a conversation, as `board apply` marks it, so an open PETs screen says so."""
     when = now_iso()
     data = load_board_file(book) or {}
@@ -4271,7 +4271,7 @@ def stamp_pets(book: Path, vid: str, rid: str | None, args, changed: bool) -> No
 def cmd_board_note(p: Project, args) -> tuple:
     """A board's note set, or taken off with an empty one, as the board note on the PETs screen sets it,
     through `version_op`'s `note`. The board as it stands is kept first in its History, named for the note
-    and his request."""
+    and the researcher's request."""
     b, book = housekeeping(p, args)
     words = str(args.text or "").strip()
     with wb_mod.case_held(book, boards=True):
@@ -4331,7 +4331,7 @@ def cmd_board_history(p: Project, args) -> tuple:
 
 def cmd_board_revision(p: Project, args) -> tuple:
     """Save a revision, as the board menu's and the History tab's Save a revision keep one, through
-    `board_op`'s `revision`: the board as it stands kept in its History under --name, or his request.
+    `board_op`'s `revision`: the board as it stands kept in its History under --name, or the researcher's request.
     Nothing on the board changes."""
     b, book = housekeeping(p, args)
     with wb_mod.case_held(book, boards=True):
@@ -4423,7 +4423,7 @@ def cmd_board_copy(p: Project, args) -> tuple:
 # -------------------------------------------------------------- board apply
 
 def read_ops(spec, args) -> tuple[list, str]:
-    """The operations of a change and his request: `{"request", "operations"}` or a bare list."""
+    """The operations of a change and the researcher's request: `{"request", "operations"}` or a bare list."""
     if isinstance(spec, dict):
         ops = next((spec[k] for k in ("operations", "ops", "changes") if isinstance(spec.get(k), list)), None)
         request = spec.get("request") or args.note
@@ -5002,9 +5002,9 @@ def cmd_board_apply(p: Project, args) -> tuple:
         # a card missing from the workbook comes off first, so the rest run on the board without it
         removing = [(n, op) for n, op in enumerate(ops, start=1) if is_remove(op)]
         followed, removed_said, removed = run_removes(followed, removing, read, keys, sids)
-        # a pick from here is his, so it keeps every quote it names, as a tick on the PETs screen
+        # a pick from here is the researcher's, so it keeps every quote it names, as a tick on the PETs screen
         # does, and not the two an AI answer is held to (see `themes.picks_kept`)
-        # and a description from here is his too, which the applier takes from board apply alone (21 October)
+        # and a description from here is the researcher's too, which the applier takes from board apply alone (21 October)
         start = dict(themes_ai.revise_start(read, followed), pick_max=None)
         ops = name_ids(ops, read, keys)
         # an order runs after the rest, on the board they leave, since it moves where things stand, and
@@ -5095,7 +5095,7 @@ def cmd_board_apply(p: Project, args) -> tuple:
         for key in themes.STATE_OPTIONAL:
             board.pop(key, None)
         board.update({k: state[k] for k in themes.STATE_KEYS if k in state}, updated=when, changed=mark(args, when))
-        # the state the change left, so his next save is not taken for an edit of his own
+        # the state the change left, so their next save is not taken for an edit of their own
         board["changed"]["hash"] = themes.state_hash(themes.made_state(themes.normalise(board)))
         current = str(data.get("current") or board.get("id"))
         themes.write(book, themes._file(book, case_name(book), data, boards, current, when))
@@ -5119,7 +5119,7 @@ def gets_data(p: Project) -> dict:
 
 # The version `gets show` gives a board where there is no GETs file yet (getsfix, 16 November 2026). A change that
 # carries it back is refused, as one over a board changed since, when a file is there by the time it runs under the
-# lock: the agent planned on a board no file held, and his first act on the screen may have made one meanwhile.
+# lock: the agent planned on a board no file held, and their first act on the screen may have made one meanwhile.
 NO_FILE = "none"
 
 
@@ -5723,7 +5723,7 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         parts += also_said(alsos, landed)
         parts += [themes_ai.change_line(applied, start)] if applied else []
         parts += aside_said
-        parts += [order_said(o, landed, {}, i18n.t("cli.gets_apply.the_gets")) for o in ordered]
+        parts += [order_said(o, landed, {}, i18n.t("cli.gets_apply.the_units", unit=bring_in_unit())) for o in ordered]
         if arranged:
             rows = list(dict.fromkeys(gets_mod.who(gets_mod.split_key(k)["case"]) for k in arranged))
             parts.append(i18n.t("cli.gets_apply.arranged_in_no_get_by_participant", cards=i18n.t("cli.n.pet_and_sub_theme_card", n=len(arranged)), listed=listed_words(rows)))
@@ -5850,7 +5850,7 @@ def cmd_gets_colour(p: Project, args) -> tuple:
 def cmd_gets_take(p: Project, args) -> tuple:
     """Take the changes of a case into the GETs, as Update on the GETs screen does (see `gets.take`):
     the GETs file keeps a copy of each case's PETs from when it came in. A change made in the app comes
-    in by itself (20 October), and one made here stands apart until he presses Update or this runs. Each GETs board keeps a revision first, and is marked as changed in a
+    in by itself (20 October), and one made here stands apart until they press Update or this runs. Each GETs board keeps a revision first, and is marked as changed in a
     conversation, so an open GETs screen says so. On a participant's LPETs (`--lpets`) the case is a timepoint, T1.
 
     The dry run runs the take itself in memory and writes nothing (takedry, 16 November 2026): its answer is
@@ -5969,7 +5969,7 @@ def gets_board_op(p: Project, op: str, body: dict, dry: bool = False) -> dict:
 
 
 def gets_revision_first(p: Project, vid: str, name: str, args) -> dict:
-    """The GETs board as it stands kept first in its History under `name`, the tool and his request on it."""
+    """The GETs board as it stands kept first in its History under `name`, the tool and the researcher's request on it."""
     when = now_iso()
     data = gets_mod.load(p.root) or {}
     board = next((x for x in gets_mod.boards_of(data) if str(x.get("id")) == vid), None)
@@ -5982,7 +5982,7 @@ def gets_revision_first(p: Project, vid: str, name: str, args) -> dict:
 
 
 def stamp_gets(p: Project, vid: str, rid: str | None, args, changed: bool) -> None:
-    """The tool and his request on the revision a GETs board op kept, and with `changed` the board marked as
+    """The tool and the researcher's request on the revision a GETs board op kept, and with `changed` the board marked as
     changed in a conversation, as `gets apply` marks it."""
     when = now_iso()
     data = gets_mod.load(p.root) or {}
@@ -6021,7 +6021,7 @@ def gets_request(args) -> None:
 
 def cmd_gets_fresh(p: Project, args) -> tuple:
     """A new GETs board, every card back in the pile, as New board in the GETs board menu makes one,
-    through `version_op`'s `new`, put on the canvas. His other boards are left as they were."""
+    through `version_op`'s `new`, put on the canvas. Their other boards are left as they were."""
     gets_guard(p)
     gets_request(args)
     # with no GETs file yet it makes the file with the one board it names, every card in the pile, where the
@@ -6051,7 +6051,7 @@ def cmd_gets_fresh(p: Project, args) -> tuple:
 
 def cmd_gets_duplicate(p: Project, args) -> tuple:
     """A GETs board copied under a new name, as Duplicate in the GETs board menu does, through `version_op`'s
-    `duplicate`, the copy put on the canvas with a note that names the tool and his request. The board
+    `duplicate`, the copy put on the canvas with a note that names the tool and the researcher's request. The board
     copied is left as it was."""
     gets_request(args)
     with locks.root(p.root):
@@ -6072,7 +6072,7 @@ def cmd_gets_duplicate(p: Project, args) -> tuple:
 
 def cmd_gets_rename(p: Project, args) -> tuple:
     """A GETs board renamed, as Rename in the GETs board menu does, through `version_op`'s `rename`. The
-    board as it stands is kept first in its History, named for its old name and his request."""
+    board as it stands is kept first in its History, named for its old name and the researcher's request."""
     gets_request(args)
     wanted = " ".join(str(args.name or "").split())
     with locks.root(p.root):
@@ -6141,7 +6141,7 @@ def cmd_gets_canvas(p: Project, args) -> tuple:
 def cmd_gets_current(p: Project, args) -> tuple:
     """A GETs board marked as the Current board, as Mark as current in the GETs board menu does, through
     `version_op`'s `choose`. The board as it stands is kept first in its History, named for the mark and
-    his request."""
+    the researcher's request."""
     gets_request(args)
     with locks.root(p.root):
         data, board = gets_named(p, args)
@@ -6249,7 +6249,7 @@ def cmd_gets_history(p: Project, args) -> tuple:
 
 def cmd_gets_revision(p: Project, args) -> tuple:
     """Save a revision of a GETs board, as Save a revision does, through `board_op`'s `revision`, under --name
-    or his request. Nothing on the board changes."""
+    or the researcher's request. Nothing on the board changes."""
     gets_request(args)
     with locks.root(p.root):
         _data, board = gets_named(p, args)
@@ -6332,7 +6332,7 @@ def cmd_gets_settings(p: Project, args) -> tuple:
     """The study's own settings, under GETs in Project settings, read as `settings_view` reads them, or saved as its
     save does through `gets.settings_op`: --minimum, a whole number or band for Smith's band, --one-per-pet on
     or off, --out Name=reason taking a participant out of the
-    study with his reason and --in putting one back. Kept in the GETs file, no part of any board, so no
+    study with their reason and --in putting one back. Kept in the GETs file, no part of any board, so no
     History. With --dry-run what would change, and nothing written."""
     view = gets_mod.settings_view(p.root, p.books)
     body: dict = {}
@@ -6852,7 +6852,7 @@ def turn_write(p: Project, args) -> tuple:
         else:
             gone.append(hit)
     held_lone = [h for h in held_lone if h not in gone]
-    # statements alone on a turn saved before the pairs leave its quotes as they are, for him to pair,
+    # statements alone on a turn saved before the pairs leave its quotes as they are, for them to pair,
     # and on a turn with a lone quote they go with the quotes in their places, the lone ones kept after
     keep_quotes = places is None and not given_lone and turn["unpaired"] and not held_lone and not gone
     pairing = (statements is not None or places is not None or bool(gone)) and not keep_quotes
@@ -6951,7 +6951,7 @@ def turn_write(p: Project, args) -> tuple:
         return [i18n.t("cli.turn_write.the_board_as_it_stood_first", names=names, verb=verb, history=history)]
 
     # each statement reworded in its own place, by its key, which the GETs' copies follow as an edit on a board
-    # does (getsedit, 30 October), one that moves or goes left for him to take with the participant's changes
+    # does (getsedit, 30 October), one that moves or goes left for them to take with the participant's changes
     reworded = {themes.card_key(args.sheet, first, i): (turn["statements"][i], after_s[i])
                 for i, j in (moves_lines or {}).items()
                 if j == i and i < len(after_s) and themes.words(turn["statements"][i]) != themes.words(after_s[i])}
@@ -7090,7 +7090,7 @@ def followed_copy_lines(followed: dict, dry: bool) -> list[str]:
 
 
 def bold_lines(cells: list[dict], dry: bool, who: str | None = None) -> list[str]:
-    """His bold in a key quote that a requote moved to the same words in the new quote, or left off where they are
+    """Their bold in a key quote that a requote moved to the same words in the new quote, or left off where they are
     gone (quotefollow, 13 November 2026), a line for each cell, the participant, timepoint, LPET and the quote's key,
     never a word of it. `who` names the participant, else the copy's case."""
     out = []
@@ -7145,7 +7145,7 @@ def copy_lines(copies: dict, history: str, dry: bool) -> list[str]:
 def cmd_copies_refresh(p: Project, args) -> tuple:
     """Every copy of the participants' statements brought in line with their workbooks, or one participant's with
     `--case` (see `routes.refresh_copies`): every PETs board's cards and picks at every timepoint, and the GETs',
-    the LPETs' and the LGETs' copies and their boards' cards. One History step on each board it changes, under his
+    the LPETs' and the LGETs' copies and their boards' cards. One History step on each board it changes, under their
     request, each file written once, under the participant's lock and the project's. A participant whose files
     cannot be read or written is named and left as it is, the others brought in line. The dry run names, for each
     participant and file, the keys that would change and those no longer in the workbook, never the words."""
@@ -7321,7 +7321,7 @@ def cmd_copies_rekey(p: Project, args) -> tuple:
     (see `routes.rekey_copies`): by the statement's own words, each copy whose key the workbook no longer holds
     taking the key its words now stand at, or with `--from-row` and `--shift`, for one participant and one
     timepoint, every key from that row down shifted by that many rows. One History step on each board it changes,
-    under his request. The dry run lists each statement it would move, its timepoint, from and to keys and the LPETs
+    under the researcher's request. The dry run lists each statement it would move, its timepoint, from and to keys and the LPETs
     holding it, and each it cannot match, never the words."""
     offset = args.from_row is not None or args.shift is not None
     if offset and (args.from_row is None or args.shift is None):
@@ -7363,7 +7363,7 @@ def cmd_copies_rekey(p: Project, args) -> tuple:
 def cmd_copies_prune(p: Project, args) -> tuple:
     """Every copy of a participant's statements whose statement is no longer in their workbook taken off (see
     `routes.prune_copies`), from the copy, its PETs and every board, a copy whose words stand at another key left
-    for `copies rekey`. One History step on each board it changes, under his request. The dry run lists each copy it
+    for `copies rekey`. One History step on each board it changes, under the researcher's request. The dry run lists each copy it
     would take off with the LPETs holding it, each it leaves, and every LPET it would leave with no statement at a
     timepoint, by participant, title and timepoint, never a statement's words."""
     people, files = copies_people(p, args, lambda book, changed, history: routes.prune_copies(
@@ -7399,11 +7399,11 @@ def cmd_copies_prune(p: Project, args) -> tuple:
 
 # ------------------------------------------------------- the statements screen's own writes
 # (26 October 2026, parity with the page, group 1: a route the statements screen calls had no op for an
-# agent.) A passage's words corrected (`/api/edit-turn`), the interviewer's note on his own passage
+# agent.) A passage's words corrected (`/api/edit-turn`), the interviewer's note on their own passage
 # (`/api/interviewer-note`), words assigned to another speaker and its undo (`/api/rows`), the consent
 # talk or the goodbyes cut off a sheet and its undo (`/api/trim`, `/api/rows`), and transcripts added to a
 # project (`/api/add-transcripts`), each by calling the route itself with the body the page sends, its
-# dry run, his request and the agent's tool beside it. The route holds the lock, the checks, the History
+# dry run, the researcher's request and the agent's tool beside it. The route holds the lock, the checks, the History
 # record and the refusals, so nothing here repeats them.
 
 
@@ -7418,8 +7418,8 @@ def route_call(route, body: dict) -> dict:
 
 
 def turn_marks(args) -> dict:
-    """What every write here sends the route beside the page's body: its dry run, his request and the
-    agent's tool, refused without his request unless it is a dry run."""
+    """What every write here sends the route beside the page's body: its dry run, the researcher's request and the
+    agent's tool, refused without the researcher's request unless it is a dry run."""
     request = themes_ai.one_line(args.note)
     if not args.dry_run and not request:
         raise cli.Refused(_w("NO_TURN_REQUEST"))
@@ -7508,8 +7508,8 @@ def cmd_turn_edit(p: Project, args) -> tuple:
 
 
 def cmd_turn_interviewer_note(p: Project, args) -> tuple:
-    """The interviewer's note on one of his own passages, in the workbook's Interviewer notes column, as
-    the statements screen writes it (`routes.api_interviewer_note`), an empty one clearing it. His passage
+    """The interviewer's note on one of their own passages, in the workbook's Interviewer notes column, as
+    the statements screen writes it (`routes.api_interviewer_note`), an empty one clearing it. Their passage
     stays context: its row's state and the rounds are as they were, and History keeps the note."""
     b = p.case(args.case)
     book = Path(b["workbook"])
@@ -7545,7 +7545,7 @@ def skip_rows_given(text) -> list:
 def cmd_turn_skip(p: Project, args) -> tuple:
     """Passages decided with no statement, as Skip on the statements screen decides one (leaveout, 16 November 2026,
     `routes.api_skip`): each row's state in the progress file `reviewed-empty`, the workbook untouched, so every count
-    reads it decided as the app's own Skip leaves it. A passage with statements is refused, nothing written. His
+    reads it decided as the app's own Skip leaves it. A passage with statements is refused, nothing written. Their
     reason, `--reason`, is kept in this op's line of the record of agents' changes alone, since the app keeps none
     (`agent_changes.entry_for`), never in the notes. With a reason, the passages named that were decided with no
     statement already have it recorded too, in the same line, and a call naming only those writes no file and is
@@ -7868,7 +7868,7 @@ def names_lines(done: dict) -> list[str]:
 
 def cmd_names_list(p: Project, args) -> tuple:
     """The project's list of names as an agent is told it (namesrule, 8 November 2026): each entry's number, what it
-    is written as, whom it is for and how many spellings it has, never a real name, and whether his review marked it,
+    is written as, whom it is for and how many spellings it has, never a real name, and whether their review marked it,
     so names replace leaves every find of it (namesbuild). The list is made in the app."""
     done = route_call(routes.api_names, {"op": "list", "root": routes.project_id(p.root),
                                          "tool": themes_ai.one_line(getattr(args, "tool", None)) or cli.TOOL})
@@ -7885,7 +7885,7 @@ def cmd_names_list(p: Project, args) -> tuple:
 def names_given(args) -> list:
     """The entries `names add` was given: `--from`, a JSON file of entries or `{"entries": [...]}` (the MCP server
     hands its `entries` over already read), or one entry by `--real` and `--to` with its options. The real names
-    and except phrases are kept on `args` as `secret_words`, so his request as the record and the agent log keep it
+    and except phrases are kept on `args` as `secret_words`, so the researcher's request as the record and the agent log keep it
     has them taken out (namesop)."""
     rows = []
     source = getattr(args, "source", None)
@@ -7908,14 +7908,14 @@ def names_given(args) -> list:
                 pieces = ([v] + re.split(r"[,;]", v)) if isinstance(v, str) else v if isinstance(v, list) else []
                 words += [x.strip() for x in pieces if isinstance(x, str) and x.strip()]
     args.secret_words = sorted(set(words) | set(getattr(args, "secret_words", None) or ()), key=len, reverse=True)
-    # and out of his request now, so nothing written from it holds them
+    # and out of the researcher's request now, so nothing written from it holds them
     if getattr(args, "note", None):
         args.note = agent_log.hidden_words(getattr(args, "note_raw", None) or args.note, args.secret_words)
     return rows
 
 
 def cmd_names_add(p: Project, args) -> tuple:
-    """Entries added to the project's list of names on his word (namesop, 16 November 2026), with --dry-run first:
+    """Entries added to the project's list of names on their word (namesop, 16 November 2026), with --dry-run first:
     each new entry by its number, its replacement and whom it is for, and how many finds it would flag across the
     transcripts already in, by participant and by part, never a real name and never the words around a find. One
     line in the record of agents' changes, undone by `agents undo-change` or its run's undo."""
@@ -7954,7 +7954,7 @@ def cmd_names_replace(p: Project, args) -> tuple:
     """The list's names replaced in the transcripts already in, as Review and replace does in the app (namesui, 8
     November 2026): each workbook changed kept first in its participant's _Archive, the boards and the GETs
     following, a find left as written by --skip. Since namesbuild (17 November 2026) only the finds with their
-    capital letter: every lower-case find, and every find of an entry his review marked, is left for him in the app.
+    capital letter: every lower-case find, and every find of an entry their review marked, is left for them in the app.
     Counts only, never a name."""
     done = route_call(routes.api_names, dict({"op": "replace", "root": routes.project_id(p.root),
                                               "skip": getattr(args, "skip", None)}, **turn_marks(args)))
@@ -7962,7 +7962,7 @@ def cmd_names_replace(p: Project, args) -> tuple:
     who = i18n.t("cli.n.participant", n=done["participants"])
     first = (i18n.t("names.dry_replace", replaced=held["replaced"], participants=who) if done["dry_run"]
              else i18n.t("names.replaced_said", replaced=held["replaced"], participants=who))
-    # the entries his review marked, every find of each left for him (namesbuild)
+    # the entries their review marked, every find of each left for them (namesbuild)
     marked = [i18n.t("names.held_entries", n=held["held"])] if held.get("held") else []
     return done, [first] + marked + names_lines(done)
 
@@ -7981,7 +7981,7 @@ def names_places(places: list) -> list[str]:
 
 
 def cmd_names_remove(p: Project, args) -> tuple:
-    """Entries taken off the list by their numbers, on his word (namesset, 16 November 2026), with --dry-run first:
+    """Entries taken off the list by their numbers, on their word (namesset, 16 November 2026), with --dry-run first:
     each entry by its number, replacement and whom it is for, with the finds it flagged in the transcripts already
     in, never a real name. One line in the record of agents' changes, undone by `agents undo-change` or its run's
     undo."""
@@ -8001,7 +8001,7 @@ def cmd_names_remove(p: Project, args) -> tuple:
 def names_changes(args) -> dict:
     """The changes `names set` was given: `--from`, a JSON object of them, `{"to": "Wren", "except": [...]}` (the
     MCP server hands its own over already read), then the options, each over the file's. The real spellings and
-    the except phrases are kept on `args` as `secret_words`, so his request as the record and the agent log keep it
+    the except phrases are kept on `args` as `secret_words`, so the researcher's request as the record and the agent log keep it
     has them taken out, as `names add` does."""
     changes: dict = {}
     source = getattr(args, "source", None)
@@ -8036,7 +8036,7 @@ def names_changes(args) -> dict:
 
 
 def cmd_names_set(p: Project, args) -> tuple:
-    """One entry of the list changed by its number on his word (namesset, 16 November 2026), with --dry-run first:
+    """One entry of the list changed by its number on their word (namesset, 16 November 2026), with --dry-run first:
     the except phrases set, added to or taken off, whom it is for, what it is
     written as and its spellings. The answer says each field that changes before and after, the spellings and
     phrases by their counts, and the entry's finds in the transcripts already in before and after, never a real
@@ -9225,7 +9225,7 @@ def case_hit(hit: dict, r: dict, go: dict, named: str, cases: dict, p, board: st
 def arguments(sub, common, writes) -> None:
     """Idiograph's commands under the family's parser at the top of `idiograph` (`cli.parser`, the family
     codebase's fourth build, 22 October 2026, from it), each with the options every command takes, `common`,
-    and a write's, `writes`, its dry run, his request and the agent's tool."""
+    and a write's, `writes`, its dry run, the researcher's request and the agent's tool."""
     sub.add_parser("cases", parents=[common], help="the study, each participant with its workbook, phases and boards")
     one = sub.add_parser("statements", parents=[common], help="every statement of a participant, with where each board places it")
     one.add_argument("case")
@@ -10140,7 +10140,7 @@ def perform(args) -> tuple[dict, list[str]]:
             srv.CONFIG_PATH, srv.STATE_MEMORY = kept
     if args.command == "team" and (getattr(args, "act", None) == "offer"
                                    or (getattr(args, "act", None) == "join" and getattr(args, "into", None))):
-        # Join a project on Home, and the invite read before it, need no project of his (teamjoin)
+        # Join a project on Home, and the invite read before it, need no project of theirs (teamjoin)
         kept = (srv.CONFIG_PATH, srv.STATE_MEMORY)
         try:
             if getattr(args, "config", None):

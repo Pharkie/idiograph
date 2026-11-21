@@ -603,7 +603,7 @@ decide the rest in the app's Review and replace, where each find shows in its se
   that entry as written, and its dry run counts it: `held` says how many such entries it left, and each one's row says
   `held`. No agent clears the mark, whatever `names set` changes; their own edit of the entry in the app does, and
   `names remove` of a marked entry is refused in one line with nothing written, dry run alike (`names set` changes it
-  and keeps the mark). `names set` of a marked entry's spellings (`real`) or whom it is for (`for`) is refused the same way; its replacement and except phrases stay yours to change. Tell them which entries by number, never the name, and that the rest of their finds are theirs to
+  and keeps the mark). `names set` of a marked entry's spellings (`real`) or whom it is for (`for`) is refused the same way: any `real` given is refused, so no guess is ever told apart, and `for` passes only when it is given unchanged; its replacement and except phrases stay yours to change, but an entry already holding forty except phrases refuses every `--except-add`, a held phrase and a guess alike. Tell them which entries by number, never the name, and that the rest of their finds are theirs to
   decide in the app. `names remove`
 takes entries off the list by their numbers and `names set` changes one, each on their word (below).
 MCP's tools are `names_list`, `names_check`, `names_replace`, `names_remove`, `names_add` and `names_set`.
@@ -950,7 +950,7 @@ null for none (trajchoose, 11 November 2026). A key quote taken from the transcr
 `trajectories apply` takes the board's own operations, a list or `{"operations": [...]}`, run in order, all
 refused with nothing written when one is wrong:
 
-- a trajectory, by its id, `c1`, or its title (a name in the shape of an id, `c` and digits, is read as an id alone): `{"op": "add", "title": "Positive"}` (with `at`, its place
+- a trajectory, by its id, `c1`, or its title (a name in the shape of an id, `c` and digits, is read as an id alone, and the refusal for one the board has not got says so, matched exactly and never against a title): `{"op": "add", "title": "Positive"}` (with `at`, its place
   from 0), `rename` (`column`, `title`), `move` (`column`, `at`), `remove` (`column`, its participants back
   to unplaced with all that is kept on them), `describe` (`column`, `description`, "" clearing it),
   `colour` (`column`, `colour`: Green, Amber, Red, Blue, Plum, Teal, Taupe, Orange, or none) and `icon`

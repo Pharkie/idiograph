@@ -648,7 +648,7 @@ TOOLS = [
     mcp.tool("trajectories_apply", "Change the Trajectories board", ("trajectories", "apply"),
          "Change the Trajectories board with its own operations, all or nothing, as the board itself does: "
          '{"op": "add", "title": "Positive"} (with "at", its place from 0), {"op": "rename", "column": "Positive", '
-         '"title": "..."}, {"op": "move", "column": "c2", "at": 0}, {"op": "remove", "column": "Mixed"} (its '
+         '"title": "..."}, {"op": "move", "column": "c2", "at": 0} (a trajectory is named by its id, c2, matched exactly, or by its title in any case, and a name shaped like an id is only ever an id), {"op": "remove", "column": "Mixed"} (its '
          'participants go back among those unplaced, their notes kept), {"op": "place", "participant": "Wren", '
          '"column": "Positive", "at": 0} (no column takes them out, at their place in it), {"op": "order", '
          '"participant": "Wren", "at": 1}, {"op": "note", "participant": "Wren", "note": "..."}, '
@@ -1652,8 +1652,8 @@ TOOLS = [
                   "description": 'Participants out of the study, each with the researcher\'s reason, {"Wren": "Interviewed for the pilot alone"}.'},
           "in": {"type": "array", "items": {"type": "string"}, "description": "Participants put back in the study."}},
          writes="changes"),
-    # Working together's comments and review (wtreview, 8 November 2026, see review.py): his agent signs as his
-    # computer, comments and replies as he does, and every teammate's words come back marked untrusted
+    # Working together's comments and review (wtreview, 8 November 2026, see review.py): their agent signs as their
+    # computer, comments and replies as they do, and every teammate's words come back marked untrusted
     mcp.tool("team_review", "Comments and reviews from teammates", ("team", "review"),
          "In a project with Working together on: the reviews that came from teammates, each comment thread with "
          "what it is on and every reply, the researcher's own drafts waiting for Send review, and who asked whom to review. A "
@@ -1732,7 +1732,7 @@ TIMEPOINT = {"type": ["string", "integer"],
 LPETS = dict(mcp.TEXT, description="In a project of two or more timepoints, a participant by their pseudonym: their "
                                "LPETs, made from their PETs at each timepoint, in place of the project's GETs.")
 for _t in TOOLS:
-    # Send now writes no line in History, so his request is taken when given and never asked for (smokefix)
+    # Send now writes no line in History, so the researcher's request is taken when given and never asked for (smokefix)
     if _t["command"] == ("team", "send"):
         _t["inputSchema"]["required"] = [x for x in _t["inputSchema"].get("required") or [] if x != "request"]
         if not _t["inputSchema"]["required"]:
@@ -1775,7 +1775,7 @@ DISTIL_LINE = (
 
 def arguments(t: dict, given: dict, args):
     """One of Idiograph's tools' inputs read into the arguments the family's `mcp_server.arguments` made with
-    the project's options, his request as `--note` and the client as `--tool`, a structure in place of the
+    the project's options, the researcher's request as `--note` and the client as `--tool`, a structure in place of the
     file the command line reads it from, and answered."""
     command, act = t["command"]
     if "case" in given:
@@ -1870,6 +1870,8 @@ def arguments(t: dict, given: dict, args):
         args.computer = given.get("computer")
         # Join a project on Home's new folder, for team_join (teamjoin, 20 November 2026)
         args.into = given.get("into") if act == "join" else None
+        # a join as a copy of another computer's project, and yes to the question it asks (team_join)
+        args.copy, args.replace = given.get("copy") is True, given.get("replace") is True
         args.gets_owner = given.get("gets_owner")
         rec = given.get("recordings")
         args.recordings = None if rec is None else ("on" if rec is True else "off")

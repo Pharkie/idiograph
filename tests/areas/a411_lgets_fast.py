@@ -234,7 +234,7 @@ def test_lgets_fast(scratch: Path):
         if on:
             themes.plain_json = lambda value: False
             routes.lpets_books = old_books
-            routes.books_kept = lambda path, before: old_books(path)
+            routes.books_kept = lambda path, before, reword=False: old_books(path)
             gets_mod.copies_untouched = old_untouched
         else:
             themes.plain_json, routes.lpets_books, routes.books_kept, gets_mod.copies_untouched = saved

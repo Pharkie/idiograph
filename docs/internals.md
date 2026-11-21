@@ -3144,7 +3144,7 @@ carry it), none for the app's reads, its Replace (reached from the review alone)
 agent clears the mark: `pseudo_edit` keeps it whatever it changes, `pseudo_add` strips it from what it is given,
 `pseudo_remove` refuses an agent's remove of a marked entry whole (`names.remove_marked`, namesfix M1, so removing
 and adding it again cannot clear it), `pseudo_edit` refuses an agent's change to a marked entry's `real` or `for`
-(`names.set_marked`, namesfix2, its `to` and except phrases still changeable), and the app's `set` keeps an entry's mark
+(`names.set_marked`, namesfix2, for any `real` given, never compared with the spellings held (a dry run would confirm a guess of a real name), and for `for` only when it really changes, lowsfix; its `to` and except phrases still changeable, and an add that takes the phrases the entry holds and the phrases given past `MOST_EXCEPT` is refused before any repeat is dropped, so the limit never says which phrases are held), and the app's `set` keeps an entry's mark
 only while the entry is the same but for it (`names.marks_carried`, `names.same_entry`), so his own edit clears it.
 `Run.counts` gives each entry's `lower` (lower-case finds left), `held` on a marked entry's row and `held` overall,
 the marked entries found; `names.lines` adds a line for each (`names.line_held`, `names.line_lower`) and `names
@@ -3182,10 +3182,17 @@ those files by. Since wordfix2 a memos file is read as bytes (`pseudo_memo_read`
 kept as they were and every byte but the finds written back; its place in every count and line is the fixed word
 "memos" (`names.MEMOS_PLACE`), never the file's name, which may be his own; an agent's restore point keeps it, so an
 agent's replace is a line in the record undone byte for byte; and Replace reads and writes each memos file under the
-project's lock. The app's Check answers `memos_seen`, each memos file in order by its digest and how many finds of
-each entry it held, and Replace sends it back: a file whose digest differs (changed since Check, or new) is left as
-it is, its finds counted as left and `memos_changed` saying how many such files, the run's numbers moved on by the
-finds Check counted in it so his ticks in the files after it still name the finds he ticked (`pseudo_memo_held`). The
+project's lock. The app's Check answers `memos_seen`, each workbook (`kind` "book", first, lowsfix) and then each memos file in order by
+its digest and how many finds of each entry it held, and Replace sends it back: a file whose digest differs (changed
+since Check, or new) is left as it is, its finds counted as left and `memos_changed` (and `books_changed` for a
+workbook, checked again under its lock) saying how many such files, the run's numbers moved on by the finds Check
+counted in it so his ticks in the files after it still name the finds he ticked (`pseudo_memo_held`,
+`pseudo_book_held`); a memos file is written beside itself first and put in place, an `OSError` there leaving it as it was
+and one plain line in `failed`, its finds counted as left, the original archived by a copy first; the page's line for `books_changed` is `distil.names.books_changed`. An agent's Replace sends no `memos_seen` and so has no guard. `case_files.names_write`
+keeps an entry the store cannot take as it is, and `pseudo_keep` adds the entries a Real name made to the list on
+disk as it stands, the app's `set` working its marks out under the lock, so a Names edit made meanwhile is never
+written over. `books_kept` takes the timepoints read before a write only for a caller that says `reword`. `sentence`
+ends a shown sentence after a quoted `!` or `?` only when the next word is capitalised (`sentence_ends`). The
 label and pen portrait check (`participants.real_name_in`) finds a name in any case. Area 407.
 
 **A Word table of transcript and notes** (19 October, a tester's Figure 1). `convert.read_data` tries

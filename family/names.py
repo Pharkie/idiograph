@@ -430,16 +430,28 @@ def sentence_title(text: str, at: int) -> bool:
     return bool(m) and m.group(1).casefold() in SENTENCE_TITLES and (m.start() == 0 or not text[m.start() - 1].isalnum())
 
 
+def sentence_ends(text: str, m) -> bool:
+    """Whether the match of `SENTENCE_END` ends a sentence: not a title's full stop, and not a mark closed by a
+    quotation mark or bracket (a quoted `!` or `?` in the middle of a sentence) before a word in lower case (lowsfix)."""
+    if sentence_title(text, m.start()):
+        return False
+    if text[m.start()] in ".!?" and m.end() - m.start() > 1:
+        word = text[m.end():].lstrip()[:1]
+        if word and word.islower():
+            return False
+    return True
+
+
 def sentence(text: str, at: int, end: int) -> tuple[str, str]:
     """The words before and after a find to the ends of its sentence, for the app's review, which shows each find in
     its whole sentence (namesbuild): back to a full stop, question or exclamation mark followed by a space, or a line
     break, and on to the next, a title's full stop (Dr., Mrs.) ending none, each side cut at `SENTENCE` characters with an ellipsis."""
     start = 0
     for m in SENTENCE_END.finditer(text, 0, at):
-        if not sentence_title(text, m.start()):
+        if sentence_ends(text, m):
             start = m.end()
     stop = len(text)
-    m = next((m for m in SENTENCE_END.finditer(text, end) if not sentence_title(text, m.start())), None)
+    m = next((m for m in SENTENCE_END.finditer(text, end) if sentence_ends(text, m)), None)
     if m is not None:
         stop = m.end() if text[m.start()] in ".!?" else m.start()
     before, after = text[start:at], text[end:stop]

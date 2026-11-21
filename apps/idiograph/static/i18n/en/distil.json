@@ -673,6 +673,10 @@
     "one": "A memos file had changed since Check, so it was left as it is.",
     "other": "{n} memos files had changed since Check, so they were left as they are."
   },
+  "distil.names.books_changed": {
+    "one": "A transcript had changed since Check, so it was left as it is.",
+    "other": "{n} transcripts had changed since Check, so they were left as they are."
+  },
   "distil.agent_review.home_line": {
     "one": "Agents made {n} change since you last looked.",
     "other": "Agents made {n} changes since you last looked."

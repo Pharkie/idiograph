@@ -59,6 +59,7 @@
   "names.edit_finds": "  finds in the transcripts already in: {hits_before} to {hits_after}, a replace writing {replaced_before} to {replaced_after}",
   "names.gone_line": "entry {entry}, {to}{where}: {hits}",
   "names.renumbered": "The entries after it are numbered again: run names list.",
+  "names.memos_not_written": "A memos file could not be written, so it was left as it was.",
   "names.history_line": "Names from the project's list replaced in the transcripts already in: {replaced} replaced, {left} left as they were, in {participants}. The workbooks as they were are in each participant's _Archive.",
   "names.replaced_said": "Replaced {replaced} in {participants}. The transcripts as they were are in each participant's _Archive folder.",
   "names.dry_replace": "Dry run: nothing was written. It would replace {replaced} in {participants}.",

@@ -140,7 +140,6 @@
   "cli.changes_lines.the_copy_differs_in_a_statements": "The copy differs in a code's words, a note or a pick.",
   "cli.gets_apply.dry_run_nothing_was_written_on": "Dry run, nothing was written. On the themes board {name} it would have: {v_}",
   "cli.gets_apply.arranged_in_no_get_by_participant": "arranged {cards} in no theme by participant, a row each for {listed}, below the themes, which stay where they are",
-  "cli.gets_apply.the_gets": "the themes",
   "cli.gets_apply.nothing_to_change_every_pet_and": "Nothing to change. Every code and subtheme on {name} is in a theme or set aside, so nothing was written.",
   "cli.gets_apply.a_get": "a theme",
   "cli.gets_apply.operation_arranges_by_give_by_participant": "Operation {n} arranges by {one_line}. Give \"by\": \"participant\". A themes board arranges only by participant.",

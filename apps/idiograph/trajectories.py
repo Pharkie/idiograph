@@ -475,6 +475,9 @@ def apply(data: dict, cases: list[str], ops, lpets: dict | None = None, lpet_op=
         def column(key="column") -> dict:
             found = find_column(data, op.get(key))
             if found is None:
+                # a name in the shape of an id is only ever an id, so a title "c3" is not found by it (trajfix2)
+                if re.match(r"^c\d+$", words(op.get(key))):
+                    raise WorkbookError(i18n.t("server.trajectory_no_such_id", name=words(op.get(key))))
                 raise WorkbookError(i18n.t("server.trajectory_not_on_board", name=words(op.get(key)) or "with no name"))
             return found
 

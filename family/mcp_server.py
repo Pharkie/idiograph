@@ -158,7 +158,7 @@ def tool(name: str, title: str, command: tuple, description: str, properties: di
     """A tool as `tools/list` gives it, with the command of `cli.py` it runs. `writes` is empty for
     a tool that only reads, `adds` for one that adds a board, `marks` for one that marks a board
     and changes nothing on it, `changes` for one that changes what is there, a revision or a backup
-    kept first, and `file` for one that writes a new file and changes nothing he made, which takes
+    kept first, and `file` for one that writes a new file and changes nothing they made, which takes
     dry_run and no request. A screening's two writes for the review's side take dry_run and no
     request too, `rows` adding records and `cells` writing proposals over any there. A run of a
     review's searches, `run`, writes a run folder from the databases' answers and takes dry_run alone,
@@ -418,7 +418,7 @@ def guide_sections(app: str | None = None) -> list[tuple[str, str, str]]:
 
 
 def start_text(project: str, request: str = "", project_uri: str = "") -> str:
-    """The start prompt's words, with the project as `cases` gives it and his first request."""
+    """The start prompt's words, with the project as `cases` gives it and their first request."""
     text = START_TEXT.format(project=project.strip(), guide=GUIDE_URI, writing=f"{GUIDE_URI}/writing",
                              schemas=SCHEMAS_URI, project_uri=project_uri or f"{PROJECT_URI}/{AGENTS_NAME}")
     request = one_line(request)
@@ -442,7 +442,7 @@ def loosen(given: dict, shape: dict) -> dict:
 
 def arguments(t: dict, given: dict, project: dict, client: str) -> argparse.Namespace:
     """The arguments the command line's parser makes for the command, from a tool's input: the
-    project's options, his request as `--note`, the client as `--tool`, and a structure in place
+    project's options, the researcher's request as `--note`, the client as `--tool`, and a structure in place
     of the file the command line reads it from, each app's own tools' read as its module reads them."""
     command, act = t["command"]
     if command in APP_ARGUMENTS:
@@ -621,12 +621,12 @@ class Server:
     def logged(self, name: str, t: dict | None, given: dict, lines: list, code, op: str = "", args=None) -> None:
         """A refusal of a tool into the agent log (agent_log.py), each app's into its own beside its own settings
         (Sift's and Trace's since siftlog, 3 November 2026), on the log's own thread after this answer: the tool and
-        its inputs' names, never their values, his request as the agent gave it."""
+        its inputs' names, never their values, the researcher's request as the agent gave it."""
         try:
             import agent_log
             import cli as family_cli
             values = agent_log.strings({k: v for k, v in given.items() if k not in family_cli.NAMES and k != "request"})
-            # his request as the command ran it, the project's real names already out of it, and those names and
+            # the researcher's request as the command ran it, the project's real names already out of it, and those names and
             # any a names tool was given out of it and the line, whole words, case ignored, any length (namesop)
             request = str(given.get("request") or "")
             secret = list(getattr(args, "secret_words", None) or ())
@@ -642,7 +642,7 @@ class Server:
             values += agent_log.strings(given.get("request"))
             if (self.name == app_identity.DEFAULT and request
                     and (args is None or getattr(args, "secret_words", None) is None)):
-                # refused before the project opened, so before its list of names was read: never his words
+                # refused before the project opened, so before its list of names was read: never their words
                 request = agent_log.WITHHELD
             line = " ".join(str(x) for x in lines if str(x))
             if not code:

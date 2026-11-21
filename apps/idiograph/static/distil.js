@@ -4888,7 +4888,8 @@ async function nmReplace(finds) {
   const replacedLine = t('distil.names.replaced', { replaced: data.names.replaced,
     participants: t('distil.names.participants', { n: data.participants }) });
   const memosLine = data.memos_changed ? ' ' + t('distil.names.memos_changed', { n: data.memos_changed }) : '';
-  saidIn('nm-list-said', replacedLine + memosLine, false);
+  const booksLine = data.books_changed ? ' ' + t('distil.names.books_changed', { n: data.books_changed }) : '';
+  saidIn('nm-list-said', replacedLine + memosLine + booksLine, false);
   $('nm-list-said').hidden = false;
   // the screen behind reads the words as they are now
   NM.changed = true;

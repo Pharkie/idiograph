@@ -173,6 +173,29 @@ def test_names_set(scratch: Path):
               and listed.read_bytes() == before_bad,
               json.dumps([(a[0], d, c, s, n, e[:120]) for a, d, c, s, n, e in same if not (c and s and n)]))
 
+        # ── 2c. an entry holding forty except phrases refuses every add alike, a held phrase and a guess (lowsfix)
+        full_list = routes.pseudo_list(root)
+        full = [dict(e) for e in full_list]
+        full[2]["except"] = [f"phrase number {n}" for n in range(40)]
+        names_mod.save_at(root, full)
+        full_bytes = listed.read_bytes()
+        refusals = [run("names", "set", "3", "--except-add", phrase, "--note", "x", "--run", "full")
+                    for phrase in ("phrase number 7", "a phrase it does not hold")]
+        check("406: an entry holding forty except phrases refuses an add of a held phrase and of a guess alike, nothing "
+              "written",
+              all(c != 0 and "40" in e for c, _g, e in refusals) and listed.read_bytes() == full_bytes,
+              json.dumps([(c, e[:100]) for c, _g, e in refusals]))
+        names_mod.save_at(root, full_list)
+
+        # a rename's write of the list keeps an entry the store cannot take, never dropping it (lowsfix)
+        import case_files
+        odd = {"real": [], "to": "[odd]", "for": None}
+        case_files.names_write(root, listed, {"entries": full_list + [odd]})
+        check("406: a rename's write of the list keeps an entry the store cannot read as it is",
+              json.loads(listed.read_text(encoding="utf-8"))["entries"][-1] == odd
+              and len(json.loads(listed.read_text(encoding="utf-8"))["entries"]) == len(full_list) + 1)
+        names_mod.save_at(root, full_list)
+
         # ── 3. an entry the list lacks, a participant the project lacks, a change that is none
         code, _x, err = run("names", "set", "9", "--to", "[x]", "--note", "x")
         code2, _y, err2 = run("names", "remove", "9", "--note", "x")
@@ -236,6 +259,12 @@ def test_names_set(scratch: Path):
         code, held_back, err = run("names", "replace", "--note", "x", "--dry-run")
         code, _s, err = run("names", "set", "2", "--to", "[next door]", "--note", "Terry as next door", "--run", "rv")
         kept_mark = routes.pseudo_list(root)[1].get("unticked") is True
+        right = run("names", "set", "2", "--real", "Terry", "--note", "x", "--dry-run")
+        wrong = run("names", "set", "2", "--real", "Terence", "--note", "x", "--dry-run")
+        check("406: an agent's set of a marked entry's spellings is refused the same for a right guess and a wrong one "
+              "(lowsfix)",
+              right[0] != 0 and wrong[0] != 0 and right[2] == wrong[2]
+              and routes.pseudo_list(root)[1]["real"] == ["Terry"], right[2] + wrong[2])
         his = [{k: v for k, v in e.items() if k not in ("entry", "unticked")}
                for e in routes.api_names({"op": "list", "root": rid})["entries"]]
         his[1]["to"] = "[neighbour]"

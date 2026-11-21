@@ -164,6 +164,19 @@ def test_names_review(scratch: Path):
                                                  "request": "x"}))
         check("407: an agent's take is refused, nothing written", bool(took) and was[juno] == text_of(juno), took)
 
+        # ── 3b. a workbook changed between Check and Replace is left as it is, the others replaced (lowsfix)
+        snap = {b: b.read_bytes() for b in (juno, mabel, rowan)}
+        wb_touched = openpyxl.load_workbook(juno)
+        wb_touched.save(juno)
+        wb_touched.close()
+        late = routes.api_names({"op": "replace", "root": rid, "names_reviewed": True,
+                                 "memos_seen": app_check.get("memos_seen") or []})
+        check("407: a workbook changed since Check is left as it is and said, the others still replaced",
+              late["books_changed"] == 1 and text_of(juno) == was[juno] and count("Will", text_of(mabel)) == 0,
+              json.dumps({k: late[k] for k in ("books_changed", "participants")}))
+        for b, data in snap.items():
+            b.write_bytes(data)
+
         # ── 4. the app's Replace writes the ticked alone: one Sunday unticked, one lower-case will ticked
         rowan_bytes = rowan.read_bytes()
         juno_will = [f for f in by("will") if f["where"]["participant"] == "Juno"]

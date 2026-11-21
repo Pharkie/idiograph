@@ -330,7 +330,8 @@ def names_write(root: Path, path: Path, data: dict) -> None:
         try:
             kept.append(names_mod.clean_entry(e))
         except names_mod.NamesError:
-            continue
+            # one the store cannot take is kept as it is, never dropped from the list by a rename (lowsfix)
+            kept.append(e)
     names_mod.save_at(root, kept)
 
 

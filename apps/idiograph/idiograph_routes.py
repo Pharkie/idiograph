@@ -5166,11 +5166,15 @@ def pseudo_run(root, body: dict) -> "names_mod.Run":
     files = body.get("files") if isinstance(body.get("files"), list) else []
     if any(isinstance(f, dict) and str(f.get("real") or "").strip() for f in files) and agent_marks(body)[0]:
         raise WorkbookError(i18n.t("names.agent_adds"))
+    base = pseudo_list(root)
     try:
-        entries = names_mod.with_real_names(pseudo_list(root), files)
+        entries = names_mod.with_real_names(base, files)
     except names_mod.NamesError as exc:
         raise WorkbookError(str(exc)) from None
-    return names_mod.Run(entries, skip, take, pseudo_hold(entries, body, write=True))
+    run = names_mod.Run(entries, skip, take, pseudo_hold(entries, body, write=True))
+    # the list as it was read, so `pseudo_keep` can tell the entries a Real name made from the rest (lowsfix)
+    run.base = len(base)
+    return run
 
 
 def pseudo_take(body: dict) -> set:
@@ -5206,12 +5210,23 @@ def pseudo_keep(root, run: "names_mod.Run", body: dict | None = None) -> None:
     if root is None or not run or srv.is_demo_root(Path(root)):
         return
     held = pseudo_list(root)
-    # a mark already on disk is never dropped (namesfix2 M1): the run's entries were read before its write, and a
-    # write in between (a REFI-QDA import inside New project) may have marked one since, so each entry the same as a
-    # marked one on disk keeps that mark, matched as the app's own save matches them
-    entries = names_mod.marks_kept(held, run.entries)
-    if not agent_marks(body or {})[0]:
-        entries = names_mod.with_marks(entries, run.unticked())
+    base = getattr(run, "base", None)
+    if base is None:
+        # a mark already on disk is never dropped (namesfix2 M1): the run's entries were read before its write, and a
+        # write in between (a REFI-QDA import inside New project) may have marked one since, so each entry the same as
+        # a marked one on disk keeps that mark, matched as the app's own save matches them
+        entries = names_mod.marks_kept(held, run.entries)
+        if not agent_marks(body or {})[0]:
+            entries = names_mod.with_marks(entries, run.unticked())
+    else:
+        # the list as it stands on disk now, with the entries a Real name made added to it, so a Names edit saved
+        # while the Add or the new project ran is never written over (lowsfix); an entry the run's review marked is
+        # marked wherever it now stands, found as the app's own save finds it, and one he has since edited is not
+        entries = list(held) + [e for e in run.entries[base:] if not any(names_mod.same_entry(e, h) for h in held)]
+        if not agent_marks(body or {})[0]:
+            marks = [run.entries[i] for i in run.unticked() if i < len(run.entries)]
+            entries = [dict(e, unticked=True) if not e.get("unticked") and any(names_mod.same_entry(e, m) for m in marks)
+                       else e for e in entries]
     if entries != held:
         names_mod.save_at(root, entries)
 
@@ -5376,7 +5391,10 @@ def pseudo_check(root: Path, entries: list[dict], skip=(), take=(), seen: list |
     for who, folder, book in pseudo_books(root):
         mark = len(run.finds)
         times: dict | None = {} if places else None
+        digest = pseudo_book_sha(book) if seen is not None else None
         wb_mod.names_in_book(book, pseudo_fixer(run, who), dry=True, times=times)
+        if seen is not None:
+            seen.append(dict(pseudo_memo_seen({"sha": digest}, run.finds[mark:]), kind="book"))
         if places:
             pseudo_placed(run.finds[mark:], book, times, labels)
         if any(not f["skipped"] for f in run.finds[mark:]):
@@ -5461,9 +5479,19 @@ def pseudo_memo_seen(memo: dict, finds: list) -> dict:
     return {"sha": memo["sha"], "n": n}
 
 
+def pseudo_book_sha(book: Path) -> str:
+    """A workbook's digest, as the app's Check meets it and its Replace meets it again (lowsfix): the file's bytes, or
+    nothing when it cannot be read, which never matches a digest the Check gave."""
+    try:
+        return hashlib.sha256(book.read_bytes()).hexdigest()[:32]
+    except OSError:
+        return ""
+
+
 def pseudo_seen(body: dict) -> list | None:
     """The memos files as the app's Check met them, sent back with its Replace (`memos_seen`), or None when not
-    given. Read as digests and counts alone."""
+    given. Read as digests and counts alone. Each is a workbook (`kind` "book") or a memos file, the workbooks first
+    as a check meets them (lowsfix: a workbook changed between Check and Replace is left as it is, as a memos file is)."""
     given = (body or {}).get("memos_seen")
     if not isinstance(given, list):
         return None
@@ -5471,10 +5499,23 @@ def pseudo_seen(body: dict) -> list | None:
     for g in given:
         g = g if isinstance(g, dict) else {}
         n = g.get("n") if isinstance(g.get("n"), dict) else {}
-        out.append({"sha": str(g.get("sha") or ""),
+        out.append({"sha": str(g.get("sha") or ""), "kind": "book" if g.get("kind") == "book" else "memos",
                     "n": {str(k): v for k, v in n.items()
                           if str(k).isdigit() and isinstance(v, int) and not isinstance(v, bool) and v > 0}})
     return out
+
+
+def pseudo_book_held(run: "names_mod.Run", who: str, book: Path, counted: dict) -> None:
+    """A workbook changed since the Check his ticks came from: nothing of it replaced, each find it holds now counted
+    as left, and the run's numbers moved on by the finds the Check counted in it (`counted`), as `pseudo_memo_held`
+    does for a memos file (lowsfix)."""
+    other = names_mod.Run(run.entries)
+    wb_mod.names_in_book(book, pseudo_fixer(other, who), dry=True)
+    for f in other.finds:
+        run.finds.append(dict(f, skipped=True))
+    for k, n in counted.items():
+        if 0 < int(k) <= len(run.entries):
+            run.tally[int(k) - 1] = run.tally.get(int(k) - 1, 0) + n
 
 
 def pseudo_memo_held(run: "names_mod.Run", who: str, text: str, counted: dict) -> None:
@@ -5490,8 +5531,8 @@ def pseudo_memo_held(run: "names_mod.Run", who: str, text: str, counted: dict) -
             run.tally[int(k) - 1] = run.tally.get(int(k) - 1, 0) + n
 
 
-def pseudo_archive_move(path: Path, folder: Path, stamp: str) -> None:
-    """A file as it was moved into its participant's `_Archive`, under the label a send leaves out."""
+def pseudo_archive_move(path: Path, folder: Path, stamp: str, copy: bool = False) -> None:
+    """A file as it was moved (or, with `copy`, copied) into its participant's `_Archive`, under the label a send leaves out."""
     archive = folder / "_Archive"
     archive.mkdir(parents=True, exist_ok=True)
     kept = archive / f"{path.stem} ({PSEUDO_ARCHIVE} {stamp}){path.suffix}"
@@ -5499,7 +5540,7 @@ def pseudo_archive_move(path: Path, folder: Path, stamp: str) -> None:
     while kept.exists():
         kept = archive / f"{path.stem} ({PSEUDO_ARCHIVE} {stamp}-{n}){path.suffix}"
         n += 1
-    shutil.move(str(path), str(kept))
+    (shutil.copy2 if copy else shutil.move)(str(path), str(kept))
 
 
 def pseudo_copies(run: "names_mod.Run", who: str, folder: Path, left: set, stamp: str, taken: set | None = None) -> int:
@@ -5561,7 +5602,17 @@ def pseudo_replace(root: Path, entries: list[dict], skip, tool: str = "", reques
     run = names_mod.Run(entries, skip, take, hold)
     stamp = datetime.now().strftime("%Y%m%d-%H%M")
     done, failed = [], []
-    for who, folder, book in pseudo_books(root):
+    # the Check's digests, the workbooks' and the memos files' apart, each in the order the Check met them
+    met_books = [m for m in seen if m.get("kind") == "book"] if seen is not None else None
+    met_memos = [m for m in seen if m.get("kind") != "book"] if seen is not None else None
+    books_changed = 0
+    for i, (who, folder, book) in enumerate(pseudo_books(root)):
+        met = met_books[i] if met_books is not None and i < len(met_books) else None
+        if met_books is not None and (met is None or met["sha"] != pseudo_book_sha(book)):
+            # changed since the Check (or one the Check never met): left as it is, counted as left
+            pseudo_book_held(run, who, book, (met or {}).get("n") or {})
+            books_changed += 1
+            continue
         if book not in changes:
             # the run still meets every find in this workbook, so the finds after it keep their numbers
             wb_mod.names_in_book(book, pseudo_fixer(run, who), dry=True)
@@ -5570,6 +5621,11 @@ def pseudo_replace(root: Path, entries: list[dict], skip, tool: str = "", reques
         took: dict = {}
         raws = [r for r in own_books(folder / "Source", "raw") if wb_mod.suggested_output(r) == book]
         with writing(book, root=root):
+            if met_books is not None and met["sha"] != pseudo_book_sha(book):
+                # changed again between the first look and the lock
+                pseudo_book_held(run, who, book, met.get("n") or {})
+                books_changed += 1
+                continue
             before = copies_before(book)
             for each in [book] + raws:
                 wb_mod.archive_copy(each, PSEUDO_ARCHIVE)
@@ -5590,7 +5646,7 @@ def pseudo_replace(root: Path, entries: list[dict], skip, tool: str = "", reques
     memos_changed = 0
     with writing(root=root):
         for i, (who, folder, path, memo) in enumerate(pseudo_memos(root)):
-            met = seen[i] if seen is not None and i < len(seen) else None
+            met = met_memos[i] if seen is not None and i < len(met_memos) else None
             if seen is not None and (met is None or met["sha"] != memo["sha"]):
                 pseudo_memo_held(run, who, memo["text"], (met or {}).get("n") or {})
                 memos_changed += 1
@@ -5599,9 +5655,26 @@ def pseudo_replace(root: Path, entries: list[dict], skip, tool: str = "", reques
             new = pseudo_memo_text(run, who, memo["text"])
             if new == memo["text"] or not any(not f["skipped"] for f in run.finds[mark:]):
                 continue
-            pseudo_archive_move(path, folder, stamp)
-            # its byte order mark and its line endings as they were, every byte but the finds (wordfix2 N2)
-            path.write_bytes((PSEUDO_BOM if memo["bom"] else b"") + new.encode("utf-8"))
+            # its byte order mark and its line endings as they were, every byte but the finds (wordfix2 N2), written
+            # to a file beside it first and put in its place, so a failure leaves it as it was and no path reaches
+            # an agent (lowsfix)
+            data = (PSEUDO_BOM if memo["bom"] else b"") + new.encode("utf-8")
+            tmp = path.with_name(f".{path.name}.tmp")
+            try:
+                tmp.write_bytes(data)
+                # archived by a copy, so the file is in Source until the new one takes its place
+                pseudo_archive_move(path, folder, stamp, copy=True)
+                os.replace(tmp, path)
+            except OSError:
+                try:
+                    tmp.unlink(missing_ok=True)
+                except OSError:
+                    pass
+                failed.append(i18n.t("names.memos_not_written"))
+                # its finds were not written, so they count as left
+                for f in run.finds[mark:]:
+                    f["skipped"] = True
+                continue
             if label_for(folder) not in done:
                 done.append(label_for(folder))
     if not tool:
@@ -5613,7 +5686,8 @@ def pseudo_replace(root: Path, entries: list[dict], skip, tool: str = "", reques
                                                            left=counts["left"],
                                                            participants=i18n.t("cli.n.participant", n=len(done)))],
                             {"by": "agent", "tool": tool, "request": request} if tool else None)
-    return {"run": run, "participants": done, "failed": failed, "memos_changed": memos_changed}
+    return {"run": run, "participants": done, "failed": failed, "memos_changed": memos_changed,
+            "books_changed": books_changed}
 
 
 def pseudo_mark(root: Path, entries: list[dict], unticked: set) -> None:
@@ -5791,7 +5865,7 @@ def pseudo_edit(root: Path, entries: list[dict], body: dict, agent: bool, dry: b
     no answer, dry run or record tells an agent whether a guess is on the list: a phrase to take off that the entry
     does not hold is passed by. A change of the other fields to what they are already writes nothing. The mark his
     review wrote stays whatever an agent changes (namesbuild), and an agent's change to a marked entry's spellings
-    (`real`) or whom it is for (`for`) is refused whole in one line, nothing written, dry run alike (namesfix2 L1), so
+    (`real`, whatever is given) or whom it is for (`for`), when it really changes, is refused whole in one line, nothing written, dry run alike (namesfix2 L1), so
     no agent moves the mark off the spelling or the people he reviewed and adds them again unmarked; its `to` and
     except phrases stay changeable. Refused in one line, nothing written, for an entry the list does not have and a
     participant the project does not have."""
@@ -5800,8 +5874,6 @@ def pseudo_edit(root: Path, entries: list[dict], body: dict, agent: bool, dry: b
     if not isinstance(changes, dict) or not any(f in changes for f in PSEUDO_EDIT_FIELDS):
         raise WorkbookError(i18n.t("names.edit_none"))
     old = entries[k - 1]
-    if agent and old.get("unticked") and ("real" in changes or "for" in changes):
-        raise WorkbookError(i18n.t("names.set_marked", n=k))
     raw = dict(old)
     for key in ("real", "to"):
         if key in changes:
@@ -5820,6 +5892,10 @@ def pseudo_edit(root: Path, entries: list[dict], body: dict, agent: bool, dry: b
     # either way, so no call tells an agent whether words it guessed are on the list (namesset review)
     phrases = pseudo_phrases(changes["except"]) if "except" in changes else list(old.get("except") or [])
     phrases += pseudo_phrases(changes.get("except_add"))
+    # counted as given, the phrases the entry holds and every one added, before any is dropped as a repeat or taken
+    # off, so a full entry refuses every add alike and the limit never tells an agent which words are on the list
+    if len(phrases) > names_mod.MOST_EXCEPT:
+        raise WorkbookError(i18n.t("names.too_many_except", n=names_mod.MOST_EXCEPT))
     for x in pseudo_phrases(changes.get("except_remove")):
         phrases = [p for p in phrases if p.casefold() != x.casefold()]
     raw["except"] = phrases
@@ -5827,6 +5903,10 @@ def pseudo_edit(root: Path, entries: list[dict], body: dict, agent: bool, dry: b
         new = names_mod.clean_entry(raw)
     except names_mod.NamesError as exc:
         raise WorkbookError(str(exc)) from None
+    # any `real` given is refused, never compared with the spellings held, which would let a dry run confirm a guess of
+    # a real name; whom it is for, which an agent can see, is refused only when it really changes (lowsfix)
+    if agent and old.get("unticked") and ("real" in changes or new["for"] != old["for"]):
+        raise WorkbookError(i18n.t("names.set_marked", n=k))
     changed: dict = {}
     # the fields of words, the spellings and the except phrases, are said changed whenever they are given, by counts
     # that never depend on whether the words given match the list's: a set of every spelling or phrase by the count
@@ -6040,7 +6120,7 @@ def api_names(body: dict) -> dict:
             done = pseudo_replace(root, entries, skip, tool, request, take, None if agent else pseudo_seen(body), hold)
             return {"names": pseudo_names_answer(done["run"], agent, False), "dry_run": False, "replaced": True,
                     "participants": len(done["participants"]), "failed": done["failed"],
-                    "memos_changed": done["memos_changed"]}
+                    "memos_changed": done["memos_changed"], "books_changed": done["books_changed"]}
         if op == "remove":
             return pseudo_remove(root, entries, body.get("entries"), agent, body.get("dry_run") is True)
         if op == "edit":
@@ -6048,10 +6128,14 @@ def api_names(body: dict) -> dict:
         if agent:
             raise WorkbookError(i18n.t("names.agent_adds"))
         if op == "set":
-            fresh = names_mod.marks_carried(entries, names_mod.clean_entries(body.get("entries")))
+            given = names_mod.clean_entries(body.get("entries"))
+            fresh = names_mod.marks_carried(entries, given)
             dry = body.get("dry_run") is True
             if not dry:
                 with writing(root=root):
+                    # the marks worked out from the list as it stands under the lock, so a mark an Add or a new
+                    # project wrote meanwhile is never lost (lowsfix)
+                    fresh = names_mod.marks_carried(pseudo_list(root), given)
                     names_mod.save_at(root, fresh)
             return {"entries": pseudo_view(fresh, False), "count": len(fresh), "dry_run": dry}
         if op == "read-key":
@@ -11589,15 +11673,17 @@ def copies_before(path: Path) -> dict:
 BOOKS_READ = "lpets_books"
 
 
-def books_kept(path: Path, before: dict) -> list[dict]:
+def books_kept(path: Path, before: dict, reword: bool = False) -> list[dict]:
     """The participant's timepoints as their LPETs take them in, as `copies_before` read them before a write that
     rewords statements in place, or read now. Each timepoint's label and whether the participant was interviewed
     there go by the project's timepoints, the workbook's transcript sheets and where its progress file places
     them, none of which such a write changes, and the project's lock is held from the one read to the write, so a
     read now would give the same. They are kept against the files as the write left them (see `lpets_books`), so
     the next write's read before it takes them as they are (lgetsfast, 16 November 2026: reading the workbook again
-    for them was about a seventh of a statement edit on a longitudinal project)."""
-    held = before.get(BOOKS_READ) if isinstance(before, dict) else None
+    for them was about a seventh of a statement edit on a longitudinal project). Only a caller that says `reword`,
+    a write that changes statements' words and nothing the timepoints are read from, may have the ones read before;
+    any other write reads them now."""
+    held = before.get(BOOKS_READ) if isinstance(before, dict) and reword else None
     if not isinstance(held, list):
         # none read before the write, or none read from the workbook (see `books_read`): read now, as ever
         return lpets_books(path)
@@ -11623,7 +11709,7 @@ def follow_statements(path: Path, words: dict, before: dict, dry: bool = False, 
         try:
             with copy_scope(kind, path, root):
                 done = gets_mod.statements_followed(root, path, words, before.get(kind) or {},
-                                                    books_kept(path, before) if kind == "lpets" else None,
+                                                    books_kept(path, before, reword=True) if kind == "lpets" else None,
                                                     dry=dry, changed=changed, history=history, said=said,
                                                     quotes=quotes)
         except (WorkbookError, OSError) as exc:
