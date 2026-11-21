@@ -581,7 +581,7 @@ TOOLS = [
          "its quotations there the quote, a comment is an exploratory note, a quotation with no code or comment a "
          "blank experiential statement with its quote, a source's memos go to <Pseudonym> - memos.txt in Source and a "
          "recording in the package is copied in for the player. The .qdpx is only read. Run dry_run first: it lists "
-         "each source by its number with its speakers, coders and first passages as they will land, the code groups, "
+         "each source by its number with its speakers, coders and first passages as they will land (none in a project with a list of names), the code groups, "
          "and one line of what comes in and one of what is left out. Show the researcher that, and apply only on their word, with "
          "the sources and choices they settled.",
          {"file": dict(mcp.TEXT, description="The .qdpx by its path from the project's folder, or in full, under it."),

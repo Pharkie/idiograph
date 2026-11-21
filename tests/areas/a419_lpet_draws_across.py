@@ -234,6 +234,36 @@ def test_lpet_draws_across(scratch: Path):
         check("419: and its undo puts every file back byte for byte",
               code_u == 0 and digest(root) == here, err_u[:300] + str(changed(here, digest(root))))
 
+        # ── 4b. a second card of one item moved into the LPET already holding the first is refused, an agent's move and
+        # the page's save, nothing written (21 November 2026)
+        records = len(agent_changes.read(root))
+        move = ops_file("twin-move", [{"op": "move", "items": [brought + "/2"], "to": "G1"}])
+        outs = [run("gets", "apply", "b1", *lp, "--ops", move, "--dry-run", tool=None),
+                run("gets", "apply", "b1", *lp, "--ops", move, "--note", ASKED)]
+        check("419: an agent's move of the second card into the LPET holding the first is refused in one line, the dry "
+              "run too, and nothing is written",
+              all(c != 0 and "already has a card in" in (d.get("error") or e) for c, d, e in outs) and digest(root) == here
+              and len(agent_changes.read(root)) == records, " | ".join((d.get("error") or e)[:200] for _c, d, e in outs))
+
+        def save_twin():
+            with routes.lpets_scope(arlo):
+                d = gets_mod.load(arlo)
+                b = gets_mod.source_board(d)[0]
+                version = json.loads(json.dumps({k: v for k, v in b.items() if k != themes.WHY}))
+                for g in version["groups"]:
+                    g["members"] = [m for m in g["members"] if m != brought + "/2"]
+                    if g["id"] == "G1":
+                        g["members"].append(brought + "/2")
+                version["v"] = themes.board_version(b)
+                try:
+                    gets_mod.save(arlo, routes.gets_books(arlo), version)
+                except Exception as exc:
+                    return str(exc)
+                return ""
+        page_said = page(save_twin)
+        check("419: the page's save of the same move is refused in one line, nothing written",
+              "already has a card in" in page_said and digest(root) == here, page_said + str(changed(here, digest(root))))
+
         # ── 5. a second card follows its first when its statement's key moves (the take's follower)
         b = {"cards": {brought: {"text": "x"}, brought + "/2": {"text": "x"}}, "groups": [
             {"id": "G1", "members": [brought]}, {"id": "G3", "members": [brought + "/2"]}], "discarded": []}

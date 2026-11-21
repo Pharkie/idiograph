@@ -394,6 +394,30 @@ def plain(text: str, entries: list[dict], who) -> str:
     return "".join(out)
 
 
+def mask(value, entries: list[dict]):
+    """`value` with every spelling on the list masked in every string at any depth (a dict's values, a list's items),
+    whatever its case, a lower-case find and an entry the researcher marked among them, an except phrase and the
+    entry's participant ignored, each written as its entry's replacement. For an agent's answer, which never says a
+    listed word (21 November 2026). A key of a dict is left as it is."""
+    plain_entries = [{"real": e["real"], "to": e["to"], "for": None} for e in entries or []]
+    if not plain_entries:
+        return value
+
+    def walk(v):
+        if isinstance(v, str):
+            out, last = [], 0
+            for h in find(v, plain_entries, None):
+                out += [v[last:h["at"]], h["to"]]
+                last = h["end"]
+            return "".join(out + [v[last:]]) if out else v
+        if isinstance(v, dict):
+            return {k: walk(x) for k, x in v.items()}
+        if isinstance(v, (list, tuple)):
+            return [walk(x) for x in v]
+        return v
+    return walk(value)
+
+
 def read_skip(value) -> set[tuple[int, int]]:
     """A skip as a call gives it, `(entry, nth)` each from 1: strings "3:1" (one line with commas too), pairs
     [3, 1] or {"entry": 3, "nth": 1}. Refused in one line when one is none of those."""

@@ -5333,10 +5333,60 @@ function thFlash(left) {
   flash.classList.add('on');
 }
 
+/* Two cards of one PET, sub-theme or statement in one label, refused (Adam, 21 November 2026), as the server's
+   `gets.new_twins` refuses it: a pair counts as new unless the cards of it were together in one label already, a
+   label being the one directly over a card, on LPETs the top LPET. Answers the first new pair's card and label, or
+   null. `was` and `now` are boards or snapshots, each with cards, groups and discarded. */
+function gtTwinOver(b) {
+  const parents = {};
+  for (const g of b.groups || []) for (const m of g.members || []) parents[m] = g.id;
+  const out = {};
+  for (const key of Object.keys(b.cards || {})) {
+    if ((b.discarded || []).includes(key)) continue;
+    let at = parents[key];
+    while (TH.lpets && at !== undefined && parents[at] !== undefined) at = parents[at];
+    if (at !== undefined) out[key] = at;
+  }
+  return out;
+}
+
+function gtNewTwin(was, now) {
+  if (TH.mode !== 'gets' || thTa()) return null;
+  const after = gtTwinOver(now);
+  const before = gtTwinOver(was);
+  const seen = {};
+  for (const [key, label] of Object.entries(after)) (seen[`${gtBase(key)}\u0000${label}`] = seen[`${gtBase(key)}\u0000${label}`] || []).push(key);
+  for (const [at, keys] of Object.entries(seen)) {
+    if (keys.length < 2) continue;
+    const kept = {};
+    for (const k of keys) kept[before[k] === undefined ? '' : before[k]] = (kept[before[k] === undefined ? '' : before[k]] || 0) + 1;
+    if (Object.entries(kept).every(([label, n]) => label !== '' && n >= 2)) continue;
+    const g = (now.groups || []).find((x) => x.id === at.split('\u0000')[1]);
+    const card = (now.cards || {})[keys[0]] || {};
+    const words = String(card.text || '').replace(/\s+/g, ' ').trim();
+    return { key: keys[0], label: g && g.label ? thLabelShown(g.label) : t('themes.twin_untitled'),
+      text: words.length > 60 ? `${words.slice(0, 59).trimEnd()}\u2026` : words };
+  }
+  return null;
+}
+
+function gtTwinSay(twin) {
+  say(t('themes.twin_cards_one_label', { card: twin.text || twin.key, label: twin.label }), 6000);
+}
+
 /* One step on the undo stack, holding the board before an act and after it, and for a theme's note
    the label it is on, whose panel shows it when the step is undone or done again. */
 function thStep(before, what, note) {
   if (typeof unsayUndo === 'function') unsayUndo();
+  // an act that made two cards of one item in a label is put back, nothing kept of it
+  const twin = TH.v && gtNewTwin(before, thSnap(TH.v, TH.removed));
+  if (twin) {
+    TH.removed = thPut(TH.v, before);
+    thPruneSel();
+    thRender();
+    gtTwinSay(twin);
+    return;
+  }
   TH.undo.push(Object.assign({ before, after: thSnap(TH.v, TH.removed), what }, note ? { note } : {}));
   if (TH.undo.length > TH_UNDO_DEPTH) TH.undo.shift();
   TH.redo.length = 0;
@@ -5351,7 +5401,12 @@ function thUndo(backwards) {
   if (!stack.length) { if (typeof sayNothingToUndo === 'function') sayNothingToUndo(backwards); return; }
   // a statement edited in place goes back through the workbook, not the board
   if (stack[stack.length - 1].edit) { thStatementStep(stack[stack.length - 1], backwards); return; }
-  const entry = stack.pop();
+  const entry = stack[stack.length - 1];
+  // a step that would put two cards of one item into a label is refused where it stands, never leaving a board the
+  // server will not save
+  const twin = gtNewTwin(thSnap(TH.v, TH.removed), backwards ? entry.before : entry.after);
+  if (twin) { gtTwinSay(twin); return; }
+  stack.pop();
   const from = thSpots(TH.v);
   TH.removed = thPut(TH.v, backwards ? entry.before : entry.after);
   (backwards ? TH.redo : TH.undo).push(entry);

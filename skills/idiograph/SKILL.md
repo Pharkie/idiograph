@@ -448,7 +448,7 @@ workbook, a pseudonym already there joining that participant at the timepoint gi
 into passages as plain text is, a `Name:` line a passage, else a paragraph a passage. A quotation
 lands on the passage where it starts, cut at that passage's end.
 
-Always run the dry run first, with no `--sources`. It lists each source by its number, with its kind,
+Always run the dry run first, with no `--sources`. In a project with a list of names the answer carries no passages (the sources keep their counts, speakers and recordings), since a lower-case find and every find of a marked entry stay as written in them, and the list is never said (21 November 2026); every string of the answer, its refusals and its lines too, has each spelling on the list masked, in any case, written as the replacement, and the counts say what was replaced. It lists each source by its number, with its kind,
 its speakers and their roles, its coders, its recording and memos, and its first eight passages as
 they will land, each with its notes and its statements and quotes, then the code groups, then one
 line of what comes in and one of what is left out. A PDF document, a picture or a source whose text
@@ -873,7 +873,9 @@ LPET; `board drawn-on` lists both. On GETs and LGETs it is Place also under, a P
 another label, with One per PET off. The dry run and the answer give `also`, each with its `card`, `from` and
 `label`, keys alone, with `n_also`. Refused whole, with nothing written, dry run or not: a card the board has not got,
 one set aside, a participant note, a sub-LPET, a label not there and an LPET one of its cards is in already. Set a
-second card aside as any card when they ask.
+second card aside as any card when they ask. A `move` that would put a second card of an item into the
+label already holding the first, an LPET on LPETs and the label directly over it on GETs and LGETs, is refused the same
+way in one line naming the card by its key, with nothing written; the page's save refuses the same move.
 
 Since 9 November 2026 a board and a participant's LPETs can come from their own tables, made in Excel
 before Idiograph. `board import` makes a PETs board from a table of PETs, a CSV or an Excel sheet with

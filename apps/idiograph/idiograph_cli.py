@@ -56,6 +56,7 @@ import i18n
 import idiograph_find
 import idiograph_routes as routes
 import locks
+import names as names_mod
 import print_pdf
 import project_history as hist_mod
 import project_pack as pack_mod
@@ -5777,6 +5778,11 @@ def cmd_gets_apply(p: Project, args) -> tuple:
         parts += laid_said
         said = " ".join(x[0].upper() + x[1:] + ("" if x.endswith(".") else ".") for x in parts)
         landed = gets_mod.normal(dict(landed, rows=board.get("rows") or {}), data, hide=False)
+        # a move that puts a second card of one item into the label already holding the first is refused, as the page's
+        # save refuses it, the card named by its key (Adam, 21 November 2026)
+        twin = gets_mod.new_twins(kept, landed)
+        if twin:
+            raise cli.Refused(gets_mod.twin_said(landed, twin[0], key=True), i18n.t("cli.said.nothing_was_written"))
         # in a thematic analysis project a code's other cards follow the one moved, a code split refused (codes)
         if gets_mod.ta_now():
             try:
@@ -8974,6 +8980,22 @@ def qdpx_source_line(view: dict) -> str:
 
 
 def cmd_qdpx(p: Project, args) -> tuple:
+    """The REFI-QDA import for an agent, its whole answer, lines and refusals included, with every spelling on the
+    project's list of names masked in every string, and its passages left out where there is a list (Adam, 21 November
+    2026: never show one)."""
+    entries = routes.pseudo_list(p.root)
+    try:
+        answer, lines = qdpx_answer(p, args)
+    except cli.Refused as exc:
+        if not entries:
+            raise
+        raise cli.Refused(*names_mod.mask(exc.lines, entries), code=exc.code) from None
+    if not entries:
+        return answer, lines
+    return names_mod.mask(answer, entries), names_mod.mask(lines, entries)
+
+
+def qdpx_answer(p: Project, args) -> tuple:
     if not themes_ai.one_line(args.note) and not args.dry_run:
         raise cli.Refused(_w("NO_IMPORT_REQUEST"))
     path = qdpx_path(p, args.file)
@@ -8991,6 +9013,10 @@ def cmd_qdpx(p: Project, args) -> tuple:
     except WorkbookError as exc:
         raise cli.Refused(str(exc), *([] if args.dry_run else [i18n.t("cli.said.nothing_was_written")])) from None
     answer = dict(answer, file=shown(path))
+    if answer.get("names"):
+        # a project with a list of names: the answer carries no passages, since a lower-case find and every find of a
+        # marked entry stay as written in them, and the list is never said to an agent (Adam, 21 November 2026)
+        answer["sources"] = [{k: v for k, v in each.items() if k != "passages"} for each in answer["sources"]]
     who = [f"{c['label']}" + (" (joins)" if c["joins"] else "") for c in answer["participants"]]
     lines = [i18n.t("cli.qdpx.is_a_refi_qda_project_from", name=path.name, package=answer['package'], sources=i18n.t("cli.n.source", n=len(answer['sources'])))]
     lines += [qdpx_source_line(v) for v in answer["sources"]]

@@ -99,3 +99,69 @@ def test_take_makes_room(scratch):
     code_t, _, err_t = answer("gets", "take", "Rowan", "--note", "Take the note")
     again = json.loads(gfile.read_text(encoding="utf-8"))
     check("249: a take that changes no card's height moves nothing", code_t == 0 and spots(again) == now, err + err_t)
+
+    # ── a second card of one item moved into the label already holding the first is refused, on the page and for an
+    # agent, nothing written (Adam, 21 November 2026)
+    gets_mod.settings_op(root, books, {"one_per_pet": False})
+    now_data = json.loads(gfile.read_text(encoding="utf-8"))
+    pile = next(b for b in now_data["boards"] if b["id"] == "b2")
+    pets = [k for k in pile["cards"] if k.startswith("Rowan/") and "/es/" not in k and not k.endswith("/2")][:2]
+    code, _o, err = answer("gets", "apply", "b2", "--ops", ops(
+        {"op": "make", "ref": "a", "title": "One", "inside": None, "members": [pets[0]]},
+        {"op": "make", "ref": "b", "title": "Two", "inside": None, "members": [pets[1]]}), "--note", "Two GETs")
+    code, _o, err = answer("gets", "apply", "b2", "--ops", ops({"op": "also", "item": pets[0], "to": "Two"}),
+                           "--note", "A second card")
+    stood = json.loads(gfile.read_text(encoding="utf-8"))
+    board2 = next(b for b in stood["boards"] if b["id"] == "b2")
+    one = next(g for g in board2["groups"] if g["label"] == "One")["id"]
+    check("249: a second card of a PET made under another label by an agent",
+          code == 0 and pets[0] + "/2" in board2["cards"] and themes.parents_of(board2["groups"]).get(pets[0] + "/2") != one, err)
+    move = ops({"op": "move", "items": [pets[0] + "/2"], "to": one})
+    bytes_before = gfile.read_bytes()
+    outs = [answer("gets", "apply", "b2", "--ops", move, "--dry-run"),
+            answer("gets", "apply", "b2", "--ops", move, "--note", "Into the first's label")]
+    check("249: an agent's move of the second card into the label holding the first is refused in one line, the dry "
+          "run too, and nothing is written",
+          all(c != 0 and "already has a card in" in d.get("error", "") for c, d, e in outs)
+          and gfile.read_bytes() == bytes_before, " | ".join(str(d)[:200] for _c, d, _e in outs))
+    version = json.loads(json.dumps(board2))
+    for g in version["groups"]:
+        g["members"] = [m for m in g["members"] if m != pets[0] + "/2"]
+        if g["id"] == one:
+            g["members"].append(pets[0] + "/2")
+    version["v"] = themes.board_version(board2)
+    try:
+        gets_mod.save(root, books, version)
+        page_said = ""
+    except Exception as exc:
+        page_said = str(exc)
+    check("249: the page's save of the same move is refused in one line, nothing written",
+          "already has a card in" in page_said and gfile.read_bytes() == bytes_before, page_said)
+
+    # ── a pair already on a board stays whatever happens round it, and a card moved into its label is refused
+    def bd(groups, cards=("X/g1", "X/g1/2", "X/g1/3")):
+        return {"cards": {k: {"text": k} for k in cards}, "discarded": [],
+                "groups": [{"id": i, "label": t, "members": m} for i, t, m in groups]}
+    old = bd([("G1", "One", ["X/g1", "X/g1/2"])])
+    check("249: a board that held two cards of one item in a label still saves with the label given another id, with "
+          "something else added beside it, and with its label merged into another",
+          gets_mod.new_twins(old, bd([("G9", "One", ["X/g1", "X/g1/2"])])) == []
+          and gets_mod.new_twins(old, bd([("G1", "One", ["X/g1", "X/g1/2"]), ("G2", "Other", [])])) == []
+          and gets_mod.new_twins(old, bd([("G2", "Merged", ["X/g1", "X/g1/2"])])) == [])
+    check("249: a third card moved into the label of an old pair is refused like any other, and so is a pair made by "
+          "merging two labels that held one card each",
+          gets_mod.new_twins(old, bd([("G1", "One", ["X/g1", "X/g1/2", "X/g1/3"])])) == [("X/g1", "G1")]
+          and gets_mod.new_twins(bd([("G1", "One", ["X/g1"]), ("G2", "Two", ["X/g1/2"])]), bd([("G1", "One", ["X/g1", "X/g1/2"])])) == [("X/g1", "G1")])
+    check("249: the line names a label with no title plainly",
+          "a label with no title" in gets_mod.twin_said(bd([("G1", "", ["X/g1"])]), ("X/g1", "G1"), key=True))
+    held_names = gets_mod.NAMES.set({})
+    try:
+        nest_was = bd([("T", "LPET", ["S1", "S2"]), ("S1", "", ["X/g1"]), ("S2", "", ["X/g1/2"])])
+        nest_now = bd([("U", "Outer", ["T"]), ("T", "LPET", ["S1", "S2"]), ("S1", "", ["X/g1"]), ("S2", "", ["X/g1/2"])])
+        check("249: on LPETs an old pair whose LPET is nested under another is not refused, and one made by moving a "
+              "card under the LPET is",
+              gets_mod.new_twins(nest_was, nest_now) == []
+              and gets_mod.new_twins(bd([("T", "LPET", ["S1"]), ("S1", "", ["X/g1"]), ("V", "Two", ["X/g1/2"])]),
+                                     bd([("T", "LPET", ["S1", "V"]), ("S1", "", ["X/g1"]), ("V", "Two", ["X/g1/2"])])) == [("X/g1", "T")])
+    finally:
+        gets_mod.NAMES.reset(held_names)

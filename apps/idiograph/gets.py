@@ -471,6 +471,63 @@ def base_key(key: str) -> str:
     return card_of(k["case"], k["kind"], k["ident"])
 
 
+def twin_over(board: dict) -> dict[str, str]:
+    """The label each placed card is counted in for the rule on two cards of one item: the one directly over it, and on
+    LPETs the top LPET it stands under, as `also` takes it. Empty for a thematic analysis project, where a code's
+    cards stand where its code puts them."""
+    if ta_now():
+        return {}
+    parents = themes.parents_of(board.get("groups") or [])
+    aside = set(board.get("discarded") or [])
+    out = {}
+    for key in (board.get("cards") or {}):
+        at = parents.get(key)
+        while in_lpets() and at is not None and parents.get(at) is not None:
+            at = parents[at]
+        if at is not None and key not in aside:
+            out[key] = at
+    return out
+
+
+def twins(board: dict) -> dict[tuple[str, str], list[str]]:
+    """The labels a board holds two cards of one PET, sub-theme or statement in, `(first card's key, label's id)` by
+    the cards' keys, the first and its `/2` (Adam, 21 November 2026: a move that makes this is refused on a board and
+    in an agent's apply)."""
+    seen: dict[tuple[str, str], list[str]] = {}
+    for key, label in twin_over(board).items():
+        seen.setdefault((base_key(key), label), []).append(key)
+    return {k: v for k, v in seen.items() if len(v) > 1}
+
+
+def new_twins(was: dict, now: dict) -> list[tuple[str, str]]:
+    """The `(first card's key, label's id)` pairs `now` holds that its cards did not hold together in a label of `was`:
+    a pair is new when one of its cards stood in no label before or in another label than the card it is paired with,
+    so an old pair stays whatever happens round it (its LPET nested under another, its label merged into another or
+    given another id), while a card moved into the label of an old pair is refused like any other."""
+    before = twin_over(was)
+    out = []
+    for pair, keys in twins(now).items():
+        stood: dict = {}
+        for k in keys:
+            stood[before.get(k)] = stood.get(before.get(k), 0) + 1
+        if None in stood or any(n < 2 for n in stood.values()):
+            out.append(pair)
+    return out
+
+
+def twin_said(board: dict, pair: tuple[str, str], key: bool = False) -> str:
+    """The one line a move that makes two cards of one item in a label is refused with, the card named by its words on
+    the page and by its key to an agent, which is never shown a participant's words in a refusal, and a label with no
+    title named plainly."""
+    card = (board.get("cards") or {}).get(pair[0]) or {}
+    title = next((g.get("label") for g in board.get("groups") or [] if g["id"] == pair[1]), None)
+    label = " ".join(str(title or "").split()) or i18n.t("server.twin_untitled")
+    words = " ".join(str(card.get("text") or "").split())
+    if len(words) > 60:
+        words = words[:59].rstrip() + "…"
+    return i18n.t("server.twin_cards_one_label", card=pair[0] if key or not words else words, label=label)
+
+
 def with_copy(key: str, to: str) -> str:
     """`to`, a first card's new key, with the number of `key`'s copy after it, so a second card follows its first."""
     copy = split_key(key)["copy"]
@@ -1423,6 +1480,10 @@ def save(root: Path, books: list[dict], version: dict, revision=None) -> dict:
     # the cards a page open since before a recode drew under their old code, before the file's words go on them
     stale = codes_mod().stale_of(kept, data) if ta_now() else set()
     drawn_as = {k: str(kept["cards"][k].get("text") or "") for k in stale}
+    # a second card of one item put into the label already holding the first is refused, nothing written
+    twin = new_twins(normal(was, data, hide=False), kept)
+    if twin:
+        raise WorkbookError(twin_said(kept, twin[0]))
     # a statement's card the file keeps in step with its copy keeps its words, whatever old ones the page held
     followed = words_kept(kept, was, data)
     # in a thematic analysis project the page sends each code's lead alone, its rows laid back beside it (codes)

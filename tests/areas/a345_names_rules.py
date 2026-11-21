@@ -486,6 +486,37 @@ def test_names_rules(scratch):
               and tools["names_remove"]["annotations"]["readOnlyHint"] is False
               and "skip" in tools["project_add_transcripts"]["inputSchema"]["properties"]
               and "skip" in tools["import_qdpx"]["inputSchema"]["properties"])
+
+        # an agent's REFI-QDA answer in a project with a list carries no passages, in either client (Adam, 21 November 2026)
+        (folder / "Imports").mkdir(exist_ok=True)
+        (folder / "Imports" / "fox.qdpx").write_bytes((inputs / "fox.qdpx").read_bytes())
+        code_, qd, err = run("qdpx", "Imports/fox.qdpx", "--dry-run")
+        qd_mcp = call("import_qdpx", {"file": "Imports/fox.qdpx", "dry_run": True}, 31)
+        qd_text = json.dumps(qd) + json.dumps(qd_mcp)
+        check("345: an agent's REFI-QDA import answer in a project with a list carries no passages, in the command line "
+              "and MCP, the sources keeping their counts, and the app's own read keeps them",
+              code_ == 0 and qd["sources"] and all("passages" not in x and x["count"] for x in qd["sources"])
+              and '"passages"' not in qd_text and "Okafor" not in qd_text
+              and routes.qdpx_import(folder, folder / "Imports" / "fox.qdpx", {})["sources"][0]["passages"], err + qd_text[:300])
+        # every string of the answer, names of sources, speakers, codes, groups, interviews and the plain lines too,
+        # holds no listed spelling in any case, a lower-case source name and a code named for a listed word among them
+        t2 = "Kit: What happened?\ngareth: The hens were fine, said Rosalind Marlow.\n"
+        src2 = (f'<TextSource guid="t1" name="dr okafor and gareth hens" plainTextPath="internal://t1.txt">'
+                f'{selection("q1", at(t2, "The hens were fine"), ["k1"])}</TextSource>')
+        (folder / "Imports" / "fox2.qdpx").write_bytes(package("ATLAS.ti 23.2", code("k1", "piers LOWTHER's hens"), src2,
+                                                              {"Sources/t1.txt": t2.encode("utf-8")}))
+        outs_q = []
+        for each in ("fox", "fox2"):
+            c1, o1, e1 = run("qdpx", f"Imports/{each}.qdpx", "--dry-run")
+            c2, o2, e2 = cli.run(["--root", str(folder), "--config", str(config), "qdpx", f"Imports/{each}.qdpx", "--dry-run"])
+            outs_q += [json.dumps(o1), o2, json.dumps(call("import_qdpx", {"file": f"Imports/{each}.qdpx", "dry_run": True}, 32))]
+        leaked = [w for w in ("odette", "varnham", "gareth", "dr okafor", "piers", "rosalind", "marlow") if any(w in o.lower() for o in outs_q)]
+        check("345: an agent's REFI-QDA answer holds no listed spelling in any string, in any case, in the command line's "
+              "json and plain lines and in MCP, a lower-case source name and a code named for one among them",
+              not leaked and "dr okafor" not in outs_q[3].lower(), str(leaked) + outs_q[3][:300])
+        (folder / "Imports" / "fox.qdpx").unlink()
+        (folder / "Imports" / "fox2.qdpx").unlink()
+        (folder / "Imports").rmdir()
         got_list, got_check = call("names_list", {}, 1), call("names_check", {}, 2)
         got_dry = call("project_add_transcripts", {"files": [{"file": str(agent_file), "pseudonym": "Quill", "interview": "Birds 2",
                                                                 "speakers": {"Kit": "Interviewer", "Odette Varnham": "Participant"}}],

@@ -650,5 +650,7 @@
   "server.qdpx_memos_head": "Memos from {file} ({package})",
   "server.qdpx_codes_note": "From {file} ({package})",
   "server.qdpx_code_group": "Code group",
-  "server.copies_blocked": "The statement was saved, but the {names} were not updated, because they hold a statement that is no longer in this participant's workbook."
+  "server.copies_blocked": "The statement was saved, but the {names} were not updated, because they hold a statement that is no longer in this participant's workbook.",
+  "server.twin_cards_one_label": "{card} already has a card in {label}, so a second one cannot go there.",
+  "server.twin_untitled": "a label with no title"
 }

@@ -704,5 +704,7 @@
   "themes.drawn.why_placeholder": "Why no LPET draws on it",
   "themes.drawn.other_board": "The LPETs draw on {board}, another board.",
   "themes.drawn.open_tip": "Open {title} on the LPETs board",
-  "themes.unsaved.why": "The canvas is not saved yet, so the reason was not changed."
+  "themes.unsaved.why": "The canvas is not saved yet, so the reason was not changed.",
+  "themes.twin_cards_one_label": "{card} already has a card in {label}, so a second one cannot go there.",
+  "themes.twin_untitled": "a label with no title"
 }

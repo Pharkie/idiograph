@@ -2950,7 +2950,7 @@ the server's end (`atexit`). The key, the folder's name, comes back as `held`, a
 sends it with the card's choices and its ticked sources, whole again when a restart has dropped it
 (`QDPX_GONE`). A read is `qdpx_import` with no `make`, against Add's project (`qdpx_card_root`), or before
 it is chosen the held copy's own folder, a root of no participants.
-Add's make is `/api/qdpx` with `root`. New project makes the project alone (projectbuild), so its `make_project` takes no `qdpx` any more (projectfix) and the card is Add transcripts' alone. The held copy goes once made. `qdpx_view` now
+Add's make is `/api/qdpx` with `root`. New project makes the project alone (projectbuild), so its `make_project` takes no `qdpx` any more (projectfix) and the card is Add transcripts' alone. The held copy goes once made. In an agent's answer (`cmd_qdpx`, the command line and MCP's `import_qdpx`) each source's `passages` are dropped when the answer carries `names`, a project with a list, since a lower-case find and every find of a marked entry stay as written there (21 November 2026); the app's own import card keeps them. `cmd_qdpx` then masks every string of the answer, its lines and its refusals (`names.mask`: every spelling of every entry, any case, marks, except phrases and `for` ignored, each written as its entry's replacement), so no source's name, speaker, interview or code carries a listed word. `qdpx_view` now
 gives each source its guessed `interview`, and the lines count a source with no pseudonym yet as a
 participant of its own.
 
@@ -3865,7 +3865,7 @@ sub-theme's or statement's card whatever One per PET says, `gtAlsoTargets` there
 in (`gtLpetOf`), `gtPlaceAlso` makes the card, one undo step, and Option held as one card is let go on an LPET does
 the same in `thDragEnd`. `gtAlsoLine` puts "Also drawn on by <the other LPETs>" (`gtAlsoLpets`) on both cards, none for
 one set aside, `canvas_out._also_line` on the canvas PDF and picture, and `gtDrawnByHtml` lists the LPETs in the
-card's Inspector under Drawn on by, the other a link to its card (`gtAlsoGo`). An agent's is `gets apply`'s `also`
+card's Inspector under Drawn on by, the other a link to its card (`gtAlsoGo`). A move that puts a second card of one item into the label already holding the first (`gets.twins`, a pair new only when one of its cards was not with the other in a label before, `gets.new_twins`, so an old pair stays through a re-id, a merge or a nesting, and a card moved into its label is refused; the page does the same before it keeps an act or an Undo, `gtNewTwin` in themes.js, with a label with no title named plainly; the label the `also` rule takes: the top LPET on LPETs, the label over it on GETs and LGETs, none in a thematic analysis project) is refused whole, nothing written, by `gets.save` for the page (`gets.new_twins` against the file's board, so a board that held one before the rule still saves) and by `cmd_gets_apply` for an agent, one line, `server.twin_cards_one_label`, the card named by its words on the page and by its key to an agent (`gets.twin_said`; 21 November 2026, areas 249 and 419). An agent's is `gets apply`'s `also`
 (`cli.ALSO`, `also_ins` read against the board as the file holds it, the card added beside its first and taken under
 its LPET by a move where its operation stands, as `bring_in`'s), refused whole in one line each (`cli.also.*`), the
 dry run writing nothing, the write the one `gets.write`, so recorded and undone as every `gets apply`. The LPET
