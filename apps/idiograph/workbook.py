@@ -1792,7 +1792,7 @@ def row_cells(path: Path, sheet: str, row: int) -> tuple:
     try:
         book = openpyxl.load_workbook(whole(path), read_only=True, data_only=True)
     except Exception as exc:
-        raise WorkbookError(i18n.t("server.could_read", name=path.name, exc=exc))
+        raise WorkbookError(i18n.t("server.could_read", name=path.name, exc=getattr(exc, "strerror", None) or type(exc).__name__))
     try:
         if sheet not in book.sheetnames:
             return (), None, 0

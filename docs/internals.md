@@ -4429,6 +4429,15 @@ the same `spread_quotes`, so the line carries the `span` and range time a fresh 
 in (spanfollow, 16 November 2026; before it the line kept its own passage's time until the changes were taken).
 A quote reworded in its place by `turn write` (`statements_followed`'s `quotes`) takes the span it now has the same
 way (`gets.spans_followed`, after the save, a line holding another quote at its place left as it is).
+A passage's words corrected (`turn edit`, the page's Edit) take the same read to every copy once the workbook is saved
+(`routes.spans_reread`, `gets.spans_reread`, lowsE, 21 November 2026): each line of the sheet holding a span or a quote
+of two pieces or more, and each on the row, takes the span the quote the workbook holds has in a fresh read (`gets.span_set`), a line
+with another quote left as it is, the sheet read once for all of them (`themes.sheet_spreads`, held in `SHEET_HELD`; about 30 ms on the
+longitudinal demo for the three files, where one read per line took about 300), and the answer's `copies` counts them beside the timecode's. A copy that cannot take
+it is one line under `copies.failed` (`server.turn_words_copies_unfollowed`), the workbook's change standing, and a dry
+run counts the timecode's lines alone. `routes.copy_exc` gives a failed line its reason without the path an OSError
+holds, so no folder's name reaches an agent. A write's record line says Made only for a file that was not there before
+that write, never for one an earlier write of the run made.
 The row's other lines take the new quote in its own place alone, so a quote change the copy holds back stays. The
 copy's hash follows. The LPETs go first and the LGETs, read with `fresh_of` from the LPETs file, add only the keys
 the LPETs took (`also`). `passage_follow` finds the LPETs by the project's timepoints (`timepoint_books`), never

@@ -507,6 +507,17 @@ def test_agent_changes(scratch: Path):
         again = run("agents", "undo-change", board_change, "--note", "Undo the trial board")
         check("380: a change undone already is refused, naming the undo's run", again[0] != 0
               and "undone already" in again[2], again[2])
+        # a write that changes a file an earlier write of its run made says it changed it, never made it again (lowsE,
+        # 21 November 2026)
+        clock["at"] += timedelta(minutes=1)
+        ask("board", "fresh", "Bryn", "--name", "Trial B")
+        made_line = lines()[-1]["what_changed"]
+        ask("board", "fresh", "Bryn", "--name", "Trial C")
+        changed_line = lines()[-1]["what_changed"]
+        check("380: a board file the run made says made on the write that made it and changed on the next that "
+              "changed it", made_line.startswith("Made Bryn's boards")
+              and changed_line.startswith("Changed Bryn's boards") and "Made" not in changed_line,
+              json.dumps([made_line, changed_line]))
         # his own edit of the project file through the app's own call, outside the record, then the label's undo
         cfg_kept = (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE)
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE = config_file, None

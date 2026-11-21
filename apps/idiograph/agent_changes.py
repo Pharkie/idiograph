@@ -1100,7 +1100,9 @@ def through(p, args, run_op, writes: frozenset):
             # by its id is undone by putting files back (skipreason's third review)
             keep_run(root, run)
         settle(root, run, foreign, before, after, standing)
-        made = [f for f in changed if f not in (run.get("point") or {})]
+        # what this write made is what was not there before it: a file an earlier write of the run made and this one
+        # changed is changed, never "made" again (lowsE, 21 November 2026)
+        made = [f for f in changed if f not in before]
         step = step_of(root, changed, before, known, unread)
         e = append(root, entry_for(p, args, run, answer, changed, made))
         run.setdefault("steps", {})[e["id"]] = step

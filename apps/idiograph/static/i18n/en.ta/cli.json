@@ -104,7 +104,10 @@
   "cli.validate.the_gets_file_2": "the themes file",
   "cli.import_raw.wrote_the_participants_workbook_from_for": "Wrote {shown}, the participant's workbook, from {name}, for {case}. It opens on Coding.",
   "cli.import_raw.dry_run_nothing_was_written_it": "Dry run, nothing was written. It would write {shown}, the participant's workbook, from {name}, for {case}. It would open on Coding.",
-  "cli.turn_trim.dry_run_nothing_was_written_it": "Dry run, nothing was written. {case}, {sheet}: it would cut {span}{times}, {rows}, {marked} of them with a code, a note, an extract or a highlight, leaving {rows2}.",
+  "cli.turn_trim.marked": {
+    "one": "{n} of them with a code, a note, an extract or a highlight",
+    "other": "{n} of them with a code, a note, an extract or a highlight"
+  },
   "cli.turn_write.the_boards_could_not_be_read": "The boards could not be read, so their cards were not moved with the codes: {exc}",
   "cli.turn_write.exploratory_notes": "notes",
   "cli.turn_write.the_quote_is_not_in_the": "The extract {quoted} is not in the turn's words as they stand.",

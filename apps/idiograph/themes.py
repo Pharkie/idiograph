@@ -800,7 +800,8 @@ def row_spread(workbook: Path, sheet: str, row: int, said: list, form: str) -> d
     try:
         book = openpyxl.load_workbook(whole_book(workbook), read_only=True, data_only=True)
     except Exception as exc:
-        raise WorkbookError(i18n.t("server.could_read", name=workbook.name, exc=exc))
+        raise WorkbookError(i18n.t("server.could_read", name=workbook.name,
+                                   exc=getattr(exc, "strerror", None) or type(exc).__name__))
     try:
         if sheet not in book.sheetnames:
             return {}
@@ -817,6 +818,72 @@ def row_spread(workbook: Path, sheet: str, row: int, said: list, form: str) -> d
                                                         for i, text in enumerate(said) if text]}
     spread_quotes(sheet, spoken, {row_key(sheet, int(row)): held}, [], form, workbook)
     return {q["key"]: {k: q[k] for k in ("time", "span", "rows")} for q in held["quotes"] if q.get("span")}
+
+
+# the last sheet `sheet_spreads` read, by the workbook's path, time and size and the sheet
+SHEET_HELD: dict = {}
+
+
+def sheet_spreads(workbook: Path, sheet: str, rows, form: str) -> dict:
+    """The quotes of several passages as a fresh read places them, from one read of the sheet (lowsE, 21 November
+    2026: a words edit re-reads every line of a copy that may take in the passages beside its own, and one read of
+    the sheet per row was dozens of loads on a long interview). `rows` are the passages' numbers. Answers each row
+    that has statements by its number, `places`, its key quotes by place, and `spread`, each quote that takes in
+    passages beside its own by its key with `time`, `span` and `rows` (see `row_spread`). A sheet with no statements
+    answers nothing. The sheet's cells are held for the next call while the workbook is unchanged."""
+    workbook = Path(workbook)
+    try:
+        info = workbook.stat()
+        held_key = (str(workbook.resolve()), info.st_mtime_ns, info.st_size, str(sheet))
+    except OSError:
+        held_key = None
+    got = SHEET_HELD.get(held_key) if held_key is not None else None
+    if got is None:
+        try:
+            book = openpyxl.load_workbook(whole_book(workbook), read_only=True, data_only=True)
+        except Exception as exc:
+            raise WorkbookError(i18n.t("server.could_read", name=workbook.name,
+                                       exc=getattr(exc, "strerror", None) or type(exc).__name__))
+        try:
+            if sheet not in book.sheetnames:
+                got = ([], {}, {})
+            else:
+                ws = book[sheet]
+                cols = detect_columns(ws)
+                if not {"name", "ts", "transcript", "es"} <= set(cols):
+                    got = ([], {}, {})
+                else:
+                    width = max(cols.values())
+                    spoken, cells = [], {}
+                    for r, values in enumerate(ws.iter_rows(min_row=2, max_col=width, values_only=True), start=2):
+                        values = tuple(values) + (None,) * (width - len(values))
+                        spoken.append(spoken_turn(values, cols, r))
+                        cells[r] = (values[cols["es"] - 1], values[cols["kq"] - 1] if "kq" in cols else None)
+                    got = (spoken, cols, cells)
+        finally:
+            book.close()
+        if held_key is not None:
+            SHEET_HELD.clear()
+            SHEET_HELD[held_key] = got
+    spoken, _cols, cells = got
+    if not spoken:
+        return {}
+    held, out = {}, {}
+    for r in dict.fromkeys(int(x) for x in rows):
+        if r not in cells:
+            continue
+        entries = split_entries(cells[r][0])
+        places = list(quote_entries(cells[r][1]))
+        while places and not places[-1]:
+            places.pop()
+        out[r] = {"places": places, "spread": {}}
+        held[row_key(sheet, r)] = {"sheet": sheet, "row": r, "quotes": [
+            {"key": card_key(sheet, r, i), "text": text} for i, text in enumerate(places[:len(entries)]) if text]}
+    spread_quotes(sheet, spoken, held, [], form, workbook)
+    for rec in held.values():
+        out[rec["row"]]["spread"] = {q["key"]: {k: q[k] for k in ("time", "span", "rows")}
+                                     for q in rec["quotes"] if q.get("span")}
+    return out
 
 
 def spread_quotes(sheet: str, spoken: list[dict], quotes: dict, cards: list[dict], form: str, where=None) -> None:

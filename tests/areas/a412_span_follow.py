@@ -365,30 +365,73 @@ def test_span_follow(scratch: Path):
         lgets_file.write_bytes(good)
 
         # ── 11. Working together's GETs guard is the dry run's as it is the edit's, and shift-times keeps refusing
-        guard_was, times_was = gets_mod.WRITE_GUARD, gets_mod.times_followed
-        asked = []
+        guard_was = gets_mod.WRITE_GUARD
 
-        def with_gets(*a, **k):
-            # the demo has no GETs file, so the first file asked, the GETs', is given one line to follow
-            asked.append(1)
-            return {"lines": 1, "cases": ["Arlo"]} if asked == [1] else times_was(*a, **k)
+        def make_gets():
+            # the demo has no GETs file, so the project is given one as the GETs screen's first act makes it (lowsE,
+            # 21 November 2026: the check stubbed a GETs line to follow), and only the guard is replaced
+            data, _cases, _disk, _taken = gets_mod.assemble(root, routes.gets_books(root), themes.now_iso())
+            gets_mod.write(root, gets_mod._file(data, themes.now_iso()))
+            return {c: list((r or {}).get("lines") or {})[:6] for c, r in (data.get("cases") or {}).items()}
+        page(make_gets)
 
         def refuse(_root):
             raise server_mod.WorkbookError("This GETs board is another member's")
         try:
-            gets_mod.WRITE_GUARD, gets_mod.times_followed = refuse, with_gets
+            gets_mod.WRITE_GUARD = refuse
             before_guard = digest(root)
-            code, dry_g, err = run("turn", "edit", "Arlo", "T2", "9", "--time", "00:02:40", "--dry-run", tool=None)
-            asked.clear()
-            code2, _d, err2 = run("turn", "shift-times", "Arlo", "T2", "--by", "5", "--dry-run", tool=None)
+            code, dry_g, err = run("turn", "edit", "Arlo", "T1", "3", "--time", "00:09:59", "--dry-run", tool=None)
+            code2, _d, err2 = run("turn", "shift-times", "Arlo", "T1", "--by", "5", "--dry-run", tool=None)
         finally:
-            gets_mod.WRITE_GUARD, gets_mod.times_followed = guard_was, times_was
+            gets_mod.WRITE_GUARD = guard_was
         guard_fires = any("another member's" in x for x in (dry_g.get("copies") or {}).get("failed") or [])
         check("412: with a GETs guard that refuses, the timecode's dry run names it under failed and does not say the "
               "GETs would follow, and turn shift-times' dry run is refused, nothing written either way",
               code == 0 and guard_fires and "gets" not in (dry_g.get("copies") or {})
               and code2 != 0 and "another member's" in err2 and digest(root) == before_guard,
               json.dumps([dry_g.get("copies"), code2, err2[:200]])[:600])
+
+        # ── 12. a words edit moves the copies' spans, alone and with a timecode (lowsE, 21 November 2026)
+        # section 10 left the LGETs one timecode behind (it was malformed then), so they are made a fresh read first
+        page(lambda: fresh_copies("lgets"))
+        broken = words[7].replace("It was very strange.", "Odd.", 1)
+        code, _x, err = run("turn", "edit", "Arlo", "T2", "7", "--text", broken, "--note", ASKED)
+        ok_lp, off_lp = against_fresh("lpets")
+        ok_lg, off_lg = against_fresh("lgets")
+        check("412: words corrected on the passage a quote takes in, its first words gone, take the span off every "
+              "copy, each a fresh read, and Arlo still reads in",
+              code == 0 and broken != words[7] and "span" not in (copy_line("lpets", key) or {"span": 1})
+              and "span" not in (copy_line("lgets", key) or {"span": 1}) and ok_lp and ok_lg and all_in(),
+              err[:300] + json.dumps([off_lp[:5], off_lg[:5], copy_line("lpets", key)])[:500])
+        both = page(lambda: routes.api_edit_turn({"path": str(arlo), "sheet": "T2", "row": 7, "text": words[7],
+                                                  "timecode": "00:01:45"}))
+        ok_lp, off_lp = against_fresh("lpets")
+        ok_lg, off_lg = against_fresh("lgets")
+        check("412: a call that changes the words back and the timecode together gives the span its two ends in every "
+              "copy, each a fresh read, and the answer counts the lines that took them",
+              both.get("text_changed") and both.get("time_changed")
+              and (copy_line("lpets", key) or {}).get("span") == [105, 150]
+              and (copy_line("lgets", key) or {}).get("span") == [105, 150] and ok_lp and ok_lg and all_in()
+              and (both.get("copies") or {}).get("lpets", {}).get("lines", 0) >= 1,
+              json.dumps([both.get("copies"), off_lp[:5], off_lg[:5], copy_line("lpets", key)])[:500])
+
+        # ── 13. gets take's dry run on a participant with nothing changed answers the same zero counts through the
+        # command line and the app's route (lowsE, 21 November 2026)
+        was_take = digest(root)
+        code, none_cli, err = run("gets", "take", "Arlo", "--dry-run", tool=None)
+        try:
+            none_route = support.plain(page(lambda: routes.api_gets_cases({"root": str(root), "op": "take",
+                                                                           "case": "Arlo", "dry_run": True})))
+            refused = ""
+        except server_mod.WorkbookError as exc:
+            none_route, refused = {}, str(exc)
+        counts = none_cli.get("counts") or {}
+        zero = bool(counts) and all(v in (0, [], False) for v in counts["copy"].values())
+        check("412: gets take's dry run on a participant with nothing changed answers the same all-zero counts through "
+              "the command line and the app's route, and writes nothing",
+              code == 0 and not refused and none_cli.get("changed") is False and zero
+              and counts == none_route.get("counts") and digest(root) == was_take,
+              err[:300] + refused + json.dumps([none_cli, none_route])[:400])
     finally:
         agent_changes.ALL_OPS = kept[0]
         if kept[1] is None:

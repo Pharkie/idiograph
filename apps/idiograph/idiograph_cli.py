@@ -2252,8 +2252,13 @@ def cmd_project_new(args) -> tuple:
     except (WorkbookError, srv.OutsideRoot) as exc:
         raise cli.Refused(str(exc)) from None
     if args.dry_run:
+        # one sentence each, the question never followed by a comma or a full stop of the sentence's own (lowsE,
+        # 21 November 2026)
         lines = [i18n.t("cli.said.dry_run_nothing_was_written"),
-                 i18n.t("cli.project_new.it_would_make_in_research_question", name=done['name'], folder=done['folder'], research_question=done['research_question'] or i18n.t("cli.said.none_set_yet"), method_name=routes.method_name(done['method']))]
+                 i18n.t("cli.project_new.it_would_make", name=done['name'], folder=done['folder']),
+                 (i18n.t("cli.project_new.would_have_question", research_question=done['research_question'])
+                  if done['research_question'] else i18n.t("cli.project_new.would_have_no_question")),
+                 i18n.t("cli.project_new.would_have_method", method_name=routes.method_name(done['method']))]
         for case in done["cases"]:
             for one in case["interviews"]:
                 roles = ", ".join(f"{who} ({convert_mod.SPEAKER_ROLES.get(role, role)})" for who, role in one["speakers"].items())
@@ -4585,8 +4590,8 @@ def is_stack(op) -> bool:
 
 
 def listed(words: list[str]) -> str:
-    """Words in a line, "S1, S2 and S3"."""
-    return words[0] if len(words) == 1 else ", ".join(words[:-1]) + " and " + words[-1]
+    """Words in a line, "S1, S2 and S3", as the run's language joins a list (`formats.list_words`)."""
+    return formats.list_words(words)
 
 
 # where a command's own list of operations is called `listed`
@@ -4937,15 +4942,18 @@ def order_said(info: dict, v: dict, sids: dict, top: str | None = None) -> str:
     titles = {g["id"]: g["label"] for g in v["groups"]}
     name = lambda m: f"'{titles[m]}'" if m in titles else sids.get(m, m)
     where = top if info["under"] is None else i18n.t("cli.order_said.what_sits_in", get=titles.get(info['under'], info['under']))
-    listed = [name(m) for m in info["order"]]
-    listed = listed[0] if len(listed) == 1 else ", ".join(listed[:-1]) + " and " + listed[-1]
+    listed = formats.list_words([name(m) for m in info["order"]])
     if not info["moved"]:
         return i18n.t("cli.order_said.left_as_they_read", where=where, listed=listed)
-    how = (i18n.t("cli.order_said.each_taking_the_place_of_the_2") if info["how"] == "kept"
-           else i18n.t("cli.order_said.each_taking_the_place_of_the"))
-    room = [(top if a is None else f"'{titles.get(a, a)}'") for a in info["arranged"]]
-    more = i18n.t("cli.order_said.and_made_room_for_it", list=' and '.join(room)) if room else ""
-    return i18n.t("cli.order_said.set_in_the_order", where=where, listed=listed, how=how, more=more)
+    # each sentence its own key, whole, with its pieces as parameters (lowsE, 21 November 2026), none joined here
+    room = formats.list_words([(top if a is None else f"'{titles.get(a, a)}'") for a in info["arranged"]])
+    if info["how"] == "kept":
+        if room:
+            return i18n.t("cli.order_said.set_kept_room", where=where, listed=listed, list=room)
+        return i18n.t("cli.order_said.set_kept", where=where, listed=listed)
+    if room:
+        return i18n.t("cli.order_said.set_moved_room", where=where, listed=listed, list=room)
+    return i18n.t("cli.order_said.set_moved", where=where, listed=listed)
 
 
 def named_in(plain: list) -> list[str]:
@@ -5873,7 +5881,14 @@ def cmd_gets_take(p: Project, args) -> tuple:
             raise cli.Refused(entry["said"] or i18n.t("cli.gets_take.s_themes_file_could_not_be", name=name))
         if entry["status"] == "in":
             text = i18n.t("cli.gets.take_none", name=name)
-            return {"case": b["case"], "changed": False, "said": text}, [text]
+            if not args.dry_run:
+                return {"case": b["case"], "changed": False, "said": text}, [text]
+            # the dry run answers the counts as the app's route does, all of them zero (lowsE, 21 November 2026)
+            try:
+                done = gets_mod.take(p.root, p.books, b["case"], dry_run=True)
+            except WorkbookError as exc:
+                raise cli.Refused(str(exc))
+            return {"case": b["case"], "counts": done["counts"], "dry_run": True, "changed": False, "said": text}, [text]
         try:
             done = gets_mod.take(p.root, p.books, b["case"], dry_run=bool(args.dry_run))
         except WorkbookError as exc:
@@ -7117,21 +7132,27 @@ def copy_lines(copies: dict, history: str, dry: bool) -> list[str]:
         if not done:
             continue
         name = routes.COPY_NAMES[kind]
-        verb = i18n.t("cli.said.would_take") if dry else "took"
         # the new words, the new quotes or both (cardsync, 13 November 2026)
         if done.get("quotes") and done.get("words"):
-            line = i18n.t("cli.copy_lines.the_copy_took_words_and_quotes", name=name, verb=verb)
+            what = i18n.t("cli.copy_lines.what_words_and_quotes")
         elif done.get("quotes"):
-            line = i18n.t("cli.copy_lines.the_copy_took_quotes", name=name, verb=verb)
+            what = i18n.t("cli.copy_lines.what_quotes")
         else:
-            line = i18n.t("cli.copy_lines.the_copy_of_the_participant_the", name=name, verb=verb)
+            what = i18n.t("cli.copy_lines.what_words")
+        # each sentence whole in its own key, none joined from parts (lowsE, 21 November 2026)
         if done["boards"]:
             n = sum(len(x["keys"]) for x in done["boards"])
             names = listed([x["name"] for x in done["boards"]])
-            line += (i18n.t("cli.copy_lines.and_on_with_them", cards=i18n.t("cli.n.card", n=n), names=names)
-                     + (i18n.t("cli.said.would_keep") if dry else "keeps") + i18n.t("cli.copy_lines.the_board_as_it_stood_first", history=history, name=name))
+            if dry:
+                line = i18n.t("cli.copy_lines.would_take_boards", name=name, what=what, cards=i18n.t("cli.n.card", n=n),
+                              names=names, history=history)
+            else:
+                line = i18n.t("cli.copy_lines.took_boards", name=name, what=what, cards=i18n.t("cli.n.card", n=n),
+                              names=names, history=history)
+        elif dry:
+            line = i18n.t("cli.copy_lines.would_take", name=name, what=what)
         else:
-            line += "."
+            line = i18n.t("cli.copy_lines.took", name=name, what=what)
         out.append(line)
         out += bold_lines(done.get("bold") or [], dry)
     return out + list(copies.get("failed") or [])
@@ -7475,6 +7496,13 @@ def cmd_turn_edit(p: Project, args) -> tuple:
     for kind, took in (done.get("copies") or {}).items():
         if kind == "failed":
             followed += list(took)
+        elif not timed and args.dry_run:
+            # words alone move the spans of the quotes that take in the passages beside, not a time (lowsE)
+            followed.append(i18n.t("cli.turn_edit.copies_spans_dry", name=routes.COPY_NAMES.get(kind, kind),
+                                   n=took["lines"]))
+        elif not timed:
+            followed.append(i18n.t("cli.turn_edit.copies_spans", name=routes.COPY_NAMES.get(kind, kind),
+                                   n=took["lines"]))
         elif args.dry_run:
             followed.append(i18n.t("cli.turn_shift_times.copies_dry", name=routes.COPY_NAMES.get(kind, kind),
                                    n=took["lines"]))
@@ -7747,11 +7775,18 @@ def cmd_turn_trim(p: Project, args) -> tuple:
     done = route_call(routes.api_trim, dict({"path": str(book), "sheet": args.sheet, "row": row,
                                              "direction": "before" if args.before else "after"}, **marks))
     answer = dict(done, case=b["case"])
-    span = (i18n.t("cli.turn_trim.rows_to", first=done['first'], last=done['last']) if done["first"] != done["last"] else f"row {done['first']}")
-    times = i18n.t("cli.turn_trim.to", from_=done['from'], to=done['to']) if done.get("from") else ""
+    # the rows cut, and their times where the passages hold them, each phrase whole in its own key (lowsE,
+    # 21 November 2026)
+    span_args = dict(first=done['first'], last=done['last'], from_=done.get("from"), to=done.get("to"))
+    if done["first"] != done["last"]:
+        span = (i18n.t("cli.turn_trim.rows_to_timed", **span_args) if done.get("from")
+                else i18n.t("cli.turn_trim.rows_to", **span_args))
+    else:
+        span = (i18n.t("cli.turn_trim.row_timed", **span_args) if done.get("from")
+                else i18n.t("cli.turn_trim.row", **span_args))
     if args.dry_run:
-        return answer, [i18n.t("cli.turn_trim.dry_run_nothing_was_written_it", case=b['case'], sheet=args.sheet, span=span, times=times, rows=i18n.t("cli.n.row", n=done['count']), marked=done['marked'], rows2=i18n.t("cli.n.row", n=done['left']))]
-    lines = [i18n.t("cli.turn_trim.cut_after_a_copy_of_the", case=b['case'], sheet=args.sheet, span=span, times=times, rows=i18n.t("cli.n.row", n=done['removed']), id=done['id'])]
+        return answer, [i18n.t("cli.turn_trim.dry_run_nothing_was_written_it", case=b['case'], sheet=args.sheet, span=span, rows=i18n.t("cli.n.row", n=done['count']), marked=i18n.t("cli.turn_trim.marked", n=done['marked']), rows2=i18n.t("cli.n.row", n=done['left']))]
+    lines = [i18n.t("cli.turn_trim.cut_after_a_copy_of_the", case=b['case'], sheet=args.sheet, span=span, rows=i18n.t("cli.n.row", n=done['removed']), id=done['id'])]
     if done.get("themes"):
         lines.append(done["themes"])
     lines += done.get("copies_failed") or []

@@ -2823,6 +2823,88 @@ def spans_followed(rec: dict, workbook: Path, key: str, quote: str) -> bool:
     return True
 
 
+def spans_reread(root: Path, workbook: Path, sheet: str, row: int, books: list[dict] | None = None):
+    """The spans the copy the file in scope keeps of the participant has for a passage's words corrected (spanfix,
+    21 November 2026, lowsE): a quote that takes in the same speaker's passages is placed by the words those passages
+    now hold, so a words edit moves a span as a quote reworded does. Each line of the sheet holding a span or a quote
+    of two pieces or more, and each line on `row`, is given the span and time a fresh read gives (a line holding
+    another quote at its place, a change not yet taken, left as it is), and the copy's hash follows only where it
+    stood for the copy as it was. The sheet is read once for every line (`themes.sheet_spreads`), after the edit is
+    saved. Written once. Answers `lines`, how many took a new span or time, and `cases`, nothing when none did."""
+    workbook = Path(workbook)
+    data, entries = held_of(root, workbook, books)
+    if data is None or not entries:
+        return {}
+    held = data["cases"]
+    form = KEPT_AS
+    # the lines that may take in the passages beside their own, by case, before the sheet is read at all
+    wanted: dict[str, list] = {}
+    for e in entries:
+        rec = held.get(e["case"])
+        lines = rec.get("lines") if isinstance(rec, dict) and isinstance(rec.get("lines"), dict) else {}
+        for key, line in lines.items():
+            if not isinstance(line, dict) or line.get("sheet") != sheet or not isinstance(line.get("row"), int):
+                continue
+            place = themes.split_card_key(key)[2]
+            quotes = line.get("quotes") if isinstance(line.get("quotes"), list) else []
+            quote = str(quotes[place] or "") if place is not None and place < len(quotes) else ""
+            if (line["row"] == int(row) or isinstance(line.get("span"), list)
+                    or len(themes.quote_pieces(quote)) >= 2):
+                wanted.setdefault(e["case"], []).append((key, line, place, quote))
+    if not wanted:
+        return {}
+    rows = {line["row"] for items in wanted.values() for _k, line, _p, _q in items}
+    fresh = themes.sheet_spreads(workbook, sheet, rows, form)
+    out = {"lines": 0, "cases": []}
+    for e in entries:
+        items = wanted.get(e["case"])
+        if not items:
+            continue
+        rec = held[e["case"]]
+        whole = rec.get("hash") == snap_hash(rec)
+        n = 0
+        for key, line, place, held_quote in items:
+            got = fresh.get(line["row"])
+            if got is None or place is None or place >= len(got["places"]):
+                continue
+            # a line holding another quote at its place, a change not yet taken, is left as it is
+            if themes.quote_words(held_quote) != themes.quote_words(str(got["places"][place] or "")):
+                continue
+            if span_set(rec, line, (got["spread"].get(key) or {}).get("span")):
+                n += 1
+        if n:
+            if whole:
+                rec["hash"] = snap_hash(rec)
+            out["lines"] += n
+            out["cases"].append(e["case"])
+    if not out["lines"]:
+        return {}
+    data["updated"] = themes.now_iso()
+    write(root, data)
+    return out
+
+
+def span_set(rec: dict, line: dict, span) -> bool:
+    """A copy's line given the span a fresh read gives it, `span` or none, its time written again from it
+    (`spans_followed`, `spans_reread`). Answers whether the line changed."""
+    if (list(span) if span else None) == line.get("span"):
+        return False
+    if span:
+        # placed after the seconds, where a fresh read puts it
+        kept = dict(line)
+        line.clear()
+        for k, v in kept.items():
+            if k != "span":
+                line[k] = v
+            if k == "seconds":
+                line["span"] = list(span)
+        line.setdefault("span", list(span))
+    else:
+        line.pop("span", None)
+    retimed(line, KEPT_AS, rec.get("cite") or "")
+    return True
+
+
 # the last row `row_lines` read, by the workbook's path, time and size, the sheet, the row and the timecodes
 ROWS_HELD: dict = {}
 # and the spans of the last row whose quotes take in the passages beside it, by the same and the row's quotes
@@ -3478,8 +3560,10 @@ def take(root: Path, books: list[dict], case: str, dry_run: bool = False) -> dic
     old = (data.get("cases") or {}).get(case)
     if entry is None or old is None:
         raise WorkbookError(i18n.t("server.participant_gets_yet_nothing_came"))
-    if entry["status"] == "in":
+    if entry["status"] == "in" and not dry_run:
         raise WorkbookError(i18n.t("server.nothing_changed_s_pets_since", who_case=who(case)))
+    # a dry run of a participant with nothing changed answers the counts as zero, in memory alone, as the command
+    # line's does (lowsE, 21 November 2026)
     fresh = entry["fresh"] if entry["fresh"] is not None else fresh_of(entry)
     counts = take_into(data, case, old, fresh, entry["workbook"], when)
     if dry_run:

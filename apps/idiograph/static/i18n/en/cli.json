@@ -253,10 +253,16 @@
   "cli.add_entries.could_not_be_read_so_nothing": "{file} could not be read, so nothing was added.",
   "cli.turn_trim_undo.back_where_they_were_cut_from": "{case}, {sheet}: {rows} back where they were cut from, in the workbook too.",
   "cli.turn_trim_undo.dry_run_nothing_was_written_rows": "Dry run, nothing was written. {case}, {sheet}: rows {first} to {last} would be put back where they were cut from.",
-  "cli.turn_trim.cut_after_a_copy_of_the": "{case}, {sheet}: kept a copy of the workbook in _Archive, then cut {span}{times}, {rows}. idiograph turn trim-undo {case} {id} puts them back.",
-  "cli.turn_trim.dry_run_nothing_was_written_it": "Dry run, nothing was written. {case}, {sheet}: it would cut {span}{times}, {rows}, {marked} of them with a statement, a note, a quote or a highlight, leaving {rows2}.",
-  "cli.turn_trim.to": ", {from_} to {to}",
+  "cli.turn_trim.cut_after_a_copy_of_the": "{case}, {sheet}: kept a copy of the workbook in _Archive, then cut {span}, {rows}. idiograph turn trim-undo {case} {id} puts them back.",
+  "cli.turn_trim.dry_run_nothing_was_written_it": "Dry run, nothing was written. {case}, {sheet}: it would cut {span}, {rows}, {marked}, leaving {rows2}.",
   "cli.turn_trim.rows_to": "rows {first} to {last}",
+  "cli.turn_trim.rows_to_timed": "rows {first} to {last}, {from_} to {to}",
+  "cli.turn_trim.row": "row {first}",
+  "cli.turn_trim.row_timed": "row {first}, {from_} to {to}",
+  "cli.turn_trim.marked": {
+    "one": "{n} of them with a statement, a note, a quote or a highlight",
+    "other": "{n} of them with a statement, a note, a quote or a highlight"
+  },
   "cli.n.line": {
     "one": "{n} line",
     "other": "{n} lines"
@@ -291,9 +297,6 @@
   "cli.turn_edit.dry_words": "Dry run, nothing was written. {where}: the words would be corrected. The timecode would stay as it is.",
   "cli.turn_edit.dry_time": "Dry run, nothing was written. {where}: the timecode would go from {old_time} to {time}. The words would stay as they are.",
   "cli.turn_edit.dry_run_nothing_was_written_reads": "Dry run, nothing was written. {where} reads so already, so nothing would change.",
-  "cli.copy_lines.the_board_as_it_stood_first": " the board as it stood first in its History, as \"{history}\", marked as changed in a conversation, so an open {name} screen says so.",
-  "cli.copy_lines.and_on_with_them": ", and {cards} on {names} with them. {names} ",
-  "cli.copy_lines.the_copy_of_the_participant_the": "The {name}' copy of the participant {verb} the new words",
   "cli.turn_write.each_is_marked_as_changed_in": "Each is marked as changed in a conversation, so an open PETs screen says so.",
   "cli.turn_write.on_took_the_new_words": "{cards} on {list} took the new words.",
   "cli.turn_write.wrote_the_on_after_a_copy": "Kept a copy of the workbook in _Archive as {name}, then wrote the {said} on {where}. The progress file records the write under edits.",
@@ -447,10 +450,17 @@
   "cli.board_apply.it_was": "it was",
   "cli.board_apply.left_waiting_in_as_already": "left {listed} waiting in {not_placed}, as {v_} already",
   "cli.board_apply.board_show": "board show",
-  "cli.order_said.set_in_the_order": "set {where} in the order {listed}, {how}{more}",
-  "cli.order_said.and_made_room_for_it": ", and {list} made room for it",
-  "cli.order_said.each_taking_the_place_of_the": "each taking the place of the one that read there before, those beside moved along to make room",
-  "cli.order_said.each_taking_the_place_of_the_2": "each taking the place of the one that read there before, so the layout is kept",
+  "cli.copy_lines.what_words": "words",
+  "cli.copy_lines.what_quotes": "quotes",
+  "cli.copy_lines.what_words_and_quotes": "words and quotes",
+  "cli.copy_lines.took": "The {name}' copy of the participant took the new {what}.",
+  "cli.copy_lines.would_take": "The {name}' copy of the participant would take the new {what}.",
+  "cli.copy_lines.took_boards": "The {name}' copy of the participant took the new {what}, and {cards} on {names} with them. {names} keeps the board as it stood first in its History, as \"{history}\", marked as changed in a conversation, so an open {name} screen says so.",
+  "cli.copy_lines.would_take_boards": "The {name}' copy of the participant would take the new {what}, and {cards} on {names} with them. {names} would keep the board as it stood first in its History, as \"{history}\", marked as changed in a conversation, so an open {name} screen says so.",
+  "cli.order_said.set_kept": "set {where} in the order {listed}, each taking the place of the one that read there before, so the layout is kept",
+  "cli.order_said.set_kept_room": "set {where} in the order {listed}, each taking the place of the one that read there before, so the layout is kept, and {list} made room for it",
+  "cli.order_said.set_moved": "set {where} in the order {listed}, each taking the place of the one that read there before, those beside moved along to make room",
+  "cli.order_said.set_moved_room": "set {where} in the order {listed}, each taking the place of the one that read there before, those beside moved along to make room, and {list} made room for it",
   "cli.order_said.left_as_they_read": "left {where} as they read, {listed}",
   "cli.order_said.what_sits_in": "what sits in '{get}'",
   "cli.order_target.operation_names_twice": "Operation {n} names {pair} twice.",
@@ -705,7 +715,10 @@
   "cli.project_new.made_in_with": "Made {name} in {root}, with {participants}: {list}.",
   "cli.project_new.made_in_empty": "Made {name} in {root}, with no participants yet. Add transcripts to it on its page or with project add-transcripts.",
   "cli.project_new.as_from": "  {label}: {file} as {interview}, from {roles}.",
-  "cli.project_new.it_would_make_in_research_question": "It would make {name} in {folder}, research question: {research_question}, method: {method_name}, and add it to Idiograph's projects.",
+  "cli.project_new.it_would_make": "It would make {name} in {folder} and add it to Idiograph's projects.",
+  "cli.project_new.would_have_question": "Its research question would be: {research_question}",
+  "cli.project_new.would_have_no_question": "It would have no research question yet.",
+  "cli.project_new.would_have_method": "Its method would be {method_name}.",
   "cli.project_new.is_not_there_so_nothing_was": "{name} is not there, so nothing was made.",
   "cli.project_show.method_fixed_when_the_project_was": "Method: {method_name}. It was fixed when the project was made.",
   "cli.project_show.open_elsewhere": "This project is open on {names} too. If you both change it, whoever saves last overwrites the other's work.",
@@ -1098,8 +1111,6 @@
   "cli.gets_aside.put_back": "put {listed} back on the board, in no {unit}",
   "cli.gets_show.shown_twice": "Shown twice ({n}), a statement's card whose PET's card is on the board too:",
   "cli.gets_show.shown_twice_line": "{card}, also in {also}",
-  "cli.copy_lines.the_copy_took_words_and_quotes": "The {name}' copy of the participant {verb} the new words and quotes",
-  "cli.copy_lines.the_copy_took_quotes": "The {name}' copy of the participant {verb} the new quotes",
   "cli.statement_line.card_stale": "  (card stale: the card reads \"{text}\")",
   "cli.board_text.stale_cards": "{cards} on this board read otherwise than the workbook, each marked card stale. copies refresh brings them in line.",
   "cli.copies_refresh.nothing": "Every board's cards and every copy of the statements read as the workbook does. Nothing to change.",
@@ -1194,6 +1205,14 @@
   "cli.turn_shift_times.untimed": {
     "one": "Row {rows} has no timecode and is left as it is.",
     "other": "Rows {rows} have no timecode and are left as they are."
+  },
+  "cli.turn_edit.copies_spans_dry": {
+    "one": "The {name} would take the new span of a quote on {n} line.",
+    "other": "The {name} would take the new spans of their quotes on {n} lines."
+  },
+  "cli.turn_edit.copies_spans": {
+    "one": "The {name} took the new span of a quote on {n} line.",
+    "other": "The {name} took the new spans of their quotes on {n} lines."
   },
   "cli.turn_shift_times.copies_dry": {
     "one": "The {name} would take the new time on {n} line.",

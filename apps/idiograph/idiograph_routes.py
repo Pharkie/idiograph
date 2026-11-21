@@ -8711,7 +8711,7 @@ def api_edit_turn(body: dict) -> dict:
         result = wb_mod.edit_turn(path, sheet, row, body.get("text"), body.get("timecode"), dry=True, follow=follow)
         copies = (result.get("followed") or ({}, []))[0]
     else:
-        with writing(path, root=project_root(path) if timed else None):
+        with writing(path, root=project_root(path)):
             result = wb_mod.edit_turn(path, sheet, row, body.get("text"), body.get("timecode"), follow=follow)
             if result["changed"]:
                 progress = rounds_mod.load_progress(path)
@@ -8722,6 +8722,9 @@ def api_edit_turn(body: dict) -> dict:
             if result.get("followed"):
                 copies, plans = result["followed"]
                 copies = shift_written(path, plans, copies, turn=True)
+            if result["text_changed"]:
+                # a call that changes words carries them to the copies' spans as well as the time (spanfix)
+                copies = spans_reread(path, sheet, row, copies)
     answer = {"sheet": sheet, "row": row, "changed": result["changed"], "text": result["text"],
               "runs": result["runs"], "dropped": result["dropped"],
               "seconds": result["seconds"], "time": result["time"],
@@ -8731,6 +8734,34 @@ def api_edit_turn(body: dict) -> dict:
     if body.get("dry_run") is True:
         answer.update(dry_run=True, old=result["old"])
     return answer
+
+
+def spans_reread(path: Path, sheet: str, row: int, out: dict) -> dict:
+    """The spans of every copy of the participant's statements read again once a passage's words are corrected and
+    saved (`gets.spans_reread`, spanfix, 21 November 2026: a call that changed the words carried only the time, if
+    any, to the copies, so a quote taking in the passages beside its own kept the span the old words gave). Each file
+    that took a span or time is added to `out` by its kind with its count of lines, and each that could not be read
+    or written is one line under `failed`, the workbook's change standing. A thematic analysis project's codes read
+    their times from the workbook, so nothing follows there. The caller holds the project's lock."""
+    root, kinds = statement_copies(path)
+    if root is None or read_project(root).get("method") == "ta":
+        return out
+    failed = list(out.get("failed") or [])
+    for kind in kinds:
+        try:
+            with copy_scope(kind, path, root):
+                done = gets_mod.spans_reread(root, path, sheet, row, lpets_books(path) if kind == "lpets" else None)
+        except Exception as exc:  # noqa: BLE001  the workbook is saved, so the answer says so
+            failed.append(i18n.t("server.turn_words_copies_unfollowed", names=COPY_NAMES[kind], exc=copy_exc(exc)))
+            continue
+        if done:
+            # the lines a timecode moved too are not counted twice
+            was = out.get(kind) or {}
+            out[kind] = {"lines": max(done["lines"], was.get("lines", 0)),
+                         "cases": list(dict.fromkeys(list(was.get("cases") or []) + done["cases"]))}
+    if failed:
+        out["failed"] = failed
+    return out
 
 
 SHIFT_LABEL = "pre-shift"
@@ -8781,9 +8812,14 @@ def shift_planned(path: Path, sheet: str, moved: dict, times: dict, dry: bool = 
             if turn:
                 # one passage's timecode is corrected as a statement's save is: the workbook is saved, the copies that
                 # can follow do, and each that cannot is named under `failed` (spanfix, 16 November 2026)
-                failed.append(i18n.t("server.turn_time_copies_unfollowed", names=COPY_NAMES[kind], exc=exc))
+                if dry:
+                    failed.append(i18n.t("server.turn_time_copies_unfollowed_dry", names=COPY_NAMES[kind],
+                                         exc=copy_exc(exc)))
+                else:
+                    failed.append(i18n.t("server.turn_time_copies_unfollowed", names=COPY_NAMES[kind],
+                                         exc=copy_exc(exc)))
                 continue
-            raise WorkbookError(i18n.t("server.shift_copy_refused", name=COPY_NAMES[kind], exc=exc)) from None
+            raise WorkbookError(i18n.t("server.shift_copy_refused", name=COPY_NAMES[kind], exc=copy_exc(exc))) from None
         if done:
             out[kind] = done
             if data is not None:
@@ -8807,9 +8843,9 @@ def shift_written(path: Path, plans: list, out: dict, turn: bool = False) -> dic
             left = [k for k, _d in plans[i:]]
             names = formats.list_words([COPY_NAMES[k] for k in left])
             if turn:
-                said = i18n.t("server.turn_time_copies_unfollowed", names=names, exc=exc)
+                said = i18n.t("server.turn_time_copies_unfollowed", names=names, exc=copy_exc(exc))
             else:
-                said = i18n.t("server.shift_copies_unfollowed", names=names, exc=exc)
+                said = i18n.t("server.shift_copies_unfollowed", names=names, exc=copy_exc(exc))
             out["failed"] = list(out.get("failed") or []) + [said]
             for k in left:
                 out.pop(k, None)
@@ -8956,7 +8992,7 @@ def follow_replace(path: Path, rows: list[dict], back: bool = False, tool: str =
         try:
             boards += themes_mod.cards_reworded(path, sheet, by_row, changed=mark)
         except (WorkbookError, OSError) as exc:
-            failed.append(f"The boards could not be read, so their cards kept the words they had: {exc}")
+            failed.append(f"The boards could not be read, so their cards kept the words they had: {copy_exc(exc)}")
     root, kinds = statement_copies(path)
     flat = {(sheet, row): change for sheet, by_row in changes.items() for row, change in by_row.items()}
     for kind in kinds:
@@ -8965,7 +9001,7 @@ def follow_replace(path: Path, rows: list[dict], back: bool = False, tool: str =
                 copies[kind] = gets_mod.words_replaced(root, path, flat, (before or {}).get(kind) or {},
                                                        lpets_books(path) if kind == "lpets" else None)
         except (WorkbookError, OSError) as exc:
-            failed.append(f"The {COPY_NAMES[kind]} could not be read, so their copy kept the words it had: {exc}")
+            failed.append(f"The {COPY_NAMES[kind]} could not be read, so their copy kept the words it had: {copy_exc(exc)}")
     return {"boards": boards, **copies, "failed": failed}
 
 
@@ -9177,7 +9213,7 @@ def copies_follow(path: Path, mapper, cut: str | None = None, back: str | None =
                 gets_mod.rows_moved(root, path, mapper, lpets_books(path) if kind == "lpets" else None,
                                     cut=cut, back=back, before=(before or {}).get(kind) or {})
         except (WorkbookError, OSError) as exc:
-            failed.append(i18n.t("server.rows_copy_unmoved", name=COPY_NAMES[kind], exc=exc))
+            failed.append(i18n.t("server.rows_copy_unmoved", name=COPY_NAMES[kind], exc=copy_exc(exc)))
     return failed
 
 
@@ -11624,6 +11660,17 @@ def api_gets_ai(body: dict) -> dict:
 COPY_NAMES = {"gets": "GETs", "lpets": "LPETs", "lgets": "LGETs"}
 
 
+def copy_exc(exc: BaseException) -> str:
+    """Why a copy could not be read or written, as a line may say it to an agent (lowsE, 21 November 2026): the app's
+    own refusal as it is worded, and for anything the system raised its reason alone, never the path an OSError
+    carries, which holds the participant's folder and so a case folder's second name, nor an unknown error's text."""
+    if isinstance(exc, WorkbookError):
+        return str(exc)
+    if isinstance(exc, OSError):
+        return exc.strerror or type(exc).__name__
+    return type(exc).__name__
+
+
 @contextlib.contextmanager
 def copy_scope(kind: str, path: Path, root: Path):
     """What runs inside works on one file of copies of a participant's statements (see `statement_copies`)."""
@@ -11713,7 +11760,7 @@ def follow_statements(path: Path, words: dict, before: dict, dry: bool = False, 
                                                     dry=dry, changed=changed, history=history, said=said,
                                                     quotes=quotes)
         except (WorkbookError, OSError) as exc:
-            failed.append(f"The {COPY_NAMES[kind]} could not be read, so their copy kept the words it had: {exc}")
+            failed.append(f"The {COPY_NAMES[kind]} could not be read, so their copy kept the words it had: {copy_exc(exc)}")
             continue
         if done:
             out[kind] = done
@@ -11736,14 +11783,14 @@ def refresh_copies(path: Path, dry: bool = False, changed: dict | None = None, h
     try:
         out["pets"] = themes_mod.cards_refreshed(path, dry=dry, history=history, changed=changed)
     except (WorkbookError, OSError) as exc:
-        out["failed"].append(i18n.t("server.refresh_boards_unread", exc=exc))
+        out["failed"].append(i18n.t("server.refresh_boards_unread", exc=copy_exc(exc)))
     root, kinds = statement_copies(path)
     if not kinds:
         return out
     try:
         truth = gets_mod.workbook_lines(path)
     except (WorkbookError, OSError) as exc:
-        out["failed"].append(i18n.t("server.refresh_workbook_unread", exc=exc))
+        out["failed"].append(i18n.t("server.refresh_workbook_unread", exc=copy_exc(exc)))
         return out
     # the statements a copy lacks, added to it unplaced (copiesadd, 16 November 2026), the LPETs' in a dry run
     # counted again on the LGETs, which read the LPETs
@@ -11756,7 +11803,7 @@ def refresh_copies(path: Path, dry: bool = False, changed: dict | None = None, h
             with copy_scope(kind, path, root):
                 done = gets_mod.copies_refreshed(root, path, truth, books, dry=dry, changed=changed, history=history)
         except (WorkbookError, OSError) as exc:
-            out["failed"].append(i18n.t("server.refresh_copy_unread", name=COPY_NAMES[kind], exc=exc))
+            out["failed"].append(i18n.t("server.refresh_copy_unread", name=COPY_NAMES[kind], exc=copy_exc(exc)))
             continue
         # the addition its own step, so a read that fails leaves what was brought in line standing and said
         took = []
@@ -11766,7 +11813,7 @@ def refresh_copies(path: Path, dry: bool = False, changed: dict | None = None, h
                     took = gets_mod.copies_added(root, path, books, dry=dry, holds=truth,
                                                  also=would if kind == "lgets" and dry else None)
             except (WorkbookError, OSError) as exc:
-                out["failed"].append(i18n.t("server.refresh_copy_unadded", name=COPY_NAMES[kind], exc=exc))
+                out["failed"].append(i18n.t("server.refresh_copy_unadded", name=COPY_NAMES[kind], exc=copy_exc(exc)))
         if took:
             if kind == "lpets":
                 would = [k for t in took for k in t["keys"]]
@@ -11820,7 +11867,7 @@ def rekey_copies(path: Path, timepoint=None, sheet: str | None = None, from_row:
                                                from_row=from_row, shift=shift, dry=dry, changed=changed,
                                                history=history)
         except OSError as exc:
-            out["failed"].append(i18n.t("server.refresh_copy_unread", name=COPY_NAMES[kind], exc=exc))
+            out["failed"].append(i18n.t("server.refresh_copy_unread", name=COPY_NAMES[kind], exc=copy_exc(exc)))
             continue
         if done:
             out["copies"][kind] = done
@@ -11845,7 +11892,7 @@ def prune_copies(path: Path, dry: bool = False, changed: dict | None = None, his
                 done = gets_mod.copies_pruned(root, path, truth, lpets_books(path) if kind == "lpets" else None,
                                               dry=dry, changed=changed, history=history)
         except (WorkbookError, OSError) as exc:
-            out["failed"].append(i18n.t("server.refresh_copy_unread", name=COPY_NAMES[kind], exc=exc))
+            out["failed"].append(i18n.t("server.refresh_copy_unread", name=COPY_NAMES[kind], exc=copy_exc(exc)))
             continue
         if done:
             out["copies"][kind] = done
@@ -11890,7 +11937,7 @@ def passage_follow(path: Path, sheet: str, row: int, old: list[str], new: list[s
             with copy_scope(kind, path, root):
                 done = gets_mod.passage_followed(root, path, sheet, int(row), old, new, lines, books, dry=dry)
         except (WorkbookError, OSError) as exc:
-            failed.append(i18n.t("server.passage_copy_unmoved", name=COPY_NAMES[kind], exc=exc))
+            failed.append(i18n.t("server.passage_copy_unmoved", name=COPY_NAMES[kind], exc=copy_exc(exc)))
             continue
         # the addition its own step, so a read that fails leaves what was moved standing and said
         took = []
@@ -11900,7 +11947,7 @@ def passage_follow(path: Path, sheet: str, row: int, old: list[str], new: list[s
                     took = gets_mod.copies_added(root, path, books, keys=added, dry=dry, moved=moved,
                                                  row_now=row_now, also=would if kind == "lgets" else None)
             except (WorkbookError, OSError) as exc:
-                failed.append(i18n.t("server.passage_copy_unadded", name=COPY_NAMES[kind], exc=exc))
+                failed.append(i18n.t("server.passage_copy_unadded", name=COPY_NAMES[kind], exc=copy_exc(exc)))
         if kind == "lpets":
             would = [k for t in took for k in t["keys"]]
         if took:

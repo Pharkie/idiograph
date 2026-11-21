@@ -709,7 +709,12 @@ LGETs' copies as a shift of that one row does, the row's lines and each end of a
 counts their lines, so the participant still reads in. A copy that cannot follow (a file that is malformed or not yet
 fetched, or the GETs board another member of a Working together project writes) never refuses the correction: the
 workbook is saved, the other copies follow, and the answer names each that did not under `copies.failed`, the
-participant reading changed until `copies refresh` or a take. The dry run says the same.
+participant reading changed until `copies refresh` or a take. The dry run says the same for a timecode.
+Words corrected move the copies' spans too (21 November): a quote that takes in the passages beside its own is
+placed by their words, so once the workbook is saved each copy's line holding a span, or a quote of two pieces or
+more, is read again and takes the span and time a fresh read gives, counted in the same `copies`, alone or with
+a timecode in the same call. A copy that cannot take them is one line under `copies.failed`, the words standing.
+The dry run counts the timecode's lines only, since the words are not saved to be read.
 `turn shift-times` moves every timecode of one sheet by
 `--by` seconds, `-121` earlier or `30` later, for a transcript that runs ahead of or behind its recording
 through the sheet, `--from-row` and `--to-row` keeping it to a range (16 November). Each timecode is written
@@ -2060,7 +2065,7 @@ idiograph gets take Rowan --note "Bring Rowan's new titles into the GETs" --tool
 ```
 
 It does what Update does for that participant, each GETs board keeping a revision first, "Before Rowan's changes came in", and marked as changed in a conversation, so an open GETs screen says so. A card that comes in taller, a PET with a new description or a longer title, makes room below it as it comes in: what it would run over moves straight down just far enough (22 October). A participant
-with nothing changed writes nothing. Take them only when they ask.
+with nothing changed writes nothing, and its dry run answers `counts` with every count zero, as the app's does. Take them only when they ask.
 
 On a participant's LPETs the same command takes one timepoint's changes into their copy of it, `idiograph gets take T1
 --lpets "<participant>"`, and on LGETs a participant's LPETs (16 November 2026). The dry run runs the take itself in
