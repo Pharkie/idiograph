@@ -1000,6 +1000,13 @@ TOOLS = [
          "history. Only the app does it, since the line is how the researcher learns what agents changed: an "
          "agent's call is refused, and its dry_run alone answers, saying how many changes it would mark. The "
          "researcher does it with Review or the cross on that line.", {}, [], writes="marks"),
+    # the restore store's whole copies deflated (compact, 21 November 2026)
+    mcp.tool("restore_compact", "Deflate the restore copies", ("restore", "compact"),
+         "Every whole copy in the project's restore store, the copies a run's undo puts back from, deflated as new "
+         "copies are kept, each one checked to inflate to the same bytes before its whole copy is taken away. A copy "
+         "that does not check out stays as it is. No file of the project changes and every undo puts back the same "
+         "bytes. It answers counts and sizes alone, never a file's name or words. Run dry_run first to measure "
+         "what it would save.", {}, [], writes="file"),
     # the agent log (agentlog, 3 November 2026, see agent_log.py), read alone, the family's tool (siftlog)
     mcp.log_tool("idiograph"),
     mcp.tool("project_send", "Send the project as one file", ("project", "send"),

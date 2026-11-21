@@ -66,6 +66,11 @@ import zlib
 from datetime import datetime, timedelta
 from pathlib import Path
 
+try:
+    import fcntl
+except ImportError:  # Windows
+    fcntl = None
+
 import agent_log
 import i18n
 import locks
@@ -763,6 +768,186 @@ def sweep(root, kept: list) -> None:
                 f.unlink()
     except OSError:
         pass
+
+
+SHA_NAME = re.compile(r"[0-9a-f]{64}\Z")
+# a temporary file compact left when it was killed: `.<sha>.<8 hex>`
+STRAY = re.compile(r"\.[0-9a-f]{64}\.[0-9a-f]{8}\Z")
+
+
+def durable(fd: int) -> None:
+    """The file's bytes on the drive itself: on macOS fsync leaves them in the drive's cache, so F_FULLFSYNC, and
+    fsync where that is missing or fails."""
+    full = getattr(fcntl, "F_FULLFSYNC", None) if fcntl else None
+    if full is not None:
+        try:
+            fcntl.fcntl(fd, full)
+            return
+        except OSError:
+            pass
+    os.fsync(fd)
+
+
+def deflate_copy(src: Path, sha: str, tmp: Path | None) -> int | None:
+    """A whole kept copy `src` deflated a CHUNK at a time into `tmp` (mode 600, fsynced), its bytes hashed as they go:
+    the deflated size, or None, nothing left at `tmp`, when the bytes are not the ones `sha` names or cannot be read.
+    With no `tmp` it only measures what the deflated copy would take."""
+    digest = hashlib.sha256()
+    pack = zlib.compressobj(LEVEL)
+    size = 0
+    out = None
+    try:
+        if tmp is not None:
+            out = os.fdopen(os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "wb")
+        with open(src, "rb") as given:
+            while True:
+                piece = given.read(CHUNK)
+                if not piece:
+                    break
+                digest.update(piece)
+                got = pack.compress(piece)
+                size += len(got)
+                if out is not None:
+                    out.write(got)
+        got = pack.flush()
+        size += len(got)
+        if out is not None:
+            out.write(got)
+            out.flush()
+            durable(out.fileno())
+        if digest.hexdigest() != sha:
+            raise OSError("a kept copy does not hold the bytes it is named for")
+    except OSError:
+        size = None
+    finally:
+        if out is not None:
+            out.close()
+    if size is None and tmp is not None:
+        with contextlib.suppress(OSError):
+            Path(tmp).unlink()
+    return size
+
+
+def inflates_to(path: Path, sha: str) -> bool:
+    """Whether a file, deflated, inflates to its end and to the bytes `sha` names, read a CHUNK at a time."""
+    inflate = zlib.decompressobj()
+    digest = hashlib.sha256()
+    try:
+        with open(path, "rb") as given:
+            while True:
+                piece = given.read(CHUNK)
+                if not piece:
+                    break
+                digest.update(inflate.decompress(piece))
+        digest.update(inflate.flush())
+    except (OSError, zlib.error):
+        return False
+    return inflate.eof and digest.hexdigest() == sha
+
+
+def store_bytes(root) -> int:
+    """What the copies in a project's store take, in bytes."""
+    total = 0
+    try:
+        for f in objects(root).iterdir():
+            if f.is_file() and not f.name.startswith("."):
+                total += f.stat().st_size
+    except OSError:
+        pass
+    return total
+
+
+def compact(root, dry_run: bool = False) -> dict:
+    """`restore compact` (compact, 21 November 2026): each copy in the project's store that stands whole, named by its
+    sha, turned into the deflated `<sha>.z` that restoresize keeps new copies as. A copy at a time, under the agents'
+    lock so no run writes or undoes beside it: the bytes are checked to be those the name is the sha of, deflated to
+    a temporary file in the store, fsynced, checked to inflate to exactly that sha, renamed into place (over a `.z`
+    that did not check out, if one stands), and only then is the whole copy taken away. A copy that does not check
+    out stays as it is and is counted in `left`. A `.z` that checks out beside a whole copy of the same sha takes the
+    whole one away. No copy any run names is ever taken away without its deflated twin standing checked, and none
+    is ever written but as that twin. With `dry_run` nothing is written, no lock is taken and no temporary file is
+    made: what would happen is counted and measured. It answers counts and bytes alone, never a file's name or
+    words."""
+    folder = objects(root)
+    before = store_bytes(root)
+    answer = {"packed": 0, "left": 0, "failed": 0, "already": 0, "bytes_before": before, "bytes_after": before,
+              "busy": False}
+    try:
+        names = sorted(f.name for f in folder.iterdir() if f.is_file() and not f.name.startswith("."))
+    except OSError:
+        return answer
+    answer["already"] = sum(1 for n in names if n.endswith(PACKED))
+    estimate = before
+    if not dry_run:
+        # a temporary file a killed compact left behind
+        try:
+            with held(root):
+                for f in folder.iterdir():
+                    if STRAY.match(f.name):
+                        with contextlib.suppress(OSError):
+                            f.unlink()
+        except locks.WorkbookError as exc:
+            if getattr(exc, "code", "") != "busy":
+                raise
+            answer["busy"] = True
+            return answer
+    for name in names:
+        if not SHA_NAME.match(name):
+            continue
+        path = folder / name
+        twin = folder / (name + PACKED)
+        try:
+            size = path.stat().st_size
+        except OSError:
+            continue
+        if dry_run:
+            if twin.is_file() and sound(twin):
+                new = 0
+            else:
+                new = deflate_copy(path, name, None)
+            if new is None:
+                answer["left"] += 1
+            else:
+                answer["packed"] += 1
+                estimate += new - size
+            continue
+        try:
+            with held(root):
+                if not path.is_file():
+                    continue
+                if not (twin.is_file() and sound(twin)):
+                    tmp = folder / f".{name}.{secrets.token_hex(4)}"
+                    try:
+                        if deflate_copy(path, name, tmp) is None or not inflates_to(tmp, name):
+                            answer["left"] += 1
+                            continue
+                        os.replace(tmp, twin)
+                    except OSError:
+                        answer["failed"] += 1
+                        continue
+                    finally:
+                        with contextlib.suppress(OSError):
+                            tmp.unlink()
+                    with contextlib.suppress(OSError, AttributeError):
+                        fd = os.open(folder, os.O_RDONLY)
+                        try:
+                            durable(fd)
+                        finally:
+                            os.close(fd)
+                try:
+                    path.unlink()
+                except OSError:
+                    answer["failed"] += 1
+                    continue
+                answer["packed"] += 1
+        except locks.WorkbookError as exc:
+            if getattr(exc, "code", "") != "busy":
+                raise
+            # another write holds the project: stop here with the counts so far, a run again finishes
+            answer["busy"] = True
+            break
+    answer["bytes_after"] = estimate if dry_run else store_bytes(root)
+    return answer
 
 
 def tidy(root, new: dict | None = None) -> None:

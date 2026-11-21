@@ -25,6 +25,8 @@ import hashlib
 import json
 import os
 import shutil
+import tempfile
+import zlib
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -365,6 +367,139 @@ def packed_undo(root, ask, run, lines, clock, store):
     check("380: and the same undo goes through once the copy is whole again", code == 0 and tree(root) != changed, err)
 
 
+def compacted_store(root, ask, run, lines, runs, clock, store):
+    """`restore compact` (compact, 21 November 2026): the whole copies a store holds from before restoresize deflated
+    in place, each checked before its whole copy goes, so every undo after it puts back the same bytes."""
+    import agent_changes
+
+    objects = store / "objects"
+
+    def listing() -> dict:
+        return {f.name: (f.stat().st_size, hashlib.sha256(f.read_bytes()).hexdigest())
+                for f in sorted(objects.iterdir()) if f.is_file()}
+
+    # a store of whole copies only, named by their sha, as before restoresize, with a run on top of it
+    clock["at"] += timedelta(minutes=40)
+    first = tree(root)
+    ask("length", "34", "--run", "compact")
+    compact_run = lines()[-1]["run"]
+    second = tree(root)
+    for f in list(objects.iterdir()):
+        if f.is_file() and f.name.endswith(".z"):
+            (objects / f.name[:-2]).write_bytes(agent_changes.read_object(f))
+            f.unlink()
+    plain = sorted(f.name for f in objects.iterdir() if f.is_file() and not f.name.startswith("."))
+    # one copy named by its sha that does not hold its bytes, and one whole copy with a deflated twin that is cut
+    orphan = hashlib.sha256(b"a copy no run names").hexdigest()
+    (objects / orphan).write_bytes(b"not the bytes it is named for")
+    twin = plain[0]
+    (objects / (twin + ".z")).write_bytes(b"cut")
+    start_runs, start_lines = sorted(runs()), len(lines())
+    before = listing()
+    code, dry, err = run("restore", "compact", "--dry-run")
+    check("380: restore compact --dry-run counts what it would deflate and what would stay and the sizes, and writes "
+          "nothing: no copy, no temporary file, no run and no line of the record",
+          code == 0 and dry["dry_run"] and dry["packed"] == len(plain) and dry["left"] == 1
+          and 0 < dry["bytes_after"] < dry["bytes_before"] and listing() == before
+          and not any(f.name.startswith(".") for f in objects.iterdir())
+          and sorted(runs()) == start_runs and len(lines()) == start_lines, err + json.dumps(dry))
+    # a copy whose deflated twin does not check out stays whole, its temporary file taken away
+    real_check = agent_changes.inflates_to
+    agent_changes.inflates_to = lambda path, sha: False
+    try:
+        code, held_back, err = run("restore", "compact")
+    finally:
+        agent_changes.inflates_to = real_check
+    check("380: a copy whose deflated twin does not inflate to its sha stays whole and is counted, nothing taken away "
+          "and no temporary file left", code == 0 and held_back["packed"] == 0 and held_back["left"] == len(plain) + 1
+          and listing() == before and not any(f.name.startswith(".") for f in objects.iterdir()), err + json.dumps(held_back))
+    # and one whole copy with a sound twin beside it: the whole one goes, the twin stays as it is
+    sound_name = plain[1]
+    sound_bytes = zlib.compress((objects / sound_name).read_bytes(), 9)
+    (objects / (sound_name + ".z")).write_bytes(sound_bytes)
+    code, got, err = run("restore", "compact")
+    after = listing()
+    names = sorted(after)
+    inflates = all(hashlib.sha256(agent_changes.read_object(objects / n)).hexdigest() == n[:-2]
+                   for n in names if n.endswith(".z"))
+    check("380: restore compact deflates every whole copy to its `<sha>.z`, the cut twin written again, the copy that "
+          "does not hold its sha left whole and counted, and the store the smaller for it",
+          code == 0 and got["packed"] == len(plain) and got["left"] == 1 and not got["dry_run"]
+          and names == sorted([orphan] + [n + ".z" for n in plain]) and inflates
+          and after[orphan] == before[orphan] and got["bytes_after"] < got["bytes_before"]
+          and not any(f.name.startswith(".") for f in objects.iterdir()), err + json.dumps(got))
+    check("380: a whole copy with a deflated twin that checks out beside it is taken away and the twin left as it was",
+          not (objects / sound_name).exists() and (objects / (sound_name + ".z")).read_bytes() == sound_bytes)
+    check("380: restore compact keeps no run and no line of the record", sorted(runs()) == start_runs
+          and len(lines()) == start_lines)
+    # every undo after it puts back byte for byte, and its undo does too
+    code, _x, err = run("agents", "undo-run", compact_run, "--note", "Undo the compact run")
+    check("380: a run made before the compact is undone byte for byte from the deflated copies", code == 0
+          and tree(root) == first, err)
+    code, _x, err = run("agents", "undo-run", lines()[-1]["run"], "--note", "Put the compact run back")
+    check("380: and the undo undone brings the run's files back as it left them", code == 0 and tree(root) == second, err)
+    again = listing()
+    code, got, err = run("restore", "compact")
+    check("380: a second restore compact deflates nothing and changes nothing, the copy that does not hold its sha "
+          "still whole and counted", code == 0 and got["packed"] == 0 and got["left"] == 1 and listing() == again
+          and got["bytes_after"] == got["bytes_before"], err + json.dumps(got))
+    (objects / orphan).unlink()
+    fresh_store(store.parent.parent / "fresh-compact")
+
+
+def fresh_store(base):
+    """A dry run leaves no lock file, a busy lock part way answers the counts so far and the next run finishes, and
+    a temporary file a killed compact left is cleared while other dot-files stay."""
+    import agent_changes
+    import errors
+
+    shutil.rmtree(base, ignore_errors=True)
+    root = base / "Fresh"
+    objects = root / agent_changes.STORE / "objects"
+    objects.mkdir(parents=True)
+    shas = []
+    for n in range(3):
+        data = (f"copy {n} " * 200).encode()
+        sha = hashlib.sha256(data).hexdigest()
+        (objects / sha).write_bytes(data)
+        shas.append(sha)
+    key = hashlib.sha1(str(root.resolve()).encode("utf-8")).hexdigest()[:16]
+    lock = Path(tempfile.gettempdir()) / f"idiograph-agents-{key}{agent_changes.LOCK}"
+    lock.unlink(missing_ok=True)
+    got = agent_changes.compact(root, True)
+    check("380: a dry run of restore compact on a fresh project leaves no lock file and no copy changed",
+          got["packed"] == 3 and not lock.exists() and sorted(f.name for f in objects.iterdir()) == sorted(shas))
+    stray = "." + shas[0] + "." + "ab12cd34"
+    other = ["." + shas[0], ".hidden", "." + shas[0] + ".xyz"]
+    (objects / stray).write_bytes(b"left by a kill")
+    for n in other:
+        (objects / n).write_bytes(b"not ours")
+    real = agent_changes.held
+    calls = {"n": 0}
+
+    def busy_third(r):
+        calls["n"] += 1
+        if calls["n"] == 3:
+            raise errors.WorkbookError("busy", code="busy")
+        return real(r)
+
+    agent_changes.held = busy_third
+    try:
+        part = agent_changes.compact(root, False)
+    finally:
+        agent_changes.held = real
+    check("380: a lock busy part way stops with the counts so far and says so, the copies done kept and the rest whole",
+          part["busy"] and part["packed"] == 1 and sum(1 for f in objects.iterdir() if f.name in shas) == 2,
+          json.dumps(part))
+    check("380: a temporary file a killed compact left is cleared and a dot-file of another shape is left",
+          not (objects / stray).exists() and all((objects / n).exists() for n in other))
+    done = agent_changes.compact(root, False)
+    check("380: the next restore compact finishes what the busy one left",
+          not done["busy"] and done["packed"] == 2 and done["failed"] == 0
+          and sorted(f.name for f in objects.iterdir() if not f.name.startswith(".")) == sorted(s + ".z" for s in shas))
+    shutil.rmtree(base, ignore_errors=True)
+
+
 def test_agent_changes(scratch: Path):
     print("\n380. The record of agents' changes and each run's restore point: a write kept once with its run, a dry "
           "run and a read none, runs by tool, --run and 30 minutes, a run undone whole and refused over a later "
@@ -622,6 +757,9 @@ def test_agent_changes(scratch: Path):
 
         # ── 12. copies kept deflated (restoresize, 21 November 2026), older whole ones still read
         packed_undo(root, ask, run, lines, clock, store)
+
+        # ── 13. the whole copies a store holds deflated in place (compact, 21 November 2026)
+        compacted_store(root, ask, run, lines, runs, clock, store)
     finally:
         agent_changes.ALL_OPS, agent_changes.NOW = kept[0], kept[1]
         if kept[2] is None:

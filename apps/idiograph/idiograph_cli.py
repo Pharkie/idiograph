@@ -347,7 +347,8 @@ def run_in_scope(command, p: Project, args) -> tuple:
     # (namesop, 16 November 2026)
     changes_mod.hide_request(p.root, args)
     with scope_of(p, args) as q:
-        if (args.command, getattr(args, "act", None)) in (("agents", "undo-run"), ("agents", "undo-change")):
+        if (args.command, getattr(args, "act", None)) in (("agents", "undo-run"), ("agents", "undo-change"),
+                                                          ("restore", "compact")):
             return command(q, args)
         return changes_mod.through(q, args, lambda given: command(q, given), writing_ops())
 
@@ -1645,6 +1646,37 @@ def cmd_agents_seen(p: Project, args) -> tuple:
         return {"unseen": 0, "marked": 0}, [i18n.t("agentchanges.seen.none", project=name)]
     seen = changes_mod.mark_seen(p.root)
     return {"unseen": 0, "marked": n, "at": seen.get("at")}, [i18n.t("agentchanges.seen.done", n=n, project=name)]
+
+
+def cmd_restore_compact(p: Project, args) -> tuple:
+    """`restore compact` (compact, 21 November 2026): the copies in the project's restore store that stand whole,
+    from before restoresize, deflated as new ones are (`agent_changes.compact`), each checked before its whole copy
+    goes. It answers counts and sizes alone and keeps no record: it changes no file of the project and what an undo
+    puts back, and an undo's copies are the same bytes. With --dry-run it measures and writes nothing."""
+    name = p.info["name"]
+    dry = bool(getattr(args, "dry_run", False))
+    if not changes_mod.kept_here(p.root):
+        return {"project": name, "packed": 0, "left": 0, "already": 0, "bytes_before": 0, "bytes_after": 0,
+                "dry_run": dry}, [i18n.t("agentchanges.compact.demo")]
+    got = changes_mod.compact(p.root, dry)
+    got = {"project": name, **got, "dry_run": dry}
+    lines = []
+    before, after = (f"{got[k] / 1e6:.1f}" for k in ("bytes_before", "bytes_after"))
+    if got["packed"] and dry:
+        lines.append(i18n.t("agentchanges.compact.would", n=got["packed"], project=name))
+        lines.append(i18n.t("agentchanges.compact.size_would", before=before, after=after))
+    elif got["packed"]:
+        lines.append(i18n.t("agentchanges.compact.done", n=got["packed"], project=name))
+        lines.append(i18n.t("agentchanges.compact.size_done", before=before, after=after))
+    elif not (got["left"] or got.get("failed") or got.get("busy")):
+        lines.append(i18n.t("agentchanges.compact.none", project=name))
+    if got["left"]:
+        lines.append(i18n.t("agentchanges.compact.left", n=got["left"]))
+    if got.get("failed"):
+        lines.append(i18n.t("agentchanges.compact.failed", n=got["failed"]))
+    if got.get("busy"):
+        lines.append(i18n.t("agentchanges.compact.busy", project=name))
+    return got, lines
 
 
 def cmd_agents_log(args) -> tuple:
@@ -9213,6 +9245,8 @@ COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             # every change agents made and its run, and a run undone (noholds, 13 November 2026, agent_changes.py)
             ("agents", "changes"): lambda p, args: cmd_agents_changes(p, args),
             ("agents", "undo-run"): lambda p, args: changes_mod.undo_run(p, args),
+            # the restore store's whole copies deflated (compact, 21 November 2026)
+            ("restore", "compact"): cmd_restore_compact,
             # one change or several undone alone, Project history's Undo (agentreview2, 13 November 2026)
             ("agents", "undo-change"): lambda p, args: changes_mod.undo_changes(p, args),
             # the changes agents made marked as seen, as the cross on Home's line does (homecardbuild, 18 November 2026)
@@ -9865,6 +9899,12 @@ def arguments(sub, common, writes) -> None:
                   help="every change agents made so far marked as seen, as the cross on the line on the project's "
                        "card on Home does. Only the app does it: an agent's call is refused and its dry run says how "
                        "many it would mark")
+    # the restore store's whole copies deflated (compact, 21 November 2026, agent_changes.compact)
+    rs = sub.add_parser("restore", parents=[common], help="the copies the project keeps for agents' undo"
+                        ).add_subparsers(dest="act", required=True)
+    rs.add_parser("compact", parents=[common, writes],
+                  help="every whole copy in the project's restore store deflated, as new copies are kept, each "
+                       "checked before its whole copy goes, counts and sizes answered")
     pj = sub.add_parser("project", parents=[common], help="the whole project sent as one file, or a sent one opened "
                                                           "as a copy, its settings saved, or a new project "
                                                           "made").add_subparsers(dest="act", required=True)

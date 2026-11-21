@@ -11,6 +11,27 @@
     "other": "{n} changes by agents in {project} are marked as seen."
   },
   "agentchanges.seen.none": "Every change by agents in {project} is already seen.",
+  "agentchanges.compact.demo": "The demo keeps no restore points, so there are no copies to deflate.",
+  "agentchanges.compact.none": "Every restore copy in {project} is deflated already. Nothing changed.",
+  "agentchanges.compact.would": {
+    "one": "{n} restore copy in {project} would be deflated.",
+    "other": "{n} restore copies in {project} would be deflated."
+  },
+  "agentchanges.compact.done": {
+    "one": "{n} restore copy in {project} is deflated.",
+    "other": "{n} restore copies in {project} are deflated."
+  },
+  "agentchanges.compact.size_would": "The restore copies take {before} MB and would take about {after} MB.",
+  "agentchanges.compact.size_done": "The restore copies took {before} MB and now take {after} MB.",
+  "agentchanges.compact.left": {
+    "one": "{n} copy does not check out and stays as it is.",
+    "other": "{n} copies do not check out and stay as they are."
+  },
+  "agentchanges.compact.failed": {
+    "one": "{n} copy could not be deflated. Run it again.",
+    "other": "{n} copies could not be deflated. Run it again."
+  },
+  "agentchanges.compact.busy": "It stopped part way because {project} was busy with another write. Run it again to finish.",
   "agentchanges.only.settings": "Only the app can change its settings. They belong to the app and not to a project, so no undo can reach them. Change them in Idiograph's Settings. Nothing was done.",
   "agentchanges.kind.project": "the project's settings",
   "agentchanges.kind.gets": "the GETs",

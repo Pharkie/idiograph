@@ -156,7 +156,7 @@ def test_mcp_server(scratch):
                         "trajectories_show", "trajectories_apply", "trajectories_export", "board_drawn_on", "codes_list", "codes_show", "codes_new", "codes_rename",
                         "codes_describe", "codes_merge", "codes_delete", "codes_add", "codes_remove", "codes_apply_last",
                         "codes_in_vivo", "codes_undo", "codes_redo", "codes_export",
-                        "statement_length", "statement_length_set", "settings", "settings_set", "audio_offset", "audio_attach", "quote_heading", "clear_formatting", "clear_made_notes", "transcript_replace", "transcript_replace_undo", "transcript_export", "validate", "agent_changes", "agent_undo_run", "agent_undo_change", "agent_seen", "agent_log", "project_send", "project_export_qdpx", "project_send_list", "project_open_copy",
+                        "statement_length", "statement_length_set", "settings", "settings_set", "audio_offset", "audio_attach", "quote_heading", "clear_formatting", "clear_made_notes", "transcript_replace", "transcript_replace_undo", "transcript_export", "validate", "agent_changes", "agent_undo_run", "agent_undo_change", "agent_seen", "restore_compact", "agent_log", "project_send", "project_export_qdpx", "project_send_list", "project_open_copy",
                         "project_add_transcripts", "project_boards_in",
                         "project_set", "project_remove", "project_show", "project_history", "team_show", "team_on", "team_set", "team_invite",
                         "team_answers", "team_admit", "team_join", "team_offer", "team_joined", "team_unjoin", "team_cancel", "team_remove", "team_lead", "team_take", "team_send",
@@ -198,7 +198,7 @@ def test_mcp_server(scratch):
                                  "participant_complete", "participant_export", "participant_rename", "participant_set",
                                  "project_add_transcripts",
                                  "project_boards_in", "project_export_qdpx", "project_new", "project_open_copy", "project_remove", "project_send",
-                                 "project_set", "quote_heading", "settings_set", "statement_length_set",
+                                 "project_set", "quote_heading", "restore_compact", "settings_set", "statement_length_set",
                                  "team_admit", "team_ask", "team_board_answer", "team_board_send", "team_board_take",
                                  "team_cancel", "team_comment", "team_invite", "team_join", "team_joined", "team_lead", "team_on",
                                  "team_remove", "team_reply", "team_review_done", "team_review_send", "team_send",
@@ -210,7 +210,7 @@ def test_mcp_server(scratch):
                       for t in tools if t["name"] not in writers and t["name"] not in sifts)
               and all({"request", "dry_run"} <= set(t["inputSchema"]["properties"]) and "request" in t["inputSchema"]["required"]
                       for n, t in writers.items() if n not in ("board_export", "gets_export", "participant_export", "project_send", "project_export_qdpx", "trajectories_export", "transcript_export", "codes_export",
-                                                                        "project_open_copy", "team_send"))
+                                                                        "project_open_copy", "team_send", "restore_compact"))
               # Send now writes no History, so it takes request without asking for it (smokefix, 9 November 2026)
               and {"request", "dry_run"} <= set(writers["team_send"]["inputSchema"]["properties"])
               and "request" not in (writers["team_send"]["inputSchema"].get("required") or [])

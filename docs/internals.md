@@ -646,7 +646,16 @@ parser:
   Source file of a run begun before undosource) and adds it to its point as it stands, so its change is undone by
   putting it back, never by taking it away. `tidy` lets points go
   `KEEP_DAYS`, 30, after their run's last write, the last `KEEP_RUNS`, 10, kept whatever their age, and `sweep` takes
-  away every copy no kept run names. A run whose first op wrote nothing, or was refused, is let go (`drop`).
+  away every copy no kept run names. `restore compact` (compact, 21 November 2026, `compact`, `cmd_restore_compact`, MCP's `restore_compact`) turns each whole
+  copy of a store from before restoresize into `<sha>.z`: a copy at a time under the agents' lock, the bytes hashed to
+  the sha as they are deflated into a temporary file in the store (`deflate_copy`, mode 600, flushed to the drive with F_FULLFSYNC where macOS has it, `durable`), the temporary
+  file checked to inflate to that sha (`inflates_to`), renamed over any `.z` of that sha that did not check out, the
+  folder fsynced and only then the whole copy unlinked. A copy that does not hold its sha, or whose twin does not check
+  out, stays whole and is counted in `left`. A `.z` that checks out beside a whole copy of the sha takes the whole one
+  away. A real run first clears a `.<sha>.<8 hex>` temporary file a killed run left. A rename or unlink that is refused is counted in `failed`, apart from `left`, and a lock busy part way stops with the counts so far and `busy`, a run again finishing. The dry run measures by deflating without writing and takes no lock. It answers counts and bytes alone, goes
+  by `run_in_scope` as `agents undo-run` does, never through `through`, and keeps no run or line of the record. `sweep`
+  does not call it: a write must not wait on a one-off conversion, and every copy kept since restoresize is
+  deflated. Area 380. A run whose first op wrote nothing, or was refused, is let go (`drop`).
 - Each file's time and size are read before and after the op (`tracked`). `settle` keeps in the run's file
   (`runs/<id>.json`) the files it changed, those it made (changed and not in its point), those that changed between
   its writes by someone else (`foreign`, the reading before a write differing from the run's last), and `after`, its

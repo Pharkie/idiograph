@@ -2867,6 +2867,13 @@ its own, and which its run's undo reaches. Run it with `--dry-run` first, and un
 run of its own, which `agents undo-run` undoes in its turn. They do the same in the app: Project history's By an
 agent lists the record by run, with Undo on each change and on each run.
 
+`idiograph restore compact` (`restore_compact` through MCP) deflates the whole copies a project's restore store holds
+from before 21 November, as new copies are kept, so the store takes a tenth of what it did. Each copy is checked to
+inflate to the bytes it is named for before its whole copy is taken away, and one that does not check out stays as it
+is and is counted. No file of the project changes and every undo puts back the same bytes. It answers counts and sizes
+alone, never a file's name or words, and keeps no run in the record. Run it with `--dry-run` first to measure what it
+would save.
+
 **The app's alone.** What no undo reaches is refused for an agent in one line naming where to do it in the app,
 nothing waiting, and its dry run still answers:
 
