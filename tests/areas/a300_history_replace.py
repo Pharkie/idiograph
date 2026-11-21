@@ -234,6 +234,18 @@ def test_history_replace(scratch):
               and added(gets_was, file_lines(gfile)) == {"b1": [agent], "b2": [agent], "b3": []},
               err or str([added(pets_was, pets_lines(osric)), added(gets_was, file_lines(gfile))]))
 
+        # the turn write only reworded, so no revision was moved (turnwrite, 21 November 2026): the one it kept holds
+        # the words as they stood, the older ones as before, and a restore of the older one gives today's
+        held_boards = support.board_file(themes.themes_path(osric))["boards"]
+        kept_first = held_boards[0]["history"][-1]["state"]["cards"][lines_of[1]]["text"]
+        older = held_boards[0]["history"][-2]["state"]["cards"][lines_of[1]]["text"]
+        brought = themes.brought_up(held_boards[0]["history"][-2]["state"],
+                                    themes.read_cards(osric))["cards"][lines_of[1]]["text"]
+        check("300: after an agent's reword the revision it kept first holds the words as they stood, the older one "
+              "its own, and an older one brought up takes the words of today",
+              kept_first == "Waiting to be stung" and older == "Waiting to be stung"
+              and brought == "Waiting, braced, to be stung", f"{kept_first} / {older} / {brought}")
+
         # 5. the statements screen's save: one line a statement reworded, none for a save that rewords nothing
         def commit(pairs: list[str]) -> dict:
             return call("/api/commit", {"path": str(osric), "sheet": sheet, "row": o[0],

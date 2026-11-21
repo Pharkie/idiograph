@@ -1369,7 +1369,7 @@ the project's `gets`, `audio`, `audio_bytes`, `audio_size`, `bytes`, `size`, `by
 current` sends each themes file (every timepoint's), LPETs file, and the GETs and LGETs files with one
 board, the one it is going with: the Current board (`chosen`), else the board on the canvas, else its
 first. The board keeps its own id and name and is marked `current`, and `chosen` too when the file
-marked one, so the copy opens on it. Its restore points (the board's `history`) stay behind, and a
+marked one, so the copy opens on it. Its History (the chunks beside its board file) stays behind, and the board goes without its `history_head`, and a
 complete mark naming another board goes as null. A PET draft or a PET or GETs table goes only when its
 name ties it to that board, "(Board 2)" or "(Board 2, 6 Oct 14.20)", so one named for sending, with no
 board in its name, stays out with the other boards' (listed under `boards`). Every progress file goes

@@ -1046,6 +1046,8 @@ def through(p, args, run_op, writes: frozenset):
         fresh = run is None
         run = run or new_run(root, args, via, agent_name(args))
         before = tracked(root)
+        # the archive copies in a folder the run made as this write begins, which are not this write's (lowsfix)
+        standing = archive_files(root, run)
         # a file that differs from the run's last reading changed between its writes, by someone else
         foreign = set(moved(run.get("after") or {}, before)) & (set(run.get("changed") or []) | set(run.get("point") or {}))
         if not fresh:
@@ -1080,7 +1082,7 @@ def through(p, args, run_op, writes: frozenset):
                 # a write that failed part way: the run kept, so what it wrote can be undone
                 if fresh:
                     keep_run(root, run)
-                settle(root, run, foreign, before, after)
+                settle(root, run, foreign, before, after, standing)
             if fresh:
                 let_go(run)
             raise
@@ -1097,7 +1099,7 @@ def through(p, args, run_op, writes: frozenset):
             # a run of a line with no file keeps its restore point as every run does, so a later write that joins it
             # by its id is undone by putting files back (skipreason's third review)
             keep_run(root, run)
-        settle(root, run, foreign, before, after)
+        settle(root, run, foreign, before, after, standing)
         made = [f for f in changed if f not in (run.get("point") or {})]
         step = step_of(root, changed, before, known, unread)
         e = append(root, entry_for(p, args, run, answer, changed, made))
@@ -1112,7 +1114,7 @@ def through(p, args, run_op, writes: frozenset):
     return answer, lines
 
 
-def settle(root, run: dict, foreign: set, before: dict, after: dict) -> list:
+def settle(root, run: dict, foreign: set, before: dict, after: dict, standing: dict | None = None) -> list:
     """The run's reading after a write: what it changed, made and found changed by others, its files as they now
     stand, its last write's time. Answers the files this write changed."""
     changed = moved(before, after)
@@ -1120,45 +1122,61 @@ def settle(root, run: dict, foreign: set, before: dict, after: dict) -> list:
     run["changed"] = sorted(set(run.get("changed") or []) | set(changed))
     run["made"] = sorted(set(run.get("made") or []) | {f for f in changed if f not in (run.get("point") or {})})
     run["after"] = after
-    archives_made(root, run)
+    archives_made(root, run, standing)
     if changed:
         run["last"] = stamp()
     save_run(root, run)
     return changed
 
 
-def archives_made(root, run: dict) -> None:
-    """The archive copies the run's writes made inside a folder the run made, kept in the run's file by their time
-    and size (`archived`), so its undo takes them away with the folder (undosource2): a further interview added to
-    a participant the same run added keeps the workbook as it stood in that participant's _Archive. A folder there
-    before the run, and every _Archive in it, is never looked in."""
+def archive_files(root, run: dict) -> dict:
+    """Every file now in an _Archive inside a folder that was not there as the run began (`folders`), by its path,
+    with its time and size (undosource2): a folder the run made, or one the researcher made since, each looked in once
+    from its top. A folder there before the run, and every _Archive in it, is never looked in."""
     then = run.get("folders")
     if then is None:
-        return
+        return {}
     then = set(then)
-    tops = set()
-    for f in run.get("made") or []:
-        parts = f.split("/")[:-1]
-        for i in range(1, len(parts) + 1):
-            rel = "/".join(parts[:i])
-            if rel not in then:
-                tops.add(rel)
-                break
-    out = dict(run.get("archived") or {})
-    for top in sorted(tops):
-        base = Path(root) / top
-        if not base.is_dir() or base.is_symlink():
-            continue
+    root = Path(root)
+    out = {}
+
+    def archives(base: Path) -> None:
         for here, dirs, files in os.walk(base):
             dirs[:] = sorted(d for d in dirs if not d.startswith("."))
             rel_here = Path(here).relative_to(root).as_posix()
             if "_Archive" not in rel_here.split("/"):
                 continue
             for name in files:
-                rel = f"{rel_here}/{name}"
                 st = read_stat(Path(here) / name)
-                if st is not None and rel not in out:
-                    out[rel] = st
+                if st is not None:
+                    out[f"{rel_here}/{name}"] = st
+
+    for here, dirs, _files in os.walk(root):
+        rel_here = Path(here).relative_to(root).as_posix()
+        keep = []
+        for d in sorted(dirs):
+            if d.startswith(".") or d in SKIP_DIRS:
+                continue
+            rel = d if rel_here == "." else f"{rel_here}/{d}"
+            if rel in then:
+                keep.append(d)
+            elif not Path(here, d).is_symlink():
+                archives(Path(here) / d)
+        dirs[:] = keep
+    return out
+
+
+def archives_made(root, run: dict, standing: dict | None = None) -> None:
+    """The archive copies the run's writes made inside a folder the run made, kept in the run's file by their time
+    and size (`archived`), so its undo takes them away with the folder (undosource2): a further interview added to
+    a participant the same run added keeps the workbook as it stood in that participant's _Archive. `standing` is
+    what `archive_files` read before the write: a file already there then is not the write's, a researcher's own
+    drop between two writes, so the undo leaves it (lowsfix)."""
+    got = archive_files(root, run)
+    out = dict(run.get("archived") or {})
+    for rel, st in got.items():
+        if rel not in out and rel not in (standing or {}):
+            out[rel] = st
     if out:
         run["archived"] = out
 
@@ -1342,13 +1360,14 @@ def carry_out(root, draft: dict, gone: list, back: list, clear: list, names: dic
     with contextlib.ExitStack() as stack:
         for lock in sorted({lock_of(root, f) for f in every}, key=str):
             stack.enter_context(locks.held(lock))
-        kept, failed = {}, []
+        kept, failed, stood = {}, [], {}
         for f in gone:
             got = keep_file(root, f)
             if got is None:
                 failed.append(f)
             else:
                 kept[f] = got[0]
+                stood[f] = got[1]
         for f, _src, _ns in back:
             e = (draft.get("point") or {}).get(f)
             if (Path(root) / f).is_file() and not (isinstance(e, dict) and e.get("sha")):
@@ -1358,12 +1377,15 @@ def carry_out(root, draft: dict, gone: list, back: list, clear: list, names: dic
                     failed.append(f)
                 else:
                     kept[f] = got[0]
+                    stood[f] = got[1]
         if failed:
             let_go(draft)
             raise cli.Refused(i18n.t("agentchanges.undo.not_kept", what=said_files(sorted(set(failed)), names)))
         # its restore point given the copies before it is kept, so the tidy that keeping it runs counts them named
         keep_taken(draft, kept)
-        draft["kept_made"] = {f: kept[f] for f in gone if f in kept}
+        # an _Archive file the undo writes over is kept like one it takes away (lowsfix)
+        draft["kept_made"] = {f: kept[f] for f in list(gone) + [b[0] for b in back]
+                              if f in kept and (f in gone or "_Archive" in f.split("/"))}
         mine = keep_run(root, draft)
         before = tracked(root)
         try:
@@ -1388,6 +1410,19 @@ def carry_out(root, draft: dict, gone: list, back: list, clear: list, names: dic
         finally:
             after = tracked(root)
             changed = moved(before, after)
+            # an _Archive copy taken away is no tracked file, so the undo's run is told of it here, its copy in its
+            # restore point, and the undo undone in its turn puts it back (lowsfix)
+            for f in gone:
+                if "_Archive" in f.split("/") and f in kept and not (Path(root) / f).exists():
+                    mine["point"][f] = {"sha": kept[f], "stat": stood[f]}
+                    changed = sorted(set(changed) | {f})
+            # and one it puts back there: kept in the point when it wrote over another, else made by this run, so that
+            # undo undone takes it away again
+            for f, _src, _ns in back:
+                if "_Archive" in f.split("/") and (Path(root) / f).is_file():
+                    if f in kept:
+                        mine["point"][f] = {"sha": kept[f], "stat": stood[f]}
+                    changed = sorted(set(changed) | {f})
             mine.update(changed=changed, made=[f for f in changed if f not in mine["point"]], after=after,
                         last=stamp(), changes=1)
             save_run(root, mine)

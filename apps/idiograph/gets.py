@@ -3428,6 +3428,15 @@ def lines_followed(case: str, cards: dict, old_lines: dict, fresh_lines: dict) -
     return out
 
 
+def board_follow(case: str, cards: dict, old_lines: dict, fresh_lines: dict) -> dict[str, str]:
+    """Where a board's statement cards of a case go, `lines_followed` with every line of the case's old copy in the
+    pairing as `quotes_followed` has them, so a card and its ticked quote follow the same line even where the board
+    holds only some of the statements (takefix2). Answers the cards of this board that move."""
+    everyone = {card_of(case, "es", k): {} for k in old_lines}
+    out = lines_followed(case, dict(everyone, **cards), old_lines, fresh_lines)
+    return {k: v for k, v in out.items() if k in cards}
+
+
 def make_room_below(board: dict, data: dict, now: dict[str, str], was: dict[str, int]) -> list[str]:
     """Room below each card a take made taller, a PET's title a line longer or a description new under it
     (22 October): what it now meets below it moves straight down just far enough, and pushes on in turn
@@ -3525,7 +3534,9 @@ def take_into(data: dict, case: str, old: dict, fresh: dict, workbook: Path, whe
         # each card's height as it stood, for the room a card that grows makes below it (see `make_room_below`)
         was = {k: card_height(k, c.get("text")) for k, c in named(board, data)["cards"].items()}
         # a statement's card follows its words, whatever a write moved or removed in its passage
-        rename = lines_followed(case, board.get("cards") or {}, old.get("lines") or {}, fresh["lines"])
+        # paired with every line of the case's old copy as `quotes_followed` pairs them, so a statement card and its
+        # ticked quote always follow the same line even where the board holds only some of the statements (takefix2)
+        rename = board_follow(case, board.get("cards") or {}, old.get("lines") or {}, fresh["lines"])
         titled = set()
         for key in list(board.get("cards") or {}):
             k = split_key(key)
@@ -3925,13 +3936,14 @@ def keys_followed(board: dict, case: str, rename: dict[str, str], qmap: dict[str
 
 
 def carried(board: dict, moved: list[str]) -> set[str]:
-    """The labels and sticky notes `make_room_below` moved on a board, each label with the labels and the notes it
-    holds, as `themes.push_clear` shifts them."""
+    """The labels, sticky notes and cards `make_room_below` moved on a board, each label with the labels, the cards and
+    the notes it holds, as `themes.push_clear` shifts them (takefix2: a card moved any other way is not one the take
+    may move)."""
     by_id = {g["id"]: g for g in board.get("groups") or [] if isinstance(g, dict) and g.get("id")}
     out: set[str] = set()
     for item in moved or []:
-        labels, _cards, notes = themes._block(by_id, board, item)
-        out |= set(labels) | set(notes)
+        labels, cards, notes = themes._block(by_id, board, item)
+        out |= set(labels) | set(cards) | set(notes)
     return out
 
 
@@ -3987,7 +3999,7 @@ def structure_changes(was: dict, board: dict, case: str, rename: dict[str, str],
     cards_was, cards_now = want.get("cards") or {}, board.get("cards") or {}
     for k in sorted(set(cards_now) ^ (set(cards_was) | set(effects["cards_added"]))):
         add("cards", k)
-    moved = set(effects["cards_moved"])
+    moved = set(effects["cards_moved"]) & set(pushed)
     back = {rename.get(k, k): k for k in was.get("cards") or {}}
     for k, c in cards_was.items():
         if k not in cards_now:

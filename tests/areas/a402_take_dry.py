@@ -245,6 +245,27 @@ def test_take_dry(scratch: Path):
               and not any(gets_mod.structure_kept(was_b, x, "T2", dict(eff["cards_renamed"]), qmap, eff, eff["cards_lost"])
                           for x in (moved_card, retitled, unticked)))
 
+        # L1 (takefix2): a card the take moved is allowed its new place only where the push moved it
+        shifted = json.loads(json.dumps(now_b))
+        still = next((k for k in shifted["cards"] if k in was_b["cards"] and k not in dict(eff["cards_renamed"])), None)
+        if still is not None:
+            shifted["cards"][still]["x"] = shifted["cards"][still].get("x", 0) + 40
+        args = (was_b, shifted, "T2", dict(eff["cards_renamed"]), qmap, dict(eff, cards_moved=[still]), eff["cards_lost"])
+        check("402: a card moved by the take is refused unless the push to make room moved it (takefix2)",
+              still is not None and not gets_mod.structure_kept(*args)
+              and gets_mod.structure_kept(*args, pushed={still}))
+        # L2: a board holding only some of a participant's statements pairs a card with the line its ticked quote follows
+        old_l = {"S:1:0": {"text": "same words"}, "S:2:0": {"text": "same words"}}
+        new_l = {"S:1:0": {"text": "other words"}, "S:2:0": {"text": "same words"}, "S:3:0": {"text": "same words"}}
+        key = gets_mod.card_of("T9", "es", "S:1:0")
+        only = {key: {"text": "same words"}}
+        alone = gets_mod.lines_followed("T9", only, old_l, new_l)
+        paired = gets_mod.board_follow("T9", only, old_l, new_l)
+        check("402: a card on a board that holds only some statements leaves a line another statement holds, going "
+              "where the whole copy's pairing sends it, as its quote does",
+              alone.get(key) == gets_mod.card_of("T9", "es", "S:2:0")
+              and paired == {key: gets_mod.card_of("T9", "es", "S:3:0")}, json.dumps([alone, paired]))
+
         # ── D. recorded, and its undo puts it back
         line = [e for e in agent_changes.read(root) if e.get("op") == "gets take"]
         code, undone, err = run("agents", "undo-change", line[-1]["id"] if line else "c0", note="Put the take back")
@@ -290,13 +311,17 @@ def test_take_dry(scratch: Path):
         # I. the route's dry run makes no lock file where there was none (the command line's is checked in A)
         lock_was = sorted(p.name for p in root2.rglob("*.lock"))
         whole2 = tree2()
+        refused = ""
         try:
-            routes.api_gets_cases({"root": str(root2), "op": "take", "case": WHO, "dry_run": True})
-        except WorkbookError:
-            pass
-        check("402: the take's dry run through the app's route leaves no lock file and writes nothing",
-              sorted(p.name for p in root2.rglob("*.lock")) == lock_was and tree2() == whole2,
-              sorted(p.name for p in root2.rglob("*.lock")))
+            by_route = support.plain(routes.api_gets_cases({"root": str(root2), "op": "take", "case": WHO,
+                                                             "dry_run": True}))
+        except WorkbookError as exc:
+            by_route, refused = {}, str(exc)
+        check("402: the take's dry run through the app's route answers its counts, leaves no lock file and writes "
+              "nothing (its counts are compared with the command line's in G)",
+              not refused and by_route.get("dry_run") and by_route.get("counts") is not None
+              and sorted(p.name for p in root2.rglob("*.lock")) == lock_was and tree2() == whole2,
+              refused or sorted(p.name for p in root2.rglob("*.lock")))
 
         def boxes(data: dict, board: dict) -> dict:
             shown = gets_mod.named(board, data)
@@ -400,6 +425,13 @@ def test_take_dry(scratch: Path):
         # reach it, the file unreadable then, leaves the copy and its boards on the old keys, which the take follows
         lp2.write_text(json.dumps(set_up, ensure_ascii=False, indent=1), encoding="utf-8")
         code, dry1, err1 = run2("gets", "take", "T1", "--lpets", WHO, "--dry-run")
+        # the app's route says the same of the same take, the counts equal (takefix2)
+        with routes.lpets_scope(book2):
+            by_route1 = support.plain(routes.api_gets_cases({"root": str(root2), "op": "take", "case": "T1",
+                                                             "dry_run": True}))
+        check("402: the app's route and the command line count the same take of the same changes alike, the keys too",
+              dry1.get("counts") and by_route1.get("counts") == dry1.get("counts"),
+              json.dumps([by_route1.get("counts"), dry1.get("counts")])[:600])
         code_raw, raw1, _x = cli.run(["--root", str(root2), "--config", str(cfg), "gets", "take", "T1", "--lpets", WHO,
                                       "--dry-run", "--json"])
         renamed_raw = [b.get("cards_renamed") for b in (json.loads(raw1).get("counts") or {}).get("boards") or []]

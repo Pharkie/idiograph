@@ -187,6 +187,57 @@ def source_undo(scratch: Path):
           "in their folder too", c1 == c2 == code == 0 and ivo is not None and not ivo.exists()
           and tree(root) == before_ivo, e1 + e2 + err)
 
+    # a file the researcher drops in the participant's _Archive between two writes of the run is not the run's: its
+    # undo leaves it, takes the archive copy the run made, and the undo undone puts that copy back (lowsfix)
+    for name, spec in (("Initial", "zed-1"), ("Follow-up", "zed-2")):
+        words = given / f"{name}.vtt"
+        (given / f"{spec}.vtt").write_text(words.read_text(encoding="utf-8").replace("Ivo", "Zed"), encoding="utf-8")
+        (base / f"{spec}.json").write_text(json.dumps([{"file": str(given / f"{spec}.vtt"), "pseudonym": "Zed",
+                                                        "interview": name, "speakers": {"Sam": "interviewer", "Zed": "participant"}}]),
+                                           encoding="utf-8")
+    before_zed = tree(root)
+    c1, _x, e1 = run("project", "add-transcripts", "--from", str(base / "zed-1.json"), "--run", "zed", "--note", "Add Zed")
+    zed = next((p for p in root.iterdir() if p.is_dir() and p.name.endswith("Zed")), None)
+    dropped = zed / "_Archive" / "by-hand.txt" if zed is not None else None
+    if dropped is not None:
+        dropped.parent.mkdir(exist_ok=True)
+        dropped.write_bytes(b"the researcher's own file")
+        # and a folder of his own with an _Archive of its own, made between the writes
+        (zed / "Notes" / "_Archive").mkdir(parents=True)
+        (zed / "Notes" / "_Archive" / "also.txt").write_bytes(b"his too")
+    c2, _x, e2 = run("project", "add-transcripts", "--from", str(base / "zed-2.json"), "--run", "zed", "--note", "More")
+    zed_run = agent_changes.read(root)[-1]["run"]
+    made_copies = sorted(p.name for p in (zed / "_Archive").iterdir()) if zed is not None else []
+    with_zed = tree(root)
+    c3, undone_zed, e3 = run("agents", "undo-run", zed_run, "--note", "Undo Zed")
+    left = sorted(p.name for p in (zed / "_Archive").iterdir()) if zed is not None and (zed / "_Archive").exists() else []
+    check("380: an undo of a participant a run added leaves a file the researcher dropped in their _Archive between "
+          "its writes and takes the archive copies the run made", c1 == c2 == c3 == 0 and zed is not None
+          and "by-hand.txt" in made_copies and len(made_copies) > 1 and left == ["by-hand.txt"]
+          and (zed / "Notes" / "_Archive" / "also.txt").read_bytes() == b"his too"
+          and {k: v for k, v in tree(root).items() if not k.startswith(zed.name)} == before_zed,
+          e1 + e2 + e3 + json.dumps([made_copies, left]))
+    kept_copies = {p.name: p.read_bytes() for p in (zed / "_Archive").iterdir() if p.name != "by-hand.txt"} if zed else {}
+    c4, redone, e4 = run("agents", "undo-run", undone_zed.get("undo_run", ""), "--note", "Put Zed back")
+    back = {p.name: p.read_bytes() for p in (zed / "_Archive").iterdir()} if zed is not None and (zed / "_Archive").exists() else {}
+    check("380: that undo undone puts the archive copies it took away back, byte for byte, and tree is as before it",
+          c4 == 0 and not kept_copies and sorted(back) == made_copies and back["by-hand.txt"] == b"the researcher's own file"
+          and tree(root) == with_zed, e4 + json.dumps(sorted(back)))
+    # the redo is a run of its own that knows the copies it put back: undone, it takes them away again (lowsfix)
+    c5, again, e5 = run("agents", "undo-run", redone.get("undo_run", ""), "--note", "Take them away again")
+    left = sorted(p.name for p in (zed / "_Archive").iterdir())
+    check("380: the undo of that redo takes the archive copies it put back away again and leaves the researcher's file",
+          c5 == 0 and left == ["by-hand.txt"], e5 + json.dumps(left))
+    # a file of the researcher's at a copy's own path is kept before the redo writes over it, and comes back
+    copy_name = next(n for n in made_copies if n != "by-hand.txt")
+    (zed / "_Archive" / copy_name).write_bytes(b"mine, at the copy's name")
+    c6, redo2, e6 = run("agents", "undo-run", again.get("undo_run", ""), "--note", "Put the copies back again")
+    wrote = (zed / "_Archive" / copy_name).read_bytes() != b"mine, at the copy's name"
+    c7, _x, e7 = run("agents", "undo-run", redo2.get("undo_run", ""), "--note", "And his file again")
+    check("380: a file of his at a copy's path is kept before an undo writes the copy over it, and that undo undone "
+          "brings his file back", c6 == c7 == 0 and wrote
+          and (zed / "_Archive" / copy_name).read_bytes() == b"mine, at the copy's name", e6 + e7)
+
     # a copy that cannot be kept refuses the undo whole, nothing taken away (undosource2)
     (given / "Initial.vtt").write_text((given / "Initial.vtt").read_text(encoding="utf-8").replace("Ivo", "Pip"),
                                        encoding="utf-8")

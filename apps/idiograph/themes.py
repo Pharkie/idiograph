@@ -5243,6 +5243,14 @@ def passage_moved(version: dict, sheet: str, row: int, old: list[str], new: list
     return after, {"moved": moved, "removed": removed, "picks": picks, "reworded": reworded}
 
 
+def keys_stay(old: list[str], new: list[str], lines: dict, quote_lines: dict) -> bool:
+    """Whether a passage's write keeps every line at its own key, only its words changing: as many lines after as
+    before, each old line at its own place, each old quote at its own place. Then no key of any revision moves, and
+    `passage_written` leaves the revisions as they are (see `brought_up`)."""
+    return (len(new) == len(old) and all(lines.get(i) == i for i in range(len(old)))
+            and all(to == at for at, to in (quote_lines or {}).items()))
+
+
 @at_sheet_timepoint
 def passage_written(workbook: Path, sheet: str, row: int, old: list[str], new: list[str], lines: dict,
                     quote_lines: dict, now: dict, then: dict, dry: bool = False, history: str = "",
@@ -5251,7 +5259,10 @@ def passage_written(workbook: Path, sheet: str, row: int, old: list[str], new: l
     histories (see `passage_moved`), as a trim carries its rows (see `rekey`). Each board it changes
     keeps the board as it stood first in its History, under `history`, is stamped `updated`, and with
     `changed`, an agent's mark, is marked changed in a conversation, so an open PETs screen says so
-    and its next save never puts the old keys back. With `dry` nothing is written.
+    and its next save never puts the old keys back. With `dry` nothing is written. When every line keeps its key
+    and only its words change (`keys_stay`) the revisions are left as they were, as an edit on the canvas leaves
+    them: each takes today's words when shown or restored (`brought_up`), so the write is the board file and the
+    "kept first" revision alone (turnwrite, 21 November 2026).
 
     Answers each board it changes: its id and name, and the cards moved, the cards removed and the
     picks moved or dropped. A case with no themes file has none."""
@@ -5260,6 +5271,7 @@ def passage_written(workbook: Path, sheet: str, row: int, old: list[str], new: l
     data = load(workbook)
     when = now_iso()
     out = []
+    reworded_only = keys_stay(old, new, lines, quote_lines)
     for board in boards_of(data):
         was = as_read(board, now)
         after, said = passage_moved(board, sheet, row, old, new, lines, quote_lines, now, then)
@@ -5274,8 +5286,11 @@ def passage_written(workbook: Path, sheet: str, row: int, old: list[str], new: l
         if dry:
             continue
         # its revisions move with the lines, and a board whose History is not all here moves itself alone, its
-        # revisions brought up to date when restored (see `brought_up`), so the write is never half done
-        for revision in board_history.attached(board) or []:
+        # revisions brought up to date when restored (see `brought_up`), so the write is never half done. When
+        # every line keeps its key and only its words change they are left as they are, as `statement_edited`
+        # leaves them, each taking today's words when shown or restored (turnwrite, 21 November 2026), so a
+        # reword writes no chunk
+        for revision in ([] if reworded_only else board_history.attached(board) or []):
             if isinstance(revision, dict) and isinstance(revision.get("state"), dict):
                 revision["state"] = state_of(passage_moved(revision["state"], sheet, row, old, new, lines,
                                                            quote_lines, now, then)[0])

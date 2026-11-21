@@ -1788,6 +1788,7 @@ def row_cells(path: Path, sheet: str, row: int) -> tuple:
     and their width, or no columns for a sheet with no statements (copiesadd, 16 November 2026: a statement a save
     adds joins the copies from its row alone)."""
     path = Path(path)
+    guard_place(path)
     try:
         book = openpyxl.load_workbook(whole(path), read_only=True, data_only=True)
     except Exception as exc:
