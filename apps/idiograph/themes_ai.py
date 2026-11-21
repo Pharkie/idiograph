@@ -1009,14 +1009,31 @@ COUNTS_SAID = (lambda: i18n.t("themes_ai.number.no"), lambda: i18n.t("themes_ai.
                lambda: i18n.t("themes_ai.number.ten"))
 
 
-def _count_said(n: int) -> str:
-    return COUNTS_SAID[n]() if 0 <= n < len(COUNTS_SAID) else str(n)
+# the same in the feminine, for a language whose numbers agree with the noun in gender (langready, 21 November
+# 2026: Spanish's "una tarjeta"); English's are the same words, and a noun's gender is its `themes_ai.gender.*`
+# message, "m" or "f"
+COUNTS_SAID_F = (lambda: i18n.t("themes_ai.number_f.no"), lambda: i18n.t("themes_ai.number_f.one"),
+                 lambda: i18n.t("themes_ai.number_f.two"), lambda: i18n.t("themes_ai.number_f.three"),
+                 lambda: i18n.t("themes_ai.number_f.four"), lambda: i18n.t("themes_ai.number_f.five"),
+                 lambda: i18n.t("themes_ai.number_f.six"), lambda: i18n.t("themes_ai.number_f.seven"),
+                 lambda: i18n.t("themes_ai.number_f.eight"), lambda: i18n.t("themes_ai.number_f.nine"),
+                 lambda: i18n.t("themes_ai.number_f.ten"))
 
 
-# so many of a board's units, "two statements", "one card", "three labels", by the unit's own plural forms
-UNITS_SAID = {"statement": lambda n: i18n.t("themes_ai.count.statement", n=n, count=_count_said(n)),
-              "card": lambda n: i18n.t("themes_ai.count.card", n=n, count=_count_said(n)),
-              "label": lambda n: i18n.t("themes_ai.count.label", n=n, count=_count_said(n))}
+def _count_said(n: int, gender: str = "m") -> str:
+    """A small number in words in the run's language, in the feminine where the noun counted is (`gender` "f")."""
+    words = COUNTS_SAID_F if gender == "f" else COUNTS_SAID
+    return words[n]() if 0 <= n < len(words) else str(n)
+
+
+# so many of a board's units, "two statements", "one card", "three labels", by the unit's own plural forms, the
+# number said in the gender the language gives the unit
+UNITS_SAID = {"statement": lambda n: i18n.t("themes_ai.count.statement", n=n,
+                                            count=_count_said(n, i18n.t("themes_ai.gender.statement"))),
+              "card": lambda n: i18n.t("themes_ai.count.card", n=n,
+                                       count=_count_said(n, i18n.t("themes_ai.gender.card"))),
+              "label": lambda n: i18n.t("themes_ai.count.label", n=n,
+                                        count=_count_said(n, i18n.t("themes_ai.gender.label")))}
 
 
 def _units(n: int, unit: str) -> str:
@@ -1072,7 +1089,8 @@ def change_line(applied: list[dict], before: dict) -> str:
     if not said:
         return _w("NOTHING_CHANGED")
     more = len(said) - 4
-    said = said[:4] + ([i18n.t("themes_ai.change.more", n=more, count=_count_said(more))] if more > 0 else [])
+    said = said[:4] + ([i18n.t("themes_ai.change.more", n=more,
+                                                                    count=_count_said(more, i18n.t("themes_ai.gender.change")))] if more > 0 else [])
     text = formats.list_words(said)
     return i18n.t("themes_ai.change.line", changes=text[0].upper() + text[1:])
 
@@ -1187,7 +1205,7 @@ def cut_words(system: str, build, order: list[tuple[str, int]], ceiling: int) ->
 
 def gets_cut_line(n: int) -> str:
     """What the card's line and the answer say when the words of some statements went for room."""
-    return i18n.t("themes_ai.room.words", n=n, count=_count_said(n))
+    return i18n.t("themes_ai.room.words", n=n, count=_count_said(n, i18n.t("themes_ai.gender.statement")))
 
 
 def gets_ids(version: dict) -> dict:

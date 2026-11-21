@@ -244,7 +244,9 @@ def test_themes(scratch):
               outcomes == ["refused", "refused"] and bad.read_text(encoding="utf-8") == "{ not json")
 
         # the two routes over HTTP, and the answer a server from before them gives
-        httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), server_mod.Handler)
+        # the app's own server class, which binds without the lookup of this computer's name that held the start
+        # for half a minute on GitHub's Mac (7 November 2026), and a wait that a slow runner's first request fits in
+        httpd = server_mod.AppServer(("127.0.0.1", 0), server_mod.Handler)
         threading.Thread(target=httpd.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True).start()
 
         def post(route, body):
@@ -252,7 +254,7 @@ def test_themes(scratch):
                                          data=json.dumps(body).encode("utf-8"),
                                          headers={"Content-Type": "application/json"})
             try:
-                with urllib.request.urlopen(req, timeout=10) as r:
+                with urllib.request.urlopen(req, timeout=60) as r:
                     return r.status, json.loads(r.read())
             except urllib.error.HTTPError as exc:
                 return exc.code, json.loads(exc.read())

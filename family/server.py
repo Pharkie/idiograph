@@ -3040,7 +3040,11 @@ class Handler(BaseHTTPRequestHandler):
         if blocked:
             return self._json({"error": blocked}, 409)
         if not quiet():
-            return self._json({"error": named(i18n.t("errors.write_still_under_way_did"), op=op)}, 409)
+            # a key for each op's own words (langready, 21 November 2026), so a language says "restart" and "quit"
+            # as it says them, never an English word dropped into its sentence
+            if op == "restart":
+                return self._json({"error": named(i18n.t("errors.write_still_under_way_restart"))}, 409)
+            return self._json({"error": named(i18n.t("errors.write_still_under_way_quit"))}, 409)
         self._json(dict(server_state(), op=op))
         try:
             self.wfile.flush()

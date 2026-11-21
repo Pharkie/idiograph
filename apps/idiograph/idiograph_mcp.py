@@ -1540,7 +1540,7 @@ TOOLS = [
          ["case"], writes="marks"),
     mcp.tool("participant_export", "A participant's statements as CSV", ("participant", "export"),
          "Write a participant's experiential statements as the statements CSV, as Markdown and CSV on the PETs board's Export menu does: "
-         "<stem> - All Experiential Statements.csv in their Working folder, in place of the one there, one row a "
+         "the statements CSV in their Working folder, named in the project's language and method (in English <stem> - All Experiential Statements.csv, a thematic analysis project's <stem> - All Codes.csv), in place of the one there, one row a "
          "statement with its interview, timestamp, PET from the Current board and quote, every timepoint's in a "
          "project of two or more. With notes the interviewer notes go to a markdown file of their own beside it. "
          "A workbook open in Excel is refused. It changes nothing the researcher made.",

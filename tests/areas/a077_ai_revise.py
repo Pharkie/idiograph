@@ -124,3 +124,26 @@ def test_ai_revise(scratch):
           themes_ai.revision_name("  Retitle\nthe  house  ") == "Before an agent's change"
           and themes_ai.revision_name(long) == "Before an agent's change"
           and themes_ai.request_line(long).endswith("…") and len(themes_ai.request_line(long)) <= 81)
+
+
+    # langready (21 November 2026): the numbers in words take the gender a language gives the noun counted
+    import i18n
+    gender = scratch / "gender-180"
+    (gender / "static" / "i18n" / "xx").mkdir(parents=True, exist_ok=True)
+    mine = {"themes_ai.number.one": "un", "themes_ai.number_f.one": "una", "themes_ai.number.two": "dos",
+            "themes_ai.number_f.two": "dos", "themes_ai.gender.card": "f", "themes_ai.gender.statement": "m",
+            "themes_ai.count.card": {"one": "{count} tarjeta", "other": "{count} tarjetas"},
+            "themes_ai.count.statement": {"one": "{count} enunciado", "other": "{count} enunciados"}}
+    (gender / "static" / "i18n" / "xx" / "themes_ai.json").write_text(json.dumps(mine), encoding="utf-8")
+    kept = i18n.ROOTS, i18n.LANGUAGE
+    try:
+        i18n.ROOTS = lambda: list(kept[0]()) + [gender]
+        i18n.LANGUAGE = lambda: "xx"
+        said = (themes_ai._units(1, "card"), themes_ai._units(1, "statement"), themes_ai._units(2, "card"))
+        i18n.LANGUAGE = lambda: "en"
+        english = (themes_ai._units(1, "card"), themes_ai._units(1, "statement"), themes_ai._units(2, "card"))
+    finally:
+        i18n.ROOTS, i18n.LANGUAGE = kept
+    check("180: a number in words is said in the feminine for a noun a language makes feminine, and English is as it was",
+          said == ("una tarjeta", "un enunciado", "dos tarjetas") and english == ("one card", "one statement", "two cards"),
+          str([said, english]))

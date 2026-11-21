@@ -65,5 +65,20 @@
     "one": "made {count} more change",
     "other": "made {count} more changes"
   },
-  "themes_ai.change.line": "{changes}."
+  "themes_ai.change.line": "{changes}.",
+  "themes_ai.gender.statement": "m",
+  "themes_ai.gender.card": "m",
+  "themes_ai.gender.label": "m",
+  "themes_ai.gender.change": "m",
+  "themes_ai.number_f.no": "no",
+  "themes_ai.number_f.one": "one",
+  "themes_ai.number_f.two": "two",
+  "themes_ai.number_f.three": "three",
+  "themes_ai.number_f.four": "four",
+  "themes_ai.number_f.five": "five",
+  "themes_ai.number_f.six": "six",
+  "themes_ai.number_f.seven": "seven",
+  "themes_ai.number_f.eight": "eight",
+  "themes_ai.number_f.nine": "nine",
+  "themes_ai.number_f.ten": "ten"
 }

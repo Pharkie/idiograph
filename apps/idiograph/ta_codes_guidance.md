@@ -7,8 +7,8 @@ the other. Each line starts with `- ` and the server reads them in that order, s
 change in the app on the next load. The plain paragraph under the heading is shown under the list in the
 panel, so it can be reworded here too. Keep both short enough to take in at a glance.
 
-Under each line, indented by two spaces, sit its two examples, one line starting `- Less this: ` and one
-starting `- More this: `, each a code, or what you do with one, on the demo's invented topic, sharing a home
+Under each line, indented by two spaces, sit its two examples, one line starting `- {less} ` and one
+starting `- {more} `, the panel naming each side, each a code, or what you do with one, on the demo's invented topic, sharing a home
 with a dog. The panel opens them in two columns from the small arrow at the end of the line. The server
 reads an indented line as the example of the line above it, never as a line of its own, and a line with no
 examples shows no arrow.
@@ -20,26 +20,26 @@ it leads. The list is your interpretation of the data, and it changes as you wor
 and applied the same way by every coder, belongs to a different method.
 
 - Read the whole list through now and then, not only the code in front of you. See how your reading of the data is taking shape.
-  - Less this: Each code seen only on its own passage
-  - More this: The whole list read through after each participant
+  - {less} Each code seen only on its own passage
+  - {more} The whole list read through after each participant
 - Look down the list for labels that name a topic. Reword each to say what its extracts share.
-  - Less this: Neighbours
-  - More this: Others judging the dog's place
+  - {less} Neighbours
+  - {more} Others judging the dog's place
 - Before you merge two codes that sound alike, read their extracts side by side. Merge only when they hold one idea.
-  - Less this: Keeping watch and Rehearsing the dog's death merged as worry
-  - More this: Both kept, one about watching now and one about a loss to come
+  - {less} Keeping watch and Rehearsing the dog's death merged as worry
+  - {more} Both kept, one about watching now and one about a loss to come
 - When a code's extracts pull two ways, split it. Make a second code and move the extracts that belong there.
-  - Less this: Company, holding both chatting to the dog and the dog filling the house
-  - More this: Talking to the dog, and A house filled by the dog, each with its own extracts
+  - {less} Company, holding both chatting to the dog and the dog filling the house
+  - {more} Talking to the dog, and A house filled by the dog, each with its own extracts
 - Let go of a code that does nothing for your research question, however much work it took.
-  - Less this: Breeds mentioned, kept in case it comes in useful
-  - More this: Breeds mentioned, taken off its extracts and deleted
+  - {less} Breeds mentioned, kept in case it comes in useful
+  - {more} Breeds mentioned, taken off its extracts and deleted
 - Write each code's description as you go. Say what it captures and what it leaves out.
-  - Less this: No description, the name left to say it all
-  - More this: Routines between person and dog that grew up without being agreed in words, not rules set in training
+  - {less} No description, the name left to say it all
+  - {more} Routines between person and dog that grew up without being agreed in words, not rules set in training
 - Expect the list to keep changing as your understanding deepens. Renaming, merging and splitting are part of the analysis.
-  - Less this: A code's name left alone once it has extracts
-  - More this: A code renamed after the third participant showed what it was about
+  - {less} A code's name left alone once it has extracts
+  - {more} A code renamed after the third participant showed what it was about
 - Turn to themes when each code says something clear about your question, not when new codes stop coming.
-  - Less this: Coding on until no new code turns up
-  - More this: Moving to themes once every code's name and description say what it holds
+  - {less} Coding on until no new code turns up
+  - {more} Moving to themes once every code's name and description say what it holds

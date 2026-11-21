@@ -8994,6 +8994,29 @@ through it, so an untranslated language shows English. `pet_guidance.md` rides i
 `release.py` reads the English What's new for the updater and takes no language. No language's file ships yet, and a
 builder adding one lists it in `app_identity` beside its English file so the bundle carries it. Area 284.
 
+**Ready for a second language** (langready, 21 November 2026, Adam's yes: the code made ready before a reviewer exists,
+no language but English and its en-US overlay shipped). (1) A language's folder carries a file named `REVIEWED` once
+someone who knows the language has read it through (`i18n.REVIEWED_MARK`, `i18n.reviewed`: every folder of the lookup
+needs it, so `es-MX` needs its own and `es`'s, a tag with no folder reads English and is reviewed). "Same as this
+computer" (`i18n.chosen`, `computer_reviewed`, and the `computer` the Language row names) picks the computer's language
+only where it is reviewed and else English; a language chosen by name is kept, reviewed or not. English and en-US carry
+it (`family/static/i18n/en/REVIEWED`), and area 278 checks it. (2) The guidance files are read by markers, not by a
+language's words: a heading ending `{placeholders}` holds the craft prompts and an example's indented line starts
+`{less}` or `{more}` (`GUIDE_HEADING_MARK`, `EXAMPLE_SIDES`, `guidance_placeholder_headings`, `guidance_rail_heading` in
+idiograph_routes.py); `guidance.md`, `ta_guidance.md` and `ta_codes_guidance.md` carry them and a language's file keeps
+them. Areas 231 and 284. (3) `nudges.WORD` counts letters and digits of any script (`(?:[^\W_]|')+`, and `WORD` in
+distil.js the same with `\p{L}\p{N}`), the lead and reads-as checks are keyed by language (`PERSON_LED_BY`, `TELL_BY`, the
+run's language by `nudges.language()`, a `lang` argument), English's as they were and no entry meaning neither check;
+the notes' own words are still English in the code. Area 7. (4) `errors.write_still_under_way_restart` and `_quit` take
+the place of the one key that was given the op's English word. (5) `themes_ai` says a count's number in the gender the
+language gives the noun (`themes_ai.gender.*`, `themes_ai.number_f.*`, `_count_said(n, gender)`), English's feminine
+words the same as its own. Area 77. (6) The CSV export's name was already the catalogue's (`exports.csv_name`, the TA overlay
+"All Codes"); the agents' guide, the skill and the tool's description now say so and tell an agent to read the name from
+the answer's `file`. (7) What a REFI-QDA import writes into a project, its board's name, the memos file's first line,
+the codes' History note and a code group's fallback name, is in the catalogue (`server.qdpx_board_name`,
+`qdpx_memos_head`, `qdpx_codes_note`, `qdpx_code_group`), as its boards' notes were since qdpxlpets; review.js's `rvwWhose`
+already read `distil.copy.whose`. The import card's summary line is still English in the code.
+
 **A project's method** (tadraw, 31 October 2026, thematic analysis's phase one, drawn for Adam and not landed until
 he approves the pictures). The project file's `method`, "ipa" or "ta", chosen on New project (`np-method`, sent as
 `method` with Make, `routes.method_asked`) and fixed after: `routes.read_project` answers it, IPA's for a file with

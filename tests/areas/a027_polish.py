@@ -58,8 +58,9 @@ def test_polish():
 
     # ── D. the count
     check("the words are counted the way the nudges count them",
-          "const WORD = /[A-Za-z0-9']+/g;" in js
-          and nudges.WORD.pattern == "[A-Za-z0-9']+",
+          "const WORD = /(?:[\\p{L}\\p{N}]|')+/gu;" in js
+          and nudges.WORD.pattern == "(?:[^\\W_]|')+"
+          and nudges.words("Hope for the mañana, naïve café") == 6 and nudges.words("It's 9 o'clock") == 3,
           "so the number and the flag never disagree")
 
     # ── E. a turn open for correction keeps the caret and the clicks inside its own box.

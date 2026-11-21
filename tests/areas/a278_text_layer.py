@@ -299,3 +299,41 @@ console.log(JSON.stringify(out));
           bool(i18n.TAG.match(i18n.computer_language())), i18n.computer_language())
     check("278: a tag is read in the catalogue's form whatever the system writes",
           [i18n.normal(x) for x in ("en_GB.UTF-8", "es-mx", "C", "", "pt_BR@euro")] == ["en-GB", "es-MX", "", "", "pt-BR"])
+
+    # ── langready (21 November 2026): "Same as this computer" picks only a language whose catalogue is marked reviewed
+    import os
+    mark = scratch / "i18n-278-reviewed"
+    shutil.rmtree(mark, ignore_errors=True)
+    for tag, reviewed in (("en", True), ("es", False), ("pt", True), ("pt-BR", False)):
+        (mark / "static" / "i18n" / tag).mkdir(parents=True)
+        (mark / "static" / "i18n" / tag / "x.json").write_text(json.dumps({"x.a": "a"}), encoding="utf-8")
+        if reviewed:
+            (mark / "static" / "i18n" / tag / i18n.REVIEWED_MARK).write_text("read through\n", encoding="utf-8")
+    here = [mark]
+    check("278: a language is reviewed when every folder of its lookup carries the mark: English, a language with its own mark "
+          "and a tag with no folder are, an unmarked one is not, nor a regional one whose own mark is missing",
+          i18n.reviewed("en", here) and i18n.reviewed("pt", here) and i18n.reviewed("fr", here)
+          and not i18n.reviewed("es", here) and not i18n.reviewed("pt-BR", here) and not i18n.reviewed("es-MX", here),
+          str([i18n.reviewed(t, here) for t in ("en", "pt", "fr", "es", "pt-BR", "es-MX")]))
+    shipped = [t for t in i18n.languages() if t.split(".")[0] not in ("en", "en-US")]
+    check("278: the app's own English and American English are marked reviewed, and no other language ships",
+          i18n.reviewed("en") and i18n.reviewed("en-US") and i18n.reviewed("en-GB") and not shipped, str(i18n.languages()))
+    kept_roots, kept_env = i18n.ROOTS, os.environ.get(i18n.COMPUTER_STANDIN)
+    try:
+        i18n.ROOTS = lambda: here
+        picked = {}
+        for computer in ("es", "pt", "es-MX", "fr", "pt-BR"):
+            os.environ[i18n.COMPUTER_STANDIN] = computer
+            i18n._COMPUTER.clear()
+            picked[computer] = (i18n.chosen({}), i18n.chosen({"language": "es"}))
+    finally:
+        i18n.ROOTS = kept_roots
+        if kept_env is None:
+            os.environ.pop(i18n.COMPUTER_STANDIN, None)
+        else:
+            os.environ[i18n.COMPUTER_STANDIN] = kept_env
+        i18n._COMPUTER.clear()
+    check("278: the computer's language is picked only where its catalogue is reviewed, else English, and a language chosen by "
+          "name is kept whether it is or not",
+          picked == {"es": ("en", "es"), "pt": ("pt", "es"), "es-MX": ("en", "es"), "fr": ("fr", "es"), "pt-BR": ("en", "es")},
+          str(picked))

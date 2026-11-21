@@ -2446,7 +2446,8 @@ idiograph participant export Rowan --notes --dry-run
 idiograph participant export Rowan
 ```
 
-It writes `<stem> - All Experiential Statements.csv` in the participant's `Working/` folder, in place of
+It writes the statements CSV, its name the catalogue's (`exports.csv_name`: in English `<stem> - All Experiential
+Statements.csv`, a thematic analysis project's `<stem> - All Codes.csv`, and in another language that language's words, so read the name from the answer's `file`), in the participant's `Working/` folder, in place of
 the one there, which the answer's `replaced` says: a row a statement, its interview, its timestamp,
 its PET from the Current board when there is a board, empty when there is none, and its quote, every
 timepoint's in a project of two or more with the timepoint's label last. `--notes`, `notes` through

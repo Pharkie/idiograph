@@ -27,5 +27,5 @@ def test_ai_surface():
           "nothing is left sitting in the page")
 
     check("the sections are read by their heading, so neither leaks into the other",
-          "placeholder" in " ".join(idiograph_routes.guidance_sections()),
+          bool(idiograph_routes.guidance_placeholder_headings()) and idiograph_routes.placeholder_prompts() != [],
           ", ".join(h for h in idiograph_routes.guidance_sections() if h))

@@ -54,6 +54,8 @@ SLOT = re.compile(r"\{(\w+)\}")
 MARK = re.compile(r"\{\{([a-z][a-z0-9_]*(?:\.[a-z0-9_]+)+)\}\}")
 # where the page takes the catalogue for its scripts
 SCRIPT_MARK = "<!--i18n-->"
+# the file in a language's folder that says its catalogue has been read through by someone who knows the language
+REVIEWED_MARK = "REVIEWED"
 # a language that stands in for the computer's own, which the suite sets to en-GB so its checks read British
 # English on a computer in any language (i18nus, 28 October 2026)
 COMPUTER_STANDIN = "IDIOGRAPH_COMPUTER_LANGUAGE"
@@ -144,10 +146,28 @@ def computer_language() -> str:
     return _COMPUTER[0]
 
 
+def reviewed(tag: str | None, roots=None) -> bool:
+    """Whether a language's catalogue has been read through by someone who knows the language (langready, 21 November
+    2026). A folder carries the mark as a file named `REVIEWED` beside its JSON files, in any root's folder of that
+    name, and a language is reviewed when every folder its lookup takes does, an overlay such as `es-MX` needing its
+    own mark and `es`'s. English and its `en-US` overlay carry it, and a tag with no folder reads English, which is.
+    The mark is what lets "Same as this computer" pick a language (`chosen`); a person who picks one by name
+    gets it, reviewed or not."""
+    return all(any((base / step / REVIEWED_MARK).is_file() for base in folders(roots)) for step in chain(tag, roots))
+
+
+def computer_reviewed(roots=None) -> str:
+    """The computer's own language where its catalogue is reviewed, else English, the language "Same as this
+    computer" means."""
+    tag = computer_language()
+    return tag if reviewed(tag, roots) else BASE
+
+
 def chosen(cfg: dict | None) -> str:
-    """The language the settings choose, `language` there, or the computer's when that is unset or empty."""
+    """The language the settings choose, `language` there, or the computer's when that is unset or empty, and then
+    only where its catalogue is reviewed, else English: a computer in Spanish gets no unreviewed Spanish."""
     tag = normal((cfg or {}).get("language"))
-    return tag or computer_language()
+    return tag or computer_reviewed()
 
 
 def formats_of(held) -> dict:
@@ -398,7 +418,7 @@ def script(tag: str | None = None, roots=None, marked: dict | None = None) -> st
     script."""
     tag = tag if tag is not None else LANGUAGE()
     data = {"language": normal(tag) or BASE, "locale": locale_of(tag, roots),
-            "computer": locale_of(computer_language(), roots), "formats": formats_of(CHOSEN_FORMATS()),
+            "computer": locale_of(computer_reviewed(roots), roots), "formats": formats_of(CHOSEN_FORMATS()),
             "computer_formats": computer_formats(), "messages": messages(tag, roots),
             "methods": {m: method_messages(m, tag, roots) for m in METHODS if m != BASE_METHOD},
             "marked": marked or {}}

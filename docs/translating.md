@@ -30,6 +30,13 @@ You can start with the family's files alone. Anything not translated shows in En
 5. A key ending `_html` holds markup. Translate the words between the tags and leave the tags as they are.
 6. A long text is translated as a whole file named with the tag before its suffix, `guidance.es.md`.
 7. Leave out any message you are unsure of. It shows in English until someone translates it.
+   A guidance file keeps its markers as they are: a heading ending `{placeholders}` holds the craft prompts, and an
+   example line starts `{less}` or `{more}`. The numbers in words (`themes_ai.number.*`) have a feminine set
+   (`themes_ai.number_f.*`) for a language whose numbers agree with the noun, and `themes_ai.gender.*` says "m" or
+   "f" for each noun counted. The words that open a statement with a person (`PERSON_LED_BY`) and the reads-as
+   construction (`TELL_BY`) in `apps/idiograph/nudges.py` are the language's own, added there by its tag.
+   Nothing ships as the computer's language until a reader has gone through it and the folder carries a file
+   named `REVIEWED`: until then it is there for a person who picks it in Settings, Language, by name.
 8. The names of the months and days come from your language's own, as the computer writes them. The order of
    day, month and year, the 12- or 24-hour clock and where commas and points go in a number are not the
    translation's: each person chooses them in Settings, Language and formats.

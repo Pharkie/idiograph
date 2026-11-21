@@ -10201,7 +10201,7 @@ function pairEnter(field) {
    one. The words are counted the way `nudges.py` counts them, so the number and the nudge never
    disagree, and it runs on the keystroke rather than behind the debounce, because it costs nothing. */
 
-const WORD = /[A-Za-z0-9']+/g;
+const WORD = /(?:[\p{L}\p{N}]|')+/gu;
 
 const countWords = (line) => (line.match(WORD) || []).length;
 

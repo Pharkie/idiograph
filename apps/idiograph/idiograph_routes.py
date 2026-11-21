@@ -6500,7 +6500,7 @@ def qdpx_board(book: Path, made: list[dict], groups: list[dict], name: str, note
             inner = [x for x in (label(t, False) for t in tree.get("groups") or []) if x]
             if not members and not inner:
                 return None
-            return {"label": themes_ai.clean_label(tree["name"]) or "Code group", "members": members, "groups": inner,
+            return {"label": themes_ai.clean_label(tree["name"]) or i18n.t("server.qdpx_code_group"), "members": members, "groups": inner,
                     "description": tree.get("description") or "", "note": tree.get("note") or "",
                     "code": tree.get("code")}
 
@@ -6819,7 +6819,7 @@ def qdpx_case(path: Path, pkg: dict, asks: dict, case: dict, entries: list[dict]
         while target.exists():
             target, k = folder / "Source" / f"{who} - memos {k}.txt", k + 1
         with open(target, "x", encoding="utf-8", newline="\n") as fh:
-            fh.write(f"Memos from {path.name} ({pkg['package']})\n\n" + "\n".join(memos))
+            fh.write(i18n.t("server.qdpx_memos_head", file=path.name, package=pkg["package"]) + "\n\n" + "\n".join(memos))
         back.append(("file", target))
     ids: dict[str, str] = {}
     lpet_ids: dict[str, str] = {}
@@ -6833,7 +6833,7 @@ def qdpx_case(path: Path, pkg: dict, asks: dict, case: dict, entries: list[dict]
             with themes_mod.scoped(board_timepoint(book, tp)):
                 side = themes_mod.themes_path(book)
             back.append(("progress", side, side.read_bytes() if side.exists() else None))
-            qdpx_board(book, [s for s in statements if s["timepoint"] == tp], groups, f"From {pkg['package']}", note, tp,
+            qdpx_board(book, [s for s in statements if s["timepoint"] == tp], groups, i18n.t("server.qdpx_board_name", package=pkg["package"]), note, tp,
                        aside, ids if tp == 1 else None)
         if longitudinal(project_timepoints(book)):
             # their LPETs, from the boards just made, and each statement's card for the LGETs (qdpxlpets)
@@ -6934,7 +6934,7 @@ def qdpx_lpets(path: Path, pkg: dict, book: Path, cards: dict, back: list, ids: 
             inner = [x for x in (label(t) for t in tree["groups"]) if x]
             if not members and not inner:
                 return None
-            return {"label": themes_ai.clean_label(tree["name"]) or "Code group", "members": members, "groups": inner,
+            return {"label": themes_ai.clean_label(tree["name"]) or i18n.t("server.qdpx_code_group"), "members": members, "groups": inner,
                     "description": tree["description"], "note": tree["note"], "domain": tree["domain"],
                     "code": tree["code"]}
 
@@ -7008,7 +7008,7 @@ def qdpx_lgets(root: Path, path: Path, pkg: dict, done: list[dict], back: list) 
             taken.update(members)
             loose += [m for m in members if gets_mod.split_key(m)["kind"] == "es"]
             if members:
-                groups.append({"label": themes_ai.clean_label(g["name"]) or "Code group", "members": members,
+                groups.append({"label": themes_ai.clean_label(g["name"]) or i18n.t("server.qdpx_code_group"), "members": members,
                                "groups": [], "description": g["description"], "note": g["note"]})
         if not groups:
             return None
@@ -7056,7 +7056,7 @@ def qdpx_gets(root: Path, path: Path, pkg: dict, done: list[dict], back: list) -
     for g in uppers:
         members = [keys[c] for c in g["codes"] if c in keys]
         if members:
-            groups.append({"label": themes_ai.clean_label(g["name"]) or "Code group", "members": members, "groups": [],
+            groups.append({"label": themes_ai.clean_label(g["name"]) or i18n.t("server.qdpx_code_group"), "members": members, "groups": [],
                            "description": g["description"], "note": g["note"]})
     if not groups:
         return None
@@ -7097,7 +7097,7 @@ def qdpx_themes(root: Path, path: Path, pkg: dict, done: list[dict], back: list)
             seen.add(held["id"])
             ops.append({"op": "describe", "code": held["id"], "description": c["description"][:codes_mod.DESCRIPTION_MAX]})
     if ops:
-        codes_mod.change(root, books, ops, when, note=f"From {path.name} ({pkg['package']})", tool="qdpx")
+        codes_mod.change(root, books, ops, when, note=i18n.t("server.qdpx_codes_note", file=path.name, package=pkg["package"]), tool="qdpx")
     groups_in = qdpx_mod.code_groups(pkg)
     if not groups_in:
         return None
@@ -7131,7 +7131,7 @@ def qdpx_themes(root: Path, path: Path, pkg: dict, done: list[dict], back: list)
         inner = [x for x in (theme(t) for t in tree.get("groups") or []) if x]
         if not members and not inner:
             return None
-        return {"label": themes_ai.clean_label(tree["name"]) or "Code group", "members": members, "groups": inner,
+        return {"label": themes_ai.clean_label(tree["name"]) or i18n.t("server.qdpx_code_group"), "members": members, "groups": inner,
                 "description": tree.get("description") or "", "note": tree.get("note") or ""}
     made = [x for x in (theme(dict(g["tree"], description=g["description"] or g["tree"].get("description") or ""))
                         for g in groups_in) if x]
@@ -12675,7 +12675,7 @@ def guidance_sections(path: Path | None = None, keep_case: bool = False) -> dict
     for line in text.splitlines():
         bare = line.strip()
         if bare.startswith("#"):
-            heading = bare.lstrip("#").strip()
+            heading = GUIDE_HEADING_MARK.sub("", bare.lstrip("#").strip())
             heading = heading if keep_case else heading.lower()
             sections.setdefault(heading, [])
         elif bare[:2] in ("- ", "* ") and not line[:1].isspace():
@@ -12683,7 +12683,26 @@ def guidance_sections(path: Path | None = None, keep_case: bool = False) -> dict
     return sections
 
 
-EXAMPLE_SIDES = {"less this:": "less", "more this:": "more"}
+# A guidance file is read by markers, not by a language's words (langready, 21 November 2026): a heading ending
+# `{placeholders}` holds the craft prompts, and an example's line starts `{less}` or `{more}`, so a language's file
+# keeps the markers and says the rest in its own words
+GUIDE_HEADING_MARK = re.compile(r"\s*\{placeholders\}\s*$")
+EXAMPLE_SIDES = {"{less}": "less", "{more}": "more"}
+
+
+def guidance_placeholder_headings(path: Path | None = None) -> set[str]:
+    """The headings (lowercased, as `guidance_sections` keys them) of a guidance file that carry the
+    `{placeholders}` marker: the craft prompts' sections, never the rail's own."""
+    path = path or i18n.long_text(boot.resource("guidance.md"))
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
+    return {GUIDE_HEADING_MARK.sub("", ln.strip().lstrip("#").strip()).lower() for ln in text.splitlines()
+            if ln.strip().startswith("#") and GUIDE_HEADING_MARK.search(ln.strip())}
+
+
+def guidance_rail_heading(path: Path | None = None) -> str | None:
+    """The heading of a guidance file's own rail: the first with lines that is not a placeholders' one."""
+    marked = guidance_placeholder_headings(path)
+    return next((h for h, lines in guidance_sections(path).items() if h not in marked and lines), None)
 
 
 def guidance_examples(path: Path | None = None) -> list[dict | None]:
@@ -12693,13 +12712,13 @@ def guidance_examples(path: Path | None = None) -> list[dict | None]:
     so the panel shows no arrow on it. Only the rail's own section is read, never the placeholders."""
     path = path or i18n.long_text(boot.resource("guidance.md"))
     text = path.read_text(encoding="utf-8") if path.exists() else ""
-    rail = next((h for h, lines in guidance_sections(path).items() if "placeholder" not in h and lines), None)
+    rail = guidance_rail_heading(path)
     found: list[dict] = []
     heading = None
     for line in text.splitlines():
         bare = line.strip()
         if bare.startswith("#"):
-            heading = bare.lstrip("#").strip().lower()
+            heading = GUIDE_HEADING_MARK.sub("", bare.lstrip("#").strip()).lower()
         elif heading != rail or bare[:2] not in ("- ", "* "):
             continue
         elif not line[:1].isspace():
@@ -12725,8 +12744,9 @@ def themes_guidance(path: Path | None = None) -> list[dict]:
 def guidance_lines(path: Path | None = None) -> list[str]:
     """The rail's own lines: the bullets under the first heading, or every bullet in an older file."""
     sections = guidance_sections(path)
+    marked = guidance_placeholder_headings(path)
     for heading, lines in sections.items():
-        if "placeholder" not in heading and lines:
+        if heading not in marked and lines:
             return lines
     return [line for lines in sections.values() for line in lines]
 
@@ -12738,14 +12758,14 @@ def guidance_framing(path: Path | None = None) -> str:
     paragraph, and a file with none, or an older file with no such heading, gives an empty string."""
     path = path or i18n.long_text(boot.resource("guidance.md"))
     text = path.read_text(encoding="utf-8") if path.exists() else ""
-    rail = next((h for h, lines in guidance_sections(path).items() if "placeholder" not in h and lines), None)
+    rail = guidance_rail_heading(path)
     if not rail:
         return ""
     heading, prose = None, []
     for line in text.splitlines():
         bare = line.strip()
         if bare.startswith("#"):
-            heading = bare.lstrip("#").strip().lower()
+            heading = GUIDE_HEADING_MARK.sub("", bare.lstrip("#").strip()).lower()
         elif heading == rail and bare and bare[:2] not in ("- ", "* "):
             prose.append(bare)
     return " ".join(prose)
@@ -12753,8 +12773,9 @@ def guidance_framing(path: Path | None = None) -> str:
 
 def placeholder_prompts(path: Path | None = None) -> list[str]:
     """The craft prompts the statement field shows one of, a fresh one on every turn."""
+    marked = guidance_placeholder_headings(path)
     for heading, lines in guidance_sections(path).items():
-        if "placeholder" in heading:
+        if heading in marked:
             return lines
     return []
 

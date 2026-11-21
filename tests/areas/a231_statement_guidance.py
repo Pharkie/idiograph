@@ -29,9 +29,9 @@ def test_statement_guidance(scratch: Path):
     import server as server_mod
     made = scratch / "guidance-231.md"
     made.write_text("# Guidance rail\n\nAn intro the panel never shows.\n\n## Holding the craft\n\n"
-                    "First line of the framing,\nits second line.\n\n- Rule one.\n  - Less this: Bees as a chore\n"
-                    "  - More this: Tending as a quiet hour\n- Rule two.\n  - Less this: only one side\n\n"
-                    "## Placeholders\n\nAbout the prompts.\n\n* A prompt?\n  * Less this: never read\n", encoding="utf-8")
+                    "First line of the framing,\nits second line.\n\n- Rule one.\n  - {less} Bees as a chore\n"
+                    "  - {more} Tending as a quiet hour\n- Rule two.\n  - {less} only one side\n\n"
+                    "## Placeholders {placeholders}\n\nAbout the prompts.\n\n* A prompt?\n  * {less} never read\n", encoding="utf-8")
     sections = idiograph_routes.guidance_sections(made)
     check("231: the framing is the prose under the rail's own heading, joined into one paragraph, apart from "
           "the file's intro, its lines, their examples and the placeholders' prose",
@@ -42,6 +42,19 @@ def test_statement_guidance(scratch: Path):
           "without both has none",
           idiograph_routes.guidance_examples(made) == [{"less": "Bees as a chore", "more": "Tending as a quiet hour"}, None],
           str(idiograph_routes.guidance_examples(made)))
+    # read by markers, never by a language's words (langready, 21 November 2026): the same file in another language
+    other = scratch / "guidance-231.zz.md"
+    other.write_text("# Guia\n\nIntro.\n\n## Oficio\n\nPrimera linea del marco.\n\n- Regla uno.\n  - {less} Abejas como tarea\n"
+                     "  - {more} Cuidar como una hora tranquila\n\n## Frases guia {placeholders}\n\n* Una pregunta?\n", encoding="utf-8")
+    check("231: the rail, its examples, its framing and its prompts are found by their markers in a language that has none of "
+          "the English words",
+          idiograph_routes.guidance_lines(other) == ["Regla uno."]
+          and idiograph_routes.guidance_examples(other) == [{"less": "Abejas como tarea", "more": "Cuidar como una hora tranquila"}]
+          and idiograph_routes.guidance_framing(other) == "Primera linea del marco."
+          and idiograph_routes.placeholder_prompts(other) == ["Una pregunta?"]
+          and idiograph_routes.placeholder_prompts(made) == ["A prompt?"],
+          str([idiograph_routes.guidance_lines(other), idiograph_routes.guidance_examples(other),
+               idiograph_routes.placeholder_prompts(other)]))
     check("231: a missing guidance file gives no framing and no examples",
           idiograph_routes.guidance_framing(scratch / "none-231.md") == "" and idiograph_routes.guidance_examples(scratch / "none-231.md") == [])
     lines, framing, prompts = idiograph_routes.guidance_lines(), idiograph_routes.guidance_framing(), idiograph_routes.placeholder_prompts()

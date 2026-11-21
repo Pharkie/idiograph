@@ -1,7 +1,7 @@
 """Area 284: the long texts per language (i18nguide, 28 October 2026, the text layer's sixth build). The guidance
 rails (guidance.md, themes_guidance.md) and What's new (docs/whats-new.md) are whole files, not catalogue keys, so
 a language's own sits beside the English one with its tag before the suffix (`guidance.es.md`), the app reading
-the run's language's and falling back to English when there is none. None is shipped yet: English only.
+the run's language's and falling back to English when there is none. None is shipped yet: English only, and a language's file keeps the markers `{less}`, `{more}` and `{placeholders}` (langready, 21 November 2026).
 
 What is checked, in a scratch copy and never in the repo: a language with no file reads the English one, one with
 a file reads it, the most specific tag wins and a less specific one is the fallback, the rail's lines and What's
@@ -71,3 +71,26 @@ def test_long_texts(scratch: Path):
     shipped = [p.name for d in ("docs", "apps/idiograph") for p in support.source(d).iterdir()]
     check("284: no language's long text is shipped yet, English only",
           not [n for n in shipped if n.endswith(".md") and n.count(".") == 2], str(shipped))
+
+    # langready (21 November 2026): a language's guidance file is read by its markers, so it keeps `{less}`, `{more}` and
+    # `{placeholders}` and says the rest in its own words, and the reviewed mark, not a file's being there, decides which
+    # language "Same as this computer" picks
+    marked = scratch / "long" / "guidance.md"
+    marked.write_text("# Guidance\n\n## Craft\n\nFraming.\n\n- Name the bird.\n  - {less} Bird\n  - {more} A rook at dawn\n\n"
+                      "## Prompts {placeholders}\n\n* What is it?\n", encoding="utf-8")
+    (scratch / "long" / "guidance.zz.md").write_text(
+        "# Guia\n\n## Oficio\n\nMarco.\n\n- Nombra el ave.\n  - {less} Ave\n  - {more} Una corneja al alba\n\n"
+        "## Frases {placeholders}\n\n* Que es?\n", encoding="utf-8")
+    kept = i18n.LANGUAGE, boot.resource
+    try:
+        boot.resource = lambda p: marked if str(p) == "guidance.md" else kept[1](p)
+        i18n.LANGUAGE = lambda: "zz"
+        spoken = (routes.guidance_lines(), routes.guidance_examples(), routes.guidance_framing(), routes.placeholder_prompts())
+        i18n.LANGUAGE = lambda: "en"
+        english = (routes.guidance_lines(), routes.guidance_examples(), routes.guidance_framing(), routes.placeholder_prompts())
+    finally:
+        i18n.LANGUAGE, boot.resource = kept
+    check("284: a language's guidance file is read by markers: its rail, examples, framing and prompts, in its own words",
+          spoken == (["Nombra el ave."], [{"less": "Ave", "more": "Una corneja al alba"}], "Marco.", ["Que es?"])
+          and english == (["Name the bird."], [{"less": "Bird", "more": "A rook at dawn"}], "Framing.", ["What is it?"]),
+          str([spoken, english]))

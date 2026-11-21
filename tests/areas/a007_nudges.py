@@ -30,3 +30,22 @@ def test_nudges():
     check("the field checks each line on its own",
           len(field) == 1 and field[0]["line"] == 1 and leads == ["lead"],
           f"{len(field)} flagged line, the second one")
+
+    # langready (21 November 2026): the lead and reads-as checks know a language's own words, and a language
+    # with none has neither, so English's words are never applied to its text
+    spanish = "Ella cuenta que se levanta primero y lee el ladrido como una culpa"
+    check("the lead and reads-as checks are keyed by language: English's words flag in English, none in a language with no "
+          "entry, whatever its text",
+          [f["check"] for f in nudges.check_statement("She walks the dog", lang="en")] == ["lead"]
+          and [f["check"] for f in nudges.check_statement("She walks the dog", lang="en-US")] == ["lead"]
+          and [f["check"] for f in nudges.check_statement("Reads the room as calm", lang="en")] == ["readsas"]
+          and nudges.check_statement("She reads it as a sign", lang="es") == []
+          and nudges.check_statement(spanish, lang="es") == []
+          and [f["check"] for f in nudges.check_statement("Semi; colon", lang="es")] == ["semicolon"],
+          str(nudges.check_statement("She reads it as a sign", lang="es")))
+    long_es = " ".join(["niño"] * 16)
+    check("the words are counted accent-safe: an accented word is one word, in the same way as the page counts them",
+          nudges.words("canción, niño, mañana, éxito") == 4 and nudges.words("It's 9 o'clock") == 3
+          and [f["check"] for f in nudges.check_statement(long_es, lang="es")] == ["length"]
+          and nudges.first_word("Ángela llega") == "ángela",
+          str(nudges.words("canción, niño, mañana, éxito")))

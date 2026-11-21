@@ -2582,7 +2582,7 @@ def cmd_participant_complete(p: Project, args) -> tuple:
 
 def cmd_participant_export(p: Project, args) -> tuple:
     """A participant's experiential statements as the statements CSV, as Export in Settings writes it
-    (`routes.api_export`), `<stem> - All Experiential Statements.csv` in their `Working/` folder, in its
+    (`routes.api_export`), named by the catalogue (`exports.csv_name`, `<stem> - All Experiential Statements.csv` in English) in their `Working/` folder, in its
     place when there is one, its PET column from the Current board when they have a board, every
     timepoint's in a project of two or more. With --notes the interviewer notes go to a markdown file of
     their own beside it, as the Include interviewer notes tick sends them. It changes nothing they made, so

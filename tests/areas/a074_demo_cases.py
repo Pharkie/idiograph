@@ -56,9 +56,10 @@ def test_demo_cases(scratch):
         notes = make_demo.read_annotations(notes_path)
         sources[name] = (rows, notes)
         text = " ".join(r["Transcript"] for r in rows)
+        said = sorted(n for n in denied if re.search(rf"\b{n}\b", text))
         check(f"74: {name}'s interview is on Juno's topic, with hesitations, in nobody's words",
-              "dog" in text and re.search(r"\b(Erm|Well)\.", text) and len(text.split()) > 1500
-              and not [n for n in denied if re.search(rf"\b{n}\b", text)], f"{len(text.split())} words")
+              "dog" in text and re.search(r"\b(Erm|Well)\.", text) and len(text.split()) > 1500 and not said,
+              f"{len(text.split())} words, names the docs and the suite use that the interview says: {said}")
         board = notes["board"]
 
     # ── 2. built from source, byte for byte, into pristine and the live case folders, the GETs with them
