@@ -59,6 +59,7 @@ const SEARCH_KINDS = {
   pnote: ['Participant note', 'Participant notes'],
   case: ['Participant', 'Participants'],
   question: ['Research question', 'Research question'],
+  reflexivity: ['Reflexivity', 'Reflexivity'],
   // Sift's (18 October)
   record: ['Record', 'Records'],
   dnote: ['Decision note', 'Decision notes'],

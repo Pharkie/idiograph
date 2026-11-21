@@ -263,12 +263,12 @@ and accents set aside, each with its other forms, `sleep` finding sleeps, sleepi
 `walked` finding walk and walking, or a phrase in quotation marks, matched as typed, in every
 participant's passages, the interviewer's notes, statements, quotes and exploratory notes, its PETs,
 sub-themes, their notes, sticky notes and board notes, and the project's GETs, their notes, the GET
-table's row notes, the participant notes, the participants' names and the research question. With no
+table's row notes, the participant notes, the participants' names, the research question and the Reflexivity text. With no
 option it searches every project you may read, each hit naming its project when there are several.
 `--case` takes one participant, and `--board` with it one board's PETs and notes, its statements placed as
 that board places them. `--kinds` narrows the hits, with commas, to passages, statements, quotes,
 notes (exploratory and the interviewer's), pets (PETs, sub-themes and their notes), gets, boards
-(sticky and board notes) or participants. It only reads, so it takes no dry run, and with the tick off it
+(sticky and board notes), participants (names and the research question) or reflexivity. It only reads, so it takes no dry run, and with the tick off it
 is refused as every command is.
 
 Two options, the card's two ticks (searchmods, 6 November 2026), say how a word typed is found. Whole word is on

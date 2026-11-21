@@ -299,8 +299,23 @@ def test_copies_added(scratch: Path):
               and done.get("added") == dry.get("added") == 0
               and (files.get("lpets") or {}).get("rekey") == [{"case": "T2", "keys": [], "rekey": behind}],
               err or json.dumps(done)[:700])
+        # the statements screen's save, over the same blocked copy, says in one line that the statement was saved and
+        # which copies were not updated, and says nothing when every copy took it (codescards)
+        fresh_turn = shown(rows[0])
+        pairs_now = [{"es": p["statement"], "kq": p["quote"]} for p in fresh_turn["pairs"]]
+        body = {"path": str(book), "sheet": s2, "row": rows[0], "en": "", "v": fresh_turn["version"],
+                "pairs": pairs_now + [{"es": "Weeding in the rain", "kq": ""}]}
+        with routes.route_scope("/api/commit", body):
+            saved = server_mod.ROUTES["/api/commit"](body)
+        notice = saved.get("notice") or []
+        check("401: the screen's save over a copy holding keys the workbook lost answers one line naming the LPETs, the "
+              "statement saved and the copy not updated",
+              len(notice) == 1 and "LPETs" in notice[0] and "was saved" in notice[0] and "not updated" in notice[0]
+              and "yet" not in notice[0] and "passage" not in notice[0], str(saved.get("notice"))[:300])
         lpfile.write_bytes(lp_was)
         lgfile.write_bytes(lg_was)
+        check("401: a save every copy takes answers no line", routes.copies_blocked_notice(
+            {"lpets": {"added": ["T2:3:0"], "rekey": []}}) == [], "")
 
         # ── D. a statement put in before the passage's first: the dry run names it at the first key
         row_d = rows[3] if len(rows) > 3 else rows[-1]

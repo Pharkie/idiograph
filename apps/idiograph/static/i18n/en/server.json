@@ -649,5 +649,6 @@
   "server.qdpx_board_name": "From {package}",
   "server.qdpx_memos_head": "Memos from {file} ({package})",
   "server.qdpx_codes_note": "From {file} ({package})",
-  "server.qdpx_code_group": "Code group"
+  "server.qdpx_code_group": "Code group",
+  "server.copies_blocked": "The statement was saved, but the {names} were not updated, because they hold a statement that is no longer in this participant's workbook."
 }

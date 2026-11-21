@@ -63,7 +63,8 @@ def test_search(scratch):
     add_second_sheet(books["Tam"], "2d", rows=6)
     (root / server_mod.PROJECT_FILE).write_text(json.dumps({
         "name": "Allotment study",
-        "research_question": "How do people experience keeping an allotment through the seasons?"}), encoding="utf-8")
+        "research_question": "How do people experience keeping an allotment through the seasons?",
+        "reflexivity": "I came to the plots as a gardener who once lost a whole summer of marrows."}), encoding="utf-8")
     sheet, her, him = demo_sheet(books["Isla"])
     asked = next(r for r in sheet["rows"] if r["name"] == him)
     wb_mod.save_interviewer_note(books["Isla"], DEMO_SHEET, asked["row"], "Asked too soon about the frost", him)
@@ -138,15 +139,15 @@ def test_search(scratch):
                 "quote": quote["text"], "enote": enote["en"].split("\n")[0], "pet": "digging work",
                 "sub": "frost beds", "petnote": "kneeling soil", "sticky": "frost again", "boardnote": "beds breakfast",
                 "get": "mornings beds", "getnote": "holder's plot", "rownote": "dusk dawn", "pnote": "notebook frosts",
-                "case": "tam", "question": "allotment seasons"}
+                "case": "tam", "question": "allotment seasons", "reflexivity": "summer marrows"}
         found = {}
         for kind, q in asks.items():
             got = server_mod.api_search({"q": q, "scope": "project", "path": isla, "kinds": [kind]})
             found[kind] = got["results"][0] if got["results"] else None
         missing = [k for k, r in found.items() if not r or r["kind"] != k]
-        check("168: each of the sixteen kinds is found, a passage, an interviewer note, a statement, a key quote, an "
+        check("168: each of the seventeen kinds is found, a passage, an interviewer note, a statement, a key quote, an "
               "exploratory note, a PET, a sub-theme, a PET note, a sticky note, a board note, a GET, its note, a row note, a "
-              "participant note, a case and the research question", not missing and set(asks) == set(idiograph_find.KINDS),
+              "participant note, a case, the research question and the Reflexivity text", not missing and set(asks) == set(idiograph_find.KINDS),
               str(missing))
         go = {k: (r or {}).get("go", {}) for k, r in found.items()}
         check("168: a workbook's result lands on the statements screen at its sheet and row, in its field and line: the "
@@ -172,7 +173,9 @@ def test_search(scratch):
               and go["rownote"]["id"] == "G1" and found["rownote"]["case"] == "Ivo"
               and go["pnote"] == dict(go["pnote"], item="card", id="Tam/pn/1") and found["pnote"]["case"] == "Tam"
               and go["case"] == {"screen": "project", "id": idiograph_routes.project_id(root), "case": "Tam"}
-              and go["question"]["screen"] == "project" and found["question"]["where"] == "Allotment study", str(go["pnote"]))
+              and go["question"]["screen"] == "project" and found["question"]["where"] == "Allotment study"
+              and go["reflexivity"]["screen"] == "project" and go["reflexivity"].get("settings") == "reflexivity"
+              and "reflexivity" not in dict(idiograph_find.GROUPS)["cases"] and found["reflexivity"]["where"] == "Allotment study", str(go["pnote"]))
 
         # ── E. the filters: a group's ticks narrow the results, its own counts kept, the others' counted with them
         # a letter on its own, found inside longer words, so Whole word, which the route has on unless told, is off here

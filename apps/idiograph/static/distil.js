@@ -9347,7 +9347,10 @@ async function commit(row, advance) {
     $('saved').classList.add('on');
     setTimeout(() => $('saved').classList.remove('on'), 1600);
     // the save stands, and a board that could not take the change says so in its own line (cardsync6)
-    const failed = data.copies && Array.isArray(data.copies.failed) ? data.copies.failed : [];
+    const failed = data.copies && Array.isArray(data.copies.failed) ? data.copies.failed.slice() : [];
+    // and a copy that holds a statement the workbook has lost takes no new one, which the server says in a line of its own
+    // (codescards)
+    if (Array.isArray(data.notice)) failed.push(...data.notice);
     if (failed.length) say(failed.join(' '), 9000);
     drawProgress();
     drawAct();
@@ -15127,6 +15130,13 @@ async function searchToProject(go) {
     S.backTo = null;
     homeKeep(go.id);
     try { await loadLibrary(); } catch (err) { say(err.message, 9000); return; }
+  }
+  // the Reflexivity text is shown in Project settings, so its result opens them with the text in view (codescards)
+  if (go.settings === 'reflexivity') {
+    openProjectSettings(HOME_PROJECTS.get(S.home) || (homeProject() || {}).project);
+    const box = $('set-reflexivity');
+    if (box) { box.scrollIntoView({ block: 'center' }); box.focus({ preventScroll: true }); }
+    return;
   }
   const row = go.case ? [...$('hp-list').querySelectorAll('li.pcard')].find((li) => li.dataset.case === go.case) : null;
   if (row) {

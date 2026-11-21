@@ -3,7 +3,7 @@ app_search.py): what a case holds, its passages and the interviewer's notes on h
 and exploratory notes, from the workbook, and its PETs, sub-themes, their notes, its sticky notes and each
 board's note, from its themes file, and what a project holds, every case of its study, and its GETs, their
 notes, the GET table's row notes, the participant notes, the GETs boards' sticky notes and board notes, from
-`idiograph-gets.json`, the cases by their names and the research question. History revisions, AI threads and
+`idiograph-gets.json`, the cases by their names, the research question and the Reflexivity statement. History revisions, AI threads and
 reviews stay out. Its kinds, its two scopes, This case and This project, and its finder under Everything are
 registered with the family's Search engine, `app_search.register`, which the engine's import of this module
 by its name makes (`boot.load`). Each file is only read, through the engine's memory of what it read.
@@ -25,7 +25,7 @@ from workbook import detect_columns, field_to_lines, quote_entries, split_entrie
 # transcript, then what the analysis made of it, case by case and then across the cases, then the project
 # itself
 KINDS = ("passage", "inote", "statement", "quote", "enote", "pet", "sub", "petnote", "sticky", "boardnote",
-         "get", "getnote", "rownote", "pnote", "case", "question")
+         "get", "getnote", "rownote", "pnote", "case", "question", "reflexivity")
 # what This case holds, the rest being the project's
 CASE_KINDS = KINDS[:10]
 # what is kept in a workbook, which alone has sheets
@@ -39,11 +39,12 @@ NAMES = {
     "petnote": ("PET note", "PET notes"), "sticky": ("Sticky note", "Sticky notes"),
     "boardnote": ("Board note", "Board notes"), "get": ("GET", "GETs"), "getnote": ("GET note", "GET notes"),
     "rownote": ("Row note", "Row notes"), "pnote": ("Participant note", "Participant notes"),
-    "case": ("Case", "Cases"), "question": ("Research question", "Research question")}
+    "case": ("Case", "Cases"), "question": ("Research question", "Research question"),
+    "reflexivity": ("Reflexivity", "Reflexivity")}
 # the kinds an agent names together, each a few of the card's (20 October), beside the card's own names
 GROUPS = (("passages", ("passage",)), ("statements", ("statement",)), ("quotes", ("quote",)), ("notes", ("enote", "inote")),
           ("pets", ("pet", "sub", "petnote")), ("gets", ("get", "getnote", "rownote", "pnote")),
-          ("boards", ("sticky", "boardnote")), ("cases", ("case", "question")))
+          ("boards", ("sticky", "boardnote")), ("cases", ("case", "question")), ("reflexivity", ("reflexivity",)))
 
 
 # ------------------------------------------------------------------ a workbook
@@ -246,6 +247,12 @@ def distil_found(words: list[str], scope: str, cases: list[dict], project: dict 
         question = " ".join(str((project or {}).get("research_question") or "").split())
         if question and engine.holds(question, words):
             found.append(dict(engine.item("question", question, name, {"screen": "project", "id": pid}, (0,)),
+                              case="", rank=len(cases), path=anyone))
+        # the researcher's Reflexivity statement, Project settings' text, found as the research question is
+        # (codescards)
+        stated = " ".join(str((project or {}).get("reflexivity") or "").split())
+        if stated and engine.holds(stated, words):
+            found.append(dict(engine.item("reflexivity", stated, name, {"screen": "project", "id": pid, "settings": "reflexivity"}, (1,)),
                               case="", rank=len(cases), path=anyone))
     return found
 

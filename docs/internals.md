@@ -4231,6 +4231,12 @@ messages name a participant by their folder. The act works out every file's new 
 keeps a copy of exactly those that change, and records each write in `back` through `case_files.snapshot`,
 its mode with its bytes, so `unrename` puts the list of names to replace back at its own mode.
 
+Since codescards (21 November 2026) Find lists the researcher's Reflexivity text as a kind of its own, `reflexivity`
+(`idiograph_find.distil_found`, under This project and Everything, its own `--kinds` group, never `participants`), and its result opens
+Project settings with the text in view (`go.settings`, `searchToProject`; area 168). Rename leaves the Reflexivity as written: a blind
+replace over the researcher's prose would change a shared pseudonym's other participant, a name that is an ordinary word and an
+accented one, and a teammate's rename never reaches it, so he finds and changes it himself.
+
 **Each participant's picture, label and pen portrait (pbiobuild, 11 November 2026, Adam's layout A of
 pbiodraw's proposal).** `participants.py` is the set: `one` reads a participant's `label` (up to `LABEL_MAX`,
 Trajectories' 60), `portrait` (up to `PORTRAIT_MAX`, 800, its whitespace folded) and `picture` (`set:peepNN`, or a
@@ -4508,6 +4514,8 @@ the workbook is unchanged, the written row's keys put in from `row_now`, so the 
 copy would take a statement (about 9 ms on a demo workbook). An agent's write is undone as any other, by its
 files. A save that adds a statement on a project of timepoints took about 30 ms more (median 110 ms against 81 ms
 over ten saves on a copy of a real project). Area 401.
+Since codescards (21 November 2026) the statements screen says so when a copy takes nothing: a save whose answer holds `rekey` under
+`gets`, `lpets` or `lgets` shows one line, `distil.save.copies_blocked`, in the notice a failed copy's line uses (`distil.js`'s save).
 
 **A requote keeps the pick and the key quote's bold (quotefollow, 13 November 2026, Adam by dialog: "the pick
 follows", "keep it where the words survive").** `themes.follow` no longer drops a pick whose quote is worded anew:
@@ -4612,7 +4620,11 @@ a new code split off a code set aside is seen and never counted decided unseen, 
 `gather` gives a card
 with no words of its own its line's words, as it does a stale one, and `unfold` reads each stale card's words as the
 page sent them (`drawn_as`, before `words_kept`), so an Overwrite from a page open since before two recodes that
-swapped two codes keeps each code where that page drew it. `codes undo` and `codes redo` of a step made while the
+swapped two codes keeps each code where that page drew it. A stale card of that page that is no row given a place, the
+card of a code new to the study that its recode made out of a row of the code the page drew it as, gave its place to that
+row, so `unfold` puts it back where the file had it, or on the nearest free spot beside it, and never on the card it
+left (codescards, 21 November 2026; area 430). A board whose cards hold no words is one only another writer makes, the
+app never writes one, so a Restore of it follows reading order and is left. `codes undo` and `codes redo` of a step made while the
 project had no Themes file put back the workbooks alone, so `codes.taken_after_undo` then takes each participant whose
 workbook they put back. The card of an extract whose code was taken off goes from the board. Only
 a board the take changes keeps a History line (`take_into` with `touched`), under the recode's own line from the app

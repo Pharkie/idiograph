@@ -609,6 +609,7 @@ def unfold(kept: dict, data: dict, was: dict | None, stale: set | None = None,
     leads = {}
     # the code a stale card was drawn as, which the page sent no card of, keeps the place the page drew it in
     drawn = {}
+    rows_drawn: set = set()
     # a card the page drew under its own words counts as the page's card of that code, a stale one of it never
     # (cardsync5: two one-extract codes swapped by two recodes leave both cards stale, each drawn as the other)
     drew = {codes[k] for k in cards if codes.get(k) and k not in stale}
@@ -649,6 +650,31 @@ def unfold(kept: dict, data: dict, was: dict | None, stale: set | None = None,
             if k != leads[code]:
                 cards.pop(k, None)
     gone = {codes[k] for k in held if codes.get(k)} - set(sent)
+    # a stale card that is not itself a row given a place is a row of a code the page never knew (a recode's new code),
+    # and its place was handed to the row, so it goes back where the file had it, or to the nearest spot clear of every
+    # card that will stand, and never lies on the card it left (codescards). The rows `gather` lays beside a lead share
+    # that lead's spot, so only the cards left standing count
+    def at_of(card, axis):
+        v = card.get(axis) if isinstance(card, dict) else None
+        return float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else 0.0
+
+    for key in sorted({k for k, _ in drawn.values()} - rows_drawn, key=key_order):
+        if key not in cards or codes.get(key) in gone:
+            continue
+        before = ((was or {}).get("cards") or {}).get(key)
+        x0, y0 = at_of(before if isinstance(before, dict) else cards[key], "x"), at_of(
+            before if isinstance(before, dict) else cards[key], "y")
+        others = [c for k, c in cards.items() if k != key and codes.get(k) not in gone]
+        clear = lambda x, y: not any(abs(at_of(c, "x") - x) < themes.CARD_W and abs(at_of(c, "y") - y) < themes.CARD_H
+                                     for c in others)
+        best = (x0, y0)
+        if not clear(x0, y0):
+            steps_x, steps_y = themes.CARD_W + 8, themes.CARD_H + 8
+            spots = sorted(((dx * steps_x) ** 2 + (dy * steps_y) ** 2, dy, dx)
+                           for dx in range(-6, 7) for dy in range(-12, 13))
+            best = next(((x0 + dx * steps_x, y0 + dy * steps_y) for _, dy, dx in spots
+                         if clear(x0 + dx * steps_x, y0 + dy * steps_y)), (x0, y0))
+        cards[key]["x"], cards[key]["y"] = best
     gather(kept, data, leads, keep_out=gone, stale=stale)
     return kept
 

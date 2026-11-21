@@ -627,6 +627,27 @@ def thematic(base: Path, cfg_file: Path, call, b64, said_rows):
                                                                      "ease": {("Theme of ease", False)}},
           str([over.get("error"), places(held, p["case"])]))
 
+    # a code of two extracts, one recoded to a code new to the study, then an Overwrite from a page open since before:
+    # Fear stands where that page drew it and the new code's card does not lie on it (codescards)
+    p = made("Kites TA overwrite new", ease=1)
+    p["commit"](p["o"][2], "Fear", "hold on too hard")
+    old = call("/api/gets", {"workbook": str(p["book"])})
+    p["commit"](p["o"][0], "Dread", "thought it would lift me")
+    ver = {a: v for a, v in old["version"].items() if a != "v"}
+    over = call("/api/gets-save", {"workbook": str(p["book"]), "version": dict(
+        ver, cards={c["key"]: {"x": c["x"], "y": c["y"], "text": c.get("text", "")} for c in old["cards"]},
+        groups=old["groups"], discarded=[], picks={}, notes=[])})
+    held = support.board_file(p["gfile"])
+    spots: dict = {}
+    for key, card in held["boards"][0]["cards"].items():
+        spots.setdefault((card.get("x"), card.get("y")), []).append(key)
+    check("430: an Overwrite from a page open since before a recode to a new code leaves that code's card on a spot "
+          "of its own, Fear where the page drew it",
+          over.get("saved") is True and all(len(v) == 1 for v in spots.values())
+          and places(held, p["case"]).get("fear") == {("Theme of fear", False)}
+          and places(held, p["case"]).get("dread") == {("Theme of fear", False)},
+          str([over.get("error"), spots, places(held, p["case"])]))
+
     # a recode to a code in the Unplaced panel, with no card on the board, joins it there (cardsync5)
     p = made("Kites TA panel", ease=1)
     p["commit"](p["o"][2], "Fear", "hold on too hard")

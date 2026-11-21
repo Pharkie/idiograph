@@ -8658,6 +8658,7 @@ def api_commit(body: dict) -> dict:
                 elif follows:
                     result["copies"] = passage_follow(path, body["sheet"], int(body["row"]), moved["before"],
                                                       moved["after"], lines)
+                    result["notice"] = copies_blocked_notice(result["copies"])
                 if said and not coded:
                     # and every copy across the participants takes the words, each board with a card of it keeping
                     # the line first. The copies were not read before the write, since the save never waits on the
@@ -12109,6 +12110,15 @@ def passage_follow(path: Path, sheet: str, row: int, old: list[str], new: list[s
     if failed:
         out["failed"] = failed
     return out
+
+
+def copies_blocked_notice(copies: dict) -> list[str]:
+    """The lines the statements screen shows after a save whose new statement a copy did not take, because the copy
+    holds a statement the workbook no longer has (`gets.copies_added`'s `rekey`): one line naming those copies, the
+    save having stood (codescards, 21 November 2026). Nothing for a save every copy took."""
+    names = [COPY_NAMES[k] for k in ("gets", "lpets", "lgets")
+             if isinstance(copies.get(k), dict) and copies[k].get("rekey")]
+    return [i18n.t("server.copies_blocked", names=", ".join(names))] if names else []
 
 
 def recoding(path: Path) -> bool:
