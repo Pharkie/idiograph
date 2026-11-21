@@ -6,8 +6,10 @@ over 100 GB. This is a dry run unless `--commit` is given: it prints what it wou
 and deletes nothing.
 
 What goes, and only when it was last touched more than 3 days ago (`--days`):
-  - in a `wip-*` folder: build trees (a folder named `target`, `node_modules`, `.venv`, `venv`, `build`, `dist`,
-    `.wip`, `*.app`, or a browser profile, `profile*` and `idiograph-motion-*`), and any file over 20 MB that is
+  - in a `wip-*` folder: build trees (a folder named `target`, `node_modules`, `.venv`, `venv`,
+    `.wip`, `*.app` or `idiograph-motion-*`, and a folder named `build` or `dist` only with a build tool's file
+    beside it, `package.json`, `Cargo.toml` and the like, or a `profile*`, `chrome-profile*` or `user-data*` folder
+    only with a browser's own files inside, `Local State` or `Default`), and any file over 20 MB that is
     not a `*.patch`;
   - `app-before-*` and `release-v*` at the top of `.verify/`: all but the newest three of each kind.
 What stays: every `*.patch`, and every `*.md`, `*.msg`, `*.txt`, `*.log`, `*.json` and image that is under 20 MB (a
@@ -33,8 +35,28 @@ from pathlib import Path
 
 BIG = 20 * 1024 * 1024
 KEEP_NEWEST = 3
-BUILD_DIRS = ("target", "node_modules", ".venv", "venv", "build", "dist", ".wip", "*.app", "profile", "profile-*",
-              "profile*", "idiograph-motion-*", "chrome-profile*", "user-data*")
+# folders no builder would keep anything in, taken wherever they stand
+BUILD_DIRS = ("target", "node_modules", ".venv", "venv", ".wip", "*.app", "idiograph-motion-*")
+# names a builder might also use for a folder of its own (a brief called build, a folder of profile shots): taken only
+# with a sign of what they are, a build tool's file beside `build` and `dist`, a browser's own files inside a profile
+MAYBE_DIRS = ("build", "dist", "profile", "profile-*", "profile*", "chrome-profile*", "user-data*")
+BUILD_BESIDE = ("package.json", "Cargo.toml", "pyproject.toml", "setup.py", "tauri.conf.json", "Makefile",
+                "build_mac.py", "build_windows.py", "CMakeLists.txt")
+PROFILE_INSIDE = ("Local State", "Default", "First Run")
+
+
+def is_build_tree(path: Path) -> bool:
+    """Whether a folder with a name in BUILD_DIRS or MAYBE_DIRS is a build tree or a browser profile."""
+    name = path.name
+    if any(fnmatch.fnmatch(name, pattern) for pattern in BUILD_DIRS):
+        return True
+    if not any(fnmatch.fnmatch(name, pattern) for pattern in MAYBE_DIRS):
+        return False
+    if name in ("build", "dist"):
+        return any((path.parent / marker).exists() for marker in BUILD_BESIDE)
+    return any((path / marker).exists() for marker in PROFILE_INSIDE)
+
+
 COPIES = ("app-before-*", "release-v*")
 
 
@@ -88,7 +110,7 @@ def plan(verify: Path, days: float = 3, now: float | None = None) -> list[tuple[
                 path = Path(root) / name
                 if path.is_symlink():
                     continue
-                if any(fnmatch.fnmatch(name, pattern) for pattern in BUILD_DIRS):
+                if is_build_tree(path):
                     total, newest = size_and_newest(path)
                     if newest < cutoff:
                         found.append(("build tree", path, total))

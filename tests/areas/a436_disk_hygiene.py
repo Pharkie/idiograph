@@ -197,10 +197,24 @@ def test_disk_hygiene():
         (wip / "target" / "debug").mkdir(parents=True)
         (wip / "target" / "debug" / "bin").write_bytes(b"0" * 1000)
         (wip / "notes.md").write_text("notes", encoding="utf-8")
+        # a folder of a builder's own that is only called build, a real build and a real browser profile
+        (wip / "build").mkdir()
+        (wip / "build" / "brief.md").write_text("a brief", encoding="utf-8")
+        (wip / "app").mkdir()
+        (wip / "app" / "package.json").write_text("{}", encoding="utf-8")
+        (wip / "app" / "build").mkdir()
+        (wip / "app" / "build" / "out.js").write_text("x", encoding="utf-8")
+        (wip / "profile-shots").mkdir()
+        (wip / "profile-shots" / "a.png").write_bytes(b"0" * 100)
+        (wip / "profile-run").mkdir()
+        (wip / "profile-run" / "Local State").write_text("{}", encoding="utf-8")
         (wip / "a.patch").write_bytes(b"0" * (21 * 1024 * 1024))
         (wip / "big.bin").write_bytes(b"0" * (21 * 1024 * 1024))
         (wip / "shot.png").write_bytes(b"0" * 1000)
         for path in [wip / "target" / "debug" / "bin", wip / "target" / "debug", wip / "target", wip / "notes.md",
+                     wip / "build" / "brief.md", wip / "build", wip / "app" / "package.json", wip / "app" / "build" / "out.js",
+                     wip / "app" / "build", wip / "app", wip / "profile-shots" / "a.png", wip / "profile-shots",
+                     wip / "profile-run" / "Local State", wip / "profile-run",
                      wip / "a.patch", wip / "big.bin", wip / "shot.png"]:
             _old(path, 10)
         for i in range(5):
@@ -222,7 +236,8 @@ def test_disk_hygiene():
             items = verify_prune.plan(verify, days=-1)
             names = sorted(str(p.relative_to(verify)) for _, p, _ in items)
             check("436: the prune plans the old build tree, the big file that is no patch and the two oldest app copies, "
-                  "and nothing else", names == ["app-before-v0.9.0", "app-before-v0.9.1", "wip-01Nov26/b1/big.bin",
+                  "and a folder only called build or profile is no build tree, nothing else", names == ["app-before-v0.9.0", "app-before-v0.9.1", "wip-01Nov26/b1/app/build",
+                                                "wip-01Nov26/b1/big.bin", "wip-01Nov26/b1/profile-run",
                                                 "wip-01Nov26/b1/target"], str(names))
             before = sorted(str(p.relative_to(verify)) for p in verify.rglob("*"))
             verify_prune.main(["--verify-dir", str(verify), "--days=-1"])
@@ -233,6 +248,7 @@ def test_disk_hygiene():
                   "and gate's log stay",
                   not any(n in after for n in ("wip-01Nov26/b1/target", "wip-01Nov26/b1/big.bin", "app-before-v0.9.0"))
                   and all(n in after for n in ("wip-01Nov26/b1/a.patch", "wip-01Nov26/b1/notes.md", "wip-01Nov26/b1/shot.png",
+                                               "wip-01Nov26/b1/build/brief.md", "wip-01Nov26/b1/profile-shots/a.png",
                                                "keep", "history.log", "app-before-v0.9.2",
                                                "app-before-v0.9.4")), str(after))
         finally:

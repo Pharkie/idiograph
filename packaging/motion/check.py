@@ -55,6 +55,46 @@ def gap(a, b):
     return math.hypot(dx, dy) if (dx or dy) else 0.0
 
 
+def inverse(M):
+    a, b, c, d, e, f = M[:6]
+    det = a * d - b * c
+    if abs(det) < 1e-12:
+        return None
+    return (d / det, -b / det, -c / det, a / det, (c * f - d * e) / det, (b * e - a * f) / det)
+
+
+# a letter at rest stands where the name's own path does: the name's path drawn at (19.2, 12.5) in the lockup's units,
+# which is where chrome.mjs's inkProfile reads the ink (pt.x = x - 19.2, pt.y = y - 12.5)
+REST = (1, 0, 0, 1, 19.2, 12.5)
+
+
+def letter_rests(first):
+    """Each letter's resting matrix and its box in its own units (frames.mjs writes the boxes in the first frame)."""
+    return [(REST, box) for box in (first.get('lbox') or []) if box]
+
+
+def ink_on_letters(rests, f, x, y, pad, ink):
+    """Whether the point (x, y) is on a letter's ink in this frame. With no letters in the frame (every way but the
+    anagram) it is the name's resting ink. Otherwise the point goes back into each letter's own units by that letter's
+    matrix in this frame, then out by its matrix at rest, and is looked for in the resting ink inside that letter's box
+    (stroke width allowed for), so it finds the letter wherever the way has carried it."""
+    if not rests or len(f.get('letters') or []) != len(rests):
+        return ink(x, y, pad)
+    for (R, box), L in zip(rests, f['letters']):
+        if L[6] < 0.3:
+            continue
+        inv = inverse(L)
+        if not inv:
+            continue
+        lx, ly = ap(inv, x, y)
+        if not (box[0] - 0.8 <= lx <= box[2] + 0.8 and box[1] - 0.8 <= ly <= box[3] + 0.8):
+            continue
+        qx, qy = ap(R, lx, ly)
+        if ink(qx, qy, pad):
+            return True
+    return False
+
+
 def main():
     ap_ = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     ap_.add_argument('frames')
@@ -76,6 +116,14 @@ def main():
         t, b = P[i][1], P[i][2]
         return t is not None and t + pad < y < b - pad
 
+    # a way that moves the letters (the anagram) carries them off the name's resting ink: a piece's point is taken back
+    # into each letter's own units by that letter's matrix in the frame and out again by its matrix at rest, then looked
+    # for in the resting ink inside that letter's box, so it finds the letter where the way has put it
+    rests = letter_rests(F[0])
+
+    def ink_at(f, x, y, pad):
+        return ink_on_letters(rests, f, x, y, pad, ink)
+
     issues, rest, last, first, least = [], {}, {}, {}, {}
     for f in F:
         t = f['t']
@@ -85,13 +133,13 @@ def main():
                 continue
             pts = [p for rc in RECTS[k] for p in rect_pts(f[k], rc)]
             pieces[k] = pts
-            bad = [p for p in pts if ink(p[0], p[1], 0.06)]
+            bad = [p for p in pts if ink_at(f, p[0], p[1], 0.06)]
             if bad:
                 out.append(f"{k}-letter({len(bad)} pts at x~{bad[0][0]:.1f})")
         if f['dot'][6] > 0.3:
             dp = dot_pts(f['dot'])
             pieces['dot'] = dp
-            bad = [p for p in dp if ink(p[0], p[1], 0.03)]
+            bad = [p for p in dp if ink_at(f, p[0], p[1], 0.03)]
             if bad:
                 out.append(f"dot-letter({len(bad)} at x~{bad[0][0]:.1f},{bad[0][1]:.1f})")
             for k in ('lb', 'rb'):

@@ -90,14 +90,20 @@ def hardware() -> str:
     """A short mark of this computer's hardware (its network address), so a settings folder cloned onto another Mac by
     Migration Assistant or a restore, id file and all, still gives that Mac a key of its own."""
     try:
-        return hashlib.sha256(str(uuid.getnode()).encode()).hexdigest()[:8]
+        node = uuid.getnode()
+        if (node >> 40) & 1:        # getnode's random stand-in when it finds no address: a new one each run, so no mark
+            return ""
+        return hashlib.sha256(str(node).encode()).hexdigest()[:8]
     except Exception:
         return ""
 
 
 def key_of(ident: str) -> str:
     """The id a file carries: the install's id and this hardware's mark."""
-    return f"{ident}.{hardware()}" if ident else ""
+    if not ident:
+        return ""
+    mark = hardware()
+    return f"{ident}.{mark}" if mark else ident
 
 
 def current() -> str:

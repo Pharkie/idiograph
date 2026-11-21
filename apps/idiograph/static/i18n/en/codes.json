@@ -114,8 +114,6 @@
   },
   "codes.merge_go": "Merge",
   "codes.cancel": "Cancel",
-  "codes.undo": "Undo",
-  "codes.redo": "Redo",
   "codes.saving": "Saving",
   "codes.extract": "Extract",
   "codes.codes": "Codes",

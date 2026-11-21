@@ -2095,7 +2095,11 @@ const HOME_NAMES_KEY = 'idiograph.homeNames';
 function homeNamesKeep(sections) {
   try {
     const held = {};
-    for (const s of sections) if (s && s.id && s.project && s.project.name) held[s.id] = String(s.project.name);
+    for (const s of sections) {
+      if (!(s && s.id && s.project && s.project.name)) continue;
+      // its name, and how many participants it showed, so the placeholder draws as many rings (homeload)
+      held[s.id] = { name: String(s.project.name), n: s.there === false ? 0 : (s.participants || []).filter(Boolean).length };
+    }
     localStorage.setItem(HOME_NAMES_KEY, JSON.stringify(held));
   } catch { /* storage may be shut */ }
 }
@@ -2120,11 +2124,14 @@ async function distilHomeLoading(still) {
   const kept = homeNamesKept();
   list.innerHTML = roots.map((r) => {
     const folder = r.replace(/[\\/]+$/, '').split(/[\\/]/).pop().replace(/\*$/, '');
-    const name = kept[r] || folder || t('distil.home.project');
-    // a rough drawing of the card: its name, three rings and two bars, with the sheen across (homeload)
+    const keep = kept[r];
+    const name = (keep && (typeof keep === 'string' ? keep : keep.name)) || folder || t('distil.home.project');
+    // as many rings as the project showed last time, at most eight, three where it has not been seen before
+    const count = keep && typeof keep === 'object' && Number.isFinite(keep.n) ? Math.max(0, Math.min(8, keep.n)) : 3;
+    // a rough drawing of the card: its name, its rings and two bars, with the sheen across (homeload)
     const ring = '<li class="hc-person"><span class="sk sk-ring"></span><span class="sk sk-who"></span></li>';
     return `<li class="home-card-li hc-card hc-loading" role="status" aria-label="${escAttr(t('distil.home.loading'))}"><div class="hc-sk" aria-busy="true"><span class="hc-head"><span class="hc-name">${esc(name)}</span></span>`
-      + `<span class="sk sk-line"></span></div><div class="hc-dash"><ul class="hc-people">${ring}${ring}${ring}</ul>`
+      + `<span class="sk sk-line"></span></div><div class="hc-dash"><ul class="hc-people">${ring.repeat(count)}</ul>`
       + '<div class="sk-bars"><span class="sk sk-bar"></span><span class="sk sk-bar short"></span></div></div></li>';
   }).join('');
 }

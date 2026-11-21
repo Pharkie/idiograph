@@ -110,11 +110,14 @@ function codesDraw() {
   if (!shown.length) html = `<li class="cd-row-empty">${esc((d.codes || []).length ? t('codes.none_found') : t('codes.empty'))}</li>`;
   $('cd-rows').innerHTML = html;
   codesOpenDraw();
-  // the counts at the left, and Undo and Redo at the right while the list has a change to put back or make again
-  const step = (act, what, word) => (what ? `<button type="button" class="ghost small cd-step" data-step="${act}" title="${escAttr(what)}">${esc(word)}</button>` : '');
+  // the counts at the bar's foot; Undo and Redo end the toolbar, greyed while the list has no change to put back or make again
+  for (const [id, what] of [['cd-undo', d.undo], ['cd-redo', d.redo]]) {
+    const b = $(id);
+    b.disabled = !what;
+    b.title = what || (id === 'cd-undo' ? t('page_idiograph.screens.undo_cmd_z') : t('page_idiograph.screens.redo_shift_cmd_z'));
+  }
   $('cd-status').innerHTML = [t('codes.n.codes', { n: total.codes }), t('codes.n.extracts', { n: total.extracts }),
-    t('codes.n.participants', { n: total.participants })].map((x) => `<span class="cd-count">${esc(x)}</span>`).join('')
-    + `<span class="cd-grow"></span>${step('undo', d.undo, t('codes.undo'))}${step('redo', d.redo, t('codes.redo'))}`;
+    t('codes.n.participants', { n: total.participants })].map((x) => `<span class="cd-count">${esc(x)}</span>`).join('');
 }
 
 function cdBadge(cs) {
@@ -633,10 +636,9 @@ function codesWire() {
   }
   dsTabsWatch('cd-steps');
   $('cd-find').addEventListener('input', () => { CD.find = $('cd-find').value; codesDraw(); });
-  $('cd-status').addEventListener('click', (e) => {
-    const b = e.target.closest('[data-step]');
-    if (b) codesUndo(b.dataset.step === 'redo');
-  });
+  for (const id of ['cd-undo', 'cd-redo']) $(id).addEventListener('pointerdown', (e) => e.preventDefault());
+  $('cd-undo').onclick = () => codesUndo(false);
+  $('cd-redo').onclick = () => codesUndo(true);
   $('cd-new').onclick = () => codesNew();
   const rows = $('cd-rows');
   rows.addEventListener('click', (e) => {

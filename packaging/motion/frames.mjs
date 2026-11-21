@@ -30,16 +30,18 @@ try {
   const frames = [];
   for (let i = 0; i < FPS * o.seconds; i++) {
     await page.evaluate((ms) => window.__advance(ms), 1000 / FPS);
-    const f = await page.evaluate(() => {
+    const f = await page.evaluate((first) => {
       const svg = document.querySelector('.wordmark svg.home-mark');
       if (!svg) return null;
       const M0 = svg.getScreenCTM().inverse();
       const mx = (el) => { const m = M0.multiply(el.getScreenCTM()); return [m.a, m.b, m.c, m.d, m.e, m.f, Number(el.getAttribute('opacity') ?? el.parentElement.getAttribute('opacity') ?? 1)]; };
       const kids = [...svg.children], dot = kids[kids.length - 1], rb = kids[kids.length - 2], lb = kids[kids.length - 3];
       const letters = kids.length > 4 ? [...kids[0].children].map(mx) : [];
+      // each letter's own box in its own units, so check.py can follow the letter wherever the way has carried it
+      const lbox = kids.length > 4 ? [...kids[0].children].map((el) => { try { const b = el.getBBox(); return [b.x, b.y, b.x + b.width, b.y + b.height]; } catch { return null; } }) : [];
       return { lb: mx(lb.firstElementChild).slice(0, 6).concat(Number(lb.getAttribute('opacity'))), rb: mx(rb.firstElementChild).slice(0, 6).concat(Number(rb.getAttribute('opacity'))),
-        dot: mx(dot), letters, sw: document.documentElement.scrollWidth, iw: innerWidth };
-    });
+        dot: mx(dot), letters, lbox: first ? lbox : undefined, sw: document.documentElement.scrollWidth, iw: innerWidth };
+    }, i === 0);
     if (!f) break;
     frames.push({ t: (i + 1) / FPS, ...f });
   }

@@ -116,6 +116,19 @@ def test_open_elsewhere(scratch: Path):
               "Cloned Mac" in seen_clone and own_after_loss == [] and "Far Mac" not in first_look
               and "Far Mac" in second_look, json.dumps([seen_clone, own_after_loss, first_look, second_look]))
 
+        # 2c. a computer where getnode finds no address answers a random one each run, which must not change the key
+        import uuid as _uuid
+        real_node = _uuid.getnode
+        try:
+            _uuid.getnode = lambda: 0x1A2B3C4D5E6F | (1 << 40)
+            key_a = presence.key_of(one_id)
+            _uuid.getnode = lambda: 0x7A8B9C0D1E2F | (1 << 40)
+            key_b = presence.key_of(one_id)
+        finally:
+            _uuid.getnode = real_node
+        check("435: a computer whose network address cannot be read keeps the same key from one run to the next",
+              key_a == key_b == one_id, json.dumps([key_a, key_b]))
+
         # 3. the presence folder is no participant, in no shared copy, no writer for the Trash, not the team's walk
         at("one")
         sent = [rel for _p, rel in project_pack.project_files(root)]

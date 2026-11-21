@@ -416,5 +416,36 @@ const shown = () => ({ pick: !$('home-pick').hidden, page: !$('home-project').hi
               and sorted(p.name for p in ponds.iterdir()) == before and refused_off == sift_ai.OFF, str(read_off))
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept
+    # Home's loading cards (homeload): a placeholder draws as many rings as the project showed last time and three
+    # where it was never seen, and the sheen stands still when the computer asks for reduced motion
+    if node:
+        import tempfile
+        from pathlib import Path
+        scratch_js = Path(tempfile.mkdtemp(prefix="idiograph-tests-"))
+        loading_js = scratch_js / "loading-110.js"
+        loading_js.write_text(support.i18n_js() + r"""
+const store = {};
+const localStorage = { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); } };
+const els = { projects: { children: [], innerHTML: '', querySelector() { return null; } } };
+const $ = (id) => els[id];
+const esc = (x) => String(x), escAttr = (x) => String(x);
+const api = async () => ({ config: { projects: [{ root: '/a/Mabel' }, { root: '/a/Bo' }, { root: '/a/New' }] } });
+""" + "\n".join(whole(app, n) for n in ("homeNamesKeep", "homeNamesKept", "distilHomeLoading")) + "\n" + r"""
+const HOME_NAMES_KEY = 'idiograph.homeNames';
+(async () => {
+  homeNamesKeep([{ id: '/a/Mabel', project: { name: 'Mabel' }, participants: [1, 2, 3, 4, 5] }, { id: '/a/Bo', project: { name: 'Bo' }, participants: [1] }]);
+  await distilHomeLoading(() => true);
+  const cards = els.projects.innerHTML.split('hc-loading').slice(1);
+  console.log(JSON.stringify(cards.map((c) => (c.match(/sk-ring/g) || []).length)));
+})();
+""", encoding="utf-8")
+        run = subprocess.run([node, str(loading_js)], capture_output=True, text=True, encoding="utf-8", timeout=60)
+        shutil.rmtree(scratch_js, ignore_errors=True)
+        css = support.text("family/static/style.css")
+        check("110: in node, a loading card draws the rings its project showed last time and three for one never seen, "
+              "and the sheen is switched off for reduced motion",
+              run.returncode == 0 and json.loads(run.stdout) == [5, 1, 3]
+              and re.search(r"prefers-reduced-motion: reduce\)\s*\{[^}]*\.sk::after\s*\{[^}]*animation: none", css) is not None,
+              (run.stdout + run.stderr)[:300])
     check("110: the live config.json is exactly as it was",
           (server_mod.CONFIG_PATH.read_bytes() if server_mod.CONFIG_PATH.exists() else None) == live_config)
