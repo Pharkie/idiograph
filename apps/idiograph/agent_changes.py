@@ -150,7 +150,7 @@ RISKS = {1: "steering", 2: "speed and volume", 3: "no screen", 4: "standing acce
 # should be able to") it changes and takes them off by number, each undone the same way. Removing a project from
 # Idiograph stays an agent's, its folder moved to the Trash or left as it is, never deleted.
 TEAM_ONLY = ("on", "set", "invite", "admit", "join", "joined", "unjoin", "cancel", "send", "remove", "lead", "board-send",
-             "board-answer", "ask", "review-send", "reply", "thread", "review-done", "suggestion-answer")
+             "board-answer", "ask", "review-send", "reply", "thread", "review-done", "suggestion-answer", "restart")
 SETTINGS_KEYS = ("your_name", "ai_prompt_file", "ai_prompt_default", "ai_provider", "ai_address", "ai_deployment",
                  "ai_model")
 

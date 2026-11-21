@@ -855,6 +855,147 @@ def put_on_relay(root: Path, data: dict, dry_run: bool = False) -> dict:
     return {"changes": changes, "dry_run": False}
 
 
+def restart_refusal(exc, made: bool = False) -> TeamError:
+    """The relay's refusal to start a project again (`restart`), in plain words, each its own line and none swallowed:
+    a project deleted before the relay kept its record, another computer than the one that led it, no more new
+    projects today, too many calls, no connection, or anything else. With `made`, the refusal of the list of
+    computers after the project was started again, whose line says the project is back."""
+    status, said = getattr(exc, "status", None), str(getattr(exc, "error", "") or "")
+    if made:
+        if status == 403 and said == "not the lead":
+            return TeamError(i18n.t("team.refused.restart_led_elsewhere"), "restart_led_elsewhere")
+        if not status:
+            return TeamError(i18n.t("team.refused.restart_half_unreached"), "restart_half")
+        return TeamError(i18n.t("team.refused.restart_half_refused"), "restart_half")
+    if status == 404 and said == "no record":
+        return TeamError(i18n.t("team.refused.restart_no_record"), "restart_no_record")
+    if status == 403 and said == "not the lead":
+        return TeamError(i18n.t("team.refused.restart_not_lead_computer"), "restart_not_lead_computer")
+    if status == 429 and said in ("projects today", "projects from here"):
+        return TeamError(i18n.t("team.refused.restart_no_projects"), "relay_no_projects")
+    return relay_refusal(exc)
+
+
+RESTART_OPEN = "restart_open"
+
+
+def restart_unfinished(data: dict) -> bool:
+    """Start it again begun and not finished for the project the list of people names: the relay made the project
+    again, and the list of computers or the stamped list of people has not gone yet. The mark is kept in this
+    device's file (`restart_open`, the relay's project id) until the stamped list is written, so the page's Start it
+    again stands after the hold for the project gone has lapsed (the review's M1)."""
+    project = str(relay_note(data).get("project") or "")
+    return bool(project) and held_team(str((data or {}).get("team") or "")).get(RESTART_OPEN) == project
+
+
+def mark_restart(team: str, project: str) -> None:
+    """The not-finished mark set to the relay's project id, or taken away with ""."""
+    with device_held():
+        held = held_team(team)
+        if project:
+            held[RESTART_OPEN] = project
+        else:
+            held.pop(RESTART_OPEN, None)
+        keep_team(team, held)
+
+
+def relay_lost(root: Path, data: dict) -> bool:
+    """Whether the relay answered `no project` for the project the list of people names, as this computer's looks
+    keep it in sync.json's hold (lapsed or not), or a Start it again of it is not finished."""
+    import team_sync  # noqa: PLC0415 - team_sync imports this module
+    project = str(relay_note(data).get("project") or "")
+    hold = team_sync.load_state(root, strict=False).get("hold") or {}
+    return bool(project) and ((hold.get("word") == "gone" and hold.get("project") == project)
+                              or restart_unfinished(data))
+
+
+def restart(root: Path, dry_run: bool = False) -> dict:
+    """A project the relay no longer holds (the operator's delete) started again there by its lead, with the same
+    people (relayrestart, 21 November 2026, Adam's yes that day). Refused unless the relay has answered `no project`
+    for it, or a Start it again of it is not finished, so a healthy project is never stamped (the review's L1). The
+    relay makes it again under the same id only for the key that led it when it was deleted, and carries its
+    numbering on, so every member's count of what it has read still holds; an id answered that is not the one asked
+    for is a relay that does not start projects again, and nothing more is done (M4). Then the mark that it is not
+    finished, then the relay told every computer on the list, never swallowed: a project live already ("project
+    there") is let through only when the relay then takes the lead's list. Then the list of people signed one higher,
+    its relay note marked made open and stamped `restarted`, sent under the present epoch and, above epoch 1, under
+    the one before too, so a computer that missed the last key opens it (M2), and only then kept and the mark taken
+    away. Each computer's next look that sees the new stamp lets its hold for the project gone go and sends its
+    member's own latest versions and the GETs board when his again (team_sync.restarted_now). A recording nobody
+    fetched before the delete goes again only once it changes, and boards sent for review, threads, a change of the
+    study and a "stopped" are not sent again. A project the relay kept no record of (deleted before relayrestart)
+    loses its relay note instead, so the lead's next invite makes a new project there, and the answer's `said` says
+    to invite each person again (M3). Lead only, through the relay only, the app's alone, and a dry run says what
+    would happen and calls nothing."""
+    data = held_on(root)
+    dev = device() or {}
+    must_lead(data, dev)
+    project = str(relay_note(data).get("project") or "")
+    if (data.get("route") or "relay") != "relay" or not project:
+        raise TeamError(i18n.t("team.refused.restart_not_on_relay"), "restart_not_on_relay")
+    if not relay_lost(root, data):
+        raise TeamError(i18n.t("team.refused.restart_not_gone"), "restart_not_gone")
+    changes = [i18n.t("team.history.restarted")]
+    if dry_run:
+        return {"changes": changes, "dry_run": True}
+    team = str(data.get("team") or "")
+    way = transport_for(data, dev)
+    maker, setter = getattr(way, "make_project", None), getattr(way, "set_devices", None)
+    if maker is None or setter is None:
+        raise TeamError(i18n.t("team.refused.no_route"), "no_route")
+    roster = data.get("roster") or {}
+    try:
+        answered = str(maker(project=project) or "")
+    except TeamError:
+        raise
+    except Exception as exc:  # noqa: BLE001 - the relay's refusal, or no connection
+        status, said = getattr(exc, "status", None), str(getattr(exc, "error", "") or "")
+        if status == 404 and said == "no record":
+            # deleted before the relay kept a record: the lost project's note let go, its address kept, so the
+            # lead's next invite makes a new project on the relay
+            after = deep(roster)
+            url = str(relay_note(data).get("url") or "")
+            after.pop(RELAY, None)
+            if url:
+                after[RELAY] = {"url": url}
+            after["n"] = int(after.get("n") or 0) + 1
+            write_team(root, dict(data, roster=sign_roster(dev, after)))
+            mark_restart(team, "")
+            return {"changes": [i18n.t("team.history.restart_no_record")], "dry_run": False,
+                    "said": i18n.t("team.refused.restart_no_record")}
+        if not (status == 409 and said == "project there"):
+            raise restart_refusal(exc) from None
+    else:
+        if answered != project:
+            # a relay that does not start a project again made a new one of its own: nothing more is done
+            raise TeamError(i18n.t("team.refused.restart_relay_old"), "restart_relay_old")
+    mark_restart(team, project)
+    keys = [unb64(d["sign"]) for m in roster_members(roster) for d in m.get("devices") or [] if d.get("sign")]
+    try:
+        setter(team, keys)
+    except Exception as exc:  # noqa: BLE001 - the relay's refusal, or no connection, said and never swallowed
+        raise restart_refusal(exc, made=True) from None
+    note_list_refused(root, "")
+    after = deep(roster)
+    after[RELAY] = dict(relay_note(data), open=True, restarted=now_iso())
+    after["n"] = int(after.get("n") or 0) + 1
+    out = dict(data, roster=sign_roster(dev, after))
+    epoch = int(after.get("epoch") or 1)
+    # sent before it is kept, so a list that did not go leaves team.json as it was and the mark standing: pressed
+    # again, the relay answers "project there", takes the list and the list goes
+    try:
+        send_roster(out, dev)
+        if epoch > 1:
+            send_roster(out, dev, under=epoch - 1)
+    except TeamError:
+        raise
+    except Exception:  # noqa: BLE001 - the relay's refusal, or no connection: the others are let in, the list not sent
+        raise TeamError(i18n.t("team.refused.restart_list_unsent"), "restart_half") from None
+    write_team(root, out)
+    mark_restart(team, "")
+    return {"changes": changes, "dry_run": False}
+
+
 # ------------------------------------------------------------------ turning it on and off, and its settings
 
 def turn_on(root: Path, name: str, route: str = "relay", folder: str = "", dry_run: bool = False,

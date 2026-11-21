@@ -9,7 +9,8 @@
    computer before it comes here, and the relay keeps it, numbers it and hands it on. It knows a random
    project id, the devices' public keys, times, sizes and counts, and nothing else.
 
-     POST /relay/v1/projects                 make a project with the lead's key
+     POST /relay/v1/projects                 make a project with the lead's key, or with `id` start one the operator
+                                             deleted again, by the key that led it
      PUT  /relay/v1/p/:id/devices            the lead's list of device keys, the only devices let in
      POST /relay/v1/p/:id/messages[?blob=B]  one sealed envelope, answered with its relay number n, naming the
                                              sealed file B it carries, which is freed with it
@@ -21,7 +22,8 @@
      POST /relay/v1/invites/:invite          a sealed join answer, unsigned, limited by IP
      GET  /relay/v1/invites/:invite?after=K  the answers after the K-th
      GET  /relay/v1/operator/usage           the operator's: each project's bytes, the ceilings, today's counts
-     DELETE /relay/v1/operator/p/:id         the operator's: a project and its files deleted
+     DELETE /relay/v1/operator/p/:id         the operator's: a project and its files deleted, a record of its lead
+                                             and its last number kept, so its lead can start it again
 
    Open since relayopen (18 November 2026, Adam's rulings that day): anyone with the app starts a project and no
    code is asked. Small limits keep the bill small, each named once in LIMITS below. A project made before then
@@ -62,6 +64,8 @@ export const LIMITS = {
   projectsPerIp: 3,              // and from one address (an IPv6 /56) in that day
   invitesPerProject: 10,         // invite mailboxes a project's computers open in a day
   report: 600,                   // seconds a project's last report to the counter stands for its messages
+  staleAfter: 3 * 86400,         // seconds after which the counter lets go of a project's last report
+  totalsEvery: 86400,            // seconds after which the counter works its totals out from the rows again
   orphanDays: 1,                 // days a file no message names is kept, in a project made open
   idleDays: 90,                  // days with nothing posted, nothing held, after which a project's alarm stops
   alarmEvery: 86400,             // seconds between a project's alarms
@@ -216,6 +220,11 @@ async function bodyOf(request, most) {
   return { body };
 }
 
+/* A new project, its id the relay's own random one. With `id`, a project the operator deleted started again
+   (relayrestart, 21 November 2026): only when the delete left its record, only by the key that led it then, and
+   never over a live one, each decided inside that project's Durable Object (`again`), so two calls at once cannot
+   both make it. Its numbering carries on from the record's last number, so no computer's count of what it has read
+   is above the new messages, and the client names no number of its own. */
 async function makeProject(request, env) {
   if (!await within(env, 'PROJECT_LIMIT', request)) return refuse(429, 'slow down');
   const got = await bodyOf(request, 4096);
@@ -225,10 +234,17 @@ async function makeProject(request, env) {
   try { ask = JSON.parse(new TextDecoder().decode(body)); } catch (err) { return refuse(400, 'not JSON'); }
   const key = unb64url(ask && ask.key);
   if (!key || key.length !== 32) return refuse(400, 'key');
+  const again = ask.id === undefined ? null : ask.id;
+  if (again !== null && (typeof again !== 'string' || !HEX32.test(again))) return refuse(400, 'id');
   if ((request.headers.get('X-Device') || '') !== await deviceId(key)) return refuse(401, 'device');
   const bad = await checkSignature(request, key, await sha256(body));
   if (bad) return bad;
   const limits = limitsFor(env);
+  if (again !== null) {
+    const box = projects(env).get(projects(env).idFromName(again));
+    return answer(await box.again(again, b64url(key), ipKey(request.headers.get('CF-Connecting-IP')),
+      limits.projectsPerDay, limits.projectsPerIp, request.headers.get('X-Nonce') || ''));
+  }
   // the call's nonce kept by the counter, so one signed request sent again makes no second project (review2's L4)
   const counted = await counter(env).admit(ipKey(request.headers.get('CF-Connecting-IP')), limits.projectsPerDay,
     limits.projectsPerIp, request.headers.get('X-Nonce') || '');
@@ -261,7 +277,7 @@ async function operator(request, env, parts) {
   if (parts.length === 3 && parts[1] === 'p' && HEX32.test(parts[2]) && request.method === 'DELETE') {
     const box = projects(env).get(projects(env).idFromName(parts[2]));
     const gone = await box.erase();
-    await counter(env).forget(parts[2]);
+    await counter(env).forget(parts[2], limitsFor(env));
     return json({ ok: true, project: parts[2], files: gone.files, messages: gone.messages });
   }
   return refuse(404, 'not here');
@@ -351,13 +367,13 @@ async function blob(request, env, box, id, name) {
     const allowed = await box.allowBlob(serial(request), name, -1, await sha256(new Uint8Array(0)));
     if (allowed.status !== 200) return answer(allowed);
     const object = await env.BLOBS.get(key);
-    if (!object) {
-      try {
-        await box.uncountFetch(name, allowed.device);
-      } catch (err) {
-        // a fetch left counted costs the computer one of its ten and nothing else
-      }
-      return refuse(404, 'no blob');
+    if (!object) return refuse(404, 'no blob');
+    // counted once R2 has the file to give, and counted again against the ten there, so several fetches begun at
+    // once by one computer cannot all pass the check above
+    const counted = await box.countFetch(name, allowed.device);
+    if (counted.status !== 200) {
+      try { await object.body.cancel(); } catch (err) { /* nothing was read */ }
+      return answer(counted);
     }
     return new Response(object.body, { headers: { 'content-type': 'application/octet-stream', 'content-length': String(object.size) } });
   }
@@ -477,16 +493,56 @@ export class Project extends DurableObject {
     if (wake) await this.ctx.storage.setAlarm(Date.now() + this.limits.alarmEvery * 1000);
   }
 
-  async init(id, leadKey) {
+  /* The project made, with `leadKey` its lead. `top`, for a project started again, is the last number it gave out
+     before it was deleted: a message row at that number made and deleted again, before the sums are made, which
+     AUTOINCREMENT remembers, so the next message is numbered one above it. */
+  async init(id, leadKey, top = 0, lead = null) {
     const key = unb64url(leadKey);
-    const lead = await deviceId(key);
+    if (lead === null) lead = await deviceId(key);
     this.sql.exec(TABLES);
     this.ready = true;
     this.sql.exec('INSERT OR REPLACE INTO meta(k, v) VALUES (?, ?), (?, ?), (?, ?), (?, ?)', 'id', id, 'lead', lead, 'made', String(now()), 'open', '1');
     this.sql.exec('INSERT OR REPLACE INTO devices(id, key, added, removed) VALUES (?, ?, ?, NULL)', lead, leadKey, now());
+    if (top > 0) {
+      this.sql.exec('INSERT INTO messages(n, device, at, bytes, body) VALUES (?, ?, ?, 0, ?)', top, lead, now(), new ArrayBuffer(0));
+      this.sql.exec('DELETE FROM messages WHERE n = ?', top);
+    }
+    this.cache = null;
     this.sums();
     await this.ctx.storage.setAlarm(Date.now() + this.limits.alarmEvery * 1000);
     await this.report(true);
+  }
+
+  /* A project the operator deleted, started again by its lead under the same id (relayrestart): refused 409
+     "project there" while one is made here, 404 "no record" when no delete left a record here (a project deleted
+     before the record was kept, or an id that was never a project), and 403 "not the lead" unless `leadKey` is the key
+     that led it at the delete. Then counted as one of the day's new projects, refused as a new one is, and checked
+     once more, since the counter's answer is awaited. Made, it is open, its lead alone on its list, its numbering
+     carried on from the record, and the record let go. `this.making` keeps a second call out while one is under way. */
+  async again(id, leadKey, ip, perDay, perIp, nonce) {
+    if (this.making) return no(409, 'project there');
+    this.making = true;
+    try {
+      const verdict = async () => {
+        if (this.ready && this.meta('id')) return { refusal: no(409, 'project there') };
+        const was = await this.ctx.storage.get('was');
+        if (!was || was.id !== id) return { refusal: no(404, 'no record') };
+        if (!sameText(b64url(unb64url(String(was.key)) || []), leadKey)) return { refusal: no(403, 'not the lead') };
+        return { was };
+      };
+      const first = await verdict();
+      if (first.refusal) return first.refusal;
+      const counted = await counter(this.env).admit(ip, perDay, perIp, nonce);
+      if (!counted.ok) return no(counted.error === 'sent before' ? 409 : 429, counted.error);
+      const then = await verdict();
+      if (then.refusal) return then.refusal;
+      const top = Number.isInteger(then.was.top) && then.was.top > 0 ? then.was.top : 0;
+      await this.init(id, leadKey, top, then.was.lead);
+      await this.ctx.storage.delete('was');
+      return ok({ project: id, again: true }, 201);
+    } finally {
+      this.making = false;
+    }
   }
 
   /* The project's sums told to the counter, which answers whether the relay is full. `blobsAfter` asks for room
@@ -570,8 +626,8 @@ export class Project extends DurableObject {
 
   /* A file's PUT (`size` its bytes) or GET (`size` -1) let through, or refused with nothing written. A PUT is
      counted in the day's bytes, files and number of files, and asks the counter for room in the relay's files and
-     its files of the day. A GET is counted against `fetchesPerFile` for its device in the same step as the check,
-     and handed back by `uncountFetch` when R2 has no file to give (relayfix3, review2's L2). */
+     its files of the day. A GET is checked against `fetchesPerFile` for its device and written
+     nothing: the Worker counts it with `countFetch` once R2 has the file to give. */
   async allowBlob(s, name, size, hash) {
     const { device, nonce, refusal } = await this.signed(s, hash);
     if (refusal) return refusal;
@@ -581,7 +637,6 @@ export class Project extends DurableObject {
       if (this.open) {
         const row = this.sql.exec('SELECT n FROM fetched WHERE blob = ? AND device = ?', name, device).toArray()[0] || { n: 0 };
         if (row.n >= this.limits.fetchesPerFile) return no(429, 'fetched too often');
-        this.sql.exec('INSERT OR REPLACE INTO fetched(blob, device, n) VALUES (?, ?, ?)', name, device, row.n + 1);
       }
       return { status: 200, device };
     }
@@ -612,12 +667,18 @@ export class Project extends DurableObject {
     return { status: 200, device };
   }
 
-  /* A fetch's count handed back, when R2 had no file to give. */
-  async uncountFetch(name, device) {
-    if (!this.ready || !this.open) return;
-    const row = this.sql.exec('SELECT n FROM fetched WHERE blob = ? AND device = ?', name, device).toArray()[0];
-    if (!row) return;
-    this.sql.exec('UPDATE fetched SET n = ? WHERE blob = ? AND device = ?', Math.max(0, row.n - 1), name, device);
+  /* A fetch counted, once R2 has the file to give (L2 of the relay's lows): the check in `allowBlob` writes
+     nothing, so a fetch that finds no file costs the computer nothing. The ten are checked again here, in the one
+     step that adds the count, so fetches begun together do not pass it. The nonce of a GET is never written. */
+  async countFetch(name, device) {
+    if (!this.ready) return no(404, 'no project');
+    if (!this.open) return ok();
+    // a file let go since the check (the alarm, every computer having read it) leaves no row of fetches behind
+    if (!this.sql.exec('SELECT 1 FROM blobs WHERE id = ?', name).toArray().length) return no(404, 'no blob');
+    const row = this.sql.exec('SELECT n FROM fetched WHERE blob = ? AND device = ?', name, device).toArray()[0] || { n: 0 };
+    if (row.n >= this.limits.fetchesPerFile) return no(429, 'fetched too often');
+    this.sql.exec('INSERT OR REPLACE INTO fetched(blob, device, n) VALUES (?, ?, ?)', name, device, row.n + 1);
+    return ok();
   }
 
   // a blob R2 did not take, its hash not the one signed or its upload broken off: its bytes handed back, its number not
@@ -893,11 +954,19 @@ export class Project extends DurableObject {
     if (s.idle) await this.ctx.storage.deleteAlarm();
   }
 
-  /* The operator's delete: every file in R2, then every row and the alarm. Answers what went. */
+  /* The operator's delete: every file in R2, then every row and the alarm. What is kept is a record with no
+     content (relayrestart): the project's id, its lead's device id and key, and the last number it gave out, so its
+     lead can start it again under the same id (`again`). Every call but that one still answers 404 "no project",
+     since no table is left. Answers what went. */
   async erase() {
     if (!this.ready) return { files: 0, messages: 0 };
     const files = this.sql.exec('SELECT id FROM blobs').toArray().map((r) => r.id);
     const messages = this.sql.exec('SELECT COUNT(*) AS c FROM messages').one().c;
+    const id = this.meta('id');
+    const lead = this.meta('lead');
+    const row = lead ? this.sql.exec('SELECT key FROM devices WHERE id = ?', lead).toArray()[0] : null;
+    const seq = this.sql.exec("SELECT seq AS n FROM sqlite_sequence WHERE name = 'messages'").toArray()[0];
+    const was = id && row ? { id, lead, key: row.key, top: seq ? Number(seq.n) : 0, at: now() } : null;
     await this.deleteFiles(files);
     for (const ws of this.ctx.getWebSockets()) {
       try { ws.close(4004, 'deleted'); } catch (err) { /* gone already */ }
@@ -906,6 +975,7 @@ export class Project extends DurableObject {
     await this.ctx.storage.deleteAll();
     this.ready = false;
     this.cache = null;
+    if (was) await this.ctx.storage.put('was', was);
     return { files: files.length, messages };
   }
 }
@@ -953,7 +1023,7 @@ export class Operator extends DurableObject {}
 
 /* The relay's one counter (relayopen, 18 November 2026): new projects by UTC day and by address, the day's files,
    invites opened, the operator's allowance of new projects for the day, and each project's last reported sums,
-   which overwrite the one before, so there is no running total to drift. A project's daily alarm reports, so a row
+   which overwrite the one before, with one row of their sums kept beside them and worked out again from the rows once a day and at each look of the operator's. A project's daily alarm reports, so a row
    not reported for three days is let go. An address is kept for the day it made a project and deleted after. */
 export class Counter extends DurableObject {
   constructor(ctx, env) {
@@ -965,7 +1035,44 @@ export class Counter extends DurableObject {
       CREATE TABLE IF NOT EXISTS days(day INTEGER PRIMARY KEY, files INTEGER NOT NULL, opened INTEGER NOT NULL, allow INTEGER);
       CREATE TABLE IF NOT EXISTS sizes(project TEXT PRIMARY KEY, blobs INTEGER NOT NULL, messages INTEGER NOT NULL, old INTEGER NOT NULL, at INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS made_nonces(nonce TEXT PRIMARY KEY, at INTEGER NOT NULL);
+      CREATE INDEX IF NOT EXISTS sizes_at ON sizes(at);
+      CREATE TABLE IF NOT EXISTS totals(id INTEGER PRIMARY KEY CHECK (id = 1), blobs INTEGER NOT NULL, messages INTEGER NOT NULL, at INTEGER NOT NULL);
     `);
+  }
+
+  /* The sums of every project's last report, kept as one row (L5 of the relay's lows) so a report reads one row
+     and the project's own, not every project's. The row is moved by the difference each write makes, and worked
+     out from the rows again when it is missing, when the operator's usage is asked for and once a day, so a
+     drift cannot stand for long. */
+  totals(limits = LIMITS) {
+    const row = this.sql.exec('SELECT blobs, messages, at FROM totals WHERE id = 1').toArray()[0];
+    if (row && now() - row.at < limits.totalsEvery) return row;
+    return this.recount();
+  }
+  recount() {
+    const all = this.sql.exec('SELECT COALESCE(SUM(blobs), 0) AS b, COALESCE(SUM(messages), 0) AS m FROM sizes').one();
+    this.sql.exec('INSERT OR REPLACE INTO totals(id, blobs, messages, at) VALUES (1, ?, ?, ?)', all.b, all.m, now());
+    return { blobs: all.b, messages: all.m, at: now() };
+  }
+  /* The totals `t`, read before the rows changed (a recount after would already leave the change out, and the
+     difference would then count twice), moved by the difference. A move that would take either below 0 is a drift,
+     so the totals are worked out from the rows again instead. */
+  move(t, blobs, messages) {
+    if (!blobs && !messages) return;
+    if (t.blobs + blobs < 0 || t.messages + messages < 0) {
+      this.recount();
+      return;
+    }
+    this.sql.exec('UPDATE totals SET blobs = ?, messages = ? WHERE id = 1', t.blobs + blobs, t.messages + messages);
+  }
+  // the rows of projects not heard from for `staleAfter` let go, the totals, read first, moved by what they held
+  stale(limits = LIMITS) {
+    const cut = now() - limits.staleAfter;
+    const gone = this.sql.exec('SELECT COALESCE(SUM(blobs), 0) AS b, COALESCE(SUM(messages), 0) AS m, COUNT(*) AS c FROM sizes WHERE at < ?', cut).one();
+    if (!gone.c) return;
+    const t = this.totals(limits);
+    this.sql.exec('DELETE FROM sizes WHERE at < ?', cut);
+    this.move(t, -gone.b, -gone.m);
   }
 
   // yesterday's addresses and old days' counts let go
@@ -1021,8 +1128,10 @@ export class Counter extends DurableObject {
      then not recorded. Answers whether the messages are over theirs. */
   report(project, blobs, messages, old, limits, asking) {
     this.tidy();
-    this.sql.exec('DELETE FROM sizes WHERE at < ?', now() - 3 * DAY);
-    const others = this.sql.exec('SELECT COALESCE(SUM(blobs), 0) AS b, COALESCE(SUM(messages), 0) AS m FROM sizes WHERE project != ?', project).one();
+    this.stale(limits);
+    const was = this.sql.exec('SELECT blobs, messages FROM sizes WHERE project = ?', project).toArray()[0] || { blobs: 0, messages: 0 };
+    const total = this.totals(limits);
+    const others = { b: total.blobs - was.blobs, m: total.messages - was.messages };
     const messagesFull = !old && others.m + messages > limits.ceilingMessages;
     if (asking && !old) {
       if (others.b + blobs > limits.ceilingBlobs) return { ok: false, error: 'relay full', messagesFull };
@@ -1031,15 +1140,24 @@ export class Counter extends DurableObject {
       this.setDay({ ...d, files: d.files + 1 });
     }
     this.sql.exec('INSERT OR REPLACE INTO sizes(project, blobs, messages, old, at) VALUES (?, ?, ?, ?, ?)', project, blobs, messages, old ? 1 : 0, now());
+    this.move(total, blobs - was.blobs, messages - was.messages);
     return { ok: true, messagesFull };
   }
 
-  forget(project) {
+  // a project the operator deleted let go, the totals, read before its row goes, moved by what it held
+  forget(project, limits = LIMITS) {
+    const was = this.sql.exec('SELECT blobs, messages FROM sizes WHERE project = ?', project).toArray()[0];
+    if (!was) return;
+    const t = this.totals(limits);
     this.sql.exec('DELETE FROM sizes WHERE project = ?', project);
+    this.move(t, -was.blobs, -was.messages);
   }
 
   usage(limits) {
     this.tidy();
+    // the kept totals as they stood before this look works them out again, for the operator to see any drift
+    const kept = this.sql.exec('SELECT blobs, messages FROM totals WHERE id = 1').toArray()[0] || { blobs: 0, messages: 0 };
+    this.recount();
     const rows = this.sql.exec('SELECT project, blobs, messages, old, at FROM sizes ORDER BY blobs + messages DESC').toArray();
     const made = (this.sql.exec('SELECT n FROM made WHERE day = ?', today()).toArray()[0] || { n: 0 }).n;
     const from = this.sql.exec('SELECT COUNT(*) AS c FROM made_from WHERE day = ?', today()).one().c;
@@ -1052,6 +1170,7 @@ export class Counter extends DurableObject {
       made_today: made, made_from_addresses: from,
       projects_per_day: d.allow === null || d.allow === undefined ? limits.projectsPerDay : d.allow,
       files_today: d.files, files_per_day: limits.relayFilesPerDay, invites_opened_today: d.opened,
+      kept_files: kept.blobs, kept_messages: kept.messages,
     };
   }
 }

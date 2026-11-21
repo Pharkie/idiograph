@@ -675,6 +675,29 @@ def lift_gone(data: dict, state: dict) -> None:
         state["hold"] = {}
 
 
+def restarted_now(data: dict, state: dict) -> bool:
+    """A list of people whose relay note carries a `restarted` stamp this computer has not seen (relayrestart, 21
+    November 2026): the lead started the project again on the relay after the relay lost it, and what was waiting
+    there for anyone is gone. The prints of what this member last sent of his own participants and of the GETs board,
+    when it is his, are cleared, each count kept, so the next look sends his latest versions again and the others take
+    them as newer; the recordings' own record is left as it is, so a recording nobody fetched before the loss goes
+    again only once it changes. The hold for a project gone is let go, and the stamp kept. Answers whether anything
+    changed, in the state given, for the look that goes on to write."""
+    stamp = str(team_mod.relay_note(data).get("restarted") or "")
+    if not stamp or state.get("restarted") == stamp:
+        return False
+    me = str(data.get("member") or "")
+    roster = data.get("roster") or {}
+    for what, kept in list((state.get("sent") or {}).items()):
+        his = gets_owner(roster) == me if what == GETS else owner_of(data, what) == me
+        if his and isinstance(kept, dict):
+            state["sent"][what] = dict(kept, print={})
+    if (state.get("hold") or {}).get("word") == "gone":
+        state["hold"] = {}
+    state["restarted"] = stamp
+    return True
+
+
 def resend_list(root: Path, data: dict) -> None:
     """The lead's list of computers sent to the relay once more after the day it was refused for (`lists today`) has
     ended, so the computer it names is let in without another change to the list (the review's L3)."""
@@ -762,6 +785,7 @@ def push(root: Path, now: bool = False, dry_run: bool = False, recordings: bool 
         resend_list(root, data)
     state = load_state(root)
     lift_gone(data, state)
+    restarted_now(data, state)
     held = held_now(state)
     kept_back = False
     if not dry_run:
@@ -1258,6 +1282,8 @@ def pull(root: Path) -> dict:
     team = str(data.get("team") or "")
     state = load_state(root)
     lift_gone(data, state)
+    if restarted_now(data, state):
+        save_state(root, state)
     if held_now(state) in ("blocked", "closed", "gone"):
         # Cloudflare stops calls before the relay: none is made until the hold can have lifted (the abuse plan's M6).
         # A project the relay no longer has is not asked for again either
@@ -1340,7 +1366,10 @@ def take_one(root: Path, data: dict, dev: dict, way, team: str, state: dict, sen
             was = dict(data)
             team_mod.take_roster(root, body)
             gave_over(was, body, inner, state)
-            return team_on(root) or data
+            now_data = team_on(root) or data
+            # a list stamped as the project started again on the relay: this member's own versions go again
+            restarted_now(now_data, state)
+            return now_data
         if kind in ("version", "gets_version"):
             came_of = take_version(root, data, way, inner, state)
             if came_of == "applied":
@@ -1480,8 +1509,9 @@ def status(root: Path) -> dict | None:
     `{"owner": name}` for a participant another member works on and `{"review": name}` for one of this member's out
     for review, `arrivals` today, newest first, each `{"name", "participant", "at"}`, `waiting`, how many of theirs
     have changed since they went (recordings not yet sent among them), `offline`, whether the last try to send found
-    no connection, `held`, the line saying why the relay holds what waits, and `too_large`, the line naming files too
-    large for the route (relayopen)."""
+    no connection, `held`, the line saying why the relay holds what waits, `too_large`, the line naming files too
+    large for the route (relayopen), and `restart`, true on the lead's computer while the relay no longer has the
+    project, for the page's Start it again (relayrestart)."""
     data = team_on(root)
     if data is None:
         return None
@@ -1542,16 +1572,23 @@ def status(root: Path) -> dict | None:
                 seed_recordings(state, item)
                 count += len(recordings_due(state, item, False))
     lift_gone(data, state)
-    held = i18n.t("team.held.gone") if held_now(state) == "gone" else ""
+    restarted_now(data, state)
+    gone = held_now(state) == "gone"
+    # a Start it again the relay began and the list did not finish keeps its button after the hold has lapsed
+    unfinished = team_mod.restart_unfinished(data)
+    held = i18n.t("team.held.gone") if gone else i18n.t("team.held.restart_unfinished") if unfinished else ""
     if not held and count > 0:
         held = held_line(data, state)
     if not held and state.get("stuck"):
         held = i18n.t("team.held.fetched_too_often")
     if not held:
         held = list_refused_line(state)
-    return {"tags": tags, "arrivals": arrivals, "gave": gave, "lead": me == str(roster.get("lead") or ""),
+    lead = me == str(roster.get("lead") or "")
+    # the lead's line for a project gone from the relay carries Start it again (relayrestart)
+    return {"tags": tags, "arrivals": arrivals, "gave": gave, "lead": lead,
             "waiting": count, "offline": bool(state.get("failed")) and count > 0,
-            "held": held, "too_large": too_large_line(root, data, state)}
+            "held": held, "too_large": too_large_line(root, data, state),
+            "restart": (gone or unfinished) and lead and str(data.get("route") or "relay") == "relay"}
 
 
 def behind_names(data: dict, state_hold: dict) -> str:

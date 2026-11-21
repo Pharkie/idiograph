@@ -2092,6 +2092,13 @@ def cmd_team_cancel(p: Project, args) -> tuple:
     return answer, lines
 
 
+def cmd_team_restart(p: Project, args) -> tuple:
+    """A project the relay no longer holds started there again by its lead, with the same people, as Start it again
+    does on the project's page: the app's alone, a dry run saying what would happen (relayrestart)."""
+    answer, lines, _done = team_writes(p, args, {"op": "restart"})
+    return answer, lines
+
+
 def team_what(done: list, view: dict) -> str:
     """The participants and the GETs board a send or an arrival names, by their labels, in one line."""
     labels = {row["folder"]: row["label"] for row in view.get("participants") or []}
@@ -9227,7 +9234,7 @@ COMMANDS = {("cases", None): cmd_cases, ("statements", None): cmd_statements,
             ("team", "show"): cmd_team_show, ("team", "on"): cmd_team_on, ("team", "set"): cmd_team_set,
             ("team", "invite"): cmd_team_invite, ("team", "answers"): cmd_team_answers, ("team", "admit"): cmd_team_admit,
             ("team", "join"): cmd_team_join, ("team", "offer"): lambda p, args: cmd_team_offer(args),
-            ("team", "joined"): cmd_team_joined, ("team", "unjoin"): cmd_team_unjoin, ("team", "cancel"): cmd_team_cancel, ("team", "remove"): cmd_team_remove,
+            ("team", "joined"): cmd_team_joined, ("team", "unjoin"): cmd_team_unjoin, ("team", "cancel"): cmd_team_cancel, ("team", "restart"): cmd_team_restart, ("team", "remove"): cmd_team_remove,
             ("team", "send"): cmd_team_send,
             ("team", "lead"): cmd_team_lead, ("team", "take"): cmd_team_take,
             # a reviewer's board sent straight in (wtboard, 9 November 2026)
@@ -10108,6 +10115,8 @@ def arguments(sub, common, writes) -> None:
     x.add_argument("--invite", required=True, help="the invite's id, as team join gave it")
     x = tm.add_parser("cancel", parents=[common, writes], help="give up an open invite, so no answer to it is taken in")
     x.add_argument("--invite", required=True, help="the invite's id, as team invite gave it")
+    tm.add_parser("restart", parents=[common, writes], help="the lead starts the project again on the relay when the "
+                                                            "relay no longer has it, with the same people")
     x = tm.add_parser("remove", parents=[common, writes],
                       help="the lead removes someone, or one computer, and the project's key changes for everyone left")
     x.add_argument("member", nargs="?", default=None, help="the one to remove, by name")

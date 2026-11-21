@@ -12,7 +12,7 @@ Every call but an invite's answers and the operator's is signed by the computer 
 
 | Route | Does |
 |---|---|
-| `POST /relay/v1/projects` | Makes a project. The body is `{"key"}`, the lead computer's public key (base64url), the call signed with that key. Answers `{"project"}`, 32 hex. The same signed call sent again is refused, `sent before`. |
+| `POST /relay/v1/projects` | Makes a project. The body is `{"key"}`, the lead computer's public key (base64url), the call signed with that key. Answers `{"project"}`, 32 hex. The same signed call sent again is refused, `sent before`. With `id` as well, a project the operator deleted is started again under that id, by the key that led it when it was deleted: refused `no record` (404) when no delete left a record of it, `not the lead` (403) for any other key and `project there` (409) while it is live, counted as one of the day's new projects, and its numbers carry on from the last it gave out. |
 | `PUT /relay/v1/p/:id/devices` | The lead's list of every computer let in, `{"devices": [key, ...], "lead"?}`, at most 24. A computer dropped from it is refused from then on and its live socket closed, and it cannot be put back. `lead` hands the role to another computer on the list. In a project made open, a list that changes nothing answers at once and writes nothing, a changed list is taken 30 times a day (`lists today`), and a project keeps at most 200 removed computers (`too many removed`). |
 | `POST /relay/v1/p/:id/messages[?blob=B]` | One sealed envelope, at most 1.5 MB, which holds a padded message of up to 1 MB. Answers `{"n"}`, its number. `blob` names a sealed file put before it, which is deleted when every computer has read this message. |
 | `GET /relay/v1/p/:id/messages?after=N` | Up to 200 envelopes after N, at most 8 MB together, each `{n, device, at, body}`, with `more` when there are others. |
@@ -24,7 +24,7 @@ Every call but an invite's answers and the operator's is signed by the computer 
 | `GET /relay/v1/invites/:invite?after=K` | The answers after the K-th. |
 | `GET /relay/v1/operator/usage` | The operator's: each project's bytes of files and messages as last reported, whether it was made open, the totals against the ceilings, how many projects there are, today's new projects and the addresses they came from, today's files and today's opened invites. `Authorization: Bearer <OPERATOR_KEY>`. |
 | `POST /relay/v1/operator/allow` | The operator's: `{"projects": n}`, today's allowance of new projects, 0 to 200. 0 closes the day, and a number opens it again after someone has used it up. The same key. |
-| `DELETE /relay/v1/operator/p/:id` | The operator's: a project deleted, its files from R2 and its mailbox, and the counter told. The same key. |
+| `DELETE /relay/v1/operator/p/:id` | The operator's: a project deleted, its files from R2 and its mailbox, and the counter told. A record with no content stays: the project's id, its lead's device id and key and the last number it gave out, so its lead can start it again. Every call to it answers `no project` meanwhile. The same key. |
 
 A GET's nonce is not written down: a GET sent twice changes nothing, and a row for every look would be most of the relay's writes.
 
@@ -41,7 +41,7 @@ The relay at idiograph.app is open: anyone with Idiograph starts a project, and 
 - It starts at most 20 new projects a UTC day, unless the operator sets the day's allowance, and 3 from one address (an IPv6 address counts by its /56). An address starts at most 6 a minute.
 - Anything older than 90 days is deleted, read or not, by each project's daily alarm. A project that holds nothing and has taken nothing for 90 days stops its alarm until its next message.
 
-Each refusal has its own word: `day`, `day files`, `project files today`, `day messages`, `project full` (with `behind`, the computers that have not read the oldest message), `nobody to send to`, `too large`, `fetched too often`, `relay full`, `files today`, `projects today`, `projects from here`, `invites today`, `no invite`, `lists today`, `too many removed`, `slow down`, `sent before`. A project made before 18 November 2026 keeps the old limits (200 MB a file, 2 GB a day, 5,000 messages, 64 computers) and the ceilings never refuse it, though its bytes count in them.
+Each refusal has its own word: `day`, `day files`, `project files today`, `day messages`, `project full` (with `behind`, the computers that have not read the oldest message), `nobody to send to`, `too large`, `fetched too often`, `relay full`, `files today`, `projects today`, `projects from here`, `invites today`, `no invite`, `lists today`, `too many removed`, `slow down`, `sent before`, `no record`, `not the lead`, `project there`. A project made before 18 November 2026 keeps the old limits (200 MB a file, 2 GB a day, 5,000 messages, 64 computers) and the ceilings never refuse it, though its bytes count in them.
 
 All the Durable Objects (`Project`, `Invite`, `Operator`, kept from the relay before 18 November 2026 and no longer called, and the one `Counter`) are made in the EU (`JURISDICTION` in `wrangler.jsonc`), and the bucket is made there too.
 

@@ -861,9 +861,14 @@ function wtPageDraw(team) {
     said.push(['wt-answered-line', WT_DOWN, got.own ? t('team.page.answered_line_own') : t('team.page.answered_line', { name: got.name }),
       { label: t('team.page.check_digits'), run: () => wtPageReopen(inv, got) }]);
   }
-  // why what waits has not gone: the relay's own reason in its line (relayopen), else no connection
-  if (team.held) said.push(['wt-wait', WT_UP, team.held]);
+  // why what waits has not gone: the relay's own reason in its line (relayopen), else no connection. The lead's line
+  // for a project the relay no longer has carries Start it again, and says its refusal in its place (relayrestart)
+  if (!team.restart && !WT.pageRestartNote) WT.pageRestartSaid = '';
+  if (team.held) said.push(['wt-wait', WT_UP, (team.restart && WT.pageRestartSaid) || team.held,
+    team.restart ? { label: t('team.page.restart'), run: (e) => wtPageRestart(e && e.currentTarget) } : null]);
+  else if (WT.pageRestartNote && WT.pageRestartSaid) said.push(['wt-wait', WT_UP, WT.pageRestartSaid]);
   else if (team.offline && team.waiting > 0) said.push(['wt-wait', WT_UP, t('team.page.waiting', { n: team.waiting })]);
+  WT.pageRestartNote = false;
   if (team.too_large) said.push(['wt-wait', WT_UP, team.too_large]);
   for (const [cls, icon, text, action] of said) {
     const span = document.createElement('span');
@@ -1116,6 +1121,31 @@ async function wtPageLook() {
   const was = Object.keys(WT.pageAnswered || {}).sort().join();
   WT.pageAnswered = got;
   if (Object.keys(got).sort().join() !== was) wtPageDraw(team);
+}
+
+/* Start it again, on the lead's line for a project the relay no longer has (relayrestart, 21 November 2026): the
+   project made there again under its id, with the same people, then the page's lines as they now stand. A refusal
+   is said in the line's place, the button kept for another try. */
+async function wtPageRestart(button) {
+  const p = wtPageProject();
+  if (!p || !p.id || WT.pageRestarting) return;
+  WT.p = p;
+  WT.pageRestarting = true;
+  if (button) button.disabled = true;
+  try {
+    const got = await api('/api/team', wtBody({ op: 'restart' }));
+    // a project the relay kept no record of: its line says what to do next, shown once in the line's place
+    WT.pageRestartSaid = got.said || '';
+    WT.pageRestartNote = !!got.said;
+  } catch (err) {
+    WT.pageRestartSaid = needsRestart(err) ? RESTART_LINE : err.message;
+  } finally {
+    WT.pageRestarting = false;
+    if (button) button.disabled = false;
+  }
+  try {
+    wtPageDraw((await api('/api/team', wtBody({ op: 'show' }))).sync || null);
+  } catch (err) { wtPageDraw(WT.pageTeam); }
 }
 
 /* Check the six digits from the page's line: the invite's card at the digits, for this project */

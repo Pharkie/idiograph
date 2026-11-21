@@ -441,6 +441,12 @@ def test_team_owners(scratch: Path):
 
         # 7. through the relay, run on this computer as area 342 runs it
         relay_part(scratch, lead, member, call, mark, sha, book, progress, at)
+
+        # 8. a project the operator deleted, started again on the relay by its lead (relayrestart)
+        restart_part(scratch, at, call)
+
+        # 9. the relay's totals after a stale row and a delete (review-relaylows)
+        totals_part(scratch)
     finally:
         (server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, team.DEVICE_PATH, transport.OVERRIDE, team_sync.WAIT) = kept
 
@@ -931,6 +937,479 @@ def relay_part(scratch, lead, member, call, mark, sha, book, progress, at):
               and sha(progress(lead, 1, "Wren")) == sha(progress(member, 1, "Wren")),
               json.dumps({"sent": real.get("sent"), "tries": real_tries, "there": there.is_file(), "size": bulk.stat().st_size,
                           "same": there.is_file() and sha(bulk) == sha(there)}))
+
+        # a file fetch is counted when R2 gives the file (L2 of the relay's lows): twelve fetches begun together by
+        # one computer get ten files and two refusals, and the count is the ten
+        raw = relays[member_dev["id"]]
+        sealed = os.urandom(5000)
+        name = "relaylows" + hashlib.sha256(sealed).hexdigest()[:20]
+        relays[lead_dev["id"]].put_blob(project, name, sealed)
+        got, lock = [], threading.Lock()
+
+        def fetch_once():
+            try:
+                body = raw.get_blob(project, name)
+                result = ("ok", len(body))
+            except Exception as exc:  # noqa: BLE001 - the relay's refusal is the answer
+                result = (getattr(exc, "status", None), getattr(exc, "error", ""))
+            with lock:
+                got.append(result)
+        threads = [threading.Thread(target=fetch_once) for _ in range(12)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join(60)
+        good = [g for g in got if g[0] == "ok"]
+        late = [g for g in got if g[0] != "ok"]
+        check("349: twelve fetches of one file begun together by one computer get ten files and two refusals, "
+              "`fetched too often`: a fetch is counted once the file is given, in the one step that adds it",
+              len(good) == 10 and all(g[1] == 5000 for g in good) and len(late) == 2
+              and all(g == (429, "fetched too often") for g in late), json.dumps(got))
+        try:
+            raw.get_blob(project, "relaylows" + "0" * 20)
+            missing = "given"
+        except Exception as exc:  # noqa: BLE001
+            missing = (getattr(exc, "status", None), getattr(exc, "error", ""))
+        check("349: a fetch of a file the project has no row for is refused 404 and counts nothing",
+              missing == (404, "no blob"), repr(missing))
+    finally:
+        try:
+            child.stdin.close()
+        except OSError:
+            pass
+        try:
+            child.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            child.kill()
+            child.wait(timeout=10)
+
+
+def restart_part(scratch, at, call):
+    """Start it again (relayrestart, 21 November 2026): a project the operator deleted, started again on the relay by
+    its lead under the same id, with the same people. A fresh pair of installs joined through the relay as the app
+    joins them, the relay under Miniflare with an operator's key."""
+    import io
+    import sys
+    import agent_changes
+    import cli
+    import project_history as hist_mod
+    import team
+    import team_sync
+    import transport
+    from .a342_relay import KEY, free_port, miniflare_folder, operator_call, raw_call
+    node = shutil.which("node")
+    folder = miniflare_folder()
+    if not node or not folder:
+        return skip("349: a project started again on the relay", "no node or no Miniflare on this machine")
+    sys.path.insert(0, str(support.source("family")))
+    import relay_transport as rt
+    port = free_port()
+    child = subprocess.Popen([node, str(support.source("relay/test/serve.mjs")), "--port", str(port), "--operator-key", KEY,
+                              "--invite-limit", "1000", "--miniflare", str(folder),
+                              "--test-limits", json.dumps({"projectsPerIp": 100, "projectsPerDay": 100})],
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                             cwd=str(scratch), encoding="utf-8", errors="replace")
+    said, ready = [], threading.Event()
+
+    def read():
+        for line in child.stdout:
+            said.append(line.rstrip())
+            if line.startswith("ready "):
+                ready.set()
+    threading.Thread(target=read, daemon=True).start()
+    kept = transport.OVERRIDE
+    transport.OVERRIDE = None
+    try:
+        if not ready.wait(60):
+            return check("349: the relay starts on this computer", False, " | ".join(said[-10:]))
+        url = f"http://127.0.0.1:{port}/relay/v1"
+        lead = install(scratch, "rs-lead", "Canal towpaths", PEOPLE)
+        member = install(scratch, "rs-member", "Canal towpaths, Bo's")
+        # agents may read the lead's project, so an agent's team restart meets the app's own refusal
+        (lead["root"] / "idiograph-project.json").write_text(json.dumps({
+            "name": "Canal towpaths", "agents": {"allowed": True, "at": "2026-11-21T09:00:00+00:00"}}), encoding="utf-8")
+
+        def look(who, until=lambda got: True, seconds=10):
+            deadline = time.monotonic() + seconds
+            while True:
+                at(who)
+                got = team_sync.sync(who["root"], now=True)
+                if until(got) or time.monotonic() > deadline:
+                    return got
+                time.sleep(0.25)
+
+        def state(who):
+            return json.loads((who["root"] / team.LOG_DIR / team_sync.STATE_FILE).read_text(encoding="utf-8"))
+
+        def files_of(folder):
+            return {str(p.relative_to(folder)): sha(p) for p in sorted(Path(folder).rglob("*"))
+                    if p.is_file() and p.name != ".idiograph.lock"}
+
+        def history(who):
+            at(who)
+            return [line for r in hist_mod.load(who["root"]) for line in r.get("changes") or []]
+
+        def refusal_of(fn):
+            try:
+                fn()
+                return None
+            except Exception as exc:  # noqa: BLE001 - the relay's refusal is the answer
+                return (getattr(exc, "status", None), getattr(exc, "error", "") or str(exc))
+
+        call(lead, op="on", name="Ada", route="relay", relay_url=url)
+        made = call(lead, op="invite")
+        call(member, op="join", words=made["link"], name="Bo")
+        call(lead, op="answers", invite=made["invite"])
+        call(lead, op="admit", invite=made["invite"], match=True)
+        call(member, op="joined", invite=made["invite"])
+        lead_data = team.read_team(lead["root"])
+        project = lead_data["roster"]["relay"]["project"]
+        bo = team.read_team(member["root"])["member"]
+        # Fern is Bo's to work on, so a version of his own goes from his computer
+        call(lead, op="set", owners={"P2 - Fern": bo})
+        look(lead)
+        first = look(member, lambda got: "P1 - Wren" in (got.get("applied") or []))
+        bo_sent = look(member, lambda got: "P2 - Fern" in (got.get("sent") or []))
+        look(lead, lambda got: "P2 - Fern" in (got.get("applied") or []))
+        at(lead)
+        lead_dev = team.device()
+        at(member)
+        member_dev = team.device()
+        lead_relay = rt.RelayTransport(base64.b64decode(lead_dev["sign"]), url)
+        member_relay = rt.RelayTransport(base64.b64decode(member_dev["sign"]), url)
+        stranger = rt.RelayTransport(os.urandom(32), url)
+        live = refusal_of(lambda: lead_relay.make_project(project=project))
+        check("349: a team joined through the relay, Fern Bo's, and Bo's version of Fern sent; the lead asking for "
+              "its live project again is refused 409 `project there`",
+              "P1 - Wren" in (first.get("applied") or [])
+              and "P2 - Fern" in (first.get("sent") or []) + (bo_sent.get("sent") or [])
+              and live == (409, "project there"), json.dumps({"first": first, "bo": bo_sent, "live": live}))
+
+        # a new key for the project (as a removal makes) that Bo's computer has not fetched when the relay loses it
+        at(lead)
+        held_data = team.read_team(lead["root"])
+        rotated = team.deep(held_data["roster"])
+        under = team.rotated(held_data["team"], rotated)
+        team.signed_out(lead["root"], held_data, lead_dev, rotated, under=under)
+
+        # the operator's delete leaves a record: every call still answers no project
+        top = raw_call(rt, lead_relay, "GET", f"/p/{project}/messages?after=0")[1].get("last")
+        cursor = int((state(member).get("cursors") or {}).get("TeamRelay") or 0)
+        gone = operator_call(url, "DELETE", f"/operator/p/{project}")
+        after_delete = raw_call(rt, lead_relay, "GET", f"/p/{project}/messages?after=0")
+        check("349: the operator's delete answers ok, and the project then answers 404 `no project` to its own lead",
+              gone[0] == 200 and after_delete[0] == 404 and after_delete[1].get("error") == "no project"
+              and isinstance(top, int) and top > 0 and 0 < cursor <= top, json.dumps([gone, after_delete, top, cursor]))
+
+        # a squat: another key, or a member's, asking for the id is refused, and nothing is made
+        squat = refusal_of(lambda: stranger.make_project(project=project))
+        squat_member = refusal_of(lambda: member_relay.make_project(project=project))
+        still = raw_call(rt, lead_relay, "GET", f"/p/{project}/messages?after=0")
+        never = refusal_of(lambda: stranger.make_project(project=os.urandom(16).hex()))
+        check("349: a key that did not lead the project, a stranger's or a member's, asking for its id is refused "
+              "403 `not the lead` and makes nothing, and an id no delete left a record of is refused 404 `no record`",
+              squat == (403, "not the lead") and squat_member == (403, "not the lead") and still[0] == 404
+              and never == (404, "no record"), json.dumps([squat, squat_member, still, never]))
+        line = team.restart_refusal(Refusal(404, "no record"))
+        check("349: a project deleted before the relay kept its record has its own line, saying to invite each person "
+              "again", line.code == "restart_no_record" and "invite each person again" in str(line), str(line))
+
+        # both computers' looks meet the project gone; the lead's page offers Start it again, the member's does not
+        look(lead)
+        look(member)
+        lead_page, member_page = team_sync.status(lead["root"]), team_sync.status(member["root"])
+        at(member)
+        member_page = team_sync.status(member["root"])
+        at(lead)
+        lead_page = team_sync.status(lead["root"])
+        check("349: with the project gone, the lead's page says so with Start it again, and the member's says so "
+              "without it",
+              lead_page["restart"] is True and "no longer on the relay" in lead_page["held"]
+              and member_page["restart"] is False and "no longer on the relay" in member_page["held"],
+              json.dumps([lead_page.get("held"), lead_page.get("restart"), member_page.get("restart")]))
+
+        # a dry run calls nothing and writes nothing; an agent's own run is refused as the app's
+        before = files_of(lead["home"])
+        dry = call(lead, op="restart", dry_run=True)
+        at(lead)
+        was, all_ops = sys.stdin, agent_changes.ALL_OPS
+        sys.stdin = io.StringIO("")
+        # the suite's stand-in for the app off, so the agent's call meets the refusal an agent meets
+        agent_changes.ALL_OPS = None
+        try:
+            code, out, err = cli.run(["--config", str(lead["config"]), "--root", str(lead["root"]), "--json",
+                                      "team", "restart", "--note", "Start it again", "--tool", "Claude Code"])
+        finally:
+            sys.stdin, agent_changes.ALL_OPS = was, all_ops
+        after_dry = raw_call(rt, lead_relay, "GET", f"/p/{project}/messages?after=0")
+        check("349: Start it again's dry run says what would happen and writes nothing, the relay asked nothing, and "
+              "an agent's team restart is refused as the app's alone",
+              dry.get("dry_run") is True and dry.get("changes") and files_of(lead["home"]) == before
+              and after_dry[0] == 404 and code != 0 and "Only the app" in (err + out),
+              json.dumps([dry.get("changes"), code, (err + out)[:200]]))
+
+        def refused_call(fn) -> str:
+            try:
+                fn()
+                return ""
+            except Exception as exc:  # noqa: BLE001 - the route's refusal is the answer
+                return str(exc)
+
+        # a relay without relayrestart ignores the id and makes a project of its own: nothing more is done, no mark
+        # kept, no list sent, and the line says the relay must be updated (the review's M4)
+        class OldRelay:
+            def __init__(self, inner):
+                self.inner, self.lists = inner, 0
+
+            def make_project(self, project=""):
+                return os.urandom(16).hex()
+
+            def set_devices(self, *_a, **_k):
+                self.lists += 1
+
+            def __getattr__(self, name):
+                return getattr(self.inner, name)
+        old = {}
+        transport.OVERRIDE = lambda dev, data: old.setdefault("way", OldRelay(rt.team_factory(dev, data)))
+        before = files_of(lead["home"])
+        try:
+            stale_relay = refused_call(lambda: call(lead, op="restart"))
+        finally:
+            transport.OVERRIDE = None
+        check("349: against a relay that answers another id, Start it again stops there, says the relay must be "
+              "updated, sends no list and keeps nothing",
+              "until it is updated" in stale_relay and old["way"].lists == 0 and files_of(lead["home"]) == before,
+              stale_relay)
+
+        # a press that stops halfway (the relay made the project, its list of computers not reached) keeps its button
+        # once the hold for the project gone has lapsed and the lead's look reaches the project (the review's M1)
+        class NoList:
+            def __init__(self, inner):
+                self.inner = inner
+
+            def set_devices(self, *_a, **_k):
+                raise rt.RelayError(0, "ConnectionRefusedError")
+
+            def __getattr__(self, name):
+                return getattr(self.inner, name)
+        transport.OVERRIDE = lambda dev, data: NoList(rt.team_factory(dev, data))
+        try:
+            half = refused_call(lambda: call(lead, op="restart"))
+        finally:
+            transport.OVERRIDE = None
+        # a press whose list of computers is taken and whose list of people does not go says so in its own line
+        class NoSend:
+            def __init__(self, inner):
+                self.inner = inner
+
+            def send(self, *_a, **_k):
+                raise rt.RelayError(0, "ConnectionRefusedError")
+
+            def __getattr__(self, name):
+                return getattr(self.inner, name)
+        transport.OVERRIDE = lambda dev, data: NoSend(rt.team_factory(dev, data))
+        try:
+            unsent = refused_call(lambda: call(lead, op="restart"))
+        finally:
+            transport.OVERRIDE = None
+        check("349: a Start it again whose list of people does not go after the relay took the list of computers "
+              "says the others are let in and the list did not reach them, the mark kept",
+              "the list of people did not reach them" in unsent
+              and team.restart_unfinished(team.read_team(lead["root"])), unsent)
+        lapsed = state(lead)
+        lapsed["hold"] = dict(lapsed.get("hold") or {}, until="2000-01-01T00:00:00+00:00")
+        (lead["root"] / team.LOG_DIR / team_sync.STATE_FILE).write_text(json.dumps(lapsed), encoding="utf-8")
+        look(lead)
+        at(lead)
+        half_page = team_sync.status(lead["root"])
+        check("349: a Start it again that stopped halfway says so, and after the hold has lapsed and the lead's look "
+              "has reached the project the page still offers Start it again with its own line",
+              "Press Start it again once more" in half and team.restart_unfinished(team.read_team(lead["root"]))
+              and half_page["restart"] is True and "did not finish" in half_page["held"]
+              and (state(lead).get("hold") or {}).get("word") != "gone",
+              json.dumps([half, half_page.get("held"), half_page.get("restart"), state(lead).get("hold")]))
+
+        # Start it again, pressed once more: the same id, the computers let in, the list of people stamped and sent
+        n_before = team.read_team(lead["root"])["roster"]["n"]
+        done = call(lead, op="restart")
+        data = team.read_team(lead["root"])
+        note = data["roster"]["relay"]
+        fetched = raw_call(rt, lead_relay, "GET", f"/p/{project}/messages?after={cursor}")
+        numbers = [m["n"] for m in fetched[1].get("messages") or []]
+        at(lead)
+        lead_page = team_sync.status(lead["root"])
+        check("349: Start it again makes the project again under its id, with a line in History, the list of people "
+              "signed one higher, stamped and marked open, and its numbers carry on from the last before the delete, "
+              "so the member's count misses nothing; the lead's page no longer says it is gone",
+              fetched[0] == 200 and numbers and numbers[0] == top + 1 and note.get("project") == project
+              and note.get("restarted") and note.get("open") is True and data["roster"]["n"] == n_before + 1
+              and "The project started again on the relay, with the same people." in history(lead)
+              and lead_page["restart"] is False and not lead_page["held"]
+              and not team.restart_unfinished(data),
+              json.dumps({"done": done.get("changes"), "numbers": numbers, "top": top, "note": note,
+                          "held": lead_page.get("held")}))
+
+        # the lead's next look sends his own versions again, and not Bo's
+        lead_look = look(lead, lambda got: "P1 - Wren" in (got.get("sent") or []))
+        check("349: after Start it again the lead's next look sends his own participants' latest versions again, "
+              "and not Bo's",
+              "P1 - Wren" in (lead_look.get("sent") or []) and "P2 - Fern" not in (lead_look.get("sent") or []),
+              json.dumps(lead_look))
+        # a healthy project is never stamped: Start it again is refused with nothing written (the review's L1)
+        before = files_of(lead["home"])
+        healthy = refused_call(lambda: call(lead, op="restart"))
+        check("349: Start it again on a project the relay holds is refused, nothing written",
+              "nothing to start again" in healthy and files_of(lead["home"]) == before, healthy)
+
+        # the member's hold lifts within its hour (here made to have lifted), and his look takes the stamped list
+        # and sends his own version of Fern again
+        held = state(member)
+        held["hold"] = dict(held.get("hold") or {}, until="2000-01-01T00:00:00+00:00")
+        (member["root"] / team.LOG_DIR / team_sync.STATE_FILE).write_text(json.dumps(held), encoding="utf-8")
+        fern_held = int((state(lead).get("held") or {}).get("P2 - Fern") or 0)
+        took = look(member, lambda got: "P2 - Fern" in (got.get("sent") or []))
+        member_data = team.read_team(member["root"])
+        mine_state = state(member)
+        check("349: the member's look, once its hold has lifted, reads on from its own count, takes the stamped list "
+              "and sends his own version of Fern again, taken in by the lead as newer",
+              "P2 - Fern" in (took.get("sent") or [])
+              and member_data["roster"]["relay"].get("restarted") == note["restarted"]
+              and mine_state.get("restarted") == note["restarted"]
+              and int(mine_state["cursors"].get("TeamRelay") or 0) > top
+              and member_data["roster"].get("epoch") == 2 and team.project_key(member_data["team"], 2) is not None,
+              json.dumps({"took": took, "cursors": mine_state.get("cursors"), "member": trace(member)}))
+        deadline = time.monotonic() + 10
+        while True:
+            look(lead)
+            fern_now = int((state(lead).get("held") or {}).get("P2 - Fern") or 0)
+            if fern_now > fern_held or time.monotonic() > deadline:
+                break
+            time.sleep(0.25)
+        check("349: the lead takes Bo's version sent again in as newer, its count above the one held",
+              fern_now > fern_held, json.dumps([fern_held, fern_now, trace(lead)]))
+
+        # deleted again: two asks at once by the lead's key, decided inside the project's object, make it once
+        operator_call(url, "DELETE", f"/operator/p/{project}")
+        look(lead)
+        got, lock = [], threading.Lock()
+
+        def again():
+            result = refusal_of(lambda: rt.RelayTransport(base64.b64decode(lead_dev["sign"]), url).make_project(project=project))
+            with lock:
+                got.append(result)
+        threads = [threading.Thread(target=again) for _ in range(2)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join(60)
+        check("349: two asks at once to start the project again by its lead's key make it once: one is made, the "
+              "other refused 409 `project there`",
+              sorted(got, key=str) == sorted([None, (409, "project there")], key=str), json.dumps(got))
+        second = call(lead, op="restart")
+        data2 = team.read_team(lead["root"])
+        check("349: Start it again on a project its lead's key made again already goes through: the relay takes the "
+              "lead's list, and the list of people goes out with a new stamp",
+              second.get("changes") and data2["roster"]["relay"].get("restarted") != note["restarted"]
+              and data2["roster"]["n"] == n_before + 2, json.dumps(second.get("changes")))
+        # a project live again answers 409 to Start it again's make, and a stranger's key on it is refused the list
+        squat_list = refusal_of(lambda: stranger.set_devices(project, [stranger.public_key]))
+        check("349: on the project started again a stranger's list of computers is refused",
+              squat_list is not None and squat_list[0] == 403, json.dumps(squat_list))
+
+        # a project the relay kept no record of (deleted before relayrestart): Start it again lets go of its relay
+        # note, says to invite each person again, and the lead's next invite makes a new project (the review's M3)
+        at(lead)
+        held_data = team.read_team(lead["root"])
+        lost = os.urandom(16).hex()
+        crafted = team.deep(held_data["roster"])
+        crafted["relay"] = dict(crafted["relay"], project=lost)
+        crafted["n"] = int(crafted["n"]) + 1
+        team.write_team(lead["root"], dict(held_data, roster=team.sign_roster(lead_dev, crafted)))
+        look(lead)
+        no_record = call(lead, op="restart")
+        cleared = team.read_team(lead["root"])["roster"].get("relay") or {}
+        fresh = call(lead, op="invite")
+        renewed = team.read_team(lead["root"])["roster"].get("relay") or {}
+        check("349: Start it again on a project the relay kept no record of lets go of its relay note and says to "
+              "invite each person again, and the lead's next invite makes a new project on the relay",
+              "invite each person again" in (no_record.get("said") or "") and not cleared.get("project")
+              and cleared.get("url") == url and fresh.get("link") and renewed.get("project")
+              and renewed["project"] not in (lost, project),
+              json.dumps([no_record.get("said"), cleared, renewed]))
+    finally:
+        transport.OVERRIDE = kept
+        try:
+            child.stdin.close()
+        except OSError:
+            pass
+        try:
+            child.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            child.kill()
+            child.wait(timeout=10)
+
+
+def totals_part(scratch):
+    """The relay's Counter keeps one row of every project's summed files (relaylows's L5): after a project's row is
+    let go as stale, and after the operator's delete forgets one, the kept totals are the sums of the rows left, read
+    before the rows changed, never the difference taken off twice (review-relaylows, finding 1). The counter's own
+    times are laid small: a row stale after six seconds, the totals worked out again after one."""
+    from .a342_relay import KEY, free_port, miniflare_folder, operator_call
+    node = shutil.which("node")
+    folder = miniflare_folder()
+    if not node or not folder:
+        return skip("349: the relay's totals after a stale row and a delete", "no node or no Miniflare on this machine")
+    import sys
+    sys.path.insert(0, str(support.source("family")))
+    import relay_transport as rt
+    port = free_port()
+    child = subprocess.Popen([node, str(support.source("relay/test/serve.mjs")), "--port", str(port), "--operator-key", KEY,
+                              "--invite-limit", "1000", "--miniflare", str(folder),
+                              "--test-limits", json.dumps({"projectsPerIp": 100, "projectsPerDay": 100,
+                                                           "staleAfter": 6, "totalsEvery": 1})],
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                             cwd=str(scratch), encoding="utf-8", errors="replace")
+    said, ready = [], threading.Event()
+
+    def read():
+        for line in child.stdout:
+            said.append(line.rstrip())
+            if line.startswith("ready "):
+                ready.set()
+    threading.Thread(target=read, daemon=True).start()
+    try:
+        if not ready.wait(60):
+            return check("349: the relay starts on this computer", False, " | ".join(said[-10:]))
+        url = f"http://127.0.0.1:{port}/relay/v1"
+
+        def with_file(size: int) -> str:
+            lead, other = rt.RelayTransport(os.urandom(32), url), rt.RelayTransport(os.urandom(32), url)
+            project = lead.make_project()
+            lead.set_devices(project, [lead.public_key, other.public_key])
+            sealed = os.urandom(size)
+            lead.put_blob(project, "totals" + hashlib.sha256(sealed).hexdigest()[:20], sealed)
+            return project
+
+        def kept():
+            got = operator_call(url, "GET", "/operator/usage")[1]
+            return got.get("kept_files"), got.get("files")
+
+        with_file(5000)
+        time.sleep(4)
+        later = with_file(3000)
+        time.sleep(4.2)
+        # the first project's row is stale now and the totals more than a second old: a new project's report lets
+        # the row go
+        rt.RelayTransport(os.urandom(32), url).make_project()
+        after_stale = kept()
+        with_file(2000)
+        time.sleep(2)
+        operator_call(url, "DELETE", f"/operator/p/{later}")
+        after_forget = kept()
+        check("349: the relay's kept totals of files are the sums of the rows left after a project's row is let go "
+              "as stale and after the operator's delete forgets one, the difference taken off once",
+              after_stale == (3000, 3000) and after_forget == (2000, 2000),
+              json.dumps({"stale": after_stale, "forget": after_forget}))
     finally:
         try:
             child.stdin.close()

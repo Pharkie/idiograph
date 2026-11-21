@@ -552,7 +552,7 @@ def api_agent_unseen(body: dict) -> dict:
 
 
 TEAM_WRITES = ("on", "off", "set", "choose", "invite", "admit", "join", "joined", "unjoin", "cancel", "remove", "send",
-               "lead", "take")
+               "lead", "take", "restart")
 TEAM_READS = ("show", "answers", "pick", "offer")
 
 
@@ -572,7 +572,8 @@ def api_team(body: dict) -> dict:
     invite came through a shared folder (the join writes nothing to the project until `joined`) and `copy` true for a
     project whose list names the person but not this computer, a Finder copy of the lead's folder (`show` says it
     with `unlisted`; without `copy` such a project is refused as one in a team; a copy joining an invite that is not its own team's would leave its team, so it is refused with code `replace_team` and nothing sent until the join says `replace` true), `joined` the `invite` id, `remove` a `member` by id or name or one `computer` by its id, `lead` (Make
-    lead) a `member`, and `take` what has come for the list of people (wtdevices, 9 November 2026). Each write takes `dry_run`, which writes
+    lead) a `member`, `take` what has come for the list of people (wtdevices, 9 November 2026), and `restart`, the lead's
+    Start it again for a project the relay no longer holds, the same id and people (relayrestart, 21 November 2026). Each write takes `dry_run`, which writes
     nothing and says what would change, and runs under the project's lock with a line in the project's History for
     each change. The demo's project takes none. `send` (wtowners), Send now: what came for the project taken in and
     what of his waits sent at once (`team_sync.sync`), answering `applied`, `sent`, `waiting` and `offline`, with no
@@ -662,6 +663,8 @@ def api_team(body: dict) -> dict:
                 done = team_mod.make_lead(root, str(body.get("member") or ""), team_participants(root), dry_run=dry)
             elif op == "take":
                 done = team_mod.take(root, dry_run=dry, items=come)
+            elif op == "restart":
+                done = team_mod.restart(root, dry_run=dry)
             elif body.get("computer"):
                 done = team_mod.remove_computer(root, str(body.get("computer") or ""), dry_run=dry)
             else:
@@ -848,9 +851,9 @@ def join_empty_away(root: Path, ask: dict) -> None:
             if made != str(ask.get("home_sha") or ""):
                 return
             join_unmake(root.resolve(), root.resolve() if home == "new" else None, home != "new")
-        if home == "new":
-            # the lock's own file, which a lock held could not take with it everywhere
-            join_folder_away(root.resolve(), root.resolve())
+        # the lock's own file, which a lock held could not take with it everywhere (a file open cannot be removed on
+        # Windows): the folder he named is cleared again and left, the folder the join made goes whole
+        join_folder_away(root.resolve(), root.resolve() if home == "new" else None)
     except Exception:  # noqa: BLE001 - not read just now: left as it is
         return
 

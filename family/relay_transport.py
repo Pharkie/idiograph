@@ -192,13 +192,16 @@ class RelayTransport:
 
     # projects and devices --------------------------------------------------------------------------
 
-    def make_project(self, operator_code: str = "") -> str:
+    def make_project(self, operator_code: str = "", project: str = "") -> str:
         """A new project on the relay, this device its lead. No code is asked since relayopen: `operator_code` is
         for the old relay alone, which area 342 runs beside the new one. Answers the relay's random project id (32
-        hex)."""
+        hex). With `project`, a project the operator deleted started again under that id, this device having led it
+        then (relayrestart, 21 November 2026), refused `no record`, `not the lead` or `project there` otherwise."""
         ask = {"key": b64url(self.public_key)}
         if operator_code:
             ask["code"] = operator_code
+        if project:
+            ask["id"] = project
         return self._json("POST", "/projects", ask)["project"]
 
     def set_devices(self, project_id: str, public_keys: list[bytes], lead: str | None = None) -> dict:

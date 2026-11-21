@@ -2704,6 +2704,16 @@ sent with a copy. You sign as their computer: never read, copy or print either f
   `team on --off` sends the lead one line, which marks the member `stopped` in the lead's `team show` people until they
   turn it on again, and a participant or the GETs board the lead hands to a member is in the member's page status as
   `gave`.
+- `idiograph team restart` (`team_restart`) is the lead's Start it again, for a project the relay no longer
+  has (`team.refused.relay_gone`, the page's line that it is no longer on the relay): the relay makes it
+  again under the same id for the computer that led it when it was deleted, its numbers carrying on, the
+  computers on the list are let in again, and the list of people goes to everyone once more, stamped, so each
+  computer sends its member's latest versions again. A recording nobody fetched before the loss goes again only
+  once it changes, and boards sent for review, comments and threads, a change of the study and a "stopped" are
+  not sent again. It is refused unless the relay has answered that the project is gone, or a restart of it did
+  not finish. A project deleted before the relay kept its record loses its relay note instead, so the next
+  invite makes a new project, and each person is invited again. It is the app's alone, and its dry run calls
+  nothing and writes nothing.
 - `idiograph team remove Bo` (`team_remove`): the lead removes someone. Their computers come off the list and the
   project's key changes for everyone left, so they get nothing new. What they have stays on their computer.
   `idiograph team remove --computer ID` (`team_remove` with `computer`) removes one computer, a lost one, by its id
@@ -2881,7 +2891,7 @@ nothing waiting, and its dry run still answers:
 | Op | Why | Risk |
 |---|---|---|
 | `project send` | it goes to another person | 1, steering |
-| `team on`, `team set`, `team invite`, `team admit`, `team join`, `team joined`, `team unjoin`, `team cancel`, `team remove`, `team lead` | who can read the project and its keys | 4, standing access |
+| `team on`, `team set`, `team invite`, `team admit`, `team join`, `team joined`, `team unjoin`, `team cancel`, `team restart`, `team remove`, `team lead` | who can read the project and its keys | 4, standing access |
 | `team send`, `team board-send`, `team board-answer`, `team ask`, `team review-send`, `team reply`, `team thread`, `team review-done`, `team suggestion-answer` | it reaches a teammate | 1, steering |
 | `settings` with an option | the app's own, no project's, so no restore point holds it | 4, standing access |
 

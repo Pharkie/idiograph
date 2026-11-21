@@ -1289,6 +1289,11 @@ TOOLS = [
          "and the project's list of people is not changed. " + APP_ONLY,
          {"invite": dict(mcp.TEXT, description="The invite's id, as team_invite gave it.")}, ["invite"],
          writes="changes"),
+    mcp.tool("team_restart", "Start the project again on the relay", ("team", "restart"),
+         "When the relay no longer has the project, its lead starts it there again under the same id, with the same "
+         "people: their computers are let in again, the list of people goes to them once more, and each sends their "
+         "latest versions again. " + APP_ONLY,
+         {}, [], writes="changes"),
     mcp.tool("team_remove", "Remove someone, or one computer, from the project", ("team", "remove"),
          "The lead removes someone: their computers come off the list and the project's key changes for everyone "
          "left, so they get nothing new. What they have stays on their computer. With computer, one computer alone, "
