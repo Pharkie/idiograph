@@ -363,8 +363,8 @@
 .sf-tbl.sf-th-dragging, .sf-tbl.sf-th-dragging .sf-th { cursor: grabbing; user-select: none; -webkit-user-select: none; }
 .sf-tbl th.dragging { background: var(--paper-sunk); }
 .sf-tbl th.dragging .sf-th { color: var(--ink); }
-.sf-tbl th.sf-drop-before { box-shadow: inset 3px 0 0 var(--ink); }
-.sf-tbl th.sf-drop-after { box-shadow: inset -3px 0 0 var(--ink); }
+.sf-tbl th.sf-drop-before { box-shadow: inset 3px 0 0 var(--ink); } /* impeccable-disable-line side-tab -- the drop line where a dragged column will land, shown only while a column is dragged (designsweep) */
+.sf-tbl th.sf-drop-after { box-shadow: inset -3px 0 0 var(--ink); } /* impeccable-disable-line side-tab -- the drop line where a dragged column will land, shown only while a column is dragged (designsweep) */
 /* the ID, the table's first column always (13 October), in place of the record's number */
 .sf-k-id { --w: 5.5em; }
 .sf-k-found { --w: 9em; }

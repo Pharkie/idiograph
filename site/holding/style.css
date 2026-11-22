@@ -370,7 +370,7 @@ main.sp {
 .clip-play:focus-visible { outline: 3px solid var(--play); outline-offset: 4px; }
 .clip-still:not(.clip-on) .clip-play { display: grid; }
 .clip-still video { cursor: pointer; }
-.sp .refs { margin-left: 0; max-width: 46em; }
+.sp .refs { margin-left: 0; max-width: 40em; }
 
 @media (max-width: 900px) {
   .clip-box { width: 100%; }
@@ -421,7 +421,7 @@ main.sp {
 @media (max-width: 359px) { .site-head { column-gap: 10px; } .site-nav { gap: 14px; font-size: 15px; } }
 p, li, summary { text-wrap: pretty; }
 
-.refs { max-width: 46em; margin: 56px auto 0; text-align: left; color: var(--ink-soft); font: 400 13px/1.5 var(--sans); }
+.refs { max-width: 40em; margin: 56px auto 0; text-align: left; color: var(--ink-soft); font: 400 13px/1.5 var(--sans); }
 .fp .refs { margin-top: 48px; }
 .refs h2 { margin: 0 0 8px; font: 600 12px/1.3 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
 .refs ul { list-style: none; margin: 0; padding: 0; }
@@ -449,7 +449,7 @@ main.mn {
 .mn h2 { font: 400 26px/1.2 var(--serif); margin: 56px 0 0; padding-bottom: 8px; border-bottom: 1px solid var(--ink); }
 .mn h3 { font: 400 21px/1.25 var(--serif); margin: 36px 0 0; }
 .mn h4 { font: 600 16px/1.3 var(--sans); margin: 28px 0 0; }
-.mn h2, .mn h3, .mn h4 { scroll-margin-top: 24px; }
+.mn h2, .mn h3, .mn h4 { scroll-margin-top: 24px; text-wrap: balance; }
 .mn p { margin: 14px 0 0; font: 400 clamp(16.5px, 0.3vw + 14px, 18px)/1.6 var(--serif); }
 .mn a { color: var(--ink); text-underline-offset: 3px; text-decoration-color: var(--crux); }
 .mn a:hover { text-decoration-color: currentColor; }

@@ -392,10 +392,11 @@ html[data-app="idiograph"][data-edition="preview"] .pe-note { display: flex; ali
   clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 /* Linux's guard against WebKitGTK's crash under Orca (axGuard in shell.js): no room and nothing seen */
 .ax-guard { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+/* a tag at the label step, the scale's smallest, where it stood at 10px under it (designsweep, 22 November 2026) */
 .tag {
-  font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+  font-size: var(--fs-label); letter-spacing: .1em; text-transform: uppercase;
   border: 1px solid var(--rule-firm); color: var(--ink-faint);
-  padding: 2px 7px; border-radius: 2px;
+  padding: 2px 7px; border-radius: var(--r-tag);
 }
 /* a case's workbook still to make, a tag in the soft ink on its own border, firmer than a plain tag's and off the
    crux orange, which means a crux (17 October, later) */
@@ -1349,14 +1350,14 @@ input[type="checkbox"] {
   background: transparent; cursor: pointer;
 }
 input[type="checkbox"]:checked { border-color: var(--ink); background: var(--ink); }
-input[type="checkbox"]:checked::before {
+input[type="checkbox"]:checked::before { /* impeccable-disable-line side-tab -- the tick, an 8px clip-path check centred in the 13px box by inset 0 and margin auto, not a bar down a side (designsweep) */
   content: ''; position: absolute; inset: 0; margin: auto; width: 8px; height: 8px; background: var(--card);
   clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
 }
 /* a tick for several, some of them ticked, half set: the box filled with a dash cut into it (6 November 2026,
    All boards on Open a shared copy's card, the first tick of the app's that is half set) */
 input[type="checkbox"]:indeterminate { border-color: var(--ink); background: var(--ink); }
-input[type="checkbox"]:indeterminate::before {
+input[type="checkbox"]:indeterminate::before { /* impeccable-disable-line side-tab -- the dash of a half-set tick, 7px by 1.5px centred in the 13px box, not a bar down a side (designsweep) */
   content: ''; position: absolute; inset: 0; margin: auto; width: 7px; height: 1.5px; background: var(--card);
 }
 input[type="checkbox"]:disabled { opacity: .45; cursor: default; }

@@ -28,14 +28,16 @@
   .ds-theme { font-family: var(--serif); font-weight: 400; font-size: var(--fs-title); margin: 0 0 var(--sp-6); }
   .ds-sec { padding: var(--sp-9) 0; border-top: 1px solid var(--rule); }
   .ds-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4); margin: 0 0 var(--sp-6); }
-  .ds-note { font-size: var(--fs-small); color: var(--ink-faint); margin: 0 0 var(--sp-4); }
+  /* the page's own notes and the swatches' words at the controls' size, a note's line held to about 75
+     characters (designsweep, 22 November 2026), where small print ran 110 a line across a panel */
+  .ds-note { font-size: var(--fs-ui); color: var(--ink-faint); margin: 0 0 var(--sp-4); max-width: 34em; text-wrap: pretty; }
   .ds-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(16em, 1fr)); gap: var(--sp-4); }
   .ds-swatch { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--sp-5); align-items: center;
     padding: var(--sp-3); border: 1px solid var(--rule); border-radius: var(--r-box); background: var(--card); }
   .ds-chip { grid-row: span 3; width: 34px; height: 34px; border-radius: var(--r-control); border: 1px solid var(--rule-firm); }
-  .ds-swatch code, .ds-type code { font-family: var(--mono); font-size: var(--fs-small); color: var(--ink); }
-  .ds-what { font-size: var(--fs-small); color: var(--ink-soft); }
-  .ds-val { font-family: var(--mono); font-size: var(--fs-label); color: var(--ink-faint); }
+  .ds-swatch code, .ds-type code { font-family: var(--mono); font-size: var(--fs-ui); color: var(--ink); }
+  .ds-what { font-size: var(--fs-ui); color: var(--ink-soft); }
+  .ds-val { font-family: var(--mono); font-size: var(--fs-ui); color: var(--ink-faint); }
   .ds-type { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--sp-5); margin: 0 0 var(--sp-3); }
   .ds-type-sample { font-family: var(--serif); color: var(--ink); }
   /* what the app places over the page, set in the flow here so each can be seen at rest */

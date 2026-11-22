@@ -1626,7 +1626,7 @@ button.btn-out::before {
    the card keeps its height, in every state, the GET's tint keeping the left edge, and the badge of
    the participant's initial before its kicker, the letter in the card's colour on the case's
    (16 October). The badge goes with the case's name in the GET table and the audit trail too. */
-.th-card.gt-card, .th-card.gt-card.in.leaving { border-top: 3px solid var(--case, var(--rule-firm)); padding-top: 7px; }
+.th-card.gt-card, .th-card.gt-card.in.leaving { border-top: 3px solid var(--case, var(--rule-firm)); padding-top: 7px; } /* impeccable-disable-line border-accent-on-rounded -- Kept by Adam's ruling of 16 October 2026: the participant's colour along a GETs card's top edge, the GET's tint holding its ground and left edge, two colour codes on one card each with its own carrier (docs/design.md, the cases' colours) (designsweep) */
 .gt-badge { display: inline-block; flex: none; min-width: 15px; height: 15px; margin-right: 5px; padding: 0 4px; box-sizing: border-box;
   border-radius: 10px; background: var(--case, var(--ink-faint)); color: var(--card); font-family: var(--sans);
   font-size: 10px; font-weight: 600; line-height: 15px; letter-spacing: 0; text-align: center; vertical-align: 1px; }
@@ -2739,7 +2739,7 @@ input.tj-title:focus { outline: 0; border-color: var(--field-edge); background: 
 .th-body:has(> #th-side:not([hidden])) > .th-edge-r { right: 360px; }
 /* a phone's width gives a sidebar the whole width, so its tab stays at the window's edge over it */
 @media (max-width: 520px) {
-  #th-cpanel:not([hidden]) ~ .th-edge-l { left: auto; right: 0; border-radius: 5px 0 0 5px; border-left: 1px solid var(--rule-firm); border-right: 0; }
+  #th-cpanel:not([hidden]) ~ .th-edge-l { left: auto; right: 0; border-radius: 5px 0 0 5px; border-left: 1px solid var(--rule-firm); border-right: 0; } /* impeccable-disable-line side-tab -- at a phone's width the sidebar's tab moves to the window's right edge, so its 1px border keeps three sides and drops the one on the edge; not an accent bar (designsweep) */
 }
 @media (max-width: 400px) {
   .th-body:has(> #th-side:not([hidden])) > .th-edge-r { right: 0; }
@@ -2774,7 +2774,7 @@ input.tj-title:focus { outline: 0; border-color: var(--field-edge); background: 
 }
 .tj-bar[hidden] { display: none; }
 @media (max-width: 520px) {
-  #tj-side:not([hidden]) ~ .th-edge-l { left: auto; right: 0; border-radius: 5px 0 0 5px; border-left: 1px solid var(--rule-firm); border-right: 0; }
+  #tj-side:not([hidden]) ~ .th-edge-l { left: auto; right: 0; border-radius: 5px 0 0 5px; border-left: 1px solid var(--rule-firm); border-right: 0; } /* impeccable-disable-line side-tab -- at a phone's width the sidebar's tab moves to the window's right edge, so its 1px border keeps three sides and drops the one on the edge; not an accent bar (designsweep) */
 }
 
 /* Undo and Redo at the right end of the Trajectories toolbar (trajundo, 16 November 2026), as on every board */

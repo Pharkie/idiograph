@@ -47,6 +47,42 @@
         ],
         "createdAt": "2026-11-22T12:00:19.437Z",
         "reason": "False positive: both 39px tiles are the sample dialogs' close button (.card-close, position absolute, top 12px, right 12px, transparent edge), not an icon above the heading; removing the kicker put the button beside the title's line, which the scan reads as a stack. The rule has no extractable value, so it is scoped to this one file (designfix2, 22 Nov 2026)"
+      },
+      {
+        "rule": "wide-tracking",
+        "value": "*",
+        "files": [
+          "apps/idiograph/static/idiograph.html"
+        ],
+        "createdAt": "2026-11-22T13:59:05.315Z",
+        "reason": "False positive: the four are the demo tag in each title bar (.tag.demo.rail-tag), set in capitals by .tag's text-transform, where tracking belongs; .06em is the narrow window's tighter step of .tag's .1em (distil.css). The rule has no extractable value, so it is scoped to this one file (designsweep, 22 November 2026)"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "apps/idiograph/static/idiograph.html"
+        ],
+        "createdAt": "2026-11-22T13:59:05.338Z",
+        "reason": "False positive: Project settings' Add category menu (#dm-add-menu) opens upward from Demographics, the sheet's last section (demographics.css .dm-addmenu, bottom: calc(100% + 4px)), over the sections above it inside the scrolling card, so the card's overflow never cuts it (designsweep, 22 November 2026)"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "family/static/design.html"
+        ],
+        "createdAt": "2026-11-22T13:59:05.363Z",
+        "reason": "False positive: the three are the sample title bars (.rail), 46px high with their items centred by align-items (style.css), so the tools stand clear of its top and bottom though the bar has no padding there, as the same bar does in the app (designsweep, 22 November 2026)"
+      },
+      {
+        "rule": "em-dash-overuse",
+        "value": "*",
+        "files": [
+          "family/static/design.html"
+        ],
+        "createdAt": "2026-11-22T13:59:05.383Z",
+        "reason": "False positive: the page has no em dash; the scan counts the two hyphens of each CSS custom property's name (--paper, --ink and so on) in the swatches' code, 56 of them (designsweep, 22 November 2026)"
       }
     ]
   }

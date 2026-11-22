@@ -278,7 +278,7 @@ button.demo-mark:hover { background: var(--paper-sunk); }
 .ds-tab.on .ds-tab-name { color: var(--ink); font-weight: 600; cursor: default; }
 .ds-tab-name:focus-visible, .ds-who:focus-visible { outline: 0; box-shadow: var(--focus-small); }
 .ds-who { display: inline-flex; align-items: center; gap: 6px; min-width: 0; background: none; border: 0;
-  border-left: 1px solid var(--rule); border-radius: 0 4px 4px 0; margin: 0 0 0 2px; padding: 2px 6px 2px 10px;
+  border-left: 1px solid var(--rule); border-radius: 0 4px 4px 0; margin: 0 0 0 2px; padding: 2px 6px 2px 10px; /* impeccable-disable-line side-tab -- a 1px rule in the rule ink dividing the step tabs from the participant chooser, not an accent bar (designsweep) */
   font: inherit; color: var(--ink); cursor: pointer; }
 .ds-who .rail-case { font-size: 15px; flex: 0 1 auto; min-width: 1.9em; }
 .ds-chevron { width: 10px; height: 10px; flex: none; color: var(--ink-faint); }
