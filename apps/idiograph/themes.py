@@ -6287,7 +6287,7 @@ def write_draft(workbook: Path, case: str, vid=None, labels: str = LETTERS, stac
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(text, encoding="utf-8", newline="\n")
-    os.replace(tmp, path)
+    locks.replace(tmp, path)
     return {"path": str(path), "version": summary(version)}
 
 

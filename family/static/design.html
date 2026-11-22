@@ -14,6 +14,7 @@
      anything that moved. A new component goes here in the same change that makes it. -->
 <link rel="stylesheet" href="/tokens.css">
 <link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/frame.css">
 <!--slot:head-->
 <style>
   /* the page's own frame, in tokens alone: two panels side by side from 900px, one under the other
@@ -75,6 +76,9 @@
   .ds-panel .ds-cols { --es-col: 1; --tx-col: 2; --en-col: 3; --col-gap: var(--sp-8);
     --cols: minmax(0, 3fr) minmax(0, 5fr) minmax(0, 3fr); }
   .ds-panel .ds-cols .turn:hover { background: none; }
+  /* a heading's name stays inside its box, the way the app's name does at the widths where its column is
+     wide enough: a word wider than the sample's narrow column is cut with an ellipsis, never past the box */
+  .ds-panel .ds-cols .col-name { overflow: hidden; text-overflow: ellipsis; }
   .ds-panel .ds-card { max-width: 22em; }
   /* Behaviour's corner panels, which stand fixed in the app's top right, here in the flow one under another */
   .ds-panel .ds-corner { position: relative; top: auto; right: auto; z-index: auto; width: min(380px, 100%);

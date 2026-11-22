@@ -267,7 +267,7 @@ def test_windows_text(scratch):
     check("144: a themes file and a GETs file are moved into place through locks.replace, so a reader holding the "
           "file open a moment on Windows is waited out and the write goes through",
           wrote == {"themes": (2, True, True), "gets": (2, True, True)}, str(wrote))
-    bare = [name for name in ("codes.py", "rounds.py", "trajectories.py")
+    bare = [name for name in ("codes.py", "rounds.py", "trajectories.py", "themes.py")
             if "os.replace(" in (support.source("apps/idiograph") / name).read_text(encoding="utf-8")]
     check("144: the code list, the progress file and the Trajectories board and its files are moved into place through "
           "locks.replace too, never os.replace", not bare, str(bare))
