@@ -170,8 +170,10 @@ def test_history_chunks(scratch: Path):
                                      "name": "kept" if r % 4 == 0 else "", "auto": r % 4 != 0, "state": st})
         tf.write_text(themes.render(data) + "\n", encoding="utf-8")
         gd = json.loads(gf.read_text(encoding="utf-8"))
+        # revisions as they were kept before a revision held the GET table (getshistory): the board alone
         gd["boards"][0]["history"] = [{"id": f"r{r + 1}", "at": f"2026-11-0{1 + r}T09:00:00+00:00", "name": "",
-                                       "auto": True, "state": themes.board_state(gd["boards"][0])} for r in range(5)]
+                                       "auto": True, "state": themes.board_state(gd["boards"][0], table=False)}
+                                      for r in range(5)]
         gf.write_text(themes.render(gd) + "\n", encoding="utf-8")
         census_before = hc.census(root)
         versions_before = {b["id"]: themes.board_version(b) for b in data["boards"]}
@@ -731,12 +733,168 @@ def test_history_chunks(scratch: Path):
         viewed = gets_mod.board_op(root, gbooks, "view", {"id": str(gb["id"]), "revision": kept_rev["id"]})
         gets_mod.board_op(root, gbooks, "restore", {"id": str(gb["id"]), "revision": kept_rev["id"]})
         back_key, back_words = ticked()
+        # since getshistory a revision holds its table, its ticked quote's words kept beside it, so shown and restored
+        # the quote the trim moved while the revision could not follow is found by its words at its new key
+        # the row ticked() reads, the first with a quote of hers, as the revision shows it
+        seen_keys = {next((((c or {}).get("Juno") or {}).get("quote") for c in (viewed.get("rows") or {}).values()
+                           if ((c or {}).get("Juno") or {}).get("quote")), None)}
+        held_rev = next(r for r in themes.history_of(gets_mod.boards_of(gets_mod.load(root))[0]) if r["id"] == kept_rev["id"])
+        old_kept = next((((c or {}).get("Juno") or {}).get("quote") for c in held_rev["state"]["rows"].values()
+                         if ((c or {}).get("Juno") or {}).get("quote")), None) == qkey
         check("400: a GETs board of PET cards with its table's quote ticked, trimmed while its History is away, keeps "
-              "the same quote at its new key, the revision shown has no tick of its own and restored leaves it there "
-              "(review 4)",
+              "the same quote at its new key, and the revision, whose table still names the old key, shows and "
+              "restores the tick on that quote by its words (review 4, getshistory)",
               bool(qwords) and qrow > 1 and away_now and moved_key == themes.card_key(qsheet, qrow - 1, qn)
-              and moved_words == qwords and "rows" not in viewed and back_key == moved_key and back_words == qwords,
-              f"{qkey} -> {moved_key} -> {back_key}, away {away_now}")
+              and moved_words == qwords and old_kept and seen_keys == {moved_key} and back_key == moved_key
+              and back_words == qwords, f"{qkey} -> {moved_key} -> {back_key}, shown {seen_keys}, away {away_now}")
+
+        # ── 3l3. a GETs revision keeps its table (getshistory, 21 November 2026, Adam's yes by dialog): a revision
+        # holds the table's rows and its ticked quotes' words beside them, History shows them, Restore puts the board
+        # and its table back together and keeps both first, an agent's restore is undone byte for byte, a revision
+        # from before holds none and restores as before, and a shared copy carries it
+        def gboard() -> dict:
+            return gets_mod.boards_of(gets_mod.load(root))[0]
+
+        def table_of_board(b: dict) -> dict:
+            return json.loads(json.dumps(gets_mod.rows_of(b)))
+
+        gb = gboard()
+        gid_board = str(gb["id"])
+        rows_then = table_of_board(gb)
+        ticked_rows = [(gid, case) for gid, cases in rows_then.items() for case, row in cases.items() if row.get("quote")]
+        made_then = gets_mod.board_op(root, gbooks, "revision", {"id": gid_board, "name": "with its table"})["revision"]
+        kept_then = next(r for r in themes.history_of(gboard()) if r["id"] == made_then["id"])
+        marks_ok = all(str(kept_then.get(gets_mod.TABLE, {}).get(gid, {}).get(case)).partition(":")[0]
+                       == gets_mod.quote_mark(gets_mod.quote_at(gets_mod.load(root)["cases"][case],
+                                                                rows_then[gid][case]["quote"])["text"])
+                       for gid, case in ticked_rows)
+        check("400: a GETs revision holds the table's rows in its state and each ticked quote's words beside it, its "
+              "hash the state's as before",
+              bool(ticked_rows) and kept_then["state"].get("rows") == rows_then and marks_ok
+              and made_then["hash"] == themes.state_hash(kept_then["state"])[:themes.HASH_SAID],
+              f"{len(ticked_rows)} ticked, marks {marks_ok}")
+        # the table changed on the page: one tick taken off and a note written, saved as the page saves
+        changed = json.loads(json.dumps(gboard()))
+        g0, c0 = ticked_rows[0]
+        changed["rows"][g0][c0].pop("quote", None)
+        changed["rows"][g0][c0].pop("bold", None)
+        changed["rows"][g0][c0]["note"] = "A note written after the revision."
+        for key in (bh.HEAD, "history"):
+            changed.pop(key, None)
+        gets_mod.save(root, gbooks, changed, revision="auto")
+        count_then = len(themes.history_of(gboard()))
+        # the timer's next save keeps the board as the file holds it, which differs from the last revision in its
+        # table alone
+        again = json.loads(json.dumps(gboard()))
+        for key in (bh.HEAD, "history"):
+            again.pop(key, None)
+        gets_mod.save(root, gbooks, again, revision="auto")
+        rows_now = table_of_board(gboard())
+        held_now = themes.history_of(gboard())
+        check("400: a change to the table alone is a change the timer keeps: its automatic revision holds the table "
+              "with the tick taken off and the note",
+              rows_now != rows_then and rows_now[g0][c0].get("note") and not rows_now[g0][c0].get("quote")
+              and len(held_now) == count_then + 1 and held_now[-1].get("auto")
+              and held_now[-1]["state"].get("rows") == rows_now, json.dumps(rows_now.get(g0, {}))[:200])
+        viewed = gets_mod.board_op(root, gbooks, "view", {"id": gid_board, "revision": made_then["id"]})
+        check("400: History shows the revision's own table, its tick and its notes, where the board's today differs",
+              viewed.get("rows") == rows_then, json.dumps(viewed.get("rows"))[:200])
+        done = gets_mod.board_op(root, gbooks, "restore", {"id": gid_board, "revision": made_then["id"]})
+        after = gboard()
+        before_kept = next(r for r in themes.history_of(after) if r["id"] == done["revision"]["id"])
+        check("400: Restore puts back the board and its table together, and keeps the board and the table as they "
+              "stood first, Before restoring",
+              table_of_board(after) == rows_then and done["rows"] == rows_then
+              and before_kept["state"].get("rows") == rows_now and before_kept.get("kind") == "before_restoring",
+              json.dumps(table_of_board(after).get(g0, {}))[:200])
+        gets_mod.board_op(root, gbooks, "restore", {"id": gid_board, "revision": before_kept["id"]})
+        check("400: restoring Before restoring, the Undo of a Restore, puts back the table as it stood before it",
+              table_of_board(gboard()) == rows_now, json.dumps(table_of_board(gboard()).get(g0, {}))[:200])
+        # an agent's restore, then its run's undo: every file back byte for byte
+        start_agent = boards_files(root)
+        log_before = len(agent_changes.read(root))
+        code, out, err = run("gets", "restore", gid_board, made_then["id"], "--note", ASKED)
+        restored_rows = table_of_board(gboard())
+        lines_now = agent_changes.read(root)
+        code2, undone, err2 = run("agents", "undo-run", lines_now[-1]["run"], "--note", "Put it back")
+        check("400: an agent's restore of a GETs revision puts its table back, and its run's undo puts the GETs file "
+              "and every chunk back byte for byte",
+              code == 0 and restored_rows == rows_then and len(lines_now) == log_before + 1 and code2 == 0
+              and boards_files(root) == start_agent, err + err2)
+        # a revision from before revisions held the table: shown, no table of its own; restored, the table as it stands
+        old_rev = themes.history_of(gboard())[0]
+        old_shown = gets_mod.board_op(root, gbooks, "view", {"id": gid_board, "revision": old_rev["id"]})
+        old_done = gets_mod.board_op(root, gbooks, "restore", {"id": gid_board, "revision": old_rev["id"]})
+        check("400: a revision from before holds no table: shown, it gives none, and restored, the table stays as it "
+              "stands, nothing new said",
+              "rows" not in old_rev["state"] and gets_mod.TABLE not in old_rev and "rows" not in old_shown
+              and table_of_board(gboard()) == rows_now and set(old_done) == set(done), str(sorted(old_done)))
+        # a shared copy: every file a send or a copy takes, placed in another folder, carries the revision's table
+        import project_pack
+        shared = base / "shared-copy" / root.name
+        shutil.rmtree(shared.parent, ignore_errors=True)
+        for p, rel in project_pack.project_files(root):
+            (shared / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(p, shared / rel)
+        bh._MEMO.clear()
+        sdata = gets_mod.load(shared)
+        sboard = gets_mod.boards_of(sdata)[0]
+        srev = next((r for r in themes.history_of(sboard) if r["id"] == made_then["id"]), None)
+        sshown = gets_mod.board_op(shared, routes.gets_books(shared), "view", {"id": gid_board, "revision": made_then["id"]})
+        check("400: a shared copy carries the revision with its table and its quotes' words, and shows the same table",
+              srev is not None and srev["state"].get("rows") == rows_then and srev.get(gets_mod.TABLE) == kept_then.get(gets_mod.TABLE)
+              and sshown.get("rows") == rows_then, str(srev is not None))
+        shutil.rmtree(shared.parent, ignore_errors=True)
+        # the same follows on a quote reworded where it stands, and a quote gone: the tick stays, then goes, the note kept
+        state_r = json.loads(json.dumps(kept_then))
+        g1, c1 = ticked_rows[0]
+        state_r[gets_mod.TABLE][g1][c1] = gets_mod.quote_mark("words no quote of theirs has")
+        state_r["state"]["rows"][g1][c1]["bold"] = [[0, 4]]
+        state_r["state"]["rows"][g1]["Nobody"] = {"quote": "", "note": "a participant the file no longer holds"}
+        stays = gets_mod.table_followed(state_r, gets_mod.load(root))
+        # review-getshistory L1: the quote's row kept its statements' words and its old words are another quote of
+        # hers now: a find and replace reworded this one in place, so the tick does not move there
+        cur = gets_mod.load(root)
+        qk1 = rows_then[g1][c1]["quote"]
+        other = next(q for line in cur["cases"][c1]["lines"].values() for q in gets_mod.line_quotes(line)
+                     if q["key"] != qk1 and gets_mod.quote_mark(q["text"]) != gets_mod.quote_mark(
+                         gets_mod.quote_at(cur["cases"][c1], qk1)["text"]))
+        state_l1 = json.loads(json.dumps(kept_then))
+        state_l1[gets_mod.TABLE][g1][c1] = gets_mod.quote_mark(other["text"]) + ":" + gets_mod.row_mark(cur["cases"][c1], qk1)
+        in_place = gets_mod.table_followed(state_l1, cur)
+        # and with its row's statements another row's now (the keys moved), the same words are followed there
+        state_l1[gets_mod.TABLE][g1][c1] = gets_mod.quote_mark(other["text"]) + ":" + gets_mod.quote_mark("another row")
+        followed_on = gets_mod.table_followed(state_l1, cur)
+        check("400: a tick whose quote was reworded where it stands stays though its old words are another quote of "
+              "hers, and goes to that quote when its row's statements show the keys moved, its bold measured on the "
+              "old words dropped when it stays, and a row of a participant the file no longer holds left out",
+              in_place[g1][c1].get("quote") == qk1 and followed_on[g1][c1].get("quote") == other["key"]
+              and "bold" not in stays[g1][c1] and "Nobody" not in stays[g1], json.dumps(stays[g1])[:200])
+        # review-getshistory M: the timer keeps no automatic revision that differs from the last, kept before
+        # revisions held the table, only by the table now being held, on the end of the History or with it attached
+        fast_board = gboard()
+        old_style = {"id": "r900", "at": themes.now_iso(), "name": "", "auto": True,
+                     "state": themes.board_state(fast_board, table=False)}
+        bh.append(fast_board, old_style)
+        none_fast = themes.auto_revision(fast_board)
+        slow_board = gboard()
+        slow_board["history"] = themes.history_of(slow_board) + [dict(old_style)]
+        none_slow = themes.auto_revision(slow_board)
+        moved_card = sorted(slow_board["cards"])[0]
+        slow_board["cards"][moved_card]["x"] = float(slow_board["cards"][moved_card].get("x") or 0) + 50
+        made_slow = themes.auto_revision(slow_board)
+        check("400: after a revision from before, a timer save of the same board keeps no new line, and one that moved "
+              "a card keeps one holding the table",
+              none_fast is None and none_slow is None and made_slow is not None
+              and made_slow["state"].get("rows") == rows_now,
+              f"{none_fast} {none_slow} {made_slow and made_slow['id']}")
+        state_r["state"]["rows"][g1][c1]["quote"] = themes.card_key("Initial", 9999, 0)
+        state_r["state"]["rows"][g1][c1]["note"] = "kept"
+        goes = gets_mod.table_followed(state_r, gets_mod.load(root))
+        check("400: a ticked quote reworded where it stands keeps its tick, and one whose key holds no quote loses its "
+              "tick and keeps its note",
+              stays[g1][c1].get("quote") == rows_then[g1][c1]["quote"]
+              and "quote" not in goes[g1][c1] and goes[g1][c1].get("note") == "kept", json.dumps(goes[g1][c1]))
 
         # ── 3m. a restored revision's card marked changed when it was kept keeps its words, so it comes back marked
         # changed; one that was not takes today's words (lazy word-following, review 2, 9)
@@ -834,8 +992,10 @@ def test_history_chunks(scratch: Path):
 
         # ── 6. an agent's change after the move, undone: the run, then one change alone
         start = boards_files(root)
+        # the record's lines before it, the GETs restore and its undo of 3l3 among them
+        earlier = len(agent_changes.read(root))
         code, out, err = run("board", "revision", "Juno", "Board 1", "--note", ASKED)
-        lines = agent_changes.read(root)
+        lines = agent_changes.read(root)[earlier:]
         check("400: an agent's Save a revision after the move writes a chunk, is one line in the record naming "
               "Juno's boards, and its undo carries the revision's hash",
               code == 0 and boards_files(root) != start and len(lines) == 1

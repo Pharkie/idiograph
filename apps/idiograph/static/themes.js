@@ -7981,6 +7981,8 @@ async function thViewRevision(rid) {
     waits: TH.mode !== 'gets',
     readonly: true,
   };
+  // a GETs revision's own table, its ticks and notes (getshistory, 21 November 2026); one from before holds none
+  if (data.rows && typeof data.rows === 'object') TH.v.rows = JSON.parse(JSON.stringify(data.rows));
   thWaitsRead(TH.v);
   TH.viewing = Object.assign(kept, { rev: data.revision });
   TH.z = Object.keys(cards);

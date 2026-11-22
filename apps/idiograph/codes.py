@@ -812,7 +812,7 @@ def follow_gets(root: Path, plan: dict, books: list[dict], revision: str, when: 
     if data is None:
         return None
     for board in themes.boards_of(data):
-        themes.add_revision(board, name=revision, at=when)
+        gets.table_kept(themes.add_revision(board, name=revision, at=when), data)
         for item in plan.values():
             rekey_board(board, item["case"], item["rows"])
     by_book = {str(Path(b["workbook"])): b for b in books}
@@ -1312,7 +1312,7 @@ def ensure(root: Path, books: list[dict], when: str, tool: str = "") -> dict:
             name = (themes.revision_name("codes_listed_moved", codes=i18n.t("codes.n.codes", n=n),
                                          names=", ".join(f'"{x}"' for x in gathered))
                     if gathered else themes.revision_name("codes_listed", codes=i18n.t("codes.n.codes", n=n)))
-            themes.add_revision(board, name=name, at=when)
+            gets.table_kept(themes.add_revision(board, name=name, at=when), held)
             gather(board, held)
             board["updated"] = when
             gathered_all += [x for x in gathered if x not in gathered_all]

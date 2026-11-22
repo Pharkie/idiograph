@@ -50,6 +50,7 @@ from __future__ import annotations
 
 import contextlib
 import contextvars
+import hashlib
 import json
 import math
 import os
@@ -1527,7 +1528,7 @@ def save(root: Path, books: list[dict], version: dict, revision=None) -> dict:
         kept["made"] = themes.edited_mark(kept["made"], kept, when, kept.get("changed"))
     made = None
     if revision == "auto" and disk is not None:
-        made = themes.auto_revision(was, at=when)
+        made = table_kept(themes.auto_revision(was, at=when), data)
     themes.carry_history(was, kept)
     boards[at] = kept
     data["boards"] = boards
@@ -1695,9 +1696,8 @@ def followed(state: dict, data: dict) -> dict:
     a card stays while its key still holds its words, and otherwise takes an unclaimed line of theirs with its words,
     the nearest first, its GETs' members, the bin and the rest with it. A trim, a passage written or a rekey moves
     the GETs revisions' keys with the board when their History is here; one made while it was not leaves them as
-    they were, and they follow here. The table's ticked quotes are no part of a revision (`themes.STATE_KEYS` holds no
-    `rows`, and Restore leaves the table as it stands): they live on the board alone, which those followers always
-    move, so none is followed here (historyfix3, review 4). Nothing is written."""
+    they were, and they follow here. The table's ticked quotes, which a revision holds since getshistory (21 November
+    2026), follow by their words in `table_followed`, not here. Nothing is written."""
     out = json.loads(json.dumps(state))
     cards = out.get("cards") if isinstance(out.get("cards"), dict) else {}
     for case, rec in ((data or {}).get("cases") or {}).items():
@@ -1725,6 +1725,136 @@ def followed(state: dict, data: dict) -> dict:
         if cmap:
             board_remapped(out, case, cmap, {})
     return out
+
+
+# A revision of a board with a table keeps the table's rows in its state (`themes.board_state`, getshistory, 21
+# November 2026, Adam's yes by dialog) and, beside the state, `table`: for each row with a ticked quote, by GET and
+# participant, the start of the hash of the quote's words as the participant's copy held them when the revision was
+# made, so a quote whose key moved since without the revision (a take, or a trim while the History was away) is
+# followed by its words when the revision is shown or restored. It is no part of the state, so the state's hash,
+# Restore by hash and an agent's undo read as before. A revision from before holds no rows and no `table`.
+TABLE = "table"
+TABLE_HASH = 12
+
+
+def quote_mark(text) -> str:
+    """The short hash of a quote's words as `table` keeps it, its spacing and inverted commas set aside
+    (`themes.quote_words`)."""
+    return hashlib.sha256(themes.quote_words(text).encode("utf-8")).hexdigest()[:TABLE_HASH]
+
+
+def table_of(rows, data: dict) -> dict:
+    """`table` for a revision's rows: each ticked quote's words, as the copy holds them now, by GET and participant,
+    "" for a quote the copy no longer holds."""
+    out: dict = {}
+    held = (data or {}).get("cases") or {}
+    for gid, cases in (rows or {}).items() if isinstance(rows, dict) else ():
+        for case, row in (cases or {}).items() if isinstance(cases, dict) else ():
+            if not (isinstance(row, dict) and row.get("quote")):
+                continue
+            found = quote_at(held.get(case) or {}, row["quote"])
+            out.setdefault(str(gid), {})[str(case)] = (
+                quote_mark(found["text"]) + ":" + row_mark(held.get(case) or {}, row["quote"]) if found else "")
+    return out
+
+
+def row_mark(rec: dict, qkey) -> str:
+    """The short hash of the statements' words of a quote's row, as a copy holds them: what tells a quote reworded
+    where it stands (a find and replace on its words alone, its row's statements as they were) from one whose key
+    now names another row (a trim or a take that moved the keys) (review-getshistory L1)."""
+    sheet, row, _ = themes.split_card_key(str(qkey or ""))
+    lines = rec.get("lines") or {}
+    said = [themes.words(lines[k].get("text")) for k in sorted(lines, key=themes._order)
+            if isinstance(lines[k], dict) and lines[k].get("sheet") == sheet and lines[k].get("row") == row]
+    return quote_mark("\n".join(said))
+
+
+def table_kept(made: dict | None, data: dict, rows=None) -> dict | None:
+    """A revision just made of a board with a table given its `table`, the words of its ticked quotes as the copy in
+    `data` holds them now, or as `rows` names them when given (the state's rows read before a follower moved the
+    copy). Answers the revision, None as given."""
+    if isinstance(made, dict) and isinstance(made.get("state"), dict) \
+            and isinstance(made["state"].get(themes.TABLE_ROWS), dict):
+        made[TABLE] = table_of(made["state"][themes.TABLE_ROWS] if rows is None else rows, data)
+    return made
+
+
+def table_followed(revision: dict, data: dict, groups=None) -> dict | None:
+    """The table a revision holds, as it is shown or restored: its rows, each ticked quote kept while its key holds
+    the words it had when the revision was made. A quote whose words changed while its row's statements kept theirs
+    (`row_mark`) was reworded where it stands (a find and replace), and its tick stays there; otherwise the key now
+    names another row (a trim or a take moved the keys), and the tick moves to the quote of theirs with its words
+    nearest to it, else stays while its key is still a quote.
+    A tick kept on words that changed loses his bold, measured on the old words, and a tick with no quote at its key
+    and none with its words is taken off with its bold, the row's note kept. A passage taken from the transcript
+    stays as it was, the table itself saying when its turn's words have changed. A row of a GET not in `groups`, or
+    of a participant (a timepoint on LPETs) the file no longer holds, is left out. None for a revision from before
+    revisions held the table, whose Restore keeps the table as it stands. Nothing is written."""
+    state = revision.get("state") if isinstance(revision, dict) else None
+    if not isinstance(state, dict) or not isinstance(state.get(themes.TABLE_ROWS), dict):
+        return None
+    rows = json.loads(json.dumps(state[themes.TABLE_ROWS]))
+    said = revision.get(TABLE) if isinstance(revision.get(TABLE), dict) else {}
+    held = (data or {}).get("cases") or {}
+    for gid, cases in rows.items():
+        if not isinstance(cases, dict):
+            continue
+        # a participant the file no longer holds keeps no row, its note with it (review-getshistory L2)
+        for case in [c for c in cases if c not in held]:
+            cases.pop(case)
+        for case, row in cases.items():
+            if not (isinstance(row, dict) and row.get("quote")):
+                continue
+            rec = held.get(case) or {}
+            found = quote_at(rec, row["quote"])
+            mark = (said.get(str(gid)) or {}).get(str(case)) if isinstance(said.get(str(gid)), dict) else None
+            if mark is None:
+                # a revision kept without its quotes' words keeps a tick while its key is a quote of theirs
+                if found is None:
+                    row.pop("quote", None)
+                    row.pop("bold", None)
+                continue
+            words_mark, _, line_mark = str(mark).partition(":")
+            if found is not None and quote_mark(found["text"]) == words_mark:
+                continue
+            # a quote reworded where it stands, its row's statements as they were, is never sought elsewhere, though
+            # its old words are another quote of theirs now (review-getshistory L1)
+            moved = found is None or not line_mark or row_mark(rec, row["quote"]) != line_mark
+            to = quote_by_words(rec, row["quote"], words_mark) if words_mark and moved else None
+            if to is not None:
+                row["quote"] = to
+            elif found is None:
+                row.pop("quote", None)
+                row.pop("bold", None)
+            else:
+                # reworded where it stands: the tick stays, and his bold, measured on the old words, goes (L3)
+                row.pop("bold", None)
+    rows = {gid: cases for gid, cases in rows.items() if not isinstance(cases, dict) or cases}
+    if groups is not None:
+        rows = rows_of({"rows": rows, "groups": groups})
+    return rows
+
+
+def quote_by_words(rec: dict, was: str, mark: str) -> str | None:
+    """The key of the quote of a participant's copy whose words have the hash `mark`, the nearest to `was`, the key
+    it had: on its sheet first, then by rows away. None when no quote of theirs has those words."""
+    sheet, row, place = themes.split_card_key(str(was or ""))
+    best = None
+    seen = set()
+    for line in (rec.get("lines") or {}).values():
+        if not isinstance(line, dict):
+            continue
+        for q in line_quotes(line):
+            if q["key"] in seen:
+                continue
+            seen.add(q["key"])
+            if quote_mark(q["text"]) != mark:
+                continue
+            qs, qr, qn = themes.split_card_key(q["key"])
+            far = (qs != sheet, abs((qr or 0) - (row or 0)), abs((qn or 0) - (place or 0)), q["key"])
+            if best is None or far < best[0]:
+                best = (far, q["key"])
+    return best[1] if best else None
 
 
 def view_state(board: dict, data: dict) -> dict:
@@ -1781,18 +1911,26 @@ def board_op(root: Path, books: list[dict], op: str, body: dict, dry_run: bool =
         raise WorkbookError(themes.LOST)
     themes.revision_checked(revision, body.get("hash"))
     if op == "view":
-        return dict(view_state(followed(revision["state"], data), data), op=op, revision=themes.revision_summary(revision),
-                    board=themes.summary(normal(board, data), board))
+        shown = followed(revision["state"], data)
+        # the revision's own table where it holds one (getshistory), and none from a revision from before, as before
+        table = table_followed(revision, data, themes.normalise(shown)["groups"])
+        return dict(view_state(shown, data), op=op, revision=themes.revision_summary(revision),
+                    board=themes.summary(normal(board, data), board), **({"rows": table} if table is not None else {}))
     if op == "revision":
-        made = themes.add_revision(board, name=str(body.get("name") or "")[:200], at=when)
+        made = table_kept(themes.add_revision(board, name=str(body.get("name") or "")[:200], at=when), data)
         extra = {"revision": themes.revision_summary(made)}
     else:
-        made = themes.add_revision(board, name=themes.revision_name("before_restoring", when_at=revision["at"]),
-                                   at=when)
+        # the board and its table as they stand kept first, so restoring that revision puts both back (getshistory)
+        made = table_kept(themes.add_revision(board, name=themes.revision_name("before_restoring",
+                                                                               when_at=revision["at"]), at=when), data)
         restored = json.loads(json.dumps(themes.state_of(themes.normalise(followed(revision["state"], data)))))
+        table = table_followed(revision, data, restored["groups"])
         for key in ("notes", "ai", "quoted", "cut", themes.WHY):
             board.pop(key, None)
         board.update({key: restored[key] for key in themes.STATE_KEYS if key in restored}, updated=when)
+        # the revision's table with its board; a revision from before holds none, and the table stays as it stands
+        if table is not None:
+            board["rows"] = table
         # in a thematic analysis project the copies stand as they are now, so a code the board kept in two places
         # when its extract had another code is gathered where it stands, the recoded card never its lead (cardsync4)
         if ta_now():
@@ -2131,7 +2269,7 @@ def statements_followed(root: Path, workbook: Path, words: dict, before: dict, b
     marked = {b["board"] for b in boards} if changed else set()
     for board in boards_of(data):
         if str(board.get("id")) in marked:
-            themes.kept_revision(board, name=history, at=when)
+            table_kept(themes.kept_revision(board, name=history, at=when), data)
     # the researcher's own edit: each board's version before its cards take the words, so a page open on it since
     # saves over it as ever, the words kept (cardsync2, see `themes.FOLLOWED`)
     was_v = {} if changed else {id(b): themes.board_version(b) for b in boards_of(data)}
@@ -2186,7 +2324,7 @@ def noted_on(data: dict, entries: list[dict], said: dict, when: str) -> list[str
         cards = board.get("cards") if isinstance(board.get("cards"), dict) else {}
         for key, line in said.items():
             if any(isinstance(cards.get(card_of(e["case"], "es", key)), dict) for e in entries):
-                themes.kept_revision(board, name=line, at=when)
+                table_kept(themes.kept_revision(board, name=line, at=when), data)
                 if str(board.get("id")) not in out:
                     out.append(str(board.get("id")))
     return out
@@ -2284,7 +2422,7 @@ def copies_refreshed(root: Path, workbook: Path, truth: dict, books: list[dict] 
         said = by_id.get(str(board.get("id")))
         if str(board.get("id")) not in touched:
             continue
-        themes.kept_revision(board, name=history, at=when)
+        table_kept(themes.kept_revision(board, name=history, at=when), data)
         for ck in (said or {}).get("cards") or []:
             board["cards"][ck]["text"] = truth[split_key(ck)["ident"]]["text"]
     for case, lines in fix.items():
@@ -2468,10 +2606,12 @@ def case_keys(data: dict, case: str, history: bool = True) -> tuple[set, set]:
                 s = split_key(k)
                 if s["kind"] == "es" and s["case"] == case:
                     statements.add(s["ident"])
-        for cases in (board.get("rows") or {}).values():
-            row = (cases or {}).get(case) if isinstance(cases, dict) else None
-            if isinstance(row, dict) and row.get("quote"):
-                quotes.add(str(row["quote"]))
+            # the table's ticked quotes, the board's and, since a revision holds its table (getshistory), each
+            # revision's
+            for cases in (state.get("rows") or {}).values() if isinstance(state.get("rows"), dict) else ():
+                row = (cases or {}).get(case) if isinstance(cases, dict) else None
+                if isinstance(row, dict) and row.get("quote"):
+                    quotes.add(str(row["quote"]))
     return statements, quotes
 
 
@@ -3424,13 +3564,17 @@ def copies_rekeyed(root: Path, workbook: Path, truth: dict, books: list[dict] | 
     touched: dict[str, list[str]] = {}
     for case, (cmap, qmap, turns, merged) in maps.items():
         before = {str(b.get("id")): json.loads(json.dumps(themes.board_state(b))) for b in boards_of(data)}
+        # the ticked quotes' words read before the copy's keys move (getshistory)
+        told = {bid: table_of(state.get(themes.TABLE_ROWS), data) for bid, state in before.items()}
         done = remap_case(data, case, cmap, qmap, turns=turns, merged=merged)
         for bid, keys in done["boards"].items():
             touched.setdefault(bid, []).extend(keys)
             if not dry and bid in before:
                 b = next(x for x in boards_of(data) if str(x.get("id")) == bid)
                 if not any(r.get("name") == history and r.get("at") == when for r in themes.history_known(b)):
-                    themes.kept_revision(b, name=history, at=when, state=before[bid])
+                    made = themes.kept_revision(b, name=history, at=when, state=before[bid])
+                    if made is not None and themes.TABLE_ROWS in before[bid]:
+                        made[TABLE] = told[bid]
     out["boards"] = [{"board": bid, "name": next(str(b.get("name") or FIRST_NAME) for b in boards_of(data)
                                                  if str(b.get("id")) == bid), "cards": keys}
                      for bid, keys in touched.items()]
@@ -3510,13 +3654,17 @@ def copies_pruned(root: Path, workbook: Path, truth: dict, books: list[dict] | N
     touched: dict[str, list[str]] = {}
     for case, (cmap, qmap) in maps.items():
         before = {str(b.get("id")): json.loads(json.dumps(themes.board_state(b))) for b in boards_of(data)}
+        # the ticked quotes' words read before the copy's keys move (getshistory)
+        told = {bid: table_of(state.get(themes.TABLE_ROWS), data) for bid, state in before.items()}
         done = remap_case(data, case, cmap, qmap, history=False)
         for bid, keys in done["boards"].items():
             touched.setdefault(bid, []).extend(keys)
             if not dry:
                 b = next(x for x in boards_of(data) if str(x.get("id")) == bid)
                 if not any(r.get("name") == history and r.get("at") == when for r in themes.history_known(b)):
-                    themes.kept_revision(b, name=history, at=when, state=before[bid])
+                    made = themes.kept_revision(b, name=history, at=when, state=before[bid])
+                    if made is not None and themes.TABLE_ROWS in before[bid]:
+                        made[TABLE] = told[bid]
     now = evidence(data, board, cases)
     titles = {g["id"]: g.get("label") or "" for g in (board or {}).get("groups") or [] if isinstance(g, dict)}
     out["emptied"] = [{"board": str(board.get("id")), "board_name": str(board.get("name") or FIRST_NAME),
@@ -3694,11 +3842,14 @@ def take_into(data: dict, case: str, old: dict, fresh: dict, workbook: Path, whe
     # each ticked quote of the case follows its words as its statement's card does (takefix)
     qmap = quotes_followed(case, old, fresh)
     done = []
+    # the copy as it stood, whose words the ticked quotes of a revision kept before the take are read in (getshistory)
+    held_was = dict(data, cases=dict(data.get("cases") or {}, **{case: old}))
     for board in boards_of(data):
         was_board = json.loads(json.dumps(board))
         if touched is None:
             line = history(None) if callable(history) else history
-            themes.add_revision(board, name=line or themes.revision_name("before_changes", who=name), at=when)
+            table_kept(themes.add_revision(board, name=line or themes.revision_name("before_changes", who=name),
+                                           at=when), held_was)
         # each card's height as it stood, for the room a card that grows makes below it (see `make_room_below`)
         was = {k: card_height(k, c.get("text")) for k, c in named(board, data)["cards"].items()}
         # a statement's card follows its words, whatever a write moved or removed in its passage
@@ -3730,12 +3881,14 @@ def take_into(data: dict, case: str, old: dict, fresh: dict, workbook: Path, whe
             recoded_in(board, case, old, seen, back)
         if touched is not None:
             # a board with no card the take changes keeps no line in its History and is left as it was
-            if themes.state_hash(themes.board_state(board)) == themes.state_hash(themes.board_state(was_board)):
+            # the board alone, so a ticked quote that only followed its words to a new key keeps no line either
+            if themes.state_hash(themes.board_state(board, table=False)) \
+                    == themes.state_hash(themes.board_state(was_board, table=False)):
                 done.append((was_board, board, rename, titled, pushed))
                 continue
             line = history(shown_codes(case, was_board, board, before, seen)) if callable(history) else history
-            themes.add_revision(board, name=line or themes.revision_name("before_changes", who=name), at=when,
-                                state=themes.board_state(was_board))
+            table_kept(themes.add_revision(board, name=line or themes.revision_name("before_changes", who=name),
+                                           at=when, state=themes.board_state(was_board)), held_was)
             touched.append(str(board.get("id")))
         board["updated"] = when
         done.append((was_board, board, rename, titled, pushed))

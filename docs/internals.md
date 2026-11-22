@@ -3517,10 +3517,35 @@ board in line). A card the revision kept marked changed (the page keeps the line
 the words it was made with, so it comes back marked changed as before (historyfix2). A GETs revision whose keys a
 follower could not move while its History was away follows by words when restored or shown (`gets.followed`, through
 `themes.follow`: a statement card stays while its key holds its words and otherwise takes an unclaimed line of the
-participant's with its words, the nearest first, its GETs' members going with it). The table's ticked quotes are no
-part of a revision (a revision holds `themes.STATE_KEYS`, never `rows`, and Restore leaves the table as it stands),
-so they live on the board alone, which a trim, a passage written or a rekey always moves whether its History is here
-or not, and a revision shown or restored never shows or writes a tick of its own (historyfix3). `clear_format` (`read_board`, its archive copy holding the History inside it with each head as the
+participant's with its words, the nearest first, its GETs' members going with it). **A revision keeps its table**
+(getshistory, 21 November 2026, Adam's yes by dialog, where historyfix3 had kept the table on the board alone): on a
+board with a table (the GETs', the LGETs' and each LPETs board) `themes.board_state` puts the board's `rows` in the
+state (`themes.TABLE_ROWS`; `table=False` leaves them out, which the take's check that a board changed uses, so a
+tick that only followed its words keeps no line), so a tick or a row's note is a change the timer keeps, and
+`gets.table_kept` gives the revision, beside its state, `table` (`gets.TABLE`): by GET and participant, the first
+12 hex of the SHA-256 of each ticked quote's words (`quote_mark`, over `themes.quote_words`) as the copy held them
+when it was made, so the state's hash, Restore by hash and an agent's undo are as before. Every revision of such a
+board is made through it, the "kept first" revisions of `copies_rekeyed` and `copies_pruned` with the words read
+before the copy's keys move, the take's with the copy as it stood, codes' Themes board, the command line's `gets
+apply`, `gets subs` and `gets_revision_first`, and the page's Reload keep. Shown (`gets.board_op`'s `view`, `rows`
+in its answer, which the page's `thViewRevision` puts on the canvas's `v` so the GET table draws the revision's
+ticks and notes) and restored, `table_followed` gives the revision's rows: a tick stays while its key holds the
+words it had; `table` keeps beside each quote's hash one of its row's statements' words (`row_mark`), so a quote
+whose words changed while its row's statements kept theirs was reworded in place (a find and replace) and its tick
+stays, its bold, measured on the old words, dropped; where the row's statements changed too the keys moved, and
+the tick moves to the nearest quote of theirs with its words (`quote_by_words`), else stays while its key is still
+a quote (its bold dropped), else
+goes with its bold, the row's note kept; a passage row as it was; rows of a GET not on the board (`rows_of`) and
+of a participant or timepoint the file no longer holds left out. Restore keeps Before restoring first with today's
+table, so restoring that puts both back. A revision from before holds no `rows`: shown it gives none and restored
+it leaves the table as it stands, as before, and the timer keeps no automatic revision whose state differs from
+such a last revision only by holding the table (`themes.same_but_table`, on the end of the History and with it
+attached), so the update adds no History line to a board until its board or its table changes. `remap_case` moves a revision's rows with its cards
+(`board_remapped`), `case_keys` reads the revisions' ticked quotes too, and `table`, keyed by GET and participant,
+needs no moving. A revision grows by its table's rows as the board holds them and about 38 bytes a ticked quote
+for `table`: on the demo's GETs board a revision line goes from 2,905 to 4,165 bytes, on the LIPA demo's LGETs from
+1,601 to 2,320 and on its LPETs boards by 1,349 to 1,911. A send, a copy and Working together carry it in the chunks
+as they are. Area 400. `clear_format` (`read_board`, its archive copy holding the History inside it with each head as the
 file holds it), Rename's GETs and LGETs (`case_files.read_boards`, the chunks in its put-back steps), `gets.case_keys`
 and `gets.copies_rekeyed`' and `copies_pruned`' idempotence checks (`themes.history_known`) read through the adapter,
 and `board list`'s count is the head's (`themes.revision_count`). **The move**: `themes.read_file` and `gets.load`

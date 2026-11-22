@@ -2837,9 +2837,30 @@ def state_of(kept: dict) -> dict:
     return out
 
 
-def board_state(board: dict) -> dict:
-    """What a revision holds of a board, as the file holds it (see `state_of`)."""
-    return state_of(normalise(board))
+def board_state(board: dict, table: bool = True) -> dict:
+    """What a revision holds of a board, as the file holds it (see `state_of`), and on a board with a table (the
+    GETs', the LGETs' and each LPETs board, never a PETs board) its `rows` as they stand (getshistory, 21 November
+    2026, Adam's yes by dialog), so History shows and Restore puts back the table with the board, and a tick or a
+    row's note is a change the timer keeps. `table` false leaves the rows out, for a caller that compares the board
+    alone. A revision from before holds no rows, and Restore keeps the table as it stands for it."""
+    state = state_of(normalise(board))
+    if table and isinstance(board, dict) and isinstance(board.get(TABLE_ROWS), dict):
+        state[TABLE_ROWS] = json.loads(json.dumps(board[TABLE_ROWS]))
+    return state
+
+
+# the GET table's rows, held by a revision of a board with a table (see `board_state`)
+TABLE_ROWS = "rows"
+
+
+def same_but_table(state: dict, last: str | None) -> bool:
+    """Whether `state`, holding the table's rows, is the revision whose state's hash is `last` but for them: a
+    revision kept before revisions held the table (getshistory), the board as it kept it, so the timer keeps no
+    automatic revision that differs from it only by the table now being held (review-getshistory M). A revision
+    since holds its rows, so its hash never matches a state without them."""
+    if not last or not isinstance(state, dict) or TABLE_ROWS not in state:
+        return False
+    return state_hash({k: v for k, v in state.items() if k != TABLE_ROWS}) == last
 
 
 def state_hash(state: dict) -> str:
@@ -3157,7 +3178,8 @@ def add_revision(board: dict, name: str = "", auto: bool = False, at: str | None
     head = board_history.head_of(board)
     # the head's hash of the last state answers an automatic one's check without reading a chunk
     if auto and head is not None and not isinstance(board.get("history"), list) \
-            and board_history.last_hash(board) == state_hash(state):
+            and (board_history.last_hash(board) == state_hash(state)
+                 or same_but_table(state, board_history.last_hash(board))):
         return None
     # one that prunes none goes on the end of the History alone, its last chunk read and no other (historyfix)
     autos = int((head or {}).get("autos") or 0) + sum(1 for r in board_history.pending(board) if r.get("auto"))
@@ -3167,7 +3189,8 @@ def add_revision(board: dict, name: str = "", auto: bool = False, at: str | None
         # the whole History in memory, so the writer puts it back in its chunks: refused while any of it is not here
         board_history.attach(board)
         history = history_of(board)
-        if auto and history and state_hash(history[-1]["state"]) == state_hash(state):
+        if auto and history and (state_hash(history[-1]["state"]) == state_hash(state)
+                                 or same_but_table(state, state_hash(history[-1]["state"]))):
             return None
     made = {"id": f"r{board_history.next_number(board, history)}", "at": at or now_iso(),
             "name": " ".join(str(name or "").split()), "auto": bool(auto),

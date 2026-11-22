@@ -10567,8 +10567,10 @@ def api_gets_save(body: dict) -> dict:
             board = themes_mod.find_version(held, sent.get("id"))
             if board is None:
                 raise WorkbookError(gets_mod.GONE)
-            made = themes_mod.keep_before_reload(board, themes_mod.state_of(gets_mod.normal(sent, held)),
-                                                 themes_mod.now_iso())
+            # the page's canvas with its table, as every revision of a board with a table holds it (getshistory)
+            kept = gets_mod.normal(sent, held)
+            state = dict(themes_mod.state_of(kept), **{themes_mod.TABLE_ROWS: kept["rows"]})
+            made = gets_mod.table_kept(themes_mod.keep_before_reload(board, state, themes_mod.now_iso()), held)
             gets_mod.write(root, held)
             return {"kept": themes_mod.revision_summary(made)}
         try:

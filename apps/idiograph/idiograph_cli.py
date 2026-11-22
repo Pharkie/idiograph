@@ -5817,7 +5817,7 @@ def cmd_gets_apply(p: Project, args) -> tuple:
                     "brought": brought_out, "set_aside": set_aside, "put_back": put_back,
                     "n_set_aside": len(set_aside), "n_put_back": len(put_back), "also": also_out, "n_also": len(also_out),
                     "said": text, "revision": revision, "made_file": made_file}, [text]
-        made = themes.add_revision(board, name=revision, at=when)
+        made = gets_mod.table_kept(themes.add_revision(board, name=revision, at=when), data)
         made["made"] = mark(args, when)
         state = themes.state_of(landed)
         for key in ("notes", "ai", "quoted", "cut"):
@@ -6035,7 +6035,7 @@ def gets_revision_first(p: Project, vid: str, name: str, args) -> dict:
     board = next((x for x in gets_mod.boards_of(data) if str(x.get("id")) == vid), None)
     if board is None:
         raise cli.Refused(gets_mod.GONE)
-    made = themes.add_revision(board, name=name, at=when)
+    made = gets_mod.table_kept(themes.add_revision(board, name=name, at=when), data)
     made["made"] = mark(args, when)
     gets_mod.write(p.root, gets_mod._file(data, when))
     return made
@@ -6367,7 +6367,7 @@ def cmd_gets_subs(p: Project, args) -> tuple:
             return dict(out, dry_run=True, said=text), [text] + said
         when = now_iso()
         revision = themes_ai.revision_name(args.note)
-        made = themes.add_revision(board, name=revision, at=when)
+        made = gets_mod.table_kept(themes.add_revision(board, name=revision, at=when), data)
         made["made"] = mark(args, when)
         for c in added:
             board.setdefault("cards", {})[c["key"]] = {"x": c["x"], "y": c["y"]}
