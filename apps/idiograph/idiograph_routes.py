@@ -2590,6 +2590,43 @@ def pristine_copy(book: Path) -> bool:
     return bool(case) and (book.parent.parent / case).is_dir()
 
 
+# Folders of a project that hold no case and no board file, passed over by name wherever they sit: the restore
+# points agents' changes keep (`agent_changes.STORE`), a git folder and the team's log (`team.LOG_DIR`)
+NO_CASES = frozenset((".idiograph-restore", ".git", ".idiograph-team"))
+
+
+def pruned_walk(root, skip, into_source: bool):
+    """`os.walk` of a project, passing over `skip` and `NO_CASES` folders wherever they sit, a board's History
+    folder (`<board>.history` beside its `<board>.json`, never a folder of that name that holds a participant), and
+    below a `Source/` its own files alone when `into_source`, else the whole folder (perfhome, 22 November 2026:
+    `rglob` read every one of GRAVITY's 10,249 files for its 41 workbooks, on every screen)."""
+    for here, dirs, names in os.walk(root):
+        if os.path.basename(here) == "Source" and Path(here) != Path(root) and into_source:
+            dirs[:] = []
+        else:
+            dirs[:] = [d for d in dirs if d not in skip and d not in NO_CASES
+                       and not (d.endswith(".history") and os.path.isfile(os.path.join(here, d[:-len(".history")] + ".json")))]
+        yield here, names
+
+
+def case_candidates(root: Path) -> tuple[list[Path], list[Path]]:
+    """The folders inside `root` that hold a project file of their own, and the files of a format a case can be
+    made from, found by one pruned walk of the project (`pruned_walk`): a skipped folder (`SKIP_DIRS` bar `Source`)
+    and the folders no case sits in are never entered, and a `Source/`'s own files are the most `list_cases` offers."""
+    nested: list[Path] = []
+    files: list[Path] = []
+    formats = convert_mod.FORMATS
+    for here, names in pruned_walk(root, SKIP_DIRS - {"Source"}, True):
+        for name in names:
+            if name == srv.PROJECT_FILE and Path(here) != Path(root):
+                nested.append(Path(here))
+            elif os.path.splitext(name)[1].lower() in formats:
+                path = Path(here) / name
+                if path.is_file():
+                    files.append(path)
+    return nested, files
+
+
 def list_cases(root) -> list[dict]:
     """The annotated workbook of each case of a project and its raw source, nothing else but a
     transcript in another shape in a case's own `Source/`, which `convert.offered` passes. `root` is
@@ -2608,12 +2645,7 @@ def list_cases(root) -> list[dict]:
     names = names_at(root)
     # a folder inside with a project file of its own is that project's, never cases of this one: the thematic
     # analysis demo inside the IPA demo's folder, or inside a copy of it (demos, 3 November 2026)
-    nested, files = [], []
-    for p in root.rglob("*"):
-        if p.name == srv.PROJECT_FILE and p.parent != root:
-            nested.append(p.parent)
-        elif p.suffix.lower() in convert_mod.FORMATS and p.is_file():
-            files.append(p)
+    nested, files = case_candidates(root)
     for path in sorted(files):
         if path.name.startswith("~$") or path.name.startswith("."):
             continue
@@ -10177,8 +10209,14 @@ def themes_cases(path: Path) -> list[dict]:
     else:
         # a folder inside with a project file of its own is that project's, as the case list has it: the longitudinal
         # demo inside a copy of the demo's folder, whose participants have PETs files (lipabuild, 13 November 2026)
-        nested = [f.parent for f in root.rglob(srv.PROJECT_FILE) if f.parent != root]
-        for file in sorted(root.rglob("*" + suffix)):
+        nested, found = [], []
+        for there, names in pruned_walk(root, SKIP_DIRS - {"Working"}, False):
+            for name in names:
+                if name == srv.PROJECT_FILE and Path(there) != Path(root):
+                    nested.append(Path(there))
+                elif name.endswith(suffix):
+                    found.append(Path(there) / name)
+        for file in sorted(found):
             if file.name.startswith(".") or any(srv.inside(file, folder) for folder in nested):
                 continue
             book = file.parent.parent / (file.name[:-len(suffix)] + ".xlsx")

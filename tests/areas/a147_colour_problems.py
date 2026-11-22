@@ -200,6 +200,11 @@ def test_colour_problems(scratch):
     finally:
         httpd.shutdown()
         httpd.server_close()
+    # the page names each of its own scripts and styles by a mark of the file's bytes (`?v=`, perfhome, 22 November 2026):
+    # taken off, it is the reference page as the file holds it, and each mark is the file's own now
+    marked = got.get("/design", (0, "", ""))[2]
+    plain = re.sub(r"\?v=[0-9a-f]{12}(?=\")", "", marked)
     check("147: over HTTP /design answers the reference page and /tokens.css the tokens",
-          got.get("/design", (0, "", ""))[0] == 200 and got["/design"][1].startswith("text/html") and got["/design"][2] == design
+          got.get("/design", (0, "", ""))[0] == 200 and got["/design"][1].startswith("text/html") and plain == design
+          and "/tokens.css?v=" + server_mod.asset_version(server_mod.static_file("tokens.css")) in marked
           and got.get("/tokens.css", (0, "", ""))[2] == tokens_css, str({k: v[:2] for k, v in got.items()}))

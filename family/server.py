@@ -480,15 +480,60 @@ def config() -> dict:
     return cfg
 
 
-def project_roots(cfg: dict | None = None) -> list[Path]:
-    """Every project's root folder, resolved on disk, in the order they were added, each once."""
-    cfg = config() if cfg is None else cfg
-    out: list[Path] = []
+# The projects' roots resolved on disk, kept against the settings file's mark (its mtime_ns and size) and the roots
+# as written, so a path asked about by `project_of` is compared to roots resolved once, where every call resolved
+# every root again (perfhome, 22 November 2026: 20 projects came to 187,628 realpaths in one Home). A write of the
+# settings changes the mark and a root written differently changes the key, so Add project, Remove and a rename in
+# Project settings are seen at once; a root named by a glob, or a folder moved on disk, is seen within `_ROOTS_FRESH`.
+_ROOTS_FRESH = 3.0
+_roots_memo: dict = {}
+
+
+def _settings_mark() -> tuple:
+    try:
+        st = Path(CONFIG_PATH).stat()
+        return (str(CONFIG_PATH), st.st_mtime_ns, st.st_size)
+    except OSError:
+        return (str(CONFIG_PATH), None, None)
+
+
+def _resolved_roots(cfg: dict | None = None) -> list[tuple[Path, Path]]:
+    """Each project's root as configured and as resolved on disk, in order, each folder once."""
+    now = time.monotonic()
+    own = cfg is None
+    if own:
+        # the settings file unchanged (its mark) and no one-project run changed since the last call: its roots stand,
+        # with no read of the file at all
+        held = _roots_memo.get("held")
+        if held is not None and held[3] == (_settings_mark(), ROOT_OVERRIDE, str(REPO_ROOT)) and now - held[1] < _ROOTS_FRESH:
+            return held[2]
+        cfg = config()
+    written = tuple(str(entry.get("root") or "") if isinstance(entry, dict) else "" for entry in cfg.get("projects") or [])
+    key = (_settings_mark(), written, str(REPO_ROOT))
+    held = _roots_memo.get("held")
+    if held is not None and held[0] == key and now - held[1] < _ROOTS_FRESH:
+        return held[2]
+    out: list[tuple[Path, Path]] = []
+    seen: list[Path] = []
     for entry in cfg.get("projects") or []:
         root = configured(entry.get("root")) if isinstance(entry, dict) else None
-        if root is not None and all(same_folder(root, r) is False for r in out):
-            out.append(root)
+        if root is None:
+            continue
+        try:
+            there = Path(root).resolve()
+        except OSError:
+            there = Path(root)
+        if any(there == other for other in seen):
+            continue
+        seen.append(there)
+        out.append((root, there))
+    _roots_memo["held"] = (key, now, out, (key[0], ROOT_OVERRIDE, key[2]) if own else None)
     return out
+
+
+def project_roots(cfg: dict | None = None) -> list[Path]:
+    """Every project's root folder, resolved on disk, in the order they were added, each once."""
+    return [root for root, _ in _resolved_roots(cfg)]
 
 
 def note_project_name(root, name: str) -> bool:
@@ -540,8 +585,18 @@ def project_of(p: Path, cfg: dict | None = None) -> Path | None:
     hand-edited file nest them, and None for a path under no project's root."""
     if is_demo(p):
         return demo_root_of(p)
-    holding = [root for root in project_roots(cfg) if inside(p, root)]
-    return max(holding, key=lambda r: len(Path(r).resolve().parts)) if holding else None
+    try:
+        there = Path(p).resolve()
+    except OSError:
+        return None
+    holding = []
+    for root, resolved in _resolved_roots(cfg):
+        try:
+            there.relative_to(resolved)
+        except ValueError:
+            continue
+        holding.append((root, len(resolved.parts)))
+    return max(holding, key=lambda r: r[1])[0] if holding else None
 
 
 def project_named(value: str) -> Path:
@@ -2512,6 +2567,50 @@ def static_file(name: str, app: str | None = None) -> Path | None:
     return None
 
 
+# The app's own static files are kept by the window's browser, the page naming each script and stylesheet by its
+# address with `?v=` and a mark of its bytes (perfhome, 22 November 2026): 2.8 MB of them were served `no-store`, so
+# each window open fetched and parsed them again. A file asked for with the mark it has now is served for a year,
+# and a change to its bytes is a new address, so a run from source, an update and Windows all load the new file at
+# once. Any other static file answers `no-cache` with an ETag, which the browser asks the server about each time and
+# which answers "unchanged" in a few bytes. The pages themselves and the API stay `no-store`.
+_ASSET = re.compile(r'((?:src|href)=")(/[A-Za-z0-9_][A-Za-z0-9_.-]*\.(?:js|css))(")')
+_VERSIONS: dict = {}
+
+
+def asset_version(target: Path) -> str:
+    """A short mark of a static file's bytes, hashed once for each mtime and size the file has."""
+    try:
+        st = target.stat()
+    except OSError:
+        return ""
+    held = _VERSIONS.get(str(target))
+    if held and held[0] == (st.st_mtime_ns, st.st_size):
+        return held[1]
+    import hashlib
+    mark = hashlib.sha256(target.read_bytes()).hexdigest()[:12]
+    _VERSIONS[str(target)] = ((st.st_mtime_ns, st.st_size), mark)
+    return mark
+
+
+def versioned(page: str, app: str | None = None) -> str:
+    """The page with each of its own scripts and stylesheets named by its bytes' mark (`/style.css?v=...`)."""
+    def tag(m):
+        target = static_file(m.group(2).lstrip("/"), app)
+        mark = asset_version(target) if target is not None else ""
+        return f"{m.group(1)}{m.group(2)}?v={mark}{m.group(3)}" if mark else m.group(0)
+    return _ASSET.sub(tag, page)
+
+
+def asset_headers(target: Path, query: dict) -> list[tuple[str, str]]:
+    """The cache headers of a static file: a year for the address that carries the file's mark now, otherwise
+    `no-cache` with the ETag that lets the browser ask whether it changed."""
+    mark = asset_version(target)
+    if not mark:
+        return [("Cache-Control", "no-store")]
+    kept = "public, max-age=31536000, immutable" if query.get("v") == [mark] else "no-cache"
+    return [("Cache-Control", kept), ("ETag", f'"{mark}"')]
+
+
 def favicon_png() -> bytes:
     """The 32 pixel PNG of the app's icon, Sift's for Sift (static/favicon-sift.svg beside it), drawn
     on the first asking and kept."""
@@ -2966,12 +3065,13 @@ class Handler(BaseHTTPRequestHandler):
             line = f"{getattr(self, 'command', '?')} {path} (the body is never logged)"
         sys.stderr.write("  %s\n" % line)
 
-    def _send(self, code: int, body: bytes, ctype: str) -> None:
+    def _send(self, code: int, body: bytes, ctype: str, headers: list | None = None) -> None:
         try:
             self.send_response(code)
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(body)))
-            self.send_header("Cache-Control", "no-store")
+            for key, value in headers or [("Cache-Control", "no-store")]:
+                self.send_header(key, value)
             self.end_headers()
             self.wfile.write(body)
         except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError):
@@ -3028,11 +3128,14 @@ class Handler(BaseHTTPRequestHandler):
         if ctype.startswith("text/") or ctype.endswith("javascript"):
             ctype += "; charset=utf-8"
         if name == PAGE:
-            return self._send(200, keyed_page(own_page(assembled(target.read_text(encoding="utf-8")))).encode("utf-8"),
+            return self._send(200, keyed_page(versioned(own_page(assembled(target.read_text(encoding="utf-8"))))).encode("utf-8"),
                               ctype)
         if name == DESIGN_PAGE:
-            return self._send(200, assembled(target.read_text(encoding="utf-8")).encode("utf-8"), ctype)
-        return self._send(200, target.read_bytes(), ctype)
+            return self._send(200, versioned(assembled(target.read_text(encoding="utf-8"))).encode("utf-8"), ctype)
+        extra = asset_headers(target, parse_qs(url.query))
+        if "ETag" in dict(extra) and self.headers.get("If-None-Match") == dict(extra)["ETag"]:
+            return self._send(304, b"", ctype, extra)
+        return self._send(200, target.read_bytes(), ctype, extra)
 
     @in_use
     def do_POST(self):

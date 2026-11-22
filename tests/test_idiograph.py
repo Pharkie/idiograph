@@ -471,6 +471,7 @@ AREAS = {
     "a436_disk_hygiene": "idiograph",
     "a437_invite_route": "idiograph",
     "a438_playback_speed": "idiograph",
+    "a439_home_perf": "idiograph",
     "a442_gets_reads_kept": "idiograph",
 }
 

@@ -166,7 +166,7 @@ const APP_NAME = APP_NAMES[APP];
 const AI_FEATURES = { idiograph: ['statements', 'pets', 'gets'], sift: ['proposals'], trace: ['passages'] };
 const AI_OFF_KEY = 'ai_features_off';
 
-/* The static files are served with no-store, so a change here reaches the page on a reload,
+/* The static files are named by a mark of their bytes in the page, so a change here reaches the page on a reload,
    before the server behind it has been restarted. An endpoint the old server has never heard of
    answers with the code no_endpoint (its words, "No such endpoint.", until 31 October), and the
    feature says so quietly rather than breaking. An op it has never heard of is unknown_op, which
