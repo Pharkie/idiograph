@@ -1360,8 +1360,8 @@
 </div>
 <div class="overlay" id="round-done" hidden>
   <div class="card celebrate">
-    <p class="kicker" id="done-kicker"></p>
     <h2 id="done-line"></h2>
+    <p class="card-for" id="done-kicker"></p>
     <!-- the pace goes when the case is done, and until a round is timed it says when it will show.
          In a case with more than one sheet the figures count the sheet the round closed on, and the
          sheet-done card counts the rounds on that sheet, the sheets left and the rest of the case -->
@@ -1407,7 +1407,7 @@
     <button class="card-close" id="help-close" type="button" tabindex="-1" aria-label="{{page_idiograph.cards.close}}" title="{{page_idiograph.cards.close}}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
     </button>
-    <p class="kicker">{{page_idiograph.cards.shortcuts}}</p>
+    <h2>{{page_idiograph.cards.shortcuts}}</h2>
     <!-- Two groups, Experiential statements and PETs and GETs, and every row a key, a key combination
          or a mouse act that is not obvious, with a phrase of a few words, nothing more (190). Over
          Experiential statements the card shows both. Over PETs or GETs it shows that group alone, with
@@ -1608,8 +1608,8 @@
 <!-- Ask for review, from a participant's menu on the project's page: who, each ticked by its whole row, a line -->
 <div class="overlay" id="wt-ask" hidden>
   <div class="card wt-card">
-    <p class="kicker" id="wt-ask-kicker"></p>
     <h2>{{review.page.ask}}</h2>
+    <p class="card-for" id="wt-ask-kicker"></p>
     <div class="switches" id="wt-ask-who"></div>
     <label class="wt-h" id="wt-ask-for" for="wt-ask-line"></label>
     <textarea id="wt-ask-line" rows="3"></textarea>
@@ -1626,8 +1626,8 @@
 <div class="overlay" id="wt-review" hidden>
   <div class="card wt-card wt-review">
     <button class="card-close" id="wt-rv-close" type="button" aria-label="{{review.page.close}}" title="{{review.page.close}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
-    <p class="kicker" id="wt-rv-kicker"></p>
     <h2 id="wt-rv-title"></h2>
+    <p class="card-for" id="wt-rv-kicker"></p>
     <p class="wt-asked" id="wt-rv-asked" hidden></p>
     <div class="wt-list-r" id="wt-rv-list"></div>
     <div class="card-actions">
@@ -1641,8 +1641,7 @@
      the app or By an agent over it, the list scrolling inside the sheet and read a page at a time. Done shuts it -->
 <div class="overlay" id="project-history" hidden>
   <div class="card ph-sheet" role="dialog" aria-labelledby="ph-title">
-    <p class="kicker" id="ph-project"></p>
-    <div class="ph-top"><div class="ph-heading"><h2 id="ph-title">{{page_idiograph.cards_more.ph_title}}</h2><p class="ph-count"
+    <div class="ph-top"><div class="ph-heading"><h2 id="ph-title">{{page_idiograph.cards_more.ph_title}}</h2><p class="card-for" id="ph-project"></p><p class="ph-count"
          id="ph-count" hidden></p></div>
       <span class="th-from ph-filter" id="ph-filter" role="radiogroup" aria-labelledby="ph-title">
         <button type="button" class="th-from-opt on" role="radio" aria-checked="true" data-by="">{{page_idiograph.cards_more.ph_all}}</button>
@@ -1669,8 +1668,8 @@
     <button class="card-close" id="projset-close" type="button" tabindex="-1" aria-label="{{page_idiograph.screens.close}}" title="{{page_idiograph.screens.close}}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
     </button>
-    <p class="kicker" id="projset-kicker"></p>
     <h2 id="projset-title">{{page_idiograph.projset.title}}</h2>
+    <p class="card-for" id="projset-kicker"></p>
     <div class="projset-body" id="projset-body">
           <p class="fineprint restart-line" id="project-restart" hidden>{{page_idiograph.settings_first.restart_server_finish_update}}</p>
           <div id="project-fields">
@@ -1896,8 +1895,8 @@
     <button class="card-close" id="dm-table-close" type="button" tabindex="-1" aria-label="{{page_idiograph.screens.close}}" title="{{page_idiograph.screens.close}}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
     </button>
-    <p class="kicker" id="dm-table-kicker"></p>
     <h2 id="dm-table-title">{{demographics.page.heading}}</h2>
+    <p class="card-for" id="dm-table-kicker"></p>
     <div class="dm-twrap"><table class="dm-table" id="dm-table-grid"></table></div>
     <p class="fineprint" id="dm-table-said" hidden></p>
     <div class="card-actions card-done"><button class="primary" type="button" data-done>{{trajectories.done}}</button></div>
@@ -1910,7 +1909,6 @@
     <button class="card-close" id="dm-confirm-close" type="button" tabindex="-1" aria-label="{{page_idiograph.screens.close}}" title="{{page_idiograph.screens.close}}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
     </button>
-    <p class="kicker">{{demographics.page.heading}}</p>
     <h2 id="dm-confirm-title"></h2>
     <p class="trim-line" id="dm-confirm-line"></p>
     <div class="card-actions">
@@ -1928,8 +1926,8 @@
     <button class="card-close" id="wt-invite-close" type="button" tabindex="-1" aria-label="{{page_idiograph.screens.close}}" title="{{page_idiograph.screens.close}}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
     </button>
-    <p class="kicker" id="wt-invite-kicker"></p>
     <h2 id="wt-invite-title">{{team.invite.heading}}</h2>
+    <p class="card-for" id="wt-invite-kicker"></p>
     <!-- the first invite of a project asks how the project's updates travel before it makes the link (inviteroute, 20 November 2026) -->
     <div id="wt-rs" hidden>
       <p class="wt-h wt-first" id="wt-rs-label">{{team.invite.send_updates}}</p>
@@ -1973,8 +1971,8 @@
     <button class="card-close" id="wt-join-close" type="button" tabindex="-1" aria-label="{{page_idiograph.screens.close}}" title="{{page_idiograph.screens.close}}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
     </button>
-    <p class="kicker" id="wt-join-kicker"></p>
     <h2 id="wt-join-title">{{team.join.heading}}</h2>
+    <p class="card-for" id="wt-join-kicker"></p>
     <label class="wt-h" for="wt-join-words">{{team.join.paste}}</label>
     <textarea id="wt-join-words" rows="3" spellcheck="false" autocomplete="off"></textarea>
     <div class="wt-join-name" id="wt-join-name-row" hidden><label class="wt-h" for="wt-join-name">{{team.page.your_name}}</label>
@@ -2035,8 +2033,8 @@
 <!-- Your name, asked once from Invite others on the project's page when Settings holds none (teamsmall) -->
 <div class="overlay" id="wt-name-card" hidden>
   <div class="card wt-card" role="dialog" aria-labelledby="wt-name-title">
-    <p class="kicker" id="wt-name-kicker"></p>
     <h2 id="wt-name-title">{{team.page.your_name}}</h2>
+    <p class="card-for" id="wt-name-kicker"></p>
     <input id="wt-name-page" type="text" spellcheck="false" autocomplete="off" aria-labelledby="wt-name-title"
            placeholder="{{team.page.your_name_ask}}">
     <p class="fineprint" id="wt-name-said" role="status" hidden></p>
@@ -2049,7 +2047,6 @@
 
 <div class="overlay" id="create" hidden>
   <div class="card">
-    <p class="kicker">{{page_idiograph.cards_more.raw_source}}</p>
     <h2>{{page_idiograph.cards_more.create_annotated_workbook}}</h2>
     <p class="fineprint" id="create-from"></p>
     <div class="setting"><label for="create-out">{{page_idiograph.cards_more.save}}</label><input id="create-out" type="text"></div>
@@ -2066,7 +2063,6 @@
      writes, Cancel and Esc change nothing, and a refusal is one line here. -->
 <div class="overlay" id="rename" hidden>
   <div class="card">
-    <p class="kicker">{{page_idiograph.cards_more.participant}}</p>
     <h2>{{page_idiograph.cards_more.rename}}</h2>
     <div class="setting"><span class="rn-key">{{page_idiograph.cards_more.name_now}}</span><span class="rn-now" id="rn-now"></span></div>
     <div class="setting"><label for="rn-name">{{page_idiograph.cards_more.new_name}}</label><input id="rn-name" type="text" spellcheck="false" autocomplete="off"></div>
@@ -2092,8 +2088,8 @@
      downloads in a browser. Cancel and Esc send nothing. -->
 <div class="overlay" id="share-card" hidden>
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="sc-title">
-    <p class="kicker" id="sc-project"></p>
     <h2 id="sc-title">{{page_idiograph.cards_more.share_copy}}</h2>
+    <p class="card-for" id="sc-project"></p>
     <div class="switches sc-modes" role="radiogroup" aria-labelledby="sc-title">
       <label class="sc-radio"><input type="radio" name="sc-mode" value="whole" id="sc-whole"><span>{{page_idiograph.cards_more.whole_project}}<span class="sc-sub" id="sc-whole-line"></span></span></label>
       <label class="sc-radio"><input type="radio" name="sc-mode" value="choose" id="sc-choose"><span>{{page_idiograph.cards_more.choose_participants}}</span></label>
@@ -2125,8 +2121,8 @@
      in a browser. Cancel and Esc write nothing. -->
 <div class="overlay" id="qdpx-card" hidden>
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="qx-title">
-    <p class="kicker" id="qx-project"></p>
     <h2 id="qx-title">{{page_idiograph.cards_more.export_qdpx}}</h2>
+    <p class="card-for" id="qx-project"></p>
     <div class="switches sc-modes" role="radiogroup" aria-labelledby="qx-title">
       <label class="sc-radio"><input type="radio" name="qx-mode" value="whole" id="qx-whole"><span>{{page_idiograph.cards_more.whole_project}}</span></label>
       <label class="sc-radio"><input type="radio" name="qx-mode" value="choose" id="qx-choose"><span>{{page_idiograph.cards_more.choose_participants}}</span></label>
@@ -2150,8 +2146,8 @@
      as Open a shared copy opens any other file. Cancel and Esc open nothing. -->
 <div class="overlay" id="copy-back" hidden>
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="cb-title">
-    <p class="kicker" id="cb-project"></p>
     <h2 id="cb-title">{{page_idiograph.cards_more.open_shared_copy}}</h2>
+    <p class="card-for" id="cb-project"></p>
     <p class="cb-copy" id="cb-copy"></p>
     <div class="setting cb-who"><label for="cb-who">{{page_idiograph.cards_more.name_on_boards}}</label><input id="cb-who" type="text" spellcheck="false" autocomplete="off"></div>
     <p class="cb-as" id="cb-as" hidden></p>
@@ -2179,7 +2175,6 @@
 <!-- the recording's offset (20 October): seconds, plus or minus, the time codes kept and playback moved by it (Adam, 20 October: the times stay, the playback moves) -->
 <div class="overlay" id="offset" hidden>
   <div class="card">
-    <p class="kicker">{{page_idiograph.cards_more.recording}}</p>
     <h2>{{page_idiograph.cards_more.offset}}</h2>
     <p class="fineprint" id="offset-of"></p>
     <div class="setting"><label for="offset-seconds">{{page_idiograph.cards_more.seconds_plus_minus}}</label>
@@ -2194,7 +2189,6 @@
 </div>
 <div class="overlay" id="import" hidden>
   <div class="card">
-    <p class="kicker">{{page_idiograph.cards_more.transcript}}</p>
     <h2>{{page_idiograph.cards_more.make_workbook}}</h2>
     <p class="fineprint" id="import-from"></p>
     <div class="import-map" id="import-map" role="group" aria-label="{{page_idiograph.cards_more.columns}}" hidden></div>
@@ -2243,8 +2237,8 @@
      longitudinal project, its timepoint. -->
 <div class="overlay" id="newproject" hidden>
   <div class="card">
-    <p class="kicker">{{page_idiograph.cards_more.project}}</p>
     <h2>{{page_idiograph.cards_more.new_project}}</h2>
+    <p class="card-for">{{page_idiograph.cards_more.project}}</p>
     <div class="setting np-folder np-new"><label for="np-folder">{{page_idiograph.cards_more.folder}}</label><span class="add-typed np-folder-pick"><input
          id="np-folder" type="text" spellcheck="false" placeholder="{{page_idiograph.cards_more.folder}}"><button type="button" class="ghost small"
          id="np-choose">{{page_idiograph.cards_more.choose}}</button></span></div>
@@ -2293,8 +2287,8 @@
      saved as it changes into the project's folder, then a check of the transcripts already in and Review and replace -->
 <div class="overlay" id="nm-list" hidden>
   <div class="card nm-card" role="dialog" aria-labelledby="nm-list-title">
-    <p class="kicker"></p>
     <h2 id="nm-list-title">{{page_idiograph.names.title}}</h2>
+    <p class="card-for"></p>
     <table class="nm-table" id="nm-list-table">
       <thead><tr><th>{{page_idiograph.names.name}}</th><th>{{page_idiograph.names.replace_with}}</th><th>{{page_idiograph.names.in}}</th><th>{{page_idiograph.names.except}}</th><th></th></tr></thead>
       <tbody id="nm-list-rows"></tbody>
@@ -2317,8 +2311,8 @@
      add over Add transcripts -->
 <div class="overlay" id="nm-review" hidden>
   <div class="card nm-card nm-review-card" role="dialog" aria-labelledby="nm-review-title">
-    <p class="kicker"></p>
     <h2 id="nm-review-title"></h2>
+    <p class="card-for"></p>
     <div class="nm-review-body" id="nm-review-body"></div>
     <div class="card-actions" id="nm-review-foot"></div>
   </div>
@@ -2349,7 +2343,6 @@
     <button class="card-close" id="gt-trail-close" type="button" aria-label="{{page_idiograph.cards_last.close}}" title="{{page_idiograph.cards_last.close_esc}}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
     </button>
-    <p class="kicker">{{page_idiograph.cards_last.audit_trail}}</p>
     <div class="gt-trail-head">
       <h2 id="gt-trail-title"></h2>
       <span class="gt-tbadge" id="gt-trail-count"></span>
@@ -2372,8 +2365,8 @@
     <button class="card-close" id="gt-print-close" type="button" aria-label="{{page_idiograph.cards_last.close}}" title="{{page_idiograph.cards_last.close_esc}}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
     </button>
-    <p class="kicker">{{page_idiograph.cards_last.export}}</p>
-    <h2 id="gt-print-title">{{page_idiograph.cards_last.gets}}</h2>
+    <h2 id="gt-print-title">{{page_idiograph.cards_last.export}}</h2>
+    <p class="card-for" id="gt-print-for">{{page_idiograph.cards_last.gets}}</p>
     <!-- each choice a whole row inside its label, the radio, its name and its line under it in the soft ink -->
     <div class="gt-print-what" id="gt-print-what" role="radiogroup" aria-labelledby="gt-print-what-name">
       <p class="gt-print-head" id="gt-print-what-name">{{page_idiograph.cards_last.what_print}}</p>
@@ -2414,7 +2407,6 @@
 
 <div class="overlay" id="th-confirm" hidden>
   <div class="card">
-    <p class="kicker">{{page_idiograph.cards_last.boards}}</p>
     <h2>{{page_idiograph.cards_last.delete_board}}</h2>
     <p class="trim-line" id="th-confirm-line"></p>
     <p class="fineprint">{{page_idiograph.cards_last.other_boards_stay_they}}</p>
@@ -2444,7 +2436,6 @@
      asks first, in the style of the trim confirm. A selection goes straight through. -->
 <div class="overlay" id="assign" hidden>
   <div class="card">
-    <p class="kicker">{{page_idiograph.cards_last.assign_passage}}</p>
     <h2 id="assign-title">{{page_idiograph.cards_last.assign_passage_2}}</h2>
     <p class="assign-line" id="assign-line"></p>
     <p class="fineprint" id="assign-carries"></p>

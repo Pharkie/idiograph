@@ -326,13 +326,12 @@ html[data-app="idiograph"][data-edition="preview"] .pe-note { display: flex; ali
 /* a project's place on Home while its card is being read: its name and a quiet line, never pressed (homeload) */
 .hc-sk { cursor: default; }
 .hc-loading .hc-dash { cursor: default; }
-/* the placeholders' soft sheen, a light band crossing each in turn; still with reduced motion */
-.sk { position: relative; display: block; overflow: hidden; background: var(--paper-sunk); border-radius: 4px; }
-.sk::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--card) 70%, transparent), transparent);
-  animation: sk-sheen 1.4s ease-in-out infinite; }
-@keyframes sk-sheen { to { transform: translateX(100%); } }
-@media (prefers-reduced-motion: reduce) { .sk::after { animation: none; display: none; } }
+/* the placeholders breathe, fading a little and back, so the card is seen to be loading without anything moving
+   across it (designfix, 22 November 2026, where a light band swept over each and stood still with reduced
+   motion, leaving a still screen); with reduced motion the fade is slower, never stopped, as it moves nothing */
+.sk { position: relative; display: block; overflow: hidden; background: var(--paper-sunk); border-radius: 4px;
+  animation: sk-breathe 1.1s ease-in-out infinite alternate; }
+@keyframes sk-breathe { to { opacity: .45; } }
 .sk-line { width: 55%; height: 10px; margin-top: 2px; }
 .sk-ring { width: 44px; height: 44px; border-radius: 50%; }
 .sk-who { width: 36px; height: 8px; }
@@ -1291,10 +1290,14 @@ button.btn-remove::before {
    what keeps the card inside the window and off a scrollbar */
 #help .card { width: min(700px, 100%); }
 .card h2 { font-family: var(--serif); font-weight: 400; font-size: 24px; margin: 6px 0 14px; }
-/* a card's kicker is a label, in the soft ink as labels are, never the crux orange, which design.md
+/* a panel's kicker is a label, in the soft ink as labels are, never the crux orange, which design.md
    gives a crux, a key quote and the app's one accent alone (17 October, after the screenshot check
-   found Participant and Audit trail in orange) */
+   found Participant and Audit trail in orange). A dialog has none: it opens with its title alone
+   (designfix, 22 November 2026, Adam), and what the card is about, a project's or a participant's name,
+   is a plain line under the title in the soft ink, `.card-for`, gone while it is empty */
 .kicker { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); margin: 0; font-weight: 600; }
+.card-for { margin: -8px 0 14px; font-size: 14px; line-height: 1.4; color: var(--ink-soft); overflow-wrap: anywhere; }
+.card-for:empty { display: none; }
 .card-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
 /* Trim the transcript from t carries three buttons, Cancel and a cut toward each end, so it takes the room to hold
    them on one row wherever the window has it, where at 560px its filled button stood on a row of its own at 1280
@@ -1485,6 +1488,8 @@ input[type="radio"]:focus-visible, input[type="checkbox"]:focus-visible {
 .search-tick input { accent-color: var(--ink); margin: 0; flex: none; }
 .search-tick-word { flex: 1 1 auto; min-width: 0; }
 .search-n { flex: none; font-family: var(--mono); font-size: var(--fs-small); color: var(--ink-faint); }
+/* a ticked filter's count on the tick's wash takes the soft ink, the faint one reading 3.8:1 there in dark (designfix2) */
+.search-tick.on .search-n { color: var(--ink-soft); }
 .search-group { margin: var(--sp-6) 0 var(--sp-2) var(--sp-3); }
 .search-group:first-child { margin-top: 0; }
 .search-results { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scroll-padding-bottom: 28px; }
@@ -1499,9 +1504,11 @@ input[type="radio"]:focus-visible, input[type="checkbox"]:focus-visible {
 }
 .search-hit + .search-hit { margin-top: var(--sp-1); }
 /* under the pointer a fainter ground than the one in focus, so two never read as chosen */
-.search-hit:hover { background: color-mix(in srgb, var(--paper-sunk) 45%, transparent); }
-/* the result in focus, the selected row's bar in the crux at its left on the sunk paper */
-.search-hit.on { background: var(--paper-sunk); box-shadow: inset 3px 0 0 var(--crux); }
+.search-hit:hover { background: var(--row-hover); }
+/* the result in focus, on the chosen row's tint */
+.search-hit.on { background: var(--sel-wash); }
+/* the faint ink reads too light on the tint, so a chosen row's faint words take the soft ink (designfix2) */
+.search-hit.on .search-at { color: var(--ink-soft); }
 .search-kind {
   font-size: var(--fs-label); letter-spacing: var(--label-track); text-transform: uppercase;
   font-weight: 600; color: var(--ink-soft);
@@ -1630,12 +1637,11 @@ input[type="radio"]:focus-visible, input[type="checkbox"]:focus-visible {
   border-radius: 0 3px 3px 0; padding: 8px 12px; font-size: 13px; color: var(--ink-soft);
   cursor: pointer; white-space: nowrap; transition: background .16s, color .16s, border-color .16s;
 }
-.settings-nav button:hover { background: var(--paper-sunk); color: var(--ink); }
-.settings-nav button.on { border-left-color: var(--app-colour); background: var(--paper-sunk); color: var(--ink); font-weight: 500; }
-/* the tab chosen takes its rule in the app's colour (the split's third build), drawing 8 of its plan */
-.settings-nav button.on[data-part="distil"] { border-left-color: var(--part-distil); }
-.settings-nav button.on[data-part="sift"] { border-left-color: var(--part-sift); }
-.settings-nav button.on[data-part="trace"] { border-left-color: var(--part-trace); }
+.settings-nav button:hover { background: var(--row-hover); color: var(--ink); }
+/* the category chosen stands on the chosen row's tint, as every list's chosen row does, never a rule down its left
+   (designfix, 22 November 2026, Adam); where the categories become a row of tabs it keeps its rule under it in the
+   app's colour (the split's third build) */
+.settings-nav button.on { background: var(--sel-wash); color: var(--ink); font-weight: 500; }
 /* Sift's, Distil's and Trace's names carry their marks, at 16px, drawn for 16 pixels. Distil's stands
    again before its first tab, shown only where the tabs become a row and its name goes (15 October,
    later) */
@@ -1824,6 +1830,9 @@ body.foot-on .lib-body { padding-bottom: max(72px, calc(26px + var(--foot-h, 44p
 
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
+  /* Home's loading placeholders keep their fade, at half the pace, over the rule above: an opacity change
+     moves nothing, and a still card would not show it is loading (designfix2) */
+  .sk { animation: sk-breathe 2.2s ease-in-out infinite alternate !important; }
 }
 @media (max-width: 1000px) {
   #work { --col-gap: 20px; }

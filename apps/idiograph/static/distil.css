@@ -1561,6 +1561,7 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .ph-sheet .ph-list[hidden], .ph-sheet .ph-none[hidden] { display: none; }
 .ph-sheet .ph-none { margin: 16px 0 0; font-size: 14px; color: var(--ink-soft); }
 .ph-sheet .ph-heading { min-width: 0; }
+.ph-sheet .card-for { margin: 2px 0 0; }
 .ph-sheet .ph-count { margin: 4px 0 0; font-size: 12.5px; color: var(--ink-faint); }
 .ph-sheet .ph-count[hidden] { display: none; }
 /* each day's head sticks at the list's top while its changes scroll under it, on the sheet's own colour */

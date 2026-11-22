@@ -125,12 +125,16 @@ export function tempDir(prefix) {
   return d;
 }
 
+// Chrome on a fresh profile asks macOS for its keychain and shows "Keychain Not Found" on the screen unless it is told
+// to use a mock one and no store (every launch of Chrome in the repo passes both, area 436 checks)
+export const KEYCHAIN_FLAGS = ['--use-mock-keychain', '--password-store=basic'];
+
 export async function launch() {
   if (!existsSync(CHROME)) throw new Error(`no Chrome at ${CHROME} (set IDIOGRAPH_CHROME)`);
   installHandlers();
   const profile = mkdtempSync(join(tmpdir(), 'idiograph-motion-'));
   const proc = spawn(CHROME, ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run',
-    '--no-default-browser-check', '--hide-scrollbars', '--mute-audio', '--disable-extensions', 'about:blank'],
+    '--no-default-browser-check', '--hide-scrollbars', '--mute-audio', '--disable-extensions', ...KEYCHAIN_FLAGS, 'about:blank'],
     { stdio: ['ignore', 'ignore', 'pipe'] });
   const handle = { proc, profile, close: null, below: watchBelow(proc) };
   LIVE.add(handle);

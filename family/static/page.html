@@ -166,7 +166,6 @@ try {
     <button class="card-close" id="settings-close" type="button" tabindex="-1" aria-label="{{page.close}}" title="{{page.close}}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
     </button>
-    <p class="kicker" id="settings-kicker">Idiograph</p>
     <h2>{{page.settings.title}}</h2>
     <!-- the categories down the left and the chosen one on the right (the split's third build, drawing 8 of
          the plan, 20 October 2026): General first, the same in all three apps, Appearance, Celebrations,
@@ -434,8 +433,8 @@ try {
      Cancel and Esc remove nothing -->
 <div class="overlay" id="remove-card" hidden>
   <div class="card remove-card" role="dialog" aria-modal="true" aria-labelledby="rm-title">
-    <p class="kicker" id="rm-project"></p>
     <h2 id="rm-title"></h2>
+    <p class="card-for" id="rm-project"></p>
     <p class="rm-line" id="rm-line"></p>
     <div class="switches"><label><input type="checkbox" id="rm-trash"> <span id="rm-trash-word"></span></label></div>
     <div class="card-actions">
@@ -451,7 +450,6 @@ try {
 <div class="overlay" id="agent-log-sheet" hidden>
   <div class="card agent-log-sheet" role="dialog" aria-labelledby="al-title">
     <button class="card-close" id="al-close" type="button" aria-label="{{agentlog.close}}" title="{{agentlog.close}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
-    <p class="kicker">{{agentlog.kicker}}</p>
     <h2 id="al-title">{{agentlog.title}}</h2>
     <p class="al-count" id="al-count">{{agentlog.window}}</p>
     <p class="fineprint" id="al-said" hidden></p>
@@ -470,7 +468,6 @@ try {
      each by its folder's name under the folder. Esc cancels -->
 <div class="overlay" id="rv-card" hidden>
   <div class="card">
-    <p class="kicker" id="rv-kicker"></p>
     <h2>{{shell.project.new}}</h2>
     <div class="setting np-folder"><label for="rv-folder">{{page.project.folder}}</label><span class="add-typed np-folder-pick"><input
          id="rv-folder" type="text" spellcheck="false" placeholder="{{page.project.folder}}"><button type="button" class="ghost small"
@@ -528,7 +525,7 @@ try {
     <button class="card-close" id="whatsnew-x" type="button" tabindex="-1" aria-label="{{page.close}}" title="{{page.close}}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
     </button>
-    <p class="kicker">{{page.updates.whats_new}}</p>
+    <h2>{{page.updates.whats_new}}</h2>
     <div class="whatsnew-body" id="whatsnew-body">
       <section class="whatsnew-version">
         <h2 id="whatsnew-title"></h2>
@@ -554,7 +551,6 @@ try {
     </button>
     <!-- Idiograph's About opens on its lockup with the Preview Edition stamp (21 October) in place of the kicker
          and the name, the dialog still labelled by the name, Sift's and Trace's About as before -->
-    <p class="kicker" data-only="sift trace">{{page.about.word}}</p>
     <h2 id="about-title" class="app-name" data-only="sift trace">Idiograph</h2>
     <div class="about-lockup pe" data-only="idiograph"><svg class="lockup" viewBox="0 0 107.33 15" role="img" aria-label="Idiograph" fill="none"><use href="/marks.svg#idiograph" width="15" height="15"/><path transform="translate(19.2 12.5)" stroke="currentColor" stroke-width="1.3" stroke-linecap="square" stroke-linejoin="miter" d="M0.65 -9.35V-0.65M5.35 -0.65V-9.35H8.3A4.35 4.35 0 0 1 8.3 -0.65ZM16.95 -9.35V-0.65M21.65 -5a4.35 4.35 0 1 0 8.7 0a4.35 4.35 0 1 0 -8.7 0M41.93 -7.91A4.35 4.35 0 1 0 43.05 -5H39.5M47.35 -0.65V-9.35H50.9A2.17 2.17 0 0 1 50.9 -5H47.35M50.7 -5L54.3 -0.65M58.15 -0.65L62.1 -9.35L66.05 -0.65M59.8 -3.4H64.4M70.15 -0.65V-9.35H73.5A2.38 2.38 0 0 1 73.5 -4.6H70.15M80.18 -9.35V-0.65M87.47 -9.35V-0.65M80.18 -5H87.47"/></svg><span class="pe-stamp">{{page.preview_edition}}</span></div>
     <p class="fineprint about-version" id="about-version"></p>
@@ -627,7 +623,6 @@ try {
      reloads itself, and once it is closed the line that says how to open it again -->
 <div class="server-gone" id="server-gone" role="alertdialog" aria-labelledby="server-gone-head" hidden>
   <div class="card server-gone-card">
-    <p class="kicker">Idiograph</p>
     <h2 id="server-gone-head"></h2>
     <p class="fineprint" id="server-gone-line"></p>
   </div>

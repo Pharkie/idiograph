@@ -207,6 +207,14 @@
   --focus-small: 0 0 0 2px var(--crux);
   /* the wash under a tick's row, a tint of the ink so it shows on card, paper and sunk paper alike */
   --tick-wash: color-mix(in srgb, var(--ink) 7%, transparent);
+  /* the chosen row of a list, a soft tint of the app's one accent, the same in every list: a search's result in
+     focus, the Code list's open code, Sift's record, a board's revision in History, a GET table's row and Settings'
+     chosen category
+     (designfix, 22 November 2026, Adam: a tint in place of the bar down the row's left) */
+  --sel-wash: color-mix(in srgb, var(--crux) 11%, transparent);
+  /* the row under the pointer in those lists, a fainter ground than the chosen row's, so the two never read alike
+     (designfix2: the sunk paper on a light card came out 1.02:1 against the tint) */
+  --row-hover: color-mix(in srgb, var(--paper-sunk) 45%, transparent);
   /* the old names, until their last use goes */
   --sf-reject:  var(--danger);
   --sf-excerpt: var(--excerpt);

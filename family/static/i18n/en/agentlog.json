@@ -6,7 +6,6 @@
     "other": "{n} entries in the last 7 days"
   },
   "agentlog.open": "Open",
-  "agentlog.kicker": "Settings",
   "agentlog.in": "in {project}",
   "agentlog.in_closed": {
     "one": "in a project agents may not read",

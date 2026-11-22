@@ -197,9 +197,9 @@
 
 .sf-tbl tbody td { padding: 7px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; overflow-wrap: break-word; }
 .sf-tbl tbody tr { cursor: default; }
-.sf-tbl tbody tr:hover td { background: color-mix(in srgb, var(--paper-sunk) 55%, transparent); }
-.sf-tbl tbody tr.on td { background: var(--paper-sunk); }
-.sf-tbl tbody tr.on td:first-child { box-shadow: inset 3px 0 0 var(--crux); }
+.sf-tbl tbody tr:hover td { background: var(--row-hover); }
+.sf-tbl tbody tr.on td { background: var(--sel-wash); }
+.sf-tbl tbody tr.on .sf-blank { color: var(--ink-soft); }
 
 /* the width each column reads best at, the abstract the widest, the text in it wrapping, held on a
    narrow screen, where the box scrolls sideways. With no filter under a heading the year, the

@@ -452,7 +452,7 @@ const shown = () => ({ pick: !$('home-pick').hidden, page: !$('home-project').hi
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = kept
     # Home's loading cards (homeload): a placeholder draws as many rings as the project showed last time and three
-    # where it was never seen, and the sheen stands still when the computer asks for reduced motion
+    # where it was never seen, and the placeholders still show they are loading when the computer asks for reduced motion
     if node:
         import tempfile
         from pathlib import Path
@@ -477,12 +477,57 @@ const HOME_NAMES_KEY = 'idiograph.homeNames';
 """, encoding="utf-8")
         run = subprocess.run([node, str(loading_js)], capture_output=True, text=True, encoding="utf-8", timeout=60)
         shutil.rmtree(scratch_js, ignore_errors=True)
-        css = support.text("family/static/style.css")
-        check("110: in node, a loading card draws the rings its project showed last time and three for one never seen, "
-              "and the sheen is switched off for reduced motion",
+        check("110: in node, a loading card draws the rings its project showed last time and three for one never seen",
               run.returncode == 0 and json.loads(run.stdout.splitlines()[0]) == [5, 1, 3, 3]
-              and json.loads(run.stdout.splitlines()[1]) == ["Mabel at the pond", "Bo", "Newcomers", "Old"]
-              and re.search(r"prefers-reduced-motion: reduce\)\s*\{[^}]*\.sk::after\s*\{[^}]*animation: none", css) is not None,
+              and json.loads(run.stdout.splitlines()[1]) == ["Mabel at the pond", "Bo", "Newcomers", "Old"],
               (run.stdout + run.stderr)[:300])
+    _loading_fade_reduced()
     check("110: the live config.json is exactly as it was",
           (server_mod.CONFIG_PATH.read_bytes() if server_mod.CONFIG_PATH.exists() else None) == live_config)
+
+
+def _loading_fade_reduced():
+    """Home's loading placeholders in the computer's own browser, headless, with the page's stylesheets and the
+    computer asking for reduced motion: the animation the browser computes for a placeholder is the fade, slower
+    than with motion allowed, never stopped by the stylesheet's rule that stills every other animation (designfix2:
+    the check that read the CSS text passed while that rule stood the fade still)."""
+    import html as html_mod
+    import subprocess
+    import tempfile
+    from pathlib import Path
+    exe = support.browser()
+    if exe is None:
+        skip("110: the loading cards' fade under reduced motion in a real browser", "no Chrome, Chromium, Brave or Edge on this computer")
+        return
+    css = "\n".join(support.text(p) for p in ("family/static/tokens.css", "family/static/style.css"))
+    measure = r"""
+const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
+document.body.insertAdjacentHTML('beforeend', '<ul><li class="hc-card hc-loading"><span class="sk sk-line"></span></li></ul><span class="still" style="animation: fade 1s infinite"></span>');
+const sk = document.querySelector('.sk'), c = getComputedStyle(sk), other = getComputedStyle(document.querySelector('.still'));
+document.getElementById('out').textContent = JSON.stringify({ reduce: matchMedia('(prefers-reduced-motion: reduce)').matches,
+  name: c.animationName, duration: c.animationDuration, count: c.animationIterationCount, direction: c.animationDirection,
+  running: sk.getAnimations().length, other: other.animationName });
+"""
+    script = ("const CSS = " + json.dumps(css) + ";\n" + measure).replace("</", "<\\/")
+    doc = '<!doctype html><html><head><meta charset="utf-8"></head><body><pre id="out">none</pre><script>' + script + "</script></body></html>"
+    with tempfile.TemporaryDirectory(prefix="idiograph-110-") as tmp:
+        page_file = Path(tmp) / "loading.html"
+        page_file.write_text(doc, encoding="utf-8")
+        cmd = [str(exe), "--headless", "--disable-gpu", "--no-first-run", "--no-default-browser-check", "--disable-extensions",
+               "--disable-background-networking", "--disable-component-update", "--disable-sync", "--disable-default-apps",
+               "--password-store=basic", "--use-mock-keychain", f"--user-data-dir={Path(tmp) / 'profile'}",
+               "--force-prefers-reduced-motion", "--window-size=800,600", "--virtual-time-budget=2000", "--dump-dom", page_file.as_uri()]
+        try:
+            dumped = support.run_browser(cmd).stdout
+        except (OSError, subprocess.TimeoutExpired) as err:
+            dumped = str(err)
+    said = dumped.split('<pre id="out">', 1)[1].split("</pre>", 1)[0] if '<pre id="out">' in dumped else "{}"
+    got = json.loads(html_mod.unescape(said)) if said.startswith("{") else {}
+    if got and not got.get("reduce"):
+        skip("110: the loading cards' fade under reduced motion in a real browser", "this browser did not take --force-prefers-reduced-motion")
+        return
+    check("110: with reduced motion the browser computes the loading placeholders' fade, sk-breathe at 2.2s, infinite and "
+          "alternating, running, while another animation stays stilled",
+          got.get("name") == "sk-breathe" and got.get("duration") == "2.2s" and got.get("count") == "infinite"
+          and got.get("direction") == "alternate" and got.get("running") == 1 and got.get("other") == "none", json.dumps(got) if got else dumped[:300])
+

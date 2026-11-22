@@ -22,10 +22,10 @@
 .cd-head span.on::after { content: " \2193"; letter-spacing: 0; }
 .cd-rows { list-style: none; margin: 0; padding: 0; }
 .cd-row { padding: 9px 8px; border-bottom: 1px solid var(--rule); cursor: default; }
-.cd-row:hover { background: var(--paper-sunk); }
-.cd-row.on { background: var(--card); box-shadow: inset 3px 0 0 var(--crux); }
+.cd-row:hover { background: var(--row-hover); }
+.cd-row.on { background: var(--sel-wash); }
 .cd-row:focus { outline: 0; }
-.cd-row:focus-visible { box-shadow: inset 3px 0 0 var(--crux), var(--focus-small); }
+.cd-row:focus-visible { box-shadow: var(--focus-small); }
 .cd-row-name { font-family: var(--serif); font-size: 15.5px; line-height: 1.35; color: var(--ink); overflow-wrap: anywhere; }
 .cd-row.none .cd-row-name { color: var(--ink-soft); font-style: italic; }
 .cd-row-sub { display: none; }

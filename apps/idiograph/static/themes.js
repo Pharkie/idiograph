@@ -15061,7 +15061,8 @@ async function gtTrailOpen(gid) {
   if (TH.dirty) { say(t('themes.unsaved.trail'), 6000); return; }
   const g = thGroup(TH.v, gid);
   TH.trail = { gid };
-  $('gt-trail-title').textContent = thLabelShown(g.label);
+  // the title says what the card is, the GET's own label inside it (designfix2)
+  $('gt-trail-title').textContent = t('themes.gets.trail_of', { label: thLabelShown(g.label) });
   $('gt-trail-count').textContent = '';
   $('gt-trail-note').hidden = true;
   $('gt-trail-body').innerHTML = `<p class="th-qnone">${esc(t('themes.gets.trail_reading'))}</p>`;
@@ -15075,7 +15076,7 @@ async function gtTrailOpen(gid) {
     return;
   }
   if (ask !== TH.trailAsk || $('gt-trail').hidden) return;
-  $('gt-trail-title').textContent = data.label;
+  $('gt-trail-title').textContent = t('themes.gets.trail_of', { label: thLabelShown(data.label) });
   const count = $('gt-trail-count');
   count.textContent = t('themes.gets.of', { count: data.count, total: data.total });
   count.classList.toggle('under', !!data.under);
@@ -15123,7 +15124,8 @@ function gtPrintOpen(what = 'table', gid = null) {
   $('gt-print-notes').checked = false;
   thIncludesDraw();
   $('gt-print-what').hidden = !!gid;
-  $('gt-print-title').textContent = gid ? t('themes.gets.trail_of', { label: thLabelShown((thGroup(TH.v, gid) || { label: '' }).label) }) : (TH.meta.name || t('themes.unit.gets'));
+  // the card's title is Export, and the line under it what it exports: a GET's trail or the board (designfix2)
+  $('gt-print-for').textContent = gid ? t('themes.gets.trail_of', { label: thLabelShown((thGroup(TH.v, gid) || { label: '' }).label) }) : (TH.meta.name || t('themes.unit.gets'));
   gtPrintDraw();
   show('gt-print');
   $('gt-print-go').focus();

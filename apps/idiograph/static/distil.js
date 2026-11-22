@@ -2129,7 +2129,7 @@ async function distilHomeLoading(still) {
     const name = named || (keep && (typeof keep === 'string' ? keep : keep.name)) || folder || t('distil.home.project');
     // as many rings as the project showed last time, at most eight, three where it has not been seen before
     const count = keep && typeof keep === 'object' && Number.isFinite(keep.n) ? Math.max(0, Math.min(8, keep.n)) : 3;
-    // a rough drawing of the card: its name, its rings and two bars, with the sheen across (homeload)
+    // a rough drawing of the card: its name, its rings and two bars, fading a little and back (homeload, designfix)
     const ring = '<li class="hc-person"><span class="sk sk-ring"></span><span class="sk sk-who"></span></li>';
     return `<li class="home-card-li hc-card hc-loading" role="status" aria-label="${escAttr(t('distil.home.loading'))}"><div class="hc-sk" aria-busy="true"><span class="hc-head"><span class="hc-name">${esc(name)}</span></span>`
       + `<span class="sk sk-line"></span></div><div class="hc-dash"><ul class="hc-people">${ring.repeat(count)}</ul>`
@@ -3808,7 +3808,7 @@ function closeNewProject() {
    the name and the question hidden, since the project has them already. */
 function npMode(add) {
   const card = $('newproject');
-  card.querySelector('.kicker').textContent = add ? add.name || t('distil.home.project') : t('distil.home.project');
+  card.querySelector('.card-for').textContent = add ? add.name || t('distil.home.project') : '';
   card.querySelector('h2').textContent = add ? t('distil.np.add_title') : t('distil.np.new_title');
   for (const el of card.querySelectorAll('.np-new')) el.hidden = !!add;
   // the transcripts' part is Add transcripts' alone, New project setting up the project only (projectbuild)
@@ -4550,7 +4550,7 @@ function nmReviewOpen({ kicker, title, finds, list, onTick, back, go, form }) {
   const card = $('nm-review');
   const byKey = new Map(finds.map((f) => [f.key, f]));
   NM.review = { finds, byKey, onTick, back, go };
-  card.querySelector('.kicker').textContent = kicker || '';
+  card.querySelector('.card-for').textContent = kicker || '';
   card.querySelector('h2').textContent = title;
   // a participant with finds in more than one interview, whose interview each find then names
   const seen = new Map();
@@ -4712,7 +4712,7 @@ async function nmListOpen(id, name) {
   NM.list = { id, name: name || '', rows: (data.entries || []).map((e) => ({ real: e.real.join(', '), to: e.to, for: e.for || '',
       except: (e.except || []).join(NM_EXCEPT_JOIN) })),
     who: Array.isArray(data.participants) ? data.participants : [], check: null, said: '' };
-  $('nm-list').querySelector('.kicker').textContent = NM.list.name;
+  $('nm-list').querySelector('.card-for').textContent = NM.list.name;
   nmListDraw();
   show('nm-list');
 }

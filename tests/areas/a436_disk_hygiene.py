@@ -7,7 +7,9 @@ stop it, each on made-up files in a scratch folder: `support.sweep_stale` takes 
 `support.run_browser` ends a browser that outlasts its time with its helpers, and it and `chrome.mjs` kill only the helpers
 listed while the browser lived and only while each is still the process listed (diskfix); and
 `packaging/verify_prune.py` plans only build trees and big files in `wip-*` folders and all but the newest three
-copies of the app, deleting nothing without `--commit`, and never a patch, a note, anything touched in the last 3 days or `keep`."""
+copies of the app, deleting nothing without `--commit`, and never a patch, a note, anything touched in the last 3 days or `keep`.
+Every start of Chrome in the repo (the suite's `--headless` commands, chrome.mjs's `spawn(CHROME`) passes `--use-mock-keychain`
+and `--password-store=basic` (mockkeychain, 22 November 2026), or macOS shows "Keychain Not Found" on the screen."""
 from __future__ import annotations
 
 import json
@@ -123,8 +125,34 @@ def _helpers_listed_while_alive(root: Path):
           bool(said.get("sleep")) and said.get("control") == [said.get("sleep")], str(said))
 
 
+def _chrome_launches_lack_keychain_flag() -> tuple[int, list]:
+    """Every start of Chrome in the repo, a `"--headless"` command in Python or the `spawn(CHROME` of the motion tools'
+    chrome.mjs, with the lines it runs on, and those that do not carry --use-mock-keychain and --password-store=basic
+    (a fresh profile without them makes macOS show "Keychain Not Found" on the screen at every run)."""
+    seen, bad = 0, []
+    for folder in ("tests", "packaging", "family", "apps"):
+        for path in sorted(support.source(folder).rglob("*")):
+            if path.suffix not in (".py", ".mjs") or any(p in ("node_modules", ".venv", "vendor") for p in path.parts):
+                continue
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+            for i, line in enumerate(lines):
+                if path.name == "a436_disk_hygiene.py":
+                    continue
+                if ('"--headless"' in line and path.suffix == ".py") or ("spawn(CHROME" in line and path.suffix == ".mjs"):
+                    seen += 1
+                    near = "\n".join(lines[i:i + 8])
+                    mock = "--use-mock-keychain" in near or "KEYCHAIN_FLAGS" in near
+                    store = "--password-store=basic" in near or "KEYCHAIN_FLAGS" in near
+                    if not (mock and store):
+                        bad.append(f"{path.name}:{i + 1}")
+    return seen, bad
+
+
 def test_disk_hygiene():
     print("\n436. The tooling removes its own temporary folders, locks and browsers, and .verify can be pruned (diskhygiene)")
+    seen, bad = _chrome_launches_lack_keychain_flag()
+    check("436: every start of Chrome in the repo passes --use-mock-keychain and --password-store=basic, so macOS never "
+          "shows \"Keychain Not Found\"", seen >= 10 and not bad, f"{seen} launches, without: {bad}")
     with tempfile.TemporaryDirectory(prefix="idiograph-436-") as tmp:
         root = Path(tmp)
 

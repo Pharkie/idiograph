@@ -1,0 +1,53 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "site/holding/signing.html"
+        ],
+        "createdAt": "2026-11-22T01:31:37.265Z",
+        "reason": "False positive: the static scan misreads the font shorthand's clamp(); in the browser h1 42px, h2 26px, body 19px at 1280 (1.62 and 1.37) and 30, 21, 17px at 375, and a URL scan of the page at both widths finds nothing (designfix, 22 Nov 2026)"
+      },
+      {
+        "rule": "icon-tile-stack",
+        "value": "*",
+        "files": [
+          "family/static/page.html"
+        ],
+        "createdAt": "2026-11-22T01:31:37.285Z",
+        "reason": "False positive: the 39px tile is the Support card's close button (.card-close), absolutely placed in the card's top right corner, not an icon above the heading; every dialog has one (designfix, 22 Nov 2026)"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "site/holding/index.html"
+        ],
+        "createdAt": "2026-11-22T01:31:37.303Z",
+        "reason": "False positive: the video's only child text is its fallback link, painted only by a browser that cannot play video; the poster fills the box edge to edge by design, and a URL scan at 1280 and 375 finds nothing (designfix, 22 Nov 2026)"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "family/static/page.html"
+        ],
+        "createdAt": "2026-11-22T02:03:57.852Z",
+        "reason": "False positive: the two 'stripes' are the app-drawn tick and dash, a clip-path check (8px) and a 7px dash centred inside the 13px box by inset 0 and margin auto (style.css, loose01), not a bar down a box's side; the only side bar, the selected row's, became a tint (designfix, 22 Nov 2026)"
+      },
+      {
+        "rule": "icon-tile-stack",
+        "value": "*",
+        "files": [
+          "family/static/design.html"
+        ],
+        "createdAt": "2026-11-22T12:00:19.437Z",
+        "reason": "False positive: both 39px tiles are the sample dialogs' close button (.card-close, position absolute, top 12px, right 12px, transparent edge), not an icon above the heading; removing the kicker put the button beside the title's line, which the scan reads as a stack. The rule has no extractable value, so it is scoped to this one file (designfix2, 22 Nov 2026)"
+      }
+    ]
+  }
+}

@@ -2121,7 +2121,7 @@ function sfsBuild() {
   ask.className = 'overlay';
   ask.id = 'sfs-ask';
   ask.hidden = true;
-  ask.innerHTML = `<div class="card"><p class="kicker">${esc(t('sift_search.steps.searches'))}</p><h2 id="sfs-ask-head"></h2><p class="trim-line" id="sfs-ask-line"></p>`
+  ask.innerHTML = `<div class="card"><h2 id="sfs-ask-head"></h2><p class="trim-line" id="sfs-ask-line"></p>`
     + `<div class="card-actions"><button type="button" class="ghost" id="sfs-ask-no">${esc(t('sift_search.cancel'))}</button>`
     + '<button type="button" class="primary" id="sfs-ask-yes"></button></div></div>';
   // Mark as registered: where the plan is registered and its number or link, both needed
@@ -2129,7 +2129,7 @@ function sfsBuild() {
   mark.className = 'overlay';
   mark.id = 'sfs-mark-card';
   mark.hidden = true;
-  mark.innerHTML = `<div class="card sfs-mark" role="dialog" aria-labelledby="sfs-mark-head"><p class="kicker">${esc(t('sift_search.steps.searches'))}</p>`
+  mark.innerHTML = `<div class="card sfs-mark" role="dialog" aria-labelledby="sfs-mark-head">`
     + `<h2 id="sfs-mark-head">${esc(t('sift_search.screen.mark_as_registered'))}</h2><p class="trim-line" id="sfs-mark-line"></p>`
     + `<fieldset class="sfs-mark-where"><legend class="sfs-label">${esc(t('sift_search.mark.with'))}</legend>`
     + '<label><input type="radio" name="sfs-registry" id="sfs-reg-osf" value="OSF">OSF</label>'

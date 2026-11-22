@@ -1302,8 +1302,8 @@ textarea.th-vedit { resize: vertical; min-height: 4.4em; margin-top: 4px; }
 .th-rev-day { margin: 14px 0 4px; }
 .th-revs { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .th-rev { display: flex; align-items: center; gap: 8px; border-radius: 4px; padding: 1px 2px 1px 0; }
-.th-rev:hover { background: var(--paper-sunk); }
-.th-rev.on { background: color-mix(in srgb, var(--accent) 10%, transparent); box-shadow: inset 2px 0 0 var(--accent); }
+.th-rev:hover { background: var(--row-hover); }
+.th-rev.on { background: var(--sel-wash); }
 .th-rev-view {
   flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: 10px; text-align: left;
   background: none; border: 0; padding: 6px 6px; font: inherit; color: var(--ink); cursor: pointer;
@@ -1311,6 +1311,8 @@ textarea.th-vedit { resize: vertical; min-height: 4.4em; margin-top: 4px; }
 .th-rev-view .th-time { flex: none; font-size: 11.5px; color: var(--ink-soft); }
 .th-rev-said { min-width: 0; font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
 .th-rev.auto .th-rev-said { color: var(--ink-faint); font-size: 12px; }
+/* the faint ink reads too light on the chosen row's tint, so there it takes the soft ink (designfix2) */
+.th-rev.on .th-rev-said { color: var(--ink-soft); }
 .th-rev .ghost.small { flex: none; }
 
 /* The Guidance tab: each heading in the label face a step smaller than the rail's own heading, as
@@ -1707,8 +1709,9 @@ button.btn-out::before {
 .gt-tree ul { margin: 3px 0 0 8px; padding-left: 8px; border-left: 1px solid var(--rule-firm); }
 .gt-row { display: grid; gap: 1px; padding: 4px 8px; border-radius: 4px; cursor: grab; user-select: none;
   -webkit-user-select: none; border: 1px solid transparent; }
-.gt-row:hover { background: var(--paper-sunk); border-color: var(--rule); }
-.gt-row.on { box-shadow: inset 2px 0 0 var(--accent); }
+.gt-row:hover { background: var(--row-hover); border-color: var(--rule); }
+.gt-row.on { background: var(--sel-wash); }
+.gt-row.on .gt-rn, .gt-row.on .gt-rkind { color: var(--ink-soft); }
 .gt-row.gt-hold { grid-template-columns: 14px minmax(0, 1fr) auto; column-gap: 4px; padding-left: 2px; }
 .gt-hold .gt-tw { grid-row: 1 / span 2; align-self: start; }
 .gt-hold .gt-rkind, .gt-hold .gt-rtext { grid-column: 2; }

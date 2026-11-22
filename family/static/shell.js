@@ -2069,7 +2069,6 @@ const rvRoute = (part) => FAMILY_APPS[part].route;
 function openReviewCard(mode, part = 'sift') {
   Object.assign(RVC, { mode, folder: '', busy: false, part: part === 'trace' ? 'trace' : 'sift' });
   const card = $('rv-card');
-  $('rv-kicker').textContent = RVC.part === 'trace' ? 'Trace' : 'Sift';
   card.querySelector('h2').textContent = t(mode === 'open' ? 'shell.project.open_folder' : 'shell.project.new');
   $('rv-go').textContent = t(mode === 'open' ? 'shell.project.open' : 'shell.project.create');
   // a Trace project has a name alone, no research question
@@ -2519,14 +2518,15 @@ const cardBox = (o) => (o.classList.contains('card') ? o : o.querySelector(':sco
 const cardShown = (o) => !!o && o.isConnected && !o.hidden;
 const cardTop = () => [...CARDS.open].reverse().find(cardShown) || null;
 
-/* the dialog's role, modal, and its name: its one heading, or with several, the line above them that names the card */
+/* the dialog's role, modal, and its name: its title, the first heading, since every dialog opens with its title alone
+   (designfix, 22 November 2026, Adam: no kicker over a dialog's title) */
 function cardLabel(o) {
   const box = cardBox(o);
   if (!box.hasAttribute('role')) box.setAttribute('role', 'dialog');
   if (!box.hasAttribute('aria-modal')) box.setAttribute('aria-modal', 'true');
   if (box.hasAttribute('aria-labelledby') || box.hasAttribute('aria-label')) return;
   const heads = box.querySelectorAll('h1, h2');
-  const head = (heads.length === 1 ? heads[0] : box.querySelector('.kicker')) || heads[0] || box.querySelector('h3');
+  const head = heads[0] || box.querySelector('h3');
   if (!head) return;
   if (!head.id) {
     let id = `${o.id || 'card'}-head`;
@@ -4384,10 +4384,9 @@ function barFitWatch(bar) {
   new ResizeObserver(() => barFit(bar)).observe(bar);
 }
 
-/* The app's own name wherever the page names it in its markup: Settings' kicker, its foot's Restart and
+/* The app's own name wherever the page names it in its markup: Settings' foot, its Restart and
    About, Updates' line and the Closing tick (the split's third build) */
 function appWords() {
-  $('settings-kicker').textContent = APP_NAME;
   $('server-ops').setAttribute('aria-label', APP_NAME);
   $('server-restart').textContent = t('shell.server.restart', { app: APP_NAME });
   for (const el of document.querySelectorAll('.app-name')) el.textContent = APP_NAME;

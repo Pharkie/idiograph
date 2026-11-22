@@ -932,7 +932,7 @@ function trBuild() {
   ask.className = 'overlay';
   ask.id = 'tr-ask';
   ask.hidden = true;
-  ask.innerHTML = `<div class="card" role="dialog" aria-labelledby="tr-ask-head"><p class="kicker">${TR_NAME}</p><h2 id="tr-ask-head"></h2>`
+  ask.innerHTML = `<div class="card" role="dialog" aria-labelledby="tr-ask-head"><h2 id="tr-ask-head"></h2>`
     + `<p class="trim-line" id="tr-ask-line"></p><div class="card-actions"><button type="button" class="ghost" id="tr-ask-no">${esc(t('trace.cancel'))}</button>`
     + '<button type="button" class="primary" id="tr-ask-yes"></button></div></div>';
   const keys = document.createElement('div');
@@ -941,7 +941,7 @@ function trBuild() {
   keys.hidden = true;
   keys.innerHTML = `<div class="card"><button class="card-close" id="tr-keys-close" type="button" tabindex="-1" aria-label="${escAttr(t('trace.close'))}" title="${escAttr(t('trace.close'))}">`
     + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg></button>'
-    + `<p class="kicker">${esc(t('trace.keys.head'))}</p><h2>${TR_NAME}</h2><table class="keys">`
+    + `<h2>${esc(t('trace.keys.head'))}</h2><table class="keys">`
     + `<tr><td class="mono">Y</td><td>${esc(TR_WORDS.Y)}</td></tr><tr><td class="mono">Q</td><td>${esc(TR_WORDS.Q)}</td></tr>`
     + `<tr><td class="mono">N</td><td>${esc(TR_WORDS.N)}</td></tr>`
     + `<tr><td class="mono">&#8593; / &#8595;</td><td>${esc(t('trace.keys.move'))}</td></tr>`
