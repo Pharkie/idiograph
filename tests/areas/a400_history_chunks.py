@@ -218,6 +218,8 @@ def test_history_chunks(scratch: Path):
               str(len(orphans)))
         for p in orphans:
             os.utime(p, (1, 1))
+        # past the sweep's gate, as a write ten minutes on is
+        bh.reset()
         themes.board_op(juno, "revision", {"id": "v2", "name": "sweeps"}, "Juno")
         check("400: once older than ORPHAN_SECONDS a write sweeps them, a copy of each in the _Archive",
               not any(p.name.startswith("0123456789abcdef") for p in folder.iterdir())
@@ -283,13 +285,11 @@ def test_history_chunks(scratch: Path):
         gone_chunk = evicted(bh, first_chunk, stat.UF_NODUMP)
         gone_chunk.__enter__()
         try:
-            bh._BYTES.clear()
-            bh._MEMO.clear()
+            bh.reset()
             listed = themes.history_list(themes.boards_of(themes.load(juno))[0])
             check("400: a chunk Optimize Mac Storage evicted is fetched as it is read, and History lists every revision",
                   len(listed) == 13 and fetched, str(len(fetched)))
-            bh._BYTES.clear()
-            bh._MEMO.clear()
+            bh.reset()
             bh._fetch = lambda path: (_ for _ in ()).throw(bh.away())
             held = boards_files(root)
             try:
@@ -302,8 +302,7 @@ def test_history_chunks(scratch: Path):
         finally:
             bh.SF_DATALESS, bh._fetch = flags
             gone_chunk.__exit__(None, None, None)
-            bh._BYTES.clear()
-            bh._MEMO.clear()
+            bh.reset()
 
         # ── 3c. an older copy of a chunk (iCloud's last write from a second Mac) never reads as the History
         snap = bh.snapshot(tf)
@@ -468,50 +467,77 @@ def test_history_chunks(scratch: Path):
         stray.unlink()
         shutil.rmtree(base_b, ignore_errors=True)
 
-        # ── 3i. a burst of revisions in one write across a chunk's end: every chunk whose bytes changed written,
-        # every revision readable after and after a restart (historyfix2, review 2, 1)
+        # ── 3i. a burst of revisions in one write: one chunk of their own, open, nothing else touched (perfhist); and
+        # a burst past CHUNK folds, every chunk whose bytes changed written, every revision readable after and after
+        # a restart (historyfix2, review 2, 1)
         data = themes.load(juno)
         board = themes.boards_of(data)[0]
-        head0 = dict(bh.head_of(board))
-        stale_file = tf.read_bytes()
-        last0 = bh.chunk_name(head0["uid"], *head0["chunks"][-1])
         count0 = themes.revision_count(board)
-        # chunks of about three revisions here, so the burst grows the last chunk before it begins the next ones
+        head_a = dict(bh.head_of(board))
+        named_a = {bh.chunk_name(head_a["uid"], n, h): (folder / bh.chunk_name(head_a["uid"], n, h)).read_bytes()
+                   for n, h in head_a["chunks"]}
         small_chunk = bh.CHUNK
-        bh.CHUNK = (folder / last0).stat().st_size * 3
-        for i in range(8):
-            st = themes.board_state(board)
-            k = sorted(st["cards"])[i % len(st["cards"])]
-            st["cards"] = dict(st["cards"], **{k: dict(st["cards"][k], x=1000 + i)})
-            themes.add_revision(board, name=f"burst {i}", state=st)
-        waiting = len(bh.pending(board))
+        bh.CHUNK = 64 * 1024 * 1024
+
+        def burst(b: dict, n: int, tag: str) -> int:
+            for i in range(n):
+                st = themes.board_state(b)
+                k = sorted(st["cards"])[i % len(st["cards"])]
+                st["cards"] = dict(st["cards"], **{k: dict(st["cards"][k], x=1000 + i)})
+                themes.add_revision(b, name=f"{tag} {i}", state=st)
+            return len(bh.pending(b))
+        waiting = burst(board, 4, "open")
+        themes.write_path(tf, data)
+        head0 = dict(bh.head_of(themes.boards_of(themes.load(juno))[0]))
+        named0 = [bh.chunk_name(head0["uid"], n, h) for n, h in head0["chunks"]]
+        last0 = named0[-1]
+        check("400: four revisions added in one write go into one chunk of their own, open, every chunk named before "
+              "still named and byte for byte as it was, nothing put aside",
+              waiting == 4 and named0[:-1] == list(named_a) and last0 not in named_a
+              and all((folder / n).read_bytes() == v for n, v in named_a.items())
+              and bh.open_of(head0) == bh.open_of(head_a) + 1 and len(bh.lines_in((folder / last0).read_bytes())) == 4
+              and not any((folder / bh.SUPERSEDED / n).exists() for n in named_a),
+              f"{len(named_a)}->{len(named0)} open {bh.open_of(head_a)}->{bh.open_of(head0)}")
+        stale_file = tf.read_bytes()
+        count_b = count0 + 4
+        k0 = bh.open_of(head0)
+        open_bytes = b"".join((folder / n).read_bytes() for n in named0[len(named0) - k0:])
+        tail0 = named0[:len(named0) - k0]
+        # a chunk takes no new line past one byte here, so the burst is past CHUNK and folds, the tail left as it is
+        bh.CHUNK = 1
+        data = themes.load(juno)
+        board = themes.boards_of(data)[0]
+        waiting = burst(board, 8, "burst")
         themes.write_path(tf, data)
         burst_file = tf.read_bytes()
         head1 = bh.head_of(themes.boards_of(themes.load(juno))[0])
         named1 = [bh.chunk_name(head1["uid"], n, h) for n, h in head1["chunks"]]
-        check("400: eight revisions added in one write across a chunk's end: every chunk the head names written, "
-              "History listing every one",
-              waiting == 8 and len(head1["chunks"]) > len(head0["chunks"]) and last0 not in named1
+        after_tail = b"".join((folder / n).read_bytes() for n in named1[len(tail0):])
+        bh.CHUNK = 64 * 1024 * 1024
+        check("400: eight revisions added in one write past CHUNK fold the open chunks with them: every chunk the "
+              "head names written, the folded lines byte for byte as they were, none open, History listing every one",
+              waiting == 8 and named1[:len(tail0)] == tail0 and last0 not in named1 and bh.open_of(head1) == 0
+              and after_tail.startswith(open_bytes) and len(bh.lines_in(after_tail)) == len(bh.lines_in(open_bytes)) + 8
               and all((folder / n).is_file() for n in named1)
-              and len(themes.history_list(themes.boards_of(themes.load(juno))[0])) == count0 + 8,
-              f"{waiting} {len(head0['chunks'])}->{len(head1['chunks'])}")
-        bh._BYTES.clear()
-        bh._MEMO.clear()
+              and len(themes.history_list(themes.boards_of(themes.load(juno))[0])) == count_b + 8,
+              f"{waiting} {len(head0['chunks'])}->{len(head1['chunks'])} open {bh.open_of(head1)}")
+        bh.reset()
         revs = themes.history_of(themes.boards_of(themes.load(juno))[0])
         check("400: and after a restart (nothing kept in memory) every revision reads from its chunks, ids distinct",
-              len(revs) == count0 + 8 and len({r["id"] for r in revs}) == len(revs)
-              and [r["name"] for r in revs[-8:]] == [f"burst {i}" for i in range(8)], str(len(revs)))
+              len(revs) == count_b + 8 and len({r["id"] for r in revs}) == len(revs)
+              and [r["name"] for r in revs[-12:]] == [f"open {i}" for i in range(4)] + [f"burst {i}" for i in range(8)],
+              str(len(revs)))
 
         # ── 3j. a chunk a write supersedes is put aside, never taken away at once: a board file another Mac wrote
         # before it saw the write still reads whole, the next write brings it back, and a week on it goes, no copy
         aside = folder / bh.SUPERSEDED
-        check("400: the chunk the burst grew is put aside in superseded/, out of the History folder's own chunks",
+        check("400: the open chunk the burst folded is put aside in superseded/, out of the History folder's own chunks",
               not (folder / last0).exists() and (aside / last0).is_file(), last0)
         tf.write_bytes(stale_file)
         stale = themes.boards_of(themes.load(juno))[0]
         check("400: the board file of before the burst (a second Mac's, winning in iCloud) reads whole, its last chunk "
               "read from where it was put aside", not themes.history_away(stale)
-              and len(themes.history_list(stale)) == count0, str(len(themes.history_list(stale))))
+              and len(themes.history_list(stale)) == count_b, str(len(themes.history_list(stale))))
         page = {k: v for k, v in stale.items() if k not in ("history", bh.HEAD)}
         page["v"] = themes.board_version(stale)
         page["cards"] = {k: dict(c, x=c.get("x", 0) + 1) for k, c in page["cards"].items()}
@@ -523,6 +549,8 @@ def test_history_chunks(scratch: Path):
         for f in aside.iterdir():
             os.utime(f, (1, 1))
         old_aside = sorted(p.name for p in aside.iterdir())
+        # past the sweep's gate, as a write ten minutes on is
+        bh.reset()
         themes.board_op(juno, "revision", {"id": "v1", "name": "a week on"}, "Juno")
         check("400: once SUPERSEDED_SECONDS old the chunks put aside are taken away by a write, with no _Archive copy",
               old_aside and not any((aside / n).exists() or (folder / n).exists() for n in old_aside
@@ -530,7 +558,7 @@ def test_history_chunks(scratch: Path):
               and sorted(p.name for p in (root / "Juno" / "_Archive").iterdir()) == archived_before,
               str(len(old_aside)))
         check("400: History lists every revision after", len(themes.history_list(
-              themes.boards_of(themes.load(juno))[0])) == count0 + 9, "")
+              themes.boards_of(themes.load(juno))[0])) == count_b + 9, "")
         # no send or copy carries a chunk put aside, and anything inside a History folder is History (review 3, M2)
         import project_pack
         from pathlib import PurePosixPath
@@ -641,8 +669,7 @@ def test_history_chunks(scratch: Path):
             bh.SF_DATALESS = flags
             gone_probe.__exit__(None, None, None)
             bh._FETCHING.pop(key, None)
-            bh._BYTES.clear()
-            bh._MEMO.clear()
+            bh.reset()
             with contextlib.suppress(OSError):
                 (probe.parent.parent / "probe.lock").unlink()
 
@@ -713,8 +740,7 @@ def test_history_chunks(scratch: Path):
                                                     for n, h in bh.named(ghead))}
         for c in held_chunks:
             c.unlink()
-        bh._BYTES.clear()
-        bh._MEMO.clear()
+        bh.reset()
 
         def trim(rk: str):
             # the row before the ticked one cut, every later row of its sheet one up
@@ -726,9 +752,10 @@ def test_history_chunks(scratch: Path):
         away_now = not bh.here(gets_mod.boards_of(gets_mod.load(root))[0])
         gets_mod.rows_moved(root, juno, trim)
         for c, kept_bytes in held_chunks.items():
+            # a History folder left empty goes with the write (`out_of`'s finish), so it is made again here
+            c.parent.mkdir(parents=True, exist_ok=True)
             c.write_bytes(kept_bytes)
-        bh._BYTES.clear()
-        bh._MEMO.clear()
+        bh.reset()
         moved_key, moved_words = ticked()
         viewed = gets_mod.board_op(root, gbooks, "view", {"id": str(gb["id"]), "revision": kept_rev["id"]})
         gets_mod.board_op(root, gbooks, "restore", {"id": str(gb["id"]), "revision": kept_rev["id"]})
@@ -1168,6 +1195,441 @@ def test_history_chunks(scratch: Path):
             check("400: the revision from before the append restores with every card where it was",
                   {k: c["text"] for k, c in back2["cards"].items() if k in restored_before} == restored_before,
                   str(len(back2["cards"])))
+
+        # ── 3o. open chunks and the fold (perfhist, 22 November 2026): a write's revisions go into a chunk of their
+        # own and nothing written is touched; FOLD of them fold at the next write, onto the tail when it is here and
+        # they fit, else after it; one that cannot be read now never refuses a revision
+        import project_pack
+        import team_sync
+        kept_fold = (bh.FOLD, bh.CHUNK, themes.AUTO_KEEP)
+        bh.FOLD, bh.CHUNK = 4, 64 * 1024 * 1024
+        bh.reset()
+        aside = folder / bh.SUPERSEDED
+
+        def file_head(bid: str = "v2") -> dict:
+            return bh.head_of(next(b for b in json.loads(tf.read_text(encoding="utf-8"))["boards"] if b["id"] == bid))
+
+        def names(head: dict) -> list[str]:
+            return [bh.chunk_name(head["uid"], n, h) for n, h in head["chunks"]]
+
+        def set_open(value, bid: str = "v2") -> None:
+            raw = json.loads(tf.read_text(encoding="utf-8"))
+            for b in raw["boards"]:
+                if b["id"] == bid:
+                    if value is Ellipsis:
+                        b[bh.HEAD].pop(bh.OPEN, None)
+                    else:
+                        b[bh.HEAD][bh.OPEN] = value
+            tf.write_text(themes.render(raw) + "\n", encoding="utf-8", newline="\n")
+
+        def keep(name: str, bid: str = "v2") -> dict:
+            return themes.board_op(juno, "revision", {"id": bid, "name": name}, "Juno")
+
+        def listed(bid: str = "v2") -> list:
+            return themes.history_list(next(b for b in themes.boards_of(themes.load(juno)) if b["id"] == bid))
+
+        def aside_names() -> set:
+            return {p.name for p in aside.iterdir()} if aside.is_dir() else set()
+
+        def chunk_set() -> set:
+            return {p.name for p in folder.iterdir() if p.is_file()}
+
+        def lines_of(ns: list[str]) -> bytes:
+            return b"".join((folder / n).read_bytes() for n in ns)
+
+        try:
+            # a head from before, with no `open`, and a plain append
+            set_open(Ellipsis)
+            before = file_head()
+            bytes_before = {n: (folder / n).read_bytes() for n in names(before)}
+            aside_before = aside_names()
+            count_v2 = len(listed())
+            keep("open 1")
+            h1 = file_head()
+            check("400: a head from before (no open) takes a revision as one chunk of its own: every chunk it named "
+                  "byte for byte as it was and still named, nothing put aside, one open",
+                  names(h1)[:-1] == names(before) and bh.open_of(h1) == 1
+                  and all((folder / n).read_bytes() == v for n, v in bytes_before.items())
+                  and aside_names() == aside_before and len(listed()) == count_v2 + 1,
+                  f"{len(names(before))}->{len(names(h1))} open {h1.get(bh.OPEN)}")
+            bh.reset()
+            check("400: and after a restart History lists every revision, the new one among them",
+                  len(listed()) == count_v2 + 1, str(len(listed())))
+
+            # the FOLD-th: the tail small, so one chunk under the tail's number
+            for i in range(3):
+                keep(f"open {i + 2}")
+            h4 = file_head()
+            k, n4 = bh.open_of(h4), names(h4)
+            tail_bytes, open_bytes = (folder / n4[-k - 1]).read_bytes(), lines_of(n4[-k:])
+            census_a = bh.census(tf)["boards"]
+            keep("folds")
+            h5 = file_head()
+            n5 = names(h5)
+            new_tail = (folder / n5[-1]).read_bytes()
+            census_b = bh.census(tf)["boards"]
+            check("400: at FOLD open chunks the next write folds: the tail, the open chunks and its revision in one chunk "
+                  "under the tail's number, every line byte for byte, none open, the folded chunks put aside",
+                  k == 4 and bh.open_of(h5) == 0 and n5[:-1] == n4[:-k - 1]
+                  and h5["chunks"][-1][0] == h4["chunks"][-k - 1][0] and new_tail.startswith(tail_bytes + open_bytes)
+                  and len(bh.lines_in(new_tail)) == len(bh.lines_in(tail_bytes + open_bytes)) + 1
+                  and all((aside / n).is_file() and not (folder / n).exists() for n in n4[-k - 1:]),
+                  f"open {k} -> {bh.open_of(h5)}, {len(n4)} -> {len(n5)}")
+            check("400: and the census is the same, revision for revision, with the new one on the end",
+                  census_b["v2"][:-1] == census_a["v2"] and census_b["v1"] == census_a["v1"]
+                  and len(census_b["v2"]) == count_v2 + 5, "")
+
+            # the tail full: the fold goes after it, the tail as it is
+            tail_name = n5[-1]
+            bh.CHUNK = (folder / tail_name).stat().st_size
+            for i in range(4):
+                keep(f"fill {i}")
+            h6 = file_head()
+            k, n6 = bh.open_of(h6), names(h6)
+            open_bytes = lines_of(n6[-k:])
+            keep("folds after")
+            h7 = file_head()
+            n7 = names(h7)
+            bh.CHUNK = 64 * 1024 * 1024
+            check("400: with the tail full the fold makes chunks of its own after it, the tail named and as it was",
+                  k == 4 and bh.open_of(h7) == 0 and n7[:len(n6) - k] == n6[:len(n6) - k] and n6[-k - 1] == tail_name
+                  and (folder / tail_name).read_bytes() == new_tail
+                  and h7["chunks"][len(n6) - k][0] == h6["chunks"][-k - 1][0] + 1
+                  and lines_of(n7[len(n6) - k:]).startswith(open_bytes), f"{len(n6)} -> {len(n7)}")
+
+            # the tail evicted: the fold goes after it, never waiting for it; an open chunk evicted: one more open chunk
+            for i in range(4):
+                keep(f"evict {i}")
+            h8 = file_head()
+            k, n8 = bh.open_of(h8), names(h8)
+            tail8 = folder / n8[-k - 1]
+            tbytes = tail8.read_bytes()
+            flags = (bh.SF_DATALESS, bh._fetch)
+            bh.SF_DATALESS = stat.UF_NODUMP
+            bh._fetch = lambda path: (_ for _ in ()).throw(bh.away())
+            gone = evicted(bh, tail8, stat.UF_NODUMP)
+            gone.__enter__()
+            try:
+                keep("tail evicted")
+            finally:
+                gone.__exit__(None, None, None)
+                bh.SF_DATALESS, bh._fetch = flags
+            h9 = file_head()
+            n9 = names(h9)
+            check("400: a fold with the tail evicted folds without it: the open chunks and the revision after the tail, "
+                  "the tail untouched, none open",
+                  k == 4 and bh.open_of(h9) == 0 and n9[:len(n8) - k] == n8[:len(n8) - k] and tail8.read_bytes() == tbytes
+                  and h9["chunks"][len(n8) - k][0] == h8["chunks"][-k - 1][0] + 1, f"{len(n8)} -> {len(n9)}")
+            for i in range(4):
+                keep(f"open away {i}")
+            h10 = file_head()
+            far = folder / names(h10)[-1]
+            bh.reset()
+            bh.SF_DATALESS = stat.UF_NODUMP
+            bh._fetch = lambda path: (_ for _ in ()).throw(bh.away())
+            gone = evicted(bh, far, stat.UF_NODUMP)
+            gone.__enter__()
+            try:
+                keep("an open one evicted")
+            finally:
+                gone.__exit__(None, None, None)
+                bh.SF_DATALESS, bh._fetch = flags
+            h11 = file_head()
+            check("400: a fold with an open chunk evicted writes one more open chunk instead, nothing refused, nothing "
+                  "put aside", bh.open_of(h11) == 5 and names(h11)[:-1] == names(h10), str(h11.get(bh.OPEN)))
+            keep("back")
+            h12 = file_head()
+            check("400: and the next write, the chunk back, folds", bh.open_of(h12) == 0
+                  and len(listed()) == count_v2 + 21, f"{h12.get(bh.OPEN)} {len(listed())}")
+
+            # `open` in any other shape reads whole and appends
+            shapes = []
+            for value in (-3, "2", True, 999, None, [1]):
+                set_open(value)
+                was = len(listed())
+                keep(f"shape {value!r}")
+                bh.reset()
+                h = file_head()
+                shapes.append(len(listed()) == was + 1 and 0 <= bh.open_of(h) <= len(h["chunks"])
+                              and isinstance(h.get(bh.OPEN), int))
+            check("400: a head whose open is negative, a string, True, past its chunks, null or a list reads whole and "
+                  "takes a revision", all(shapes), str(shapes))
+
+            # a whole-History write (a prune past AUTO_KEEP) keeps the open chunks open by the rule
+            keep("before the prune")
+            keep("and again")
+            base_h = file_head()
+            kb = bh.open_of(base_h)
+            tail_n = base_h["chunks"][-kb - 1][0] if kb < len(base_h["chunks"]) else 0
+            board = next(b for b in themes.boards_of(themes.load(juno)) if b["id"] == "v2")
+            themes.AUTO_KEEP = int(base_h.get("autos") or 0)
+            page = {k: v for k, v in board.items() if k not in ("history", bh.HEAD)}
+            page["v"] = themes.board_version(board)
+            page["cards"] = {k: dict(c, x=c.get("x", 0) + 11) for k, c in page["cards"].items()}
+            themes.save(juno, page, "Juno")
+            board = next(b for b in themes.boards_of(themes.load(juno)) if b["id"] == "v2")
+            page = {k: v for k, v in board.items() if k not in ("history", bh.HEAD)}
+            page["v"] = themes.board_version(board)
+            page["cards"] = {k: dict(c, x=c.get("x", 0) + 1) for k, c in page["cards"].items()}
+            out = themes.save(juno, page, "Juno", revision="auto")
+            ph = file_head()
+            trailing = 0
+            for n, _h in reversed(ph["chunks"]):
+                if n <= tail_n:
+                    break
+                trailing += 1
+            themes.AUTO_KEEP = kept_fold[2]
+            check("400: a prune past AUTO_KEEP writes the whole History and keeps open the chunks past the last folded "
+                  "one, the oldest automatic revision gone",
+                  out.get("revision") and kb >= 1 and bh.open_of(ph) == trailing and trailing >= 1
+                  and int(ph.get("autos") or 0) == int(base_h.get("autos") or 0), f"{kb} {ph.get(bh.OPEN)} {trailing}")
+            spare = base / "spare.history"
+            uid = "fedcba9876543210"
+            far_head = {"uid": uid, "count": 1, "next": 2, "chunks": [[1, "0" * 12]], bh.OPEN: 1}
+            got = bh.write_chunks(spare, uid, [{"id": "r1", "at": "", "name": "", "auto": False, "state": {}}], far_head)
+            check("400: a whole-History write from memory whose base will not read starts with none open",
+                  got.get(bh.OPEN) == 0 and len(got["chunks"]) == 1, str(got.get(bh.OPEN)))
+            shutil.rmtree(spare, ignore_errors=True)
+
+            # crashes: after a plain append's chunk and before the board file; and inside a fold, before the file
+            named_mid = boards_files(root)
+            files_mid = chunk_set()
+            real_replace = themes.os.replace
+
+            def crash(src, dst):
+                if str(dst).endswith(".themes.json"):
+                    raise OSError("power cut")
+                return real_replace(src, dst)
+            themes.os.replace = crash
+            try:
+                keep("lost to the crash")
+                code = "written"
+            except OSError:
+                code = "crashed"
+            finally:
+                themes.os.replace = real_replace
+            with contextlib.suppress(OSError):
+                tf.with_name(tf.name + ".tmp").unlink()
+            orphan = sorted(chunk_set() - files_mid)
+            check("400: a crash between a plain append's chunk and the board file: the board file and every chunk it "
+                  "names as they were, the new chunk named by none",
+                  code == "crashed" and {k: v for k, v in boards_files(root).items() if k in named_mid} == named_mid
+                  and len(orphan) == 1 and len(listed()) == len(bh.census(tf)["boards"]["v2"]), code)
+            for n in orphan:
+                os.utime(folder / n, (1, 1))
+            unnamed_before = len([p for p in (root / "Juno" / "_Archive").iterdir() if " history (unnamed " in p.name])
+            bh.reset()
+            keep("after the crash")
+            check("400: and a week on the write past the sweep's gate takes it away, a copy in the _Archive",
+                  not any((folder / n).exists() for n in orphan)
+                  and len([p for p in (root / "Juno" / "_Archive").iterdir() if " history (unnamed " in p.name])
+                  == unnamed_before + 1, "")
+            set_open(bh.FOLD)
+            named_mid = boards_files(root)
+            files_mid = chunk_set()
+
+            def refuse(_out):
+                raise WorkbookError("checked out")
+            token = bh.CHECK.set(refuse)
+            try:
+                keep("fold that stops")
+                code = "written"
+            except WorkbookError:
+                code = "stopped"
+            finally:
+                bh.CHECK.reset(token)
+            check("400: a fold that stops before the board file takes away every chunk it wrote: the board file and "
+                  "its chunks as they were, nothing new in the folder",
+                  code == "stopped" and boards_files(root) == named_mid and chunk_set() == files_mid, code)
+
+            # History's list from the light cache: only a new chunk parsed, no state kept, the same list
+            bh.reset()
+            full = listed()
+            keep("light")
+            new_name = names(file_head())[-1]
+            bh._MEMO.clear()
+            bh._LIGHT.pop(str(folder / new_name), None)
+            real_parse = bh.parse
+            parsed = []
+
+            def counting(data):
+                parsed.append(len(data))
+                return real_parse(data)
+            bh.parse = counting
+            try:
+                again = listed()
+            finally:
+                bh.parse = real_parse
+            board = next(b for b in themes.boards_of(themes.load(juno)) if b["id"] == "v2")
+            fresh = [themes.revision_summary(r, hashed=False) for r in reversed(themes.history_from(bh.revisions(board)))]
+            check("400: after a revision History's list parses its new chunk alone, every other chunk's revisions kept "
+                  "without their states, and the list is the one the chunks give read afresh",
+                  len(parsed) == 1 and len(again) == len(full) + 1 and again == fresh
+                  and all(r.get("state", bh.UNREAD) is bh.UNREAD for _key, held in bh._LIGHT.values() for r in held),
+                  f"{len(parsed)} parsed, {len(again)} vs {len(fresh)}")
+            calls = []
+            for f in sorted(Path(bh.__file__).parent.glob("*.py")) + sorted(Path(server_mod.__file__).parent.glob("*.py")):
+                for n, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+                    if re.search(r"\bmemo\(", line) and "def memo(" not in line:
+                        calls.append((f.name, line.strip()))
+            check("400: memo, whose revisions carry no state, is called by History's list and here's count alone",
+                  sorted(c[0] for c in calls) == ["board_history.py", "themes.py"]
+                  and any("board_history.memo(board, \"list\"" in c[1] for c in calls)
+                  and any("memo(board, \"count\", len)" in c[1] for c in calls), str(calls))
+
+            # the sweep's gate
+            aside.mkdir(exist_ok=True)
+            old_aside = aside / "0123456789abcdef.9.0123456789ab.jsonl"
+            old_aside.write_bytes(b"{}\n")
+            os.utime(old_aside, (1, 1))
+            keep("within the gate")
+            within = old_aside.exists()
+            bh._SWEPT.clear()
+            keep("past the gate")
+            check("400: a chunk put aside more than a week ago stays through writes within the sweep's gate and goes "
+                  "at the first past it", within and not old_aside.exists(), str(within))
+
+            # an agent's run that folds, undone whole, and the fold undone as one change
+            set_open(bh.FOLD)
+            start = boards_files(root)
+            code, out, err = run("board", "revision", "Juno", "Board 2", "--note", ASKED, tool="Codex")
+            folded_now = bh.open_of(file_head()) == 0
+            lines = agent_changes.read(root)
+            code2, undone, err2 = run("agents", "undo-run", lines[-1]["run"], "--note", "Put it back", tool="Codex")
+            check("400: an agent's revision that folds, its run undone: every chunk and the board file back byte for byte",
+                  code == 0 and folded_now and code2 == 0 and boards_files(root) == start,
+                  err + err2 + json.dumps(undone)[:300])
+            set_open(bh.FOLD)
+            mid = boards_files(root)
+            code, out, err = run("board", "revision", "Juno", "Board 2", "--note", ASKED, tool="Cursor")
+            folded_now = bh.open_of(file_head()) == 0
+            lines = agent_changes.read(root)
+            code2, undone, err2 = run("agents", "undo-change", str(lines[-1]["id"]), "--note", "Only this", tool="Cursor")
+            check("400: and the fold undone as one change: its chunks and the board file back as they were before it",
+                  code == 0 and folded_now and code2 == 0 and boards_files(root) == mid,
+                  err + err2 + json.dumps(undone)[:300])
+
+            # the review's fixes (perfhist2)
+            # a board at AUTO_KEEP: every timer revision writes the whole History, and `open` stays bounded
+            set_open(0)
+            bh.reset()
+            board = next(b for b in themes.boards_of(themes.load(juno)) if b["id"] == "v2")
+            one = len(bh.line_of(bh.revisions(board)[-1])) + 1
+            # a chunk full with one revision, so every chunk a prune writes is full, and room for 3 * FOLD of them
+            bh.CHUNK = max(1, one // 2)
+            themes.AUTO_KEEP = int(file_head().get("autos") or 0) + 3 * bh.FOLD
+            opens, kept_count = [], len(listed()) + 3 * bh.FOLD
+            for i in range(200):
+                data = themes.load(juno)
+                board = next(b for b in themes.boards_of(data) if b["id"] == "v2")
+                st = themes.board_state(board)
+                k = sorted(st["cards"])[i % len(st["cards"])]
+                st["cards"] = dict(st["cards"], **{k: dict(st["cards"][k], x=5000 + i)})
+                themes.add_revision(board, auto=True, state=st)
+                themes.write_path(tf, data)
+                opens.append(bh.open_of(file_head()))
+            th = file_head()
+            themes.AUTO_KEEP = kept_fold[2]
+            bh.CHUNK = 64 * 1024 * 1024
+            bh.reset()
+            check("400: 200 timer revisions on a board at AUTO_KEEP, each writing the whole History, keep open at most "
+                  "FOLD, no full chunk counted open, History whole and its count kept",
+                  max(opens) <= bh.FOLD and len(listed()) == kept_count and int(th.get("count") or 0) == kept_count
+                  and len(th["chunks"]) > 3 * bh.FOLD, f"open max {max(opens)}, {len(th['chunks'])} chunks")
+
+            # an open chunk lost for good: the writes retry the fold to 2 * FOLD, then fold past it, files bounded
+            set_open(0)
+            keep("before the loss")
+            keep("and one after it")
+            lost = folder / names(file_head())[-2]
+            lost_bytes = lost.read_bytes()
+            lost.unlink()
+            bh.reset()
+            sizes, named_counts = [], []
+            for i in range(6 * bh.FOLD):
+                keep(f"after the loss {i}")
+                h = file_head()
+                sizes.append(bh.open_of(h))
+                named_counts.append(len(h["chunks"]))
+            h = file_head()
+            lost.write_bytes(lost_bytes)
+            bh.reset()
+            check("400: with an open chunk lost for good the writes go on, open never past 2 * FOLD and the files named "
+                  "bounded, the lost chunk left where it is, and once it is back History reads whole",
+                  max(sizes) <= 2 * bh.FOLD and 0 in sizes[2 * bh.FOLD:] and lost.name in names(h)
+                  and max(named_counts) - min(named_counts) <= 2 * bh.FOLD + 1
+                  and len(listed()) == int(h.get("count") or 0), f"{sizes} {named_counts}")
+
+            # a fold's count is against what the chunks hold, parsed: a line parse reads as none is away
+            set_open(0)
+            keep("odd line")
+            raw = json.loads(tf.read_text(encoding="utf-8"))
+            vb = next(b for b in raw["boards"] if b["id"] == "v2")
+            n_last, h_last = vb[bh.HEAD]["chunks"][-1]
+            odd = (folder / bh.chunk_name(vb[bh.HEAD]["uid"], n_last, h_last)).read_bytes() + "\u00a0\n".encode("utf-8")
+            odd_name = bh.chunk_name(vb[bh.HEAD]["uid"], n_last, bh.digest(odd))
+            (folder / odd_name).write_bytes(odd)
+            vb[bh.HEAD]["chunks"][-1] = [n_last, bh.digest(odd)]
+            vb[bh.HEAD][bh.OPEN] = bh.FOLD
+            tf.write_text(themes.render(raw) + "\n", encoding="utf-8", newline="\n")
+            bh.reset()
+            held_odd = boards_files(root)
+            files_odd = chunk_set()
+            try:
+                keep("fold the odd line")
+                code = "written"
+            except WorkbookError as exc:
+                code = getattr(exc, "code", "refused")
+            check("400: a fold whose lines are not the revisions its chunks hold, parsed, is refused as away, the board "
+                  "file and its chunks as they were", code == "history_away" and boards_files(root) == held_odd
+                  and chunk_set() == files_odd, code)
+            vb[bh.HEAD]["chunks"][-1] = [n_last, h_last]
+            vb[bh.HEAD][bh.OPEN] = 0
+            tf.write_text(themes.render(raw) + "\n", encoding="utf-8", newline="\n")
+            (folder / odd_name).unlink()
+            bh.reset()
+
+            # reset forgets the fetches and iCloud's asks too
+            bh._FETCHING["probe"] = {"done": None}
+            bh._ASKED["probe"] = None
+            bh.reset()
+            check("400: reset forgets the fetches under way and the files asked of iCloud, as a restart does",
+                  not bh._FETCHING and not bh._ASKED, "")
+
+            # memo's revisions carry no state, and a caller that reads one fails at once
+            board = next(b for b in themes.boards_of(themes.load(juno)) if b["id"] == "v2")
+            tries = []
+            for reader in (lambda revs: revs[-1]["state"].get("cards"), lambda revs: len(revs[-1]["state"]),
+                           lambda revs: themes.state_hash(revs[-1]["state"]), lambda revs: json.dumps(revs[-1])):
+                bh._MEMO.clear()
+                try:
+                    bh.memo(board, "probe", reader)
+                    tries.append("read")
+                except RuntimeError:
+                    tries.append("raised")
+            bh._MEMO.clear()
+            check("400: a caller of memo that reads a revision's state, its keys, its size, its hash or its JSON, fails "
+                  "at once, and History's list still lists every revision",
+                  tries == ["raised"] * 4 and len(listed()) == int(file_head().get("count") or 0), str(tries))
+
+            # Working together and Share a copy carry every open chunk and nothing put aside
+            set_open(0)
+            keep("carried 1")
+            keep("carried 2")
+            heads = [bh.head_of(b) for b in json.loads(tf.read_text(encoding="utf-8"))["boards"]]
+            want = {f"Working/{folder.name}/{n}" for h in heads for n in names(h)}
+            sent = {rel for _p, rel in team_sync.participant_files(root / "Juno", juno, False) if ".history/" in rel}
+            packed = {rel for _p, rel in project_pack.project_files(root) if rel.startswith("Juno/Working/")
+                      and ".themes.history/" in rel}
+            # a send carries the History folder's chunks whole (an earlier crash's orphans among them), never one aside
+            check("400: a participant's version and a project's send carry every chunk the heads name, the open ones "
+                  "among them, and none put aside",
+                  bh.open_of(file_head()) == 2 and sent == want and {"Juno/" + w for w in want} <= packed
+                  and not any("/superseded/" in r for r in packed),
+                  f"{bh.open_of(file_head())} {sorted(sent ^ want)[:4]} {sorted(packed ^ {'Juno/' + w for w in want})[:4]}")
+        finally:
+            bh.FOLD, bh.CHUNK, themes.AUTO_KEEP = kept_fold
+            bh.reset()
 
         # ── 7. the poll never opens a chunk
         real = bh.read_chunk

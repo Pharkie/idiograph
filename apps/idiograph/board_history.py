@@ -11,6 +11,11 @@ PETs file ran to 6 to 13 MB, parsed whole on every 4-second poll and written who
 - Each board's History is chunks, one revision a line as the board file wrote them, oldest first, a chunk taking no
   new revision once it holds CHUNK bytes. A revision stays in the chunk it was written to, so pruning, a rekey or a new
   revision changes only the chunks whose bytes change.
+- A write's new revisions go into one chunk of their own, open, and no chunk already written is read, written again
+  or put aside; the head's `open` says how many of its last chunks are. At FOLD open chunks the next write folds
+  them, their lines copied byte for byte, onto the tail when it is here and they fit in CHUNK, else after it; a fold
+  that cannot read an open chunk now writes one more open chunk instead (perfhist, 22 November 2026, where every
+  revision wrote the last chunk anew, up to 256 KB a board, and put the old one aside for a week).
 - A chunk is never written over: each is named by its board's uid, its number and the start of its bytes' SHA-256,
   `<uid>.<n>.<hash>.jsonl`, and a chunk whose bytes change is written under its new name. The board's head names
   every chunk its History is (`chunks`), so the board file says exactly which files hold its History, and a chunk read
@@ -22,10 +27,11 @@ PETs file ran to 6 to 13 MB, parsed whole on every 4-second poll and written who
 - `uid` is a random name each board is given with its first revision, so a board id the file reuses after a delete
   (`gets._next_board` takes the largest plus one) never meets the History of the board deleted.
 - The board keeps `history_head` in its file (`HEAD`): its `uid`, `count`, `next` (the next revision's number), `last`
-  (the last state's hash), `autos` (how many are automatic) and `chunks`, each chunk's number and hash. In memory a
+  (the last state's hash), `autos` (how many are automatic), `chunks`, each chunk's number and hash, and `open`, a
+  hint for the writer alone (`open_of`). In memory a
   board read from a file also carries `at` in its head, the folder its chunks are in, written nowhere (`place`), so a
   board brought from another file brings its History with it, and `add`, revisions made since it was read and not
-  yet written, which the writer adds to the last chunk without reading the others (`append`).
+  yet written, which the writer puts in a chunk of their own without reading the others (`append`).
 - A chunk the head names that is missing, or one that will not read or does not match its name, is `HistoryAway`:
   the History tab shows it as not here yet, and a History write that needs it is refused with nothing written. A chunk
   Optimize Mac Storage evicted (`SF_DATALESS`) is read, which brings it back from iCloud, given FETCH_SECONDS once
@@ -94,6 +100,12 @@ ORPHAN_SECONDS = 7 * 24 * 3600
 # name it and win in iCloud, and then it is read from here and brought back by the next write (historyfix2)
 SUPERSEDED = "superseded"
 SUPERSEDED_SECONDS = 7 * 24 * 3600
+# a write's new revisions go into a chunk of their own, open, and once a board has FOLD open chunks the next write
+# folds them into a chunk at CHUNK (perfhist, 22 November 2026); the head's OPEN says how many of its last chunks are
+OPEN = "open"
+FOLD = 16
+# a History folder is swept at most once in this long by one process: what a sweep takes away is a week old
+SWEEP_EVERY = 600.0
 MOVE_LABEL = "pre-history-move"
 # set for a dry run, which writes nothing, the move on first open among it (`move_on_open`)
 HOLD: contextvars.ContextVar = contextvars.ContextVar("idiograph_history_hold", default=False)
@@ -181,6 +193,18 @@ def named(head: dict) -> list[tuple[int, str]]:
     return out
 
 
+def open_of(head: dict | None) -> int:
+    """How many of a head's last chunks are open, not folded yet: a hint for the writer alone, read as 0 when it is
+    no whole number, and never more than the chunks the head names. A wrong one only folds early or late."""
+    if not isinstance(head, dict):
+        return 0
+    value = head.get(OPEN)
+    held = head.get("chunks")
+    if not isinstance(value, int) or isinstance(value, bool) or not isinstance(held, list):
+        return 0
+    return min(max(value, 0), len(held))
+
+
 def names_of(head: dict | None) -> set[str]:
     """The chunk files a head names, by their names; none for a head that names them in no good shape."""
     if head is None:
@@ -237,8 +261,22 @@ def embedded(data) -> bool:
 
 _BYTES: dict = {}
 _MEMO: dict = {}
+# each chunk's revisions without their states, by its path and mark, for History's list alone (`light_head`)
+_LIGHT: dict = {}
+# when this process last swept each History folder (`finish` in `out_of`)
+_SWEPT: dict = {}
 _FETCHING: dict = {}
 _ASKED: dict = {}
+
+
+def reset() -> None:
+    """Everything kept in memory forgotten, as after a restart (the suite's): the fetches and iCloud's asks among it."""
+    _BYTES.clear()
+    _MEMO.clear()
+    _LIGHT.clear()
+    _SWEPT.clear()
+    _FETCHING.clear()
+    _ASKED.clear()
 
 
 def _mark(st) -> tuple:
@@ -397,6 +435,60 @@ def read_head(folder: Path, head: dict) -> tuple[list[dict], dict[str, int], dic
     return revs, where, raw
 
 
+class Unread(dict):
+    """The state of a revision read for History's list (`light`): a dict, so `isinstance(state, dict)` holds as for the
+    revision it stands for, and empty, but any read of what is in it raises, so a caller of `memo` that comes to need a
+    state fails at once and never reads a board as empty (perfhist2)."""
+    __slots__ = ()
+
+    def _unread(self, *_a, **_k):
+        raise RuntimeError("board_history.memo: a revision's state is not read for History's list; use revisions()")
+
+    __getitem__ = __iter__ = __len__ = __contains__ = __eq__ = __ne__ = __bool__ = _unread
+    get = keys = values = items = copy = setdefault = pop = popitem = update = _unread
+    __setitem__ = __delitem__ = clear = __or__ = __ior__ = __reduce__ = __reduce_ex__ = _unread
+    __hash__ = None
+
+
+# one key held underneath, so code that reads a dict's insides without its methods (json's encoder) raises too
+UNREAD = Unread({"unread": True})
+
+
+def light(rev: dict) -> dict:
+    """A revision without its state's contents: `state` the `UNREAD` marker when it was a board's state, which raises
+    on any read, and gone otherwise."""
+    out = {k: v for k, v in rev.items() if k != "state"}
+    if isinstance(rev.get("state"), dict):
+        out["state"] = UNREAD
+    return out
+
+
+def light_head(folder: Path, head: dict) -> list[dict]:
+    """The revisions the chunks a head names hold, each without its state (`light`), for History's list: each
+    chunk read and checked against its name as `read_head` reads it, but parsed only when this process has not
+    parsed those bytes before, and the count checked against the head's. Fresh copies, so a caller's changes never
+    reach what is kept (perfhist: after a revision only its new chunk is parsed, where every chunk was)."""
+    revs = []
+    for n, h in named(head):
+        path = Path(folder) / chunk_name(head["uid"], n, h)
+        data = read_chunk(path, h)
+        key = (h, len(data))
+        held = _LIGHT.get(str(path))
+        if held is None or held[0] != key:
+            held = (key, [light(r) for r in parse(data)])
+            if len(_LIGHT) > 4096:
+                _LIGHT.clear()
+            _LIGHT[str(path)] = held
+        revs.extend(dict(r) for r in held[1])
+    try:
+        count = int(head.get("count") or 0)
+    except (TypeError, ValueError):
+        raise away() from None
+    if len(revs) != count:
+        raise away()
+    return revs
+
+
 def stored(board: dict, folder: Path | None = None) -> tuple[list[dict], dict[str, int]]:
     """A board's revisions as its chunks hold them, read afresh, and the chunk each revision's id is in."""
     head = head_of(board)
@@ -446,13 +538,16 @@ def counted(board: dict) -> int | None:
 
 def memo(board: dict, kind: str, fn):
     """`fn(revisions)` kept against the board's chunks as they stand, for what History shows of a board read
-    lazily. A board carrying its History in memory, or revisions not yet written, is worked out afresh."""
+    lazily. A board carrying its History in memory, or revisions not yet written, is worked out afresh. Read from
+    the chunks, `fn` is given the revisions without their states (`light_head`: `state` the `UNREAD` marker, which
+    raises on any read, or missing), so it must never read a state's contents: History's list and `here`'s count,
+    its only callers, read none."""
     if isinstance(board.get("history"), list) or head_of(board) is None or pending(board):
         return fn(revisions(board))
     key = (kind,) + key_of(board)
     held = _MEMO.get(key)
     if held is None:
-        held = fn(stored(board)[0])
+        held = fn(light_head(where_of(board), head_of(board)))
         if len(_MEMO) > 512:
             _MEMO.clear()
         _MEMO[key] = held
@@ -545,25 +640,23 @@ def last_hash(board: dict) -> str | None:
 
 def can_append(board: dict) -> bool:
     """Whether a new revision can go on the end of a board's History without the rest of it in memory: the board
-    read from its file with a head and its History not attached, and the last chunk the head names here to add to.
-    Its other chunks are left as they are, so one of them away loses nothing."""
+    read from its file with a head and its History not attached, and the last chunk the head names there, a stat
+    alone. A revision goes into a chunk of its own (`append_chunks`), so no chunk is read for it, and one of them
+    away, evicted among them, loses nothing."""
     head = head_of(board)
     if head is None or isinstance(board.get("history"), list) or not head.get(AT):
         return False
     tail = named(head)
     if tail:
         n, h = tail[-1]
-        f = found(Path(head[AT]) / chunk_name(head["uid"], n, h))
-        if f is None:
+        if found(Path(head[AT]) / chunk_name(head["uid"], n, h)) is None:
             raise away()
-        # never a wait under the case lock: an evicted one is fetched in the background and this save keeps none
-        read_chunk(f, h)
     return True
 
 
 def append(board: dict, rev: dict) -> None:
-    """A revision put on the end of a board's History, written by `out_of` to the last chunk alone (see
-    `can_append`)."""
+    """A revision put on the end of a board's History, written by `out_of` in a chunk of its own (see
+    `can_append`, `append_chunks`)."""
     head = head_of(board)
     head.setdefault(ADD, []).append(rev)
 
@@ -595,7 +688,7 @@ def _write_new(path: Path, data: bytes, made: list[Path]) -> None:
     made.append(path)
 
 
-def head_for(uid: str, history: list[dict], chunks: list[list], kept: dict | None) -> dict:
+def head_for(uid: str, history: list[dict], chunks: list[list], kept: dict | None, open_: int = 0) -> dict:
     good = [r for r in history if isinstance(r.get("state"), dict)]
     nxt = max([number_of(r) for r in history] + [0]) + 1
     if kept is not None:
@@ -603,7 +696,7 @@ def head_for(uid: str, history: list[dict], chunks: list[list], kept: dict | Non
             nxt = max(nxt, int(kept.get("next") or 1))
     return {"uid": uid, "count": len(history), "next": nxt,
             "last": state_hash(good[-1]["state"]) if good else "", "autos": sum(1 for r in history if r.get("auto")),
-            "chunks": chunks}
+            "chunks": chunks, OPEN: max(0, min(int(open_), len(chunks)))}
 
 
 def write_chunks(folder: Path, uid: str, history: list[dict], base: dict | None, made: list[Path] | None = None) -> dict:
@@ -636,6 +729,7 @@ def write_chunks(folder: Path, uid: str, history: list[dict], base: dict | None,
         chunks.setdefault(n, []).append(line)
         sizes[n] = sizes.get(n, 0) + len(line.encode("utf-8")) + 1
     listed = []
+    lengths: dict[int, int] = {}
     if chunks:
         folder.mkdir(parents=True, exist_ok=True)
     for n in sorted(chunks):
@@ -644,41 +738,137 @@ def write_chunks(folder: Path, uid: str, history: list[dict], base: dict | None,
         if old_raw.get(n) != data:
             _write_new(folder / chunk_name(uid, n, h), data, made)
         listed.append([n, h])
-    return head_for(uid, history, listed, base)
+        lengths[n] = len(data)
+    # the chunks still open: the last ones past the base's last folded one and under CHUNK bytes, so a full chunk is
+    # never counted open, by its number or by a prune past AUTO_KEEP filling one after another, and a fold never
+    # reads one; none when there was no base to read (a move, a board brought in, the base away) (perfhist2)
+    still_open = 0
+    if old_raw:
+        was = named(base)
+        k = open_of(base)
+        tail_n = was[-k - 1][0] if k < len(was) else 0
+        for n, _h in reversed(listed):
+            if n <= tail_n or lengths[n] >= CHUNK:
+                break
+            still_open += 1
+    return head_for(uid, history, listed, base, still_open)
+
+
+def lines_in(data: bytes) -> list[bytes]:
+    """A chunk's lines as its bytes hold them, each with its newline, the empty ones left out as `parse` leaves them."""
+    return [piece + b"\n" for piece in data.split(b"\n") if piece.strip()]
+
+
+def pack(lines: list[bytes], start: int) -> list[tuple[int, bytes]]:
+    """Lines cut into chunks numbered from `start`, a chunk taking no new line once it holds CHUNK bytes."""
+    out, data, n = [], b"", start
+    for line in lines:
+        if data and len(data) >= CHUNK:
+            out.append((n, data))
+            n, data = n + 1, b""
+        data += line
+    if data:
+        out.append((n, data))
+    return out
+
+
+def held_in(path: Path, h: str, data: bytes) -> int:
+    """How many revisions a chunk's bytes hold, parsed, or counted from History's list's cache of the same bytes."""
+    kept = _LIGHT.get(str(path))
+    if kept is not None and kept[0] == (h, len(data)):
+        return len(kept[1])
+    return len(parse(data))
+
+
+def folded(folder: Path, uid: str, chunks: list[list], k: int, adds: list[bytes],
+           past: bool = False) -> tuple[int, list] | None:
+    """A fold (see `append_chunks`): where the chunks it replaces begin in `chunks`, and the chunks that take their
+    place, each its number and bytes, the open ones' lines and the adds' copied byte for byte; None when an open
+    chunk will not read now (away, evicted, other bytes), never a wait under a lock. With `past`, an open chunk that
+    will not read is left where it is, the tail now, and only the open chunks after it are folded. The tail, the
+    chunk before the open ones folded, is folded onto only when it is here, not evicted, reads, and it, the open ones
+    and the adds fit in CHUNK; otherwise it stays as it is and the rest go after it. The lines packed are checked
+    against the revisions the chunks read hold, parsed, and the adds."""
+    folder = Path(folder)
+    at = len(chunks) - k
+    lines: list[bytes] = []
+    want = 0
+    stuck = False
+    for i in range(at, len(chunks)):
+        n, h = chunks[i]
+        path = folder / chunk_name(uid, n, h)
+        try:
+            data = read_chunk(path, h)
+            held = held_in(path, h, data)
+        except HistoryAway:
+            if not past:
+                return None
+            lines, want, at, stuck = [], 0, i + 1, True
+            continue
+        lines += lines_in(data)
+        want += held
+    lines += adds
+    want += len(adds)
+    tail = chunks[at - 1] if at > 0 else None
+    start = (tail[0] + 1) if tail is not None else 1
+    if tail is not None and not stuck:
+        f = found(folder / chunk_name(uid, *tail))
+        if f is not None and not dataless(f):
+            with contextlib.suppress(OSError, HistoryAway):
+                if os.stat(f).st_size + sum(len(x) for x in lines) <= CHUNK:
+                    data = read_chunk(f, tail[1])
+                    held = held_in(f, tail[1], data)
+                    lines = lines_in(data) + lines
+                    want += held
+                    at, start = at - 1, tail[0]
+    pieces = pack(lines, start)
+    # every revision the folded chunks held and every add, once each: a line `lines_in` split otherwise than `parse`
+    # reads it is away, and the rollback in `out_of` takes away what was made
+    if sum(len(lines_in(d)) for _n, d in pieces) != want:
+        raise away()
+    return at, pieces
 
 
 def append_chunks(folder: Path, head: dict, adds: list[dict], made: list[Path] | None = None) -> dict:
-    """Revisions put on the end of a board's History: the last chunk the head names read and written anew with them,
-    or a new chunk begun once it holds CHUNK bytes, the others never read. The head it now has."""
+    """Revisions put on the end of a board's History, `head` the board file's own (perfhist, 22 November 2026). As
+    a rule the write's revisions go into one new chunk of their own, open, and no chunk already written is read,
+    written again or put aside. Once the head has FOLD open chunks, or the revisions alone come to CHUNK bytes, the
+    write folds: the open chunks and its revisions packed onto the tail or after it (`folded`), the chunks folded
+    put aside by `out_of` once the board file names the new ones. A fold that cannot read an open chunk now writes
+    one more open chunk instead, and a later write folds; once the head has 2 * FOLD open chunks, one lost for good
+    among them, the write folds the open chunks after it and leaves it where it is, so the files never pile up
+    (perfhist2). The head it now has."""
     folder = Path(folder)
     made = [] if made is None else made
+    uid = head["uid"]
     chunks = [list(c) for c in named(head)]
-    n, data = 0, b""
-    if chunks:
-        n, h = chunks[-1]
-        data = read_chunk(folder / chunk_name(head["uid"], n, h), h)
-    folder.mkdir(parents=True, exist_ok=True)
+    k = open_of(head)
+    lines = [(line_of(rev) + "\n").encode("utf-8") for rev in adds]
+    fold = None
+    if lines and (k >= FOLD or sum(len(x) for x in lines) >= CHUNK):
+        fold = folded(folder, uid, chunks, k, lines)
+        if fold is None and k >= 2 * FOLD:
+            fold = folded(folder, uid, chunks, k, lines, past=True)
+    if fold is not None:
+        at, pieces, still_open = fold[0], fold[1], 0
+    elif lines:
+        at, pieces, still_open = len(chunks), [((chunks[-1][0] + 1) if chunks else 1, b"".join(lines))], k + 1
+    else:
+        at, pieces, still_open = len(chunks), [], k
+    if pieces:
+        folder.mkdir(parents=True, exist_ok=True)
+    chunks = chunks[:at] + [[n, digest(data)] for n, data in pieces]
+    for n, data in pieces:
+        _write_new(folder / chunk_name(uid, n, digest(data)), data, made)
     count, autos, nxt = int(head.get("count") or 0), int(head.get("autos") or 0), int(head.get("next") or 1)
-    # every chunk whose bytes change, the last one grown and each begun past it, is written (review 2, 1)
-    changed: dict[int, bytes] = {}
     for rev in adds:
-        line = (line_of(rev) + "\n").encode("utf-8")
-        if not chunks or len(data) >= CHUNK:
-            n, data = (chunks[-1][0] + 1 if chunks else 1), b""
-            chunks.append([n, ""])
-        data += line
-        chunks[-1][1] = digest(data)
-        changed[n] = data
         count += 1
         autos += 1 if rev.get("auto") else 0
         nxt = max(nxt, number_of(rev) + 1)
-    hashes = {c[0]: c[1] for c in chunks}
-    for m in sorted(changed):
-        _write_new(folder / chunk_name(head["uid"], m, hashes[m]), changed[m], made)
     good = [r for r in adds if isinstance(r.get("state"), dict)]
-    return {"uid": head["uid"], "count": count, "next": nxt,
+    return {"uid": uid, "count": count, "next": nxt,
             "last": state_hash(good[-1]["state"]) if good else str(head.get("last") or ""), "autos": autos,
-            "chunks": chunks}
+            "chunks": chunks, OPEN: min(still_open, len(chunks))}
 
 
 def chunk_files(folder: Path) -> dict[str, Path]:
@@ -758,7 +948,8 @@ def archive_files(path: Path, files: list[Path], label: str) -> None:
 
 def out_of(path: Path, data: dict) -> tuple[dict, callable]:
     """A board file's write, its History first. Every board carrying History in memory has it written to its chunks,
-    one with revisions waiting has them added to its last chunk, and one with neither keeps the head the file has for
+    one with revisions waiting has them written in a chunk of their own, or folded with the open ones at FOLD
+    (`append_chunks`), and one with neither keeps the head the file has for
     it (a writer holding an older head never puts it back, review 5). A board from another file, its head's folder not
     this one's, brings its own History here under a new uid. Each head is brought up to date in place. Only new chunk
     files are written, so the files the board file names now stay as they are until it is written.
@@ -858,7 +1049,13 @@ def out_of(path: Path, data: dict) -> tuple[dict, callable]:
 
     def finish() -> None:
         supersede(folder, superseded)
-        sweep(path, keep)
+        # at most once in SWEEP_EVERY a folder: what it takes away is a week old, and every chunk this file names is
+        # brought back from superseded/ above before the write
+        now = time.monotonic()
+        last = _SWEPT.get(str(folder))
+        if last is None or now - last > SWEEP_EVERY:
+            _SWEPT[str(folder)] = now
+            sweep(path, keep)
         with contextlib.suppress(OSError):
             if folder.is_dir() and not any(folder.iterdir()):
                 folder.rmdir()

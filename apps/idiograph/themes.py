@@ -3210,7 +3210,8 @@ def add_revision(board: dict, name: str = "", auto: bool = False, at: str | None
             and (board_history.last_hash(board) == state_hash(state)
                  or same_but_table(state, board_history.last_hash(board))):
         return None
-    # one that prunes none goes on the end of the History alone, its last chunk read and no other (historyfix)
+    # one that prunes none goes on the end of the History in a chunk of its own, no chunk read, or folds the open
+    # chunks with it at FOLD (historyfix, perfhist)
     autos = int((head or {}).get("autos") or 0) + sum(1 for r in board_history.pending(board) if r.get("auto"))
     fast = not (auto and autos >= AUTO_KEEP) and board_history.can_append(board)
     history = [] if fast else None

@@ -3472,17 +3472,39 @@ hash, so the board file names exactly the files its History is; in memory also `
 (`place`), and `add`, revisions made since it was read (`append`), neither written into the file. A board carried
 into another file brings its History under a new uid (`out_of`). `board_version` leaves the head out as it leaves
 `history` out. Readers: `revisions` (from memory or the chunks the head names, each checked against its name and the
-count against the head's, a fresh list), `memo` (History's list kept against the chunks named, which never change),
+count against the head's, a fresh list), `memo` (History's list kept against the chunks named, which never change, read through `light_head`: each
+chunk's revisions kept in `_LIGHT` by its path and hash without their states, `state` the `UNREAD` marker, an empty dict that raises on any read of it, json's encoder among them (perfhist2), so after a revision only
+its new chunk is parsed, fresh copies handed out and the count checked as `read_head` checks it; `memo`'s callers,
+History's list and `here`'s count, read no state, which area 400 checks),
 `attach` and `attach_all` (the History put on the board in memory to change it), `attached` (the same, or None while
 it is away). Writers: `themes.write_path` and `gets.write_at` call `out_of` first. A board with its History attached
 has it written by `write_chunks` (a revision stays in the chunk it is in, and only a chunk whose bytes changed is
-written, under its new name); one with revisions waiting has them put on its last chunk by `append_chunks`, no other
-chunk read, every chunk whose bytes change written (the last one grown and each begun past it), which is how `add_revision` keeps a revision that prunes none (`can_append`); and one with neither keeps
+written, under its new name); one with revisions waiting has them put in a chunk of their own by `append_chunks`, which is
+how `add_revision` keeps a revision that prunes none (`can_append`, a stat of the last chunk named and no read);
+and one with neither keeps
 the head the file has for it, so a writer holding an older head never puts it back. The head of a board an op built
 afresh with the same id and `created` is kept. Order: the new chunks, then the file, then (`finish`) the chunks the
 file no longer names put aside in `superseded/` inside the History folder (`supersede`), those of a board deleted
 copied into `_Archive/<name> history (deleted board <date-time>)/` first. So a crash at any point leaves the board
-file and every chunk it names as they were. A chunk put aside is never taken away as it is superseded (historyfix2,
+file and every chunk it names as they were. **Open chunks and the fold** (perfhist, 22 November 2026, after a
+red-team of the plan): a write's new revisions go into one chunk of their own, numbered past the last, and no chunk
+already written is read, written again or put aside; the head's `open` (`OPEN`, read through `open_of`: a whole number
+from 0 to the chunks named, anything else 0, a hint for the writer alone that no reader reads) says how many of its
+last chunks are open. Once it is `FOLD` (16), or a write's revisions alone come to `CHUNK`, the write folds
+(`folded`): the open chunks' lines and its own, copied byte for byte (`lines_in`, `pack`) and counted, go onto the
+tail, the chunk before them, when it is there, not evicted, reads and they fit in `CHUNK`, under its number, and else
+in chunks of their own after it, `open` 0; the folded chunks are put aside by `finish` as any write's are. A fold
+that cannot read an open chunk now, evicted or away, writes one more open chunk instead and a later write folds, and
+under a lock none is waited for; at `2 * FOLD` open chunks, one lost for good among them, the write folds the open
+chunks after it and leaves it where it is, so the files never pile up. A fold checks its lines against the revisions
+the chunks it read hold, parsed, and the adds, and is away on a mismatch (perfhist2). `write_chunks` (a prune past `AUTO_KEEP`, a rekey, a move) packs as before and keeps
+open the trailing chunks past the base's last folded one and under `CHUNK` bytes, so a prune past `AUTO_KEEP` on every
+timer revision never counts a full chunk open (perfhist2), none when the base will not read or there is none. A head
+from before has no `open` and its last chunk is the tail. On a clone of his project a P2 reword went from about 1.4
+MB written and 1.3 MB put aside to 12 small chunks, nothing put aside, on 15 writes in 16. `sweep` runs at most once
+in `SWEEP_EVERY` (600 s) a History folder in a process (`_SWEPT`), since what it takes away is a week old and every
+chunk the file names is brought back by `out_of` before each write; `reset()` forgets every cache, the gate, the fetches and iCloud's asks, for
+the suite. A chunk put aside is never taken away as it is superseded (historyfix2,
 review 2): a board file another Mac wrote before it saw the write may still win in iCloud and name it, so a read finds
 it there (`found`, `read_chunk`), the next write that names it brings it back (`restore`), and `sweep` takes it away
 without a copy `SUPERSEDED_SECONDS` (7 days) after it was put aside. Working together's arrival puts aside the same
@@ -3502,7 +3524,7 @@ yet) is left until `ORPHAN_SECONDS` old (7 days), then swept into `_Archive/<nam
 iCloud's last write left from a second Mac among them) is `HistoryAway` (code `history_away`): `history_list` gives
 none and `history_away` says so (`/api/themes` and `/api/gets` answer `history_away`, the History tab's
 `themes.revision.away` line), a History write that needs it is refused with nothing written (a revision on the end
-needs the last chunk alone), and the timer's revision is skipped while the board still saves. A chunk Optimize Mac
+needs the last chunk there, a stat, and reads none), and the timer's revision is skipped while the board still saves. A chunk Optimize Mac
 Storage evicted (`SF_DATALESS`) is read in a thread, which brings it back from iCloud, a read waiting while the fetch
 is younger than `FETCH_SECONDS` (20 s) and never under a lock (`locks.holding`), so a save never waits on the network;
 a fetch past that is away at once until it has brought the data, and one that failed is remembered `FAILED_SECONDS`
