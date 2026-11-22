@@ -1825,6 +1825,11 @@ const TH_CARD = { w: 200, h: 80 };
 const TH_LABEL = { w: 140, h: 30 };
 
 const TH = {
+  picking: false,     // a drag picking up, while the status bar waits a moment (thStatusSoon)
+  statusFrame: 0,     // its timer
+  tipWide: {},        // the drag tip's width with each of its words, read a moment after it shows (thTipMeasure)
+  tipLast: null,      // the last of those read, { w, n }: its width and its words' length (thTipGuess)
+  tipFrame: 0,        // the timer that reads it
   path: null,         // the workbook, as the case list and the turn screen name it
   label: '',          // the case as the opener named it, for a server that cannot
   back: null,         // the way back to where the screen was opened from
@@ -2023,6 +2028,8 @@ function thRefuse(act) {
    it cannot. `opts.gone`, from a page coming back from a restart, is run in place of the screen
    when the case cannot be opened or the file no longer holds `opts.board`. */
 async function themesOpen(path, opts = {}) {
+  // a status bar or a tip still waiting from the board before draws nothing on this one
+  if (typeof thWaitsClear === 'function') thWaitsClear();
   // the GETs screen is this canvas one layer up, opened through getsOpen
   TH.mode = opts.gets ? 'gets' : 'pets';
   // and a participant's LPETs the same canvas over their timepoints' PETs, and in a project of two or more
@@ -2206,6 +2213,8 @@ function thLoad(data, opts = {}) {
   if (left && another && (data.versions || []).some((x) => x.id === left)) TH.views[left] = { x: TH.view.x, y: TH.view.y, z: TH.view.z };
   // whatever comes in ends a revision on view: the board kept aside is what it replaces
   thViewDrop();
+  // and the status bar's and the tip's waits, which were for the board before (thWaitsClear)
+  if (typeof thWaitsClear === 'function') thWaitsClear();
   // and a refused save's card, since the board it spoke of is no longer the one on the canvas as it was
   thStaleHide();
   const cards = {};
@@ -2336,6 +2345,7 @@ async function themesLeave() {
   if (TH.live && TH.dirty) { say(t('themes.unsaved.stays_open'), 6000); return false; }
   TH.live = false;
   TH.ask += 1;
+  if (typeof thWaitsClear === 'function') thWaitsClear();
   thPile(false);
   thXmenu(false);
   thCasemenu(false);
@@ -4085,10 +4095,30 @@ function thStatusSelected(sel, gets) {
   return t(gets ? 'themes.status.selected_cards' : 'themes.status.selected_es', { n: k });
 }
 
+/* The status bar drawn a moment after a drag picks up (perfcanvas, 22 November 2026): its redraw measures the bar
+   (thCorners), and inside the pick-up's move that was a second layout of the whole board in the frame the drag
+   starts in. In WebKit, the Mac window's engine, on a participant's board of 39 cards, the pick-up's frame took a
+   PET by its title 38 ms and a card 30, and with the count drawn TH_LIFT_WAIT later 24 and 20, where drawn on the
+   next frame instead it saved little (34 and 26), the same layout only moved. Asked again before then, it is drawn
+   once. Where there is no timer it is drawn at once. */
+const TH_LIFT_WAIT = 60;
+function thStatusSoon() {
+  if (typeof setTimeout !== 'function') {
+    const was = TH.picking;
+    TH.picking = false;
+    try { thStatusDraw(); } finally { TH.picking = was; }
+    return;
+  }
+  if (TH.statusFrame) return;
+  TH.statusFrame = setTimeout(() => { TH.statusFrame = 0; thStatusDraw(); }, TH_LIFT_WAIT);
+}
+
 /* The counts drawn at the bar's left, each number in the mono face, so they hold still as the numbers
    change, and the bar on or off as the settings say. Off, the canvas keeps the floating zoom bar of before.
-   Run on every change of the board and of the settings. */
+   Run on every change of the board and of the settings. While a drag picks up (TH.picking, see thDragStart) it is
+   drawn a moment later instead, so the pick-up's move asks no layout of its own (thStatusSoon). */
 function thStatusDraw() {
+  if (TH.picking) { thStatusSoon(); return; }
   thDoorCount();
   const stage = $('th-stage');
   const box = $('th-status-counts');
@@ -5601,10 +5631,49 @@ function thTip(e) {
     tip.textContent = text;
     tip.classList.toggle('alt', !!d.alt);
     tip.hidden = false;
-    d.tipW = tip.offsetWidth;
+    // its width, which keeps it inside the window's right edge, is read a moment later, not in the move that
+    // shows it, where it was a second layout of the whole board as a drag picked up (perfcanvas, 22 November
+    // 2026); until then the width it had with these words before stands, or one guessed from its words' length
+    d.tipW = TH.tipWide[text] || thTipGuess(text);
+    thTipMeasure(d, text);
   }
   tip.style.left = `${Math.max(8, Math.min(d.tipX + 16, window.innerWidth - (d.tipW || 0) - 8))}px`;
   tip.style.top = `${Math.min(d.tipY + 20, window.innerHeight - 30)}px`;
+}
+
+/* the tip's width with words it has not yet been measured with: the last width read, in proportion to the words'
+   length, or before any is read about 6.2px a character at its 11.5px size and its padding and border, so the first
+   tip by the window's right edge stands inside it from the start, not past it until its width is read */
+function thTipGuess(text) {
+  const n = (text || '').length;
+  const last = TH.tipLast;
+  if (last && last.n > 0) return Math.round(last.w * n / last.n);
+  return Math.round(n * 6.2 + 18);
+}
+
+/* the tip's width with `text`, read TH_LIFT_WAIT later and kept for the next time it says it, and the tip placed
+   again with it while the drag it was shown for goes on; at once where there is no timer */
+function thTipMeasure(d, text) {
+  const read = () => {
+    const tip = $('th-tip');
+    if (!tip || tip.hidden || tip.textContent !== text) return;
+    TH.tipWide[text] = tip.offsetWidth;
+    TH.tipLast = { w: tip.offsetWidth, n: text.length };
+    if (TH.drag !== d) return;
+    d.tipW = TH.tipWide[text];
+    tip.style.left = `${Math.max(8, Math.min(d.tipX + 16, window.innerWidth - (d.tipW || 0) - 8))}px`;
+  };
+  if (typeof setTimeout !== 'function') { read(); return; }
+  if (TH.tipFrame) clearTimeout(TH.tipFrame);
+  TH.tipFrame = setTimeout(() => { TH.tipFrame = 0; read(); }, TH_LIFT_WAIT);
+}
+
+/* the status bar's and the tip's waits let go, as a board opens, closes or gives way to another, so neither draws
+   or measures on a board that is no longer the one they were asked for */
+function thWaitsClear() {
+  if (typeof clearTimeout !== 'function') return;
+  if (TH.statusFrame) { clearTimeout(TH.statusFrame); TH.statusFrame = 0; }
+  if (TH.tipFrame) { clearTimeout(TH.tipFrame); TH.tipFrame = 0; }
 }
 
 const TH_SAVED = t('themes.save.saved');
@@ -10423,61 +10492,68 @@ function thInsertShow(d) {
 }
 
 function thDragStart() {
-  const p = TH.press;
-  thMenuClose();
-  // a card dragged out of a stack shown open comes out of it as the drag starts, where it stood, and
-  // the drag is one step of undo with it
-  const lifted = p.item.kind === 'card' && thTopOf(TH.v, p.item.id) ? thStackLift(p.item.id) : null;
-  if (lifted) p.add = false;
-  if (!thSelected(p.item)) {
-    if (!p.add) { TH.sel.cards.clear(); TH.sel.groups.clear(); }
-    if (!p.add) TH.sel.stickies.clear();
-    thSetOf(p.item).add(p.item.id);
-    thDrawSel();
-    // an open Inspector follows what is picked up, and a closed one stays closed
-    TH.lastPick = p.item;
-    thPanelFollow();
+  // the status bar's count of what is selected is drawn a moment later, not inside the pick-up's move (see
+  // thStatusSoon)
+  TH.picking = true;
+  try {
+    const p = TH.press;
+    thMenuClose();
+    // a card dragged out of a stack shown open comes out of it as the drag starts, where it stood, and
+    // the drag is one step of undo with it
+    const lifted = p.item.kind === 'card' && thTopOf(TH.v, p.item.id) ? thStackLift(p.item.id) : null;
+    if (lifted) p.add = false;
+    if (!thSelected(p.item)) {
+      if (!p.add) { TH.sel.cards.clear(); TH.sel.groups.clear(); }
+      if (!p.add) TH.sel.stickies.clear();
+      thSetOf(p.item).add(p.item.id);
+      thDrawSel();
+      // an open Inspector follows what is picked up, and a closed one stays closed
+      TH.lastPick = p.item;
+      thPanelFollow();
+    }
+    const v = TH.v;
+    const moving = thMoving(v, TH.sel.cards, TH.sel.groups, TH.sel.stickies);
+    const starts = {};
+    for (const it of moving) {
+      const at = thIsGroup(v, it) ? thGroup(v, it) : (v.cards[it] || thSticky(v, it));
+      starts[it] = { x: at.x, y: at.y };
+    }
+    // everything that moves leans as it goes, and what came along with a label trails it
+    const grabbed = new Set([...TH.sel.cards, ...TH.sel.groups, ...TH.sel.stickies].filter((it) => moving.has(it)));
+    for (const it of moving) {
+      const el = TH.els.cards[it] || TH.els.labels[it] || TH.els.stickies[it];
+      if (!el) continue;
+      // an ease still running from the last act gives way to the drag
+      el.classList.remove('ease-from', 'easing', 'nudging', 'landing', 'sent', 'standing');
+      el.style.scale = '';
+      el.style.rotate = '';
+      el.classList.add('dragging');
+      if (!grabbed.has(it)) el.classList.add('trailing');
+      // what moves is drawn over what stays, and stays on top once it is down
+      el.parentNode.appendChild(el);
+    }
+    TH.z = TH.z.filter((key) => !moving.has(key)).concat(TH.z.filter((key) => moving.has(key)));
+    // the tip about Alt follows what Alt takes out of its theme, and nothing else
+    // a drag that carries a PET or a sub-theme of its own
+    const parents = thParents(v);
+    const nest = [...moving].some((it) => thIsGroup(v, it) && !moving.has(parents[it]));
+    const cards = moving.size > 0 && [...moving].every((it) => !!v.cards[it]);
+    // what it goes into when let go in a body, by the frames as they stand now, keeping its level (see thBodiesFor)
+    // `home` is the place it makes way in and `layout` the board's as the drop would leave it, each move's
+    TH.drag = { moving, grabbed, starts, nest, cards, frames: thBodiesFor(v, moving, TH.layout),
+      before: lifted || thSnap(v, TH.removed), lifted: !!lifted, was: thLabelBoxes(TH.layout),
+      from: thSpots(v), x0: p.x0, y0: p.y0, dx: 0, dy: 0, alt: !!p.alt, lean: 0, lastX: p.x0, still: null,
+      tip: thLeavers(v, moving).size > 0, tipUnit: thTipUnit(v, moving, p.item.id), tipX: p.x0, tipY: p.y0,
+      slides: new Map(), seen: null, raf: 0, hitNow: null, next: null, step: 0, placedAt: 0, home: null, layout: null,
+      trail: grabbed.size < moving.size ? { x: 0, y: 0, t: 0, raf: 0 } : null, pts: [] };
+    TH.hoverAt = null;
+    // what it carries is drawn out of the world while it moves, one card alone too, which takes no layer (see thCarry)
+    thCarry(TH.drag);
+    thCarrying(moving.size > 1);
+    thSideArm(true);
+  } finally {
+    TH.picking = false;
   }
-  const v = TH.v;
-  const moving = thMoving(v, TH.sel.cards, TH.sel.groups, TH.sel.stickies);
-  const starts = {};
-  for (const it of moving) {
-    const at = thIsGroup(v, it) ? thGroup(v, it) : (v.cards[it] || thSticky(v, it));
-    starts[it] = { x: at.x, y: at.y };
-  }
-  // everything that moves leans as it goes, and what came along with a label trails it
-  const grabbed = new Set([...TH.sel.cards, ...TH.sel.groups, ...TH.sel.stickies].filter((it) => moving.has(it)));
-  for (const it of moving) {
-    const el = TH.els.cards[it] || TH.els.labels[it] || TH.els.stickies[it];
-    if (!el) continue;
-    // an ease still running from the last act gives way to the drag
-    el.classList.remove('ease-from', 'easing', 'nudging', 'landing', 'sent', 'standing');
-    el.style.scale = '';
-    el.style.rotate = '';
-    el.classList.add('dragging');
-    if (!grabbed.has(it)) el.classList.add('trailing');
-    // what moves is drawn over what stays, and stays on top once it is down
-    el.parentNode.appendChild(el);
-  }
-  TH.z = TH.z.filter((key) => !moving.has(key)).concat(TH.z.filter((key) => moving.has(key)));
-  // the tip about Alt follows what Alt takes out of its theme, and nothing else
-  // a drag that carries a PET or a sub-theme of its own
-  const parents = thParents(v);
-  const nest = [...moving].some((it) => thIsGroup(v, it) && !moving.has(parents[it]));
-  const cards = moving.size > 0 && [...moving].every((it) => !!v.cards[it]);
-  // what it goes into when let go in a body, by the frames as they stand now, keeping its level (see thBodiesFor)
-  // `home` is the place it makes way in and `layout` the board's as the drop would leave it, each move's
-  TH.drag = { moving, grabbed, starts, nest, cards, frames: thBodiesFor(v, moving, TH.layout),
-    before: lifted || thSnap(v, TH.removed), lifted: !!lifted, was: thLabelBoxes(TH.layout),
-    from: thSpots(v), x0: p.x0, y0: p.y0, dx: 0, dy: 0, alt: !!p.alt, lean: 0, lastX: p.x0, still: null,
-    tip: thLeavers(v, moving).size > 0, tipUnit: thTipUnit(v, moving, p.item.id), tipX: p.x0, tipY: p.y0,
-    slides: new Map(), seen: null, raf: 0, hitNow: null, next: null, step: 0, placedAt: 0, home: null, layout: null,
-    trail: grabbed.size < moving.size ? { x: 0, y: 0, t: 0, raf: 0 } : null, pts: [] };
-  TH.hoverAt = null;
-  // what it carries is drawn out of the world while it moves, one card alone too, which takes no layer (see thCarry)
-  thCarry(TH.drag);
-  thCarrying(moving.size > 1);
-  thSideArm(true);
 }
 
 /* A drag that carries more than one thing, a theme by its title or several cards, draws each of them in a layer of

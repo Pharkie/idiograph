@@ -132,7 +132,29 @@ const outer = thMakeGroup(v, ['m:1:0', 'm:2:0', 'm:4:0'], 'Outer');
 const inner = thMakeGroup(v, ['m:4:0'], 'Inner');
 const shows = (cards, groups) => thLeavers(v, thMoving(v, new Set(cards), new Set(groups))).size > 0;
 out.who = [shows(['m:1:0'], []), shows(['m:3:0'], []), shows([], [outer]), shows([], [inner]), shows(['m:4:0'], [])];
-console.log(JSON.stringify(out));
+// 105 (perfcanvas): by the window's right edge the tip is held inside it once its width is read, a moment after it
+// shows, and shown there at once the next time it says the same
+TH.tipWide = {}; TH.tipLast = null;
+tip.hidden = true; tip.textContent = '';
+TH.drag = { tip: true, alt: false };
+thTip({ clientX: 1150, clientY: 200 });
+out.edgeFirst = tip.style.left;
+setTimeout(() => {
+  out.edgeRead = tip.style.left;
+  TH.drag = null; thTip();
+  TH.drag = { tip: true, alt: false };
+  thTip({ clientX: 1150, clientY: 200 });
+  out.edgeAgain = tip.style.left;
+  // words it has never been measured with take the last width read, in proportion to their length
+  TH.drag.alt = true;
+  thTip();
+  const plain = thTipText(false, MAC, undefined), alt = thTipText(true, MAC, undefined);
+  out.edgeOther = tip.style.left;
+  out.otherWant = `${Math.max(8, Math.min(1166, 1200 - Math.round(150 * alt.length / plain.length) - 8))}px`;
+  out.guessFirst = 1200 - 8 - Math.round(plain.length * 6.2 + 18);
+  TH.drag = null;
+  console.log(JSON.stringify(out));
+}, 150);
 """, encoding="utf-8")
     run = subprocess.run([node, str(script)], capture_output=True, text=True, encoding="utf-8")
     if run.returncode != 0:
@@ -141,3 +163,15 @@ console.log(JSON.stringify(out));
     check("102: with reduced motion nothing leans", out["calm"] == [""], str(out["calm"]))
     check("105: it is for a card in a theme and a sub-theme, never a card in no theme or a theme dragged by its own label",
           out["who"] == [True, False, False, True, True], str(out["who"]))
+    # the tip's width is read a moment after it shows, not in the move that shows it (perfcanvas, 22 November 2026)
+    check("105: by the window's right edge the tip is held inside it once its width is read, and at once the next time",
+          out.get("edgeRead") == "1042px" and out.get("edgeAgain") == "1042px",
+          str([out.get("edgeFirst"), out.get("edgeRead"), out.get("edgeAgain")]))
+    # until then a width guessed from its words keeps the first tip inside the edge, never past it for a moment
+    first = out.get("edgeFirst") or ""
+    check("105: the first tip by the window's right edge stands inside it before its width is read",
+          first.endswith("px") and first != "1166px" and int(first[:-2]) == out.get("guessFirst"),
+          str([first, out.get("guessFirst")]))
+    check("105: words the tip has not been measured with take the last width read, in proportion to their length",
+          out.get("edgeOther") == out.get("otherWant") and out.get("edgeOther") != "1166px",
+          str([out.get("edgeOther"), out.get("otherWant")]))

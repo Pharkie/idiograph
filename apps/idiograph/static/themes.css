@@ -2313,6 +2313,14 @@ circle.th-link-hit { fill: transparent; stroke: none; pointer-events: fill; }
    beside a row for each of their LPETs, the LPET's title and domain, then at each timepoint its key quote over
    its state. Not placed is a band of its own, dashed, first */
 .tj-board { display: block; width: 100%; }
+/* The board is drawn in a layer of its own (perfcanvas, 22 November 2026), so WebKit, the Mac window's engine, moves
+   what it has drawn as the page scrolls, where it painted the bands' shadows, the quotes' rounded clips and the fields
+   in view afresh on every frame: on the longitudinal demo's board a frame took 21 ms at the median and 24 to 28 at the
+   worst tenth while it scrolled, and 17 and 18 to 19 in the layer. One layer for the board, never one a band, which
+   would shut each band's menus and pickers inside it under the band after. The layer is opaque, the screen's own
+   paper behind it, since Chromium (WebView2, the Windows window's engine) draws the words in a transparent layer
+   without ClearType's subpixel smoothing on a screen of ordinary density. */
+.tf-board { will-change: transform; background: var(--paper); }
 .tf-band { --tc: var(--ink-soft); position: relative; background: var(--card); border: 1px solid var(--rule); border-radius: var(--r-card);
   margin-bottom: 18px; box-shadow: var(--rest); }
 .tf-band.tj-over { border-color: var(--ink-soft); box-shadow: inset 0 0 0 1px var(--ink-soft); }
