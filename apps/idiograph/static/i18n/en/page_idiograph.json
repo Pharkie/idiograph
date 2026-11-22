@@ -565,5 +565,9 @@
   "page_idiograph.names.check": "Check transcripts already in",
   "page_idiograph.names.review_replace": "Review and replace",
   "page_idiograph.names.kept": "The list is kept in this project's folder. A copy you share leaves it out.",
-  "page_idiograph.names.done": "Done"
+  "page_idiograph.names.done": "Done",
+  "page_idiograph.work.speed": "Playback speed",
+  "page_idiograph.work.speed_key": "Playback speed, press to change (Ctrl + Cmd + [ slower, ] faster)",
+  "page_idiograph.cards.ctrl_cmd_speed": "Ctrl + Cmd + [ / ]",
+  "page_idiograph.cards.speed_slower_faster": "Playback slower or faster"
 }

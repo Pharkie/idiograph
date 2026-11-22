@@ -470,6 +470,7 @@ AREAS = {
     "a435_open_elsewhere": "idiograph",
     "a436_disk_hygiene": "idiograph",
     "a437_invite_route": "idiograph",
+    "a438_playback_speed": "idiograph",
 }
 
 

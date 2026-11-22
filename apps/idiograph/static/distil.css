@@ -716,6 +716,18 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
   font-variant-numeric: tabular-nums; white-space: nowrap; }
 .player-time.dim { color: var(--ink-faint); }
 
+/* The speed, a small drawn pill at the bar's end that shows the speed in force (playspeed, 22 November 2026): in the
+   ink's faint at 1x, in the accent once it is anything else. It holds its width whatever the speed, so the track
+   never shifts as it changes. */
+.player-speed {
+  flex: none; min-width: 44px; height: 26px; padding: 0 8px; border-radius: 13px; cursor: pointer;
+  border: 1px solid var(--rule-firm); background: var(--card); color: var(--ink-soft);
+  font: 500 11.5px var(--mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; white-space: nowrap;
+  transition: color .16s, border-color .16s;
+}
+.player-speed:hover { color: var(--ink); border-color: var(--ink-faint); }
+.player-speed.changed { color: var(--accent); border-color: var(--accent); }
+
 /* the floor under the track is what makes the file name give way first: the bar cannot be
    squeezed past it, so the name ellipsises rather than the track thinning out */
 .player-scrub { position: relative; flex: 1 1 auto; min-width: 120px; height: 20px;

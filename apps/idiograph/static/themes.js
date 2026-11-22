@@ -15103,6 +15103,7 @@ function gtTrailPlay(turn) {
   const player = TH.trailAudio;
   if (turn.classList.contains('playing') && !player.paused) { player.pause(); return; }
   for (const el of document.querySelectorAll('#gt-trail-body .playing')) el.classList.remove('playing');
+  playSpeedApply(player);
   if (player.getAttribute('src') !== turn.dataset.audio) player.src = turn.dataset.audio;
   const go = () => { player.currentTime = Number(turn.dataset.at) || 0; player.play().catch((err) => say(err.message, 6000)); };
   if (player.readyState >= 1) go(); else player.addEventListener('loadedmetadata', go, { once: true });

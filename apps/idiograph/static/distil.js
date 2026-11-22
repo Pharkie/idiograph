@@ -9207,6 +9207,89 @@ function nudgeAudio(delta) {
   drawPlayer();
 }
 
+/* Playback speed (playspeed, 22 November 2026): one speed for every player, the statements screen's, the boards'
+   panel's and the audit trail's, kept on this computer in the browser's own store like the other choices of a
+   screen and held across opens. The button at the bar's end shows it and a press steps to the next, round to
+   the first after the last, and Ctrl + Cmd and [ or ] step it slower or faster from anywhere a player bar
+   shows. Pitch is kept: the rate is set with `preservesPitch` on, and as `defaultPlaybackRate` too, since a
+   new recording loaded into the element goes back to its default. */
+const PLAY_SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
+const PLAY_SPEED_KEY = 'idiograph-play-speed';
+const PLAY_ENGINES = ['player', 'th-player', 'gt-trail-audio'];
+const PLAY_BUTTONS = ['player-speed', 'th-pspeed'];
+// where a store that cannot be written keeps the speed until the page closes
+const PLAY_HELD = { speed: 1 };
+
+function playSpeedGet() {
+  try {
+    const held = Number(localStorage.getItem(PLAY_SPEED_KEY));
+    return PLAY_SPEEDS.includes(held) ? held : 1;
+  } catch { return PLAY_HELD.speed; }
+}
+
+function playSpeedLabel(speed) {
+  return `${speed.toLocaleString(undefined, { maximumFractionDigits: 2 })}x`;
+}
+
+/* the chosen speed on one audio element, now and for each recording loaded into it later */
+function playSpeedApply(el) {
+  if (!el) return;
+  const speed = playSpeedGet();
+  try {
+    el.defaultPlaybackRate = speed;
+    el.playbackRate = speed;
+    el.preservesPitch = true;
+    el.webkitPreservesPitch = true;
+    el.mozPreservesPitch = true;
+  } catch { /* an element that takes no rate */ }
+}
+
+function playSpeedDraw() {
+  const speed = playSpeedGet();
+  for (const id of PLAY_BUTTONS) {
+    const b = $(id);
+    if (!b) continue;
+    b.textContent = playSpeedLabel(speed);
+    b.setAttribute('aria-label', t('distil.audio.speed_now', { speed: playSpeedLabel(speed) }));
+    b.classList.toggle('changed', speed !== 1);
+  }
+}
+
+/* every player takes the speed, and every button shows it, wherever the change was made */
+function playSpeedAll() {
+  for (const id of PLAY_ENGINES) playSpeedApply($(id));
+  playSpeedDraw();
+}
+
+function playSpeedSet(speed) {
+  PLAY_HELD.speed = speed;
+  try { localStorage.setItem(PLAY_SPEED_KEY, String(speed)); } catch { /* none kept */ }
+  playSpeedAll();
+}
+
+/* a step of the button: the next speed, round to the first after the last */
+function playSpeedCycle() {
+  const at = PLAY_SPEEDS.indexOf(playSpeedGet());
+  playSpeedSet(PLAY_SPEEDS[(at + 1) % PLAY_SPEEDS.length]);
+}
+
+/* a step of the key: slower or faster by one place, stopping at either end */
+function playSpeedStep(by) {
+  const at = PLAY_SPEEDS.indexOf(playSpeedGet());
+  playSpeedSet(PLAY_SPEEDS[Math.max(0, Math.min(PLAY_SPEEDS.length - 1, at + by))]);
+}
+
+/* The chord's direction, -1 slower, 1 faster, 0 for any other key. It reads the key's place (`code`), never the
+   character, and lets AltGr through: off a Mac the chord is Ctrl + Alt, which AltGr is on German and Spanish
+   layouts, where it types the brackets. */
+function playSpeedChord(e) {
+  if (e.getModifierState && e.getModifierState('AltGraph')) return 0;
+  return e.code === 'BracketLeft' ? -1 : e.code === 'BracketRight' ? 1 : 0;
+}
+
+/* a player bar in view, on the statements screen or the boards' panel */
+const playBarShown = () => PLAY_BUTTONS.some((id) => { const b = $(id); return b && b.getClientRects().length; });
+
 /* The recording's place as the transcript's time codes have it, its offset taken off */
 const heardAt = (at) => at - (S.audioOffset || 0);
 
@@ -14584,6 +14667,17 @@ function distilBoot() {
   // the player's own controls. Everything visible is drawn from the audio element's events, so a
   // cue or a seek from anywhere in the app shows here without being told.
   $('player-play').onclick = () => togglePlay();
+  // the speed: the button steps it, the chord steps it from anywhere a player bar shows, every player takes it
+  for (const id of PLAY_BUTTONS) { const b = $(id); if (b) b.onclick = () => playSpeedCycle(); }
+  window.addEventListener('keydown', (e) => {
+    if (!SEEK(e) || !playBarShown()) return;
+    const by = playSpeedChord(e);
+    if (!by) return;
+    e.preventDefault();
+    playSpeedStep(by);
+  });
+  for (const id of PLAY_ENGINES) { const el = $(id); if (el) el.addEventListener('loadstart', () => playSpeedApply(el)); }
+  playSpeedAll();
   // five seconds either way, the buttons through the function the keys use
   $('player-back').onclick = () => nudgeAudio(-AUDIO_STEP);
   $('player-fwd').onclick = () => nudgeAudio(AUDIO_STEP);

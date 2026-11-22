@@ -763,5 +763,6 @@
   "distil.manual.term_extract": "extract",
   "distil.manual.term_code": "code",
   "distil.manual.term_code_list": "code list",
-  "distil.manual.term_theme": "theme"
+  "distil.manual.term_theme": "theme",
+  "distil.audio.speed_now": "Playback speed {speed}, press to change"
 }

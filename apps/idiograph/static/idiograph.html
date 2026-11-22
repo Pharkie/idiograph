@@ -372,6 +372,8 @@
             <span class="player-knob" id="player-knob"></span>
           </div>
           <span class="mono player-time dim" id="player-total">00:00</span>
+          <button class="player-speed" id="player-speed" type="button" tabindex="-1"
+                  aria-label="{{page_idiograph.work.speed}}" title="{{page_idiograph.work.speed_key}}">1x</button>
         </div>
         <!-- The demo's recordings on demand (recdemand, 13 November 2026): pressed to play before they are on this
              computer, the player's place offers the download with its size, then shows how far it has got -->
@@ -1081,6 +1083,8 @@
             <span class="player-knob" id="th-pknob"></span>
           </div>
           <span class="mono player-time dim" id="th-ptotal">--:--</span>
+          <button class="player-speed" id="th-pspeed" type="button" tabindex="-1"
+                  aria-label="{{page_idiograph.work.speed}}" title="{{page_idiograph.work.speed_key}}">1x</button>
         </div>
         <!-- the demo's recordings on demand, offered here as the statements screen's player offers them -->
         <div class="rec-get th-pget" id="th-p-get" hidden>
@@ -1446,6 +1450,7 @@
       <tr><td class="mono">{{page_idiograph.cards.ctrl_cmd_3}}</td><td>{{page_idiograph.cards.five_seconds_back}}</td></tr>
       <tr><td class="mono">{{page_idiograph.cards.ctrl_cmd_4}}</td><td>{{page_idiograph.cards.five_seconds_forward}}</td></tr>
       <tr><td class="mono">{{page_idiograph.cards.cmd_3}}</td><td>{{page_idiograph.cards.start_end_line}}</td></tr>
+      <tr><td class="mono">{{page_idiograph.cards.ctrl_cmd_speed}}</td><td>{{page_idiograph.cards.speed_slower_faster}}</td></tr>
     </table>
     <h3 class="help-sub">{{page_idiograph.cards.mouse}}</h3>
     <table class="keys">
