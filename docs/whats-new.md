@@ -5,6 +5,15 @@ Newest first. Each version's notes are what the updater shows, eight lines at mo
 
 What goes here: only major new features and real changes to how something works, among them what your AI agents can do, and any change to safety, privacy or your data. One plain line each, saying what you can now do, not how the screen shows it. Never: changed wording, labels or layout, small fixes, or a feature's parts (its buttons, tabs, counts). Several changes to one feature are one line. A version with nothing major has one line, or none.
 
+## 0.9.35, 22 November 2026
+
+The recording player has a speed control, from half speed to double, and keeps the speed you chose.
+History on a GETs, LPETs or LGETs board now keeps the board's table, so restoring an earlier revision puts back its ticked quotes and notes too.
+If the relay loses a shared project, its lead can start it again with the same people from the project's page.
+When an agent rewords a line, History follows it, so an earlier revision shows its cards where they belong.
+The restore points kept for agents' changes take about a tenth of the space they did.
+When an agent imports a REFI-QDA file, the names on your names list are kept out of what it is told.
+
 ## 0.9.34, 21 November 2026
 
 The first time you invite someone to a project, you choose how its updates travel: through the relay or through a folder you can both reach. You can change it later in Project settings.
