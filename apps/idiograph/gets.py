@@ -50,11 +50,13 @@ from __future__ import annotations
 
 import contextlib
 import contextvars
+import copy
 import hashlib
 import json
 import math
 import os
 import re
+import threading
 from datetime import datetime
 from pathlib import Path
 
@@ -602,6 +604,85 @@ def snapshot(workbook: Path) -> dict:
     workbook = Path(workbook)
     if in_lgets():
         return lpets_snapshot(workbook)
+    # the files it comes from, marked before a word is read, so a write while it reads shows as one since, and a
+    # snapshot kept against them is read again only once one has changed (perfgets, 22 November 2026)
+    key, marks = snapshot_key(workbook)
+    if key is not None:
+        with SNAPSHOTS_LOCK:
+            kept = SNAPSHOTS.pop(key, None)
+            if kept is not None and kept[0] == marks:
+                SNAPSHOTS[key] = kept
+            else:
+                kept = None
+        if kept is not None:
+            themes.guard_place(workbook)
+            return copy.deepcopy(kept[1])
+    snap = snapshot_read(workbook)
+    if key is not None:
+        with SNAPSHOTS_LOCK:
+            SNAPSHOTS.pop(key, None)
+            SNAPSHOTS[key] = (marks, copy.deepcopy(snap))
+            while len(SNAPSHOTS) > SNAPSHOTS_HELD:
+                SNAPSHOTS.pop(next(iter(SNAPSHOTS)), None)
+    return snap
+
+
+# what `snapshot` has read, each case kept against the marks of the files it came from, the oldest dropped first
+SNAPSHOTS: dict = {}
+SNAPSHOTS_LOCK = threading.Lock()
+# the project's timecodes and interviewer, read once for a survey's cases (`survey`), by the project's root
+SETTINGS_HELD: contextvars.ContextVar = contextvars.ContextVar("idiograph_gets_settings", default=None)
+SNAPSHOTS_HELD = 256
+
+
+def file_mark(path: Path) -> tuple | None:
+    """A file's modification time, size and inode, or None when it is not there (as Home's cache marks a file)."""
+    try:
+        st = Path(path).stat()
+    except OSError:
+        return None
+    return st.st_mtime_ns, st.st_size, st.st_ino
+
+
+def snapshot_key(workbook: Path) -> tuple[tuple | None, tuple]:
+    """What a case's snapshot is kept under and against: its workbook, its themes file and its progress file, which
+    says which sheets are a later timepoint's, by their marks, and under the workbook, the timepoint in scope, the
+    timecodes and the interviewer its quotes are read with. The key is None for a workbook not there, read and
+    refused as ever."""
+    workbook = Path(workbook)
+    if not workbook.exists():
+        return None, ()
+    # a member's own boards of a participant someone else owns are merged in by `themes.load`, so the file they are
+    # kept in, which team.json's owner decides (None for his own participant), is marked and named too
+    mine = themes.own_file(workbook)
+    marks = (file_mark(workbook), file_mark(themes.themes_path(workbook)),
+             file_mark(workbook.parent / "Working" / f"{workbook.stem}.progress.json"),
+             (str(mine), file_mark(mine)) if mine is not None else None)
+    form, who = settings_for(workbook)
+    key = (str(workbook.resolve()), themes.timepoint_now(), form, who)
+    return key, marks
+
+
+def settings_for(workbook: Path) -> tuple[str, str]:
+    """The timecodes and the interviewer a workbook's quotes are read with, each project's read once while a survey
+    runs (`SETTINGS_HELD`) and for every other call as it is asked."""
+    held = SETTINGS_HELD.get()
+    if held is not None:
+        try:
+            import server as srv
+            root = srv.project_of(Path(workbook))
+        except Exception:  # noqa: BLE001  no server set up: asked as ever
+            root = None
+        if root is not None:
+            got = held.get(str(root))
+            if got is None:
+                got = held[str(root)] = (themes.timecodes_at(root), themes.interviewer_name(root))
+            return got
+    return themes.timecodes_for(workbook), themes.interviewer_name(workbook)
+
+
+def snapshot_read(workbook: Path) -> dict:
+    """`snapshot` read afresh from the workbook and the themes file."""
     # the two files' times before a word is read, so a write while it reads shows as one since
     seen = seen_of(workbook)
     data = themes.load(workbook)
@@ -752,6 +833,15 @@ def survey(books: list[dict], data: dict, light: bool = False) -> list[dict]:
     snapshot it would come in with when it is not in yet or has changed, and its status, `pending`
     not yet in, `in`, `changed` or `unread` when its themes file cannot be read. `light`, for the
     autosave, reads only the cases not yet in, since a save answers with no case."""
+    token = SETTINGS_HELD.set({})
+    try:
+        return survey_cases(books, data, light)
+    finally:
+        SETTINGS_HELD.reset(token)
+
+
+def survey_cases(books: list[dict], data: dict, light: bool = False) -> list[dict]:
+    """`survey`, with the project's settings held for its cases."""
     held = data.get("cases") if isinstance(data.get("cases"), dict) else {}
     out = []
     for book in sorted(books, key=lambda b: case_order(b["case"])):

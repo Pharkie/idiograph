@@ -321,7 +321,7 @@
 .th-kq.th-en:hover { color: var(--ink-soft); }
 
 /* in a group: a wash of the group's tint, and a rule of it down the left edge */
-.th-card.in {
+.th-card.in { /* impeccable-disable-line side-tab -- Adam's ruling, 22 November 2026 (by dialog, user confirmed): the line down a statement card's left edge inside a PET stays, a colour code in the group's tint and not a selected row's side bar, though the checker reads a stock side stripe */
   background: color-mix(in srgb, var(--hue) 11%, var(--card));
   border-color: color-mix(in srgb, var(--hue) 45%, var(--rule-firm));
   box-shadow: inset 3px 0 0 var(--th-edge, var(--hue)), var(--rest), var(--edges, 0 0 transparent);
@@ -335,7 +335,7 @@
 .th-card.missing .th-mark { color: var(--ink-soft); }
 
 .th-card.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), var(--lift-low), var(--edges, 0 0 transparent); }
-.th-card.in.sel { box-shadow: inset 3px 0 0 var(--th-edge, var(--hue)), 0 0 0 2px var(--accent), var(--lift-low), var(--edges, 0 0 transparent); }
+.th-card.in.sel { box-shadow: inset 3px 0 0 var(--th-edge, var(--hue)), 0 0 0 2px var(--accent), var(--lift-low), var(--edges, 0 0 transparent); } /* impeccable-disable-line side-tab -- Adam's ruling, 22 November 2026 (by dialog, user confirmed): the line down a statement card's left edge inside a PET stays, a colour code in the group's tint and not a selected row's side bar, though the checker reads a stock side stripe */
 /* Motion, in the register of the Finder and the iOS home screen, clearly there and never bouncy or
    slow: a card or a theme picked up lifts, four per cent and a deep shadow over 120 ms, everything
    that moves leans up to six degrees into the way it travels and stands up when he stops, what came
@@ -345,7 +345,7 @@
    the transform properties alone, and the reduced motion setting takes it all away. */
 .th-card.dragging, .th-label.dragging { pointer-events: none; scale: 1.04; }
 .th-card.dragging, .th-card.landing { box-shadow: var(--lift-high), var(--edges, 0 0 transparent); }
-.th-card.in.dragging, .th-card.in.landing { box-shadow: inset 3px 0 0 var(--th-edge, var(--hue)), var(--lift-high), var(--edges, 0 0 transparent); }
+.th-card.in.dragging, .th-card.in.landing { box-shadow: inset 3px 0 0 var(--th-edge, var(--hue)), var(--lift-high), var(--edges, 0 0 transparent); } /* impeccable-disable-line side-tab -- Adam's ruling, 22 November 2026 (by dialog, user confirmed): the line down a statement card's left edge inside a PET stays, a colour code in the group's tint and not a selected row's side bar, though the checker reads a stock side stripe */
 .th-label.dragging, .th-label.landing { box-shadow: var(--lift-high); }
 .th-card.trailing, .th-label.trailing {
   transition: box-shadow .14s, border-color .14s, scale .12s ease-out, rotate .16s ease-out, translate 140ms ease-out;

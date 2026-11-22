@@ -76,7 +76,7 @@ a token block, when a `var(--name)` names nothing, and when a row below disagree
 | `--focus` | `0 0 0 3px var(--crux)` | The focus ring, the solid crux, 3 to 1 or more on paper, card and sunk paper in both themes (WCAG 1.4.11, 8 November) |
 | `--focus-small` | `0 0 0 2px var(--crux)` | The focus ring on a small control |
 | `--tick-wash` | `color-mix(in srgb, var(--ink) 7%, transparent)` | The wash under a tick's row |
-| `--sel-wash` | `color-mix(in srgb, var(--crux) 11%, transparent)` | The chosen row of a list, the same tint in every list: a search's result in focus, the Code list's open code, Sift's record, a revision in History, a GET table's row and Settings' chosen category in its side list, never a bar down the row's left (designfix, 22 November 2026, Adam) |
+| `--sel-wash` | `color-mix(in srgb, var(--crux) 11%, transparent)` | The chosen row of a list, the same tint in every list: a search's result in focus, the Code list's open code, Sift's record, a revision in History, a GET table's row and Settings' chosen category in its side list, never a bar down the row's left, which a colour code's edge is not: a key quote's stripe, Sift's suggestion's stripe and the line down a statement card's left edge in a PET are kept by Adam (designfix, 22 November 2026, Adam) |
 | `--row-hover` | `color-mix(in srgb, var(--paper-sunk) 45%, transparent)` | The row under the pointer in those same lists, a fainter ground than the chosen row's so the two never read alike (designfix2: the sunk paper was 1.02:1 against the tint on a light card); in a chosen row the faint ink takes `--ink-soft`, since `--ink-faint` on the tint falls under 4.5:1 |
 | `--sf-reject` | `var(--danger)` | The old name of `--danger`, until its last use goes |
 | `--sf-excerpt` | `var(--excerpt)` | The old name of `--excerpt` |
@@ -93,7 +93,7 @@ a token block, when a `var(--name)` names nothing, and when a row below disagree
 | `--sans` | `"Avenir Next", "Avenir", "Gill Sans", "Gill Sans MT", "Segoe UI", system-ui, sans-serif` | Everything else |
 | `--mono` | `"SF Mono", ui-monospace, Menlo, Consolas, monospace` | Timecodes, keys and counts |
 | `--hand` | `"Bradley Hand", "Noteworthy", "Segoe Print", "Segoe Script", "Comic Sans MS", cursive` | A sticky note's words |
-| `--fs-label` | `10.5px` | A tracked capital label |
+| `--fs-label` | `10.5px` | A tracked capital label, kept at 10.5px by Adam on 22 November 2026 although the design checker's floor for interface text is 11px |
 | `--fs-small` | `11.5px` | Small print |
 | `--fs-ui` | `12.5px` | Controls and bars |
 | `--fs-body` | `13.5px` | Cards and panels |
@@ -209,6 +209,8 @@ Table and the underline of its title in the audit trail (17 October).
   their place in the passage's list, statement 1 keeping the crux orange (18 October, Adam's ruling),
   each wash its colour's bright tint at the lightness and strength of Excel's orange, as statement 1's
   wash is Excel's orange under the deeper crux rule.
+  The key quote's stripe in its statement's colour stays as drawn (Adam, 18 October, area 187), and on 22 November 2026 he kept it again by dialog although the design checker reads it as a stock side stripe; the checker's finding is waived beside each rule, and that stripe is a colour code, not the selected row's side bar.
+  Sift's suggestion keeps its stripe in its decision's colour (Adam's dialog of 14 October, area 138), and a statement card inside a PET keeps the line down its left edge in the group's tint (`.th-card.in`); on 22 November 2026 Adam kept both by dialog although the checker reads them as a stock pattern, and neither is the selected row's side bar.
   Each mark's rule reads at 4.5 to 1 or more on paper and sunk paper, each dot's number in the card's
   paper at 4.7 or more, and the words on every statement's wash at least as well as on the crux's in
   the same theme. Words two statements share keep the first's wash and take both rules, the second's

@@ -1010,7 +1010,7 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 #work.quotes-folded .pair.kq-filled:not(.kq-open) .pair-take,
 #work:not(.quotes-folded) .pair.kq-filled.kq-shut .pair-kq { display: none; }
 #work:not(.quotes-folded) .pair.kq-filled.kq-shut .pair-kq-line {
-  display: block; min-width: 0; padding: 7px 9px; border: 1px solid var(--rule); border-left: 3px solid var(--es);
+  display: block; min-width: 0; padding: 7px 9px; border: 1px solid var(--rule); border-left: 3px solid var(--es); /* impeccable-disable-line side-tab -- Adam's ruling, 22 November 2026 (by dialog, user confirmed): the key quote's stripe in its statement's colour stays, his choice from a drawing on 18 October 2026 (area 187), though the checker reads a stock side stripe */
   border-radius: 3px; background: var(--card); font-family: var(--serif); font-size: 15.5px; line-height: 1.45;
   color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
 }

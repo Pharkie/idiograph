@@ -8839,6 +8839,15 @@ def api_crux(body: dict) -> dict:
                                 op=body.get("op"))
 
 
+def held_sheet(path: Path, ws, cols: dict) -> None:
+    """The sheet an edit just saved, handed to the read that follows (`themes.hold_sheet`). It never fails the edit,
+    which is written: a seed that failed means the next read loads the sheet (perfgets)."""
+    try:
+        themes_mod.hold_sheet(path, ws, cols)
+    except Exception:  # noqa: BLE001
+        themes_mod.SHEET_HELD.clear()
+
+
 def api_edit_turn(body: dict) -> dict:
     """Correct the text of one turn, in the transcript cell itself, and its timecode with it.
 
@@ -8876,7 +8885,10 @@ def api_edit_turn(body: dict) -> dict:
         copies = (result.get("followed") or ({}, []))[0]
     else:
         with writing(path, root=project_root(path)):
-            result = wb_mod.edit_turn(path, sheet, row, body.get("text"), body.get("timecode"), follow=follow)
+            # the sheet as saved is handed to the read of the copies' spans that follows, which loads the workbook
+            # no second time (perfgets, 22 November 2026)
+            result = wb_mod.edit_turn(path, sheet, row, body.get("text"), body.get("timecode"), follow=follow,
+                                      saved=lambda ws, cols: held_sheet(path, ws, cols))
             if result["changed"]:
                 progress = rounds_mod.load_progress(path)
                 record = rounds_mod.record_edit(progress, sheet, row, result["old"], result["text"],

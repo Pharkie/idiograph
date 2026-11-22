@@ -83,6 +83,33 @@
         ],
         "createdAt": "2026-11-22T13:59:05.383Z",
         "reason": "False positive: the page has no em dash; the scan counts the two hyphens of each CSS custom property's name (--paper, --ink and so on) in the swatches' code, 56 of them (designsweep, 22 November 2026)"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "family/static/design.html"
+        ],
+        "createdAt": "2026-11-22T15:14:51.411Z",
+        "reason": "Adam's ruling, 22 November 2026 (by dialog, user confirmed): the /design page's samples show the key quote's stripe in its statement's colour (his choice from a drawing on 18 October 2026, area 187) and the app-drawn tick and dash inside a tick box; the colour code's edge stays, and the tick is not a bar down a side (edgesok)"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "apps/sift/static/sift.html"
+        ],
+        "createdAt": "2026-11-22T15:14:51.429Z",
+        "reason": "Adam's ruling, 22 November 2026 (by dialog, user confirmed): Sift's suggestion stripe in its decision's colour stays (his dialog of 14 October 2026, area 138); the scan of the page reads it as a stock side stripe (edgesok)"
+      },
+      {
+        "rule": "undersized-ui-text",
+        "value": "*",
+        "files": [
+          "family/static/design.html"
+        ],
+        "createdAt": "2026-11-22T15:15:02.961Z",
+        "reason": "Adam's ruling, 22 November 2026 (by dialog, user confirmed): the label step, --fs-label at 10.5px, stays although the checker's floor is 11px; the findings are the tags and sample labels of the /design page set at that step. The rule has no extractable value, so it is scoped to this one file (edgesok)"
       }
     ]
   }

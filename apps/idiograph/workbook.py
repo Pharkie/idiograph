@@ -1122,7 +1122,7 @@ def rewrite_transcript(cell, new: str) -> list[str]:
 
 
 def edit_turn(path: Path, sheet: str, row: int, text: str, typed: str | None = None, dry: bool = False,
-              form: str | None = None, follow=None) -> dict:
+              form: str | None = None, follow=None, saved=None) -> dict:
     """Rewrite one row's transcript text, keeping the cell and re-keying its highlights.
 
     The transcript is a transcript and carries slips. This writes the corrected text into the same
@@ -1142,6 +1142,9 @@ def edit_turn(path: Path, sheet: str, row: int, text: str, typed: str | None = N
     by its row and every timed row of the sheet by its seconds before, as `shift_times` gives them, for the copies
     of the participant's statements to work out their new times (spanfollow, 16 November 2026); what it answers is
     the answer's `followed`, and anything it raises leaves the workbook as it was.
+
+    `saved`, when the workbook was written, is called with the sheet as it now stands in memory and its columns, for a
+    reader of that sheet to be handed the cells without reading the file again (perfgets, 22 November 2026).
     """
     path = Path(path)
     form = form or timecodes_for(path)
@@ -1189,6 +1192,8 @@ def edit_turn(path: Path, sheet: str, row: int, text: str, typed: str | None = N
         changed = text_changed or time_changed
         if changed and not dry:
             _atomic_save(wb, path)
+            if saved is not None:
+                saved(ws, cols)
         seconds = ts_seconds(ws.cell(row, cols["ts"]).value) if "ts" in cols else None
         return {"sheet": sheet, "row": row, "old": old, "changed": changed,
                 "text": plain_text(cell.value), "runs": cell_runs(cell.value), "dropped": dropped,

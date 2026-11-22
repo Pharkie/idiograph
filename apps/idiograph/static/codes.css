@@ -111,7 +111,7 @@
 .turn-text .cx-pn::after { content: attr(data-n); }
 .cx-body { min-width: 0; }
 .cx-label { display: block; margin: 2px 0 6px; font-size: 10.5px; }
-.cx-quote { margin: 0; padding: 6px 9px 6px 8px; border-left: 3px solid var(--es); font-family: var(--serif);
+.cx-quote { margin: 0; padding: 6px 9px 6px 8px; border-left: 3px solid var(--es); font-family: var(--serif); /* impeccable-disable-line side-tab -- Adam's ruling, 22 November 2026 (by dialog, user confirmed): the key quote's stripe in its statement's colour stays, his choice from a drawing on 18 October 2026 (area 187), though the checker reads a stock side stripe */
   font-size: 15.5px; line-height: 1.45; color: var(--ink); background: var(--paper); border-radius: 0 3px 3px 0; overflow-wrap: anywhere; }
 .cx-codes-label { display: block; margin: 10px 0 6px; font-size: 10.5px; }
 .cx-chips { display: flex; flex-wrap: wrap; gap: 6px; }

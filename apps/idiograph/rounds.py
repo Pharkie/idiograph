@@ -143,8 +143,16 @@ def save_progress(workbook: Path, data: dict) -> None:
     wb_mod.boards_pass_check(workbook)
     path = progress_path(workbook)
     path.parent.mkdir(parents=True, exist_ok=True)
+    text = json.dumps(data, indent=1, ensure_ascii=False)
+    # a file that already holds these very words is left as it is, so a save that changes nothing writes nothing
+    # (perfgets, 22 November 2026: every passage saved rewrote the whole file, 177 KB on a long study)
+    try:
+        if path.read_bytes() == text.encode("utf-8"):
+            return
+    except OSError:
+        pass
     tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8", newline="\n")
+    tmp.write_text(text, encoding="utf-8", newline="\n")
     os.replace(tmp, path)
 
 

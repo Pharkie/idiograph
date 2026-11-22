@@ -132,9 +132,11 @@ import board_history
 import formats
 import i18n
 from workbook import (WorkbookError, detect_columns, guard_place, interviewer_name, note_written, quote_entries,
-                      quote_pieces, quote_reach, quote_turns, split_entries, time_span, timecode, timecodes_for,
+                      quote_pieces, quote_reach, quote_turns, split_entries, time_span, timecode, timecodes_at, timecodes_for,
                       ts_seconds)
+from workbook import plain_text
 from workbook import whole as whole_book
+from openpyxl.cell.rich_text import CellRichText
 
 SCHEMA = 2
 # A board's id is the file's own and never shown. The first is `v1`, from the time the boards were
@@ -834,6 +836,43 @@ def row_spread(workbook: Path, sheet: str, row: int, said: list, form: str) -> d
 SHEET_HELD: dict = {}
 
 
+def sheet_held_key(workbook: Path, sheet: str) -> tuple | None:
+    """What `SHEET_HELD` keeps a sheet under: the workbook's path, time and size and the sheet's name."""
+    try:
+        info = Path(workbook).stat()
+        return (str(Path(workbook).resolve()), info.st_mtime_ns, info.st_size, str(sheet))
+    except OSError:
+        return None
+
+
+def sheet_cells(ws, cols: dict, saved: bool = False) -> tuple:
+    """A transcript sheet's turns and its statement and quote cells by row, as `sheet_spreads` keeps them. `saved`
+    reads a sheet in memory as it was written, where a rich text cell is its plain words and a formula, which a read of
+    the file's values gives as nothing (the file holds no value for one it has not calculated), is nothing."""
+    width = max(cols.values())
+    spoken, cells = [], {}
+    for r, values in enumerate(ws.iter_rows(min_row=2, max_col=width, values_only=True), start=2):
+        values = tuple(values) + (None,) * (width - len(values))
+        if saved:
+            values = tuple(None if isinstance(v, str) and v.startswith("=") else
+                           plain_text(v) if isinstance(v, CellRichText) else v for v in values)
+        spoken.append(spoken_turn(values, cols, r))
+        cells[r] = (values[cols["es"] - 1], values[cols["kq"] - 1] if "kq" in cols else None)
+    return spoken, cols, cells
+
+
+def hold_sheet(workbook: Path, ws, cols: dict) -> None:
+    """A sheet just saved, held as `sheet_spreads` would read it from the file, from the worksheet in memory, so the
+    read that follows a passage's correction takes its cells from here and loads the workbook no second time
+    (perfgets, 22 November 2026). A sheet that is not a transcript sheet is not held."""
+    held_key = sheet_held_key(workbook, ws.title)
+    if held_key is None or not {"name", "ts", "transcript", "es"} <= set(cols):
+        return
+    spoken, cols, cells = sheet_cells(ws, cols, saved=True)
+    SHEET_HELD.clear()
+    SHEET_HELD[held_key] = (spoken, cols, cells)
+
+
 def sheet_spreads(workbook: Path, sheet: str, rows, form: str) -> dict:
     """The quotes of several passages as a fresh read places them, from one read of the sheet (lowsE, 21 November
     2026: a words edit re-reads every line of a copy that may take in the passages beside its own, and one read of
@@ -842,11 +881,7 @@ def sheet_spreads(workbook: Path, sheet: str, rows, form: str) -> dict:
     passages beside its own by its key with `time`, `span` and `rows` (see `row_spread`). A sheet with no statements
     answers nothing. The sheet's cells are held for the next call while the workbook is unchanged."""
     workbook = Path(workbook)
-    try:
-        info = workbook.stat()
-        held_key = (str(workbook.resolve()), info.st_mtime_ns, info.st_size, str(sheet))
-    except OSError:
-        held_key = None
+    held_key = sheet_held_key(workbook, sheet)
     got = SHEET_HELD.get(held_key) if held_key is not None else None
     if got is None:
         try:
@@ -863,13 +898,7 @@ def sheet_spreads(workbook: Path, sheet: str, rows, form: str) -> dict:
                 if not {"name", "ts", "transcript", "es"} <= set(cols):
                     got = ([], {}, {})
                 else:
-                    width = max(cols.values())
-                    spoken, cells = [], {}
-                    for r, values in enumerate(ws.iter_rows(min_row=2, max_col=width, values_only=True), start=2):
-                        values = tuple(values) + (None,) * (width - len(values))
-                        spoken.append(spoken_turn(values, cols, r))
-                        cells[r] = (values[cols["es"] - 1], values[cols["kq"] - 1] if "kq" in cols else None)
-                    got = (spoken, cols, cells)
+                    got = sheet_cells(ws, cols)
         finally:
             book.close()
         if held_key is not None:

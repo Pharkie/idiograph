@@ -189,7 +189,7 @@
 /* the suggestion, edged in its decision's colour, under its title, the sparkles before an AI's (14 October) */
 .sf-proposal {
   --sf-prop: var(--rule-firm);
-  border: 1px solid var(--rule); border-left: 4px solid var(--sf-prop); border-radius: 4px;
+  border: 1px solid var(--rule); border-left: 4px solid var(--sf-prop); border-radius: 4px; /* impeccable-disable-line side-tab -- Adam's ruling, 22 November 2026 (by dialog, user confirmed): Sift's suggestion stripe in its decision's colour stays, his dialog of 14 October 2026 (area 138), though the checker reads a stock side stripe */
   background: var(--card); padding: 10px 14px; margin: 0 0 18px;
 }
 .sf-proposal[data-decision="include"] { --sf-prop: var(--good); }
