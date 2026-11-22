@@ -54,8 +54,8 @@ def test_site_whats_new():
           no_menu)
     marked = {n: re.findall(r'href="([a-z-]+\.html)" aria-current="page"', (site / n).read_text(encoding="utf-8"))
               for n in with_nav}
-    check("each page marks itself in the nav, the home page, the manual and the join page none",
-          all(v == ([] if n in ("index.html", sw.MANUAL, "join.html") else [n]) for n, v in marked.items()), marked)
+    check("each page marks itself in the nav, the home page, the manual, the join page and the signing page none",
+          all(v == ([] if n in ("index.html", sw.MANUAL, "join.html", "signing.html") else [n]) for n, v in marked.items()), marked)
 
     dl = (site / "download.html").read_text(encoding="utf-8")
     others = [n for n in with_nav if n != "download.html"]
@@ -141,6 +141,14 @@ def test_site_whats_new():
     check("no served page carries a comment, but the join page's, which says why it must never read the address",
           all("<!--" not in t for p, t in files.items() if p.name != "join.html"))
     test_site_join(files, site)
+    sg = (site / "signing.html").read_text(encoding="utf-8") if (site / "signing.html").is_file() else ""
+    check("the code signing policy page (signprep, 21 November 2026) carries SignPath's line, names the three roles, "
+          "is linked from the home and Download pages and loads nothing from another site",
+          "Free code signing provided by" in sg and "certificate by" in sg and "SignPath Foundation" in sg
+          and all(w in sg for w in ("Authors", "Reviewers", "Approvers", "Privacy"))
+          and all('href="signing.html"' in (site / n).read_text(encoding="utf-8") for n in ("index.html", "download.html"))
+          and not re.search(r'<(script|img|iframe|link)[^>]+(src|href)="https?://', sg.replace('rel="icon"', "")),
+          "signing.html")
     test_site_manual()
     test_site_release()
 

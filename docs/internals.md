@@ -470,28 +470,29 @@ item that starts a line, so the row wraps cleanly at any width. Open source, No 
 since 5 November, `.lp-rest`, its spans each after the first with an inline dot of its own, so the row wraps as two
 groups and never leaves a word alone (homehead).
 
-**The Ko-fi button** (22 October, Ko-fi's own artwork since that evening, Adam's ask). Since 17 November (demotext, Adam) the head's line reads only Free, Open source, No cloud and Flexible, and the button and the link below sit together in `div.home-foot#home-foot`, the last thing in `#home-pick`, right-aligned in the column, 13px words on a 24px button and a 14px link (one step up): `#library` is a flex column at least the window tall, its body and the picker fill it, and the foot's auto top margin puts it at the window's foot where Home is short and after the last section where it is long, in the flow. It is on every app's Home: `a.kofi`, Ko-fi's button as its widget (`Widget_2.js`,
+**The Ko-fi button** (22 October, Adam's ask; since 21 November the cup is our own drawing, below). Since 17 November (demotext, Adam) the head's line reads only Free, Open source, No cloud and Flexible, and the button and the link below sit together in `div.home-foot#home-foot`, the last thing in `#home-pick`, right-aligned in the column, 13px words on a 24px button and a 14px link (one step up): `#library` is a flex column at least the window tall, its body and the picker fill it, and the foot's auto top margin puts it at the window's foot where Home is short and after the last section where it is long, in the flow. It is on every app's Home: `a.kofi`, Ko-fi's button as its widget (`Widget_2.js`,
 `kofiwidget2`) draws it, copied into the app, made about half its size and quieter on 26 October (Adam: too
 dominant as the only coloured thing on the page), 22px tall in place of 40. A pale wash of Ko-fi's blue
 `#72a4f2` (`--kofi`, `#E0E6F0` light, `#23272E` dark) with a 1px edge of the blue (`--kofi-edge`) in place of
 the shadow, its words "Support me on Ko-fi" in a deeper blue (`--kofi-ink`, `#2F5A9C` light, about 5.5 to 1,
 `#9EC0F5` dark) in Quicksand 700 at 11px, letter-spacing -0.1px, line-height 20px, padding 0 8px, radius 5px,
-opacity .85 on hover, its title "Support me on ko-fi.com". Before the words `img.kofi-cup`, the cup with the
-heart, 15 by 10 with 4px after it, alt "Ko-fi donations", which `kofi-wiggle`, Ko-fi's own keyframes, grows and
-rocks once every 3 seconds. The system's reduced motion stops it with every other animation (the
+opacity .85 on hover, its title "Support me on ko-fi.com". Before the words `svg.kofi-cup`, a cup with a
+heart drawn in the page as an inline SVG (viewBox 20 by 14, 1.4 stroke, round, the cup in the button's own ink through
+`currentColor`, its heart `.kofi-heart` filled `#E5534B`), 15 by 10 with 4px after it, `aria-label` "Ko-fi donations", which `kofi-wiggle` grows and
+rocks once every 3 seconds. The artwork Ko-fi supplies (`cup-border.png`) is Ko-fi's, not under the AGPL, and SignPath's terms bar what is not open
+source, so it was dropped on 21 November (train signprep) and the file and its NOTICE line removed. The system's reduced motion stops it with every other animation (the
 `prefers-reduced-motion` block at the foot of `style.css`). A plain link to Adam's Ko-fi page with `target="_blank"`, which the
 window opens in the system's browser as it does About's address. No script or frame from Ko-fi and nothing
 fetched from Ko-fi, Google Fonts or a CDN: the page holds the local API to the participants' files, so the
-artwork and the face are files of the app's own, which `packaging/build_mac.py` names in `FAMILY_VENDORED`:
+face is a file of the app's own, which `packaging/build_mac.py` names in `FAMILY_VENDORED`:
 
 | File | Source | Version, date |
 | --- | --- | --- |
-| `family/static/vendor/kofi/cup-border.png` (285 by 229) | `https://storage.ko-fi.com/cdn/cup-border.png`, Ko-fi's artwork | Last-Modified 18 Nov 2024, fetched 22 Oct 2026, sha256 `36c6b7a7...ca2c33` |
 | `family/static/vendor/quicksand/quicksand-latin-700-normal.woff2` | `https://cdn.jsdelivr.net/npm/@fontsource/quicksand@5.3.0/files/quicksand-latin-700-normal.woff2` | Fontsource 5.3.0 (19 Jul 2026), fetched 22 Oct 2026, sha256 `00bfba44...b28ae7` |
 | `family/static/vendor/quicksand/OFL-quicksand.txt` | `https://cdn.jsdelivr.net/npm/@fontsource/quicksand@5.3.0/LICENSE`, SIL OFL 1.1 | as the face |
 
 `style.css` declares the face with `@font-face` (`font-display: swap`, Latin only, the button's words being
-Latin). `NOTICE.md` credits both. Under 560px the item takes its own line and the next item drops its dot.
+Latin). `NOTICE.md` credits it. Under 560px the item takes its own line and the next item drops its dot.
 
 **Support Idiograph** (supportcard, 28 October 2026, Adam's wording 1 of that day's Section 17, the drawing
 `support-plan.md` in the harness's history). Three ways in to one card, `#support` in the family's `page.html`
@@ -836,7 +837,10 @@ Unsigned, SmartScreen says "Windows protected your PC", and More info, Run anywa
 installer, once. `--sign-sha1` with a certificate's thumbprint signs both executables with signtool,
 `SIGNTOOL` the one place, and has Tauri sign the window and the installer with the same certificate. It
 needs a code-signing certificate from a certificate authority, or Azure Trusted Signing, in the store of
-the machine that builds, and on GitHub's machine a secret to bring it there.
+the machine that builds, and on GitHub's machine a secret to bring it there. The other way, SignPath
+Foundation's (signprep, 21 November 2026), signs in the cloud and a person approves each request, so
+`--stage freeze`, `pack` and `finish` cut the build round two requests, behind the repository variable
+`SIGNPATH_ENABLED` (off): `docs/signing.md` says how it works and what turns it on.
 `python3 packaging/build_windows.py --dry-run` on any machine writes the spec and the settings laid over
 `tauri.conf.json` into `build/` and says every step without running one.
 

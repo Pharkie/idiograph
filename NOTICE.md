@@ -16,7 +16,6 @@ Idiograph is written in Python and runs in a browser. Beyond Python's standard l
 - Typst 0.15.1, by Typst GmbH and its contributors, under the Apache License 2.0, to typeset every PDF and picture of a print view. The installed app carries it built into a small program of its own beside the server, and a run from source uses typst-py, by messense, under the Apache License 2.0, which carries the same version.
 - Charis SIL, by SIL International, and Nunito Sans, by the Nunito Sans Project Authors, both under the SIL Open Font License 1.1, the fonts of every print view and PDF. Their Latin files ship in `static/fonts/` with each licence beside them, `OFL-CharisSIL.txt` and `OFL-NunitoSans.txt`.
 - The REFI-QDA project schema, `Project.xsd` of QDA-XML 1.0 (18 March 2019), by the REFI-QDA working group, as the openqda project's refi-tools publish it under the GNU Affero General Public License version 3. A copy in `tests/refi-qda/` checks the REFI-QDA projects Idiograph writes. The app itself does not ship it.
-- The Ko-fi cup, Ko-fi's own artwork for its button, the cup with a heart, kept in `static/vendor/kofi/` so the button on each Home is Ko-fi's without loading anything from Ko-fi. The Ko-fi name and cup are Ko-fi Labs' and are not under this licence.
 
 The pictures a participant can be given, in `static/faces/`, are two sets, each drawn again in black and white by a script in `packaging/` that fetched them once:
 

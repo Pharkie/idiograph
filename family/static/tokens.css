@@ -52,6 +52,7 @@
   --kofi:        #E0E6F0;
   --kofi-ink:    #2F5A9C;
   --kofi-edge:   #72A4F266;
+  --kofi-heart:  #E5534B;
   /* how much of its bright tint the wash under a statement's key quotes in the transcript takes, at
      rest and lit, for statements 2 to 6, the first keeping the crux's wash, so the words on it read
      at least as well as on the crux's in the same theme (18 October) */
@@ -141,6 +142,7 @@
   --kofi:        #23272E;
   --kofi-ink:    #9EC0F5;
   --kofi-edge:   #72A4F255;
+  --kofi-heart:  #E5534B;
   --rest:      0 1px 2px rgba(0,0,0,.4);
   --lift-low:  0 6px 18px rgba(0,0,0,.35);
   --lift:      0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
@@ -186,6 +188,7 @@
     --kofi:        #23272E;
     --kofi-ink:    #9EC0F5;
     --kofi-edge:   #72A4F255;
+    --kofi-heart:  #E5534B;
     --rest:      0 1px 2px rgba(0,0,0,.4);
     --lift-low:  0 6px 18px rgba(0,0,0,.35);
     --lift:      0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);

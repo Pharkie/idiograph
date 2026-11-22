@@ -43,7 +43,13 @@ apps carry the same code and the same demo. GitHub's Windows machine runs it fro
 4. Signing, in one place, SIGNTOOL: with `--sign-sha1`, the thumbprint of a code-signing
    certificate in this machine's store, signtool from the Windows SDK signs both executables, and
    Tauri the window and the installer with the same certificate. Without it the build says in one
-   line that it is unsigned, and SmartScreen asks once before the installer runs.
+   line that it is unsigned, and SmartScreen asks once before the installer runs. The other way, SignPath
+   Foundation's (21 November 2026, docs/signing.md), signs in the cloud after a build and a person approves each
+   request, so the build is cut in stages: `--stage freeze` stops with the four programs to sign (the server's
+   three and the window's) in `build\\signpath\\unsigned`, `--stage pack` puts the signed ones back and makes
+   the installer, and `--stage finish` puts the signed installer in `dist`. The workflow runs them with
+   SignPath's two requests between, only where its SIGNPATH_ENABLED variable is `true`; otherwise it runs
+   `--stage all`, the one run it always was.
 5. `dist\\Idiograph-Setup.exe`, Tauri's NSIS installer (`packaging/tauri/bundle.py`, 17 October, the
    third Tauri build, in place of Inno Setup's): the window with the server beside it as `server\\`,
    installed for the current user alone, in `%LOCALAPPDATA%\\Idiograph`, with no administrator prompt,
@@ -120,6 +126,13 @@ ICO_SIZES = (16, 24, 32, 48, 64, 128, 256)
 # store of the machine that builds, and on GitHub's machine a secret to bring it there. Tauri signs
 # the window and the installer with the same thumbprint (`window.overrides`)
 SIGNTOOL = ("{signtool} sign /sha1 {sha1} /fd sha256 /tr http://timestamp.digicert.com /td sha256 $f")
+
+
+# SignPath's flow (docs/signing.md): the folders under build\\signpath the workflow's steps hand files through, the
+# unsigned programs in `server\\` (the frozen folder's three) and `window\\` (the one Tauri compiled), the signed
+# ones the action brings back in the same layout, and the installer the same way
+SIGNPATH = "signpath"
+STAGES = ("all", "freeze", "pack", "finish")
 
 
 def names(app: str = app_identity.DEFAULT) -> dict:
@@ -335,6 +348,71 @@ def sign_files(command: str, files: list[Path]) -> None:
         subprocess.run(command.replace("$f", f'"{path}"'), check=True, shell=False)
 
 
+# ── 4b. SignPath's stages ─────────────────────────────────────────────────────────────────────
+
+def signpath_folder(build: Path, kind: str) -> Path:
+    """`unsigned`, `signed`, `installer-unsigned` or `installer-signed`, under build\\signpath."""
+    return build / SIGNPATH / kind
+
+
+def programs_to_sign(build: Path, frozen: Path, app: str) -> dict[Path, Path]:
+    """Where each program SignPath signs stands now and where it goes in `unsigned`: the server's three, the
+    windowed one, its console twin and the typesetter, from the frozen folder to `server\\`, and the window Tauri
+    compiled, build\\target\\release\\<name>.exe, to `window\\`."""
+    named, out = names(app), signpath_folder(build, "unsigned")
+    server = [named["windowed"], named["console"], typeset_helper.exe_name(True)]
+    found = {frozen / n: out / "server" / n for n in server}
+    found[build / "target" / "release" / f"{named['name']}.exe"] = out / "window" / f"{named['name']}.exe"
+    return found
+
+
+def collect_unsigned(build: Path, frozen: Path, app: str) -> list[Path]:
+    """The programs to sign copied into `unsigned`, which is made new, and answers them."""
+    out = signpath_folder(build, "unsigned")
+    shutil.rmtree(out, ignore_errors=True)
+    mine = []
+    for src, dest in programs_to_sign(build, frozen, app).items():
+        if not src.is_file():
+            raise SystemExit(f"{src} is not there to sign.")
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src, dest)
+        mine.append(dest)
+    return mine
+
+
+def authenticode_status(path: Path) -> str:
+    """What Get-AuthenticodeSignature says of a file: Valid, NotSigned, HashMismatch and the rest."""
+    done = subprocess.run(["powershell", "-NoProfile", "-Command",
+                           f"(Get-AuthenticodeSignature -LiteralPath '{path}').Status"],
+                          capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+    return done.stdout.strip()
+
+
+def take_signed(build: Path, frozen: Path, app: str) -> list[Path]:
+    """Each signed program SignPath brought back put where its unsigned one stood: in the frozen folder, in the
+    staged copy of it Tauri packs (build\\tauri\\build\\tauri-server) and in the compiled window's place. A file
+    that is missing or not signed stops the build, so an installer is never packed round an unsigned program."""
+    signed, unsigned = signpath_folder(build, "signed"), signpath_folder(build, "unsigned")
+    staged = build / "tauri" / "build" / "tauri-server"
+    done = []
+    for src, kept in programs_to_sign(build, frozen, app).items():
+        rel = kept.relative_to(unsigned)
+        have = signed / rel
+        if not have.is_file():
+            raise SystemExit(f"SignPath brought back no {rel}, looked for it in {signed}.")
+        status = authenticode_status(have)
+        if status != "Valid":
+            raise SystemExit(f"{rel} came back from SignPath with the signature status {status or 'unknown'}, not Valid.")
+        targets = [src] + ([staged / rel.name] if rel.parts[0] == "server" else [])
+        for target in targets:
+            if not target.parent.is_dir():
+                raise SystemExit(f"{target.parent} is not there to put {rel} in.")
+            shutil.copyfile(have, target)
+        done.append(have)
+    say(f"Put {len(done)} signed programs back where the unsigned ones were")
+    return done
+
+
 # ── 5. the installer ──────────────────────────────────────────────────────────────────────────
 
 def version_info(version: str) -> str:
@@ -443,6 +521,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--sign-sha1", help="the thumbprint of the code-signing certificate to sign with")
     ap.add_argument("--test-app", action="store_true", help="the test app, Idiograph Test, for a check")
     ap.add_argument("--dry-run", action="store_true", help="write the spec and Tauri's settings, say every step, run none")
+    ap.add_argument("--stage", default="all", choices=STAGES,
+                    help="all, the whole build, the default; freeze, up to the programs SignPath signs; pack, from "
+                         "the signed ones to the installer; finish, the signed installer into dist (docs/signing.md)")
+    ap.add_argument("--print-version", action="store_true",
+                    help="print the app's version, its four-number form and its name as SignPath's parameters, and build nothing")
     ap.add_argument("--scan", action="store_true", help="after a build, scan what it made with Windows Defender")
     # a check's own release, for the test app alone (18 October, the fourth Tauri build), as build_mac.py has
     ap.add_argument("--version", help="the test app's version, in place of its own in versions.json")
@@ -453,6 +536,12 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     if args.list:
         return build_mac.print_list(args.app, windows=True)
+    if args.print_version:
+        v = args.version or app_version(args.app)
+        print(f"SIGNPATH_VERSION={v}\nSIGNPATH_VERSION_FOUR={version_info(v)}\nSIGNPATH_PRODUCT={names(args.app)['name']}")
+        return 0
+    if args.stage != "all" and (args.sign_sha1 or args.test_app or args.dry_run or args.scan):
+        raise SystemExit("--stage freeze, pack and finish are SignPath's, never with --sign-sha1, --test-app, --dry-run or --scan.")
     if (args.version or args.whats_new or args.update_key or args.update_url) and not args.test_app:
         raise SystemExit("--version, --whats-new, --update-key and --update-url are for the test app alone.")
     if bool(args.update_key) != bool(args.update_url):
@@ -475,6 +564,34 @@ def main(argv: list[str] | None = None) -> int:
     conf = window.overrides(version, args.test_app, None, update, app)
     product = conf.get("productName", NAME)
     setup = dist / (f"{product}-Setup.exe" if args.test_app else f"{named['setup']}.exe")
+
+    if args.stage == "finish":
+        signed = signpath_folder(build, "installer-signed") / setup.name
+        if not signed.is_file():
+            raise SystemExit(f"SignPath brought back no {setup.name}, looked for it in {signed.parent}.")
+        status = authenticode_status(signed)
+        if status != "Valid":
+            raise SystemExit(f"{setup.name} came back from SignPath with the signature status {status or 'unknown'}, not Valid.")
+        shutil.copyfile(signed, setup)
+        say(f"Put the signed {setup} in {dist}, {size_mb(setup):.0f} MB")
+        return 0
+    if args.stage == "pack":
+        take_signed(build, frozen, app)
+        made = window.bundle(frozen, build, version, ["nsis"], app=app, phase="pack")
+        setup.unlink(missing_ok=True)
+        shutil.copyfile(installer_of(made, version), setup)
+        unsigned = signpath_folder(build, "installer-unsigned")
+        shutil.rmtree(unsigned, ignore_errors=True)
+        unsigned.mkdir(parents=True)
+        shutil.copyfile(setup, unsigned / setup.name)
+        # nothing the bundler did may have broken a signature: the window exe it patched and the server's programs it packed
+        broken = [p for p in (build / "target" / "release" / f"{names(app)['name']}.exe",
+                              *(build / "tauri" / "build" / "tauri-server" / p.name for p in programs_to_sign(build, frozen, app)
+                                if p.parent == frozen)) if authenticode_status(p) != "Valid"]
+        if broken:
+            raise SystemExit("The bundler left these without a Valid signature: " + ", ".join(str(p) for p in broken))
+        say(f"Built {setup} round the signed programs, {size_mb(setup):.0f} MB, for SignPath's second request")
+        return 0
 
     if args.dry_run:
         say(f"Dry run, on {sys.platform}: nothing is installed, frozen, signed or bundled.")
@@ -519,6 +636,17 @@ def main(argv: list[str] | None = None) -> int:
         sign_files(sign, [frozen / named["windowed"], frozen / named["console"], helper])
     typeset_helper.check(helper, typeset_helper.fonts_in(frozen))
     say(f"The typesetter is beside the server, {size_mb(helper):.1f} MB, and typeset a line")
+    if args.stage == "freeze":
+        # the window compiled alone, so its exe is there to sign with the server's: SignPath's first request
+        window.bundle(frozen, build, version, ["nsis"], app=app, phase="compile")
+        # `tauri bundle` patches the window exe's bundle-type marker in place (tauri-utils, unknown to NSIS), which
+        # would break a signature made before it. So the bundle is run once here, its installer thrown away, and the
+        # exe sent to be signed is one the marker is already patched in: the second run, in `pack`, finds nothing to patch
+        window.bundle(frozen, build, version, ["nsis"], app=app, phase="pack")
+        mine = collect_unsigned(build, frozen, app)
+        say(f"Built {frozen}, version {version}, {size_mb(frozen):.0f} MB, and {len(mine)} programs to sign in "
+            f"{signpath_folder(build, 'unsigned')}")
+        return 0
     made = window.bundle(frozen, build, version, ["nsis"], test=args.test_app,
                          windows_sign=args.sign_sha1 if sign else None, update=update,
                          whats_new=Path(args.whats_new).resolve() if args.whats_new else None, app=app)

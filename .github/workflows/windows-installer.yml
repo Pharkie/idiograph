@@ -23,6 +23,13 @@
 # and the run builds that app alone, Sift-Setup.exe, Sift.dmg and Sift.app.tar.gz on Sift's draft
 # release. By hand the app is chosen, Idiograph by default. packaging/release.py --which reads the tag,
 # so the rule from tag to app is written once.
+#
+# Signing by SignPath Foundation (21 November 2026, docs/signing.md) is built in and off. It is on only where the
+# repository variable SIGNPATH_ENABLED is `true` and the run is a tag's: the windows job then freezes the server and
+# compiles the window, sends those four programs to SignPath, packs the installer round the signed ones, sends the
+# installer, and carries on to Defender's scan and the upload as ever. Each of those steps is `if: env.SIGNING ==
+# 'true'`, and the build step's stage is `all`, the one run it always was, when the variable is unset. The secret is
+# SIGNPATH_API_TOKEN, the rest repository variables.
 name: Tests and installers
 
 on:
@@ -72,9 +79,15 @@ env:
 jobs:
   windows:
     runs-on: windows-latest
-    timeout-minutes: 75
+    # 75 minutes, and with signing on (a tag's run with SIGNPATH_ENABLED set) up to five hours, since a person approves each of its two requests
+    timeout-minutes: ${{ github.ref_type == 'tag' && vars.SIGNPATH_ENABLED == 'true' && 300 || 75 }}
+    # read-only, for the SignPath action to find the artifact it signs
+    permissions:
+      contents: read
+      actions: read
     env:
       INSTALLER: ${{ github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.installer) }}
+      SIGNING: ${{ github.ref_type == 'tag' && vars.SIGNPATH_ENABLED == 'true' }}
     steps:
       # the files as committed, as GitHub's zip gives them, never turned to CRLF by the runner's git
       - run: git config --global core.autocrlf false
@@ -116,9 +129,71 @@ jobs:
       # PyInstaller's waf finds through vswhere, so no compiler step is needed (22 October 2026). The
       # typesetter, packaging/tauri/typeset, is built by cargo beside the frozen server, signed with it (typst1)
       - if: env.INSTALLER == 'true'
-        run: python packaging/build_windows.py --app ${{ env.APP }}
+        run: python packaging/build_windows.py --app ${{ env.APP }} --stage ${{ env.SIGNING == 'true' && 'freeze' || 'all' }}
         env:
           IDIOGRAPH_TAURI_CLI: ${{ github.workspace }}\build\tauri-cli\node_modules\@tauri-apps\cli\tauri.js
+      # SignPath's flow, only with SIGNING on (docs/signing.md). The pinned action, from its tags, v3.2
+      - if: env.SIGNING == 'true'
+        name: SignPath, the parameters
+        shell: bash
+        run: python packaging/build_windows.py --app "$APP" --print-version >> "$GITHUB_ENV"
+      - if: env.SIGNING == 'true'
+        id: unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: signpath-unsigned
+          path: build/signpath/unsigned
+          if-no-files-found: error
+          retention-days: 3
+      - if: env.SIGNING == 'true'
+        name: SignPath, the server's three programs and the window
+        uses: signpath/github-action-submit-signing-request@v3.2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_CONFIG_SLUG }}
+          github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 7200
+          output-artifact-directory: build/signpath/signed
+          parameters: |
+            productName: ${{ env.SIGNPATH_PRODUCT }}
+            versionThree: ${{ env.SIGNPATH_VERSION }}
+            versionFour: ${{ env.SIGNPATH_VERSION_FOUR }}
+      - if: env.SIGNING == 'true'
+        name: The installer round the signed programs
+        run: python packaging/build_windows.py --app ${{ env.APP }} --stage pack
+        env:
+          IDIOGRAPH_TAURI_CLI: ${{ github.workspace }}\build\tauri-cli\node_modules\@tauri-apps\cli\tauri.js
+      - if: env.SIGNING == 'true'
+        id: installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: signpath-installer
+          path: build/signpath/installer-unsigned
+          if-no-files-found: error
+          retention-days: 3
+      - if: env.SIGNING == 'true'
+        name: SignPath, the installer
+        uses: signpath/github-action-submit-signing-request@v3.2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_INSTALLER_CONFIG_SLUG }}
+          github-artifact-id: ${{ steps.installer.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 7200
+          output-artifact-directory: build/signpath/installer-signed
+          parameters: |
+            productName: ${{ env.SIGNPATH_PRODUCT }}
+            versionThree: ${{ env.SIGNPATH_VERSION }}
+      - if: env.SIGNING == 'true'
+        name: The signed installer into dist
+        run: python packaging/build_windows.py --app ${{ env.APP }} --stage finish
       # Windows Defender on what the build made, where the machine has it on: a finding stops the run
       # with the file and the detection's name, before anything is uploaded (22 October 2026, after
       # Defender's Trojan:Win32/Bearfoos.x!ml on 0.9.3). A cloud !ml guess may not show here

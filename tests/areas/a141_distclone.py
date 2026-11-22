@@ -332,7 +332,7 @@ def test_distclone(scratch):
           and "runs-on: ubuntu-latest" in linux and "if: github.event_name == 'pull_request'\n" in linux
           and suite.count('python-version: "3.11"') == 1 == mac.count('python-version: "3.11"') == linux.count('python-version: "3.11"')
           and windows.count("timeout-minutes:") == 1 == mac.count("timeout-minutes:") == linux.count("timeout-minutes:")
-          and workflow.count("cache: pip") == 6 and "matrix" not in workflow and "secrets" not in workflow
+          and workflow.count("cache: pip") == 6 and "matrix" not in workflow and workflow.replace("secrets.SIGNPATH_API_TOKEN", "").count("secrets") == 0
           and workflow.count(f"python -m pip install --disable-pip-version-check {pin}") == 3
           and workflow.count("python tests/test_idiograph.py") == 3 and "git config --global core.autocrlf false" in suite
           and not support.source(".github/workflows/tests.yml").exists())

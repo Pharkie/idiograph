@@ -538,7 +538,7 @@ def test_wininstaller(scratch):
     windows = jobs.split("\n  mac-app:\n", 1)[0]
     installer = windows.split("# the installer", 1)[1] if "# the installer" in windows else ""
     release = jobs.split("\n  release:\n", 1)[1].split("\n  macos:\n", 1)[0] if "\n  release:\n" in jobs else ""
-    gated = [ln for ln in installer.splitlines() if ln.strip().startswith("- ")]
+    gated = [ln for ln in installer.splitlines() if ln.strip().startswith("- ") and "env.SIGNING" not in ln]  # SignPath's steps, off unless SIGNING, are signprep's (21 November 2026)
     mac_job = jobs.split("\n  mac-app:\n", 1)[1].split("\n  release:\n", 1)[0] if "\n  mac-app:\n" in jobs else ""
     check("142, updated 20 October (229): the installers are built by hand and on a version tag, never on a push to "
           "main, the Windows one after the suite on the same machine, on the Python the app carries, by Tauri's bundler",
@@ -568,5 +568,5 @@ def test_wininstaller(scratch):
           and '"$APP_NAME-Setup.exe" "$APP_NAME.dmg" "$APP_NAME.app.tar.gz"' in release
           and "contents: write" in release and "--draft" in release and "GH_TOKEN: ${{ github.token }}" in release
           and "\npermissions:\n  contents: read\n" in workflow and workflow.count("contents: write") == 1
-          and "secrets." not in workflow and "matrix" not in workflow)
+          and workflow.replace("secrets.SIGNPATH_API_TOKEN", "").count("secrets.") == 0 and "matrix" not in workflow)
 

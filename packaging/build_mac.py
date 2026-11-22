@@ -116,12 +116,11 @@ MODULES_BY_OWNER = {
 }
 # every module of every app, the family's first
 MODULES = tuple(name for names in MODULES_BY_OWNER.values() for name in names)
-# the third-party files the page loads from the app itself, never the web, each with its licence: Ko-fi's cup
-# and the Quicksand face of its button on each Home (22 October), the family's, and an app's own in
+# the third-party files the page loads from the app itself, never the web, each with its licence: the Quicksand
+# face of the Ko-fi button on each Home (22 October, its cup drawn by us in SVG since 21 November), the family's, and an app's own in
 # `app_identity.FILES`, Sift's Mermaid, which draws its PRISMA flow. They sit in a `static/vendor/` and ship with
 # `static/`, and a build without its own stops before it starts
-FAMILY_VENDORED = (Path("static") / "vendor" / "kofi" / "cup-border.png",
-                   Path("static") / "vendor" / "quicksand" / "quicksand-latin-700-normal.woff2",
+FAMILY_VENDORED = (Path("static") / "vendor" / "quicksand" / "quicksand-latin-700-normal.woff2",
                    Path("static") / "vendor" / "quicksand" / "OFL-quicksand.txt")
 # what no frozen server takes: typst-py is for a run from source alone, the frozen app typesetting with the
 # typesetter beside it (typst1, 9 November 2026, family/typeset.py)

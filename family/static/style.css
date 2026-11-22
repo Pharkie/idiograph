@@ -189,11 +189,11 @@ html[data-edition="preview"] .about-lockup.pe { --pe-size: 10px; --pe-drop: 5px;
   font-size: 15px; line-height: 1.5; width: fit-content; max-width: 100%; margin: 12px 0 0; color: var(--ink-soft);
   animation: rise .5s cubic-bezier(.2,.7,.3,1) both;
 }
-/* Adam's Ko-fi beside Free on each Home (22 October 2026): Ko-fi's own button as its widget draws it, in
-   Quicksand 700 with the cup with the heart that wiggles every 3 seconds. Since 26 October about half its size,
+/* Adam's Ko-fi beside Free on each Home (22 October 2026): a button in Ko-fi's look, in
+   Quicksand 700 with a cup with a heart drawn by us (an inline SVG, in the button's ink, its heart red), that wiggles every 3 seconds. Since 26 October about half its size,
    22px tall in place of 40, its words at 11px and the cup at 15 by 10, and quieter, a pale wash of Ko-fi's
    blue with a fine edge and deeper blue words, so it sits with the page rather than leading it (Adam: too
-   dominant as the only coloured thing on the page). The cup and the font are copied into vendor/, so nothing
+   dominant as the only coloured thing on the page). The font is copied into vendor/, so nothing
    is fetched from Ko-fi or a font service. The system's reduced motion stops the wiggle, as it stops every
    animation */
 @font-face { font-family: "Quicksand"; font-style: normal; font-weight: 700; font-display: swap;
@@ -206,6 +206,7 @@ html[data-edition="preview"] .about-lockup.pe { --pe-size: 10px; --pe-drop: 5px;
 .kofi:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .kofi-cup { display: inline; width: 18px; height: 12px; margin: 0 5px 2px 0; vertical-align: middle;
   animation: kofi-wiggle 3s infinite; }
+.kofi-heart { fill: var(--kofi-heart); stroke: none; }
 @keyframes kofi-wiggle {
   0%, 60% { transform: rotate(0) scale(1); }
   75% { transform: rotate(0) scale(1.12); }

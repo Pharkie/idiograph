@@ -240,8 +240,8 @@ def test_linux_release(scratch: Path):
     check("355: linux-server runs for a dispatch that asks for it alone, no longer on a tag, since linux-app repeats its smoke",
           "github.ref_type" not in server_job and "inputs.linux_server" in server_job
           and 'build_linux.py --app "$APP" --smoke' in server_job and 'build_linux.py --app "$APP" --smoke --window' in app_job)
-    check("355: the signing secret is still not in the workflow, the update files being signed on the maintainer's Mac alone",
-          "secrets." not in workflow and "TAURI_SIGNING" not in workflow and "createUpdaterArtifacts" not in workflow)
+    check("355: the update files' signing secret is still not in the workflow (SignPath's token is, signprep 21 November 2026), the update files being signed on the maintainer's Mac alone",
+          workflow.replace("secrets.SIGNPATH_API_TOKEN", "").count("secrets.") == 0 and "TAURI_SIGNING" not in workflow and "createUpdaterArtifacts" not in workflow)
 
     # ── E. the README's line
     readme = read(support.source("README.md"))

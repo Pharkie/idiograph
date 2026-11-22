@@ -247,7 +247,7 @@ def test_release(scratch):
           release.SECURITY[:2] == ["security", "find-generic-password"] and release.KEY_ITEM == "idiograph-update-key"
           and release.PASSWORD_ITEM == "idiograph-update-key-password" and "capture_output=True" in release_src
           and not re.search(r"print\([^)]*(blob|password|seed)", release_src) and "write_text(blob" not in release_src
-          and "TAURI_SIGNING_PRIVATE_KEY" not in release_src and "secrets." not in read(support.source(".github/workflows/windows-installer.yml")))
+          and "TAURI_SIGNING_PRIVATE_KEY" not in release_src and read(support.source(".github/workflows/windows-installer.yml")).replace("secrets.SIGNPATH_API_TOKEN", "").count("secrets.") == 0)
 
     # the upload, with a gh of the check's own that writes down what it is asked
     # its first argument the repository's state: "empty" with no commit (GitHub's 409), "readme" with one
@@ -544,6 +544,16 @@ echo "Your keypair was generated successfully"
           and window.build_command(["t"], ["app", "dmg"], Path("c.json"), True, ["drive"])
           == ["t", "build", "--bundles", "app,dmg", "--config", "c.json", "--target", "universal-apple-darwin", "--features", "drive"])
 
+    # SignPath's stages (signprep, 21 November 2026): the window compiled alone, then bundled as it stands, and
+    # the default phase untouched, which the check above holds
+    check("173: Tauri's command in SignPath's phases is build --no-bundle, then bundle, and a stage never goes with "
+          "a local certificate",
+          window.build_command(["t"], ["nsis"], Path("c.json"), False, [], "compile")
+          == ["t", "build", "--no-bundle", "--config", "c.json"]
+          and window.build_command(["t"], ["nsis"], Path("c.json"), False, [], "pack")
+          == ["t", "bundle", "--bundles", "nsis", "--config", "c.json"]
+          and "--stage freeze, pack and finish are SignPath's" in read(support.source("packaging/build_windows.py")))
+
     # ── E. what the second build's screenshots found, the parts that behave
     check("173: the server's queue of connections waiting to be taken is 128 long, where five let Windows refuse the "
           "burst two windows make reloading at once after a Restart, so a page came back without its script",
@@ -583,13 +593,20 @@ console.log(JSON.stringify(recentNames(list).map((r) => r.name)));
     on = main_yml.split("\non:\n", 1)[1].split("\npermissions:", 1)[0] if "\non:\n" in main_yml else ""
     release_job = jobs.split("\n  release:\n", 1)[1].split("\n  macos:\n", 1)[0] if "\n  release:\n" in jobs else ""
     check("173, updated 23 October: the suite runs on every pull request, never on a push to main, on Windows, a "
-          "Mac and Linux, never as pull_request_target, with no secret, and only the release on a tag may write",
+          "Mac and Linux, never as pull_request_target, with no secret but SignPath's, and only the release on a tag may write",
           "\n  pull_request:\n" in on and "pull_request_target" not in main_yml and "branches:" not in on
           and "\n  windows:\n" in jobs and "\n  macos:\n" in jobs and "\n  linux:\n" in jobs
           and "runs-on: ubuntu-latest" in jobs.split("\n  linux:\n", 1)[-1]
           and "\npermissions:\n  contents: read\n" in main_yml and "contents: write" in release_job
           and "if: github.ref_type == 'tag'" in release_job and main_yml.count("contents: write") == 1
-          and "secrets." not in main_yml and not (workflows / "tauri.yml").exists())
+          # the one secret is SignPath's token (signprep, 21 November 2026), in steps that run only where
+          # SIGNING is true, a tag's run with SIGNPATH_ENABLED set, and never on a pull request
+          and main_yml.replace("secrets.SIGNPATH_API_TOKEN", "").count("secrets.") == 0
+          and main_yml.count("secrets.SIGNPATH_API_TOKEN") == 2
+          and "SIGNING: ${{ github.ref_type == 'tag' && vars.SIGNPATH_ENABLED == 'true' }}" in main_yml
+          and all(chunk.startswith("if: env.SIGNING == 'true'") for chunk in main_yml.split("\n      - ")
+                  if "secrets.SIGNPATH_API_TOKEN" in chunk)
+          and not (workflows / "tauri.yml").exists())
 
 
     # ── G. kept here once for the whole suite since the review of 18 October (testreview3): the README's

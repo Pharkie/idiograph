@@ -264,8 +264,17 @@ def bundle_dir(out: Path, universal: bool) -> Path:
     return out / "target" / triple / "release" / "bundle" if triple else out / "target" / "release" / "bundle"
 
 
-def build_command(cli: list[str], bundles: list[str], config: Path, universal: bool, features: list[str]) -> list[str]:
-    cmd = [*cli, "build", "--bundles", ",".join(bundles), "--config", str(config)]
+def build_command(cli: list[str], bundles: list[str], config: Path, universal: bool, features: list[str],
+                  phase: str = "all") -> list[str]:
+    """Tauri's command: `build` for the window and its bundles in one go (phase "all", as ever), or for SignPath's
+    flow `build --no-bundle` (phase "compile", the window alone, so its exe can be signed) and then `bundle` (phase
+    "pack", the installer around the exe and the server as they then stand)."""
+    if phase == "compile":
+        cmd = [*cli, "build", "--no-bundle", "--config", str(config)]
+    elif phase == "pack":
+        cmd = [*cli, "bundle", "--bundles", ",".join(bundles), "--config", str(config)]
+    else:
+        cmd = [*cli, "build", "--bundles", ",".join(bundles), "--config", str(config)]
     if target_triple(universal):
         cmd += ["--target", target_triple(universal)]
     if features:
@@ -276,17 +285,22 @@ def build_command(cli: list[str], bundles: list[str], config: Path, universal: b
 def bundle(frozen: Path, out: Path, version: str, bundles: list[str], *, test: bool = False,
            universal: bool = False, features: list[str] | None = None, windows_sign: str | None = None,
            env: dict | None = None, update: dict | None = None, whats_new: Path | None = None,
-           app: str = app_identity.DEFAULT, linux: bool = False) -> Path:
+           app: str = app_identity.DEFAULT, linux: bool = False, phase: str = "all") -> Path:
     """Tauri's bundler run on the window of `app` around `frozen`, the folder PyInstaller made, its
-    outputs under `<out>/target`. Answers the folder the bundles are in."""
+    outputs under `<out>/target`. Answers the folder the bundles are in. `phase` is "all" for the one run every
+    build makes, or, for SignPath's flow (Windows alone), "compile" then "pack": the second takes the staged
+    source and the compiled window as they stand, which build_windows has put the signed files in."""
     if whats_new and not test:
         raise SystemExit("A check's own notes go in the test app alone.")
-    src = stage_source(out, frozen, whats_new, app)
+    if phase == "pack":
+        src = out / "tauri" / "packaging" / "tauri" / "src-tauri"
+    else:
+        src = stage_source(out, frozen, whats_new, app)
     config = out / "tauri-config.json"
     config.write_text(json.dumps(overrides(version, test, windows_sign, update, app, linux), indent=2) + "\n", encoding="utf-8")
     run_env = dict(os.environ if env is None else env)
     run_env.update(CARGO_TARGET_DIR=str(out / "target"), CI="true")
-    cmd = build_command(cli_command(run_env), bundles, config, universal, list(features or []))
+    cmd = build_command(cli_command(run_env), bundles, config, universal, list(features or []), phase)
     say(f"Bundling the window with Tauri {TAURI_CLI}: {', '.join(bundles)}"
         + (", both of a Mac's architectures" if universal else ""))
     subprocess.run(cmd, cwd=src, env=run_env, check=True)

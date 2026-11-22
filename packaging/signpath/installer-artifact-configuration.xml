@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SignPath's second request of a release (docs/signing.md): the installer build_windows.py --stage pack makes round the
+     signed programs, alone in build/signpath/installer-unsigned. Paste it into the project's artifact configuration
+     in SignPath, with the slug the workflow names. The parameters come from the workflow. -->
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <parameters>
+    <parameter name="productName" default-value="Idiograph" />
+    <parameter name="versionThree" default-value="0.0.0" />
+  </parameters>
+  <zip-file>
+    <pe-file path="${productName}-Setup.exe" product-name="${productName}" product-version="${versionThree}">
+      <authenticode-sign/>
+    </pe-file>
+  </zip-file>
+</artifact-configuration>

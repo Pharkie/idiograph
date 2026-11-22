@@ -286,6 +286,9 @@ main.jn {
 .jn a:hover { text-decoration-color: currentColor; }
 .jn a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .jn .fp-foot { margin-top: 48px; }
+.jn h2 { font: 400 clamp(21px, 1vw + 15px, 26px)/1.25 var(--serif); margin: 1.6em 0 0.5em; letter-spacing: -0.005em; }
+.jn ul { margin: 0 0 1em; padding-left: 1.3em; font: 400 clamp(17px, 0.4vw + 14px, 19px)/1.6 var(--serif); color: var(--ink); }
+.jn li { margin: 0 0 0.5em; }
 
 main.ap {
   display: block; text-align: left; max-width: calc(1040px + 2 * var(--gutter));
