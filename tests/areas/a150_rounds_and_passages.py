@@ -105,6 +105,7 @@ const said = []; const say = (t) => said.push(t);
 const haulShow = () => {}; const focusEntry = () => {};
 const marks = []; const roundMarkHtml = (r) => { marks.push(r.number); return '<m>'; };
 const turnHtml = (row) => `<t${row.i}>`; const drawSheetLabel = () => {}; const parkNotes = () => {}; const parkCard = () => {}; const parkNote = () => {};
+const clearRows = (html = '') => { $('transcript-rows').innerHTML = html; };
 const drawDoneMarks = () => {};
 const posted = [];
 const api = async (path, body) => {

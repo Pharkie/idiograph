@@ -70,6 +70,7 @@ def test_round_markers(scratch):
         "const turnHtml = (row) => `<article class=\"turn\" data-i=\"${row.i}\"></article>`;\n"
         "const drawSheetLabel = () => {};\n"
         "const parkNotes = () => {}; const parkCard = () => {}; const parkNote = () => {};\n"
+        "const clearRows = (html = '') => { $('transcript-rows').innerHTML = html; };\n"
         "const drawDoneMarks = () => {};\n"
         "const went = []; const goTo = (...a) => { went.push(a); return Promise.resolve(); };\n"
         "const cued = []; const cueAudio = (s) => cued.push(s);\n"

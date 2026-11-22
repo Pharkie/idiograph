@@ -6868,6 +6868,25 @@ statement that changed, alone, and a passage's notes only when they changed (`es
 workbook moved and this app wrote it, so a statement reworded on Experiential statements or another board
 comes onto the PETs board. Area 220 holds the widths, Reset, the double click and the stamp.
 
+**The statements screen's open, laid out once (statementsfast, 22 November 2026).** In WebKit an open of a
+participant's statements screen costs one style and layout pass of the new rows (about 24 ms for 244 rows, 6,262
+elements), forced where `drawSheetLabel`'s `fitSheetSwitch` and then `placeCard`'s `growPairs` read sizes; that pass
+the first frame needs anyway, so moving those reads saves nothing. What was cut is work around it. `startCase` puts
+the card, the notes field and an interviewer's note back in `#es-park` and empties `#transcript-rows` before it draws
+anything (`clearRows`, which `drawTranscript` uses too, drawing no cell again from what is saved since the cells go
+with the rows, as `parkCard` and `parkNotes` do for a row that stays), where the
+reads in `dsTabsDraw`, `drawView` and `thPalettePlace`'s `measureBand` laid the screen out over the rows going, about
+10 ms on the largest participant; `drawTranscript` draws the sheet afresh on every open (`S.sheetDrawn` is set to null
+first), and a reload in place keeps the column's place as before, `esStepTake` putting its `scrollTop` back and
+`centreCurrent` measuring from wherever the column stands. A window's first open laid out the screen's bars for the
+first time in one layout of about 45 ms, its rules, faces and pictures met then, and took its first frame 80 to 100
+ms later than the opens after it: `esWarmSoon`, from Home's `homeTaken`, sets `esWarm` `ES_WARM_AFTER` (2.5 s, after
+Home's mark has played) later, in `requestIdleCallback` where there is one, once a window, which stands `#work` fixed over the window, hidden from sight and out of
+the pointer's way for one layout and puts it away in the same task with its own inline styles back, so nothing is
+painted, no watched size changes and Home keeps its place in its list; it does nothing while the screen or a
+participant is open, and nothing while Home is not in front or a card (`cardTop`) is open over it, so its layout never
+lands in a drag or a scroll on a board or in typing in a dialog, Home's next answer trying again. Area 447 checks both.
+
 **The minimap (16 October).** `minimap` in `config.json`, `auto`, `on` or `off` since 17 October,
 later, where it was a tick, read by `minimapMode` from the same config as the view, `auto` when absent,
 an old true reading as `auto` and an old false as `off`, as the server's `minimap_mode` reads it in

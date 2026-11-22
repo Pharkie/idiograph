@@ -5324,6 +5324,49 @@ async function openCase(path, opts = {}) {
   } catch (err) { say(err.message, 9000); }
 }
 
+/* The statements screen laid out once in a window, out of sight, a few seconds after Home first has its answer
+   (statementsfast, 22 November 2026). The first open of a participant in a window took its first frame 80 to 100 ms
+   later than the opens after it in WebKit, the screen's styles, faces and rules being met for the first time, about
+   45 ms of it in one layout of the screen's bars. Here the screen stands fixed over the window and hidden from
+   sight for one layout and goes again in the same task, so nothing is painted, no size it is watched for changes and
+   Home's place in its list is kept; the first open then lays out as a later one does. Only with Home in front and no
+   card open over it, when the window is idle, never while the screen or a participant is open, and once a window. */
+const ES_WARM = { done: false, timer: 0 };
+const ES_WARM_AFTER = 2500;
+function esWarmSoon() {
+  if (ES_WARM.done || ES_WARM.timer) return;
+  ES_WARM.timer = setTimeout(() => {
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(esWarm, { timeout: ES_WARM_AFTER });
+    else esWarm();
+  }, ES_WARM_AFTER);
+}
+function esWarm() {
+  ES_WARM.timer = 0;
+  if (ES_WARM.done) return;
+  const work = $('work');
+  if (!work || !work.hidden || S.data) { ES_WARM.done = true; return; }
+  // only with Home's list in front (not a project's page, which lives in the same screen and may be mid-scroll) and
+  // no card over it, so the layout never lands in a drag, a scroll or typing on another
+  // screen or in a dialog; Home's next answer tries again
+  const home = $('library');
+  if (!home || home.hidden || !$('home-project').hidden || (typeof cardTop === 'function' && cardTop())) return;
+  ES_WARM.done = true;
+  const props = ['position', 'inset', 'visibility', 'pointer-events'];
+  const was = props.map((p) => [p, work.style.getPropertyValue(p), work.style.getPropertyPriority(p)]);
+  work.style.setProperty('position', 'fixed', 'important');
+  work.style.setProperty('inset', '0', 'important');
+  work.style.setProperty('visibility', 'hidden', 'important');
+  work.style.setProperty('pointer-events', 'none', 'important');
+  work.hidden = false;
+  try { void work.offsetWidth; } finally {
+    work.hidden = true;
+    for (const [p, v, pri] of was) {
+      if (v) work.style.setProperty(p, v, pri);
+      else work.style.removeProperty(p);
+    }
+  }
+}
+
 /* Experiential statements from a step on the PETs or GETs bar (18 October, see thToStatements in themes.js):
    the case opened, at the passage it was on when this screen still holds it, the board put away only once it
    is, and the bar's way back named for the board it returns to. `how` is as `openPassage` takes it. */
@@ -5421,6 +5464,10 @@ function startCase(data, opts = {}) {
   const was = S.at;
   // the rows read afresh hold every passage as it is saved now
   hideStale();
+  // the rows on screen go before anything is drawn, since every open draws its sheet afresh below: the screen's
+  // bars and columns measured on the way were laid out over the rows going first, a whole layout of them for
+  // nothing (statementsfast, 22 November 2026)
+  if (S.data) clearRows();
   S.data = data;
   // the participant's project's method, whose words the screen takes (tadraw)
   tMethod(data.project && data.project.method);
@@ -6470,6 +6517,19 @@ function stackFade() {
 
 /* the card back where it waits, before the column is drawn again and whenever no passage holds it, and
    the passage it stood in showing its statements as the rest do */
+/* The column's rows replaced by `html`, none by default, the card, the notes field and an interviewer note put back
+   where they wait first. The cells they stood in go with the rows, so none is drawn again from what is saved, as
+   parkCard and parkNotes do for a row that stays (statementsfast, 22 November 2026). */
+function clearRows(html = '') {
+  const park = $('es-park');
+  const card = $('es-card');
+  const field = $('en');
+  if (card.parentElement !== park) park.prepend(card);
+  if (field.parentElement !== park) park.appendChild(field);
+  parkNote();
+  $('transcript-rows').innerHTML = html;
+}
+
 function parkCard() {
   const card = $('es-card');
   const park = $('es-park');
@@ -7851,10 +7911,7 @@ function drawTranscript(sheet) {
   }
   // the card, the notes field and an interviewer note go back where they wait before the rows they may
   // stand in are replaced
-  parkCard();
-  parkNotes();
-  parkNote();
-  $('transcript-rows').innerHTML = html.join('');
+  clearRows(html.join(''));
   S.sheetDrawn = sheet;
   // the sheet is a fact about the file, not about a row, so it stands in the top bar beside the
   // case name and never in a turn's margin
@@ -15267,6 +15324,7 @@ FAMILY_APPS.idiograph = {
     // a run of one project, named by --root, opens on its page, until he goes back to the home screen
     const first = sectionsOf(data)[0];
     if (S.home === null && S.oneRun && first) homeKeep(first.id);
+    if (typeof esWarmSoon === 'function') esWarmSoon();
   },
   homeDraw: (...a) => distilHomeDraw(...a),
   homeFirst: (...a) => distilHomeFirst(...a),
