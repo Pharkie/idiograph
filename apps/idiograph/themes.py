@@ -123,7 +123,8 @@ import math
 import os
 import re
 import unicodedata
-from datetime import datetime
+from datetime import date, datetime, timedelta
+from datetime import time as dtime
 from pathlib import Path
 
 import openpyxl
@@ -131,6 +132,7 @@ import openpyxl
 import board_history
 import formats
 import i18n
+import locks
 from workbook import (WorkbookError, detect_columns, guard_place, interviewer_name, note_written, quote_entries,
                       quote_pieces, quote_reach, quote_turns, split_entries, time_span, timecode, timecodes_at, timecodes_for,
                       ts_seconds)
@@ -640,7 +642,7 @@ def write_path(path: Path, data: dict) -> Path:
     kept, finish = board_history.out_of(path, data)
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(render(kept) + "\n", encoding="utf-8", newline="\n")
-    os.replace(tmp, path)
+    locks.replace(tmp, path)
     note_written(path)
     finish()
     return path
@@ -710,6 +712,85 @@ def row_key(sheet: str, row: int) -> str:
     return f"{sheet}:{row}"
 
 
+# The rows of a workbook that the case list's read of it (`idiograph_routes.read_book_once`) hands to the read of
+# its cards that follows in the same call, so the GETs screen's first open parses each workbook once, not twice
+# (smallfix, 22 November 2026). A call asks for it with `rows_handed`; outside one nothing is kept. Each entry is
+# kept against the workbook's mark, taken by the first read before it read, and used only while the file still
+# has that mark, and the cells kept in all are bounded, a workbook past the bound read again as before.
+ROWS_KEPT: contextvars.ContextVar = contextvars.ContextVar("idiograph_rows_kept", default=None)
+ROWS_CELLS = 3_000_000
+
+
+@contextlib.contextmanager
+def rows_handed():
+    """For what runs inside, the rows the case list reads are kept for the card read of the same workbook, taken
+    from the table as they are used and all dropped when it ends."""
+    token = ROWS_KEPT.set({"cells": 0, "books": {}})
+    try:
+        yield
+    finally:
+        ROWS_KEPT.reset(token)
+
+
+PLAIN_CELLS = (str, int, float, bool, datetime, date, dtime, timedelta)
+
+
+def plain_row(values) -> bool:
+    """Whether every cell of a row reads the same with and without `data_only`: empty, or text not starting with "=",
+    or a number, a truth or a date or time. A formula, text or an array formula object (openpyxl's `ArrayFormula`),
+    reads as its cached value in `read_cards` and as itself in the case list's read, so such a row is never handed
+    on (smallfix, 22 November 2026)."""
+    for v in values:
+        if v is None:
+            continue
+        if not isinstance(v, PLAIN_CELLS) or (isinstance(v, str) and v.startswith("=")):
+            return False
+    return True
+
+
+def rows_wanted() -> bool:
+    """Whether a read of a workbook's rows is inside `rows_handed` and may keep them."""
+    held = ROWS_KEPT.get()
+    return held is not None and held["cells"] < ROWS_CELLS
+
+
+def keep_rows(path: Path, mark, sheets: dict, cells: int) -> None:
+    """The rows of `path`'s transcript sheets, `sheets` by name as (the columns, the rows from the second, each as
+    the first read gave it), read at `mark`: kept for `read_cards` when inside `rows_handed` and within the bound."""
+    held = ROWS_KEPT.get()
+    if held is None or mark is None or held["cells"] + cells > ROWS_CELLS:
+        return
+    held["cells"] += cells
+    held["books"][str(path)] = (mark, sheets, cells)
+
+
+def take_rows(path: Path) -> dict | None:
+    """The rows kept for `path`, taken out of the table, when the file still has the mark they were read at."""
+    held = ROWS_KEPT.get()
+    if held is None:
+        return None
+    got = held["books"].pop(str(path), None)
+    if got is None:
+        return None
+    held["cells"] -= got[2]
+    try:
+        st = Path(path).stat()
+    except OSError:
+        return None
+    return got[1] if (st.st_mtime_ns, st.st_size, st.st_ino) == got[0] else None
+
+
+class HandedSheet:
+    """A transcript sheet as the case list read it, standing in for the worksheet in `read_cards`: its title, the
+    columns `detect_columns` found, and the rows from the second as `iter_rows` gave them."""
+
+    def __init__(self, title: str, cols: dict, rows: list):
+        self.title, self.cols, self.rows = title, cols, rows
+
+    def iter_rows(self, min_row: int = 1, max_col: int | None = None, values_only: bool = False):
+        return iter(self.rows)
+
+
 def read_cards(workbook: Path, explore: bool = False, turns: bool = False, form: str | None = None) -> dict:
     """Every experiential statement in the workbook, one card per entry of column C, in sheet order,
     and the quotes of every row that has any, keyed by sheet and row.
@@ -734,18 +815,22 @@ def read_cards(workbook: Path, explore: bool = False, turns: bool = False, form:
     form = form or timecodes_for(workbook)
     if not workbook.exists():
         raise FileNotFoundError(workbook.name)
-    try:
-        book = openpyxl.load_workbook(whole_book(workbook), read_only=True, data_only=True)
-    except Exception as exc:
-        raise WorkbookError(i18n.t("server.could_read", name=workbook.name, exc=exc))
+    # the rows the case list has just read, when this call asked for them to be handed on (`rows_handed`)
+    handed = take_rows(workbook)
+    book = None
+    if handed is None:
+        try:
+            book = openpyxl.load_workbook(whole_book(workbook), read_only=True, data_only=True)
+        except Exception as exc:
+            raise WorkbookError(i18n.t("server.could_read", name=workbook.name, exc=exc))
     sheets, cards, quotes, explored, words_of = [], [], {}, {}, {}
     # in a project of two or more timepoints the sheets of the timepoint in scope alone (see SCOPE)
     placed, here = placed_sheets(workbook), timepoint_now()
     try:
-        for ws in book.worksheets:
+        for ws in (book.worksheets if book is not None else [HandedSheet(t, c, r) for t, (c, r) in handed.items()]):
             if (placed or here > 1) and placed.get(ws.title, 1) != here:
                 continue
-            cols = detect_columns(ws)
+            cols = ws.cols if isinstance(ws, HandedSheet) else detect_columns(ws)
             if not {"name", "ts", "transcript", "es"} <= set(cols):
                 continue
             sheets.append(ws.title)
@@ -777,7 +862,8 @@ def read_cards(workbook: Path, explore: bool = False, turns: bool = False, form:
                                   "line": i, "text": text, "seconds": seconds, "time": timecode(seconds, form)})
             spread_quotes(ws.title, spoken, quotes, cards, form, workbook)
     finally:
-        book.close()
+        if book is not None:
+            book.close()
     out = {"sheets": sheets, "cards": cards, "quotes": quotes, "timecodes": form}
     if explore:
         out["explored"] = explored
@@ -3097,7 +3183,8 @@ def drop_history(board: dict) -> dict:
 
 def auto_revision(board: dict, at: str | None = None) -> dict | None:
     """The page's timer: the board as the file holds it kept as an automatic revision when it differs from its last
-    one. The head's hash answers that without reading a chunk, and a History not all here takes none."""
+    one. The head's hash answers that without reading a chunk. With part of History away it still goes on the end and
+    prunes nothing, up to twice AUTO_KEEP automatic revisions, past which it takes none until History is back."""
     try:
         return add_revision(board, auto=True, at=at, state=board_state(board))
     except board_history.HistoryAway:
@@ -3120,8 +3207,9 @@ def revision_count(board: dict) -> int:
 
 def kept_revision(board: dict, **given) -> dict | None:
     """`add_revision` for a follower that changes a board after the workbook has changed (a statement edited, a
-    passage written, the boards refreshed): the board as it stood kept first in its History when its History is
-    here, and none kept when it is not, so the follower still moves the board and is never half done."""
+    passage written, the boards refreshed): the board as it stood kept first in its History, on the end when the last
+    chunk is away, and none kept when the head cannot be read or a revision needs the History whole and part of it
+    is away, so the follower still moves the board and is never half done."""
     try:
         return add_revision(board, **given)
     except board_history.HistoryAway:
@@ -3213,7 +3301,18 @@ def add_revision(board: dict, name: str = "", auto: bool = False, at: str | None
     # one that prunes none goes on the end of the History in a chunk of its own, no chunk read, or folds the open
     # chunks with it at FOLD (historyfix, perfhist)
     autos = int((head or {}).get("autos") or 0) + sum(1 for r in board_history.pending(board) if r.get("auto"))
-    fast = not (auto and autos >= AUTO_KEEP) and board_history.can_append(board)
+    fast = board_history.can_append(board)
+    if fast and auto and autos >= AUTO_KEEP:
+        # one that prunes needs the whole History in memory; with part of it away, the timer's revision goes on the
+        # end and nothing is pruned until it is back, up to twice AUTO_KEEP automatic ones, past which the timer
+        # keeps none while History is away, so the files never pile up (smallfix, 22 November 2026). A revision the
+        # person asks for, a restore point and an agent's are not automatic and still go on
+        try:
+            board_history.attach(board)
+            fast = False
+        except board_history.HistoryAway:
+            if autos >= 2 * AUTO_KEEP:
+                return None
     history = [] if fast else None
     if not fast:
         # the whole History in memory, so the writer puts it back in its chunks: refused while any of it is not here

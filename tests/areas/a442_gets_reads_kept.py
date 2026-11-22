@@ -263,6 +263,101 @@ def test_gets_reads_kept(scratch):
         sheet_mem.append(["A", "00:05", "words", "=1+1"])
         got = themes_mod.sheet_cells(sheet_mem, {"name": 1, "ts": 2, "transcript": 3, "es": 4}, saved=True)
         check("442: a formula cell in a sheet held from memory reads as nothing, as a file's value does", got[2][2][0] is None)
+
+        # ── I. the case list's read of a workbook is handed on to the cards' read, so a first open parses each once
+        # (smallfix, 22 November 2026)
+        def cold():
+            idiograph_routes.BOOKS.clear()
+            idiograph_routes.STATEMENTS.clear()
+            gets_mod.SNAPSHOTS.clear()
+
+        def lines_of(answer):
+            return {c["case"]: c["lines"] for c in answer["cases"]}
+
+        cold()
+        handed_open = watching(poll)
+        loaded_handed = len(loads)
+        cold()
+        real_wanted = themes_mod.rows_wanted
+        themes_mod.rows_wanted = lambda: False
+        try:
+            plain_open = watching(poll)
+        finally:
+            themes_mod.rows_wanted = real_wanted
+        check("442: a first open loads each participant's workbook once, where it loaded it twice, and answers what the "
+              "two reads gave", loaded_handed == len(books) and len(loads) == 2 * len(books)
+              and lines_of(handed_open) == lines_of(plain_open), f"{loaded_handed} of {len(loads)}")
+        cold()
+        watching(poll)
+        check("442: and an open again, the handed rows gone with the call, keeps none in memory",
+              themes_mod.ROWS_KEPT.get() is None)
+
+        # the rows handed are used only while the workbook has the mark they were read at
+        wren = books["Wren"]
+        mark = idiograph_routes.file_mark(wren)
+        for kind in ("touched", "other"):
+            cold()
+            loads.clear()
+            openpyxl.load_workbook = counted_load
+            with themes_mod.rows_handed():
+                idiograph_routes.read_book_once(wren, mark)
+                kept = str(wren) in themes_mod.ROWS_KEPT.get()["books"]
+                if kind == "touched":
+                    later = time.time() + 30
+                    os.utime(wren, (later, later))
+                elif kind == "other":
+                    themes_mod.ROWS_KEPT.get()["books"].pop(str(wren), None)
+                    themes_mod.keep_rows(books["Ash"], idiograph_routes.file_mark(books["Ash"]), {}, 0)
+                got = themes_mod.read_cards(wren, explore=True)
+            openpyxl.load_workbook = real_load
+            # the first read is the case list's, the second the cards', which loads the workbook again here
+            if kind == "other":
+                check("442: rows kept for another workbook are never used for this one", kept and len(loads) == 2
+                      and got["cards"], str(len(loads)))
+            elif kind == "touched":
+                check("442: a workbook changed after the case list read it is read again, never from the rows handed",
+                      kept and len(loads) == 2 and got["cards"], str(len(loads)))
+        book = real_load(books["Moss"])
+        sheet_moss = book.worksheets[0]
+        header = [c.value for c in sheet_moss[1]]
+        at = next(i for i, h in enumerate(header, start=1) if str(h or "").strip().lower().startswith(("statement", "experiential", "es")))
+        sheet_moss.cell(2, at).value = "=1+1"
+        book.save(books["Moss"])
+        book.close()
+        cold()
+        with themes_mod.rows_handed():
+            idiograph_routes.read_book_once(books["Moss"], idiograph_routes.file_mark(books["Moss"]))
+            held_formula = str(books["Moss"]) in themes_mod.ROWS_KEPT.get()["books"]
+        check("442: a workbook holding a formula is not handed on, its cards read as a file's value gives them", not held_formula)
+        # an array formula is an object in the case list's read and a cached value in the cards', and a header that is a formula
+        # is no column in the cards' read: neither is handed on
+        from openpyxl.worksheet.formula import ArrayFormula
+        held_other = {}
+        for kind in ("array", "header"):
+            book = real_load(books["Ash"])
+            sheet_ash = book.worksheets[0]
+            if kind == "array":
+                sheet_ash.cell(3, at).value = ArrayFormula(f"{sheet_ash.cell(3, at).coordinate}", "=1+1")
+            else:
+                sheet_ash.cell(1, 1).value = "=\"Speaker\""
+            book.save(books["Ash"])
+            book.close()
+            cold()
+            with themes_mod.rows_handed():
+                idiograph_routes.read_book_once(books["Ash"], idiograph_routes.file_mark(books["Ash"]))
+                held_other[kind] = str(books["Ash"]) in themes_mod.ROWS_KEPT.get()["books"]
+        check("442: a workbook holding an array formula, or a formula in its header row, is not handed on",
+              held_other == {"array": False, "header": False}, str(held_other))
+        small = themes_mod.ROWS_CELLS
+        themes_mod.ROWS_CELLS = 10
+        try:
+            cold()
+            with themes_mod.rows_handed():
+                idiograph_routes.read_book_once(books["Ash"], idiograph_routes.file_mark(books["Ash"]))
+                held_big = str(books["Ash"]) in themes_mod.ROWS_KEPT.get()["books"]
+        finally:
+            themes_mod.ROWS_CELLS = small
+        check("442: a workbook past the bound on the cells kept is read again, never held", not held_big)
     finally:
         themes_mod.read_cards, openpyxl.load_workbook = real_read, real_load
         server_mod.ROOT_OVERRIDE, server_mod.STATE_PATH, server_mod.STATE_MEMORY = saved

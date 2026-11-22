@@ -45,6 +45,7 @@ from __future__ import annotations
 
 import base64
 import json
+import locks
 import os
 import re
 import struct
@@ -267,7 +268,7 @@ def write(root: Path, data: dict) -> Path:
     path = path_of(root)
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(themes.render(data) + "\n", encoding="utf-8", newline="\n")
-    os.replace(tmp, path)
+    locks.replace(tmp, path)
     # kept as this process wrote it, so the stamp tells another window's change from an agent's (sameux2)
     note_written(path)
     return path
@@ -915,7 +916,7 @@ def picture_files(root: Path, files: dict, when: str, folder: Path | None = None
         if old.is_file():
             keep = folder / "_Archive"
             keep.mkdir(parents=True, exist_ok=True)
-            os.replace(old, keep / f"{Path(name).stem} {stamp}{Path(name).suffix}")
+            locks.replace(old, keep / f"{Path(name).stem} {stamp}{Path(name).suffix}")
     for name, body in files.items():
         if body is None:
             continue
@@ -924,10 +925,10 @@ def picture_files(root: Path, files: dict, when: str, folder: Path | None = None
         if old.is_file():
             keep = folder / "_Archive"
             keep.mkdir(parents=True, exist_ok=True)
-            os.replace(old, keep / f"{Path(name).stem} {stamp}{Path(name).suffix}")
+            locks.replace(old, keep / f"{Path(name).stem} {stamp}{Path(name).suffix}")
         tmp = folder / (name + ".tmp")
         tmp.write_bytes(body)
-        os.replace(tmp, old)
+        locks.replace(tmp, old)
 
 
 # ------------------------------------------------------------------ the board
@@ -1162,12 +1163,12 @@ def _put(path: Path, data: bytes | None, when: str) -> None:
             while to.exists():
                 n += 1
                 to = keep / f"{path.stem} {stamp} {n}{path.suffix}"
-            os.replace(path, to)
+            locks.replace(path, to)
         return
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_bytes(data)
-    os.replace(tmp, path)
+    locks.replace(tmp, path)
     note_written(path)
 
 

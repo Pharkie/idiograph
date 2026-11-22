@@ -29,6 +29,7 @@ from __future__ import annotations
 import copy
 import datetime as dt
 import json
+import locks
 import os
 import uuid
 from pathlib import Path
@@ -153,7 +154,7 @@ def save_progress(workbook: Path, data: dict) -> None:
         pass
     tmp = path.with_suffix(".tmp")
     tmp.write_text(text, encoding="utf-8", newline="\n")
-    os.replace(tmp, path)
+    locks.replace(tmp, path)
 
 
 def row_key(sheet: str, row: int) -> str:

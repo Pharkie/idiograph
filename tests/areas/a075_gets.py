@@ -166,7 +166,7 @@ def test_gets(scratch):
               b1["id"] == "b1" and b1["groups"][0]["members"] == ["Wren/g1", "Ash/g1"]
               and "text" not in b1["cards"]["Wren/g1"] and b1["rows"] == {} and data["current"] == "b1")
         check("75: the file is written to a temporary file and moved over the old one, and none is left",
-              "os.replace(tmp, path)" in inspect.getsource(gets_mod.write_at) and ".tmp" in inspect.getsource(gets_mod.write_at)
+              "locks.replace(tmp, path)" in inspect.getsource(gets_mod.write_at) and ".tmp" in inspect.getsource(gets_mod.write_at)
               and not list(root.glob("*.tmp")))
 
         # ── C. the unchanged fast path, and the hash

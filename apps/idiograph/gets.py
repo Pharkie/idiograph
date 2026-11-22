@@ -63,6 +63,7 @@ from pathlib import Path
 import board_history
 import formats
 import i18n
+import locks
 import themes
 from workbook import (WorkbookError, no_quote, note_written, time_span, timecode, timecodes_at, timecodes_for,
                       written_here)
@@ -332,7 +333,7 @@ def write_at(path: Path, data: dict) -> Path:
     else:
         text = themes.render(retime(json.loads(json.dumps(kept)), KEPT_AS) if isinstance(kept, dict) else kept)
     tmp.write_text(text + "\n", encoding="utf-8", newline="\n")
-    os.replace(tmp, path)
+    locks.replace(tmp, path)
     note_written(path)
     finish()
     return path

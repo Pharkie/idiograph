@@ -238,5 +238,38 @@ def test_windows_text(scratch):
           "info.create_system = 3" in inspect.getsource(make_demo.pin))
     check("144: notes.sh takes a path that starts at a drive letter or a backslash as whole, as Git's sh on Windows gives one",
           "/*|[A-Za-z]:*|\\\\*) ;;" in notes_sh)
+    # ── a board file moved into place through the project's own replace, which waits out a reader holding the
+    # target on Windows, where os.replace refuses it (smallfix, 22 November 2026)
+    import gets as gets_board
+    import locks
+    import themes as themes_board
+    refused = {"n": 0}
+    real_replace = os.replace
+
+    def refusing(src, dst):
+        if refused["n"] < 2:
+            refused["n"] += 1
+            raise PermissionError("held open")
+        return real_replace(src, dst)
+
+    wrote = {}
+    for name, put in (("themes", themes_board.write_path), ("gets", gets_board.write_at)):
+        refused["n"] = 0
+        target = scratch / f"board-{name}.json"
+        locks.os.replace = refusing
+        try:
+            put(target, {"version": 1, "boards": []})
+            wrote[name] = (refused["n"], target.exists(), not target.with_name(target.name + ".tmp").exists())
+        except PermissionError:
+            wrote[name] = None
+        finally:
+            locks.os.replace = real_replace
+    check("144: a themes file and a GETs file are moved into place through locks.replace, so a reader holding the "
+          "file open a moment on Windows is waited out and the write goes through",
+          wrote == {"themes": (2, True, True), "gets": (2, True, True)}, str(wrote))
+    bare = [name for name in ("codes.py", "rounds.py", "trajectories.py")
+            if "os.replace(" in (support.source("apps/idiograph") / name).read_text(encoding="utf-8")]
+    check("144: the code list, the progress file and the Trajectories board and its files are moved into place through "
+          "locks.replace too, never os.replace", not bare, str(bare))
     check("144: the workflow leaves Windows's code page as a tester's machine has it, no PYTHONUTF8 to hide a reading in it",
           "PYTHONUTF8" not in workflow)

@@ -640,17 +640,17 @@ def last_hash(board: dict) -> str | None:
 
 def can_append(board: dict) -> bool:
     """Whether a new revision can go on the end of a board's History without the rest of it in memory: the board
-    read from its file with a head and its History not attached, and the last chunk the head names there, a stat
-    alone. A revision goes into a chunk of its own (`append_chunks`), so no chunk is read for it, and one of them
-    away, evicted among them, loses nothing."""
+    read from its file with a head and its History not attached. A revision goes into a chunk of its own
+    (`append_chunks`), so no chunk is read for it, and one of them away, the last among them, evicted, not come
+    from iCloud yet or lost, loses nothing and is never written over: the head goes on naming it and the revision
+    takes the next number after it, so History shows the board's History as not here yet while it is away and
+    whole when it is back, where a last chunk away once refused every revision of the board for good (smallfix,
+    22 November 2026)."""
     head = head_of(board)
     if head is None or isinstance(board.get("history"), list) or not head.get(AT):
         return False
-    tail = named(head)
-    if tail:
-        n, h = tail[-1]
-        if found(Path(head[AT]) / chunk_name(head["uid"], n, h)) is None:
-            raise away()
+    # a head naming its chunks in no good shape is away, as ever, and no chunk is looked for
+    named(head)
     return True
 
 

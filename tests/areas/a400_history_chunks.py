@@ -237,31 +237,60 @@ def test_history_chunks(scratch: Path):
         held = boards_files(root)
         board = themes.boards_of(themes.load(juno))[0]
         try:
-            themes.board_op(juno, "revision", {"id": "v1", "name": "now"}, "Juno")
+            made = themes.board_op(juno, "revision", {"id": "v1", "name": "now"}, "Juno")["revision"]
             code = "written"
         except bh.HistoryAway as exc:
-            code = exc.code
-        check("400: its last chunk iCloud evicted: History shows not here yet, and Save a revision is refused as "
-              "history_away with nothing written", themes.history_away(board) and themes.history_list(board) == []
-              and code == "history_away" and boards_files(root) == held, code)
-        page = {k: v for k, v in board.items() if k not in ("history", bh.HEAD)}
-        page["v"] = themes.board_version(board)
-        page["cards"] = {k: dict(c, x=c.get("x", 0) + 3) for k, c in page["cards"].items()}
-        out = themes.save(juno, page, "Juno", revision="auto")
-        after_save = boards_files(root)
-        check("400: and a drop's save with the timer saves the board but makes no revision, the chunks untouched",
-              out.get("saved") and "revision" not in out
-              and all(after_save.get(k) == v for k, v in held.items() if ".history/" in k), json.dumps(out)[:200])
+            made, code = None, exc.code
+        board = themes.boards_of(themes.load(juno))[0]
+        fresh = {k: v for k, v in boards_files(root).items() if k not in held and ".history/" in k}
+        # a last chunk away (smallfix, 22 November 2026): a revision goes on the end in a chunk of its own after it,
+        # the head still naming the one away, so History says not here yet while it is away and no chunk is touched
+        check("400: its last chunk iCloud evicted: Save a revision still goes on the end, in a chunk of its own after it, "
+              "every chunk there before byte for byte as it was, and History shows not here yet until the chunk is back",
+              code == "written" and made["id"] == "r13" and len(fresh) == 1
+              and all(boards_files(root).get(k) == v for k, v in held.items() if ".history/" in k)
+              and themes.history_away(board) and themes.history_list(board) == []
+              and bh.named(bh.head_of(board))[-2][0] == head["chunks"][-1][0] and not last.exists(), code)
+        # the timer keeps the board as the file held it, so the first save after a revision keeps none (the state is the
+        # last revision's) and the second keeps the state the first wrote
+        outs = []
+        for shift in (3, 6):
+            board = themes.boards_of(themes.load(juno))[0]
+            page = {k: v for k, v in board.items() if k not in ("history", bh.HEAD)}
+            page["v"] = themes.board_version(board)
+            page["cards"] = {k: dict(c, x=c.get("x", 0) + shift) for k, c in board["cards"].items()}
+            outs.append(themes.save(juno, page, "Juno", revision="auto"))
+        check("400: and a drop's save with the timer keeps its revision too, the board saved, the chunk away untouched",
+              all(o.get("saved") for o in outs) and "revision" not in outs[0]
+              and outs[1].get("revision", {}).get("id") == "r14" and not last.exists(), json.dumps(outs[1])[:200])
+        # a board at its automatic revisions' cap prunes, which needs the whole History in memory: with the last chunk
+        # away the timer's revision goes on the end all the same and nothing is pruned, where it took none (smallfix)
+        at_cap = int(bh.head_of(themes.boards_of(themes.load(juno))[0]).get("autos") or 0) or 1
+        was_keep, themes.AUTO_KEEP = themes.AUTO_KEEP, at_cap
+        try:
+            outs = []
+            for shift in (9, 12):
+                board = themes.boards_of(themes.load(juno))[0]
+                page = {k: v for k, v in board.items() if k not in ("history", bh.HEAD)}
+                page["v"] = themes.board_version(board)
+                page["cards"] = {k: dict(c, x=c.get("x", 0) + shift) for k, c in board["cards"].items()}
+                outs.append(themes.save(juno, page, "Juno", revision="auto"))
+        finally:
+            themes.AUTO_KEEP = was_keep
+        check("400: a board at its cap of automatic revisions with its last chunk away still keeps the timer's revision, "
+              "on the end, nothing pruned",
+              all(o.get("saved") for o in outs) and [o.get("revision", {}).get("id") for o in outs] == ["r15", "r16"] and not last.exists(),
+              json.dumps(outs[1])[:200])
         placeholder.rename(last)
         first_chunk = folder / bh.chunk_name(uid, *bh.head_of(themes.boards_of(themes.load(juno))[0])["chunks"][0])
         first_bytes = first_chunk.read_bytes()
         first_chunk.rename(first_chunk.with_name("." + first_chunk.name + ".icloud"))
         added = themes.board_op(juno, "revision", {"id": "v1", "name": "on the end"}, "Juno")["revision"]
-        check("400: an earlier chunk evicted: a revision still goes on the end, its last chunk alone read and written, "
-              "the evicted one never touched", added["id"] == "r13" and not first_chunk.exists(), json.dumps(added))
+        check("400: an earlier chunk evicted: a revision still goes on the end in a chunk of its own, "
+              "the evicted one never touched", added["id"] == "r17" and not first_chunk.exists(), json.dumps(added))
         first_chunk.with_name("." + first_chunk.name + ".icloud").rename(first_chunk)
         check("400: and once it is back History lists every revision, the new one among them",
-              len(themes.history_list(themes.boards_of(themes.load(juno))[0])) == 13
+              len(themes.history_list(themes.boards_of(themes.load(juno))[0])) == 17
               and first_chunk.read_bytes() == first_bytes, "")
         first_chunk.unlink()
         held = boards_files(root)
@@ -288,7 +317,7 @@ def test_history_chunks(scratch: Path):
             bh.reset()
             listed = themes.history_list(themes.boards_of(themes.load(juno))[0])
             check("400: a chunk Optimize Mac Storage evicted is fetched as it is read, and History lists every revision",
-                  len(listed) == 13 and fetched, str(len(fetched)))
+                  len(listed) == 17 and fetched, str(len(fetched)))
             bh.reset()
             bh._fetch = lambda path: (_ for _ in ()).throw(bh.away())
             held = boards_files(root)
@@ -312,17 +341,64 @@ def test_history_chunks(scratch: Path):
         file_now, snap_now = tf.read_bytes(), bh.snapshot(tf)
         bh.put_back(snap)
         board = themes.boards_of(themes.load(juno))[0]
+        stale = {k: v for k, v in boards_files(root).items() if ".history/" in k}
         try:
             themes.board_op(juno, "revision", {"id": "v1", "name": "stale"}, "Juno")
             code = "written"
         except bh.HistoryAway as exc:
             code = exc.code
+        # the chunks the board file names are not here, so History is not here yet; a revision goes on the end in a
+        # chunk of its own after them and never over the stale chunks, which stay byte for byte as they were
+        after = {k: v for k, v in boards_files(root).items() if ".history/" in k}
         check("400: the board file of now with its chunks as they were before two revisions (a second Mac's stale "
-              "copies): History is not here yet and a revision is refused, never written over the stale chunk",
-              themes.history_away(board) and code == "history_away" and tf.read_bytes() == file_now, code)
-        bh.put_back(snap_now)
-        check("400: and once the chunks of now come, History lists all 15, nothing lost",
-              len(themes.history_list(themes.boards_of(themes.load(juno))[0])) == 15 and file_then != file_now, "")
+              "copies): History is not here yet, and a revision goes on the end in a chunk of its own, never written "
+              "over the stale chunk",
+              themes.history_away(board) and code == "written" and len(after) == len(stale) + 1
+              and all(after.get(k) == v for k, v in stale.items()), code)
+        # the chunks of now come (iCloud brings them beside the one this Mac wrote), and History lists all of it
+        for name, data in snap_now["files"].items():
+            if not (folder / name).exists():
+                (folder / name).write_bytes(data)
+        bh.reset()
+        check("400: and once the chunks of now come, History lists all 20, the revision written meanwhile first, nothing lost",
+              "stale" in [r["name"] for r in themes.history_list(themes.boards_of(themes.load(juno))[0])]
+              and len(themes.history_list(themes.boards_of(themes.load(juno))[0])) == 20 and file_then != file_now, "")
+
+        # past twice the cap with a chunk away the timer keeps none, however many saves (smallfix, review)
+        first_autos = int(bh.head_of(themes.boards_of(themes.load(juno))[0]).get("autos") or 0)
+        held_chunk = folder / bh.chunk_name(uid, *bh.head_of(themes.boards_of(themes.load(juno))[0])["chunks"][-1])
+        away_chunk = held_chunk.with_name("." + held_chunk.name + ".icloud")
+        held_chunk.rename(away_chunk)
+        was_keep, themes.AUTO_KEEP = themes.AUTO_KEEP, max(1, first_autos)
+        made_ids = []
+        try:
+            for i in range(200):
+                board = themes.boards_of(themes.load(juno))[0]
+                page = {k: v for k, v in board.items() if k not in ("history", bh.HEAD)}
+                page["v"] = themes.board_version(board)
+                page["cards"] = {k: dict(c, x=c.get("x", 0) + 20 + i) for k, c in board["cards"].items()}
+                got = themes.save(juno, page, "Juno", revision="auto")
+                if got.get("revision"):
+                    made_ids.append(got["revision"]["id"])
+            head_autos = int(bh.head_of(themes.boards_of(themes.load(juno))[0]).get("autos") or 0)
+            by_hand = themes.board_op(juno, "revision", {"id": "v1", "name": "by hand past the bound"}, "Juno")["revision"]
+        finally:
+            themes.AUTO_KEEP = was_keep
+            away_chunk.rename(held_chunk)
+        check("400: 200 timer saves with a chunk away stop at twice the cap, and a revision asked for still goes on",
+              0 < len(made_ids) <= max(1, first_autos) and head_autos <= 2 * max(1, first_autos) and by_hand["id"],
+              f"{len(made_ids)} {first_autos} {head_autos}")
+        # a head naming its chunks in no good shape is away as ever: the timer's revision is kept by none, the board saves
+        board = themes.boards_of(themes.load(juno))[0]
+        saved_chunks = bh.head_of(board)["chunks"]
+        bh.head_of(board)["chunks"] = "damaged"
+        try:
+            bh.can_append(board)
+            damaged = "appended"
+        except bh.HistoryAway:
+            damaged = "away"
+        bh.head_of(board)["chunks"] = saved_chunks
+        check("400: a head with its chunks misshapen is away for a revision, never appended to", damaged == "away", damaged)
 
         # ── 3d. a crash part way: the chunks written, the board file not; the files it names are whole
         census_mid = hc.census(root)

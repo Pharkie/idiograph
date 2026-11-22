@@ -43,6 +43,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import locks
 import os
 import re
 import shutil
@@ -146,7 +147,7 @@ def write(root: Path, data: dict) -> Path:
     path = path_of(root)
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(themes.render(data) + "\n", encoding="utf-8", newline="\n")
-    os.replace(tmp, path)
+    locks.replace(tmp, path)
     wb_mod.note_written(path)
     return path
 

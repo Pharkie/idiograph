@@ -2129,6 +2129,10 @@ def read_book_once(path: Path, mark) -> tuple[dict, dict] | None:
     except Exception:
         return None
     kinds, sheets, turns, statements = set(), [], {}, {}
+    # inside a call that asked for it (`themes.rows_handed`), each sheet's rows kept for the read of the cards that
+    # follows, which would parse the same workbook again (smallfix, 22 November 2026)
+    keeping = mark is not None and themes_mod.rows_wanted()
+    handed, cells = {}, 0
     try:
         names = list(book.sheetnames)
         found = []
@@ -2143,7 +2147,21 @@ def read_book_once(path: Path, mark) -> tuple[dict, dict] | None:
         for ws, cols in ([] if kinds == {"raw"} else found):
             width = max(cols.values())
             rows = []
+            kept = []
+            if keeping and not themes_mod.plain_row(wb_mod.header_row(ws)):
+                # a header cell that is a formula is no column in the cards' read
+                keeping = False
+                handed.clear()
             for number, values in enumerate(ws.iter_rows(min_row=2, max_col=width, values_only=True), start=2):
+                if keeping:
+                    kept.append(values)
+                    cells += len(values)
+                    # a formula is read as its cached value by the cards' read and as its text by this one, and a
+                    # book past the bound is read again by it
+                    if cells > themes_mod.ROWS_CELLS or not themes_mod.plain_row(values):
+                        keeping = False
+                        handed.clear()
+                        kept = []
                 cell = lambda role: values[cols[role] - 1] if role in cols and cols[role] <= len(values) else None
                 name, ts, text = cell("name"), cell("ts"), cell("transcript")
                 if name is None and ts is None and text is None:
@@ -2156,10 +2174,14 @@ def read_book_once(path: Path, mark) -> tuple[dict, dict] | None:
                 if said:
                     statements.setdefault(ws.title, []).append((number, said))
             turns[ws.title] = rows
+            if keeping:
+                handed[ws.title] = (cols, kept)
     except Exception:
         return None
     finally:
         book.close()
+    if keeping and handed and kinds != {"raw"}:
+        themes_mod.keep_rows(path, mark, handed, cells)
     out = {"kind": "raw" if kinds == {"raw"} else "annotated", "sheets": sheets, "names": names, "turns": turns}
     if mark is not None:
         BOOKS[key] = (mark, out)
@@ -10582,7 +10604,10 @@ def api_gets(body: dict) -> dict:
     root = gets_root(body)
     if i18n.method_now() == "ta" and not codes_mod.path_of(root).exists():
         codes_list(root)
-    return gets_reply(root, body, gets_mod.state(root, gets_books(root), board=str(body.get("board") or "") or None))
+    # the case list's read of each workbook is handed on to the survey's read of its cards, so a first open parses
+    # each workbook once (smallfix, 22 November 2026)
+    with themes_mod.rows_handed():
+        return gets_reply(root, body, gets_mod.state(root, gets_books(root), board=str(body.get("board") or "") or None))
 
 
 # the autosave asks for the study every few hundred milliseconds of work, so it is held a moment
