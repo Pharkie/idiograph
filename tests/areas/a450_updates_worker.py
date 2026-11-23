@@ -40,12 +40,12 @@ def test_updates_worker(scratch):
     text = {n: (folder / n).read_text(encoding="utf-8") for n in names}
     toml = text["wrangler.toml"]
     check("450: wrangler.toml names idiograph-updates on the two zone routes, no workers.dev, a daily cron and D1 "
-          "idiograph-updates with a placeholder id",
+          "idiograph-updates with its real id",
           'name = "idiograph-updates"' in toml and "workers_dev = false" in toml
           and '{ pattern = "idiograph.app/api/updates/*", zone_name = "idiograph.app" }' in toml
           and '{ pattern = "www.idiograph.app/api/updates/*", zone_name = "idiograph.app" }' in toml
           and re.search(r'^crons = \["[^"]+"\]$', toml, flags=re.M) is not None
-          and 'database_name = "idiograph-updates"' in toml and 'database_id = "PUT-THE-ID-FROM-WRANGLER-D1-CREATE-HERE"' in toml)
+          and 'database_name = "idiograph-updates"' in toml and 'database_id = "5e71e72f-943e-42c3-a8c3-a500f5aad43e"' in toml)
     secrets = ("ADMIN_TOKEN", "IP_SALT", "UNSUB_SECRET", "CONFIRM_SALT", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY")
     # the shapes a pasted secret takes, each spelt with a class so this line never matches itself
     secretish = re.compile(r"[0-9a-f]{32,}|AK[I]A[0-9A-Z]{16}|sk[-]ant|Bearer [A-Za-z0-9]{20,}|(?:" + "|".join(secrets) + r')\s*=\s*"')

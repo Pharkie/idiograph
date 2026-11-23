@@ -320,8 +320,8 @@ def shell(title: str, preheader: str, content: str, footer: str) -> str:
     def img(cls: str, file: str, style: str) -> str:
         return (f'<img class="{cls}" src="{EMAIL_ASSETS}/{file}" width="{LOCKUP_WIDTH}" height="{LOCKUP_HEIGHT}" '
                 f'alt="Idiograph" style="font-family:{EMAIL_SANS};font-size:22px;color:#1F1B16;{style}">')
-    light = img("lk-light", "idiograph-lockup@2x.png", f"display:block;width:{LOCKUP_WIDTH}px;height:auto;")
-    dark = img("lk-dark", "idiograph-lockup-dark@2x.png", f"display:none;width:{LOCKUP_WIDTH}px;height:auto;")
+    light = img("lk-light", "idiograph-lockup-2x.png", f"display:block;width:{LOCKUP_WIDTH}px;height:auto;")
+    dark = img("lk-dark", "idiograph-lockup-dark-2x.png", f"display:none;width:{LOCKUP_WIDTH}px;height:auto;")
     return f"""<!doctype html>
 <html lang="en-GB">
 <head>

@@ -56,8 +56,7 @@ Every command runs from this folder, with Wrangler logged in to Adam's account (
 never with a `CLOUDFLARE_API_TOKEN` in the environment.
 
 1. `wrangler d1 create idiograph-updates --location weur`, in Western Europe, as the privacy page
-   says. Put the `database_id` it prints in `wrangler.toml` in place of
-   `PUT-THE-ID-FROM-WRANGLER-D1-CREATE-HERE`. The id is not a secret.
+   says. Its `database_id` is in `wrangler.toml` (not a secret).
 2. `wrangler d1 execute idiograph-updates --remote --file schema.sql`, which makes the two tables.
 3. The secrets. Wrangler keeps them in Cloudflare; none goes in any file here.
    - `openssl rand -hex 32 | wrangler secret put ADMIN_TOKEN`, and the same value into the Mac's
@@ -127,7 +126,7 @@ packaging/updates_mail.py) share one shape: `emailShell` and `textShell` in the 
 `text_shell` in the script, which give the same bytes for the same words (area 452 checks it). It is a
 table at most 600 pixels wide with inline styles, the site's paper, ink and crux orange, faces this
 computer already has, and Idiograph's lockup with its Preview Edition stamp at the top. Email clients show
-no SVG, so the lockup is two PNGs at twice their size, `site/holding/email/idiograph-lockup@2x.png` and its
+no SVG, so the lockup is two PNGs at twice their size, `site/holding/email/idiograph-lockup-2x.png` and its
 dark twin, served by the site at https://idiograph.app/email/. `node packaging/email_lockup.mjs` draws
 them again from the site's own SVG. A client that follows prefers-color-scheme shows the dark one, and the
 light one sits on a solid plate of the paper's colour that holds the whole lockup and its clear space, so

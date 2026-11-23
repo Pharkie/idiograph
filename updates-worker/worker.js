@@ -296,7 +296,7 @@ ${EMAIL_STYLE}
 <!--[if mso]><table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
 <tr><td style="padding:9px 5px 32px 5px;">
-<a href="https://idiograph.app" style="text-decoration:none;">${img('lk-light', 'idiograph-lockup@2x.png', `display:block;width:${LOCKUP_WIDTH}px;height:auto;`)}<!--[if !mso]><!-->${img('lk-dark', 'idiograph-lockup-dark@2x.png', `display:none;width:${LOCKUP_WIDTH}px;height:auto;`)}<!--<![endif]--></a>
+<a href="https://idiograph.app" style="text-decoration:none;">${img('lk-light', 'idiograph-lockup-2x.png', `display:block;width:${LOCKUP_WIDTH}px;height:auto;`)}<!--[if !mso]><!-->${img('lk-dark', 'idiograph-lockup-dark-2x.png', `display:none;width:${LOCKUP_WIDTH}px;height:auto;`)}<!--<![endif]--></a>
 </td></tr>
 <tr><td class="ink" style="padding:0 36px;font-family:${EMAIL_SANS};font-size:17px;line-height:1.6;color:#1F1B16;">
 ${content}

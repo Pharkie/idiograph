@@ -211,14 +211,16 @@ def test_updates_mail(scratch):
           not any(c in words for c in ";!") and "Adam" not in text and "Adam" not in page, words)
     loads = __import__("re").findall(r"\bsrc=\"([^\"]+)\"", page)
     check("452: the release email loads the two lockup PNGs from idiograph.app/email and nothing else, with the dark-mode tags",
-          loads == ["https://idiograph.app/email/idiograph-lockup@2x.png", "https://idiograph.app/email/idiograph-lockup-dark@2x.png"]
+          loads == ["https://idiograph.app/email/idiograph-lockup-2x.png", "https://idiograph.app/email/idiograph-lockup-dark-2x.png"]
           and '<meta name="color-scheme" content="light dark">' in page and "@media (prefers-color-scheme: dark)" in page
           and "max-width:600px" in page, str(loads))
     root = Path(um.__file__).resolve().parent.parent
-    pngs = [root / "site" / "holding" / "email" / n for n in ("idiograph-lockup@2x.png", "idiograph-lockup-dark@2x.png")]
+    pngs = [root / "site" / "holding" / "email" / n for n in ("idiograph-lockup-2x.png", "idiograph-lockup-dark-2x.png")]
     sizes = [(int.from_bytes(p.read_bytes()[16:20], "big"), int.from_bytes(p.read_bytes()[20:24], "big")) if p.is_file() else None for p in pngs]
     check("452: the lockup's two PNGs are in the site at twice the size the emails show them",
           sizes == [(2 * um.LOCKUP_WIDTH, 2 * um.LOCKUP_HEIGHT)] * 2, str(sizes))
+    at = sorted(str(f.relative_to(root)) for f in (root / "site" / "holding").rglob("*") if "@" in f.name)
+    check("452: no file under site/holding has an @ in its name, which an email client fetches literally and the site answers 404", not at, str(at))
     node = __import__("shutil").which("node")
     if not node:
         skip("452: the Worker's email shape and the script's are the same", "no node on this machine")

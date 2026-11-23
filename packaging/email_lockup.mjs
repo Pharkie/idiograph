@@ -4,13 +4,13 @@
 // (site/holding/index.html and style.css) by headless Chrome and saved as two PNGs at twice their size, since
 // email clients show no SVG:
 //
-//   site/holding/email/idiograph-lockup@2x.png       ink and stamp on a solid rectangle of the paper's colour
+//   site/holding/email/idiograph-lockup-2x.png       ink and stamp on a solid rectangle of the paper's colour
 //                                                    that holds the whole lockup and its clear space, so the
 //                                                    mark itself is never altered and, where a client
 //                                                    darkens the email but not its images (Gmail's apps),
 //                                                    the lockup shows as a paper-coloured plate, not
 //                                                    outlined
-//   site/holding/email/idiograph-lockup-dark@2x.png  the dark theme's ink and stamp, which the email shows in
+//   site/holding/email/idiograph-lockup-dark-2x.png  the dark theme's ink and stamp, which the email shows in
 //                                                    place of the first where the client follows
 //                                                    prefers-color-scheme (Apple Mail, Outlook)
 //
@@ -33,8 +33,8 @@ const lockup = index.match(/<svg class="lockup"[\s\S]*?<\/svg>/)[0];
 
 const LW = 220; // the lockup's width in CSS pixels, its stamp at the site home's size rule (style.css .pe-stamp)
 const THEMES = {
-  light: { file: 'idiograph-lockup@2x.png', ink: '#1F1B16', crux: '#B04E00', dot: '#F26B1D', plate: '#FBF7EF' },
-  dark: { file: 'idiograph-lockup-dark@2x.png', ink: '#EFE7D9', crux: '#F79646', dot: '#F26B1D', plate: null },
+  light: { file: 'idiograph-lockup-2x.png', ink: '#1F1B16', crux: '#B04E00', dot: '#F26B1D', plate: '#FBF7EF' },
+  dark: { file: 'idiograph-lockup-dark-2x.png', ink: '#EFE7D9', crux: '#F79646', dot: '#F26B1D', plate: null },
 };
 
 const html = (t) => `<!doctype html><html><head><meta charset="utf-8"><style>

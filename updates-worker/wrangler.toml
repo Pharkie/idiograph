@@ -19,12 +19,12 @@ crons = ["17 3 * * *"]
 PUBLIC_URL = "https://idiograph.app/api/updates"
 SES_REGION = "eu-west-2"
 
-# The D1 database the list is in. Put the id `wrangler d1 create idiograph-updates` prints in place
-# of the placeholder. The id is not a secret.
+# The D1 database the list is in, made with `wrangler d1 create idiograph-updates --location weur`.
+# The id is not a secret.
 [[d1_databases]]
 binding = "DB"
 database_name = "idiograph-updates"
-database_id = "PUT-THE-ID-FROM-WRANGLER-D1-CREATE-HERE"
+database_id = "5e71e72f-943e-42c3-a8c3-a500f5aad43e"
 
 # Secrets, set with `wrangler secret put`, never written here: ADMIN_TOKEN, IP_SALT, UNSUB_SECRET,
 # CONFIRM_SALT, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY.

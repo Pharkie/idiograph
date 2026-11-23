@@ -192,7 +192,7 @@ check('the email has a subject, plain text and HTML, each with the thank-you, th
   const h = simple.Body.Html.Data;
   const loads = [...h.matchAll(/\b(?:src|background)=["']?([^"' >]+)/g)].map((m) => m[1]);
   check('the confirmation is the shared shape: the lockup PNGs from idiograph.app/email with alt "Idiograph", one Confirm button, the dark-mode meta tags and styles, and nothing else loaded',
-    JSON.stringify(loads) === JSON.stringify(['https://idiograph.app/email/idiograph-lockup@2x.png', 'https://idiograph.app/email/idiograph-lockup-dark@2x.png'])
+    JSON.stringify(loads) === JSON.stringify(['https://idiograph.app/email/idiograph-lockup-2x.png', 'https://idiograph.app/email/idiograph-lockup-dark-2x.png'])
     && (h.match(/alt="Idiograph"/g) || []).length === 2 && (h.match(/class="btn-a"/g) || []).length === 1
     && h.includes('<meta name="color-scheme" content="light dark">') && h.includes('<meta name="supported-color-schemes" content="light dark">')
     && h.includes('@media (prefers-color-scheme: dark)') && h.includes('[data-ogsc] .lk-dark') && h.includes('max-width:600px')
