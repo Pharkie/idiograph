@@ -1517,6 +1517,14 @@
                name while it is empty (31 October), first in General since viewbuild (Adam, 17 November 2026: Settings
                holds the app's own settings alone, General, Language and formats and AI features) -->
           <div class="setting setting-first"><label for="set-your-name">{{page_idiograph.settings_pane.your_name}}</label><input id="set-your-name" type="text" autocomplete="name"></div>
+          <!-- Email for updates (updates-app, 23 November 2026, Adam's word): under Your name, its field as wide as Your name's and
+               in line with it, Sign up under the field's right end, the one line that says why and the privacy page's link
+               under them. Sign up, or Save with a new address, sends it. The state line is empty until a sign-up has gone,
+               and is in the ink, a refusal in amber. Idiograph's alone, and never on Home -->
+          <div class="setting setting-updates"><label for="set-updates-email">{{page_idiograph.settings_pane.email_for_updates}}</label><input id="set-updates-email" type="email" autocomplete="email" spellcheck="false" autocapitalize="off" aria-describedby="set-updates-why set-updates-said"></div>
+          <div class="updates-go"><button class="ghost small" id="set-updates-go" type="button">{{page_idiograph.settings_pane.updates_sign_up}}</button></div>
+          <p class="fineprint updates-why" id="set-updates-why">{{page_idiograph.settings_pane.updates_why}}&nbsp;<a href="https://idiograph.app/privacy" target="_blank" rel="noopener">{{page_idiograph.settings_pane.updates_privacy}}</a></p>
+          <p class="fineprint updates-said" id="set-updates-said" role="status"></p>
 <!--part:ai-more-->
           <!-- Idiograph's AI under AI features since viewbuild (17 November 2026), shown only while the switch is on: the
                statements' prompt and the test bench under it, then the PETs screen's own model, which were the

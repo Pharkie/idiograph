@@ -1,0 +1,30 @@
+# Idiograph's updates list. README.md beside this file has the steps.
+name = "idiograph-updates"
+main = "worker.js"
+compatibility_date = "2026-11-01"
+
+# Reached only on the site's own hosts, under /api/updates/. A zone route runs before the site's
+# Worker (idiograph-holding, on custom domains), so that Worker stays assets-only. No workers.dev.
+workers_dev = false
+routes = [
+  { pattern = "idiograph.app/api/updates/*", zone_name = "idiograph.app" },
+  { pattern = "www.idiograph.app/api/updates/*", zone_name = "idiograph.app" },
+]
+
+# Pending sign-ups over 7 days old and the limits' rows over 2, cleared once a day.
+[triggers]
+crons = ["17 3 * * *"]
+
+[vars]
+PUBLIC_URL = "https://idiograph.app/api/updates"
+SES_REGION = "eu-west-2"
+
+# The D1 database the list is in. Put the id `wrangler d1 create idiograph-updates` prints in place
+# of the placeholder. The id is not a secret.
+[[d1_databases]]
+binding = "DB"
+database_name = "idiograph-updates"
+database_id = "PUT-THE-ID-FROM-WRANGLER-D1-CREATE-HERE"
+
+# Secrets, set with `wrangler secret put`, never written here: ADMIN_TOKEN, IP_SALT, UNSUB_SECRET,
+# CONFIRM_SALT, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY.

@@ -12799,6 +12799,104 @@ function distilSettingsCase() {
   return { path: S.data ? S.data.path : null, themes: false, project: project(), config: S.data ? S.data.config : {} };
 }
 
+/* Email for updates under Your name (updates-app, 23 November 2026): the address kept in the app's own settings, with
+   Sign up in the field's row. Sign up, or Save with a new address in the field, sends it at once through /api/updates,
+   and the line "Check your email to confirm" shows only in the session it went, never when Settings opens again.
+   `UPDATES` holds what this page last signed up, since the settings the card is opened from are snapshots taken before
+   it: `email` is the address as last sent (or as kept when Settings first opened), `sent` that it went in this session. */
+const UPDATES = { email: null, sent: false, busy: false };
+const UPDATES_OK = /^[^@\s]+@[^@\s]+\.[^@\s.]+$/;
+
+function updatesOpen(c) {
+  if (!$('set-updates-email')) return;
+  if (UPDATES.email === null) UPDATES.email = c.updates_email || '';
+  $('set-updates-email').value = UPDATES.email;
+  updatesBad(false);
+  updatesSaid(UPDATES.sent && UPDATES.email ? t('distil.updates.check_your_email', { email: UPDATES.email }) : '');
+}
+
+function updatesSaid(text, failed = false) {
+  if ($('set-updates-said')) saidIn('set-updates-said', text, failed);
+}
+
+function updatesBad(on) {
+  const f = $('set-updates-email');
+  if (!f) return;
+  if (on) f.setAttribute('aria-invalid', 'true'); else f.removeAttribute('aria-invalid');
+}
+
+/* the address typed, trimmed, and whether it is one worth sending */
+function updatesTyped() {
+  const typed = $('set-updates-email') ? $('set-updates-email').value.trim() : '';
+  return { typed, valid: UPDATES_OK.test(typed) };
+}
+
+/* sends the address, throwing what the server said so Save can leave Settings open on a refusal */
+async function updatesSend(email) {
+  UPDATES.busy = true;
+  $('set-updates-go').disabled = true;
+  updatesSaid('');
+  try {
+    const data = await api('/api/updates', { email });
+    UPDATES.email = data.email || email;
+    UPDATES.sent = true;
+    $('set-updates-email').value = UPDATES.email;
+    updatesSaid(t('distil.updates.check_your_email', { email: UPDATES.email }));
+  } catch (err) {
+    updatesSaid(needsRestart(err) ? RESTART_LINE : err.message, !needsRestart(err));
+    throw err;
+  } finally {
+    UPDATES.busy = false;
+    $('set-updates-go').disabled = false;
+  }
+}
+
+async function updatesSignUp() {
+  if (UPDATES.busy) return;
+  const { typed, valid } = updatesTyped();
+  if (!valid) {
+    updatesBad(true);
+    updatesSaid(t('distil.updates.not_an_address'), true);
+    $('set-updates-email').focus();
+    return;
+  }
+  updatesBad(false);
+  try { await updatesSend(typed); } catch { /* said under the field */ }
+}
+
+/* Save's part (FAMILY_APPS.idiograph settingsSends, settingsRefuse and settingsSend): a typed address that is not one
+   keeps Settings open and says so, a new valid one is sent as Sign up sends it, and an empty field, or the address
+   already sent or kept, is no sign-up */
+function updatesSaves() {
+  if (!$('set-updates-email')) return null;
+  const { typed, valid } = updatesTyped();
+  if (!typed || typed === UPDATES.email) return { skip: true };
+  return valid ? { email: typed } : { bad: true };
+}
+
+function updatesRefuse(sends) {
+  if (!sends || !sends.bad) return false;
+  updatesBad(true);
+  updatesSaid(t('distil.updates.not_an_address'), true);
+  $('set-updates-email').focus();
+  return true;
+}
+
+async function updatesSendSaved(sends) {
+  if (!sends || !sends.email) return;
+  await updatesSend(sends.email);
+  say(t('distil.updates.check_your_email', { email: UPDATES.email }), 9000);
+}
+
+/* "Get updates by email…" in Help and in About: Settings at General with the address field in front */
+window.idiographUpdates = () => {
+  if (!$('set-updates-email')) return;
+  if (!$('about').hidden) hide('about');
+  openSettings('general');
+  $('set-updates-email').focus();
+  $('set-updates-email').scrollIntoView({ block: 'center' });
+};
+
 /* the project whose page the home screen shows, its project and its GETs' workbook, or null on the
    picker */
 function homeProject() {
@@ -12818,6 +12916,7 @@ function homeProject() {
 function distilSettingsOpen(ctx, c) {
   // Your name, the name documents carry, empty unless set (31 October)
   if ($('set-your-name')) $('set-your-name').value = c.your_name || '';
+  updatesOpen(c);
   // Celebrations' line names the round's end while Work in rounds is on, as the statements screen's View sets it
   $('cheer-line').textContent = cheerLine(roundsOn(c));
   $('set-prompt').value = c.ai_prompt || S.promptDefault || '';
@@ -14306,6 +14405,13 @@ function distilBoot() {
   $('btn-ai').onclick = () => askAI();
   // Put away takes the answer down and brings the button back, so a second press asks afresh
   $('ai-close').onclick = () => resetAI();
+  $('set-updates-go').onclick = () => updatesSignUp();
+  // Enter in the field signs up, as Sign up does, and never saves the card
+  $('set-updates-email').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); updatesSignUp(); }
+  });
+  // editing the field takes the line down, and the invalid mark with it
+  $('set-updates-email').addEventListener('input', () => { updatesBad(false); updatesSaid(''); });
   $('btn-prompt-reset').onclick = () => {
     if (S.promptDefault) { $('set-prompt').value = S.promptDefault; saidIn('key-said', ''); }
     else saidIn('key-said', RESTART_LINE);
@@ -15339,6 +15445,9 @@ FAMILY_APPS.idiograph = {
   settingsCase: (...a) => distilSettingsCase(...a),
   settingsOpen: (...a) => distilSettingsOpen(...a),
   settingsBody: (...a) => distilSettingsBody(...a),
+  settingsSends: () => updatesSaves(),
+  settingsRefuse: (sends) => updatesRefuse(sends),
+  settingsSend: (sends) => updatesSendSaved(sends),
   settingsSaved: (...a) => distilSettingsSaved(...a),
   settingsAfter: (...a) => distilSettingsAfter(...a),
   settingsShut: () => tpAfter(),

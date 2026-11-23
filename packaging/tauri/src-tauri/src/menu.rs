@@ -139,6 +139,11 @@ pub fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
         &sep()?,
         &feedback,
     ])?;
+    // Get Updates by Email…, after Send Feedback, in Idiograph's own Help alone (updates-app, 23 November 2026): the
+    // page opens Settings at General with the address field in front
+    if crate::app::name() == "Idiograph" {
+        help.insert(&item(app, "updates", &t("menus.updates"), None)?, 5)?;
+    }
     keep_bar("app", recent, feedback, history, project, replace);
     let menu = Menu::with_items(app, &[&idiograph, &file, &edit, &view, &window, &help])?;
     draw_recent(app);
@@ -221,6 +226,10 @@ fn build_bar(app: &AppHandle, label: &str) -> tauri::Result<Menu<Wry>> {
         &sep()?,
         &item(app, "about", &t_app("menus.win_about"), None)?,
     ])?;
+    // Get Updates by Email…, under Send Feedback, in Idiograph's own Help alone (updates-app, 23 November 2026)
+    if crate::app::name() == "Idiograph" {
+        help.insert(&item(app, "updates", &t("menus.win_updates"), None)?, 5)?;
+    }
     keep_bar(label, recent.clone(), feedback, history, project, replace);
     let menu = Menu::with_items(app, &[&file, &edit, &view, &help])?;
     let list = RECENT.lock().unwrap().clone();

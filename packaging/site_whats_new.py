@@ -20,7 +20,8 @@ which the version bump does:
     .venv/bin/python packaging/site_whats_new.py
 
 `--check` writes nothing and exits 1 naming each file that differs from what it would write (area 405 holds the
-committed site to it). `--layout A` or `B` and `--out <folder>` write a copy of the site's pages elsewhere, for
+committed site to it). The updates sign-up form goes on Download and What's new only while UPDATES_FORM is True (off until Amazon
+SES grants production access), and `--out <folder> --updates-form` writes a copy with it for review. `--layout A` or `B` and `--out <folder>` write a copy of the site's pages elsewhere, for
 review shots of the layout not shipped.
 """
 from __future__ import annotations
@@ -209,6 +210,56 @@ def page(rels: list[dict], layout: str = LAYOUT) -> str:
             '  </div>\n  </div>\n</main>\n<script src="get.js"></script>\n</body>\n</html>\n')
 
 
+# Updates by email (updates-site, 23 November 2026, Adam): the sign-up form under the Download page's download and
+# under What's new's notes. It goes live only after Amazon SES grants production access, so it is off here and the
+# pages come out without it. `--updates-form` writes it into a copy (`--out`) for review shots. Turn it on by setting
+# UPDATES_FORM to True and running this, which writes both pages with the form and `updates.js` after `get.js`.
+UPDATES_FORM = False
+# The wording the person agrees to is the form's purpose line. Its version travels with every sign-up (the contract
+# with updates-worker and the app's Settings), so a change to the line takes a new version here and in the app.
+UPDATES_CONSENT = "updates-2026-11-23"
+UPDATES_PAGES = ("download.html", PAGE)
+UPDATES_SCRIPT = '<script src="updates.js"></script>\n'
+UPDATES_BLOCK = re.compile(r'  <section class="up" id="up".*?</section>\n', re.S)
+
+
+def updates_form() -> str:
+    """The form, hidden until updates.js shows it, so a visitor without scripts never meets a form that cannot send.
+    `website` is the honeypot: off the screen, out of the tab order and hidden from a screen reader."""
+    return ('  <section class="up" id="up" aria-labelledby="up-h" hidden>\n'
+            '    <h2 id="up-h">Updates by email</h2>\n'
+            '    <p class="up-line">Get an email when there is a new version or news of Idiograph. '
+            'I send a few emails a year.</p>\n'
+            f'    <form class="up-form" id="up-form" data-consent="{UPDATES_CONSENT}" novalidate>\n'
+            '      <label class="up-label" for="up-email">Email address</label>\n'
+            '      <div class="up-row"><input id="up-email" name="email" type="email" autocomplete="email" '
+            'maxlength="254" spellcheck="false" aria-describedby="up-said"><button class="up-send" id="up-send" '
+            'type="submit">Sign up</button></div>\n'
+            '      <div class="up-hp" aria-hidden="true"><label for="up-website">Website</label><input id="up-website" '
+            'name="website" type="text" tabindex="-1" autocomplete="off"></div>\n'
+            '      <p class="up-said" id="up-said" role="status" tabindex="-1"></p>\n'
+            '    </form>\n'
+            '    <p class="up-small">Every email has a link to leave the list. The <a href="privacy.html">privacy page</a> '
+            'says what is kept.</p>\n'
+            '  </section>\n')
+
+
+def with_updates(text: str, name: str, on: bool) -> str:
+    """A page with the form and its script, or without either: whatever was there before is taken out first, so
+    turning the flag off again gives the page as it was. On Download it goes after the download block, below the
+    first-open steps and the manual's link. On What's new it goes after the link to every release."""
+    text = UPDATES_BLOCK.sub("", text).replace(UPDATES_SCRIPT, "")
+    if not on or name not in UPDATES_PAGES:
+        return text
+    if name == PAGE:
+        at = text.index('  <div class="fp-foot">')
+    else:
+        at = text.index("</main>")
+    text = text[:at] + updates_form() + text[at:]
+    at = text.index('<script src="get.js"></script>\n') + len('<script src="get.js"></script>\n')
+    return text[:at] + UPDATES_SCRIPT + text[at:]
+
+
 def manual_link(target: str) -> str | None:
     """Where a link in docs/manual.md goes on the site: a link to a heading stays where it is, and a link to a file
     in the repo, written from docs/, goes to that file on GitHub. Anything else keeps its words alone."""
@@ -258,9 +309,10 @@ def manual_page(rels: list[dict], text: str | None = None) -> str:
 
 
 def outputs(site: Path = SITE, text: str | None = None, version: str | None = None,
-            layout: str = LAYOUT) -> dict[Path, str]:
+            layout: str = LAYOUT, updates: bool | None = None) -> dict[Path, str]:
     """Every file this writes and what it holds: the page, and each other page with the nav script put in fresh.
-    A page with the site's nav and no nav script is refused, so no page goes without the count."""
+    A page with the site's nav and no nav script is refused, so no page goes without the count. `updates` puts the
+    sign-up form on Download and What's new, UPDATES_FORM when not given."""
     if text is None:
         text = WHATS_NEW.read_text(encoding="utf-8")
     if version is None:
@@ -268,8 +320,10 @@ def outputs(site: Path = SITE, text: str | None = None, version: str | None = No
     rels = releases(text, version)
     if not rels:
         raise ValueError(f"docs/whats-new.md has no section for {version} or any version before it")
+    if updates is None:
+        updates = UPDATES_FORM
     script = nav_script(rels)
-    out = {site / PAGE: page(rels, layout), site / MANUAL: manual_page(rels)}
+    out = {site / PAGE: with_updates(page(rels, layout), PAGE, updates), site / MANUAL: manual_page(rels)}
     for path in sorted(site.glob("*.html")):
         if path.name in (PAGE, MANUAL):
             continue
@@ -286,7 +340,7 @@ def outputs(site: Path = SITE, text: str | None = None, version: str | None = No
             if not VERSION_LINE.search(new):
                 raise ValueError("download.html has no get-version line")
             new = VERSION_LINE.sub(f'<p class="get-version">Version {rels[0]["version"]}</p>', new)
-        out[path] = new
+        out[path] = with_updates(new, path.name, updates)
     return out
 
 
@@ -295,15 +349,19 @@ def main(argv=None) -> int:
     ap.add_argument("--check", action="store_true", help="write nothing; exit 1 naming each file that differs")
     ap.add_argument("--layout", choices=("A", "B"), default=LAYOUT, help="A every release open, B the newest open")
     ap.add_argument("--out", help="write a copy of the site's pages here, never the site itself")
+    ap.add_argument("--updates-form", action="store_true",
+                    help="with --out, put the updates sign-up form in the copy (the site itself follows UPDATES_FORM)")
     args = ap.parse_args(argv)
+    if args.updates_form and not args.out:
+        raise SystemExit("--updates-form is for a copy (--out); set UPDATES_FORM to put the form on the site")
     if args.out:
         dest = Path(args.out)
         if dest.resolve() == SITE.resolve():
             raise SystemExit("--out is for a copy, never site/holding itself")
         shutil.copytree(SITE, dest, dirs_exist_ok=True)
-        for path, content in outputs(dest, layout=args.layout).items():
+        for path, content in outputs(dest, layout=args.layout, updates=args.updates_form or None).items():
             path.write_text(content, encoding="utf-8", newline="\n")
-        print(f"WHATS-NEW: copy in {dest}, layout {args.layout}")
+        print(f"WHATS-NEW: copy in {dest}, layout {args.layout}" + (", the updates form on" if args.updates_form else ""))
         return 0
     files = outputs(layout=args.layout)
     stale = [p for p, content in files.items()

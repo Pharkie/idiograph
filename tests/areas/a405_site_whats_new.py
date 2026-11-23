@@ -54,8 +54,9 @@ def test_site_whats_new():
           no_menu)
     marked = {n: re.findall(r'href="([a-z-]+\.html)" aria-current="page"', (site / n).read_text(encoding="utf-8"))
               for n in with_nav}
-    check("each page marks itself in the nav, the home page, the manual, the join page and the signing page none",
-          all(v == ([] if n in ("index.html", sw.MANUAL, "join.html", "signing.html") else [n]) for n, v in marked.items()), marked)
+    check("each page marks itself in the nav, the home page, the manual, the join, signing and privacy pages none",
+          all(v == ([] if n in ("index.html", sw.MANUAL, "join.html", "signing.html", "privacy.html") else [n])
+              for n, v in marked.items()), marked)
 
     dl = (site / "download.html").read_text(encoding="utf-8")
     others = [n for n in with_nav if n != "download.html"]
@@ -149,8 +150,66 @@ def test_site_whats_new():
           and all('href="signing.html"' in (site / n).read_text(encoding="utf-8") for n in ("index.html", "download.html"))
           and not re.search(r'<(script|img|iframe|link)[^>]+(src|href)="https?://', sg.replace('rel="icon"', "")),
           "signing.html")
+    test_site_privacy(sw, files, site)
+    test_site_updates_form(sw, files, site)
     test_site_manual()
     test_site_release()
+
+
+def test_site_privacy(sw, files, site):
+    """The privacy page (updates-site, 23 November 2026): one page for the site and the app, written by hand, its nav
+    by the generator, linked from the home, Download and signing pages, loading nothing from another site."""
+    page = (site / "privacy.html").read_text(encoding="utf-8") if (site / "privacy.html").is_file() else ""
+    check("the privacy page exists with the site's nav, names the controller and contact, the ICO and the processors",
+          page and (site / "privacy.html") in files and "Adam Knowles" in page and "hello@idiograph.app" in page
+          and "ico.org.uk" in page and "Cloudflare" in page and "its London service, Amazon SES" in page)
+    check("the privacy page covers updates by email, Send feedback, Working together and the site itself",
+          all(f'<h2 id="{a}">' in page for a in ("site", "updates", "feedback", "working-together", "rights")))
+    check("the home, Download and signing pages link the privacy page",
+          all('href="privacy.html"' in (site / n).read_text(encoding="utf-8")
+              for n in ("index.html", "download.html", "signing.html")))
+    srcs = re.findall(r'<script\b[^>]*src="([^"]*)"', page)
+    check("the privacy page's scripts are the site's own and it loads nothing from another site",
+          srcs == ["get.js"] and not re.search(r'<(script|img|iframe|link)[^>]+(src|href)="https?://',
+                                                 page.replace('rel="icon"', "")), srcs)
+    check("the privacy page uses no semicolon in its words", ";" not in re.sub(
+        r"<script.*?</script>|<svg.*?</svg>|&#?\w+;|style=\"[^\"]*\"", "", page, flags=re.S))
+
+
+def test_site_updates_form(sw, files, site):
+    """The updates sign-up form (updates-site, 23 November 2026) sits behind UPDATES_FORM, off until Amazon SES grants
+    production access: off, the pages are what they were and carry no form; on, Download and What's new carry it
+    with updates.js; and taking it out again gives the pages back byte for byte."""
+    check("the form is off on the site until the grant", sw.UPDATES_FORM is False)
+    off = sw.outputs(updates=False)
+    on = sw.outputs(updates=True)
+    check("flag off gives the committed site, with no form and no updates.js on any page",
+          off == files and not [p.name for p, t in off.items() if 'id="up"' in t or "updates.js" in t])
+    got = sorted(p.name for p, t in on.items() if 'id="up-form"' in t and '<script src="updates.js"></script>' in t)
+    check("flag on puts the form and updates.js on Download and What's new alone", got == sorted(sw.UPDATES_PAGES), got)
+    check("flag on changes nothing else", all(on[p] == off[p] for p in off if p.name not in sw.UPDATES_PAGES))
+    check("taking the form out of a page with it gives the page without it, byte for byte",
+          all(sw.with_updates(on[p], p.name, False) == off[p] for p in off)
+          and all(sw.with_updates(on[p], p.name, True) == on[p] for p in on))
+    form = sw.updates_form()
+    check("the form carries the consent version, the honeypot named website, a link to the privacy page, and is "
+          "hidden until its script shows it",
+          f'data-consent="{sw.UPDATES_CONSENT}"' in form and 'name="website"' in form and 'tabindex="-1"' in form
+          and 'href="privacy.html"' in form and 'hidden>' in form.splitlines()[0])
+    dl = on[site / "download.html"]
+    check("on Download the form comes after the download block", dl.index('id="get"') < dl.index('id="up"'))
+    js = (site / "updates.js").read_text(encoding="utf-8")
+    check("updates.js posts the contract's fields to the same site's /api/updates/subscribe, and keeps nothing",
+          "fetch('/api/updates/subscribe'" in js and "source: 'site'" in js and "consent:" in js and "website:" in js
+          and not re.search(r"localStorage|sessionStorage|document\.cookie|indexedDB|https?://", js))
+    check("updates.js shows the three states: sending, check your email, not an email address",
+          "Sending" in js and "Check your email to confirm." in js and "That is not an email address." in js)
+    check("only the Worker's 400 with error email reads as a bad address, anything else as a failed sign-up",
+          "status === 400 && error === 'email'" in js and "Your sign-up did not go through. Try again later." in js)
+    css = (site / "style.css").read_text(encoding="utf-8")
+    check("the status line stays in the accessibility tree when empty, and takes the focus once the form is sent",
+          not re.search(r"\.up-said:empty\s*\{[^}]*display:\s*none", css) and 'tabindex="-1"' in form
+          and "said.focus()" in js)
 
 
 def test_site_join(files, site):

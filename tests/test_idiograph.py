@@ -474,6 +474,9 @@ AREAS = {
     "a439_home_perf": "idiograph",
     "a442_gets_reads_kept": "idiograph",
     "a447_statements_open_fast": "idiograph",
+    "a450_updates_worker": "shared",
+    "a451_updates_email": "idiograph",
+    "a452_updates_mail": "shared",
 }
 
 

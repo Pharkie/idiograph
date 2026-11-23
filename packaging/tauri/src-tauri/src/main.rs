@@ -1423,10 +1423,11 @@ fn menu_event(app: &AppHandle, id: &str) {
         }
         // About is the page's own card, its version, licence and acknowledgements, on either system (20 October)
         // Find and Find and Replace press their keys in the window in front, as Undo and Redo do (barsD, 6 November)
-        "settings" | "shortcuts" | "feedback" | "whatsnew" | "about" | "undo" | "redo" | "reload"
+        // Get Updates by Email… opens Settings at General with the address field in front (updates-app, 23 November 2026)
+        "settings" | "shortcuts" | "feedback" | "whatsnew" | "about" | "updates" | "undo" | "redo" | "reload"
         | "home" | "project-history" | "project-settings" | "find" | "find-replace" => {
-            let own = matches!(id, "settings" | "shortcuts" | "feedback" | "whatsnew" | "about" | "home" | "project-history"
-                | "project-settings");
+            let own = matches!(id, "settings" | "shortcuts" | "feedback" | "whatsnew" | "about" | "updates" | "home"
+                | "project-history" | "project-settings");
             if let Some(window) = front(app, own) {
                 let _ = window.eval(format!("window.__idiographMenu && window.__idiographMenu('{id}')"));
                 // from a print view's menu, the app's own window comes forward, as a check's never does

@@ -880,6 +880,19 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .view-menu .info-tip { position: fixed; left: auto; top: auto; width: 300px; white-space: normal; }
 /* Your name, first in Settings' General (viewbuild), no room above it as the first sub-heading has none */
 .setting.setting-first { margin-top: 0; }
+/* Email for updates under Your name (updates-app): its line and Privacy link in the small print's colour, the link
+   underlined as About's are, and its state line under it */
+/* the field as wide as Your name's and in line with it (style.css .setting input), and Sign up under its right end
+   (updates-email, 23 November 2026, from the shot check) */
+.setting-updates input[aria-invalid="true"] { border-color: var(--amber); }
+.updates-go { display: flex; justify-content: flex-end; margin: -4px 0 12px; }
+.updates-why { margin: 0; text-wrap: pretty; }
+.updates-why a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+/* the state in the ink, so "Check your email to confirm" stands out from the why line's grey, and a refusal in
+   .said-failed's amber */
+.updates-said { margin: 6px 0 0; color: var(--ink); }
+.updates-said.said-failed { color: var(--amber); }
+.updates-said:empty { display: none; }
 /* a small heading over a View menu's group of choices, a label as a card's kicker is */
 .view-head {
   padding: 6px 10px 2px; font-size: 10.5px; letter-spacing: var(--label-track); text-transform: uppercase;

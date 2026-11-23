@@ -1681,6 +1681,70 @@ def api_feedback(body: dict) -> dict:
     return {"sent": True, "id": row}
 
 
+# ------------------------------------------------------- updates by email
+
+# Email for updates (updates-app, 23 November 2026): Idiograph's Settings, General, takes an address and its server
+# posts the sign-up to the updates Worker on idiograph.app, the way a note goes to the feedback collector. The Worker
+# answers 200 for any well-formed request and 400 for an address that is not one, and it sends the confirmation
+# email, so a sign-up is only made when the person confirms from their mail. The address is kept in the app's own
+# settings (`updates_email`, with `updates_sent` once the sign-up has gone), never in a project, and `updates_url`
+# in config.json stands in for the address on one machine as `feedback_url` does. UPDATES_CONSENT is the version of
+# the wording the person saw beside the button, "I send news of Idiograph and its new versions a few times a year.
+# I never sell your address.", with the privacy page's link; it changes when that wording does.
+UPDATES_URL = "https://idiograph.app/api/updates/subscribe"
+UPDATES_CONSENT = "updates-2026-11-23"
+UPDATES_TIMEOUT = 15
+# the transport as FEEDBACK_SEND is, so the suite hands it a fake or a Worker of its own on a port
+UPDATES_SEND = ai_mod.http_call
+# an address as a sign-up form takes one: something, an @, a name with a dot, no space, 254 characters at most
+UPDATES_EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s.]+$")
+
+
+def updates_url(cfg: dict) -> str:
+    """The updates Worker's address: `updates_url` in the settings over UPDATES_URL, and only one the AI's calls would
+    take (https, or http on this machine alone), so a stray value never opens a file and an address planted in
+    config.json never sends an email address over the open network."""
+    url = str(cfg.get("updates_url") or UPDATES_URL or "").strip()
+    return url if ai_mod.address_ok(url) else ""
+
+
+def updates_address(text) -> str:
+    """The address as typed with its edges trimmed, or "" when it is not one."""
+    mail = str(text or "").strip()
+    return mail if 0 < len(mail) <= 254 and UPDATES_EMAIL.match(mail) and mail.isprintable() else ""
+
+
+def updates_payload(email: str) -> dict:
+    """The sign-up as it travels: the address, that it came from the app, the version, the wording's version and the
+    honeypot, empty. Nothing else is ever added."""
+    return {"email": email, "source": "app", "version": VERSION, "consent": UPDATES_CONSENT, "website": ""}
+
+
+def api_updates(body: dict) -> dict:
+    """Sign up for updates by email: the address checked here first, then sent to the Worker, and kept in the app's own
+    settings once the Worker has taken it. Answers the address and `sent`, or one line saying why not."""
+    mail = updates_address(body.get("email"))
+    if not mail:
+        return {"error": i18n.t("errors.updates_email_invalid"), "status": 400}
+    url = updates_url(config())
+    if not url:
+        return {"error": i18n.t("errors.updates_set_up_build"), "status": 501}
+    headers = {"content-type": "application/json", "user-agent": f"Idiograph/{VERSION}"}
+    try:
+        status, _answer = UPDATES_SEND("POST", url, headers, updates_payload(mail), UPDATES_TIMEOUT)
+    except Exception:
+        status = 0
+    if status == 0:
+        return {"error": i18n.t("errors.updates_could_not_send"), "status": 502}
+    if status == 400:
+        # the Worker's one 400 is an address it does not take
+        return {"error": i18n.t("errors.updates_email_invalid"), "status": 400}
+    if not 200 <= status < 300:
+        return {"error": i18n.t("errors.updates_refused", status=status), "status": 502}
+    write_config_keys({"updates_email": mail, "updates_sent": True})
+    return {"sent": True, "email": mail}
+
+
 # ------------------------------------------------- Using your own AI agents
 
 # Each app's AI features page ends with "Using your own AI agent" (Adam, 21 October 2026): a box of words

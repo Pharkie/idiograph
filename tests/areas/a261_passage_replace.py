@@ -138,6 +138,8 @@ PAGE_ONLY = {
     # canvas keeps its own in the page; an agent's change is undone with agents undo-change
     "/api/trajectories-undo": (("screen",), "his own Undo and Redo on the Trajectories screen, the window's steps, "
                                             "where an agent undoes its change with agents undo-change"),
+    "/api/updates": ((4,), "the maker's list for news by email, the address kept in the app's own settings, which no undo "
+                          "reaches and an agent never signs a person up to"),
     "/api/whats-new": (("screen",), "the version notes' sheet"),
 }
 

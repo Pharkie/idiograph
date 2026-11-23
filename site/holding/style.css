@@ -465,3 +465,41 @@ main.mn {
 .fp-manual a { color: var(--ink); text-underline-offset: 3px; text-decoration-color: var(--rule); }
 .fp-manual a:hover { text-decoration-color: currentColor; }
 .fp-manual a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+.up { width: 100%; max-width: 32em; margin: 56px 0 0; padding-top: 28px; border-top: 1px solid var(--rule); text-align: left; }
+.up[hidden], .up [hidden] { display: none; }
+.dp .up { margin-left: auto; margin-right: auto; }
+.wn .up { max-width: 44em; margin-top: 48px; }
+.up h2 { font: 400 24px/1.2 var(--serif); margin: 0; }
+.up-line { margin: 8px 0 0; font: 400 clamp(16.5px, 0.3vw + 14px, 18px)/1.55 var(--serif); color: var(--ink); }
+.up-form { margin: 18px 0 0; }
+.up-label { display: block; font: 600 14px/1.3 var(--sans); margin: 0 0 8px; }
+.up-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.up-row input {
+  flex: 1 1 240px; min-width: 0; font: 400 17px/1.4 var(--sans); color: var(--ink);
+  padding: 11px 14px; border: 1px solid var(--ink-soft); border-radius: 8px; background: var(--card);
+}
+.up-row input:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.up-row input[aria-invalid="true"] { border-color: var(--crux); box-shadow: inset 0 0 0 1px var(--crux); }
+.up-row input:read-only { color: var(--ink-soft); }
+.up-send {
+  flex: none; min-height: 48px; padding: 11px 22px; border: 1px solid var(--ink-soft); border-radius: 8px;
+  background: var(--card); color: var(--ink); font: 600 16px/1.4 var(--sans); cursor: pointer;
+}
+.up-send:hover { border-color: var(--ink); background: var(--paper-sunk); }
+.up-send:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.up-send:disabled { cursor: progress; opacity: .6; }
+.up-send:disabled:hover { border-color: var(--ink-soft); background: var(--card); }
+@media (max-width: 560px) { .up-row input, .up-send { flex: 1 1 100%; } }
+.up-said { margin: 0; font: 400 15px/1.5 var(--sans); color: var(--ink); }
+.up-said:not(:empty) { margin-top: 10px; }
+.up-said:focus { outline: none; }
+.up-said.bad { color: var(--crux); font-weight: 600; }
+.up-done .up-said { margin: 0; font: 400 clamp(17px, 0.4vw + 14px, 19px)/1.5 var(--serif); }
+.up-hp { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+.up-small { margin: 12px 0 0; font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
+.up-small a { color: var(--ink); text-underline-offset: 3px; text-decoration-color: var(--rule); }
+.up-small a:hover { text-decoration-color: currentColor; }
+.up-small a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.pv-date { margin-top: 2em; }
+.jn p.pv-date { font: 400 15px/1.5 var(--sans); color: var(--ink-soft); }

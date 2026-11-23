@@ -4532,6 +4532,8 @@ function boot() {
   $('about-done').onclick = () => hide('about');
   $('about-x').onclick = () => hide('about');
   $('settings-about').onclick = () => openAbout();
+  // About's "Get updates by email…", Idiograph's alone, takes Settings at General with the address field in front
+  if ($('about-updates')) $('about-updates').onclick = () => { if (typeof window.idiographUpdates === 'function') window.idiographUpdates(); };
   supportWire();
   rmWire();
   updAsk();

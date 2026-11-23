@@ -95,6 +95,7 @@
   "page.project.question": "Research question",
   "page.about.word": "About",
   "page.about.by": "By Adam Knowles",
+  "page.about.updates": "Get updates by email…",
   "page.about.licence_html": "Free and open source under the <a href=\"/licence\" target=\"_blank\" rel=\"noopener\">GNU AGPL v3</a>. It comes with no warranty.",
   "page.about.thanks_title": "Acknowledgements",
   "page.about.thanks_curt": "Thanks to Curt Strangward for his article on IPA in ATLAS.ti, and for testing early builds of Idiograph on Windows:",

@@ -376,6 +376,9 @@ function idiographFieldUndo(e, field) {
     whatsnew: function () { if (typeof win.openWhatsNew === 'function') win.openWhatsNew(); },
     // the app's own About card, from the Mac's Idiograph menu and Windows's Help (20 October)
     about: function () { if (typeof win.openAbout === 'function') win.openAbout(); },
+    // Help, Get Updates by Email…: Settings at General with the address field in front, Idiograph's alone (updates-app,
+    // 23 November 2026)
+    updates: function () { if (typeof win.idiographUpdates === 'function') win.idiographUpdates(); },
     undo: function () { edit(true); },
     redo: function () { edit(false); },
     reload: function () { keepTyped().then(function () { win.location.reload(); }); },

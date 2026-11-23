@@ -13711,6 +13711,8 @@ ROUTES = {
     "/api/haiku": api_suggest,                 # the name it had before, kept working
     "/api/suggest-sample": api_suggest_sample,
     "/api/mcp": api_mcp,
+    # Email for updates under Settings, General (updates-app, 23 November 2026), Idiograph's alone
+    "/api/updates": srv.api_updates,
     "/api/project-history": api_project_history,
     # Project history's By an agent and Home's line of agents' changes (agentreview2, 13 November 2026)
     "/api/agent-changes": api_agent_changes,
@@ -13730,7 +13732,7 @@ srv.register("idiograph", routes=ROUTES,
              post_only=("/api/choose-root", "/api/projects", "/api/new-project", "/api/add-transcripts", "/api/names", "/api/qdpx",
                         "/api/open-sent", "/api/send-project", "/api/qdpx-export", "/api/reveal", "/api/boards-in", "/api/order", "/api/rename",
                         "/api/participant", "/api/demographics",
-                        "/api/mcp", "/api/quote-heading", "/api/clear-formatting", "/api/clear-made-notes", "/api/skip", "/api/shift-times", "/api/team",
+                        "/api/mcp", "/api/updates", "/api/quote-heading", "/api/clear-formatting", "/api/clear-made-notes", "/api/skip", "/api/shift-times", "/api/team",
                         "/api/team-board", "/api/team-review"),
              own_page=("/api/mcp",),
              # what governs agents, from the app's own window alone, never a program on this machine (agentlock,
@@ -13738,7 +13740,7 @@ srv.register("idiograph", routes=ROUTES,
              # this project", and the list of real names (namesrule, 8 November 2026), which only the window reads or
              # sets over HTTP. The demo's recordings download only from the window too (recdemand, 13 November
              # 2026): agents never download, and how far one has got is read by anyone
-             window_only={"/api/mcp": None, "/api/agents-guide": None, "/api/names": None,
+             window_only={"/api/mcp": None, "/api/updates": None, "/api/agents-guide": None, "/api/names": None,
                           "/api/project": "agents", "/api/demo-recordings": "op"},
              get_paths={PRINT_PATH: print_view, GETS_PRINT_PATH: gets_print_view, TRAJ_PRINT_PATH: traj_print_view,
                         TRANSCRIPT_PRINT_PATH: transcript_print_view, CODES_PRINT_PATH: codes_print_view},

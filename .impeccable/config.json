@@ -110,6 +110,15 @@
         ],
         "createdAt": "2026-11-22T15:15:02.961Z",
         "reason": "Adam's ruling, 22 November 2026 (by dialog, user confirmed): the label step, --fs-label at 10.5px, stays although the checker's floor is 11px; the findings are the tags and sample labels of the /design page set at that step. The rule has no extractable value, so it is scoped to this one file (edgesok)"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "site/holding/privacy.html"
+        ],
+        "createdAt": "2026-11-23T14:32:25.246Z",
+        "reason": "coordinator: false positive confirmed twice by measurement (updates-site and impeccable-updates-site, 23 Nov 2026): rendered h1 42px, h2 26px, body 19px at 1280 (steps 1.62 and 1.43), the same scale as signing.html, whose identical finding is already ignored; the static scan guessed 14-16px"
       }
     ]
   }
