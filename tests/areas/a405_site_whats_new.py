@@ -177,14 +177,18 @@ def test_site_privacy(sw, files, site):
 
 
 def test_site_updates_form(sw, files, site):
-    """The updates sign-up form (updates-site, 23 November 2026) sits behind UPDATES_FORM, off until Amazon SES grants
-    production access: off, the pages are what they were and carry no form; on, Download and What's new carry it
-    with updates.js; and taking it out again gives the pages back byte for byte."""
-    check("the form is off on the site until the grant", sw.UPDATES_FORM is False)
+    """The updates sign-up form (updates-site, 23 November 2026) sits behind UPDATES_FORM, on since 23 November 2026
+    (Adam's word, after a sign-up tested end to end): on, the committed pages are the generator's byte for byte and
+    Download and What's new carry the form with updates.js; off, the pages carry no form; and taking the form out
+    again gives the pages back byte for byte."""
+    check("the form is on for the site", sw.UPDATES_FORM is True)
     off = sw.outputs(updates=False)
     on = sw.outputs(updates=True)
-    check("flag off gives the committed site, with no form and no updates.js on any page",
-          off == files and not [p.name for p, t in off.items() if 'id="up"' in t or "updates.js" in t])
+    check("flag on gives the committed site byte for byte", on == files and sw.outputs() == files)
+    check("flag off gives pages with no form and no updates.js on any page",
+          not [p.name for p, t in off.items() if 'id="up"' in t or "updates.js" in t])
+    check("the committed pages carry the form on Download and What's new alone",
+          sorted(p.name for p, t in files.items() if 'id="up"' in t) == sorted(sw.UPDATES_PAGES))
     got = sorted(p.name for p, t in on.items() if 'id="up-form"' in t and '<script src="updates.js"></script>' in t)
     check("flag on puts the form and updates.js on Download and What's new alone", got == sorted(sw.UPDATES_PAGES), got)
     check("flag on changes nothing else", all(on[p] == off[p] for p in off if p.name not in sw.UPDATES_PAGES))

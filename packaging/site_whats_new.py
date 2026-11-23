@@ -214,7 +214,7 @@ def page(rels: list[dict], layout: str = LAYOUT) -> str:
 # under What's new's notes. It goes live only after Amazon SES grants production access, so it is off here and the
 # pages come out without it. `--updates-form` writes it into a copy (`--out`) for review shots. Turn it on by setting
 # UPDATES_FORM to True and running this, which writes both pages with the form and `updates.js` after `get.js`.
-UPDATES_FORM = False
+UPDATES_FORM = True
 # The wording the person agrees to is the form's purpose line. Its version travels with every sign-up (the contract
 # with updates-worker and the app's Settings), so a change to the line takes a new version here and in the app.
 UPDATES_CONSENT = "updates-2026-11-23"
