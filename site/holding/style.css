@@ -368,8 +368,8 @@ main.sp {
 }
 .clip-play svg { width: 46%; height: 46%; fill: currentColor; }
 .clip-play:focus-visible { outline: 3px solid var(--play); outline-offset: 4px; }
-.clip-still:not(.clip-on) .clip-play { display: grid; }
-.clip-still video { cursor: pointer; }
+.clip-still:not(.clip-on) .clip-play, .clip-blocked:not(.clip-on) .clip-play { display: grid; }
+.clip-still video, .clip-blocked video { cursor: pointer; }
 .sp .refs { margin-left: 0; max-width: 40em; }
 
 @media (max-width: 900px) {

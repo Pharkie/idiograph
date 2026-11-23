@@ -14,6 +14,8 @@ import html
 import importlib.util
 import json
 import re
+import shutil
+import subprocess
 
 from . import support
 from .support import check as _check
@@ -142,6 +144,7 @@ def test_site_whats_new():
     check("no served page carries a comment, but the join page's, which says why it must never read the address",
           all("<!--" not in t for p, t in files.items() if p.name != "join.html"))
     test_site_join(files, site)
+    test_site_ranges(site)
     sg = (site / "signing.html").read_text(encoding="utf-8") if (site / "signing.html").is_file() else ""
     check("the code signing policy page (signprep, 21 November 2026) carries SignPath's line, names the three roles, "
           "is linked from the home and Download pages and loads nothing from another site",
@@ -230,6 +233,47 @@ def test_site_updates_form(sw, files, site):
           and "up-wrong" not in js and "up-wrong" not in css)
     check("the card's shadow is dropped in dark, the border stays",
           re.search(r"prefers-color-scheme:\s*dark\)\s*\{\s*\.up\s*\{\s*box-shadow:\s*none", css) is not None)
+
+
+def test_site_ranges(site):
+    """The clips and the film answer a Range request (clipfix, 23 November 2026, Adam: the Screenshots clips did not
+    play in Brave): the static assets send a file whole with a 200 and no Accept-Ranges, so a small Worker script,
+    site/holding/worker.js, runs first for /clips/* and the film alone and answers byte ranges. Its answers are
+    tried in node (site/holding/test-worker.mjs); clips.js loads a clip again, then from its mp4, when a browser
+    could not decode it."""
+    conf = (site / "wrangler.jsonc").read_text(encoding="utf-8")
+    check("the Worker runs its script first for the clips and the film alone, with the assets bound as ASSETS",
+          '"main": "worker.js"' in conf and '"binding": "ASSETS"' in conf
+          and re.search(r'"run_worker_first":\s*\[\s*"/clips/\*",\s*"/idiograph-film\.mp4"\s*\]', conf) is not None
+          and '"workers_dev": false' in conf)
+    ignored = (site / ".assetsignore").read_text(encoding="utf-8").split()
+    check("the script and its test are never served as assets", "worker.js" in ignored and "test-worker.mjs" in ignored, ignored)
+    src = (site / "worker.js").read_text(encoding="utf-8")
+    check("the script keeps nothing: no cookie, no storage, no log, no fetch to another site",
+          not re.search(r"set-cookie|console\.|caches|KV|https?://", src, re.I))
+    node = shutil.which("node")
+    if not node:
+        support.skip("the Worker's Range answers", "no node on this machine")
+    else:
+        done = subprocess.run([node, str(site / "test-worker.mjs")], capture_output=True, text=True, encoding="utf-8", timeout=60)
+        try:
+            rows = json.loads(done.stdout)
+        except ValueError:
+            rows = None
+        check("the Range checks ran", bool(rows) and len(rows) >= 15, (done.stdout + done.stderr)[:300])
+        for name, ok, detail in rows or []:
+            check("Worker Range: " + name, ok, detail)
+    js = (site / "clips.js").read_text(encoding="utf-8")
+    css = (site / "style.css").read_text(encoding="utf-8")
+    check("clips.js loads a clip again when it cannot be decoded, then from its mp4 alone",
+          "film.addEventListener('error'" in js and "s.type === 'video/webm'" in js and "film.load()" in js)
+    check("clips.js shows a clip's play button when a browser refuses its autoplay (NotAllowedError), a click plays it "
+          "and the others try again, and the css shows the button for a blocked clip",
+          "NotAllowedError" in js and "clip-blocked" in js and "clip-blocked:not(.clip-on) .clip-play" in css)
+    page = (site / "screenshots.html").read_text(encoding="utf-8")
+    pairs = re.findall(r'<source src="clips/(\w+)\.(\w+)" type="video/(\w+)"><source src="clips/(\w+)\.(\w+)"', page)
+    check("each clip lists its mp4 first and its webm second",
+          len(pairs) == 6 and all(a[1] == "mp4" and a[2] == "mp4" and a[4] == "webm" and a[0] == a[3] for a in pairs), pairs)
 
 
 def test_site_join(files, site):

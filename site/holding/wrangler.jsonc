@@ -1,10 +1,17 @@
-// The holding page's Worker: static assets alone (this folder, less what .assetsignore names), on idiograph.app and www.idiograph.app
+// The holding page's Worker: static assets (this folder, less what .assetsignore names) with one small script,
+// worker.js, that runs first for the Screenshots clips and the home page's film alone and answers their Range
+// requests (a video needs byte ranges in Safari and any WebKit), on idiograph.app and www.idiograph.app
 // and nowhere else, so neither a workers.dev address nor a preview address. Deployed by the coordinator with
 // `wrangler deploy` from this folder, on Adam's yes
 {
   "name": "idiograph-holding",
+  "main": "worker.js",
   "compatibility_date": "2026-10-01",
-  "assets": { "directory": "." },
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "run_worker_first": ["/clips/*", "/idiograph-film.mp4"]
+  },
   "routes": [
     { "pattern": "idiograph.app", "custom_domain": true },
     { "pattern": "www.idiograph.app", "custom_domain": true }

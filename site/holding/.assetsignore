@@ -4,3 +4,5 @@ wrangler.jsonc
 .assetsignore
 .wrangler
 .DS_Store
+worker.js
+test-worker.mjs
