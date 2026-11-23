@@ -6,6 +6,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 
 import openpyxl
 
@@ -109,7 +110,7 @@ def test_boards_feedback(scratch):
         # written since, one as it stood when they came in is not, and a case kept before `seen` goes by its
         # `came` to the whole second, as it always has
         rec = dict(gets_mod.load(root)["cases"]["Odile"])
-        wb_seen = rec["seen"]["workbook"]
+        wb_seen = rec["seen"]["workbook"][0]
         same = gets_mod.written_since(rec, "workbook", books["Odile"])
         # a write 100 ns on, the finest tick NTFS keeps: one a single nanosecond on reads back unmoved on
         # Windows (22 October, the 0.9.3 run), where a Mac keeps the nanosecond itself
@@ -133,6 +134,108 @@ def test_boards_feedback(scratch):
         check("217: taking them keeps a line in each GETs board's History, as the canvas's step of undo goes with it",
               took.get("taken") == "Odile" and any("Before Odile's changes came in" in str(h.get("name"))
                                                    for h in themes.history_of(board)), str(themes.history_list(board))[:300])
+        # ── the mark keeps the size with the time (seenmark, 23 November): on a coarse clock a file rewritten
+        # inside the tick it was read in keeps its time, so a rewrite to another size must still read as written
+        rec = dict(gets_mod.load(root)["cases"]["Odile"])
+        themes_file = themes.themes_path(books["Odile"])
+        marks = rec["seen"]
+        form = (isinstance(marks["workbook"], list) and len(marks["workbook"]) >= 2
+                and marks["workbook"][1] == books["Odile"].stat().st_size
+                and isinstance(marks["themes"], list) and marks["themes"][1] == themes_file.stat().st_size)
+        bare = dict(rec, seen={n: (m[0] if isinstance(m, list) else m) for n, m in marks.items()})
+        was_bytes = {p: p.read_bytes() for p in (books["Odile"], themes_file)}
+        was_times = {p: p.stat().st_mtime_ns for p in was_bytes}
+        got = {}
+        try:
+            got["quiet"] = [gets_mod.written_since(rec, n, p) for n, p in gets_mod.case_files(books["Odile"])]
+            got["bare_quiet"] = [gets_mod.written_since(bare, n, p) for n, p in gets_mod.case_files(books["Odile"])]
+            got["untouched"] = gets_mod.untouched(books["Odile"], rec)
+            # each file rewritten to another size, then given back the time the snapshot read: the coarse clock's tick
+            for n, p in gets_mod.case_files(books["Odile"]):
+                p.write_bytes(was_bytes[p] + b" ")
+                os.utime(p, ns=(was_times[p], was_times[p]))
+                got["size_" + n] = gets_mod.written_since(rec, n, p)
+                # an old bare time compares the time alone, as it always did: this very file reads as untouched
+                got["bare_" + n] = gets_mod.written_since(bare, n, p)
+                p.write_bytes(was_bytes[p])
+                os.utime(p, ns=(was_times[p], was_times[p]))
+            # the copy of a participant whose workbook was rewritten to another size is not read as standing
+            books["Odile"].write_bytes(was_bytes[books["Odile"]] + b" ")
+            os.utime(books["Odile"], ns=(was_times[books["Odile"]],) * 2)
+            got["copies"] = gets_mod.copies_untouched(root, books["Odile"])
+            got["outside"] = gets_mod.changed_outside({"workbook": str(books["Odile"])}, rec)
+            books["Odile"].write_bytes(was_bytes[books["Odile"]])
+            os.utime(books["Odile"], ns=(was_times[books["Odile"]],) * 2)
+            got["copies_back"] = gets_mod.copies_untouched(root, books["Odile"])
+            # the same size inside one tick: kept by the sha, where the clock is coarse and the file was just written
+            was_coarse = gets_mod.COARSE
+            gets_mod.COARSE = True
+            try:
+                now = time.time_ns()
+                os.utime(books["Odile"], ns=(now, now))
+                shaped = dict(rec, seen=gets_mod.seen_of(books["Odile"]))
+                got["sha_kept"] = len(shaped["seen"]["workbook"]) == 3
+                same = bytearray(was_bytes[books["Odile"]])
+                same[-1] ^= 0x01
+                books["Odile"].write_bytes(bytes(same))
+                os.utime(books["Odile"], ns=(now, now))
+                got["same_size"] = gets_mod.written_since(shaped, "workbook", books["Odile"])
+                books["Odile"].write_bytes(was_bytes[books["Odile"]])
+                os.utime(books["Odile"], ns=(now, now))
+                got["same_back"] = gets_mod.written_since(shaped, "workbook", books["Odile"])
+                # a file written long before the reading keeps no sha, so a quiet open reads nothing
+                os.utime(books["Odile"], ns=(now - 60_000_000_000,) * 2)
+                got["old_file_no_sha"] = len(gets_mod.seen_of(books["Odile"])["workbook"]) == 2
+            finally:
+                gets_mod.COARSE = was_coarse
+        finally:
+            for p, data in was_bytes.items():
+                p.write_bytes(data)
+                os.utime(p, ns=(was_times[p], was_times[p]))
+        check("217: a case's files are kept by time and size: a file rewritten to another size inside the tick it was read in "
+              "reads as written since, a bare time kept before reads by the time alone, a file untouched since never reads as "
+              "written, and the copy of a rewritten workbook is not read as standing",
+              form and got["quiet"] == [False, False] and got["bare_quiet"] == [False, False] and got["untouched"] is True
+              and got["size_workbook"] is True and got["size_themes"] is True
+              and got["bare_workbook"] is False and got["bare_themes"] is False
+              and got["copies"].get("Odile") is False and got["outside"] is True and got["copies_back"].get("Odile") is True,
+              str(got))
+        check("217: on a coarse clock a rewrite to the same size inside one tick is told by the sha kept for a file written "
+              "within a tick of the reading, and a file written long before it keeps none",
+              got["sha_kept"] and got["same_size"] is True and got["same_back"] is False and got["old_file_no_sha"], str(got))
+        # ── what the app wrote is kept by time and size too: another process rewriting the file to another size inside the
+        # same tick is a change from outside, and a bare time kept by an earlier run still compares by the time alone
+        book = books["Odile"]
+        rec = dict(gets_mod.load(root)["cases"]["Odile"], seen=gets_mod.seen_of(book))
+        book_bytes, book_at = book.read_bytes(), book.stat().st_mtime_ns
+        key = str(book.resolve())
+        kept_here = dict(wb_mod.WRITTEN)
+        got2 = {}
+        try:
+            wb_mod.note_written(book)
+            got2["form"] = wb_mod.WRITTEN.get(key) == [book_at, len(book_bytes)]
+            got2["here"] = wb_mod.written_here(book)
+            got2["quiet"] = gets_mod.changed_outside({"workbook": str(book)}, rec)
+            book.write_bytes(book_bytes + b" " * 20)
+            os.utime(book, ns=(book_at, book_at))
+            got2["rewritten_here"] = wb_mod.written_here(book)
+            got2["outside"] = gets_mod.changed_outside({"workbook": str(book)}, rec)
+            wb_mod.WRITTEN[key] = book_at
+            got2["bare_here"] = wb_mod.written_here(book)
+            got2["still"] = sorted(wb_mod.still_written({key: book_at, "x": True, key + "2": [1, 2]}))
+            got2["still_list"] = sorted(wb_mod.still_written({key: [book_at, len(book_bytes) + 20]}))
+            got2["still_old_size"] = sorted(wb_mod.still_written({key: [book_at, len(book_bytes)]}))
+        finally:
+            book.write_bytes(book_bytes)
+            os.utime(book, ns=(book_at, book_at))
+            wb_mod.WRITTEN.clear()
+            wb_mod.WRITTEN.update(kept_here)
+        check("217: a file the app wrote is kept by time and size, so another process rewriting it to another size inside the "
+              "same tick is a change from outside, a bare time kept before compares by the time alone, and one a restart finds as "
+              "it was written is still the app's",
+              got2["form"] and got2["here"] is True and got2["quiet"] is False and got2["rewritten_here"] is False
+              and got2["outside"] is True and got2["bare_here"] is True and got2["still"] == [key]
+              and got2["still_list"] == [key] and got2["still_old_size"] == [], str(got2))
         ran = agent("Wren", "Accepted by the hive")
         idiograph_routes._gets_books.clear()
         stamp = idiograph_routes.api_stamp({"workbook": str(books["Wren"]), "gets": True})

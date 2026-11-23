@@ -221,6 +221,7 @@ def books(root: Path) -> list[dict]:
 
 # ------------------------------------------------------------------ the whole demo
 
+@md.seen_by_time
 def build_all(into: Path, demo: Path | None = None) -> dict:
     """The whole demo built into `into`, a folder that must not be there yet: its project file, the six
     participants, and the code list and the Themes board at its root, the board with no note: the reflexivity

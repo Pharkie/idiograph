@@ -269,8 +269,7 @@ def inside(root, rel) -> bool:
 # unchanged. Where that may be (`COARSE`) a file read within TICK_NS of its own time is read for its contents too
 # (`Marks.hashes`), and time and size that match are settled by those contents (datalows, Windows coarse file times). The
 # suite sets `COARSE` to check it on any system; the Mac and Linux, whose times are fine, keep time and size alone
-COARSE = os.name == "nt"
-TICK_NS = 2_000_000_000
+from file_marks import COARSE, TICK_NS, sha_of  # noqa: E402,F401  (the same pattern as gets.seen_of)
 
 
 class Marks(dict):
@@ -312,18 +311,6 @@ def tracked(root, since: "Marks | None" = None) -> Marks:
                 if got is not None:
                     out.hashes[rel] = got
     return out
-
-
-def sha_of(path) -> str | None:
-    """A file's sha256, read a CHUNK at a time, or None when it cannot be read."""
-    digest = hashlib.sha256()
-    try:
-        with open(path, "rb") as fh:
-            for piece in iter(lambda: fh.read(CHUNK), b""):
-                digest.update(piece)
-    except OSError:
-        return None
-    return digest.hexdigest()
 
 
 def moved(before: dict, after: dict) -> list:

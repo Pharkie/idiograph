@@ -54,6 +54,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import functools
 import csv
 import datetime as dt
 import json
@@ -1055,6 +1056,17 @@ def build_gets(root: Path, demo: Path | None = None) -> dict:
             "set_aside": len(aside), "rows": sum(len(r) for r in version["rows"].values())}
 
 
+def seen_by_time(fn):
+    """A demo's builder, run with the GETs' `seen` kept as the bare time (`gets.seen_by_time`)."""
+    @functools.wraps(fn)
+    def run(*args, **kwargs):
+        import gets as gets_mod
+        with gets_mod.seen_by_time():
+            return fn(*args, **kwargs)
+    return run
+
+
+@seen_by_time
 def build_all(into: Path, demo: Path | None = None) -> dict:
     """The whole finished demo built into `into`, a folder that must not be there yet: the three
     cases as `build_written` makes each, then the GETs across them at its root. Answers each case's
@@ -1332,6 +1344,7 @@ def build_ta_themes(root: Path, plan: dict, cases: tuple = CASES, note: str = ""
             "not_placed": len(plan["codes"]) - len(leads)}
 
 
+@seen_by_time
 def build_ta_all(into: Path, demo: Path | None = None) -> dict:
     """The whole thematic analysis demo built into `into`, a folder that must not be there yet: its project file,
     the three participants, and the code list and the Themes board at its root. Answers each participant's files

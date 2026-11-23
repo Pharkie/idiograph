@@ -16,7 +16,7 @@ The file is `idiograph-gets.json` at the case root, beside `idiograph-project.js
      "study": {"P2 - Rowan": {"in": true}, "P1 - Pilot": {"in": false, "reason": "a pilot"}},
      "colours": {"P1 - Pilot": 4},
      "cases": {"P2 - Rowan": {"workbook": "P2 Rowan - EN & ES.xlsx", "board": "v3", "name": "Board 3",
-                 "complete": true, "came": "...", "seen": {"workbook": 0, "themes": 0},
+                 "complete": true, "came": "...", "seen": {"workbook": [0, 0], "themes": [0, 0]},
                  "hash": "<state hash>", "state": "in",
                  "pets": [{"id": "g1", "title": "...", "note": "...", "parent": null, "subs": ["g2"],
                            "statements": ["Initial:12:0"], "picks": ["Initial:12:0"]}],
@@ -40,8 +40,9 @@ chose for a case in the Cases panel, by its label, a place in the cases' palette
 until he chooses one, a case with none taking its place in case order round the palette.
 
 `hash` is the snapshot's hash as `themes.state_hash` makes one. `seen` (20 October) holds each of
-the case's two files' modification times in nanoseconds as the snapshot read them, null for a themes
-file not there yet. On each open a case whose workbook and themes file both stand as `seen` has them
+the case's two files' modification times in nanoseconds and sizes as the snapshot read them
+(`[time, size]`, and on a coarse file clock, for a file written within a tick of the reading, its sha256 third),
+null for a themes file not there yet, a case kept earlier holding a bare time, compared by the time alone. On each open a case whose workbook and themes file both stand as `seen` has them
 is unchanged without a read, and any other is snapshotted again and compared, so a difference marks
 it changed, and the copy stands until Take the changes. A case that came in before `seen` was kept
 goes by `came`, to the whole second, as it always has. Standard library and the themes module alone.
@@ -57,10 +58,12 @@ import math
 import os
 import re
 import threading
+import time
 from datetime import datetime
 from pathlib import Path
 
 import board_history
+from file_marks import COARSE, TICK_NS, sha_of
 import formats
 import i18n
 import locks
@@ -376,25 +379,65 @@ def case_files(workbook: Path) -> tuple:
     return (("workbook", Path(workbook)), ("themes", themes.themes_path(Path(workbook))))
 
 
+# On a coarse file clock (Windows, a tick of about 15.6 ms) a file rewritten inside the tick a case's files were read in
+# keeps the time it had, and a rewrite to the same size keeps the size too. `COARSE`, `TICK_NS` and `sha_of` are
+# file_marks's, shared with agent_changes, the one pattern: a file written within TICK_NS of the reading is kept with its sha-256 as well, and a
+# time and size that match are settled by it (`seenmark`, 23 November 2026). Windows only, as there: exFAT or an SMB
+# share opened from a Mac gets no sha.
+
+
+# While a demo is built (`make_demo`) `seen` keeps the bare time, as every case did before the size was kept: the shipped
+# demo's files must come out the same on every system, and a workbook's size is not (Windows's XML writer spells a tree
+# otherwise than the Mac's, area 394), where the pinned time is. A case so kept compares by its time alone, as ever.
+SEEN_BY_TIME: contextvars.ContextVar = contextvars.ContextVar("idiograph_gets_seen_by_time", default=False)
+
+
+@contextlib.contextmanager
+def seen_by_time():
+    token = SEEN_BY_TIME.set(True)
+    try:
+        yield
+    finally:
+        SEEN_BY_TIME.reset(token)
+
+
 def seen_of(workbook: Path) -> dict:
-    """Each of a case's two files as it stands now, its modification time in nanoseconds, or None for one
-    not there, the themes file of a case with no board yet."""
+    """Each of a case's two files as it stands now, `[modification time in nanoseconds, size in bytes]`, and where
+    file times are coarse and the file was written within a tick of now, its sha256 as a third item, or None for a
+    file not there, the themes file of a case with no board yet. A case kept before the size was (a bare time) is
+    compared by the time alone (`written_since`)."""
     out = {}
     for name, path in case_files(workbook):
         try:
-            out[name] = path.stat().st_mtime_ns
+            st = path.stat()
         except OSError:
             out[name] = None
+            continue
+        if SEEN_BY_TIME.get():
+            out[name] = st.st_mtime_ns
+            continue
+        mark = [st.st_mtime_ns, st.st_size]
+        if COARSE and abs(time.time_ns() - st.st_mtime_ns) <= TICK_NS:
+            sha = sha_of(path)
+            if sha is not None:
+                mark.append(sha)
+        out[name] = mark
     return out
+
+
+def _is_int(v) -> bool:
+    return isinstance(v, int) and not isinstance(v, bool)
 
 
 def written_since(rec: dict | None, name: str, path: Path) -> bool:
     """Whether one of a case's files was written since the case came in. A case kept with `seen` compares
-    the file's time with the one its snapshot read, to the nanosecond, so a write in the very second it came
+    the file's time and size with the ones its snapshot read, to the nanosecond, so a write in the very second it came
     in shows and a file untouched since never does (20 October: the arrival kept to the whole second had
-    read a workbook written in that second as changed, and could miss a change made in it). A case kept
-    before `seen` goes by `came` as it always has, a file written in its second or later counting as
-    written since. A file not there was not written since, unless `seen` saw it there."""
+    read a workbook written in that second as changed, and could miss a change made in it), and on a coarse clock a
+    rewrite to another size inside one tick shows too, one to the same size by the sha kept for a file written within a
+    tick of the reading (`seen_of`). A case kept with a bare time, as before the size was kept (23 November), compares
+    the time alone, as it always did. A case kept before `seen` goes by `came` as it always has, a file written in its
+    second or later counting as written since. A file not there was not written since, unless `seen` saw it there."""
     rec = rec if isinstance(rec, dict) else {}
     seen = rec.get("seen") if isinstance(rec.get("seen"), dict) else None
     try:
@@ -403,9 +446,19 @@ def written_since(rec: dict | None, name: str, path: Path) -> bool:
         info = None
     if seen is not None and name in seen:
         was = seen[name]
-        if was is not None and (isinstance(was, bool) or not isinstance(was, int)):
+        if was is None:
+            return info is not None
+        if _is_int(was):
+            return (info.st_mtime_ns if info is not None else None) != was
+        if not (isinstance(was, (list, tuple)) and len(was) >= 2 and _is_int(was[0]) and _is_int(was[1])):
             return True
-        return (info.st_mtime_ns if info is not None else None) != was
+        if info is None or info.st_mtime_ns != was[0] or info.st_size != was[1]:
+            return True
+        if len(was) > 2 and isinstance(was[2], str):
+            now = sha_of(path)
+            # a file that cannot be read now cannot be told by its contents: time and size, which match, stand
+            return now is not None and now != was[2]
+        return False
     if info is None:
         return False
     at = stamp(rec.get("came"))

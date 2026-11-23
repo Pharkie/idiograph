@@ -629,6 +629,7 @@ def build_trajectories(root: Path, plan: dict) -> dict:
 
 # ------------------------------------------------------------------ the whole demo
 
+@md.seen_by_time
 def build_all(into: Path, demo: Path | None = None) -> dict:
     """The whole longitudinal demo built into `into`, a folder that must not be there yet: its project file, the
     three participants, each one's LPETs, then the LGETs and the Trajectories board at its root."""

@@ -922,7 +922,7 @@ def outline_of(wb) -> list[dict]:
 # which a board says with Changes made elsewhere. The command line runs in a process of its own, so what it
 # writes is never noted here. The server keeps the list in the app's own state across a restart, through
 # WRITTEN_HOOK, called after each note, and `still_written` when it starts.
-WRITTEN: dict[str, int] = {}
+WRITTEN: dict[str, list | int] = {}
 WRITTEN_HOOK = None
 # the most files the list keeps, the oldest noted dropped first
 WRITTEN_MOST = 500
@@ -931,11 +931,13 @@ WRITTEN_MOST = 500
 def note_written(path) -> None:
     try:
         key = str(Path(path).resolve())
-        when = Path(path).stat().st_mtime_ns
+        st = Path(path).stat()
     except OSError:
         return
     WRITTEN.pop(key, None)
-    WRITTEN[key] = when
+    # time and size, so a rewrite inside one tick of a coarse clock to another size is not taken for the app's own
+    # (seenmark); an entry kept as a bare time, by an earlier run, is compared by the time alone
+    WRITTEN[key] = [st.st_mtime_ns, st.st_size]
     while len(WRITTEN) > WRITTEN_MOST:
         WRITTEN.pop(next(iter(WRITTEN)))
     if WRITTEN_HOOK is not None:
@@ -945,17 +947,29 @@ def note_written(path) -> None:
             pass
 
 
-def still_written(saved) -> dict[str, int]:
+def _stands_as(was, st) -> bool:
+    """Whether a file's stat is the mark `WRITTEN` holds: `[time, size]`, or a bare time kept before the size was
+    (compared by the time alone, never read as changed for its form)."""
+    if isinstance(was, bool):
+        return False
+    if isinstance(was, int):
+        return st.st_mtime_ns == was
+    if isinstance(was, (list, tuple)) and len(was) == 2 and all(isinstance(v, int) and not isinstance(v, bool) for v in was):
+        return st.st_mtime_ns == was[0] and st.st_size == was[1]
+    return False
+
+
+def still_written(saved) -> dict:
     """Of a list kept from an earlier run, the files that still stand as that run last wrote them. A file
     changed since, or gone, is left out, so a change made while the app was closed is still one from outside."""
-    out: dict[str, int] = {}
+    out: dict = {}
     if not isinstance(saved, dict):
         return out
     for key, when in saved.items():
-        if not isinstance(key, str) or not isinstance(when, int) or isinstance(when, bool):
+        if not isinstance(key, str):
             continue
         try:
-            if Path(key).stat().st_mtime_ns == when:
+            if _stands_as(when, Path(key).stat()):
                 out[key] = when
         except OSError:
             continue
@@ -963,10 +977,11 @@ def still_written(saved) -> dict[str, int]:
 
 
 def written_here(path) -> bool:
-    """True when the file stands as this process last wrote it, False when it has changed since or this
-    process never wrote it."""
+    """True when the file stands as this process last wrote it, in time and size, False when it has changed since or
+    this process never wrote it."""
     try:
-        return WRITTEN.get(str(Path(path).resolve())) == Path(path).stat().st_mtime_ns
+        was = WRITTEN.get(str(Path(path).resolve()))
+        return was is not None and _stands_as(was, Path(path).stat())
     except OSError:
         return False
 

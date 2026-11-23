@@ -275,20 +275,24 @@ def aligned(root: Path, latest: dict) -> None:
     """Each participant's files set to the time the demo's copies saw them at, so their copies stand as their files
     do: for a participant `latest` names, the LGETs copy (the workbook at the time the LGETs saw it), for the others
     every timepoint of their LPETs."""
+    def at(mark):
+        # a mark kept as `[time, size]` (seenmark) or as the bare time it was before
+        return mark[0] if isinstance(mark, list) else mark
+
     want: dict = {}
     lg = json.loads((root / "idiograph-lgets.json").read_text(encoding="utf-8"))
     for case, rec in lg["cases"].items():
         book = root / case / rec["workbook"]
-        want.setdefault(book, set()).add(rec["seen"]["workbook"])
-        want.setdefault(book.parent / "Working" / (book.stem + ".lpets.json"), set()).add(rec["seen"]["themes"])
+        want.setdefault(book, set()).add(at(rec["seen"]["workbook"]))
+        want.setdefault(book.parent / "Working" / (book.stem + ".lpets.json"), set()).add(at(rec["seen"]["themes"]))
     for lp in root.glob("*/Working/*.lpets.json"):
         stem = lp.name[:-len(".lpets.json")]
         book = lp.parent.parent / (stem + ".xlsx")
         for tk, rec in json.loads(lp.read_text(encoding="utf-8"))["cases"].items():
             n = int(tk[1:])
             themes_file = lp.parent / (stem + (".themes.json" if n == 1 else f".themes-t{n}.json"))
-            want.setdefault(book, set()).add(rec["seen"]["workbook"])
-            want.setdefault(themes_file, set()).add(rec["seen"]["themes"])
+            want.setdefault(book, set()).add(at(rec["seen"]["workbook"]))
+            want.setdefault(themes_file, set()).add(at(rec["seen"]["themes"]))
     for p, seen in want.items():
         ns = (max if p.parent.name in latest or p.parent.parent.name in latest else min)(seen)
         os.utime(p, ns=(ns, ns))
