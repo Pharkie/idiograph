@@ -168,8 +168,13 @@ def test_home_perf(scratch):
     asset.write_text("one", encoding="utf-8")
     a = srv.asset_version(asset)
     asset.write_text("two", encoding="utf-8")
+    # "one" and "two" are the same size, and Windows's clock is coarse (about 15 ms), so a rewrite straight after
+    # can keep the mtime the first had and the mark is rightly held: the change is given a time of its own
+    st = asset.stat()
+    os.utime(asset, ns=(st.st_atime_ns, st.st_mtime_ns + 10 ** 9))
     b = srv.asset_version(asset)
     asset.write_text("two", encoding="utf-8")
+    os.utime(asset, ns=(st.st_atime_ns, st.st_mtime_ns + 10 ** 9))
     check("439: a static file's mark changes with its bytes and holds while they hold", a != b and b == srv.asset_version(asset) and a and b)
     check("439: only a script or a stylesheet of the page's own is named by its mark",
           srv.versioned('<link rel="stylesheet" href="/tokens.css"><img src="/favicon.png"><script src="https://x.test/a.js"></script>'

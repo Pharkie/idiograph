@@ -155,7 +155,10 @@ def tree(root: Path) -> dict:
     for p in files:
         rel = STAMP.sub("<stamp>", p.relative_to(root).as_posix())
         if rel.startswith(".idiograph-restore/objects/"):
-            objects.append(digest(p, times))
+            # a copy's marks name the files whose times they are by the times the files hold now; on Windows's coarse
+            # clock (about 15 ms) two files written in one tick share a time, so which file a mark names, or
+            # whether a stale one matches a file at all, falls as the ticks do and differs between two projects
+            objects.append(digest(p, {} if sys.platform == "win32" else times))
             continue
         key, n = rel, 2
         while key in out:
