@@ -179,7 +179,8 @@ def test_site_privacy(sw, files, site):
 def test_site_updates_form(sw, files, site):
     """The updates sign-up form (updates-site, 23 November 2026) sits behind UPDATES_FORM, on since 23 November 2026
     (Adam's word, after a sign-up tested end to end): on, the committed pages are the generator's byte for byte and
-    Download and What's new carry the form with updates.js; off, the pages carry no form; and taking the form out
+    the home page and What's new carry the form with updates.js (siteup, 23 November 2026, Adam: on the home page
+    under Download for Mac, on What's new, not on Download); off, the pages carry no form; and taking the form out
     again gives the pages back byte for byte."""
     check("the form is on for the site", sw.UPDATES_FORM is True)
     off = sw.outputs(updates=False)
@@ -187,10 +188,10 @@ def test_site_updates_form(sw, files, site):
     check("flag on gives the committed site byte for byte", on == files and sw.outputs() == files)
     check("flag off gives pages with no form and no updates.js on any page",
           not [p.name for p, t in off.items() if 'id="up"' in t or "updates.js" in t])
-    check("the committed pages carry the form on Download and What's new alone",
+    check("the committed pages carry the form on the home page and What's new alone",
           sorted(p.name for p, t in files.items() if 'id="up"' in t) == sorted(sw.UPDATES_PAGES))
     got = sorted(p.name for p, t in on.items() if 'id="up-form"' in t and '<script src="updates.js"></script>' in t)
-    check("flag on puts the form and updates.js on Download and What's new alone", got == sorted(sw.UPDATES_PAGES), got)
+    check("flag on puts the form and updates.js on the home page and What's new alone", got == sorted(sw.UPDATES_PAGES), got)
     check("flag on changes nothing else", all(on[p] == off[p] for p in off if p.name not in sw.UPDATES_PAGES))
     check("taking the form out of a page with it gives the page without it, byte for byte",
           all(sw.with_updates(on[p], p.name, False) == off[p] for p in off)
@@ -200,8 +201,17 @@ def test_site_updates_form(sw, files, site):
           "hidden until its script shows it",
           f'data-consent="{sw.UPDATES_CONSENT}"' in form and 'name="website"' in form and 'tabindex="-1"' in form
           and 'href="privacy.html"' in form and 'hidden>' in form.splitlines()[0])
-    dl = on[site / "download.html"]
-    check("on Download the form comes after the download block", dl.index('id="get"') < dl.index('id="up"'))
+    check("the form is on the home page and What's new, and not on Download",
+          sorted(sw.UPDATES_PAGES) == ["index.html", "whats-new.html"]
+          and 'id="up"' not in files[site / "download.html"] and "updates.js" not in files[site / "download.html"])
+    home = on[site / "index.html"]
+    check("on the home page the form comes straight under the download block, before its links",
+          home.index('id="get"') < home.index('id="up"') < home.index('class="get-more"')
+          and re.search(r'<div class="get" id="get">.*?</div>\s*<section class="up" id="up"', home, re.S) is not None)
+    wn = on[site / sw.PAGE]
+    check("on What's new the form comes after the link to every release and before the page's foot",
+          wn.index('class="wn-all"') < wn.index('id="up"') < wn.index('class="fp-foot"'))
+    check("the form is the same on both pages", all(sw.updates_form() in files[site / n] for n in sw.UPDATES_PAGES))
     js = (site / "updates.js").read_text(encoding="utf-8")
     check("updates.js posts the contract's fields to the same site's /api/updates/subscribe, and keeps nothing",
           "fetch('/api/updates/subscribe'" in js and "source: 'site'" in js and "consent:" in js and "website:" in js
@@ -211,9 +221,15 @@ def test_site_updates_form(sw, files, site):
     check("only the Worker's 400 with error email reads as a bad address, anything else as a failed sign-up",
           "status === 400 && error === 'email'" in js and "Your sign-up did not go through. Try again later." in js)
     css = (site / "style.css").read_text(encoding="utf-8")
-    check("the status line stays in the accessibility tree when empty, and takes the focus once the form is sent",
-          not re.search(r"\.up-said:empty\s*\{[^}]*display:\s*none", css) and 'tabindex="-1"' in form
-          and "said.focus()" in js)
+    check("the status line stays in the accessibility tree when empty, and the address line, outside it, takes the "
+          "focus once the form is sent, so the confirmation is read once",
+          not re.search(r"\.up-said:empty\s*\{[^}]*display:\s*none", css) and 'role="status"' in form
+          and "sent.tabIndex = -1" in js and "sent.focus()" in js and "said.focus()" not in js)
+    check("a sign-up that did not go through gives the focus back to Sign up and leaves the field unmarked",
+          "send.focus();" in js and "fieldAtFault" in js and "notAddress" not in js
+          and "up-wrong" not in js and "up-wrong" not in css)
+    check("the card's shadow is dropped in dark, the border stays",
+          re.search(r"prefers-color-scheme:\s*dark\)\s*\{\s*\.up\s*\{\s*box-shadow:\s*none", css) is not None)
 
 
 def test_site_join(files, site):

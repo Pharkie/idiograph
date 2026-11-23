@@ -9,10 +9,12 @@
   box.hidden = false;
   const label = send.textContent;
   const looksRight = (v) => v.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-  const show = (text, bad) => {
+  // an answer that went wrong reads as the field's own: the line straight under it. Only a bad address marks the field
+  // (its border and aria-invalid), since a sign-up that did not go through is not the field's fault
+  const show = (text, bad, fieldAtFault) => {
     said.textContent = text;
     said.classList.toggle('bad', Boolean(bad));
-    if (bad) email.setAttribute('aria-invalid', 'true');
+    if (bad && fieldAtFault !== false) email.setAttribute('aria-invalid', 'true');
     else email.removeAttribute('aria-invalid');
   };
   const busy = (on) => {
@@ -43,17 +45,24 @@
     } catch (err) { status = 0; }
     busy(false);
     if (status === 200) {
+      // done: the address as plain words in place of the field and its button, and the line saying what comes next
       box.classList.add('up-done');
       form.querySelector('.up-row').hidden = true;
       form.querySelector('.up-label').hidden = true;
+      const sent = document.createElement('p');
+      sent.className = 'up-sent';
+      sent.textContent = address;
+      sent.tabIndex = -1;
+      said.before(sent);
       show('Check your email to confirm.', false);
-      said.focus();
+      // focus goes to the address line, outside the status region, so the confirmation is announced once, by the status
+      sent.focus();
     } else if (status === 400 && error === 'email') {
       show('That is not an email address.', true);
       email.focus();
     } else {
-      show('Your sign-up did not go through. Try again later.', true);
-      email.removeAttribute('aria-invalid');
+      show('Your sign-up did not go through. Try again later.', true, false);
+      send.focus();
     }
   });
 })();

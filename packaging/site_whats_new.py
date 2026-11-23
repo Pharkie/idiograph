@@ -20,8 +20,7 @@ which the version bump does:
     .venv/bin/python packaging/site_whats_new.py
 
 `--check` writes nothing and exits 1 naming each file that differs from what it would write (area 405 holds the
-committed site to it). The updates sign-up form goes on Download and What's new only while UPDATES_FORM is True (off until Amazon
-SES grants production access), and `--out <folder> --updates-form` writes a copy with it for review. `--layout A` or `B` and `--out <folder>` write a copy of the site's pages elsewhere, for
+committed site to it). The updates sign-up form goes on the home page and What's new while UPDATES_FORM is True, and `--out <folder> --updates-form` writes a copy with it for review. `--layout A` or `B` and `--out <folder>` write a copy of the site's pages elsewhere, for
 review shots of the layout not shipped.
 """
 from __future__ import annotations
@@ -210,15 +209,15 @@ def page(rels: list[dict], layout: str = LAYOUT) -> str:
             '  </div>\n  </div>\n</main>\n<script src="get.js"></script>\n</body>\n</html>\n')
 
 
-# Updates by email (updates-site, 23 November 2026, Adam): the sign-up form under the Download page's download and
-# under What's new's notes. It goes live only after Amazon SES grants production access, so it is off here and the
-# pages come out without it. `--updates-form` writes it into a copy (`--out`) for review shots. Turn it on by setting
-# UPDATES_FORM to True and running this, which writes both pages with the form and `updates.js` after `get.js`.
+# Updates by email (updates-site, 23 November 2026, Adam; moved by siteup the same evening, Adam: "it needs to be on
+# the homepage primarily... download for Mac and then under that sign up for updates", and off the Download page).
+# The sign-up form goes on the home page under its download and on What's new under the link to every release,
+# while UPDATES_FORM is True. `--updates-form` writes it into a copy (`--out`) for review shots.
 UPDATES_FORM = True
 # The wording the person agrees to is the form's purpose line. Its version travels with every sign-up (the contract
 # with updates-worker and the app's Settings), so a change to the line takes a new version here and in the app.
 UPDATES_CONSENT = "updates-2026-11-23"
-UPDATES_PAGES = ("download.html", PAGE)
+UPDATES_PAGES = ("index.html", PAGE)
 UPDATES_SCRIPT = '<script src="updates.js"></script>\n'
 UPDATES_BLOCK = re.compile(r'  <section class="up" id="up".*?</section>\n', re.S)
 
@@ -246,15 +245,15 @@ def updates_form() -> str:
 
 def with_updates(text: str, name: str, on: bool) -> str:
     """A page with the form and its script, or without either: whatever was there before is taken out first, so
-    turning the flag off again gives the page as it was. On Download it goes after the download block, below the
-    first-open steps and the manual's link. On What's new it goes after the link to every release."""
+    turning the flag off again gives the page as it was. On the home page it goes straight under the download block,
+    before the links to the signing policy and privacy. On What's new it goes after the link to every release."""
     text = UPDATES_BLOCK.sub("", text).replace(UPDATES_SCRIPT, "")
     if not on or name not in UPDATES_PAGES:
         return text
     if name == PAGE:
         at = text.index('  <div class="fp-foot">')
     else:
-        at = text.index("</main>")
+        at = text.index('  <p class="get-more">')
     text = text[:at] + updates_form() + text[at:]
     at = text.index('<script src="get.js"></script>\n') + len('<script src="get.js"></script>\n')
     return text[:at] + UPDATES_SCRIPT + text[at:]
@@ -312,7 +311,7 @@ def outputs(site: Path = SITE, text: str | None = None, version: str | None = No
             layout: str = LAYOUT, updates: bool | None = None) -> dict[Path, str]:
     """Every file this writes and what it holds: the page, and each other page with the nav script put in fresh.
     A page with the site's nav and no nav script is refused, so no page goes without the count. `updates` puts the
-    sign-up form on Download and What's new, UPDATES_FORM when not given."""
+    sign-up form on the home page and What's new, UPDATES_FORM when not given."""
     if text is None:
         text = WHATS_NEW.read_text(encoding="utf-8")
     if version is None:
