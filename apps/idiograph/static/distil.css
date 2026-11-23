@@ -880,19 +880,60 @@ body.col-dragging, body.col-dragging * { cursor: grabbing !important; user-selec
 .view-menu .info-tip { position: fixed; left: auto; top: auto; width: 300px; white-space: normal; }
 /* Your name, first in Settings' General (viewbuild), no room above it as the first sub-heading has none */
 .setting.setting-first { margin-top: 0; }
-/* Email for updates under Your name (updates-app): its line and Privacy link in the small print's colour, the link
-   underlined as About's are, and its state line under it */
-/* the field as wide as Your name's and in line with it (style.css .setting input), and Sign up under its right end
-   (updates-email, 23 November 2026, from the shot check) */
-.setting-updates input[aria-invalid="true"] { border-color: var(--amber); }
-.updates-go { display: flex; justify-content: flex-end; margin: -4px 0 12px; }
-.updates-why { margin: 0; text-wrap: pretty; }
-.updates-why a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
-/* the state in the ink, so "Check your email to confirm" stands out from the why line's grey, and a refusal in
-   .said-failed's amber */
-.updates-said { margin: 6px 0 0; color: var(--ink); }
-.updates-said.said-failed { color: var(--amber); }
-.updates-said:empty { display: none; }
+/* Updates by email (appup, 23 November 2026): one piece in Settings, on Home and in What's new. Its row is "Your email"
+   and a column as wide as Your name's field: the field and Sign up side by side (or the address as words and Edit),
+   the line saying what happened directly under them, in the ink, or amber for a failure, the field's edge amber
+   for an address that is not one alone. In Settings the label stands at the left in line with Your name and the column at the right, as Your name's
+   row has them; in a box the column follows the label. Under the row, the why line with Privacy in the small print */
+.setting.setting-first input { width: var(--upd-col); }
+/* both labels whole on one line, the column giving way first, down to Settings' narrowest at a 720 window */
+.setting.setting-first label, .upd-label { white-space: nowrap; }
+.setting-first, .upd { --upd-col: 300px; }
+.upd-row { display: flex; align-items: flex-start; gap: 14px; font-size: 13px; }
+.upd-label { flex: 1; padding-top: 8px; color: var(--ink-soft); }
+.upd-col { flex: 0 1 var(--upd-col); min-width: 0; }
+.upd-line { display: flex; align-items: center; gap: 8px; min-height: 34px; }
+.upd-line input { flex: 1 1 auto; min-width: 0; width: auto; background: var(--paper); border: 1px solid var(--field-edge);
+  border-radius: 3px; padding: 7px 10px; font: inherit; color: var(--ink); }
+.upd-line input:focus-visible { outline: 0; border-color: var(--ink-soft); box-shadow: var(--focus-small); }
+.upd-line input[aria-invalid="true"] { border-color: var(--amber); }
+.upd-line button { flex: none; }
+/* the address once signed up, in the ink as a value is, cut with an ellipsis where it is longer than the column */
+.upd-addr { flex: 1 1 auto; min-width: 0; padding: 7px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: var(--ink); }
+.upd-said { margin: 6px 0 0; color: var(--ink); line-height: 1.45; text-wrap: pretty; }
+.upd-said.said-failed { color: var(--amber); }
+.upd-said:empty { display: none; }
+.upd-why { margin: 10px 0 0; text-wrap: pretty; }
+.upd-why a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.setting-updates { margin: 12px 0; }
+/* Home's and What's new's box: a quiet bordered box, no fill, its fold a line in the small sans with the chevron of
+   Home's sections; open, the row and the why line inside it */
+.upd-folded { width: fit-content; max-width: 100%; box-sizing: border-box; border: 1px solid var(--rule); border-radius: 4px;
+  font-size: 14px; }
+.upd-folded[hidden] { display: none; }
+.upd-folded .upd-h { margin: 0; font-family: var(--sans); font-size: 14px; font-weight: 400; line-height: 1.4;
+  letter-spacing: normal; }
+.upd-fold { position: relative; display: block; width: 100%; padding: 10px 18px 10px 36px; background: none; border: 0;
+  border-radius: 4px; color: var(--ink-soft); font: inherit; text-align: left; cursor: pointer; }
+.upd-fold::before { content: ""; position: absolute; left: 17px; top: 17px; width: 6px; height: 6px;
+  border-right: 1.5px solid var(--ink-faint); border-bottom: 1.5px solid var(--ink-faint); transform: rotate(-45deg);
+  transition: transform .16s; }
+.upd-open .upd-fold::before { transform: rotate(45deg); top: 15px; }
+.upd-fold:hover { color: var(--ink); }
+.upd-fold:hover::before { border-color: var(--ink); }
+.upd-fold:focus-visible { outline: 0; box-shadow: var(--focus); }
+.upd-folded .upd-body { padding: 2px 16px 14px 36px; }
+.upd-folded .upd-label { flex: none; }
+/* on Home, the box as wide as its content needs, open or folded, up to the Preview note's width, and no space of its
+   own above it; the gap to the cards below is its own */
+.upd-home { max-width: 58em; margin: 0 0 44px; }
+/* the lift to the Preview note's own gap only when the note is directly above, with the stamp on and no update line
+   between: with the update line showing, its own margin is the gap, and with the stamp off the lede is above */
+html[data-edition="preview"] #library:has(> .lib-body > #update-line[hidden]) .upd-home { margin-top: -30px; }
+/* at What's new's foot after the versions, a rule's gap above it */
+.upd-whatsnew { margin-top: 22px; }
+@media (prefers-reduced-motion: reduce) { .upd-fold::before { transition: none; } }
 /* a small heading over a View menu's group of choices, a label as a card's kicker is */
 .view-head {
   padding: 6px 10px 2px; font-size: 10.5px; letter-spacing: var(--label-track); text-transform: uppercase;

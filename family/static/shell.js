@@ -3449,7 +3449,7 @@ async function saveSettings() {
     if (overHome) { loadLibrary().catch((err) => say(err.message, 9000)); return; }
     // the screen behind as the settings now stand, Idiograph's case
     for (const a of Object.values(FAMILY_APPS)) if (a.settingsAfter) await a.settingsAfter(data);
-  } catch (err) { say(err.message, 9000); }
+  } catch (err) { if (!err.said) say(err.message, 9000); }  // an error already said under its field (`said`) is not said again
 }
 
 /* ── Using your own AI agent ── */

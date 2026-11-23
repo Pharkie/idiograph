@@ -27,8 +27,9 @@ own origin. It has no workers.dev address.
 ## What it keeps, and the limits
 
 One row an address in `subscribers`: the address, lower-cased; pending or confirmed; where it came
-from (site or app) and the app's version; which consent wording the person saw (for example
-`updates-2026-11-23`), which together with `source` names the exact words: the site's form and the
+from (site or app) and the app's version; which consent wording the person saw (the site's
+form posts `updates-2026-11-23` and the app's Settings `updates-2026-11-23-app`; the Worker keeps any non-empty
+string of 40 characters or fewer), which together with `source` names the exact words: the site's form and the
 app's Settings each say them in their own way, so a version names one wording on the site and one in
 the app, and a change to either is a new version; when it was made and confirmed; the hash of the newest confirm link's token;
 and a hash of the sign-up's IP, set to null at confirmation. No raw IP and no token is kept. The

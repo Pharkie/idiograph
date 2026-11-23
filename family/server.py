@@ -1689,10 +1689,11 @@ def api_feedback(body: dict) -> dict:
 # email, so a sign-up is only made when the person confirms from their mail. The address is kept in the app's own
 # settings (`updates_email`, with `updates_sent` once the sign-up has gone), never in a project, and `updates_url`
 # in config.json stands in for the address on one machine as `feedback_url` does. UPDATES_CONSENT is the version of
-# the wording the person saw beside the button, "I send news of Idiograph and its new versions a few times a year.
-# I never sell your address.", with the privacy page's link; it changes when that wording does.
+# the wording the person saw beside the button, "I send news of Idiograph a few times a year." with the privacy
+# page's link (appup, 23 November 2026, Adam's word; the site's form says its own words under "updates-2026-11-23", so
+# the app's version carries "-app"); it changes when that wording does.
 UPDATES_URL = "https://idiograph.app/api/updates/subscribe"
-UPDATES_CONSENT = "updates-2026-11-23"
+UPDATES_CONSENT = "updates-2026-11-23-app"
 UPDATES_TIMEOUT = 15
 # the transport as FEEDBACK_SEND is, so the suite hands it a fake or a Worker of its own on a port
 UPDATES_SEND = ai_mod.http_call
@@ -1725,7 +1726,7 @@ def api_updates(body: dict) -> dict:
     settings once the Worker has taken it. Answers the address and `sent`, or one line saying why not."""
     mail = updates_address(body.get("email"))
     if not mail:
-        return {"error": i18n.t("errors.updates_email_invalid"), "status": 400}
+        return {"error": i18n.t("errors.updates_email_invalid"), "code": "not_an_address", "status": 400}
     url = updates_url(config())
     if not url:
         return {"error": i18n.t("errors.updates_set_up_build"), "status": 501}
@@ -1738,7 +1739,7 @@ def api_updates(body: dict) -> dict:
         return {"error": i18n.t("errors.updates_could_not_send"), "status": 502}
     if status == 400:
         # the Worker's one 400 is an address it does not take
-        return {"error": i18n.t("errors.updates_email_invalid"), "status": 400}
+        return {"error": i18n.t("errors.updates_email_invalid"), "code": "not_an_address", "status": 400}
     if not 200 <= status < 300:
         return {"error": i18n.t("errors.updates_refused", status=status), "status": 502}
     write_config_keys({"updates_email": mail, "updates_sent": True})

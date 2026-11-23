@@ -1,11 +1,15 @@
 """Area 451: Email for updates in Idiograph's Settings (updates-app, 23 November 2026).
 
 Settings, General, under Your name, takes an address, says in one line why and links the privacy page, and Sign up sends
-at once: the app's own server posts `{"email", "source": "app", "version", "consent": "updates-2026-11-23", "website": ""}`
+at once: the app's own server posts `{"email", "source": "app", "version", "consent": "updates-2026-11-23-app", "website": ""}`
 to the updates Worker on idiograph.app, as Send feedback posts a note, the address in `updates_url` over the built-in
 one. The Worker sends the confirmation email, so the page says "Check your email to confirm" with the address. The
 address is kept in the app's own settings, never in a project. Get updates by email… in Idiograph's Help menu and in
 About opens Settings at General with the field in front. Sift and Trace have none of it.
+
+Since appup (23 November 2026, Adam's word) the field is "Your email", one piece drawn in Settings, folded in a box on
+Home and at What's new's foot, and the app knows from its settings that it has signed up: the address then stands as
+words with Edit and no Sign up, and Home and What's new show no box.
 
 What is checked: over HTTP, in this process, against a fake Worker on a port of the suite's own, the route's POST has
 the contract's body and no Origin header, an invalid address is refused before anything is posted, the Worker's own
@@ -36,73 +40,110 @@ HARNESS = r"""
 const log = [];
 const els = {};
 const el = (id) => els[id] || (els[id] = { id, hidden: false, value: '', textContent: '', disabled: false,
-  attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, removeAttribute(k) { delete this.attrs[k]; },
-  classList: { toggle() {} }, focus() { log.push('focus ' + id); }, scrollIntoView() { log.push('scroll ' + id); } });
+  dataset: { built: '1' }, attrs: {}, cls: {},
+  setAttribute(k, v) { this.attrs[k] = v; }, removeAttribute(k) { delete this.attrs[k]; },
+  classList: { toggle(c, on) { el(id).cls[c] = !!on; }, add() {} },
+  focus() { log.push('focus ' + id); }, select() {}, scrollIntoView() { log.push('scroll ' + id); } });
 const $ = el;
 const t = (key, slots) => key + (slots ? ' ' + JSON.stringify(slots) : '');
-const saidIn = (id, text, failed) => { $(id).textContent = text; $(id).failed = !!failed; };
+const esc = (x) => String(x);
 const needsRestart = () => false;
 const RESTART_LINE = 'restart';
 const said = [];
 const say = (m) => said.push(m);
 const hide = (id) => { log.push('hide ' + id); $(id).hidden = true; };
 const openSettings = (pane) => { log.push('openSettings ' + pane); };
+const S = { libConfig: {}, data: null };
 let asked = [];
 let answer = { email: 'ada@example.org', sent: true };
 const api = async (path, body) => { asked.push([path, body]); if (answer instanceof Error) throw answer; return answer; };
 __CODE__
+const view = (w) => ({ field: !$('upd-' + w + '-email').hidden,
+  addr: $('upd-' + w + '-addr').hidden ? null : $('upd-' + w + '-addr').textContent,
+  go: !$('upd-' + w + '-go').hidden, edit: !$('upd-' + w + '-edit').hidden, cancel: !$('upd-' + w + '-cancel').hidden,
+  said: $('upd-' + w + '-said').textContent, failed: !!$('upd-' + w + '-said').cls['said-failed'],
+  invalid: $('upd-' + w + '-email').attrs['aria-invalid'] || null, box: !$('upd-' + w).hidden });
 (async () => {
   const out = {};
-  // 1. nothing sent before a sign-up: an empty line with the field as it was saved
+  // 1. a first visit: the field with Sign up, no line, and the box on Home
   updatesOpen({});
-  out.fresh = [$('set-updates-email').value, $('set-updates-said').textContent];
-  UPDATES.email = null;
-  // the mark from an earlier session is no state line: it came back every time Settings opened
-  updatesOpen({ updates_email: 'ada@example.org', updates_sent: true });
-  out.kept = [$('set-updates-email').value, $('set-updates-said').textContent];
-  updatesOpen({ updates_email: 'ada@example.org' });
-  out.unsent = $('set-updates-said').textContent;
-  out.keptSave = updatesSaves();
-  // 2. a bad address is said plainly and never asked
-  $('set-updates-email').value = 'not an address';
-  await updatesSignUp();
-  out.bad = [asked.length, $('set-updates-said').textContent, $('set-updates-said').failed, log.slice(-1)[0],
-    $('set-updates-email').attrs['aria-invalid']];
-  // 2b. Save with a bad address: refused, Settings stays open, the field marked
-  $('set-updates-email').attrs = {};
+  updatesHome({});
+  out.fresh = [view('settings'), view('home').box];
+  // 2. a bad address is said under the field, the field marked and in front, and nothing is asked
+  $('upd-settings-email').value = 'not an address';
+  await updatesSignUp('settings');
+  out.bad = [asked.length, view('settings'), log.slice(-1)[0]];
+  // 2b. Save with a bad address: refused, Settings stays open
   const badSave = updatesSaves();
-  out.saveBad = [badSave, updatesRefuse(badSave), $('set-updates-email').attrs['aria-invalid'], asked.length];
-  // 3. a good one is asked of the route, trimmed, and the state shows the address
-  $('set-updates-email').value = '  ada@example.org ';
-  await updatesSignUp();
-  out.good = [asked.slice(), $('set-updates-said').textContent, $('set-updates-said').failed, $('set-updates-go').disabled];
-  // 4. the card opened again in this session keeps what was signed up, whatever snapshot of the settings it is given
-  updatesOpen({});
-  out.again = [$('set-updates-email').value, $('set-updates-said').textContent, $('set-updates-email').attrs['aria-invalid']];
-  // 4b. the same address again on Save is no second sign-up
-  out.saveSame = [updatesSaves(), asked.length];
-  // 4c. Save with a new, valid address sends it as Sign up does, and says so over the screen behind
+  out.saveBad = [badSave, updatesRefuse(badSave), asked.length];
+  // 3. a send that did not go through: its line in the warning tint, the field unmarked, the address kept, Sign up in front
+  answer = new Error('The sign-up could not be sent.');
+  $('upd-settings-email').value = 'bo@example.org';
+  await updatesSignUp('settings');
+  out.refused = [view('settings'), $('upd-settings-email').value, log.slice(-1)[0], $('upd-settings-go').disabled];
+  // 3b. the Worker's own 400 marks the field as the local check does, with the focus in it, and says it was said
+  const e400 = new Error('That is not an email address.'); e400.code = 'not_an_address';
+  answer = e400;
+  $('upd-settings-email').value = 'bo@example.org';
+  await updatesSignUp('settings');
+  out.e400 = [view('settings').invalid, log.slice(-1)[0], e400.said === true, $('upd-settings-said').attrs['aria-live']];
+  // 4. a good one, signed up from Home
+  answer = { email: 'ada@example.org', sent: true };
+  $('upd-home-email').value = '  ada@example.org ';
+  await updatesSignUp('home');
+  out.good = [asked.slice(-1)[0], view('home'), log.slice(-1)[0], view('settings'), view('whatsnew').box,
+    S.libConfig.updates_email, S.libConfig.updates_sent];
+  // 5. Home drawn again: the box is gone; Settings opened again in this page's life keeps the line
+  updatesHome(S.libConfig);
+  updatesOpen(S.libConfig);
+  out.after = [view('home').box, view('settings')];
+  // 6. Edit, then Cancel
+  updatesEdit('settings');
+  out.edit = [view('settings'), $('upd-settings-email').value, updatesSaves()];
+  updatesCancel('settings');
+  out.cancel = [view('settings'), asked.length, updatesSaves()];
+  // 6b. Edit, then Sign up with the address as it stood: a Cancel, nothing sent
+  updatesEdit('settings');
+  const before6 = asked.length;
+  await updatesSignUp('settings');
+  out.same = [asked.length - before6, view('settings').edit, view('settings').field];
+  // 7. Save with a new address while editing sends it
+  updatesEdit('settings');
   answer = { email: 'cy@example.org', sent: true };
-  $('set-updates-email').value = ' cy@example.org ';
+  $('upd-settings-email').value = ' cy@example.org ';
   const newSave = updatesSaves();
   await updatesSendSaved(newSave);
-  out.saveNew = [newSave, asked.slice(-1)[0], said.slice(), $('set-updates-said').textContent];
-  // 4d. an empty field is no sign-up and no refusal
-  $('set-updates-email').value = '  ';
-  out.saveEmpty = [updatesSaves(), updatesRefuse(updatesSaves())];
-  answer = { email: 'ada@example.org', sent: true };
-  // 5. a refusal from the server is its line, in the failure tint, and the button is back
-  answer = new Error('The sign-up could not be sent.');
-  $('set-updates-email').value = 'bo@example.org';
-  await updatesSignUp();
-  out.refused = [$('set-updates-said').textContent, $('set-updates-said').failed, $('set-updates-go').disabled];
-  // 6. Help's and About's item: About put away, Settings at General, the field focused
+  out.saveNew = [newSave, asked.slice(-1)[0], said.slice(), view('settings')];
+  // 8. Help's and About's item
   $('about').hidden = false;
   log.length = 0;
   window.idiographUpdates();
   out.open = log.slice();
   console.log(JSON.stringify(out));
 })();
+"""
+
+KNOWN = r"""
+const S = { libConfig: {}, data: null };
+const log = [];
+const els = {};
+const $ = (id) => els[id] || (els[id] = { id, hidden: false, value: '', textContent: '', dataset: { built: '1' }, attrs: {},
+  cls: {}, setAttribute(k, v) { this.attrs[k] = v; }, removeAttribute(k) { delete this.attrs[k]; },
+  classList: { toggle(c, on) { $(id).cls[c] = !!on; }, add() {} }, focus() { log.push('focus ' + id); },
+  scrollIntoView() {} });
+const t = (k) => k;
+const hide = () => {};
+const openSettings = () => {};
+__CODE__
+// a later visit: the settings say it has signed up
+updatesOpen({ updates_email: 'ada@example.org', updates_sent: true });
+updatesHome({});
+updatesWhatsNew();
+$('about').hidden = true;
+window.idiographUpdates();
+console.log(JSON.stringify([$('upd-settings-email').hidden, $('upd-settings-addr').textContent, $('upd-settings-go').hidden,
+  $('upd-settings-edit').hidden, $('upd-settings-said').textContent, $('upd-home').hidden, $('upd-whatsnew').hidden,
+  log.slice(-1)[0]]));
 """
 
 
@@ -164,7 +205,7 @@ def test_updates_email(scratch):
     try:
         check("451: the Worker's address is idiograph.app's route, the wording's version is the contract's, and the "
               "route is Idiograph's own, posted to and kept to its window",
-              kept[4] == "https://idiograph.app/api/updates/subscribe" and server_mod.UPDATES_CONSENT == "updates-2026-11-23"
+              kept[4] == "https://idiograph.app/api/updates/subscribe" and server_mod.UPDATES_CONSENT == "updates-2026-11-23-app"
               and server_mod.UPDATES_TIMEOUT == 15 and "/api/updates" in server_mod.POST_ONLY
               and "/api/updates" in server_mod.WINDOW_ONLY and server_mod.ROUTE_APP.get("/api/updates") == "idiograph"
               and server_mod.ROUTES.get("/api/updates") is server_mod.api_updates)
@@ -172,7 +213,7 @@ def test_updates_email(scratch):
                ("", "   ", None, "ada", "ada@", "@example.org", "ada@example", "a b@example.org", "ada@@example.org",
                 "x" * 250 + "@example.org", "ada@example.org\n.evil")]
         check("451: an address that is not one is refused in one line before anything is posted",
-              all(b == {"error": "That is not an email address. Check it and try again.", "status": 400} for b in bad)
+              all(b == {"error": "That is not an email address.", "code": "not_an_address", "status": 400} for b in bad)
               and not seen, str(bad[:3]))
         sent = server_mod.api_updates({"email": f"  {mail} ", "source": "site", "website": "x", "consent": "other"})
         call = seen[0] if seen else {"body": {}, "headers": {}}
@@ -180,7 +221,7 @@ def test_updates_email(scratch):
               "source and the honeypot empty, whatever the page adds, and no Origin header",
               sent == {"sent": True, "email": mail} and len(seen) == 1 and call.get("path") == "/api/updates/subscribe"
               and call["body"] == {"email": mail, "source": "app", "version": server_mod.VERSION,
-                                   "consent": "updates-2026-11-23", "website": ""}
+                                   "consent": "updates-2026-11-23-app", "website": ""}
               and "origin" not in call["headers"] and call["headers"].get("content-type") == "application/json"
               and call["headers"].get("user-agent") == f"Idiograph/{server_mod.VERSION}", str((sent, call)))
         held = json.loads(cfg_path.read_text(encoding="utf-8"))
@@ -198,7 +239,7 @@ def test_updates_email(scratch):
         before = len(seen)
         said = server_mod.api_updates({"email": "bo@example.org"})
         check("451: the Worker's own 400 is the same plain line, and no address is kept for it",
-              said == {"error": "That is not an email address. Check it and try again.", "status": 400}
+              said == {"error": "That is not an email address.", "code": "not_an_address", "status": 400}
               and len(seen) == before + 1 and server_mod.config().get("updates_email") == mail)
         mode["status"] = 503
         said = server_mod.api_updates({"email": "bo@example.org"})
@@ -233,59 +274,91 @@ def test_updates_email(scratch):
         except Exception:
             pass
 
-    # ── B. the page: Settings' field, Sign up and the item that opens it, in node
+    # ── B. the page: the one piece in Settings, on Home and in What's new, and the item that opens it, in node
     node = shutil.which("node")
     if not node:
-        skip("451: the page's Sign up and the item that opens Settings, in node", "node is not installed")
+        skip("451: the page's Your email and the item that opens Settings, in node", "node is not installed")
     else:
-        code = "\n".join([distil[distil.index("const UPDATES = "):distil.index("/* the project whose page the home screen shows")]])
-        script = "var window = {};\n" + HARNESS.replace("__CODE__", code)
-        ran = support.run_node(script, scratch, "a451-page.js")
+        code = distil[distil.index("const UPDATES = "):distil.index("/* the project whose page the home screen shows")]
+        ran = support.run_node("var window = {};\n" + HARNESS.replace("__CODE__", code), scratch, "a451-page.js")
         got = json.loads(ran.stdout.strip().splitlines()[-1]) if ran.returncode == 0 and ran.stdout.strip() else {}
-        check("451: opening Settings shows the address kept and an empty line, whatever mark an earlier session left, "
-              "and the address kept is no new sign-up for Save",
-              got.get("fresh") == ["", ""] and got.get("unsent") == ""
-              and got.get("kept") == ["ada@example.org", ""] and got.get("keptSave") == {"skip": True},
-              ran.stderr[-300:] or str(got))
-        check("451: a bad address is said plainly in the failure tint with the field focused, and nothing is asked",
-              got.get("bad", [1])[0] == 0 and got["bad"][1] == "distil.updates.not_an_address" and got["bad"][2] is True
-              and got["bad"][3] == "focus set-updates-email" and got["bad"][4] == "true", str(got.get("bad")))
-        check("451: Save with a typed address that is not one is refused (Settings stays open), the field marked invalid, "
-              "and nothing is asked; with an empty field it is neither",
-              got.get("saveBad") == [{"bad": True}, True, "true", 0] and got.get("saveEmpty") == [{"skip": True}, False],
-              str(got.get("saveBad")) + str(got.get("saveEmpty")))
-        check("451: Save with a new valid address sends it as Sign up does, trimmed, and says Check your email over the "
-              "screen behind; the address already sent is sent no second time",
-              got.get("saveNew", [0, 0, 0, 0])[0] == {"email": "cy@example.org"}
-              and got["saveNew"][1] == ["/api/updates", {"email": "cy@example.org"}]
-              and len(got["saveNew"][2]) == 1 and got["saveNew"][2][0].startswith("distil.updates.check_your_email")
-              and got["saveNew"][3].startswith("distil.updates.check_your_email")
-              and got.get("saveSame", [0, 0])[0] == {"skip": True}, str(got.get("saveNew")) + str(got.get("saveSame")))
-        check("451: a good one is asked of /api/updates with the address trimmed, and shows Check your email to confirm with "
-              "the address, which the card keeps on opening again",
-              got.get("good", [[]])[0] == [["/api/updates", {"email": "ada@example.org"}]]
-              and got["good"][1].startswith("distil.updates.check_your_email") and got["good"][2] is False
-              and got["good"][3] is False and got.get("again", ["", ""])[0] == "ada@example.org"
-              and got["again"][1].startswith("distil.updates.check_your_email") and got["again"][2] is None, str(got.get("good")))
-        check("451: a refusal is the server's line in the failure tint and Sign up is back",
-              got.get("refused") == ["The sign-up could not be sent.", True, False], str(got.get("refused")))
-        check("451: Help's and About's item puts About away and opens Settings at General with the field focused",
-              got.get("open") == ["hide about", "openSettings general", "focus set-updates-email", "scroll set-updates-email"],
+        fresh = {"field": True, "addr": None, "go": True, "edit": False, "cancel": False, "said": "", "failed": False,
+                 "invalid": None, "box": True}
+        check("451: a first visit shows the field with Sign up and no line in Settings, and the box on Home",
+              got.get("fresh") == [fresh, True], ran.stderr[-300:] or str(got.get("fresh")))
+        bad = got.get("bad", [1, {}, ""])
+        check("451: a bad address is said under the field in the warning tint, the field marked invalid and in front, "
+              "and nothing is asked",
+              bad[0] == 0 and bad[1].get("said") == "distil.updates.not_an_address" and bad[1].get("failed") is True
+              and bad[1].get("invalid") == "true" and bad[2] == "focus upd-settings-email", str(bad))
+        check("451: Save with a typed address that is not one is refused (Settings stays open) and nothing is asked",
+              got.get("saveBad") == [{"bad": True}, True, 0], str(got.get("saveBad")))
+        ref = got.get("refused", [{}, "", "", True])
+        check("451: a send that did not go through is said under the field in the warning tint, the field unmarked with "
+              "the address kept, Sign up in front and enabled",
+              ref[0].get("said") == "The sign-up could not be sent." and ref[0].get("failed") is True
+              and ref[0].get("invalid") is None and ref[0].get("field") is True and ref[1] == "bo@example.org"
+              and ref[2] == "focus upd-settings-go" and ref[3] is False, str(ref))
+        good = got.get("good", [None, {}, "", {}, True, None, None])
+        check("451: a good address is asked trimmed; the place it was sent from shows it as words with Edit, no Sign up, "
+              "and the line to check the email, Edit in front; Settings knows at once, its old failure line gone, What's new's box goes, and the "
+              "page's settings carry it",
+              good[0] == ["/api/updates", {"email": "ada@example.org"}]
+              and good[1] == {"field": False, "addr": "ada@example.org", "go": False, "edit": True, "cancel": False,
+                              "said": "distil.updates.sent", "failed": False, "invalid": None, "box": True}
+              and good[2] == "focus upd-home-edit" and good[3].get("addr") == "ada@example.org"
+              and good[3].get("said") == "" and good[3].get("failed") is False
+              and good[3].get("go") is False and good[4] is False and good[5] == "ada@example.org" and good[6] is True,
+              str(good))
+        aft = got.get("after", [True, {}])
+        check("451: Home drawn again shows no box, and Settings opened again in the page's life keeps the line",
+              aft[0] is False and aft[1].get("addr") == "ada@example.org" and aft[1].get("said") == "distil.updates.sent",
+              str(aft))
+        ed, ca = got.get("edit", [{}, "", None]), got.get("cancel", [{}, 0, None])
+        check("451: Edit makes the address a field again with Sign up and Cancel; Cancel puts it back as words and sends "
+              "nothing; the address unchanged is no sign-up for Save",
+              ed[0].get("field") is True and ed[0].get("go") is True and ed[0].get("cancel") is True
+              and ed[0].get("edit") is False and ed[1] == "ada@example.org" and ed[2] == {"skip": True}
+              and ca[0].get("field") is False and ca[0].get("addr") == "ada@example.org" and ca[1] == 3
+              and ca[2] == {"skip": True}, str(ed) + str(ca))
+        e4, sm = got.get("e400", [None, "", False, ""]), got.get("same", [1, False, True])
+        check("451: the Worker's own 400 marks the field as a bad address, the focus in it, the line heard once "
+              "(the status region off while the field is marked), and the error carries that it was said",
+              e4 == ["true", "focus upd-settings-email", True, "off"], str(e4))
+        check("451: Edit, then Sign up with the address unchanged is a Cancel: nothing sent, Edit back",
+              sm == [0, True, False], str(sm))
+        sn = got.get("saveNew", [None, None, [], {}])
+        check("451: Save with a new address while editing sends it as a new sign-up, trimmed, and says so over the "
+              "screen behind",
+              sn[0] == {"email": "cy@example.org"} and sn[1] == ["/api/updates", {"email": "cy@example.org"}]
+              and sn[2] == ["distil.updates.sent"] and sn[3].get("addr") == "cy@example.org", str(sn))
+        check("451: Help's and About's item puts About away and opens Settings at General with Edit in front once signed up",
+              got.get("open") == ["hide about", "openSettings general", "focus upd-settings-edit", "scroll upd-settings-edit"],
               str(got.get("open")))
+        ran = support.run_node("var window = {};\n" + KNOWN.replace("__CODE__", code), scratch, "a451-known.js")
+        known = json.loads(ran.stdout.strip().splitlines()[-1]) if ran.returncode == 0 and ran.stdout.strip() else []
+        check("451: a later visit knows from the settings it has signed up: the address as words with Edit, no Sign up, "
+              "no line, no box on Home or in What's new, and Help's item puts Edit in front",
+              known == [True, "ada@example.org", True, False, "", True, True, "focus upd-settings-edit"],
+              ran.stderr[-300:] or str(known))
 
     # ── C. the markup, the menus and the other apps
-    check("451: Settings, General has the field under Your name, the one line with the privacy link opened the way "
-          "About's links are, Sign up in its row and the line under them",
-          page.index('id="set-your-name"') < page.index('id="set-updates-email"') < page.index('id="set-updates-go"')
-          and 'type="email"' in page[page.index('id="set-updates-email"') - 80:page.index('id="set-updates-email"') + 120]
-          and 'href="https://idiograph.app/privacy" target="_blank" rel="noopener">Privacy</a>' in page
-          and "I send news of Idiograph and its new versions a few times a year. I never sell your address." in page
-          and 'aria-describedby="set-updates-why set-updates-said"' in page and 'id="set-updates-why"' in page
-          and page.index('id="set-updates-email"') < page.index('id="set-updates-go"') < page.index('id="set-updates-why"')
-          and '<div class="setting setting-updates">' in page
-          and "&nbsp;<a href=\"https://idiograph.app/privacy\"" in page
-          and "aria-invalid" in distil and "addEventListener('input'" in distil
-          and "Email for updates" in page and "updates_email" not in whole(distil, "function distilSettingsBody("))
+    family_page = support.text("family/static/page.html")
+    check("451: Settings, General has Your email's place under Your name, Home its box on the picker before the "
+          "projects, and What's new its box at its foot, Idiograph's alone; the piece says Your email, Sign up, Edit, "
+          "Cancel and the one why line with the privacy link opened the way About's links are",
+          page.index('id="set-your-name"') < page.index('id="upd-settings"')
+          and page.index('id="upd-home"') < page.index('id="home-analysis"')
+          and page.index('id="whatsnew-earlier"') < page.index('id="upd-whatsnew"') < page.index('id="whatsnew-done"')
+          and "<!--slot:whatsnew-foot-->" in family_page and 'id="upd-' not in family_page
+          and all('id="upd-' not in support.page_text(app=a) for a in ("sift", "trace"))
+          and "t('distil.updates.your_email')" in distil and "t('distil.updates.sign_up')" in distil
+          and "t('distil.updates.edit')" in distil and "t('distil.updates.cancel')" in distil
+          and "t('distil.updates.get_by_email')" in distil and "t('distil.updates.why')" in distil
+          and 'href="https://idiograph.app/privacy" target="_blank" rel="noopener"' in distil
+          and "I never sell" not in page and "Email for updates" not in page
+          and "aria-describedby=\"${id('said')} ${id('why')}\"" in distil
+          and "updates_email" not in whole(distil, "function distilSettingsBody("))
     check("451: About holds Get updates by email… for Idiograph alone, wired to the same item",
           'id="about-updates"' in support.text("family/static/page.html") and 'data-only="idiograph"' in
           support.text("family/static/page.html").split('id="about-updates"')[0][-120:]

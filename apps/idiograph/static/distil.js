@@ -2038,6 +2038,8 @@ function archivedFold() {
    section and Trace's, each drawn into its own place on the page, Sift's above Distil's. */
 function drawPick(data, sections) {
   foldable($('home-analysis'), $('analysis-head'), 'analysis');
+  // Get updates by email under the Preview note, until signed up (appup)
+  if (typeof updatesHome === 'function') updatesHome(data.config || S.libConfig);
   HOME_PROJECTS.clear();
   homeNamesKeep(sections);
   const cards = sections.map((s) => {
@@ -12799,102 +12801,264 @@ function distilSettingsCase() {
   return { path: S.data ? S.data.path : null, themes: false, project: project(), config: S.data ? S.data.config : {} };
 }
 
-/* Email for updates under Your name (updates-app, 23 November 2026): the address kept in the app's own settings, with
-   Sign up in the field's row. Sign up, or Save with a new address in the field, sends it at once through /api/updates,
-   and the line "Check your email to confirm" shows only in the session it went, never when Settings opens again.
-   `UPDATES` holds what this page last signed up, since the settings the card is opened from are snapshots taken before
-   it: `email` is the address as last sent (or as kept when Settings first opened), `sent` that it went in this session. */
-const UPDATES = { email: null, sent: false, busy: false };
+/* Updates by email (appup, 23 November 2026, Adam's word): one piece, drawn in three places, Settings' General under
+   Your name, Home under the Preview note and the foot of What's new, each the same row and the same behaviour. The
+   row is "Your email" with the field and Sign up beside it, the line under the field saying what happened, and under
+   them "I send news of Idiograph a few times a year." with the privacy page's link. On Home and in What's new it is
+   folded in a box, "Get updates by email", that opens to the row.
+   The app knows it has signed up, across restarts, from its own settings (`updates_email` with `updates_sent`): then
+   the address stands as words with Edit beside it, and no Sign up. Edit makes it a field again with Sign up and
+   Cancel, and an address sent from there is a new sign-up. Home and What's new show the box no more once signed up,
+   though one signed up from there keeps its done state in place until Home is drawn again or What's new closes.
+   An address that is not one, and a sign-up that did not go through, are said directly under the field, in the
+   warning tint, the field keeping the address for a retry; only an address that is not one marks the field invalid
+   (a send that failed is no fault of the field's, and Sign up takes the focus back for the retry). The Worker answers alike for every well-formed address, so the
+   app can never know an address is confirmed: right after Sign up the line says to check the email.
+   `UPDATES` is what the app knows: `email` the address kept or last sent (null until the settings are first read),
+   `sent` that it has signed up, `now` that it signed up in this page's life, `busy` while a sign-up is on its way.
+   `UPD_AT` is each place's own: whether it is being edited, its line and whether that is a failure, the field marked,
+   the box open, and `justNow` while a box keeps its done state. */
+const UPDATES = { email: null, sent: false, now: false, busy: false };
 const UPDATES_OK = /^[^@\s]+@[^@\s]+\.[^@\s.]+$/;
+const UPD_PLACES = { settings: 'upd-settings', home: 'upd-home', whatsnew: 'upd-whatsnew' };
+const UPD_AT = {};
 
-function updatesOpen(c) {
-  if (!$('set-updates-email')) return;
-  if (UPDATES.email === null) UPDATES.email = c.updates_email || '';
-  $('set-updates-email').value = UPDATES.email;
-  updatesBad(false);
-  updatesSaid(UPDATES.sent && UPDATES.email ? t('distil.updates.check_your_email', { email: UPDATES.email }) : '');
+const updAt = (where) => UPD_AT[where] || (UPD_AT[where] = { editing: false, said: '', failed: false, bad: false,
+  open: false, justNow: false });
+const updId = (where, part) => `upd-${where}-${part}`;
+const updSigned = () => !!(UPDATES.sent && UPDATES.email);
+
+/* what the app knows, from the settings as the page reads them, the first time it is given them */
+function updatesKnow(c, again = false) {
+  if (!c || UPDATES.busy || (UPDATES.email !== null && !again)) return;
+  const email = c.updates_email || '';
+  const sent = !!(c.updates_email && c.updates_sent);
+  const changed = UPDATES.email === null || email !== UPDATES.email || sent !== UPDATES.sent;
+  UPDATES.email = email;
+  UPDATES.sent = sent;
+  // known now, or known afresh: every place is drawn as things stand, so none offers Sign up after a sign-up
+  if (changed) updDrawAll();
 }
 
-function updatesSaid(text, failed = false) {
-  if ($('set-updates-said')) saidIn('set-updates-said', text, failed);
+/* one place's markup, once: the fold on Home and in What's new, then the row, the line and the why line */
+function updBuild(where) {
+  const host = $(UPD_PLACES[where]);
+  if (!host || host.dataset.built) return host;
+  host.dataset.built = '1';
+  const folded = where !== 'settings';
+  const id = (part) => updId(where, part);
+  host.classList.add('upd', folded ? 'upd-folded' : 'upd-inline');
+  host.innerHTML = (folded
+    ? `<h2 class="upd-h"><button type="button" class="upd-fold" id="${id('fold')}" aria-expanded="false" aria-controls="${id('body')}">`
+      + `<span>${esc(t('distil.updates.get_by_email'))}</span></button></h2>` : '')
+    + `<div class="upd-body" id="${id('body')}"${folded ? ' hidden' : ''}>`
+    + `<div class="upd-row"><label class="upd-label" for="${id('email')}" id="${id('label')}">${esc(t('distil.updates.your_email'))}</label>`
+    + '<div class="upd-col"><div class="upd-line">'
+    + `<input id="${id('email')}" type="email" autocomplete="email" spellcheck="false" autocapitalize="off" aria-describedby="${id('said')} ${id('why')}">`
+    + `<span class="upd-addr" id="${id('addr')}" hidden></span>`
+    + `<button type="button" class="ghost small upd-go" id="${id('go')}">${esc(t('distil.updates.sign_up'))}</button>`
+    + `<button type="button" class="ghost small upd-edit" id="${id('edit')}" aria-describedby="${id('label')} ${id('addr')}" hidden>${esc(t('distil.updates.edit'))}</button>`
+    + `<button type="button" class="ghost small upd-cancel" id="${id('cancel')}" hidden>${esc(t('distil.updates.cancel'))}</button>`
+    + '</div>'
+    + `<p class="upd-said" id="${id('said')}" role="status" aria-live="polite"></p></div></div>`
+    + `<p class="fineprint upd-why" id="${id('why')}">${esc(t('distil.updates.why'))}&nbsp;<a href="https://idiograph.app/privacy" target="_blank" rel="noopener">${esc(t('distil.updates.privacy'))}</a></p>`
+    + '</div>';
+  if (folded) $(id('fold')).onclick = () => { updAt(where).open = !updAt(where).open; updDraw(where); };
+  $(id('go')).onclick = () => updatesSignUp(where);
+  $(id('edit')).onclick = () => updatesEdit(where);
+  $(id('cancel')).onclick = () => updatesCancel(where);
+  const field = $(id('email'));
+  // Enter in the field signs up, as Sign up does, and never saves a card behind; Escape while editing an address
+  // already signed up puts the edit away and leaves the card open
+  field.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); updatesSignUp(where); }
+    else if (e.key === 'Escape' && updSigned() && updAt(where).editing) { e.preventDefault(); e.stopPropagation(); updatesCancel(where); }
+  });
+  // typing takes the line and the mark down
+  field.addEventListener('input', () => {
+    const at = updAt(where);
+    if (!at.said && !at.bad) return;
+    Object.assign(at, { said: '', failed: false, bad: false });
+    updDraw(where);
+  });
+  return host;
 }
 
-function updatesBad(on) {
-  const f = $('set-updates-email');
-  if (!f) return;
-  if (on) f.setAttribute('aria-invalid', 'true'); else f.removeAttribute('aria-invalid');
+/* one place as things stand */
+function updDraw(where) {
+  const host = updBuild(where);
+  if (!host) return;
+  const at = updAt(where);
+  const id = (part) => updId(where, part);
+  const signed = updSigned();
+  // Home and What's new hold it only until a sign-up, one made there keeping its done state in place
+  if (where !== 'settings') {
+    host.hidden = signed && !at.justNow;
+    $(id('fold')).setAttribute('aria-expanded', String(at.open));
+    host.classList.toggle('upd-open', at.open);
+    $(id('body')).hidden = !at.open;
+  }
+  const editing = !signed || at.editing;
+  const field = $(id('email'));
+  field.hidden = !editing;
+  $(id('addr')).hidden = editing;
+  $(id('addr')).textContent = signed ? UPDATES.email : '';
+  $(id('go')).hidden = !editing;
+  $(id('go')).disabled = UPDATES.busy;
+  $(id('edit')).hidden = editing;
+  $(id('cancel')).hidden = !(editing && signed);
+  if (at.bad) field.setAttribute('aria-invalid', 'true'); else field.removeAttribute('aria-invalid');
+  // a marked field takes the focus and reads the line as its description, so the status region stays quiet then and the line is heard once
+  $(id('said')).setAttribute('aria-live', at.bad ? 'off' : 'polite');
+  $(id('said')).textContent = at.said;
+  $(id('said')).classList.toggle('said-failed', !!(at.failed && at.said));
 }
 
-/* the address typed, trimmed, and whether it is one worth sending */
-function updatesTyped() {
-  const typed = $('set-updates-email') ? $('set-updates-email').value.trim() : '';
+const updDrawAll = () => Object.keys(UPD_PLACES).forEach((w) => updDraw(w));
+
+/* the address typed in a place, trimmed, and whether it is one worth sending */
+function updatesTyped(where) {
+  const f = $(updId(where, 'email'));
+  const typed = f ? f.value.trim() : '';
   return { typed, valid: UPDATES_OK.test(typed) };
 }
 
-/* sends the address, throwing what the server said so Save can leave Settings open on a refusal */
-async function updatesSend(email) {
+/* an address that is not one: said under the field, the field marked invalid and in front with the address kept */
+function updatesFailed(where, text, failed = true) {
+  Object.assign(updAt(where), { said: text, failed, bad: failed });
+  updDraw(where);
+  const f = $(updId(where, 'email'));
+  if (f && !f.hidden) f.focus();
+}
+
+/* sends the address from a place, throwing what the server said so Save can leave Settings open on a refusal */
+async function updatesSend(where, email) {
   UPDATES.busy = true;
-  $('set-updates-go').disabled = true;
-  updatesSaid('');
+  Object.assign(updAt(where), { said: '', failed: false, bad: false });
+  updDrawAll();
   try {
     const data = await api('/api/updates', { email });
     UPDATES.email = data.email || email;
     UPDATES.sent = true;
-    $('set-updates-email').value = UPDATES.email;
-    updatesSaid(t('distil.updates.check_your_email', { email: UPDATES.email }));
+    UPDATES.now = true;
+    // the page's copy of the settings knows it too, so Home drawn again leaves the box out
+    for (const c of [S.libConfig, S.data && S.data.config]) if (c) Object.assign(c, { updates_email: UPDATES.email, updates_sent: true });
+    // every other place drops what it last said and any edit, since the address is now this one
+    for (const w of Object.keys(UPD_PLACES)) Object.assign(updAt(w), { editing: false, said: '', failed: false, bad: false });
+    Object.assign(updAt(where), { editing: false, justNow: true, said: t('distil.updates.sent'), failed: false, bad: false });
   } catch (err) {
-    updatesSaid(needsRestart(err) ? RESTART_LINE : err.message, !needsRestart(err));
+    const restart = needsRestart(err);
+    // a sign-up that did not go through is no fault of the field's: the line under it says so in the warning tint,
+    // the field left unmarked with the address kept, and the focus back on Sign up for a retry
+    const notAddress = !restart && err.code === 'not_an_address';
+    Object.assign(updAt(where), { said: restart ? RESTART_LINE : err.message, failed: !restart, bad: notAddress });
+    UPDATES.busy = false;
+    updDrawAll();
+    // an address the Worker does not take is the field's fault as the local check's is: marked, the focus in it
+    const target = $(updId(where, notAddress ? 'email' : 'go'));
+    if (target && !target.hidden) target.focus();
+    err.said = true;
     throw err;
   } finally {
     UPDATES.busy = false;
-    $('set-updates-go').disabled = false;
+    updDrawAll();
   }
+  // the done state takes focus to Edit, the button in the field's place
+  const edit = $(updId(where, 'edit'));
+  if (edit && !edit.hidden) edit.focus();
 }
 
-async function updatesSignUp() {
+async function updatesSignUp(where) {
   if (UPDATES.busy) return;
-  const { typed, valid } = updatesTyped();
-  if (!valid) {
-    updatesBad(true);
-    updatesSaid(t('distil.updates.not_an_address'), true);
-    $('set-updates-email').focus();
-    return;
-  }
-  updatesBad(false);
-  try { await updatesSend(typed); } catch { /* said under the field */ }
+  const { typed, valid } = updatesTyped(where);
+  // Edit, then Sign up or Enter with the address as it stood, is a Cancel: no new sign-up and no email
+  if (updSigned() && updAt(where).editing && typed === UPDATES.email) { updatesCancel(where); return; }
+  if (!valid) { updatesFailed(where, t('distil.updates.not_an_address')); return; }
+  try { await updatesSend(where, typed); } catch { /* said under the field, the focus on Sign up */ }
 }
 
-/* Save's part (FAMILY_APPS.idiograph settingsSends, settingsRefuse and settingsSend): a typed address that is not one
-   keeps Settings open and says so, a new valid one is sent as Sign up sends it, and an empty field, or the address
-   already sent or kept, is no sign-up */
+/* Edit: the address a field again, with Sign up and Cancel */
+function updatesEdit(where) {
+  Object.assign(updAt(where), { editing: true, said: '', failed: false, bad: false });
+  updDraw(where);
+  const f = $(updId(where, 'email'));
+  f.value = UPDATES.email || '';
+  f.focus();
+  if (typeof f.select === 'function') f.select();
+}
+
+/* Cancel: back to the address as words, nothing sent */
+function updatesCancel(where) {
+  Object.assign(updAt(where), { editing: false, said: '', failed: false, bad: false });
+  updDraw(where);
+  const edit = $(updId(where, 'edit'));
+  if (edit) edit.focus();
+}
+
+/* Settings as it opens: what the settings say, Edit put away, and the line kept only for a sign-up made in this
+   page's life */
+function updatesOpen(c) {
+  if (!$(UPD_PLACES.settings)) return;
+  // read again as Settings opens, unless a sign-up is on its way
+  updatesKnow(c, true);
+  Object.assign(updAt('settings'), { editing: false, failed: false, bad: false, said: UPDATES.now ? t('distil.updates.sent') : '' });
+  updDraw('settings');
+  const f = $(updId('settings', 'email'));
+  if (f) f.value = updSigned() ? UPDATES.email : '';
+}
+
+/* Home drawn: the box under the Preview note until signed up, folded each time it comes back */
+function updatesHome(c) {
+  if (!$(UPD_PLACES.home)) return;
+  updatesKnow(c);
+  const at = updAt('home');
+  // drawn again: folded, the lines and the mark cleared, and the done state let go
+  if (!UPDATES.busy) Object.assign(at, { justNow: false, open: false, editing: false, said: '', failed: false, bad: false });
+  updDraw('home');
+}
+
+/* What's new opened or closed: its box at the foot, folded, until signed up */
+function updatesWhatsNew() {
+  if (!$(UPD_PLACES.whatsnew)) return;
+  updatesKnow(S.libConfig || (S.data && S.data.config));
+  Object.assign(updAt('whatsnew'), { justNow: false, open: false, editing: false, said: '', failed: false, bad: false });
+  updDraw('whatsnew');
+}
+
+/* Save's part (FAMILY_APPS.idiograph settingsSends, settingsRefuse and settingsSend): with the field in Settings
+   showing, a typed address that is not one keeps Settings open and says so, a new valid one is sent as Sign up sends
+   it, and an empty field, the address already signed up, or the address standing as words, is no sign-up */
 function updatesSaves() {
-  if (!$('set-updates-email')) return null;
-  const { typed, valid } = updatesTyped();
-  if (!typed || typed === UPDATES.email) return { skip: true };
+  const f = $(updId('settings', 'email'));
+  if (!f) return null;
+  if (f.hidden) return { skip: true };
+  const { typed, valid } = updatesTyped('settings');
+  if (!typed || (updSigned() && typed === UPDATES.email)) return { skip: true };
   return valid ? { email: typed } : { bad: true };
 }
 
 function updatesRefuse(sends) {
   if (!sends || !sends.bad) return false;
-  updatesBad(true);
-  updatesSaid(t('distil.updates.not_an_address'), true);
-  $('set-updates-email').focus();
+  updatesFailed('settings', t('distil.updates.not_an_address'));
   return true;
 }
 
 async function updatesSendSaved(sends) {
   if (!sends || !sends.email) return;
-  await updatesSend(sends.email);
-  say(t('distil.updates.check_your_email', { email: UPDATES.email }), 9000);
+  await updatesSend('settings', sends.email);  // a failure is said under the field and carries `said`, so Save adds no toast
+  say(t('distil.updates.sent'), 9000);
 }
 
-/* "Get updates by email…" in Help and in About: Settings at General with the address field in front */
+/* "Get updates by email…" in Help and in About: Settings at General with the field in front, or Edit when signed up */
 window.idiographUpdates = () => {
-  if (!$('set-updates-email')) return;
+  if (!$(UPD_PLACES.settings)) return;
   if (!$('about').hidden) hide('about');
   openSettings('general');
-  $('set-updates-email').focus();
-  $('set-updates-email').scrollIntoView({ block: 'center' });
+  const f = $(updId('settings', 'email'));
+  const target = f && !f.hidden ? f : $(updId('settings', 'edit'));
+  if (!target) return;
+  target.focus();
+  target.scrollIntoView({ block: 'center' });
 };
 
 /* the project whose page the home screen shows, its project and its GETs' workbook, or null on the
@@ -14405,13 +14569,10 @@ function distilBoot() {
   $('btn-ai').onclick = () => askAI();
   // Put away takes the answer down and brings the button back, so a second press asks afresh
   $('ai-close').onclick = () => resetAI();
-  $('set-updates-go').onclick = () => updatesSignUp();
-  // Enter in the field signs up, as Sign up does, and never saves the card
-  $('set-updates-email').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); updatesSignUp(); }
-  });
-  // editing the field takes the line down, and the invalid mark with it
-  $('set-updates-email').addEventListener('input', () => { updatesBad(false); updatesSaid(''); });
+  // updates by email in Settings and at What's new's foot, drawn once here, and on Home as Home is drawn (appup)
+  updBuild('settings');
+  updBuild('whatsnew');
+  if ($('whatsnew')) new MutationObserver(() => updatesWhatsNew()).observe($('whatsnew'), { attributes: true, attributeFilter: ['hidden'] });
   $('btn-prompt-reset').onclick = () => {
     if (S.promptDefault) { $('set-prompt').value = S.promptDefault; saidIn('key-said', ''); }
     else saidIn('key-said', RESTART_LINE);

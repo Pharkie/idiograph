@@ -23,6 +23,7 @@ CODES = {
     "unknown_op": "the route has no such op, so the server is older than the page that asked",
     "board_changed_outside": "the board changed in a conversation, so the canvas was kept in its History, not saved",
     "file_not_held": "the file a card sent earlier is no longer held, so it is to be sent whole again",
+    "not_an_address": "the updates sign-up's address is not one, as the page's own check or the Worker's 400 says, so the field is marked",
     "busy": "another write holds the files' lock, so nothing was written",
     "not_yours": "in a project worked on together another member works on that participant or GETs board",
     "replace_team": "a join would take the project out of its team into another, so it asks first and goes ahead on replace",

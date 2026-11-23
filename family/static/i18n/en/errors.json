@@ -30,7 +30,7 @@
   "errors.feedback_set_up_build": "Feedback is not set up in this build.",
   "errors.note_could_sent_check_connection": "The note could not be sent. Check the connection and try again.",
   "errors.note_could_sent_just_now": "The note could not be sent just now (HTTP {status}). Try again later.",
-  "errors.updates_email_invalid": "That is not an email address. Check it and try again.",
+  "errors.updates_email_invalid": "That is not an email address.",
   "errors.updates_set_up_build": "Updates by email are not set up in this build.",
   "errors.updates_could_not_send": "The sign-up could not be sent. Check the connection and try again.",
   "errors.updates_refused": "The sign-up could not be sent just now (HTTP {status}). Try again later.",
