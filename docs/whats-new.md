@@ -5,6 +5,10 @@ Newest first. Each version's notes are what the updater shows, eight lines at mo
 
 What goes here: only major new features and real changes to how something works, among them what your AI agents can do, and any change to safety, privacy or your data. One plain line each, saying what you can now do, not how the screen shows it. Never: changed wording, labels or layout, small fixes, or a feature's parts (its buttons, tabs, counts). Several changes to one feature are one line. A version with nothing major has one line, or none.
 
+## 0.9.37, 24 November 2026
+
+You can sign up for news of Idiograph by email, on Home, in What's new or in Settings, General.
+
 ## 0.9.36, 23 November 2026
 
 Home, opening a participant, the GETs board, the statements screen and moving cards on a board are faster, most of all in large projects.
