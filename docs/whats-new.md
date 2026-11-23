@@ -5,6 +5,11 @@ Newest first. Each version's notes are what the updater shows, eight lines at mo
 
 What goes here: only major new features and real changes to how something works, among them what your AI agents can do, and any change to safety, privacy or your data. One plain line each, saying what you can now do, not how the screen shows it. Never: changed wording, labels or layout, small fixes, or a feature's parts (its buttons, tabs, counts). Several changes to one feature are one line. A version with nothing major has one line, or none.
 
+## 0.9.36, 23 November 2026
+
+Home, opening a participant, the GETs board, the statements screen and moving cards on a board are faster, most of all in large projects.
+History writes far less to your project folder, so much less goes up to iCloud each time a statement or a board changes.
+
 ## 0.9.35, 22 November 2026
 
 The recording player has a speed control, from half speed to double, and keeps the speed you chose.
