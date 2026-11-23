@@ -9,7 +9,8 @@ and the read of the cases' marks leaves the times alone (`load(cited=False)`). E
 byte what the old way writes.
 
 What is checked, on two copies of the longitudinal demo as a fresh clone fills it, each worked on as a project of its
-own with the clock and the History's ids frozen alike, one the new way and one with the old way put back: the same
+own with the clock and the History's ids frozen alike and each file it writes given a time of its own (`Stamped`,
+so Windows's coarse clock reads as the Mac's), one the new way and one with the old way put back: the same
 series of writes, the app's statement edit on a board (a statement in an LGET at the last timepoint, one at the first,
 the same words again, one just added and so in no LGET), the agents' `turn write` (reworded in place, a statement
 added, the passage's statements moved, the added one removed) and the statements screen's save, on a participant
@@ -44,8 +45,8 @@ STAMP = re.compile(r"\d{8}-\d{4,6}(-\d+)?")
 ADDED = "An added statement for the check"
 
 
-def check(name, ok, detail=""):
-    said_check(name, bool(ok), "" if ok else str(detail)[:700])
+def check(name, ok, detail="", room: int = 700):
+    said_check(name, bool(ok), "" if ok else str(detail)[:room])
 
 
 def old_render(value, depth: int = 0, rows: bool = False) -> str:
@@ -121,21 +122,28 @@ def run_times(value, now: dict, rel: str = ""):
     return value
 
 
+# each digest's normalised text, so a failure can show what differs (`first_difference`)
+SHOWN: dict[str, str] = {}
+
+
+def kept(kind: str, text: str) -> str:
+    out = kind + hashlib.sha256(text.encode()).hexdigest()
+    SHOWN.setdefault(out, text)
+    return out
+
+
 def digest(p: Path, times: dict, now: dict | None = None) -> str:
     import agent_changes
     # a copy in a restore point is read inflated (restoresize, 21 November 2026), as the bytes it keeps
     data = agent_changes.read_object(p)
     if now is not None:
         run = run_times(json.loads(data.decode("utf-8")), now)
-        return "r" + hashlib.sha256(SHA.sub("<sha>", ISO.sub("<t>", json.dumps(run, sort_keys=True))).encode()).hexdigest()
+        return kept("r", SHA.sub("<sha>", ISO.sub("<t>", json.dumps(run, sort_keys=True, indent=1))))
     if p.suffix == ".xlsx" or data[:4] == b"PK\x03\x04":
         # a workbook part for part, its save time apart
-        h = hashlib.sha256()
         with zipfile.ZipFile(io.BytesIO(data)) as z:
-            for n in sorted(z.namelist()):
-                if n != "docProps/core.xml":
-                    h.update(n.encode() + b"\0" + z.read(n) + b"\0")
-        return "x" + h.hexdigest()
+            return kept("x", "".join(f"{n}: {hashlib.sha256(z.read(n)).hexdigest()}\n"
+                                     for n in sorted(z.namelist()) if n != "docProps/core.xml"))
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError:
@@ -143,7 +151,103 @@ def digest(p: Path, times: dict, now: dict | None = None) -> str:
     # a file's time in nanoseconds read as the file whose time it is now, so a copy's marks that follow their files
     # read otherwise than marks that do not; and a restore point's content addresses, which hash bytes holding them
     text = NS.sub(lambda m: f"<mtime {times.get(int(m.group(0)), '?')}>", ISO.sub("<t>", text))
-    return "t" + hashlib.sha256(SHA.sub("<sha>", text).encode()).hexdigest()
+    return kept("t", SHA.sub("<sha>", text))
+
+
+STRING = re.compile(r'"((?:[^"\\]|\\.)*)"(\s*:)?')
+
+
+def masked(text: str) -> str:
+    """A file's normalised text with every string that is not a key, a placeholder or a file's name masked to its
+    length, so a failure shows no participant's words."""
+    def one(m):
+        body = m.group(1)
+        if m.group(2) or not body or re.fullmatch(r"(<[^<>]*>)+|[\w .&/-]*\.(xlsx|json|png|jpg)", body):
+            return m.group(0)
+        return f'"<{len(body)} chars>"'
+    return STRING.sub(one, text)
+
+
+def first_difference(new_steps: dict, old_steps: dict) -> str:
+    """The first step and file whose digests differ, with a short diff of the two normalised texts, words masked."""
+    import difflib
+    for step, files in new_steps.items():
+        olds = old_steps.get(step, {})
+        for f in sorted(set(files) | set(olds)):
+            a, b = olds.get(f), files.get(f)
+            if a == b:
+                continue
+            lines = difflib.unified_diff(masked(SHOWN.get(a, str(a))).splitlines(),
+                                         masked(SHOWN.get(b, str(b))).splitlines(), "old", "new", n=1, lineterm="")
+            return f"{step}: {f}\n" + "\n".join(list(lines)[:40])
+    return ""
+
+
+class Stamped:
+    """Every file a series writes given a time of its own, strictly after the last one given, so two files written
+    in one tick of a coarse clock (Windows's, about 15.6 ms) never share a time. A copy's marks are read as the file
+    whose time they are (`digest`), and a shared time read as whichever file comes last by path, so on Windows two
+    projects whose writes fell in different ticks read otherwise, a restore point's copy marks (CI run 45094697012,
+    23 November) and an LPETs file's `seen` (run 45099535206). A time is given as each write ends, in
+    `os.replace`, `locks.write_over`, `Path.write_text` and `write_bytes` and the agents' record's `append` (the
+    series' only other writes, a restore point's copies apart, which keep their file's time), so the app's own read
+    of the file's time after it, for a mark it keeps, sees it. A time is at least the file's own, so times keep
+    their order with the clock. Put back as they were on leaving."""
+
+    STEP = 1_000_000
+
+    def __init__(self):
+        self.last = 0
+
+    def stamp(self, target) -> None:
+        try:
+            st = os.stat(target)
+        except OSError:
+            return
+        if not os.path.isfile(target):
+            return
+        ns = max(st.st_mtime_ns // 100 * 100, self.last + self.STEP)
+        self.last = ns
+        os.utime(target, ns=(ns, ns))
+
+    def __enter__(self):
+        import agent_changes
+        import locks
+        self.locks, self.changes = locks, agent_changes
+        self.saved = (os.replace, locks.write_over, Path.write_text, Path.write_bytes, agent_changes.append)
+        real_replace, real_over, real_text, real_bytes, real_append = self.saved
+        held = self
+
+        def replace(src, dst, *a, **k):
+            real_replace(src, dst, *a, **k)
+            held.stamp(dst)
+
+        def write_over(target, *a, **k):
+            real_over(target, *a, **k)
+            held.stamp(target)
+
+        def write_text(path, *a, **k):
+            out = real_text(path, *a, **k)
+            held.stamp(path)
+            return out
+
+        def write_bytes(path, *a, **k):
+            out = real_bytes(path, *a, **k)
+            held.stamp(path)
+            return out
+
+        def append(root, *a, **k):
+            out = real_append(root, *a, **k)
+            held.stamp(agent_changes.record_path(root))
+            return out
+
+        (os.replace, locks.write_over, Path.write_text, Path.write_bytes,
+         agent_changes.append) = replace, write_over, write_text, write_bytes, append
+        return self
+
+    def __exit__(self, *exc):
+        (os.replace, self.locks.write_over, Path.write_text, Path.write_bytes, self.changes.append) = self.saved
+        return False
 
 
 def tree(root: Path) -> dict:
@@ -155,16 +259,15 @@ def tree(root: Path) -> dict:
     for p in files:
         rel = STAMP.sub("<stamp>", p.relative_to(root).as_posix())
         if rel.startswith(".idiograph-restore/objects/"):
-            # a copy's marks name the files whose times they are by the times the files hold now; on Windows's coarse
-            # clock (about 15 ms) two files written in one tick share a time, so which file a mark names, or
-            # whether a stale one matches a file at all, falls as the ticks do and differs between two projects
-            objects.append(digest(p, {} if sys.platform == "win32" else times))
+            # a copy's marks name the files whose times they are by the times the files hold now, each its own
+            # (`Stamped`), on Windows's coarse clock as on the Mac's
+            objects.append(digest(p, times))
             continue
         key, n = rel, 2
         while key in out:
             key, n = f"{rel}#{n}", n + 1
         out[key] = digest(p, times, now if rel.startswith(".idiograph-restore/runs/") else None)
-    out[".idiograph-restore/objects/*"] = "".join(sorted(objects))
+    out[".idiograph-restore/objects/*"] = kept("o", "\n".join(SHOWN.get(o, o) for o in sorted(objects)))
     return out
 
 
@@ -265,7 +368,7 @@ def test_lgets_fast(scratch: Path):
             answers: dict = {}
             old_way(old)
             try:
-                with Frozen() as clock:
+                with Frozen() as clock, Stamped():
                     routes.api_project({"root": str(root), "agents": True})
                     aligned(root, {"Hollis"})
 
@@ -362,7 +465,8 @@ def test_lgets_fast(scratch: Path):
         differ = {k: v for k, v in differ.items() if v}
         check("411: the same series of writes leaves every file of the two projects the same after each step, the new "
               "way and the old: the workbooks part for part, every board file, History chunk, copy and restore point",
-              len(new_steps) == len(old_steps) == 21 and not differ, differ or len(new_steps))
+              len(new_steps) == len(old_steps) == 21 and not differ,
+              f"{differ}\n{first_difference(new_steps, old_steps)}" if differ else len(new_steps), room=4000)
         check("411: and both answer every step the same", new_answers == old_answers,
               [k for k in new_answers if new_answers[k] != old_answers.get(k)])
 
