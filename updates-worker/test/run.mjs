@@ -99,7 +99,15 @@ let sesGate = null;        // a promise SES's answer waits on
 let sesThrows = false;     // the network fails instead of answering
 let onSend = null;         // runs while SES is answering
 const signatures = { checked: 0, bad: 0 };
+const graphql = [];        // every call to Cloudflare's analytics, as the Worker made it
+let gqlHandler = null;     // answers one: (variables) => the JSON body, or a Response
 globalThis.fetch = async (url, init = {}) => {
+  if (String(url) === 'https://api.cloudflare.com/client/v4/graphql') {
+    const body = JSON.parse(init.body);
+    graphql.push({ headers: init.headers, ...body });
+    const made = gqlHandler ? await gqlHandler(body.variables) : { data: { viewer: { accounts: [{ w: [], d: [] }] } } };
+    return made instanceof Response ? made : new Response(JSON.stringify(made), { status: 200 });
+  }
   const headers = init.headers || {};
   signatures.checked += 1;
   if (!sesSignatureHolds(String(url), headers, init.body || '')) signatures.bad += 1;
@@ -567,5 +575,315 @@ check('every request to SES carries a SigV4 signature over the very body sent, c
 check('nothing the Worker logged holds an address, and something was logged (SES\'s refusals)',
   logged.length > 0 && !logged.some((l) => l.includes('@')), JSON.stringify(logged.filter((l) => l.includes('@')).slice(0, 3)));
 check('no answer anywhere allows another origin', cors.every((c) => c === null), JSON.stringify(cors.filter(Boolean)));
+
+// ── the relay watch: the hourly cron reads the relay's analytics and emails only what needs a look
+{
+  const relaySecrets = { CF_ANALYTICS_TOKEN: 'made-up-analytics-value', CF_ACCOUNT_ID: 'made-up-account-id', ALERT_TO: 'operator@example.com' };
+  const mk = () => ({ DB: d1(), ...secrets, ...relaySecrets });
+  const rw = (e) => e.DB.raw.prepare('SELECT * FROM relay_watch ORDER BY key').all().map((r) => ({ ...r }));
+  const cron = async (e, expr = '5 * * * *') => {
+    const w = [];
+    await worker.scheduled({ cron: expr }, e, { waitUntil: (p) => w.push(p) });
+    await Promise.all(w);
+  };
+  const analytics = (rowsByDay) => async ({ s }) => {
+    const day = s.slice(0, 10);
+    const list = rowsByDay[day] || { w: [], d: [] };
+    const shape = (rs) => rs.map(([status, requests]) => ({ sum: { requests, errors: 0 }, dimensions: { status, date: day } }));
+    return { data: { viewer: { accounts: [{ w: shape(list.w || []), d: shape(list.d || []) }] } } };
+  };
+  const today = new Date(clock).toISOString().slice(0, 10);
+  const yesterday = new Date(clock - 24 * 3600 * 1000).toISOString().slice(0, 10);
+  const alerts = () => mail.filter((m) => m.body.Destination.ToAddresses[0] === 'operator@example.com');
+  const base = { [today]: { w: [['success', 500], ['clientDisconnected', 3]], d: [['success', 80]] } };
+
+  // baseline, a new error, and the next run
+  let e = mk();
+  gqlHandler = analytics({ ...base, [yesterday]: { w: [['exceededCpu', 2]] } });
+  let before = mail.length;
+  await cron(e);
+  check('the first hourly run ever is the baseline: what is there is kept as seen and nothing is emailed',
+    mail.length === before && graphql.length === 2 && rw(e).some((r) => r.key === '_baselined')
+    && rw(e).some((r) => r.key === `worker|exceededCpu|${yesterday}` && r.n === 2), JSON.stringify(rw(e)));
+  const asked = graphql.at(-1);
+  check('it asks for yesterday and today alone, one query a day, for the relay Worker and its Durable Objects, with the token as a bearer',
+    graphql.at(-2).variables.s === `${yesterday}T00:00:00Z` && asked.variables.s === `${today}T00:00:00Z`
+    && asked.variables.a === 'made-up-account-id' && asked.variables.e === new Date(clock).toISOString().replace(/\.\d{3}Z$/, 'Z')
+    && asked.query.includes('workersInvocationsAdaptive') && asked.query.includes('durableObjectsInvocationsAdaptiveGroups')
+    && (asked.query.match(/scriptName:"idiograph-relay"/g) || []).length === 2 && asked.query.includes('sum{requests errors}')
+    && asked.query.includes('dimensions{status date}') && asked.headers.authorization === 'Bearer made-up-analytics-value', JSON.stringify(asked.variables));
+  minutes(60);
+  gqlHandler = analytics({ ...base, [yesterday]: { w: [['exceededCpu', 2]] }, [today]: { ...base[today], d: [['success', 80], ['exception', 1]] } });
+  await cron(e);
+  const sent = alerts();
+  check('a new non-success sends one email to ALERT_TO, with its status, day and counts, and the next run with nothing new sends none',
+    sent.length === 1 && /exception on /.test(sent[0].body.Content.Simple.Body.Text.Data) && /durable objects: status exception on \d{4}-\d\d-\d\d, 1 new \(1 that day\)/.test(sent[0].body.Content.Simple.Body.Text.Data),
+    sent[0] && sent[0].body.Content.Simple.Body.Text.Data);
+  minutes(60);
+  await cron(e);
+  check('an error already seen is not emailed again', alerts().length === 1, String(alerts().length));
+  const one = sent[0].body;
+  const text = one.Content.Simple.Body.Text.Data;
+  check('the email is plain text from hello@idiograph.app in the configuration set, subject "Idiograph relay: errors on <day>", no HTML and no unsubscribe header',
+    one.FromEmailAddress === 'Idiograph <hello@idiograph.app>' && /^Idiograph relay: errors on \d{1,2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/.test(one.Content.Simple.Subject.Data)
+    && !one.Content.Simple.Body.Html && !one.Content.Simple.Headers, JSON.stringify(one.Content.Simple.Subject));
+  check('nothing in the email but counts, statuses, dates and the dashboard link, which holds no account id, and no address',
+    text.trim().split('\n').every((l) => /^(worker|durable objects): status \w+ on \d{4}-\d\d-\d\d, \d+ new \(\d+ that day\)$/.test(l)
+      || l === `Look at the Workers page of the dashboard, idiograph-relay: https://dash.cloudflare.com/?to=/:account/workers/services/view/idiograph-relay/production`)
+    && !text.includes('made-up-account-id') && !text.includes('@') && !text.includes('made-up-analytics-value'), text);
+
+  // hang-ups: 9 none, 10 one, 11 none
+  e = mk();
+  const hang = (n) => analytics({ [today]: { w: [['clientDisconnected', n]] } });
+  gqlHandler = hang(1);
+  await cron(e);
+  before = alerts().length;
+  const sentHang = [];
+  for (const n of [9, 10, 11]) {
+    minutes(60);
+    gqlHandler = hang(n);
+    const b = alerts().length;
+    await cron(e);
+    sentHang.push(alerts().length - b);
+  }
+  const hangMail = alerts().at(-1) || alerts()[before];
+  check('hang-ups: 9 in a day send nothing, 10 send one email, 11 send none', JSON.stringify(sentHang) === '[0,1,0]', JSON.stringify(sentHang));
+  check('the hang-up email says so in its subject and gives the day\'s total',
+    /^Idiograph relay: 10 hang-ups on \d{1,2} \w{3}$/.test(alerts()[before].body.Content.Simple.Subject.Data)
+    && /worker: 10 hang-ups \(clientDisconnected\) on \d{4}/.test(alerts()[before].body.Content.Simple.Body.Text.Data), JSON.stringify(hangMail && hangMail.body.Content.Simple));
+
+  // several incidents in one run make one email
+  e = mk();
+  gqlHandler = analytics({ [today]: { w: [['success', 5]] } });
+  await cron(e);
+  before = alerts().length;
+  minutes(60);
+  gqlHandler = analytics({ [today]: { w: [['exceededCpu', 2], ['exception', 1]], d: [['exception', 4]] } });
+  await cron(e);
+  check('every new incident of a run is in one email', alerts().length === before + 1
+    && alerts().at(-1).body.Content.Simple.Body.Text.Data.split('\n').filter((l) => /status/.test(l)).length === 3, String(alerts().length - before));
+
+  // three failures in a row
+  e = mk();
+  gqlHandler = analytics({});
+  await cron(e);
+  before = alerts().length;
+  gqlHandler = async () => new Response('{}', { status: 500 });
+  const failMail = [];
+  for (let i = 0; i < 4; i += 1) {
+    minutes(60);
+    const b = alerts().length;
+    await cron(e);
+    failMail.push(alerts().length - b);
+  }
+  check('three failed reads in a row send one email, the fourth none', JSON.stringify(failMail) === '[0,0,1,0]', JSON.stringify(failMail));
+  check('its subject says the watch cannot run', alerts().at(-1).body.Content.Simple.Subject.Data === "Idiograph relay watch: can't run",
+    alerts().at(-1).body.Content.Simple.Subject.Data);
+  gqlHandler = async () => ({ errors: [{ message: 'denied' }] });
+  await cron(e);
+  check('an answer carrying errors counts as a failed read too, and the count is kept in D1',
+    rw(e).find((r) => r.key === '_fails').n === 5 && alerts().length === before + 1, JSON.stringify(rw(e)));
+  gqlHandler = analytics({});
+  minutes(60);
+  await cron(e);
+  check('a successful run resets the failure count', rw(e).find((r) => r.key === '_fails').n === 0, JSON.stringify(rw(e)));
+  gqlHandler = async () => new Response('{}', { status: 500 });
+  const failAgain = [];
+  for (let i = 0; i < 3; i += 1) {
+    minutes(60);
+    const b = alerts().length;
+    await cron(e);
+    failAgain.push(alerts().length - b);
+  }
+  check('after a success three more failures send one email again', JSON.stringify(failAgain) === '[0,0,1]', JSON.stringify(failAgain));
+
+  // missing secrets
+  gqlHandler = analytics({});
+  for (const missing of ['CF_ANALYTICS_TOKEN', 'CF_ACCOUNT_ID', 'ALERT_TO']) {
+    const bare = mk();
+    delete bare[missing];
+    const g = graphql.length;
+    const m = mail.length;
+    await cron(bare);
+    check(`with ${missing} missing the hourly run fetches nothing and keeps nothing`,
+      graphql.length === g && mail.length === m && rw(bare).length === 0, JSON.stringify(rw(bare)));
+  }
+
+  // the two crons keep to their own work
+  e = mk();
+  e.DB.raw.prepare("INSERT INTO subscribers (email, status, consent, created_at) VALUES ('old@example.com', 'pending', 'c', ?)").run(new Date(clock - 9 * 24 * 3600 * 1000).toISOString());
+  const g0 = graphql.length;
+  await cron(e, '17 3 * * *');
+  check('the daily cron runs the clear-up alone: the old pending row goes and no analytics are read',
+    rows(e).length === 0 && graphql.length === g0 && rw(e).length === 0, JSON.stringify(rows(e)));
+  e.DB.raw.prepare("INSERT INTO subscribers (email, status, consent, created_at) VALUES ('old@example.com', 'pending', 'c', ?)").run(new Date(clock - 9 * 24 * 3600 * 1000).toISOString());
+  await cron(e, '5 * * * *');
+  check('the hourly cron runs the relay check alone: the old pending row stays and the analytics are read',
+    rows(e).length === 1 && graphql.length === g0 + 2, `${rows(e).length} ${graphql.length - g0}`);
+
+  // old days are pruned
+  e = mk();
+  const dayBefore = new Date(clock - 24 * 3600 * 1000).toISOString().slice(0, 10);
+  const dayNow = new Date(clock).toISOString().slice(0, 10);
+  const putOld = e.DB.raw.prepare('INSERT INTO relay_watch (key, n, day) VALUES (?, ?, ?)');
+  putOld.run('worker|exception|2026-11-20', 3, '2026-11-20');
+  putOld.run(`worker|exception|${dayBefore}`, 1, dayBefore);
+  putOld.run('_baselined', 1, '');
+  gqlHandler = analytics({ [dayBefore]: { w: [['exception', 1]] } });
+  await cron(e);
+  check('rows for days before yesterday are deleted by the hourly run, and the markers are kept',
+    JSON.stringify(rw(e).map((r) => r.key).sort()) === JSON.stringify(['_baselined', '_fails', `worker|exception|${dayBefore}`].sort()), JSON.stringify(rw(e)));
+
+  clock = Date.parse(`${today}T09:00:00Z`);   // the earlier checks moved the clock on
+  // review fixes: a refused send keeps nothing, then a success sends once and keeps
+  e = mk();
+  gqlHandler = analytics({ [today]: { w: [['success', 5]] } });
+  await cron(e);
+  gqlHandler = analytics({ [today]: { w: [['exceededCpu', 1]] } });
+  const refused = [];
+  for (const [answer, throws] of [[500, false], [200, true], [200, false], [200, false]]) {
+    sesAnswer = answer;
+    sesThrows = throws;
+    minutes(60);
+    const b = alerts().length;
+    await cron(e);
+    refused.push([alerts().length - b + (throws ? 1 : 0), rw(e).some((r) => r.key === `worker|exceededCpu|${today}`)]);
+  }
+  sesAnswer = 200;
+  sesThrows = false;
+  check('a refused or thrown send leaves its counts unseen so the next run tries again; the send that goes through keeps them and sends once',
+    JSON.stringify(refused) === '[[1,false],[1,false],[1,true],[0,true]]', JSON.stringify(refused));
+
+  // 10, 8, 10 hang-ups send one email
+  e = mk();
+  gqlHandler = hang(1);
+  await cron(e);
+  const wobble = [];
+  for (const n of [10, 8, 10]) {
+    minutes(60);
+    gqlHandler = hang(n);
+    const b = alerts().length;
+    await cron(e);
+    wobble.push(alerts().length - b);
+  }
+  check('sampling that reads 10, then 8, then 10 hang-ups emails once, since a seen count never goes down',
+    JSON.stringify(wobble) === '[1,0,0]' && rw(e).find((r) => r.key === `worker|clientDisconnected|${today}`).n === 10, JSON.stringify(wobble));
+
+  // the window of a past day ends at its next midnight, left out
+  e = mk();
+  gqlHandler = analytics({});
+  await cron(e);
+  const yq = graphql.at(-2);
+  check('yesterday\'s window ends at today\'s 00:00:00Z with datetime_lt, so midnight is counted once, and today\'s ends now',
+    yq.variables.e === `${today}T00:00:00Z` && yq.query.includes('datetime_lt:$e') && !yq.query.includes('datetime_leq')
+    && graphql.at(-1).variables.e === new Date(clock).toISOString().replace(/\.\d{3}Z$/, 'Z'), JSON.stringify(yq.variables));
+
+  // an error that keeps happening: 2 emails, 3 does not, 4 does
+  e = mk();
+  gqlHandler = analytics({ [today]: { w: [['success', 5]] } });
+  await cron(e);
+  const repeat = [];
+  for (const n of [2, 3, 4, 5, 7]) {
+    minutes(60);
+    gqlHandler = analytics({ [today]: { w: [['exceededCpu', n]] } });
+    const b = alerts().length;
+    await cron(e);
+    repeat.push(alerts().length - b);
+  }
+  check('an error that keeps happening emails when first seen and again only when its day\'s count has doubled: 2, 3, 4, 5, 7 give 1, 0, 1, 0, 0',
+    JSON.stringify(repeat) === '[1,0,1,0,0]', JSON.stringify(repeat));
+
+  // D1 failing, or its table missing, three runs in a row: one email
+  mod.relayForget();
+  e = mk();
+  e.DB = { prepare() { throw new Error('d1 is down'); }, batch() { throw new Error('d1 is down'); } };
+  gqlHandler = analytics({});
+  const downMail = [];
+  for (let i = 0; i < 3; i += 1) {
+    minutes(60);
+    const b = alerts().length;
+    await cron(e);
+    downMail.push(alerts().length - b);
+  }
+  check('D1 failing three runs in a row sends the "can\'t run" email once, counted in memory', JSON.stringify(downMail) === '[1,0,0]'
+    && alerts().at(-1).body.Content.Simple.Subject.Data === "Idiograph relay watch: can't run", JSON.stringify(downMail));
+  e = mk();
+  gqlHandler = analytics({});
+  await cron(e);
+  mod.relayForget();
+  e = mk();
+  e.DB.raw.exec('DROP TABLE relay_watch');
+  const noTable = [];
+  for (let i = 0; i < 3; i += 1) {
+    minutes(60);
+    const b = alerts().length;
+    await cron(e);
+    noTable.push(alerts().length - b);
+  }
+  check('a missing relay_watch table counts as a failed run too: one email over three runs', JSON.stringify(noTable) === '[1,0,0]', JSON.stringify(noTable));
+  mod.relayForget();
+
+  // the "can't read" email: a refused send is tried again, a sent one is not repeated
+  e = mk();
+  gqlHandler = analytics({});
+  await cron(e);
+  gqlHandler = async () => new Response('{}', { status: 500 });
+  const failSend = [];
+  for (const answer of [200, 200, 500, 500, 200, 200]) {
+    sesAnswer = answer;
+    minutes(60);
+    const b = alerts().length;
+    await cron(e);
+    failSend.push(alerts().length - b);
+  }
+  sesAnswer = 200;
+  check('a refused "can\'t read" email is tried again the next run, and once sent it is not repeated',
+    JSON.stringify(failSend) === '[0,0,1,1,1,0]', JSON.stringify(failSend));
+
+  // the dry run's answer gives the reason for a failure, never the token
+  e = mk();
+  gqlHandler = async () => new Response('{}', { status: 502 });
+  let dr = await hit(new Request(`${host}/admin/relay-watch`, { method: 'POST', headers: { authorization: `Bearer ${secrets.ADMIN_TOKEN}` } }), e);
+  let drOut = await dr.json();
+  check('the dry run says why a read failed: the status', drOut.failed === true && /analytics answered 502/.test(drOut.reason), JSON.stringify(drOut));
+  gqlHandler = async () => ({ errors: [{ message: 'not authorised for this account' }, { message: 'second' }] });
+  dr = await hit(new Request(`${host}/admin/relay-watch`, { method: 'POST', headers: { authorization: `Bearer ${secrets.ADMIN_TOKEN}` } }), e);
+  drOut = await dr.json();
+  check('the dry run gives the first GraphQL error message, and never the token',
+    /not authorised for this account/.test(drOut.reason) && !/second/.test(drOut.reason) && !JSON.stringify(drOut).includes('made-up-analytics-value'), JSON.stringify(drOut));
+
+  // the test route
+  clock = Date.parse(`${today}T09:00:00Z`);
+  e = mk();
+  gqlHandler = analytics({ [today]: { w: [['exceededCpu', 2]] } });
+  const route = (query = '', token = secrets.ADMIN_TOKEN, ee = e) => hit(new Request(`${host}/admin/relay-watch${query}`, {
+    method: 'POST', headers: token === null ? {} : { authorization: `Bearer ${token}` },
+  }), ee);
+  const m1 = mail.length;
+  const g1 = graphql.length;
+  let rr = await route('', null);
+  const refusedNoToken = rr.status;
+  rr = await route('?send=test', 'wrong-token-value');
+  check('the test route needs the admin token, and without it reads nothing and sends nothing',
+    refusedNoToken === 401 && rr.status === 401 && mail.length === m1 && graphql.length === g1, `${refusedNoToken} ${rr.status}`);
+  rr = await route();
+  const out = await rr.json();
+  check('the test route answers JSON with what it read and what it would email, and keeps and sends nothing',
+    rr.status === 200 && out.ok === true && out.baseline === true && out.read['worker|exceededCpu|' + today] === 2
+    && mail.length === m1 && rw(e).length === 0, JSON.stringify(out));
+  rr = await route('?send=test');
+  const sentTest = alerts().at(-1);
+  check('?send=test sends one test email to ALERT_TO saying the relay watch works',
+    (await rr.json()).sent === true && mail.length === m1 + 1 && sentTest.body.Destination.ToAddresses[0] === 'operator@example.com'
+    && /relay watch can email you/.test(sentTest.body.Content.Simple.Body.Text.Data), JSON.stringify(sentTest && sentTest.body.Content.Simple));
+  sesAnswer = 500;
+  rr = await route('?send=test');
+  const refusedTest = rr.status;
+  sesAnswer = 200;
+  check('the test route answers 502 when SES refuses the test email', refusedTest === 502, String(refusedTest));
+  rr = await route('', secrets.ADMIN_TOKEN, { DB: d1(), ...secrets });
+  check('the test route says so when the relay watch secrets are not set', rr.status === 500, String(rr.status));
+  gqlHandler = null;
+}
 
 print(JSON.stringify(results));

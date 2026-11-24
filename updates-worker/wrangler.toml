@@ -11,9 +11,10 @@ routes = [
   { pattern = "www.idiograph.app/api/updates/*", zone_name = "idiograph.app" },
 ]
 
-# Pending sign-ups over 7 days old and the limits' rows over 2, cleared once a day.
+# Pending sign-ups over 7 days old and the limits' rows over 2, cleared once a day, and the relay watch
+# (the relay's errors, emailed to ALERT_TO) at minute 5 of every hour.
 [triggers]
-crons = ["17 3 * * *"]
+crons = ["17 3 * * *", "5 * * * *"]
 
 [vars]
 PUBLIC_URL = "https://idiograph.app/api/updates"
@@ -27,4 +28,5 @@ database_name = "idiograph-updates"
 database_id = "5e71e72f-943e-42c3-a8c3-a500f5aad43e"
 
 # Secrets, set with `wrangler secret put`, never written here: ADMIN_TOKEN, IP_SALT, UNSUB_SECRET,
-# CONFIRM_SALT, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY.
+# CONFIRM_SALT, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and for the relay watch CF_ANALYTICS_TOKEN,
+# CF_ACCOUNT_ID, ALERT_TO.

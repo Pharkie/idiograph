@@ -43,3 +43,14 @@ CREATE TABLE IF NOT EXISTS sends (
 CREATE INDEX IF NOT EXISTS sends_by_email ON sends (email_hash, at);
 CREATE INDEX IF NOT EXISTS sends_by_ip ON sends (ip_hash, at);
 CREATE INDEX IF NOT EXISTS sends_by_time ON sends (at);
+
+-- The relay watch's seen counts (worker.js, relayWatch), kept by the hourly cron. `key` is
+-- where|status|date (worker or project, the invocation's status, the UTC day) with `n` the non-success
+-- invocations seen that day, or one of two markers with an empty `day`: _baselined (the first run has
+-- been) and _fails (analytics queries failed this many runs in a row). Counts, statuses and dates only.
+-- The hourly run deletes rows for days before yesterday.
+CREATE TABLE IF NOT EXISTS relay_watch (
+  key TEXT PRIMARY KEY,
+  n   INTEGER NOT NULL,
+  day TEXT NOT NULL DEFAULT ''
+);

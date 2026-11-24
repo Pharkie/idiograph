@@ -22,6 +22,7 @@ own origin. It has no workers.dev address.
 | `POST /api/updates/unsubscribe?t=` | Deletes the row: the button, and RFC 8058's one-click from a mail program. |
 | `GET /api/updates/admin/count` | Counts only. Needs the admin token. |
 | `GET /api/updates/admin/recipients` | The confirmed addresses, each with its unsubscribe link, for the send script. Needs the admin token. |
+| `POST /api/updates/admin/relay-watch` | Runs the relay check once, without keeping or sending anything, and answers JSON with what it read from the analytics and the email it would send. With `?send=test` it sends one test email to `ALERT_TO` instead. Needs the admin token. For checking the watch after a deploy. |
 | `POST /api/updates/admin/delete` | `{"emails": [...]}`, at most 1000: deletes those rows (the suppression sweep), in ten statements of 100 sent as one D1 batch, inside the free plan's 50 queries an invocation. Needs the admin token. |
 
 ## What it keeps, and the limits
@@ -51,6 +52,45 @@ The form's hidden `website` field is a honeypot: when it is filled, nothing is k
 A cron, daily at 03:17 UTC, deletes pending rows over 7 days old (their link has run out) and
 `sends` rows over 2 days old.
 
+## The relay watch
+
+A second cron, hourly at minute 5 (`5 * * * *`), watches the relay Worker `idiograph-relay` so that no
+Claude session or Mac has to. `relayWatch` in worker.js asks Cloudflare's GraphQL analytics for the
+relay's Worker invocations and its Durable Objects' (`workersInvocationsAdaptive` and
+`durableObjectsInvocationsAdaptiveGroups`, summing requests by status and date), one query for
+yesterday and one for today in UTC (a longer range is sampled so coarsely that one hang-up reads as
+ten), and counts every status but `success` by where (`worker` or `durable objects`), status and day.
+Each day's window ends at the next day's 00:00:00Z, left out of it (`datetime_lt`), so midnight is counted
+once; today's ends now. The rules are those of the Mac script it replaces, `~/.claude/bin/relay-watch`,
+except the repeat rule for errors:
+
+- an email for a new non-success other than `clientDisconnected` when its day's count first appears, and
+  again only when that day's count has at least doubled since the last email for it (2, then 3 is quiet,
+  and 4 emails once more), so an error that keeps happening is quiet, not hourly;
+- an email when a day's `clientDisconnected` (the app hung up before the reply) reaches 10 having been
+  below, hang-ups under 10 being taken as seen without a word. A seen count never goes down, so
+  sampling that reads 10, then 8, then 10 sends one email;
+- the alert is sent before its counts are kept, and they are kept only when the send went through, so a
+  refused or failed send is tried again by the next hourly run;
+- the first run ever is the baseline and sends nothing;
+- when a run fails three in a row, one "can't run" email, saying why, marked as sent in D1, then none
+  until a run succeeds, which resets the count; a refused send is tried again the next run. A run fails
+  when the analytics cannot be read, or D1 cannot be read or written, or the `relay_watch` table is
+  missing. If D1 itself is down no count can be kept, so that email goes on the first such run and is
+  held back in memory afterwards (a fresh isolate may send it again);
+- at most one email a run, listing every new incident, plain text, from the same address as the
+  confirmation emails, to `ALERT_TO`, with no unsubscribe header. It holds counts, statuses and dates
+  and a link to the Workers page of the dashboard for `idiograph-relay`, and nothing about a visitor.
+
+The seen counts and the failure count are in the D1 table `relay_watch`; the hourly run deletes the rows
+for days before yesterday. With any of the three secrets below missing, the hourly run does nothing and
+fetches nothing. The daily cron runs the clear-up alone and the hourly one the relay check alone. The relay
+itself is not touched.
+
+What the Worker keeps is as the privacy page says: the relay watch adds a table of counts of the relay's
+failed requests by status and day, with no address, no hash and nothing else about anyone, and the
+emails it sends go to the operator alone.
+
 ## Setting it up, once
 
 Every command runs from this folder, with Wrangler logged in to Adam's account (`wrangler login`),
@@ -58,7 +98,10 @@ never with a `CLOUDFLARE_API_TOKEN` in the environment.
 
 1. `wrangler d1 create idiograph-updates --location weur`, in Western Europe, as the privacy page
    says. Its `database_id` is in `wrangler.toml` (not a secret).
-2. `wrangler d1 execute idiograph-updates --remote --file schema.sql`, which makes the two tables.
+2. `wrangler d1 execute idiograph-updates --remote --file schema.sql`, which makes the three tables
+   (`subscribers`, `sends` and `relay_watch`). Every statement is `CREATE … IF NOT EXISTS`, so it is
+   safe to run again on a database that has the first two, which is the step to repeat for the relay
+   watch.
 3. The secrets. Wrangler keeps them in Cloudflare; none goes in any file here.
    - `openssl rand -hex 32 | wrangler secret put ADMIN_TOKEN`, and the same value into the Mac's
      Keychain for the send script: `security add-generic-password -a claude-code -s idiograph-updates-admin-token -w`
@@ -69,7 +112,13 @@ never with a `CLOUDFLARE_API_TOKEN` in the environment.
    - `openssl rand -hex 32 | wrangler secret put CONFIRM_SALT`
    - `wrangler secret put AWS_ACCESS_KEY_ID` and `wrangler secret put AWS_SECRET_ACCESS_KEY`: the
      Worker's own send-only SES key, not the Mac's.
-4. `wrangler deploy`.
+   - For the relay watch: `security find-generic-password -s cloudflare-analytics-token -a claude-code -w | wrangler secret put CF_ANALYTICS_TOKEN`
+     (the Mac's read-only analytics token, never printed), `wrangler secret put CF_ACCOUNT_ID` (the
+     Cloudflare account's id, typed at the prompt, never written in a file) and `wrangler secret put ALERT_TO`
+     (the address the alerts go to).
+4. `wrangler deploy`, which also adds the hourly cron. Then check the watch: `POST` to
+   `https://idiograph.app/api/updates/admin/relay-watch` with the admin token shows what it reads and
+   what it would send, and adding `?send=test` sends one test email to `ALERT_TO`.
 5. Check that both hosts reach this Worker and not the site's. A made-up path answers this Worker's
    own 404 in JSON, where the site would answer a page:
 
@@ -141,8 +190,8 @@ release's own text between them, and ends with the person's own Stop these email
 
 | File | What it does |
 |---|---|
-| `worker.js` | The Worker: the routes above, the limits, the pages, the confirmation email, SigV4 signing for SES, and the cron. |
-| `wrangler.toml` | Names the Worker, its two routes, the cron, the D1 binding and the secrets it needs. |
-| `schema.sql` | The `subscribers` and `sends` tables and their indexes. |
+| `worker.js` | The Worker: the routes above, the limits, the pages, the confirmation email, SigV4 signing for SES, and the two crons (the daily clear-up and the hourly relay watch). |
+| `wrangler.toml` | Names the Worker, its two routes, the two crons, the D1 binding and the secrets it needs. |
+| `schema.sql` | The `subscribers`, `sends` and `relay_watch` tables and their indexes. |
 | `test/run.mjs` | The Worker's checks in node, with node's SQLite in place of D1 and nothing sent. |
 | `test/sigv4_vectors.json` | AWS's published SigV4 test vectors, which both signers are checked against. |

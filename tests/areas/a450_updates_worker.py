@@ -44,9 +44,10 @@ def test_updates_worker(scratch):
           'name = "idiograph-updates"' in toml and "workers_dev = false" in toml
           and '{ pattern = "idiograph.app/api/updates/*", zone_name = "idiograph.app" }' in toml
           and '{ pattern = "www.idiograph.app/api/updates/*", zone_name = "idiograph.app" }' in toml
-          and re.search(r'^crons = \["[^"]+"\]$', toml, flags=re.M) is not None
+          and re.search(r'^crons = \["17 3 \* \* \*", "5 \* \* \* \*"\]$', toml, flags=re.M) is not None
           and 'database_name = "idiograph-updates"' in toml and 'database_id = "5e71e72f-943e-42c3-a8c3-a500f5aad43e"' in toml)
-    secrets = ("ADMIN_TOKEN", "IP_SALT", "UNSUB_SECRET", "CONFIRM_SALT", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY")
+    secrets = ("ADMIN_TOKEN", "IP_SALT", "UNSUB_SECRET", "CONFIRM_SALT", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY",
+               "CF_ANALYTICS_TOKEN", "CF_ACCOUNT_ID", "ALERT_TO")
     # the shapes a pasted secret takes, each spelt with a class so this line never matches itself
     secretish = re.compile(r"[0-9a-f]{32,}|AK[I]A[0-9A-Z]{16}|sk[-]ant|Bearer [A-Za-z0-9]{20,}|(?:" + "|".join(secrets) + r')\s*=\s*"')
     shipped = ("worker.js", "wrangler.toml", "schema.sql", "README.md")
@@ -75,6 +76,6 @@ def test_updates_worker(scratch):
     if run.returncode != 0 or syntax.returncode != 0:
         return check("450: the Worker's checks run in node", False, (syntax.stderr + run.stderr).strip()[-400:])
     results = json.loads(run.stdout.strip().splitlines()[-1])
-    check("450: node ran the Worker's checks, every one of them", len(results) >= 51, str(len(results)))
+    check("450: node ran the Worker's checks, every one of them", len(results) >= 72, str(len(results)))
     for name, passed, detail in results:
         check(f"450: in node, {name}", passed, detail)

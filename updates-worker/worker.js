@@ -40,7 +40,16 @@
    The confirmation email goes through Amazon SES's v2 API, signed with AWS Signature Version 4 on
    WebCrypto below. Secrets, set with `wrangler secret put` and never written in a file: ADMIN_TOKEN,
    IP_SALT, UNSUB_SECRET, CONFIRM_SALT, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY. No cookies, no
-   analytics, no CORS. */
+   analytics, no CORS.
+
+     POST /api/updates/admin/relay-watch    runs the relay check once without keeping or sending anything
+                                    and answers what it read and what it would email; `?send=test`
+                                    sends one test email to ALERT_TO instead
+
+   The relay check (relayWatch below) runs hourly at minute 5 from the second cron. It reads Cloudflare's
+   analytics for the relay Worker idiograph-relay, counts, and emails ALERT_TO only when something needs
+   a look. It keeps counts, statuses and dates alone, in the relay_watch table. Secrets for it:
+   CF_ANALYTICS_TOKEN, CF_ACCOUNT_ID, ALERT_TO. */
 
 const PREFIX = '/api/updates';
 const MAX_BODY = 2048;             // bytes, a sign-up's or a form's whole body
@@ -60,6 +69,11 @@ const ORIGINS = ['https://idiograph.app', 'https://www.idiograph.app'];
 const SOURCES = ['site', 'app'];
 const FROM = 'Idiograph <hello@idiograph.app>';
 const CONFIGURATION_SET = 'idiograph';
+const RELAY_SCRIPT = 'idiograph-relay';
+const RELAY_HANGUPS = 10;          // a day's clientDisconnected from this many is worth an email
+const RELAY_FAILS = 3;             // analytics queries failing this many runs in a row give one email
+const RELAY_CRON = '5 * * * *';
+const RELAY_LINK = 'https://dash.cloudflare.com/?to=/:account/workers/services/view/idiograph-relay/production';
 
 const enc = new TextEncoder();
 const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -362,7 +376,7 @@ export async function sendEmail(env, to, { subject, text, html, headers = [] }) 
     Content: {
       Simple: {
         Subject: { Data: subject, Charset: 'UTF-8' },
-        Body: { Text: { Data: text, Charset: 'UTF-8' }, Html: { Data: html, Charset: 'UTF-8' } },
+        Body: { Text: { Data: text, Charset: 'UTF-8' }, ...(html ? { Html: { Data: html, Charset: 'UTF-8' } } : {}) },
         ...(headers.length ? { Headers: headers } : {}),
       },
     },
@@ -606,6 +620,204 @@ export async function clearUp(env, now = Date.now()) {
   return { pending: Number(pending?.meta?.changes || 0), sends: Number(sends?.meta?.changes || 0) };
 }
 
+/* ── The relay watch: the Mac script ~/.claude/bin/relay-watch, run in Cloudflare on the hourly cron.
+   It reads the relay's Worker and Durable Object invocations for yesterday and today, one query a day
+   (a longer range is sampled so coarsely that one hang-up reads as ten), keeps the non-success counts
+   by where, status and day, and says what is new against the counts it has seen. Counts, statuses and
+   dates only: nothing about a visitor is in the analytics, the table or the email. */
+
+const RELAY_QUERY = `query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){
+w:workersInvocationsAdaptive(limit:500,filter:{datetime_geq:$s,datetime_lt:$e,scriptName:"${RELAY_SCRIPT}"}){sum{requests errors} dimensions{status date}}
+d:durableObjectsInvocationsAdaptiveGroups(limit:500,filter:{datetime_geq:$s,datetime_lt:$e,scriptName:"${RELAY_SCRIPT}"}){sum{requests errors} dimensions{status date}}
+}}}`;
+
+const relayConfigured = (env) => Boolean(env.CF_ANALYTICS_TOKEN && env.CF_ACCOUNT_ID && env.ALERT_TO);
+const isoDay = (ms) => new Date(ms).toISOString().slice(0, 10);
+
+/* Non-success invocations keyed worker|status|date and durable objects|status|date. Throws when a query fails. */
+export async function relayRead(env, now = Date.now(), fetchFn = fetch) {
+  const out = {};
+  for (const day of [isoDay(now - DAY), isoDay(now)]) {
+    const start = `${day}T00:00:00Z`;
+    // a past day's window ends at the next day's 00:00:00Z, which datetime_lt leaves out, so that midnight
+    // is counted once, in the day it starts; today's window ends now
+    const end = new Date(Math.min(now, Date.parse(start) + DAY)).toISOString().replace(/\.\d{3}Z$/, 'Z');
+    const answer = await fetchFn('https://api.cloudflare.com/client/v4/graphql', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${env.CF_ANALYTICS_TOKEN}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ query: RELAY_QUERY, variables: { a: env.CF_ACCOUNT_ID, s: start, e: end } }),
+    });
+    if (!answer.ok) throw new Error(`analytics answered ${answer.status}`);
+    const data = await answer.json();
+    if (data.errors && data.errors.length) throw new Error(`analytics refused the query: ${String(data.errors[0].message || 'no reason given').slice(0, 200)}`);
+    const account = data.data.viewer.accounts[0];
+    for (const kind of ['w', 'd']) {
+      for (const row of account[kind] || []) {
+        const { status, date } = row.dimensions;
+        if (status === 'success') continue;
+        const key = `${kind === 'w' ? 'worker' : 'durable objects'}|${status}|${date}`;
+        out[key] = (out[key] || 0) + Number(row.sum.requests || 0);
+      }
+    }
+  }
+  return out;
+}
+
+/* What is new against the seen counts: the lines to email, and the counts to keep. A seen count never
+   goes down. A hang-up count is emailed once, when a day reaches the line. An error's seen count is the
+   count at its last email: it emails when the key first appears, and again only when the day's count has
+   at least doubled since. Each incident carries its key, so a send that fails can leave it unseen. */
+export function relayJudge(seen, counts) {
+  const incidents = [];
+  const keep = {};
+  for (const [key, n] of Object.entries(counts).sort()) {
+    const was = seen[key] || 0;
+    const [where, status, day] = key.split('|');
+    if (status === 'clientDisconnected') {
+      keep[key] = Math.max(was, n);
+      if (n >= RELAY_HANGUPS && was < RELAY_HANGUPS) incidents.push({ key, where, status, day, added: n - was, total: n, hangups: true });
+    } else if (n > 0 && (was === 0 || n >= 2 * was)) {
+      keep[key] = n;
+      incidents.push({ key, where, status, day, added: n - was, total: n, hangups: false });
+    } else if (was) {
+      keep[key] = was;
+    }
+  }
+  return { incidents, keep };
+}
+
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const niceDay = (day) => `${Number(day.slice(8, 10))} ${SHORT_MONTHS[Number(day.slice(5, 7)) - 1]}`;
+
+export function relayEmail(incidents) {
+  const days = [...new Set(incidents.map((i) => i.day))].sort().map(niceDay).join(' and ');
+  const errors = incidents.filter((i) => !i.hangups);
+  const subject = errors.length ? `Idiograph relay: errors on ${days}`
+    : `Idiograph relay: ${incidents.reduce((n, i) => n + i.total, 0)} hang-ups on ${days}`;
+  const lines = incidents.map((i) => (i.hangups
+    ? `${i.where}: ${i.total} hang-ups (clientDisconnected) on ${i.day}`
+    : `${i.where}: status ${i.status} on ${i.day}, ${i.added} new (${i.total} that day)`));
+  return { subject, text: `${lines.join('\n')}\nLook at the Workers page of the dashboard, idiograph-relay: ${RELAY_LINK}\n` };
+}
+
+/* Says why: the analytics (the CF_ANALYTICS_TOKEN secret, Cloudflare's status) or the relay_watch table. */
+export const relayFailEmail = (reason = 'no reason given', runs = RELAY_FAILS) => ({
+  subject: "Idiograph relay watch: can't run",
+  text: `The hourly check of the relay failed ${runs === 1 ? 'once' : `${runs} runs in a row`}. The last reason: ${reason}.\nLook at the Workers page of the dashboard, idiograph-relay: ${RELAY_LINK}\n`,
+});
+
+async function relayState(env) {
+  const { results } = await env.DB.prepare('SELECT key, n FROM relay_watch').bind().all();
+  const seen = {};
+  let fails = 0;
+  let baselined = false;
+  let failMailed = false;
+  for (const r of results || []) {
+    if (r.key === '_fails') fails = Number(r.n);
+    else if (r.key === '_baselined') baselined = true;
+    else if (r.key === '_failmail') failMailed = true;
+    else seen[r.key] = Number(r.n);
+  }
+  return { seen, fails, baselined, failMailed };
+}
+
+const relayPut = (env, key, n, day = '') => env.DB.prepare('INSERT OR REPLACE INTO relay_watch (key, n, day) VALUES (?, ?, ?)').bind(key, n, day);
+
+/* Held in memory for when the store itself cannot be read, so that no count of failed runs can be kept in
+   it: a store that cannot be read sends the "can't run" email on the first such run, and not again for as
+   long as this isolate lives (Cloudflare may start a fresh one, which would send it again). A good run
+   clears it. */
+let storeDownMailed = false;
+export const relayForget = () => { storeDownMailed = false; };
+
+/* A run that failed: the analytics could not be read, or the store could not be read or written. Three in
+   a row send one email, marked as sent, so a refused send is tried again and a sent one is not repeated
+   until a good run resets the count. */
+async function relayFailed(env, state, reason, dry) {
+  const fails = (state ? state.fails : 0) + 1;
+  let email = null;
+  if (state ? fails >= RELAY_FAILS && !state.failMailed : !storeDownMailed) email = relayFailEmail(reason, state ? fails : 1);
+  if (!dry) {
+    let sent = false;
+    if (email) {
+      try { sent = await sendEmail(env, env.ALERT_TO, email); } catch { sent = false; }
+      if (sent && !state) storeDownMailed = true;
+    }
+    if (state) {
+      try {
+        const writes = [relayPut(env, '_fails', fails)];
+        if (sent) writes.push(relayPut(env, '_failmail', 1));
+        await env.DB.batch(writes);
+      } catch { /* the store failed too: the next run counts again from what it can read */ }
+    }
+  }
+  return { ran: true, failed: true, reason, fails, email };
+}
+
+/* One hourly run. Does nothing, and fetches nothing, with a secret missing. With `dry`, keeps and sends
+   nothing and answers what it would. Answers { ran, read, baseline, email, fails } or, for a failed run,
+   { ran, failed, reason, fails, email }. The alert is sent first, and the incidents' counts are kept
+   only when the send went through, so a refused or thrown send is tried again by the next run. */
+export async function relayWatch(env, now = Date.now(), fetchFn = fetch, { dry = false } = {}) {
+  if (!relayConfigured(env)) return { ran: false };
+  let state;
+  try {
+    state = await relayState(env);
+  } catch {
+    return relayFailed(env, null, 'the relay_watch table could not be read', dry);
+  }
+  let counts;
+  try {
+    counts = await relayRead(env, now, fetchFn);
+  } catch (e) {
+    return relayFailed(env, state, String(e && e.message ? e.message : e).slice(0, 300), dry);
+  }
+  const writes = [];
+  const keepAll = (map) => Object.entries(map).forEach(([k, n]) => writes.push(relayPut(env, k, n, k.split('|')[2])));
+  let email = null;
+  let baseline = false;
+  let held = new Set();
+  if (!state.baselined) {
+    baseline = true;   // the first run ever: what is there now is the baseline
+    keepAll(counts);
+    writes.push(relayPut(env, '_baselined', 1));
+  } else {
+    const { incidents, keep } = relayJudge(state.seen, counts);
+    if (incidents.length) email = relayEmail(incidents);
+    if (!dry && email) {
+      let sent = false;
+      try { sent = await sendEmail(env, env.ALERT_TO, email); } catch { sent = false; }
+      if (!sent) held = new Set(incidents.map((i) => i.key));   // left unseen: the next run tries again
+    }
+    keepAll(Object.fromEntries(Object.entries(keep).filter(([k]) => !held.has(k))));
+  }
+  writes.push(relayPut(env, '_fails', 0));
+  writes.push(env.DB.prepare("DELETE FROM relay_watch WHERE key = '_failmail'").bind());
+  if (!dry) {
+    try {
+      await env.DB.batch(writes);
+      await env.DB.prepare("DELETE FROM relay_watch WHERE day != '' AND day < ?").bind(isoDay(now - DAY)).run();
+    } catch {
+      return relayFailed(env, state, 'the relay_watch table could not be written', dry);
+    }
+    relayForget();
+  }
+  return { ran: true, read: counts, baseline, email, fails: 0, held: held.size };
+}
+
+async function adminRelayWatch(request, env, url) {
+  if (!relayConfigured(env)) return refuse(500, 'setup');
+  if (url.searchParams.get('send') === 'test') {
+    const ok = await sendEmail(env, env.ALERT_TO, {
+      subject: 'Idiograph relay watch: test',
+      text: `This is a test. The relay watch can email you.\nLook at the Workers page of the dashboard, idiograph-relay: ${RELAY_LINK}\n`,
+    });
+    return json({ ok, sent: ok }, ok ? 200 : 502);
+  }
+  const done = await relayWatch(env, Date.now(), fetch, { dry: true });
+  return json({ ok: true, read: done.read || null, failed: Boolean(done.failed), reason: done.reason || null, baseline: Boolean(done.baseline), would_email: done.email || null });
+}
+
 const ROUTES = {
   'POST /subscribe': (request, env, url, ctx) => subscribe(request, env, ctx),
   'GET /confirm': (request, env, url) => confirmPage(env, url),
@@ -615,6 +827,7 @@ const ROUTES = {
   'GET /admin/count': (request, env) => adminCount(env),
   'GET /admin/recipients': (request, env) => adminRecipients(env),
   'POST /admin/delete': (request, env) => adminDelete(request, env),
+  'POST /admin/relay-watch': (request, env, url) => adminRelayWatch(request, env, url),
 };
 
 export default {
@@ -635,6 +848,6 @@ export default {
     }
   },
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(clearUp(env));
+    ctx.waitUntil(event.cron === RELAY_CRON ? relayWatch(env) : clearUp(env));
   },
 };
