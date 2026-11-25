@@ -5,7 +5,7 @@ Main Data or Participant Data is ever opened for writing. In a build, once, at t
     .venv/bin/python Tools/idiograph/tests/test_idiograph.py --changed
 
 which runs the areas the change touches, or pass `--area 158`, or `--area 157,158`, to run chosen
-areas alone, and `--app sift` (or idiograph, or trace) to run one app's areas and the shared ones. The full suite runs in the coordinator's train, by ./verify, which sets IDIOGRAPH_TRAIN=1
+areas alone, and `--app sift` (or idiograph, or trace) to run one app's areas and the shared ones. The full suite runs in the orchestrator's train, by ./verify, which sets IDIOGRAPH_TRAIN=1
 for its run, and on GitHub. `--train` asks for one. Anywhere else a run with no `--area` or
 `--changed` says so in one line and runs nothing.
 
@@ -603,14 +603,14 @@ def write_timings(path) -> None:
 # The variable ./verify sets for its own run of the suite, which makes that run a train's.
 TRAIN_ENV = "IDIOGRAPH_TRAIN"
 
-REFUSAL = ("The full suite runs in the coordinator's train, by ./verify. In a build, run "
+REFUSAL = ("The full suite runs in the orchestrator's train, by ./verify. In a build, run "
            "tests/test_idiograph.py --changed (or --area with the areas your change touches) once, at the end.")
 
 
 def train_reason(train: bool = False, env=None):
     """Why a run of every area may go ahead here, or None when it may not: `--train`, the gate's own
     run (./verify sets IDIOGRAPH_TRAIN=1 for it) or GitHub's (GITHUB_ACTIONS=true). Anywhere else the
-    full suite is the coordinator's train's (Adam, 18 October)."""
+    full suite is the orchestrator's train's (Adam, 18 October)."""
     env = os.environ if env is None else env
     if train:
         return "--train"
@@ -832,7 +832,7 @@ def main():
                          "guidance; given more than once, every one it names runs")
     ap.add_argument("--changed", action="store_true",
                     help="run the areas a change touches, from the files that differ from main")
-    ap.add_argument("--train", action="store_true", help="run every area, as the coordinator's train does")
+    ap.add_argument("--train", action="store_true", help="run every area, as the orchestrator's train does")
     ap.add_argument("--app", help="run the areas of one app, idiograph, sift or trace, and the shared ones, "
                                   "narrowing --area or --changed when given with them")
     ap.add_argument("--timings", help="write each area's seconds and checks to this file, slowest first")

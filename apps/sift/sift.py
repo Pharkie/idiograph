@@ -3769,7 +3769,7 @@ def condition_of(c: dict, raw, by: dict) -> dict | None:
 
 def form_field(folder, key=None, spec=None, tool: str = TOOL, wait: float | None = None, said: str = "field") -> dict:
     """One column of his set whole, under the lock (13 October, later), for Set up the form and the
-    coordinator's call: with no `key` a new one, else the one of that key, `spec` naming any of `name`,
+    orchestrator's call: with no `key` a new one, else the one of that key, `spec` naming any of `name`,
     `key`, `type`, `options`, `where`, `not_reported`, `when`, `section` and `from`, each left out kept as it
     stands, or for a new one its default, a field of the form offering Not reported. `key` is the field's
     key with or without `col_`, letters, digits and underscores, unique, by default the one its name
@@ -3899,7 +3899,7 @@ def form_field(folder, key=None, spec=None, tool: str = TOOL, wait: float | None
 
 def order_form(folder, sections, wait: float | None = None) -> dict:
     """The form's sections and fields in his order, under the lock (13 October, later), for the handles of
-    Set up the form and the coordinator's call: `sections` a list of `name` and `fields`, the keys of the
+    Set up the form and the orchestrator's call: `sections` a list of `name` and `fields`, the keys of the
     fields under that heading in order, with or without `col_`, a section of no name holding the fields
     before the first heading. A field named moves to the section it is named under, and one not named
     keeps its section after those named. A section left out goes when no field is in it. Like the table's

@@ -4849,7 +4849,7 @@ function sfFormBoot(box) {
    where it shows, Remove, then its key, Not reported, its section and the Sift column it starts from, the
    field and values it is shown for, and a choice list's choices. A section's heading has the handle,
    its name and Remove, its fields joining the section before it. Add a field and Add a section at the
-   foot. The same changes go through the form op the coordinator can call. */
+   foot. The same changes go through the form op the orchestrator can call. */
 function sfFcOpen() {
   if (!SF.table) return;
   sfFcDraw();

@@ -48,7 +48,7 @@ while it takes its snapshot, and by ./commit while it checks and commits, so a
 commit waits seconds for a run, never minutes.
 
 THE SHARED MAC. A full run shares Adam's Mac by the rule in
-~/.claude/coordinator-principles.md, "Sharing one Mac between fleets", as
+~/.claude/orchestrator-principles.md, "Sharing one Mac between fleets", as
 ~/.claude/bin/heavy does. Before it takes any lock, it waits as
 ~/.claude/machine-load/waiting/academy-<pid>.json. While a Harbour gate heads
 Harbour's queue, it waits with no time limit. Harbour marks its head
@@ -85,12 +85,12 @@ THE RULE BOTH SESSIONS FOLLOW: commit only through ./commit, never a bare git
 commit, and land code on a GREEN full gate, the train's. No warning to the other
 session is needed before a full gate.
 
-THE FULL GATE IS THE COORDINATOR'S TRAIN, about four a day and one before the
+THE FULL GATE IS THE ORCHESTRATOR'S TRAIN, about four a day and one before the
 hand-over (Adam, 18 October). A build finishes with its targeted check instead,
 once, at the end: Tools/idiograph/tests/test_idiograph.py --changed, or --area.
 The gate sets IDIOGRAPH_TRAIN=1 for the Idiograph suite, which runs every area in
 a train alone and skips itself anywhere else, and a suite that skipped itself
-here is RED with reason=idiograph-not-run. The coordinator runs the train in the
+here is RED with reason=idiograph-not-run. The orchestrator runs the train in the
 background:
 
     ./verify > .verify/last.log 2>&1 &
@@ -1533,7 +1533,7 @@ def check_participant_words_cached(view: View) -> tuple[bool, str, str | None]:
 def check_idiograph(view: View) -> tuple[bool, str, str | None]:
     """The snapshot's suite, its reference checks pointed at the real case data, and the
     real participant data linked in for the check that reads participants' words. The
-    full suite runs in the coordinator's train alone (Adam, 18 October), and this run is
+    full suite runs in the orchestrator's train alone (Adam, 18 October), and this run is
     one, so IDIOGRAPH_TRAIN=1 tells the suite so. Outside a train it skips itself."""
     tests = view.root / "tests"
     if not tests.is_dir():

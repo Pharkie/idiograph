@@ -7605,7 +7605,7 @@ and its highlights are never touched, and a workbook open in Excel is refused.
 ```
 
 A build checks the areas its change touches with `--changed`, or the areas it names with `--area`,
-once, at the end. The full suite runs in the coordinator's train, about four a day and one before the
+once, at the end. The full suite runs in the orchestrator's train, about four a day and one before the
 hand-over, by `./verify` at the repository's root (18 October). From the app's folder in a downloaded copy,
 `.venv\Scripts\python tests\test_idiograph.py` on Windows, and
 `.venv/bin/python tests/test_idiograph.py` from the repo root. `.github/workflows/windows-installer.yml`
@@ -9842,7 +9842,7 @@ Working together's relay (wtrelay, 8 November 2026, the spec's section 5) is a C
 
 **Testing.** Area 342 runs `relay/test/serve.mjs` (Miniflare, `cf: false`, a made-up key, a free loopback port, storage in memory) and drives it from Python, skipping without node, Miniflare or `cryptography`. One run takes the invite limit `wrangler.jsonc` deploys and the cards' `WT_POLL_MS`, and makes a minute of an invite and a join from one address against it, with two listeners on one key, a fourth socket, a `seen` above the top, the lead's list unchanged and changed past the day's, and one new project's call sent twice. Another run starts the relay as it was before relayopen (`relay/test/worker_v1.js`, `--script`) on a folder (`--persist`), makes a project with it, stops it, and starts the new worker on the same storage with smaller limits (`--test-limits`), for the old project kept working and each limit, the counter and the operator's routes. The next starts the old worker again on that storage, which is a rollback, and the last brings the alarm to seconds. Area 357 sends a recording end to end through it from team_sync, and areas 349 and 353 take in a version that came as a file, through the loopback, the relay and the shared folder. Nothing in the suite reaches Cloudflare.
 
-**Deploying** is the coordinator's, in two steps, and needs Wrangler's own login on Adam's account, never the DNS token: the `OPERATOR_KEY` secret set first, then step A, `relay/test/worker_v1.js` (the live code with an empty `Counter`) with the new `wrangler.jsonc`, which applies `v2` alone, then step B, the new worker, so a rollback to A crosses no class change. The pilot's computers are updated the same day. An R2 lifecycle rule deleting objects after 91 days backs up the alarm. The harness's deploy notes hold the steps.
+**Deploying** is the orchestrator's, in two steps, and needs Wrangler's own login on Adam's account, never the DNS token: the `OPERATOR_KEY` secret set first, then step A, `relay/test/worker_v1.js` (the live code with an empty `Counter`) with the new `wrangler.jsonc`, which applies `v2` alone, then step B, the new worker, so a rollback to A crosses no class change. The pilot's computers are updated the same day. An R2 lifecycle rule deleting objects after 91 days backs up the alarm. The harness's deploy notes hold the steps.
 
 ### Updates by email
 

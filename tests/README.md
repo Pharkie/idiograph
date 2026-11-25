@@ -19,7 +19,7 @@ than 20 areas carry, such as `app.js` or a class called `card`. `--area 158` run
 word, and with `--changed` it adds to that choice. The suite's own checks run after them every time,
 and the last lines give the time and count the passed, the failed and the skipped.
 
-The full suite runs in the coordinator's train, about four a day and one before the hand-over, by
+The full suite runs in the orchestrator's train, about four a day and one before the hand-over, by
 `./verify` at the repository root, which sets `IDIOGRAPH_TRAIN=1` for its run. GitHub's run, where
 `GITHUB_ACTIONS` is set, is a full one too, and `--train` asks for one. Anywhere else the file with no
 `--area` or `--changed` runs nothing and says so in one line, and the unittest case is skipped with

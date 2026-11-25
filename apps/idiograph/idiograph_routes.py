@@ -105,7 +105,7 @@ TA_THEMES_GUIDANCE = boot.resource("ta_themes_guidance.md")
 TA_CODES_GUIDANCE = boot.resource("ta_codes_guidance.md")
 SKIP_DIRS = {"Source", "_Archive", "Working", "_Process reports", "Photos"}
 
-# The app's own backups and the coordinator's copies: a stem ending in a parenthesised note that
+# The app's own backups and the orchestrator's copies: a stem ending in a parenthesised note that
 # starts `pre-` or `complete`, such as `(pre-trim)` or `(complete 30Sep26)`. They are never offered.
 BACKUP_STEM = re.compile(r"\((?:pre-|complete)[^()]*\)\s*$", re.IGNORECASE)
 DEMO_SHEET = "Initial"

@@ -253,7 +253,7 @@ def test_sift_form(scratch):
     sift.column(run, "remove", key="col_spare")
     check("129: a removed field with values keeps them in the log", lines()[-1]["values"] == {"K2": "only here"})
 
-    # ── F. the order, the sections and the coordinator's op
+    # ── F. the order, the sections and the orchestrator's op
     ordered = sift.order_form(run, [{"name": "", "fields": ["citation"]},
                                     {"name": "Appraisal", "fields": ["overall_rating", "markers_shown", "passages_shown"]},
                                     {"name": "Extraction", "fields": ["data_collection", "col_sample_alike"]}])
@@ -292,7 +292,7 @@ def test_sift_form(scratch):
         bad = refusal(lambda: api({"op": "form", "act": "rename"}))
     finally:
         server_mod.CONFIG_PATH, server_mod.ROOT_OVERRIDE, server_mod.STATE_MEMORY = kept
-    check("129: the form op the coordinator calls: list, a field set whole by one call with its key, a change of one part "
+    check("129: the form op the orchestrator calls: list, a field set whole by one call with its key, a change of one part "
           "keeping the rest, the order by another, read, remove, a value through the field op, and any other act refused",
           listed["ids"] == ["K1", "K2", "K3"] and listed["bench"] == ["K6", "K7", "K8"] and set_one["key"] == "col_software"
           and "software" in [f["plain_key"] for f in listed_after["fields"]]

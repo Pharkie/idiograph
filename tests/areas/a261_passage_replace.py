@@ -241,7 +241,7 @@ AGENT_OPS = {
     "/api/team-board": [("team", "boards"), ("team", "board-send"), ("team", "board-take"), ("team", "board-answer")],
 }
 
-# The routes with no op for an agent today, each a next build for the coordinator. A gap
+# The routes with no op for an agent today, each a next build for the orchestrator. A gap
 # closed comes off this list, and the check fails while one closed is still on it.
 KNOWN_GAPS = {}
 

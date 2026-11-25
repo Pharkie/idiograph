@@ -20,7 +20,7 @@ def test_project(scratch):
     page = support.page_text()
     js = support.text("family/static/shell.js", "apps/idiograph/static/distil.js")
 
-    # The live root's project file is the coordinator's to write, and the demo's is committed. Both
+    # The live root's project file is the orchestrator's to write, and the demo's is committed. Both
     # are compared by their stat before and after, and neither is ever opened here for writing.
     def stamp_of(p: Path):
         return (p.exists(), p.stat().st_mtime_ns, p.stat().st_size) if p.exists() else (False, 0, 0)

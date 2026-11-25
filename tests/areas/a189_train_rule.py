@@ -1,4 +1,4 @@
-"""Area 189: the full suite in the coordinator's train, a targeted check in a build (Adam, 18 October).
+"""Area 189: the full suite in the orchestrator's train, a targeted check in a build (Adam, 18 October).
 The entry point runs every area only in a train, `--train`, the gate's own run or GitHub's, and says
 what to run instead anywhere else, and `--changed` chooses the areas a change touches."""
 from __future__ import annotations
